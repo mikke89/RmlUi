@@ -1,0 +1,22 @@
+<rml>
+<head>
+	<link type="text/template" href="../../../assets/window.rml"/>
+	<link type="text/css" href="icon.rcss"/>
+	<title>Inventory</title>
+	<style>
+		body
+		{
+			width: 400px;
+			height: 300px;
+		}
+		
+		/* Hide the window icon. */
+        div#title_bar div#icon
+        {
+            display: none;
+        }
+	</style>
+</head>
+<body template="window">
+</body>
+</rml>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="BuildConfigurationDLLDebug"
+	InheritedPropertySheets="BuildConfigurationDebug.vsprops;BuildConfigurationDLL.vsprops"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		RuntimeLibrary="3"
+		PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;$(ProjectName)_EXPORTS"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		ProgramDatabaseFile="$(IntDir)\$(TargetName).pdb"
+	/>
+</VisualStudioPropertySheet>

@@ -1,0 +1,55 @@
+<rml>
+	<head>
+		<title>Help</title>
+		<link type="text/template" href="../../assets/window.rml" />
+		<style>
+			body
+			{
+				width: 50%;
+				height: 70%;
+				margin: auto;
+			}
+			
+			div#content
+			{
+				overflow-y: scroll;
+			}
+			
+			div#title_bar div#icon
+			{
+				icon-image-s: 128px 179px;
+				icon-image-t: 152px 191px;
+			}
+		</style>
+	</head>
+	<body template="window">
+		<h1>Story</h1>
+		<p>
+			One day, without warning, they came for us; endless waves of the invaders, numbers too vast to count, fresh from the Martian foundries. Earth's orbital defences took a heavy toll, but were inevitably overrun, buying enough time only for a single rocket ship to launch. The prototype X-42 'Defender'-class, not yet tested but piloted by the finest astronaut the Space Corps had to offer.
+		</p>
+		<p>
+			Do you have what it takes to defeat the invaders and save Earth?
+		</p>
+		<h1>The X-42</h1>
+		<p>
+			The culmination of <img src="help_defender.tga" style="float: left; margin: -6px -24px;" />decades of research and the pinnacle of Earth's technology, the X-42 'Defender' is the finest weapon mankind has to fight the alien menace. Equipped with the dual-layer ablative tridranium armour, low-velocity depleted-narconium chain-fed belt gun and state-of-the-art liquid-hydrangea turbo-thrusters, it is still going to be nearly impossible for its pilot to secure the safety of mankind.
+		</p>
+		<h1>The Invaders</h1>
+		<p>
+			The most numerous <img src="help_invader_rank1.tga" style="float: left; margin: -4px 0px;" />invader you'll face is a primitive drone that is primarily employed by its Martian overlords in the mines of Cydonia. It is large, ungainly and poorly-armed, so ill-suited to its new role as the backbone of the invasion fleet. However, whatever it lacks in pugilistic prowess it makes up for with numbers. Each drone is worth 10 points.
+		</p>
+		<p>
+			Behind the drones <img src="help_invader_rank2.tga" style="float: right; margin: -4px 0px;" />stand the formidable berserker units, encased in their zyterium battle-suits and wielding the dreaded Nimbus death-rods. A lone unit is no match for a skilled X-42 pilot, but in large groups they adopt complex flight patterns that can confuse even the best targetting computer. Pick them off and separate them when you can. Each berserker is worth 20 points.
+		</p>
+		<p>
+			The dreaded commander <img src="help_invader_rank3.tga" style="float: left; margin: -4px 0px;" />death-droids lie at the back of every Martian wave. Small, nimble and deadly, these ships are the true test of an X-42 pilot's abilities. Consider yourself warned, and watch out especially for their mind control attack! Each droid is worth 40 points.
+		</p>
+		<p>
+			Occasionally one of the <img src="help_invader_mothership.tga" style="float: right; margin: -6px -12px;" /> invasion motherships will drop into low-orbit to provide the Martian Overbrain with a close look at the progress of the battle; this is when they are most vulnerable, destroy them if you can! The loss of even a single mothership will be keenly felt by the fleet. The points value of each mothership is variable, depending on the seniority of its command synapse.
+		</p>
+		<p>
+			Destroy all the invaders in each wave before any get past your ship to invade Earth, unleash their deadly toxin and wipe out all of humanity!
+		</p>
+		<button onclick="goto main_menu">Back</button>
+	</body>
+</rml>

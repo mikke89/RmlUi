@@ -1,0 +1,51 @@
+<rml>
+	<head>
+		<title>Start Game</title>
+		<link type="text/template" href="../../assets/window.rml" />
+		<style>
+			body
+			{
+				width: 300px;
+				height: 225px;
+				
+				margin: auto;
+			}
+			
+			div#title_bar div#icon
+			{
+				icon-image-s: 230px 281px;
+				icon-image-t: 152px 191px;
+			}
+			
+			form div
+			{
+				width: 200px;
+				margin: auto;
+			}
+		</style>
+	</head>
+	<body template="window">
+		<form onsubmit="start">
+			<div>
+				<p>
+					Difficulty:<br />
+					<input type="radio" name="difficulty" value="easy" checked="true" /> Easy<br />
+					<input type="radio" name="difficulty" value="hard" /> Hard
+				</p>
+				<p>
+					Colour:<br />
+					<select name="colour">
+						<option value="233,116,81">Burnt Sienna</option>
+						<option value="127,255,0">Chartreuse</option>
+						<option value="21,96,189">Denim</option>
+						<option value="246,74,138">French Rose</option>
+						<option value="255,0,255">Fuschia</option>
+						<option value="218,165,32">Goldenrod</option>
+						<option selected value="255,255,240">Ivory</option>
+					</select>
+				</p>
+			</div>
+			<input type="submit">Start Game!</input>
+		</form>
+	</body>
+</rml>

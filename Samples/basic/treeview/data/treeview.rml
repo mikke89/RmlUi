@@ -1,0 +1,44 @@
+<rml>
+<head>
+	<link type="text/template" href="../../../assets/window.rml"/>
+	<title>Tree View</title>
+	<style>
+		body
+		{
+			width: 450px;
+			height: 400px;
+            
+            margin: auto;
+		}
+		
+		/* Hide the window icon. */
+        div#title_bar div#icon
+        {
+            display: none;
+        }
+        
+        datagridcell
+        {
+            text-align: left;
+        }
+        
+        datagridexpand
+        {
+            display: inline-block;
+            vertical-align: -3px;
+            margin-right: 2px;
+        }
+        
+        spacer
+        {
+            display: inline-block;
+            width: 25px;
+        }
+	</style>
+</head>
+<body template="window">
+    <datagrid source="file.root" style="height: 100%;">
+        <col fields="name, depth, #num_children" formatter="file" />
+    </datagrid>
+</body>
+</rml>

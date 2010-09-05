@@ -1,0 +1,18 @@
+<!-- Cursor document, used by the Ogre3D sample. -->
+<rml>
+	<head>
+		<style>
+			body
+			{
+				width: 12px;
+				height: 19px;
+				
+				<!-- Add a simple image decorator onto the body element. -->
+				cursor-decorator: image;
+				cursor-image: invader.tga 56px 212px 68px 231px;
+			}
+		</style>
+	</head>
+	<body>
+	</body>
+</rml>
