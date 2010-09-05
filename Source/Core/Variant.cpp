@@ -36,11 +36,11 @@ Variant::Variant()
 	data_block = NULL;
 	
 	// Make sure our object size assumptions fit inside the static buffer
-	//EMP_STATIC_ASSERT(sizeof(Quaternion) <= 16, Invalid_Size_Quaternion);
-	//EMP_STATIC_ASSERT(sizeof(Vector4f) <= 16, Invalid_Size_Vector4f);
-	//EMP_STATIC_ASSERT(sizeof(Vector4i) <= 16, Invalid_Size_Vector4i);
-	EMP_STATIC_ASSERT(sizeof(Colourb) <= 16, Invalid_Size_Colourb);
-	EMP_STATIC_ASSERT(sizeof(Colourf) <= 16, Invalid_Size_Colourf);
+	//ROCKET_STATIC_ASSERT(sizeof(Quaternion) <= 16, Invalid_Size_Quaternion);
+	//ROCKET_STATIC_ASSERT(sizeof(Vector4f) <= 16, Invalid_Size_Vector4f);
+	//ROCKET_STATIC_ASSERT(sizeof(Vector4i) <= 16, Invalid_Size_Vector4i);
+	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= 16, Invalid_Size_Colourb);
+	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= 16, Invalid_Size_Colourf);
 }
 
 Variant::Variant( const Variant& copy )
@@ -191,7 +191,7 @@ void Variant::ReleaseDataBlock()
 		return;
 
 	data_block->reference_count--;
-	EMP_ASSERT(data_block->reference_count >= 0);
+	ROCKET_ASSERT(data_block->reference_count >= 0);
 	if (data_block->reference_count == 0) 
 	{
 		delete data_block;
@@ -215,7 +215,7 @@ Variant::DataBlock::~DataBlock()
 void Variant::DataBlock::Clear() 
 {
 	// Should only clear when we have no references
-	EMP_ASSERT(reference_count == 0);
+	ROCKET_ASSERT(reference_count == 0);
 
 	// Free any allocated types.
 	switch (type) 

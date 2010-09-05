@@ -1,11 +1,27 @@
 /*
- * Copyright (c) 2006 - 2008
- * Wandering Monster Studios Limited
+ * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
- * Any use of this program is governed by the terms of Wandering Monster
- * Studios Limited's Licence Agreement included with this program, a copy
- * of which can be obtained by contacting Wandering Monster Studios
- * Limited at info@wanderingmonster.co.nz.
+ * For the latest information, see http://www.librocket.com
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  */
 
@@ -107,15 +123,15 @@ void GameLoop()
 	g_pd3dDevice->Present(NULL, NULL, NULL, NULL);
 }
 
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE EMP_UNUSED(instance_handle), HINSTANCE EMP_UNUSED(previous_instance_handle), char* EMP_UNUSED(command_line), int EMP_UNUSED(command_show))
+int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED(instance_handle), HINSTANCE ROCKET_UNUSED(previous_instance_handle), char* ROCKET_UNUSED(command_line), int ROCKET_UNUSED(command_show))
 #else
-int main(int EMP_UNUSED(argc), char** EMP_UNUSED(argv))
+int main(int ROCKET_UNUSED(argc), char** ROCKET_UNUSED(argv))
 #endif
 {
 	// Generic OS initialisation, creates a window and does not attach OpenGL.
-	if (!Shell::Initialise("../../Samples/basic/directx/") ||
+	if (!Shell::Initialise("../Samples/basic/directx/") ||
 		!Shell::OpenWindow("DirectX Sample", false))
 	{
 		Shell::Shutdown();
@@ -141,7 +157,7 @@ int main(int EMP_UNUSED(argc), char** EMP_UNUSED(argv))
 	Rocket::Core::Initialise();
 
 	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", EMP::Core::Vector2i(1024, 768));
+	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));
 	if (context == NULL)
 	{
 		Rocket::Core::Shutdown();

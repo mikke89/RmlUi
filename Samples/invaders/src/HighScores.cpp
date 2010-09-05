@@ -33,7 +33,7 @@ HighScores* HighScores::instance = NULL;
 
 HighScores::HighScores() : Rocket::Controls::DataSource("high_scores")
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -46,7 +46,7 @@ HighScores::HighScores() : Rocket::Controls::DataSource("high_scores")
 
 HighScores::~HighScores()
 {
-	EMP_ASSERT(instance == this);
+	ROCKET_ASSERT(instance == this);
 
 	SaveScores();
 

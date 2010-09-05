@@ -152,7 +152,7 @@ const ElementDataGrid::Column* ElementDataGrid::GetColumn(int column_index)
 {
 	if (column_index < 0 || column_index >= (int)columns.size())
 	{
-		EMP_ERROR;
+		ROCKET_ERROR;
 		return NULL;
 	}
 

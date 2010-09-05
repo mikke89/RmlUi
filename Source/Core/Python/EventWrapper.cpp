@@ -32,7 +32,7 @@ namespace Rocket {
 namespace Core {
 namespace Python {
 
-EventWrapper::EventWrapper(PyObject* _self, const char* type, const EMP::Core::Dictionary& parameters, bool interruptable) : Event(NULL, type, parameters, interruptable)
+EventWrapper::EventWrapper(PyObject* _self, const char* type, const Rocket::Core::Dictionary& parameters, bool interruptable) : Event(NULL, type, parameters, interruptable)
 {
 	self = _self;
 }
@@ -40,7 +40,7 @@ EventWrapper::EventWrapper(PyObject* _self, const char* type, const EMP::Core::D
 EventWrapper::~EventWrapper()
 {
 	// Little security check, ensure we're not being deleted incorrectly
-	EMP_ASSERT( self == NULL );
+	ROCKET_ASSERT( self == NULL );
 }
 
 void EventWrapper::SetTargetElement(Element* _target_element)

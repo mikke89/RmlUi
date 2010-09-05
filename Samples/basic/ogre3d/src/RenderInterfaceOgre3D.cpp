@@ -1,11 +1,27 @@
 /*
- * Copyright (c) 2006 - 2008
- * Wandering Monster Studios Limited
+ * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
- * Any use of this program is governed by the terms of Wandering Monster
- * Studios Limited's Licence Agreement included with this program, a copy
- * of which can be obtained by contacting Wandering Monster Studios
- * Limited at info@wanderingmonster.co.nz.
+ * For the latest information, see http://www.librocket.com
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  */
 
@@ -66,7 +82,7 @@ RenderInterfaceOgre3D::~RenderInterfaceOgre3D()
 }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
-void RenderInterfaceOgre3D::RenderGeometry(Rocket::Core::Vertex* EMP_UNUSED(vertices), int EMP_UNUSED(num_vertices), int* EMP_UNUSED(indices), int EMP_UNUSED(num_indices), Rocket::Core::TextureHandle EMP_UNUSED(texture), const EMP::Core::Vector2f& EMP_UNUSED(translation))
+void RenderInterfaceOgre3D::RenderGeometry(Rocket::Core::Vertex* ROCKET_UNUSED(vertices), int ROCKET_UNUSED(num_vertices), int* ROCKET_UNUSED(indices), int ROCKET_UNUSED(num_indices), Rocket::Core::TextureHandle ROCKET_UNUSED(texture), const Rocket::Core::Vector2f& ROCKET_UNUSED(translation))
 {
 	// We've chosen to not support non-compiled geometry in the Ogre3D renderer.
 }
@@ -134,7 +150,7 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceOgre3D::CompileGeometry(Rock
 }
 
 // Called by Rocket when it wants to render application-compiled geometry.
-void RenderInterfaceOgre3D::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const EMP::Core::Vector2f& translation)
+void RenderInterfaceOgre3D::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const Rocket::Core::Vector2f& translation)
 {
 	Ogre::Matrix4 transform;
 	transform.makeTrans(translation.x, translation.y, 0);
@@ -191,7 +207,7 @@ void RenderInterfaceOgre3D::SetScissorRegion(int x, int y, int width, int height
 }
 
 // Called by Rocket when a texture is required by the library.
-bool RenderInterfaceOgre3D::LoadTexture(Rocket::Core::TextureHandle& texture_handle, EMP::Core::Vector2i& texture_dimensions, const EMP::Core::String& source)
+bool RenderInterfaceOgre3D::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
 {
 	Ogre::TextureManager* texture_manager = Ogre::TextureManager::getSingletonPtr();
 	Ogre::TexturePtr ogre_texture = texture_manager->getByName(Ogre::String(source.CString()));
@@ -214,11 +230,11 @@ bool RenderInterfaceOgre3D::LoadTexture(Rocket::Core::TextureHandle& texture_han
 }
 
 // Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
-bool RenderInterfaceOgre3D::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const EMP::Core::byte* source, const EMP::Core::Vector2i& source_dimensions)
+bool RenderInterfaceOgre3D::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const Rocket::Core::byte* source, const Rocket::Core::Vector2i& source_dimensions)
 {
 	static int texture_id = 1;
 
-	Ogre::TexturePtr ogre_texture = Ogre::TextureManager::getSingleton().loadRawData(EMP::Core::String(16, "%d", texture_id++).CString(),
+	Ogre::TexturePtr ogre_texture = Ogre::TextureManager::getSingleton().loadRawData(Rocket::Core::String(16, "%d", texture_id++).CString(),
 																					 "Rocket",
 																					 Ogre::DataStreamPtr(new Ogre::MemoryDataStream((void*) source, source_dimensions.x * source_dimensions.y * sizeof(unsigned int))),
 																					 source_dimensions.x,

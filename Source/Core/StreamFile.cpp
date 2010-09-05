@@ -105,16 +105,16 @@ size_t StreamFile::Read(void* buffer, size_t bytes) const
 }
 
 // Write to the stream at the current position.
-size_t StreamFile::Write(const void* EMP_UNUSED(buffer), size_t EMP_UNUSED(bytes))
+size_t StreamFile::Write(const void* ROCKET_UNUSED(buffer), size_t ROCKET_UNUSED(bytes))
 {
-	EMP_ERROR;
+	ROCKET_ERROR;
 	return 0;
 }
 
 // Truncate the stream to the specified length.
-size_t StreamFile::Truncate(size_t EMP_UNUSED(bytes))
+size_t StreamFile::Truncate(size_t ROCKET_UNUSED(bytes))
 {
-	EMP_ERROR;
+	ROCKET_ERROR;
 	return 0;
 }
 

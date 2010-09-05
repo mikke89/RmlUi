@@ -29,7 +29,6 @@
 #include "TextureResource.h"
 #include "FontFaceHandle.h"
 #include "TextureDatabase.h"
-#include "TrialLogo.h"
 #include <Rocket/Core.h>
 
 namespace Rocket {
@@ -142,12 +141,6 @@ bool TextureResource::Load(RenderInterface* render_interface) const
 											 strtol(parameters[1].CString(), NULL, 16),
 											 atoi(parameters[2].CString()));
 			}
-		}
-		else if (protocol == "trial")
-		{
-			// The requested texture is the trial logo.
-			TrialLogo::GenerateTexture(data, dimensions);
-			delete_data = false;
 		}
 
 		// If texture data was generated, great! Otherwise, fallback to the LoadTexture() code and

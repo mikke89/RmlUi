@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include "ContextDocumentProxy.h"
-#include <EMP/Core/Python/NameIndexInterface.h>
-#include <EMP/Core/Python/Utilities.h>
+#include <Rocket/Core/Python/NameIndexInterface.h>
+#include <Rocket/Core/Python/Utilities.h>
 #include <Rocket/Core/Context.h>
 
 namespace Rocket {
@@ -56,7 +56,7 @@ public:
 class ContextDocumentNameAccessor
 {
 public:
-	ElementDocument* operator()(ContextDocumentProxy& proxy, const EMP::Core::String& name)
+	ElementDocument* operator()(ContextDocumentProxy& proxy, const Rocket::Core::String& name)
 	{
 		return proxy.context->GetDocument(name);
 	}
@@ -70,7 +70,7 @@ ContextDocumentProxy::ContextDocumentProxy(Context* _context)
 void ContextDocumentProxy::InitialisePythonInterface()
 {
 	python::class_< ContextDocumentProxy >("documentproxy", python::no_init)
-		.def(EMP::Core::Python::NameIndexInterface< ContextDocumentProxy, ContextDocumentLenAccessor, ContextDocumentIndexAccessor, ContextDocumentNameAccessor >())
+		.def(Rocket::Core::Python::NameIndexInterface< ContextDocumentProxy, ContextDocumentLenAccessor, ContextDocumentIndexAccessor, ContextDocumentNameAccessor >())
 		;
 }
 

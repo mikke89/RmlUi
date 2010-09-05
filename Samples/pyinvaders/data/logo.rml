@@ -1,0 +1,23 @@
+<rml>
+	<head>
+		<style>
+			body
+			{
+				width: 100%;
+				height: 100%;
+
+				z-index: -1;
+			}
+			
+			#rifm_logo
+			{
+				position: absolute;
+				left: 25px;
+				top: 25px;
+			}
+		</style>
+	</head>
+	<body id="logo">
+		<img id="rifm_logo" src="logo.tga" />
+	</body>
+</rml>

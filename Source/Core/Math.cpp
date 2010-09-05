@@ -144,7 +144,7 @@ ROCKETCORE_API int RoundDown(float value)
 // Efficiently truncates a floating-point value into an integer.
 ROCKETCORE_API int RealToInteger(float value)
 {
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 	int i;
 	_asm
 	{

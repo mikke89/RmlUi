@@ -109,7 +109,7 @@ float Decorator::ResolveProperty(const PropertyDictionary& properties, const Str
 	const Property* property = properties.GetProperty(name);
 	if (property == NULL)
 	{
-		EMP_ERROR;
+		ROCKET_ERROR;
 		return 0;
 	}
 
@@ -120,7 +120,7 @@ float Decorator::ResolveProperty(const PropertyDictionary& properties, const Str
 	if (property->unit & Property::NUMBER || property->unit & Property::PX)
 		return property->value.Get< float >();
 
-	EMP_ERROR;
+	ROCKET_ERROR;
 	return 0;
 }
 

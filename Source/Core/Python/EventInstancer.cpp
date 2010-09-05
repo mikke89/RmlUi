@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include <Rocket/Core/Event.h>
-#include <EMP/Core/Python/Utilities.h>
-#include <Rocket/Core/Python/EventWrapper.h>
+#include <Rocket/Core/Python/Utilities.h>
+#include "EventWrapper.h"
 #include "EventInstancer.h"
 
 namespace Rocket {
@@ -46,7 +46,7 @@ EventInstancer::~EventInstancer()
 	Py_DECREF( instancer );
 }
 
-Event* EventInstancer::InstanceEvent(Element* target, const EMP::Core::String& name, const EMP::Core::Dictionary& parameters, bool interruptable)
+Event* EventInstancer::InstanceEvent(Element* target, const Rocket::Core::String& name, const Rocket::Core::Dictionary& parameters, bool interruptable)
 {
 	EventWrapper* event = NULL;
 
@@ -71,7 +71,7 @@ Event* EventInstancer::InstanceEvent(Element* target, const EMP::Core::String& n
 		// Rebind the target element
 		if (instance)
 		{
-			event = python::extract<EventWrapper*>(EMP::Core::Python::Utilities::MakeObject(instance));
+			event = python::extract<EventWrapper*>(Rocket::Core::Python::Utilities::MakeObject(instance));
 			if (event)
 			{
 				event->SetTargetElement(target);
@@ -85,7 +85,7 @@ Event* EventInstancer::InstanceEvent(Element* target, const EMP::Core::String& n
 
 	if (!event)
 	{
-		EMP::Core::Python::Utilities::PrintError(true);
+		Rocket::Core::Python::Utilities::PrintError(true);
 	}
 
 	return event;

@@ -57,13 +57,13 @@ bool FontEffect::HasUniqueTexture() const
 }
 
 // Gets the effect to resize and reposition a glyph's bitmap.
-bool FontEffect::GetGlyphMetrics(Vector2i& EMP_UNUSED(origin), Vector2i& EMP_UNUSED(dimensions), const FontGlyph& EMP_UNUSED(glyph)) const
+bool FontEffect::GetGlyphMetrics(Vector2i& ROCKET_UNUSED(origin), Vector2i& ROCKET_UNUSED(dimensions), const FontGlyph& ROCKET_UNUSED(glyph)) const
 {
 	return false;
 }
 
 // Requests the effect to generate the texture data for a single glyph's bitmap.
-void FontEffect::GenerateGlyphTexture(byte* EMP_UNUSED(destination_data), const Vector2i& EMP_UNUSED(destination_dimensions), int EMP_UNUSED(destination_stride), const FontGlyph& EMP_UNUSED(glyph)) const
+void FontEffect::GenerateGlyphTexture(byte* ROCKET_UNUSED(destination_data), const Vector2i& ROCKET_UNUSED(destination_dimensions), int ROCKET_UNUSED(destination_stride), const FontGlyph& ROCKET_UNUSED(glyph)) const
 {
 }
 

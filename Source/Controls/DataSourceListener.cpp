@@ -42,27 +42,27 @@ DataSourceListener::~DataSourceListener()
 }
 
 // Notification of the destruction of an observed data source.
-void DataSourceListener::OnDataSourceDestroy(DataSource* EMP_UNUSED(data_source))
+void DataSourceListener::OnDataSourceDestroy(DataSource* ROCKET_UNUSED(data_source))
 {
 }
 
 // Notification of the addition of one or more rows to an observed data source's table.
-void DataSourceListener::OnRowAdd(DataSource* EMP_UNUSED(data_source), const Rocket::Core::String& EMP_UNUSED(table), int EMP_UNUSED(first_row_added), int EMP_UNUSED(num_rows_added))
+void DataSourceListener::OnRowAdd(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table), int ROCKET_UNUSED(first_row_added), int ROCKET_UNUSED(num_rows_added))
 {
 }
 
 // Notification of the removal of one or more rows from an observed data source's table.
-void DataSourceListener::OnRowRemove(DataSource* EMP_UNUSED(data_source), const Rocket::Core::String& EMP_UNUSED(table), int EMP_UNUSED(first_row_removed), int EMP_UNUSED(num_rows_removed))
+void DataSourceListener::OnRowRemove(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table), int ROCKET_UNUSED(first_row_removed), int ROCKET_UNUSED(num_rows_removed))
 {
 }
 
 // Notification of the changing of one or more rows from an observed data source's table.
-void DataSourceListener::OnRowChange(DataSource* EMP_UNUSED(data_source), const Rocket::Core::String& EMP_UNUSED(table), int EMP_UNUSED(first_row_changed), int EMP_UNUSED(num_rows_changed))
+void DataSourceListener::OnRowChange(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table), int ROCKET_UNUSED(first_row_changed), int ROCKET_UNUSED(num_rows_changed))
 {
 }
 
 // Notification of the change of all of the data of an observed data source's table.
-void DataSourceListener::OnRowChange(DataSource* EMP_UNUSED(data_source), const Rocket::Core::String& EMP_UNUSED(table))
+void DataSourceListener::OnRowChange(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table))
 {
 }
 

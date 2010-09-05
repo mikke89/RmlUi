@@ -44,7 +44,7 @@ XMLNodeHandlerTabSet::~XMLNodeHandlerTabSet()
 
 Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const Rocket::Core::String& name, const Rocket::Core::XMLAttributes& attributes)
 {
-	EMP_ASSERT(name == "tabset" ||
+	ROCKET_ASSERT(name == "tabset" ||
 			   name == "tabs" ||
 			   name == "tab" ||
 			   name == "panels" ||
@@ -129,7 +129,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 	return NULL;
 }
 
-bool XMLNodeHandlerTabSet::ElementEnd(Core::XMLParser* EMP_UNUSED(parser), const Rocket::Core::String& EMP_UNUSED(name))
+bool XMLNodeHandlerTabSet::ElementEnd(Core::XMLParser* ROCKET_UNUSED(parser), const Rocket::Core::String& ROCKET_UNUSED(name))
 {
 	return true;
 }

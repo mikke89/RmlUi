@@ -40,7 +40,7 @@ SystemInterface::~SystemInterface()
 {
 }
 
-bool SystemInterface::LogMessage(Log::Type EMP_UNUSED(logtype), const String& message)
+bool SystemInterface::LogMessage(Log::Type ROCKET_UNUSED(logtype), const String& message)
 {
 	// By default we just send a platform message
 	Log::PlatformMessage(message.CString());

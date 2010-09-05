@@ -48,7 +48,7 @@ namespace Rocket {
 namespace Controls {
 namespace Python {
 
-typedef Rocket::Core::STL::map< Rocket::Core::String, PyObject* > ClassDefinitions;
+typedef std::map< Rocket::Core::String, PyObject* > ClassDefinitions;
 ClassDefinitions class_definitions;
 
 void ElementInterface::InitialisePythonInterface()

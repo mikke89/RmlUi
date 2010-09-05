@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREPYTHONEVENTWRAPPER_H
 #define ROCKETCOREPYTHONEVENTWRAPPER_H
 
-#include <EMP/Core/Python/Python.h>
-#include <EMP/Core/Dictionary.h>
+#include <Rocket/Core/Python/Python.h>
+#include <Rocket/Core/Dictionary.h>
 #include <Rocket/Core/Event.h>
 
 namespace Rocket {
@@ -47,7 +47,7 @@ class EventInstancer;
 class EventWrapper : public Event
 {
 public:
-	EventWrapper(PyObject* self, const char* type, const EMP::Core::Dictionary& parameters, bool interruptable);
+	EventWrapper(PyObject* self, const char* type, const Rocket::Core::Dictionary& parameters, bool interruptable);
 	virtual ~EventWrapper();
 
 	/// Return the python script object associated with this element

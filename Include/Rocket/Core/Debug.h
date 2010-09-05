@@ -31,55 +31,55 @@
 #include <Rocket/Core/Header.h>
 
 // Define for breakpointing.
-#if defined (EMP_PLATFORM_WIN32)
-#define EMP_BREAK _asm { int 0x03 }
-#elif defined (EMP_PLATFORM_LINUX)
-#define EMP_BREAK asm ("int $0x03" )
-#elif defined (EMP_PLATFORM_MACOSX)
-#define EMP_BREAK _asm { int 0x03 }
+#if defined (ROCKET_PLATFORM_WIN32)
+#define ROCKET_BREAK _asm { int 0x03 }
+#elif defined (ROCKET_PLATFORM_LINUX)
+#define ROCKET_BREAK asm ("int $0x03" )
+#elif defined (ROCKET_PLATFORM_MACOSX)
+#define ROCKET_BREAK _asm { int 0x03 }
 #endif
 
-#define EMP_STATIC_ASSERT(cond, msg) typedef char msg[(cond) ? 1 : 0]
+#define ROCKET_STATIC_ASSERT(cond, msg) typedef char msg[(cond) ? 1 : 0]
 
-// Define the LT_ASSERT and EMP_VERIFY macros.
-#if 1 //!defined EMP_DEBUG
-#define EMP_ASSERT(x)
-#define EMP_ASSERTMSG(x, m)
-#define EMP_ERROR
-#define EMP_ERRORMSG(m)
-#define EMP_VERIFY(x) x
+// Define the LT_ASSERT and ROCKET_VERIFY macros.
+#if 1 //!defined ROCKET_DEBUG
+#define ROCKET_ASSERT(x)
+#define ROCKET_ASSERTMSG(x, m)
+#define ROCKET_ERROR
+#define ROCKET_ERRORMSG(m)
+#define ROCKET_VERIFY(x) x
 #else
 namespace Rocket {
 namespace Core {
 
 bool ROCKETCORE_API Assert(const char* message, const char* file, int line);
-#define EMP_ASSERT(x) \
+#define ROCKET_ASSERT(x) \
 if (!(x)) \
 { \
-	if (!Rocket::Core::Assert("EMP_ASSERT("#x")", __FILE__, __LINE__ )) \
+	if (!Rocket::Core::Assert("ROCKET_ASSERT("#x")", __FILE__, __LINE__ )) \
 	{ \
-		EMP_BREAK; \
+		ROCKET_BREAK; \
 	} \
 }
-#define EMP_ASSERTMSG(x, m)	\
+#define ROCKET_ASSERTMSG(x, m)	\
 if (!(x)) \
 { \
 	if (!Rocket::Core::Assert(m, __FILE__, __LINE__ )) \
 	{ \
-		EMP_BREAK; \
+		ROCKET_BREAK; \
 	} \
 }
-#define EMP_ERROR \
-if (!Rocket::Core::Assert("EMP_ERROR", __FILE__, __LINE__)) \
+#define ROCKET_ERROR \
+if (!Rocket::Core::Assert("ROCKET_ERROR", __FILE__, __LINE__)) \
 { \
-	EMP_BREAK; \
+	ROCKET_BREAK; \
 }
-#define EMP_ERRORMSG(m) \
+#define ROCKET_ERRORMSG(m) \
 if (!Rocket::Core::Assert(m, __FILE__, __LINE__)) \
 { \
-	EMP_BREAK; \
+	ROCKET_BREAK; \
 }
-#define EMP_VERIFY(x) EMP_ASSERT(x)
+#define ROCKET_VERIFY(x) ROCKET_ASSERT(x)
 
 }
 }

@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include "ElementDocumentWrapper.h"
-#include <EMP/Core/Stream.h>
-#include <EMP/Core/Python/Utilities.h>
+#include <Rocket/Core/Stream.h>
+#include <Rocket/Core/Python/Utilities.h>
 
 namespace Rocket {
 namespace Core {
@@ -36,7 +36,7 @@ namespace Python {
 
 ElementDocumentWrapper::ElementDocumentWrapper(PyObject* self, const char* tag) : ElementWrapper< ElementDocument >(self, tag)
 {
-	EMP::Core::String module_id(32, "document_%x", this);
+	Rocket::Core::String module_id(32, "document_%x", this);
 
 	// Create a new module
 	module = PyModule_New(module_id.CString());
@@ -54,19 +54,19 @@ ElementDocumentWrapper::~ElementDocumentWrapper()
 	Py_DECREF(module);
 }
 
-void ElementDocumentWrapper::LoadScript(EMP::Core::Stream* stream, const EMP::Core::String& source_name)
+void ElementDocumentWrapper::LoadScript(Rocket::Core::Stream* stream, const Rocket::Core::String& source_name)
 {	
 	// If theres a source, check if the code is already loaded and just reuse it
 	if (!source_name.Empty())
 	{		
-		EMP::Core::String module_name = EMP::Core::String(source_name).Replace("/", "_");
+		Rocket::Core::String module_name = Rocket::Core::String(source_name).Replace("/", "_");
 		module_name = module_name.Replace("\\", "_");
 		module_name = module_name.Replace(".py", "");
 
 		PyObject* modules = PyImport_GetModuleDict();
 		PyObject* merge_module = PyDict_GetItemString(modules, module_name.CString());
 
-#ifdef EMP_DEBUG
+#ifdef ROCKET_DEBUG
 		// In debug builds, force module to NULL so that scripts are always reloaded
 		merge_module = NULL;
 #else
@@ -79,7 +79,7 @@ void ElementDocumentWrapper::LoadScript(EMP::Core::Stream* stream, const EMP::Co
 		if (!merge_module)
 		{
 			// Compile the code as a python module
-			EMP::Core::String source_buffer;
+			Rocket::Core::String source_buffer;
 			PreprocessCode(source_buffer, stream);		
 		
 			PyObject* code = Py_CompileString(source_buffer.CString(), source_name.CString(), Py_file_input);
@@ -98,19 +98,19 @@ void ElementDocumentWrapper::LoadScript(EMP::Core::Stream* stream, const EMP::Co
 		}
 		else
 		{
-			EMP::Core::Python::Utilities::PrintError();			
+			Rocket::Core::Python::Utilities::PrintError();			
 		}
 	}
 	else
 	{
 		// Compile directly onto the python module
-		EMP::Core::String source_buffer;
+		Rocket::Core::String source_buffer;
 		PreprocessCode(source_buffer, stream);
 		
 		PyObject* result = PyRun_String(source_buffer.CString(), Py_file_input, module_namespace, module_namespace);
 		if ( !result )
 		{
-			EMP::Core::Python::Utilities::PrintError();
+			Rocket::Core::Python::Utilities::PrintError();
 		}
 		else
 		{
@@ -124,10 +124,10 @@ PyObject* ElementDocumentWrapper::GetModuleNamespace()
 	return module_namespace;
 }
 
-void ElementDocumentWrapper::PreprocessCode(EMP::Core::String &code, EMP::Core::Stream *stream)
+void ElementDocumentWrapper::PreprocessCode(Rocket::Core::String &code, Rocket::Core::Stream *stream)
 {
 	// Load in the script	
-	EMP::Core::String buffer;	
+	Rocket::Core::String buffer;	
 	stream->Read(buffer, stream->Length());	
 
 	// Strip comments and build up code
@@ -157,7 +157,7 @@ void ElementDocumentWrapper::PreprocessCode(EMP::Core::String &code, EMP::Core::
 				// Check for the start of comments or non whitespace data
 				if (buffer[i] == '#')
 					state = COMMENT;
-				else if (!EMP::Core::StringUtilities::IsWhitespace(buffer[i]))
+				else if (!Rocket::Core::StringUtilities::IsWhitespace(buffer[i]))
 					state = DATA;
 			}
 			break;

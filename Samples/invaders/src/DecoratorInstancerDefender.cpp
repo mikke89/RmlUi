@@ -40,7 +40,7 @@ DecoratorInstancerDefender::~DecoratorInstancerDefender()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Rocket::Core::String& EMP_UNUSED(name), const Rocket::Core::PropertyDictionary& properties)
+Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED(name), const Rocket::Core::PropertyDictionary& properties)
 {
 	const Rocket::Core::Property* image_source_property = properties.GetProperty("image-src");
 	Rocket::Core::String image_source = image_source_property->Get< Rocket::Core::String >();

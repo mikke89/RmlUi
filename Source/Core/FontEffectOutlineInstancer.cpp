@@ -43,7 +43,7 @@ FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
 }
 
 // Instances an outline font effect.
-FontEffect* FontEffectOutlineInstancer::InstanceFontEffect(const String& EMP_UNUSED(name), const PropertyDictionary& properties)
+FontEffect* FontEffectOutlineInstancer::InstanceFontEffect(const String& ROCKET_UNUSED(name), const PropertyDictionary& properties)
 {
 	float width = properties.GetProperty("width")->Get< float >();
 

@@ -95,7 +95,7 @@ void DecoratorStarfield::ReleaseElementData(Rocket::Core::DecoratorDataHandle el
 }
 
 // Called to render the decorator on an element.
-void DecoratorStarfield::RenderElement(Rocket::Core::Element* EMP_UNUSED(element), Rocket::Core::DecoratorDataHandle element_data)
+void DecoratorStarfield::RenderElement(Rocket::Core::Element* ROCKET_UNUSED(element), Rocket::Core::DecoratorDataHandle element_data)
 {
 	StarField* star_field = (StarField*)element_data;
 	star_field->Update();

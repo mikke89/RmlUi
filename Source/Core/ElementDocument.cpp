@@ -287,7 +287,7 @@ bool ElementDocument::IsModal() const
 }
 
 // Default load script implementation
-void ElementDocument::LoadScript(Stream* EMP_UNUSED(stream), const String& EMP_UNUSED(source_name))
+void ElementDocument::LoadScript(Stream* ROCKET_UNUSED(stream), const String& ROCKET_UNUSED(source_name))
 {
 }
 

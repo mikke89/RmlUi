@@ -1,18 +1,34 @@
 /*
- * Copyright (c) 2006 - 2008
- * Wandering Monster Studios Limited
+ * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
- * Any use of this program is governed by the terms of Wandering Monster
- * Studios Limited's Licence Agreement included with this program, a copy
- * of which can be obtained by contacting Wandering Monster Studios
- * Limited at info@wanderingmonster.co.nz.
+ * For the latest information, see http://www.librocket.com
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  */
 
 template <typename SourceType, typename DestType>
 bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, DestType& /*dest*/)
 {
-	EMP_ERRORMSG("No converter specified.");
+	ROCKET_ERRORMSG("No converter specified.");
 	return false;
 }
 
@@ -96,8 +112,8 @@ PASS_THROUGH(String);
 class ScriptInterface;
 typedef ScriptInterface* ScriptInterfacePtr;
 PASS_THROUGH(ScriptInterfacePtr);
-/*typedef void* voidPtr;
-PASS_THROUGH(voidPtr);*/
+typedef void* voidPtr;
+PASS_THROUGH(voidPtr);
 
 template<>
 class TypeConverter< Stream, Stream >
@@ -196,7 +212,7 @@ public:
 	}
 };
 
-/*template<>
+template<>
 class TypeConverter< String, URL >
 {
 public:
@@ -204,7 +220,7 @@ public:
 	{
 		return dest.SetURL(src);		
 	}
-};*/
+};
 
 template< typename DestType, typename InternalType, int count >
 class TypeConverterStringVector
@@ -238,13 +254,8 @@ public: \
 
 STRING_VECTOR_CONVERTER(Vector2i, int, 2);
 STRING_VECTOR_CONVERTER(Vector2f, float, 2);
-//STRING_VECTOR_CONVERTER(Vector3i, int, 3);
-//STRING_VECTOR_CONVERTER(Vector3f, float, 2);
-//STRING_VECTOR_CONVERTER(Vector4i, int, 4);
-//STRING_VECTOR_CONVERTER(Vector4f, float, 4);
 STRING_VECTOR_CONVERTER(Colourf, float, 4);
 STRING_VECTOR_CONVERTER(Colourb, byte, 4);
-//STRING_VECTOR_CONVERTER(Quaternion, float, 4);
 
 /////////////////////////////////////////////////
 // To String Converters
@@ -315,7 +326,7 @@ public:
 	}
 };
 
-/*template<>
+template<>
 class TypeConverter< URL, String >
 {
 public:
@@ -324,8 +335,7 @@ public:
 		dest = src.GetURL();
 		return true;
 	}
-};*/
-
+};
 
 template< typename SourceType, typename InternalType, int count >
 class TypeConverterVectorString
@@ -361,44 +371,10 @@ public: \
 
 VECTOR_STRING_CONVERTER(Vector2i, int, 2);
 VECTOR_STRING_CONVERTER(Vector2f, float, 2);
-//VECTOR_STRING_CONVERTER(Vector3i, int, 3);
-//VECTOR_STRING_CONVERTER(Vector3f, float, 3);
-//VECTOR_STRING_CONVERTER(Vector4i, int, 4);
-//VECTOR_STRING_CONVERTER(Vector4f, float, 4);
 VECTOR_STRING_CONVERTER(Colourf, float, 4);
 VECTOR_STRING_CONVERTER(Colourb, byte, 4);
-//VECTOR_STRING_CONVERTER(Quaternion, float, 4);
-
 #undef PASS_THROUGH
 #undef BASIC_CONVERTER
 #undef BASIC_CONVERTER_BOOL
 #undef STRING_VECTOR_CONVERTER
 #undef VECTOR_STRING_CONVERTER
-
-/*#define EMP_ENUM_CONVERTER( enum_type ) \
-template<> \
-class TypeConverter< enum_type, String > \
-{ \
-public: \
-	static bool Convert(const enum_type& src, String& dest) \
-	{ \
-		return dest.FormatString(32, "%d", src) > 0; \
-	} \
-};\
-\
-template<> \
-class TypeConverter< String, enum_type > \
-{ \
-public: \
-	static bool Convert(const String& src, enum_type& dest) \
-	{ \
-		int temp; \
-		if (sscanf(src.CString(), "%d", &temp) == 1) \
-		{ \
-			dest = (enum_type) temp; \
-			return true; \
-		} \
-\
-		return false; \
-	} \
-};*/

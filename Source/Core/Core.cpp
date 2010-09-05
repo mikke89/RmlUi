@@ -34,11 +34,11 @@
 #include "StyleSheetFactory.h"
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
-/*#if defined EMP_PLATFORM_WIN32
+/*#if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
-#elif defined EMP_PLATFORM_MACOSX
+#elif defined ROCKET_PLATFORM_MACOSX
 #include <Carbon/Carbon.h>
-#elif defined EMP_PLATFORM_LINUX
+#elif defined ROCKET_PLATFORM_LINUX
 #include <unistd.h>
 #endif*/
 
@@ -55,13 +55,11 @@ static FileInterfaceDefault file_interface_default;
 
 static bool initialised = false;
 
-extern bool use_trial_logo;
-
 typedef std::map< String, Context* > ContextMap;
 static ContextMap contexts;
 
-#ifndef RKT_VERSION
-	#define RKT_VERSION "dev"
+#ifndef ROCKET_VERSION
+	#define ROCKET_VERSION "custom"
 #endif
 
 /**
@@ -96,9 +94,6 @@ bool Initialise()
 		file_interface = &file_interface_default;
 		file_interface->AddReference();
 	}
-
-	// Never display logo
-	use_trial_logo = false;
 
 	Log::Initialise();
 
@@ -156,7 +151,7 @@ void Shutdown()
 // Returns the version of this Rocket library.
 String GetVersion()
 {
-	return RKT_VERSION;
+	return ROCKET_VERSION;
 }
 
 // Sets the interface through which all Rocket messages will be routed.

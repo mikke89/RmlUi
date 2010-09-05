@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketCorePython", "RocketCorePython.vcproj", "{286AC8CC-432A-4B7C-C497-2CF315AEE1FE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B} = {1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketCore", "RocketCore.vcproj", "{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketDebugger", "RocketDebugger.vcproj", "{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B} = {1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketControls", "RocketControls.vcproj", "{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B} = {1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketControlsPython", "RocketControlsPython.vcproj", "{206AC8CC-432B-4B7C-C497-2CF315AEE1C1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B} = {1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B} = {1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}
+		{286AC8CC-432A-4B7C-C497-2CF315AEE1FE} = {286AC8CC-432A-4B7C-C497-2CF315AEE1FE}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{286AC8CC-432A-4B7C-C497-2CF315AEE1FE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{286AC8CC-432A-4B7C-C497-2CF315AEE1FE}.Debug|Win32.Build.0 = Debug|Win32
+		{286AC8CC-432A-4B7C-C497-2CF315AEE1FE}.Release|Win32.ActiveCfg = Release|Win32
+		{286AC8CC-432A-4B7C-C497-2CF315AEE1FE}.Release|Win32.Build.0 = Release|Win32
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}.Debug|Win32.Build.0 = Debug|Win32
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}.Release|Win32.ActiveCfg = Release|Win32
+		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}.Release|Win32.Build.0 = Release|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41A}.Debug|Win32.Build.0 = Debug|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41A}.Release|Win32.ActiveCfg = Release|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41A}.Release|Win32.Build.0 = Release|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}.Debug|Win32.Build.0 = Debug|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}.Release|Win32.ActiveCfg = Release|Win32
+		{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}.Release|Win32.Build.0 = Release|Win32
+		{206AC8CC-432B-4B7C-C497-2CF315AEE1C1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{206AC8CC-432B-4B7C-C497-2CF315AEE1C1}.Debug|Win32.Build.0 = Debug|Win32
+		{206AC8CC-432B-4B7C-C497-2CF315AEE1C1}.Release|Win32.ActiveCfg = Release|Win32
+		{206AC8CC-432B-4B7C-C497-2CF315AEE1C1}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

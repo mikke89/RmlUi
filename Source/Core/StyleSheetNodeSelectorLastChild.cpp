@@ -42,7 +42,7 @@ StyleSheetNodeSelectorLastChild::~StyleSheetNodeSelectorLastChild()
 }
 
 // Returns true if the element is the last DOM child in its parent.
-bool StyleSheetNodeSelectorLastChild::IsApplicable(const Element* element, int EMP_UNUSED(a), int EMP_UNUSED(b))
+bool StyleSheetNodeSelectorLastChild::IsApplicable(const Element* element, int ROCKET_UNUSED(a), int ROCKET_UNUSED(b))
 {
 	Element* parent = element->GetParentNode();
 	if (parent == NULL)

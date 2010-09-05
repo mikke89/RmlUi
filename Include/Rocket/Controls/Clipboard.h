@@ -48,7 +48,7 @@ public:
 	/// Set the contents of the clipboard.
 	static void Set(const Rocket::Core::WString& content);
 
-	#if defined EMP_PLATFORM_WIN32
+	#if defined ROCKET_PLATFORM_WIN32
 	/// Set the window handle of the application. This shouldn't need to be called unless the host
 	/// application opens multiple windows, or opens and closes windows, etc.
 	static void SetHWND(void* hwnd);

@@ -46,7 +46,7 @@ XMLNodeHandlerTemplate::~XMLNodeHandlerTemplate()
 Element* XMLNodeHandlerTemplate::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
 {
 	name;
-	EMP_ASSERT(name == "template");
+	ROCKET_ASSERT(name == "template");
 	(name);
 
 	String template_name = attributes.Get<String>("src", "");
@@ -57,7 +57,7 @@ Element* XMLNodeHandlerTemplate::ElementStart(XMLParser* parser, const String& n
 	return XMLParseTools::ParseTemplate(parser->GetParseFrame()->element, template_name);
 }
 
-bool XMLNodeHandlerTemplate::ElementEnd(XMLParser* EMP_UNUSED(parser), const String& EMP_UNUSED(name))
+bool XMLNodeHandlerTemplate::ElementEnd(XMLParser* ROCKET_UNUSED(parser), const String& ROCKET_UNUSED(name))
 {
 	return true;
 }

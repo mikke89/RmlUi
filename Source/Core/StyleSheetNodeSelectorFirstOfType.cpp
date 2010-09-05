@@ -42,7 +42,7 @@ StyleSheetNodeSelectorFirstOfType::~StyleSheetNodeSelectorFirstOfType()
 }
 
 // Returns true if the element is the first DOM child in its parent of its type.
-bool StyleSheetNodeSelectorFirstOfType::IsApplicable(const Element* element, int EMP_UNUSED(a), int EMP_UNUSED(b))
+bool StyleSheetNodeSelectorFirstOfType::IsApplicable(const Element* element, int ROCKET_UNUSED(a), int ROCKET_UNUSED(b))
 {
 	Element* parent = element->GetParentNode();
 	if (parent == NULL)

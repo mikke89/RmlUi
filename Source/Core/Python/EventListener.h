@@ -52,7 +52,7 @@ public:
 	/// Constructor for inline string
 	/// @param code Python code string to fire
 	/// @param context Optional, if set the code will be executed in this element's namespace
-	EventListener( const EMP::Core::String& code, Element* context = NULL );
+	EventListener( const Rocket::Core::String& code, Element* context = NULL );
 	virtual ~EventListener();
 
 	/// Process the event
@@ -71,7 +71,7 @@ private:
 	PyObject* global_namespace;
 
 	// Source code, if any
-	EMP::Core::String source_code;
+	Rocket::Core::String source_code;
 
 	// Compile the source code
 	bool Compile();

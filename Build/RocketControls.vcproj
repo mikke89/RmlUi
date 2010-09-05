@@ -19,7 +19,6 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(IntDir)"
-			IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets=".\vsprops\BuildConfigurationDLLDebug.vsprops"
 			CharacterSet="1"
@@ -87,7 +86,6 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(IntDir)"
-			IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets=".\vsprops\BuildConfigurationDLLRelease.vsprops"
 			CharacterSet="1"

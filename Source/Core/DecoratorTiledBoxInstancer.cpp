@@ -52,7 +52,7 @@ DecoratorTiledBoxInstancer::~DecoratorTiledBoxInstancer()
 }
 
 // Instances a box decorator.
-Decorator* DecoratorTiledBoxInstancer::InstanceDecorator(const String& EMP_UNUSED(name), const PropertyDictionary& properties)
+Decorator* DecoratorTiledBoxInstancer::InstanceDecorator(const String& ROCKET_UNUSED(name), const PropertyDictionary& properties)
 {
 	DecoratorTiled::Tile tiles[9];
 	String texture_names[9];

@@ -50,7 +50,7 @@ public:
 	virtual ~EventInstancer();
 
 	/// Instance an event
-	virtual Event* InstanceEvent(Element* target, const EMP::Core::String& name, const EMP::Core::Dictionary& parameters, bool interuptable);
+	virtual Event* InstanceEvent(Element* target, const Rocket::Core::String& name, const Rocket::Core::Dictionary& parameters, bool interuptable);
 	/// Releases an event instanced by this instancer.
 	/// @param[in] event The event to release.
 	virtual void ReleaseEvent(Event* event);

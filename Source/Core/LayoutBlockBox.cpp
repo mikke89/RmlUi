@@ -276,7 +276,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 // Called by a closing block box child.
 bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 {
-	EMP_ASSERT(context == BLOCK);
+	ROCKET_ASSERT(context == BLOCK);
 	box_cursor = (child->GetPosition().y - child->box.GetEdge(Box::MARGIN, Box::TOP) - (box.GetPosition().y + position.y)) + child->GetBox().GetSize(Box::MARGIN).y;
 
 	return CatchVerticalOverflow();
@@ -285,7 +285,7 @@ bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 // Called by a closing line box child.
 LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain)
 {
-	EMP_ASSERT(context == INLINE);
+	ROCKET_ASSERT(context == INLINE);
 	if (child->GetDimensions().x > 0)
 		box_cursor = (child->GetPosition().y - (box.GetPosition().y + position.y)) + child->GetDimensions().y;
 
@@ -313,7 +313,7 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInline
 // Adds a new block element to this block box.
 LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 {
-	EMP_ASSERT(context == BLOCK);
+	ROCKET_ASSERT(context == BLOCK);
 
 	// Check if our most previous block box is rendering in an inline context.
 	if (!block_boxes.empty() &&
@@ -424,7 +424,7 @@ bool LayoutBlockBox::AddFloatElement(Element* element)
 // Adds an element to this block box to be handled as an absolutely-positioned element.
 void LayoutBlockBox::AddAbsoluteElement(Element* element)
 {
-	EMP_ASSERT(context == BLOCK);
+	ROCKET_ASSERT(context == BLOCK);
 
 	AbsoluteElement absolute_element;
 	absolute_element.element = element;

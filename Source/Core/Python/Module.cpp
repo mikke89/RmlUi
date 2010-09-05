@@ -27,7 +27,7 @@
 
 #include "precompiled.h"
 #include "Module.h"
-#include <EMP/Core/Python/Utilities.h>
+#include <Rocket/Core/Python/Utilities.h>
 #include <Rocket/Core/Input.h>
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Core/FontDatabase.h>
@@ -42,16 +42,16 @@ namespace Core {
 namespace Python {
 
 static Module module;
-static python::object CreateContext(const char* name, const EMP::Core::Vector2i& dimensions);
+static python::object CreateContext(const char* name, const Rocket::Core::Vector2i& dimensions);
 static void RegisterTag(const char* tag, python::object& object);
-static void LogMessage(EMP::Core::Log::Type type, const char* message);
 static void InitialisePythonKeyMap();
+
+void RegisterPythonInterfaces();
 void RegisterPythonConverters();
 
 BOOST_PYTHON_MODULE(_rocketcore)
 {
-	PyObject* mod = PyImport_ImportModule("_empcore");
-	Py_XDECREF(mod);
+	RegisterPythonInterfaces();
 	RegisterPythonConverters();
 
 	ContextInterface::InitialisePythonInterface();
@@ -60,12 +60,11 @@ BOOST_PYTHON_MODULE(_rocketcore)
 
 	InitialisePythonKeyMap();
 
-	bool (*LoadFontFace)(const EMP::Core::String&) = &FontDatabase::LoadFontFace;
+	bool (*LoadFontFace)(const Rocket::Core::String&) = &FontDatabase::LoadFontFace;
 
 	python::def("CreateContext", &CreateContext);
 	python::def("LoadFontFace", LoadFontFace);
 	python::def("RegisterTag", &RegisterTag);
-	python::def("Log", &LogMessage);
 
 	ContextProxy::InitialisePythonInterface();
 	python::scope().attr("contexts") = ContextProxy();
@@ -73,13 +72,13 @@ BOOST_PYTHON_MODULE(_rocketcore)
 	Rocket::Core::RegisterPlugin(&module);
 }
 
-python::object CreateContext(const char* name, const EMP::Core::Vector2i& dimensions)
+python::object CreateContext(const char* name, const Rocket::Core::Vector2i& dimensions)
 {
 	Context* new_context = Rocket::Core::CreateContext(name, dimensions);
 	if (new_context == NULL)
 		return python::object();
 
-	python::object py_context = EMP::Core::Python::Utilities::MakeObject(new_context);
+	python::object py_context = Rocket::Core::Python::Utilities::MakeObject(new_context);
 	new_context->RemoveReference();
 	return py_context;
 }
@@ -88,11 +87,6 @@ void RegisterTag(const char* tag, python::object& object)
 {
 	// Add the new tag
 	Factory::RegisterElementInstancer(tag, new ElementInstancer(object.ptr()))->RemoveReference();
-}
-
-void LogMessage(EMP::Core::Log::Type type, const char* message)
-{
-	Rocket::Core::Log::Message(type, "%s", message);
 }
 
 void Module::OnInitialise()

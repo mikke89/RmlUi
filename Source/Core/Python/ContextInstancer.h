@@ -49,7 +49,7 @@ public:
 	/// Instances a context.
 	/// @param[in] name Name of this context.
 	/// @return The instanced context.
-	virtual Context* InstanceContext(const EMP::Core::String& name);
+	virtual Context* InstanceContext(const Rocket::Core::String& name);
 
 	/// Releases a context previously created by this context.
 	/// @param[in] context The context to release.

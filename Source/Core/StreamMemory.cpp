@@ -241,7 +241,7 @@ void StreamMemory::SetSourceURL(const URL& url)
 // Resize the buffer
 bool StreamMemory::Reallocate( size_t size ) 
 {	
-	EMP_ASSERT( owns_buffer );
+	ROCKET_ASSERT( owns_buffer );
 	if ( !owns_buffer )
 		return false;
 	

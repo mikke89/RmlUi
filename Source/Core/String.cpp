@@ -32,7 +32,7 @@
 namespace Rocket {
 namespace Core {
 
-int ROCKETCORE_API EMPStringFormatString(StringBase<char>& string, int max_size, const char* format, va_list argument_list)
+int ROCKETCORE_API RocketStringFormatString(StringBase<char>& string, int max_size, const char* format, va_list argument_list)
 {
 	const int INTERNAL_BUFFER_SIZE = 1024;
 	static char buffer[INTERNAL_BUFFER_SIZE];
@@ -43,7 +43,7 @@ int ROCKETCORE_API EMPStringFormatString(StringBase<char>& string, int max_size,
 
 	int length = vsnprintf(buffer_ptr, max_size, format, argument_list);
 	buffer_ptr[length >= 0 ? length : max_size] = '\0';
-	#ifdef EMP_DEBUG
+	#ifdef ROCKET_DEBUG
 		if (length == -1)
 		{
 			Log::Message(Log::LT_WARNING, "String::sprintf: String truncated to %d bytes when processing %s", max_size, format);
@@ -68,7 +68,7 @@ StringBase<char>::StringBase(StringBase<char>::size_type max_size, const char* f
 	va_list argument_list;
 	va_start(argument_list, fmt);
 
-	EMPStringFormatString(*this, max_size, fmt, argument_list);
+	RocketStringFormatString(*this, max_size, fmt, argument_list);
 
 	va_end(argument_list);
 }
@@ -79,7 +79,7 @@ int StringBase<char>::FormatString(StringBase<char>::size_type max_size, const c
 	va_list argument_list;
 	va_start(argument_list, fmt);
 
-	int length = EMPStringFormatString(*this, max_size, fmt, argument_list);
+	int length = RocketStringFormatString(*this, max_size, fmt, argument_list);
 
 	va_end(argument_list);
 

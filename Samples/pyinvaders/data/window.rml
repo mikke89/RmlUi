@@ -1,0 +1,20 @@
+<template name="pywindow" content="content">
+<head>
+	<link type="text/template" href="../../assets/window.rml" />
+	<script>
+import game
+def OnWindowLoad(self):
+	self.owner_document.GetElementById('title').inner_rml = self.title
+	
+def LoadMenu(name):
+	doc = document.context.LoadDocument('data/' + name + '.rml')
+	if doc:
+		doc.Show()
+		document.Close()
+	
+	return doc
+	</script>
+</head>
+<body template="window" onload="OnWindowLoad(self)">
+</body>
+</template>

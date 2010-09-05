@@ -57,8 +57,8 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="RocketCore_d.lib RocketControls_d.lib RocketDebugger_d.lib OgreMain_d.lib OIS_d.lib"
-				OutputFile="..\..\..\..\..\packages\bin\$(ProjectName)_d.exe"
-				AdditionalLibraryDirectories="..\..\..\..\..\packages\bin;&quot;$(OGRE_HOME)\lib&quot;"
+				OutputFile="..\..\..\bin\$(ProjectName)_d.exe"
+				AdditionalLibraryDirectories="..\..\..\bin;&quot;$(OGRE_HOME)\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -126,8 +126,8 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="RocketCore.lib RocketControls.lib RocketDebugger.lib OgreMain.lib OIS.lib"
-				OutputFile="..\..\..\..\..\packages\bin\$(ProjectName).exe"
-				AdditionalLibraryDirectories="..\..\..\..\..\packages\bin;&quot;$(OGRE_HOME)\lib&quot;"
+				OutputFile="..\..\..\bin\$(ProjectName).exe"
+				AdditionalLibraryDirectories="..\..\..\bin;&quot;$(OGRE_HOME)\lib&quot;"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"

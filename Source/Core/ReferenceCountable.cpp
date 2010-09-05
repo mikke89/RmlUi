@@ -43,7 +43,7 @@ ReferenceCountable::ReferenceCountable(int initial_count)
 // Destructor. The reference count must be 0 when this is invoked.
 ReferenceCountable::~ReferenceCountable()
 {
-	EMP_ASSERT(reference_count == 0);
+	ROCKET_ASSERT(reference_count == 0);
 	--num_outstanding_objects;
 }
 
@@ -66,7 +66,7 @@ void ReferenceCountable::AddReference()
 // Removes a reference from the object.
 void ReferenceCountable::RemoveReference()
 {
-	EMP_ASSERT(reference_count > 0);
+	ROCKET_ASSERT(reference_count > 0);
 	reference_count--;	
 	if (reference_count == 0)
 	{
@@ -76,7 +76,7 @@ void ReferenceCountable::RemoveReference()
 
 ReferenceCountable& ReferenceCountable::operator=(const ReferenceCountable& /*copy*/)
 {
-	EMP_ERRORMSG("Attempting to copy a reference counted object. This is not advisable.");
+	ROCKET_ERRORMSG("Attempting to copy a reference counted object. This is not advisable.");
 	return *this;
 }
 

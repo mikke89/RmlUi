@@ -55,11 +55,11 @@ public:
 	class AttributeProxy
 	{
 	public:
-		AttributeProxy(const EMP::Core::String& _name, const EMP::Core::String& _value) : name(_name), value(_value) {}
+		AttributeProxy(const Rocket::Core::String& _name, const Rocket::Core::String& _value) : name(_name), value(_value) {}
 		const char* GetName() { return name.CString(); }
 		const char* GetValue() { return value.CString(); }
-		EMP::Core::String name;
-		EMP::Core::String value;
+		Rocket::Core::String name;
+		Rocket::Core::String value;
 	};
 	
 	/// Python __getitem__ override

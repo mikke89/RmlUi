@@ -58,7 +58,7 @@ Core::Element* XMLNodeHandlerTextArea::ElementStart(Core::XMLParser* parser, con
 	return NULL;
 }
 
-bool XMLNodeHandlerTextArea::ElementEnd(Core::XMLParser* EMP_UNUSED(parser), const Rocket::Core::String& EMP_UNUSED(name))
+bool XMLNodeHandlerTextArea::ElementEnd(Core::XMLParser* ROCKET_UNUSED(parser), const Rocket::Core::String& ROCKET_UNUSED(name))
 {
 	return true;
 }

@@ -45,7 +45,7 @@ DecoratorInstancerStarfield::~DecoratorInstancerStarfield()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Rocket::Core::Decorator* DecoratorInstancerStarfield::InstanceDecorator(const Rocket::Core::String& EMP_UNUSED(name), const Rocket::Core::PropertyDictionary& properties)
+Rocket::Core::Decorator* DecoratorInstancerStarfield::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED(name), const Rocket::Core::PropertyDictionary& properties)
 {
 	int num_layers = Rocket::Core::Math::RealToInteger(properties.GetProperty("num-layers")->Get< float >());
 	Rocket::Core::Colourb top_colour = properties.GetProperty("top-colour")->Get< Rocket::Core::Colourb >();

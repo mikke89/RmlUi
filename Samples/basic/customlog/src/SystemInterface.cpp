@@ -1,11 +1,27 @@
 /*
- * Copyright (c) 2006 - 2008
- * Wandering Monster Studios Limited
+ * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
- * Any use of this program is governed by the terms of Wandering Monster
- * Studios Limited's Licence Agreement included with this program, a copy
- * of which can be obtained by contacting Wandering Monster Studios
- * Limited at info@wanderingmonster.co.nz.
+ * For the latest information, see http://www.librocket.com
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  */
 
@@ -13,7 +29,7 @@
 #include <Rocket/Core/Platform.h>
 #include <Shell.h>
 #include <stdio.h>
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 #include <windows.h>
 #endif
 
@@ -60,7 +76,7 @@ bool SystemInterface::LogMessage(Rocket::Core::Log::Type type, const Rocket::Cor
 		fprintf(fp, "%s (%.2f): %s", prefix, GetElapsedTime(), message.CString());
 		fflush(fp);
 
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 		if (type == Rocket::Core::Log::LT_ASSERT)
 		{
 			Rocket::Core::String assert_message(1024, "%s\nWould you like to interrupt execution?", message.CString());

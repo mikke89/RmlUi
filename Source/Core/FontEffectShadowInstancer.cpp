@@ -46,7 +46,7 @@ FontEffectShadowInstancer::~FontEffectShadowInstancer()
 }
 
 // Instances an outline font effect.
-FontEffect* FontEffectShadowInstancer::InstanceFontEffect(const String& EMP_UNUSED(name), const PropertyDictionary& properties)
+FontEffect* FontEffectShadowInstancer::InstanceFontEffect(const String& ROCKET_UNUSED(name), const PropertyDictionary& properties)
 {
 	Vector2i offset;
 	offset.x = Math::RealToInteger(properties.GetProperty("offset-x")->Get< float >());

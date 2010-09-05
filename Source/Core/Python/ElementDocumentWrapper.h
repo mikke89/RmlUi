@@ -50,7 +50,7 @@ public:
 	virtual ~ElementDocumentWrapper();
 
 	/// Load a python script into this document
-	virtual void LoadScript(EMP::Core::Stream* stream, const EMP::Core::String& source_name);
+	virtual void LoadScript(Rocket::Core::Stream* stream, const Rocket::Core::String& source_name);
 
 	/// Get the namespace for this module
 	PyObject* GetModuleNamespace();
@@ -61,7 +61,7 @@ private:
 	PyObject* module_namespace;
 
 	// Preprocess the python code
-	void PreprocessCode(EMP::Core::String& code, EMP::Core::Stream* stream);
+	void PreprocessCode(Rocket::Core::String& code, Rocket::Core::Stream* stream);
 };
 
 }

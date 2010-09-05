@@ -70,7 +70,7 @@ void InputTypeSubmit::ProcessEvent(Core::Event& event)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeSubmit::GetIntrinsicDimensions(Rocket::Core::Vector2f& EMP_UNUSED(dimensions))
+bool InputTypeSubmit::GetIntrinsicDimensions(Rocket::Core::Vector2f& ROCKET_UNUSED(dimensions))
 {
 	return false;
 }

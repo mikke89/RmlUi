@@ -129,7 +129,7 @@ void LayoutInlineBox::Close()
 		chain->Close();
 	else
 	{
-		EMP_ASSERT(line != NULL);
+		ROCKET_ASSERT(line != NULL);
 		line->CloseInlineBox(this);
 	}
 }
@@ -151,7 +151,7 @@ bool LayoutInlineBox::IsLastChild() const
 }
 
 // Flows the inline box's content into its parent line.
-LayoutInlineBox* LayoutInlineBox::FlowContent(bool EMP_UNUSED(first_box), float EMP_UNUSED(available_width), float EMP_UNUSED(right_spacing_width))
+LayoutInlineBox* LayoutInlineBox::FlowContent(bool ROCKET_UNUSED(first_box), float ROCKET_UNUSED(available_width), float ROCKET_UNUSED(right_spacing_width))
 {
 	// If we're representing a sized element, then add our element's width onto our parent's.
 	if (parent != NULL &&

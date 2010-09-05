@@ -1,11 +1,27 @@
 /*
- * Copyright (c) 2006 - 2008
- * Wandering Monster Studios Limited
+ * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
- * Any use of this program is governed by the terms of Wandering Monster
- * Studios Limited's Licence Agreement included with this program, a copy
- * of which can be obtained by contacting Wandering Monster Studios
- * Limited at info@wanderingmonster.co.nz.
+ * For the latest information, see http://www.librocket.com
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  */
 
@@ -48,7 +64,7 @@ RenderInterfaceDirectX::~RenderInterfaceDirectX()
 }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
-void RenderInterfaceDirectX::RenderGeometry(Rocket::Core::Vertex* EMP_UNUSED(vertices), int EMP_UNUSED(num_vertices), int* EMP_UNUSED(indices), int EMP_UNUSED(num_indices), const Rocket::Core::TextureHandle EMP_UNUSED(texture), const EMP::Core::Vector2f& EMP_UNUSED(translation))
+void RenderInterfaceDirectX::RenderGeometry(Rocket::Core::Vertex* ROCKET_UNUSED(vertices), int ROCKET_UNUSED(num_vertices), int* ROCKET_UNUSED(indices), int ROCKET_UNUSED(num_indices), const Rocket::Core::TextureHandle ROCKET_UNUSED(texture), const Rocket::Core::Vector2f& ROCKET_UNUSED(translation))
 {
 	// We've chosen to not support non-compiled geometry in the DirectX renderer. If you wanted to render non-compiled
 	// geometry, for example for very small sections of geometry, you could use DrawIndexedPrimitiveUP or write to a
@@ -95,7 +111,7 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX::CompileGeometry(Roc
 }
 
 // Called by Rocket when it wants to render application-compiled geometry.
-void RenderInterfaceDirectX::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const EMP::Core::Vector2f& translation)
+void RenderInterfaceDirectX::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const Rocket::Core::Vector2f& translation)
 {
 	// Build and set the transform matrix.
 	D3DXMATRIX world_transform;
@@ -148,8 +164,28 @@ void RenderInterfaceDirectX::SetScissorRegion(int x, int y, int width, int heigh
 	g_pd3dDevice->SetScissorRect(&scissor_rect);
 }
 
+// Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
+#pragma pack(1) 
+struct TGAHeader 
+{
+	char  idLength;
+	char  colourMapType;
+	char  dataType;
+	short int colourMapOrigin;
+	short int colourMapLength;
+	char  colourMapDepth;
+	short int xOrigin;
+	short int yOrigin;
+	short int width;
+	short int height;
+	char  bitsPerPixel;
+	char  imageDescriptor;
+};
+// Restore packing
+#pragma pack()
+
 // Called by Rocket when a texture is required by the library.
-bool RenderInterfaceDirectX::LoadTexture(Rocket::Core::TextureHandle& texture_handle, EMP::Core::Vector2i& texture_dimensions, const EMP::Core::String& source)
+bool RenderInterfaceDirectX::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
 {
 	Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
 	Rocket::Core::FileHandle file_handle = file_interface->Open(source);
@@ -218,7 +254,7 @@ bool RenderInterfaceDirectX::LoadTexture(Rocket::Core::TextureHandle& texture_ha
 }
 
 // Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
-bool RenderInterfaceDirectX::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const byte* source, const EMP::Core::Vector2i& source_dimensions)
+bool RenderInterfaceDirectX::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const byte* source, const Rocket::Core::Vector2i& source_dimensions)
 {
 	// Create a Direct3DTexture9, which will be set as the texture handle. Note that we only create one surface for
 	// this texture; because we're rendering in a 2D context, mip-maps are not required.

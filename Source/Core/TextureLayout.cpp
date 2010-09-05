@@ -59,8 +59,8 @@ void TextureLayout::AddRectangle(int id, const Vector2i& dimensions)
 // Returns one of the layout's rectangles.
 TextureLayoutRectangle& TextureLayout::GetRectangle(int index)
 {
-	EMP_ASSERT(index >= 0);
-	EMP_ASSERT(index < GetNumRectangles());
+	ROCKET_ASSERT(index >= 0);
+	ROCKET_ASSERT(index < GetNumRectangles());
 
 	return rectangles[index];
 }
@@ -74,8 +74,8 @@ int TextureLayout::GetNumRectangles() const
 // Returns one of the layout's textures.
 TextureLayoutTexture& TextureLayout::GetTexture(int index)
 {
-	EMP_ASSERT(index >= 0);
-	EMP_ASSERT(index < GetNumTextures());
+	ROCKET_ASSERT(index >= 0);
+	ROCKET_ASSERT(index < GetNumTextures());
 
 	return textures[index];
 }

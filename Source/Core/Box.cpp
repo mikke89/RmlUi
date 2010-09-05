@@ -25,7 +25,7 @@
  *
  */
 
-//#include "precompiled.h"
+#include "precompiled.h"
 #include <Rocket/Core/Box.h>
 
 namespace Rocket {

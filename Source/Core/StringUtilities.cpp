@@ -494,7 +494,7 @@ bool StringUtilities::UCS2toUTF8(const word* input, size_t input_size, String& o
 		// Convert to little endian.
 		word ch = (*w >> 8) & 0x00FF;
 		ch |= (*w << 8) & 0xFF00;
-//		word ch = EMPConvertEndian(*w, EMP_ENDIAN_BIG);
+//		word ch = EMPConvertEndian(*w, ROCKET_ENDIAN_BIG);
 
 		oc = (unsigned char *)&ch;
 		switch (n)

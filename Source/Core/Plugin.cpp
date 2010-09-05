@@ -44,38 +44,38 @@ void Plugin::OnShutdown()
 }
 
 // Called when a new context is created.
-void Plugin::OnContextCreate(Context* EMP_UNUSED(context))
+void Plugin::OnContextCreate(Context* ROCKET_UNUSED(context))
 {
 }
 
 // Called when a context is destroyed.
-void Plugin::OnContextDestroy(Context* EMP_UNUSED(context))
+void Plugin::OnContextDestroy(Context* ROCKET_UNUSED(context))
 {
 }
 
 // Called when a document load request occurs, before the document's file is opened.
-void Plugin::OnDocumentOpen(Context* EMP_UNUSED(context), const String& EMP_UNUSED(document_path))
+void Plugin::OnDocumentOpen(Context* ROCKET_UNUSED(context), const String& ROCKET_UNUSED(document_path))
 {
 }
 
 // Called when a document is successfully loaded from file or instanced, initialised and added to
 // its context.
-void Plugin::OnDocumentLoad(ElementDocument* EMP_UNUSED(document))
+void Plugin::OnDocumentLoad(ElementDocument* ROCKET_UNUSED(document))
 {
 }
 
 // Called when a document is unloaded from its context.
-void Plugin::OnDocumentUnload(ElementDocument* EMP_UNUSED(document))
+void Plugin::OnDocumentUnload(ElementDocument* ROCKET_UNUSED(document))
 {
 }
 
 // Called when a new element is created.
-void Plugin::OnElementCreate(Element* EMP_UNUSED(element))
+void Plugin::OnElementCreate(Element* ROCKET_UNUSED(element))
 {
 }
 
 // Called when an element is destroyed.
-void Plugin::OnElementDestroy(Element* EMP_UNUSED(element))
+void Plugin::OnElementDestroy(Element* ROCKET_UNUSED(element))
 {
 }
 

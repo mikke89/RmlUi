@@ -55,7 +55,7 @@ bool FontEffectShadow::HasUniqueTexture() const
 }
 
 // Resizes and repositions the glyph to fit the outline.
-bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& EMP_UNUSED(dimensions), const FontGlyph& EMP_UNUSED(glyph)) const
+bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& ROCKET_UNUSED(dimensions), const FontGlyph& ROCKET_UNUSED(glyph)) const
 {
 	origin += offset;
 	return true;

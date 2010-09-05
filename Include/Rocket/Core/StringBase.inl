@@ -1,11 +1,27 @@
 /*
- * Copyright (c) 2006 - 2008
- * Wandering Monster Studios Limited
+ * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
- * Any use of this program is governed by the terms of Wandering Monster
- * Studios Limited's Licence Agreement included with this program, a copy
- * of which can be obtained by contacting Wandering Monster Studios
- * Limited at info@wanderingmonster.co.nz.
+ * For the latest information, see http://www.librocket.com
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  */
 
@@ -65,14 +81,14 @@ StringBase< T >::StringBase(size_type count, const T character)
 }
 
 template< typename T >
-StringBase< T >::StringBase(size_type EMP_UNUSED(max_length), const T* EMP_UNUSED(fmt), ...)
+StringBase< T >::StringBase(size_type ROCKET_UNUSED(max_length), const T* ROCKET_UNUSED(fmt), ...)
 {
 	string_id = 0;
 	length = 0;
 	value = (T*)StringStorage::empty_string;
 
 	// Can't implement this at the base level, requires template specialisation
-	EMP_ERRORMSG("Not implemented.");
+	ROCKET_ERRORMSG("Not implemented.");
 }
 
 template< typename T >
@@ -255,9 +271,9 @@ void StringBase< T >::Erase(size_type index, size_type count)
 }
 
 template< typename T >
-int StringBase< T >::FormatString(size_type EMP_UNUSED(max_length), const T* EMP_UNUSED(fmt), ...)
+int StringBase< T >::FormatString(size_type ROCKET_UNUSED(max_length), const T* ROCKET_UNUSED(fmt), ...)
 {
-	EMP_ERRORMSG("Not implemented.");
+	ROCKET_ERRORMSG("Not implemented.");
 	return -1;
 }
 
@@ -461,14 +477,14 @@ StringBase< T >& StringBase< T >::operator+=(const T& add)
 template< typename T >
 const T& StringBase< T >::operator[](size_type index) const
 {
-	EMP_ASSERT(index < length);
+	ROCKET_ASSERT(index < length);
 	return value[index];
 }
 
 template< typename T >
 T& StringBase< T >::operator[](size_type index)
 {
-	EMP_ASSERT(index < length);
+	ROCKET_ASSERT(index < length);
 	return value[index];
 }
 
@@ -601,7 +617,7 @@ typename StringBase< T >::size_type StringBase< T >::_Find(const T* find, size_t
 template< typename T >
 typename StringBase< T >::size_type StringBase< T >::_RFind(const T* find, size_type find_length, size_type offset) const
 {
-	EMP_ASSERT(find_length > 0);
+	ROCKET_ASSERT(find_length > 0);
 
 	size_type needle_index = 0;	
 	size_type haystack_index = (offset < length ? offset : length) - find_length;

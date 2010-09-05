@@ -53,7 +53,7 @@ void GameLoop()
 	Shell::FlipBuffers();
 }
 
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
 int APIENTRY WinMain(HINSTANCE, HINSTANCE, char*, int)
 #else

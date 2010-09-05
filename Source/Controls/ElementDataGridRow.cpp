@@ -243,7 +243,7 @@ ElementDataGrid* ElementDataGridRow::GetParentGrid()
 	return parent_grid;
 }
 
-void ElementDataGridRow::OnDataSourceDestroy(DataSource* EMP_UNUSED(_data_source))
+void ElementDataGridRow::OnDataSourceDestroy(DataSource* ROCKET_UNUSED(_data_source))
 {
 	data_source->DetachListener(this);
 	data_source = NULL;
@@ -514,7 +514,7 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 		}
 		else
 		{
-			EMP_ERROR;
+			ROCKET_ERROR;
 		}
 	}
 

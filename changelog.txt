@@ -1,7 +1,7 @@
 libRocket changelog
 
 v1.2.0
-5th September 2010
+8th September 2010
 ==========================================
 Features:
  * Licensing requirements removed, entire library switched to MIT license

@@ -546,7 +546,7 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 // Updates the absolute cursor index from the relative cursor indices.
 void WidgetTextInput::UpdateAbsoluteCursor()
 {
-	EMP_ASSERT(cursor_line_index < (int) lines.size())
+	ROCKET_ASSERT(cursor_line_index < (int) lines.size())
 
 	absolute_cursor_index = cursor_character_index;
 	edit_index = cursor_character_index;

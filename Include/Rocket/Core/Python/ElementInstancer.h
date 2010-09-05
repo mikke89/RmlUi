@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREPYTHONELEMENTINSTANCER_H
 #define ROCKETCOREPYTHONELEMENTINSTANCER_H
 
-#include <EMP/Core/String.h>
-#include <EMP/Core/XMLParser.h>
-#include <EMP/Core/Python/Python.h>
+#include <Rocket/Core/String.h>
+#include <Rocket/Core/XMLParser.h>
+#include <Rocket/Core/Python/Python.h>
 #include <Rocket/Core/Element.h>
 #include <Rocket/Core/ElementInstancer.h>
 #include <Rocket/Core/Python/Header.h>
@@ -66,7 +66,7 @@ public:
 	/// Instances an element given the tag name and attributes
 	/// @param tag Name of the element to instance
 	/// @param attributes vector of name value pairs
-	virtual Element* InstanceElement(Element* EMP_UNUSED(parent), const EMP::Core::String& tag, const EMP::Core::XMLAttributes& EMP_UNUSED(attributes))
+	virtual Element* InstanceElement(Element* ROCKET_UNUSED(parent), const Rocket::Core::String& tag, const Rocket::Core::XMLAttributes& ROCKET_UNUSED(attributes))
 	{
 		// Build the arguments
 		PyObject* args = PyTuple_New(1);
@@ -93,7 +93,7 @@ public:
 
 	/// Releases the given element
 	/// @param element to release
-	virtual void ReleaseElement(Element* EMP_UNUSED(element))
+	virtual void ReleaseElement(Element* ROCKET_UNUSED(element))
 	{
 		// Never release Python elements, Python will manage this for us.
 	}

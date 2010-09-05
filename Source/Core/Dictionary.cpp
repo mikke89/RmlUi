@@ -171,7 +171,7 @@ namespace Core {
  equally good collision statistics, needed less code & used less memory.
  */
 
-static String dummy_key = String(128, "###DUMMYEMPDICTKEY%d###", &dummy_key);
+static String dummy_key = String(128, "###DUMMYROCKETDICTKEY%d###", &dummy_key);
 
 Dictionary::Dictionary() 
 { 
@@ -312,14 +312,14 @@ bool Dictionary::Reserve(int minused)
 	DictionaryEntry small_copy[DICTIONARY_MINSIZE];
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Reserve %d", minused); )
-	EMP_ASSERT(minused >= 0);
+	ROCKET_ASSERT(minused >= 0);
 	
 	/* Find the smallest table size > minused. */
 	for (newsize = DICTIONARY_MINSIZE;
 	     newsize <= minused && newsize > 0;
 	     newsize <<= 1);
 	
-	EMP_ASSERT(newsize > 0);
+	ROCKET_ASSERT(newsize > 0);
 	
 	if (newsize <= 0) {		
 		return false;
@@ -331,7 +331,7 @@ bool Dictionary::Reserve(int minused)
 	
 	/* Get space for a new table. */
 	oldtable = table;
-	EMP_ASSERT(oldtable != NULL);
+	ROCKET_ASSERT(oldtable != NULL);
 	is_oldtable_malloced = oldtable != small_table;
 	
 	if (newsize == DICTIONARY_MINSIZE) {
@@ -348,14 +348,14 @@ bool Dictionary::Reserve(int minused)
 			as lookdict needs at least one virgin slot to
 			terminate failing searches.  If fill < size, it's
 			merely desirable, as dummies slow searches. */
-			EMP_ASSERT(num_full > num_used);
+			ROCKET_ASSERT(num_full > num_used);
 			memcpy(small_copy, oldtable, sizeof(small_copy));
 			oldtable = small_copy;
 		}
 	}	else {
 		newtable = new DictionaryEntry[newsize];
 		
-		EMP_ASSERT(newtable);
+		ROCKET_ASSERT(newtable);
 		
 		if (newtable == NULL) {
 			return false;
@@ -363,7 +363,7 @@ bool Dictionary::Reserve(int minused)
 	}
 	
 	/* Make the dict empty, using the new table. */
-	EMP_ASSERT(newtable != oldtable);
+	ROCKET_ASSERT(newtable != oldtable);
 	table = newtable;
 	mask = newsize - 1;
 	//memset(newtable, 0, sizeof(DictionaryEntry) * newsize);
@@ -382,7 +382,7 @@ bool Dictionary::Reserve(int minused)
 		}
 		else if (!ep->key.Empty()) {	/* dummy_key entry */
 			--i;
-			EMP_ASSERT(ep->key == dummy_key);
+			ROCKET_ASSERT(ep->key == dummy_key);
 		}
 /* else key == value == NULL:  nothing to do */
 	}
@@ -433,7 +433,7 @@ void Dictionary::Set(const String& key, const Variant &value)
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Set %s", key); );
 	hash = StringUtilities::FNVHash( key.CString() );
 	
-	EMP_ASSERT(num_full <= mask);  /* at least one empty slot */
+	ROCKET_ASSERT(num_full <= mask);  /* at least one empty slot */
 	n_used = num_used;  
 	
 	Insert( key, hash, value );  
@@ -492,7 +492,7 @@ void Dictionary::Clear()
 	// Clear things up
 	for (ep = table; n_full > 0; ++ep) {
 		
-		EMP_ASSERT(i < n);
+		ROCKET_ASSERT(i < n);
 		++i;
 
 		if (!ep->key.Empty()) {
@@ -500,7 +500,7 @@ void Dictionary::Clear()
 			ep->key.Clear();		
 			ep->value.Clear();
 		} else {
-			EMP_ASSERT(ep->value.GetType() == Variant::NONE);
+			ROCKET_ASSERT(ep->value.GetType() == Variant::NONE);
 		}
 	}
 

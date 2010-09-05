@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include "EventListener.h"
 
-#include <EMP/Core/Python/Utilities.h>
+#include <Rocket/Core/Python/Utilities.h>
 
 #include "EventWrapper.h"
 #include "ElementDocumentWrapper.h"
@@ -85,11 +85,11 @@ EventListener::EventListener(PyObject* object)
 	else
 	{
 		// Unknown, log an error
-		Log::Message(EMP::Core::Log::LT_ERROR, "Failed to initialise python based event listener. Unknown python object type, should be a callable or a string."); 
+		Log::Message(Rocket::Core::Log::LT_ERROR, "Failed to initialise python based event listener. Unknown python object type, should be a callable or a string."); 
 	}
 }
 
-EventListener::EventListener(const EMP::Core::String& code, Element* context)
+EventListener::EventListener(const Rocket::Core::String& code, Element* context)
 {
 	callable = NULL;
 	element = context;
@@ -136,9 +136,9 @@ void EventListener::ProcessEvent(Event& event)
 	Py_XINCREF(old_document);
 
 	// Set up the new expected globals
-	PyDict_SetItemString(py_namespace, "event", EMP::Core::Python::Utilities::MakeObject(&event).ptr());
-	PyDict_SetItemString(py_namespace, "self", EMP::Core::Python::Utilities::MakeObject(element).ptr());
-	PyDict_SetItemString(py_namespace, "document", EMP::Core::Python::Utilities::MakeObject(element->GetOwnerDocument()).ptr());
+	PyDict_SetItemString(py_namespace, "event", Rocket::Core::Python::Utilities::MakeObject(&event).ptr());
+	PyDict_SetItemString(py_namespace, "self", Rocket::Core::Python::Utilities::MakeObject(element).ptr());
+	PyDict_SetItemString(py_namespace, "document", Rocket::Core::Python::Utilities::MakeObject(element->GetOwnerDocument()).ptr());
 
 	// Call the bound function
 	PyObject* result = NULL;
@@ -157,7 +157,7 @@ void EventListener::ProcessEvent(Event& event)
 	}
 	else
 	{		
-		EMP::Core::Python::Utilities::PrintError(true);
+		Rocket::Core::Python::Utilities::PrintError(true);
 	}
 
 	// Remove the globals
@@ -196,18 +196,18 @@ void EventListener::OnDetach(Element* /*element*/)
 
 bool EventListener::Compile()
 {
-	EMP::Core::String function_name(64, "Event_%x", this);
-	EMP::Core::String function_code(64, "def %s():", function_name.CString());
+	Rocket::Core::String function_name(64, "Event_%x", this);
+	Rocket::Core::String function_code(64, "def %s():", function_name.CString());
 
-	EMP::Core::StringList lines;
-	EMP::Core::StringUtilities::ExpandString(lines, source_code, ';');
+	Rocket::Core::StringList lines;
+	Rocket::Core::StringUtilities::ExpandString(lines, source_code, ';');
 	for (size_t i = 0; i < lines.size(); i++)
 	{
 		// Python doesn't handle \r's, strip em and indent the code correctly
-		function_code += EMP::Core::String(1024, "\n\t%s", lines[i].CString()).Replace("\r", "");
+		function_code += Rocket::Core::String(1024, "\n\t%s", lines[i].CString()).Replace("\r", "");
 	}
 
-	EMP_ASSERT(element != NULL);
+	ROCKET_ASSERT(element != NULL);
 
 	PyObject* py_namespace = GetGlobalNamespace();
 
@@ -215,7 +215,7 @@ bool EventListener::Compile()
 	PyObject* result = PyRun_String(function_code.CString(), Py_file_input, py_namespace, py_namespace);
 	if (!result)
 	{
-		EMP::Core::Python::Utilities::PrintError();		
+		Rocket::Core::Python::Utilities::PrintError();		
 		return false;
 	}
 	Py_DECREF(result);
@@ -237,7 +237,7 @@ PyObject* EventListener::GetGlobalNamespace()
 	ElementDocumentWrapper* document = dynamic_cast< ElementDocumentWrapper* >(element->GetOwnerDocument());
 	if (!document)
 	{
-		Log::Message(EMP::Core::Log::LT_ERROR, "Failed to find python accessible document for element %s, unable to create event. Did you create a context/document before initialising RocketPython?", element->GetAddress().CString());
+		Log::Message(Rocket::Core::Log::LT_ERROR, "Failed to find python accessible document for element %s, unable to create event. Did you create a context/document before initialising RocketPython?", element->GetAddress().CString());
 		return NULL;
 	}
 

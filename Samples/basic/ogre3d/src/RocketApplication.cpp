@@ -1,11 +1,27 @@
 /*
- * Copyright (c) 2006 - 2008
- * Wandering Monster Studios Limited
+ * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
- * Any use of this program is governed by the terms of Wandering Monster
- * Studios Limited's Licence Agreement included with this program, a copy
- * of which can be obtained by contacting Wandering Monster Studios
- * Limited at info@wanderingmonster.co.nz.
+ * For the latest information, see http://www.librocket.com
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  */
 
@@ -32,12 +48,12 @@ RocketApplication::RocketApplication()
 
 	// Normalise the path. This path is used to specify the resource location (see line 56 below).
 	_fullpath(path, rocket_path.CString(), MAX_PATH);
-	rocket_path = EMP::Core::String(path).Replace("\\", "/");
+	rocket_path = Rocket::Core::String(path).Replace("\\", "/");
 
 	// The sample path is the path to the Ogre3D sample directory. All resources are loaded
 	// relative to this path.
 	sample_path = getcwd(path, MAX_PATH);
-	sample_path += "/../../projects/Rocket/samples/basic/ogre3d/";
+	sample_path += "/../Samples/basic/ogre3d/";
 #if OGRE_DEBUG_MODE
 	chdir((Ogre::String(getenv("OGRE_HOME")) + "\\bin\\debug\\").c_str());
 #else
@@ -71,7 +87,7 @@ void RocketApplication::createScene()
 	Rocket::Core::FontDatabase::LoadFontFace(sample_path + "../../assets/Delicious-Italic.otf");
 	Rocket::Core::FontDatabase::LoadFontFace(sample_path + "../../assets/Delicious-BoldItalic.otf");
 
-	context = Rocket::Core::CreateContext("main", EMP::Core::Vector2i(mWindow->getWidth(), mWindow->getHeight()));
+	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(mWindow->getWidth(), mWindow->getHeight()));
 	Rocket::Debugger::Initialise(context);
 
 	// Load the mouse cursor and release the caller's reference.
@@ -114,7 +130,7 @@ void RocketApplication::createFrameListener()
 }
 
 // Called from Ogre before a queue group is rendered.
-void RocketApplication::renderQueueStarted(uint8 queueGroupId, const Ogre::String& invocation, bool& EMP_UNUSED(skipThisInvocation))
+void RocketApplication::renderQueueStarted(uint8 queueGroupId, const Ogre::String& invocation, bool& ROCKET_UNUSED(skipThisInvocation))
 {
 	if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
 	{
@@ -126,7 +142,7 @@ void RocketApplication::renderQueueStarted(uint8 queueGroupId, const Ogre::Strin
 }
 
 // Called from Ogre after a queue group is rendered.
-void RocketApplication::renderQueueEnded(uint8 EMP_UNUSED(queueGroupId), const Ogre::String& EMP_UNUSED(invocation), bool& EMP_UNUSED(repeatThisInvocation))
+void RocketApplication::renderQueueEnded(uint8 ROCKET_UNUSED(queueGroupId), const Ogre::String& ROCKET_UNUSED(invocation), bool& ROCKET_UNUSED(repeatThisInvocation))
 {
 }
 

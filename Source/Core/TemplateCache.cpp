@@ -38,7 +38,7 @@ static TemplateCache* instance = NULL;
 
 TemplateCache::TemplateCache()
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 }
 

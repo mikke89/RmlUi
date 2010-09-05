@@ -90,7 +90,7 @@ void DataSource::AttachListener(DataSourceListener* listener)
 {
 	if (find(listeners.begin(), listeners.end(), listener) != listeners.end())
 	{
-		EMP_ERROR;
+		ROCKET_ERROR;
 		return;
 	}
 	listeners.push_back(listener);
@@ -99,7 +99,7 @@ void DataSource::AttachListener(DataSourceListener* listener)
 void DataSource::DetachListener(DataSourceListener* listener)
 {
 	ListenerList::iterator i = find(listeners.begin(), listeners.end(), listener);
-	EMP_ASSERT(i != listeners.end());
+	ROCKET_ASSERT(i != listeners.end());
 	if (i != listeners.end())
 	{
 		listeners.erase(i);

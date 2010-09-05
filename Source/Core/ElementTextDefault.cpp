@@ -391,7 +391,7 @@ void ElementTextDefault::GenerateDecoration(FontFaceHandle* font_face_handle, co
 
 static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, int text_transformation)
 {
-	EMP_ASSERT(token_begin != string_end);
+	ROCKET_ASSERT(token_begin != string_end);
 
 	// Check what the first character of the token is; all we need to know is if it is white-space or not.
 	bool parsing_white_space = StringUtilities::IsWhitespace(*token_begin);

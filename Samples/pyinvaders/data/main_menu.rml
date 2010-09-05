@@ -1,0 +1,33 @@
+<rml>
+	<head>
+		<title>Main Menu</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				width: 300px;
+				height: 225px;
+
+				margin: auto;
+			}
+			
+			div#title_bar div#icon
+			{
+				icon-image-s: 179px 230px;
+				icon-image-t: 152px 191px;
+			}
+		</style>
+		<script>
+def CloseLogo():
+	if document.context:
+		document.context.documents['logo'].Close()
+		</script>
+	</head>
+	<body template="pywindow" onload="OnWindowLoad(self); document.context.LoadDocument('data/logo.rml').Show()" onunload="CloseLogo()">
+		<button onclick="document.context.LoadDocument('data/start_game.rml').Show(); document.Close()">Start Game</button><br />
+		<button onclick="LoadMenu('high_score')">High Scores</button><br />
+		<button onclick="LoadMenu('options')">Options</button><br />
+		<button onclick="LoadMenu('help')">Help</button><br />
+		<button onclick="import game;game.Shutdown()">Exit</button>
+	</body>
+</rml>

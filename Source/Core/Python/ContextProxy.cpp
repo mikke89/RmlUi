@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include "ContextProxy.h"
-#include <EMP/Core/Python/NameIndexInterface.h>
-#include <EMP/Core/Python/Utilities.h>
+#include <Rocket/Core/Python/NameIndexInterface.h>
+#include <Rocket/Core/Python/Utilities.h>
 #include <Rocket/Core.h>
 
 namespace Rocket {
@@ -38,7 +38,7 @@ namespace Python {
 class ContextLenAccessor
 {
 public:
-	int operator()(ContextProxy& EMP_UNUSED(proxy))
+	int operator()(ContextProxy& ROCKET_UNUSED(proxy))
 	{
 		return GetNumContexts();
 	}
@@ -47,7 +47,7 @@ public:
 class ContextIndexAccessor
 {
 public:
-	Context* operator()(ContextProxy& EMP_UNUSED(proxy), int index)
+	Context* operator()(ContextProxy& ROCKET_UNUSED(proxy), int index)
 	{
 		return GetContext(index);
 	}
@@ -56,7 +56,7 @@ public:
 class ContextNameAccessor
 {
 public:
-	Context* operator()(ContextProxy& EMP_UNUSED(proxy), const EMP::Core::String& name)
+	Context* operator()(ContextProxy& ROCKET_UNUSED(proxy), const Rocket::Core::String& name)
 	{
 		return GetContext(name);
 	}
@@ -65,7 +65,7 @@ public:
 void ContextProxy::InitialisePythonInterface()
 {
 	python::class_< ContextProxy >("contextproxy", python::no_init)
-		.def(EMP::Core::Python::NameIndexInterface< ContextProxy, ContextLenAccessor, ContextIndexAccessor, ContextNameAccessor >())
+		.def(Rocket::Core::Python::NameIndexInterface< ContextProxy, ContextLenAccessor, ContextIndexAccessor, ContextNameAccessor >())
 		;
 }
 

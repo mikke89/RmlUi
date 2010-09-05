@@ -30,4 +30,4 @@
 #include <Rocket/Controls.h>
 
 // Python header.
-//#include <Rocket/Core/Python/Python.h>
+#include <Rocket/Core/Python/Python.h>

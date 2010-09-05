@@ -42,35 +42,35 @@ RenderInterface::~RenderInterface()
 }
 
 // Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.
-CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* EMP_UNUSED(vertices), int EMP_UNUSED(num_vertices), int* EMP_UNUSED(indices), int EMP_UNUSED(num_indices), TextureHandle EMP_UNUSED(texture))
+CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* ROCKET_UNUSED(vertices), int ROCKET_UNUSED(num_vertices), int* ROCKET_UNUSED(indices), int ROCKET_UNUSED(num_indices), TextureHandle ROCKET_UNUSED(texture))
 {
 	return NULL;
 }
 
 // Called by Rocket when it wants to render application-compiled geometry.
-void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle EMP_UNUSED(geometry), const Vector2f& EMP_UNUSED(translation))
+void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED(geometry), const Vector2f& ROCKET_UNUSED(translation))
 {
 }
 
 // Called by Rocket when it wants to release application-compiled geometry.
-void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle EMP_UNUSED(geometry))
+void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED(geometry))
 {
 }
 
 // Called by Rocket when a texture is required by the library.
-bool RenderInterface::LoadTexture(TextureHandle& EMP_UNUSED(texture_handle), Vector2i& EMP_UNUSED(texture_dimensions), const String& EMP_UNUSED(source))
+bool RenderInterface::LoadTexture(TextureHandle& ROCKET_UNUSED(texture_handle), Vector2i& ROCKET_UNUSED(texture_dimensions), const String& ROCKET_UNUSED(source))
 {
 	return false;
 }
 
 // Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
-bool RenderInterface::GenerateTexture(TextureHandle& EMP_UNUSED(texture_handle), const byte* EMP_UNUSED(source), const Vector2i& EMP_UNUSED(source_dimensions))
+bool RenderInterface::GenerateTexture(TextureHandle& ROCKET_UNUSED(texture_handle), const byte* ROCKET_UNUSED(source), const Vector2i& ROCKET_UNUSED(source_dimensions))
 {
 	return false;
 }
 
 // Called by Rocket when a loaded texture is no longer required.
-void RenderInterface::ReleaseTexture(TextureHandle EMP_UNUSED(texture))
+void RenderInterface::ReleaseTexture(TextureHandle ROCKET_UNUSED(texture))
 {
 }
 

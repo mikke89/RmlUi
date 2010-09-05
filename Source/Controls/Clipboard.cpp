@@ -28,14 +28,14 @@
 #include <Rocket/Controls/Clipboard.h>
 #include <Rocket/Core/Types.h>
 #include <Rocket/Core/WString.h>
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
 #endif
 
 namespace Rocket {
 namespace Controls {
 
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 static HWND application_hwnd = NULL;
 
 static BOOL CALLBACK FindApplicationWindow(HWND hwnd, LPARAM process_id)
@@ -66,7 +66,7 @@ static Core::WString content;
 // Get the current contents of the clipboard.
 Core::WString Clipboard::Get()
 {
-	#if defined EMP_PLATFORM_WIN32
+	#if defined ROCKET_PLATFORM_WIN32
 	if (GetHWND())
 	{
 		Core::WString clipboard_content;
@@ -95,7 +95,7 @@ Core::WString Clipboard::Get()
 // Set the contents of the clipboard.
 void Clipboard::Set(const Core::WString& _content)
 {
-	#if defined EMP_PLATFORM_WIN32
+	#if defined ROCKET_PLATFORM_WIN32
 	if (GetHWND())
 	{
 		if (!OpenClipboard(GetHWND()))
@@ -124,7 +124,7 @@ void Clipboard::Set(const Core::WString& _content)
 	#endif
 }
 
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 // Set the window handle of the application.
 void Clipboard::SetHWND(void* hwnd)
 {

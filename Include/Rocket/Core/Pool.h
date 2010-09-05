@@ -68,7 +68,7 @@ public:
 		/// node this iterator references is invalid.
 		inline void operator++()
 		{
-			EMP_ASSERT(node != NULL);
+			ROCKET_ASSERT(node != NULL);
 			node = node->next;
 		}
 		/// Returns true if it is OK to deference or increment this

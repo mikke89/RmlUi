@@ -42,7 +42,7 @@ StyleSheetNodeSelectorEmpty::~StyleSheetNodeSelectorEmpty()
 }
 
 // Returns true if the element has no DOM children.
-bool StyleSheetNodeSelectorEmpty::IsApplicable(const Element* element, int EMP_UNUSED(a), int EMP_UNUSED(b))
+bool StyleSheetNodeSelectorEmpty::IsApplicable(const Element* element, int ROCKET_UNUSED(a), int ROCKET_UNUSED(b))
 {
 	for (int i = 0; i < element->GetNumChildren(); ++i)
 	{

@@ -48,7 +48,7 @@ ElementFormControlSelect::~ElementFormControlSelect()
 // Returns a string representation of the current value of the form control.
 Rocket::Core::String ElementFormControlSelect::GetValue() const
 {
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	return widget->GetValue();
 }
 
@@ -57,7 +57,7 @@ void ElementFormControlSelect::SetValue(const Rocket::Core::String& value)
 {
 	OnUpdate();
 
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	widget->SetValue(value);
 }
 
@@ -66,14 +66,14 @@ void ElementFormControlSelect::SetSelection(int selection)
 {
 	OnUpdate();
 
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	widget->SetSelection(selection);
 }
 
 // Returns the index of the currently selected item.
 int ElementFormControlSelect::GetSelection() const
 {
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	return widget->GetSelection();
 }
 
@@ -82,7 +82,7 @@ SelectOption* ElementFormControlSelect::GetOption(int index)
 {
 	OnUpdate();
 
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	return widget->GetOption(index);
 }
 
@@ -91,7 +91,7 @@ int ElementFormControlSelect::GetNumOptions()
 {
 	OnUpdate();
 
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	return widget->GetNumOptions();
 }
 
@@ -100,7 +100,7 @@ int ElementFormControlSelect::Add(const Rocket::Core::String& rml, const Rocket:
 {
 	OnUpdate();
 
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	return widget->AddOption(rml, value, before, false, selectable);
 }
 
@@ -109,7 +109,7 @@ void ElementFormControlSelect::Remove(int index)
 {
 	OnUpdate();
 
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	widget->RemoveOption(index);
 }
 
@@ -118,7 +118,7 @@ void ElementFormControlSelect::RemoveAll()
 {
 	OnUpdate();
 
-	EMP_ASSERT(widget != NULL);
+	ROCKET_ASSERT(widget != NULL);
 	widget->ClearOptions();
 }
 

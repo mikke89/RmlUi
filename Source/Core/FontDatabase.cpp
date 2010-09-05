@@ -44,13 +44,13 @@ static FT_Library ft_library = NULL;
 
 FontDatabase::FontDatabase()
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 }
 
 FontDatabase::~FontDatabase()
 {
-	EMP_ASSERT(instance == this);
+	ROCKET_ASSERT(instance == this);
 	instance = NULL;
 }
 

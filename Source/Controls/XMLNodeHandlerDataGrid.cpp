@@ -48,7 +48,7 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 	Core::Element* element = NULL;
 	Core::Element* parent = parser->GetParseFrame()->element;
 
-	EMP_ASSERT(name == "datagrid" ||
+	ROCKET_ASSERT(name == "datagrid" ||
 			   name == "col");
 
 	if (name == "datagrid")
@@ -94,13 +94,13 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 	}
 	else
 	{
-		EMP_ERROR;
+		ROCKET_ERROR;
 	}
 
 	return element;
 }
 
-bool XMLNodeHandlerDataGrid::ElementEnd(Core::XMLParser* EMP_UNUSED(parser), const Rocket::Core::String& EMP_UNUSED(name))
+bool XMLNodeHandlerDataGrid::ElementEnd(Core::XMLParser* ROCKET_UNUSED(parser), const Rocket::Core::String& ROCKET_UNUSED(name))
 {
 	return true;
 }

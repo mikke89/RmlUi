@@ -49,7 +49,7 @@ static StyleSheetFactory* instance = NULL;
 
 StyleSheetFactory::StyleSheetFactory()
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 }
 

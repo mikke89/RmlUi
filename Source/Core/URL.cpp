@@ -45,14 +45,14 @@ URL::URL()
 URL::URL(const String& _url)
 {
 	port = 0;
-	EMP_VERIFY(SetURL(_url));
+	ROCKET_VERIFY(SetURL(_url));
 }
 
 // Constructs a new URL from the given string.
 URL::URL(const char* _url)
 {
 	port = 0;
-	EMP_VERIFY(SetURL(_url));
+	ROCKET_VERIFY(SetURL(_url));
 }
 
 // Destroys the URL.
@@ -492,7 +492,7 @@ void URL::ConstructURL() const
 		}
 		url.Append( "@" );
 	}
-	EMP_ASSERTMSG( password.Empty() || ( !password.Empty() && !login.Empty() ), "Can't have a password without a login!" );
+	ROCKET_ASSERTMSG( password.Empty() || ( !password.Empty() && !login.Empty() ), "Can't have a password without a login!" );
 
 	// Append the host.
 	url += host;
@@ -502,7 +502,7 @@ void URL::ConstructURL() const
 	{		
 		if (port > 0)
 		{
-			EMP_ASSERTMSG( !host.Empty(), "Can't have a port without a host!" );
+			ROCKET_ASSERTMSG( !host.Empty(), "Can't have a port without a host!" );
 			char port_string[16];
 			sprintf(port_string, ":%d/", port);
 			url.Append(port_string);

@@ -86,7 +86,7 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	// Check that we haven't already been successfully initialised.
 	if (orientation != UNKNOWN)
 	{
-		EMP_ERROR;
+		ROCKET_ERROR;
 		return false;
 	}
 
@@ -94,7 +94,7 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	if (_orientation != HORIZONTAL &&
 		_orientation != VERTICAL)
 	{
-		EMP_ERROR;
+		ROCKET_ERROR;
 		return false;
 	}
 

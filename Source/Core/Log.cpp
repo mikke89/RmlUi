@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include <Rocket/Core/Log.h>
 #include <Rocket/Core.h>
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 #include <windows.h>
 #endif
 
@@ -92,7 +92,7 @@ void Log::ParseError(const String& filename, int line_number, const char* fmt, .
 // Low-level platform message.
 void Log::PlatformMessage(const char *message)
 {
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 	OutputDebugStringA(message);
 	OutputDebugStringA("\r\n");
 #else

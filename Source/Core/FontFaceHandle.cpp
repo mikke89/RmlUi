@@ -252,8 +252,8 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 	int geometry_index = 0;
 	int line_width = 0;
 
-	EMP_ASSERT(layer_configuration_index >= 0);
-	EMP_ASSERT(layer_configuration_index < (int) layer_configurations.size());
+	ROCKET_ASSERT(layer_configuration_index >= 0);
+	ROCKET_ASSERT(layer_configuration_index < (int) layer_configurations.size());
 
 	// Fetch the requested configuration and generate the geometry for each one.
 	const LayerConfiguration& layer_configuration = layer_configurations[layer_configuration_index];

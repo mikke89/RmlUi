@@ -63,7 +63,7 @@ bool ConvolutionFilter::Initialise(int _kernel_size, FilterOperation _operation)
 // Returns a reference to one of the rows of the filter kernel.
 float* ConvolutionFilter::operator[](int index)
 {
-	EMP_ASSERT(kernel != NULL);
+	ROCKET_ASSERT(kernel != NULL);
 
 	index = Math::Max(index, 0);
 	index = Math::Min(index, kernel_size - 1);

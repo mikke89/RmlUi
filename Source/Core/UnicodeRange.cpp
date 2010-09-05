@@ -42,7 +42,7 @@ UnicodeRange::UnicodeRange(int _min_codepoint, int _max_codepoint)
 	min_codepoint = _min_codepoint;
 	max_codepoint = _max_codepoint;
 
-	EMP_ASSERT(min_codepoint <= max_codepoint);
+	ROCKET_ASSERT(min_codepoint <= max_codepoint);
 }
 
 // Initialises the range from a unicode range in string form.

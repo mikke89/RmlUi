@@ -54,20 +54,20 @@ void ElementStyleProxy::InitialisePythonInterface()
 void ElementStyleProxy::SetAttr(const char* _key, const char* value)
 {
 	// Switch underscores to dashes, as the script interface can't use -'s
-	EMP::Core::String key = EMP::Core::String(_key).Replace("_", "-");
+	Rocket::Core::String key = Rocket::Core::String(_key).Replace("_", "-");
 
 	element->SetProperty(key.CString(), value);
 }
 
-EMP::Core::String ElementStyleProxy::GetAttr(const char* _key)
+Rocket::Core::String ElementStyleProxy::GetAttr(const char* _key)
 {
 	// Switch underscores to dashes, as the script interface can't use -'s
-	EMP::Core::String key = EMP::Core::String(_key).Replace("_", "-");
+	Rocket::Core::String key = Rocket::Core::String(_key).Replace("_", "-");
 
 	const Property* property = element->GetProperty(key.CString());
 	if ( !property )
 	{
-		EMP::Core::String message(128, "Invalid style property %s", _key);
+		Rocket::Core::String message(128, "Invalid style property %s", _key);
 		PyErr_SetString(PyExc_KeyError, message.CString());
 		python::throw_error_already_set();
 	}

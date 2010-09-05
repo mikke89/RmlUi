@@ -33,17 +33,11 @@
 #include "PluginRegistry.h"
 #include "StreamFile.h"
 #include <Rocket/Core/StreamMemory.h>
-#include "TrialLogo.h"
 
 namespace Rocket {
 namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
-
-bool use_trial_logo = false;
-
-typedef std::map< Context*, TrialLogo* > TrialLogoMap;
-static TrialLogoMap trial_logos;
 
 Context::Context(const String& name) : name(name), mouse_position(0, 0), dimensions(0, 0)
 {
@@ -76,23 +70,10 @@ Context::Context(const String& name) : name(name), mouse_position(0, 0), dimensi
 
 	last_click_element = NULL;
 	last_click_time = 0;
-
-	if (use_trial_logo)
-		trial_logos[this] = new TrialLogo(this);
 }
 
 Context::~Context()
 {
-	if (use_trial_logo)
-	{
-		TrialLogoMap::iterator logo_iterator = trial_logos.find(this);
-		if (logo_iterator != trial_logos.end())
-		{
-			delete logo_iterator->second;
-			trial_logos.erase(logo_iterator);
-		}
-	}
-
 	PluginRegistry::NotifyContextDestroy(this);
 
 	UnloadAllDocuments();
@@ -173,13 +154,6 @@ bool Context::Render()
 	ElementUtilities::PushClipCache(render_interface);
 
 	root->Render();
-
-	if (use_trial_logo)
-	{
-		TrialLogoMap::iterator logo_iterator = trial_logos.find(this);
-		if (logo_iterator != trial_logos.end())
-			logo_iterator->second->Render();
-	}
 
 	ElementUtilities::SetClippingRegion(NULL, this);
 
@@ -804,7 +778,7 @@ RenderInterface* Context::GetRenderInterface() const
 // Sets the instancer to use for releasing this object.
 void Context::SetInstancer(ContextInstancer* _instancer)
 {
-	EMP_ASSERT(instancer == NULL);
+	ROCKET_ASSERT(instancer == NULL);
 	instancer = _instancer;
 	instancer->AddReference();	
 }

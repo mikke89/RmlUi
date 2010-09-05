@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef EMPVARIANT_H
-#define EMPVARIANT_H
+#ifndef ROCKETVARIANT_H
+#define ROCKETVARIANT_H
 
 #include <Rocket/Core/Header.h>
 #include <Rocket/Core/Types.h>
@@ -107,15 +107,9 @@ public:
 	/// Sets a generic void* value on this variant.
 	/// @param[in] value New value to set.
 	void Set(void* value);
-	/// Sets a Quaternion value on this variant.
-	/// @param[in] value New value to set.
-	//void Set(const Quaternion& value);
 	/// Sets an EMP string value on this variant.
 	/// @param[in] value New value to set.
 	void Set(const String& value);
-	/// Sets a Vector3f value on this variant.
-	/// @param[in] value New value to set.
-	//void Set(const Vector3f& value);
 	/// Sets a Vector2f value on this variant.
 	/// @param[in] value New value to set.
 	void Set(const Vector2f& value);

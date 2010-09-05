@@ -304,7 +304,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 	const Property* property = GetProperty(name);
 	if (!property)
 	{
-		EMP_ERROR;
+		ROCKET_ERROR;
 		return 0.0f;
 	}
 

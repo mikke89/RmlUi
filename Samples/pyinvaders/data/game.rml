@@ -1,0 +1,124 @@
+<rml>
+	<head>
+		<title>game</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				padding: 0px;
+				margin: 0px;
+				width: 100%;
+				height: 100%;
+
+				z-index: -1;
+			}
+			
+			game
+			{
+				display: block;
+				width: 100%;
+				height: 100%;
+			}
+
+			div
+			{
+				height: 47px;
+				padding: 9px 0px 0px 65px;
+				margin: 0px 20px;
+
+				font-size: 20;
+
+				background-decorator: tiled-horizontal;
+				background-left-image: ../../assets/invader.tga 147px 55px 229px 0px;
+				background-center-image: ../../assets/invader.tga stretch 229px 55px 230px 0px;
+				background-right-image: ../../assets/invader.tga 231px 55px 246px 0px;
+			}
+
+			div#score_div
+			{
+				float: left;
+				width: 155px;
+			}
+
+			div#hiscore_div
+			{
+				float: left;
+				width: 205px;
+			}
+
+			div#waves_div
+			{
+				float: right;
+				width: 95px;
+			}
+
+			div#lives_div
+			{
+				float: right;
+				width: 80px;
+			}
+
+			icon
+			{
+				display: block;
+				position: absolute;
+				left: 14px;
+				top: 3px;
+
+				width: 51px;
+				height: 39px;
+				
+				icon-decorator: image;
+				icon-image-src: ../../assets/invader.tga;
+				icon-image-t: 152px 191px;
+			}
+
+			div#score_div icon
+			{
+				icon-image-s: 434px 485px;
+			}
+
+			div#hiscore_div icon
+			{
+				icon-image-s: 281px 332px;
+			}
+
+			div#waves_div icon
+			{
+				icon-image-s: 332px 383px;
+			}
+
+			div#lives_div icon
+			{
+				icon-image-s: 383px 434px;
+			}
+		</style>
+		<script>
+import rocket
+
+def OnKeyDown(event, document):
+	if event.parameters['key_identifier'] == rocket.key_identifier.ESCAPE:
+		document.context.LoadDocument('data/pause.rml').Show()
+		</script>
+	</head>
+	<body id="game_window" onkeydown="OnKeyDown(event, document)" ongameover="LoadMenu('high_score')">
+		<game id="game">
+			<div id="score_div">
+				<icon />
+				score: <span id="score" />
+			</div>
+			<div id="hiscore_div">
+				<icon />
+				high score: <span id="hiscore" />
+			</div>
+			<div id="lives_div">
+				<icon />
+				lives: <span id="lives" />
+			</div>
+			<div id="waves_div">
+				<icon />
+				wave: <span id="waves" />
+			</div>
+		</game>
+	</body>
+</rml>

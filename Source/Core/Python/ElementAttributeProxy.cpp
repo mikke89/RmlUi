@@ -69,8 +69,8 @@ ElementAttributeProxy::AttributeProxy ElementAttributeProxy::GetItem(int index)
 		index = element->GetNumAttributes() + index;
 	}
 
-	EMP::Core::String name;
-	EMP::Core::String value;
+	Rocket::Core::String name;
+	Rocket::Core::String value;
 
 	// Throw exception if we're out of range, this is required to support python iteration
 	if (!element->IterateAttributes(index, name, value))

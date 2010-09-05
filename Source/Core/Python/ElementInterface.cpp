@@ -27,25 +27,25 @@
 
 #include "precompiled.h"
 #include "ElementInterface.h"
-#include <EMP/Core/Python/Utilities.h>
-#include <EMP/Core/Python/VectorInterface.h>
-#include <Rocket/Core/ElementHandle.h>
-#include <Rocket/Core/ElementImage.h>
-#include <Rocket/Core/ElementTextDefault.h>
+#include <Rocket/Core/Python/Utilities.h>
+#include <Rocket/Core/Python/VectorInterface.h>
+#include <ElementHandle.h>
+#include <ElementImage.h>
+#include <ElementTextDefault.h>
 #include <Rocket/Core/ElementUtilities.h>
 #include <Rocket/Core/Factory.h>
-#include <Rocket/Core/Python/ElementAttributeProxy.h>
-#include <Rocket/Core/Python/ElementChildrenProxy.h>
-#include <Rocket/Core/Python/ElementDocumentWrapper.h>
+#include <Python/ElementAttributeProxy.h>
+#include <Python/ElementChildrenProxy.h>
+#include <Python/ElementDocumentWrapper.h>
+#include <Python/ElementStyleProxy.h>
 #include <Rocket/Core/Python/ElementInstancer.h>
-#include <Rocket/Core/Python/ElementStyleProxy.h>
 #include <Rocket/Core/Python/ElementWrapper.h>
 
 namespace Rocket {
 namespace Core {
 namespace Python {
 
-typedef EMP::Core::STL::map< EMP::Core::String, PyObject* > ClassDefinitions;
+typedef std::map< Rocket::Core::String, PyObject* > ClassDefinitions;
 ClassDefinitions class_definitions;
 
 void ElementInterface::InitialisePythonInterface()
@@ -55,7 +55,7 @@ void ElementInterface::InitialisePythonInterface()
 	ElementAttributeProxy::InitialisePythonInterface();
 
 	// Element list
-	EMP::Core::Python::VectorInterface< ElementList > element_list("ElementList");
+	Rocket::Core::Python::VectorInterface< ElementList > element_list("ElementList");
 
 	// Document focus flags
 	python::enum_< ElementDocument::FocusFlags >("focus")
@@ -162,7 +162,7 @@ void ElementInterface::InitialiseRocketInterface()
 }
 
 // Get the element's address.
-EMP::Core::String ElementInterface::GetAddress(Element* element)
+Rocket::Core::String ElementInterface::GetAddress(Element* element)
 {
 	return element->GetAddress(false);
 }
@@ -200,7 +200,7 @@ void ElementInterface::AppendChild(Element* element, Element* child)
 
 void ElementInterface::DispatchEvent(Element* element, const char* event, const python::dict& parameters, bool interruptible)
 {
-	EMP::Core::Dictionary emp_parameters;
+	Rocket::Core::Dictionary ROCKET_parameters;
 
 	PyObject* keys = PyDict_Keys(parameters.ptr());
 	int num_keys = PyList_Size(keys);
@@ -214,8 +214,8 @@ void ElementInterface::DispatchEvent(Element* element, const char* event, const 
 			python::throw_error_already_set();
 		}
 
-		EMP::Core::Variant value;
-		if (!EMP::Core::Python::Utilities::ConvertToVariant(value, PyDict_GetItem(parameters.ptr(), py_key)))
+		Rocket::Core::Variant value;
+		if (!Rocket::Core::Python::Utilities::ConvertToVariant(value, PyDict_GetItem(parameters.ptr(), py_key)))
 		{
 			Py_DECREF(keys);
 			PyErr_SetString(PyExc_ValueError, "Unable to convert parameter value.");
@@ -223,15 +223,15 @@ void ElementInterface::DispatchEvent(Element* element, const char* event, const 
 		}
 
 		const char* key = PyString_AsString(py_key);
-		emp_parameters.Set(key, value);
+		ROCKET_parameters.Set(key, value);
 	}
 
-	element->DispatchEvent(event, emp_parameters, interruptible);
+	element->DispatchEvent(event, ROCKET_parameters, interruptible);
 }
 
-EMP::Core::String ElementInterface::GetAttribute(Element* element, const char* name)
+Rocket::Core::String ElementInterface::GetAttribute(Element* element, const char* name)
 {
-	return element->GetAttribute< EMP::Core::String >(name, "");
+	return element->GetAttribute< Rocket::Core::String >(name, "");
 }
 
 // Returns the list of elements.
@@ -247,16 +247,16 @@ void ElementInterface::SetAttribute(Element* element, const char* name, const ch
 	element->SetAttribute(name, value);
 }
 
-EMP::Core::String ElementInterface::GetInnerRML(Element* element)
+Rocket::Core::String ElementInterface::GetInnerRML(Element* element)
 {
-	EMP::Core::String rml;
+	Rocket::Core::String rml;
 	element->GetInnerRML(rml);
 	return rml;
 }
 
-EMP::Core::String ElementInterface::GetText(ElementText* element)
+Rocket::Core::String ElementInterface::GetText(ElementText* element)
 {
-	EMP::Core::String text;
+	Rocket::Core::String text;
 	element->GetText().ToUTF8(text);
 	return text;
 }
@@ -278,7 +278,7 @@ python::object ElementInterface::CreateElement(ElementDocument* document, const 
 	if (new_element == NULL)
 		return python::object();
 
-	python::object py_element = EMP::Core::Python::Utilities::MakeObject(new_element);
+	python::object py_element = Rocket::Core::Python::Utilities::MakeObject(new_element);
 	new_element->RemoveReference();
 	return py_element;
 }
@@ -290,7 +290,7 @@ python::object ElementInterface::CreateTextNode(ElementDocument* document, const
 	if (new_element == NULL)
 		return python::object();
 
-	python::object py_element = EMP::Core::Python::Utilities::MakeObject(new_element);
+	python::object py_element = Rocket::Core::Python::Utilities::MakeObject(new_element);
 	new_element->RemoveReference();
 	return py_element;
 }

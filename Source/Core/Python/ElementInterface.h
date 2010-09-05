@@ -57,7 +57,7 @@ public:
 	static void InitialiseRocketInterface();
 
 	/// Get the element's address.
-	static EMP::Core::String GetAddress(Element* element);
+	static Rocket::Core::String GetAddress(Element* element);
 	/// Get a style proxy object for the element
 	static ElementStyleProxy GetStyle(Element* element);
 	/// Get a children proxy object for the element
@@ -73,7 +73,7 @@ public:
 	/// Dispatches an event.
 	static void DispatchEvent(Element* element, const char* event, const python::dict& parameters, bool interruptible);
 	/// Get the specified attribute
-	static EMP::Core::String GetAttribute(Element* element, const char* name);
+	static Rocket::Core::String GetAttribute(Element* element, const char* name);
 	/// Returns the list of elements.
 	static ElementList GetElementsByTagName(Element* element, const char* tag);
 	/// Override for RemoveEventListener without the third parameter.
@@ -81,10 +81,10 @@ public:
 	/// Get the specified attribute
 	static void SetAttribute(Element* element, const char* name, const char* value);
 	/// Get the inner html of the given element
-	static EMP::Core::String GetInnerRML(Element* element);
+	static Rocket::Core::String GetInnerRML(Element* element);
 
 	/// ElementText interface.
-	static EMP::Core::String GetText(ElementText* element);
+	static Rocket::Core::String GetText(ElementText* element);
 	static void SetText(ElementText* element, const char* text);
 
 	/// Document Interface.

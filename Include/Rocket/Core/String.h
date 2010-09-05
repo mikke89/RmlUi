@@ -49,7 +49,7 @@ ROCKETCORE_API int StringBase<char>::FormatString(StringBase<char>::size_type ma
 ROCKETCORE_API String operator+(const char* cstring, const String& string);
 
 // Redefine Windows APIs as their STDC counterparts.
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 	#define strcasecmp stricmp
 	#define strncasecmp strnicmp
 #endif

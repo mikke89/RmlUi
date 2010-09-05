@@ -55,7 +55,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="EMPCore_d.lib RocketCore_d.lib RocketDebugger_d.lib libpng_d.lib zlib_d.lib opengl32.lib d3d9.lib d3dx9.lib"
+				AdditionalDependencies="RocketCore_d.lib RocketDebugger_d.lib opengl32.lib d3d9.lib d3dx9.lib"
 				OutputFile="..\..\..\bin\$(ProjectName)_d.exe"
 				AdditionalLibraryDirectories="..\..\..\bin"
 				GenerateDebugInformation="true"
@@ -124,7 +124,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="EMPCore.lib RocketCore.lib RocketDebugger.lib libpng.lib zlib.lib opengl32.lib d3d9.lib d3dx9.lib"
+				AdditionalDependencies="RocketCore.lib RocketDebugger.lib opengl32.lib d3d9.lib d3dx9.lib"
 				OutputFile="..\..\..\bin\$(ProjectName).exe"
 				AdditionalLibraryDirectories="..\..\..\bin"
 				SubSystem="2"

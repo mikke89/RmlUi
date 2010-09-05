@@ -60,7 +60,7 @@ bool LayoutInlineBoxText::CanOverflow() const
 LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
 {
 	ElementText* text_element = GetTextElement();
-	EMP_ASSERT(text_element != NULL);
+	ROCKET_ASSERT(text_element != NULL);
 
 	int line_length;
 	float line_width;
@@ -122,7 +122,7 @@ void LayoutInlineBoxText::PositionElement()
 }
 
 // Sizes the inline box's element.
-void LayoutInlineBoxText::SizeElement(bool EMP_UNUSED(split))
+void LayoutInlineBoxText::SizeElement(bool ROCKET_UNUSED(split))
 {
 }
 
@@ -146,7 +146,7 @@ ElementText* LayoutInlineBoxText::GetTextElement()
 void LayoutInlineBoxText::BuildWordBox()
 {
 	ElementText* text_element = GetTextElement();
-	EMP_ASSERT(text_element != NULL);
+	ROCKET_ASSERT(text_element != NULL);
 
 	FontFaceHandle* font_face_handle = text_element->GetFontFaceHandle();
 	if (font_face_handle == NULL)

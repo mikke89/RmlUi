@@ -263,7 +263,7 @@ float LayoutEngine::Round(float value)
 void* LayoutEngine::AllocateLayoutChunk(size_t size)
 {
 	(size);
-	EMP_ASSERT(size <= LayoutChunk::size);
+	ROCKET_ASSERT(size <= LayoutChunk::size);
 
 	return layout_chunk_pool.AllocateObject();
 }
@@ -313,7 +313,7 @@ bool LayoutEngine::FormatElement(Element* element)
 		case DISPLAY_BLOCK:			return FormatElementBlock(element); break;
 		case DISPLAY_INLINE:		return FormatElementInline(element); break;
 		case DISPLAY_INLINE_BLOCK:	FormatElementReplaced(element); break;
-		default:					EMP_ERROR;
+		default:					ROCKET_ERROR;
 	}
 
 	return true;
@@ -428,7 +428,7 @@ Vector2f LayoutEngine::GetContainingBlock(const LayoutBlockBox* containing_box)
 		containing_box = containing_box->GetParent();
 		if (containing_box == NULL)
 		{
-			EMP_ERROR;
+			ROCKET_ERROR;
 			containing_block.y = 0;
 		}
 	}

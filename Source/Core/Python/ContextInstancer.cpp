@@ -27,7 +27,7 @@
 
 #include "precompiled.h"
 #include "ContextInstancer.h"
-#include <EMP/Core/Python/Utilities.h>
+#include <Rocket/Core/Python/Utilities.h>
 
 namespace Rocket {
 namespace Core {
@@ -45,7 +45,7 @@ ContextInstancer::~ContextInstancer()
 }
 
 // Instances a context.
-Context* ContextInstancer::InstanceContext(const EMP::Core::String& name)
+Context* ContextInstancer::InstanceContext(const Rocket::Core::String& name)
 {
 	// Put the arguments into a tuple.
 	PyObject* args = PyTuple_New(1);	
@@ -56,7 +56,7 @@ Context* ContextInstancer::InstanceContext(const EMP::Core::String& name)
 	Py_DECREF(args);
 
 	// Rebind the target element.
-	Context* context = python::extract< Context* >(EMP::Core::Python::Utilities::MakeObject(instance));
+	Context* context = python::extract< Context* >(Rocket::Core::Python::Utilities::MakeObject(instance));
 	if (context != NULL)
 	{
 		// The wrapper will remove the initial C++ reference (as the object may have been made in Python), so we have
@@ -69,7 +69,7 @@ Context* ContextInstancer::InstanceContext(const EMP::Core::String& name)
 }
 
 // Releases a context previously created by this context.
-void ContextInstancer::ReleaseContext(Context* EMP_UNUSED(context))
+void ContextInstancer::ReleaseContext(Context* ROCKET_UNUSED(context))
 {
 }
 

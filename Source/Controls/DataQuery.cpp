@@ -40,7 +40,7 @@ class DataQuerySort
 			order_parameters = _order_parameters;
 		}
 
-		bool operator()(const Rocket::Core::StringList& EMP_UNUSED(left), const Rocket::Core::StringList& EMP_UNUSED(right))
+		bool operator()(const Rocket::Core::StringList& ROCKET_UNUSED(left), const Rocket::Core::StringList& ROCKET_UNUSED(right))
 		{
 			return false;
 		}
@@ -145,7 +145,7 @@ bool DataQuery::IsFieldSet(const Rocket::Core::String& field) const
 
 void DataQuery::LoadRow()
 {
-	EMP_ASSERT(current_row <= (int)rows.size());
+	ROCKET_ASSERT(current_row <= (int)rows.size());
 	if (current_row >= (int)rows.size())
 	{
 		rows.push_back(Rocket::Core::StringList());

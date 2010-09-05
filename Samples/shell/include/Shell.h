@@ -31,7 +31,7 @@
 #include <Rocket/Core/Types.h>
 #include <Rocket/Core/SystemInterface.h>
 
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 #define PATH_SEPARATOR	";"
 #else
 #define PATH_SEPARATOR	":"

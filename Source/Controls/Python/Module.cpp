@@ -28,8 +28,11 @@
 #include "precompiled.h"
 #include "Module.h"
 #include <Rocket/Core/Python/Python.h>
+#include <Rocket/Core/Python/ConverterScriptObject.h>
+#include <Rocket/Controls/DataSource.h>
 #include "ElementInterface.h"
 #include "DataFormatterWrapper.h"
+#include "DataSourceWrapper.h"
 
 namespace Rocket {
 namespace Controls {
@@ -43,10 +46,12 @@ BOOST_PYTHON_MODULE(_rocketcontrols)
 	// the boost python definitions
 	Py_XDECREF(PyImport_ImportModule("_rocketcore"));
 
+	Rocket::Core::Python::ConverterScriptObject< DataSource >();
 
 	// Initialise the python bindings
 	ElementInterface::InitialisePythonInterface();
 	DataFormatterWrapper::InitialisePythonInterface();
+	DataSourceWrapper::InitialisePythonInterface();
 
 	// Register this plugin with rocket
 	Rocket::Core::RegisterPlugin(&module);

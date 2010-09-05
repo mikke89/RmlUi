@@ -52,7 +52,7 @@ typedef void* ScriptObject;
 }
 }
 
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 typedef unsigned __int64 uint64_t;
 #else
 #include <inttypes.h>

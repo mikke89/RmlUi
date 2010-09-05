@@ -109,7 +109,7 @@ Element::Element(const String& _tag) : absolute_offset(0, 0), relative_offset_ba
 
 Element::~Element()
 {
-	EMP_ASSERT(parent == NULL);	
+	ROCKET_ASSERT(parent == NULL);	
 
 	PluginRegistry::NotifyElementDestroy(this);
 
@@ -443,7 +443,7 @@ float Element::GetBaseline() const
 }
 
 // Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size.
-bool Element::GetIntrinsicDimensions(Vector2f& EMP_UNUSED(dimensions))
+bool Element::GetIntrinsicDimensions(Vector2f& ROCKET_UNUSED(dimensions))
 {
 	return false;
 }
@@ -504,7 +504,7 @@ void Element::RemoveProperty(const String& name)
 // Sets a local property override on the element to a pre-parsed value.
 bool Element::SetProperty(const String& name, const Property& property)
 {
-	EMP_ASSERTMSG(property.unit != Property::KEYWORD || property.definition != NULL, "Keyword properties should not be set pre-parsed on an element.");
+	ROCKET_ASSERTMSG(property.unit != Property::KEYWORD || property.definition != NULL, "Keyword properties should not be set pre-parsed on an element.");
 	return style->SetProperty(name, property);
 }
 

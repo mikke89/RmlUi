@@ -220,8 +220,8 @@ const FontEffect* FontFaceLayer::GetFontEffect() const
 // Returns on the layer's textures.
 const Texture* FontFaceLayer::GetTexture(int index)
 {
-	EMP_ASSERT(index >= 0);
-	EMP_ASSERT(index < GetNumTextures());
+	ROCKET_ASSERT(index >= 0);
+	ROCKET_ASSERT(index < GetNumTextures());
 
 	return &(textures[index]);
 }

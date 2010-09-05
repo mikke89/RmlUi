@@ -55,7 +55,7 @@ public:
 	/// Python SetAttr override
 	void SetAttr(const char* key, const char* value);
 	/// Python GetAttr override
-	EMP::Core::String GetAttr(const char* key);
+	Rocket::Core::String GetAttr(const char* key);
 	
 private:
 	Element* element;

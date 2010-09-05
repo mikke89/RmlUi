@@ -29,24 +29,24 @@
 #define ROCKETCOREPLATFORM_H
 
 #if defined __WIN32__ || defined _WIN32
-	#define EMP_PLATFORM_WIN32
-	#define EMP_PLATFORM_NAME "win32"
+	#define ROCKET_PLATFORM_WIN32
+	#define ROCKET_PLATFORM_NAME "win32"
     #pragma warning(disable:4355)
 #elif defined __APPLE_CC__
-	#define EMP_PLATFORM_UNIX
-	#define EMP_PLATFORM_MACOSX
-	#define EMP_PLATFORM_NAME "macosx"
+	#define ROCKET_PLATFORM_UNIX
+	#define ROCKET_PLATFORM_MACOSX
+	#define ROCKET_PLATFORM_NAME "macosx"
 #else
-	#define EMP_PLATFORM_UNIX
-	#define EMP_PLATFORM_LINUX
-	#define EMP_PLATFORM_NAME "linux"
+	#define ROCKET_PLATFORM_UNIX
+	#define ROCKET_PLATFORM_LINUX
+	#define ROCKET_PLATFORM_NAME "linux"
 #endif
 
-#if !defined NDEBUG && !defined EMP_DEBUG
-	#define EMP_DEBUG
+#if !defined NDEBUG && !defined ROCKET_DEBUG
+	#define ROCKET_DEBUG
 #endif
 
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 	// alignment of a member was sensitive to packing
 	#pragma warning(disable : 4121)
 
@@ -64,6 +64,6 @@
 	#endif
 #endif
 
-#define EMP_UNUSED(x)
+#define ROCKET_UNUSED(x)
 
 #endif

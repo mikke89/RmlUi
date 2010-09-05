@@ -39,13 +39,13 @@ static StyleSheetSpecification* instance = NULL;
 
 StyleSheetSpecification::StyleSheetSpecification()
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 }
 
 StyleSheetSpecification::~StyleSheetSpecification()
 {
-	EMP_ASSERT(instance == this);
+	ROCKET_ASSERT(instance == this);
 	instance = NULL;
 }
 

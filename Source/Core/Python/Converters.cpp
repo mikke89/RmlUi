@@ -27,9 +27,9 @@
 
 #include "precompiled.h"
 
-#include <EMP/Core/Variant.h>
-#include <EMP/Core/Dictionary.h>
-#include <EMP/Core/Python/ConverterScriptObject.h>
+#include <Rocket/Core/Variant.h>
+#include <Rocket/Core/Dictionary.h>
+#include <Rocket/Core/Python/ConverterScriptObject.h>
 #include <Rocket/Core/ElementDocument.h>
 
 #include "EventListener.h"
@@ -39,6 +39,152 @@
 namespace Rocket {
 namespace Core {
 namespace Python {
+
+// Boost helper class for converting from Variant to a python object
+struct VariantConverter
+{
+	VariantConverter()
+	{
+		// Register custom Variant to python converter
+		boost::python::to_python_converter< Variant, VariantConverter >();
+		boost::python::to_python_converter< Variant*, VariantConverter >();
+
+		// Register the python to variant converter
+		boost::python::converter::registry::push_back(&Convertible, &Construct, boost::python::type_id< Variant >());
+	}
+
+	static PyObject* convert(Variant* variant)
+	{
+		if (!variant)
+		{
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
+		return convert(*variant);
+	}
+
+	static PyObject* convert(const Variant& variant)
+	{
+		PyObject* object = NULL;
+
+		switch (variant.GetType())
+		{
+			case Variant::STRING:
+			{
+				object = PyString_FromString(variant.Get< String >().CString());
+			}
+			break;
+
+			case Variant::INT:
+			{
+				object = PyInt_FromLong(variant.Get< int >());
+			}
+			break;
+
+			case Variant::WORD:
+			{
+				object = PyInt_FromLong(variant.Get< word >());
+			}
+			break;
+
+			case Variant::FLOAT:
+			{
+				object = PyFloat_FromDouble(variant.Get< float >());
+			}
+			break;
+
+			case Variant::VECTOR2:
+			{
+				python::object o(variant.Get< Vector2f >());
+				object = o.ptr();
+				Py_INCREF( object );
+			}
+			break;
+
+			case Variant::SCRIPTINTERFACE:
+			{				
+				object = (PyObject*)(variant.Get< ScriptInterface* >())->GetScriptObject();
+				Py_INCREF(object);
+			}
+			break;
+
+			default:
+			{
+				object = Py_None;
+				Py_INCREF(object);
+			}
+			break;
+		}
+		
+		return object;
+	}
+
+	static void* Convertible(PyObject* object)
+	{
+		if (!PyString_Check(object) && !PyInt_Check(object) && !PyFloat_Check(object))
+			return 0;
+		return object;
+	}
+
+	static void Construct(PyObject* object, boost::python::converter::rvalue_from_python_stage1_data* data)
+	{
+		void* storage = ((boost::python::converter::rvalue_from_python_storage< Variant >*)data)->storage.bytes;
+		Variant* variant = new (storage) Variant();
+
+		if (PyString_Check(object))
+		{
+			variant->Set(String(PyString_AsString(object)));
+		}
+		else if (PyInt_Check(object))
+		{
+			variant->Set((int)PyInt_AsLong(object));
+		}
+		else if (PyFloat_Check(object))
+		{
+			variant->Set((float)PyFloat_AsDouble(object));
+		}
+		else 
+		{
+			boost::python::throw_error_already_set();
+			return;
+		}		
+		
+		data->convertible = storage;
+	}
+};
+
+// String Converter
+struct StringConverter
+{
+	StringConverter()
+	{
+		boost::python::to_python_converter< String, StringConverter >();
+
+		boost::python::converter::registry::push_back( &Convertible, &Construct, boost::python::type_id< String >() );
+	}
+
+	static PyObject* convert(const String& s)
+	{
+		return boost::python::incref(boost::python::object(s.CString()).ptr());
+	}
+
+	static void* Convertible(PyObject* obj_ptr)
+	{
+		if (!PyString_Check(obj_ptr))
+			return 0;
+		return obj_ptr;
+	}
+
+	static void Construct(PyObject* obj_ptr, boost::python::converter::rvalue_from_python_stage1_data* data)
+	{
+		const char* value = PyString_AsString(obj_ptr);
+		if (value == 0) 
+			boost::python::throw_error_already_set();
+		void* storage = ((boost::python::converter::rvalue_from_python_storage< String >*)data)->storage.bytes;
+		new (storage) String(value);
+		data->convertible = storage;
+	}
+};
 
 // Helper class for converting from python to an event listener
 struct EventListenerFromPython
@@ -56,10 +202,16 @@ struct EventListenerFromPython
 
 void RegisterPythonConverters()
 {
+	StringConverter();
+	VariantConverter();	
+
+	ConverterScriptObject< ScriptInterface >();	
+
 	EventListenerFromPython();
-	EMP::Core::Python::ConverterScriptObject< Context, true >();
-	EMP::Core::Python::ConverterScriptObject< Element, true >();
-	EMP::Core::Python::ConverterScriptObject< ElementDocument, true >();
+
+	ConverterScriptObject< Context >();
+	ConverterScriptObject< Element >();
+	ConverterScriptObject< ElementDocument >();
 }
 
 }

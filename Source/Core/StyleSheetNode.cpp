@@ -295,7 +295,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	// We must have a parent; if not, something's amok with the style tree.
 	if (parent == NULL)
 	{
-		EMP_ERRORMSG("Invalid RCSS hierarchy.");
+		ROCKET_ERRORMSG("Invalid RCSS hierarchy.");
 		return false;
 	}
 
@@ -318,7 +318,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 			case CLASS:						ancestor_classes.push_back(parent_node->name); break;
 			case PSEUDO_CLASS:				ancestor_pseudo_classes.push_back(parent_node->name); break;
 			case STRUCTURAL_PSEUDO_CLASS:	ancestor_structural_pseudo_classes.push_back(parent_node); break;
-			default:						EMP_ERRORMSG("Invalid RCSS hierarchy."); return false;
+			default:						ROCKET_ERRORMSG("Invalid RCSS hierarchy."); return false;
 		}
 
 		parent_node = parent_node->parent;
@@ -327,7 +327,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	// Check for an invalid RCSS hierarchy.
 	if (parent_node == NULL)
 	{
-		EMP_ERRORMSG("Invalid RCSS hierarchy.");
+		ROCKET_ERRORMSG("Invalid RCSS hierarchy.");
 		return false;
 	}
 

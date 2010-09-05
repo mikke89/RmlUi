@@ -30,7 +30,7 @@
 
 #include <Rocket/Core/Platform.h>
 
-#ifdef EMP_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 	#ifdef RocketDebugger_EXPORTS
 		#define ROCKETDEBUGGER_API __declspec(dllexport)
 	#else

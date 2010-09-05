@@ -33,8 +33,8 @@ namespace Core {
 
 const int MIN_STRING = 16;		// Smallest string size.
 const int NUM_POOLS = 4;		// Number of pools we have, in powers of 2 starting from the smallest string (16, 32, 64 and 128)
-const int EMP_MAX_POOL_SIZE = 128;	// Maximum number of free strings to keep in a pool
-const int EMP_MAX_HASH_LENGTH = 32;	// Maximum number of character to use when calculating the string hash (saves hashing HUGE strings)
+const int ROCKET_MAX_POOL_SIZE = 128;	// Maximum number of free strings to keep in a pool
+const int ROCKET_MAX_HASH_LENGTH = 32;	// Maximum number of character to use when calculating the string hash (saves hashing HUGE strings)
 
 #define HASH(hval, string, length)										\
 {																		\
@@ -89,9 +89,9 @@ void StringStorage::ClearPools()
 
 char* StringStorage::ReallocString(char* string, size_t old_length, size_t new_length, size_t character_size)
 {
-	EMP_ASSERT(old_length < (1 << 24));
-	EMP_ASSERT(new_length < (1 << 24));
-	EMP_ASSERT(new_length >= old_length);
+	ROCKET_ASSERT(old_length < (1 << 24));
+	ROCKET_ASSERT(new_length < (1 << 24));
+	ROCKET_ASSERT(new_length >= old_length);
 	size_t new_size = (new_length + 1) * character_size;
 
 	if (string == empty_string)
@@ -106,7 +106,7 @@ char* StringStorage::ReallocString(char* string, size_t old_length, size_t new_l
 	}
 
 	size_t alloc_size = ALLOC_SIZE(new_size);
-	EMP_ASSERT(alloc_size > new_size);
+	ROCKET_ASSERT(alloc_size > new_size);
 
 	// Check if we can use an old allocation from our pools
 	if (alloc_size < (MIN_STRING << NUM_POOLS))
@@ -122,7 +122,7 @@ char* StringStorage::ReallocString(char* string, size_t old_length, size_t new_l
 			pool_index++;
 			size = size >> 1;
 		}
-		EMP_ASSERT(pool_index < NUM_POOLS);
+		ROCKET_ASSERT(pool_index < NUM_POOLS);
 
 		if (!storage->pools[pool_index].empty())
 		{
@@ -166,9 +166,9 @@ void StringStorage::ReleaseString(char* string, size_t size)
 			pool_index++;
 			size = size >> 1;
 		}
-		EMP_ASSERT(pool_index < NUM_POOLS);
+		ROCKET_ASSERT(pool_index < NUM_POOLS);
 
-		if (storage->pools[pool_index].size() < EMP_MAX_POOL_SIZE)
+		if (storage->pools[pool_index].size() < ROCKET_MAX_POOL_SIZE)
 		{
 			storage->pools[pool_index].push_back(string);
 			return;
@@ -188,7 +188,7 @@ StringStorage::StringID StringStorage::AddString(const char* &string, size_t str
 
 	// Hash the incoming string
 	Hash hash;
-	size_t hash_length = (length < EMP_MAX_HASH_LENGTH ? length : EMP_MAX_HASH_LENGTH);
+	size_t hash_length = (length < ROCKET_MAX_HASH_LENGTH ? length : ROCKET_MAX_HASH_LENGTH);
 	HASH(hash, string, hash_length);		
 
 	// See if we can find the entry group for this hash ( strings with the same hash )
@@ -265,7 +265,7 @@ void StringStorage::RemoveReference(StringID string_id)
 
 	StringEntry* entry = (StringEntry*)string_id;
 
-	EMP_ASSERT(entry->reference_count > 0);
+	ROCKET_ASSERT(entry->reference_count > 0);
 	entry->reference_count--;
 	if (entry->reference_count > 0)
 		return;
@@ -299,7 +299,7 @@ void StringStorage::RemoveReference(StringID string_id)
 			entry->prev->next = NULL;
 		}
 		
-		EMP_ASSERT(storage->lookup.find(entry->hash) == storage->lookup.end() || (*storage->lookup.find(entry->hash)).second != entry);
+		ROCKET_ASSERT(storage->lookup.find(entry->hash) == storage->lookup.end() || (*storage->lookup.find(entry->hash)).second != entry);
 	}
 
 	free(entry->buffer);

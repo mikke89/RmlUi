@@ -28,14 +28,12 @@
 #ifndef ROCKETCORECORE_H
 #define ROCKETCORECORE_H
 
-#include "Types.h"
-//#include <Rocket/Core/Types.h>
-//#include <Rocket/Core/Math.h>
-//#include <Rocket/Core/Header.h>
+#include <Rocket/Core/Types.h>
+#include <Rocket/Core/Math.h>
+#include <Rocket/Core/Header.h>
 #include <Rocket/Core/Box.h>
 #include <Rocket/Core/Context.h>
 #include <Rocket/Core/ContextInstancer.h>
-#include <Rocket/Core.h>
 #include <Rocket/Core/Decorator.h>
 #include <Rocket/Core/DecoratorInstancer.h>
 #include <Rocket/Core/Element.h>

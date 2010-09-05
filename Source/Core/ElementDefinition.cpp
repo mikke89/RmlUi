@@ -408,7 +408,7 @@ void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const Strin
 }
 
 // Updates a property dictionary of all properties for a single group.
-int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& EMP_UNUSED(group_type), const String& group_name, const PropertyDictionary& element_properties)
+int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& ROCKET_UNUSED(group_type), const String& group_name, const PropertyDictionary& element_properties)
 {
 	int num_properties = 0;
 

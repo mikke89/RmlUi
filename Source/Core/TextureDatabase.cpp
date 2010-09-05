@@ -37,13 +37,13 @@ static TextureDatabase* instance = NULL;
 
 TextureDatabase::TextureDatabase()
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 }
 
 TextureDatabase::~TextureDatabase()
 {
-	EMP_ASSERT(instance == this);
+	ROCKET_ASSERT(instance == this);
 	instance = NULL;
 }
 

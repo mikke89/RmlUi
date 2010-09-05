@@ -4,7 +4,7 @@
 	Version="8.00"
 	Name="BuildConfigurationBase"
 	OutputDirectory="$(IntDir)"
-	IntermediateDirectory="obj\$(ConfigurationName)"
+	IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
 	CharacterSet="2"
 	BuildLogFile="$(IntDir)\BuildLog.htm"
 	>

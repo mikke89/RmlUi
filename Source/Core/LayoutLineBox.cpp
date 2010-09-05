@@ -186,7 +186,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 // Closes one of the line box's inline boxes.
 void LayoutLineBox::CloseInlineBox(LayoutInlineBox* inline_box)
 {
-	EMP_ASSERT(open_inline_box == inline_box);
+	ROCKET_ASSERT(open_inline_box == inline_box);
 
 	open_inline_box = inline_box->GetParent();
 	box_cursor += GetSpacing(inline_box->GetBox(), Box::RIGHT);

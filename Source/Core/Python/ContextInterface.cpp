@@ -28,8 +28,8 @@
 #include "precompiled.h"
 #include "ContextInterface.h"
 
-#include <EMP/Core/Python/Utilities.h>
-#include <EMP/Core/Python/Wrapper.h>
+#include <Rocket/Core/Python/Utilities.h>
+#include <Rocket/Core/Python/Wrapper.h>
 #include <Rocket/Core/Context.h>
 #include <Rocket/Core/Factory.h>
 
@@ -47,7 +47,7 @@ bool ContextInterface::InitialisePythonInterface()
 {
 	ContextDocumentProxy::InitialisePythonInterface();
 
-	py_context = python::class_< Context, EMP::Core::Python::Wrapper< Context, const EMP::Core::String& >, boost::noncopyable>("Context", python::init< const EMP::Core::String& >())
+	py_context = python::class_< Context, Rocket::Core::Python::Wrapper< Context, const Rocket::Core::String& >, boost::noncopyable>("Context", python::init< const Rocket::Core::String& >())
 		.def("AddEventListener", &ContextInterface::AddEventListener)
 		.def("AddMouseCursor", &Context::AddMouseCursor, python::return_value_policy< python::return_by_value >())
 		.def("CreateDocument", &ContextInterface::CreateDocument)
@@ -92,7 +92,7 @@ python::object ContextInterface::CreateDocument(Context* self, const char* tag)
 		return python::object();
 
 	// Remove the C++ caller reference and add a Python one to replace it.
-	python::object py_document = EMP::Core::Python::Utilities::MakeObject(document);
+	python::object py_document = Rocket::Core::Python::Utilities::MakeObject(document);
 	document->RemoveReference();
 
 	return py_document;
@@ -106,7 +106,7 @@ python::object ContextInterface::LoadDocument(Context* self, const char* documen
 		return python::object();
 
 	// Remove the C++ caller reference and return the python::object
-	python::object py_document = EMP::Core::Python::Utilities::MakeObject(document);
+	python::object py_document = Rocket::Core::Python::Utilities::MakeObject(document);
 	document->RemoveReference();
 
 	return py_document;
@@ -120,7 +120,7 @@ python::object ContextInterface::LoadDocumentFromMemory(Context* self, const cha
 		return python::object();
 
 	// Remove the C++ caller reference and return the python::object
-	python::object py_document = EMP::Core::Python::Utilities::MakeObject(document);
+	python::object py_document = Rocket::Core::Python::Utilities::MakeObject(document);
 	document->RemoveReference();
 
 	return py_document;
@@ -134,7 +134,7 @@ python::object ContextInterface::LoadMouseCursor(Context* self, const char* docu
 		return python::object();
 
 	// Remove the C++ caller reference and add a Python one to replace it.
-	python::object py_document = EMP::Core::Python::Utilities::MakeObject(document);
+	python::object py_document = Rocket::Core::Python::Utilities::MakeObject(document);
 	document->RemoveReference();
 
 	return py_document;

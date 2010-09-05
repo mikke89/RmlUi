@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREPYTHONHEADER_H
 #define ROCKETCOREPYTHONHEADER_H
 
-#include <EMP/Core/Platform.h>
+#include <Rocket/Core/Platform.h>
 
-#if defined EMP_PLATFORM_WIN32
+#if defined ROCKET_PLATFORM_WIN32
 	#if defined RocketCorePython_EXPORTS
 		#define ROCKETCOREPYTHON_API __declspec(dllexport)
 	#else

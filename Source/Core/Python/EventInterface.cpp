@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include "EventInstancer.h"
 
-#include <EMP/Core/Python/ConverterScriptObject.h>
+#include <Rocket/Core/Python/ConverterScriptObject.h>
 
 #include <Rocket/Core/Factory.h>
 
@@ -45,7 +45,7 @@ static PyObject* py_event = NULL;
 void EventInterface::InitialisePythonInterface()
 {
 	// Define the event.
-	py_event = python::class_< Event, EventWrapper, boost::noncopyable >("event", python::init< const char*, EMP::Core::Dictionary&, bool >())
+	py_event = python::class_< Event, EventWrapper, boost::noncopyable >("event", python::init< const char*, Rocket::Core::Dictionary&, bool >())
 		.add_property("type", python::make_function( &Event::GetType, python::return_value_policy< python::return_by_value >()))
 		.add_property("target_element", python::make_function(&Event::GetTargetElement, python::return_value_policy< python::return_by_value >()))
 		.add_property("current_element", python::make_function(&Event::GetCurrentElement, python::return_value_policy< python::return_by_value >()))
@@ -53,7 +53,7 @@ void EventInterface::InitialisePythonInterface()
 		.def("StopPropagation", &Event::StopPropagation)
 		.ptr();
 
-	EMP::Core::Python::ConverterScriptObject< Event, true >();
+	Rocket::Core::Python::ConverterScriptObject< Event >();
 }
 
 void EventInterface::InitialiseRocketInterface()
@@ -63,7 +63,7 @@ void EventInterface::InitialiseRocketInterface()
 	Factory::RegisterEventListenerInstancer(new EventListenerInstancer())->RemoveReference();
 }
 
-const EMP::Core::Dictionary& EventInterface::GetParameters(EventWrapper* self)
+const Rocket::Core::Dictionary& EventInterface::GetParameters(EventWrapper* self)
 {
 	return *self->GetParameters();
 }
