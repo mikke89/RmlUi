@@ -573,14 +573,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 6E8B1DDB123ABC7800C451C8 /* RocketCoreOSX */;
+			remoteGlobalIDString = 6E8B1DDB123ABC7800C451C8;
 			remoteInfo = RocketCoreOSX;
 		};
 		6E8B1F97123ACC3B00C451C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 6E8B1DDB123ABC7800C451C8 /* RocketCoreOSX */;
+			remoteGlobalIDString = 6E8B1DDB123ABC7800C451C8;
 			remoteInfo = RocketCoreOSX;
 		};
 /* End PBXContainerItemProxy section */
@@ -2258,7 +2258,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = RocketCore_Prefix.pch;
+				GCC_PREFIX_HEADER = Rocket_Prefix.pch;
 				INSTALL_PATH = /usr/local/lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2278,7 +2278,7 @@
 				DSTROOT = /tmp/test.dst;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = RocketCore_Prefix.pch;
+				GCC_PREFIX_HEADER = Rocket_Prefix.pch;
 				INSTALL_PATH = /usr/local/lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

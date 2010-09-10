@@ -483,7 +483,7 @@ bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
 bool BaseXMLParser::FillBuffer()
 {
 	int bytes_free = buffer_size;
-	int bytes_remaining = Math::Max(buffer_used - (read - buffer), 0);
+	int bytes_remaining = Math::Max((int)(buffer_used - (read - buffer)), 0);
 
 	// If theres any data still in the buffer, shift it down, and fill it again
 	if (bytes_remaining > 0)
