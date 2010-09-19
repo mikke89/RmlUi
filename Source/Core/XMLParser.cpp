@@ -187,7 +187,7 @@ void XMLParser::HandleElementEnd(const String& _name)
 	// Check frame names
 	if (name != frame.tag)
 	{
-		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on line %d was expecting '%s'.", name.CString(), GetLineNumber(), frame.tag.CString());
+		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.CString(), GetSourceURL().GetURL().CString(), GetLineNumber(), frame.tag.CString());
 	}
 
 	// Call element end handler
