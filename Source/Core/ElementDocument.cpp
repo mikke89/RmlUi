@@ -299,7 +299,9 @@ void ElementDocument::UpdateLayout()
 		if (lock_layout)
 			return;
 
-		layout_dirty = false;
+		lock_layout = true;
+		
+		GetStyle()->UpdateDefinition();
 
 		Vector2f containing_block(0, 0);
 		if (GetParentNode() != NULL)
@@ -307,6 +309,9 @@ void ElementDocument::UpdateLayout()
 
 		LayoutEngine layout_engine;
 		layout_engine.FormatElement(this, containing_block);
+		
+		layout_dirty = false;
+		lock_layout = false;
 	}
 }
 

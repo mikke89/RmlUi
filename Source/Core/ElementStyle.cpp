@@ -51,6 +51,7 @@ ElementStyle::ElementStyle(Element* _element)
 	element = _element;
 
 	definition_dirty = true;
+	child_definition_dirty = true;
 }
 
 ElementStyle::~ElementStyle()
@@ -67,40 +68,60 @@ const ElementDefinition* ElementStyle::GetDefinition()
 {
 	if (definition_dirty)
 	{
+		UpdateDefinition();
+	}
+
+	return definition;
+}
+	
+void ElementStyle::UpdateDefinition()
+{
+	if (definition_dirty)
+	{
 		definition_dirty = false;
-
+		
 		ElementDefinition* new_definition = NULL;
-
+		
 		const StyleSheet* style_sheet = GetStyleSheet();
 		if (style_sheet != NULL)
 		{
 			new_definition = style_sheet->GetElementDefinition(element);
 		}
-
+		
 		// Switch the property definitions if the definition has changed.
 		if (new_definition != definition || new_definition == NULL)
 		{
 			PropertyNameList properties;
-
+			
 			if (definition != NULL)
 			{
 				definition->GetDefinedProperties(properties, pseudo_classes);
 				definition->RemoveReference();
 			}
-
+			
 			definition = new_definition;
-
+			
 			if (definition != NULL)
 				definition->GetDefinedProperties(properties, pseudo_classes);
-
+			
 			DirtyProperties(properties);
 			element->GetElementDecoration()->ReloadDecorators();
 		}
 		else if (new_definition != NULL)
+		{
 			new_definition->RemoveReference();
+		}
 	}
-
-	return definition;
+	
+	if (child_definition_dirty)
+	{
+		for (int i = 0; i < element->GetNumChildren(true); i++)
+		{
+			element->GetChild(i)->GetStyle()->UpdateDefinition();
+		}
+		
+		child_definition_dirty = false;
+	}
 }
 
 // Sets or removes a pseudo-class on the element.
@@ -408,6 +429,14 @@ void ElementStyle::DirtyDefinition()
 {
 	definition_dirty = true;
 	DirtyChildDefinitions();
+	
+	// Dirty the child definition update the element tree
+	Element* parent = element->GetParentNode();
+	while (parent)
+	{
+		parent->GetStyle()->child_definition_dirty = true;
+		parent = parent->GetParentNode();
+	}
 }
 
 void ElementStyle::DirtyChildDefinitions()

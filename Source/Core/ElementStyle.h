@@ -49,6 +49,9 @@ public:
 
 	/// Returns the element's definition, updating if necessary.
 	const ElementDefinition* GetDefinition();
+	
+	/// Update this definition if required
+	void UpdateDefinition();
 
 	/// Sets or removes a pseudo-class on the element.
 	/// @param[in] pseudo_class The pseudo class to activate or deactivate.
@@ -149,7 +152,9 @@ private:
 	// The definition of this element; if this is NULL one will be fetched from the element's style.
 	ElementDefinition* definition;
 	// Set if a new element definition should be fetched from the style.
-	bool definition_dirty;	
+	bool definition_dirty;
+	// Set if a child element has a dirty style definition
+	bool child_definition_dirty;
 };
 
 }
