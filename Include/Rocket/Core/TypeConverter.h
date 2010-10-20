@@ -33,6 +33,7 @@
 #include <Rocket/Core/Stream.h>
 #include <Rocket/Core/StringUtilities.h>
 #include <typeinfo>
+#include <stdlib.h>
 #include <stdio.h>
 
 namespace Rocket {

@@ -30,14 +30,18 @@
 
 #include <Rocket/Core/Platform.h>
 
-#if defined ROCKET_PLATFORM_WIN32
-	#if defined RocketCore_EXPORTS
-		#define ROCKETCORE_API __declspec(dllexport)
+#if !defined STATIC_LIB
+	#if defined ROCKET_PLATFORM_WIN32
+		#if defined RocketCore_EXPORTS
+			#define ROCKETCORE_API __declspec(dllexport)
+		#else
+			#define ROCKETCORE_API __declspec(dllimport)
+		#endif
 	#else
-		#define ROCKETCORE_API __declspec(dllimport)
+		#define ROCKETCORE_API __attribute__((visibility("default")))
 	#endif
 #else
-	#define ROCKETCORE_API __attribute__((visibility("default")))
+	#define ROCKETCORE_API
 #endif
 
 #endif

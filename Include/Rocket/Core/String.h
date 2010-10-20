@@ -31,6 +31,7 @@
 #include <Rocket/Core/Header.h>
 #include <Rocket/Core/StringBase.h>
 #include <stdarg.h>
+#include <string.h>
 #include <vector>
 
 namespace Rocket {
