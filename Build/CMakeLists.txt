@@ -11,6 +11,9 @@ set(LIBROCKET_VERSION_MINOR 2)
 set(LIBROCKET_VERSION_PATCH 0)
 set(PROJECT_VERSION ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBROCKET_VERSION_PATCH})
 
+# Search in the 'cmake' directory for additional CMake modules.
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
 
 #===================================
 # Environment tests ================
@@ -54,12 +57,14 @@ endif()
 # Setup paths ======================
 #===================================
 
+set(PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/..)
+
 include_directories(
-    ${PROJECT_SOURCE_DIR}/../Include
+    ${PROJECT_SOURCE_DIR}/Include
 )
 
-set(SOURCE "../Source")
-
+# Include list of source files
+include(FileList)
 
 #===================================
 # Build libraries ==================
@@ -68,16 +73,17 @@ set(SOURCE "../Source")
 set(LIBRARIES Core Controls Debugger)
 
 foreach(library ${LIBRARIES})
-	set(LIB_SOURCE_PATH "${SOURCE}/${library}")
-	set(NAME "Rocket${library}")
+    set(NAME Rocket${library})
 
-	aux_source_directory(${LIB_SOURCE_PATH} LIB_SOURCES)
-	add_library(${NAME} ${LIB_SOURCES})
+    add_library(${NAME} ${${library}_SRC_FILES}
+                        ${${library}_HDR_FILES}
+                        ${${library}_PUB_HDR_FILES}
+    )
+
     set_target_properties(${NAME} PROPERTIES
                            VERSION ${PROJECT_VERSION}
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
     )
-	set(LIB_SOURCES)
 
     install(TARGETS ${NAME}
             LIBRARY DESTINATION lib
