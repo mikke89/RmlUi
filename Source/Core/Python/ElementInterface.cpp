@@ -29,15 +29,15 @@
 #include "ElementInterface.h"
 #include <Rocket/Core/Python/Utilities.h>
 #include <Rocket/Core/Python/VectorInterface.h>
-#include <ElementHandle.h>
-#include <ElementImage.h>
-#include <ElementTextDefault.h>
+#include "../ElementHandle.h"
+#include "../ElementImage.h"
+#include "../ElementTextDefault.h"
 #include <Rocket/Core/ElementUtilities.h>
 #include <Rocket/Core/Factory.h>
-#include <Python/ElementAttributeProxy.h>
-#include <Python/ElementChildrenProxy.h>
-#include <Python/ElementDocumentWrapper.h>
-#include <Python/ElementStyleProxy.h>
+#include "ElementAttributeProxy.h"
+#include "ElementChildrenProxy.h"
+#include "ElementDocumentWrapper.h"
+#include "ElementStyleProxy.h"
 #include <Rocket/Core/Python/ElementInstancer.h>
 #include <Rocket/Core/Python/ElementWrapper.h>
 
