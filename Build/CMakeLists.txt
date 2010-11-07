@@ -70,7 +70,7 @@ if(BUILD_PYTHON_BINDINGS)
     find_package(Boost 1.40.0 COMPONENTS python REQUIRED)
     if(Boost_FOUND)
         include_directories(${Boost_INCLUDE_DIR})
-        list(APPEND PY_BINDINGS_LINK_LIBS ${Boost_LIBRARY})
+        list(APPEND PY_BINDINGS_LINK_LIBS ${Boost_LIBRARIES})
     endif()
 
 endif()
@@ -142,8 +142,8 @@ endif()
 target_link_libraries(RocketCore ${CORE_LINK_LIBS})
 
 if(BUILD_PYTHON_BINDINGS)
-    target_link_libraries(_rocketcore RocketCore ${Boost_LIBRARY})
-    target_link_libraries(_rocketcontrols RocketControls ${Boost_LIBRARY})
+    target_link_libraries(_rocketcore RocketCore ${PY_BINDINGS_LINK_LIBS})
+    target_link_libraries(_rocketcontrols RocketControls ${PY_BINDINGS_LINK_LIBS})
 endif()
 
 
