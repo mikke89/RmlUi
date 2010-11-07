@@ -51,7 +51,7 @@ int main(int ROCKET_UNUSED(argc), char** ROCKET_UNUSED(argv))
 #endif
 {
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../samples/basic/customlog/") ||
+	if (!Shell::Initialise("../Samples/basic/customlog/") ||
 		!Shell::OpenWindow("Custom File Handler Sample", true))
 	{
 		Shell::Shutdown();

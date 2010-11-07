@@ -26,7 +26,8 @@
  */
 
 #include "FileSystem.h"
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 
 #ifdef WIN32
 #include <io.h>

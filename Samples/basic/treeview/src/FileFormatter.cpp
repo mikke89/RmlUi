@@ -26,6 +26,7 @@
  */
 
 #include "FileFormatter.h"
+#include <cstdlib>
 
 FileFormatter::FileFormatter() : Rocket::Controls::DataFormatter("file")
 {
