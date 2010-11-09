@@ -42,7 +42,7 @@ if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE)
     add_definitions(-Wno-conversion-null)
 endif()
 
@@ -146,6 +146,8 @@ endif()
 #===================================
 
 target_link_libraries(RocketCore ${CORE_LINK_LIBS})
+target_link_libraries(RocketControls RocketCore)
+target_link_libraries(RocketDebugger RocketCore)
 
 if(BUILD_PYTHON_BINDINGS)
     target_link_libraries(_rocketcore RocketCore ${PY_BINDINGS_LINK_LIBS})
