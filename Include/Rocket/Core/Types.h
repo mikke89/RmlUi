@@ -82,7 +82,8 @@ class Dictionary;
 
 // Types for external interfaces.
 typedef void* FileHandle;
-typedef void* TextureHandle;
+//typedef void* TextureHandle;
+typedef uintptr_t TextureHandle;
 typedef void* CompiledGeometryHandle;
 typedef void* DecoratorDataHandle;
 

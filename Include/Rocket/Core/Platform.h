@@ -46,6 +46,13 @@
 	#define ROCKET_DEBUG
 #endif
 
+#if defined __x86_64__ || defined _M_X64 || defined __powerpc64__ || defined __alpha__ || defined __ia64__ || defined __s390__ || defined __s390x__
+    #define ROCKET_ARCH_64
+#else
+    #define ROCKET_ARCH_32
+#endif
+
+
 #if defined ROCKET_PLATFORM_WIN32
 	// alignment of a member was sensitive to packing
 	#pragma warning(disable : 4121)
