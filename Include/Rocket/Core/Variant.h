@@ -33,12 +33,6 @@
 #include <Rocket/Core/TypeConverter.h>
 #include <list>
 
-#ifdef ROCKET_ARCH_64
-    #define ROCKET_VARIANT_BUFFER_SIZE 32
-#else
-    #define ROCKET_VARIANT_BUFFER_SIZE 16
-#endif
-
 namespace Rocket {
 namespace Core {
 
@@ -156,7 +150,12 @@ private:
 		void Clear();
 		Type type;
 
-		char data[ROCKET_VARIANT_BUFFER_SIZE];
+#ifdef ROCKET_ARCH_64
+		static const int BUFFER_SIZE = 32;
+#else
+		static const int BUFFER_SIZE = 16;
+#endif
+		char data[BUFFER_SIZE];
 		void* data_ptr;
 
 		mutable int reference_count;

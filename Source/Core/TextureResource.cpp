@@ -92,7 +92,7 @@ void TextureResource::Release(RenderInterface* render_interface)
 		for (TextureDataMap::iterator texture_iterator = texture_data.begin(); texture_iterator != texture_data.end(); ++texture_iterator)
 		{
 			TextureHandle handle = texture_iterator->second.first;
-			if (handle != NULL)
+			if (handle)
 				texture_iterator->first->ReleaseTexture(handle);
 		}
 
@@ -105,7 +105,7 @@ void TextureResource::Release(RenderInterface* render_interface)
 			return;
 
 		TextureHandle handle = texture_iterator->second.first;
-		if (handle != NULL)
+		if (handle)
 			texture_iterator->first->ReleaseTexture(handle);
 
 		texture_data.erase(render_interface);
