@@ -281,7 +281,7 @@ bool RenderInterfaceDirectX::GenerateTexture(Rocket::Core::TextureHandle& textur
 	d3d9_texture->UnlockRect(0);
 
 	// Set the handle on the Rocket texture structure.
-	texture_handle = d3d9_texture;
+	texture_handle = (Rocket::Core::TextureHandle)d3d9_texture;
 	return true;
 }
 
