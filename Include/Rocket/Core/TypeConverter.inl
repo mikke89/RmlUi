@@ -140,6 +140,8 @@ BASIC_CONVERTER_BOOL(float, bool);
 BASIC_CONVERTER(float, int);
 BASIC_CONVERTER(float, unsigned int);
 
+BASIC_CONVERTER(char, word);
+
 /////////////////////////////////////////////////
 // From string converters
 /////////////////////////////////////////////////
