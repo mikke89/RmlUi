@@ -251,7 +251,7 @@ void Shell::DisplayError(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	printf(buffer);
+	printf("%s", buffer);
 }
 
 void Shell::Log(const char* fmt, ...)
@@ -271,7 +271,7 @@ void Shell::Log(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	printf(buffer);
+	printf("%s", buffer);
 }
 
 // Returns the seconds that have elapsed since program startup.

@@ -128,7 +128,7 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 						if (key_identifier != Rocket::Core::Input::KI_UNKNOWN)
 							context->ProcessKeyDown(key_identifier, key_modifier_state);
 
-						EMP::Core::word character = GetCharacterCode(key_identifier, key_modifier_state);
+						Rocket::Core::word character = GetCharacterCode(key_identifier, key_modifier_state);
 						if (character > 0)
 							context->ProcessTextInput(character);
 					}

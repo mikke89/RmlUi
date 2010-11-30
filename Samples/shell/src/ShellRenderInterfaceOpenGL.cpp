@@ -43,7 +43,7 @@ void ShellRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, 
 	glVertexPointer(2, GL_FLOAT, sizeof(Rocket::Core::Vertex), &vertices[0].position);
 	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Rocket::Core::Vertex), &vertices[0].colour);
 
-	if (texture == NULL)
+	if (!texture)
 	{
 		glDisable(GL_TEXTURE_2D);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -117,9 +117,11 @@ bool ShellRenderInterfaceOpenGL::LoadTexture(Rocket::Core::TextureHandle& textur
 {
 	Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
 	Rocket::Core::FileHandle file_handle = file_interface->Open(source);
-	if (file_handle == NULL)
+	if (!file_handle)
+	{
 		return false;
-
+	}
+	
 	file_interface->Seek(file_handle, 0, SEEK_END);
 	size_t buffer_size = file_interface->Tell(file_handle);
 	file_interface->Seek(file_handle, 0, SEEK_SET);
@@ -184,8 +186,17 @@ bool ShellRenderInterfaceOpenGL::LoadTexture(Rocket::Core::TextureHandle& textur
 // Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
 bool ShellRenderInterfaceOpenGL::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const Rocket::Core::byte* source, const Rocket::Core::Vector2i& source_dimensions)
 {
-	GLuint texture_id;
+	GLuint texture_id = 0;
 	glGenTextures(1, &texture_id);
+	if (texture_id == 0)
+	{
+		printf("Failed to generate textures\n");
+		return false;
+	}
+	else
+	{
+		printf("Texture id: %d\n", texture_id);
+	}
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source);

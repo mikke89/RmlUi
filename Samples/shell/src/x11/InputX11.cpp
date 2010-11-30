@@ -159,7 +159,7 @@ static int GetKeyModifierState(int x_state)
 static void InitialiseKeymap()
 {
 	// Initialise the key map with default values.
-	memset(key_identifier_map, sizeof(key_identifier_map), 0);
+	memset(key_identifier_map, 0, sizeof(key_identifier_map));
 
 	key_identifier_map[XK_BackSpace & 0xFF] = Rocket::Core::Input::KI_BACK;
 	key_identifier_map[XK_Tab & 0xFF] = Rocket::Core::Input::KI_TAB;
