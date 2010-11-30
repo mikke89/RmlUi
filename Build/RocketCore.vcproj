@@ -54,7 +54,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="freetype241MT_D.lib"
+				AdditionalDependencies="freetype243MT_D.lib"
 				OutputFile="..\bin\$(ProjectName)_d.dll"
 				AdditionalLibraryDirectories="..\..\support\lib"
 				RandomizedBaseAddress="1"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="freetype241MT.lib"
+				AdditionalDependencies="freetype243MT.lib"
 				OutputFile="..\bin\$(ProjectName).dll"
 				AdditionalLibraryDirectories="..\..\support\lib"
 				RandomizedBaseAddress="1"
