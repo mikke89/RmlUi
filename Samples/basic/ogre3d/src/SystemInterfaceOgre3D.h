@@ -29,7 +29,7 @@
 #define SYSTEMINTERFACE3D_H
 
 #include <Rocket/Core/SystemInterface.h>
-#include <Ogre.h>
+#include <Ogre/Ogre.h>
 
 /**
 	A sample system interface for Rocket into Ogre3D.

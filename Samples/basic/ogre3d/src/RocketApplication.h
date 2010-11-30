@@ -29,8 +29,8 @@
 #define ROCKETAPPLICATION_H
 
 #include <Rocket/Core/String.h>
-#include <ExampleApplication.h>
-#include <Ogre.h>
+#include <Ogre/ExampleApplication.h>
+#include <Ogre/Ogre.h>
 
 namespace Rocket {
 namespace Core {

@@ -26,7 +26,7 @@
  */
 
 #include "RenderInterfaceOgre3D.h"
-#include <Ogre.h>
+#include <Ogre/Ogre.h>
 
 struct RocketOgre3DVertex
 {
@@ -146,7 +146,7 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceOgre3D::CompileGeometry(Rock
 	index_buffer->unlock();
 
 
-	return geometry;
+	return reinterpret_cast<Rocket::Core::CompiledGeometryHandle>(geometry);
 }
 
 // Called by Rocket when it wants to render application-compiled geometry.
@@ -177,7 +177,7 @@ void RenderInterfaceOgre3D::RenderCompiledGeometry(Rocket::Core::CompiledGeometr
 // Called by Rocket when it wants to release application-compiled geometry.
 void RenderInterfaceOgre3D::ReleaseCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry)
 {
-	RocketOgre3DCompiledGeometry* ogre3d_geometry = (RocketOgre3DCompiledGeometry*) geometry;
+	RocketOgre3DCompiledGeometry* ogre3d_geometry = reinterpret_cast<RocketOgre3DCompiledGeometry*>(geometry);
 	delete ogre3d_geometry->render_operation.vertexData;
 	delete ogre3d_geometry->render_operation.indexData;
 	delete ogre3d_geometry;
@@ -225,7 +225,7 @@ bool RenderInterfaceOgre3D::LoadTexture(Rocket::Core::TextureHandle& texture_han
 	texture_dimensions.x = ogre_texture->getWidth();
 	texture_dimensions.y = ogre_texture->getHeight();
 
-	texture_handle = new RocketOgre3DTexture(ogre_texture);
+	texture_handle = reinterpret_cast<Rocket::Core::TextureHandle>(new RocketOgre3DTexture(ogre_texture));
 	return true;
 }
 
@@ -246,7 +246,7 @@ bool RenderInterfaceOgre3D::GenerateTexture(Rocket::Core::TextureHandle& texture
 	if (ogre_texture.isNull())
 		return false;
 
-	texture_handle = new RocketOgre3DTexture(ogre_texture);
+	texture_handle = reinterpret_cast<Rocket::Core::TextureHandle>(new RocketOgre3DTexture(ogre_texture));
 	return true;
 }
 

@@ -29,7 +29,7 @@
 #define ROCKETFRAMELISTENER_H
 
 #include <Rocket/Core/Context.h>
-#include <ExampleFrameListener.h>
+#include <Ogre/ExampleFrameListener.h>
 
 class RocketApplication;
 
