@@ -118,7 +118,7 @@ void ElementDecoration::ReleaseDecorators()
 {
 	for (size_t i = 0; i < decorators.size(); i++)
 	{
-		if (decorators[i].decorator_data != NULL)
+		if (decorators[i].decorator_data)
 			decorators[i].decorator->ReleaseElementData(decorators[i].decorator_data);
 
 		decorators[i].decorator->RemoveReference();

@@ -36,11 +36,9 @@ Variant::Variant()
 	data_block = NULL;
 	
 	// Make sure our object size assumptions fit inside the static buffer
-	//ROCKET_STATIC_ASSERT(sizeof(Quaternion) <= 16, Invalid_Size_Quaternion);
-	//ROCKET_STATIC_ASSERT(sizeof(Vector4f) <= 16, Invalid_Size_Vector4f);
-	//ROCKET_STATIC_ASSERT(sizeof(Vector4i) <= 16, Invalid_Size_Vector4i);
-	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= 16, Invalid_Size_Colourb);
-	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= 16, Invalid_Size_Colourf);
+	ROCKET_STATIC_ASSERT(sizeof(String) <= DataBlock::BUFFER_SIZE, Invalid_Size_String);
+	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= DataBlock::BUFFER_SIZE, Invalid_Size_Colourb);
+	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= DataBlock::BUFFER_SIZE, Invalid_Size_Colourf);
 }
 
 Variant::Variant( const Variant& copy )
@@ -104,12 +102,6 @@ void Variant::Set(const int value)
 	NewDataBlock( INT );
 	SET_VARIANT(int);
 }
-
-/*void Variant::Set(const Quaternion& value) 
-{
-	NewDataBlock(QUATERNION);
-	SET_VARIANT(Quaternion);  
-}*/
 
 void Variant::Set(const String& value) {
 	NewDataBlock(STRING);
@@ -177,10 +169,9 @@ void Variant::NewDataBlock(Type type)
 	{
 		ReleaseDataBlock();
 		data_block = new DataBlock();
-
-		if (type == STRING)
-			new(data_block->data_ptr) String();
 	}
+	if (data_block->type != STRING || type == STRING)
+		new(data_block->data_ptr) String();
 
 	data_block->type = type;
 }

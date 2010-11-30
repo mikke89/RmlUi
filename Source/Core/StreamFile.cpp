@@ -41,7 +41,7 @@ StreamFile::StreamFile()
 
 StreamFile::~StreamFile()
 {
-	if (file_handle != NULL)
+	if (file_handle)
 		Close();
 }
 
@@ -51,7 +51,7 @@ bool StreamFile::Open(const String& path)
 	String url_safe_path = path.Replace(":", "|");
 	SetStreamDetails(URL(url_safe_path), Stream::MODE_READ);
 
-	if (file_handle != NULL)
+	if (file_handle)
 		Close();
 
 	// Fix the path if a leading colon has been replaced with a pipe.
@@ -71,7 +71,7 @@ bool StreamFile::Open(const String& path)
 // Closes the stream.
 void StreamFile::Close()
 {
-	if (file_handle != NULL)
+	if (file_handle)
 	{
 		GetFileInterface()->Close(file_handle);
 		file_handle = NULL;

@@ -151,7 +151,7 @@ private:
 		Type type;
 
 #ifdef ROCKET_ARCH_64
-		static const int BUFFER_SIZE = 32;
+		static const int BUFFER_SIZE = 24; // Required for Strings
 #else
 		static const int BUFFER_SIZE = 16;
 #endif

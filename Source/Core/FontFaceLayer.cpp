@@ -150,7 +150,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, FontEffect* _effec
 		for (int i = 0; i < texture_layout.GetNumTextures(); ++i)
 		{
 			Texture texture;
-			if (!texture.Load(String(64, "?font::%x/%x/%d", handle, effect, i)))
+			if (!texture.Load(String(64, "?font::%p/%p/%d", handle, effect, i)))
 				return false;
 
 			textures.push_back(texture);

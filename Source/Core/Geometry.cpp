@@ -93,7 +93,7 @@ void Geometry::Render(const Vector2f& translation)
 		return;
 
 	// Render our compiled geometry if possible.
-	if (compiled_geometry != NULL)
+	if (compiled_geometry)
 	{
 		render_interface->RenderCompiledGeometry(compiled_geometry, translation);
 	}
@@ -132,13 +132,8 @@ void Geometry::Render(const Vector2f& translation)
 
 			// If we managed to compile the geometry, we can clear the local copy of vertices and indices and
 			// immediately render the compiled version.
-			if (compiled_geometry != NULL)
+			if (compiled_geometry)
 			{	
-/*				std::vector< Vertex > new_vertices;
-				std::vector< int > new_indices;
-				vertices.swap(new_vertices);
-				indices.swap(new_indices);*/
-
 				render_interface->RenderCompiledGeometry(compiled_geometry, translation);
 				return;
 			}
@@ -177,7 +172,7 @@ void Geometry::SetTexture(const Texture* _texture)
 
 void Geometry::Release(bool clear_buffers)
 {
-	if (compiled_geometry != NULL)
+	if (compiled_geometry)
 	{
 		GetRenderInterface()->ReleaseCompiledGeometry(compiled_geometry);
 		compiled_geometry = NULL;

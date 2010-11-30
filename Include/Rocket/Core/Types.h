@@ -81,10 +81,10 @@ class Element;
 class Dictionary;
 
 // Types for external interfaces.
-typedef void* FileHandle;
+typedef uintptr_t FileHandle;
 typedef uintptr_t TextureHandle;
-typedef void* CompiledGeometryHandle;
-typedef void* DecoratorDataHandle;
+typedef uintptr_t CompiledGeometryHandle;
+typedef uintptr_t DecoratorDataHandle;
 
 // List of elements.
 typedef std::vector< Element* > ElementList;
