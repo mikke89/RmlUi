@@ -2,13 +2,18 @@
 # Build script for libRocket =======
 #===================================
 
+if(APPLE)
+# We use the new OSX_ARCHITECTURES property
+cmake_minimum_required(VERSION 2.8.1)
+else()
 cmake_minimum_required(VERSION 2.6)
+endif()
 
 project(libRocket C CXX)
 
 set(LIBROCKET_VERSION_MAJOR 1)
 set(LIBROCKET_VERSION_MINOR 2)
-set(LIBROCKET_VERSION_PATCH 0)
+set(LIBROCKET_VERSION_PATCH 1)
 set(PROJECT_VERSION ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBROCKET_VERSION_PATCH})
 
 # Search in the 'cmake' directory for additional CMake modules.
@@ -29,7 +34,7 @@ include(TestForSTDNamespace)
 #===================================
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING
+    set(CMAKE_BUILD_TYPE Release CACHE STRING
         "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
         FORCE)
 endif()
@@ -42,21 +47,28 @@ if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE)
-    add_definitions(-Wno-conversion-null)
-endif()
-
 #===================================
 # Find dependencies ================
 #===================================
 
-find_package(Freetype REQUIRED)
-
-if(FREETYPE_FOUND)
-    include_directories(${FREETYPE_INCLUDE_DIRS})
-    list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
+# FreeType
+if(WIN32)
+	set(FREETYPE_INCLUDE_DIRS ../../support/freetype/include)
+	set(FREETYPE_LIBRARY freetype243MT.lib)
+	set(FREETYPE_LINK_DIRS ../../support/lib)
+	set(FREETYPE_FOUND TRUE)
+else()
+	find_package(Freetype REQUIRED)	
 endif()
 
+if(FREETYPE_FOUND)
+		include_directories(${FREETYPE_INCLUDE_DIRS})
+		link_directories(${FREETYPE_LINK_DIRS})
+		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
+endif()
+mark_as_advanced(FREETYPE_INCLUDE_DIRS FREETYPE_LIBRARY FREETYPE_LINK_DIRECTORIES)
+
+# Boost and Python
 if(BUILD_PYTHON_BINDINGS)
     find_package(PythonInterp REQUIRED)
     find_package(PythonLibs REQUIRED)
@@ -93,7 +105,6 @@ include_directories(
 # Include list of source files
 include(FileList)
 
-
 #===================================
 # Build libraries ==================
 #===================================
@@ -112,6 +123,12 @@ foreach(library ${LIBRARIES})
                            VERSION ${PROJECT_VERSION}
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
     )
+    
+    if(APPLE)
+    	set_target_properties(${NAME} PROPERTIES
+    					OSX_ARCHITECTURES "i386;x86_64;"
+    	)
+    endif()
 
     install(TARGETS ${NAME}
             LIBRARY DESTINATION lib
@@ -120,7 +137,6 @@ foreach(library ${LIBRARIES})
 endforeach(library)
 
 # Build python bindings
-
 if(BUILD_PYTHON_BINDINGS)
     set(LIBRARIES core controls)
 
@@ -164,58 +180,89 @@ macro(bl_sample NAME)
     add_executable(${NAME} ${${NAME}_SRC_FILES}
                            ${${NAME}_HDR_FILES}
     )
+    
+    if (APPLE)
+    	# We only support i386 for the samples as it still uses Carbon
+    	set_target_properties(${NAME} PROPERTIES
+    						OSX_ARCHITECTURES "i386;"
+    	)
+    endif()
 
     target_link_libraries(${NAME} shell)
 endmacro()
 
 if(BUILD_SAMPLES)
     include(SampleFileList)
+    include(FindCarbon)
+    
+    set(sample_LIBRARIES
+    	shell 
+    	RocketCore 
+    	RocketControls
+    	RocketDebugger
+	)
 
-    find_package(OpenGL REQUIRED)
+	# Find OpenGL 
+	if(WIN32)
+	
+	else()
+    	find_package(OpenGL REQUIRED)
+    	   
+    	if(OPENGL_FOUND)
+        	include_directories(${OPENGL_INCLUDE_DIR})
+        	list(APPEND sample_LIBRARIES
+        		${OPENGL_LIBRARIES}
+        	)
+    	endif()
 
-    if(OPENGL_FOUND)
-        include_directories(${OPENGL_INCLUDE_DIR})
     endif()
-
+    
+    # Find X11/Cocoa
+    if(WIN32)
+    elseif(APPLE)
+    	find_package(Carbon REQUIRED)
+    	
+    	if (Carbon_FOUND)
+    		include_directories(${Carbon_INCLUDE_DIR})
+        	list(APPEND sample_LIBRARIES
+        		${Carbon_LIBRARIES}
+        	)
+    	endif()
+    	
+    	find_package(Cocoa REQUIRED)
+    	
+    	if (Cocoa_FOUND)
+    		include_directories(${Cocoa_INCLUDE_DIR})
+        	list(APPEND sample_LIBRARIES
+        		${Cocoa_LIBRARIES}
+        	)
+    	endif()
+    else()
+    	find_package(X11 REQUIRED)
+        if (X11_FOUND)
+        	list(APPEND sample_LIBRARIES
+        		${X11_LIBRARIES}
+        		)
+        endif()
+    endif()
+   
     set(SAMPLES_DIR opt/Rocket/Samples)
 
     # The samples use the shell library
     include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
 
-    # Deal with platform specific sources for sample shell
-    if(WIN32)
-        list(APPEND samples basic_directx)
-        list(APPEND shell_SRC_FILES
-            ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellWin32.cpp
-            ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/InputWin32.cpp
-        )
-        list(APPEND shell_HDR_FILES
-            ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/InputWin32.h
-        )
-    elseif(APPLE)
-        list(APPEND shell_SRC_FILES
-            ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/ShellMacOSX.cpp
-            ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/InputMacOSX.cpp
-        )
-        list(APPEND shell_HDR_FILES
-            ${PROJECT_SOURCE_DIR}/Samples/shell/include/macosx/InputMacOSX.h
-        )
-    else()
-        list(APPEND shell_SRC_FILES
-            ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/ShellX11.cpp
-            ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/InputX11.cpp
-        )
-        list(APPEND shell_HDR_FILES
-            ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/InputX11.h
-        )
-    endif()
-
     # Build and install sample shell library
     add_library(shell ${shell_SRC_FILES}
                       ${shell_HDR_FILES}
     )
+    if (APPLE)
+    	# We only support i386 for the samples as it still uses Carbon
+    	set_target_properties(shell PROPERTIES
+    						OSX_ARCHITECTURES "i386;"
+    	)
+    endif()
 
-    target_link_libraries(shell RocketCore RocketControls RocketDebugger ${OPENGL_LIBRARIES})
+    target_link_libraries(${sample_LIBRARIES})
 
     install(TARGETS shell
             LIBRARY DESTINATION lib
