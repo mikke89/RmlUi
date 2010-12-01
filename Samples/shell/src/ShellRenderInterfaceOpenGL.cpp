@@ -193,10 +193,7 @@ bool ShellRenderInterfaceOpenGL::GenerateTexture(Rocket::Core::TextureHandle& te
 		printf("Failed to generate textures\n");
 		return false;
 	}
-	else
-	{
-		printf("Texture id: %d\n", texture_id);
-	}
+
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source);

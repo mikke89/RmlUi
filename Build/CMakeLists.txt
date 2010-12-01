@@ -228,15 +228,6 @@ if(BUILD_SAMPLES)
         		${Carbon_LIBRARIES}
         	)
     	endif()
-    	
-    	find_package(Cocoa REQUIRED)
-    	
-    	if (Cocoa_FOUND)
-    		include_directories(${Cocoa_INCLUDE_DIR})
-        	list(APPEND sample_LIBRARIES
-        		${Cocoa_LIBRARIES}
-        	)
-    	endif()
     else()
     	find_package(X11 REQUIRED)
         if (X11_FOUND)
