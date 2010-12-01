@@ -1,10 +1,29 @@
 libRocket changelog
 
+v1.2.1
+1 December 2010
+
+Features:
+ * Added SFML sample (Thanks to Nuno Silva)
+ * Added CMake files for Mac, Linux and Windows (not fully tested on Windows, Thanks to Hilton Medeiro)
+ * Added Xcode project for iOS and OSX
+ * Upgraded to Freetype 2.4.3
+ * Upgraded Ogre sample for Ogre 1.7.2
+
+API Changes:
+ * All handle types have been changed for void*'s to uintptr_t's for better 64bit support
+
+Fixes:
+ * Fixed stack overflow in treeview
+ * Fixed Rocket::Core::Variant trample in 64bit version, due to Rocket::Core::String being bigger than 16 bytes (Thanks to Hilton Medeiro)
+ * Fixed 64bit pointer to string conversion used in the Font system
+
 v1.2.0
 8th September 2010
 ==========================================
 Features:
  * Licensing requirements removed, entire library switched to MIT license
+ * Upgraded to Freetype 2.4.1
  
 API Changes:
  * All of EMP::Core moved into Rocket::Core, except EMP::Data* which has moved into Rocket::Controls
@@ -17,7 +36,7 @@ Features:
  * Added the 'focus' property, which can be set to 'auto' (the default) or 'none'. Elements which are set to 'none' can never have focus.
  * Added the 'text-transform' property, which can be set to 'auto' (the default), 'uppercase' or 'lowercase'. It currently only supports transformations on ASCII characters.
  * Added the ClearStyleSheetCache() function to Rocket::Core::Factory.
- * Upgraded to Freetype 2.39.
+ * Upgraded to Freetype 2.3.9.
  * Upgraded to Python 2.6.2.
  * Upgraded to Boost 1.40.0.
  
