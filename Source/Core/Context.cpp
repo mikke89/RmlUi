@@ -27,12 +27,13 @@
 
 #include "precompiled.h"
 #include <Rocket/Core.h>
-#include <algorithm>
 #include "EventDispatcher.h"
 #include "EventIterators.h"
 #include "PluginRegistry.h"
 #include "StreamFile.h"
 #include <Rocket/Core/StreamMemory.h>
+#include <algorithm>
+#include <iterator>
 
 namespace Rocket {
 namespace Core {
@@ -1162,7 +1163,7 @@ void Context::ReleaseUnloadedDocuments()
 void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible)
 {
 	ElementList elements;
-	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), RKTOutputIterator< ElementList >(elements));
+	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));
 	std::for_each(elements.begin(), elements.end(), RKTEventFunctor(event, parameters, interruptible));
 }
 

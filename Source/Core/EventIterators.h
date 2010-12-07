@@ -85,47 +85,6 @@ class PseudoClassFunctor
 		bool set;
 };
 
-/**
- * Generic output iterator for adding elements to a container
- * @author Lloyd
- */
-
-template<typename T>
-class RKTOutputIterator : public std::iterator< std::output_iterator_tag, void, void, void, void >
-{
-public:
-	RKTOutputIterator(T& _elements) : elements(_elements)
-	{
-	}
-
-	RKTOutputIterator &operator=(const typename T::value_type &v) 
-	{
-		// Store the given item
-		elements.push_back(v);
-		return *this;
-	}
-	
-	RKTOutputIterator &operator *()
-	{ 
-		// Always return the same object
-		return *this; 
-	}
-
-	RKTOutputIterator &operator ++()
-	{
-		// Always return the same object
-		return *this;
-	}
-	
-	RKTOutputIterator operator ++(int)
-	{
-		// Always return the same object
-		return *this;
-	}
-private:
-	T& elements;
-};
-
 }
 }
 
