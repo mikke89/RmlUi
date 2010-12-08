@@ -88,7 +88,8 @@ bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, co
 {
 	stream = new StreamMemory((const byte*)properties.CString(), properties.Length());
 	bool success = ReadProperties(parsed_properties);
-	stream->Close();
+	stream->RemoveReference();
+	stream = NULL;
 	return success;
 }
 
