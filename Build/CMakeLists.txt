@@ -9,6 +9,10 @@ else()
 cmake_minimum_required(VERSION 2.6)
 endif()
 
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0015 NEW)
+endif(COMMAND cmake_policy)
+
 project(libRocket C CXX)
 
 set(LIBROCKET_VERSION_MAJOR 1)
@@ -19,6 +23,7 @@ set(PROJECT_VERSION ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBR
 # Search in the 'cmake' directory for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+set(CMAKE_DEBUG_POSTFIX  "_d")
 
 #===================================
 # Environment tests ================
@@ -133,6 +138,7 @@ foreach(library ${LIBRARIES})
     install(TARGETS ${NAME}
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
     )
 endforeach(library)
 
