@@ -34,13 +34,6 @@
 #include "StyleSheetFactory.h"
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
-/*#if defined ROCKET_PLATFORM_WIN32
-#include <windows.h>
-#elif defined ROCKET_PLATFORM_MACOSX
-#include <Carbon/Carbon.h>
-#elif defined ROCKET_PLATFORM_LINUX
-#include <unistd.h>
-#endif*/
 
 namespace Rocket {
 namespace Core {
@@ -146,6 +139,10 @@ void Shutdown()
 
 	if (system_interface != NULL)
 		system_interface->RemoveReference();
+	
+	render_interface = NULL;
+	file_interface = NULL;
+	system_interface = NULL;
 		
 	StringStorage::ClearPools();
 }

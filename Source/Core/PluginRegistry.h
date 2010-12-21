@@ -69,7 +69,6 @@ public:
 
 private:
 	PluginRegistry();
-	~PluginRegistry();
 };
 
 }

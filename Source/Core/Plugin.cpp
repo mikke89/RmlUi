@@ -35,6 +35,11 @@ Plugin::~Plugin()
 {
 }
 
+int Plugin::GetEventClasses()
+{
+	return EVT_ALL;
+}
+
 void Plugin::OnInitialise()
 {
 }

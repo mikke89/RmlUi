@@ -30,6 +30,8 @@
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Core/StyleSheetSpecification.h>
 #include <Rocket/Core/XMLParser.h>
+#include <Rocket/Core/Plugin.h>
+#include <Rocket/Core/Core.h>
 #include "ElementTextSelection.h"
 #include "XMLNodeHandlerDataGrid.h"
 #include "XMLNodeHandlerTabSet.h"
@@ -102,10 +104,25 @@ void RegisterXMLNodeHandlers()
 	node_handler->RemoveReference();
 }
 
+static bool initialised = false;
+
+class ControlsPlugin : public Rocket::Core::Plugin
+{
+public:
+	void OnShutdown()
+	{
+		initialised = false;
+		delete this;
+	}
+
+	int GetEventClasses()
+	{
+		return Rocket::Core::Plugin::EVT_BASIC;
+	}
+};
+
 void Initialise()
 {
-	static bool initialised = false;
-
 	// Prevent double initialisation
 	if (!initialised)
 	{
@@ -116,6 +133,9 @@ void Initialise()
 
 		// Register the XML node handlers for our elements that require special parsing.
 		RegisterXMLNodeHandlers();
+
+		// Register the controls plugin, so we'll be notified on Shutdown
+		Rocket::Core::RegisterPlugin(new ControlsPlugin());
 
 		initialised = true;
 	}

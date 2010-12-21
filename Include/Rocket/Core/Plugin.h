@@ -48,8 +48,20 @@ class ROCKETCORE_API Plugin
 public:
 	virtual ~Plugin();
 
-	/// Called when Rocket is initialised, or immediately when the plugin registers itself if Rocket has already been
-	/// initialised.
+	enum EventClasses
+	{
+		EVT_BASIC		= (1 << 0),		// Initialise, Shutdown, ContextCreate, ContextDestroy
+		EVT_DOCUMENT	= (1 << 1),		// DocumentOpen, DocumentLoad, DocumentUnload
+		EVT_ELEMENT		= (1 << 2),		// ElementCreate, ElementDestroy
+
+		EVT_ALL			= EVT_BASIC | EVT_DOCUMENT | EVT_ELEMENT
+	};
+	/// Called when the plugin is registered to determine
+	/// which of the above event types the plugin is interested in
+	virtual int GetEventClasses();
+
+	/// Called when Rocket is initialised, or immediately when the plugin registers itself if 
+	/// Rocket has already been initialised.
 	virtual void OnInitialise();
 	/// Called when Rocket shuts down.
 	virtual void OnShutdown();

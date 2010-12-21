@@ -40,8 +40,12 @@
 namespace Rocket {
 namespace Debugger {
 
+Plugin* Plugin::instance = NULL;
+
 Plugin::Plugin()
 {
+	ROCKET_ASSERT(instance == NULL);
+	instance = this;
 	host_context = NULL;
 	debug_context = NULL;
 	log_hook = NULL;
@@ -55,6 +59,7 @@ Plugin::Plugin()
 
 Plugin::~Plugin()
 {
+	instance = NULL;
 }
 
 // Initialises the debugging tools into the given context.
@@ -270,6 +275,11 @@ void Plugin::ProcessEvent(Core::Event& event)
 			render_outlines = !render_outlines;
 		}
 	}
+}
+
+Plugin* Plugin::GetInstance()
+{
+	return instance;
 }
 
 bool Plugin::LoadFont()

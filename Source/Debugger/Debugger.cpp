@@ -32,18 +32,16 @@
 namespace Rocket {
 namespace Debugger {
 
-static Plugin* plugin = NULL;
-
 // Initialises the debug plugin. The debugger will be loaded into the given context.
 bool Initialise(Core::Context* context)
 {
-	if (plugin != NULL)
+	if (Plugin::GetInstance() != NULL)
 	{
 		Core::Log::Message(Core::Log::LT_WARNING, "Unable to initialise debugger plugin, already initialised!");
 		return false;
 	}
 
-	plugin = new Plugin();
+	Plugin* plugin = new Plugin();
 	if (!plugin->Initialise(context))
 	{
 		Core::Log::Message(Core::Log::LT_WARNING, "Unable to initialise debugger plugin.");
@@ -61,6 +59,7 @@ bool Initialise(Core::Context* context)
 // Sets the context to be debugged.
 bool SetContext(Core::Context* context)
 {
+	Plugin* plugin = Plugin::GetInstance();
 	if (plugin == NULL)
 		return false;
 
@@ -72,6 +71,7 @@ bool SetContext(Core::Context* context)
 // Sets the visibility of the debugger.
 void SetVisible(bool visibility)
 {
+	Plugin* plugin = Plugin::GetInstance();
 	if (plugin != NULL)
 		plugin->SetVisible(visibility);
 }
@@ -79,6 +79,7 @@ void SetVisible(bool visibility)
 // Returns the visibility of the debugger.
 bool IsVisible()
 {
+	Plugin* plugin = Plugin::GetInstance();
 	if (plugin == NULL)
 		return false;
 

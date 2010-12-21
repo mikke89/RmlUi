@@ -128,21 +128,27 @@ void Factory::Shutdown()
 {
 	for (ElementInstancerMap::iterator i = element_instancers.begin(); i != element_instancers.end(); ++i)
 		(*i).second->RemoveReference();
+	element_instancers.clear();
 
 	for (DecoratorInstancerMap::iterator i = decorator_instancers.begin(); i != decorator_instancers.end(); ++i)
 		(*i).second->RemoveReference();
+	decorator_instancers.clear();
 
 	for (FontEffectInstancerMap::iterator i = font_effect_instancers.begin(); i != font_effect_instancers.end(); ++i)
 		(*i).second->RemoveReference();
+	font_effect_instancers.clear();
 
 	if (context_instancer)
 		context_instancer->RemoveReference();
+	context_instancer = NULL;
 
 	if (event_listener_instancer)
 		event_listener_instancer->RemoveReference();
+	event_listener_instancer = NULL;
 
 	if (event_instancer)
 		event_instancer->RemoveReference();
+	event_instancer = NULL;
 
 	XMLParser::ReleaseHandlers();
 }

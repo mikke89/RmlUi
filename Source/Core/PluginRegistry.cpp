@@ -33,85 +33,92 @@ namespace Rocket {
 namespace Core {
 
 typedef std::vector< Plugin* > PluginList;
-PluginList plugins;
+static PluginList basic_plugins;
+static PluginList document_plugins;
+static PluginList element_plugins;
 
 PluginRegistry::PluginRegistry()
 {
 }
 
-PluginRegistry::~PluginRegistry()
-{
-}
-
 void PluginRegistry::RegisterPlugin(Plugin* plugin)
 {
-	plugins.push_back(plugin);
+	int event_classes = plugin->GetEventClasses();
+	
+	if (event_classes & Plugin::EVT_BASIC)
+		basic_plugins.push_back(plugin);
+	if (event_classes & Plugin::EVT_DOCUMENT)
+		document_plugins.push_back(plugin);
+	if (event_classes & Plugin::EVT_ELEMENT)
+		element_plugins.push_back(plugin);
 }
 
 // Calls OnInitialise() on all plugins.
 void PluginRegistry::NotifyInitialise()
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnInitialise();
+	for (size_t i = 0; i < basic_plugins.size(); ++i)
+		basic_plugins[i]->OnInitialise();
 }
 
 // Calls OnShutdown() on all plugins.
 void PluginRegistry::NotifyShutdown()
 {
-	while (!plugins.empty())
+	while (!basic_plugins.empty())
 	{
-		plugins.back()->OnShutdown();
-		plugins.pop_back();
+		basic_plugins.back()->OnShutdown();
+		basic_plugins.pop_back();
 	}
+	document_plugins.clear();
+	element_plugins.clear();
 }
 
 // Calls OnContextCreate() on all plugins.
 void PluginRegistry::NotifyContextCreate(Context* context)
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnContextCreate(context);
+	for (size_t i = 0; i < basic_plugins.size(); ++i)
+		basic_plugins[i]->OnContextCreate(context);
 }
 
 // Calls OnContextDestroy() on all plugins.
 void PluginRegistry::NotifyContextDestroy(Context* context)
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnContextDestroy(context);
+	for (size_t i = 0; i < basic_plugins.size(); ++i)
+		basic_plugins[i]->OnContextDestroy(context);
 }
 
 // Calls OnDocumentOpen() on all plugins.
 void PluginRegistry::NotifyDocumentOpen(Context* context, const String& document_path)
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnDocumentOpen(context, document_path);
+	for (size_t i = 0; i < document_plugins.size(); ++i)
+		document_plugins[i]->OnDocumentOpen(context, document_path);
 }
 
 // Calls OnDocumentLoad() on all plugins.
 void PluginRegistry::NotifyDocumentLoad(ElementDocument* document)
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnDocumentLoad(document);
+	for (size_t i = 0; i < document_plugins.size(); ++i)
+		document_plugins[i]->OnDocumentLoad(document);
 }
 
 // Calls OnDocumentUnload() on all plugins.
 void PluginRegistry::NotifyDocumentUnload(ElementDocument* document)
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnDocumentUnload(document);
+	for (size_t i = 0; i < document_plugins.size(); ++i)
+		document_plugins[i]->OnDocumentUnload(document);
 }
 
 // Calls OnElementCreate() on all plugins.
 void PluginRegistry::NotifyElementCreate(Element* element)
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnElementCreate(element);
+	for (size_t i = 0; i < element_plugins.size(); ++i)
+		element_plugins[i]->OnElementCreate(element);
 }
 
 // Calls OnElementDestroy() on all plugins.
 void PluginRegistry::NotifyElementDestroy(Element* element)
 {
-	for (size_t i = 0; i < plugins.size(); ++i)
-		plugins[i]->OnElementDestroy(element);
+	for (size_t i = 0; i < element_plugins.size(); ++i)
+		element_plugins[i]->OnElementDestroy(element);
 }
 
 }

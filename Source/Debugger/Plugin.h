@@ -96,6 +96,10 @@ public:
 	/// @param[in] event The event to process.
 	virtual void ProcessEvent(Core::Event& event);
 
+	/// Access the singleton instance of the debugger
+	/// @return NULL or an instance of the plugin
+	static Plugin* GetInstance();
+
 private:
 	bool LoadFont();
 	bool LoadMenuElement();
@@ -123,6 +127,9 @@ private:
 	// Keep track of instanced elements for leak tracking.
 	typedef std::set< Core::Element* > ElementInstanceMap;
 	ElementInstanceMap elements;
+
+	// Singleton instance
+	static Plugin* instance;
 };
 
 }
