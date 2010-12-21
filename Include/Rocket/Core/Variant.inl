@@ -76,10 +76,7 @@ bool Variant::GetInto(T& value) const
 		break;
 
 		case SCRIPTINTERFACE:
-		{
-			ScriptInterface* interface = (ScriptInterface*) data_block->data_ptr;
-			return TypeConverter< ScriptInterface*, T >::Convert(interface, value);			
-		}
+			return TypeConverter< ScriptInterface*, T >::Convert((ScriptInterface*)data_block->data_ptr, value);
 		break;
 
 		case VOIDPTR:
