@@ -103,7 +103,8 @@ int main(int argc, char **argv)
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::TextEntered:
-				Context->ProcessTextInput(event.Text.Unicode);
+				if (event.Text.Unicode > 32)
+					Context->ProcessTextInput(event.Text.Unicode);
 				break;
 			case sf::Event::KeyPressed:
 				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.Key.Code),
