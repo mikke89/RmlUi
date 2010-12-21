@@ -270,7 +270,7 @@ ElementText* ElementDocument::CreateTextNode(const String& text)
 	if (!element_text)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer didn't return a derivative of ElementText.");
-		element_text->RemoveReference();
+		element->RemoveReference();
 		return NULL;
 	}
 	

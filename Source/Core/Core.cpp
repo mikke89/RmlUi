@@ -146,6 +146,8 @@ void Shutdown()
 
 	if (system_interface != NULL)
 		system_interface->RemoveReference();
+		
+	StringStorage::ClearPools();
 }
 
 // Returns the version of this Rocket library.

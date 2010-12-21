@@ -56,7 +56,7 @@ Context::Context(const String& name) : name(name), mouse_position(0, 0), dimensi
 	cursor_proxy = dynamic_cast< ElementDocument* >(element);
 	if (cursor_proxy == NULL)
 	{
-		if (element == NULL)
+		if (element != NULL)
 			element->RemoveReference();
 	}
 
