@@ -107,7 +107,7 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX::CompileGeometry(Roc
 
 	geometry->texture = texture == NULL ? NULL : (LPDIRECT3DTEXTURE9) texture;
 
-	return geometry;
+	return (Rocket::Core::CompiledGeometryHandle)geometry;
 }
 
 // Called by Rocket when it wants to render application-compiled geometry.
