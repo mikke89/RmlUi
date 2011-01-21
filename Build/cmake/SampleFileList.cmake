@@ -167,7 +167,6 @@ set(shell_SRC_FILES
 
 # Deal with platform specific sources for sample shell
 if(WIN32)
-	list(APPEND samples basic_directx)
 	list(APPEND shell_SRC_FILES
 		${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellWin32.cpp
 		${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/InputWin32.cpp

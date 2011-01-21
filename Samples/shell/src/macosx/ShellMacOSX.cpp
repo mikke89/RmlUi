@@ -83,7 +83,7 @@ bool Shell::Initialise(const Rocket::Core::String& path)
 	CFRelease(executable_posix_file_name);
 	CFRelease(executable_url);
 
-	file_interface = new ShellFileInterface(executable_path + "../../../");
+	file_interface = new ShellFileInterface(executable_path + "../../../" + path);
 	Rocket::Core::SetFileInterface(file_interface);
 
 	return true;

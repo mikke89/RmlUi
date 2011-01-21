@@ -61,7 +61,7 @@ int main(int, char**)
 #endif
 {
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("./") ||
+	if (!Shell::Initialise("../Samples/invaders/") ||
 		!Shell::OpenWindow("Rocket Invaders from Mars", true))
 	{
 		Shell::Shutdown();

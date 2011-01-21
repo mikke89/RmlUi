@@ -57,15 +57,7 @@ endif()
 #===================================
 
 # FreeType
-if(WIN32)
-	set(FREETYPE_INCLUDE_DIRS ../../support/freetype/include)
-	set(FREETYPE_LIBRARY freetype243MT.lib)
-	set(FREETYPE_LINK_DIRS ../../support/lib)
-	set(FREETYPE_FOUND TRUE)
-else()
-	find_package(Freetype REQUIRED)	
-endif()
-
+find_package(Freetype REQUIRED)	
 if(FREETYPE_FOUND)
 		include_directories(${FREETYPE_INCLUDE_DIRS})
 		link_directories(${FREETYPE_LINK_DIRS})
@@ -183,63 +175,57 @@ endif()
 
 # Build and link the samples
 macro(bl_sample NAME)
-    add_executable(${NAME} ${${NAME}_SRC_FILES}
-                           ${${NAME}_HDR_FILES}
-    )
+	if (WIN32)
+    	add_executable(${NAME} WIN32 ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
+	elseif(APPLE)
+		add_executable(${NAME} MACOSX_BUNDLE ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
+    else()
+    	add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
+    endif()
     
     if (APPLE)
     	# We only support i386 for the samples as it still uses Carbon
-    	set_target_properties(${NAME} PROPERTIES
-    						OSX_ARCHITECTURES "i386;"
-    	)
+    	set_target_properties(${NAME} PROPERTIES OSX_ARCHITECTURES "i386;" )
     endif()
 
-    target_link_libraries(${NAME} shell)
+    target_link_libraries(${NAME} ${ARGN})
 endmacro()
 
 if(BUILD_SAMPLES)
     include(SampleFileList)
-    include(FindCarbon)
+	set(samples treeview customlog drag loaddocument)
     
     set(sample_LIBRARIES
     	shell 
     	RocketCore 
     	RocketControls
     	RocketDebugger
-	)
+    )
 
 	# Find OpenGL 
-	if(WIN32)
-	
-	else()
-    	find_package(OpenGL REQUIRED)
+	find_package(OpenGL REQUIRED)
     	   
-    	if(OPENGL_FOUND)
-        	include_directories(${OPENGL_INCLUDE_DIR})
-        	list(APPEND sample_LIBRARIES
-        		${OPENGL_LIBRARIES}
-        	)
-    	endif()
-
+    if(OPENGL_FOUND)
+    	include_directories(${OPENGL_INCLUDE_DIR})
+        list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
     endif()
     
-    # Find X11/Cocoa
+    # Set up required system libraries
     if(WIN32)
+		list(APPEND samples directx)
+    	list(APPEND sample_LIBRARIES d3d9 d3dx9)
     elseif(APPLE)
+		include(FindCarbon)
     	find_package(Carbon REQUIRED)
     	
     	if (Carbon_FOUND)
     		include_directories(${Carbon_INCLUDE_DIR})
-        	list(APPEND sample_LIBRARIES
-        		${Carbon_LIBRARIES}
-        	)
+        	list(APPEND sample_LIBRARIES ${Carbon_LIBRARIES})
     	endif()
     else()
     	find_package(X11 REQUIRED)
         if (X11_FOUND)
-        	list(APPEND sample_LIBRARIES
-        		${X11_LIBRARIES}
-        		)
+        	list(APPEND sample_LIBRARIES ${X11_LIBRARIES})
         endif()
     endif()
    
@@ -249,44 +235,34 @@ if(BUILD_SAMPLES)
     include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
 
     # Build and install sample shell library
-    add_library(shell ${shell_SRC_FILES}
-                      ${shell_HDR_FILES}
-    )
+    add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
     if (APPLE)
     	# We only support i386 for the samples as it still uses Carbon
-    	set_target_properties(shell PROPERTIES
-    						OSX_ARCHITECTURES "i386;"
-    	)
+    	set_target_properties(shell PROPERTIES OSX_ARCHITECTURES "i386;")
     endif()
-
-    target_link_libraries(${sample_LIBRARIES})
 
     install(TARGETS shell
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
     )
 
-    list(APPEND samples treeview customlog drag loaddocument)
-
     # Build and install the basic samples
     foreach(sample ${samples})
-        bl_sample(${sample})
+        bl_sample(${sample} ${sample_LIBRARIES})
 
         # The samples always set this as their current working directory
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
-
-        install(TARGETS ${sample}
-                RUNTIME DESTINATION ${SAMPLES_DIR}
-        )
+        install(TARGETS ${sample} 
+        	RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
+        	BUNDLE DESTINATION ${SAMPLES_DIR})
     endforeach()
 
     # Build and install invaders sample
-    bl_sample(invaders)
+    bl_sample(invaders ${sample_LIBRARIES})
     install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
-    install(TARGETS invaders
-            RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
-    )
-
+    install(TARGETS invaders 
+    	RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
+    	BUNDLE DESTINATION ${SAMPLES_DIR})
 endif()
 
 
