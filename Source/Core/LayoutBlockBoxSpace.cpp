@@ -178,7 +178,7 @@ float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, con
 			float normalised_position = box_position.x - parent_origin;
 			if (normalised_position < 0 ||
 				normalised_position + dimensions.x > parent->GetBox().GetSize().x)
-				return PositionBox(box_position, next_cursor + 0.00001f, dimensions, float_property);
+				return PositionBox(box_position, next_cursor + 0.01f, dimensions, float_property);
 		}
 	}
 
