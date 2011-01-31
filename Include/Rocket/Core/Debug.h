@@ -39,10 +39,9 @@
 #define ROCKET_BREAK _asm { int 0x03 }
 #endif
 
-#define ROCKET_STATIC_ASSERT(cond, msg) typedef char msg[(cond) ? 1 : 0]
 
 // Define the LT_ASSERT and ROCKET_VERIFY macros.
-#if 1 //!defined ROCKET_DEBUG
+#if !defined ROCKET_DEBUG
 #define ROCKET_ASSERT(x)
 #define ROCKET_ASSERTMSG(x, m)
 #define ROCKET_ERROR
@@ -84,5 +83,15 @@ if (!Rocket::Core::Assert(m, __FILE__, __LINE__)) \
 }
 }
 #endif
+
+namespace Rocket {
+namespace Core {
+
+template <bool> struct STATIC_ASSERTION_FAILURE;
+template <> struct STATIC_ASSERTION_FAILURE<true>{};	
+	
+}
+}
+#define ROCKET_STATIC_ASSERT(cond, msg) Rocket::Core::STATIC_ASSERTION_FAILURE<cond> msg
 
 #endif
