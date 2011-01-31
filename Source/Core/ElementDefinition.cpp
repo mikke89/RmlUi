@@ -344,8 +344,7 @@ void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const Strin
 {
 	String property_suffix = "-" + group_type;
 
-	PropertyMap::const_iterator property_iterator;
-	for (property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
+	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
 	{
 		const String& property_name = (*property_iterator).first;
 		if (property_name.Length() > property_suffix.Length() &&
@@ -412,8 +411,7 @@ int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_pr
 {
 	int num_properties = 0;
 
-	PropertyMap::const_iterator property_iterator;
-	for (property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
+	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
 	{
 		const String& full_property_name = (*property_iterator).first;
 		if (full_property_name.Length() > group_name.Length() + 1 &&
