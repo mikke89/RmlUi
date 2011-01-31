@@ -62,7 +62,7 @@ bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 	}
 #else
 	(logtype);
-	fprintf(stderr,"%s\n", message);
+	fprintf(stderr,"%s\n", message.CString());
 #endif	
 	return true;
 }
