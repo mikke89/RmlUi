@@ -29,6 +29,10 @@
 #include <Rocket/Core/SystemInterface.h>
 #include <Rocket/Core/Log.h>
 
+#ifdef ROCKET_PLATFORM_WIN32
+#include <windows.h>
+#endif
+
 namespace Rocket {
 namespace Core {
 
@@ -40,10 +44,26 @@ SystemInterface::~SystemInterface()
 {
 }
 
-bool SystemInterface::LogMessage(Log::Type ROCKET_UNUSED(logtype), const String& message)
+bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 {
 	// By default we just send a platform message
-	Log::PlatformMessage(message.CString());
+#ifdef ROCKET_PLATFORM_WIN32
+	if (logtype == Log::LT_ASSERT)
+	{
+		Core::String message(1024, "%s\nWould you like to interrupt execution?", message.CString());	
+
+		// Return TRUE if the user presses NO (continue execution)
+		return (IDNO == MessageBoxA(NULL, message.CString(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL));
+	}
+	else
+	{
+		OutputDebugStringA(message.CString());
+		OutputDebugStringA("\r\n");
+	}
+#else
+	(logtype);
+	fprintf(stderr,"%s\n", message);
+#endif	
 	return true;
 }
 

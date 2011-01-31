@@ -34,9 +34,9 @@ namespace Core {
 Variant::Variant() : type(NONE)
 {
 	// Make sure our object size assumptions fit inside the static buffer
-	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= LOCAL_DATA_SIZE, Invalid_Size_Colourb);
-	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= LOCAL_DATA_SIZE, Invalid_Size_Colourf);
-	ROCKET_STATIC_ASSERT(sizeof(String) <= LOCAL_DATA_SIZE, Invalid_Size_Colourf);
+	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourb);
+	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourf);
+	ROCKET_STATIC_ASSERT(sizeof(String) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_String);
 }
 
 Variant::Variant( const Variant& copy ) : type(NONE)

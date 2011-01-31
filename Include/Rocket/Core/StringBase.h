@@ -29,6 +29,7 @@
 #define ROCKETCORESTRINGBASE_H
 
 #include <Rocket/Core/Debug.h>
+#include <stdlib.h>
 
 namespace Rocket {
 namespace Core {

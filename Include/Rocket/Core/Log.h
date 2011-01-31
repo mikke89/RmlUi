@@ -71,11 +71,6 @@ public:
 	/// @param[in] line_number Line the error occured on.
 	/// @param[in] format The error message, with sprintf-style parameters.
 	static void ParseError(const String& filename, int line_number, const char* format, ...);
-
-	/// Low-level platform message. This completely bypasses the log interface and is only used if
-	/// there was an error talking to the log interface.
-	/// @param[in] message Message to output.
-	static void PlatformMessage(const char* message);
 };
 
 }

@@ -63,7 +63,7 @@ void Log::Message(Log::Type type, const char* fmt, ...)
 	buffer[len] = '\0';
 	va_end(argument_list);
 
-	Rocket::Core::GetSystemInterface()->LogMessage(type, buffer);
+	GetSystemInterface()->LogMessage(type, buffer);
 }
 
 // Log a parse error on the specified file and line number.
@@ -89,15 +89,10 @@ void Log::ParseError(const String& filename, int line_number, const char* fmt, .
 		Message(Log::LT_ERROR, "%s: %s", filename.CString(), buffer);
 }
 
-// Low-level platform message.
-void Log::PlatformMessage(const char *message)
+bool Assert(const char* msg, const char* file, int line)
 {
-#ifdef ROCKET_PLATFORM_WIN32
-	OutputDebugStringA(message);
-	OutputDebugStringA("\r\n");
-#else
-	fprintf(stderr,"%s\n", message);
-#endif	
+	Rocket::Core::String message(1024, "%s\n%s:%d", msg, file, line);
+	return GetSystemInterface()->LogMessage(Log::LT_ASSERT, message);
 }
 
 }
