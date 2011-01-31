@@ -27,9 +27,8 @@
 
 // Constructs a variant with internal data.
 template< typename T >
-Variant::Variant(const T& t)
+Variant::Variant(const T& t) : type(NONE)
 {
-	data_block = NULL;
 	Set( t );
 }
 
@@ -37,50 +36,50 @@ Variant::Variant(const T& t)
 template< typename T >
 bool Variant::GetInto(T& value) const
 {	
-	switch (GetType())
+	switch (type)
 	{
 		case BYTE:
-			return TypeConverter< byte, T >::Convert(*(byte*)data_block->data_ptr, value);
+			return TypeConverter< byte, T >::Convert(*(byte*)data, value);
 		break;
 
 		case CHAR:
-			return TypeConverter< char, T >::Convert(*(char*)data_block->data_ptr, value);
+			return TypeConverter< char, T >::Convert(*(char*)data, value);
 		break;
 
 		case FLOAT:
-			return TypeConverter< float, T >::Convert(*(float*)data_block->data_ptr, value);
+			return TypeConverter< float, T >::Convert(*(float*)data, value);
 		break;
 
 		case INT:
-			return TypeConverter< int, T >::Convert(*(int*)data_block->data_ptr, value);
+			return TypeConverter< int, T >::Convert(*(int*)data, value);
 		break;
 
 		case STRING:
-			return TypeConverter< String, T >::Convert(*(String*)data_block->data_ptr, value);
+			return TypeConverter< String, T >::Convert(*(String*)data, value);
 		break;
 
 		case WORD:
-			return TypeConverter< word, T >::Convert(*(word*)data_block->data_ptr, value);
+			return TypeConverter< word, T >::Convert(*(word*)data, value);
 		break;
 
 		case VECTOR2:
-			return TypeConverter< Vector2f, T >::Convert(*(Vector2f*)data_block->data_ptr, value);
+			return TypeConverter< Vector2f, T >::Convert(*(Vector2f*)data, value);
 		break;
 
 		case COLOURF:
-			return TypeConverter< Colourf, T >::Convert(*(Colourf*)data_block->data_ptr, value);
+			return TypeConverter< Colourf, T >::Convert(*(Colourf*)data, value);
 		break;
 
 		case COLOURB:
-			return TypeConverter< Colourb, T >::Convert(*(Colourb*)data_block->data_ptr, value);
+			return TypeConverter< Colourb, T >::Convert(*(Colourb*)data, value);
 		break;
 
 		case SCRIPTINTERFACE:
-			return TypeConverter< ScriptInterface*, T >::Convert((ScriptInterface*)data_block->data_ptr, value);
+			return TypeConverter< ScriptInterface*, T >::Convert((ScriptInterface*)data, value);			
 		break;
 
 		case VOIDPTR:
-			return TypeConverter< void*, T >::Convert(data_block->data_ptr, value);
+			return TypeConverter< void*, T >::Convert((void*)data, value);
 		break;
 	}
 
