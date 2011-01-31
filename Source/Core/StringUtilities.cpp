@@ -109,15 +109,14 @@ String StringUtilities::MD5Hash(const char* data, int length)
 }
 
 // Hashes a string of data to an integer value using the FNV algorithm.
-Hash StringUtilities::FNVHash(const char *string, int length)
+Hash StringUtilities::FNVHash(const char *string)
 {
 	// FNV-1 hash algorithm
 	Hash hval = 0;
 	unsigned char *bp = (unsigned char *)string;	// start of buffer
-	unsigned char *be = bp + ( length < 0 ? strlen(string) : length );	// beyond end of buffer
     
 	// FNV-1 hash each octet in the buffer
-	while (bp < be) 
+	while (*bp) 
 	{
 		// multiply by the 32 bit FNV magic prime mod 2^32 
 		hval += (hval<<1) + (hval<<4) + (hval<<7) + (hval<<8) + (hval<<24);

@@ -513,6 +513,11 @@ public:
 	/// @return The element's scrolling functionality.
 	ElementScroll* GetElementScroll() const;
 	//@}
+	
+	/// Returns true if this element requires clipping
+	int GetClippingIgnoreDepth();
+	/// Returns true if this element has clipping enabled
+	bool IsClippingEnabled();
 
 	/// Gets the render interface owned by this element's context.
 	/// @return The element's context's render interface.
@@ -595,6 +600,8 @@ private:
 	Element* parent;
 	// Currently focused child object
 	Element* focus;
+	// The owning document
+	ElementDocument* owner_document;
 
 	// The event dispatcher for this element.
 	EventDispatcher* event_dispatcher;
@@ -651,6 +658,11 @@ private:
 
 	// The element's font face; used to render text and resolve em / ex properties.
 	FontFaceHandle* font_face_handle;
+	
+	// Cached rendering information
+	int clipping_ignore_depth;
+	bool clipping_enabled;
+	bool clipping_state_dirty;
 
 	friend class Context;
 	friend class ElementStyle;

@@ -65,7 +65,7 @@ public:
 	/// @param[in] data Data to hash.
 	/// @param[in] length Length of the string to hash. If this is -1, the data will be interpreted as a C string.
 	/// @return Integer hash of the data.
-	static Hash FNVHash(const char* data, int length = -1);
+	static Hash FNVHash(const char* data);
 
 	/// Encodes a string with URL-encoding.
 	/// @param[in] input Input ASCII string to encode.
