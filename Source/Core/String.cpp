@@ -59,12 +59,8 @@ int ROCKETCORE_API RocketStringFormatString(StringBase<char>& string, int max_si
 }
 
 template <>
-StringBase<char>::StringBase(StringBase<char>::size_type max_size, const char* fmt, ...)
+StringBase<char>::StringBase(StringBase<char>::size_type max_size, const char* fmt, ...) : value(local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0) 
 {
-	string_id = 0;
-	length = 0;
-	value = StringStorage::empty_string;
-
 	va_list argument_list;
 	va_start(argument_list, fmt);
 
@@ -93,10 +89,12 @@ String operator+(const char* cstring, const String& string)
 
 //#define ENABLE_STRING_TESTS
 #ifdef ENABLE_STRING_TESTS
-#include <Rocket/Core/STL/string>
-#include <SYSClock.h>
-ROCKETCORE_API void EMPStringTests()
+#include <string>
+#include "Rocket/Core/SystemInterface.h"
+ROCKETCORE_API void StringTests()
 {
+	SystemInterface* sys = Rocket::Core::GetSystemInterface();
+	
 	std::string ss = "test";
 	String es = "test";
 
@@ -108,8 +106,9 @@ ROCKETCORE_API void EMPStringTests()
 
 	String sub1 = es.Replace("lo", "l");
 	sub1 = sub1.Replace("h", "!");
+	ROCKET_ASSERT(sub1 == "!el");
 
-	EMPTime start;
+	Time start;
 
 	{
 		// Create a few free buffers
@@ -118,35 +117,35 @@ ROCKETCORE_API void EMPStringTests()
 		String tempstring2("buffer2");
 	}	
 
-	start = SYSClock::GetRealTime();
+	start = sys->GetElapsedTime();
 	for (int i = 0; i < 100000; i++)
 	{
 		std::string str("test");	
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "SS Assign Short: %f", SYSClock::GetRealTime() - start);
+	printf( "SS Assign Short: %f\n", sys->GetElapsedTime() - start);
 	
-	start = SYSClock::GetRealTime();	
+	start = sys->GetElapsedTime();	
 	for (int i = 0; i < 100000; i++)
 	{
 		String str("test");
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "ES Assign Short: %f", SYSClock::GetRealTime() - start);
+	printf( "ES Assign Short: %f\n", sys->GetElapsedTime() - start);
 
-	start = SYSClock::GetRealTime();
+	start = sys->GetElapsedTime();
 	for (int i = 0; i < 100000; i++)
 	{
 		std::string str("test this really long string that won't fit in a local buffer");	
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "SS Assign Long: %f", SYSClock::GetRealTime() - start);
+	printf( "SS Assign Long: %f\n", sys->GetElapsedTime() - start);
 	
-	start = SYSClock::GetRealTime();	
+	start = sys->GetElapsedTime();	
 	for (int i = 0; i < 100000; i++)
 	{
 		String str("test this really long string that won't fit in a local buffer");
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "ES Assign Long: %f", SYSClock::GetRealTime() - start);
+	printf( "ES Assign Long: %f\n", sys->GetElapsedTime() - start);
 
-	start = SYSClock::GetRealTime();
+	start = sys->GetElapsedTime();
 	for (int i = 0; i < 100000; i++)
 	{
 		if (ss == "hello")
@@ -154,20 +153,26 @@ ROCKETCORE_API void EMPStringTests()
 			int bob = 10;
 		}
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "SS Compare: %f (char*)", SYSClock::GetRealTime() - start);
+	printf( "SS Compare: %f (char*)\n", sys->GetElapsedTime() - start);
 
-	std::string compare = "hello";
-	start = SYSClock::GetRealTime();
+	ss = "bo1";
+	std::string oss = ss;
+	std::string nss = "bob";
+	start = sys->GetElapsedTime();
 	for (int i = 0; i < 100000; i++)
 	{
-		if (ss == compare)
+		//if (ss == oss)
+		{
+			int bob = 10;
+		}
+		if (ss == nss)
 		{
 			int bob = 10;
 		}
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "SS Compare: %f (std::string)", SYSClock::GetRealTime() - start);
+	printf( "SS Compare: %f (std::string)\n", sys->GetElapsedTime() - start);
 
-	start = SYSClock::GetRealTime();
+	start = sys->GetElapsedTime();
 	for (int i = 0; i < 100000; i++)
 	{
 		if (es == "hello")
@@ -175,38 +180,45 @@ ROCKETCORE_API void EMPStringTests()
 			int bob = 10;
 		}
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "ES Compare: %f (char*)", SYSClock::GetRealTime() - start);
+	printf( "ES Compare: %f (char*)\n", sys->GetElapsedTime() - start);
 	
+	es = "bo1";
 	String oes = es;
-	start = SYSClock::GetRealTime();
+	String nes = "bob";
+	start = sys->GetElapsedTime();
 	for (int i = 0; i < 100000; i++)
 	{
-		if (es == oes)
+		//if (es == oes)
+		{
+			int bob = 10;
+		}
+		
+		if (nes == oes)
 		{
 			int bob = 10;
 		}
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "ES Compare: %f (String)", SYSClock::GetRealTime() - start);
+	printf( "ES Compare: %f (String)\n", sys->GetElapsedTime() - start);
 
-	start = SYSClock::GetRealTime();
+	start = sys->GetElapsedTime();
 	std::string ss_concat = "hello";
 	for (int i = 0; i < 100000; i++)
 	{
 		ss_concat += "y";
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "SS +=: %f", SYSClock::GetRealTime() - start);
+	printf( "SS +=: %f\n", sys->GetElapsedTime() - start);
 
 	String es_concat = "hello";
-	start = SYSClock::GetRealTime();
+	start = sys->GetElapsedTime();
 	for (int i = 0; i < 100000; i++)
 	{
-		if (i == 1016)
+		if (i == 42)
 		{
 			int bob = 10;
 		}
 		es_concat += "y";
 	}
-	Log::Message(LC_CORE, Log::LT_ALWAYS, "ES +=: %f", SYSClock::GetRealTime() - start);
+	printf( "ES +=: %f\n", sys->GetElapsedTime() - start);
 
 	const char* x1 = "bob";
 	String s;

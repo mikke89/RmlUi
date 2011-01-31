@@ -26,67 +26,57 @@
  */
 
 template< typename T >
-StringBase< T >::StringBase()
+StringBase< T >::StringBase() : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
 {
-	string_id = 0;
-	length = 0;
-	value = (T*)StringStorage::empty_string;
+	value[0] = 0;
 }
 
 template< typename T >
-StringBase< T >::StringBase(const StringBase< T >& copy)
+StringBase< T >::StringBase(const StringBase< T >& copy) : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
 {
-	string_id = 0;
-	length = 0;
-	value = (T*)StringStorage::empty_string;
+	value[0] = 0;
 	*this = copy;
 }
 
 template< typename T >
-StringBase< T >::StringBase(const T* string)
+StringBase< T >::StringBase(const T* string) : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
 {
-	string_id = 0;
-	length = 0;
-	value = (T*)StringStorage::empty_string;
+	value[0] = 0;
 	*this = string;
 }
 
 template< typename T >
-StringBase< T >::StringBase(const T* string_start, const T* string_end)
+StringBase< T >::StringBase(const T* string_start, const T* string_end) : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
 {
-	string_id = 0;
+	value[0] = 0;
 	length = (string_end - string_start);
 
-	if (length == 0)
+	if (length > 0)
 	{
-		value = (T*)StringStorage::empty_string;
-	}
-	else
-	{
-		value = (T*)StringStorage::ReallocString(NULL, 0, length, sizeof(T));
-		Copy(value, string_start, length, true);
+		Reserve(length);
+		Copy(value, string_start, length, true);		
 	}
 }
 
 template< typename T >
-StringBase< T >::StringBase(size_type count, const T character)
+StringBase< T >::StringBase(size_type count, const T character) : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
 {
-	string_id = 0;
+	value[0] = 0;
 	length = count;
 
-	value = (T*)StringStorage::ReallocString(NULL, 0, length, sizeof(T));
-	for (size_type i = 0; i < length; i++)
-		value[i] = character;
-	value[length] = 0;
+	if (length > 0)
+	{
+		Reserve(length);
+		for (size_type i = 0; i < length; i++)
+			value[i] = character;
+		value[length] = '\0';
+	}
 }
 
 template< typename T >
-StringBase< T >::StringBase(size_type ROCKET_UNUSED(max_length), const T* ROCKET_UNUSED(fmt), ...)
+StringBase< T >::StringBase(size_type ROCKET_UNUSED(max_length), const T* ROCKET_UNUSED(fmt), ...) : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
 {
-	string_id = 0;
-	length = 0;
-	value = (T*)StringStorage::empty_string;
-
+	value[0] = 0;
 	// Can't implement this at the base level, requires template specialisation
 	ROCKET_ERRORMSG("Not implemented.");
 }
@@ -94,7 +84,8 @@ StringBase< T >::StringBase(size_type ROCKET_UNUSED(max_length), const T* ROCKET
 template< typename T >
 StringBase< T >::~StringBase()
 {
-	Release();
+	if (value != (T*)local_buffer)
+		free(value);
 }
 
 template< typename T >
@@ -106,11 +97,13 @@ bool StringBase< T >::Empty() const
 template< typename T >
 void StringBase< T >::Clear()
 {
-	Release();
+	if (value != (T*)local_buffer)
+		free(value);
 
 	length = 0;
-	string_id = 0;
-	value = (T*)StringStorage::empty_string;
+	hash = 0;
+	value = (T*)local_buffer;
+	buffer_size = LOCAL_BUFFER_SIZE;
 }
 
 template< typename T >
@@ -120,9 +113,62 @@ typename StringBase< T >::size_type StringBase< T >::Length() const
 }
 
 template< typename T >
+unsigned int StringBase< T >::Hash() const
+{
+	if (hash == 0 && length > 0)
+	{
+		// FNV-1 hash algorithm
+		unsigned char* bp = (unsigned char *)value;	// start of buffer
+		unsigned char* be = (unsigned char *)value + (length * sizeof(T));
+		
+		// FNV-1a hash each octet in the buffer
+		while (bp < be) 
+		{
+			// xor the bottom with the current octet
+			hash ^= *bp++;
+			
+			/* multiply by the 32 bit FNV magic prime mod 2^32 */
+			#if !defined(__GNUC__)
+				const unsigned int FNV_32_PRIME = ((unsigned int)16777619);
+				hash *= FNV_32_PRIME;
+			#else
+				hash += (hash<<1) + (hash<<4) + (hash<<7) + (hash<<8) + (hash<<24);
+			#endif
+		}
+	}
+	return hash;
+}
+
+template< typename T >
 const T* StringBase< T >::CString() const
 {
 	return value;
+}
+
+template< typename T >
+void StringBase< T >::Reserve(size_type size)
+{
+	size_type new_size = (size + 1) * sizeof(T);
+	
+	if (buffer_size >= new_size)
+		return;
+	
+	// Pad out to a block of 16 bytes
+	const int BLOCK_SIZE = 16;
+	new_size = (new_size+BLOCK_SIZE-1)&(~(BLOCK_SIZE-1));
+	
+	buffer_size = new_size;
+	
+	if (value == (T*)local_buffer)
+	{
+		T* new_value = (T*)realloc(NULL, buffer_size);
+		Copy(new_value, (T*)local_buffer, LOCAL_BUFFER_SIZE / sizeof(T));
+		value = new_value;
+	}
+	else
+	{
+		value = (T*)realloc(value, buffer_size);
+	}
 }
 
 template< typename T >
@@ -209,19 +255,7 @@ StringBase< T >& StringBase< T >::Assign(const T* assign, const T* end)
 template< typename T >
 StringBase< T >& StringBase< T >::Assign(const StringBase< T >& assign, size_type count)
 {
-	if (count == npos)
-	{
-		// We can do the complete assignment really fast as we're
-		// just reference counting
-		*this = assign;
-	}
-	else
-	{
-		// Do a normal (slow) assign
-		Assign(assign.CString(), count);
-	}
-
-	return *this;
+	return _Assign(assign.CString(), assign.length, count);
 }
 
 // Insert a string into this string
@@ -235,7 +269,7 @@ void StringBase< T >::Insert(size_type index, const T* insert, size_type count)
 template< typename T >
 void StringBase< T >::Insert(size_type index, const StringBase< T >& insert, size_type count)
 {
-	return _Insert(index, insert.CString(), insert.Length(), count);
+	return _Insert(index, insert.value, insert.length, count);
 }
 
 // Insert a character into this string
@@ -259,8 +293,7 @@ void StringBase< T >::Erase(size_type index, size_type count)
 	else
 	{
 		size_type erase_amount = count < length - index ? count : length - index;
-		
-		Modify(length);		
+			
 		Copy(&value[index], &value[index + erase_amount], length - index - erase_amount, true);		
 
 		length -= erase_amount;
@@ -280,8 +313,9 @@ int StringBase< T >::FormatString(size_type ROCKET_UNUSED(max_length), const T* 
 template< typename T >
 void StringBase< T >::Resize(size_type new_length)
 {
-	Modify(new_length, true);
-	length = new_length;	
+	Reserve(new_length);
+	length = new_length;
+	value[length] = '\0';
 
 	if (length == 0)
 		Clear();
@@ -355,18 +389,23 @@ template< typename T >
 bool StringBase< T >::operator==(const T* compare) const
 {
 	size_type index = 0;
-	while (compare[index] && value[index] && compare[index] == value[index])
+	
+	while (index < length && compare[index] == value[index])
 		index++;
 
-	return index == length && compare[index] == 0;	
+	return index == length && compare[index] == '\0';	
 }
 
 template< typename T >
 bool StringBase< T >::operator==(const StringBase< T >& compare) const
 {
-	AddStorage();
-	compare.AddStorage();
-	return compare.string_id == string_id;
+	if (length != compare.length)
+		return false;
+	
+	if (Hash() != compare.Hash())
+		return false;
+		
+	return (*this) == compare.value;
 }
 
 template< typename T >
@@ -385,7 +424,7 @@ template< typename T >
 bool StringBase< T >::operator<(const T* compare) const
 {
 	size_type index = 0;
-	while (index < length && compare[index] && compare[index] == value[index])
+	while (index < length && compare[index] == value[index])
 		index++;
 
 	// Check if we reached the end of the string
@@ -427,15 +466,7 @@ StringBase< T >& StringBase< T >::operator=(const T* assign)
 template< typename T >
 StringBase< T >& StringBase< T >::operator=(const StringBase< T >& assign)
 {	
-	assign.AddStorage();
-	StringStorage::AddReference(assign.string_id);
-	
-	Release();
-	string_id = assign.string_id;
-	value = assign.value;
-	length = assign.length;
-
-	return *this;
+	return Assign(assign);
 }
 
 template< typename T >
@@ -465,7 +496,7 @@ StringBase< T >& StringBase< T >::operator+=(const T* add)
 template< typename T >
 StringBase< T >& StringBase< T >::operator+=(const StringBase< T >& add)
 {	
-	return Append(add.CString());
+	return _Append(add.CString(), add.length);
 }
 
 template< typename T >
@@ -502,55 +533,7 @@ typename StringBase< T >::size_type StringBase< T >::GetLength(const T* string) 
 }
 
 template< typename T >
-void StringBase< T >::AddStorage() const
-{	
-	if (string_id > 0 || value == (T*)StringStorage::empty_string)
-		return;
-
-	const char* str = (const char*)value;
-	string_id = StringStorage::AddString(str, length, sizeof(T));
-	value = (T*)str;
-}
-
-template< typename T >
-void StringBase< T >::Modify(size_type new_size, bool shrink)
-{
-	T* new_value = value;
-	if (string_id > 0)
-	{
-		// If the string is in storage, we have to allocate a new buffer
-		// and copy the string into the new buffer (including NULL)
-		// Its up to the calling function to release it from storage when the
-		// modifcations are done
-		new_value = (T*)StringStorage::ReallocString(NULL, 0, new_size, sizeof(T));
-		Copy(new_value, value, new_size > length ? length : new_size, true);
-
-		// Release the old string value and assign the newly-allocated value as this string's value.
-		Release();
-		value = new_value;
-	}
-	else
-	{
-		// If we're not in storage and we're growing, do a realloc, otherwise we'll stay the same size
-		if (new_size > length)
-		{
-			new_value = (T*)StringStorage::ReallocString((char*)value, length, new_size, sizeof(T));
-			value = new_value;
-		}
-		else if (new_size < length && shrink)
-		{
-			new_value = (T*)StringStorage::ReallocString(NULL, 0, new_size, sizeof(T));
-			Copy(new_value, value, new_size, true);
-
-			// Release the old value and assign the newly-allocated value as this string's value.
-			Release();
-			value = new_value;
-		}
-	}
-}
-
-template< typename T >
-void StringBase< T >::Copy(T* target, const T* src, size_type length, bool terminate) const
+void StringBase< T >::Copy(T* target, const T* src, size_type length, bool terminate)
 {
 	// Copy values
 	for (size_type i = 0; i < length; i++)
@@ -561,22 +544,6 @@ void StringBase< T >::Copy(T* target, const T* src, size_type length, bool termi
 	if (terminate)
 	{		
 		*target++ = 0;		
-	}
-}
-
-template< typename T >
-void StringBase< T >::Release() const
-{
-	// If theres a valid string id remove the reference
-	// otherwise ask the storage to release our local buffer
-	if (string_id > 0)
-	{
-		StringStorage::RemoveReference(string_id);
-		string_id = 0;
-	}
-	else if (value != (T*)StringStorage::empty_string)
-	{
-		StringStorage::ReleaseString((char*)value, length);
 	}
 }
 
@@ -674,6 +641,8 @@ StringBase< T > StringBase< T >::_Replace(const T* find, size_type find_length, 
 		// Advance the find position
 		offset = pos + find_length;
 	}
+	
+	hash = 0;
 
 	return result;
 }
@@ -686,9 +655,11 @@ StringBase< T >& StringBase< T >::_Append(const T* append, size_type append_leng
 	if (add_length == 0)
 		return *this;
 
-	Modify(length + add_length);
+	Reserve(length + add_length);
 	Copy(&value[length], append, add_length, true);
 	length += add_length;
+	
+	hash = 0;
 	
 	return *this;
 }
@@ -700,16 +671,17 @@ StringBase< T >& StringBase< T >::_Assign(const T* assign, size_type assign_leng
 
 	if (new_length == 0)
 	{
-		Release();
-		value = (T*)StringStorage::empty_string;		
+		Clear();
 	}
 	else
 	{
-		Modify(new_length, true);
+		Reserve(new_length);
 		Copy(value, assign, new_length, true);
 	}
 
 	length = new_length;
+	
+	hash = 0;
 	
 	return *this;
 }
@@ -725,10 +697,13 @@ void StringBase< T >::_Insert(size_type index, const T* insert, size_type insert
 	
 	size_type add_length = count < insert_length ? count : insert_length;
 
-	Modify(length + add_length);
+	Reserve(length + add_length);
+	
 	for (size_type i = length + 1; i > index; i--)
 		value[i + add_length - 1] = value[i - 1];
 
 	Copy(&value[index], insert, add_length);
 	length += add_length;
+	
+	hash = 0;
 }

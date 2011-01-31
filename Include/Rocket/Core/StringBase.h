@@ -29,8 +29,6 @@
 #define ROCKETCORESTRINGBASE_H
 
 #include <Rocket/Core/Debug.h>
-#include <Rocket/Core/StringStorage.h>
-//#include <Rocket/Core/Types.h>
 
 namespace Rocket {
 namespace Core {
@@ -62,8 +60,13 @@ public:
 
 	/// The length of the string
 	inline size_type Length() const;
+	/// Get the hash value of this string
+	inline unsigned int Hash() const;
 	/// Access the string as a standard C string
 	inline const T* CString() const;
+	
+	/// Reserve space for at least this much data
+	inline void Reserve(size_type size);
 
 	/// Find the given string within this string
 	/// @param find The string to search for
@@ -183,22 +186,17 @@ public:
 
 protected:	
 
-	mutable T* value;
+	T* value;
+	size_type buffer_size;
 	size_type length;
-
-	mutable StringStorage::StringID string_id;
+	mutable unsigned int hash;
+	static const size_type LOCAL_BUFFER_SIZE = 8;
+	char local_buffer[LOCAL_BUFFER_SIZE];
 
 	size_type GetLength(const T* string) const;
 
-	// Ensure the string is now in the storage
-	inline void AddStorage() const;
-	// Modify this string, moving it out of storage if necessary
-	// By default, never shrink the memory allocation
-	inline void Modify(size_type new_size, bool shrink = false);
 	// Copies the source string to target string
-	inline void Copy(T* target, const T* src, size_type length, bool terminate = false) const;
-	// Release the string
-	inline void Release() const;
+	inline void Copy(T* target, const T* src, size_type length, bool terminate = false);
 
 	// Internal implementations of the public interfaces,
 	// all these functions take the length of the const T*'s they're
@@ -211,7 +209,7 @@ protected:
 	inline StringBase<T>& _Assign(const T* assign, size_type assign_length, size_type count = StringBase<T>::npos);
 	inline void _Insert(size_type index, const T* insert, size_type insert_length, size_type count = StringBase<T>::npos);
 };
-
+	
 #include <Rocket/Core/StringBase.inl>
 
 }
