@@ -291,9 +291,13 @@ const Property* ElementStyle::GetProperty(const String& name)
 	if (property->IsInherited())
 	{
 		Element* parent = element->GetParentNode();
-		if (parent != NULL)
+		while (parent != NULL)
 		{
-			return parent->GetProperty(name);
+			const Property* parent_property = parent->style->GetLocalProperty(name);
+			if (parent_property)
+				return parent_property;
+			
+			parent = parent->GetParentNode();
 		}
 	}
 
