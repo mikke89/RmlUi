@@ -56,7 +56,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="RocketCore_d.lib RocketDebugger_d.lib RocketControls_d.lib opengl32.lib"
-				OutputFile="$(ProjectName)_d.exe"
+				OutputFile="..\..\bin\$(ProjectName)_d.exe"
 				AdditionalLibraryDirectories="..\shell\libpng; ..\..\bin"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -127,7 +127,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="RocketCore.lib RocketDebugger.lib RocketControls.lib opengl32.lib"
-				OutputFile="$(ProjectName).exe"
+				OutputFile="..\..\bin\$(ProjectName).exe"
 				AdditionalLibraryDirectories="..\shell\libpng; ..\..\bin"
 				GenerateDebugInformation="true"
 				SubSystem="2"

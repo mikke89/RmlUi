@@ -134,7 +134,6 @@
 		6E8B1E39123ABCC200C451C8 /* StreamMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D09291209823B00099E1A /* StreamMemory.cpp */; };
 		6E8B1E3A123ABCC200C451C8 /* String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D099B1209878A00099E1A /* String.cpp */; };
 		6E8B1E3B123ABCC200C451C8 /* StringCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28DE612058A45000FAF17 /* StringCache.cpp */; };
-		6E8B1E3C123ABCC200C451C8 /* StringStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D09911209872400099E1A /* StringStorage.cpp */; };
 		6E8B1E3D123ABCC200C451C8 /* StringUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D092A1209823B00099E1A /* StringUtilities.cpp */; };
 		6E8B1E3E123ABCC200C451C8 /* StyleSheet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28DE812058A45000FAF17 /* StyleSheet.cpp */; };
 		6E8B1E3F123ABCC200C451C8 /* StyleSheetFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28DE912058A45000FAF17 /* StyleSheetFactory.cpp */; };
@@ -237,7 +236,6 @@
 		6E9D09331209823B00099E1A /* Variant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D092C1209823B00099E1A /* Variant.cpp */; };
 		6E9D09781209858B00099E1A /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D09771209858B00099E1A /* Math.cpp */; };
 		6E9D0988120986B600099E1A /* ReferenceCountable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D0987120986B600099E1A /* ReferenceCountable.cpp */; };
-		6E9D09921209872400099E1A /* StringStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D09911209872400099E1A /* StringStorage.cpp */; };
 		6E9D099C1209878A00099E1A /* String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E9D099B1209878A00099E1A /* String.cpp */; };
 		6EF28B79120580DA000FAF17 /* Box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28B78120580DA000FAF17 /* Box.cpp */; };
 		6EF28E2F12058A45000FAF17 /* Clock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D0312058A45000FAF17 /* Clock.cpp */; };
@@ -448,7 +446,6 @@
 		6EF3BCEB12481DD40014316D /* String.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBEC12481DD40014316D /* String.h */; };
 		6EF3BCEC12481DD40014316D /* StringBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBED12481DD40014316D /* StringBase.h */; };
 		6EF3BCED12481DD40014316D /* StringBase.inl in Resources */ = {isa = PBXBuildFile; fileRef = 6EF3BBEE12481DD40014316D /* StringBase.inl */; };
-		6EF3BCEE12481DD40014316D /* StringStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBEF12481DD40014316D /* StringStorage.h */; };
 		6EF3BCEF12481DD40014316D /* StringUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBF012481DD40014316D /* StringUtilities.h */; };
 		6EF3BCF012481DD40014316D /* StyleSheet.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBF112481DD40014316D /* StyleSheet.h */; };
 		6EF3BCF112481DD40014316D /* StyleSheetKeywords.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBF212481DD40014316D /* StyleSheetKeywords.h */; };
@@ -595,7 +592,6 @@
 		6E9D092C1209823B00099E1A /* Variant.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Variant.cpp; path = ../Source/Core/Variant.cpp; sourceTree = SOURCE_ROOT; };
 		6E9D09771209858B00099E1A /* Math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Math.cpp; path = ../Source/Core/Math.cpp; sourceTree = SOURCE_ROOT; };
 		6E9D0987120986B600099E1A /* ReferenceCountable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ReferenceCountable.cpp; path = ../Source/Core/ReferenceCountable.cpp; sourceTree = SOURCE_ROOT; };
-		6E9D09911209872400099E1A /* StringStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StringStorage.cpp; path = ../Source/Core/StringStorage.cpp; sourceTree = SOURCE_ROOT; };
 		6E9D099B1209878A00099E1A /* String.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; name = String.cpp; path = ../Source/Core/String.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28B78120580DA000FAF17 /* Box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Box.cpp; path = ../Source/Core/Box.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D0312058A45000FAF17 /* Clock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Clock.cpp; path = ../Source/Core/Clock.cpp; sourceTree = SOURCE_ROOT; };
@@ -795,7 +791,6 @@
 		6EF3BBEC12481DD40014316D /* String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = String.h; path = ../Include/Rocket/Core/String.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBED12481DD40014316D /* StringBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringBase.h; path = ../Include/Rocket/Core/StringBase.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBEE12481DD40014316D /* StringBase.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = StringBase.inl; path = ../Include/Rocket/Core/StringBase.inl; sourceTree = SOURCE_ROOT; };
-		6EF3BBEF12481DD40014316D /* StringStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringStorage.h; path = ../Include/Rocket/Core/StringStorage.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBF012481DD40014316D /* StringUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringUtilities.h; path = ../Include/Rocket/Core/StringUtilities.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBF112481DD40014316D /* StyleSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StyleSheet.h; path = ../Include/Rocket/Core/StyleSheet.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBF212481DD40014316D /* StyleSheetKeywords.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StyleSheetKeywords.h; path = ../Include/Rocket/Core/StyleSheetKeywords.h; sourceTree = SOURCE_ROOT; };
@@ -939,7 +934,6 @@
 				6EF3BBEC12481DD40014316D /* String.h */,
 				6EF3BBED12481DD40014316D /* StringBase.h */,
 				6EF3BBEE12481DD40014316D /* StringBase.inl */,
-				6EF3BBEF12481DD40014316D /* StringStorage.h */,
 				6EF3BBF012481DD40014316D /* StringUtilities.h */,
 				6EF3BBF112481DD40014316D /* StyleSheet.h */,
 				6EF3BBF212481DD40014316D /* StyleSheetKeywords.h */,
@@ -1046,7 +1040,6 @@
 				6E9D09291209823B00099E1A /* StreamMemory.cpp */,
 				6E9D099B1209878A00099E1A /* String.cpp */,
 				6EF28DE612058A45000FAF17 /* StringCache.cpp */,
-				6E9D09911209872400099E1A /* StringStorage.cpp */,
 				6E9D092A1209823B00099E1A /* StringUtilities.cpp */,
 				6EF28DE812058A45000FAF17 /* StyleSheet.cpp */,
 				6EF28DE912058A45000FAF17 /* StyleSheetFactory.cpp */,
@@ -1285,7 +1278,6 @@
 				6EF3BCEA12481DD40014316D /* StreamMemory.h in Headers */,
 				6EF3BCEB12481DD40014316D /* String.h in Headers */,
 				6EF3BCEC12481DD40014316D /* StringBase.h in Headers */,
-				6EF3BCEE12481DD40014316D /* StringStorage.h in Headers */,
 				6EF3BCEF12481DD40014316D /* StringUtilities.h in Headers */,
 				6EF3BCF012481DD40014316D /* StyleSheet.h in Headers */,
 				6EF3BCF112481DD40014316D /* StyleSheetKeywords.h in Headers */,
@@ -1672,7 +1664,6 @@
 				6E8B1E39123ABCC200C451C8 /* StreamMemory.cpp in Sources */,
 				6E8B1E3A123ABCC200C451C8 /* String.cpp in Sources */,
 				6E8B1E3B123ABCC200C451C8 /* StringCache.cpp in Sources */,
-				6E8B1E3C123ABCC200C451C8 /* StringStorage.cpp in Sources */,
 				6E8B1E3D123ABCC200C451C8 /* StringUtilities.cpp in Sources */,
 				6E8B1E3E123ABCC200C451C8 /* StyleSheet.cpp in Sources */,
 				6E8B1E3F123ABCC200C451C8 /* StyleSheetFactory.cpp in Sources */,
@@ -1920,7 +1911,6 @@
 				6E9D09331209823B00099E1A /* Variant.cpp in Sources */,
 				6E9D09781209858B00099E1A /* Math.cpp in Sources */,
 				6E9D0988120986B600099E1A /* ReferenceCountable.cpp in Sources */,
-				6E9D09921209872400099E1A /* StringStorage.cpp in Sources */,
 				6E9D099C1209878A00099E1A /* String.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

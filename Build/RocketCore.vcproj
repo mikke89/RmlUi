@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\Include;..\..\support\freetype\include"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -163,7 +163,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
+						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1388,14 +1388,6 @@
 				</File>
 				<File
 					RelativePath="..\Include\Rocket\Core\StringBase.inl"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Core\StringStorage.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Include\Rocket\Core\StringStorage.h"
 					>
 				</File>
 				<File
