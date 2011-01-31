@@ -143,8 +143,6 @@ void Shutdown()
 	render_interface = NULL;
 	file_interface = NULL;
 	system_interface = NULL;
-		
-	StringStorage::ClearPools();
 }
 
 // Returns the version of this Rocket library.
