@@ -28,6 +28,8 @@
 #ifndef ROCKETCOREELEMENTREFERENCE_H
 #define ROCKETCOREELEMENTREFERENCE_H
 
+#include <Rocket/Core/Header.h>
+
 namespace Rocket {
 namespace Core {
 
@@ -39,7 +41,7 @@ class Element;
 	@author Peter Curry
  */
 
-class ElementReference
+class ROCKETCORE_API ElementReference
 {
 public:
 	ElementReference(Element* element = NULL);
