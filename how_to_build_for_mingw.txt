@@ -5,7 +5,22 @@ Direct link:
 	
 Extract to Dependencies\freetype
 
-Go into the Build folder
-run:
+Go into the Build folder and run:
 
-cmake -G "MinGW Makefiles" -D CMAKE_MAKE_PROGRAM="F:\MinGW\bin\make.exe" -D FREETYPE_INCLUDE_DIRS="..\Dependencies\freetype\include;..\Dependencies\freetype\include\freetype2" -D FREETYPE_LIBRARY="..\Dependencies\freetype\lib\libfreetype.dll.a" .
+	cmake -G "MinGW Makefiles" -D CMAKE_MAKE_PROGRAM="C:\MinGW\bin\make.exe" -D FREETYPE_INCLUDE_DIRS="..\Dependencies\freetype\include;..\Dependencies\freetype\include\freetype2" -D FREETYPE_LIBRARY="..\Dependencies\freetype\lib\libfreetype.dll.a" .
+
+N.B. ** REPLACE C:\MinGW\bin\make.exe with the path to your MinGW make.exe file. **
+
+
+Once cmake completes successfully, run make
+
+	make
+
+
+The project will compile and three libraries will be generated in the Build folder:
+	libRocket.dll.a
+	libRocketControls.dll.a
+	libRocketDebugger.dll.a
+
+
+Done!
