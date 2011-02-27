@@ -1,3 +1,11 @@
+Download FreeType. Get the Binaries package:
+	http://gnuwin32.sourceforge.net/packages/freetype.htm
+Direct link:
+	http://gnuwin32.sourceforge.net/downlinks/freetype-bin-zip.php
+	
+Extract to Dependencies\freetype
+
 Go into the Build folder
 run:
-	cmake -G "MinGW Makefiles" -D CMAKE_MAKE_PROGRAM="F:\MinGW\bin\make.exe" -D FREETYPE_INCLUDE_DIRS="..\..\support\freetype\include" -D FREETYPE_LIBRARY="..\..\support\lib\libfreetype243MT.a" .
+
+cmake -G "MinGW Makefiles" -D CMAKE_MAKE_PROGRAM="F:\MinGW\bin\make.exe" -D FREETYPE_INCLUDE_DIRS="..\Dependencies\freetype\include;..\Dependencies\freetype\include\freetype2" -D FREETYPE_LIBRARY="..\Dependencies\freetype\lib\libfreetype.dll.a" .
