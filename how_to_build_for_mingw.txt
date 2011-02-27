@@ -1,0 +1,3 @@
+Go into the Build folder
+run:
+	cmake -G "MinGW Makefiles" -D CMAKE_MAKE_PROGRAM="F:\MinGW\bin\make.exe" -D FREETYPE_INCLUDE_DIRS="..\..\support\freetype\include" -D FREETYPE_LIBRARY="..\..\support\lib\libfreetype243MT.a" .
