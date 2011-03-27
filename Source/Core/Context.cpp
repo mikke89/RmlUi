@@ -425,7 +425,7 @@ void Context::ShowMouseCursor(bool show)
 // Returns the first document found in the root with the given id.
 ElementDocument* Context::GetDocument(const String& id)
 {
-	const String lower_id = id.ToLower();
+	const String lower_id = id;
 
 	for (int i = 0; i < root->GetNumChildren(); i++)
 	{
