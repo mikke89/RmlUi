@@ -35,7 +35,6 @@ namespace Controls {
 
 ElementDataGridCell::ElementDataGridCell(const Rocket::Core::String& tag) : Core::Element(tag)
 {
-	SetProperty("white-space", "normal");
 }
 
 ElementDataGridCell::~ElementDataGridCell()

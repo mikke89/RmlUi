@@ -228,139 +228,101 @@ void ElementUtilities::BindEventAttributes(Element* element)
 bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_dimensions, Element* element)
 {
 	ClipRegion clip_region;
-
-	// Check the clip property of the clipped element; if it is not clipped, then the clip root will be NULL.
-	if (element != NULL)
-	{
-		int num_ignored_clips = element->GetClippingIgnoreDepth();
-		if (num_ignored_clips < 0)
-			return false;
-
-		// Search through the element's ancestors, finding all elements that clip their overflow and have overflow to clip.
-		// For each that we find, we combine their clipping region with the existing clipping region, and so build up a
-		// complete clipping region for the element.
-		Element* clipping_element = element->GetParentNode();
-
-		while (clipping_element != NULL)
-		{
-			// Merge the existing clip region with the current clip region if we aren't ignoring clip regions.
-			if (num_ignored_clips == 0 && clipping_element->IsClippingEnabled())
-			{
-				// Ignore nodes that don't clip.
-				if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth()
-					|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight())				 
-					clip_region.AddClipElement(clipping_element);
-			}
-
-			// If this region is meant to clip and we're skipping regions, update the counter.
-			if (num_ignored_clips > 0)
-			{
-				if (clipping_element->IsClippingEnabled())
-					num_ignored_clips--;
-			}
-
-			// Determine how many clip regions this ancestor ignores, and inherit the value. If this region ignores all
-			// clipping regions, then we do too.
-			int clipping_element_ignore_clips = clipping_element->GetClippingIgnoreDepth();
-			if (clipping_element_ignore_clips < 0)
-				break;
-			
-			num_ignored_clips = Math::Max(num_ignored_clips, clipping_element_ignore_clips);
-
-			// Climb the tree to this region's parent.
-			clipping_element = clipping_element->GetParentNode();
-		}
-	}
-
-	if (clip_region.dimensions == Vector2i(-1, -1))
-	{
+	
+	int num_ignored_clips = element->GetClippingIgnoreDepth();
+	if (num_ignored_clips < 0)
 		return false;
-	}
-	else
-	{
-		clip_origin = clip_region.origin;
-		clip_dimensions = clip_region.dimensions;
 
-		return true;
+	// Search through the element's ancestors, finding all elements that clip their overflow and have overflow to clip.
+	// For each that we find, we combine their clipping region with the existing clipping region, and so build up a
+	// complete clipping region for the element.
+	Element* clipping_element = element->GetParentNode();
+
+	while (clipping_element != NULL)
+	{
+		// Merge the existing clip region with the current clip region if we aren't ignoring clip regions.
+		if (num_ignored_clips == 0 && clipping_element->IsClippingEnabled())
+		{
+			// Ignore nodes that don't clip.
+			if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth()
+				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight())				 
+				clip_region.AddClipElement(clipping_element);
+		}
+
+		// If this region is meant to clip and we're skipping regions, update the counter.
+		if (num_ignored_clips > 0)
+		{
+			if (clipping_element->IsClippingEnabled())
+				num_ignored_clips--;
+		}
+
+		// Determine how many clip regions this ancestor ignores, and inherit the value. If this region ignores all
+		// clipping regions, then we do too.
+		int clipping_element_ignore_clips = clipping_element->GetClippingIgnoreDepth();
+		if (clipping_element_ignore_clips < 0)
+			break;
+		
+		num_ignored_clips = Math::Max(num_ignored_clips, clipping_element_ignore_clips);
+
+		// Climb the tree to this region's parent.
+		clipping_element = clipping_element->GetParentNode();
 	}
+	
+	clip_origin = clip_region.origin;
+	clip_dimensions = clip_region.dimensions;
+	
+	return clip_origin.x >= 0 || clip_origin.y >= 0;
 }
 
 // Sets the clipping region from an element and its ancestors.
 bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
-{
-	Vector2i clip_origin, clip_dimensions;
-	bool clip = GetClippingRegion(clip_origin, clip_dimensions, element);
-
-	Rocket::Core::RenderInterface* render_interface;
-	if (element != NULL)
+{	
+	Rocket::Core::RenderInterface* render_interface = NULL;
+	if (element)
+	{
 		render_interface = element->GetRenderInterface();
-	else
+		if (!context)
+			context = element->GetContext();
+	}
+	else if (context)
 	{
-		if (context == NULL)
+		render_interface = context->GetRenderInterface();
+		if (!render_interface)
 			render_interface = GetRenderInterface();
-		else
-			render_interface = context->GetRenderInterface();
 	}
 
-	if (render_interface == NULL)
+	if (!render_interface || !context)
 		return false;
-
-	ClipState* clip_state = NULL;
-	ClipStateMap::iterator clip_iterator = clip_states.find(render_interface);
-	if (clip_iterator == clip_states.end())
+	
+	Vector2i clip_origin, clip_dimensions;
+	bool clip = element && GetClippingRegion(clip_origin, clip_dimensions, element);
+	
+	Vector2i current_origin;
+	Vector2i current_dimensions;
+	bool current_clip = context->GetActiveClipRegion(current_origin, current_dimensions);
+	if (current_clip != clip || (clip && (clip_origin != current_origin || clip_dimensions != current_dimensions)))
 	{
-		clip_state = &(clip_states.insert(ClipStateMap::value_type(render_interface, ClipState())).first->second);
-		PushClipCache(render_interface);
-	}
-	else
-		clip_state = &(clip_iterator->second);
-
-	if (clip)
-	{
-		if (clip_dimensions.x <= 0 ||
-			clip_dimensions.y <= 0)
-			return false;
-
-		if (!clip_state->clip_on)
-		{
-			render_interface->EnableScissorRegion(true);
-			clip_state->clip_on = true;
-		}
-
-		if (clip_origin != clip_state->clip_region.origin ||
-			clip_dimensions != clip_state->clip_region.dimensions)
-		{
-			render_interface->SetScissorRegion(clip_origin.x, clip_origin.y, clip_dimensions.x, clip_dimensions.y);
-			clip_state->clip_region.origin = clip_origin;
-			clip_state->clip_region.dimensions = clip_dimensions;
-		}
-	}
-	else
-	{
-		if (clip_state->clip_on)
-		{
-			render_interface->EnableScissorRegion(false);
-			clip_state->clip_on = false;
-		}
+		context->SetActiveClipRegion(clip_origin, clip_dimensions);
+		ApplyActiveClipRegion(context, render_interface);
 	}
 
 	return true;
 }
 
-void ElementUtilities::PushClipCache(RenderInterface* render_interface)
+void ElementUtilities::ApplyActiveClipRegion(Context* context, RenderInterface* render_interface)
 {
 	if (render_interface == NULL)
 		return;
+	
+	Vector2i origin;
+	Vector2i dimensions;
+	bool clip_enabled = context->GetActiveClipRegion(origin, dimensions);
 
-	ClipStateMap::iterator clip_iterator = clip_states.find(render_interface);
-	if (clip_iterator == clip_states.end())
-		return;
-
-	ClipState* clip_state = &(clip_iterator->second);
-	render_interface->EnableScissorRegion(clip_state->clip_on);
-	if (clip_state->clip_region.origin != Vector2i(-1, -1) &&
-		clip_state->clip_region.dimensions != Vector2i(-1, -1))
-		render_interface->SetScissorRegion(clip_state->clip_region.origin.x, clip_state->clip_region.origin.y, clip_state->clip_region.dimensions.x, clip_state->clip_region.dimensions.y);
+	render_interface->EnableScissorRegion(clip_enabled);
+	if (clip_enabled)
+	{
+		render_interface->SetScissorRegion(origin.x, origin.y, dimensions.x, dimensions.y);
+	}
 }
 
 // Formats the contents of an element.

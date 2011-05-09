@@ -36,8 +36,15 @@
 #elif defined (ROCKET_PLATFORM_LINUX)
 #define ROCKET_BREAK asm ("int $0x03" )
 #elif defined (ROCKET_PLATFORM_MACOSX)
-#define ROCKET_BREAK _asm { int 0x03 }
+#include <TargetConditionals.h>
+
+#if TARGET_OS_IPHONE
+#define ROCKET_BREAK
+#else
+#define ROCKET_BREAK {__asm__("int $3\n" : : );}
 #endif
+#endif
+
 
 
 // Define the LT_ASSERT and ROCKET_VERIFY macros.

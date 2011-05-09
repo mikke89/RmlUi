@@ -127,9 +127,12 @@ public:
 	virtual void LoadScript(Stream* stream, const String& source_name);
 
 	/// Updates the layout if necessary.
-	virtual void UpdateLayout();
+	inline void UpdateLayout() { if (layout_dirty && lock_layout == 0) _UpdateLayout(); }
 	/// Updates the position of the document based on the style properties.
 	void UpdatePosition();
+	
+	/// Increment/Decrement the layout lock
+	void LockLayout(bool lock);
 
 protected:
 	/// Refreshes the document layout if required.
@@ -166,10 +169,12 @@ private:
 
 	// Is the layout dirty?
 	bool layout_dirty;
-	bool lock_layout;
+	int lock_layout;
 
 	friend class Context;
 	friend class Factory;
+	
+	void _UpdateLayout();
 };
 
 }

@@ -79,28 +79,64 @@ const WString& ElementTextDefault::GetText() const
 void ElementTextDefault::OnRender()
 {
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
-	if (font_face_handle)
+	if (!font_face_handle)
+		return;
+	
+	
+	// If our font configuration has potentially changed, update it and force a geometry
+	// generation if necessary.
+	if (font_dirty &&
+		UpdateFontConfiguration())
 	{
-		// If our font configuration has potentially changed, update it and force a geometry
-		// generation if necessary.
-		if (font_dirty &&
-			UpdateFontConfiguration())
-		{
-			geometry_dirty = true;
+		geometry_dirty = true;
+	}
+
+	// Regenerate the geometry if the colour or font configuration has altered.
+	if (geometry_dirty)
+		GenerateGeometry(font_face_handle);
+
+	Vector2f translation = GetAbsoluteOffset();
+	
+	bool render = true;
+	Vector2i clip_origin;
+	Vector2i clip_dimensions;
+	if (GetContext()->GetActiveClipRegion(clip_origin, clip_dimensions))
+	{
+		float clip_top = clip_origin.y;
+		float clip_left = clip_origin.x;
+		float clip_right = (clip_origin.x + clip_dimensions.x);
+		float clip_bottom = (clip_origin.y + clip_dimensions.y);
+		float line_height = GetFontFaceHandle()->GetLineHeight();
+		
+		render = false;
+		for (size_t i = 0; i < lines.size(); ++i)
+		{			
+			const Line& line = lines[i];
+			float x = translation.x + line.position.x;
+			float y = translation.y + line.position.y;
+			
+			bool render_line = !(x > clip_right);
+			render_line = render_line && !(x + line.width < clip_left);
+			
+			render_line = render_line && !(y - line_height > clip_bottom);
+			render_line = render_line && !(y < clip_top);
+			
+			if (render_line)
+			{
+				render = true;
+				break;
+			}
 		}
-
-		// Regenerate the geometry if the colour or font configuration has altered.
-		if (geometry_dirty)
-			GenerateGeometry(font_face_handle);
-
-		Vector2f translation = GetAbsoluteOffset();
-
+	}
+	
+	if (render)
+	{
 		for (size_t i = 0; i < geometry.size(); ++i)
 			geometry[i].Render(translation);
-
-		if (decoration_property != TEXT_DECORATION_NONE)
-			decoration.Render(translation);
 	}
+
+	if (decoration_property != TEXT_DECORATION_NONE)
+		decoration.Render(translation);
 }
 
 // Generates a token of text from this element, returning only the width.

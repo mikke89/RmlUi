@@ -114,7 +114,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Texture.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDictionary.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheet.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Pool.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontGlyph.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ReferenceCountable.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringUtilities.h

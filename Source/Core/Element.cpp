@@ -464,9 +464,9 @@ bool Element::IsPointWithinElement(const Vector2f& point)
 		Vector2f box_position = position + box.GetOffset();
 		Vector2f box_dimensions = box.GetSize(Box::BORDER);
 		if (point.x >= box_position.x &&
-			point.x < (box_position.x + box_dimensions.x) &&
+			point.x <= (box_position.x + box_dimensions.x) &&
 			point.y >= box_position.y &&
-			point.y < (box_position.y + box_dimensions.y))
+			point.y <= (box_position.y + box_dimensions.y))
 		{
 			return true;
 		}
@@ -508,7 +508,6 @@ void Element::RemoveProperty(const String& name)
 // Sets a local property override on the element to a pre-parsed value.
 bool Element::SetProperty(const String& name, const Property& property)
 {
-	ROCKET_ASSERTMSG(property.unit != Property::KEYWORD || property.definition != NULL, "Keyword properties should not be set pre-parsed on an element.");
 	return style->SetProperty(name, property);
 }
 
@@ -1514,7 +1513,7 @@ void Element::OnChildRemove(Element* child)
 // Update the element's layout if required.
 void Element::UpdateLayout()
 {
-	Element* document = GetOwnerDocument();
+	ElementDocument* document = GetOwnerDocument();
 	if (document != NULL)
 		document->UpdateLayout();
 }

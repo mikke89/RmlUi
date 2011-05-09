@@ -30,6 +30,7 @@
 #include <Rocket/Core/Math.h>
 #include <Rocket/Core/XMLParser.h>
 #include <Rocket/Core/Event.h>
+#include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Core/Property.h>
 #include <Rocket/Controls/DataFormatter.h>
@@ -221,6 +222,9 @@ ElementDataGridRow* ElementDataGrid::GetRow(int index) const
 
 void ElementDataGrid::OnUpdate()
 {
+	Core::ElementDocument* document = GetOwnerDocument();
+	document->LockLayout(true);
+	
 	if (!new_data_source.Empty())
 	{
 		root->SetDataSource(new_data_source);
@@ -238,6 +242,8 @@ void ElementDataGrid::OnUpdate()
 		body->SetProperty("display", "block");
 		body_visible = true;
 	}
+	
+	document->LockLayout(false);
 }
 
 void ElementDataGrid::ProcessEvent(Core::Event& event)

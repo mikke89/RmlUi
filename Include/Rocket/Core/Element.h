@@ -530,6 +530,9 @@ public:
 	/// Called for every event sent to this element or one of its descendants.
 	/// @param[in] event The event to process.
 	virtual void ProcessEvent(Event& event);
+	
+	/// Update the element's layout if required.
+	void UpdateLayout();
 
 protected:
 	/// Forces the element to generate a local stacking context, regardless of the value of its z-index
@@ -558,8 +561,6 @@ protected:
 	// @param[in] child The element that has been removed. This may be this element.
 	virtual void OnChildRemove(Element* child);
 
-	/// Update the element's layout if required.
-	virtual void UpdateLayout();
 	/// Forces a re-layout of this element, and any other elements required.
 	virtual void DirtyLayout();
 

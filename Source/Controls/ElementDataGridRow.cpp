@@ -53,7 +53,7 @@ ElementDataGridRow::ElementDataGridRow(const Rocket::Core::String& tag) : Core::
 	row_expanded = true;
 
 	SetProperty("white-space", "nowrap");
-	SetProperty("display", "inline-block");
+	SetProperty("display", Rocket::Core::Property(Rocket::Core::DISPLAY_INLINE_BLOCK, Rocket::Core::Property::KEYWORD));
 }
 
 ElementDataGridRow::~ElementDataGridRow()
@@ -83,7 +83,7 @@ void ElementDataGridRow::Initialise(ElementDataGrid* _parent_grid, ElementDataGr
 	{
 		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(Core::Factory::InstanceElement(this, "#rktctl_datagridcell", "datagridcell", cell_attributes));
 		cell->Initialise(header_row->GetChild(i));
-		cell->SetProperty("display", "inline-block");
+		cell->SetProperty("display", Rocket::Core::Property(Rocket::Core::DISPLAY_INLINE_BLOCK, Rocket::Core::Property::KEYWORD));
 		AppendChild(cell);
 		cell->RemoveReference();
 	}
@@ -121,19 +121,23 @@ void ElementDataGridRow::SetDataSource(const Rocket::Core::String& data_source_n
 
 bool ElementDataGridRow::UpdateChildren()
 {
-	float start_time = Core::GetSystemInterface()->GetElapsedTime();
-
 	if (dirty_children)
 	{
+		float start_time = Core::GetSystemInterface()->GetElapsedTime();
+		
 		RowQueue dirty_rows;
 		dirty_rows.push(this);
 
-		while (!dirty_rows.empty() && Core::GetSystemInterface()->GetElapsedTime() - start_time < MAX_UPDATE_TIME)
+		while (!dirty_rows.empty())
 		{
 			ElementDataGridRow* dirty_row = dirty_rows.front();
 			dirty_rows.pop();
+			
+			float time_slice = MAX_UPDATE_TIME - (Core::GetSystemInterface()->GetElapsedTime() - start_time);
+			if (time_slice <= 0.0f)
+				break;
 
-			dirty_row->LoadChildren(MAX_UPDATE_TIME - (Core::GetSystemInterface()->GetElapsedTime() - start_time));
+			dirty_row->LoadChildren(time_slice);
 			for (size_t i = 0; i < dirty_row->children.size(); i++)
 			{
 				if (dirty_row->children[i]->dirty_cells || dirty_row->children[i]->dirty_children)
@@ -145,10 +149,8 @@ bool ElementDataGridRow::UpdateChildren()
 
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+	
+	return false;
 }
 
 // Returns the number of children that aren't dirty (have been loaded)

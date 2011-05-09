@@ -49,7 +49,7 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 
 	modal = false;
 	layout_dirty = true;
-	lock_layout = false;
+	lock_layout = 0;
 
 	ForceLocalStackingContext();
 
@@ -292,27 +292,19 @@ void ElementDocument::LoadScript(Stream* ROCKET_UNUSED(stream), const String& RO
 }
 
 // Updates the layout if necessary.
-void ElementDocument::UpdateLayout()
+void ElementDocument::_UpdateLayout()
 {
-	if (layout_dirty)
-	{
-		if (lock_layout)
-			return;
+	layout_dirty = false;
+	lock_layout++;
 
-		lock_layout = true;
-		
-		GetStyle()->UpdateDefinition();
+	Vector2f containing_block(0, 0);
+	if (GetParentNode() != NULL)
+		containing_block = GetParentNode()->GetBox().GetSize();
 
-		Vector2f containing_block(0, 0);
-		if (GetParentNode() != NULL)
-			containing_block = GetParentNode()->GetBox().GetSize();
-
-		LayoutEngine layout_engine;
-		layout_engine.FormatElement(this, containing_block);
-		
-		layout_dirty = false;
-		lock_layout = false;
-	}
+	LayoutEngine layout_engine;
+	layout_engine.FormatElement(this, containing_block);
+	
+	lock_layout--;
 }
 
 // Updates the position of the document based on the style properties.
@@ -345,6 +337,16 @@ void ElementDocument::UpdatePosition()
 		position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
 
 	SetOffset(position, NULL);
+}
+	
+void ElementDocument::LockLayout(bool lock)
+{
+	if (lock)
+		lock_layout++;
+	else
+		lock_layout--;
+	
+	ROCKET_ASSERT(lock_layout >= 0);
 }
 
 void ElementDocument::DirtyLayout()

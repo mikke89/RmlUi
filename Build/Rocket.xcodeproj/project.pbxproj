@@ -1945,7 +1945,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = /tmp/test.dst;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -1960,7 +1959,6 @@
 					"\"$(SRCROOT)/../../support/lib\"",
 				);
 				PRODUCT_NAME = RocketCoreiOS;
-				SDKROOT = iphoneos3.2;
 				VALID_ARCHS = armv6;
 			};
 			name = Debug;
@@ -1969,7 +1967,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				DSTROOT = /tmp/test.dst;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1999,7 +1996,7 @@
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PREBINDING = NO;
-				SDKROOT = macosx10.5;
+				SDKROOT = iphoneos;
 				USE_HEADERMAP = false;
 			};
 			name = Debug;
@@ -2019,7 +2016,7 @@
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PREBINDING = NO;
-				SDKROOT = iphoneos3.2;
+				SDKROOT = iphoneos;
 				USE_HEADERMAP = false;
 			};
 			name = Release;
@@ -2034,7 +2031,6 @@
 				GCC_PREFIX_HEADER = Rocket_Prefix.pch;
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketControlsiOS;
-				SDKROOT = iphoneos3.2;
 				VALID_ARCHS = armv6;
 			};
 			name = Debug;
@@ -2187,7 +2183,6 @@
 				GCC_PREFIX_HEADER = Rocket_Prefix.pch;
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketDebuggeriOS;
-				SDKROOT = iphoneos3.2;
 				VALID_ARCHS = armv6;
 			};
 			name = Debug;
@@ -2202,7 +2197,6 @@
 				GCC_PREFIX_HEADER = Rocket_Prefix.pch;
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketDebuggeriOS;
-				SDKROOT = iphoneos3.2;
 				ZERO_LINK = NO;
 			};
 			name = Release;

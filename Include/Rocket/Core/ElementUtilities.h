@@ -105,9 +105,10 @@ public:
 	/// @param[in] context The context of the element; if this is not supplied, it will be derived from the element.
 	/// @return The visibility of the given element within its clipping region.
 	static bool SetClippingRegion(Element* element, Context* context = NULL);
-	/// Pushes the cached clip state of a render interface back up to ensure the cache is up-to-date.
+	/// Applies the clip region from the render interface to the renderer
+	/// @param[in] context The context to read the clip region from
 	/// @param[in] render_interface The render interface to update.
-	static void PushClipCache(RenderInterface* render_interface);
+	static void ApplyActiveClipRegion(Context* context, RenderInterface* render_interface);
 
 	/// Formats the contents of an element. This does not need to be called for ordinary elements, but can be useful
 	/// for non-DOM elements of custom elements.
