@@ -628,7 +628,8 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 	
 static Element* FindFocusElement(Element* element)
 {
-	if (element->GetOwnerDocument()->GetProperty< int >(FOCUS) == FOCUS_NONE)
+	ElementDocument* owner_document = element->GetOwnerDocument();
+	if (!owner_document || owner_document->GetProperty< int >(FOCUS) == FOCUS_NONE)
 		return NULL;
 	
 	while (element && element->GetProperty< int >(FOCUS) == FOCUS_NONE)
