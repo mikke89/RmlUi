@@ -132,10 +132,7 @@ bool StreamFile::IsWriteReady()
 // Determines the length of the stream.
 void StreamFile::GetLength()
 {
-	size_t current_position = Tell();
-	Seek(0, SEEK_END);
-	length = Tell();
-	Seek(current_position, SEEK_SET);
+	length = GetFileInterface()->Length(file_handle);
 }
 
 }

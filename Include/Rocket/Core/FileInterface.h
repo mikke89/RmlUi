@@ -76,6 +76,12 @@ public:
 	/// @return The number of bytes from the origin of the file.
 	virtual size_t Tell(FileHandle file) = 0;
 
+	/// Returns the length of the file.
+	/// The default implementation uses Seek & Tell.
+	/// @param file The handle of the file to be queried.
+	/// @return The length of the file in bytes.
+	virtual size_t Length(FileHandle file);
+
 	/// Called when this file interface is released.
 	virtual void Release();
 

@@ -39,6 +39,16 @@ FileInterface::~FileInterface()
 {
 }
 
+// Returns the length of the file.
+size_t FileInterface::Length(FileHandle file)
+{
+    size_t current_position = Tell(file);
+    Seek( file, 0, SEEK_END);
+    size_t length = Tell( file);
+    Seek( file, current_position, SEEK_SET);
+    return length;
+}
+
 // Called when this file interface is released.
 void FileInterface::Release()
 {
