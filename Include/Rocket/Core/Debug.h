@@ -32,7 +32,11 @@
 
 // Define for breakpointing.
 #if defined (ROCKET_PLATFORM_WIN32)
-#define ROCKET_BREAK _asm { int 0x03 }
+	#if defined (__MINGW32__)
+		#define ROCKET_BREAK asm("int $0x03")
+	#else
+		#define ROCKET_BREAK _asm { int 0x03 }
+	#endif
 #elif defined (ROCKET_PLATFORM_LINUX)
 #define ROCKET_BREAK asm ("int $0x03" )
 #elif defined (ROCKET_PLATFORM_MACOSX)

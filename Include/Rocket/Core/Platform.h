@@ -31,7 +31,9 @@
 #if defined __WIN32__ || defined _WIN32
 	#define ROCKET_PLATFORM_WIN32
 	#define ROCKET_PLATFORM_NAME "win32"
-    #pragma warning(disable:4355)
+	#if !defined(__MINGW32__)
+		#pragma warning(disable:4355)
+	#endif
 #elif defined __APPLE_CC__
 	#define ROCKET_PLATFORM_UNIX
 	#define ROCKET_PLATFORM_MACOSX
@@ -53,7 +55,7 @@
 #endif
 
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined(ROCKET_PLATFORM_WIN32) && !defined(__MINGW32__)
 	// alignment of a member was sensitive to packing
 	#pragma warning(disable : 4121)
 
