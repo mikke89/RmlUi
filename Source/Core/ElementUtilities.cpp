@@ -35,62 +35,6 @@
 namespace Rocket {
 namespace Core {
 
-struct ClipRegion
-{
-	ClipRegion() : origin(-1, -1), dimensions(-1, -1)
-	{
-	}
-
-	ClipRegion(const Vector2i& origin, const Vector2i& dimensions) : origin(origin), dimensions(dimensions)
-	{
-	}
-
-	void AddClipElement(Rocket::Core::Element* element)
-	{
-		Vector2f element_origin_f = element->GetAbsoluteOffset(Box::CONTENT);
-		Vector2f element_dimensions_f = element->GetBox().GetSize(Box::CONTENT);
-
-		Vector2i element_origin(Math::RealToInteger(element_origin_f.x), Math::RealToInteger(element_origin_f.y));
-		Vector2i element_dimensions(Math::RealToInteger(element_dimensions_f.x), Math::RealToInteger(element_dimensions_f.y));
-
-		if (origin == Vector2i(-1, -1) && dimensions == Vector2i(-1, -1))
-		{
-			origin = element_origin;
-			dimensions = element_dimensions;
-		}
-		else
-		{
-			Vector2i top_left(Math::Max(origin.x, element_origin.x),
-										 Math::Max(origin.y, element_origin.y));
-
-			Vector2i bottom_right(Math::Min(origin.x + dimensions.x, element_origin.x + element_dimensions.x),
-											 Math::Min(origin.y + dimensions.y, element_origin.y + element_dimensions.y));
-
-			origin = top_left;
-			dimensions.x = Math::Max(0, bottom_right.x - top_left.x);
-			dimensions.y = Math::Max(0, bottom_right.y - top_left.y);
-		}
-	}
-
-	Vector2i origin;
-	Vector2i dimensions;
-};
-
-struct ClipState
-{
-	ClipState() : clip_region(Vector2i(-1, -1), Vector2i(-1, -1))
-	{
-		clip_on = false;
-	}
-
-	bool clip_on;
-	ClipRegion clip_region;
-};
-
-// The current clipping state.
-typedef std::map< RenderInterface*, ClipState > ClipStateMap;
-ClipStateMap clip_states;
-
 // Builds and sets the box for an element.
 static void SetBox(Element* element);
 // Positions an element relative to an offset parent.
@@ -223,11 +167,12 @@ void ElementUtilities::BindEventAttributes(Element* element)
 		}
 	}
 }
-
+	
 // Generates the clipping region for an element.
 bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_dimensions, Element* element)
 {
-	ClipRegion clip_region;
+	clip_origin = Vector2i(-1, -1);
+	clip_dimensions = Vector2i(-1, -1);
 	
 	int num_ignored_clips = element->GetClippingIgnoreDepth();
 	if (num_ignored_clips < 0)
@@ -245,8 +190,32 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 		{
 			// Ignore nodes that don't clip.
 			if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth()
-				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight())				 
-				clip_region.AddClipElement(clipping_element);
+				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight())
+			{				
+				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(Box::CONTENT);
+				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(Box::CONTENT);
+				
+				Vector2i element_origin(Math::RealToInteger(element_origin_f.x), Math::RealToInteger(element_origin_f.y));
+				Vector2i element_dimensions(Math::RealToInteger(element_dimensions_f.x), Math::RealToInteger(element_dimensions_f.y));
+				
+				if (clip_origin == Vector2i(-1, -1) && clip_dimensions == Vector2i(-1, -1))
+				{
+					clip_origin = element_origin;
+					clip_dimensions = element_dimensions;
+				}
+				else
+				{
+					Vector2i top_left(Math::Max(clip_origin.x, element_origin.x),
+									  Math::Max(clip_origin.y, element_origin.y));
+					
+					Vector2i bottom_right(Math::Min(clip_origin.x + clip_dimensions.x, element_origin.x + element_dimensions.x),
+										  Math::Min(clip_origin.y + clip_dimensions.y, element_origin.y + element_dimensions.y));
+					
+					clip_origin = top_left;
+					clip_dimensions.x = Math::Max(0, bottom_right.x - top_left.x);
+					clip_dimensions.y = Math::Max(0, bottom_right.y - top_left.y);
+				}
+			}
 		}
 
 		// If this region is meant to clip and we're skipping regions, update the counter.
@@ -268,10 +237,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 		clipping_element = clipping_element->GetParentNode();
 	}
 	
-	clip_origin = clip_region.origin;
-	clip_dimensions = clip_region.dimensions;
-	
-	return clip_origin.x >= 0 || clip_origin.y >= 0;
+	return clip_dimensions.x >= 0 && clip_dimensions.y >= 0;
 }
 
 // Sets the clipping region from an element and its ancestors.

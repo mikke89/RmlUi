@@ -431,7 +431,6 @@
 		6EF3BCD112481DD40014316D /* MathTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBD112481DD40014316D /* MathTypes.h */; };
 		6EF3BCD212481DD40014316D /* Platform.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBD212481DD40014316D /* Platform.h */; };
 		6EF3BCD312481DD40014316D /* Plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBD312481DD40014316D /* Plugin.h */; };
-		6EF3BCD412481DD40014316D /* Pool.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBD412481DD40014316D /* Pool.h */; };
 		6EF3BCD512481DD40014316D /* Pool.inl in Resources */ = {isa = PBXBuildFile; fileRef = 6EF3BBD512481DD40014316D /* Pool.inl */; };
 		6EF3BCD612481DD40014316D /* Property.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBD612481DD40014316D /* Property.h */; };
 		6EF3BCD712481DD40014316D /* PropertyDefinition.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EF3BBD712481DD40014316D /* PropertyDefinition.h */; };
@@ -776,7 +775,6 @@
 		6EF3BBD112481DD40014316D /* MathTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MathTypes.h; path = ../Include/Rocket/Core/MathTypes.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBD212481DD40014316D /* Platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Platform.h; path = ../Include/Rocket/Core/Platform.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBD312481DD40014316D /* Plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Plugin.h; path = ../Include/Rocket/Core/Plugin.h; sourceTree = SOURCE_ROOT; };
-		6EF3BBD412481DD40014316D /* Pool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pool.h; path = ../Include/Rocket/Core/Pool.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBD512481DD40014316D /* Pool.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Pool.inl; path = ../Include/Rocket/Core/Pool.inl; sourceTree = SOURCE_ROOT; };
 		6EF3BBD612481DD40014316D /* Property.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Property.h; path = ../Include/Rocket/Core/Property.h; sourceTree = SOURCE_ROOT; };
 		6EF3BBD712481DD40014316D /* PropertyDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PropertyDefinition.h; path = ../Include/Rocket/Core/PropertyDefinition.h; sourceTree = SOURCE_ROOT; };
@@ -919,7 +917,6 @@
 				6EF3BBD112481DD40014316D /* MathTypes.h */,
 				6EF3BBD212481DD40014316D /* Platform.h */,
 				6EF3BBD312481DD40014316D /* Plugin.h */,
-				6EF3BBD412481DD40014316D /* Pool.h */,
 				6EF3BBD512481DD40014316D /* Pool.inl */,
 				6EF3BBD612481DD40014316D /* Property.h */,
 				6EF3BBD712481DD40014316D /* PropertyDefinition.h */,
@@ -1265,7 +1262,6 @@
 				6EF3BCD112481DD40014316D /* MathTypes.h in Headers */,
 				6EF3BCD212481DD40014316D /* Platform.h in Headers */,
 				6EF3BCD312481DD40014316D /* Plugin.h in Headers */,
-				6EF3BCD412481DD40014316D /* Pool.h in Headers */,
 				6EF3BCD612481DD40014316D /* Property.h in Headers */,
 				6EF3BCD712481DD40014316D /* PropertyDefinition.h in Headers */,
 				6EF3BCD812481DD40014316D /* PropertyDictionary.h in Headers */,

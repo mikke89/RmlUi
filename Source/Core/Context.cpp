@@ -809,7 +809,7 @@ RenderInterface* Context::GetRenderInterface() const
 // Gets the current clipping region for the render traversal
 bool Context::GetActiveClipRegion(Vector2i& origin, Vector2i& dimensions) const
 {
-	if (clip_origin.x < 0 || clip_origin.y < 0)
+	if (clip_dimensions.x < 0 || clip_dimensions.y < 0)
 		return false;
 	
 	origin = clip_origin;
