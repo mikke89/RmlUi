@@ -38,15 +38,19 @@
 		#define ROCKET_BREAK _asm { int 0x03 }
 	#endif
 #elif defined (ROCKET_PLATFORM_LINUX)
-#define ROCKET_BREAK asm ("int $0x03" )
+	#if defined __i386__ || defined __x86_64__
+		#define ROCKET_BREAK asm ("int $0x03" )
+	#else
+		#define ROCKET_BREAK
+	#endif
 #elif defined (ROCKET_PLATFORM_MACOSX)
-#include <TargetConditionals.h>
+	#include <TargetConditionals.h>
 
-#if TARGET_OS_IPHONE
-#define ROCKET_BREAK
-#else
-#define ROCKET_BREAK {__asm__("int $3\n" : : );}
-#endif
+	#if TARGET_OS_IPHONE
+		#define ROCKET_BREAK
+	#else
+		#define ROCKET_BREAK {__asm__("int $3\n" : : );}
+	#endif
 #endif
 
 
