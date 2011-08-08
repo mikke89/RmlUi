@@ -30,6 +30,7 @@
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Core/ElementUtilities.h>
 #include <Rocket/Core/Event.h>
+#include <Rocket/Core/Input.h>
 #include <Rocket/Core/Property.h>
 #include <Rocket/Core/StyleSheetKeywords.h>
 #include <Rocket/Controls/ElementFormControl.h>
@@ -59,6 +60,8 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	parent_element->AddEventListener("click", this, true);
 	parent_element->AddEventListener("blur", this);
+	parent_element->AddEventListener("focus", this);
+	parent_element->AddEventListener("keydown", this, true);
 
 	// Add the elements to our parent element.
 	parent_element->AppendChild(button_element, false);
@@ -72,6 +75,8 @@ WidgetDropDown::~WidgetDropDown()
 
 	parent_element->RemoveEventListener("click", this, true);
 	parent_element->RemoveEventListener("blur", this);
+	parent_element->RemoveEventListener("focus", this);
+	parent_element->RemoveEventListener("keydown", this, true);
 
 	button_element->RemoveReference();
 	selection_element->RemoveReference();
@@ -104,6 +109,13 @@ void WidgetDropDown::OnRender()
 
 void WidgetDropDown::OnLayout()
 {
+	if(parent_element->IsDisabled())
+	{
+		// Propagate disabled state to selectvalue and selectarrow
+		value_element->SetPseudoClass("disabled", true);
+		button_element->SetPseudoClass("disabled", true);
+	}
+
 	// Layout the button and selection boxes.
 	Core::Box parent_box = parent_element->GetBox();
 
@@ -265,9 +277,11 @@ int WidgetDropDown::GetNumOptions() const
 
 void WidgetDropDown::ProcessEvent(Core::Event& event)
 {
+	if (parent_element->IsDisabled()) 
+		return;
+
 	// Process the button onclick
-	if (event == "click" &&
-		!parent_element->IsDisabled())
+	if (event == "click")
 	{
 
 		if (event.GetCurrentElement()->GetParentNode() == selection_element)
@@ -309,7 +323,40 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 		}		
 	}
 	else if (event == "blur" && event.GetTargetElement() == parent_element)
+	{
 		ShowSelectBox(false);
+	}
+	else if (event == "keydown")
+	{
+		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+
+		switch (key_identifier)
+		{
+			case Core::Input::KI_UP:
+				SetSelection( (selected_option - 1 + options.size()) % options.size() );
+				break;
+			case Core::Input::KI_DOWN:		
+				SetSelection( (selected_option + 1) % options.size() );
+				break;
+			default:
+				break;
+		}
+	}
+
+	if (event.GetTargetElement() == parent_element)
+	{
+		if (event == "focus")
+		{
+			value_element->SetPseudoClass("focus", true);
+			button_element->SetPseudoClass("focus", true);
+		}
+		else if (event == "blur")
+		{
+			value_element->SetPseudoClass("focus", false);
+			button_element->SetPseudoClass("focus", false);
+		}
+	}
+
 }
 
 // Shows or hides the selection box.
