@@ -467,6 +467,12 @@ bool ElementDocument::FocusNextTabElement(Element* current_element, bool forward
 
 bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 {
+	// Skip disabled elements
+	if (element->IsPseudoClassSet("disabled"))
+	{
+		return false;
+	}
+
 	// Check if this is the node we're looking for
 	if (element->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
 	{
