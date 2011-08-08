@@ -242,10 +242,28 @@ void WidgetTextInput::DispatchChangeEvent()
 // the state of the cursor.
 void WidgetTextInput::ProcessEvent(Core::Event& event)
 {
-	if (parent->IsDisabled())
-		return;
+	if (event == "resize")
+	{
+		GenerateCursor();
 
-	if (event == "keydown")
+		Rocket::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
+		text_element->SetOffset(text_position, parent);
+		selected_text_element->SetOffset(text_position, parent);
+
+		Rocket::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
+		if (new_internal_dimensions != internal_dimensions)
+		{
+			internal_dimensions = new_internal_dimensions;
+
+			FormatElement();
+			UpdateCursorPosition();
+		}
+	}
+	else if (parent->IsDisabled())
+	{
+		return;
+	}
+	else if (event == "keydown")
 	{
 		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 		bool numlock = event.GetParameter< int >("num_lock_key", 0) > 0;
@@ -376,24 +394,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 	{
 		ClearSelection();
 		ShowCursor(false, false);
-	}
-	else if (event == "resize")
-	{
-		GenerateCursor();
-
-		Rocket::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
-		text_element->SetOffset(text_position, parent);
-		selected_text_element->SetOffset(text_position, parent);
-
-		Rocket::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
-		if (new_internal_dimensions != internal_dimensions)
-		{
-			internal_dimensions = new_internal_dimensions;
-
-			FormatElement();
-			UpdateCursorPosition();
-		}
-	}
+	}	
 	else if ((event == "mousedown" ||
 			  event == "drag") &&
 			 event.GetTargetElement() == parent)
