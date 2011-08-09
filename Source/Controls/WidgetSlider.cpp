@@ -62,6 +62,10 @@ WidgetSlider::~WidgetSlider()
 		parent->RemoveChild(bar);
 	}
 
+	parent->RemoveEventListener("blur", this);
+	parent->RemoveEventListener("focus", this);
+	parent->RemoveEventListener("keydown", this, true);
+
 	if (track != NULL)
 	{
 		track->RemoveEventListener("click", this);
@@ -128,6 +132,9 @@ bool WidgetSlider::Initialise()
 	bar->AddEventListener("drag", this);
 	bar->AddEventListener("dragstart", this);
 
+	parent->AddEventListener("blur", this);
+	parent->AddEventListener("focus", this);
+	parent->AddEventListener("keydown", this, true);
 	track->AddEventListener("click", this);
 
 	for (int i = 0; i < 2; i++)
@@ -283,6 +290,15 @@ void WidgetSlider::FormatElements(const Rocket::Core::Vector2f& containing_block
 	}
 
 	FormatBar(bar_length);
+
+	if (parent->IsDisabled())
+	{
+	    // Propagate disabled state to child elements
+	    bar->SetPseudoClass("disabled", true);
+	    track->SetPseudoClass("disabled", true);
+	    arrows[0]->SetPseudoClass("disabled", true);
+	    arrows[1]->SetPseudoClass("disabled", true);
+	}
 }
 
 // Lays out and positions the bar element.
@@ -446,6 +462,41 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 			arrow_timers[0] = -1;
 		else if (event.GetTargetElement() == arrows[1])
 			arrow_timers[1] = -1;
+	}
+	else if (event == "keydown")
+	{
+		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+
+		switch (key_identifier)
+		{
+			case Core::Input::KI_LEFT:
+				if (orientation == HORIZONTAL) SetBarPosition(OnLineDecrement());
+				break;
+			case Core::Input::KI_UP:
+				if (orientation == VERTICAL) SetBarPosition(OnLineDecrement());
+				break;
+			case Core::Input::KI_RIGHT:
+				if (orientation == HORIZONTAL) SetBarPosition(OnLineIncrement());
+				break;
+			case Core::Input::KI_DOWN:		
+				if (orientation == VERTICAL) SetBarPosition(OnLineIncrement());
+				break;
+			default:
+				break;
+		}
+	}
+
+
+	if (event.GetTargetElement() == parent)
+	{
+		if (event == "focus")
+		{
+			bar->SetPseudoClass("focus", true);
+		}
+		else if (event == "blur")
+		{
+			bar->SetPseudoClass("focus", false);
+		}
 	}
 }
 
