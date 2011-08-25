@@ -47,15 +47,12 @@ Element* ElementUtilities::GetElementById(Element* root_element, const String& i
 	SearchQueue search_queue;
 	search_queue.push(root_element);
 
-	// Lowercase the id for searching
-	String lower_id = id.ToLower();
-	
 	while (!search_queue.empty())
 	{
 		Element* element = search_queue.front();
 		search_queue.pop();
 		
-		if (element->GetId() == lower_id)
+		if (element->GetId() == id)
 		{
 			return element;
 		}
