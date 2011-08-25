@@ -257,15 +257,7 @@ void* FontDatabase::LoadFace(const String& file_name)
 		return false;
 	}
 
-	// Seek to the end of the file so we can determine its size.
-	if (!file_interface->Seek(handle, 0, SEEK_END))
-	{
-		file_interface->Close(handle);
-		return false;
-	}
-
-	size_t length = file_interface->Tell(handle);
-	file_interface->Seek(handle, 0, SEEK_SET);
+	size_t length = file_interface->Length(handle);
 
 	FT_Byte* buffer = new FT_Byte[length];
 	file_interface->Read(buffer, length, handle);
