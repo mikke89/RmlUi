@@ -30,6 +30,7 @@
 #include <Rocket/Core.h>
 #include <Rocket/Controls/ElementFormControl.h>
 #include <Rocket/Controls/Clipboard.h>
+#include <Rocket/Core/SystemInterface.h>
 
 namespace Rocket {
 namespace Controls {
@@ -38,6 +39,8 @@ const float CURSOR_BLINK_TIME = 0.7f;
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent), selection_geometry(_parent)
 {
+	keyboard_showed = false;
+	
 	parent = _parent;
 	parent->SetProperty("white-space", "pre");
 	parent->SetProperty("overflow", "hidden");
@@ -629,6 +632,9 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 	if (show)
 	{
 		cursor_visible = true;
+		SetKeyboardActive(true);
+		keyboard_showed = true;
+		
 		cursor_timer = CURSOR_BLINK_TIME;
 		last_update_time = Core::GetSystemInterface()->GetElapsedTime();
 
@@ -656,6 +662,11 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 		cursor_visible = false;
 		cursor_timer = -1;
 		last_update_time = 0;
+		if (keyboard_showed)
+		{
+			SetKeyboardActive(false);
+			keyboard_showed = false;
+		}
 	}
 }
 
@@ -958,5 +969,19 @@ void WidgetTextInput::GetLineSelection(Core::WString& pre_selection, Core::WStri
 	post_selection = line.Substring(selection_begin_index + selection_length - line_begin);
 }
 
+void WidgetTextInput::SetKeyboardActive(bool active)
+{
+	Core::SystemInterface* system = Core::GetSystemInterface();
+	if (system) {
+		if (active) 
+		{
+			system->ActivateKeyboard();
+		} else 
+		{
+			system->DeactivateKeyboard();
+		}
+	}
+}
+	
 }
 }

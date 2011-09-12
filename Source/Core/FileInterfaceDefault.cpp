@@ -28,6 +28,8 @@
 #include "precompiled.h"
 #include "FileInterfaceDefault.h"
 
+#ifndef ROCKET_NO_FILE_INTERFACE_DEFAULT
+
 namespace Rocket {
 namespace Core {
 
@@ -67,3 +69,5 @@ size_t FileInterfaceDefault::Tell(FileHandle file)
 
 }
 }
+
+#endif /*ROCKET_NO_FILE_INTERFACE_DEFAULT*/

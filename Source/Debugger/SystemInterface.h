@@ -66,6 +66,11 @@ public:
 	/// @return True to continue execution, false to break into the debugger.
 	virtual bool LogMessage(Core::Log::Type type, const Core::String& message);
 
+	/// Activate keyboard (for touchscreen devices)
+	virtual void ActivateKeyboard();
+	
+	/// Deactivate keyboard (for touchscreen devices)
+	virtual void DeactivateKeyboard();
 private:
 	Core::SystemInterface* application_interface;
 	ElementLog* log;

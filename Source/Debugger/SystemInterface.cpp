@@ -63,6 +63,18 @@ bool SystemInterface::LogMessage(Core::Log::Type type, const Core::String& messa
 
 	return application_interface->LogMessage(type, message);
 }
+	
+// Activate keyboard (for touchscreen devices)
+void SystemInterface::ActivateKeyboard()
+{
+	application_interface->ActivateKeyboard();
+}
+	
+// Deactivate keyboard (for touchscreen devices)
+void SystemInterface::DeactivateKeyboard()
+{
+	application_interface->DeactivateKeyboard();
+}
 
 }
 }

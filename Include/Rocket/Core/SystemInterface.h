@@ -79,6 +79,12 @@ public:
 	/// @return True to continue execution, false to break into the debugger.
 	virtual bool LogMessage(Log::Type type, const String& message);
 
+	/// Activate keyboard (for touchscreen devices)
+	virtual void ActivateKeyboard();
+	
+	/// Deactivate keyboard (for touchscreen devices)
+	virtual void DeactivateKeyboard();
+	
 	/// Called when this system interface is no longer required.
 	virtual void Release();
 
