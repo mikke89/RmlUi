@@ -30,6 +30,8 @@
 
 #include <Rocket/Core/FileInterface.h>
 
+#ifndef ROCKET_NO_FILE_INTERFACE_DEFAULT
+
 namespace Rocket {
 namespace Core {
 
@@ -72,5 +74,7 @@ public:
 
 }
 }
+
+#endif /*ROCKET_NO_FILE_INTERFACE_DEFAULT*/
 
 #endif
