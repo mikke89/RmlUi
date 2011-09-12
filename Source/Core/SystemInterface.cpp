@@ -106,6 +106,16 @@ void SystemInterface::JoinPath(String& translated_path, const String& document_p
 	URL url(translated_path.Replace(":", "|") + path.Replace("\\", "/"));
 	translated_path = url.GetPathedFileName().Replace("|", ":");
 }
+	
+// Activate keyboard (for touchscreen devices)
+void SystemInterface::ActivateKeyboard() 
+{
+}
+	
+// Deactivate keyboard (for touchscreen devices)
+void SystemInterface::DeactivateKeyboard() 
+{
+}
 
 // Called when this system interface is released.
 void SystemInterface::Release()

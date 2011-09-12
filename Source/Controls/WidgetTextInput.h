@@ -214,6 +214,10 @@ private:
 	// Cursor visibility and timings.
 	float cursor_timer;
 	bool cursor_visible;
+	bool keyboard_showed;
+	/// Activate or deactivate keyboard (for touchscreen devices)
+	/// @param[in] active True if need activate keyboard, false if need deactivate.
+	void SetKeyboardActive(bool active);
 
 	float last_update_time;
 
