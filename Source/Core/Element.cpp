@@ -880,6 +880,13 @@ void Element::GetInnerRML(String& content) const
 	}
 }
 
+// Gets the markup and content of the element.
+String Element::GetInnerRML() const {
+	String result;
+	GetInnerRML(result);
+	return result;
+}
+
 // Sets the markup and content of the element. All existing children will be replaced.
 void Element::SetInnerRML(const String& rml)
 {

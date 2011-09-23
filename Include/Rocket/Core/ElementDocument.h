@@ -70,7 +70,7 @@ public:
 
 	/// Sets the document's title.
 	/// @param[in] title The new title of the document.
-	void SetTitle(String& title);
+	void SetTitle(const String& title);
 	/// Returns the title of this document.
 	/// @return The document's title.
 	const String& GetTitle() const;
