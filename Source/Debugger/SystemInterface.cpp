@@ -36,12 +36,14 @@ SystemInterface::SystemInterface(ElementLog* _log)
 {
 	log = _log;
 	application_interface = Core::GetSystemInterface();
+	application_interface->AddReference();
 	Core::SetSystemInterface(this);
 }
 
 SystemInterface::~SystemInterface()
 {
 	Core::SetSystemInterface(application_interface);
+	application_interface->RemoveReference();
 }
 
 // Get the number of seconds elapsed since the start of the application.
