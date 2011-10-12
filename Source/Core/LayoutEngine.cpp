@@ -128,15 +128,28 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 	{
 		replaced_element = true;
 
+		Vector2f original_content_area = content_area;
+
 		// The element has resized itself, so we only resize it if a RCSS width or height was set explicitly. A value of
-		// 'auto' (or 'auto-fit', ie, both keywords) means keep the intrinsic dimensions.
+		// 'auto' (or 'auto-fit', ie, both keywords) means keep (or adjust) the intrinsic dimensions.
+		bool auto_width = false, auto_height = false;
 		const Property* width_property = element->GetProperty(WIDTH);
 		if (width_property->unit != Property::KEYWORD)
 			content_area.x = element->ResolveProperty(WIDTH, containing_block.x);
+		else
+			auto_width = true;
 
 		const Property* height_property = element->GetProperty(HEIGHT);
 		if (height_property->unit != Property::KEYWORD)
 			content_area.y = element->ResolveProperty(HEIGHT, containing_block.y);
+		else
+			auto_height = true;
+
+		// If one of the dimensions is 'auto' then we need to scale it such that the original ratio is preserved.
+		if (auto_width && !auto_height)
+			content_area.x = (content_area.y / original_content_area.y) * original_content_area.x;
+		else if (auto_height && !auto_width)
+			content_area.y = (content_area.x / original_content_area.x) * original_content_area.y;
 
 		// Reduce the width and height to make up for borders and padding.
 		content_area.x -= (box.GetEdge(Box::BORDER, Box::LEFT) +
