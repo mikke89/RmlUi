@@ -118,12 +118,13 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 	Vector2f final_tile_dimensions;
 
 	// Generate the oriented texture coordinates for the tiles.
-	Vector2f scaled_texcoords[2];
+	Vector2f scaled_texcoords[3];
 	for (int i = 0; i < 2; i++)
 	{
 		scaled_texcoords[i].x = data.texcoords[0].x + oriented_texcoords[orientation][i].x * (data.texcoords[1].x - data.texcoords[0].x);
 		scaled_texcoords[i].y = data.texcoords[0].y + oriented_texcoords[orientation][i].y * (data.texcoords[1].y - data.texcoords[0].y);
 	}
+	scaled_texcoords[2] = scaled_texcoords[1];
 
 	// Resize the dimensions (if necessary) to fit this tile's repeat mode.
 	for (int i = 0; i < 2; i++)
@@ -169,9 +170,8 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 					if (final_tile_dimensions[i] <= 0)
 						final_tile_dimensions[i] = tile_dimensions[i];
 
-					if (num_tiles[i] == 1 &&
-						repeat_mode == REPEAT_TRUNCATE)
-						scaled_texcoords[1][i] -= (scaled_texcoords[1][i] - scaled_texcoords[0][i]) * (1.0f - (final_tile_dimensions[i] / tile_dimensions[i]));
+					if (repeat_mode == REPEAT_TRUNCATE)
+						scaled_texcoords[2][i] -= (scaled_texcoords[1][i] - scaled_texcoords[0][i]) * (1.0f - (final_tile_dimensions[i] / tile_dimensions[i]));
 				}
 				break;
 			}
@@ -213,7 +213,11 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 		else
 		{
 			tile_texcoords[0].y = scaled_texcoords[0].y;
-			tile_texcoords[1].y = scaled_texcoords[1].y;
+			// The last tile might have truncated texture coords
+			if (y == num_tiles[1] - 1)
+				tile_texcoords[1].y = scaled_texcoords[2].y;
+			else
+				tile_texcoords[1].y = scaled_texcoords[1].y;
 		}
 
 		for (int x = 0; x < num_tiles[0]; x++)
@@ -230,7 +234,11 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 			else
 			{
 				tile_texcoords[0].x = scaled_texcoords[0].x;
-				tile_texcoords[1].x = scaled_texcoords[1].x;
+				// The last tile might have truncated texture coords
+				if (x == num_tiles[0] - 1)
+					tile_texcoords[1].x = scaled_texcoords[2].x;
+				else
+					tile_texcoords[1].x = scaled_texcoords[1].x;
 			}
 
 			tile_position.x = surface_origin.x + (float) tile_dimensions.x * x;
