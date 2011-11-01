@@ -37,7 +37,7 @@ EventInstancer::~EventInstancer()
 }
 
 // Instances a new event handle for Invaders.
-Rocket::Core::EventListener* EventInstancer::InstanceEventListener(const Rocket::Core::String& value)
+Rocket::Core::EventListener* EventInstancer::InstanceEventListener(const Rocket::Core::String& value, Rocket::Core::Element* element)
 {
 	return new Event(value);
 }

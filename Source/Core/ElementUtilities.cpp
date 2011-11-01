@@ -158,7 +158,7 @@ void ElementUtilities::BindEventAttributes(Element* element)
 	{
 		if (name.Substring(0, 2) == "on")
 		{
-			EventListener* listener = Factory::InstanceEventListener(value);
+			EventListener* listener = Factory::InstanceEventListener(value, element);
 			if (listener)
 				element->AddEventListener(&name[2], listener, false);
 		}

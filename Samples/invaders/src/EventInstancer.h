@@ -41,7 +41,7 @@ public:
 	virtual ~EventInstancer();
 
 	/// Instances a new event handle for Invaders.
-	virtual Rocket::Core::EventListener* InstanceEventListener(const Rocket::Core::String& value);
+	virtual Rocket::Core::EventListener* InstanceEventListener(const Rocket::Core::String& value, Rocket::Core::Element* element);
 
 	/// Destroys the instancer.
 	virtual void Release();

@@ -166,7 +166,7 @@ public:
 	/// RML.
 	/// @param[in] value The parameters to the event listener.
 	/// @return The instanced event listener.
-	static EventListener* InstanceEventListener(const String& value);
+	static EventListener* InstanceEventListener(const String& value, Element* element);
 
 private:
 	Factory();

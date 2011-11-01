@@ -565,11 +565,11 @@ EventListenerInstancer* Factory::RegisterEventListenerInstancer(EventListenerIns
 }
 
 // Instance an event listener with the given string
-EventListener* Factory::InstanceEventListener(const String& value)
+EventListener* Factory::InstanceEventListener(const String& value, Element* element)
 {
 	// If we have an event listener instancer, use it
 	if (event_listener_instancer)
-		return event_listener_instancer->InstanceEventListener(value);
+		return event_listener_instancer->InstanceEventListener(value, element);
 
 	return NULL;
 }

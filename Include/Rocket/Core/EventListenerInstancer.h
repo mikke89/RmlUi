@@ -31,6 +31,7 @@
 #include <Rocket/Core/ReferenceCountable.h>
 #include <Rocket/Core/String.h>
 #include <Rocket/Core/Header.h>
+#include <Rocket/Core/Element.h>
 
 namespace Rocket {
 namespace Core {
@@ -51,7 +52,8 @@ public:
 
 	/// Instance an event listener object.
 	/// @param value Value of the event.
-	virtual EventListener* InstanceEventListener(const String& value) = 0;
+	/// @param element Element that triggers the events.
+	virtual EventListener* InstanceEventListener(const String& value, Element* element) = 0;
 
 	/// Releases this event listener instancer.
 	virtual void Release() = 0;
