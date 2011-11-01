@@ -163,7 +163,7 @@ Context* ElementDocument::GetContext()
 }
 
 // Sets the document's title.
-void ElementDocument::SetTitle(String& _title)
+void ElementDocument::SetTitle(const String& _title)
 {
 	title = _title;
 }
