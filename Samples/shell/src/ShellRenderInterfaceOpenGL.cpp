@@ -41,6 +41,7 @@ void ShellRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, 
 	glTranslatef(translation.x, translation.y, 0);
 
 	glVertexPointer(2, GL_FLOAT, sizeof(Rocket::Core::Vertex), &vertices[0].position);
+	glEnableClientState(GL_COLOR_ARRAY);
 	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Rocket::Core::Vertex), &vertices[0].colour);
 
 	if (!texture)
