@@ -49,7 +49,7 @@ public:
 
 	/// Instance and event listener object
 	/// @param value Value of the event	
-	virtual EventListener* InstanceEventListener(const Rocket::Core::String& value);
+	virtual EventListener* InstanceEventListener(const Rocket::Core::String& value, Element* element);
 
 	/// Releases this event listener instancer
 	virtual void Release();

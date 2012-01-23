@@ -34,9 +34,9 @@ namespace Core {
 namespace Python {
 
 // Instance and event listener object
-Rocket::Core::EventListener* EventListenerInstancer::InstanceEventListener(const Rocket::Core::String& value)
+Rocket::Core::EventListener* EventListenerInstancer::InstanceEventListener(const Rocket::Core::String& value, Element* element)
 {
-	return new EventListener(value);
+	return new EventListener(value, element);
 }
 
 // Releases this event listener instancer
