@@ -59,6 +59,8 @@ Context::Context(const String& name) : name(name), mouse_position(0, 0), dimensi
 		if (element != NULL)
 			element->RemoveReference();
 	}
+	else
+		cursor_proxy->context = this;
 
 	document_focus_history.push_back(root);
 	focus = root;
