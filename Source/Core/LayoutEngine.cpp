@@ -654,6 +654,30 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 			box.SetEdge(Box::MARGIN, Box::BOTTOM, margin);
 	}
 
+	// In the case we're an absolutely positioned element, we need to check our height.
+	int position_property = element->GetProperty< int >(POSITION);
+	if (display_property == DISPLAY_BLOCK && (position_property == POSITION_ABSOLUTE || position_property == POSITION_FIXED))
+	{
+		if (height_auto)
+		{
+			const Property* topProp = element->GetLocalProperty(TOP);
+			const Property* bottomProp = element->GetLocalProperty(BOTTOM);
+
+			// Check for top and bottom properties both being defined.
+			if ((topProp != NULL) && (bottomProp != NULL))
+			{
+				content_area.y = containing_block_height - (box.GetCumulativeEdge(Box::CONTENT, Box::TOP)
+					   + box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM)
+					   + topProp->Get<float>() + bottomProp->Get<float>());
+				content_area.y = Math::Max(0.0f, content_area.y);
+			}
+		}
+		else
+		{
+			// For now, we're ignoring the over-constrained situation
+		}
+	}
+
 	if (content_area.y >= 0)
 	{
 		// Clamp the calculated height; if the height is changed by the clamp, then the margins need to be recalculated if
