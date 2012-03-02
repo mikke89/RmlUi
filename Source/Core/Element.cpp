@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -98,7 +98,7 @@ Element::Element(const String& _tag) : absolute_offset(0, 0), relative_offset_ba
 	stacking_context_dirty = false;
 
 	font_face_handle = NULL;
-	
+
 	clipping_ignore_depth = 0;
 	clipping_enabled = false;
 	clipping_state_dirty = true;
@@ -113,7 +113,7 @@ Element::Element(const String& _tag) : absolute_offset(0, 0), relative_offset_ba
 
 Element::~Element()
 {
-	ROCKET_ASSERT(parent == NULL);	
+	ROCKET_ASSERT(parent == NULL);
 
 	PluginRegistry::NotifyElementDestroy(this);
 
@@ -273,7 +273,7 @@ String Element::GetAddress(bool include_pseudo_classes) const
 
 	if (include_pseudo_classes)
 	{
-		const PseudoClassList& pseudo_classes = style->GetActivePseudoClasses();		
+		const PseudoClassList& pseudo_classes = style->GetActivePseudoClasses();
 		for (PseudoClassList::const_iterator i = pseudo_classes.begin(); i != pseudo_classes.end(); ++i)
 		{
 			address += ":";
@@ -514,7 +514,7 @@ bool Element::SetProperty(const String& name, const Property& property)
 // Returns one of this element's properties.
 const Property* Element::GetProperty(const String& name)
 {
-	return style->GetProperty(name);	
+	return style->GetProperty(name);
 }
 
 // Returns one of this element's properties.
@@ -626,7 +626,7 @@ void Element::SetAttributes(const ElementAttributes* _attributes)
 	AttributeNameList changed_attributes;
 
 	while (_attributes->Iterate(index, key, value))
-	{		
+	{
 		changed_attributes.insert(key);
 		attributes.Set(key, *value);
 	}
@@ -795,7 +795,7 @@ ElementDocument* Element::GetOwnerDocument()
 {
 	if (parent == NULL)
 		return NULL;
-	
+
 	if (!owner_document)
 	{
 		owner_document = parent->GetOwnerDocument();
@@ -1083,7 +1083,7 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 	else
 	{
 		AppendChild(child);
-	}	
+	}
 }
 
 // Replaces the second node with the first node.
@@ -1232,25 +1232,25 @@ ElementScroll* Element::GetElementScroll() const
 {
 	return scroll;
 }
-	
+
 int Element::GetClippingIgnoreDepth()
 {
 	if (clipping_state_dirty)
 	{
 		IsClippingEnabled();
 	}
-	
+
 	return clipping_ignore_depth;
 }
-	
+
 bool Element::IsClippingEnabled()
 {
 	if (clipping_state_dirty)
 	{
 		// Is clipping enabled for this element, yes unless both overlow properties are set to visible
-		clipping_enabled = style->GetProperty(OVERFLOW_X)->Get< int >() != OVERFLOW_VISIBLE 
+		clipping_enabled = style->GetProperty(OVERFLOW_X)->Get< int >() != OVERFLOW_VISIBLE
 							|| style->GetProperty(OVERFLOW_Y)->Get< int >() != OVERFLOW_VISIBLE;
-		
+
 		// Get the clipping ignore depth from the clip property
 		clipping_ignore_depth = 0;
 		const Property* clip_property = GetProperty(CLIP);
@@ -1258,10 +1258,10 @@ bool Element::IsClippingEnabled()
 			clipping_ignore_depth = clip_property->Get< int >();
 		else if (clip_property->Get< int >() == CLIP_NONE)
 			clipping_ignore_depth = -1;
-		
+
 		clipping_state_dirty = false;
 	}
-	
+
 	return clipping_enabled;
 }
 
@@ -1495,7 +1495,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		else if (new_font_face_handle != NULL)
 			new_font_face_handle->RemoveReference();
 	}
-	
+
 	// Check for clipping state changes
 	if (changed_properties.find(CLIP) != changed_properties.end() ||
 		changed_properties.find(OVERFLOW_X) != changed_properties.end() ||
@@ -1602,7 +1602,7 @@ void Element::GetRML(String& content)
 	int index = 0;
 	String name;
 	String value;
-	while (IterateAttributes(index, name, value))	
+	while (IterateAttributes(index, name, value))
 	{
 		size_t length = name.Length() + value.Length() + 8;
 		String attribute(length, " %s=\"%s\"", name.CString(), value.CString());
@@ -1626,7 +1626,7 @@ void Element::GetRML(String& content)
 }
 
 void Element::SetParent(Element* _parent)
-{	
+{
 	// If there's an old parent, detach from it first.
 	if (parent &&
 		parent != _parent)
@@ -1695,23 +1695,31 @@ void Element::UpdateOffset()
 			const Property *right = GetLocalProperty(RIGHT);
 			// If the element is anchored left, then the position is offset by that resolved value.
 			if (left != NULL && left->unit != Property::KEYWORD)
+			{
 				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (ResolveProperty(LEFT, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
+			}
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			if (right != NULL && right->unit != Property::KEYWORD)
+			else if (right != NULL && right->unit != Property::KEYWORD)
+			{
 				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (ResolveProperty(RIGHT, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
+			}
 
 			const Property *top = GetLocalProperty(TOP);
 			const Property *bottom = GetLocalProperty(BOTTOM);
 			// If the element is anchored top, then the position is offset by that resolved value.
 			if (top != NULL && top->unit != Property::KEYWORD)
+			{
 				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (ResolveProperty(TOP, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+			}
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
 			else if (bottom != NULL && bottom->unit != Property::KEYWORD)
+			{
 				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (ResolveProperty(BOTTOM, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
+			}
 		}
 	}
 	else if (position_property == POSITION_RELATIVE)
@@ -1817,7 +1825,7 @@ void Element::DirtyStructure()
 {
 	// Clear the cached owner document
 	owner_document = NULL;
-	
+
 	// Inform all children that the structure is drity
 	for (size_t i = 0; i < children.size(); ++i)
 	{
