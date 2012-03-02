@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -417,7 +417,7 @@ void LayoutEngine::FormatElementReplaced(Element* element)
 bool LayoutEngine::FormatElementSpecial(Element* element)
 {
 	static String br("br");
-	
+
 	// Check for a <br> tag.
 	if (element->GetTagName() == br)
 	{
@@ -464,8 +464,11 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 
 	// Determine if the element has an automatic width, and if not calculate it.
 	bool width_auto;
-	if (content_area.x >= 0)
+	int display_property = element->GetProperty< int >(DISPLAY);
+	if (display_property == DISPLAY_INLINE_BLOCK)
+	{
 		width_auto = false;
+	}
 	else
 	{
 		const Property* width_property = element->GetProperty(WIDTH);
