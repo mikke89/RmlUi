@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -417,7 +417,7 @@ void LayoutEngine::FormatElementReplaced(Element* element)
 bool LayoutEngine::FormatElementSpecial(Element* element)
 {
 	static String br("br");
-	
+
 	// Check for a <br> tag.
 	if (element->GetTagName() == br)
 	{
@@ -464,8 +464,12 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 
 	// Determine if the element has an automatic width, and if not calculate it.
 	bool width_auto;
-	if (content_area.x >= 0)
+	int display_property = element->GetProperty< int >(DISPLAY);
+
+	if (display_property == DISPLAY_INLINE_BLOCK)
+	{
 		width_auto = false;
+	}
 	else
 	{
 		const Property* width_property = element->GetProperty(WIDTH);
@@ -526,6 +530,30 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 			box.SetEdge(Box::MARGIN, Box::RIGHT, margin);
 	}
 
+	// In the case we're an absolutely positioned element, we need to check our width.
+	int position_property = element->GetProperty< int >(POSITION);
+	if (display_property == DISPLAY_BLOCK && (position_property == POSITION_ABSOLUTE || position_property == POSITION_FIXED))
+	{
+		if (width_auto)
+		{
+			const Property* leftProp = element->GetLocalProperty(LEFT);
+			const Property* rightProp = element->GetLocalProperty(RIGHT);
+
+			// Check for left and right properties both being defined.
+			if ((leftProp != NULL) && (rightProp != NULL))
+			{
+				content_area.x = containing_block_width - (box.GetCumulativeEdge(Box::CONTENT, Box::LEFT)
+					   + box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT)
+					   + leftProp->Get<float>() + rightProp->Get<float>());
+				content_area.x = Math::Max(0.0f, content_area.x);
+			}
+		}
+		else
+		{
+			// For now, we're ignoring the over-constrained situation
+		}
+	}
+
 	// Clamp the calculated width; if the width is changed by the clamp, then the margins need to be recalculated if
 	// they were set to auto.
 	float clamped_width = ClampWidth(content_area.x, element, containing_block_width);
@@ -556,8 +584,12 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 
 	// Determine if the element has an automatic height, and if not calculate it.
 	bool height_auto;
-	if (content_area.y >= 0)
+	int display_property = element->GetProperty< int >(DISPLAY);
+
+	if (display_property == DISPLAY_INLINE_BLOCK)
+	{
 		height_auto = false;
+	}
 	else
 	{
 		const Property* height_property = element->GetProperty(HEIGHT);
@@ -620,6 +652,30 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 			box.SetEdge(Box::MARGIN, Box::TOP, margin);
 		if (margins_auto[1])
 			box.SetEdge(Box::MARGIN, Box::BOTTOM, margin);
+	}
+
+	// In the case we're an absolutely positioned element, we need to check our height.
+	int position_property = element->GetProperty< int >(POSITION);
+	if (display_property == DISPLAY_BLOCK && (position_property == POSITION_ABSOLUTE || position_property == POSITION_FIXED))
+	{
+		if (height_auto)
+		{
+			const Property* topProp = element->GetLocalProperty(TOP);
+			const Property* bottomProp = element->GetLocalProperty(BOTTOM);
+
+			// Check for top and bottom properties both being defined.
+			if ((topProp != NULL) && (bottomProp != NULL))
+			{
+				content_area.y = containing_block_height - (box.GetCumulativeEdge(Box::CONTENT, Box::TOP)
+					   + box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM)
+					   + topProp->Get<float>() + bottomProp->Get<float>());
+				content_area.y = Math::Max(0.0f, content_area.y);
+			}
+		}
+		else
+		{
+			// For now, we're ignoring the over-constrained situation
+		}
 	}
 
 	if (content_area.y >= 0)
