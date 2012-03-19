@@ -584,12 +584,8 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 
 	// Determine if the element has an automatic height, and if not calculate it.
 	bool height_auto;
-	int display_property = element->GetProperty< int >(DISPLAY);
-
-	if (display_property == DISPLAY_INLINE_BLOCK)
-	{
+	if (content_area.y >= 0)
 		height_auto = false;
-	}
 	else
 	{
 		const Property* height_property = element->GetProperty(HEIGHT);
