@@ -87,6 +87,28 @@ void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root
 	}
 }
 
+void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* root_element, const String& class_name)
+{
+	// Breadth first search on elements for the corresponding id
+	typedef std::queue< Element* > SearchQueue;
+	SearchQueue search_queue;
+	for (int i = 0; i < root_element->GetNumChildren(); ++i)
+		search_queue.push(root_element->GetChild(i));
+
+	while (!search_queue.empty())
+	{
+		Element* element = search_queue.front();
+		search_queue.pop();
+
+		if (element->IsClassSet(class_name))
+			elements.push_back(element);
+
+		// Add all children to search.
+		for (int i = 0; i < element->GetNumChildren(); i++)
+			search_queue.push(element->GetChild(i));
+	}
+}
+
 // Returns the element's font face.
 FontFaceHandle* ElementUtilities::GetFontFaceHandle(Element* element)
 {
