@@ -465,7 +465,6 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 	// Determine if the element has an automatic width, and if not calculate it.
 	bool width_auto;
 	int display_property = element->GetProperty< int >(DISPLAY);
-
 	if (display_property == DISPLAY_INLINE_BLOCK)
 	{
 		width_auto = false;
@@ -528,30 +527,6 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 			box.SetEdge(Box::MARGIN, Box::LEFT, margin);
 		if (margins_auto[1])
 			box.SetEdge(Box::MARGIN, Box::RIGHT, margin);
-	}
-
-	// In the case we're an absolutely positioned element, we need to check our width.
-	int position_property = element->GetProperty< int >(POSITION);
-	if (display_property == DISPLAY_BLOCK && (position_property == POSITION_ABSOLUTE || position_property == POSITION_FIXED))
-	{
-		if (width_auto)
-		{
-			const Property* leftProp = element->GetLocalProperty(LEFT);
-			const Property* rightProp = element->GetLocalProperty(RIGHT);
-
-			// Check for left and right properties both being defined.
-			if ((leftProp != NULL) && (rightProp != NULL))
-			{
-				content_area.x = containing_block_width - (box.GetCumulativeEdge(Box::CONTENT, Box::LEFT)
-					   + box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT)
-					   + leftProp->Get<float>() + rightProp->Get<float>());
-				content_area.x = Math::Max(0.0f, content_area.x);
-			}
-		}
-		else
-		{
-			// For now, we're ignoring the over-constrained situation
-		}
 	}
 
 	// Clamp the calculated width; if the width is changed by the clamp, then the margins need to be recalculated if
