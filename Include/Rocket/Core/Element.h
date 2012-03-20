@@ -494,6 +494,10 @@ public:
 	/// @param[out] elements Resulting elements.
 	/// @param[in] tag Tag to search for.
 	void GetElementsByTagName(ElementList& elements, const String& tag);
+	/// Get all descendant elements with the given class set on them.
+	/// @param[out] elements Resulting elements.
+	/// @param[in] tag Tag to search for.
+	void GetElementsByClassName(ElementList& elements, const String& class_name);
 	//@}
 
 	/**
