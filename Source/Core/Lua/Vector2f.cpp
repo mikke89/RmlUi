@@ -1,0 +1,206 @@
+#include "precompiled.h"
+#include "Vector2f.h"
+#include <Rocket/Core/Vector2.h>
+
+namespace Rocket {
+namespace Core {
+namespace Lua {
+
+template<> 
+void LuaType<Vector2f>::extra_init(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,Vector2f__call);
+    lua_setfield(L,metatable_index,"__call");
+
+    lua_pushcfunction(L,Vector2f__mul);
+    lua_setfield(L,metatable_index,"__mul");
+
+    lua_pushcfunction(L,Vector2f__div);
+    lua_setfield(L,metatable_index,"__div");
+
+    lua_pushcfunction(L,Vector2f__add);
+    lua_setfield(L,metatable_index,"__add");
+
+    lua_pushcfunction(L,Vector2f__sub);
+    lua_setfield(L,metatable_index,"__sub");
+
+    lua_pushcfunction(L,Vector2f__eq);
+    lua_setfield(L,metatable_index,"__eq");
+
+    //stack is in the same state as it was before it entered this function
+    return;
+}
+
+int Vector2f__call(lua_State* L)
+{
+    float x = (float)luaL_checknumber(L,1);
+    float y = (float)luaL_checknumber(L,2);
+
+    Vector2f* vect = new Vector2f(x,y);
+
+    LuaType<Vector2f>::push(L,vect,true); //true means it will be deleted when it is garbage collected
+    return 1;
+}
+
+int Vector2f__mul(lua_State* L)
+{
+    Vector2f* lhs = LuaType<Vector2f>::check(L,1);
+    float rhs = (float)luaL_checknumber(L,2);
+
+    Vector2f* res = new Vector2f(*lhs);
+    (*res) *= rhs;
+
+    LuaType<Vector2f>::push(L,res,true);
+    return 1;
+}
+
+int Vector2f__div(lua_State* L)
+{
+    Vector2f* lhs = LuaType<Vector2f>::check(L,1);
+    float rhs = (float)luaL_checknumber(L,2);
+
+    Vector2f* res = new Vector2f(*lhs);
+    (*res) /= rhs;
+
+    LuaType<Vector2f>::push(L,res,true);
+    return 1;
+}
+
+int Vector2f__add(lua_State* L)
+{
+    Vector2f* lhs = LuaType<Vector2f>::check(L,1);
+    Vector2f* rhs = LuaType<Vector2f>::check(L,1);
+
+    Vector2f* res = new Vector2f(*lhs);
+    (*res) += (*rhs);
+
+    LuaType<Vector2f>::push(L,res,true);
+    return 1;
+}
+
+int Vector2f__sub(lua_State* L)
+{
+    Vector2f* lhs = LuaType<Vector2f>::check(L,1);
+    Vector2f* rhs = LuaType<Vector2f>::check(L,1);
+
+    Vector2f* res = new Vector2f(*lhs);
+    (*res) -= (*rhs);
+
+    LuaType<Vector2f>::push(L,res,true);
+    return 1;
+}
+
+int Vector2f__eq(lua_State* L)
+{
+    Vector2f* lhs = LuaType<Vector2f>::check(L,1);
+    Vector2f* rhs = LuaType<Vector2f>::check(L,1);
+
+    lua_pushboolean(L, (*lhs) == (*rhs) ? 1 : 0);
+    return 1;
+}
+
+
+int Vector2fDotProduct(lua_State* L, Vector2f* obj)
+{
+    Vector2f* rhs = LuaType<Vector2f>::check(L,1);
+    
+    float res = obj->DotProduct(*rhs);
+
+    lua_pushnumber(L,res);
+    return 1;
+}
+
+int Vector2fNormalise(lua_State* L, Vector2f* obj)
+{
+    Vector2f* res = new Vector2f();
+    (*res) = obj->Normalise();
+
+    LuaType<Vector2f>::push(L,res,true);
+    return 1;
+}
+
+int Vector2fRotate(lua_State* L, Vector2f* obj)
+{
+    float num = (float)luaL_checknumber(L,1);
+
+    Vector2f* res = new Vector2f();
+    (*res) = obj->Rotate(num);
+
+    LuaType<Vector2f>::push(L,res,true);
+    return 1;
+}
+
+int Vector2fGetAttrx(lua_State*L)
+{
+    Vector2f* self = LuaType<Vector2f>::check(L,1);
+
+    lua_pushnumber(L,self->x);
+    return 1;
+}
+
+int Vector2fGetAttry(lua_State*L)
+{
+    Vector2f* self = LuaType<Vector2f>::check(L,1);
+
+    lua_pushnumber(L,self->y);
+    return 1;
+}
+
+int Vector2fGetAttrmagnitude(lua_State*L)
+{
+    Vector2f* self = LuaType<Vector2f>::check(L,1);
+
+    lua_pushnumber(L,self->Magnitude());
+    return 1;
+}
+
+int Vector2fSetAttrx(lua_State*L)
+{
+    Vector2f* self = LuaType<Vector2f>::check(L,1);
+    float value = (float)luaL_checknumber(L,2);
+
+    self->x = value;
+    return 0;
+}
+
+int Vector2fSetAttry(lua_State*L)
+{
+    Vector2f* self = LuaType<Vector2f>::check(L,1);
+    float value = (float)luaL_checknumber(L,2);
+
+    self->y = value;
+    return 0;
+}
+
+
+
+RegType<Vector2f> Vector2fMethods[] = 
+{
+    LUAMETHOD(Vector2f,DotProduct)
+    LUAMETHOD(Vector2f,Normalise)
+    LUAMETHOD(Vector2f,Rotate)
+    { NULL, NULL },
+};
+
+luaL_reg Vector2fGetters[]= 
+{
+    LUAGETTER(Vector2f,x)
+    LUAGETTER(Vector2f,y)
+    LUAGETTER(Vector2f,magnitude)
+    { NULL, NULL },
+};
+
+luaL_reg Vector2fSetters[]= 
+{
+    LUASETTER(Vector2f,x)
+    LUASETTER(Vector2f,y)
+    { NULL, NULL },
+};
+
+template<> const char* GetTClassName<Vector2f>() { return "Vector2f"; }
+template<> RegType<Vector2f>* GetMethodTable<Vector2f>() { return Vector2fMethods; }
+template<> luaL_reg* GetAttrTable<Vector2f>() { return Vector2fGetters; }
+template<> luaL_reg* SetAttrTable<Vector2f>() { return Vector2fSetters; }
+}
+}
+}
