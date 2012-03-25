@@ -325,6 +325,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Event"
+			>
+			<File
+				RelativePath="..\Source\Core\Lua\Event.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\Event.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\Source\Core\Lua\precompiled.cpp"
 			>
