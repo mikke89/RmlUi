@@ -202,7 +202,10 @@ int ElementScrollIntoView(lua_State* L, Element* obj)
 
 int ElementSetAttribute(lua_State* L, Element* obj)
 {
-    //do this later
+    LUACHECKOBJ(obj);
+    const char* name = luaL_checkstring(L,1);
+    const char* value = luaL_checkstring(L,2);
+    obj->SetAttribute(name,String(value));
     return 0;
 }
 
