@@ -181,6 +181,14 @@
 				RelativePath="..\Source\Core\Lua\Element.h"
 				>
 			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\ElementStyle.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\ElementStyle.h"
+				>
+			</File>
 			<Filter
 				Name="Document"
 				>
@@ -242,14 +250,17 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\LuaType.cpp"
+				RelativePath="..\Source\Core\Lua\LuaType.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\LuaType.inl"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
-						Name="VCCLCompilerTool"
+						Name="VCCustomBuildTool"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -260,10 +271,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\LuaType.h"
-				>
 			</File>
 			<File
 				RelativePath="..\Source\Core\Lua\Register.h"

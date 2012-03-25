@@ -28,6 +28,7 @@ namespace Lua {
 #define LUASETTER(type,varname) { #varname, type##SetAttr##varname },
 
 #define CHECK_BOOL(L,narg) (lua_toboolean((L),(narg)) > 0 ? true : false )
+#define LUACHECKOBJ(obj) if(obj == NULL) { lua_pushnil(L); return 1; }
 
 
 //replacement for luaL_reg that uses a different function pointer signature, but similar syntax
@@ -57,17 +58,7 @@ public:
     static void Register(lua_State *L);
     static int push(lua_State *L, T* obj, bool gc=false);
     static T* check(lua_State* L, int narg);
-	
-    //gets called from the Register function, right before _regfunctions.
-    //If you want to inherit from another class, in the function you would want
-    //to call _regfunctions<superclass>, where method is metatable_index - 1. Anything
-    //that has the same name in the subclass will be overwrite whatever had the 
-    //same name in the superclass.
-    static inline void extra_init(lua_State* L, int metatable_index);
-    //Registers methods,getters,and setters to the type
-    static inline void _regfunctions(lua_State* L, int meta, int method);
-private:
-    LuaType(); //hide constructor
+
     //for calling a C closure with upvalues
     static int thunk(lua_State* L);
     //pointer to string
@@ -81,10 +72,22 @@ private:
     static int index(lua_State* L);
     //.__newindex
     static int newindex(lua_State* L);
+	
+    //gets called from the Register function, right before _regfunctions.
+    //If you want to inherit from another class, in the function you would want
+    //to call _regfunctions<superclass>, where method is metatable_index - 1. Anything
+    //that has the same name in the subclass will be overwrite whatever had the 
+    //same name in the superclass.
+    static inline void extra_init(lua_State* L, int metatable_index);
+    //Registers methods,getters,and setters to the type
+    static inline void _regfunctions(lua_State* L, int meta, int method);
+private:
+    LuaType(); //hide constructor
+
 };
 
 }
 }
 }
 
-#include "LuaType.cpp"
+#include "LuaType.inl"

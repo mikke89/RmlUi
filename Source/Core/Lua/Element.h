@@ -54,7 +54,7 @@ int ElementGetAttrscroll_height(lua_State* L);
 int ElementGetAttrscroll_left(lua_State* L);
 int ElementGetAttrscroll_top(lua_State* L);
 int ElementGetAttrscroll_width(lua_State* L);
-int ElementGetAttrstyle(lua_State* L); //make sure to create a "style" object
+int ElementGetAttrstyle(lua_State* L);
 int ElementGetAttrtag_name(lua_State* L);
 
 //setters

@@ -1,3 +1,4 @@
+#include "LuaType.h"
 #include "precompiled.h"
 #include "Element.h"
 #include <ElementStyle.h>
@@ -201,7 +202,7 @@ int ElementScrollIntoView(lua_State* L, Element* obj)
 
 int ElementSetAttribute(lua_State* L, Element* obj)
 {
-    //fuck this
+    //do this later
     return 0;
 }
 
@@ -466,8 +467,8 @@ int ElementGetAttrscroll_width(lua_State* L)
 int ElementGetAttrstyle(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
-    //Make a "ElementStyle" object
-    return 0;
+    LuaType<ElementStyle>::push(L,ele->GetStyle(),false);
+    return 1;
 }
 
 int ElementGetAttrtag_name(lua_State* L)
