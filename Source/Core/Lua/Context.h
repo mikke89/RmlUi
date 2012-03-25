@@ -1,4 +1,33 @@
 #pragma once
+/*
+    This defines a Context type in the Lua global namespace
+
+    //methods
+    Context:AddEventListener --NYI
+    noreturn Context:AddMouseCursor(Document cursor_document)
+    Document Context:CreateDocument([string tag]) --tag defaults to "body"
+    Document Context:LoadDocument(string path)
+    Document Context:LoadMouseCursor(string path)
+    bool Context:Render
+    noreturn Context:ShowMouseCursor(bool show)
+    noreturn Context:UnloadAllDocuments()
+    noreturn Context:UnloadAllMouseCursors()
+    noreturn Context:UnloadDocument(Document doc)
+    noreturn Context:UnloadMouseCursor(string name)
+    bool Context:Update()
+
+    //getters
+    Vector2i Context.dimensions
+    {} where key=string id,value=Document Context.documents
+    Element Context.focus_element
+    Element Context.hover_element
+    string Context.name
+    Element Context.root_element
+
+    //setters
+    Context.dimensions = Vector2i
+
+*/
 #include "LuaType.h"
 #include "lua.hpp"
 

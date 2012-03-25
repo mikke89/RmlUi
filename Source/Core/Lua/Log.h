@@ -2,8 +2,19 @@
 #include "lua.hpp"
 
 /*
-    Declares "Log" in the global Lua namespace. Lua usage example:
-    Log(Log.logtype.always, "Hello World")
+    Declares "Log" in the global Lua namespace.
+
+    //It is not nessecarry to call it on a "Log" object, just
+    //call it on the Log table
+    Log(logtype type, string message)
+
+    where logtype is defined in Log.logtype, and can be:
+    logtype.always
+    logtype.error
+    logtype.warning
+    logtype.info
+    logtype.debug
+    and they have the same value as the C++ Log::Type of the same name
 */
 
 namespace Rocket {

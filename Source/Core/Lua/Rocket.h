@@ -22,7 +22,7 @@ namespace Core {
 namespace Lua {
 
 //just need a class to take up a type name
-class rocket {};
+class rocket { int to_remove_warning; };
 
 template<> void LuaType<rocket>::extra_init(lua_State* L, int metatable_index);
 int rocketCreateContext(lua_State* L);

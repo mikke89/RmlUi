@@ -1,10 +1,12 @@
 #include "precompiled.h"
 #include "Context.h"
 #include <Rocket/Core/Context.h>
+#include <Rocket/Core/ElementDocument.h>
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
+typedef Rocket::Core::ElementDocument Document;
 
 //methods
 int ContextAddEventListener(lua_State* L, Context* obj)
@@ -15,35 +17,43 @@ int ContextAddEventListener(lua_State* L, Context* obj)
 
 int ContextAddMouseCursor(lua_State* L, Context* obj)
 {
-    return 1;   
+    Document* cursor_doc = LuaType<Document>::check(L,1);
+    obj->AddMouseCursor(cursor_doc);
+    return 0;   
 }
 
 int ContextCreateDocument(lua_State* L, Context* obj)
 {
-    const char* tag = luaL_checkstring(L,1);
-
+    const char* tag;
+    if(lua_gettop(L) < 1)
+        tag = "body";
+    else
+        tag = luaL_checkstring(L,1);
+    Document* doc = obj->CreateDocument(tag);
+    LuaType<Document>::push(L,doc,true);
     return 1;
 }
 
 int ContextLoadDocument(lua_State* L, Context* obj)
 {
     const char* path = luaL_checkstring(L,1);
-    
+    Document* doc = obj->LoadDocument(path);
+    LuaType<Document>::push(L,doc,true);
     return 1;
 }
 
 int ContextLoadMouseCursor(lua_State* L, Context* obj)
 {
     const char* path = luaL_checkstring(L,1);
-    ElementDocument* doc = obj->LoadMouseCursor(path);
-    //LuaType<Document>::push(L,doc);
+    Document* doc = obj->LoadMouseCursor(path);
+    LuaType<Document>::push(L,doc);
     return 1;
 }
 
 int ContextRender(lua_State* L, Context* obj)
 {
-    obj->Render();
-    return 0;
+    lua_pushboolean(L,obj->Render());
+    return 1;
 }
 
 int ContextShowMouseCursor(lua_State* L, Context* obj)
@@ -67,8 +77,8 @@ int ContextUnloadAllMouseCursors(lua_State* L, Context* obj)
 
 int ContextUnloadDocument(lua_State* L, Context* obj)
 {
-    //Document* doc = LuaType<Document>::check(L,1);
-    //obj->UnloadDocument(doc);
+    Document* doc = LuaType<Document>::check(L,1);
+    obj->UnloadDocument(doc);
     return 0;
 }
 
@@ -81,8 +91,8 @@ int ContextUnloadMouseCursor(lua_State* L, Context* obj)
 
 int ContextUpdate(lua_State* L, Context* obj)
 {
-    obj->Update();
-    return 0;
+    lua_pushboolean(L,obj->Update());
+    return 1;
 }
 
 
@@ -93,11 +103,11 @@ int ContextGetAttrdimensions(lua_State* L)
     const Vector2i* dim = &cont->GetDimensions();
     //const_cast-ing so that the user can do dimensions.x = 3 and it will actually change the dimensions
     //of the context
-    LuaType<Vector2i>::push(L,const_cast<Vector2i*>(dim),true);
+    LuaType<Vector2i>::push(L,const_cast<Vector2i*>(dim));
     return 1;
 }
 
-//returns a table of everything. Not exactly the most efficient way of doing it.
+//returns a table of everything
 int ContextGetAttrdocuments(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
@@ -107,15 +117,17 @@ int ContextGetAttrdocuments(lua_State* L)
     int tableindex = lua_gettop(L);
     for(int i = 0; i < root->GetNumChildren(); i++)
     {
-        ElementDocument* doc = root->GetChild(i)->GetOwnerDocument();
+        Document* doc = root->GetChild(i)->GetOwnerDocument();
         if(doc == NULL)
             continue;
 
-        //LuaType<Document>::push(L,doc);
+        LuaType<Document>::push(L,doc);
         lua_setfield(L, tableindex,doc->GetId().CString());
 
+        /* //is this a bad idea?
         lua_pushinteger(L,i);
         lua_setfield(L,tableindex,doc->GetId().CString());
+        */
     }
 
     return 1;
@@ -124,14 +136,14 @@ int ContextGetAttrdocuments(lua_State* L)
 int ContextGetAttrfocus_element(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
-    //LuaType<Element>::push(L,cont->GetFocusElement());
+    LuaType<Element>::push(L,cont->GetFocusElement());
     return 1;
 }
 
 int ContextGetAttrhover_element(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
-    //LuaType<Element>::push(L,cont->GetHoverElement());
+    LuaType<Element>::push(L,cont->GetHoverElement());
     return 1;
 }
 
@@ -146,7 +158,7 @@ int ContextGetAttrname(lua_State* L)
 int ContextGetAttrroot_element(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
-    //LuaType<Element>::push(L,cont->GetRootElement());
+    LuaType<Element>::push(L,cont->GetRootElement());
     return 1;
 }
 

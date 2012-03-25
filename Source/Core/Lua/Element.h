@@ -1,4 +1,75 @@
 #pragma once
+/*
+    This defines the Element type in the Lua global namespace
+
+    A few classes "inherit" from Element, such as Document. Document will call
+    LuaType<Element>::_regfunctions to put all of these functions in its own table, and
+    will be used with the same syntax except it will be from a Document object. It isn't true
+    inheritance, but it is a fair enough emulation. Any functions in the child class that have
+    the same name as the function in Element will overwrite the one in Element.
+
+    Here, I will be showing usage of the API, and it will show the type names rather than the regular
+    local var = foo that is Lua. If you need info on the purpose of the functions, see the python docs
+    
+    //methods that need to be called from an Element object using the colon syntax
+    noreturn Element:AddEventListener(string event, EventListener listener, [bool capture])
+    noreturn Element:AppendChild(Element child)
+    noreturn Element:Blur()
+    noreturn Element:Click()
+    noreturn Element:DispatchEvent(string event, {} params) --in params, keys have to be a string and value can be number,bool,string,userdata,lightuserdata
+    noreturn Element:Focus()
+    [int,float,Colourb,Colourf,string,Vector2f,lightuserdata] Element:GetAttribute(string name) --will return one of those types
+    Element Element:GetElementById(string id)
+    {}of elements Element:GetElementsByTagName(string tag)
+    bool Element:HasAttribute(string name)
+    bool Element:HasChildNodes()
+    noreturn Element:InsertBefore(Element child,Element adjacent)
+    bool Element:IsClassSet(string name)
+    noreturn Element:RemoveAttribute(string name)
+    bool Element:RemoveChild(Element child)
+    bool Element:ReplaceChild(Element inserted,Element replaced)
+    noreturn Element:ScrollIntoView(bool align_with_top)
+    noreturn Element:SetAttribute(string name,string value)
+    noreturn Element:SetClass(string name, bool activate)
+
+
+    //getters accessed by the period syntax from an element object
+    --for attributes, if you save it to a local/global variable and try to modify that variable,
+    --your changes will not be saved. You will have to use Element:SetAttribute
+    {} of [key=string,value=int,float,Colourb,Colourf,string,Vector2f,lightuserdata] Element.attributes
+    {} of Element Element.child_nodes
+    string Element.class_name
+    float Element.client_left
+    float Element.client_height
+    float Element.client_top
+    float Element.client_width
+    Element Element.first_child
+    string Element.id
+    string Element.inner_rml
+    Element Element.last_child
+    Element Element.next_sibling
+    float Element.offset_height
+    float Element.offset_left
+    Element Element.offset_parent
+    float Element.offset_top
+    float Element.offset_width
+    Document Element.owner_document
+    Element Element.parent_nod
+    Element Element.previous_sibling
+    float Element.scroll_height
+    float Element.scroll_left
+    float Element.scroll_top
+    float Element.scroll_width
+    ElementStyle Element.style --see ElementStyle.h documentation
+    string Element.tag_name
+
+    //setters to be used with a dot syntax on an Element object
+    Element.class_name = string
+    Element.id = string
+    Element.inner_rml = string
+    Element.scroll_left = float
+    Element.scroll_top = float  
+*/
 #include "LuaType.h"
 #include "lua.hpp"
 #include <Rocket/Core/Element.h>

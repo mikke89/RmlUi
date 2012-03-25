@@ -48,7 +48,7 @@ int ElementDispatchEvent(lua_State* L, Element* obj)
     const char* event = luaL_checkstring(L,1);
     Dictionary params;
     lua_pushnil(L); //becauase lua_next pops a key from the stack first, we don't want to pop the table
-    while(lua_next != 0)
+    while(lua_next(L,2) != 0)
     {
         //[-1] is value, [-2] is key
         int type = lua_type(L,-1);
