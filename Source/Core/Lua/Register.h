@@ -9,4 +9,10 @@ LuaType<Vector2f>::Register(L);
 LuaType<Colourf>::Register(L);
 LuaType<Colourb>::Register(L);
 LuaType<Log>::Register(L);
+LuaType<Element>::Register(L);
+    //things that inherit from element
+    LuaType<Document>::Register(L);
+    LuaType<ElementStyle>::Register(L);
+LuaType<Event>::Register(L);
+LuaType<Context>::Register(L);
 LuaType<rocket>::Register(L);

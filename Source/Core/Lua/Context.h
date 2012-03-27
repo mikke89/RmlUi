@@ -30,12 +30,13 @@
 */
 #include "LuaType.h"
 #include "lua.hpp"
+#include <Rocket/Core/Context.h>
 
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
-class Rocket::Core::Context;
+//class Rocket::Core::Context;
 
 //methods
 int ContextAddEventListener(lua_State* L, Context* obj);

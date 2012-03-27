@@ -5,13 +5,12 @@
 #include "LuaType.h"
 #include "LuaDocumentElementInstancer.h"
 #include <Rocket/Core/Factory.h>
+#include "LuaEventListenerInstancer.h"
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
 lua_State* Interpreter::_L = NULL;
-//forward declaration of the types unique to the lua portion
-class rocket;
 
 void Interpreter::Startup()
 {
@@ -84,7 +83,7 @@ bool Interpreter::ExecuteCall(int params, int res)
 {
     bool ret = true;
     int top = lua_gettop(_L);
-    if(strcmp(luaL_typename(_L,top-params),"function"))
+    if(lua_type(_L,top-params) != LUA_TFUNCTION)
     {
         ret = false;
         //stack cleanup
@@ -131,6 +130,7 @@ void Interpreter::OnInitialise()
 {
     Startup();
     Factory::RegisterElementInstancer("body",new LuaDocumentElementInstancer())->RemoveReference();
+    Factory::RegisterEventListenerInstancer(new LuaEventListenerInstancer())->RemoveReference();
 }
 
 void Interpreter::OnShutdown()

@@ -1,10 +1,17 @@
 #include "precompiled.h"
 #include "LuaType.h"
+#include "Rocket.h"
+#include <Rocket/Core/Event.h>
+#include <Rocket/Core/Element.h>
+#include <Rocket/Core/ElementDocument.h>
+#include <Rocket/Core/ElementStyle.h>
+#include <Rocket/Core/Context.h>
 
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
+typedef Rocket::Core::ElementDocument Document;
 
 template<typename T>
 void LuaType<T>::Register(lua_State* L)

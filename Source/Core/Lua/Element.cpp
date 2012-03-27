@@ -2,6 +2,7 @@
 #include "precompiled.h"
 #include "Element.h"
 #include <ElementStyle.h>
+#include "LuaEventListener.h"
 
 
 namespace Rocket {
@@ -17,10 +18,27 @@ int ElementAddEventListener(lua_State* L, Element* obj)
     //default false if they didn't pass it in
     if (top < 3) capture = false;
     else capture = CHECK_BOOL(L,3);
-    const char* event = luaL_checkstring(L,1);
-    EventListener* listener = NULL; //LuaType<EventListener>::check(L,2);
 
-    obj->AddEventListener(event,listener,capture);
+    const char* event = luaL_checkstring(L,1);
+
+    LuaEventListener* listener = NULL;
+    int type = lua_type(L,2);
+    if(type == LUA_TFUNCTION)
+    {
+        lua_pushvalue(L,2);
+        int ref = lua_ref(L,true);
+        listener = new LuaEventListener(ref,obj);
+    }
+    else if(type == LUA_TSTRING)
+    {
+        const char* code = luaL_checkstring(L,2);
+        listener = new LuaEventListener(code,obj);
+    }
+
+    if(listener != NULL)
+    {
+        obj->AddEventListener(event,listener,capture);
+    }
     return 0;
 }
 

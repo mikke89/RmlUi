@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\bin"
-			IntermediateDirectory="\build"
+			OutputDirectory="$(IntDir)"
+			IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			DeleteExtensionsOnClean="*.obj;*.ilk;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;$(TargetPath)"
@@ -42,6 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
+				PreprocessorDefinitions="_WIN32,_DEBUG,RocketLua_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -61,12 +62,15 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				LinkLibraryDependencies="false"
 				AdditionalDependencies="lua51.lib RocketCore_d.lib"
-				OutputFile="$(OutDir)\$(ProjectName)_d.dll"
+				ShowProgress="0"
+				OutputFile="..\bin\$(ProjectName)_d.dll"
 				AdditionalLibraryDirectories="$(SolutionDir)..\bin"
 				GenerateManifest="false"
 				EnableUAC="false"
 				GenerateDebugInformation="true"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -93,8 +97,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\bin"
-			IntermediateDirectory="\build"
+			OutputDirectory="$(IntDir)"
+			IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -119,6 +123,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
+				PreprocessorDefinitions="_WIN32,NDEBUG,RocketLua_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="1"
@@ -138,10 +143,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="lua51.lib;RocketCore.lib"
+				OutputFile="..\bin\$(ProjectName).dll"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -277,15 +284,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\RegTypes.h"
-				>
-			</File>
-			<File
 				RelativePath="..\Source\Core\Lua\Rocket.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\Source\Core\Lua\Rocket.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\RocketLua.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\RocketLua.h"
 				>
 			</File>
 		</Filter>
@@ -325,6 +336,38 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Event"
+			>
+			<File
+				RelativePath="..\Source\Core\Lua\Event.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\Event.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\LuaEventListener.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\LuaEventListener.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\LuaEventListenerInstancer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\LuaEventListenerInstancer.h"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath="..\Source\Core\Lua\Header.h"
+			>
+		</File>
 		<File
 			RelativePath="..\Source\Core\Lua\precompiled.cpp"
 			>

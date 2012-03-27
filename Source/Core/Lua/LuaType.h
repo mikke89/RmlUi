@@ -3,7 +3,7 @@
 /*
     This is mostly the definition of the Lua userdata that we give to the user
 */
-
+#include "Header.h"
 #include "lua.hpp"
 
 namespace Rocket {
@@ -33,23 +33,23 @@ namespace Lua {
 
 //replacement for luaL_reg that uses a different function pointer signature, but similar syntax
 template<typename T>
-struct RegType
+struct ROCKETLUA_API RegType
 {
     const char* name;
     int (*ftnptr)(lua_State*,T*);
 };
 
 //this is for all of the methods available from Lua that call to the C functions
-template<typename T> RegType<T>* GetMethodTable();
+template<typename T> ROCKETLUA_API RegType<T>* GetMethodTable();
 //this is for all of the function that 'get' an attribute/property
-template<typename T> luaL_reg* GetAttrTable();
+template<typename T> ROCKETLUA_API luaL_reg* GetAttrTable();
 //this is for all of the functions that 'set' an attribute/property
-template<typename T> luaL_reg* SetAttrTable();
+template<typename T> ROCKETLUA_API luaL_reg* SetAttrTable();
 //String representation of the class
-template<typename T> const char* GetTClassName();
+template<typename T> ROCKETLUA_API const char* GetTClassName();
 
 template<typename T>
-class LuaType
+class ROCKETLUA_API LuaType
 {
 public:
     typedef int (*ftnptr)(lua_State* L, T* ptr);

@@ -12,7 +12,7 @@
     local var = foo that is Lua. If you need info on the purpose of the functions, see the python docs
     
     //methods that need to be called from an Element object using the colon syntax
-    noreturn Element:AddEventListener(string event, EventListener listener, [bool capture])
+    noreturn Element:AddEventListener(string event, ? see footnote 1, [bool capture])
     noreturn Element:AppendChild(Element child)
     noreturn Element:Blur()
     noreturn Element:Click()
@@ -69,6 +69,18 @@
     Element.inner_rml = string
     Element.scroll_left = float
     Element.scroll_top = float  
+
+
+    footnote 1: for Element:AddEventListener(string,?,bool)
+    The ? can be either a string or a function. 
+    In the string, you can be guaranteed that you will have the
+    named variables 'event','element','document' available to you, and they mean the same as if you were to put
+    the string as onclick="string" in a .rml file.
+    If you give it a function, the function will be called every time that C++ EventListener::ProcessEvent would
+    would be called. In this case, it will call the function, and you can decide the name of the parameters, however
+    it is in a specific order. The order is event,element,document. So:
+    function foo(l,q,e) end element:AddEventListener("click",foo,true) is the correct syntax, and puts l=event,q=element,e=document
+    They are terrible names, but it is to make a point.
 */
 #include "LuaType.h"
 #include "lua.hpp"
