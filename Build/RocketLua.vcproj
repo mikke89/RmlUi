@@ -1,386 +1,382 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
-	ProjectType="Visual C++"
-	Version="9.00"
-	Name="RocketLua"
-	ProjectGUID="{FC02901C-3CE4-4625-856A-F180DC45A855}"
-	RootNamespace="RocketLua"
-	TargetFrameworkVersion="196613"
-	>
-	<Platforms>
-		<Platform
-			Name="Win32"
-		/>
-	</Platforms>
-	<ToolFiles>
-	</ToolFiles>
-	<Configurations>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="$(IntDir)"
-			IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
-			ConfigurationType="2"
-			CharacterSet="2"
-			DeleteExtensionsOnClean="*.obj;*.ilk;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;$(TargetPath)"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
-				PreprocessorDefinitions="_WIN32,_DEBUG,RocketLua_EXPORTS"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				UsePrecompiledHeader="1"
-				PrecompiledHeaderThrough="precompiled.h"
-				WarningLevel="3"
-				DebugInformationFormat="4"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				LinkLibraryDependencies="false"
-				AdditionalDependencies="lua51.lib RocketCore_d.lib"
-				ShowProgress="0"
-				OutputFile="..\bin\$(ProjectName)_d.dll"
-				AdditionalLibraryDirectories="$(SolutionDir)..\bin"
-				GenerateManifest="false"
-				EnableUAC="false"
-				GenerateDebugInformation="true"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(IntDir)"
-			IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
-			ConfigurationType="2"
-			CharacterSet="2"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
-				PreprocessorDefinitions="_WIN32,NDEBUG,RocketLua_EXPORTS"
-				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="1"
-				PrecompiledHeaderThrough="precompiled.h"
-				WarningLevel="3"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="lua51.lib;RocketCore.lib"
-				OutputFile="..\bin\$(ProjectName).dll"
-				GenerateManifest="false"
-				GenerateDebugInformation="false"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-	</Configurations>
-	<References>
-	</References>
-	<Files>
-		<Filter
-			Name="Element"
-			>
-			<File
-				RelativePath="..\Source\Core\Lua\Element.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Element.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\ElementStyle.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\ElementStyle.h"
-				>
-			</File>
-			<Filter
-				Name="Document"
-				>
-				<File
-					RelativePath="..\Source\Core\Lua\Document.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Core\Lua\Document.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Core\Lua\LuaDocument.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Core\Lua\LuaDocument.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Core\Lua\LuaDocumentElementInstancer.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Core\Lua\LuaDocumentElementInstancer.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
-			Name="Core"
-			>
-			<File
-				RelativePath="..\Source\Core\Lua\Context.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Context.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Interpreter.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Interpreter.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Log.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Log.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\lua.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\LuaType.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\LuaType.inl"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Register.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Rocket.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Rocket.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\RocketLua.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\RocketLua.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Basic Types"
-			>
-			<File
-				RelativePath="..\Source\Core\Lua\Colourb.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Colourb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Colourf.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Colourf.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Vector2f.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Vector2f.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Vector2i.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Vector2i.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Event"
-			>
-			<File
-				RelativePath="..\Source\Core\Lua\Event.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Event.h"
-				>
-			</File>
-<<<<<<< HEAD
-			<File
-				RelativePath="..\Source\Core\Lua\LuaEventListener.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\LuaEventListener.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\LuaEventListenerInstancer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\LuaEventListenerInstancer.h"
-				>
-			</File>
-		</Filter>
-		<File
-			RelativePath="..\Source\Core\Lua\Header.h"
-			>
-		</File>
-=======
-		</Filter>
->>>>>>> c29b71f52a011094bf8eea7d0ef87a1fe846f019
-		<File
-			RelativePath="..\Source\Core\Lua\precompiled.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\Source\Core\Lua\precompiled.h"
-			>
-		</File>
-	</Files>
-	<Globals>
-	</Globals>
+ProjectType="Visual C++"
+Version="9.00"
+Name="RocketLua"
+ProjectGUID="{FC02901C-3CE4-4625-856A-F180DC45A855}"
+RootNamespace="RocketLua"
+TargetFrameworkVersion="196613"
+>
+<Platforms>
+<Platform
+Name="Win32"
+/>
+</Platforms>
+<ToolFiles>
+</ToolFiles>
+<Configurations>
+<Configuration
+Name="Debug|Win32"
+OutputDirectory="$(IntDir)"
+IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
+ConfigurationType="2"
+CharacterSet="2"
+DeleteExtensionsOnClean="*.obj;*.ilk;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;$(TargetPath)"
+>
+<Tool
+Name="VCPreBuildEventTool"
+/>
+<Tool
+Name="VCCustomBuildTool"
+/>
+<Tool
+Name="VCXMLDataGeneratorTool"
+/>
+<Tool
+Name="VCWebServiceProxyGeneratorTool"
+/>
+<Tool
+Name="VCMIDLTool"
+/>
+<Tool
+Name="VCCLCompilerTool"
+Optimization="0"
+AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
+PreprocessorDefinitions="_WIN32,_DEBUG,RocketLua_EXPORTS"
+MinimalRebuild="true"
+BasicRuntimeChecks="3"
+RuntimeLibrary="3"
+UsePrecompiledHeader="1"
+PrecompiledHeaderThrough="precompiled.h"
+WarningLevel="3"
+DebugInformationFormat="4"
+/>
+<Tool
+Name="VCManagedResourceCompilerTool"
+/>
+<Tool
+Name="VCResourceCompilerTool"
+/>
+<Tool
+Name="VCPreLinkEventTool"
+/>
+<Tool
+Name="VCLinkerTool"
+LinkLibraryDependencies="false"
+AdditionalDependencies="lua51.lib RocketCore_d.lib"
+ShowProgress="0"
+OutputFile="..\bin\$(ProjectName)_d.dll"
+AdditionalLibraryDirectories="$(SolutionDir)..\bin"
+GenerateManifest="false"
+EnableUAC="false"
+GenerateDebugInformation="true"
+ImportLibrary="$(TargetDir)$(TargetName).lib"
+TargetMachine="1"
+/>
+<Tool
+Name="VCALinkTool"
+/>
+<Tool
+Name="VCManifestTool"
+/>
+<Tool
+Name="VCXDCMakeTool"
+/>
+<Tool
+Name="VCBscMakeTool"
+/>
+<Tool
+Name="VCFxCopTool"
+/>
+<Tool
+Name="VCAppVerifierTool"
+/>
+<Tool
+Name="VCPostBuildEventTool"
+/>
+</Configuration>
+<Configuration
+Name="Release|Win32"
+OutputDirectory="$(IntDir)"
+IntermediateDirectory="build\$(ProjectName)\$(ConfigurationName)"
+ConfigurationType="2"
+CharacterSet="2"
+WholeProgramOptimization="1"
+>
+<Tool
+Name="VCPreBuildEventTool"
+/>
+<Tool
+Name="VCCustomBuildTool"
+/>
+<Tool
+Name="VCXMLDataGeneratorTool"
+/>
+<Tool
+Name="VCWebServiceProxyGeneratorTool"
+/>
+<Tool
+Name="VCMIDLTool"
+/>
+<Tool
+Name="VCCLCompilerTool"
+Optimization="2"
+EnableIntrinsicFunctions="true"
+AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
+PreprocessorDefinitions="_WIN32,NDEBUG,RocketLua_EXPORTS"
+RuntimeLibrary="2"
+EnableFunctionLevelLinking="true"
+UsePrecompiledHeader="1"
+PrecompiledHeaderThrough="precompiled.h"
+WarningLevel="3"
+DebugInformationFormat="3"
+/>
+<Tool
+Name="VCManagedResourceCompilerTool"
+/>
+<Tool
+Name="VCResourceCompilerTool"
+/>
+<Tool
+Name="VCPreLinkEventTool"
+/>
+<Tool
+Name="VCLinkerTool"
+AdditionalDependencies="lua51.lib;RocketCore.lib"
+OutputFile="..\bin\$(ProjectName).dll"
+GenerateManifest="false"
+GenerateDebugInformation="false"
+OptimizeReferences="2"
+EnableCOMDATFolding="2"
+ImportLibrary="$(TargetDir)$(TargetName).lib"
+TargetMachine="1"
+/>
+<Tool
+Name="VCALinkTool"
+/>
+<Tool
+Name="VCManifestTool"
+/>
+<Tool
+Name="VCXDCMakeTool"
+/>
+<Tool
+Name="VCBscMakeTool"
+/>
+<Tool
+Name="VCFxCopTool"
+/>
+<Tool
+Name="VCAppVerifierTool"
+/>
+<Tool
+Name="VCPostBuildEventTool"
+/>
+</Configuration>
+</Configurations>
+<References>
+</References>
+<Files>
+<Filter
+Name="Element"
+>
+<File
+RelativePath="..\Source\Core\Lua\Element.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Element.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\ElementStyle.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\ElementStyle.h"
+>
+</File>
+<Filter
+Name="Document"
+>
+<File
+RelativePath="..\Source\Core\Lua\Document.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Document.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaDocument.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaDocument.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaDocumentElementInstancer.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaDocumentElementInstancer.h"
+>
+</File>
+</Filter>
+</Filter>
+<Filter
+Name="Core"
+>
+<File
+RelativePath="..\Source\Core\Lua\Context.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Context.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Interpreter.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Interpreter.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Log.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Log.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\lua.hpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaType.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaType.inl"
+>
+<FileConfiguration
+Name="Debug|Win32"
+>
+<Tool
+Name="VCCustomBuildTool"
+/>
+</FileConfiguration>
+<FileConfiguration
+Name="Release|Win32"
+ExcludedFromBuild="true"
+>
+<Tool
+Name="VCCLCompilerTool"
+/>
+</FileConfiguration>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Register.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Rocket.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Rocket.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\RocketLua.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\RocketLua.h"
+>
+</File>
+</Filter>
+<Filter
+Name="Basic Types"
+>
+<File
+RelativePath="..\Source\Core\Lua\Colourb.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Colourb.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Colourf.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Colourf.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Vector2f.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Vector2f.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Vector2i.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Vector2i.h"
+>
+</File>
+</Filter>
+<Filter
+Name="Event"
+>
+<File
+RelativePath="..\Source\Core\Lua\Event.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\Event.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaEventListener.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaEventListener.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaEventListenerInstancer.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\LuaEventListenerInstancer.h"
+>
+</File>
+</Filter>
+<File
+RelativePath="..\Source\Core\Lua\Header.h"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\precompiled.cpp"
+>
+</File>
+<File
+RelativePath="..\Source\Core\Lua\precompiled.h"
+>
+</File>
+</Files>
+<Globals>
+</Globals>
 </VisualStudioProject>
