@@ -347,6 +347,7 @@
 				RelativePath="..\Source\Core\Lua\Event.h"
 				>
 			</File>
+<<<<<<< HEAD
 			<File
 				RelativePath="..\Source\Core\Lua\LuaEventListener.cpp"
 				>
@@ -368,6 +369,9 @@
 			RelativePath="..\Source\Core\Lua\Header.h"
 			>
 		</File>
+=======
+		</Filter>
+>>>>>>> c29b71f52a011094bf8eea7d0ef87a1fe846f019
 		<File
 			RelativePath="..\Source\Core\Lua\precompiled.cpp"
 			>
