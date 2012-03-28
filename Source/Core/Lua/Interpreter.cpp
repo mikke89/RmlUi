@@ -2,7 +2,7 @@
 #include "Interpreter.h"
 #include <Rocket/Core/Log.h>
 #include <Rocket/Core/String.h>
-#include "LuaType.h"
+#include <Rocket/Core/Lua/LuaType.h>
 #include "LuaDocumentElementInstancer.h"
 #include <Rocket/Core/Factory.h>
 #include "LuaEventListenerInstancer.h"
@@ -24,7 +24,21 @@ void Interpreter::Startup()
 
 void Interpreter::RegisterEverything(lua_State* L)
 {
-#include "Register.h" //think of it as a glorified macro file
+    LuaType<Vector2i>::Register(L);
+    LuaType<Vector2f>::Register(L);
+    LuaType<Colourf>::Register(L);
+    LuaType<Colourb>::Register(L);
+    LuaType<Log>::Register(L);
+    LuaType<Element>::Register(L);
+        //things that inherit from Element
+        LuaType<Document>::Register(L);
+        LuaType<ElementStyle>::Register(L);
+        //controls that inherit from Element
+        LuaType<Rocket::Controls::ElementForm>::Register(L);
+        LuaType<Rocket::Controls::ElementFormControl>::Register(L);
+    LuaType<Event>::Register(L);
+    LuaType<Context>::Register(L);
+    LuaType<rocket>::Register(L);
 }
 
 
