@@ -82,7 +82,7 @@ void ElementDataGridRow::Initialise(ElementDataGrid* _parent_grid, ElementDataGr
 	for (int i = 0; i < num_columns; i++)
 	{
 		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(Core::Factory::InstanceElement(this, "#rktctl_datagridcell", "datagridcell", cell_attributes));
-		cell->Initialise(header_row->GetChild(i));
+		cell->Initialise(i, header_row->GetChild(i));
 		cell->SetProperty("display", Rocket::Core::Property(Rocket::Core::DISPLAY_INLINE_BLOCK, Rocket::Core::Property::KEYWORD));
 		AppendChild(cell);
 		cell->RemoveReference();
