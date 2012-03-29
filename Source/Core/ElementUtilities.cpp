@@ -217,10 +217,25 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 				Vector2i element_origin(Math::RealToInteger(element_origin_f.x), Math::RealToInteger(element_origin_f.y));
 				Vector2i element_dimensions(Math::RealToInteger(element_dimensions_f.x), Math::RealToInteger(element_dimensions_f.y));
 				
-				if (clip_origin == Vector2i(-1, -1) && clip_dimensions == Vector2i(-1, -1))
+				bool clip_x = element->GetProperty(OVERFLOW_X)->Get< int >() != OVERFLOW_VISIBLE;
+				bool clip_y = element->GetProperty(OVERFLOW_Y)->Get< int >() != OVERFLOW_VISIBLE;
+				ROCKET_ASSERT(!clip_x || !clip_y || (clip_x && clip_y));
+				
+				if (!clip_x)
 				{
-					clip_origin = element_origin;
-					clip_dimensions = element_dimensions;
+					element_origin.x = 0;
+					element_dimensions.x = dimensions.x < 0 ? element->GetContext()->GetDimensions().x : dimensions.x;
+				}
+				else if (!clip_y)
+				{
+					element_origin.y = 0;
+					element_dimensions.y = dimensions.y < 0 ? element->GetContext()->GetDimensions().y : dimensions.y;
+				}
+		
+				if (dimensions == Vector2i(-1, -1))
+				{
+					origin = element_origin;
+					dimensions = element_dimensions;
 				}
 				else
 				{
