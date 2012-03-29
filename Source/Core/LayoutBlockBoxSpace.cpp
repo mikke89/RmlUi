@@ -216,7 +216,7 @@ float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, con
 		if (collision)
 		{
 			next_cursor = Math::Min(next_cursor, fixed_box.offset.y + fixed_box.dimensions.y);
-			return PositionBox(box_position, next_cursor + 0.00001f, dimensions, float_property);
+			return PositionBox(box_position, next_cursor + 0.01f, dimensions, float_property);
 		}
 	}
 
@@ -247,7 +247,7 @@ float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, con
 			// D'oh! We hit this box. Ah well; we'll try again lower down the page, at the highest bottom-edge of any
 			// of the boxes we've been pushed around by so far.
 			next_cursor = Math::Min(next_cursor, fixed_box.offset.y + fixed_box.dimensions.y);
-			return PositionBox(box_position, next_cursor + 0.00001f, dimensions, float_property);
+			return PositionBox(box_position, next_cursor + 0.01f, dimensions, float_property);
 		}
 	}
 
