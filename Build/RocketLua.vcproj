@@ -199,6 +199,14 @@
 					RelativePath="..\Source\Controls\Lua\ElementFormControl.h"
 					>
 				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlSelect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlSelect.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
