@@ -200,11 +200,35 @@
 					>
 				</File>
 				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlDataSelect.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlDataSelect.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlInput.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlInput.h"
+					>
+				</File>
+				<File
 					RelativePath="..\Source\Controls\Lua\ElementFormControlSelect.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\Source\Controls\Lua\ElementFormControlSelect.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlTextArea.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\ElementFormControlTextArea.h"
 					>
 				</File>
 			</Filter>
