@@ -224,18 +224,18 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 				if (!clip_x)
 				{
 					element_origin.x = 0;
-					element_dimensions.x = dimensions.x < 0 ? element->GetContext()->GetDimensions().x : dimensions.x;
+					element_dimensions.x = clip_dimensions.x < 0 ? element->GetContext()->GetDimensions().x : clip_dimensions.x;
 				}
 				else if (!clip_y)
 				{
 					element_origin.y = 0;
-					element_dimensions.y = dimensions.y < 0 ? element->GetContext()->GetDimensions().y : dimensions.y;
+					element_dimensions.y = clip_dimensions.y < 0 ? element->GetContext()->GetDimensions().y : clip_dimensions.y;
 				}
 		
-				if (dimensions == Vector2i(-1, -1))
+				if (clip_dimensions == Vector2i(-1, -1))
 				{
-					origin = element_origin;
-					dimensions = element_dimensions;
+					clip_origin = element_origin;
+					clip_dimensions = element_dimensions;
 				}
 				else
 				{
