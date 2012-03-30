@@ -180,6 +180,30 @@
 		<Filter
 			Name="Controls"
 			>
+			<File
+				RelativePath="..\Source\Controls\Lua\ElementDataGrid.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\ElementDataGrid.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\ElementDataGridRow.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\ElementDataGridRow.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\ElementTabSet.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\ElementTabSet.h"
+				>
+			</File>
 			<Filter
 				Name="Forms"
 				>

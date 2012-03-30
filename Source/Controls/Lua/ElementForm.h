@@ -11,12 +11,6 @@
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Controls/ElementForm.h>
-/*
-    This defines the ElementForm type in the Lua global namespace
-
-    It has one method
-    noreturn ElementForm:Submit(string name,string value)
-*/
 
 using Rocket::Controls::ElementForm;
 namespace Rocket {

@@ -6,6 +6,7 @@
 #include "LuaDocumentElementInstancer.h"
 #include <Rocket/Core/Factory.h>
 #include "LuaEventListenerInstancer.h"
+#include "Rocket.h"
 
 namespace Rocket {
 namespace Core {
@@ -34,8 +35,16 @@ void Interpreter::RegisterEverything(lua_State* L)
         LuaType<Document>::Register(L);
         LuaType<ElementStyle>::Register(L);
         //controls that inherit from Element
+        LuaType<Rocket::Controls::ElementTabSet>::Register(L);
+        LuaType<Rocket::Controls::ElementDataGrid>::Register(L);
+        LuaType<Rocket::Controls::ElementDataGridRow>::Register(L);
         LuaType<Rocket::Controls::ElementForm>::Register(L);
         LuaType<Rocket::Controls::ElementFormControl>::Register(L);
+            //inherits from ElementFormControl
+            LuaType<Rocket::Controls::ElementFormControlSelect>::Register(L);
+            LuaType<Rocket::Controls::ElementFormControlDataSelect>::Register(L);
+            LuaType<Rocket::Controls::ElementFormControlInput>::Register(L);
+            LuaType<Rocket::Controls::ElementFormControlTextArea>::Register(L);
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
     LuaType<rocket>::Register(L);
