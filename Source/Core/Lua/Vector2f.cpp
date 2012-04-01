@@ -6,30 +6,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 
-template<> 
-void LuaType<Vector2f>::extra_init(lua_State* L, int metatable_index)
-{
-    lua_pushcfunction(L,Vector2f__call);
-    lua_setfield(L,metatable_index,"__call");
 
-    lua_pushcfunction(L,Vector2f__mul);
-    lua_setfield(L,metatable_index,"__mul");
-
-    lua_pushcfunction(L,Vector2f__div);
-    lua_setfield(L,metatable_index,"__div");
-
-    lua_pushcfunction(L,Vector2f__add);
-    lua_setfield(L,metatable_index,"__add");
-
-    lua_pushcfunction(L,Vector2f__sub);
-    lua_setfield(L,metatable_index,"__sub");
-
-    lua_pushcfunction(L,Vector2f__eq);
-    lua_setfield(L,metatable_index,"__eq");
-
-    //stack is in the same state as it was before it entered this function
-    return;
-}
 
 int Vector2f__call(lua_State* L)
 {
@@ -197,10 +174,6 @@ luaL_reg Vector2fSetters[]=
     { NULL, NULL },
 };
 
-template<> const char* GetTClassName<Vector2f>() { return "Vector2f"; }
-template<> RegType<Vector2f>* GetMethodTable<Vector2f>() { return Vector2fMethods; }
-template<> luaL_reg* GetAttrTable<Vector2f>() { return Vector2fGetters; }
-template<> luaL_reg* SetAttrTable<Vector2f>() { return Vector2fSetters; }
 }
 }
 }

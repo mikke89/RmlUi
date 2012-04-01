@@ -44,10 +44,12 @@ RegType<ElementFormControlInput> ElementFormControlInputMethods[];
 luaL_reg ElementFormControlInputGetters[];
 luaL_reg ElementFormControlInputSetters[];
 
+/*
 template<> const char* GetTClassName<ElementFormControlInput>();
 template<> RegType<ElementFormControlInput>* GetMethodTable<ElementFormControlInput>();
 template<> luaL_reg* GetAttrTable<ElementFormControlInput>();
 template<> luaL_reg* SetAttrTable<ElementFormControlInput>();
+*/
 
 }
 }

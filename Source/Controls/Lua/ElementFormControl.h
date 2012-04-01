@@ -16,9 +16,7 @@ using Rocket::Controls::ElementFormControl;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-//this will be used to "inherit" from Element
 template<> void LuaType<ElementFormControl>::extra_init(lua_State* L, int metatable_index);
-
 //getters
 int ElementFormControlGetAttrdisabled(lua_State* L);
 int ElementFormControlGetAttrname(lua_State* L);
@@ -33,11 +31,14 @@ RegType<ElementFormControl> ElementFormControlMethods[];
 luaL_reg ElementFormControlGetters[];
 luaL_reg ElementFormControlSetters[];
 
-template<> const char* GetTClassName<ElementFormControl>();
-template<> RegType<ElementFormControl>* GetMethodTable<ElementFormControl>();
-template<> luaL_reg* GetAttrTable<ElementFormControl>();
-template<> luaL_reg* SetAttrTable<ElementFormControl>();
+/*
+template<> const char* GetTClassName<ElementFormControl>() { return "ElementFormControl"; }
+template<> RegType<ElementFormControl>* GetMethodTable<ElementFormControl>() { return ElementFormControlMethods; }
+template<> luaL_reg* GetAttrTable<ElementFormControl>() { return ElementFormControlGetters; }
+template<> luaL_reg* SetAttrTable<ElementFormControl>() { return ElementFormControlSetters; }
+*/
+}
+}
+}
 
-}
-}
-}
+

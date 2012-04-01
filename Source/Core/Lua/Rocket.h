@@ -37,11 +37,12 @@ RegType<rocket> rocketMethods[];
 luaL_reg rocketGetters[];
 luaL_reg rocketSetters[];
 
+/*
 template<> const char* GetTClassName<rocket>();
 template<> RegType<rocket>* GetMethodTable<rocket>();
 template<> luaL_reg* GetAttrTable<rocket>();
 template<> luaL_reg* SetAttrTable<rocket>();
-
+*/
 }
 }
 }

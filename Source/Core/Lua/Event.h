@@ -37,11 +37,12 @@ RegType<Event> EventMethods[];
 luaL_reg EventGetters[];
 luaL_reg EventSetters[];
 
+/*
 template<> const char* GetTClassName<Event>();
 template<> RegType<Event>* GetMethodTable<Event>();
 template<> luaL_reg* GetAttrTable<Event>();
 template<> luaL_reg* SetAttrTable<Event>();
-
+*/
 }
 }
 }

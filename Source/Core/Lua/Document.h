@@ -54,10 +54,12 @@ RegType<Document> DocumentMethods[];
 luaL_reg DocumentGetters[];
 luaL_reg DocumentSetters[];
 
+/*
 template<> const char* GetTClassName<Document>();
 template<> RegType<Document>* GetMethodTable<Document>();
 template<> luaL_reg* GetAttrTable<Document>();
 template<> luaL_reg* SetAttrTable<Document>();
+*/
 }
 }
 }

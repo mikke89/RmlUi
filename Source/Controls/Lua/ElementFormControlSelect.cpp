@@ -10,13 +10,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 //inherits from ElementFormControl which inherits from Element
-template<> void LuaType<ElementFormControlSelect>::extra_init(lua_State* L, int metatable_index)
-{
-    //init whatever elementformcontrol did extra, like inheritance
-    LuaType<ElementFormControl>::extra_init(L,metatable_index);
-    //then inherit from elementformcontrol
-    LuaType<ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
-}
+
 
 //methods
 int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj)
@@ -130,12 +124,12 @@ luaL_reg ElementFormControlSelectSetters[] =
     { NULL, NULL },
 };
 
-
+/*
 template<> const char* GetTClassName<ElementFormControlSelect>() { return "ElementFormControlSelect"; }
 template<> RegType<ElementFormControlSelect>* GetMethodTable<ElementFormControlSelect>() { return ElementFormControlSelectMethods; }
 template<> luaL_reg* GetAttrTable<ElementFormControlSelect>() { return ElementFormControlSelectGetters; }
 template<> luaL_reg* SetAttrTable<ElementFormControlSelect>() { return ElementFormControlSelectSetters; }
-
+*/
 }
 }
 }

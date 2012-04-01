@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\Include&quot;;&quot;$(SolutionDir)..\Source\Core&quot;;&quot;$(SolutionDir)..\Dependencies\lua\src&quot;;&quot;$(SolutionDir)..\Source\Controls\Lua&quot;"
 				PreprocessorDefinitions="_WIN32,_DEBUG,RocketLua_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -122,7 +122,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="$(SolutionDir)..\Include;$(SolutionDir)..\Source\Core;$(SolutionDir)..\Dependencies\lua\src;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\Include&quot;;&quot;$(SolutionDir)..\Source\Core&quot;;&quot;$(SolutionDir)..\Dependencies\lua\src&quot;;&quot;$(SolutionDir)..\Source\Controls\Lua&quot;"
 				PreprocessorDefinitions="_WIN32,NDEBUG,RocketLua_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -289,19 +289,8 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\LuaType.h"
+				RelativePath="..\Source\Core\Lua\LuaType.cpp"
 				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\LuaType.inl"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -312,7 +301,11 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\Register.h"
+				RelativePath="..\Source\Core\Lua\LuaType.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\LuaTypeTemplateSpec.inl"
 				>
 			</File>
 			<File

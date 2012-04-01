@@ -6,13 +6,6 @@ using Rocket::Controls::ElementFormControl;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-//inherits from ElementFormControl which inherits from Element
-template<> void LuaType<ElementFormControlInput>::extra_init(lua_State* L, int metatable_index)
-{
-    LuaType<ElementFormControl>::extra_init(L,metatable_index);
-    LuaType<ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
-}
-
 //getters
 int ElementFormControlInputGetAttrchecked(lua_State* L)
 {
@@ -149,12 +142,12 @@ luaL_reg ElementFormControlInputSetters[] =
     {NULL,NULL},
 };
 
-
+/*
 template<> const char* GetTClassName<ElementFormControlInput>() { return "ElementFormControlInput"; }
 template<> RegType<ElementFormControlInput>* GetMethodTable<ElementFormControlInput>() { return ElementFormControlInputMethods; }
 template<> luaL_reg* GetAttrTable<ElementFormControlInput>() { return ElementFormControlInputGetters; }
 template<> luaL_reg* SetAttrTable<ElementFormControlInput>() { return ElementFormControlInputSetters; }
-
+*/
 }
 }
 }

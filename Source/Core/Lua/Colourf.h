@@ -27,13 +27,12 @@
 #include "LuaType.h"
 #include <Rocket/Core/Types.h>
 
-
+using Rocket::Core::Colourf;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-
-//metamethods
 template<> void LuaType<Colourf>::extra_init(lua_State* L, int metatable_index);
+//metamethods
 int Colourf__call(lua_State* L);
 int Colourf__eq(lua_State* L);
 
@@ -54,11 +53,14 @@ RegType<Colourf> ColourfMethods[];
 luaL_reg ColourfGetters[];
 luaL_reg ColourfSetters[];
 
-template<> const char* GetTClassName<Colourf>();
-template<> RegType<Colourf>* GetMethodTable<Colourf>();
-template<> luaL_reg* GetAttrTable<Colourf>();
-template<> luaL_reg* SetAttrTable<Colourf>();
+/*
+template<> const char* GetTClassName<Colourf>() { return "Colourf"; }
+template<> RegType<Colourf>* GetMethodTable<Colourf>() { return ColourfMethods; }
+template<> luaL_reg* GetAttrTable<Colourf>() { return ColourfGetters; }
+template<> luaL_reg* SetAttrTable<Colourf>() { return ColourfSetters; }
+*/
+}
+}
+}
 
-}
-}
-}
+

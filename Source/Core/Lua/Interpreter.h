@@ -4,7 +4,7 @@
     This initializes the lua interpreter, and has functions to load the scripts
     A glorified namespace, but I want the lua_State to be unchangeable
 */
-
+#include "Header.h"
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Plugin.h>
 
@@ -12,7 +12,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 
-class Interpreter : public Plugin
+class ROCKETLUA_API Interpreter : public Plugin
 {
 public:
     static void LoadFile(const Rocket::Core::String& file);
@@ -24,6 +24,8 @@ public:
     static void EndCall(int res = 0);
 
     static lua_State* GetLuaState();
+
+    static void Initialise();
     
     //From Plugin
     virtual int GetEventClasses();

@@ -6,11 +6,6 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> void LuaType<Document>::extra_init(lua_State* L, int metatable_index)
-{
-    //we will get all of the stuff from the "Element" class
-    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index - 1);
-}
 
 //methods
 int DocumentPullToFront(lua_State* L, Document* obj)
@@ -116,11 +111,12 @@ luaL_reg DocumentSetters[] =
     { NULL, NULL },
 };
 
-
+/*
 template<> const char* GetTClassName<Document>() { return "Document"; }
 template<> RegType<Document>* GetMethodTable<Document>() { return DocumentMethods; }
 template<> luaL_reg* GetAttrTable<Document>() { return DocumentGetters; }
 template<> luaL_reg* SetAttrTable<Document>() { return DocumentSetters; }
+*/
 }
 }
 }

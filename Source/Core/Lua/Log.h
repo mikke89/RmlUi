@@ -28,10 +28,12 @@ RegType<Log> LogMethods[];
 luaL_reg LogGetters[];
 luaL_reg LogSetters[];
 
+/*
 template<> const char* GetTClassName<Log>();
 template<> RegType<Log>* GetMethodTable<Log>();
 template<> luaL_reg* GetAttrTable<Log>();
 template<> luaL_reg* SetAttrTable<Log>();
+*/
 }
 }
 }

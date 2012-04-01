@@ -43,10 +43,12 @@ RegType<ElementDataGridRow> ElementDataGridRowMethods[];
 luaL_reg ElementDataGridRowGetters[];
 luaL_reg ElementDataGridRowSetters[];
 
+/*
 template<> const char* GetTClassName<ElementDataGridRow>();
 template<> RegType<ElementDataGridRow>* GetMethodTable<ElementDataGridRow>();
 template<> luaL_reg* GetAttrTable<ElementDataGridRow>();
 template<> luaL_reg* SetAttrTable<ElementDataGridRow>();
+*/
 
 }
 }

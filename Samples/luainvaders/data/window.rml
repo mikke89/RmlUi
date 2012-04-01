@@ -1,0 +1,24 @@
+<template name="luawindow" content="content">
+<head>
+	<link type="text/template" href="../../assets/window.rml" />
+	<script>
+Window = Window or {} --namespace
+
+function Window.OnWindowLoad(element)
+	element.owner_document:GetElementById('title').inner_rml = element.title
+end
+	
+function Window.LoadMenu(name,document)
+	local doc = document.context:LoadDocument('data/' .. name .. '.rml')
+	if doc then
+		doc:Show()
+		document:Close()
+    end
+	
+	return doc
+end
+	</script>
+</head>
+<body template="window" onload="Window.OnWindowLoad(element)">
+</body>
+</template>

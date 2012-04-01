@@ -36,11 +36,12 @@ RegType<ElementDataGrid> ElementDataGridMethods[];
 luaL_reg ElementDataGridGetters[];
 luaL_reg ElementDataGridSetters[];
 
+/*
 template<> const char* GetTClassName<ElementDataGrid>();
 template<> RegType<ElementDataGrid>* GetMethodTable<ElementDataGrid>();
 template<> luaL_reg* GetAttrTable<ElementDataGrid>();
 template<> luaL_reg* SetAttrTable<ElementDataGrid>();
-
+*/
 }
 }
 }

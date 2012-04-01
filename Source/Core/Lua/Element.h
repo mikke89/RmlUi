@@ -153,10 +153,12 @@ RegType<Element> ElementMethods[];
 luaL_reg ElementGetters[];
 luaL_reg ElementSetters[];
 
+/*
 template<> const char* GetTClassName<Element>();
 template<> RegType<Element>* GetMethodTable<Element>();
 template<> luaL_reg* GetAttrTable<Element>();
 template<> luaL_reg* SetAttrTable<Element>();
+*/
 }
 }
 }

@@ -166,12 +166,12 @@ luaL_reg EventSetters[] =
     { NULL, NULL },
 };
 
-
+/*
 template<> const char* GetTClassName<Event>() { return "Event"; }
 template<> RegType<Event>* GetMethodTable<Event>() { return EventMethods; }
 template<> luaL_reg* GetAttrTable<Event>() { return EventGetters; }
 template<> luaL_reg* SetAttrTable<Event>() { return EventSetters; }
-
+*/
 }
 }
 }

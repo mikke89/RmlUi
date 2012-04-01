@@ -7,16 +7,6 @@ namespace Core {
 namespace Lua {
 
 //metamethods
-template<> void LuaType<Colourf>::extra_init(lua_State* L, int metatable_index)
-{
-    lua_pushcfunction(L,Colourf__call);
-    lua_setfield(L,metatable_index,"__call");
-
-    lua_pushcfunction(L,Colourf__eq);
-    lua_setfield(L,metatable_index,"__eq");
-
-    return;
-}
 
 
 int Colourf__call(lua_State* L)
@@ -141,10 +131,7 @@ luaL_reg ColourfSetters[] =
 };
 
 
-template<> const char* GetTClassName<Colourf>() { return "Colourf"; }
-template<> RegType<Colourf>* GetMethodTable<Colourf>() { return ColourfMethods; }
-template<> luaL_reg* GetAttrTable<Colourf>() { return ColourfGetters; }
-template<> luaL_reg* SetAttrTable<Colourf>() { return ColourfSetters; }
+
 
 }
 }

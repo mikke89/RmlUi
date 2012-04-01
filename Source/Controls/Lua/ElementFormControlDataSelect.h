@@ -28,10 +28,12 @@ RegType<ElementFormControlDataSelect> ElementFormControlDataSelectMethods[];
 luaL_reg ElementFormControlDataSelectGetters[];
 luaL_reg ElementFormControlDataSelectSetters[];
 
+/*
 template<> const char* GetTClassName<ElementFormControlDataSelect>();
 template<> RegType<ElementFormControlDataSelect>* GetMethodTable<ElementFormControlDataSelect>();
 template<> luaL_reg* GetAttrTable<ElementFormControlDataSelect>();
 template<> luaL_reg* SetAttrTable<ElementFormControlDataSelect>();
+*/
 
 }
 }

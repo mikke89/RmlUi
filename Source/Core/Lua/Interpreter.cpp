@@ -12,6 +12,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 lua_State* Interpreter::_L = NULL;
+typedef Rocket::Core::ElementDocument Document;
 
 void Interpreter::Startup()
 {
@@ -159,6 +160,11 @@ void Interpreter::OnInitialise()
 void Interpreter::OnShutdown()
 {
     lua_close(_L);
+}
+
+void Interpreter::Initialise()
+{
+    Rocket::Core::RegisterPlugin(new Interpreter());
 }
 
 }

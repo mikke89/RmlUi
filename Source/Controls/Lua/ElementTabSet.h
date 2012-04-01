@@ -42,11 +42,12 @@ RegType<ElementTabSet> ElementTabSetMethods[];
 luaL_reg ElementTabSetGetters[];
 luaL_reg ElementTabSetSetters[];
 
+/*
 template<> const char* GetTClassName<ElementTabSet>();
 template<> RegType<ElementTabSet>* GetMethodTable<ElementTabSet>();
 template<> luaL_reg* GetAttrTable<ElementTabSet>();
 template<> luaL_reg* SetAttrTable<ElementTabSet>();
-
+*/
 }
 }
 }

@@ -8,14 +8,6 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 
-template<> void LuaType<ElementStyle>::extra_init(lua_State* L, int metatable_index)
-{
-    lua_pushcfunction(L,ElementStyle__index);
-    lua_setfield(L,metatable_index,"__index");
-
-    lua_pushcfunction(L,ElementStyle__newindex);
-    lua_setfield(L,metatable_index,"__newindex");
-}
 
 int ElementStyle__index(lua_State* L)
 {
@@ -118,11 +110,12 @@ luaL_reg ElementStyleSetters[] =
     { NULL, NULL },
 };
 
-
+/*
 template<> const char* GetTClassName<ElementStyle>() { return "ElementStyle"; }
 template<> RegType<ElementStyle>* GetMethodTable<ElementStyle>() { return ElementStyleMethods; }
 template<> luaL_reg* GetAttrTable<ElementStyle>() { return ElementStyleGetters; }
 template<> luaL_reg* SetAttrTable<ElementStyle>() { return ElementStyleSetters; }
+*/
 }
 }
 }

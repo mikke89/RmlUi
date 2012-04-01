@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUACOLOURB_H
+#define ROCKETCORELUACOLOURB_H
 /*
     Declares Colourb in the Lua global namespace. It implements the below (examples using Lua syntax) :
 
@@ -29,10 +30,10 @@
 #include "lua.hpp"
 #include <Rocket/Core/Types.h>
 
+using Rocket::Core::Colourb;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-
 template<> void LuaType<Colourb>::extra_init(lua_State* L, int metatable_index);
 int Colourb__call(lua_State* L);
 int Colourb__eq(lua_State* L);
@@ -57,11 +58,13 @@ RegType<Colourb> ColourbMethods[];
 luaL_reg ColourbGetters[];
 luaL_reg ColourbSetters[];
 
-template<> const char* GetTClassName<Colourb>();
-template<> RegType<Colourb>* GetMethodTable<Colourb>();
-template<> luaL_reg* GetAttrTable<Colourb>();
-template<> luaL_reg* SetAttrTable<Colourb>();
-
+/*
+template<> const char* GetTClassName<Colourb>() { return "Colourb"; }
+template<> RegType<Colourb>* GetMethodTable<Colourb>() { return ColourbMethods; }
+template<> luaL_reg* GetAttrTable<Colourb>() { return ColourbGetters; }
+template<> luaL_reg* SetAttrTable<Colourb>() { return ColourbSetters; }
+*/
 }
 }
 }
+#endif

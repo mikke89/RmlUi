@@ -208,11 +208,12 @@ luaL_reg ContextSetters[] =
     { NULL, NULL },
 };
 
+/*
 template<> const char* GetTClassName<Context>() { return "Context"; }
 template<> RegType<Context>* GetMethodTable<Context>() { return ContextMethods; }
 template<> luaL_reg* GetAttrTable<Context>() { return ContextGetters; }
 template<> luaL_reg* SetAttrTable<Context>() { return ContextSetters; }
-
+*/
 }
 }
 }

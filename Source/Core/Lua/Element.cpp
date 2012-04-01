@@ -1,4 +1,3 @@
-#include "LuaType.h"
 #include "precompiled.h"
 #include "Element.h"
 #include <ElementStyle.h>
@@ -609,11 +608,12 @@ luaL_reg ElementSetters[] =
     { NULL, NULL },
 };
 
-
+/*
 template<> const char* GetTClassName<Element>() { return "Element"; }
 template<> RegType<Element>* GetMethodTable<Element>() { return ElementMethods; }
 template<> luaL_reg* GetAttrTable<Element>() { return ElementGetters; }
 template<> luaL_reg* SetAttrTable<Element>() { return ElementSetters; }
+*/
 }
 }
 }

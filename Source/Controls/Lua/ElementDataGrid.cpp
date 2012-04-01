@@ -7,13 +7,6 @@ using Rocket::Controls::ElementDataGridRow;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-//this will be used to "inherit" from Element
-template<> void LuaType<ElementDataGrid>::extra_init(lua_State* L, int metatable_index)
-{
-    LuaType<Element>::extra_init(L,metatable_index);
-    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
-}
-
 //methods
 int ElementDataGridAddColumn(lua_State* L, ElementDataGrid* obj)
 {
@@ -76,12 +69,12 @@ luaL_reg ElementDataGridSetters[] =
     { NULL, NULL },
 };
 
-
+/*
 template<> const char* GetTClassName<ElementDataGrid>() { return "ElementDataGrid"; }
 template<> RegType<ElementDataGrid>* GetMethodTable<ElementDataGrid>() { return ElementDataGridMethods; }
 template<> luaL_reg* GetAttrTable<ElementDataGrid>() { return ElementDataGridGetters; }
 template<> luaL_reg* SetAttrTable<ElementDataGrid>() { return ElementDataGridSetters; }
-
+*/
 }
 }
 }

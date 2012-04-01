@@ -7,11 +7,6 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 //this will be used to "inherit" from Element
-template<> void LuaType<ElementTabSet>::extra_init(lua_State* L, int metatable_index)
-{
-    LuaType<Element>::extra_init(L,metatable_index);
-    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
-}
 
 //methods
 int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj)
@@ -86,10 +81,12 @@ luaL_reg ElementTabSetSetters[] =
     { NULL, NULL },
 };
 
+/*
 template<> const char* GetTClassName<ElementTabSet>() { return "ElementTabSet"; }
 template<> RegType<ElementTabSet>* GetMethodTable<ElementTabSet>() { return ElementTabSetMethods; }
 template<> luaL_reg* GetAttrTable<ElementTabSet>() { return ElementTabSetGetters; }
 template<> luaL_reg* SetAttrTable<ElementTabSet>() { return ElementTabSetSetters; }
+*/
 
 }
 }

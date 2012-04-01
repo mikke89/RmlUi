@@ -37,11 +37,12 @@ RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[];
 luaL_reg ElementFormControlTextAreaGetters[];
 luaL_reg ElementFormControlTextAreaSetters[];
 
+/*
 template<> const char* GetTClassName<ElementFormControlTextArea>();
 template<> RegType<ElementFormControlTextArea>* GetMethodTable<ElementFormControlTextArea>();
 template<> luaL_reg* GetAttrTable<ElementFormControlTextArea>();
 template<> luaL_reg* SetAttrTable<ElementFormControlTextArea>();
-
+*/
 }
 }
 }

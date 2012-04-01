@@ -26,11 +26,14 @@ RegType<ElementForm> ElementFormMethods[];
 luaL_reg ElementFormGetters[];
 luaL_reg ElementFormSetters[];
 
-template<> const char* GetTClassName<ElementForm>();
-template<> RegType<ElementForm>* GetMethodTable<ElementForm>();
-template<> luaL_reg* GetAttrTable<ElementForm>();
-template<> luaL_reg* SetAttrTable<ElementForm>();
 
+/*
+template<> const char* GetTClassName<ElementForm>() { return "ElementForm"; }
+template<> RegType<ElementForm>* GetMethodTable<ElementForm>() { return ElementFormMethods; }
+template<> luaL_reg* GetAttrTable<ElementForm>() { return ElementFormGetters; }
+template<> luaL_reg* SetAttrTable<ElementForm>() { return ElementFormSetters; }
+
+*/
 }
 }
 }
