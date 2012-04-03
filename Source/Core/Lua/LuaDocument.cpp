@@ -12,7 +12,7 @@ LuaDocument::LuaDocument(const String& tag) : ElementDocument(tag)
 {
 }
 
-void LuaDocument::LoadScript(Stream& stream, const String& source_name)
+void LuaDocument::LoadScript(Stream* stream, const String& source_name)
 {
     //if it is loaded from a file
     if(source_name != "")
