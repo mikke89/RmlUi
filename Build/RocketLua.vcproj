@@ -181,6 +181,14 @@
 			Name="Controls"
 			>
 			<File
+				RelativePath="..\Source\Controls\Lua\DataSource.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\DataSource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Source\Controls\Lua\ElementDataGrid.cpp"
 				>
 			</File>
@@ -202,6 +210,14 @@
 			</File>
 			<File
 				RelativePath="..\Source\Controls\Lua\ElementTabSet.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\LuaDataSource.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\LuaDataSource.h"
 				>
 			</File>
 			<Filter

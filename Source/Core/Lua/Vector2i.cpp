@@ -7,7 +7,7 @@ namespace Core {
 namespace Lua {
 
 
-int Vector2i__call(lua_State* L)
+int Vector2inew(lua_State* L)
 {
     int x = luaL_checkint(L,1);
     int y = luaL_checkint(L,2);

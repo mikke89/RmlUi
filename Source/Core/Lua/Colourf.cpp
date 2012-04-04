@@ -9,7 +9,7 @@ namespace Lua {
 //metamethods
 
 
-int Colourf__call(lua_State* L)
+int Colourfnew(lua_State* L)
 {
     float red = (float)luaL_checknumber(L,1);
     float green = (float)luaL_checknumber(L,2);

@@ -28,7 +28,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 template<> void LuaType<Vector2i>::extra_init(lua_State* L, int metatable_index);
-int Vector2i__call(lua_State* L);
+int Vector2inew(lua_State* L);
 int Vector2i__mul(lua_State* L);
 int Vector2i__div(lua_State* L);
 int Vector2i__add(lua_State* L);

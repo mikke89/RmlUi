@@ -33,7 +33,7 @@ namespace Core {
 namespace Lua {
 template<> void LuaType<Colourf>::extra_init(lua_State* L, int metatable_index);
 //metamethods
-int Colourf__call(lua_State* L);
+int Colourfnew(lua_State* L);
 int Colourf__eq(lua_State* L);
 
 //getters

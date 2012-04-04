@@ -35,7 +35,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 template<> void LuaType<Colourb>::extra_init(lua_State* L, int metatable_index);
-int Colourb__call(lua_State* L);
+int Colourbnew(lua_State* L);
 int Colourb__eq(lua_State* L);
 int Colourb__add(lua_State* L);
 int Colourb__mul(lua_State* L);

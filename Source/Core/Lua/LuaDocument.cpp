@@ -22,7 +22,7 @@ void LuaDocument::LoadScript(Stream* stream, const String& source_name)
     else
     {
         String buffer = "";
-        stream.Read(buffer,stream.Length()); //just do the whole thing
+        stream->Read(buffer,stream->Length()); //just do the whole thing
         Interpreter::DoString(buffer);
     }
 }

@@ -8,7 +8,7 @@ namespace Lua {
 
 
 
-int Vector2f__call(lua_State* L)
+int Vector2fnew(lua_State* L)
 {
     float x = (float)luaL_checknumber(L,1);
     float y = (float)luaL_checknumber(L,2);

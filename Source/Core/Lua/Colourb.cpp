@@ -5,7 +5,7 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-int Colourb__call(lua_State* L)
+int Colourbnew(lua_State* L)
 {
     byte red = (byte)luaL_checkint(L,1);
     byte green = (byte)luaL_checkint(L,2);

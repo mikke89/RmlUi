@@ -39,7 +39,7 @@ namespace Lua {
     template<> luaL_reg* GetAttrTable<type>() { return type##Getters; } \
     template<> luaL_reg* SetAttrTable<type>() { return type##Setters; } \
 
-//put this in the type.h file
+//put this in the type.h file  NOT USED at this moment
 #define LUATYPEDECLARE(type) \
     template<> const char* GetTClassName<type>(); \
     template<> RegType<type>* GetMethodTable<type>(); \

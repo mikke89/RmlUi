@@ -1,6 +1,6 @@
 /*
     Because all of the template specializations have to be compiled in the same translation unit, they have to 
-    exist in this file. It is included by LuaType.inl
+    exist in this file. It is included by LuaType.cpp
 */
 #include "precompiled.h"
 #include <Rocket/Core/Core.h>
@@ -26,6 +26,7 @@
 #include "ElementDataGrid.h"
 #include "ElementDataGridRow.h"
 #include "ElementTabSet.h"
+#include "DataSource.h"
 
 
 
@@ -54,6 +55,7 @@ LUATYPEDEFINE(ElementFormControlTextArea)
 LUATYPEDEFINE(ElementDataGrid)
 LUATYPEDEFINE(ElementDataGridRow)
 LUATYPEDEFINE(ElementTabSet)
+LUATYPEDEFINE(DataSource)
 
 
 template class LuaType<Colourb>;
@@ -76,6 +78,7 @@ template class LuaType<ElementFormControlTextArea>;
 template class LuaType<ElementDataGrid>;
 template class LuaType<ElementDataGridRow>;
 template class LuaType<ElementTabSet>;
+template class LuaType<DataSource>;
 
 
 
@@ -111,8 +114,8 @@ template<> void LuaType<rocket>::extra_init(lua_State* L, int metatable_index)
 
 template<> void LuaType<Colourb>::extra_init(lua_State* L, int metatable_index)
 {
-    lua_pushcfunction(L,Colourb__call);
-    lua_setfield(L,metatable_index,"__call");
+    lua_pushcfunction(L,Colourbnew);
+    lua_setfield(L,metatable_index-1,"new");
 
     lua_pushcfunction(L,Colourb__eq);
     lua_setfield(L,metatable_index,"__eq");
@@ -129,8 +132,8 @@ template<> void LuaType<Colourb>::extra_init(lua_State* L, int metatable_index)
 
 template<> void LuaType<Colourf>::extra_init(lua_State* L, int metatable_index)
 {
-    lua_pushcfunction(L,Colourf__call);
-    lua_setfield(L,metatable_index,"__call");
+    lua_pushcfunction(L,Colourfnew);
+    lua_setfield(L,metatable_index-1,"new");
 
     lua_pushcfunction(L,Colourf__eq);
     lua_setfield(L,metatable_index,"__eq");
@@ -142,8 +145,8 @@ template<> void LuaType<Colourf>::extra_init(lua_State* L, int metatable_index)
 template<> 
 void LuaType<Vector2f>::extra_init(lua_State* L, int metatable_index)
 {
-    lua_pushcfunction(L,Vector2f__call);
-    lua_setfield(L,metatable_index,"__call");
+    lua_pushcfunction(L,Vector2fnew);
+    lua_setfield(L,metatable_index-1,"new");
 
     lua_pushcfunction(L,Vector2f__mul);
     lua_setfield(L,metatable_index,"__mul");
@@ -167,8 +170,8 @@ void LuaType<Vector2f>::extra_init(lua_State* L, int metatable_index)
 template<> 
 void LuaType<Vector2i>::extra_init(lua_State* L, int metatable_index)
 {
-    lua_pushcfunction(L,Vector2i__call);
-    lua_setfield(L,metatable_index,"__call");
+    lua_pushcfunction(L,Vector2inew);
+    lua_setfield(L,metatable_index-1,"new");
 
     lua_pushcfunction(L,Vector2i__mul);
     lua_setfield(L,metatable_index,"__mul");
