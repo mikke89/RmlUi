@@ -10,9 +10,9 @@ typedef Rocket::Core::ElementDocument Document;
 
 LuaEventListener::LuaEventListener(const String& code, Element* element) : EventListener()
 {
-    String function = "function (event,element,document) ";
+    String function = "return function (event,element,document) ";
     function.Append(code);
-    function.Append("end");
+    function.Append(" end");
 
     lua_State* L = Interpreter::GetLuaState();
 

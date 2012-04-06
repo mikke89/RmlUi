@@ -9,7 +9,7 @@ namespace Lua {
 
 
 
-int Log__call(lua_State* L)
+int LogMessage(lua_State* L)
 {
     Log::Type type = Log::Type((int)luaL_checkinteger(L,1));
     const char* str = luaL_checkstring(L,2);

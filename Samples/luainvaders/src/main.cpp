@@ -122,6 +122,7 @@ int main(int, char**)
 
 	// Fire off the startup script.
 	//PythonInterface::Import("autoexec");
+    //LuaInterface::Initialise(Interpreter::GetLuaState());
     Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String(APP_PATH).Append("lua/start.lua"));
 
 	Shell::EventLoop(GameLoop);	

@@ -4,9 +4,8 @@
 /*
     Declares "Log" in the global Lua namespace.
 
-    //It is not nessecarry to call it on a "Log" object, just
-    //call it on the Log table
-    Log(logtype type, string message)
+    //method, not called from a "Log" object, just from the Log table
+    Log.Message(logtype type, string message)
 
     where logtype is defined in Log.logtype, and can be:
     logtype.always
@@ -22,7 +21,7 @@ namespace Core {
 namespace Lua {
 
 template<> void LuaType<Log>::extra_init(lua_State* L, int metatable_index);
-int Log__call(lua_State* L);
+int LogMessage(lua_State* L);
 
 RegType<Log> LogMethods[];
 luaL_reg LogGetters[];

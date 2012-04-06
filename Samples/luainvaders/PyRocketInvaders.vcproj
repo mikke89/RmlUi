@@ -54,7 +54,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="RocketCore_d.lib RocketDebugger_d.lib RocketControls_d.lib opengl32.lib RocketLua_d.lib"
+				AdditionalDependencies="RocketCore_d.lib RocketDebugger_d.lib RocketControls_d.lib opengl32.lib RocketLua_d.lib lua51.lib"
 				OutputFile="..\..\bin\$(ProjectName)_d.exe"
 				AdditionalLibraryDirectories="..\..\bin;..\..\..\support\lib"
 				GenerateDebugInformation="true"
@@ -124,7 +124,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="RocketCore.lib RocketDebugger.lib RocketControls.lib opengl32.lib boost_python-vc90-mt-1_44.lib"
+				AdditionalDependencies="RocketCore.lib RocketDebugger.lib RocketControls.lib opengl32.lib RocketLua.lib lua51.lib"
 				OutputFile="..\..\bin\$(ProjectName).exe"
 				AdditionalLibraryDirectories="..\..\bin;..\..\..\support\lib"
 				GenerateDebugInformation="true"
@@ -175,6 +175,14 @@
 			</File>
 			<File
 				RelativePath=".\src\ElementGame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ElementGameInstancer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ElementGameInstancer.h"
 				>
 			</File>
 			<File
@@ -274,6 +282,14 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\src\LuaInterface.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\src\LuaInterface.h"
+			>
+		</File>
 		<File
 			RelativePath=".\src\main.cpp"
 			>
