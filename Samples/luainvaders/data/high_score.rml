@@ -53,23 +53,23 @@ end
 function HighScore.OnLoad(window)
 	Window.OnWindowLoad(window)
 	local datagrid = window:GetElementById('datagrid')
-	datagrid:AddEventListener('rowupdate', HighScore.OnRowAdd, False)
+	datagrid:AddEventListener('rowupdate', HighScore.OnRowAdd, false)
 end
 	
 function HighScore.OnKeyDown(event)
 	if event.parameters['key_identifier'] == rocket.key_identifier.RETURN then
-		game.SetHighScoreName(event.current_element.value)
+		Game.SetHighScoreName(event.current_element.value)
     end
 end
 		</script>
 	</head>
-	<body template="luawindow" onload="HighScore.OnLoad(element) game.SubmitHighScore()" onunload="game.SetHighScoreName('Anon')">
+	<body template="luawindow" onload="HighScore.OnLoad(element) Game.SubmitHighScore()" onunload="Game.SetHighScoreName('Anon')">
 		<datagrid id="datagrid" source="high_scores.scores">
 			<col fields="name,name_required" formatter="name" width="40%">Pilot:</col>
 			<col fields="colour" formatter="ship" width="20%">Ship:</col>
 			<col fields="wave" width="20%">Wave:</col>
 			<col fields="score" width="20%">Score:</col>
 		</datagrid>
-		<button onclick="Window.LoadMenu('main_menu')">Main Menu</button>
+		<button onclick="Window.LoadMenu('main_menu',document)">Main Menu</button>
 	</body>
 </rml>

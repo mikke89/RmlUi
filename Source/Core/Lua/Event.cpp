@@ -51,7 +51,7 @@ int EventGetAttrparameters(lua_State* L)
     Event* evt = LuaType<Event>::check(L,1);
     LUACHECKOBJ(evt);
     const Dictionary* params = evt->GetParameters();
-    int index;
+    int index = 0;
     String key;
     Variant* value;
 
@@ -66,26 +66,26 @@ int EventGetAttrparameters(lua_State* L)
         case Variant::BYTE:
         case Variant::CHAR:
         case Variant::INT:
-            lua_pushinteger(L,*(int*)value);
+            lua_pushinteger(L,value->Get<int>());
             break;
         case Variant::FLOAT:
-            lua_pushnumber(L,*(float*)value);
+            lua_pushnumber(L,value->Get<float>());
             break;
         case Variant::COLOURB:
-            LuaType<Colourb>::push(L,(Colourb*)value,false);
+            LuaType<Colourb>::push(L,&value->Get<Colourb>(),false);
             break;
         case Variant::COLOURF:
-            LuaType<Colourf>::push(L,(Colourf*)value,false);
+            LuaType<Colourf>::push(L,&value->Get<Colourf>(),false);
             break;
         case Variant::STRING:
-            lua_pushstring(L,((String*)value)->CString());
+            lua_pushstring(L,value->Get<String>().CString());
             break;
         case Variant::VECTOR2:
             //according to Variant.inl, it is going to be a Vector2f
-            LuaType<Vector2f>::push(L,((Vector2f*)value),false);
+            LuaType<Vector2f>::push(L,&value->Get<Vector2f>(),false);
             break;
         case Variant::VOIDPTR:
-            lua_pushlightuserdata(L,(void*)value);
+            lua_pushlightuserdata(L,value->Get<void*>());
             break;
         default:
             lua_pushnil(L);

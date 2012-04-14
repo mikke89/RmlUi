@@ -109,26 +109,26 @@ int ElementGetAttribute(lua_State* L, Element* obj)
     case Variant::BYTE:
     case Variant::CHAR:
     case Variant::INT:
-        lua_pushinteger(L,*(int*)var);
+        lua_pushinteger(L,var->Get<int>());
         break;
     case Variant::FLOAT:
-        lua_pushnumber(L,*(float*)var);
+        lua_pushnumber(L,var->Get<float>());
         break;
     case Variant::COLOURB:
-        LuaType<Colourb>::push(L,(Colourb*)var,false);
+        LuaType<Colourb>::push(L,&var->Get<Colourb>(),false);
         break;
     case Variant::COLOURF:
-        LuaType<Colourf>::push(L,(Colourf*)var,false);
+        LuaType<Colourf>::push(L,&var->Get<Colourf>(),false);
         break;
     case Variant::STRING:
-        lua_pushstring(L,((String*)var)->CString());
+        lua_pushstring(L,var->Get<String>().CString());
         break;
     case Variant::VECTOR2:
         //according to Variant.inl, it is going to be a Vector2f
-        LuaType<Vector2f>::push(L,((Vector2f*)var),false);
+        LuaType<Vector2f>::push(L,&var->Get<Vector2f>(),false);
         break;
     case Variant::VOIDPTR:
-        lua_pushlightuserdata(L,(void*)var);
+        lua_pushlightuserdata(L,var->Get<void*>());
         break;
     default:
         lua_pushnil(L);

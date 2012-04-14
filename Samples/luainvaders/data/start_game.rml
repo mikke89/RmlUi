@@ -26,26 +26,26 @@
 		<script>
 StartGame = StartGame or {}
 
-function StartGame.SetupGame(event)
+function StartGame.SetupGame(event,document)
 	if event.parameters['difficulty'] == 'hard' then
-		game.SetDifficulty(game.difficulty.HARD)
+		Game.SetDifficulty(Game.difficulty.HARD)
 	else
-		game.SetDifficulty(game.difficulty.EASY)
+		Game.SetDifficulty(Game.difficulty.EASY)
     end
 	
     --some lua trickery coming up. Compiling a string at runtime that will return the values,
     --because they are comma separated. For example, if the user chose "Denim", then the
     --compiled string would look like "return 21,96,189"
-    local red,green,blue = loadstring('return '..event.parameters['colour'])
-	game.SetDefenderColour(Colourb(red,green,blue,255))
+    local red,green,blue = loadstring('return '..event.parameters['colour']) ()
+	Game.SetDefenderColour(Colourb.new(red,green,blue,255))
 	
-	local elem = Window.LoadMenu('game'):GetElementById('game')
+	local elem = Window.LoadMenu('game',document):GetElementById('game')
 	elem:Focus()
 end
 		</script>
 	</head>
 	<body template="luawindow">
-		<form onsubmit="StartGame.SetupGame(event)">
+		<form onsubmit="StartGame.SetupGame(event,document)">
 			<div>
 				<p>
 					Difficulty:<br />

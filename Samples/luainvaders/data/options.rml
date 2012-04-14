@@ -35,7 +35,7 @@ function Options.LoadOptions(document)
     
     document:GetElementById(options['graphics']).checked = true
     document:GetElementById('reverb').checked = options['reverb']
-    document:GetElementById("3d").checked = options['3d']
+    document:GetElementById('3d').checked = options['3d']
 end
 
 function Options.SaveOptions(event, document):

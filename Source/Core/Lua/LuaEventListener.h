@@ -19,6 +19,8 @@ public:
     //should take care to have the proper order. The order is event,element,document.
     LuaEventListener(int ref, Element* element);
 
+    virtual ~LuaEventListener();
+
     /// Process the incoming Event
 	virtual void ProcessEvent(Event& event);
 private:
