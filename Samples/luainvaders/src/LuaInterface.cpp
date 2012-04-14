@@ -57,16 +57,16 @@ void LuaInterface::InitGame(lua_State *L)
     lua_pushcfunction(L,GameSetHighScoreName);
     lua_setfield(L,game,"SetHighScoreName");
 
-    lua_newtable(L);
-    lua_pushinteger(L,GameDetails::HARD);
-    lua_setfield(L,-2,"HARD");
+    lua_newtable(L); //table, Game
+    lua_pushinteger(L,GameDetails::HARD); //int,table,Game
+    lua_setfield(L,-2,"HARD");//table,Game
 
-    lua_pushinteger(L,GameDetails::EASY);
-    lua_setfield(L,-2,"EASY");
+    lua_pushinteger(L,GameDetails::EASY); //int,table,Game
+    lua_setfield(L,-2,"EASY"); //table,Game
 
-    lua_setfield(L,game,"difficulty"); //Game.difficulty = {HARD,EASY}
+    lua_setfield(L,game,"difficulty"); //Game
 
-    lua_pop(L,2); //pop both Game.difficulty and Game
+    lua_pop(L,1); //pop Game
 }
 
 int GameShutdown(lua_State* L)

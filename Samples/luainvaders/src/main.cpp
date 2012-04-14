@@ -37,6 +37,7 @@
 #include "ElementGame.h"
 #include "HighScores.h"
 #include <Rocket/Core/Lua/Interpreter.h>
+#include "LuaInterface.h"
 
 Rocket::Core::Context* context = NULL;
 
@@ -122,7 +123,7 @@ int main(int, char**)
 
 	// Fire off the startup script.
 	//PythonInterface::Import("autoexec");
-    //LuaInterface::Initialise(Interpreter::GetLuaState());
+    LuaInterface::Initialise(Rocket::Core::Lua::Interpreter::GetLuaState());
     Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String(APP_PATH).Append("lua/start.lua"));
 
 	Shell::EventLoop(GameLoop);	

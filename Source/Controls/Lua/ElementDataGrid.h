@@ -23,6 +23,7 @@ namespace Core {
 namespace Lua {
 //this will be used to "inherit" from Element
 template<> void LuaType<ElementDataGrid>::extra_init(lua_State* L, int metatable_index);
+template<> bool LuaType<ElementDataGrid>::is_reference_counted();
 
 //methods
 int ElementDataGridAddColumn(lua_State* L, ElementDataGrid* obj);

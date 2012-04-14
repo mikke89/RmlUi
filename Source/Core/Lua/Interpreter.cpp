@@ -91,7 +91,7 @@ void Interpreter::Report()
     const char * msg= lua_tostring(_L,-1);
     while(msg)
     {
-        lua_pop(_L,-1);
+        lua_pop(_L,1);
         Log::Message(Log::LT_WARNING, msg);
         msg=lua_tostring(_L,-1);
     }
@@ -107,6 +107,10 @@ bool Interpreter::ExecuteCall(int params, int res)
 {
     bool ret = true;
     int top = lua_gettop(_L);
+    //String strtype = lua_typename(_L,top-params);
+    String strtype;
+    for(int i = top; i >= 1; i--)
+        strtype = lua_typename(_L,lua_type(_L,i));
     if(lua_type(_L,top-params) != LUA_TFUNCTION)
     {
         ret = false;

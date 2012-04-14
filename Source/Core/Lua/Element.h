@@ -89,7 +89,7 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-
+template<> bool LuaType<Element>::is_reference_counted();
 
 //methods
 int ElementAddEventListener(lua_State* L, Element* obj);

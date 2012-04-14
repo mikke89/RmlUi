@@ -26,6 +26,7 @@ namespace Core {
 namespace Lua {
 //this will be used to "inherit" from Element
 template<> void LuaType<ElementTabSet>::extra_init(lua_State* L, int metatable_index);
+template<> bool LuaType<ElementTabSet>::is_reference_counted();
 
 //methods
 int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj);

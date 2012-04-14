@@ -18,6 +18,7 @@ namespace Core {
 namespace Lua {
 //this will be used to "inherit" from Element
 template<> void LuaType<ElementForm>::extra_init(lua_State* L, int metatable_index);
+template<> bool LuaType<ElementForm>::is_reference_counted();
 
 //method
 int ElementFormSubmit(lua_State* L, ElementForm* obj);

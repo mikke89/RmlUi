@@ -81,6 +81,22 @@ template class LuaType<ElementTabSet>;
 template class LuaType<DataSource>;
 
 
+//reference counted types
+template<> bool LuaType<Element>::is_reference_counted() { return true; }
+template<> bool LuaType<Document>::is_reference_counted() { return true; }
+template<> bool LuaType<Event>::is_reference_counted() { return true; }
+template<> bool LuaType<Context>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementForm>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementFormControl>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementFormControlDataSelect>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementFormControlSelect>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementFormControlInput>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementFormControlTextArea>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementDataGrid>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementDataGridRow>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementTabSet>::is_reference_counted() { return true; }
+/////////////////////////
+
 
 template<> void LuaType<rocket>::extra_init(lua_State* L, int metatable_index)
 {
@@ -206,7 +222,6 @@ template<> void LuaType<Document>::extra_init(lua_State* L, int metatable_index)
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index - 1);
 }
 
-
 template<> void LuaType<ElementStyle>::extra_init(lua_State* L, int metatable_index)
 {
     lua_pushcfunction(L,ElementStyle__index);
@@ -270,7 +285,6 @@ template<> void LuaType<ElementTabSet>::extra_init(lua_State* L, int metatable_i
 {
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
 }
-
 
 template<> void LuaType<Log>::extra_init(lua_State* L, int metatable_index)
 {

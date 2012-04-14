@@ -20,6 +20,7 @@ namespace Core {
 namespace Lua {
 //inherits from ElementFormControl which inherits from Element
 template<> void LuaType<ElementFormControlTextArea>::extra_init(lua_State* L, int metatable_index);
+template<> bool LuaType<ElementFormControlTextArea>::is_reference_counted();
 
 //getters
 int ElementFormControlTextAreaGetAttrcols(lua_State* L);

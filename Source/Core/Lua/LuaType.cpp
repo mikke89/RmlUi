@@ -79,11 +79,21 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
             lua_pushboolean(L,1);// ->[4] = true
             lua_setfield(L,-2,name); //represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
         }
+        else
+        {
+            if(is_reference_counted())
+                ((Rocket::Core::ReferenceCountable*)obj)->AddReference();
+        }
         lua_pop(L,1); // -> pop [3]
     }
+    String strtype = lua_typename(L,ud);
+    strtype = lua_typename(L,mt);
     lua_settop(L,ud); //[ud = 2] -> remove everything that is above 2, top = [2]
+    strtype = lua_typename(L,-1);
     lua_replace(L, mt); //[mt = 1] -> move [2] to pos [1], and pop previous [1]
+    strtype = lua_typename(L,-1);
     lua_settop(L, mt); //remove everything above [1]
+    strtype = lua_typename(L,-1);
     return mt;  // index of userdata containing pointer to T object
 }
 
@@ -134,8 +144,15 @@ int LuaType<T>::gc_T(lua_State* L)
         lua_getfield(L,-1, std::string(name).c_str()); //[-1 = 2] -> [3] = the value returned from if <ClassName> exists in the table to not gc
         if(lua_isnil(L,-1) ) //[-1 = 3] if it doesn't exist, then we are free to garbage collect c++ side
         {
-            delete obj;
-            obj = NULL;
+            if(is_reference_counted())
+            {
+                ((Rocket::Core::ReferenceCountable*)obj)->RemoveReference();
+            }
+            else
+            {
+                delete obj;
+                obj = NULL;
+            }
         }
     }
     lua_pop(L,3); //balance function
@@ -275,6 +292,12 @@ void LuaType<T>::_regfunctions(lua_State* L, int meta, int methods)
         lua_setfield(L,-2,m->name); //[-2 = 3] -> table.name = function
     }
     lua_setfield(L,methods, "__setters"); //[methods = 1], methods.__setters = table, pop table
+}
+
+template<typename T>
+bool LuaType<T>::is_reference_counted()
+{
+    return false;
 }
 
 }

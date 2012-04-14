@@ -32,6 +32,6 @@ end
 		<button onclick="Window.LoadMenu('high_score')">High Scores</button><br />
 		<button onclick="Window.LoadMenu('options')">Options</button><br />
 		<button onclick="Window.LoadMenu('help')">Help</button><br />
-		<button onclick="game.Shutdown()">Exit</button>
+		<button onclick="Game.Shutdown()">Exit</button>
 	</body>
 </rml>

@@ -17,6 +17,8 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 template<> void LuaType<ElementFormControl>::extra_init(lua_State* L, int metatable_index);
+template<> bool LuaType<ElementFormControl>::is_reference_counted();
+
 //getters
 int ElementFormControlGetAttrdisabled(lua_State* L);
 int ElementFormControlGetAttrname(lua_State* L);

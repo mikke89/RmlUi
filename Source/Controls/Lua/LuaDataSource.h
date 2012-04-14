@@ -9,7 +9,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 
-class LuaDataSource : public DataSource
+class LuaDataSource : public Rocket::Controls::DataSource
 {
 public:
     //default initilialize the lua func references to -1

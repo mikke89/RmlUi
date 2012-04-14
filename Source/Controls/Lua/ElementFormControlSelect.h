@@ -29,6 +29,7 @@ namespace Core {
 namespace Lua {
 //inherits from ElementFormControl which inherits from Element
 template<> void LuaType<ElementFormControlSelect>::extra_init(lua_State* L, int metatable_index);
+template<> bool LuaType<ElementFormControlSelect>::is_reference_counted();
 
 //methods
 int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj);

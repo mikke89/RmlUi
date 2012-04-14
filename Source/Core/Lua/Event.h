@@ -20,6 +20,7 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
+template<> bool LuaType<Event>::is_reference_counted();
 
 //method
 int EventStopPropagation(lua_State* L, Event* obj);

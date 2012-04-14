@@ -33,6 +33,7 @@ namespace Lua {
 typedef ElementDocument Document;
 
 template<> void LuaType<Document>::extra_init(lua_State* L, int metatable_index);
+template<> bool LuaType<Document>::is_reference_counted();
 
 //methods
 int DocumentPullToFront(lua_State* L, Document* obj);

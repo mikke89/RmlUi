@@ -1,5 +1,6 @@
 #pragma once
 #include <Rocket/Core/EventListener.h>
+#include <Rocket/Core/String.h>
 #include "lua.hpp"
 
 namespace Rocket {
@@ -25,6 +26,7 @@ private:
     int luaFuncRef;
     Element* attached;
     ElementDocument* parent;
+    String strFunc; //for debugging purposes
 };
 
 }

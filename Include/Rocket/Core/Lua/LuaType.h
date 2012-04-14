@@ -39,7 +39,7 @@ namespace Lua {
     template<> luaL_reg* GetAttrTable<type>() { return type##Getters; } \
     template<> luaL_reg* SetAttrTable<type>() { return type##Setters; } \
 
-//put this in the type.h file  NOT USED at this moment
+//put this in the type.h file
 #define LUATYPEDECLARE(type) \
     template<> const char* GetTClassName<type>(); \
     template<> RegType<type>* GetMethodTable<type>(); \
@@ -97,6 +97,10 @@ public:
     static  void extra_init(lua_State* L, int metatable_index);
     //Registers methods,getters,and setters to the type
     static void _regfunctions(lua_State* L, int meta, int method);
+    //Says if it is a reference counted type. If so, then on push and __gc, do reference counting things
+    //rather than regular new/delete. Note that it is still up to the user to pass "true" to the push function's
+    //third parameter to be able to decrease the reference when Lua garbage collects an object
+    static bool is_reference_counted();
 private:
     LuaType(); //hide constructor
 
