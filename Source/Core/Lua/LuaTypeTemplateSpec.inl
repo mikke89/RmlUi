@@ -293,7 +293,7 @@ template<> void LuaType<Log>::extra_init(lua_State* L, int metatable_index)
     int method_index = metatable_index - 1;
 
     lua_pushcfunction(L,LogMessage);
-    lua_setfield(L,metatable_index, "Message");
+    lua_setfield(L,method_index, "Message");
 
     //construct the "logtype" table, so that we can use the Rocket::Core::Log::Type enum like Log.logtype.always in Lua for Log::LT_ALWAYS
     lua_newtable(L);

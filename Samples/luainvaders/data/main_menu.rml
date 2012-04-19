@@ -22,7 +22,8 @@ MainMenu = MainMenu or {}
 
 function MainMenu.CloseLogo(document)
 	if document.context then
-		document.context.documents['logo']:Close()
+		--context.documents seems to be empty
+		--document.context.documents['logo']:Close()
     end
 end
 		</script>

@@ -13,10 +13,10 @@ typedef ElementDocument Document;
 int ElementAddEventListener(lua_State* L, Element* obj)
 {
     int top = lua_gettop(L);
-    bool capture;
+    bool capture = false;
     //default false if they didn't pass it in
-    if (top < 3) capture = false;
-    else capture = CHECK_BOOL(L,3);
+    if (top > 3)
+		capture = CHECK_BOOL(L,3);
 
     const char* event = luaL_checkstring(L,1);
 
@@ -24,15 +24,17 @@ int ElementAddEventListener(lua_State* L, Element* obj)
     int type = lua_type(L,2);
     if(type == LUA_TFUNCTION)
     {
-        lua_pushvalue(L,2);
-        int ref = lua_ref(L,true);
-        listener = new LuaEventListener(ref,obj);
+        listener = new LuaEventListener(L,2,obj);
     }
     else if(type == LUA_TSTRING)
     {
         const char* code = luaL_checkstring(L,2);
         listener = new LuaEventListener(code,obj);
     }
+	else
+	{
+		Log::Message(Log::LT_WARNING, "Lua Context:AddEventLisener's 2nd argument can only be a Lua function or a string, you passed in a %s", lua_typename(L,type));
+	}
 
     if(listener != NULL)
     {

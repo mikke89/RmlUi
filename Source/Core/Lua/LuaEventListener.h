@@ -17,7 +17,8 @@ public:
     //This is called from a Lua Element if in element:AddEventListener it passes a function in as the 2nd
     //parameter rather than a string. We don't wrap the function in an anonymous function, so the user
     //should take care to have the proper order. The order is event,element,document.
-    LuaEventListener(int ref, Element* element);
+	//narg is the position on the stack
+    LuaEventListener(lua_State* L, int narg, Element* element);
 
     virtual ~LuaEventListener();
 

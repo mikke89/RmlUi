@@ -2,6 +2,8 @@
 #include "Context.h"
 #include <Rocket/Core/Context.h>
 #include <Rocket/Core/ElementDocument.h>
+#include <Rocket/Core/Factory.h>
+#include "LuaEventListener.h"
 
 namespace Rocket {
 namespace Core {
@@ -12,6 +14,38 @@ typedef Rocket::Core::ElementDocument Document;
 int ContextAddEventListener(lua_State* L, Context* obj)
 {
    //need to make an EventListener for Lua before I can do anything else
+	LUACHECKOBJ(obj);
+	const char* evt = luaL_checkstring(L,1); //event
+	Element* element = NULL;
+	bool capturephase = false;
+	//get the rest of the stuff needed to construct the listener
+	if(lua_gettop(L) > 2)
+	{
+		if(!lua_isnoneornil(L,3))
+			element = LuaType<Element>::check(L,3);
+		if(!lua_isnoneornil(L,4))
+			capturephase = CHECK_BOOL(L,4);
+
+	}
+	int type = lua_type(L,2);
+	if(type == LUA_TFUNCTION)
+	{
+		if(element)
+			element->AddEventListener(evt, new LuaEventListener(L,2,element), capturephase);
+		else
+			obj->AddEventListener(evt, new LuaEventListener(L,2,NULL), capturephase);
+	}
+	else if(type == LUA_TSTRING)
+	{
+		if(element)
+			element->AddEventListener(evt, new LuaEventListener(luaL_checkstring(L,2),element), capturephase);
+		else
+			obj->AddEventListener(evt, new LuaEventListener(luaL_checkstring(L,2),NULL), capturephase);
+	}
+	else
+	{
+		Log::Message(Log::LT_WARNING, "Lua Context:AddEventLisener's 2nd argument can only be a Lua function or a string, you passed in a %s", lua_typename(L,type));
+	}
     return 0;
 }
 
@@ -31,6 +65,8 @@ int ContextCreateDocument(lua_State* L, Context* obj)
         tag = luaL_checkstring(L,1);
     Document* doc = obj->CreateDocument(tag);
     LuaType<Document>::push(L,doc,true);
+	//for debugging
+	int count = doc->GetReferenceCount();
     return 1;
 }
 
@@ -38,7 +74,8 @@ int ContextLoadDocument(lua_State* L, Context* obj)
 {
     const char* path = luaL_checkstring(L,1);
     Document* doc = obj->LoadDocument(path);
-    LuaType<Document>::push(L,doc,true);
+    LuaType<Document>::push(L,doc,false);
+	doc->RemoveReference();
     return 1;
 }
 

@@ -163,12 +163,18 @@ void Interpreter::OnInitialise()
 
 void Interpreter::OnShutdown()
 {
-    lua_close(_L);
+	//causing crashes
+    //lua_close(_L);
 }
 
 void Interpreter::Initialise()
 {
     Rocket::Core::RegisterPlugin(new Interpreter());
+}
+
+void Interpreter::Shutdown()
+{
+	lua_close(_L);
 }
 
 }

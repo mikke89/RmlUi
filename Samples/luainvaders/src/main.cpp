@@ -133,6 +133,7 @@ int main(int, char**)
 	
 	// Shutdown Python before we shut down Rocket.
 	//PythonInterface::Shutdown();
+	Rocket::Core::Lua::Interpreter::Shutdown();
 
 	// Shut down the game singletons.
 	HighScores::Shutdown();

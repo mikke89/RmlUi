@@ -26,6 +26,7 @@ public:
     static lua_State* GetLuaState();
 
     static void Initialise();
+	static void Shutdown();
     
     //From Plugin
     virtual int GetEventClasses();

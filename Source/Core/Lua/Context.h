@@ -3,12 +3,12 @@
     This defines a Context type in the Lua global namespace
 
     //methods
-    Context:AddEventListener --NYI
+    noreturn Context:AddEventListener(string event, function | string listener, [Element element, bool capture]) --see note at the bottom
     noreturn Context:AddMouseCursor(Document cursor_document)
     Document Context:CreateDocument([string tag]) --tag defaults to "body"
     Document Context:LoadDocument(string path)
     Document Context:LoadMouseCursor(string path)
-    bool Context:Render
+    bool Context:Render()
     noreturn Context:ShowMouseCursor(bool show)
     noreturn Context:UnloadAllDocuments()
     noreturn Context:UnloadAllMouseCursors()
@@ -26,6 +26,14 @@
 
     //setters
     Context.dimensions = Vector2i
+
+	--note 1
+	--[[
+	Context:AddEventListener has 2 'unusuals'. The first is that the 2nd argument can be either a string or a function;
+	see footnote 1 in Element.h for more info
+	The second is the optional parameters. If you pass in an element (anything not nil), then it will actually call 
+	element->AddEventListener and will call context->AddEventListener otherwise. capture will default to false
+	]]
 
 */
 #include "LuaType.h"
