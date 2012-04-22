@@ -221,7 +221,6 @@ int ElementScrollIntoView(lua_State* L, Element* obj)
 
 int ElementSetAttribute(lua_State* L, Element* obj)
 {
-    LUACHECKOBJ(obj);
     const char* name = luaL_checkstring(L,1);
     const char* value = luaL_checkstring(L,2);
     obj->SetAttribute(name,String(value));
@@ -241,6 +240,7 @@ int ElementSetClass(lua_State* L, Element* obj)
 int ElementGetAttrattributes(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     
     int index;
     String key;
@@ -291,6 +291,7 @@ int ElementGetAttrattributes(lua_State* L)
 int ElementGetAttrchild_nodes(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     if(!ele->HasChildNodes())
         lua_pushnil(L);
     else
@@ -312,6 +313,7 @@ int ElementGetAttrchild_nodes(lua_State* L)
 int ElementGetAttrclass_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     const char* classnames = ele->GetClassNames().CString();
     lua_pushstring(L,classnames);
     return 1;
@@ -320,6 +322,7 @@ int ElementGetAttrclass_name(lua_State* L)
 int ElementGetAttrclient_left(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetClientLeft());
     return 1;
 }
@@ -327,6 +330,7 @@ int ElementGetAttrclient_left(lua_State* L)
 int ElementGetAttrclient_height(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetClientHeight());
     return 1;
 }
@@ -334,6 +338,7 @@ int ElementGetAttrclient_height(lua_State* L)
 int ElementGetAttrclient_top(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetClientTop());
     return 1;
 }
@@ -341,6 +346,7 @@ int ElementGetAttrclient_top(lua_State* L)
 int ElementGetAttrclient_width(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetClientWidth());
     return 1;
 }
@@ -348,6 +354,7 @@ int ElementGetAttrclient_width(lua_State* L)
 int ElementGetAttrfirst_child(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     Element* child = ele->GetFirstChild();
     if(child == NULL)
         lua_pushnil(L);
@@ -359,6 +366,7 @@ int ElementGetAttrfirst_child(lua_State* L)
 int ElementGetAttrid(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushstring(L,ele->GetId().CString());
     return 1;
 }
@@ -366,6 +374,7 @@ int ElementGetAttrid(lua_State* L)
 int ElementGetAttrinner_rml(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushstring(L,ele->GetInnerRML().CString());
     return 1;
 }
@@ -373,6 +382,7 @@ int ElementGetAttrinner_rml(lua_State* L)
 int ElementGetAttrlast_child(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     Element* child = ele->GetLastChild();
     if(child == NULL)
         lua_pushnil(L);
@@ -384,6 +394,7 @@ int ElementGetAttrlast_child(lua_State* L)
 int ElementGetAttrnext_sibling(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     Element* sibling = ele->GetNextSibling();
     if(sibling == NULL)
         lua_pushnil(L);
@@ -395,6 +406,7 @@ int ElementGetAttrnext_sibling(lua_State* L)
 int ElementGetAttroffset_height(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetOffsetHeight());
     return 1;
 }
@@ -402,6 +414,7 @@ int ElementGetAttroffset_height(lua_State* L)
 int ElementGetAttroffset_left(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetOffsetLeft());
     return 1;
 }
@@ -409,6 +422,7 @@ int ElementGetAttroffset_left(lua_State* L)
 int ElementGetAttroffset_parent(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     Element* parent = ele->GetOffsetParent();
     LuaType<Element>::push(L,parent,false);
     return 1;
@@ -417,6 +431,7 @@ int ElementGetAttroffset_parent(lua_State* L)
 int ElementGetAttroffset_top(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L, ele->GetOffsetTop());
     return 1;
 }
@@ -424,6 +439,7 @@ int ElementGetAttroffset_top(lua_State* L)
 int ElementGetAttroffset_width(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetOffsetWidth());
     return 1;
 }
@@ -431,6 +447,7 @@ int ElementGetAttroffset_width(lua_State* L)
 int ElementGetAttrowner_document(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     Document* doc = ele->GetOwnerDocument();
     LuaType<Document>::push(L,doc,false);
     return 1;

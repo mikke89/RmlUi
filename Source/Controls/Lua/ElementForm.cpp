@@ -9,7 +9,6 @@ namespace Lua {
 //method
 int ElementFormSubmit(lua_State* L, ElementForm* obj)
 {
-    LUACHECKOBJ(obj);
     const char* name = luaL_checkstring(L,1);
     const char* value = luaL_checkstring(L,2);
     obj->Submit(name,value);

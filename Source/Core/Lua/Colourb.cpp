@@ -21,7 +21,9 @@ int Colourbnew(lua_State* L)
 int Colourb__eq(lua_State* L)
 {
     Colourb* lhs = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(lhs);
     Colourb* rhs = LuaType<Colourb>::check(L,2);
+    LUACHECKOBJ(rhs);
 
     lua_pushboolean(L, (*lhs) == (*rhs) ? 1 : 0);
     return 1;
@@ -30,7 +32,9 @@ int Colourb__eq(lua_State* L)
 int Colourb__add(lua_State* L)
 {
     Colourb* lhs = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(lhs);
     Colourb* rhs = LuaType<Colourb>::check(L,2);
+    LUACHECKOBJ(rhs);
 
     Colourb* res = new Colourb((*lhs) + (*rhs));
 
@@ -41,6 +45,7 @@ int Colourb__add(lua_State* L)
 int Colourb__mul(lua_State* L)
 {
     Colourb* lhs = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(lhs);
     float rhs = (float)luaL_checknumber(L,2);
 
     Colourb* res = new Colourb((*lhs) * rhs);
@@ -55,6 +60,7 @@ int Colourb__mul(lua_State* L)
 int ColourbGetAttrred(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     lua_pushinteger(L,obj->red);
     return 1;
 }
@@ -62,6 +68,7 @@ int ColourbGetAttrred(lua_State* L)
 int ColourbGetAttrgreen(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     lua_pushinteger(L,obj->green);
     return 1;
 }
@@ -69,6 +76,7 @@ int ColourbGetAttrgreen(lua_State* L)
 int ColourbGetAttrblue(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     lua_pushinteger(L,obj->blue);
     return 1;
 }
@@ -76,6 +84,7 @@ int ColourbGetAttrblue(lua_State* L)
 int ColourbGetAttralpha(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     lua_pushinteger(L,obj->alpha);
     return 1;
 }
@@ -83,6 +92,7 @@ int ColourbGetAttralpha(lua_State* L)
 int ColourbGetAttrrgba(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     lua_pushinteger(L,obj->red);
     lua_pushinteger(L,obj->green);
     lua_pushinteger(L,obj->blue);
@@ -95,6 +105,7 @@ int ColourbGetAttrrgba(lua_State* L)
 int ColourbSetAttrred(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     byte red = (byte)luaL_checkinteger(L,2);
     obj->red = red;
     return 0;
@@ -103,6 +114,7 @@ int ColourbSetAttrred(lua_State* L)
 int ColourbSetAttrgreen(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     byte green = (byte)luaL_checkinteger(L,2);
     obj->green = green;
     return 0;
@@ -111,6 +123,7 @@ int ColourbSetAttrgreen(lua_State* L)
 int ColourbSetAttrblue(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     byte blue = (byte)luaL_checkinteger(L,2);
     obj->blue = blue;
     return 0;
@@ -119,6 +132,7 @@ int ColourbSetAttrblue(lua_State* L)
 int ColourbSetAttralpha(lua_State* L)
 {
     Colourb* obj = LuaType<Colourb>::check(L,1);
+    LUACHECKOBJ(obj);
     byte alpha = (byte)luaL_checkinteger(L,2);
     obj->alpha = alpha;
     return 0;

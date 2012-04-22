@@ -14,7 +14,6 @@ typedef Rocket::Core::ElementDocument Document;
 int ContextAddEventListener(lua_State* L, Context* obj)
 {
    //need to make an EventListener for Lua before I can do anything else
-	LUACHECKOBJ(obj);
 	const char* evt = luaL_checkstring(L,1); //event
 	Element* element = NULL;
 	bool capturephase = false;
@@ -173,6 +172,7 @@ int ContextGetAttrdocuments(lua_State* L)
 int ContextGetAttrfocus_element(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
+    LUACHECKOBJ(cont);
     LuaType<Element>::push(L,cont->GetFocusElement());
     return 1;
 }
@@ -180,6 +180,7 @@ int ContextGetAttrfocus_element(lua_State* L)
 int ContextGetAttrhover_element(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
+    LUACHECKOBJ(cont);
     LuaType<Element>::push(L,cont->GetHoverElement());
     return 1;
 }
@@ -187,7 +188,7 @@ int ContextGetAttrhover_element(lua_State* L)
 int ContextGetAttrname(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
-
+    LUACHECKOBJ(cont);
     lua_pushstring(L,cont->GetName().CString());
     return 1;
 }
@@ -195,6 +196,7 @@ int ContextGetAttrname(lua_State* L)
 int ContextGetAttrroot_element(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
+    LUACHECKOBJ(cont);
     LuaType<Element>::push(L,cont->GetRootElement());
     return 1;
 }
@@ -204,6 +206,7 @@ int ContextGetAttrroot_element(lua_State* L)
 int ContextSetAttrdimensions(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
+    LUACHECKOBJ(cont);
     Vector2i* dim = LuaType<Vector2i>::check(L,2);
     cont->SetDimensions(*dim);
     return 0;

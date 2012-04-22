@@ -118,8 +118,15 @@ int LuaType<T>::thunk(lua_State* L)
     lua_remove(L, 1);  // remove self so member function args start at index 1
     // get member function from upvalue
     RegType *l = static_cast<RegType*>(lua_touserdata(L, lua_upvalueindex(1)));
-    // call member function
-    return l->func(L,obj);
+    //at the moment, there isn't a case where NULL is acceptable to be used in the function, so check
+    //for it here, rather than individually for each function
+    if(obj == NULL)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+    else
+        return l->func(L,obj);  // call member function
 }
 
 

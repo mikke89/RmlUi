@@ -56,6 +56,7 @@ LuaEventListener::LuaEventListener(lua_State* L, int narg, Element* element)
 	lua_pushvalue(L,narg);
 	luaFuncRef = luaL_ref(L,-2); //put the funtion as a ref in to that table
 	lua_pop(L,1); //pop the EVENTLISTENERFUNCTIONS table
+
 	attached = element;
 	if(element)
 		parent = element->GetOwnerDocument();
@@ -80,6 +81,7 @@ void LuaEventListener::ProcessEvent(Event& event)
     if(!parent && attached) parent = attached->GetOwnerDocument();
     lua_State* L = Interpreter::GetLuaState();
     int top = lua_gettop(L); 
+
     //push the arguments
     lua_getglobal(L,"EVENTLISTENERFUNCTIONS");
     lua_rawgeti(L,-1,luaFuncRef);

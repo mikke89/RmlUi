@@ -64,6 +64,7 @@ int DocumentCreateTextNode(lua_State* L, Document* obj)
 int DocumentGetAttrtitle(lua_State* L)
 {
     Document* doc = LuaType<Document>::check(L,1);
+    LUACHECKOBJ(doc);
     lua_pushstring(L,doc->GetTitle().CString());
     return 1;
 }
@@ -71,6 +72,7 @@ int DocumentGetAttrtitle(lua_State* L)
 int DocumentGetAttrcontext(lua_State* L)
 {
     Document* doc = LuaType<Document>::check(L,1);
+    LUACHECKOBJ(doc);
     LuaType<Context>::push(L,doc->GetContext(),false);
     return 1;
 }
@@ -80,6 +82,7 @@ int DocumentGetAttrcontext(lua_State* L)
 int DocumentSetAttrtitle(lua_State* L)
 {
     Document* doc = LuaType<Document>::check(L,1);
+    LUACHECKOBJ(doc);
     const char* title = luaL_checkstring(L,2);
     doc->SetTitle(title);
     return 0;

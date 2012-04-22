@@ -12,7 +12,6 @@ namespace Lua {
 //method
 int ElementFormControlDataSelectSetDataSource(lua_State* L, ElementFormControlDataSelect* obj)
 {
-    LUACHECKOBJ(obj);
     const char* source = luaL_checkstring(L,1);
     obj->SetDataSource(source);
     return 0;

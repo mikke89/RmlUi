@@ -21,6 +21,7 @@ int Vector2inew(lua_State* L)
 int Vector2i__mul(lua_State* L)
 {
     Vector2i* lhs = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(lhs);
     int rhs = luaL_checkint(L,2);
 
     Vector2i* res = new Vector2i(*lhs);
@@ -33,6 +34,7 @@ int Vector2i__mul(lua_State* L)
 int Vector2i__div(lua_State* L)
 {
     Vector2i* lhs = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(lhs);
     int rhs = luaL_checkint(L,2);
 
     Vector2i* res = new Vector2i(*lhs);
@@ -45,7 +47,9 @@ int Vector2i__div(lua_State* L)
 int Vector2i__add(lua_State* L)
 {
     Vector2i* lhs = LuaType<Vector2i>::check(L,1);
-    Vector2i* rhs = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(lhs);
+    Vector2i* rhs = LuaType<Vector2i>::check(L,2);
+    LUACHECKOBJ(rhs);
 
     Vector2i* res = new Vector2i(*lhs);
     (*res) += (*rhs);
@@ -57,7 +61,9 @@ int Vector2i__add(lua_State* L)
 int Vector2i__sub(lua_State* L)
 {
     Vector2i* lhs = LuaType<Vector2i>::check(L,1);
-    Vector2i* rhs = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(lhs);
+    Vector2i* rhs = LuaType<Vector2i>::check(L,2);
+    LUACHECKOBJ(rhs);
 
     Vector2i* res = new Vector2i(*lhs);
     (*res) -= (*rhs);
@@ -69,7 +75,9 @@ int Vector2i__sub(lua_State* L)
 int Vector2i__eq(lua_State* L)
 {
     Vector2i* lhs = LuaType<Vector2i>::check(L,1);
-    Vector2i* rhs = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(lhs);
+    Vector2i* rhs = LuaType<Vector2i>::check(L,2);
+    LUACHECKOBJ(rhs);
 
     lua_pushboolean(L, (*lhs) == (*rhs) ? 1 : 0);
     return 1;
@@ -78,6 +86,7 @@ int Vector2i__eq(lua_State* L)
 int Vector2iGetAttrx(lua_State*L)
 {
     Vector2i* self = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(self);
 
     lua_pushinteger(L,self->x);
     return 1;
@@ -86,6 +95,7 @@ int Vector2iGetAttrx(lua_State*L)
 int Vector2iGetAttry(lua_State*L)
 {
     Vector2i* self = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(self);
 
     lua_pushinteger(L,self->y);
     return 1;
@@ -94,6 +104,7 @@ int Vector2iGetAttry(lua_State*L)
 int Vector2iGetAttrmagnitude(lua_State*L)
 {
     Vector2i* self = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(self);
 
     lua_pushnumber(L,self->Magnitude());
     return 1;
@@ -102,6 +113,7 @@ int Vector2iGetAttrmagnitude(lua_State*L)
 int Vector2iSetAttrx(lua_State*L)
 {
     Vector2i* self = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(self);
     int value = luaL_checkint(L,2);
 
     self->x = value;
@@ -111,6 +123,7 @@ int Vector2iSetAttrx(lua_State*L)
 int Vector2iSetAttry(lua_State*L)
 {
     Vector2i* self = LuaType<Vector2i>::check(L,1);
+    LUACHECKOBJ(self);
     int value = luaL_checkint(L,2);
 
     self->y = value;

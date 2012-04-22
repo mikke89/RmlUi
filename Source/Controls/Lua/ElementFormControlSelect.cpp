@@ -15,7 +15,6 @@ namespace Lua {
 //methods
 int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj)
 {
-    LUACHECKOBJ(obj);
     const char* rml = luaL_checkstring(L,1);
     const char* value = luaL_checkstring(L,2);
     int before = -1; //default
@@ -29,7 +28,6 @@ int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj)
 
 int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj)
 {
-    LUACHECKOBJ(obj);
     int index = luaL_checkint(L,1);
     obj->Remove(index);
     return 0;
@@ -37,7 +35,6 @@ int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj)
 
 int ElementFormControlSelectGetOption(lua_State* L, ElementFormControlSelect* obj)
 {
-    LUACHECKOBJ(obj);
     int index = luaL_checkint(L,1);
     Rocket::Controls::SelectOption* opt = obj->GetOption(index);
     lua_newtable(L);

@@ -77,7 +77,6 @@ int ElementStyle__newindex(lua_State* L)
 
 int ElementStyleGetTable(lua_State* L, ElementStyle* obj)
 {
-    LUACHECKOBJ(obj);
     int index = 0;
     String key,sval;
     const Property* value;

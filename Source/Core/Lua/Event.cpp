@@ -13,7 +13,6 @@ namespace Lua {
 //method
 int EventStopPropagation(lua_State* L, Event* obj)
 {
-    LUACHECKOBJ(obj);
     obj->StopPropagation();
     return 0;
 }
