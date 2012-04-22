@@ -214,11 +214,36 @@ void LuaType<Vector2i>::extra_init(lua_State* L, int metatable_index)
     Elements
 
 */
-
+template<> void LuaType<Element>::extra_init(lua_State* L, int metatable_index)
+{
+    int top = lua_gettop(L);
+    //build the Element.etype table
+    lua_newtable(L);
+    lua_pushinteger(L,TDATAGRID);
+    lua_setfield(L,-2,"datagrid");
+    lua_pushinteger(L,TDATASELECT);
+    lua_setfield(L,-2,"dataselect");
+    lua_pushinteger(L,TELEMENT);
+    lua_setfield(L,-2,"element");
+    lua_pushinteger(L,TFORM);
+    lua_setfield(L,-2,"form");
+    lua_pushinteger(L,TINPUT);
+    lua_setfield(L,-2,"input");
+    lua_pushinteger(L,TSELECT);
+    lua_setfield(L,-2,"select");
+    lua_pushinteger(L,TTABSET);
+    lua_setfield(L,-2,"tabset");
+    lua_pushinteger(L,TTEXTAREA);
+    lua_setfield(L,-2,"textarea");
+    
+    lua_setfield(L,metatable_index-1,"etype");
+    lua_settop(L,top);
+}
 
 template<> void LuaType<Document>::extra_init(lua_State* L, int metatable_index)
 {
     //we will inherit from Element
+    LuaType<Element>::extra_init(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index - 1);
 }
 
@@ -235,11 +260,13 @@ template<> void LuaType<ElementStyle>::extra_init(lua_State* L, int metatable_in
 template<> void LuaType<ElementForm>::extra_init(lua_State* L, int metatable_index)
 {
     //inherit from Element
+    LuaType<Element>::extra_init(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
 }
 
 template<> void LuaType<ElementFormControl>::extra_init(lua_State* L, int metatable_index)
 {
+    LuaType<Element>::extra_init(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
 }
 
@@ -273,16 +300,19 @@ template<> void LuaType<ElementFormControlTextArea>::extra_init(lua_State* L, in
 
 template<> void LuaType<ElementDataGrid>::extra_init(lua_State* L, int metatable_index)
 {
+    LuaType<Element>::extra_init(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
 }
 
 template<> void LuaType<ElementDataGridRow>::extra_init(lua_State* L, int metatable_index)
 {
+    LuaType<Element>::extra_init(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
 }
 
 template<> void LuaType<ElementTabSet>::extra_init(lua_State* L, int metatable_index)
 {
+    LuaType<Element>::extra_init(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
 }
 

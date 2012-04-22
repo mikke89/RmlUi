@@ -31,6 +31,7 @@
     noreturn Element:ScrollIntoView(bool align_with_top)
     noreturn Element:SetAttribute(string name,string value)
     noreturn Element:SetClass(string name, bool activate)
+    type_specified Element:AsType(Element.etype) --see footnote 2. Yes, that 'e' is supposed to be there.
 
 
     //getters accessed by the period syntax from an element object
@@ -81,6 +82,12 @@
     it is in a specific order. The order is event,element,document. So:
     function foo(l,q,e) end element:AddEventListener("click",foo,true) is the correct syntax, and puts l=event,q=element,e=document
     They are terrible names, but it is to make a point.
+
+
+    footnote 2: For Element:AsType(Element.etype)
+    Element.etype is an enum that maps strings to integers. It can be one of the following:
+    datagrid,dataselect,element,form,input,select,tabset,textarea
+    If you give it a bad parameter, it will return an Element type
 */
 #include "LuaType.h"
 #include "lua.hpp"
@@ -89,7 +96,12 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
+enum Elementetype
+{
+    TDATAGRID = 0, TDATASELECT, TELEMENT, TFORM, TINPUT, TSELECT, TTABSET, TTEXTAREA
+};
 template<> bool LuaType<Element>::is_reference_counted();
+template<> void LuaType<Element>::extra_init(lua_State* L, int metatable_index);
 
 //methods
 int ElementAddEventListener(lua_State* L, Element* obj);
@@ -111,6 +123,7 @@ int ElementReplaceChild(lua_State* L, Element* obj);
 int ElementScrollIntoView(lua_State* L, Element* obj);
 int ElementSetAttribute(lua_State* L, Element* obj);
 int ElementSetClass(lua_State* L, Element* obj);
+int ElementAsType(lua_State* L, Element* obj);
 
 //getters
 int ElementGetAttrattributes(lua_State* L);

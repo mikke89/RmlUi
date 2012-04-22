@@ -27,15 +27,43 @@
 		</style>
 		<script>
 Options = Options or {}
+
+function Options.Serialize(filename,options)
+    local file,message = io.open(filename,'w+') --w+ will erase the previous data
+    if file == nil then Log.Message(Log.logtype.error, "Error saving options in options.rml: " .. message) return end
+    --cache the function
+    local format = string.format
+    
+    for key,value in pairs(options) do
+        file:write(tostring(key)..'='..tostring(value)..'\n')
+    end
+    file:close()
+end
+
+function Options.Deserialize(filename)
+    local ret = {} --table to return
+    --cache functions that are used a lot for faster lookup
+    local lines = io.lines
+    local gmatch = string.gmatch
+    
+    for line in lines(filename) do
+        for k,v in gmatch(line, '(%w+)=(%w+)') do ret[k] = v end
+    end 
+    --io.lines automatically closes the file when it get to the end
+    
+    return ret
+end
+        
         
 function Options.LoadOptions(document)
-    local f = io.open('options.dat', 'r')
-    --create the function below
-    local options = nil --cPickle.loads(''.join(f:lines()))
+    --TODO: check for a non-existing file so we don't get warnings
+    local options = Options.Deserialize('options.dat')
+    local type = Element.etype
     
-    document:GetElementById(options['graphics']).checked = true
-    document:GetElementById('reverb').checked = options['reverb']
-    document:GetElementById('3d').checked = options['3d']
+    document:GetElementById(options['graphics']):AsType(type.input).checked = true
+    --because everything is loaded as a string, we have to fool around with the boolean variables
+    document:GetElementById('reverb'):AsType(type.input).checked = (options['reverb'] == 'true')
+    document:GetElementById('3d'):AsType(type.input).checked = (options['3d'] == 'true')
 end
 
 function Options.SaveOptions(event)
@@ -46,13 +74,12 @@ function Options.SaveOptions(event)
     local options = {}
     local params = event.parameters
     options['graphics'] = params['graphics']
-    options['reverb'] = params['reverb']
-    options['3d'] = params['3d']
+    --because of how checkboxes won't be in the event params if they aren't checked,
+    --we return false if they don't exist. This is Lua's ternary operator.
+    options['reverb'] = params['reverb'] and true or false
+    options['3d'] = params['3d'] and true or false
     
-    local f = io.open('options.dat', 'w+')
-    --need the below function
-    --f:write(cPickle.dumps(options))
-    f:close()
+    Options.Serialize('options.dat',options)
 end
 		
 function Options.DisplayBadGraphics(document, display)
@@ -78,7 +105,7 @@ end
 				<p>
 					Audio:<br />
 					<input id="reverb" type="checkbox" name="reverb" value="true" checked="true" /> Reverb<br />
-					<input id="3d" type="checkbox" name="3d" value="true" /> 3D Spatialisation
+					<input id="3d" type="checkbox" name="3d" value="false" checked="false" /> 3D Spatialisation
 				</p>
 			</div>
 			<input type="submit" name="button" value="accept">Accept</input>

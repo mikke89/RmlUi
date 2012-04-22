@@ -235,6 +235,38 @@ int ElementSetClass(lua_State* L, Element* obj)
     return 0;
 }
 
+int ElementAsType(lua_State* L, Element* obj)
+{
+    Elementetype type = Elementetype(luaL_checkint(L,1));
+    switch(type)
+    {
+    case TDATAGRID:
+        LuaType<Rocket::Controls::ElementDataGrid>::push(L,(Rocket::Controls::ElementDataGrid*)obj,false);
+        break;
+    case TDATASELECT:
+        LuaType<Rocket::Controls::ElementFormControlDataSelect>::push(L,(Rocket::Controls::ElementFormControlDataSelect*)obj,false);
+        break;
+    case TFORM:
+        LuaType<Rocket::Controls::ElementForm>::push(L,(Rocket::Controls::ElementForm*)obj,false);
+        break;
+    case TINPUT:
+        LuaType<Rocket::Controls::ElementFormControlInput>::push(L,(Rocket::Controls::ElementFormControlInput*)obj,false);
+        break;
+    case TSELECT:
+        LuaType<Rocket::Controls::ElementFormControlSelect>::push(L,(Rocket::Controls::ElementFormControlSelect*)obj,false);
+        break;
+    case TTABSET:
+        LuaType<Rocket::Controls::ElementTabSet>::push(L,(Rocket::Controls::ElementTabSet*)obj,false);
+        break;
+    case TTEXTAREA:
+        LuaType<Rocket::Controls::ElementFormControlTextArea>::push(L,(Rocket::Controls::ElementFormControlTextArea*)obj,false);
+    default:
+        LuaType<Element>::push(L,obj,false);
+        break;
+    }
+    return 1;
+}
+
 
 //getters
 int ElementGetAttrattributes(lua_State* L)
@@ -257,26 +289,26 @@ int ElementGetAttrattributes(lua_State* L)
         case Variant::BYTE:
         case Variant::CHAR:
         case Variant::INT:
-            lua_pushinteger(L,*(int*)var);
+            lua_pushinteger(L,var->Get<int>());
             break;
         case Variant::FLOAT:
-            lua_pushnumber(L,*(float*)var);
+            lua_pushnumber(L,var->Get<float>());
             break;
         case Variant::COLOURB:
-            LuaType<Colourb>::push(L,(Colourb*)var,false);
+            LuaType<Colourb>::push(L,&var->Get<Colourb>(),false);
             break;
         case Variant::COLOURF:
-            LuaType<Colourf>::push(L,(Colourf*)var,false);
+            LuaType<Colourf>::push(L,&var->Get<Colourf>(),false);
             break;
         case Variant::STRING:
-            lua_pushstring(L,((String*)var)->CString());
+            lua_pushstring(L,var->Get<String>().CString());
             break;
         case Variant::VECTOR2:
             //according to Variant.inl, it is going to be a Vector2f
-            LuaType<Vector2f>::push(L,((Vector2f*)var),false);
+            LuaType<Vector2f>::push(L,&var->Get<Vector2f>(),false);
             break;
         case Variant::VOIDPTR:
-            lua_pushlightuserdata(L,(void*)var);
+            lua_pushlightuserdata(L,var->Get<void*>());
             break;
         default:
             lua_pushnil(L);
@@ -583,6 +615,7 @@ RegType<Element> ElementMethods[] =
     LUAMETHOD(Element,ScrollIntoView)
     LUAMETHOD(Element,SetAttribute)
     LUAMETHOD(Element,SetClass)
+    LUAMETHOD(Element,AsType)
     { NULL, NULL },
 };
 

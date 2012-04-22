@@ -31,10 +31,10 @@ void Interpreter::RegisterEverything(lua_State* L)
     LuaType<Colourf>::Register(L);
     LuaType<Colourb>::Register(L);
     LuaType<Log>::Register(L);
+    LuaType<ElementStyle>::Register(L);
     LuaType<Element>::Register(L);
         //things that inherit from Element
         LuaType<Document>::Register(L);
-        LuaType<ElementStyle>::Register(L);
         //controls that inherit from Element
         LuaType<Rocket::Controls::ElementTabSet>::Register(L);
         LuaType<Rocket::Controls::ElementDataGrid>::Register(L);
