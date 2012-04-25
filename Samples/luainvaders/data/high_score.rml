@@ -43,7 +43,7 @@ HighScore = HighScore or {}
 
 --because we pass it as a plain function in HighScore.OnLoad, we have to pay attention
 --to the order of arguments. We don't need the first two in this case, so the name doesn't matter
-function HighScore.OnRowAdd(_,_,document)
+function HighScore.OnRowAdd(_a,_b,document)
 	input = document:GetElementById('player_input')
 	if input then
 		input:Focus()

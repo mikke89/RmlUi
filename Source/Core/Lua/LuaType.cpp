@@ -73,6 +73,7 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
             luaL_newmetatable(L,"DO NOT TRASH"); //[4] = the new metatable
             lua_pop(L,1); //pop [4]
         }
+        lua_pop(L,1); //pop [3]
         lua_getfield(L,LUA_REGISTRYINDEX,"DO NOT TRASH"); //->[3] = value returned from function
         if(gc == false) //if we shouldn't garbage collect it, then put the name in to [3]
         {
@@ -86,14 +87,9 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
         }
         lua_pop(L,1); // -> pop [3]
     }
-    String strtype = lua_typename(L,ud);
-    strtype = lua_typename(L,mt);
     lua_settop(L,ud); //[ud = 2] -> remove everything that is above 2, top = [2]
-    strtype = lua_typename(L,-1);
     lua_replace(L, mt); //[mt = 1] -> move [2] to pos [1], and pop previous [1]
-    strtype = lua_typename(L,-1);
     lua_settop(L, mt); //remove everything above [1]
-    strtype = lua_typename(L,-1);
     return mt;  // index of userdata containing pointer to T object
 }
 

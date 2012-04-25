@@ -1,7 +1,7 @@
 #pragma once
 #include <Rocket/Core/EventListener.h>
 #include <Rocket/Core/String.h>
-#include "lua.hpp"
+#include <Rocket/Core/Lua/lua.hpp>
 
 namespace Rocket {
 namespace Core {

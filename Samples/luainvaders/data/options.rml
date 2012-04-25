@@ -43,21 +43,25 @@ end
 function Options.Deserialize(filename)
     local ret = {} --table to return
     --cache functions that are used a lot for faster lookup
-    local lines = io.lines
     local gmatch = string.gmatch
     
-    for line in lines(filename) do
-        for k,v in gmatch(line, '(%w+)=(%w+)') do ret[k] = v end
-    end 
-    --io.lines automatically closes the file when it get to the end
+    local f = io.open(filename)
+    if f then
+        for line in f:lines() do
+            for k,v in gmatch(line, '(%w+)=(%w+)') do ret[k] = v end
+        end 
+        f:close()
+    else
+        return nil
+    end
     
     return ret
 end
         
         
 function Options.LoadOptions(document)
-    --TODO: check for a non-existing file so we don't get warnings
     local options = Options.Deserialize('options.dat')
+    if options == nil then return end --short circuit if the file doesn't exist
     local type = Element.etype
     
     document:GetElementById(options['graphics']):AsType(type.input).checked = true

@@ -1,11 +1,12 @@
 #include "precompiled.h"
-#include "Interpreter.h"
+#include <Rocket/Core/Lua/Interpreter.h>
 #include <Rocket/Core/Log.h>
 #include <Rocket/Core/String.h>
 #include <Rocket/Core/Lua/LuaType.h>
 #include "LuaDocumentElementInstancer.h"
 #include <Rocket/Core/Factory.h>
 #include "LuaEventListenerInstancer.h"
+#include "LuaDataFormatter.h"
 #include "Rocket.h"
 
 namespace Rocket {
@@ -13,6 +14,7 @@ namespace Core {
 namespace Lua {
 lua_State* Interpreter::_L = NULL;
 typedef Rocket::Core::ElementDocument Document;
+typedef Rocket::Core::Lua::LuaDataFormatter DataFormatter;
 
 void Interpreter::Startup()
 {
@@ -48,6 +50,7 @@ void Interpreter::RegisterEverything(lua_State* L)
             LuaType<Rocket::Controls::ElementFormControlTextArea>::Register(L);
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
+    LuaType<DataFormatter>::Register(L);
     LuaType<rocket>::Register(L);
 }
 

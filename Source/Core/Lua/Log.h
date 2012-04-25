@@ -1,5 +1,5 @@
-#include "LuaType.h"
-#include "lua.hpp"
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/lua.hpp>
 
 /*
     Declares "Log" in the global Lua namespace.

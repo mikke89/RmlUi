@@ -22,8 +22,8 @@
     //setter
     Document.title = string
 */
-#include "lua.hpp"
-#include "LuaType.h"
+#include <Rocket/Core/Lua/lua.hpp>
+#include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/ElementDocument.h>
 
 

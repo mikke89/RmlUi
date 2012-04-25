@@ -5,7 +5,7 @@
 #include "precompiled.h"
 #include <Rocket/Core/Core.h>
 #include <Rocket/Controls/Controls.h>
-#include "LuaType.h"
+#include <Rocket/Core/Lua/LuaType.h>
 #include "Colourb.h"
 #include "Colourf.h"
 #include "Vector2f.h"
@@ -27,6 +27,7 @@
 #include "ElementDataGridRow.h"
 #include "ElementTabSet.h"
 #include "DataSource.h"
+#include "DataFormatter.h"
 
 
 
@@ -56,6 +57,7 @@ LUATYPEDEFINE(ElementDataGrid)
 LUATYPEDEFINE(ElementDataGridRow)
 LUATYPEDEFINE(ElementTabSet)
 LUATYPEDEFINE(DataSource)
+LUATYPEDEFINE(DataFormatter)
 
 
 template class LuaType<Colourb>;
@@ -79,6 +81,7 @@ template class LuaType<ElementDataGrid>;
 template class LuaType<ElementDataGridRow>;
 template class LuaType<ElementTabSet>;
 template class LuaType<DataSource>;
+template class LuaType<DataFormatter>;
 
 
 //reference counted types
@@ -348,6 +351,13 @@ template<> void LuaType<Log>::extra_init(lua_State* L, int metatable_index)
 
     lua_pop(L,1); //pop the logtype table
 
+    return;
+}
+
+template<> void LuaType<DataFormatter>::extra_init(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,DataFormatternew);
+    lua_setfield(L,metatable_index-1,"new");
     return;
 }
 

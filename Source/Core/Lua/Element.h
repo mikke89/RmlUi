@@ -89,8 +89,8 @@
     datagrid,dataselect,element,form,input,select,tabset,textarea
     If you give it a bad parameter, it will return an Element type
 */
-#include "LuaType.h"
-#include "lua.hpp"
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Element.h>
 
 namespace Rocket {

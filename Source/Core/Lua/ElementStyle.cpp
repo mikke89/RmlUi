@@ -1,6 +1,6 @@
 #include "precompiled.h"
-#include "LuaType.h"
-#include "lua.hpp"
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/lua.hpp>
 #include "ElementStyle.h"
 #include <ElementStyle.h>
 

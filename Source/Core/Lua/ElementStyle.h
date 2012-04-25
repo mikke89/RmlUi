@@ -44,8 +44,8 @@
     At the moment, you are unable to say element.style = {} and have a table of key,value pairs
     added to the style. That is planned for a little later
 */
-#include "LuaType.h"
-#include "lua.hpp"
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/lua.hpp>
 #include <ElementStyle.h>
 
 namespace Rocket {

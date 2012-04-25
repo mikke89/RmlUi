@@ -14,8 +14,8 @@
     {}key=string,value=int,float,Colourb/f,string,Vector2f,userdata Event.parameters
 */
 
-#include "LuaType.h"
-#include "lua.hpp"
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/lua.hpp>
 
 namespace Rocket {
 namespace Core {

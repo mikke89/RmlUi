@@ -1,7 +1,7 @@
 #include "precompiled.h"
 #include "LuaDocument.h"
-#include "lua.hpp"
-#include "Interpreter.h"
+#include <Rocket/Core/Lua/lua.hpp>
+#include <Rocket/Core/Lua/Interpreter.h>
 
 
 namespace Rocket {

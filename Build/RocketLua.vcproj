@@ -181,6 +181,14 @@
 			Name="Controls"
 			>
 			<File
+				RelativePath="..\Source\Controls\Lua\DataFormatter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\DataFormatter.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Source\Controls\Lua\DataSource.cpp"
 				>
 			</File>
@@ -210,6 +218,14 @@
 			</File>
 			<File
 				RelativePath="..\Source\Controls\Lua\ElementTabSet.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\LuaDataFormatter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Controls\Lua\LuaDataFormatter.h"
 				>
 			</File>
 			<File

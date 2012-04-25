@@ -26,8 +26,8 @@
     local red,green,blue,alpha = col.rgba    
 */
 
-#include "LuaType.h"
-#include "lua.hpp"
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Types.h>
 
 using Rocket::Core::Colourb;

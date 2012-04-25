@@ -1,5 +1,5 @@
 #include "precompiled.h"
-#include "Interpreter.h"
+#include <Rocket/Core/Lua/Interpreter.h>
 
 
 namespace Rocket {
