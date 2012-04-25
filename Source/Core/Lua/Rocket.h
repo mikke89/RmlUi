@@ -8,6 +8,7 @@
     methods: 
     rocket.CreateContext(string name, Vector2i dimensions)
     rocket.LoadFontFace(string font_path)
+    rocket.RegisterTag(string tag, class) --NYI
     
     getters:
     rocket.contexts  returns a table of contexts, which are indexed by number AND string, so there are two copies of each context in the table

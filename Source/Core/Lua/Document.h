@@ -13,7 +13,7 @@
     noreturn Document:Hide()
     noreturn Document:Close()
     Element Document:CreateElement(string tag)
-    ElementText Document:CreateTextNode --NYI
+    ElementText Document:CreateTextNode(string text)
     
     //getters
     string Document.title

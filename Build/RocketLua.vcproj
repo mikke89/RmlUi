@@ -375,6 +375,14 @@
 					RelativePath="..\Source\Core\Lua\ElementStyle.h"
 					>
 				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ElementText.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ElementText.h"
+					>
+				</File>
 				<Filter
 					Name="Document"
 					>

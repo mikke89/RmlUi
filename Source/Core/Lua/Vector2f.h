@@ -2,10 +2,10 @@
 /*
     Declares Vector2f in the Lua global namespace. It implements the below (examples using Lua syntax) :
 
-    Vector2f(float,float) creates a new Vector2f, and gets deleted when Lua garbage collects
+    Vector2f.new(float,float) creates a new Vector2f, and gets deleted when Lua garbage collects
     
     everything after this will assume that you have a local variable named 'vect', declared something similar to
-    local vect = Vector2f(3.5,2.3)
+    local vect = Vector2f.new(3.5,2.3)
     operators (the types that it can operate on are on the right):
     vect * float
     vect / float

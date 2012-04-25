@@ -14,6 +14,7 @@
 #include "Log.h"
 #include "Rocket.h"
 #include "Element.h"
+#include "ElementText.h"
 #include "Document.h"
 #include "Event.h"
 #include "Context.h"
@@ -44,6 +45,7 @@ LUATYPEDEFINE(Log)
 LUATYPEDEFINE(rocket)
 LUATYPEDEFINE(Element)
 LUATYPEDEFINE(Document)
+LUATYPEDEFINE(ElementText)
 LUATYPEDEFINE(ElementStyle)
 LUATYPEDEFINE(Event)
 LUATYPEDEFINE(Context)
@@ -68,6 +70,7 @@ template class LuaType<Log>;
 template class LuaType<rocket>;
 template class LuaType<Element>;
 template class LuaType<Document>;
+template class LuaType<ElementText>;
 template class LuaType<ElementStyle>;
 template class LuaType<Event>;
 template class LuaType<Context>;
@@ -87,6 +90,7 @@ template class LuaType<DataFormatter>;
 //reference counted types
 template<> bool LuaType<Element>::is_reference_counted() { return true; }
 template<> bool LuaType<Document>::is_reference_counted() { return true; }
+template<> bool LuaType<ElementText>::is_reference_counted() { return true; }
 template<> bool LuaType<Event>::is_reference_counted() { return true; }
 template<> bool LuaType<Context>::is_reference_counted() { return true; }
 template<> bool LuaType<ElementForm>::is_reference_counted() { return true; }
@@ -248,6 +252,13 @@ template<> void LuaType<Document>::extra_init(lua_State* L, int metatable_index)
     //we will inherit from Element
     LuaType<Element>::extra_init(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index - 1);
+}
+
+template<> void LuaType<ElementText>::extra_init(lua_State* L, int metatable_index)
+{
+    //inherit from Element
+    LuaType<Element>::extra_init(L,metatable_index);
+    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
 }
 
 template<> void LuaType<ElementStyle>::extra_init(lua_State* L, int metatable_index)

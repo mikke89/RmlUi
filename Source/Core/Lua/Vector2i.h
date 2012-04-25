@@ -5,7 +5,7 @@
     Vector2i(int,int) creates a new Vector2i, and gets deleted when Lua garbage collects
     
     everything after this will assume that you have a local variable named 'vect', declared something similar to
-    local vect = Vector2i(50,90)
+    local vect = Vector2i.new(50,90)
     operators (the types that it can operate on are on the right):
     vect * int
     vect / int

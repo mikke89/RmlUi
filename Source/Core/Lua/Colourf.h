@@ -2,11 +2,11 @@
 /*
     Declares Colourf in the Lua global namespace. It implements the below (examples using Lua syntax) :
 
-    Colourf(float red,float green,float blue,float alpha) creates a new Colourf (values must be bounded between 0 and 1 inclusive), 
+    Colourf.new(float red,float green,float blue,float alpha) creates a new Colourf (values must be bounded between 0 and 1 inclusive), 
     and gets deleted when Lua garbage collects
     
     everything after this will assume that you have a local variable named 'col', declared something similar to
-    local col = Colourf(0.1,0.5,0.25,1.0)
+    local col = Colourf.new(0.1,0.5,0.25,1.0)
 
     operators (the types that it can operate on are on the right):
     col == Colourf

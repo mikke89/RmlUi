@@ -56,7 +56,10 @@ int DocumentCreateElement(lua_State* L, Document* obj)
 int DocumentCreateTextNode(lua_State* L, Document* obj)
 {
     //need ElementText object first
-	return 0;
+    const char* text = luaL_checkstring(L,1);
+    ElementText* et = obj->CreateTextNode(text);
+    LuaType<ElementText>::push(L, et, false);
+	return 1;
 }
 
 
