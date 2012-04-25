@@ -82,10 +82,16 @@ void Interpreter::LoadFile(const String& file)
 }
 
 
-void Interpreter::DoString(const Rocket::Core::String& str)
+void Interpreter::DoString(const Rocket::Core::String& code, const Rocket::Core::String& name)
 {
-    if(luaL_dostring(_L,str.CString()) != 0)
+    luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString());
+    if(lua_pcall(_L,0,0,0) != 0)
         Report();
+}
+
+void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Core::String& name)
+{
+    luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString());
 }
 
 

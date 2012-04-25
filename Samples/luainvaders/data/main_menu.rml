@@ -22,8 +22,8 @@ MainMenu = MainMenu or {}
 
 function MainMenu.CloseLogo(document)
 	if document.context then
-        --this will log an error upon exit, but doesn't crash
-		document.context.documents['logo']:Close()
+        local logo = document.context.documents['logo']
+        if logo then logo:Close() end
     end
 end
 		</script>

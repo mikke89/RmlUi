@@ -305,7 +305,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\Interpreter.h"
+				RelativePath="..\Include\Rocket\Core\Lua\Interpreter.h"
 				>
 			</File>
 			<File
@@ -317,7 +317,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\lua.hpp"
+				RelativePath="..\Include\Rocket\Core\Lua\lua.hpp"
 				>
 			</File>
 			<File
@@ -333,7 +333,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\LuaType.h"
+				RelativePath="..\Include\Rocket\Core\Lua\LuaType.h"
 				>
 			</File>
 			<File
@@ -470,7 +470,7 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\Source\Core\Lua\Header.h"
+			RelativePath="..\Include\Rocket\Core\Lua\Header.h"
 			>
 		</File>
 		<File
