@@ -279,27 +279,43 @@ void LuaType<T>::_regfunctions(lua_State* L, int meta, int methods)
     //fill method table with methods.
     for(RegType* m = (RegType*)GetMethodTable<T>(); m->name; m++)
     {
-        lua_pushstring(L, m->name); // ->[3] = name of function Lua side
-        lua_pushlightuserdata(L, (void*)m); // ->[4] = pointer to the object containing the name and the function pointer as light userdata
-        lua_pushcclosure(L, thunk, 1); //thunk = function pointer -> pop 1 item from stack, [4] = closure
-        lua_settable(L, methods); // represents t[k] = v, t = [methods = 1] -> pop [4 = closure] to be v, pop [3 = name] to be k
+        lua_pushstring(L, m->name); // ->[1] = name of function Lua side
+        lua_pushlightuserdata(L, (void*)m); // ->[2] = pointer to the object containing the name and the function pointer as light userdata
+        lua_pushcclosure(L, thunk, 1); //thunk = function pointer -> pop 1 item from stack, [2] = closure
+        lua_settable(L, methods); // represents t[k] = v, t = [methods] -> pop [2 = closure] to be v, pop [1 = name] to be k
     }
 
-    lua_newtable(L); // -> table [3]
+    
+    lua_getfield(L,methods, "__getters"); // -> table[1]
+    if(lua_isnoneornil(L,-1))
+    {
+        lua_pop(L,1); //pop unsuccessful get
+        lua_newtable(L); // -> table [1]
+        lua_setfield(L,methods,"__getters"); // pop [1]
+        lua_getfield(L,methods,"__getters"); // -> table [1]
+    }
     for(luaL_reg* m = (luaL_reg*)GetAttrTable<T>(); m->name; m++)
     {
-        lua_pushcfunction(L,m->func); // -> [4] is this function
-        lua_setfield(L,-2,m->name); //[-2 = 3] -> table.name = function
+        lua_pushcfunction(L,m->func); // -> [2] is this function
+        lua_setfield(L,-2,m->name); //[-2 = 1] -> __getters.name = function
     }
-    lua_setfield(L,methods, "__getters"); //[methods = 1], methods.__getters = table, pop table
+    lua_pop(L,1); //pop __getters
 
-    lua_newtable(L); // -> table [3]
+
+    lua_getfield(L,methods, "__setters"); // -> table[1]
+    if(lua_isnoneornil(L,-1))
+    {
+        lua_pop(L,1); //pop unsuccessful get
+        lua_newtable(L); // -> table [1]
+        lua_setfield(L,methods,"__setters"); // pop [1]
+        lua_getfield(L,methods,"__setters"); // -> table [1]
+    }
     for(luaL_reg* m = (luaL_reg*)SetAttrTable<T>(); m->name; m++)
     {
-        lua_pushcfunction(L,m->func); // -> [4] is this function
-        lua_setfield(L,-2,m->name); //[-2 = 3] -> table.name = function
+        lua_pushcfunction(L,m->func); // -> [2] is this function
+        lua_setfield(L,-2,m->name); //[-2 = 1] -> __setters.name = function
     }
-    lua_setfield(L,methods, "__setters"); //[methods = 1], methods.__setters = table, pop table
+    lua_pop(L,1); //pop __setters
 }
 
 template<typename T>

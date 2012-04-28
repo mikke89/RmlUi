@@ -96,7 +96,7 @@ end
 
 	</script>
 	</head>
-	<body template="luawindow" onload="Window.OnWindowLoad(element) Options.LoadOptions(document)">
+	<body template="luawindow" onload="Window.OnWindowLoad(document) Options.LoadOptions(document)">
 		<form onsubmit="Options.SaveOptions(event) Window.LoadMenu('main_menu',document)">
 			<div>
 				<p>

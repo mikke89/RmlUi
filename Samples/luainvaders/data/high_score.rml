@@ -47,8 +47,6 @@ function HighScore.OnRowAdd(_,_,document)
 	input = document:GetElementById('player_input')
 	if input then
 		input:Focus()
-    else
-        Log.Message(Log.logtype.warning, "highscore.rml, input is nil or doesn't exist.")
     end
 end
 
@@ -60,12 +58,12 @@ end
 	
 function HighScore.OnKeyDown(event)
 	if event.parameters['key_identifier'] == rocket.key_identifier.RETURN then
-		Game.SetHighScoreName(event.current_element.value)
+		Game.SetHighScoreName(event.current_element:AsType(Element.etype.input).value)
     end
 end
 		</script>
 	</head>
-	<body template="luawindow" onload="HighScore.OnLoad(element) Game.SubmitHighScore()" onunload="Game.SetHighScoreName('Anon')">
+	<body template="luawindow" onload="HighScore.OnLoad(document) Game.SubmitHighScore()" onunload="Game.SetHighScoreName('Anon')">
 		<datagrid id="datagrid" source="high_scores.scores">
 			<col fields="name,name_required" formatter="name" width="40%">Pilot:</col>
 			<col fields="colour" formatter="ship" width="20%">Ship:</col>

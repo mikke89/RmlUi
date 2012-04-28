@@ -18,7 +18,7 @@
 			}
 		</style>
 	</head>
-	<body template="luawindow" onload="Window.OnWindowLoad(element) Game.SetPaused(true)" onunload="Game.SetPaused(false)">
+	<body template="luawindow" onload="Window.OnWindowLoad(document) Game.SetPaused(true)" onunload="Game.SetPaused(false)">
 		<br />
 		<p>Are you sure you want to end this game?</p>
 		<button onclick="Window.LoadMenu('high_score',document) document.context.documents['game_window']:Close()">Yes</button>
