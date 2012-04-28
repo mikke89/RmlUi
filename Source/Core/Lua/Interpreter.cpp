@@ -95,13 +95,20 @@ void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Cor
 }
 
 
-void Interpreter::Report()
+void Interpreter::Report(lua_State* L, const Rocket::Core::String& place)
 {
+    if(L == NULL)
+        L = _L; //use the original state of Interpreter
     const char * msg= lua_tostring(_L,-1);
+    String strmsg;
     while(msg)
     {
         lua_pop(_L,1);
-        Log::Message(Log::LT_WARNING, msg);
+        if(place == "")
+            strmsg = msg;
+        else
+            strmsg = String(place).Append(" ").Append(msg);
+        Log::Message(Log::LT_WARNING, strmsg.CString());
         msg=lua_tostring(_L,-1);
     }
 }
@@ -135,7 +142,7 @@ bool Interpreter::ExecuteCall(int params, int res)
     }
     else
     {
-        if(lua_pcall(_L,params,res,0))
+        if(lua_pcall(_L,params,res,0) != 0)
         {
             Report();
             ret = false;

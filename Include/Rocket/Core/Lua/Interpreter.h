@@ -25,7 +25,10 @@ public:
     //on top of the stack. It is just like luaL_loadstring, but you get to specify the name
     static void LoadString(const Rocket::Core::String& code, const Rocket::Core::String& name = "");
     //If there are errors on the top of the stack, this will print those out to the log.
-    static void Report();
+    //L is a Lua state, and if not passed in, will use the Interpreter's state
+    //place is a string that will be printed to the log right before the error message seperated by a space. Set
+    //this when you would get no information about where the error happens.
+    static void Report(lua_State* L = NULL, const Rocket::Core::String& place = "");
 
     //clears all of the items on the stack, and pushes the function from funRef on top of the stack. Only use
     //this if you used lua_ref instead of luaL_ref

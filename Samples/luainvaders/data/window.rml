@@ -4,8 +4,8 @@
 	<script>
 Window = Window or {} --namespace
 
-function Window.OnWindowLoad(element)
-	element.owner_document:GetElementById('title').inner_rml = element.title
+function Window.OnWindowLoad(document)
+	document:GetElementById('title').inner_rml = document.title
 end
 	
 function Window.LoadMenu(name,document)
@@ -19,6 +19,6 @@ function Window.LoadMenu(name,document)
 end
 	</script>
 </head>
-<body template="window" onload="Window.OnWindowLoad(element)">
+<body template="window" onload="Window.OnWindowLoad(document)">
 </body>
 </template>
