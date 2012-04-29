@@ -6,7 +6,6 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-
 template<typename T>
 void LuaType<T>::Register(lua_State* L)
 {

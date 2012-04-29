@@ -34,10 +34,10 @@ namespace Lua {
 
 //put this in the type.cpp file
 #define LUATYPEDEFINE(type) \
-    template<> const char* GetTClassName<type>() { return #type; } \
-    template<> RegType<type>* GetMethodTable<type>() { return type##Methods; } \
-    template<> luaL_reg* GetAttrTable<type>() { return type##Getters; } \
-    template<> luaL_reg* SetAttrTable<type>() { return type##Setters; } \
+    template<> inline const char* GetTClassName<type>() { return #type; } \
+    template<> inline RegType<type>* GetMethodTable<type>() { return type##Methods; } \
+    template<> inline luaL_reg* GetAttrTable<type>() { return type##Getters; } \
+    template<> inline luaL_reg* SetAttrTable<type>() { return type##Setters; } \
 
 //put this in the type.h file
 #define LUATYPEDECLARE(type) \
@@ -71,43 +71,45 @@ public:
     typedef int (*ftnptr)(lua_State* L, T* ptr);
     typedef struct { const char* name; ftnptr func; } RegType;
 
-    static void Register(lua_State *L);
-    static int push(lua_State *L, T* obj, bool gc=false);
-    static T* check(lua_State* L, int narg);
+    static inline void Register(lua_State *L);
+    static inline int push(lua_State *L, T* obj, bool gc=false);
+    static inline T* check(lua_State* L, int narg);
 
     //for calling a C closure with upvalues
-    static int thunk(lua_State* L);
+    static inline int thunk(lua_State* L);
     //pointer to string
-    static void tostring(char* buff, void* obj);
+    static inline void tostring(char* buff, void* obj);
     //these are metamethods
     //.__gc
-    static int gc_T(lua_State* L);
+    static inline int gc_T(lua_State* L);
     //.__tostring
-    static int tostring_T(lua_State* L);
+    static inline int tostring_T(lua_State* L);
     //.__index
-    static int index(lua_State* L);
+    static inline int index(lua_State* L);
     //.__newindex
-    static int newindex(lua_State* L);
+    static inline int newindex(lua_State* L);
 	
     //gets called from the Register function, right before _regfunctions.
     //If you want to inherit from another class, in the function you would want
     //to call _regfunctions<superclass>, where method is metatable_index - 1. Anything
     //that has the same name in the subclass will be overwrite whatever had the 
     //same name in the superclass.
-    static  void extra_init(lua_State* L, int metatable_index);
+    static inline  void extra_init(lua_State* L, int metatable_index);
     //Registers methods,getters,and setters to the type
-    static void _regfunctions(lua_State* L, int meta, int method);
+    static inline void _regfunctions(lua_State* L, int meta, int method);
     //Says if it is a reference counted type. If so, then on push and __gc, do reference counting things
     //rather than regular new/delete. Note that it is still up to the user to pass "true" to the push function's
     //third parameter to be able to decrease the reference when Lua garbage collects an object
-    static bool is_reference_counted();
+    static inline bool is_reference_counted();
 private:
     LuaType(); //hide constructor
 
 };
+
+
 }
 }
 }
 
-//#include "LuaType.inl"
+#include "LuaType.inl" //this feels so dirty, but it is the only way I got it to compile in release
 #endif

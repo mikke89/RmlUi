@@ -1,5 +1,5 @@
 #ifndef ROCKETCORELUAINTERPRETER_H
-#define ROCKETCORELUALUATYPE_H 
+#define ROCKETCORELUAINTERPRETER_H 
 /*
     This initializes the lua interpreter, and has functions to load the scripts
     A glorified namespace, but I want the lua_State to be unchangeable

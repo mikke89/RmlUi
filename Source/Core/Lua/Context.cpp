@@ -4,6 +4,7 @@
 #include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/Factory.h>
 #include "LuaEventListener.h"
+#include "ContextDocumentsProxy.h"
 
 namespace Rocket {
 namespace Core {
@@ -147,25 +148,10 @@ int ContextGetAttrdimensions(lua_State* L)
 int ContextGetAttrdocuments(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
-    Element* root = cont->GetRootElement();
-
-    lua_newtable(L);
-    int tableindex = lua_gettop(L);
-    for(int i = 0; i < root->GetNumChildren(); i++)
-    {
-        Document* doc = root->GetChild(i)->GetOwnerDocument();
-        if(doc == NULL)
-            continue;
-
-        LuaType<Document>::push(L,doc);
-        lua_setfield(L, tableindex,doc->GetId().CString());
-
-        /* //is this a bad idea?
-        lua_pushinteger(L,i);
-        lua_setfield(L,tableindex,doc->GetId().CString());
-        */
-    }
-
+    LUACHECKOBJ(cont);
+    ContextDocumentsProxy* cdp = new ContextDocumentsProxy();
+    cdp->owner = cont;
+    LuaType<ContextDocumentsProxy>::push(L,cdp,true); //does get garbage collected (deleted)
     return 1;
 }
 

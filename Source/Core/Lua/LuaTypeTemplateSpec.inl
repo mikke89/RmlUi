@@ -29,6 +29,7 @@
 #include "ElementTabSet.h"
 #include "DataSource.h"
 #include "DataFormatter.h"
+#include "ContextDocumentsProxy.h"
 
 
 
@@ -60,6 +61,7 @@ LUATYPEDEFINE(ElementDataGridRow)
 LUATYPEDEFINE(ElementTabSet)
 LUATYPEDEFINE(DataSource)
 LUATYPEDEFINE(DataFormatter)
+LUATYPEDEFINE(ContextDocumentsProxy)
 
 
 template class LuaType<Colourb>;
@@ -85,6 +87,7 @@ template class LuaType<ElementDataGridRow>;
 template class LuaType<ElementTabSet>;
 template class LuaType<DataSource>;
 template class LuaType<DataFormatter>;
+template class LuaType<ContextDocumentsProxy>;
 
 
 //reference counted types
@@ -370,6 +373,12 @@ template<> void LuaType<DataFormatter>::extra_init(lua_State* L, int metatable_i
     lua_pushcfunction(L,DataFormatternew);
     lua_setfield(L,metatable_index-1,"new");
     return;
+}
+
+template<> void LuaType<ContextDocumentsProxy>::extra_init(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,ContextDocumentsProxy__index);
+    lua_setfield(L,metatable_index,"__index");
 }
 
 }

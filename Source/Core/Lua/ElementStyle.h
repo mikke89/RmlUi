@@ -38,11 +38,6 @@
     However, the table returned from style:GetTable() is read only. Whatever changes you
     make to that table will not be saved to the 'style' object. To do that, just do whatever
     operation you were going to on the table before, but do it on the 'style' object instead.
-
-
-
-    At the moment, you are unable to say element.style = {} and have a table of key,value pairs
-    added to the style. That is planned for a little later
 */
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>

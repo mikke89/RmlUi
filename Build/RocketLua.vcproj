@@ -120,13 +120,15 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
+				InlineFunctionExpansion="0"
 				EnableIntrinsicFunctions="true"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\Include&quot;;&quot;$(SolutionDir)..\Source\Core&quot;;&quot;$(SolutionDir)..\Dependencies\lua\src&quot;;&quot;$(SolutionDir)..\Source\Controls\Lua&quot;"
 				PreprocessorDefinitions="_WIN32,NDEBUG,RocketLua_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="1"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="precompiled.h"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -142,12 +144,17 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				LinkLibraryDependencies="true"
 				AdditionalDependencies="lua51.lib RocketCore.lib RocketControls.lib"
+				ShowProgress="0"
 				OutputFile="..\bin\$(ProjectName).dll"
+				AdditionalLibraryDirectories="$(SolutionDir)..\bin"
 				GenerateManifest="false"
+				EnableUAC="true"
 				GenerateDebugInformation="false"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
@@ -293,14 +300,6 @@
 			Name="Core"
 			>
 			<File
-				RelativePath="..\Source\Core\Lua\Context.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\Context.h"
-				>
-			</File>
-			<File
 				RelativePath="..\Source\Core\Lua\Interpreter.cpp"
 				>
 			</File>
@@ -321,7 +320,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\LuaType.cpp"
+				RelativePath="..\Include\Rocket\Core\Lua\LuaType.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\LuaType.inl"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -331,10 +334,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\Include\Rocket\Core\Lua\LuaType.h"
-				>
 			</File>
 			<File
 				RelativePath="..\Source\Core\Lua\LuaTypeTemplateSpec.inl"
@@ -440,6 +439,26 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Context"
+				>
+				<File
+					RelativePath="..\Source\Core\Lua\Context.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\Context.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ContextDocumentsProxy.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ContextDocumentsProxy.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Basic Types"
@@ -486,6 +505,14 @@
 			>
 			<FileConfiguration
 				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
 				>
 				<Tool
 					Name="VCCLCompilerTool"
