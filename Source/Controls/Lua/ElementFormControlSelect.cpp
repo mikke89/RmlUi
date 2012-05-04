@@ -1,5 +1,6 @@
 #include "precompiled.h"
 #include "ElementFormControlSelect.h"
+#include "SelectOptionsProxy.h"
 #include <Rocket/Controls/ElementFormControlSelect.h>
 #include <Rocket/Controls/ElementFormControl.h>
 #include <Rocket/Core/Element.h>
@@ -51,30 +52,9 @@ int ElementFormControlSelectGetAttroptions(lua_State* L)
 {
     ElementFormControlSelect* obj = LuaType<ElementFormControlSelect>::check(L,1);
     LUACHECKOBJ(obj);
-    int numOptions = obj->GetNumOptions();
-
-    //local variables for the loop
-    Rocket::Controls::SelectOption* opt; 
-    Element* ele;
-    String value;
-    lua_newtable(L);
-    int retindex = lua_gettop(L);
-    for(int index = 0; index < numOptions; index++)
-    {
-        opt = obj->GetOption(index);
-        if(opt == NULL) continue;
-    
-        ele = opt->GetElement();
-        value = opt->GetValue();
-
-        lua_newtable(L);
-        LuaType<Element>::push(L,ele,false);
-        lua_setfield(L,-2,"element");
-        lua_pushstring(L,value.CString());
-        lua_setfield(L,-2,"value");
-        lua_rawseti(L,retindex,index); //sets the table that is being returned's 'index' to be the table with element and value
-        lua_pop(L,1); //pops the table with element,value from the stack
-    }
+    SelectOptionsProxy* proxy = new SelectOptionsProxy();
+    proxy->owner = obj;
+    LuaType<SelectOptionsProxy>::push(L,proxy,true);
     return 1;
 }
 

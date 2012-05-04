@@ -1,6 +1,6 @@
 /*
     Because all of the template specializations have to be compiled in the same translation unit, they have to 
-    exist in this file. It is included by LuaType.cpp
+    exist in this file. It is included by LuaType.cpp (or LuaType.inl right now)
 */
 #include "precompiled.h"
 #include <Rocket/Core/Core.h>
@@ -30,6 +30,9 @@
 #include "DataSource.h"
 #include "DataFormatter.h"
 #include "ContextDocumentsProxy.h"
+#include "ElementAttributesProxy.h"
+#include "EventParametersProxy.h"
+#include "SelectOptionsProxy.h"
 
 
 
@@ -62,6 +65,9 @@ LUATYPEDEFINE(ElementTabSet)
 LUATYPEDEFINE(DataSource)
 LUATYPEDEFINE(DataFormatter)
 LUATYPEDEFINE(ContextDocumentsProxy)
+LUATYPEDEFINE(ElementAttributesProxy)
+LUATYPEDEFINE(EventParametersProxy)
+LUATYPEDEFINE(SelectOptionsProxy)
 
 
 template class LuaType<Colourb>;
@@ -88,6 +94,9 @@ template class LuaType<ElementTabSet>;
 template class LuaType<DataSource>;
 template class LuaType<DataFormatter>;
 template class LuaType<ContextDocumentsProxy>;
+template class LuaType<ElementAttributesProxy>;
+template class LuaType<EventParametersProxy>;
+template class LuaType<SelectOptionsProxy>;
 
 
 //reference counted types
@@ -378,6 +387,24 @@ template<> void LuaType<DataFormatter>::extra_init(lua_State* L, int metatable_i
 template<> void LuaType<ContextDocumentsProxy>::extra_init(lua_State* L, int metatable_index)
 {
     lua_pushcfunction(L,ContextDocumentsProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+}
+
+template<> void LuaType<ElementAttributesProxy>::extra_init(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,ElementAttributesProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+}
+
+template<> void LuaType<EventParametersProxy>::extra_init(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,EventParametersProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+}
+
+template<> void LuaType<SelectOptionsProxy>::extra_init(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,SelectOptionsProxy__index);
     lua_setfield(L,metatable_index,"__index");
 }
 

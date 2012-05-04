@@ -294,6 +294,14 @@
 					RelativePath="..\Source\Controls\Lua\ElementFormControlTextArea.h"
 					>
 				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\SelectOptionsProxy.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Controls\Lua\SelectOptionsProxy.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -355,6 +363,14 @@
 				RelativePath="..\Source\Core\Lua\RocketLua.h"
 				>
 			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\Utilities.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\Utilities.h"
+				>
+			</File>
 			<Filter
 				Name="Element"
 				>
@@ -364,6 +380,14 @@
 				</File>
 				<File
 					RelativePath="..\Source\Core\Lua\Element.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ElementAttributesProxy.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ElementAttributesProxy.h"
 					>
 				</File>
 				<File
@@ -420,6 +444,14 @@
 				</File>
 				<File
 					RelativePath="..\Source\Core\Lua\Event.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\EventParametersProxy.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\EventParametersProxy.h"
 					>
 				</File>
 				<File

@@ -31,9 +31,6 @@ int EventGetAttrtype(lua_State* L);
 int EventGetAttrtarget_element(lua_State* L);
 int EventGetAttrparameters(lua_State* L);
 
-//setters
-//int EventSetAttrparameters(lua_State* L);
-
 RegType<Event> EventMethods[];
 luaL_reg EventGetters[];
 luaL_reg EventSetters[];

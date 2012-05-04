@@ -2,6 +2,8 @@
 #include "Element.h"
 #include <ElementStyle.h>
 #include "LuaEventListener.h"
+#include "ElementAttributesProxy.h"
+#include "Utilities.h"
 
 
 namespace Rocket {
@@ -105,37 +107,7 @@ int ElementGetAttribute(lua_State* L, Element* obj)
 {
     const char* name = luaL_checkstring(L,1);
     Variant* var = obj->GetAttribute(name);
-    Variant::Type type = var->GetType();
-    switch(type)
-    {
-    case Variant::BYTE:
-    case Variant::CHAR:
-    case Variant::INT:
-        lua_pushinteger(L,var->Get<int>());
-        break;
-    case Variant::FLOAT:
-        lua_pushnumber(L,var->Get<float>());
-        break;
-    case Variant::COLOURB:
-        LuaType<Colourb>::push(L,&var->Get<Colourb>(),false);
-        break;
-    case Variant::COLOURF:
-        LuaType<Colourf>::push(L,&var->Get<Colourf>(),false);
-        break;
-    case Variant::STRING:
-        lua_pushstring(L,var->Get<String>().CString());
-        break;
-    case Variant::VECTOR2:
-        //according to Variant.inl, it is going to be a Vector2f
-        LuaType<Vector2f>::push(L,&var->Get<Vector2f>(),false);
-        break;
-    case Variant::VOIDPTR:
-        lua_pushlightuserdata(L,var->Get<void*>());
-        break;
-    default:
-        lua_pushnil(L);
-        break;
-    }
+    PushVariant(L,var);
     return 1;
 }
 
@@ -273,50 +245,9 @@ int ElementGetAttrattributes(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    
-    int index;
-    String key;
-    Variant* var;
-    Variant::Type type;
-
-    lua_newtable(L);
-    while(ele->IterateAttributes(index,key,var))
-    {
-        lua_pushstring(L,key.CString());
-        type = var->GetType();
-        switch(type)
-        {
-        case Variant::BYTE:
-        case Variant::CHAR:
-        case Variant::INT:
-            lua_pushinteger(L,var->Get<int>());
-            break;
-        case Variant::FLOAT:
-            lua_pushnumber(L,var->Get<float>());
-            break;
-        case Variant::COLOURB:
-            LuaType<Colourb>::push(L,&var->Get<Colourb>(),false);
-            break;
-        case Variant::COLOURF:
-            LuaType<Colourf>::push(L,&var->Get<Colourf>(),false);
-            break;
-        case Variant::STRING:
-            lua_pushstring(L,var->Get<String>().CString());
-            break;
-        case Variant::VECTOR2:
-            //according to Variant.inl, it is going to be a Vector2f
-            LuaType<Vector2f>::push(L,&var->Get<Vector2f>(),false);
-            break;
-        case Variant::VOIDPTR:
-            lua_pushlightuserdata(L,var->Get<void*>());
-            break;
-        default:
-            lua_pushnil(L);
-            break;
-        }   
-        lua_settable(L,-3);
-    }
-    
+    ElementAttributesProxy* proxy = new ElementAttributesProxy();
+    proxy->owner = ele;
+    LuaType<ElementAttributesProxy>::push(L,proxy,true);    
     return 1;
 }
 

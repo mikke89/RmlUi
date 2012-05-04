@@ -4,6 +4,7 @@
 #include <Rocket/Core/Event.h>
 #include <Rocket/Core/Element.h>
 #include <Rocket/Core/Dictionary.h>
+#include "EventParametersProxy.h"
 
 
 namespace Rocket {
@@ -49,100 +50,11 @@ int EventGetAttrparameters(lua_State* L)
 {
     Event* evt = LuaType<Event>::check(L,1);
     LUACHECKOBJ(evt);
-    const Dictionary* params = evt->GetParameters();
-    int index = 0;
-    String key;
-    Variant* value;
-
-    lua_newtable(L);
-    int tableindex = lua_gettop(L);
-    while(params->Iterate(index,key,value))
-    {
-        lua_pushstring(L,key.CString());
-        Variant::Type type = value->GetType();
-        switch(type)
-        {
-        case Variant::BYTE:
-        case Variant::CHAR:
-        case Variant::INT:
-            lua_pushinteger(L,value->Get<int>());
-            break;
-        case Variant::FLOAT:
-            lua_pushnumber(L,value->Get<float>());
-            break;
-        case Variant::COLOURB:
-            LuaType<Colourb>::push(L,&value->Get<Colourb>(),false);
-            break;
-        case Variant::COLOURF:
-            LuaType<Colourf>::push(L,&value->Get<Colourf>(),false);
-            break;
-        case Variant::STRING:
-            lua_pushstring(L,value->Get<String>().CString());
-            break;
-        case Variant::VECTOR2:
-            //according to Variant.inl, it is going to be a Vector2f
-            LuaType<Vector2f>::push(L,&value->Get<Vector2f>(),false);
-            break;
-        case Variant::VOIDPTR:
-            lua_pushlightuserdata(L,value->Get<void*>());
-            break;
-        default:
-            lua_pushnil(L);
-            break;
-        }
-        lua_settable(L,tableindex);
-    }
+    EventParametersProxy* proxy = new EventParametersProxy();
+    proxy->owner = evt;
+    LuaType<EventParametersProxy>::push(L,proxy,true);
     return 1;
 }
-
-
-
-//setters
-/*
-//Apparently, the dictionary returned is constant, and shouldn't be modified.
-//I am keeping this function in case that isn't the case
-int EventSetAttrparameters(lua_State* L)
-{
-    Event* evt = LuaType<Event>::check(L,1);
-    LUACHECKOBJ(evt);
-    const Dictionary* params = evt->GetParameters();
-    int valtype = lua_type(L,2);
-    if(valtype == LUA_TTABLE) //if the user gives a table, then go through the table and set everything
-    {
-        lua_pushnil(L); //becauase lua_next pops a key from the stack first, we don't want to pop the table
-        while(lua_next(L,2) != 0)
-        {
-            //[-1] is value, [-2] is key
-            int type = lua_type(L,-1);
-            const char* key = luaL_checkstring(L,-2); //key HAS to be a string, or things will go bad
-            switch(type)
-            {
-		    case LUA_TNUMBER:
-                params->Set(key,(float)lua_tonumber(L,-1));
-                break;
-		    case LUA_TBOOLEAN: 
-                params->Set(key,CHECK_BOOL(L,-1));
-                break;
-		    case LUA_TSTRING:
-                params->Set(key,luaL_checkstring(L,-1));
-                break;
-            case LUA_TUSERDATA:
-            case LUA_TLIGHTUSERDATA:
-                params->Set(key,lua_touserdata(L,-1));
-                break;
-            default:
-                break;
-            }
-        }
-    }
-    else if(valtype == LUA_TNIL)
-    {
-        params->Clear();
-    }
-    return 0;
-}
-*/
-
 
 RegType<Event> EventMethods[] =
 {
@@ -161,7 +73,6 @@ luaL_reg EventGetters[] =
 
 luaL_reg EventSetters[] =
 {
-    //LUASETTER(Event,parameters)
     { NULL, NULL },
 };
 
