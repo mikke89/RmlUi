@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTFORMCONTROLDATASELECT_H
+#define ROCKETCORELUAELEMENTFORMCONTROLDATASELECT_H
 /*
     This defines the ElementFormControlDataSelect type in the Lua global namespace. I think it is the longest
     type name.
@@ -39,3 +40,4 @@ template<> luaL_reg* SetAttrTable<ElementFormControlDataSelect>();
 }
 }
 }
+#endif

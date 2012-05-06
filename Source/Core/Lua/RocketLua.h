@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAROCKETLUA_H
+#define ROCKETCORELUAROCKETLUA_H
 
 #include "Header.h"
 
@@ -10,3 +11,4 @@ void ROCKETLUA_API Initialise();
 }
 }
 }
+#endif

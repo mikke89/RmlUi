@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTFORMCONTROLTEXTAREA_H
+#define ROCKETCORELUAELEMENTFORMCONTROLTEXTAREA_H
 /*
     This defines the ElementFormControlTextArea type in the Lua global namespace, refered in this documentation by EFCTextArea
 
@@ -47,3 +48,4 @@ template<> luaL_reg* SetAttrTable<ElementFormControlTextArea>();
 }
 }
 }
+#endif

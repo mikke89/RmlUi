@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAEVENT_H
+#define ROCKETCORELUAEVENT_H
 /*
     This defines an Event type name in the global Lua namespace
 
@@ -44,3 +45,4 @@ template<> luaL_reg* SetAttrTable<Event>();
 }
 }
 }
+#endif

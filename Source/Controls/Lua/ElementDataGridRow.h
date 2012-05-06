@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTDATAGRIDROW_H
+#define ROCKETCORELUAELEMENTDATAGRIDROW_H
 /*
     This defines the ElementDataGridRow type in the Lua global namespace
 
@@ -54,3 +55,4 @@ template<> luaL_reg* SetAttrTable<ElementDataGridRow>();
 }
 }
 }
+#endif

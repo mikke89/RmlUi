@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENT_H
+#define ROCKETCORELUAELEMENT_H
 /*
     This defines the Element type in the Lua global namespace
 
@@ -175,3 +176,4 @@ template<> luaL_reg* SetAttrTable<Element>();
 }
 }
 }
+#endif

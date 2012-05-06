@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTTEXT_H
+#define ROCKETCORELUAELEMENTTEXT_H
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/ElementText.h>
@@ -20,3 +21,4 @@ luaL_reg ElementTextSetters[];
 }
 }
 }
+#endif

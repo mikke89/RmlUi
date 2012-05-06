@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTSTYLE_H
+#define ROCKETCORELUAELEMENTSTYLE_H
 /*
     This is the definition of an ElementStyle Lua object
 
@@ -66,3 +67,4 @@ template<> luaL_reg* SetAttrTable<ElementStyle>();
 }
 }
 }
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAEVENTPARAMETERSPROXY_H
+#define ROCKETCORELUAEVENTPARAMETERSPROXY_H
 /*
     Proxy table for Event.parameters
     read-only Dictionary
@@ -25,3 +26,4 @@ luaL_reg EventParametersProxySetters[];
 }
 }
 }
+#endif

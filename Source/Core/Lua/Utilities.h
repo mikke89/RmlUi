@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAUTILITIES_H
+#define ROCKETCORELUAUTILITIES_H
 /*
     This file is for free-floating functions that are used across more than one file.
 */
@@ -16,3 +17,4 @@ void PushVariant(lua_State* L, Variant* var);
 }
 }
 }
+#endif

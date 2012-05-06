@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUALUADOCUMENT_H
+#define ROCKETCORELUALUADOCUMENT_H
 /*
     This class is an ElementDocument that overrides the LoadScript function
 */
@@ -18,3 +19,4 @@ public:
 }
 }
 }
+#endif

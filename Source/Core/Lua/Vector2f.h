@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAVECTOR2F_H
+#define ROCKETCORELUAVECTOR2F_H
 /*
     Declares Vector2f in the Lua global namespace. It implements the below (examples using Lua syntax) :
 
@@ -67,3 +68,4 @@ template<> luaL_reg* SetAttrTable<Vector2f>() { return Vector2fSetters; }
 }
 }
 }
+#endif

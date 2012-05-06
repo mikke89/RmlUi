@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUALUAEVENTLISTENERINSTANCER_H
+#define ROCKETCORELUALUAEVENTLISTENERINSTANCER_H
 #include <Rocket/Core/EventListenerInstancer.h>
 
 namespace Rocket {
@@ -20,3 +21,4 @@ public:
 }
 }
 }
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAROCKET_H
+#define ROCKETCORELUAROCKET_H
 
 /*
     This declares rocket in the global Lua namespace
@@ -47,3 +48,4 @@ template<> luaL_reg* SetAttrTable<rocket>();
 }
 }
 }
+#endif

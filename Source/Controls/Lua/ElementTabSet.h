@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTTABSET_H
+#define ROCKETCORELUAELEMENTTABSET_H
 /*
     This defines the ElementTabSet type in the Lua global namespace
 
@@ -52,3 +53,4 @@ template<> luaL_reg* SetAttrTable<ElementTabSet>();
 }
 }
 }
+#endif

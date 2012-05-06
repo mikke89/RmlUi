@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUASELECTOPTIONSPROXY_H
+#define ROCKETCORELUASELECTOPTIONSPROXY_H
 /*
     Proxy table for ElementFormControlSelect.options
     read-only, key must be a number
@@ -35,3 +36,4 @@ luaL_reg SelectOptionsProxySetters[];
 }
 }
 }
+#endif

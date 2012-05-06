@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUACONTEXT_H
+#define ROCKETCORELUACONTEXT_H
 /*
     This defines a Context type in the Lua global namespace
 
@@ -85,3 +86,4 @@ template<> luaL_reg* SetAttrTable<Context>();
 }
 }
 }
+#endif

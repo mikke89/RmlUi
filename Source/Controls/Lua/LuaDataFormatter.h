@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUALUADATAFORMATTER_H
+#define ROCKETCORELUALUADATAFORMATTER_H
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Controls/DataFormatter.h>
 
@@ -24,3 +25,4 @@ public:
 }
 }
 }
+#endif

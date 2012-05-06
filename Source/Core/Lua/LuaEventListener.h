@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUALUAEVENTLISTENER_H
+#define ROCKETCORELUALUAEVENTLISTENER_H
 #include <Rocket/Core/EventListener.h>
 #include <Rocket/Core/String.h>
 #include <Rocket/Core/Lua/lua.hpp>
@@ -35,3 +36,4 @@ private:
 }
 }
 }
+#endif

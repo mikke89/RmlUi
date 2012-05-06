@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTFORMCONTROLINPUT_H
+#define ROCKETCORELUAELEMENTFORMCONTROLINPUT_H
 /*
     This defines the type ElementFormControlInput in the Lua globla namespace, refered to in this documentation by EFCInput
 
@@ -55,3 +56,4 @@ template<> luaL_reg* SetAttrTable<ElementFormControlInput>();
 }
 }
 }
+#endif

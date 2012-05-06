@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTFORM_H
+#define ROCKETCORELUAELEMENTFORM_H
 /*
     This defines the ElementForm type in the Lua global namespace
 
@@ -38,3 +39,4 @@ template<> luaL_reg* SetAttrTable<ElementForm>() { return ElementFormSetters; }
 }
 }
 }
+#endif

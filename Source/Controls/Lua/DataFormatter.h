@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUADATAFORMATTER_H
+#define ROCKETCORELUADATAFORMATTER_H
 /*
     This defines the DataFormatter type in the Lua global namespace
 
@@ -37,3 +38,4 @@ luaL_reg DataFormatterSetters[];
 }
 }
 }
+#endif

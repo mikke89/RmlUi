@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUALUADATASOURCE_H
+#define ROCKETCORELUALUADATASOURCE_H
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
@@ -40,3 +41,4 @@ public:
 }
 }
 }
+#endif

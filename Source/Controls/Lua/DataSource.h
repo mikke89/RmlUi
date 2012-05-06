@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUADATASOURCE_H
+#define ROCKETCORELUADATASOURCE_H
 
 /*
     This defines the DataSource type in the Lua global namespace
@@ -39,3 +40,4 @@ luaL_reg DataSourceSetters[];
 }
 }
 }
+#endif

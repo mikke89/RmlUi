@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUALUADOCUMENTELEMENTINSTANCER_H
+#define ROCKETCORELUALUADOCUMENTELEMENTINSTANCER_H
 
 #include <Rocket/Core/ElementInstancer.h>
 
@@ -23,3 +24,4 @@ class LuaDocumentElementInstancer : public ElementInstancer
 }
 }
 }
+#endif

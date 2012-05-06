@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTATTRIBUTESPROXY_H
+#define ROCKETCORELUAELEMENTATTRIBUTESPROXY_H
 /*
     Proxy table for Element.attribues
     read-only Dictionary
@@ -25,3 +26,4 @@ luaL_reg ElementAttributesProxySetters[];
 }
 }
 }
+#endif

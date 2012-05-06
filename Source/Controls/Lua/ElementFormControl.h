@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTFORMCONTROL_H
+#define ROCKETCORELUAELEMENTFORMCONTROL_H
 /*
     This defines the ElementFormControl type in the Lua global namespace
 
@@ -42,5 +43,5 @@ template<> luaL_reg* SetAttrTable<ElementFormControl>() { return ElementFormCont
 }
 }
 }
-
+#endif
 

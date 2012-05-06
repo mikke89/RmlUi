@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUADOCUMENT_H
+#define ROCKETCORELUADOCUMENT_H
 /*
     This defines the Document type in the Lua global namespace
 
@@ -64,3 +65,4 @@ template<> luaL_reg* SetAttrTable<Document>();
 }
 }
 }
+#endif

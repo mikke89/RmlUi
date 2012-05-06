@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUACOLOURF_H
+#define ROCKETCORELUACOLOURF_H
 /*
     Declares Colourf in the Lua global namespace. It implements the below (examples using Lua syntax) :
 
@@ -62,5 +63,5 @@ template<> luaL_reg* SetAttrTable<Colourf>() { return ColourfSetters; }
 }
 }
 }
-
+#endif
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUAELEMENTFORMCONTROLSELECT_H
+#define ROCKETCORELUAELEMENTFORMCONTROLSELECT_H
 
 /*
     This defines the ElementFormControlSelect type in the Lua global namespace, for this documentation will be
@@ -56,3 +57,4 @@ template<> luaL_reg* SetAttrTable<ElementFormControlSelect>();
 }
 }
 }
+#endif

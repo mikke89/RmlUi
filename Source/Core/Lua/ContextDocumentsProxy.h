@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ROCKETCORELUACONTEXTDOCUMENTSPROXY_H
+#define ROCKETCORELUACONTEXTDOCUMENTSPROXY_H
 /*
     A proxy table with key of string and int and a value of Document
     Read only
@@ -25,3 +26,4 @@ luaL_reg ContextDocumentsProxySetters[];
 }
 }
 }
+#endif
