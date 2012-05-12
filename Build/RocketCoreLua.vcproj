@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="RocketLua"
+	Name="RocketCoreLua"
 	ProjectGUID="{FC02901C-3CE4-4625-856A-F180DC45A855}"
 	RootNamespace="RocketLua"
 	TargetFrameworkVersion="196613"
@@ -185,126 +185,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Controls"
-			>
-			<File
-				RelativePath="..\Source\Controls\Lua\DataFormatter.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\DataFormatter.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\DataSource.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\DataSource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\ElementDataGrid.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\ElementDataGrid.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\ElementDataGridRow.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\ElementDataGridRow.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\ElementTabSet.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\ElementTabSet.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\LuaDataFormatter.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\LuaDataFormatter.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\LuaDataSource.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Controls\Lua\LuaDataSource.h"
-				>
-			</File>
-			<Filter
-				Name="Forms"
-				>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementForm.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementForm.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControl.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControl.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlDataSelect.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlDataSelect.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlInput.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlInput.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlSelect.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlSelect.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlTextArea.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\ElementFormControlTextArea.h"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\SelectOptionsProxy.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\Source\Controls\Lua\SelectOptionsProxy.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
 			Name="Core"
 			>
 			<File
@@ -344,10 +224,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\LuaTypeTemplateSpec.inl"
-				>
-			</File>
-			<File
 				RelativePath="..\Source\Core\Lua\Rocket.cpp"
 				>
 			</File>
@@ -368,7 +244,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\Utilities.h"
+				RelativePath="..\Include\Rocket\Core\Lua\Utilities.h"
 				>
 			</File>
 			<Filter

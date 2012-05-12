@@ -25,8 +25,8 @@
  *
  */
  
-#ifndef ROCKETCORELUAELEMENTFORMCONTROL_H
-#define ROCKETCORELUAELEMENTFORMCONTROL_H
+#ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROL_H
+#define ROCKETCONTROLSLUAELEMENTFORMCONTROL_H
 /*
     This defines the ElementFormControl type in the Lua global namespace
 
@@ -40,12 +40,11 @@
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Controls/ElementFormControl.h>
 
-using Rocket::Controls::ElementFormControl;
+using Rocket::Core::Lua::LuaType;
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(lua_State* L, int metatable_index);
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
-template<> void LuaType<ElementFormControl>::extra_init(lua_State* L, int metatable_index);
-template<> bool LuaType<ElementFormControl>::is_reference_counted();
 
 //getters
 int ElementFormControlGetAttrdisabled(lua_State* L);
@@ -57,18 +56,13 @@ int ElementFormControlSetAttrdisabled(lua_State* L);
 int ElementFormControlSetAttrname(lua_State* L);
 int ElementFormControlSetAttrvalue(lua_State* L);
 
-RegType<ElementFormControl> ElementFormControlMethods[];
+Rocket::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[];
 luaL_reg ElementFormControlGetters[];
 luaL_reg ElementFormControlSetters[];
 
-/*
-template<> const char* GetTClassName<ElementFormControl>() { return "ElementFormControl"; }
-template<> RegType<ElementFormControl>* GetMethodTable<ElementFormControl>() { return ElementFormControlMethods; }
-template<> luaL_reg* GetAttrTable<ElementFormControl>() { return ElementFormControlGetters; }
-template<> luaL_reg* SetAttrTable<ElementFormControl>() { return ElementFormControlSetters; }
-*/
 }
 }
 }
+LUATYPEDECLARE(Rocket::Controls::ElementFormControl)
 #endif
 

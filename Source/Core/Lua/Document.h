@@ -60,8 +60,7 @@ namespace Core {
 namespace Lua {
 typedef ElementDocument Document;
 
-template<> void LuaType<Document>::extra_init(lua_State* L, int metatable_index);
-template<> bool LuaType<Document>::is_reference_counted();
+template<> void ExtraInit<Document>(lua_State* L, int metatable_index);
 
 //methods
 int DocumentPullToFront(lua_State* L, Document* obj);
@@ -83,12 +82,7 @@ RegType<Document> DocumentMethods[];
 luaL_reg DocumentGetters[];
 luaL_reg DocumentSetters[];
 
-/*
-template<> const char* GetTClassName<Document>();
-template<> RegType<Document>* GetMethodTable<Document>();
-template<> luaL_reg* GetAttrTable<Document>();
-template<> luaL_reg* SetAttrTable<Document>();
-*/
+LUATYPEDECLARE(Document)
 }
 }
 }

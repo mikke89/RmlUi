@@ -29,8 +29,9 @@
 #include "DataSource.h"
 #include <Rocket/Core/Log.h>
 
+using Rocket::Core::Log;
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 typedef LuaDataSource DataSource;
 
@@ -100,7 +101,7 @@ int DataSourceSetAttrGetRow(lua_State* L)
 }
 
 
-RegType<DataSource> DataSourceMethods[] =
+Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[] =
 {
     LUAMETHOD(DataSource,NotifyRowAdd)
     LUAMETHOD(DataSource,NotifyRowRemove)
@@ -120,6 +121,10 @@ luaL_reg DataSourceSetters[] =
     { NULL, NULL },
 };
 
+
+
 }
 }
 }
+using Rocket::Controls::Lua::DataSource;
+LUACONTROLSTYPEDEFINE(DataSource,false)

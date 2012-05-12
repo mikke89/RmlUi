@@ -30,12 +30,13 @@
 #include <Rocket/Core/Lua/Interpreter.h>
 #include <Rocket/Core/Log.h>
 
-
+using Rocket::Core::Lua::Interpreter;
+using Rocket::Core::Log;
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 
-LuaDataFormatter::LuaDataFormatter(const String& name) : Rocket::Controls::DataFormatter(name), ref_FormatData(LUA_NOREF)
+LuaDataFormatter::LuaDataFormatter(const Rocket::Core::String& name) : Rocket::Controls::DataFormatter(name), ref_FormatData(LUA_NOREF)
 {
     
 }
@@ -75,7 +76,7 @@ void LuaDataFormatter::FormatData(Rocket::Core::String& formatted_data, const Ro
         Log::Message(Log::LT_ERROR, "In LuaDataFormatter: the return value of FormatData must be a string. You returned a %s.", lua_typename(L,lua_type(L,-1)));
         return;
     }
-    formatted_data = String(lua_tostring(L,-1));
+    formatted_data = Rocket::Core::String(lua_tostring(L,-1));
 }
 
 void LuaDataFormatter::PushDataFormatterFunctionTable(lua_State* L)

@@ -29,12 +29,16 @@
 #include "LuaDataSource.h"
 #include <Rocket/Core/Lua/Interpreter.h>
 #include <Rocket/Core/Log.h>
+#include <Rocket/Core/String.h>
 
+using Rocket::Core::Lua::Interpreter;
+using Rocket::Core::Log;
+using Rocket::Core::Lua::LuaType;
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 
-LuaDataSource::LuaDataSource(const String& name) : DataSource(name), getRowRef(LUA_NOREF), getNumRowsRef(LUA_NOREF)
+LuaDataSource::LuaDataSource(const Rocket::Core::String& name) : DataSource(name), getRowRef(LUA_NOREF), getNumRowsRef(LUA_NOREF)
 {
 }
 
@@ -54,7 +58,7 @@ void LuaDataSource::GetRow(Rocket::Core::StringList& row, const Rocket::Core::St
     lua_pushinteger(L,row_index);
     lua_newtable(L);
     int index = 0;
-    for(StringList::const_iterator itr = columns.begin(); itr != columns.end(); ++itr)
+    for(Rocket::Core::StringList::const_iterator itr = columns.begin(); itr != columns.end(); ++itr)
     {
         lua_pushstring(L,itr->CString());
         lua_rawseti(L,-2,index++);

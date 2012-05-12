@@ -30,13 +30,39 @@
 #include <ElementStyle.h>
 #include "LuaEventListener.h"
 #include "ElementAttributesProxy.h"
-#include "Utilities.h"
+#include <Rocket/Core/Lua/Utilities.h>
 
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
 typedef ElementDocument Document;
+
+template<> void ExtraInit<Element>(lua_State* L, int metatable_index)
+{
+    int top = lua_gettop(L);
+    //build the Element.etype table
+    lua_newtable(L);
+    lua_pushinteger(L,TDATAGRID);
+    lua_setfield(L,-2,"datagrid");
+    lua_pushinteger(L,TDATASELECT);
+    lua_setfield(L,-2,"dataselect");
+    lua_pushinteger(L,TELEMENT);
+    lua_setfield(L,-2,"element");
+    lua_pushinteger(L,TFORM);
+    lua_setfield(L,-2,"form");
+    lua_pushinteger(L,TINPUT);
+    lua_setfield(L,-2,"input");
+    lua_pushinteger(L,TSELECT);
+    lua_setfield(L,-2,"select");
+    lua_pushinteger(L,TTABSET);
+    lua_setfield(L,-2,"tabset");
+    lua_pushinteger(L,TTEXTAREA);
+    lua_setfield(L,-2,"textarea");
+    
+    lua_setfield(L,metatable_index-1,"etype");
+    lua_settop(L,top);
+}
 
 //methods
 int ElementAddEventListener(lua_State* L, Element* obj)
@@ -236,6 +262,7 @@ int ElementSetClass(lua_State* L, Element* obj)
 
 int ElementAsType(lua_State* L, Element* obj)
 {
+    /*
     Elementetype type = Elementetype(luaL_checkint(L,1));
     switch(type)
     {
@@ -264,6 +291,8 @@ int ElementAsType(lua_State* L, Element* obj)
         break;
     }
     return 1;
+    */
+    return 0;
 }
 
 
@@ -618,12 +647,7 @@ luaL_reg ElementSetters[] =
     { NULL, NULL },
 };
 
-/*
-template<> const char* GetTClassName<Element>() { return "Element"; }
-template<> RegType<Element>* GetMethodTable<Element>() { return ElementMethods; }
-template<> luaL_reg* GetAttrTable<Element>() { return ElementGetters; }
-template<> luaL_reg* SetAttrTable<Element>() { return ElementSetters; }
-*/
+LUATYPEDEFINE(Element,true)
 }
 }
 }

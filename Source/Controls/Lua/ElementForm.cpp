@@ -30,9 +30,17 @@
 #include <Rocket/Core/Element.h>
 #include <Rocket/Controls/ElementForm.h>
 
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementForm>(lua_State* L, int metatable_index)
+{
+    //inherit from Element
+    Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
+    LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
+}
+
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
+
 //method
 int ElementFormSubmit(lua_State* L, ElementForm* obj)
 {
@@ -42,7 +50,7 @@ int ElementFormSubmit(lua_State* L, ElementForm* obj)
     return 0;
 }
 
-RegType<ElementForm> ElementFormMethods[] =
+Rocket::Core::Lua::RegType<ElementForm> ElementFormMethods[] =
 {
     LUAMETHOD(ElementForm,Submit)
     { NULL, NULL },
@@ -62,3 +70,5 @@ luaL_reg ElementFormSetters[] =
 }
 }
 }
+using Rocket::Controls::ElementForm;
+LUACONTROLSTYPEDEFINE(ElementForm,true)

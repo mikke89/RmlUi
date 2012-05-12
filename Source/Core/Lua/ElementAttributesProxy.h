@@ -41,7 +41,7 @@ namespace Lua {
 //where owner is the Element that we should look up information from
 struct ElementAttributesProxy { Element* owner;  };
 
-template<> void LuaType<ElementAttributesProxy>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<ElementAttributesProxy>(lua_State* L, int metatable_index);
 int ElementAttributesProxy__index(lua_State* L);
 
 //method
@@ -50,6 +50,8 @@ int ElementAttributesProxyGetTable(lua_State* L, ElementAttributesProxy* obj);
 RegType<ElementAttributesProxy> ElementAttributesProxyMethods[];
 luaL_reg ElementAttributesProxyGetters[];
 luaL_reg ElementAttributesProxySetters[];
+
+LUATYPEDECLARE(ElementAttributesProxy)
 }
 }
 }

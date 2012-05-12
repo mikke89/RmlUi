@@ -25,23 +25,23 @@
  *
  */
  
-#ifndef ROCKETCORELUALUADATASOURCE_H
-#define ROCKETCORELUALUADATASOURCE_H
+#ifndef ROCKETCONTROLSLUALUADATASOURCE_H
+#define ROCKETCONTROLSLUALUADATASOURCE_H
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Controls/DataSource.h>
+#include <Rocket/Core/String.h>
 
-using Rocket::Controls::DataSource;
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 
 class LuaDataSource : public Rocket::Controls::DataSource
 {
 public:
     //default initilialize the lua func references to -1
-    LuaDataSource(const String& name = "");
+    LuaDataSource(const Rocket::Core::String& name = "");
 
 	/// Fetches the contents of one row of a table within the data source.
 	/// @param[out] row The list of values in the table.

@@ -33,6 +33,12 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 typedef Rocket::Core::ElementDocument Document;
+template<> void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,ContextDocumentsProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+}
+
 int ContextDocumentsProxy__index(lua_State* L)
 {
     /*the table obj and the missing key are currently on the stack(index 1 & 2) as defined by the Lua language*/
@@ -92,6 +98,8 @@ luaL_reg ContextDocumentsProxySetters[] =
 {
     { NULL, NULL },
 };
+
+LUATYPEDEFINE(ContextDocumentsProxy,false)
 
 }
 }

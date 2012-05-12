@@ -27,7 +27,7 @@
  
 #include "precompiled.h"
 #include "EventParametersProxy.h"
-#include "Utilities.h"
+#include <Rocket/Core/Lua/Utilities.h>
 #include <Rocket/Core/Variant.h>
 #include <Rocket/Core/Dictionary.h>
 
@@ -35,6 +35,13 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
+
+template<> void ExtraInit<EventParametersProxy>(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,EventParametersProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+}
+
 int EventParametersProxy__index(lua_State* L)
 {
     /*the table obj and the missing key are currently on the stack(index 1 & 2) as defined by the Lua language*/
@@ -84,6 +91,8 @@ luaL_reg EventParametersProxySetters[] =
 {
     { NULL, NULL },
 };
+
+LUATYPEDEFINE(EventParametersProxy,false)
 }
 }
 }

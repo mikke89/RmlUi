@@ -31,14 +31,22 @@
 #include <Rocket/Controls/ElementFormControlSelect.h>
 #include <Rocket/Controls/ElementFormControl.h>
 #include <Rocket/Core/Element.h>
+#include "ElementFormControl.h"
 
-using Rocket::Controls::ElementFormControlSelect;
-using Rocket::Controls::ElementFormControl;
-namespace Rocket {
-namespace Core {
-namespace Lua {
+
 //inherits from ElementFormControl which inherits from Element
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControlSelect>(lua_State* L, int metatable_index)
+{
+    //init whatever elementformcontrol did extra, like inheritance
+    Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(L,metatable_index);
+    //then inherit from elementformcontrol
+    LuaType<Rocket::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
 
+}
+
+namespace Rocket {
+namespace Controls {
+namespace Lua {
 
 //methods
 int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj)
@@ -66,7 +74,7 @@ int ElementFormControlSelectGetOption(lua_State* L, ElementFormControlSelect* ob
     int index = luaL_checkint(L,1);
     Rocket::Controls::SelectOption* opt = obj->GetOption(index);
     lua_newtable(L);
-    LuaType<Element>::push(L,opt->GetElement(),false);
+    LuaType<Rocket::Core::Element>::push(L,opt->GetElement(),false);
     lua_setfield(L,-2,"element");
     lua_pushstring(L,opt->GetValue().CString());
     lua_setfield(L,-2,"value");
@@ -107,7 +115,7 @@ int ElementFormControlSelectSetAttrselection(lua_State* L)
 }
 
 
-RegType<ElementFormControlSelect> ElementFormControlSelectMethods[] =
+Rocket::Core::Lua::RegType<ElementFormControlSelect> ElementFormControlSelectMethods[] =
 {
     LUAMETHOD(ElementFormControlSelect,Add)
     LUAMETHOD(ElementFormControlSelect,Remove)
@@ -128,12 +136,8 @@ luaL_reg ElementFormControlSelectSetters[] =
     { NULL, NULL },
 };
 
-/*
-template<> const char* GetTClassName<ElementFormControlSelect>() { return "ElementFormControlSelect"; }
-template<> RegType<ElementFormControlSelect>* GetMethodTable<ElementFormControlSelect>() { return ElementFormControlSelectMethods; }
-template<> luaL_reg* GetAttrTable<ElementFormControlSelect>() { return ElementFormControlSelectGetters; }
-template<> luaL_reg* SetAttrTable<ElementFormControlSelect>() { return ElementFormControlSelectSetters; }
-*/
 }
 }
 }
+using Rocket::Controls::ElementFormControlSelect;
+LUACONTROLSTYPEDEFINE(ElementFormControlSelect,true)

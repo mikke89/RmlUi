@@ -28,13 +28,20 @@
 #include "precompiled.h"
 #include "ElementFormControlDataSelect.h"
 #include <Rocket/Controls/ElementFormControlSelect.h>
+#include "ElementFormControlSelect.h"
 
-using Rocket::Controls::ElementFormControlSelect;
-namespace Rocket {
-namespace Core {
-namespace Lua {
 //inherits from ElementFormControl which inherits from Element
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControlDataSelect>(lua_State* L, int metatable_index)
+{
+    //do whatever ElementFormControlSelect did as far as inheritance
+    Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControlSelect>(L,metatable_index);
+    //then inherit from ElementFromControlSelect
+    LuaType<Rocket::Controls::ElementFormControlSelect>::_regfunctions(L,metatable_index,metatable_index-1);
+}
 
+namespace Rocket {
+namespace Controls {
+namespace Lua {
 
 //method
 int ElementFormControlDataSelectSetDataSource(lua_State* L, ElementFormControlDataSelect* obj)
@@ -44,7 +51,7 @@ int ElementFormControlDataSelectSetDataSource(lua_State* L, ElementFormControlDa
     return 0;
 }
 
-RegType<ElementFormControlDataSelect> ElementFormControlDataSelectMethods[] =
+Rocket::Core::Lua::RegType<ElementFormControlDataSelect> ElementFormControlDataSelectMethods[] =
 {
     LUAMETHOD(ElementFormControlDataSelect,SetDataSource)
     { NULL, NULL },
@@ -60,13 +67,8 @@ luaL_reg ElementFormControlDataSelectSetters[] =
     { NULL, NULL },
 };
 
-/*
-template<> const char* GetTClassName<ElementFormControlDataSelect>() { return "ElementFormControlDataSelect"; }
-template<> RegType<ElementFormControlDataSelect>* GetMethodTable<ElementFormControlDataSelect>() { return ElementFormControlDataSelectMethods; }
-template<> luaL_reg* GetAttrTable<ElementFormControlDataSelect>() { return ElementFormControlDataSelectGetters; }
-template<> luaL_reg* SetAttrTable<ElementFormControlDataSelect>() { return ElementFormControlDataSelectSetters; }
-*/
-
 }
 }
 }
+using Rocket::Controls::ElementFormControlDataSelect;
+LUACONTROLSTYPEDEFINE(ElementFormControlDataSelect,true)

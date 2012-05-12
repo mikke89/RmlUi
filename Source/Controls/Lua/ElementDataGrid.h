@@ -25,8 +25,8 @@
  *
  */
  
-#ifndef ROCKETCORELUAELEMENTDATAGRID_H
-#define ROCKETCORELUAELEMENTDATAGRID_H
+#ifndef ROCKETCONTROLSLUAELEMENTDATAGRID_H
+#define ROCKETCONTROLSLUAELEMENTDATAGRID_H
 /*
     This defines the ElementDataGrid type in the Lua global namespace
     
@@ -45,13 +45,12 @@
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Controls/ElementDataGrid.h>
 
-using Rocket::Controls::ElementDataGrid;
-namespace Rocket {
-namespace Core {
-namespace Lua {
+using Rocket::Core::Lua::LuaType;
 //this will be used to "inherit" from Element
-template<> void LuaType<ElementDataGrid>::extra_init(lua_State* L, int metatable_index);
-template<> bool LuaType<ElementDataGrid>::is_reference_counted();
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index);
+namespace Rocket {
+namespace Controls {
+namespace Lua {
 
 //methods
 int ElementDataGridAddColumn(lua_State* L, ElementDataGrid* obj);
@@ -61,17 +60,13 @@ int ElementDataGridSetDataSource(lua_State* L, ElementDataGrid* obj);
 int ElementDataGridGetAttrrows(lua_State* L);
 
 
-RegType<ElementDataGrid> ElementDataGridMethods[];
+Rocket::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[];
 luaL_reg ElementDataGridGetters[];
 luaL_reg ElementDataGridSetters[];
 
-/*
-template<> const char* GetTClassName<ElementDataGrid>();
-template<> RegType<ElementDataGrid>* GetMethodTable<ElementDataGrid>();
-template<> luaL_reg* GetAttrTable<ElementDataGrid>();
-template<> luaL_reg* SetAttrTable<ElementDataGrid>();
-*/
+
 }
 }
 }
+LUATYPEDECLARE(Rocket::Controls::ElementDataGrid)
 #endif

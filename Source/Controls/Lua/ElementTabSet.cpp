@@ -29,11 +29,16 @@
 #include "ElementTabSet.h"
 #include <Rocket/Core/Element.h>
 
+//this will be used to "inherit" from Element
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementTabSet>(lua_State* L, int metatable_index)
+{
+    Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
+    LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
+}
 
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
-//this will be used to "inherit" from Element
 
 //methods
 int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj)
@@ -88,7 +93,7 @@ int ElementTabSetSetAttractive_tab(lua_State* L)
 }
 
 
-RegType<ElementTabSet> ElementTabSetMethods[] =
+Rocket::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[] =
 {
     LUAMETHOD(ElementTabSet,SetPanel)
     LUAMETHOD(ElementTabSet,SetTab)
@@ -108,13 +113,10 @@ luaL_reg ElementTabSetSetters[] =
     { NULL, NULL },
 };
 
-/*
-template<> const char* GetTClassName<ElementTabSet>() { return "ElementTabSet"; }
-template<> RegType<ElementTabSet>* GetMethodTable<ElementTabSet>() { return ElementTabSetMethods; }
-template<> luaL_reg* GetAttrTable<ElementTabSet>() { return ElementTabSetGetters; }
-template<> luaL_reg* SetAttrTable<ElementTabSet>() { return ElementTabSetSetters; }
-*/
+
 
 }
 }
 }
+using Rocket::Controls::ElementTabSet;
+LUACONTROLSTYPEDEFINE(ElementTabSet,true)

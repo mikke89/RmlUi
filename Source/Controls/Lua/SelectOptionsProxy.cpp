@@ -29,9 +29,18 @@
 #include "SelectOptionsProxy.h"
 #include <Rocket/Core/Element.h>
 
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+}
+
+
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
+
+
 int SelectOptionsProxy__index(lua_State* L)
 {
     /*the table obj and the missing key are currently on the stack(index 1 & 2) as defined by the Lua language*/
@@ -44,7 +53,7 @@ int SelectOptionsProxy__index(lua_State* L)
         Rocket::Controls::SelectOption* opt = proxy->owner->GetOption(index);
         LUACHECKOBJ(opt);
         lua_newtable(L);
-        LuaType<Element>::push(L,opt->GetElement(),false);
+        LuaType<Rocket::Core::Element>::push(L,opt->GetElement(),false);
         lua_setfield(L,-2,"element");
         lua_pushstring(L,opt->GetValue().CString());
         lua_setfield(L,-2,"value");
@@ -61,8 +70,8 @@ int SelectOptionsProxyGetTable(lua_State* L, SelectOptionsProxy* obj)
 
     //local variables for the loop
     Rocket::Controls::SelectOption* opt; 
-    Element* ele;
-    String value;
+    Rocket::Core::Element* ele;
+    Rocket::Core::String value;
     lua_newtable(L); //table to return
     int retindex = lua_gettop(L);
     for(int index = 0; index < numOptions; index++)
@@ -74,7 +83,7 @@ int SelectOptionsProxyGetTable(lua_State* L, SelectOptionsProxy* obj)
         value = opt->GetValue();
 
         lua_newtable(L);
-        LuaType<Element>::push(L,ele,false);
+        LuaType<Rocket::Core::Element>::push(L,ele,false);
         lua_setfield(L,-2,"element");
         lua_pushstring(L,value.CString());
         lua_setfield(L,-2,"value");
@@ -83,7 +92,7 @@ int SelectOptionsProxyGetTable(lua_State* L, SelectOptionsProxy* obj)
     return 1;
 }
 
-RegType<SelectOptionsProxy> SelectOptionsProxyMethods[] =
+Rocket::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[] =
 {
     LUAMETHOD(SelectOptionsProxy,GetTable)
     { NULL, NULL },
@@ -99,6 +108,9 @@ luaL_reg SelectOptionsProxySetters[] =
     { NULL, NULL },
 };
 
+
 }
 }
 }
+using Rocket::Controls::Lua::SelectOptionsProxy;
+LUACONTROLSTYPEDEFINE(SelectOptionsProxy,false);

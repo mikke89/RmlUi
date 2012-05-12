@@ -29,10 +29,17 @@
 #include "ElementDataGridRow.h"
 #include <Rocket/Controls/ElementDataGrid.h>
 
-using Rocket::Controls::ElementDataGrid;
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementDataGridRow>(lua_State* L, int metatable_index)
+{
+    Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
+    LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
+}
+
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
+
+
 //getters
 int ElementDataGridRowGetAttrrow_expanded(lua_State* L)
 {
@@ -90,7 +97,7 @@ int ElementDataGridRowSetAttrrow_expanded(lua_State* L)
 
 
 
-RegType<ElementDataGridRow> ElementDataGridRowMethods[] =
+Rocket::Core::Lua::RegType<ElementDataGridRow> ElementDataGridRowMethods[] =
 {
     { NULL, NULL },
 };
@@ -110,12 +117,9 @@ luaL_reg ElementDataGridRowSetters[] =
     LUASETTER(ElementDataGridRow,row_expanded)
     { NULL, NULL },
 };
-/*
-template<> const char* GetTClassName<ElementDataGridRow>() { return "ElementDataGridRow"; }
-template<> RegType<ElementDataGridRow>* GetMethodTable<ElementDataGridRow>() { return ElementDataGridRowMethods; }
-template<> luaL_reg* GetAttrTable<ElementDataGridRow>() { return ElementDataGridRowGetters; }
-template<> luaL_reg* SetAttrTable<ElementDataGridRow>() { return ElementDataGridRowSetters; }
-*/
+
 }
 }
 }
+using Rocket::Controls::ElementDataGridRow;
+LUACONTROLSTYPEDEFINE(ElementDataGridRow,true)

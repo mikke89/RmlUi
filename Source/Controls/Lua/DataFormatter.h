@@ -25,8 +25,8 @@
  *
  */
  
-#ifndef ROCKETCORELUADATAFORMATTER_H
-#define ROCKETCORELUADATAFORMATTER_H
+#ifndef ROCKETCONTROLSLUADATAFORMATTER_H
+#define ROCKETCONTROLSLUADATAFORMATTER_H
 /*
     This defines the DataFormatter type in the Lua global namespace
 
@@ -46,23 +46,24 @@
 #include <Rocket/Core/Lua/LuaType.h>
 #include "LuaDataFormatter.h"
 
+using Rocket::Core::Lua::LuaType;
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 typedef LuaDataFormatter DataFormatter;
-//for DataFormatter.new
-template<> void LuaType<DataFormatter>::extra_init(lua_State* L, int metatable_index);
-
 //method
 int DataFormatternew(lua_State* L);
 
 //setter
 int DataFormatterSetAttrFormatData(lua_State* L);
 
-RegType<DataFormatter> DataFormatterMethods[];
+Rocket::Core::Lua::RegType<DataFormatter> DataFormatterMethods[];
 luaL_reg DataFormatterGetters[];
 luaL_reg DataFormatterSetters[];
 }
 }
 }
+//for DataFormatter.new
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::DataFormatter>(lua_State* L, int metatable_index);
+LUATYPEDECLARE(Rocket::Controls::Lua::DataFormatter)
 #endif

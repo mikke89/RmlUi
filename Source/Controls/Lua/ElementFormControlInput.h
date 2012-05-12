@@ -25,8 +25,8 @@
  *
  */
  
-#ifndef ROCKETCORELUAELEMENTFORMCONTROLINPUT_H
-#define ROCKETCORELUAELEMENTFORMCONTROLINPUT_H
+#ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROLINPUT_H
+#define ROCKETCONTROLSLUAELEMENTFORMCONTROLINPUT_H
 /*
     This defines the type ElementFormControlInput in the Lua globla namespace, refered to in this documentation by EFCInput
 
@@ -45,13 +45,12 @@
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Controls/ElementFormControlInput.h>
 
-using Rocket::Controls::ElementFormControlInput;
-namespace Rocket {
-namespace Core {
-namespace Lua {
+using Rocket::Core::Lua::LuaType;
 //inherits from ElementFormControl which inherits from Element
-template<> void LuaType<ElementFormControlInput>::extra_init(lua_State* L, int metatable_index);
-template<> bool LuaType<ElementFormControlInput>::is_reference_counted();
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControlInput>(lua_State* L, int metatable_index);
+namespace Rocket {
+namespace Controls {
+namespace Lua {
 
 //getters
 int ElementFormControlInputGetAttrchecked(lua_State* L);
@@ -69,18 +68,12 @@ int ElementFormControlInputSetAttrmax(lua_State* L);
 int ElementFormControlInputSetAttrmin(lua_State* L);
 int ElementFormControlInputSetAttrstep(lua_State* L);
 
-RegType<ElementFormControlInput> ElementFormControlInputMethods[];
+Rocket::Core::Lua::RegType<ElementFormControlInput> ElementFormControlInputMethods[];
 luaL_reg ElementFormControlInputGetters[];
 luaL_reg ElementFormControlInputSetters[];
 
-/*
-template<> const char* GetTClassName<ElementFormControlInput>();
-template<> RegType<ElementFormControlInput>* GetMethodTable<ElementFormControlInput>();
-template<> luaL_reg* GetAttrTable<ElementFormControlInput>();
-template<> luaL_reg* SetAttrTable<ElementFormControlInput>();
-*/
-
 }
 }
 }
+LUATYPEDECLARE(Rocket::Controls::ElementFormControlInput)
 #endif

@@ -74,7 +74,7 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> void LuaType<ElementStyle>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<ElementStyle>(lua_State* L, int metatable_index);
 int ElementStyle__index(lua_State* L);
 int ElementStyle__newindex(lua_State* L);
 
@@ -85,12 +85,7 @@ RegType<ElementStyle> ElementStyleMethods[];
 luaL_reg ElementStyleGetters[];
 luaL_reg ElementStyleSetters[];
 
-/*
-template<> const char* GetTClassName<ElementStyle>();
-template<> RegType<ElementStyle>* GetMethodTable<ElementStyle>();
-template<> luaL_reg* GetAttrTable<ElementStyle>();
-template<> luaL_reg* SetAttrTable<ElementStyle>();
-*/
+LUATYPEDECLARE(ElementStyle)
 }
 }
 }

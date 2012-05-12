@@ -24,55 +24,50 @@
  * THE SOFTWARE.
  *
  */
- 
-#ifndef ROCKETCONTROLSLUAELEMENTTABSET_H
-#define ROCKETCONTROLSLUAELEMENTTABSET_H
-/*
-    This defines the ElementTabSet type in the Lua global namespace
 
-    It inherits from Element
-
-    //methods:
-    noreturn ElementTabSet:SetPanel(int index, string rml)
-    noreturn ElementTabSet:SetTab(int index, string rml)
-
-    //getters
-    int ElementTabSet.active_tab
-    int ElementTabSet.num_tabs
-
-    //setter
-    ElementTabSet.active_tab = int
-*/
-
+#include "precompiled.h"
+#include <Rocket/Controls/Lua/Controls.h>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Controls/ElementTabSet.h>
+#include "SelectOptionsProxy.h"
+#include "DataFormatter.h"
+#include "DataSource.h"
+#include "ElementForm.h"
+#include "ElementFormControl.h"
+#include "ElementFormControlSelect.h"
+#include "ElementFormControlDataSelect.h"
+#include "ElementFormControlInput.h"
+#include "ElementFormControlTextArea.h"
+#include "ElementDataGrid.h"
+#include "ElementDataGridRow.h"
+#include "ElementTabSet.h"
 
 using Rocket::Core::Lua::LuaType;
-//this will be used to "inherit" from Element
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementTabSet>(lua_State* L, int metatable_index);
 namespace Rocket {
 namespace Controls {
 namespace Lua {
 
-//methods
-int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj);
-int ElementTabSetSetTab(lua_State* L, ElementTabSet* obj);
-
-//getters
-int ElementTabSetGetAttractive_tab(lua_State* L);
-int ElementTabSetGetAttrnum_tabs(lua_State* L);
-
-//setter
-int ElementTabSetSetAttractive_tab(lua_State* L);
-
-Rocket::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[];
-luaL_reg ElementTabSetGetters[];
-luaL_reg ElementTabSetSetters[];
-
+//This will define all of the types from RocketControls for Lua. There is not a
+//corresponding function for types of RocketCore, because they are defined automatically
+//when the Interpreter starts.
+void RegisterTypes(lua_State* L)
+{
+    LuaType<ElementForm>::Register(L);
+    LuaType<ElementFormControl>::Register(L);
+        //Inherits from ElementFormControl
+        LuaType<ElementFormControlSelect>::Register(L);
+            LuaType<ElementFormControlDataSelect>::Register(L);
+        LuaType<ElementFormControlInput>::Register(L);
+        LuaType<ElementFormControlTextArea>::Register(L);
+    //proxy tables
+    LuaType<SelectOptionsProxy>::Register(L);
+    LuaType<DataFormatter>::Register(L);
+    LuaType<DataSource>::Register(L);
+    LuaType<ElementDataGrid>::Register(L);
+    LuaType<ElementDataGridRow>::Register(L);
+    LuaType<ElementTabSet>::Register(L);
+}
 
 }
 }
 }
-LUATYPEDECLARE(Rocket::Controls::ElementTabSet)
-#endif

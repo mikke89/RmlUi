@@ -28,12 +28,17 @@
 #include "precompiled.h"
 #include "ElementFormControlTextArea.h"
 #include <Rocket/Controls/ElementFormControl.h>
+#include "ElementFormControl.h"
 
-using Rocket::Controls::ElementFormControl;
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControlTextArea>(lua_State* L, int metatable_index)
+{
+    Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(L,metatable_index);
+    LuaType<Rocket::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
+}
+
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
-
 
 //getters
 int ElementFormControlTextAreaGetAttrcols(lua_State* L)
@@ -107,7 +112,7 @@ int ElementFormControlTextAreaSetAttrwordwrap(lua_State* L)
 }
 
 
-RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[] =
+Rocket::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[] =
 {
     { NULL, NULL },
 };
@@ -130,13 +135,8 @@ luaL_reg ElementFormControlTextAreaSetters[] =
     { NULL, NULL },
 };
 
-/*
-template<> const char* GetTClassName<ElementFormControlTextArea>() { return "ElementFormControlTextArea"; }
-template<> RegType<ElementFormControlTextArea>* GetMethodTable<ElementFormControlTextArea>() { return ElementFormControlTextAreaMethods; }
-template<> luaL_reg* GetAttrTable<ElementFormControlTextArea>() { return ElementFormControlTextAreaGetters; }
-template<> luaL_reg* SetAttrTable<ElementFormControlTextArea>() { return ElementFormControlTextAreaSetters; }
-*/
-
 }
 }
 }
+using Rocket::Controls::ElementFormControlTextArea;
+LUACONTROLSTYPEDEFINE(ElementFormControlTextArea,true)

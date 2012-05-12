@@ -32,5 +32,12 @@
 #include <Rocket/Core/Debug.h>
 #include <Rocket/Controls/Controls.h>
 #include <Rocket/Core/Lua/LuaType.h>
+//We can't use LUATYPEDEFINE from LuaType.h due to namespace issues
+#define LUACONTROLSTYPEDEFINE(type,is_ref_counted) \
+    template<> const char* Rocket::Core::Lua::GetTClassName<type>() { return #type; } \
+    template<> Rocket::Core::Lua::RegType<type>* Rocket::Core::Lua::GetMethodTable<type>() { return Rocket::Controls::Lua::type##Methods; } \
+    template<> luaL_reg* Rocket::Core::Lua::GetAttrTable<type>() { return Rocket::Controls::Lua::type##Getters; } \
+    template<> luaL_reg* Rocket::Core::Lua::SetAttrTable<type>() { return Rocket::Controls::Lua::type##Setters; } \
+    template<> bool Rocket::Core::Lua::IsReferenceCounted<type>() { return (is_ref_counted); } \
 
 #endif

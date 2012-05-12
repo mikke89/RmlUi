@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include <Rocket/Controls/Controls.h>
 #include <Rocket/Core/Core.h>
-#include <Rocket/Core/Lua/Interpreter.h>
+#include <Rocket/Core/Lua/Utilities.h>
 
 namespace Rocket {
 namespace Core {
@@ -66,7 +66,7 @@ void LuaType<T>::Register(lua_State* L)
     lua_pushcfunction(L, tostring_T);
     lua_setfield(L, metatable, "__tostring");
 
-    extra_init(L,metatable); //imlemented by individual types
+    ExtraInit<T>(L,metatable); //optionally implemented by individual types
 
     lua_newtable(L); //for method table -> [3] = this table
     lua_setmetatable(L, methods); //[methods = 1] -> metatable for [1] is [3]; [3] is popped off, top = [2]
@@ -109,7 +109,7 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
         }
         else
         {
-            if(is_reference_counted())
+            if(IsReferenceCounted<T>())
                 ((Rocket::Core::ReferenceCountable*)obj)->AddReference();
         }
         lua_pop(L,1); // -> pop [3]
@@ -175,7 +175,7 @@ int LuaType<T>::gc_T(lua_State* L)
         lua_getfield(L,-1, std::string(name).c_str()); //[-1 = 2] -> [3] = the value returned from if <ClassName> exists in the table to not gc
         if(lua_isnil(L,-1) ) //[-1 = 3] if it doesn't exist, then we are free to garbage collect c++ side
         {
-            if(is_reference_counted())
+            if(IsReferenceCounted<T>())
             {
                 ((Rocket::Core::ReferenceCountable*)obj)->RemoveReference();
             }
@@ -228,7 +228,7 @@ int LuaType<T>::index(lua_State* L)
             {
                 lua_pushvalue(L,1); //push the userdata to the stack [6]
                 if(lua_pcall(L,1,1,0) != 0) //remove one, result is at [6]
-                    Interpreter::Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
+                    Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
             }
             else
             {
@@ -242,7 +242,7 @@ int LuaType<T>::index(lua_State* L)
                         lua_pushvalue(L,1); //[1] = object -> [7] = object
                         lua_pushvalue(L,2); //[2] = key -> [8] = key
                         if(lua_pcall(L,2,1,0) != 0) //call function at top of stack (__index) -> pop top 2 as args; [7] = return value
-                            Interpreter::Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
+                            Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
                     }
                     else if(lua_istable(L,-1) )
                         lua_getfield(L,-1,key); //shorthand version of above -> [7] = return value
@@ -284,7 +284,7 @@ int LuaType<T>::newindex(lua_State* L)
         lua_pushvalue(L,1); //userdata at [7]
         lua_pushvalue(L,3); //[8] = copy of [3]
         if(lua_pcall(L,2,0,0) != 0) //call function, pop 2 off push 0 on
-            Interpreter::Report(L, String(GetTClassName<T>()).Append(".__newindex for ").Append(lua_tostring(L,2)).Append(": ")); 
+            Report(L, String(GetTClassName<T>()).Append(".__newindex for ").Append(lua_tostring(L,2)).Append(": ")); 
     }
     else
         lua_pop(L,1); //not a setter function.
@@ -292,12 +292,6 @@ int LuaType<T>::newindex(lua_State* L)
     return 0;
 }
 
-template<typename T>
-void LuaType<T>::extra_init(lua_State* L, int metatable_index)
-{
-    //empty, because it should be implemented by other types
-    return;
-}
 
 template<typename T>
 void LuaType<T>::_regfunctions(lua_State* L, int meta, int methods)
@@ -344,14 +338,6 @@ void LuaType<T>::_regfunctions(lua_State* L, int meta, int methods)
     lua_pop(L,1); //pop __setters
 }
 
-template<typename T>
-bool LuaType<T>::is_reference_counted()
-{
-    return false;
-}
-
 }
 }
 }
-
-#include "LuaTypeTemplateSpec.inl"

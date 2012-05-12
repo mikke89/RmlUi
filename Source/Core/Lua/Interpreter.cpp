@@ -27,21 +27,35 @@
  
 #include "precompiled.h"
 #include <Rocket/Core/Lua/Interpreter.h>
+#include <Rocket/Core/Lua/Utilities.h>
 #include <Rocket/Core/Log.h>
 #include <Rocket/Core/String.h>
 #include <Rocket/Core/Lua/LuaType.h>
 #include "LuaDocumentElementInstancer.h"
 #include <Rocket/Core/Factory.h>
 #include "LuaEventListenerInstancer.h"
-#include "LuaDataFormatter.h"
 #include "Rocket.h"
+#include <ElementStyle.h>
+//the types I made
+#include "ContextDocumentsProxy.h"
+#include "EventParametersProxy.h"
+#include "ElementAttributesProxy.h"
+#include "Log.h"
+#include "Element.h"
+#include "ElementStyle.h"
+#include "Document.h"
+#include "Colourb.h"
+#include "Colourf.h"
+#include "Vector2f.h"
+#include "Vector2i.h"
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
 lua_State* Interpreter::_L = NULL;
+//typedefs for nicer Lua names
 typedef Rocket::Core::ElementDocument Document;
-typedef Rocket::Core::Lua::LuaDataFormatter DataFormatter;
+
 
 void Interpreter::Startup()
 {
@@ -64,6 +78,7 @@ void Interpreter::RegisterEverything(lua_State* L)
     LuaType<Element>::Register(L);
         //things that inherit from Element
         LuaType<Document>::Register(L);
+        /*
         //controls that inherit from Element
         LuaType<Rocket::Controls::ElementTabSet>::Register(L);
         LuaType<Rocket::Controls::ElementDataGrid>::Register(L);
@@ -75,10 +90,15 @@ void Interpreter::RegisterEverything(lua_State* L)
             LuaType<Rocket::Controls::ElementFormControlDataSelect>::Register(L);
             LuaType<Rocket::Controls::ElementFormControlInput>::Register(L);
             LuaType<Rocket::Controls::ElementFormControlTextArea>::Register(L);
+        */
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
-    LuaType<DataFormatter>::Register(L);
+    //LuaType<DataFormatter>::Register(L);
     LuaType<rocket>::Register(L);
+    //Proxy tables
+    LuaType<ContextDocumentsProxy>::Register(L);
+    LuaType<EventParametersProxy>::Register(L);
+    LuaType<ElementAttributesProxy>::Register(L);
 }
 
 
@@ -90,7 +110,7 @@ void Interpreter::LoadFile(const String& file)
     {
         msg.Append(" failed. Could not load. ").Append(file);
         Log::Message(Log::LT_ERROR, msg.CString());
-        Report();
+        Report(_L);
     }
     else
     {
@@ -98,7 +118,7 @@ void Interpreter::LoadFile(const String& file)
         {
             msg.Append(" failed. Could not run. ").Append(file);
             Log::Message(Log::LT_ERROR, msg.CString());
-            Report();
+            Report(_L);
         }
         else
         {
@@ -113,7 +133,7 @@ void Interpreter::DoString(const Rocket::Core::String& code, const Rocket::Core:
 {
     luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString());
     if(lua_pcall(_L,0,0,0) != 0)
-        Report();
+        Report(_L);
 }
 
 void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Core::String& name)
@@ -121,24 +141,6 @@ void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Cor
     luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString());
 }
 
-
-void Interpreter::Report(lua_State* L, const Rocket::Core::String& place)
-{
-    if(L == NULL)
-        L = _L; //use the original state of Interpreter
-    const char * msg= lua_tostring(_L,-1);
-    String strmsg;
-    while(msg)
-    {
-        lua_pop(_L,1);
-        if(place == "")
-            strmsg = msg;
-        else
-            strmsg = String(place).Append(" ").Append(msg);
-        Log::Message(Log::LT_WARNING, strmsg.CString());
-        msg=lua_tostring(_L,-1);
-    }
-}
 
 void Interpreter::BeginCall(int funRef)
 {
@@ -171,7 +173,7 @@ bool Interpreter::ExecuteCall(int params, int res)
     {
         if(lua_pcall(_L,params,res,0) != 0)
         {
-            Report();
+            Report(_L);
             ret = false;
         }
     }

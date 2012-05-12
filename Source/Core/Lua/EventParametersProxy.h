@@ -41,7 +41,7 @@ namespace Lua {
 //where owner is the Element that we should look up information from
 struct EventParametersProxy { Event* owner;  };
 
-template<> void LuaType<EventParametersProxy>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<EventParametersProxy>(lua_State* L, int metatable_index);
 int EventParametersProxy__index(lua_State* L);
 
 //method
@@ -50,6 +50,8 @@ int EventParametersProxyGetTable(lua_State* L, EventParametersProxy* obj);
 RegType<EventParametersProxy> EventParametersProxyMethods[];
 luaL_reg EventParametersProxyGetters[];
 luaL_reg EventParametersProxySetters[];
+
+LUATYPEDECLARE(EventParametersProxy)
 }
 }
 }

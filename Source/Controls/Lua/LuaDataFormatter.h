@@ -25,20 +25,20 @@
  *
  */
  
-#ifndef ROCKETCORELUALUADATAFORMATTER_H
-#define ROCKETCORELUALUADATAFORMATTER_H
+#ifndef ROCKETCONTROLSLUALUADATAFORMATTER_H
+#define ROCKETCONTROLSLUALUADATAFORMATTER_H
+
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Controls/DataFormatter.h>
 
-using Rocket::Controls::DataFormatter;
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 
 class LuaDataFormatter : public Rocket::Controls::DataFormatter
 {
 public:
-    LuaDataFormatter(const String& name = "");
+    LuaDataFormatter(const Rocket::Core::String& name = "");
     ~LuaDataFormatter();
 
     virtual void FormatData(Rocket::Core::String& formatted_data, const Rocket::Core::StringList& raw_data);

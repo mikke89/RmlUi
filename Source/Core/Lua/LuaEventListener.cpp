@@ -29,6 +29,7 @@
 #include "LuaEventListener.h"
 #include <Rocket/Core/Lua/Interpreter.h>
 #include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/Utilities.h>
 
 namespace Rocket {
 namespace Core {
@@ -57,7 +58,7 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
     //compile,execute,and save the function
     luaL_loadstring(L,function.CString());
     if(lua_pcall(L,0,1,0) != 0)
-        Interpreter::Report();
+        Report(L);
     luaFuncRef = luaL_ref(L,tbl); //creates a reference to the item at the top of the stack in to the table we just created
     lua_pop(L,1); //pop the EVENTLISTENERFUNCTIONS table
 

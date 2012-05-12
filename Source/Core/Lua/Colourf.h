@@ -59,7 +59,7 @@ using Rocket::Core::Colourf;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> void LuaType<Colourf>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<Colourf>(lua_State* L, int metatable_index);
 //metamethods
 int Colourfnew(lua_State* L);
 int Colourf__eq(lua_State* L);
@@ -81,12 +81,7 @@ RegType<Colourf> ColourfMethods[];
 luaL_reg ColourfGetters[];
 luaL_reg ColourfSetters[];
 
-/*
-template<> const char* GetTClassName<Colourf>() { return "Colourf"; }
-template<> RegType<Colourf>* GetMethodTable<Colourf>() { return ColourfMethods; }
-template<> luaL_reg* GetAttrTable<Colourf>() { return ColourfGetters; }
-template<> luaL_reg* SetAttrTable<Colourf>() { return ColourfSetters; }
-*/
+LUATYPEDECLARE(Colourf)
 }
 }
 }

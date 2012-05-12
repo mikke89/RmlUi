@@ -25,8 +25,8 @@
  *
  */
  
-#ifndef ROCKETCORELUASELECTOPTIONSPROXY_H
-#define ROCKETCORELUASELECTOPTIONSPROXY_H
+#ifndef ROCKETCONTROLSLUASELECTOPTIONSPROXY_H
+#define ROCKETCONTROLSLUASELECTOPTIONSPROXY_H
 /*
     Proxy table for ElementFormControlSelect.options
     read-only, key must be a number
@@ -45,22 +45,25 @@
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Controls/ElementFormControlSelect.h>
 
+using Rocket::Core::Lua::LuaType;
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 //where owner is the ElementFormControlSelect that we should look up information from
 struct SelectOptionsProxy { Rocket::Controls::ElementFormControlSelect* owner;  };
 
-template<> void LuaType<SelectOptionsProxy>::extra_init(lua_State* L, int metatable_index);
 int SelectOptionsProxy__index(lua_State* L);
 
 //method
 int SelectOptionsProxyGetTable(lua_State* L, SelectOptionsProxy* obj);
 
-RegType<SelectOptionsProxy> SelectOptionsProxyMethods[];
+Rocket::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[];
 luaL_reg SelectOptionsProxyGetters[];
 luaL_reg SelectOptionsProxySetters[];
+
 }
 }
 }
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index);
+LUATYPEDECLARE(Rocket::Controls::Lua::SelectOptionsProxy)
 #endif

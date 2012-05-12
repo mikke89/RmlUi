@@ -26,7 +26,7 @@
  */
  
 #include "precompiled.h"
-#include "Utilities.h"
+#include <Rocket/Core/Lua/Utilities.h>
 
 namespace Rocket {
 namespace Core {
@@ -69,6 +69,23 @@ void PushVariant(lua_State* L, Variant* var)
     default:
         lua_pushnil(L);
         break;
+    }
+}
+
+
+void Report(lua_State* L, const Rocket::Core::String& place)
+{
+    const char * msg= lua_tostring(L,-1);
+    String strmsg;
+    while(msg)
+    {
+        lua_pop(L,1);
+        if(place == "")
+            strmsg = msg;
+        else
+            strmsg = String(place).Append(" ").Append(msg);
+        Log::Message(Log::LT_WARNING, strmsg.CString());
+        msg=lua_tostring(L,-1);
     }
 }
 

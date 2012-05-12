@@ -41,7 +41,7 @@ namespace Lua {
 //where owner is the context that we should look information from
 struct ContextDocumentsProxy { Context* owner;  };
 
-template<> void LuaType<ContextDocumentsProxy>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_index);
 int ContextDocumentsProxy__index(lua_State* L);
 
 //method
@@ -50,6 +50,8 @@ int ContextDocumentsProxyGetTable(lua_State* L, ContextDocumentsProxy* obj);
 RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[];
 luaL_reg ContextDocumentsProxyGetters[];
 luaL_reg ContextDocumentsProxySetters[];
+
+LUATYPEDECLARE(ContextDocumentsProxy)
 }
 }
 }

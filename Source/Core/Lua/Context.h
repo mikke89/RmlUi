@@ -72,7 +72,6 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> bool LuaType<Context>::is_reference_counted();
 
 //methods
 int ContextAddEventListener(lua_State* L, Context* obj);
@@ -104,12 +103,7 @@ RegType<Context> ContextMethods[];
 luaL_reg ContextGetters[];
 luaL_reg ContextSetters[];
 
-/*
-template<> const char* GetTClassName<Context>();
-template<> RegType<Context>* GetMethodTable<Context>();
-template<> luaL_reg* GetAttrTable<Context>();
-template<> luaL_reg* SetAttrTable<Context>();
-*/
+LUATYPEDECLARE(Context)
 }
 }
 }

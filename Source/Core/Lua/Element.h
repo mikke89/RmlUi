@@ -128,8 +128,8 @@ enum Elementetype
 {
     TDATAGRID = 0, TDATASELECT, TELEMENT, TFORM, TINPUT, TSELECT, TTABSET, TTEXTAREA
 };
-template<> bool LuaType<Element>::is_reference_counted();
-template<> void LuaType<Element>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<Element>(lua_State* L, int metatable_index);
+
 
 //methods
 int ElementAddEventListener(lua_State* L, Element* obj);
@@ -194,12 +194,8 @@ RegType<Element> ElementMethods[];
 luaL_reg ElementGetters[];
 luaL_reg ElementSetters[];
 
-/*
-template<> const char* GetTClassName<Element>();
-template<> RegType<Element>* GetMethodTable<Element>();
-template<> luaL_reg* GetAttrTable<Element>();
-template<> luaL_reg* SetAttrTable<Element>();
-*/
+LUATYPEDECLARE(Element)
+
 }
 }
 }

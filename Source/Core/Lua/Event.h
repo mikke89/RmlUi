@@ -48,7 +48,6 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> bool LuaType<Event>::is_reference_counted();
 
 //method
 int EventStopPropagation(lua_State* L, Event* obj);
@@ -63,12 +62,7 @@ RegType<Event> EventMethods[];
 luaL_reg EventGetters[];
 luaL_reg EventSetters[];
 
-/*
-template<> const char* GetTClassName<Event>();
-template<> RegType<Event>* GetMethodTable<Event>();
-template<> luaL_reg* GetAttrTable<Event>();
-template<> luaL_reg* SetAttrTable<Event>();
-*/
+LUATYPEDECLARE(Event)
 }
 }
 }

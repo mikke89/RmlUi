@@ -25,8 +25,8 @@
  *
  */
  
-#ifndef ROCKETCORELUADATASOURCE_H
-#define ROCKETCORELUADATASOURCE_H
+#ifndef ROCKETCONTROLSLUADATASOURCE_H
+#define ROCKETCONTROLSLUADATASOURCE_H
 
 /*
     This defines the DataSource type in the Lua global namespace
@@ -48,8 +48,10 @@
 #include <Rocket/Core/Lua/lua.hpp>
 #include "LuaDataSource.h"
 
+using Rocket::Core::Lua::LuaType;
+
 namespace Rocket {
-namespace Core {
+namespace Controls {
 namespace Lua {
 typedef LuaDataSource DataSource;
 
@@ -60,11 +62,15 @@ int DataSourceNotifyRowChange(lua_State* L, DataSource* obj);
 int DataSourceSetAttrGetNumRows(lua_State* L);
 int DataSourceSetAttrGetRow(lua_State* L);
 
-RegType<DataSource> DataSourceMethods[];
+Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[];
 luaL_reg DataSourceGetters[];
 luaL_reg DataSourceSetters[];
+
+
 
 }
 }
 }
+
+LUATYPEDECLARE(Rocket::Controls::Lua::DataSource)
 #endif

@@ -54,7 +54,7 @@ namespace Lua {
 //just need a class to take up a type name
 class rocket { int to_remove_warning; };
 
-template<> void LuaType<rocket>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<rocket>(lua_State* L, int metatable_index);
 int rocketCreateContext(lua_State* L);
 int rocketLoadFontFace(lua_State* L);
 int rocketRegisterTag(lua_State* L);
@@ -66,12 +66,7 @@ RegType<rocket> rocketMethods[];
 luaL_reg rocketGetters[];
 luaL_reg rocketSetters[];
 
-/*
-template<> const char* GetTClassName<rocket>();
-template<> RegType<rocket>* GetMethodTable<rocket>();
-template<> luaL_reg* GetAttrTable<rocket>();
-template<> luaL_reg* SetAttrTable<rocket>();
-*/
+LUATYPEDECLARE(rocket)
 }
 }
 }

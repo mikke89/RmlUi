@@ -33,9 +33,18 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 
+template<> void ExtraInit<Colourf>(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,Colourfnew);
+    lua_setfield(L,metatable_index-1,"new");
+
+    lua_pushcfunction(L,Colourf__eq);
+    lua_setfield(L,metatable_index,"__eq");
+
+    return;
+}
+
 //metamethods
-
-
 int Colourfnew(lua_State* L)
 {
     float red = (float)luaL_checknumber(L,1);
@@ -168,7 +177,7 @@ luaL_reg ColourfSetters[] =
     { NULL, NULL },
 };
 
-
+LUATYPEDEFINE(Colourf,false)
 
 
 }

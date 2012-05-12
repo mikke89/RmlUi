@@ -62,7 +62,8 @@ using Rocket::Core::Vector2f;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> void LuaType<Vector2f>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<Vector2f>(lua_State* L, int metatable_index);
+
 int Vector2fnew(lua_State* L);
 int Vector2f__mul(lua_State* L);
 int Vector2f__div(lua_State* L);
@@ -86,12 +87,7 @@ RegType<Vector2f> Vector2fMethods[];
 luaL_reg Vector2fGetters[];
 luaL_reg Vector2fSetters[];
 
-/*
-template<> const char* GetTClassName<Vector2f>() { return "Vector2f"; }
-template<> RegType<Vector2f>* GetMethodTable<Vector2f>() { return Vector2fMethods; }
-template<> luaL_reg* GetAttrTable<Vector2f>() { return Vector2fGetters; }
-template<> luaL_reg* SetAttrTable<Vector2f>() { return Vector2fSetters; }
-*/
+LUATYPEDECLARE(Vector2f)
 }
 }
 }

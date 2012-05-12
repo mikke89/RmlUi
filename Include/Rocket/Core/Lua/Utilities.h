@@ -25,54 +25,29 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAELEMENTTABSET_H
-#define ROCKETCONTROLSLUAELEMENTTABSET_H
+#ifndef ROCKETCORELUAUTILITIES_H
+#define ROCKETCORELUAUTILITIES_H
 /*
-    This defines the ElementTabSet type in the Lua global namespace
-
-    It inherits from Element
-
-    //methods:
-    noreturn ElementTabSet:SetPanel(int index, string rml)
-    noreturn ElementTabSet:SetTab(int index, string rml)
-
-    //getters
-    int ElementTabSet.active_tab
-    int ElementTabSet.num_tabs
-
-    //setter
-    ElementTabSet.active_tab = int
+    This file is for free-floating functions that are used across more than one file.
 */
-
-#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/Header.h>
 #include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Controls/ElementTabSet.h>
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Variant.h>
 
-using Rocket::Core::Lua::LuaType;
-//this will be used to "inherit" from Element
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementTabSet>(lua_State* L, int metatable_index);
 namespace Rocket {
-namespace Controls {
+namespace Core {
 namespace Lua {
 
-//methods
-int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj);
-int ElementTabSetSetTab(lua_State* L, ElementTabSet* obj);
+//casts the variant to its specific type before pushing it to the stack
+void ROCKETLUA_API PushVariant(lua_State* L, Variant* var);
 
-//getters
-int ElementTabSetGetAttractive_tab(lua_State* L);
-int ElementTabSetGetAttrnum_tabs(lua_State* L);
-
-//setter
-int ElementTabSetSetAttractive_tab(lua_State* L);
-
-Rocket::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[];
-luaL_reg ElementTabSetGetters[];
-luaL_reg ElementTabSetSetters[];
-
-
+//If there are errors on the top of the stack, this will print those out to the log.
+//L is a Lua state, and if not passed in, will use the Interpreter's state
+//place is a string that will be printed to the log right before the error message seperated by a space. Set
+//this when you would get no information about where the error happens.
+void ROCKETLUA_API Report(lua_State* L = NULL, const Rocket::Core::String& place = "");
 }
 }
 }
-LUATYPEDECLARE(Rocket::Controls::ElementTabSet)
 #endif

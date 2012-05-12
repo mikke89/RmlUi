@@ -32,6 +32,23 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
+
+template<> void ExtraInit<Colourb>(lua_State* L, int metatable_index) 
+{
+    lua_pushcfunction(L,Colourbnew);
+    lua_setfield(L,metatable_index-1,"new");
+
+    lua_pushcfunction(L,Colourb__eq);
+    lua_setfield(L,metatable_index,"__eq");
+
+    lua_pushcfunction(L,Colourb__add);
+    lua_setfield(L,metatable_index,"__add");
+
+    lua_pushcfunction(L,Colourb__mul);
+    lua_setfield(L,metatable_index,"__mul");
+
+    return;
+}
 int Colourbnew(lua_State* L)
 {
     byte red = (byte)luaL_checkint(L,1);
@@ -189,6 +206,8 @@ luaL_reg ColourbSetters[] =
     LUASETTER(Colourb,alpha)
     { NULL, NULL },
 };
+
+LUATYPEDEFINE(Colourb,false)
 }
 }
 }

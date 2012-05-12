@@ -28,11 +28,17 @@
 #include "precompiled.h"
 #include "ElementAttributesProxy.h"
 #include <Rocket/Core/Variant.h>
-#include "Utilities.h"
+#include <Rocket/Core/Lua/Utilities.h>
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
+template<> void ExtraInit<ElementAttributesProxy>(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,ElementAttributesProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+}
+
 int ElementAttributesProxy__index(lua_State* L)
 {
     /*the table obj and the missing key are currently on the stack(index 1 & 2) as defined by the Lua language*/
@@ -82,6 +88,8 @@ luaL_reg ElementAttributesProxySetters[] =
 {
     { NULL, NULL },
 };
+
+LUATYPEDEFINE(ElementAttributesProxy,false)
 }
 }
 }

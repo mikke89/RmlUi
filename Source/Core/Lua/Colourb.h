@@ -61,7 +61,7 @@ using Rocket::Core::Colourb;
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> void LuaType<Colourb>::extra_init(lua_State* L, int metatable_index);
+template<> void ExtraInit<Colourb>(lua_State* L, int metatable_index);
 int Colourbnew(lua_State* L);
 int Colourb__eq(lua_State* L);
 int Colourb__add(lua_State* L);
@@ -85,12 +85,7 @@ RegType<Colourb> ColourbMethods[];
 luaL_reg ColourbGetters[];
 luaL_reg ColourbSetters[];
 
-/*
-template<> const char* GetTClassName<Colourb>() { return "Colourb"; }
-template<> RegType<Colourb>* GetMethodTable<Colourb>() { return ColourbMethods; }
-template<> luaL_reg* GetAttrTable<Colourb>() { return ColourbGetters; }
-template<> luaL_reg* SetAttrTable<Colourb>() { return ColourbSetters; }
-*/
+LUATYPEDECLARE(Colourb)
 }
 }
 }

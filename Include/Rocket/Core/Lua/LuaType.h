@@ -35,9 +35,6 @@
 #include <Rocket/Core/Lua/Header.h>
 #include <Rocket/Core/Lua/lua.hpp>
 
-namespace Rocket {
-namespace Core {
-namespace Lua {
 
 //As an example, if you used this macro like
 //LUAMETHOD(Unit,GetId)
@@ -57,23 +54,43 @@ namespace Lua {
 #define LUASETTER(type,varname) { #varname, type##SetAttr##varname },
 
 #define CHECK_BOOL(L,narg) (lua_toboolean((L),(narg)) > 0 ? true : false )
-#define LUACHECKOBJ(obj) if(obj == NULL) { lua_pushnil(L); return 1; }
+#define LUACHECKOBJ(obj) if((obj) == NULL) { lua_pushnil(L); return 1; }
 
 //put this in the type.cpp file
+    /*
 #define LUATYPEDEFINE(type) \
     template<> inline const char* GetTClassName<type>() { return #type; } \
     template<> inline RegType<type>* GetMethodTable<type>() { return type##Methods; } \
     template<> inline luaL_reg* GetAttrTable<type>() { return type##Getters; } \
     template<> inline luaL_reg* SetAttrTable<type>() { return type##Setters; } \
+*/
+ //put this in the type.cpp file
+#define LUATYPEDEFINE(type,is_ref_counted) \
+    template<> const char* Rocket::Core::Lua::GetTClassName<type>() { return #type; } \
+    template<> Rocket::Core::Lua::RegType<type>* Rocket::Core::Lua::GetMethodTable<type>() { return type##Methods; } \
+    template<> luaL_reg* Rocket::Core::Lua::GetAttrTable<type>() { return type##Getters; } \
+    template<> luaL_reg* Rocket::Core::Lua::SetAttrTable<type>() { return type##Setters; } \
+    template<> bool Rocket::Core::Lua::IsReferenceCounted<type>() { return (is_ref_counted); } \
 
-//put this in the type.h file
+//put this in the type.h file. Not used at the moment
+    /*
 #define LUATYPEDECLARE(type) \
     template<> const char* GetTClassName<type>(); \
     template<> RegType<type>* GetMethodTable<type>(); \
     template<> luaL_reg* GetAttrTable<type>(); \
     template<> luaL_reg* SetAttrTable<type>(); \
+*/
+//put this in the type.h file
+#define LUATYPEDECLARE(type) \
+    template<> ROCKETLUA_API const char* Rocket::Core::Lua::GetTClassName<type>(); \
+    template<> ROCKETLUA_API Rocket::Core::Lua::RegType<type>* Rocket::Core::Lua::GetMethodTable<type>(); \
+    template<> ROCKETLUA_API luaL_reg* Rocket::Core::Lua::GetAttrTable<type>(); \
+    template<> ROCKETLUA_API luaL_reg* Rocket::Core::Lua::SetAttrTable<type>(); \
+    template<> ROCKETLUA_API bool Rocket::Core::Lua::IsReferenceCounted<type>(); \
 
-
+namespace Rocket {
+namespace Core {
+namespace Lua {
 //replacement for luaL_reg that uses a different function pointer signature, but similar syntax
 template<typename T>
 struct ROCKETLUA_API RegType
@@ -83,13 +100,21 @@ struct ROCKETLUA_API RegType
 };
 
 //this is for all of the methods available from Lua that call to the C functions
-template<typename T> ROCKETLUA_API inline RegType<T>* GetMethodTable();
+template<typename T> ROCKETLUA_API RegType<T>* GetMethodTable();
 //this is for all of the function that 'get' an attribute/property
-template<typename T> ROCKETLUA_API inline luaL_reg* GetAttrTable();
+template<typename T> ROCKETLUA_API luaL_reg* GetAttrTable();
 //this is for all of the functions that 'set' an attribute/property
-template<typename T> ROCKETLUA_API inline luaL_reg* SetAttrTable();
+template<typename T> ROCKETLUA_API luaL_reg* SetAttrTable();
 //String representation of the class
-template<typename T> ROCKETLUA_API inline const char* GetTClassName();
+template<typename T> ROCKETLUA_API const char* GetTClassName();
+//bool for if it is reference counted
+template<typename T> ROCKETLUA_API bool IsReferenceCounted();
+//gets called from the LuaType<T>::Register function, right before _regfunctions.
+//If you want to inherit from another class, in the function you would want
+//to call _regfunctions<superclass>, where method is metatable_index - 1. Anything
+//that has the same name in the subclass will be overwrite whatever had the 
+//same name in the superclass.
+template<typename T> ROCKETLUA_API void ExtraInit(lua_State* L, int metatable_index) { return; }
 
 template<typename T>
 class ROCKETLUA_API LuaType
@@ -121,13 +146,13 @@ public:
     //to call _regfunctions<superclass>, where method is metatable_index - 1. Anything
     //that has the same name in the subclass will be overwrite whatever had the 
     //same name in the superclass.
-    static inline  void extra_init(lua_State* L, int metatable_index);
+    //static inline void extra_init(lua_State* L, int metatable_index);
     //Registers methods,getters,and setters to the type
     static inline void _regfunctions(lua_State* L, int meta, int method);
     //Says if it is a reference counted type. If so, then on push and __gc, do reference counting things
     //rather than regular new/delete. Note that it is still up to the user to pass "true" to the push function's
     //third parameter to be able to decrease the reference when Lua garbage collects an object
-    static inline bool is_reference_counted();
+    //static inline bool is_reference_counted();
 private:
     LuaType(); //hide constructor
 
