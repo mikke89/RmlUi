@@ -49,7 +49,18 @@ template<> void ExtraInit<Element>(lua_State* L, int metatable_index)
         lua_setfield(L,metatable_index-1,"As");
     }
     lua_pop(L,1); //pop the result of lua_getfield
+    lua_pushcfunction(L,Elementnew);
+    lua_setfield(L,metatable_index-1,"new");
     lua_settop(L,top);
+}
+
+int Elementnew(lua_State* L)
+{
+    const char* tag = luaL_checkstring(L,1);
+    Element* ele = new Element(tag);
+    LuaType<Element>::push(L,ele,true);
+    ele->RemoveReference();
+    return 1;
 }
 
 //methods

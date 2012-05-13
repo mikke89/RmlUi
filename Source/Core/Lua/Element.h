@@ -60,6 +60,7 @@
     noreturn Element:SetAttribute(string name,string value)
     noreturn Element:SetClass(string name, bool activate)
     %type% Element.As.%type%(Element obj) --see footnote 2
+    Element Element.new(string tag) --Do not use unless inside an ElementInstancer function.
 
 
     //getters accessed by the period syntax from an element object
@@ -125,7 +126,7 @@ namespace Core {
 namespace Lua {
 template<> ROCKETLUA_API void ExtraInit<Element>(lua_State* L, int metatable_index);
 
-
+int Elementnew(lua_State* L);
 //methods
 int ElementAddEventListener(lua_State* L, Element* obj);
 int ElementAppendChild(lua_State* L, Element* obj);
@@ -146,7 +147,6 @@ int ElementReplaceChild(lua_State* L, Element* obj);
 int ElementScrollIntoView(lua_State* L, Element* obj);
 int ElementSetAttribute(lua_State* L, Element* obj);
 int ElementSetClass(lua_State* L, Element* obj);
-int ElementAsType(lua_State* L, Element* obj);
 
 //getters
 int ElementGetAttrattributes(lua_State* L);

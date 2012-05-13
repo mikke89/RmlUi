@@ -24,50 +24,43 @@
  * THE SOFTWARE.
  *
  */
- 
-#ifndef ROCKETCORELUAROCKET_H
-#define ROCKETCORELUAROCKET_H
+
+#ifndef ROCKETCORELUAELEMENTINSTANCER_H
+#define ROCKETCORELUAELEMENTINSTANCER_H
 
 /*
-    This declares rocket in the global Lua namespace
+    This defines the ElementInstancer type in the Lua global namespace. It is reference counted.
 
-    It is not exactly type, but it is a table, and does have some methods and attributes
-    
-    methods: 
-    rocket.CreateContext(string name, Vector2i dimensions)
-    rocket.LoadFontFace(string font_path)
-    rocket.RegisterTag(string tag, ElementInstancer instancer)
-    
-    getters:
-    rocket.contexts  returns a table of contexts, which are indexed by number AND string, so there are two copies of each context in the table
+    To use this, you will want to call ElementInstancer.new to get an object, and call rocket.RegisterTag to tell Rocket to use the 
+    instancer for that tag.
 
+    ElementInstancer ElementInstancer.new([function InstanceElement]) --argument is optional, and new is not called from a specific object
+
+    //setter
+    ElementInstancer.InstanceElement = function(string tag) return Element end --gets called when the factory sees the tag being instanced
 */
 
-#include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
+#include <Rocket/Core/Lua/LuaType.h>
+#include "LuaElementInstancer.h"
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
-#define ROCKETLUA_INPUTENUM(keyident,tbl) lua_pushinteger(L,Input::KI_##keyident); lua_setfield(L,(tbl),#keyident);
+template<> void ExtraInit<ElementInstancer>(lua_State* L, int metatable_index);
+//method
+int ElementInstancernew(lua_State* L);
+//setter
+int ElementInstancerSetAttrInstanceElement(lua_State* L);
 
-//just need a class to take up a type name
-class rocket { int to_remove_warning; };
+RegType<ElementInstancer> ElementInstancerMethods[];
+luaL_reg ElementInstancerGetters[];
+luaL_reg ElementInstancerSetters[];
 
-template<> void ExtraInit<rocket>(lua_State* L, int metatable_index);
-int rocketCreateContext(lua_State* L);
-int rocketLoadFontFace(lua_State* L);
-int rocketRegisterTag(lua_State* L);
-int rocketGetAttrcontexts(lua_State* L);
-
-void rocketEnumkey_identifier(lua_State* L);
-
-RegType<rocket> rocketMethods[];
-luaL_reg rocketGetters[];
-luaL_reg rocketSetters[];
-
-LUATYPEDECLARE(rocket)
+LUATYPEDECLARE(ElementInstancer)
 }
 }
 }
+
+
 #endif

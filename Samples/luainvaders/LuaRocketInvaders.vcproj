@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\shell\include;..\..\include;..\..\..\support\python\include;..\..\..\support\python\pc;..\..\..\support\boost;..\..\Dependencies\lua\src"
+				AdditionalIncludeDirectories="..\shell\include;..\..\include;..\..\Dependencies\lua\src"
 				PreprocessorDefinitions="WIN32"
 				RuntimeLibrary="3"
 				DebugInformationFormat="3"
@@ -108,7 +108,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\shell\include;..\..\include;..\..\..\support\python\include;..\..\..\support\python\pc;..\..\..\support\boost;..\..\Dependencies\lua\src"
+				AdditionalIncludeDirectories="..\shell\include;..\..\include;..\..\Dependencies\lua\src"
 				PreprocessorDefinitions="WIN32,NDEBUG"
 				RuntimeLibrary="2"
 				WarningLevel="3"

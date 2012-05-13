@@ -50,6 +50,7 @@
 #include "Vector2i.h"
 #include "Context.h"
 #include "Event.h"
+#include "ElementInstancer.h"
 
 namespace Rocket {
 namespace Core {
@@ -83,6 +84,7 @@ void Interpreter::RegisterEverything(lua_State* L)
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
     LuaType<rocket>::Register(L);
+    LuaType<ElementInstancer>::Register(L);
     //Proxy tables
     LuaType<ContextDocumentsProxy>::Register(L);
     LuaType<EventParametersProxy>::Register(L);
@@ -111,7 +113,7 @@ void Interpreter::LoadFile(const String& file)
         else
         {
             msg.Append(" was successful. ").Append(file);
-            Log::Message(Log::LT_INFO, msg.CString());
+            Log::Message(Log::LT_DEBUG, msg.CString());
         }
     }
 }

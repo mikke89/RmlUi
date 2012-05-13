@@ -29,6 +29,8 @@
 #include "Rocket.h"
 #include <Rocket/Core/Core.h>
 #include <Rocket/Core/Input.h>
+#include "ElementInstancer.h"
+#include "LuaElementInstancer.h"
 
 namespace Rocket {
 namespace Core {
@@ -66,13 +68,12 @@ int rocketCreateContext(lua_State* L)
     if(new_context == NULL || dimensions == NULL)
     {
         lua_pushnil(L);
-        return 1;
     }
     else
     {
         LuaType<Context>::push(L, new_context);
-        return 1;
     }
+    return 1;
 }
 
 int rocketLoadFontFace(lua_State* L)
@@ -84,7 +85,10 @@ int rocketLoadFontFace(lua_State* L)
 
 int rocketRegisterTag(lua_State* L)
 {
-    //this may take some thought
+    const char* tag = luaL_checkstring(L,1);
+    LuaElementInstancer* lei = (LuaElementInstancer*)LuaType<ElementInstancer>::check(L,2);
+    LUACHECKOBJ(lei);
+    Factory::RegisterElementInstancer(tag,lei);
     return 0;
 }
 
@@ -297,7 +301,6 @@ RegType<rocket> rocketMethods[] =
 
 luaL_reg rocketGetters[] = 
 {
-    LUAGETTER(rocket,contexts)
     { NULL, NULL },
 };
 

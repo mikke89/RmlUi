@@ -259,6 +259,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\Source\Core\Lua\ElementInstancer.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ElementInstancer.h"
+					>
+				</File>
+				<File
 					RelativePath="..\Source\Core\Lua\ElementStyle.cpp"
 					>
 				</File>
@@ -272,6 +280,14 @@
 				</File>
 				<File
 					RelativePath="..\Source\Core\Lua\ElementText.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\LuaElementInstancer.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\LuaElementInstancer.h"
 					>
 				</File>
 				<Filter
