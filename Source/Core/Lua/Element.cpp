@@ -41,26 +41,14 @@ typedef ElementDocument Document;
 template<> void ExtraInit<Element>(lua_State* L, int metatable_index)
 {
     int top = lua_gettop(L);
-    //build the Element.etype table
-    lua_newtable(L);
-    lua_pushinteger(L,TDATAGRID);
-    lua_setfield(L,-2,"datagrid");
-    lua_pushinteger(L,TDATASELECT);
-    lua_setfield(L,-2,"dataselect");
-    lua_pushinteger(L,TELEMENT);
-    lua_setfield(L,-2,"element");
-    lua_pushinteger(L,TFORM);
-    lua_setfield(L,-2,"form");
-    lua_pushinteger(L,TINPUT);
-    lua_setfield(L,-2,"input");
-    lua_pushinteger(L,TSELECT);
-    lua_setfield(L,-2,"select");
-    lua_pushinteger(L,TTABSET);
-    lua_setfield(L,-2,"tabset");
-    lua_pushinteger(L,TTEXTAREA);
-    lua_setfield(L,-2,"textarea");
-    
-    lua_setfield(L,metatable_index-1,"etype");
+    //guarantee the "Element.As" table exists
+    lua_getfield(L,metatable_index-1,"As");
+    if(lua_isnoneornil(L,-1)) //if it doesn't exist, create it
+    {
+        lua_newtable(L);    
+        lua_setfield(L,metatable_index-1,"As");
+    }
+    lua_pop(L,1); //pop the result of lua_getfield
     lua_settop(L,top);
 }
 

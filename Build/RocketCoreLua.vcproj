@@ -212,16 +212,8 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\LuaType.inl"
+				RelativePath="..\Include\Rocket\Core\Lua\LuaType.inl"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\Source\Core\Lua\Rocket.cpp"

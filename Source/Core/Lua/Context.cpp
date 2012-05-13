@@ -37,6 +37,7 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 typedef Rocket::Core::ElementDocument Document;
+template<> void ExtraInit<Context>(lua_State* L, int metatable_index) { return; }
 
 //methods
 int ContextAddEventListener(lua_State* L, Context* obj)

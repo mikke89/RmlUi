@@ -37,6 +37,7 @@
 #include "ElementGame.h"
 #include "HighScores.h"
 #include <Rocket/Core/Lua/Interpreter.h>
+#include <Rocket/Controls/Lua/Controls.h>
 #include "LuaInterface.h"
 
 Rocket::Core::Context* context = NULL;
@@ -93,6 +94,7 @@ int main(int, char**)
 	// Initialise the Python interface.
 	//PythonInterface::Initialise((Shell::GetExecutablePath() + (APP_PATH "python") + PATH_SEPARATOR + Shell::GetExecutablePath() + ROCKET_PATH).CString());
     Rocket::Core::Lua::Interpreter::Initialise();
+    Rocket::Controls::Lua::RegisterTypes(Rocket::Core::Lua::Interpreter::GetLuaState());
 
 	// Create the main Rocket context and set it on the shell's input layer.
 	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));

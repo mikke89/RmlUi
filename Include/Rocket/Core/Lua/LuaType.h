@@ -114,7 +114,8 @@ template<typename T> ROCKETLUA_API bool IsReferenceCounted();
 //to call _regfunctions<superclass>, where method is metatable_index - 1. Anything
 //that has the same name in the subclass will be overwrite whatever had the 
 //same name in the superclass.
-template<typename T> ROCKETLUA_API void ExtraInit(lua_State* L, int metatable_index) { return; }
+template<typename T> ROCKETLUA_API void ExtraInit(lua_State* L, int metatable_index);
+//template<typename T> void ExtraInit(lua_State* L, int metatable_index) { return; }
 
 template<typename T>
 class ROCKETLUA_API LuaType

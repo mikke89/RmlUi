@@ -49,7 +49,7 @@
 #include "LuaDataSource.h"
 
 using Rocket::Core::Lua::LuaType;
-
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index);
 namespace Rocket {
 namespace Controls {
 namespace Lua {

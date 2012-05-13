@@ -62,12 +62,12 @@ end
 function Options.LoadOptions(document)
     local options = Options.Deserialize('options.dat')
     if options == nil then return end --short circuit if the file doesn't exist
-    local type = Element.etype
+    local AsInput = Element.As.ElementFormControlInput
     
-    document:GetElementById(options['graphics']):AsType(type.input).checked = true
+    AsInput(document:GetElementById(options['graphics'])).checked = true
     --because everything is loaded as a string, we have to fool around with the boolean variables
-    document:GetElementById('reverb'):AsType(type.input).checked = (options['reverb'] == 'true')
-    document:GetElementById('3d'):AsType(type.input).checked = (options['3d'] == 'true')
+    AsInput(document:GetElementById('reverb')).checked = (options['reverb'] == 'true')
+    AsInput(document:GetElementById('3d')).checked = (options['3d'] == 'true')
 end
 
 function Options.SaveOptions(event)

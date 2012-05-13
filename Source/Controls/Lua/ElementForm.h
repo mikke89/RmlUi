@@ -48,7 +48,6 @@ namespace Rocket {
 namespace Controls {
 namespace Lua {
 
-
 //method
 int ElementFormSubmit(lua_State* L, ElementForm* obj);
 

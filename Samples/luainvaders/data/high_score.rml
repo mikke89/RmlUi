@@ -58,7 +58,8 @@ end
 	
 function HighScore.OnKeyDown(event)
 	if event.parameters['key_identifier'] == rocket.key_identifier.RETURN then
-		Game.SetHighScoreName(event.current_element:AsType(Element.etype.input).value)
+        Game.SetHighScoreName(Element.As.ElementFormControlInput(event.current_element).value)
+		--Game.SetHighScoreName(event.current_element:AsType(Element.etype.input).value)
     end
 end
 		</script>

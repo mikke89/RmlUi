@@ -28,11 +28,13 @@
 #include "precompiled.h"
 #include "ElementDataGridRow.h"
 #include <Rocket/Controls/ElementDataGrid.h>
+#include "As.h"
 
 template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementDataGridRow>(lua_State* L, int metatable_index)
 {
     Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
     LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
+    Rocket::Controls::Lua::AddCastFunctionToElementAsTable<Rocket::Controls::ElementDataGridRow>(L);
 }
 
 namespace Rocket {

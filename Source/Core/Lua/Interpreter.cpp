@@ -48,6 +48,8 @@
 #include "Colourf.h"
 #include "Vector2f.h"
 #include "Vector2i.h"
+#include "Context.h"
+#include "Event.h"
 
 namespace Rocket {
 namespace Core {
@@ -78,22 +80,8 @@ void Interpreter::RegisterEverything(lua_State* L)
     LuaType<Element>::Register(L);
         //things that inherit from Element
         LuaType<Document>::Register(L);
-        /*
-        //controls that inherit from Element
-        LuaType<Rocket::Controls::ElementTabSet>::Register(L);
-        LuaType<Rocket::Controls::ElementDataGrid>::Register(L);
-        LuaType<Rocket::Controls::ElementDataGridRow>::Register(L);
-        LuaType<Rocket::Controls::ElementForm>::Register(L);
-        LuaType<Rocket::Controls::ElementFormControl>::Register(L);
-            //inherits from ElementFormControl
-            LuaType<Rocket::Controls::ElementFormControlSelect>::Register(L);
-            LuaType<Rocket::Controls::ElementFormControlDataSelect>::Register(L);
-            LuaType<Rocket::Controls::ElementFormControlInput>::Register(L);
-            LuaType<Rocket::Controls::ElementFormControlTextArea>::Register(L);
-        */
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
-    //LuaType<DataFormatter>::Register(L);
     LuaType<rocket>::Register(L);
     //Proxy tables
     LuaType<ContextDocumentsProxy>::Register(L);

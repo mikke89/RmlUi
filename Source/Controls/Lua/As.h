@@ -25,53 +25,48 @@
  *
  */
  
-#include "precompiled.h"
-#include "ElementForm.h"
+#ifndef ROCKETCONTROLSLUAAS_H
+#define ROCKETCONTROLSLUAAS_H
+/*
+    These are helper functions to fill up the Element.As table with types that are able to be casted
+*/
+
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Element.h>
-#include <Rocket/Controls/ElementForm.h>
-#include "As.h"
-
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementForm>(lua_State* L, int metatable_index)
-{
-    //inherit from Element
-    Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
-    LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
-
-    Rocket::Controls::Lua::AddCastFunctionToElementAsTable<Rocket::Controls::ElementForm>(L);
-}
 
 namespace Rocket {
 namespace Controls {
 namespace Lua {
 
-//method
-int ElementFormSubmit(lua_State* L, ElementForm* obj)
+//Helper function for the controls, so that the types don't have to define individual functions themselves
+// to fill the Elements.As table
+template<typename ToType>
+int CastFromElementTo(lua_State* L)
 {
-    const char* name = luaL_checkstring(L,1);
-    const char* value = luaL_checkstring(L,2);
-    obj->Submit(name,value);
-    return 0;
+    Rocket::Core::Element* ele = Rocket::Core::Lua::LuaType<Rocket::Core::Element>::check(L,1);
+    LUACHECKOBJ(ele);
+    Rocket::Core::Lua::LuaType<ToType>::push(L,(ToType*)ele,false);
+    return 1;
 }
 
-Rocket::Core::Lua::RegType<ElementForm> ElementFormMethods[] =
+//Adds to the Element.As table the name of the type, and the function to use to cast
+template<typename T>
+void AddCastFunctionToElementAsTable(lua_State* L)
 {
-    LUAMETHOD(ElementForm,Submit)
-    { NULL, NULL },
-};
-
-luaL_reg ElementFormGetters[] =
-{
-    { NULL, NULL },
-};
-
-luaL_reg ElementFormSetters[] =
-{
-    { NULL, NULL },
-};
-
+    int top = lua_gettop(L);
+    lua_getglobal(L,"Element");
+    lua_getfield(L,-1,"As");
+    if(!lua_isnoneornil(L,-1))
+    {
+        lua_pushcfunction(L,Rocket::Controls::Lua::CastFromElementTo<T>);
+        lua_setfield(L,-2,Rocket::Core::Lua::GetTClassName<T>());
+    }
+    lua_settop(L,top); //pop "As" and "Element"
+}
 
 }
 }
 }
-using Rocket::Controls::ElementForm;
-LUACONTROLSTYPEDEFINE(ElementForm,true)
+
+#endif

@@ -59,7 +59,7 @@
     noreturn Element:ScrollIntoView(bool align_with_top)
     noreturn Element:SetAttribute(string name,string value)
     noreturn Element:SetClass(string name, bool activate)
-    type_specified Element:AsType(Element.etype) --see footnote 2. Yes, that 'e' is supposed to be there.
+    %type% Element.As.%type%(Element obj) --see footnote 2
 
 
     //getters accessed by the period syntax from an element object
@@ -112,10 +112,9 @@
     They are terrible names, but it is to make a point.
 
 
-    footnote 2: For Element:AsType(Element.etype)
-    Element.etype is an enum that maps strings to integers. It can be one of the following:
-    datagrid,dataselect,element,form,input,select,tabset,textarea
-    If you give it a bad parameter, it will return an Element type
+    footnote 2: For Element.As     used for casting an Element object to a more derived class.
+    If you are using RocketControls, it will be filled with those types. For instance, you would say
+    local input_element = Element.As.ElementFormControlInput(element) --where element is an Element object
 */
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
@@ -124,11 +123,7 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
-enum Elementetype
-{
-    TDATAGRID = 0, TDATASELECT, TELEMENT, TFORM, TINPUT, TSELECT, TTABSET, TTEXTAREA
-};
-template<> void ExtraInit<Element>(lua_State* L, int metatable_index);
+template<> ROCKETLUA_API void ExtraInit<Element>(lua_State* L, int metatable_index);
 
 
 //methods

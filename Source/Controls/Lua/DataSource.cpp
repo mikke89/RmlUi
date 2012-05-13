@@ -30,6 +30,7 @@
 #include <Rocket/Core/Log.h>
 
 using Rocket::Core::Log;
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) { return; }
 namespace Rocket {
 namespace Controls {
 namespace Lua {

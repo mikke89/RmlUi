@@ -29,11 +29,13 @@
 #include "ElementFormControlTextArea.h"
 #include <Rocket/Controls/ElementFormControl.h>
 #include "ElementFormControl.h"
+#include "As.h"
 
 template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControlTextArea>(lua_State* L, int metatable_index)
 {
     Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(L,metatable_index);
     LuaType<Rocket::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
+    Rocket::Controls::Lua::AddCastFunctionToElementAsTable<Rocket::Controls::ElementFormControlTextArea>(L);
 }
 
 namespace Rocket {

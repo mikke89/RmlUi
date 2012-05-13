@@ -32,6 +32,7 @@
 #include <Rocket/Controls/ElementFormControl.h>
 #include <Rocket/Core/Element.h>
 #include "ElementFormControl.h"
+#include "As.h"
 
 
 //inherits from ElementFormControl which inherits from Element
@@ -41,7 +42,7 @@ template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormContro
     Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(L,metatable_index);
     //then inherit from elementformcontrol
     LuaType<Rocket::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
-
+    Rocket::Controls::Lua::AddCastFunctionToElementAsTable<Rocket::Controls::ElementFormControlSelect>(L);
 }
 
 namespace Rocket {

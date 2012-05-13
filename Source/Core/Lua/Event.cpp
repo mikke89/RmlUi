@@ -37,6 +37,7 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
+template<> void ExtraInit<Event>(lua_State* L, int metatable_index) { return; }
 
 //method
 int EventStopPropagation(lua_State* L, Event* obj)

@@ -25,7 +25,7 @@
  *
  */
  
-#include "precompiled.h"
+//#include "precompiled.h"
 #include <Rocket/Controls/Controls.h>
 #include <Rocket/Core/Core.h>
 #include <Rocket/Core/Lua/Utilities.h>

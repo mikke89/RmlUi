@@ -25,8 +25,8 @@
  *
  */
  
-#ifndef ROCKETLUAHEADER_H
-#define ROCKETLUAHEADER_H
+#ifndef ROCKETCORELUAHEADER_H
+#define ROCKETCORELUAHEADER_H
 
 #include <Rocket/Core/Platform.h>
 

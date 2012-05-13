@@ -305,15 +305,15 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath="..\Source\Controls\Lua\As.h"
+			>
+		</File>
+		<File
 			RelativePath="..\Source\Controls\Lua\Controls.cpp"
 			>
 		</File>
 		<File
 			RelativePath="..\Include\Rocket\Controls\Lua\Controls.h"
-			>
-		</File>
-		<File
-			RelativePath="..\Include\Rocket\Core\Lua\Header.h"
 			>
 		</File>
 		<File

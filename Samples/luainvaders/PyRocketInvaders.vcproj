@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="LuaRocketInvaders"
 	ProjectGUID="{D343E357-BF62-424F-B22A-16D7B8A6422B}"
+	RootNamespace="LuaRocketInvaders"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -54,7 +55,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="RocketCore_d.lib RocketDebugger_d.lib RocketControls_d.lib opengl32.lib RocketLua_d.lib lua51.lib"
+				AdditionalDependencies="RocketCore_d.lib RocketDebugger_d.lib RocketControls_d.lib opengl32.lib RocketCoreLua_d.lib RocketControlsLua_d.lib lua51.lib"
 				OutputFile="..\..\bin\$(ProjectName)_d.exe"
 				AdditionalLibraryDirectories="..\..\bin;..\..\..\support\lib"
 				GenerateDebugInformation="true"
@@ -108,7 +109,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\shell\include;..\..\include;..\..\..\support\python\include;..\..\..\support\python\pc;..\..\..\support\boost;..\..\Dependencies\lua\src"
-				PreprocessorDefinitions="WIN32"
+				PreprocessorDefinitions="WIN32,NDEBUG"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -124,7 +125,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="RocketCore.lib RocketDebugger.lib RocketControls.lib opengl32.lib RocketLua.lib lua51.lib"
+				AdditionalDependencies="RocketCore.lib RocketDebugger.lib RocketControls.lib opengl32.lib RocketCoreLua.lib RocketControlsLua.lib lua51.lib"
 				OutputFile="..\..\bin\$(ProjectName).exe"
 				AdditionalLibraryDirectories="..\..\bin;..\..\..\support\lib"
 				GenerateDebugInformation="true"
