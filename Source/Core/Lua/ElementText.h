@@ -27,6 +27,17 @@
  
 #ifndef ROCKETCORELUAELEMENTTEXT_H
 #define ROCKETCORELUAELEMENTTEXT_H
+/*
+    This defines the ElementText type in the Lua global namespace
+    no methods
+
+    getter:
+    string ElementText.text
+
+    setter:
+    ElementText.text = string
+*/
+
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/ElementText.h>

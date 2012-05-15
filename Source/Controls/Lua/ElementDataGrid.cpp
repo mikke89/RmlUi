@@ -29,14 +29,13 @@
 #include "ElementDataGrid.h"
 #include <Rocket/Core/Element.h>
 #include <Rocket/Controls/ElementDataGridRow.h>
-//#include "Lua/Element.h"
-#include "As.h"
+#include <Rocket/Core/Lua/Utilities.h>
 
 template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index)
 {
     Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
     LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    Rocket::Controls::Lua::AddCastFunctionToElementAsTable<Rocket::Controls::ElementDataGrid>(L);
+    Rocket::Core::Lua::AddTypeToElementAsTable<Rocket::Controls::ElementDataGrid>(L);
 }
 namespace Rocket {
 namespace Controls {

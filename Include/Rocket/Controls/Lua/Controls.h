@@ -33,13 +33,13 @@
 namespace Rocket {
 namespace Controls {
 namespace Lua {
-
-//This will define all of the types from RocketControls for Lua. There is not a
-//corresponding function for types of RocketCore, because they are defined automatically
-//when the Interpreter starts.
-ROCKETLUA_API void RegisterTypes(lua_State* L);
+/** Doxygen doesn't like to get the namespace, so the full name is
+@c Rocket::Controls::Lua::RegisterTypes.
+This will define all of the types from RocketControls for Lua. 
+@sa Rocket::Core::Lua::Interpreter::RegisterCoreTypes(lua_State*)
+@relatesalso Rocket::Core::Lua::Interpreter*/
+void ROCKETLUA_API RegisterTypes(lua_State* L);
 }
 }
 }
-
 #endif

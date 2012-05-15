@@ -30,6 +30,7 @@
 #include <ElementStyle.h>
 #include "LuaEventListener.h"
 #include "ElementAttributesProxy.h"
+#include "ElementChildNodesProxy.h"
 #include <Rocket/Core/Lua/Utilities.h>
 
 
@@ -69,7 +70,7 @@ int ElementAddEventListener(lua_State* L, Element* obj)
     int top = lua_gettop(L);
     bool capture = false;
     //default false if they didn't pass it in
-    if (top > 3)
+    if (top > 2)
 		capture = CHECK_BOOL(L,3);
 
     const char* event = luaL_checkstring(L,1);
@@ -259,42 +260,6 @@ int ElementSetClass(lua_State* L, Element* obj)
     return 0;
 }
 
-int ElementAsType(lua_State* L, Element* obj)
-{
-    /*
-    Elementetype type = Elementetype(luaL_checkint(L,1));
-    switch(type)
-    {
-    case TDATAGRID:
-        LuaType<Rocket::Controls::ElementDataGrid>::push(L,(Rocket::Controls::ElementDataGrid*)obj,false);
-        break;
-    case TDATASELECT:
-        LuaType<Rocket::Controls::ElementFormControlDataSelect>::push(L,(Rocket::Controls::ElementFormControlDataSelect*)obj,false);
-        break;
-    case TFORM:
-        LuaType<Rocket::Controls::ElementForm>::push(L,(Rocket::Controls::ElementForm*)obj,false);
-        break;
-    case TINPUT:
-        LuaType<Rocket::Controls::ElementFormControlInput>::push(L,(Rocket::Controls::ElementFormControlInput*)obj,false);
-        break;
-    case TSELECT:
-        LuaType<Rocket::Controls::ElementFormControlSelect>::push(L,(Rocket::Controls::ElementFormControlSelect*)obj,false);
-        break;
-    case TTABSET:
-        LuaType<Rocket::Controls::ElementTabSet>::push(L,(Rocket::Controls::ElementTabSet*)obj,false);
-        break;
-    case TTEXTAREA:
-        LuaType<Rocket::Controls::ElementFormControlTextArea>::push(L,(Rocket::Controls::ElementFormControlTextArea*)obj,false);
-    default:
-        LuaType<Element>::push(L,obj,false);
-        break;
-    }
-    return 1;
-    */
-    return 0;
-}
-
-
 //getters
 int ElementGetAttrattributes(lua_State* L)
 {
@@ -310,21 +275,9 @@ int ElementGetAttrchild_nodes(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    if(!ele->HasChildNodes())
-        lua_pushnil(L);
-    else
-    {
-        lua_newtable(L);
-        int index = 0;
-        int num_of_children = ele->GetNumChildren();
-        while(index < num_of_children)
-        {
-            lua_pushinteger(L,index);
-            LuaType<Element>::push(L,ele->GetChild(index),false);
-            lua_settable(L,-3);
-            ++index;
-        }
-    }
+    ElementChildNodesProxy* ecnp = new ElementChildNodesProxy();
+    ecnp->owner = ele;
+    LuaType<ElementChildNodesProxy>::push(L,ecnp,true);
     return 1;
 }
 
@@ -601,7 +554,6 @@ RegType<Element> ElementMethods[] =
     LUAMETHOD(Element,ScrollIntoView)
     LUAMETHOD(Element,SetAttribute)
     LUAMETHOD(Element,SetClass)
-    LUAMETHOD(Element,AsType)
     { NULL, NULL },
 };
 

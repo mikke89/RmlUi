@@ -39,15 +39,45 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 
-//casts the variant to its specific type before pushing it to the stack
+/** casts the variant to its specific type before pushing it to the stack 
+@relates Rocket::Core::Lua::LuaType */
 void ROCKETLUA_API PushVariant(lua_State* L, Variant* var);
 
-//If there are errors on the top of the stack, this will print those out to the log.
-//L is a Lua state, and if not passed in, will use the Interpreter's state
-//place is a string that will be printed to the log right before the error message seperated by a space. Set
-//this when you would get no information about where the error happens.
+/** If there are errors on the top of the stack, this will print those out to the log.
+@param L A Lua state, and if not passed in, will use the Interpreter's state
+@param place A string that will be printed to the log right before the error message, seperated by a space. Set
+this when you would get no information about where the error happens.
+@relates Rocket::Core::Lua::Interpreter   */
 void ROCKETLUA_API Report(lua_State* L = NULL, const Rocket::Core::String& place = "");
+
+//Helper function, so that the types don't have to define individual functions themselves
+// to fill the Elements.As table
+template<typename ToType>
+int CastFromElementTo(lua_State* L)
+{
+    Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
+    LuaType<ToType>::push(L,(ToType*)ele,false);
+    return 1;
+}
+
+//Adds to the Element.As table the name of the type, and the function to use to cast
+template<typename T>
+void AddTypeToElementAsTable(lua_State* L)
+{
+    int top = lua_gettop(L);
+    lua_getglobal(L,"Element");
+    lua_getfield(L,-1,"As");
+    if(!lua_isnoneornil(L,-1))
+    {
+        lua_pushcfunction(L,CastFromElementTo<T>);
+        lua_setfield(L,-2,GetTClassName<T>());
+    }
+    lua_settop(L,top); //pop "As" and "Element"
 }
 }
 }
+}
+
+
 #endif

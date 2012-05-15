@@ -51,6 +51,8 @@
 #include "Context.h"
 #include "Event.h"
 #include "ElementInstancer.h"
+#include "ElementChildNodesProxy.h"
+#include "ElementText.h"
 
 namespace Rocket {
 namespace Core {
@@ -66,11 +68,11 @@ void Interpreter::Startup()
     _L = luaL_newstate();
     luaL_openlibs(_L);
 
-    RegisterEverything(_L);
+    RegisterCoreTypes(_L);
 }
 
 
-void Interpreter::RegisterEverything(lua_State* L)
+void Interpreter::RegisterCoreTypes(lua_State* L)
 {
     LuaType<Vector2i>::Register(L);
     LuaType<Vector2f>::Register(L);
@@ -81,6 +83,7 @@ void Interpreter::RegisterEverything(lua_State* L)
     LuaType<Element>::Register(L);
         //things that inherit from Element
         LuaType<Document>::Register(L);
+        LuaType<ElementText>::Register(L);
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
     LuaType<rocket>::Register(L);
@@ -89,6 +92,7 @@ void Interpreter::RegisterEverything(lua_State* L)
     LuaType<ContextDocumentsProxy>::Register(L);
     LuaType<EventParametersProxy>::Register(L);
     LuaType<ElementAttributesProxy>::Register(L);
+    LuaType<ElementChildNodesProxy>::Register(L);
 }
 
 
@@ -142,10 +146,6 @@ bool Interpreter::ExecuteCall(int params, int res)
 {
     bool ret = true;
     int top = lua_gettop(_L);
-    //String strtype = lua_typename(_L,top-params);
-    String strtype;
-    for(int i = top; i >= 1; i--)
-        strtype = lua_typename(_L,lua_type(_L,i));
     if(lua_type(_L,top-params) != LUA_TFUNCTION)
     {
         ret = false;
@@ -198,8 +198,6 @@ void Interpreter::OnInitialise()
 
 void Interpreter::OnShutdown()
 {
-	//causing crashes
-    //lua_close(_L);
 }
 
 void Interpreter::Initialise()

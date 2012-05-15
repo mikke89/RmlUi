@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\Include&quot;;&quot;$(SolutionDir)..\Source\Core&quot;;&quot;$(SolutionDir)..\Dependencies\lua\src&quot;;&quot;$(SolutionDir)..\Source\Controls\Lua&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\Include&quot;;&quot;$(SolutionDir)..\Source\Core&quot;;&quot;$(SolutionDir)..\Dependencies\lua\src&quot;"
 				PreprocessorDefinitions="_WIN32,_DEBUG,RocketLua_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkLibraryDependencies="false"
-				AdditionalDependencies="lua51.lib RocketCore_d.lib RocketControls_d.lib"
+				AdditionalDependencies="lua51.lib RocketCore_d.lib"
 				ShowProgress="0"
 				OutputFile="..\bin\$(ProjectName)_d.dll"
 				AdditionalLibraryDirectories="$(SolutionDir)..\bin"
@@ -124,7 +124,7 @@
 				InlineFunctionExpansion="0"
 				EnableIntrinsicFunctions="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\Include&quot;;&quot;$(SolutionDir)..\Source\Core&quot;;&quot;$(SolutionDir)..\Dependencies\lua\src&quot;;&quot;$(SolutionDir)..\Source\Controls\Lua&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\Include&quot;;&quot;$(SolutionDir)..\Source\Core&quot;;&quot;$(SolutionDir)..\Dependencies\lua\src&quot;"
 				PreprocessorDefinitions="_WIN32,NDEBUG,RocketLua_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -145,7 +145,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkLibraryDependencies="true"
-				AdditionalDependencies="lua51.lib RocketCore.lib RocketControls.lib"
+				AdditionalDependencies="lua51.lib RocketCore.lib"
 				ShowProgress="0"
 				OutputFile="..\bin\$(ProjectName).dll"
 				AdditionalLibraryDirectories="$(SolutionDir)..\bin"
@@ -224,14 +224,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Source\Core\Lua\RocketLua.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Source\Core\Lua\RocketLua.h"
-				>
-			</File>
-			<File
 				RelativePath="..\Source\Core\Lua\Utilities.cpp"
 				>
 			</File>
@@ -256,6 +248,14 @@
 				</File>
 				<File
 					RelativePath="..\Source\Core\Lua\ElementAttributesProxy.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ElementChildNodesProxy.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Source\Core\Lua\ElementChildNodesProxy.h"
 					>
 				</File>
 				<File

@@ -25,21 +25,39 @@
  *
  */
  
-//whenever you want to have a type exposed to lua, you have to have it in here as
-//LuaType<type>::Register(L);
-//It will be #included in the correct place in Interpreter.cpp, as to make this more like a macro file
 
-//THE ORDER DOES MATTER
-//You have to register a base class before any others can inherit from it
-LuaType<Vector2i>::Register(L);
-LuaType<Vector2f>::Register(L);
-LuaType<Colourf>::Register(L);
-LuaType<Colourb>::Register(L);
-LuaType<Log>::Register(L);
-LuaType<Element>::Register(L);
-    //things that inherit from element
-    LuaType<Document>::Register(L);
-    LuaType<ElementStyle>::Register(L);
-LuaType<Event>::Register(L);
-LuaType<Context>::Register(L);
-LuaType<rocket>::Register(L);
+#ifndef ROCKETCORELUAELEMENTCHILDNODESPROXY_H
+#define ROCKETCORELUAELEMENTCHILDNODESPROXY_H
+
+/*
+    This is the object that gets returned from Element.child_nodes, so that the table is not
+    built every single time the function is called.
+    Read-only
+*/
+
+#include <Rocket/Core/Lua/lua.hpp>
+#include <Rocket/Core/Lua/LuaType.h>
+#include <Rocket/Core/Element.h>
+
+namespace Rocket {
+namespace Core {
+namespace Lua {
+//where owner is the Element that we should look up information from
+struct ElementChildNodesProxy { Element* owner;  };
+
+template<> void ExtraInit<ElementChildNodesProxy>(lua_State* L, int metatable_index);
+int ElementChildNodesProxy__index(lua_State* L);
+
+//method
+int ElementChildNodesProxyGetTable(lua_State* L, ElementChildNodesProxy* obj);
+
+RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[];
+luaL_reg ElementChildNodesProxyGetters[];
+luaL_reg ElementChildNodesProxySetters[];
+
+LUATYPEDECLARE(ElementChildNodesProxy)
+}
+}
+}
+
+#endif

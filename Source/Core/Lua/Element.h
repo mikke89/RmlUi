@@ -190,7 +190,6 @@ luaL_reg ElementGetters[];
 luaL_reg ElementSetters[];
 
 LUATYPEDECLARE(Element)
-
 }
 }
 }

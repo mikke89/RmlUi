@@ -29,6 +29,8 @@
 #include <Rocket/Controls/Lua/Controls.h>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
+#include <Rocket/Core/Lua/Interpreter.h>
+#include <Rocket/Core/Log.h>
 #include "SelectOptionsProxy.h"
 #include "DataFormatter.h"
 #include "DataSource.h"
@@ -52,6 +54,12 @@ namespace Lua {
 //when the Interpreter starts.
 void RegisterTypes(lua_State* L)
 {
+    if(Rocket::Core::Lua::Interpreter::GetLuaState() == NULL)
+    {
+        Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR,
+            "In Rocket::Controls::Lua::RegisterTypes: Tried to register the \'Controls\' types for Lua without first initializing the Interpreter.");
+        return;
+    }
     LuaType<ElementForm>::Register(L);
     LuaType<ElementFormControl>::Register(L);
         //Inherits from ElementFormControl
@@ -59,13 +67,13 @@ void RegisterTypes(lua_State* L)
             LuaType<ElementFormControlDataSelect>::Register(L);
         LuaType<ElementFormControlInput>::Register(L);
         LuaType<ElementFormControlTextArea>::Register(L);
-    //proxy tables
-    LuaType<SelectOptionsProxy>::Register(L);
     LuaType<DataFormatter>::Register(L);
     LuaType<DataSource>::Register(L);
     LuaType<ElementDataGrid>::Register(L);
     LuaType<ElementDataGridRow>::Register(L);
     LuaType<ElementTabSet>::Register(L);
+    //proxy tables
+    LuaType<SelectOptionsProxy>::Register(L);
 }
 
 }

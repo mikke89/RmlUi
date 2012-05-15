@@ -28,14 +28,14 @@
 #include "precompiled.h"
 #include "ElementTabSet.h"
 #include <Rocket/Core/Element.h>
-#include "As.h"
+#include <Rocket/Core/Lua/Utilities.h>
 
 //this will be used to "inherit" from Element
 template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementTabSet>(lua_State* L, int metatable_index)
 {
     Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
     LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    Rocket::Controls::Lua::AddCastFunctionToElementAsTable<Rocket::Controls::ElementTabSet>(L);
+    Rocket::Core::Lua::AddTypeToElementAsTable<Rocket::Controls::ElementTabSet>(L);
 }
 
 namespace Rocket {
