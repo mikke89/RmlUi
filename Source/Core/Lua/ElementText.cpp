@@ -28,6 +28,7 @@
 #include "precompiled.h"
 #include "ElementText.h"
 #include "Element.h"
+#include <Rocket/Core/Lua/Utilities.h>
 
 namespace Rocket {
 namespace Core {
@@ -37,6 +38,7 @@ template<> void ExtraInit<ElementText>(lua_State* L, int metatable_index)
     //inherit from Element
     ExtraInit<Element>(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
+    AddTypeToElementAsTable<ElementText>(L);
 }
 
 int ElementTextGetAttrtext(lua_State* L)

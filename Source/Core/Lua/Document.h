@@ -27,29 +27,7 @@
  
 #ifndef ROCKETCORELUADOCUMENT_H
 #define ROCKETCORELUADOCUMENT_H
-/*
-    This defines the Document type in the Lua global namespace
 
-    It inherits from Element, so check the documentation for Element.h to
-    see what other functions you can call from a Document object. Document
-    specific things are below
-
-    //methods
-    noreturn Document:PullToFront()
-    noreturn Document:PushToBack()
-    noreturn Document:Show(int flag)
-    noreturn Document:Hide()
-    noreturn Document:Close()
-    Element Document:CreateElement(string tag)
-    ElementText Document:CreateTextNode(string text)
-    
-    //getters
-    string Document.title
-    Context Document.context
-
-    //setter
-    Document.title = string
-*/
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/ElementDocument.h>

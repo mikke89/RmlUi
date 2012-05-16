@@ -30,6 +30,7 @@
 #include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/Context.h>
 #include "Element.h"
+#include <Rocket/Core/Lua/Utilities.h>
 
 namespace Rocket {
 namespace Core {
@@ -40,6 +41,7 @@ template<> void ExtraInit<Document>(lua_State* L, int metatable_index)
     //we will inherit from Element
     ExtraInit<Element>(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index - 1);
+    AddTypeToElementAsTable<Document>(L);
 }
 
 //methods

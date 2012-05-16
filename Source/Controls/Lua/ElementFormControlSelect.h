@@ -28,25 +28,6 @@
 #ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROLSELECT_H
 #define ROCKETCONTROLSLUAELEMENTFORMCONTROLSELECT_H
 
-/*
-    This defines the ElementFormControlSelect type in the Lua global namespace, for this documentation will be
-    named EFCSelect
-
-    It has one extra method than the Python api, which is GetOption
-
-    //methods
-    int EFCSelect:Add(string rml, string value, [int before]) --where 'before' is optional, and is an index
-    noreturn EFCSelect:Remove(int index)
-    {"element"=Element,"value"=string} EFCSelect:GetOption(int index) --this is a more efficient way to get an option if you know the index beforehand
-
-    //getters
-    {[int index]={"element"=Element,"value"=string}} EFCSelect.options --used to access options as a Lua table. Comparatively expensive operation, use GetOption when 
-                                                                       --you only need one option and you know the index
-    int EFCSelect.selection
-
-    //setter
-    EFCSelect.selection = int
-*/
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Controls/ElementFormControlSelect.h>

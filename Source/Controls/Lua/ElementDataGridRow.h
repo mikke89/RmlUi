@@ -27,23 +27,7 @@
  
 #ifndef ROCKETCONTROLSLUAELEMENTDATAGRIDROW_H
 #define ROCKETCONTROLSLUAELEMENTDATAGRIDROW_H
-/*
-    This defines the ElementDataGridRow type in the Lua global namespace
 
-    inherits from Element
-
-    no methods
-
-    //getters
-    bool ElementDataGridRow.row_expanded
-    int ElementDataGridRow.parent_relative_index
-    int ElementDataGridRow.table_relative_index
-    ElementDataGridRow ElementDataGridRow.parent_row
-    ElementDataGrid ElementDataGridRow.parent_grid
-
-    //setter
-    ElementDataGridRow.row_expanded = bool
-*/
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>

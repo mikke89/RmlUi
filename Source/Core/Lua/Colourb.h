@@ -27,31 +27,6 @@
  
 #ifndef ROCKETCORELUACOLOURB_H
 #define ROCKETCORELUACOLOURB_H
-/*
-    Declares Colourb in the Lua global namespace. It implements the below (examples using Lua syntax) :
-
-    Colourb.new(int red,int green,int blue,int alpha) creates a new Colourf (values must be bounded between 0 and 255 inclusive), 
-    and gets deleted when Lua garbage collects
-    
-    everything after this will assume that you have a local variable named 'col', declared something similar to
-    local col = Colourb.new(0,15,3,255)
-
-    operators (the types that it can operate on are on the right):
-    col == Colourb
-    col + Colourb
-    col * float
-
-    no methods
-
-    get and set attributes:
-    col.red
-    col.green
-    col.blue
-    col.alpha
-
-    get attributes:
-    local red,green,blue,alpha = col.rgba    
-*/
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>

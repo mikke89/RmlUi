@@ -27,22 +27,6 @@
  
 #ifndef ROCKETCONTROLSLUAELEMENTTABSET_H
 #define ROCKETCONTROLSLUAELEMENTTABSET_H
-/*
-    This defines the ElementTabSet type in the Lua global namespace
-
-    It inherits from Element
-
-    //methods:
-    noreturn ElementTabSet:SetPanel(int index, string rml)
-    noreturn ElementTabSet:SetTab(int index, string rml)
-
-    //getters
-    int ElementTabSet.active_tab
-    int ElementTabSet.num_tabs
-
-    //setter
-    ElementTabSet.active_tab = int
-*/
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>

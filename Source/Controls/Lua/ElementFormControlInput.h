@@ -27,20 +27,7 @@
  
 #ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROLINPUT_H
 #define ROCKETCONTROLSLUAELEMENTFORMCONTROLINPUT_H
-/*
-    This defines the type ElementFormControlInput in the Lua globla namespace, refered to in this documentation by EFCInput
 
-    It inherits from ELementFormControl which inherits from Element
-
-    all of the properties are read and write
-    bool EFCInput.checked
-    int EFCInput.maxlength
-    int EFCInput.size
-    int EFCInput.max
-    int EFCInput.min
-    int EFCInput.step
-    
-*/
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Controls/ElementFormControlInput.h>

@@ -27,10 +27,7 @@
  
 #ifndef ROCKETCORELUACONTEXTDOCUMENTSPROXY_H
 #define ROCKETCORELUACONTEXTDOCUMENTSPROXY_H
-/*
-    A proxy table with key of string and int and a value of Document
-    Read only
-*/
+
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Context.h>

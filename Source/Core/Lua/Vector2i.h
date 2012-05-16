@@ -27,26 +27,7 @@
  
 #ifndef ROCKETCORELUAVECTOR2I_H
 #define ROCKETCORELUAVECTOR2I_H
-/*
-    Declares Vector2i in the Lua global namespace. It implements the below (examples using Lua syntax) :
 
-    Vector2i(int,int) creates a new Vector2i, and gets deleted when Lua garbage collects
-    
-    everything after this will assume that you have a local variable named 'vect', declared something similar to
-    local vect = Vector2i.new(50,90)
-    operators (the types that it can operate on are on the right):
-    vect * int
-    vect / int
-    vect + Vector2i
-    vect - Vector2i
-    vect == Vector2i
-
-    no methods
-
-    get and set attributes:
-    vect.x
-    vect.y
-*/
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Types.h>

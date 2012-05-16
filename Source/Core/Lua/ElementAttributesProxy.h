@@ -27,10 +27,7 @@
  
 #ifndef ROCKETCORELUAELEMENTATTRIBUTESPROXY_H
 #define ROCKETCORELUAELEMENTATTRIBUTESPROXY_H
-/*
-    Proxy table for Element.attribues
-    read-only Dictionary
-*/
+
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Element.h>

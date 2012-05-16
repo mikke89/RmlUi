@@ -27,10 +27,7 @@
  
 #ifndef ROCKETCORELUAEVENTPARAMETERSPROXY_H
 #define ROCKETCORELUAEVENTPARAMETERSPROXY_H
-/*
-    Proxy table for Event.parameters
-    read-only Dictionary
-*/
+
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Event.h>

@@ -28,21 +28,6 @@
 #ifndef ROCKETCORELUAROCKET_H
 #define ROCKETCORELUAROCKET_H
 
-/*
-    This declares rocket in the global Lua namespace
-
-    It is not exactly type, but it is a table, and does have some methods and attributes
-    
-    methods: 
-    rocket.CreateContext(string name, Vector2i dimensions)
-    rocket.LoadFontFace(string font_path)
-    rocket.RegisterTag(string tag, ElementInstancer instancer)
-    
-    getters:
-    rocket.contexts  returns a table of contexts, which are indexed by number AND string, so there are two copies of each context in the table
-
-*/
-
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
 

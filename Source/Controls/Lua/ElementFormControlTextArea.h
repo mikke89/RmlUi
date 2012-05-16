@@ -27,17 +27,7 @@
  
 #ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROLTEXTAREA_H
 #define ROCKETCONTROLSLUAELEMENTFORMCONTROLTEXTAREA_H
-/*
-    This defines the ElementFormControlTextArea type in the Lua global namespace, refered in this documentation by EFCTextArea
 
-    It inherits from ElementFormControl,which inherits from Element
-
-    All properties are read/write
-    int EFCTextArea.cols
-    int EFCTextArea.maxlength
-    int EFCTextArea.rows
-    bool EFCTextArea.wordwrap
-*/
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Controls/ElementFormControlTextArea.h>

@@ -28,18 +28,6 @@
 #ifndef ROCKETCORELUAELEMENTINSTANCER_H
 #define ROCKETCORELUAELEMENTINSTANCER_H
 
-/*
-    This defines the ElementInstancer type in the Lua global namespace. It is reference counted.
-
-    To use this, you will want to call ElementInstancer.new to get an object, and call rocket.RegisterTag to tell Rocket to use the 
-    instancer for that tag.
-
-    ElementInstancer ElementInstancer.new([function InstanceElement]) --argument is optional, and new is not called from a specific object
-
-    //setter
-    ElementInstancer.InstanceElement = function(string tag) return Element end --gets called when the factory sees the tag being instanced
-*/
-
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include "LuaElementInstancer.h"

@@ -27,29 +27,6 @@
  
 #ifndef ROCKETCORELUACOLOURF_H
 #define ROCKETCORELUACOLOURF_H
-/*
-    Declares Colourf in the Lua global namespace. It implements the below (examples using Lua syntax) :
-
-    Colourf.new(float red,float green,float blue,float alpha) creates a new Colourf (values must be bounded between 0 and 1 inclusive), 
-    and gets deleted when Lua garbage collects
-    
-    everything after this will assume that you have a local variable named 'col', declared something similar to
-    local col = Colourf.new(0.1,0.5,0.25,1.0)
-
-    operators (the types that it can operate on are on the right):
-    col == Colourf
-
-    no methods
-
-    get and set attributes:
-    col.red
-    col.green
-    col.blue
-    col.alpha
-
-    get attributes:
-    local red,green,blue,alpha = col.rgba    
-*/
 
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>

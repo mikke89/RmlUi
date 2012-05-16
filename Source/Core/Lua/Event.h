@@ -27,20 +27,6 @@
  
 #ifndef ROCKETCORELUAEVENT_H
 #define ROCKETCORELUAEVENT_H
-/*
-    This defines an Event type name in the global Lua namespace
-
-    Generally, you won't create an event yourself, just receive it.
-
-    //method
-    noreturn Event:StopPropagation()
-    
-    //getters
-    Element Event.current_element
-    string Event.type
-    Element Event.target_element
-    {}key=string,value=int,float,Colourb/f,string,Vector2f,userdata Event.parameters
-*/
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>

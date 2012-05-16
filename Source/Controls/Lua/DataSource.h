@@ -28,22 +28,6 @@
 #ifndef ROCKETCONTROLSLUADATASOURCE_H
 #define ROCKETCONTROLSLUADATASOURCE_H
 
-/*
-    This defines the DataSource type in the Lua global namespace
-    
-    //methods
-    noreturn DataSource:NotifyRowAdd(string tablename, int firstadded, int numadded)
-    noreturn DataSource:NotifyRemove(string tablename, int firstremoved, int numremoved)
-    noreturn DataSource:NotifyRowChange(string tablename, int firstchanged, int numchanged)
-    noreturn DataSource:NotifyRowChange(string tablename) --the same as above, but for all rows
-    
-    when you get an instance of this, you MUST set two functions:
-    DataSource.GetNumRows = function(tablename) ....... end --returns an int
-    DataSource.GetRow = function(tablename,index,columns) ......end
-    --where columns is a numerically indexed table of strings, and the function needs to
-    --return a table of numerically indexed strings
-*/
-
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
 #include "LuaDataSource.h"

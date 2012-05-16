@@ -27,14 +27,6 @@
  
 #ifndef ROCKETCONTROLSLUAELEMENTFORM_H
 #define ROCKETCONTROLSLUAELEMENTFORM_H
-/*
-    This defines the ElementForm type in the Lua global namespace
-
-    methods:
-    ElementForm:Submit(string name,string value)
-
-    for everything else, see the documentation for "Element"
-*/
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>

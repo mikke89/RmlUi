@@ -27,16 +27,6 @@
  
 #ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROLDATASELECT_H
 #define ROCKETCONTROLSLUAELEMENTFORMCONTROLDATASELECT_H
-/*
-    This defines the ElementFormControlDataSelect type in the Lua global namespace. I think it is the longest
-    type name.
-
-    It inherits from ElementFormControlSelect, which inherits from ElementFormControl, which inherits from Element
-
-    //method
-    noreturn ElementFormControlDataSelect:SetDataSource(string source)
-*/
-
 
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>

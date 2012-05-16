@@ -27,33 +27,7 @@
  
 #ifndef ROCKETCORELUAVECTOR2F_H
 #define ROCKETCORELUAVECTOR2F_H
-/*
-    Declares Vector2f in the Lua global namespace. It implements the below (examples using Lua syntax) :
 
-    Vector2f.new(float,float) creates a new Vector2f, and gets deleted when Lua garbage collects
-    
-    everything after this will assume that you have a local variable named 'vect', declared something similar to
-    local vect = Vector2f.new(3.5,2.3)
-    operators (the types that it can operate on are on the right):
-    vect * float
-    vect / float
-    vect + Vector2f
-    vect - Vector2f
-    vect == Vector2f
-
-    methods:
-    float var = vect:DotProduct(Vector2f)
-    Vector2f var = vect:Normalise()
-    Vector2f var = vect:Rotate(float)
-
-    get and set attributes:
-    vect.x
-    vect.y
-    
-    get attributes:
-    vect.magnitude
-
-*/
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Types.h>

@@ -29,12 +29,6 @@
 #ifndef ROCKETCORELUAELEMENTCHILDNODESPROXY_H
 #define ROCKETCORELUAELEMENTCHILDNODESPROXY_H
 
-/*
-    This is the object that gets returned from Element.child_nodes, so that the table is not
-    built every single time the function is called.
-    Read-only
-*/
-
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Element.h>

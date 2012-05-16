@@ -27,15 +27,7 @@
  
 #ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROL_H
 #define ROCKETCONTROLSLUAELEMENTFORMCONTROL_H
-/*
-    This defines the ElementFormControl type in the Lua global namespace
 
-    it has no methods, and all of the attributes are read and write
-
-    bool    ElementFormControl.disabled
-    string  ElementFormControl.name
-    string  ElementFormControl.value
-*/
 #include <Rocket/Core/Lua/lua.hpp>
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Controls/ElementFormControl.h>
