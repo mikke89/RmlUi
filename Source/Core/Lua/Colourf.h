@@ -53,6 +53,7 @@ int ColourfSetAttrred(lua_State* L);
 int ColourfSetAttrgreen(lua_State* L);
 int ColourfSetAttrblue(lua_State* L);
 int ColourfSetAttralpha(lua_State* L);
+int ColourfSetAttrrgba(lua_State* L);
 
 RegType<Colourf> ColourfMethods[];
 luaL_reg ColourfGetters[];

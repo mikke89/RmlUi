@@ -43,9 +43,6 @@ public:
 	ElementGame(const Rocket::Core::String& tag);
 	virtual ~ElementGame();
 
-	/// Initialises the python interface and registers the serialiser
-	static void InitialisePythonInterface();
-
 	/// Intercepts and handles key events.
 	void ProcessEvent(Rocket::Core::Event& event);
 

@@ -54,11 +54,13 @@ void LuaDataFormatter::FormatData(Rocket::Core::String& formatted_data, const Ro
         return;
     }
     lua_State* L = Interpreter::GetLuaState();
+    int top = lua_gettop(L);
     PushDataFormatterFunctionTable(L); // push the table where the function resides
     lua_rawgeti(L,-1,ref_FormatData); //push the function
     if(lua_type(L,-1) != LUA_TFUNCTION)
     {
         Log::Message(Log::LT_ERROR, "In LuaDataFormatter: The value for the FormatData variable must be a function. You passed in a %s.", lua_typename(L,lua_type(L,-1)));
+        lua_settop(L,top);
         return;
     }
     lua_newtable(L); //to hold raw_data
@@ -74,9 +76,11 @@ void LuaDataFormatter::FormatData(Rocket::Core::String& formatted_data, const Ro
     if(lua_type(L,-1) != LUA_TSTRING)
     {
         Log::Message(Log::LT_ERROR, "In LuaDataFormatter: the return value of FormatData must be a string. You returned a %s.", lua_typename(L,lua_type(L,-1)));
+        lua_settop(L,top);
         return;
     }
     formatted_data = Rocket::Core::String(lua_tostring(L,-1));
+    lua_settop(L,top);
 }
 
 void LuaDataFormatter::PushDataFormatterFunctionTable(lua_State* L)

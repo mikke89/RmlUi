@@ -42,6 +42,22 @@ template<> void ExtraInit<Document>(lua_State* L, int metatable_index)
     ExtraInit<Element>(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index - 1);
     AddTypeToElementAsTable<Document>(L);
+    
+    //create the DocumentFocus table
+    lua_getglobal(L,"DocumentFocus");
+    if(lua_isnoneornil(L,-1))
+    {
+        lua_pop(L,1); //pop unsucessful getglobal
+        lua_newtable(L); //create a table for holding the enum
+        lua_pushinteger(L,ElementDocument::NONE);
+        lua_setfield(L,-2,"NONE");
+        lua_pushinteger(L,ElementDocument::FOCUS);
+        lua_setfield(L,-2,"FOCUS");
+        lua_pushinteger(L,ElementDocument::MODAL);
+        lua_setfield(L,-2,"MODAL");
+        lua_setglobal(L,"DocumentFocus");
+        
+    }
 }
 
 //methods

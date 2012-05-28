@@ -30,11 +30,22 @@
 #include <Rocket/Core/Log.h>
 
 using Rocket::Core::Log;
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) { return; }
+template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) 
+{ 
+    return; 
+}
 namespace Rocket {
 namespace Controls {
 namespace Lua {
 typedef LuaDataSource DataSource;
+
+int DataSourcenew(lua_State* L)
+{
+    const char* name = luaL_checkstring(L,1);
+    LuaDataSource* ds = new LuaDataSource(name);
+    LuaType<DataSource>::push(L,ds,true);
+    return 1;
+}
 
 int DataSourceNotifyRowAdd(lua_State* L, DataSource* obj)
 {

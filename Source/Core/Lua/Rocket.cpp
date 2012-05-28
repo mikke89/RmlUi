@@ -79,8 +79,8 @@ int rocketCreateContext(lua_State* L)
 int rocketLoadFontFace(lua_State* L)
 {
     const char* file = luaL_checkstring(L,1);
-    FontDatabase::LoadFontFace(file);
-    return 0;
+    lua_pushboolean(L,FontDatabase::LoadFontFace(file));
+    return 1;
 }
 
 int rocketRegisterTag(lua_State* L)

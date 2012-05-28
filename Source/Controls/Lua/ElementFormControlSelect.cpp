@@ -70,19 +70,6 @@ int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj)
     return 0;
 }
 
-int ElementFormControlSelectGetOption(lua_State* L, ElementFormControlSelect* obj)
-{
-    int index = luaL_checkint(L,1);
-    Rocket::Controls::SelectOption* opt = obj->GetOption(index);
-    lua_newtable(L);
-    LuaType<Rocket::Core::Element>::push(L,opt->GetElement(),false);
-    lua_setfield(L,-2,"element");
-    lua_pushstring(L,opt->GetValue().CString());
-    lua_setfield(L,-2,"value");
-    return 1;
-}
-
-
 //getters
 int ElementFormControlSelectGetAttroptions(lua_State* L)
 {
@@ -98,7 +85,6 @@ int ElementFormControlSelectGetAttrselection(lua_State* L)
 {
     ElementFormControlSelect* obj = LuaType<ElementFormControlSelect>::check(L,1);
     LUACHECKOBJ(obj);
-
     int selection = obj->GetSelection();
     lua_pushinteger(L,selection);
     return 1;
@@ -120,7 +106,6 @@ Rocket::Core::Lua::RegType<ElementFormControlSelect> ElementFormControlSelectMet
 {
     LUAMETHOD(ElementFormControlSelect,Add)
     LUAMETHOD(ElementFormControlSelect,Remove)
-    LUAMETHOD(ElementFormControlSelect,GetOption)
     { NULL, NULL },
 };
 

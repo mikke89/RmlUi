@@ -47,8 +47,15 @@ namespace Lua {
 //method
 int ElementFormSubmit(lua_State* L, ElementForm* obj)
 {
-    const char* name = luaL_checkstring(L,1);
-    const char* value = luaL_checkstring(L,2);
+    int top = lua_gettop(L);
+    const char* name = "";
+    const char* value = "";
+    if(top > 0)
+    {
+        name = luaL_checkstring(L,1);
+        if(top > 1)
+            value = luaL_checkstring(L,2);
+    }
     obj->Submit(name,value);
     return 0;
 }

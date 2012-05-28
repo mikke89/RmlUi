@@ -29,11 +29,6 @@
 #include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/Input.h>
 #include <Rocket/Core/Factory.h>
-/*
-#include <Rocket/Core/Python/ElementInstancer.h>
-#include <Rocket/Core/Python/ElementWrapper.h>
-#include <Rocket/Core/Python/Python.h>
-*/
 #include "Defender.h"
 #include "Game.h"
 
@@ -45,18 +40,6 @@ ElementGame::ElementGame(const Rocket::Core::String& tag) : Rocket::Core::Elemen
 ElementGame::~ElementGame()
 {		
 	delete game;
-}
-
-void ElementGame::InitialisePythonInterface()
-{
-    //not sure that this is needed for Lua
-    /*
-	PyObject* object = python::class_<ElementGame, Rocket::Core::Python::ElementWrapper<ElementGame>, python::bases<Rocket::Core::Element>, boost::noncopyable >("ElementGame", python::init<const char*>())
-		.ptr();
-
-	Rocket::Core::Factory::RegisterElementInstancer("game", new Rocket::Core::Python::ElementInstancer(object))->RemoveReference();
-    Rocket::Core::ElementInstancerGeneric<ElementGame>();
-    */
 }
 
 // Intercepts and handles key events.

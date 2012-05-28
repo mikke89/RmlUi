@@ -42,7 +42,6 @@ namespace Lua {
 //methods
 int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj);
 int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj);
-int ElementFormControlSelectGetOption(lua_State* L, ElementFormControlSelect* obj);
 
 //getters
 int ElementFormControlSelectGetAttroptions(lua_State* L);

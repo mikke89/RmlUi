@@ -91,8 +91,7 @@ int main(int, char**)
 	// Initialise the Rocket Controls library.
 	Rocket::Controls::Initialise();
 
-	// Initialise the Python interface.
-	//PythonInterface::Initialise((Shell::GetExecutablePath() + (APP_PATH "python") + PATH_SEPARATOR + Shell::GetExecutablePath() + ROCKET_PATH).CString());
+	// Initialise the Lua interface
     Rocket::Core::Lua::Interpreter::Initialise();
     Rocket::Controls::Lua::RegisterTypes(Rocket::Core::Lua::Interpreter::GetLuaState());
 
@@ -124,8 +123,7 @@ int main(int, char**)
 	HighScores::Initialise();
 
 	// Fire off the startup script.
-	//PythonInterface::Import("autoexec");
-    LuaInterface::Initialise(Rocket::Core::Lua::Interpreter::GetLuaState());
+    LuaInterface::Initialise(Rocket::Core::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples
     Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String(APP_PATH).Append("lua/start.lua"));
 
 	Shell::EventLoop(GameLoop);	
@@ -133,8 +131,7 @@ int main(int, char**)
 	// Shutdown the Rocket contexts.	
 	context->RemoveReference();
 	
-	// Shutdown Python before we shut down Rocket.
-	//PythonInterface::Shutdown();
+	// Shutdown Lua  before we shut down Rocket.
 	Rocket::Core::Lua::Interpreter::Shutdown();
 
 	// Shut down the game singletons.

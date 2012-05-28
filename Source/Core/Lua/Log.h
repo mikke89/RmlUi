@@ -34,6 +34,7 @@ namespace Lua {
 
 template<> void ExtraInit<Log>(lua_State* L, int metatable_index);
 int LogMessage(lua_State* L);
+int OverwriteLuaPrint(lua_State* L);
 
 RegType<Log> LogMethods[];
 luaL_reg LogGetters[];

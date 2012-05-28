@@ -39,6 +39,8 @@ namespace Controls {
 namespace Lua {
 typedef LuaDataSource DataSource;
 
+int DataSourcenew(lua_State* L);
+
 int DataSourceNotifyRowAdd(lua_State* L, DataSource* obj);
 int DataSourceNotifyRowRemove(lua_State* L, DataSource* obj);
 int DataSourceNotifyRowChange(lua_State* L, DataSource* obj);

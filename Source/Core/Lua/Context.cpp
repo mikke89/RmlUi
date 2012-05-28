@@ -93,8 +93,6 @@ int ContextCreateDocument(lua_State* L, Context* obj)
         tag = luaL_checkstring(L,1);
     Document* doc = obj->CreateDocument(tag);
     LuaType<Document>::push(L,doc,true);
-	//for debugging
-	int count = doc->GetReferenceCount();
     return 1;
 }
 

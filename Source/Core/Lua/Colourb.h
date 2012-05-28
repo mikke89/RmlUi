@@ -55,6 +55,7 @@ int ColourbSetAttrred(lua_State* L);
 int ColourbSetAttrgreen(lua_State* L);
 int ColourbSetAttrblue(lua_State* L);
 int ColourbSetAttralpha(lua_State* L);
+int ColourbSetAttrrgba(lua_State* L);
 
 RegType<Colourb> ColourbMethods[];
 luaL_reg ColourbGetters[];

@@ -152,6 +152,30 @@ int ColourfSetAttralpha(lua_State* L)
     return 0;
 }
 
+int ColourfSetAttrrgba(lua_State* L)
+{
+    Colourf* obj = NULL;
+    int top = lua_gettop(L);
+    //each of the items are optional.
+    if(top > 0)
+    {
+        obj = LuaType<Colourf>::check(L,1);
+        LUACHECKOBJ(obj);
+        if(top > 1)
+        {
+            if(top > 2)
+            {
+                if(top > 3)
+                    obj->alpha = (float)luaL_checknumber(L,4);
+                obj->blue = (float)luaL_checknumber(L,3);
+            }
+            obj->green = (float)luaL_checknumber(L,2);
+        }
+        obj->red = (float)luaL_checknumber(L,1);
+    }
+    return 0;
+}
+
 
 RegType<Colourf> ColourfMethods[] =
 {
@@ -174,6 +198,7 @@ luaL_reg ColourfSetters[] =
     LUASETTER(Colourf,green)
     LUASETTER(Colourf,blue)
     LUASETTER(Colourf,alpha)
+    LUASETTER(Colourf,rgba)
     { NULL, NULL },
 };
 

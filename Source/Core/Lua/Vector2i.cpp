@@ -73,8 +73,8 @@ int Vector2i__mul(lua_State* L)
     LUACHECKOBJ(lhs);
     int rhs = luaL_checkint(L,2);
 
-    Vector2i* res = new Vector2i(*lhs);
-    (*res) *= rhs;
+    Vector2i* res = new Vector2i(0,0);
+    (*res) = (*lhs) * rhs;
 
     LuaType<Vector2i>::push(L,res,true);
     return 1;
@@ -86,8 +86,8 @@ int Vector2i__div(lua_State* L)
     LUACHECKOBJ(lhs);
     int rhs = luaL_checkint(L,2);
 
-    Vector2i* res = new Vector2i(*lhs);
-    (*res) /= rhs;
+    Vector2i* res = new Vector2i(0,0);
+    (*res) = (*lhs) / rhs;
 
     LuaType<Vector2i>::push(L,res,true);
     return 1;
@@ -100,8 +100,8 @@ int Vector2i__add(lua_State* L)
     Vector2i* rhs = LuaType<Vector2i>::check(L,2);
     LUACHECKOBJ(rhs);
 
-    Vector2i* res = new Vector2i(*lhs);
-    (*res) += (*rhs);
+    Vector2i* res = new Vector2i(0,0);
+    (*res) = (*lhs) + (*rhs);
 
     LuaType<Vector2i>::push(L,res,true);
     return 1;
@@ -114,8 +114,8 @@ int Vector2i__sub(lua_State* L)
     Vector2i* rhs = LuaType<Vector2i>::check(L,2);
     LUACHECKOBJ(rhs);
 
-    Vector2i* res = new Vector2i(*lhs);
-    (*res) -= (*rhs);
+    Vector2i* res = new Vector2i(0,0);
+    (*res) = (*lhs) - (*rhs);
 
     LuaType<Vector2i>::push(L,res,true);
     return 1;

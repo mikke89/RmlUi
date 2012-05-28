@@ -45,6 +45,7 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
 
     //make sure there is an area to save the function
     lua_State* L = Interpreter::GetLuaState();
+    int top = lua_gettop(L);
     lua_getglobal(L,"EVENTLISTENERFUNCTIONS");
     if(lua_isnoneornil(L,-1))
     {
@@ -68,11 +69,13 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
 	else
 		parent = NULL;
     strFunc = function;
+    lua_settop(L,top);
 }
 
 //if it is passed in a Lua function
 LuaEventListener::LuaEventListener(lua_State* L, int narg, Element* element)
 {
+    int top = lua_gettop(L);
     lua_getglobal(L,"EVENTLISTENERFUNCTIONS");
 	if(lua_isnoneornil(L,-1))
 	{
@@ -90,6 +93,7 @@ LuaEventListener::LuaEventListener(lua_State* L, int narg, Element* element)
 		parent = element->GetOwnerDocument();
 	else
 		parent = NULL;
+    lua_settop(L,top);
 }
 
 LuaEventListener::~LuaEventListener()
