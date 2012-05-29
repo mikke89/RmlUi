@@ -26,89 +26,116 @@
  */
  
 #include "precompiled.h"
-#include "EventParametersProxy.h"
-#include <Rocket/Core/Lua/Utilities.h>
-#include <Rocket/Core/Variant.h>
-#include <Rocket/Core/Dictionary.h>
+#include "RocketContextsProxy.h"
+#include <Rocket/Core/Context.h>
+#include <Rocket/Core/Core.h>
 
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
 
-template<> void ExtraInit<EventParametersProxy>(lua_State* L, int metatable_index)
+template<> void ExtraInit<RocketContextsProxy>(lua_State* L, int metatable_index)
 {
-    lua_pushcfunction(L,EventParametersProxy__index);
+    lua_pushcfunction(L,RocketContextsProxy__index);
     lua_setfield(L,metatable_index,"__index");
-    lua_pushcfunction(L,EventParametersProxy__pairs);
+    lua_pushcfunction(L,RocketContextsProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
-    lua_pushcfunction(L,EventParametersProxy__ipairs);
+    lua_pushcfunction(L,RocketContextsProxy__ipairs);
     lua_setfield(L,metatable_index,"__ipairs");
 }
 
-int EventParametersProxy__index(lua_State* L)
+int RocketContextsProxy__index(lua_State* L)
 {
     /*the table obj and the missing key are currently on the stack(index 1 & 2) as defined by the Lua language*/
     int keytype = lua_type(L,2);
-    if(keytype == LUA_TSTRING) //only valid key types
+    if(keytype == LUA_TSTRING || keytype == LUA_TNUMBER) //only valid key types
     {
-        EventParametersProxy* obj = LuaType<EventParametersProxy>::check(L,1);
+        RocketContextsProxy* obj = LuaType<RocketContextsProxy>::check(L,1);
         LUACHECKOBJ(obj);
-        const char* key = lua_tostring(L,2);
-        Variant* param = obj->owner->GetParameters()->Get(key);
-        PushVariant(L,param);
+        if(keytype == LUA_TSTRING)
+        {
+            const char* key = lua_tostring(L,2);
+            LuaType<Context>::push(L,GetContext(key));
+        }
+        else
+        {
+            int key = luaL_checkint(L,2);
+            LuaType<Context>::push(L,GetContext(key));
+        }
         return 1;
     }
     else
-        return LuaType<EventParametersProxy>::index(L);
+        return LuaType<RocketContextsProxy>::index(L);
 }
 
 
 //[1] is the object, [2] is the last used key, [3] is the userdata
-int EventParametersProxy__pairs(lua_State* L)
+int RocketContextsProxy__pairs(lua_State* L)
 {
-    EventParametersProxy* obj = LuaType<EventParametersProxy>::check(L,1);
+    RocketContextsProxy* obj = LuaType<RocketContextsProxy>::check(L,1);
     LUACHECKOBJ(obj);
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1)
         *pindex = 0;
-    String key = "";
-    Variant* value = NULL;
-    if(obj->owner->GetParameters()->Iterate((*pindex),key,value))
+    Context* value = NULL;
+    if((*pindex)++ < GetNumContexts())
     {
-        lua_pushstring(L,key.CString());
-        PushVariant(L,value);
+        value = GetContext(*pindex);
+    }
+    if(value == NULL)
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
     }
     else
     {
-        lua_pushnil(L);
-        lua_pushnil(L);
+        lua_pushstring(L,value->GetName().CString());
+        LuaType<Context>::push(L,value);
     }
     return 2;
 }
 
-//only index by string
-int EventParametersProxy__ipairs(lua_State* L)
+//[1] is the object, [2] is the last used key, [3] is the userdata
+int RocketContextsProxy__ipairs(lua_State* L)
 {
-    lua_pushnil(L);
-    lua_pushnil(L);
+    RocketContextsProxy* obj = LuaType<RocketContextsProxy>::check(L,1);
+    LUACHECKOBJ(obj);
+    int* pindex = (int*)lua_touserdata(L,3);
+    if((*pindex) == -1)
+        *pindex = 0;
+    Context* value = NULL;
+    if((*pindex)++ < GetNumContexts())
+    {
+        value = GetContext(*pindex);
+    }
+    if(value == NULL)
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+    else
+    {
+        lua_pushinteger(L,(*pindex)-1);
+        LuaType<Context>::push(L,value);
+    }
     return 2;
 }
 
-RegType<EventParametersProxy> EventParametersProxyMethods[] =
+RegType<RocketContextsProxy> RocketContextsProxyMethods[] =
 {
     { NULL, NULL },
 };
-luaL_reg EventParametersProxyGetters[] =
+luaL_reg RocketContextsProxyGetters[] =
 {
     { NULL, NULL },
 };
-luaL_reg EventParametersProxySetters[] =
+luaL_reg RocketContextsProxySetters[] =
 {
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(EventParametersProxy,false)
+LUATYPEDEFINE(RocketContextsProxy,false)
 }
 }
 }

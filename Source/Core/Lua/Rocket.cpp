@@ -31,36 +31,23 @@
 #include <Rocket/Core/Input.h>
 #include "ElementInstancer.h"
 #include "LuaElementInstancer.h"
+#include "RocketContextsProxy.h"
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
 
-template<> void ExtraInit<rocket>(lua_State* L, int metatable_index)
+template<> void ExtraInit<LuaRocket>(lua_State* L, int metatable_index)
 {
     //because of the way LuaType::Register is done, we know that the methods table is directly
     //before the metatable 
     int method_index = metatable_index - 1;
-
-    lua_pushcfunction(L,rocketCreateContext);
-    lua_setfield(L,method_index,"CreateContext");
-
-    lua_pushcfunction(L,rocketLoadFontFace);
-    lua_setfield(L,method_index,"LoadFontFace");
-
-    lua_pushcfunction(L,rocketRegisterTag);
-    lua_setfield(L,method_index,"RegisterTag");
-
-    rocketEnumkey_identifier(L);
+    LuaRocketEnumkey_identifier(L);
     lua_setfield(L,method_index,"key_identifier");
-
-    lua_pushcfunction(L,rocketGetAttrcontexts);
-    lua_setfield(L,method_index,"contexts");
-
     return;
 }
 
-int rocketCreateContext(lua_State* L)
+int LuaRocketCreateContext(lua_State* L, LuaRocket* obj)
 {
     const char* name = luaL_checkstring(L,1);
     Vector2i* dimensions = LuaType<Vector2i>::check(L,2);
@@ -76,14 +63,14 @@ int rocketCreateContext(lua_State* L)
     return 1;
 }
 
-int rocketLoadFontFace(lua_State* L)
+int LuaRocketLoadFontFace(lua_State* L, LuaRocket* obj)
 {
     const char* file = luaL_checkstring(L,1);
     lua_pushboolean(L,FontDatabase::LoadFontFace(file));
     return 1;
 }
 
-int rocketRegisterTag(lua_State* L)
+int LuaRocketRegisterTag(lua_State* L, LuaRocket* obj)
 {
     const char* tag = luaL_checkstring(L,1);
     LuaElementInstancer* lei = (LuaElementInstancer*)LuaType<ElementInstancer>::check(L,2);
@@ -92,27 +79,14 @@ int rocketRegisterTag(lua_State* L)
     return 0;
 }
 
-int rocketGetAttrcontexts(lua_State* L)
+int LuaRocketGetAttrcontexts(lua_State* L)
 {
-    lua_newtable(L);
-    int tbl = lua_gettop(L);
-    int numcontexts = GetNumContexts();
-    Context* cont;
-    for(int i = 0; i < numcontexts; i++)
-    {
-        cont = GetContext(i);
-        if(cont != NULL)
-        {
-            LuaType<Context>::push(L,cont,false);
-            lua_pushvalue(L,-1); //duplicate the top of the stack, because we are indexing by string and integral key so we need two
-            lua_rawseti(L,tbl,i);
-            lua_setfield(L,tbl,cont->GetName().CString());
-        }
-    }
+    RocketContextsProxy* proxy = new RocketContextsProxy();
+    LuaType<RocketContextsProxy>::push(L,proxy,true);
     return 1;
 }
 
-void rocketEnumkey_identifier(lua_State* L)
+void LuaRocketEnumkey_identifier(lua_State* L)
 {
     lua_newtable(L);
     int tbl = lua_gettop(L);
@@ -294,22 +268,26 @@ void rocketEnumkey_identifier(lua_State* L)
 }
 
 
-RegType<rocket> rocketMethods[] = 
+RegType<LuaRocket> LuaRocketMethods[] = 
+{
+    LUAMETHOD(LuaRocket,CreateContext)
+    LUAMETHOD(LuaRocket,LoadFontFace)
+    LUAMETHOD(LuaRocket,RegisterTag)
+    { NULL, NULL },
+};
+
+luaL_reg LuaRocketGetters[] = 
+{
+    LUAGETTER(LuaRocket,contexts)
+    { NULL, NULL },
+};
+
+luaL_reg LuaRocketSetters[] = 
 {
     { NULL, NULL },
 };
 
-luaL_reg rocketGetters[] = 
-{
-    { NULL, NULL },
-};
-
-luaL_reg rocketSetters[] = 
-{
-    { NULL, NULL },
-};
-
-LUATYPEDEFINE(rocket,false)
+LUATYPEDEFINE(LuaRocket,false)
 }
 }
 }

@@ -54,6 +54,7 @@
 #include "ElementChildNodesProxy.h"
 #include "ElementText.h"
 #include "GlobalLuaFunctions.h"
+#include "RocketContextsProxy.h"
 
 namespace Rocket {
 namespace Core {
@@ -61,6 +62,8 @@ namespace Lua {
 lua_State* Interpreter::_L = NULL;
 //typedefs for nicer Lua names
 typedef Rocket::Core::ElementDocument Document;
+//global variable 
+LuaRocket rocket = LuaRocket();
 
 void Interpreter::Startup()
 {
@@ -86,14 +89,18 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
         LuaType<ElementText>::Register(L);
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
-    LuaType<rocket>::Register(L);
+    LuaType<LuaRocket>::Register(L);
     LuaType<ElementInstancer>::Register(L);
     //Proxy tables
     LuaType<ContextDocumentsProxy>::Register(L);
     LuaType<EventParametersProxy>::Register(L);
     LuaType<ElementAttributesProxy>::Register(L);
     LuaType<ElementChildNodesProxy>::Register(L);
+    LuaType<RocketContextsProxy>::Register(L);
     OverrideLuaGlobalFunctions(L);
+    //push the global variable "rocket" to use the "Rocket" methods
+    LuaType<LuaRocket>::push(L,&rocket,false);
+    lua_setglobal(L,"rocket");
 }
 
 

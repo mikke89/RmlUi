@@ -232,6 +232,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Source\Core\Lua\RocketContextsProxy.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\RocketContextsProxy.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Source\Core\Lua\Utilities.cpp"
 				>
 			</File>

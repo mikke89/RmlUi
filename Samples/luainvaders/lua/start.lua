@@ -32,7 +32,7 @@ Formatters["ship"] = DataFormatter.new("ship",SecondFormatData)
 
 
 function Startup()
-	maincontext = rocket.contexts()["main"]
+	maincontext = rocket.contexts["main"]
 	maincontext:LoadDocument("data/background.rml"):Show()
 	maincontext:LoadDocument("data/main_menu.rml"):Show()
 end

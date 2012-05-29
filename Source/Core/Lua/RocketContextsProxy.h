@@ -25,34 +25,29 @@
  *
  */
  
-#ifndef ROCKETCORELUAROCKET_H
-#define ROCKETCORELUAROCKET_H
+#ifndef ROCKETCORELUAROCKETCONTEXTSPROXY_H
+#define ROCKETCORELUAROCKETCONTEXTSPROXY_H
 
-#include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
+#include <Rocket/Core/Lua/LuaType.h>
+
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
-#define ROCKETLUA_INPUTENUM(keyident,tbl) lua_pushinteger(L,Input::KI_##keyident); lua_setfield(L,(tbl),#keyident);
+//where owner is the Element that we should look up information from
+struct RocketContextsProxy { void* nothing;  };
 
-//just need a class to take up a type name, and a single object to be able to be pushed to Lua
-class LuaRocket { int to_remove_warning; }; //instance of object defined in Interpreter.cpp
+template<> void ExtraInit<RocketContextsProxy>(lua_State* L, int metatable_index);
+int RocketContextsProxy__index(lua_State* L);
+int RocketContextsProxy__pairs(lua_State* L);
+int RocketContextsProxy__ipairs(lua_State* L);
 
-template<> void ExtraInit<LuaRocket>(lua_State* L, int metatable_index);
-int LuaRocketCreateContext(lua_State* L, LuaRocket* obj);
-int LuaRocketLoadFontFace(lua_State* L, LuaRocket* obj);
-int LuaRocketRegisterTag(lua_State* L, LuaRocket* obj);
+RegType<RocketContextsProxy> RocketContextsProxyMethods[];
+luaL_reg RocketContextsProxyGetters[];
+luaL_reg RocketContextsProxySetters[];
 
-int LuaRocketGetAttrcontexts(lua_State* L);
-
-void LuaRocketEnumkey_identifier(lua_State* L);
-
-RegType<LuaRocket> LuaRocketMethods[];
-luaL_reg LuaRocketGetters[];
-luaL_reg LuaRocketSetters[];
-
-LUATYPEDECLARE(LuaRocket)
+LUATYPEDECLARE(RocketContextsProxy)
 }
 }
 }
