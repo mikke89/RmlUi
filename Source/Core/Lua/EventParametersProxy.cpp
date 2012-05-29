@@ -40,6 +40,10 @@ template<> void ExtraInit<EventParametersProxy>(lua_State* L, int metatable_inde
 {
     lua_pushcfunction(L,EventParametersProxy__index);
     lua_setfield(L,metatable_index,"__index");
+    lua_pushcfunction(L,EventParametersProxy__pairs);
+    lua_setfield(L,metatable_index,"__pairs");
+    lua_pushcfunction(L,EventParametersProxy__ipairs);
+    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int EventParametersProxy__index(lua_State* L)
@@ -59,28 +63,39 @@ int EventParametersProxy__index(lua_State* L)
         return LuaType<EventParametersProxy>::index(L);
 }
 
-//method
-int EventParametersProxyGetTable(lua_State* L, EventParametersProxy* obj)
-{
-    const Dictionary* params = obj->owner->GetParameters();
-    int index = 0;
-    String key;
-    Variant* value;
 
-    lua_newtable(L);
-    int tableindex = lua_gettop(L);
-    while(params->Iterate(index,key,value))
+//[1] is the object, [2] is the last used key, [3] is the userdata
+int EventParametersProxy__pairs(lua_State* L)
+{
+    EventParametersProxy* obj = LuaType<EventParametersProxy>::check(L,1);
+    int* pindex = (int*)lua_touserdata(L,3);
+    if((*pindex) == -1)
+        *pindex = 0;
+    String key = "";
+    Variant* value = NULL;
+    if(obj->owner->GetParameters()->Iterate((*pindex),key,value))
     {
         lua_pushstring(L,key.CString());
         PushVariant(L,value);
-        lua_settable(L,tableindex);
     }
-    return 1;
+    else
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+    return 2;
+}
+
+//only index by string
+int EventParametersProxy__ipairs(lua_State* L)
+{
+    lua_pushnil(L);
+    lua_pushnil(L);
+    return 2;
 }
 
 RegType<EventParametersProxy> EventParametersProxyMethods[] =
 {
-    LUAMETHOD(EventParametersProxy,GetTable)
     { NULL, NULL },
 };
 luaL_reg EventParametersProxyGetters[] =

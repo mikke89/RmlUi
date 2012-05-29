@@ -41,9 +41,8 @@ struct ElementChildNodesProxy { Element* owner;  };
 
 template<> void ExtraInit<ElementChildNodesProxy>(lua_State* L, int metatable_index);
 int ElementChildNodesProxy__index(lua_State* L);
-
-//method
-int ElementChildNodesProxyGetTable(lua_State* L, ElementChildNodesProxy* obj);
+int ElementChildNodesProxy__pairs(lua_State* L);
+int ElementChildNodesProxy__ipairs(lua_State* L);
 
 RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[];
 luaL_reg ElementChildNodesProxyGetters[];

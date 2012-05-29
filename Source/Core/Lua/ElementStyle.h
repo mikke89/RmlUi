@@ -38,9 +38,8 @@ namespace Lua {
 template<> void ExtraInit<ElementStyle>(lua_State* L, int metatable_index);
 int ElementStyle__index(lua_State* L);
 int ElementStyle__newindex(lua_State* L);
-
-//methods
-int ElementStyleGetTable(lua_State* L, ElementStyle* obj);
+int ElementStyle__pairs(lua_State* L);
+int ElementStyle__ipairs(lua_State* L);
 
 RegType<ElementStyle> ElementStyleMethods[];
 luaL_reg ElementStyleGetters[];

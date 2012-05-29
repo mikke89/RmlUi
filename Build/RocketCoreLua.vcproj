@@ -188,6 +188,14 @@
 			Name="Core"
 			>
 			<File
+				RelativePath="..\Source\Core\Lua\GlobalLuaFunctions.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\Lua\GlobalLuaFunctions.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Source\Core\Lua\Interpreter.cpp"
 				>
 			</File>

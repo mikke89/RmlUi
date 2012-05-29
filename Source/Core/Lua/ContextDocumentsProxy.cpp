@@ -37,6 +37,10 @@ template<> void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_ind
 {
     lua_pushcfunction(L,ContextDocumentsProxy__index);
     lua_setfield(L,metatable_index,"__index");
+    lua_pushcfunction(L,ContextDocumentsProxy__pairs);
+    lua_setfield(L,metatable_index,"__pairs");
+    lua_pushcfunction(L,ContextDocumentsProxy__ipairs);
+    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int ContextDocumentsProxy__index(lua_State* L)
@@ -59,33 +63,77 @@ int ContextDocumentsProxy__index(lua_State* L)
     
 }
 
-//method
-int ContextDocumentsProxyGetTable(lua_State* L, ContextDocumentsProxy* obj)
+//[1] is the object, [2] is the last used key, [3] is the userdata
+int ContextDocumentsProxy__pairs(lua_State* L)
 {
-    Context* cont = obj->owner;
-    Element* root = cont->GetRootElement();
+    Document* doc = NULL;
+    ContextDocumentsProxy* obj = LuaType<ContextDocumentsProxy>::check(L,1);
+    LUACHECKOBJ(obj);
+    int* pindex = (int*)lua_touserdata(L,3);
+    if((*pindex) == -1)
+        *pindex = 0;
 
-    lua_newtable(L);
-    int tableindex = lua_gettop(L);
-    for(int i = 0; i < root->GetNumChildren(); i++)
+    int num_docs = obj->owner->GetNumDocuments();
+    //because there can be missing indexes, make sure to continue until there
+    //is actually a document at the index
+    while((*pindex) < num_docs)
     {
-        Document* doc = root->GetChild(i)->GetOwnerDocument();
-        if(doc == NULL)
-            continue;
-
-        LuaType<Document>::push(L,doc);
-        lua_pushvalue(L,-1); //put it on the stack twice, since we assign it to 
-                                //both a string and integer index
-        lua_setfield(L, tableindex,doc->GetId().CString());
-        lua_rawseti(L,tableindex,i);
+        doc = obj->owner->GetDocument((*pindex)++);
+        if(doc != NULL)
+            break;
     }
-    lua_settop(L,tableindex); //to make sure
-    return 1;
+
+    //If we found a document 
+    if(doc != NULL)
+    {
+        lua_pushstring(L,doc->GetId().CString());
+        LuaType<Document>::push(L,doc);
+    }
+    else //if we were at the end and didn't find a document
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+    return 2;
 }
+
+//same as __pairs, but putting an integer key instead of a string key
+int ContextDocumentsProxy__ipairs(lua_State* L)
+{
+    Document* doc = NULL;
+    ContextDocumentsProxy* obj = LuaType<ContextDocumentsProxy>::check(L,1);
+    LUACHECKOBJ(obj);
+    int* pindex = (int*)lua_touserdata(L,3);
+    if((*pindex) == -1)
+        *pindex = 0;
+
+    int num_docs = obj->owner->GetNumDocuments();
+    //because there can be missing indexes, make sure to continue until there
+    //is actually a document at the index
+    while((*pindex) < num_docs)
+    {
+        doc = obj->owner->GetDocument((*pindex)++);
+        if(doc != NULL)
+            break;
+    }
+
+    //we found a document
+    if(doc != NULL)
+    {
+        lua_pushinteger(L,(*pindex)-1);
+        LuaType<Document>::push(L,doc);
+    }
+    else //we got to the end and didn't find another document
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+    return 2;
+}
+
 
 RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[] =
 {
-    LUAMETHOD(ContextDocumentsProxy,GetTable)
     { NULL, NULL },
 };
 

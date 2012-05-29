@@ -40,9 +40,8 @@ struct ElementAttributesProxy { Element* owner;  };
 
 template<> void ExtraInit<ElementAttributesProxy>(lua_State* L, int metatable_index);
 int ElementAttributesProxy__index(lua_State* L);
-
-//method
-int ElementAttributesProxyGetTable(lua_State* L, ElementAttributesProxy* obj);
+int ElementAttributesProxy__pairs(lua_State* L);
+int ElementAttributesProxy__ipairs(lua_State* L);
 
 RegType<ElementAttributesProxy> ElementAttributesProxyMethods[];
 luaL_reg ElementAttributesProxyGetters[];

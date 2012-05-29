@@ -37,6 +37,10 @@ template<> void ExtraInit<ElementAttributesProxy>(lua_State* L, int metatable_in
 {
     lua_pushcfunction(L,ElementAttributesProxy__index);
     lua_setfield(L,metatable_index,"__index");
+    lua_pushcfunction(L,ElementAttributesProxy__pairs);
+    lua_setfield(L,metatable_index,"__pairs");
+    lua_pushcfunction(L,ElementAttributesProxy__ipairs);
+    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int ElementAttributesProxy__index(lua_State* L)
@@ -56,27 +60,39 @@ int ElementAttributesProxy__index(lua_State* L)
         return LuaType<ElementAttributesProxy>::index(L);
 }
 
-//method
-int ElementAttributesProxyGetTable(lua_State* L, ElementAttributesProxy* obj)
-{    
-    int index;
-    String key;
-    Variant* var;
-
-    lua_newtable(L);
-    int tbl = lua_gettop(L);
-    while(obj->owner->IterateAttributes(index,key,var))
+//[1] is the object, [2] is the key that was used previously, [3] is the userdata
+int ElementAttributesProxy__pairs(lua_State* L)
+{
+    ElementAttributesProxy* obj = LuaType<ElementAttributesProxy>::check(L,1);
+    LUACHECKOBJ(obj);
+    int* pindex = (int*)lua_touserdata(L,3);
+    if((*pindex) == -1) 
+        *pindex = 0;
+    String key = "";
+    Variant* val;
+    if(obj->owner->IterateAttributes((*pindex),key,val))
     {
         lua_pushstring(L,key.CString());
-        PushVariant(L,var);
-        lua_settable(L,tbl);
+        PushVariant(L,val);
     }
-    return 1;
+    else
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+    return 2;
+}
+
+//Doesn't index by integer, so don't return anything
+int ElementAttributesProxy__ipairs(lua_State* L)
+{
+    lua_pushnil(L);
+    lua_pushnil(L);
+    return 2;
 }
 
 RegType<ElementAttributesProxy> ElementAttributesProxyMethods[] =
 {
-    LUAMETHOD(ElementAttributesProxy,GetTable)
     { NULL, NULL },
 };
 

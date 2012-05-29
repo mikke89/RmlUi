@@ -24,32 +24,19 @@
  * THE SOFTWARE.
  *
  */
- 
-#ifndef ROCKETCONTROLSLUASELECTOPTIONSPROXY_H
-#define ROCKETCONTROLSLUASELECTOPTIONSPROXY_H
 
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Controls/ElementFormControlSelect.h>
+#ifndef ROCKETCORELUAGLOBALLUAFUNCTIONS_H
+#define ROCKETCORELUAGLOBALLUAFUNCTIONS_H
 
-using Rocket::Core::Lua::LuaType;
 namespace Rocket {
-namespace Controls {
+namespace Core {
 namespace Lua {
-//where owner is the ElementFormControlSelect that we should look up information from
-struct SelectOptionsProxy { Rocket::Controls::ElementFormControlSelect* owner;  };
-
-int SelectOptionsProxy__index(lua_State* L);
-int SelectOptionsProxy__pairs(lua_State* L);
-int SelectOptionsProxy__ipairs(lua_State* L);
-
-Rocket::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[];
-luaL_reg SelectOptionsProxyGetters[];
-luaL_reg SelectOptionsProxySetters[];
-
+void OverrideLuaGlobalFunctions(lua_State* L);
+//overrides pairs and ipairs to respect __pairs and __ipairs metamethods
+//overrdes print to print to the console
 }
 }
 }
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index);
-LUATYPEDECLARE(Rocket::Controls::Lua::SelectOptionsProxy)
+
+
 #endif

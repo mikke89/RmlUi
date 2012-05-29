@@ -33,6 +33,10 @@ template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::SelectOption
 {
     lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__index);
     lua_setfield(L,metatable_index,"__index");
+    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__pairs);
+    lua_setfield(L,metatable_index,"__pairs");
+    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__ipairs);
+    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 
@@ -63,38 +67,48 @@ int SelectOptionsProxy__index(lua_State* L)
         return LuaType<SelectOptionsProxy>::index(L);
 }
 
-//method
-int SelectOptionsProxyGetTable(lua_State* L, SelectOptionsProxy* obj)
+//since there are no string keys, just use __ipairs
+int SelectOptionsProxy__pairs(lua_State* L)
 {
-    int numOptions = obj->owner->GetNumOptions();
+    return SelectOptionsProxy__ipairs(L);
+}
 
-    //local variables for the loop
-    Rocket::Controls::SelectOption* opt; 
-    Rocket::Core::Element* ele;
-    Rocket::Core::String value;
-    lua_newtable(L); //table to return
-    int retindex = lua_gettop(L);
-    for(int index = 0; index < numOptions; index++)
+//[1] is the object, [2] is the previous key, [3] is the userdata
+int SelectOptionsProxy__ipairs(lua_State* L)
+{
+    SelectOptionsProxy* proxy = LuaType<SelectOptionsProxy>::check(L,1);
+    LUACHECKOBJ(proxy);
+    int* pindex = (int*)lua_touserdata(L,3);
+    if((*pindex) == -1)
+        *pindex = 0;
+    SelectOption* opt = NULL;
+    while((*pindex) < proxy->owner->GetNumOptions())
     {
-        opt = obj->owner->GetOption(index);
-        if(opt == NULL) continue;
-    
-        ele = opt->GetElement();
-        value = opt->GetValue();
-
-        lua_newtable(L);
-        LuaType<Rocket::Core::Element>::push(L,ele,false);
-        lua_setfield(L,-2,"element");
-        lua_pushstring(L,value.CString());
-        lua_setfield(L,-2,"value");
-        lua_rawseti(L,retindex,index); //sets the table that is being returned's 'index' to be the table with element and value
+        opt = proxy->owner->GetOption((*pindex)++);
+        if(opt != NULL) 
+            break;
     }
-    return 1;
+    //we got to the end without finding an option
+    if(opt == NULL)
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+    else //we found an option
+    {
+        lua_pushinteger(L,(*pindex)-1); //key
+        lua_newtable(L); //value
+        //fill the value
+        LuaType<Rocket::Core::Element>::push(L,opt->GetElement());
+        lua_setfield(L,-2,"element");
+        lua_pushstring(L,opt->GetValue().CString());
+        lua_setfield(L,-2,"value");
+    }
+    return 2;
 }
 
 Rocket::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[] =
 {
-    LUAMETHOD(SelectOptionsProxy,GetTable)
     { NULL, NULL },
 };
 

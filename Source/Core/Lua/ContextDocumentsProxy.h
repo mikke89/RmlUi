@@ -40,9 +40,8 @@ struct ContextDocumentsProxy { Context* owner;  };
 
 template<> void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_index);
 int ContextDocumentsProxy__index(lua_State* L);
-
-//method
-int ContextDocumentsProxyGetTable(lua_State* L, ContextDocumentsProxy* obj);
+int ContextDocumentsProxy__pairs(lua_State* L);
+int ContextDocumentsProxy__ipairs(lua_State* L);
 
 RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[];
 luaL_reg ContextDocumentsProxyGetters[];

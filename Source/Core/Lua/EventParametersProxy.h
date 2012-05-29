@@ -40,9 +40,8 @@ struct EventParametersProxy { Event* owner;  };
 
 template<> void ExtraInit<EventParametersProxy>(lua_State* L, int metatable_index);
 int EventParametersProxy__index(lua_State* L);
-
-//method
-int EventParametersProxyGetTable(lua_State* L, EventParametersProxy* obj);
+int EventParametersProxy__pairs(lua_State* L);
+int EventParametersProxy__ipairs(lua_State* L);
 
 RegType<EventParametersProxy> EventParametersProxyMethods[];
 luaL_reg EventParametersProxyGetters[];

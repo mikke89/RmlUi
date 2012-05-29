@@ -41,6 +41,12 @@ template<> void ExtraInit<ElementStyle>(lua_State* L, int metatable_index)
 
     lua_pushcfunction(L,ElementStyle__newindex);
     lua_setfield(L,metatable_index,"__newindex");
+
+    lua_pushcfunction(L,ElementStyle__pairs);
+    lua_setfield(L,metatable_index,"__pairs");
+
+    lua_pushcfunction(L,ElementStyle__ipairs);
+    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int ElementStyle__index(lua_State* L)
@@ -108,28 +114,42 @@ int ElementStyle__newindex(lua_State* L)
 
 }
 
-
-int ElementStyleGetTable(lua_State* L, ElementStyle* obj)
+//[1] is the object, [2] is the last used key, [3] is the userdata
+int ElementStyle__pairs(lua_State* L)
 {
-    int index = 0;
-    String key,sval;
-    const Property* value;
+    ElementStyle* obj = LuaType<ElementStyle>::check(L,1);
+    LUACHECKOBJ(obj);
+    int* pindex = (int*)lua_touserdata(L,3);
+    if((*pindex) == -1)
+        *pindex = 0;
+    //iterate variables
+    String key,val;
+    const Property* prop;
     PseudoClassList pseudo;
-    lua_newtable(L);
-    while(obj->IterateProperties(index,pseudo,key,value))
+    if(obj->IterateProperties((*pindex),pseudo,key,prop))
     {
+        prop->definition->GetValue(val,*prop);
         lua_pushstring(L,key.CString());
-        value->definition->GetValue(sval,*value);
-        lua_pushstring(L,sval.CString());
-        lua_settable(L,-3);
+        lua_pushstring(L,val.CString());
     }
-    return 1;
+    else
+    {
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+    return 2;
 }
 
+//only indexed by string
+int ElementStyle__ipairs(lua_State* L)
+{
+    lua_pushnil(L);
+    lua_pushnil(L);
+    return 2;
+}
 
 RegType<ElementStyle> ElementStyleMethods[] = 
 {
-    LUAMETHOD(ElementStyle,GetTable)
     { NULL, NULL },
 };
 

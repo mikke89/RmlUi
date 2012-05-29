@@ -53,6 +53,7 @@
 #include "ElementInstancer.h"
 #include "ElementChildNodesProxy.h"
 #include "ElementText.h"
+#include "GlobalLuaFunctions.h"
 
 namespace Rocket {
 namespace Core {
@@ -60,7 +61,6 @@ namespace Lua {
 lua_State* Interpreter::_L = NULL;
 //typedefs for nicer Lua names
 typedef Rocket::Core::ElementDocument Document;
-
 
 void Interpreter::Startup()
 {
@@ -93,6 +93,7 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
     LuaType<EventParametersProxy>::Register(L);
     LuaType<ElementAttributesProxy>::Register(L);
     LuaType<ElementChildNodesProxy>::Register(L);
+    OverrideLuaGlobalFunctions(L);
 }
 
 
@@ -209,6 +210,9 @@ void Interpreter::Shutdown()
 {
 	lua_close(_L);
 }
+
+
+
 
 }
 }
