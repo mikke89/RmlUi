@@ -36,16 +36,23 @@
 namespace Rocket {
 namespace Core {
 namespace Lua {
+#define ROCKETLUA_INPUTENUM(keyident,tbl) lua_pushinteger(L,Input::KI_##keyident); lua_setfield(L,(tbl),#keyident);
+#define ROCKETLUA_INPUTMODIFIERENUM(keymod,tbl) lua_pushinteger(L,Input::KM_##keymod); lua_setfield(L,(tbl),#keymod);
 
-template<> void ExtraInit<LuaRocket>(lua_State* L, int metatable_index)
+
+void LuaRocketPushrocketGlobal(lua_State* L)
 {
-    //because of the way LuaType::Register is done, we know that the methods table is directly
-    //before the metatable 
-    int method_index = metatable_index - 1;
+    lua_newtable(L);
     LuaRocketEnumkey_identifier(L);
-    lua_setfield(L,method_index,"key_identifier");
-    return;
+    lua_setfield(L,-2,"key_identifier");
+    LuaRocketEnumkey_modifier(L);
+    lua_setfield(L,-2,"key_modifier");
+    luaL_getmetatable(L,GetTClassName<LuaRocket>());
+    lua_setmetatable(L,-2); //metatable of the new table = LuaRocket
+    lua_setglobal(L,"rocket");
 }
+
+template<> void ExtraInit<LuaRocket>(lua_State* L, int metatable_index){ return; }
 
 int LuaRocketCreateContext(lua_State* L, LuaRocket* obj)
 {
@@ -265,6 +272,19 @@ void LuaRocketEnumkey_identifier(lua_State* L)
 	ROCKETLUA_INPUTENUM(ZOOM,tbl)
 	ROCKETLUA_INPUTENUM(PA1,tbl)
 	ROCKETLUA_INPUTENUM(OEM_CLEAR,tbl)
+}
+
+void LuaRocketEnumkey_modifier(lua_State* L)
+{
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+    ROCKETLUA_INPUTMODIFIERENUM(CTRL,tbl)
+    ROCKETLUA_INPUTMODIFIERENUM(SHIFT,tbl)
+    ROCKETLUA_INPUTMODIFIERENUM(ALT,tbl)
+    ROCKETLUA_INPUTMODIFIERENUM(META,tbl)
+    ROCKETLUA_INPUTMODIFIERENUM(CAPSLOCK,tbl)
+    ROCKETLUA_INPUTMODIFIERENUM(NUMLOCK,tbl)
+    ROCKETLUA_INPUTMODIFIERENUM(SCROLLLOCK,tbl)
 }
 
 

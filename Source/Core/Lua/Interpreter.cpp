@@ -62,8 +62,6 @@ namespace Lua {
 lua_State* Interpreter::_L = NULL;
 //typedefs for nicer Lua names
 typedef Rocket::Core::ElementDocument Document;
-//global variable 
-LuaRocket rocket = LuaRocket();
 
 void Interpreter::Startup()
 {
@@ -99,8 +97,7 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
     LuaType<RocketContextsProxy>::Register(L);
     OverrideLuaGlobalFunctions(L);
     //push the global variable "rocket" to use the "Rocket" methods
-    LuaType<LuaRocket>::push(L,&rocket,false);
-    lua_setglobal(L,"rocket");
+    LuaRocketPushrocketGlobal(L);
 }
 
 
