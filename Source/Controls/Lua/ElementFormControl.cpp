@@ -32,12 +32,6 @@
 #include <Rocket/../../Source/Core/Lua/Element.h>
 #include <Rocket/Core/Lua/Utilities.h>
 
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(lua_State* L, int metatable_index)
-{
-    Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
-    LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    Rocket::Core::Lua::AddTypeToElementAsTable<Rocket::Controls::ElementFormControl>(L);
-}
 
 namespace Rocket {
 namespace Controls {
@@ -121,5 +115,17 @@ luaL_reg ElementFormControlSetters[] =
 }
 }
 }
+namespace Rocket {
+namespace Core {
+namespace Lua {
+template<> void ExtraInit<Rocket::Controls::ElementFormControl>(lua_State* L, int metatable_index)
+{
+    ExtraInit<Element>(L,metatable_index);
+    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
+    AddTypeToElementAsTable<Rocket::Controls::ElementFormControl>(L);
+}
 using Rocket::Controls::ElementFormControl;
 LUACONTROLSTYPEDEFINE(ElementFormControl,true)
+}
+}
+}

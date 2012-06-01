@@ -30,10 +30,7 @@
 #include <Rocket/Core/Log.h>
 
 using Rocket::Core::Log;
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) 
-{ 
-    return; 
-}
+
 namespace Rocket {
 namespace Controls {
 namespace Lua {
@@ -138,5 +135,15 @@ luaL_reg DataSourceSetters[] =
 }
 }
 }
+namespace Rocket {
+namespace Core {
+namespace Lua {
+template<> void ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) 
+{ 
+    return; 
+}
 using Rocket::Controls::Lua::DataSource;
 LUACONTROLSTYPEDEFINE(DataSource,false)
+}
+}
+}

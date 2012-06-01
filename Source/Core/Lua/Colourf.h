@@ -59,7 +59,7 @@ extern RegType<Colourf> ColourfMethods[];
 extern luaL_reg ColourfGetters[];
 extern luaL_reg ColourfSetters[];
 
-LUATYPEDECLARE(Colourf)
+LUACORETYPEDECLARE(Colourf)
 }
 }
 }

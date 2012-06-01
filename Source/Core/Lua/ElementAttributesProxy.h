@@ -47,7 +47,7 @@ extern RegType<ElementAttributesProxy> ElementAttributesProxyMethods[];
 extern luaL_reg ElementAttributesProxyGetters[];
 extern luaL_reg ElementAttributesProxySetters[];
 
-LUATYPEDECLARE(ElementAttributesProxy)
+LUACORETYPEDECLARE(ElementAttributesProxy)
 }
 }
 }

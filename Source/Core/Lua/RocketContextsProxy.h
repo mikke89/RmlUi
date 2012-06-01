@@ -47,7 +47,7 @@ extern RegType<RocketContextsProxy> RocketContextsProxyMethods[];
 extern luaL_reg RocketContextsProxyGetters[];
 extern luaL_reg RocketContextsProxySetters[];
 
-LUATYPEDECLARE(RocketContextsProxy)
+LUACORETYPEDECLARE(RocketContextsProxy)
 }
 }
 }

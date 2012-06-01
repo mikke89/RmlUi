@@ -100,7 +100,7 @@ extern RegType<Element> ElementMethods[];
 extern luaL_reg ElementGetters[];
 extern luaL_reg ElementSetters[];
 
-LUATYPEDECLARE(Element)
+LUACORETYPEDECLARE(Element)
 }
 }
 }

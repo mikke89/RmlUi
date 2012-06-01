@@ -260,7 +260,7 @@ luaL_reg ContextSetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(Context,true)
+LUACORETYPEDEFINE(Context,true)
 }
 }
 }

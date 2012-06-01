@@ -163,7 +163,7 @@ luaL_reg ElementStyleSetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(ElementStyle,false)
+LUACORETYPEDEFINE(ElementStyle,false)
 }
 }
 }

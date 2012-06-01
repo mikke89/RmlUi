@@ -28,12 +28,7 @@
 #include "precompiled.h"
 #include "DataFormatter.h"
 
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::DataFormatter>(lua_State* L, int metatable_index)
-{
-    lua_pushcfunction(L,Rocket::Controls::Lua::DataFormatternew);
-    lua_setfield(L,metatable_index-1,"new");
-    return;
-}
+
 using Rocket::Core::Log;
 namespace Rocket {
 namespace Controls {
@@ -109,5 +104,18 @@ luaL_reg DataFormatterSetters[] =
 }
 }
 }
+
+namespace Rocket {
+namespace Core {
+namespace Lua {
 using Rocket::Controls::Lua::DataFormatter;
+template<> void ExtraInit<DataFormatter>(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,Rocket::Controls::Lua::DataFormatternew);
+    lua_setfield(L,metatable_index-1,"new");
+    return;
+}
 LUACONTROLSTYPEDEFINE(DataFormatter,false)
+}
+}
+}

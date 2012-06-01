@@ -34,8 +34,6 @@
 #include <Rocket/Controls/ElementDataGrid.h>
 
 using Rocket::Core::Lua::LuaType;
-//this will be used to "inherit" from Element
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index);
 namespace Rocket {
 namespace Controls {
 namespace Lua {
@@ -56,5 +54,9 @@ extern luaL_reg ElementDataGridSetters[];
 }
 }
 }
-LUATYPEDECLARE(Rocket::Controls::ElementDataGrid)
+namespace Rocket { namespace Core { namespace Lua {
+//this will be used to "inherit" from Element
+template<> void ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rocket::Controls::ElementDataGrid)
+}}}
 #endif

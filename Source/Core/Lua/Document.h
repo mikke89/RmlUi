@@ -60,7 +60,7 @@ extern RegType<Document> DocumentMethods[];
 extern luaL_reg DocumentGetters[];
 extern luaL_reg DocumentSetters[];
 
-LUATYPEDECLARE(Document)
+LUACORETYPEDECLARE(Document)
 }
 }
 }

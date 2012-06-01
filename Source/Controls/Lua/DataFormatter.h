@@ -51,6 +51,8 @@ extern luaL_reg DataFormatterSetters[];
 }
 }
 //for DataFormatter.new
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::DataFormatter>(lua_State* L, int metatable_index);
-LUATYPEDECLARE(Rocket::Controls::Lua::DataFormatter)
+namespace Rocket { namespace Core { namespace Lua {
+template<> void ExtraInit<Rocket::Controls::Lua::DataFormatter>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rocket::Controls::Lua::DataFormatter)
+}}}
 #endif

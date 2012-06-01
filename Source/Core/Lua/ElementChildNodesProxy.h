@@ -48,7 +48,7 @@ extern RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[];
 extern luaL_reg ElementChildNodesProxyGetters[];
 extern luaL_reg ElementChildNodesProxySetters[];
 
-LUATYPEDECLARE(ElementChildNodesProxy)
+LUACORETYPEDECLARE(ElementChildNodesProxy)
 }
 }
 }

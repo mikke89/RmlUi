@@ -30,13 +30,6 @@
 #include <Rocket/Core/Element.h>
 #include <Rocket/Core/Lua/Utilities.h>
 
-//this will be used to "inherit" from Element
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementTabSet>(lua_State* L, int metatable_index)
-{
-    Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
-    LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    Rocket::Core::Lua::AddTypeToElementAsTable<Rocket::Controls::ElementTabSet>(L);
-}
 
 namespace Rocket {
 namespace Controls {
@@ -120,5 +113,19 @@ luaL_reg ElementTabSetSetters[] =
 }
 }
 }
+namespace Rocket {
+namespace Core {
+namespace Lua {
+//this will be used to "inherit" from Element
+template<> void ExtraInit<Rocket::Controls::ElementTabSet>(lua_State* L, int metatable_index)
+{
+    ExtraInit<Element>(L,metatable_index);
+    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
+    AddTypeToElementAsTable<Rocket::Controls::ElementTabSet>(L);
+}
+
 using Rocket::Controls::ElementTabSet;
 LUACONTROLSTYPEDEFINE(ElementTabSet,true)
+}
+}
+}

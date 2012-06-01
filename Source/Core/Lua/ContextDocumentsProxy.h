@@ -47,7 +47,7 @@ extern RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[];
 extern luaL_reg ContextDocumentsProxyGetters[];
 extern luaL_reg ContextDocumentsProxySetters[];
 
-LUATYPEDECLARE(ContextDocumentsProxy)
+LUACORETYPEDECLARE(ContextDocumentsProxy)
 }
 }
 }

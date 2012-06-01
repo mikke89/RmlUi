@@ -57,23 +57,42 @@
  have to have functions named @c ElementMethods, @c ElementGetters, @c ElementSetters that return the appropriate
  types.
  @param is_reference_counted true if the type inherits from Rocket::Core::ReferenceCountable, false otherwise*/
-#define LUATYPEDEFINE(type,is_ref_counted) \
-    template<> const char* Rocket::Core::Lua::GetTClassName<type>() { return #type; } \
-    template<> Rocket::Core::Lua::RegType<type>* Rocket::Core::Lua::GetMethodTable<type>() { return type##Methods; } \
-    template<> luaL_reg* Rocket::Core::Lua::GetAttrTable<type>() { return type##Getters; } \
-    template<> luaL_reg* Rocket::Core::Lua::SetAttrTable<type>() { return type##Setters; } \
-    template<> bool Rocket::Core::Lua::IsReferenceCounted<type>() { return (is_ref_counted); } \
+#define LUACORETYPEDEFINE(type,is_ref_counted) \
+    template<> const char* GetTClassName<type>() { return #type; } \
+    template<> RegType<type>* GetMethodTable<type>() { return type##Methods; } \
+    template<> luaL_reg* GetAttrTable<type>() { return type##Getters; } \
+    template<> luaL_reg* SetAttrTable<type>() { return type##Setters; } \
+    template<> bool IsReferenceCounted<type>() { return (is_ref_counted); } \
+
+//We can't use LUACORETYPEDEFINE due to namespace issues
+#define LUACONTROLSTYPEDEFINE(type,is_ref_counted) \
+    template<> const char* GetTClassName<type>() { return #type; } \
+    template<> RegType<type>* GetMethodTable<type>() { return Rocket::Controls::Lua::type##Methods; } \
+    template<> luaL_reg* GetAttrTable<type>() { return Rocket::Controls::Lua::type##Getters; } \
+    template<> luaL_reg* SetAttrTable<type>() { return Rocket::Controls::Lua::type##Setters; } \
+    template<> bool IsReferenceCounted<type>() { return (is_ref_counted); } \
 
 /** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
 getting the name of the type, method tables, and if it is reference counted.
 When you use this, you either must also use
-the LUATYPEDEFINE macro, or make sure that the function signatures are @em exact.*/
-#define LUATYPEDECLARE(type) \
-    template<> ROCKETLUA_API const char* Rocket::Core::Lua::GetTClassName<type>(); \
-    template<> ROCKETLUA_API Rocket::Core::Lua::RegType<type>* Rocket::Core::Lua::GetMethodTable<type>(); \
-    template<> ROCKETLUA_API luaL_reg* Rocket::Core::Lua::GetAttrTable<type>(); \
-    template<> ROCKETLUA_API luaL_reg* Rocket::Core::Lua::SetAttrTable<type>(); \
-    template<> ROCKETLUA_API bool Rocket::Core::Lua::IsReferenceCounted<type>(); \
+the LUACORETYPEDEFINE macro, or make sure that the function signatures are @em exact.*/
+#define LUACORETYPEDECLARE(type) \
+    template<> ROCKETLUA_API const char* GetTClassName<type>(); \
+    template<> ROCKETLUA_API RegType<type>* GetMethodTable<type>(); \
+    template<> ROCKETLUA_API luaL_reg* GetAttrTable<type>(); \
+    template<> ROCKETLUA_API luaL_reg* SetAttrTable<type>(); \
+    template<> ROCKETLUA_API bool IsReferenceCounted<type>(); \
+
+/** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
+getting the name of the type, method tables, and if it is reference counted.
+When you use this, you either must also use
+the LUACORETYPEDEFINE macro, or make sure that the function signatures are @em exact.*/
+#define LUACONTROLSTYPEDECLARE(type) \
+    template<> ROCKETLUA_API const char* GetTClassName<type>(); \
+    template<> ROCKETLUA_API RegType<type>* GetMethodTable<type>(); \
+    template<> ROCKETLUA_API luaL_reg* GetAttrTable<type>(); \
+    template<> ROCKETLUA_API luaL_reg* SetAttrTable<type>(); \
+    template<> ROCKETLUA_API bool IsReferenceCounted<type>(); \
 
 namespace Rocket {
 namespace Core {

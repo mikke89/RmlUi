@@ -35,16 +35,6 @@
 #include <Rocket/Core/Lua/Utilities.h>
 
 
-//inherits from ElementFormControl which inherits from Element
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControlSelect>(lua_State* L, int metatable_index)
-{
-    //init whatever elementformcontrol did extra, like inheritance
-    Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(L,metatable_index);
-    //then inherit from elementformcontrol
-    LuaType<Rocket::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
-    Rocket::Core::Lua::AddTypeToElementAsTable<Rocket::Controls::ElementFormControlSelect>(L);
-}
-
 namespace Rocket {
 namespace Controls {
 namespace Lua {
@@ -125,5 +115,20 @@ luaL_reg ElementFormControlSelectSetters[] =
 }
 }
 }
+namespace Rocket {
+namespace Core {
+namespace Lua {
+//inherits from ElementFormControl which inherits from Element
+template<> void ExtraInit<Rocket::Controls::ElementFormControlSelect>(lua_State* L, int metatable_index)
+{
+    //init whatever elementformcontrol did extra, like inheritance
+    ExtraInit<Rocket::Controls::ElementFormControl>(L,metatable_index);
+    //then inherit from elementformcontrol
+    LuaType<Rocket::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
+    AddTypeToElementAsTable<Rocket::Controls::ElementFormControlSelect>(L);
+}
 using Rocket::Controls::ElementFormControlSelect;
 LUACONTROLSTYPEDEFINE(ElementFormControlSelect,true)
+}
+}
+}

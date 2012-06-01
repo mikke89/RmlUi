@@ -232,7 +232,7 @@ luaL_reg ColourbSetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(Colourb,false)
+LUACORETYPEDEFINE(Colourb,false)
 }
 }
 }

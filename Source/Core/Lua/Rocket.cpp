@@ -307,7 +307,7 @@ luaL_reg LuaRocketSetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(LuaRocket,false)
+LUACORETYPEDEFINE(LuaRocket,false)
 }
 }
 }

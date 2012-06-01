@@ -45,7 +45,7 @@ extern RegType<ElementStyle> ElementStyleMethods[];
 extern luaL_reg ElementStyleGetters[];
 extern luaL_reg ElementStyleSetters[];
 
-LUATYPEDECLARE(ElementStyle)
+LUACORETYPEDECLARE(ElementStyle)
 }
 }
 }

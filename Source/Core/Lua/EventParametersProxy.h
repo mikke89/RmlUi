@@ -47,7 +47,7 @@ extern RegType<EventParametersProxy> EventParametersProxyMethods[];
 extern luaL_reg EventParametersProxyGetters[];
 extern luaL_reg EventParametersProxySetters[];
 
-LUATYPEDECLARE(EventParametersProxy)
+LUACORETYPEDECLARE(EventParametersProxy)
 }
 }
 }

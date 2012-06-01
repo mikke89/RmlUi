@@ -61,7 +61,7 @@ extern RegType<Vector2f> Vector2fMethods[];
 extern luaL_reg Vector2fGetters[];
 extern luaL_reg Vector2fSetters[];
 
-LUATYPEDECLARE(Vector2f)
+LUACORETYPEDECLARE(Vector2f)
 }
 }
 }

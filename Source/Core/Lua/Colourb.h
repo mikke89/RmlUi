@@ -61,7 +61,7 @@ extern RegType<Colourb> ColourbMethods[];
 extern luaL_reg ColourbGetters[];
 extern luaL_reg ColourbSetters[];
 
-LUATYPEDECLARE(Colourb)
+LUACORETYPEDECLARE(Colourb)
 }
 }
 }

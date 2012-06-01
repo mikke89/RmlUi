@@ -29,16 +29,6 @@
 #include "SelectOptionsProxy.h"
 #include <Rocket/Core/Element.h>
 
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index)
-{
-    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__index);
-    lua_setfield(L,metatable_index,"__index");
-    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__pairs);
-    lua_setfield(L,metatable_index,"__pairs");
-    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__ipairs);
-    lua_setfield(L,metatable_index,"__ipairs");
-}
-
 
 namespace Rocket {
 namespace Controls {
@@ -126,5 +116,21 @@ luaL_reg SelectOptionsProxySetters[] =
 }
 }
 }
+namespace Rocket {
+namespace Core {
+namespace Lua {
+template<> void ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index)
+{
+    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__index);
+    lua_setfield(L,metatable_index,"__index");
+    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__pairs);
+    lua_setfield(L,metatable_index,"__pairs");
+    lua_pushcfunction(L,Rocket::Controls::Lua::SelectOptionsProxy__ipairs);
+    lua_setfield(L,metatable_index,"__ipairs");
+}
+
 using Rocket::Controls::Lua::SelectOptionsProxy;
 LUACONTROLSTYPEDEFINE(SelectOptionsProxy,false);
+}
+}
+}

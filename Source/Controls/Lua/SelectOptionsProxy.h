@@ -50,6 +50,8 @@ extern luaL_reg SelectOptionsProxySetters[];
 }
 }
 }
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index);
-LUATYPEDECLARE(Rocket::Controls::Lua::SelectOptionsProxy)
+namespace Rocket { namespace Core { namespace Lua {
+template<> void ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rocket::Controls::Lua::SelectOptionsProxy)
+}}}
 #endif

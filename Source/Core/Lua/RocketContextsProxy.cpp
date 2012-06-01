@@ -135,7 +135,7 @@ luaL_reg RocketContextsProxySetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(RocketContextsProxy,false)
+LUACORETYPEDEFINE(RocketContextsProxy,false)
 }
 }
 }

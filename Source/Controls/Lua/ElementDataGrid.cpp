@@ -31,12 +31,7 @@
 #include <Rocket/Controls/ElementDataGridRow.h>
 #include <Rocket/Core/Lua/Utilities.h>
 
-template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index)
-{
-    Rocket::Core::Lua::ExtraInit<Rocket::Core::Element>(L,metatable_index);
-    LuaType<Rocket::Core::Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    Rocket::Core::Lua::AddTypeToElementAsTable<Rocket::Controls::ElementDataGrid>(L);
-}
+
 namespace Rocket {
 namespace Controls {
 namespace Lua {
@@ -108,5 +103,17 @@ luaL_reg ElementDataGridSetters[] =
 }
 }
 }
+namespace Rocket {
+namespace Core {
+namespace Lua {
+template<> void ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index)
+{
+    ExtraInit<Element>(L,metatable_index);
+    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
+    AddTypeToElementAsTable<Rocket::Controls::ElementDataGrid>(L);
+}
 using Rocket::Controls::ElementDataGrid;
 LUACONTROLSTYPEDEFINE(ElementDataGrid,true)
+}
+}
+}

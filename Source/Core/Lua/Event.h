@@ -48,7 +48,7 @@ extern RegType<Event> EventMethods[];
 extern luaL_reg EventGetters[];
 extern luaL_reg EventSetters[];
 
-LUATYPEDECLARE(Event)
+LUACORETYPEDECLARE(Event)
 }
 }
 }

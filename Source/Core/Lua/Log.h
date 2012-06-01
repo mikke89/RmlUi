@@ -39,7 +39,7 @@ extern RegType<Log> LogMethods[];
 extern luaL_reg LogGetters[];
 extern luaL_reg LogSetters[];
 
-LUATYPEDECLARE(Log)
+LUACORETYPEDECLARE(Log)
 }
 }
 }

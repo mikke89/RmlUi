@@ -82,7 +82,7 @@ luaL_reg ElementInstancerSetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(ElementInstancer,true)
+LUACORETYPEDEFINE(ElementInstancer,true)
 }
 }
 }

@@ -45,7 +45,7 @@ extern RegType<ElementText> ElementTextMethods[];
 extern luaL_reg ElementTextGetters[];
 extern luaL_reg ElementTextSetters[];
 
-LUATYPEDECLARE(ElementText)
+LUACORETYPEDECLARE(ElementText)
 }
 }
 }

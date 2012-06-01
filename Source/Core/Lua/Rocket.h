@@ -54,7 +54,7 @@ extern RegType<LuaRocket> LuaRocketMethods[];
 extern luaL_reg LuaRocketGetters[];
 extern luaL_reg LuaRocketSetters[];
 
-LUATYPEDECLARE(LuaRocket)
+LUACORETYPEDECLARE(LuaRocket)
 }
 }
 }

@@ -201,7 +201,7 @@ luaL_reg Vector2iSetters[]=
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(Vector2i,false)
+LUACORETYPEDEFINE(Vector2i,false)
 
 }
 }

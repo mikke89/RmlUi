@@ -108,7 +108,7 @@ luaL_reg EventParametersProxySetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(EventParametersProxy,false)
+LUACORETYPEDEFINE(EventParametersProxy,false)
 }
 }
 }

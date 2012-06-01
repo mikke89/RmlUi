@@ -170,7 +170,7 @@ luaL_reg DocumentSetters[] =
     { NULL, NULL },
 };
 
-LUATYPEDEFINE(Document,true)
+LUACORETYPEDEFINE(Document,true)
 }
 }
 }

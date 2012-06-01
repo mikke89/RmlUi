@@ -68,7 +68,7 @@ extern RegType<Context> ContextMethods[];
 extern luaL_reg ContextGetters[];
 extern luaL_reg ContextSetters[];
 
-LUATYPEDECLARE(Context)
+LUACORETYPEDECLARE(Context)
 }
 }
 }

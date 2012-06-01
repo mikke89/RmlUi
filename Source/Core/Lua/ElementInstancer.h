@@ -45,7 +45,7 @@ extern RegType<ElementInstancer> ElementInstancerMethods[];
 extern luaL_reg ElementInstancerGetters[];
 extern luaL_reg ElementInstancerSetters[];
 
-LUATYPEDECLARE(ElementInstancer)
+LUACORETYPEDECLARE(ElementInstancer)
 }
 }
 }
