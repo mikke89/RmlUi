@@ -29,7 +29,7 @@
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
 #include "ElementStyle.h"
-#include <ElementStyle.h>
+#include <../Source/Core/ElementStyle.h>
 
 namespace Rocket {
 namespace Core {

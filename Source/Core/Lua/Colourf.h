@@ -55,9 +55,9 @@ int ColourfSetAttrblue(lua_State* L);
 int ColourfSetAttralpha(lua_State* L);
 int ColourfSetAttrrgba(lua_State* L);
 
-RegType<Colourf> ColourfMethods[];
-luaL_reg ColourfGetters[];
-luaL_reg ColourfSetters[];
+extern RegType<Colourf> ColourfMethods[];
+extern luaL_reg ColourfGetters[];
+extern luaL_reg ColourfSetters[];
 
 LUATYPEDECLARE(Colourf)
 }

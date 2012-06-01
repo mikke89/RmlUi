@@ -139,7 +139,7 @@ int ColourfSetAttrblue(lua_State* L)
     Colourf* obj = LuaType<Colourf>::check(L,1);
     LUACHECKOBJ(obj);
     float blue = (float)luaL_checknumber(L,2);
-    obj->blue;
+    obj->blue = blue;
     return 0;
 }
 
@@ -148,7 +148,7 @@ int ColourfSetAttralpha(lua_State* L)
     Colourf* obj = LuaType<Colourf>::check(L,1);
     LUACHECKOBJ(obj);
     float alpha = (float)luaL_checknumber(L,2);
-    obj->alpha;
+    obj->alpha = alpha;
     return 0;
 }
 

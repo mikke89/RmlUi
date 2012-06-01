@@ -27,7 +27,7 @@
  
 #include "precompiled.h"
 #include "Element.h"
-#include <ElementStyle.h>
+#include <../Source/Core/ElementStyle.h>
 #include "LuaEventListener.h"
 #include "ElementAttributesProxy.h"
 #include "ElementChildNodesProxy.h"

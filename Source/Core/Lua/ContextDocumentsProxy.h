@@ -43,9 +43,9 @@ int ContextDocumentsProxy__index(lua_State* L);
 int ContextDocumentsProxy__pairs(lua_State* L);
 int ContextDocumentsProxy__ipairs(lua_State* L);
 
-RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[];
-luaL_reg ContextDocumentsProxyGetters[];
-luaL_reg ContextDocumentsProxySetters[];
+extern RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[];
+extern luaL_reg ContextDocumentsProxyGetters[];
+extern luaL_reg ContextDocumentsProxySetters[];
 
 LUATYPEDECLARE(ContextDocumentsProxy)
 }

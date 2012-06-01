@@ -35,7 +35,7 @@
 #include <Rocket/Core/Factory.h>
 #include "LuaEventListenerInstancer.h"
 #include "Rocket.h"
-#include <ElementStyle.h>
+#include <../Source/Core/ElementStyle.h>
 //the types I made
 #include "ContextDocumentsProxy.h"
 #include "EventParametersProxy.h"

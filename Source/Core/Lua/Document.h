@@ -56,9 +56,9 @@ int DocumentGetAttrcontext(lua_State* L);
 //setters
 int DocumentSetAttrtitle(lua_State* L);
 
-RegType<Document> DocumentMethods[];
-luaL_reg DocumentGetters[];
-luaL_reg DocumentSetters[];
+extern RegType<Document> DocumentMethods[];
+extern luaL_reg DocumentGetters[];
+extern luaL_reg DocumentSetters[];
 
 LUATYPEDECLARE(Document)
 }

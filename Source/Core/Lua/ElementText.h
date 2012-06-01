@@ -41,9 +41,9 @@ template<> void ExtraInit<ElementText>(lua_State* L, int metatable_index);
 int ElementTextGetAttrtext(lua_State* L);
 int ElementTextSetAttrtext(lua_State* L);
 
-RegType<ElementText> ElementTextMethods[];
-luaL_reg ElementTextGetters[];
-luaL_reg ElementTextSetters[];
+extern RegType<ElementText> ElementTextMethods[];
+extern luaL_reg ElementTextGetters[];
+extern luaL_reg ElementTextSetters[];
 
 LUATYPEDECLARE(ElementText)
 }

@@ -57,9 +57,9 @@ int Vector2fSetAttrx(lua_State*L);
 int Vector2fSetAttry(lua_State*L);
 
 
-RegType<Vector2f> Vector2fMethods[];
-luaL_reg Vector2fGetters[];
-luaL_reg Vector2fSetters[];
+extern RegType<Vector2f> Vector2fMethods[];
+extern luaL_reg Vector2fGetters[];
+extern luaL_reg Vector2fSetters[];
 
 LUATYPEDECLARE(Vector2f)
 }

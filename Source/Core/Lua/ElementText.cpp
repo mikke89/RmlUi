@@ -45,7 +45,8 @@ int ElementTextGetAttrtext(lua_State* L)
 {
     ElementText* obj = LuaType<ElementText>::check(L, 1);
     LUACHECKOBJ(obj);
-    lua_pushstring(L,obj->GetText().ToUTF8(String()).CString());
+    String temp;
+    lua_pushstring(L,obj->GetText().ToUTF8(temp).CString());
     return 1;
 }
 

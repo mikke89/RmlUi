@@ -30,7 +30,7 @@
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
-#include <ElementStyle.h>
+#include <../Source/Core/ElementStyle.h>
 
 namespace Rocket {
 namespace Core {
@@ -41,9 +41,9 @@ int ElementStyle__newindex(lua_State* L);
 int ElementStyle__pairs(lua_State* L);
 int ElementStyle__ipairs(lua_State* L);
 
-RegType<ElementStyle> ElementStyleMethods[];
-luaL_reg ElementStyleGetters[];
-luaL_reg ElementStyleSetters[];
+extern RegType<ElementStyle> ElementStyleMethods[];
+extern luaL_reg ElementStyleGetters[];
+extern luaL_reg ElementStyleSetters[];
 
 LUATYPEDECLARE(ElementStyle)
 }

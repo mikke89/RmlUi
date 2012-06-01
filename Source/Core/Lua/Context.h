@@ -64,9 +64,9 @@ int ContextGetAttrroot_element(lua_State* L);
 int ContextSetAttrdimensions(lua_State* L);
 
 
-RegType<Context> ContextMethods[];
-luaL_reg ContextGetters[];
-luaL_reg ContextSetters[];
+extern RegType<Context> ContextMethods[];
+extern luaL_reg ContextGetters[];
+extern luaL_reg ContextSetters[];
 
 LUATYPEDECLARE(Context)
 }
