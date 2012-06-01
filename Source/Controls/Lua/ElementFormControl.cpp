@@ -29,7 +29,7 @@
 #include "ElementFormControl.h"
 #include <Rocket/Controls/ElementFormControl.h>
 #include <Rocket/Core/Element.h>
-#include "Lua/Element.h"
+#include <Rocket/../../Source/Core/Lua/Element.h>
 #include <Rocket/Core/Lua/Utilities.h>
 
 template<> void Rocket::Core::Lua::ExtraInit<Rocket::Controls::ElementFormControl>(lua_State* L, int metatable_index)

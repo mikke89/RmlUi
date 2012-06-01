@@ -7,7 +7,7 @@ hdr='set(sample_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Samples
 samples=('basic/customlog' 'basic/directx' 'basic/drag' 'basic/loaddocument'
-        'basic/ogre3d' 'basic/treeview' 'invaders' 'pyinvaders' 'shell'
+        'basic/ogre3d' 'basic/treeview' 'invaders' 'luainvaders' 'pyinvaders' 'shell'
 )
 
 printfiles() {

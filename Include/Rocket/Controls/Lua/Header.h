@@ -24,22 +24,30 @@
  * THE SOFTWARE.
  *
  */
+ 
+#ifndef ROCKETCONTROLSLUAHEADER_H
+#define ROCKETCONTROLSLUAHEADER_H
 
-#ifndef ROCKETCONTROLSLUACONTROLS_H
-#define ROCKETCONTROLSLUACONTROLS_H
+#include <Rocket/Core/Platform.h>
 
-#include <Rocket/Controls/Lua/Header.h>
+#ifdef ROCKETLUA_API
+#undef ROCKETLUA_API
+#endif
 
-namespace Rocket {
-namespace Controls {
-namespace Lua {
-/** Doxygen doesn't like to get the namespace, so the full name is
-@c Rocket::Controls::Lua::RegisterTypes.
-This will define all of the types from RocketControls for Lua. 
-@sa Rocket::Core::Lua::Interpreter::RegisterCoreTypes(lua_State*)
-@relatesalso Rocket::Core::Lua::Interpreter*/
-void ROCKETLUA_API RegisterTypes(lua_State* L);
-}
-}
-}
+#if !defined STATIC_LIB
+	#ifdef ROCKET_PLATFORM_WIN32
+		#if defined RocketcoreLua_EXPORTS 
+			#define ROCKETLUA_API __declspec(dllexport)
+        #elif defined RocketcontrolsLua_EXPORTS
+            #define ROCKETLUA_API __declspec(dllexport)
+        #else
+			#define ROCKETLUA_API __declspec(dllimport)
+		#endif
+	#else
+		#define ROCKETLUA_API __attribute__((visibility("default")))
+	#endif
+#else
+	#define ROCKETLUA_API
+#endif
+
 #endif

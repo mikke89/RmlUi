@@ -46,6 +46,7 @@ endif()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
+option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
 option(BUILD_SAMPLES "Build samples" OFF)
 
 if(NOT BUILD_SHARED_LIBS)
@@ -86,6 +87,15 @@ if(BUILD_PYTHON_BINDINGS)
         list(APPEND PY_BINDINGS_LINK_LIBS ${Boost_LIBRARIES})
     endif()
 
+endif()
+
+#Lua
+if(BUILD_LUA_BINDINGS)
+    find_package(Lua51 REQUIRED)
+    if(LUA_INCLUDE_DIR)
+        include_directories(${LUA_INCLUDE_DIR})
+        list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
+    endif()
 endif()
 
 
@@ -154,6 +164,28 @@ if(BUILD_PYTHON_BINDINGS)
     endforeach(library)
 endif()
 
+# Build Lua bindings
+if(BUILD_LUA_BINDINGS)
+    set(LIBRARIES core controls)
+
+    foreach(library ${LIBRARIES})
+        set(NAME Rocket${library}Lua)
+
+        add_library(${NAME} ${Lua${library}_SRC_FILES}
+                            ${Lua${library}_HDR_FILES}
+                            ${Lua${library}_PUB_HDR_FILES}
+        )
+
+        set_target_properties(${NAME} PROPERTIES PREFIX "")
+        
+        install(TARGETS ${NAME}
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+        )
+    endforeach(library)
+endif()
+
 
 #===================================
 # Link libraries ===================
@@ -166,6 +198,11 @@ target_link_libraries(RocketDebugger RocketCore)
 if(BUILD_PYTHON_BINDINGS)
     target_link_libraries(_rocketcore RocketCore ${PY_BINDINGS_LINK_LIBS})
     target_link_libraries(_rocketcontrols RocketControls ${PY_BINDINGS_LINK_LIBS})
+endif()
+
+if(BUILD_LUA_BINDINGS)
+    target_link_libraries(RocketcoreLua RocketCore ${LUA_BINDINGS_LINK_LIBS})
+    target_link_libraries(RocketcontrolsLua RocketControls RocketcoreLua ${LUA_BINDINGS_LINK_LIBS})
 endif()
 
 
@@ -276,11 +313,20 @@ if(BUILD_PYTHON_BINDINGS)
     )
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
             DESTINATION include
+            PATTERN "Lua" EXCLUDE
     )
-else()
+endif()
+if(BUILD_LUA_BINDINGS)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
             DESTINATION include
             PATTERN "Python" EXCLUDE
+    )
+endif()
+if(NOT BUILD_LUA_BINDINGS AND NOT BUILD_PYTHON_BINDINGS)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+            DESTINATION include
+            PATTERN "Python" EXCLUDE
+            PATTERN "Lua" EXCLUDE
     )
 endif()
 

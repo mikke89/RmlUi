@@ -30,11 +30,17 @@
 
 #include <Rocket/Core/Platform.h>
 
+#ifdef ROCKETLUA_API
+#undef ROCKETLUA_API
+#endif
+
 #if !defined STATIC_LIB
 	#ifdef ROCKET_PLATFORM_WIN32
-		#ifdef RocketLua_EXPORTS
+		#if defined RocketcoreLua_EXPORTS 
 			#define ROCKETLUA_API __declspec(dllexport)
-		#else
+        #elif defined RocketcontrolsLua_EXPORTS
+            #define ROCKETLUA_API __declspec(dllexport)
+        #else
 			#define ROCKETLUA_API __declspec(dllimport)
 		#endif
 	#else

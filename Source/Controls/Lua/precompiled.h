@@ -24,22 +24,20 @@
  * THE SOFTWARE.
  *
  */
+ 
+#ifndef ROCKETCORELUAPRECOMPILED_H
+#define ROCKETCORELUAPRECOMPILED_H
 
-#ifndef ROCKETCONTROLSLUACONTROLS_H
-#define ROCKETCONTROLSLUACONTROLS_H
+#include <Rocket/Core/Core.h>
+#include <Rocket/Core/Debug.h>
+#include <Rocket/Controls/Controls.h>
+#include <Rocket/Core/Lua/LuaType.h>
+//We can't use LUATYPEDEFINE from LuaType.h due to namespace issues
+#define LUACONTROLSTYPEDEFINE(type,is_ref_counted) \
+    template<> const char* Rocket::Core::Lua::GetTClassName<type>() { return #type; } \
+    template<> Rocket::Core::Lua::RegType<type>* Rocket::Core::Lua::GetMethodTable<type>() { return Rocket::Controls::Lua::type##Methods; } \
+    template<> luaL_reg* Rocket::Core::Lua::GetAttrTable<type>() { return Rocket::Controls::Lua::type##Getters; } \
+    template<> luaL_reg* Rocket::Core::Lua::SetAttrTable<type>() { return Rocket::Controls::Lua::type##Setters; } \
+    template<> bool Rocket::Core::Lua::IsReferenceCounted<type>() { return (is_ref_counted); } \
 
-#include <Rocket/Controls/Lua/Header.h>
-
-namespace Rocket {
-namespace Controls {
-namespace Lua {
-/** Doxygen doesn't like to get the namespace, so the full name is
-@c Rocket::Controls::Lua::RegisterTypes.
-This will define all of the types from RocketControls for Lua. 
-@sa Rocket::Core::Lua::Interpreter::RegisterCoreTypes(lua_State*)
-@relatesalso Rocket::Core::Lua::Interpreter*/
-void ROCKETLUA_API RegisterTypes(lua_State* L);
-}
-}
-}
 #endif
