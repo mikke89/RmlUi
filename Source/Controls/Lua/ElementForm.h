@@ -43,12 +43,9 @@ namespace Lua {
 //method
 int ElementFormSubmit(lua_State* L, ElementForm* obj);
 
-Rocket::Core::Lua::RegType<ElementForm> ElementFormMethods[];
-luaL_reg ElementFormGetters[];
-luaL_reg ElementFormSetters[];
-
-
-
+extern Rocket::Core::Lua::RegType<ElementForm> ElementFormMethods[];
+extern luaL_reg ElementFormGetters[];
+extern luaL_reg ElementFormSetters[];
 }
 }
 }

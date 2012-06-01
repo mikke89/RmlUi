@@ -52,9 +52,9 @@ int ElementDataGridRowGetAttrparent_grid(lua_State* L);
 int ElementDataGridRowSetAttrrow_expanded(lua_State* L);
 
 
-Rocket::Core::Lua::RegType<ElementDataGridRow> ElementDataGridRowMethods[];
-luaL_reg ElementDataGridRowGetters[];
-luaL_reg ElementDataGridRowSetters[];
+extern Rocket::Core::Lua::RegType<ElementDataGridRow> ElementDataGridRowMethods[];
+extern luaL_reg ElementDataGridRowGetters[];
+extern luaL_reg ElementDataGridRowSetters[];
 
 
 

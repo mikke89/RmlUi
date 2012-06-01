@@ -51,9 +51,9 @@ int ElementFormControlTextAreaSetAttrmaxlength(lua_State* L);
 int ElementFormControlTextAreaSetAttrrows(lua_State* L);
 int ElementFormControlTextAreaSetAttrwordwrap(lua_State* L);
 
-Rocket::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[];
-luaL_reg ElementFormControlTextAreaGetters[];
-luaL_reg ElementFormControlTextAreaSetters[];
+extern Rocket::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[];
+extern luaL_reg ElementFormControlTextAreaGetters[];
+extern luaL_reg ElementFormControlTextAreaSetters[];
 
 }
 }

@@ -50,9 +50,9 @@ int ElementTabSetGetAttrnum_tabs(lua_State* L);
 //setter
 int ElementTabSetSetAttractive_tab(lua_State* L);
 
-Rocket::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[];
-luaL_reg ElementTabSetGetters[];
-luaL_reg ElementTabSetSetters[];
+extern Rocket::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[];
+extern luaL_reg ElementTabSetGetters[];
+extern luaL_reg ElementTabSetSetters[];
 
 
 }

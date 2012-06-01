@@ -48,9 +48,9 @@ int DataSourceNotifyRowChange(lua_State* L, DataSource* obj);
 int DataSourceSetAttrGetNumRows(lua_State* L);
 int DataSourceSetAttrGetRow(lua_State* L);
 
-Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[];
-luaL_reg DataSourceGetters[];
-luaL_reg DataSourceSetters[];
+extern Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[];
+extern luaL_reg DataSourceGetters[];
+extern luaL_reg DataSourceSetters[];
 
 
 

@@ -48,9 +48,9 @@ int ElementFormControlSetAttrdisabled(lua_State* L);
 int ElementFormControlSetAttrname(lua_State* L);
 int ElementFormControlSetAttrvalue(lua_State* L);
 
-Rocket::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[];
-luaL_reg ElementFormControlGetters[];
-luaL_reg ElementFormControlSetters[];
+extern Rocket::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[];
+extern luaL_reg ElementFormControlGetters[];
+extern luaL_reg ElementFormControlSetters[];
 
 }
 }
