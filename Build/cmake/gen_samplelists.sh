@@ -2,6 +2,7 @@
 
 basedir="../.."
 file=Build/cmake/SampleFileList.cmake
+platspecific=Build/cmake/gen_sample_plat_specific.txt
 src='set(sample_SRC_FILES'
 hdr='set(sample_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
@@ -28,5 +29,6 @@ echo -e "# This file was auto-generated with gen_samplelists.sh\n" >$file
 for sample in ${samples[@]}; do
     printfiles $sample
 done
+cat $platspecific >> $file
 popd
 
