@@ -300,6 +300,14 @@ if(BUILD_SAMPLES)
     install(TARGETS invaders 
     	RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
     	BUNDLE DESTINATION ${SAMPLES_DIR})
+    
+    if(BUILD_LUA_BINDINGS)
+        bl_sample(luainvaders RocketcoreLua RocketcontrolsLua ${LUA_BINDINGS_LINK_LIBS} ${sample_LIBRARIES})
+        install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
+        install(TARGETS luainvaders 
+        	RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
+        	BUNDLE DESTINATION ${SAMPLES_DIR})
+    endif()
 endif()
 
 
@@ -343,4 +351,12 @@ if(BUILD_SAMPLES)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
             DESTINATION ${SAMPLES_DIR}
     )
+    if(BUILD_LUA_BINDINGS)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
+            DESTINATION ${SAMPLES_DIR}/luainvaders
+    )
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua 
+            DESTINATION ${SAMPLES_DIR}/luainvaders
+    )
+    endif()
 endif()
