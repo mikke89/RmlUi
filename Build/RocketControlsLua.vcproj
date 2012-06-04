@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="RocketControlsLua"
+	Name="RocketcontrolsLua"
 	ProjectGUID="{45C9CB50-E22C-465E-AB17-CA81D2372DEF}"
 	RootNamespace="RocketLua"
 	TargetFrameworkVersion="196613"
