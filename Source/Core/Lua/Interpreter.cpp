@@ -35,14 +35,13 @@
 #include <Rocket/Core/Factory.h>
 #include "LuaEventListenerInstancer.h"
 #include "Rocket.h"
-#include <../Source/Core/ElementStyle.h>
 //the types I made
 #include "ContextDocumentsProxy.h"
 #include "EventParametersProxy.h"
 #include "ElementAttributesProxy.h"
 #include "Log.h"
 #include "Element.h"
-#include "ElementStyle.h"
+#include "ElementStyleProxy.h"
 #include "Document.h"
 #include "Colourb.h"
 #include "Colourf.h"
@@ -80,7 +79,7 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
     LuaType<Colourf>::Register(L);
     LuaType<Colourb>::Register(L);
     LuaType<Log>::Register(L);
-    LuaType<ElementStyle>::Register(L);
+    LuaType<ElementStyleProxy>::Register(L);
     LuaType<Element>::Register(L);
         //things that inherit from Element
         LuaType<Document>::Register(L);

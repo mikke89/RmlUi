@@ -39,7 +39,7 @@ namespace Core {
 	@author Lloyd Weehuizen
  */
 
-class ROCKETCORE_API ElementStyle
+class ElementStyle
 {
 public:
 	/// Constructor

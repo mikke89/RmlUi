@@ -25,27 +25,28 @@
  *
  */
  
-#ifndef ROCKETCORELUAELEMENTSTYLE_H
-#define ROCKETCORELUAELEMENTSTYLE_H
+#ifndef ROCKETCORELUAELEMENTSTYLEPROXY_H
+#define ROCKETCORELUAELEMENTSTYLEPROXY_H
 
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
-#include <../Source/Core/ElementStyle.h>
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<ElementStyle>(lua_State* L, int metatable_index);
-int ElementStyle__index(lua_State* L);
-int ElementStyle__newindex(lua_State* L);
-int ElementStyle__pairs(lua_State* L);
-int ElementStyle__ipairs(lua_State* L);
+struct ElementStyleProxy { Element* owner; };
 
-extern RegType<ElementStyle> ElementStyleMethods[];
-extern luaL_reg ElementStyleGetters[];
-extern luaL_reg ElementStyleSetters[];
+template<> void ExtraInit<ElementStyleProxy>(lua_State* L, int metatable_index);
+int ElementStyleProxy__index(lua_State* L);
+int ElementStyleProxy__newindex(lua_State* L);
+int ElementStyleProxy__pairs(lua_State* L);
+int ElementStyleProxy__ipairs(lua_State* L);
 
-LUACORETYPEDECLARE(ElementStyle)
+extern RegType<ElementStyleProxy> ElementStyleProxyMethods[];
+extern luaL_reg ElementStyleProxyGetters[];
+extern luaL_reg ElementStyleProxySetters[];
+
+LUACORETYPEDECLARE(ElementStyleProxy)
 }
 }
 }

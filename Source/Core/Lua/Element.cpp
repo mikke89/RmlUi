@@ -27,7 +27,7 @@
  
 #include "precompiled.h"
 #include "Element.h"
-#include <../Source/Core/ElementStyle.h>
+#include "ElementStyleProxy.h"
 #include "LuaEventListener.h"
 #include "ElementAttributesProxy.h"
 #include "ElementChildNodesProxy.h"
@@ -427,6 +427,7 @@ int ElementGetAttrowner_document(lua_State* L)
 int ElementGetAttrparent_node(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     Element* parent = ele->GetParentNode();
     if(parent == NULL)
         lua_pushnil(L);
@@ -438,6 +439,7 @@ int ElementGetAttrparent_node(lua_State* L)
 int ElementGetAttrprevious_sibling(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     Element* sibling = ele->GetPreviousSibling();
     if(sibling == NULL)
         lua_pushnil(L);
@@ -449,6 +451,7 @@ int ElementGetAttrprevious_sibling(lua_State* L)
 int ElementGetAttrscroll_height(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetScrollHeight());
     return 1;
 }
@@ -456,6 +459,7 @@ int ElementGetAttrscroll_height(lua_State* L)
 int ElementGetAttrscroll_left(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetScrollLeft());
     return 1;
 }
@@ -463,6 +467,7 @@ int ElementGetAttrscroll_left(lua_State* L)
 int ElementGetAttrscroll_top(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetScrollTop());
     return 1;
 }
@@ -470,6 +475,7 @@ int ElementGetAttrscroll_top(lua_State* L)
 int ElementGetAttrscroll_width(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushnumber(L,ele->GetScrollWidth());
     return 1;
 }
@@ -477,13 +483,17 @@ int ElementGetAttrscroll_width(lua_State* L)
 int ElementGetAttrstyle(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
-    LuaType<ElementStyle>::push(L,ele->GetStyle(),false);
+    LUACHECKOBJ(ele);
+    ElementStyleProxy* prox = new ElementStyleProxy();
+    prox->owner = ele;
+    LuaType<ElementStyleProxy>::push(L,prox,true);
     return 1;
 }
 
 int ElementGetAttrtag_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     lua_pushstring(L,ele->GetTagName().CString());
     return 0;
 }
@@ -493,6 +503,7 @@ int ElementGetAttrtag_name(lua_State* L)
 int ElementSetAttrclass_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     const char* name = luaL_checkstring(L,2);
     ele->SetClassNames(name);
     return 0;
@@ -501,6 +512,7 @@ int ElementSetAttrclass_name(lua_State* L)
 int ElementSetAttrid(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     const char* id = luaL_checkstring(L,2);
     ele->SetId(id);
     return 0;
@@ -509,6 +521,7 @@ int ElementSetAttrid(lua_State* L)
 int ElementSetAttrinner_rml(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     const char* rml = luaL_checkstring(L,2);
     ele->SetInnerRML(rml);
     return 0;
@@ -517,6 +530,7 @@ int ElementSetAttrinner_rml(lua_State* L)
 int ElementSetAttrscroll_left(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     float scroll = (float)luaL_checknumber(L,2);
     ele->SetScrollLeft(scroll);
     return 0;
@@ -525,6 +539,7 @@ int ElementSetAttrscroll_left(lua_State* L)
 int ElementSetAttrscroll_top(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
+    LUACHECKOBJ(ele);
     float scroll = (float)luaL_checknumber(L,2);
     ele->SetScrollTop(scroll);
     return 0;

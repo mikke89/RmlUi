@@ -28,67 +28,51 @@
 #include "precompiled.h"
 #include <Rocket/Core/Lua/LuaType.h>
 #include <Rocket/Core/Lua/lua.hpp>
-#include "ElementStyle.h"
-#include <../Source/Core/ElementStyle.h>
+#include "ElementStyleProxy.h"
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<ElementStyle>(lua_State* L, int metatable_index)
+template<> void ExtraInit<ElementStyleProxy>(lua_State* L, int metatable_index)
 {
-    lua_pushcfunction(L,ElementStyle__index);
+    lua_pushcfunction(L,ElementStyleProxy__index);
     lua_setfield(L,metatable_index,"__index");
 
-    lua_pushcfunction(L,ElementStyle__newindex);
+    lua_pushcfunction(L,ElementStyleProxy__newindex);
     lua_setfield(L,metatable_index,"__newindex");
 
-    lua_pushcfunction(L,ElementStyle__pairs);
+    lua_pushcfunction(L,ElementStyleProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
 
-    lua_pushcfunction(L,ElementStyle__ipairs);
+    lua_pushcfunction(L,ElementStyleProxy__ipairs);
     lua_setfield(L,metatable_index,"__ipairs");
 }
 
-int ElementStyle__index(lua_State* L)
+int ElementStyleProxy__index(lua_State* L)
 {
     /*the table obj and the missing key are currently on the stack(index 1 & 2) as defined by the Lua language*/
     int keytype = lua_type(L,2);
     if(keytype == LUA_TSTRING) //if we are trying to access a string, then we will assume that it is a property
     {
-        ElementStyle* es = LuaType<ElementStyle>::check(L,1);
-        if(es == NULL)
-        {
-            lua_pushnil(L);
-            return 1;
-        }
-        const Property* prop = es->GetProperty(lua_tostring(L,2));
-        if(prop == NULL)
-        {
-            lua_pushnil(L);
-            return 1;
-        }
-        else
-        {
-            lua_pushstring(L,prop->ToString().CString());
-            return 1;
-        }
+        ElementStyleProxy* es = LuaType<ElementStyleProxy>::check(L,1);
+        LUACHECKOBJ(es);
+        const Property* prop = es->owner->GetProperty(lua_tostring(L,2));
+        LUACHECKOBJ(prop)
+        lua_pushstring(L,prop->ToString().CString());
+        return 1;
     }
     else //if it wasn't trying to get a string
     {
         lua_settop(L,2);
-        return LuaType<ElementStyle>::index(L);
+        return LuaType<ElementStyleProxy>::index(L);
     }
 }
 
-int ElementStyle__newindex(lua_State* L)
+int ElementStyleProxy__newindex(lua_State* L)
 {
     //[1] = obj, [2] = key, [3] = value
-    ElementStyle* es = LuaType<ElementStyle>::check(L,1);
-    if(es == NULL)
-    {
-        lua_pushnil(L);
-        return 1;
-    }
+    ElementStyleProxy* es = LuaType<ElementStyleProxy>::check(L,1);
+    LUACHECKOBJ(es);
     int keytype = lua_type(L,2);
     int valuetype = lua_type(L,3);
     if(keytype == LUA_TSTRING )
@@ -97,12 +81,12 @@ int ElementStyle__newindex(lua_State* L)
         if(valuetype == LUA_TSTRING)
         {
             const char* value = lua_tostring(L,3);
-            lua_pushboolean(L,es->SetProperty(key,value));
+            lua_pushboolean(L,es->owner->SetProperty(key,value));
             return 1; 
         }
         else if (valuetype == LUA_TNIL)
         {
-            es->RemoveProperty(key);
+            es->owner->RemoveProperty(key);
             return 0;
         }
     }
@@ -110,14 +94,14 @@ int ElementStyle__newindex(lua_State* L)
     //on if needed
 
     lua_settop(L,3);
-    return LuaType<ElementStyle>::newindex(L);
+    return LuaType<ElementStyleProxy>::newindex(L);
 
 }
 
 //[1] is the object, [2] is the last used key, [3] is the userdata
-int ElementStyle__pairs(lua_State* L)
+int ElementStyleProxy__pairs(lua_State* L)
 {
-    ElementStyle* obj = LuaType<ElementStyle>::check(L,1);
+    ElementStyleProxy* obj = LuaType<ElementStyleProxy>::check(L,1);
     LUACHECKOBJ(obj);
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1)
@@ -126,7 +110,7 @@ int ElementStyle__pairs(lua_State* L)
     String key,val;
     const Property* prop;
     PseudoClassList pseudo;
-    if(obj->IterateProperties((*pindex),pseudo,key,prop))
+    if(obj->owner->IterateProperties((*pindex),pseudo,key,prop))
     {
         prop->definition->GetValue(val,*prop);
         lua_pushstring(L,key.CString());
@@ -141,29 +125,29 @@ int ElementStyle__pairs(lua_State* L)
 }
 
 //only indexed by string
-int ElementStyle__ipairs(lua_State* L)
+int ElementStyleProxy__ipairs(lua_State* L)
 {
     lua_pushnil(L);
     lua_pushnil(L);
     return 2;
 }
 
-RegType<ElementStyle> ElementStyleMethods[] = 
+RegType<ElementStyleProxy> ElementStyleProxyMethods[] = 
 {
     { NULL, NULL },
 };
 
-luaL_reg ElementStyleGetters[] = 
+luaL_reg ElementStyleProxyGetters[] = 
 {
     { NULL, NULL },
 };
 
-luaL_reg ElementStyleSetters[] = 
+luaL_reg ElementStyleProxySetters[] = 
 {
     { NULL, NULL },
 };
 
-LUACORETYPEDEFINE(ElementStyle,false)
+LUACORETYPEDEFINE(ElementStyleProxy,false)
 }
 }
 }

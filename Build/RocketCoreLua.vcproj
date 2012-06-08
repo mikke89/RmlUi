@@ -283,11 +283,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\Source\Core\Lua\ElementStyle.cpp"
+					RelativePath="..\Source\Core\Lua\ElementStyleProxy.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\Source\Core\Lua\ElementStyle.h"
+					RelativePath="..\Source\Core\Lua\ElementStyleProxy.h"
 					>
 				</File>
 				<File
