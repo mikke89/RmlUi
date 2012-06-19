@@ -176,7 +176,10 @@ if(BUILD_LUA_BINDINGS)
                             ${Lua${library}_PUB_HDR_FILES}
         )
 
-        set_target_properties(${NAME} PROPERTIES PREFIX "")
+        set_target_properties(${NAME} PROPERTIES
+                           VERSION ${PROJECT_VERSION}
+                           SOVERSION ${LIBROCKET_VERSION_MAJOR}
+        )
         
         install(TARGETS ${NAME}
             LIBRARY DESTINATION lib
@@ -302,7 +305,7 @@ if(BUILD_SAMPLES)
     	BUNDLE DESTINATION ${SAMPLES_DIR})
     
     if(BUILD_LUA_BINDINGS)
-        bl_sample(luainvaders RocketcoreLua RocketcontrolsLua ${LUA_BINDINGS_LINK_LIBS} ${sample_LIBRARIES})
+        bl_sample(luainvaders RocketcoreLua RocketcontrolsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
         install(TARGETS luainvaders 
         	RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
