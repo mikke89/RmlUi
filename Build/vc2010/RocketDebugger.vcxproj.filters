@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{a9230b3f-5560-4163-a7a0-997652e411e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugin\Elements">
+      <UniqueIdentifier>{2ebe37b4-744a-4053-b978-7a694024a0e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugin\Source">
+      <UniqueIdentifier>{a7d502ce-2abe-42c3-b813-72d042d2162e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debugger">
+      <UniqueIdentifier>{0e33cc32-574f-4b31-89e5-5a485482d2ab}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Debugger\Plugin.cpp" />
+    <ClCompile Include="..\..\Source\Debugger\ElementContextHook.cpp" />
+    <ClCompile Include="..\..\Source\Debugger\ElementInfo.cpp" />
+    <ClCompile Include="..\..\Source\Debugger\ElementLog.cpp" />
+    <ClCompile Include="..\..\Source\Debugger\Debugger.cpp" />
+    <ClCompile Include="..\..\Source\Debugger\Geometry.cpp" />
+    <ClCompile Include="..\..\Source\Debugger\SystemInterface.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\Debugger\Plugin.h" />
+    <ClInclude Include="..\..\Source\Debugger\ElementContextHook.h" />
+    <ClInclude Include="..\..\Source\Debugger\ElementInfo.h" />
+    <ClInclude Include="..\..\Source\Debugger\ElementLog.h" />
+    <ClInclude Include="..\..\Source\Debugger\BeaconSource.h" />
+    <ClInclude Include="..\..\Source\Debugger\CommonSource.h" />
+    <ClInclude Include="..\..\Source\Debugger\FontSource.h" />
+    <ClInclude Include="..\..\Source\Debugger\InfoSource.h" />
+    <ClInclude Include="..\..\Source\Debugger\LogSource.h" />
+    <ClInclude Include="..\..\Source\Debugger\MenuSource.h" />
+    <ClInclude Include="..\..\Include\Rocket\Debugger\Debugger.h" />
+    <ClInclude Include="..\..\Source\Debugger\Geometry.h" />
+    <ClInclude Include="..\..\Include\Rocket\Debugger\Header.h" />
+    <ClInclude Include="..\..\Source\Debugger\SystemInterface.h" />
+    <ClInclude Include="..\..\Include\Rocket\Debugger.h" />
+  </ItemGroup>
+</Project>
