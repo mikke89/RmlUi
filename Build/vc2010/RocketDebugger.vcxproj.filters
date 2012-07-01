@@ -15,29 +15,71 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Debugger\Plugin.cpp" />
-    <ClCompile Include="..\..\Source\Debugger\ElementContextHook.cpp" />
-    <ClCompile Include="..\..\Source\Debugger\ElementInfo.cpp" />
-    <ClCompile Include="..\..\Source\Debugger\ElementLog.cpp" />
-    <ClCompile Include="..\..\Source\Debugger\Debugger.cpp" />
-    <ClCompile Include="..\..\Source\Debugger\Geometry.cpp" />
-    <ClCompile Include="..\..\Source\Debugger\SystemInterface.cpp" />
+    <ClCompile Include="..\..\Source\Debugger\Plugin.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Debugger\ElementContextHook.cpp">
+      <Filter>Plugin\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Debugger\ElementInfo.cpp">
+      <Filter>Plugin\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Debugger\ElementLog.cpp">
+      <Filter>Plugin\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Debugger\Debugger.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Debugger\Geometry.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Debugger\SystemInterface.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Debugger\Plugin.h" />
-    <ClInclude Include="..\..\Source\Debugger\ElementContextHook.h" />
-    <ClInclude Include="..\..\Source\Debugger\ElementInfo.h" />
-    <ClInclude Include="..\..\Source\Debugger\ElementLog.h" />
-    <ClInclude Include="..\..\Source\Debugger\BeaconSource.h" />
-    <ClInclude Include="..\..\Source\Debugger\CommonSource.h" />
-    <ClInclude Include="..\..\Source\Debugger\FontSource.h" />
-    <ClInclude Include="..\..\Source\Debugger\InfoSource.h" />
-    <ClInclude Include="..\..\Source\Debugger\LogSource.h" />
-    <ClInclude Include="..\..\Source\Debugger\MenuSource.h" />
-    <ClInclude Include="..\..\Include\Rocket\Debugger\Debugger.h" />
-    <ClInclude Include="..\..\Source\Debugger\Geometry.h" />
-    <ClInclude Include="..\..\Include\Rocket\Debugger\Header.h" />
-    <ClInclude Include="..\..\Source\Debugger\SystemInterface.h" />
+    <ClInclude Include="..\..\Source\Debugger\Plugin.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\ElementContextHook.h">
+      <Filter>Plugin\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\ElementInfo.h">
+      <Filter>Plugin\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\ElementLog.h">
+      <Filter>Plugin\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\BeaconSource.h">
+      <Filter>Plugin\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\CommonSource.h">
+      <Filter>Plugin\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\FontSource.h">
+      <Filter>Plugin\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\InfoSource.h">
+      <Filter>Plugin\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\LogSource.h">
+      <Filter>Plugin\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\MenuSource.h">
+      <Filter>Plugin\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Rocket\Debugger\Debugger.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\Geometry.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Rocket\Debugger\Header.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Debugger\SystemInterface.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Include\Rocket\Debugger.h" />
   </ItemGroup>
 </Project>
