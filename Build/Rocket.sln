@@ -1,17 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketCore", "RocketCore.vcproj", "{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketCore", "RocketCore.vcxproj", "{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketControls", "RocketControls.vcproj", "{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B} = {1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketControls", "RocketControls.vcxproj", "{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketDebugger", "RocketDebugger.vcproj", "{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B} = {1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RocketDebugger", "RocketDebugger.vcxproj", "{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
