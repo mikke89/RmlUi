@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1AAC0B29-AEC9-4E3F-9EDF-B56F8949C41B}</ProjectGuid>
+    <RootNamespace>controls</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="vsprops\BuildConfigurationDLLRelease.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="vsprops\BuildConfigurationDLLDebug.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\bin\</OutDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN32;_DEBUG;RocketControls_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>RocketCore_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\bin\$(ProjectName)_d.dll</OutputFile>
+      <AdditionalLibraryDirectories>..\..\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN32;NDEBUG;RocketControls_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>RocketCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\bin\$(ProjectName).dll</OutputFile>
+      <AdditionalLibraryDirectories>..\..\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Controls\Controls.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementForm.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementFormControl.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementFormControlDataSelect.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementFormControlInput.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementFormControlSelect.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementFormControlTextArea.cpp" />
+    <ClCompile Include="..\..\Source\Controls\SelectOption.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementTextSelection.cpp" />
+    <ClCompile Include="..\..\Source\Controls\WidgetDropDown.cpp" />
+    <ClCompile Include="..\..\Source\Controls\WidgetSlider.cpp" />
+    <ClCompile Include="..\..\Source\Controls\WidgetSliderInput.cpp" />
+    <ClCompile Include="..\..\Source\Controls\WidgetTextInput.cpp" />
+    <ClCompile Include="..\..\Source\Controls\WidgetTextInputMultiLine.cpp" />
+    <ClCompile Include="..\..\Source\Controls\WidgetTextInputSingleLine.cpp" />
+    <ClCompile Include="..\..\Source\Controls\WidgetTextInputSingleLinePassword.cpp" />
+    <ClCompile Include="..\..\Source\Controls\InputType.cpp" />
+    <ClCompile Include="..\..\Source\Controls\InputTypeButton.cpp" />
+    <ClCompile Include="..\..\Source\Controls\InputTypeCheckbox.cpp" />
+    <ClCompile Include="..\..\Source\Controls\InputTypeRadio.cpp" />
+    <ClCompile Include="..\..\Source\Controls\InputTypeRange.cpp" />
+    <ClCompile Include="..\..\Source\Controls\InputTypeSubmit.cpp" />
+    <ClCompile Include="..\..\Source\Controls\InputTypeText.cpp" />
+    <ClCompile Include="..\..\Source\Controls\XMLNodeHandlerTextArea.cpp" />
+    <ClCompile Include="..\..\Source\Controls\Clipboard.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementTabSet.cpp" />
+    <ClCompile Include="..\..\Source\Controls\XMLNodeHandlerTabSet.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementDataGrid.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementDataGridCell.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementDataGridExpandButton.cpp" />
+    <ClCompile Include="..\..\Source\Controls\ElementDataGridRow.cpp" />
+    <ClCompile Include="..\..\Source\Controls\XMLNodeHandlerDataGrid.cpp" />
+    <ClCompile Include="..\..\Source\Controls\DataFormatter.cpp" />
+    <ClCompile Include="..\..\Source\Controls\DataQuery.cpp" />
+    <ClCompile Include="..\..\Source\Controls\DataSource.cpp" />
+    <ClCompile Include="..\..\Source\Controls\DataSourceListener.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Rocket\Controls\Controls.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\Header.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementForm.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementFormControl.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementFormControlDataSelect.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementFormControlInput.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementFormControlSelect.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementFormControlTextArea.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\SelectOption.h" />
+    <ClInclude Include="..\..\Source\Controls\ElementTextSelection.h" />
+    <ClInclude Include="..\..\Source\Controls\WidgetDropDown.h" />
+    <ClInclude Include="..\..\Source\Controls\WidgetSlider.h" />
+    <ClInclude Include="..\..\Source\Controls\WidgetSliderInput.h" />
+    <ClInclude Include="..\..\Source\Controls\WidgetTextInput.h" />
+    <ClInclude Include="..\..\Source\Controls\WidgetTextInputMultiLine.h" />
+    <ClInclude Include="..\..\Source\Controls\WidgetTextInputSingleLine.h" />
+    <ClInclude Include="..\..\Source\Controls\WidgetTextInputSingleLinePassword.h" />
+    <ClInclude Include="..\..\Source\Controls\InputType.h" />
+    <ClInclude Include="..\..\Source\Controls\InputTypeButton.h" />
+    <ClInclude Include="..\..\Source\Controls\InputTypeCheckbox.h" />
+    <ClInclude Include="..\..\Source\Controls\InputTypeRadio.h" />
+    <ClInclude Include="..\..\Source\Controls\InputTypeRange.h" />
+    <ClInclude Include="..\..\Source\Controls\InputTypeSubmit.h" />
+    <ClInclude Include="..\..\Source\Controls\InputTypeText.h" />
+    <ClInclude Include="..\..\Source\Controls\XMLNodeHandlerTextArea.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\Clipboard.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementTabSet.h" />
+    <ClInclude Include="..\..\Source\Controls\XMLNodeHandlerTabSet.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementDataGrid.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementDataGridCell.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementDataGridExpandButton.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\ElementDataGridRow.h" />
+    <ClInclude Include="..\..\Source\Controls\XMLNodeHandlerDataGrid.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\DataFormatter.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\DataQuery.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\DataSource.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls\DataSourceListener.h" />
+    <ClInclude Include="..\..\Include\Rocket\Controls.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="RocketCore.vcxproj">
+      <Project>{1aac0b29-aeb9-4e3f-8edf-b46f8949c41b}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
