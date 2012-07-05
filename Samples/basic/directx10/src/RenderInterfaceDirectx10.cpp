@@ -61,8 +61,6 @@ RenderInterfaceDirectX10::RenderInterfaceDirectX10(ID3D10Device * pD3D10Device,f
 
 	rasterDesc.ScissorEnable=FALSE;
 	m_pD3D10Device->CreateRasterizerState(&rasterDesc,&m_pScissorTestDisable);
-
-	m_ScissorEnabled=true;
 }
 
 //Loads the effect from memory and retrieves initial variables from the effect
@@ -83,27 +81,19 @@ void RenderInterfaceDirectX10::setupEffect()
 	if (FAILED(D3DX10CreateEffectFromMemory((void*)pEffectData,strlen(pEffectData),"DefaultEffect",NULL,NULL,"fx_4_0",dwShaderFlags,0,m_pD3D10Device,NULL,NULL,&m_pEffect,NULL,NULL)))
 	{
 		//Log error
-		OutputDebugString(TEXT("Can't create default effect for rendering"));
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create default effect for rendering, graphics card may not support Shader Model 4");
 		
 	}
-	//create input layout
+	
 	//Number of elements in the layout - BMD
 	UINT numElements = sizeof(layout)/sizeof(D3D10_INPUT_ELEMENT_DESC);
 	//Get the pass description so we can get some info about the input signature of the vertices
 	D3D10_PASS_DESC passDesc;
 	m_pTechnique=m_pEffect->GetTechniqueByName("Render");
 	pass=m_pTechnique->GetPassByName("P0");
-	if (FAILED(pass->GetDesc(&passDesc)))
-	{
-		//Log error
-		OutputDebugString(TEXT("Unable to grab and technique"));
-	}
-	if (FAILED(m_pD3D10Device->CreateInputLayout(layout,numElements,passDesc.pIAInputSignature,passDesc.IAInputSignatureSize,&m_pVertexLayout)))
-	{
-		//Log error
-		OutputDebugString(TEXT("Unable to grab Vertex Layout"));
-	}
-
+	pass->GetDesc(&passDesc);
+	//create input layout, to allow us to map our vertex structure to the one held in the effect
+	m_pD3D10Device->CreateInputLayout(layout,numElements,passDesc.pIAInputSignature,passDesc.IAInputSignatureSize,&m_pVertexLayout);
 	//grab effect variables
 	m_pWorldMatrixVariable=m_pEffect->GetVariableByName("matWorld")->AsMatrix();
 	m_pProjectionMatrixVariable=m_pEffect->GetVariableByName("matProjection")->AsMatrix();
@@ -132,10 +122,12 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX10::CompileGeometry(R
 	//Create instance of geometry
 	RocketD310DCompiledGeometry * geometry =new RocketD310DCompiledGeometry();
 
-	//Vertex Buffer
+	//Vertex Buffer description
 	D3D10_BUFFER_DESC bd;
 	bd.Usage = D3D10_USAGE_DEFAULT;
+	//Set the size of the buffer
 	bd.ByteWidth = sizeof(RocketD3D10Vertex) * num_vertices;
+	//This is a vertex buffer
 	bd.BindFlags = D3D10_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
@@ -194,9 +186,6 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX10::CompileGeometry(R
 // Called by Rocket when it wants to render application-compiled geometry.
 void RenderInterfaceDirectX10::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const Rocket::Core::Vector2f& translation)
 {
-	//Is the scissor test enabled?
-	m_ScissorEnabled ? m_pD3D10Device->RSSetState(m_pScissorTestEnable) : m_pD3D10Device->RSSetState(m_pScissorTestDisable);
-
 	//Cast to D3D10 geometry
 	RocketD310DCompiledGeometry* d3d10_geometry = (RocketD310DCompiledGeometry*) geometry;
 	
@@ -257,7 +246,8 @@ void RenderInterfaceDirectX10::ReleaseCompiledGeometry(Rocket::Core::CompiledGeo
 // Called by Rocket when it wants to enable or disable scissoring to clip content.
 void RenderInterfaceDirectX10::EnableScissorRegion(bool enable)
 {
-	m_ScissorEnabled=enable;
+	//Is the scissor test enabled?
+	enable ? m_pD3D10Device->RSSetState(m_pScissorTestEnable) : m_pD3D10Device->RSSetState(m_pScissorTestDisable);
 }
 
 // Called by Rocket when it wants to change the scissor region.
@@ -388,8 +378,10 @@ bool RenderInterfaceDirectX10::GenerateTexture(Rocket::Core::TextureHandle& text
 	textureDesc.SampleDesc.Quality=0;
 	
 	//create our texture
-	if (FAILED(m_pD3D10Device->CreateTexture2D(&textureDesc,NULL,&pTexture->texture2D)))
+	if (FAILED(m_pD3D10Device->CreateTexture2D(&textureDesc,NULL,&pTexture->texture2D))){
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Unable to create texture");
 		return false;
+	}
 
 	//now lets fill it
 	D3D10_MAPPED_TEXTURE2D mappedTex;

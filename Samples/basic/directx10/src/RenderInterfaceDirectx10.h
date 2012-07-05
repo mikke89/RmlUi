@@ -73,9 +73,6 @@ private:
 	ID3D10RasterizerState *m_pScissorTestEnable;
 	ID3D10RasterizerState *m_pScissorTestDisable;
 
-	//Holds if we have enabled scissor test
-	bool m_ScissorEnabled;
-
 };
 
 #endif
