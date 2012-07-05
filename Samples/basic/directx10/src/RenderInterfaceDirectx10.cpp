@@ -3,8 +3,8 @@
 
 #include "D3D10Effect.h"
 
-//RocketD3D10 Texture, this contains the actual text and the resource view
-//for sendnign to effect
+//RocketD3D10 Texture, this contains the actual texture and the resource view
+//for sending it to the effect
 struct RocketD3D10Texture
 {
 	ID3D10ShaderResourceView * textureView;
@@ -51,6 +51,18 @@ RenderInterfaceDirectX10::RenderInterfaceDirectX10(ID3D10Device * pD3D10Device,f
 	//Create our view and projection matrix
 	D3DXMatrixOrthoOffCenterLH(&m_matProjection, 0, screenWidth, screenHeight, 0, -1, 1);
 	m_pProjectionMatrixVariable->SetMatrix((float*)m_matProjection);
+
+	D3D10_RASTERIZER_DESC rasterDesc;
+	rasterDesc.FillMode=D3D10_FILL_SOLID;
+	rasterDesc.CullMode=D3D10_CULL_NONE;
+	rasterDesc.ScissorEnable=TRUE;
+	rasterDesc.FrontCounterClockwise=TRUE;
+	m_pD3D10Device->CreateRasterizerState(&rasterDesc,&m_pScissorTestEnable);
+
+	rasterDesc.ScissorEnable=FALSE;
+	m_pD3D10Device->CreateRasterizerState(&rasterDesc,&m_pScissorTestDisable);
+
+	m_ScissorEnabled=true;
 }
 
 //Loads the effect from memory and retrieves initial variables from the effect
@@ -71,6 +83,7 @@ void RenderInterfaceDirectX10::setupEffect()
 	if (FAILED(D3DX10CreateEffectFromMemory((void*)pEffectData,strlen(pEffectData),"DefaultEffect",NULL,NULL,"fx_4_0",dwShaderFlags,0,m_pD3D10Device,NULL,NULL,&m_pEffect,NULL,NULL)))
 	{
 		//Log error
+		OutputDebugString(TEXT("Can't create default effect for rendering"));
 		
 	}
 	//create input layout
@@ -83,10 +96,12 @@ void RenderInterfaceDirectX10::setupEffect()
 	if (FAILED(pass->GetDesc(&passDesc)))
 	{
 		//Log error
+		OutputDebugString(TEXT("Unable to grab and technique"));
 	}
 	if (FAILED(m_pD3D10Device->CreateInputLayout(layout,numElements,passDesc.pIAInputSignature,passDesc.IAInputSignatureSize,&m_pVertexLayout)))
 	{
 		//Log error
+		OutputDebugString(TEXT("Unable to grab Vertex Layout"));
 	}
 
 	//grab effect variables
@@ -99,6 +114,8 @@ void RenderInterfaceDirectX10::setupEffect()
 
 RenderInterfaceDirectX10::~RenderInterfaceDirectX10()
 {
+	m_pScissorTestDisable->Release();
+	m_pScissorTestEnable->Release();
 }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
@@ -177,6 +194,9 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX10::CompileGeometry(R
 // Called by Rocket when it wants to render application-compiled geometry.
 void RenderInterfaceDirectX10::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const Rocket::Core::Vector2f& translation)
 {
+	//Is the scissor test enabled?
+	m_ScissorEnabled ? m_pD3D10Device->RSSetState(m_pScissorTestEnable) : m_pD3D10Device->RSSetState(m_pScissorTestDisable);
+
 	//Cast to D3D10 geometry
 	RocketD310DCompiledGeometry* d3d10_geometry = (RocketD310DCompiledGeometry*) geometry;
 	
@@ -237,7 +257,7 @@ void RenderInterfaceDirectX10::ReleaseCompiledGeometry(Rocket::Core::CompiledGeo
 // Called by Rocket when it wants to enable or disable scissoring to clip content.
 void RenderInterfaceDirectX10::EnableScissorRegion(bool enable)
 {
-	//TODO: Not yet implemented
+	m_ScissorEnabled=enable;
 }
 
 // Called by Rocket when it wants to change the scissor region.

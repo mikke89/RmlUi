@@ -9,8 +9,7 @@
 	A sample render interface for Rocket into DirectX 10.
 
 	TODO: 
-	1) Move Renderstates into code rather than fx file to make it easier to switch states
-	2) Constant Buffers for variables
+	1) Constant Buffers for variables
 
 	@author Brian McDonald
  */
@@ -69,6 +68,13 @@ private:
 	//Matrices
 	D3DXMATRIX m_matProjection;
 	D3DXMATRIX m_matWorld;
+
+	//Renderstate Blocks
+	ID3D10RasterizerState *m_pScissorTestEnable;
+	ID3D10RasterizerState *m_pScissorTestDisable;
+
+	//Holds if we have enabled scissor test
+	bool m_ScissorEnabled;
 
 };
 
