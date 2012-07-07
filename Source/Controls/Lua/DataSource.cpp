@@ -140,7 +140,9 @@ namespace Core {
 namespace Lua {
 template<> void ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) 
 { 
-    return; 
+    lua_pushcfunction(L,Rocket::Controls::Lua::DataSourcenew);
+    lua_setfield(L,metatable_index-1,"new");
+    return;
 }
 using Rocket::Controls::Lua::DataSource;
 LUACONTROLSTYPEDEFINE(DataSource,false)

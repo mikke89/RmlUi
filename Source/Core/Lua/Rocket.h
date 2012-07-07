@@ -35,8 +35,15 @@ namespace Rocket {
 namespace Core {
 namespace Lua {
 
-//just need a class to take up a type name, and a single object to be able to be pushed to Lua
-class LuaRocket { int to_remove_warning; }; //instance of object defined in Interpreter.cpp
+
+class LuaRocket 
+{ 
+public:
+    //reference to the table defined in LuaRocketEnumkey_identifier
+    int key_identifier_ref;
+    //reference to the table defined in LuaRocketEnumkey_modifier
+    int key_modifier_ref;
+}; 
 
 void LuaRocketPushrocketGlobal(lua_State* L);
 
@@ -46,6 +53,8 @@ int LuaRocketLoadFontFace(lua_State* L, LuaRocket* obj);
 int LuaRocketRegisterTag(lua_State* L, LuaRocket* obj);
 
 int LuaRocketGetAttrcontexts(lua_State* L);
+int LuaRocketGetAttrkey_identifier(lua_State* L);
+int LuaRocketGetAttrkey_modifier(lua_State* L);
 
 void LuaRocketEnumkey_identifier(lua_State* L);
 void LuaRocketEnumkey_modifier(lua_State* L);

@@ -30,6 +30,7 @@
 #include <Rocket/Core/Lua/Utilities.h>
 #include <Rocket/Core/Log.h>
 #include <Rocket/Core/String.h>
+#include <Rocket/Core/FileInterface.h>
 #include <Rocket/Core/Lua/LuaType.h>
 #include "LuaDocumentElementInstancer.h"
 #include <Rocket/Core/Factory.h>
@@ -103,40 +104,41 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
 
 void Interpreter::LoadFile(const String& file)
 {
-    String msg = "Loading";
-    if(luaL_loadfile(_L, file.CString()) != 0)
-    {
-        msg.Append(" failed. Could not load. ").Append(file);
-        Log::Message(Log::LT_ERROR, msg.CString());
-        Report(_L);
-    }
-    else
+    //use the file interface to get the contents of the script
+    Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
+    Rocket::Core::FileHandle handle = file_interface->Open(file);
+    size_t size = file_interface->Length(handle);
+    char* file_contents = new char[size];
+    file_interface->Read(file_contents,size,handle);
+    file_interface->Close(handle);
+
+    if(luaL_loadbuffer(_L,file_contents,size,file.CString()) != 0)
+        Report(_L); 
+    else //if there were no errors loading, then the compiled function is on the top of the stack
     {
         if(lua_pcall(_L,0,0,0) != 0)
-        {
-            msg.Append(" failed. Could not run. ").Append(file);
-            Log::Message(Log::LT_ERROR, msg.CString());
             Report(_L);
-        }
-        else
-        {
-            msg.Append(" was successful. ").Append(file);
-            Log::Message(Log::LT_DEBUG, msg.CString());
-        }
     }
+
+    delete[] file_contents;
 }
 
 
 void Interpreter::DoString(const Rocket::Core::String& code, const Rocket::Core::String& name)
 {
-    luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString());
-    if(lua_pcall(_L,0,0,0) != 0)
+    if(luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString()) != 0)
         Report(_L);
+    else
+    {
+        if(lua_pcall(_L,0,0,0) != 0)
+            Report(_L);
+    }
 }
 
 void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Core::String& name)
 {
-    luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString());
+    if(luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString()) != 0)
+        Report(_L);
 }
 
 

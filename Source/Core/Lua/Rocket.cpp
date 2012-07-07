@@ -39,20 +39,21 @@ namespace Lua {
 #define ROCKETLUA_INPUTENUM(keyident,tbl) lua_pushinteger(L,Input::KI_##keyident); lua_setfield(L,(tbl),#keyident);
 #define ROCKETLUA_INPUTMODIFIERENUM(keymod,tbl) lua_pushinteger(L,Input::KM_##keymod); lua_setfield(L,(tbl),#keymod);
 
+//c++ representation of the global variable in Lua so that the syntax is consistent
+LuaRocket lua_global_rocket;
 
 void LuaRocketPushrocketGlobal(lua_State* L)
 {
-    lua_newtable(L);
-    LuaRocketEnumkey_identifier(L);
-    lua_setfield(L,-2,"key_identifier");
-    LuaRocketEnumkey_modifier(L);
-    lua_setfield(L,-2,"key_modifier");
     luaL_getmetatable(L,GetTClassName<LuaRocket>());
-    lua_setmetatable(L,-2); //metatable of the new table = LuaRocket
+    LuaRocketEnumkey_identifier(L);
+    lua_global_rocket.key_identifier_ref = luaL_ref(L,-2);
+    LuaRocketEnumkey_modifier(L);
+    lua_global_rocket.key_modifier_ref = luaL_ref(L,-2);
+    LuaType<LuaRocket>::push(L,&lua_global_rocket,false);
     lua_setglobal(L,"rocket");
 }
 
-template<> void ExtraInit<LuaRocket>(lua_State* L, int metatable_index){ return; }
+template<> void ExtraInit<LuaRocket>(lua_State* L, int metatable_index) { return; }
 
 int LuaRocketCreateContext(lua_State* L, LuaRocket* obj)
 {
@@ -90,6 +91,20 @@ int LuaRocketGetAttrcontexts(lua_State* L)
 {
     RocketContextsProxy* proxy = new RocketContextsProxy();
     LuaType<RocketContextsProxy>::push(L,proxy,true);
+    return 1;
+}
+
+int LuaRocketGetAttrkey_identifier(lua_State* L)
+{
+    luaL_getmetatable(L,GetTClassName<LuaRocket>());
+    lua_rawgeti(L,-1,lua_global_rocket.key_identifier_ref);
+    return 1;
+}
+
+int LuaRocketGetAttrkey_modifier(lua_State* L)
+{
+    luaL_getmetatable(L,GetTClassName<LuaRocket>());
+    lua_rawgeti(L,-1,lua_global_rocket.key_modifier_ref);
     return 1;
 }
 
