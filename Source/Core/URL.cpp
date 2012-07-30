@@ -195,9 +195,10 @@ bool URL::SetURL(const String& _url)
 			// Split into key and value
 			StringList key_value;
 			StringUtilities::ExpandString( key_value, parameter_list[i], '=' );
-			
+
+			key_value[0] = UrlDecode(key_value[0]);
 			if ( key_value.size() == 2 )
-				this->parameters[key_value[0]] = key_value[1];
+				this->parameters[key_value[0]] = UrlDecode(key_value[1]);
 			else
 				this->parameters[key_value[0]] = "";
 		}
@@ -449,9 +450,9 @@ String URL::GetQueryString() const
 	{
 		query_string += ( count == 0 ) ? "" : "&";
 		
-		query_string += (*itr).first;
+		query_string += UrlEncode((*itr).first);
 		query_string += "=";
-		query_string += (*itr).second;
+		query_string += UrlEncode((*itr).second);
 		
 		count++;
 	}
@@ -475,7 +476,7 @@ void URL::ConstructURL() const
 	url = "";
 
 	// Append the protocol.
-	if (!protocol.Empty())	
+	if (!protocol.Empty() && !host.Empty())	
 	{
 		url = protocol;
 		url.Append("://");
@@ -537,6 +538,88 @@ void URL::ConstructURL() const
 	}
 	
 	url_dirty = false;
+}
+
+String URL::UrlEncode(const String &value)
+{
+	String encoded;
+	char hex[4] = {0,0,0,0};
+
+	encoded.Clear();
+
+	const char *value_c = value.CString();
+	for (String::size_type i = 0; value_c[i]; i++) 
+	{
+		char c = value_c[i];
+		if (IsUnreservedChar(c))
+			encoded.Append(c);
+		else
+		{
+			sprintf(hex, "%%%02X", c);
+			encoded.Append(hex);
+		}
+	}
+
+	return encoded;
+}
+
+String URL::UrlDecode(const String &value)
+{
+	String decoded;
+
+	decoded.Clear();
+
+	const char *value_c = value.CString();
+	String::size_type value_len = value.Length();
+	for (String::size_type i = 0; i < value_len; i++) 
+	{
+		char c = value_c[i];
+		if (c == '+')
+		{
+			decoded.Append(' ' );
+		}
+		else if (c == '%')
+		{
+			char *endp;
+			String t = value.Substring(i+1, 2);
+			int ch = strtol(t.CString(), &endp, 16);
+			if (*endp == '\0')
+				decoded.Append(char(ch));
+			else
+				decoded.Append(t);
+			i += 2;
+		}
+		else
+		{
+			decoded.Append(c);
+		}
+	}
+
+	return decoded;
+}
+
+bool URL::IsUnreservedChar(const char in)
+{
+	switch (in)
+	{
+		case '0': case '1': case '2': case '3': case '4':
+		case '5': case '6': case '7': case '8': case '9':
+		case 'a': case 'b': case 'c': case 'd': case 'e':
+		case 'f': case 'g': case 'h': case 'i': case 'j':
+		case 'k': case 'l': case 'm': case 'n': case 'o':
+		case 'p': case 'q': case 'r': case 's': case 't':
+		case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
+		case 'A': case 'B': case 'C': case 'D': case 'E':
+		case 'F': case 'G': case 'H': case 'I': case 'J':
+		case 'K': case 'L': case 'M': case 'N': case 'O':
+		case 'P': case 'Q': case 'R': case 'S': case 'T':
+		case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
+		case '-': case '.': case '_': case '~':
+			return true;
+		default:
+			break;
+	}
+	return false;
 }
 
 }
