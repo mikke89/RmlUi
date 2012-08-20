@@ -386,6 +386,7 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 		for (int i = first_row_added + num_rows_added; i < (int)children.size(); i++)
 		{
 			children[i]->SetChildIndex(i);
+			children[i]->DirtyTableRelativeIndex();
 		}
 
 		if (parent_row)
@@ -420,6 +421,7 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
     for (int i = first_row_removed; i < (int) children.size(); i++)
 	{
 		children[i]->SetChildIndex(i);
+		children[i]->DirtyTableRelativeIndex();
 	}
 
 	Rocket::Core::Dictionary parameters;
