@@ -268,10 +268,7 @@ void ElementDataGridRow::OnRowRemove(DataSource* _data_source, const Rocket::Cor
 void ElementDataGridRow::OnRowChange(DataSource* _data_source, const Rocket::Core::String& _data_table, int first_row_changed, int num_rows_changed)
 {
 	if (_data_source == data_source && _data_table == data_table)
-	{
-		for (int i = first_row_changed; i < first_row_changed + num_rows_changed; i++)
-			children[i]->DirtyCells();
-	}
+		ChangeChildren(first_row_changed, num_rows_changed);
 }
 
 void ElementDataGridRow::OnRowChange(DataSource* _data_source, const Rocket::Core::String& _data_table)
@@ -426,6 +423,17 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
 	parameters.Set("first_row_removed", GetChildTableRelativeIndex(first_row_removed));
 	parameters.Set("num_rows_removed", num_rows_removed);
 	parent_grid->DispatchEvent("rowremove", parameters);
+}
+
+void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_changed)
+{
+	for (int i = first_row_changed; i < first_row_changed + num_rows_changed; i++)
+		children[i]->DirtyCells();
+
+	Rocket::Core::Dictionary parameters;
+	parameters.Set("first_row_changed", GetChildTableRelativeIndex(first_row_changed));
+	parameters.Set("num_rows_changed", num_rows_changed);
+	parent_grid->DispatchEvent("rowchange", parameters);
 }
 
 // Returns the number of rows under this row (children, grandchildren, etc)

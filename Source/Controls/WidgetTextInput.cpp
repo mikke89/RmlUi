@@ -234,10 +234,11 @@ Core::Element* WidgetTextInput::GetElement()
 }
 
 // Dispatches a change event to the widget's element.
-void WidgetTextInput::DispatchChangeEvent()
+void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 {
 	Rocket::Core::Dictionary parameters;
 	parameters.Set("value", GetElement()->GetAttribute< Rocket::Core::String >("value", ""));
+	parameters.Set("linebreak", linebreak);
 	GetElement()->DispatchEvent("change", parameters);
 }
 
