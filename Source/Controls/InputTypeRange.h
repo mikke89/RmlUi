@@ -68,8 +68,6 @@ public:
 	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions);
 
 private:
-	int size;
-
 	WidgetSliderInput* widget;
 };
 

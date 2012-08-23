@@ -52,6 +52,7 @@ WidgetSlider::WidgetSlider(Element* _parent)
 	arrows[1] = NULL;
 
 	bar_position = 0;
+	bar_drag_anchor = 0;
 
 	arrow_timers[0] = -1;
 	arrow_timers[1] = -1;

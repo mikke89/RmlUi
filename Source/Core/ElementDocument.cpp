@@ -472,6 +472,10 @@ bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 	{
 		return false;
 	}
+	if (!element->IsVisible())
+	{
+		return false;
+	}
 
 	// Check if this is the node we're looking for
 	if (element->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)

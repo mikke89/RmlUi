@@ -48,6 +48,7 @@ struct LayoutChunk
 {
 	LayoutChunk()
 	{
+		memset(buffer, 0, size);
 	}
 
 	static const unsigned int size = MAX(sizeof(LayoutBlockBox), MAX(sizeof(LayoutInlineBox), MAX(sizeof(LayoutInlineBoxText), MAX(sizeof(LayoutLineBox), sizeof(LayoutBlockBoxSpace)))));
@@ -561,15 +562,18 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 	else
 	{
 		const Property* height_property = element->GetProperty(HEIGHT);
-		if (height_property->unit == Property::KEYWORD)
+		if (height_property == NULL)
+		{
+			height_auto = false;		
+		}
+		else if (height_property->unit == Property::KEYWORD)
 		{
 			height_auto = true;
 		}
 		else
 		{
 			height_auto = false;
-			if (height_property != NULL)
-				content_area.y = element->ResolveProperty(HEIGHT, containing_block_height);
+			content_area.y = element->ResolveProperty(HEIGHT, containing_block_height);
 		}
 	}
 
