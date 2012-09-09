@@ -1,0 +1,26 @@
+body
+{
+	font-family: Delicious;
+	font-weight: normal;
+	font-style: normal;
+	font-size: 15;
+	color: white;
+}
+
+body.window
+{
+	background-decorator: tiled-box;
+	background-top-left-image: tutorial.png 0px 0px 133px 140px;
+	background-top-right-image: tutorial.png 136px 0px 146px 140px;
+	background-top-image: tutorial.png stretch 134px 0px 135px 140px;
+	background-bottom-left-image: tutorial.png 0px 140px 11px 151px;
+	background-bottom-right-image: tutorial.png 136px 140px 146px 151px;
+	background-bottom-image: tutorial.png stretch 11px 140px 12px 151px;
+	background-left-image: tutorial.png stretch 0px 139px 10px 140px;
+	background-center-image: tutorial.png stretch 11px 139px 12px 140px;
+}
+
+div
+{
+    display: block;
+}
