@@ -2,7 +2,7 @@
 #include <Rocket/Core/Factory.h>
 
 // Constructs a new inventory and opens its window.
-Inventory::Inventory(const EMP::Core::String& title, const EMP::Core::Vector2f& position, Rocket::Core::Context* context)
+Inventory::Inventory(const Rocket::Core::String& title, const Rocket::Core::Vector2f& position, Rocket::Core::Context* context)
 {
 	document = context->LoadDocument("data/inventory.rml");
 	if (document != NULL)
@@ -25,7 +25,7 @@ Inventory::~Inventory()
 }
 
 // Adds a brand-new item into this inventory.
-void Inventory::AddItem(const EMP::Core::String& name)
+void Inventory::AddItem(const Rocket::Core::String& name)
 {
 	if (document == NULL)
 		return;
@@ -35,7 +35,7 @@ void Inventory::AddItem(const EMP::Core::String& name)
 		return;
 
 	// Create the new 'icon' element.
-	Rocket::Core::Element* icon = Rocket::Core::Factory::InstanceElement(content, "icon", "icon", EMP::Core::XMLAttributes());
+	Rocket::Core::Element* icon = Rocket::Core::Factory::InstanceElement(content, "icon", "icon", Rocket::Core::XMLAttributes());
 	icon->SetInnerRML(name);
 	content->AppendChild(icon);
 

@@ -10,8 +10,8 @@
  */
 
 #include "HighScores.h"
-#include <EMP/Core/StringUtilities.h>
-#include <EMP/Core/TypeConverter.h>
+#include <Rocket/Core/StringUtilities.h>
+#include <Rocket/Core/TypeConverter.h>
 #include <Rocket/Core.h>
 #include <stdio.h>
 
@@ -20,9 +20,9 @@ static int ALIEN_SCORES[] = { 10, 20, 40 };
 
 HighScores* HighScores::instance = NULL;
 
-HighScores::HighScores() : EMP::Core::DataSource("high_scores")
+HighScores::HighScores() : Rocket::Controls::DataSource("high_scores")
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -35,7 +35,7 @@ HighScores::HighScores() : EMP::Core::DataSource("high_scores")
 
 HighScores::~HighScores()
 {
-	EMP_ASSERT(instance == this);
+	ROCKET_ASSERT(instance == this);
 	instance = NULL;
 }
 
@@ -49,7 +49,7 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::GetRow(EMP::Core::StringList& row, const EMP::Core::String& table, int row_index, const EMP::Core::StringList& columns)
+void HighScores::GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns)
 {
 	if (table == "scores")
 	{
@@ -61,23 +61,23 @@ void HighScores::GetRow(EMP::Core::StringList& row, const EMP::Core::String& tab
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(EMP::Core::String(32, "%d", scores[row_index].score));
+				row.push_back(Rocket::Core::String(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
-				EMP::Core::String colour_string;
-				EMP::Core::TypeConverter< EMP::Core::Colourb, EMP::Core::String >::Convert(scores[row_index].colour, colour_string);
+				Rocket::Core::String colour_string;
+				Rocket::Core::TypeConverter< Rocket::Core::Colourb, Rocket::Core::String >::Convert(scores[row_index].colour, colour_string);
 				row.push_back(colour_string);
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(EMP::Core::String(8, "%d", scores[row_index].wave));
+				row.push_back(Rocket::Core::String(8, "%d", scores[row_index].wave));
 			}
 		}
 	}
 }
 
-int HighScores::GetNumRows(const EMP::Core::String& table)
+int HighScores::GetNumRows(const Rocket::Core::String& table)
 {
 	if (table == "scores")
 	{
@@ -95,7 +95,7 @@ int HighScores::GetNumRows(const EMP::Core::String& table)
 	return 0;
 }
 
-void HighScores::SubmitScore(const EMP::Core::String& name, const EMP::Core::Colourb& colour, int wave, int score, int alien_kills[])
+void HighScores::SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score, int alien_kills[])
 {
 	for (size_t i = 0; i < NUM_SCORES; i++)
 	{
@@ -144,28 +144,28 @@ void HighScores::LoadScores()
 			file_interface->Close(scores_file);
 			buffer[scores_length] = 0;
 
-			EMP::Core::StringList score_lines;
-			EMP::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
+			Rocket::Core::StringList score_lines;
+			Rocket::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
 			delete[] buffer;
 
 			for (size_t i = 0; i < score_lines.size(); i++)
 			{
-				EMP::Core::StringList score_parts;
-				EMP::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
+				Rocket::Core::StringList score_parts;
+				Rocket::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
 				if (score_parts.size() == 4 + NUM_ALIEN_TYPES)
 				{
-					EMP::Core::Colourb colour;
+					Rocket::Core::Colourb colour;
 					int wave;
 					int score;
 					int alien_kills[NUM_ALIEN_TYPES];
 
-					if (EMP::Core::TypeConverter< EMP::Core::String , EMP::Core::Colourb >::Convert(score_parts[1], colour) &&
-						EMP::Core::TypeConverter< EMP::Core::String, int >::Convert(score_parts[2], wave) &&
-						EMP::Core::TypeConverter< EMP::Core::String, int >::Convert(score_parts[3], score))
+					if (Rocket::Core::TypeConverter< Rocket::Core::String , Rocket::Core::Colourb >::Convert(score_parts[1], colour) &&
+						Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[2], wave) &&
+						Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[3], score))
 					{
 						for (int j = 0; j < NUM_ALIEN_TYPES; j++)
 						{
-							if (!EMP::Core::TypeConverter< EMP::Core::String, int >::Convert(score_parts[4 + j], alien_kills[j]))
+							if (!Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[4 + j], alien_kills[j]))
 							{
 								break;
 							}

@@ -10,8 +10,8 @@
  */
 
 #include "DecoratorInstancerDefender.h"
-#include <EMP/Core/Math.h>
-#include <EMP/Core/String.h>
+#include <Rocket/Core/Math.h>
+#include <Rocket/Core/String.h>
 #include "DecoratorDefender.h"
 
 DecoratorInstancerDefender::DecoratorInstancerDefender()
@@ -24,10 +24,10 @@ DecoratorInstancerDefender::~DecoratorInstancerDefender()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const EMP::Core::String& EMP_UNUSED(name), const Rocket::Core::PropertyDictionary& properties)
+Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED(name), const Rocket::Core::PropertyDictionary& properties)
 {
 	const Rocket::Core::Property* image_source_property = properties.GetProperty("image-src");
-	EMP::Core::String image_source = image_source_property->Get< EMP::Core::String >();
+	Rocket::Core::String image_source = image_source_property->Get< Rocket::Core::String >();
 
 	DecoratorDefender* decorator = new DecoratorDefender();
 	if (decorator->Initialise(image_source, image_source_property->source))

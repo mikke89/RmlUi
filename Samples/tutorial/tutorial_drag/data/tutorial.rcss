@@ -17,7 +17,7 @@ icon
     margin: 10px;
     
     background-decorator: image;
-    background-image: ../../../assets/present.png 0px 0px 100px 100px;
+    background-image: ../../../assets/present.tga 0px 0px 100px 100px;
     
     font-size: 12;
     text-align: center;

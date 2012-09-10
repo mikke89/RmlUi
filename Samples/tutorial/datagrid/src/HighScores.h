@@ -12,7 +12,7 @@
 #ifndef HIGHSCORES_H
 #define HIGHSCORES_H
 
-#include <EMP/Core/Types.h>
+#include <Rocket/Core/Types.h>
 
 const int NUM_SCORES = 10;
 
@@ -33,13 +33,13 @@ private:
 
 	static HighScores* instance;
 
-	void SubmitScore(const EMP::Core::String& name, const EMP::Core::Colourb& colour, int wave, int score);
+	void SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score);
 	void LoadScores();
 
 	struct Score
 	{
-		EMP::Core::String name;
-		EMP::Core::Colourb colour;
+		Rocket::Core::String name;
+		Rocket::Core::Colourb colour;
 		int score;
 		int wave;
 	};

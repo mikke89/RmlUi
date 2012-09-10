@@ -24,7 +24,7 @@ class DecoratorDefender : public Rocket::Core::Decorator
 public:
 	virtual ~DecoratorDefender();
 
-	bool Initialise(const EMP::Core::String& image_source, const EMP::Core::String& image_path);
+	bool Initialise(const Rocket::Core::String& image_source, const Rocket::Core::String& image_path);
 
 	/// Called on a decorator to generate any required per-element data for a newly decorated element.
 	/// @param element[in] The newly decorated element.

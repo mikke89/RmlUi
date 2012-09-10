@@ -18,22 +18,22 @@
 			height: 16px;
 			
 			defender-decorator: defender;
-			defender-image-src: high_scores_defender.png;
+			defender-image-src: ../../../assets/high_scores_defender.tga;
 		}
 		
 		defender.alien_1
 		{
-			defender-image-src: high_scores_alien_1.png;
+			defender-image-src: ../../../assets/high_scores_alien_1.tga;
 		}
 		
 		defender.alien_2
 		{
-			defender-image-src: high_scores_alien_2.png;
+			defender-image-src: ../../../assets/high_scores_alien_2.tga;
 		}
 		
 		defender.alien_3
 		{
-			defender-image-src: high_scores_alien_3.png;
+			defender-image-src: ../../../assets/high_scores_alien_3.tga;
 		}
 		
 		datagridheader
@@ -43,9 +43,9 @@
 			padding: 5px 10px 0px 10px;
 		
 			background-decorator: tiled-horizontal;
-			background-left-image: ../../../assets/invader.png 127px 192px 143px 223px;
-			background-center-image: ../../../assets/invader.png stretch 143px 192px 145px 223px;
-			background-right-image: ../../../assets/invader.png 145px 192px 160px 223px;
+			background-left-image: ../../../assets/invader.tga 127px 192px 143px 223px;
+			background-center-image: ../../../assets/invader.tga stretch 143px 192px 145px 223px;
+			background-right-image: ../../../assets/invader.tga 145px 192px 160px 223px;
 		}
 		
 		datagridbody
@@ -58,14 +58,14 @@
 			padding: 0px 4px 4px 4px;
 			
 			background-decorator: tiled-box;
-			background-top-left-image: ../../../assets/invader.png 281px 275px 292px 284px;
-			background-top-right-image: ../../../assets/invader.png 294px 275px 305px 284px;
-			background-top-image: ../../../assets/invader.png stretch 292px 275px 293px 284px;
-			background-bottom-left-image: ../../../assets/invader.png 281px 285px 292px 296px;
-			background-bottom-right-image: ../../../assets/invader.png 294px 285px 305px 296px;
-			background-bottom-image: ../../../assets/invader.png stretch 292px 285px 293px 296px;
-			background-left-image: ../../../assets/invader.png stretch 281px 283px 292px 284px;
-			background-center-image: ../../../assets/invader.png stretch 292px 283px 293px 284px;
+			background-top-left-image: ../../../assets/invader.tga 281px 275px 292px 284px;
+			background-top-right-image: ../../../assets/invader.tga 294px 275px 305px 284px;
+			background-top-image: ../../../assets/invader.tga stretch 292px 275px 293px 284px;
+			background-bottom-left-image: ../../../assets/invader.tga 281px 285px 292px 296px;
+			background-bottom-right-image: ../../../assets/invader.tga 294px 285px 305px 296px;
+			background-bottom-image: ../../../assets/invader.tga stretch 292px 285px 293px 296px;
+			background-left-image: ../../../assets/invader.tga stretch 281px 283px 292px 284px;
+			background-center-image: ../../../assets/invader.tga stretch 292px 283px 293px 284px;
 		}
 		
 		datagrid datagridrow:nth-child(even)
@@ -82,7 +82,7 @@
 			width: 17px;
 			
 			icon-decorator: image;
-			icon-image: ../../../assets/invader.png 3px 232px 20px 249px;
+			icon-image: ../../../assets/invader.tga 3px 232px 20px 249px;
 		}
 		
 		datagridexpand:hover

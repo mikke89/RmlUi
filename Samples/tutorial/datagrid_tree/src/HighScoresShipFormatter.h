@@ -25,7 +25,7 @@ class HighScoresShipFormatter : public Rocket::Controls::DataFormatter
 		HighScoresShipFormatter();
 		~HighScoresShipFormatter();
 
-		void FormatData(EMP::Core::String& formatted_data, const EMP::Core::StringList& raw_data);
+		void FormatData(Rocket::Core::String& formatted_data, const Rocket::Core::StringList& raw_data);
 };
 
 #endif

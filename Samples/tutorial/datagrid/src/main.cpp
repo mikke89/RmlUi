@@ -31,13 +31,13 @@ void GameLoop()
 
 #if defined EMP_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE EMP_UNUSED(instance_handle), HINSTANCE EMP_UNUSED(previous_instance_handle), char* EMP_UNUSED(command_line), int EMP_UNUSED(command_show))
+int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED(instance_handle), HINSTANCE ROCKET_UNUSED(previous_instance_handle), char* ROCKET_UNUSED(command_line), int ROCKET_UNUSED(command_show))
 #else
-int main(int EMP_UNUSED(argc), char** EMP_UNUSED(argv))
+int main(int ROCKET_UNUSED(argc), char** ROCKET_UNUSED(argv))
 #endif
 {
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../../projects/Rocket/samples/tutorials/datagrid/") ||
+	if (!Shell::Initialise("../Samples/tutorial/datagrid/") ||
 		!Shell::OpenWindow("Datagrid Tutorial", true))
 	{
 		Shell::Shutdown();
@@ -55,7 +55,7 @@ int main(int EMP_UNUSED(argc), char** EMP_UNUSED(argv))
 	Rocket::Controls::Initialise();
 
 	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", EMP::Core::Vector2i(1024, 768));
+	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));
 	if (context == NULL)
 	{
 		Rocket::Core::Shutdown();

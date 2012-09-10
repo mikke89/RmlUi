@@ -12,8 +12,8 @@
 #ifndef HIGHSCORES_H
 #define HIGHSCORES_H
 
-#include <EMP/Core/Types.h>
-#include <EMP/Core/DataSource.h>
+#include <Rocket/Core/Types.h>
+#include <Rocket/Controls/DataSource.h>
 
 const int NUM_SCORES = 10;
 const int NUM_ALIEN_TYPES = 3;
@@ -23,14 +23,14 @@ const int NUM_ALIEN_TYPES = 3;
 	@author Robert Curry
  */
 
-class HighScores : public EMP::Core::DataSource
+class HighScores : public Rocket::Controls::DataSource
 {
 public:
 	static void Initialise();
 	static void Shutdown();
 
-	void GetRow(EMP::Core::StringList& row, const EMP::Core::String& table, int row_index, const EMP::Core::StringList& columns);
-	int GetNumRows(const EMP::Core::String& table);
+	void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns);
+	int GetNumRows(const Rocket::Core::String& table);
 
 private:
 	HighScores();
@@ -38,13 +38,13 @@ private:
 
 	static HighScores* instance;
 
-	void SubmitScore(const EMP::Core::String& name, const EMP::Core::Colourb& colour, int wave, int score, int alien_kills[]);
+	void SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score, int alien_kills[]);
 	void LoadScores();
 
 	struct Score
 	{
-		EMP::Core::String name;
-		EMP::Core::Colourb colour;
+		Rocket::Core::String name;
+		Rocket::Core::Colourb colour;
 		int score;
 		int wave;
 

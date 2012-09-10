@@ -10,8 +10,8 @@
  */
 
 #include "HighScores.h"
-#include <EMP/Core/StringUtilities.h>
-#include <EMP/Core/TypeConverter.h>
+#include <Rocket/Core/StringUtilities.h>
+#include <Rocket/Core/TypeConverter.h>
 #include <Rocket/Core.h>
 #include <stdio.h>
 
@@ -19,7 +19,7 @@ HighScores* HighScores::instance = NULL;
 
 HighScores::HighScores()
 {
-	EMP_ASSERT(instance == NULL);
+	ROCKET_ASSERT(instance == NULL);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -32,7 +32,7 @@ HighScores::HighScores()
 
 HighScores::~HighScores()
 {
-	EMP_ASSERT(instance == this);
+	ROCKET_ASSERT(instance == this);
 	instance = NULL;
 }
 
@@ -46,7 +46,7 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::SubmitScore(const EMP::Core::String& name, const EMP::Core::Colourb& colour, int wave, int score)
+void HighScores::SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score)
 {
 	for (size_t i = 0; i < NUM_SCORES; i++)
 	{
@@ -88,23 +88,23 @@ void HighScores::LoadScores()
 			file_interface->Close(scores_file);
 			buffer[scores_length] = 0;
 
-			EMP::Core::StringList score_lines;
-			EMP::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
+			Rocket::Core::StringList score_lines;
+			Rocket::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
 			delete[] buffer;
 			
 			for (size_t i = 0; i < score_lines.size(); i++)
 			{
-				EMP::Core::StringList score_parts;
-				EMP::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
+				Rocket::Core::StringList score_parts;
+				Rocket::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
 				if (score_parts.size() == 4)
 				{
-					EMP::Core::Colourb colour;
+					Rocket::Core::Colourb colour;
 					int wave;
 					int score;
 
-					if (EMP::Core::TypeConverter< EMP::Core::String , EMP::Core::Colourb >::Convert(score_parts[1], colour) &&
-						EMP::Core::TypeConverter< EMP::Core::String, int >::Convert(score_parts[2], wave) &&
-						EMP::Core::TypeConverter< EMP::Core::String, int >::Convert(score_parts[3], score))
+					if (Rocket::Core::TypeConverter< Rocket::Core::String , Rocket::Core::Colourb >::Convert(score_parts[1], colour) &&
+						Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[2], wave) &&
+						Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[3], score))
 					{
 						SubmitScore(score_parts[0], colour, wave, score);
 					}

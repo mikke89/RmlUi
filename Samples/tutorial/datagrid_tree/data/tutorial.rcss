@@ -10,14 +10,14 @@ body
 body.window
 {
 	background-decorator: tiled-box;
-	background-top-left-image: tutorial.png 0px 0px 133px 140px;
-	background-top-right-image: tutorial.png 136px 0px 146px 140px;
-	background-top-image: tutorial.png stretch 134px 0px 135px 140px;
-	background-bottom-left-image: tutorial.png 0px 140px 11px 151px;
-	background-bottom-right-image: tutorial.png 136px 140px 146px 151px;
-	background-bottom-image: tutorial.png stretch 11px 140px 12px 151px;
-	background-left-image: tutorial.png stretch 0px 139px 10px 140px;
-	background-center-image: tutorial.png stretch 11px 139px 12px 140px;
+	background-top-left-image: ../../../assets/invader.tga 0px 0px 133px 140px;
+	background-top-right-image: ../../../assets/invader.tga 136px 0px 146px 140px;
+	background-top-image: ../../../assets/invader.tga stretch 134px 0px 135px 140px;
+	background-bottom-left-image: ../../../assets/invader.tga 0px 140px 11px 151px;
+	background-bottom-right-image: ../../../assets/invader.tga 136px 140px 146px 151px;
+	background-bottom-image: ../../../assets/invader.tga stretch 11px 140px 12px 151px;
+	background-left-image: ../../../assets/invader.tga stretch 0px 139px 10px 140px;
+	background-center-image: ../../../assets/invader.tga stretch 11px 139px 12px 140px;
 	
 	padding: 10px 15px;
 }
@@ -41,9 +41,9 @@ div#title-bar span
 	text-shadow: 2px 2px black;
 
 	background-decorator: tiled-horizontal;
-	background-left-image: tutorial.png 147px 0px 229px 85px;
-	background-center-image: tutorial.png stretch 229px 0px 230px 85px;
-	background-right-image: tutorial.png 231px 0px 246px 85px;
+	background-left-image: ../../../assets/invader.tga 147px 0px 229px 85px;
+	background-center-image: ../../../assets/invader.tga stretch 229px 0px 230px 85px;
+	background-right-image: ../../../assets/invader.tga 231px 0px 246px 85px;
 }
 
 div#content
@@ -65,9 +65,9 @@ scrollbarvertical
 scrollbarvertical slidertrack
 {
 	background-decorator: tiled-vertical;
-	background-top-image: tutorial.png 56px 199px 83px 201px;
-	background-center-image: tutorial.png stretch 56px 201px 83px 202px;
-	background-bottom-image: tutorial.png 56px 203px 83px 204px;
+	background-top-image: ../../../assets/invader.tga 56px 199px 83px 201px;
+	background-center-image: ../../../assets/invader.tga stretch 56px 201px 83px 202px;
+	background-bottom-image: ../../../assets/invader.tga 56px 203px 83px 204px;
 }
 
 scrollbarvertical sliderbar
@@ -77,9 +77,9 @@ scrollbarvertical sliderbar
 	min-height: 46px;
 
 	background-decorator: tiled-vertical;
-	background-top-image: tutorial.png 56px 152px 79px 175px;
-	background-center-image: tutorial.png stretch 56px 175px 79px 175px;
-	background-bottom-image: tutorial.png 56px 176px 79px 198px;
+	background-top-image: ../../../assets/invader.tga 56px 152px 79px 175px;
+	background-center-image: ../../../assets/invader.tga stretch 56px 175px 79px 175px;
+	background-bottom-image: ../../../assets/invader.tga 56px 176px 79px 198px;
 }
 
 scrollbarvertical sliderbar:hover
@@ -106,13 +106,13 @@ scrollbarvertical sliderarrowinc
 scrollbarvertical sliderarrowdec
 {
 	icon-decorator: image;
-	icon-image: tutorial.png 0px 152px 27px 176px;
+	icon-image: ../../../assets/invader.tga 0px 152px 27px 176px;
 }
 
 scrollbarvertical sliderarrowinc
 {
 	icon-decorator: image;
-	icon-image: tutorial.png 28px 152px 55px 176px;
+	icon-image: ../../../assets/invader.tga 28px 152px 55px 176px;
 }
 
 scrollbarvertical sliderarrowdec:hover,
