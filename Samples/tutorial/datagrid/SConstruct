@@ -19,7 +19,6 @@ LIBS = Split( """
 	RocketControls
 	RocketDebugger
 	RocketCore
-	EMPCore
 	Shell
 	""" )
 

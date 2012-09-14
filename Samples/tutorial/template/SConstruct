@@ -18,7 +18,6 @@ INCLUDE = Split( """
 LIBS = Split( """
 	RocketDebugger
 	RocketCore
-	EMPCore
 	Shell
 	""" )
 
