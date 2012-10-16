@@ -112,6 +112,10 @@ public:
 	/// @return The renderer's vertical texel offset. The default implementation returns 0.
 	virtual float GetVerticalTexelOffset();
 
+	/// Returns the number of pixels per inch.
+	/// @returns The number of pixels per inch. The default implementation returns 100.
+	virtual float GetPixelsPerInch();
+
 	/// Called when this render interface is released.
 	virtual void Release();
 
