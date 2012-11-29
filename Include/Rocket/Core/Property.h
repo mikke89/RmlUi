@@ -60,7 +60,15 @@ public:
 		// Relative values.
 		EM = 1 << 6,				// number suffixed by 'em'; fetch as < float >
 		PERCENT = 1 << 7,			// number suffixed by '%'; fetch as < float >
-		RELATIVE_UNIT = EM | PERCENT
+		RELATIVE_UNIT = EM | PERCENT,
+
+		// Values based on pixels-per-inch.
+		IN = 1 << 8,				// number suffixed by 'in'; fetch as < float >
+		CM = 1 << 9,				// number suffixed by 'cm'; fetch as < float >
+		MM = 1 << 10,				// number suffixed by 'mm'; fetch as < float >
+		PT = 1 << 11,				// number suffixed by 'pt'; fetch as < float >
+		PC = 1 << 12,				// number suffixed by 'pc'; fetch as < float >
+		PPI_UNIT = IN | CM | MM | PT | PC
 	};
 
 	Property();
