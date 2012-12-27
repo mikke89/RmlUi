@@ -1348,22 +1348,31 @@ void Element::OnAttributeChange(const AttributeNameList& changed_attributes)
 // Called when properties on the element are changed.
 void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 {
+	bool all_dirty = StyleSheetSpecification::GetRegisteredProperties() == changed_properties;
+
 	// Force a relayout if any of the changed properties require it.
-	for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
+	if (all_dirty)
 	{
-		const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
-		if (property_definition)
+		DirtyLayout();
+	}
+	else
+	{
+		for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
 		{
-			if (property_definition->IsLayoutForced())
+			const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
+			if (property_definition)
 			{
-				DirtyLayout();
-				break;
+				if (property_definition->IsLayoutForced())
+				{
+					DirtyLayout();
+					break;
+				}
 			}
 		}
 	}
 
 	// Update the visibility.
-	if (changed_properties.find(VISIBILITY) != changed_properties.end() ||
+	if (all_dirty || changed_properties.find(VISIBILITY) != changed_properties.end() ||
 		changed_properties.find(DISPLAY) != changed_properties.end())
 	{
 		bool new_visibility = GetProperty< int >(VISIBILITY) == VISIBILITY_VISIBLE &&
@@ -1377,7 +1386,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 				parent->DirtyStackingContext();
 		}
 
-		if (changed_properties.find(DISPLAY) != changed_properties.end())
+		if (all_dirty || 
+			changed_properties.find(DISPLAY) != changed_properties.end())
 		{
 			if (parent != NULL)
 				parent->DirtyStructure();
@@ -1385,7 +1395,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 	// Update the position.
-	if (changed_properties.find(LEFT) != changed_properties.end() ||
+	if (all_dirty ||
+		changed_properties.find(LEFT) != changed_properties.end() ||
 		changed_properties.find(RIGHT) != changed_properties.end() ||
 		changed_properties.find(TOP) != changed_properties.end() ||
 		changed_properties.find(BOTTOM) != changed_properties.end())
@@ -1395,7 +1406,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 	// Update the z-index.
-	if (changed_properties.find(Z_INDEX) != changed_properties.end())
+	if (all_dirty || 
+		changed_properties.find(Z_INDEX) != changed_properties.end())
 	{
 		const Property* z_index_property = GetProperty(Z_INDEX);
 
@@ -1449,11 +1461,13 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 	// Dirty the background if it's changed.
-	if (changed_properties.find(BACKGROUND_COLOR) != changed_properties.end())
+	if (all_dirty ||
+		changed_properties.find(BACKGROUND_COLOR) != changed_properties.end())
 		background->DirtyBackground();
 
 	// Dirty the border if it's changed.
-	if (changed_properties.find(BORDER_TOP_WIDTH) != changed_properties.end() ||
+	if (all_dirty || 
+		changed_properties.find(BORDER_TOP_WIDTH) != changed_properties.end() ||
 		changed_properties.find(BORDER_RIGHT_WIDTH) != changed_properties.end() ||
 		changed_properties.find(BORDER_BOTTOM_WIDTH) != changed_properties.end() ||
 		changed_properties.find(BORDER_LEFT_WIDTH) != changed_properties.end() ||
@@ -1464,7 +1478,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		border->DirtyBorder();
 
 	// Fetch a new font face if it has been changed.
-	if (changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
+	if (all_dirty ||
+		changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
 		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
 		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
 		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
@@ -1503,7 +1518,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 	
 	// Check for clipping state changes
-	if (changed_properties.find(CLIP) != changed_properties.end() ||
+	if (all_dirty ||
+		changed_properties.find(CLIP) != changed_properties.end() ||
 		changed_properties.find(OVERFLOW_X) != changed_properties.end() ||
 		changed_properties.find(OVERFLOW_Y) != changed_properties.end())
 	{

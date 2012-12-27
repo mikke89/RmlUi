@@ -469,27 +469,24 @@ void ElementStyle::DirtyChildDefinitions()
 // Dirties every property.
 void ElementStyle::DirtyProperties()
 {
-	PropertyNameList properties;
-	StyleSheetSpecification::GetRegisteredProperties(properties);
-
+	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
 	DirtyProperties(properties);
 }
 
 // Dirties em-relative properties.
 void ElementStyle::DirtyEmProperties()
 {
-	PropertyNameList properties;
-	StyleSheetSpecification::GetRegisteredProperties(properties);
+	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
 
 	// Check if any of these are currently em-relative. If so, dirty them.
 	PropertyNameList em_properties;
-	for (PropertyNameList::iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
 	{
 		// Skip font-size; this is relative to our parent's em, not ours.
 		if (*list_iterator == FONT_SIZE)
 			continue;
 
-		// Get this element from this element. If this is em-relative, then add it to the list to
+		// Get this property from this element. If this is em-relative, then add it to the list to
 		// dirty.
 		if (element->GetProperty(*list_iterator)->unit == Property::EM)
 			em_properties.insert(*list_iterator);
@@ -536,21 +533,35 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties)
 	if (properties.empty())
 		return;
 
-	PropertyNameList inherited_properties;
-	for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
-	{
-		// If this property is an inherited property, then push it into the list to be passed onto our children.
-		const PropertyDefinition* property = StyleSheetSpecification::GetProperty(*i);
-		if (property != NULL &&
-			property->IsInherited())
-			inherited_properties.insert(*i);
-	}
+	bool all_inherited_dirty = 
+		StyleSheetSpecification::GetRegisteredProperties() == properties ||
+		StyleSheetSpecification::GetRegisteredInheritedProperties() == properties;
 
-	// Pass the list of those properties that are inherited onto our children.
-	if (!inherited_properties.empty())
+	if (all_inherited_dirty)
 	{
+		const PropertyNameList &all_inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
 		for (int i = 0; i < element->GetNumChildren(true); i++)
-			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
+			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(all_inherited_properties);
+	}
+	else
+	{
+		PropertyNameList inherited_properties;
+
+		for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
+		{
+			// If this property is an inherited property, then push it into the list to be passed onto our children.
+			const PropertyDefinition* property = StyleSheetSpecification::GetProperty(*i);
+			if (property != NULL &&
+				property->IsInherited())
+				inherited_properties.insert(*i);
+		}
+
+		// Pass the list of those properties that are inherited onto our children.
+		if (!inherited_properties.empty())
+		{
+			for (int i = 0; i < element->GetNumChildren(true); i++)
+				element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
+		}
 	}
 
 	// And send the event.
