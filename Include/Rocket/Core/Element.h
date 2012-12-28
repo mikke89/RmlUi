@@ -571,6 +571,9 @@ protected:
 	/// Forces a re-layout of this element, and any other elements required.
 	virtual void DirtyLayout();
 
+	/// Returns true if the element has been marked as needing a re-layout.
+	virtual bool IsLayoutDirty();
+
 	/// Forces a reevaluation of applicable font effects.
 	virtual void DirtyFont();
 

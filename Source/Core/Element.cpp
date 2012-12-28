@@ -1350,22 +1350,25 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 {
 	bool all_dirty = StyleSheetSpecification::GetRegisteredProperties() == changed_properties;
 
-	// Force a relayout if any of the changed properties require it.
-	if (all_dirty)
+	if (!IsLayoutDirty())
 	{
-		DirtyLayout();
-	}
-	else
-	{
-		for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
+		if (all_dirty)
 		{
-			const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
-			if (property_definition)
+			DirtyLayout();
+		}
+		else
+		{
+			// Force a relayout if any of the changed properties require it.
+			for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
 			{
-				if (property_definition->IsLayoutForced())
+				const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
+				if (property_definition)
 				{
-					DirtyLayout();
-					break;
+					if (property_definition->IsLayoutForced())
+					{
+						DirtyLayout();
+						break;
+					}
 				}
 			}
 		}
@@ -1555,6 +1558,15 @@ void Element::DirtyLayout()
 	Element* document = GetOwnerDocument();
 	if (document != NULL)
 		document->DirtyLayout();
+}
+
+// Forces a re-layout of this element, and any other children required.
+bool Element::IsLayoutDirty()
+{
+	Element* document = GetOwnerDocument();
+	if (document != NULL)
+		return document->IsLayoutDirty();
+	return false;
 }
 
 // Forces a reevaluation of applicable font effects.
