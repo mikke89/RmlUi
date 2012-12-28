@@ -2,18 +2,18 @@
 # Build script for libRocket =======
 #===================================
 
-if(APPLE)
 # We use the new OSX_ARCHITECTURES property
-cmake_minimum_required(VERSION 2.8.1)
-else()
-cmake_minimum_required(VERSION 2.6)
-endif()
+# and GNUInstallDirs module
+cmake_minimum_required(VERSION 2.8.5)
 
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0015 NEW)
 endif(COMMAND cmake_policy)
 
 project(libRocket C CXX)
+
+# paths
+include(GNUInstallDirs)
 
 set(LIBROCKET_VERSION_MAJOR 1)
 set(LIBROCKET_VERSION_MINOR 2)
@@ -139,9 +139,9 @@ foreach(library ${LIBRARIES})
     endif()
 
     install(TARGETS ${NAME}
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 endforeach(library)
 
@@ -242,7 +242,7 @@ if(BUILD_SAMPLES)
         endif()
     endif()
    
-    set(SAMPLES_DIR opt/Rocket/Samples)
+    set(SAMPLES_DIR opt/Rocket/Samples CACHE PATH "path to samples dir")
 
     # The samples and tutorials use the shell library
     include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
@@ -255,8 +255,8 @@ if(BUILD_SAMPLES)
     endif()
 
     install(TARGETS shell
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 
     # Build and install the basic samples
