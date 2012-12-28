@@ -107,9 +107,14 @@ const PropertyDefinition* StyleSheetSpecification::GetProperty(const String& pro
 }
 
 // Fetches a list of the names of all registered property definitions.
-void StyleSheetSpecification::GetRegisteredProperties(PropertyNameList& properties)
+const PropertyNameList& StyleSheetSpecification::GetRegisteredProperties()
 {
-	instance->properties.GetRegisteredProperties(properties);
+	return instance->properties.GetRegisteredProperties();
+}
+
+const PropertyNameList & StyleSheetSpecification::GetRegisteredInheritedProperties()
+{
+	return instance->properties.GetRegisteredInheritedProperties();
 }
 
 // Registers a shorthand property definition.

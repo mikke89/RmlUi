@@ -201,7 +201,7 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 void LayoutEngine::BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element, bool inline_element)
 {
 	Vector2f containing_block = GetContainingBlock(containing_box);
-	BuildBox(box, GetContainingBlock(containing_box), element, inline_element);
+	BuildBox(box, containing_block, element, inline_element);
 
 	float box_height = box.GetSize().y;
 	if (box_height < 0)
