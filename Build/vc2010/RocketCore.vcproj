@@ -284,11 +284,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\Core\ElementStyleCache.cpp"
+				RelativePath="..\..\Source\Core\ElementStyle.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Source\Core\ElementStyle.h"
+				RelativePath="..\..\Source\Core\ElementStyleCache.cpp"
 				>
 			</File>
 			<File
