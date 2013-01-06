@@ -4,6 +4,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorFirstOfType.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
+	${PROJECT_SOURCE_DIR}/Source/Core/ElementStyleCache.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.h
@@ -219,6 +220,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
+	${PROJECT_SOURCE_DIR}/Source/Core/ElementStyleCache.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNoneInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.cpp
