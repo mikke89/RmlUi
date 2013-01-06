@@ -100,23 +100,29 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 	}
 
 	// Calculate the padding area.
-	float padding = element->ResolveProperty(PADDING_TOP, containing_block.x);
+	const Property *padding_top, *padding_bottom, *padding_left, *padding_right;
+	element->GetPaddingProperties (&padding_top, &padding_bottom, &padding_left, &padding_right);
+
+	float padding = element->ResolveProperty(padding_top, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::TOP, Math::Max(0.0f, padding));
-	padding = element->ResolveProperty(PADDING_RIGHT, containing_block.x);
+	padding = element->ResolveProperty(padding_right, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::RIGHT, Math::Max(0.0f, padding));
-	padding = element->ResolveProperty(PADDING_BOTTOM, containing_block.x);
+	padding = element->ResolveProperty(padding_bottom, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::BOTTOM, Math::Max(0.0f, padding));
-	padding = element->ResolveProperty(PADDING_LEFT, containing_block.x);
+	padding = element->ResolveProperty(padding_left, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::LEFT, Math::Max(0.0f, padding));
 
 	// Calculate the border area.
-	float border = element->ResolveProperty(BORDER_TOP_WIDTH, containing_block.x);
+	const Property *border_top_width, *border_bottom_width, *border_left_width, *border_right_width;
+	element->GetBorderWidthProperties (&border_top_width, &border_bottom_width, &border_left_width, &border_right_width);
+
+	float border = element->ResolveProperty(border_top_width, containing_block.x);
 	box.SetEdge(Box::BORDER, Box::TOP, Math::Max(0.0f, border));
-	border = element->ResolveProperty(BORDER_RIGHT_WIDTH, containing_block.x);
+	border = element->ResolveProperty(border_right_width, containing_block.x);
 	box.SetEdge(Box::BORDER, Box::RIGHT, Math::Max(0.0f, border));
-	border = element->ResolveProperty(BORDER_BOTTOM_WIDTH, containing_block.x);
+	border = element->ResolveProperty(border_bottom_width, containing_block.x);
 	box.SetEdge(Box::BORDER, Box::BOTTOM, Math::Max(0.0f, border));
-	border = element->ResolveProperty(BORDER_LEFT_WIDTH, containing_block.x);
+	border = element->ResolveProperty(border_left_width, containing_block.x);
 	box.SetEdge(Box::BORDER, Box::LEFT, Math::Max(0.0f, border));
 
 	// Calculate the size of the content area.
@@ -134,15 +140,17 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		// The element has resized itself, so we only resize it if a RCSS width or height was set explicitly. A value of
 		// 'auto' (or 'auto-fit', ie, both keywords) means keep (or adjust) the intrinsic dimensions.
 		bool auto_width = false, auto_height = false;
-		const Property* width_property = element->GetProperty(WIDTH);
+		const Property* width_property, *height_property;
+
+		element->GetDimensionProperties(&width_property, &height_property);
+
 		if (width_property->unit != Property::KEYWORD)
-			content_area.x = element->ResolveProperty(WIDTH, containing_block.x);
+			content_area.x = element->ResolveProperty(width_property, containing_block.x);
 		else
 			auto_width = true;
 
-		const Property* height_property = element->GetProperty(HEIGHT);
 		if (height_property->unit != Property::KEYWORD)
-			content_area.y = element->ResolveProperty(HEIGHT, containing_block.y);
+			content_area.y = element->ResolveProperty(height_property, containing_block.y);
 		else
 			auto_height = true;
 
@@ -181,10 +189,13 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		box.SetContent(content_area);
 
 		// Evaluate the margins. Any declared as 'auto' will resolve to 0.
-		box.SetEdge(Box::MARGIN, Box::TOP, element->ResolveProperty(MARGIN_TOP, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::RIGHT, element->ResolveProperty(MARGIN_RIGHT, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::BOTTOM, element->ResolveProperty(MARGIN_BOTTOM, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::LEFT, element->ResolveProperty(MARGIN_LEFT, containing_block.x));
+		const Property *margin_top, *margin_bottom, *margin_left, *margin_right;
+		element->GetMarginProperties(&margin_top, &margin_bottom, &margin_left, &margin_right);
+
+		box.SetEdge(Box::MARGIN, Box::TOP, element->ResolveProperty(margin_top, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::RIGHT, element->ResolveProperty(margin_right, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::BOTTOM, element->ResolveProperty(margin_bottom, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::LEFT, element->ResolveProperty(margin_left, containing_block.x));
 	}
 
 	// The element is block, so we need to run the box through the ringer to potentially evaluate auto margins and
@@ -295,13 +306,13 @@ bool LayoutEngine::FormatElement(Element* element)
 		return true;
 
 	// Fetch the display property, and don't lay this element out if it is set to a display type of none.
-	int display_property = element->GetProperty< int >(DISPLAY);
+	int display_property = element->GetDisplay();
 	if (display_property == DISPLAY_NONE)
 		return true;
 
 	// Check for an absolute position; if this has been set, then we remove it from the flow and add it to the current
 	// block box to be laid out and positioned once the block has been closed and sized.
-	int position_property = element->GetProperty< int >(POSITION);
+	int position_property = element->GetPosition();
 	if (position_property == POSITION_ABSOLUTE ||
 		position_property == POSITION_FIXED)
 	{
@@ -311,7 +322,7 @@ bool LayoutEngine::FormatElement(Element* element)
 	}
 
 	// If the element is floating, we remove it from the flow.
-	int float_property = element->GetProperty< int >(FLOAT);
+	int float_property = element->GetFloat();
 	if (float_property != FLOAT_NONE)
 	{
 		// Format the element as a block element.
@@ -469,7 +480,8 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 		width_auto = false;
 	else
 	{
-		const Property* width_property = element->GetProperty(WIDTH);
+		const Property* width_property;
+		element->GetDimensionProperties(&width_property, NULL);
 		if (width_property->unit == Property::KEYWORD)
 		{
 			width_auto = true;
@@ -477,17 +489,20 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 		else
 		{
 			width_auto = false;
-			content_area.x = element->ResolveProperty(WIDTH, containing_block_width);
+			content_area.x = element->ResolveProperty(width_property, containing_block_width);
 		}
 	}
 
 	// Determine if the element has automatic margins.
 	bool margins_auto[2];
 	int num_auto_margins = 0;
+
+	const Property *margin_left, *margin_right;
+	element->GetMarginProperties(NULL, NULL, &margin_left, &margin_right);
+
 	for (int i = 0; i < 2; ++i)
 	{
-		const String& property_name = i == 0 ? MARGIN_LEFT : MARGIN_RIGHT;
-		const Property* margin_property = element->GetLocalProperty(property_name);
+		const Property* margin_property = i == 0 ? margin_left : margin_right;
 		if (margin_property != NULL &&
 			margin_property->unit == Property::KEYWORD)
 		{
@@ -497,7 +512,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, element->ResolveProperty(property_name, containing_block_width));
+			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, element->ResolveProperty(margin_property, containing_block_width));
 		}
 	}
 
@@ -561,7 +576,8 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 		height_auto = false;
 	else
 	{
-		const Property* height_property = element->GetProperty(HEIGHT);
+		const Property* height_property;
+		element->GetDimensionProperties(NULL, &height_property);
 		if (height_property == NULL)
 		{
 			height_auto = false;		
@@ -573,17 +589,20 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 		else
 		{
 			height_auto = false;
-			content_area.y = element->ResolveProperty(HEIGHT, containing_block_height);
+			content_area.y = element->ResolveProperty(height_property, containing_block_height);
 		}
 	}
 
 	// Determine if the element has automatic margins.
 	bool margins_auto[2];
 	int num_auto_margins = 0;
+
+	const Property *margin_top, *margin_bottom;
+	element->GetMarginProperties(&margin_top, &margin_bottom, NULL, NULL);
+
 	for (int i = 0; i < 2; ++i)
 	{
-		const String& property_name = i == 0 ? MARGIN_TOP : MARGIN_BOTTOM;
-		const Property* margin_property = element->GetLocalProperty(property_name);
+		const Property* margin_property = i == 0 ? margin_top : margin_bottom;
 		if (margin_property != NULL &&
 			margin_property->unit == Property::KEYWORD)
 		{
@@ -593,7 +612,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, element->ResolveProperty(property_name, containing_block_height));
+			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, element->ResolveProperty(margin_property, containing_block_height));
 		}
 	}
 

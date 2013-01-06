@@ -71,7 +71,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	// Determine the offset parent for our children.
 	if (parent != NULL &&
 		parent->offset_parent->GetElement() != NULL &&
-		(element == NULL || element->GetProperty< int >(POSITION) == POSITION_STATIC))
+		(element == NULL || element->GetPosition() == POSITION_STATIC))
 		offset_parent = parent->offset_parent;
 	else
 		offset_parent = this;
@@ -100,11 +100,10 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 
 	if (element != NULL)
 	{
-		wrap_content = element->GetProperty< int >(WHITE_SPACE) != WHITE_SPACE_NOWRAP;
+		wrap_content = element->GetWhitespace() != WHITE_SPACE_NOWRAP;
 
 		// Determine if this element should have scrollbars or not, and create them if so.
-		overflow_x_property = element->GetProperty< int >(OVERFLOW_X);
-		overflow_y_property = element->GetProperty< int >(OVERFLOW_Y);
+		element->GetOverflow(&overflow_x_property, &overflow_y_property);
 
 		if (overflow_x_property == OVERFLOW_SCROLL)
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
@@ -266,7 +265,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 	if (context == BLOCK &&
 		element != NULL)
 	{
-		if (element->GetProperty< int >(POSITION) != POSITION_STATIC)
+		if (element->GetPosition() != POSITION_STATIC)
 			CloseAbsoluteElements();
 	}
 

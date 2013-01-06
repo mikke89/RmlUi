@@ -46,7 +46,7 @@ bool StyleSheetNodeSelectorEmpty::IsApplicable(const Element* element, int ROCKE
 {
 	for (int i = 0; i < element->GetNumChildren(); ++i)
 	{
-		if (element->GetChild(i)->GetProperty< int >(DISPLAY) != DISPLAY_NONE)
+		if (element->GetChild(i)->GetDisplay() != DISPLAY_NONE)
 			return false;
 	}
 
