@@ -308,10 +308,13 @@ void WidgetSlider::FormatBar(float bar_length)
 	Box bar_box;
 	LayoutEngine::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
 
+	const Property *local_width, *local_height;
+	bar->GetLocalDimensionProperties(&local_width, &local_height);
+
 	Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
 	{
-		if (bar->GetLocalProperty(HEIGHT) == NULL)
+		if (local_height == NULL)
 			bar_box_content.y = parent->GetBox().GetSize().y;
 	}
 
@@ -323,7 +326,7 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM));
 
-			if (bar->GetLocalProperty(HEIGHT) == NULL)
+			if (local_height == NULL)
 			{
 				bar_box_content.y = track_length * bar_length;
 
@@ -344,7 +347,7 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 
-			if (bar->GetLocalProperty(WIDTH) == NULL)
+			if (local_width == NULL)
 			{
 				bar_box_content.x = track_length * bar_length;
 

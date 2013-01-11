@@ -92,6 +92,7 @@
     <ClCompile Include="..\..\Source\Core\ElementReference.cpp" />
     <ClCompile Include="..\..\Source\Core\ElementScroll.cpp" />
     <ClCompile Include="..\..\Source\Core\ElementStyle.cpp" />
+	<ClCompile Include="..\..\Source\Core\ElementStyleCache.cpp" />
     <ClCompile Include="..\..\Source\Core\ElementUtilities.cpp" />
     <ClCompile Include="..\..\Source\Core\LayoutBlockBox.cpp" />
     <ClCompile Include="..\..\Source\Core\LayoutBlockBoxSpace.cpp" />
@@ -227,6 +228,7 @@
     <ClInclude Include="..\..\Include\Rocket\Core\ElementReference.h" />
     <ClInclude Include="..\..\Include\Rocket\Core\ElementScroll.h" />
     <ClInclude Include="..\..\Source\Core\ElementStyle.h" />
+	<ClInclude Include="..\..\Source\Core\ElementStyleCache.h" />
     <ClInclude Include="..\..\Include\Rocket\Core\ElementUtilities.h" />
     <ClInclude Include="..\..\Source\Core\LayoutBlockBox.h" />
     <ClInclude Include="..\..\Source\Core\LayoutBlockBoxSpace.h" />

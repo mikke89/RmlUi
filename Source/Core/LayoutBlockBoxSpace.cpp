@@ -66,7 +66,7 @@ void LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float& box_width, 
 float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 {
 	Vector2f element_size = element->GetBox().GetSize(Box::MARGIN);
-	int float_property = element->GetProperty< int >(FLOAT);
+	int float_property = element->GetFloat();
 
 	// Shift the cursor down (if necessary) so it isn't placed any higher than a previously-floated box.
 	for (int i = 0; i < NUM_ANCHOR_EDGES; ++i)

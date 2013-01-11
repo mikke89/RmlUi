@@ -82,6 +82,7 @@
 		6E8B1E04123ABCC200C451C8 /* ElementReference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3712058A45000FAF17 /* ElementReference.cpp */; };
 		6E8B1E05123ABCC200C451C8 /* ElementScroll.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3812058A45000FAF17 /* ElementScroll.cpp */; };
 		6E8B1E06123ABCC200C451C8 /* ElementStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3912058A45000FAF17 /* ElementStyle.cpp */; };
+		6E8B1E06123ABCC200C451C8 /* ElementStyleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3912058A45000FAF17 /* ElementStyleCache.cpp */; };
 		6E8B1E07123ABCC200C451C8 /* ElementText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3B12058A45000FAF17 /* ElementText.cpp */; };
 		6E8B1E08123ABCC200C451C8 /* ElementTextDefault.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */; };
 		6E8B1E09123ABCC200C451C8 /* ElementUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */; };
@@ -271,6 +272,7 @@
 		6EF28E6312058A45000FAF17 /* ElementReference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3712058A45000FAF17 /* ElementReference.cpp */; };
 		6EF28E6412058A45000FAF17 /* ElementScroll.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3812058A45000FAF17 /* ElementScroll.cpp */; };
 		6EF28E6512058A45000FAF17 /* ElementStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3912058A45000FAF17 /* ElementStyle.cpp */; };
+		6EF28E6512058A45000FAF17 /* ElementStyleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3912058A45000FAF17 /* ElementStyleCache.cpp */; };
 		6EF28E6712058A45000FAF17 /* ElementText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3B12058A45000FAF17 /* ElementText.cpp */; };
 		6EF28E6812058A45000FAF17 /* ElementTextDefault.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */; };
 		6EF28E6A12058A45000FAF17 /* ElementUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */; };
@@ -626,6 +628,7 @@
 		6EF28D3712058A45000FAF17 /* ElementReference.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementReference.cpp; path = ../Source/Core/ElementReference.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3812058A45000FAF17 /* ElementScroll.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementScroll.cpp; path = ../Source/Core/ElementScroll.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3912058A45000FAF17 /* ElementStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementStyle.cpp; path = ../Source/Core/ElementStyle.cpp; sourceTree = SOURCE_ROOT; };
+		6EF28D3912058A45000FAF17 /* ElementStyleCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementStyleCache.cpp; path = ../Source/Core/ElementStyleCache.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3B12058A45000FAF17 /* ElementText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementText.cpp; path = ../Source/Core/ElementText.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementTextDefault.cpp; path = ../Source/Core/ElementTextDefault.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementUtilities.cpp; path = ../Source/Core/ElementUtilities.cpp; sourceTree = SOURCE_ROOT; };
@@ -985,6 +988,7 @@
 				6EF28D3712058A45000FAF17 /* ElementReference.cpp */,
 				6EF28D3812058A45000FAF17 /* ElementScroll.cpp */,
 				6EF28D3912058A45000FAF17 /* ElementStyle.cpp */,
+				6EF28D3912058A45000FAF17 /* ElementStyleCache.cpp */,
 				6EF28D3B12058A45000FAF17 /* ElementText.cpp */,
 				6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */,
 				6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */,
@@ -1608,6 +1612,7 @@
 				6E8B1E04123ABCC200C451C8 /* ElementReference.cpp in Sources */,
 				6E8B1E05123ABCC200C451C8 /* ElementScroll.cpp in Sources */,
 				6E8B1E06123ABCC200C451C8 /* ElementStyle.cpp in Sources */,
+				6E8B1E06123ABCC200C451C8 /* ElementStyleCache.cpp in Sources */,
 				6E8B1E07123ABCC200C451C8 /* ElementText.cpp in Sources */,
 				6E8B1E08123ABCC200C451C8 /* ElementTextDefault.cpp in Sources */,
 				6E8B1E09123ABCC200C451C8 /* ElementUtilities.cpp in Sources */,
@@ -1813,6 +1818,7 @@
 				6EF28E6312058A45000FAF17 /* ElementReference.cpp in Sources */,
 				6EF28E6412058A45000FAF17 /* ElementScroll.cpp in Sources */,
 				6EF28E6512058A45000FAF17 /* ElementStyle.cpp in Sources */,
+				6EF28E6512058A45000FAF17 /* ElementStyleCache.cpp in Sources */,
 				6EF28E6712058A45000FAF17 /* ElementText.cpp in Sources */,
 				6EF28E6812058A45000FAF17 /* ElementTextDefault.cpp in Sources */,
 				6EF28E6A12058A45000FAF17 /* ElementUtilities.cpp in Sources */,
