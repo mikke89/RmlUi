@@ -56,7 +56,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, FontEffect* _effec
 		colour = effect->GetColour();
 	}
 
-	const FontGlyphMap& glyphs = handle->GetGlyphs();
+	const FontGlyphList& glyphs = handle->GetGlyphs();
 
 	// Clone the geometry and textures from the clone layer.
 	if (clone != NULL)
@@ -72,15 +72,14 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, FontEffect* _effec
 		if (!deep_clone &&
 			effect != NULL)
 		{
-			for (FontGlyphMap::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
+			for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
 			{
-				const FontGlyph& glyph = i->second;
+				const FontGlyph& glyph = *i;
 
-				CharacterMap::iterator character_iterator = characters.find(i->first);
-				if (character_iterator == characters.end())
+				if (glyph.character >= characters.size())
 					continue;
 
-				Character& character = character_iterator->second;
+				Character& character = characters[glyph.character];
 
 				Vector2i glyph_origin(Math::RealToInteger(character.origin.x), Math::RealToInteger(character.origin.y));
 				Vector2i glyph_dimensions(Math::RealToInteger(character.dimensions.x), Math::RealToInteger(character.dimensions.y));
@@ -91,16 +90,17 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, FontEffect* _effec
 					character.origin.y = (float) glyph_origin.y;
 				}
 				else
-					characters.erase(character_iterator);
+					character.texture_index = -1;
 			}
 		}
 	}
 	else
 	{
 		// Initialise the texture layout for the glyphs.
-		for (FontGlyphMap::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
+		characters.resize(glyphs.size(), Character());
+		for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
 		{
-			const FontGlyph& glyph = i->second;
+			const FontGlyph& glyph = *i;
 
 			Vector2i glyph_origin(0, 0);
 			Vector2i glyph_dimensions = glyph.bitmap_dimensions;
@@ -115,10 +115,10 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, FontEffect* _effec
 			Character character;
 			character.origin = Vector2f((float) (glyph_origin.x + glyph.bearing.x), (float) (glyph_origin.y - glyph.bearing.y));
 			character.dimensions = Vector2f((float) glyph_dimensions.x - glyph_origin.x, (float) glyph_dimensions.y - glyph_origin.y);
-			characters[i->first] = character;
+			characters[glyph.character] = character;
 
 			// Add the character's dimensions into the texture layout engine.
-			texture_layout.AddRectangle(i->first, glyph_dimensions - glyph_origin);
+			texture_layout.AddRectangle(glyph.character, glyph_dimensions - glyph_origin);
 		}
 
 		// Generate the texture layout; this will position the glyph rectangles efficiently and
@@ -168,7 +168,7 @@ bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture
 		texture_id > texture_layout.GetNumTextures())
 		return false;
 
-	const FontGlyphMap& glyphs = handle->GetGlyphs();
+	const FontGlyphList& glyphs = handle->GetGlyphs();
 
 	// Generate the texture data.
 	texture_data = texture_layout.GetTexture(texture_id).AllocateTexture();
@@ -182,7 +182,7 @@ bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture
 		if (character.texture_index != texture_id)
 			continue;
 
-		const FontGlyph& glyph = glyphs.find((word) rectangle.GetId())->second;
+		const FontGlyph& glyph = glyphs[rectangle.GetId()];
 
 		if (effect == NULL)
 		{
