@@ -144,7 +144,7 @@ void ElementStyleCache::GetBorderWidthProperties(const Property **o_border_top_w
 	{
 		if (!border_bottom_width)
 			border_bottom_width = style->GetProperty(BORDER_BOTTOM_WIDTH);
-		*o_border_bottom_width = border_top_width;
+		*o_border_bottom_width = border_bottom_width;
 	}
 
 	if (o_border_left_width)
