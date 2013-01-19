@@ -315,13 +315,13 @@ bool StringUtilities::UCS2toUTF8(const word* input, size_t input_size, String& o
 				
 			case 2:
 				output += (_SEQ2 | (oc[1] >> 6) | ((oc[0] & 0x07) << 2));
-				output += (_NXT | oc[1] & 0x3f);
+				output += (_NXT | (oc[1] & 0x3f));
 				break;
 				
 			case 3:
 				output += (_SEQ3 | ((oc[0] & 0xf0) >> 4));
 				output += (_NXT | (oc[1] >> 6) | ((oc[0] & 0x0f) << 2));
-				output += (_NXT | oc[1] & 0x3f);
+				output += (_NXT | (oc[1] & 0x3f));
 				break;
 				
 			case 4:
