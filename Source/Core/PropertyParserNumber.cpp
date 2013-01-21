@@ -35,7 +35,7 @@ PropertyParserNumber::PropertyParserNumber()
 {
 	unit_suffixes.push_back(UnitSuffix(Property::PX, "px"));
 	unit_suffixes.push_back(UnitSuffix(Property::EM, "em"));
-	unit_suffixes.push_back(UnitSuffix(Property::IN, "in"));
+	unit_suffixes.push_back(UnitSuffix(Property::INCH, "in"));
 	unit_suffixes.push_back(UnitSuffix(Property::CM, "cm"));
 	unit_suffixes.push_back(UnitSuffix(Property::MM, "mm"));
 	unit_suffixes.push_back(UnitSuffix(Property::PT, "pt"));
