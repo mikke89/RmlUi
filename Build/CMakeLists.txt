@@ -2,18 +2,18 @@
 # Build script for libRocket =======
 #===================================
 
-if(APPLE)
 # We use the new OSX_ARCHITECTURES property
-cmake_minimum_required(VERSION 2.8.1)
-else()
-cmake_minimum_required(VERSION 2.6)
-endif()
+# and GNUInstallDirs module
+cmake_minimum_required(VERSION 2.8.5)
 
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0015 NEW)
 endif(COMMAND cmake_policy)
 
 project(libRocket C CXX)
+
+# paths
+include(GNUInstallDirs)
 
 set(LIBROCKET_VERSION_MAJOR 1)
 set(LIBROCKET_VERSION_MINOR 2)
@@ -52,6 +52,17 @@ option(BUILD_SAMPLES "Build samples" OFF)
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
 endif()
+
+#on windows, check for VC10 and fix the multiple compile target issue.
+IF(WIN32)
+  if(MSVC)
+    if(${MSVC_VERSION} STREQUAL 1600 OR ${MSVC_VERSION} STRGREATER 1600)
+      message("Visual Studio 2010 (${MSVC_VERSION}) build fix at play (/FORCE:MULTIPLE)")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:MULTIPLE")
+    endif()
+  endif() 
+ENDIF(WIN32)
+
 
 #===================================
 # Find dependencies ================
@@ -138,9 +149,9 @@ foreach(library ${LIBRARIES})
     endif()
 
     install(TARGETS ${NAME}
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 endforeach(library)
 
@@ -182,9 +193,9 @@ if(BUILD_LUA_BINDINGS)
         )
         
         install(TARGETS ${NAME}
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
     endforeach(library)
 endif()
@@ -233,7 +244,9 @@ endmacro()
 
 if(BUILD_SAMPLES)
     include(SampleFileList)
-	set(samples treeview customlog drag loaddocument)
+
+    set(samples treeview customlog drag loaddocument)
+    set(tutorials template datagrid datagrid_tree tutorial_drag)
     
     set(sample_LIBRARIES
     	shell 
@@ -246,8 +259,8 @@ if(BUILD_SAMPLES)
 	find_package(OpenGL REQUIRED)
     	   
     if(OPENGL_FOUND)
-    	include_directories(${OPENGL_INCLUDE_DIR})
-        list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
+	include_directories(${OPENGL_INCLUDE_DIR})
+	list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
     endif()
     
     # Set up required system libraries
@@ -269,9 +282,9 @@ if(BUILD_SAMPLES)
         endif()
     endif()
    
-    set(SAMPLES_DIR opt/Rocket/Samples)
+    set(SAMPLES_DIR opt/Rocket/Samples CACHE PATH "path to samples dir")
 
-    # The samples use the shell library
+    # The samples and tutorials use the shell library
     include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
 
     # Build and install sample shell library
@@ -282,8 +295,8 @@ if(BUILD_SAMPLES)
     endif()
 
     install(TARGETS shell
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 
     # Build and install the basic samples
@@ -295,6 +308,17 @@ if(BUILD_SAMPLES)
         install(TARGETS ${sample} 
         	RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
         	BUNDLE DESTINATION ${SAMPLES_DIR})
+    endforeach()
+
+    # Build and install the tutorials
+    foreach(tutorial ${tutorials})
+        bl_sample(${tutorial} ${sample_LIBRARIES})
+
+        # The tutorials always set this as their current working directory
+        install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
+        install(TARGETS ${tutorial}
+                RUNTIME DESTINATION ${SAMPLES_DIR}/${tutorial}
+                BUNDLE DESTINATION ${SAMPLES_DIR})
     endforeach()
 
     # Build and install invaders sample
@@ -342,6 +366,18 @@ if(NOT BUILD_LUA_BINDINGS AND NOT BUILD_PYTHON_BINDINGS)
 endif()
 
 if(BUILD_SAMPLES)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/data
+            DESTINATION ${SAMPLES_DIR}/tutorial/template
+    )
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/data
+            DESTINATION ${SAMPLES_DIR}/tutorial/datagrid
+    )
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/data
+            DESTINATION ${SAMPLES_DIR}/tutorial/datagrid_tree
+    )
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/data
+            DESTINATION ${SAMPLES_DIR}/tutorial/tutorial_drag
+    )
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/data
             DESTINATION ${SAMPLES_DIR}/basic/treeview
     )

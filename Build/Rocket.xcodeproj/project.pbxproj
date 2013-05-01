@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E2C557416AA3EA9007E581B /* ElementStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E2C557016AA3EA9007E581B /* ElementStyle.cpp */; };
+		6E2C557516AA3EA9007E581B /* ElementStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E2C557016AA3EA9007E581B /* ElementStyle.cpp */; };
+		6E2C557616AA3EA9007E581B /* ElementStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E2C557116AA3EA9007E581B /* ElementStyle.h */; };
+		6E2C557716AA3EA9007E581B /* ElementStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E2C557116AA3EA9007E581B /* ElementStyle.h */; };
+		6E2C557816AA3EA9007E581B /* ElementStyleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E2C557216AA3EA9007E581B /* ElementStyleCache.cpp */; };
+		6E2C557916AA3EA9007E581B /* ElementStyleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E2C557216AA3EA9007E581B /* ElementStyleCache.cpp */; };
+		6E2C557A16AA3EA9007E581B /* ElementStyleCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E2C557316AA3EA9007E581B /* ElementStyleCache.h */; };
+		6E2C557B16AA3EA9007E581B /* ElementStyleCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E2C557316AA3EA9007E581B /* ElementStyleCache.h */; };
 		6E8B1CB6123AB0CC00C451C8 /* Clipboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E8B1C2D123AB0CC00C451C8 /* Clipboard.cpp */; };
 		6E8B1CB7123AB0CC00C451C8 /* Controls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E8B1C2E123AB0CC00C451C8 /* Controls.cpp */; };
 		6E8B1CB8123AB0CC00C451C8 /* DataFormatter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E8B1C2F123AB0CC00C451C8 /* DataFormatter.cpp */; };
@@ -81,7 +89,6 @@
 		6E8B1E03123ABCC200C451C8 /* ElementInstancer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3612058A45000FAF17 /* ElementInstancer.cpp */; };
 		6E8B1E04123ABCC200C451C8 /* ElementReference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3712058A45000FAF17 /* ElementReference.cpp */; };
 		6E8B1E05123ABCC200C451C8 /* ElementScroll.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3812058A45000FAF17 /* ElementScroll.cpp */; };
-		6E8B1E06123ABCC200C451C8 /* ElementStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3912058A45000FAF17 /* ElementStyle.cpp */; };
 		6E8B1E07123ABCC200C451C8 /* ElementText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3B12058A45000FAF17 /* ElementText.cpp */; };
 		6E8B1E08123ABCC200C451C8 /* ElementTextDefault.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */; };
 		6E8B1E09123ABCC200C451C8 /* ElementUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */; };
@@ -270,7 +277,6 @@
 		6EF28E6212058A45000FAF17 /* ElementInstancer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3612058A45000FAF17 /* ElementInstancer.cpp */; };
 		6EF28E6312058A45000FAF17 /* ElementReference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3712058A45000FAF17 /* ElementReference.cpp */; };
 		6EF28E6412058A45000FAF17 /* ElementScroll.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3812058A45000FAF17 /* ElementScroll.cpp */; };
-		6EF28E6512058A45000FAF17 /* ElementStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3912058A45000FAF17 /* ElementStyle.cpp */; };
 		6EF28E6712058A45000FAF17 /* ElementText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3B12058A45000FAF17 /* ElementText.cpp */; };
 		6EF28E6812058A45000FAF17 /* ElementTextDefault.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */; };
 		6EF28E6A12058A45000FAF17 /* ElementUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */; };
@@ -497,6 +503,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6E2C557016AA3EA9007E581B /* ElementStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementStyle.cpp; path = ../Source/Core/ElementStyle.cpp; sourceTree = "<group>"; };
+		6E2C557116AA3EA9007E581B /* ElementStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ElementStyle.h; path = ../Source/Core/ElementStyle.h; sourceTree = "<group>"; };
+		6E2C557216AA3EA9007E581B /* ElementStyleCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementStyleCache.cpp; path = ../Source/Core/ElementStyleCache.cpp; sourceTree = "<group>"; };
+		6E2C557316AA3EA9007E581B /* ElementStyleCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ElementStyleCache.h; path = ../Source/Core/ElementStyleCache.h; sourceTree = "<group>"; };
 		6E8B1B0C123A0E2A00C451C8 /* libRocketCoreiOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRocketCoreiOS.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E8B1BF0123AAEE200C451C8 /* libRocketControlsiOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRocketControlsiOS.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E8B1C2D123AB0CC00C451C8 /* Clipboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Clipboard.cpp; path = ../Source/Controls/Clipboard.cpp; sourceTree = SOURCE_ROOT; };
@@ -625,7 +635,6 @@
 		6EF28D3612058A45000FAF17 /* ElementInstancer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementInstancer.cpp; path = ../Source/Core/ElementInstancer.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3712058A45000FAF17 /* ElementReference.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementReference.cpp; path = ../Source/Core/ElementReference.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3812058A45000FAF17 /* ElementScroll.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementScroll.cpp; path = ../Source/Core/ElementScroll.cpp; sourceTree = SOURCE_ROOT; };
-		6EF28D3912058A45000FAF17 /* ElementStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementStyle.cpp; path = ../Source/Core/ElementStyle.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3B12058A45000FAF17 /* ElementText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementText.cpp; path = ../Source/Core/ElementText.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementTextDefault.cpp; path = ../Source/Core/ElementTextDefault.cpp; sourceTree = SOURCE_ROOT; };
 		6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementUtilities.cpp; path = ../Source/Core/ElementUtilities.cpp; sourceTree = SOURCE_ROOT; };
@@ -874,91 +883,27 @@
 		6E8B1BD8123AABCD00C451C8 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				6E9D09261209823B00099E1A /* BaseXMLParser.cpp */,
 				6EF3BBA912481DD40014316D /* BaseXMLParser.h */,
+				6EF28B78120580DA000FAF17 /* Box.cpp */,
 				6EF3BBAA12481DD40014316D /* Box.h */,
+				6EF28D0312058A45000FAF17 /* Clock.cpp */,
 				6EF3BBAB12481DD40014316D /* Colour.h */,
 				6EF3BBAC12481DD40014316D /* Colour.inl */,
-				6EF3BBAD12481DD40014316D /* Context.h */,
-				6EF3BBAE12481DD40014316D /* ContextInstancer.h */,
-				6EF3BBAF12481DD40014316D /* ConvolutionFilter.h */,
-				6EF3BBB012481DD40014316D /* Core.h */,
-				6EF3BBB112481DD40014316D /* Debug.h */,
-				6EF3BBB212481DD40014316D /* Decorator.h */,
-				6EF3BBB312481DD40014316D /* DecoratorInstancer.h */,
-				6EF3BBB412481DD40014316D /* Dictionary.h */,
-				6EF3BBB512481DD40014316D /* Dictionary.inl */,
-				6EF3BBB612481DD40014316D /* Element.h */,
-				6EF3BBB712481DD40014316D /* Element.inl */,
-				6EF3BBB812481DD40014316D /* ElementDocument.h */,
-				6EF3BBB912481DD40014316D /* ElementInstancer.h */,
-				6EF3BBBA12481DD40014316D /* ElementInstancerGeneric.h */,
-				6EF3BBBB12481DD40014316D /* ElementInstancerGeneric.inl */,
-				6EF3BBBC12481DD40014316D /* ElementReference.h */,
-				6EF3BBBD12481DD40014316D /* ElementScroll.h */,
-				6EF3BBBE12481DD40014316D /* ElementText.h */,
-				6EF3BBBF12481DD40014316D /* ElementUtilities.h */,
-				6EF3BBC012481DD40014316D /* Event.h */,
-				6EF3BBC112481DD40014316D /* EventInstancer.h */,
-				6EF3BBC212481DD40014316D /* EventListener.h */,
-				6EF3BBC312481DD40014316D /* EventListenerInstancer.h */,
-				6EF3BBC412481DD40014316D /* Factory.h */,
-				6EF3BBC512481DD40014316D /* FileInterface.h */,
-				6EF3BBC612481DD40014316D /* Font.h */,
-				6EF3BBC712481DD40014316D /* FontDatabase.h */,
-				6EF3BBC812481DD40014316D /* FontEffect.h */,
-				6EF3BBC912481DD40014316D /* FontEffectInstancer.h */,
-				6EF3BBCA12481DD40014316D /* FontGlyph.h */,
-				6EF3BBCB12481DD40014316D /* Geometry.h */,
-				6EF3BBCC12481DD40014316D /* GeometryUtilities.h */,
-				6EF3BBCD12481DD40014316D /* Header.h */,
-				6EF3BBCE12481DD40014316D /* Input.h */,
-				6EF3BBCF12481DD40014316D /* Log.h */,
-				6EF3BBD012481DD40014316D /* Math.h */,
-				6EF3BBD112481DD40014316D /* MathTypes.h */,
-				6EF3BBD212481DD40014316D /* Platform.h */,
-				6EF3BBD312481DD40014316D /* Plugin.h */,
-				6EF3BBD512481DD40014316D /* Pool.inl */,
-				6EF3BBD612481DD40014316D /* Property.h */,
-				6EF3BBD712481DD40014316D /* PropertyDefinition.h */,
-				6EF3BBD812481DD40014316D /* PropertyDictionary.h */,
-				6EF3BBD912481DD40014316D /* PropertyParser.h */,
-				6EF3BBDA12481DD40014316D /* PropertySpecification.h */,
-				6EF3BBE712481DD40014316D /* ReferenceCountable.h */,
-				6EF3BBE812481DD40014316D /* RenderInterface.h */,
-				6EF3BBE912481DD40014316D /* ScriptInterface.h */,
-				6EF3BBEA12481DD40014316D /* Stream.h */,
-				6EF3BBEB12481DD40014316D /* StreamMemory.h */,
-				6EF3BBEC12481DD40014316D /* String.h */,
-				6EF3BBED12481DD40014316D /* StringBase.h */,
-				6EF3BBEE12481DD40014316D /* StringBase.inl */,
-				6EF3BBF012481DD40014316D /* StringUtilities.h */,
-				6EF3BBF112481DD40014316D /* StyleSheet.h */,
-				6EF3BBF212481DD40014316D /* StyleSheetKeywords.h */,
-				6EF3BBF312481DD40014316D /* StyleSheetSpecification.h */,
-				6EF3BBF412481DD40014316D /* SystemInterface.h */,
-				6EF3BBF512481DD40014316D /* Texture.h */,
-				6EF3BBF612481DD40014316D /* TypeConverter.h */,
-				6EF3BBF712481DD40014316D /* TypeConverter.inl */,
-				6EF3BBF812481DD40014316D /* Types.h */,
-				6EF3BBF912481DD40014316D /* URL.h */,
-				6EF3BBFA12481DD40014316D /* Variant.h */,
-				6EF3BBFB12481DD40014316D /* Variant.inl */,
-				6EF3BBFC12481DD40014316D /* Vector2.h */,
-				6EF3BBFD12481DD40014316D /* Vector2.inl */,
-				6EF3BBFE12481DD40014316D /* Vertex.h */,
-				6EF3BBFF12481DD40014316D /* WString.h */,
-				6EF3BC0012481DD40014316D /* XMLNodeHandler.h */,
-				6EF3BC0112481DD40014316D /* XMLParser.h */,
-				6E9D09261209823B00099E1A /* BaseXMLParser.cpp */,
-				6EF28B78120580DA000FAF17 /* Box.cpp */,
-				6EF28D0312058A45000FAF17 /* Clock.cpp */,
 				6EF28D0512058A45000FAF17 /* Context.cpp */,
+				6EF3BBAD12481DD40014316D /* Context.h */,
 				6EF28D0612058A45000FAF17 /* ContextInstancer.cpp */,
+				6EF3BBAE12481DD40014316D /* ContextInstancer.h */,
 				6EF28D0712058A45000FAF17 /* ContextInstancerDefault.cpp */,
 				6EF28D0912058A45000FAF17 /* ConvolutionFilter.cpp */,
+				6EF3BBAF12481DD40014316D /* ConvolutionFilter.h */,
 				6EF28D0A12058A45000FAF17 /* Core.cpp */,
+				6EF3BBB012481DD40014316D /* Core.h */,
+				6EF3BBB112481DD40014316D /* Debug.h */,
 				6EF28D0C12058A45000FAF17 /* Decorator.cpp */,
+				6EF3BBB212481DD40014316D /* Decorator.h */,
 				6EF28D0D12058A45000FAF17 /* DecoratorInstancer.cpp */,
+				6EF3BBB312481DD40014316D /* DecoratorInstancer.h */,
 				6EF28D0E12058A45000FAF17 /* DecoratorNone.cpp */,
 				6EF28D1012058A45000FAF17 /* DecoratorNoneInstancer.cpp */,
 				6EF28D1212058A45000FAF17 /* DecoratorTiled.cpp */,
@@ -972,33 +917,58 @@
 				6EF28D2212058A45000FAF17 /* DecoratorTiledVertical.cpp */,
 				6EF28D2412058A45000FAF17 /* DecoratorTiledVerticalInstancer.cpp */,
 				6E9D09271209823B00099E1A /* Dictionary.cpp */,
+				6EF3BBB412481DD40014316D /* Dictionary.h */,
+				6EF3BBB512481DD40014316D /* Dictionary.inl */,
 				6EF28D2612058A45000FAF17 /* DocumentHeader.cpp */,
 				6EF28D2812058A45000FAF17 /* Element.cpp */,
+				6EF3BBB612481DD40014316D /* Element.h */,
+				6EF3BBB712481DD40014316D /* Element.inl */,
 				6EF28D2912058A45000FAF17 /* ElementBackground.cpp */,
 				6EF28D2B12058A45000FAF17 /* ElementBorder.cpp */,
 				6EF28D2D12058A45000FAF17 /* ElementDecoration.cpp */,
 				6EF28D2F12058A45000FAF17 /* ElementDefinition.cpp */,
 				6EF28D3112058A45000FAF17 /* ElementDocument.cpp */,
+				6EF3BBB812481DD40014316D /* ElementDocument.h */,
 				6EF28D3212058A45000FAF17 /* ElementHandle.cpp */,
 				6EF28D3412058A45000FAF17 /* ElementImage.cpp */,
 				6EF28D3612058A45000FAF17 /* ElementInstancer.cpp */,
+				6EF3BBB912481DD40014316D /* ElementInstancer.h */,
+				6EF3BBBA12481DD40014316D /* ElementInstancerGeneric.h */,
+				6EF3BBBB12481DD40014316D /* ElementInstancerGeneric.inl */,
 				6EF28D3712058A45000FAF17 /* ElementReference.cpp */,
+				6EF3BBBC12481DD40014316D /* ElementReference.h */,
 				6EF28D3812058A45000FAF17 /* ElementScroll.cpp */,
-				6EF28D3912058A45000FAF17 /* ElementStyle.cpp */,
+				6EF3BBBD12481DD40014316D /* ElementScroll.h */,
+				6E2C557016AA3EA9007E581B /* ElementStyle.cpp */,
+				6E2C557116AA3EA9007E581B /* ElementStyle.h */,
+				6E2C557216AA3EA9007E581B /* ElementStyleCache.cpp */,
+				6E2C557316AA3EA9007E581B /* ElementStyleCache.h */,
 				6EF28D3B12058A45000FAF17 /* ElementText.cpp */,
+				6EF3BBBE12481DD40014316D /* ElementText.h */,
 				6EF28D3C12058A45000FAF17 /* ElementTextDefault.cpp */,
 				6EF28D3E12058A45000FAF17 /* ElementUtilities.cpp */,
+				6EF3BBBF12481DD40014316D /* ElementUtilities.h */,
 				6EF28D3F12058A45000FAF17 /* Event.cpp */,
+				6EF3BBC012481DD40014316D /* Event.h */,
 				6EF28D4012058A45000FAF17 /* EventDispatcher.cpp */,
 				6EF28D4212058A45000FAF17 /* EventInstancer.cpp */,
+				6EF3BBC112481DD40014316D /* EventInstancer.h */,
 				6EF28D4312058A45000FAF17 /* EventInstancerDefault.cpp */,
+				6EF3BBC212481DD40014316D /* EventListener.h */,
 				6EF28D4612058A45000FAF17 /* EventListenerInstancer.cpp */,
+				6EF3BBC312481DD40014316D /* EventListenerInstancer.h */,
 				6EF28D4712058A45000FAF17 /* Factory.cpp */,
+				6EF3BBC412481DD40014316D /* Factory.h */,
 				6EF28D4812058A45000FAF17 /* FileInterface.cpp */,
+				6EF3BBC512481DD40014316D /* FileInterface.h */,
 				6EF28D4912058A45000FAF17 /* FileInterfaceDefault.cpp */,
+				6EF3BBC612481DD40014316D /* Font.h */,
 				6EF28D4B12058A45000FAF17 /* FontDatabase.cpp */,
+				6EF3BBC712481DD40014316D /* FontDatabase.h */,
 				6EF28D4C12058A45000FAF17 /* FontEffect.cpp */,
+				6EF3BBC812481DD40014316D /* FontEffect.h */,
 				6EF28D4D12058A45000FAF17 /* FontEffectInstancer.cpp */,
+				6EF3BBC912481DD40014316D /* FontEffectInstancer.h */,
 				6EF28D4E12058A45000FAF17 /* FontEffectNone.cpp */,
 				6EF28D5012058A45000FAF17 /* FontEffectNoneInstancer.cpp */,
 				6EF28D5212058A45000FAF17 /* FontEffectOutline.cpp */,
@@ -1009,9 +979,14 @@
 				6EF28D5C12058A45000FAF17 /* FontFaceHandle.cpp */,
 				6EF28D5E12058A45000FAF17 /* FontFaceLayer.cpp */,
 				6EF28D6012058A45000FAF17 /* FontFamily.cpp */,
+				6EF3BBCA12481DD40014316D /* FontGlyph.h */,
 				6EF28D6212058A45000FAF17 /* Geometry.cpp */,
+				6EF3BBCB12481DD40014316D /* Geometry.h */,
 				6EF28D6312058A45000FAF17 /* GeometryDatabase.cpp */,
 				6EF28D6512058A45000FAF17 /* GeometryUtilities.cpp */,
+				6EF3BBCC12481DD40014316D /* GeometryUtilities.h */,
+				6EF3BBCD12481DD40014316D /* Header.h */,
+				6EF3BBCE12481DD40014316D /* Input.h */,
 				6EF28D6612058A45000FAF17 /* LayoutBlockBox.cpp */,
 				6EF28D6812058A45000FAF17 /* LayoutBlockBoxSpace.cpp */,
 				6EF28D6A12058A45000FAF17 /* LayoutEngine.cpp */,
@@ -1019,27 +994,49 @@
 				6EF28D6E12058A45000FAF17 /* LayoutInlineBoxText.cpp */,
 				6EF28D7012058A45000FAF17 /* LayoutLineBox.cpp */,
 				6EF28D7212058A45000FAF17 /* Log.cpp */,
+				6EF3BBCF12481DD40014316D /* Log.h */,
 				6E9D09771209858B00099E1A /* Math.cpp */,
+				6EF3BBD012481DD40014316D /* Math.h */,
+				6EF3BBD112481DD40014316D /* MathTypes.h */,
+				6EF3BBD212481DD40014316D /* Platform.h */,
 				6EF28D7312058A45000FAF17 /* Plugin.cpp */,
+				6EF3BBD312481DD40014316D /* Plugin.h */,
 				6EF28D7412058A45000FAF17 /* PluginRegistry.cpp */,
+				6EF3BBD512481DD40014316D /* Pool.inl */,
 				6EF28D7812058A45000FAF17 /* Property.cpp */,
+				6EF3BBD612481DD40014316D /* Property.h */,
 				6EF28D7912058A45000FAF17 /* PropertyDefinition.cpp */,
+				6EF3BBD712481DD40014316D /* PropertyDefinition.h */,
 				6EF28D7A12058A45000FAF17 /* PropertyDictionary.cpp */,
+				6EF3BBD812481DD40014316D /* PropertyDictionary.h */,
+				6EF3BBD912481DD40014316D /* PropertyParser.h */,
 				6EF28D7B12058A45000FAF17 /* PropertyParserColour.cpp */,
 				6EF28D7D12058A45000FAF17 /* PropertyParserKeyword.cpp */,
 				6EF28D7F12058A45000FAF17 /* PropertyParserNumber.cpp */,
 				6EF28D8112058A45000FAF17 /* PropertyParserString.cpp */,
 				6EF28D8412058A45000FAF17 /* PropertySpecification.cpp */,
+				6EF3BBDA12481DD40014316D /* PropertySpecification.h */,
 				6E9D0987120986B600099E1A /* ReferenceCountable.cpp */,
+				6EF3BBE712481DD40014316D /* ReferenceCountable.h */,
 				6EF28DE212058A45000FAF17 /* RenderInterface.cpp */,
+				6EF3BBE812481DD40014316D /* RenderInterface.h */,
+				6EF3BBE912481DD40014316D /* ScriptInterface.h */,
 				6E9D09281209823B00099E1A /* Stream.cpp */,
+				6EF3BBEA12481DD40014316D /* Stream.h */,
 				6EF28DE312058A45000FAF17 /* StreamFile.cpp */,
 				6E9D09291209823B00099E1A /* StreamMemory.cpp */,
+				6EF3BBEB12481DD40014316D /* StreamMemory.h */,
 				6E9D099B1209878A00099E1A /* String.cpp */,
+				6EF3BBEC12481DD40014316D /* String.h */,
+				6EF3BBED12481DD40014316D /* StringBase.h */,
+				6EF3BBEE12481DD40014316D /* StringBase.inl */,
 				6EF28DE612058A45000FAF17 /* StringCache.cpp */,
 				6E9D092A1209823B00099E1A /* StringUtilities.cpp */,
+				6EF3BBF012481DD40014316D /* StringUtilities.h */,
 				6EF28DE812058A45000FAF17 /* StyleSheet.cpp */,
+				6EF3BBF112481DD40014316D /* StyleSheet.h */,
 				6EF28DE912058A45000FAF17 /* StyleSheetFactory.cpp */,
+				6EF3BBF212481DD40014316D /* StyleSheetKeywords.h */,
 				6EF28DEB12058A45000FAF17 /* StyleSheetNode.cpp */,
 				6EF28DED12058A45000FAF17 /* StyleSheetNodeSelector.cpp */,
 				6EF28DEF12058A45000FAF17 /* StyleSheetNodeSelectorEmpty.cpp */,
@@ -1055,28 +1052,43 @@
 				6EF28E0312058A45000FAF17 /* StyleSheetNodeSelectorOnlyOfType.cpp */,
 				6EF28E0512058A45000FAF17 /* StyleSheetParser.cpp */,
 				6EF28E0712058A45000FAF17 /* StyleSheetSpecification.cpp */,
+				6EF3BBF312481DD40014316D /* StyleSheetSpecification.h */,
 				6EF28E0812058A45000FAF17 /* SystemInterface.cpp */,
+				6EF3BBF412481DD40014316D /* SystemInterface.h */,
 				6EF28E0912058A45000FAF17 /* Template.cpp */,
 				6EF28E0B12058A45000FAF17 /* TemplateCache.cpp */,
 				6EF28E0D12058A45000FAF17 /* Texture.cpp */,
+				6EF3BBF512481DD40014316D /* Texture.h */,
 				6EF28E0E12058A45000FAF17 /* TextureDatabase.cpp */,
 				6EF28E1012058A45000FAF17 /* TextureLayout.cpp */,
 				6EF28E1212058A45000FAF17 /* TextureLayoutRectangle.cpp */,
 				6EF28E1412058A45000FAF17 /* TextureLayoutRow.cpp */,
 				6EF28E1612058A45000FAF17 /* TextureLayoutTexture.cpp */,
 				6EF28E1812058A45000FAF17 /* TextureResource.cpp */,
+				6EF3BBF612481DD40014316D /* TypeConverter.h */,
+				6EF3BBF712481DD40014316D /* TypeConverter.inl */,
+				6EF3BBF812481DD40014316D /* Types.h */,
 				6EF28E1D12058A45000FAF17 /* UnicodeRange.cpp */,
 				6E9D092B1209823B00099E1A /* URL.cpp */,
+				6EF3BBF912481DD40014316D /* URL.h */,
 				6E9D092C1209823B00099E1A /* Variant.cpp */,
+				6EF3BBFA12481DD40014316D /* Variant.h */,
+				6EF3BBFB12481DD40014316D /* Variant.inl */,
+				6EF3BBFC12481DD40014316D /* Vector2.h */,
+				6EF3BBFD12481DD40014316D /* Vector2.inl */,
+				6EF3BBFE12481DD40014316D /* Vertex.h */,
 				6EF28E1F12058A45000FAF17 /* WidgetSlider.cpp */,
 				6EF28E2112058A45000FAF17 /* WidgetSliderScroll.cpp */,
 				6EF28DE512058A45000FAF17 /* WString.cpp */,
+				6EF3BBFF12481DD40014316D /* WString.h */,
 				6EF28E2312058A45000FAF17 /* XMLNodeHandler.cpp */,
+				6EF3BC0012481DD40014316D /* XMLNodeHandler.h */,
 				6EF28E2412058A45000FAF17 /* XMLNodeHandlerBody.cpp */,
 				6EF28E2612058A45000FAF17 /* XMLNodeHandlerDefault.cpp */,
 				6EF28E2812058A45000FAF17 /* XMLNodeHandlerHead.cpp */,
 				6EF28E2A12058A45000FAF17 /* XMLNodeHandlerTemplate.cpp */,
 				6EF28E2C12058A45000FAF17 /* XMLParser.cpp */,
+				6EF3BC0112481DD40014316D /* XMLParser.h */,
 				6EF28E2D12058A45000FAF17 /* XMLParseTools.cpp */,
 			);
 			name = Core;
@@ -1085,44 +1097,43 @@
 		6E8B1BE2123AADEB00C451C8 /* Controls */ = {
 			isa = PBXGroup;
 			children = (
-				6EF3BB5A12481D140014316D /* Clipboard.h */,
-				6EF3BB5B12481D140014316D /* Controls.h */,
-				6EF3BB5C12481D140014316D /* DataFormatter.h */,
-				6EF3BB5D12481D140014316D /* DataQuery.h */,
-				6EF3BB5E12481D140014316D /* DataSource.h */,
-				6EF3BB5F12481D140014316D /* DataSourceListener.h */,
-				6EF3BB6012481D140014316D /* ElementDataGrid.h */,
-				6EF3BB6112481D140014316D /* ElementDataGridCell.h */,
-				6EF3BB6212481D140014316D /* ElementDataGridExpandButton.h */,
-				6EF3BB6312481D140014316D /* ElementDataGridRow.h */,
-				6EF3BB6412481D140014316D /* ElementForm.h */,
-				6EF3BB6512481D140014316D /* ElementFormControl.h */,
-				6EF3BB6612481D140014316D /* ElementFormControlDataSelect.h */,
-				6EF3BB6712481D140014316D /* ElementFormControlInput.h */,
-				6EF3BB6812481D140014316D /* ElementFormControlSelect.h */,
-				6EF3BB6912481D140014316D /* ElementFormControlTextArea.h */,
-				6EF3BB6A12481D140014316D /* ElementTabSet.h */,
-				6EF3BB6B12481D140014316D /* Header.h */,
-				6EF3BB6C12481D140014316D /* SelectOption.h */,
 				6E8B1C2D123AB0CC00C451C8 /* Clipboard.cpp */,
+				6EF3BB5A12481D140014316D /* Clipboard.h */,
 				6E8B1C2E123AB0CC00C451C8 /* Controls.cpp */,
+				6EF3BB5B12481D140014316D /* Controls.h */,
 				6E8B1C2F123AB0CC00C451C8 /* DataFormatter.cpp */,
+				6EF3BB5C12481D140014316D /* DataFormatter.h */,
 				6E8B1C30123AB0CC00C451C8 /* DataQuery.cpp */,
+				6EF3BB5D12481D140014316D /* DataQuery.h */,
 				6E8B1C31123AB0CC00C451C8 /* DataSource.cpp */,
+				6EF3BB5E12481D140014316D /* DataSource.h */,
 				6E8B1C32123AB0CC00C451C8 /* DataSourceListener.cpp */,
+				6EF3BB5F12481D140014316D /* DataSourceListener.h */,
 				6E8B1C33123AB0CC00C451C8 /* ElementDataGrid.cpp */,
+				6EF3BB6012481D140014316D /* ElementDataGrid.h */,
 				6E8B1C34123AB0CC00C451C8 /* ElementDataGridCell.cpp */,
+				6EF3BB6112481D140014316D /* ElementDataGridCell.h */,
 				6E8B1C35123AB0CC00C451C8 /* ElementDataGridExpandButton.cpp */,
+				6EF3BB6212481D140014316D /* ElementDataGridExpandButton.h */,
 				6E8B1C36123AB0CC00C451C8 /* ElementDataGridRow.cpp */,
+				6EF3BB6312481D140014316D /* ElementDataGridRow.h */,
 				6E8B1C37123AB0CC00C451C8 /* ElementForm.cpp */,
+				6EF3BB6412481D140014316D /* ElementForm.h */,
 				6E8B1C38123AB0CC00C451C8 /* ElementFormControl.cpp */,
+				6EF3BB6512481D140014316D /* ElementFormControl.h */,
 				6E8B1C39123AB0CC00C451C8 /* ElementFormControlDataSelect.cpp */,
+				6EF3BB6612481D140014316D /* ElementFormControlDataSelect.h */,
 				6E8B1C3A123AB0CC00C451C8 /* ElementFormControlInput.cpp */,
+				6EF3BB6712481D140014316D /* ElementFormControlInput.h */,
 				6E8B1C3B123AB0CC00C451C8 /* ElementFormControlSelect.cpp */,
+				6EF3BB6812481D140014316D /* ElementFormControlSelect.h */,
 				6E8B1C3C123AB0CC00C451C8 /* ElementFormControlTextArea.cpp */,
+				6EF3BB6912481D140014316D /* ElementFormControlTextArea.h */,
 				6E8B1C3D123AB0CC00C451C8 /* ElementTabSet.cpp */,
+				6EF3BB6A12481D140014316D /* ElementTabSet.h */,
 				6E8B1C3E123AB0CC00C451C8 /* ElementTextSelection.cpp */,
 				6E8B1C3F123AB0CC00C451C8 /* ElementTextSelection.h */,
+				6EF3BB6B12481D140014316D /* Header.h */,
 				6E8B1C40123AB0CC00C451C8 /* InputType.cpp */,
 				6E8B1C41123AB0CC00C451C8 /* InputType.h */,
 				6E8B1C42123AB0CC00C451C8 /* InputTypeButton.cpp */,
@@ -1138,6 +1149,7 @@
 				6E8B1C4C123AB0CC00C451C8 /* InputTypeText.cpp */,
 				6E8B1C4D123AB0CC00C451C8 /* InputTypeText.h */,
 				6E8B1C5D123AB0CC00C451C8 /* SelectOption.cpp */,
+				6EF3BB6C12481D140014316D /* SelectOption.h */,
 				6E8B1C5E123AB0CC00C451C8 /* WidgetDropDown.cpp */,
 				6E8B1C5F123AB0CC00C451C8 /* WidgetDropDown.h */,
 				6E8B1C60123AB0CC00C451C8 /* WidgetSlider.cpp */,
@@ -1289,6 +1301,8 @@
 				6EF3BCFE12481DD40014316D /* WString.h in Headers */,
 				6EF3BCFF12481DD40014316D /* XMLNodeHandler.h in Headers */,
 				6EF3BD0012481DD40014316D /* XMLParser.h in Headers */,
+				6E2C557716AA3EA9007E581B /* ElementStyle.h in Headers */,
+				6E2C557B16AA3EA9007E581B /* ElementStyleCache.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1340,6 +1354,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E2C557616AA3EA9007E581B /* ElementStyle.h in Headers */,
+				6E2C557A16AA3EA9007E581B /* ElementStyleCache.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1607,7 +1623,6 @@
 				6E8B1E03123ABCC200C451C8 /* ElementInstancer.cpp in Sources */,
 				6E8B1E04123ABCC200C451C8 /* ElementReference.cpp in Sources */,
 				6E8B1E05123ABCC200C451C8 /* ElementScroll.cpp in Sources */,
-				6E8B1E06123ABCC200C451C8 /* ElementStyle.cpp in Sources */,
 				6E8B1E07123ABCC200C451C8 /* ElementText.cpp in Sources */,
 				6E8B1E08123ABCC200C451C8 /* ElementTextDefault.cpp in Sources */,
 				6E8B1E09123ABCC200C451C8 /* ElementUtilities.cpp in Sources */,
@@ -1701,6 +1716,8 @@
 				6E8B1E63123ABCC200C451C8 /* XMLNodeHandlerTemplate.cpp in Sources */,
 				6E8B1E64123ABCC200C451C8 /* XMLParser.cpp in Sources */,
 				6E8B1E65123ABCC200C451C8 /* XMLParseTools.cpp in Sources */,
+				6E2C557516AA3EA9007E581B /* ElementStyle.cpp in Sources */,
+				6E2C557916AA3EA9007E581B /* ElementStyleCache.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1812,7 +1829,6 @@
 				6EF28E6212058A45000FAF17 /* ElementInstancer.cpp in Sources */,
 				6EF28E6312058A45000FAF17 /* ElementReference.cpp in Sources */,
 				6EF28E6412058A45000FAF17 /* ElementScroll.cpp in Sources */,
-				6EF28E6512058A45000FAF17 /* ElementStyle.cpp in Sources */,
 				6EF28E6712058A45000FAF17 /* ElementText.cpp in Sources */,
 				6EF28E6812058A45000FAF17 /* ElementTextDefault.cpp in Sources */,
 				6EF28E6A12058A45000FAF17 /* ElementUtilities.cpp in Sources */,
@@ -1908,6 +1924,8 @@
 				6E9D09781209858B00099E1A /* Math.cpp in Sources */,
 				6E9D0988120986B600099E1A /* ReferenceCountable.cpp in Sources */,
 				6E9D099C1209878A00099E1A /* String.cpp in Sources */,
+				6E2C557416AA3EA9007E581B /* ElementStyle.cpp in Sources */,
+				6E2C557816AA3EA9007E581B /* ElementStyleCache.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1955,7 +1973,6 @@
 					"\"$(SRCROOT)/../../support/lib\"",
 				);
 				PRODUCT_NAME = RocketCoreiOS;
-				VALID_ARCHS = armv6;
 			};
 			name = Debug;
 		};
@@ -2027,7 +2044,6 @@
 				GCC_PREFIX_HEADER = Rocket_Prefix.pch;
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketControlsiOS;
-				VALID_ARCHS = armv6;
 			};
 			name = Debug;
 		};
@@ -2074,7 +2090,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketCoreOSX;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -2106,7 +2122,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketCoreOSX;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -2136,7 +2152,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketControlsOSX;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -2164,7 +2180,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketControlsOSX;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -2179,7 +2195,6 @@
 				GCC_PREFIX_HEADER = Rocket_Prefix.pch;
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketDebuggeriOS;
-				VALID_ARCHS = armv6;
 			};
 			name = Debug;
 		};
@@ -2222,7 +2237,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketDebuggerOSX;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -2250,7 +2265,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = RocketDebuggerOSX;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;

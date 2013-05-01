@@ -140,7 +140,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 
 	// Position all the boxes horizontally in the line. We only need to reposition the elements if they're set to
 	// centre or right; the element are already placed left-aligned, and justification occurs at the text level.
-	int text_align_property = parent->GetParent()->GetElement()->GetProperty(TEXT_ALIGN)->value.Get< int >();
+	int text_align_property = parent->GetParent()->GetElement()->GetTextAlign();
 	if (text_align_property == TEXT_ALIGN_CENTER ||
 		text_align_property == TEXT_ALIGN_RIGHT)
 	{

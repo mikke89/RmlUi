@@ -354,6 +354,11 @@ void ElementDocument::DirtyLayout()
 	layout_dirty = true;
 }
 
+bool ElementDocument::IsLayoutDirty()
+{
+	return layout_dirty;
+}
+
 // Refreshes the document layout if required.
 void ElementDocument::OnUpdate()
 {
@@ -469,6 +474,10 @@ bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 {
 	// Skip disabled elements
 	if (element->IsPseudoClassSet("disabled"))
+	{
+		return false;
+	}
+	if (!element->IsVisible())
 	{
 		return false;
 	}

@@ -64,7 +64,7 @@ bool StyleSheetNodeSelectorNthChild::IsApplicable(const Element* element, int a,
 			break;
 
 		// Skip nodes without a display type.
-		if (child->GetProperty< int >(DISPLAY) == DISPLAY_NONE)
+		if (child->GetDisplay() == DISPLAY_NONE)
 			continue;
 
 		element_index++;

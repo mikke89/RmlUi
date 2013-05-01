@@ -89,7 +89,7 @@ void FontDatabase::Shutdown()
 	}
 }
 
-// Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
+// Loads a new font face.
 bool FontDatabase::LoadFontFace(const String& file_name)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
@@ -114,7 +114,7 @@ bool FontDatabase::LoadFontFace(const String& file_name)
 	}
 }
 
-// Loads a new font face.
+// Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
@@ -137,6 +137,31 @@ bool FontDatabase::LoadFontFace(const String& file_name, const String& family, F
 }
 
 // Adds a new font face to the database, loading from memory.
+bool FontDatabase::LoadFontFace(const byte* data, int data_length)
+{
+	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
+	if (ft_face == NULL)
+	{
+		Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
+		return false;
+	}
+
+	Font::Style style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
+	Font::Weight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
+
+	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, false))
+	{
+		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
+		return true;
+	}
+	else
+	{
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
+		return false;
+	}
+}
+
+// Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);

@@ -1,0 +1,62 @@
+#
+# Template Construction File
+# 
+import os
+import sys
+sys.path += [ "../../../../../build" ]
+import wmsconstruct
+
+FILES = Split( """
+	src/
+	""" )
+
+INCLUDE = Split( """
+	../../../../../packages/include/
+	../../shell/include/
+	""" )
+
+LIBS = Split( """
+	RocketDebugger
+	RocketCore
+	Shell
+	""" )
+
+LIBPATHS = Split( """
+	../../../../../packages/bin
+	""" )
+
+DEPENDENCIES = []
+
+if sys.platform == "win32":
+	LIBS += Split( """
+		opengl32
+		user32
+		gdi32
+		libpng
+		zlib
+		""" )
+	LIBPATHS += Split( """
+		../../shell/libpng
+		""" )
+elif sys.platform == "darwin":
+	LIBS += Split( """
+		png
+		z
+		""" )
+	LIBPATHS += Split( """
+		../../shell/libpng
+		""" )
+	DEPENDENCIES += ["AGL", "Carbon", "OpenGL"]
+elif sys.platform == "linux2":
+	LIBS += Split( """
+		GL
+		png
+		""" )
+
+wmsconstruct.Program("Rocket Template Tutorial",
+	"../../../../../packages/bin/template",
+	FILES,
+	INCLUDE,
+	LIBS,
+	LIBPATHS,
+	DEPENDENCIES)

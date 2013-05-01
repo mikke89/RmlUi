@@ -63,6 +63,11 @@ public:
 	/// @param[in] weight The weight of the face (normal or bold).
 	/// @return True if the face was loaded successfully, false otherwise.
 	static bool LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight);
+	/// Adds a new font face to the database, loading from memory. The face's family, style and weight will be determined from the face itself.
+	/// @param[in] data The font data.
+	/// @param[in] data_length Length of the data.
+	/// @return True if the face was loaded successfully, false otherwise.
+	static bool LoadFontFace(const byte* data, int data_length);
 	/// Adds a new font face to the database, loading from memory.
 	/// @param[in] data The font data.
 	/// @param[in] data_length Length of the data.

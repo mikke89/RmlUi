@@ -5,8 +5,8 @@ set(customlog_HDR_FILES
 )
 
 set(customlog_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/customlog/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/customlog/src/SystemInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/customlog/src/main.cpp
 )
 
 set(directx_HDR_FILES
@@ -14,19 +14,19 @@ set(directx_HDR_FILES
 )
 
 set(directx_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/RenderInterfaceDirectX.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/main.cpp
 )
 
 set(drag_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/DragListener.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/Inventory.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/DragListener.h
 )
 
 set(drag_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/Inventory.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/DragListener.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/Inventory.cpp
 )
 
 set(loaddocument_HDR_FILES
@@ -37,18 +37,18 @@ set(loaddocument_SRC_FILES
 )
 
 set(ogre3d_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketFrameListener.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.h
 )
 
 set(ogre3d_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketFrameListener.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketFrameListener.cpp
 )
 
 set(treeview_HDR_FILES
@@ -57,149 +57,193 @@ set(treeview_HDR_FILES
 )
 
 set(treeview_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileSystem.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileSystem.cpp
 )
 
 set(invaders_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventManager.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventInstancer.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Shield.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerOptions.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresNameFormatter.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresShipFormatter.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Defender.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerHighScore.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventInstancer.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandler.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Sprite.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerStartGame.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerHighScore.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Event.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Invader.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Mothership.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorStarfield.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScores.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Event.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Mothership.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerStartGame.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerStarfield.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresShipFormatter.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerOptions.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScores.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventManager.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Sprite.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Invader.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.h
 )
 
 set(invaders_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerStartGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorStarfield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Invader.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Event.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresShipFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Shield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerHighScore.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Sprite.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresNameFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerOptions.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Defender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Mothership.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandler.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventManager.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScores.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Event.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Shield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandler.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerOptions.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Sprite.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresShipFormatter.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventManager.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Invader.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Mothership.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerHighScore.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerStartGame.cpp
 )
 
 set(luainvaders_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Shield.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/GameDetails.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Game.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGameInstancer.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Defender.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Invader.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Mothership.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorStarfield.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/HighScores.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Game.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/GameDetails.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Mothership.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/LuaInterface.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerStarfield.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGameInstancer.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/HighScores.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Invader.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.h
 )
 
 set(luainvaders_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorStarfield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/GameDetails.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Invader.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Game.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Shield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGameInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Defender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Mothership.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/LuaInterface.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/HighScores.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/GameDetails.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Shield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Game.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/LuaInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGameInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Invader.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Mothership.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.cpp
 )
 
 set(pyinvaders_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Shield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.h
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Defender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.h
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.h
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorStarfield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/HighScores.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.h
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerStarfield.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/HighScores.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.h
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.h
 )
 
 set(pyinvaders_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorStarfield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Shield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Defender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.cpp
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/HighScores.cpp
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Shield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.cpp
 )
 
 set(shell_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellOpenGL.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellSystemInterface.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellFileInterface.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/Shell.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceOpenGL.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/Input.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellOpenGL.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/Shell.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellFileInterface.h
 )
 
 set(shell_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellSystemInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/shell/src/Input.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellRenderInterfaceOpenGL.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellFileInterface.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/Shell.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellRenderInterfaceOpenGL.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/shell/src/Input.cpp
+)
+
+set(template_HDR_FILES
+)
+
+set(template_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/src/main.cpp
+)
+
+set(datagrid_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorInstancerDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/HighScores.h
+)
+
+set(datagrid_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorInstancerDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/HighScores.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorDefender.cpp
+)
+
+set(datagrid_tree_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorInstancerDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScoresShipFormatter.h
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScores.h
+)
+
+set(datagrid_tree_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorInstancerDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScores.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScoresShipFormatter.cpp
+)
+
+set(tutorial_drag_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/src/Inventory.h
+)
+
+set(tutorial_drag_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/src/Inventory.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/src/main.cpp
 )
 
 # Deal with platform specific sources for sample shell

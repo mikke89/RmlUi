@@ -30,6 +30,7 @@
 
 #include <Rocket/Core/Platform.h>
 
+#if !defined STATIC_LIB
 #if defined ROCKET_PLATFORM_WIN32
 	#if defined RocketCorePython_EXPORTS
 		#define ROCKETCOREPYTHON_API __declspec(dllexport)
@@ -38,6 +39,9 @@
 	#endif
 #else
 	#define ROCKETCOREPYTHON_API __attribute__((visibility("default")))
+#endif
+#else
+	#define ROCKETCOREPYTHON_API
 #endif
 
 #endif

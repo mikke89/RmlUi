@@ -70,7 +70,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : box(_box)
 		}
 	}
 
-	const Property* property = element->GetProperty(VERTICAL_ALIGN);
+	const Property* property = element->GetVerticalAlignProperty();
 	if (property->unit == Property::KEYWORD)
 		vertical_align_property = property->value.Get< int >();
 	else
@@ -239,7 +239,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		// The baseline of this box is offset by a fixed amount from its parent's baseline.
 		default:
 		{
-			SetVerticalPosition(-1 * element->ResolveProperty(VERTICAL_ALIGN, GetParentLineHeight()));
+			SetVerticalPosition(-1 * element->ResolveProperty(element->GetVerticalAlignProperty(), GetParentLineHeight()));
 		}
 		break;
 	}

@@ -1,0 +1,28 @@
+<rml>
+<head>
+	<link type="text/template" href="template.rml"/>
+	<title>Datagrid Tutorial</title>
+	<style>
+		body
+		{
+			width: 400px;
+			height: 300px;
+
+			margin: auto;
+		}
+        
+        defender
+        {
+            display: block;
+            width: 64px;
+            height: 16px;
+
+            defender-decorator: defender;
+            defender-image-src: ../../../assets/high_scores_defender.tga;
+        }
+	</style>
+</head>
+<body template="window">
+	Insert high scores here.
+</body>
+</rml>

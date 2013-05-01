@@ -27,6 +27,7 @@
 
 #include "precompiled.h"
 #include "ElementStyle.h"
+#include "ElementStyleCache.h"
 #include <algorithm>
 #include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/ElementUtilities.h>
@@ -47,8 +48,10 @@ namespace Core {
 ElementStyle::ElementStyle(Element* _element)
 {
 	local_properties = NULL;
+	em_properties = NULL;
 	definition = NULL;
 	element = _element;
+	cache = new ElementStyleCache(this);
 
 	definition_dirty = true;
 	child_definition_dirty = true;
@@ -58,9 +61,20 @@ ElementStyle::~ElementStyle()
 {
 	if (local_properties != NULL)
 		delete local_properties;
+	if (em_properties != NULL)
+		delete em_properties;
 
 	if (definition != NULL)
 		definition->RemoveReference();
+
+	delete cache;
+}
+
+static PropCounter prop_counter;
+
+PropCounter &ElementStyle::GetPropCounter()
+{
+	return prop_counter;
 }
 
 // Returns the element's definition, updating if necessary.
@@ -278,6 +292,10 @@ void ElementStyle::RemoveProperty(const String& name)
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(const String& name)
 {
+	if (prop_counter.find(name) == prop_counter.end())
+		prop_counter[name] = 0;
+	prop_counter[name] = prop_counter[name] + 1;
+
 	const Property* local_property = GetLocalProperty(name);
 	if (local_property != NULL)
 		return local_property;
@@ -321,6 +339,32 @@ const Property* ElementStyle::GetLocalProperty(const String& name)
 		return definition->GetProperty(name, pseudo_classes);
 
 	return NULL;
+}
+
+// Resolves one of this element's properties.
+float ElementStyle::ResolveProperty(const Property* property, float base_value)
+{
+	if (!property)
+	{
+		ROCKET_ERROR;
+		return 0.0f;
+	}
+
+	if (property->unit & Property::RELATIVE_UNIT)
+	{
+		if (property->unit & Property::PERCENT)
+			return base_value * property->value.Get< float >() * 0.01f;
+		else if (property->unit & Property::EM)
+			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+	}
+
+	if (property->unit & Property::NUMBER || property->unit & Property::PX)
+	{
+		return property->value.Get< float >();
+	}
+
+	// We're not a numeric property; return 0.
+	return 0.0f;
 }
 
 // Resolves one of this element's properties.
@@ -452,34 +496,34 @@ void ElementStyle::DirtyChildDefinitions()
 // Dirties every property.
 void ElementStyle::DirtyProperties()
 {
-	PropertyNameList properties;
-	StyleSheetSpecification::GetRegisteredProperties(properties);
-
+	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
 	DirtyProperties(properties);
 }
 
 // Dirties em-relative properties.
 void ElementStyle::DirtyEmProperties()
 {
-	PropertyNameList properties;
-	StyleSheetSpecification::GetRegisteredProperties(properties);
+	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
 
-	// Check if any of these are currently em-relative. If so, dirty them.
-	PropertyNameList em_properties;
-	for (PropertyNameList::iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	if (!em_properties)
 	{
-		// Skip font-size; this is relative to our parent's em, not ours.
-		if (*list_iterator == FONT_SIZE)
-			continue;
+		// Check if any of these are currently em-relative. If so, dirty them.
+		em_properties = new PropertyNameList;
+		for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+		{
+			// Skip font-size; this is relative to our parent's em, not ours.
+			if (*list_iterator == FONT_SIZE)
+				continue;
 
-		// Get this element from this element. If this is em-relative, then add it to the list to
-		// dirty.
-		if (element->GetProperty(*list_iterator)->unit == Property::EM)
-			em_properties.insert(*list_iterator);
+			// Get this property from this element. If this is em-relative, then add it to the list to
+			// dirty.
+			if (element->GetProperty(*list_iterator)->unit == Property::EM)
+				em_properties->insert(*list_iterator);
+		}
 	}
 
-	if (!em_properties.empty())
-		DirtyProperties(em_properties);
+	if (!em_properties->empty())
+		DirtyProperties(*em_properties, false);
 
 	// Now dirty all of our descendant's font-size properties that are relative to ems.
 	int num_children = element->GetNumChildren(true);
@@ -514,26 +558,53 @@ void ElementStyle::DirtyProperty(const String& property)
 }
 
 // Sets a list of properties as dirty.
-void ElementStyle::DirtyProperties(const PropertyNameList& properties)
+void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clear_em_properties)
 {
 	if (properties.empty())
 		return;
 
-	PropertyNameList inherited_properties;
-	for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
+	bool all_inherited_dirty = 
+		StyleSheetSpecification::GetRegisteredProperties() == properties ||
+		StyleSheetSpecification::GetRegisteredInheritedProperties() == properties;
+
+	if (all_inherited_dirty)
 	{
-		// If this property is an inherited property, then push it into the list to be passed onto our children.
-		const PropertyDefinition* property = StyleSheetSpecification::GetProperty(*i);
-		if (property != NULL &&
-			property->IsInherited())
-			inherited_properties.insert(*i);
+		const PropertyNameList &all_inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
+		for (int i = 0; i < element->GetNumChildren(true); i++)
+			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(all_inherited_properties);
+
+		// Clear all cached properties.
+		cache->Clear();
+	}
+	else
+	{
+		PropertyNameList inherited_properties;
+
+		for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
+		{
+			// If this property is an inherited property, then push it into the list to be passed onto our children.
+			const PropertyDefinition* property = StyleSheetSpecification::GetProperty(*i);
+			if (property != NULL &&
+				property->IsInherited())
+				inherited_properties.insert(*i);
+		}
+
+		// Pass the list of those properties that are inherited onto our children.
+		if (!inherited_properties.empty())
+		{
+			for (int i = 0; i < element->GetNumChildren(true); i++)
+				element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
+		}
+
+		// Clear cached properties.
+		cache->Clear();
 	}
 
-	// Pass the list of those properties that are inherited onto our children.
-	if (!inherited_properties.empty())
+	// clear the list of EM-properties, we will refill it in DirtyEmProperties
+	if (clear_em_properties && em_properties != NULL)
 	{
-		for (int i = 0; i < element->GetNumChildren(true); i++)
-			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
+		delete em_properties;
+		em_properties = NULL;
 	}
 
 	// And send the event.
@@ -543,21 +614,109 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties)
 // Sets a list of our potentially inherited properties as dirtied by an ancestor.
 void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 {
+	bool clear_em_properties = em_properties != NULL;
+
 	PropertyNameList inherited_properties;
 	for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
 	{
-		if (GetLocalProperty((*i)) == NULL)
+		const Property *property = GetLocalProperty((*i));
+		if (property == NULL)
+		{
 			inherited_properties.insert(*i);
+			if (!clear_em_properties && em_properties != NULL && em_properties->find((*i)) != em_properties->end()) {
+				clear_em_properties = true;
+			}
+		}
 	}
 
 	if (inherited_properties.empty())
 		return;
+
+	// clear the list of EM-properties, we will refill it in DirtyEmProperties
+	if (clear_em_properties && em_properties != NULL)
+	{
+		delete em_properties;
+		em_properties = NULL;
+	}
+
+	// Clear cached inherited properties.
+	cache->ClearInherited();
 
 	// Pass the list of those properties that this element doesn't override onto our children.
 	for (int i = 0; i < element->GetNumChildren(true); i++)
 		element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
 
 	element->OnPropertyChange(properties);
+}
+
+void ElementStyle::GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **bottom_right_width)
+{
+	cache->GetBorderWidthProperties(border_top_width, border_bottom_width, border_left_width, bottom_right_width);
+}
+
+void ElementStyle::GetMarginProperties(const Property **margin_top, const Property **margin_bottom, const Property **margin_left, const Property **margin_right)
+{
+	cache->GetMarginProperties(margin_top, margin_bottom, margin_left, margin_right);
+}
+
+void ElementStyle::GetPaddingProperties(const Property **padding_top, const Property **padding_bottom, const Property **padding_left, const Property **padding_right)
+{
+	cache->GetPaddingProperties(padding_top, padding_bottom, padding_left, padding_right);
+}
+
+void ElementStyle::GetDimensionProperties(const Property **width, const Property **height)
+{
+	cache->GetDimensionProperties(width, height);
+}
+
+void ElementStyle::GetLocalDimensionProperties(const Property **width, const Property **height)
+{
+	cache->GetLocalDimensionProperties(width, height);
+}
+
+void ElementStyle::GetOverflow(int *overflow_x, int *overflow_y)
+{
+	cache->GetOverflow(overflow_x, overflow_y);
+}
+
+int ElementStyle::GetPosition()
+{
+	return cache->GetPosition();
+}
+
+int ElementStyle::GetFloat()
+{
+	return cache->GetFloat();
+}
+
+int ElementStyle::GetDisplay()
+{
+	return cache->GetDisplay();
+}
+
+int ElementStyle::GetWhitespace()
+{
+	return cache->GetWhitespace();
+}
+
+const Property *ElementStyle::GetLineHeightProperty()
+{
+	return cache->GetLineHeightProperty();
+}
+
+int ElementStyle::GetTextAlign()
+{
+	return cache->GetTextAlign();
+}
+
+int ElementStyle::GetTextTransform()
+{
+	return cache->GetTextTransform();
+}
+
+const Property *ElementStyle::GetVerticalAlignProperty()
+{
+	return cache->GetVerticalAlignProperty();
 }
 
 }

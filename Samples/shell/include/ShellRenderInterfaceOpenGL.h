@@ -41,6 +41,12 @@ class ShellRenderInterfaceOpenGL : public Rocket::Core::RenderInterface
 public:
 	ShellRenderInterfaceOpenGL();
 
+    /**
+     * @p width width of viewport
+     * @p height height of viewport
+     */
+    void SetViewport(int width, int height);
+
 	/// Called by Rocket when it wants to render geometry that it does not wish to optimise.
 	virtual void RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation);
 
@@ -63,6 +69,10 @@ public:
 	virtual bool GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const Rocket::Core::byte* source, const Rocket::Core::Vector2i& source_dimensions);
 	/// Called by Rocket when a loaded texture is no longer required.
 	virtual void ReleaseTexture(Rocket::Core::TextureHandle texture_handle);
+
+private:
+	int m_width;
+	int m_height;
 };
 
 #endif

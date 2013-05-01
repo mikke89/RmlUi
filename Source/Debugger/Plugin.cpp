@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -174,15 +174,17 @@ void Plugin::Render()
 			{
 				Core::Element* element = element_stack.top();
 				element_stack.pop();
-
-				for (int j = 0; j < element->GetNumBoxes(); ++j)
+				if (element->IsVisible())
 				{
-					const Core::Box& box = element->GetBox(j);
-					Geometry::RenderOutline(element->GetAbsoluteOffset(Core::Box::BORDER) + box.GetPosition(Core::Box::BORDER), box.GetSize(Core::Box::BORDER), Core::Colourb(255, 0, 0, 128), 1);
-				}
+					for (int j = 0; j < element->GetNumBoxes(); ++j)
+					{
+						const Core::Box& box = element->GetBox(j);
+						Geometry::RenderOutline(element->GetAbsoluteOffset(Core::Box::BORDER) + box.GetPosition(Core::Box::BORDER), box.GetSize(Core::Box::BORDER), Core::Colourb(255, 0, 0, 128), 1);
+					}
 
-				for (int j = 0; j < element->GetNumChildren(); ++j)
-					element_stack.push(element->GetChild(j));
+					for (int j = 0; j < element->GetNumChildren(); ++j)
+						element_stack.push(element->GetChild(j));
+				}
 			}
 		}
 	}
@@ -371,7 +373,7 @@ bool Plugin::LoadLogElement()
 
 	// Make the system interface; this will trap the log messages for us.
 	log_hook = new SystemInterface(log_element);
-	
+
 	return true;
 }
 
