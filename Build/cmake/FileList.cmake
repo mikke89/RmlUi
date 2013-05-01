@@ -424,7 +424,6 @@ set(Pycore_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementInterface.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementStyleProxy.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Python/DataSourceWrapper.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementDocumentWrapper.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/EventListener.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementChildrenProxy.h
@@ -447,7 +446,6 @@ set(Pycore_PUB_HDR_FILES
 
 set(Pycore_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/Utilities.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Python/DataSourceWrapper.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementAttributeProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/EventListenerInstancer.cpp
