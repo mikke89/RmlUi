@@ -45,6 +45,7 @@
 #include "PropertyParserColour.h"
 #include "StreamFile.h"
 #include "StyleSheetFactory.h"
+#include "TemplateCache.h"
 #include "XMLNodeHandlerBody.h"
 #include "XMLNodeHandlerDefault.h"
 #include "XMLNodeHandlerHead.h"
@@ -528,6 +529,12 @@ StyleSheet* Factory::InstanceStyleSheetStream(Stream* stream)
 void Factory::ClearStyleSheetCache()
 {
 	StyleSheetFactory::ClearStyleSheetCache();
+}
+
+/// Clears the template cache. This will force template to be reloaded.
+void Factory::ClearTemplateCache()
+{
+	TemplateCache::ClearTemplateCache();
 }
 
 // Registers an instancer for all RKTEvents
