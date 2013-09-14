@@ -293,7 +293,7 @@ String Element::GetAddress(bool include_pseudo_classes) const
 // Sets the position of this element, as a two-dimensional offset from another element.
 void Element::SetOffset(const Vector2f& offset, Element* _offset_parent, bool _offset_fixed)
 {
-	_offset_fixed |= GetProperty< int >(POSITION) == POSITION_FIXED;
+	_offset_fixed |= GetPosition() == POSITION_FIXED;
 
 	// If our offset has definitely changed, or any of our parenting has, then these are set and
 	// updated based on our left / right / top / bottom properties.
@@ -527,6 +527,82 @@ const Property* Element::GetLocalProperty(const String& name)
 float Element::ResolveProperty(const String& name, float base_value)
 {
 	return style->ResolveProperty(name, base_value);
+}
+
+// Resolves one of this element's style.
+float Element::ResolveProperty(const Property *property, float base_value)
+{
+	return style->ResolveProperty(property, base_value);
+}
+
+void Element::GetBorderWidthProperties(const Property **border_top, const Property **border_bottom, const Property **border_left, const Property **bottom_right)
+{
+	style->GetBorderWidthProperties(border_top, border_bottom, border_left, bottom_right);
+}
+
+void Element::GetMarginProperties(const Property **margin_top, const Property **margin_bottom, const Property **margin_left, const Property **margin_right)
+{
+	style->GetMarginProperties(margin_top, margin_bottom, margin_left, margin_right);
+}
+
+void Element::GetPaddingProperties(const Property **padding_top, const Property **padding_bottom, const Property **padding_left, const Property **padding_right)
+{
+	style->GetPaddingProperties(padding_top, padding_bottom, padding_left, padding_right);
+}
+
+void Element::GetDimensionProperties(const Property **width, const Property **height)
+{
+	style->GetDimensionProperties(width, height);
+}
+
+void Element::GetLocalDimensionProperties(const Property **width, const Property **height)
+{
+	style->GetLocalDimensionProperties(width, height);
+}
+
+void Element::GetOverflow(int *overflow_x, int *overflow_y)
+{
+	style->GetOverflow(overflow_x, overflow_y);
+}
+
+int Element::GetPosition()
+{
+	return style->GetPosition();
+}
+
+int Element::GetFloat()
+{
+	return style->GetFloat();
+}
+
+int Element::GetDisplay()
+{
+	return style->GetDisplay();
+}
+
+int Element::GetWhitespace()
+{
+	return style->GetWhitespace();
+}
+
+const Property *Element::GetLineHeightProperty()
+{
+	return style->GetLineHeightProperty();
+}
+
+int Element::GetTextAlign()
+{
+	return style->GetTextAlign();
+}
+
+int Element::GetTextTransform()
+{
+	return style->GetTextTransform();
+}
+
+const Property *Element::GetVerticalAlignProperty()
+{
+	return style->GetVerticalAlignProperty();
 }
 
 // Iterates over the properties defined on this element.
@@ -1019,6 +1095,8 @@ void Element::ScrollIntoView(bool align_with_top)
 // Appends a child to this element
 void Element::AppendChild(Element* child, bool dom_element)
 {
+	LockLayout(true);
+
 	child->AddReference();
 	child->SetParent(this);
 	if (dom_element)
@@ -1038,6 +1116,8 @@ void Element::AppendChild(Element* child, bool dom_element)
 
 	if (dom_element)
 		DirtyLayout();
+
+	LockLayout(false);
 }
 
 // Adds a child to this element, directly after the adjacent element. Inherits
@@ -1063,6 +1143,8 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 
 	if (found_child)
 	{
+		LockLayout(true);
+
 		child->AddReference();
 		child->SetParent(this);
 
@@ -1079,6 +1161,8 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 		child->OnChildAdd(child);
 		DirtyStackingContext();
 		DirtyStructure();
+
+		LockLayout(false);
 	}
 	else
 	{
@@ -1104,12 +1188,16 @@ bool Element::ReplaceChild(Element* inserted_element, Element* replaced_element)
 		return false;
 	}
 
+	LockLayout(true);
+
 	children.insert(insertion_point, inserted_element);
 	RemoveChild(replaced_element);
 
 	inserted_element->GetStyle()->DirtyDefinition();
 	inserted_element->GetStyle()->DirtyProperties();
 	inserted_element->OnChildAdd(inserted_element);
+
+	LockLayout(false);
 
 	return true;
 }
@@ -1124,6 +1212,8 @@ bool Element::RemoveChild(Element* child)
 		// Add the element to the delete list
 		if ((*itr) == child)
 		{
+			LockLayout(true);
+
 			// Inform the context of the element's pending removal (if we have a valid context).
 			Context* context = GetContext();
 			if (context)
@@ -1164,6 +1254,8 @@ bool Element::RemoveChild(Element* child)
 			DirtyLayout();
 			DirtyStackingContext();
 			DirtyStructure();
+
+			LockLayout(false);
 
 			return true;
 		}
@@ -1348,26 +1440,38 @@ void Element::OnAttributeChange(const AttributeNameList& changed_attributes)
 // Called when properties on the element are changed.
 void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 {
-	// Force a relayout if any of the changed properties require it.
-	for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
+	bool all_dirty = StyleSheetSpecification::GetRegisteredProperties() == changed_properties;
+
+	if (!IsLayoutDirty())
 	{
-		const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
-		if (property_definition)
+		if (all_dirty)
 		{
-			if (property_definition->IsLayoutForced())
+			DirtyLayout();
+		}
+		else
+		{
+			// Force a relayout if any of the changed properties require it.
+			for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
 			{
-				DirtyLayout();
-				break;
+				const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
+				if (property_definition)
+				{
+					if (property_definition->IsLayoutForced())
+					{
+						DirtyLayout();
+						break;
+					}
+				}
 			}
 		}
 	}
 
 	// Update the visibility.
-	if (changed_properties.find(VISIBILITY) != changed_properties.end() ||
+	if (all_dirty || changed_properties.find(VISIBILITY) != changed_properties.end() ||
 		changed_properties.find(DISPLAY) != changed_properties.end())
 	{
-		bool new_visibility = GetProperty< int >(VISIBILITY) == VISIBILITY_VISIBLE &&
-							  GetProperty< int >(DISPLAY) != DISPLAY_NONE;
+		bool new_visibility = GetDisplay() != DISPLAY_NONE &&
+							  GetProperty< int >(VISIBILITY) == VISIBILITY_VISIBLE;
 
 		if (visible != new_visibility)
 		{
@@ -1377,7 +1481,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 				parent->DirtyStackingContext();
 		}
 
-		if (changed_properties.find(DISPLAY) != changed_properties.end())
+		if (all_dirty || 
+			changed_properties.find(DISPLAY) != changed_properties.end())
 		{
 			if (parent != NULL)
 				parent->DirtyStructure();
@@ -1385,7 +1490,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 	// Update the position.
-	if (changed_properties.find(LEFT) != changed_properties.end() ||
+	if (all_dirty ||
+		changed_properties.find(LEFT) != changed_properties.end() ||
 		changed_properties.find(RIGHT) != changed_properties.end() ||
 		changed_properties.find(TOP) != changed_properties.end() ||
 		changed_properties.find(BOTTOM) != changed_properties.end())
@@ -1395,7 +1501,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 	// Update the z-index.
-	if (changed_properties.find(Z_INDEX) != changed_properties.end())
+	if (all_dirty || 
+		changed_properties.find(Z_INDEX) != changed_properties.end())
 	{
 		const Property* z_index_property = GetProperty(Z_INDEX);
 
@@ -1449,11 +1556,13 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 	// Dirty the background if it's changed.
-	if (changed_properties.find(BACKGROUND_COLOR) != changed_properties.end())
+	if (all_dirty ||
+		changed_properties.find(BACKGROUND_COLOR) != changed_properties.end())
 		background->DirtyBackground();
 
 	// Dirty the border if it's changed.
-	if (changed_properties.find(BORDER_TOP_WIDTH) != changed_properties.end() ||
+	if (all_dirty || 
+		changed_properties.find(BORDER_TOP_WIDTH) != changed_properties.end() ||
 		changed_properties.find(BORDER_RIGHT_WIDTH) != changed_properties.end() ||
 		changed_properties.find(BORDER_BOTTOM_WIDTH) != changed_properties.end() ||
 		changed_properties.find(BORDER_LEFT_WIDTH) != changed_properties.end() ||
@@ -1464,7 +1573,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		border->DirtyBorder();
 
 	// Fetch a new font face if it has been changed.
-	if (changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
+	if (all_dirty ||
+		changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
 		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
 		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
 		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
@@ -1503,7 +1613,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 	
 	// Check for clipping state changes
-	if (changed_properties.find(CLIP) != changed_properties.end() ||
+	if (all_dirty ||
+		changed_properties.find(CLIP) != changed_properties.end() ||
 		changed_properties.find(OVERFLOW_X) != changed_properties.end() ||
 		changed_properties.find(OVERFLOW_Y) != changed_properties.end())
 	{
@@ -1541,6 +1652,23 @@ void Element::DirtyLayout()
 		document->DirtyLayout();
 }
 
+/// Increment/Decrement the layout lock
+void Element::LockLayout(bool lock)
+{
+	Element* document = GetOwnerDocument();
+	if (document != NULL)
+		document->LockLayout(lock);
+}
+
+// Forces a re-layout of this element, and any other children required.
+bool Element::IsLayoutDirty()
+{
+	Element* document = GetOwnerDocument();
+	if (document != NULL)
+		return document->IsLayoutDirty();
+	return false;
+}
+
 // Forces a reevaluation of applicable font effects.
 void Element::DirtyFont()
 {
@@ -1564,7 +1692,8 @@ void Element::OnReferenceDeactivate()
 
 void Element::ProcessEvent(Event& event)
 {
-	if (event == MOUSEDOWN && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))))
+	if (event == MOUSEDOWN && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
+		event.GetParameter< int >("button", 0) == 0)
 		SetPseudoClass("active", true);
 
 	if (event == MOUSESCROLL)
@@ -1688,7 +1817,7 @@ void Element::DirtyOffset()
 
 void Element::UpdateOffset()
 {
-	int position_property = GetProperty< int >(POSITION);
+	int position_property = GetPosition();
 	if (position_property == POSITION_ABSOLUTE ||
 		position_property == POSITION_FIXED)
 	{
@@ -1781,11 +1910,11 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 		std::pair< Element*, float > ordered_child;
 		ordered_child.first = child;
 
-		if (child->GetProperty< int >(POSITION) != POSITION_STATIC)
+		if (child->GetPosition() != POSITION_STATIC)
 			ordered_child.second = 3;
-		else if (child->GetProperty< int >(FLOAT) != FLOAT_NONE)
+		else if (child->GetFloat() != FLOAT_NONE)
 			ordered_child.second = 1;
-		else if (child->GetProperty< int >(DISPLAY) == DISPLAY_BLOCK)
+		else if (child->GetDisplay() == DISPLAY_BLOCK)
 			ordered_child.second = 0;
 		else
 			ordered_child.second = 2;

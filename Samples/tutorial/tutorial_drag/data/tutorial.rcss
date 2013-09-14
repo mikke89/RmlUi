@@ -1,0 +1,25 @@
+/* Hide the window icon. */
+div#title_bar div#icon
+{
+    display: none;
+}
+
+icon
+{
+    /* The icons are floated left so they appear left-to-right. */
+    float: left;
+    
+    /* The padding is added to push the text down to the bottom of the element. The inner dimensions plus the
+       padding come to 100px square. */
+    width: 80px;
+    height: 40px;
+    padding: 60px 10px 0px 10px;
+    margin: 10px;
+    
+    background-decorator: image;
+    background-image: ../../../assets/present.tga 0px 0px 100px 100px;
+    
+    font-size: 12;
+    text-align: center;
+    text-shadow: 1px 1px black;
+}

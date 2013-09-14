@@ -46,6 +46,9 @@ ElementDocumentWrapper::ElementDocumentWrapper(PyObject* self, const char* tag) 
 	PyObject* builtins = PyImport_AddModule("__main__");
 	PyObject* builtins_dict = PyModule_GetDict( builtins);
 	PyDict_Merge(module_namespace, builtins_dict, 0);
+
+	// Insert the document global
+	PyDict_SetItemString(module_namespace, "document", self);
 }
 
 ElementDocumentWrapper::~ElementDocumentWrapper()

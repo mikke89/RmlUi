@@ -1,0 +1,26 @@
+body
+{
+	font-family: Delicious;
+	font-weight: normal;
+	font-style: normal;
+	font-size: 15;
+	color: white;
+}
+
+body.window
+{
+	background-decorator: tiled-box;
+	background-top-left-image: ../../../assets/invader.tga 0px 0px 133px 140px;
+	background-top-right-image: ../../../assets/invader.tga 136px 0px 146px 140px;
+	background-top-image: ../../../assets/invader.tga stretch 134px 0px 135px 140px;
+	background-bottom-left-image: ../../../assets/invader.tga 0px 140px 11px 151px;
+	background-bottom-right-image: ../../../assets/invader.tga 136px 140px 146px 151px;
+	background-bottom-image: ../../../assets/invader.tga stretch 11px 140px 12px 151px;
+	background-left-image: ../../../assets/invader.tga stretch 0px 139px 10px 140px;
+	background-center-image: ../../../assets/invader.tga stretch 11px 139px 12px 140px;
+}
+
+div
+{
+    display: block;
+}

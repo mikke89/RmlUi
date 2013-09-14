@@ -76,13 +76,17 @@ Core::WString Clipboard::Get()
 
 		HANDLE clipboard_data = GetClipboardData(CF_UNICODETEXT);
 		if (clipboard_data == NULL)
+		{
+			CloseClipboard();
 			return clipboard_content;
+		}
 
 		const Rocket::Core::word* clipboard_text = (const Rocket::Core::word*) GlobalLock(clipboard_data);
 		if (clipboard_text)
 			clipboard_content.Assign(clipboard_text);
 		GlobalUnlock(clipboard_data);
 
+		CloseClipboard();
 		return clipboard_content;
 	}
 	else

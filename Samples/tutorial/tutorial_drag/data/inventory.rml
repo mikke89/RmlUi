@@ -1,0 +1,16 @@
+<rml>
+<head>
+	<link type="text/template" href="../../../assets/window.rml"/>
+	<link type="text/css" href="tutorial.rcss"/>
+	<title>Inventory</title>
+	<style>
+		body
+		{
+			width: 400px;
+			height: 300px;
+		}
+	</style>
+</head>
+<body template="window">
+</body>
+</rml>

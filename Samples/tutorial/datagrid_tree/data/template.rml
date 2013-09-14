@@ -1,0 +1,15 @@
+<template name="window" content="content">
+<head>
+	<link type="text/css" href="../../../assets/rkt.rcss"/>
+	<link type="text/css" href="tutorial.rcss"/>
+</head>
+<body class="window">
+	<div id="title-bar">
+		<handle move_target="#document">
+			<span id="title">Dummy Title</span>
+		</handle>
+	</div>
+	<div id="content">
+	</div>
+</body>
+</template>

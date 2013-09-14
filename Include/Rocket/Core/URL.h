@@ -115,8 +115,19 @@ public:
 	/// Less-than operator for use as a key in STL containers.
 	bool operator<(const URL& rhs) const;
 
+	/// Since URLs often contain characters outside the ASCII set, 
+	/// the URL has to be converted into a valid ASCII format and back.
+	static String UrlEncode(const String &value);
+	static String UrlDecode(const String &value);
+
 private:
 	void ConstructURL() const;
+
+	/// Portable character check (remember EBCDIC). Do not use isalnum() because
+	/// its behavior is altered by the current locale.
+	/// See http://tools.ietf.org/html/rfc3986#section-2.3
+	/// (copied from libcurl sources)
+	static bool IsUnreservedChar(const char c);
 
 	mutable String url;
 	String protocol;

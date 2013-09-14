@@ -47,12 +47,14 @@ public:
 	ElementDataGridCell(const Rocket::Core::String& tag);
 	virtual ~ElementDataGridCell();
 
-	void Initialise(Core::Element* header);
+	void Initialise(int column, Core::Element* header);
+	int GetColumn();
 
 protected:
 	virtual void ProcessEvent(Core::Event& event);
 
 private:
+	int column;
 	Core::Element* header;
 };
 

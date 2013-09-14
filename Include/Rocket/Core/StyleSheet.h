@@ -47,7 +47,7 @@ class StyleSheetNode;
 	@author Lloyd Weehuizen
  */
 
-class StyleSheet : public ReferenceCountable
+class ROCKETCORE_API StyleSheet : public ReferenceCountable
 {
 public:
 	typedef std::set< StyleSheetNode* > NodeList;

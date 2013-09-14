@@ -220,6 +220,43 @@ public:
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
 	float ResolveProperty(const String& name, float base_value);
+	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. If it's a 
+	/// percentage then it is resolved based on the second argument (the base value).
+	/// @param[in] name The property to resolve the value for.
+	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
+	/// @return The value of this property for this element.
+	float ResolveProperty(const Property *property, float base_value);
+
+	/// Returns 'border-width' properties from element's style or local cache.
+	void GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **border_right_width);
+	/// Returns 'margin' properties from element's style or local cache.
+	void GetMarginProperties(const Property **margin_top, const Property **margin_bottom, const Property **margin_left, const Property **margin_right);
+	/// Returns 'padding' properties from element's style or local cache.
+	void GetPaddingProperties(const Property **padding_top, const Property **padding_bottom, const Property **padding_left, const Property **padding_right);
+	/// Returns 'width' and 'height' properties from element's style or local cache.
+	void GetDimensionProperties(const Property **width, const Property **height);
+	/// Returns local 'width' and 'height' properties from element's style or local cache,
+	/// ignoring default values.
+	void GetLocalDimensionProperties(const Property **width, const Property **height);
+	/// Returns 'overflow' properties' values from element's style or local cache.
+	void GetOverflow(int *overflow_x, int *overflow_y);
+	/// Returns 'position' property value from element's style or local cache.
+	int GetPosition();
+	/// Returns 'float' property value from element's style or local cache.
+	int GetFloat();
+	/// Returns 'display' property value from element's style or local cache.
+	int GetDisplay();
+	/// Returns 'white-space' property value from element's style or local cache.
+	int GetWhitespace();
+
+	/// Returns 'line-height' property value from element's style or local cache.
+	const Property *GetLineHeightProperty();
+	/// Returns 'text-align' property value from element's style or local cache.
+	int GetTextAlign();
+	/// Returns 'text-transform' property value from element's style or local cache.
+	int GetTextTransform();
+	/// Returns 'vertical-align' property value from element's style or local cache.
+	const Property *GetVerticalAlignProperty();
 
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
@@ -570,6 +607,12 @@ protected:
 
 	/// Forces a re-layout of this element, and any other elements required.
 	virtual void DirtyLayout();
+
+	/// Returns true if the element has been marked as needing a re-layout.
+	virtual bool IsLayoutDirty();
+
+	/// Increment/Decrement the layout lock
+	virtual void LockLayout(bool lock);
 
 	/// Forces a reevaluation of applicable font effects.
 	virtual void DirtyFont();

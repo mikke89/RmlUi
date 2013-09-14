@@ -1,0 +1,376 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1AAC0B29-AEB9-4E3F-8EDF-B46F8949C41B}</ProjectGuid>
+    <RootNamespace>rocket</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="vsprops\BuildConfigurationDLLRelease.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="vsprops\BuildConfigurationDLLDebug.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)..\..\bin\</OutDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\..\bin\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\Include;..\..\..\support\freetype-2.4.10\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>freetype2410_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\bin\$(ProjectName)_d.dll</OutputFile>
+      <AdditionalLibraryDirectories>..\..\..\support\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\Include;..\..\..\support\freetype-2.4.10\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>freetype2410.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\bin\$(ProjectName).dll</OutputFile>
+      <AdditionalLibraryDirectories>..\..\..\support\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Core\precompiled.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\Texture.cpp" />
+    <ClCompile Include="..\..\Source\Core\TextureDatabase.cpp" />
+    <ClCompile Include="..\..\Source\Core\TextureResource.cpp" />
+    <ClCompile Include="..\..\Source\Core\Box.cpp" />
+    <ClCompile Include="..\..\Source\Core\DocumentHeader.cpp" />
+    <ClCompile Include="..\..\Source\Core\Element.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementBackground.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementBorder.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementDecoration.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementReference.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementScroll.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementStyle.cpp" />
+	<ClCompile Include="..\..\Source\Core\ElementStyleCache.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementUtilities.cpp" />
+    <ClCompile Include="..\..\Source\Core\LayoutBlockBox.cpp" />
+    <ClCompile Include="..\..\Source\Core\LayoutBlockBoxSpace.cpp" />
+    <ClCompile Include="..\..\Source\Core\LayoutEngine.cpp" />
+    <ClCompile Include="..\..\Source\Core\LayoutInlineBox.cpp" />
+    <ClCompile Include="..\..\Source\Core\LayoutInlineBoxText.cpp" />
+    <ClCompile Include="..\..\Source\Core\LayoutLineBox.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\XMLNodeHandler.cpp" />
+    <ClCompile Include="..\..\Source\Core\XMLNodeHandlerBody.cpp" />
+    <ClCompile Include="..\..\Source\Core\XMLNodeHandlerDefault.cpp" />
+    <ClCompile Include="..\..\Source\Core\XMLNodeHandlerHead.cpp" />
+    <ClCompile Include="..\..\Source\Core\XMLNodeHandlerTemplate.cpp" />
+    <ClCompile Include="..\..\Source\Core\XMLParser.cpp" />
+    <ClCompile Include="..\..\Source\Core\XMLParseTools.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementDefinition.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementText.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementTextDefault.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementHandle.cpp" />
+    <ClCompile Include="..\..\Source\Core\WidgetSlider.cpp" />
+    <ClCompile Include="..\..\Source\Core\WidgetSliderScroll.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementImage.cpp" />
+    <ClCompile Include="..\..\Source\Core\ElementDocument.cpp" />
+    <ClCompile Include="..\..\Source\Core\Geometry.cpp" />
+    <ClCompile Include="..\..\Source\Core\GeometryDatabase.cpp" />
+    <ClCompile Include="..\..\Source\Core\GeometryUtilities.cpp" />
+    <ClCompile Include="..\..\Source\Core\Decorator.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorNone.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorNoneInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiled.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledHorizontal.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledHorizontalInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledBox.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledBoxInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledImage.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledImageInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledVertical.cpp" />
+    <ClCompile Include="..\..\Source\Core\DecoratorTiledVerticalInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheet.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetFactory.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNode.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetParser.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetSpecification.cpp" />
+    <ClCompile Include="..\..\Source\Core\Property.cpp" />
+    <ClCompile Include="..\..\Source\Core\PropertyDictionary.cpp" />
+    <ClCompile Include="..\..\Source\Core\PropertyDefinition.cpp" />
+    <ClCompile Include="..\..\Source\Core\PropertySpecification.cpp" />
+    <ClCompile Include="..\..\Source\Core\PropertyParserColour.cpp" />
+    <ClCompile Include="..\..\Source\Core\PropertyParserKeyword.cpp" />
+    <ClCompile Include="..\..\Source\Core\PropertyParserNumber.cpp" />
+    <ClCompile Include="..\..\Source\Core\PropertyParserString.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelector.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorEmpty.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorFirstChild.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorFirstOfType.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorLastChild.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorLastOfType.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorNthChild.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorNthLastChild.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorNthLastOfType.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorNthOfType.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorOnlyChild.cpp" />
+    <ClCompile Include="..\..\Source\Core\StyleSheetNodeSelectorOnlyOfType.cpp" />
+    <ClCompile Include="..\..\Source\Core\Event.cpp" />
+    <ClCompile Include="..\..\Source\Core\EventDispatcher.cpp" />
+    <ClCompile Include="..\..\Source\Core\EventInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\EventInstancerDefault.cpp" />
+    <ClCompile Include="..\..\Source\Core\EventListenerInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontDatabase.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontFace.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontFaceHandle.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontFaceLayer.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontFamily.cpp" />
+    <ClCompile Include="..\..\Source\Core\UnicodeRange.cpp" />
+    <ClCompile Include="..\..\Source\Core\TextureLayout.cpp" />
+    <ClCompile Include="..\..\Source\Core\TextureLayoutRectangle.cpp" />
+    <ClCompile Include="..\..\Source\Core\TextureLayoutRow.cpp" />
+    <ClCompile Include="..\..\Source\Core\TextureLayoutTexture.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffect.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffectInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffectNone.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffectNoneInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffectOutline.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffectOutlineInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffectShadow.cpp" />
+    <ClCompile Include="..\..\Source\Core\FontEffectShadowInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\ConvolutionFilter.cpp" />
+    <ClCompile Include="..\..\Source\Core\Template.cpp" />
+    <ClCompile Include="..\..\Source\Core\TemplateCache.cpp" />
+    <ClCompile Include="..\..\Source\Core\Clock.cpp" />
+    <ClCompile Include="..\..\Source\Core\Core.cpp" />
+    <ClCompile Include="..\..\Source\Core\Factory.cpp" />
+    <ClCompile Include="..\..\Source\Core\Log.cpp" />
+    <ClCompile Include="..\..\Source\Core\Math.cpp" />
+    <ClCompile Include="..\..\Source\Core\RenderInterface.cpp" />
+    <ClCompile Include="..\..\Source\Core\FileInterface.cpp" />
+    <ClCompile Include="..\..\Source\Core\FileInterfaceDefault.cpp" />
+    <ClCompile Include="..\..\Source\Core\StreamFile.cpp" />
+    <ClCompile Include="..\..\Source\Core\SystemInterface.cpp" />
+    <ClCompile Include="..\..\Source\Core\String.cpp" />
+    <ClCompile Include="..\..\Source\Core\Plugin.cpp" />
+    <ClCompile Include="..\..\Source\Core\PluginRegistry.cpp" />
+    <ClCompile Include="..\..\Source\Core\BaseXMLParser.cpp" />
+    <ClCompile Include="..\..\Source\Core\Dictionary.cpp" />
+    <ClCompile Include="..\..\Source\Core\ReferenceCountable.cpp" />
+    <ClCompile Include="..\..\Source\Core\Stream.cpp" />
+    <ClCompile Include="..\..\Source\Core\StreamMemory.cpp" />
+    <ClCompile Include="..\..\Source\Core\StringUtilities.cpp" />
+    <ClCompile Include="..\..\Source\Core\URL.cpp" />
+    <ClCompile Include="..\..\Source\Core\Variant.cpp" />
+    <ClCompile Include="..\..\Source\Core\Vector2.cpp" />
+    <ClCompile Include="..\..\Source\Core\WString.cpp" />
+    <ClCompile Include="..\..\Source\Core\Context.cpp">
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ShowIncludes>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\ContextInstancer.cpp" />
+    <ClCompile Include="..\..\Source\Core\ContextInstancerDefault.cpp" />
+    <ClCompile Include="..\..\Source\Core\StringCache.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\Core\precompiled.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Texture.h" />
+    <ClInclude Include="..\..\Source\Core\TextureDatabase.h" />
+    <ClInclude Include="..\..\Source\Core\TextureResource.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Box.h" />
+    <ClInclude Include="..\..\Source\Core\DocumentHeader.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Element.h" />
+    <ClInclude Include="..\..\Source\Core\ElementBackground.h" />
+    <ClInclude Include="..\..\Source\Core\ElementBorder.h" />
+    <ClInclude Include="..\..\Source\Core\ElementDecoration.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ElementReference.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ElementScroll.h" />
+    <ClInclude Include="..\..\Source\Core\ElementStyle.h" />
+	<ClInclude Include="..\..\Source\Core\ElementStyleCache.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ElementUtilities.h" />
+    <ClInclude Include="..\..\Source\Core\LayoutBlockBox.h" />
+    <ClInclude Include="..\..\Source\Core\LayoutBlockBoxSpace.h" />
+    <ClInclude Include="..\..\Source\Core\LayoutEngine.h" />
+    <ClInclude Include="..\..\Source\Core\LayoutInlineBox.h" />
+    <ClInclude Include="..\..\Source\Core\LayoutInlineBoxText.h" />
+    <ClInclude Include="..\..\Source\Core\LayoutLineBox.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ElementInstancer.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ElementInstancerGeneric.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\XMLNodeHandler.h" />
+    <ClInclude Include="..\..\Source\Core\XMLNodeHandlerBody.h" />
+    <ClInclude Include="..\..\Source\Core\XMLNodeHandlerDefault.h" />
+    <ClInclude Include="..\..\Source\Core\XMLNodeHandlerHead.h" />
+    <ClInclude Include="..\..\Source\Core\XMLNodeHandlerTemplate.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\XMLParser.h" />
+    <ClInclude Include="..\..\Source\Core\XMLParseTools.h" />
+    <ClInclude Include="..\..\Source\Core\ElementDefinition.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ElementText.h" />
+    <ClInclude Include="..\..\Source\Core\ElementTextDefault.h" />
+    <ClInclude Include="..\..\Source\Core\ElementHandle.h" />
+    <ClInclude Include="..\..\Source\Core\WidgetSlider.h" />
+    <ClInclude Include="..\..\Source\Core\WidgetSliderScroll.h" />
+    <ClInclude Include="..\..\Source\Core\ElementImage.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ElementDocument.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Geometry.h" />
+    <ClInclude Include="..\..\Source\Core\GeometryDatabase.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\GeometryUtilities.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Vertex.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Decorator.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\DecoratorInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorNone.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorNoneInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiled.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledHorizontal.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledHorizontalInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledBox.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledBoxInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledImage.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledImageInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledVertical.h" />
+    <ClInclude Include="..\..\Source\Core\DecoratorTiledVerticalInstancer.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\StyleSheet.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetFactory.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\StyleSheetKeywords.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNode.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetParser.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\StyleSheetSpecification.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Property.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\PropertyDictionary.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\PropertyDefinition.h" />
+    <ClInclude Include="..\..\Source\Core\PropertyShorthandDefinition.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\PropertySpecification.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\PropertyParser.h" />
+    <ClInclude Include="..\..\Source\Core\PropertyParserColour.h" />
+    <ClInclude Include="..\..\Source\Core\PropertyParserKeyword.h" />
+    <ClInclude Include="..\..\Source\Core\PropertyParserNumber.h" />
+    <ClInclude Include="..\..\Source\Core\PropertyParserString.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelector.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorEmpty.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorFirstChild.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorFirstOfType.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorLastChild.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorLastOfType.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorNthChild.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorNthLastChild.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorNthLastOfType.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorNthOfType.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorOnlyChild.h" />
+    <ClInclude Include="..\..\Source\Core\StyleSheetNodeSelectorOnlyOfType.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Event.h" />
+    <ClInclude Include="..\..\Source\Core\EventDispatcher.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\EventInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\EventInstancerDefault.h" />
+    <ClInclude Include="..\..\Source\Core\EventIterators.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\EventListener.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\EventListenerInstancer.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Input.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Font.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\FontDatabase.h" />
+    <ClInclude Include="..\..\Source\Core\FontFace.h" />
+    <ClInclude Include="..\..\Source\Core\FontFaceHandle.h" />
+    <ClInclude Include="..\..\Source\Core\FontFaceLayer.h" />
+    <ClInclude Include="..\..\Source\Core\FontFamily.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\FontGlyph.h" />
+    <ClInclude Include="..\..\Source\Core\UnicodeRange.h" />
+    <ClInclude Include="..\..\Source\Core\TextureLayout.h" />
+    <ClInclude Include="..\..\Source\Core\TextureLayoutRectangle.h" />
+    <ClInclude Include="..\..\Source\Core\TextureLayoutRow.h" />
+    <ClInclude Include="..\..\Source\Core\TextureLayoutTexture.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\FontEffect.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\FontEffectInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\FontEffectNone.h" />
+    <ClInclude Include="..\..\Source\Core\FontEffectNoneInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\FontEffectOutline.h" />
+    <ClInclude Include="..\..\Source\Core\FontEffectOutlineInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\FontEffectShadow.h" />
+    <ClInclude Include="..\..\Source\Core\FontEffectShadowInstancer.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ConvolutionFilter.h" />
+    <ClInclude Include="..\..\Source\Core\Template.h" />
+    <ClInclude Include="..\..\Source\Core\TemplateCache.h" />
+    <ClInclude Include="..\..\Source\Core\Clock.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Core.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Factory.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Header.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Log.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Types.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\RenderInterface.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\FileInterface.h" />
+    <ClInclude Include="..\..\Source\Core\FileInterfaceDefault.h" />
+    <ClInclude Include="..\..\Source\Core\StreamFile.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\SystemInterface.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\String.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Plugin.h" />
+    <ClInclude Include="..\..\Source\Core\PluginRegistry.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\BaseXMLParser.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Colour.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Debug.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Dictionary.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ScriptInterface.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Stream.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\StreamMemory.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\StringBase.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\StringUtilities.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\URL.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Variant.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Vector2.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\WString.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\Context.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core\ContextInstancer.h" />
+    <ClInclude Include="..\..\Source\Core\ContextInstancerDefault.h" />
+    <ClInclude Include="..\..\Source\Core\StringCache.h" />
+    <ClInclude Include="..\..\Include\Rocket\Core.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Include\Rocket\Core\Element.inl" />
+    <None Include="..\..\Include\Rocket\Core\ElementInstancerGeneric.inl" />
+    <None Include="..\..\Include\Rocket\Core\Colour.inl" />
+    <None Include="..\..\Include\Rocket\Core\Dictionary.inl" />
+    <None Include="..\..\Include\Rocket\Core\StringBase.inl" />
+    <None Include="..\..\Include\Rocket\Core\Variant.inl" />
+    <None Include="..\..\Include\Rocket\Core\Vector2.inl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

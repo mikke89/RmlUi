@@ -58,7 +58,7 @@ bool WidgetTextInputSingleLine::IsCharacterValid(Rocket::Core::word character)
 // Called when the user pressed enter.
 void WidgetTextInputSingleLine::LineBreak()
 {
-	DispatchChangeEvent();
+	DispatchChangeEvent(true);
 }
 
 // Strips all \n and \r characters from the string.

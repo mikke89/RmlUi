@@ -1,0 +1,6 @@
+*.sdf
+*.ncb
+build/
+Debug/
+Release/
+ipch/

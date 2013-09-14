@@ -109,7 +109,7 @@ protected:
 	Core::Element* GetElement();
 
 	/// Dispatches a change event to the widget's element.
-	void DispatchChangeEvent();
+	void DispatchChangeEvent(bool linebreak = false);
 
 private:
 	/// Moves the cursor along the current line.

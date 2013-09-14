@@ -1,0 +1,128 @@
+body
+{
+	font-family: Delicious;
+	font-weight: normal;
+	font-style: normal;
+	font-size: 15;
+	color: white;
+}
+
+body.window
+{
+	background-decorator: tiled-box;
+	background-top-left-image: ../../../assets/invader.tga 0px 0px 133px 140px;
+	background-top-right-image: ../../../assets/invader.tga 136px 0px 146px 140px;
+	background-top-image: ../../../assets/invader.tga stretch 134px 0px 135px 140px;
+	background-bottom-left-image: ../../../assets/invader.tga 0px 140px 11px 151px;
+	background-bottom-right-image: ../../../assets/invader.tga 136px 140px 146px 151px;
+	background-bottom-image: ../../../assets/invader.tga stretch 11px 140px 12px 151px;
+	background-left-image: ../../../assets/invader.tga stretch 0px 139px 10px 140px;
+	background-center-image: ../../../assets/invader.tga stretch 11px 139px 12px 140px;
+	
+	padding: 10px 15px;
+}
+
+div#title-bar
+{
+	position: absolute;
+	top: -43px;
+}
+
+div#title-bar span
+{
+	padding-left: 85px;
+	padding-right: 25px;
+	padding-top: 17px;
+	padding-bottom: 48px;
+
+	font-size: 22;
+	font-weight: bold;
+
+	text-shadow: 2px 2px black;
+
+	background-decorator: tiled-horizontal;
+	background-left-image: ../../../assets/invader.tga 147px 0px 229px 85px;
+	background-center-image: ../../../assets/invader.tga stretch 229px 0px 230px 85px;
+	background-right-image: ../../../assets/invader.tga 231px 0px 246px 85px;
+}
+
+div#content
+{
+	height: 100%;
+	overflow: auto;
+
+	z-index: 1;
+}
+
+scrollbarvertical
+{
+	width: 27px;
+	margin-top: -6px;
+	margin-bottom: -6px;
+	margin-right: -11px;
+}
+
+scrollbarvertical slidertrack
+{
+	background-decorator: tiled-vertical;
+	background-top-image: ../../../assets/invader.tga 56px 199px 83px 201px;
+	background-center-image: ../../../assets/invader.tga stretch 56px 201px 83px 202px;
+	background-bottom-image: ../../../assets/invader.tga 56px 203px 83px 204px;
+}
+
+scrollbarvertical sliderbar
+{
+	margin-left: 4px;
+	width: 23px;
+	min-height: 46px;
+
+	background-decorator: tiled-vertical;
+	background-top-image: ../../../assets/invader.tga 56px 152px 79px 175px;
+	background-center-image: ../../../assets/invader.tga stretch 56px 175px 79px 175px;
+	background-bottom-image: ../../../assets/invader.tga 56px 176px 79px 198px;
+}
+
+scrollbarvertical sliderbar:hover
+{
+	background-top-image-s: 80px 103px;
+	background-center-image-s: 80px 103px;
+	background-bottom-image-s: 80px 103px;
+}
+
+scrollbarvertical sliderbar:active
+{
+	background-top-image-s: 104px 127px;
+	background-center-image-s: 104px 127px;
+	background-bottom-image-s: 104px 127px;
+}
+
+scrollbarvertical sliderarrowdec,
+scrollbarvertical sliderarrowinc
+{
+	width: 27px;
+	height: 24px;
+}
+
+scrollbarvertical sliderarrowdec
+{
+	icon-decorator: image;
+	icon-image: ../../../assets/invader.tga 0px 152px 27px 176px;
+}
+
+scrollbarvertical sliderarrowinc
+{
+	icon-decorator: image;
+	icon-image: ../../../assets/invader.tga 28px 152px 55px 176px;
+}
+
+scrollbarvertical sliderarrowdec:hover,
+scrollbarvertical sliderarrowinc:hover
+{
+	icon-image-t: 177px 201px;
+}
+
+scrollbarvertical sliderarrowdec:active,
+scrollbarvertical sliderarrowinc:active
+{
+	icon-image-t: 202px 226px;
+}

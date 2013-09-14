@@ -289,6 +289,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Source\Core\ElementStyleCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Source\Core\ElementStyleCache.h"
+				>
+			</File>			
+			<File
 				RelativePath="..\Source\Core\ElementUtilities.cpp"
 				>
 			</File>

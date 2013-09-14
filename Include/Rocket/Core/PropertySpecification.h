@@ -75,9 +75,13 @@ public:
 	/// @return The appropriate property definition if it could be found, NULL otherwise.
 	const PropertyDefinition* GetProperty(const String& property_name) const;
 
-	/// Fetches a list of the names of all registered property definitions.
-	/// @param properties[in] The list to store the property names.
-	void GetRegisteredProperties(PropertyNameList& properties) const;
+	/// Returns the list of the names of all registered property definitions.
+	/// @return The list with stored property names.
+	const PropertyNameList& GetRegisteredProperties() const;
+
+	/// Returns the list of the names of all registered inherited property definitions.
+	/// @return The list with stored property names.
+	const PropertyNameList& GetRegisteredInheritedProperties() const;
 
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
@@ -106,6 +110,8 @@ private:
 
 	PropertyMap properties;
 	ShorthandMap shorthands;
+	PropertyNameList property_names;
+	PropertyNameList inherited_property_names;
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 };
