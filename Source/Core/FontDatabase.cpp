@@ -279,7 +279,7 @@ void* FontDatabase::LoadFace(const String& file_name)
 
 	if (!handle)
 	{
-		return false;
+		return NULL;
 	}
 
 	size_t length = file_interface->Length(handle);
