@@ -114,7 +114,7 @@ Template* TemplateCache::GetTemplate(const String& name)
 	return NULL;
 }
 
-void TemplateCache::ClearTemplateCache()
+void TemplateCache::Clear()
 {
 	for (Templates::iterator i = instance->templates.begin(); i != instance->templates.end(); ++i)
 		delete (*i).second;

@@ -531,10 +531,10 @@ void Factory::ClearStyleSheetCache()
 	StyleSheetFactory::ClearStyleSheetCache();
 }
 
-/// Clears the template cache. This will force template to be reloaded.
+/// Clears the template cache. This will force templates to be reloaded.
 void Factory::ClearTemplateCache()
 {
-	TemplateCache::ClearTemplateCache();
+	TemplateCache::Clear();
 }
 
 // Registers an instancer for all RKTEvents
