@@ -59,15 +59,16 @@ public:
 
 		// Relative values.
 		EM = 1 << 6,				// number suffixed by 'em'; fetch as < float >
-		PERCENT = 1 << 7,			// number suffixed by '%'; fetch as < float >
-		RELATIVE_UNIT = EM | PERCENT,
+		REM = 1 << 7,				// number suffixed by 'rem'; fetch as < float >
+		PERCENT = 1 << 8,			// number suffixed by '%'; fetch as < float >
+		RELATIVE_UNIT = EM | REM | PERCENT,
 
 		// Values based on pixels-per-inch.
-		INCH = 1 << 8,				// number suffixed by 'in'; fetch as < float >
-		CM = 1 << 9,				// number suffixed by 'cm'; fetch as < float >
-		MM = 1 << 10,				// number suffixed by 'mm'; fetch as < float >
-		PT = 1 << 11,				// number suffixed by 'pt'; fetch as < float >
-		PC = 1 << 12,				// number suffixed by 'pc'; fetch as < float >
+		INCH = 1 << 9,				// number suffixed by 'in'; fetch as < float >
+		CM = 1 << 10,				// number suffixed by 'cm'; fetch as < float >
+		MM = 1 << 11,				// number suffixed by 'mm'; fetch as < float >
+		PT = 1 << 12,				// number suffixed by 'pt'; fetch as < float >
+		PC = 1 << 13,				// number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC
 	};
 

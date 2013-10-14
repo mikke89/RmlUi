@@ -370,6 +370,10 @@ void ElementDocument::OnPropertyChange(const PropertyNameList& changed_propertie
 {
 	Element::OnPropertyChange(changed_properties);
 
+	// If the document's font-size has been changed, we need to dirty all rem properties.
+	if (changed_properties.find(FONT_SIZE) != changed_properties.end())
+		GetStyle()->DirtyRemProperties();
+
 	if (changed_properties.find(TOP) != changed_properties.end() ||
 		changed_properties.find(RIGHT) != changed_properties.end() ||
 		changed_properties.find(BOTTOM) != changed_properties.end() ||
