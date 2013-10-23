@@ -102,11 +102,11 @@ void ElementTextDefault::OnRender()
 	Vector2i clip_dimensions;
 	if (GetContext()->GetActiveClipRegion(clip_origin, clip_dimensions))
 	{
-		float clip_top = clip_origin.y;
-		float clip_left = clip_origin.x;
-		float clip_right = (clip_origin.x + clip_dimensions.x);
-		float clip_bottom = (clip_origin.y + clip_dimensions.y);
-		float line_height = GetFontFaceHandle()->GetLineHeight();
+		float clip_top = (float)clip_origin.y;
+		float clip_left = (float)clip_origin.x;
+		float clip_right = (float)(clip_origin.x + clip_dimensions.x);
+		float clip_bottom = (float)(clip_origin.y + clip_dimensions.y);
+		float line_height = (float)GetFontFaceHandle()->GetLineHeight();
 		
 		render = false;
 		for (size_t i = 0; i < lines.size(); ++i)
@@ -225,7 +225,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 		// The token can fit on the end of the line, so add it onto the end and increment our width and length
 		// counters.
 		line += token;
-		line_length += (next_token_begin - token_begin);
+		line_length += (int)(next_token_begin - token_begin);
 		line_width += token_width;
 
 		// Break out of the loop if an endline was forced.

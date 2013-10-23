@@ -70,7 +70,7 @@ size_t Stream::Peek(void* buffer, size_t bytes) const
 {
 	size_t pos = Tell();
 	size_t read = Read( buffer, bytes );
-	Seek( pos, SEEK_SET );
+	Seek( (long)pos, SEEK_SET );
 	return read;
 }
 
@@ -130,7 +130,7 @@ size_t Stream::PushBack(const void* buffer, size_t bytes)
 	size_t pos = Tell();
 	Seek(0, SEEK_END);
 	size_t wrote = Write(buffer, bytes);
-	Seek(pos, SEEK_SET);
+	Seek((long)pos, SEEK_SET);
 	return wrote;
 }
 

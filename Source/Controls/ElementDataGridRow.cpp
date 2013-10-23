@@ -571,7 +571,7 @@ void ElementDataGridRow::LoadChildren(float time_slice)
 			any_dirty_children = true;
 			if (data_query_offset == -1)
 			{
-				data_query_offset = i;
+				data_query_offset = (int)i;
 				data_query_limit = 1;
 			}
 			else

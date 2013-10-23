@@ -95,7 +95,7 @@ bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, co
 
 bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 {
-	int rule_line_number = line_number;
+	int rule_line_number = (int)line_number;
 	String name;
 	String value;
 

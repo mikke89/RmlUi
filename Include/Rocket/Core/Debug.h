@@ -107,6 +107,6 @@ template <> struct STATIC_ASSERTION_FAILURE<true>{};
 	
 }
 }
-#define ROCKET_STATIC_ASSERT(cond, msg) Rocket::Core::STATIC_ASSERTION_FAILURE<cond> msg
+#define ROCKET_STATIC_ASSERT(cond, msg) Rocket::Core::STATIC_ASSERTION_FAILURE<cond> msg; (void)&msg;
 
 #endif
