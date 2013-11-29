@@ -127,12 +127,11 @@ protected:
 	virtual void OnReferenceDeactivate();
 
 private:
-	void GenerateMetrics(FT_Face ft_face);
+	void GenerateMetrics(void);
 
-	void BuildGlyphMap(FT_Face ft_face, const UnicodeRange& unicode_range);
+	void BuildGlyphMap(const UnicodeRange& unicode_range);
 	void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph);
 
-	void BuildKerning(FT_Face ft_face);
 	int GetKerning(word lhs, word rhs) const;
 
 	// Generates (or shares) a layer derived from a font effect.
@@ -141,8 +140,9 @@ private:
 	typedef std::vector< int > GlyphKerningList;
 	typedef std::vector< GlyphKerningList > FontKerningList;
 
+	FT_Face ft_face;
+
 	FontGlyphList glyphs;
-	FontKerningList kerning;
 
 	typedef std::map< const FontEffect*, FontFaceLayer* > FontLayerMap;
 	typedef std::map< String, FontFaceLayer* > FontLayerCache;
