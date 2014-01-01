@@ -47,14 +47,16 @@ void ElementTabSet::SetTab(int tab_index, const Rocket::Core::String& rml)
 	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "tab", Rocket::Core::XMLAttributes());
 	Core::Factory::InstanceElementText(element, rml);
 	SetTab(tab_index, element);
+	element->RemoveReference();
 }
 
 // Sets the specifed tab index's tab panel RML.
 void ElementTabSet::SetPanel(int tab_index, const Rocket::Core::String& rml)
 {
-	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "tab", Rocket::Core::XMLAttributes());
+	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "panel", Rocket::Core::XMLAttributes());
 	Core::Factory::InstanceElementText(element, rml);
 	SetPanel(tab_index, element);
+	element->RemoveReference();
 }
 
 // Set the specifed tab index's title element.
