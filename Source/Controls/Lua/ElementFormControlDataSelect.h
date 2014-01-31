@@ -41,8 +41,8 @@ namespace Lua {
 int ElementFormControlDataSelectSetDataSource(lua_State* L, ElementFormControlDataSelect* obj);
 
 extern Rocket::Core::Lua::RegType<ElementFormControlDataSelect> ElementFormControlDataSelectMethods[];
-extern luaL_reg ElementFormControlDataSelectGetters[];
-extern luaL_reg ElementFormControlDataSelectSetters[];
+extern luaL_Reg ElementFormControlDataSelectGetters[];
+extern luaL_Reg ElementFormControlDataSelectSetters[];
 
 }
 }

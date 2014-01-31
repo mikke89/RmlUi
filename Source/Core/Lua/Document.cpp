@@ -157,14 +157,14 @@ RegType<Document> DocumentMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg DocumentGetters[] =
+luaL_Reg DocumentGetters[] =
 {
     LUAGETTER(Document,title)
     LUAGETTER(Document,context)
     { NULL, NULL },
 };
 
-luaL_reg DocumentSetters[] =
+luaL_Reg DocumentSetters[] =
 {
     LUASETTER(Document,title)
     { NULL, NULL },

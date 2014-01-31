@@ -96,7 +96,7 @@ Rocket::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlGetters[] = 
+luaL_Reg ElementFormControlGetters[] = 
 {
     LUAGETTER(ElementFormControl,disabled)
     LUAGETTER(ElementFormControl,name)
@@ -104,7 +104,7 @@ luaL_reg ElementFormControlGetters[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlSetters[] = 
+luaL_Reg ElementFormControlSetters[] = 
 {
     LUASETTER(ElementFormControl,disabled)
     LUASETTER(ElementFormControl,name)

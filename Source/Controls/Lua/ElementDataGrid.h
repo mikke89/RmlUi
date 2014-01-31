@@ -47,8 +47,8 @@ int ElementDataGridGetAttrrows(lua_State* L);
 
 
 extern Rocket::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[];
-extern luaL_reg ElementDataGridGetters[];
-extern luaL_reg ElementDataGridSetters[];
+extern luaL_Reg ElementDataGridGetters[];
+extern luaL_Reg ElementDataGridSetters[];
 
 
 }

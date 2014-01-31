@@ -48,8 +48,8 @@ int ElementFormControlSetAttrname(lua_State* L);
 int ElementFormControlSetAttrvalue(lua_State* L);
 
 extern Rocket::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[];
-extern luaL_reg ElementFormControlGetters[];
-extern luaL_reg ElementFormControlSetters[];
+extern luaL_Reg ElementFormControlGetters[];
+extern luaL_Reg ElementFormControlSetters[];
 
 }
 }

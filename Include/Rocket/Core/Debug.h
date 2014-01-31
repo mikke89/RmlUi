@@ -35,7 +35,7 @@
 	#if defined (__MINGW32__)
 		#define ROCKET_BREAK asm("int $0x03")
 	#else
-		#define ROCKET_BREAK __debugbreak();
+		#define ROCKET_BREAK _asm { int 0x03 }
 	#endif
 #elif defined (ROCKET_PLATFORM_LINUX)
 	#if defined __i386__ || defined __x86_64__

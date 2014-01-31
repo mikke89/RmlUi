@@ -44,8 +44,8 @@ int RocketContextsProxy__pairs(lua_State* L);
 int RocketContextsProxy__ipairs(lua_State* L);
 
 extern RegType<RocketContextsProxy> RocketContextsProxyMethods[];
-extern luaL_reg RocketContextsProxyGetters[];
-extern luaL_reg RocketContextsProxySetters[];
+extern luaL_Reg RocketContextsProxyGetters[];
+extern luaL_Reg RocketContextsProxySetters[];
 
 LUACORETYPEDECLARE(RocketContextsProxy)
 }

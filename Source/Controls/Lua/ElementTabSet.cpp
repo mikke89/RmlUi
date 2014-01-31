@@ -95,14 +95,14 @@ Rocket::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementTabSetGetters[] =
+luaL_Reg ElementTabSetGetters[] =
 {
     LUAGETTER(ElementTabSet,active_tab)
     LUAGETTER(ElementTabSet,num_tabs)
     { NULL, NULL },
 };
 
-luaL_reg ElementTabSetSetters[] =
+luaL_Reg ElementTabSetSetters[] =
 {
     LUASETTER(ElementTabSet,active_tab)
     { NULL, NULL },

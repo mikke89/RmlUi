@@ -42,8 +42,8 @@ int ElementInstancernew(lua_State* L);
 int ElementInstancerSetAttrInstanceElement(lua_State* L);
 
 extern RegType<ElementInstancer> ElementInstancerMethods[];
-extern luaL_reg ElementInstancerGetters[];
-extern luaL_reg ElementInstancerSetters[];
+extern luaL_Reg ElementInstancerGetters[];
+extern luaL_Reg ElementInstancerSetters[];
 
 LUACORETYPEDECLARE(ElementInstancer)
 }

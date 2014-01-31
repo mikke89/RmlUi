@@ -42,8 +42,8 @@ int ElementTextGetAttrtext(lua_State* L);
 int ElementTextSetAttrtext(lua_State* L);
 
 extern RegType<ElementText> ElementTextMethods[];
-extern luaL_reg ElementTextGetters[];
-extern luaL_reg ElementTextSetters[];
+extern luaL_Reg ElementTextGetters[];
+extern luaL_Reg ElementTextSetters[];
 
 LUACORETYPEDECLARE(ElementText)
 }

@@ -97,8 +97,8 @@ int ElementSetAttrscroll_top(lua_State* L);
 
 
 extern RegType<Element> ElementMethods[];
-extern luaL_reg ElementGetters[];
-extern luaL_reg ElementSetters[];
+extern luaL_Reg ElementGetters[];
+extern luaL_Reg ElementSetters[];
 
 LUACORETYPEDECLARE(Element)
 }

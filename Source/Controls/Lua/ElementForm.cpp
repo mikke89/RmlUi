@@ -57,12 +57,12 @@ Rocket::Core::Lua::RegType<ElementForm> ElementFormMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementFormGetters[] =
+luaL_Reg ElementFormGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg ElementFormSetters[] =
+luaL_Reg ElementFormSetters[] =
 {
     { NULL, NULL },
 };

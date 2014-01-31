@@ -44,8 +44,8 @@ int ContextDocumentsProxy__pairs(lua_State* L);
 int ContextDocumentsProxy__ipairs(lua_State* L);
 
 extern RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[];
-extern luaL_reg ContextDocumentsProxyGetters[];
-extern luaL_reg ContextDocumentsProxySetters[];
+extern luaL_Reg ContextDocumentsProxyGetters[];
+extern luaL_Reg ContextDocumentsProxySetters[];
 
 LUACORETYPEDECLARE(ContextDocumentsProxy)
 }

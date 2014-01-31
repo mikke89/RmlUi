@@ -49,8 +49,8 @@ int ElementFormControlSelectGetAttrselection(lua_State* L);
 int ElementFormControlSelectSetAttrselection(lua_State* L);
 
 extern Rocket::Core::Lua::RegType<ElementFormControlSelect> ElementFormControlSelectMethods[];
-extern luaL_reg ElementFormControlSelectGetters[];
-extern luaL_reg ElementFormControlSelectSetters[];
+extern luaL_Reg ElementFormControlSelectGetters[];
+extern luaL_Reg ElementFormControlSelectSetters[];
 
 }
 }

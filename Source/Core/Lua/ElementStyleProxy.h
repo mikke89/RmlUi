@@ -43,8 +43,8 @@ int ElementStyleProxy__pairs(lua_State* L);
 int ElementStyleProxy__ipairs(lua_State* L);
 
 extern RegType<ElementStyleProxy> ElementStyleProxyMethods[];
-extern luaL_reg ElementStyleProxyGetters[];
-extern luaL_reg ElementStyleProxySetters[];
+extern luaL_Reg ElementStyleProxyGetters[];
+extern luaL_Reg ElementStyleProxySetters[];
 
 LUACORETYPEDECLARE(ElementStyleProxy)
 }

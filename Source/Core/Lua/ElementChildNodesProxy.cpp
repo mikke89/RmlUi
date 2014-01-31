@@ -94,11 +94,11 @@ RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[] =
 {
     { NULL, NULL },
 };
-luaL_reg ElementChildNodesProxyGetters[] = 
+luaL_Reg ElementChildNodesProxyGetters[] = 
 {
     { NULL, NULL },
 };
-luaL_reg ElementChildNodesProxySetters[] = 
+luaL_Reg ElementChildNodesProxySetters[] = 
 {
     { NULL, NULL },
 };

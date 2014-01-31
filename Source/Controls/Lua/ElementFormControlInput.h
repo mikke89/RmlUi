@@ -54,8 +54,8 @@ int ElementFormControlInputSetAttrmin(lua_State* L);
 int ElementFormControlInputSetAttrstep(lua_State* L);
 
 extern Rocket::Core::Lua::RegType<ElementFormControlInput> ElementFormControlInputMethods[];
-extern luaL_reg ElementFormControlInputGetters[];
-extern luaL_reg ElementFormControlInputSetters[];
+extern luaL_Reg ElementFormControlInputGetters[];
+extern luaL_Reg ElementFormControlInputSetters[];
 
 }
 }

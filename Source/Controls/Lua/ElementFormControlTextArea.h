@@ -50,8 +50,8 @@ int ElementFormControlTextAreaSetAttrrows(lua_State* L);
 int ElementFormControlTextAreaSetAttrwordwrap(lua_State* L);
 
 extern Rocket::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[];
-extern luaL_reg ElementFormControlTextAreaGetters[];
-extern luaL_reg ElementFormControlTextAreaSetters[];
+extern luaL_Reg ElementFormControlTextAreaGetters[];
+extern luaL_Reg ElementFormControlTextAreaSetters[];
 
 }
 }

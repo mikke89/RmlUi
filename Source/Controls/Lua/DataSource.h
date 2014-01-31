@@ -48,8 +48,8 @@ int DataSourceSetAttrGetNumRows(lua_State* L);
 int DataSourceSetAttrGetRow(lua_State* L);
 
 extern Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[];
-extern luaL_reg DataSourceGetters[];
-extern luaL_reg DataSourceSetters[];
+extern luaL_Reg DataSourceGetters[];
+extern luaL_Reg DataSourceSetters[];
 
 
 

@@ -45,8 +45,8 @@ int EventGetAttrtarget_element(lua_State* L);
 int EventGetAttrparameters(lua_State* L);
 
 extern RegType<Event> EventMethods[];
-extern luaL_reg EventGetters[];
-extern luaL_reg EventSetters[];
+extern luaL_Reg EventGetters[];
+extern luaL_Reg EventSetters[];
 
 LUACORETYPEDECLARE(Event)
 }

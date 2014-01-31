@@ -102,12 +102,12 @@ Rocket::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg SelectOptionsProxyGetters[] =
+luaL_Reg SelectOptionsProxyGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg SelectOptionsProxySetters[] =
+luaL_Reg SelectOptionsProxySetters[] =
 {
     { NULL, NULL },
 };

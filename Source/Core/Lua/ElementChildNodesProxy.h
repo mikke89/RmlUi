@@ -45,8 +45,8 @@ int ElementChildNodesProxy__pairs(lua_State* L);
 int ElementChildNodesProxy__ipairs(lua_State* L);
 
 extern RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[];
-extern luaL_reg ElementChildNodesProxyGetters[];
-extern luaL_reg ElementChildNodesProxySetters[];
+extern luaL_Reg ElementChildNodesProxyGetters[];
+extern luaL_Reg ElementChildNodesProxySetters[];
 
 LUACORETYPEDECLARE(ElementChildNodesProxy)
 }

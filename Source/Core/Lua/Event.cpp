@@ -90,7 +90,7 @@ RegType<Event> EventMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg EventGetters[] =
+luaL_Reg EventGetters[] =
 {
     LUAGETTER(Event,current_element)
     LUAGETTER(Event,type)
@@ -99,7 +99,7 @@ luaL_reg EventGetters[] =
     { NULL, NULL },
 };
 
-luaL_reg EventSetters[] =
+luaL_Reg EventSetters[] =
 {
     { NULL, NULL },
 };

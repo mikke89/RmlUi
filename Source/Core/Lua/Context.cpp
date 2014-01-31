@@ -243,7 +243,7 @@ RegType<Context> ContextMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ContextGetters[] =
+luaL_Reg ContextGetters[] =
 {
     LUAGETTER(Context,dimensions)
     LUAGETTER(Context,documents)
@@ -254,7 +254,7 @@ luaL_reg ContextGetters[] =
     { NULL, NULL },
 };
 
-luaL_reg ContextSetters[] =
+luaL_Reg ContextSetters[] =
 {
     LUASETTER(Context,dimensions)
     { NULL, NULL },
