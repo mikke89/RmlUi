@@ -9,6 +9,7 @@ srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Source
 hdrpath=Include/Rocket
 pypath=Python
+luapath=Lua
 
 printfiles() {
     # Print headers
@@ -42,6 +43,21 @@ printpyfiles() {
     echo -e ')\n' >>$file
 }
 
+printluafiles() {
+    # Print headers
+    echo ${hdr/lib/Lua${1,}} >>$file
+    find  $srcpath/$1/$luapath -iname "*.h" -exec echo '    '$srcdir/{} \; >>$file
+    echo -e ')\n' >>$file
+    # Print public headers
+    echo ${pubhdr/lib/Lua${1,}} >>$file
+    find  $hdrpath/$1/$luapath -iname "*.h" -exec echo '    '$srcdir/{} \; >>$file 2>/dev/null
+    echo -e ')\n' >>$file
+    # Print source files
+    echo ${src/lib/Lua${1,}} >>$file
+    find  $srcpath/$1/$luapath -iname "*.cpp" -exec echo '    '$srcdir/{} \; >>$file
+    echo -e ')\n' >>$file
+}
+
 pushd $basedir
 echo -e "# This file was auto-generated with gen_filelists.sh\n" >$file
 for lib in "Core" "Controls" "Debugger"; do
@@ -50,6 +66,9 @@ done
 
 for lib in "Core" "Controls"; do
     printpyfiles $lib
+done
+for lib in "Core" "Controls"; do
+    printluafiles $lib
 done
 popd
 

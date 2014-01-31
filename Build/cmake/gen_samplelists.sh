@@ -2,12 +2,13 @@
 
 basedir="../.."
 file=Build/cmake/SampleFileList.cmake
+platspecific=Build/cmake/gen_sample_plat_specific.txt
 src='set(sample_SRC_FILES'
 hdr='set(sample_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Samples
 samples=('basic/customlog' 'basic/directx' 'basic/drag' 'basic/loaddocument'
-        'basic/ogre3d' 'basic/treeview' 'invaders' 'pyinvaders' 'shell'
+        'basic/ogre3d' 'basic/treeview' 'invaders' 'luainvaders' 'pyinvaders' 'shell'
 	'tutorial/template' 'tutorial/datagrid' 'tutorial/datagrid_tree' 'tutorial/tutorial_drag'
 )
 
@@ -30,5 +31,6 @@ echo -e "# This file was auto-generated with gen_samplelists.sh\n" >$file
 for sample in ${samples[@]}; do
     printfiles $sample
 done
+cat $platspecific >> $file
 popd
 

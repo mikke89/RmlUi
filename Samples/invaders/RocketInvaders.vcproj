@@ -110,7 +110,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\shell\include;..\..\Include"
-				PreprocessorDefinitions="WIN32"
+				PreprocessorDefinitions="WIN32,NDEBUG"
 				RuntimeLibrary="2"
 				WarningLevel="4"
 				DebugInformationFormat="3"

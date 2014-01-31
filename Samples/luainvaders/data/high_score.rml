@@ -1,0 +1,76 @@
+<rml>
+	<head>
+		<title>High Scores</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				width: 350px;
+				height: 350px;
+				
+				margin: auto;
+			}
+			
+			div#title_bar div#icon
+			{
+				icon-image-s: 281px 331px;
+				icon-image-t: 152px 191px;
+			}
+			
+			datagrid
+			{
+				margin-bottom: 20px;
+				min-rows: 10;
+			}
+			
+			datagrid data_grid_body
+			{
+				min-height: 200px;
+			}
+			
+			defender
+			{
+				display: block;
+				width: 64px;
+				height: 16px;
+				
+				defender-decorator: defender;
+				defender-image-src: high_scores_defender.tga;
+			}
+		</style>
+		<script>
+HighScore = HighScore or {}
+
+--because we pass it as a plain function in HighScore.OnLoad, we have to pay attention
+--to the order of arguments. We don't need the first two in this case, so the name doesn't matter
+function HighScore.OnRowAdd(_,_,document)
+	input = document:GetElementById('player_input')
+	if input then
+		input:Focus()
+    end
+end
+
+function HighScore.OnLoad(window)
+	Window.OnWindowLoad(window)
+	local datagrid = window:GetElementById('datagrid')
+	datagrid:AddEventListener('rowupdate', HighScore.OnRowAdd, false)
+end
+	
+function HighScore.OnKeyDown(event)
+	if event.parameters['key_identifier'] == rocket.key_identifier.RETURN then
+        Game.SetHighScoreName(Element.As.ElementFormControlInput(event.current_element).value)
+		--Game.SetHighScoreName(event.current_element:AsType(Element.etype.input).value)
+    end
+end
+		</script>
+	</head>
+	<body template="luawindow" onload="HighScore.OnLoad(document) Game.SubmitHighScore()" onunload="Game.SetHighScoreName('Anon')">
+		<datagrid id="datagrid" source="high_scores.scores">
+			<col fields="name,name_required" formatter="name" width="40%">Pilot:</col>
+			<col fields="colour" formatter="ship" width="20%">Ship:</col>
+			<col fields="wave" width="20%">Wave:</col>
+			<col fields="score" width="20%">Score:</col>
+		</datagrid>
+		<button onclick="Window.LoadMenu('main_menu',document)">Main Menu</button>
+	</body>
+</rml>

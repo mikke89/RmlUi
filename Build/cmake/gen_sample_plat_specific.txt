@@ -1,0 +1,26 @@
+# Deal with platform specific sources for sample shell
+if(WIN32)
+	list(APPEND shell_SRC_FILES
+		${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellWin32.cpp
+		${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/InputWin32.cpp
+	)
+	list(APPEND shell_HDR_FILES
+		${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/InputWin32.h
+	)
+elseif(APPLE)
+	list(APPEND shell_SRC_FILES
+		${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/ShellMacOSX.cpp
+		${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/InputMacOSX.cpp
+	)
+	list(APPEND shell_HDR_FILES
+		${PROJECT_SOURCE_DIR}/Samples/shell/include/macosx/InputMacOSX.h
+	)
+else()
+	list(APPEND shell_SRC_FILES
+		${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/ShellX11.cpp
+		${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/InputX11.cpp
+	)
+	list(APPEND shell_HDR_FILES
+		${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/InputX11.h
+	)
+endif()
