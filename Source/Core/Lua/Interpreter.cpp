@@ -65,10 +65,12 @@ typedef Rocket::Core::ElementDocument Document;
 
 void Interpreter::Startup()
 {
-    Log::Message(Log::LT_INFO, "Loading Lua interpreter");
-    _L = luaL_newstate();
-    luaL_openlibs(_L);
-
+	if(_L == NULL)
+	{
+		Log::Message(Log::LT_INFO, "Loading Lua interpreter");
+		_L = luaL_newstate();
+		luaL_openlibs(_L);
+	}
     RegisterCoreTypes(_L);
 }
 
@@ -210,6 +212,13 @@ void Interpreter::OnShutdown()
 void Interpreter::Initialise()
 {
     Rocket::Core::RegisterPlugin(new Interpreter());
+}
+
+void Interpreter::Initialise(lua_State *luaStatePointer)
+{
+	Interpreter iPtr = new Interpreter();
+	iPtr->_L = luaStatePointer
+	Rocket::Core::RegisterPlugin(iPtr);
 }
 
 void Interpreter::Shutdown()

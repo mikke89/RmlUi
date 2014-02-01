@@ -96,6 +96,12 @@ public:
     exist again. Internally, it calls Interpreter::Startup() and registers the "body" tag to generate a LuaDocument
     rather than a Rocket::Core::ElementDocument    */
     static void Initialise();
+    /** Creates the plugin and adds Rocket to an existing Lua context
+	 @remark Call this function only once, and special care must be taken when destroying the lua_State passed to this method.
+	 Interpreter::Shutdown() calles lua_close on the lua_State pointer provided here, do not call Interpreter::Shutdown if you
+	 must call lua_close yourself or if you need to continue to use the lua_State pointer provided here.  Internally, this
+	 method works as Initialise() except an existing lua_State pointer is used instead of creating a new lua_State context. */
+    static void Initialise(lua_State *_L = NULL);
     /** Stops the plugin by calling lua_close        */
 	static void Shutdown();
     
