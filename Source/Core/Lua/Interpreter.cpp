@@ -216,8 +216,8 @@ void Interpreter::Initialise()
 
 void Interpreter::Initialise(lua_State *luaStatePointer)
 {
-	Interpreter iPtr = new Interpreter();
-	iPtr->_L = luaStatePointer
+	Interpreter *iPtr = new Interpreter();
+	iPtr->_L = luaStatePointer;
 	Rocket::Core::RegisterPlugin(iPtr);
 }
 
