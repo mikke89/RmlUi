@@ -572,7 +572,7 @@ RegType<Element> ElementMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementGetters[] =
+luaL_Reg ElementGetters[] =
 {
     LUAGETTER(Element,attributes)
     LUAGETTER(Element,child_nodes)
@@ -603,7 +603,7 @@ luaL_reg ElementGetters[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementSetters[] =
+luaL_Reg ElementSetters[] =
 {
     LUASETTER(Element,class_name)
     LUASETTER(Element,id)

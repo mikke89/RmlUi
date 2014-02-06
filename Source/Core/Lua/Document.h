@@ -57,8 +57,8 @@ int DocumentGetAttrcontext(lua_State* L);
 int DocumentSetAttrtitle(lua_State* L);
 
 extern RegType<Document> DocumentMethods[];
-extern luaL_reg DocumentGetters[];
-extern luaL_reg DocumentSetters[];
+extern luaL_Reg DocumentGetters[];
+extern luaL_Reg DocumentSetters[];
 
 LUACORETYPEDECLARE(Document)
 }

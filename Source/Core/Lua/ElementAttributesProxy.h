@@ -44,8 +44,8 @@ int ElementAttributesProxy__pairs(lua_State* L);
 int ElementAttributesProxy__ipairs(lua_State* L);
 
 extern RegType<ElementAttributesProxy> ElementAttributesProxyMethods[];
-extern luaL_reg ElementAttributesProxyGetters[];
-extern luaL_reg ElementAttributesProxySetters[];
+extern luaL_Reg ElementAttributesProxyGetters[];
+extern luaL_Reg ElementAttributesProxySetters[];
 
 LUACORETYPEDECLARE(ElementAttributesProxy)
 }

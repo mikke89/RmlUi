@@ -90,12 +90,12 @@ Rocket::Core::Lua::RegType<DataFormatter> DataFormatterMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg DataFormatterGetters[] =
+luaL_Reg DataFormatterGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg DataFormatterSetters[] =
+luaL_Reg DataFormatterSetters[] =
 {
     LUASETTER(DataFormatter,FormatData)
     { NULL, NULL },

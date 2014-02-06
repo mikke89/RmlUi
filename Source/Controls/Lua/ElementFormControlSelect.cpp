@@ -99,14 +99,14 @@ Rocket::Core::Lua::RegType<ElementFormControlSelect> ElementFormControlSelectMet
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlSelectGetters[] =
+luaL_Reg ElementFormControlSelectGetters[] =
 {
     LUAGETTER(ElementFormControlSelect,options)
     LUAGETTER(ElementFormControlSelect,selection)
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlSelectSetters[] =
+luaL_Reg ElementFormControlSelectSetters[] =
 {
     LUASETTER(ElementFormControlSelect,selection)
     { NULL, NULL },

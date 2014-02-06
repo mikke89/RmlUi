@@ -102,7 +102,7 @@ endif()
 
 #Lua
 if(BUILD_LUA_BINDINGS)
-    find_package(Lua51 REQUIRED)
+    find_package(Lua52 REQUIRED)
     if(LUA_INCLUDE_DIR)
         include_directories(${LUA_INCLUDE_DIR})
         list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})

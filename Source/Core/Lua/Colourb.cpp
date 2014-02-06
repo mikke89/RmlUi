@@ -212,7 +212,7 @@ RegType<Colourb> ColourbMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ColourbGetters[] =
+luaL_Reg ColourbGetters[] =
 {
     LUAGETTER(Colourb,red)
     LUAGETTER(Colourb,green)
@@ -222,7 +222,7 @@ luaL_reg ColourbGetters[] =
     { NULL, NULL },
 };
 
-luaL_reg ColourbSetters[] =
+luaL_Reg ColourbSetters[] =
 {
     LUASETTER(Colourb,red)
     LUASETTER(Colourb,green)

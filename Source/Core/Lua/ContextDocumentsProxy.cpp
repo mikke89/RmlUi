@@ -137,12 +137,12 @@ RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ContextDocumentsProxyGetters[] =
+luaL_Reg ContextDocumentsProxyGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg ContextDocumentsProxySetters[] =
+luaL_Reg ContextDocumentsProxySetters[] =
 {
     { NULL, NULL },
 };

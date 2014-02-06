@@ -55,8 +55,8 @@ int Vector2iSetAttry(lua_State*L);
 
 
 extern RegType<Vector2i> Vector2iMethods[];
-extern luaL_reg Vector2iGetters[];
-extern luaL_reg Vector2iSetters[];
+extern luaL_Reg Vector2iGetters[];
+extern luaL_Reg Vector2iSetters[];
 
 LUACORETYPEDECLARE(Vector2i)
 }

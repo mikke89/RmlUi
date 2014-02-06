@@ -44,8 +44,8 @@ int SelectOptionsProxy__pairs(lua_State* L);
 int SelectOptionsProxy__ipairs(lua_State* L);
 
 extern Rocket::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[];
-extern luaL_reg SelectOptionsProxyGetters[];
-extern luaL_reg SelectOptionsProxySetters[];
+extern luaL_Reg SelectOptionsProxyGetters[];
+extern luaL_Reg SelectOptionsProxySetters[];
 
 }
 }

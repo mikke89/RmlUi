@@ -58,8 +58,8 @@ int Vector2fSetAttry(lua_State*L);
 
 
 extern RegType<Vector2f> Vector2fMethods[];
-extern luaL_reg Vector2fGetters[];
-extern luaL_reg Vector2fSetters[];
+extern luaL_Reg Vector2fGetters[];
+extern luaL_Reg Vector2fSetters[];
 
 LUACORETYPEDECLARE(Vector2f)
 }

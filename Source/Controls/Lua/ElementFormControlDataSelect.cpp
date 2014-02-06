@@ -49,12 +49,12 @@ Rocket::Core::Lua::RegType<ElementFormControlDataSelect> ElementFormControlDataS
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlDataSelectGetters[] =
+luaL_Reg ElementFormControlDataSelectGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlDataSelectSetters[] =
+luaL_Reg ElementFormControlDataSelectSetters[] =
 {
     { NULL, NULL },
 };

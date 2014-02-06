@@ -60,8 +60,8 @@ void LuaRocketEnumkey_identifier(lua_State* L);
 void LuaRocketEnumkey_modifier(lua_State* L);
 
 extern RegType<LuaRocket> LuaRocketMethods[];
-extern luaL_reg LuaRocketGetters[];
-extern luaL_reg LuaRocketSetters[];
+extern luaL_Reg LuaRocketGetters[];
+extern luaL_Reg LuaRocketSetters[];
 
 LUACORETYPEDECLARE(LuaRocket)
 }

@@ -222,7 +222,7 @@ RegType<Vector2f> Vector2fMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg Vector2fGetters[]= 
+luaL_Reg Vector2fGetters[]= 
 {
     LUAGETTER(Vector2f,x)
     LUAGETTER(Vector2f,y)
@@ -230,7 +230,7 @@ luaL_reg Vector2fGetters[]=
     { NULL, NULL },
 };
 
-luaL_reg Vector2fSetters[]= 
+luaL_Reg Vector2fSetters[]= 
 {
     LUASETTER(Vector2f,x)
     LUASETTER(Vector2f,y)

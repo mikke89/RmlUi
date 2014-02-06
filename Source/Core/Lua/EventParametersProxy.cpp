@@ -99,11 +99,11 @@ RegType<EventParametersProxy> EventParametersProxyMethods[] =
 {
     { NULL, NULL },
 };
-luaL_reg EventParametersProxyGetters[] =
+luaL_Reg EventParametersProxyGetters[] =
 {
     { NULL, NULL },
 };
-luaL_reg EventParametersProxySetters[] =
+luaL_Reg EventParametersProxySetters[] =
 {
     { NULL, NULL },
 };

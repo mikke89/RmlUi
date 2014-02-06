@@ -88,7 +88,7 @@ int DataSourceSetAttrGetNumRows(lua_State* L)
     if(lua_type(L,2) == LUA_TFUNCTION)
     {
         lua_pushvalue(L,2); //copy of the function, so it is for sure at the top of the stack
-        obj->getNumRowsRef = lua_ref(L,true);
+        obj->getNumRowsRef = luaL_ref(L, LUA_REGISTRYINDEX);
     }
     else
         Log::Message(Log::LT_WARNING, "Lua: Must assign DataSource.GetNumRows as a function, value received was of %s type", lua_typename(L,2));
@@ -102,7 +102,7 @@ int DataSourceSetAttrGetRow(lua_State* L)
     if(lua_type(L,2) == LUA_TFUNCTION)
     {
         lua_pushvalue(L,2); //copy of the functions, so it is for sure at the top of the stack
-        obj->getRowRef = lua_ref(L,true);
+        obj->getRowRef = luaL_ref(L, LUA_REGISTRYINDEX);
     }
     else
         Log::Message(Log::LT_WARNING, "Lua: Must assign DataSource.GetRow as a function, value received was of %s type", lua_typename(L,2));
@@ -118,12 +118,12 @@ Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg DataSourceGetters[] =
+luaL_Reg DataSourceGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg DataSourceSetters[] =
+luaL_Reg DataSourceSetters[] =
 {
     LUASETTER(DataSource,GetNumRows)
     LUASETTER(DataSource,GetRow)

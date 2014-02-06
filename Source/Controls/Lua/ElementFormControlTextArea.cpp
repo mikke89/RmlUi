@@ -112,7 +112,7 @@ Rocket::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAre
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlTextAreaGetters[] =
+luaL_Reg ElementFormControlTextAreaGetters[] =
 {
     LUAGETTER(ElementFormControlTextArea,cols)
     LUAGETTER(ElementFormControlTextArea,maxlength)
@@ -121,7 +121,7 @@ luaL_reg ElementFormControlTextAreaGetters[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementFormControlTextAreaSetters[] =
+luaL_Reg ElementFormControlTextAreaSetters[] =
 {
     LUASETTER(ElementFormControlTextArea,cols)
     LUASETTER(ElementFormControlTextArea,maxlength)

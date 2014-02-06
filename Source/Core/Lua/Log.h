@@ -36,8 +36,8 @@ template<> void ExtraInit<Log>(lua_State* L, int metatable_index);
 int LogMessage(lua_State* L);
 
 extern RegType<Log> LogMethods[];
-extern luaL_reg LogGetters[];
-extern luaL_reg LogSetters[];
+extern luaL_Reg LogGetters[];
+extern luaL_Reg LogSetters[];
 
 LUACORETYPEDECLARE(Log)
 }

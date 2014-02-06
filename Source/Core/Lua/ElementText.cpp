@@ -64,13 +64,13 @@ RegType<ElementText> ElementTextMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementTextGetters[] =
+luaL_Reg ElementTextGetters[] =
 {
     LUAGETTER(ElementText,text)
     { NULL, NULL },
 };
 
-luaL_reg ElementTextSetters[] =
+luaL_Reg ElementTextSetters[] =
 {
     LUASETTER(ElementText,text)
     { NULL, NULL },

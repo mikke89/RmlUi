@@ -96,11 +96,11 @@ RegType<ElementAttributesProxy> ElementAttributesProxyMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementAttributesProxyGetters[] =
+luaL_Reg ElementAttributesProxyGetters[] =
 {
     { NULL, NULL },
 };
-luaL_reg ElementAttributesProxySetters[] =
+luaL_Reg ElementAttributesProxySetters[] =
 {
     { NULL, NULL },
 };

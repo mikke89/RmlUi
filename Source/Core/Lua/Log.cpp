@@ -84,12 +84,12 @@ RegType<Log> LogMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg LogGetters[] =
+luaL_Reg LogGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg LogSetters[] =
+luaL_Reg LogSetters[] =
 {
     { NULL, NULL },
 };

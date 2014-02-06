@@ -44,8 +44,8 @@ int EventParametersProxy__pairs(lua_State* L);
 int EventParametersProxy__ipairs(lua_State* L);
 
 extern RegType<EventParametersProxy> EventParametersProxyMethods[];
-extern luaL_reg EventParametersProxyGetters[];
-extern luaL_reg EventParametersProxySetters[];
+extern luaL_Reg EventParametersProxyGetters[];
+extern luaL_Reg EventParametersProxySetters[];
 
 LUACORETYPEDECLARE(EventParametersProxy)
 }

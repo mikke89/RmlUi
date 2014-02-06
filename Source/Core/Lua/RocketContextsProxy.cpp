@@ -126,11 +126,11 @@ RegType<RocketContextsProxy> RocketContextsProxyMethods[] =
 {
     { NULL, NULL },
 };
-luaL_reg RocketContextsProxyGetters[] =
+luaL_Reg RocketContextsProxyGetters[] =
 {
     { NULL, NULL },
 };
-luaL_reg RocketContextsProxySetters[] =
+luaL_Reg RocketContextsProxySetters[] =
 {
     { NULL, NULL },
 };

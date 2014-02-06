@@ -145,7 +145,8 @@ void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Cor
 void Interpreter::BeginCall(int funRef)
 {
     lua_settop(_L,0); //empty stack
-    lua_getref(_L,funRef);
+    //lua_getref(_L,funRef);
+    lua_rawgeti(_L, LUA_REGISTRYINDEX, (int)funRef);
 }
 
 bool Interpreter::ExecuteCall(int params, int res)

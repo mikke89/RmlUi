@@ -137,12 +137,12 @@ RegType<ElementStyleProxy> ElementStyleProxyMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementStyleProxyGetters[] = 
+luaL_Reg ElementStyleProxyGetters[] = 
 {
     { NULL, NULL },
 };
 
-luaL_reg ElementStyleProxySetters[] = 
+luaL_Reg ElementStyleProxySetters[] = 
 {
     { NULL, NULL },
 };

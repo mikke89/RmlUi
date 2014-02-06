@@ -45,8 +45,8 @@ int DataFormatternew(lua_State* L);
 int DataFormatterSetAttrFormatData(lua_State* L);
 
 extern Rocket::Core::Lua::RegType<DataFormatter> DataFormatterMethods[];
-extern luaL_reg DataFormatterGetters[];
-extern luaL_reg DataFormatterSetters[];
+extern luaL_Reg DataFormatterGetters[];
+extern luaL_Reg DataFormatterSetters[];
 }
 }
 }

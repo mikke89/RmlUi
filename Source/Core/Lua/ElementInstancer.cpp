@@ -71,12 +71,12 @@ RegType<ElementInstancer> ElementInstancerMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementInstancerGetters[] =
+luaL_Reg ElementInstancerGetters[] =
 {
     { NULL, NULL },
 };
 
-luaL_reg ElementInstancerSetters[] =
+luaL_Reg ElementInstancerSetters[] =
 {
     LUASETTER(ElementInstancer,InstanceElement)
     { NULL, NULL },

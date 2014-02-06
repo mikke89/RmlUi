@@ -88,13 +88,13 @@ Rocket::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementDataGridGetters[] =
+luaL_Reg ElementDataGridGetters[] =
 {
     LUAGETTER(ElementDataGrid,rows)
     { NULL, NULL },
 };
 
-luaL_reg ElementDataGridSetters[] =
+luaL_Reg ElementDataGridSetters[] =
 {
     { NULL, NULL },
 };

@@ -60,16 +60,16 @@
 #define LUACORETYPEDEFINE(type,is_ref_counted) \
     template<> const char* GetTClassName<type>() { return #type; } \
     template<> RegType<type>* GetMethodTable<type>() { return type##Methods; } \
-    template<> luaL_reg* GetAttrTable<type>() { return type##Getters; } \
-    template<> luaL_reg* SetAttrTable<type>() { return type##Setters; } \
+    template<> luaL_Reg* GetAttrTable<type>() { return type##Getters; } \
+    template<> luaL_Reg* SetAttrTable<type>() { return type##Setters; } \
     template<> bool IsReferenceCounted<type>() { return (is_ref_counted); } \
 
 //We can't use LUACORETYPEDEFINE due to namespace issues
 #define LUACONTROLSTYPEDEFINE(type,is_ref_counted) \
     template<> const char* GetTClassName<type>() { return #type; } \
     template<> RegType<type>* GetMethodTable<type>() { return Rocket::Controls::Lua::type##Methods; } \
-    template<> luaL_reg* GetAttrTable<type>() { return Rocket::Controls::Lua::type##Getters; } \
-    template<> luaL_reg* SetAttrTable<type>() { return Rocket::Controls::Lua::type##Setters; } \
+    template<> luaL_Reg* GetAttrTable<type>() { return Rocket::Controls::Lua::type##Getters; } \
+    template<> luaL_Reg* SetAttrTable<type>() { return Rocket::Controls::Lua::type##Setters; } \
     template<> bool IsReferenceCounted<type>() { return (is_ref_counted); } \
 
 /** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
@@ -79,8 +79,8 @@ the LUACORETYPEDEFINE macro, or make sure that the function signatures are @em e
 #define LUACORETYPEDECLARE(type) \
     template<> ROCKETLUA_API const char* GetTClassName<type>(); \
     template<> ROCKETLUA_API RegType<type>* GetMethodTable<type>(); \
-    template<> ROCKETLUA_API luaL_reg* GetAttrTable<type>(); \
-    template<> ROCKETLUA_API luaL_reg* SetAttrTable<type>(); \
+    template<> ROCKETLUA_API luaL_Reg* GetAttrTable<type>(); \
+    template<> ROCKETLUA_API luaL_Reg* SetAttrTable<type>(); \
     template<> ROCKETLUA_API bool IsReferenceCounted<type>(); \
 
 /** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
@@ -90,14 +90,14 @@ the LUACORETYPEDEFINE macro, or make sure that the function signatures are @em e
 #define LUACONTROLSTYPEDECLARE(type) \
     template<> ROCKETLUA_API const char* GetTClassName<type>(); \
     template<> ROCKETLUA_API RegType<type>* GetMethodTable<type>(); \
-    template<> ROCKETLUA_API luaL_reg* GetAttrTable<type>(); \
-    template<> ROCKETLUA_API luaL_reg* SetAttrTable<type>(); \
+    template<> ROCKETLUA_API luaL_Reg* GetAttrTable<type>(); \
+    template<> ROCKETLUA_API luaL_Reg* SetAttrTable<type>(); \
     template<> ROCKETLUA_API bool IsReferenceCounted<type>(); \
 
 namespace Rocket {
 namespace Core {
 namespace Lua {
-//replacement for luaL_reg that uses a different function pointer signature, but similar syntax
+//replacement for luaL_Reg that uses a different function pointer signature, but similar syntax
 template<typename T>
 struct ROCKETLUA_API RegType
 {
@@ -108,9 +108,9 @@ struct ROCKETLUA_API RegType
 /** For all of the methods available from Lua that call to the C functions. */
 template<typename T> ROCKETLUA_API RegType<T>* GetMethodTable();
 /** For all of the function that 'get' an attribute/property */
-template<typename T> ROCKETLUA_API luaL_reg* GetAttrTable();
+template<typename T> ROCKETLUA_API luaL_Reg* GetAttrTable();
 /** For all of the functions that 'set' an attribute/property  */
-template<typename T> ROCKETLUA_API luaL_reg* SetAttrTable();
+template<typename T> ROCKETLUA_API luaL_Reg* SetAttrTable();
 /** String representation of the class */
 template<typename T> ROCKETLUA_API const char* GetTClassName();
 /** bool for if it is reference counted */
@@ -133,7 +133,7 @@ class ROCKETLUA_API LuaType
 {
 public:
     typedef int (*ftnptr)(lua_State* L, T* ptr);
-    /** replacement for luaL_reg that uses a different function pointer signature, but similar syntax */
+    /** replacement for luaL_Reg that uses a different function pointer signature, but similar syntax */
     typedef struct { const char* name; ftnptr func; } RegType;
 
     /** Registers the type T as a type in the Lua global namespace by creating a

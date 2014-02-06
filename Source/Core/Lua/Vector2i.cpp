@@ -186,7 +186,7 @@ RegType<Vector2i> Vector2iMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg Vector2iGetters[]= 
+luaL_Reg Vector2iGetters[]= 
 {
     LUAGETTER(Vector2i,x)
     LUAGETTER(Vector2i,y)
@@ -194,7 +194,7 @@ luaL_reg Vector2iGetters[]=
     { NULL, NULL },
 };
 
-luaL_reg Vector2iSetters[]= 
+luaL_Reg Vector2iSetters[]= 
 {
     LUASETTER(Vector2i,x)
     LUASETTER(Vector2i,y)

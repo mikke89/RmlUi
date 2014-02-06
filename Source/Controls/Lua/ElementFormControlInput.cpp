@@ -150,7 +150,7 @@ Rocket::Core::Lua::RegType<ElementFormControlInput> ElementFormControlInputMetho
     {NULL,NULL},
 };
 
-luaL_reg ElementFormControlInputGetters[] = 
+luaL_Reg ElementFormControlInputGetters[] = 
 {
     LUAGETTER(ElementFormControlInput,checked)
     LUAGETTER(ElementFormControlInput,maxlength)
@@ -161,7 +161,7 @@ luaL_reg ElementFormControlInputGetters[] =
     {NULL,NULL},
 };
 
-luaL_reg ElementFormControlInputSetters[] = 
+luaL_Reg ElementFormControlInputSetters[] = 
 {
     LUASETTER(ElementFormControlInput,checked)
     LUASETTER(ElementFormControlInput,maxlength)

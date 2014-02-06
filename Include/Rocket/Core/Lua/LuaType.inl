@@ -314,7 +314,7 @@ void LuaType<T>::_regfunctions(lua_State* L, int meta, int methods)
         lua_setfield(L,methods,"__getters"); // pop [1]
         lua_getfield(L,methods,"__getters"); // -> table [1]
     }
-    for(luaL_reg* m = (luaL_reg*)GetAttrTable<T>(); m->name; m++)
+    for(luaL_Reg* m = (luaL_Reg*)GetAttrTable<T>(); m->name; m++)
     {
         lua_pushcfunction(L,m->func); // -> [2] is this function
         lua_setfield(L,-2,m->name); //[-2 = 1] -> __getters.name = function
@@ -330,7 +330,7 @@ void LuaType<T>::_regfunctions(lua_State* L, int meta, int methods)
         lua_setfield(L,methods,"__setters"); // pop [1]
         lua_getfield(L,methods,"__setters"); // -> table [1]
     }
-    for(luaL_reg* m = (luaL_reg*)SetAttrTable<T>(); m->name; m++)
+    for(luaL_Reg* m = (luaL_Reg*)SetAttrTable<T>(); m->name; m++)
     {
         lua_pushcfunction(L,m->func); // -> [2] is this function
         lua_setfield(L,-2,m->name); //[-2 = 1] -> __setters.name = function

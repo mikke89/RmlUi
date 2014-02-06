@@ -98,7 +98,7 @@ Rocket::Core::Lua::RegType<ElementDataGridRow> ElementDataGridRowMethods[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementDataGridRowGetters[] =
+luaL_Reg ElementDataGridRowGetters[] =
 {
     LUAGETTER(ElementDataGridRow,row_expanded)
     LUAGETTER(ElementDataGridRow,parent_relative_index)
@@ -108,7 +108,7 @@ luaL_reg ElementDataGridRowGetters[] =
     { NULL, NULL },
 };
 
-luaL_reg ElementDataGridRowSetters[] =
+luaL_Reg ElementDataGridRowSetters[] =
 {
     LUASETTER(ElementDataGridRow,row_expanded)
     { NULL, NULL },
