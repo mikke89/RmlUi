@@ -783,7 +783,7 @@ float Element::GetClientHeight()
 // Returns the element from which all offset calculations are currently computed.
 Element* Element::GetOffsetParent()
 {
-	return parent;
+	return offset_parent;
 }
 
 // Gets the distance from this element's left border to its offset parent's left border.
