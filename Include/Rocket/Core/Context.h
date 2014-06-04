@@ -35,6 +35,7 @@
 #include <Rocket/Core/Input.h>
 #include <Rocket/Core/String.h>
 #include <Rocket/Core/ScriptInterface.h>
+#include <Rocket/Core/ViewState.h>
 
 namespace Rocket {
 namespace Core {
@@ -79,6 +80,9 @@ public:
 	/// Returns the dimensions of the context.
 	/// @return The current dimensions of the context.
 	const Vector2i& GetDimensions() const;
+
+	/// Returns the current state of the view.
+	const ViewState& GetViewState() const throw();
 
 	/// Updates all elements in the context's documents.
 	bool Update();
@@ -209,6 +213,13 @@ public:
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
 	bool ProcessMouseWheel(int wheel_delta, int key_modifier_state);
 
+	/// Notifies Rocket of a change in the projection matrix.
+	/// @param[in] projection The new projection matrix.
+	void ProcessProjectionChange(const Matrix4f &projection);
+	/// Notifies Rocket of a change in the view matrix.
+	/// @param[in] projection The new view matrix.
+	void ProcessViewChange(const Matrix4f &view);
+
 	/// Gets the context's render interface.
 	/// @return The render interface the context renders through.
 	RenderInterface* GetRenderInterface() const;
@@ -291,6 +302,9 @@ private:
 	RenderInterface* render_interface;
 	Vector2i clip_origin;
 	Vector2i clip_dimensions;
+
+	// The current view state
+	ViewState view_state;
 
 	// Internal callback for when an element is removed from the hierarchy.
 	void OnElementRemove(Element* element);

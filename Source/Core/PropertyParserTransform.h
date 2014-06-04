@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://www.librocket.com
  *
- * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2014 Markus Schöngart
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,47 +25,29 @@
  *
  */
 
-#ifndef ROCKETCOREPROPERTYPARSERNUMBER_H
-#define ROCKETCOREPROPERTYPARSERNUMBER_H
+#ifndef ROCKETCOREPROPERTYPARSERTRANSFORM_H
+#define ROCKETCOREPROPERTYPARSERTRANSFORM_H
 
 #include <Rocket/Core/PropertyParser.h>
+#include <Rocket/Core/TransformPrimitive.h>
+#include "PropertyParserNumber.h"
 
 namespace Rocket {
 namespace Core {
 
 /**
-	A property parser that parses a floating-point number with an optional unit.
+	A property parser that parses a RCSS transform property specification.
 
-	@author Peter Curry
+	@author Markus Schöngart
  */
 
-class PropertyParserNumber : public PropertyParser
+class PropertyParserTransform : public PropertyParser
 {
 public:
-	enum
-	{
-		ABS_NUMBER =	Property::NUMBER,
-		NUMBER =	Property::NUMBER
-				| Property::PERCENT,
-		LENGTH =	Property::NUMBER
-				| Property::PERCENT
-				| Property::PX
-				| Property::EM
-				| Property::INCH
-				| Property::CM
-				| Property::MM
-				| Property::PT
-				| Property::PC,
-		ANGLE =		Property::NUMBER
-				| Property::PERCENT
-				| Property::DEG
-				| Property::RAD
-	};
+	PropertyParserTransform();
+	virtual ~PropertyParserTransform();
 
-	PropertyParserNumber(int units);
-	virtual ~PropertyParserNumber();
-
-	/// Called to parse a RCSS number declaration.
+	/// Called to parse a RCSS transform declaration.
 	/// @param[out] property The property to set the parsed value on.
 	/// @param[in] value The raw value defined for this property.
 	/// @param[in] parameters The parameters defined for this property.
@@ -76,12 +58,16 @@ public:
 	void Release();
 
 private:
-	// Stores a bit mask of allowed units.
-	int units;
+	/// Scan a string for a parameterized keyword with a certain number of numeric arguments.
+	/// @param[in] str The string to search for the parameterized keyword
+	/// @param[in] keyword The name of the keyword to search for
+	/// @param[in] parsers The numeric argument parsers
+	/// @param[out] args The numeric arguments encountered
+	/// @param[in] nargs The number of numeric arguments expected
+	/// @returns The number of bytes read, if the function call occurs at the beginning of str, 0 otherwise.
+	int Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const;
 
-	// Stores a list of the numerical units and their suffixes.
-	typedef std::pair< Property::Unit, String > UnitSuffix;
-	std::vector< UnitSuffix > unit_suffixes;
+	PropertyParserNumber abs_number, number, length, angle;
 };
 
 }

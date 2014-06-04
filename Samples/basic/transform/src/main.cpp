@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://www.librocket.com
  *
- * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2014 Markus Schöngart
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,75 @@
  */
 
 #include <Rocket/Core.h>
+#include <Rocket/Controls.h>
 #include <Rocket/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
-#include "Inventory.h"
+
+#include <cmath>
+#include <sstream>
+
+class DemoWindow
+{
+public:
+	DemoWindow(const Rocket::Core::String &title, const Rocket::Core::Vector2f &position, Rocket::Core::Context *context)
+	{
+		document = context->LoadDocument("data/transform.rml");
+		if (document != NULL)
+		{
+			document->GetElementById("title")->SetInnerRML(title);
+			document->SetProperty("left", Rocket::Core::Property(position.x, Rocket::Core::Property::PX));
+			document->SetProperty("top", Rocket::Core::Property(position.y, Rocket::Core::Property::PX));
+			document->Show();
+		}
+	}
+
+	~DemoWindow()
+	{
+		if (document)
+		{
+			document->RemoveReference();
+			document->Close();
+		}
+	}
+
+	void SetPerspective(float distance)
+	{
+		if (document)
+		{
+			std::stringstream s;
+			s << distance;
+			document->SetProperty("perspective", s.str().c_str());
+		}
+	}
+
+	void SetPerspectiveOrigin(float x, float y)
+	{
+		if (document)
+		{
+			std::stringstream s;
+			s << x * 100 << "%" << " " << y * 100 << "%";
+			document->SetProperty("perspective-origin", s.str().c_str());
+		}
+	}
+
+	void SetRotation(float degrees)
+	{
+		if (document)
+		{
+			std::stringstream s;
+			s << "rotate3d(0.0, 1.0, 0.0, " << degrees << ")";
+			document->SetProperty("transform", s.str().c_str());
+		}
+	}
+
+private:
+	Rocket::Core::ElementDocument *document;
+};
 
 Rocket::Core::Context* context = NULL;
+DemoWindow* window_1 = NULL;
+DemoWindow* window_2 = NULL;
 
 void GameLoop()
 {
@@ -39,6 +102,18 @@ void GameLoop()
 
 	context->Update();
 	context->Render();
+
+	static float deg = 0;
+	Rocket::Core::SystemInterface* system_interface = Rocket::Core::GetSystemInterface();
+	deg = std::fmod(system_interface->GetElapsedTime() * 30.0f, 360.0f);
+	if (window_1)
+	{
+		window_1->SetRotation(deg);
+	}
+	if (window_2)
+	{
+		window_2->SetRotation(deg);
+	}
 
 	Shell::FlipBuffers();
 }
@@ -51,8 +126,8 @@ int main(int ROCKET_UNUSED(argc), char** ROCKET_UNUSED(argv))
 #endif
 {
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../Samples/basic/drag/") ||
-		!Shell::OpenWindow("Drag Sample", true))
+	if (!Shell::Initialise("../Samples/basic/transform/") ||
+		!Shell::OpenWindow("Transform Sample", true))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -60,8 +135,9 @@ int main(int ROCKET_UNUSED(argc), char** ROCKET_UNUSED(argv))
 
 	// Rocket initialisation.
 	ShellRenderInterfaceOpenGL opengl_renderer;
+	opengl_renderer.SetViewport(1024,768);
+
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
-    opengl_renderer.SetViewport(1024,768);
 
 	ShellSystemInterface system_interface;
 	Rocket::Core::SetSystemInterface(&system_interface);
@@ -77,27 +153,34 @@ int main(int ROCKET_UNUSED(argc), char** ROCKET_UNUSED(argv))
 		return -1;
 	}
 
-	opengl_renderer.QueryProjectionView(*context);
+	float M[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, M);
+	context->ProcessProjectionChange(Rocket::Core::Matrix4f::FromColumnMajor(M));
+	glGetFloatv(GL_MODELVIEW_MATRIX, M);
+	context->ProcessViewChange(Rocket::Core::Matrix4f::FromColumnMajor(M));
 
+	Rocket::Controls::Initialise();
 	Rocket::Debugger::Initialise(context);
 	Input::SetContext(context);
 
 	Shell::LoadFonts("../../assets/");
 
-	// Load and show the inventory document.
-	Inventory* inventory_1 = new Inventory("Inventory 1", Rocket::Core::Vector2f(50, 200), context);
-	Inventory* inventory_2 = new Inventory("Inventory 2", Rocket::Core::Vector2f(540, 240), context);
-
-	// Add items into the inventory.
-	inventory_1->AddItem("Mk III L.A.S.E.R.");
-	inventory_1->AddItem("Gravity Descender");
-	inventory_1->AddItem("Closed-Loop Ion Beam");
-	inventory_1->AddItem("5kT Mega-Bomb");
+	window_1 = new DemoWindow("Orthographic transform", Rocket::Core::Vector2f(81, 200), context);
+	if (window_1)
+	{
+		window_1->SetPerspective(0);
+	}
+	window_2 = new DemoWindow("Perspective transform", Rocket::Core::Vector2f(593, 200), context);
+	if (window_2)
+	{
+		window_2->SetPerspective(800);
+		window_2->SetPerspectiveOrigin(0.5, 0.75);
+	}
 
 	Shell::EventLoop(GameLoop);
 
-	delete inventory_1;
-	delete inventory_2;
+	delete window_1;
+	delete window_2;
 
 	// Shutdown Rocket.
 	context->RemoveReference();

@@ -70,9 +70,12 @@ public:
 		STRING = 's',
 		WORD = 'w',
 		VECTOR2 = '2',
+		VECTOR3 = '3',
+		VECTOR4 = '4',
 		COLOURF = 'g',
 		COLOURB = 'h',
 		SCRIPTINTERFACE = 'p',
+		TRANSFORMREF = 't',
 		VOIDPTR = '*',			
 	};
 
@@ -113,6 +116,15 @@ public:
 	/// Sets a Vector2f value on this variant.
 	/// @param[in] value New value to set.
 	void Set(const Vector2f& value);
+	/// Sets a Vector3f value on this variant.
+	/// @param[in] value New value to set.
+	void Set(const Vector3f& value);
+	/// Sets a Vector4f value on this variant.
+	/// @param[in] value New value to set.
+	void Set(const Vector4f& value);
+	/// Sets a TransformRef value on this variant.
+	/// @param[in] value New value to set.
+	void Set(const TransformRef& value);
 	/// Sets a Colourf value on this variant.
 	/// @param[in] value New value to set.
 	void Set(const Colourf& value);

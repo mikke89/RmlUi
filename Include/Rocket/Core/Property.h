@@ -54,21 +54,25 @@ public:
 		// Absolute values.
 		NUMBER = 1 << 3,			// number unsuffixed; fetch as < float >
 		PX = 1 << 4,				// number suffixed by 'px'; fetch as < float >
-		COLOUR = 1 << 5,			// colour; fetch as < Colourb >
-		ABSOLUTE_UNIT = NUMBER | PX | COLOUR,
+		DEG = 1 << 5,				// number suffixed by 'px'; fetch as < float >
+		RAD = 1 << 6,				// number suffixed by 'px'; fetch as < float >
+		COLOUR = 1 << 7,			// colour; fetch as < Colourb >
+		ABSOLUTE_UNIT = NUMBER | PX | DEG | RAD | COLOUR,
 
 		// Relative values.
-		EM = 1 << 6,				// number suffixed by 'em'; fetch as < float >
-		PERCENT = 1 << 7,			// number suffixed by '%'; fetch as < float >
+		EM = 1 << 8,				// number suffixed by 'em'; fetch as < float >
+		PERCENT = 1 << 9,			// number suffixed by '%'; fetch as < float >
 		RELATIVE_UNIT = EM | PERCENT,
 
 		// Values based on pixels-per-inch.
-		INCH = 1 << 8,				// number suffixed by 'in'; fetch as < float >
-		CM = 1 << 9,				// number suffixed by 'cm'; fetch as < float >
-		MM = 1 << 10,				// number suffixed by 'mm'; fetch as < float >
-		PT = 1 << 11,				// number suffixed by 'pt'; fetch as < float >
-		PC = 1 << 12,				// number suffixed by 'pc'; fetch as < float >
-		PPI_UNIT = INCH | CM | MM | PT | PC
+		INCH = 1 << 10,				// number suffixed by 'in'; fetch as < float >
+		CM = 1 << 11,				// number suffixed by 'cm'; fetch as < float >
+		MM = 1 << 12,				// number suffixed by 'mm'; fetch as < float >
+		PT = 1 << 13,				// number suffixed by 'pt'; fetch as < float >
+		PC = 1 << 14,				// number suffixed by 'pc'; fetch as < float >
+		PPI_UNIT = INCH | CM | MM | PT | PC,
+
+		TRANSFORM = 1 << 15			// transform; fetch as < TransformRef >
 	};
 
 	Property();

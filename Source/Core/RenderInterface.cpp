@@ -92,6 +92,16 @@ float RenderInterface::GetPixelsPerInch()
 	return 100;
 }
 
+// Called by Rocket when it wants to change the current transform matrix to a new matrix.
+void RenderInterface::PushTransform(const Matrix4f& transform)
+{
+}
+
+// Called by Rocket when it wants to revert the latest transform change.
+void RenderInterface::PopTransform(const Matrix4f& transform)
+{
+}
+
 // Called when this render interface is released.
 void RenderInterface::Release()
 {

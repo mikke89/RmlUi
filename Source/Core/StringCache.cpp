@@ -92,6 +92,15 @@ const String CURSOR = "cursor";
 const String DRAG = "drag";
 const String TAB_INDEX = "tab-index";
 const String SCROLLBAR_MARGIN = "scrollbar-margin";
+const String PERSPECTIVE = "perspective";
+const String PERSPECTIVE_ORIGIN = "perspective-origin";
+const String PERSPECTIVE_ORIGIN_X = "perspective-origin-x";
+const String PERSPECTIVE_ORIGIN_Y = "perspective-origin-y";
+const String TRANSFORM = "transform";
+const String TRANSFORM_ORIGIN = "transform-origin";
+const String TRANSFORM_ORIGIN_X = "transform-origin-x";
+const String TRANSFORM_ORIGIN_Y = "transform-origin-y";
+const String TRANSFORM_ORIGIN_Z = "transform-origin-z";
 
 const String MOUSEDOWN = "mousedown";
 const String MOUSESCROLL = "mousescroll";

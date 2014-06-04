@@ -47,6 +47,9 @@ public:
      */
     void SetViewport(int width, int height);
 
+	/// Query the current projection and view matrices and tell the context about them.
+	void QueryProjectionView(Rocket::Core::Context& context);
+
 	/// Called by Rocket when it wants to render geometry that it does not wish to optimise.
 	virtual void RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation);
 
@@ -70,9 +73,17 @@ public:
 	/// Called by Rocket when a loaded texture is no longer required.
 	virtual void ReleaseTexture(Rocket::Core::TextureHandle texture_handle);
 
+	/// Called by Rocket when it wants to set the current transform matrix to a new matrix.
+	virtual void PushTransform(const Rocket::Core::RowMajorMatrix4f& transform);
+	virtual void PushTransform(const Rocket::Core::ColumnMajorMatrix4f& transform);
+
+	/// Called by Rocket when it wants to revert the latest transform change.
+	virtual void PopTransform(const Rocket::Core::Matrix4f& transform);
+
 private:
 	int m_width;
 	int m_height;
+	int m_transforms;
 };
 
 #endif

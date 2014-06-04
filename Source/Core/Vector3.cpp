@@ -1,9 +1,9 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of rocket, the HTML/CSS Interface Middleware
  *
  * For the latest information, see http://www.librocket.com
  *
- * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2014 Markus Schöngart
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,46 +26,29 @@
  */
 
 #include "precompiled.h"
-#include "FontEffectOutlineInstancer.h"
-#include "FontEffectOutline.h"
+#include <Rocket/Core/Types.h>
 
 namespace Rocket {
 namespace Core {
 
-FontEffectOutlineInstancer::FontEffectOutlineInstancer()
+Vector3i operator*(int lhs, const Vector3i& rhs)
 {
-	RegisterProperty("width", "1", true)
-		.AddParser("length");
+	return Vector3i(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
 }
 
-FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
+Vector3f operator*(float lhs, const Vector3f& rhs)
 {
+	return Vector3f(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
 }
 
-// Instances an outline font effect.
-FontEffect* FontEffectOutlineInstancer::InstanceFontEffect(const String& ROCKET_UNUSED(name), const PropertyDictionary& properties)
+template <>
+Vector3< float > Vector3< float >::Normalise() const
 {
-	float width = properties.GetProperty("width")->Get< float >();
+	float magnitude = Magnitude();
+	if (Math::IsZero(magnitude))
+		return *this;
 
-	FontEffectOutline* font_effect = new FontEffectOutline();
-	if (font_effect->Initialise(Math::RealToInteger(width)))
-		return font_effect;
-
-	font_effect->RemoveReference();
-	ReleaseFontEffect(font_effect);
-	return NULL;
-}
-
-// Releases the given font effect.
-void FontEffectOutlineInstancer::ReleaseFontEffect(FontEffect* font_effect)
-{
-	delete font_effect;
-}
-
-// Releases the instancer.
-void FontEffectOutlineInstancer::Release()
-{
-	delete this;
+	return *this / magnitude;
 }
 
 }

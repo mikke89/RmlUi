@@ -35,6 +35,10 @@
 #include <Rocket/Core/Event.h>
 #include <Rocket/Core/Property.h>
 #include <Rocket/Core/Types.h>
+#include <Rocket/Core/Transform.h>
+#include <Rocket/Core/TransformState.h>
+
+#include <memory>
 
 namespace Rocket {
 namespace Core {
@@ -216,12 +220,14 @@ public:
 	const Property* GetLocalProperty(const String& name);		
 	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).
+	/// If it's an angle it is returned as degrees.
 	/// @param[in] name The name of the property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
 	float ResolveProperty(const String& name, float base_value);
 	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).
+	/// If it's an angle it is returned as degrees.
 	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
@@ -257,6 +263,33 @@ public:
 	int GetTextTransform();
 	/// Returns 'vertical-align' property value from element's style or local cache.
 	const Property *GetVerticalAlignProperty();
+
+	/// Returns 'perspective' property value from element's style or local cache.
+	const Property *GetPerspective();
+	/// Returns 'perspective-origin-x' property value from element's style or local cache.
+	const Property *GetPerspectiveOriginX();
+	/// Returns 'perspective-origin-y' property value from element's style or local cache.
+	const Property *GetPerspectiveOriginY();
+	/// Returns 'transform' property value from element's style or local cache.
+	const Property *GetTransform();
+	/// Returns 'transform-origin-x' property value from element's style or local cache.
+	const Property *GetTransformOriginX();
+	/// Returns 'transform-origin-y' property value from element's style or local cache.
+	const Property *GetTransformOriginY();
+	/// Returns 'transform-origin-z' property value from element's style or local cache.
+	const Property *GetTransformOriginZ();
+	/// Returns this element's TransformState
+	const TransformState *GetTransformState() const throw();
+	/// Returns the TransformStates that are effective for this element.
+	void GetEffectiveTransformState(
+		const TransformState **local_perspective,
+		const TransformState **perspective,
+		const TransformState **transform
+	) throw();
+	/// Project a 2D point in pixel coordinates onto the element's plane.
+	/// @param[in] point The point to project.
+	/// @return The projected coordinates.
+	const Vector2f Project(const Vector2f& point) throw();
 
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
@@ -638,6 +671,9 @@ private:
 
 	void DirtyStructure();
 
+	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_pv_changed);
+	void UpdateTransformState();
+
 	// Original tag this element came from.
 	String tag;
 
@@ -714,6 +750,12 @@ private:
 	int clipping_ignore_depth;
 	bool clipping_enabled;
 	bool clipping_state_dirty;
+
+	// Transform state
+	std::auto_ptr< TransformState > transform_state;
+	bool transform_state_perspective_dirty;
+	bool transform_state_transform_dirty;
+	bool transform_state_parent_transform_dirty;
 
 	friend class Context;
 	friend class ElementStyle;

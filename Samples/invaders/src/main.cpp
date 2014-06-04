@@ -89,6 +89,8 @@ int main(int, char**)
 		return -1;
 	}
 
+	opengl_renderer.QueryProjectionView(*context);
+
 	// Initialise the Rocket debugger.
 	Rocket::Debugger::Initialise(context);
 	Input::SetContext(context);

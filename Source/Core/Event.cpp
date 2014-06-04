@@ -41,7 +41,7 @@ Event::Event()
 	target_element = NULL;
 }
 
-Event::Event(Element* _target_element, const String& _type, const Dictionary& _parameters, bool _interruptible) : parameters(_parameters), target_element(_target_element), type(_type), interruptible(_interruptible)
+Event::Event(Element* _target_element, const String& _type, const Dictionary& _parameters, bool _interruptible) : parameters(_parameters), target_element(_target_element), type(_type), parameters_backup(_parameters), interruptible(_interruptible)
 {
 	phase = PHASE_UNKNOWN;
 	interruped = false;
@@ -54,6 +54,7 @@ Event::~Event()
 
 void Event::SetCurrentElement(Element* element)
 {
+	ProjectMouse(element);
 	current_element = element;
 }
 
@@ -109,6 +110,43 @@ const Dictionary* Event::GetParameters() const
 void Event::OnReferenceDeactivate()
 {
 	instancer->ReleaseEvent(this);
+}
+
+void Event::ProjectMouse(Element* element)
+{
+	if (element)
+	{
+		Variant *old_mouse_x = parameters_backup.Get("mouse_x");
+		Variant *old_mouse_y = parameters_backup.Get("mouse_y");
+		if (!old_mouse_x || !old_mouse_y)
+		{
+			// This is not a mouse event.
+			return;
+		}
+
+		Variant *mouse_x = parameters.Get("mouse_x");
+		Variant *mouse_y = parameters.Get("mouse_y");
+		if (!mouse_x || !mouse_y)
+		{
+			// This should not happen.
+			return;
+		}
+
+		Vector2f old_mouse(
+			old_mouse_x->Get< float >(),
+			old_mouse_y->Get< float >()
+		);
+		Vector2f mouse = element->Project(old_mouse);
+
+		//mouse_x->Set(int(mouse.x + 0.5f));
+		//mouse_y->Set(int(mouse.y + 0.5f));
+		mouse_x->Set(mouse.x);
+		mouse_y->Set(mouse.y);
+	}
+	else
+	{
+		parameters = parameters_backup;
+	}
 }
 
 }

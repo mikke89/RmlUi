@@ -38,6 +38,18 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 {
     m_width = width;
     m_height = height;
+    m_transforms = 0;
+}
+
+void ShellRenderInterfaceOpenGL::QueryProjectionView(Rocket::Core::Context& context)
+{
+	float values[16];
+
+	glGetFloatv(GL_PROJECTION_MATRIX, values);
+	context.ProcessProjectionChange(Rocket::Core::Matrix4f::FromColumnMajor(values));
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, values);
+	context.ProcessViewChange(Rocket::Core::Matrix4f::FromColumnMajor(values));
 }
 
 
@@ -88,16 +100,54 @@ void ShellRenderInterfaceOpenGL::ReleaseCompiledGeometry(Rocket::Core::CompiledG
 // Called by Rocket when it wants to enable or disable scissoring to clip content.		
 void ShellRenderInterfaceOpenGL::EnableScissorRegion(bool enable)
 {
-	if (enable)
-		glEnable(GL_SCISSOR_TEST);
-	else
+	if (enable) {
+		if (m_transforms <= 0) {
+			glEnable(GL_SCISSOR_TEST);
+			glDisable(GL_STENCIL_TEST);
+		} else {
+			glDisable(GL_SCISSOR_TEST);
+			glEnable(GL_STENCIL_TEST);
+		}
+	} else {
 		glDisable(GL_SCISSOR_TEST);
+		glDisable(GL_STENCIL_TEST);
+	}
 }
 
 // Called by Rocket when it wants to change the scissor region.		
 void ShellRenderInterfaceOpenGL::SetScissorRegion(int x, int y, int width, int height)
 {
-	glScissor(x, m_height - (y + height), width, height);
+	if (m_transforms <= 0) {
+		glScissor(x, m_height - (y + height), width, height);
+	} else {
+		// clear the stencil buffer
+		glStencilMask(-1);
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		// fill the stencil buffer
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDepthMask(GL_FALSE);
+		glStencilFunc(GL_NEVER, 1, -1);
+		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+		// draw transformed quad
+		GLfloat vertices[] = {
+			x, y, 0,
+			x, y + height, 0,
+			x + width, y + height, 0,
+			x + width, y, 0
+		};
+		glDisableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, vertices);
+		GLushort indices[] = { 1, 2, 0, 3 };
+		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, indices);
+		glEnableClientState(GL_COLOR_ARRAY);
+	
+		// prepare for drawing the real thing
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_TRUE);
+		glStencilMask(0);
+		glStencilFunc(GL_EQUAL, 1, -1);
+	}
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
@@ -222,3 +272,23 @@ void ShellRenderInterfaceOpenGL::ReleaseTexture(Rocket::Core::TextureHandle text
 	glDeleteTextures(1, (GLuint*) &texture_handle);
 }
 
+// Called by Rocket when it wants to set the current transform matrix to a new matrix.
+void ShellRenderInterfaceOpenGL::PushTransform(const Rocket::Core::RowMajorMatrix4f& transform)
+{
+	glPushMatrix();
+	glLoadMatrixf(transform.Transpose());
+	++m_transforms;
+}
+void ShellRenderInterfaceOpenGL::PushTransform(const Rocket::Core::ColumnMajorMatrix4f& transform)
+{
+	glPushMatrix();
+	glLoadMatrixf(transform);
+	++m_transforms;
+}
+
+// Called by Rocket when it wants to revert the latest transform change.
+void ShellRenderInterfaceOpenGL::PopTransform(const Rocket::Core::Matrix4f& transform)
+{
+	glPopMatrix();
+	--m_transforms;
+}

@@ -32,10 +32,12 @@
 #include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/ElementUtilities.h>
 #include <Rocket/Core/Log.h>
+#include <Rocket/Core/Math.h>
 #include <Rocket/Core/Property.h>
 #include <Rocket/Core/PropertyDefinition.h>
 #include <Rocket/Core/PropertyDictionary.h>
 #include <Rocket/Core/StyleSheetSpecification.h>
+#include <Rocket/Core/TransformPrimitive.h>
 #include "ElementBackground.h"
 #include "ElementBorder.h"
 #include "ElementDecoration.h"
@@ -350,17 +352,21 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 		return 0.0f;
 	}
 
-	if (property->unit & Property::RELATIVE_UNIT)
+	switch (property->unit)
 	{
-		if (property->unit & Property::PERCENT)
-			return base_value * property->value.Get< float >() * 0.01f;
-		else if (property->unit & Property::EM)
-			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
-	}
+		case Property::NUMBER:
+		case Property::PX:
+		case Property::DEG:
+			return property->value.Get< float >();
 
-	if (property->unit & Property::NUMBER || property->unit & Property::PX)
-	{
-		return property->value.Get< float >();
+		case Property::PERCENT:
+			return base_value * property->value.Get< float >() * 0.01f;
+
+		case Property::EM:
+			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+
+		case Property::RAD:
+			return Math::RadiansToDegrees(property->value.Get< float >());
 	}
 
 	// We're not a numeric property; return 0.
@@ -377,43 +383,31 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 		return 0.0f;
 	}
 
-	if (property->unit & Property::RELATIVE_UNIT)
+	// The calculated value of the font-size property is inherited, so we need to check if this
+	// is an inherited property. If so, then we return our parent's font size instead.
+	if (name == FONT_SIZE && property->unit & Property::RELATIVE_UNIT)
 	{
-		// The calculated value of the font-size property is inherited, so we need to check if this
-		// is an inherited property. If so, then we return our parent's font size instead.
-		if (name == FONT_SIZE)
+		Rocket::Core::Element* parent = element->GetParentNode();
+		if (parent == NULL)
+			return 0;
+
+		if (GetLocalProperty(FONT_SIZE) == NULL)
+			return parent->ResolveProperty(FONT_SIZE, 0);
+
+		// The base value for font size is always the height of *this* element's parent's font.
+		base_value = parent->ResolveProperty(FONT_SIZE, 0);
+
+		switch (property->unit)
 		{
-			Rocket::Core::Element* parent = element->GetParentNode();
-			if (parent == NULL)
-				return 0;
+			case Property::PERCENT:
+				return base_value * property->value.Get< float >() * 0.01f;
 
-			if (GetLocalProperty(FONT_SIZE) == NULL)
-				return parent->ResolveProperty(FONT_SIZE, 0);
-
-			// The base value for font size is always the height of *this* element's parent's font.
-			base_value = parent->ResolveProperty(FONT_SIZE, 0);
-		}
-
-		if (property->unit & Property::PERCENT)
-			return base_value * property->value.Get< float >() * 0.01f;
-		else if (property->unit & Property::EM)
-		{
-			// If an em-relative font size is specified, it is expressed relative to the parent's
-			// font height.
-			if (name == FONT_SIZE)
+			case Property::EM:
 				return property->value.Get< float >() * base_value;
-			else
-				return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
 		}
 	}
 
-	if (property->unit & Property::NUMBER || property->unit & Property::PX)
-	{
-		return property->value.Get< float >();
-	}
-
-	// We're not a numeric property; return 0.
-	return 0.0f;
+	return ResolveProperty(property, base_value);
 }
 
 // Iterates over the properties defined on the element.
@@ -717,6 +711,48 @@ int ElementStyle::GetTextTransform()
 const Property *ElementStyle::GetVerticalAlignProperty()
 {
 	return cache->GetVerticalAlignProperty();
+}
+
+// Returns 'perspective' property value from element's style or local cache.
+const Property *ElementStyle::GetPerspective()
+{
+	return element->GetProperty(PERSPECTIVE);
+}
+
+// Returns 'perspective-origin-x' property value from element's style or local cache.
+const Property *ElementStyle::GetPerspectiveOriginX()
+{
+	return element->GetProperty(PERSPECTIVE_ORIGIN_X);
+}
+
+// Returns 'perspective-origin-y' property value from element's style or local cache.
+const Property *ElementStyle::GetPerspectiveOriginY()
+{
+	return element->GetProperty(PERSPECTIVE_ORIGIN_Y);
+}
+
+// Returns 'transform' property value from element's style or local cache.
+const Property *ElementStyle::GetTransform()
+{
+	return element->GetProperty(TRANSFORM);
+}
+
+// Returns 'transform-origin-x' property value from element's style or local cache.
+const Property *ElementStyle::GetTransformOriginX()
+{
+	return element->GetProperty(TRANSFORM_ORIGIN_X);
+}
+
+// Returns 'transform-origin-y' property value from element's style or local cache.
+const Property *ElementStyle::GetTransformOriginY()
+{
+	return element->GetProperty(TRANSFORM_ORIGIN_Y);
+}
+
+// Returns 'transform-origin-z' property value from element's style or local cache.
+const Property *ElementStyle::GetTransformOriginZ()
+{
+	return element->GetProperty(TRANSFORM_ORIGIN_Z);
 }
 
 }

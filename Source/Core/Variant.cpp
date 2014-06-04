@@ -61,7 +61,15 @@ void Variant::Clear()
 			string->~String();
 		}
 		break;
-			
+
+		case TRANSFORMREF:
+		{
+			// Clean up the transform.
+			TransformRef* transform = (TransformRef*)data;
+			transform->~TransformRef();
+		}
+		break;
+
 		default:
 		break;
 	}
@@ -89,7 +97,14 @@ void Variant::Set(const Variant& copy)
 			Set(*(String*)copy.data);
 		}
 		break;
-			
+
+		case TRANSFORMREF:
+		{
+			// Create the transform
+			Set(*(TransformRef*)copy.data);
+		}
+		break;
+
 		default:
 			Clear();
 			memcpy(data, copy.data, LOCAL_DATA_SIZE);
@@ -156,6 +171,31 @@ void Variant::Set(const Vector2f& value)
 {
 	type = VECTOR2;
 	SET_VARIANT(Vector2f);
+}
+
+void Variant::Set(const Vector3f& value)
+{
+	type = VECTOR3;
+	SET_VARIANT(Vector3f);
+}
+
+void Variant::Set(const Vector4f& value)
+{
+	type = VECTOR4;
+	SET_VARIANT(Vector4f);
+}
+
+void Variant::Set(const TransformRef& value)
+{
+	if (type == TRANSFORMREF)
+	{
+		SET_VARIANT(TransformRef);
+	}
+	else
+	{
+		type = TRANSFORMREF;
+		new(data) TransformRef(value);
+	}
 }
 
 void Variant::Set(const Colourf& value)

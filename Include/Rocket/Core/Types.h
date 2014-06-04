@@ -65,7 +65,11 @@ typedef unsigned __int64 uint64_t;
 
 #include <Rocket/Core/Colour.h>
 #include <Rocket/Core/Vector2.h>
+#include <Rocket/Core/Vector3.h>
+#include <Rocket/Core/Vector4.h>
+#include <Rocket/Core/Matrix4.h>
 #include <Rocket/Core/String.h>
+#include <Rocket/Core/Reference.h>
 
 namespace Rocket {
 namespace Core {
@@ -73,9 +77,16 @@ namespace Core {
 // Default colour types.
 typedef Colour< float, 1 > Colourf;
 typedef Colour< byte, 255 > Colourb;
-typedef Vector2< float > Vector2f;
 typedef Vector2< int > Vector2i;
-	
+typedef Vector2< float > Vector2f;
+typedef Vector3< int > Vector3i;
+typedef Vector3< float > Vector3f;
+typedef Vector4< int > Vector4i;
+typedef Vector4< float > Vector4f;
+
+typedef Matrix4< float, ColumnMajorStorage< float > > ColumnMajorMatrix4f;
+typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
+typedef ColumnMajorMatrix4f Matrix4f;
 
 class Element;
 class Dictionary;
@@ -92,6 +103,16 @@ typedef std::set< String > PseudoClassList;
 typedef std::set< String > PropertyNameList;
 typedef std::set< String > AttributeNameList;
 typedef Dictionary ElementAttributes;
+}
+}
+
+#include <Rocket/Core/Transform.h>
+
+namespace Rocket {
+namespace Core {
+
+// Reference types
+typedef SharedConstReference< Transform > TransformRef;
 
 }
 }

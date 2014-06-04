@@ -108,6 +108,11 @@ public:
 	/// Release this event.
 	virtual void OnReferenceDeactivate();
 
+private:
+	/// Project the mouse coordinates to the current element to enable
+	/// interacting with transformed elements.
+	void ProjectMouse(Element* element);
+
 protected:
 	String type;
 	Dictionary parameters;
@@ -116,6 +121,8 @@ protected:
 	Element* current_element;
 
 private:
+	Dictionary parameters_backup;
+
 	bool interruptible;
 	bool interruped;
 
