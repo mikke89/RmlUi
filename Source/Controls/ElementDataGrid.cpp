@@ -279,7 +279,7 @@ void ElementDataGrid::GetInnerRML(Rocket::Core::String& content) const
 	// The only content we have is the columns, and inside them the header elements.
 	for (size_t i = 0; i < columns.size(); i++)
 	{
-		Core::Element* header_element = header->GetChild(i);		
+		Core::Element* header_element = header->GetChild((int)i);
 
 		Rocket::Core::String column_fields;
 		for (size_t j = 0; j < columns[i].fields.size(); j++)

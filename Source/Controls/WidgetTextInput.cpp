@@ -351,7 +351,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
     				for (size_t i = 0; i < clipboard_content.Length(); ++i)
     				{
     					if (max_length > 0 &&
-    						(int) Core::WString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).Length() < max_length)
+    						(int) Core::WString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).Length() > max_length)
     						break;
 
     					AddCharacter(clipboard_content[i]);
@@ -558,8 +558,8 @@ void WidgetTextInput::UpdateAbsoluteCursor()
 
 	for (int i = 0; i < cursor_line_index; i++)
 	{
-		absolute_cursor_index += lines[i].content.Length();
-		edit_index += lines[i].content.Length() + lines[i].extra_characters;
+		absolute_cursor_index += (int)lines[i].content.Length();
+		edit_index += (int)lines[i].content.Length() + lines[i].extra_characters;
 	}
 }
 
@@ -818,7 +818,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 			selection_vertices.resize(selection_vertices.size() + 4);
 			selection_indices.resize(selection_indices.size() + 6);
-			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rocket::Core::Vector2f((float) selection_width, (float) line_height), selection_colour, selection_vertices.size() - 4);
+			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rocket::Core::Vector2f((float)selection_width, (float)line_height), selection_colour, (int)selection_vertices.size() - 4);
 
 			line_position.x += selection_width;
 		}
