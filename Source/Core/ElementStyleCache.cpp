@@ -38,7 +38,7 @@ ElementStyleCache::ElementStyleCache(ElementStyle *style) : style(style),
 	padding_top(NULL), padding_bottom(NULL), padding_left(NULL), padding_right(NULL),
 	width(NULL), height(NULL),
 	local_width(NULL), local_height(NULL), have_local_width(false), have_local_height(false),
-	overflow_x(NULL), overflow_y(NULL),
+	overflow_x(-1), overflow_y(-1),
 	position(-1), float_(-1), display(-1), whitespace(-1),
 	line_height(NULL), text_align(-1), text_transform(-1), vertical_align(NULL)
 {
