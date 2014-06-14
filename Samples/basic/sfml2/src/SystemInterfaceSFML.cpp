@@ -31,272 +31,272 @@ int RocketSFMLSystemInterface::GetKeyModifiers(sf::Window *Window)
 {
 	int Modifiers = 0;
 
-	if(Window->GetInput().IsKeyDown(sf::Key::LShift) ||
-		Window->GetInput().IsKeyDown(sf::Key::RShift))
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
 		Modifiers |= Rocket::Core::Input::KM_SHIFT;
 
-	if(Window->GetInput().IsKeyDown(sf::Key::LControl) ||
-		Window->GetInput().IsKeyDown(sf::Key::RControl))
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))
 		Modifiers |= Rocket::Core::Input::KM_CTRL;
 
-	if(Window->GetInput().IsKeyDown(sf::Key::LAlt) ||
-		Window->GetInput().IsKeyDown(sf::Key::RAlt))
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt))
 		Modifiers |= Rocket::Core::Input::KM_ALT;
 
 	return Modifiers;
 };
 
-Rocket::Core::Input::KeyIdentifier RocketSFMLSystemInterface::TranslateKey(sf::Key::Code Key)
+Rocket::Core::Input::KeyIdentifier RocketSFMLSystemInterface::TranslateKey(sf::Keyboard::Key Key)
 {
 	switch(Key)
 	{
-	case sf::Key::A:
+	case sf::Keyboard::A:
 		return Rocket::Core::Input::KI_A;
 		break;
-	case sf::Key::B:
+	case sf::Keyboard::B:
 		return Rocket::Core::Input::KI_B;
 		break;
-	case sf::Key::C:
+	case sf::Keyboard::C:
 		return Rocket::Core::Input::KI_C;
 		break;
-	case sf::Key::D:
+	case sf::Keyboard::D:
 		return Rocket::Core::Input::KI_D;
 		break;
-	case sf::Key::E:
+	case sf::Keyboard::E:
 		return Rocket::Core::Input::KI_E;
 		break;
-	case sf::Key::F:
+	case sf::Keyboard::F:
 		return Rocket::Core::Input::KI_F;
 		break;
-	case sf::Key::G:
+	case sf::Keyboard::G:
 		return Rocket::Core::Input::KI_G;
 		break;
-	case sf::Key::H:
+	case sf::Keyboard::H:
 		return Rocket::Core::Input::KI_H;
 		break;
-	case sf::Key::I:
+	case sf::Keyboard::I:
 		return Rocket::Core::Input::KI_I;
 		break;
-	case sf::Key::J:
+	case sf::Keyboard::J:
 		return Rocket::Core::Input::KI_J;
 		break;
-	case sf::Key::K:
+	case sf::Keyboard::K:
 		return Rocket::Core::Input::KI_K;
 		break;
-	case sf::Key::L:
+	case sf::Keyboard::L:
 		return Rocket::Core::Input::KI_L;
 		break;
-	case sf::Key::M:
+	case sf::Keyboard::M:
 		return Rocket::Core::Input::KI_M;
 		break;
-	case sf::Key::N:
+	case sf::Keyboard::N:
 		return Rocket::Core::Input::KI_N;
 		break;
-	case sf::Key::O:
+	case sf::Keyboard::O:
 		return Rocket::Core::Input::KI_O;
 		break;
-	case sf::Key::P:
+	case sf::Keyboard::P:
 		return Rocket::Core::Input::KI_P;
 		break;
-	case sf::Key::Q:
+	case sf::Keyboard::Q:
 		return Rocket::Core::Input::KI_Q;
 		break;
-	case sf::Key::R:
+	case sf::Keyboard::R:
 		return Rocket::Core::Input::KI_R;
 		break;
-	case sf::Key::S:
+	case sf::Keyboard::S:
 		return Rocket::Core::Input::KI_S;
 		break;
-	case sf::Key::T:
+	case sf::Keyboard::T:
 		return Rocket::Core::Input::KI_T;
 		break;
-	case sf::Key::U:
+	case sf::Keyboard::U:
 		return Rocket::Core::Input::KI_U;
 		break;
-	case sf::Key::V:
+	case sf::Keyboard::V:
 		return Rocket::Core::Input::KI_V;
 		break;
-	case sf::Key::W:
+	case sf::Keyboard::W:
 		return Rocket::Core::Input::KI_W;
 		break;
-	case sf::Key::X:
+	case sf::Keyboard::X:
 		return Rocket::Core::Input::KI_X;
 		break;
-	case sf::Key::Y:
+	case sf::Keyboard::Y:
 		return Rocket::Core::Input::KI_Y;
 		break;
-	case sf::Key::Z:
+	case sf::Keyboard::Z:
 		return Rocket::Core::Input::KI_Z;
 		break;
-	case sf::Key::Num0:
+	case sf::Keyboard::Num0:
 		return Rocket::Core::Input::KI_0;
 		break;
-	case sf::Key::Num1:
+	case sf::Keyboard::Num1:
 		return Rocket::Core::Input::KI_1;
 		break;
-	case sf::Key::Num2:
+	case sf::Keyboard::Num2:
 		return Rocket::Core::Input::KI_2;
 		break;
-	case sf::Key::Num3:
+	case sf::Keyboard::Num3:
 		return Rocket::Core::Input::KI_3;
 		break;
-	case sf::Key::Num4:
+	case sf::Keyboard::Num4:
 		return Rocket::Core::Input::KI_4;
 		break;
-	case sf::Key::Num5:
+	case sf::Keyboard::Num5:
 		return Rocket::Core::Input::KI_5;
 		break;
-	case sf::Key::Num6:
+	case sf::Keyboard::Num6:
 		return Rocket::Core::Input::KI_6;
 		break;
-	case sf::Key::Num7:
+	case sf::Keyboard::Num7:
 		return Rocket::Core::Input::KI_7;
 		break;
-	case sf::Key::Num8:
+	case sf::Keyboard::Num8:
 		return Rocket::Core::Input::KI_8;
 		break;
-	case sf::Key::Num9:
+	case sf::Keyboard::Num9:
 		return Rocket::Core::Input::KI_9;
 		break;
-	case sf::Key::Numpad0:
+	case sf::Keyboard::Numpad0:
 		return Rocket::Core::Input::KI_NUMPAD0;
 		break;
-	case sf::Key::Numpad1:
+	case sf::Keyboard::Numpad1:
 		return Rocket::Core::Input::KI_NUMPAD1;
 		break;
-	case sf::Key::Numpad2:
+	case sf::Keyboard::Numpad2:
 		return Rocket::Core::Input::KI_NUMPAD2;
 		break;
-	case sf::Key::Numpad3:
+	case sf::Keyboard::Numpad3:
 		return Rocket::Core::Input::KI_NUMPAD3;
 		break;
-	case sf::Key::Numpad4:
+	case sf::Keyboard::Numpad4:
 		return Rocket::Core::Input::KI_NUMPAD4;
 		break;
-	case sf::Key::Numpad5:
+	case sf::Keyboard::Numpad5:
 		return Rocket::Core::Input::KI_NUMPAD5;
 		break;
-	case sf::Key::Numpad6:
+	case sf::Keyboard::Numpad6:
 		return Rocket::Core::Input::KI_NUMPAD6;
 		break;
-	case sf::Key::Numpad7:
+	case sf::Keyboard::Numpad7:
 		return Rocket::Core::Input::KI_NUMPAD7;
 		break;
-	case sf::Key::Numpad8:
+	case sf::Keyboard::Numpad8:
 		return Rocket::Core::Input::KI_NUMPAD8;
 		break;
-	case sf::Key::Numpad9:
+	case sf::Keyboard::Numpad9:
 		return Rocket::Core::Input::KI_NUMPAD9;
 		break;
-	case sf::Key::Left:
+	case sf::Keyboard::Left:
 		return Rocket::Core::Input::KI_LEFT;
 		break;
-	case sf::Key::Right:
+	case sf::Keyboard::Right:
 		return Rocket::Core::Input::KI_RIGHT;
 		break;
-	case sf::Key::Up:
+	case sf::Keyboard::Up:
 		return Rocket::Core::Input::KI_UP;
 		break;
-	case sf::Key::Down:
+	case sf::Keyboard::Down:
 		return Rocket::Core::Input::KI_DOWN;
 		break;
-	case sf::Key::Add:
+	case sf::Keyboard::Add:
 		return Rocket::Core::Input::KI_ADD;
 		break;
-	case sf::Key::Back:
+	case sf::Keyboard::BackSpace:
 		return Rocket::Core::Input::KI_BACK;
 		break;
-	case sf::Key::Delete:
+	case sf::Keyboard::Delete:
 		return Rocket::Core::Input::KI_DELETE;
 		break;
-	case sf::Key::Divide:
+	case sf::Keyboard::Divide:
 		return Rocket::Core::Input::KI_DIVIDE;
 		break;
-	case sf::Key::End:
+	case sf::Keyboard::End:
 		return Rocket::Core::Input::KI_END;
 		break;
-	case sf::Key::Escape:
+	case sf::Keyboard::Escape:
 		return Rocket::Core::Input::KI_ESCAPE;
 		break;
-	case sf::Key::F1:
+	case sf::Keyboard::F1:
 		return Rocket::Core::Input::KI_F1;
 		break;
-	case sf::Key::F2:
+	case sf::Keyboard::F2:
 		return Rocket::Core::Input::KI_F2;
 		break;
-	case sf::Key::F3:
+	case sf::Keyboard::F3:
 		return Rocket::Core::Input::KI_F3;
 		break;
-	case sf::Key::F4:
+	case sf::Keyboard::F4:
 		return Rocket::Core::Input::KI_F4;
 		break;
-	case sf::Key::F5:
+	case sf::Keyboard::F5:
 		return Rocket::Core::Input::KI_F5;
 		break;
-	case sf::Key::F6:
+	case sf::Keyboard::F6:
 		return Rocket::Core::Input::KI_F6;
 		break;
-	case sf::Key::F7:
+	case sf::Keyboard::F7:
 		return Rocket::Core::Input::KI_F7;
 		break;
-	case sf::Key::F8:
+	case sf::Keyboard::F8:
 		return Rocket::Core::Input::KI_F8;
 		break;
-	case sf::Key::F9:
+	case sf::Keyboard::F9:
 		return Rocket::Core::Input::KI_F9;
 		break;
-	case sf::Key::F10:
+	case sf::Keyboard::F10:
 		return Rocket::Core::Input::KI_F10;
 		break;
-	case sf::Key::F11:
+	case sf::Keyboard::F11:
 		return Rocket::Core::Input::KI_F11;
 		break;
-	case sf::Key::F12:
+	case sf::Keyboard::F12:
 		return Rocket::Core::Input::KI_F12;
 		break;
-	case sf::Key::F13:
+	case sf::Keyboard::F13:
 		return Rocket::Core::Input::KI_F13;
 		break;
-	case sf::Key::F14:
+	case sf::Keyboard::F14:
 		return Rocket::Core::Input::KI_F14;
 		break;
-	case sf::Key::F15:
+	case sf::Keyboard::F15:
 		return Rocket::Core::Input::KI_F15;
 		break;
-	case sf::Key::Home:
+	case sf::Keyboard::Home:
 		return Rocket::Core::Input::KI_HOME;
 		break;
-	case sf::Key::Insert:
+	case sf::Keyboard::Insert:
 		return Rocket::Core::Input::KI_INSERT;
 		break;
-	case sf::Key::LControl:
+	case sf::Keyboard::LControl:
 		return Rocket::Core::Input::KI_LCONTROL;
 		break;
-	case sf::Key::LShift:
+	case sf::Keyboard::LShift:
 		return Rocket::Core::Input::KI_LSHIFT;
 		break;
-	case sf::Key::Multiply:
+	case sf::Keyboard::Multiply:
 		return Rocket::Core::Input::KI_MULTIPLY;
 		break;
-	case sf::Key::Pause:
+	case sf::Keyboard::Pause:
 		return Rocket::Core::Input::KI_PAUSE;
 		break;
-	case sf::Key::RControl:
+	case sf::Keyboard::RControl:
 		return Rocket::Core::Input::KI_RCONTROL;
 		break;
-	case sf::Key::Return:
+	case sf::Keyboard::Return:
 		return Rocket::Core::Input::KI_RETURN;
 		break;
-	case sf::Key::RShift:
+	case sf::Keyboard::RShift:
 		return Rocket::Core::Input::KI_RSHIFT;
 		break;
-	case sf::Key::Space:
+	case sf::Keyboard::Space:
 		return Rocket::Core::Input::KI_SPACE;
 		break;
-	case sf::Key::Subtract:
+	case sf::Keyboard::Subtract:
 		return Rocket::Core::Input::KI_SUBTRACT;
 		break;
-	case sf::Key::Tab:
+	case sf::Keyboard::Tab:
 		return Rocket::Core::Input::KI_TAB;
 		break;
 	};
@@ -306,7 +306,7 @@ Rocket::Core::Input::KeyIdentifier RocketSFMLSystemInterface::TranslateKey(sf::K
 
 float RocketSFMLSystemInterface::GetElapsedTime()
 {
-	return timer.GetElapsedTime();
+	return timer.getElapsedTime().asSeconds();
 };
 
 bool RocketSFMLSystemInterface::LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message)
