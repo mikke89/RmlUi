@@ -55,6 +55,8 @@ FontFaceHandle::FontFaceHandle()
 	underline_position = 0;
 	underline_thickness = 0;
 
+	ft_face = NULL;
+
 	base_layer = NULL;
 }
 
@@ -87,6 +89,8 @@ bool FontFaceHandle::Initialise(FT_Face ft_face, const String& _charset, int _si
 		return false;
 	}
 
+	this->ft_face = ft_face;
+
 	// find the maximum character we are interested in
 	max_codepoint = 0;
 	for (size_t i = 0; i < charset.size(); ++i)
@@ -95,12 +99,10 @@ bool FontFaceHandle::Initialise(FT_Face ft_face, const String& _charset, int _si
 	// Construct the list of the characters specified by the charset.
 	glyphs.resize(max_codepoint+1, FontGlyph());
 	for (size_t i = 0; i < charset.size(); ++i)
-		BuildGlyphMap(ft_face, charset[i]);
+		BuildGlyphMap(charset[i]);
 
 	// Generate the metrics for the handle.
-	GenerateMetrics(ft_face);
-
-	BuildKerning(ft_face);
+	GenerateMetrics();
 
 	// Generate the default layer and layer configuration.
 	base_layer = GenerateLayer(NULL);
@@ -351,7 +353,7 @@ void FontFaceHandle::OnReferenceDeactivate()
 	delete this;
 }
 
-void FontFaceHandle::GenerateMetrics(FT_Face ft_face)
+void FontFaceHandle::GenerateMetrics()
 {
 	line_height = ft_face->size->metrics.height >> 6;
 	baseline = line_height - (ft_face->size->metrics.ascender >> 6);
@@ -384,7 +386,7 @@ void FontFaceHandle::GenerateMetrics(FT_Face ft_face)
 		x_height = 0;
 }
 
-void FontFaceHandle::BuildGlyphMap(FT_Face ft_face, const UnicodeRange& unicode_range)
+void FontFaceHandle::BuildGlyphMap(const UnicodeRange& unicode_range)
 {
 	for (word character_code = (word) (Math::Max< unsigned int >(unicode_range.min_codepoint, 32)); character_code <= unicode_range.max_codepoint; ++character_code)
 	{
@@ -496,48 +498,22 @@ void FontFaceHandle::BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 		glyph.bitmap_data = NULL;
 }
 
-void FontFaceHandle::BuildKerning(FT_Face ft_face)
-{
-	// Compile the kerning information for this character if the font includes it.
-	if (FT_HAS_KERNING(ft_face))
-	{
-		kerning.resize(max_codepoint+1, GlyphKerningList(max_codepoint+1, 0));
-
-		for (size_t i = 0; i < charset.size(); ++i)
-		{
-			for (word rhs = (word) (Math::Max< unsigned int >(charset[i].min_codepoint, 32)); rhs <= charset[i].max_codepoint; ++rhs)
-			{
-				GlyphKerningList glyph_kerning(max_codepoint+1, 0);
-
-				for (size_t j = 0; j < charset.size(); ++j)
-				{
-					for (word lhs = (word) (Math::Max< unsigned int >(charset[j].min_codepoint, 32)); lhs <= charset[j].max_codepoint; ++lhs)
-					{
-						FT_Vector ft_kerning;
-						FT_Get_Kerning(ft_face, FT_Get_Char_Index(ft_face, lhs), FT_Get_Char_Index(ft_face, rhs), FT_KERNING_DEFAULT, &ft_kerning);
-
-						int kerning = ft_kerning.x >> 6;
-						if (kerning != 0)
-							glyph_kerning[lhs] = kerning;
-					}
-				}
-
-				kerning[rhs] = glyph_kerning;
-			}
-		}
-	}
-}
-
 int FontFaceHandle::GetKerning(word lhs, word rhs) const
 {
-	if (rhs >= kerning.size())
+	if (!FT_HAS_KERNING(ft_face))
 		return 0;
 
-	const GlyphKerningList &kerning_map = kerning[rhs];
-	if (lhs >= kerning_map.size())
+	FT_Vector ft_kerning;
+
+	FT_Error ft_error = FT_Get_Kerning(ft_face, 
+		FT_Get_Char_Index(ft_face, lhs), FT_Get_Char_Index(ft_face, rhs),
+		FT_KERNING_DEFAULT, &ft_kerning);
+
+	if (ft_error != 0)
 		return 0;
 
-	return kerning_map[lhs];
+	int kerning = ft_kerning.x >> 6;
+	return kerning;
 }
 
 // Generates (or shares) a layer derived from a font effect.
