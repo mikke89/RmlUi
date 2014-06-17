@@ -75,11 +75,11 @@ bool Variant::GetInto(T& value) const
 		break;
 
 		case SCRIPTINTERFACE:
-			return TypeConverter< ScriptInterface*, T >::Convert((ScriptInterface*)data, value);			
+			return TypeConverter< ScriptInterface*, T >::Convert(*(ScriptInterface**)data, value);			
 		break;
 
 		case VOIDPTR:
-			return TypeConverter< void*, T >::Convert((void*)data, value);
+			return TypeConverter< void*, T >::Convert(*(void**)data, value);
 		break;
 
 		case NONE:
