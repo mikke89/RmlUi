@@ -531,6 +531,9 @@
     <ClCompile Include="..\..\Source\Core\StringCache.cpp">
       <Filter>String Cache</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Core\ElementStyleCache.cpp">
+      <Filter>Element</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Core\precompiled.h">
@@ -969,6 +972,9 @@
       <Filter>String Cache</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Rocket\Core.h" />
+    <ClInclude Include="..\..\Source\Core\ElementStyleCache.h">
+      <Filter>Element</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Include\Rocket\Core\Element.inl">

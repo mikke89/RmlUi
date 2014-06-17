@@ -25,7 +25,17 @@
  *
  */
 
-#include <gl/glew.h>
+/*
+ * Modifed 2013 by Megavolt2013 in order to get the SFML2 sample working
+ * with the revised libraries of SFML2
+ * Please check the comments starting with NOTE in the files "main.cpp" and
+ * "RenderInterfaceSFML.h" if you have trouble building this sample
+ */
+
+// NOTE: uncomment this only when you want to use the
+// OpenGL Extension Wrangler Library (GLEW)
+//#include <GL/glew.h>
+
 #include <Rocket/Core.h>
 #include "SystemInterfaceSFML.h"
 #include "RenderInterfaceSFML.h"
@@ -35,8 +45,10 @@
 
 int main(int argc, char **argv)
 {
-	sf::RenderWindow MyWindow(sf::VideoMode(800, 600), "libRocket with SFML");
+	sf::RenderWindow MyWindow(sf::VideoMode(800, 600), "libRocket with SFML2", sf::Style::Close);
+	MyWindow.setVerticalSyncEnabled(true);
 
+#ifdef ENABLE_GLEW
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
@@ -45,12 +57,16 @@ int main(int argc, char **argv)
 	  //...
 	}
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+#endif
 
 	RocketSFMLRenderer Renderer;
 	RocketSFMLSystemInterface SystemInterface;
-	ShellFileInterface FileInterface("../Samples/assets/");
 
-	if(!MyWindow.IsOpened())
+	// NOTE: if fonts and rml are not found you'll probably have to adjust
+	// the path information in the string
+	ShellFileInterface FileInterface("../../assets/");
+
+	if(!MyWindow.isOpen())
 		return 1;
 
 	Renderer.SetWindow(&MyWindow);
@@ -58,6 +74,7 @@ int main(int argc, char **argv)
 	Rocket::Core::SetFileInterface(&FileInterface);
 	Rocket::Core::SetRenderInterface(&Renderer);
 	Rocket::Core::SetSystemInterface(&SystemInterface);
+
 
 	if(!Rocket::Core::Initialise())
 		return 1;
@@ -68,7 +85,7 @@ int main(int argc, char **argv)
 	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Roman.otf");
 
 	Rocket::Core::Context *Context = Rocket::Core::CreateContext("default",
-		Rocket::Core::Vector2i(MyWindow.GetWidth(), MyWindow.GetHeight()));
+		Rocket::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
 
 	Rocket::Debugger::Initialise(Context);
 
@@ -85,52 +102,56 @@ int main(int argc, char **argv)
 		fprintf(stdout, "\nDocument is NULL");
 	}
 
-	while(MyWindow.IsOpened())
+	while(MyWindow.isOpen())
 	{
 		static sf::Event event;
 
-		MyWindow.Clear();
+		MyWindow.clear();
 		Context->Render();
-		MyWindow.Display();
+		MyWindow.display();
 
-		while(MyWindow.GetEvent(event))
+		while(MyWindow.pollEvent(event))
 		{
-			switch(event.Type)
+			switch(event.type)
 			{
 			case sf::Event::Resized:
 				Renderer.Resize();
 				break;
 			case sf::Event::MouseMoved:
-				Context->ProcessMouseMove(event.MouseMove.X, event.MouseMove.Y,
+				Context->ProcessMouseMove(event.mouseMove.x, event.mouseMove.y,
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::MouseButtonPressed:
-				Context->ProcessMouseButtonDown(event.MouseButton.Button,
+				Context->ProcessMouseButtonDown(event.mouseButton.button,
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::MouseButtonReleased:
-				Context->ProcessMouseButtonUp(event.MouseButton.Button,
+				Context->ProcessMouseButtonUp(event.mouseButton.button,
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::MouseWheelMoved:
-				Context->ProcessMouseWheel(event.MouseWheel.Delta,
+				Context->ProcessMouseWheel(-event.mouseWheel.delta,
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::TextEntered:
-				if (event.Text.Unicode > 32)
-					Context->ProcessTextInput(event.Text.Unicode);
+				if (event.text.unicode > 32)
+					Context->ProcessTextInput(event.text.unicode);
 				break;
 			case sf::Event::KeyPressed:
-				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.Key.Code),
+				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.code),
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::KeyReleased:
-				if(event.Key.Code == sf::Key::F8)
+				if(event.key.code == sf::Keyboard::F8)
 				{
 					Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
 				};
 
-				Context->ProcessKeyUp(SystemInterface.TranslateKey(event.Key.Code),
+				if(event.key.code == sf::Keyboard::Escape) {
+					MyWindow.close();
+				}
+
+				Context->ProcessKeyUp(SystemInterface.TranslateKey(event.key.code),
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::Closed:

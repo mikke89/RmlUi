@@ -113,7 +113,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 	{
 		StringList values;
 
-		int find = value.Find("(") + 1;
+		int find = (int)value.Find("(") + 1;
 		StringUtilities::ExpandString(values, value.Substring(find, value.RFind(")") - find), ',');
 
 		// Check if we're parsing an 'rgba' or 'rgb' colour declaration.

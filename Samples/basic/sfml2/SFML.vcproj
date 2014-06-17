@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="RocketCore_d.lib RocketDebugger_d.lib sfml-system-s-d.lib sfml-window-s-d.lib sfml-graphics-s-d.lib"
+				AdditionalDependencies="opengl32.lib RocketCore_d.lib RocketDebugger_d.lib sfml-system-d.lib sfml-window-d.lib sfml-graphics-d.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\..\sfml\lib;..\..\..\bin"
 				GenerateDebugInformation="true"

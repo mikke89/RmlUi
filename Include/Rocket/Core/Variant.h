@@ -143,7 +143,7 @@ public:
 private:
 	
 #ifdef ROCKET_ARCH_64
-		static const int LOCAL_DATA_SIZE = 32; // Required for Strings
+		static const int LOCAL_DATA_SIZE = 40; // Required for Strings
 #else
 		static const int LOCAL_DATA_SIZE = 24;
 #endif

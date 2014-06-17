@@ -47,7 +47,7 @@ Geometry::Geometry(Element* _host_element)
 
 	fixed_texcoords = false;
 	compile_attempted = false;
-	compiled_geometry = NULL;
+	compiled_geometry = 0;
 }
 
 Geometry::Geometry(Context* _host_context)
@@ -61,7 +61,7 @@ Geometry::Geometry(Context* _host_context)
 
 	fixed_texcoords = false;
 	compile_attempted = false;
-	compiled_geometry = NULL;
+	compiled_geometry = 0;
 }
 
 Geometry::~Geometry()
@@ -128,7 +128,7 @@ void Geometry::Render(const Vector2f& translation)
 			}
 
 			compile_attempted = true;
-			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int) vertices.size(), &indices[0], (int) indices.size(), texture != NULL ? texture->GetHandle(GetRenderInterface()) : NULL);
+			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int) vertices.size(), &indices[0], (int) indices.size(), texture != NULL ? texture->GetHandle(GetRenderInterface()) : 0);
 
 			// If we managed to compile the geometry, we can clear the local copy of vertices and indices and
 			// immediately render the compiled version.
@@ -141,7 +141,7 @@ void Geometry::Render(const Vector2f& translation)
 
 		// Either we've attempted to compile before (and failed), or the compile we just attempted failed; either way,
 		// render the uncompiled version.
-		render_interface->RenderGeometry(&vertices[0], (int) vertices.size(), &indices[0], (int) indices.size(), texture != NULL ? texture->GetHandle(GetRenderInterface()) : NULL, translation);
+		render_interface->RenderGeometry(&vertices[0], (int) vertices.size(), &indices[0], (int) indices.size(), texture != NULL ? texture->GetHandle(GetRenderInterface()) : 0, translation);
 	}
 }
 
@@ -175,7 +175,7 @@ void Geometry::Release(bool clear_buffers)
 	if (compiled_geometry)
 	{
 		GetRenderInterface()->ReleaseCompiledGeometry(compiled_geometry);
-		compiled_geometry = NULL;
+		compiled_geometry = 0;
 	}
 
 	compile_attempted = false;
