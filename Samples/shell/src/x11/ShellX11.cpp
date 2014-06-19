@@ -198,7 +198,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 		while (XPending(display) > 0)
 		{
 			XEvent event;
-			char *event_type = 0;
+			char *event_type = NULL;
 			XNextEvent(display, &event);
 
 			switch (event.type)
@@ -211,7 +211,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 					if (strcmp(event_type, "WM_PROTOCOLS") == 0)
 						running = false;
 					XFree(event_type);
-					event_type = 0;
+					event_type = NULL;
 				}
 				break;
 
