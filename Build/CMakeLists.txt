@@ -78,8 +78,8 @@ mark_as_advanced(FREETYPE_INCLUDE_DIRS FREETYPE_LIBRARY FREETYPE_LINK_DIRECTORIE
 
 # Boost and Python
 if(BUILD_PYTHON_BINDINGS)
-    find_package(PythonInterp REQUIRED)
-    find_package(PythonLibs REQUIRED)
+    find_package(PythonInterp 2 REQUIRED)
+    find_package(PythonLibs 2 REQUIRED)
     execute_process(
         COMMAND ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,prefix=''))"
         OUTPUT_VARIABLE PYTHON_INSTDIR
