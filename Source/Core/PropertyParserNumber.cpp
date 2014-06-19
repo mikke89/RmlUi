@@ -34,6 +34,7 @@ namespace Core {
 PropertyParserNumber::PropertyParserNumber()
 {
 	unit_suffixes.push_back(UnitSuffix(Property::PX, "px"));
+	unit_suffixes.push_back(UnitSuffix(Property::REM, "rem"));
 	unit_suffixes.push_back(UnitSuffix(Property::EM, "em"));
 	unit_suffixes.push_back(UnitSuffix(Property::INCH, "in"));
 	unit_suffixes.push_back(UnitSuffix(Property::CM, "cm"));
