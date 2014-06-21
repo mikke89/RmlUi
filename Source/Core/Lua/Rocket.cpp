@@ -314,6 +314,8 @@ RegType<LuaRocket> LuaRocketMethods[] =
 luaL_Reg LuaRocketGetters[] = 
 {
     LUAGETTER(LuaRocket,contexts)
+    LUAGETTER(LuaRocket,key_identifier)
+    LUAGETTER(LuaRocket,key_modifier)
     { NULL, NULL },
 };
 
