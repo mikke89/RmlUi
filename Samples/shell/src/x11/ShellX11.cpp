@@ -198,6 +198,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 		while (XPending(display) > 0)
 		{
 			XEvent event;
+			char *event_type = NULL;
 			XNextEvent(display, &event);
 
 			switch (event.type)
@@ -206,8 +207,11 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 				{
 					// The only message we register for is WM_DELETE_WINDOW, so if we receive a client message then the
 					// window has been closed.
-					if (strcmp(XGetAtomName(display, event.xclient.message_type), "WM_PROTOCOLS") == 0)
+					event_type = XGetAtomName(display, event.xclient.message_type);
+					if (strcmp(event_type, "WM_PROTOCOLS") == 0)
 						running = false;
+					XFree(event_type);
+					event_type = NULL;
 				}
 				break;
 

@@ -288,7 +288,7 @@ void* FontDatabase::LoadFace(const String& file_name)
 	file_interface->Read(buffer, length, handle);
 	file_interface->Close(handle);
 
-	return LoadFace(buffer, length, file_name, true);
+	return LoadFace(buffer, (int)length, file_name, true);
 }
 
 // Loads a FreeType face from memory.

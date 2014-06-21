@@ -356,6 +356,8 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 			return base_value * property->value.Get< float >() * 0.01f;
 		else if (property->unit & Property::EM)
 			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+		else if (property->unit & Property::REM)
+			return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
 	}
 
 	if (property->unit & Property::NUMBER || property->unit & Property::PX)
@@ -383,15 +385,28 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 		// is an inherited property. If so, then we return our parent's font size instead.
 		if (name == FONT_SIZE)
 		{
-			Rocket::Core::Element* parent = element->GetParentNode();
-			if (parent == NULL)
-				return 0;
+			// If the rem unit is used, the font-size is inherited directly from the document,
+			// otherwise we use the parent's font size.
+			if (property->unit & Property::REM)
+			{
+				Rocket::Core::ElementDocument* owner_document = element->GetOwnerDocument();
+				if (owner_document == NULL)
+					return 0;
 
-			if (GetLocalProperty(FONT_SIZE) == NULL)
-				return parent->ResolveProperty(FONT_SIZE, 0);
+				base_value = element->GetOwnerDocument()->ResolveProperty(FONT_SIZE, 0);
+			}
+			else
+			{
+				Rocket::Core::Element* parent = element->GetParentNode();
+				if (parent == NULL)
+					return 0;
 
-			// The base value for font size is always the height of *this* element's parent's font.
-			base_value = parent->ResolveProperty(FONT_SIZE, 0);
+				if (GetLocalProperty(FONT_SIZE) == NULL)
+					return parent->ResolveProperty(FONT_SIZE, 0);
+
+				// The base value for font size is always the height of *this* element's parent's font.
+				base_value = parent->ResolveProperty(FONT_SIZE, 0);
+			}
 		}
 
 		if (property->unit & Property::PERCENT)
@@ -404,6 +419,15 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 				return property->value.Get< float >() * base_value;
 			else
 				return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+		}
+		else if (property->unit & Property::REM)
+		{
+			// If an rem-relative font size is specified, it is expressed relative to the document's
+			// font height.
+			if (name == FONT_SIZE)
+				return property->value.Get< float >() * base_value;
+			else
+				return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
 		}
 	}
 
@@ -546,6 +570,28 @@ void ElementStyle::DirtyInheritedEmProperties()
 		if (font_size->unit & Property::RELATIVE_UNIT)
 			DirtyProperty(FONT_SIZE);
 	}
+}
+
+// Dirties rem properties.
+void ElementStyle::DirtyRemProperties()
+{
+	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
+	PropertyNameList rem_properties;
+
+	// Dirty all the properties of this element that use the rem unit.
+	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	{
+		if (element->GetProperty(*list_iterator)->unit == Property::REM)
+			rem_properties.insert(*list_iterator);
+	}
+
+	if (!rem_properties.empty())
+		DirtyProperties(rem_properties, false);
+
+	// Now dirty all of our descendant's properties that use the rem unit.
+	int num_children = element->GetNumChildren(true);
+	for (int i = 0; i < num_children; ++i)
+		element->GetChild(i)->GetStyle()->DirtyRemProperties();
 }
 
 // Sets a single property as dirty.

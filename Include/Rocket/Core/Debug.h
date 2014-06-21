@@ -33,24 +33,20 @@
 // Define for breakpointing.
 #if defined (ROCKET_PLATFORM_WIN32)
 	#if defined (__MINGW32__)
-		#define ROCKET_BREAK asm("int $0x03")
+		#define ROCKET_BREAK {asm("int $0x03");}
+	#elif defined (_MSC_VER)
+		#define ROCKET_BREAK {__debugbreak();}
 	#else
-		#define ROCKET_BREAK _asm { int 0x03 }
+		#define ROCKET_BREAK
 	#endif
 #elif defined (ROCKET_PLATFORM_LINUX)
-	#if defined __i386__ || defined __x86_64__
-		#define ROCKET_BREAK asm ("int $0x03" )
+	#if defined __GNUC__
+		#define ROCKET_BREAK {__builtin_trap();}
 	#else
 		#define ROCKET_BREAK
 	#endif
 #elif defined (ROCKET_PLATFORM_MACOSX)
-	#include <TargetConditionals.h>
-
-	#if TARGET_OS_IPHONE
-		#define ROCKET_BREAK
-	#else
-		#define ROCKET_BREAK {__asm__("int $3\n" : : );}
-	#endif
+	#define ROCKET_BREAK {__builtin_trap();}
 #endif
 
 
@@ -107,6 +103,6 @@ template <> struct STATIC_ASSERTION_FAILURE<true>{};
 	
 }
 }
-#define ROCKET_STATIC_ASSERT(cond, msg) Rocket::Core::STATIC_ASSERTION_FAILURE<cond> msg
+#define ROCKET_STATIC_ASSERT(cond, msg) Rocket::Core::STATIC_ASSERTION_FAILURE<cond> msg; (void)&msg;
 
 #endif

@@ -35,7 +35,7 @@ namespace Core {
 
 StreamFile::StreamFile()
 {
-	file_handle = NULL;
+	file_handle = 0;
 	length = 0;
 }
 
@@ -74,7 +74,7 @@ void StreamFile::Close()
 	if (file_handle)
 	{
 		GetFileInterface()->Close(file_handle);
-		file_handle = NULL;
+		file_handle = 0;
 	}
 
 	length = 0;

@@ -42,7 +42,7 @@ template< typename T >
 class StringBase
 {
 public:
-	typedef unsigned int size_type;
+	typedef size_t size_type;
 	static const size_type npos = (size_type)-1;
 
 	StringBase();

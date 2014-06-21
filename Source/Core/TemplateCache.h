@@ -53,6 +53,9 @@ public:
 	/// Get the template by id
 	static Template* GetTemplate(const String& id);
 
+	/// Clear the template cache.
+	static void Clear();
+
 private:
 	TemplateCache();
 	~TemplateCache();
