@@ -141,20 +141,33 @@ int ElementUtilities::GetLineHeight(Element* element)
 		return 0;
 
 	int line_height = font_face_handle->GetLineHeight();
+	float inch = element->GetRenderInterface()->GetPixelsPerInch();
 	const Property* line_height_property = element->GetLineHeightProperty();
 
-	// If the property is a straight number or an em measurement, then it scales the line height.
-	if (line_height_property->unit == Property::NUMBER ||
-		line_height_property->unit == Property::EM)
+	switch (line_height_property->unit)
+	{
+	case Property::NUMBER:
+	case Property::EM:
+		// If the property is a straight number or an em measurement, then it scales the line height.
 		return Math::Round(line_height_property->value.Get< float >() * line_height);
-
-	// If the property is a percentage, then it scales the line height.
-	else if (line_height_property->unit == Property::PERCENT)
+	case Property::PERCENT:
+		// If the property is a percentage, then it scales the line height.
 		return Math::Round(line_height_property->value.Get< float >() * line_height * 0.01f);
-
-	// Otherwise, we're a px measurement.
-	else if (line_height_property->unit == Property::PX)
+	case Property::PX:
+		// A px measurement.
 		return Math::Round(line_height_property->value.Get< float >());
+	case Property::INCH:
+		// Values based on pixels-per-inch.
+		return Math::Round(line_height_property->value.Get< float >() * inch);
+	case Property::CM:
+		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 2.54f));
+	case Property::MM:
+		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 25.4f));
+	case Property::PT:
+		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 72.0f));
+	case Property::PC:
+		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 6.0f));
+	}
 
 	return 0;
 }
