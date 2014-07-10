@@ -66,7 +66,7 @@ void DecoratorDefender::RenderElement(Rocket::Core::Element* element, Rocket::Co
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, (GLuint) GetTexture(image_index)->GetHandle(element->GetRenderInterface()));
 	Rocket::Core::Colourb colour = element->GetProperty< Rocket::Core::Colourb >("color");
-	glColor4ubv(element->GetProperty< Rocket::Core::Colourb >("color"));
+	glColor4ubv(colour);
 	glBegin(GL_QUADS);
 
 		glVertex2f(position.x, position.y);
