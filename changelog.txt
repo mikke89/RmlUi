@@ -1,5 +1,10 @@
 libRocket changelog
 
+v1.3.0
+10 July 2014
+This is a development/unstable release.  This is a meta release for tagging/branching purposes and to
+provide a static point of reference rather than tracking the git HEAD.
+
 v1.2.1
 1 December 2010
 
