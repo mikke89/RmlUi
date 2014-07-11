@@ -32,7 +32,6 @@
 #include "Sprite.h"
 
 const int SPRITE_WIDTH = 64;
-const int SPRITE_HEIGHT = 28;
 
 const float APPEARANCE_PROBABILITY = 0.001f;
 const float UPDATE_FREQ = 0.025f;

@@ -50,7 +50,6 @@ const int INVADER_SPACING_Y = 48;
 const int INVADER_START_Y = 96;
 
 const float INVADER_MOVEMENT = 10;
-const float INVADER_START_MOVE_FREQ = 0.5f;
 const float INVADER_UPDATE_MODIFIER = 0.7f;
 
 const int MOTHERSHIP = NUM_INVADERS;

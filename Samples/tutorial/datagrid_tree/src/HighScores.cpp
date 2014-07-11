@@ -15,9 +15,6 @@
 #include <Rocket/Core.h>
 #include <stdio.h>
 
-static const char* ALIEN_NAMES[] = { "Drone", "Beserker", "Death-droid" };
-static int ALIEN_SCORES[] = { 10, 20, 40 };
-
 HighScores* HighScores::instance = NULL;
 
 HighScores::HighScores() : Rocket::Controls::DataSource("high_scores")
