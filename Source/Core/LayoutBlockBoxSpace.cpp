@@ -36,7 +36,7 @@
 namespace Rocket {
 namespace Core {
 
-LayoutBlockBoxSpace::LayoutBlockBoxSpace(LayoutBlockBox* _parent) : dimensions(0, 0), offset(0, 0)
+LayoutBlockBoxSpace::LayoutBlockBoxSpace(LayoutBlockBox* _parent) : offset(0, 0), dimensions(0, 0)
 {
 	parent = _parent;
 }

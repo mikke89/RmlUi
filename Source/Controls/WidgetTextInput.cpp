@@ -37,7 +37,7 @@ namespace Controls {
 
 const float CURSOR_BLINK_TIME = 0.7f;
 
-WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent), selection_geometry(_parent)
+WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
 {
 	keyboard_showed = false;
 	

@@ -73,7 +73,7 @@ public:
 };
 
 /// Constructs a new libRocket element.
-Element::Element(const String& _tag) : absolute_offset(0, 0), relative_offset_base(0, 0), relative_offset_position(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), boxes(1)
+Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0)
 {
 	tag = _tag.ToLower();
 	parent = NULL;
