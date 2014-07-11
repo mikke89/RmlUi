@@ -315,16 +315,15 @@ bool Dictionary::Reserve(int minused)
 	ROCKET_ASSERT(minused >= 0);
 	
 	/* Find the smallest table size > minused. */
-	for (newsize = DICTIONARY_MINSIZE;
-	     newsize <= minused && newsize > 0;
-	     newsize <<= 1);
-	
-	ROCKET_ASSERT(newsize > 0);
-	
-	if (newsize <= 0) {		
-		return false;
+	newsize = DICTIONARY_MINSIZE;
+	while(newsize <= minused) {
+		newsize <<= 1;	// double the table size and test again
+		if(newsize <= 0) {
+			ROCKET_ASSERT(newsize > 0);
+			return false; // newsize has overflowed the max size for this platform, abort
+		}
 	}
-	
+
 	// If its the same size, ignore the request
 	if ((unsigned)newsize == mask + 1)
 		return true;
