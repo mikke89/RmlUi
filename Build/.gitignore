@@ -5,7 +5,11 @@ CMakeFiles
 CMakeScripts
 libRocket.xcodeproj
 Debug
+Debug-iphoneos
+Debug-iphonesimulator
 Release
+Release-iphoneos
+Release-iphonesimulator
 DerivedData
 libRocket.build/Debug/RocketCore.build
 libRocket.build
