@@ -397,6 +397,7 @@ void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode*
 	// Check if this node matches this element.
 	switch (type)
 	{
+		ROCKET_UNUSED_SWITCH_ENUM(NUM_NODE_TYPES);
 		case ROOT:
 		case TAG:
 		{

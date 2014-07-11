@@ -213,6 +213,7 @@ void WidgetSlider::GetDimensions(Vector2f& dimensions) const
 {
 	switch (orientation)
 	{
+		ROCKET_UNUSED_SWITCH_ENUM(UNKNOWN);
 		case VERTICAL:		dimensions.x = 256; dimensions.y = 16; break;
 		case HORIZONTAL:	dimensions.x = 16; dimensions.y = 256; break;
 	}

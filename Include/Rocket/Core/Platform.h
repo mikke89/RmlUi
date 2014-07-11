@@ -75,4 +75,11 @@
 
 #define ROCKET_UNUSED(x)
 
+// Squelchs warnings for unused enums in switch statements, this should only be used for special values
+// that are known to NEVER be used.
+#define ROCKET_UNUSED_SWITCH_ENUM(x) \
+  case x: \
+    ROCKET_ERRORMSG("Switch case for unhandled ENUM has been hit!  This shouldn't happen!  ENUM Name: " # x); \
+    break;
+
 #endif
