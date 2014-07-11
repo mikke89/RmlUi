@@ -67,8 +67,10 @@ void InputTypeButton::ProcessEvent(Core::Event& event)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeButton::GetIntrinsicDimensions(Rocket::Core::Vector2f& ROCKET_UNUSED(dimensions))
+bool InputTypeButton::GetIntrinsicDimensions(Rocket::Core::Vector2f& ROCKET_UNUSED_PARAMETER(dimensions))
 {
+	ROCKET_UNUSED(dimensions);
+
 	return false;
 }
 

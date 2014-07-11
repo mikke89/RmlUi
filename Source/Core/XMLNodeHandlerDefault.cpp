@@ -64,8 +64,11 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 	return element;
 }
 
-bool XMLNodeHandlerDefault::ElementEnd(XMLParser* ROCKET_UNUSED(parser), const String& ROCKET_UNUSED(name))
+bool XMLNodeHandlerDefault::ElementEnd(XMLParser* ROCKET_UNUSED_PARAMETER(parser), const String& ROCKET_UNUSED_PARAMETER(name))
 {
+	ROCKET_UNUSED(parser);
+	ROCKET_UNUSED(name);
+
 	return true;
 }
 

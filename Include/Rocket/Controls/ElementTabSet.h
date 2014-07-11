@@ -85,10 +85,10 @@ public:
 	void ProcessEvent(Core::Event& event);
 
 	/// Called when the listener has been attached to a new Element
-	void OnAttach(Element* ROCKET_UNUSED(element));
+	void OnAttach(Element* element);
 
 	/// Called when the listener has been detached from a Element
-	void OnDetach(Element* ROCKET_UNUSED(element));
+	void OnDetach(Element* element);
 
 protected:
 	// Catch child add/removes so we can correctly set up their events.

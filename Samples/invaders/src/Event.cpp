@@ -43,7 +43,9 @@ void Event::ProcessEvent(Rocket::Core::Event& event)
 }
 
 // Destroys the event.
-void Event::OnDetach(Rocket::Core::Element* ROCKET_UNUSED(element))
+void Event::OnDetach(Rocket::Core::Element* ROCKET_UNUSED_PARAMETER(element))
 {
+	ROCKET_UNUSED(element);
+
 	delete this;
 }

@@ -59,8 +59,10 @@ PropertyParserColour::~PropertyParserColour()
 }
 
 // Called to parse a RCSS colour declaration.
-bool PropertyParserColour::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED(parameters)) const
+bool PropertyParserColour::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED_PARAMETER(parameters)) const
 {
+	ROCKET_UNUSED(parameters);
+
 	if (value.Empty())
 		return false;
 

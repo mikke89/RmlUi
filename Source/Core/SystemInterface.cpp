@@ -44,10 +44,10 @@ SystemInterface::~SystemInterface()
 {
 }
 
+#ifdef ROCKET_PLATFORM_WIN32
 bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 {
 	// By default we just send a platform message
-#ifdef ROCKET_PLATFORM_WIN32
 	if (logtype == Log::LT_ASSERT)
 	{
 		Core::String message(1024, "%s\nWould you like to interrupt execution?", message.CString());	
@@ -60,12 +60,17 @@ bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 		OutputDebugStringA(message.CString());
 		OutputDebugStringA("\r\n");
 	}
-#else
-	(logtype);
-	fprintf(stderr,"%s\n", message.CString());
-#endif	
 	return true;
 }
+#else
+bool SystemInterface::LogMessage(Log::Type ROCKET_UNUSED_PARAMETER(logtype), const String& message)
+{
+	ROCKET_UNUSED(logtype);
+
+	fprintf(stderr,"%s\n", message.CString());
+	return true;
+}
+#endif	
 
 int SystemInterface::TranslateString(String& translated, const String& input)
 {

@@ -122,8 +122,9 @@ void LayoutInlineBoxText::PositionElement()
 }
 
 // Sizes the inline box's element.
-void LayoutInlineBoxText::SizeElement(bool ROCKET_UNUSED(split))
+void LayoutInlineBoxText::SizeElement(bool ROCKET_UNUSED_PARAMETER(split))
 {
+	ROCKET_UNUSED(split);
 }
 
 void* LayoutInlineBoxText::operator new(size_t size)

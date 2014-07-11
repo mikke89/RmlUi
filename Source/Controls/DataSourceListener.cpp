@@ -42,28 +42,43 @@ DataSourceListener::~DataSourceListener()
 }
 
 // Notification of the destruction of an observed data source.
-void DataSourceListener::OnDataSourceDestroy(DataSource* ROCKET_UNUSED(data_source))
+void DataSourceListener::OnDataSourceDestroy(DataSource* ROCKET_UNUSED_PARAMETER(data_source))
 {
+	ROCKET_UNUSED(data_source);
 }
 
 // Notification of the addition of one or more rows to an observed data source's table.
-void DataSourceListener::OnRowAdd(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table), int ROCKET_UNUSED(first_row_added), int ROCKET_UNUSED(num_rows_added))
+void DataSourceListener::OnRowAdd(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(table), int ROCKET_UNUSED_PARAMETER(first_row_added), int ROCKET_UNUSED_PARAMETER(num_rows_added))
 {
+	ROCKET_UNUSED(data_source);
+	ROCKET_UNUSED(table);
+	ROCKET_UNUSED(first_row_added);
+	ROCKET_UNUSED(num_rows_added);
 }
 
 // Notification of the removal of one or more rows from an observed data source's table.
-void DataSourceListener::OnRowRemove(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table), int ROCKET_UNUSED(first_row_removed), int ROCKET_UNUSED(num_rows_removed))
+void DataSourceListener::OnRowRemove(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(table), int ROCKET_UNUSED_PARAMETER(first_row_removed), int ROCKET_UNUSED_PARAMETER(num_rows_removed))
 {
+	ROCKET_UNUSED(data_source);
+	ROCKET_UNUSED(table);
+	ROCKET_UNUSED(first_row_removed);
+	ROCKET_UNUSED(num_rows_removed);
 }
 
 // Notification of the changing of one or more rows from an observed data source's table.
-void DataSourceListener::OnRowChange(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table), int ROCKET_UNUSED(first_row_changed), int ROCKET_UNUSED(num_rows_changed))
+void DataSourceListener::OnRowChange(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(table), int ROCKET_UNUSED_PARAMETER(first_row_changed), int ROCKET_UNUSED_PARAMETER(num_rows_changed))
 {
+	ROCKET_UNUSED(data_source);
+	ROCKET_UNUSED(table);
+	ROCKET_UNUSED(first_row_changed);
+	ROCKET_UNUSED(num_rows_changed);
 }
 
 // Notification of the change of all of the data of an observed data source's table.
-void DataSourceListener::OnRowChange(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& ROCKET_UNUSED(table))
+void DataSourceListener::OnRowChange(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(table))
 {
+	ROCKET_UNUSED(data_source);
+	ROCKET_UNUSED(table);
 }
 
 // Sets up data source and table from a given string.

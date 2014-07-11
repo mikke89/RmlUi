@@ -49,8 +49,10 @@ PropertyParserNumber::~PropertyParserNumber()
 }
 
 // Called to parse a RCSS number declaration.
-bool PropertyParserNumber::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED(parameters)) const
+bool PropertyParserNumber::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED_PARAMETER(parameters)) const
 {
+	ROCKET_UNUSED(parameters);
+
 	// Default to a simple number.
 	property.unit = Property::NUMBER;
 

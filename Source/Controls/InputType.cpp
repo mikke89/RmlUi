@@ -62,14 +62,17 @@ void InputType::OnRender()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputType::OnAttributeChange(const Core::AttributeNameList& ROCKET_UNUSED(changed_attributes))
+bool InputType::OnAttributeChange(const Core::AttributeNameList& ROCKET_UNUSED_PARAMETER(changed_attributes))
 {
+	ROCKET_UNUSED(changed_attributes);
+
 	return true;
 }
 
 // Called when properties on the control are changed.
-void InputType::OnPropertyChange(const Core::PropertyNameList& ROCKET_UNUSED(changed_properties))
+void InputType::OnPropertyChange(const Core::PropertyNameList& ROCKET_UNUSED_PARAMETER(changed_properties))
 {
+	ROCKET_UNUSED(changed_properties);
 }
 
 // Called when the element is added into a hierarchy.

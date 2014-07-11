@@ -118,8 +118,11 @@ size_t Stream::Write(const String& string)
 }
 
 // Push onto the front of the stream
-size_t Stream::PushFront(const void* ROCKET_UNUSED(buffer), size_t ROCKET_UNUSED(bytes))
+size_t Stream::PushFront(const void* ROCKET_UNUSED_PARAMETER(buffer), size_t ROCKET_UNUSED_PARAMETER(bytes))
 {
+	ROCKET_UNUSED(buffer);
+	ROCKET_UNUSED(bytes);
+
 	ROCKET_ERRORMSG("No generic way to PushFront to a stream.");
 	return false;
 }
@@ -135,8 +138,10 @@ size_t Stream::PushBack(const void* buffer, size_t bytes)
 }
 
 // Push onto the front of the stream
-size_t Stream::PopFront(size_t ROCKET_UNUSED(bytes))
+size_t Stream::PopFront(size_t ROCKET_UNUSED_PARAMETER(bytes))
 {
+	ROCKET_UNUSED(bytes);
+
 	ROCKET_ERRORMSG("No generic way to PopFront from a stream.");
 	return 0;
 }

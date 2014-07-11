@@ -52,13 +52,15 @@ public:
 	virtual void ProcessEvent(Event& event) = 0;
 
 	/// Called when the listener has been attached to a new Element
-	virtual void OnAttach(Element* ROCKET_UNUSED(element))
+	virtual void OnAttach(Element* ROCKET_UNUSED_PARAMETER(element))
 	{
+		ROCKET_UNUSED(element);
 	}
 
 	/// Called when the listener has been detached from a Element
-	virtual void OnDetach(Element* ROCKET_UNUSED(element))
+	virtual void OnDetach(Element* ROCKET_UNUSED_PARAMETER(element))
 	{
+		ROCKET_UNUSED(element);
 	}
 };
 

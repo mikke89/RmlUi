@@ -44,8 +44,10 @@ DecoratorTiledVerticalInstancer::~DecoratorTiledVerticalInstancer()
 }
 
 // Instances a box decorator.
-Decorator* DecoratorTiledVerticalInstancer::InstanceDecorator(const String& ROCKET_UNUSED(name), const PropertyDictionary& properties)
+Decorator* DecoratorTiledVerticalInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
 {
+	ROCKET_UNUSED(name);
+
 	DecoratorTiled::Tile tiles[3];
 	String texture_names[3];
 	String rcss_paths[3];

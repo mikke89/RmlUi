@@ -40,8 +40,10 @@ PropertyParserString::~PropertyParserString()
 }
 
 // Called to parse a RCSS string declaration.
-bool PropertyParserString::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED(parameters)) const
+bool PropertyParserString::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED_PARAMETER(parameters)) const
 {
+	ROCKET_UNUSED(parameters);
+
 	property.value = Variant(value);
 	property.unit = Property::STRING;
 

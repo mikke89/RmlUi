@@ -41,8 +41,11 @@ FontEffectNoneInstancer::~FontEffectNoneInstancer()
 }
 
 // Instances an outline font effect.
-FontEffect* FontEffectNoneInstancer::InstanceFontEffect(const String& ROCKET_UNUSED(name), const PropertyDictionary& ROCKET_UNUSED(properties))
+FontEffect* FontEffectNoneInstancer::InstanceFontEffect(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& ROCKET_UNUSED_PARAMETER(properties))
 {
+	ROCKET_UNUSED(name);
+	ROCKET_UNUSED(properties);
+
 	FontEffectNone* none_effect = new FontEffectNone();
 	return none_effect;
 }
