@@ -1,1 +1,11 @@
 /build/
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles
+CMakeScripts
+libRocket.xcodeproj
+Debug
+Release
+DerivedData
+libRocket.build/Debug/RocketCore.build
+libRocket.build
