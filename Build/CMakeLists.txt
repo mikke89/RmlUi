@@ -240,6 +240,12 @@ if(BUILD_SAMPLES)
     	find_package(X11 REQUIRED)
         if (X11_FOUND)
         	list(APPEND sample_LIBRARIES ${X11_LIBRARIES})
+		# shell/src/x11/InputX11.cpp:InitialiseX11Keymap uses Xkb if
+		# possible instead of XGetKeyboardMapping for performance
+		if(X11_Xkb_FOUND)
+			FIND_PACKAGE_MESSAGE(X11 "Found X11 KBlib: ${X11_X11_LIB}" "[${X11_X11_LIB}][${X11_XkbINCLUDE_DIR}]")
+			add_definitions(-DHAS_X11XKBLIB)
+		endif()
         endif()
     endif()
    

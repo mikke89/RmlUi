@@ -74,6 +74,11 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 	if (display == NULL)
 		return false;
 
+	// This initialise they keyboard to keycode mapping system of X11
+	// itself.  It must be done here as it needs to query the connected
+	// X server display for information about its install keymap abilities.
+	InputX11::InitialiseX11Keymap(display);
+
 	screen = XDefaultScreen(display);
 
 	// Fetch an appropriate 32-bit visual interface.
