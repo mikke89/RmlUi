@@ -22,6 +22,9 @@ datagrid
 datagrid_tree
 drag
 invaders
+pyinvaders
+scores.txt
+options.dat
 libRocketCore.so
 libRocketCore.so.*
 libRocketCore.a
