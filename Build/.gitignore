@@ -25,6 +25,7 @@ invaders
 pyinvaders
 scores.txt
 options.dat
+log.txt
 libRocketCore.so
 libRocketCore.so.*
 libRocketCore.a
