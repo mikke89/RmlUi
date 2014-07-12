@@ -282,7 +282,7 @@ Vector2f& LayoutEngine::Round(Vector2f& value)
 // Rounds a floating-point value to an integral value.
 float LayoutEngine::Round(float value)
 {
-	return ceilf(value);
+	return roundf(value);
 }
 
 void* LayoutEngine::AllocateLayoutChunk(size_t size)
