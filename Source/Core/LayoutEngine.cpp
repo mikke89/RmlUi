@@ -282,7 +282,12 @@ Vector2f& LayoutEngine::Round(Vector2f& value)
 // Rounds a floating-point value to an integral value.
 float LayoutEngine::Round(float value)
 {
+#if defined(_MSC_VER) && _MSC_VER < 1800
+	// Before Visual Studio 2013, roundf did not exist
+	return value >= 0.0f ? floorf(value + 0.5f) : ceilf(value - 0.5f);
+#else
 	return roundf(value);
+#endif
 }
 
 void* LayoutEngine::AllocateLayoutChunk(size_t size)
