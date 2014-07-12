@@ -39,3 +39,13 @@ loaddocument
 template
 treeview
 tutorial_drag
+
+#Win32 artifacts
+libRocketCore.dll
+libRocketControls.dll
+libRocketDebugger.dll
+
+#Ming32 artifacts
+libRocketCore.dll.a
+libRocketControls.dll.a
+libRocketDebugger.dll.a
