@@ -48,6 +48,10 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_SAMPLES "Build samples" OFF)
+if(WIN32)
+	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
+	option(SKIP_DIRECTX9_SAMPLE "Skip build of DirectX 9 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
+endif()
 
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
@@ -226,8 +230,39 @@ if(BUILD_SAMPLES)
     
     # Set up required system libraries
     if(WIN32)
-		list(APPEND samples directx)
-    	list(APPEND sample_LIBRARIES d3d9 d3dx9)
+		if(SKIP_DIRECTX_SAMPLES)
+			message("-- Skipping all DirectX samples")
+		else()
+			message("-- Determing if DirectX samples can be built")
+			include(FindDirectX)
+			find_package(DirectX)
+			if(DirectX_FOUND)
+				set(DIRECTX_SAMPLE_LIST)
+				set(DIRECTX_SKIPPED_SAMPLE_LIST)
+
+				# We should be able to build DirectX 9 sample
+				message("-- Determing if DirectX samples can be built - Yes")
+
+				if(SKIP_DIRECTX9_SAMPLE)
+					message("-- Skipping build of DirectX 9 sample")
+					list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX9 ")
+				else()
+					list(APPEND DIRECTX_SAMPLE_LIST "DirectX9 ")
+				endif()
+
+
+				if(DIRECTX_SAMPLE_LIST)
+					message("-- Enabled DirectX samples: " ${DIRECTX_SAMPLE_LIST})
+				endif()
+				if(DIRECTX_SKIPPED_SAMPLE_LIST)
+					message("-- Disabled DirectX samples: " ${DIRECTX_SKIPPED_SAMPLE_LIST})
+				endif()
+			else()
+				message("-- Determing if DirectX samples can be built - No")
+				set(SKIP_DIRECTX_SAMPLES ON)
+				set(SKIP_DIRECTX9_SAMPLE ON)
+			endif()
+		endif()
     elseif(APPLE)
 		include(FindCarbon)
     	find_package(Carbon REQUIRED)
@@ -270,6 +305,21 @@ if(BUILD_SAMPLES)
         	RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
         	BUNDLE DESTINATION ${SAMPLES_DIR})
     endforeach()
+
+	if(NOT SKIP_DIRECTX9_SAMPLE)
+		include_directories(${DirectX_INCLUDE_DIR})
+
+		set(dx9sample_LIBRARIES ${sample_LIBRARIES})
+		list(APPEND dx9sample_LIBRARIES ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY})
+
+		bl_sample(directx ${dx9sample_LIBRARIES})
+
+		# The samples always set this as their current working directory
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/directx)
+		install(TARGETS directx 
+			RUNTIME DESTINATION ${SAMPLES_DIR}/directx
+			BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
 
     # Build and install the tutorials
     foreach(tutorial ${tutorials})
