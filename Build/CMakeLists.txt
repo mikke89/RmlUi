@@ -244,10 +244,22 @@ if(BUILD_SAMPLES)
 				message("-- Determing if DirectX samples can be built - Yes")
 
 				if(SKIP_DIRECTX9_SAMPLE)
-					message("-- Skipping build of DirectX 9 sample")
+					message("-- Skipping build of DirectX 9 sample: User disabled")
 					list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX9 ")
 				else()
-					list(APPEND DIRECTX_SAMPLE_LIST "DirectX9 ")
+					if(DirectX_LIBRARY)
+						if(DirectX_D3DX9_LIBRARY)
+							list(APPEND DIRECTX_SAMPLE_LIST "DirectX9 ")
+						else()
+							set(SKIP_DIRECTX9_SAMPLE ON)
+							message("-- Skipping build of DirectX 9 sample: DirectX_D3DX9_LIBRARY not found")
+							list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX9 ")
+						endif()
+					else()
+						set(SKIP_DIRECTX9_SAMPLE ON)
+						message("-- Skipping build of DirectX 9 sample: DirectX_LIBRARY not found")
+						list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX9 ")
+					endif()
 				endif()
 
 
@@ -310,10 +322,7 @@ if(BUILD_SAMPLES)
 		if(NOT SKIP_DIRECTX9_SAMPLE)
 			include_directories(${DirectX_INCLUDE_DIR})
 
-			set(dx9sample_LIBRARIES ${sample_LIBRARIES})
-			list(APPEND dx9sample_LIBRARIES ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY})
-
-			bl_sample(directx ${dx9sample_LIBRARIES})
+			bl_sample(directx ${sample_LIBRARIES}  ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY})
 
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/directx)
