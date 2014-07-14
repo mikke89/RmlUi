@@ -31,6 +31,9 @@
 #include <Rocket/Debugger.h>
 #include <Shell.h>
 #include <X11/Xlib.h>
+#ifdef HAS_X11XKBLIB
+#include <X11/XKBlib.h>
+#endif // HAS_X11XKBLIB
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 
@@ -40,6 +43,13 @@ static int GetKeyModifierState(int x_state);
 static const int KEYMAP_SIZE = 256;
 static Rocket::Core::Input::KeyIdentifier key_identifier_map[KEYMAP_SIZE];
 
+#ifdef HAS_X11XKBLIB
+static bool has_xkblib = false;
+#endif // HAS_X11XKBLIB
+
+static int min_keycode, max_keycode, keysyms_per_keycode;
+static KeySym *x11_key_mapping = NULL;
+
 bool InputX11::Initialise()
 {
 	InitialiseKeymap();
@@ -48,6 +58,35 @@ bool InputX11::Initialise()
 
 void InputX11::Shutdown()
 {
+}
+
+void InputX11::InitialiseX11Keymap(Display *display)
+{
+	ROCKET_ASSERT(display != NULL);
+
+#ifdef HAS_X11XKBLIB
+	int opcode_rtrn = -1;
+	int event_rtrn = -1;
+	int error_rtrn = -1;
+	int major_in_out = -1;
+	int minor_in_out = -1;
+
+	// Xkb extension may not exist in the server.  This checks for its
+	// existence and initializes the extension if available.
+	has_xkblib = XkbQueryExtension(display, &opcode_rtrn, &event_rtrn, &error_rtrn, &major_in_out, &minor_in_out);
+
+	// if Xkb isn't available, fall back to using XGetKeyboardMapping, 
+	// which may occur if libRocket is compiled with Xkb support but the
+	// server doesn't support it.  This occurs with older X11 servers or
+	// virtual framebuffers such as x11vnc server.
+	if(!has_xkblib)
+#endif // HAS_X11XKBLIB
+	{
+		XDisplayKeycodes(display, &min_keycode, &max_keycode);
+
+		ROCKET_ASSERT(x11_key_mapping != NULL);
+		x11_key_mapping = XGetKeyboardMapping(display, min_keycode, max_keycode + 1 - min_keycode, &keysyms_per_keycode);
+	}
 }
 
 void InputX11::ProcessXEvent(Display* display, const XEvent& event)
@@ -95,11 +134,26 @@ void InputX11::ProcessXEvent(Display* display, const XEvent& event)
 
 		case KeyPress: 
 		{
-			KeySym sym = XKeycodeToKeysym(display, event.xkey.keycode, 0);
-			KeySym lower_sym, upper_sym;
-			XConvertCase(sym, &lower_sym, &upper_sym);
+			int group_index = 0; // this is always 0 for our limited example
+			Rocket::Core::Input::KeyIdentifier key_identifier;
+#ifdef HAS_X11XKBLIB
+			if(has_xkblib)
+			{
+				KeySym sym = XkbKeycodeToKeysym(display, event.xkey.keycode, 0, group_index);
 
-			Rocket::Core::Input::KeyIdentifier key_identifier = key_identifier_map[lower_sym & 0xFF];
+				key_identifier = key_identifier_map[sym & 0xFF];
+			}
+			else
+#endif // HAS_X11XKBLIB
+			{
+				KeySym sym = x11_key_mapping[(event.xkey.keycode - min_keycode) * keysyms_per_keycode + group_index];
+
+				KeySym lower_sym, upper_sym;
+				XConvertCase(sym, &lower_sym, &upper_sym);
+
+				key_identifier = key_identifier_map[lower_sym & 0xFF];
+			}
+
 			int key_modifier_state = GetKeyModifierState(event.xkey.state);
 
 			// Check for a shift-~ to toggle the debugger.
@@ -121,11 +175,26 @@ void InputX11::ProcessXEvent(Display* display, const XEvent& event)
 
 		case KeyRelease:
 		{
-			KeySym sym = XKeycodeToKeysym(display, event.xkey.keycode, 0);
-			KeySym lower_sym, upper_sym;
-			XConvertCase(sym, &lower_sym, &upper_sym);
+			int group_index = 0; // this is always 0 for our limited example
+			Rocket::Core::Input::KeyIdentifier key_identifier;
+#ifdef HAS_X11XKBLIB
+			if(has_xkblib)
+			{
+				KeySym sym = XkbKeycodeToKeysym(display, event.xkey.keycode, 0, group_index);
 
-			Rocket::Core::Input::KeyIdentifier key_identifier = key_identifier_map[lower_sym & 0xFF];
+				key_identifier = key_identifier_map[sym & 0xFF];
+			}
+			else
+#endif // HAS_X11XKBLIB
+			{
+				KeySym sym = x11_key_mapping[(event.xkey.keycode - min_keycode) * keysyms_per_keycode + group_index];
+
+				KeySym lower_sym, upper_sym;
+				XConvertCase(sym, &lower_sym, &upper_sym);
+
+				key_identifier = key_identifier_map[lower_sym & 0xFF];
+			}
+
 			int key_modifier_state = GetKeyModifierState(event.xkey.state);
 			if (key_identifier != Rocket::Core::Input::KI_UNKNOWN)
 				context->ProcessKeyUp(key_identifier, key_modifier_state);
