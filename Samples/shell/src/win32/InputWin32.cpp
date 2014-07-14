@@ -154,6 +154,21 @@ static int GetKeyModifierState()
 	return key_modifier_state;
 }
 
+// These are defined in winuser.h of MinGW 64 but are missing from MinGW 32
+// Visual Studio has them by default
+#if defined(__MINGW32__)  && !defined(__MINGW64__)
+#define VK_OEM_NEC_EQUAL 0x92
+#define VK_OEM_FJ_JISHO 0x92
+#define VK_OEM_FJ_MASSHOU 0x93
+#define VK_OEM_FJ_TOUROKU 0x94
+#define VK_OEM_FJ_LOYA 0x95
+#define VK_OEM_FJ_ROYA 0x96
+#define VK_OEM_AX 0xE1
+#define VK_ICO_HELP 0xE3
+#define VK_ICO_00 0xE4
+#define VK_ICO_CLEAR 0xE6
+#endif // !defined(__MINGW32__)  || defined(__MINGW64__)
+
 static void InitialiseKeymap()
 {
 	// Initialise the key map with default values.
