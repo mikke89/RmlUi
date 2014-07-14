@@ -146,6 +146,13 @@ int ElementUtilities::GetLineHeight(Element* element)
 
 	switch (line_height_property->unit)
 	{
+	ROCKET_UNUSED_SWITCH_ENUM(Property::UNKNOWN);
+	ROCKET_UNUSED_SWITCH_ENUM(Property::KEYWORD);
+	ROCKET_UNUSED_SWITCH_ENUM(Property::STRING);
+	ROCKET_UNUSED_SWITCH_ENUM(Property::COLOUR);
+	ROCKET_UNUSED_SWITCH_ENUM(Property::ABSOLUTE_UNIT);
+	ROCKET_UNUSED_SWITCH_ENUM(Property::PPI_UNIT);
+	ROCKET_UNUSED_SWITCH_ENUM(Property::RELATIVE_UNIT);
 	case Property::NUMBER:
 	case Property::EM:
 		// If the property is a straight number or an em measurement, then it scales the line height.

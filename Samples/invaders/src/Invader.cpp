@@ -228,6 +228,7 @@ bool Invader::CheckHit(const Rocket::Core::Vector2f& check_position)
 		int score = 0;
 		switch (type)
 		{
+			ROCKET_UNUSED_SWITCH_ENUM(UNKNOWN);
 			case MOTHERSHIP: score = (Rocket::Core::Math::RandomInteger(6) + 1) * 50; break;	// 50 -> 300
 			case RANK3: score = 40; break;
 			case RANK2: score = 20; break;
@@ -253,6 +254,8 @@ int Invader::GetSpriteIndex() const
 	int index = animation_frame;
 	switch (type)
 	{
+		ROCKET_UNUSED_SWITCH_ENUM(UNKNOWN);
+		case RANK1: break;	// animation_frame is the right index already
 		case RANK2:	index += 2; break;
 		case RANK3:	index += 4; break;
 		case MOTHERSHIP: index = 6; break;
