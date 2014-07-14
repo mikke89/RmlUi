@@ -42,36 +42,54 @@ RenderInterface::~RenderInterface()
 }
 
 // Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.
-CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* ROCKET_UNUSED(vertices), int ROCKET_UNUSED(num_vertices), int* ROCKET_UNUSED(indices), int ROCKET_UNUSED(num_indices), TextureHandle ROCKET_UNUSED(texture))
+CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* ROCKET_UNUSED_PARAMETER(vertices), int ROCKET_UNUSED_PARAMETER(num_vertices), int* ROCKET_UNUSED_PARAMETER(indices), int ROCKET_UNUSED_PARAMETER(num_indices), TextureHandle ROCKET_UNUSED_PARAMETER(texture))
 {
+	ROCKET_UNUSED(vertices);
+	ROCKET_UNUSED(num_vertices);
+	ROCKET_UNUSED(indices);
+	ROCKET_UNUSED(num_indices);
+	ROCKET_UNUSED(texture);
+
 	return 0;
 }
 
 // Called by Rocket when it wants to render application-compiled geometry.
-void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED(geometry), const Vector2f& ROCKET_UNUSED(translation))
+void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED_PARAMETER(geometry), const Vector2f& ROCKET_UNUSED_PARAMETER(translation))
 {
+	ROCKET_UNUSED(geometry);
+	ROCKET_UNUSED(translation);
 }
 
 // Called by Rocket when it wants to release application-compiled geometry.
-void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED(geometry))
+void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED_PARAMETER(geometry))
 {
+	ROCKET_UNUSED(geometry);
 }
 
 // Called by Rocket when a texture is required by the library.
-bool RenderInterface::LoadTexture(TextureHandle& ROCKET_UNUSED(texture_handle), Vector2i& ROCKET_UNUSED(texture_dimensions), const String& ROCKET_UNUSED(source))
+bool RenderInterface::LoadTexture(TextureHandle& ROCKET_UNUSED_PARAMETER(texture_handle), Vector2i& ROCKET_UNUSED_PARAMETER(texture_dimensions), const String& ROCKET_UNUSED_PARAMETER(source))
 {
+	ROCKET_UNUSED(texture_handle);
+	ROCKET_UNUSED(texture_dimensions);
+	ROCKET_UNUSED(source);
+
 	return false;
 }
 
 // Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
-bool RenderInterface::GenerateTexture(TextureHandle& ROCKET_UNUSED(texture_handle), const byte* ROCKET_UNUSED(source), const Vector2i& ROCKET_UNUSED(source_dimensions))
+bool RenderInterface::GenerateTexture(TextureHandle& ROCKET_UNUSED_PARAMETER(texture_handle), const byte* ROCKET_UNUSED_PARAMETER(source), const Vector2i& ROCKET_UNUSED_PARAMETER(source_dimensions))
 {
+	ROCKET_UNUSED(texture_handle);
+	ROCKET_UNUSED(source);
+	ROCKET_UNUSED(source_dimensions);
+	
 	return false;
 }
 
 // Called by Rocket when a loaded texture is no longer required.
-void RenderInterface::ReleaseTexture(TextureHandle ROCKET_UNUSED(texture))
+void RenderInterface::ReleaseTexture(TextureHandle ROCKET_UNUSED_PARAMETER(texture))
 {
+	ROCKET_UNUSED(texture);
 }
 
 // Returns the native horizontal texel offset for the renderer.

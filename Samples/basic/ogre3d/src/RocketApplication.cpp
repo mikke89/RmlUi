@@ -130,8 +130,10 @@ void RocketApplication::createFrameListener()
 }
 
 // Called from Ogre before a queue group is rendered.
-void RocketApplication::renderQueueStarted(uint8 queueGroupId, const Ogre::String& invocation, bool& ROCKET_UNUSED(skipThisInvocation))
+void RocketApplication::renderQueueStarted(uint8 queueGroupId, const Ogre::String& invocation, bool& ROCKET_UNUSED_PARAMETER(skipThisInvocation))
 {
+	ROCKET_UNUSED(skipThisInvocation);
+
 	if (queueGroupId == Ogre::RENDER_QUEUE_OVERLAY && Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
 	{
 		context->Update();
@@ -142,8 +144,11 @@ void RocketApplication::renderQueueStarted(uint8 queueGroupId, const Ogre::Strin
 }
 
 // Called from Ogre after a queue group is rendered.
-void RocketApplication::renderQueueEnded(uint8 ROCKET_UNUSED(queueGroupId), const Ogre::String& ROCKET_UNUSED(invocation), bool& ROCKET_UNUSED(repeatThisInvocation))
+void RocketApplication::renderQueueEnded(uint8 ROCKET_UNUSED_PARAMETER(queueGroupId), const Ogre::String& ROCKET_UNUSED_PARAMETER(invocation), bool& ROCKET_UNUSED_PARAMETER(repeatThisInvocation))
 {
+	ROCKET_UNUSED(queueGroupId);
+	ROCKET_UNUSED(invocation);
+	ROCKET_UNUSED(repeatThisInvocation);
 }
 
 // Configures Ogre's rendering system for rendering Rocket.

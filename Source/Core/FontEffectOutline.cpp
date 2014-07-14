@@ -79,8 +79,10 @@ bool FontEffectOutline::Initialise(int _width)
 }
 
 // Resizes and repositions the glyph to fit the outline.
-bool FontEffectOutline::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& ROCKET_UNUSED(glyph)) const
+bool FontEffectOutline::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& ROCKET_UNUSED_PARAMETER(glyph)) const
 {
+	ROCKET_UNUSED(glyph);
+
 	if (dimensions.x * dimensions.y > 0)
 	{
 		origin.x -= width;

@@ -40,8 +40,11 @@ class DataQuerySort
 			order_parameters = _order_parameters;
 		}
 
-		bool operator()(const Rocket::Core::StringList& ROCKET_UNUSED(left), const Rocket::Core::StringList& ROCKET_UNUSED(right))
+		bool operator()(const Rocket::Core::StringList& ROCKET_UNUSED_PARAMETER(left), const Rocket::Core::StringList& ROCKET_UNUSED_PARAMETER(right))
 		{
+			ROCKET_UNUSED(left);
+			ROCKET_UNUSED(right);
+
 			return false;
 		}
 

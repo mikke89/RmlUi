@@ -42,8 +42,11 @@ StyleSheetNodeSelectorOnlyChild::~StyleSheetNodeSelectorOnlyChild()
 }
 
 // Returns true if the element is the only non-trivial DOM child of its parent.
-bool StyleSheetNodeSelectorOnlyChild::IsApplicable(const Element* element, int ROCKET_UNUSED(a), int ROCKET_UNUSED(b))
+bool StyleSheetNodeSelectorOnlyChild::IsApplicable(const Element* element, int ROCKET_UNUSED_PARAMETER(a), int ROCKET_UNUSED_PARAMETER(b))
 {
+	ROCKET_UNUSED(a);
+	ROCKET_UNUSED(b);
+
 	Element* parent = element->GetParentNode();
 	if (parent == NULL)
 		return false;

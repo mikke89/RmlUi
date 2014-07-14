@@ -447,8 +447,10 @@ float Element::GetBaseline() const
 }
 
 // Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size.
-bool Element::GetIntrinsicDimensions(Vector2f& ROCKET_UNUSED(dimensions))
+bool Element::GetIntrinsicDimensions(Vector2f& ROCKET_UNUSED_PARAMETER(dimensions))
 {
+	ROCKET_UNUSED(dimensions);
+
 	return false;
 }
 

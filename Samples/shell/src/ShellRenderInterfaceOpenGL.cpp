@@ -42,8 +42,10 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
-void ShellRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, int ROCKET_UNUSED(num_vertices), int* indices, int num_indices, const Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
+void ShellRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, int ROCKET_UNUSED_PARAMETER(num_vertices), int* indices, int num_indices, const Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
 {
+	ROCKET_UNUSED(num_vertices);
+	
 	glPushMatrix();
 	glTranslatef(translation.x, translation.y, 0);
 
@@ -70,19 +72,28 @@ void ShellRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, 
 }
 
 // Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.		
-Rocket::Core::CompiledGeometryHandle ShellRenderInterfaceOpenGL::CompileGeometry(Rocket::Core::Vertex* ROCKET_UNUSED(vertices), int ROCKET_UNUSED(num_vertices), int* ROCKET_UNUSED(indices), int ROCKET_UNUSED(num_indices), const Rocket::Core::TextureHandle ROCKET_UNUSED(texture))
+Rocket::Core::CompiledGeometryHandle ShellRenderInterfaceOpenGL::CompileGeometry(Rocket::Core::Vertex* ROCKET_UNUSED_PARAMETER(vertices), int ROCKET_UNUSED_PARAMETER(num_vertices), int* ROCKET_UNUSED_PARAMETER(indices), int ROCKET_UNUSED_PARAMETER(num_indices), const Rocket::Core::TextureHandle ROCKET_UNUSED_PARAMETER(texture))
 {
+	ROCKET_UNUSED(vertices);
+	ROCKET_UNUSED(num_vertices);
+	ROCKET_UNUSED(indices);
+	ROCKET_UNUSED(num_indices);
+	ROCKET_UNUSED(texture);
+
 	return (Rocket::Core::CompiledGeometryHandle) NULL;
 }
 
 // Called by Rocket when it wants to render application-compiled geometry.		
-void ShellRenderInterfaceOpenGL::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle ROCKET_UNUSED(geometry), const Rocket::Core::Vector2f& ROCKET_UNUSED(translation))
+void ShellRenderInterfaceOpenGL::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle ROCKET_UNUSED_PARAMETER(geometry), const Rocket::Core::Vector2f& ROCKET_UNUSED_PARAMETER(translation))
 {
+	ROCKET_UNUSED(geometry);
+	ROCKET_UNUSED(translation);
 }
 
 // Called by Rocket when it wants to release application-compiled geometry.		
-void ShellRenderInterfaceOpenGL::ReleaseCompiledGeometry(Rocket::Core::CompiledGeometryHandle ROCKET_UNUSED(geometry))
+void ShellRenderInterfaceOpenGL::ReleaseCompiledGeometry(Rocket::Core::CompiledGeometryHandle ROCKET_UNUSED_PARAMETER(geometry))
 {
+	ROCKET_UNUSED(geometry);
 }
 
 // Called by Rocket when it wants to enable or disable scissoring to clip content.		

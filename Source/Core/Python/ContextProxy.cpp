@@ -38,8 +38,10 @@ namespace Python {
 class ContextLenAccessor
 {
 public:
-	int operator()(ContextProxy& ROCKET_UNUSED(proxy))
+	int operator()(ContextProxy& ROCKET_UNUSED_PARAMETER(proxy))
 	{
+		ROCKET_UNUSED(proxy);
+
 		return GetNumContexts();
 	}
 };
@@ -47,8 +49,10 @@ public:
 class ContextIndexAccessor
 {
 public:
-	Context* operator()(ContextProxy& ROCKET_UNUSED(proxy), int index)
+	Context* operator()(ContextProxy& ROCKET_UNUSED_PARAMETER(proxy), int index)
 	{
+		ROCKET_UNUSED(proxy);
+
 		return GetContext(index);
 	}
 };
@@ -56,8 +60,10 @@ public:
 class ContextNameAccessor
 {
 public:
-	Context* operator()(ContextProxy& ROCKET_UNUSED(proxy), const Rocket::Core::String& name)
+	Context* operator()(ContextProxy& ROCKET_UNUSED_PARAMETER(proxy), const Rocket::Core::String& name)
 	{
+		ROCKET_UNUSED(proxy);
+
 		return GetContext(name);
 	}
 };

@@ -41,9 +41,9 @@ XMLNodeHandlerBody::~XMLNodeHandlerBody()
 {
 }
 
-Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
+Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& ROCKET_UNUSED_ASSERT_PARAMETER(name), const XMLAttributes& attributes)
 {
-	(name);
+	ROCKET_UNUSED_ASSERT(name);
 	ROCKET_ASSERT(name == "body");
 
 	Element* element = parser->GetParseFrame()->element;
@@ -66,8 +66,11 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& name,
 	return element;
 }
 
-bool XMLNodeHandlerBody::ElementEnd(XMLParser* ROCKET_UNUSED(parser), const String& ROCKET_UNUSED(name))
+bool XMLNodeHandlerBody::ElementEnd(XMLParser* ROCKET_UNUSED_PARAMETER(parser), const String& ROCKET_UNUSED_PARAMETER(name))
 {
+	ROCKET_UNUSED(parser);
+	ROCKET_UNUSED(name);
+
 	return true;
 }
 

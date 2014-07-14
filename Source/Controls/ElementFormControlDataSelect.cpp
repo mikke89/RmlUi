@@ -103,29 +103,43 @@ void ElementFormControlDataSelect::OnDataSourceDestroy(DataSource* _data_source)
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowAdd(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED(first_row_added), int ROCKET_UNUSED(num_rows_added))
+void ElementFormControlDataSelect::OnRowAdd(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED_PARAMETER(first_row_added), int ROCKET_UNUSED_PARAMETER(num_rows_added))
 {
+	ROCKET_UNUSED(data_source);
+	ROCKET_UNUSED(first_row_added);
+	ROCKET_UNUSED(num_rows_added);
+
 	if (table == data_table)
 		BuildOptions();
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowRemove(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED(first_row_removed), int ROCKET_UNUSED(num_rows_removed))
+void ElementFormControlDataSelect::OnRowRemove(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED_PARAMETER(first_row_removed), int ROCKET_UNUSED_PARAMETER(num_rows_removed))
 {
+	ROCKET_UNUSED(data_source);
+	ROCKET_UNUSED(first_row_removed);
+	ROCKET_UNUSED(num_rows_removed);
+	
 	if (table == data_table)
 		BuildOptions();
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowChange(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED(first_row_changed), int ROCKET_UNUSED(num_rows_changed))
+void ElementFormControlDataSelect::OnRowChange(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED_PARAMETER(first_row_changed), int ROCKET_UNUSED_PARAMETER(num_rows_changed))
 {
+	ROCKET_UNUSED(data_source);
+	ROCKET_UNUSED(first_row_changed);
+	ROCKET_UNUSED(num_rows_changed);
+	
 	if (table == data_table)
 		BuildOptions();
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowChange(DataSource* ROCKET_UNUSED(data_source), const Rocket::Core::String& table)
+void ElementFormControlDataSelect::OnRowChange(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table)
 {
+	ROCKET_UNUSED(data_source);
+
 	if (table == data_table)
 		BuildOptions();
 }

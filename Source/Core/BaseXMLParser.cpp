@@ -81,18 +81,22 @@ int BaseXMLParser::GetLineNumber()
 }
 
 // Called when the parser finds the beginning of an element tag.
-void BaseXMLParser::HandleElementStart(const String& ROCKET_UNUSED(name), const XMLAttributes& ROCKET_UNUSED(attributes))
+void BaseXMLParser::HandleElementStart(const String& ROCKET_UNUSED_PARAMETER(name), const XMLAttributes& ROCKET_UNUSED_PARAMETER(attributes))
 {
+	ROCKET_UNUSED(name);
+	ROCKET_UNUSED(attributes);
 }
 
 // Called when the parser finds the end of an element tag.
-void BaseXMLParser::HandleElementEnd(const String& ROCKET_UNUSED(name))
+void BaseXMLParser::HandleElementEnd(const String& ROCKET_UNUSED_PARAMETER(name))
 {
+	ROCKET_UNUSED(name);
 }
 
 // Called when the parser encounters data.
-void BaseXMLParser::HandleData(const String& ROCKET_UNUSED(data))
+void BaseXMLParser::HandleData(const String& ROCKET_UNUSED_PARAMETER(data))
 {
+	ROCKET_UNUSED(data);
 }
 
 void BaseXMLParser::ReadHeader()

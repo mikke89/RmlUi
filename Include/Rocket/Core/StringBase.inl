@@ -74,8 +74,11 @@ StringBase< T >::StringBase(size_type count, const T character) : value((T*)loca
 }
 
 template< typename T >
-StringBase< T >::StringBase(size_type ROCKET_UNUSED(max_length), const T* ROCKET_UNUSED(fmt), ...) : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
+StringBase< T >::StringBase(size_type ROCKET_UNUSED_PARAMETER(max_length), const T* ROCKET_UNUSED_PARAMETER(fmt), ...) : value((T*)local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0)
 {
+	ROCKET_UNUSED(max_length);
+	ROCKET_UNUSED(fmt);
+
 	value[0] = 0;
 	// Can't implement this at the base level, requires template specialisation
 	ROCKET_ERRORMSG("Not implemented.");
@@ -304,8 +307,11 @@ void StringBase< T >::Erase(size_type index, size_type count)
 }
 
 template< typename T >
-int StringBase< T >::FormatString(size_type ROCKET_UNUSED(max_length), const T* ROCKET_UNUSED(fmt), ...)
+int StringBase< T >::FormatString(size_type ROCKET_UNUSED_PARAMETER(max_length), const T* ROCKET_UNUSED_PARAMETER(fmt), ...)
 {
+	ROCKET_UNUSED(max_length);
+	ROCKET_UNUSED(fmt);
+
 	ROCKET_ERRORMSG("Not implemented.");
 	return -1;
 }

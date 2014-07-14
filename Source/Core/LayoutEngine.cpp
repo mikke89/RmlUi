@@ -290,9 +290,10 @@ float LayoutEngine::Round(float value)
 #endif
 }
 
-void* LayoutEngine::AllocateLayoutChunk(size_t size)
+void* LayoutEngine::AllocateLayoutChunk(size_t ROCKET_UNUSED_ASSERT_PARAMETER(size))
 {
-	(size);
+	ROCKET_UNUSED_ASSERT(size);
+
 	ROCKET_ASSERT(size <= LayoutChunk::size);
 
 	return layout_chunk_pool.AllocateObject();

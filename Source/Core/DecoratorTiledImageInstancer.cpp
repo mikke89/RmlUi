@@ -42,8 +42,10 @@ DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer()
 }
 
 // Instances a box decorator.
-Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED(name), const PropertyDictionary& properties)
+Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
 {
+	ROCKET_UNUSED(name);
+
 	DecoratorTiled::Tile tile;
 	String texture_name;
 	String rcss_path;

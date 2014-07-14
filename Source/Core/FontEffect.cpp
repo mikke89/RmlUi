@@ -57,14 +57,22 @@ bool FontEffect::HasUniqueTexture() const
 }
 
 // Gets the effect to resize and reposition a glyph's bitmap.
-bool FontEffect::GetGlyphMetrics(Vector2i& ROCKET_UNUSED(origin), Vector2i& ROCKET_UNUSED(dimensions), const FontGlyph& ROCKET_UNUSED(glyph)) const
+bool FontEffect::GetGlyphMetrics(Vector2i& ROCKET_UNUSED_PARAMETER(origin), Vector2i& ROCKET_UNUSED_PARAMETER(dimensions), const FontGlyph& ROCKET_UNUSED_PARAMETER(glyph)) const
 {
+	ROCKET_UNUSED(origin);
+	ROCKET_UNUSED(dimensions);
+	ROCKET_UNUSED(glyph);
+
 	return false;
 }
 
 // Requests the effect to generate the texture data for a single glyph's bitmap.
-void FontEffect::GenerateGlyphTexture(byte* ROCKET_UNUSED(destination_data), const Vector2i& ROCKET_UNUSED(destination_dimensions), int ROCKET_UNUSED(destination_stride), const FontGlyph& ROCKET_UNUSED(glyph)) const
+void FontEffect::GenerateGlyphTexture(byte* ROCKET_UNUSED_PARAMETER(destination_data), const Vector2i& ROCKET_UNUSED_PARAMETER(destination_dimensions), int ROCKET_UNUSED_PARAMETER(destination_stride), const FontGlyph& ROCKET_UNUSED_PARAMETER(glyph)) const
 {
+	ROCKET_UNUSED(destination_data);
+	ROCKET_UNUSED(destination_dimensions);
+	ROCKET_UNUSED(destination_stride);
+	ROCKET_UNUSED(glyph);
 }
 
 // Sets the colour of the effect's geometry.

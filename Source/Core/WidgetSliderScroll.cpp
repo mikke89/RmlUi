@@ -43,8 +43,10 @@ WidgetSliderScroll::~WidgetSliderScroll()
 }
 
 // Sets the length of the entire track in some arbitrary unit.
-void WidgetSliderScroll::SetTrackLength(float _track_length, bool ROCKET_UNUSED(force_resize))
+void WidgetSliderScroll::SetTrackLength(float _track_length, bool ROCKET_UNUSED_PARAMETER(force_resize))
 {
+	ROCKET_UNUSED(force_resize);
+
 	if (track_length != _track_length)
 	{
 		track_length = _track_length;
@@ -53,8 +55,10 @@ void WidgetSliderScroll::SetTrackLength(float _track_length, bool ROCKET_UNUSED(
 }
 
 // Sets the length the bar represents in some arbitrary unit, relative to the track length.
-void WidgetSliderScroll::SetBarLength(float _bar_length, bool ROCKET_UNUSED(force_resize))
+void WidgetSliderScroll::SetBarLength(float _bar_length, bool ROCKET_UNUSED_PARAMETER(force_resize))
 {
+	ROCKET_UNUSED(force_resize);
+	
 	if (bar_length != _bar_length)
 	{
 		bar_length = _bar_length;
@@ -105,15 +109,19 @@ float WidgetSliderScroll::OnLineDecrement()
 
 // Called when the slider is incremented by one 'page', either by the page-up key or a mouse-click on the track
 // below / right of the bar.
-float WidgetSliderScroll::OnPageIncrement(float ROCKET_UNUSED(click_position))
+float WidgetSliderScroll::OnPageIncrement(float ROCKET_UNUSED_PARAMETER(click_position))
 {
+	ROCKET_UNUSED(click_position);
+	
 	return Scroll(bar_length);
 }
 
 // Called when the slider is incremented by one 'page', either by the page-down key or a mouse-click on the track
 // above / left of the bar.
-float WidgetSliderScroll::OnPageDecrement(float ROCKET_UNUSED(click_position))
+float WidgetSliderScroll::OnPageDecrement(float ROCKET_UNUSED_PARAMETER(click_position))
 {
+	ROCKET_UNUSED(click_position);
+	
 	return Scroll(-bar_length);
 }
 
