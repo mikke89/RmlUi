@@ -68,6 +68,12 @@ if(IOS)
 	endif(BUILD_SHARED_LIBS)
 endif(IOS)
 
+if(IOS)
+	if(BUILD_SHARED_LIBS)
+		message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
+	endif(BUILD_SHARED_LIBS)
+endif(IOS)
+
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
 endif()
