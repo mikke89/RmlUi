@@ -34,10 +34,7 @@ namespace Rocket {
 namespace Core {
 namespace Math {
 
-const float PI = 3.141592653f;
-const float PI_BY_TWO = PI * 0.5f;
-const float TWO_PI_BY_THREE = PI * 1.5f;
-const float TWO_PI = PI * 2;
+const float ROCKET_PI = 3.141592653f;
 
 static const float FZERO = 0.0001f;
 
@@ -99,19 +96,19 @@ ROCKETCORE_API float ATan2(float y, float x)
 // Converts an angle from radians to degrees.
 ROCKETCORE_API float RadiansToDegrees(float angle)
 {
-	return angle * (180.0f / PI);
+	return angle * (180.0f / ROCKET_PI);
 }
 
 // Converts an angle from degrees to radians.
 ROCKETCORE_API float DegreesToRadians(float angle)
 {
-	return angle * (PI / 180.0f);
+	return angle * (ROCKET_PI / 180.0f);
 }
 
 // Normalises and angle in radians
 ROCKETCORE_API float NormaliseAngle(float angle)
 {
-	return fmodf(angle, TWO_PI);
+	return fmodf(angle, ROCKET_PI * 2.0);
 }
 
 // Calculates the square root of a value.
