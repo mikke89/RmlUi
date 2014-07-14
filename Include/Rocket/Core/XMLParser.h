@@ -104,8 +104,6 @@ protected:
 private:
 	// The header of the document being parsed.
 	DocumentHeader* header;
-	// The root of the entire parse.
-	Element* parse_root;
 
 	// The active node handler.
 	XMLNodeHandler* active_handler;
