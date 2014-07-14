@@ -40,7 +40,7 @@ namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
 
-Context::Context(const String& name) : name(name), mouse_position(0, 0), dimensions(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
+Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
 	instancer = NULL;
 
