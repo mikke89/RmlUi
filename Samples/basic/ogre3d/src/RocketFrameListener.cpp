@@ -61,14 +61,18 @@ bool RocketFrameListener::mouseMoved(const OIS::MouseEvent& e)
 	return true;
 }
 
-bool RocketFrameListener::mousePressed(const OIS::MouseEvent& ROCKET_UNUSED(e), OIS::MouseButtonID id)
+bool RocketFrameListener::mousePressed(const OIS::MouseEvent& ROCKET_UNUSED_PARAMETER(e), OIS::MouseButtonID id)
 {
+	ROCKET_UNUSED(e);
+
 	context->ProcessMouseButtonDown((int) id, GetKeyModifierState());
 	return true;
 }
 
-bool RocketFrameListener::mouseReleased(const OIS::MouseEvent& ROCKET_UNUSED(e), OIS::MouseButtonID id)
+bool RocketFrameListener::mouseReleased(const OIS::MouseEvent& ROCKET_UNUSED_PARAMETER(e), OIS::MouseButtonID id)
 {
+	ROCKET_UNUSED(e);
+
 	context->ProcessMouseButtonUp((int) id, GetKeyModifierState());
 	return true;
 }

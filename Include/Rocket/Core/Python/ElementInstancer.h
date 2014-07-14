@@ -66,8 +66,11 @@ public:
 	/// Instances an element given the tag name and attributes
 	/// @param tag Name of the element to instance
 	/// @param attributes vector of name value pairs
-	virtual Element* InstanceElement(Element* ROCKET_UNUSED(parent), const Rocket::Core::String& tag, const Rocket::Core::XMLAttributes& ROCKET_UNUSED(attributes))
+	virtual Element* InstanceElement(Element* ROCKET_UNUSED_PARAMETER(parent), const Rocket::Core::String& tag, const Rocket::Core::XMLAttributes& ROCKET_UNUSED_PARAMETER(attributes))
 	{
+		ROCKET_UNUSED(parent);
+		ROCKET_UNUSED(attributes);
+
 		// Build the arguments
 		PyObject* args = PyTuple_New(1);
 		PyTuple_SetItem(args, 0, PyString_FromString(tag.CString()));
@@ -93,8 +96,10 @@ public:
 
 	/// Releases the given element
 	/// @param element to release
-	virtual void ReleaseElement(Element* ROCKET_UNUSED(element))
+	virtual void ReleaseElement(Element* ROCKET_UNUSED_PARAMETER(element))
 	{
+		ROCKET_UNUSED(element);
+
 		// Never release Python elements, Python will manage this for us.
 	}
 

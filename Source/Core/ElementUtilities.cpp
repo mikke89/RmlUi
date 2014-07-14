@@ -375,8 +375,10 @@ bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset,
 }
 /*
 // Returns true if the element is visible within the current clipping region (if any), false if not.
-static bool IsElementVisible(const Element* ROCKET_UNUSED(element))
+static bool IsElementVisible(const Element* ROCKET_UNUSED_PARAMETER(element))
 {
+	ROCKET_UNUSED(element);
+
 	// Fix this when text elements have their sizes correctly set!
 	return true;
 
