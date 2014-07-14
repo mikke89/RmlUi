@@ -74,7 +74,7 @@ public:
 	virtual size_t Read(void* buffer, size_t bytes) const;
 
 	/// Peek into the stream
-	virtual size_t Peek(void *buffer, size_t bytes); 
+	virtual size_t Peek(void *buffer, size_t bytes) const;
 
 	/// Write to the stream
 	using Stream::Write;

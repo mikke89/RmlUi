@@ -128,7 +128,7 @@ size_t StreamMemory::Read(void *_buffer, size_t bytes) const
 }
 
 // Read bytes from the buffer, not advancing the internal pointer
-size_t StreamMemory::Peek( void *_buffer, size_t bytes ) 
+size_t StreamMemory::Peek( void *_buffer, size_t bytes ) const
 {
 	bytes = Math::ClampUpper(bytes, (size_t) (buffer + buffer_used - buffer_ptr));
 
