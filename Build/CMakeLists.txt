@@ -2,6 +2,12 @@
 # Build script for libRocket =======
 #===================================
 
+if(APPLE)
+	if(IOS_PLATFORM)
+		set(CMAKE_TOOLCHAIN_FILE cmake/Platform/iOS.cmake)
+	endif(IOS_PLATFORM)
+endif(APPLE)
+
 # We use the new OSX_ARCHITECTURES property
 # and GNUInstallDirs module
 cmake_minimum_required(VERSION 2.8.5)
@@ -45,9 +51,18 @@ if(NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif()
 
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+if(NOT IOS)
+	option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+endif(NOT IOS)
+
 option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_SAMPLES "Build samples" OFF)
+
+if(IOS)
+	if(BUILD_SHARED_LIBS)
+		message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
+	endif(BUILD_SHARED_LIBS)
+endif(IOS)
 
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
@@ -134,10 +149,12 @@ foreach(library ${LIBRARIES})
     )
     
     if(APPLE)
-    	set_target_properties(${NAME} PROPERTIES
-    					OSX_ARCHITECTURES "i386;x86_64;"
-    	)
-    endif()
+	if(NOT IOS)
+    		set_target_properties(${NAME} PROPERTIES
+    						OSX_ARCHITECTURES "i386;x86_64;"
+    		)
+	endif(NOT IOS)
+    endif(APPLE)
 
     install(TARGETS ${NAME}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
