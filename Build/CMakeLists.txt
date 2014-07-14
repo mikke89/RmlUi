@@ -311,6 +311,15 @@ if(BUILD_SAMPLES)
     install(TARGETS invaders 
     	RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
     	BUNDLE DESTINATION ${SAMPLES_DIR})
+
+	if(BUILD_PYTHON_BINDINGS)
+	    # Build and install pyinvaders sample
+	    bl_sample(pyinvaders ${sample_LIBRARIES} ${PYTHON_LIBRARIES} ${PY_BINDINGS_LINK_LIBS})
+	    install(DIRECTORY DESTINATION ${SAMPLES_DIR}/pyinvaders)
+	    install(TARGETS pyinvaders
+	    	RUNTIME DESTINATION ${SAMPLES_DIR}/pyinvaders
+	    	BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
 endif()
 
 
@@ -354,6 +363,11 @@ if(BUILD_SAMPLES)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
             DESTINATION ${SAMPLES_DIR}/invaders
     )
+    if(BUILD_PYTHON_BINDINGS)
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/data
+                DESTINATION ${SAMPLES_DIR}/pyinvaders
+        )
+    endif()
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
             DESTINATION ${SAMPLES_DIR}
     )
