@@ -380,55 +380,7 @@ bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset,
 
 	return true;
 }
-/*
-// Returns true if the element is visible within the current clipping region (if any), false if not.
-static bool IsElementVisible(const Element* ROCKET_UNUSED_PARAMETER(element))
-{
-	ROCKET_UNUSED(element);
 
-	// Fix this when text elements have their sizes correctly set!
-	return true;
-
-	if (clip_root == NULL)
-		return true;
-
-	Vector2f element_position = element->GetAbsoluteOffset(Box::BORDER);
-	for (int i = 0; i < element->GetNumBoxes(); ++i)
-	{
-		Vector2f box_position = element_position + element->GetBox(i).GetPosition(Box::MARGIN);
-		Vector2f box_size = element->GetBox(i).GetSize(Box::MARGIN);
-
-		// If both the left and right edges of this box are to the left of the clipping region,
-		// then this box can't intersect the clipping region.
-		if (box_position.x < clipping_region.top_left.x &&
-			box_position.x + box_size.x < clipping_region.top_left.x)
-			continue;
-
-		// If both the left and right edges of this box are to the right of the clipping region,
-		// then this box can't intersect the clipping region.
-		if (box_position.x > clipping_region.bottom_right.x &&
-			box_position.x + box_size.x > clipping_region.bottom_right.x)
-			continue;
-
-		// If both the top and bottom edges of this box are to the top of the clipping region,
-		// then this box can't intersect the clipping region.
-		if (box_position.y < clipping_region.top_left.y &&
-			box_position.y + box_size.y < clipping_region.top_left.y)
-			continue;
-
-		// If both the top and bottom edges of this box are to the bottom of the clipping region,
-		// then this box can't intersect the clipping region.
-		if (box_position.y > clipping_region.bottom_right.y &&
-			box_position.y + box_size.y > clipping_region.bottom_right.y)
-			continue;
-
-		// We intersect!
-		return true;
-	}
-
-	return false;
-}
-*/
 // Builds and sets the box for an element.
 static void SetBox(Element* element)
 {
