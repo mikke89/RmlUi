@@ -306,19 +306,21 @@ if(BUILD_SAMPLES)
         	BUNDLE DESTINATION ${SAMPLES_DIR})
     endforeach()
 
-	if(NOT SKIP_DIRECTX9_SAMPLE)
-		include_directories(${DirectX_INCLUDE_DIR})
+	if(WIN32)
+		if(NOT SKIP_DIRECTX9_SAMPLE)
+			include_directories(${DirectX_INCLUDE_DIR})
 
-		set(dx9sample_LIBRARIES ${sample_LIBRARIES})
-		list(APPEND dx9sample_LIBRARIES ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY})
+			set(dx9sample_LIBRARIES ${sample_LIBRARIES})
+			list(APPEND dx9sample_LIBRARIES ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY})
 
-		bl_sample(directx ${dx9sample_LIBRARIES})
+			bl_sample(directx ${dx9sample_LIBRARIES})
 
-		# The samples always set this as their current working directory
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/directx)
-		install(TARGETS directx 
-			RUNTIME DESTINATION ${SAMPLES_DIR}/directx
-			BUNDLE DESTINATION ${SAMPLES_DIR})
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/directx)
+			install(TARGETS directx 
+				RUNTIME DESTINATION ${SAMPLES_DIR}/directx
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		endif()
 	endif()
 
     # Build and install the tutorials
