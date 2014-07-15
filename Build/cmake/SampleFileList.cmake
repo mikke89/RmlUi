@@ -18,6 +18,16 @@ set(directx_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/RenderInterfaceDirectX.cpp
 )
 
+set(directx10_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/RenderInterfaceDirectX10.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/D3D10Effect.h
+)
+
+set(directx10_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/RenderInterfaceDirectX10.cpp
+)
+
 set(drag_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/DragListener.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/Inventory.h

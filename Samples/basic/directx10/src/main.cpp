@@ -100,13 +100,14 @@ void GameLoop()
 	pSwapChain->Present( 0, 0 );
 }
 
-#if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED(instance_handle), HINSTANCE ROCKET_UNUSED(previous_instance_handle), char* ROCKET_UNUSED(command_line), int ROCKET_UNUSED(command_show))
-#else
-int main(int ROCKET_UNUSED(argc), char** ROCKET_UNUSED(argv))
-#endif
+int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
 {
+	ROCKET_UNUSED(instance_handle);
+	ROCKET_UNUSED(previous_instance_handle);
+	ROCKET_UNUSED(command_line);
+	ROCKET_UNUSED(command_show);
+
 	// Generic OS initialisation, creates a window and does not attach OpenGL.
 	if (!Shell::Initialise("../Samples/basic/directx/") ||
 		!Shell::OpenWindow("DirectX 10 Sample", false))

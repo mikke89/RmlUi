@@ -6,9 +6,11 @@ src='set(sample_SRC_FILES'
 hdr='set(sample_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Samples
-samples=('basic/customlog' 'basic/directx' 'basic/drag' 'basic/loaddocument'
-        'basic/ogre3d' 'basic/treeview' 'invaders' 'pyinvaders' 'shell'
+samples=( 'shell'
+	'basic/customlog' 'basic/drag' 'basic/loaddocument' 'basic/ogre3d' 'basic/treeview'
+	'basic/directx' 'basic/directx10'
 	'tutorial/template' 'tutorial/datagrid' 'tutorial/datagrid_tree' 'tutorial/tutorial_drag'
+	'invaders' 'pyinvaders' 
 )
 
 printfiles() {

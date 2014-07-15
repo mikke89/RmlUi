@@ -60,6 +60,7 @@ option(BUILD_SAMPLES "Build samples" OFF)
 if(WIN32)
 	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
 	option(SKIP_DIRECTX9_SAMPLE "Skip build of DirectX 9 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
+	option(SKIP_DIRECTX10_SAMPLE "Skip build of DirectX 10 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
 endif()
 
 if(IOS)
@@ -285,6 +286,19 @@ if(BUILD_SAMPLES)
 					endif()
 				endif()
 
+				if(SKIP_DIRECTX10_SAMPLE)
+					message("-- Skipping build of DirectX 10 sample: User disabled")
+					list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX10 ")
+				else()
+					if(DirectX_D3D10_FOUND)
+						list(APPEND DIRECTX_SAMPLE_LIST "DirectX10 ")
+					else()
+						set(SKIP_DIRECTX10_SAMPLE ON)
+						message("-- Skipping build of DirectX 10 sample: Missing DirectX_D3D10_INCLUDE_DIR, DirectX_D3D10_LIBRARY or DirectX_D3DX10_LIBRARY")
+						list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX10 ")
+					endif()
+				endif()
+
 
 				if(DIRECTX_SAMPLE_LIST)
 					message("-- Enabled DirectX samples: " ${DIRECTX_SAMPLE_LIST})
@@ -357,6 +371,18 @@ if(BUILD_SAMPLES)
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/directx)
 			install(TARGETS directx 
 				RUNTIME DESTINATION ${SAMPLES_DIR}/directx
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		endif()
+
+		if(NOT SKIP_DIRECTX10_SAMPLE)
+			include_directories(${DirectX_INCLUDE_DIR} ${DirectX_D3D10_INCLUDE_DIRS})
+
+			bl_sample(directx10 ${sample_LIBRARIES}  ${DirectX_D3D10_LIBRARIES})
+
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/directx10)
+			install(TARGETS directx10 
+				RUNTIME DESTINATION ${SAMPLES_DIR}/directx10
 				BUNDLE DESTINATION ${SAMPLES_DIR})
 		endif()
 	endif()
