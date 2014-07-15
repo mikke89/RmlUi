@@ -4,6 +4,12 @@
 #include <Shell.h>
 #include "RenderInterfaceDirectX10.h"
 
+// Because we're a windows app
+#include <windows.h>
+
+// For _T unicode/mbcs macro
+#include <tchar.h>
+
 //Our device for this sample
 static ID3D10Device * pD3D10Device=NULL;
 //Swap Chain
@@ -43,22 +49,23 @@ bool InitialiseDirectX()
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
 	//Create device and swapchain
-	if (FAILED(D3D10CreateDeviceAndSwapChain(NULL, 
-		D3D10_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags,
-		D3D10_SDK_VERSION, &sd, &pSwapChain,
-		&pD3D10Device)))
+	if (FAILED(D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags,	D3D10_SDK_VERSION, &sd, &pSwapChain, &pD3D10Device)))
+	{
+		MessageBox(NULL, _T("D3D10CreateDeviceAndSwapChain failed for D3D10_DRIVER_TYPE_HARDWARE."), _T("Could not intialized DirectX 10"), MB_OK|MB_ICONERROR);
 		return false;
+	}
 	
 	//Create Render Target
 	ID3D10Texture2D *pBackBuffer;
-	if ( FAILED (pSwapChain->GetBuffer(0,
-		__uuidof(ID3D10Texture2D),
-		(void**)&pBackBuffer)))
+	if ( FAILED (pSwapChain->GetBuffer(0, __uuidof(ID3D10Texture2D),(void**)&pBackBuffer)))
+	{
+		MessageBox(NULL, _T("SwapChain->GetBuffer failed."), _T("Could not intialized DirectX 10"), MB_OK|MB_ICONERROR);
 		return false;
-	if (FAILED(pD3D10Device->CreateRenderTargetView( pBackBuffer,
-		NULL,
-		&pRenderTargetView ))){
+	}
+	if (FAILED(pD3D10Device->CreateRenderTargetView( pBackBuffer, NULL, &pRenderTargetView )))
+	{
 			pBackBuffer->Release();
+			MessageBox(NULL, _T("D3D10Device->CreateRenderTargetView failed."), _T("Could not intialized DirectX 10"), MB_OK|MB_ICONERROR);
 			return false;
 	}
 	pBackBuffer->Release();
@@ -100,7 +107,6 @@ void GameLoop()
 	pSwapChain->Present( 0, 0 );
 }
 
-#include <windows.h>
 int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
 {
 	ROCKET_UNUSED(instance_handle);
