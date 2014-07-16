@@ -153,7 +153,7 @@ if(BUILD_PYTHON_BINDINGS)
     foreach(library ${LIBRARIES})
         set(NAME _rocket${library})
 
-        add_library(${NAME} ${Py${library}_SRC_FILES}
+        add_library(${NAME} MODULE ${Py${library}_SRC_FILES}
                             ${Py${library}_HDR_FILES}
                             ${Py${library}_PUB_HDR_FILES}
         )
