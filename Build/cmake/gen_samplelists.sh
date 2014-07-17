@@ -16,12 +16,12 @@ printfiles() {
     name=${1//basic\//} #substitute basic/ for nothing
     name=${name//tutorial\/} #substitute tutorial/ for nothing
     echo ${hdr/sample/$name} >>$file
-    find  $srcpath/$1/src -maxdepth 1 -iname "*.h" -exec echo '    '$srcdir/{} \; | sort -f >>$file
+    find  $srcpath/$1/src -maxdepth 1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     find  $srcpath/$1/include -maxdepth 1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file 2>/dev/null
     echo -e ')\n' >>$file
     # Print source files
     echo ${src/sample/$name} >>$file
-    find  $srcpath/$1/src -maxdepth 1 -iname "*.cpp" -exec echo '    '$srcdir/{} \; | sort -f >>$file
+    find  $srcpath/$1/src -maxdepth 1 -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
 }
 
