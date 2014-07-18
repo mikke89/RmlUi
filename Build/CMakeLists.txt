@@ -30,7 +30,11 @@ set(PROJECT_VERSION ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBR
 # Search in the 'cmake' directory for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-set(CMAKE_DEBUG_POSTFIX  "_d")
+if(NOT APPLE)
+	# Apple OSX and iOS use a subdirectory naming convention instead of
+	# appending a _d to the filename
+	set(CMAKE_DEBUG_POSTFIX  "_d")
+endif()
 
 #===================================
 # Environment tests ================
@@ -180,7 +184,7 @@ if(BUILD_PYTHON_BINDINGS)
     foreach(library ${LIBRARIES})
         set(NAME _rocket${library})
 
-        add_library(${NAME} ${Py${library}_SRC_FILES}
+        add_library(${NAME} MODULE ${Py${library}_SRC_FILES}
                             ${Py${library}_HDR_FILES}
                             ${Py${library}_PUB_HDR_FILES}
         )
