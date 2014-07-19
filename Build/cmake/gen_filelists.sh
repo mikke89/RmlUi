@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 basedir="../.."
 file=Build/cmake/FileList.cmake
