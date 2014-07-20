@@ -50,3 +50,21 @@ libRocketDebugger.dll
 libRocketCore.dll.a
 libRocketControls.dll.a
 libRocketDebugger.dll.a
+
+#OSX Artifacts
+libRocketCore.dylib
+libRocketCore.*.dylib
+libRocketControls.dylib
+libRocketControls.*.dylib
+libRocketDebugger.dylib
+libRocketDebugger.*.dylib
+customlog.app
+datagrid.app
+datagrid_tree.app
+drag.app
+invaders.app
+pyinvaders.app
+loaddocument.app
+template.app
+treeview.app
+tutorial_drag.app
