@@ -40,6 +40,18 @@ include(TestForANSIForScope)
 include(TestForANSIStreamHeaders)
 include(TestForSTDNamespace)
 
+#===================================
+# Provide hints as to where depends=
+# might be found                   =
+#===================================
+
+if(NOT DEFINED ENV{FREETYPE_DIR})
+	set(ENV{FREETYPE_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
+if(NOT DEFINED ENV{Boost_DIR})
+	set(ENV{Boost_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
 
 #===================================
 # Build options ====================
