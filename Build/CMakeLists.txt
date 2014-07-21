@@ -126,6 +126,7 @@ foreach(library ${LIBRARIES})
     add_library(${NAME} ${${library}_SRC_FILES}
                         ${${library}_HDR_FILES}
                         ${${library}_PUB_HDR_FILES}
+                        ${MASTER_${library}_PUB_HDR_FILES}
     )
 
     set_target_properties(${NAME} PROPERTIES
