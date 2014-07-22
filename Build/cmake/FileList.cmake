@@ -90,6 +90,10 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLParseTools.h
 )
 
+set(MASTER_Core_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core.h
+)
+
 set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BaseXMLParser.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Box.h
@@ -157,7 +161,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/WString.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/XMLNodeHandler.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/XMLParser.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core.h
 )
 
 set(Core_SRC_FILES
@@ -316,6 +319,10 @@ set(Controls_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Controls/XMLNodeHandlerTextArea.h
 )
 
+set(MASTER_Controls_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls.h
+)
+
 set(Controls_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Clipboard.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Controls.h
@@ -336,7 +343,6 @@ set(Controls_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementTabSet.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Header.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/SelectOption.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls.h
 )
 
 set(Controls_SRC_FILES
@@ -393,10 +399,13 @@ set(Debugger_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Debugger/SystemInterface.h
 )
 
+set(MASTER_Debugger_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Debugger.h
+)
+
 set(Debugger_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Debugger/Debugger.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Debugger/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Debugger.h
 )
 
 set(Debugger_SRC_FILES
@@ -415,6 +424,7 @@ set(Pycore_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextInterface.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/Converters.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Python/DataSourceWrapper.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementAttributeProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementChildrenProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementDocumentWrapper.h
@@ -449,6 +459,7 @@ set(Pycore_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/Converters.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Python/DataSourceWrapper.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementAttributeProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementChildrenProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementDocumentWrapper.cpp
