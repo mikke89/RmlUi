@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREELEMENTSCROLL_H
 #define ROCKETCOREELEMENTSCROLL_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/EventListener.h>
+#include "Header.h"
+#include "EventListener.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,10 +28,10 @@
 #ifndef ROCKETCORERENDERINTERFACE_H
 #define ROCKETCORERENDERINTERFACE_H
 
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Texture.h>
-#include <Rocket/Core/Vertex.h>
+#include "ReferenceCountable.h"
+#include "Header.h"
+#include "Texture.h"
+#include "Vertex.h"
 
 namespace Rocket {
 namespace Core {

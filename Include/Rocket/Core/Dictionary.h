@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREDICTIONARY_H
 #define ROCKETCOREDICTIONARY_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Variant.h>
+#include "Header.h"
+#include "Variant.h"
 
 namespace Rocket {
 namespace Core {
@@ -143,7 +143,7 @@ private:
 	void Copy(const Dictionary &dict);
 };
 
-#include <Rocket/Core/Dictionary.inl>
+#include "Dictionary.inl"
 
 }
 }

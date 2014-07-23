@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREELEMENTTEXT_H
 #define ROCKETCOREELEMENTTEXT_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/WString.h>
+#include "Header.h"
+#include "Element.h"
+#include "WString.h"
 
 namespace Rocket {
 namespace Core {

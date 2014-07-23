@@ -28,9 +28,9 @@
 #ifndef ROCKETCORESTRINGUTILITIES_H
 #define ROCKETCORESTRINGUTILITIES_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/String.h>
+#include "Header.h"
+#include "Types.h"
+#include "String.h"
 #include <stdarg.h>
 
 namespace Rocket {

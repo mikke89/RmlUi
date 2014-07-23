@@ -28,9 +28,7 @@
 #ifndef ROCKETCOREBOX_H
 #define ROCKETCOREBOX_H
 
-//#include <Rocket/Core/Header.h>
-//#include <Rocket/Core/Types.h>
-#include <Rocket/Core/Types.h>
+#include "Types.h"
 
 namespace Rocket {
 namespace Core {

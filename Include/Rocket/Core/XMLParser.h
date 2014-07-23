@@ -29,8 +29,8 @@
 #define ROCKETCOREXMLPARSER_H
 
 #include <stack>
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/BaseXMLParser.h>
+#include "Header.h"
+#include "BaseXMLParser.h"
 
 namespace Rocket {
 namespace Core {

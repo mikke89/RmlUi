@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREMATH_H
 #define ROCKETCOREMATH_H
 
-#include <Rocket/Core/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

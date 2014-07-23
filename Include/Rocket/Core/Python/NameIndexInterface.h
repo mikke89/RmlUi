@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPYTHONNAMEINDEXINTERFACE_H
 #define ROCKETCOREPYTHONNAMEINDEXINTERFACE_H
 
-#include <Rocket/Core/Python/Utilities.h>
+#include "Utilities.h"
 
 namespace Rocket {
 namespace Core {

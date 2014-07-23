@@ -40,8 +40,8 @@
 #include <set>
 #include <vector>
 
-#include <Rocket/Core/Platform.h>
-#include <Rocket/Core/Debug.h>
+#include "Platform.h"
+#include "Debug.h"
 
 namespace Rocket {
 namespace Core {
@@ -63,9 +63,9 @@ typedef unsigned __int64 uint64_t;
 #include <inttypes.h>
 #endif
 
-#include <Rocket/Core/Colour.h>
-#include <Rocket/Core/Vector2.h>
-#include <Rocket/Core/String.h>
+#include "Colour.h"
+#include "Vector2.h"
+#include "String.h"
 
 namespace Rocket {
 namespace Core {

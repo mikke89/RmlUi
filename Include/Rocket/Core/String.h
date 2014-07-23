@@ -28,8 +28,8 @@
 #ifndef ROCKETCORESTRING_H
 #define ROCKETCORESTRING_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/StringBase.h>
+#include "Header.h"
+#include "StringBase.h"
 #include <stdarg.h>
 #include <string.h>
 #include <vector>

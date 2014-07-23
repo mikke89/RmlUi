@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREEVENT_H
 #define ROCKETCOREEVENT_H
 
-#include <Rocket/Core/Dictionary.h>
-#include <Rocket/Core/ScriptInterface.h>
-#include <Rocket/Core/Header.h>
+#include "Dictionary.h"
+#include "ScriptInterface.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

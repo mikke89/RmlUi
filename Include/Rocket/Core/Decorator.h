@@ -28,11 +28,11 @@
 #ifndef ROCKETCOREDECORATOR_H
 #define ROCKETCOREDECORATOR_H
 
-#include <Rocket/Core/ReferenceCountable.h>
+#include "ReferenceCountable.h"
 #include <vector>
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Texture.h>
-#include <Rocket/Core/Types.h>
+#include "Header.h"
+#include "Texture.h"
+#include "Types.h"
 
 namespace Rocket {
 namespace Core {

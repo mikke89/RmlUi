@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPYTHONHEADER_H
 #define ROCKETCOREPYTHONHEADER_H
 
-#include <Rocket/Core/Platform.h>
+#include "../Platform.h"
 
 #if !defined STATIC_LIB
 #if defined ROCKET_PLATFORM_WIN32

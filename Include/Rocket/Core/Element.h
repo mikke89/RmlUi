@@ -28,13 +28,13 @@
 #ifndef ROCKETCOREELEMENT_H
 #define ROCKETCOREELEMENT_H
 
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/ScriptInterface.h>
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Box.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Property.h>
-#include <Rocket/Core/Types.h>
+#include "ReferenceCountable.h"
+#include "ScriptInterface.h"
+#include "Header.h"
+#include "Box.h"
+#include "Event.h"
+#include "Property.h"
+#include "Types.h"
 
 namespace Rocket {
 namespace Core {
@@ -721,7 +721,7 @@ private:
 	friend class LayoutInlineBox;
 };
 
-#include <Rocket/Core/Element.inl>
+#include "Element.inl"
 
 }
 }

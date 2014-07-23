@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREGEOMETRY_H
 #define ROCKETCOREGEOMETRY_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Vertex.h>
+#include "Header.h"
+#include "Vertex.h"
 
 namespace Rocket {
 namespace Core {

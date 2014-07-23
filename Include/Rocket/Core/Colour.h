@@ -28,7 +28,7 @@
 #ifndef ROCKETCORECOLOUR_H
 #define ROCKETCORECOLOUR_H
 
-#include <Rocket/Core/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {
@@ -111,8 +111,6 @@ public:
 
 }
 }
-
-//#include <Rocket/Core/Types.h>
 
 namespace Rocket {
 namespace Core {

@@ -28,10 +28,10 @@
 #ifndef ROCKETCOREDECORATORINSTANCER_H
 #define ROCKETCOREDECORATORINSTANCER_H
 
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/PropertyDictionary.h>
-#include <Rocket/Core/PropertySpecification.h>
+#include "ReferenceCountable.h"
+#include "Header.h"
+#include "PropertyDictionary.h"
+#include "PropertySpecification.h"
 
 namespace Rocket {
 namespace Core {

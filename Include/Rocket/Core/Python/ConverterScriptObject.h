@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPYTHONCONVERTERSCRIPTOBJECT_H
 #define ROCKETCOREPYTHONCONVERTERSCRIPTOBJECT_H
 
-#include <Rocket/Core/Python/Python.h>
+#include "Python.h"
 
 namespace Rocket {
 namespace Core {

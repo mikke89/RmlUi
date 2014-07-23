@@ -28,8 +28,8 @@
 #ifndef ROCKETCORETEXTURE_H
 #define ROCKETCORETEXTURE_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Types.h>
+#include "Header.h"
+#include "Types.h"
 
 namespace Rocket {
 namespace Core {

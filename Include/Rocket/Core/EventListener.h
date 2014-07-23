@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREEVENTLISTENER_H
 #define ROCKETCOREEVENTLISTENER_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Event.h>
+#include "Header.h"
+#include "Event.h"
 
 namespace Rocket {
 namespace Core {

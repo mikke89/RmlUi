@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREGEOMETRYUTILITIES_H
 #define ROCKETCOREGEOMETRYUTILITIES_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/Vertex.h>
+#include "Header.h"
+#include "Types.h"
+#include "Vertex.h"
 
 namespace Rocket {
 namespace Core {

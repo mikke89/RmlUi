@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREREFERENCECOUNTABLE_H
 #define ROCKETCOREREFERENCECOUNTABLE_H
 
-#include <Rocket/Core/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

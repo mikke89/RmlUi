@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREELEMENTREFERENCE_H
 #define ROCKETCOREELEMENTREFERENCE_H
 
-#include <Rocket/Core/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,10 +28,10 @@
 #ifndef ROCKETCOREMATHTYPES_H
 #define ROCKETCOREMATHTYPES_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Vector2.h>
-#include <Rocket/Core/Vector3.h>
-#include <Rocket/Core/Vector4.h>
+#include "Header.h"
+#include "Vector2.h"
+#include "Vector3.h"
+#include "Vector4.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,10 +28,10 @@
 #ifndef ROCKETCOREEVENTLISTENERINSTANCER_H
 #define ROCKETCOREEVENTLISTENERINSTANCER_H
 
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Element.h>
+#include "ReferenceCountable.h"
+#include "String.h"
+#include "Header.h"
+#include "Element.h"
 
 namespace Rocket {
 namespace Core {

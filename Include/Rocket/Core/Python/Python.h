@@ -29,7 +29,7 @@
 #define ROCKETCOREPYTHON_H
 
 // RocketCore platform header for the ROCKET_PLATFORM_* define.
-#include <Rocket/Core/Platform.h>
+#include "../Platform.h"
 
 // Python header includes
 #include <Python.h>

@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPLUGIN_H
 #define ROCKETCOREPLUGIN_H
 
-#include <Rocket/Core/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

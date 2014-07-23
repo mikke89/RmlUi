@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPICKLETYPECONVERTER_H
 #define ROCKETCOREPICKLETYPECONVERTER_H
 
-#include <Rocket/Core/TypeConverter.h>
+#include "../TypeConverter.h"
 
 namespace Rocket {
 namespace Core {

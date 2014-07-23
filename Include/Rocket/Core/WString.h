@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREWSTRING_H
 #define ROCKETCOREWSTRING_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/Header.h>
+#include "Types.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

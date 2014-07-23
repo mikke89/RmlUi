@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREPYTHONUTILITIES_H
 #define ROCKETCOREPYTHONUTILITIES_H
 
-#include <Rocket/Core/Variant.h>
-#include <Rocket/Core/Python/Header.h>
-#include <Rocket/Core/Python/Python.h>
+#include "../Variant.h"
+#include "Header.h"
+#include "Python.h"
 
 namespace Rocket {
 namespace Core {
