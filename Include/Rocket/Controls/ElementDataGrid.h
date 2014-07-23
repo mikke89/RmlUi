@@ -28,8 +28,8 @@
 #ifndef ROCKETCONTROLSELEMENTDATAGRID_H
 #define ROCKETCONTROLSELEMENTDATAGRID_H
 
-#include <Rocket/Controls/Header.h>
-#include <Rocket/Controls/DataSourceListener.h>
+#include "Header.h"
+#include "DataSourceListener.h"
 #include <Rocket/Core/Element.h>
 
 namespace Rocket {

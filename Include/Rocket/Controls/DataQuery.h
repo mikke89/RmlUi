@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSDATAQUERY_H
 #define ROCKETCONTROLSDATAQUERY_H
 
-#include <Rocket/Controls/Header.h>
+#include "Header.h"
 #include <Rocket/Core/TypeConverter.h>
 #include <Rocket/Core/Log.h>
 

@@ -29,7 +29,7 @@
 #define ROCKETDEBUGGERDEBUGGER_H
 
 #include <Rocket/Core/Types.h>
-#include <Rocket/Debugger/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,9 +28,9 @@
 #ifndef ROCKETCONTROLSELEMENTFORMCONTROLDATASELECT_H
 #define ROCKETCONTROLSELEMENTFORMCONTROLDATASELECT_H
 
-#include <Rocket/Controls/Header.h>
-#include <Rocket/Controls/ElementFormControlSelect.h>
-#include <Rocket/Controls/DataSourceListener.h>
+#include "Header.h"
+#include "ElementFormControlSelect.h"
+#include "DataSourceListener.h"
 
 namespace Rocket {
 namespace Controls {

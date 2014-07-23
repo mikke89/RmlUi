@@ -30,7 +30,7 @@
 
 #include <Rocket/Core/Element.h>
 #include <Rocket/Core/EventListener.h>
-#include <Rocket/Controls/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Controls {

@@ -28,6 +28,6 @@
 #ifndef ROCKETCONTROLS_H
 #define ROCKETCONTROLS_H
 
-#include <Rocket/Controls/Controls.h>
+#include "Controls/Controls.h"
 
 #endif
