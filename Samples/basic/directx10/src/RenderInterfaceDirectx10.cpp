@@ -47,7 +47,7 @@ const D3D10_INPUT_ELEMENT_DESC layout[] =
 RenderInterfaceDirectX10::RenderInterfaceDirectX10(ID3D10Device * pD3D10Device,float screenWidth,float screenHeight)
 {
 	m_pScissorTestDisable = NULL;
-	m_pScissorTestDisable = NULL;
+	m_pScissorTestEnable = NULL;
 	m_pD3D10Device=pD3D10Device;
 	setupEffect();
 	//Create our view and projection matrix
