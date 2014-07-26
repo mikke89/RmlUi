@@ -46,21 +46,30 @@ const D3D10_INPUT_ELEMENT_DESC layout[] =
 //The constructor of the render
 RenderInterfaceDirectX10::RenderInterfaceDirectX10(ID3D10Device * pD3D10Device,float screenWidth,float screenHeight)
 {
+	m_pScissorTestDisable = NULL;
+	m_pScissorTestDisable = NULL;
 	m_pD3D10Device=pD3D10Device;
 	setupEffect();
 	//Create our view and projection matrix
 	D3DXMatrixOrthoOffCenterLH(&m_matProjection, 0, screenWidth, screenHeight, 0, -1, 1);
 	m_pProjectionMatrixVariable->SetMatrix((float*)m_matProjection);
 
+	//Create scissor raster states
 	D3D10_RASTERIZER_DESC rasterDesc;
 	rasterDesc.FillMode=D3D10_FILL_SOLID;
 	rasterDesc.CullMode=D3D10_CULL_NONE;
 	rasterDesc.ScissorEnable=TRUE;
 	rasterDesc.FrontCounterClockwise=TRUE;
-	m_pD3D10Device->CreateRasterizerState(&rasterDesc,&m_pScissorTestEnable);
+	if (FAILED(m_pD3D10Device->CreateRasterizerState(&rasterDesc, &m_pScissorTestEnable)))
+	{
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorEnable");
+	}
 
 	rasterDesc.ScissorEnable=FALSE;
-	m_pD3D10Device->CreateRasterizerState(&rasterDesc,&m_pScissorTestDisable);
+	if (FAILED(m_pD3D10Device->CreateRasterizerState(&rasterDesc, &m_pScissorTestDisable)))
+	{
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorDisable");
+	}
 }
 
 //Loads the effect from memory and retrieves initial variables from the effect
@@ -93,7 +102,10 @@ void RenderInterfaceDirectX10::setupEffect()
 	pass=m_pTechnique->GetPassByName("P0");
 	pass->GetDesc(&passDesc);
 	//create input layout, to allow us to map our vertex structure to the one held in the effect
-	m_pD3D10Device->CreateInputLayout(layout,numElements,passDesc.pIAInputSignature,passDesc.IAInputSignatureSize,&m_pVertexLayout);
+	if (FAILED(m_pD3D10Device->CreateInputLayout(layout, numElements, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &m_pVertexLayout)))
+	{
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Unable to create input layout");
+	}
 	//grab effect variables
 	m_pWorldMatrixVariable=m_pEffect->GetVariableByName("matWorld")->AsMatrix();
 	m_pProjectionMatrixVariable=m_pEffect->GetVariableByName("matProjection")->AsMatrix();
@@ -104,8 +116,24 @@ void RenderInterfaceDirectX10::setupEffect()
 
 RenderInterfaceDirectX10::~RenderInterfaceDirectX10()
 {
-	m_pScissorTestDisable->Release();
-	m_pScissorTestEnable->Release();
+	if (m_pVertexLayout)
+	{
+		m_pVertexLayout->Release();
+		m_pVertexLayout = NULL;
+	}
+	if (m_pEffect)
+	{
+		m_pEffect->Release();
+		m_pEffect = NULL;
+	}
+	if (m_pScissorTestDisable){
+		m_pScissorTestDisable->Release();
+		m_pScissorTestDisable = NULL;
+	}
+	if (m_pScissorTestEnable){
+		m_pScissorTestEnable->Release();
+		m_pScissorTestEnable = NULL;
+	}
 }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
@@ -157,11 +185,13 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX10::CompileGeometry(R
 	InitData.pSysMem = pD3D10Vertices;
 
 	//Create VB
-	if (FAILED(m_pD3D10Device->CreateBuffer( 
-		&bd, 
-		&InitData, 
-		&geometry->vertices )))
-			return false;
+	if (FAILED(m_pD3D10Device->CreateBuffer(
+		&bd,
+		&InitData,
+		&geometry->vertices))){
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Undable to create vertex buffer for geometry");
+		return false;
+	}
 
 	delete pD3D10Vertices;
 
@@ -175,11 +205,13 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX10::CompileGeometry(R
 	//Index values
 	InitData.pSysMem = indices;
 	//Fill and create buffer
-	if (FAILED(m_pD3D10Device->CreateBuffer( 
-		&bd, 
-		&InitData, 
-		&geometry->indices )))
+	if (FAILED(m_pD3D10Device->CreateBuffer(
+		&bd,
+		&InitData,
+		&geometry->indices))){
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Undable to create index buffer for geometry");
 		return false;
+	}
 
 	//save some info in the instance of the structure
 	geometry->num_vertices = (DWORD) num_vertices;
@@ -244,8 +276,14 @@ void RenderInterfaceDirectX10::ReleaseCompiledGeometry(Rocket::Core::CompiledGeo
 	//Clean up after ourselves
 	RocketD310DCompiledGeometry* d3d10_geometry=(RocketD310DCompiledGeometry*)geometry;
 
-	d3d10_geometry->vertices->Release();
-	d3d10_geometry->indices->Release();
+	if (d3d10_geometry->vertices){
+		d3d10_geometry->vertices->Release();
+		d3d10_geometry->vertices = NULL;
+	}
+	if (d3d10_geometry->indices){
+		d3d10_geometry->indices->Release();
+		d3d10_geometry->indices = NULL;
+	}
 
 	delete d3d10_geometry;
 }
@@ -380,7 +418,7 @@ bool RenderInterfaceDirectX10::GenerateTexture(Rocket::Core::TextureHandle& text
 	textureDesc.Usage=D3D10_USAGE_DYNAMIC;
 	//Our are we going to bind this texture to the pipeline
 	textureDesc.BindFlags= D3D10_BIND_SHADER_RESOURCE;
-	textureDesc.MiscFlags=D3D10_RESOURCE_MISC_SHARED;
+	textureDesc.MiscFlags=0;
 	textureDesc.SampleDesc.Count=1;
 	textureDesc.SampleDesc.Quality=0;
 	
@@ -414,8 +452,10 @@ bool RenderInterfaceDirectX10::GenerateTexture(Rocket::Core::TextureHandle& text
 	srvDesc.ViewDimension=D3D10_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels=textureDesc.MipLevels;
 	srvDesc.Texture2D.MostDetailedMip=0;
-	if (FAILED(m_pD3D10Device->CreateShaderResourceView(pTexture->texture2D,&srvDesc,&pTexture->textureView)))
+	if (FAILED(m_pD3D10Device->CreateShaderResourceView(pTexture->texture2D, &srvDesc, &pTexture->textureView))){
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Unable to create texture view");
 		return false;
+	}
 
 	texture_handle = (Rocket::Core::TextureHandle)pTexture;
 	return true;
@@ -425,10 +465,15 @@ bool RenderInterfaceDirectX10::GenerateTexture(Rocket::Core::TextureHandle& text
 void RenderInterfaceDirectX10::ReleaseTexture(Rocket::Core::TextureHandle texture_handle)
 {
 	//clean up after ourselves
-	RocketD3D10Texture * pTexture=(RocketD3D10Texture*)texture_handle;
-	pTexture->texture2D->Release();
-	pTexture->textureView->Release();
-
+	RocketD3D10Texture * pTexture = (RocketD3D10Texture*)texture_handle;
+	if (pTexture->texture2D){
+		pTexture->texture2D->Release();
+		pTexture->texture2D = NULL;
+	}
+	if (pTexture->textureView){
+		pTexture->textureView->Release();
+		pTexture->textureView = NULL;
+	}
 	delete pTexture;
 }
 

@@ -48,6 +48,7 @@ public:
 	/// Returns the native vertical texel offset for the renderer.
 	float GetVerticalTexelOffset();
 
+	//loads the effect from memory
 	void setupEffect();
 
 private:
