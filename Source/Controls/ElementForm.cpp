@@ -25,10 +25,10 @@
  *
  */
 
-#include <Rocket/Controls/ElementForm.h>
-#include <Rocket/Core/Dictionary.h>
-#include <Rocket/Core/ElementUtilities.h>
-#include <Rocket/Controls/ElementFormControl.h>
+#include "../../Include/Rocket/Controls/ElementForm.h"
+#include "../../Include/Rocket/Core/Dictionary.h"
+#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/Rocket/Controls/ElementFormControl.h"
 
 namespace Rocket {
 namespace Controls {

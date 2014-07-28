@@ -25,18 +25,18 @@
  *
  */
 
-#include <Rocket/Controls/Controls.h>
-#include <Rocket/Core/ElementInstancerGeneric.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/StyleSheetSpecification.h>
-#include <Rocket/Core/XMLParser.h>
-#include <Rocket/Core/Plugin.h>
-#include <Rocket/Core/Core.h>
+#include "../../Include/Rocket/Controls/Controls.h"
+#include "../../Include/Rocket/Core/ElementInstancerGeneric.h"
+#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
+#include "../../Include/Rocket/Core/XMLParser.h"
+#include "../../Include/Rocket/Core/Plugin.h"
+#include "../../Include/Rocket/Core/Core.h"
 #include "ElementTextSelection.h"
 #include "XMLNodeHandlerDataGrid.h"
 #include "XMLNodeHandlerTabSet.h"
 #include "XMLNodeHandlerTextArea.h"
-#include <Rocket/Controls/ElementFormControlInput.h>
+#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
 
 namespace Rocket {
 namespace Controls {

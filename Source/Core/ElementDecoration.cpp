@@ -28,8 +28,8 @@
 #include "precompiled.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
-#include <Rocket/Core/Decorator.h>
-#include <Rocket/Core/Element.h>
+#include "../../Include/Rocket/Core/Decorator.h"
+#include "../../Include/Rocket/Core/Element.h"
 
 namespace Rocket {
 namespace Core {

@@ -27,10 +27,10 @@
 
 #include "precompiled.h"
 #include "EventDispatcher.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/EventListener.h>
-#include <Rocket/Core/Factory.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/EventListener.h"
+#include "../../Include/Rocket/Core/Factory.h"
 
 namespace Rocket {
 namespace Core {

@@ -25,7 +25,7 @@
  *
  */
 
-#include <Rocket/Controls/SelectOption.h>
+#include "../../Include/Rocket/Controls/SelectOption.h"
 
 namespace Rocket {
 namespace Controls {

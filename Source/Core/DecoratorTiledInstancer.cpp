@@ -27,7 +27,7 @@
 
 #include "precompiled.h"
 #include "DecoratorTiledInstancer.h"
-#include <Rocket/Core/PropertyDefinition.h>
+#include "../../Include/Rocket/Core/PropertyDefinition.h"
 
 namespace Rocket {
 namespace Core {

@@ -29,10 +29,10 @@
 #include "WidgetSlider.h"
 #include "Clock.h"
 #include "LayoutEngine.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/Property.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/Property.h"
 
 namespace Rocket {
 namespace Core {

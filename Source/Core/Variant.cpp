@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Variant.h>
+#include "../../Include/Rocket/Core/Variant.h"
 
 namespace Rocket {
 namespace Core {

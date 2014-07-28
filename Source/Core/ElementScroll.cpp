@@ -26,13 +26,13 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/ElementScroll.h>
+#include "../../Include/Rocket/Core/ElementScroll.h"
 #include "LayoutEngine.h"
 #include "WidgetSliderScroll.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/ElementUtilities.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Factory.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/Factory.h"
 
 namespace Rocket {
 namespace Core {

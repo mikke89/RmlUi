@@ -28,8 +28,8 @@
 #ifndef ROCKETDEBUGGERPLUGIN_H
 #define ROCKETDEBUGGERPLUGIN_H
 
-#include <Rocket/Core/EventListener.h>
-#include <Rocket/Core/Plugin.h>
+#include "../../Include/Rocket/Core/EventListener.h"
+#include "../../Include/Rocket/Core/Plugin.h"
 #include <set>
 
 namespace Rocket {

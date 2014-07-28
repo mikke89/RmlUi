@@ -25,10 +25,10 @@
  *
  */
 
-#include <Rocket/Controls/ElementFormControlSelect.h>
-#include <Rocket/Core/ElementText.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/ElementUtilities.h>
+#include "../../Include/Rocket/Controls/ElementFormControlSelect.h"
+#include "../../Include/Rocket/Core/ElementText.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/ElementUtilities.h"
 #include "WidgetDropDown.h"
 
 namespace Rocket {

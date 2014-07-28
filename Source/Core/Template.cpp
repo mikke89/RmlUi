@@ -28,8 +28,8 @@
 #include "precompiled.h"
 #include "Template.h"
 #include "XMLParseTools.h"
-#include <Rocket/Core/ElementUtilities.h>
-#include <Rocket/Core/XMLParser.h>
+#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/Rocket/Core/XMLParser.h"
 
 namespace Rocket {
 namespace Core {

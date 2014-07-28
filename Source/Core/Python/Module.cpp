@@ -27,15 +27,15 @@
 
 #include "precompiled.h"
 #include "Module.h"
-#include <Rocket/Core/Python/Utilities.h>
-#include <Rocket/Core/Input.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/FontDatabase.h>
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
+#include "../../../Include/Rocket/Core/Input.h"
+#include "../../../Include/Rocket/Core/Factory.h"
+#include "../../../Include/Rocket/Core/FontDatabase.h"
 #include "ContextInterface.h"
 #include "ContextProxy.h"
 #include "ElementInterface.h"
 #include "EventInterface.h"
-#include <Rocket/Core/Python/ElementInstancer.h>
+#include "../../../Include/Rocket/Core/Python/ElementInstancer.h"
 
 namespace Rocket {
 namespace Core {

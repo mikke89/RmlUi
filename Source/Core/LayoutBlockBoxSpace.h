@@ -28,7 +28,7 @@
 #ifndef ROCKETCORELAYOUTBLOCKBOXSPACE_H
 #define ROCKETCORELAYOUTBLOCKBOXSPACE_H
 
-#include <Rocket/Core/StyleSheetKeywords.h>
+#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
 
 namespace Rocket {
 namespace Core {

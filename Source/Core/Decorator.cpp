@@ -26,11 +26,11 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Decorator.h>
+#include "../../Include/Rocket/Core/Decorator.h"
 #include "TextureDatabase.h"
 #include "TextureResource.h"
-#include <Rocket/Core/DecoratorInstancer.h>
-#include <Rocket/Core/PropertyDefinition.h>
+#include "../../Include/Rocket/Core/DecoratorInstancer.h"
+#include "../../Include/Rocket/Core/PropertyDefinition.h"
 
 namespace Rocket {
 namespace Core {

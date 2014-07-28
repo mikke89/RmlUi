@@ -28,8 +28,8 @@
 #ifndef ROCKETCONTROLSXMLNODEHANDLERDATAGRID_H
 #define ROCKETCONTROLSXMLNODEHANDLERDATAGRID_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/XMLNodeHandler.h>
+#include "../../Include/Rocket/Core/Types.h"
+#include "../../Include/Rocket/Core/XMLNodeHandler.h"
 
 namespace Rocket {
 namespace Controls {

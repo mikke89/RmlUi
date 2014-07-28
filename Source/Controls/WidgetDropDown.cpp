@@ -26,14 +26,14 @@
  */
 
 #include "WidgetDropDown.h"
-#include <Rocket/Core/Math.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/ElementUtilities.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Input.h>
-#include <Rocket/Core/Property.h>
-#include <Rocket/Core/StyleSheetKeywords.h>
-#include <Rocket/Controls/ElementFormControl.h>
+#include "../../Include/Rocket/Core/Math.h"
+#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/Input.h"
+#include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
+#include "../../Include/Rocket/Controls/ElementFormControl.h"
 
 namespace Rocket {
 namespace Controls {

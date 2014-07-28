@@ -28,9 +28,9 @@
 #include "precompiled.h"
 #include "EventInstancer.h"
 
-#include <Rocket/Core/Python/ConverterScriptObject.h>
+#include "../../../Include/Rocket/Core/Python/ConverterScriptObject.h"
 
-#include <Rocket/Core/Factory.h>
+#include "../../../Include/Rocket/Core/Factory.h"
 
 #include "EventWrapper.h"
 #include "EventInterface.h"

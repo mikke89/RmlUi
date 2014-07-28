@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFILEINTERFACEDEFAULT_H
 #define ROCKETCOREFILEINTERFACEDEFAULT_H
 
-#include <Rocket/Core/FileInterface.h>
+#include "../../Include/Rocket/Core/FileInterface.h"
 
 #ifndef ROCKET_NO_FILE_INTERFACE_DEFAULT
 

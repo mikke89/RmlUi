@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPYTHONELEMENTINTERFACE_H
 #define ROCKETCOREPYTHONELEMENTINTERFACE_H
 
-#include <Rocket/Core/Element.h>
+#include "../../../Include/Rocket/Core/Element.h"
 
 #include "ElementStyleProxy.h"
 #include "ElementChildrenProxy.h"

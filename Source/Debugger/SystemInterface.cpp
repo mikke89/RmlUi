@@ -26,7 +26,7 @@
  */
 
 #include "SystemInterface.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 #include "ElementLog.h"
 
 namespace Rocket {

@@ -26,8 +26,8 @@
  */
 
 #include "WidgetTextInputMultiLine.h"
-#include <Rocket/Core/Dictionary.h>
-#include <Rocket/Core/ElementText.h>
+#include "../../Include/Rocket/Core/Dictionary.h"
+#include "../../Include/Rocket/Core/ElementText.h"
 
 namespace Rocket {
 namespace Controls {

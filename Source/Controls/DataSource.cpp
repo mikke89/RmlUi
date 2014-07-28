@@ -25,10 +25,10 @@
  *
  */
 
-#include <Rocket/Controls/DataSource.h>
-#include <Rocket/Controls/DataSourceListener.h>
-#include <Rocket/Core/StringUtilities.h>
-#include <Rocket/Core/Log.h>
+#include "../../Include/Rocket/Controls/DataSource.h"
+#include "../../Include/Rocket/Controls/DataSourceListener.h"
+#include "../../Include/Rocket/Core/StringUtilities.h"
+#include "../../Include/Rocket/Core/Log.h"
 #include <algorithm>
 
 namespace Rocket {

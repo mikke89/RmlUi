@@ -25,8 +25,8 @@
  *
  */
 
-#include <Rocket/Controls/ElementDataGridExpandButton.h>
-#include <Rocket/Controls/ElementDataGridRow.h>
+#include "../../Include/Rocket/Controls/ElementDataGridExpandButton.h"
+#include "../../Include/Rocket/Controls/ElementDataGridRow.h"
 
 namespace Rocket {
 namespace Controls {

@@ -27,20 +27,20 @@
 
 #include "precompiled.h"
 #include "ElementInterface.h"
-#include <Rocket/Core/Python/ConverterScriptObject.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/Python/ElementInstancer.h>
-#include <Rocket/Core/Python/ElementWrapper.h>
-#include <Rocket/Controls/ElementDataGrid.h>
-#include <Rocket/Controls/ElementDataGridCell.h>
-#include <Rocket/Controls/ElementDataGridRow.h>
-#include <Rocket/Controls/ElementDataGridExpandButton.h>
-#include <Rocket/Controls/ElementForm.h>
-#include <Rocket/Controls/ElementFormControlDataSelect.h>
-#include <Rocket/Controls/ElementFormControlInput.h>
-#include <Rocket/Controls/ElementFormControlSelect.h>
-#include <Rocket/Controls/ElementFormControlTextArea.h>
-#include <Rocket/Controls/ElementTabSet.h>
+#include "../../../Include/Rocket/Core/Python/ConverterScriptObject.h"
+#include "../../../Include/Rocket/Core/Factory.h"
+#include "../../../Include/Rocket/Core/Python/ElementInstancer.h"
+#include "../../../Include/Rocket/Core/Python/ElementWrapper.h"
+#include "../../../Include/Rocket/Controls/ElementDataGrid.h"
+#include "../../../Include/Rocket/Controls/ElementDataGridCell.h"
+#include "../../../Include/Rocket/Controls/ElementDataGridRow.h"
+#include "../../../Include/Rocket/Controls/ElementDataGridExpandButton.h"
+#include "../../../Include/Rocket/Controls/ElementForm.h"
+#include "../../../Include/Rocket/Controls/ElementFormControlDataSelect.h"
+#include "../../../Include/Rocket/Controls/ElementFormControlInput.h"
+#include "../../../Include/Rocket/Controls/ElementFormControlSelect.h"
+#include "../../../Include/Rocket/Controls/ElementFormControlTextArea.h"
+#include "../../../Include/Rocket/Controls/ElementTabSet.h"
 #include "SelectOptionProxy.h"
 #include "DataGridRowProxy.h"
 

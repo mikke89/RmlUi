@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Dictionary.h>
+#include "../../Include/Rocket/Core/Dictionary.h"
 
 /* NOTE: This is dictionary implementation is copied from PYTHON 
    which is well known for its dictionary SPEED.

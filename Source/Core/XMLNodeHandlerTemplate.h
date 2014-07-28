@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREXMLNODEHANDLERTEMPLATE_H
 #define ROCKETCOREXMLNODEHANDLERTEMPLATE_H
 
-#include <Rocket/Core/XMLNodeHandler.h>
+#include "../../Include/Rocket/Core/XMLNodeHandler.h"
 
 namespace Rocket {
 namespace Core {

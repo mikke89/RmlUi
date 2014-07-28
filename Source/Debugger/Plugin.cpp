@@ -26,8 +26,8 @@
  */
 
 #include "Plugin.h"
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core/Types.h"
+#include "../../Include/Rocket/Core.h"
 #include "ElementContextHook.h"
 #include "ElementInfo.h"
 #include "ElementLog.h"

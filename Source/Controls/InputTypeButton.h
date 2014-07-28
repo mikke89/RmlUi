@@ -28,8 +28,8 @@
 #ifndef ROCKETCONTROLSINPUTTYPEBUTTON_H
 #define ROCKETCONTROLSINPUTTYPEBUTTON_H
 
-#include <Rocket/Core/EventListener.h>
-#include <Rocket/Core/ElementDocument.h>
+#include "../../Include/Rocket/Core/EventListener.h"
+#include "../../Include/Rocket/Core/ElementDocument.h"
 #include "InputType.h"
 
 namespace Rocket {

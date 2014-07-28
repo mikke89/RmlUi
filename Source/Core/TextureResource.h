@@ -28,8 +28,8 @@
 #ifndef ROCKETCORETEXTURERESOURCE_H
 #define ROCKETCORETEXTURERESOURCE_H
 
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/Texture.h>
+#include "../../Include/Rocket/Core/ReferenceCountable.h"
+#include "../../Include/Rocket/Core/Texture.h"
 
 namespace Rocket {
 namespace Core {

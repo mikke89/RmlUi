@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include "ElementDocumentWrapper.h"
-#include <Rocket/Core/Stream.h>
-#include <Rocket/Core/Python/Utilities.h>
+#include "../../../Include/Rocket/Core/Stream.h"
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
 
 namespace Rocket {
 namespace Core {

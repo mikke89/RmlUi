@@ -29,8 +29,8 @@
 #define ROCKETCORELAYOUTBLOCKBOX_H
 
 #include "LayoutLineBox.h"
-#include <Rocket/Core/Box.h>
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/Box.h"
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Core {

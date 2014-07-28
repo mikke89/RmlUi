@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/FontEffectInstancer.h>
+#include "../../Include/Rocket/Core/FontEffectInstancer.h"
 
 namespace Rocket {
 namespace Core {

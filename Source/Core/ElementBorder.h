@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREELEMENTBORDER_H
 #define ROCKETCOREELEMENTBORDER_H
 
-#include <Rocket/Core/Box.h>
-#include <Rocket/Core/Geometry.h>
+#include "../../Include/Rocket/Core/Box.h"
+#include "../../Include/Rocket/Core/Geometry.h"
 
 namespace Rocket {
 namespace Core {

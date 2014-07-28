@@ -28,9 +28,9 @@
 #ifndef ROCKETCONTROLSINPUTTYPE_H
 #define ROCKETCONTROLSINPUTTYPE_H
 
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/String.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Controls {

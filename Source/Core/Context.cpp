@@ -26,12 +26,12 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 #include "EventDispatcher.h"
 #include "EventIterators.h"
 #include "PluginRegistry.h"
 #include "StreamFile.h"
-#include <Rocket/Core/StreamMemory.h>
+#include "../../Include/Rocket/Core/StreamMemory.h"
 #include <algorithm>
 #include <iterator>
 

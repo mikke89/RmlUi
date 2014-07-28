@@ -25,10 +25,10 @@
  *
  */
 
-#include <Rocket/Controls/ElementDataGridCell.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Property.h>
-#include <Rocket/Controls/ElementDataGrid.h>
+#include "../../Include/Rocket/Controls/ElementDataGridCell.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/Rocket/Controls/ElementDataGrid.h"
 
 namespace Rocket {
 namespace Controls {

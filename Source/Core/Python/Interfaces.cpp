@@ -26,14 +26,14 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/URL.h>
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/Dictionary.h>
+#include "../../../Include/Rocket/Core/URL.h"
+#include "../../../Include/Rocket/Core/Log.h"
+#include "../../../Include/Rocket/Core/Dictionary.h"
 //#include "DataSourceWrapper.h"
-#include <Rocket/Core/Python/ConverterScriptObject.h>
-#include <Rocket/Core/Python/PickleTypeConverter.h>
-#include <Rocket/Core/Python/Utilities.h>
-#include <Rocket/Core/Python/VectorInterface.h>
+#include "../../../Include/Rocket/Core/Python/ConverterScriptObject.h"
+#include "../../../Include/Rocket/Core/Python/PickleTypeConverter.h"
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
+#include "../../../Include/Rocket/Core/Python/VectorInterface.h"
 #include <vector>
 
 namespace Rocket {

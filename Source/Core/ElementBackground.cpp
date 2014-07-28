@@ -27,9 +27,9 @@
 
 #include "precompiled.h"
 #include "ElementBackground.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/GeometryUtilities.h>
-#include <Rocket/Core/Property.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/GeometryUtilities.h"
+#include "../../Include/Rocket/Core/Property.h"
 
 namespace Rocket {
 namespace Core {

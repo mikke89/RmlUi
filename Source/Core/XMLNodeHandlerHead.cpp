@@ -29,7 +29,7 @@
 #include "XMLNodeHandlerHead.h"
 #include "DocumentHeader.h"
 #include "TemplateCache.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREPYTHONDATASOURCEWRAPPER_H
 #define ROCKETCOREPYTHONDATASOURCEWRAPPER_H
 
-#include <Rocket/Core/Python/Python.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Controls/DataSource.h>
+#include "../../../Include/Rocket/Core/Python/Python.h"
+#include "../../../Include/Rocket/Core/Types.h"
+#include "../../../Include/Rocket/Controls/DataSource.h"
 
 namespace Rocket {
 namespace Controls {

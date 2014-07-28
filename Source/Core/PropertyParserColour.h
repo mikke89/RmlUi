@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPROPERTYPARSERCOLOUR_H
 #define ROCKETCOREPROPERTYPARSERCOLOUR_H
 
-#include <Rocket/Core/PropertyParser.h>
+#include "../../Include/Rocket/Core/PropertyParser.h"
 #include <map>
 
 namespace Rocket {

@@ -27,10 +27,10 @@
 
 #include "precompiled.h"
 #include "DecoratorTiledVertical.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/Geometry.h>
-#include <Rocket/Core/GeometryUtilities.h>
-#include <Rocket/Core/Texture.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/Geometry.h"
+#include "../../Include/Rocket/Core/GeometryUtilities.h"
+#include "../../Include/Rocket/Core/Texture.h"
 
 namespace Rocket {
 namespace Core {

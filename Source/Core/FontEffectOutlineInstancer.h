@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFONTEFFECTOUTLINEINSTANCER_H
 #define ROCKETCOREFONTEFFECTOUTLINEINSTANCER_H
 
-#include <Rocket/Core/FontEffectInstancer.h>
+#include "../../Include/Rocket/Core/FontEffectInstancer.h"
 
 namespace Rocket {
 namespace Core {

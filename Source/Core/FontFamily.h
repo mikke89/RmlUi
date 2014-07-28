@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFONTFAMILY_H
 #define ROCKETCOREFONTFAMILY_H
 
-#include <Rocket/Core/Font.h>
+#include "../../Include/Rocket/Core/Font.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

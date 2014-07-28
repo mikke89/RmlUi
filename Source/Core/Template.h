@@ -28,7 +28,7 @@
 #ifndef ROCKETCORETEMPLATE_H
 #define ROCKETCORETEMPLATE_H
 
-#include <Rocket/Core/StreamMemory.h>
+#include "../../Include/Rocket/Core/StreamMemory.h"
 #include "DocumentHeader.h"
 
 namespace Rocket {

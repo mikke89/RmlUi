@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include "DataSourceWrapper.h"
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/Python/Utilities.h>
+#include "../../../Include/Rocket/Core/Log.h"
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
 
 namespace Rocket {
 namespace Controls {

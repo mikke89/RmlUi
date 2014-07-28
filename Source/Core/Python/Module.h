@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPYTHONMODULE_H
 #define ROCKETCOREPYTHONMODULE_H
 
-#include <Rocket/Core/Plugin.h>
+#include "../../../Include/Rocket/Core/Plugin.h"
 
 namespace Rocket {
 namespace Core {

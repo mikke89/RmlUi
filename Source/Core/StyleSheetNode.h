@@ -28,9 +28,9 @@
 #ifndef ROCKETCORESTYLESHEETNODE_H
 #define ROCKETCORESTYLESHEETNODE_H
 
-#include <Rocket/Core/PropertyDictionary.h>
-#include <Rocket/Core/StyleSheet.h>
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/PropertyDictionary.h"
+#include "../../Include/Rocket/Core/StyleSheet.h"
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Core {

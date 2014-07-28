@@ -28,8 +28,8 @@
 #include "precompiled.h"
 #include "DecoratorTiledBox.h"
 #include "TextureResource.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/Geometry.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/Geometry.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREXMLPARSETOOLS_H
 #define ROCKETCOREXMLPARSETOOLS_H
 
-#include <Rocket/Core/XMLParser.h>
+#include "../../Include/Rocket/Core/XMLParser.h"
 
 namespace Rocket {
 namespace Core {

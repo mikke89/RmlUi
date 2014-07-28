@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/URL.h>
+#include "../../Include/Rocket/Core/URL.h"
 #include <stdio.h>
 
 namespace Rocket {

@@ -28,7 +28,7 @@
 #ifndef ROCKETDEBUGGERSYSTEMINTERFACE_H
 #define ROCKETDEBUGGERSYSTEMINTERFACE_H
 
-#include <Rocket/Core/SystemInterface.h>
+#include "../../Include/Rocket/Core/SystemInterface.h"
 
 namespace Rocket {
 namespace Debugger {

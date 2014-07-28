@@ -29,7 +29,7 @@
 #include "TextureResource.h"
 #include "FontFaceHandle.h"
 #include "TextureDatabase.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 
 namespace Rocket {
 namespace Core {

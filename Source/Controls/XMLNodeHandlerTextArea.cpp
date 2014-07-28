@@ -26,8 +26,8 @@
  */
 
 #include "XMLNodeHandlerTextArea.h"
-#include <Rocket/Core.h>
-#include <Rocket/Controls/ElementFormControlTextArea.h>
+#include "../../Include/Rocket/Core.h"
+#include "../../Include/Rocket/Controls/ElementFormControlTextArea.h"
 
 namespace Rocket {
 namespace Controls {

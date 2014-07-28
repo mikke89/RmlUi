@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREELEMENTTEXTDEFAULT_H
 #define ROCKETCOREELEMENTTEXTDEFAULT_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/ElementText.h>
-#include <Rocket/Core/Geometry.h>
+#include "../../Include/Rocket/Core/Header.h"
+#include "../../Include/Rocket/Core/ElementText.h"
+#include "../../Include/Rocket/Core/Geometry.h"
 
 namespace Rocket {
 namespace Core {

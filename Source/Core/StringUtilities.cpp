@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/StringUtilities.h>
+#include "../../Include/Rocket/Core/StringUtilities.h"
 #include <ctype.h>
 #include <stdio.h>
 

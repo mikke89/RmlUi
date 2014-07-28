@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPYTHONCONTEXTINSTANCER_H
 #define ROCKETCOREPYTHONCONTEXTINSTANCER_H
 
-#include <Rocket/Core/ContextInstancer.h>
+#include "../../../Include/Rocket/Core/ContextInstancer.h"
 
 namespace Rocket {
 namespace Core {

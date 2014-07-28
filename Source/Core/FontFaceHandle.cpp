@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include "FontFaceHandle.h"
 #include <algorithm>
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 #include "FontFaceLayer.h"
 #include "TextureLayout.h"
 

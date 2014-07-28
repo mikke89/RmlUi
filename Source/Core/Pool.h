@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREPOOL_H
 #define ROCKETCOREPOOL_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Debug.h>
+#include "../../Include/Rocket/Core/Header.h"
+#include "../../Include/Rocket/Core/Debug.h"
 
 namespace Rocket {
 namespace Core {

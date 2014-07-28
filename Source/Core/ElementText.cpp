@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/ElementText.h>
+#include "../../Include/Rocket/Core/ElementText.h"
 
 namespace Rocket {
 namespace Core {

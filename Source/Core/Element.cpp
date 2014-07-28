@@ -26,8 +26,8 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/Dictionary.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/Dictionary.h"
 #include <algorithm>
 #include "ElementBackground.h"
 #include "ElementBorder.h"
@@ -40,7 +40,7 @@
 #include "PluginRegistry.h"
 #include "StyleSheetParser.h"
 #include "XMLParseTools.h"
-#include <Rocket/Core/Core.h>
+#include "../../Include/Rocket/Core/Core.h"
 
 namespace Rocket {
 namespace Core {

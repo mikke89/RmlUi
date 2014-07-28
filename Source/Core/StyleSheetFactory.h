@@ -28,7 +28,7 @@
 #ifndef ROCKETCORESTYLESHEETFACTORY_H
 #define ROCKETCORESTYLESHEETFACTORY_H
 
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Core {

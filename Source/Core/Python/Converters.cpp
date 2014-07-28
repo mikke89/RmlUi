@@ -27,10 +27,10 @@
 
 #include "precompiled.h"
 
-#include <Rocket/Core/Variant.h>
-#include <Rocket/Core/Dictionary.h>
-#include <Rocket/Core/Python/ConverterScriptObject.h>
-#include <Rocket/Core/ElementDocument.h>
+#include "../../../Include/Rocket/Core/Variant.h"
+#include "../../../Include/Rocket/Core/Dictionary.h"
+#include "../../../Include/Rocket/Core/Python/ConverterScriptObject.h"
+#include "../../../Include/Rocket/Core/ElementDocument.h"
 
 #include "EventListener.h"
 

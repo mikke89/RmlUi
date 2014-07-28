@@ -27,10 +27,10 @@
 
 #include "precompiled.h"
 #include "ElementDefinition.h"
-#include <Rocket/Core/Decorator.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/FontDatabase.h>
-#include <Rocket/Core/Log.h>
+#include "../../Include/Rocket/Core/Decorator.h"
+#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/FontDatabase.h"
+#include "../../Include/Rocket/Core/Log.h"
 
 namespace Rocket {
 namespace Core {

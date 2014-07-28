@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREPYTHONEVENTWRAPPER_H
 #define ROCKETCOREPYTHONEVENTWRAPPER_H
 
-#include <Rocket/Core/Python/Python.h>
-#include <Rocket/Core/Dictionary.h>
-#include <Rocket/Core/Event.h>
+#include "../../../Include/Rocket/Core/Python/Python.h"
+#include "../../../Include/Rocket/Core/Dictionary.h"
+#include "../../../Include/Rocket/Core/Event.h"
 
 namespace Rocket {
 namespace Core {

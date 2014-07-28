@@ -29,7 +29,7 @@
 #define ROCKETCOREELEMENTSTYLECACHE_H
 
 #include "ElementDefinition.h"
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Core {

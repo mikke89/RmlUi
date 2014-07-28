@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREDECORATORNONE_H
 #define ROCKETCOREDECORATORNONE_H
 
-#include <Rocket/Core/Decorator.h>
+#include "../../Include/Rocket/Core/Decorator.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,7 +28,7 @@
 #ifndef TEXTURELAYOUTTEXTURE_H
 #define TEXTURELAYOUTTEXTURE_H
 
-#include <Rocket/Core/Texture.h>
+#include "../../Include/Rocket/Core/Texture.h"
 #include "TextureLayoutRow.h"
 
 namespace Rocket {

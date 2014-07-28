@@ -26,8 +26,8 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Python/Utilities.h>
+#include "../../../Include/Rocket/Core/Event.h"
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
 #include "EventWrapper.h"
 #include "EventInstancer.h"
 

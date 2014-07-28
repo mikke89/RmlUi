@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSPYTHONMODULE_H
 #define ROCKETCONTROLSPYTHONMODULE_H
 
-#include <Rocket/Core/Plugin.h>
+#include "../../../Include/Rocket/Core/Plugin.h"
 
 namespace Rocket {
 namespace Controls {

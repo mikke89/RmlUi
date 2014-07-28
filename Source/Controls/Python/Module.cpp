@@ -27,9 +27,9 @@
 
 #include "precompiled.h"
 #include "Module.h"
-#include <Rocket/Core/Python/Python.h>
-#include <Rocket/Core/Python/ConverterScriptObject.h>
-#include <Rocket/Controls/DataSource.h>
+#include "../../../Include/Rocket/Core/Python/Python.h"
+#include "../../../Include/Rocket/Core/Python/ConverterScriptObject.h"
+#include "../../../Include/Rocket/Controls/DataSource.h"
 #include "ElementInterface.h"
 #include "DataFormatterWrapper.h"
 #include "DataSourceWrapper.h"

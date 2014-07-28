@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREPYTHONEVENTINSTANCER_H
 #define ROCKETCOREPYTHONEVENTINSTANCER_H
 
-#include <Rocket/Core/EventInstancer.h>
-#include <Rocket/Core/Python/Header.h>
+#include "../../../Include/Rocket/Core/EventInstancer.h"
+#include "../../../Include/Rocket/Core/Python/Header.h"
 
 namespace Rocket {
 namespace Core {

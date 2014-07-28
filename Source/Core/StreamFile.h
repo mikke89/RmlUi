@@ -28,8 +28,8 @@
 #ifndef ROCKETCORESTREAMFILE_H
 #define ROCKETCORESTREAMFILE_H
 
-#include <Rocket/Core/Stream.h>
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/Stream.h"
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Core {

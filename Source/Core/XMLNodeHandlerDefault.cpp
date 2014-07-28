@@ -28,10 +28,10 @@
 #include "precompiled.h"
 #include "XMLNodeHandlerDefault.h"
 #include "XMLParseTools.h"
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/XMLParser.h>
+#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/XMLParser.h"
 
 namespace Rocket {
 namespace Core {

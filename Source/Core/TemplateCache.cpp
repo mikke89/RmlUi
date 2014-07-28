@@ -29,7 +29,7 @@
 #include "TemplateCache.h"
 #include "StreamFile.h"
 #include "Template.h"
-#include <Rocket/Core/Log.h>
+#include "../../Include/Rocket/Core/Log.h"
 
 namespace Rocket {
 namespace Core {

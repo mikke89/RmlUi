@@ -28,8 +28,8 @@
 #ifndef ROCKETDEBUGGERELEMENTINFO_H
 #define ROCKETDEBUGGERELEMENTINFO_H
 
-#include <Rocket/Core/ElementDocument.h>
-#include <Rocket/Core/EventListener.h>
+#include "../../Include/Rocket/Core/ElementDocument.h"
+#include "../../Include/Rocket/Core/EventListener.h"
 
 namespace Rocket {
 namespace Debugger {

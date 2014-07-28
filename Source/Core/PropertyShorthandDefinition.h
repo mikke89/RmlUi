@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPROPERTYSHORTHANDDEFINITION_H
 #define ROCKETCOREPROPERTYSHORTHANDDEFINITION_H
 
-#include <Rocket/Core/PropertySpecification.h>
+#include "../../Include/Rocket/Core/PropertySpecification.h"
 
 namespace Rocket {
 namespace Core {

@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Stream.h>
+#include "../../Include/Rocket/Core/Stream.h"
 #include <algorithm>
 #include <stdio.h>
 

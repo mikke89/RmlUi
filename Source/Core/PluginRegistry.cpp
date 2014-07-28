@@ -27,7 +27,7 @@
 
 #include "precompiled.h"
 #include "PluginRegistry.h"
-#include <Rocket/Core/Plugin.h>
+#include "../../Include/Rocket/Core/Plugin.h"
 
 namespace Rocket {
 namespace Core {

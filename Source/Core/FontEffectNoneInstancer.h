@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFONTEFFECTNONEINSTANCER_H
 #define ROCKETCOREFONTEFFECTNONEINSTANCER_H
 
-#include <Rocket/Core/FontEffectInstancer.h>
+#include "../../Include/Rocket/Core/FontEffectInstancer.h"
 
 namespace Rocket {
 namespace Core {
