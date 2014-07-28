@@ -98,6 +98,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BaseXMLParser.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Box.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Context.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ContextInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ConvolutionFilter.h
@@ -106,10 +107,13 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Decorator.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/DecoratorInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Dictionary.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Dictionary.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Element.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Element.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementDocument.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementInstancerGeneric.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementInstancerGeneric.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementReference.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementScroll.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementText.h
@@ -146,6 +150,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StreamMemory.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/String.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringBase.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringBase.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheet.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheetKeywords.h
@@ -153,10 +158,13 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/SystemInterface.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Texture.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Types.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/URL.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector2.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector2.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vertex.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/WString.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/XMLNodeHandler.h
