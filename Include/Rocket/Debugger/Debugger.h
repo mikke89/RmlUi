@@ -28,7 +28,7 @@
 #ifndef ROCKETDEBUGGERDEBUGGER_H
 #define ROCKETDEBUGGERDEBUGGER_H
 
-#include <Rocket/Core/Types.h>
+#include "../Core/Types.h"
 #include "Header.h"
 
 namespace Rocket {

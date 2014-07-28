@@ -29,8 +29,8 @@
 #define ROCKETCONTROLSDATAQUERY_H
 
 #include "Header.h"
-#include <Rocket/Core/TypeConverter.h>
-#include <Rocket/Core/Log.h>
+#include "../Core/TypeConverter.h"
+#include "../Core/Log.h"
 
 namespace Rocket {
 namespace Controls {

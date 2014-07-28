@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSELEMENTDATAGRIDEXPANDBUTTON_H
 #define ROCKETCONTROLSELEMENTDATAGRIDEXPANDBUTTON_H
 
-#include <Rocket/Core/Element.h>
+#include "../Core/Element.h"
 #include "Header.h"
 
 namespace Rocket {

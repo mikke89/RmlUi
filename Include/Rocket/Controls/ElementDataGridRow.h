@@ -31,7 +31,7 @@
 #include "Header.h"
 #include "DataSourceListener.h"
 #include "DataQuery.h"
-#include <Rocket/Core/Element.h>
+#include "../Core/Element.h"
 #include <queue>
 
 namespace Rocket {

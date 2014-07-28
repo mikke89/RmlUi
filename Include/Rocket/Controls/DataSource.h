@@ -29,7 +29,7 @@
 #define ROCKETCONTROLSDATASOURCE_H
 
 #include "Header.h"
-#include <Rocket/Core/String.h>
+#include "../Core/String.h"
 #include <list>
 #include <map>
 

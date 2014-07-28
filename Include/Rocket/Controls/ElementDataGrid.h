@@ -30,7 +30,7 @@
 
 #include "Header.h"
 #include "DataSourceListener.h"
-#include <Rocket/Core/Element.h>
+#include "../Core/Element.h"
 
 namespace Rocket {
 namespace Controls {

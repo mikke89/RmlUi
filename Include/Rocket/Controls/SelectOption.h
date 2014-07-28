@@ -29,7 +29,7 @@
 #define ROCKETCONTROLSSELECTOPTION_H
 
 #include "Header.h"
-#include <Rocket/Core/String.h>
+#include "../Core/String.h"
 
 namespace Rocket {
 namespace Core {
