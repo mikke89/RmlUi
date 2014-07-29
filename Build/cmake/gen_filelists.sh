@@ -22,7 +22,7 @@ printfiles() {
     echo -e ')\n' >>$file
     # Print public headers sub directory
     echo ${pubhdr/lib/$1} >>$file
-    find  $hdrpath/$1 -maxdepth 1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    find  $hdrpath/$1 -maxdepth 1 \( -iname "*.h" -o -iname "*.inl" \) -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
     # Print source files
     echo ${src/lib/$1} >>$file
