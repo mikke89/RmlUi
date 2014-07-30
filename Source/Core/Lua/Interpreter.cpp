@@ -107,7 +107,18 @@ void Interpreter::LoadFile(const String& file)
     //use the file interface to get the contents of the script
     Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
     Rocket::Core::FileHandle handle = file_interface->Open(file);
+    if(handle == 0) {
+        lua_pushfstring(_L, "LoadFile: Unable to open file: %s", file.CString());
+        Report(_L);
+        return;
+    }
+
     size_t size = file_interface->Length(handle);
+    if(size == 0) {
+        lua_pushfstring(_L, "LoadFile: File is 0 bytes in size: %s", file.CString());
+        Report(_L);
+        return;
+    }
     char* file_contents = new char[size];
     file_interface->Read(file_contents,size,handle);
     file_interface->Close(handle);
