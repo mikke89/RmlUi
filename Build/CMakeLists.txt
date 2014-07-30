@@ -128,7 +128,7 @@ endif()
 
 #Lua
 if(BUILD_LUA_BINDINGS)
-    find_package(Lua )
+    find_package(Lua)
     if(LUA_FOUND)
         include_directories(${LUA_INCLUDE_DIR})
         list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
@@ -372,11 +372,6 @@ if(BUILD_SAMPLES)
     	set_target_properties(shell PROPERTIES OSX_ARCHITECTURES "i386;")
     endif()
 
-    install(TARGETS shell
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-
     # Build and install the basic samples
     foreach(sample ${samples})
         bl_sample(${sample} ${sample_LIBRARIES})
@@ -443,30 +438,44 @@ endif()
 # Installation =====================
 #===================================
 
-if(BUILD_PYTHON_BINDINGS)
-    install(FILES ${PROJECT_SOURCE_DIR}/bin/rocket.py
-            DESTINATION ${PYTHON_INSTDIR}
-    )
+if(BUILD_LUA_BINDINGS AND BUILD_PYTHON_BINDINGS)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
             DESTINATION include
-            PATTERN "Lua" EXCLUDE
     )
-endif()
-if(BUILD_LUA_BINDINGS)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
-            DESTINATION include
-            PATTERN "Python" EXCLUDE
-    )
-endif()
-if(NOT BUILD_LUA_BINDINGS AND NOT BUILD_PYTHON_BINDINGS)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
-            DESTINATION include
-            PATTERN "Python" EXCLUDE
-            PATTERN "Lua" EXCLUDE
-    )
+else()
+	if(NOT BUILD_LUA_BINDINGS AND NOT BUILD_PYTHON_BINDINGS)
+	    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+	            DESTINATION include
+	            PATTERN "Python" EXCLUDE
+	            PATTERN "Lua" EXCLUDE
+	    )
+	else()
+		if(BUILD_PYTHON_BINDINGS)
+			install(FILES ${PROJECT_SOURCE_DIR}/bin/rocket.py
+				DESTINATION ${PYTHON_INSTDIR}
+			)
+			install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+				DESTINATION include
+				PATTERN "Lua" EXCLUDE
+			)
+		else()
+			if(BUILD_LUA_BINDINGS)
+				install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+					DESTINATION include
+					PATTERN "Python" EXCLUDE
+				)
+			else()
+				message(FATAL_ERROR "ASSERT: Unexpected option combination, this is a logical impossibility.")
+			endif()
+		endif()
+	endif()
 endif()
 
 if(BUILD_SAMPLES)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
+            DESTINATION ${SAMPLES_DIR}
+    )
+
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/data
             DESTINATION ${SAMPLES_DIR}/tutorial/template
     )
@@ -488,20 +497,19 @@ if(BUILD_SAMPLES)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
             DESTINATION ${SAMPLES_DIR}/invaders
     )
+
     if(BUILD_PYTHON_BINDINGS)
         install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/data
                 DESTINATION ${SAMPLES_DIR}/pyinvaders
         )
     endif()
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
-            DESTINATION ${SAMPLES_DIR}
-    )
+
     if(BUILD_LUA_BINDINGS)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
-            DESTINATION ${SAMPLES_DIR}/luainvaders
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua 
-            DESTINATION ${SAMPLES_DIR}/luainvaders
-    )
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
+                DESTINATION ${SAMPLES_DIR}/luainvaders
+        )
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua 
+                DESTINATION ${SAMPLES_DIR}/luainvaders
+        )
     endif()
 endif()
