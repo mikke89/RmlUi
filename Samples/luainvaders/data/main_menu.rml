@@ -1,0 +1,38 @@
+<rml>
+	<head>
+		<title>Main Menu</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				width: 300px;
+				height: 225px;
+
+				margin: auto;
+			}
+			
+			div#title_bar div#icon
+			{
+				icon-image-s: 179px 230px;
+				icon-image-t: 152px 191px;
+			}
+		</style>
+		<script>
+MainMenu = MainMenu or {}
+
+function MainMenu.CloseLogo(document)
+	if document.context then
+        local logo = document.context.documents['logo']
+        if logo then logo:Close() end
+    end
+end
+		</script>
+	</head>
+	<body template="luawindow" onload="Window.OnWindowLoad(document) document.context:LoadDocument('data/logo.rml'):Show()" onunload="MainMenu.CloseLogo(document)">
+		<button onclick="document.context:LoadDocument('data/start_game.rml'):Show() document:Close()">Start Game</button><br />
+		<button onclick="Window.LoadMenu('high_score',document)">High Scores</button><br />
+		<button onclick="Window.LoadMenu('options',document)">Options</button><br />
+		<button onclick="Window.LoadMenu('help',document)">Help</button><br />
+		<button onclick="Game.Shutdown()">Exit</button>
+	</body>
+</rml>

@@ -1,0 +1,27 @@
+<rml>
+	<head>
+		<title>Quit?</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				width: 350px;
+				height: 135px;
+				
+				margin: auto;
+			}
+			
+			div#title_bar div#icon
+			{
+				icon-image-s: 332px 383px;
+				icon-image-t: 191px 231px;
+			}
+		</style>
+	</head>
+	<body template="luawindow" onload="Window.OnWindowLoad(document) Game.SetPaused(true)" onunload="Game.SetPaused(false)">
+		<br />
+		<p>Are you sure you want to end this game?</p>
+		<button onclick="Window.LoadMenu('high_score',document) document.context.documents['game_window']:Close()">Yes</button>
+		<button onclick="document:Close()">No!</button>
+	</body>
+</rml>

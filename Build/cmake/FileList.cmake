@@ -432,7 +432,6 @@ set(Pycore_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextInterface.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/Converters.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Python/DataSourceWrapper.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementAttributeProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementChildrenProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementDocumentWrapper.h
@@ -467,7 +466,6 @@ set(Pycore_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ContextProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/Converters.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Python/DataSourceWrapper.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementAttributeProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementChildrenProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Python/ElementDocumentWrapper.cpp
@@ -505,5 +503,113 @@ set(Pycontrols_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Controls/Python/Module.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/Python/precompiled.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/Python/SelectOptionProxy.cpp
+)
+
+set(LuaCore_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourb.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourf.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Context.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ContextDocumentsProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Document.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Element.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementAttributesProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementChildNodesProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementStyleProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementText.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Event.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/EventParametersProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/GlobalLuaFunctions.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Log.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocument.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocumentElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaElement.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListener.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListenerInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/precompiled.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Rocket.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RocketContextsProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2f.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2i.h
+)
+
+set(LuaCore_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/Interpreter.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/LuaType.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/Utilities.h
+)
+
+set(LuaCore_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourb.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourf.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Context.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ContextDocumentsProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Document.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Element.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementAttributesProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementChildNodesProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementStyleProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementText.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Event.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/EventParametersProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/GlobalLuaFunctions.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Interpreter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Log.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocument.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocumentElementInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaElementInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListener.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListenerInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/precompiled.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Rocket.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RocketContextsProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Utilities.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2f.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2i.cpp
+)
+
+set(LuaControls_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/As.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataFormatter.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataSource.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGrid.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGridRow.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementForm.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControl.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlDataSelect.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlInput.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlSelect.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlTextArea.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementTabSet.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataFormatter.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataSource.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/precompiled.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/SelectOptionsProxy.h
+)
+
+set(LuaControls_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Lua/Controls.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Lua/Header.h
+)
+
+set(LuaControls_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/Controls.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataFormatter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataSource.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGrid.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGridRow.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementForm.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControl.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlDataSelect.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlInput.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlSelect.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlTextArea.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementTabSet.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataFormatter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataSource.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/SelectOptionsProxy.cpp
 )
 
