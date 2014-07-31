@@ -35,6 +35,12 @@ libRocketControls.a
 libRocketDebugger.so
 libRocketDebugger.so.*
 libRocketDebugger.a
+libRocketCoreLua.so
+libRocketCoreLua.so.*
+libRocketCoreLua.a
+libRocketControlsLua.so
+libRocketControlsLua.so.*
+libRocketControlsLua.a
 libshell.a
 loaddocument
 template
@@ -43,10 +49,43 @@ tutorial_drag
 
 #Win32 artifacts
 libRocketCore.dll
+libRocketCore.lib
 libRocketControls.dll
+libRocketControls.lib
 libRocketDebugger.dll
+libRocketDebugger.lib
+libRocketCoreLua.dll
+libRocketControlsLua.dll
 
 #Ming32 artifacts
 libRocketCore.dll.a
 libRocketControls.dll.a
 libRocketDebugger.dll.a
+libRocketCoreLua.dll.a
+libRocketControlsLua.dll.a
+
+#OSX Artifacts
+libRocketCore.dylib
+libRocketCore.*.dylib
+libRocketCoreLua.dylib
+libRocketCoreLua.*.dylib
+libRocketControls.dylib
+libRocketControls.*.dylib
+libRocketControlsLua.dylib
+libRocketControlsLua.*.dylib
+libRocketDebugger.dylib
+libRocketDebugger.*.dylib
+_rocketcore.dylib
+_rocketcore.*.dylib
+_rocketcontrols.dylib
+_rocketcontrols.*.dylib
+customlog.app
+datagrid.app
+datagrid_tree.app
+drag.app
+invaders.app
+pyinvaders.app
+loaddocument.app
+template.app
+treeview.app
+tutorial_drag.app
