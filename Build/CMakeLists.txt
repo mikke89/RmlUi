@@ -233,6 +233,14 @@ if(BUILD_LUA_BINDINGS)
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
         )
         
+    if(APPLE)
+	if(NOT IOS)
+    		set_target_properties(${NAME} PROPERTIES
+    						OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
+    		)
+	endif(NOT IOS)
+    endif(APPLE)
+
         install(TARGETS ${NAME}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
