@@ -222,7 +222,7 @@ void Interpreter::OnShutdown()
 
 void Interpreter::Initialise()
 {
-    Rocket::Core::RegisterPlugin(new Interpreter());
+    Rocket::Core::Lua::Interpreter::Initialise(NULL);
 }
 
 void Interpreter::Initialise(lua_State *luaStatePointer)

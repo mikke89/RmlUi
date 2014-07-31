@@ -93,8 +93,8 @@ int main(int, char**)
 	Rocket::Controls::Initialise();
 
 	// Initialise the Lua interface
-    Rocket::Core::Lua::Interpreter::Initialise();
-    Rocket::Controls::Lua::RegisterTypes(Rocket::Core::Lua::Interpreter::GetLuaState());
+	Rocket::Core::Lua::Interpreter::Initialise();
+	Rocket::Controls::Lua::RegisterTypes(Rocket::Core::Lua::Interpreter::GetLuaState());
 
 	// Create the main Rocket context and set it on the shell's input layer.
 	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));

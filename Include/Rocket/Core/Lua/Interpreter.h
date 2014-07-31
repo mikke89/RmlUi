@@ -92,17 +92,20 @@ public:
     static lua_State* GetLuaState();
 
     /** Creates the plugin. 
-    @remark Call this function only once. Only call it more than once if you call Interpreter::Shutdown() and need to have this
-    exist again. Internally, it calls Interpreter::Startup() and registers the "body" tag to generate a LuaDocument
-    rather than a Rocket::Core::ElementDocument    */
+	@remark This is equivilent to calling Initialise(NULL).
+      */
     static void Initialise();
-    /** Creates the plugin and adds Rocket to an existing Lua context
+    /** Creates the plugin and adds Rocket to an existing Lua context if one is provided.
 	 @remark Call this function only once, and special care must be taken when destroying the lua_State passed to this method.
 	 Interpreter::Shutdown() calles lua_close on the lua_State pointer provided here, do not call Interpreter::Shutdown if you
-	 must call lua_close yourself or if you need to continue to use the lua_State pointer provided here.  Internally, this
-	 method works as Initialise() except an existing lua_State pointer is used instead of creating a new lua_State context. */
-    static void Initialise(lua_State *_L = NULL);
-    /** Stops the plugin by calling lua_close        */
+	 must call lua_close yourself or if you need to continue to use the lua_State pointer provided here.  Internally, it calls
+	 Interpreter::Startup() and registers the "body" tag to generate a LuaDocument rather than a Rocket::Core::ElementDocument.
+	 If the argument provided is NULL, a Lua context is created automatically instead. */
+    static void Initialise(lua_State *_L);
+
+    /** Stops the plugin by calling lua_close
+	 @remark Shutdown calls lua_Close on the lua_State associated with the Interpreter.  If a lua_State was provided in the
+	 original call to Initialise, Shutdown should not be called OR you must not call lua_Close from within your code. */
 	static void Shutdown();
     
     /** @sa Rocket::Core::Plugin::GetEventClasses */
