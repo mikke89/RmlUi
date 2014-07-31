@@ -113,6 +113,43 @@ set(invaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Sprite.cpp
 )
 
+set(luainvaders_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerDefender.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerStarfield.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorStarfield.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Defender.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGameInstancer.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Game.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/GameDetails.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/HighScores.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Invader.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/LuaInterface.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Mothership.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Shield.h
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.h
+)
+
+set(luainvaders_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerDefender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorStarfield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Defender.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGameInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Game.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/GameDetails.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/HighScores.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Invader.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/LuaInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Mothership.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Shield.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.cpp
+)
+
 set(pyinvaders_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.h
     ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerDefender.h
@@ -235,4 +272,3 @@ else()
                ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/InputX11.h
        )
 endif()
-

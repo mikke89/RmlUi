@@ -1,0 +1,119 @@
+<rml>
+	<head>
+		<title>Options</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				width: 350px;
+				height: 350px;
+				
+				margin: auto;
+			}
+
+			div#title_bar div#icon
+			{
+				icon-image-s: 230px 281px;
+				icon-image-t: 152px 191px;
+
+				display: none;
+			}
+
+			form div
+			{
+				width: 200px;
+				margin: auto;
+			}
+		</style>
+		<script>
+Options = Options or {}
+
+function Options.Serialize(filename,options)
+    local file,message = io.open(filename,'w+') --w+ will erase the previous data
+    if file == nil then Log.Message(Log.logtype.error, "Error saving options in options.rml: " .. message) return end
+    --cache the function
+    local format = string.format
+    
+    for key,value in pairs(options) do
+        file:write(tostring(key)..'='..tostring(value)..'\n')
+    end
+    file:close()
+end
+
+function Options.Deserialize(filename)
+    local ret = {} --table to return
+    --cache functions that are used a lot for faster lookup
+    local gmatch = string.gmatch
+    
+    local f = io.open(filename)
+    if f then
+        for line in f:lines() do
+            for k,v in gmatch(line, '(%w+)=(%w+)') do ret[k] = v end
+        end 
+        f:close()
+    else
+        return nil
+    end
+    
+    return ret
+end
+        
+        
+function Options.LoadOptions(document)
+    local options = Options.Deserialize('options.dat')
+    if options == nil then return end --short circuit if the file doesn't exist
+    local AsInput = Element.As.ElementFormControlInput
+    
+    AsInput(document:GetElementById(options['graphics'])).checked = true
+    --because everything is loaded as a string, we have to fool around with the boolean variables
+    AsInput(document:GetElementById('reverb')).checked = (options['reverb'] == 'true')
+    AsInput(document:GetElementById('3d')).checked = (options['3d'] == 'true')
+end
+
+function Options.SaveOptions(event)
+    if event.parameters['button'] == 'cancel' then
+        return
+    end
+		
+    local options = {}
+    local params = event.parameters
+    options['graphics'] = params['graphics']
+    --because of how checkboxes won't be in the event params if they aren't checked,
+    --we return false if they don't exist. This is Lua's ternary operator.
+    options['reverb'] = params['reverb'] and true or false
+    options['3d'] = params['3d'] and true or false
+    
+    Options.Serialize('options.dat',options)
+end
+		
+function Options.DisplayBadGraphics(document, display)
+	if display then
+		document:GetElementById('bad_warning').style.display = 'block'
+	else
+		document:GetElementById('bad_warning').style.display = 'none'
+    end
+end
+
+	</script>
+	</head>
+	<body template="luawindow" onload="Window.OnWindowLoad(document) Options.LoadOptions(document)">
+		<form onsubmit="Options.SaveOptions(event) Window.LoadMenu('main_menu',document)">
+			<div>
+				<p>
+					Graphics:<br />
+					<input id="good" type="radio" name="graphics" value="good"/> Good<br />
+					<input id="ok" type="radio" name="graphics" value="ok" checked="true"/> OK<br />
+					<input id="bad" type="radio" name="graphics" value="bad" onchange="Options.DisplayBadGraphics(document, true)" /> Bad<br />
+				</p>
+				<p id="bad_warning" style="display: none;">Are you sure about this? Bad graphics are just plain <em>bad.</em></p>
+				<p>
+					Audio:<br />
+					<input id="reverb" type="checkbox" name="reverb" value="true" checked="true" /> Reverb<br />
+					<input id="3d" type="checkbox" name="3d" value="false" checked="false" /> 3D Spatialisation
+				</p>
+			</div>
+			<input type="submit" name="button" value="accept">Accept</input>
+			<input type="submit" name="button" value="cancel">Cancel</input>
+		</form>
+	</body>
+</rml>

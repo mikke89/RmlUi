@@ -16,7 +16,7 @@ this, you don't have to learn a whole new proprietary technology like other libr
 - Efficient application-wide styling, with a custom-built templating engine.
 - Fully featured control set: buttons, sliders, drop-downs, etc.
 - Runtime visual debugging suite.
-- Easily integrated and extensible with Python scripting.
+- Easily integrated and extensible with Python or Lua scripting.
 
 ## Extensible
 - Abstracted interfaces for plugging in to any game engine.

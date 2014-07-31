@@ -56,6 +56,7 @@ if(NOT IOS)
 endif(NOT IOS)
 
 option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
+option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
 option(BUILD_SAMPLES "Build samples" OFF)
 if(WIN32)
 	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
@@ -123,6 +124,15 @@ if(BUILD_PYTHON_BINDINGS)
         list(APPEND PY_BINDINGS_LINK_LIBS ${Boost_LIBRARIES})
     endif()
 
+endif()
+
+#Lua
+if(BUILD_LUA_BINDINGS)
+    find_package(Lua)
+    if(LUA_FOUND)
+        include_directories(${LUA_INCLUDE_DIR})
+        list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
+    endif()
 endif()
 
 
@@ -194,6 +204,31 @@ if(BUILD_PYTHON_BINDINGS)
     endforeach(library)
 endif()
 
+# Build Lua bindings
+if(BUILD_LUA_BINDINGS)
+    set(LIBRARIES Core Controls)
+
+    foreach(library ${LIBRARIES})
+        set(NAME Rocket${library}Lua)
+
+        add_library(${NAME} ${Lua${library}_SRC_FILES}
+                            ${Lua${library}_HDR_FILES}
+                            ${Lua${library}_PUB_HDR_FILES}
+        )
+
+        set_target_properties(${NAME} PROPERTIES
+                           VERSION ${PROJECT_VERSION}
+                           SOVERSION ${LIBROCKET_VERSION_MAJOR}
+        )
+        
+        install(TARGETS ${NAME}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        )
+    endforeach(library)
+endif()
+
 
 #===================================
 # Link libraries ===================
@@ -206,6 +241,11 @@ target_link_libraries(RocketDebugger RocketCore)
 if(BUILD_PYTHON_BINDINGS)
     target_link_libraries(_rocketcore RocketCore ${PY_BINDINGS_LINK_LIBS})
     target_link_libraries(_rocketcontrols RocketControls ${PY_BINDINGS_LINK_LIBS})
+endif()
+
+if(BUILD_LUA_BINDINGS)
+    target_link_libraries(RocketCoreLua RocketCore ${LUA_BINDINGS_LINK_LIBS})
+    target_link_libraries(RocketControlsLua RocketControls RocketCoreLua ${LUA_BINDINGS_LINK_LIBS})
 endif()
 
 
@@ -332,11 +372,6 @@ if(BUILD_SAMPLES)
     	set_target_properties(shell PROPERTIES OSX_ARCHITECTURES "i386;")
     endif()
 
-    install(TARGETS shell
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-
     # Build and install the basic samples
     foreach(sample ${samples})
         bl_sample(${sample} ${sample_LIBRARIES})
@@ -388,6 +423,14 @@ if(BUILD_SAMPLES)
 	    	RUNTIME DESTINATION ${SAMPLES_DIR}/pyinvaders
 	    	BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
+    
+    if(BUILD_LUA_BINDINGS)
+        bl_sample(luainvaders RocketCoreLua RocketControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+        install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
+        install(TARGETS luainvaders 
+        	RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
+        	BUNDLE DESTINATION ${SAMPLES_DIR})
+    endif()
 endif()
 
 
@@ -395,21 +438,44 @@ endif()
 # Installation =====================
 #===================================
 
-if(BUILD_PYTHON_BINDINGS)
-    install(FILES ${PROJECT_SOURCE_DIR}/bin/rocket.py
-            DESTINATION ${PYTHON_INSTDIR}
-    )
+if(BUILD_LUA_BINDINGS AND BUILD_PYTHON_BINDINGS)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
             DESTINATION include
     )
 else()
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
-            DESTINATION include
-            PATTERN "Python" EXCLUDE
-    )
+	if(NOT BUILD_LUA_BINDINGS AND NOT BUILD_PYTHON_BINDINGS)
+	    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+	            DESTINATION include
+	            PATTERN "Python" EXCLUDE
+	            PATTERN "Lua" EXCLUDE
+	    )
+	else()
+		if(BUILD_PYTHON_BINDINGS)
+			install(FILES ${PROJECT_SOURCE_DIR}/bin/rocket.py
+				DESTINATION ${PYTHON_INSTDIR}
+			)
+			install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+				DESTINATION include
+				PATTERN "Lua" EXCLUDE
+			)
+		else()
+			if(BUILD_LUA_BINDINGS)
+				install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+					DESTINATION include
+					PATTERN "Python" EXCLUDE
+				)
+			else()
+				message(FATAL_ERROR "ASSERT: Unexpected option combination, this is a logical impossibility.")
+			endif()
+		endif()
+	endif()
 endif()
 
 if(BUILD_SAMPLES)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
+            DESTINATION ${SAMPLES_DIR}
+    )
+
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/data
             DESTINATION ${SAMPLES_DIR}/tutorial/template
     )
@@ -431,12 +497,19 @@ if(BUILD_SAMPLES)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
             DESTINATION ${SAMPLES_DIR}/invaders
     )
+
     if(BUILD_PYTHON_BINDINGS)
         install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/data
                 DESTINATION ${SAMPLES_DIR}/pyinvaders
         )
     endif()
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
-            DESTINATION ${SAMPLES_DIR}
-    )
+
+    if(BUILD_LUA_BINDINGS)
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
+                DESTINATION ${SAMPLES_DIR}/luainvaders
+        )
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua 
+                DESTINATION ${SAMPLES_DIR}/luainvaders
+        )
+    endif()
 endif()
