@@ -53,6 +53,10 @@ if(NOT DEFINED ENV{Boost_DIR})
 	set(ENV{Boost_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
+if(NOT DEFINED ENV{LUA_DIR})
+	set(ENV{LUA_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
 #===================================
 # Build options ====================
 #===================================
