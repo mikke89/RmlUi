@@ -70,6 +70,9 @@ void Shell::Shutdown()
 
 bool Shell::OpenWindow(const char* name, bool attach_opengl)
 {
+	unsigned int width = 1024;
+	unsigned int height = 768;
+
 	display = XOpenDisplay(0);
 	if (display == NULL)
 		return false;
@@ -107,7 +110,7 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 	window = XCreateWindow(display,
 						   RootWindow(display, visual_info->screen),
 						   0, 0,
-						   1024, 768,
+						   width, height,
 						   0,
 						   visual_info->depth,
 						   InputOutput,
@@ -127,6 +130,32 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 								  PointerMotionMask |
 								  StructureNotifyMask);
 
+	// Force the window to remain at the fixed size by asking the window manager nicely, it may choose to ignore us
+	XSizeHints* win_size_hints = XAllocSizeHints();		// Allocate a size hint structure
+	if (win_size_hints == NULL)
+	{
+		fprintf(stderr, "XAllocSizeHints - out of memory\n");
+	}
+	else
+	{
+		// Initialize the structure and specify which hints will be providing
+		win_size_hints->flags = PSize | PMinSize | PMaxSize;
+
+		// Set the sizes we want the window manager to use
+		win_size_hints->base_width = width;
+		win_size_hints->base_height = height;
+		win_size_hints->min_width = width;
+		win_size_hints->min_height = height;
+		win_size_hints->max_width = width;
+		win_size_hints->max_height = height;
+
+		// {ass the size hints to the window manager.
+		XSetWMNormalHints(display, window, win_size_hints);
+
+		// Free the size buffer
+		XFree(win_size_hints);
+	}
+
 	// Set the window title and show the window.
 	XSetStandardProperties(display, window, name, "", None, NULL, 0, NULL);
 	XMapRaised(display, window);
@@ -143,7 +172,6 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 
 	Window root_window;
 	int x, y;
-	unsigned int width, height;
 	unsigned int border_width, depth;
 	XGetGeometry(display, window, &root_window, &x, &y, &width, &height, &border_width, &depth);
 
@@ -157,7 +185,7 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, 1024, 768, 0, -1, 1);
+	glOrtho(0, width, height, 0, -1, 1);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
