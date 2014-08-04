@@ -42,13 +42,15 @@ Rocket::Core::Context* context = NULL;
 
 void DoAllocConsole();
 
+ShellRenderInterfaceExtensions *shell_renderer;
+
 void GameLoop()
 {
 	context->Update();
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	shell_renderer->PrepareRenderBuffer();
 	context->Render();
-	Shell::FlipBuffers();
+	shell_renderer->PresentRenderBuffer();
 }
 
 #if defined ROCKET_PLATFORM_WIN32
@@ -80,17 +82,20 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	DoAllocConsole();
 	#endif
 
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
+
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise("../Samples/pyinvaders/") ||
-		!Shell::OpenWindow("Rocket Invaders from Mars (Python Powered)", true))
+		!Shell::OpenWindow("Rocket Invaders from Mars (Python Powered)", shell_renderer, 1024, 768, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
 	// Rocket initialisation.
-	ShellRenderInterfaceOpenGL opengl_renderer;
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
+	opengl_renderer.SetViewport(1024,768);
 
 	ShellSystemInterface system_interface;
 	Rocket::Core::SetSystemInterface(&system_interface);

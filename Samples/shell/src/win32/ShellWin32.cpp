@@ -32,18 +32,13 @@
 #include <windows.h>
 #include <stdio.h>
 
-static bool AttachOpenGL();
-static void DetachOpenGL();
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param);
 
 static bool activated = true;
 static bool running = false;
-static bool opengl_attached = false;
 static const char* instance_name = NULL;
 static HWND window_handle = NULL;
 static HINSTANCE instance_handle = NULL;
-static HDC device_context = NULL;
-static HGLRC render_context = NULL;
 
 static double time_frequency;
 static LARGE_INTEGER time_startup;
@@ -83,7 +78,8 @@ void Shell::Shutdown()
 	file_interface = NULL;
 }
 
-bool Shell::OpenWindow(const char* name, bool attach_opengl)
+static ShellRenderInterfaceExtensions *shell_renderer = NULL;
+bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
 	WNDCLASS window_class;
 
@@ -112,7 +108,7 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 								   name,
 								   WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW,
 								   0, 0,	// Window position.
-								   0, 0,	// Window size.
+								   width, height,// Window size.
 								   NULL,
 								   NULL,
 								   instance_handle,
@@ -127,15 +123,15 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 
 	instance_name = name;
 
-	DWORD style = WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX & ~WS_MAXIMIZEBOX;
+	DWORD style = (allow_resize ? WS_OVERLAPPEDWINDOW : (WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX & ~WS_MAXIMIZEBOX));
 	DWORD extended_style = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
 	// Adjust the window size to take into account the edges
 	RECT window_rect;
 	window_rect.top = 0;
 	window_rect.left = 0;
-	window_rect.right = 1024;
-	window_rect.bottom = 768;
+	window_rect.right = width;
+	window_rect.bottom = height;
 	AdjustWindowRectEx(&window_rect, style, FALSE, extended_style);
 
 	SetWindowLong(window_handle, GWL_EXSTYLE, extended_style);
@@ -149,12 +145,10 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 	SetForegroundWindow(window_handle);
 	SetFocus(window_handle);
 
-	// Attach OpenGL if necessary
-	if (attach_opengl)
+	if (_shell_renderer != NULL)
 	{
-		opengl_attached = AttachOpenGL();
-		if (!opengl_attached)
-			return false;
+		shell_renderer = _shell_renderer;
+		return(shell_renderer->AttachToNative(window_handle));
 	}
 
     return true;
@@ -162,11 +156,8 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 
 void Shell::CloseWindow()
 {
-	// Shutdown opengl if necessary
-	if (opengl_attached)
-	{
-		DetachOpenGL();
-		opengl_attached = false;
+	if(shell_renderer) {
+		shell_renderer->DetachFromNative();
 	}
 
 	DestroyWindow(window_handle);  
@@ -177,12 +168,6 @@ void Shell::CloseWindow()
 void* Shell::GetWindowHandle()
 {
 	return window_handle;
-}
-
-// Flips the OpenGL buffers.
-void Shell::FlipBuffers()
-{
-	SwapBuffers(device_context);
 }
 
 void Shell::EventLoop(ShellIdleFunction idle_function)
@@ -261,90 +246,6 @@ float Shell::GetElapsedTime()
 	return (float)((counter.QuadPart - time_startup.QuadPart) * time_frequency);
 }
 
-static bool AttachOpenGL()
-{
-	device_context = GetDC(window_handle);
-	if (device_context == NULL)
-	{
-		Shell::DisplayError("Could not get device context.");
-		return false;
-	}
-
-	PIXELFORMATDESCRIPTOR pixel_format_descriptor;
-	memset(&pixel_format_descriptor, 0, sizeof(pixel_format_descriptor));
-	pixel_format_descriptor.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-	pixel_format_descriptor.nVersion = 1;
-	pixel_format_descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	pixel_format_descriptor.iPixelType = PFD_TYPE_RGBA;
-	pixel_format_descriptor.cColorBits = 32;
-	pixel_format_descriptor.cRedBits = 8;
-	pixel_format_descriptor.cGreenBits = 8;
-	pixel_format_descriptor.cBlueBits = 8;
-	pixel_format_descriptor.cAlphaBits = 8;
-	pixel_format_descriptor.cDepthBits = 24;
-	pixel_format_descriptor.cStencilBits = 8;
-
-	int pixel_format = ChoosePixelFormat(device_context, &pixel_format_descriptor);
-	if (pixel_format == 0)
-	{
-		Shell::DisplayError("Could not choose 32-bit pixel format.");
-		return false;
-	}
-
-	if (SetPixelFormat(device_context, pixel_format, &pixel_format_descriptor) == FALSE)
-	{
-		Shell::DisplayError("Could not set pixel format.");
-		return false;
-	}
-
-	render_context = wglCreateContext(device_context);
-	if (render_context == NULL)
-	{ 
-		Shell::DisplayError("Could not create OpenGL rendering context.");
-		return false;
-	}
-
-	// Activate the rendering context.
-	if (wglMakeCurrent(device_context, render_context) == FALSE)
-	{
-		Shell::DisplayError("Unable to make rendering context current.");
-		return false;
-	}
-
-	// Set up the GL state.
-	glClearColor(0, 0, 0, 1);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, 1024, 768, 0, -1, 1);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	return true;
-}
-
-static void DetachOpenGL()
-{
-	if (render_context != NULL)
-	{
-		wglMakeCurrent(NULL, NULL); 
-		wglDeleteContext(render_context);
-		render_context = NULL;
-	}
-
-	if (device_context != NULL)
-	{
-		ReleaseDC(window_handle, device_context);
-		device_context = NULL;
-	}
-}
-
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)
 {
 	// See what kind of message we've got.
@@ -368,6 +269,14 @@ static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM
 		{
 			running = false;
 			return 0;
+		}
+		break;
+
+		case WM_SIZE:
+		{
+			int width = LOWORD(l_param);;
+			int height = HIWORD(l_param);;
+			shell_renderer->SetViewport(width, height);
 		}
 		break;
 

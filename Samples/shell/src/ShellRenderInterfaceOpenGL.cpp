@@ -25,6 +25,7 @@
  *
  */
 
+#include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <Rocket/Core.h>
 
@@ -32,14 +33,10 @@
 
 ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL()
 {
+	m_rocket_context = NULL;
+	m_width = 0;
+	m_height = 0;
 }
-
-void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
-{
-    m_width = width;
-    m_height = height;
-}
-
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
 void ShellRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, int ROCKET_UNUSED_PARAMETER(num_vertices), int* indices, int num_indices, const Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
