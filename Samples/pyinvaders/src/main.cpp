@@ -87,7 +87,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise("../Samples/pyinvaders/") ||
-		!Shell::OpenWindow("Rocket Invaders from Mars (Python Powered)", shell_renderer, 1024, 768, true))
+		!Shell::OpenWindow("Rocket Invaders from Mars (Python Powered)", shell_renderer, 1024, 768, false))
 	{
 		Shell::Shutdown();
 		return -1;
