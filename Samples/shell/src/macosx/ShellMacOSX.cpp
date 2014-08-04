@@ -100,7 +100,7 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 	Rect content_bounds = { 60, 20, 60 + 768, 20 + 1024 };
 
 	OSStatus result = CreateNewWindow(kDocumentWindowClass,
-									  kWindowStandardDocumentAttributes | kWindowStandardHandlerAttribute | kWindowLiveResizeAttribute,
+									  kWindowCloseBoxAttribute | kWindowStandardHandlerAttribute,
 									  &content_bounds,
 									  &window);
 	if (result != noErr)
