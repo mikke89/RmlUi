@@ -30,6 +30,12 @@ set(PROJECT_VERSION ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBR
 # Search in the 'cmake' directory for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+# Old versions of CMake need some updated Modules, but we don't want
+# to override newer versions of CMake which have working versions
+if(CMAKE_MAJOR_VERSION LESS 3)
+	list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/v2fixs)
+endif()
+
 set(CMAKE_DEBUG_POSTFIX  "_d")
 
 #===================================
@@ -112,7 +118,14 @@ ENDIF(WIN32)
 #===================================
 
 # FreeType
-find_package(Freetype REQUIRED)	
+if(CMAKE_MAJOR_VERSION LESS 3)
+	# Freetype changed the layout of its header files, we  need to use 
+	# the FindFreetype module from cmake v3 at least, included here
+	find_package(Freetype-v2fix REQUIRED)	
+else()
+	find_package(Freetype REQUIRED)	
+endif()
+
 if(FREETYPE_FOUND)
 		include_directories(${FREETYPE_INCLUDE_DIRS})
 		link_directories(${FREETYPE_LINK_DIRS})
