@@ -355,8 +355,13 @@ if(BUILD_PYTHON_BINDINGS)
 endif()
 
 if(BUILD_LUA_BINDINGS)
-    target_link_libraries(RocketCoreLua RocketCore ${LUA_BINDINGS_LINK_LIBS})
-    target_link_libraries(RocketControlsLua RocketControls RocketCoreLua ${LUA_BINDINGS_LINK_LIBS})
+	if(NOT BUILD_FRAMEWORK)
+		target_link_libraries(RocketCoreLua RocketCore ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RocketControlsLua RocketControls RocketCoreLua ${LUA_BINDINGS_LINK_LIBS})
+	else(NOT BUILD_FRAMEWORK)
+		target_link_libraries(RocketCoreLua Rocket ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RocketControlsLua Rocket RocketCoreLua ${LUA_BINDINGS_LINK_LIBS})
+	endif(NOT BUILD_FRAMEWORK)
 endif()
 
 
