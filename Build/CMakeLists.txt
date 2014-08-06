@@ -158,7 +158,11 @@ endif()
 
 #Lua
 if(BUILD_LUA_BINDINGS)
-    find_package(Lua)
+    if(CMAKE_MAJOR_VERSION LESS 3)
+        find_package(Lua-v2fix)
+    else()
+        find_package(Lua)
+    endif()
     if(LUA_FOUND)
         include_directories(${LUA_INCLUDE_DIR})
         list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
