@@ -33,7 +33,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # Old versions of CMake need some updated Modules, but we don't want
 # to override newer versions of CMake which have working versions
 if(CMAKE_MAJOR_VERSION LESS 3)
-	list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/v2fixs)
+	list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/v2fixes)
 endif()
 
 set(CMAKE_DEBUG_POSTFIX  "_d")
