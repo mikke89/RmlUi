@@ -134,7 +134,7 @@ endif()
 
 # handle the QUIETLY and REQUIRED arguments and set FREETYPE_FOUND to TRUE if
 # all listed variables are TRUE
-include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Freetype
                                   REQUIRED_VARS FREETYPE_LIBRARY FREETYPE_INCLUDE_DIRS
                                   VERSION_VAR FREETYPE_VERSION_STRING)
