@@ -2,6 +2,8 @@
 # Build script for libRocket =======
 #===================================
 
+# This has to be before most other options so CMake properly handles the 
+# compiler variables, it MUST bebefore the project() definition
 if(APPLE)
 	if(IOS_PLATFORM)
 		set(CMAKE_TOOLCHAIN_FILE cmake/Platform/iOS.cmake)
@@ -82,12 +84,6 @@ if(WIN32)
 	option(SKIP_DIRECTX9_SAMPLE "Skip build of DirectX 9 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
 	option(SKIP_DIRECTX10_SAMPLE "Skip build of DirectX 10 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
 endif()
-
-if(IOS)
-	if(BUILD_SHARED_LIBS)
-		message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
-	endif(BUILD_SHARED_LIBS)
-endif(IOS)
 
 if(IOS)
 	if(BUILD_SHARED_LIBS)
@@ -380,7 +376,7 @@ macro(bl_sample NAME)
 if(BUILD_FRAMEWORK)
 		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../Frameworks")
 else()
-		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../lib -rpath")
+		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../lib")
 endif()
     else()
     	add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
