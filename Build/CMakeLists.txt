@@ -73,6 +73,9 @@ endif(NOT IOS)
 
 option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
+if(APPLE)
+	option(BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
+endif()
 option(BUILD_SAMPLES "Build samples" OFF)
 if(WIN32)
 	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
@@ -91,6 +94,20 @@ if(IOS)
 		message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
 	endif(BUILD_SHARED_LIBS)
 endif(IOS)
+
+if(BUILD_FRAMEWORK)
+	if(APPLE)
+		if(NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
+			message(FATAL_ERROR "You should use Xcode generator with BUILD_FRAMEWORK enabled")
+		endif()
+		set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
+		if(NOT BUILD_SHARED_LIBS)
+			message(FATAL_ERROR "BUILD_SHARED_LIBS must be ON with BUILD_FRAMEWORK enabled")
+		endif()
+	else(APPLE)
+		message(FATAL_ERROR "BUILD_FRAMEWORK is only supported on Mac OS X with the Xcode generator")
+	endif(APPLE)
+endif()
 
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
@@ -166,6 +183,7 @@ include_directories(
 # Include list of source files
 include(FileList)
 
+if(NOT BUILD_FRAMEWORK)
 #===================================
 # Build libraries ==================
 #===================================
@@ -175,10 +193,11 @@ set(LIBRARIES Core Controls Debugger)
 foreach(library ${LIBRARIES})
     set(NAME Rocket${library})
 
-    add_library(${NAME} ${${library}_SRC_FILES}
+    add_library(${NAME}
                         ${${library}_HDR_FILES}
                         ${${library}_PUB_HDR_FILES}
                         ${MASTER_${library}_PUB_HDR_FILES}
+			${${library}_SRC_FILES}
     )
 
     set_target_properties(${NAME} PROPERTIES
@@ -200,6 +219,68 @@ foreach(library ${LIBRARIES})
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 endforeach(library)
+else(NOT BUILD_FRAMEWORK)
+	#===================================
+	# Build combined Framework =========
+	#===================================
+
+	set(NAME Rocket)
+
+	set(MASTER_PUB_HDR_FILES
+		${MASTER_Core_PUB_HDR_FILES}
+		${MASTER_Controls_PUB_HDR_FILES}
+		${MASTER_Debugger_PUB_HDR_FILES}
+	)
+
+	add_library(${NAME}
+		${Core_HDR_FILES}
+		${MASTER_Core_PUB_HDR_FILES}
+		${Core_PUB_HDR_FILES}
+		${Core_SRC_FILES}
+		${Controls_HDR_FILES}
+		${MASTER_Controls_PUB_HDR_FILES}
+		${Controls_PUB_HDR_FILES}
+		${Controls_SRC_FILES}
+		${Debugger_HDR_FILES}
+		${MASTER_Debugger_PUB_HDR_FILES}
+		${Debugger_PUB_HDR_FILES}
+		${Debugger_SRC_FILES}
+	)
+
+	set_target_properties(${NAME} PROPERTIES
+		VERSION ${PROJECT_VERSION}
+		SOVERSION ${LIBROCKET_VERSION_MAJOR}
+	)
+
+	set_target_properties(${NAME} PROPERTIES
+		OSX_ARCHITECTURES "i386;x86_64;"
+	)
+		set_property(SOURCE ${Core_PUB_HDR_FILES}
+			PROPERTY MACOSX_PACKAGE_LOCATION Headers/Core
+		)
+		set_property(SOURCE ${Controls_PUB_HDR_FILES}
+			PROPERTY MACOSX_PACKAGE_LOCATION Headers/Controls
+		)
+		set_property(SOURCE ${Debugger_PUB_HDR_FILES}
+			PROPERTY MACOSX_PACKAGE_LOCATION Headers/Debugger
+		)
+		set_target_properties(${NAME} PROPERTIES
+			FRAMEWORK TRUE
+			FRAMEWORK_VERSION ${PROJECT_VERSION}
+			MACOSX_FRAMEWORK_IDENTIFIER com.librocketb.${NAME}
+			MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBROCKET_VERSION_PATCH}.${LIBROCKET_VERSION_TWEAK}
+			MACOSX_FRAMEWORK_BUNDLE_VERSION ${PROJECT_VERSION}
+			XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+			PUBLIC_HEADER ${MASTER_PUB_HDR_FILES}
+		)
+
+    install(TARGETS ${NAME}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            FRAMEWORK DESTINATION Library/Frameworks
+    )
+endif(NOT BUILD_FRAMEWORK)
 
 # Build python bindings
 if(BUILD_PYTHON_BINDINGS)
@@ -259,13 +340,22 @@ endif()
 # Link libraries ===================
 #===================================
 
+if(NOT BUILD_FRAMEWORK)
 target_link_libraries(RocketCore ${CORE_LINK_LIBS})
 target_link_libraries(RocketControls RocketCore)
 target_link_libraries(RocketDebugger RocketCore)
+else(NOT BUILD_FRAMEWORK)
+target_link_libraries(Rocket ${CORE_LINK_LIBS})
+endif(NOT BUILD_FRAMEWORK)
 
 if(BUILD_PYTHON_BINDINGS)
-    target_link_libraries(_rocketcore RocketCore ${PY_BINDINGS_LINK_LIBS})
-    target_link_libraries(_rocketcontrols RocketControls ${PY_BINDINGS_LINK_LIBS})
+	if(NOT BUILD_FRAMEWORK)
+		target_link_libraries(_rocketcore RocketCore ${PY_BINDINGS_LINK_LIBS})
+		target_link_libraries(_rocketcontrols RocketControls ${PY_BINDINGS_LINK_LIBS})
+	else(NOT BUILD_FRAMEWORK)
+		target_link_libraries(_rocketcore Rocket ${PY_BINDINGS_LINK_LIBS})
+		target_link_libraries(_rocketcontrols Rocket ${PY_BINDINGS_LINK_LIBS})
+	endif(NOT BUILD_FRAMEWORK)
 endif()
 
 if(BUILD_LUA_BINDINGS)
@@ -284,6 +374,14 @@ macro(bl_sample NAME)
     	add_executable(${NAME} WIN32 ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 	elseif(APPLE)
 		add_executable(${NAME} MACOSX_BUNDLE ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
+
+		# The first rpath is to the proper location where the framework/library SHOULD be, the second is to the location actually seen
+		# in the build environment
+if(BUILD_FRAMEWORK)
+		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../Frameworks")
+else()
+		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../lib -rpath")
+endif()
     else()
     	add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
     endif()
@@ -302,12 +400,19 @@ if(BUILD_SAMPLES)
     set(samples treeview customlog drag loaddocument)
     set(tutorials template datagrid datagrid_tree tutorial_drag)
     
+if(NOT BUILD_FRAMEWORK)
     set(sample_LIBRARIES
     	shell 
     	RocketCore 
     	RocketControls
     	RocketDebugger
     )
+else(NOT BUILD_FRAMEWORK)
+    set(sample_LIBRARIES
+    	shell 
+    	Rocket
+    )
+endif(NOT BUILD_FRAMEWORK)
 
 	# Find OpenGL 
 	find_package(OpenGL REQUIRED)
