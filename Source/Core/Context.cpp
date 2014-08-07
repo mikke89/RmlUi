@@ -367,7 +367,10 @@ ElementDocument* Context::LoadMouseCursor(const String& document_path)
 	// Load the document from the stream.
 	ElementDocument* document = Factory::InstanceDocumentStream(this, stream);
 	if (document == NULL)
+	{
+		stream->RemoveReference();
 		return NULL;
+	}
 
 	AddMouseCursor(document);
 
@@ -375,6 +378,8 @@ ElementDocument* Context::LoadMouseCursor(const String& document_path)
 	ElementUtilities::BindEventAttributes(document);
 	document->UpdateLayout();
 	document->DispatchEvent(LOAD, Dictionary(), false);
+
+	stream->RemoveReference();
 
 	return document;
 }
