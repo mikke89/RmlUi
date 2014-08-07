@@ -48,7 +48,7 @@ LuaElementInstancer::LuaElementInstancer(lua_State* L) : ElementInstancer(), ref
     lua_pop(L,1); //pop the ELEMENTINSTANCERFUNCTIONS table
 }
 
-Element* LuaElementInstancer::InstanceElement(Element* ROCKET_UNUSED(parent), const String& tag, const XMLAttributes& ROCKET_UNUSED(attributes))
+Element* LuaElementInstancer::InstanceElement(Element* ROCKET_UNUSED_PARAMETER(parent), const String& tag, const XMLAttributes& ROCKET_UNUSED_PARAMETER(attributes))
 {
     lua_State* L = Interpreter::GetLuaState();
     int top = lua_gettop(L);
