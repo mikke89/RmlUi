@@ -43,8 +43,10 @@ ElementFormControlDataSelect::ElementFormControlDataSelect(const Rocket::Core::S
 
 ElementFormControlDataSelect::~ElementFormControlDataSelect()
 {
-	if (data_source != NULL)
+	if (data_source != NULL) {
 		data_source->DetachListener(this);
+		data_source = NULL;
+	}
 }
 
 // Sets the data source the control's options are driven from.
@@ -76,8 +78,10 @@ void ElementFormControlDataSelect::OnAttributeChange(const Core::AttributeNameLi
 
 	if (changed_attributes.find("source") != changed_attributes.end())
 	{
-		if (data_source != NULL)
+		if (data_source != NULL) {
 			data_source->DetachListener(this);
+			data_source = NULL;
+		}
 
 		initialised = false;
 	}
