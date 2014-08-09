@@ -28,8 +28,8 @@
 #ifndef ROCKETCORESTREAMMEMORY_H
 #define ROCKETCORESTREAMMEMORY_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Stream.h>
+#include "Header.h"
+#include "Stream.h"
 
 namespace Rocket {
 namespace Core {

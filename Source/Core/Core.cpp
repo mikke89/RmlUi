@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 #include <algorithm>
 #include "FileInterfaceDefault.h"
 #include "GeometryDatabase.h"

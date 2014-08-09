@@ -26,10 +26,10 @@
  */
 
 #include "XMLNodeHandlerTabSet.h"
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/XMLParser.h>
-#include <Rocket/Controls/ElementTabSet.h>
+#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/XMLParser.h"
+#include "../../Include/Rocket/Controls/ElementTabSet.h"
 
 namespace Rocket {
 namespace Controls {

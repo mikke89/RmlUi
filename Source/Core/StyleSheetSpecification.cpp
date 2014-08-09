@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/StyleSheetSpecification.h>
+#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
 #include "PropertyParserNumber.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserKeyword.h"

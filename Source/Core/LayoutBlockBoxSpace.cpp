@@ -29,9 +29,9 @@
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/ElementScroll.h>
-#include <Rocket/Core/StyleSheetKeywords.h>
+#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/ElementScroll.h"
+#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
 
 namespace Rocket {
 namespace Core {

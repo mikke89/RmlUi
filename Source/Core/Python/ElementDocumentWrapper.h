@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREPYTHONELEMENTDOCUMENTWRAPPER_H
 #define ROCKETCOREPYTHONELEMENTDOCUMENTWRAPPER_H
 
-#include <Rocket/Core/Python/ElementWrapper.h>
-#include <Rocket/Core/ElementDocument.h>
+#include "../../../Include/Rocket/Core/Python/ElementWrapper.h"
+#include "../../../Include/Rocket/Core/ElementDocument.h"
 
 namespace Rocket {
 namespace Core {

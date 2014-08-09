@@ -28,9 +28,9 @@
 #ifndef ROCKETCONTROLSELEMENTDATAGRIDCELL_H
 #define ROCKETCONTROLSELEMENTDATAGRIDCELL_H
 
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/EventListener.h>
-#include <Rocket/Controls/Header.h>
+#include "../Core/Element.h"
+#include "../Core/EventListener.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Controls {

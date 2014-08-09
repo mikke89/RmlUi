@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include "StreamFile.h"
-#include <Rocket/Core/FileInterface.h>
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core/FileInterface.h"
+#include "../../Include/Rocket/Core.h"
 
 namespace Rocket {
 namespace Core {

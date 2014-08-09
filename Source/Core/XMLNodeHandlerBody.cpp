@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include "XMLNodeHandlerBody.h"
 #include "XMLParseTools.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 
 namespace Rocket {
 namespace Core {

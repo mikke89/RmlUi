@@ -28,7 +28,7 @@
 #ifndef ROCKETDEBUGGERHEADER_H
 #define ROCKETDEBUGGERHEADER_H
 
-#include <Rocket/Core/Platform.h>
+#include "../Core/Platform.h"
 
 #if !defined STATIC_LIB
 	#ifdef ROCKET_PLATFORM_WIN32

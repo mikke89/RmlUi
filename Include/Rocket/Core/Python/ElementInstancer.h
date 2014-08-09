@@ -28,12 +28,12 @@
 #ifndef ROCKETCOREPYTHONELEMENTINSTANCER_H
 #define ROCKETCOREPYTHONELEMENTINSTANCER_H
 
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/XMLParser.h>
-#include <Rocket/Core/Python/Python.h>
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/ElementInstancer.h>
-#include <Rocket/Core/Python/Header.h>
+#include "../String.h"
+#include "../XMLParser.h"
+#include "Python.h"
+#include "../Element.h"
+#include "../ElementInstancer.h"
+#include "../Header.h"
 
 namespace Rocket {
 namespace Core {

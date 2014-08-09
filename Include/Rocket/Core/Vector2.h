@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREVECTOR2_H
 #define ROCKETCOREVECTOR2_H
 
-#include <Rocket/Core/Debug.h>
-#include <Rocket/Core/Math.h>
+#include "Debug.h"
+#include "Math.h"
 
 namespace Rocket {
 namespace Core {
@@ -129,7 +129,7 @@ class Vector2
 		Type y;
 };
 
-#include <Rocket/Core/Vector2.inl>
+#include "Vector2.inl"
 
 }
 }

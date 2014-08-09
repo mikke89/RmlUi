@@ -26,9 +26,9 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/ElementDocument.h>
-#include <Rocket/Core/StreamMemory.h>
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core/ElementDocument.h"
+#include "../../Include/Rocket/Core/StreamMemory.h"
+#include "../../Include/Rocket/Core.h"
 #include "DocumentHeader.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"

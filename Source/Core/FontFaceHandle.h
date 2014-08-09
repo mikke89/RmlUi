@@ -28,14 +28,14 @@
 #ifndef ROCKETCOREFONTFACEHANDLE_H
 #define ROCKETCOREFONTFACEHANDLE_H
 
-#include <Rocket/Core/ReferenceCountable.h>
+#include "../../Include/Rocket/Core/ReferenceCountable.h"
 #include "UnicodeRange.h"
-#include <Rocket/Core/Font.h>
-#include <Rocket/Core/FontEffect.h>
-#include <Rocket/Core/FontGlyph.h>
-#include <Rocket/Core/Geometry.h>
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/Texture.h>
+#include "../../Include/Rocket/Core/Font.h"
+#include "../../Include/Rocket/Core/FontEffect.h"
+#include "../../Include/Rocket/Core/FontGlyph.h"
+#include "../../Include/Rocket/Core/Geometry.h"
+#include "../../Include/Rocket/Core/String.h"
+#include "../../Include/Rocket/Core/Texture.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

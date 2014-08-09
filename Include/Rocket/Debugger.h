@@ -28,6 +28,6 @@
 #ifndef ROCKETDEBUGGER_H
 #define ROCKETDEBUGGER_H
 
-#include <Rocket/Debugger/Debugger.h>
+#include "Debugger/Debugger.h"
 
 #endif

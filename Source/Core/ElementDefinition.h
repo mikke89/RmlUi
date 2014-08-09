@@ -28,11 +28,11 @@
 #ifndef ROCKETCOREELEMENTDEFINITION_H
 #define ROCKETCOREELEMENTDEFINITION_H
 
-#include <Rocket/Core/Dictionary.h>
-#include <Rocket/Core/ReferenceCountable.h>
+#include "../../Include/Rocket/Core/Dictionary.h"
+#include "../../Include/Rocket/Core/ReferenceCountable.h"
 #include <map>
 #include <set>
-#include <Rocket/Core/FontEffect.h>
+#include "../../Include/Rocket/Core/FontEffect.h"
 #include "StyleSheetNode.h"
 
 namespace Rocket {

@@ -28,9 +28,9 @@
 #ifndef ROCKETVARIANT_H
 #define ROCKETVARIANT_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/TypeConverter.h>
+#include "Header.h"
+#include "Types.h"
+#include "TypeConverter.h"
 #include <list>
 
 namespace Rocket {
@@ -151,7 +151,7 @@ private:
 	char data[LOCAL_DATA_SIZE];
 };
 
-#include <Rocket/Core/Variant.inl>
+#include "Variant.inl"
 
 }
 }

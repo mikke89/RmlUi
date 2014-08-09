@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/WString.h>
+#include "../../Include/Rocket/Core/WString.h"
 
 namespace Rocket {
 namespace Core {

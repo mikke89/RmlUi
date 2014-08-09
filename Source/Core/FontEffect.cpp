@@ -26,9 +26,9 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/FontEffect.h>
-#include <Rocket/Core/FontDatabase.h>
-#include <Rocket/Core/FontEffectInstancer.h>
+#include "../../Include/Rocket/Core/FontEffect.h"
+#include "../../Include/Rocket/Core/FontDatabase.h"
+#include "../../Include/Rocket/Core/FontEffectInstancer.h"
 
 namespace Rocket {
 namespace Core {

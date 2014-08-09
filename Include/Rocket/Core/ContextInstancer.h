@@ -28,8 +28,8 @@
 #ifndef ROCKETCORECONTEXTINSTANCER_H
 #define ROCKETCORECONTEXTINSTANCER_H
 
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/Header.h>
+#include "ReferenceCountable.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSXMLNODEHANDLERTABSET_H
 #define ROCKETCONTROLSXMLNODEHANDLERTABSET_H
 
-#include <Rocket/Core/XMLNodeHandler.h>
+#include "../../Include/Rocket/Core/XMLNodeHandler.h"
 
 namespace Rocket {
 namespace Controls {

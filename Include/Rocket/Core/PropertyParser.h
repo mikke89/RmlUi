@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREPROPERTYPARSER_H
 #define ROCKETCOREPROPERTYPARSER_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Property.h>
+#include "Header.h"
+#include "Property.h"
 #include <map>
 
 namespace Rocket {

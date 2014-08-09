@@ -25,9 +25,9 @@
  *
  */
 
-#include <Rocket/Controls/ElementTabSet.h>
-#include <Rocket/Core/Math.h>
-#include <Rocket/Core/Factory.h>
+#include "../../Include/Rocket/Controls/ElementTabSet.h"
+#include "../../Include/Rocket/Core/Math.h"
+#include "../../Include/Rocket/Core/Factory.h"
 
 namespace Rocket {
 namespace Controls {

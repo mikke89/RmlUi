@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include "StyleSheetNode.h"
 #include <algorithm>
-#include <Rocket/Core/Element.h>
+#include "../../Include/Rocket/Core/Element.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNodeSelector.h"
 

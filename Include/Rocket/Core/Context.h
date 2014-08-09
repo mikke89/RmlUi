@@ -28,13 +28,13 @@
 #ifndef ROCKETCORECONTEXT_H
 #define ROCKETCORECONTEXT_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/ElementReference.h>
-#include <Rocket/Core/Input.h>
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/ScriptInterface.h>
+#include "Header.h"
+#include "Types.h"
+#include "ReferenceCountable.h"
+#include "ElementReference.h"
+#include "Input.h"
+#include "String.h"
+#include "ScriptInterface.h"
 
 namespace Rocket {
 namespace Core {

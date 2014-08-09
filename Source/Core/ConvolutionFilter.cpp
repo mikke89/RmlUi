@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/ConvolutionFilter.h>
+#include "../../Include/Rocket/Core/ConvolutionFilter.h"
 
 namespace Rocket {
 namespace Core {

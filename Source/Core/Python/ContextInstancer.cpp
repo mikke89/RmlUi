@@ -27,7 +27,7 @@
 
 #include "precompiled.h"
 #include "ContextInstancer.h"
-#include <Rocket/Core/Python/Utilities.h>
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
 
 namespace Rocket {
 namespace Core {

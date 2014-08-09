@@ -27,10 +27,10 @@
 
 #include "precompiled.h"
 #include "XMLParseTools.h"
-#include <Rocket/Core/StreamMemory.h>
+#include "../../Include/Rocket/Core/StreamMemory.h"
 #include "Template.h"
 #include "TemplateCache.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 #include <ctype.h>
 
 namespace Rocket {

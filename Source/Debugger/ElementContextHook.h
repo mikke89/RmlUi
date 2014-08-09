@@ -28,7 +28,7 @@
 #ifndef ROCKETDEBUGGERELEMENTCONTEXTHOOK_H
 #define ROCKETDEBUGGERELEMENTCONTEXTHOOK_H
 
-#include <Rocket/Core/ElementDocument.h>
+#include "../../Include/Rocket/Core/ElementDocument.h"
 
 namespace Rocket {
 namespace Debugger {

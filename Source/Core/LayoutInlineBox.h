@@ -28,7 +28,7 @@
 #ifndef ROCKETCORELAYOUTINLINEBOX_H
 #define ROCKETCORELAYOUTINLINEBOX_H
 
-#include <Rocket/Core/Box.h>
+#include "../../Include/Rocket/Core/Box.h"
 
 namespace Rocket {
 namespace Core {

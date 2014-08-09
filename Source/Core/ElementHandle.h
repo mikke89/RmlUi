@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREELEMENTHANDLE_H
 #define ROCKETCOREELEMENTHANDLE_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Element.h>
+#include "../../Include/Rocket/Core/Header.h"
+#include "../../Include/Rocket/Core/Element.h"
 
 namespace Rocket {
 namespace Core {

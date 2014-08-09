@@ -28,10 +28,10 @@
 #include "precompiled.h"
 #include "ContextInterface.h"
 
-#include <Rocket/Core/Python/Utilities.h>
-#include <Rocket/Core/Python/Wrapper.h>
-#include <Rocket/Core/Context.h>
-#include <Rocket/Core/Factory.h>
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
+#include "../../../Include/Rocket/Core/Python/Wrapper.h"
+#include "../../../Include/Rocket/Core/Context.h"
+#include "../../../Include/Rocket/Core/Factory.h"
 
 #include "EventListener.h"
 #include "ContextInstancer.h"

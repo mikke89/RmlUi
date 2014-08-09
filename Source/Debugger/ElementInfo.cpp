@@ -26,9 +26,9 @@
  */
 
 #include "ElementInfo.h"
-#include <Rocket/Core/Property.h>
-#include <Rocket/Core/Factory.h>
-#include <Rocket/Core/StyleSheet.h>
+#include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/StyleSheet.h"
 #include "Geometry.h"
 #include "CommonSource.h"
 #include "InfoSource.h"

@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREXMLNODEHANDLER_H
 #define ROCKETCOREXMLNODEHANDLER_H
 
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/XMLParser.h>
-#include <Rocket/Core/Header.h>
+#include "ReferenceCountable.h"
+#include "XMLParser.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

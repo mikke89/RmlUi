@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREFILEINTERFACE_H
 #define ROCKETCOREFILEINTERFACE_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/ReferenceCountable.h>
+#include "Header.h"
+#include "Types.h"
+#include "ReferenceCountable.h"
 
 namespace Rocket {
 namespace Core {

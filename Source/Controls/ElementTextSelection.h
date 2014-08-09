@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSELEMENTTEXTSELECTION_H
 #define ROCKETCONTROLSELEMENTTEXTSELECTION_H
 
-#include <Rocket/Core/Element.h>
+#include "../../Include/Rocket/Core/Element.h"
 
 namespace Rocket {
 namespace Controls {

@@ -27,7 +27,7 @@
 
 #include "precompiled.h"
 #include "ElementImage.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 #include "TextureDatabase.h"
 #include "TextureResource.h"
 

@@ -26,7 +26,7 @@
  */
 
 #include "InputTypeCheckbox.h"
-#include <Rocket/Controls/ElementFormControlInput.h>
+#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
 
 namespace Rocket {
 namespace Controls {

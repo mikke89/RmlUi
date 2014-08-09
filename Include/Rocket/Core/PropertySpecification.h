@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREPROPERTYSPECIFICATION_H
 #define ROCKETCOREPROPERTYSPECIFICATION_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/PropertyDefinition.h>
+#include "Header.h"
+#include "Element.h"
+#include "PropertyDefinition.h"
 
 namespace Rocket {
 namespace Core {

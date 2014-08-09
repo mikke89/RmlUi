@@ -26,8 +26,8 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/Rocket/Core.h"
 #ifdef ROCKET_PLATFORM_WIN32
 #include <windows.h>
 #endif

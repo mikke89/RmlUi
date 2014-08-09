@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREELEMENTDOCUMENT_H
 #define ROCKETCOREELEMENTDOCUMENT_H
 
-#include <Rocket/Core/Element.h>
+#include "Element.h"
 
 namespace Rocket {
 namespace Core {

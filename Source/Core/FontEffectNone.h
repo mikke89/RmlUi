@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFONTEFFECTNONE_H
 #define ROCKETCOREFONTEFFECTNONE_H
 
-#include <Rocket/Core/FontEffect.h>
+#include "../../Include/Rocket/Core/FontEffect.h"
 
 namespace Rocket {
 namespace Core {

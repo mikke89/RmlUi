@@ -28,8 +28,8 @@
 #ifndef ROCKETCONTROLSELEMENTFORM_H
 #define ROCKETCONTROLSELEMENTFORM_H
 
-#include <Rocket/Core/Element.h>
-#include <Rocket/Controls/Header.h>
+#include "../Core/Element.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Controls {

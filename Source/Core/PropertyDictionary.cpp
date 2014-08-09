@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/PropertyDictionary.h>
+#include "../../Include/Rocket/Core/PropertyDictionary.h"
 
 namespace Rocket {
 namespace Core {

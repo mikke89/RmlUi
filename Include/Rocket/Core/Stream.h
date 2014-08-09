@@ -28,10 +28,10 @@
 #ifndef ROCKETCORESTREAM_H
 #define ROCKETCORESTREAM_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/ReferenceCountable.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/URL.h>
+#include "Header.h"
+#include "ReferenceCountable.h"
+#include "Types.h"
+#include "URL.h"
 #include <list>
 
 namespace Rocket {

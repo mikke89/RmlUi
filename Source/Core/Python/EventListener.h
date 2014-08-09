@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPYTHONEVENTLISTENER_H
 #define ROCKETCOREPYTHONEVENTLISTENER_H
 
-#include <Rocket/Core/EventListener.h>
+#include "../../../Include/Rocket/Core/EventListener.h"
 
 namespace Rocket {
 namespace Core {

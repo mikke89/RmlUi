@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREELEMENTINSTANCERGENERIC_H
 #define ROCKETCOREELEMENTINSTANCERGENERIC_H
 
-#include <Rocket/Core/ElementInstancer.h>
+#include "ElementInstancer.h"
 
 namespace Rocket {
 namespace Core {
@@ -61,7 +61,7 @@ public:
 	virtual void Release();
 };
 
-#include <Rocket/Core/ElementInstancerGeneric.inl>
+#include "ElementInstancerGeneric.inl"
 
 }
 }

@@ -25,8 +25,8 @@
  *
  */
 
-#include <Rocket/Debugger/Debugger.h>
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Debugger/Debugger.h"
+#include "../../Include/Rocket/Core.h"
 #include "Plugin.h"
 
 namespace Rocket {

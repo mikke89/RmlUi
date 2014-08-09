@@ -27,9 +27,9 @@
 
 #include "precompiled.h"
 #include "StyleSheetNodeSelectorNthChild.h"
-#include <Rocket/Core/ElementText.h>
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/StyleSheetKeywords.h>
+#include "../../Include/Rocket/Core/ElementText.h"
+#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
 
 namespace Rocket {
 namespace Core {

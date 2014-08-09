@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include "EventListener.h"
 
-#include <Rocket/Core/Python/Utilities.h>
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
 
 #include "EventWrapper.h"
 #include "ElementDocumentWrapper.h"

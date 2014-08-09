@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREEVENTITERATORS_H
 #define ROCKETCOREEVENTITERATORS_H
 
-#include <Rocket/Core/ElementReference.h>
-#include <Rocket/Core/Element.h>
+#include "../../Include/Rocket/Core/ElementReference.h"
+#include "../../Include/Rocket/Core/Element.h"
 
 namespace Rocket {
 namespace Core {

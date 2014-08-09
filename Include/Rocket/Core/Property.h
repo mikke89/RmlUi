@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREPROPERTY_H
 #define ROCKETCOREPROPERTY_H
 
-#include <Rocket/Core/Variant.h>
-#include <Rocket/Core/Header.h>
+#include "Variant.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Core {

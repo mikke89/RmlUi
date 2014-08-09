@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREPYTHONWRAPPER_H
 #define ROCKETCOREPYTHONWRAPPER_H
 
-#include <Rocket/Core/Debug.h>
-#include <Rocket/Core/Python/Python.h>
+#include "../Debug.h"
+#include "Python.h"
 
 #include <boost/none.hpp>
 

@@ -25,10 +25,10 @@
  *
  */
 
-#include <Rocket/Controls/ElementFormControlTextArea.h>
-#include <Rocket/Core/Math.h>
-#include <Rocket/Core/ElementUtilities.h>
-#include <Rocket/Core/ElementText.h>
+#include "../../Include/Rocket/Controls/ElementFormControlTextArea.h"
+#include "../../Include/Rocket/Core/Math.h"
+#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/Rocket/Core/ElementText.h"
 #include "WidgetTextInputMultiLine.h"
 
 namespace Rocket {

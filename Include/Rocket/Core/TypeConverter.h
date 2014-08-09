@@ -28,10 +28,10 @@
 #ifndef ROCKETCORETYPECONVERTER_H
 #define ROCKETCORETYPECONVERTER_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/Stream.h>
-#include <Rocket/Core/StringUtilities.h>
+#include "Types.h"
+#include "Log.h"
+#include "Stream.h"
+#include "StringUtilities.h"
 #include <typeinfo>
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,7 +55,7 @@ public:
 	static bool Convert(const SourceType& src, DestType& dest);
 };
 
-#include <Rocket/Core/TypeConverter.inl>
+#include "TypeConverter.inl"
 
 }
 }

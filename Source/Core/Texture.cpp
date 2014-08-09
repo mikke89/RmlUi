@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/Texture.h>
+#include "../../Include/Rocket/Core/Texture.h"
 #include "TextureDatabase.h"
 #include "TextureResource.h"
 

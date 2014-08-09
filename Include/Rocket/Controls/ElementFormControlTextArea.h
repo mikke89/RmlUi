@@ -28,8 +28,8 @@
 #ifndef ROCKETCONTROLSELEMENTFORMCONTROLTEXTAREA_H
 #define ROCKETCONTROLSELEMENTFORMCONTROLTEXTAREA_H
 
-#include <Rocket/Controls/Header.h>
-#include <Rocket/Controls/ElementFormControl.h>
+#include "Header.h"
+#include "ElementFormControl.h"
 
 namespace Rocket {
 namespace Controls {

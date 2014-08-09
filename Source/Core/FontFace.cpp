@@ -28,7 +28,7 @@
 #include "precompiled.h"
 #include "FontFace.h"
 #include "FontFaceHandle.h"
-#include <Rocket/Core/Log.h>
+#include "../../Include/Rocket/Core/Log.h"
 
 namespace Rocket {
 namespace Core {

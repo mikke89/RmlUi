@@ -27,9 +27,9 @@
 
 #include "precompiled.h"
 #include "DataGridRowProxy.h"
-#include <Rocket/Core/Python/NameIndexInterface.h>
-#include <Rocket/Core/Python/Utilities.h>
-#include <Rocket/Core.h>
+#include "../../../Include/Rocket/Core/Python/NameIndexInterface.h"
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
+#include "../../../Include/Rocket/Core.h"
 
 namespace Rocket {
 namespace Controls {

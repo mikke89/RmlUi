@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFONTEFFECTSHADOW_H
 #define ROCKETCOREFONTEFFECTSHADOW_H
 
-#include <Rocket/Core/FontEffect.h>
+#include "../../Include/Rocket/Core/FontEffect.h"
 
 namespace Rocket {
 namespace Core {

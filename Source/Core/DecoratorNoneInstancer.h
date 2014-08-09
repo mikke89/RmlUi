@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREDECORATORNONEINSTANCER_H
 #define ROCKETCOREDECORATORNONEINSTANCER_H
 
-#include <Rocket/Core/DecoratorInstancer.h>
+#include "../../Include/Rocket/Core/DecoratorInstancer.h"
 
 namespace Rocket {
 namespace Core {

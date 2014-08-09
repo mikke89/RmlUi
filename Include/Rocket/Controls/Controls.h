@@ -28,19 +28,19 @@
 #ifndef ROCKETCONTROLSCONTROLS_H
 #define ROCKETCONTROLSCONTROLS_H
 
-#include <Rocket/Controls/DataFormatter.h>
-#include <Rocket/Controls/ElementDataGrid.h>
-#include <Rocket/Controls/ElementDataGridCell.h>
-#include <Rocket/Controls/ElementDataGridExpandButton.h>
-#include <Rocket/Controls/ElementDataGridRow.h>
-#include <Rocket/Controls/ElementForm.h>
-#include <Rocket/Controls/ElementFormControl.h>
-#include <Rocket/Controls/ElementFormControlDataSelect.h>
-#include <Rocket/Controls/ElementFormControlInput.h>
-#include <Rocket/Controls/ElementFormControlSelect.h>
-#include <Rocket/Controls/ElementFormControlTextArea.h>
-#include <Rocket/Controls/ElementTabSet.h>
-#include <Rocket/Controls/SelectOption.h>
+#include "DataFormatter.h"
+#include "ElementDataGrid.h"
+#include "ElementDataGridCell.h"
+#include "ElementDataGridExpandButton.h"
+#include "ElementDataGridRow.h"
+#include "ElementForm.h"
+#include "ElementFormControl.h"
+#include "ElementFormControlDataSelect.h"
+#include "ElementFormControlInput.h"
+#include "ElementFormControlSelect.h"
+#include "ElementFormControlTextArea.h"
+#include "ElementTabSet.h"
+#include "SelectOption.h"
 
 namespace Rocket {
 namespace Controls {

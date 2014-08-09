@@ -25,9 +25,9 @@
  *
  */
 
-#include <Rocket/Controls/Clipboard.h>
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/WString.h>
+#include "../../Include/Rocket/Controls/Clipboard.h"
+#include "../../Include/Rocket/Core/Types.h"
+#include "../../Include/Rocket/Core/WString.h"
 #if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
 #endif

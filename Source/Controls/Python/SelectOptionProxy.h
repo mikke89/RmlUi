@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSPYTHONSELECTOPTIONPROXY_H
 #define ROCKETCONTROLSPYTHONSELECTOPTIONPROXY_H
 
-#include <Rocket/Controls/SelectOption.h>
+#include "../../../Include/Rocket/Controls/SelectOption.h"
 
 namespace Rocket {
 namespace Controls {

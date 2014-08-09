@@ -27,8 +27,8 @@
 
 #include "precompiled.h"
 #include "ElementStyleProxy.h"
-#include <Rocket/Core/Property.h>
-#include <Rocket/Core/Element.h>
+#include "../../../Include/Rocket/Core/Property.h"
+#include "../../../Include/Rocket/Core/Element.h"
 
 namespace Rocket {
 namespace Core {

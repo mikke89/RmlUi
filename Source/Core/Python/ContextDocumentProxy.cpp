@@ -27,9 +27,9 @@
 
 #include "precompiled.h"
 #include "ContextDocumentProxy.h"
-#include <Rocket/Core/Python/NameIndexInterface.h>
-#include <Rocket/Core/Python/Utilities.h>
-#include <Rocket/Core/Context.h>
+#include "../../../Include/Rocket/Core/Python/NameIndexInterface.h"
+#include "../../../Include/Rocket/Core/Python/Utilities.h"
+#include "../../../Include/Rocket/Core/Context.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,6 +28,6 @@
 #ifndef ROCKETCORE_H
 #define ROCKETCORE_H
 
-#include <Rocket/Core/Core.h>
+#include "Core/Core.h"
 
 #endif

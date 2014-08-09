@@ -25,8 +25,8 @@
  *
  */
 
-#include <Rocket/Controls/DataQuery.h>
-#include <Rocket/Controls/DataSource.h>
+#include "../../Include/Rocket/Controls/DataQuery.h"
+#include "../../Include/Rocket/Controls/DataSource.h"
 #include <algorithm>
 
 namespace Rocket {

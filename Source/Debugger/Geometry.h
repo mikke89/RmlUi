@@ -28,7 +28,7 @@
 #ifndef ROCKETDEBUGGERGEOMETRY_H
 #define ROCKETDEBUGGERGEOMETRY_H
 
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 

@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREELEMENTDECORATION_H
 #define ROCKETCOREELEMENTDECORATION_H
 
-#include <Rocket/Core/Types.h>
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Core {

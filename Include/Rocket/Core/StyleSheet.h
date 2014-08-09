@@ -28,10 +28,10 @@
 #ifndef ROCKETCORESTYLESHEET_H
 #define ROCKETCORESTYLESHEET_H
 
-#include <Rocket/Core/Dictionary.h>
-#include <Rocket/Core/ReferenceCountable.h>
+#include "Dictionary.h"
+#include "ReferenceCountable.h"
 #include <set>
-#include <Rocket/Core/PropertyDictionary.h>
+#include "PropertyDictionary.h"
 
 namespace Rocket {
 namespace Core {

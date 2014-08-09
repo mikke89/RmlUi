@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREDEBUG_H
 #define ROCKETCOREDEBUG_H
 
-#include <Rocket/Core/Header.h>
+#include "Header.h"
 
 // Define for breakpointing.
 #if defined (ROCKET_PLATFORM_WIN32)

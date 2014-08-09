@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/FileInterface.h>
+#include "../../Include/Rocket/Core/FileInterface.h"
 
 namespace Rocket {
 namespace Core {

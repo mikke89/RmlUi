@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREFACTORY_H
 #define ROCKETCOREFACTORY_H
 
-#include <Rocket/Core/XMLParser.h>
-#include <Rocket/Core/Header.h>
+#include "XMLParser.h"
+#include "Header.h"
 #include <map>
 
 namespace Rocket {

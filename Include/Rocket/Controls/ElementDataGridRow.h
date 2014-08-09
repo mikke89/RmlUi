@@ -28,10 +28,10 @@
 #ifndef ROCKETCONTROLSELEMENTDATAGRIDROW_H
 #define ROCKETCONTROLSELEMENTDATAGRIDROW_H
 
-#include <Rocket/Controls/Header.h>
-#include <Rocket/Controls/DataSourceListener.h>
-#include <Rocket/Controls/DataQuery.h>
-#include <Rocket/Core/Element.h>
+#include "Header.h"
+#include "DataSourceListener.h"
+#include "DataQuery.h"
+#include "../Core/Element.h"
 #include <queue>
 
 namespace Rocket {

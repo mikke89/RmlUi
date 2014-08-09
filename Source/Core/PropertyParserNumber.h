@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREPROPERTYPARSERNUMBER_H
 #define ROCKETCOREPROPERTYPARSERNUMBER_H
 
-#include <Rocket/Core/PropertyParser.h>
+#include "../../Include/Rocket/Core/PropertyParser.h"
 
 namespace Rocket {
 namespace Core {

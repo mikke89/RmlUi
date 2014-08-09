@@ -28,9 +28,9 @@
 #ifndef ROCKETCONTROLSDATAFORMATTER_H
 #define ROCKETCONTROLSDATAFORMATTER_H
 
-#include <Rocket/Core/ScriptInterface.h>
-#include <Rocket/Core/String.h>
-#include <Rocket/Controls/Header.h>
+#include "../Core/ScriptInterface.h"
+#include "../Core/String.h"
+#include "Header.h"
 
 namespace Rocket {
 namespace Controls {

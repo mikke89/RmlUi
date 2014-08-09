@@ -28,8 +28,8 @@
 #ifndef ROCKETCOREFONTEFFECTOUTLINE_H
 #define ROCKETCOREFONTEFFECTOUTLINE_H
 
-#include <Rocket/Core/ConvolutionFilter.h>
-#include <Rocket/Core/FontEffect.h>
+#include "../../Include/Rocket/Core/ConvolutionFilter.h"
+#include "../../Include/Rocket/Core/FontEffect.h"
 
 namespace Rocket {
 namespace Core {

@@ -28,10 +28,10 @@
 #ifndef ROCKETCONTROLSWIDGETTEXTINPUT_H
 #define ROCKETCONTROLSWIDGETTEXTINPUT_H
 
-#include <Rocket/Core/EventListener.h>
-#include <Rocket/Core/Geometry.h>
-#include <Rocket/Core/WString.h>
-#include <Rocket/Core/Vertex.h>
+#include "../../Include/Rocket/Core/EventListener.h"
+#include "../../Include/Rocket/Core/Geometry.h"
+#include "../../Include/Rocket/Core/WString.h"
+#include "../../Include/Rocket/Core/Vertex.h"
 
 namespace Rocket {
 namespace Core {

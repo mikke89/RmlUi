@@ -26,8 +26,8 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core.h>
-#include <Rocket/Core/StreamMemory.h>
+#include "../../Include/Rocket/Core.h"
+#include "../../Include/Rocket/Core/StreamMemory.h"
 #include "ContextInstancerDefault.h"
 #include "DecoratorNoneInstancer.h"
 #include "DecoratorTiledBoxInstancer.h"

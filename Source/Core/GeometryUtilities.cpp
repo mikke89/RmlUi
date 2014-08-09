@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/GeometryUtilities.h>
+#include "../../Include/Rocket/Core/GeometryUtilities.h"
 
 namespace Rocket {
 namespace Core {

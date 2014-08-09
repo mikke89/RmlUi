@@ -26,11 +26,11 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/ElementUtilities.h>
+#include "../../Include/Rocket/Core/ElementUtilities.h"
 #include <queue>
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
-#include <Rocket/Core.h>
+#include "../../Include/Rocket/Core.h"
 
 namespace Rocket {
 namespace Core {

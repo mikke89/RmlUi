@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/EventListenerInstancer.h>
+#include "../../Include/Rocket/Core/EventListenerInstancer.h"
 
 namespace Rocket {
 namespace Core {

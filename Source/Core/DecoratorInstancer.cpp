@@ -26,7 +26,7 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/DecoratorInstancer.h>
+#include "../../Include/Rocket/Core/DecoratorInstancer.h"
 
 namespace Rocket {
 namespace Core {

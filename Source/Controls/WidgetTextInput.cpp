@@ -27,10 +27,10 @@
 
 #include "WidgetTextInput.h"
 #include "ElementTextSelection.h"
-#include <Rocket/Core.h>
-#include <Rocket/Controls/ElementFormControl.h>
-#include <Rocket/Controls/Clipboard.h>
-#include <Rocket/Core/SystemInterface.h>
+#include "../../Include/Rocket/Core.h"
+#include "../../Include/Rocket/Controls/ElementFormControl.h"
+#include "../../Include/Rocket/Controls/Clipboard.h"
+#include "../../Include/Rocket/Core/SystemInterface.h"
 
 namespace Rocket {
 namespace Controls {

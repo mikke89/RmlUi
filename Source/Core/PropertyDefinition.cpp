@@ -26,9 +26,9 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/PropertyDefinition.h>
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/StyleSheetSpecification.h>
+#include "../../Include/Rocket/Core/PropertyDefinition.h"
+#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
 
 namespace Rocket {
 namespace Core {
