@@ -50,6 +50,9 @@ LuaElementInstancer::LuaElementInstancer(lua_State* L) : ElementInstancer(), ref
 
 Element* LuaElementInstancer::InstanceElement(Element* ROCKET_UNUSED_PARAMETER(parent), const String& tag, const XMLAttributes& ROCKET_UNUSED_PARAMETER(attributes))
 {
+    ROCKET_UNUSED(parent);
+    ROCKET_UNUSED(attributes);
+
     lua_State* L = Interpreter::GetLuaState();
     int top = lua_gettop(L);
     Element* ret = NULL;
