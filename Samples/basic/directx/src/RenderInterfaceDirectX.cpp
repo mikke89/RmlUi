@@ -53,10 +53,11 @@ struct RocketD3D9Vertex
 
 DWORD vertex_fvf = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;
 
-RenderInterfaceDirectX::RenderInterfaceDirectX(LPDIRECT3D9 _g_pD3D, LPDIRECT3DDEVICE9 _g_pd3dDevice)
+RenderInterfaceDirectX::RenderInterfaceDirectX()
 {
-	g_pD3D = _g_pD3D;
-	g_pd3dDevice = _g_pd3dDevice;
+	g_pD3D = NULL;
+	g_pd3dDevice = NULL;
+	m_rocket_context = NULL;
 }
 
 RenderInterfaceDirectX::~RenderInterfaceDirectX()
@@ -81,6 +82,11 @@ void RenderInterfaceDirectX::RenderGeometry(Rocket::Core::Vertex* ROCKET_UNUSED_
 // Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.
 Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX::CompileGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture)
 {
+	if(g_pd3dDevice == NULL)
+	{
+		return false;
+	}
+
 	// Construct a new RocketD3D9CompiledGeometry structure, which will be returned as the handle, and the buffers to
 	// store the geometry.
 	RocketD3D9CompiledGeometry* geometry = new RocketD3D9CompiledGeometry();
@@ -120,6 +126,11 @@ Rocket::Core::CompiledGeometryHandle RenderInterfaceDirectX::CompileGeometry(Roc
 // Called by Rocket when it wants to render application-compiled geometry.
 void RenderInterfaceDirectX::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const Rocket::Core::Vector2f& translation)
 {
+	if(g_pd3dDevice == NULL)
+	{
+		return;
+	}
+
 	// Build and set the transform matrix.
 	D3DXMATRIX world_transform;
 	D3DXMatrixTranslation(&world_transform, translation.x, translation.y, 0);
@@ -156,12 +167,22 @@ void RenderInterfaceDirectX::ReleaseCompiledGeometry(Rocket::Core::CompiledGeome
 // Called by Rocket when it wants to enable or disable scissoring to clip content.
 void RenderInterfaceDirectX::EnableScissorRegion(bool enable)
 {
+	if(g_pd3dDevice == NULL)
+	{
+		return;
+	}
+
 	g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, enable);
 }
 
 // Called by Rocket when it wants to change the scissor region.
 void RenderInterfaceDirectX::SetScissorRegion(int x, int y, int width, int height)
 {
+	if(g_pd3dDevice == NULL)
+	{
+		return;
+	}
+
 	RECT scissor_rect;
 	scissor_rect.left = x;
 	scissor_rect.right = x + width;
@@ -194,6 +215,11 @@ struct TGAHeader
 // Called by Rocket when a texture is required by the library.
 bool RenderInterfaceDirectX::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
 {
+	if(g_pd3dDevice == NULL)
+	{
+		return false;
+	}
+
 	Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
 	Rocket::Core::FileHandle file_handle = file_interface->Open(source);
 	if (file_handle == NULL)
@@ -263,6 +289,11 @@ bool RenderInterfaceDirectX::LoadTexture(Rocket::Core::TextureHandle& texture_ha
 // Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
 bool RenderInterfaceDirectX::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const byte* source, const Rocket::Core::Vector2i& source_dimensions)
 {
+	if(g_pd3dDevice == NULL)
+	{
+		return false;
+	}
+
 	// Create a Direct3DTexture9, which will be set as the texture handle. Note that we only create one surface for
 	// this texture; because we're rendering in a 2D context, mip-maps are not required.
 	LPDIRECT3DTEXTURE9 d3d9_texture;

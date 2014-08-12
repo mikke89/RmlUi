@@ -148,7 +148,11 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	if (_shell_renderer != NULL)
 	{
 		shell_renderer = _shell_renderer;
-		return(shell_renderer->AttachToNative(window_handle));
+		if(!shell_renderer->AttachToNative(window_handle))
+		{
+			CloseWindow();
+			return false;
+		}
 	}
 
     return true;
