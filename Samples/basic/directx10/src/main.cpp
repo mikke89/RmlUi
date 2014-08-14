@@ -63,6 +63,7 @@ int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTAN
 
 	Rocket::Debugger::Initialise(context);
 	Input::SetContext(context);
+	shell_renderer->SetContext(context);
 
 	Shell::LoadFonts("../../assets/");
 

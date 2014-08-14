@@ -96,6 +96,7 @@ int main(int, char**)
 	// Initialise the Rocket debugger.
 	Rocket::Debugger::Initialise(context);
 	Input::SetContext(context);
+	shell_renderer->SetContext(context);
 
 	// Load the font faces required for Invaders.
 	Shell::LoadFonts("../assets/");
