@@ -188,16 +188,16 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RegisterProperty(DISPLAY, "inline", false, true).AddParser("keyword", "none, block, inline, inline-block");
 	RegisterProperty(POSITION, "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");
-	RegisterProperty(TOP, "0px", false, false)
+	RegisterProperty(TOP, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("number");
-	RegisterProperty(RIGHT, "0px", false, false).AddParser("number")
+	RegisterProperty(RIGHT, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("number");
-	RegisterProperty(BOTTOM, "0px", false, false).AddParser("number")
+	RegisterProperty(BOTTOM, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("number");
-	RegisterProperty(LEFT, "0px", false, false).AddParser("number")
+	RegisterProperty(LEFT, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("number");
 
