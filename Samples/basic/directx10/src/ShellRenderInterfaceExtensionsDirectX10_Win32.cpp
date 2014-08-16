@@ -70,7 +70,7 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 
 	//Setup swap chain
 	DXGI_SWAP_CHAIN_DESC sd;
-	ZeroMemory( &sd, sizeof( sd ) );
+	ZeroMemory(&sd, sizeof(sd));
 	sd.BufferCount=1;
 	sd.OutputWindow = (HWND) nativeWindow;
 	sd.Windowed = TRUE;
@@ -84,11 +84,11 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
 	//Create device and swapchain
-	if (FAILED(D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags,	D3D10_SDK_VERSION, &sd, &this->m_pSwapChain, &this->m_pD3D10Device)))
+	if(FAILED(D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags,	D3D10_SDK_VERSION, &sd, &this->m_pSwapChain, &this->m_pD3D10Device)))
 	{
 		if(MessageBox(NULL, _T("D3D10CreateDeviceAndSwapChain failed for D3D10_DRIVER_TYPE_HARDWARE.\r\n\r\nWould you like to try the reference renderer, this will be very slow!"), _T("Could not intialized DirectX 10"), MB_OKCANCEL|MB_ICONERROR) == IDOK)
 		{
-			if (FAILED(D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_REFERENCE, NULL, createDeviceFlags,	D3D10_SDK_VERSION, &sd, &this->m_pSwapChain, &this->m_pD3D10Device)))
+			if(FAILED(D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_REFERENCE, NULL, createDeviceFlags,	D3D10_SDK_VERSION, &sd, &this->m_pSwapChain, &this->m_pD3D10Device)))
 			{
 				MessageBox(NULL, _T("D3D10CreateDeviceAndSwapChain failed for D3D10_DRIVER_TYPE_REFERENCE, giving up."), _T("Could not intialized DirectX 10"), MB_OK|MB_ICONERROR);
 				return false;
@@ -102,12 +102,12 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 	
 	//Create Render Target
 	ID3D10Texture2D *pBackBuffer;
-	if ( FAILED (this->m_pSwapChain->GetBuffer(0, __uuidof(ID3D10Texture2D),(void**)&pBackBuffer)))
+	if(FAILED (this->m_pSwapChain->GetBuffer(0, __uuidof(ID3D10Texture2D),(void**)&pBackBuffer)))
 	{
 		MessageBox(NULL, _T("SwapChain->GetBuffer failed."), _T("Could not intialized DirectX 10"), MB_OK|MB_ICONERROR);
 		return false;
 	}
-	if (FAILED(this->m_pD3D10Device->CreateRenderTargetView( pBackBuffer, NULL, &this->m_pRenderTargetView )))
+	if(FAILED(this->m_pD3D10Device->CreateRenderTargetView(pBackBuffer, NULL, &this->m_pRenderTargetView)))
 	{
 			pBackBuffer->Release();
 			MessageBox(NULL, _T("D3D10Device->CreateRenderTargetView failed."), _T("Could not intialized DirectX 10"), MB_OK|MB_ICONERROR);
@@ -115,7 +115,7 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 	}
 	pBackBuffer->Release();
 	
-	this->m_pD3D10Device->OMSetRenderTargets(1,&this->m_pRenderTargetView,NULL);
+	this->m_pD3D10Device->OMSetRenderTargets(1, &this->m_pRenderTargetView, NULL);
 
 	D3D10_VIEWPORT vp;
 	vp.Width = width;
@@ -124,7 +124,7 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
-	this->m_pD3D10Device->RSSetViewports( 1, &vp );
+	this->m_pD3D10Device->RSSetViewports(1, &vp);
 
 	setupEffect();
 
@@ -138,13 +138,13 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 	rasterDesc.CullMode=D3D10_CULL_NONE;
 	rasterDesc.ScissorEnable=TRUE;
 	rasterDesc.FrontCounterClockwise=TRUE;
-	if (FAILED(this->m_pD3D10Device->CreateRasterizerState(&rasterDesc, &this->m_pScissorTestEnable)))
+	if(FAILED(this->m_pD3D10Device->CreateRasterizerState(&rasterDesc, &this->m_pScissorTestEnable)))
 	{
 		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorEnable");
 	}
 
 	rasterDesc.ScissorEnable=FALSE;
-	if (FAILED(this->m_pD3D10Device->CreateRasterizerState(&rasterDesc, &this->m_pScissorTestDisable)))
+	if(FAILED(this->m_pD3D10Device->CreateRasterizerState(&rasterDesc, &this->m_pScissorTestDisable)))
 	{
 		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorDisable");
 	}
@@ -154,22 +154,22 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 
 void RenderInterfaceDirectX10::DetachFromNative()
 {
-	if (this->m_pD3D10Device != NULL)
+	if(this->m_pD3D10Device != NULL)
 	{
 		this->m_pD3D10Device->ClearState();
 		this->m_pD3D10Device = NULL;
 	}
-	if (this->m_pRenderTargetView != NULL)
+	if(this->m_pRenderTargetView != NULL)
 	{
 		this->m_pRenderTargetView->Release();
 		this->m_pRenderTargetView = NULL;
 	}
-	if (this->m_pSwapChain != NULL)
+	if(this->m_pSwapChain != NULL)
 	{
 		this->m_pSwapChain->Release();
 		this->m_pSwapChain = NULL;
 	}
-	if (this->m_pD3D10Device != NULL)
+	if(this->m_pD3D10Device != NULL)
 	{
 		this->m_pD3D10Device->Release();
 		this->m_pD3D10Device = NULL;
