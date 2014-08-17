@@ -42,7 +42,51 @@ void RenderInterfaceDirectX10::SetViewport(int width, int height)
 {
 	if(this->m_pD3D10Device != NULL)
 	{
-		// @TODO Deal with the resize here
+		if(width == 0 || height == 0)
+		{
+			// Windows with no client area cause crashes
+			return;
+		}
+
+		if(this->m_pRenderTargetView)
+		{
+			// Release the existing render target
+			this->m_pRenderTargetView->Release();
+			this->m_pRenderTargetView = NULL;
+		}
+
+		// Resize the swap chain's buffer to the given dimensions
+		m_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+
+		// Recreate Render Target
+		ID3D10Texture2D *pBackBuffer;
+		if(FAILED(this->m_pSwapChain->GetBuffer(0, __uuidof(ID3D10Texture2D), (LPVOID*) &pBackBuffer)))
+		{
+			MessageBox(NULL, _T("SwapChain->GetBuffer failed."), _T("Could not resize DirectX 10 surface"), MB_OK|MB_ICONERROR);
+			return;
+		}
+		if(FAILED(this->m_pD3D10Device->CreateRenderTargetView(pBackBuffer, NULL, &this->m_pRenderTargetView)))
+		{
+				pBackBuffer->Release();
+				MessageBox(NULL, _T("D3D10Device->CreateRenderTargetView failed."), _T("Could not resize DirectX 10 surface"), MB_OK|MB_ICONERROR);
+				return;
+		}
+		pBackBuffer->Release();
+	
+		this->m_pD3D10Device->OMSetRenderTargets(1, &this->m_pRenderTargetView, NULL);
+
+		D3D10_VIEWPORT vp;
+		vp.Width = width;
+		vp.Height = height;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		this->m_pD3D10Device->RSSetViewports(1, &vp);
+
+		// Recreate our view and projection matrix
+		D3DXMatrixOrthoOffCenterLH(&this->m_matProjection, 0, width, height, 0, -1, 1);
+		m_pProjectionMatrixVariable->SetMatrix((float*)this->m_matProjection);
 	}
 
 	if(m_rocket_context != NULL)
