@@ -48,6 +48,9 @@ Directory Overview:
  * pyinvaders - Python version of the above (only installed
                 with the Python plugin).
 
+ * luainvaders- Lua version of the invaders (only installed
+                with the Lua plugin).
+
  * shell      - Common platform specific code used by all the 
                 samples for open windows, processing input and 
                 access files.
