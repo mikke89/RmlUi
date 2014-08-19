@@ -25,6 +25,8 @@ invaders
 pyinvaders
 luainvaders
 sdl2
+sfml
+sfml2
 scores.txt
 options.dat
 log.txt

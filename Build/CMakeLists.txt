@@ -482,7 +482,6 @@ if(BUILD_SAMPLES)
         		message("-- Can SDL2 sample be built - yes")
 			include_directories(${SDL_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
-			#bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL_LIBRARY} -lXxf86vm -lSDL2_image ${GLEW_LIBRARY})
 			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL_LIBRARY} ${SDL_IMAGE_LIBRARY} ${GLEW_LIBRARY})
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
@@ -498,6 +497,46 @@ if(BUILD_SAMPLES)
     else()
         message("-- Can SDL2 sample be built - SDL2 not found")
     endif()
+
+
+	message("-- Can SFML 1.x sample be built")
+	find_package(SFML)
+	if(NOT SFML_FOUND)
+		message("-- Can SFML 1.x sample be built - no")
+	else()
+		message("-- Can SFML 1.x sample be built - yes")
+
+		include_directories(${SFML_INCLUDE_DIR})
+
+		bl_sample(sfml ${sample_LIBRARIES} ${SFML_GRAPHICS_LIBRARY} ${SFML_WINDOW_LIBRARY} ${SFML_SYSTEM_LIBRARY})
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml)
+			install(TARGETS sfml
+				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
+
+	message("-- Can SFML 2.x sample be built")
+	if(NOT SFML2_FOUND)
+		message("-- Can SFML 2.x sample be built - no")
+	else()
+		find_package(GLEW)
+                if(GLEW_FOUND)
+			message("-- Can SFML 2.x sample be built - yes: with GLEW")
+			add_definitions( -DENABLE_GLEW )
+		else()
+			message("-- Can SFML 2.x sample be built - yes: without GLEW")
+		endif()
+
+		include_directories(${SFML2_INCLUDE_DIR})
+
+		bl_sample(sfml2 ${sample_LIBRARIES} ${SFML2_GRAPHICS_LIBRARY} ${SFML2_WINDOW_LIBRARY} ${SFML2_SYSTEM_LIBRARY})
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
+			install(TARGETS sfml2
+				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml2
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
 
     # Build and install the tutorials
     foreach(tutorial ${tutorials})

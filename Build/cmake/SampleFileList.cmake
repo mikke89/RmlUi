@@ -81,6 +81,28 @@ set(sdl2_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.cpp
 )
 
+set(sfml_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/RenderInterfaceSFML.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/SystemInterfaceSFML.h
+)
+
+set(sfml_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/RenderInterfaceSFML.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/SystemInterfaceSFML.cpp
+)
+
+set(sfml2_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/RenderInterfaceSFML.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/SystemInterfaceSFML.h
+)
+
+set(sfml2_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/RenderInterfaceSFML.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/SystemInterfaceSFML.cpp
+)
+
 set(directx_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/RenderInterfaceDirectX.h
 )
