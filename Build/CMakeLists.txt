@@ -523,14 +523,15 @@ if(BUILD_SAMPLES)
 		find_package(GLEW)
                 if(GLEW_FOUND)
 			message("-- Can SFML 2.x sample be built - yes: with GLEW")
+			include_directories(${SFML2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 			add_definitions( -DENABLE_GLEW )
+			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML2_GRAPHICS_LIBRARY} ${SFML2_WINDOW_LIBRARY} ${SFML2_SYSTEM_LIBRARY} ${GLEW_LIBRARY})
 		else()
 			message("-- Can SFML 2.x sample be built - yes: without GLEW")
+			include_directories(${SFML2_INCLUDE_DIR})
+			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML2_GRAPHICS_LIBRARY} ${SFML2_WINDOW_LIBRARY} ${SFML2_SYSTEM_LIBRARY})
 		endif()
 
-		include_directories(${SFML2_INCLUDE_DIR})
-
-		bl_sample(sfml2 ${sample_LIBRARIES} ${SFML2_GRAPHICS_LIBRARY} ${SFML2_WINDOW_LIBRARY} ${SFML2_SYSTEM_LIBRARY})
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
 			install(TARGETS sfml2
