@@ -36,10 +36,12 @@
 #include <gl/Gl.h>
 #include <gl/Glu.h>
 #elif defined ROCKET_PLATFORM_MACOSX
+#include <AGL/agl.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
 #elif defined ROCKET_PLATFORM_UNIX
+#include <GL/glx.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/glu.h>

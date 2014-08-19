@@ -31,8 +31,6 @@
 #include <x11/InputX11.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/xf86vmode.h>
-#include <GL/glx.h>
-#include <GL/gl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
@@ -40,11 +38,7 @@
 #include <stdio.h>
 
 static bool running = false;
-static Display* display = NULL;
 static int screen = -1;
-static XVisualInfo* visual_info = NULL;
-static Window window = 0;
-static GLXContext gl_context = NULL;
 static timeval start_time;
 
 static ShellFileInterface* file_interface = NULL;
@@ -68,11 +62,14 @@ void Shell::Shutdown()
 	file_interface = NULL;
 }
 
-bool Shell::OpenWindow(const char* name, bool attach_opengl)
-{
-	unsigned int width = 1024;
-	unsigned int height = 768;
+static Display* display = NULL;
+static XVisualInfo* visual_info = NULL;
+static Window window = 0;
 
+static ShellRenderInterfaceExtensions *shell_renderer = NULL;
+
+bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
+{
 	display = XOpenDisplay(0);
 	if (display == NULL)
 		return false;
@@ -130,76 +127,56 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 								  PointerMotionMask |
 								  StructureNotifyMask);
 
-	// Force the window to remain at the fixed size by asking the window manager nicely, it may choose to ignore us
-	XSizeHints* win_size_hints = XAllocSizeHints();		// Allocate a size hint structure
-	if (win_size_hints == NULL)
+	if(!allow_resize)
 	{
-		fprintf(stderr, "XAllocSizeHints - out of memory\n");
-	}
-	else
-	{
-		// Initialize the structure and specify which hints will be providing
-		win_size_hints->flags = PSize | PMinSize | PMaxSize;
+		// Force the window to remain at the fixed size by asking the window manager nicely, it may choose to ignore us
+		XSizeHints* win_size_hints = XAllocSizeHints();		// Allocate a size hint structure
+		if (win_size_hints == NULL)
+		{
+			fprintf(stderr, "XAllocSizeHints - out of memory\n");
+		}
+		else
+		{
+			// Initialize the structure and specify which hints will be providing
+			win_size_hints->flags = PSize | PMinSize | PMaxSize;
 
-		// Set the sizes we want the window manager to use
-		win_size_hints->base_width = width;
-		win_size_hints->base_height = height;
-		win_size_hints->min_width = width;
-		win_size_hints->min_height = height;
-		win_size_hints->max_width = width;
-		win_size_hints->max_height = height;
+			// Set the sizes we want the window manager to use
+			win_size_hints->base_width = width;
+			win_size_hints->base_height = height;
+			win_size_hints->min_width = width;
+			win_size_hints->min_height = height;
+			win_size_hints->max_width = width;
+			win_size_hints->max_height = height;
 
-		// {ass the size hints to the window manager.
-		XSetWMNormalHints(display, window, win_size_hints);
+			// {ass the size hints to the window manager.
+			XSetWMNormalHints(display, window, win_size_hints);
 
-		// Free the size buffer
-		XFree(win_size_hints);
+			// Free the size buffer
+			XFree(win_size_hints);
+		}
 	}
 
 	// Set the window title and show the window.
 	XSetStandardProperties(display, window, name, "", None, NULL, 0, NULL);
 	XMapRaised(display, window);
 
-	gl_context = glXCreateContext(display, visual_info, NULL, GL_TRUE);
-	if (gl_context == NULL)
-		return false;
-
-	if (!glXMakeCurrent(display, window, gl_context))
-		return false;
-
-	if (!glXIsDirect(display, gl_context))
-		Log("OpenGL context does not support direct rendering; performance is likely to be poor.");
-
-	Window root_window;
-	int x, y;
-	unsigned int border_width, depth;
-	XGetGeometry(display, window, &root_window, &x, &y, &width, &height, &border_width, &depth);
-
-	// Set up the GL state.
-	glClearColor(0, 0, 0, 1);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, width, height, 0, -1, 1);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
+	shell_renderer = _shell_renderer;
+	if(shell_renderer != NULL)
+	{
+		struct __X11NativeWindowData nwData;
+		nwData.display = display;
+		nwData.window = window;
+		nwData.visual_info = visual_info;
+		return shell_renderer->AttachToNative(&nwData);
+	}
     return true;
 }
 
 void Shell::CloseWindow()
 {
-	if (gl_context != NULL)
+	if(shell_renderer != NULL)
 	{
-		glXMakeCurrent(display, None, NULL);
-		glXDestroyContext(display, gl_context);
-		gl_context = NULL;
+		shell_renderer->DetachFromNative();
 	}
 
 	if (display != NULL)
@@ -213,12 +190,6 @@ void Shell::CloseWindow()
 void* Shell::GetWindowHandle()
 {
 	return NULL;
-}
-
-// Flips the OpenGL buffers.
-void Shell::FlipBuffers()
-{
-	glXSwapBuffers(display, window);
 }
 
 void Shell::EventLoop(ShellIdleFunction idle_function)
@@ -252,6 +223,8 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 				{
 					int x = event.xconfigure.width;
 					int y = event.xconfigure.height;
+
+					shell_renderer->SetViewport(x, y);
 				}
 				break;
 				

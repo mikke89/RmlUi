@@ -29,6 +29,7 @@
 #define RENDERINTERFACEDIRECTX_H
 
 #include <Rocket/Core/RenderInterface.h>
+#include "../../../shell/include/ShellRenderInterfaceExtensions.h"
 #include <d3d9.h>
 
 /**
@@ -37,10 +38,10 @@
 	@author Peter Curry
  */
 
-class RenderInterfaceDirectX : public Rocket::Core::RenderInterface
+class RenderInterfaceDirectX : public Rocket::Core::RenderInterface, public ShellRenderInterfaceExtensions
 {
 public:
-	RenderInterfaceDirectX(LPDIRECT3D9 g_pD3D, LPDIRECT3DDEVICE9 g_pd3dDevice);
+	RenderInterfaceDirectX(void);
 	virtual ~RenderInterfaceDirectX();
 
 	/// Called by Rocket when it wants to render geometry that it does not wish to optimise.
@@ -71,9 +72,18 @@ public:
 	/// Returns the native vertical texel offset for the renderer.
 	float GetVerticalTexelOffset();
 
+// ShellRenderInterfaceExtensions
+	virtual void SetViewport(int width, int height);
+	virtual void SetContext(void *context);
+	virtual bool AttachToNative(void *nativeWindow);
+	virtual void DetachFromNative(void);
+	virtual void PrepareRenderBuffer(void);
+	virtual void PresentRenderBuffer(void);
+
 private:
 	LPDIRECT3D9 g_pD3D;
 	LPDIRECT3DDEVICE9 g_pd3dDevice;
+	void *m_rocket_context;
 };
 
 #endif

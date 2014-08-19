@@ -44,13 +44,15 @@ Rocket::Core::Context* context = NULL;
 
 void DoAllocConsole();
 
+ShellRenderInterfaceExtensions *shell_renderer;
+
 void GameLoop()
 {
 	context->Update();
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	shell_renderer->PrepareRenderBuffer();
 	context->Render();
-	Shell::FlipBuffers();
+	shell_renderer->PresentRenderBuffer();
 }
 
 #if defined ROCKET_PLATFORM_WIN32
@@ -72,16 +74,18 @@ int main(int, char**)
 	DoAllocConsole();
 	#endif
 
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
+
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise("../Samples/luainvaders/") ||
-		!Shell::OpenWindow("Rocket Invaders from Mars (Lua Powered)", true))
+		!Shell::OpenWindow("Rocket Invaders from Mars (Lua Powered)", shell_renderer, 1024, 768, false))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
 	// Rocket initialisation.
-	ShellRenderInterfaceOpenGL opengl_renderer;
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(1024,768);
 
@@ -107,6 +111,7 @@ int main(int, char**)
 
 	Rocket::Debugger::Initialise(context);
 	Input::SetContext(context);
+	shell_renderer->SetContext(context);
 
 	// Load the font faces required for Invaders.
 	Shell::LoadFonts("../assets/");

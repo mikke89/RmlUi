@@ -2,6 +2,7 @@
 #define RENDERINTERFACEDIRECTX_H
 
 #include <Rocket/Core/RenderInterface.h>
+#include "../../../shell/include/ShellRenderInterfaceExtensions.h"
 #include <d3d10.h>
 #include <d3dx10.h>
 
@@ -14,11 +15,11 @@
 	@author Brian McDonald
  */
 
-class RenderInterfaceDirectX10 : public Rocket::Core::RenderInterface
+class RenderInterfaceDirectX10 : public Rocket::Core::RenderInterface, public ShellRenderInterfaceExtensions
 {
 public:
-	RenderInterfaceDirectX10(ID3D10Device * pD3D10Device,float screenWidth,float screenHeight);
-	virtual ~RenderInterfaceDirectX10();
+	RenderInterfaceDirectX10();
+	virtual ~RenderInterfaceDirectX10(void);
 
 	/// Called by Rocket when it wants to render geometry that it does not wish to optimise.
 	virtual void RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation);
@@ -51,7 +52,19 @@ public:
 	//loads the effect from memory
 	void setupEffect();
 
+	// ShellRenderInterfaceExtensions
+	virtual void SetViewport(int width, int height);
+	virtual void SetContext(void *context);
+	virtual bool AttachToNative(void *nativeWindow);
+	virtual void DetachFromNative(void);
+	virtual void PrepareRenderBuffer(void);
+	virtual void PresentRenderBuffer(void);
+
 private:
+	// Rocket Context, needed for when the shell window is resized so we can update the Rocket::Core::Context
+	// dimensions
+	void *m_rocket_context;
+
 	//The D3D 10 Device
 	ID3D10Device * m_pD3D10Device;
 	//The Effect we are using to render GUI
@@ -61,7 +74,12 @@ private:
 	//The Vertex Layout
 	ID3D10InputLayout*      m_pVertexLayout;
 
-	//Effect varibales, used to send variables to the effect
+	//Swap Chain
+	IDXGISwapChain* m_pSwapChain;
+	//Render Target
+	ID3D10RenderTargetView* m_pRenderTargetView;
+
+	//Effect variables, used to send variables to the effect
 	ID3D10EffectMatrixVariable * m_pProjectionMatrixVariable;
 	ID3D10EffectMatrixVariable * m_pWorldMatrixVariable;
 	ID3D10EffectShaderResourceVariable *m_pDiffuseTextureVariable;

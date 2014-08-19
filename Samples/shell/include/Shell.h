@@ -29,7 +29,9 @@
 #define ROCKETSHELL_H
 
 #include <Rocket/Core/Types.h>
+#include <Rocket/Core/Context.h>
 #include <Rocket/Core/SystemInterface.h>
+#include <ShellRenderInterfaceExtensions.h>
 
 #ifdef ROCKET_PLATFORM_WIN32
 #define PATH_SEPARATOR	";"
@@ -59,16 +61,13 @@ public:
 
 	/// Open a platform specific window, optionally initialising an OpenGL context on it.
 	/// @param[in] title Title of the window.
-	/// @param[in] attach_opengl Attach and opengl context to the window.
-	static bool OpenWindow(const char* title, bool attach_opengl);
+	/// @param[in] srie Provides the interface for attaching a renderer to the window and performing related bits of interface.
+	static bool OpenWindow(const char* title, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize);
 	/// Close the active window.
 	static void CloseWindow();
 
 	/// Returns a platform-dependent handle to the window.
 	static void* GetWindowHandle();
-
-	/// Flips the OpenGL buffers.
-	static void FlipBuffers();
 
 	/// Run the event loop, calling the idle function every frame.
 	typedef void (*ShellIdleFunction)();
@@ -81,10 +80,15 @@ public:
 	static void Log(const char* fmt, ...);
 
 	/// Get the number of seconds that have passed since shell startup.
-	static float GetElapsedTime();	
+	static float GetElapsedTime();
+	
+	/// Sets the context to send window resized events to.
+	/// @param[in] context The context to send  events to.
+	static void SetContext(Rocket::Core::Context* context);
 
 private:
 	static Rocket::Core::String executable_path;
+	static Rocket::Core::Context* context;
 };
 
 #include "ShellRenderInterfaceOpenGL.h"

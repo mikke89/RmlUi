@@ -48,12 +48,10 @@ static const EventTypeSpec INPUT_EVENTS[] = {
 
 static const EventTypeSpec WINDOW_EVENTS[] = {
 	{ kEventClassWindow, kEventWindowClose },
+	{ kEventClassWindow, kEventWindowBoundsChanged },
 };
 
 static WindowRef window;
-static CGrafPtr window_port = NULL;
-static AGLContext gl_context = NULL;
-static bool opengl_attached = false;
 static timeval start_time;
 
 ShellFileInterface* file_interface = NULL;
@@ -95,12 +93,16 @@ void Shell::Shutdown()
 	file_interface = NULL;
 }
 
-bool Shell::OpenWindow(const char* name, bool attach_opengl)
+static ShellRenderInterfaceExtensions *shell_renderer;
+
+bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
-	Rect content_bounds = { 60, 20, 60 + 768, 20 + 1024 };
+	shell_renderer = _shell_renderer;
+	Rect content_bounds = { 60, 20, 60 + height, 20 + width };
 
 	OSStatus result = CreateNewWindow(kDocumentWindowClass,
-									  kWindowCloseBoxAttribute | kWindowStandardHandlerAttribute,
+									  (allow_resize ? (kWindowStandardDocumentAttributes | kWindowLiveResizeAttribute) :
+									   kWindowCloseBoxAttribute) | kWindowStandardHandlerAttribute,
 									  &content_bounds,
 									  &window);
 	if (result != noErr)
@@ -120,79 +122,22 @@ bool Shell::OpenWindow(const char* name, bool attach_opengl)
 	CFRelease(window_title);
 
 	ShowWindow(window);
-
-	if (attach_opengl)
-	{
-		static GLint attributes[] =
-		{
-			AGL_RGBA,
-			AGL_DOUBLEBUFFER,
-			AGL_ALPHA_SIZE, 8,
-			AGL_DEPTH_SIZE, 24,
-			AGL_STENCIL_SIZE, 8,
-			AGL_ACCELERATED,
-			AGL_NONE
-		};
-
-		AGLPixelFormat pixel_format = aglChoosePixelFormat(NULL, 0, attributes);
-		if (pixel_format == NULL)
-			return false;
-
-		window_port = GetWindowPort(window);
-		if (window_port == NULL)
-			return false;
-
-		gl_context = aglCreateContext(pixel_format, NULL);
-		if (gl_context == NULL)
-			return false;
-
-		aglSetDrawable(gl_context, window_port);
-		aglSetCurrentContext(gl_context);
-
-		aglDestroyPixelFormat(pixel_format);
-		
-		// Set up the GL state.
-		glClearColor(0, 0, 0, 1);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0, 1024, 768, 0, -1, 1);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		opengl_attached = true;
-	}
     
+	if(shell_renderer != NULL) {
+		shell_renderer->AttachToNative(window);
+	}
     return true;
 }
 
 void Shell::CloseWindow()
 {
-	// Shutdown OpenGL if necessary.
-	if (opengl_attached)
-	{
-		aglSetCurrentContext(NULL);
-		aglSetDrawable(gl_context, NULL);
-		aglDestroyContext(gl_context);
-		
-		gl_context = NULL;
+	if(shell_renderer) {
+		shell_renderer->DetachFromNative();
 	}
 
 	// Close the window.
 	HideWindow(window);
 	ReleaseWindow(window);
-}
-
-// Flips the OpenGL buffers.
-void Shell::FlipBuffers()
-{
-	aglSwapBuffers(gl_context);
 }
 
 void Shell::EventLoop(ShellIdleFunction idle_function)
@@ -312,6 +257,22 @@ static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, v
 			{
 				case kEventWindowClose:
 					Shell::RequestExit();
+					break;
+				case kEventWindowBoundsChanged:
+					// Window resized, update the rocket context
+					UInt32 attributes;
+					GetEventParameter(event, kEventParamAttributes, typeUInt32, NULL, sizeof(UInt32), NULL, &attributes);
+
+					if(attributes & kWindowBoundsChangeSizeChanged)
+					{
+						Rect bounds;
+						GetEventParameter(event, kEventParamCurrentBounds, typeQDRectangle, NULL, sizeof(Rect), NULL, &bounds);
+
+						UInt32 width = bounds.right - bounds.left;
+						UInt32 height = bounds.bottom - bounds.top;
+
+						shell_renderer->SetViewport(width, height);
+					}
 					break;
 			}
 		}

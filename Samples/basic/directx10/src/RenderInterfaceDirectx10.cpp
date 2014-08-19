@@ -44,32 +44,24 @@ const D3D10_INPUT_ELEMENT_DESC layout[] =
 };
 
 //The constructor of the render
-RenderInterfaceDirectX10::RenderInterfaceDirectX10(ID3D10Device * pD3D10Device,float screenWidth,float screenHeight)
+RenderInterfaceDirectX10::RenderInterfaceDirectX10(void)
 {
+	m_rocket_context = NULL;
+	m_pD3D10Device = NULL;
+
+	m_pEffect = NULL;
+	m_pTechnique = NULL;
+	m_pVertexLayout = NULL;
+
+	m_pSwapChain = NULL;
+	m_pRenderTargetView = NULL;
+
+	m_pProjectionMatrixVariable = NULL;
+	m_pWorldMatrixVariable = NULL;
+	m_pDiffuseTextureVariable = NULL;
+
 	m_pScissorTestDisable = NULL;
 	m_pScissorTestEnable = NULL;
-	m_pD3D10Device=pD3D10Device;
-	setupEffect();
-	//Create our view and projection matrix
-	D3DXMatrixOrthoOffCenterLH(&m_matProjection, 0, screenWidth, screenHeight, 0, -1, 1);
-	m_pProjectionMatrixVariable->SetMatrix((float*)m_matProjection);
-
-	//Create scissor raster states
-	D3D10_RASTERIZER_DESC rasterDesc;
-	rasterDesc.FillMode=D3D10_FILL_SOLID;
-	rasterDesc.CullMode=D3D10_CULL_NONE;
-	rasterDesc.ScissorEnable=TRUE;
-	rasterDesc.FrontCounterClockwise=TRUE;
-	if (FAILED(m_pD3D10Device->CreateRasterizerState(&rasterDesc, &m_pScissorTestEnable)))
-	{
-		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorEnable");
-	}
-
-	rasterDesc.ScissorEnable=FALSE;
-	if (FAILED(m_pD3D10Device->CreateRasterizerState(&rasterDesc, &m_pScissorTestDisable)))
-	{
-		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorDisable");
-	}
 }
 
 //Loads the effect from memory and retrieves initial variables from the effect

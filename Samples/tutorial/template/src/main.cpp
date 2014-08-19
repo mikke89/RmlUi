@@ -16,14 +16,15 @@
 
 Rocket::Core::Context* context = NULL;
 
+ShellRenderInterfaceExtensions *shell_renderer;
+
 void GameLoop()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	context->Update();
-	context->Render();
 
-	Shell::FlipBuffers();
+	shell_renderer->PrepareRenderBuffer();
+	context->Render();
+	shell_renderer->PresentRenderBuffer();
 }
 
 #if defined ROCKET_PLATFORM_WIN32
@@ -43,18 +44,20 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
+
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise("../Samples/tutorial/template/") ||
-		!Shell::OpenWindow("Template Tutorial", true))
+		!Shell::OpenWindow("Template Tutorial", shell_renderer, 1024, 768, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
 	// Rocket initialisation.
-	ShellRenderInterfaceOpenGL opengl_renderer;
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
-    opengl_renderer.SetViewport(1024, 768);
+	opengl_renderer.SetViewport(1024, 768);
 
 	ShellSystemInterface system_interface;
 	Rocket::Core::SetSystemInterface(&system_interface);
@@ -72,6 +75,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	Rocket::Debugger::Initialise(context);
 	Input::SetContext(context);
+	shell_renderer->SetContext(context);
 
 	Shell::LoadFonts("../../assets/");
 

@@ -38,6 +38,7 @@ echo 'if(WIN32)' >> $file
 echo '       list(APPEND shell_SRC_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellWin32.cpp' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/InputWin32.cpp' >> $file
+echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellRenderInterfaceExtensionsOpenGL_Win32.cpp' >> $file
 echo '       )' >> $file
 echo '       list(APPEND shell_HDR_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/InputWin32.h' >> $file
@@ -46,6 +47,7 @@ echo 'elseif(APPLE)' >> $file
 echo '       list(APPEND shell_SRC_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/ShellMacOSX.cpp' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/InputMacOSX.cpp' >> $file
+echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/ShellRenderInterfaceExtensionsOpenGL_MacOSX.cpp' >> $file
 echo '       )' >> $file
 echo '       list(APPEND shell_HDR_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/include/macosx/InputMacOSX.h' >> $file
@@ -54,6 +56,7 @@ echo 'else()' >> $file
 echo '       list(APPEND shell_SRC_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/ShellX11.cpp' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/InputX11.cpp' >> $file
+echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/ShellRenderInterfaceExtensionsOpenGL_X11.cpp' >> $file
 echo '       )' >> $file
 echo '       list(APPEND shell_HDR_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/InputX11.h' >> $file
