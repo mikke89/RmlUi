@@ -464,6 +464,33 @@ if(BUILD_SAMPLES)
 		endif()
 	endif()
 
+    message("-- Can SDL2 sample be built")
+    find_package(SDL)
+    if(SDL_FOUND)
+	find_package(SDL_image)
+	if(SDL_IMAGE_FOUND)
+		find_package(GLEW)
+		if(GLEW_FOUND)
+        		message("-- Can SDL2 sample be built - yes")
+			include_directories(${SDL_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+
+			#bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL_LIBRARY} -lXxf86vm -lSDL2_image ${GLEW_LIBRARY})
+			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL_LIBRARY} ${SDL_IMAGE_LIBRARY} ${GLEW_LIBRARY})
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
+			install(TARGETS sdl2
+				RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		else()
+		        message("-- Can SDL2 sample be built - GLEW not found")
+		endif()
+	else()
+	        message("-- Can SDL2 sample be built - SDL2_image not found")
+	endif()
+    else()
+        message("-- Can SDL2 sample be built - SDL2 not found")
+    endif()
+
     # Build and install the tutorials
     foreach(tutorial ${tutorials})
         bl_sample(${tutorial} ${sample_LIBRARIES})

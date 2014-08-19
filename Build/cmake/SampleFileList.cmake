@@ -70,6 +70,17 @@ set(treeview_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/main.cpp
 )
 
+set(sdl2_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.h
+)
+
+set(sdl2_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.cpp
+)
+
 set(directx_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/RenderInterfaceDirectX.h
 )
