@@ -63,6 +63,14 @@ if(NOT DEFINED ENV{LUA_DIR})
 	set(ENV{LUA_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
+if(NOT DEFINED ENV{SDLDIR})
+	set(ENV{SDLDIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
+if(NOT DEFINED ENV{SDLIMAGEDIR})
+	set(ENV{SDLIMAGEDIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
 #===================================
 # Build options ====================
 #===================================
