@@ -78,6 +78,7 @@ set(directx_HDR_FILES
 set(directx_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/RenderInterfaceDirectX.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/ShellRenderInterfaceExtensionsDirectX_Win32.cpp
 )
 
 set(directx10_HDR_FILES
@@ -88,6 +89,7 @@ set(directx10_HDR_FILES
 set(directx10_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/RenderInterfaceDirectx10.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/ShellRenderInterfaceExtensionsDirectX10_Win32.cpp
 )
 
 set(template_HDR_FILES
