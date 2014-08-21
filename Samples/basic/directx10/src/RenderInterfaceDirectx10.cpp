@@ -129,18 +129,17 @@ RenderInterfaceDirectX10::~RenderInterfaceDirectX10()
 }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
-void RenderInterfaceDirectX10::RenderGeometry(Rocket::Core::Vertex* ROCKET_UNUSED_PARAMETER(vertices), int ROCKET_UNUSED_PARAMETER(num_vertices), int* ROCKET_UNUSED_PARAMETER(indices), int ROCKET_UNUSED_PARAMETER(num_indices), const Rocket::Core::TextureHandle ROCKET_UNUSED_PARAMETER(texture), const Rocket::Core::Vector2f& ROCKET_UNUSED_PARAMETER(translation))
+void RenderInterfaceDirectX10::RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
 {
-	ROCKET_UNUSED(vertices);
-	ROCKET_UNUSED(num_vertices);
-	ROCKET_UNUSED(indices);
-	ROCKET_UNUSED(num_indices);
-	ROCKET_UNUSED(texture);
-	ROCKET_UNUSED(translation);
-
-	// We've chosen to not support non-compiled geometry in the DirectX renderer. If you wanted to render non-compiled
+	// @TODO We've chosen to not support non-compiled geometry in the DirectX renderer. If you wanted to render non-compiled
 	// geometry, for example for very small sections of geometry, you could use DrawIndexedPrimitiveUP or write to a
 	// dynamic vertex buffer which is flushed when either the texture changes or compiled geometry is drawn.
+
+        /// @TODO, HACK, just use the compiled geometry framework for now, this is inefficient but better than absolutely nothing
+        /// for the time being
+	Rocket::Core::CompiledGeometryHandle geom = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+	this->RenderCompiledGeometry(geom, translation);
+	this->ReleaseCompiledGeometry(geom);
 }
 
 // Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.

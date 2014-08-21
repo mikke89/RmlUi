@@ -78,9 +78,9 @@ void RenderInterfaceDirectX::RenderGeometry(Rocket::Core::Vertex* vertices, int 
 
 	/// @TODO, HACK, just use the compiled geometry framework for now, this is inefficient but better than absolutely nothing
 	/// for the time being
-	Rocket::Core::CompiledGeometryHandle gemo = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
-	this->RenderCompiledGeometry(gemo, translation);
-	this->ReleaseCompiledGeometry(gemo);
+	Rocket::Core::CompiledGeometryHandle geom = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+	this->RenderCompiledGeometry(geom, translation);
+	this->ReleaseCompiledGeometry(geom);
 }
 
 // Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.
