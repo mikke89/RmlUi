@@ -25,7 +25,7 @@ this, you don't have to learn a whole new proprietary technology like other libr
 
 ## License (MIT)
  
- Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
