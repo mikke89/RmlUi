@@ -26,6 +26,8 @@
  */
 
 #define _WIN32_WINNT 0x0500
+#include "PythonInterface.h"
+
 #include <Rocket/Core.h>
 #include <Rocket/Controls.h>
 #include <Rocket/Debugger.h>
@@ -36,7 +38,6 @@
 #include "DecoratorInstancerStarfield.h"
 #include "ElementGame.h"
 #include "HighScores.h"
-#include "PythonInterface.h"
 
 Rocket::Core::Context* context = NULL;
 

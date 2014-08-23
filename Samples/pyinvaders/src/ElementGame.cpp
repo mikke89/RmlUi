@@ -25,13 +25,14 @@
  *
  */
 
+#include <Rocket/Core/Python/Python.h>
+
 #include "ElementGame.h"
 #include <Rocket/Core/ElementDocument.h>
 #include <Rocket/Core/Input.h>
 #include <Rocket/Core/Factory.h>
 #include <Rocket/Core/Python/ElementInstancer.h>
 #include <Rocket/Core/Python/ElementWrapper.h>
-#include <Rocket/Core/Python/Python.h>
 #include "Defender.h"
 #include "Game.h"
 

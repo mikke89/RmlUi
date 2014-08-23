@@ -25,9 +25,9 @@
  *
  */
 
+// Python header.
+#include "../../../Include/Rocket/Core/Python/Python.h"
+
 // Rocket core and controls.
 #include "../../../Include/Rocket/Core.h"
 #include "../../../Include/Rocket/Controls.h"
-
-// Python header.
-#include "../../../Include/Rocket/Core/Python/Python.h"
