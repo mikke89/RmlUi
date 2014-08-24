@@ -63,6 +63,18 @@ if(NOT DEFINED ENV{LUA_DIR})
 	set(ENV{LUA_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
+if(NOT DEFINED ENV{SDLDIR})
+	set(ENV{SDLDIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
+if(NOT DEFINED ENV{SDLIMAGEDIR})
+	set(ENV{SDLIMAGEDIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
+if(NOT DEFINED ENV{SFML_ROOT})
+	set(ENV{SFML_ROOT} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
 #===================================
 # Build options ====================
 #===================================
@@ -470,6 +482,76 @@ if(BUILD_SAMPLES)
 				RUNTIME DESTINATION ${SAMPLES_DIR}/directx10
 				BUNDLE DESTINATION ${SAMPLES_DIR})
 		endif()
+	endif()
+
+    message("-- Can SDL2 sample be built")
+    find_package(SDL)
+    if(SDL_FOUND)
+	find_package(SDL_image)
+	if(SDL_IMAGE_FOUND)
+		find_package(GLEW)
+		if(GLEW_FOUND)
+        		message("-- Can SDL2 sample be built - yes")
+			include_directories(${SDL_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+
+			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL_LIBRARY} ${SDL_IMAGE_LIBRARY} ${GLEW_LIBRARY})
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
+			install(TARGETS sdl2
+				RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		else()
+		        message("-- Can SDL2 sample be built - GLEW not found")
+		endif()
+	else()
+	        message("-- Can SDL2 sample be built - SDL2_image not found")
+	endif()
+    else()
+        message("-- Can SDL2 sample be built - SDL2 not found")
+    endif()
+
+
+	message("-- Can SFML 1.x sample be built")
+	find_package(SFML 1 COMPONENTS graphics window system)
+	if(NOT SFML_FOUND)
+		message("-- Can SFML 1.x sample be built - no")
+	elseif(SFML_VERSION_MAJOR GREATER 1)
+		message("-- Can SFML 1.x sample be built - no: Version 2 detected")
+	else()
+		message("-- Can SFML 1.x sample be built - yes")
+
+		include_directories(${SFML_INCLUDE_DIR})
+
+		bl_sample(sfml ${sample_LIBRARIES} ${SFML_LIBRARIES})
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml)
+			install(TARGETS sfml
+				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
+
+	message("-- Can SFML 2.x sample be built")
+	find_package(SFML 2 COMPONENTS graphics window system)
+	if(NOT SFML_FOUND)
+		message("-- Can SFML 2.x sample be built - no")
+	else()
+		find_package(GLEW)
+                if(GLEW_FOUND)
+			message("-- Can SFML 2.x sample be built - yes: with GLEW")
+			include_directories(${SFML_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+			add_definitions( -DENABLE_GLEW )
+			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES} ${GLEW_LIBRARY})
+		else()
+			message("-- Can SFML 2.x sample be built - yes: without GLEW")
+			include_directories(${SFML_INCLUDE_DIR})
+			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
+		endif()
+
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
+			install(TARGETS sfml2
+				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml2
+				BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
 
     # Build and install the tutorials
