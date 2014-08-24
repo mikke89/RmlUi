@@ -71,6 +71,10 @@ if(NOT DEFINED ENV{SDLIMAGEDIR})
 	set(ENV{SDLIMAGEDIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
+if(NOT DEFINED ENV{SFML_ROOT})
+	set(ENV{SFML_ROOT} "${PROJECT_SOURCE_DIR}/../Dependencies")
+endif()
+
 #===================================
 # Build options ====================
 #===================================
