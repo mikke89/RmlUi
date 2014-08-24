@@ -57,9 +57,9 @@ void GameLoop()
 
 #if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE, HINSTANCE, char*, int)
+int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
 #else
-int main(int, char**)
+int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv))
 #endif
 {
 	ShellRenderInterfaceOpenGL opengl_renderer;

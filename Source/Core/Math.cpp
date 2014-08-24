@@ -108,7 +108,7 @@ ROCKETCORE_API float DegreesToRadians(float angle)
 // Normalises and angle in radians
 ROCKETCORE_API float NormaliseAngle(float angle)
 {
-	return fmodf(angle, ROCKET_PI * 2.0);
+	return fmodf(angle, ROCKET_PI * 2.0f);
 }
 
 // Calculates the square root of a value.
