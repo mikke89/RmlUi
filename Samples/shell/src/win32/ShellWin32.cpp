@@ -137,14 +137,6 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	SetWindowLong(window_handle, GWL_EXSTYLE, extended_style);
 	SetWindowLong(window_handle, GWL_STYLE, style);
 
-	// Resize the window.
-	SetWindowPos(window_handle, HWND_TOP, 0, 0, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOACTIVATE);
-
-	// Display the new window
-	ShowWindow(window_handle, SW_SHOW);
-	SetForegroundWindow(window_handle);
-	SetFocus(window_handle);
-
 	if (_shell_renderer != NULL)
 	{
 		shell_renderer = _shell_renderer;
@@ -154,6 +146,14 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 			return false;
 		}
 	}
+
+	// Resize the window.
+	SetWindowPos(window_handle, HWND_TOP, 0, 0, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOACTIVATE);
+
+	// Display the new window
+	ShowWindow(window_handle, SW_SHOW);
+	SetForegroundWindow(window_handle);
+	SetFocus(window_handle);
 
     return true;
 }
