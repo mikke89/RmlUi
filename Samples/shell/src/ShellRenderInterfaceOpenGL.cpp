@@ -142,6 +142,13 @@ bool ShellRenderInterfaceOpenGL::LoadTexture(Rocket::Core::TextureHandle& textur
 	size_t buffer_size = file_interface->Tell(file_handle);
 	file_interface->Seek(file_handle, 0, SEEK_SET);
 	
+	ROCKET_ASSERTMSG(buffer_size > sizeof(TGAHeader), "Texture file size is smaller than TGAHeader, file must be corrupt or otherwise invalid");
+	if(buffer_size <= sizeof(TGAHeader))
+	{
+		file_interface->Close(file_handle);
+		return false;
+	}
+
 	char* buffer = new char[buffer_size];
 	file_interface->Read(buffer, buffer_size, file_handle);
 	file_interface->Close(file_handle);
