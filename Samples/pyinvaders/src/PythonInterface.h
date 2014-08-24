@@ -28,8 +28,9 @@
 #ifndef PYTHONINTERFACE_H
 #define PYTHONINTERFACE_H
 
-#include <Rocket/Core/String.h>
 #include <Rocket/Core/Python/Python.h>
+
+#include <Rocket/Core/String.h>
 
 /**
 	Creates and maintains the python interface to Invaders.

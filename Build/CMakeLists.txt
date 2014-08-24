@@ -151,7 +151,7 @@ if(BUILD_PYTHON_BINDINGS)
     find_package(Boost 1.40.0 COMPONENTS python REQUIRED)
     if(Boost_FOUND)
         include_directories(${Boost_INCLUDE_DIR})
-        list(APPEND PY_BINDINGS_LINK_LIBS ${Boost_LIBRARIES})
+        list(APPEND PY_BINDINGS_LINK_LIBS ${PYTHON_LIBRARY} ${Boost_LIBRARIES})
     endif()
 
 endif()
@@ -229,6 +229,14 @@ if(BUILD_PYTHON_BINDINGS)
                             ${Py${library}_HDR_FILES}
                             ${Py${library}_PUB_HDR_FILES}
         )
+
+    if(APPLE)
+	if(NOT IOS)
+    		set_target_properties(${NAME} PROPERTIES
+    						OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
+    		)
+	endif(NOT IOS)
+    endif(APPLE)
 
         set_target_properties(${NAME} PROPERTIES PREFIX "")
 
