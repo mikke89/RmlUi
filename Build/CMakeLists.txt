@@ -500,15 +500,17 @@ if(BUILD_SAMPLES)
 
 
 	message("-- Can SFML 1.x sample be built")
-	find_package(SFML)
+	find_package(SFML 1 COMPONENTS graphics window system)
 	if(NOT SFML_FOUND)
 		message("-- Can SFML 1.x sample be built - no")
+	elseif(SFML_VERSION_MAJOR GREATER 1)
+		message("-- Can SFML 1.x sample be built - no: Version 2 detected")
 	else()
 		message("-- Can SFML 1.x sample be built - yes")
 
 		include_directories(${SFML_INCLUDE_DIR})
 
-		bl_sample(sfml ${sample_LIBRARIES} ${SFML_GRAPHICS_LIBRARY} ${SFML_WINDOW_LIBRARY} ${SFML_SYSTEM_LIBRARY})
+		bl_sample(sfml ${sample_LIBRARIES} ${SFML_LIBRARIES})
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml)
 			install(TARGETS sfml
@@ -517,19 +519,20 @@ if(BUILD_SAMPLES)
 	endif()
 
 	message("-- Can SFML 2.x sample be built")
-	if(NOT SFML2_FOUND)
+	find_package(SFML 2 COMPONENTS graphics window system)
+	if(NOT SFML_FOUND)
 		message("-- Can SFML 2.x sample be built - no")
 	else()
 		find_package(GLEW)
                 if(GLEW_FOUND)
 			message("-- Can SFML 2.x sample be built - yes: with GLEW")
-			include_directories(${SFML2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+			include_directories(${SFML_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 			add_definitions( -DENABLE_GLEW )
-			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML2_GRAPHICS_LIBRARY} ${SFML2_WINDOW_LIBRARY} ${SFML2_SYSTEM_LIBRARY} ${GLEW_LIBRARY})
+			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES} ${GLEW_LIBRARY})
 		else()
 			message("-- Can SFML 2.x sample be built - yes: without GLEW")
-			include_directories(${SFML2_INCLUDE_DIR})
-			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML2_GRAPHICS_LIBRARY} ${SFML2_WINDOW_LIBRARY} ${SFML2_SYSTEM_LIBRARY})
+			include_directories(${SFML_INCLUDE_DIR})
+			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
 		endif()
 
 			# The samples always set this as their current working directory
