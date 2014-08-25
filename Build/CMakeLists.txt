@@ -64,6 +64,17 @@ if(NOT DEFINED ENV{LUA_DIR})
 endif()
 
 #===================================
+# Plaform specific global hacks ====
+#===================================
+
+if(APPLE)
+	# Disables naked builtins from AssertMacros.h which
+	# This prevents naming collisions such as those from the check()
+	# function macro with LuaType::check
+	add_definitions(-D_ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0)
+endif(APPLE)
+
+#===================================
 # Build options ====================
 #===================================
 
