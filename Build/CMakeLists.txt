@@ -30,12 +30,6 @@ set(PROJECT_VERSION ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBR
 # Search in the 'cmake' directory for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-if(NOT APPLE)
-	# Apple OSX and iOS use a subdirectory naming convention instead of
-	# appending a _d to the filename
-	set(CMAKE_DEBUG_POSTFIX  "_d")
-endif()
-
 #===================================
 # Environment tests ================
 #===================================
