@@ -447,8 +447,13 @@ bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
 				// Wierd, seems our buffer is too small, realloc it bigger.
 				buffer_size *= 2;
 				int read_offset = (int)(read - buffer);
-				buffer = (unsigned char*) realloc(buffer, buffer_size);
-
+				unsigned char* new_buffer = (unsigned char*) realloc(buffer, buffer_size);
+				ROCKET_ASSERTMSG(new_buffer != NULL, "Unable to allocate larger buffer for Peek() call");
+				if(new_buffer == NULL)
+				{
+					return false;
+				}
+				buffer = new_buffer;
 				// Restore the read pointers.
 				read = buffer + read_offset;
 				peek_read = read + peek_offset;
