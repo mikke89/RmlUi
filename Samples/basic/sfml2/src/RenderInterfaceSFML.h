@@ -42,9 +42,7 @@
 // if the OpenGL Extension Wrangler Library (GLEW) should not be used
 // include the standard OpenGL library
 #ifndef ENABLE_GLEW
-// NOTE: add this if you receive a lot of errors in gl.h
-//#include <windows.h>
-#include <GL/gl.h>
+#include "../../../shell/include/ShellOpenGL.h"
 #endif
 
 class RocketSFMLRenderer : public Rocket::Core::RenderInterface
