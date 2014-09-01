@@ -51,6 +51,11 @@ template
 treeview
 tutorial_drag
 
+#VisualStudio Project artifacts
+*.vcproj
+*.vcxproj
+*.vcxproj.filters
+
 #Win32 artifacts
 libRocketCore.dll
 libRocketCore.lib
