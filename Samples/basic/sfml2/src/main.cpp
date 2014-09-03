@@ -155,13 +155,16 @@ int main(int argc, char **argv)
 					SystemInterface.GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::Closed:
-				return 1;
+				MyWindow.close();
 				break;
 			};
 		};
 
 		Context->Update();
 	};
+
+	Context->RemoveReference();
+	Rocket::Core::Shutdown();
 
 	return 0;
 };
