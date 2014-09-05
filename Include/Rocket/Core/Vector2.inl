@@ -62,12 +62,12 @@ Type Vector2< Type >::SquaredMagnitude() const
 template < typename Type >
 Vector2< Type > Vector2< Type >::Normalise() const
 {
-	ROCKET_STATIC_ASSERT(sizeof(Type) == 0, Invalid_Operation);
-	return *this;
-}
+	float magnitude = Magnitude();
+	if (Math::IsZero(magnitude))
+		return *this;
 
-template <>
-ROCKETCORE_API Vector2< float > Vector2< float >::Normalise() const;
+	return *this / magnitude;
+}
 
 // Computes the dot-product between this vector and another.
 template < typename Type >
@@ -81,12 +81,12 @@ Type Vector2< Type >::DotProduct(const Vector2< Type >& rhs) const
 template < typename Type >
 Vector2< Type > Vector2< Type >::Rotate(float theta) const
 {
-	ROCKET_STATIC_ASSERT(sizeof(Type) == 0, Invalid_Operation);
-	return *this;
-}
+	float cos_theta = Math::Cos(theta);
+	float sin_theta = Math::Sin(theta);
 
-template <>
-ROCKETCORE_API Vector2< float > Vector2< float >::Rotate(float) const;
+	return Vector2< Type >(((Type)(cos_theta * x - sin_theta * y)),
+							((Type)(sin_theta * x + cos_theta * y)));
+}
 
 // Returns the negation of this vector.
 template < typename Type >

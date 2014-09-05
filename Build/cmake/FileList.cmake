@@ -293,7 +293,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/UnicodeRange.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Vector2.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WString.cpp
