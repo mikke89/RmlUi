@@ -61,12 +61,25 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
+#ifdef ROCKET_PLATFORM_LINUX
+#define APP_PATH "../Samples/basic/drag/"
+#else
+#define APP_PATH "../../Samples/basic/drag/"
+#endif
+
+#ifdef ROCKET_PLATFORM_WIN32
+        DoAllocConsole();
+#endif
+
+        int window_width = 1024;
+        int window_height = 768;
+
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../Samples/basic/drag/") ||
-		!Shell::OpenWindow("Drag Sample", shell_renderer, 1024, 768, true))
+	if (!Shell::Initialise(APP_PATH) ||
+		!Shell::OpenWindow("Drag Sample", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
 		return -1;
