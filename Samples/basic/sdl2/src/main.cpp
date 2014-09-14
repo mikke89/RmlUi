@@ -39,8 +39,25 @@
 
 int main(int argc, char **argv)
 {
+#ifdef ROCKET_PLATFORM_LINUX
+#define APP_PATH "../Samples/basic/sdl2/"
+#else
+#ifdef ROCKET_PLATFORM_MACOSX
+#define APP_PATH "../../../../../Samples/basic/sdl2/"
+#else
+#define APP_PATH "../../Samples/basic/sdl2/"
+#endif
+#endif
+
+#ifdef ROCKET_PLATFORM_WIN32
+        DoAllocConsole();
+#endif
+
+        int window_width = 1024;
+        int window_height = 768;
+
     SDL_Init( SDL_INIT_VIDEO );
-    SDL_Window * screen = SDL_CreateWindow("LibRocket SDL2 test", 20, 20, 640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Window * screen = SDL_CreateWindow("LibRocket SDL2 test", 20, 20, window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     SDL_GLContext glcontext = SDL_GL_CreateContext(screen);
     int oglIdx = -1;
     int nRD = SDL_GetNumRenderDrivers();
@@ -65,7 +82,7 @@ int main(int argc, char **argv)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     glMatrixMode(GL_PROJECTION|GL_MODELVIEW);
     glLoadIdentity();
-    glOrtho(0, 640, 480, 0, 0, 1);
+    glOrtho(0, window_width, window_height, 0, 0, 1);
  
 	RocketSDL2Renderer Renderer(renderer, screen);
 	RocketSDL2SystemInterface SystemInterface;
@@ -84,7 +101,7 @@ int main(int argc, char **argv)
 	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Roman.otf");
 
 	Rocket::Core::Context *Context = Rocket::Core::CreateContext("default",
-		Rocket::Core::Vector2i(640, 480));
+		Rocket::Core::Vector2i(window_width, window_height));
 
 	Rocket::Debugger::Initialise(Context);
 
@@ -124,7 +141,6 @@ int main(int argc, char **argv)
                 case SDL_MOUSEMOTION:
                     Context->ProcessMouseMove(event.motion.x, event.motion.y, SystemInterface.GetKeyModifiers());
                     break;
-                
                 case SDL_MOUSEBUTTONDOWN:
                     Context->ProcessMouseButtonDown(SystemInterface.TranslateMouseButton(event.button.button), SystemInterface.GetKeyModifiers());
                     break;
@@ -144,7 +160,6 @@ int main(int argc, char **argv)
                     break;
             }
         }
-        
 		Context->Update();
 	}
 
