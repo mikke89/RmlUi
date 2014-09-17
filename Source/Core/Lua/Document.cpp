@@ -102,7 +102,8 @@ int DocumentCreateElement(lua_State* L, Document* obj)
 {
     const char* tag = luaL_checkstring(L,1);
     Element* ele = obj->CreateElement(tag);
-    LuaType<Element>::push(L,ele,false);
+    LuaType<Element>::push(L,ele,true);
+    ele->RemoveReference();
     return 1;
 }
 
@@ -111,7 +112,8 @@ int DocumentCreateTextNode(lua_State* L, Document* obj)
     //need ElementText object first
     const char* text = luaL_checkstring(L,1);
     ElementText* et = obj->CreateTextNode(text);
-    LuaType<ElementText>::push(L, et, false);
+    LuaType<ElementText>::push(L, et, true);
+    et->RemoveReference();
 	return 1;
 }
 
