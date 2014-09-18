@@ -62,13 +62,11 @@ int APIENTRY WinMain(HINSTANCE, HINSTANCE, char*, int)
 int main(int, char**)
 #endif
 {
-	#ifdef ROCKET_PLATFORM_MACOSX
-	#define APP_PATH "../"
-	#define ROCKET_PATH "../../bin/"
-	#else
-	#define APP_PATH "../Samples/luainvaders/"
-	#define ROCKET_PATH "."
-	#endif
+#ifdef ROCKET_PLATFORM_LINUX
+#define APP_PATH "../Samples/luainvaders/"
+#else
+#define APP_PATH "../../Samples/luainvaders/"
+#endif
 
 	#ifdef ROCKET_PLATFORM_WIN32
 	DoAllocConsole();
@@ -78,7 +76,7 @@ int main(int, char**)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../Samples/luainvaders/") ||
+	if (!Shell::Initialise(APP_PATH) ||
 		!Shell::OpenWindow("Rocket Invaders from Mars (Lua Powered)", shell_renderer, 1024, 768, false))
 	{
 		Shell::Shutdown();
@@ -130,7 +128,7 @@ int main(int, char**)
 
 	// Fire off the startup script.
     LuaInterface::Initialise(Rocket::Core::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples
-    Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String(APP_PATH).Append("lua/start.lua"));
+    Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String("lua/start.lua"));
 
 	Shell::EventLoop(GameLoop);	
 
