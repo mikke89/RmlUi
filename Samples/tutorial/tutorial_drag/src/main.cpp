@@ -55,12 +55,15 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
         DoAllocConsole();
 #endif
 
+	int window_width = 1024;
+	int window_height = 768;
+
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise(APP_PATH) ||
-		!Shell::OpenWindow("Drag Tutorial", shell_renderer, 1024, 768, true))
+		!Shell::OpenWindow("Drag Tutorial", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -68,7 +71,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	// Rocket initialisation.
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(1024, 768);
+	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
 	Rocket::Core::SetSystemInterface(&system_interface);
@@ -76,7 +79,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Rocket::Core::Initialise();
 
 	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));
+	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(window_width, window_height));
 	if (context == NULL)
 	{
 		Rocket::Core::Shutdown();
