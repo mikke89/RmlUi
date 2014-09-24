@@ -118,7 +118,9 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, 1024, 768, 0, -1, 1);
+	RECT crect;
+	GetClientRect(this->window_handle, &crect)
+	glOrtho(0, (crect.right - crect.left), (crect.bottom - crect.top), 0, -1, 1);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
