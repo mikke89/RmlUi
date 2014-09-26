@@ -80,15 +80,20 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	#endif
 
 	#ifdef ROCKET_PLATFORM_WIN32
+#ifdef ROCKET_PLATFORM_WIN32
 	DoAllocConsole();
-	#endif
+#endif
+
+	int window_width = 1024;
+	int window_height = 768;
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
+	// @TODO switch to using variable for window sizes
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../Samples/pyinvaders/") ||
-		!Shell::OpenWindow("Rocket Invaders from Mars (Python Powered)", shell_renderer, 1024, 768, false))
+	if (!Shell::Initialise(APP_PATH) ||
+		!Shell::OpenWindow("Rocket Invaders from Mars (Python Powered)", shell_renderer, window_width, window_height, false))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -96,7 +101,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	// Rocket initialisation.
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(1024,768);
+	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
 	Rocket::Core::SetSystemInterface(&system_interface);
@@ -109,7 +114,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	PythonInterface::Initialise((Shell::GetExecutablePath() + (APP_PATH "python") + PATH_SEPARATOR + Shell::GetExecutablePath() + ROCKET_PATH).CString());
 
 	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));
+	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(window_width, window_height));
 	if (context == NULL)
 	{
 		Rocket::Core::Shutdown();
