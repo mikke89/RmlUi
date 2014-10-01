@@ -112,25 +112,42 @@ if(WIN32)
 	option(SKIP_DIRECTX10_SAMPLE "Skip build of DirectX 10 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
 endif()
 
-if(IOS)
-	if(BUILD_SHARED_LIBS)
-		message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
-	endif(BUILD_SHARED_LIBS)
-endif(IOS)
+if(APPLE)
+	if(IOS)
+		if(BUILD_SHARED_LIBS)
+			message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
+		endif(BUILD_SHARED_LIBS)
 
-if(BUILD_FRAMEWORK)
-	if(APPLE)
+		# make doesn't deal with $() project variables, so we use ${} and let cmake handle it instead
+		if(CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+			set(CMAKE_OSX_ARCHITECTURES "${ARCHS_STANDARD}")
+		else()
+			set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)")
+		endif()
+	else(IOS)
+		if(CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+			# ARCHS_STANDARD_32_64_BIT environment variable is no longer present in xcode 6 for Makefile builds, we pass our own values in its place
+			# you can also add ppc or ppc64 here for older PPC builds
+#			set(CMAKE_OSX_ARCHITECTURES "${ARCHS_STANDARD_32_64_BIT}")
+			set(CMAKE_OSX_ARCHITECTURES "i386;x86_64;")
+		else()
+			set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
+		endif()
+	endif(IOS)
+
+	if(BUILD_FRAMEWORK)
 		if(NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
 			message(FATAL_ERROR "You should use Xcode generator with BUILD_FRAMEWORK enabled")
 		endif()
-		set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
 		if(NOT BUILD_SHARED_LIBS)
 			message(FATAL_ERROR "BUILD_SHARED_LIBS must be ON with BUILD_FRAMEWORK enabled")
 		endif()
-	else(APPLE)
+	endif()
+else(APPLE)
+	if(BUILD_FRAMEWORK)
 		message(FATAL_ERROR "BUILD_FRAMEWORK is only supported on Mac OS X with the Xcode generator")
-	endif(APPLE)
-endif()
+	endif()
+endif(APPLE)
 
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSTATIC_LIB)
@@ -239,14 +256,6 @@ foreach(library ${LIBRARIES})
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
     )
     
-    if(APPLE)
-	if(NOT IOS)
-    		set_target_properties(${NAME} PROPERTIES
-    						OSX_ARCHITECTURES "i386;x86_64;"
-    		)
-	endif(NOT IOS)
-    endif(APPLE)
-
     install(TARGETS ${NAME}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -286,9 +295,6 @@ else(NOT BUILD_FRAMEWORK)
 		SOVERSION ${LIBROCKET_VERSION_MAJOR}
 	)
 
-	set_target_properties(${NAME} PROPERTIES
-		OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
-	)
 		set_property(SOURCE ${MASTER_PUB_HDR_FILES}
 			PROPERTY MACOSX_PACKAGE_LOCATION Headers
 		)
@@ -331,14 +337,6 @@ if(BUILD_PYTHON_BINDINGS)
                             ${Py${library}_PUB_HDR_FILES}
         )
 
-    if(APPLE)
-	if(NOT IOS)
-    		set_target_properties(${NAME} PROPERTIES
-    						OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
-    		)
-	endif(NOT IOS)
-    endif(APPLE)
-
         set_target_properties(${NAME} PROPERTIES PREFIX "")
 
         install(TARGETS ${NAME}
@@ -364,14 +362,6 @@ if(BUILD_LUA_BINDINGS)
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
         )
         
-    if(APPLE)
-	if(NOT IOS)
-    		set_target_properties(${NAME} PROPERTIES
-    						OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
-    		)
-	endif(NOT IOS)
-    endif(APPLE)
-
         install(TARGETS ${NAME}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
