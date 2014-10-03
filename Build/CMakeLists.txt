@@ -2,12 +2,31 @@
 # Build script for libRocket =======
 #===================================
 
-# This has to be before most other options so CMake properly handles the 
-# compiler variables, it MUST bebefore the project() definition
 if(APPLE)
+	# This has to be before most other options so CMake properly handles the 
+	# compiler variables, it MUST bebefore the project() definition
 	if(IOS_PLATFORM)
 		set(CMAKE_TOOLCHAIN_FILE cmake/Platform/iOS.cmake)
 	endif(IOS_PLATFORM)
+
+	option(BUILD_UNIVERSAL_BINARIES "Build universal binaries for all architectures supported" ON)
+	if (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
+		if(IOS)
+			# set the architecture for iOS 
+			if (${IOS_PLATFORM} STREQUAL "OS")
+				set (IOS_ARCH armv6 armv7 armv7s arm64)
+				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS")
+			else (${IOS_PLATFORM} STREQUAL "OS")
+				set (IOS_ARCH i386 x86_64)
+				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS Simulator")
+			endif (${IOS_PLATFORM} STREQUAL "OS")
+
+		else(IOS)
+			# set the architectures for OS X
+			set (OSXI_ARCH i386 x86_64)
+			set (CMAKE_OSX_ARCHITECTURES ${OSXI_ARCH} CACHE string  "Build architecture for OS X universal binaries")		
+		endif(IOS)
+	endif (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
 endif(APPLE)
 
 # We use the new OSX_ARCHITECTURES property
@@ -96,16 +115,17 @@ if(NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif()
 
-option(ARCHS_OVERRIDE "Override default processor architecture targets.  Currently only supported on OS X or iOS, ignored on other systems." OFF)
 if(NOT IOS)
 	option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 endif(NOT IOS)
 
 option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
+
 if(APPLE)
 	option(BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
 endif()
+
 option(BUILD_SAMPLES "Build samples" OFF)
 if(WIN32)
 	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
@@ -118,30 +138,6 @@ if(APPLE)
 		if(BUILD_SHARED_LIBS)
 			message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
 		endif(BUILD_SHARED_LIBS)
-
-		# make doesn't deal with $() project variables, so we use ${} and let cmake handle it instead
-		if(ARCHS_OVERRIDE)
-				set(CMAKE_OSX_ARCHITECTURES "${ARCHS_OVERRIDE}")
-		else(ARCHS_OVERRIDE)
-			if(CMAKE_GENERATOR STREQUAL "Unix Makefiles")
-				set(CMAKE_OSX_ARCHITECTURES "${ARCHS_STANDARD}")
-			else()
-				set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)")
-			endif()
-		endif(ARCHS_OVERRIDE)
-	else(IOS)
-		if(ARCHS_OVERRIDE)
-				set(CMAKE_OSX_ARCHITECTURES "${ARCHS_OVERRIDE}")
-		else(ARCHS_OVERRIDE)
-			if(CMAKE_GENERATOR STREQUAL "Unix Makefiles")
-				# ARCHS_STANDARD_32_64_BIT environment variable is no longer present in xcode 6 for Makefile builds, we pass our own values in its place
-				# you can also add ppc or ppc64 here for older PPC builds
-#				set(CMAKE_OSX_ARCHITECTURES "${ARCHS_STANDARD_32_64_BIT}")
-				set(CMAKE_OSX_ARCHITECTURES "i386;x86_64;")
-			else()
-				set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
-			endif()
-		endif(ARCHS_OVERRIDE)
 	endif(IOS)
 
 	if(BUILD_FRAMEWORK)
