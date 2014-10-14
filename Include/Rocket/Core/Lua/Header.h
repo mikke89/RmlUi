@@ -36,11 +36,11 @@
 
 #if !defined STATIC_LIB
 	#ifdef ROCKET_PLATFORM_WIN32
-		#if defined RocketcoreLua_EXPORTS 
+		#if defined RocketCoreLua_EXPORTS 
 			#define ROCKETLUA_API __declspec(dllexport)
-        #elif defined RocketcontrolsLua_EXPORTS
-            #define ROCKETLUA_API __declspec(dllexport)
-        #else
+        	#elif defined RocketControlsLua_EXPORTS
+        	    #define ROCKETLUA_API __declspec(dllexport)
+        	#else
 			#define ROCKETLUA_API __declspec(dllimport)
 		#endif
 	#else
