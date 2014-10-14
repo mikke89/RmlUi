@@ -104,9 +104,14 @@ PASS_THROUGH(char);
 PASS_THROUGH(word);
 PASS_THROUGH(Vector2i);
 PASS_THROUGH(Vector2f);
+PASS_THROUGH(Vector3i);
+PASS_THROUGH(Vector3f);
+PASS_THROUGH(Vector4i);
+PASS_THROUGH(Vector4f);
 PASS_THROUGH(Colourf);
 PASS_THROUGH(Colourb);
 PASS_THROUGH(String);
+PASS_THROUGH(TransformRef);
 
 // Pointer types need to be typedef'd
 class ScriptInterface;
@@ -256,6 +261,10 @@ public: \
 
 STRING_VECTOR_CONVERTER(Vector2i, int, 2);
 STRING_VECTOR_CONVERTER(Vector2f, float, 2);
+STRING_VECTOR_CONVERTER(Vector3i, int, 3);
+STRING_VECTOR_CONVERTER(Vector3f, float, 3);
+STRING_VECTOR_CONVERTER(Vector4i, int, 4);
+STRING_VECTOR_CONVERTER(Vector4f, float, 4);
 STRING_VECTOR_CONVERTER(Colourf, float, 4);
 STRING_VECTOR_CONVERTER(Colourb, byte, 4);
 
@@ -373,6 +382,10 @@ public: \
 
 VECTOR_STRING_CONVERTER(Vector2i, int, 2);
 VECTOR_STRING_CONVERTER(Vector2f, float, 2);
+VECTOR_STRING_CONVERTER(Vector3i, int, 3);
+VECTOR_STRING_CONVERTER(Vector3f, float, 3);
+VECTOR_STRING_CONVERTER(Vector4i, int, 4);
+VECTOR_STRING_CONVERTER(Vector4f, float, 4);
 VECTOR_STRING_CONVERTER(Colourf, float, 4);
 VECTOR_STRING_CONVERTER(Colourb, byte, 4);
 #undef PASS_THROUGH

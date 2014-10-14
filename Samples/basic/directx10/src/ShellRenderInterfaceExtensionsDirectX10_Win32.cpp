@@ -87,11 +87,18 @@ void RenderInterfaceDirectX10::SetViewport(int width, int height)
 		// Recreate our view and projection matrix
 		D3DXMatrixOrthoOffCenterLH(&this->m_matProjection, 0, width, height, 0, -1, 1);
 		m_pProjectionMatrixVariable->SetMatrix((float*)this->m_matProjection);
-	}
 
-	if(m_rocket_context != NULL)
-	{
-		((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
+		if(m_rocket_context != NULL)
+		{
+			((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
+			Rocket::Core::Matrix4f mat;
+			mat = m_matProjection;
+			mat = mat.Transpose();
+			((Rocket::Core::Context*)m_rocket_context)->ProcessProjectionChange(mat);
+			mat = m_matWorld;
+			mat = mat.Transpose();
+			((Rocket::Core::Context*)m_rocket_context)->ProcessViewChange(mat);
+		}
 	}
 }
 

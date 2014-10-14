@@ -32,6 +32,7 @@
 #include "Header.h"
 #include "Texture.h"
 #include "Vertex.h"
+#include "Types.h"
 
 namespace Rocket {
 namespace Core {
@@ -115,6 +116,14 @@ public:
 	/// Returns the number of pixels per inch.
 	/// @returns The number of pixels per inch. The default implementation returns 100.
 	virtual float GetPixelsPerInch();
+
+	/// Called by Rocket when it wants to set the current transform matrix to a new matrix.
+	/// @param[in] transform The new transform to apply.
+	virtual void PushTransform(const Matrix4f& transform);
+	/// Called by Rocket when it wants to revert the latest transform change.
+	/// @param[in] transform This is the transform to unapply.
+	///            It always equals the argument of the latest call to PushTransform().
+	virtual void PopTransform(const Matrix4f& transform);
 
 	/// Called when this render interface is released.
 	virtual void Release();

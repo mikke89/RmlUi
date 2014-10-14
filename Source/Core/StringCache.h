@@ -95,6 +95,15 @@ extern const String CURSOR;
 extern const String DRAG;
 extern const String TAB_INDEX;
 extern const String SCROLLBAR_MARGIN;
+extern const String PERSPECTIVE;
+extern const String PERSPECTIVE_ORIGIN;
+extern const String PERSPECTIVE_ORIGIN_X;
+extern const String PERSPECTIVE_ORIGIN_Y;
+extern const String TRANSFORM;
+extern const String TRANSFORM_ORIGIN;
+extern const String TRANSFORM_ORIGIN_X;
+extern const String TRANSFORM_ORIGIN_Y;
+extern const String TRANSFORM_ORIGIN_Z;
 
 extern const String MOUSEDOWN;
 extern const String MOUSESCROLL;

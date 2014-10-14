@@ -40,7 +40,7 @@ namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
+Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), view_state()
 {
 	instancer = NULL;
 
@@ -120,9 +120,16 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 				document->DirtyLayout();
 				document->UpdatePosition();
 			}
+
+			// We need to rebuild our projection matrices when the
+			// dimensions change.
+			root->GetChild(i)->DirtyTransformState(true, false, false);
 		}
 		
 		clip_dimensions = dimensions;
+
+		// TODO: Ensure the user calls ProcessProjectionChange() before
+		// the next rendering phase.
 	}
 }
 
@@ -130,6 +137,12 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 const Vector2i& Context::GetDimensions() const
 {
 	return dimensions;
+}
+
+// Returns the current state of the view.
+const ViewState& Context::GetViewState() const throw()
+{
+	return view_state;
 }
 
 // Updates all elements in the element tree.
@@ -805,6 +818,18 @@ bool Context::ProcessMouseWheel(int wheel_delta, int key_modifier_state)
 	return true;
 }
 
+// Notifies Rocket of a change in the projection matrix.
+void Context::ProcessProjectionChange(const Matrix4f &projection)
+{
+	view_state.SetProjection(&projection);
+}
+
+// Notifies Rocket of a change in the view matrix.
+void Context::ProcessViewChange(const Matrix4f &view)
+{
+	view_state.SetView(&view);
+}
+
 // Gets the context's render interface.
 RenderInterface* Context::GetRenderInterface() const
 {
@@ -1097,17 +1122,19 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 		}
 	}
 
+	Vector2f projected_point = element->Project(point);
+
 	// Check if the point is actually within this element.
-	bool within_element = element->IsPointWithinElement(point);
+	bool within_element = element->IsPointWithinElement(projected_point);
 	if (within_element)
 	{
 		Vector2i clip_origin, clip_dimensions;
 		if (ElementUtilities::GetClippingRegion(clip_origin, clip_dimensions, element))
 		{
-			within_element = point.x >= clip_origin.x &&
-							 point.y >= clip_origin.y &&
-							 point.x <= (clip_origin.x + clip_dimensions.x) &&
-							 point.y <= (clip_origin.y + clip_dimensions.y);
+			within_element = projected_point.x >= clip_origin.x &&
+							 projected_point.y >= clip_origin.y &&
+							 projected_point.x <= (clip_origin.x + clip_dimensions.x) &&
+							 projected_point.y <= (clip_origin.y + clip_dimensions.y);
 		}
 	}
 

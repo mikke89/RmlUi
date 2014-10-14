@@ -36,16 +36,22 @@ void RenderInterfaceDirectX::SetContext(void *context)
 
 void RenderInterfaceDirectX::SetViewport(int width, int height)
 {
+	Rocket::Core::Matrix4f rocket_projection;
+
 	if(g_pd3dDevice != NULL)
 	{
 		D3DXMATRIX projection;
 		D3DXMatrixOrthoOffCenterLH(&projection, 0, (float)width, (float)height, 0, -1, 1);
 		g_pd3dDevice->SetTransform(D3DTS_PROJECTION, &projection);
-	}
+		rocket_projection = projection;
+		rocket_projection = rocket_projection.Transpose();
 
-	if(m_rocket_context != NULL)
-	{
-		((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
+		if(m_rocket_context != NULL)
+		{
+			((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
+			((Rocket::Core::Context*)m_rocket_context)->ProcessProjectionChange();
+			//((Rocket::Core::Context*)m_rocket_context)->ProcessViewChange();
+		}
 	}
 }
 

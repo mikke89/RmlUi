@@ -73,6 +73,12 @@ public:
 	/// Called by Rocket when a loaded texture is no longer required.
 	virtual void ReleaseTexture(Rocket::Core::TextureHandle texture_handle);
 
+	/// Called by Rocket when it wants to set the current transform matrix to a new matrix.
+	virtual void PushTransform(const Rocket::Core::RowMajorMatrix4f& transform);
+	virtual void PushTransform(const Rocket::Core::ColumnMajorMatrix4f& transform);
+
+	/// Called by Rocket when it wants to revert the latest transform change.
+	virtual void PopTransform(const Rocket::Core::Matrix4f& transform);
 
 // ShellRenderInterfaceExtensions
 	virtual void SetViewport(int width, int height);
@@ -85,6 +91,7 @@ public:
 protected:
 	int m_width;
 	int m_height;
+	int m_transforms;
 	void *m_rocket_context;
 	
 #if defined(ROCKET_PLATFORM_MACOSX)
@@ -99,7 +106,6 @@ protected:
 #else
 #error Platform is undefined, this must be resolved so gl_context is usable.
 #endif
-
 };
 
 #endif

@@ -1,9 +1,9 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of rocket, the HTML/CSS Interface Middleware
  *
  * For the latest information, see http://www.librocket.com
  *
- * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2014 Markus Schöngart
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,48 +26,29 @@
  */
 
 #include "precompiled.h"
-#include "FontEffectOutlineInstancer.h"
-#include "FontEffectOutline.h"
+#include "../../Include/Rocket/Core/Types.h"
 
 namespace Rocket {
 namespace Core {
 
-FontEffectOutlineInstancer::FontEffectOutlineInstancer()
+Vector4i operator*(int lhs, const Vector4i& rhs)
 {
-	RegisterProperty("width", "1", true)
-		.AddParser("length");
+	return Vector4i(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z, lhs * rhs.w);
 }
 
-FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
+Vector4f operator*(float lhs, const Vector4f& rhs)
 {
+	return Vector4f(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z, lhs * rhs.w);
 }
 
-// Instances an outline font effect.
-FontEffect* FontEffectOutlineInstancer::InstanceFontEffect(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+template <>
+Vector4< float > Vector4< float >::Normalise() const
 {
-	ROCKET_UNUSED(name);
+	float magnitude = Magnitude();
+	if (Math::IsZero(magnitude))
+		return *this;
 
-	float width = properties.GetProperty("width")->Get< float >();
-
-	FontEffectOutline* font_effect = new FontEffectOutline();
-	if (font_effect->Initialise(Math::RealToInteger(width)))
-		return font_effect;
-
-	font_effect->RemoveReference();
-	ReleaseFontEffect(font_effect);
-	return NULL;
-}
-
-// Releases the given font effect.
-void FontEffectOutlineInstancer::ReleaseFontEffect(FontEffect* font_effect)
-{
-	delete font_effect;
-}
-
-// Releases the instancer.
-void FontEffectOutlineInstancer::Release()
-{
-	delete this;
+	return *this / magnitude;
 }
 
 }

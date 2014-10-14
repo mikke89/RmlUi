@@ -40,10 +40,10 @@ DecoratorTiledInstancer::~DecoratorTiledInstancer()
 void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool register_repeat_modes)
 {
 	RegisterProperty(String(32, "%s-src", name.CString()), "").AddParser("string");
-	RegisterProperty(String(32, "%s-s-begin", name.CString()), "0").AddParser("number");
-	RegisterProperty(String(32, "%s-s-end", name.CString()), "1").AddParser("number");
-	RegisterProperty(String(32, "%s-t-begin", name.CString()), "0").AddParser("number");
-	RegisterProperty(String(32, "%s-t-end", name.CString()), "1").AddParser("number");
+	RegisterProperty(String(32, "%s-s-begin", name.CString()), "0").AddParser("length");
+	RegisterProperty(String(32, "%s-s-end", name.CString()), "1").AddParser("length");
+	RegisterProperty(String(32, "%s-t-begin", name.CString()), "0").AddParser("length");
+	RegisterProperty(String(32, "%s-t-end", name.CString()), "1").AddParser("length");
 	RegisterShorthand(String(32, "%s-s", name.CString()), String(64, "%s-s-begin, %s-s-end", name.CString(), name.CString()));
 	RegisterShorthand(String(32, "%s-t", name.CString()), String(64, "%s-t-begin, %s-t-end", name.CString(), name.CString()));
 

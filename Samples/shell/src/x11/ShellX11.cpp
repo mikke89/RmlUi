@@ -88,6 +88,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 							GLX_GREEN_SIZE, 8,
 							GLX_BLUE_SIZE, 8,
 							GLX_DEPTH_SIZE, 24,
+							GLX_STENCIL_SIZE, 8,
 							None};
 
 	visual_info = glXChooseVisual(display, screen, attribute_list);

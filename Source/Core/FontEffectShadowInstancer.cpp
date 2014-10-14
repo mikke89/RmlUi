@@ -35,9 +35,9 @@ namespace Core {
 FontEffectShadowInstancer::FontEffectShadowInstancer()
 {
 	RegisterProperty("offset-x", "0", true)
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty("offset-y", "0", true)
-		.AddParser("number");
+		.AddParser("length");
 	RegisterShorthand("offset", "offset-x, offset-y");
 }
 

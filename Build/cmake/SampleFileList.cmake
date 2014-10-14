@@ -71,6 +71,13 @@ set(treeview_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/main.cpp
 )
 
+set(transform_HDR_FILES
+)
+
+set(transform_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/transform/src/main.cpp
+)
+
 set(sdl2_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.h

@@ -31,6 +31,7 @@
 #include "PropertyParserColour.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
+#include "PropertyParserTransform.h"
 
 namespace Rocket {
 namespace Core {
@@ -138,10 +139,13 @@ bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dicti
 // Registers Rocket's default parsers.
 void StyleSheetSpecification::RegisterDefaultParsers()
 {
-	RegisterParser("number", new PropertyParserNumber());
+	RegisterParser("number", new PropertyParserNumber(PropertyParserNumber::NUMBER));
+	RegisterParser("length", new PropertyParserNumber(PropertyParserNumber::LENGTH));
+	RegisterParser("angle", new PropertyParserNumber(PropertyParserNumber::ANGLE));
 	RegisterParser("keyword", new PropertyParserKeyword());
 	RegisterParser("string", new PropertyParserString());
 	RegisterParser(COLOR, new PropertyParserColour());
+	RegisterParser(TRANSFORM, new PropertyParserTransform());
 }
 
 // Registers Rocket's default style properties.
@@ -151,28 +155,28 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RegisterProperty(MARGIN_TOP, "0px", false, true)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty(MARGIN_RIGHT, "0px", false, true)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty(MARGIN_BOTTOM, "0px", false, true)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty(MARGIN_LEFT, "0px", false, true)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterShorthand(MARGIN, "margin-top, margin-right, margin-bottom, margin-left");
 
-	RegisterProperty(PADDING_TOP, "0px", false, true).AddParser("number");
-	RegisterProperty(PADDING_RIGHT, "0px", false, true).AddParser("number");
-	RegisterProperty(PADDING_BOTTOM, "0px", false, true).AddParser("number");
-	RegisterProperty(PADDING_LEFT, "0px", false, true).AddParser("number");
+	RegisterProperty(PADDING_TOP, "0px", false, true).AddParser("length");
+	RegisterProperty(PADDING_RIGHT, "0px", false, true).AddParser("length");
+	RegisterProperty(PADDING_BOTTOM, "0px", false, true).AddParser("length");
+	RegisterProperty(PADDING_LEFT, "0px", false, true).AddParser("length");
 	RegisterShorthand(PADDING, "padding-top, padding-right, padding-bottom, padding-left");
 
-	RegisterProperty(BORDER_TOP_WIDTH, "0px", false, true).AddParser("number");
-	RegisterProperty(BORDER_RIGHT_WIDTH, "0px", false, true).AddParser("number");
-	RegisterProperty(BORDER_BOTTOM_WIDTH, "0px", false, true).AddParser("number");
-	RegisterProperty(BORDER_LEFT_WIDTH, "0px", false, true).AddParser("number");
+	RegisterProperty(BORDER_TOP_WIDTH, "0px", false, true).AddParser("length");
+	RegisterProperty(BORDER_RIGHT_WIDTH, "0px", false, true).AddParser("length");
+	RegisterProperty(BORDER_BOTTOM_WIDTH, "0px", false, true).AddParser("length");
+	RegisterProperty(BORDER_LEFT_WIDTH, "0px", false, true).AddParser("length");
 	RegisterShorthand(BORDER_WIDTH, "border-top-width, border-right-width, border-bottom-width, border-left-width");
 
 	RegisterProperty(BORDER_TOP_COLOR, "black", false, false).AddParser(COLOR);
@@ -190,16 +194,16 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(POSITION, "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");
 	RegisterProperty(TOP, "auto", false, false)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty(RIGHT, "auto", false, false)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty(BOTTOM, "auto", false, false)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty(LEFT, "auto", false, false)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
+		.AddParser("length");
 
 	RegisterProperty(FLOAT, "none", false, true).AddParser("keyword", "none, left, right");
 	RegisterProperty(CLEAR, "none", false, true).AddParser("keyword", "none, left, right, both");
@@ -210,27 +214,27 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RegisterProperty(WIDTH, "auto", false, true)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
-	RegisterProperty(MIN_WIDTH, "0px", false, true).AddParser("number");
-	RegisterProperty(MAX_WIDTH, "-1", false, true).AddParser("number");
+		.AddParser("length");
+	RegisterProperty(MIN_WIDTH, "0px", false, true).AddParser("length");
+	RegisterProperty(MAX_WIDTH, "-1", false, true).AddParser("length");
 
 	RegisterProperty(HEIGHT, "auto", false, true)
 		.AddParser("keyword", "auto")
-		.AddParser("number");
-	RegisterProperty(MIN_HEIGHT, "0px", false, true).AddParser("number");
-	RegisterProperty(MAX_HEIGHT, "-1", false, true).AddParser("number");
+		.AddParser("length");
+	RegisterProperty(MIN_HEIGHT, "0px", false, true).AddParser("length");
+	RegisterProperty(MAX_HEIGHT, "-1", false, true).AddParser("length");
 
-	RegisterProperty(LINE_HEIGHT, "1.2", true, true).AddParser("number");
+	RegisterProperty(LINE_HEIGHT, "1.2", true, true).AddParser("length");
 	RegisterProperty(VERTICAL_ALIGN, "baseline", false, true)
 		.AddParser("keyword", "baseline, middle, sub, super, text-top, text-bottom, top, bottom")
-		.AddParser("number");
+		.AddParser("length");
 
 	RegisterProperty(OVERFLOW_X, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
 	RegisterProperty(OVERFLOW_Y, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
 	RegisterShorthand("overflow", "overflow-x, overflow-y", PropertySpecification::REPLICATE);
 	RegisterProperty(CLIP, "auto", true, false)
 		.AddParser("keyword", "auto, none")
-		.AddParser("number");
+		.AddParser("length");
 	RegisterProperty(VISIBILITY, "visible", false, false).AddParser("keyword", "visible, hidden");
 
 	// Need some work on this if we are to include images.
@@ -260,7 +264,31 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(TAB_INDEX, "none", false, false).AddParser("keyword", "none, auto");
 	RegisterProperty(FOCUS, "auto", true, false).AddParser("keyword", "none, auto");
 
-	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("number");
+	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("length");
+
+	// Perspective and Transform specifications
+	RegisterProperty(PERSPECTIVE, "none", false, false)
+		.AddParser("keyword", "none")
+		.AddParser("length");
+	RegisterProperty(PERSPECTIVE_ORIGIN_X, "50%", false, false)
+		.AddParser("keyword", "left, center, right")
+		.AddParser("length");
+	RegisterProperty(PERSPECTIVE_ORIGIN_Y, "50%", false, false)
+		.AddParser("keyword", "top, center, bottom")
+		.AddParser("length");
+	RegisterShorthand(PERSPECTIVE_ORIGIN, "perspective-origin-x, perspective-origin-y");
+	RegisterProperty(TRANSFORM, "none", false, false)
+		.AddParser("keyword", "none")
+		.AddParser(TRANSFORM);
+	RegisterProperty(TRANSFORM_ORIGIN_X, "50%", false, false)
+		.AddParser("keyword", "left, center, right")
+		.AddParser("length");
+	RegisterProperty(TRANSFORM_ORIGIN_Y, "50%", false, false)
+		.AddParser("keyword", "top, center, bottom")
+		.AddParser("length");
+	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false)
+		.AddParser("length");
+	RegisterShorthand(TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z");
 }
 
 }

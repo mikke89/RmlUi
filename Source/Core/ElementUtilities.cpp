@@ -28,9 +28,11 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/ElementUtilities.h"
 #include <queue>
+#include <limits>
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
 #include "../../Include/Rocket/Core.h"
+#include "../../Include/Rocket/Core/TransformPrimitive.h"
 
 namespace Rocket {
 namespace Core {
@@ -411,6 +413,128 @@ static void SetElementOffset(Element* element, const Vector2f& offset)
 	relative_offset.y += element->GetBox().GetEdge(Box::MARGIN, Box::TOP);
 
 	element->SetOffset(relative_offset, element->GetParentNode());
+}
+
+// Applies an element's `perspective' and `transform' properties.
+bool ElementUtilities::ApplyTransform(Element &element, bool apply)
+{
+	Context *context = element.GetContext();
+	if (!context)
+	{
+		return false;
+	}
+
+	RenderInterface *render_interface = element.GetRenderInterface();
+	if (!render_interface)
+	{
+		return false;
+	}
+
+	const TransformState *local_perspective, *perspective, *transform;
+	element.GetEffectiveTransformState(&local_perspective, &perspective, &transform);
+
+	bool have_perspective = false;
+	float perspective_distance;
+	Matrix4f the_projection;
+	if (local_perspective)
+	{
+		TransformState::LocalPerspective the_local_perspective;
+		local_perspective->GetLocalPerspective(&the_local_perspective);
+		have_perspective = true;
+		perspective_distance = the_local_perspective.distance;
+		the_projection = the_local_perspective.GetProjection();
+	}
+	else if (perspective)
+	{
+		TransformState::Perspective the_perspective;
+		perspective->GetPerspective(&the_perspective);
+		have_perspective = true;
+		perspective_distance = the_perspective.distance;
+		the_projection = the_perspective.GetProjection();
+	}
+
+	bool have_transform = false;
+	Matrix4f the_transform;
+	if (transform)
+	{
+		transform->GetRecursiveTransform(&the_transform);
+		have_transform = true;
+	}
+
+	if (have_perspective && perspective_distance >= 0)
+	{
+		// If we are to apply a custom projection, then we need to cancel the global one first.
+		Matrix4f global_pv_inv;
+		bool have_global_pv_inv = context->GetViewState().GetProjectionViewInv(global_pv_inv);
+
+		if (have_global_pv_inv && have_transform)
+		{
+			if (apply)
+			{
+				render_interface->PushTransform(global_pv_inv * the_projection * the_transform);
+			}
+			else
+			{
+				render_interface->PopTransform(global_pv_inv * the_projection * the_transform);
+			}
+			return true;
+		}
+		else if (have_global_pv_inv)
+		{
+			if (apply)
+			{
+				render_interface->PushTransform(global_pv_inv * the_projection);
+			}
+			else
+			{
+				render_interface->PopTransform(global_pv_inv * the_projection);
+			}
+			return true;
+		}
+		else if (have_transform)
+		{
+			// The context has not received Process(Projection|View)Change() calls.
+			// Assume we don't really need to cancel.
+			if (apply)
+			{
+				render_interface->PushTransform(the_transform);
+			}
+			else
+			{
+				render_interface->PopTransform(the_transform);
+			}
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (have_transform)
+		{
+			if (apply)
+			{
+				render_interface->PushTransform(the_transform);
+			}
+			else
+			{
+				render_interface->PopTransform(the_transform);
+			}
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
+
+// Unapplies an element's `perspective' and `transform' properties.
+bool ElementUtilities::UnapplyTransform(Element &element)
+{
+	return ApplyTransform(element, false);
 }
 
 }

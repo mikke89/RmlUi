@@ -40,21 +40,27 @@ void ShellRenderInterfaceOpenGL::SetContext(void *context)
 void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 {
 	if(m_width != width || m_height != height) {
+		Rocket::Core::Matrix4f projection, view;
+
 		m_width = width;
 		m_height = height;
 
 		glViewport(0, 0, width, height);
+		projection = Rocket::Core::Matrix4f::ProjectOrtho(0, width, height, 0, -1, 1);
 		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0, width, height, 0, -1, 1);
+		glLoadMatrixf(projection);
+		view = Rocket::Core::Matrix4f::Identity();
 		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+		glLoadMatrixf(view);
 
 		aglUpdateContext(gl_context);
-	}
-	if(m_rocket_context != NULL)
-	{
-		((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
+
+		if(m_rocket_context != NULL)
+		{
+			((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
+			((Rocket::Core::Context*)m_rocket_context)->ProcessProjectionChange(projection);
+			((Rocket::Core::Context*)m_rocket_context)->ProcessViewChange(view);
+		}
 	}
 }
 

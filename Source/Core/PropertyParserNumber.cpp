@@ -31,17 +31,53 @@
 namespace Rocket {
 namespace Core {
 
-PropertyParserNumber::PropertyParserNumber()
+PropertyParserNumber::PropertyParserNumber(int units)
+	: units(units)
 {
-	unit_suffixes.push_back(UnitSuffix(Property::PX, "px"));
-	unit_suffixes.push_back(UnitSuffix(Property::REM, "rem"));
-	unit_suffixes.push_back(UnitSuffix(Property::EM, "em"));
-	unit_suffixes.push_back(UnitSuffix(Property::INCH, "in"));
-	unit_suffixes.push_back(UnitSuffix(Property::CM, "cm"));
-	unit_suffixes.push_back(UnitSuffix(Property::MM, "mm"));
-	unit_suffixes.push_back(UnitSuffix(Property::PT, "pt"));
-	unit_suffixes.push_back(UnitSuffix(Property::PC, "pc"));
-	unit_suffixes.push_back(UnitSuffix(Property::PERCENT, "%"));
+	if (units & Property::PERCENT)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::PERCENT, "%"));
+	}
+	if (units & Property::PX)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::PX, "px"));
+	}
+	if (units & Property::EM)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::EM, "em"));
+	}
+	if (units & Property::REM)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::REM, "rem"));
+	}
+	if (units & Property::INCH)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::INCH, "in"));
+	}
+	if (units & Property::CM)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::CM, "cm"));
+	}
+	if (units & Property::MM)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::MM, "mm"));
+	}
+	if (units & Property::PT)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::PT, "pt"));
+	}
+	if (units & Property::PC)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::PC, "pc"));
+	}
+	if (units & Property::DEG)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::DEG, "deg"));
+	}
+	if (units & Property::RAD)
+	{
+		unit_suffixes.push_back(UnitSuffix(Property::RAD, "rad"));
+	}
 }
 
 PropertyParserNumber::~PropertyParserNumber()
@@ -69,6 +105,13 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 			property.unit = unit_suffix.first;
 			break;
 		}
+	}
+
+	if ((units & property.unit) == 0)
+	{
+		// Detected unit not allowed (this can only apply to NUMBER,
+		// i.e., when no unit was found but one is required).
+		return false;
 	}
 
 	float float_value;
