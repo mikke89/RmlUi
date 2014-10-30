@@ -138,8 +138,20 @@ int main(int argc, char **argv)
                     break;
 
                 case SDL_KEYDOWN:
+                {
+                    // Intercept SHIFT + ~ key stroke to toggle libRocket's 
+                    // visual debugger tool
+                    if( event.key.keysym.sym == SDLK_BACKQUOTE && 
+                        event.key.keysym.mod == KMOD_LSHIFT )
+                    {
+                        Rocket::Debugger::SetVisible( ! Rocket::Debugger::IsVisible() );
+                        break;
+                    }
+                    
                     Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.keysym.sym), SystemInterface.GetKeyModifiers());
                     break;
+                }
+                
                 default:
                     break;
             }
