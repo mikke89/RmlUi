@@ -18,6 +18,18 @@ if(COMMAND cmake_policy)
   cmake_policy(SET CMP0015 NEW)
 endif(COMMAND cmake_policy)
 
+# Enable the use of MACOSX_RPATH by default for CMake v3.0+; this effectively 
+# allows plug 'n' play functionality, so to speak -- the resulting shared 
+# library files can simply be copied over into the end-user's application 
+# bundle or framework bundle. No mucking around with install_name_tool.
+#
+# 	See also: 
+# cmake --help-policy cmp0042
+# http://www.kitware.com/blog/home/post/510
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif(POLICY CMP0042)
+
 project(libRocket C CXX)
 
 # paths
