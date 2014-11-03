@@ -62,12 +62,35 @@ int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTAN
 int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv))
 #endif
 {
+#ifdef ROCKET_PLATFORM_WIN32
+	ROCKET_UNUSED(instance_handle);
+	ROCKET_UNUSED(previous_instance_handle);
+	ROCKET_UNUSED(command_line);
+	ROCKET_UNUSED(command_show);
+#else
+	ROCKET_UNUSED(argc);
+	ROCKET_UNUSED(argv);
+#endif
+
+#ifdef ROCKET_PLATFORM_LINUX
+#define APP_PATH "../Samples/invaders/"
+#else
+#define APP_PATH "../../Samples/invaders/"
+#endif
+
+#ifdef ROCKET_PLATFORM_WIN32
+	DoAllocConsole();
+#endif
+
+	int window_width = 1024;
+	int window_height = 768;
+
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../Samples/invaders/") ||
-		!Shell::OpenWindow("Rocket Invaders from Mars", shell_renderer, 1024, 768, false))
+	if (!Shell::Initialise(APP_PATH) ||
+		!Shell::OpenWindow("Rocket Invaders from Mars", shell_renderer, window_width, window_height, false))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -75,7 +98,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	// Rocket initialisation.
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(1024,768);
+	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
 	Rocket::Core::SetSystemInterface(&system_interface);
@@ -85,7 +108,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Rocket::Controls::Initialise();
 
 	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));
+	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(window_width, window_height));
 	if (context == NULL)
 	{
 		Rocket::Core::Shutdown();
@@ -134,7 +157,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	if (EventManager::LoadWindow("background") &&
 		EventManager::LoadWindow("main_menu"))
 		Shell::EventLoop(GameLoop);
-		
+
 	// Shut down the game singletons.
 	HighScores::Shutdown();
 
@@ -147,6 +170,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	Shell::CloseWindow();
 	Shell::Shutdown();
-	
+
 	return 0;
 }

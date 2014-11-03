@@ -35,7 +35,14 @@
 
 int main(int argc, char **argv)
 {
-	sf::RenderWindow MyWindow(sf::VideoMode(800, 600), "libRocket with SFML");
+#ifdef ROCKET_PLATFORM_WIN32
+        DoAllocConsole();
+#endif
+
+        int window_width = 1024;
+        int window_height = 768;
+
+	sf::RenderWindow MyWindow(sf::VideoMode(window_width, window_height), "libRocket with SFML");
 
 	RocketSFMLRenderer Renderer;
 	RocketSFMLSystemInterface SystemInterface;
