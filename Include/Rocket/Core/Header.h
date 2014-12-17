@@ -33,7 +33,12 @@
 // Note: Changing a ROCKETCORE_API_INLINE method
 // breaks ABI compatibility!!
 
-#if !defined STATIC_LIB
+#ifdef STATIC_LIB
+	#define ROCKET_STATIC_LIB
+	#warning "DEPRECATED: STATIC_LIB macro has been deprecated in favor of ROCKET_STATIC_LIB and support will be removed in a future release"
+#endif
+
+#if !defined ROCKET_STATIC_LIB
 	#if defined ROCKET_PLATFORM_WIN32
 		#if defined RocketCore_EXPORTS
 			#define ROCKETCORE_API __declspec(dllexport)

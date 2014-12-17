@@ -30,7 +30,12 @@
 
 #include "../Core/Platform.h"
 
-#if !defined STATIC_LIB
+#ifdef STATIC_LIB
+	#define ROCKET_STATIC_LIB
+	#warning "DEPRECATED: STATIC_LIB macro has been deprecated in favor of ROCKET_STATIC_LIB and support will be removed in a future release"
+#endif
+
+#if !defined ROCKET_STATIC_LIB
 	#ifdef ROCKET_PLATFORM_WIN32
 		#ifdef RocketDebugger_EXPORTS
 			#define ROCKETDEBUGGER_API __declspec(dllexport)
