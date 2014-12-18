@@ -32,7 +32,7 @@
 
 #ifdef STATIC_LIB
 	#define ROCKET_STATIC_LIB
-	#warning "DEPRECATED: STATIC_LIB macro has been deprecated in favor of ROCKET_STATIC_LIB and support will be removed in a future release"
+	#pragma message("DEPRECATED: STATIC_LIB macro has been deprecated in favor of ROCKET_STATIC_LIB and support will be removed in a future release")
 #endif
 
 #if !defined ROCKET_STATIC_LIB
