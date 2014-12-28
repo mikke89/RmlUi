@@ -167,7 +167,7 @@ else(APPLE)
 endif(APPLE)
 
 if(NOT BUILD_SHARED_LIBS)
-    add_definitions(-DSTATIC_LIB)
+	add_definitions(-DROCKET_STATIC_LIB)
 endif()
 
 #on windows, check for VC10 and fix the multiple compile target issue.
