@@ -48,7 +48,7 @@
 	#define ROCKET_DEBUG
 #endif
 
-#if defined __LP64__ || defined _M_X64 || defined __MING64__ || defined _LP64
+#if defined __LP64__ || defined _M_X64 || defined __MINGW64__ || defined _LP64
     #define ROCKET_ARCH_64
 #else
     #define ROCKET_ARCH_32
