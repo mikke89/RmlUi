@@ -86,8 +86,11 @@ if(NOT DEFINED ENV{FREETYPE_DIR})
 	set(ENV{FREETYPE_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
-if(NOT DEFINED ENV{Boost_DIR})
-	set(ENV{Boost_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+#if(NOT DEFINED ENV{Boost_DIR})
+#	set(ENV{Boost_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+#endif()
+if(NOT DEFINED ENV{BOOST_ROOT})
+	set(ENV{BOOST_ROOT} "${PROJECT_SOURCE_DIR}/../Dependencies/boost")
 endif()
 
 if(NOT DEFINED ENV{LUA_DIR})
