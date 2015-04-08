@@ -537,6 +537,11 @@ float Element::ResolveProperty(const Property *property, float base_value)
 	return style->ResolveProperty(property, base_value);
 }
 
+void Element::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )
+{
+	style->GetOffsetProperties(top, bottom, left, right);
+}
+
 void Element::GetBorderWidthProperties(const Property **border_top, const Property **border_bottom, const Property **border_left, const Property **bottom_right)
 {
 	style->GetBorderWidthProperties(border_top, border_bottom, border_left, bottom_right);
