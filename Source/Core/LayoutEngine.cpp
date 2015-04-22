@@ -522,17 +522,33 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 		}
 	}
 
-	// If the width is set to auto, then any margins also set to auto are resolved to 0 and the width is set to the
-	// whatever if left of the containing block.
+	// If the width is set to auto, we need to calculate the width
 	if (width_auto)
 	{
+		float left = 0.0f, right = 0.0f;
+		// If we are dealing with an absolutely positioned element we need to
+		// consider if the left and right properties are set, since the width can be affected.
+		if (element->GetPosition() == POSITION_ABSOLUTE || 
+			element->GetPosition() == POSITION_FIXED)
+		{
+			Property const *left_property, *right_property;
+			element->GetOffsetProperties( NULL, NULL, &left_property, &right_property );
+			if (left_property->unit != Property::KEYWORD) 
+				left = element->ResolveProperty(left_property, containing_block_width );
+			if (right_property->unit != Property::KEYWORD) 
+				right = element->ResolveProperty(right_property, containing_block_width );
+		}
+
+		// We resolve any auto margins to 0 and the width is set to whatever is left of the containing block.
 		if (margins_auto[0])
 			box.SetEdge(Box::MARGIN, Box::LEFT, 0);
 		if (margins_auto[1])
 			box.SetEdge(Box::MARGIN, Box::RIGHT, 0);
 
-		content_area.x = containing_block_width - (box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
-												   box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+		content_area.x = containing_block_width - (left +
+		                                           box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
+		                                           box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) +
+		                                           right);
 		content_area.x = Math::Max(0.0f, content_area.x);
 	}
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.
@@ -622,15 +638,39 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 		}
 	}
 
-	// If the height is set to auto, then any margins also set to auto are resolved to 0 and the height is set to -1.
+	// If the height is set to auto, we need to calculate the height
 	if (height_auto)
 	{
+		// We resolve any auto margins to 0
 		if (margins_auto[0])
 			box.SetEdge(Box::MARGIN, Box::TOP, 0);
 		if (margins_auto[1])
 			box.SetEdge(Box::MARGIN, Box::BOTTOM, 0);
 
+		// If the height is set to auto for a box in normal flow, the height is set to -1.
 		content_area.y = -1;
+
+		// But if we are dealing with an absolutely positioned element we need to
+		// consider if the top and bottom properties are set, since the height can be affected.
+		if (element->GetPosition() == POSITION_ABSOLUTE || 
+			element->GetPosition() == POSITION_FIXED)
+		{
+			float top = 0.0f, bottom = 0.0f;
+			Property const *top_property, *bottom_property;
+			element->GetOffsetProperties( &top_property, &bottom_property, NULL, NULL );
+			if (top_property->unit != Property::KEYWORD && bottom_property->unit != Property::KEYWORD ) 
+			{
+				top = element->ResolveProperty(top_property, containing_block_height );
+				bottom = element->ResolveProperty(bottom_property, containing_block_height );
+
+				// The height gets resolved to whatever is left of the containing block
+				content_area.y = containing_block_height - (top +
+				                                            box.GetCumulativeEdge(Box::CONTENT, Box::TOP) +
+				                                            box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM) +
+				                                            bottom);
+				content_area.y = Math::Max(0.0f, content_area.y);
+			}
+		}
 	}
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.
 	else if (num_auto_margins > 0)
