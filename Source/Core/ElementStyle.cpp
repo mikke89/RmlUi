@@ -729,6 +729,11 @@ void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 	element->OnPropertyChange(properties);
 }
 
+void ElementStyle::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )
+{
+	cache->GetOffsetProperties(top, bottom, left, right);
+}
+
 void ElementStyle::GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **bottom_right_width)
 {
 	cache->GetBorderWidthProperties(border_top_width, border_bottom_width, border_left_width, bottom_right_width);

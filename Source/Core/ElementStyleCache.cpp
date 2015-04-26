@@ -33,6 +33,7 @@ namespace Rocket {
 namespace Core {
 
 ElementStyleCache::ElementStyleCache(ElementStyle *style) : style(style), 
+	top(NULL), bottom(NULL), left(NULL), right(NULL),
 	border_top_width(NULL), border_bottom_width(NULL), border_left_width(NULL), border_right_width(NULL),
 	margin_top(NULL), margin_bottom(NULL), margin_left(NULL), margin_right(NULL),
 	padding_top(NULL), padding_bottom(NULL), padding_left(NULL), padding_right(NULL),
@@ -46,6 +47,7 @@ ElementStyleCache::ElementStyleCache(ElementStyle *style) : style(style),
 
 void ElementStyleCache::Clear()
 {
+	ClearOffset();
 	ClearBorder();
 	ClearMargin();
 	ClearPadding();
@@ -63,6 +65,11 @@ void ElementStyleCache::ClearInherited()
 	ClearTextAlign();
 	ClearTextTransform();
 	ClearVerticalAlign();
+}
+
+void ElementStyleCache::ClearOffset()
+{
+	top = bottom = left = right = NULL;
 }
 
 void ElementStyleCache::ClearBorder()
@@ -129,6 +136,37 @@ void ElementStyleCache::ClearTextTransform()
 void ElementStyleCache::ClearVerticalAlign()
 {
 	vertical_align = NULL;
+}
+
+void ElementStyleCache::GetOffsetProperties(const Property **o_top, const Property **o_bottom, const Property **o_left, const Property **o_right )
+{
+	if (o_top)
+	{
+		if (!top)
+			top = style->GetProperty(TOP);
+		*o_top = top;
+	}
+
+	if (o_bottom)
+	{
+		if (!bottom)
+			bottom = style->GetProperty(BOTTOM);
+		*o_bottom = bottom;
+	}
+
+	if (o_left)
+	{
+		if (!left)
+			left = style->GetProperty(LEFT);
+		*o_left = left;
+	}
+
+	if (o_right)
+	{
+		if (!right)
+			right = style->GetProperty(RIGHT);
+		*o_right = right;
+	}
 }
 
 void ElementStyleCache::GetBorderWidthProperties(const Property **o_border_top_width, const Property **o_border_bottom_width, const Property **o_border_left_width, const Property **o_border_right_width)
