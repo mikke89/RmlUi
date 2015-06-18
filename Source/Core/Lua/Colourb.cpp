@@ -51,10 +51,10 @@ template<> void ExtraInit<Colourb>(lua_State* L, int metatable_index)
 }
 int Colourbnew(lua_State* L)
 {
-    byte red = (byte)luaL_checkint(L,1);
-    byte green = (byte)luaL_checkint(L,2);
-    byte blue = (byte)luaL_checkint(L,3);
-    byte alpha = (byte)luaL_checkint(L,4);
+    byte red = (byte)luaL_checkinteger(L,1);
+    byte green = (byte)luaL_checkinteger(L,2);
+    byte blue = (byte)luaL_checkinteger(L,3);
+    byte alpha = (byte)luaL_checkinteger(L,4);
 
     Colourb* col = new Colourb(red,green,blue,alpha);
 
@@ -196,12 +196,12 @@ int ColourbSetAttrrgba(lua_State* L)
             if(top > 2)
             {
                 if(top > 3)
-                    obj->alpha = luaL_checkint(L,4);
-                obj->blue = luaL_checkint(L,3);
+                    obj->alpha = luaL_checkinteger(L,4);
+                obj->blue = luaL_checkinteger(L,3);
             }
-            obj->green = luaL_checkint(L,2);
+            obj->green = luaL_checkinteger(L,2);
         }
-        obj->red = luaL_checkint(L,1);
+        obj->red = luaL_checkinteger(L,1);
     }
     return 0;
 }

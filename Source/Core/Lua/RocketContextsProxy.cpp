@@ -60,7 +60,7 @@ int RocketContextsProxy__index(lua_State* L)
         }
         else
         {
-            int key = luaL_checkint(L,2);
+            int key = luaL_checkinteger(L,2);
             LuaType<Context>::push(L,GetContext(key));
         }
         return 1;
