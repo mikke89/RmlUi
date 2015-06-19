@@ -74,7 +74,7 @@ int ElementFormControlTextAreaSetAttrcols(lua_State* L)
 {
     ElementFormControlTextArea* obj = LuaType<ElementFormControlTextArea>::check(L,1);
     LUACHECKOBJ(obj);
-    int cols = luaL_checkint(L,2);
+    int cols = luaL_checkinteger(L,2);
     obj->SetNumColumns(cols);
     return 0;
 }
@@ -83,7 +83,7 @@ int ElementFormControlTextAreaSetAttrmaxlength(lua_State* L)
 {
     ElementFormControlTextArea* obj = LuaType<ElementFormControlTextArea>::check(L,1);
     LUACHECKOBJ(obj);
-    int ml = luaL_checkint(L,2);
+    int ml = luaL_checkinteger(L,2);
     obj->SetMaxLength(ml);
     return 0;
 }
@@ -92,7 +92,7 @@ int ElementFormControlTextAreaSetAttrrows(lua_State* L)
 {
     ElementFormControlTextArea* obj = LuaType<ElementFormControlTextArea>::check(L,1);
     LUACHECKOBJ(obj);
-    int rows = luaL_checkint(L,2);
+    int rows = luaL_checkinteger(L,2);
     obj->SetNumRows(rows);
     return 0;
 }
