@@ -77,20 +77,16 @@ bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, Font
     else
     {
         // Initialise the texture layout for the glyphs.
-        unsigned int size = glyphs.size();
-        if(size == 0)
-        {
-            return false;
-        }
-
-        characters.resize(glyphs[size - 1].character);
-
+        characters.resize(glyphs.size(), Character());
         for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
-        {
+        {            
             const FontGlyph& glyph = *i;
 
+            if(glyph.dimensions.x <= 0 || glyph.dimensions.y <= 0)
+                continue;
+
             Vector2i glyph_origin( glyph.bitmap_dimensions.x, glyph.bitmap_dimensions.y ); // position in texture
-            Vector2i glyph_dimension = glyph.dimensions; // size of char
+            Vector2i glyph_dimensions = glyph.dimensions; // size of char
 
             Character character;
             character.origin = Vector2f((float) (glyph.bearing.x), (float) (glyph.bearing.y));
@@ -107,7 +103,15 @@ bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, Font
 
             characters[glyph.character] = character;
 
+            // Add the character's dimensions into the texture layout engine.
+            texture_layout.AddRectangle(glyph.character, glyph_dimensions);
+
         }
+
+        // Generate the texture layout; this will position the glyph rectangles efficiently and
+        // allocate the texture data ready for writing.
+        if (!texture_layout.GenerateLayout(512))
+            return false;
 
         Texture texture;
         if (!texture.Load( bm_font_face_handle->GetTextureBaseName() + "_0.tga", bm_font_face_handle->GetTextureDirectory() ) )

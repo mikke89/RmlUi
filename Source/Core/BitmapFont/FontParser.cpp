@@ -49,11 +49,11 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
 {
     if ( name == "info" )
     {
-        BM_face->Face.FamilyName = "Arial";//attributes.Get( "face" )->Get< String >();
+        BM_face->Face.FamilyName = attributes.Get( "face" )->Get< String >();
         BM_face->Face.Size = attributes.Get( "size" )->Get< int >();
         BM_face->Face.Weight = attributes.Get( "bold" )->Get< bool >() ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
         BM_face->Face.Style = attributes.Get( "italic" )->Get< bool >() ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
-        BM_face->Face.CharsetName = "";//attributes.Get( "charset" )->Get< String >();
+        BM_face->Face.CharsetName = attributes.Get( "charset" )->Get< String >();
         BM_face->Face.IsUnicode = attributes.Get( "unicode" )->Get< bool >();
         BM_face->Face.StretchHeight = attributes.Get( "stretchH" )->Get< int >();
         BM_face->Face.IsSmoothed = attributes.Get( "smooth" )->Get< bool >();
@@ -84,7 +84,7 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
     else if ( name == "page" )
     {
         BM_face->PagesInfo[ attributes.Get( "id" )->Get< int >() ].Id = attributes.Get( "id" )->Get< int >();
-        BM_face->PagesInfo[ attributes.Get( "id" )->Get< int >() ].FileName = "Arial_0.tga";//attributes.Get( "file" )->Get< String >();
+        BM_face->PagesInfo[ attributes.Get( "id" )->Get< int >() ].FileName = attributes.Get( "file" )->Get< String >();
     }
     else if ( name == "chars" )
     {
