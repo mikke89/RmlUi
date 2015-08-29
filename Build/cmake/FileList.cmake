@@ -36,7 +36,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.h
@@ -131,6 +130,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontDatabase.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontEffect.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontEffectInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontFace.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontFamily.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontGlyph.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontProvider.h

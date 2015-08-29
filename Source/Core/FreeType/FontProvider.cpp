@@ -183,28 +183,17 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length, const String&
     }
 }
 
-// Returns a handle to a font face that can be used to position and render text.
-Rocket::Core::FontFaceHandle* FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
-{
-    FontFamilyMap::iterator iterator = instance->font_families.find(family);
-    if (iterator == instance->font_families.end())
-        return NULL;
-
-    return (*iterator).second->GetFaceHandle(charset, style, weight, size);
-}
-
-
 // Adds a loaded face to the appropriate font family.
 bool FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
 {
-    Rocket::Core::FontFamily* font_family = NULL;
-    FontFamilyMap::iterator iterator = instance->font_families.find(family);
-    if (iterator != instance->font_families.end())
-        font_family = (*iterator).second;
+    FontFamily* font_family = NULL;
+    FontFamilyMap::iterator iterator = font_families.find(family);
+    if (iterator != font_families.end())
+        font_family = (FontFamily*)(*iterator).second;
     else
     {
         font_family = new FontFamily(family);
-        instance->font_families[family] = font_family;
+        font_families[family] = font_family;
     }
 
     return font_family->AddFace((FT_Face) face, style, weight, release_stream);

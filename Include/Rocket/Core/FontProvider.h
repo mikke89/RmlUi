@@ -56,11 +56,9 @@ public:
     /// @param[in] weight The weight of the desired font handle.
     /// @param[in] size The size of desired handle, in points.
     /// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
-    virtual FontFaceHandle* GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size) = 0;
+    FontFaceHandle* GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size);
 
 protected:
-
-    FontFamily* GetFontFamily(const String& family);
 
     typedef std::map< String, FontFamily*, StringUtilities::StringComparei > FontFamilyMap;
     FontFamilyMap font_families;

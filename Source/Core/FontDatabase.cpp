@@ -37,6 +37,7 @@ namespace Rocket {
 namespace Core {
 
 FontDatabase* FontDatabase::instance = NULL;
+FontDatabase::FontProviderTable FontDatabase::font_provider_table;
 
 typedef std::map< String, FontEffect* > FontEffectCache;
 FontEffectCache font_effect_cache;
@@ -112,6 +113,8 @@ FontFaceHandle* FontDatabase::GetFontFaceHandle(const String& family, const Stri
     for(provider_index = 0; provider_index < provider_count; ++provider_index)
     {
         FontFaceHandle * face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
+
+        Log::Message(Log::LT_WARNING, "%x", face_handle );
 
         if(face_handle)
         {

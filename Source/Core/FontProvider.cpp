@@ -31,19 +31,14 @@
 namespace Rocket {
 namespace Core {
 
-FontFamily* FontProvider::GetFontFamily(const String& family)
+// Returns a handle to a font face that can be used to position and render text.
+Rocket::Core::FontFaceHandle* FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
 {
-    FontFamily* font_family = NULL;
     FontFamilyMap::iterator iterator = font_families.find(family);
-    if (iterator != font_families.end())
-        font_family = (*iterator).second;
-    else
-    {
-        font_family = new FontFamily(family);
-        font_families[family] = font_family;
-    }
+    if (iterator == font_families.end())
+        return NULL;
 
-    return font_family;
+    return (*iterator).second->GetFaceHandle(charset, style, weight, size);
 }
 
 }

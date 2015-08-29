@@ -28,9 +28,7 @@
 #ifndef ROCKETCOREFONTFACE_H
 #define ROCKETCOREFONTFACE_H
 
-#include "../../Include/Rocket/Core/Font.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include "Font.h"
 
 namespace Rocket {
 namespace Core {
@@ -44,8 +42,8 @@ class FontFaceHandle;
 class FontFace
 {
 public:
-	FontFace(FT_Face face, Font::Style style, Font::Weight weight, bool release_stream);
-	~FontFace();
+    FontFace(Font::Style style, Font::Weight weight, bool release_stream);
+    virtual ~FontFace();
 
 	/// Returns the style of the font face.
 	/// @return The font face's style.
@@ -58,14 +56,13 @@ public:
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
-	FontFaceHandle* GetHandle(const String& charset, int size);
+    virtual FontFaceHandle* GetHandle(const String& charset, int size) = 0;
 
 	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
 	/// but existing ones can still be fetched.
-	void ReleaseFace();
+    virtual void ReleaseFace() = 0;
 
-private:
-	FT_Face face;
+protected:
 	Font::Style style;
 	Font::Weight weight;
 
