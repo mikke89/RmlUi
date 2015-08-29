@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFONTFAMILY_H
 #define ROCKETCOREFONTFAMILY_H
 
-#include "../../Include/Rocket/Core/Font.h"
+#include "Font.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -54,7 +54,7 @@ public:
 	/// @param[in] weight The weight of the new face.
 	/// @param[in] release_stream True if the application must free the face's memory stream.
 	/// @return True if the face was loaded successfully, false otherwise.
-	bool AddFace(FT_Face ft_face, Font::Style style, Font::Weight weight, bool release_stream);
+    bool AddFace(void* ft_face, Font::Style style, Font::Weight weight, bool release_stream);
 
 	/// Returns a handle to the most appropriate font in the family, at the correct size.
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.

@@ -39,7 +39,10 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceLayer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
@@ -128,7 +131,10 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontDatabase.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontEffect.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontEffectInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontFamily.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontGlyph.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontProvider.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FreeType/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Geometry.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/GeometryUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Header.h
@@ -233,6 +239,12 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFamily.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontProvider.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceLayer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
