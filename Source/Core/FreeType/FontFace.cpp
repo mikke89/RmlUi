@@ -27,7 +27,7 @@
 
 #include "../precompiled.h"
 #include "FontFace.h"
-#include "../FontFaceHandle.h"
+#include "FontFaceHandle.h"
 #include "../../../Include/Rocket/Core/Log.h"
 
 namespace Rocket {
@@ -45,7 +45,7 @@ FontFace::~FontFace()
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
+Rocket::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
 {
     UnicodeRangeList charset;
 
@@ -62,7 +62,7 @@ FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
             if (handles[i]->GetRawCharset() == _raw_charset)
             {
                 handles[i]->AddReference();
-                return handles[i];
+                return (Rocket::Core::FreeType::FontFaceHandle*)handles[i];
             }
         }
 
@@ -87,7 +87,7 @@ FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
             if (range_contained)
             {
                 handles[i]->AddReference();
-                return handles[i];
+                return (Rocket::Core::FreeType::FontFaceHandle*)handles[i];
             }
         }
     }

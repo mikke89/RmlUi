@@ -30,8 +30,7 @@
 #include <Rocket/Core/FontFamily.h>
 #include <Rocket/Core.h>
 #include <Rocket/Core/FreeType/FontProvider.h>
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <Rocket/Core/BitmapFont/FontProvider.h>
 
 namespace Rocket {
 namespace Core {
@@ -41,8 +40,6 @@ FontDatabase::FontProviderTable FontDatabase::font_provider_table;
 
 typedef std::map< String, FontEffect* > FontEffectCache;
 FontEffectCache font_effect_cache;
-
-static FT_Library ft_library = NULL;
 
 FontDatabase::FontDatabase()
 {
@@ -64,6 +61,9 @@ bool FontDatabase::Initialise()
 
         if(!FreeType::FontProvider::Initialise())
             return false;
+
+        if(!BitmapFont::FontProvider::Initialise())
+            return false;
 	}
 
 	return true;
@@ -74,6 +74,7 @@ void FontDatabase::Shutdown()
 	if (instance != NULL)
 	{
         FreeType::FontProvider::Shutdown();
+        BitmapFont::FontProvider::Shutdown();
 
 		delete instance;
 	}
@@ -82,25 +83,81 @@ void FontDatabase::Shutdown()
 // Loads a new font face.
 bool FontDatabase::LoadFontFace(const String& file_name)
 {
-    return FreeType::FontProvider::LoadFontFace(file_name);
+    FontProviderType font_provider_type = GetFontProviderType(file_name);
+
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(file_name);
+
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(file_name);
+
+        default:
+            return false;
+    }
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
 {
-    return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
+    FontProviderType font_provider_type = GetFontProviderType(file_name);
+
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
+
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(file_name, family, style, weight);
+
+        default:
+            return false;
+    }
 }
 
 // Adds a new font face to the database, loading from memory.
 bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length)
 {
-    return FreeType::FontProvider::LoadFontFace(data, data_length);
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(data, data_length);
+
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(data, data_length);
+
+        default:
+            return false;
+    }
 }
 
 // Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
 {
-    return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
+
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(data, data_length, family, style, weight);
+
+        default:
+            return false;
+    }
+}
+
+FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& file_name)
+{
+    if(file_name.Find(".fnt") != String::npos)
+    {
+        return BitmapFont;
+    }
+    else
+    {
+        return FreeType;
+    }
 }
 
 // Returns a handle to a font face that can be used to position and render text.
@@ -113,8 +170,6 @@ FontFaceHandle* FontDatabase::GetFontFaceHandle(const String& family, const Stri
     for(provider_index = 0; provider_index < provider_count; ++provider_index)
     {
         FontFaceHandle * face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
-
-        Log::Message(Log::LT_WARNING, "%x", face_handle );
 
         if(face_handle)
         {

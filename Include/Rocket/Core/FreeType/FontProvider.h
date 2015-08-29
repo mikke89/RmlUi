@@ -28,9 +28,9 @@
 #ifndef ROCKETCOREFREETYPEFONTPROVIDER_H
 #define ROCKETCOREFREETYPEFONTPROVIDER_H
 
-#include <Rocket/Core/StringUtilities.h>
-#include <Rocket/Core/Font.h>
-#include <Rocket/Core/FontProvider.h>
+#include "../StringUtilities.h"
+#include "../Font.h"
+#include "../FontProvider.h"
 
 namespace Rocket {
 namespace Core {

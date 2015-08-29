@@ -54,7 +54,7 @@ public:
     enum FontProviderType
     {
         FreeType = 0,
-        Bitmap
+        BitmapFont
     };
 
 	static bool Initialise();
@@ -114,6 +114,8 @@ public:
 private:
 	FontDatabase(void);
 	~FontDatabase(void);
+
+    static FontProviderType GetFontProviderType(const String& file_name);
 
     typedef std::vector< FontProvider *> FontProviderTable;
 
