@@ -41,8 +41,8 @@ FontFaceLayer::FontFaceLayer() : Rocket::Core::FontFaceLayer()
 
 FontFaceLayer::~FontFaceLayer()
 {
-    if (effect != NULL)
-        effect->RemoveReference();
+    //if (effect != NULL)
+    //    effect->RemoveReference();
 }
 
 // Generates the character and texture data for the layer.
@@ -77,6 +77,14 @@ bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, Font
     else
     {
         // Initialise the texture layout for the glyphs.
+        unsigned int size = glyphs.size();
+        if(size == 0)
+        {
+            return false;
+        }
+
+        characters.resize(glyphs[size - 1].character);
+
         for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
         {
             const FontGlyph& glyph = *i;

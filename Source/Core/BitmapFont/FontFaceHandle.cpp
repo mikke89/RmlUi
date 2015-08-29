@@ -318,6 +318,8 @@ void FontFaceHandle::GenerateMetrics(BM_Font *bm_face)
 
 void FontFaceHandle::BuildGlyphMap(BM_Font *bm_face, const UnicodeRange& unicode_range)
 {
+    glyphs.resize(unicode_range.max_codepoint + 1);
+
     for (word character_code = (word) (Math::Max< unsigned int >(unicode_range.min_codepoint, 32)); character_code <= unicode_range.max_codepoint; ++character_code)
     {
         int index = bm_face->BM_Helper_GetCharacterTableIndex( character_code );
@@ -368,7 +370,7 @@ void Rocket::Core::BitmapFont::FontFaceHandle::BuildKerning(BM_Font *bm_face)
 //        {
 //            for (word rhs = (word) (Math::Max< unsigned int >(charset[i].min_codepoint, 32)); rhs <= charset[i].max_codepoint; ++rhs)
 //            {
-//                GlyphKerningMap& glyph_kerning = kerning.insert(FontKerningMap::value_type(rhs, GlyphKerningMap())).first->second;
+//                GlyphKerningList& glyph_kerning = kerning.insert(FontKerningList::value_type(rhs, GlyphKerningList())).first->second;
 
 //                for (size_t j = 0; j < charset.size(); ++j)
 //                {

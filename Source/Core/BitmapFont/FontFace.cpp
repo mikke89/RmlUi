@@ -47,77 +47,76 @@ FontFace::~FontFace()
 // Returns a handle for positioning and rendering this face at the given size.
 Rocket::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
 {
-//    UnicodeRangeList charset;
+    UnicodeRangeList charset;
 
-//    HandleMap::iterator iterator = handles.find(size);
-//    if (iterator != handles.end())
-//    {
-//        const HandleList& handles = (*iterator).second;
+    HandleMap::iterator iterator = handles.find(size);
+    if (iterator != handles.end())
+    {
+        const HandleList& handles = (*iterator).second;
 
-//        // Check all the handles if their charsets match the requested one exactly (ie, were specified by the same
-//        // string).
-//        String raw_charset(_raw_charset);
-//        for (size_t i = 0; i < handles.size(); ++i)
-//        {
-//            if (handles[i]->GetRawCharset() == _raw_charset)
-//            {
-//                handles[i]->AddReference();
-//                return (FontFaceHandle*)handles[i];
-//            }
-//        }
+        // Check all the handles if their charsets match the requested one exactly (ie, were specified by the same
+        // string).
+        String raw_charset(_raw_charset);
+        for (size_t i = 0; i < handles.size(); ++i)
+        {
+            if (handles[i]->GetRawCharset() == _raw_charset)
+            {
+                handles[i]->AddReference();
+                return (FontFaceHandle*)handles[i];
+            }
+        }
 
-//        // Check all the handles if their charsets contain the requested charset.
-//        if (!UnicodeRange::BuildList(charset, raw_charset))
-//        {
-//            Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", _raw_charset.CString());
-//            return NULL;
-//        }
+        // Check all the handles if their charsets contain the requested charset.
+        if (!UnicodeRange::BuildList(charset, raw_charset))
+        {
+            Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", _raw_charset.CString());
+            return NULL;
+        }
 
-//        for (size_t i = 0; i < handles.size(); ++i)
-//        {
-//            bool range_contained = true;
+        for (size_t i = 0; i < handles.size(); ++i)
+        {
+            bool range_contained = true;
 
-//            const UnicodeRangeList& handle_charset = handles[i]->GetCharset();
-//            for (size_t j = 0; j < charset.size() && range_contained; ++j)
-//            {
-//                if (!charset[j].IsContained(handle_charset))
-//                    range_contained = false;
-//            }
+            const UnicodeRangeList& handle_charset = handles[i]->GetCharset();
+            for (size_t j = 0; j < charset.size() && range_contained; ++j)
+            {
+                if (!charset[j].IsContained(handle_charset))
+                    range_contained = false;
+            }
 
-//            if (range_contained)
-//            {
-//                handles[i]->AddReference();
-//                return (FontFaceHandle*)handles[i];
-//            }
-//        }
-//    }
+            if (range_contained)
+            {
+                handles[i]->AddReference();
+                return (FontFaceHandle*)handles[i];
+            }
+        }
+    }
 
-//    // See if this face has been released.
-//    if (face == NULL)
-//    {
-//        Log::Message(Log::LT_WARNING, "Font face has been released, unable to generate new handle.");
-//        return NULL;
-//    }
+    // See if this face has been released.
+    if (face == NULL)
+    {
+        Log::Message(Log::LT_WARNING, "Font face has been released, unable to generate new handle.");
+        return NULL;
+    }
 
-//    // Construct and initialise the new handle.
-//    FontFaceHandle* handle = new FontFaceHandle();
-//    if (!handle->Initialise(face, _raw_charset, size))
-//    {
-//        handle->RemoveReference();
-//        return NULL;
-//    }
+    // Construct and initialise the new handle.
+    FontFaceHandle* handle = new FontFaceHandle();
+    if (!handle->Initialise(face, _raw_charset, size))
+    {
+        handle->RemoveReference();
+        return NULL;
+    }
 
-//    // Save the handle, and add a reference for the callee. The initial reference will be removed when the font face
-//    // releases it.
-//    if (iterator != handles.end())
-//        (*iterator).second.push_back(handle);
-//    else
-//        handles[size] = HandleList(1, handle);
+    // Save the handle, and add a reference for the callee. The initial reference will be removed when the font face
+    // releases it.
+    if (iterator != handles.end())
+        (*iterator).second.push_back(handle);
+    else
+        handles[size] = HandleList(1, handle);
 
-//    handle->AddReference();
+    handle->AddReference();
 
-//    return handle;
-    return 0;
+    return handle;
 }
 
 // Releases the face's structure.
