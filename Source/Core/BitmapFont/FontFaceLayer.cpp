@@ -76,6 +76,13 @@ bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, Font
     }
     else
     {
+        // Load texture from file
+        Texture texture;
+        if (!texture.Load( bm_font_face_handle->GetTextureSource() ))
+            return false;
+
+        textures.push_back(texture);
+
         // Initialise the texture layout for the glyphs.
         characters.resize(glyphs.size(), Character());
         for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
@@ -96,16 +103,15 @@ bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, Font
             character.texture_index = 0;
 
             // Generate the character's texture coordinates.
-            character.texcoords[0].x = float(glyph_origin.x) / float(bm_font_face_handle->GetTextureSize());
-            character.texcoords[0].y = float(glyph_origin.y) / float(bm_font_face_handle->GetTextureSize());
-            character.texcoords[1].x = float(glyph_origin.x + character.dimensions.x) / float(bm_font_face_handle->GetTextureSize());
-            character.texcoords[1].y = float(glyph_origin.y + character.dimensions.y) / float(bm_font_face_handle->GetTextureSize());
+            character.texcoords[0].x = float(glyph_origin.x) / float(bm_font_face_handle->GetTextureWidth());
+            character.texcoords[0].y = float(glyph_origin.y) / float(bm_font_face_handle->GetTextureHeight());
+            character.texcoords[1].x = float(glyph_origin.x + character.dimensions.x) / float(bm_font_face_handle->GetTextureWidth());
+            character.texcoords[1].y = float(glyph_origin.y + character.dimensions.y) / float(bm_font_face_handle->GetTextureHeight());
 
             characters[glyph.character] = character;
 
             // Add the character's dimensions into the texture layout engine.
             texture_layout.AddRectangle(glyph.character, glyph_dimensions);
-
         }
 
         // Generate the texture layout; this will position the glyph rectangles efficiently and
@@ -113,13 +119,7 @@ bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, Font
         if (!texture_layout.GenerateLayout(512))
             return false;
 
-        Texture texture;
-        if (!texture.Load( bm_font_face_handle->GetTextureBaseName() + "_0.tga", bm_font_face_handle->GetTextureDirectory() ) )
-            return false;
-        textures.push_back(texture);
     }
-
-
     return true;
 }
 

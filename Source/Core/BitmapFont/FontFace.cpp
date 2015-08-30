@@ -34,7 +34,7 @@ namespace Rocket {
 namespace Core {
 namespace BitmapFont {
 
-FontFace::FontFace(BM_Font *_face, Font::Style _style, Font::Weight _weight, bool _release_stream) : Rocket::Core::FontFace(_style, _weight, _release_stream)
+FontFace::FontFace(BitmapFontDefinitions *_face, Font::Style _style, Font::Weight _weight, bool _release_stream) : Rocket::Core::FontFace(_style, _weight, _release_stream)
 {
     face = _face;
 }

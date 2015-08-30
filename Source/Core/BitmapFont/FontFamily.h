@@ -30,7 +30,7 @@
 
 #include "../../../Include/Rocket/Core/Font.h"
 #include "../../../Include/Rocket/Core/FontFamily.h"
-#include "BM_Font.h"
+#include "BitmapFontDefinitions.h"
 
 namespace Rocket {
 namespace Core {

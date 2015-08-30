@@ -32,7 +32,7 @@ namespace Rocket {
 namespace Core {
 namespace BitmapFont {
 
-FontParser::FontParser( BM_Font *face )
+FontParser::FontParser( BitmapFontDefinitions *face )
     : BaseXMLParser()
 {
     BM_face = face;
@@ -53,38 +53,16 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
         BM_face->Face.Size = attributes.Get( "size" )->Get< int >();
         BM_face->Face.Weight = attributes.Get( "bold" )->Get< bool >() ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
         BM_face->Face.Style = attributes.Get( "italic" )->Get< bool >() ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
-        BM_face->Face.CharsetName = attributes.Get( "charset" )->Get< String >();
-        BM_face->Face.IsUnicode = attributes.Get( "unicode" )->Get< bool >();
-        BM_face->Face.StretchHeight = attributes.Get( "stretchH" )->Get< int >();
-        BM_face->Face.IsSmoothed = attributes.Get( "smooth" )->Get< bool >();
-        BM_face->Face.SuperSamplingLevel = attributes.Get( "aa" )->Get< int >();
-        //:TODO:
-        //BM_face->Face.FamilyName = attributes.Get( "padding" )->Get< String >();
-        //BM_face->Face.FamilyName = attributes.Get( "spacing" )->Get< String >();
-        BM_face->Face.Outline = attributes.Get( "outline" )->Get< int >();
+        BM_face->Face.BitmapSource = attributes.Get( "src" )->Get< String >();
     }
     else if ( name == "common" )
     {
-
         BM_face->CommonCharactersInfo.LineHeight = attributes.Get( "lineHeight" )->Get< int >();
         BM_face->CommonCharactersInfo.BaseLine = attributes.Get( "base" )->Get< int >();
         BM_face->CommonCharactersInfo.ScaleWidth = attributes.Get( "scaleW" )->Get< int >();
         BM_face->CommonCharactersInfo.ScaleHeight = attributes.Get( "scaleH" )->Get< int >();
-        BM_face->CommonCharactersInfo.PageCount = attributes.Get( "pages" )->Get< int >();
-        BM_face->CommonCharactersInfo.IsPacked = attributes.Get( "packed" )->Get< bool >();
-        BM_face->CommonCharactersInfo.AlphaChanelUsage = attributes.Get( "alphaChnl" )->Get< int >();
-        BM_face->CommonCharactersInfo.RedChanelUsage = attributes.Get( "redChnl" )->Get< int >();
-        BM_face->CommonCharactersInfo.GreenChanelUsage = attributes.Get( "greenChnl" )->Get< int >();
-        BM_face->CommonCharactersInfo.BlueChanelUsage = attributes.Get( "blueChnl" )->Get< int >();
-
-        BM_face->PagesInfo = new PageInfo[BM_face->CommonCharactersInfo.PageCount];
         BM_face->CommonCharactersInfo.CharacterCount = 0;
         BM_face->CommonCharactersInfo.KerningCount = 0;
-    }
-    else if ( name == "page" )
-    {
-        BM_face->PagesInfo[ attributes.Get( "id" )->Get< int >() ].Id = attributes.Get( "id" )->Get< int >();
-        BM_face->PagesInfo[ attributes.Get( "id" )->Get< int >() ].FileName = attributes.Get( "file" )->Get< String >();
     }
     else if ( name == "chars" )
     {
@@ -101,8 +79,6 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
         BM_face->CharactersInfo[ char_id ].XOffset = attributes.Get( "xoffset" )->Get< int >();
         BM_face->CharactersInfo[ char_id ].YOffset = attributes.Get( "yoffset" )->Get< int >();
         BM_face->CharactersInfo[ char_id ].Advance = attributes.Get( "xadvance" )->Get< int >();
-        BM_face->CharactersInfo[ char_id ].PageId = attributes.Get( "page" )->Get< int >();
-        BM_face->CharactersInfo[ char_id ].ChannelUsed = attributes.Get( "chnl" )->Get< int >();
 
         char_id++;
     }

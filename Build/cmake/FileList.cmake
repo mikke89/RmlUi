@@ -41,7 +41,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BM_Font.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BitmapFontDefinitions.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.h

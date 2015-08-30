@@ -36,7 +36,7 @@
 #include "../../../Include/Rocket/Core/String.h"
 #include "../../../Include/Rocket/Core/Texture.h"
 #include "../FontFaceHandle.h"
-#include "BM_Font.h"
+#include "BitmapFontDefinitions.h"
 
 namespace Rocket {
 namespace Core {
@@ -57,7 +57,7 @@ public:
     /// @param[in] charset The comma-separated list of unicode ranges this handle must support.
     /// @param[in] size The size, in points, of the face this handle should render at.
     /// @return True if the handle initialised successfully and is ready for rendering, false if an error occured.
-    bool Initialise(BM_Font *ft_face, const String& charset, int size);
+    bool Initialise(BitmapFontDefinitions *ft_face, const String& charset, int size);
 
     /// Returns the width a string will take up if rendered with this handle.
     /// @param[in] string The string to measure.
@@ -93,41 +93,41 @@ public:
     /// @param[in] colour The colour to draw the line in.
     void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const;
 
-    const String & GetTextureBaseName() const
+    const String & GetTextureSource() const
     {
-        return TextureBaseName;
+        return TextureSource;
     }
 
-    const String & GetTextureDirectory() const
+    unsigned int GetTextureWidth() const
     {
-        return TextureDirectory;
+        return TextureWidth;
     }
 
-    int GetTextureSize() const
+    unsigned int GetTextureHeight() const
     {
-        return TextureSize;
+        return TextureHeight;
     }
-
 
 protected:
     /// Destroys the handle.
     virtual void OnReferenceDeactivate();
 
 private:
-    void GenerateMetrics(BM_Font *bm_face);
+    void GenerateMetrics(BitmapFontDefinitions *bm_face);
 
-    void BuildGlyphMap(BM_Font *bm_face, const UnicodeRange& unicode_range);
+    void BuildGlyphMap(BitmapFontDefinitions *bm_face, const UnicodeRange& unicode_range);
     void BuildGlyph(FontGlyph& glyph, CharacterInfo *ft_glyph);
 
-    void BuildKerning(BM_Font *bm_face);
+    void BuildKerning(BitmapFontDefinitions *bm_face);
     int GetKerning(word lhs, word rhs) const;
 
     // Generates (or shares) a layer derived from a font effect.
     virtual FontFaceLayer* GenerateLayer(FontEffect* font_effect);
 
-    String TextureBaseName;
+    String TextureSource;
     String TextureDirectory;
-    int TextureSize;
+    unsigned int TextureWidth;
+    unsigned int TextureHeight;
 };
 
 }

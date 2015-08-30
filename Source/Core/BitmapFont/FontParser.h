@@ -31,7 +31,7 @@
 #include <Rocket/Core/Header.h>
 #include <Rocket/Core/Types.h>
 #include <Rocket/Core/Dictionary.h>
-#include "BM_Font.h"
+#include "BitmapFontDefinitions.h"
 #include <set>
 
 namespace Rocket {
@@ -45,7 +45,7 @@ namespace BitmapFont {
 class FontParser : public BaseXMLParser
 {
     public:
-        FontParser( BM_Font *face );
+        FontParser( BitmapFontDefinitions *face );
         virtual ~FontParser();
 
         /// Called when the parser finds the beginning of an element tag.
@@ -57,7 +57,7 @@ class FontParser : public BaseXMLParser
 
     private:
         FontParser();
-        BM_Font *BM_face;
+        BitmapFontDefinitions *BM_face;
         int char_id;
         int kern_id;
 };

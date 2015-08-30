@@ -37,36 +37,14 @@ namespace Rocket {
 namespace Core {
 namespace BitmapFont {
 
-    struct Padding
-    {
-        int Up,
-            Right,
-            Down,
-            Left;
-    };
-
-    struct Spacing
-    {
-        int Horizontal,
-            Vertical;
-    };
-
     struct FontInfo
     {
         String FamilyName;
         String Source;
-        String Directory;
+        String BitmapSource;
         int Size;
         Font::Style Style;
         Font::Weight Weight;
-        String CharsetName;
-        bool IsUnicode;
-        int StretchHeight;
-        bool IsSmoothed;
-        int SuperSamplingLevel;
-        Padding FontPadding;
-        Spacing FontSpacing;
-        int Outline;
     };
 
     struct CharacterCommonInfo
@@ -75,20 +53,8 @@ namespace BitmapFont {
         int BaseLine;
         int ScaleWidth;
         int ScaleHeight;
-        int PageCount;
-        bool IsPacked;
-        int AlphaChanelUsage;
-        int RedChanelUsage;
-        int GreenChanelUsage;
-        int BlueChanelUsage;
         int CharacterCount;
         int KerningCount;
-    };
-
-    struct PageInfo
-    {
-        int Id;
-        String FileName;
     };
 
     struct CharacterInfo
@@ -101,8 +67,6 @@ namespace BitmapFont {
         int XOffset;
         int YOffset;
         int Advance;
-        int PageId;
-        int ChannelUsed;
     };
 
     struct KerningInfo
@@ -112,12 +76,11 @@ namespace BitmapFont {
         int KerningAmount;
     };
 
-    class BM_Font
+    class BitmapFontDefinitions
     {
     public:
         FontInfo Face;
         CharacterCommonInfo CommonCharactersInfo;
-        PageInfo *PagesInfo;
         CharacterInfo *CharactersInfo;
         KerningInfo *KerningsInfo;
 

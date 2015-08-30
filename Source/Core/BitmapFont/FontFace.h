@@ -29,7 +29,7 @@
 #define ROCKETCOREBITMAPFONTFACE_H
 
 #include "../../../Include/Rocket/Core/FontFace.h"
-#include "BM_Font.h"
+#include "BitmapFontDefinitions.h"
 
 namespace Rocket {
 namespace Core {
@@ -44,7 +44,7 @@ class FontFaceHandle;
 class FontFace : public Rocket::Core::FontFace
 {
 public:
-    FontFace(BM_Font *_face, Font::Style style, Font::Weight weight, bool release_stream);
+    FontFace(BitmapFontDefinitions *_face, Font::Style style, Font::Weight weight, bool release_stream);
     ~FontFace();
 
     /// Returns a handle for positioning and rendering this face at the given size.
@@ -58,7 +58,7 @@ public:
     void ReleaseFace();
 
 private:
-    BM_Font *face;
+    BitmapFontDefinitions *face;
 };
 
 }

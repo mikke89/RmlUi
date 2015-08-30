@@ -63,15 +63,27 @@ FontFaceHandle::~FontFaceHandle()
 }
 
 // Initialises the handle so it is able to render text.
-bool FontFaceHandle::Initialise(BM_Font *bm_face, const String& _charset, int _size)
+bool FontFaceHandle::Initialise(BitmapFontDefinitions *bm_face, const String& _charset, int _size)
 {
-    ROCKET_ASSERT( bm_face->CommonCharactersInfo.ScaleHeight == bm_face->CommonCharactersInfo.ScaleWidth );
-
     size = _size;
-    TextureBaseName = bm_face->Face.Source;
-    TextureDirectory = bm_face->Face.Directory;
-    TextureSize = bm_face->CommonCharactersInfo.ScaleHeight;
+    TextureWidth = bm_face->CommonCharactersInfo.ScaleWidth;
+    TextureHeight = bm_face->CommonCharactersInfo.ScaleHeight;
     raw_charset = _charset;
+
+    URL fnt_source = bm_face->Face.Source;
+    URL bitmap_source = bm_face->Face.BitmapSource;
+    if(bitmap_source.GetPath().Empty())
+    {
+        TextureSource = fnt_source.GetPath() + bitmap_source.GetFileName();
+        if(!bitmap_source.GetExtension().Empty())
+        {
+            TextureSource += "." + bitmap_source.GetExtension();
+        }
+    }
+    else
+    {
+        TextureSource = bitmap_source.GetPathedFileName();
+    }
 
     if (!UnicodeRange::BuildList(charset, raw_charset))
     {
@@ -86,12 +98,10 @@ bool FontFaceHandle::Initialise(BM_Font *bm_face, const String& _charset, int _s
     // Generate the metrics for the handle.
     GenerateMetrics(bm_face);
 
-
     // Generate the default layer and layer configuration.
     base_layer = GenerateLayer(NULL);
     layer_configurations.push_back(LayerConfiguration());
     layer_configurations.back().push_back(base_layer);
-
 
     return true;
 }
@@ -288,7 +298,7 @@ void FontFaceHandle::OnReferenceDeactivate()
     delete this;
 }
 
-void FontFaceHandle::GenerateMetrics(BM_Font *bm_face)
+void FontFaceHandle::GenerateMetrics(BitmapFontDefinitions *bm_face)
 {
     line_height = bm_face->CommonCharactersInfo.LineHeight;
     baseline = bm_face->CommonCharactersInfo.BaseLine;
@@ -316,7 +326,7 @@ void FontFaceHandle::GenerateMetrics(BM_Font *bm_face)
         x_height = 0;
 }
 
-void FontFaceHandle::BuildGlyphMap(BM_Font *bm_face, const UnicodeRange& unicode_range)
+void FontFaceHandle::BuildGlyphMap(BitmapFontDefinitions *bm_face, const UnicodeRange& unicode_range)
 {
     glyphs.resize(unicode_range.max_codepoint + 1);
 
@@ -349,11 +359,6 @@ void Rocket::Core::BitmapFont::FontFaceHandle::BuildGlyph(FontGlyph& glyph, Char
     // Set the glyph's advance.
     glyph.advance = bm_glyph->Advance;
 
-    if ( bm_glyph->PageId > 0 )
-    {
-        Log::Message( Log::LT_WARNING, "Multiple page not supported" );
-    }
-
     // Set the glyph's bitmap position.
     glyph.bitmap_dimensions.x = bm_glyph->X;
     glyph.bitmap_dimensions.y = bm_glyph->Y;
@@ -361,7 +366,7 @@ void Rocket::Core::BitmapFont::FontFaceHandle::BuildGlyph(FontGlyph& glyph, Char
     glyph.bitmap_data = NULL;
 }
 
-void Rocket::Core::BitmapFont::FontFaceHandle::BuildKerning(BM_Font *bm_face)
+void Rocket::Core::BitmapFont::FontFaceHandle::BuildKerning(BitmapFontDefinitions *bm_face)
 {
     // Compile the kerning information for this character if the font includes it.
 //    if ( bm_face->CommonCharactersInfo.KerningCount > 0 )

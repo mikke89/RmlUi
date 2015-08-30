@@ -32,7 +32,7 @@
 #include <Rocket/Core/StreamMemory.h>
 #include "FontFamily.h"
 #include <Rocket/Core.h>
-#include "BM_Font.h"
+#include "BitmapFontDefinitions.h"
 #include "FontParser.h"
 
 namespace Rocket {
@@ -79,7 +79,7 @@ void FontProvider::Shutdown()
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
 bool FontProvider::LoadFontFace(const String& file_name)
 {
-    BM_Font *bm_font = (BM_Font*) instance->LoadFace(file_name);
+    BitmapFontDefinitions *bm_font = (BitmapFontDefinitions*) instance->LoadFace(file_name);
 
     if (bm_font == NULL)
     {
@@ -107,7 +107,7 @@ bool FontProvider::LoadFontFace(const String& file_name)
 // Loads a new font face.
 bool FontProvider::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
 {
-    BM_Font *bm_font = (BM_Font*) instance->LoadFace(file_name);
+    BitmapFontDefinitions *bm_font = (BitmapFontDefinitions*) instance->LoadFace(file_name);
     if (bm_font == NULL)
     {
         Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.CString());
@@ -185,14 +185,14 @@ bool FontProvider::AddFace(void* face, const String& family, Font::Style style, 
         instance->font_families[family] = font_family;
     }
 
-    return font_family->AddFace((BM_Font *) face, style, weight, release_stream);
+    return font_family->AddFace((BitmapFontDefinitions *) face, style, weight, release_stream);
     return true;
 }
 
 // Loads a FreeType face.
 void* FontProvider::LoadFace(const String& file_name)
 {
-    BM_Font *bm_face = new BM_Font();
+    BitmapFontDefinitions *bm_face = new BitmapFontDefinitions();
     FontParser parser( bm_face );
 
     FileInterface* file_interface = GetFileInterface();
@@ -214,11 +214,7 @@ void* FontProvider::LoadFace(const String& file_name)
 
     parser.Parse( stream );
 
-    URL file_url = file_name;
-
-    bm_face->Face.Source = file_url.GetFileName();
-    bm_face->Face.Directory = file_url.GetPath();
-
+    bm_face->Face.Source = file_name;
     return bm_face;
 }
 
@@ -227,16 +223,14 @@ void* FontProvider::LoadFace(const byte* data, int data_length, const String& so
 {
     URL file_url = source + ".fnt";
 
-    BM_Font *bm_face = new BM_Font();
+    BitmapFontDefinitions *bm_face = new BitmapFontDefinitions();
     FontParser parser( bm_face );
     StreamMemory* stream = new StreamMemory( data, data_length );
     stream->SetSourceURL( file_url );
 
     parser.Parse( stream );
 
-    bm_face->Face.Source = file_url.GetFileName();
-    bm_face->Face.Directory = file_url.GetPath();
-
+    bm_face->Face.Source = file_url.GetPathedFileName();
     return bm_face;
 }
 
