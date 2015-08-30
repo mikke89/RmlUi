@@ -57,7 +57,7 @@ public:
     /// @param[in] charset The comma-separated list of unicode ranges this handle must support.
     /// @param[in] size The size, in points, of the face this handle should render at.
     /// @return True if the handle initialised successfully and is ready for rendering, false if an error occured.
-    bool Initialise(BitmapFontDefinitions *ft_face, const String& charset, int size);
+    bool Initialise(BitmapFontDefinitions *bm_face, const String& charset, int size);
 
     /// Returns the width a string will take up if rendered with this handle.
     /// @param[in] string The string to measure.
@@ -117,13 +117,12 @@ private:
 
     void BuildGlyphMap(BitmapFontDefinitions *bm_face, const UnicodeRange& unicode_range);
     void BuildGlyph(FontGlyph& glyph, CharacterInfo *ft_glyph);
-
-    void BuildKerning(BitmapFontDefinitions *bm_face);
     int GetKerning(word lhs, word rhs) const;
 
     // Generates (or shares) a layer derived from a font effect.
     virtual FontFaceLayer* GenerateLayer(FontEffect* font_effect);
 
+    BitmapFontDefinitions * bm_face;
     String TextureSource;
     String TextureDirectory;
     unsigned int TextureWidth;

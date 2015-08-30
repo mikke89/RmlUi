@@ -65,11 +65,13 @@ FontFaceHandle::~FontFaceHandle()
 // Initialises the handle so it is able to render text.
 bool FontFaceHandle::Initialise(BitmapFontDefinitions *bm_face, const String& _charset, int _size)
 {
+    this->bm_face = bm_face;
     size = _size;
     TextureWidth = bm_face->CommonCharactersInfo.ScaleWidth;
     TextureHeight = bm_face->CommonCharactersInfo.ScaleHeight;
     raw_charset = _charset;
 
+    // Construct proper path to texture
     URL fnt_source = bm_face->Face.Source;
     URL bitmap_source = bm_face->Face.BitmapSource;
     if(bitmap_source.GetPath().Empty())
@@ -366,45 +368,15 @@ void Rocket::Core::BitmapFont::FontFaceHandle::BuildGlyph(FontGlyph& glyph, Char
     glyph.bitmap_data = NULL;
 }
 
-void Rocket::Core::BitmapFont::FontFaceHandle::BuildKerning(BitmapFontDefinitions *bm_face)
-{
-    // Compile the kerning information for this character if the font includes it.
-//    if ( bm_face->CommonCharactersInfo.KerningCount > 0 )
-//    {
-//        for (size_t i = 0; i < charset.size(); ++i)
-//        {
-//            for (word rhs = (word) (Math::Max< unsigned int >(charset[i].min_codepoint, 32)); rhs <= charset[i].max_codepoint; ++rhs)
-//            {
-//                GlyphKerningList& glyph_kerning = kerning.insert(FontKerningList::value_type(rhs, GlyphKerningList())).first->second;
-
-//                for (size_t j = 0; j < charset.size(); ++j)
-//                {
-//                    for (word lhs = (word) (Math::Max< unsigned int >(charset[j].min_codepoint, 32)); lhs <= charset[j].max_codepoint; ++lhs)
-//                    {
-//                        int kerning = bm_face->BM_Helper_GetXKerning( lhs, rhs );
-//                        if (kerning != 0)
-//                            glyph_kerning[lhs] = kerning;
-//                    }
-//                }
-//            }
-//        }
-//    }
-}
-
 int Rocket::Core::BitmapFont::FontFaceHandle::GetKerning(word lhs, word rhs) const
 {
-//    FontKerningMap::const_iterator rhs_iterator = kerning.find(rhs);
-//    if (rhs_iterator == kerning.end())
-//        return 0;
+    if( bm_face != NULL)
+    {
+        return bm_face->BM_Helper_GetXKerning(lhs, rhs);
+    }
 
-//    GlyphKerningMap::const_iterator lhs_iterator = rhs_iterator->second.find(lhs);
-//    if (lhs_iterator == rhs_iterator->second.end())
-//        return 0;
-
-//    return lhs_iterator->second;
     return 0;
 }
-
 
 // Generates (or shares) a layer derived from a font effect.
 Rocket::Core::FontFaceLayer* FontFaceHandle::GenerateLayer( FontEffect* font_effect)
