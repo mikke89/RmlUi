@@ -36,7 +36,7 @@ namespace Rocket {
 namespace Core {
 namespace FreeType {
 /**
-    @author Peter Curry
+	@author Peter Curry
  */
 
 class FontFaceHandle;
@@ -44,21 +44,21 @@ class FontFaceHandle;
 class FontFace : public Rocket::Core::FontFace
 {
 public:
-    FontFace(FT_Face face, Font::Style style, Font::Weight weight, bool release_stream);
-    ~FontFace();
+	FontFace(FT_Face face, Font::Style style, Font::Weight weight, bool release_stream);
+	~FontFace();
 
-    /// Returns a handle for positioning and rendering this face at the given size.
-    /// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
-    /// @param[in] size The size of the desired handle, in points.
-    /// @return The shared font handle.
-    Rocket::Core::FontFaceHandle* GetHandle(const String& charset, int size);
+	/// Returns a handle for positioning and rendering this face at the given size.
+	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
+	/// @param[in] size The size of the desired handle, in points.
+	/// @return The shared font handle.
+	Rocket::Core::FontFaceHandle* GetHandle(const String& charset, int size);
 
-    /// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
-    /// but existing ones can still be fetched.
-    void ReleaseFace();
+	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
+	/// but existing ones can still be fetched.
+	void ReleaseFace();
 
 private:
-    FT_Face face;
+	FT_Face face;
 };
 
 }

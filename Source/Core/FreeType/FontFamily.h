@@ -40,7 +40,7 @@ class FontFace;
 class FontFaceHandle;
 
 /**
-    @author Peter Curry
+	@author Peter Curry
  */
 
 namespace FreeType {
@@ -48,16 +48,16 @@ namespace FreeType {
 class FontFamily : public Rocket::Core::FontFamily
 {
 public:
-    FontFamily(const String& name);
-    ~FontFamily();
+	FontFamily(const String& name);
+	~FontFamily();
 
-    /// Adds a new face to the family.
-    /// @param[in] ft_face The previously loaded FreeType face.
-    /// @param[in] style The style of the new face.
-    /// @param[in] weight The weight of the new face.
-    /// @param[in] release_stream True if the application must free the face's memory stream.
-    /// @return True if the face was loaded successfully, false otherwise.
-    bool AddFace(void* ft_face, Font::Style style, Font::Weight weight, bool release_stream);
+	/// Adds a new face to the family.
+	/// @param[in] ft_face The previously loaded FreeType face.
+	/// @param[in] style The style of the new face.
+	/// @param[in] weight The weight of the new face.
+	/// @param[in] release_stream True if the application must free the face's memory stream.
+	/// @return True if the face was loaded successfully, false otherwise.
+	bool AddFace(void* ft_face, Font::Style style, Font::Weight weight, bool release_stream);
 };
 
 }

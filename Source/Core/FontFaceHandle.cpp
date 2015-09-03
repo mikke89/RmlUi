@@ -307,24 +307,6 @@ void FontFaceHandle::OnReferenceDeactivate()
 	delete this;
 }
 
-int FontFaceHandle::GetKerning(word lhs, word rhs) const
-{
-    /*if(rhs >= kerning.size())
-        return 0;
-
-    FontKerningList::const_iterator rhs_iterator = kerning.find(rhs);
-    if (rhs_iterator == kerning.end())
-        return 0;
-
-    GlyphKerningList::const_iterator lhs_iterator = rhs_iterator->find(lhs);
-    if (lhs_iterator == (*rhs_iterator).end())
-        return 0;
-
-    return *lhs_iterator;*/
-
-    return 0;
-}
-
 // Generates (or shares) a layer derived from a font effect.
 FontFaceLayer* FontFaceHandle::GenerateLayer(FontEffect* font_effect)
 {

@@ -37,109 +37,109 @@ namespace Rocket {
 namespace Core {
 namespace BitmapFont {
 
-    struct FontInfo
-    {
-        String FamilyName;
-        String Source;
-        String BitmapSource;
-        int Size;
-        Font::Style Style;
-        Font::Weight Weight;
-    };
+	struct FontInfo
+	{
+		String FamilyName;
+		String Source;
+		String BitmapSource;
+		int Size;
+		Font::Style Style;
+		Font::Weight Weight;
+	};
 
-    struct CharacterCommonInfo
-    {
-        int LineHeight;
-        int BaseLine;
-        int ScaleWidth;
-        int ScaleHeight;
-        int CharacterCount;
-        int KerningCount;
-    };
+	struct CharacterCommonInfo
+	{
+		int LineHeight;
+		int BaseLine;
+		int ScaleWidth;
+		int ScaleHeight;
+		int CharacterCount;
+		int KerningCount;
+	};
 
-    struct CharacterInfo
-    {
-        int Id;
-        int X;
-        int Y;
-        int Width;
-        int Height;
-        int XOffset;
-        int YOffset;
-        int Advance;
-    };
+	struct CharacterInfo
+	{
+		int Id;
+		int X;
+		int Y;
+		int Width;
+		int Height;
+		int XOffset;
+		int YOffset;
+		int Advance;
+	};
 
-    struct KerningInfo
-    {
-        int FirstCharacterId;
-        int SecondCharacterId;
-        int KerningAmount;
-    };
+	struct KerningInfo
+	{
+		int FirstCharacterId;
+		int SecondCharacterId;
+		int KerningAmount;
+	};
 
-    class BitmapFontDefinitions
-    {
-    public:
-        FontInfo Face;
-        CharacterCommonInfo CommonCharactersInfo;
-        CharacterInfo *CharactersInfo;
-        KerningInfo *KerningsInfo;
+	class BitmapFontDefinitions
+	{
+	public:
+		FontInfo Face;
+		CharacterCommonInfo CommonCharactersInfo;
+		CharacterInfo *CharactersInfo;
+		KerningInfo *KerningsInfo;
 
-        int BM_Helper_GetCharacterTableIndex( int unicode_code )
-        {
-            return BinarySearch( unicode_code, 0, CommonCharactersInfo.CharacterCount );
-        }
+		int BM_Helper_GetCharacterTableIndex( int unicode_code )
+		{
+			return BinarySearch( unicode_code, 0, CommonCharactersInfo.CharacterCount );
+		}
 
-        int BM_Helper_GetXKerning( int left_uni_id, int right_uni_id )
-        {
-            for ( int i = 0; i < this->CommonCharactersInfo.KerningCount; i++ )
-            {
-                if ( this->KerningsInfo[i].FirstCharacterId == left_uni_id && this->KerningsInfo[i].SecondCharacterId == right_uni_id )
-                {
-                    return this->KerningsInfo[i].KerningAmount;
-                }
-            }
+		int BM_Helper_GetXKerning( int left_uni_id, int right_uni_id )
+		{
+			for ( int i = 0; i < this->CommonCharactersInfo.KerningCount; i++ )
+			{
+				if ( this->KerningsInfo[i].FirstCharacterId == left_uni_id && this->KerningsInfo[i].SecondCharacterId == right_uni_id )
+				{
+					return this->KerningsInfo[i].KerningAmount;
+				}
+			}
 
-            return 0;
-        }
+			return 0;
+		}
 
-    private:
+	private:
 
-        int BinarySearch( int unicode_code, int min_index, int max_index )
-        {
-            if ( abs( max_index - min_index ) <= 1 )
-            {
-                if ( this->CharactersInfo[ min_index ].Id == unicode_code )
-                {
-                    return min_index;
-                }
-                else if ( this->CharactersInfo[ max_index ].Id == unicode_code )
-                {
-                    return max_index;
-                }
-                else
-                {
-                    return -1;
-                }
-            }
-            else
-            {
-                int mid_index = ( min_index + max_index ) / 2;
+		int BinarySearch( int unicode_code, int min_index, int max_index )
+		{
+			if ( abs( max_index - min_index ) <= 1 )
+			{
+				if ( this->CharactersInfo[ min_index ].Id == unicode_code )
+				{
+					return min_index;
+				}
+				else if ( this->CharactersInfo[ max_index ].Id == unicode_code )
+				{
+					return max_index;
+				}
+				else
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				int mid_index = ( min_index + max_index ) / 2;
 
-                if ( this->CharactersInfo[ mid_index ].Id == unicode_code )
-                {
-                    return mid_index;
-                }
-                else if ( this->CharactersInfo[ mid_index ].Id > unicode_code )
-                {
-                    return BinarySearch( unicode_code, min_index, mid_index );
-                }
-                else
-                {
-                    return BinarySearch( unicode_code, mid_index, max_index );
-                }
-            }
-        }
-    };
+				if ( this->CharactersInfo[ mid_index ].Id == unicode_code )
+				{
+					return mid_index;
+				}
+				else if ( this->CharactersInfo[ mid_index ].Id > unicode_code )
+				{
+					return BinarySearch( unicode_code, min_index, mid_index );
+				}
+				else
+				{
+					return BinarySearch( unicode_code, mid_index, max_index );
+				}
+			}
+		}
+	};
 
 }
 }

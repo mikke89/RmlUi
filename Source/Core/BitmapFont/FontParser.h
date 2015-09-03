@@ -39,27 +39,27 @@ namespace Core {
 namespace BitmapFont {
 
 /**
-    @author Peter Curry
+	@author Peter Curry
  */
 
 class FontParser : public BaseXMLParser
 {
-    public:
-        FontParser( BitmapFontDefinitions *face );
-        virtual ~FontParser();
+	public:
+		FontParser( BitmapFontDefinitions *face );
+		virtual ~FontParser();
 
-        /// Called when the parser finds the beginning of an element tag.
-        virtual void HandleElementStart(const String& name, const XMLAttributes& attributes);
-        /// Called when the parser finds the end of an element tag.
-        virtual void HandleElementEnd(const String& name);
-        /// Called when the parser encounters data.
-        virtual void HandleData(const String& data);
+		/// Called when the parser finds the beginning of an element tag.
+		virtual void HandleElementStart(const String& name, const XMLAttributes& attributes);
+		/// Called when the parser finds the end of an element tag.
+		virtual void HandleElementEnd(const String& name);
+		/// Called when the parser encounters data.
+		virtual void HandleData(const String& data);
 
-    private:
-        FontParser();
-        BitmapFontDefinitions *bm_face;
-        int char_id;
-        int kern_id;
+	private:
+		FontParser();
+		BitmapFontDefinitions *bm_face;
+		int char_id;
+		int kern_id;
 };
 
 }

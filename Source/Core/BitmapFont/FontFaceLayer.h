@@ -38,36 +38,36 @@
 namespace Rocket {
 namespace Core {
 
-    class TextureLayout;
+	class TextureLayout;
 
 namespace BitmapFont {
 
 /**
-    A textured layer stored as part of a font face handle. Each handle will have at least a base
-    layer for the standard font. Further layers can be added to allow to rendering of text effects.
-    @author Peter Curry
+	A textured layer stored as part of a font face handle. Each handle will have at least a base
+	layer for the standard font. Further layers can be added to allow to rendering of text effects.
+	@author Peter Curry
  */
 
 class FontFaceLayer : public Rocket::Core::FontFaceLayer
 {
 public:
-    FontFaceLayer();
-    virtual ~FontFaceLayer();
+	FontFaceLayer();
+	virtual ~FontFaceLayer();
 
-    /// Generates the character and texture data for the layer.
-    /// @param[in] handle The handle generating this layer.
-    /// @param[in] effect The effect to initialise the layer with.
-    /// @param[in] clone The layer to optionally clone geometry and texture data from.
-    /// @param[in] deep_clone If true, the clones geometry will be completely cloned and the effect will have no option to affect even the glyph origins.
-    /// @return True if the layer was generated successfully, false if not.
-    virtual bool Initialise(const FontFaceHandle* handle, FontEffect* effect = NULL, const Rocket::Core::FontFaceLayer* clone = NULL, bool deep_clone = false);
+	/// Generates the character and texture data for the layer.
+	/// @param[in] handle The handle generating this layer.
+	/// @param[in] effect The effect to initialise the layer with.
+	/// @param[in] clone The layer to optionally clone geometry and texture data from.
+	/// @param[in] deep_clone If true, the clones geometry will be completely cloned and the effect will have no option to affect even the glyph origins.
+	/// @return True if the layer was generated successfully, false if not.
+	virtual bool Initialise(const FontFaceHandle* handle, FontEffect* effect = NULL, const Rocket::Core::FontFaceLayer* clone = NULL, bool deep_clone = false);
 
-    /// Generates the texture data for a layer (for the texture database).
-    /// @param[out] texture_data The pointer to be set to the generated texture data.
-    /// @param[out] texture_dimensions The dimensions of the texture.
-    /// @param[in] glyphs The glyphs required by the font face handle.
-    /// @param[in] texture_id The index of the texture within the layer to generate.
-    virtual bool GenerateTexture(const byte*& texture_data, Vector2i& texture_dimensions, int texture_id);
+	/// Generates the texture data for a layer (for the texture database).
+	/// @param[out] texture_data The pointer to be set to the generated texture data.
+	/// @param[out] texture_dimensions The dimensions of the texture.
+	/// @param[in] glyphs The glyphs required by the font face handle.
+	/// @param[in] texture_id The index of the texture within the layer to generate.
+	virtual bool GenerateTexture(const byte*& texture_data, Vector2i& texture_dimensions, int texture_id);
 
 };
 
