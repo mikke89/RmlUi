@@ -35,7 +35,7 @@ namespace BitmapFont {
 FontParser::FontParser( BitmapFontDefinitions *face )
     : BaseXMLParser()
 {
-    BM_face = face;
+    bm_face = face;
     char_id = 0;
     kern_id = 0;
 }
@@ -49,49 +49,49 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
 {
     if ( name == "info" )
     {
-        BM_face->Face.FamilyName = attributes.Get( "face" )->Get< String >();
-        BM_face->Face.Size = attributes.Get( "size" )->Get< int >();
-        BM_face->Face.Weight = attributes.Get( "bold" )->Get< bool >() ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
-        BM_face->Face.Style = attributes.Get( "italic" )->Get< bool >() ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
-        BM_face->Face.BitmapSource = attributes.Get( "src" )->Get< String >();
+        bm_face->Face.FamilyName = attributes.Get( "face" )->Get< String >();
+        bm_face->Face.Size = attributes.Get( "size" )->Get< int >();
+        bm_face->Face.Weight = attributes.Get( "bold" )->Get< bool >() ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
+        bm_face->Face.Style = attributes.Get( "italic" )->Get< bool >() ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
+        bm_face->Face.BitmapSource = attributes.Get( "src" )->Get< String >();
     }
     else if ( name == "common" )
     {
-        BM_face->CommonCharactersInfo.LineHeight = attributes.Get( "lineHeight" )->Get< int >();
-        BM_face->CommonCharactersInfo.BaseLine = attributes.Get( "base" )->Get< int >();
-        BM_face->CommonCharactersInfo.ScaleWidth = attributes.Get( "scaleW" )->Get< int >();
-        BM_face->CommonCharactersInfo.ScaleHeight = attributes.Get( "scaleH" )->Get< int >();
-        BM_face->CommonCharactersInfo.CharacterCount = 0;
-        BM_face->CommonCharactersInfo.KerningCount = 0;
+        bm_face->CommonCharactersInfo.LineHeight = attributes.Get( "lineHeight" )->Get< int >();
+        bm_face->CommonCharactersInfo.BaseLine = attributes.Get( "base" )->Get< int >() * -1;
+        bm_face->CommonCharactersInfo.ScaleWidth = attributes.Get( "scaleW" )->Get< int >();
+        bm_face->CommonCharactersInfo.ScaleHeight = attributes.Get( "scaleH" )->Get< int >();
+        bm_face->CommonCharactersInfo.CharacterCount = 0;
+        bm_face->CommonCharactersInfo.KerningCount = 0;
     }
     else if ( name == "chars" )
     {
-        BM_face->CommonCharactersInfo.CharacterCount = attributes.Get( "count" )->Get< int >();
-        BM_face->CharactersInfo = new CharacterInfo[ attributes.Get( "count" )->Get< int >() ];
+        bm_face->CommonCharactersInfo.CharacterCount = attributes.Get( "count" )->Get< int >();
+        bm_face->CharactersInfo = new CharacterInfo[ attributes.Get( "count" )->Get< int >() ];
     }
     else if ( name == "char" )
     {
-        BM_face->CharactersInfo[ char_id ].Id = attributes.Get( "id" )->Get< int >();
-        BM_face->CharactersInfo[ char_id ].X = attributes.Get( "x" )->Get< int >(); //The left position of the character image in the texture.
-        BM_face->CharactersInfo[ char_id ].Y = attributes.Get( "y" )->Get< int >(); //The top position of the character image in the texture.
-        BM_face->CharactersInfo[ char_id ].Width = attributes.Get( "width" )->Get< int >(); //The width of the character image in the texture.
-        BM_face->CharactersInfo[ char_id ].Height = attributes.Get( "height" )->Get< int >(); //The height of the character image in the texture.
-        BM_face->CharactersInfo[ char_id ].XOffset = attributes.Get( "xoffset" )->Get< int >();
-        BM_face->CharactersInfo[ char_id ].YOffset = attributes.Get( "yoffset" )->Get< int >();
-        BM_face->CharactersInfo[ char_id ].Advance = attributes.Get( "xadvance" )->Get< int >();
+        bm_face->CharactersInfo[ char_id ].Id = attributes.Get( "id" )->Get< int >();
+        bm_face->CharactersInfo[ char_id ].X = attributes.Get( "x" )->Get< int >(); //The left position of the character image in the texture.
+        bm_face->CharactersInfo[ char_id ].Y = attributes.Get( "y" )->Get< int >(); //The top position of the character image in the texture.
+        bm_face->CharactersInfo[ char_id ].Width = attributes.Get( "width" )->Get< int >(); //The width of the character image in the texture.
+        bm_face->CharactersInfo[ char_id ].Height = attributes.Get( "height" )->Get< int >(); //The height of the character image in the texture.
+        bm_face->CharactersInfo[ char_id ].XOffset = attributes.Get( "xoffset" )->Get< int >();
+        bm_face->CharactersInfo[ char_id ].YOffset = attributes.Get( "yoffset" )->Get< int >();
+        bm_face->CharactersInfo[ char_id ].Advance = attributes.Get( "xadvance" )->Get< int >();
 
         char_id++;
     }
     else if ( name == "kernings" )
     {
-        BM_face->CommonCharactersInfo.KerningCount = attributes.Get( "count" )->Get< int >();
-        BM_face->KerningsInfo = new KerningInfo[ attributes.Get( "count" )->Get< int >() ];
+        bm_face->CommonCharactersInfo.KerningCount = attributes.Get( "count" )->Get< int >();
+        bm_face->KerningsInfo = new KerningInfo[ attributes.Get( "count" )->Get< int >() ];
     }
     else if ( name == "kerning" )
     {
-        BM_face->KerningsInfo[ kern_id ].FirstCharacterId = attributes.Get( "first" )->Get< int >();
-        BM_face->KerningsInfo[ kern_id ].SecondCharacterId = attributes.Get( "second" )->Get< int >();
-        BM_face->KerningsInfo[ kern_id ].KerningAmount = attributes.Get( "amount" )->Get< int >();
+        bm_face->KerningsInfo[ kern_id ].FirstCharacterId = attributes.Get( "first" )->Get< int >();
+        bm_face->KerningsInfo[ kern_id ].SecondCharacterId = attributes.Get( "second" )->Get< int >();
+        bm_face->KerningsInfo[ kern_id ].KerningAmount = attributes.Get( "amount" )->Get< int >();
 
         kern_id++;
     }

@@ -41,26 +41,19 @@ FontFaceLayer::FontFaceLayer() : Rocket::Core::FontFaceLayer()
 
 FontFaceLayer::~FontFaceLayer()
 {
-    //if (effect != NULL)
-    //    effect->RemoveReference();
 }
 
 // Generates the character and texture data for the layer.
 bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, FontEffect* _effect, const Rocket::Core::FontFaceLayer* clone, bool deep_clone)
 {
+    (void)(_effect);
+
     Rocket::Core::BitmapFont::FontFaceHandle
         * bm_font_face_handle;
 
     handle = _handle;
-    //effect = _effect;
 
     bm_font_face_handle = ( Rocket::Core::BitmapFont::FontFaceHandle * ) handle;
-
-    if (effect != NULL)
-    {
-        //effect->AddReference();
-        //Log::Message( Log::LT_WARNING, "Effects are not supported" );
-    }
 
     const FontGlyphList& glyphs = handle->GetGlyphs();
 
@@ -96,7 +89,7 @@ bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, Font
             Vector2i glyph_dimensions = glyph.dimensions; // size of char
 
             Character character;
-            character.origin = Vector2f((float) (glyph.bearing.x), (float) (glyph.bearing.y));
+            character.origin = Vector2f((float) (glyph.bearing.x), (float) (glyph.bearing.y) - handle->GetBaseline()*3 );
             character.dimensions = Vector2f((float) glyph.dimensions.x, (float) glyph.dimensions.y);
 
             // Set the character's texture index.

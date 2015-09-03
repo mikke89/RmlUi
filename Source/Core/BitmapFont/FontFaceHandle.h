@@ -95,17 +95,17 @@ public:
 
     const String & GetTextureSource() const
     {
-        return TextureSource;
+        return texture_source;
     }
 
     unsigned int GetTextureWidth() const
     {
-        return TextureWidth;
+        return texture_width;
     }
 
     unsigned int GetTextureHeight() const
     {
-        return TextureHeight;
+        return texture_height;
     }
 
 protected:
@@ -123,10 +123,10 @@ private:
     virtual FontFaceLayer* GenerateLayer(FontEffect* font_effect);
 
     BitmapFontDefinitions * bm_face;
-    String TextureSource;
-    String TextureDirectory;
-    unsigned int TextureWidth;
-    unsigned int TextureHeight;
+    String texture_source;
+    String texture_directory;
+    unsigned int texture_width;
+    unsigned int texture_height;
 };
 
 }

@@ -67,8 +67,9 @@ bool FontFaceHandle::Initialise(BitmapFontDefinitions *bm_face, const String& _c
 {
     this->bm_face = bm_face;
     size = _size;
-    TextureWidth = bm_face->CommonCharactersInfo.ScaleWidth;
-    TextureHeight = bm_face->CommonCharactersInfo.ScaleHeight;
+    line_height = _size;
+    texture_width = bm_face->CommonCharactersInfo.ScaleWidth;
+    texture_height = bm_face->CommonCharactersInfo.ScaleHeight;
     raw_charset = _charset;
 
     // Construct proper path to texture
@@ -76,15 +77,15 @@ bool FontFaceHandle::Initialise(BitmapFontDefinitions *bm_face, const String& _c
     URL bitmap_source = bm_face->Face.BitmapSource;
     if(bitmap_source.GetPath().Empty())
     {
-        TextureSource = fnt_source.GetPath() + bitmap_source.GetFileName();
+        texture_source = fnt_source.GetPath() + bitmap_source.GetFileName();
         if(!bitmap_source.GetExtension().Empty())
         {
-            TextureSource += "." + bitmap_source.GetExtension();
+            texture_source += "." + bitmap_source.GetExtension();
         }
     }
     else
     {
-        TextureSource = bitmap_source.GetPathedFileName();
+        texture_source = bitmap_source.GetPathedFileName();
     }
 
     if (!UnicodeRange::BuildList(charset, raw_charset))
@@ -305,12 +306,10 @@ void FontFaceHandle::GenerateMetrics(BitmapFontDefinitions *bm_face)
     line_height = bm_face->CommonCharactersInfo.LineHeight;
     baseline = bm_face->CommonCharactersInfo.BaseLine;
 
-    underline_position = (float)line_height - bm_face->CommonCharactersInfo.BaseLine;//FT_MulFix(ft_face->underline_position, ft_face->size->metrics.y_scale) / float(1 << 6);
-    /*underline_thickness = FT_MulFix(ft_face->underline_thickness, ft_face->size->metrics.y_scale) / float(1 << 6);
-    underline_thickness = Math::Max(underline_thickness, 1.0f);
-*/
-    baseline += int( underline_position / 1.5f );
+    underline_position = (float)line_height - bm_face->CommonCharactersInfo.BaseLine;
+    baseline += int( underline_position / 1.6f );
     underline_thickness = 1.0f;
+
     average_advance = 0;
     for (FontGlyphList::iterator i = glyphs.begin(); i != glyphs.end(); ++i)
         average_advance += i->advance;

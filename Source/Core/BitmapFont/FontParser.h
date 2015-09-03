@@ -57,7 +57,7 @@ class FontParser : public BaseXMLParser
 
     private:
         FontParser();
-        BitmapFontDefinitions *BM_face;
+        BitmapFontDefinitions *bm_face;
         int char_id;
         int kern_id;
 };

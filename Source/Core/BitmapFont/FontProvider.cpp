@@ -130,46 +130,15 @@ bool FontProvider::LoadFontFace(const String& file_name, const String& family, F
 
 bool FontProvider::LoadFontFace(const byte* data, int data_length)
 {
-    //    BM_Font *bm_font = (BM_Font*) instance->LoadFace(data, data_length, family, false);
-    //    if (bm_font == NULL)
-    //    {
-    //        Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
-    //        return false;
-    //    }
-
-    //    if (instance->AddFace(bm_font, bm_font->Face.FamilyName, style, weight, false))
-    //    {
-    //        Log::Message(Log::LT_INFO, "Loaded font face %s (from byte stream).", bm_font->Face.FamilyName.CString());
-    //        return true;
-    //    }
-    //    else
-    //    {
-    //        Log::Message(Log::LT_ERROR, "Failed to load font face %s (from byte stream).", bm_font->Face.FamilyName.CString());
-    //        return false;
-    //    }
+    // TODO: Loading from memory
     return false;
 }
 
 // Adds a new font face to the database, loading from memory.
 bool FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
 {
-//    BM_Font *bm_font = (BM_Font*) instance->LoadFace(data, data_length, family, false);
-//    if (bm_font == NULL)
-//    {
-//        Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
-//        return false;
-//    }
-
-//    if (instance->AddFace(bm_font, family, style, weight, false))
-//    {
-//        Log::Message(Log::LT_INFO, "Loaded font face %s (from byte stream).", bm_font->Face.FamilyName.CString());
-//        return true;
-//    }
-//    else
-//    {
-//        Log::Message(Log::LT_ERROR, "Failed to load font face %s (from byte stream).", bm_font->Face.FamilyName.CString());
-//        return false;
-//    }
+    // TODO Loading from memory
+    return false;
 }
 
 // Adds a loaded face to the appropriate font family.
