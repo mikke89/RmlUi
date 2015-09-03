@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <font>
   <info face="Arial" size="26" bold="0" italic="0" src="Arial_0.tga"/>
-  <common lineHeight="26" base="21" scaleW="1024" scaleH="1024" />
+  <common lineHeight="26" base="26" scaleW="1024" scaleH="1024" />
   <chars count="191">
     <char id="32" x="170" y="40" width="1" height="1" xoffset="0" yoffset="21" xadvance="6" />
     <char id="33" x="643" y="19" width="2" height="17" xoffset="3" yoffset="4" xadvance="8" />

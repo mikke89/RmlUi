@@ -45,6 +45,13 @@ set(loaddocument_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/loaddocument/src/main.cpp
 )
 
+set(bitmapfont_HDR_FILES
+)
+
+set(bitmapfont_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/main.cpp
+)
+
 set(ogre3d_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.h
