@@ -141,7 +141,7 @@ if(APPLE)
 	option(BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
 endif()
 
-option(BUILD_SAMPLES "Build samples" ON)
+option(BUILD_SAMPLES "Build samples" OFF)
 if(WIN32)
 	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
 	option(SKIP_DIRECTX9_SAMPLE "Skip build of DirectX 9 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
