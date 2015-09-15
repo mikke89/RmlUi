@@ -26,8 +26,8 @@
  */
 
 #include "precompiled.h"
-#include "FontFamily.h"
-#include "FontFace.h"
+#include "../../Include/Rocket/Core/FontFamily.h"
+#include "../../Include/Rocket/Core/FontFace.h"
 
 namespace Rocket {
 namespace Core {
@@ -40,15 +40,6 @@ FontFamily::~FontFamily()
 {
 	for (size_t i = 0; i < font_faces.size(); ++i)
 		delete font_faces[i];
-}
-
-// Adds a new face to the family.
-bool FontFamily::AddFace(FT_Face ft_face, Font::Style style, Font::Weight weight, bool release_stream)
-{
-	FontFace* face = new FontFace(ft_face, style, weight, release_stream);
-	font_faces.push_back(face);
-
-	return true;
 }
 
 // Returns a handle to the most appropriate font in the family, at the correct size.

@@ -26,21 +26,20 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/FontDatabase.h"
-#include "FontFamily.h"
-#include "../../Include/Rocket/Core.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <Rocket/Core/FontDatabase.h>
+#include <Rocket/Core/FontFamily.h>
+#include <Rocket/Core.h>
+#include <Rocket/Core/FreeType/FontProvider.h>
+#include <Rocket/Core/BitmapFont/FontProvider.h>
 
 namespace Rocket {
 namespace Core {
 
 FontDatabase* FontDatabase::instance = NULL;
+FontDatabase::FontProviderTable FontDatabase::font_provider_table;
 
 typedef std::map< String, FontEffect* > FontEffectCache;
 FontEffectCache font_effect_cache;
-
-static FT_Library ft_library = NULL;
 
 FontDatabase::FontDatabase()
 {
@@ -60,13 +59,11 @@ bool FontDatabase::Initialise()
 	{
 		new FontDatabase();
 
-		FT_Error result = FT_Init_FreeType(&ft_library);
-		if (result != 0)
-		{
-			Log::Message(Log::LT_ERROR, "Failed to initialise FreeType, error %d.", result);
-			Shutdown();
-			return false;
-		}
+        if(!FreeType::FontProvider::Initialise())
+            return false;
+
+        if(!BitmapFont::FontProvider::Initialise())
+            return false;
 	}
 
 	return true;
@@ -76,14 +73,8 @@ void FontDatabase::Shutdown()
 {
 	if (instance != NULL)
 	{
-		for (FontFamilyMap::iterator i = instance->font_families.begin(); i != instance->font_families.end(); ++i)
-			delete (*i).second;
-
-		if (ft_library != NULL)
-		{
-			FT_Done_FreeType(ft_library);
-			ft_library = NULL;
-		}
+        FreeType::FontProvider::Shutdown();
+        BitmapFont::FontProvider::Shutdown();
 
 		delete instance;
 	}
@@ -92,105 +83,101 @@ void FontDatabase::Shutdown()
 // Loads a new font face.
 bool FontDatabase::LoadFontFace(const String& file_name)
 {
-	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
-	if (ft_face == NULL)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.CString());
-		return false;
-	}
+    FontProviderType font_provider_type = GetFontProviderType(file_name);
 
-	Font::Style style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
-	Font::Weight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(file_name);
 
-	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, true))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
-		return false;
-	}
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(file_name);
+
+        default:
+            return false;
+    }
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
 {
-	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
-	if (ft_face == NULL)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.CString());
-		return false;
-	}
+    FontProviderType font_provider_type = GetFontProviderType(file_name);
 
-	if (instance->AddFace(ft_face, family, style, weight, true))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
-		return false;
-	}
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
+
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(file_name, family, style, weight);
+
+        default:
+            return false;
+    }
 }
 
 // Adds a new font face to the database, loading from memory.
-bool FontDatabase::LoadFontFace(const byte* data, int data_length)
+bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length)
 {
-	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
-	if (ft_face == NULL)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
-		return false;
-	}
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(data, data_length);
 
-	Font::Style style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
-	Font::Weight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(data, data_length);
 
-	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, false))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
-		return false;
-	}
+        default:
+            return false;
+    }
 }
 
 // Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabase::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
+bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
 {
-	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
-	if (ft_face == NULL)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
-		return false;
-	}
+    switch(font_provider_type)
+    {
+        case FreeType:
+            return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
 
-	if (instance->AddFace(ft_face, family, style, weight, false))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
-		return false;
-	}
+        case BitmapFont:
+            return BitmapFont::FontProvider::LoadFontFace(data, data_length, family, style, weight);
+
+        default:
+            return false;
+    }
+}
+
+FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& file_name)
+{
+    if(file_name.Find(".fnt") != String::npos)
+    {
+        return BitmapFont;
+    }
+    else
+    {
+        return FreeType;
+    }
 }
 
 // Returns a handle to a font face that can be used to position and render text.
 FontFaceHandle* FontDatabase::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
 {
-	FontFamilyMap::iterator iterator = instance->font_families.find(family);
-	if (iterator == instance->font_families.end())
-		return NULL;
+    size_t provider_index, provider_count;
 
-	return (*iterator).second->GetFaceHandle(charset, style, weight, size);
+    provider_count = font_provider_table.size();
+
+    for(provider_index = 0; provider_index < provider_count; ++provider_index)
+    {
+        FontFaceHandle * face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
+
+        if(face_handle)
+        {
+            return face_handle;
+        }
+    }
+
+    return NULL;
 }
 
 // Returns a font effect, either a newly-instanced effect from the factory or an identical shared
@@ -255,72 +242,21 @@ void FontDatabase::ReleaseFontEffect(const FontEffect* effect)
 	}
 }
 
-// Adds a loaded face to the appropriate font family.
-bool FontDatabase::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
+void FontDatabase::AddFontProvider(FontProvider * provider)
 {
-	FontFamily* font_family = NULL;
-	FontFamilyMap::iterator iterator = instance->font_families.find(family);
-	if (iterator != instance->font_families.end())
-		font_family = (*iterator).second;
-	else
-	{
-		font_family = new FontFamily(family);
-		instance->font_families[family] = font_family;
-	}
-
-	return font_family->AddFace((FT_Face) face, style, weight, release_stream);
+    instance->font_provider_table.push_back(provider);
 }
 
-// Loads a FreeType face.
-void* FontDatabase::LoadFace(const String& file_name)
+void FontDatabase::RemoveFontProvider(FontProvider * provider)
 {
-	FileInterface* file_interface = GetFileInterface();
-	FileHandle handle = file_interface->Open(file_name);
-
-	if (!handle)
-	{
-		return NULL;
-	}
-
-	size_t length = file_interface->Length(handle);
-
-	FT_Byte* buffer = new FT_Byte[length];
-	file_interface->Read(buffer, length, handle);
-	file_interface->Close(handle);
-
-	return LoadFace(buffer, (int)length, file_name, true);
-}
-
-// Loads a FreeType face from memory.
-void* FontDatabase::LoadFace(const byte* data, int data_length, const String& source, bool local_data)
-{
-	FT_Face face = NULL;
-	int error = FT_New_Memory_Face(ft_library, (const FT_Byte*) data, data_length, 0, &face);
-	if (error != 0)
-	{
-		Log::Message(Log::LT_ERROR, "FreeType error %d while loading face from %s.", error, source.CString());
-		if (local_data)
-			delete[] data;
-
-		return NULL;
-	}
-
-	// Initialise the character mapping on the face.
-	if (face->charmap == NULL)
-	{
-		FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
-		if (face->charmap == NULL)
-		{
-			Log::Message(Log::LT_ERROR, "Font face (from %s) does not contain a Unicode or Apple Roman character map.", source.CString());
-			FT_Done_Face(face);
-			if (local_data)
-				delete[] data;
-
-			return NULL;
-		}
-	}
-
-	return face;
+    for(FontProviderTable::iterator i = instance->font_provider_table.begin(); i != instance->font_provider_table.end(); ++i)
+    {
+        if(*i == provider)
+        {
+            instance->font_provider_table.erase(i);
+            return;
+        }
+    }
 }
 
 }

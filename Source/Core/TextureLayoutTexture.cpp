@@ -65,7 +65,10 @@ int TextureLayoutTexture::Generate(TextureLayout& layout, int maximum_dimensions
 
 		if (!rectangle.IsPlaced())
 		{
-			square_pixels += (rectangle.GetDimensions().x + 1) * (rectangle.GetDimensions().y + 1);
+			int x = rectangle.GetDimensions().x + 1;
+			int y = rectangle.GetDimensions().y + 1;
+
+			square_pixels += x*y;
 			++unplaced_rectangles;
 		}
 	}
