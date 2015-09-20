@@ -495,7 +495,7 @@ int ElementGetAttrtag_name(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     lua_pushstring(L,ele->GetTagName().CString());
-    return 0;
+    return 1;
 }
 
 

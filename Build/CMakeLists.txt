@@ -2,12 +2,31 @@
 # Build script for libRocket =======
 #===================================
 
-# This has to be before most other options so CMake properly handles the 
-# compiler variables, it MUST bebefore the project() definition
 if(APPLE)
+	# This has to be before most other options so CMake properly handles the 
+	# compiler variables, it MUST bebefore the project() definition
 	if(IOS_PLATFORM)
 		set(CMAKE_TOOLCHAIN_FILE cmake/Platform/iOS.cmake)
 	endif(IOS_PLATFORM)
+
+	option(BUILD_UNIVERSAL_BINARIES "Build universal binaries for all architectures supported" ON)
+	if (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
+		if(IOS)
+			# set the architecture for iOS 
+			if (${IOS_PLATFORM} STREQUAL "OS")
+				set (IOS_ARCH armv6 armv7 armv7s arm64)
+				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS")
+			else (${IOS_PLATFORM} STREQUAL "OS")
+				set (IOS_ARCH i386 x86_64)
+				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS Simulator")
+			endif (${IOS_PLATFORM} STREQUAL "OS")
+
+		else(IOS)
+			# set the architectures for OS X
+			set (OSXI_ARCH i386 x86_64)
+			set (CMAKE_OSX_ARCHITECTURES ${OSXI_ARCH} CACHE string  "Build architecture for OS X universal binaries")		
+		endif(IOS)
+	endif (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
 endif(APPLE)
 
 # We use the new OSX_ARCHITECTURES property
@@ -17,6 +36,18 @@ cmake_minimum_required(VERSION 2.8.5)
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0015 NEW)
 endif(COMMAND cmake_policy)
+
+# Enable the use of MACOSX_RPATH by default for CMake v3.0+; this effectively 
+# allows plug 'n' play functionality, so to speak -- the resulting shared 
+# library files can simply be copied over into the end-user's application 
+# bundle or framework bundle. No mucking around with install_name_tool.
+#
+# 	See also: 
+# cmake --help-policy cmp0042
+# http://www.kitware.com/blog/home/post/510
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif(POLICY CMP0042)
 
 project(libRocket C CXX)
 
@@ -55,20 +86,23 @@ if(NOT DEFINED ENV{FREETYPE_DIR})
 	set(ENV{FREETYPE_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
-if(NOT DEFINED ENV{Boost_DIR})
-	set(ENV{Boost_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+#if(NOT DEFINED ENV{Boost_DIR})
+#	set(ENV{Boost_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+#endif()
+if(NOT DEFINED ENV{BOOST_ROOT})
+	set(ENV{BOOST_ROOT} "${PROJECT_SOURCE_DIR}/../Dependencies/boost")
 endif()
 
 if(NOT DEFINED ENV{LUA_DIR})
 	set(ENV{LUA_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
-if(NOT DEFINED ENV{SDLDIR})
-	set(ENV{SDLDIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+if(NOT DEFINED ENV{SDL2DIR})
+	set(ENV{SDL2DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
-if(NOT DEFINED ENV{SDLIMAGEDIR})
-	set(ENV{SDLIMAGEDIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+if(NOT DEFINED ENV{SDL2_IMAGE_DIR})
+	set(ENV{SDL2_IMAGE_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
 if(NOT DEFINED ENV{SFML_ROOT})
@@ -102,9 +136,11 @@ endif(NOT IOS)
 
 option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
+
 if(APPLE)
 	option(BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
 endif()
+
 option(BUILD_SAMPLES "Build samples" OFF)
 if(WIN32)
 	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
@@ -112,28 +148,29 @@ if(WIN32)
 	option(SKIP_DIRECTX10_SAMPLE "Skip build of DirectX 10 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
 endif()
 
-if(IOS)
-	if(BUILD_SHARED_LIBS)
-		message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
-	endif(BUILD_SHARED_LIBS)
-endif(IOS)
+if(APPLE)
+	if(IOS)
+		if(BUILD_SHARED_LIBS)
+			message(FATAL_ERROR "BUILD_SHARED_LIBS must be OFF for iOS builds.  iOS does not support shared libraries.")
+		endif(BUILD_SHARED_LIBS)
+	endif(IOS)
 
-if(BUILD_FRAMEWORK)
-	if(APPLE)
+	if(BUILD_FRAMEWORK)
 		if(NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
 			message(FATAL_ERROR "You should use Xcode generator with BUILD_FRAMEWORK enabled")
 		endif()
-		set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
 		if(NOT BUILD_SHARED_LIBS)
 			message(FATAL_ERROR "BUILD_SHARED_LIBS must be ON with BUILD_FRAMEWORK enabled")
 		endif()
-	else(APPLE)
+	endif()
+else(APPLE)
+	if(BUILD_FRAMEWORK)
 		message(FATAL_ERROR "BUILD_FRAMEWORK is only supported on Mac OS X with the Xcode generator")
-	endif(APPLE)
-endif()
+	endif()
+endif(APPLE)
 
 if(NOT BUILD_SHARED_LIBS)
-    add_definitions(-DSTATIC_LIB)
+	add_definitions(-DROCKET_STATIC_LIB)
 endif()
 
 #on windows, check for VC10 and fix the multiple compile target issue.
@@ -239,19 +276,14 @@ foreach(library ${LIBRARIES})
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
     )
     
-    if(APPLE)
-	if(NOT IOS)
-    		set_target_properties(${NAME} PROPERTIES
-    						OSX_ARCHITECTURES "i386;x86_64;"
-    		)
-	endif(NOT IOS)
-    endif(APPLE)
-
     install(TARGETS ${NAME}
+            EXPORT libRocketTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+
+    set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
 else(NOT BUILD_FRAMEWORK)
 	#===================================
@@ -286,9 +318,6 @@ else(NOT BUILD_FRAMEWORK)
 		SOVERSION ${LIBROCKET_VERSION_MAJOR}
 	)
 
-	set_target_properties(${NAME} PROPERTIES
-		OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
-	)
 		set_property(SOURCE ${MASTER_PUB_HDR_FILES}
 			PROPERTY MACOSX_PACKAGE_LOCATION Headers
 		)
@@ -312,11 +341,14 @@ else(NOT BUILD_FRAMEWORK)
 		)
 
     install(TARGETS ${NAME}
+            EXPORT libRocketTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             FRAMEWORK DESTINATION Library/Frameworks
     )
+
+    set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
 endif(NOT BUILD_FRAMEWORK)
 
 # Build python bindings
@@ -331,19 +363,13 @@ if(BUILD_PYTHON_BINDINGS)
                             ${Py${library}_PUB_HDR_FILES}
         )
 
-    if(APPLE)
-	if(NOT IOS)
-    		set_target_properties(${NAME} PROPERTIES
-    						OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
-    		)
-	endif(NOT IOS)
-    endif(APPLE)
-
         set_target_properties(${NAME} PROPERTIES PREFIX "")
 
         install(TARGETS ${NAME}
+                EXPORT libRocketTargets
                 LIBRARY DESTINATION ${PYTHON_INSTDIR}
         )
+ 
     endforeach(library)
 endif()
 
@@ -364,19 +390,14 @@ if(BUILD_LUA_BINDINGS)
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
         )
         
-    if(APPLE)
-	if(NOT IOS)
-    		set_target_properties(${NAME} PROPERTIES
-    						OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)"
-    		)
-	endif(NOT IOS)
-    endif(APPLE)
-
         install(TARGETS ${NAME}
+            EXPORT libRocketTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
+        
+        set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
     endforeach(library)
 endif()
 
@@ -447,7 +468,7 @@ endmacro()
 if(BUILD_SAMPLES)
     include(SampleFileList)
 
-    set(samples treeview customlog drag loaddocument)
+    set(samples treeview customlog drag loaddocument bitmapfont)
     set(tutorials template datagrid datagrid_tree tutorial_drag)
     
 if(NOT BUILD_FRAMEWORK)
@@ -605,16 +626,16 @@ endif(NOT BUILD_FRAMEWORK)
 	endif()
 
     message("-- Can SDL2 sample be built")
-    find_package(SDL)
-    if(SDL_FOUND)
-	find_package(SDL_image)
-	if(SDL_IMAGE_FOUND)
+    find_package(SDL2)
+    if(SDL2_FOUND)
+	find_package(SDL2_image)
+	if(SDL2_IMAGE_FOUND)
 		find_package(GLEW)
 		if(GLEW_FOUND)
         		message("-- Can SDL2 sample be built - yes")
-			include_directories(${SDL_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+			include_directories(${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
-			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL_LIBRARY} ${SDL_IMAGE_LIBRARY} ${GLEW_LIBRARY})
+			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARY})
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
 			install(TARGETS sdl2
@@ -789,4 +810,51 @@ if(BUILD_SAMPLES)
                 DESTINATION ${SAMPLES_DIR}/luainvaders
         )
     endif()
+endif()
+
+#===================================
+# Generate Config.cmake files ======
+#===================================
+
+# Try to include helper module
+include(CMakePackageConfigHelpers OPTIONAL
+  RESULT_VARIABLE PkgHelpers_AVAILABLE)
+# guard against older versions of cmake which do not provide it
+if(PkgHelpers_AVAILABLE)
+
+  set (INCLUDE_INSTALL_DIR "include")
+  set (LIB_INSTALL_DIR "lib")
+  set (INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Include")
+
+  # generate configuration for install tree
+  configure_package_config_file(libRocketConfig.cmake.install.in
+    ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfig.cmake
+    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/libRocket/cmake
+    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfigVersion.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/libRocket/cmake )
+  install(EXPORT libRocketTargets
+    DESTINATION ${LIB_INSTALL_DIR}/libRocket/cmake)
+
+  # generate configuration for build tree
+  configure_package_config_file(libRocketConfig.cmake.build.in
+    ${CMAKE_CURRENT_BINARY_DIR}/libRocketConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+    PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)
+  export(TARGETS ${ROCKET_EXPORTED_TARGETS}
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/libRocketTargets.cmake")
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/libRocketConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion )
+  set(libRocket_DIR "${CMAKE_CURRENT_BINARY_DIR}" CACHE PATH "The directory containing a CMake configuration file for libRocket.")
+else()
+  message("If you wish to use find_package(libRocket) in your own project to find libRocket library"
+    " please update cmake to version which provides CMakePackageConfighelpers module"
+    " or write generators for libRocketConfig.cmake by yourself.")
 endif()

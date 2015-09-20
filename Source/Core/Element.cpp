@@ -537,6 +537,11 @@ float Element::ResolveProperty(const Property *property, float base_value)
 	return style->ResolveProperty(property, base_value);
 }
 
+void Element::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )
+{
+	style->GetOffsetProperties(top, bottom, left, right);
+}
+
 void Element::GetBorderWidthProperties(const Property **border_top, const Property **border_bottom, const Property **border_left, const Property **bottom_right)
 {
 	style->GetBorderWidthProperties(border_top, border_bottom, border_left, bottom_right);
@@ -1708,7 +1713,7 @@ void Element::ProcessEvent(Event& event)
 			if (overflow_property == OVERFLOW_AUTO ||
 				overflow_property == OVERFLOW_SCROLL)
 			{
-				SetScrollTop(GetScrollTop() + wheel_delta * ElementUtilities::GetLineHeight(this));
+				SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : (GetProperty(SCROLL_DEFAULT_STEP_SIZE) ? GetProperty< int >(SCROLL_DEFAULT_STEP_SIZE) : 0 )));
 				event.StopPropagation();
 			}
 		}
@@ -1836,7 +1841,7 @@ void Element::UpdateOffset()
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			if (right != NULL && right->unit != Property::KEYWORD)
+			else if (right != NULL && right->unit != Property::KEYWORD)
 				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (ResolveProperty(RIGHT, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
 
 			const Property *top = GetLocalProperty(TOP);

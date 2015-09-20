@@ -74,6 +74,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 // @TODO Make these lookup at runtime rather than using hard coded paths
 #ifdef ROCKET_PLATFORM_LINUX
 #define APP_PATH "../Samples/pyinvaders/"
+#define ROCKET_PATH ""
 #else
 #define APP_PATH "../../Samples/pyinvaders/"
 #define ROCKET_PATH "."

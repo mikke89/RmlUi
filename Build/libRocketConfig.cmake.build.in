@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+set_and_check(libRocket_INCLUDE_DIRS "@PACKAGE_INCLUDE_DIR@")
+set(libRocket_LIBRARIES @ROCKET_EXPORTED_TARGETS@)
+list(GET libRocket_LIBRARIES 0 ROCKET_FIRST_TARGET)
+
+if(NOT (TARGET ${ROCKET_FIRST_TARGET}))
+  include("${CMAKE_CURRENT_LIST_DIR}/libRocketTargets.cmake")
+endif()
+
+check_required_components(libRocket)

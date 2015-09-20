@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,15 +25,15 @@
  *
  */
 
-#ifndef ROCKETCOREFONTFACE_H
-#define ROCKETCOREFONTFACE_H
+#ifndef ROCKETCOREBITMAPFONTFACE_H
+#define ROCKETCOREBITMAPFONTFACE_H
 
-#include "../../Include/Rocket/Core/Font.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include "../../../Include/Rocket/Core/FontFace.h"
+#include "BitmapFontDefinitions.h"
 
 namespace Rocket {
 namespace Core {
+namespace BitmapFont {
 
 class FontFaceHandle;
 
@@ -41,41 +41,27 @@ class FontFaceHandle;
 	@author Peter Curry
  */
 
-class FontFace
+class FontFace : public Rocket::Core::FontFace
 {
 public:
-	FontFace(FT_Face face, Font::Style style, Font::Weight weight, bool release_stream);
+	FontFace(BitmapFontDefinitions *_face, Font::Style style, Font::Weight weight, bool release_stream);
 	~FontFace();
-
-	/// Returns the style of the font face.
-	/// @return The font face's style.
-	Font::Style GetStyle() const;
-	/// Returns the weight of the font face.
-	/// @return The font face's weight.
-	Font::Weight GetWeight() const;
 
 	/// Returns a handle for positioning and rendering this face at the given size.
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
-	FontFaceHandle* GetHandle(const String& charset, int size);
+	Rocket::Core::FontFaceHandle* GetHandle(const String& charset, int size);
 
 	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
 	/// but existing ones can still be fetched.
 	void ReleaseFace();
 
 private:
-	FT_Face face;
-	Font::Style style;
-	Font::Weight weight;
-
-	bool release_stream;
-
-	typedef std::vector< FontFaceHandle* > HandleList;
-	typedef std::map< int, HandleList > HandleMap;
-	HandleMap handles;
+	BitmapFontDefinitions *face;
 };
 
+}
 }
 }
 

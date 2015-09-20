@@ -28,9 +28,8 @@
 #ifndef ROCKETCOREFONTFAMILY_H
 #define ROCKETCOREFONTFAMILY_H
 
-#include "../../Include/Rocket/Core/Font.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <Rocket/Core/StringUtilities.h>
+#include "Font.h"
 
 namespace Rocket {
 namespace Core {
@@ -46,7 +45,7 @@ class FontFamily
 {
 public:
 	FontFamily(const String& name);
-	~FontFamily();
+    virtual ~FontFamily();
 
 	/// Adds a new face to the family.
 	/// @param[in] ft_face The previously loaded FreeType face.
@@ -54,7 +53,7 @@ public:
 	/// @param[in] weight The weight of the new face.
 	/// @param[in] release_stream True if the application must free the face's memory stream.
 	/// @return True if the face was loaded successfully, false otherwise.
-	bool AddFace(FT_Face ft_face, Font::Style style, Font::Weight weight, bool release_stream);
+    virtual bool AddFace(void* ft_face, Font::Style style, Font::Weight weight, bool release_stream) = 0;
 
 	/// Returns a handle to the most appropriate font in the family, at the correct size.
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
@@ -62,9 +61,9 @@ public:
 	/// @param[in] weight The weight of the desired handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
-	FontFaceHandle* GetFaceHandle(const String& charset, Font::Style style, Font::Weight weight, int size);
+    FontFaceHandle* GetFaceHandle(const String& charset, Font::Style style, Font::Weight weight, int size);
 
-private:
+protected:
 	String name;
 
 	typedef std::vector< FontFace* > FontFaceList;

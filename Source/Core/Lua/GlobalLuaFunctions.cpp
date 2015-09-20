@@ -72,7 +72,7 @@ int rocket_pairs(lua_State* L)
 
 //copy + pasted from Lua's lbaselib.c
 int ipairsaux (lua_State *L) {
-    int i = luaL_checkint(L, 2);
+    int i = luaL_checkinteger(L, 2);
     luaL_checktype(L, 1, LUA_TTABLE);
     i++;  /* next value */
     lua_pushinteger(L, i);
