@@ -98,13 +98,15 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
 }
 
 // Called when the parser finds the end of an element tag.
-void FontParser::HandleElementEnd(const String& ROCKET_UNUSED(name))
+void FontParser::HandleElementEnd(const String& ROCKET_UNUSED_PARAMETER(name))
 {
+	ROCKET_UNUSED(name);
 }
 
 // Called when the parser encounters data.
-void FontParser::HandleData(const String& ROCKET_UNUSED(data))
+void FontParser::HandleData(const String& ROCKET_UNUSED_PARAMETER(data))
 {
+	ROCKET_UNUSED(data);
 }
 
 }
