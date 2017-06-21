@@ -58,20 +58,23 @@ WidgetSlider::~WidgetSlider()
 {
 	if (bar != NULL)
 	{
-		bar->RemoveEventListener("drag", this);
-		bar->RemoveEventListener("dragstart", this);
 		parent->RemoveChild(bar);
+	}
+
+	if (track != NULL)
+	{
+		track->RemoveEventListener("mousedown", this);
+		parent->RemoveChild(track);
 	}
 
 	parent->RemoveEventListener("blur", this);
 	parent->RemoveEventListener("focus", this);
 	parent->RemoveEventListener("keydown", this, true);
+	parent->RemoveEventListener("mousedown", this);
 
-	if (track != NULL)
-	{
-		track->RemoveEventListener("click", this);
-		parent->RemoveChild(track);
-	}
+	parent->RemoveEventListener("drag", this);
+	parent->RemoveEventListener("dragstart", this);
+	parent->RemoveEventListener("dragend", this);
 
 	for (int i = 0; i < 2; i++)
 	{
