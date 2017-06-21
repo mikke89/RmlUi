@@ -1568,7 +1568,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	// Dirty the background if it's changed.
     if (all_dirty ||
         changed_properties.find(BACKGROUND_COLOR) != changed_properties.end() ||
-        changed_properties.find(OPACITY) != changed_properties.end()) {
+		changed_properties.find(OPACITY) != changed_properties.end() ||
+		changed_properties.find(IMAGE_COLOR) != changed_properties.end()) {
         background->DirtyBackground();
         decoration->ReloadDecorators();
     }

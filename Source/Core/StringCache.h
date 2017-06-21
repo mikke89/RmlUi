@@ -84,6 +84,7 @@ extern const String VISIBILITY;
 extern const String BACKGROUND_COLOR;
 extern const String BACKGROUND;
 extern const String COLOR;
+extern const String IMAGE_COLOR;
 extern const String FONT_FAMILY;
 extern const String FONT_CHARSET;
 extern const String FONT_STYLE;

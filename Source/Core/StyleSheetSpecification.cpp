@@ -242,6 +242,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RegisterProperty(COLOR, "white", true, false).AddParser(COLOR);
 
+	RegisterProperty(IMAGE_COLOR, "white", true, false).AddParser(COLOR);
+
 	RegisterProperty(FONT_FAMILY, "", true, true).AddParser("string");
 	RegisterProperty(FONT_CHARSET, "U+0020-007E", true, false).AddParser("string");
 	RegisterProperty(FONT_STYLE, "normal", true, true).AddParser("keyword", "normal, italic");

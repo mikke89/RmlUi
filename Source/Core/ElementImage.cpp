@@ -162,7 +162,7 @@ void ElementImage::OnPropertyChange(const PropertyNameList& changed_properties)
 {
     Element::OnPropertyChange(changed_properties);
 
-    if (changed_properties.find(BACKGROUND_COLOR) != changed_properties.end() ||
+    if (changed_properties.find(IMAGE_COLOR) != changed_properties.end() ||
         changed_properties.find(OPACITY) != changed_properties.end()) {
         GenerateGeometry();
     }
@@ -213,18 +213,8 @@ void ElementImage::GenerateGeometry()
 		texcoords[1] = Vector2f(1, 1);
 	}
 
-    const Property* element_colour = GetProperty(BACKGROUND_COLOR);
     float opacity = GetProperty<float>(OPACITY);
-
-    Colourb quad_colour = Colourb(255, 255, 255);
-    if (element_colour)
-    {
-        Colourb background_colour = element_colour->Get<Colourb>();
-
-        // Should be a non-transparent background
-        if (background_colour.alpha != 0)
-            quad_colour = background_colour;
-    }
+	Colourb quad_colour = GetProperty<Colourb>(IMAGE_COLOR);
 
     // Apply opacity
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
