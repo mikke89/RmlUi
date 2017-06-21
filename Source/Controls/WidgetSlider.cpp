@@ -90,6 +90,7 @@ bool WidgetSlider::Initialise()
 {
 	// Create all of our child elements as standard elements, and abort if we can't create them.
 	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rocket::Core::XMLAttributes());
+	track->SetProperty("drag", "drag");
 
 	bar = Core::Factory::InstanceElement(parent, "*", "sliderbar", Rocket::Core::XMLAttributes());
 	bar->SetProperty("drag", "drag");
@@ -136,7 +137,10 @@ bool WidgetSlider::Initialise()
 	parent->AddEventListener("blur", this);
 	parent->AddEventListener("focus", this);
 	parent->AddEventListener("keydown", this, true);
-	track->AddEventListener("click", this);
+	track->AddEventListener("drag", this);
+	track->AddEventListener("dragstart", this);
+	track->AddEventListener("dragend", this);
+	track->AddEventListener("mousedown", this);
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -383,7 +387,36 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 	if (parent->IsDisabled())
 		return;
 
-	if (event.GetTargetElement() == bar)
+	if (event.GetTargetElement() == track)
+	{
+		if (event == "mousedown")
+		{
+			if (orientation == HORIZONTAL)
+			{
+				float mouse_position = event.GetParameter< float >("mouse_x", 0);
+				float click_position = (mouse_position - track->GetAbsoluteOffset().x) / track->GetBox().GetSize().x;
+
+				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
+			}
+			else
+			{
+				float mouse_position = event.GetParameter< float >("mouse_y", 0);
+				float click_position = (mouse_position - track->GetAbsoluteOffset().y) / track->GetBox().GetSize().y;
+
+				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
+			}
+		}
+		else if (event == "dragstart")
+		{
+			bar->SetPseudoClass("active", true);
+		}
+		else if (event == "dragend")
+		{
+			bar->SetPseudoClass("active", false);
+		}
+	}
+
+	if (event.GetTargetElement() == bar || event.GetTargetElement() == track)
 	{
 		if (event == "drag")
 		{
@@ -418,26 +451,6 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().x);
 			else
 				bar_drag_anchor = event.GetParameter< int >("mouse_y", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().y);
-		}
-	}
-	else if (event.GetTargetElement() == track)
-	{
-		if (event == "click")
-		{
-			if (orientation == HORIZONTAL)
-			{
-				float mouse_position = event.GetParameter< float >("mouse_x", 0);
-				float click_position = (mouse_position - track->GetAbsoluteOffset().x) / track->GetBox().GetSize().x;
-
-				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
-			}
-			else
-			{
-				float mouse_position = event.GetParameter< float >("mouse_y", 0);
-				float click_position = (mouse_position - track->GetAbsoluteOffset().y) / track->GetBox().GetSize().y;
-
-				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
-			}
 		}
 	}
 
