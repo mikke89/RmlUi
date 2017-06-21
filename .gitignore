@@ -7,5 +7,7 @@
 *.user
 *.opensdf
 bin/*
+*.dir/
+Win32/
 
 /lib/
