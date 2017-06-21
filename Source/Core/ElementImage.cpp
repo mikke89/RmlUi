@@ -25,6 +25,8 @@
  *
  */
 
+// Modified by uniquejack
+
 #include "precompiled.h"
 #include "ElementImage.h"
 #include "../../Include/Rocket/Core.h"
@@ -156,6 +158,16 @@ void ElementImage::OnAttributeChange(const Rocket::Core::AttributeNameList& chan
 		DirtyLayout();
 }
 
+void ElementImage::OnPropertyChange(const PropertyNameList& changed_properties)
+{
+    Element::OnPropertyChange(changed_properties);
+
+    if (changed_properties.find(BACKGROUND_COLOR) != changed_properties.end() ||
+        changed_properties.find(OPACITY) != changed_properties.end()) {
+        GenerateGeometry();
+    }
+}
+
 // Regenerates the element's geometry.
 void ElementImage::ProcessEvent(Rocket::Core::Event& event)
 {
@@ -201,11 +213,27 @@ void ElementImage::GenerateGeometry()
 		texcoords[1] = Vector2f(1, 1);
 	}
 
+    const Property* element_colour = GetProperty(BACKGROUND_COLOR);
+    float opacity = GetProperty<float>(OPACITY);
+
+    Colourb quad_colour = Colourb(255, 255, 255);
+    if (element_colour)
+    {
+        Colourb background_colour = element_colour->Get<Colourb>();
+
+        // Should be a non-transparent background
+        if (background_colour.alpha != 0)
+            quad_colour = background_colour;
+    }
+
+    // Apply opacity
+    quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+
 	Rocket::Core::GeometryUtilities::GenerateQuad(&vertices[0],									// vertices to write to
 												  &indices[0],									// indices to write to
-												  Vector2f(0, 0),					// origin of the quad
+												  Vector2f(0, 0),					            // origin of the quad
 												  GetBox().GetSize(Rocket::Core::Box::CONTENT),	// size of the quad
-												  Colourb(255, 255, 255, 255),		// colour of the vertices
+												  quad_colour,		                            // colour of the vertices
 												  texcoords[0],									// top-left texture coordinate
 												  texcoords[1]);								// top-right texture coordinate
 

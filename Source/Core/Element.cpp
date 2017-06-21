@@ -25,6 +25,9 @@
  *
  */
 
+// Modified by uniquejack
+// Implement opacity (Check https://github.com/libRocket/libRocket/pull/262)
+  
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/Element.h"
 #include "../../Include/Rocket/Core/Dictionary.h"
@@ -52,7 +55,7 @@ namespace Core {
 class ElementSortZOrder
 {
 public:
-	bool operator()(const std::pair< Element*, float >& lhs, const std::pair< Element*, float >& rhs)
+	bool operator()(const std::pair< Element*, float >& lhs, const std::pair< Element*, float >& rhs) const // uniquejack add const
 	{
 		return lhs.second < rhs.second;
 	}
@@ -65,7 +68,7 @@ public:
 class ElementSortZIndex
 {
 public:
-	bool operator()(const Element* lhs, const Element* rhs)
+	bool operator()(const Element* lhs, const Element* rhs) const // uniquejack add const
 	{
 		// Check the z-index.
 		return lhs->GetZIndex() < rhs->GetZIndex();
@@ -1563,9 +1566,12 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 	// Dirty the background if it's changed.
-	if (all_dirty ||
-		changed_properties.find(BACKGROUND_COLOR) != changed_properties.end())
-		background->DirtyBackground();
+    if (all_dirty ||
+        changed_properties.find(BACKGROUND_COLOR) != changed_properties.end() ||
+        changed_properties.find(OPACITY) != changed_properties.end()) {
+        background->DirtyBackground();
+        decoration->ReloadDecorators();
+    }
 
 	// Dirty the border if it's changed.
 	if (all_dirty || 
@@ -1576,7 +1582,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		changed_properties.find(BORDER_TOP_COLOR) != changed_properties.end() ||
 		changed_properties.find(BORDER_RIGHT_COLOR) != changed_properties.end() ||
 		changed_properties.find(BORDER_BOTTOM_COLOR) != changed_properties.end() ||
-		changed_properties.find(BORDER_LEFT_COLOR) != changed_properties.end())
+		changed_properties.find(BORDER_LEFT_COLOR) != changed_properties.end() ||
+		changed_properties.find(OPACITY) != changed_properties.end())
 		border->DirtyBorder();
 
 	// Fetch a new font face if it has been changed.

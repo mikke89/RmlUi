@@ -25,6 +25,8 @@
  *
  */
 
+// Modified by uniquejack
+
 #include "precompiled.h"
 #include "ElementHandle.h"
 #include "../../Include/Rocket/Core/ElementDocument.h"
@@ -40,6 +42,7 @@ ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 	// Make sure we can be dragged!
 	SetProperty(DRAG, DRAG);
 
+	move_clip = NULL;
 	move_target = NULL;
 	size_target = NULL;
 	initialised = false;
@@ -55,7 +58,8 @@ void ElementHandle::OnAttributeChange(const PropertyNameList& changed_attributes
 
 	// Reset initialised state if the move or size targets have changed.
 	if (changed_attributes.find("move_target") != changed_attributes.end() ||
-		changed_attributes.find("size_target") != changed_attributes.end())
+		changed_attributes.find("size_target") != changed_attributes.end() ||
+		changed_attributes.find("move_clip") != changed_attributes.end())
 	{
 		initialised = false;
 		move_target = NULL;
@@ -79,6 +83,11 @@ void ElementHandle::ProcessEvent(Event& event)
 			String size_target_name = GetAttribute<String>("size_target", "");
 			if (!size_target_name.Empty())
 				size_target = GetElementById(size_target_name);
+
+			String move_clip_name = GetAttribute<String>("move_clip", "");
+            
+			if (!move_clip_name.Empty())
+				move_clip = GetElementById(move_clip_name);
 
 			initialised = true;
 		}
@@ -107,8 +116,35 @@ void ElementHandle::ProcessEvent(Event& event)
 			// Update the move and size objects
 			if (move_target)
 			{
-				move_target->SetProperty(LEFT, Property(Math::RealToInteger(move_original_position.x + x), Property::PX));
-				move_target->SetProperty(TOP, Property(Math::RealToInteger(move_original_position.y + y), Property::PX));
+				Vector2f pos, size;
+
+				if (move_clip)
+				{
+					pos = move_clip->GetBox().GetPosition();
+					size = move_clip->GetBox().GetSize();
+				}
+
+				Vector2f move;
+				move.x = (move_original_position.x + x);
+				move.y = (move_original_position.y + y);
+
+				Vector2f object_size = move_target->GetBox().GetSize();
+
+				if (object_size.x <= size.x && object_size.y <= size.y)
+				{
+					if (move.x < pos.x)
+						move.x = pos.x;
+					else if (move.x + object_size.x > pos.x + size.x)
+						move.x = pos.x + size.x - object_size.x;
+
+					if (move.y < pos.y)
+						move.y = pos.y;
+					else if (move.y + object_size.y > pos.y + size.y)
+						move.y = pos.y + size.y - object_size.y;                
+				}
+
+				move_target->SetProperty(LEFT, Property(Math::RealToInteger(move.x), Property::PX));
+				move_target->SetProperty(TOP, Property(Math::RealToInteger(move.y), Property::PX));
 			}
 
 			if (size_target)
