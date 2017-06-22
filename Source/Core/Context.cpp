@@ -135,6 +135,17 @@ const Vector2i& Context::GetDimensions() const
 // Updates all elements in the element tree.
 bool Context::Update()
 {
+	// Reset all document layout locks (work-around due to leak, possibly in select element?)
+	for (int i = 0; i < root->GetNumChildren(); ++i)
+	{
+		ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
+		if (document != NULL && document->lock_layout != 0)
+		{
+			Log::Message(Log::LT_WARNING, "Layout lock leak. Document '%s' had lock layout value: %d", document->title.CString(), document->lock_layout);
+			document->lock_layout = 0;
+		}
+	}
+
 	root->Update();
 
 	// Release any documents that were unloaded during the update.
