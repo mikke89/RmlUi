@@ -283,7 +283,7 @@ ElementText* ElementDocument::CreateTextNode(const String& text)
 // Is the current document modal
 bool ElementDocument::IsModal() const
 {
-	return modal;
+	return modal && IsVisible();
 }
 
 // Default load script implementation
