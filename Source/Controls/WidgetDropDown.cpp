@@ -71,7 +71,11 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 WidgetDropDown::~WidgetDropDown()
 {
-	ClearOptions();
+	// We shouldn't clear the options ourselves, as removing the element will automatically clear children.
+	//   Not always a problem, but sometimes it invalidates the layout lock in Element::RemoveChild, which results in a permanently corrupted document.
+	//   However, we do need to remove events of children.
+	for(auto& option : options)
+		option.GetElement()->RemoveEventListener("click", this);
 
 	parent_element->RemoveEventListener("click", this, true);
 	parent_element->RemoveEventListener("blur", this);
