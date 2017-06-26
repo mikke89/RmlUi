@@ -40,7 +40,7 @@ namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
+Context::Context(const String& name) : name(name), dimensions(0, 0), logical_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
 	instancer = NULL;
 
@@ -130,6 +130,28 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 const Vector2i& Context::GetDimensions() const
 {
 	return dimensions;
+}
+
+void Context::SetLogicalPixelRatio(float _logical_pixel_ratio)
+{
+	if (logical_pixel_ratio != _logical_pixel_ratio)
+	{
+		logical_pixel_ratio = _logical_pixel_ratio;
+
+		for (int i = 0; i < root->GetNumChildren(); ++i)
+		{
+			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
+			if (document != NULL)
+			{
+				document->DirtyLpProperties();
+			}
+		}
+	}
+}
+
+float Context::GetLogicalPixelRatio() const
+{
+	return logical_pixel_ratio;
 }
 
 // Updates all elements in the element tree.

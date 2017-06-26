@@ -81,6 +81,10 @@ public:
 	/// @param[in] element The element to determine the font face for.
 	/// @return The element's font face. This will be NULL if no valid RCSS font styles have been set up for this element.
 	static FontFaceHandle* GetFontFaceHandle(Element* element);
+	/// Returns an element's logical pixel ratio, defined by it's context
+	/// @param[in] element The element to determine the logical pixel ratio for.
+	/// @return The logical pixel ratio of the context, or 1.0 if no context assigned.
+	static float GetLogicalPixelRatio(Element* element);
 	/// Returns an element's font size, if it has a font defined.
 	/// @param[in] element The element to determine the font size for.
 	/// @return The font size as determined by the element's font, or 0 if it has no font specified.

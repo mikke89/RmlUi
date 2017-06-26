@@ -142,6 +142,8 @@ public:
 	void DirtyInheritedEmProperties();
 	// Dirties rem properties.
 	void DirtyRemProperties();
+	// Dirties lp properties.
+	void DirtyLpProperties();
 
 	/// Returns 'top', 'bottom', 'left' and 'right' properties from element's style or local cache.
 	void GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right );	

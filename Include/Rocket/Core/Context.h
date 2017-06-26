@@ -80,6 +80,13 @@ public:
 	/// @return The current dimensions of the context.
 	const Vector2i& GetDimensions() const;
 
+	/// Changes the size ratio of 'lp' unit to 'px' unit
+	/// @param[in] dimensions The new logical pixel ratio of the context.
+	void SetLogicalPixelRatio(float logical_pixel_ratio);
+	/// Returns the size ratio of 'lp' unit to 'px' unit
+	/// @return The current logical pixel ratio of the context.
+	float GetLogicalPixelRatio() const;
+
 	/// Updates all elements in the context's documents.
 	bool Update();
 	/// Renders all visible elements in the context's documents.
@@ -231,6 +238,7 @@ protected:
 private:
 	String name;
 	Vector2i dimensions;
+	float logical_pixel_ratio;
 
 	ContextInstancer* instancer;
 

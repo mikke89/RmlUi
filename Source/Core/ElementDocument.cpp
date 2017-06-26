@@ -361,6 +361,11 @@ bool ElementDocument::IsLayoutDirty()
 	return layout_dirty;
 }
 
+void ElementDocument::DirtyLpProperties()
+{
+	GetStyle()->DirtyLpProperties();
+}
+
 // Refreshes the document layout if required.
 void ElementDocument::OnUpdate()
 {
