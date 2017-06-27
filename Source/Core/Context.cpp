@@ -40,7 +40,7 @@ namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), logical_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
+Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
 	instancer = NULL;
 
@@ -132,26 +132,26 @@ const Vector2i& Context::GetDimensions() const
 	return dimensions;
 }
 
-void Context::SetLogicalPixelRatio(float _logical_pixel_ratio)
+void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_ratio)
 {
-	if (logical_pixel_ratio != _logical_pixel_ratio)
+	if (density_independent_pixel_ratio != _density_independent_pixel_ratio)
 	{
-		logical_pixel_ratio = _logical_pixel_ratio;
+		density_independent_pixel_ratio = _density_independent_pixel_ratio;
 
 		for (int i = 0; i < root->GetNumChildren(); ++i)
 		{
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 			if (document != NULL)
 			{
-				document->DirtyLpProperties();
+				document->DirtyDpProperties();
 			}
 		}
 	}
 }
 
-float Context::GetLogicalPixelRatio() const
+float Context::GetDensityIndependentPixelRatio() const
 {
-	return logical_pixel_ratio;
+	return density_independent_pixel_ratio;
 }
 
 // Updates all elements in the element tree.

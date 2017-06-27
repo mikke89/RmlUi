@@ -80,12 +80,12 @@ public:
 	/// @return The current dimensions of the context.
 	const Vector2i& GetDimensions() const;
 
-	/// Changes the size ratio of 'lp' unit to 'px' unit
-	/// @param[in] dimensions The new logical pixel ratio of the context.
-	void SetLogicalPixelRatio(float logical_pixel_ratio);
-	/// Returns the size ratio of 'lp' unit to 'px' unit
-	/// @return The current logical pixel ratio of the context.
-	float GetLogicalPixelRatio() const;
+	/// Changes the size ratio of 'dp' unit to 'px' unit
+	/// @param[in] dimensions The new density-independent pixel ratio of the context.
+	void SetDensityIndependentPixelRatio(float density_independent_pixel_ratio);
+	/// Returns the size ratio of 'dp' unit to 'px' unit
+	/// @return The current density-independent pixel ratio of the context.
+	float GetDensityIndependentPixelRatio() const;
 
 	/// Updates all elements in the context's documents.
 	bool Update();
@@ -238,7 +238,7 @@ protected:
 private:
 	String name;
 	Vector2i dimensions;
-	float logical_pixel_ratio;
+	float density_independent_pixel_ratio;
 
 	ContextInstancer* instancer;
 

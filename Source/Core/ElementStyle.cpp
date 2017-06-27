@@ -358,8 +358,8 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
 		else if (property->unit & Property::REM)
 			return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
-		else if (property->unit & Property::LP)
-			return property->value.Get< float >() * ElementUtilities::GetLogicalPixelRatio(element);
+		else if (property->unit & Property::DP)
+			return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 	}
 
 	if (property->unit & Property::NUMBER || property->unit & Property::PX)
@@ -398,9 +398,9 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 		return 0.0f;
 	}
 
-	if (property->unit & Property::LP)
+	if (property->unit & Property::DP)
 	{
-		return property->value.Get< float >() * ElementUtilities::GetLogicalPixelRatio(element);
+		return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 	}
 
 	if (property->unit & Property::RELATIVE_UNIT)
@@ -635,25 +635,25 @@ void ElementStyle::DirtyRemProperties()
 		element->GetChild(i)->GetStyle()->DirtyRemProperties();
 }
 
-void ElementStyle::DirtyLpProperties()
+void ElementStyle::DirtyDpProperties()
 {
 	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
-	PropertyNameList lp_properties;
+	PropertyNameList dp_properties;
 
-	// Dirty all the properties of this element that use the lp unit.
+	// Dirty all the properties of this element that use the dp unit.
 	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
 	{
-		if (element->GetProperty(*list_iterator)->unit == Property::LP)
-			lp_properties.insert(*list_iterator);
+		if (element->GetProperty(*list_iterator)->unit == Property::DP)
+			dp_properties.insert(*list_iterator);
 	}
 
-	if (!lp_properties.empty())
-		DirtyProperties(lp_properties, false);
+	if (!dp_properties.empty())
+		DirtyProperties(dp_properties, false);
 
-	// Now dirty all of our descendant's properties that use the lp unit.
+	// Now dirty all of our descendant's properties that use the dp unit.
 	int num_children = element->GetNumChildren(true);
 	for (int i = 0; i < num_children; ++i)
-		element->GetChild(i)->GetStyle()->DirtyLpProperties();
+		element->GetChild(i)->GetStyle()->DirtyDpProperties();
 }
 
 // Sets a single property as dirty.

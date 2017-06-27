@@ -148,7 +148,7 @@ protected:
 	virtual bool IsLayoutDirty();
 
 	/// Updates all sizes defined by the 'lp' unit.
-	virtual void DirtyLpProperties();
+	virtual void DirtyDpProperties();
 
 	/// Processes the 'onpropertychange' event, checking for a change in position or size.
 	virtual void ProcessEvent(Event& event);

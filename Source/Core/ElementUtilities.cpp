@@ -123,13 +123,13 @@ FontFaceHandle* ElementUtilities::GetFontFaceHandle(Element* element)
 	return font;
 }
 
-float ElementUtilities::GetLogicalPixelRatio(Element * element)
+float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 {
 	Context* context = element->GetContext();
 	if (context == NULL)
 		return 1.0f;
 
-	return context->GetLogicalPixelRatio();
+	return context->GetDensityIndependentPixelRatio();
 }
 
 // Returns an element's font size, if it has a font defined.
@@ -178,9 +178,9 @@ int ElementUtilities::GetLineHeight(Element* element)
 	case Property::PX:
 		// A px measurement.
 		return Math::Round(line_height_property->value.Get< float >());
-	case Property::LP:
-		// A logical pixel measurement.
-		return Math::Round(line_height_property->value.Get< float >() * ElementUtilities::GetLogicalPixelRatio(element));
+	case Property::DP:
+		// A density-independent pixel measurement.
+		return Math::Round(line_height_property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element));
 	case Property::INCH:
 		// Values based on pixels-per-inch.
 		return Math::Round(line_height_property->value.Get< float >() * inch);

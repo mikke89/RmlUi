@@ -132,7 +132,7 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 		break;
 
 		case Property::PX:		value.Append("px"); break;
-		case Property::LP:		value.Append("lp"); break;
+		case Property::DP:		value.Append("dp"); break;
 		case Property::EM:		value.Append("em"); break;
 		case Property::REM:		value.Append("rem"); break;
 		case Property::PERCENT:	value.Append("%"); break;

@@ -70,8 +70,8 @@ public:
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
 		REM = 1 << 13,				// number suffixed by 'rem'; fetch as < float >
-		LP = 1 << 14,				// logical pixel; number suffixed by 'lp'; fetch as < float >
-		RELATIVE_UNIT = EM | REM | PERCENT | LP
+		DP = 1 << 14,				// density-independent pixel; number suffixed by 'dp'; fetch as < float >
+		RELATIVE_UNIT = EM | REM | PERCENT | DP
 	};
 
 	Property();
