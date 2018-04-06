@@ -178,7 +178,7 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 	}
 
 	if (!name.Empty() || !value.Empty())
-		Log::Message(Log::LT_WARNING, "Invalid property declaration at %s:%d", stream_file_name.CString(), line_number);
+		Log::Message(Log::LT_WARNING, "Invalid property declaration '%s':'%s' at %s:%d", name.CString(), value.CString(), stream_file_name.CString(), line_number);
 	
 	return true;
 }
