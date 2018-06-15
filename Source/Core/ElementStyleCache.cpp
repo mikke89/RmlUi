@@ -41,7 +41,8 @@ ElementStyleCache::ElementStyleCache(ElementStyle *style) : style(style),
 	local_width(NULL), local_height(NULL), have_local_width(false), have_local_height(false),
 	overflow_x(-1), overflow_y(-1),
 	position(-1), float_(-1), display(-1), whitespace(-1),
-	line_height(NULL), text_align(-1), text_transform(-1), vertical_align(NULL)
+	line_height(NULL), text_align(-1), text_transform(-1), vertical_align(NULL),
+	pointer_events(-1)
 {
 }
 
@@ -65,6 +66,7 @@ void ElementStyleCache::ClearInherited()
 	ClearTextAlign();
 	ClearTextTransform();
 	ClearVerticalAlign();
+	ClearPointerEvents();
 }
 
 void ElementStyleCache::ClearOffset()
@@ -136,6 +138,11 @@ void ElementStyleCache::ClearTextTransform()
 void ElementStyleCache::ClearVerticalAlign()
 {
 	vertical_align = NULL;
+}
+
+void ElementStyleCache::ClearPointerEvents()
+{
+	pointer_events = -1;
 }
 
 void ElementStyleCache::GetOffsetProperties(const Property **o_top, const Property **o_bottom, const Property **o_left, const Property **o_right )
@@ -345,6 +352,13 @@ int ElementStyleCache::GetWhitespace()
 	if (whitespace < 0)
 		whitespace = style->GetProperty(WHITE_SPACE)->Get< int >();
 	return whitespace;
+}
+
+int ElementStyleCache::GetPointerEvents()
+{
+	if (pointer_events < 0)
+		pointer_events = style->GetProperty(POINTER_EVENTS)->Get< int >();
+	return pointer_events;
 }
 
 const Property *ElementStyleCache::GetLineHeightProperty()

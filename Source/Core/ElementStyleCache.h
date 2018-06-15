@@ -71,6 +71,7 @@ public:
 	void ClearTextAlign();
 	void ClearTextTransform();
 	void ClearVerticalAlign();
+	void ClearPointerEvents();
 
 	/// Returns 'top', 'bottom', 'left' and 'right' properties from element's style or local cache.
 	void GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right );
@@ -95,6 +96,8 @@ public:
 	int GetDisplay();
 	/// Returns 'white-space' property value from element's style or local cache.
 	int GetWhitespace();
+	/// Returns 'pointer-events' property value from element's style or local cache.
+	int GetPointerEvents();
 
 	/// Returns 'line-height' property value from element's style or local cache.
 	const Property *GetLineHeightProperty();
@@ -126,6 +129,7 @@ private:
 	int text_align;
 	int text_transform;
 	const Property *vertical_align;
+	int pointer_events;
 };
 
 }

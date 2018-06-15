@@ -595,6 +595,11 @@ int Element::GetWhitespace()
 	return style->GetWhitespace();
 }
 
+int Element::GetPointerEvents()
+{
+	return style->GetPointerEvents();
+}
+
 const Property *Element::GetLineHeightProperty()
 {
 	return style->GetLineHeightProperty();

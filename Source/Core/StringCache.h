@@ -101,6 +101,7 @@ extern const String TAB_INDEX;
 extern const String SCROLLBAR_MARGIN;
 extern const String SCROLL_DEFAULT_STEP_SIZE;
 extern const String OPACITY;
+extern const String POINTER_EVENTS;
 
 extern const String MOUSEDOWN;
 extern const String MOUSESCROLL;

@@ -250,6 +250,8 @@ public:
 	int GetDisplay();
 	/// Returns 'white-space' property value from element's style or local cache.
 	int GetWhitespace();
+	/// Returns 'pointer-events' property value from element's style or local cache.
+	int GetPointerEvents();
 
 	/// Returns 'line-height' property value from element's style or local cache.
 	const Property *GetLineHeightProperty();

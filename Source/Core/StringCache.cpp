@@ -98,6 +98,7 @@ const String TAB_INDEX = "tab-index";
 const String SCROLLBAR_MARGIN = "scrollbar-margin";
 const String SCROLL_DEFAULT_STEP_SIZE = "scroll-default-step-size";
 const String OPACITY = "opacity";
+const String POINTER_EVENTS = "pointer-events";
 
 const String MOUSEDOWN = "mousedown";
 const String MOUSESCROLL = "mousescroll";

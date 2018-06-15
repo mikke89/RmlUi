@@ -113,6 +113,8 @@ const int TAB_INDEX_AUTO = 1;
 const int FOCUS_NONE = 0;
 const int FOCUS_AUTO = 1;
 
+const int POINTER_EVENTS_AUTO = 0;
+const int POINTER_EVENTS_NONE = 1;
 }
 }
 

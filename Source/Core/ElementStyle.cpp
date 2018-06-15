@@ -812,6 +812,11 @@ int ElementStyle::GetWhitespace()
 	return cache->GetWhitespace();
 }
 
+int ElementStyle::GetPointerEvents()
+{
+	return cache->GetPointerEvents();
+}
+
 const Property *ElementStyle::GetLineHeightProperty()
 {
 	return cache->GetLineHeightProperty();

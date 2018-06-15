@@ -1100,6 +1100,7 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 		}
 	}
 
+
 	// Check any elements within our stacking context. We want to return the lowest-down element
 	// that is under the cursor.
 	if (element->local_stacking_context)
@@ -1129,6 +1130,10 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 				return child_element;
 		}
 	}
+
+	// Ignore elements whose pointer events are disabled
+	if (element->GetPointerEvents() == POINTER_EVENTS_NONE)
+		return NULL;
 
 	// Check if the point is actually within this element.
 	bool within_element = element->IsPointWithinElement(point);
