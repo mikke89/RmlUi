@@ -188,6 +188,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterShorthand(BORDER_RIGHT, "border-right-width, border-right-color");
 	RegisterShorthand(BORDER_BOTTOM, "border-bottom-width, border-bottom-color");
 	RegisterShorthand(BORDER_LEFT, "border-left-width, border-left-color");
+	RegisterShorthand(BORDER, "border-top, border-right, border-bottom, border-left", PropertySpecification::RECURSIVE);
 
 	RegisterProperty(DISPLAY, "inline", false, true).AddParser("keyword", "none, block, inline, inline-block");
 	RegisterProperty(POSITION, "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");

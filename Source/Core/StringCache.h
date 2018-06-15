@@ -60,6 +60,7 @@ extern const String BORDER_TOP;
 extern const String BORDER_RIGHT;
 extern const String BORDER_BOTTOM;
 extern const String BORDER_LEFT;
+extern const String BORDER;
 extern const String DISPLAY;
 extern const String POSITION;
 extern const String TOP;

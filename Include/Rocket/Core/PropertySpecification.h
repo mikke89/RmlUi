@@ -56,6 +56,8 @@ public:
 		REPLICATE,
 		// For 'padding', 'margin', etc; up four properties are expected.
 		BOX,
+		// Recursively resolves the full value string on each property, whether it is a normal property or another shorthand.
+		RECURSIVE,
 		// BOX if four properties are shorthanded and they end in '-top', '-right', etc, otherwise FALL_THROUGH.
 		AUTO
 	};

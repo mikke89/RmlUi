@@ -57,6 +57,7 @@ const String BORDER_TOP = "border-top";
 const String BORDER_RIGHT = "border-right";
 const String BORDER_BOTTOM = "border-bottom";
 const String BORDER_LEFT = "border-left";
+const String BORDER = "border";
 const String DISPLAY = "display";
 const String POSITION = "position";
 const String TOP = "top";
