@@ -683,6 +683,7 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 
 		// Clear all cached properties.
 		cache->Clear();
+		cache->ClearInherited();
 	}
 	else
 	{
@@ -706,6 +707,7 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 
 		// Clear cached properties.
 		cache->Clear();
+		cache->ClearInherited();
 	}
 
 	// clear the list of EM-properties, we will refill it in DirtyEmProperties
