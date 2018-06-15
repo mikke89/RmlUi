@@ -560,12 +560,12 @@ Vector2f LayoutBlockBox::InternalContentSize() const
 			if (min_width)
 			{
 				float value = element->ResolveProperty(min_width, block_width);
-				content_box.x = Math::Min(content_box.x, value);
+				content_box.x = Math::Max(content_box.x, value);
 			}
 			if (max_width)
 			{
 				float value = element->ResolveProperty(max_width, block_width);
-				content_box.x = Math::Max(content_box.x, value);
+				content_box.x = Math::Min(content_box.x, value);
 			}
 		}
 
