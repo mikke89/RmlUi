@@ -358,6 +358,11 @@ LayoutBlockBox* LayoutLineBox::GetBlockBox()
 	return parent;
 }
 
+float LayoutLineBox::GetBoxCursor() const 
+{
+	return box_cursor; 
+}
+
 void* LayoutLineBox::operator new(size_t size)
 {
 	return LayoutEngine::AllocateLayoutChunk(size);

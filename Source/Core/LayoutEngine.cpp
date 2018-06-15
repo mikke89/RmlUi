@@ -68,7 +68,7 @@ LayoutEngine::~LayoutEngine()
 }
 
 // Formats the contents for a root-level element (usually a document or floating element).
-bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block)
+bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block, Vector2f* internal_content_size)
 {
 	block_box = new LayoutBlockBox(this, NULL, NULL);
 	block_box->GetBox().SetContent(containing_block);
@@ -83,6 +83,12 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 
 	block_context_box->Close();
 	block_context_box->CloseAbsoluteElements();
+
+	if (internal_content_size)
+	{
+		Vector2f content_size = block_box->InternalContentSize();
+		*internal_content_size = content_size;
+	}
 
 	element->OnLayout();
 
@@ -181,7 +187,7 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		if (replaced_element)
 		{
 			content_area.x = ClampWidth(content_area.x, element, containing_block.x);
-			content_area.y = ClampWidth(content_area.y, element, containing_block.y);
+			content_area.y = ClampHeight(content_area.y, element, containing_block.y);
 		}
 
 		// If the element was not replaced, then we leave its dimension as unsized (-1, -1) and ignore the width and
@@ -343,7 +349,7 @@ bool LayoutEngine::FormatElement(Element* element)
 	{
 		case DISPLAY_BLOCK:			return FormatElementBlock(element); break;
 		case DISPLAY_INLINE:		return FormatElementInline(element); break;
-		case DISPLAY_INLINE_BLOCK:	FormatElementReplaced(element); break;
+		case DISPLAY_INLINE_BLOCK:	return FormatElementReplaced(element); break;
 		default:					ROCKET_ERROR;
 	}
 
@@ -422,13 +428,27 @@ bool LayoutEngine::FormatElementInline(Element* element)
 }
 
 // Positions an element as a sized inline element, formatting its internal hierarchy as a block element.
-void LayoutEngine::FormatElementReplaced(Element* element)
+bool LayoutEngine::FormatElementReplaced(Element* element)
 {
 	// Format the element separately as a block element, then position it inside our own layout as an inline element.
-	LayoutEngine layout_engine;
-	layout_engine.FormatElement(element, GetContainingBlock(block_context_box));
+	Vector2f containing_block_size = GetContainingBlock(block_context_box);
+	Vector2f internal_content_size(0, 0);
+	
+	{
+		LayoutEngine layout_engine;
+		layout_engine.FormatElement(element, containing_block_size, &internal_content_size);
+	}
+
+	if (internal_content_size.x < containing_block_size.x)
+	{
+		Vector2f shrinked_block_size(internal_content_size.x, containing_block_size.y);
+		LayoutEngine layout_engine;
+		layout_engine.FormatElement(element, shrinked_block_size);
+	}
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
+
+	return true;
 }
 
 // Executes any special formatting for special elements.

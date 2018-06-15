@@ -527,6 +527,68 @@ void LayoutBlockBox::PositionLineBox(Vector2f& box_position, float& box_width, b
 	_wrap_content = wrap_content;
 }
 
+
+// Calculate the dimensions of the box's internal content; i.e. the size of the largest line, plus this element's padding.
+Vector2f LayoutBlockBox::InternalContentSize() const
+{
+	Vector2f content_box(0, 0);
+
+	if (context == BLOCK)
+	{
+		content_box.y = box_cursor;
+		content_box.y += (box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM));
+
+		for (size_t i = 0; i < block_boxes.size(); i++)
+		{
+			content_box.x = Math::Max(content_box.x, block_boxes[i]->InternalContentSize().x);
+		}
+
+		// Work-around for supporting 'width' specification of 'display:block' elements inside 'display:inline-block'.
+		//  Alternative solution: Add some 'intrinsic_width' property to  every 'LayoutBlockBox' and have that propagate up to the nearest 'inline-block'.
+		if (element)
+		{
+			const Property* width = nullptr;
+			const Property* min_width = element->GetLocalProperty("min-width");
+			const Property* max_width = element->GetLocalProperty("max-width");
+			element->GetLocalDimensionProperties(&width, nullptr);
+			if(width)
+			{
+				float w_value = element->ResolveProperty(width, box.GetSize(Box::CONTENT).x);
+				content_box.x = Math::Max(content_box.x, w_value);
+			}
+			float block_width = box.GetSize(Box::CONTENT).x;
+			if (min_width)
+			{
+				float value = element->ResolveProperty(min_width, block_width);
+				content_box.x = Math::Min(content_box.x, value);
+			}
+			if (max_width)
+			{
+				float value = element->ResolveProperty(max_width, block_width);
+				content_box.x = Math::Max(content_box.x, value);
+			}
+		}
+
+		content_box.x += (box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT));
+		content_box.x += (box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
+	}
+	else
+	{
+		// Find the largest line in this layout block
+		for (size_t i = 0; i < line_boxes.size(); i++)
+		{
+			// Perhaps a more robust solution is to modify how we set the line box dimension on 'line_box->close()'
+			// and use that, or add another value in the line_box ... but seems to work for now.
+			LayoutLineBox* line_box = line_boxes[i];
+			content_box.x = Math::Max(content_box.x, line_box->GetBoxCursor());
+		}
+		content_box.x = Math::Min(content_box.x, box.GetSize(Box::CONTENT).x);
+	}
+
+	return content_box;
+}
+
+
 // Returns the block box's element.
 Element* LayoutBlockBox::GetElement() const
 {

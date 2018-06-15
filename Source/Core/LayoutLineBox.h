@@ -88,6 +88,8 @@ public:
 	/// @return The line's block box.
 	LayoutBlockBox* GetBlockBox();
 
+	float GetBoxCursor() const;
+
 	void* operator new(size_t size);
 	void operator delete(void* chunk);
 

@@ -129,6 +129,8 @@ public:
 	/// @param dimensions[in] The minimum dimensions of the line.
 	void PositionLineBox(Vector2f& box_position, float& box_width, bool& wrap_content, const Vector2f& dimensions) const;
 
+	Vector2f InternalContentSize() const;
+
 	/// Returns the block box's element.
 	/// @return The block box's element.
 	Element* GetElement() const;
@@ -147,6 +149,7 @@ public:
 	/// Returns the block box against which all positions of boxes in the hierarchy are calculated relative to.
 	/// @return This box's offset root.
 	LayoutBlockBox* GetOffsetRoot() const;
+
 
 	/// Returns the block box's dimension box.
 	/// @return The block box's dimension box.
