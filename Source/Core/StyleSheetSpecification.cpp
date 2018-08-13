@@ -243,7 +243,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RegisterProperty(COLOR, "white", true, false).AddParser(COLOR);
 
-	RegisterProperty(IMAGE_COLOR, "white", true, false).AddParser(COLOR);
+	RegisterProperty(IMAGE_COLOR, "white", false, false).AddParser(COLOR);
 
 	RegisterProperty(FONT_FAMILY, "", true, true).AddParser("string");
 	RegisterProperty(FONT_CHARSET, "U+0020-007E", true, false).AddParser("string");
@@ -267,7 +267,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(FOCUS, "auto", true, false).AddParser("keyword", "none, auto");
 
 	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("number");
-	RegisterProperty(OPACITY, "1", true, false).AddParser("number");
+	RegisterProperty(OPACITY, "1", false, false).AddParser("number");
 
 	RegisterProperty(POINTER_EVENTS, "auto", true, false).AddParser("keyword", "auto, none");
 }
