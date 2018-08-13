@@ -54,7 +54,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 #endif
 
 #ifdef ROCKET_PLATFORM_WIN32
-        DoAllocConsole();
+        AllocConsole();
 #endif
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
