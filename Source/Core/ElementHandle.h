@@ -25,8 +25,6 @@
  *
  */
 
-// Modified by uniquejack
-
 #ifndef ROCKETCOREELEMENTHANDLE_H
 #define ROCKETCOREELEMENTHANDLE_H
 
@@ -60,7 +58,6 @@ protected:
 
 	Element* move_target;
 	Element* size_target;
-	Element* move_clip;
 
 	bool initialised;
 };
