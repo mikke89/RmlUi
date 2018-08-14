@@ -25,8 +25,6 @@
  *
  */
 
-// Modified by uniquejack
-
 #ifndef ROCKETCOREELEMENTIMAGE_H
 #define ROCKETCOREELEMENTIMAGE_H
 

@@ -25,8 +25,6 @@
  *
  */
 
-// Modified by uniquejack
-
 #include "precompiled.h"
 #include "ElementImage.h"
 #include "../../Include/Rocket/Core.h"

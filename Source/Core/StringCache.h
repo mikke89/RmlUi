@@ -25,8 +25,6 @@
  *
  */
 
-// Modified by uniquejack
-// Implement opacity (Check https://github.com/libRocket/libRocket/pull/262)
  
 #ifndef ROCKETCORESTRINGCACHE_H
 #define ROCKETCORESTRINGCACHE_H

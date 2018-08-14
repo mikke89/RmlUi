@@ -25,8 +25,6 @@
  *
  */
 
-// Modified by uniquejack
-// Implement opacity (Check https://github.com/libRocket/libRocket/pull/262)
 
 #include "precompiled.h"
 #include "ElementBackground.h"
