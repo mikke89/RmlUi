@@ -528,19 +528,17 @@ void LayoutBlockBox::PositionLineBox(Vector2f& box_position, float& box_width, b
 }
 
 
-// Calculate the dimensions of the box's internal content; i.e. the size of the largest line, plus this element's padding.
-Vector2f LayoutBlockBox::InternalContentSize() const
+// Calculate the dimensions of the box's internal width; i.e. the size of the largest line, plus this element's padding.
+float LayoutBlockBox::InternalContentWidth() const
 {
-	Vector2f content_box(0, 0);
+	float content_width = 0.0f;
 
 	if (context == BLOCK)
 	{
-		content_box.y = box_cursor;
-		content_box.y += (box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM));
 
 		for (size_t i = 0; i < block_boxes.size(); i++)
 		{
-			content_box.x = Math::Max(content_box.x, block_boxes[i]->InternalContentSize().x);
+			content_width = Math::Max(content_width, block_boxes[i]->InternalContentWidth());
 		}
 
 		// Work-around for supporting 'width' specification of 'display:block' elements inside 'display:inline-block'.
@@ -554,23 +552,23 @@ Vector2f LayoutBlockBox::InternalContentSize() const
 			if(width)
 			{
 				float w_value = element->ResolveProperty(width, box.GetSize(Box::CONTENT).x);
-				content_box.x = Math::Max(content_box.x, w_value);
+				content_width = Math::Max(content_width, w_value);
 			}
 			float block_width = box.GetSize(Box::CONTENT).x;
 			if (min_width)
 			{
 				float value = element->ResolveProperty(min_width, block_width);
-				content_box.x = Math::Max(content_box.x, value);
+				content_width = Math::Max(content_width, value);
 			}
 			if (max_width)
 			{
 				float value = element->ResolveProperty(max_width, block_width);
-				content_box.x = Math::Min(content_box.x, value);
+				content_width = Math::Min(content_width, value);
 			}
 		}
 
-		content_box.x += (box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT));
-		content_box.x += (box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
+		content_width += (box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT));
+		content_width += (box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
 	}
 	else
 	{
@@ -580,12 +578,12 @@ Vector2f LayoutBlockBox::InternalContentSize() const
 			// Perhaps a more robust solution is to modify how we set the line box dimension on 'line_box->close()'
 			// and use that, or add another value in the line_box ... but seems to work for now.
 			LayoutLineBox* line_box = line_boxes[i];
-			content_box.x = Math::Max(content_box.x, line_box->GetBoxCursor());
+			content_width = Math::Max(content_width, line_box->GetBoxCursor());
 		}
-		content_box.x = Math::Min(content_box.x, box.GetSize(Box::CONTENT).x);
+		content_width = Math::Min(content_width, box.GetSize(Box::CONTENT).x);
 	}
 
-	return content_box;
+	return content_width;
 }
 
 

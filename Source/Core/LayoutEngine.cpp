@@ -68,7 +68,7 @@ LayoutEngine::~LayoutEngine()
 }
 
 // Formats the contents for a root-level element (usually a document or floating element).
-bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block, Vector2f* internal_content_size)
+bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block, bool shrink_to_fit)
 {
 	block_box = new LayoutBlockBox(this, NULL, NULL);
 	block_box->GetBox().SetContent(containing_block);
@@ -81,14 +81,32 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 			i = -1;
 	}
 
+	if (shrink_to_fit)
+	{
+		// For inline blocks, we want to shrink the box back to its inner content width, recreating the LayoutBlockBox.
+		// There is an issue where resize events are not propagated correctly, which affects e.g. DataGridCells.
+		float content_width = block_box->InternalContentWidth();
+
+		if (content_width < containing_block.x)
+		{
+			Vector2f shrinked_block_size(content_width, containing_block.y);
+			
+			delete block_box;
+			block_box = new LayoutBlockBox(this, NULL, NULL);
+			block_box->GetBox().SetContent(shrinked_block_size);
+
+			block_context_box = block_box->AddBlockElement(element);
+
+			for (int i = 0; i < element->GetNumChildren(); i++)
+			{
+				if (!FormatElement(element->GetChild(i)))
+					i = -1;
+			}
+		}
+	}
+
 	block_context_box->Close();
 	block_context_box->CloseAbsoluteElements();
-
-	if (internal_content_size)
-	{
-		Vector2f content_size = block_box->InternalContentSize();
-		*internal_content_size = content_size;
-	}
 
 	element->OnLayout();
 
@@ -432,19 +450,9 @@ bool LayoutEngine::FormatElementReplaced(Element* element)
 {
 	// Format the element separately as a block element, then position it inside our own layout as an inline element.
 	Vector2f containing_block_size = GetContainingBlock(block_context_box);
-	Vector2f internal_content_size(0, 0);
-	
-	{
-		LayoutEngine layout_engine;
-		layout_engine.FormatElement(element, containing_block_size, &internal_content_size);
-	}
 
-	if (internal_content_size.x < containing_block_size.x)
-	{
-		Vector2f shrinked_block_size(internal_content_size.x, containing_block_size.y);
-		LayoutEngine layout_engine;
-		layout_engine.FormatElement(element, shrinked_block_size);
-	}
+	LayoutEngine layout_engine;
+	layout_engine.FormatElement(element, containing_block_size, true);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
 

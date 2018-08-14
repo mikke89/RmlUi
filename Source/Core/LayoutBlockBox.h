@@ -129,7 +129,7 @@ public:
 	/// @param dimensions[in] The minimum dimensions of the line.
 	void PositionLineBox(Vector2f& box_position, float& box_width, bool& wrap_content, const Vector2f& dimensions) const;
 
-	Vector2f InternalContentSize() const;
+	float InternalContentWidth() const;
 
 	/// Returns the block box's element.
 	/// @return The block box's element.

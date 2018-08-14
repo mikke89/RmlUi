@@ -49,7 +49,7 @@ public:
 	/// Formats the contents for a root-level element (usually a document, floating or replaced element).
 	/// @param element[in] The element to lay out.
 	/// @param containing_block[in] The size of the containing block.
-	bool FormatElement(Element* element, const Vector2f& containing_block, Vector2f* internal_content_size = nullptr);
+	bool FormatElement(Element* element, const Vector2f& containing_block, bool shrink_to_fit = false);
 
 	/// Generates the box for an element.
 	/// @param[out] box The box to be built.
