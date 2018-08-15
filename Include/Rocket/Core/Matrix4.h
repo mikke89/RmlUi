@@ -487,10 +487,9 @@ class Matrix4
 		static ThisType SkewX (Component angle) throw();
 		static ThisType SkewY (Component angle) throw();
 };
+}
+}
 
 #include "Matrix4.inl"
-
-}
-}
 
 #endif

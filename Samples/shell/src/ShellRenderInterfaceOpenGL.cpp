@@ -125,12 +125,18 @@ void ShellRenderInterfaceOpenGL::SetScissorRegion(int x, int y, int width, int h
 		glDepthMask(GL_FALSE);
 		glStencilFunc(GL_NEVER, 1, -1);
 		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+
+		float fx = (float)x;
+		float fy = (float)y;
+		float fwidth = (float)width;
+		float fheight = (float)height;
+
 		// draw transformed quad
 		GLfloat vertices[] = {
-			x, y, 0,
-			x, y + height, 0,
-			x + width, y + height, 0,
-			x + width, y, 0
+			fx, fy, 0,
+			fx, fy + fheight, 0,
+			fx + fwidth, fy + fheight, 0,
+			fx + fwidth, fy, 0
 		};
 		glDisableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, vertices);

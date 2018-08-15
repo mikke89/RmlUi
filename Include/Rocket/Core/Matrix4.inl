@@ -25,6 +25,9 @@
  *
  */
 
+namespace Rocket {
+namespace Core {
+
 // Initialising constructor.
 template< typename Component, class Storage >
 Matrix4< Component, Storage >::Matrix4(
@@ -49,8 +52,11 @@ Matrix4< Component, Storage >::Matrix4() throw()
 // Initialising, copy constructor.
 template< typename Component, class Storage >
 Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storage >::ThisType& other) throw()
-	: vectors(other.vectors)
 {
+	for (int i = 0; i < 4; ++i)
+	{
+		vectors[i] = other.vectors[i];
+	}
 }
 
 template< typename Component, class Storage >
@@ -62,6 +68,7 @@ Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storag
 	{
 		rows[i] = other_rows[i];
 	}
+	return *this;
 }
 
 // Assignment operator
@@ -72,6 +79,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 	{
 		vectors[i] = other.vectors[i];
 	}
+	return *this;
 }
 
 template< typename Component, class Storage >
@@ -83,6 +91,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 	{
 		rows[i] = other_rows[i];
 	}
+	return *this;
 }
 
 // Construct from row vectors.
@@ -731,3 +740,6 @@ struct Matrix4< Component, Storage >::MatrixMultiplier< _Component, ColumnMajorS
 		return lhs * MatrixAType(rhs);
 	}
 };
+
+}
+}

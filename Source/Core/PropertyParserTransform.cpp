@@ -44,7 +44,7 @@ PropertyParserTransform::~PropertyParserTransform()
 }
 
 // Called to parse a RCSS transform declaration.
-bool PropertyParserTransform::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED(parameters)) const
+bool PropertyParserTransform::ParseValue(Property& property, const String& value, const ParameterMap& parameters) const
 {
 	SharedReference< Transform > transform(new Transform);
 
@@ -165,6 +165,8 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 
 	property.value = Variant(TransformRef(transform));
 	property.unit = Property::TRANSFORM;
+
+	return true;
 }
 
 // Destroys the parser.

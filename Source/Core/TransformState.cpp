@@ -39,12 +39,12 @@ Matrix4f TransformState::Perspective::GetProjection() const throw()
 	if (distance == 0)
 	{
 		return Matrix4f::ProjectOrtho(
-			-0.5 * view_size.x,
-			+0.5 * view_size.x,
-			+0.5 * view_size.y,
-			-0.5 * view_size.y,
-			-1.0 * depth,
-			+1.0 * depth
+			-0.5f * view_size.x,
+			+0.5f * view_size.x,
+			+0.5f * view_size.y,
+			-0.5f * view_size.y,
+			-1.0f * depth,
+			+1.0f * depth
 		) * Matrix4f::Translate(
 			-0.5f * view_size.x,
 			-0.5f * view_size.y,
@@ -53,7 +53,7 @@ Matrix4f TransformState::Perspective::GetProjection() const throw()
 	}
 	else if (distance > 0)
 	{
-		float far = distance + 1.0 * depth;
+		float far = distance + 1.0f * depth;
 		const float FAR_NEAR_RATIO = 256.0f;
 		float near = Math::Max(1.0f, far / FAR_NEAR_RATIO);
 		float scale = near / distance;
@@ -104,17 +104,17 @@ Vector3f TransformState::Perspective::Unproject(const Vector3f &point) const thr
 
 Matrix4f TransformState::LocalPerspective::GetProjection() const throw()
 {
-	float depth = Math::Max(view_size.x, view_size.y);
+	float depth = (float)Math::Max(view_size.x, view_size.y);
 
 	if (distance == 0)
 	{
 		return Matrix4f::ProjectOrtho(
-			-0.5 * view_size.x,
-			+0.5 * view_size.x,
-			+0.5 * view_size.y,
-			-0.5 * view_size.y,
-			-0.5 * depth,
-			+0.5 * depth
+			-0.5f * view_size.x,
+			+0.5f * view_size.x,
+			+0.5f * view_size.y,
+			-0.5f * view_size.y,
+			-0.5f * depth,
+			+0.5f * depth
 		) * Matrix4f::Translate(
 			-0.5f * view_size.x,
 			-0.5f * view_size.y,
@@ -124,10 +124,10 @@ Matrix4f TransformState::LocalPerspective::GetProjection() const throw()
 	else if (distance > 0)
 	{
 		return Matrix4f::ProjectPerspective(
-			(0 - 0.5f) * view_size.x,
-			(1 - 0.5f) * view_size.x,
-			(1 - 0.5f) * view_size.y,
-			(0 - 0.5f) * view_size.y,
+			(0.f - 0.5f) * view_size.x,
+			(1.f - 0.5f) * view_size.x,
+			(1.f - 0.5f) * view_size.y,
+			(0.f - 0.5f) * view_size.y,
 			distance,
 			distance + depth
 		) * Matrix4f::Translate(

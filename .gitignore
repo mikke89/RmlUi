@@ -9,3 +9,8 @@
 bin/*
 
 /lib/
+RocketCore.dir/
+RocketControls.dir/
+RocketDebugger.dir/
+
+Win32/

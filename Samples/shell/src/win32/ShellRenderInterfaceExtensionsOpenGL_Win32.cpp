@@ -46,7 +46,7 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		m_height = height;
 		
 		glViewport(0, 0, width, height);
-		projection = Rocket::Core::Matrix4f::ProjectOrtho(0, width, height, 0, -1, 1);
+		projection = Rocket::Core::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -1, 1);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(projection);
 		view = Rocket::Core::Matrix4f::Identity();
@@ -125,7 +125,7 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	RECT crect;
-	GetClientRect(this->window_handle, &crect)
+	GetClientRect(this->window_handle, &crect);
 	glOrtho(0, (crect.right - crect.left), (crect.bottom - crect.top), 0, -1, 1);
 
 	glMatrixMode(GL_MODELVIEW);

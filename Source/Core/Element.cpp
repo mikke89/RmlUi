@@ -795,9 +795,9 @@ const Vector2f Element::Project(const Vector2f& point) throw()
 		// Top-left corner
 		Vector3f(0, 0, 0),
 		// Top-right corner
-		Vector3f(view_size.x, 0, 0),
+		Vector3f((float)view_size.x, 0, 0),
 		// Bottom-left corner
-		Vector3f(0, view_size.y, 0)
+		Vector3f(0, (float)view_size.y, 0)
 	};
 	// Transform by the correct matrix
 	if (transform)

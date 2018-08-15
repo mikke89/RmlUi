@@ -67,7 +67,14 @@ Vector3< Type > Vector3< Type >::Normalise() const
 }
 
 template <>
-ROCKETCORE_API Vector3< float > Vector3< float >::Normalise() const;
+Vector3< float > Vector3< float >::Normalise() const
+{
+	float magnitude = Magnitude();
+	if (Math::IsZero(magnitude))
+		return *this;
+
+	return *this / magnitude;
+}
 
 // Computes the dot-product between this vector and another.
 template < typename Type >

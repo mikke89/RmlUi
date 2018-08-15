@@ -41,15 +41,7 @@ Vector3f operator*(float lhs, const Vector3f& rhs)
 	return Vector3f(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
 }
 
-template <>
-Vector3< float > Vector3< float >::Normalise() const
-{
-	float magnitude = Magnitude();
-	if (Math::IsZero(magnitude))
-		return *this;
 
-	return *this / magnitude;
-}
 
 }
 }
