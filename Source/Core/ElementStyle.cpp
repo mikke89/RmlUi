@@ -407,11 +407,6 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 		return 0.0f;
 	}
 
-	if (property->unit & Property::DP)
-	{
-		return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
-	}
-
 	// The calculated value of the font-size property is inherited, so we need to check if this
 	// is an inherited property. If so, then we return our parent's font size instead.
 	if (name == FONT_SIZE && property->unit & Property::RELATIVE_UNIT)
@@ -446,6 +441,9 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 
 			case Property::EM:
 				return property->value.Get< float >() * base_value;
+
+			case Property::DP:
+				return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
 			case Property::REM:
 				// If an rem-relative font size is specified, it is expressed relative to the document's
