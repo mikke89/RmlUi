@@ -58,20 +58,23 @@ WidgetSlider::~WidgetSlider()
 {
 	if (bar != NULL)
 	{
-		bar->RemoveEventListener("drag", this);
-		bar->RemoveEventListener("dragstart", this);
 		parent->RemoveChild(bar);
+	}
+
+	if (track != NULL)
+	{
+		track->RemoveEventListener("mousedown", this);
+		parent->RemoveChild(track);
 	}
 
 	parent->RemoveEventListener("blur", this);
 	parent->RemoveEventListener("focus", this);
 	parent->RemoveEventListener("keydown", this, true);
+	parent->RemoveEventListener("mousedown", this);
 
-	if (track != NULL)
-	{
-		track->RemoveEventListener("click", this);
-		parent->RemoveChild(track);
-	}
+	parent->RemoveEventListener("drag", this);
+	parent->RemoveEventListener("dragstart", this);
+	parent->RemoveEventListener("dragend", this);
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -88,14 +91,17 @@ WidgetSlider::~WidgetSlider()
 // Initialises the slider to a given orientation.
 bool WidgetSlider::Initialise()
 {
+	parent->SetProperty("drag", "drag");
+
 	// Create all of our child elements as standard elements, and abort if we can't create them.
 	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rocket::Core::XMLAttributes());
 
 	bar = Core::Factory::InstanceElement(parent, "*", "sliderbar", Rocket::Core::XMLAttributes());
-	bar->SetProperty("drag", "drag");
 
 	arrows[0] = Core::Factory::InstanceElement(parent, "*", "sliderarrowdec", Rocket::Core::XMLAttributes());
 	arrows[1] = Core::Factory::InstanceElement(parent, "*", "sliderarrowinc", Rocket::Core::XMLAttributes());
+	arrows[0]->SetProperty("drag", "drag");
+	arrows[1]->SetProperty("drag", "drag");
 
 	if (track == NULL ||
 		bar == NULL ||
@@ -130,13 +136,16 @@ bool WidgetSlider::Initialise()
 	arrows[1]->RemoveReference();
 
 	// Attach the listeners as appropriate.
-	bar->AddEventListener("drag", this);
-	bar->AddEventListener("dragstart", this);
+	track->AddEventListener("mousedown", this);
 
 	parent->AddEventListener("blur", this);
 	parent->AddEventListener("focus", this);
 	parent->AddEventListener("keydown", this, true);
-	track->AddEventListener("click", this);
+	parent->AddEventListener("mousedown", this);
+
+	parent->AddEventListener("drag", this);
+	parent->AddEventListener("dragstart", this);
+	parent->AddEventListener("dragend", this);
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -383,7 +392,40 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 	if (parent->IsDisabled())
 		return;
 
-	if (event.GetTargetElement() == bar)
+	if (event == "mousedown")
+	{
+		if(event.GetTargetElement() == parent || event.GetTargetElement() == track) 
+		{
+			if (orientation == HORIZONTAL)
+			{
+				float mouse_position = event.GetParameter< float >("mouse_x", 0);
+				float click_position = (mouse_position - track->GetAbsoluteOffset().x) / track->GetBox().GetSize().x;
+
+				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
+			}
+			else
+			{
+				float mouse_position = event.GetParameter< float >("mouse_y", 0);
+				float click_position = (mouse_position - track->GetAbsoluteOffset().y) / track->GetBox().GetSize().y;
+
+				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
+			}
+		}
+	}
+
+	if (event.GetTargetElement() == parent)
+	{
+		if (event == "dragstart")
+		{
+			bar->SetPseudoClass("active", true);
+		}
+		else if (event == "dragend")
+		{
+			bar->SetPseudoClass("active", false);
+		}
+	}
+
+	if (event.GetTargetElement() == parent)
 	{
 		if (event == "drag")
 		{
@@ -418,26 +460,6 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().x);
 			else
 				bar_drag_anchor = event.GetParameter< int >("mouse_y", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().y);
-		}
-	}
-	else if (event.GetTargetElement() == track)
-	{
-		if (event == "click")
-		{
-			if (orientation == HORIZONTAL)
-			{
-				float mouse_position = event.GetParameter< float >("mouse_x", 0);
-				float click_position = (mouse_position - track->GetAbsoluteOffset().x) / track->GetBox().GetSize().x;
-
-				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
-			}
-			else
-			{
-				float mouse_position = event.GetParameter< float >("mouse_y", 0);
-				float click_position = (mouse_position - track->GetAbsoluteOffset().y) / track->GetBox().GetSize().y;
-
-				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
-			}
 		}
 	}
 

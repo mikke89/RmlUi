@@ -283,7 +283,7 @@ ElementText* ElementDocument::CreateTextNode(const String& text)
 // Is the current document modal
 bool ElementDocument::IsModal() const
 {
-	return modal;
+	return modal && IsVisible();
 }
 
 // Default load script implementation
@@ -359,6 +359,11 @@ void ElementDocument::DirtyLayout()
 bool ElementDocument::IsLayoutDirty()
 {
 	return layout_dirty;
+}
+
+void ElementDocument::DirtyDpProperties()
+{
+	GetStyle()->DirtyDpProperties();
 }
 
 // Refreshes the document layout if required.
@@ -492,6 +497,7 @@ bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 	if (element->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
 	{
 		element->Focus();
+		element->ScrollIntoView(false);
 		return true;
 	}
 

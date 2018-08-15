@@ -113,6 +113,9 @@ const int TAB_INDEX_AUTO = 1;
 const int FOCUS_NONE = 0;
 const int FOCUS_AUTO = 1;
 
+const int POINTER_EVENTS_AUTO = 0;
+const int POINTER_EVENTS_NONE = 1;
+
 const int PERSPECTIVE_NONE = 0;
 
 const int PERSPECTIVE_ORIGIN_X_LEFT = 0;
@@ -132,7 +135,6 @@ const int TRANSFORM_ORIGIN_X_RIGHT = 2;
 const int TRANSFORM_ORIGIN_Y_TOP = 0;
 const int TRANSFORM_ORIGIN_Y_CENTER = 1;
 const int TRANSFORM_ORIGIN_Y_BOTTOM = 2;
-
 }
 }
 

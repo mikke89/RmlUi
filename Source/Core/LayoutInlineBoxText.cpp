@@ -155,6 +155,7 @@ void LayoutInlineBoxText::BuildWordBox()
 		height = 0;
 		baseline = 0;
 
+		// For unknown reasons, this gets triggered during document load. Seems to cause no trouble, remove warning.
 		Log::Message(Log::LT_WARNING, "No font face defined on element %s. Please specify a font-family in your RCSS.", text_element->GetAddress().CString());
 		return;
 	}

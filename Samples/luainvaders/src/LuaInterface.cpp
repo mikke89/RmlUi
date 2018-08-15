@@ -84,7 +84,7 @@ int GameSetPaused(lua_State* L)
 
 int GameSetDifficulty(lua_State* L)
 {
-    int difficulty = luaL_checkint(L,1);
+    int difficulty = luaL_checkinteger(L,1);
     GameDetails::SetDifficulty((GameDetails::Difficulty)difficulty);
     return 0;
 }

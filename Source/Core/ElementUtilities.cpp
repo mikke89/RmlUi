@@ -125,6 +125,15 @@ FontFaceHandle* ElementUtilities::GetFontFaceHandle(Element* element)
 	return font;
 }
 
+float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
+{
+	Context* context = element->GetContext();
+	if (context == NULL)
+		return 1.0f;
+
+	return context->GetDensityIndependentPixelRatio();
+}
+
 // Returns an element's font size, if it has a font defined.
 int ElementUtilities::GetFontSize(Element* element)
 {
@@ -138,13 +147,18 @@ int ElementUtilities::GetFontSize(Element* element)
 // Returns an element's line height, if it has a font defined.
 int ElementUtilities::GetLineHeight(Element* element)
 {
-	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
+	const Property* line_height_property = element->GetLineHeightProperty();
+
+	Element* font_element = element;
+	if (line_height_property->unit == Property::REM)
+		font_element = element->GetOwnerDocument();
+
+	FontFaceHandle* font_face_handle = font_element->GetFontFaceHandle();
 	if (font_face_handle == NULL)
 		return 0;
 
 	int line_height = font_face_handle->GetLineHeight();
 	float inch = element->GetRenderInterface()->GetPixelsPerInch();
-	const Property* line_height_property = element->GetLineHeightProperty();
 
 	switch (line_height_property->unit)
 	{
@@ -157,6 +171,7 @@ int ElementUtilities::GetLineHeight(Element* element)
 	ROCKET_UNUSED_SWITCH_ENUM(Property::RELATIVE_UNIT);
 	case Property::NUMBER:
 	case Property::EM:
+	case Property::REM:
 		// If the property is a straight number or an em measurement, then it scales the line height.
 		return Math::Round(line_height_property->value.Get< float >() * line_height);
 	case Property::PERCENT:
@@ -165,6 +180,9 @@ int ElementUtilities::GetLineHeight(Element* element)
 	case Property::PX:
 		// A px measurement.
 		return Math::Round(line_height_property->value.Get< float >());
+	case Property::DP:
+		// A density-independent pixel measurement.
+		return Math::Round(line_height_property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element));
 	case Property::INCH:
 		// Values based on pixels-per-inch.
 		return Math::Round(line_height_property->value.Get< float >() * inch);

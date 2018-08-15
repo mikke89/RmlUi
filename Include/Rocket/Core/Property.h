@@ -60,21 +60,21 @@ public:
 		ABSOLUTE_UNIT = NUMBER | PX | DEG | RAD | COLOUR,
 
 		// Relative values.
-		PERCENT = 1 << 8,			// number suffixed by '%'; fetch as < float >
-		EM = 1 << 9,				// number suffixed by 'em'; fetch as < float >
+		EM = 1 << 8,				// number suffixed by 'em'; fetch as < float >
+		PERCENT = 1 << 9,			// number suffixed by '%'; fetch as < float >
 		REM = 1 << 10,				// number suffixed by 'rem'; fetch as < float >
-		RELATIVE_UNIT = EM | REM | PERCENT,
+		DP = 1 << 11,				// density-independent pixel; number suffixed by 'dp'; fetch as < float >
+		RELATIVE_UNIT = EM | REM | PERCENT | DP,
 
 		// Values based on pixels-per-inch.
-		INCH = 1 << 11,				// number suffixed by 'in'; fetch as < float >
-		CM = 1 << 12,				// number suffixed by 'cm'; fetch as < float >
-		MM = 1 << 13,				// number suffixed by 'mm'; fetch as < float >
-		PT = 1 << 14,				// number suffixed by 'pt'; fetch as < float >
-		PC = 1 << 15,				// number suffixed by 'pc'; fetch as < float >
+		INCH = 1 << 12,				// number suffixed by 'in'; fetch as < float >
+		CM = 1 << 13,				// number suffixed by 'cm'; fetch as < float >
+		MM = 1 << 14,				// number suffixed by 'mm'; fetch as < float >
+		PT = 1 << 15,				// number suffixed by 'pt'; fetch as < float >
+		PC = 1 << 16,				// number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
-
-		TRANSFORM = 1 << 16			// transform; fetch as < TransformRef >
+		TRANSFORM = 1 << 17			// transform; fetch as < TransformRef >
 	};
 
 	Property();

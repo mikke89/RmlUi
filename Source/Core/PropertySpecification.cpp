@@ -114,14 +114,22 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 	for (size_t i = 0; i < properties.size(); i++)
 	{
 		const PropertyDefinition* property = GetProperty(properties[i]);
-		if (property == NULL)
+		bool shorthand_found = false;
+
+		if (property == NULL && type == RECURSIVE)
+		{
+			// See if recursive type points to another shorthand instead
+			const PropertyShorthandDefinition* shorthand = GetShorthand(properties[i]);
+			shorthand_found = (shorthand != NULL);
+		}
+
+		if (property == NULL && !shorthand_found)
 		{
 			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.CString(), properties[i].CString());
 			delete property_shorthand;
 
 			return false;
 		}
-
 		property_shorthand->properties.push_back(PropertyShorthandDefinition::PropertyDefinitionList::value_type(properties[i], property));
 	}
 
@@ -265,6 +273,19 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 
 				default:	break;
 			}
+		}
+		else if (shorthand_definition->type == RECURSIVE)
+		{
+			bool result = false;
+
+			for (size_t i = 0; i < shorthand_definition->properties.size(); i++)
+			{
+				const auto& property_name = shorthand_definition->properties[i].first;
+				result |= ParsePropertyDeclaration(dictionary, property_name, property_value, source_file, source_line_number);
+			}
+
+			if (!result)
+				return false;
 		}
 		else
 		{

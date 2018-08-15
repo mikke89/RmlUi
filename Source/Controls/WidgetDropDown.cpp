@@ -71,7 +71,11 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 WidgetDropDown::~WidgetDropDown()
 {
-	ClearOptions();
+	// We shouldn't clear the options ourselves, as removing the element will automatically clear children.
+	//   Not always a problem, but sometimes it invalidates the layout lock in Element::RemoveChild, which results in a permanently corrupted document.
+	//   However, we do need to remove events of children.
+	for(auto& option : options)
+		option.GetElement()->RemoveEventListener("click", this);
 
 	parent_element->RemoveEventListener("click", this, true);
 	parent_element->RemoveEventListener("blur", this);
@@ -146,6 +150,9 @@ void WidgetDropDown::SetValue(const Rocket::Core::String& _value)
 		}
 	}
 
+	if (selected_option >= 0 && selected_option < (int)options.size())
+		options[selected_option].GetElement()->SetPseudoClass("checked", false);
+
 	value = _value;
 	value_element->SetInnerRML(value);
 	value_layout_dirty = true;
@@ -178,12 +185,20 @@ void WidgetDropDown::SetSelection(int selection, bool force)
 		selection != selected_option ||
 		value != new_value)
 	{
+		if (selected_option >= 0 && selected_option < (int)options.size())
+			options[selected_option].GetElement()->SetPseudoClass("checked", false);
+		
 		selected_option = selection;
 		value = new_value;
 
 		Rocket::Core::String value_rml;
-		if (selected_option >= 0)
-			options[selected_option].GetElement()->GetInnerRML(value_rml);
+		if (selected_option >= 0) 
+		{
+			auto* el = options[selected_option].GetElement();
+			el->GetInnerRML(value_rml);
+			el->SetPseudoClass("checked", true);
+		}
+
 
 		value_element->SetInnerRML(value_rml);
 		value_layout_dirty = true;

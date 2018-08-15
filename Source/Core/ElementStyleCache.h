@@ -55,6 +55,7 @@ public:
 	void ClearInherited();
 
 	/// Invalidation functions for individual and grouped non-inherited properties
+	void ClearOffset();
 	void ClearBorder();
 	void ClearMargin();
 	void ClearPadding();
@@ -70,7 +71,10 @@ public:
 	void ClearTextAlign();
 	void ClearTextTransform();
 	void ClearVerticalAlign();
+	void ClearPointerEvents();
 
+	/// Returns 'top', 'bottom', 'left' and 'right' properties from element's style or local cache.
+	void GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right );
 	/// Returns 'border-width' properties from element's style or local cache.
 	void GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **border_right_width);
 	/// Returns 'margin' properties from element's style or local cache.
@@ -92,6 +96,8 @@ public:
 	int GetDisplay();
 	/// Returns 'white-space' property value from element's style or local cache.
 	int GetWhitespace();
+	/// Returns 'pointer-events' property value from element's style or local cache.
+	int GetPointerEvents();
 
 	/// Returns 'line-height' property value from element's style or local cache.
 	const Property *GetLineHeightProperty();
@@ -107,6 +113,7 @@ private:
 	ElementStyle *style;
 
 	/// Cached properties.
+	const Property *top, *bottom, *left, *right;
 	const Property *border_top_width, *border_bottom_width, *border_left_width, *border_right_width;
 	const Property *margin_top, *margin_bottom, *margin_left, *margin_right;
 	const Property *padding_top, *padding_bottom, *padding_left, *padding_right;
@@ -122,6 +129,7 @@ private:
 	int text_align;
 	int text_transform;
 	const Property *vertical_align;
+	int pointer_events;
 };
 
 }

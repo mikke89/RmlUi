@@ -25,6 +25,7 @@
  *
  */
 
+
 #include "precompiled.h"
 #include "DecoratorTiled.h"
 #include "../../Include/Rocket/Core.h"
@@ -108,6 +109,13 @@ Vector2f DecoratorTiled::Tile::GetDimensions(Element* element)
 void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std::vector< int >& indices, Element* element, const Vector2f& surface_origin, const Vector2f& surface_dimensions, const Vector2f& tile_dimensions) const
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
+    float opacity = element->GetProperty<float>(OPACITY);
+
+    Colourb quad_colour = element->GetProperty<Colourb>(IMAGE_COLOR);
+
+    // Apply opacity
+    quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	
 	TileDataMap::iterator data_iterator = data.find(render_interface);
 	if (data_iterator == data.end())
 		return;
@@ -244,7 +252,7 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 			tile_position.x = surface_origin.x + (float) tile_dimensions.x * x;
 			tile_size.x = (float) (x < num_tiles[0] - 1 ? tile_dimensions.x : final_tile_dimensions.x);
 
-			GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, tile_size, Colourb(255, 255, 255), tile_texcoords[0], tile_texcoords[1], index_offset);
+			GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, tile_size, quad_colour, tile_texcoords[0], tile_texcoords[1], index_offset);
 			new_vertices += 4;
 			new_indices += 6;
 			index_offset += 4;

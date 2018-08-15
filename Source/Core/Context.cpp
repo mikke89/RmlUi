@@ -40,7 +40,7 @@ namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), view_state()
+Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), density_independent_pixel_ratio(1.0f), view_state()
 {
 	instancer = NULL;
 
@@ -139,15 +139,49 @@ const Vector2i& Context::GetDimensions() const
 	return dimensions;
 }
 
+
 // Returns the current state of the view.
 const ViewState& Context::GetViewState() const throw()
 {
 	return view_state;
 }
 
+void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_ratio)
+{
+	if (density_independent_pixel_ratio != _density_independent_pixel_ratio)
+	{
+		density_independent_pixel_ratio = _density_independent_pixel_ratio;
+
+		for (int i = 0; i < root->GetNumChildren(); ++i)
+		{
+			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
+			if (document != NULL)
+			{
+				document->DirtyDpProperties();
+			}
+		}
+	}
+}
+
+float Context::GetDensityIndependentPixelRatio() const
+{
+	return density_independent_pixel_ratio;
+}
+
 // Updates all elements in the element tree.
 bool Context::Update()
 {
+	// Reset all document layout locks (work-around due to leak, possibly in select element?)
+	for (int i = 0; i < root->GetNumChildren(); ++i)
+	{
+		ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
+		if (document != NULL && document->lock_layout != 0)
+		{
+			Log::Message(Log::LT_WARNING, "Layout lock leak. Document '%s' had lock layout value: %d", document->title.CString(), document->lock_layout);
+			document->lock_layout = 0;
+		}
+	}
+
 	root->Update();
 
 	// Release any documents that were unloaded during the update.
@@ -1092,6 +1126,7 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 		}
 	}
 
+
 	// Check any elements within our stacking context. We want to return the lowest-down element
 	// that is under the cursor.
 	if (element->local_stacking_context)
@@ -1121,6 +1156,10 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 				return child_element;
 		}
 	}
+
+	// Ignore elements whose pointer events are disabled
+	if (element->GetPointerEvents() == POINTER_EVENTS_NONE)
+		return NULL;
 
 	Vector2f projected_point = element->Project(point);
 

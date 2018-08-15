@@ -34,7 +34,7 @@ namespace Core {
 
 Matrix4f TransformState::Perspective::GetProjection() const throw()
 {
-	float depth = Math::Max(view_size.x, view_size.y);
+	float depth = (float)Math::Max(view_size.x, view_size.y);
 
 	if (distance == 0)
 	{

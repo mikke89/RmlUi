@@ -25,6 +25,7 @@
  *
  */
 
+ 
 #include "precompiled.h"
 
 namespace Rocket {
@@ -54,6 +55,7 @@ const String BORDER_TOP = "border-top";
 const String BORDER_RIGHT = "border-right";
 const String BORDER_BOTTOM = "border-bottom";
 const String BORDER_LEFT = "border-left";
+const String BORDER = "border";
 const String DISPLAY = "display";
 const String POSITION = "position";
 const String TOP = "top";
@@ -78,6 +80,7 @@ const String VISIBILITY = "visibility";
 const String BACKGROUND_COLOR = "background-color";
 const String BACKGROUND = "background";
 const String COLOR = "color";
+const String IMAGE_COLOR = "image-color";
 const String FONT_FAMILY = "font-family";
 const String FONT_CHARSET = "font-charset";
 const String FONT_STYLE = "font-style";
@@ -101,7 +104,9 @@ const String TRANSFORM_ORIGIN = "transform-origin";
 const String TRANSFORM_ORIGIN_X = "transform-origin-x";
 const String TRANSFORM_ORIGIN_Y = "transform-origin-y";
 const String TRANSFORM_ORIGIN_Z = "transform-origin-z";
-
+const String SCROLL_DEFAULT_STEP_SIZE = "scroll-default-step-size";
+const String OPACITY = "opacity";
+const String POINTER_EVENTS = "pointer-events";
 const String MOUSEDOWN = "mousedown";
 const String MOUSESCROLL = "mousescroll";
 const String MOUSEOVER = "mouseover";

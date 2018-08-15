@@ -68,7 +68,7 @@ LayoutEngine::~LayoutEngine()
 }
 
 // Formats the contents for a root-level element (usually a document or floating element).
-bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block)
+bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block, bool shrink_to_fit)
 {
 	block_box = new LayoutBlockBox(this, NULL, NULL);
 	block_box->GetBox().SetContent(containing_block);
@@ -79,6 +79,30 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 	{
 		if (!FormatElement(element->GetChild(i)))
 			i = -1;
+	}
+
+	if (shrink_to_fit)
+	{
+		// For inline blocks, we want to shrink the box back to its inner content width, recreating the LayoutBlockBox.
+		// There is an issue where resize events are not propagated correctly, which affects e.g. DataGridCells.
+		float content_width = block_box->InternalContentWidth();
+
+		if (content_width < containing_block.x)
+		{
+			Vector2f shrinked_block_size(content_width, containing_block.y);
+			
+			delete block_box;
+			block_box = new LayoutBlockBox(this, NULL, NULL);
+			block_box->GetBox().SetContent(shrinked_block_size);
+
+			block_context_box = block_box->AddBlockElement(element);
+
+			for (int i = 0; i < element->GetNumChildren(); i++)
+			{
+				if (!FormatElement(element->GetChild(i)))
+					i = -1;
+			}
+		}
 	}
 
 	block_context_box->Close();
@@ -181,7 +205,7 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		if (replaced_element)
 		{
 			content_area.x = ClampWidth(content_area.x, element, containing_block.x);
-			content_area.y = ClampWidth(content_area.y, element, containing_block.y);
+			content_area.y = ClampHeight(content_area.y, element, containing_block.y);
 		}
 
 		// If the element was not replaced, then we leave its dimension as unsized (-1, -1) and ignore the width and
@@ -343,7 +367,7 @@ bool LayoutEngine::FormatElement(Element* element)
 	{
 		case DISPLAY_BLOCK:			return FormatElementBlock(element); break;
 		case DISPLAY_INLINE:		return FormatElementInline(element); break;
-		case DISPLAY_INLINE_BLOCK:	FormatElementReplaced(element); break;
+		case DISPLAY_INLINE_BLOCK:	return FormatElementReplaced(element); break;
 		default:					ROCKET_ERROR;
 	}
 
@@ -422,13 +446,17 @@ bool LayoutEngine::FormatElementInline(Element* element)
 }
 
 // Positions an element as a sized inline element, formatting its internal hierarchy as a block element.
-void LayoutEngine::FormatElementReplaced(Element* element)
+bool LayoutEngine::FormatElementReplaced(Element* element)
 {
 	// Format the element separately as a block element, then position it inside our own layout as an inline element.
+	Vector2f containing_block_size = GetContainingBlock(block_context_box);
+
 	LayoutEngine layout_engine;
-	layout_engine.FormatElement(element, GetContainingBlock(block_context_box));
+	layout_engine.FormatElement(element, containing_block_size, true);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
+
+	return true;
 }
 
 // Executes any special formatting for special elements.
@@ -522,17 +550,33 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 		}
 	}
 
-	// If the width is set to auto, then any margins also set to auto are resolved to 0 and the width is set to the
-	// whatever if left of the containing block.
+	// If the width is set to auto, we need to calculate the width
 	if (width_auto)
 	{
+		float left = 0.0f, right = 0.0f;
+		// If we are dealing with an absolutely positioned element we need to
+		// consider if the left and right properties are set, since the width can be affected.
+		if (element->GetPosition() == POSITION_ABSOLUTE || 
+			element->GetPosition() == POSITION_FIXED)
+		{
+			Property const *left_property, *right_property;
+			element->GetOffsetProperties( NULL, NULL, &left_property, &right_property );
+			if (left_property->unit != Property::KEYWORD) 
+				left = element->ResolveProperty(left_property, containing_block_width );
+			if (right_property->unit != Property::KEYWORD) 
+				right = element->ResolveProperty(right_property, containing_block_width );
+		}
+
+		// We resolve any auto margins to 0 and the width is set to whatever is left of the containing block.
 		if (margins_auto[0])
 			box.SetEdge(Box::MARGIN, Box::LEFT, 0);
 		if (margins_auto[1])
 			box.SetEdge(Box::MARGIN, Box::RIGHT, 0);
 
-		content_area.x = containing_block_width - (box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
-												   box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+		content_area.x = containing_block_width - (left +
+		                                           box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
+		                                           box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) +
+		                                           right);
 		content_area.x = Math::Max(0.0f, content_area.x);
 	}
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.
@@ -622,15 +666,39 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 		}
 	}
 
-	// If the height is set to auto, then any margins also set to auto are resolved to 0 and the height is set to -1.
+	// If the height is set to auto, we need to calculate the height
 	if (height_auto)
 	{
+		// We resolve any auto margins to 0
 		if (margins_auto[0])
 			box.SetEdge(Box::MARGIN, Box::TOP, 0);
 		if (margins_auto[1])
 			box.SetEdge(Box::MARGIN, Box::BOTTOM, 0);
 
+		// If the height is set to auto for a box in normal flow, the height is set to -1.
 		content_area.y = -1;
+
+		// But if we are dealing with an absolutely positioned element we need to
+		// consider if the top and bottom properties are set, since the height can be affected.
+		if (element->GetPosition() == POSITION_ABSOLUTE || 
+			element->GetPosition() == POSITION_FIXED)
+		{
+			float top = 0.0f, bottom = 0.0f;
+			Property const *top_property, *bottom_property;
+			element->GetOffsetProperties( &top_property, &bottom_property, NULL, NULL );
+			if (top_property->unit != Property::KEYWORD && bottom_property->unit != Property::KEYWORD ) 
+			{
+				top = element->ResolveProperty(top_property, containing_block_height );
+				bottom = element->ResolveProperty(bottom_property, containing_block_height );
+
+				// The height gets resolved to whatever is left of the containing block
+				content_area.y = containing_block_height - (top +
+				                                            box.GetCumulativeEdge(Box::CONTENT, Box::TOP) +
+				                                            box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM) +
+				                                            bottom);
+				content_area.y = Math::Max(0.0f, content_area.y);
+			}
+		}
 	}
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.
 	else if (num_auto_margins > 0)

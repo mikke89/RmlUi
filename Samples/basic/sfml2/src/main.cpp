@@ -46,7 +46,7 @@
 int main(int argc, char **argv)
 {
 #ifdef ROCKET_PLATFORM_WIN32
-        DoAllocConsole();
+        AllocConsole();
 #endif
 
         int window_width = 1024;

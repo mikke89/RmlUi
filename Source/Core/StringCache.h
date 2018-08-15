@@ -25,6 +25,7 @@
  *
  */
 
+ 
 #ifndef ROCKETCORESTRINGCACHE_H
 #define ROCKETCORESTRINGCACHE_H
 
@@ -57,6 +58,7 @@ extern const String BORDER_TOP;
 extern const String BORDER_RIGHT;
 extern const String BORDER_BOTTOM;
 extern const String BORDER_LEFT;
+extern const String BORDER;
 extern const String DISPLAY;
 extern const String POSITION;
 extern const String TOP;
@@ -81,6 +83,7 @@ extern const String VISIBILITY;
 extern const String BACKGROUND_COLOR;
 extern const String BACKGROUND;
 extern const String COLOR;
+extern const String IMAGE_COLOR;
 extern const String FONT_FAMILY;
 extern const String FONT_CHARSET;
 extern const String FONT_STYLE;
@@ -95,6 +98,7 @@ extern const String CURSOR;
 extern const String DRAG;
 extern const String TAB_INDEX;
 extern const String SCROLLBAR_MARGIN;
+
 extern const String PERSPECTIVE;
 extern const String PERSPECTIVE_ORIGIN;
 extern const String PERSPECTIVE_ORIGIN_X;
@@ -104,6 +108,10 @@ extern const String TRANSFORM_ORIGIN;
 extern const String TRANSFORM_ORIGIN_X;
 extern const String TRANSFORM_ORIGIN_Y;
 extern const String TRANSFORM_ORIGIN_Z;
+
+extern const String SCROLL_DEFAULT_STEP_SIZE;
+extern const String OPACITY;
+extern const String POINTER_EVENTS;
 
 extern const String MOUSEDOWN;
 extern const String MOUSESCROLL;

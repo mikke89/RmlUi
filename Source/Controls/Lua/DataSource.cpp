@@ -48,8 +48,8 @@ int DataSourceNotifyRowAdd(lua_State* L, DataSource* obj)
 {
     LUACHECKOBJ(obj);
     const char* table_name = luaL_checkstring(L,1);
-    int first_row_added = luaL_checkint(L,2);
-    int num_rows_added = luaL_checkint(L,3);
+    int first_row_added = luaL_checkinteger(L,2);
+    int num_rows_added = luaL_checkinteger(L,3);
     obj->NotifyRowAdd(table_name,first_row_added,num_rows_added);
     return 0;
 }
@@ -58,8 +58,8 @@ int DataSourceNotifyRowRemove(lua_State* L, DataSource* obj)
 {
     LUACHECKOBJ(obj);
     const char* table_name = luaL_checkstring(L,1);
-    int first_row_removed = luaL_checkint(L,2);
-    int num_rows_removed = luaL_checkint(L,3);
+    int first_row_removed = luaL_checkinteger(L,2);
+    int num_rows_removed = luaL_checkinteger(L,3);
     obj->NotifyRowRemove(table_name,first_row_removed,num_rows_removed);
     return 0;
 }
@@ -74,8 +74,8 @@ int DataSourceNotifyRowChange(lua_State* L, DataSource* obj)
     }
     else
     {
-        int first_row_changed = luaL_checkint(L,2);
-        int num_rows_changed = luaL_checkint(L,3);
+        int first_row_changed = luaL_checkinteger(L,2);
+        int num_rows_changed = luaL_checkinteger(L,3);
         obj->NotifyRowChange(table_name,first_row_changed,num_rows_changed);
     }
     return 0;

@@ -81,8 +81,17 @@ public:
 	/// @return The current dimensions of the context.
 	const Vector2i& GetDimensions() const;
 
+
 	/// Returns the current state of the view.
 	const ViewState& GetViewState() const throw();
+
+	/// Changes the size ratio of 'dp' unit to 'px' unit
+	/// @param[in] dimensions The new density-independent pixel ratio of the context.
+	void SetDensityIndependentPixelRatio(float density_independent_pixel_ratio);
+	/// Returns the size ratio of 'dp' unit to 'px' unit
+	/// @return The current density-independent pixel ratio of the context.
+	float GetDensityIndependentPixelRatio() const;
+
 
 	/// Updates all elements in the context's documents.
 	bool Update();
@@ -242,6 +251,7 @@ protected:
 private:
 	String name;
 	Vector2i dimensions;
+	float density_independent_pixel_ratio;
 
 	ContextInstancer* instancer;
 

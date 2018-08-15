@@ -10,8 +10,8 @@ Go into the Build folder and run cmake. However, notice:
 ** REPLACE C:\MinGW\bin\mingw32-make.exe with the path to your MinGW make.exe file.
 ** You have to have the C:\MinGW\bin in the path (or cmake will complain for missing libgmp-10.dll, etc).
 ** You must not have msys/bin in the path, it doesn't work with cmake
-** Use -DSTATIC_LIB if static libs are wanted. However, you will also need -DSTATIC_LIB to your own application when including Rocket files.
-** Notice that the generator "MinGW Makefiles" match the mingw32-make.exe, while the generator "msys Makefiles" match the msys/bin/make.exe. The first combination is used for 
+** Use -DROCKET_STATIC_LIB if static libs are wanted. However, you will also need -DROCKET_STATIC_LIB to your own application when including Rocket files.
+** Notice that the generator "MinGW Makefiles" match the mingw32-make.exe, while the generator "msys Makefiles" match the msys/bin/make.exe. The first combination is used for
 
 compiling from the DOS prompt, and the second one for compiling from a MinGW shell.
 

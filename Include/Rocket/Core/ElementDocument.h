@@ -147,6 +147,9 @@ protected:
 	/// Returns true if the document has been marked as needing a re-layout.
 	virtual bool IsLayoutDirty();
 
+	/// Updates all sizes defined by the 'lp' unit.
+	virtual void DirtyDpProperties();
+
 	/// Processes the 'onpropertychange' event, checking for a change in position or size.
 	virtual void ProcessEvent(Event& event);
 

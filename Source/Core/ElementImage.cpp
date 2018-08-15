@@ -156,6 +156,16 @@ void ElementImage::OnAttributeChange(const Rocket::Core::AttributeNameList& chan
 		DirtyLayout();
 }
 
+void ElementImage::OnPropertyChange(const PropertyNameList& changed_properties)
+{
+    Element::OnPropertyChange(changed_properties);
+
+    if (changed_properties.find(IMAGE_COLOR) != changed_properties.end() ||
+        changed_properties.find(OPACITY) != changed_properties.end()) {
+        GenerateGeometry();
+    }
+}
+
 // Regenerates the element's geometry.
 void ElementImage::ProcessEvent(Rocket::Core::Event& event)
 {
@@ -201,11 +211,17 @@ void ElementImage::GenerateGeometry()
 		texcoords[1] = Vector2f(1, 1);
 	}
 
+    float opacity = GetProperty<float>(OPACITY);
+	Colourb quad_colour = GetProperty<Colourb>(IMAGE_COLOR);
+
+    // Apply opacity
+    quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+
 	Rocket::Core::GeometryUtilities::GenerateQuad(&vertices[0],									// vertices to write to
 												  &indices[0],									// indices to write to
-												  Vector2f(0, 0),					// origin of the quad
+												  Vector2f(0, 0),					            // origin of the quad
 												  GetBox().GetSize(Rocket::Core::Box::CONTENT),	// size of the quad
-												  Colourb(255, 255, 255, 255),		// colour of the vertices
+												  quad_colour,		                            // colour of the vertices
 												  texcoords[0],									// top-left texture coordinate
 												  texcoords[1]);								// top-right texture coordinate
 

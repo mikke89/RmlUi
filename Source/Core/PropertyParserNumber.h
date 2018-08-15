@@ -50,6 +50,7 @@ public:
 		LENGTH =	Property::NUMBER
 				| Property::PERCENT
 				| Property::PX
+		        | Property::DP
 				| Property::EM
 				| Property::INCH
 				| Property::CM

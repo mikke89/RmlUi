@@ -366,6 +366,8 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
 		case Property::REM:
 			return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
+		case Property::DP:
+			return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
 		case Property::RAD:
 			return Math::RadiansToDegrees(property->value.Get< float >());
@@ -403,6 +405,11 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 	{
 		ROCKET_ERROR;
 		return 0.0f;
+	}
+
+	if (property->unit & Property::DP)
+	{
+		return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 	}
 
 	// The calculated value of the font-size property is inherited, so we need to check if this
@@ -604,6 +611,27 @@ void ElementStyle::DirtyRemProperties()
 		element->GetChild(i)->GetStyle()->DirtyRemProperties();
 }
 
+void ElementStyle::DirtyDpProperties()
+{
+	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
+	PropertyNameList dp_properties;
+
+	// Dirty all the properties of this element that use the dp unit.
+	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	{
+		if (element->GetProperty(*list_iterator)->unit == Property::DP)
+			dp_properties.insert(*list_iterator);
+	}
+
+	if (!dp_properties.empty())
+		DirtyProperties(dp_properties, false);
+
+	// Now dirty all of our descendant's properties that use the dp unit.
+	int num_children = element->GetNumChildren(true);
+	for (int i = 0; i < num_children; ++i)
+		element->GetChild(i)->GetStyle()->DirtyDpProperties();
+}
+
 // Sets a single property as dirty.
 void ElementStyle::DirtyProperty(const String& property)
 {
@@ -631,6 +659,7 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 
 		// Clear all cached properties.
 		cache->Clear();
+		cache->ClearInherited();
 	}
 	else
 	{
@@ -654,6 +683,7 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 
 		// Clear cached properties.
 		cache->Clear();
+		cache->ClearInherited();
 	}
 
 	// clear the list of EM-properties, we will refill it in DirtyEmProperties
@@ -705,6 +735,11 @@ void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 	element->OnPropertyChange(properties);
 }
 
+void ElementStyle::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )
+{
+	cache->GetOffsetProperties(top, bottom, left, right);
+}
+
 void ElementStyle::GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **bottom_right_width)
 {
 	cache->GetBorderWidthProperties(border_top_width, border_bottom_width, border_left_width, bottom_right_width);
@@ -753,6 +788,11 @@ int ElementStyle::GetDisplay()
 int ElementStyle::GetWhitespace()
 {
 	return cache->GetWhitespace();
+}
+
+int ElementStyle::GetPointerEvents()
+{
+	return cache->GetPointerEvents();
 }
 
 const Property *ElementStyle::GetLineHeightProperty()

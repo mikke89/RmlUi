@@ -7,6 +7,9 @@
 *.user
 *.opensdf
 bin/*
+bin64/*
+*.dir/
+Win32/
 
 /lib/
 RocketCore.dir/

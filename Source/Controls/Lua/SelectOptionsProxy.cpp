@@ -43,7 +43,7 @@ int SelectOptionsProxy__index(lua_State* L)
     {
         SelectOptionsProxy* proxy = LuaType<SelectOptionsProxy>::check(L,1);
         LUACHECKOBJ(proxy);
-        int index = luaL_checkint(L,2);
+        int index = luaL_checkinteger(L,2);
         Rocket::Controls::SelectOption* opt = proxy->owner->GetOption(index);
         LUACHECKOBJ(opt);
         lua_newtable(L);

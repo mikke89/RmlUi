@@ -98,7 +98,7 @@ int LuaDataSource::GetNumRows(const Rocket::Core::String& table)
     int res = lua_gettop(L);
     if(lua_type(L,res) == LUA_TNUMBER)
     {
-        return luaL_checkint(L,res);
+        return luaL_checkinteger(L,res);
     }
     else
     {
