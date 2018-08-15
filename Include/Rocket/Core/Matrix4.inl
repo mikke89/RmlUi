@@ -394,9 +394,9 @@ bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component
 	typename Matrix4< Component, Storage >::ConstRows rows(vectors);
 	typename Matrix4< Component, Storage >::ConstRows other_rows(other.vectors);
 	return vectors[0] == other.vectors[0]
-	   and vectors[1] == other.vectors[1]
-	   and vectors[2] == other.vectors[2]
-	   and vectors[3] == other.vectors[3];
+	   && vectors[1] == other.vectors[1]
+	   && vectors[2] == other.vectors[2]
+	   && vectors[3] == other.vectors[3];
 }
 template< typename Component, class Storage>
 bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component, Storage >::TransposeType& other) const throw()
@@ -404,9 +404,9 @@ bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component
 	typename Matrix4< Component, Storage >::ConstRows rows(vectors);
 	typename Matrix4< Component, Storage >::ConstRows other_rows(other.vectors);
 	return rows[0] == other_rows[0]
-	   and rows[1] == other_rows[1]
-	   and rows[2] == other_rows[2]
-	   and rows[3] == other_rows[3];
+	   && rows[1] == other_rows[1]
+	   && rows[2] == other_rows[2]
+	   && rows[3] == other_rows[3];
 }
 
 // Inequality operator.
@@ -414,9 +414,9 @@ template< typename Component, class Storage>
 bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component, Storage >::ThisType& other) const throw()
 {
 	return vectors[0] != other.vectors[0]
-	    or vectors[1] != other.vectors[1]
-	    or vectors[2] != other.vectors[2]
-	    or vectors[3] != other.vectors[3];
+	    || vectors[1] != other.vectors[1]
+	    || vectors[2] != other.vectors[2]
+	    || vectors[3] != other.vectors[3];
 }
 template< typename Component, class Storage>
 bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component, Storage >::TransposeType& other) const throw()
@@ -424,9 +424,9 @@ bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component
 	typename Matrix4< Component, Storage >::ConstRows rows(vectors);
 	typename Matrix4< Component, Storage >::ConstRows other_rows(other.vectors);
 	return rows[0] != other_rows[0]
-	    or rows[1] != other_rows[1]
-	    or rows[2] != other_rows[2]
-	    or rows[3] != other_rows[3];
+	    || rows[1] != other_rows[1]
+	    || rows[2] != other_rows[2]
+	    || rows[3] != other_rows[3];
 }
 
 // Return the identity matrix.
@@ -573,7 +573,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateX(Component a
 		Matrix4< Component, Storage >::VectorType(1, 0,    0,   0),
 		Matrix4< Component, Storage >::VectorType(0, Cos, -Sin, 0),
 		Matrix4< Component, Storage >::VectorType(0, Sin,  Cos, 0),
-		Matrix4< Component, Storage >::VectorType(1, 0,    0,   1)
+		Matrix4< Component, Storage >::VectorType(0, 0,    0,   1)
 	);
 }
 
@@ -610,8 +610,8 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::Skew(Component angl
 	Component SkewX = Math::Tan(Math::DegreesToRadians(angle_x));
 	Component SkewY = Math::Tan(Math::DegreesToRadians(angle_y));
 	return Matrix4< Component, Storage >::FromRows(
-		Matrix4< Component, Storage >::VectorType(0,     SkewY, 0, 0),
-		Matrix4< Component, Storage >::VectorType(SkewX, 0,     0, 0),
+		Matrix4< Component, Storage >::VectorType(1,     SkewX, 0, 0),
+		Matrix4< Component, Storage >::VectorType(SkewY, 1,     0, 0),
 		Matrix4< Component, Storage >::VectorType( 0,    0,     1, 0),
 		Matrix4< Component, Storage >::VectorType( 0,    0,     0, 1)
 	);

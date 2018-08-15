@@ -244,6 +244,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(COLOR, "white", true, false).AddParser(COLOR);
 
 	RegisterProperty(IMAGE_COLOR, "white", false, false).AddParser(COLOR);
+	RegisterProperty(OPACITY, "1", false, false).AddParser("number");
 
 	RegisterProperty(FONT_FAMILY, "", true, true).AddParser("string");
 	RegisterProperty(FONT_CHARSET, "U+0020-007E", true, false).AddParser("string");
@@ -263,8 +264,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(DRAG, "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
 	RegisterProperty(TAB_INDEX, "none", false, false).AddParser("keyword", "none, auto");
 	RegisterProperty(FOCUS, "auto", true, false).AddParser("keyword", "none, auto");
-
 	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("length");
+	RegisterProperty(POINTER_EVENTS, "auto", true, false).AddParser("keyword", "auto, none");
 
 	// Perspective and Transform specifications
 	RegisterProperty(PERSPECTIVE, "none", false, false).AddParser("keyword", "none").AddParser("length");
@@ -277,10 +278,6 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false).AddParser("length");
 	RegisterShorthand(TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z");
 
-	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("number");
-	RegisterProperty(OPACITY, "1", false, false).AddParser("number");
-
-	RegisterProperty(POINTER_EVENTS, "auto", true, false).AddParser("keyword", "auto, none");
 }
 
 }

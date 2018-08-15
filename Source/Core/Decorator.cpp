@@ -114,12 +114,12 @@ float Decorator::ResolveProperty(const PropertyDictionary& properties, const Str
 	}
 
 	// Need to include em!
-	if (property->unit & Property::RELATIVE_UNIT)
+	if (property->unit & Property::PERCENT)
 		return base_value * property->value.Get< float >() * 0.01f;
 
 	if (property->unit & Property::NUMBER || property->unit & Property::PX)
 		return property->value.Get< float >();
-    
+	    
     // Values based on pixels-per-inch.
 	if (property->unit & Property::PPI_UNIT)
 	{

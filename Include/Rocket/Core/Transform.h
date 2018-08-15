@@ -72,7 +72,7 @@ public:
 	void AddPrimitive(const Transforms::Primitive& p);
 	/// Return the number of Primitives in this Transform
 	int GetNumPrimitives() const throw()
-		{ return primitives.size(); }
+		{ return (int)primitives.size(); }
 	/// Return the i-th Primitive in this Transform
 	const Transforms::Primitive& GetPrimitive(int i) const throw()
 		{ return *primitives[i]; }
