@@ -19,7 +19,7 @@
 
 		div#title_bar:hover
 		{
-			transform: rotate3d(1, 0, 0, 25);
+			transform: rotate3d(1, 0, 0, 25) scale(0.5);
 			transform-origin: center bottom;
 		}
 

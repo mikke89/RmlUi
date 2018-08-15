@@ -234,9 +234,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(OVERFLOW_X, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
 	RegisterProperty(OVERFLOW_Y, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
 	RegisterShorthand("overflow", "overflow-x, overflow-y", PropertySpecification::REPLICATE);
-	RegisterProperty(CLIP, "auto", true, false)
-		.AddParser("keyword", "auto, none")
-		.AddParser("length");
+	RegisterProperty(CLIP, "auto", true, false).AddParser("keyword", "auto, none").AddParser("length");
 	RegisterProperty(VISIBILITY, "visible", false, false).AddParser("keyword", "visible, hidden");
 
 	// Need some work on this if we are to include images.
@@ -259,9 +257,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(TEXT_TRANSFORM, "none", true, true).AddParser("keyword", "none, capitalize, uppercase, lowercase");
 	RegisterProperty(WHITE_SPACE, "normal", true, true).AddParser("keyword", "normal, pre, nowrap, pre-wrap, pre-line");
 
-	RegisterProperty(CURSOR, "auto", true, false)
-		.AddParser("keyword", "auto")
-		.AddParser("string");
+	RegisterProperty(CURSOR, "auto", true, false).AddParser("keyword", "auto").AddParser("string");
 
 	// Functional property specifications.
 	RegisterProperty(DRAG, "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
@@ -271,27 +267,14 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("length");
 
 	// Perspective and Transform specifications
-	RegisterProperty(PERSPECTIVE, "none", false, false)
-		.AddParser("keyword", "none")
-		.AddParser("length");
-	RegisterProperty(PERSPECTIVE_ORIGIN_X, "50%", false, false)
-		.AddParser("keyword", "left, center, right")
-		.AddParser("length");
-	RegisterProperty(PERSPECTIVE_ORIGIN_Y, "50%", false, false)
-		.AddParser("keyword", "top, center, bottom")
-		.AddParser("length");
+	RegisterProperty(PERSPECTIVE, "none", false, false).AddParser("keyword", "none").AddParser("length");
+	RegisterProperty(PERSPECTIVE_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length");
+	RegisterProperty(PERSPECTIVE_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length");
 	RegisterShorthand(PERSPECTIVE_ORIGIN, "perspective-origin-x, perspective-origin-y");
-	RegisterProperty(TRANSFORM, "none", false, false)
-		.AddParser("keyword", "none")
-		.AddParser(TRANSFORM);
-	RegisterProperty(TRANSFORM_ORIGIN_X, "50%", false, false)
-		.AddParser("keyword", "left, center, right")
-		.AddParser("length");
-	RegisterProperty(TRANSFORM_ORIGIN_Y, "50%", false, false)
-		.AddParser("keyword", "top, center, bottom")
-		.AddParser("length");
-	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false)
-		.AddParser("length");
+	RegisterProperty(TRANSFORM, "none", false, false).AddParser("keyword", "none").AddParser(TRANSFORM);
+	RegisterProperty(TRANSFORM_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length");
+	RegisterProperty(TRANSFORM_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length");
+	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false).AddParser("length");
 	RegisterShorthand(TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z");
 
 	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("number");

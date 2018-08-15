@@ -116,6 +116,11 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		{
 			transform->AddPrimitive(Transforms::Scale2D(args));
 		}
+		else if ((bytes_read = Scan(next, "scale", number1, args, 1)))
+		{
+			args[1] = args[0];
+			transform->AddPrimitive(Transforms::Scale2D(args));
+		}
 		else if ((bytes_read = Scan(next, "scale3d", number3, args, 3)))
 		{
 			transform->AddPrimitive(Transforms::Scale3D(args));
