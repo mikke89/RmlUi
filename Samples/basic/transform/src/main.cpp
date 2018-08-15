@@ -39,7 +39,7 @@ class DemoWindow
 public:
 	DemoWindow(const Rocket::Core::String &title, const Rocket::Core::Vector2f &position, Rocket::Core::Context *context)
 	{
-		document = context->LoadDocument("data/transform.rml");
+		document = context->LoadDocument("basic/transform/data/transform.rml");
 		if (document != NULL)
 		{
 			document->GetElementById("title")->SetInnerRML(title);
@@ -139,7 +139,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../Samples/basic/transform/") ||
+	if (!Shell::Initialise("../../Samples/") ||
 		!Shell::OpenWindow("Transform Sample", shell_renderer, 1024, 768, true))
 	{
 		Shell::Shutdown();
@@ -169,7 +169,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Shell::LoadFonts("../../assets/");
+	Shell::LoadFonts("assets/");
 
 	window_1 = new DemoWindow("Orthographic transform", Rocket::Core::Vector2f(81, 200), context);
 	if (window_1)
