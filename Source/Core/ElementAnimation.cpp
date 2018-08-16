@@ -28,6 +28,7 @@
 #include "precompiled.h"
 #include "ElementAnimation.h"
 #include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/Rocket/Core/TransformPrimitive.h"
 
 namespace Rocket {
 namespace Core {
@@ -54,37 +55,116 @@ static Colourb ColourFromLinearSpace(Colourf c)
 	return result;
 }
 
-static Variant InterpolateValues(const Variant & from, const Variant & to, float alpha)
+template<size_t N>
+static bool TryInterpolatePrimitive(Rocket::Core::Transforms::Primitive* p_inout, const Rocket::Core::Transforms::Primitive* p1, float alpha)
 {
-	auto type = from.GetType();
-	auto type_to = to.GetType();
-	if (type != type_to)
+	using namespace Rocket::Core::Transforms;
+	bool result = false;
+	if (auto values0 = dynamic_cast<UnresolvedValuesPrimitive< N >*>(p_inout))
 	{
-		Log::Message(Log::LT_WARNING, "Interpolating properties must be of same unit. Got types: '%c' and '%c'.", type, type_to);
-		return from;
+		auto values1 = dynamic_cast<const UnresolvedValuesPrimitive< N >*>(p1);
+		if (values1) {
+			values0->InterpolateValues(*values1, alpha);
+			result = true;
+		}
+	}
+	return result;
+}
+template<size_t N>
+static bool TryInterpolateResolvedPrimitive(Rocket::Core::Transforms::Primitive* p_inout, const Rocket::Core::Transforms::Primitive* p1, float alpha)
+{
+	using namespace Rocket::Core::Transforms;
+	bool result = false;
+	if (auto values0 = dynamic_cast<ResolvedValuesPrimitive< N >*>(p_inout))
+	{
+		auto values1 = dynamic_cast<const ResolvedValuesPrimitive< N >*>(p1);
+		if (values1) {
+			values0->InterpolateValues(*values1, alpha);
+			result = true;
+		}
+	}
+	return result;
+}
+
+static Variant InterpolateValues(const Variant & v0, const Variant & v1, float alpha)
+{
+	auto type0 = v0.GetType();
+	auto type1 = v1.GetType();
+	if (type0 != type1)
+	{
+		Log::Message(Log::LT_WARNING, "Interpolating properties must be of same unit. Got types: '%c' and '%c'.", type0, type1);
+		return v0;
 	}
 
-	switch (type)
+	switch (type0)
 	{
 	case Variant::FLOAT:
 	{
-		float f0 = from.Get<float>();
-		float f1 = to.Get<float>();
+		float f0 = v0.Get<float>();
+		float f1 = v1.Get<float>();
 		float f = (1.0f - alpha) * f0 + alpha * f1;
 		return Variant(f);
 	}
 	case Variant::COLOURB:
 	{
-		Colourf c0 = ColourToLinearSpace(from.Get<Colourb>());
-		Colourf c1 = ColourToLinearSpace(to.Get<Colourb>());
+		Colourf c0 = ColourToLinearSpace(v0.Get<Colourb>());
+		Colourf c1 = ColourToLinearSpace(v1.Get<Colourb>());
 		Colourf c = c0 * (1.0f - alpha) + c1 * alpha;
 		return Variant(ColourFromLinearSpace(c));
 	}
+	case Variant::TRANSFORMREF:
+	{
+		using namespace Rocket::Core::Transforms;
+
+		auto t0 = v0.Get<TransformRef>();
+		auto t1 = v1.Get<TransformRef>();
+		Primitive* p0 = t0->GetPrimitive(0).Clone();
+		const Primitive* p1 = &t1->GetPrimitive(0);
+
+
+		bool success = false;
+
+		// Todo: Check carefully for memory leaks
+		// Todo: Lots of dynamic dispatch, not good!
+		if (TryInterpolateResolvedPrimitive<1>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolateResolvedPrimitive<2>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolateResolvedPrimitive<3>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolateResolvedPrimitive<4>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolateResolvedPrimitive<6>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolateResolvedPrimitive<16>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolatePrimitive<1>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolatePrimitive<2>(p0, p1, alpha))
+			success = true;
+		else if (TryInterpolatePrimitive<3>(p0, p1, alpha))
+			success = true;
+
+
+		if(success)
+		{
+			auto transform = new Transform;
+			transform->AddPrimitive(*p0);
+			TransformRef tref{ transform };
+			delete p0;
+			return Variant(tref);
+		}
+		else
+		{
+			delete p0;
+		}
+		Log::Message(Log::LT_WARNING, "Could not decode transform for interpolation.");
+	}
 	}
 
-	Log::Message(Log::LT_WARNING, "Currently, only float and color values can be interpolated. Got types of: '%c'.", type);
+	Log::Message(Log::LT_WARNING, "Currently, only float and color values can be interpolated. Got types of: '%c'.", type0);
 
-	return from;
+	return v0;
 }
 
 
@@ -109,7 +189,7 @@ Property ElementAnimation::UpdateAndGetProperty(float time)
 	if (animation_complete || time - last_update_time <= 0.0f)
 		return result;
 
-	const float dt = time - last_update_time;
+	const float dt = 0.01f;// time - last_update_time;
 
 	last_update_time = time;
 	time_since_iteration_start += dt;

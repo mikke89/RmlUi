@@ -94,6 +94,12 @@ class ResolvedValuesPrimitive : public Primitive
 		ResolvedValuesPrimitive(const NumericValue* values) throw()
 			{ for (size_t i = 0; i < N; ++i) this->values[i] = values[i].number; }
 
+		void InterpolateValues(const ResolvedValuesPrimitive<N>& other, float alpha)
+		{
+			for (size_t i = 0; i < N; i++)
+				values[i] = values[i]*(1.0f - alpha) + other.values[i] * alpha;
+		}
+
 	protected:
 		float values[N];
 };
@@ -104,6 +110,13 @@ class UnresolvedValuesPrimitive : public Primitive
 	public:
 		UnresolvedValuesPrimitive(const NumericValue* values) throw()
 			{ memcpy(this->values, values, sizeof(this->values)); }
+
+		void InterpolateValues(const UnresolvedValuesPrimitive<N>& other, float alpha)
+		{
+			// TODO: Convert between different units?
+			for (size_t i = 0; i < N; i++)
+				values[i].number = values[i].number*(1.0f - alpha) + other.values[i].number * alpha;
+		}
 
 	protected:
 		NumericValue values[N];

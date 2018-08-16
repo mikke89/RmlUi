@@ -244,7 +244,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(COLOR, "white", true, false).AddParser(COLOR);
 
 	RegisterProperty(IMAGE_COLOR, "white", false, false).AddParser(COLOR);
-	RegisterProperty(OPACITY, "1", false, false).AddParser("number");
+	RegisterProperty(OPACITY, "1", true, false).AddParser("number");
 
 	RegisterProperty(FONT_FAMILY, "", true, true).AddParser("string");
 	RegisterProperty(FONT_CHARSET, "U+0020-007E", true, false).AddParser("string");

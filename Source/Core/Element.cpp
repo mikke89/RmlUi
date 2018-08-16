@@ -907,7 +907,9 @@ void Element::Animate(const String & property_name, const Property & target_valu
 	if (!animation)
 	{
 		float time = Clock::GetElapsedTime();
-		auto property = GetProperty(property_name);
+		const Property* property = GetProperty(property_name);
+		if (!property) return;
+
 		ElementAnimation new_animation{ property_name, *property, time, duration, num_iterations, alternate_direction };
 		animations.push_back(new_animation);
 		animation = &animations.back();
