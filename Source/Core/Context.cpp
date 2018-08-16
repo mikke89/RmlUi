@@ -171,6 +171,7 @@ float Context::GetDensityIndependentPixelRatio() const
 // Updates all elements in the element tree.
 bool Context::Update()
 {
+#ifdef _DEBUG
 	// Reset all document layout locks (work-around due to leak, possibly in select element?)
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 	{
@@ -181,6 +182,7 @@ bool Context::Update()
 			document->lock_layout = 0;
 		}
 	}
+#endif
 
 	root->Update();
 

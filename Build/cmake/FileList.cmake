@@ -17,6 +17,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBorder.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.h
@@ -220,6 +221,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Dictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBorder.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.cpp

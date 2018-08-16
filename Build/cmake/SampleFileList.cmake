@@ -85,6 +85,13 @@ set(transform_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/transform/src/main.cpp
 )
 
+set(animation_HDR_FILES
+)
+
+set(animation_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/animation/src/main.cpp
+)
+
 set(sdl2_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.h

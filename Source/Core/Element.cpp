@@ -32,6 +32,8 @@
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include <algorithm>
 #include <limits>
+#include "Clock.h"
+#include "ElementAnimation.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
 #include "ElementDefinition.h"
@@ -159,6 +161,9 @@ void Element::Update()
 	for (size_t i = 0; i < active_children.size(); i++)
 		active_children[i]->Update();
 
+	// Update animations, if necessary.
+	UpdateAnimations();
+
 	// Force a definition reload, if necessary.
 	style->GetDefinition();
 
@@ -168,6 +173,29 @@ void Element::Update()
 	scroll->Update();
 	OnUpdate();
 }
+
+
+
+void Element::UpdateAnimations()
+{
+	if (!animations.empty())
+	{
+		float time = Clock::GetElapsedTime();
+
+		for(auto& animation : animations)
+		{
+			Property property = animation.UpdateAndGetProperty(time);
+			if(property.unit != Property::UNKNOWN)
+				SetProperty(animation.GetPropertyName(), property);
+		}
+
+		animations.erase(
+			std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); }),
+			animations.end()
+		);
+	}
+}
+
 
 void Element::Render()
 {
@@ -859,6 +887,38 @@ const Vector2f Element::Project(const Vector2f& point) throw()
 		float inf = std::numeric_limits< float >::infinity();
 		return Vector2f(-inf, -inf);
 	}
+}
+
+void Element::Animate(const String & property_name, const Property & target_value, float duration, int num_iterations, bool alternate_direction)
+{
+	ElementAnimation* animation = nullptr;
+
+	for (auto& existing_animation : animations)
+	{
+		if (existing_animation.GetPropertyName() == property_name)
+		{
+			animation = &existing_animation;
+			break;
+		}
+	}
+
+	float target_time = duration;
+
+	if (!animation)
+	{
+		float time = Clock::GetElapsedTime();
+		auto property = GetProperty(property_name);
+		ElementAnimation new_animation{ property_name, *property, time, duration, num_iterations, alternate_direction };
+		animations.push_back(new_animation);
+		animation = &animations.back();
+	}
+	else
+	{
+		target_time += animation->GetDuration();
+		animation->SetDuration(target_time);
+	}
+
+	animation->AddKey(target_time, target_value);
 }
 
 // Iterates over the properties defined on this element.

@@ -1,0 +1,36 @@
+<rml>
+<head>
+	<link type="text/template" href="../../../assets/window.rml"/>
+	<title>Animation Sample</title>
+	<style>
+		body
+		{
+			width: 350px;
+			height: 300px;
+		}
+
+		div#title_bar div#icon
+		{
+			display: none;
+		}
+
+		spacer
+		{
+			display: inline-block;
+			width: 25px;
+		}
+
+		#high_score {
+			margin-left: -100px;
+		}
+	</style>
+</head>
+
+<body template="window">
+	<button>Start Game</button><br />
+	<button id="high_score">High Scores</button><br />
+	<button>Options</button><br />
+	<button id="help">Help</button><br />
+	<button id="exit">Exit</button>
+</body>
+</rml>

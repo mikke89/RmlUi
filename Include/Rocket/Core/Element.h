@@ -42,15 +42,10 @@
 
 namespace Rocket {
 namespace Core {
-	class Dictionary;
-}
-}
-
-namespace Rocket {
-namespace Core {
 
 class Context;
 class Decorator;
+class Dictionary;
 class ElementInstancer;
 class EventDispatcher;
 class EventListener;
@@ -294,6 +289,11 @@ public:
 	/// @param[in] point The point to project.
 	/// @return The projected coordinates.
 	const Vector2f Project(const Vector2f& point) throw();
+
+	/// Start an animation of the given property on this element.
+	/// Currently, only float and Colourb property values are supported. If an animation of the same property name exists, the target value
+	/// and duration will be added as a new animation key, adding to its total duration. Then, num_iterations and alternate_direction will be ignored.
+	void Animate(const String& property_name, const Property& target_value, float duration, int num_iterations = 1, bool alternate_direction = false);
 
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
@@ -678,6 +678,8 @@ private:
 	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_pv_changed);
 	void UpdateTransformState();
 
+	void UpdateAnimations();
+
 	// Original tag this element came from.
 	String tag;
 
@@ -760,6 +762,8 @@ private:
 	bool transform_state_perspective_dirty;
 	bool transform_state_transform_dirty;
 	bool transform_state_parent_transform_dirty;
+
+	ElementAnimationList animations;
 
 	friend class Context;
 	friend class ElementStyle;
