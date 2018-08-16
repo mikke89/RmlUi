@@ -86,7 +86,7 @@ public:
 	const ViewState& GetViewState() const throw();
 
 	/// Changes the size ratio of 'dp' unit to 'px' unit
-	/// @param[in] dimensions The new density-independent pixel ratio of the context.
+	/// @param[in] dp_ratio The new density-independent pixel ratio of the context.
 	void SetDensityIndependentPixelRatio(float density_independent_pixel_ratio);
 	/// Returns the size ratio of 'dp' unit to 'px' unit
 	/// @return The current density-independent pixel ratio of the context.
