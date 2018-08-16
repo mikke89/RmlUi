@@ -189,7 +189,6 @@ bool Rotate3D::ResolveTransform(Matrix4f& m, Element& e) const throw()
 
 bool SkewX::ResolveTransform(Matrix4f& m, Element& e) const throw()
 {
-	std::cout << "foo" << std::endl;
 	m = Matrix4f::SkewX(values[0]);
 	return true;
 }

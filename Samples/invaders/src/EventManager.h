@@ -29,6 +29,7 @@
 #define ROCKETINVADERSEVENTMANAGER_H
 
 #include <Rocket/Core/Event.h>
+#include <Rocket/Core/ElementDocument.h>
 
 class EventHandler;
 
@@ -53,7 +54,7 @@ public:
 	static void ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::String& value);
 	/// Loads a window and binds the event handler for it.
 	/// @param[in] window_name The name of the window to load.
-	static bool LoadWindow(const Rocket::Core::String& window_name);
+	static Rocket::Core::ElementDocument* LoadWindow(const Rocket::Core::String& window_name);
 
 private:
 	EventManager();

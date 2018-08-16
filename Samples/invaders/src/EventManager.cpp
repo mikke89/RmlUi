@@ -133,7 +133,7 @@ void EventManager::ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::
 }
 
 // Loads a window and binds the event handler for it.
-bool EventManager::LoadWindow(const Rocket::Core::String& window_name)
+Rocket::Core::ElementDocument* EventManager::LoadWindow(const Rocket::Core::String& window_name)
 {
 	// Set the event handler for the new screen, if one has been registered.
 	EventHandler* old_event_handler = event_handler;
@@ -149,7 +149,7 @@ bool EventManager::LoadWindow(const Rocket::Core::String& window_name)
 	if (document == NULL)
 	{
 		event_handler = old_event_handler;
-		return false;
+		return nullptr;
 	}
 
 	// Set the element's title on the title; IDd 'title' in the RML.
@@ -163,5 +163,5 @@ bool EventManager::LoadWindow(const Rocket::Core::String& window_name)
 	// Remove the caller's reference.
 	document->RemoveReference();
 
-	return true;
+	return document;
 }

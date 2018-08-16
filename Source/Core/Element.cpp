@@ -2090,6 +2090,9 @@ void Element::DirtyOffset()
 {
 	offset_dirty = true;
 
+	if(transform_state)
+		DirtyTransformState(true, true, false);
+
 	// Not strictly true ... ?
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->DirtyOffset();
