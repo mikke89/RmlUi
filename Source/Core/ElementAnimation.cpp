@@ -27,7 +27,6 @@
 
 #include "precompiled.h"
 #include "ElementAnimation.h"
-#include "../../Include/Rocket/Core/Element.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 
 namespace Rocket {
@@ -55,36 +54,6 @@ static Colourb ColourFromLinearSpace(Colourf c)
 	return result;
 }
 
-template<size_t N>
-static bool TryInterpolatePrimitive(Rocket::Core::Transforms::Primitive* p_inout, const Rocket::Core::Transforms::Primitive* p1, float alpha)
-{
-	using namespace Rocket::Core::Transforms;
-	bool result = false;
-	if (auto values0 = dynamic_cast<UnresolvedValuesPrimitive< N >*>(p_inout))
-	{
-		auto values1 = dynamic_cast<const UnresolvedValuesPrimitive< N >*>(p1);
-		if (values1) {
-			values0->InterpolateValues(*values1, alpha);
-			result = true;
-		}
-	}
-	return result;
-}
-template<size_t N>
-static bool TryInterpolateResolvedPrimitive(Rocket::Core::Transforms::Primitive* p_inout, const Rocket::Core::Transforms::Primitive* p1, float alpha)
-{
-	using namespace Rocket::Core::Transforms;
-	bool result = false;
-	if (auto values0 = dynamic_cast<ResolvedValuesPrimitive< N >*>(p_inout))
-	{
-		auto values1 = dynamic_cast<const ResolvedValuesPrimitive< N >*>(p1);
-		if (values1) {
-			values0->InterpolateValues(*values1, alpha);
-			result = true;
-		}
-	}
-	return result;
-}
 
 static Variant InterpolateValues(const Variant & v0, const Variant & v1, float alpha)
 {
@@ -116,48 +85,34 @@ static Variant InterpolateValues(const Variant & v0, const Variant & v1, float a
 	{
 		using namespace Rocket::Core::Transforms;
 
+		// Build the new, interpolating transform
+		auto t = TransformRef{ new Transform };
+
 		auto t0 = v0.Get<TransformRef>();
 		auto t1 = v1.Get<TransformRef>();
-		Primitive* p0 = t0->GetPrimitive(0).Clone();
-		const Primitive* p1 = &t1->GetPrimitive(0);
 
+		const auto& p0 = t0->GetPrimitives();
+		const auto& p1 = t1->GetPrimitives();
 
-		bool success = false;
-
-		// Todo: Check carefully for memory leaks
-		// Todo: Lots of dynamic dispatch, not good!
-		if (TryInterpolateResolvedPrimitive<1>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolateResolvedPrimitive<2>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolateResolvedPrimitive<3>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolateResolvedPrimitive<4>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolateResolvedPrimitive<6>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolateResolvedPrimitive<16>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolatePrimitive<1>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolatePrimitive<2>(p0, p1, alpha))
-			success = true;
-		else if (TryInterpolatePrimitive<3>(p0, p1, alpha))
-			success = true;
-
-
-		if(success)
+		if (p0.size() != p1.size())
 		{
-			auto transform = new Transform;
-			transform->AddPrimitive(*p0);
-			TransformRef tref{ transform };
-			delete p0;
-			return Variant(tref);
+			Log::Message(Log::LT_WARNING, "Transform primitives not of same size during interpolation.");
+			return Variant{ t0 };
 		}
-		else
+
+		for (size_t i = 0; i < p0.size(); i++)
 		{
-			delete p0;
+			Primitive p = p0[i];
+			if (!p.InterpolateWith(p1[i], alpha))
+			{
+				Log::Message(Log::LT_WARNING, "Transform primitives not of same type during interpolation.");
+				return Variant{ t0 };
+			}
+			t->AddPrimitive(p);
 		}
+
+		return Variant(t);
+
 		Log::Message(Log::LT_WARNING, "Could not decode transform for interpolation.");
 	}
 	}
@@ -169,12 +124,157 @@ static Variant InterpolateValues(const Variant & v0, const Variant & v1, float a
 
 
 
-bool ElementAnimation::AddKey(float time, const Property & property)
+enum class PrepareTransformResult { Unchanged = 0, ChangedT0 = 1, ChangedT1 = 2, ChangedT0andT1 = 3, Invalid = 4 };
+
+static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1, Element& element)
+{
+	using namespace Transforms;
+
+	// Insert missing primitives into transform
+	// See e.g. https://drafts.csswg.org/css-transforms-1/#interpolation-of-transforms for inspiration
+
+
+	auto& prims0 = t0.GetPrimitives();
+	auto& prims1 = t1.GetPrimitives();
+
+	// Check for trivial case where they contain the same primitives
+	if (prims0.size() == prims1.size())
+	{
+		bool same_primitives = true;
+		for (size_t i = 0; i < prims0.size(); i++)
+		{
+			if (prims0[i].primitive.index() != prims1[i].primitive.index())
+			{
+				same_primitives = false;
+				break;
+			}
+		}
+		if (same_primitives)
+			return PrepareTransformResult::Unchanged;
+	}
+
+	if (prims0.size() != prims1.size())
+	{
+		// Try to match the smallest set of primitives to the larger set, set missing keys in the small set to identity.
+		// Requirement: The small set must match types in the same order they appear in the big set.
+		// Example: (letter indicates type, number represent values)
+		// big:       a0 b0 c0 b1
+		//               ^     ^ 
+		// small:     b2 b3   
+		//            ^  ^
+		// new small: a1 b2 c1 b3   
+		bool prims0_smallest = (prims0.size() < prims1.size());
+
+		auto& small = (prims0_smallest ? prims0 : prims1);
+		auto& big = (prims0_smallest ? prims1 : prims0);
+
+		std::vector<size_t> matching_indices; // Indices into 'big' for matching types
+		matching_indices.reserve(small.size() + 1);
+
+		size_t big_index = 0;
+		bool match_success = true;
+
+		// Iterate through the small set to see if its types fit into the big set
+		for (size_t i = 0; i < small.size(); i++)
+		{
+			auto small_type = small[i].primitive.index();
+			match_success = false;
+
+			for (; big_index < big.size(); big_index++)
+			{
+				auto big_type = big[big_index].primitive.index();
+
+				if (small_type == big_type)
+				{
+					matching_indices.push_back(big_index);
+					match_success = true;
+					big_index += 1;
+					break;
+				}
+			}
+
+			if (!match_success)
+				break;
+		}
+
+
+		if (match_success)
+		{
+			// Success, insert the missing primitives into the small set
+			matching_indices.push_back(big.size()); // Needed to copy elements behind the last matching primitive
+			small.reserve(big.size());
+			size_t i0 = 0;
+			for (size_t match_index : matching_indices)
+			{
+				for (size_t i = i0; i < match_index; i++)
+				{
+					Primitive p = big[i];
+					p.SetIdentity();
+					small.insert(small.begin() + i, p);
+				}
+
+				// Next value to copy is one-past the matching primitive
+				i0 = match_index + 1;
+			}
+
+			return (prims0_smallest ? PrepareTransformResult::ChangedT0 : PrepareTransformResult::ChangedT1);
+		}
+	}
+
+
+	// If we get here, things get tricky. Need to do full matrix interpolation.
+	// We resolve the full transform here. This is not entirely correct if the elements box size changes
+	// during the animation. Ideally, we would resolve it during each iteration.
+	// For performance: We could also consider breaking up the transforms into their interpolating primitives (translate, rotate, skew, scale) here,
+	// instead of doing this every animation tick.
+	for(Transform* t : {&t0, &t1})
+	{
+		Matrix4f transform_value = Matrix4f::Identity();
+		for (const auto& primitive : t->GetPrimitives())
+		{
+			Matrix4f m;
+			if (primitive.ResolveTransform(m, element))
+				transform_value *= m;
+		}
+		t->ClearPrimitives();
+		t->AddPrimitive({ Matrix3D{transform_value} });
+	}
+
+	return PrepareTransformResult::ChangedT0andT1;
+}
+
+
+static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element)
+{
+	for (int i = 1; i < (int)keys.size();)
+	{
+		auto& ref0 = keys[i - 1].value.Get<TransformRef>();
+		auto& ref1 = keys[i].value.Get<TransformRef>();
+
+		auto result = PrepareTransformPair(*ref0, *ref1, element);
+
+		bool changed_t0 = (result == PrepareTransformResult::ChangedT0 || result == PrepareTransformResult::ChangedT0andT1);
+		if (changed_t0 && i > 1)
+			--i;
+		else
+			++i;
+	}
+	return true;
+}
+
+
+
+bool ElementAnimation::AddKey(float time, const Property & property, Element& element)
 {
 	if (property.unit != property_unit)
 		return false;
 
 	keys.push_back({ time, property.value });
+
+	if (property.unit == Property::TRANSFORM)
+	{
+		PrepareTransforms(keys, element);
+	}
 
 	return true;
 }
@@ -189,7 +289,7 @@ Property ElementAnimation::UpdateAndGetProperty(float time)
 	if (animation_complete || time - last_update_time <= 0.0f)
 		return result;
 
-	const float dt = 0.01f;// time - last_update_time;
+	const float dt = time - last_update_time;
 
 	last_update_time = time;
 	time_since_iteration_start += dt;

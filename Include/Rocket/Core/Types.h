@@ -114,7 +114,7 @@ namespace Rocket {
 namespace Core {
 
 // Reference types
-typedef SharedConstReference< Transform > TransformRef;
+typedef SharedReference< Transform > TransformRef;
 
 }
 }

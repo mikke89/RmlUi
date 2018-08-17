@@ -63,99 +63,99 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 	const PropertyParser* number3[] = { &number, &number, &number };
 	const PropertyParser* abs_numbers6[] = { &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number };
 	const PropertyParser* abs_numbers16[] = { &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number };
-
 	while (strlen(next))
 	{
+		using namespace Transforms;
 		int bytes_read = 0;
 
 		if ((bytes_read = Scan(next, "perspective", length1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::Perspective(args));
+			transform->AddPrimitive({ Perspective(args) });
 		}
 		else if ((bytes_read = Scan(next, "matrix", abs_numbers6, args, 6)))
 		{
-			transform->AddPrimitive(Transforms::Matrix2D(args));
+			transform->AddPrimitive({ Matrix2D(args) });
 		}
 		else if ((bytes_read = Scan(next, "matrix3d", abs_numbers16, args, 16)))
 		{
-			transform->AddPrimitive(Transforms::Matrix3D(args));
+			transform->AddPrimitive({ Matrix3D(args) });
 		}
 		else if ((bytes_read = Scan(next, "translateX", length1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::TranslateX(args));
+			transform->AddPrimitive({ TranslateX(args) });
 		}
 		else if ((bytes_read = Scan(next, "translateY", length1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::TranslateY(args));
+			transform->AddPrimitive({ TranslateY(args) });
 		}
 		else if ((bytes_read = Scan(next, "translateZ", length1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::TranslateZ(args));
+			transform->AddPrimitive({ TranslateZ(args) });
 		}
 		else if ((bytes_read = Scan(next, "translate", length2, args, 2)))
 		{
-			transform->AddPrimitive(Transforms::Translate2D(args));
+			transform->AddPrimitive({ Translate2D(args) });
 		}
 		else if ((bytes_read = Scan(next, "translate3d", length3, args, 3)))
 		{
-			transform->AddPrimitive(Transforms::Translate3D(args));
+			transform->AddPrimitive({ Translate3D(args) });
 		}
 		else if ((bytes_read = Scan(next, "scaleX", number1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::ScaleX(args));
+			transform->AddPrimitive({ ScaleX(args) });
 		}
 		else if ((bytes_read = Scan(next, "scaleY", number1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::ScaleY(args));
+			transform->AddPrimitive({ ScaleY(args) });
 		}
 		else if ((bytes_read = Scan(next, "scaleZ", number1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::ScaleZ(args));
+			transform->AddPrimitive({ ScaleZ(args) });
 		}
 		else if ((bytes_read = Scan(next, "scale", number2, args, 2)))
 		{
-			transform->AddPrimitive(Transforms::Scale2D(args));
+			transform->AddPrimitive({ Scale2D(args) });
 		}
 		else if ((bytes_read = Scan(next, "scale", number1, args, 1)))
 		{
 			args[1] = args[0];
-			transform->AddPrimitive(Transforms::Scale2D(args));
+			transform->AddPrimitive({ Scale2D(args) });
 		}
 		else if ((bytes_read = Scan(next, "scale3d", number3, args, 3)))
 		{
-			transform->AddPrimitive(Transforms::Scale3D(args));
+			transform->AddPrimitive({ Scale3D(args) });
 		}
 		else if ((bytes_read = Scan(next, "rotateX", angle1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::RotateX(args));
+			transform->AddPrimitive({ RotateX(args) });
 		}
 		else if ((bytes_read = Scan(next, "rotateY", angle1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::RotateY(args));
+			transform->AddPrimitive({ RotateY(args) });
 		}
 		else if ((bytes_read = Scan(next, "rotateZ", angle1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::RotateZ(args));
+			transform->AddPrimitive({ RotateZ(args) });
 		}
 		else if ((bytes_read = Scan(next, "rotate", angle1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::Rotate2D(args));
+			transform->AddPrimitive({ Rotate2D(args) });
 		}
 		else if ((bytes_read = Scan(next, "rotate3d", length3angle1, args, 4)))
 		{
-			transform->AddPrimitive(Transforms::Rotate3D(args));
+			transform->AddPrimitive({ Rotate3D(args) });
 		}
 		else if ((bytes_read = Scan(next, "skewX", angle1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::SkewX(args));
+			transform->AddPrimitive({ SkewX(args) });
 		}
 		else if ((bytes_read = Scan(next, "skewY", angle1, args, 1)))
 		{
-			transform->AddPrimitive(Transforms::SkewY(args));
+			transform->AddPrimitive({ SkewY(args) });
 		}
 		else if ((bytes_read = Scan(next, "skew", angle2, args, 2)))
 		{
-			transform->AddPrimitive(Transforms::Skew2D(args));
+			transform->AddPrimitive({ Skew2D(args) });
 		}
 
 		if (bytes_read > 0)

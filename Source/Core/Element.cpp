@@ -920,7 +920,7 @@ void Element::Animate(const String & property_name, const Property & target_valu
 		animation->SetDuration(target_time);
 	}
 
-	animation->AddKey(target_time, target_value);
+	animation->AddKey(target_time, target_value, *this);
 }
 
 // Iterates over the properties defined on this element.

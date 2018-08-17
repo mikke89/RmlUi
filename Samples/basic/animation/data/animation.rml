@@ -23,7 +23,7 @@
 		#start_game 
 		{
 			opacity: 0.5;
-			transform: rotate(10);
+			transform: rotate(10) translateX(100) scale(0.5);
 			transform-origin: 30% 80% 0;
 		}
 

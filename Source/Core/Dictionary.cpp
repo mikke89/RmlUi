@@ -222,12 +222,12 @@ Dictionary::~Dictionary()
  */
 Dictionary::DictionaryEntry* Dictionary::Retrieve(const String& key, Hash hash) const
 {
-	register Hash i = 0;
-	register unsigned int perturb;
-	register DictionaryEntry *freeslot;
-	register unsigned int mask = this->mask;
+	Hash i = 0;
+	unsigned int perturb;
+	DictionaryEntry *freeslot;
+	unsigned int mask = this->mask;
 	DictionaryEntry *ep0 = table;
-	register DictionaryEntry *ep;
+	DictionaryEntry *ep;
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Retreive %s", key); )
 		/* Make sure this function doesn't have to handle non-string keys,
@@ -272,7 +272,7 @@ Dictionary::DictionaryEntry* Dictionary::Retrieve(const String& key, Hash hash) 
  */
 void Dictionary::Insert(const String& key, Hash hash, const Variant& value)
 {	
-	register DictionaryEntry *ep;	
+	DictionaryEntry *ep;	
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Insert %s", key); );
 	ep = Retrieve(key, hash);
@@ -426,8 +426,8 @@ void Dictionary::Set(const String& key, const Variant &value)
 		return;
 	}
 
-	register Hash hash;
-	register unsigned int n_used;  
+	Hash hash;
+	unsigned int n_used;  
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Set %s", key); );
 	hash = StringUtilities::FNVHash( key.CString() );
@@ -454,8 +454,8 @@ void Dictionary::Set(const String& key, const Variant &value)
 
 bool Dictionary::Remove(const String& key)
 {
-	register Hash hash;
-	register DictionaryEntry *ep;  
+	Hash hash;
+	DictionaryEntry *ep;  
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Remove %s", key) );
 	hash = StringUtilities::FNVHash( key.CString() );
@@ -540,7 +540,7 @@ void Dictionary::Merge(const Dictionary& dict)
 */
 bool Dictionary::Iterate(int &pos, String& key, Variant* &value) const
 {
-	register unsigned int i;
+	unsigned int i;
 
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Next %d", pos); )
 		i = pos;
@@ -562,7 +562,7 @@ void Dictionary::operator=(const Dictionary &dict) {
 }
 
 void Dictionary::Copy(const Dictionary &dict) {
-	register unsigned int i;
+	unsigned int i;
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Copy Dict (Size: %d)", dict.num_used); )
 

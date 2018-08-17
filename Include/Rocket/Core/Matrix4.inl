@@ -180,8 +180,8 @@ template< typename Component, class Storage >
 bool Matrix4< Component, Storage >::Invert() throw()
 {
 	Matrix4< Component, Storage >::ThisType result;
-	Component *dst = result;
-	const Component *src = *this;
+	Component *dst = result.data();
+	const Component *src = data();
 
 	dst[0] = src[5]  * src[10] * src[15] -
 		src[5]  * src[11] * src[14] -

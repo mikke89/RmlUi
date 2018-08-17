@@ -31,10 +31,12 @@
 #include "Header.h"
 #include "Types.h"
 #include "Property.h"
+#include <variant>
 
 namespace Rocket {
 namespace Core {
 namespace Transforms {
+	
 
 struct NumericValue
 {
@@ -56,9 +58,159 @@ struct NumericValue
 	Rocket::Core::Property::Unit unit;
 };
 
+
+
+template< size_t N >
+struct ResolvedValuesPrimitive
+{
+	ResolvedValuesPrimitive(const float* values) throw()
+	{
+		for (size_t i = 0; i < N; ++i)
+			this->values[i] = values[i];
+	}
+	ResolvedValuesPrimitive(const NumericValue* values) throw()
+	{
+		for (size_t i = 0; i < N; ++i) 
+			this->values[i] = values[i].number;
+	}
+	
+	float values[N];
+};
+
+template< size_t N >
+struct UnresolvedValuesPrimitive
+{
+	UnresolvedValuesPrimitive(const NumericValue* values) throw()
+	{
+		memcpy(this->values, values, sizeof(this->values));
+	}
+
+	NumericValue values[N];
+};
+
+
+
+
+
+struct Matrix2D : public ResolvedValuesPrimitive< 6 >
+{
+	Matrix2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct Matrix3D : public ResolvedValuesPrimitive< 16 >
+{
+	Matrix3D(const Matrix4f& matrix) throw() : ResolvedValuesPrimitive(matrix.data()) { }
+	Matrix3D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct TranslateX : public UnresolvedValuesPrimitive< 1 >
+{
+	TranslateX(const NumericValue* values) throw() : UnresolvedValuesPrimitive(values) { }
+};
+
+struct TranslateY : public UnresolvedValuesPrimitive< 1 >
+{
+	TranslateY(const NumericValue* values) throw() : UnresolvedValuesPrimitive(values) { }
+};
+
+struct TranslateZ : public UnresolvedValuesPrimitive< 1 >
+{
+	TranslateZ(const NumericValue* values) throw() : UnresolvedValuesPrimitive(values) { }
+};
+
+struct Translate2D : public UnresolvedValuesPrimitive< 2 >
+{
+	Translate2D(const NumericValue* values) throw() : UnresolvedValuesPrimitive(values) { }
+};
+
+struct Translate3D : public UnresolvedValuesPrimitive< 3 >
+{
+	Translate3D(const NumericValue* values) throw() : UnresolvedValuesPrimitive(values) { }
+};
+
+struct ScaleX : public ResolvedValuesPrimitive< 1 >
+{
+	ScaleX(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct ScaleY : public ResolvedValuesPrimitive< 1 >
+{
+	ScaleY(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct ScaleZ : public ResolvedValuesPrimitive< 1 >
+{
+	ScaleZ(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct Scale2D : public ResolvedValuesPrimitive< 2 >
+{
+	Scale2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct Scale3D : public ResolvedValuesPrimitive< 3 >
+{
+	Scale3D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct RotateX : public ResolvedValuesPrimitive< 1 >
+{
+	RotateX(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct RotateY : public ResolvedValuesPrimitive< 1 >
+{
+	RotateY(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) {}
+};
+
+struct RotateZ : public ResolvedValuesPrimitive< 1 >
+{
+	RotateZ(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct Rotate2D : public ResolvedValuesPrimitive< 1 >
+{
+	Rotate2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct Rotate3D : public ResolvedValuesPrimitive< 4 >
+{
+	Rotate3D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct SkewX : public ResolvedValuesPrimitive< 1 >
+{
+	SkewX(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct SkewY : public ResolvedValuesPrimitive< 1 >
+{
+	SkewY(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct Skew2D : public ResolvedValuesPrimitive< 2 >
+{
+	Skew2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+};
+
+struct Perspective : public UnresolvedValuesPrimitive< 1 >
+{
+	Perspective(const NumericValue* values) throw() : UnresolvedValuesPrimitive(values) { }
+};
+
+
+using PrimitiveVariant = std::variant<
+	Matrix2D, Matrix3D,
+	TranslateX, TranslateY, TranslateZ, Translate2D, Translate3D,
+	ScaleX, ScaleY, ScaleZ, Scale2D, Scale3D,
+	RotateX, RotateY, RotateZ, Rotate2D, Rotate3D,
+	SkewX, SkewY, Skew2D,
+	Perspective>;
+
+
 /**
-	The Primitive class is the base class of geometric transforms such as rotations, scalings and translations.
-	Instances of this class are added to a Rocket::Core::Transform instance
+	The Primitive struct is the base struct of geometric transforms such as rotations, scalings and translations.
+	Instances of this struct are added to a Rocket::Core::Transform instance
 	by the Rocket::Core::PropertyParserTransform, which is responsible for
 	parsing the `transform' property.
 
@@ -66,271 +218,16 @@ struct NumericValue
 	@see Rocket::Core::Transform
 	@see Rocket::Core::PropertyParserTransform
  */
-class Primitive
+struct Primitive
 {
-	public:
-		virtual ~Primitive() { }
+	PrimitiveVariant primitive;
 
-		virtual Primitive* Clone() const = 0;
-
-		/// Resolve the transformation matrix encoded by the primitive.
-		/// @param m The transformation matrix to resolve the Primitive to.
-		/// @param e The Element which to resolve the Primitive for.
-		/// @return true if the Primitive encodes a transformation.
-		virtual bool ResolveTransform(Matrix4f& m, Element& e) const throw()
-			{ return false; }
-		/// Resolve the perspective value encoded by the primitive.
-		/// @param p The perspective value to resolve the Primitive to.
-		/// @param e The Element which to resolve the Primitive for.
-		/// @return true if the Primitive encodes a perspective value.
-		virtual bool ResolvePerspective(float &p, Element& e) const throw()
-			{ return false; }
+	void SetIdentity() throw();
+	bool ResolveTransform(Matrix4f& m, Element& e) const throw();
+	bool ResolvePerspective(float &p, Element& e) const throw();
+	bool InterpolateWith(const Primitive& other, float alpha) throw();
 };
 
-template< size_t N >
-class ResolvedValuesPrimitive : public Primitive
-{
-	public:
-		ResolvedValuesPrimitive(const NumericValue* values) throw()
-			{ for (size_t i = 0; i < N; ++i) this->values[i] = values[i].number; }
-
-		void InterpolateValues(const ResolvedValuesPrimitive<N>& other, float alpha)
-		{
-			for (size_t i = 0; i < N; i++)
-				values[i] = values[i]*(1.0f - alpha) + other.values[i] * alpha;
-		}
-
-	protected:
-		float values[N];
-};
-
-template< size_t N >
-class UnresolvedValuesPrimitive : public Primitive
-{
-	public:
-		UnresolvedValuesPrimitive(const NumericValue* values) throw()
-			{ memcpy(this->values, values, sizeof(this->values)); }
-
-		void InterpolateValues(const UnresolvedValuesPrimitive<N>& other, float alpha)
-		{
-			// TODO: Convert between different units?
-			for (size_t i = 0; i < N; i++)
-				values[i].number = values[i].number*(1.0f - alpha) + other.values[i].number * alpha;
-		}
-
-	protected:
-		NumericValue values[N];
-};
-
-class Matrix2D : public ResolvedValuesPrimitive< 6 >
-{
-	public:
-		Matrix2D(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Matrix2D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Matrix3D : public ResolvedValuesPrimitive< 16 >
-{
-	public:
-		Matrix3D(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Matrix3D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class TranslateX : public UnresolvedValuesPrimitive< 1 >
-{
-	public:
-		TranslateX(const NumericValue* values) throw()
-			: UnresolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new TranslateX(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class TranslateY : public UnresolvedValuesPrimitive< 1 >
-{
-	public:
-		TranslateY(const NumericValue* values) throw()
-			: UnresolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new TranslateY(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class TranslateZ : public UnresolvedValuesPrimitive< 1 >
-{
-	public:
-		TranslateZ(const NumericValue* values) throw()
-			: UnresolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new TranslateZ(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Translate2D : public UnresolvedValuesPrimitive< 2 >
-{
-	public:
-		Translate2D(const NumericValue* values) throw()
-			: UnresolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Translate2D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Translate3D : public UnresolvedValuesPrimitive< 3 >
-{
-	public:
-		Translate3D(const NumericValue* values) throw()
-			: UnresolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Translate3D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class ScaleX : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		ScaleX(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new ScaleX(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class ScaleY : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		ScaleY(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new ScaleY(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class ScaleZ : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		ScaleZ(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new ScaleZ(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Scale2D : public ResolvedValuesPrimitive< 2 >
-{
-	public:
-		Scale2D(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Scale2D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Scale3D : public ResolvedValuesPrimitive< 3 >
-{
-	public:
-		Scale3D(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Scale3D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class RotateX : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		RotateX(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new RotateX(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class RotateY : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		RotateY(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new RotateY(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class RotateZ : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		RotateZ(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new RotateZ(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Rotate2D : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		Rotate2D(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Rotate2D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Rotate3D : public ResolvedValuesPrimitive< 4 >
-{
-	public:
-		Rotate3D(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Rotate3D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class SkewX : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		SkewX(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new SkewX(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class SkewY : public ResolvedValuesPrimitive< 1 >
-{
-	public:
-		SkewY(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new SkewY(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Skew2D : public ResolvedValuesPrimitive< 2 >
-{
-	public:
-		Skew2D(const NumericValue* values) throw()
-			: ResolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Skew2D(*this); }
-		bool ResolveTransform(Matrix4f& m, Element& e) const throw();
-};
-
-class Perspective : public UnresolvedValuesPrimitive< 1 >
-{
-	public:
-		Perspective(const NumericValue* values) throw()
-			: UnresolvedValuesPrimitive(values) { }
-
-		inline Primitive* Clone() const { return new Perspective(*this); }
-		bool ResolvePerspective(float& p, Element& e) const throw();
-};
 
 }
 }

@@ -37,9 +37,6 @@ namespace Core {
 template< class ReferenceCountable >
 class ROCKETCORE_API SharedReference;
 
-template< class ReferenceCountable >
-class ROCKETCORE_API SharedConstReference;
-
 /**
 	A smart pointer class template that manages ReferenceCountables.
 	SharedReference allows unrestricted access to the shared object via every reference.
@@ -52,7 +49,6 @@ class ROCKETCORE_API SharedReference
 public:
 	typedef ReferenceCountable ReferenceType;
 	typedef SharedReference< ReferenceCountable > ThisType;
-	typedef SharedConstReference< ReferenceCountable > ReadOnlyType;
 
 	/// Constructor. Does not increase the object's reference count.
 	/// @param[in] object The object to refer to.
@@ -87,62 +83,10 @@ public:
 	ReferenceType* operator->() throw()
 		{ return object; }
 
-	friend ReadOnlyType;
-
 private:
 	mutable ReferenceType *object;
 };
 
-/**
-	A smart pointer class template that manages ReferenceCountables.
-	SharedConstReference allows read-only access to the shared object via every reference.
-	@author Markus Schöngart
-	@see ReferenceCountable
-*/
-template< class ReferenceCountable >
-class ROCKETCORE_API SharedConstReference
-{
-public:
-	typedef ReferenceCountable ReferenceType;
-	typedef SharedConstReference< ReferenceCountable > ThisType;
-	typedef SharedReference< ReferenceCountable > ReadWriteType;
-
-	/// Constructor. Does not increase the object's reference count.
-	/// @param[in] object The object to refer to.
-	SharedConstReference(ReferenceType* object = 0) : object(object)
-		{ /*if (object) object->AddReference();*/ }
-	/// Copy constructor. Increases the object's reference count.
-	/// @param[in] other The other Reference.
-	SharedConstReference(const ThisType& other) : object(other.object)
-		{ if (object) object->AddReference(); }
-	/// Constructor from read-write reference. Increases the object's reference count.
-	/// @param[in] other The other Reference.
-	SharedConstReference(const ReadWriteType& other) : object(other.object)
-		{ if (object) object->AddReference(); }
-	/// Destructor. Decrements the stored object's reference count.
-	~SharedConstReference()
-		{ if (object) object->RemoveReference(); }
-
-	/// Swaps the contents of two References.
-	void Swap(ThisType& other) throw()
-		{ std::swap(object, other.object); }
-
-	/// Assign another referenced object to this smart pointer
-	const ThisType& operator=(ReferenceType* ref)
-		{ ThisType tmp(ref); Swap(tmp); return *this; }
-	/// Assign another referenced object to this smart pointer
-	const ThisType& operator=(const ThisType& other)
-		{ ThisType tmp(other); Swap(tmp); return *this; }
-
-	const ReferenceType& operator*() const throw()
-		{ return *object; }
-
-	const ReferenceType* operator->() const throw()
-		{ return object; }
-
-private:
-	mutable ReferenceType *object;
-};
 
 }
 }

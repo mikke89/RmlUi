@@ -315,9 +315,9 @@ class Matrix4
 		static const ThisType FromColumnMajor(const ComponentType* components) throw();
 
 		// Convert to raw values; keep the storage mode in mind.
-		inline operator Component*() throw()
+		inline Component* data() throw()
 			{ return &vectors[0][0]; }
-		inline operator const Component*() const throw()
+		inline const Component* data() const throw()
 			{ return &vectors[0][0]; }
 
 		/// Get the i-th row

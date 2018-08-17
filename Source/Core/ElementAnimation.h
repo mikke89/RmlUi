@@ -70,7 +70,7 @@ public:
 		last_update_time(time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false) 
 	{}
 
-	bool AddKey(float time, const Property& property);
+	bool AddKey(float time, const Property& property, Element& element);
 
 	Property UpdateAndGetProperty(float time);
 

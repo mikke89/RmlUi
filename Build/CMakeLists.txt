@@ -275,6 +275,9 @@ foreach(library ${LIBRARIES})
                            VERSION ${PROJECT_VERSION}
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
     )
+	
+	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
+	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
     
     install(TARGETS ${NAME}
             EXPORT libRocketTargets
@@ -591,6 +594,9 @@ endif(NOT BUILD_FRAMEWORK)
     # Build and install the basic samples
     foreach(sample ${samples})
         bl_sample(${sample} ${sample_LIBRARIES})
+		
+		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 17)
+		set_property(TARGET ${sample} PROPERTY CXX_STANDARD_REQUIRED ON)
 
         # The samples always set this as their current working directory
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
@@ -708,6 +714,8 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install invaders sample
     bl_sample(invaders ${sample_LIBRARIES})
+	set_property(TARGET invaders PROPERTY CXX_STANDARD 17)
+	set_property(TARGET invaders PROPERTY CXX_STANDARD_REQUIRED ON)
     install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
     install(TARGETS invaders 
     	RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
@@ -716,6 +724,8 @@ endif(NOT BUILD_FRAMEWORK)
 	if(BUILD_PYTHON_BINDINGS)
 	    # Build and install pyinvaders sample
 	    bl_sample(pyinvaders ${sample_LIBRARIES} ${PYTHON_LIBRARIES} ${PY_BINDINGS_LINK_LIBS})
+		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD_REQUIRED ON)
 	    install(DIRECTORY DESTINATION ${SAMPLES_DIR}/pyinvaders)
 	    install(TARGETS pyinvaders
 	    	RUNTIME DESTINATION ${SAMPLES_DIR}/pyinvaders
@@ -724,6 +734,8 @@ endif(NOT BUILD_FRAMEWORK)
     
     if(BUILD_LUA_BINDINGS)
         bl_sample(luainvaders RocketCoreLua RocketControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
         install(TARGETS luainvaders 
         	RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders

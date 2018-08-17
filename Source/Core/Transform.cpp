@@ -40,37 +40,20 @@ Transform::Transform()
 }
 
 Transform::Transform(const Transform& other)
-	: primitives()
 {
-	primitives.reserve(other.primitives.size());
-	Primitives::const_iterator i = other.primitives.begin();
-	Primitives::const_iterator end = other.primitives.end();
-	for (; i != end; ++i)
-	{
-		try
-		{
-			AddPrimitive(**i);
-		}
-		catch(...)
-		{
-			ClearPrimitives();
-			throw;
-		}
-	}
+	primitives = other.primitives;
 }
 
 Transform::~Transform()
 {
-	ClearPrimitives();
+	primitives.clear();
 }
 
-// Swap the content of two Transfrom instances
 void Transform::Swap(Transform& other)
 {
 	primitives.swap(other.primitives);
 }
 
-// Assignment operato
 const Transform& Transform::operator=(const Transform& other)
 {
 	Transform result(other);
@@ -78,42 +61,24 @@ const Transform& Transform::operator=(const Transform& other)
 	return *this;
 }
 
-// Remove all Primitives from this Transform
-void Transform::ClearPrimitives()
+void Transform::ClearPrimitives() 
 {
-	Primitives::iterator i = primitives.begin();
-	Primitives::iterator end = primitives.end();
-	for (; i != end; ++i)
-	{
-		try
-		{
-			delete *i;
-			*i = 0;
-		}
-		catch(...)
-		{
-		}
-	}
 	primitives.clear();
 }
 
-// Add a Primitive to this Transform
-void Transform::AddPrimitive(const Transforms::Primitive& p)
+void Transform::AddPrimitive(const Transforms::Primitive & p)
 {
-	Transforms::Primitive* q = p.Clone();
-	if (!q)
-	{
-		throw std::bad_alloc();
-	}
-	try
-	{
-		primitives.push_back(q);
-	}
-	catch (...)
-	{
-		delete q;
-		throw;
-	}
+	primitives.push_back(p);
+}
+
+int Transform::GetNumPrimitives() const throw() 
+{
+	return (int)primitives.size();
+}
+
+const Transforms::Primitive & Transform::GetPrimitive(int i) const throw() 
+{
+	return primitives[i];
 }
 
 }

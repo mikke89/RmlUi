@@ -35,7 +35,7 @@ namespace Rocket {
 namespace Core {
 
 class ViewState;
-namespace Transforms { class Primitive; }
+namespace Transforms { struct Primitive; }
 
 /**
 	The Transform class holds the information parsed from an element's
@@ -51,6 +51,8 @@ namespace Transforms { class Primitive; }
 class ROCKETCORE_API Transform : public ReferenceCountable
 {
 public:
+	typedef std::vector< Transforms::Primitive > Primitives;
+
 	/// Default constructor, initializes an identity transform
 	Transform();
 
@@ -68,21 +70,24 @@ public:
 
 	/// Remove all Primitives from this Transform
 	void ClearPrimitives();
+
 	/// Add a Primitive to this Transform
 	void AddPrimitive(const Transforms::Primitive& p);
+
 	/// Return the number of Primitives in this Transform
-	int GetNumPrimitives() const throw()
-		{ return (int)primitives.size(); }
+	int GetNumPrimitives() const throw();
+
 	/// Return the i-th Primitive in this Transform
-	const Transforms::Primitive& GetPrimitive(int i) const throw()
-		{ return *primitives[i]; }
+	const Transforms::Primitive& GetPrimitive(int i) const throw();
+
+	Primitives& GetPrimitives() throw() { return primitives; }
+	const Primitives& GetPrimitives() const throw() { return primitives; }
 
 protected:
 	void OnReferenceDeactivate()
 		{ delete this; }
 
 private:
-	typedef std::vector< Transforms::Primitive * > Primitives;
 	Primitives primitives;
 };
 

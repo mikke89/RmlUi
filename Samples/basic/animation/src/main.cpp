@@ -35,6 +35,17 @@
 #include <cmath>
 #include <sstream>
 
+
+// Animations TODO:
+//  - Jittering on slow margin-left updates
+//  - Proper interpolation of full transform matrices (split into translate/rotate/skew/scale). Also, support interpolation of primitive derivatives without going to full matrices.
+//  - Conversion between different units (resolve matrix units, e.g. to px / deg, when adding animation key).
+//  - Better error reporting when submitting invalid animations, check validity on add. Remove animation if invalid.
+//  - Tweening
+//  - RCSS support? Both @keyframes and transition, maybe.
+//  - Profiling
+//  - [offtopic] Improve performance of transform parser (hashtable)
+
 class DemoWindow
 {
 public:
@@ -57,11 +68,13 @@ public:
 			el->Animate("margin-left", Property(100.f, Property::PX), 8.0f, -1, true);
 
 			el = document->GetElementById("start_game");
-			auto transform = new Transform;
-			auto value = Transforms::NumericValue(370.f, Property::DEG);
-			transform->AddPrimitive(Transforms::Rotate2D{ &value });
-			TransformRef tref{ transform };
-			el->Animate("transform", Property(tref, Property::TRANSFORM), 0.8f, -1, false);
+			auto t0 = TransformRef{ new Transform };
+			auto v0 = Transforms::NumericValue(370.f, Property::DEG);
+			t0->AddPrimitive({ Transforms::Rotate2D{ &v0 } });
+			//auto t1 = TransformRef{ new Transform };
+			//auto v1 = Transforms::NumericValue(370.f, Property::DEG);
+			//t1->AddPrimitive({ Transforms::Rotate2D{ &v1 } });
+			el->Animate("transform", Property(t0, Property::TRANSFORM), 1.3f, -1, true);
 
 			el = document->GetElementById("help");
 			el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, -1, false);
