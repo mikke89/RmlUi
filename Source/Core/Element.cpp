@@ -889,7 +889,7 @@ const Vector2f Element::Project(const Vector2f& point) noexcept
 	}
 }
 
-void Element::Animate(const String & property_name, const Property & target_value, float duration, int num_iterations, bool alternate_direction)
+void Element::Animate(const String & property_name, const Property & target_value, float duration, int num_iterations, bool alternate_direction, Tween tween)
 {
 	ElementAnimation* animation = nullptr;
 
@@ -910,7 +910,7 @@ void Element::Animate(const String & property_name, const Property & target_valu
 		const Property* property = GetProperty(property_name);
 		if (!property) return;
 
-		ElementAnimation new_animation{ property_name, *property, time, duration, num_iterations, alternate_direction };
+		ElementAnimation new_animation{ property_name, *property, time, duration, num_iterations, alternate_direction, tween };
 		animations.push_back(new_animation);
 		animation = &animations.back();
 	}

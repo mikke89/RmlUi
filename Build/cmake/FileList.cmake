@@ -181,6 +181,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Types.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/URL.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.inl

@@ -37,6 +37,7 @@
 #include "Types.h"
 #include "Transform.h"
 #include "TransformState.h"
+#include "Tween.h"
 
 #include <memory>
 
@@ -293,7 +294,7 @@ public:
 	/// Start an animation of the given property on this element.
 	/// Currently, only float and Colourb property values are supported. If an animation of the same property name exists, the target value
 	/// and duration will be added as a new animation key, adding to its total duration. Then, num_iterations and alternate_direction will be ignored.
-	void Animate(const String& property_name, const Property& target_value, float duration, int num_iterations = 1, bool alternate_direction = false);
+	void Animate(const String& property_name, const Property& target_value, float duration, int num_iterations = 1, bool alternate_direction = false, Tween tween = Tween{});
 
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.

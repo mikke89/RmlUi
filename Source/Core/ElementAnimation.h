@@ -30,6 +30,7 @@
 
 #include "../../Include/Rocket/Core/Header.h"
 #include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/Rocket/Core/Tween.h"
 
 namespace Rocket {
 namespace Core {
@@ -51,6 +52,7 @@ private:
 	float duration;           // for a single iteration
 	int num_iterations;       // -1 for infinity
 	bool alternate_direction; // between iterations
+	Tween tween;              // tweening for a single iteration
 
 	std::vector<AnimationKey> keys;
 
@@ -63,8 +65,8 @@ private:
 
 public:
 
-	ElementAnimation(const String& property_name, const Property& current_value, float time, float duration, int num_iterations, bool alternate_direction) 
-		: property_name(property_name), property_unit(current_value.unit), property_specificity(current_value.specificity),
+	ElementAnimation(const String& property_name, const Property& current_value, float time, float duration, int num_iterations, bool alternate_direction, Tween tween) 
+		: property_name(property_name), property_unit(current_value.unit), property_specificity(current_value.specificity), tween(tween),
 		duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction), 
 		keys({ AnimationKey{0.0f, current_value.value} }),
 		last_update_time(time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false) 

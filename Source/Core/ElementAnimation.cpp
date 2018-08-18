@@ -359,10 +359,9 @@ Property ElementAnimation::UpdateAndGetProperty(float time)
 
 		if (t1 - t0 > eps)
 			alpha = (t - t0) / (t1 - t0);
-		
-
-		alpha = Math::Clamp(alpha, 0.0f, 1.0f);
 	}
+
+	alpha = tween(alpha);
 
 	result.unit = property_unit;
 	result.specificity = property_specificity;

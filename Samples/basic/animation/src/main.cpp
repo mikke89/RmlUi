@@ -40,7 +40,6 @@
 //  - Proper interpolation of full transform matrices (split into translate/rotate/skew/scale).
 //  - Support interpolation of primitive derivatives without going to full matrices.
 //  - Better error reporting when submitting invalid animations, check validity on add. Remove animation if invalid.
-//  - Tweening
 //  - RCSS support? Both @keyframes and transition, maybe.
 //  - Profiling
 //  - [offtopic] Improve performance of transform parser (hashtable)
@@ -69,16 +68,16 @@ public:
 
 			el = document->GetElementById("start_game");
 			auto t0 = TransformRef{ new Transform };
-			auto v0 = Transforms::NumericValue(100.f, Property::PERCENT);
-			t0->AddPrimitive({ Transforms::Rotate2D{ &v0 } });
+			auto v0 = Transforms::NumericValue(3.f, Property::NUMBER);
+			t0->AddPrimitive({ Transforms::Scale2D{ &v0 } });
 			//auto t1 = TransformRef{ new Transform };
 			//auto v1 = Transforms::NumericValue(370.f, Property::DEG);
 			//t1->AddPrimitive({ Transforms::Rotate2D{ &v1 } });
 			PropertyDictionary pd;
-			StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(200%)");
+			StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(370deg)");
 			auto p = pd.GetProperty("transform");
-			el->Animate("transform", *p, 1.3f, -1, true);
-			//el->Animate("transform", Property(t0, Property::TRANSFORM), 1.3f, -1, true);
+			el->Animate("transform", *p, 1.8f, -1, true, Tween{ Tween::Elastic, Tween::In });
+			el->Animate("transform", Property(t0, Property::TRANSFORM), 1.3f, -1, true, Tween{ Tween::Cubic, Tween::In });
 
 			el = document->GetElementById("help");
 			el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, -1, false);
@@ -217,6 +216,21 @@ public:
 };
 
 
+void test_tweening()
+{
+	using namespace Rocket::Core;
+
+	Tween tween{ Tween::Bounce, Tween::In };
+
+	const int N = 101;
+	for (int i = 0; i < N; i++)
+	{
+		float t = (float)i / float(N - 1);
+		float f = tween(t);
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "%f  =>  %f", t, f);
+	}
+
+}
 
 
 #if defined ROCKET_PLATFORM_WIN32
@@ -270,6 +284,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
+	test_tweening();
 
 	EventInstancer* event_instancer = new EventInstancer();
 	Rocket::Core::Factory::RegisterEventListenerInstancer(event_instancer);
