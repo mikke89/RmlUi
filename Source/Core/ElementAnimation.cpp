@@ -269,12 +269,19 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 	if (property.unit != property_unit)
 		return false;
 
-	keys.push_back({ time, property.value });
-
 	if (property.unit == Property::TRANSFORM)
 	{
-		PrepareTransforms(keys, element);
+		for (auto& primitive : property.value.Get<TransformRef>()->GetPrimitives())
+		{
+			if (!primitive.ResolveUnits(element))
+				return false;
+		}
+
+		if (!PrepareTransforms(keys, element))
+			return false;
 	}
+
+	keys.push_back({ time, property.value });
 
 	return true;
 }

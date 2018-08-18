@@ -539,8 +539,8 @@ template< typename Component, class Storage>
 Matrix4< Component, Storage > Matrix4< Component, Storage >::Rotate(const Vector3< Component >& v, Component angle) throw()
 {
 	Vector3< Component > n = v.Normalise();
-	Component Sin = Math::Sin(Math::DegreesToRadians(angle));
-	Component Cos = Math::Cos(Math::DegreesToRadians(angle));
+	Component Sin = Math::Sin(angle);
+	Component Cos = Math::Cos(angle);
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(
 			n.x * n.x * (1 - Cos) +       Cos,
@@ -567,8 +567,8 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::Rotate(const Vector
 template< typename Component, class Storage>
 Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateX(Component angle) throw()
 {
-	Component Sin = Math::Sin(Math::DegreesToRadians(angle));
-	Component Cos = Math::Cos(Math::DegreesToRadians(angle));
+	Component Sin = Math::Sin(angle);
+	Component Cos = Math::Cos(angle);
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(1, 0,    0,   0),
 		Matrix4< Component, Storage >::VectorType(0, Cos, -Sin, 0),
@@ -580,8 +580,8 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateX(Component a
 template< typename Component, class Storage>
 Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateY(Component angle) throw()
 {
-	Component Sin = Math::Sin(Math::DegreesToRadians(angle));
-	Component Cos = Math::Cos(Math::DegreesToRadians(angle));
+	Component Sin = Math::Sin(angle);
+	Component Cos = Math::Cos(angle);
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType( Cos, 0, Sin, 0),
 		Matrix4< Component, Storage >::VectorType( 0,   1, 0,   0),
@@ -593,8 +593,8 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateY(Component a
 template< typename Component, class Storage>
 Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateZ(Component angle) throw()
 {
-	Component Sin = Math::Sin(Math::DegreesToRadians(angle));
-	Component Cos = Math::Cos(Math::DegreesToRadians(angle));
+	Component Sin = Math::Sin(angle);
+	Component Cos = Math::Cos(angle);
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(Cos, -Sin, 0, 0),
 		Matrix4< Component, Storage >::VectorType(Sin,  Cos, 0, 0),
@@ -607,8 +607,8 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateZ(Component a
 template< typename Component, class Storage>
 Matrix4< Component, Storage > Matrix4< Component, Storage >::Skew(Component angle_x, Component angle_y) throw()
 {
-	Component SkewX = Math::Tan(Math::DegreesToRadians(angle_x));
-	Component SkewY = Math::Tan(Math::DegreesToRadians(angle_y));
+	Component SkewX = Math::Tan(angle_x);
+	Component SkewY = Math::Tan(angle_y);
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(1,     SkewX, 0, 0),
 		Matrix4< Component, Storage >::VectorType(SkewY, 1,     0, 0),

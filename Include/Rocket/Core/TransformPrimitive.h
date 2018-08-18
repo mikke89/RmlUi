@@ -32,6 +32,7 @@
 #include "Types.h"
 #include "Property.h"
 #include <variant>
+#include <array>
 
 namespace Rocket {
 namespace Core {
@@ -53,11 +54,13 @@ struct NumericValue
 	float ResolveHeight(Element& e) const throw();
 	/// Resolve a numeric property value with the element's depth as relative base value.
 	float ResolveDepth(Element& e) const throw();
+	/// Returns the numeric value converted to base_unit, or 'number' if no relationship defined.
+	/// Defined for: {Number, Deg, %} -> Rad
+	float ResolveAbsoluteUnit(Property::Unit base_unit) const throw();
 
 	float number;
-	Rocket::Core::Property::Unit unit;
+	Property::Unit unit;
 };
-
 
 
 template< size_t N >
@@ -72,6 +75,11 @@ struct ResolvedValuesPrimitive
 	{
 		for (size_t i = 0; i < N; ++i) 
 			this->values[i] = values[i].number;
+	}
+	ResolvedValuesPrimitive(const NumericValue* values, std::array<Property::Unit, N> base_units) throw()
+	{
+		for (size_t i = 0; i < N; ++i)
+			this->values[i] = values[i].ResolveAbsoluteUnit(base_units[i]);
 	}
 	
 	float values[N];
@@ -155,42 +163,42 @@ struct Scale3D : public ResolvedValuesPrimitive< 3 >
 
 struct RotateX : public ResolvedValuesPrimitive< 1 >
 {
-	RotateX(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+	RotateX(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::RAD }) { }
 };
 
 struct RotateY : public ResolvedValuesPrimitive< 1 >
 {
-	RotateY(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) {}
+	RotateY(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::RAD }) {}
 };
 
 struct RotateZ : public ResolvedValuesPrimitive< 1 >
 {
-	RotateZ(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+	RotateZ(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::RAD }) { }
 };
 
 struct Rotate2D : public ResolvedValuesPrimitive< 1 >
 {
-	Rotate2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+	Rotate2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::RAD }) { }
 };
 
 struct Rotate3D : public ResolvedValuesPrimitive< 4 >
 {
-	Rotate3D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+	Rotate3D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::NUMBER, Property::NUMBER, Property::NUMBER, Property::RAD }) { }
 };
 
 struct SkewX : public ResolvedValuesPrimitive< 1 >
 {
-	SkewX(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+	SkewX(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::RAD }) { }
 };
 
 struct SkewY : public ResolvedValuesPrimitive< 1 >
 {
-	SkewY(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+	SkewY(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::RAD }) { }
 };
 
 struct Skew2D : public ResolvedValuesPrimitive< 2 >
 {
-	Skew2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values) { }
+	Skew2D(const NumericValue* values) throw() : ResolvedValuesPrimitive(values, { Property::RAD, Property::RAD }) { }
 };
 
 struct Perspective : public UnresolvedValuesPrimitive< 1 >
@@ -222,10 +230,14 @@ struct Primitive
 {
 	PrimitiveVariant primitive;
 
-	void SetIdentity() throw();
 	bool ResolveTransform(Matrix4f& m, Element& e) const throw();
 	bool ResolvePerspective(float &p, Element& e) const throw();
+	
+	// Promote units to basic types which can be interpolated, that is, convert 'length -> pixel' for unresolved primitives.
+	bool ResolveUnits(Element& e) throw();
+
 	bool InterpolateWith(const Primitive& other, float alpha) throw();
+	void SetIdentity() throw();
 };
 
 

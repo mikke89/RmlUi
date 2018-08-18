@@ -44,9 +44,7 @@ class PropertyParserNumber : public PropertyParser
 public:
 	enum
 	{
-		ABS_NUMBER =	Property::NUMBER,
-		NUMBER =	Property::NUMBER
-				| Property::PERCENT,
+		NUMBER =	Property::NUMBER,
 		LENGTH =	Property::NUMBER
 				| Property::PERCENT
 				| Property::PX

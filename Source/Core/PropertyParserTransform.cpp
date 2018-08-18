@@ -32,8 +32,7 @@ namespace Rocket {
 namespace Core {
 
 PropertyParserTransform::PropertyParserTransform()
-	: abs_number(PropertyParserNumber::ABS_NUMBER),
-	  number(PropertyParserNumber::NUMBER),
+	: number(PropertyParserNumber::NUMBER),
 	  length(PropertyParserNumber::LENGTH),
 	  angle(PropertyParserNumber::ANGLE)
 {
@@ -57,12 +56,12 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 	const PropertyParser* length1[] = { &length };
 	const PropertyParser* length2[] = { &length, &length };
 	const PropertyParser* length3[] = { &length, &length, &length };
-	const PropertyParser* length3angle1[] = { &length, &length, &length, &angle };
+	const PropertyParser* number3angle1[] = { &number, &number, &number, &angle };
 	const PropertyParser* number1[] = { &number };
 	const PropertyParser* number2[] = { &number, &number };
 	const PropertyParser* number3[] = { &number, &number, &number };
-	const PropertyParser* abs_numbers6[] = { &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number };
-	const PropertyParser* abs_numbers16[] = { &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number, &abs_number };
+	const PropertyParser* number6[] = { &number, &number, &number, &number, &number, &number };
+	const PropertyParser* number16[] = { &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number };
 	while (strlen(next))
 	{
 		using namespace Transforms;
@@ -72,11 +71,11 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		{
 			transform->AddPrimitive({ Perspective(args) });
 		}
-		else if ((bytes_read = Scan(next, "matrix", abs_numbers6, args, 6)))
+		else if ((bytes_read = Scan(next, "matrix", number6, args, 6)))
 		{
 			transform->AddPrimitive({ Matrix2D(args) });
 		}
-		else if ((bytes_read = Scan(next, "matrix3d", abs_numbers16, args, 16)))
+		else if ((bytes_read = Scan(next, "matrix3d", number16, args, 16)))
 		{
 			transform->AddPrimitive({ Matrix3D(args) });
 		}
@@ -141,7 +140,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		{
 			transform->AddPrimitive({ Rotate2D(args) });
 		}
-		else if ((bytes_read = Scan(next, "rotate3d", length3angle1, args, 4)))
+		else if ((bytes_read = Scan(next, "rotate3d", number3angle1, args, 4)))
 		{
 			transform->AddPrimitive({ Rotate3D(args) });
 		}

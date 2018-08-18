@@ -356,7 +356,7 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 	{
 		case Property::NUMBER:
 		case Property::PX:
-		case Property::DEG:
+		case Property::RAD:
 			return property->value.Get< float >();
 
 		case Property::PERCENT:
@@ -369,8 +369,8 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 		case Property::DP:
 			return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
-		case Property::RAD:
-			return Math::RadiansToDegrees(property->value.Get< float >());
+		case Property::DEG:
+			return Math::DegreesToRadians(property->value.Get< float >());
 	}
 
 	// Values based on pixels-per-inch.

@@ -67,7 +67,7 @@ private:
 	/// @returns The number of bytes read, if the function call occurs at the beginning of str, 0 otherwise.
 	int Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const;
 
-	PropertyParserNumber abs_number, number, length, angle;
+	PropertyParserNumber number, length, angle;
 };
 
 }

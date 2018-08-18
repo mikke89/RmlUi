@@ -53,18 +53,43 @@ float NumericValue::Resolve(Element& e, float base) const throw()
 
 float NumericValue::ResolveWidth(Element& e) const throw()
 {
+	if(unit & (Property::PX | Property::NUMBER)) return number;
 	return Resolve(e, e.GetBox().GetSize().x);
 }
 
 float NumericValue::ResolveHeight(Element& e) const throw()
 {
+	if (unit & (Property::PX | Property::NUMBER)) return number;
 	return Resolve(e, e.GetBox().GetSize().y);
 }
 
 float NumericValue::ResolveDepth(Element& e) const throw()
 {
+	if (unit & (Property::PX | Property::NUMBER)) return number;
 	Vector2f size = e.GetBox().GetSize();
 	return Resolve(e, Math::Max(size.x, size.y));
+}
+
+float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const throw()
+{
+	switch (base_unit)
+	{
+	case Property::RAD:
+	{
+		switch (unit)
+		{
+		case Property::NUMBER:
+		case Property::DEG:
+			return Math::DegreesToRadians(number);
+		case Property::RAD:
+			return number;
+		case Property::PERCENT:
+			return number * 0.01f * 2.0f * Math::ROCKET_PI;
+			break;
+		}
+	}
+	}
+	return number;
 }
 
 
@@ -319,7 +344,7 @@ struct InterpolateVisitor
 	template <size_t N>
 	void Interpolate(UnresolvedValuesPrimitive<N>& p0, const UnresolvedValuesPrimitive<N>& p1)
 	{
-		// TODO: While we have the same type and dimension, we may have different units. Should convert?
+		// Assumes that the underlying units have been resolved (e.g. to pixels)
 		for (size_t i = 0; i < N; i++)
 			p0.values[i].number = p0.values[i].number*(1.0f - alpha) + p1.values[i].number * alpha;
 	}
@@ -336,8 +361,6 @@ struct InterpolateVisitor
 	}
 };
 
-
-
 bool Primitive::InterpolateWith(const Primitive & other, float alpha) throw()
 {
 	if (primitive.index() != other.primitive.index())
@@ -347,6 +370,59 @@ bool Primitive::InterpolateWith(const Primitive & other, float alpha) throw()
 
 	return true;
 }
+
+
+struct ResolveUnitsVisitor
+{
+	Element& e;
+
+	bool operator()(TranslateX& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
+		return true;
+	}
+	bool operator()(TranslateY& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveHeight(e), Property::PX };
+		return true;
+	}
+	bool operator()(TranslateZ& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveDepth(e), Property::PX };
+		return true;
+	}
+	bool operator()(Translate2D& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
+		p.values[1] = NumericValue{ p.values[1].ResolveHeight(e), Property::PX };
+		return true;
+	}
+	bool operator()(Translate3D& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
+		p.values[1] = NumericValue{ p.values[1].ResolveHeight(e), Property::PX };
+		p.values[2] = NumericValue{ p.values[2].ResolveDepth(e), Property::PX };
+		return true;
+	}
+	template <size_t N>
+	bool operator()(ResolvedValuesPrimitive<N>& p)
+	{
+		// No conversion needed for resolved transforms
+		return true;
+	}
+	bool operator()(Perspective& p)
+	{
+		// Perspective is special and not used for transform animations, ignore.
+		return false;
+	}
+};
+
+
+bool Primitive::ResolveUnits(Element & e) throw()
+{
+	return std::visit(ResolveUnitsVisitor{ e }, primitive);
+}
+
 
 
 
