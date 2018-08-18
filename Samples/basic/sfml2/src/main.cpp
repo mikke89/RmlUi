@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
 	// NOTE: if fonts and rml are not found you'll probably have to adjust
 	// the path information in the string
-	ShellFileInterface FileInterface("../../assets/");
+	ShellFileInterface FileInterface("../Samples/assets/");
 
 	if(!MyWindow.isOpen())
 		return 1;

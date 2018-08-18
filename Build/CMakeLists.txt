@@ -678,7 +678,7 @@ endif(NOT BUILD_FRAMEWORK)
 	endif()
 
 	message("-- Can SFML 2.x sample be built")
-	find_package(SFML 2 COMPONENTS graphics window system)
+	find_package(SFML 2 COMPONENTS graphics window system main)
 	if(NOT SFML_FOUND)
 		message("-- Can SFML 2.x sample be built - no")
 	else()
