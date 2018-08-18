@@ -25,7 +25,7 @@
  *
  */
 
-#include "../precompiled.h"
+#include "precompiled.h"
 #include "FontFaceHandle.h"
 #include <algorithm>
 #include "../../../Include/Rocket/Core.h"

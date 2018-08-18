@@ -25,31 +25,9 @@
  *
  */
 
-#include "precompiled.h"
-#include "FontFamily.h"
-#include "FontFace.h"
+#ifndef ROCKETCOREFREETYPEFONTPRECOMPILED_H
+#define ROCKETCOREFREETYPEFONTPRECOMPILED_H
 
-namespace Rocket {
-namespace Core {
-namespace BitmapFont {
+#include "../precompiled.h"
 
-FontFamily::FontFamily(const String& name) : Rocket::Core::FontFamily(name)
-{
-}
-
-FontFamily::~FontFamily()
-{
-}
-
-// Adds a new face to the family.
-bool FontFamily::AddFace( void *bm_face, Font::Style style, Font::Weight weight, bool release_stream)
-{
-	Rocket::Core::FontFace* face = new FontFace((BitmapFontDefinitions*)bm_face, style, weight, release_stream);
-	font_faces.push_back(face);
-
-	return true;
-}
-
-}
-}
-}
+#endif

@@ -173,17 +173,6 @@ if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DROCKET_STATIC_LIB)
 endif()
 
-#on windows, check for VC10 and fix the multiple compile target issue.
-IF(WIN32)
-  if(MSVC)
-    if(${MSVC_VERSION} STREQUAL 1600 OR ${MSVC_VERSION} STRGREATER 1600)
-      message("Visual Studio 2010 (${MSVC_VERSION}) build fix at play (/FORCE:MULTIPLE)")
-      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:MULTIPLE")
-    endif()
-  endif() 
-ENDIF(WIN32)
-
-
 #===================================
 # Find dependencies ================
 #===================================
@@ -276,6 +265,10 @@ foreach(library ${LIBRARIES})
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
     )
 	
+	if (MSVC)
+		target_compile_options(${NAME} PUBLIC "/MP")
+	endif(MSVC)
+	
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
     
@@ -285,9 +278,16 @@ foreach(library ${LIBRARIES})
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+	
 
     set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
+
+if (MSVC)
+	target_compile_options(RocketCore PRIVATE "/Yuprecompiled.h")
+	set_source_files_properties(${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp PROPERTIES COMPILE_FLAGS "/Ycprecompiled.h")
+endif(MSVC)
+
 else(NOT BUILD_FRAMEWORK)
 	#===================================
 	# Build combined Framework =========

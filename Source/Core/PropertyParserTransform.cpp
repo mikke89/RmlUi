@@ -208,7 +208,7 @@ int PropertyParserTransform::Scan(const char* str, const char* keyword, const Pr
 	/* find the keyword */
 	if (!memcmp(str, keyword, strlen(keyword)))
 	{
-		bytes_read = strlen(keyword);
+		bytes_read = (int)strlen(keyword);
 		str += bytes_read;
 		total_bytes_read += bytes_read;
 	}

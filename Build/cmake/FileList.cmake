@@ -42,12 +42,14 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BitmapFontDefinitions.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
