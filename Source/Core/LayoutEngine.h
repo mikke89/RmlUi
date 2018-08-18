@@ -79,15 +79,6 @@ public:
 	/// @return The clamped height.
 	static float ClampHeight(float height, Element* element, float containing_block_height);
 
-	/// Rounds a vector of two floating-point values to integral values.
-	/// @param[inout] value The vector to round.
-	/// @return The rounded vector.
-	static Vector2f& Round(Vector2f& value);
-	/// Rounds a floating-point value to an integral value.
-	/// @param[in] value The value to round.
-	/// @return The rounded value.
-	static float Round(float value);
-
 	static void* AllocateLayoutChunk(size_t size);
 	static void DeallocateLayoutChunk(void* chunk);
 

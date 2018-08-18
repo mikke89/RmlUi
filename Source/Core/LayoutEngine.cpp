@@ -294,26 +294,6 @@ float LayoutEngine::ClampHeight(float height, Element* element, float containing
 	return Math::Clamp(height, min_height, max_height);
 }
 
-// Rounds a vector of two floating-point values to integral values.
-Vector2f& LayoutEngine::Round(Vector2f& value)
-{
-	value.x = Round(value.x);
-	value.y = Round(value.y);
-
-	return value;
-}
-
-// Rounds a floating-point value to an integral value.
-float LayoutEngine::Round(float value)
-{
-#if defined(_MSC_VER) && _MSC_VER < 1800
-	// Before Visual Studio 2013, roundf did not exist
-	return value >= 0.0f ? floorf(value + 0.5f) : ceilf(value - 0.5f);
-#else
-	return roundf(value);
-#endif
-}
-
 void* LayoutEngine::AllocateLayoutChunk(size_t ROCKET_UNUSED_ASSERT_PARAMETER(size))
 {
 	ROCKET_UNUSED_ASSERT(size);

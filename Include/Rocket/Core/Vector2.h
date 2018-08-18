@@ -59,6 +59,9 @@ class Vector2
 		/// Generates a normalised vector from this vector.
 		/// @return The normalised vector.
 		inline Vector2 Normalise() const;
+		/// Generates a vector with values rounded to their nearest integer.
+		/// @return The rounded vector
+		inline Vector2 Round() const;
 
 		/// Computes the dot-product between this vector and another.
 		/// @param[in] rhs The other vector to use in the dot-product.

@@ -154,7 +154,7 @@ void DecoratorTiledVertical::RenderElement(Element* element, DecoratorDataHandle
 	DecoratorTiledVerticalData* data = reinterpret_cast< DecoratorTiledVerticalData* >(element_data);
 
 	for (int i = 0; i < 3; i++)
-		data->geometry[i]->Render(translation);
+		data->geometry[i]->Render(translation.Round());
 }
 
 }

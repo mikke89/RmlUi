@@ -102,7 +102,6 @@ void LayoutInlineBoxText::OffsetBaseline(float ascender)
 
 	// Offset by the half-leading.
 	position.y += leading * 0.5f;
-	position.y = LayoutEngine::Round(position.y);
 }
 
 // Positions the inline box's element.

@@ -173,27 +173,27 @@ int ElementUtilities::GetLineHeight(Element* element)
 	case Property::EM:
 	case Property::REM:
 		// If the property is a straight number or an em measurement, then it scales the line height.
-		return Math::Round(line_height_property->value.Get< float >() * line_height);
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * line_height);
 	case Property::PERCENT:
 		// If the property is a percentage, then it scales the line height.
-		return Math::Round(line_height_property->value.Get< float >() * line_height * 0.01f);
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * line_height * 0.01f);
 	case Property::PX:
 		// A px measurement.
-		return Math::Round(line_height_property->value.Get< float >());
+		return Math::RoundToInteger(line_height_property->value.Get< float >());
 	case Property::DP:
 		// A density-independent pixel measurement.
-		return Math::Round(line_height_property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element));
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element));
 	case Property::INCH:
 		// Values based on pixels-per-inch.
-		return Math::Round(line_height_property->value.Get< float >() * inch);
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch);
 	case Property::CM:
-		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 2.54f));
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 2.54f));
 	case Property::MM:
-		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 25.4f));
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 25.4f));
 	case Property::PT:
-		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 72.0f));
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 72.0f));
 	case Property::PC:
-		return Math::Round(line_height_property->value.Get< float >() * inch * (1.0f / 6.0f));
+		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 6.0f));
 	}
 
 	return 0;

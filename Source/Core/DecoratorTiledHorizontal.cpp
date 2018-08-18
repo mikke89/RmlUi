@@ -149,7 +149,7 @@ void DecoratorTiledHorizontal::ReleaseElementData(DecoratorDataHandle element_da
 // Called to render the decorator on an element.
 void DecoratorTiledHorizontal::RenderElement(Element* element, DecoratorDataHandle element_data)
 {
-	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING);
+	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING).Round();
 	DecoratorTiledHorizontalData* data = reinterpret_cast< DecoratorTiledHorizontalData* >(element_data);
 
 	for (int i = 0; i < 3; i++)

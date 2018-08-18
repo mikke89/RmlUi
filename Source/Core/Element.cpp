@@ -1142,7 +1142,7 @@ float Element::GetScrollLeft()
 // Sets the left scroll offset of the element.
 void Element::SetScrollLeft(float scroll_left)
 {
-	scroll_offset.x = LayoutEngine::Round(Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth()));
+	scroll_offset.x = Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth());
 	scroll->UpdateScrollbar(ElementScroll::HORIZONTAL);
 	DirtyOffset();
 
@@ -1159,7 +1159,7 @@ float Element::GetScrollTop()
 // Sets the top scroll offset of the element.
 void Element::SetScrollTop(float scroll_top)
 {
-	scroll_offset.y = LayoutEngine::Round(Math::Clamp(scroll_top, 0.0f, GetScrollHeight() - GetClientHeight()));
+	scroll_offset.y = Math::Clamp(scroll_top, 0.0f, GetScrollHeight() - GetClientHeight());
 	scroll->UpdateScrollbar(ElementScroll::VERTICAL);
 	DirtyOffset();
 
@@ -2225,9 +2225,6 @@ void Element::UpdateOffset()
 		relative_offset_position.x = 0;
 		relative_offset_position.y = 0;
 	}
-
-	LayoutEngine::Round(relative_offset_base);
-	LayoutEngine::Round(relative_offset_position);
 }
 
 void Element::BuildLocalStackingContext()

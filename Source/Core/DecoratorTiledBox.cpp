@@ -290,7 +290,7 @@ void DecoratorTiledBox::ReleaseElementData(DecoratorDataHandle element_data)
 // Called to render the decorator on an element.
 void DecoratorTiledBox::RenderElement(Element* element, DecoratorDataHandle element_data)
 {
-	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING);
+	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING).Round();
 	DecoratorTiledBoxData* data = reinterpret_cast< DecoratorTiledBoxData* >(element_data);
 
 	for (int i = 0; i < 9; i++)

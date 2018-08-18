@@ -153,8 +153,6 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 
 		if (element_offset != 0)
 		{
-			element_offset = LayoutEngine::Round(element_offset);
-
 			for (size_t i = 0; i < inline_boxes.size(); i++)
 				inline_boxes[i]->SetHorizontalPosition(inline_boxes[i]->GetPosition().x + element_offset);
 		}
@@ -380,7 +378,7 @@ void LayoutLineBox::AppendBox(LayoutInlineBox* box)
 
 	box->SetParent(open_inline_box);
 	box->SetLine(this);
-	box->SetHorizontalPosition(LayoutEngine::Round(box_cursor + box->GetBox().GetEdge(Box::MARGIN, Box::LEFT)));
+	box->SetHorizontalPosition(box_cursor + box->GetBox().GetEdge(Box::MARGIN, Box::LEFT));
 	box_cursor += GetSpacing(box->GetBox(), Box::LEFT);
 
 	open_inline_box = box;

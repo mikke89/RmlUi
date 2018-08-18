@@ -39,5 +39,6 @@
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
 	<button id="exit" onclick="exit">Exit</button>
+	<div style="position: absolute; right: 15.4px; bottom: 20.5px; height: 30px; width: 20px; border: 3px #000; background-color: #c66;">A</div>
 </body>
 </rml>

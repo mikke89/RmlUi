@@ -37,7 +37,6 @@
 
 
 // Animations TODO:
-//  - Jittering on slow margin-left updates
 //  - Proper interpolation of full transform matrices (split into translate/rotate/skew/scale).
 //  - Support interpolation of primitive derivatives without going to full matrices.
 //  - Better error reporting when submitting invalid animations, check validity on add. Remove animation if invalid.
@@ -45,6 +44,7 @@
 //  - RCSS support? Both @keyframes and transition, maybe.
 //  - Profiling
 //  - [offtopic] Improve performance of transform parser (hashtable)
+//  - [offtopic] Use double for absolute time, get and cache time for each render/update loop
 
 class DemoWindow
 {
@@ -64,8 +64,8 @@ public:
 			el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, 10, true);
 			el->Animate("margin-left", Property(100.f, Property::PX), 0.6f);
 
-			el = document->GetElementById("exit");
-			el->Animate("margin-left", Property(100.f, Property::PX), 8.0f, -1, true);
+			//el = document->GetElementById("exit");
+			//el->Animate("margin-left", Property(100.f, Property::PX), 8.0f, -1, true);
 
 			el = document->GetElementById("start_game");
 			auto t0 = TransformRef{ new Transform };
@@ -115,6 +115,7 @@ DemoWindow* window = NULL;
 
 bool pause_loop = false;
 bool single_loop = false;
+int nudge = 0;
 
 void GameLoop()
 {
@@ -129,8 +130,22 @@ void GameLoop()
 		single_loop = false;
 	}
 
-	//auto el = window->GetDocument()->GetElementById("exit");
-	//auto f = el->GetProperty<int>("margin-left");
+	static float t_prev = 0.0f;
+	float t = Shell::GetElapsedTime();
+	float dt = t - t_prev;
+	//if(dt > 1.0f)
+	if(nudge)
+	{
+		t_prev = t;
+		static float ff = 0.0f;
+		ff += float(nudge)*0.3f;
+		auto el = window->GetDocument()->GetElementById("exit");
+		auto f = el->GetProperty<float>("margin-left");
+		el->SetProperty("margin-left", Rocket::Core::Property(ff, Rocket::Core::Property::PX));
+		float f_left = el->GetAbsoluteLeft();
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);
+		nudge = 0;
+	}
 	//static int f_prev = 0.0f;
 	//int df = f - f_prev;
 	//f_prev = f;
@@ -164,6 +179,14 @@ public:
 			{
 				pause_loop = true;
 				single_loop = true;
+			}
+			else if (key_identifier == Rocket::Core::Input::KI_OEM_PLUS && key_down)
+			{
+				nudge = 1;
+			}
+			else if (key_identifier == Rocket::Core::Input::KI_OEM_MINUS && key_down)
+			{
+				nudge = -1;
 			}
 			else if (key_identifier == Rocket::Core::Input::KI_ESCAPE)
 			{

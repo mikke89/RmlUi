@@ -128,6 +128,8 @@ void ElementTextDefault::OnRender()
 			}
 		}
 	}
+
+	translation = translation.Round();
 	
 	if (render)
 	{

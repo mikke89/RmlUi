@@ -69,6 +69,21 @@ Vector2< Type > Vector2< Type >::Normalise() const
 	return *this / magnitude;
 }
 
+// Generates a rounded vector from this vector.
+Vector2< float > Vector2< float >::Round() const
+{
+	Vector2 < float > result;
+	result.x = std::roundf(x);
+	result.y = std::roundf(y);
+	return result;
+}
+
+// Generates a rounded vector from this vector.
+Vector2< int > Vector2< int >::Round() const
+{
+	return *this;
+}
+
 // Computes the dot-product between this vector and another.
 template < typename Type >
 Type Vector2< Type >::DotProduct(const Vector2< Type >& rhs) const
