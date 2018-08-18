@@ -75,13 +75,13 @@ public:
 	void AddPrimitive(const Transforms::Primitive& p);
 
 	/// Return the number of Primitives in this Transform
-	int GetNumPrimitives() const throw();
+	int GetNumPrimitives() const noexcept;
 
 	/// Return the i-th Primitive in this Transform
-	const Transforms::Primitive& GetPrimitive(int i) const throw();
+	const Transforms::Primitive& GetPrimitive(int i) const noexcept;
 
-	Primitives& GetPrimitives() throw() { return primitives; }
-	const Primitives& GetPrimitives() const throw() { return primitives; }
+	Primitives& GetPrimitives() noexcept { return primitives; }
+	const Primitives& GetPrimitives() const noexcept { return primitives; }
 
 protected:
 	void OnReferenceDeactivate()

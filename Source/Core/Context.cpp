@@ -141,7 +141,7 @@ const Vector2i& Context::GetDimensions() const
 
 
 // Returns the current state of the view.
-const ViewState& Context::GetViewState() const throw()
+const ViewState& Context::GetViewState() const noexcept
 {
 	return view_state;
 }

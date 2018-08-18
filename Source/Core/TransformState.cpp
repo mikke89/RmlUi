@@ -32,7 +32,7 @@
 namespace Rocket {
 namespace Core {
 
-Matrix4f TransformState::Perspective::GetProjection() const throw()
+Matrix4f TransformState::Perspective::GetProjection() const noexcept
 {
 	float depth = (float)Math::Max(view_size.x, view_size.y);
 
@@ -76,7 +76,7 @@ Matrix4f TransformState::Perspective::GetProjection() const throw()
 	}
 }
 
-Vector3f TransformState::Perspective::Project(const Vector3f &point) const throw()
+Vector3f TransformState::Perspective::Project(const Vector3f &point) const noexcept
 {
 	if (distance < 0)
 	{
@@ -88,7 +88,7 @@ Vector3f TransformState::Perspective::Project(const Vector3f &point) const throw
 	}
 }
 
-Vector3f TransformState::Perspective::Unproject(const Vector3f &point) const throw()
+Vector3f TransformState::Perspective::Unproject(const Vector3f &point) const noexcept
 {
 	if (distance < 0)
 	{
@@ -102,7 +102,7 @@ Vector3f TransformState::Perspective::Unproject(const Vector3f &point) const thr
 	}
 }
 
-Matrix4f TransformState::LocalPerspective::GetProjection() const throw()
+Matrix4f TransformState::LocalPerspective::GetProjection() const noexcept
 {
 	float depth = (float)Math::Max(view_size.x, view_size.y);
 
@@ -142,7 +142,7 @@ Matrix4f TransformState::LocalPerspective::GetProjection() const throw()
 	}
 }
 
-Vector3f TransformState::LocalPerspective::Project(const Vector3f &point) const throw()
+Vector3f TransformState::LocalPerspective::Project(const Vector3f &point) const noexcept
 {
 	if (distance < 0)
 	{
@@ -154,7 +154,7 @@ Vector3f TransformState::LocalPerspective::Project(const Vector3f &point) const 
 	}
 }
 
-Vector3f TransformState::LocalPerspective::Unproject(const Vector3f &point) const throw()
+Vector3f TransformState::LocalPerspective::Unproject(const Vector3f &point) const noexcept
 {
 	if (distance < 0)
 	{
@@ -174,7 +174,7 @@ TransformState::TransformState()
 {
 }
 
-void TransformState::SetPerspective(const Perspective *perspective) throw()
+void TransformState::SetPerspective(const Perspective *perspective) noexcept
 {
 	if (perspective)
 	{
@@ -186,7 +186,7 @@ void TransformState::SetPerspective(const Perspective *perspective) throw()
 	have_perspective = perspective != 0;
 }
 
-bool TransformState::GetPerspective(Perspective *perspective) const throw()
+bool TransformState::GetPerspective(Perspective *perspective) const noexcept
 {
 	if (have_perspective && perspective)
 	{
@@ -198,7 +198,7 @@ bool TransformState::GetPerspective(Perspective *perspective) const throw()
 	return have_perspective;
 }
 
-void TransformState::SetLocalPerspective(const LocalPerspective *local_perspective) throw()
+void TransformState::SetLocalPerspective(const LocalPerspective *local_perspective) noexcept
 {
 	if (local_perspective)
 	{
@@ -209,7 +209,7 @@ void TransformState::SetLocalPerspective(const LocalPerspective *local_perspecti
 	have_local_perspective = local_perspective != 0;
 }
 
-bool TransformState::GetLocalPerspective(LocalPerspective *local_perspective) const throw()
+bool TransformState::GetLocalPerspective(LocalPerspective *local_perspective) const noexcept
 {
 	if (have_local_perspective && local_perspective)
 	{
@@ -220,7 +220,7 @@ bool TransformState::GetLocalPerspective(LocalPerspective *local_perspective) co
 	return have_local_perspective;
 }
 
-void TransformState::SetTransform(const Matrix4f *transform) throw()
+void TransformState::SetTransform(const Matrix4f *transform) noexcept
 {
 	if (transform)
 	{
@@ -230,7 +230,7 @@ void TransformState::SetTransform(const Matrix4f *transform) throw()
 	have_transform = transform != 0;
 }
 
-bool TransformState::GetTransform(Matrix4f *transform) const throw()
+bool TransformState::GetTransform(Matrix4f *transform) const noexcept
 {
 	if (have_transform)
 	{
@@ -247,7 +247,7 @@ bool TransformState::GetTransform(Matrix4f *transform) const throw()
 	}
 }
 
-void TransformState::SetParentRecursiveTransform(const Matrix4f *parent_recursive_transform) throw()
+void TransformState::SetParentRecursiveTransform(const Matrix4f *parent_recursive_transform) noexcept
 {
 	if (parent_recursive_transform)
 	{
@@ -257,7 +257,7 @@ void TransformState::SetParentRecursiveTransform(const Matrix4f *parent_recursiv
 	have_parent_recursive_transform = parent_recursive_transform != 0;
 }
 
-bool TransformState::GetParentRecursiveTransform(Matrix4f *transform) const throw()
+bool TransformState::GetParentRecursiveTransform(Matrix4f *transform) const noexcept
 {
 	if (have_parent_recursive_transform)
 	{
@@ -274,7 +274,7 @@ bool TransformState::GetParentRecursiveTransform(Matrix4f *transform) const thro
 	}
 }
 
-Vector3f TransformState::Transform(const Vector3f &point) const throw()
+Vector3f TransformState::Transform(const Vector3f &point) const noexcept
 {
 	if (have_parent_recursive_transform && have_transform)
 	{
@@ -294,7 +294,7 @@ Vector3f TransformState::Transform(const Vector3f &point) const throw()
 	}
 }
 
-Vector3f TransformState::Untransform(const Vector3f &point) const throw()
+Vector3f TransformState::Untransform(const Vector3f &point) const noexcept
 {
 	Matrix4f transform_inv;
 
@@ -321,7 +321,7 @@ Vector3f TransformState::Untransform(const Vector3f &point) const throw()
 	return transform_inv * point;
 }
 
-bool TransformState::GetRecursiveTransform(Matrix4f *recursive_transform) const throw()
+bool TransformState::GetRecursiveTransform(Matrix4f *recursive_transform) const noexcept
 {
 	if (recursive_transform)
 	{

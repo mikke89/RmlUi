@@ -46,16 +46,16 @@ public:
 	struct Perspective
 	{
 		/// Calculates the projection matrix.
-		Matrix4f GetProjection() const throw();
+		Matrix4f GetProjection() const noexcept;
 
 		/// Calculates the clip space coordinates ([-1; 1]³) of a 3D vertex in world space.
 		/// @param[in] point The point in world space coordinates.
 		/// @return The clip space coordinates of the point.
-		Vector3f Project(const Vector3f &point) const throw();
+		Vector3f Project(const Vector3f &point) const noexcept;
 		/// Calculates the world space coordinates of a 3D vertex in clip space ([-1; 1]³).
 		/// @param[in] point The point in clip space coordinates.
 		/// @return The world space coordinates of the point.
-		Vector3f Unproject(const Vector3f &point) const throw();
+		Vector3f Unproject(const Vector3f &point) const noexcept;
 	
 		float		distance;	// The CSS `perspective:' value
 		Vector2i	view_size;
@@ -65,16 +65,16 @@ public:
 	struct LocalPerspective
 	{
 		/// Calculates the projection matrix.
-		Matrix4f GetProjection() const throw();
+		Matrix4f GetProjection() const noexcept;
 
 		/// Calculates the clip space coordinates ([-1; 1]³) of a 3D vertex in world space.
 		/// @param[in] point The point in world space coordinates.
 		/// @return The clip space coordinates of the point.
-		Vector3f Project(const Vector3f &point) const throw();
+		Vector3f Project(const Vector3f &point) const noexcept;
 		/// Calculates the world space coordinates of a 3D vertex in clip space ([-1; 1]³).
 		/// @param[in] point The point in clip space coordinates.
 		/// @return The world space coordinates of the point.
-		Vector3f Unproject(const Vector3f &point) const throw();
+		Vector3f Unproject(const Vector3f &point) const noexcept;
 
 		float		distance;	// The CSS `perspective:' value
 		Vector2i	view_size;
@@ -83,36 +83,36 @@ public:
 	TransformState();
 
 	/// Stores a new perspective value
-	void SetPerspective(const Perspective *perspective) throw();
+	void SetPerspective(const Perspective *perspective) noexcept;
 	/// Returns the perspective value
-	bool GetPerspective(Perspective *perspective) const throw();
+	bool GetPerspective(Perspective *perspective) const noexcept;
 
 	/// Stores a new local perspective value
-	void SetLocalPerspective(const LocalPerspective *local_perspective) throw();
+	void SetLocalPerspective(const LocalPerspective *local_perspective) noexcept;
 	/// Returns the local perspective value
-	bool GetLocalPerspective(LocalPerspective *local_perspective) const throw();
+	bool GetLocalPerspective(LocalPerspective *local_perspective) const noexcept;
 
 	/// Stores a new transform matrix
-	void SetTransform(const Matrix4f *transform) throw();
+	void SetTransform(const Matrix4f *transform) noexcept;
 	/// Returns the stored transform matrix
-	bool GetTransform(Matrix4f *transform) const throw();
+	bool GetTransform(Matrix4f *transform) const noexcept;
 
 	/// Stores a new recursive parent transform.
-	void SetParentRecursiveTransform(const Matrix4f *parent_recursive_transform) throw();
+	void SetParentRecursiveTransform(const Matrix4f *parent_recursive_transform) noexcept;
 	/// Returns the stored recursive parent transform matrix
-	bool GetParentRecursiveTransform(Matrix4f *transform) const throw();
+	bool GetParentRecursiveTransform(Matrix4f *transform) const noexcept;
 
 	/// Transforms a 3D point by the `parent transform' and `transform' matrices stored in this TransformState.
 	/// @param[in] point The point in world space coordinates.
 	/// @return The transformed point in world space coordinates.
-	Vector3f Transform(const Vector3f &point) const throw();
+	Vector3f Transform(const Vector3f &point) const noexcept;
 	/// Transforms a 3D point by the inverse `parent transform' and `transform' matrices stored in this TransformState.
 	/// @param[in] point The point in world space coordinates.
 	/// @return The transformed point in world space coordinates.
-	Vector3f Untransform(const Vector3f &point) const throw();
+	Vector3f Untransform(const Vector3f &point) const noexcept;
 
 	/// Returns the parent's recursive transform multiplied by this transform.
-	bool GetRecursiveTransform(Matrix4f *recursive_transform) const throw();
+	bool GetRecursiveTransform(Matrix4f *recursive_transform) const noexcept;
 
 private:
 	// Flags for stored values

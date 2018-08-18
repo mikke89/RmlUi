@@ -33,17 +33,17 @@ namespace Rocket {
 namespace Core {
 namespace Transforms {
 
-NumericValue::NumericValue() throw()
+NumericValue::NumericValue() noexcept
 	: number(), unit(Property::UNKNOWN)
 {
 }
 
-NumericValue::NumericValue(float number, Property::Unit unit) throw()
+NumericValue::NumericValue(float number, Property::Unit unit) noexcept
 	: number(number), unit(unit)
 {
 }
 
-float NumericValue::Resolve(Element& e, float base) const throw()
+float NumericValue::Resolve(Element& e, float base) const noexcept
 {
 	Property prop;
 	prop.value = Variant(number);
@@ -51,26 +51,26 @@ float NumericValue::Resolve(Element& e, float base) const throw()
 	return e.ResolveProperty(&prop, base);
 }
 
-float NumericValue::ResolveWidth(Element& e) const throw()
+float NumericValue::ResolveWidth(Element& e) const noexcept
 {
 	if(unit & (Property::PX | Property::NUMBER)) return number;
 	return Resolve(e, e.GetBox().GetSize().x);
 }
 
-float NumericValue::ResolveHeight(Element& e) const throw()
+float NumericValue::ResolveHeight(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
 	return Resolve(e, e.GetBox().GetSize().y);
 }
 
-float NumericValue::ResolveDepth(Element& e) const throw()
+float NumericValue::ResolveDepth(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
 	Vector2f size = e.GetBox().GetSize();
 	return Resolve(e, Math::Max(size.x, size.y));
 }
 
-float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const throw()
+float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept
 {
 	switch (base_unit)
 	{
@@ -256,13 +256,13 @@ struct ResolveTransformVisitor
 struct SetIdentityVisitor
 {
 	template <size_t N>
-	void operator()(ResolvedValuesPrimitive<N>& p)
+	void operator()(ResolvedPrimitive<N>& p)
 	{
 		for (auto& value : p.values)
 			value = 0.0f;
 	}
 	template <size_t N>
-	void operator()(UnresolvedValuesPrimitive<N>& p)
+	void operator()(UnresolvedPrimitive<N>& p)
 	{
 		for (auto& value : p.values)
 			value.number = 0.0f;
@@ -300,13 +300,13 @@ struct SetIdentityVisitor
 };
 
 
-void Primitive::SetIdentity() throw()
+void Primitive::SetIdentity() noexcept
 {
 	std::visit(SetIdentityVisitor{}, primitive);
 }
 
 
-bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const throw()
+bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const noexcept
 {
 	ResolveTransformVisitor visitor{ m, e };
 
@@ -315,7 +315,7 @@ bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const throw()
 	return result;
 }
 
-bool Primitive::ResolvePerspective(float & p, Element & e) const throw()
+bool Primitive::ResolvePerspective(float & p, Element & e) const noexcept
 {
 	bool result = false;
 
@@ -336,13 +336,13 @@ struct InterpolateVisitor
 	float alpha;
 
 	template <size_t N>
-	void Interpolate(ResolvedValuesPrimitive<N>& p0, const ResolvedValuesPrimitive<N>& p1)
+	void Interpolate(ResolvedPrimitive<N>& p0, const ResolvedPrimitive<N>& p1)
 	{
 		for (size_t i = 0; i < N; i++)
 			p0.values[i] = p0.values[i] * (1.0f - alpha) + p1.values[i] * alpha;
 	}
 	template <size_t N>
-	void Interpolate(UnresolvedValuesPrimitive<N>& p0, const UnresolvedValuesPrimitive<N>& p1)
+	void Interpolate(UnresolvedPrimitive<N>& p0, const UnresolvedPrimitive<N>& p1)
 	{
 		// Assumes that the underlying units have been resolved (e.g. to pixels)
 		for (size_t i = 0; i < N; i++)
@@ -361,7 +361,7 @@ struct InterpolateVisitor
 	}
 };
 
-bool Primitive::InterpolateWith(const Primitive & other, float alpha) throw()
+bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 {
 	if (primitive.index() != other.primitive.index())
 		return false;
@@ -405,7 +405,7 @@ struct ResolveUnitsVisitor
 		return true;
 	}
 	template <size_t N>
-	bool operator()(ResolvedValuesPrimitive<N>& p)
+	bool operator()(ResolvedPrimitive<N>& p)
 	{
 		// No conversion needed for resolved transforms
 		return true;
@@ -418,7 +418,7 @@ struct ResolveUnitsVisitor
 };
 
 
-bool Primitive::ResolveUnits(Element & e) throw()
+bool Primitive::ResolveUnits(Element & e) noexcept
 {
 	return std::visit(ResolveUnitsVisitor{ e }, primitive);
 }

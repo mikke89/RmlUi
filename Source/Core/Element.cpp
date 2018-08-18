@@ -700,7 +700,7 @@ const Property *Element::GetTransformOriginZ()
 }
 
 // Returns this element's TransformState
-const TransformState *Element::GetTransformState() const throw()
+const TransformState *Element::GetTransformState() const noexcept
 {
 	return transform_state.get();
 }
@@ -710,7 +710,7 @@ void Element::GetEffectiveTransformState(
 	const TransformState **local_perspective,
 	const TransformState **perspective,
 	const TransformState **transform
-) throw()
+) noexcept
 {
 	UpdateTransformState();
 
@@ -771,7 +771,7 @@ void Element::GetEffectiveTransformState(
 }
 
 // Project a 2D point in pixel coordinates onto the element's plane.
-const Vector2f Element::Project(const Vector2f& point) throw()
+const Vector2f Element::Project(const Vector2f& point) noexcept
 {
 	UpdateTransformState();
 

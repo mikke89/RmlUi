@@ -278,17 +278,17 @@ public:
 	/// Returns 'transform-origin-z' property value from element's style or local cache.
 	const Property *GetTransformOriginZ();
 	/// Returns this element's TransformState
-	const TransformState *GetTransformState() const throw();
+	const TransformState *GetTransformState() const noexcept;
 	/// Returns the TransformStates that are effective for this element.
 	void GetEffectiveTransformState(
 		const TransformState **local_perspective,
 		const TransformState **perspective,
 		const TransformState **transform
-	) throw();
+	) noexcept;
 	/// Project a 2D point in pixel coordinates onto the element's plane.
 	/// @param[in] point The point to project.
 	/// @return The projected coordinates.
-	const Vector2f Project(const Vector2f& point) throw();
+	const Vector2f Project(const Vector2f& point) noexcept;
 
 	/// Start an animation of the given property on this element.
 	/// Currently, only float and Colourb property values are supported. If an animation of the same property name exists, the target value

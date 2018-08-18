@@ -83,7 +83,7 @@ public:
 
 
 	/// Returns the current state of the view.
-	const ViewState& GetViewState() const throw();
+	const ViewState& GetViewState() const noexcept;
 
 	/// Changes the size ratio of 'dp' unit to 'px' unit
 	/// @param[in] dimensions The new density-independent pixel ratio of the context.

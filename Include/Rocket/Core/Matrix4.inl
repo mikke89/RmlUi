@@ -35,7 +35,7 @@ Matrix4< Component, Storage >::Matrix4(
 	const typename Matrix4< Component, Storage >::VectorType& vec1,
 	const typename Matrix4< Component, Storage >::VectorType& vec2,
 	const typename Matrix4< Component, Storage >::VectorType& vec3
-) throw()
+) noexcept
 {
 	vectors[0] = vec0;
 	vectors[1] = vec1;
@@ -45,13 +45,13 @@ Matrix4< Component, Storage >::Matrix4(
 
 // Default constructor.
 template< typename Component, class Storage >
-Matrix4< Component, Storage >::Matrix4() throw()
+Matrix4< Component, Storage >::Matrix4() noexcept
 {
 }
 
 // Initialising, copy constructor.
 template< typename Component, class Storage >
-Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storage >::ThisType& other) throw()
+Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storage >::ThisType& other) noexcept
 {
 	for (int i = 0; i < 4; ++i)
 	{
@@ -60,7 +60,7 @@ Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storag
 }
 
 template< typename Component, class Storage >
-Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storage >::TransposeType& other) throw()
+Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storage >::TransposeType& other) noexcept
 {
 	Rows rows(vectors);
 	typename Matrix4< Component, Storage >::TransposeType::ConstRows other_rows(other.vectors);
@@ -73,7 +73,7 @@ Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storag
 
 // Assignment operator
 template< typename Component, class Storage >
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator=(const typename Matrix4< Component, Storage >::ThisType& other) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator=(const typename Matrix4< Component, Storage >::ThisType& other) noexcept
 {
 	for (int i = 0; i < 4; ++i)
 	{
@@ -83,7 +83,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 }
 
 template< typename Component, class Storage >
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator=(const typename Matrix4< Component, Storage >::TransposeType& other) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator=(const typename Matrix4< Component, Storage >::TransposeType& other) noexcept
 {
 	Rows rows(vectors);
 	typename Matrix4< Component, Storage >::TransposeType::Rows other_rows(other.vectors);
@@ -101,7 +101,7 @@ const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Stora
 	const typename Matrix4< Component, Storage >::VectorType& vec1,
 	const typename Matrix4< Component, Storage >::VectorType& vec2,
 	const typename Matrix4< Component, Storage >::VectorType& vec3
-) throw()
+) noexcept
 {
 	typename Matrix4< Component, Storage >::ThisType result;
 	result.SetRows(vec0, vec1, vec2, vec3);
@@ -115,7 +115,7 @@ const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Stora
 	const typename Matrix4< Component, Storage >::VectorType& vec1,
 	const typename Matrix4< Component, Storage >::VectorType& vec2,
 	const typename Matrix4< Component, Storage >::VectorType& vec3
-) throw()
+) noexcept
 {
 	typename Matrix4< Component, Storage >::ThisType result;
 	result.SetColumns(vec0, vec1, vec2, vec3);
@@ -124,7 +124,7 @@ const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Stora
 
 // Construct from components
 template< typename Component, class Storage >
-const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::FromRowMajor(const Component* components) throw()
+const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::FromRowMajor(const Component* components) noexcept
 {
 	Matrix4< Component, Storage >::ThisType result;
 	Matrix4< Component, Storage >::Rows rows(result.vectors);
@@ -138,7 +138,7 @@ const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Stora
 	return result;
 }
 template< typename Component, class Storage >
-const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::FromColumnMajor(const Component* components) throw()
+const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::FromColumnMajor(const Component* components) noexcept
 {
 	Matrix4< Component, Storage >::ThisType result;
 	Matrix4< Component, Storage >::Columns columns(result.vectors);
@@ -154,7 +154,7 @@ const typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Stora
 
 // Set all rows
 template< typename Component, class Storage >
-void Matrix4< Component, Storage >::SetRows(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) throw()
+void Matrix4< Component, Storage >::SetRows(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept
 {
 	Rows rows(vectors);
 	rows[0] = vec0;
@@ -165,7 +165,7 @@ void Matrix4< Component, Storage >::SetRows(const VectorType& vec0, const Vector
 
 // Set all columns
 template< typename Component, class Storage >
-void Matrix4< Component, Storage >::SetColumns(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) throw()
+void Matrix4< Component, Storage >::SetColumns(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept
 {
 	Columns columns(vectors);
 	columns[0] = vec0;
@@ -177,7 +177,7 @@ void Matrix4< Component, Storage >::SetColumns(const VectorType& vec0, const Vec
 // Inverts this matrix in place.
 // This is from the MESA implementation of the GLU library.
 template< typename Component, class Storage >
-bool Matrix4< Component, Storage >::Invert() throw()
+bool Matrix4< Component, Storage >::Invert() noexcept
 {
 	Matrix4< Component, Storage >::ThisType result;
 	Component *dst = result.data();
@@ -311,7 +311,7 @@ bool Matrix4< Component, Storage >::Invert() throw()
 
 // Returns the negation of this matrix.
 template< typename Component, class Storage >
-typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::operator-() const throw()
+typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::operator-() const noexcept
 {
 	return typename Matrix4< Component, Storage >::ThisType(
 		-vectors[0],
@@ -323,7 +323,7 @@ typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::
 
 // Adds another matrix to this in-place.
 template< typename Component, class Storage>
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator+=(const typename Matrix4< Component, Storage >::ThisType& other) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator+=(const typename Matrix4< Component, Storage >::ThisType& other) noexcept
 {
 	for (int i = 0; i < 4; ++i)
 	{
@@ -332,7 +332,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 	return *this;
 }
 template< typename Component, class Storage>
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator+=(const typename Matrix4< Component, Storage >::TransposeType& other) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator+=(const typename Matrix4< Component, Storage >::TransposeType& other) noexcept
 {
 	Rows rows(vectors);
 	typename Matrix4< Component, Storage >::TransposeType::ConstRows other_rows(other);
@@ -345,7 +345,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 
 // Subtracts another matrix from this in-place.
 template< typename Component, class Storage>
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator-=(const typename Matrix4< Component, Storage >::ThisType& other) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator-=(const typename Matrix4< Component, Storage >::ThisType& other) noexcept
 {
 	for (int i = 0; i < 4; ++i)
 	{
@@ -354,7 +354,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 	return *this;
 }
 template< typename Component, class Storage>
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator-=(const typename Matrix4< Component, Storage >::TransposeType& other) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator-=(const typename Matrix4< Component, Storage >::TransposeType& other) noexcept
 {
 	Rows rows(vectors);
 	typename Matrix4< Component, Storage >::TransposeType::ConstRows other_rows(other);
@@ -367,7 +367,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 
 // Scales this matrix in-place.
 template< typename Component, class Storage>
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator*=(Component s) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator*=(Component s) noexcept
 {
 	for (int i = 0; i < 4; ++i)
 	{
@@ -378,7 +378,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 
 // Scales this matrix in-place by the inverse of a value.
 template< typename Component, class Storage>
-const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator/=(Component s) throw()
+const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Storage >::operator/=(Component s) noexcept
 {
 	for (int i = 0; i < 4; ++i)
 	{
@@ -389,7 +389,7 @@ const typename Matrix4< Component, Storage >::ThisType& Matrix4< Component, Stor
 
 // Equality operator.
 template< typename Component, class Storage>
-bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component, Storage >::ThisType& other) const throw()
+bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component, Storage >::ThisType& other) const noexcept
 {
 	typename Matrix4< Component, Storage >::ConstRows rows(vectors);
 	typename Matrix4< Component, Storage >::ConstRows other_rows(other.vectors);
@@ -399,7 +399,7 @@ bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component
 	   && vectors[3] == other.vectors[3];
 }
 template< typename Component, class Storage>
-bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component, Storage >::TransposeType& other) const throw()
+bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component, Storage >::TransposeType& other) const noexcept
 {
 	typename Matrix4< Component, Storage >::ConstRows rows(vectors);
 	typename Matrix4< Component, Storage >::ConstRows other_rows(other.vectors);
@@ -411,7 +411,7 @@ bool Matrix4< Component, Storage >::operator==(const typename Matrix4< Component
 
 // Inequality operator.
 template< typename Component, class Storage>
-bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component, Storage >::ThisType& other) const throw()
+bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component, Storage >::ThisType& other) const noexcept
 {
 	return vectors[0] != other.vectors[0]
 	    || vectors[1] != other.vectors[1]
@@ -419,7 +419,7 @@ bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component
 	    || vectors[3] != other.vectors[3];
 }
 template< typename Component, class Storage>
-bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component, Storage >::TransposeType& other) const throw()
+bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component, Storage >::TransposeType& other) const noexcept
 {
 	typename Matrix4< Component, Storage >::ConstRows rows(vectors);
 	typename Matrix4< Component, Storage >::ConstRows other_rows(other.vectors);
@@ -431,7 +431,7 @@ bool Matrix4< Component, Storage >::operator!=(const typename Matrix4< Component
 
 // Return the identity matrix.
 template< typename Component, class Storage>
-const Matrix4< Component, Storage >& Matrix4< Component, Storage >::Identity() throw()
+const Matrix4< Component, Storage >& Matrix4< Component, Storage >::Identity() noexcept
 {
 	static Matrix4< Component, Storage > identity(Diag(1, 1, 1, 1));
 	return identity;
@@ -439,7 +439,7 @@ const Matrix4< Component, Storage >& Matrix4< Component, Storage >::Identity() t
 
 // Return a diagonal matrix.
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::Diag(Component a, Component b, Component c, Component d) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Diag(Component a, Component b, Component c, Component d) noexcept
 {
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(a, 0, 0, 0),
@@ -451,7 +451,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::Diag(Component a, C
 
 // Create an orthographic projection matrix
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectOrtho(Component l, Component r, Component b, Component t, Component n, Component f) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectOrtho(Component l, Component r, Component b, Component t, Component n, Component f) noexcept
 {
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(2 / (r - l), 0, 0, -(r + l)/(r - l)),
@@ -463,7 +463,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectOrtho(Compon
 
 // Create a perspective projection matrix
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectPerspective(Component l, Component r, Component b, Component t, Component n, Component f) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectPerspective(Component l, Component r, Component b, Component t, Component n, Component f) noexcept
 {
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(2 * n / (r - l), 0, (r + l)/(r - l), 0),
@@ -475,13 +475,13 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectPerspective(
 
 // Return a translation matrix.
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::Translate(const Vector3< Component >& v) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Translate(const Vector3< Component >& v) noexcept
 {
 	return Translate(v.x, v.y, v.z);
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::Translate(Component x, Component y, Component z) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Translate(Component x, Component y, Component z) noexcept
 {
 	return Matrix4< Component, Storage >::FromRows(
 		Matrix4< Component, Storage >::VectorType(1, 0, 0, x),
@@ -492,51 +492,51 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::Translate(Component
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::TranslateX(Component x) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::TranslateX(Component x) noexcept
 {
 	return Translate(Vector3< Component >(x, 0, 0));
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::TranslateY(Component y) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::TranslateY(Component y) noexcept
 {
 	return Translate(Vector3< Component >(0, y, 0));
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::TranslateZ(Component z) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::TranslateZ(Component z) noexcept
 {
 	return Translate(Vector3< Component >(0, 0, z));
 }
 
 // Return a scaling matrix.
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::Scale(Component x, Component y, Component z) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Scale(Component x, Component y, Component z) noexcept
 {
 	return Matrix4::Diag(x, y, z, 1);
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::ScaleX(Component x) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::ScaleX(Component x) noexcept
 {
 	return Scale(x, 1, 1);
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::ScaleY(Component y) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::ScaleY(Component y) noexcept
 {
 	return Scale(1, y, 1);
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::ScaleZ(Component z) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::ScaleZ(Component z) noexcept
 {
 	return Scale(1, 1, z);
 }
 
 // Return a rotation matrix.
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::Rotate(const Vector3< Component >& v, Component angle) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Rotate(const Vector3< Component >& v, Component angle) noexcept
 {
 	Vector3< Component > n = v.Normalise();
 	Component Sin = Math::Sin(angle);
@@ -565,7 +565,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::Rotate(const Vector
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateX(Component angle) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateX(Component angle) noexcept
 {
 	Component Sin = Math::Sin(angle);
 	Component Cos = Math::Cos(angle);
@@ -578,7 +578,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateX(Component a
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateY(Component angle) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateY(Component angle) noexcept
 {
 	Component Sin = Math::Sin(angle);
 	Component Cos = Math::Cos(angle);
@@ -591,7 +591,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateY(Component a
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateZ(Component angle) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateZ(Component angle) noexcept
 {
 	Component Sin = Math::Sin(angle);
 	Component Cos = Math::Cos(angle);
@@ -605,7 +605,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::RotateZ(Component a
 // Return a skew/shearing matrix.
 // @return A skew matrix.
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::Skew(Component angle_x, Component angle_y) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Skew(Component angle_x, Component angle_y) noexcept
 {
 	Component SkewX = Math::Tan(angle_x);
 	Component SkewY = Math::Tan(angle_y);
@@ -618,13 +618,13 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::Skew(Component angl
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::SkewX(Component angle) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::SkewX(Component angle) noexcept
 {
 	return Skew(angle, 0);
 }
 
 template< typename Component, class Storage>
-Matrix4< Component, Storage > Matrix4< Component, Storage >::SkewY(Component angle) throw()
+Matrix4< Component, Storage > Matrix4< Component, Storage >::SkewY(Component angle) noexcept
 {
 	return Skew(0, angle);
 }
@@ -638,7 +638,7 @@ struct Matrix4< Component, Storage >::VectorMultiplier< _Component, RowMajorStor
 	typedef Matrix4< ComponentType, StorageAType > MatrixAType;
 	typedef Vector4< ComponentType > VectorType;
 
-	static const VectorType Multiply(const MatrixAType& lhs, const VectorType& rhs) throw()
+	static const VectorType Multiply(const MatrixAType& lhs, const VectorType& rhs) noexcept
 	{
 		typename MatrixAType::ConstRows rows(lhs.vectors);
 		return VectorType(
@@ -659,7 +659,7 @@ struct Matrix4< Component, Storage >::VectorMultiplier< _Component, ColumnMajorS
 	typedef Matrix4< ComponentType, StorageAType > MatrixAType;
 	typedef Vector4< ComponentType > VectorType;
 
-	static const VectorType Multiply(const MatrixAType& lhs, const VectorType& rhs) throw()
+	static const VectorType Multiply(const MatrixAType& lhs, const VectorType& rhs) noexcept
 	{
 		typename MatrixAType::ConstRows rows(lhs.vectors);
 		return VectorType(
@@ -681,7 +681,7 @@ struct Matrix4< Component, Storage >::MatrixMultiplier< _Component, RowMajorStor
 	typedef Matrix4< ComponentType, StorageAType > MatrixAType;
 	typedef Matrix4< ComponentType, StorageBType > MatrixBType;
 
-	static const MatrixAType Multiply(const MatrixAType& lhs, const MatrixBType& rhs) throw()
+	static const MatrixAType Multiply(const MatrixAType& lhs, const MatrixBType& rhs) noexcept
 	{
 		typename MatrixAType::ThisType result;
 		typename MatrixAType::Rows result_rows(result.vectors);
@@ -708,7 +708,7 @@ struct Matrix4< Component, Storage >::MatrixMultiplier< _Component, ColumnMajorS
 	typedef Matrix4< ComponentType, StorageAType > MatrixAType;
 	typedef Matrix4< ComponentType, StorageBType > MatrixBType;
 
-	static const MatrixAType Multiply(const MatrixAType& lhs, const MatrixBType& rhs) throw()
+	static const MatrixAType Multiply(const MatrixAType& lhs, const MatrixBType& rhs) noexcept
 	{
 		typename MatrixAType::ThisType result;
 		typename MatrixAType::Rows result_rows(result.vectors);
@@ -735,7 +735,7 @@ struct Matrix4< Component, Storage >::MatrixMultiplier< _Component, ColumnMajorS
 	typedef Matrix4< ComponentType, StorageAType > MatrixAType;
 	typedef Matrix4< ComponentType, StorageBType > MatrixBType;
 
-	static const MatrixAType Multiply(const MatrixAType& lhs, const MatrixBType& rhs) throw()
+	static const MatrixAType Multiply(const MatrixAType& lhs, const MatrixBType& rhs) noexcept
 	{
 		return lhs * MatrixAType(rhs);
 	}

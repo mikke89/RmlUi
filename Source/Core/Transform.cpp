@@ -71,12 +71,12 @@ void Transform::AddPrimitive(const Transforms::Primitive & p)
 	primitives.push_back(p);
 }
 
-int Transform::GetNumPrimitives() const throw() 
+int Transform::GetNumPrimitives() const noexcept 
 {
 	return (int)primitives.size();
 }
 
-const Transforms::Primitive & Transform::GetPrimitive(int i) const throw() 
+const Transforms::Primitive & Transform::GetPrimitive(int i) const noexcept 
 {
 	return primitives[i];
 }
