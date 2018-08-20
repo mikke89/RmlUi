@@ -145,8 +145,12 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 		{
 			if (prims0[i].primitive.index() != prims1[i].primitive.index())
 			{
-				same_primitives = false;
-				break;
+				// They are not the same, but see if we can convert them to their more generic form
+				if(!Primitive::TryConvertToMatchingGenericType(prims0[i], prims1[i]))
+				{
+					same_primitives = false;
+					break;
+				}
 			}
 		}
 		if (same_primitives)
@@ -171,24 +175,38 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 		std::vector<size_t> matching_indices; // Indices into 'big' for matching types
 		matching_indices.reserve(small.size() + 1);
 
-		size_t big_index = 0;
+		size_t i_big = 0;
 		bool match_success = true;
+		bool changed_big = false;
 
 		// Iterate through the small set to see if its types fit into the big set
-		for (size_t i = 0; i < small.size(); i++)
+		for (size_t i_small = 0; i_small < small.size(); i_small++)
 		{
-			auto small_type = small[i].primitive.index();
 			match_success = false;
+			auto small_type = small[i_small].primitive.index();
 
-			for (; big_index < big.size(); big_index++)
+			for (; i_big < big.size(); i_big++)
 			{
-				auto big_type = big[big_index].primitive.index();
+				auto big_type = big[i_big].primitive.index();
 
 				if (small_type == big_type)
 				{
-					matching_indices.push_back(big_index);
+					// Exact match
 					match_success = true;
-					big_index += 1;
+				}
+				else if (Primitive::TryConvertToMatchingGenericType(small[i_small], big[i_big]))
+				{
+					// They matched in their more generic form, one or both primitives converted
+					match_success = true;
+					if (big[i_big].primitive.index() != big_type)
+						changed_big = true;
+				}
+
+				if (match_success)
+				{
+					matching_indices.push_back(i_big);
+					match_success = true;
+					i_big += 1;
 					break;
 				}
 			}
@@ -216,6 +234,11 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 				// Next value to copy is one-past the matching primitive
 				i0 = match_index + 1;
 			}
+
+			// The small set has always been changed if we get here, but the big set is only changed
+			// if one or more of its primitives were converted to a general form.
+			if (changed_big)
+				return PrepareTransformResult::ChangedT0andT1;
 
 			return (prims0_smallest ? PrepareTransformResult::ChangedT0 : PrepareTransformResult::ChangedT1);
 		}
@@ -263,17 +286,49 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element)
 }
 
 
-
-bool ElementAnimation::AddKey(float time, const Property & property, Element& element)
+static bool TryMakeUnitValid(Variant& value)
 {
-	if (property.unit != property_unit)
-		return false;
-
-	keys.push_back({ time, property.value });
-
 	bool result = true;
 
-	if (property.unit == Property::TRANSFORM)
+	switch (value.GetType())
+	{
+	case Variant::FLOAT:
+	case Variant::COLOURB:
+	case Variant::TRANSFORMREF:
+		break;
+	default:
+	{
+		// Try to convert types to float so they can be interpolated
+		float f = 0.0f;
+		result = value.GetInto(f);
+		if (result) value.Reset(f);
+		break;
+	}
+	}
+	return result;
+}
+
+ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction)
+	: property_name(property_name), property_unit(current_value.unit), property_specificity(current_value.specificity),
+	duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
+	keys({ AnimationKey{0.0f, current_value.value, Tween{}} }),
+	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false)
+{
+	valid = TryMakeUnitValid(keys.back().value);
+}
+
+
+bool ElementAnimation::AddKey(float time, const Property & property, Element& element, Tween tween)
+{
+	if (property.unit != property_unit || !valid)
+		return false;
+
+	bool result = true;
+	keys.push_back({ time, property.value, tween });
+
+	result = TryMakeUnitValid(keys.back().value);
+
+	if (result && property.unit == Property::TRANSFORM)
 	{
 		for (auto& primitive : property.value.Get<TransformRef>()->GetPrimitives())
 		{
@@ -291,19 +346,18 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 	return result;
 }
 
-Property ElementAnimation::UpdateAndGetProperty(float time)
+Property ElementAnimation::UpdateAndGetProperty(float world_time)
 {
 	Property result;
 
-
 	//Log::Message(Log::LT_INFO, "Animation it = %d,  t_it = %f, rev = %d,  dt = %f", current_iteration, time_since_iteration_start, (int)reverse_direction, time - last_update_time);
 
-	if (animation_complete || time - last_update_time <= 0.0f)
+	if (animation_complete || !valid || world_time - last_update_world_time <= 0.0f)
 		return result;
 
-	const float dt = time - last_update_time;
+	const float dt = world_time - last_update_world_time;
 
-	last_update_time = time;
+	last_update_world_time = world_time;
 	time_since_iteration_start += dt;
 
 	if (time_since_iteration_start >= duration)
@@ -361,7 +415,7 @@ Property ElementAnimation::UpdateAndGetProperty(float time)
 			alpha = (t - t0) / (t1 - t0);
 	}
 
-	alpha = tween(alpha);
+	alpha = keys[key1].tween(alpha);
 
 	result.unit = property_unit;
 	result.specificity = property_specificity;

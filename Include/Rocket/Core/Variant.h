@@ -84,11 +84,36 @@ public:
 
 	/// Gets the current internal representation type.
 	/// @return The type of data stored in the variant internally.
-	Type GetType() const;
+	inline Type GetType() const;
 
 	/// Shares another variant's data with this variant.
 	/// @param[in] copy Variant to share data.
 	void Set(const Variant& copy);
+
+	/// Clear and set a new value to this variant.
+	/// @param[in] t New value to set.
+	template<typename T>
+	void Reset(const T& t);
+
+	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
+	/// internal representation to the requested representation.
+	/// @return Data in the requested type.
+	template< typename T >
+	T Get() const;
+
+	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
+	/// internal representation to the requested representation.
+	/// @param[out] value Data in the requested type.
+	/// @return True if the value was converted and returned, false if no data was stored in the variant.
+	template< typename T >
+	bool GetInto(T& value) const;
+
+	/// Assigns another variant's internal data to this variant.
+	/// @param[in] copy Variant to share data.
+	Variant& operator=(const Variant& copy);
+
+private:
+
 	/// Sets a byte value on this variant.
 	/// @param[in] value New value to set.
 	void Set(const byte value);
@@ -134,25 +159,6 @@ public:
 	/// Sets a script object value on this variant.
 	/// @param[in] value New value to set.
 	void Set(ScriptInterface* value);
-
-	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
-	/// internal representation to the requested representation.
-	/// @return Data in the requested type.
-	template< typename T >
-	T Get() const;
-
-	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
-	/// internal representation to the requested representation.
-	/// @param[out] value Data in the requested type.
-	/// @return True if the value was converted and returned, false if no data was stored in the variant.
-	template< typename T >
-	bool GetInto(T& value) const;
-
-	/// Assigns another variant's internal data to this variant.
-	/// @param[in] copy Variant to share data.
-	Variant& operator=(const Variant& copy);
-
-private:
 	
 #ifdef ROCKET_ARCH_64
 		static const int LOCAL_DATA_SIZE = 40; // Required for Strings

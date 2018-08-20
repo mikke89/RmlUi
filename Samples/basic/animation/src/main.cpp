@@ -38,7 +38,6 @@
 
 // Animations TODO:
 //  - Proper interpolation of full transform matrices (split into translate/rotate/skew/scale).
-//  - Support interpolation of primitive derivatives without going to full matrices.
 //  - Better error reporting when submitting invalid animations, check validity on add. Remove animation if invalid.
 //  - RCSS support? Both @keyframes and transition, maybe.
 //  - Profiling
@@ -54,37 +53,44 @@ public:
 		document = context->LoadDocument("basic/animation/data/animation.rml");
 		if (document != NULL)
 		{
-			document->GetElementById("title")->SetInnerRML(title);
-			document->SetProperty("left", Property(position.x, Property::PX));
-			document->SetProperty("top", Property(position.y, Property::PX));
-			document->Animate("opacity", Property(0.6f, Property::NUMBER), 0.5f, -1, true);
+			{
+				document->GetElementById("title")->SetInnerRML(title);
+				document->SetProperty("left", Property(position.x, Property::PX));
+				document->SetProperty("top", Property(position.y, Property::PX));
+				//document->Animate("opacity", Property(0.6f, Property::NUMBER), 0.5f, -1, true);
+			}
 
-			auto el = document->GetElementById("high_score");
-			el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, 10, true);
-			el->Animate("margin-left", Property(100.f, Property::PX), 0.6f);
 
-			//el = document->GetElementById("exit");
-			//el->Animate("margin-left", Property(100.f, Property::PX), 8.0f, -1, true);
+			{
+				auto el = document->GetElementById("start_game");
+				PropertyDictionary pd;
+				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(10)");
+				auto p = pd.GetProperty("transform");
+				el->Animate("transform", *p, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
 
-			el = document->GetElementById("start_game");
-			auto t0 = TransformRef{ new Transform };
-			auto v0 = Transforms::NumericValue(3.f, Property::NUMBER);
-			t0->AddPrimitive({ Transforms::Scale2D{ &v0 } });
-			//auto t1 = TransformRef{ new Transform };
-			//auto v1 = Transforms::NumericValue(370.f, Property::DEG);
-			//t1->AddPrimitive({ Transforms::Rotate2D{ &v1 } });
-			PropertyDictionary pd;
-			StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(370deg)");
-			auto p = pd.GetProperty("transform");
-			el->Animate("transform", *p, 1.8f, -1, true, Tween{ Tween::Elastic, Tween::In });
-			el->Animate("transform", Property(t0, Property::TRANSFORM), 1.3f, -1, true, Tween{ Tween::Cubic, Tween::In });
+				auto pp = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
+				el->Animate("transform", pp, 1.3f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
+			}
 
-			el = document->GetElementById("help");
-			el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, -1, false);
-			el->Animate("image-color", Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
-			el->Animate("image-color", Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
-			el->Animate("image-color", Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
-			el->Animate("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
+			//{
+			//	auto el = document->GetElementById("high_score");
+			//	el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, 10, true);
+			//	el->Animate("margin-left", Property(100.f, Property::PX), 0.6f);
+			//}
+
+			{
+				auto el = document->GetElementById("exit");
+				el->Animate("margin-left", Property(100.f, Property::PX), 1.0f, Tween{}, -1, true);
+			}
+
+			//{
+			//	auto el = document->GetElementById("help");
+			//	el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, -1, false);
+			//	el->Animate("image-color", Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
+			//	el->Animate("image-color", Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
+			//	el->Animate("image-color", Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
+			//	el->Animate("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
+			//}
 
 			document->Show();
 		}

@@ -39,6 +39,7 @@ namespace Core {
 struct AnimationKey {
 	float time;
 	Variant value;
+	Tween tween;  // Tweening between the previous and this key. Ignored for the first animation key.
 };
 
 
@@ -52,27 +53,22 @@ private:
 	float duration;           // for a single iteration
 	int num_iterations;       // -1 for infinity
 	bool alternate_direction; // between iterations
-	Tween tween;              // tweening for a single iteration
 
 	std::vector<AnimationKey> keys;
 
-	float last_update_time;
+	float last_update_world_time;
 	float time_since_iteration_start;
 	int current_iteration;
-	bool reverse_direction;  // if true, run time backwards
+	bool reverse_direction;
 
 	bool animation_complete;
+	bool valid;
 
 public:
 
-	ElementAnimation(const String& property_name, const Property& current_value, float time, float duration, int num_iterations, bool alternate_direction, Tween tween) 
-		: property_name(property_name), property_unit(current_value.unit), property_specificity(current_value.specificity), tween(tween),
-		duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction), 
-		keys({ AnimationKey{0.0f, current_value.value} }),
-		last_update_time(time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false) 
-	{}
+	ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction);
 
-	bool AddKey(float time, const Property& property, Element& element);
+	bool AddKey(float time, const Property& property, Element& element, Tween tween);
 
 	Property UpdateAndGetProperty(float time);
 
@@ -80,6 +76,7 @@ public:
 	float GetDuration() const { return duration; }
 	void SetDuration(float duration) { this->duration = duration; }
 	bool IsComplete() const { return animation_complete; }
+	bool IsValid() const { return valid; }
 };
 
 

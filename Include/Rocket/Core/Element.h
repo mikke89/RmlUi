@@ -214,16 +214,14 @@ public:
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);		
-	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
-	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle it is returned as degrees.
+	/// Resolves one of this element's properties. If the value is a number or px, this is returned. Angles are returned as radians.
+	/// Precentages are resolved based on the second argument (the base value).
 	/// @param[in] name The name of the property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
 	float ResolveProperty(const String& name, float base_value);
-	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. If it's a 
-	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle it is returned as degrees.
+	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. Angles are returned as radians.
+	/// Precentages are resolved based on the second argument (the base value).
 	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
@@ -292,10 +290,12 @@ public:
 	const Vector2f Project(const Vector2f& point) noexcept;
 
 	/// Start an animation of the given property on this element.
-	/// Currently, only float and Colourb property values are supported. If an animation of the same property name exists, the target value
-	/// and duration will be added as a new animation key, adding to its total duration. Then, num_iterations and alternate_direction will be ignored.
-	void Animate(const String& property_name, const Property& target_value, float duration, int num_iterations = 1, bool alternate_direction = false, Tween tween = Tween{});
-
+	/// Target values must have the same unit as the property set on this element. Keywords are not supported.
+	/// If an animation of the same property name exists, the target value and duration will be added as a new animation key, 
+	/// adding to its total duration. Then, num_iterations, alternate_direction and delay will be ignored.
+	/// @return True if a new animation or key was added.
+	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f);
+	
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
 	/// @param[out] pseudo_classes The pseudo-classes the property is defined by.

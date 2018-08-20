@@ -138,10 +138,8 @@ void Event::ProjectMouse(Element* element)
 		);
 		Vector2f mouse = element->Project(old_mouse);
 
-		//mouse_x->Set(int(mouse.x + 0.5f));
-		//mouse_y->Set(int(mouse.y + 0.5f));
-		mouse_x->Set(mouse.x);
-		mouse_y->Set(mouse.y);
+		mouse_x->Reset(mouse.x);
+		mouse_y->Reset(mouse.y);
 	}
 	else
 	{

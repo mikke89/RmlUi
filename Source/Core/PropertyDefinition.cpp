@@ -73,7 +73,7 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 		String unparsed_value = default_value.value.Get< String >();
 		if (!new_parser.parser->ParseValue(default_value, unparsed_value, new_parser.parameters))
 		{
-			default_value.value.Set(unparsed_value);
+			default_value.value.Reset(unparsed_value);
 			default_value.unit = Property::UNKNOWN;
 		}
 	}

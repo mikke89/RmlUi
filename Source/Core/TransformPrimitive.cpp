@@ -28,6 +28,7 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include <iostream>
+#include <unordered_map>
 
 namespace Rocket {
 namespace Core {
@@ -348,9 +349,15 @@ struct InterpolateVisitor
 		for (size_t i = 0; i < N; i++)
 			p0.values[i].number = p0.values[i].number*(1.0f - alpha) + p1.values[i].number * alpha;
 	}
-	//void Interpolate(Matrix3D& p0, Matrix3D& p1)
+	void Interpolate(Rotate3D& p0, const Rotate3D& p1)
+	{
+		// Assumes that the underlying direction vectors are normalized and equivalent (else, need to do full matrix interpolation)
+		p0.values[4] = p0.values[4] * (1.0f - alpha) + p1.values[4] * alpha;
+	}
+	//void Interpolate(Matrix3D& p0, const Matrix3D& p1)
 	//{
 	//	// Special interpolation for full matrices TODO
+	//  // Also, Matrix2d, Perspective, and conditionally Rotate3d get interpolated in this way
 	//}
 
 	template <typename T>
@@ -360,6 +367,7 @@ struct InterpolateVisitor
 		Interpolate(p0, p1);
 	}
 };
+
 
 bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 {
@@ -371,6 +379,62 @@ bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 	return true;
 }
 
+
+
+enum class GenericType { None, Scale3D, Translate3D };
+
+struct GetGenericTypeVisitor
+{
+	GenericType common_type = GenericType::None;
+
+	GenericType operator()(const TranslateX& p) { return GenericType::Translate3D; }
+	GenericType operator()(const TranslateY& p) { return GenericType::Translate3D; }
+	GenericType operator()(const TranslateZ& p) { return GenericType::Translate3D; }
+	GenericType operator()(const Translate2D& p) { return GenericType::Translate3D; }
+	GenericType operator()(const ScaleX& p) { return GenericType::Scale3D; }
+	GenericType operator()(const ScaleY& p) { return GenericType::Scale3D; }
+	GenericType operator()(const ScaleZ& p) { return GenericType::Scale3D; }
+	GenericType operator()(const Scale2D& p) { return GenericType::Scale3D; }
+
+	template <typename T>
+	GenericType operator()(const T& p) { return GenericType::None; }
+};
+
+
+struct ConvertToGenericTypeVisitor
+{
+	PrimitiveVariant operator()(const TranslateX& p) { return Translate3D{ p.values[0], {0.0f, Property::PX}, {0.0f, Property::PX} }; }
+	PrimitiveVariant operator()(const TranslateY& p) { return Translate3D{ {0.0f, Property::PX}, p.values[0], {0.0f, Property::PX} }; }
+	PrimitiveVariant operator()(const TranslateZ& p) { return Translate3D{ {0.0f, Property::PX}, {0.0f, Property::PX}, p.values[0] }; }
+	PrimitiveVariant operator()(const Translate2D& p) { return Translate3D{ p.values[0], p.values[1], {0.0f, Property::PX} }; }
+	PrimitiveVariant operator()(const ScaleX& p) { return Scale3D{ p.values[0], 1.0f, 1.0f }; }
+	PrimitiveVariant operator()(const ScaleY& p) { return Scale3D{  1.0f, p.values[0], 1.0f }; }
+	PrimitiveVariant operator()(const ScaleZ& p) { return Scale3D{  1.0f, 1.0f, p.values[0] }; }
+	PrimitiveVariant operator()(const Scale2D& p) { return Scale3D{ p.values[0], p.values[1], 1.0f }; }
+
+	template <typename T>
+	PrimitiveVariant operator()(const T& p) { ROCKET_ERROR; return p; }
+};
+
+
+
+bool Primitive::TryConvertToMatchingGenericType(Primitive & p0, Primitive & p1) noexcept
+{
+	if (p0.primitive.index() == p1.primitive.index())
+		return true;
+
+	GenericType c0 = std::visit(GetGenericTypeVisitor{}, p0.primitive);
+	GenericType c1 = std::visit(GetGenericTypeVisitor{}, p1.primitive);
+
+	if (c0 == c1 && c0 != GenericType::None)
+	{
+		p0.primitive = std::visit(ConvertToGenericTypeVisitor{}, p0.primitive);
+		p1.primitive = std::visit(ConvertToGenericTypeVisitor{}, p1.primitive);
+		return true;
+	}
+
+	return false;
+}
 
 struct ResolveUnitsVisitor
 {

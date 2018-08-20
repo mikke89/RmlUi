@@ -36,6 +36,7 @@ namespace Core {
 
 class ViewState;
 namespace Transforms { struct Primitive; }
+class Property;
 
 /**
 	The Transform class holds the information parsed from an element's
@@ -55,6 +56,12 @@ public:
 
 	/// Default constructor, initializes an identity transform
 	Transform();
+
+	/// Construct transform with a list of primitives
+	Transform(std::vector<Transforms::Primitive> primitives);
+
+	/// Helper function to create a Property with TransformRef from list of primitives
+	static Property MakeProperty(std::vector<Transforms::Primitive> primitives);
 
 	/// Copy constructor
 	Transform(const Transform& other);

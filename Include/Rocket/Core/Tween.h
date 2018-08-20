@@ -28,8 +28,6 @@
 #ifndef ROCKETCORETWEEN_H
 #define ROCKETCORETWEEN_H
 
-#include <functional>
-
 namespace Rocket {
 namespace Core {
 
@@ -37,23 +35,31 @@ namespace Core {
 class Tween {
 public:
 	enum Type { None, Back, Bounce, Circular, Cubic, Elastic, Exponential, Linear, Quadratic, Quartic, Quintic, Sine, Callback };
-	enum Direction { In, Out, InOut };
+	enum Direction { In = 1, Out = 2, InOut = 3 };
+	typedef float(*CallbackFnc)(float);
 
-	Tween(Type type = Linear, Direction direction = In) : type(type), direction(direction) {}
-	Tween(std::function<float(float)> callback, Direction direction = In) : type(Callback), direction(direction), callback(callback) {}
+	Tween(Type type = Linear, Direction direction = In) {
+		if (direction & In) type_in = type;
+		if (direction & Out) type_out = type;
+	}
+	Tween(Type type_in, Type type_out) : type_in(type_in), type_out(type_out) {}
+	Tween(CallbackFnc callback, Direction direction = In) : callback(callback) {
+		if (direction & In) type_in = Callback;
+		if (direction & Out) type_out = Callback;
+	}
 
 	float operator()(float t) const
 	{
-		if (type == None)
-			return t;
-
-		switch (direction)
+		if (type_in != None && type_out == None)
 		{
-		case In:
 			return in(t);
-		case Out:
+		}
+		if (type_in == None && type_out != None)
+		{
 			return out(t);
-		case InOut:
+		}
+		if (type_in != None && type_out != None)
+		{
 			return in_out(t);
 		}
 		return t;
@@ -119,7 +125,9 @@ public:
 
 
 private:
-	float in(float t) const
+
+
+	float tween(Type type, float t) const
 	{
 		switch (type)
 		{
@@ -146,29 +154,33 @@ private:
 		case Sine:
 			return sine(t);
 		case Callback:
-			if(callback(t))
-				return callback(t);
+			if (callback)
+				return (*callback)(t);
 			break;
 		}
 		return t;
 	}
+	float in(float t) const
+	{
+		return tween(type_in, t);
+	}
 	float out(float t) const
 	{
-		return 1.0f - in(1.0f - t);
+		return 1.0f - tween(type_out, 1.0f - t);
 	}
 	float in_out(float t) const
 	{
 		if (t < 0.5f)
-			return in(2.0f*t)*0.5f;
+			return tween(type_in, 2.0f*t)*0.5f;
 		else
 			return 0.5f + out(2.0f*t - 1.0f)*0.5f;
 	}
 
 	inline static float square(float t) { return t * t; }
 
-	Type type;
-	Direction direction;
-	std::function<float(float)> callback;
+	Type type_in = None;
+	Type type_out = None;
+	CallbackFnc callback = nullptr;
 };
 
 

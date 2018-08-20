@@ -81,8 +81,14 @@ struct ResolvedPrimitive
 		for (size_t i = 0; i < N; ++i)
 			this->values[i] = values[i].ResolveAbsoluteUnit(base_units[i]);
 	}
+	ResolvedPrimitive(std::array<NumericValue, N> values, std::array<Property::Unit, N> base_units) noexcept
+	{
+		for (size_t i = 0; i < N; ++i)
+			this->values[i] = values[i].ResolveAbsoluteUnit(base_units[i]);
+	}
+	ResolvedPrimitive(std::array<float, N> values) noexcept : values(values) { }
 	
-	float values[N];
+	std::array<float, N> values;
 };
 
 template< size_t N >
@@ -90,10 +96,12 @@ struct UnresolvedPrimitive
 {
 	UnresolvedPrimitive(const NumericValue* values) noexcept
 	{
-		memcpy(this->values, values, sizeof(this->values));
+		for (size_t i = 0; i < N; ++i)
+			this->values[i] = values[i];
 	}
+	UnresolvedPrimitive(std::array<NumericValue, N> values) noexcept : values(values) { }
 
-	NumericValue values[N];
+	std::array<NumericValue, N> values;
 };
 
 
@@ -114,91 +122,114 @@ struct Matrix3D : public ResolvedPrimitive< 16 >
 struct TranslateX : public UnresolvedPrimitive< 1 >
 {
 	TranslateX(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
+	TranslateX(float x, Property::Unit unit) noexcept : UnresolvedPrimitive({ NumericValue{x, unit} }) { }
 };
 
 struct TranslateY : public UnresolvedPrimitive< 1 >
 {
 	TranslateY(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
+	TranslateY(float y, Property::Unit unit) noexcept : UnresolvedPrimitive({ NumericValue(y, unit) }) { }
 };
 
 struct TranslateZ : public UnresolvedPrimitive< 1 >
 {
 	TranslateZ(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
+	TranslateZ(float z, Property::Unit unit) noexcept : UnresolvedPrimitive({ NumericValue(z, unit) }) { }
 };
 
 struct Translate2D : public UnresolvedPrimitive< 2 >
 {
 	Translate2D(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
+	Translate2D(float x, float y, Property::Unit units) noexcept : UnresolvedPrimitive({ NumericValue(x, units), NumericValue(y, units) }) { }
 };
 
 struct Translate3D : public UnresolvedPrimitive< 3 >
 {
 	Translate3D(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
+	Translate3D(NumericValue x, NumericValue y, NumericValue z) noexcept : UnresolvedPrimitive({ x, y, z }) { }
+	Translate3D(float x, float y, float z, Property::Unit units) noexcept : UnresolvedPrimitive({ NumericValue(x, units), NumericValue(y, units), NumericValue(z, units) }) { }
 };
 
 struct ScaleX : public ResolvedPrimitive< 1 >
 {
 	ScaleX(const NumericValue* values) noexcept : ResolvedPrimitive(values) { }
+	ScaleX(float value) noexcept : ResolvedPrimitive({ value }) { }
 };
 
 struct ScaleY : public ResolvedPrimitive< 1 >
 {
 	ScaleY(const NumericValue* values) noexcept : ResolvedPrimitive(values) { }
+	ScaleY(float value) noexcept : ResolvedPrimitive({ value }) { }
 };
 
 struct ScaleZ : public ResolvedPrimitive< 1 >
 {
 	ScaleZ(const NumericValue* values) noexcept : ResolvedPrimitive(values) { }
+	ScaleZ(float value) noexcept : ResolvedPrimitive({ value }) { }
 };
 
 struct Scale2D : public ResolvedPrimitive< 2 >
 {
 	Scale2D(const NumericValue* values) noexcept : ResolvedPrimitive(values) { }
+	Scale2D(float xy) noexcept : ResolvedPrimitive({ xy, xy }) { }
+	Scale2D(float x, float y) noexcept : ResolvedPrimitive({ x, y }) { }
 };
 
 struct Scale3D : public ResolvedPrimitive< 3 >
 {
 	Scale3D(const NumericValue* values) noexcept : ResolvedPrimitive(values) { }
+	Scale3D(float xyz) noexcept : ResolvedPrimitive({ xyz, xyz, xyz }) { }
+	Scale3D(float x, float y, float z) noexcept : ResolvedPrimitive({ x, y, z }) { }
 };
 
 struct RotateX : public ResolvedPrimitive< 1 >
 {
 	RotateX(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::RAD }) { }
+	RotateX(float angle, Property::Unit unit = Property::DEG) noexcept : ResolvedPrimitive({ NumericValue{ angle, unit } }, { Property::RAD }) { }
 };
 
 struct RotateY : public ResolvedPrimitive< 1 >
 {
 	RotateY(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::RAD }) {}
+	RotateY(float angle, Property::Unit unit = Property::DEG) noexcept : ResolvedPrimitive({ NumericValue{ angle, unit } }, { Property::RAD }) { }
 };
 
 struct RotateZ : public ResolvedPrimitive< 1 >
 {
 	RotateZ(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::RAD }) { }
+	RotateZ(float angle, Property::Unit unit = Property::DEG) noexcept : ResolvedPrimitive({ NumericValue{ angle, unit } }, { Property::RAD }) { }
 };
 
 struct Rotate2D : public ResolvedPrimitive< 1 >
 {
 	Rotate2D(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::RAD }) { }
+	Rotate2D(float angle, Property::Unit unit = Property::DEG) noexcept : ResolvedPrimitive({ NumericValue{ angle, unit } }, { Property::RAD }) { }
 };
 
 struct Rotate3D : public ResolvedPrimitive< 4 >
 {
 	Rotate3D(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::NUMBER, Property::NUMBER, Property::NUMBER, Property::RAD }) { }
+	Rotate3D(float x, float y, float z, float angle_rad, Property::Unit angle_unit = Property::DEG) noexcept
+		: ResolvedPrimitive({ NumericValue{x, Property::NUMBER}, NumericValue{x, Property::NUMBER}, NumericValue{x, Property::NUMBER}, NumericValue{x, angle_unit} },
+			{ Property::NUMBER, Property::NUMBER, Property::NUMBER, Property::RAD }) { }
 };
 
 struct SkewX : public ResolvedPrimitive< 1 >
 {
 	SkewX(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::RAD }) { }
+	SkewX(float angle, Property::Unit unit = Property::DEG) noexcept : ResolvedPrimitive({ NumericValue{ angle, unit } }, { Property::RAD }) { }
 };
 
 struct SkewY : public ResolvedPrimitive< 1 >
 {
 	SkewY(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::RAD }) { }
+	SkewY(float angle, Property::Unit unit = Property::DEG) noexcept : ResolvedPrimitive({ NumericValue{ angle, unit } }, { Property::RAD }) { }
 };
 
 struct Skew2D : public ResolvedPrimitive< 2 >
 {
 	Skew2D(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::RAD, Property::RAD }) { }
+	Skew2D(float x, float y, Property::Unit unit = Property::DEG) noexcept : ResolvedPrimitive({NumericValue{ x, unit }, { NumericValue{ y, unit }}}, {Property::RAD, Property::RAD}) { }
 };
 
 struct Perspective : public UnresolvedPrimitive< 1 >
@@ -230,11 +261,17 @@ struct Primitive
 {
 	PrimitiveVariant primitive;
 
+	template<typename PrimitiveType>
+	Primitive(PrimitiveType primitive) : primitive(primitive) {}
+
 	bool ResolveTransform(Matrix4f& m, Element& e) const noexcept;
 	bool ResolvePerspective(float &p, Element& e) const noexcept;
 	
 	// Promote units to basic types which can be interpolated, that is, convert 'length -> pixel' for unresolved primitives.
 	bool ResolveUnits(Element& e) noexcept;
+
+
+	static bool TryConvertToMatchingGenericType(Primitive& p0, Primitive& p1) noexcept;
 
 	bool InterpolateWith(const Primitive& other, float alpha) noexcept;
 	void SetIdentity() noexcept;

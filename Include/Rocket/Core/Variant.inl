@@ -25,11 +25,25 @@
  *
  */
 
+
+inline Variant::Type Variant::GetType() const
+{
+	return type;
+}
+
 // Constructs a variant with internal data.
 template< typename T >
 Variant::Variant(const T& t) : type(NONE)
 {
 	Set( t );
+}
+
+// Clear and set new value
+template< typename T >
+void Variant::Reset(const T& t)
+{
+	Clear();
+	Set(t);
 }
 
 // Templatised data accessor.

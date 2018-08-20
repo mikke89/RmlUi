@@ -107,14 +107,14 @@ public:
 	const Property* GetLocalProperty(const String& name);
 	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle, it is returned as degrees.
+	/// If it's an angle, it is returned as radians.
 	/// @param[in] property Property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
 	float ResolveProperty(const Property *property, float base_value);
 	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle, it is returned as degrees.
+	/// If it's an angle, it is returned as radians.
 	/// @param[in] name The name of the property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.

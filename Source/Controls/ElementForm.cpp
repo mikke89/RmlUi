@@ -81,7 +81,7 @@ void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::S
 		// If the item already exists, append to it.
 		Rocket::Core::Variant* value = values.Get(control_name);
 		if (value != NULL)
-			value->Set(value->Get< Rocket::Core::String >() + ", " + control_value);
+			value->Reset(value->Get< Rocket::Core::String >() + ", " + control_value);
 		else
 			values.Set< Rocket::Core::String >(control_name, control_value);					
 	}

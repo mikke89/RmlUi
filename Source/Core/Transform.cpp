@@ -29,6 +29,7 @@
 #include "../../Include/Rocket/Core/Transform.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include "../../Include/Rocket/Core/ViewState.h"
+#include "../../Include/Rocket/Core/Property.h"
 
 namespace Rocket {
 namespace Core {
@@ -37,6 +38,16 @@ namespace Core {
 Transform::Transform()
 	: primitives()
 {
+}
+
+Transform::Transform(std::vector<Transforms::Primitive> primitives) 
+	: primitives(primitives)
+{
+}
+
+Property Transform::MakeProperty(std::vector<Transforms::Primitive> primitives)
+{
+	return Property{ TransformRef{new Transform{primitives}}, Property::TRANSFORM };
 }
 
 Transform::Transform(const Transform& other)

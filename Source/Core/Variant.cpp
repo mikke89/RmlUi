@@ -76,10 +76,7 @@ void Variant::Clear()
 	type = NONE;
 }
 
-Variant::Type Variant::GetType() const
-{
-	return type;
-}
+
 
 //////////////////////////////////////////////////
 // Set methods

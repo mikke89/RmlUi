@@ -889,8 +889,11 @@ const Vector2f Element::Project(const Vector2f& point) noexcept
 	}
 }
 
-void Element::Animate(const String & property_name, const Property & target_value, float duration, int num_iterations, bool alternate_direction, Tween tween)
+bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay)
 {
+	if (delay < 0.0f)
+		return false;
+
 	ElementAnimation* animation = nullptr;
 
 	for (auto& existing_animation : animations)
@@ -906,13 +909,20 @@ void Element::Animate(const String & property_name, const Property & target_valu
 
 	if (!animation)
 	{
-		float time = Clock::GetElapsedTime();
+		float start_time = Clock::GetElapsedTime() + delay;
 		const Property* property = GetProperty(property_name);
-		if (!property) return;
+		if (!property) 
+			return false;
 
-		ElementAnimation new_animation{ property_name, *property, time, duration, num_iterations, alternate_direction, tween };
-		animations.push_back(new_animation);
+		animations.push_back(
+			ElementAnimation{ property_name, *property, start_time, duration, num_iterations, alternate_direction }
+		);
 		animation = &animations.back();
+		if(!animation->IsValid())
+		{
+			animations.pop_back();
+			animation = nullptr;
+		}
 	}
 	else
 	{
@@ -920,7 +930,14 @@ void Element::Animate(const String & property_name, const Property & target_valu
 		animation->SetDuration(target_time);
 	}
 
-	animation->AddKey(target_time, target_value, *this);
+	bool result = false;
+
+	if(animation)
+	{
+		result = animation->AddKey(target_time, target_value, *this, tween);
+	}
+	
+	return result;
 }
 
 // Iterates over the properties defined on this element.
