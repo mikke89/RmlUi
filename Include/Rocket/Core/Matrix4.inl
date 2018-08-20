@@ -309,6 +309,51 @@ bool Matrix4< Component, Storage >::Invert() noexcept
 	return true;
 }
 
+
+
+
+template<typename Component, class Storage>
+inline float Rocket::Core::Matrix4<Component, Storage>::Determinant() const noexcept
+{
+	const Component *src = data();
+	float diag[4]; // Diagonal elements of the matrix inverse (see Invert)
+
+	diag[0] = src[5] * src[10] * src[15] -
+		src[5] * src[11] * src[14] -
+		src[9] * src[6] * src[15] +
+		src[9] * src[7] * src[14] +
+		src[13] * src[6] * src[11] -
+		src[13] * src[7] * src[10];
+
+	diag[1] = -src[4] * src[10] * src[15] +
+		src[4] * src[11] * src[14] +
+		src[8] * src[6] * src[15] -
+		src[8] * src[7] * src[14] -
+		src[12] * src[6] * src[11] +
+		src[12] * src[7] * src[10];
+
+	diag[2] = src[4] * src[9] * src[15] -
+		src[4] * src[11] * src[13] -
+		src[8] * src[5] * src[15] +
+		src[8] * src[7] * src[13] +
+		src[12] * src[5] * src[11] -
+		src[12] * src[7] * src[9];
+
+	diag[3] = -src[4] * src[9] * src[14] +
+		src[4] * src[10] * src[13] +
+		src[8] * src[5] * src[14] -
+		src[8] * src[6] * src[13] -
+		src[12] * src[5] * src[10] +
+		src[12] * src[6] * src[9];
+
+	float det = src[0] * diag[0] + \
+		src[1] * diag[1] + \
+		src[2] * diag[2] + \
+		src[3] * diag[3];
+
+	return det;
+}
+
 // Returns the negation of this matrix.
 template< typename Component, class Storage >
 typename Matrix4< Component, Storage >::ThisType Matrix4< Component, Storage >::operator-() const noexcept
@@ -627,6 +672,60 @@ template< typename Component, class Storage>
 Matrix4< Component, Storage > Matrix4< Component, Storage >::SkewY(Component angle) noexcept
 {
 	return Skew(0, angle);
+}
+
+template<typename Component, class Storage>
+Matrix4< Component, Storage > Rocket::Core::Matrix4<Component, Storage>::Compose(const Vector3<Component>& translation,
+	const Vector3<Component>& scale, const Vector3<Component>& skew, const Vector4<Component>& perspective,
+	const Vector4<Component>& quaternion) noexcept
+{
+	ThisType matrix = ThisType::Identity();
+
+	for (int i = 0; i < 4; i++)
+		matrix[i][3] = perspective[i];
+
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 3; j++)
+			matrix[3][i] += translation[j] * matrix[j][i];
+	
+	float x = quaternion.x;
+	float y = quaternion.y;
+	float z = quaternion.z;
+	float w = quaternion.w;
+
+	ThisType rotation = Matrix4< Component, Storage >::FromRows(
+		VectorType(1.f - 2.f * (y*y + z * z), 2.f*(x*y - z * w), 2.f*(x*z + y * w), 0.f),
+		VectorType(2.f * (x * y + z * w), 1.f - 2.f * (x * x + z * z), 2.f * (y * z - x * w), 0.f),
+		VectorType(2.f * (x * z - y * w), 2.f * (y * z + x * w), 1.f - 2.f * (x * x + y * y), 0.f),
+		VectorType(0, 0, 0, 1)
+	);
+
+	matrix *= rotation;
+
+	ThisType temp = ThisType::Identity();
+	if(skew[2])
+	{
+		temp[2][1] = skew[2];
+		matrix *= temp;
+	}
+	if (skew[1])
+	{
+		temp[2][1] = 0;
+		temp[2][0] = skew[1];
+		matrix *= temp;
+	}
+	if (skew[0])
+	{
+		temp[2][0] = 0;
+		temp[1][0] = skew[0];
+		matrix *= temp;
+	}
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 4; j++)
+			matrix[i][j] *= scale[i];
+
+	return matrix;
 }
 
 template< typename Component, class Storage >

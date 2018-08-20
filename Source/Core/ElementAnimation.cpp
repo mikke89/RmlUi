@@ -122,6 +122,28 @@ static Variant InterpolateValues(const Variant & v0, const Variant & v1, float a
 	return v0;
 }
 
+bool CombineAndDecompose(Transform& t, Element& e)
+{
+	Matrix4f m = Matrix4f::Identity();
+
+	for (auto& primitive : t.GetPrimitives())
+	{
+		Matrix4f m_primitive;
+		if (primitive.ResolveTransform(m_primitive, e))
+			m *= m_primitive;
+	}
+
+	Transforms::DecomposedMatrix4 decomposed;
+
+	if (!decomposed.Decompose(m))
+		return false;
+
+	t.ClearPrimitives();
+	t.AddPrimitive(decomposed);
+
+	return true;
+}
+
 
 
 enum class PrepareTransformResult { Unchanged = 0, ChangedT0 = 1, ChangedT1 = 2, ChangedT0andT1 = 3, Invalid = 4 };
@@ -130,9 +152,8 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 {
 	using namespace Transforms;
 
-	// Insert missing primitives into transform
-	// See e.g. https://drafts.csswg.org/css-transforms-1/#interpolation-of-transforms for inspiration
-
+	// Insert or modify primitives such that the two transforms match exactly in both number of and types of primitives.
+	// Based largely on https://drafts.csswg.org/css-transforms-1/#interpolation-of-transforms
 
 	auto& prims0 = t0.GetPrimitives();
 	auto& prims1 = t1.GetPrimitives();
@@ -140,21 +161,28 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 	// Check for trivial case where they contain the same primitives
 	if (prims0.size() == prims1.size())
 	{
+		PrepareTransformResult result = PrepareTransformResult::Unchanged;
 		bool same_primitives = true;
 		for (size_t i = 0; i < prims0.size(); i++)
 		{
-			if (prims0[i].primitive.index() != prims1[i].primitive.index())
+			auto p0_type = prims0[i].primitive.index();
+			auto p1_type = prims1[i].primitive.index();
+			if (p0_type != p1_type)
 			{
 				// They are not the same, but see if we can convert them to their more generic form
-				if(!Primitive::TryConvertToMatchingGenericType(prims0[i], prims1[i]))
+				if (!Primitive::TryConvertToMatchingGenericType(prims0[i], prims1[i]))
 				{
 					same_primitives = false;
 					break;
 				}
+				if (prims0[i].primitive.index() != p0_type)
+					(int&)result |= (int)PrepareTransformResult::ChangedT0;
+				if (prims1[i].primitive.index() != p1_type)
+					(int&)result |= (int)PrepareTransformResult::ChangedT1;
 			}
 		}
 		if (same_primitives)
-			return PrepareTransformResult::Unchanged;
+			return result;
 	}
 
 	if (prims0.size() != prims1.size())
@@ -246,35 +274,52 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 
 
 	// If we get here, things get tricky. Need to do full matrix interpolation.
-	// We resolve the full transform here. This is not entirely correct if the elements box size changes
-	// during the animation. Ideally, we would resolve it during each iteration.
-	// For performance: We could also consider breaking up the transforms into their interpolating primitives (translate, rotate, skew, scale) here,
-	// instead of doing this every animation tick.
-	for(Transform* t : {&t0, &t1})
+	// In short, we decompose here the Transforms into translation, rotation, scale, skew and perspective components. 
+	// Then, during update, interpolate these components and combine into a new transform matrix.
+	if constexpr(true)
 	{
-		Matrix4f transform_value = Matrix4f::Identity();
-		for (const auto& primitive : t->GetPrimitives())
+		if (!CombineAndDecompose(t0, element))
+			return PrepareTransformResult::Invalid;
+		if (!CombineAndDecompose(t1, element))
+			return PrepareTransformResult::Invalid;
+	}
+	else
+	{
+		// Bad "flat" matrix interpolation
+		for (Transform* t : { &t0, &t1 })
 		{
-			Matrix4f m;
-			if (primitive.ResolveTransform(m, element))
-				transform_value *= m;
+			Matrix4f transform_value = Matrix4f::Identity();
+			for (const auto& primitive : t->GetPrimitives())
+			{
+				Matrix4f m;
+				if (primitive.ResolveTransform(m, element))
+					transform_value *= m;
+			}
+			t->ClearPrimitives();
+			t->AddPrimitive({ Matrix3D{transform_value} });
 		}
-		t->ClearPrimitives();
-		t->AddPrimitive({ Matrix3D{transform_value} });
 	}
 
 	return PrepareTransformResult::ChangedT0andT1;
 }
 
 
-static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element)
+static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element, int start_index)
 {
-	for (int i = 1; i < (int)keys.size();)
+	int count_iterations = -1;
+	const int max_iterations = 3 * (int)keys.size();
+	if (start_index < 1) start_index = 1;
+
+	// For each pair of keys, match the transform primitives such that they can be interpolated during animation update
+	for (int i = start_index; i < (int)keys.size() && count_iterations < max_iterations; count_iterations++)
 	{
 		auto& ref0 = keys[i - 1].value.Get<TransformRef>();
 		auto& ref1 = keys[i].value.Get<TransformRef>();
 
 		auto result = PrepareTransformPair(*ref0, *ref1, element);
+
+		if (result == PrepareTransformResult::Invalid)
+			return false;
 
 		bool changed_t0 = (result == PrepareTransformResult::ChangedT0 || result == PrepareTransformResult::ChangedT0andT1);
 		if (changed_t0 && i > 1)
@@ -282,7 +327,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element)
 		else
 			++i;
 	}
-	return true;
+	return (count_iterations < max_iterations);
 }
 
 
@@ -337,7 +382,7 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 		}
 
 		if (result)
-			result = PrepareTransforms(keys, element);
+			result = PrepareTransforms(keys, element, (int)keys.size() - 1);
 	}
 
 	if (!result)
@@ -349,8 +394,6 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 Property ElementAnimation::UpdateAndGetProperty(float world_time)
 {
 	Property result;
-
-	//Log::Message(Log::LT_INFO, "Animation it = %d,  t_it = %f, rev = %d,  dt = %f", current_iteration, time_since_iteration_start, (int)reverse_direction, time - last_update_time);
 
 	if (animation_complete || !valid || world_time - last_update_world_time <= 0.0f)
 		return result;
@@ -413,6 +456,8 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time)
 
 		if (t1 - t0 > eps)
 			alpha = (t - t0) / (t1 - t0);
+
+		alpha = Math::Clamp(alpha, 0.0f, 1.0f);
 	}
 
 	alpha = keys[key1].tween(alpha);

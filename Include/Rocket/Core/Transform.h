@@ -62,7 +62,7 @@ public:
 
 	/// Helper function to create a Property with TransformRef from list of primitives
 	static Property MakeProperty(std::vector<Transforms::Primitive> primitives);
-
+	
 	/// Copy constructor
 	Transform(const Transform& other);
 

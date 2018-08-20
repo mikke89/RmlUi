@@ -353,6 +353,10 @@ class Matrix4
 		/// @return true, if the inversion succeeded.
 		bool Invert() noexcept;
 
+		/// Inverts this matrix in place, if possible.
+		/// @return true, if the inversion succeeded.
+		float Determinant() const noexcept;
+
 		/// Returns the negation of this matrix.
 		/// @return The negation of this matrix.
 		ThisType operator-() const noexcept;
@@ -375,6 +379,9 @@ class Matrix4
 		/// @param[in] other The value to divide this matrix's components by.
 		/// @return This matrix, post-operation.
 		const ThisType& operator/=(Component other) noexcept;
+
+		inline const VectorType& operator[](size_t i) const noexcept { return vectors[i]; }
+		inline VectorType& operator[](size_t i) noexcept { return vectors[i]; }
 
 		/// Returns the sum of this matrix and another.
 		/// @param[in] other The matrix to add this to.
@@ -486,6 +493,10 @@ class Matrix4
 		static ThisType Skew (Component angle_x, Component angle_y) noexcept;
 		static ThisType SkewX (Component angle) noexcept;
 		static ThisType SkewY (Component angle) noexcept;
+
+		static ThisType Compose(const Vector3< Component >& translation, const Vector3< Component >& scale,
+			const Vector3< Component >& skew, const Vector4< Component >& perspective, const Vector4< Component >& quaternion) noexcept;
+
 };
 }
 }

@@ -586,6 +586,8 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install sample shell library
     add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
+	set_property(TARGET shell PROPERTY CXX_STANDARD 17)
+	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
     if (APPLE)
     	# We only support i386 for the samples as it still uses Carbon
     	set_target_properties(shell PROPERTIES OSX_ARCHITECTURES "i386;")

@@ -245,6 +245,11 @@ struct ResolveTransformVisitor
 		return true;
 	}
 
+	bool operator()(const DecomposedMatrix4& p)
+	{
+		m = Matrix4f::Compose(p.translation, p.scale, p.skew, p.perspective, p.quaternion);
+		return true;
+	}
 	bool operator()(const Perspective& p)
 	{
 		return false;
@@ -252,6 +257,31 @@ struct ResolveTransformVisitor
 
 };
 
+
+
+
+
+bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const noexcept
+{
+	ResolveTransformVisitor visitor{ m, e };
+
+	bool result = std::visit(visitor, primitive);
+
+	return result;
+}
+
+bool Primitive::ResolvePerspective(float & p, Element & e) const noexcept
+{
+	bool result = false;
+
+	if (const Perspective* perspective = std::get_if<Perspective>(&primitive))
+	{
+		p = perspective->values[0].ResolveDepth(e);
+		result = true;
+	}
+
+	return result;
+}
 
 
 struct SetIdentityVisitor
@@ -298,6 +328,14 @@ struct SetIdentityVisitor
 	{
 		p.values[0] = p.values[1] = p.values[2] = 1;
 	}
+	void operator()(DecomposedMatrix4& p)
+	{
+		p.perspective = Vector4f(0, 0, 0, 1);
+		p.quaternion = Vector4f(0, 0, 0, 1);
+		p.translation = Vector3f(0, 0, 0);
+		p.scale = Vector3f(1, 1, 1);
+		p.skew = Vector3f(0, 0, 0);
+	}
 };
 
 
@@ -306,30 +344,29 @@ void Primitive::SetIdentity() noexcept
 	std::visit(SetIdentityVisitor{}, primitive);
 }
 
-
-bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const noexcept
+// Interpolate two quaternions a, b with the factor alpha
+static Vector4f QuaternionSlerp(const Vector4f& a, const Vector4f& b, float alpha)
 {
-	ResolveTransformVisitor visitor{ m, e };
+	using namespace Math;
 
-	bool result = std::visit(visitor, primitive);
+	float dot = a.DotProduct(b);
+	dot = Clamp(dot, -1.f, 1.f);
+	
+	if (dot == 1)
+		return a;
 
-	return result;
-}
+	float theta = ACos(dot);
+	float w = Sin(alpha * theta) / SquareRoot(1.f - dot * dot);
+	float a_scale = Cos(alpha*theta) - dot * w;
 
-bool Primitive::ResolvePerspective(float & p, Element & e) const noexcept
-{
-	bool result = false;
-
-	if (const Perspective* perspective = std::get_if<Perspective>(&primitive))
+	Vector4f result;
+	for (int i = 0; i < 4; i++)
 	{
-		p = perspective->values[0].ResolveDepth(e);
-		result = true;
+		result[i] = a[i] * a_scale + b[i] * w;
 	}
 
 	return result;
 }
-
-
 
 struct InterpolateVisitor
 {
@@ -359,6 +396,15 @@ struct InterpolateVisitor
 	//	// Special interpolation for full matrices TODO
 	//  // Also, Matrix2d, Perspective, and conditionally Rotate3d get interpolated in this way
 	//}
+
+	void Interpolate(DecomposedMatrix4& p0, const DecomposedMatrix4& p1)
+	{
+		p0.perspective = p0.perspective * (1.0f - alpha) + p1.perspective * alpha;
+		p0.quaternion = QuaternionSlerp(p0.quaternion, p1.quaternion, alpha);
+		p0.translation = p0.translation * (1.0f - alpha) + p1.translation * alpha;
+		p0.scale = p0.scale* (1.0f - alpha) + p1.scale* alpha;
+		p0.skew = p0.skew* (1.0f - alpha) + p1.skew* alpha;
+	}
 
 	template <typename T>
 	void operator()(T& p0)
@@ -474,6 +520,10 @@ struct ResolveUnitsVisitor
 		// No conversion needed for resolved transforms
 		return true;
 	}
+	bool operator()(DecomposedMatrix4& p)
+	{
+		return true;
+	}
 	bool operator()(Perspective& p)
 	{
 		// Perspective is special and not used for transform animations, ignore.
@@ -488,7 +538,105 @@ bool Primitive::ResolveUnits(Element & e) noexcept
 }
 
 
+static Vector3f Combine(const Vector3f& a, const Vector3f& b, float a_scale, float b_scale)
+{
+	Vector3f result;
+	result.x = a_scale * a.x + b_scale * b.x;
+	result.y = a_scale * a.y + b_scale * b.y;
+	result.z = a_scale * a.z + b_scale * b.z;
+	return result;
+}
 
+
+
+bool DecomposedMatrix4::Decompose(const Matrix4f & m)
+{
+	// Follows the procedure given in https://drafts.csswg.org/css-transforms-2/#interpolation-of-3d-matrices
+
+	if (m[3][3] == 0)
+		return false;
+
+	// Perspective matrix
+	Matrix4f p = m;
+
+	for (int i = 0; i < 3; i++)
+		p[i][3] = 0;
+	p[3][3] = 1;
+
+	if (p.Determinant() == 0)
+		return false;
+
+	if (m[0][3] != 0 || m[1][3] != 0 || m[2][3] != 0)
+	{
+		auto rhs = m.GetColumn(3);
+		Matrix4f p_inv = p;
+		if (!p_inv.Invert())
+			return false;
+		auto& p_inv_trans = p.Transpose();
+		perspective = p_inv_trans * rhs;
+	}
+	else
+	{
+		perspective[0] = perspective[1] = perspective[2] = 0;
+		perspective[3] = 1;
+	}
+
+	for (int i = 0; i < 3; i++)
+		translation[i] = m[3][i];
+
+	Vector3f row[3];
+	for (int i = 0; i < 3; i++)
+	{
+		row[i][0] = m[i][0];
+		row[i][1] = m[i][1];
+		row[i][2] = m[i][2];
+	}
+
+	scale[0] = row[0].Magnitude();
+	row[0] = row[0].Normalise();
+
+	skew[0] = row[0].DotProduct(row[1]);
+	row[1] = Combine(row[1], row[0], 1, -skew[0]);
+
+	scale[1] = row[1].Magnitude();
+	row[1] = row[1].Normalise();
+	skew[0] /= scale[1];
+
+	skew[1] = row[0].DotProduct(row[2]);
+	row[2] = Combine(row[2], row[0], 1, -skew[1]);
+	skew[2] = row[1].DotProduct(row[2]);
+	row[2] = Combine(row[2], row[1], 1, -skew[2]);
+
+	scale[2] = row[2].Magnitude();
+	row[2] = row[2].Normalise();
+	skew[1] /= scale[2];
+	skew[2] /= scale[2];
+
+	// Check if we need to flip coordinate system
+	auto pdum3 = row[1].CrossProduct(row[2]);
+	if (row[0].DotProduct(pdum3) < 0.0f)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			scale[i] *= -1.f;
+			row[i] *= -1.f;
+		}
+	}
+
+	quaternion[0] = 0.5f * Math::SquareRoot(Math::Max(1.f + row[0][0] - row[1][1] - row[2][2], 0.0f));
+	quaternion[1] = 0.5f * Math::SquareRoot(Math::Max(1.f - row[0][0] + row[1][1] - row[2][2], 0.0f));
+	quaternion[2] = 0.5f * Math::SquareRoot(Math::Max(1.f - row[0][0] - row[1][1] + row[2][2], 0.0f));
+	quaternion[3] = 0.5f * Math::SquareRoot(Math::Max(1.f + row[0][0] + row[1][1] + row[2][2], 0.0f));
+
+	if (row[2][1] > row[1][2])
+		quaternion[0] *= -1.f;
+	if (row[0][2] > row[2][0])
+		quaternion[1] *= -1.f;
+	if (row[1][0] > row[0][1])
+		quaternion[2] *= -1.f;
+
+	return true;
+}
 
 }
 }

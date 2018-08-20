@@ -70,6 +70,7 @@ typedef unsigned __int64 uint64_t;
 #include "Matrix4.h"
 #include "String.h"
 #include "Reference.h"
+#include "Transform.h"
 
 namespace Rocket {
 namespace Core {
@@ -105,17 +106,9 @@ typedef std::set< String > PropertyNameList;
 typedef std::set< String > AttributeNameList;
 typedef Dictionary ElementAttributes;
 typedef std::vector< ElementAnimation > ElementAnimationList;
-}
-}
-
-#include <Rocket/Core/Transform.h>
-
-namespace Rocket {
-namespace Core {
 
 // Reference types
 typedef SharedReference< Transform > TransformRef;
-
 }
 }
 

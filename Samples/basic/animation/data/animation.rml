@@ -3,12 +3,17 @@
 	<link type="text/template" href="../../../assets/window.rml"/>
 	<title>Animation Sample</title>
 	<style>
-		body
+		body.window
 		{
-			width: 350px;
-			height: 300px;
+			max-width: 2000px;
+			max-height: 2000px;
+			width: 1400px;
+			height: 750px;
+			perspective: 3000px;
 		}
-
+		button {
+			margin-top: 50px;
+		}
 		div#title_bar div#icon
 		{
 			display: none;
@@ -22,22 +27,63 @@
 		
 		#start_game 
 		{
-			opacity: 0.5;
+			opacity: 0.8;
 			transform: rotate(-350) translateX(100) scale(1.2);
 			transform-origin: 30% 80% 0;
 		}
 
-		#high_score {
+		#high_scores {
 			margin-left: -100px;
+		}
+		#exit {
+			transform: rotate(45deg);
+		}
+		
+		#transform_tests div.container
+		{
+			margin-top: 15px;
+			width: 100%;
+			height: 200px;
+			background-color: #ae8484aa;
+		}
+		#transform_tests div.plain
+		{
+			font-size: 1.2em;
+			padding: 10px;
+			margin: auto;
+			width: 130px;
+			height: 70px;
+			background-color: #c66;
+		}
+		#transform_tests div.plain:hover { background-color: #ddb700; }
+		#generic {
+			transform: translateX(100) rotateZ(90);
+		}
+		#combine {
+			transform: rotate(45deg);
+		}
+		#decomposition {
+			/* The scale(1.0) should force a full matrix recomposition when interpolating,
+			   then, the information about multiple turns get lost and it only turns 45deg. */
+			transform: rotate(45deg) scale(1.0);
 		}
 	</style>
 </head>
 
 <body template="window">
+<div style="width: 45%; height: 80%; position: absolute;">
 	<button id="start_game">Start Game</button><br />
-	<button id="high_score" onkeydown="hello">High Scores</button><br />
+	<button id="high_scores" onkeydown="hello">High Scores</button><br />
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
 	<button id="exit" onclick="exit">Exit</button>
+</div>
+<div style="width: 35%; height: 80%;position: absolute; left: 60%;" id="transform_tests">
+	<div style="font-size: 1.5em; text-align: left;">Test transform animations</div>
+	<div class="container"><div class="plain" id="generic">Generic form conversion.</div></div>
+	<div class="container"><div class="plain" id="combine">Match different transform primitive sizes</div></div>
+	<div class="container"><div class="plain" id="decomposition">Force full matrix decomposition</div></div>
+</div>
+
 </body>
 </rml>

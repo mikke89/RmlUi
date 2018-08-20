@@ -37,8 +37,8 @@
 
 
 // Animations TODO:
-//  - Proper interpolation of full transform matrices (split into translate/rotate/skew/scale).
-//  - Better error reporting when submitting invalid animations, check validity on add. Remove animation if invalid.
+//  - Some primitives should be converted to DecomposedMatrix4 when adding key: Matrix3d, Matrix2d, Perspective.
+//  - Update transform animations / resolve keys again when parent box size changes.
 //  - RCSS support? Both @keyframes and transition, maybe.
 //  - Profiling
 //  - [offtopic] Improve performance of transform parser (hashtable)
@@ -57,40 +57,60 @@ public:
 				document->GetElementById("title")->SetInnerRML(title);
 				document->SetProperty("left", Property(position.x, Property::PX));
 				document->SetProperty("top", Property(position.y, Property::PX));
-				//document->Animate("opacity", Property(0.6f, Property::NUMBER), 0.5f, -1, true);
+				//document->Animate("opacity", Property(0.6f, Property::NUMBER), 0.5f, Tween{}, -1, true);
 			}
 
-
+			// Button fun
 			{
 				auto el = document->GetElementById("start_game");
 				PropertyDictionary pd;
-				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(10)");
+				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(10) translateX(100)");
 				auto p = pd.GetProperty("transform");
 				el->Animate("transform", *p, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
 
 				auto pp = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
 				el->Animate("transform", pp, 1.3f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
 			}
-
-			//{
-			//	auto el = document->GetElementById("high_score");
-			//	el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, 10, true);
-			//	el->Animate("margin-left", Property(100.f, Property::PX), 0.6f);
-			//}
-
+			{
+				auto el = document->GetElementById("high_scores");
+				el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, Tween{ Tween::Sine, Tween::In }, 10, true, 1.f);
+				el->Animate("margin-left", Property(100.f, Property::PX), 3.0f, Tween{ Tween::Circular, Tween::Out });
+			}
+			{
+				auto el = document->GetElementById("options");
+				el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, Tween{}, -1, false);
+				el->Animate("image-color", Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
+				el->Animate("image-color", Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
+				el->Animate("image-color", Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
+				el->Animate("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
+			}
+			{
+				auto el = document->GetElementById("help");
+				el->Animate("margin-left", Property(100.f, Property::PX), 1.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
+			}
 			{
 				auto el = document->GetElementById("exit");
-				el->Animate("margin-left", Property(100.f, Property::PX), 1.0f, Tween{}, -1, true);
+				PropertyDictionary pd;
+				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "translate(200px, 200px) rotate(1215deg)");
+				el->Animate("transform", *pd.GetProperty("transform"), 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
 			}
 
-			//{
-			//	auto el = document->GetElementById("help");
-			//	el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, -1, false);
-			//	el->Animate("image-color", Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
-			//	el->Animate("image-color", Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
-			//	el->Animate("image-color", Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
-			//	el->Animate("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
-			//}
+			// Transform tests
+			{
+				auto el = document->GetElementById("generic");
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX} , Transforms::RotateX{90, Property::DEG}});
+				el->Animate("transform", p, 1.3f, Tween{}, -1, true);
+			}
+			{
+				auto el = document->GetElementById("combine");
+				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
+				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
+			}
+			{
+				auto el = document->GetElementById("decomposition");
+				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
+				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
+			}
 
 			document->Show();
 		}
@@ -256,12 +276,15 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
+	const int width = 1800;
+	const int height = 1000;
+
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise("../../Samples/") ||
-		!Shell::OpenWindow("Animation Sample", shell_renderer, 1024, 768, true))
+		!Shell::OpenWindow("Animation Sample", shell_renderer, width, height, true))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -269,7 +292,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	// Rocket initialisation.
 	Rocket::Core::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(1024,768);
+	opengl_renderer.SetViewport(width, height);
 
 	ShellSystemInterface system_interface;
 	Rocket::Core::SetSystemInterface(&system_interface);
@@ -277,7 +300,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Rocket::Core::Initialise();
 
 	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));
+	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(width, height));
 	if (context == NULL)
 	{
 		Rocket::Core::Shutdown();
@@ -298,7 +321,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	Shell::LoadFonts("assets/");
 
-	window = new DemoWindow("Animation sample", Rocket::Core::Vector2f(81, 200), context);
+	window = new DemoWindow("Animation sample", Rocket::Core::Vector2f(81, 100), context);
 	window->GetDocument()->AddEventListener("keydown", new Event("hello"));
 	window->GetDocument()->AddEventListener("keyup", new Event("hello"));
 

@@ -237,6 +237,17 @@ struct Perspective : public UnresolvedPrimitive< 1 >
 	Perspective(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
 };
 
+struct DecomposedMatrix4
+{
+	Vector4f perspective;
+	Vector4f quaternion;
+	Vector3f translation;
+	Vector3f scale;
+	Vector3f skew;
+
+	bool Decompose(const Matrix4f& m);
+};
+
 
 using PrimitiveVariant = std::variant<
 	Matrix2D, Matrix3D,
@@ -244,7 +255,7 @@ using PrimitiveVariant = std::variant<
 	ScaleX, ScaleY, ScaleZ, Scale2D, Scale3D,
 	RotateX, RotateY, RotateZ, Rotate2D, Rotate3D,
 	SkewX, SkewY, Skew2D,
-	Perspective>;
+	Perspective, DecomposedMatrix4>;
 
 
 /**
@@ -269,7 +280,6 @@ struct Primitive
 	
 	// Promote units to basic types which can be interpolated, that is, convert 'length -> pixel' for unresolved primitives.
 	bool ResolveUnits(Element& e) noexcept;
-
 
 	static bool TryConvertToMatchingGenericType(Primitive& p0, Primitive& p1) noexcept;
 
