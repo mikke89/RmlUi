@@ -102,13 +102,6 @@ protected:
 	/// @return The texture at the appropriate index, or NULL if the index was invalid.
 	const Texture* GetTexture(int index = 0) const;
 
-	/// Returns the floating-point value of a numerical property from a dictionary of properties, resolving it
-	/// against a base value if it is a relative property.
-	/// @param[in] properties The user-supplied dictionary of properties.
-	/// @param[in] name The name of the desired property. This must be a numerical property.
-	/// @return The fully-resolved value of the property, or 0 if an error occured.
-	float ResolveProperty(const PropertyDictionary& properties, const String& name, float base_value) const;
-
 private:
 	DecoratorInstancer* instancer;
 

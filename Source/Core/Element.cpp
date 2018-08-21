@@ -184,7 +184,7 @@ void Element::UpdateAnimations()
 
 		for(auto& animation : animations)
 		{
-			Property property = animation.UpdateAndGetProperty(time);
+			Property property = animation.UpdateAndGetProperty(time, *this);
 			if(property.unit != Property::UNKNOWN)
 				SetProperty(animation.GetPropertyName(), property);
 		}
@@ -607,6 +607,28 @@ void Element::GetLocalDimensionProperties(const Property **width, const Property
 	style->GetLocalDimensionProperties(width, height);
 }
 
+Vector2f Element::GetContainingBlock()
+{
+	Vector2f containing_block(0, 0);
+
+	if (offset_parent != NULL)
+	{
+		int position_property = GetPosition();
+		const Box& parent_box = offset_parent->GetBox();
+
+		if (position_property == POSITION_STATIC || position_property == POSITION_RELATIVE)
+		{
+			containing_block = parent_box.GetSize();
+		}
+		else if(position_property == POSITION_ABSOLUTE || position_property == POSITION_FIXED)
+		{
+			containing_block = parent_box.GetSize(Box::PADDING);
+		}
+	}
+
+	return containing_block;
+}
+
 void Element::GetOverflow(int *overflow_x, int *overflow_y)
 {
 	style->GetOverflow(overflow_x, overflow_y);
@@ -911,18 +933,13 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 	{
 		float start_time = Clock::GetElapsedTime() + delay;
 		const Property* property = GetProperty(property_name);
-		if (!property) 
+		if (!property || !property->definition) 
 			return false;
 
 		animations.push_back(
 			ElementAnimation{ property_name, *property, start_time, duration, num_iterations, alternate_direction }
 		);
 		animation = &animations.back();
-		if(!animation->IsValid())
-		{
-			animations.pop_back();
-			animation = nullptr;
-		}
 	}
 	else
 	{

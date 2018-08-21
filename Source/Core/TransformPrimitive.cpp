@@ -95,19 +95,19 @@ float NumericValue::Resolve(Element& e, float base) const noexcept
 float NumericValue::ResolveWidth(Element& e) const noexcept
 {
 	if(unit & (Property::PX | Property::NUMBER)) return number;
-	return Resolve(e, e.GetBox().GetSize().x);
+	return Resolve(e, e.GetBox().GetSize(Box::BORDER).x);
 }
 
 float NumericValue::ResolveHeight(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
-	return Resolve(e, e.GetBox().GetSize().y);
+	return Resolve(e, e.GetBox().GetSize(Box::BORDER).y);
 }
 
 float NumericValue::ResolveDepth(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
-	Vector2f size = e.GetBox().GetSize();
+	Vector2f size = e.GetBox().GetSize(Box::BORDER);
 	return Resolve(e, Math::Max(size.x, size.y));
 }
 

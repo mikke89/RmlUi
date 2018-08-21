@@ -343,6 +343,135 @@ const Property* ElementStyle::GetLocalProperty(const String& name)
 	return NULL;
 }
 
+float ElementStyle::ResolveLength(const Property * property)
+{
+	if (!property)
+	{
+		ROCKET_ERROR;
+		return 0.0f;
+	}
+
+	if (!(property->unit & Property::LENGTH))
+	{
+		ROCKET_ERRORMSG("Trying to resolve length on a non-length property.");
+		return 0.0f;
+	}
+
+	switch (property->unit)
+	{
+	case Property::NUMBER:
+	case Property::PX:
+		return property->value.Get< float >();
+	case Property::EM:
+		return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+	case Property::REM:
+		return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
+	case Property::DP:
+		return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
+	}
+
+	// Values based on pixels-per-inch.
+	if (property->unit & Property::PPI_UNIT)
+	{
+		float inch = property->value.Get< float >() * element->GetRenderInterface()->GetPixelsPerInch();
+
+		switch (property->unit)
+		{
+		case Property::INCH: // inch
+			return inch;
+		case Property::CM: // centimeter
+			return inch * (1.0f / 2.54f);
+		case Property::MM: // millimeter
+			return inch * (1.0f / 25.4f);
+		case Property::PT: // point
+			return inch * (1.0f / 72.0f);
+		case Property::PC: // pica
+			return inch * (1.0f / 6.0f);
+		}
+	}
+
+	// We're not a numeric property; return 0.
+	return 0.0f;
+}
+
+float ElementStyle::ResolveAngle(const Property * property)
+{
+	switch (property->unit)
+	{
+	case Property::NUMBER:
+	case Property::DEG:
+		return Math::DegreesToRadians(property->value.Get< float >());
+	case Property::RAD:
+		return property->value.Get< float >();
+	case Property::PERCENT:
+		return property->value.Get< float >() * 0.01f * 2.0f * Math::ROCKET_PI;
+	}
+	ROCKET_ERRORMSG("Trying to resolve angle on a non-angle property.");
+	return 0.0f;
+}
+
+float ElementStyle::ResolveNumberLengthPercent(const String& name, const Property * property)
+{
+	if (property->unit & Property::LENGTH)
+	{
+		return ResolveLength(property);
+	}
+
+	auto definition = property->definition;
+	if (!definition) definition = StyleSheetSpecification::GetProperty(name);
+	if (!definition) return 0.0f;
+
+	auto relative_target = definition->GetRelativeTarget();
+	
+	return ResolveNumberLengthPercent(property, relative_target);
+}
+
+float ElementStyle::ResolveNumberLengthPercent(const Property * property, RelativeTarget relative_target)
+{
+	if (property->unit & Property::LENGTH)
+	{
+		return ResolveLength(property);
+	}
+
+	float base_value = 0.0f;
+
+	switch (relative_target)
+	{
+	case RelativeTarget::None:
+		base_value = 1.0f;
+		break;
+	case RelativeTarget::ContainingBlockWidth:
+		base_value = element->GetContainingBlock().x;
+		break;
+	case RelativeTarget::ContainingBlockHeight:
+		base_value = element->GetContainingBlock().y;
+		break;
+	case RelativeTarget::FontSize:
+		base_value = (int)ElementUtilities::GetFontSize(element);
+		break;
+	case RelativeTarget::ParentFontSize:
+		base_value = (int)ElementUtilities::GetFontSize(element->GetParentNode());
+		break;
+	case RelativeTarget::LineHeight:
+		base_value = (int)ElementUtilities::GetLineHeight(element);
+		break;
+	default:
+		break;
+	}
+
+	float scale_value = 0.0f;
+
+	switch (property->unit)
+	{
+	case Property::NUMBER:
+		scale_value = property->value.Get< float >();
+	case Property::PERCENT:
+		scale_value = property->value.Get< float >() * 0.01f;
+	}
+
+	return base_value * scale_value;
+}
+
 // Resolves one of this element's properties.
 float ElementStyle::ResolveProperty(const Property* property, float base_value)
 {
@@ -363,9 +492,9 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 			return base_value * property->value.Get< float >() * 0.01f;
 
 		case Property::EM:
-			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+			return property->value.Get< float >() * (float)ElementUtilities::GetFontSize(element);
 		case Property::REM:
-			return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
+			return property->value.Get< float >() * (float)ElementUtilities::GetFontSize(element->GetOwnerDocument());
 		case Property::DP:
 			return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
@@ -441,9 +570,6 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 
 			case Property::EM:
 				return property->value.Get< float >() * base_value;
-
-			case Property::DP:
-				return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
 			case Property::REM:
 				// If an rem-relative font size is specified, it is expressed relative to the document's

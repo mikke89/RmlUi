@@ -32,9 +32,9 @@ namespace Rocket {
 namespace Core {
 
 PropertyParserTransform::PropertyParserTransform()
-	: number(PropertyParserNumber::NUMBER),
-	  length(PropertyParserNumber::LENGTH),
-	  angle(PropertyParserNumber::ANGLE)
+	: number(Property::NUMBER),
+	  length(Property::LENGTH_PERCENT, Property::PX),
+	  angle(Property::ANGLE, Property::RAD)
 {
 }
 

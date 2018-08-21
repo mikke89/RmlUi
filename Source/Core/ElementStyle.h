@@ -105,6 +105,21 @@ public:
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
+
+
+	/// Resolves a length property to pixels. Note: This excludes percentages.
+	float ResolveLength(const Property* property);
+	
+	/// Resolves an angle to radians
+	static float ResolveAngle(const Property* property);
+
+	/// Resolves a number-length-percentage property to pixels.
+	float ResolveNumberLengthPercent(const String& name, const Property* property);
+
+	/// Resolves the canonical unit (pixels) from 'number-length-percent' property.
+	/// 'percentage' and 'number' gets multiplied by the size of the specified relative reference.
+	float ResolveNumberLengthPercent(const Property* property, RelativeTarget relative_target);
+
 	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).
 	/// If it's an angle, it is returned as radians.

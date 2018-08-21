@@ -3,7 +3,7 @@ body
 	font-family: Delicious;
 	font-weight: normal;
 	font-style: normal;
-	font-size: 15;
+	font-size: 15px;
 	color: white;
 }
 
@@ -52,7 +52,7 @@ div#title_bar span
 	padding-top: 17px;
 	padding-bottom: 48px;
 
-	font-size: 22;
+	font-size: 22px;
 	font-weight: bold;
 
 	outline-font-effect: outline;
@@ -109,7 +109,7 @@ h1
 	margin-bottom: 0.4em;
 
 	text-align: left;
-	font-size: 16;
+	font-size: 16px;
 	font-weight: bold;
 
 	shadow-font-effect: shadow;
@@ -144,7 +144,7 @@ input.submit
 	padding-top: 8px;
 	vertical-align: -18px;
 
-	font-size: 18;
+	font-size: 18px;
 	text-align: center;
 	tab-index: auto;
 
@@ -191,7 +191,7 @@ select,
 dataselect
 {
 	color: black;
-	font-size: 13;
+	font-size: 13px;
 }
 
 datagrid input.text
@@ -205,7 +205,7 @@ datagrid input.text
 	border-color: black;
 	background-color: white;
 
-	font-size: 15;
+	font-size: 15px;
 	
 	background-decorator: none;
 }

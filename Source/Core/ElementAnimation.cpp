@@ -27,7 +27,9 @@
 
 #include "precompiled.h"
 #include "ElementAnimation.h"
+#include "ElementStyle.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
+#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
 
 namespace Rocket {
 namespace Core {
@@ -77,69 +79,73 @@ static bool CombineAndDecompose(Transform& t, Element& e)
 	return true;
 }
 
-static Variant InterpolateValues(const Variant & v0, const Variant & v1, float alpha)
+
+static Property InterpolateProperties(const Property & p0, const Property& p1, float alpha, Element& element, const PropertyDefinition* definition)
 {
-	auto type0 = v0.GetType();
-	auto type1 = v1.GetType();
-	if (type0 != type1)
+	if ((p0.unit & Property::NUMBER_LENGTH_PERCENT) && (p1.unit & Property::NUMBER_LENGTH_PERCENT))
 	{
-		//Log::Message(Log::LT_WARNING, "Interpolating properties must be of same unit. Got types: '%c' and '%c'.", type0, type1);
-		return v0;
+		if (p0.unit == p1.unit)
+		{
+			// If we have the same units, we can just interpolate regardless of what the value represents.
+			float f0 = p0.value.Get<float>();
+			float f1 = p1.value.Get<float>();
+			float f = (1.0f - alpha) * f0 + alpha * f1;
+			return Property{ f, p0.unit };
+		}
+		else
+		{
+			// Otherwise, convert units to pixels.
+			float f0 = element.GetStyle()->ResolveNumberLengthPercent(&p0, definition->GetRelativeTarget());
+			float f1 = element.GetStyle()->ResolveNumberLengthPercent(&p1, definition->GetRelativeTarget());
+			float f = (1.0f - alpha) * f0 + alpha * f1;
+			return Property{ f, Property::PX };
+		}
 	}
 
-	switch (type0)
+	if (p0.unit == Property::COLOUR && p1.unit == Property::COLOUR)
 	{
-	case Variant::FLOAT:
-	{
-		float f0 = v0.Get<float>();
-		float f1 = v1.Get<float>();
-		float f = (1.0f - alpha) * f0 + alpha * f1;
-		return Variant(f);
-	}
-	case Variant::COLOURB:
-	{
-		Colourf c0 = ColourToLinearSpace(v0.Get<Colourb>());
-		Colourf c1 = ColourToLinearSpace(v1.Get<Colourb>());
+		Colourf c0 = ColourToLinearSpace(p0.value.Get<Colourb>());
+		Colourf c1 = ColourToLinearSpace(p1.value.Get<Colourb>());
+
 		Colourf c = c0 * (1.0f - alpha) + c1 * alpha;
-		return Variant(ColourFromLinearSpace(c));
+
+		return Property{ ColourFromLinearSpace(c), Property::COLOUR };
 	}
-	case Variant::TRANSFORMREF:
+
+	if (p0.unit == Property::TRANSFORM && p1.unit == Property::TRANSFORM)
 	{
 		using namespace Rocket::Core::Transforms;
 
 		// Build the new, interpolating transform
 		auto t = TransformRef{ new Transform };
 
-		auto t0 = v0.Get<TransformRef>();
-		auto t1 = v1.Get<TransformRef>();
+		auto t0 = p0.value.Get<TransformRef>();
+		auto t1 = p1.value.Get<TransformRef>();
 
-		const auto& p0 = t0->GetPrimitives();
-		const auto& p1 = t1->GetPrimitives();
+		const auto& prim0 = t0->GetPrimitives();
+		const auto& prim1 = t1->GetPrimitives();
 
-		if (p0.size() != p1.size())
+		if (prim0.size() != prim1.size())
 		{
-			ROCKET_ERRORMSG("Transform primitives not of same size during interpolation. Were the transforms properly prepared for interpolation?")
-			return Variant{ t0 };
+			ROCKET_ERRORMSG("Transform primitives not of same size during interpolation. Were the transforms properly prepared for interpolation?");
+			return Property{ t0, Property::TRANSFORM };
 		}
 
-		for (size_t i = 0; i < p0.size(); i++)
+		for (size_t i = 0; i < prim0.size(); i++)
 		{
-			Primitive p = p0[i];
-			if (!p.InterpolateWith(p1[i], alpha))
+			Primitive p = prim0[i];
+			if (!p.InterpolateWith(prim1[i], alpha))
 			{
 				ROCKET_ERRORMSG("Transform primitives can not be interpolated. Were the transforms properly prepared for interpolation?");
-				return Variant{ t0 };
+				return Property{ t0, Property::TRANSFORM };
 			}
 			t->AddPrimitive(p);
 		}
 
-		return Variant(t);
-	}
+		return Property{ t, Property::TRANSFORM };
 	}
 
-	//Log::Message(Log::LT_WARNING, "Can not interpolate types of: '%c'.", type0);
-
-	return v0;
+	return alpha < 0.5f ? p0 : p1;
 }
 
 
@@ -326,8 +332,8 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 			continue;
 		}
 
-		auto& t0 = keys[i - 1].value.Get<TransformRef>();
-		auto& t1 = keys[i].value.Get<TransformRef>();
+		auto& t0 = keys[i - 1].property.value.Get<TransformRef>();
+		auto& t1 = keys[i].property.value.Get<TransformRef>();
 
 		auto result = PrepareTransformPair(*t0, *t1, element);
 
@@ -352,49 +358,29 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 }
 
 
-static bool TryMakeUnitValid(Variant& value)
-{
-	bool result = true;
-
-	//switch (value.GetType())
-	//{
-	//case Variant::FLOAT:
-	//case Variant::COLOURB:
-	//case Variant::TRANSFORMREF:
-	//	break;
-	//default:
-	//{
-	//	// Try to convert types to float so they can be interpolated
-	//	float f = 0.0f;
-	//	result = value.GetInto(f);
-	//	if (result) value.Reset(f);
-	//	break;
-	//}
-	//}
-	return result;
-}
-
 ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction)
-	: property_name(property_name), property_unit(current_value.unit), property_specificity(current_value.specificity),
-	duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
-	keys({ AnimationKey{0.0f, current_value.value, Tween{}} }),
+	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
+	keys({ AnimationKey{0.0f, current_value, Tween{}} }),
 	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false)
 {
-	valid = true;// TryMakeUnitValid(keys.back().value);
+	ROCKET_ASSERT(current_value.definition);
 }
 
 
 bool ElementAnimation::AddKey(float time, const Property & property, Element& element, Tween tween)
 {
-	if (property.unit != property_unit || !valid)
+	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
+
+	if (!(property.unit & valid_properties))
+	{
+		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", property.ToString().CString());
 		return false;
+	}
 
 	bool result = true;
-	keys.push_back({ time, property.value, tween });
-	//keys.push_back({ time, property, tween });
-	//result = TryMakeUnitValid(keys.back().value);
+	keys.push_back({ time, property, tween });
 
-	if (result && property.unit == Property::TRANSFORM)
+	if (property.unit == Property::TRANSFORM)
 	{
 		bool must_decompose = false;
 		auto& transform = *property.value.Get<TransformRef>();
@@ -422,12 +408,10 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 }
 
 
-Property ElementAnimation::UpdateAndGetProperty(float world_time)
+Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& element)
 {
-	Property result;
-
-	if (animation_complete || !valid || world_time - last_update_world_time <= 0.0f)
-		return result;
+	if (animation_complete || world_time - last_update_world_time <= 0.0f)
+		return Property{};
 
 	const float dt = Math::Min(world_time - last_update_world_time, 0.1f);
 
@@ -493,9 +477,7 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time)
 
 	alpha = keys[key1].tween(alpha);
 
-	result.unit = property_unit;
-	result.specificity = property_specificity;
-	result.value = InterpolateValues(keys[key0].value, keys[key1].value, alpha);
+	Property result = InterpolateProperties(keys[key0].property, keys[key1].property, alpha, element, keys[0].property.definition);
 	
 	return result;
 }

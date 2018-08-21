@@ -33,6 +33,7 @@
 #include "LayoutEngine.h"
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
+#include "ElementStyle.h"
 
 namespace Rocket {
 namespace Core {
@@ -147,56 +148,31 @@ int ElementUtilities::GetFontSize(Element* element)
 // Returns an element's line height, if it has a font defined.
 int ElementUtilities::GetLineHeight(Element* element)
 {
+	// TODO: Return float or int?
 	const Property* line_height_property = element->GetLineHeightProperty();
 
-	Element* font_element = element;
-	if (line_height_property->unit == Property::REM)
-		font_element = element->GetOwnerDocument();
+	if (line_height_property->unit & Property::LENGTH && line_height_property->unit != Property::NUMBER)
+	{
+		float value = element->GetStyle()->ResolveLength(line_height_property);
+		return Math::RoundToInteger(value);
+	}
 
-	FontFaceHandle* font_face_handle = font_element->GetFontFaceHandle();
-	if (font_face_handle == NULL)
-		return 0;
-
-	int line_height = font_face_handle->GetLineHeight();
-	float inch = element->GetRenderInterface()->GetPixelsPerInch();
+	float scale_factor = 1.0f;
 
 	switch (line_height_property->unit)
 	{
-	ROCKET_UNUSED_SWITCH_ENUM(Property::UNKNOWN);
-	ROCKET_UNUSED_SWITCH_ENUM(Property::KEYWORD);
-	ROCKET_UNUSED_SWITCH_ENUM(Property::STRING);
-	ROCKET_UNUSED_SWITCH_ENUM(Property::COLOUR);
-	ROCKET_UNUSED_SWITCH_ENUM(Property::ABSOLUTE_UNIT);
-	ROCKET_UNUSED_SWITCH_ENUM(Property::PPI_UNIT);
-	ROCKET_UNUSED_SWITCH_ENUM(Property::RELATIVE_UNIT);
 	case Property::NUMBER:
-	case Property::EM:
-	case Property::REM:
-		// If the property is a straight number or an em measurement, then it scales the line height.
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * line_height);
+		scale_factor = line_height_property->value.Get< float >();
+		break;
 	case Property::PERCENT:
-		// If the property is a percentage, then it scales the line height.
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * line_height * 0.01f);
-	case Property::PX:
-		// A px measurement.
-		return Math::RoundToInteger(line_height_property->value.Get< float >());
-	case Property::DP:
-		// A density-independent pixel measurement.
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element));
-	case Property::INCH:
-		// Values based on pixels-per-inch.
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch);
-	case Property::CM:
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 2.54f));
-	case Property::MM:
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 25.4f));
-	case Property::PT:
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 72.0f));
-	case Property::PC:
-		return Math::RoundToInteger(line_height_property->value.Get< float >() * inch * (1.0f / 6.0f));
+		scale_factor = line_height_property->value.Get< float >() * 0.01f;
+		break;
 	}
 
-	return 0;
+	float font_size = (float)GetFontSize(element);
+	float value = font_size * scale_factor;
+
+	return Math::RoundToInteger(value);
 }
 
 // Returns the width of a string rendered within the context of the given element.

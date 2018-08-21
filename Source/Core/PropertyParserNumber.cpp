@@ -31,8 +31,8 @@
 namespace Rocket {
 namespace Core {
 
-PropertyParserNumber::PropertyParserNumber(int units)
-	: units(units)
+PropertyParserNumber::PropertyParserNumber(int units, Property::Unit zero_unit)
+	: units(units), zero_unit(zero_unit)
 {
 
 	if (units & Property::PERCENT)
@@ -117,9 +117,15 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 
 	if ((units & property.unit) == 0)
 	{
-		// Detected unit not allowed (this can only apply to NUMBER,
-		// i.e., when no unit was found but one is required).
-		return false;
+		// Detected unit not allowed (this can only apply to NUMBER, i.e., when no unit was found but one is required).
+		// However, we allow values of "0" if zero_unit is set.
+		bool result = (zero_unit != Property::UNKNOWN && (value.Length() == 1 && value[0] == '0'));
+		if(result)
+		{
+			property.unit = zero_unit;
+			property.value = Variant(0.0f);
+		}
+		return result;
 	}
 
 	float float_value;

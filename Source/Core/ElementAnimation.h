@@ -38,7 +38,7 @@ namespace Core {
 
 struct AnimationKey {
 	float time;
-	Variant value;
+	Property property;
 	Tween tween;  // Tweening between the previous and this key. Ignored for the first animation key.
 };
 
@@ -47,8 +47,6 @@ class ElementAnimation
 {
 private:
 	String property_name;
-	Property::Unit property_unit;
-	int property_specificity;
 
 	float duration;           // for a single iteration
 	int num_iterations;       // -1 for infinity
@@ -62,7 +60,6 @@ private:
 	bool reverse_direction;
 
 	bool animation_complete;
-	bool valid;
 
 public:
 
@@ -70,13 +67,12 @@ public:
 
 	bool AddKey(float time, const Property& property, Element& element, Tween tween);
 
-	Property UpdateAndGetProperty(float time);
+	Property UpdateAndGetProperty(float time, Element& element);
 
 	const String& GetPropertyName() const { return property_name; }
 	float GetDuration() const { return duration; }
 	void SetDuration(float duration) { this->duration = duration; }
 	bool IsComplete() const { return animation_complete; }
-	bool IsValid() const { return valid; }
 };
 
 

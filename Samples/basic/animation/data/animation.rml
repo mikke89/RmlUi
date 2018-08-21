@@ -10,7 +10,7 @@
 			width: 1400px;
 			height: 750px;
 			perspective: 3000px;
-			opacity: 0;
+			/*opacity: 0;*/
 		}
 		button {
 			margin-top: 50px;
@@ -29,7 +29,7 @@
 		#start_game 
 		{
 			opacity: 0.8;
-			transform: rotate(-350) translateX(100) scale(1.2);
+			transform: rotate(370deg) translateX(100px) scale(1.2);
 			transform-origin: 30% 80% 0;
 		}
 
@@ -38,8 +38,8 @@
 		}
 		#exit {
 			transform: rotate(45deg);
+			transform-origin: 50% 50% 0;
 		}
-		
 		
 		div.container
 		{
@@ -62,7 +62,7 @@
 		
 		/* -- TRANSFORM TESTS */
 		#generic {
-			transform: translateX(100) rotate3d(1.0, 0, 1.0, 0deg);
+			transform: translateX(100px) rotate3d(1.0, 0, 1.0, 0deg);
 		}
 		#combine {
 			transform: rotate(45deg);
@@ -75,7 +75,7 @@
 		
 		/* -- MIXED UNITS TESTS */
 		#abs_rel {
-			margin: auto;
+			margin: 0;
 			margin-left: 50px;
 		}
 		#abs_rel_transform {
@@ -90,6 +90,7 @@
 
 <body template="window">
 <div style="width: 30%; height: 80%; position: absolute;">
+	<div style="font-size: 0.85em; text-align: left;" id="fps"></div>
 	<button id="start_game">Start Game</button><br />
 	<button id="high_scores" onkeydown="hello">High Scores</button><br />
 	<button id="options">Options</button><br />

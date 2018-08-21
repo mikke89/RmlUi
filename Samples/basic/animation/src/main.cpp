@@ -37,7 +37,6 @@
 
 
 // Animations TODO:
-//  - Some primitives should be converted to DecomposedMatrix4 when adding key: Matrix3d, Matrix2d, Perspective.
 //  - Update transform animations / resolve keys again when parent box size changes.
 //  - RCSS support? Both @keyframes and transition, maybe.
 //  - Profiling
@@ -57,14 +56,14 @@ public:
 				document->GetElementById("title")->SetInnerRML(title);
 				document->SetProperty("left", Property(position.x, Property::PX));
 				document->SetProperty("top", Property(position.y, Property::PX));
-				document->Animate("opacity", Property(1.0f, Property::NUMBER), 0.8f, Tween{Tween::Quadratic, Tween::Out}, 1, false, 0.0f);
+				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 0.8f, Tween{Tween::Quadratic, Tween::Out}, 1, false, 0.0f);
 			}
 
 			// Button fun
 			{
 				auto el = document->GetElementById("start_game");
 				PropertyDictionary pd;
-				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(10) translateX(100)");
+				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(10) translateX(100px)");
 				auto p = pd.GetProperty("transform");
 				el->Animate("transform", *p, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
 
@@ -115,16 +114,16 @@ public:
 			// Mixed units tests
 			{
 				auto el = document->GetElementById("abs_rel");
-				el->Animate("margin-left", Property(100.f, Property::PERCENT), 2.0f, Tween{}, -1, true);
+				el->Animate("margin-left", Property(100.f, Property::PERCENT), 1.5f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("abs_rel_transform");
 				auto p = Transform::MakeProperty({ Transforms::TranslateX{0, Property::PX} });
-				el->Animate("transform", p, 2.0f, Tween{}, -1, true);
+				el->Animate("transform", p, 1.5f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("text_align");
-				el->Animate("text-align", Property(3, Property::KEYWORD), 2.0f, Tween{}, -1, true);
+				//el->Animate("text-align", Property(3, Property::KEYWORD), 2.0f, Tween{}, -1, true);
 			}
 
 			document->Show();
@@ -173,6 +172,7 @@ void GameLoop()
 	static float t_prev = 0.0f;
 	float t = Shell::GetElapsedTime();
 	float dt = t - t_prev;
+	t_prev = t;
 	//if(dt > 1.0f)
 	if(nudge)
 	{
@@ -185,6 +185,13 @@ void GameLoop()
 		float f_left = el->GetAbsoluteLeft();
 		Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);
 		nudge = 0;
+	}
+
+	if (window)
+	{
+		auto el = window->GetDocument()->GetElementById("fps");
+		float fps = 1.0f / dt;
+		el->SetInnerRML(Rocket::Core::String{ 20, "FPS: %f", fps });
 	}
 	//static int f_prev = 0.0f;
 	//int df = f - f_prev;
@@ -205,32 +212,35 @@ public:
 		if(value == "exit")
 			Shell::RequestExit();
 
-		if (event == "keydown" ||
-			event == "keyup")
+		if (event == "keydown")
 		{
 			bool key_down = event == "keydown";
 			Rocket::Core::Input::KeyIdentifier key_identifier = (Rocket::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
-			if (key_identifier == Rocket::Core::Input::KI_SPACE && key_down)
+			if (key_identifier == Rocket::Core::Input::KI_SPACE)
 			{
 				pause_loop = !pause_loop;
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_RETURN && key_down)
+			else if (key_identifier == Rocket::Core::Input::KI_RETURN)
 			{
 				pause_loop = true;
 				single_loop = true;
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_OEM_PLUS && key_down)
+			else if (key_identifier == Rocket::Core::Input::KI_OEM_PLUS)
 			{
 				nudge = 1;
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_OEM_MINUS && key_down)
+			else if (key_identifier == Rocket::Core::Input::KI_OEM_MINUS)
 			{
 				nudge = -1;
 			}
 			else if (key_identifier == Rocket::Core::Input::KI_ESCAPE)
 			{
 				Shell::RequestExit();
+			}
+			else if (key_identifier == Rocket::Core::Input::KI_F8)
+			{
+				Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
 			}
 		}
 	}
