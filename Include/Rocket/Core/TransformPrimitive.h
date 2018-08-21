@@ -209,8 +209,8 @@ struct Rotate2D : public ResolvedPrimitive< 1 >
 struct Rotate3D : public ResolvedPrimitive< 4 >
 {
 	Rotate3D(const NumericValue* values) noexcept : ResolvedPrimitive(values, { Property::NUMBER, Property::NUMBER, Property::NUMBER, Property::RAD }) { }
-	Rotate3D(float x, float y, float z, float angle_rad, Property::Unit angle_unit = Property::DEG) noexcept
-		: ResolvedPrimitive({ NumericValue{x, Property::NUMBER}, NumericValue{x, Property::NUMBER}, NumericValue{x, Property::NUMBER}, NumericValue{x, angle_unit} },
+	Rotate3D(float x, float y, float z, float angle, Property::Unit angle_unit = Property::DEG) noexcept
+		: ResolvedPrimitive({ NumericValue{x, Property::NUMBER}, NumericValue{y, Property::NUMBER}, NumericValue{z, Property::NUMBER}, NumericValue{angle, angle_unit} },
 			{ Property::NUMBER, Property::NUMBER, Property::NUMBER, Property::RAD }) { }
 };
 
@@ -275,16 +275,24 @@ struct Primitive
 	template<typename PrimitiveType>
 	Primitive(PrimitiveType primitive) : primitive(primitive) {}
 
+	void SetIdentity() noexcept;
+
 	bool ResolveTransform(Matrix4f& m, Element& e) const noexcept;
 	bool ResolvePerspective(float &p, Element& e) const noexcept;
 	
+	// Prepares this primitive for interpolation. This must be done before calling InterpolateWith().
 	// Promote units to basic types which can be interpolated, that is, convert 'length -> pixel' for unresolved primitives.
-	bool ResolveUnits(Element& e) noexcept;
+	// Returns false if the owning transform must to be converted to a DecomposedMatrix4 primitive.
+	bool PrepareForInterpolation(Element& e) noexcept;
 
+	// If primitives do not match, try to convert them to a common generic type, e.g. TranslateX -> Translate3D.
+	// Returns true if they are already the same type or were converted to a common generic type.
 	static bool TryConvertToMatchingGenericType(Primitive& p0, Primitive& p1) noexcept;
 
+	// Interpolate this primitive with another primitive, weighted by alpha [0, 1].
+	// Primitives must be of same type and PrepareForInterpolation() must previously have been called on both.
 	bool InterpolateWith(const Primitive& other, float alpha) noexcept;
-	void SetIdentity() noexcept;
+
 };
 
 

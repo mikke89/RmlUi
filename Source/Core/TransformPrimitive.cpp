@@ -34,6 +34,46 @@ namespace Rocket {
 namespace Core {
 namespace Transforms {
 
+
+
+static Vector3f Combine(const Vector3f& a, const Vector3f& b, float a_scale, float b_scale)
+{
+	Vector3f result;
+	result.x = a_scale * a.x + b_scale * b.x;
+	result.y = a_scale * a.y + b_scale * b.y;
+	result.z = a_scale * a.z + b_scale * b.z;
+	return result;
+}
+
+
+// Interpolate two quaternions a, b with weight alpha [0, 1]
+static Vector4f QuaternionSlerp(const Vector4f& a, const Vector4f& b, float alpha)
+{
+	using namespace Math;
+
+	const float eps = 0.9995f;
+
+	float dot = a.DotProduct(b);
+	dot = Clamp(dot, -1.f, 1.f);
+
+	if (dot > eps)
+		return a;
+
+	float theta = ACos(dot);
+	float w = Sin(alpha * theta) / SquareRoot(1.f - dot * dot);
+	float a_scale = Cos(alpha*theta) - dot * w;
+
+	Vector4f result;
+	for (int i = 0; i < 4; i++)
+	{
+		result[i] = a[i] * a_scale + b[i] * w;
+	}
+
+	return result;
+}
+
+
+
 NumericValue::NumericValue() noexcept
 	: number(), unit(Property::UNKNOWN)
 {
@@ -344,85 +384,77 @@ void Primitive::SetIdentity() noexcept
 	std::visit(SetIdentityVisitor{}, primitive);
 }
 
-// Interpolate two quaternions a, b with the factor alpha
-static Vector4f QuaternionSlerp(const Vector4f& a, const Vector4f& b, float alpha)
+
+
+struct PrepareVisitor
 {
-	using namespace Math;
+	Element& e;
 
-	float dot = a.DotProduct(b);
-	dot = Clamp(dot, -1.f, 1.f);
-	
-	if (dot == 1)
-		return a;
-
-	float theta = ACos(dot);
-	float w = Sin(alpha * theta) / SquareRoot(1.f - dot * dot);
-	float a_scale = Cos(alpha*theta) - dot * w;
-
-	Vector4f result;
-	for (int i = 0; i < 4; i++)
+	bool operator()(TranslateX& p)
 	{
-		result[i] = a[i] * a_scale + b[i] * w;
+		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
+		return true;
 	}
-
-	return result;
-}
-
-struct InterpolateVisitor
-{
-	const PrimitiveVariant& other_variant;
-	float alpha;
-
-	template <size_t N>
-	void Interpolate(ResolvedPrimitive<N>& p0, const ResolvedPrimitive<N>& p1)
+	bool operator()(TranslateY& p)
 	{
-		for (size_t i = 0; i < N; i++)
-			p0.values[i] = p0.values[i] * (1.0f - alpha) + p1.values[i] * alpha;
+		p.values[0] = NumericValue{ p.values[0].ResolveHeight(e), Property::PX };
+		return true;
+	}
+	bool operator()(TranslateZ& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveDepth(e), Property::PX };
+		return true;
+	}
+	bool operator()(Translate2D& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
+		p.values[1] = NumericValue{ p.values[1].ResolveHeight(e), Property::PX };
+		return true;
+	}
+	bool operator()(Translate3D& p)
+	{
+		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
+		p.values[1] = NumericValue{ p.values[1].ResolveHeight(e), Property::PX };
+		p.values[2] = NumericValue{ p.values[2].ResolveDepth(e), Property::PX };
+		return true;
 	}
 	template <size_t N>
-	void Interpolate(UnresolvedPrimitive<N>& p0, const UnresolvedPrimitive<N>& p1)
+	bool operator()(ResolvedPrimitive<N>& p)
 	{
-		// Assumes that the underlying units have been resolved (e.g. to pixels)
-		for (size_t i = 0; i < N; i++)
-			p0.values[i].number = p0.values[i].number*(1.0f - alpha) + p1.values[i].number * alpha;
+		// No conversion needed for resolved transforms (with some exceptions below)
+		return true;
 	}
-	void Interpolate(Rotate3D& p0, const Rotate3D& p1)
+	bool operator()(DecomposedMatrix4& p)
 	{
-		// Assumes that the underlying direction vectors are normalized and equivalent (else, need to do full matrix interpolation)
-		p0.values[4] = p0.values[4] * (1.0f - alpha) + p1.values[4] * alpha;
+		return true;
 	}
-	//void Interpolate(Matrix3D& p0, const Matrix3D& p1)
-	//{
-	//	// Special interpolation for full matrices TODO
-	//  // Also, Matrix2d, Perspective, and conditionally Rotate3d get interpolated in this way
-	//}
-
-	void Interpolate(DecomposedMatrix4& p0, const DecomposedMatrix4& p1)
+	bool operator()(Rotate3D& p)
 	{
-		p0.perspective = p0.perspective * (1.0f - alpha) + p1.perspective * alpha;
-		p0.quaternion = QuaternionSlerp(p0.quaternion, p1.quaternion, alpha);
-		p0.translation = p0.translation * (1.0f - alpha) + p1.translation * alpha;
-		p0.scale = p0.scale* (1.0f - alpha) + p1.scale* alpha;
-		p0.skew = p0.skew* (1.0f - alpha) + p1.skew* alpha;
+		// Rotate3D must be resolved to a full matrix for interpolation. 
+		// There is an exception in CSS specs when the two interpolating rotation vectors are in the same direction, but for simplicity we ignore this optimization.
+		return false;
 	}
-
-	template <typename T>
-	void operator()(T& p0)
+	bool operator()(Matrix3D& p)
 	{
-		auto& p1 = std::get<T>(other_variant);
-		Interpolate(p0, p1);
+		// Matrices must be decomposed for interpolatino
+		return false;
+	}
+	bool operator()(Matrix2D& p)
+	{
+		// Matrix2D can also be optimized for interpolation, but for now we decompose it to a full DecomposedMatrix4
+		return false;
+	}
+	bool operator()(Perspective& p)
+	{
+		// Perspective must be decomposed
+		return false;
 	}
 };
 
 
-bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
+bool Primitive::PrepareForInterpolation(Element & e) noexcept
 {
-	if (primitive.index() != other.primitive.index())
-		return false;
-
-	std::visit(InterpolateVisitor{ other.primitive, alpha }, primitive);
-
-	return true;
+	return std::visit(PrepareVisitor{ e }, primitive);
 }
 
 
@@ -482,70 +514,70 @@ bool Primitive::TryConvertToMatchingGenericType(Primitive & p0, Primitive & p1) 
 	return false;
 }
 
-struct ResolveUnitsVisitor
-{
-	Element& e;
 
-	bool operator()(TranslateX& p)
+
+struct InterpolateVisitor
+{
+	const PrimitiveVariant& other_variant;
+	float alpha;
+
+	template <size_t N>
+	bool Interpolate(ResolvedPrimitive<N>& p0, const ResolvedPrimitive<N>& p1)
 	{
-		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
-		return true;
-	}
-	bool operator()(TranslateY& p)
-	{
-		p.values[0] = NumericValue{ p.values[0].ResolveHeight(e), Property::PX };
-		return true;
-	}
-	bool operator()(TranslateZ& p)
-	{
-		p.values[0] = NumericValue{ p.values[0].ResolveDepth(e), Property::PX };
-		return true;
-	}
-	bool operator()(Translate2D& p)
-	{
-		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
-		p.values[1] = NumericValue{ p.values[1].ResolveHeight(e), Property::PX };
-		return true;
-	}
-	bool operator()(Translate3D& p)
-	{
-		p.values[0] = NumericValue{ p.values[0].ResolveWidth(e), Property::PX };
-		p.values[1] = NumericValue{ p.values[1].ResolveHeight(e), Property::PX };
-		p.values[2] = NumericValue{ p.values[2].ResolveDepth(e), Property::PX };
+		for (size_t i = 0; i < N; i++)
+			p0.values[i] = p0.values[i] * (1.0f - alpha) + p1.values[i] * alpha;
 		return true;
 	}
 	template <size_t N>
-	bool operator()(ResolvedPrimitive<N>& p)
+	bool Interpolate(UnresolvedPrimitive<N>& p0, const UnresolvedPrimitive<N>& p1)
 	{
-		// No conversion needed for resolved transforms
+		// Assumes that the underlying units have been resolved (e.g. to pixels)
+		for (size_t i = 0; i < N; i++)
+			p0.values[i].number = p0.values[i].number*(1.0f - alpha) + p1.values[i].number * alpha;
 		return true;
 	}
-	bool operator()(DecomposedMatrix4& p)
+	bool Interpolate(Rotate3D& p0, const Rotate3D& p1)
 	{
-		return true;
-	}
-	bool operator()(Perspective& p)
-	{
-		// Perspective is special and not used for transform animations, ignore.
+		// Currently, we promote Rotate3D to decomposed matrices in PrepareForInterpolation(), thus, it is an error if we get here. Make sure primitives are prepared and decomposed as necessary.
+		// We may change this later by assuming that the underlying direction vectors are equivalent (else, need to do full matrix interpolation)
+		// If we change this later: p0.values[3] = p0.values[3] * (1.0f - alpha) + p1.values[3] * alpha;
 		return false;
+	}
+	bool Interpolate(Matrix2D& p0, const Matrix2D& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
+	bool Interpolate(Matrix3D& p0, const Matrix3D& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
+	bool Interpolate(Perspective& p0, const Perspective& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
+
+	bool Interpolate(DecomposedMatrix4& p0, const DecomposedMatrix4& p1)
+	{
+		p0.perspective = p0.perspective * (1.0f - alpha) + p1.perspective * alpha;
+		p0.quaternion = QuaternionSlerp(p0.quaternion, p1.quaternion, alpha);
+		p0.translation = p0.translation * (1.0f - alpha) + p1.translation * alpha;
+		p0.scale = p0.scale* (1.0f - alpha) + p1.scale* alpha;
+		p0.skew = p0.skew* (1.0f - alpha) + p1.skew* alpha;
+		return true;
+	}
+
+	template <typename T>
+	bool operator()(T& p0)
+	{
+		auto& p1 = std::get<T>(other_variant);
+		return Interpolate(p0, p1);
 	}
 };
 
 
-bool Primitive::ResolveUnits(Element & e) noexcept
+bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 {
-	return std::visit(ResolveUnitsVisitor{ e }, primitive);
-}
+	if (primitive.index() != other.primitive.index())
+		return false;
 
+	bool result = std::visit(InterpolateVisitor{ other.primitive, alpha }, primitive);
 
-static Vector3f Combine(const Vector3f& a, const Vector3f& b, float a_scale, float b_scale)
-{
-	Vector3f result;
-	result.x = a_scale * a.x + b_scale * b.x;
-	result.y = a_scale * a.y + b_scale * b.y;
-	result.z = a_scale * a.z + b_scale * b.z;
 	return result;
 }
+
+
+
 
 
 
@@ -553,8 +585,11 @@ bool DecomposedMatrix4::Decompose(const Matrix4f & m)
 {
 	// Follows the procedure given in https://drafts.csswg.org/css-transforms-2/#interpolation-of-3d-matrices
 
-	if (m[3][3] == 0)
+	const float eps = 0.0005f;
+
+	if (Math::AbsoluteValue(m[3][3]) < eps)
 		return false;
+
 
 	// Perspective matrix
 	Matrix4f p = m;
@@ -563,7 +598,7 @@ bool DecomposedMatrix4::Decompose(const Matrix4f & m)
 		p[i][3] = 0;
 	p[3][3] = 1;
 
-	if (p.Determinant() == 0)
+	if (Math::AbsoluteValue(p.Determinant()) < eps)
 		return false;
 
 	if (m[0][3] != 0 || m[1][3] != 0 || m[2][3] != 0)

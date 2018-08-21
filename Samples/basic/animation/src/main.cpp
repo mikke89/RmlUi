@@ -57,7 +57,7 @@ public:
 				document->GetElementById("title")->SetInnerRML(title);
 				document->SetProperty("left", Property(position.x, Property::PX));
 				document->SetProperty("top", Property(position.y, Property::PX));
-				//document->Animate("opacity", Property(0.6f, Property::NUMBER), 0.5f, Tween{}, -1, true);
+				document->Animate("opacity", Property(1.0f, Property::NUMBER), 0.8f, Tween{Tween::Quadratic, Tween::Out}, 1, false, 0.0f);
 			}
 
 			// Button fun
@@ -98,8 +98,8 @@ public:
 			// Transform tests
 			{
 				auto el = document->GetElementById("generic");
-				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX} , Transforms::RotateX{90, Property::DEG}});
-				el->Animate("transform", p, 1.3f, Tween{}, -1, true);
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG}});
+				el->Animate("transform", p, 1.3f, Tween{Tween::Quadratic, Tween::InOut}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("combine");
@@ -110,6 +110,21 @@ public:
 				auto el = document->GetElementById("decomposition");
 				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
 				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
+			}
+
+			// Mixed units tests
+			{
+				auto el = document->GetElementById("abs_rel");
+				el->Animate("margin-left", Property(100.f, Property::PERCENT), 2.0f, Tween{}, -1, true);
+			}
+			{
+				auto el = document->GetElementById("abs_rel_transform");
+				auto p = Transform::MakeProperty({ Transforms::TranslateX{0, Property::PX} });
+				el->Animate("transform", p, 2.0f, Tween{}, -1, true);
+			}
+			{
+				auto el = document->GetElementById("text_align");
+				el->Animate("text-align", Property(3, Property::KEYWORD), 2.0f, Tween{}, -1, true);
 			}
 
 			document->Show();

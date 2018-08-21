@@ -54,6 +54,28 @@ static Colourb ColourFromLinearSpace(Colourf c)
 	return result;
 }
 
+// Merges all the primitives to a single DecomposedMatrix4 primitive
+static bool CombineAndDecompose(Transform& t, Element& e)
+{
+	Matrix4f m = Matrix4f::Identity();
+
+	for (auto& primitive : t.GetPrimitives())
+	{
+		Matrix4f m_primitive;
+		if (primitive.ResolveTransform(m_primitive, e))
+			m *= m_primitive;
+	}
+
+	Transforms::DecomposedMatrix4 decomposed;
+
+	if (!decomposed.Decompose(m))
+		return false;
+
+	t.ClearPrimitives();
+	t.AddPrimitive(decomposed);
+
+	return true;
+}
 
 static Variant InterpolateValues(const Variant & v0, const Variant & v1, float alpha)
 {
@@ -61,7 +83,7 @@ static Variant InterpolateValues(const Variant & v0, const Variant & v1, float a
 	auto type1 = v1.GetType();
 	if (type0 != type1)
 	{
-		Log::Message(Log::LT_WARNING, "Interpolating properties must be of same unit. Got types: '%c' and '%c'.", type0, type1);
+		//Log::Message(Log::LT_WARNING, "Interpolating properties must be of same unit. Got types: '%c' and '%c'.", type0, type1);
 		return v0;
 	}
 
@@ -96,7 +118,7 @@ static Variant InterpolateValues(const Variant & v0, const Variant & v1, float a
 
 		if (p0.size() != p1.size())
 		{
-			Log::Message(Log::LT_WARNING, "Transform primitives not of same size during interpolation.");
+			ROCKET_ERRORMSG("Transform primitives not of same size during interpolation. Were the transforms properly prepared for interpolation?")
 			return Variant{ t0 };
 		}
 
@@ -105,44 +127,21 @@ static Variant InterpolateValues(const Variant & v0, const Variant & v1, float a
 			Primitive p = p0[i];
 			if (!p.InterpolateWith(p1[i], alpha))
 			{
-				Log::Message(Log::LT_WARNING, "Transform primitives not of same type during interpolation.");
+				ROCKET_ERRORMSG("Transform primitives can not be interpolated. Were the transforms properly prepared for interpolation?");
 				return Variant{ t0 };
 			}
 			t->AddPrimitive(p);
 		}
 
 		return Variant(t);
-
-		Log::Message(Log::LT_WARNING, "Could not decode transform for interpolation.");
 	}
 	}
 
-	Log::Message(Log::LT_WARNING, "Currently, only float and color values can be interpolated. Got types of: '%c'.", type0);
+	//Log::Message(Log::LT_WARNING, "Can not interpolate types of: '%c'.", type0);
 
 	return v0;
 }
 
-bool CombineAndDecompose(Transform& t, Element& e)
-{
-	Matrix4f m = Matrix4f::Identity();
-
-	for (auto& primitive : t.GetPrimitives())
-	{
-		Matrix4f m_primitive;
-		if (primitive.ResolveTransform(m_primitive, e))
-			m *= m_primitive;
-	}
-
-	Transforms::DecomposedMatrix4 decomposed;
-
-	if (!decomposed.Decompose(m))
-		return false;
-
-	t.ClearPrimitives();
-	t.AddPrimitive(decomposed);
-
-	return true;
-}
 
 
 
@@ -274,7 +273,7 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 
 
 	// If we get here, things get tricky. Need to do full matrix interpolation.
-	// In short, we decompose here the Transforms into translation, rotation, scale, skew and perspective components. 
+	// In short, we decompose the Transforms into translation, rotation, scale, skew and perspective components. 
 	// Then, during update, interpolate these components and combine into a new transform matrix.
 	if constexpr(true)
 	{
@@ -306,27 +305,49 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 
 static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element, int start_index)
 {
+	if (keys.size() < 2 || start_index < 1)
+		return false;
+
+	const int N = (int)keys.size();
+
 	int count_iterations = -1;
-	const int max_iterations = 3 * (int)keys.size();
+	const int max_iterations = 3 * N;
 	if (start_index < 1) start_index = 1;
 
-	// For each pair of keys, match the transform primitives such that they can be interpolated during animation update
-	for (int i = start_index; i < (int)keys.size() && count_iterations < max_iterations; count_iterations++)
-	{
-		auto& ref0 = keys[i - 1].value.Get<TransformRef>();
-		auto& ref1 = keys[i].value.Get<TransformRef>();
+	std::vector<bool> dirty_list(N + 1, false);
+	dirty_list[start_index] = true;
 
-		auto result = PrepareTransformPair(*ref0, *ref1, element);
+	// For each pair of keys, match the transform primitives such that they can be interpolated during animation update
+	for (int i = start_index; i < N && count_iterations < max_iterations; count_iterations++)
+	{
+		if (!dirty_list[i])
+		{
+			++i;
+			continue;
+		}
+
+		auto& t0 = keys[i - 1].value.Get<TransformRef>();
+		auto& t1 = keys[i].value.Get<TransformRef>();
+
+		auto result = PrepareTransformPair(*t0, *t1, element);
 
 		if (result == PrepareTransformResult::Invalid)
 			return false;
 
-		bool changed_t0 = (result == PrepareTransformResult::ChangedT0 || result == PrepareTransformResult::ChangedT0andT1);
+		bool changed_t0 = ((int)result & (int)PrepareTransformResult::ChangedT0);
+		bool changed_t1 = ((int)result & (int)PrepareTransformResult::ChangedT1);
+
+		dirty_list[i] = false;
+		dirty_list[i - 1] = dirty_list[i - 1] || changed_t0;
+		dirty_list[i + 1] = dirty_list[i + 1] || changed_t1;
+
 		if (changed_t0 && i > 1)
 			--i;
 		else
 			++i;
 	}
+
+	// Something has probably gone wrong if we exceeded max_iterations, possibly a bug in PrepareTransformPair()
 	return (count_iterations < max_iterations);
 }
 
@@ -335,21 +356,21 @@ static bool TryMakeUnitValid(Variant& value)
 {
 	bool result = true;
 
-	switch (value.GetType())
-	{
-	case Variant::FLOAT:
-	case Variant::COLOURB:
-	case Variant::TRANSFORMREF:
-		break;
-	default:
-	{
-		// Try to convert types to float so they can be interpolated
-		float f = 0.0f;
-		result = value.GetInto(f);
-		if (result) value.Reset(f);
-		break;
-	}
-	}
+	//switch (value.GetType())
+	//{
+	//case Variant::FLOAT:
+	//case Variant::COLOURB:
+	//case Variant::TRANSFORMREF:
+	//	break;
+	//default:
+	//{
+	//	// Try to convert types to float so they can be interpolated
+	//	float f = 0.0f;
+	//	result = value.GetInto(f);
+	//	if (result) value.Reset(f);
+	//	break;
+	//}
+	//}
 	return result;
 }
 
@@ -359,7 +380,7 @@ ElementAnimation::ElementAnimation(const String& property_name, const Property& 
 	keys({ AnimationKey{0.0f, current_value.value, Tween{}} }),
 	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false)
 {
-	valid = TryMakeUnitValid(keys.back().value);
+	valid = true;// TryMakeUnitValid(keys.back().value);
 }
 
 
@@ -370,16 +391,25 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 
 	bool result = true;
 	keys.push_back({ time, property.value, tween });
-
-	result = TryMakeUnitValid(keys.back().value);
+	//keys.push_back({ time, property, tween });
+	//result = TryMakeUnitValid(keys.back().value);
 
 	if (result && property.unit == Property::TRANSFORM)
 	{
-		for (auto& primitive : property.value.Get<TransformRef>()->GetPrimitives())
+		bool must_decompose = false;
+		auto& transform = *property.value.Get<TransformRef>();
+
+		for (auto& primitive : transform.GetPrimitives())
 		{
-			if (!primitive.ResolveUnits(element))
-				result = false;
+			if (!primitive.PrepareForInterpolation(element))
+			{
+				must_decompose = true;
+				break;
+			}
 		}
+
+		if(must_decompose)
+			result = CombineAndDecompose(transform, element);
 
 		if (result)
 			result = PrepareTransforms(keys, element, (int)keys.size() - 1);
@@ -391,6 +421,7 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 	return result;
 }
 
+
 Property ElementAnimation::UpdateAndGetProperty(float world_time)
 {
 	Property result;
@@ -398,7 +429,7 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time)
 	if (animation_complete || !valid || world_time - last_update_world_time <= 0.0f)
 		return result;
 
-	const float dt = world_time - last_update_world_time;
+	const float dt = Math::Min(world_time - last_update_world_time, 0.1f);
 
 	last_update_world_time = world_time;
 	time_since_iteration_start += dt;
@@ -410,7 +441,7 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time)
 
 		if (current_iteration < num_iterations || num_iterations == -1)
 		{
-			time_since_iteration_start = 0.0f;
+			time_since_iteration_start -= duration;
 
 			if (alternate_direction)
 				reverse_direction = !reverse_direction;
