@@ -101,7 +101,7 @@ public:
 	const String& GetExtension() const;
 	
 	/// Access the url parameters
-	typedef std::map< String, String > Parameters;
+	typedef std::unordered_map< String, String > Parameters;
 	const Parameters& GetParameters() const;
 	void SetParameter(const String& name, const String& value);
 	void SetParameters( const Parameters& parameters );

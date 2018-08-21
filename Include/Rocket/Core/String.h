@@ -78,7 +78,23 @@ ROCKETCORE_API_INLINE bool StringBase< char >::operator!=(const char * compare) 
 	#define strncasecmp strnicmp
 #endif
 
+struct hash_str_lowercase {
+	std::size_t operator()(const ::Rocket::Core::String& string) const
+	{
+		auto str_lower = string.ToLower();
+		return str_lower.Hash();
+	}
+};
 }
+}
+
+namespace std {
+	template <> struct hash<::Rocket::Core::String> {
+		std::size_t operator()(const ::Rocket::Core::String& string) const
+		{
+			return string.Hash();
+		}
+	};
 }
 
 #endif

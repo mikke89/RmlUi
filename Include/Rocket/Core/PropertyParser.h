@@ -35,7 +35,7 @@
 namespace Rocket {
 namespace Core {
 
-typedef std::map< String, int, StringUtilities::StringComparei > ParameterMap;
+typedef std::map < String, int, StringUtilities::StringComparei > ParameterMap;
 
 /**
 	A property parser takes a property declaration in string form, validates it, and converts it to a Property.

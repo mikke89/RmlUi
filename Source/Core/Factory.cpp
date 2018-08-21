@@ -56,15 +56,15 @@ namespace Rocket {
 namespace Core {
 
 // Element instancers.
-typedef std::map< String, ElementInstancer* > ElementInstancerMap;
+typedef std::unordered_map< String, ElementInstancer* > ElementInstancerMap;
 static ElementInstancerMap element_instancers;
 
 // Decorator instancers.
-typedef std::map< String, DecoratorInstancer* > DecoratorInstancerMap;
+typedef std::unordered_map< String, DecoratorInstancer* > DecoratorInstancerMap;
 static DecoratorInstancerMap decorator_instancers;
 
 // Font effect instancers.
-typedef std::map< String, FontEffectInstancer* > FontEffectInstancerMap;
+typedef std::unordered_map< String, FontEffectInstancer* > FontEffectInstancerMap;
 static FontEffectInstancerMap font_effect_instancers;
 
 // The context instancer.

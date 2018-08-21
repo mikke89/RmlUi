@@ -50,8 +50,8 @@ class StyleSheetNode;
 class ROCKETCORE_API StyleSheet : public ReferenceCountable
 {
 public:
-	typedef std::set< StyleSheetNode* > NodeList;
-	typedef std::map< String, NodeList > NodeIndex;
+	typedef std::unordered_set< StyleSheetNode* > NodeList;
+	typedef std::unordered_map< String, NodeList > NodeIndex;
 
 	StyleSheet();
 	virtual ~StyleSheet();
@@ -88,7 +88,7 @@ private:
 	// Map of every node, even empty, un-styled, nodes.
 	NodeIndex complete_node_index;
 
-	typedef std::map< String, ElementDefinition* > ElementDefinitionCache;
+	typedef std::unordered_map< String, ElementDefinition* > ElementDefinitionCache;
 	// Index of element addresses to element definitions.
 	mutable ElementDefinitionCache address_cache;
 	// Index of node sets to element definitions.

@@ -37,7 +37,9 @@
 #include <limits.h>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 #include "Platform.h"
@@ -102,8 +104,8 @@ typedef uintptr_t DecoratorDataHandle;
 // List of elements.
 typedef std::vector< Element* > ElementList;
 typedef std::set< String > PseudoClassList;
-typedef std::set< String > PropertyNameList;
-typedef std::set< String > AttributeNameList;
+typedef std::unordered_set< String > PropertyNameList;
+typedef std::unordered_set< String > AttributeNameList;
 typedef Dictionary ElementAttributes;
 typedef std::vector< ElementAnimation > ElementAnimationList;
 

@@ -240,7 +240,7 @@ public:
 	/// Returns local 'width' and 'height' properties from element's style or local cache,
 	/// ignoring default values.
 	void GetLocalDimensionProperties(const Property **width, const Property **height);
-	/// Returns the size of the containing block.
+	/// Returns the size of the containing block. Often percentages are scaled relative to this.
 	Vector2f GetContainingBlock();
 	/// Returns 'overflow' properties' values from element's style or local cache.
 	void GetOverflow(int *overflow_x, int *overflow_y);

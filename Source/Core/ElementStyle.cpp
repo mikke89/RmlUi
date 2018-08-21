@@ -447,13 +447,13 @@ float ElementStyle::ResolveNumberLengthPercent(const Property * property, Relati
 		base_value = element->GetContainingBlock().y;
 		break;
 	case RelativeTarget::FontSize:
-		base_value = (int)ElementUtilities::GetFontSize(element);
+		base_value = (float)ElementUtilities::GetFontSize(element);
 		break;
 	case RelativeTarget::ParentFontSize:
-		base_value = (int)ElementUtilities::GetFontSize(element->GetParentNode());
+		base_value = (float)ElementUtilities::GetFontSize(element->GetParentNode());
 		break;
 	case RelativeTarget::LineHeight:
-		base_value = (int)ElementUtilities::GetLineHeight(element);
+		base_value = (float)ElementUtilities::GetLineHeight(element);
 		break;
 	default:
 		break;
