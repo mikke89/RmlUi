@@ -202,7 +202,8 @@ bool Context::Render()
 	// Update the layout for all documents in the root. This is done now as events during the
 	// update may have caused elements to require an update.
 	for (int i = 0; i < root->GetNumChildren(); ++i)
-		root->GetChild(i)->UpdateLayout();
+		if (auto doc = root->GetChild(i)->GetOwnerDocument())
+			doc->UpdateLayout(true);
 
 	render_interface->context = this;
 	ElementUtilities::ApplyActiveClipRegion(this, render_interface);
@@ -215,9 +216,9 @@ bool Context::Render()
 	if (cursor_proxy != NULL)
 	{
 		cursor_proxy->Update();
-		cursor_proxy->SetOffset(Vector2f((float) Math::Clamp(mouse_position.x, 0, dimensions.x),
-													 (float) Math::Clamp(mouse_position.y, 0, dimensions.y)),
-								NULL);
+		cursor_proxy->SetOffset(Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x),
+			(float)Math::Clamp(mouse_position.y, 0, dimensions.y)),
+			NULL);
 		cursor_proxy->Render();
 	}
 
@@ -226,9 +227,9 @@ bool Context::Render()
 		show_cursor)
 	{
 		active_cursor->Update();
-		active_cursor->SetOffset(Vector2f((float) Math::Clamp(mouse_position.x, 0, dimensions.x),
-													 (float) Math::Clamp(mouse_position.y, 0, dimensions.y)),
-								 NULL);
+		active_cursor->SetOffset(Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x),
+			(float)Math::Clamp(mouse_position.y, 0, dimensions.y)),
+			NULL);
 		active_cursor->Render();
 	}
 

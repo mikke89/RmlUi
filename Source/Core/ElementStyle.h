@@ -36,7 +36,7 @@ namespace Core {
 
 class ElementStyleCache;
 
-typedef std::map<String, int> PropCounter;
+typedef std::unordered_map<String, int> PropCounter;
 
 /**
 	Manages an element's style and property information.
@@ -114,11 +114,11 @@ public:
 	static float ResolveAngle(const Property* property);
 
 	/// Resolves a number-length-percentage property to pixels.
-	float ResolveNumberLengthPercent(const String& name, const Property* property);
+	float ResolveNumericProperty(const String& property_name, const Property* property);
 
 	/// Resolves the canonical unit (pixels) from 'number-length-percent' property.
 	/// 'percentage' and 'number' gets multiplied by the size of the specified relative reference.
-	float ResolveNumberLengthPercent(const Property* property, RelativeTarget relative_target);
+	float ResolveNumericProperty(const Property* property, RelativeTarget relative_target);
 
 	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).

@@ -2366,44 +2366,49 @@ void Element::DirtyTransformState(bool perspective_changed, bool transform_chang
 
 void Element::UpdateTransformState()
 {
-	Context *context = GetContext();
-
-	Vector2f pos = GetAbsoluteOffset(Box::BORDER);
-	Vector2f size = GetBox().GetSize(Box::BORDER);
-
-	if (transform_state_perspective_dirty || transform_state_transform_dirty || transform_state_parent_transform_dirty)
+	if (!(transform_state_perspective_dirty || transform_state_transform_dirty || transform_state_parent_transform_dirty))
 	{
-		if (!transform_state.get())
-		{
-			transform_state.reset(new TransformState());
-		}
+		return;
 	}
 
-	if (transform_state_perspective_dirty)
+	if (!transform_state.get())
 	{
-		bool have_perspective = false;
-		TransformState::Perspective perspective_value;
+		transform_state.reset(new TransformState());
+	}
 
-		perspective_value.vanish = Vector2f(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
-		const Property *perspective = GetPerspective();
-		if (perspective && (perspective->unit != Property::KEYWORD || perspective->value.Get< int >() != PERSPECTIVE_NONE))
+	if(transform_state_perspective_dirty || transform_state_transform_dirty)
+	{
+		Context *context = GetContext();
+		Vector2f pos = GetAbsoluteOffset(Box::BORDER);
+		Vector2f size = GetBox().GetSize(Box::BORDER);
+
+
+		if (transform_state_perspective_dirty)
 		{
-			have_perspective = true;
+			bool have_perspective = false;
+			TransformState::Perspective perspective_value;
 
-			// Compute the perspective value
-			perspective_value.distance = ResolveProperty(perspective, Math::Max(size.x, size.y));
+			perspective_value.vanish = Vector2f(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
-			// Compute the perspective origin, if necessary
-			if (perspective_value.distance > 0)
+			const Property *perspective = GetPerspective();
+			if (perspective && (perspective->unit != Property::KEYWORD || perspective->value.Get< int >() != PERSPECTIVE_NONE))
 			{
-				const Property *perspective_origin_x = GetPerspectiveOriginX();
-				if (perspective_origin_x)
+				have_perspective = true;
+
+				// Compute the perspective value
+				perspective_value.distance = ResolveProperty(perspective, Math::Max(size.x, size.y));
+
+				// Compute the perspective origin, if necessary
+				if (perspective_value.distance > 0)
 				{
-					if (perspective_origin_x->unit == Property::KEYWORD)
+					const Property *perspective_origin_x = GetPerspectiveOriginX();
+					if (perspective_origin_x)
 					{
-						switch (perspective_origin_x->value.Get< int >())
+						if (perspective_origin_x->unit == Property::KEYWORD)
 						{
+							switch (perspective_origin_x->value.Get< int >())
+							{
 							case PERSPECTIVE_ORIGIN_X_LEFT:
 								perspective_value.vanish.x = pos.x;
 								break;
@@ -2415,21 +2420,21 @@ void Element::UpdateTransformState()
 							case PERSPECTIVE_ORIGIN_X_RIGHT:
 								perspective_value.vanish.x = pos.x + size.x;
 								break;
+							}
+						}
+						else
+						{
+							perspective_value.vanish.x = pos.x + ResolveProperty(perspective_origin_x, size.x);
 						}
 					}
-					else
-					{
-						perspective_value.vanish.x = pos.x + ResolveProperty(perspective_origin_x, size.x);
-					}
-				}
 
-				const Property *perspective_origin_y = GetPerspectiveOriginY();
-				if (perspective_origin_y)
-				{
-					if (perspective_origin_y->unit == Property::KEYWORD)
+					const Property *perspective_origin_y = GetPerspectiveOriginY();
+					if (perspective_origin_y)
 					{
-						switch (perspective_origin_y->value.Get< int >())
+						if (perspective_origin_y->unit == Property::KEYWORD)
 						{
+							switch (perspective_origin_y->value.Get< int >())
+							{
 							case PERSPECTIVE_ORIGIN_Y_TOP:
 								perspective_value.vanish.y = pos.y;
 								break;
@@ -2441,68 +2446,68 @@ void Element::UpdateTransformState()
 							case PERSPECTIVE_ORIGIN_Y_BOTTOM:
 								perspective_value.vanish.y = pos.y + size.y;
 								break;
+							}
+						}
+						else
+						{
+							perspective_value.vanish.y = pos.y + ResolveProperty(perspective_origin_y, size.y);
 						}
 					}
-					else
+				}
+			}
+
+			if (have_perspective && context)
+			{
+				perspective_value.view_size = context->GetDimensions();
+				transform_state->SetPerspective(&perspective_value);
+			}
+			else
+			{
+				transform_state->SetPerspective(0);
+			}
+
+			transform_state_perspective_dirty = false;
+		}
+
+		if (transform_state_transform_dirty)
+		{
+			bool have_local_perspective = false;
+			TransformState::LocalPerspective local_perspective;
+
+			bool have_transform = false;
+			Matrix4f transform_value = Matrix4f::Identity();
+			Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
+
+			const Property *transform = GetTransform();
+			if (transform && (transform->unit != Property::KEYWORD || transform->value.Get< int >() != TRANSFORM_NONE))
+			{
+				TransformRef transforms = transform->value.Get< TransformRef >();
+				int n = transforms->GetNumPrimitives();
+				for (int i = 0; i < n; ++i)
+				{
+					const Transforms::Primitive &primitive = transforms->GetPrimitive(i);
+
+					if (primitive.ResolvePerspective(local_perspective.distance, *this))
 					{
-						perspective_value.vanish.y = pos.y + ResolveProperty(perspective_origin_y, size.y);
+						have_local_perspective = true;
+					}
+
+					Matrix4f matrix;
+					if (primitive.ResolveTransform(matrix, *this))
+					{
+						transform_value *= matrix;
+						have_transform = true;
 					}
 				}
-			}
-		}
 
-		if (have_perspective && context)
-		{
-			perspective_value.view_size = context->GetDimensions();
-			transform_state->SetPerspective(&perspective_value);
-		}
-		else
-		{
-			transform_state->SetPerspective(0);
-		}
-
-		transform_state_perspective_dirty = false;
-	}
-
-	if (transform_state_transform_dirty)
-	{
-		bool have_local_perspective = false;
-		TransformState::LocalPerspective local_perspective;
-
-		bool have_transform = false;
-		Matrix4f transform_value = Matrix4f::Identity();
-		Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
-
-		const Property *transform = GetTransform();
-		if (transform && (transform->unit != Property::KEYWORD || transform->value.Get< int >() != TRANSFORM_NONE))
-		{
-			TransformRef transforms = transform->value.Get< TransformRef >();
-			int n = transforms->GetNumPrimitives();
-			for (int i = 0; i < n; ++i)
-			{
-				const Transforms::Primitive &primitive = transforms->GetPrimitive(i);
-
-				if (primitive.ResolvePerspective(local_perspective.distance, *this))
+				// Compute the transform origin
+				const Property *transform_origin_x = GetTransformOriginX();
+				if (transform_origin_x)
 				{
-					have_local_perspective = true;
-				}
-
-				Matrix4f matrix;
-				if (primitive.ResolveTransform(matrix, *this))
-				{
-					transform_value *= matrix;
-					have_transform = true;
-				}
-			}
-
-			// Compute the transform origin
-			const Property *transform_origin_x = GetTransformOriginX();
-			if (transform_origin_x)
-			{
-				if (transform_origin_x->unit == Property::KEYWORD)
-				{
-					switch (transform_origin_x->value.Get< int >())
+					if (transform_origin_x->unit == Property::KEYWORD)
 					{
+						switch (transform_origin_x->value.Get< int >())
+						{
 						case TRANSFORM_ORIGIN_X_LEFT:
 							transform_origin.x = pos.x;
 							break;
@@ -2514,21 +2519,21 @@ void Element::UpdateTransformState()
 						case TRANSFORM_ORIGIN_X_RIGHT:
 							transform_origin.x = pos.x + size.x;
 							break;
+						}
+					}
+					else
+					{
+						transform_origin.x = pos.x + ResolveProperty(transform_origin_x, size.x);
 					}
 				}
-				else
-				{
-					transform_origin.x = pos.x + ResolveProperty(transform_origin_x, size.x);
-				}
-			}
 
-			const Property *transform_origin_y = GetTransformOriginY();
-			if (transform_origin_y)
-			{
-				if (transform_origin_y->unit == Property::KEYWORD)
+				const Property *transform_origin_y = GetTransformOriginY();
+				if (transform_origin_y)
 				{
-					switch (transform_origin_y->value.Get< int >())
+					if (transform_origin_y->unit == Property::KEYWORD)
 					{
+						switch (transform_origin_y->value.Get< int >())
+						{
 						case TRANSFORM_ORIGIN_Y_TOP:
 							transform_origin.y = pos.y;
 							break;
@@ -2540,49 +2545,51 @@ void Element::UpdateTransformState()
 						case TRANSFORM_ORIGIN_Y_BOTTOM:
 							transform_origin.y = pos.y + size.y;
 							break;
+						}
+					}
+					else
+					{
+						transform_origin.y = pos.y + ResolveProperty(transform_origin_y, size.y);
 					}
 				}
-				else
+
+				const Property *transform_origin_z = GetTransformOriginZ();
+				if (transform_origin_z)
 				{
-					transform_origin.y = pos.y + ResolveProperty(transform_origin_y, size.y);
+					transform_origin.z = ResolveProperty(transform_origin_z, Math::Max(size.x, size.y));
 				}
 			}
 
-			const Property *transform_origin_z = GetTransformOriginZ();
-			if (transform_origin_z)
+			if (have_local_perspective && context)
 			{
-				transform_origin.z = ResolveProperty(transform_origin_z, Math::Max(size.x, size.y));
+				local_perspective.view_size = context->GetDimensions();
+				transform_state->SetLocalPerspective(&local_perspective);
 			}
+			else
+			{
+				transform_state->SetLocalPerspective(0);
+			}
+
+			if (have_transform)
+			{
+				// TODO: If we're using the global projection matrix
+				// (perspective < 0), then scale the coordinates from
+				// pixel space to 3D unit space.
+
+				// Transform the Rocket context so that the computed `transform_origin'
+				// lies at the coordinate system origin.
+				transform_value =
+					Matrix4f::Translate(transform_origin)
+					* transform_value
+					* Matrix4f::Translate(-transform_origin);
+			}
+
+			transform_state->SetTransform(have_transform ? &transform_value : 0);
+
+			transform_state_transform_dirty = false;
 		}
-
-		if (have_local_perspective && context)
-		{
-			local_perspective.view_size = context->GetDimensions();
-			transform_state->SetLocalPerspective(&local_perspective);
-		}
-		else
-		{
-			transform_state->SetLocalPerspective(0);
-		}
-
-		if (have_transform)
-		{
-			// TODO: If we're using the global projection matrix
-			// (perspective < 0), then scale the coordinates from
-			// pixel space to 3D unit space.
-
-			// Transform the Rocket context so that the computed `transform_origin'
-			// lies at the coordinate system origin.
-			transform_value =
-				  Matrix4f::Translate(transform_origin)
-				* transform_value
-				* Matrix4f::Translate(-transform_origin);
-		}
-
-		transform_state->SetTransform(have_transform ? &transform_value : 0);
-
-		transform_state_transform_dirty = false;
 	}
+
 
 	if (transform_state_parent_transform_dirty)
 	{
@@ -2591,28 +2598,28 @@ void Element::UpdateTransformState()
 		{
 			parent->UpdateTransformState();
 		}
-	}
 
-	if (transform_state.get())
-	{
-		// Store the parent's new full transform as our parent transform
-		Element *node = 0;
-		Matrix4f parent_transform;
-		for (node = parent; node; node = node->parent)
+		if (transform_state.get())
 		{
-			if (node->GetTransformState() && node->GetTransformState()->GetRecursiveTransform(&parent_transform))
+			// Store the parent's new full transform as our parent transform
+			Element *node = 0;
+			Matrix4f parent_transform;
+			for (node = parent; node; node = node->parent)
 			{
-				transform_state->SetParentRecursiveTransform(&parent_transform);
-				break;
+				if (node->GetTransformState() && node->GetTransformState()->GetRecursiveTransform(&parent_transform))
+				{
+					transform_state->SetParentRecursiveTransform(&parent_transform);
+					break;
+				}
+			}
+			if (!node)
+			{
+				transform_state->SetParentRecursiveTransform(0);
 			}
 		}
-		if (!node)
-		{
-			transform_state->SetParentRecursiveTransform(0);
-		}
-	}
 
-	transform_state_parent_transform_dirty = false;
+		transform_state_parent_transform_dirty = false;
+	}
 
 	// If we neither have a local perspective, nor a perspective nor a
 	// transform, we don't need to keep the large TransformState object

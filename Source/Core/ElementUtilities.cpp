@@ -148,7 +148,6 @@ int ElementUtilities::GetFontSize(Element* element)
 // Returns an element's line height, if it has a font defined.
 int ElementUtilities::GetLineHeight(Element* element)
 {
-	// TODO: Return float or int?
 	const Property* line_height_property = element->GetLineHeightProperty();
 
 	if (line_height_property->unit & Property::LENGTH && line_height_property->unit != Property::NUMBER)

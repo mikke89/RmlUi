@@ -31,12 +31,12 @@
 
 		scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 		{
-			transform: translateZ(10);
+			transform: translateZ(10px);
 		}
 
 		p
 		{
-			transform: translateZ(10);
+			transform: translateZ(10px);
 		}
 	</style>
 </head>

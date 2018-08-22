@@ -410,7 +410,7 @@ float ElementStyle::ResolveAngle(const Property * property)
 	return 0.0f;
 }
 
-float ElementStyle::ResolveNumberLengthPercent(const String& name, const Property * property)
+float ElementStyle::ResolveNumericProperty(const String& property_name, const Property * property)
 {
 	if (property->unit & Property::LENGTH)
 	{
@@ -418,15 +418,15 @@ float ElementStyle::ResolveNumberLengthPercent(const String& name, const Propert
 	}
 
 	auto definition = property->definition;
-	if (!definition) definition = StyleSheetSpecification::GetProperty(name);
+	if (!definition) definition = StyleSheetSpecification::GetProperty(property_name);
 	if (!definition) return 0.0f;
 
 	auto relative_target = definition->GetRelativeTarget();
 	
-	return ResolveNumberLengthPercent(property, relative_target);
+	return ResolveNumericProperty(property, relative_target);
 }
 
-float ElementStyle::ResolveNumberLengthPercent(const Property * property, RelativeTarget relative_target)
+float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTarget relative_target)
 {
 	if (property->unit & Property::LENGTH)
 	{

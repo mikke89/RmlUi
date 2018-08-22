@@ -95,8 +95,8 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		else
 		{
 			// Otherwise, convert units to pixels.
-			float f0 = element.GetStyle()->ResolveNumberLengthPercent(&p0, definition->GetRelativeTarget());
-			float f1 = element.GetStyle()->ResolveNumberLengthPercent(&p1, definition->GetRelativeTarget());
+			float f0 = element.GetStyle()->ResolveNumericProperty(&p0, definition->GetRelativeTarget());
+			float f1 = element.GetStyle()->ResolveNumericProperty(&p1, definition->GetRelativeTarget());
 			float f = (1.0f - alpha) * f0 + alpha * f1;
 			return Property{ f, Property::PX };
 		}

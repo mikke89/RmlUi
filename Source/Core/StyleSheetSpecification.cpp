@@ -236,7 +236,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(OVERFLOW_X, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
 	RegisterProperty(OVERFLOW_Y, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
 	RegisterShorthand("overflow", "overflow-x, overflow-y", PropertySpecification::REPLICATE);
-	RegisterProperty(CLIP, "auto", true, false).AddParser("keyword", "auto, none").AddParser("length");
+	RegisterProperty(CLIP, "auto", true, false).AddParser("keyword", "auto, none").AddParser("number");
 	RegisterProperty(VISIBILITY, "visible", false, false).AddParser("keyword", "visible, hidden");
 
 	// Need some work on this if we are to include images.
