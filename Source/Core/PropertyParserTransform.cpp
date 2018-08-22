@@ -27,6 +27,7 @@
 
 #include "precompiled.h"
 #include "PropertyParserTransform.h"
+#include "../../Include/Rocket/Core/TransformPrimitive.h"
 
 namespace Rocket {
 namespace Core {

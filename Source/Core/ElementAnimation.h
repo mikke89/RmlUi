@@ -60,6 +60,7 @@ private:
 	bool reverse_direction;
 
 	bool animation_complete;
+	bool reverse_animation;
 
 public:
 
@@ -73,6 +74,7 @@ public:
 	float GetDuration() const { return duration; }
 	void SetDuration(float duration) { this->duration = duration; }
 	bool IsComplete() const { return animation_complete; }
+	void ReverseAnimation() { reverse_animation = !reverse_animation; }
 };
 
 

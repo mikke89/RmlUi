@@ -92,6 +92,10 @@ bool Variant::GetInto(T& value) const
 			return TypeConverter< TransformRef, T >::Convert(*(TransformRef*)data, value);
 		break;
 
+		case TRANSITIONLIST:
+			return TypeConverter< TransitionList, T >::Convert(*(TransitionList*)data, value);
+		break;
+
 		case COLOURF:
 			return TypeConverter< Colourf, T >::Convert(*(Colourf*)data, value);
 		break;

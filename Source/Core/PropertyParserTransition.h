@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://www.librocket.com
  *
- * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2018 Michael Ragazzon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,40 +25,41 @@
  *
  */
 
-#ifndef ROCKETCOREPROPERTYPARSERTRANSFORM_H
-#define ROCKETCOREPROPERTYPARSERTRANSFORM_H
+
+
+#ifndef ROCKETCOREPROPERTYPARSERTRANSITION_H
+#define ROCKETCOREPROPERTYPARSERTRANSITION_H
+
 
 #include "../../Include/Rocket/Core/PropertyParser.h"
-#include "PropertyParserNumber.h"
 
 namespace Rocket {
 namespace Core {
 
-namespace Transforms { struct NumericValue; }
 
 
 /**
-	A property parser that parses a RCSS transform property specification.
+A property parser that parses a RCSS transition property specification.
+*/
 
-	@author Markus Schöngart
- */
-class PropertyParserTransform : public PropertyParser
+class PropertyParserTransition : public PropertyParser
 {
 public:
-	PropertyParserTransform();
-	virtual ~PropertyParserTransform();
+	PropertyParserTransition();
 
-	/// Called to parse a RCSS transform declaration.
+	/// Called to parse a RCSS transition declaration.
 	/// @param[out] property The property to set the parsed value on.
 	/// @param[in] value The raw value defined for this property.
 	/// @param[in] parameters The parameters defined for this property.
 	/// @return True if the value was validated successfully, false otherwise.
-	virtual bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const;
+	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 
 	// Destroys the parser.
-	void Release();
+	void Release() override;
 
 private:
+
+
 	/// Scan a string for a parameterized keyword with a certain number of numeric arguments.
 	/// @param[in] str The string to search for the parameterized keyword
 	/// @param[in] keyword The name of the keyword to search for
@@ -66,12 +67,19 @@ private:
 	/// @param[out] args The numeric arguments encountered
 	/// @param[in] nargs The number of numeric arguments expected
 	/// @returns The number of bytes read, if the function call occurs at the beginning of str, 0 otherwise.
-	int Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const;
+	//int Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const override;
 
-	PropertyParserNumber number, length, angle;
+	//PropertyParserNumber number, length, angle;
 };
 
+
+
+
+
+
 }
 }
+
+
 
 #endif

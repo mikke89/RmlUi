@@ -109,6 +109,8 @@ extern const String TRANSFORM_ORIGIN_X;
 extern const String TRANSFORM_ORIGIN_Y;
 extern const String TRANSFORM_ORIGIN_Z;
 
+extern const String TRANSITION;
+
 extern const String SCROLL_DEFAULT_STEP_SIZE;
 extern const String OPACITY;
 extern const String POINTER_EVENTS;

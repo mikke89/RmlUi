@@ -112,6 +112,7 @@ PASS_THROUGH(Colourf);
 PASS_THROUGH(Colourb);
 PASS_THROUGH(String);
 PASS_THROUGH(TransformRef);
+PASS_THROUGH(TransitionList);
 
 // Pointer types need to be typedef'd
 class ScriptInterface;

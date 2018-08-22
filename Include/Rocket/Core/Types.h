@@ -111,6 +111,10 @@ typedef std::vector< ElementAnimation > ElementAnimationList;
 
 // Reference types
 typedef SharedReference< Transform > TransformRef;
+
+struct Transition;
+struct TransitionList;
+
 }
 }
 

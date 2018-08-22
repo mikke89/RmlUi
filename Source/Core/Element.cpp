@@ -911,7 +911,7 @@ const Vector2f Element::Project(const Vector2f& point) noexcept
 	}
 }
 
-bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay)
+bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, bool replace)
 {
 	if (delay < 0.0f)
 		return false;
@@ -940,6 +940,11 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 			ElementAnimation{ property_name, *property, start_time, duration, num_iterations, alternate_direction }
 		);
 		animation = &animations.back();
+	}
+	else if (replace)
+	{
+		animation->ReverseAnimation();
+		animation = nullptr;
 	}
 	else
 	{

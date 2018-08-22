@@ -65,6 +65,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StringCache.h
@@ -181,6 +182,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Types.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Transition.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/URL.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.h
@@ -294,6 +296,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ReferenceCountable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp

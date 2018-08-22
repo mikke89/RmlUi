@@ -33,6 +33,7 @@
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
+#include "PropertyParserTransition.h"
 
 namespace Rocket {
 namespace Core {
@@ -147,6 +148,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("angle", new PropertyParserNumber(Property::ANGLE, Property::RAD));
 	RegisterParser("keyword", new PropertyParserKeyword());
 	RegisterParser("string", new PropertyParserString());
+	RegisterParser("transition", new PropertyParserTransition());
 	RegisterParser(COLOR, new PropertyParserColour());
 	RegisterParser(TRANSFORM, new PropertyParserTransform());
 }
@@ -280,6 +282,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false).AddParser("length");
 	RegisterShorthand(TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z");
 
+	RegisterProperty(TRANSITION, "none", false, false).AddParser("transition");
 }
 
 }

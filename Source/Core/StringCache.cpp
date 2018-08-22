@@ -104,6 +104,7 @@ const String TRANSFORM_ORIGIN = "transform-origin";
 const String TRANSFORM_ORIGIN_X = "transform-origin-x";
 const String TRANSFORM_ORIGIN_Y = "transform-origin-y";
 const String TRANSFORM_ORIGIN_Z = "transform-origin-z";
+const String TRANSITION = "transition";
 const String SCROLL_DEFAULT_STEP_SIZE = "scroll-default-step-size";
 const String OPACITY = "opacity";
 const String POINTER_EVENTS = "pointer-events";

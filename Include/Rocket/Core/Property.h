@@ -75,6 +75,7 @@ public:
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
 		TRANSFORM = 1 << 17,			// transform; fetch as < TransformRef >
+		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM,
 		LENGTH_PERCENT = LENGTH | PERCENT,

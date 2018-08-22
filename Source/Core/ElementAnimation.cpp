@@ -361,7 +361,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction)
 	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
 	keys({ AnimationKey{0.0f, current_value, Tween{}} }),
-	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false)
+	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), reverse_animation(false)
 {
 	ROCKET_ASSERT(current_value.definition);
 }
@@ -421,9 +421,9 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& eleme
 	if (time_since_iteration_start >= duration)
 	{
 		// Next iteration
-		current_iteration += 1;
+		current_iteration += (reverse_animation ? -1 : 1);
 
-		if (current_iteration < num_iterations || num_iterations == -1)
+		if (num_iterations == -1 || (current_iteration >= 0 && current_iteration < num_iterations) )
 		{
 			time_since_iteration_start -= duration;
 
@@ -440,6 +440,8 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& eleme
 	float t = time_since_iteration_start;
 
 	if (reverse_direction)
+		t = duration - t;
+	if (reverse_animation)
 		t = duration - t;
 
 	int key0 = -1;

@@ -296,7 +296,7 @@ public:
 	/// If an animation of the same property name exists, the target value and duration will be added as a new animation key, 
 	/// adding to its total duration. Then, num_iterations, alternate_direction and delay will be ignored.
 	/// @return True if a new animation or key was added.
-	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f);
+	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, bool replace = false);
 	
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.

@@ -85,6 +85,14 @@
 		#text_align {
 			text-align: left;
 		}
+		#transition_test {
+			transition: padding-left 1.6s elastic-out, background-color 1.2s quadratic-out, transform 1.3s exponential-out;
+			transform: scale(1.0);
+		}
+		#transition_test:hover {
+			padding-left: 60px;
+			transform: scale(1.5);
+		} 
 	</style>
 </head>
 
@@ -109,7 +117,7 @@
 	<div style="font-size: 1.5em; text-align: left;">Mixed units tests</div>
 	<div class="container"><div class="plain" id="abs_rel">Pixel vs percentage.</div></div>
 	<div class="container"><div class="plain" id="abs_rel_transform">Pixel vs percentage transform.</div></div>
-	<div class="container"><div class="plain" id="text_align">Text align</div></div>
+	<div class="container"><div class="plain" id="transition_test">Transition test (hover)</div></div>
 </div>
 </body>
 </rml>

@@ -76,6 +76,7 @@ public:
 		COLOURB = 'h',
 		SCRIPTINTERFACE = 'p',
 		TRANSFORMREF = 't',
+		TRANSITIONLIST = 'T',
 		VOIDPTR = '*',			
 	};
 
@@ -150,6 +151,9 @@ private:
 	/// Sets a TransformRef value on this variant.
 	/// @param[in] value New value to set.
 	void Set(const TransformRef& value);
+	/// Sets a TransitionList value on this variant.
+	/// @param[in] value New value to set.
+	void Set(const TransitionList& value);
 	/// Sets a Colourf value on this variant.
 	/// @param[in] value New value to set.
 	void Set(const Colourf& value);

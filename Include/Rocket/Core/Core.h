@@ -72,6 +72,7 @@
 #include "SystemInterface.h"
 #include "Texture.h"
 #include "Types.h"
+#include "Transition.h"
 #include "Tween.h"
 #include "Vertex.h"
 #include "XMLNodeHandler.h"

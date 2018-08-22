@@ -140,15 +140,62 @@ void ElementStyle::UpdateDefinition()
 	}
 }
 
+
+
 // Sets or removes a pseudo-class on the element.
 void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 {
 	size_t num_pseudo_classes = pseudo_classes.size();
 
+	auto pseudo_classes_after = pseudo_classes;
+
 	if (activate)
-		pseudo_classes.insert(pseudo_class);
+		pseudo_classes_after.insert(pseudo_class);
 	else
-		pseudo_classes.erase(pseudo_class);
+		pseudo_classes_after.erase(pseudo_class);
+
+
+	// Apply transition if set
+	if (const Property* property = GetLocalProperty(TRANSITION))
+	{
+		ROCKET_ASSERT(property->unit == Property::TRANSITION);
+		auto transition_list = property->Get<TransitionList>();
+		const ElementDefinition* definition = element->GetDefinition();
+
+		if (!transition_list.none && definition != NULL)
+		{
+			PropertyNameList properties;
+			definition->GetDefinedProperties(properties, pseudo_classes_after, pseudo_class);
+
+			for (auto& property : properties)
+			{
+				Transition* transition = nullptr;
+				if (transition_list.all)
+				{
+					transition = &transition_list.transitions[0];
+				}
+				else
+				{
+					for (auto& transition_candidate : transition_list.transitions) {
+						if (transition_candidate.name == property) {
+							transition = &transition_candidate;
+							break;
+						}
+					}
+				}
+
+				if (transition)
+				{
+					auto target_property = definition->GetProperty(property, pseudo_classes_after);
+					if (target_property)
+						element->Animate(property, *target_property, transition->duration, transition->tween, 1, false, transition->delay, true);
+				}
+			}
+		}
+	}
+
+	pseudo_classes.swap(pseudo_classes_after);
+
 
 	if (pseudo_classes.size() != num_pseudo_classes)
 	{
@@ -775,15 +822,12 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 		StyleSheetSpecification::GetRegisteredProperties() == properties ||
 		StyleSheetSpecification::GetRegisteredInheritedProperties() == properties;
 
+
 	if (all_inherited_dirty)
 	{
 		const PropertyNameList &all_inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
 		for (int i = 0; i < element->GetNumChildren(true); i++)
 			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(all_inherited_properties);
-
-		// Clear all cached properties.
-		cache->Clear();
-		cache->ClearInherited();
 	}
 	else
 	{
@@ -804,11 +848,11 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 			for (int i = 0; i < element->GetNumChildren(true); i++)
 				element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
 		}
-
-		// Clear cached properties.
-		cache->Clear();
-		cache->ClearInherited();
 	}
+
+	// Clear all cached properties.
+	cache->Clear();
+	cache->ClearInherited();
 
 	// clear the list of EM-properties, we will refill it in DirtyEmProperties
 	if (clear_em_properties && em_properties != NULL)

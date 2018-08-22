@@ -27,6 +27,7 @@
 
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/Variant.h"
+#include "PropertyParserTransition.h"
 
 namespace Rocket {
 namespace Core {
@@ -37,6 +38,7 @@ Variant::Variant() : type(NONE)
 	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourb);
 	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourf);
 	ROCKET_STATIC_ASSERT(sizeof(String) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_String);
+	ROCKET_STATIC_ASSERT(sizeof(TransitionList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_TRANSITION_LIST);
 }
 
 Variant::Variant( const Variant& copy ) : type(NONE)
@@ -61,7 +63,6 @@ void Variant::Clear()
 			string->~String();
 		}
 		break;
-
 		case TRANSFORMREF:
 		{
 			// Clean up the transform.
@@ -69,7 +70,13 @@ void Variant::Clear()
 			transform->~TransformRef();
 		}
 		break;
-
+		case TRANSITIONLIST:
+		{
+			// Clean up the transition list.
+			TransitionList* transition_list = (TransitionList*)data;
+			transition_list->~TransitionList();
+		}
+		break;
 		default:
 		break;
 	}
@@ -99,6 +106,13 @@ void Variant::Set(const Variant& copy)
 		{
 			// Create the transform
 			Set(*(TransformRef*)copy.data);
+		}
+		break;
+
+		case TRANSITIONLIST:
+		{
+			// Create the transition list
+			Set(*(TransitionList*)copy.data);
 		}
 		break;
 
@@ -192,6 +206,19 @@ void Variant::Set(const TransformRef& value)
 	{
 		type = TRANSFORMREF;
 		new(data) TransformRef(value);
+	}
+}
+
+void Variant::Set(const TransitionList& value)
+{
+	if (type == TRANSITIONLIST)
+	{
+		*(TransitionList*)data = value;
+	}
+	else
+	{
+		type = TRANSITIONLIST;
+		new(data) TransitionList(value);
 	}
 }
 

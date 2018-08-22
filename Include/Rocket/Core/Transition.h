@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://www.librocket.com
  *
- * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2018 Michael Ragazzon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,38 +25,32 @@
  *
  */
 
-#ifndef ROCKETCORETYPECONVERTER_H
-#define ROCKETCORETYPECONVERTER_H
 
-#include "Types.h"
-#include "Transition.h"
-#include "Log.h"
-#include "Stream.h"
-#include "StringUtilities.h"
-#include <typeinfo>
-#include <stdlib.h>
-#include <stdio.h>
+
+#ifndef ROCKETCORETRANSITION_H
+#define ROCKETCORETRANSITION_H
+
+
+#include "String.h"
+#include "Tween.h"
 
 namespace Rocket {
 namespace Core {
 
-/**
-	Templatised TypeConverters with Template Specialisation.
 
-	These converters convert from source types to destination types.
-	They're mainly useful in things like dictionaries and serialisers.
-
-	@author Lloyd Weehuizen
- */
-
-template <typename SourceType, typename DestType>
-class TypeConverter 
-{
-public:	
-	static bool Convert(const SourceType& src, DestType& dest);
+struct Transition {
+	String name;
+	Tween tween;
+	float duration = 0.0f;
+	float delay = 0.0f;
 };
 
-#include "TypeConverter.inl"
+struct TransitionList {
+	bool none = true;
+	bool all = false;
+	std::vector<Transition> transitions;
+};
+
 
 }
 }
