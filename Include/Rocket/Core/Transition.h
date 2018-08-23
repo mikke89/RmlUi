@@ -43,6 +43,7 @@ struct Transition {
 	Tween tween;
 	float duration = 0.0f;
 	float delay = 0.0f;
+	float reverse_adjustment_factor = 0.0f;
 };
 
 struct TransitionList {

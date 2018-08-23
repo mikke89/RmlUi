@@ -911,11 +911,8 @@ const Vector2f Element::Project(const Vector2f& point) noexcept
 	}
 }
 
-bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, bool replace)
+bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, const Property* start_value)
 {
-	if (delay < 0.0f)
-		return false;
-
 	ElementAnimation* animation = nullptr;
 
 	for (auto& existing_animation : animations)
@@ -932,19 +929,15 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 	if (!animation)
 	{
 		float start_time = Clock::GetElapsedTime() + delay;
-		const Property* property = GetProperty(property_name);
-		if (!property || !property->definition) 
+		if(!start_value)
+			start_value = GetProperty(property_name);
+		if (!start_value || !start_value->definition) 
 			return false;
 
 		animations.push_back(
-			ElementAnimation{ property_name, *property, start_time, duration, num_iterations, alternate_direction }
+			ElementAnimation{ property_name, *start_value, start_time, duration, num_iterations, alternate_direction, false }
 		);
 		animation = &animations.back();
-	}
-	else if (replace)
-	{
-		animation->ReverseAnimation();
-		animation = nullptr;
 	}
 	else
 	{
@@ -952,13 +945,52 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 		animation->SetDuration(target_time);
 	}
 
-	bool result = false;
+	bool result = animation->AddKey(target_time, target_value, *this, tween);
 
-	if(animation)
+	return result;
+}
+
+bool Element::StartTransition(const Transition & transition, const Property& start_value, const Property & target_value)
+{
+	ElementAnimation* animation = nullptr;
+
+	for (auto& existing_animation : animations)
 	{
-		result = animation->AddKey(target_time, target_value, *this, tween);
+		if (existing_animation.GetPropertyName() == transition.name)
+		{
+			animation = &existing_animation;
+			break;
+		}
 	}
-	
+
+	if (animation && !animation->IsTransition())
+		return false;
+
+	float duration = transition.duration;
+
+	if (!animation)
+	{
+		float start_time = Clock::GetElapsedTime() + transition.delay;
+
+		animations.push_back(
+			ElementAnimation{ transition.name, start_value, start_time, duration, 1, false, true }
+		);
+		animation = &animations.back();
+	}
+	else
+	{
+		float start_time = Clock::GetElapsedTime() + transition.delay;
+		
+		// Compress the duration based on the progress of the current animation
+		float f = animation->GetInterpolationFactor();
+		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
+		duration = duration * f;
+
+		*animation = ElementAnimation{ transition.name, start_value, start_time, duration, 1, false, true };
+	}
+
+	bool result = animation->AddKey(duration, target_value, *this, transition.tween);
+
 	return result;
 }
 

@@ -47,7 +47,9 @@ Transform::Transform(std::vector<Transforms::Primitive> primitives)
 
 Property Transform::MakeProperty(std::vector<Transforms::Primitive> primitives)
 {
-	return Property{ TransformRef{new Transform{primitives}}, Property::TRANSFORM };
+	Property p{ TransformRef{new Transform{primitives}}, Property::TRANSFORM };
+	p.definition = StyleSheetSpecification::GetProperty(TRANSFORM);
+	return p;
 }
 
 Transform::Transform(const Transform& other)

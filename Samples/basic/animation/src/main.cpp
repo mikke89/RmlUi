@@ -114,7 +114,7 @@ public:
 			// Mixed units tests
 			{
 				auto el = document->GetElementById("abs_rel");
-				el->Animate("margin-left", Property(100.f, Property::PERCENT), 1.5f, Tween{}, -1, true);
+				el->Animate("margin-left", Property(50.f, Property::PERCENT), 1.5f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("abs_rel_transform");
@@ -241,6 +241,15 @@ public:
 			else if (key_identifier == Rocket::Core::Input::KI_F8)
 			{
 				Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
+			}
+		}
+		if (event == "click")
+		{
+			auto el = event.GetTargetElement();
+			if (el->GetId() == "transition_class")
+			{
+				// TODO: Doesn't seem to properly animate
+				el->SetClass("blue", !el->IsClassSet("blue"));
 			}
 		}
 	}

@@ -89,6 +89,115 @@ const ElementDefinition* ElementStyle::GetDefinition()
 
 	return definition;
 }
+
+
+
+// Returns one of this element's properties.
+static const Property* GetLocalProperty(const String& name, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+{
+	// Check for overriding local properties.
+	if (local_properties != NULL)
+	{
+		const Property* property = local_properties->GetProperty(name);
+		if (property != NULL)
+			return property;
+	}
+
+	// Check for a property defined in an RCSS rule.
+	if (definition != NULL)
+		return definition->GetProperty(name, pseudo_classes);
+
+	return NULL;
+}
+
+// Returns one of this element's properties.
+static const Property* GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+{
+	if (prop_counter.find(name) == prop_counter.end())
+		prop_counter[name] = 0;
+	prop_counter[name] = prop_counter[name] + 1;
+	
+	const Property* local_property = GetLocalProperty(name, local_properties, definition, pseudo_classes);
+	if (local_property != NULL)
+		return local_property;
+
+	// Fetch the property specification.
+	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(name);
+	if (property == NULL)
+		return NULL;
+
+	// If we can inherit this property, return our parent's property.
+	if (property->IsInherited())
+	{
+		Element* parent = element->GetParentNode();
+		while (parent != NULL)
+		{
+			const Property* parent_property = parent->GetStyle()->GetLocalProperty(name);
+			if (parent_property)
+				return parent_property;
+
+			parent = parent->GetParentNode();
+		}
+	}
+
+	// No property available! Return the default value.
+	return property->GetDefaultValue();
+}
+
+// For the properties which are defined in a transition on the given element, apply transition to all properties changed due to a class change.
+// Call this before new_definition has been assigned to the element and its style.
+// Properties that are part of a transition are removed from the properties list.
+static void TransitionUpdatedClass(ElementStyle* style, Element* element, PropertyNameList& properties, ElementDefinition* old_definition, ElementDefinition* new_definition, PropertyDictionary* local_properties, const PseudoClassList& pseudo_classes)
+{
+	if (!element || !old_definition || !new_definition || properties.empty())
+		return;
+
+	if (const Property* transition_property = GetLocalProperty(TRANSITION, local_properties, new_definition, pseudo_classes))
+	{
+		auto transition_list = transition_property->Get<TransitionList>();
+
+		if (!transition_list.none && new_definition)
+		{
+			for (auto it = properties.begin(); it != properties.end();)
+			{
+				auto& property = *it;
+				Transition* transition = nullptr;
+				bool transition_added = false;
+
+				if (transition_list.all)
+				{
+					transition = &transition_list.transitions[0];
+				}
+				else
+				{
+					// TODO: Swap the loops because a lookup in properties is constant time
+					for (auto& transition_candidate : transition_list.transitions) {
+						if (transition_candidate.name == property) {
+							transition = &transition_candidate;
+							break;
+						}
+					}
+				}
+
+				if (transition)
+				{
+					const Property* start_value = GetProperty(property, element, local_properties, old_definition, pseudo_classes);
+					const Property* target_value = GetProperty(property, element, local_properties, new_definition, pseudo_classes);
+
+					// TODO: See if the start and target_value are equal, if so, skip.
+
+					if (start_value && target_value)
+						transition_added = element->StartTransition(*transition, *start_value, *target_value);
+				}
+
+				if (transition_added)
+					it = properties.erase(it);
+				else
+					++it;
+			}
+		}
+	}
+}
 	
 void ElementStyle::UpdateDefinition()
 {
@@ -110,15 +219,17 @@ void ElementStyle::UpdateDefinition()
 			PropertyNameList properties;
 			
 			if (definition != NULL)
-			{
 				definition->GetDefinedProperties(properties, pseudo_classes);
-				definition->RemoveReference();
-			}
-			
-			definition = new_definition;
-			
+
+			if (new_definition != NULL)
+				new_definition->GetDefinedProperties(properties, pseudo_classes);
+
+			TransitionUpdatedClass(this, element, properties, definition, new_definition, local_properties, pseudo_classes);
+
 			if (definition != NULL)
-				definition->GetDefinedProperties(properties, pseudo_classes);
+				definition->RemoveReference();
+
+			definition = new_definition;
 			
 			DirtyProperties(properties);
 			element->GetElementDecoration()->ReloadDecorators();
@@ -147,15 +258,16 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 {
 	size_t num_pseudo_classes = pseudo_classes.size();
 
-	auto pseudo_classes_after = pseudo_classes;
+	auto pseudo_classes_before = pseudo_classes;
 
 	if (activate)
-		pseudo_classes_after.insert(pseudo_class);
+		pseudo_classes.insert(pseudo_class);
 	else
-		pseudo_classes_after.erase(pseudo_class);
+		pseudo_classes.erase(pseudo_class);
 
 
-	// Apply transition if set
+	// Apply transition if defined on this element
+	// Note: We had to set the pseudo classes first so that any transition being overriden in the pseudo class is captured
 	if (const Property* property = GetLocalProperty(TRANSITION))
 	{
 		ROCKET_ASSERT(property->unit == Property::TRANSITION);
@@ -165,7 +277,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 		if (!transition_list.none && definition != NULL)
 		{
 			PropertyNameList properties;
-			definition->GetDefinedProperties(properties, pseudo_classes_after, pseudo_class);
+			definition->GetDefinedProperties(properties, pseudo_classes, pseudo_class);
 
 			for (auto& property : properties)
 			{
@@ -186,15 +298,21 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 
 				if (transition)
 				{
-					auto target_property = definition->GetProperty(property, pseudo_classes_after);
-					if (target_property)
-						element->Animate(property, *target_property, transition->duration, transition->tween, 1, false, transition->delay, true);
+					// Get start value from local properties first, else, we fetch the property given the previous pseudo classes
+					const Property* start_value = nullptr;
+					if (local_properties)
+						start_value = local_properties->GetProperty(property);
+					if(!start_value) 
+						start_value = definition->GetProperty(property, pseudo_classes_before);
+
+					auto target_value = definition->GetProperty(property, pseudo_classes);
+
+					if (start_value && target_value)
+						element->StartTransition(*transition, *start_value, *target_value);
 				}
 			}
 		}
 	}
-
-	pseudo_classes.swap(pseudo_classes_after);
 
 
 	if (pseudo_classes.size() != num_pseudo_classes)
@@ -337,6 +455,8 @@ void ElementStyle::RemoveProperty(const String& name)
 		DirtyProperty(name);
 	}
 }
+
+
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(const String& name)

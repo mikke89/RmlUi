@@ -65,6 +65,11 @@ public:
 		return t;
 	}
 
+	void reverse()
+	{
+		std::swap(type_in, type_out);
+	}
+
 	// Tweening functions below.
 	// Partly based on http://libclaw.sourceforge.net/tweeners.html
 

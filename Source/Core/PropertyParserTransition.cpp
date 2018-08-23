@@ -29,6 +29,7 @@
 #include "precompiled.h"
 #include "PropertyParserTransition.h"
 #include "../../Include/Rocket/Core/StringUtilities.h"
+#include "PropertyShorthandDefinition.h"
 
 
 namespace Rocket {
@@ -113,12 +114,15 @@ bool PropertyParserTransition::ParseValue(Property & property, const String & va
 	for (const String& single_property : list_of_properties)
 	{
 		Transition transition;
+		StringList target_property_names;
 
 		StringList arguments;
 		StringUtilities::ExpandString(arguments, single_property, ' ');
 
+
 		bool duration_found = false;
 		bool delay_found = false;
+		bool reverse_adjustment_factor_found = false;
 
 		for (auto& argument : arguments)
 		{
@@ -150,36 +154,74 @@ bool PropertyParserTransition::ParseValue(Property & property, const String & va
 			else
 			{
 				// Either <duration>, <delay> or a <property name>
+				float number = 0.0f;
+				int count = 0;
 
-				float* time_target = (duration_found ? &transition.delay : &transition.duration);
-
-				if (sscanf(argument.CString(), "%fs", time_target) == 1)
+				if (sscanf(argument.CString(), "%fs%n", &number, &count) == 1)
 				{
-					// Duration or delay was assigned
-					if (!duration_found)
-						duration_found = true;
-					else if (!delay_found)
-						delay_found = true;
+					// Found a number, if there was an 's' unit, count will be positive
+					if (count > 0)
+					{
+						// Duration or delay was assigned
+						if (!duration_found)
+						{
+							duration_found = true;
+							transition.duration = number;
+						}
+						else if (!delay_found)
+						{
+							delay_found = true;
+							transition.delay = number;
+						}
+						else
+							return false;
+					}
 					else
-						return false;
+					{
+						// No 's' unit means reverse adjustment factor was found
+						if (!reverse_adjustment_factor_found)
+						{
+							reverse_adjustment_factor_found = true;
+							transition.reverse_adjustment_factor = number;
+						}
+						else
+							return false;
+					}
 				}
 				else
 				{
-					// Must be a property name (unless its invalid, we don't actually validate it)
-					if (!transition.name.Empty())
+					// Must be a property name or shorthand, expand now
+					if (auto shorthand = StyleSheetSpecification::GetShorthand(argument))
+					{
+						// For shorthands, add each underlying property separately
+						for (const auto& property : shorthand->properties)
+							target_property_names.push_back(property.first);
+					}
+					else if (auto definition = StyleSheetSpecification::GetProperty(argument))
+					{
+						// Single property
+						target_property_names.push_back(argument);
+					}
+					else
+					{
+						// Unknown property name
 						return false;
-					transition.name = argument;
+					}
 				}
 			}
 		}
 
 		// Validate the parsed transition
-		if (transition.name.Length() == 0 || transition.duration <= 0.0f)
+		if (target_property_names.empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f)
 		{
 			return false;
 		}
 
-		transition_list.transitions.push_back(transition);
+		for (const auto& property_name : target_property_names)
+		{
+			transition.name = property_name;
+			transition_list.transitions.push_back(transition);
+		}
 	}
 
 	property = Property{ transition_list, Property::TRANSITION };

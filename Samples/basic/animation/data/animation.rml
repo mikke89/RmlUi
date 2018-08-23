@@ -7,7 +7,7 @@
 		{
 			max-width: 2000px;
 			max-height: 2000px;
-			width: 1400px;
+			width: 1600px;
 			height: 750px;
 			perspective: 3000px;
 			/*opacity: 0;*/
@@ -85,19 +85,28 @@
 		#text_align {
 			text-align: left;
 		}
+		/* -- TRANSITION TESTS */
 		#transition_test {
-			transition: padding-left 1.6s elastic-out, background-color 1.2s quadratic-out, transform 1.3s exponential-out;
+			/*transition: padding-left 1.6s elastic-in 1.0, background-color 1.2s quadratic-in 1.0, transform 1.3s exponential-in 1.0;*/
+			transition: padding-left background-color transform 1.6s elastic-out 0.0;
 			transform: scale(1.0);
 		}
 		#transition_test:hover {
+			/*transition: padding-left background-color transform 0.8s quadratic-out 1.0;*/
 			padding-left: 60px;
 			transform: scale(1.5);
 		} 
+		#transition_class {
+			transition: margin-left 1s cubic-in-out;
+		}
+		#transition_class.blue {
+			margin-left: -50px;
+		}
 	</style>
 </head>
 
 <body template="window">
-<div style="width: 30%; height: 80%; position: absolute;">
+<div style="width: 20%; height: 80%; position: absolute;">
 	<div style="font-size: 0.85em; text-align: left;" id="fps"></div>
 	<button id="start_game">Start Game</button><br />
 	<button id="high_scores" onkeydown="hello">High Scores</button><br />
@@ -106,18 +115,22 @@
 	<button id="exit" onclick="exit">Exit</button>
 </div>
 
-<div style="width: 25%; height: 80%;position: absolute; left: 40%;" id="transform_tests">
+<div style="width: 20%; height: 80%;position: absolute; left: 28%;" id="transform_tests">
 	<div style="font-size: 1.5em; text-align: left;">Test transform animations</div>
 	<div class="container"><div class="plain" id="generic">Generic form conversion.</div></div>
 	<div class="container"><div class="plain" id="combine">Match different transform primitive sizes</div></div>
 	<div class="container"><div class="plain" id="decomposition">Force full matrix decomposition</div></div>
 </div>
 
-<div style="width: 25%; height: 80%;position: absolute; left: 70%;" id="mixed_units_tests">
+<div style="width: 20%; height: 80%;position: absolute; left: 52%;" id="mixed_units_tests">
 	<div style="font-size: 1.5em; text-align: left;">Mixed units tests</div>
 	<div class="container"><div class="plain" id="abs_rel">Pixel vs percentage.</div></div>
 	<div class="container"><div class="plain" id="abs_rel_transform">Pixel vs percentage transform.</div></div>
+</div>
+<div style="width: 20%; height: 80%;position: absolute; left: 75%;" id="transition_tests">
+	<div style="font-size: 1.5em; text-align: left;">Transition tests</div>
 	<div class="container"><div class="plain" id="transition_test">Transition test (hover)</div></div>
+	<div class="container"><div class="plain" id="transition_class" onclick="add_class">Transition class (click)</div></div>
 </div>
 </body>
 </rml>

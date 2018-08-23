@@ -37,7 +37,7 @@ namespace Core {
 
 
 struct AnimationKey {
-	float time;
+	float time;   // Local animation time (Zero means the time when the animation iteration starts)
 	Property property;
 	Tween tween;  // Tweening between the previous and this key. Ignored for the first animation key.
 };
@@ -60,11 +60,12 @@ private:
 	bool reverse_direction;
 
 	bool animation_complete;
-	bool reverse_animation;
+	bool is_transition;
 
+	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
 public:
 
-	ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction);
+	ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition);
 
 	bool AddKey(float time, const Property& property, Element& element, Tween tween);
 
@@ -74,7 +75,8 @@ public:
 	float GetDuration() const { return duration; }
 	void SetDuration(float duration) { this->duration = duration; }
 	bool IsComplete() const { return animation_complete; }
-	void ReverseAnimation() { reverse_animation = !reverse_animation; }
+	bool IsTransition() const { return is_transition; }
+	float GetInterpolationFactor() const { return GetInterpolationFactorAndKeys(nullptr, nullptr); }
 };
 
 

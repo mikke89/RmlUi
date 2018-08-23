@@ -358,10 +358,10 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 }
 
 
-ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction)
+ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition)
 	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
 	keys({ AnimationKey{0.0f, current_value, Tween{}} }),
-	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), reverse_animation(false)
+	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), is_transition(is_transition)
 {
 	ROCKET_ASSERT(current_value.definition);
 }
@@ -407,41 +407,12 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 	return result;
 }
 
-
-Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& element)
+float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const
 {
-	if (animation_complete || world_time - last_update_world_time <= 0.0f)
-		return Property{};
-
-	const float dt = Math::Min(world_time - last_update_world_time, 0.1f);
-
-	last_update_world_time = world_time;
-	time_since_iteration_start += dt;
-
-	if (time_since_iteration_start >= duration)
-	{
-		// Next iteration
-		current_iteration += (reverse_animation ? -1 : 1);
-
-		if (num_iterations == -1 || (current_iteration >= 0 && current_iteration < num_iterations) )
-		{
-			time_since_iteration_start -= duration;
-
-			if (alternate_direction)
-				reverse_direction = !reverse_direction;
-		}
-		else
-		{
-			animation_complete = true;
-			time_since_iteration_start = duration;
-		}
-	}
 
 	float t = time_since_iteration_start;
 
 	if (reverse_direction)
-		t = duration - t;
-	if (reverse_animation)
 		t = duration - t;
 
 	int key0 = -1;
@@ -458,7 +429,7 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& eleme
 		}
 
 		if (key1 < 0) key1 = (int)keys.size() - 1;
-		key0 = (key1 == 0 ? 0 : key1 - 1 );
+		key0 = (key1 == 0 ? 0 : key1 - 1);
 	}
 
 	ROCKET_ASSERT(key0 >= 0 && key0 < (int)keys.size() && key1 >= 0 && key1 < (int)keys.size());
@@ -478,6 +449,48 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& eleme
 	}
 
 	alpha = keys[key1].tween(alpha);
+
+	if (out_key0) *out_key0 = key0;
+	if (out_key1) *out_key1 = key1;
+
+	return alpha;
+}
+
+
+
+Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& element)
+{
+	if (animation_complete || world_time - last_update_world_time <= 0.0f)
+		return Property{};
+
+	const float dt = Math::Min(world_time - last_update_world_time, 0.1f);
+
+	last_update_world_time = world_time;
+	time_since_iteration_start += dt;
+
+	if (time_since_iteration_start >= duration)
+	{
+		// Next iteration
+		current_iteration += 1;
+
+		if (num_iterations == -1 || (current_iteration >= 0 && current_iteration < num_iterations) )
+		{
+			time_since_iteration_start -= duration;
+
+			if (alternate_direction)
+				reverse_direction = !reverse_direction;
+		}
+		else
+		{
+			animation_complete = true;
+			time_since_iteration_start = duration;
+		}
+	}
+
+	int key0 = -1;
+	int key1 = -1;
+
+	float alpha = GetInterpolationFactorAndKeys(&key0, &key1);
 
 	Property result = InterpolateProperties(keys[key0].property, keys[key1].property, alpha, element, keys[0].property.definition);
 	
