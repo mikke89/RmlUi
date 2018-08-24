@@ -46,7 +46,7 @@ PropertyParserTransform::~PropertyParserTransform()
 // Called to parse a RCSS transform declaration.
 bool PropertyParserTransform::ParseValue(Property& property, const String& value, const ParameterMap& parameters) const
 {
-	SharedReference< Transform > transform(new Transform);
+	auto transform = std::make_unique<Transform>();
 
 	char const* next = value.CString();
 
@@ -167,8 +167,8 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 			return false;
 		}
 	}
-
-	property.value = Variant(TransformRef(transform));
+	
+	property.value = Variant(TransformRef(std::move(transform)));
 	property.unit = Property::TRANSFORM;
 
 	return true;

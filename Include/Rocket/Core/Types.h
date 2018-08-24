@@ -71,7 +71,6 @@ typedef unsigned __int64 uint64_t;
 #include "Vector4.h"
 #include "Matrix4.h"
 #include "String.h"
-#include "Reference.h"
 #include "Transform.h"
 
 namespace Rocket {
@@ -110,7 +109,7 @@ typedef Dictionary ElementAttributes;
 typedef std::vector< ElementAnimation > ElementAnimationList;
 
 // Reference types
-typedef SharedReference< Transform > TransformRef;
+typedef std::shared_ptr< Transform > TransformRef;
 
 struct Transition;
 struct TransitionList;

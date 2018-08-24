@@ -34,9 +34,9 @@
 namespace Rocket {
 namespace Core {
 
+
 // Default constructor, initializes an identity transform
 Transform::Transform()
-	: primitives()
 {
 }
 
@@ -50,28 +50,6 @@ Property Transform::MakeProperty(std::vector<Transforms::Primitive> primitives)
 	Property p{ TransformRef{new Transform{primitives}}, Property::TRANSFORM };
 	p.definition = StyleSheetSpecification::GetProperty(TRANSFORM);
 	return p;
-}
-
-Transform::Transform(const Transform& other)
-{
-	primitives = other.primitives;
-}
-
-Transform::~Transform()
-{
-	primitives.clear();
-}
-
-void Transform::Swap(Transform& other)
-{
-	primitives.swap(other.primitives);
-}
-
-const Transform& Transform::operator=(const Transform& other)
-{
-	Transform result(other);
-	Swap(result);
-	return *this;
 }
 
 void Transform::ClearPrimitives() 

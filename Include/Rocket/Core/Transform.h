@@ -48,7 +48,7 @@ class Property;
 	@see Rocket::Core::Variant
  */
 
-class ROCKETCORE_API Transform : public ReferenceCountable
+class ROCKETCORE_API Transform
 {
 public:
 	typedef std::vector< Transforms::Primitive > Primitives;
@@ -61,18 +61,6 @@ public:
 
 	/// Helper function to create a Property with TransformRef from list of primitives
 	static Property MakeProperty(std::vector<Transforms::Primitive> primitives);
-	
-	/// Copy constructor
-	Transform(const Transform& other);
-
-	/// Destructor
-	~Transform();
-
-	/// Swap the content of two Transform instances
-	void Swap(Transform& other);
-
-	/// Assignment operator
-	const Transform& operator=(const Transform& other);
 
 	/// Remove all Primitives from this Transform
 	void ClearPrimitives();
@@ -88,10 +76,6 @@ public:
 
 	Primitives& GetPrimitives() noexcept { return primitives; }
 	const Primitives& GetPrimitives() const noexcept { return primitives; }
-
-protected:
-	void OnReferenceDeactivate()
-		{ delete this; }
 
 private:
 	Primitives primitives;

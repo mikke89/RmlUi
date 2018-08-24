@@ -98,7 +98,7 @@
 		} 
 		#transition_class {
 			margin-left: 50px;
-			transition: all 0.5s cubic-out;
+			transition: margin-left background-color 0.5s cubic-out;
 		}
 		#transition_class.move_me {
 			margin-left: -50px;
