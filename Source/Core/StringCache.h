@@ -137,6 +137,7 @@ extern const String DRAGOUT;
 extern const String DRAGEND;
 extern const String DRAGOVER;
 extern const String RESIZE;
+extern const String ANIMATIONEND;
 
 }
 }

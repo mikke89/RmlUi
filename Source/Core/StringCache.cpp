@@ -130,6 +130,7 @@ const String DRAGDROP = "dragdrop";
 const String DRAGOUT = "dragout";
 const String DRAGEND = "dragend";
 const String RESIZE = "resize";
+const String ANIMATIONEND = "animationend";
 
 }
 }

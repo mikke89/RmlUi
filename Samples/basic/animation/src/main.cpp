@@ -122,8 +122,9 @@ public:
 				el->Animate("transform", p, 1.5f, Tween{}, -1, true);
 			}
 			{
-				auto el = document->GetElementById("text_align");
-				//el->Animate("text-align", Property(3, Property::KEYWORD), 2.0f, Tween{}, -1, true);
+				auto el = document->GetElementById("animation_event");
+				el->Animate("top", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate("left", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
 			}
 
 			document->Show();
@@ -209,6 +210,8 @@ public:
 
 	void ProcessEvent(Rocket::Core::Event& event) override
 	{
+		using namespace Rocket::Core;
+
 		if(value == "exit")
 			Shell::RequestExit();
 
@@ -249,6 +252,15 @@ public:
 			if (el->GetId() == "transition_class")
 			{
 				el->SetClass("move_me", !el->IsClassSet("move_me"));
+			}
+		}
+		if (event == "animationend")
+		{
+			auto el = event.GetTargetElement();
+			if (el->GetId() == "animation_event")
+			{
+				el->Animate("top", Property(Math::RandomReal(200.f), Property::PX), 1.2f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate("left", Property(Math::RandomReal(100.f), Property::PERCENT), 0.8f, Tween{ Tween::Cubic, Tween::InOut });
 			}
 		}
 	}
@@ -357,6 +369,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	window = new DemoWindow("Animation sample", Rocket::Core::Vector2f(81, 100), context);
 	window->GetDocument()->AddEventListener("keydown", new Event("hello"));
 	window->GetDocument()->AddEventListener("keyup", new Event("hello"));
+	window->GetDocument()->AddEventListener("animationend", new Event("hello"));
 
 
 	Shell::EventLoop(GameLoop);

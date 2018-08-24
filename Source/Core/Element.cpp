@@ -189,10 +189,23 @@ void Element::UpdateAnimations()
 				SetProperty(animation.GetPropertyName(), property);
 		}
 
-		animations.erase(
-			std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); }),
-			animations.end()
-		);
+		auto it_completed = std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); });
+
+		std::vector<Dictionary> dictionary_list;
+		dictionary_list.reserve(animations.end() - it_completed);
+
+		for (auto it = it_completed; it != animations.end(); ++it)
+		{
+			auto& dictionary = dictionary_list.emplace_back();
+			dictionary.Set(TRANSITION, it->IsTransition());
+			dictionary.Set("property", it->GetPropertyName());
+		}
+
+		// Need to erase elements before submitting event, so that we can add new animations of same property in the handler
+		animations.erase(it_completed, animations.end());
+
+		for (auto& dictionary : dictionary_list)
+			DispatchEvent(ANIMATIONEND, dictionary);
 	}
 }
 
