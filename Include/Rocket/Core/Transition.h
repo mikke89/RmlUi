@@ -53,6 +53,12 @@ struct TransitionList {
 };
 
 
+inline bool operator==(const Transition& a, const Transition& b) { return a.name == b.name && a.tween == b.tween && a.duration == b.duration && a.delay == b.delay && a.reverse_adjustment_factor == b.reverse_adjustment_factor; }
+inline bool operator!=(const Transition& a, const Transition& b) { return !(a == b); }
+inline bool operator==(const TransitionList& a, const TransitionList& b) { return a.none == b.none && a.all == b.all && a.transitions == b.transitions; }
+inline bool operator!=(const TransitionList& a, const TransitionList& b) { return !(a == b); }
+
+
 }
 }
 

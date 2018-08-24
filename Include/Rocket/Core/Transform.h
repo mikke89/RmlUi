@@ -34,7 +34,6 @@
 namespace Rocket {
 namespace Core {
 
-class ViewState;
 namespace Transforms { struct Primitive; }
 class Property;
 

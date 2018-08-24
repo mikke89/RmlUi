@@ -93,7 +93,7 @@ const ElementDefinition* ElementStyle::GetDefinition()
 
 
 // Returns one of this element's properties.
-static const Property* GetLocalProperty(const String& name, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetLocalProperty(const String& name, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	// Check for overriding local properties.
 	if (local_properties != NULL)
@@ -111,7 +111,7 @@ static const Property* GetLocalProperty(const String& name, PropertyDictionary* 
 }
 
 // Returns one of this element's properties.
-static const Property* GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	if (prop_counter.find(name) == prop_counter.end())
 		prop_counter[name] = 0;
@@ -144,56 +144,53 @@ static const Property* GetProperty(const String& name, Element* element, Propert
 	return property->GetDefaultValue();
 }
 
-// For the properties which are defined in a transition on the given element, apply transition to all properties changed due to a class change.
-// Call this before new_definition has been assigned to the element and its style.
+// Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-static void TransitionUpdatedClass(ElementStyle* style, Element* element, PropertyNameList& properties, ElementDefinition* old_definition, ElementDefinition* new_definition, PropertyDictionary* local_properties, const PseudoClassList& pseudo_classes)
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, PropertyDictionary* local_properties, ElementDefinition* old_definition, ElementDefinition* new_definition,
+	const PseudoClassList& pseudo_classes_before, const PseudoClassList& pseudo_classes_after)
 {
-	if (!element || !old_definition || !new_definition || properties.empty())
+	ROCKET_ASSERT(element);
+	if (!old_definition || !new_definition || properties.empty())
 		return;
 
-	if (const Property* transition_property = GetLocalProperty(TRANSITION, local_properties, new_definition, pseudo_classes))
+	if (const Property* transition_property = GetLocalProperty(TRANSITION, local_properties, new_definition, pseudo_classes_after))
 	{
 		auto transition_list = transition_property->Get<TransitionList>();
 
-		if (!transition_list.none && new_definition)
+		if (!transition_list.none)
 		{
-			for (auto it = properties.begin(); it != properties.end();)
-			{
-				auto& property = *it;
-				Transition* transition = nullptr;
+			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
+				const Property* start_value = GetProperty(transition.name, element, local_properties, old_definition, pseudo_classes_before);
+				const Property* target_value = GetProperty(transition.name, element, nullptr, new_definition, pseudo_classes_after);
+				if (start_value && target_value && (*start_value != *target_value))
+					transition_added = element->StartTransition(transition, *start_value, *target_value);
+				return transition_added;
+			};
 
-				if (transition_list.all)
+
+			if (transition_list.all)
+			{
+				Transition transition = transition_list.transitions[0];
+				for (auto it = properties.begin(); it != properties.end(); )
 				{
-					transition = &transition_list.transitions[0];
+					transition.name = *it;
+					if (add_transition(transition))
+						it = properties.erase(it);
+					else
+						++it;
 				}
-				else
+			}
+			else
+			{
+				for (auto& transition : transition_list.transitions)
 				{
-					// TODO: Swap the loops because a lookup in properties is constant time
-					for (auto& transition_candidate : transition_list.transitions) {
-						if (transition_candidate.name == property) {
-							transition = &transition_candidate;
-							break;
-						}
+					if (auto it = properties.find(transition.name); it != properties.end())
+					{
+						if (add_transition(transition))
+							properties.erase(it);
 					}
 				}
-
-				if (transition)
-				{
-					const Property* start_value = GetProperty(property, element, local_properties, old_definition, pseudo_classes);
-					const Property* target_value = GetProperty(property, element, local_properties, new_definition, pseudo_classes);
-
-					// TODO: See if the start and target_value are equal, if so, skip.
-
-					if (start_value && target_value)
-						transition_added = element->StartTransition(*transition, *start_value, *target_value);
-				}
-
-				if (transition_added)
-					it = properties.erase(it);
-				else
-					++it;
 			}
 		}
 	}
@@ -224,7 +221,7 @@ void ElementStyle::UpdateDefinition()
 			if (new_definition != NULL)
 				new_definition->GetDefinedProperties(properties, pseudo_classes);
 
-			TransitionUpdatedClass(this, element, properties, definition, new_definition, local_properties, pseudo_classes);
+			TransitionPropertyChanges(element, properties, local_properties, definition, new_definition, pseudo_classes, pseudo_classes);
 
 			if (definition != NULL)
 				definition->RemoveReference();
@@ -265,65 +262,17 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 	else
 		pseudo_classes.erase(pseudo_class);
 
-
-	// Apply transition if defined on this element
-	// Note: We had to set the pseudo classes first so that any transition being overriden in the pseudo class is captured
-	if (const Property* property = GetLocalProperty(TRANSITION))
-	{
-		ROCKET_ASSERT(property->unit == Property::TRANSITION);
-		auto transition_list = property->Get<TransitionList>();
-		const ElementDefinition* definition = element->GetDefinition();
-
-		if (!transition_list.none && definition != NULL)
-		{
-			PropertyNameList properties;
-			definition->GetDefinedProperties(properties, pseudo_classes, pseudo_class);
-
-			for (auto& property : properties)
-			{
-				Transition* transition = nullptr;
-				if (transition_list.all)
-				{
-					transition = &transition_list.transitions[0];
-				}
-				else
-				{
-					for (auto& transition_candidate : transition_list.transitions) {
-						if (transition_candidate.name == property) {
-							transition = &transition_candidate;
-							break;
-						}
-					}
-				}
-
-				if (transition)
-				{
-					// Get start value from local properties first, else, we fetch the property given the previous pseudo classes
-					const Property* start_value = nullptr;
-					if (local_properties)
-						start_value = local_properties->GetProperty(property);
-					if(!start_value) 
-						start_value = definition->GetProperty(property, pseudo_classes_before);
-
-					auto target_value = definition->GetProperty(property, pseudo_classes);
-
-					if (start_value && target_value)
-						element->StartTransition(*transition, *start_value, *target_value);
-				}
-			}
-		}
-	}
-
-
 	if (pseudo_classes.size() != num_pseudo_classes)
 	{
 		element->GetElementDecoration()->DirtyDecorators();
 
-		const ElementDefinition* definition = element->GetDefinition();
 		if (definition != NULL)
 		{
 			PropertyNameList properties;
 			definition->GetDefinedProperties(properties, pseudo_classes, pseudo_class);
+
+			TransitionPropertyChanges(element, properties, local_properties, definition, definition, pseudo_classes_before, pseudo_classes);
+
 			DirtyProperties(properties);
 
 			switch (definition->GetPseudoClassVolatility(pseudo_class))
@@ -434,6 +383,7 @@ bool ElementStyle::SetProperty(const String& name, const Property& property)
 	if (new_property.definition == NULL)
 		return false;
 
+	sizeof(ElementDefinition);
 	if (local_properties == NULL)
 		local_properties = new PropertyDictionary();
 
@@ -461,53 +411,13 @@ void ElementStyle::RemoveProperty(const String& name)
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(const String& name)
 {
-	if (prop_counter.find(name) == prop_counter.end())
-		prop_counter[name] = 0;
-	prop_counter[name] = prop_counter[name] + 1;
-
-	const Property* local_property = GetLocalProperty(name);
-	if (local_property != NULL)
-		return local_property;
-
-	// Fetch the property specification.
-	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(name);
-	if (property == NULL)
-		return NULL;
-
-	// If we can inherit this property, return our parent's property.
-	if (property->IsInherited())
-	{
-		Element* parent = element->GetParentNode();
-		while (parent != NULL)
-		{
-			const Property* parent_property = parent->style->GetLocalProperty(name);
-			if (parent_property)
-				return parent_property;
-			
-			parent = parent->GetParentNode();
-		}
-	}
-
-	// No property available! Return the default value.
-	return property->GetDefaultValue();
+	return GetProperty(name, element, local_properties, definition, pseudo_classes);
 }
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(const String& name)
 {
-	// Check for overriding local properties.
-	if (local_properties != NULL)
-	{
-		const Property* property = local_properties->GetProperty(name);
-		if (property != NULL)
-			return property;
-	}
-
-	// Check for a property defined in an RCSS rule.
-	if (definition != NULL)
-		return definition->GetProperty(name, pseudo_classes);
-
-	return NULL;
+	return GetLocalProperty(name, local_properties, definition, pseudo_classes);
 }
 
 float ElementStyle::ResolveLength(const Property * property)
@@ -579,7 +489,7 @@ float ElementStyle::ResolveAngle(const Property * property)
 
 float ElementStyle::ResolveNumericProperty(const String& property_name, const Property * property)
 {
-	if (property->unit & Property::LENGTH)
+	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && property_name == FONT_SIZE))
 	{
 		return ResolveLength(property);
 	}
@@ -595,7 +505,8 @@ float ElementStyle::ResolveNumericProperty(const String& property_name, const Pr
 
 float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTarget relative_target)
 {
-	if (property->unit & Property::LENGTH)
+	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
+	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
 	{
 		return ResolveLength(property);
 	}
@@ -630,10 +541,13 @@ float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTa
 
 	switch (property->unit)
 	{
+	case Property::EM:
 	case Property::NUMBER:
 		scale_value = property->value.Get< float >();
+		break;
 	case Property::PERCENT:
 		scale_value = property->value.Get< float >() * 0.01f;
+		break;
 	}
 
 	return base_value * scale_value;

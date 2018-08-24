@@ -105,6 +105,9 @@ public:
 		return value.Get<T>();
 	}
 
+	bool operator==(const Property& other) const { return unit == other.unit && value == other.value; }
+	bool operator!=(const Property& other) const { return !(*this == other); }
+
 	Variant value;
 	Unit unit;
 	int specificity;

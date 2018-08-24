@@ -248,8 +248,7 @@ public:
 			auto el = event.GetTargetElement();
 			if (el->GetId() == "transition_class")
 			{
-				// TODO: Doesn't seem to properly animate
-				el->SetClass("blue", !el->IsClassSet("blue"));
+				el->SetClass("move_me", !el->IsClassSet("move_me"));
 			}
 		}
 	}

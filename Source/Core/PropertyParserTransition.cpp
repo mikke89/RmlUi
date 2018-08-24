@@ -144,7 +144,7 @@ bool PropertyParserTransition::ParseValue(Property & property, const String & va
 					if (transition_list.transitions.size() > 0) // The all keyword can not be part of multiple definitions
 						return false;
 					transition_list.all = true;
-					transition.name = "all";
+					target_property_names.push_back("all");
 				}
 				else if (it->second.type == TransitionSpec::TWEEN)
 				{
@@ -212,7 +212,8 @@ bool PropertyParserTransition::ParseValue(Property & property, const String & va
 		}
 
 		// Validate the parsed transition
-		if (target_property_names.empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f)
+		if (target_property_names.empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
+			|| (transition_list.all && target_property_names.size() != 1))
 		{
 			return false;
 		}

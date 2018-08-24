@@ -83,6 +83,8 @@ public:
 	ReferenceType* operator->() throw()
 		{ return object; }
 
+	bool operator==(const ThisType& other) const { return object == other.object; }
+	bool operator!=(const ThisType& other) const { return object != other.object; }
 private:
 	mutable ReferenceType *object;
 };

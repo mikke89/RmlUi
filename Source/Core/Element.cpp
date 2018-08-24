@@ -991,6 +991,11 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 
 	bool result = animation->AddKey(duration, target_value, *this, transition.tween);
 
+	if (result)
+	{
+		SetProperty(transition.name, start_value);
+	}
+
 	return result;
 }
 

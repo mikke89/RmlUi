@@ -97,10 +97,12 @@
 			transform: scale(1.5);
 		} 
 		#transition_class {
-			transition: margin-left 1s cubic-in-out;
+			margin-left: 50px;
+			transition: all 0.5s cubic-out;
 		}
-		#transition_class.blue {
+		#transition_class.move_me {
 			margin-left: -50px;
+			font-size: 22px;
 		}
 	</style>
 </head>

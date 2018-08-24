@@ -128,6 +128,8 @@ public:
 		return 1.f - cos(t*Math::ROCKET_PI*0.5f);
 	}
 
+	bool operator==(const Tween& other) const { return type_in == other.type_in && type_out == other.type_out && callback == other.callback; }
+	bool operator!=(const Tween& other) const { return !(*this == other); }
 
 private:
 

@@ -113,6 +113,9 @@ public:
 	/// @param[in] copy Variant to share data.
 	Variant& operator=(const Variant& copy);
 
+	bool operator==(const Variant& other) const;
+	bool operator!=(const Variant& other) const { return !(*this == other); }
+
 private:
 
 	/// Sets a byte value on this variant.

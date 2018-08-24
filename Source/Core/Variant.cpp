@@ -246,5 +246,52 @@ Variant& Variant::operator=(const Variant& copy)
 	return *this;
 }
 
+#define DEFAULT_VARIANT_COMPARE(TYPE) static_cast<TYPE>(*(TYPE*)data) == static_cast<TYPE>(*(TYPE*)other.data)
+
+bool Variant::operator==(const Variant & other) const
+{
+	if (type != other.type)
+		return false;
+
+	switch (type)
+	{
+	case BYTE:
+		return DEFAULT_VARIANT_COMPARE(byte);
+	case CHAR:
+		return DEFAULT_VARIANT_COMPARE(char);
+	case FLOAT:
+		return DEFAULT_VARIANT_COMPARE(float);
+	case INT:
+		return DEFAULT_VARIANT_COMPARE(int);
+	case STRING:
+		return DEFAULT_VARIANT_COMPARE(String);
+	case WORD:
+		return DEFAULT_VARIANT_COMPARE(word);
+	case VECTOR2:
+		return DEFAULT_VARIANT_COMPARE(Vector2f);
+	case VECTOR3:
+		return DEFAULT_VARIANT_COMPARE(Vector3f);
+	case VECTOR4:
+		return DEFAULT_VARIANT_COMPARE(Vector4f);
+	case TRANSFORMREF:
+		return DEFAULT_VARIANT_COMPARE(TransformRef);
+	case TRANSITIONLIST:
+		return DEFAULT_VARIANT_COMPARE(TransitionList);
+	case COLOURF:
+		return DEFAULT_VARIANT_COMPARE(Colourf);
+	case COLOURB:
+		return DEFAULT_VARIANT_COMPARE(Colourb);
+	case SCRIPTINTERFACE:
+		return DEFAULT_VARIANT_COMPARE(ScriptInterface*);
+	case VOIDPTR:
+		return DEFAULT_VARIANT_COMPARE(void*);
+	case NONE:
+		return true;
+		break;
+	}
+	ROCKET_ERRORMSG("Variant comparison not implemented for this type.");
+	return false;
+}
+
 }
 }
