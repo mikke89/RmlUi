@@ -168,7 +168,6 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 				return transition_added;
 			};
 
-
 			if (transition_list.all)
 			{
 				Transition transition = transition_list.transitions[0];

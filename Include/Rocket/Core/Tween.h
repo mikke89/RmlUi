@@ -38,7 +38,7 @@ public:
 	enum Direction { In = 1, Out = 2, InOut = 3 };
 	typedef float(*CallbackFnc)(float);
 
-	Tween(Type type = Linear, Direction direction = In) {
+	Tween(Type type = Linear, Direction direction = Out) {
 		if (direction & In) type_in = type;
 		if (direction & Out) type_out = type;
 	}

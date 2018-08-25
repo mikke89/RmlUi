@@ -76,6 +76,7 @@ public:
 
 		TRANSFORM = 1 << 17,			// transform; fetch as < TransformRef >
 		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
+		ANIMATION = 1 << 19,            // animation; fetch as < AnimationList >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM,
 		LENGTH_PERCENT = LENGTH | PERCENT,

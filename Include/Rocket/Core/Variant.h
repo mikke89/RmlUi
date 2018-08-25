@@ -77,6 +77,7 @@ public:
 		SCRIPTINTERFACE = 'p',
 		TRANSFORMREF = 't',
 		TRANSITIONLIST = 'T',
+		ANIMATIONLIST = 'A',
 		VOIDPTR = '*',			
 	};
 
@@ -118,53 +119,22 @@ public:
 
 private:
 
-	/// Sets a byte value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const byte value);
-	/// Sets a signed char value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const char value);
-	/// Sets a float value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const float value);
-	/// Sets a signed int value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const int value);
-	/// Sets a word value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const word value);
-	/// Sets a constant C string value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const char* value);
-	/// Sets a generic void* value on this variant.
-	/// @param[in] value New value to set.
 	void Set(void* value);
-	/// Sets an EMP string value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const String& value);
-	/// Sets a Vector2f value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const Vector2f& value);
-	/// Sets a Vector3f value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const Vector3f& value);
-	/// Sets a Vector4f value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const Vector4f& value);
-	/// Sets a TransformRef value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const TransformRef& value);
-	/// Sets a TransitionList value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const TransitionList& value);
-	/// Sets a Colourf value on this variant.
-	/// @param[in] value New value to set.
+	void Set(const AnimationList& value);
 	void Set(const Colourf& value);
-	/// Sets a Colourb value on this variant.
-	/// @param[in] value New value to set.
 	void Set(const Colourb& value);
-	/// Sets a script object value on this variant.
-	/// @param[in] value New value to set.
 	void Set(ScriptInterface* value);
 	
 #ifdef ROCKET_ARCH_64

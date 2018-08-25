@@ -36,17 +36,27 @@ namespace Rocket {
 namespace Core {
 
 
-struct TransitionSpec {
-	enum Type { KEYWORD_NONE, KEYWORD_ALL, TWEEN } type;
+struct Keyword {
+	enum Type { NONE, TWEEN, ALL, ALTERNATE, INFINITE, PAUSED } type;
 	Tween tween;
-	TransitionSpec(Tween tween) : type(TWEEN), tween(tween) {}
-	TransitionSpec(Type type) : type(type) {}
+	Keyword(Tween tween) : type(TWEEN), tween(tween) {}
+	Keyword(Type type) : type(type) {}
+
+	bool ValidTransition() const {
+		return type == NONE || type == TWEEN || type == ALL;
+	}
+	bool ValidAnimation() const {
+		return type == NONE || type == TWEEN || type == ALTERNATE || type == INFINITE || type == PAUSED;
+	}
 };
 
 
-static const std::unordered_map<String, TransitionSpec> transition_spec = {
-		{"none", {TransitionSpec::KEYWORD_NONE} },
-		{"all", {TransitionSpec::KEYWORD_ALL}},
+static const std::unordered_map<String, Keyword> keywords = {
+		{"none", {Keyword::NONE} },
+		{"all", {Keyword::ALL}},
+		{"alternate", {Keyword::ALTERNATE}},
+		{"infinite", {Keyword::INFINITE}},
+		{"paused", {Keyword::PAUSED}},
 
 		{"back-in", {Tween{Tween::Back, Tween::In}}},
 		{"back-out", {Tween{Tween::Back, Tween::Out}}},
@@ -101,23 +111,128 @@ PropertyParserTransition::PropertyParserTransition()
 }
 
 
-bool PropertyParserTransition::ParseValue(Property & property, const String & value, const ParameterMap & parameters) const
+static bool ParseAnimation(Property & property, const StringList& animation_values)
 {
-	StringList list_of_properties;
+	AnimationList animation_list;
+
+	for (const String& single_animation_value : animation_values)
 	{
-		auto lowercase_value = value.ToLower();
-		StringUtilities::ExpandString(list_of_properties, lowercase_value, ',');
+		Animation animation;
+
+		StringList arguments;
+		StringUtilities::ExpandString(arguments, single_animation_value, ' ');
+
+		bool duration_found = false;
+		bool delay_found = false;
+		bool num_iterations_found = false;
+
+		for (auto& argument : arguments)
+		{
+			if (argument.Empty())
+				continue;
+
+			// See if we have a <keyword> or <tween> specifier as defined in keywords
+			if (auto it = keywords.find(argument); it != keywords.end() && it->second.ValidAnimation())
+			{
+				switch (it->second.type)
+				{
+				case Keyword::NONE:
+				{
+					if (animation_list.size() > 0) // The none keyword can not be part of multiple definitions
+						return false;
+					property = Property{ AnimationList{}, Property::ANIMATION };
+					return true;
+				}
+				break;
+				case Keyword::TWEEN:
+					animation.tween = it->second.tween;
+					break;
+				case Keyword::ALTERNATE:
+					animation.alternate = true;
+					break;
+				case Keyword::INFINITE:
+					if (num_iterations_found)
+						return false;
+					animation.num_iterations = -1;
+					num_iterations_found = true;
+					break;
+				case Keyword::PAUSED:
+					animation.paused = true;
+					break;
+				}
+			}
+			else
+			{
+				// Either <duration>, <delay>, <num_iterations> or a <keyframes-name>
+				float number = 0.0f;
+				int count = 0;
+
+				if (sscanf(argument.CString(), "%fs%n", &number, &count) == 1)
+				{
+					// Found a number, if there was an 's' unit, count will be positive
+					if (count > 0)
+					{
+						// Duration or delay was assigned
+						if (!duration_found)
+						{
+							duration_found = true;
+							animation.duration = number;
+						}
+						else if (!delay_found)
+						{
+							delay_found = true;
+							animation.delay = number;
+						}
+						else
+							return false;
+					}
+					else
+					{
+						// No 's' unit means num_iterations was found
+						if (!num_iterations_found)
+						{
+							animation.num_iterations = Math::RoundToInteger(number);
+							num_iterations_found = true;
+						}
+						else
+							return false;
+					}
+				}
+				else
+				{
+					// Must be an animation name
+					animation.name = argument;
+				}
+			}
+		}
+
+		// Validate the parsed transition
+		if (animation.name.Empty() || animation.duration <= 0.0f || (animation.num_iterations < -1 || animation.num_iterations == 0))
+		{
+			return false;
+		}
+
+		animation_list.push_back(std::move(animation));
 	}
 
+	property = Property{ animation_list, Property::ANIMATION };
+
+	return true;
+}
+
+
+static bool ParseTransition(Property & property, const StringList& transition_values)
+{
 	TransitionList transition_list{ false, false, {} };
 
-	for (const String& single_property : list_of_properties)
+	for (const String& single_transition_value : transition_values)
 	{
+
 		Transition transition;
 		StringList target_property_names;
 
 		StringList arguments;
-		StringUtilities::ExpandString(arguments, single_property, ' ');
+		StringUtilities::ExpandString(arguments, single_transition_value, ' ');
 
 
 		bool duration_found = false;
@@ -129,24 +244,24 @@ bool PropertyParserTransition::ParseValue(Property & property, const String & va
 			if (argument.Empty())
 				continue;
 
-			// See if we have a <keyword> or <tween> specifier as defined in transition_spec
-			if (auto it = transition_spec.find(argument); it != transition_spec.end())
+			// See if we have a <keyword> or <tween> specifier as defined in keywords
+			if (auto it = keywords.find(argument); it != keywords.end() && it->second.ValidTransition())
 			{
-				if (it->second.type == TransitionSpec::KEYWORD_NONE)
+				if (it->second.type == Keyword::NONE)
 				{
 					if (transition_list.transitions.size() > 0) // The none keyword can not be part of multiple definitions
 						return false;
 					property = Property{ TransitionList{true, false, {}}, Property::TRANSITION };
 					return true;
 				}
-				else if (it->second.type == TransitionSpec::KEYWORD_ALL)
+				else if (it->second.type == Keyword::ALL)
 				{
 					if (transition_list.transitions.size() > 0) // The all keyword can not be part of multiple definitions
 						return false;
 					transition_list.all = true;
 					target_property_names.push_back("all");
 				}
-				else if (it->second.type == TransitionSpec::TWEEN)
+				else if (it->second.type == Keyword::TWEEN)
 				{
 					transition.tween = it->second.tween;
 				}
@@ -228,6 +343,29 @@ bool PropertyParserTransition::ParseValue(Property & property, const String & va
 	property = Property{ transition_list, Property::TRANSITION };
 
 	return true;
+}
+
+
+bool PropertyParserTransition::ParseValue(Property & property, const String & value, const ParameterMap & parameters) const
+{
+	StringList list_of_values;
+	{
+		auto lowercase_value = value.ToLower();
+		StringUtilities::ExpandString(list_of_values, lowercase_value, ',');
+	}
+
+	bool result = false;
+
+	if (parameters.find(TRANSITION) != parameters.end())
+	{
+		result = ParseTransition(property, list_of_values);
+	}
+	else if (parameters.find(ANIMATION) != parameters.end())
+	{
+		result = ParseAnimation(property, list_of_values);
+	}
+
+	return result;
 }
 
 void PropertyParserTransition::Release()

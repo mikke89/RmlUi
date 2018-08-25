@@ -367,18 +367,19 @@ ElementAnimation::ElementAnimation(const String& property_name, const Property& 
 }
 
 
-bool ElementAnimation::AddKey(float time, const Property & property, Element& element, Tween tween)
+bool ElementAnimation::AddKey(float target_time, const Property & in_property, Element& element, Tween tween, bool extend_duration)
 {
 	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
 
-	if (!(property.unit & valid_properties))
+	if (!(in_property.unit & valid_properties))
 	{
-		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", property.ToString().CString());
+		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", in_property.ToString().CString());
 		return false;
 	}
 
 	bool result = true;
-	keys.push_back({ time, property, tween });
+	keys.push_back({ target_time, in_property, tween });
+	auto& property = keys.back().property;
 
 	if (property.unit == Property::TRANSFORM)
 	{
@@ -401,7 +402,9 @@ bool ElementAnimation::AddKey(float time, const Property & property, Element& el
 			result = PrepareTransforms(keys, element, (int)keys.size() - 1);
 	}
 
-	if (!result)
+	if(result)
+		if(extend_duration) duration = target_time;
+	else
 		keys.pop_back();
 
 	return result;

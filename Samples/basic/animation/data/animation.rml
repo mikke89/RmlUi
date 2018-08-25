@@ -106,6 +106,54 @@
 			margin-left: -50px;
 			font-size: 22px;
 		}
+		
+		/* -- KEYFRAMES TESTS */
+		@keyframes hello-world 
+		{
+			25% {
+				transform: rotate(180deg);
+			}
+			40% {
+				transform: rotate(180deg) translateX(200px);
+			}
+			60% {
+				transform: rotate(180deg) translateX(-200px);
+			}
+			75% {
+				transform: rotate(180deg);
+			}
+			to {
+				transform: rotate(360deg);
+			}
+		}
+		#keyframes_test
+		{
+			transform: rotate(0);
+			animation: 5s bounce-out infinite hello-world;
+			transition: background-color 0.5s exponential-in-out;
+		}
+		@keyframes some-missing-keys
+		{
+			0%, 30% {
+				background-color: #d99;
+			}
+			50% {
+				background-color: #9d9;
+			}
+			to { 
+				background-color: #f9f;
+				width: 100%;
+			}
+		}
+		#keyframes_missing_keys
+		{
+			position: relative;
+			margin: 0; padding: 0;
+			top: 0; left: 0;
+			width: 25px; height: 25px;
+			animation: 2s cubic-in-out infinite alternate some-missing-keys;
+		}
+		
 	</style>
 </head>
 
@@ -136,6 +184,7 @@
 	<div style="font-size: 1.5em; text-align: left;">Transition tests</div>
 	<div class="container"><div class="plain" id="transition_test">Transition test (hover)</div></div>
 	<div class="container"><div class="plain" id="transition_class" onclick="add_class">Transition class (click)</div></div>
+	<div class="container"><div class="plain" id="keyframes_test">Keyframes test</div><div class="plain" id="keyframes_missing_keys"/></div>
 </div>
 </body>
 </rml>

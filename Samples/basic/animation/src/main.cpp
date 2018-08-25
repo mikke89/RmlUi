@@ -68,20 +68,20 @@ public:
 				el->Animate("transform", *p, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
 
 				auto pp = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
-				el->Animate("transform", pp, 1.3f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
+				el->AddAnimationKey("transform", pp, 1.3f, Tween{ Tween::Elastic, Tween::InOut });
 			}
 			{
 				auto el = document->GetElementById("high_scores");
 				el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, Tween{ Tween::Sine, Tween::In }, 10, true, 1.f);
-				el->Animate("margin-left", Property(100.f, Property::PX), 3.0f, Tween{ Tween::Circular, Tween::Out });
+				el->AddAnimationKey("margin-left", Property(100.f, Property::PX), 3.0f, Tween{ Tween::Circular, Tween::Out });
 			}
 			{
 				auto el = document->GetElementById("options");
 				el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, Tween{}, -1, false);
-				el->Animate("image-color", Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
-				el->Animate("image-color", Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
-				el->Animate("image-color", Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
-				el->Animate("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
+				el->AddAnimationKey("image-color", Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
+				el->AddAnimationKey("image-color", Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
+				el->AddAnimationKey("image-color", Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
+				el->AddAnimationKey("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
 			}
 			{
 				auto el = document->GetElementById("help");
@@ -173,7 +173,9 @@ void GameLoop()
 	static float t_prev = 0.0f;
 	float t = Shell::GetElapsedTime();
 	float dt = t - t_prev;
-	t_prev = t;
+	static int count_frames = 0;
+	count_frames += 1;
+	//t_prev = t;
 	//if(dt > 1.0f)
 	if(nudge)
 	{
@@ -188,10 +190,12 @@ void GameLoop()
 		nudge = 0;
 	}
 
-	if (window)
+	if (window && dt > 0.2f)
 	{
+		t_prev = t;
 		auto el = window->GetDocument()->GetElementById("fps");
-		float fps = 1.0f / dt;
+		float fps = float(count_frames) / dt;
+		count_frames = 0;
 		el->SetInnerRML(Rocket::Core::String{ 20, "FPS: %f", fps });
 	}
 	//static int f_prev = 0.0f;

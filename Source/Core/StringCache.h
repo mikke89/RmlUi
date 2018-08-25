@@ -108,8 +108,11 @@ extern const String TRANSFORM_ORIGIN;
 extern const String TRANSFORM_ORIGIN_X;
 extern const String TRANSFORM_ORIGIN_Y;
 extern const String TRANSFORM_ORIGIN_Z;
+extern const String NONE;
 
 extern const String TRANSITION;
+extern const String ANIMATION;
+extern const String KEYFRAMES;
 
 extern const String SCROLL_DEFAULT_STEP_SIZE;
 extern const String OPACITY;

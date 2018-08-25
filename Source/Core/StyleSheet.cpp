@@ -66,7 +66,7 @@ StyleSheet::~StyleSheet()
 bool StyleSheet::LoadStyleSheet(Stream* stream)
 {
 	StyleSheetParser parser;
-	specificity_offset = parser.Parse(root, stream);
+	specificity_offset = parser.Parse(root, keyframes, stream);
 	return specificity_offset >= 0;
 }
 
@@ -79,6 +79,12 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 	{
 		delete new_sheet;
 		return NULL;
+	}
+
+	// Any matching @keyframe names are overridden as per CSS rules
+	for (auto& other_keyframes : other_sheet->keyframes)
+	{
+		new_sheet->keyframes[other_keyframes.first] = other_keyframes.second;
 	}
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet->specificity_offset;
@@ -95,6 +101,14 @@ void StyleSheet::BuildNodeIndex()
 
 		root->BuildIndex(styled_node_index, complete_node_index);
 	}
+}
+
+// Returns the Keyframes of the given name, or null if it does not exist.
+Keyframes * StyleSheet::GetKeyframes(const String & name) {
+	auto it = keyframes.find(name);
+	if (it != keyframes.end())
+		return &(it->second);
+	return nullptr;
 }
 
 // Returns the compiled element definition for a given element hierarchy.

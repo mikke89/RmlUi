@@ -276,13 +276,14 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PERSPECTIVE_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
 	RegisterProperty(PERSPECTIVE_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
 	RegisterShorthand(PERSPECTIVE_ORIGIN, "perspective-origin-x, perspective-origin-y");
-	RegisterProperty(TRANSFORM, "none", false, false).AddParser("keyword", "none").AddParser(TRANSFORM);
+	RegisterProperty(TRANSFORM, "none", false, false).AddParser(TRANSFORM);
 	RegisterProperty(TRANSFORM_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
 	RegisterProperty(TRANSFORM_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
 	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false).AddParser("length");
 	RegisterShorthand(TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z");
 
-	RegisterProperty(TRANSITION, "none", false, false).AddParser("transition");
+	RegisterProperty(TRANSITION, "none", false, false).AddParser("transition", TRANSITION);
+	RegisterProperty(ANIMATION, "none", false, false).AddParser("transition", ANIMATION);
 }
 
 }

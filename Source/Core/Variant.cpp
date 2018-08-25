@@ -39,6 +39,7 @@ Variant::Variant() : type(NONE)
 	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourf);
 	ROCKET_STATIC_ASSERT(sizeof(String) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_String);
 	ROCKET_STATIC_ASSERT(sizeof(TransitionList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_TRANSITION_LIST);
+	ROCKET_STATIC_ASSERT(sizeof(AnimationList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_ANIMATION_LIST);
 }
 
 Variant::Variant( const Variant& copy ) : type(NONE)
@@ -77,6 +78,13 @@ void Variant::Clear()
 			transition_list->~TransitionList();
 		}
 		break;
+		case ANIMATIONLIST:
+		{
+			// Clean up the transition list.
+			AnimationList* animation_list = (AnimationList*)data;
+			animation_list->~AnimationList();
+		}
+		break;
 		default:
 		break;
 	}
@@ -95,31 +103,26 @@ void Variant::Set(const Variant& copy)
 {
 	switch (copy.type)
 	{
-		case STRING:
-		{
-			// Create the string
-			Set(*(String*)copy.data);
-		}
+	case STRING:
+		Set(*(String*)copy.data);
 		break;
 
-		case TRANSFORMREF:
-		{
-			// Create the transform
-			Set(*(TransformRef*)copy.data);
-		}
+	case TRANSFORMREF:
+		Set(*(TransformRef*)copy.data);
 		break;
 
-		case TRANSITIONLIST:
-		{
-			// Create the transition list
-			Set(*(TransitionList*)copy.data);
-		}
+	case TRANSITIONLIST:
+		Set(*(TransitionList*)copy.data);
 		break;
 
-		default:
-			Clear();
-			memcpy(data, copy.data, LOCAL_DATA_SIZE);
-		break;	
+	case ANIMATIONLIST:
+		Set(*(AnimationList*)copy.data);
+		break;
+
+	default:
+		Clear();
+		memcpy(data, copy.data, LOCAL_DATA_SIZE);
+		break;
 	}
 	type = copy.type;
 }
@@ -221,6 +224,18 @@ void Variant::Set(const TransitionList& value)
 		new(data) TransitionList(value);
 	}
 }
+void Variant::Set(const AnimationList& value)
+{
+	if (type == ANIMATIONLIST)
+	{
+		*(AnimationList*)data = value;
+	}
+	else
+	{
+		type = ANIMATIONLIST;
+		new(data) AnimationList(value);
+	}
+}
 
 void Variant::Set(const Colourf& value)
 {
@@ -277,6 +292,8 @@ bool Variant::operator==(const Variant & other) const
 		return DEFAULT_VARIANT_COMPARE(TransformRef);
 	case TRANSITIONLIST:
 		return DEFAULT_VARIANT_COMPARE(TransitionList);
+	case ANIMATIONLIST:
+		return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case COLOURF:
 		return DEFAULT_VARIANT_COMPARE(Colourf);
 	case COLOURB:

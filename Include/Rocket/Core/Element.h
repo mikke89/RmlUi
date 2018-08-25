@@ -292,16 +292,15 @@ public:
 	const Vector2f Project(const Vector2f& point) noexcept;
 
 	/// Start an animation of the given property on this element.
-	/// If an animation of the same property name exists, the target value and duration will be added as a new animation key, 
-	/// adding to its total duration. Then, num_iterations, alternate_direction and delay will be ignored.
+	/// If an animation of the same property name exists, it will be replaced.
 	/// If start_value is null, the current property value on this element is used.
-	/// @return True if a new animation or key was added.
+	/// @return True if a new animation was added.
 	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
 
-	/// Start a transition of the given property on this element.
-	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
-	/// @return True if the transition was added.
-	bool StartTransition(const Transition& transition, const Property& start_value, const Property& target_value);
+	/// Add a key to an animation, extending its duration.
+	/// If no animation exists for the given property name, the call will be ignored.
+	/// @return True if a new animation key was added.
+	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
 	
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
@@ -686,7 +685,20 @@ private:
 	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_pv_changed);
 	void UpdateTransformState();
 
-	void UpdateAnimations();
+	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
+	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
+
+	// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
+	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
+
+	/// Start a transition of the given property on this element.
+	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
+	/// @return True if the transition was added.
+	bool StartTransition(const Transition& transition, const Property& start_value, const Property& target_value);
+
+	void DirtyAnimation();
+	void UpdateAnimation();
+	void AdvanceAnimations();
 
 	// Original tag this element came from.
 	String tag;
@@ -772,6 +784,7 @@ private:
 	bool transform_state_parent_transform_dirty;
 
 	ElementAnimationList animations;
+	bool dirty_animation;
 
 	friend class Context;
 	friend class ElementStyle;

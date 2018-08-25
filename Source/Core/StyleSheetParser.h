@@ -51,7 +51,7 @@ public:
 	/// @param node The root node the stream will be parsed into
 	/// @param stream The stream to read
 	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(StyleSheetNode* node, Stream* stream);	
+	int Parse(StyleSheetNode* node, KeyframesMap& keyframes, Stream* stream);	
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into
@@ -83,12 +83,15 @@ private:
 	// @param rule_specificity The specifity of the rule
 	bool ImportProperties(StyleSheetNode* node, const String& names, const PropertyDictionary& properties, int rule_specificity);
 
+	// Attempts to parse a @keyframes block
+	bool ParseKeyframeBlock(KeyframesMap & keyframes_map, const String & identifier, const String & rules, const PropertyDictionary & properties);
+
 	// Attempts to find one of the given character tokens in the active stream
 	// If it's found, buffer is filled with all content up until the token
 	// @param buffer The buffer that receives the content
 	// @param characters The character tokens to find
 	// @param remove_token If the token that caused the find to stop should be removed from the stream
-	bool FindToken(String& buffer, const char* tokens, bool remove_token);
+	char FindToken(String& buffer, const char* tokens, bool remove_token);
 
 	// Attempts to find the next character in the active stream.
 	// If it's found, buffer is filled with the character
