@@ -122,32 +122,32 @@ struct Matrix3D : public ResolvedPrimitive< 16 >
 struct TranslateX : public UnresolvedPrimitive< 1 >
 {
 	TranslateX(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
-	TranslateX(float x, Property::Unit unit) noexcept : UnresolvedPrimitive({ NumericValue{x, unit} }) { }
+	TranslateX(float x, Property::Unit unit = Property::PX) noexcept : UnresolvedPrimitive({ NumericValue{x, unit} }) { }
 };
 
 struct TranslateY : public UnresolvedPrimitive< 1 >
 {
 	TranslateY(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
-	TranslateY(float y, Property::Unit unit) noexcept : UnresolvedPrimitive({ NumericValue(y, unit) }) { }
+	TranslateY(float y, Property::Unit unit = Property::PX) noexcept : UnresolvedPrimitive({ NumericValue(y, unit) }) { }
 };
 
 struct TranslateZ : public UnresolvedPrimitive< 1 >
 {
 	TranslateZ(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
-	TranslateZ(float z, Property::Unit unit) noexcept : UnresolvedPrimitive({ NumericValue(z, unit) }) { }
+	TranslateZ(float z, Property::Unit unit = Property::PX) noexcept : UnresolvedPrimitive({ NumericValue(z, unit) }) { }
 };
 
 struct Translate2D : public UnresolvedPrimitive< 2 >
 {
 	Translate2D(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
-	Translate2D(float x, float y, Property::Unit units) noexcept : UnresolvedPrimitive({ NumericValue(x, units), NumericValue(y, units) }) { }
+	Translate2D(float x, float y, Property::Unit units = Property::PX) noexcept : UnresolvedPrimitive({ NumericValue(x, units), NumericValue(y, units) }) { }
 };
 
 struct Translate3D : public UnresolvedPrimitive< 3 >
 {
 	Translate3D(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
 	Translate3D(NumericValue x, NumericValue y, NumericValue z) noexcept : UnresolvedPrimitive({ x, y, z }) { }
-	Translate3D(float x, float y, float z, Property::Unit units) noexcept : UnresolvedPrimitive({ NumericValue(x, units), NumericValue(y, units), NumericValue(z, units) }) { }
+	Translate3D(float x, float y, float z, Property::Unit units = Property::PX) noexcept : UnresolvedPrimitive({ NumericValue(x, units), NumericValue(y, units), NumericValue(z, units) }) { }
 };
 
 struct ScaleX : public ResolvedPrimitive< 1 >

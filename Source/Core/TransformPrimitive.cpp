@@ -160,7 +160,7 @@ struct ResolveTransformVisitor
 
 	bool operator()(const Matrix3D& p)
 	{
-		m = Matrix4f::FromRows(
+		m = Matrix4f::FromColumns(
 			Vector4f(p.values[0], p.values[1], p.values[2], p.values[3]),
 			Vector4f(p.values[4], p.values[5], p.values[6], p.values[7]),
 			Vector4f(p.values[8], p.values[9], p.values[10], p.values[11]),

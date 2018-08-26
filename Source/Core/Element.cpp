@@ -2480,19 +2480,21 @@ void Element::AdvanceAnimations()
 		auto it_completed = std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); });
 
 		std::vector<Dictionary> dictionary_list;
+		std::vector<bool> is_transition;
 		dictionary_list.reserve(animations.end() - it_completed);
+		is_transition.reserve(animations.end() - it_completed);
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			if(!it->IsTransition())
-				dictionary_list.emplace_back().Set("property", it->GetPropertyName());
+			dictionary_list.emplace_back().Set("property", it->GetPropertyName());
+			is_transition.push_back(it->IsTransition());
 		}
 
 		// Need to erase elements before submitting event, as iterators might be invalidated when calling external code.
 		animations.erase(it_completed, animations.end());
 
-		for (auto& dictionary : dictionary_list)
-			DispatchEvent(ANIMATIONEND, dictionary);
+		for (size_t i = 0; i < dictionary_list.size(); i++)
+			DispatchEvent(is_transition[i] ? TRANSITIONEND : ANIMATIONEND, dictionary_list[i]);
 	}
 }
 
