@@ -291,23 +291,6 @@ public:
 };
 
 
-void test_tweening()
-{
-	using namespace Rocket::Core;
-
-	Tween tween{ Tween::Bounce, Tween::In };
-
-	const int N = 101;
-	for (int i = 0; i < N; i++)
-	{
-		float t = (float)i / float(N - 1);
-		float f = tween(t);
-		Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "%f  =>  %f", t, f);
-	}
-
-}
-
-
 #if defined ROCKET_PLATFORM_WIN32
 #include <windows.h>
 int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
@@ -361,8 +344,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Rocket::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
-
-	test_tweening();
 
 	EventInstancer* event_instancer = new EventInstancer();
 	Rocket::Core::Factory::RegisterEventListenerInstancer(event_instancer);

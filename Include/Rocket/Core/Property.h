@@ -57,13 +57,13 @@ public:
 		DEG = 1 << 5,				// number suffixed by 'deg'; fetch as < float >
 		RAD = 1 << 6,				// number suffixed by 'rad'; fetch as < float >
 		COLOUR = 1 << 7,			// colour; fetch as < Colourb >
-		DP = 1 << 11,				// density-independent pixel; number suffixed by 'dp'; fetch as < float >
+		DP = 1 << 8,				// density-independent pixel; number suffixed by 'dp'; fetch as < float >
 		ABSOLUTE_UNIT = NUMBER | PX | DP | DEG | RAD | COLOUR,
 
 		// Relative values.
-		EM = 1 << 8,				// number suffixed by 'em'; fetch as < float >
-		PERCENT = 1 << 9,			// number suffixed by '%'; fetch as < float >
-		REM = 1 << 10,				// number suffixed by 'rem'; fetch as < float >
+		EM = 1 << 9,				// number suffixed by 'em'; fetch as < float >
+		PERCENT = 1 << 10,			// number suffixed by '%'; fetch as < float >
+		REM = 1 << 11,				// number suffixed by 'rem'; fetch as < float >
 		RELATIVE_UNIT = EM | REM | PERCENT,
 
 		// Values based on pixels-per-inch.

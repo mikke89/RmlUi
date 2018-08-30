@@ -27,7 +27,7 @@
 
 
 #include "precompiled.h"
-#include "PropertyParserTransition.h"
+#include "PropertyParserAnimation.h"
 #include "../../Include/Rocket/Core/StringUtilities.h"
 #include "PropertyShorthandDefinition.h"
 
@@ -106,7 +106,7 @@ static const std::unordered_map<String, Keyword> keywords = {
 
 
 
-PropertyParserTransition::PropertyParserTransition()
+PropertyParserAnimation::PropertyParserAnimation(Type type) : type(type)
 {
 }
 
@@ -346,7 +346,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 }
 
 
-bool PropertyParserTransition::ParseValue(Property & property, const String & value, const ParameterMap & parameters) const
+bool PropertyParserAnimation::ParseValue(Property & property, const String & value, const ParameterMap & parameters) const
 {
 	StringList list_of_values;
 	{
@@ -356,19 +356,19 @@ bool PropertyParserTransition::ParseValue(Property & property, const String & va
 
 	bool result = false;
 
-	if (parameters.find(TRANSITION) != parameters.end())
-	{
-		result = ParseTransition(property, list_of_values);
-	}
-	else if (parameters.find(ANIMATION) != parameters.end())
+	if (type == ANIMATION_PARSER)
 	{
 		result = ParseAnimation(property, list_of_values);
+	}
+	else if (type == TRANSITION_PARSER)
+	{
+		result = ParseTransition(property, list_of_values);
 	}
 
 	return result;
 }
 
-void PropertyParserTransition::Release()
+void PropertyParserAnimation::Release()
 {
 	delete this;
 }

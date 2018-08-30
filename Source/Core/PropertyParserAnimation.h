@@ -27,8 +27,8 @@
 
 
 
-#ifndef ROCKETCOREPROPERTYPARSERTRANSITION_H
-#define ROCKETCOREPROPERTYPARSERTRANSITION_H
+#ifndef ROCKETCOREPROPERTYPARSERANIMATION_H
+#define ROCKETCOREPROPERTYPARSERANIMATION_H
 
 
 #include "../../Include/Rocket/Core/PropertyParser.h"
@@ -39,15 +39,19 @@ namespace Core {
 
 
 /**
-A property parser that parses a RCSS transition property specification.
+Parses the RCSS 'animation' and 'transition' property specifications.
 */
 
-class PropertyParserTransition : public PropertyParser
+class PropertyParserAnimation : public PropertyParser
 {
 public:
-	PropertyParserTransition();
+	enum Type { ANIMATION_PARSER, TRANSITION_PARSER } type;
 
-	/// Called to parse a RCSS transition declaration.
+	/// Constructs the parser for either the animation or the transition type.
+	PropertyParserAnimation(Type type);
+
+
+	/// Called to parse a RCSS animation or transition declaration.
 	/// @param[out] property The property to set the parsed value on.
 	/// @param[in] value The raw value defined for this property.
 	/// @param[in] parameters The parameters defined for this property.
@@ -56,24 +60,7 @@ public:
 
 	// Destroys the parser.
 	void Release() override;
-
-private:
-
-
-	/// Scan a string for a parameterized keyword with a certain number of numeric arguments.
-	/// @param[in] str The string to search for the parameterized keyword
-	/// @param[in] keyword The name of the keyword to search for
-	/// @param[in] parsers The numeric argument parsers
-	/// @param[out] args The numeric arguments encountered
-	/// @param[in] nargs The number of numeric arguments expected
-	/// @returns The number of bytes read, if the function call occurs at the beginning of str, 0 otherwise.
-	//int Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const override;
-
-	//PropertyParserNumber number, length, angle;
 };
-
-
-
 
 
 

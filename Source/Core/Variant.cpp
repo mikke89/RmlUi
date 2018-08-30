@@ -27,7 +27,6 @@
 
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/Variant.h"
-#include "PropertyParserTransition.h"
 
 namespace Rocket {
 namespace Core {

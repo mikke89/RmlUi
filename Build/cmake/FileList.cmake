@@ -60,12 +60,12 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StringCache.h
@@ -107,6 +107,7 @@ set(MASTER_Core_PUB_HDR_FILES
 )
 
 set(Core_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Animation.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BaseXMLParser.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Box.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.h
@@ -182,7 +183,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Types.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Transition.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/URL.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.h
@@ -291,12 +291,12 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ReferenceCountable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp

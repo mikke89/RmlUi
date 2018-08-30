@@ -74,12 +74,9 @@ public:
 
 	const String& GetPropertyName() const { return property_name; }
 	float GetDuration() const { return duration; }
-	void SetDuration(float duration) { this->duration = duration; }
 	bool IsComplete() const { return animation_complete; }
-	void SetComplete(bool complete) { animation_complete = complete; }
 	bool IsTransition() const { return is_transition; }
 	float GetInterpolationFactor() const { return GetInterpolationFactorAndKeys(nullptr, nullptr); }
-	const Property* GetStartValue() const { return (keys.empty() ? nullptr : &keys[0].property); }
 };
 
 

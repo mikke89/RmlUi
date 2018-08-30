@@ -2293,9 +2293,7 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 	if (auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay); it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
-		if (result)
-			SetProperty(property_name, *it_animation->GetStartValue());
-		else
+		if (!result)
 			animations.erase(it_animation);
 	}
 

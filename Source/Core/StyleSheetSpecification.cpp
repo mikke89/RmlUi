@@ -29,11 +29,11 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/StyleSheetSpecification.h"
 #include "PropertyParserNumber.h"
+#include "PropertyParserAnimation.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
-#include "PropertyParserTransition.h"
 
 namespace Rocket {
 namespace Core {
@@ -148,7 +148,8 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("angle", new PropertyParserNumber(Property::ANGLE, Property::RAD));
 	RegisterParser("keyword", new PropertyParserKeyword());
 	RegisterParser("string", new PropertyParserString());
-	RegisterParser("transition", new PropertyParserTransition());
+	RegisterParser(ANIMATION, new PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER));
+	RegisterParser(TRANSITION, new PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER));
 	RegisterParser(COLOR, new PropertyParserColour());
 	RegisterParser(TRANSFORM, new PropertyParserTransform());
 }
@@ -282,8 +283,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false).AddParser("length");
 	RegisterShorthand(TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z");
 
-	RegisterProperty(TRANSITION, "none", false, false).AddParser("transition", TRANSITION);
-	RegisterProperty(ANIMATION, "none", false, false).AddParser("transition", ANIMATION);
+	RegisterProperty(TRANSITION, "none", false, false).AddParser(TRANSITION);
+	RegisterProperty(ANIMATION, "none", false, false).AddParser(ANIMATION);
 }
 
 }
