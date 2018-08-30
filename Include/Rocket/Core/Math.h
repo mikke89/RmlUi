@@ -129,16 +129,20 @@ ROCKETCORE_API float SquareRoot(float value);
 
 /// Rounds a floating-point value to the nearest integer.
 /// @param[in] value The value to round.
+/// @return The rounded integer as float.
+ROCKETCORE_API float RoundFloat(float value);
+/// Rounds a floating-point value to the nearest integer.
+/// @param[in] value The value to round.
 /// @return The rounded integer.
-ROCKETCORE_API int Round(float value);
+ROCKETCORE_API int RoundToInteger(float value);
 /// Rounds a floating-point value up to the nearest integer.
 /// @param[in] value The value to round.
 /// @return The rounded integer.
-ROCKETCORE_API int RoundUp(float value);
+ROCKETCORE_API int RoundUpToInteger(float value);
 /// Rounds a floating-point value down to the nearest integer.
 /// @param[in] value The value to round.
 /// @return The rounded integer.
-ROCKETCORE_API int RoundDown(float value);
+ROCKETCORE_API int RoundDownToInteger(float value);
 
 /// Efficiently truncates a floating-point value into an integer.
 /// @param[in] value The value to truncate.

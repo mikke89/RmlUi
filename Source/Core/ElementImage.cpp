@@ -84,7 +84,7 @@ void ElementImage::OnRender()
 		GenerateGeometry();
 
 	// Render the geometry beginning at this element's content region.
-	geometry.Render(GetAbsoluteOffset(Rocket::Core::Box::CONTENT));
+	geometry.Render(GetAbsoluteOffset(Rocket::Core::Box::CONTENT).Round());
 }
 
 // Called when attributes on the element are changed.
@@ -213,17 +213,11 @@ void ElementImage::GenerateGeometry()
 
     float opacity = GetProperty<float>(OPACITY);
 	Colourb quad_colour = GetProperty<Colourb>(IMAGE_COLOR);
-
-    // Apply opacity
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	
+	Vector2f quad_size = GetBox().GetSize(Rocket::Core::Box::CONTENT).Round();
 
-	Rocket::Core::GeometryUtilities::GenerateQuad(&vertices[0],									// vertices to write to
-												  &indices[0],									// indices to write to
-												  Vector2f(0, 0),					            // origin of the quad
-												  GetBox().GetSize(Rocket::Core::Box::CONTENT),	// size of the quad
-												  quad_colour,		                            // colour of the vertices
-												  texcoords[0],									// top-left texture coordinate
-												  texcoords[1]);								// top-right texture coordinate
+	Rocket::Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour,  texcoords[0], texcoords[1]);
 
 	geometry_dirty = false;
 }

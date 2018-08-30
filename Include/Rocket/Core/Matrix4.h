@@ -52,11 +52,11 @@ struct MatrixStorageBase
 				int idx;
 
 			public:
-				inline StrideVector(VectorsType& vectors, int idx) throw()
+				inline StrideVector(VectorsType& vectors, int idx) noexcept
 					: vectors(vectors), idx(idx) { }
-				inline ComponentType& operator[](int i) throw()
+				inline ComponentType& operator[](int i) noexcept
 					{ return vectors[i][idx]; }
-				inline StrideVector& operator=(const VectorType& vec) throw()
+				inline StrideVector& operator=(const VectorType& vec) noexcept
 					{
 						(*this)[0] = vec[0];
 						(*this)[1] = vec[1];
@@ -64,7 +64,7 @@ struct MatrixStorageBase
 						(*this)[3] = vec[3];
 						return *this;
 					}
-				operator const VectorType() const throw()
+				operator const VectorType() const noexcept
 					{
 						return VectorType(
 							(*this)[0],
@@ -78,9 +78,9 @@ struct MatrixStorageBase
 		{
 				VectorsType& vectors;
 			public:
-				inline StrideAccess(VectorsType& vectors) throw()
+				inline StrideAccess(VectorsType& vectors) noexcept
 					: vectors(vectors) { }
-				inline StrideVector operator[](int i) throw()
+				inline StrideVector operator[](int i) noexcept
 					{ return StrideVector(vectors, i); }
 		};
 		class ConstStrideVector
@@ -88,11 +88,11 @@ struct MatrixStorageBase
 				const VectorsType& vectors;
 				int idx;
 			public:
-				inline ConstStrideVector(const VectorsType& vectors, int idx) throw()
+				inline ConstStrideVector(const VectorsType& vectors, int idx) noexcept
 					: vectors(vectors), idx(idx) { }
-				inline const ComponentType& operator[](int i) const throw()
+				inline const ComponentType& operator[](int i) const noexcept
 					{ return vectors[i][idx]; }
-				inline operator const VectorType() const throw()
+				inline operator const VectorType() const noexcept
 					{
 						return VectorType(
 							(*this)[0],
@@ -106,9 +106,9 @@ struct MatrixStorageBase
 		{
 				const VectorsType& vectors;
 			public:
-				inline ConstStrideAccess(const VectorsType& vectors) throw()
+				inline ConstStrideAccess(const VectorsType& vectors) noexcept
 					: vectors(vectors) { }
-				inline ConstStrideVector operator[](int i) throw()
+				inline ConstStrideVector operator[](int i) noexcept
 					{ return ConstStrideVector(vectors, i); }
 		};
 
@@ -116,16 +116,16 @@ struct MatrixStorageBase
 		{
 				VectorType& vector;
 			public:
-				inline PackedVector(VectorType& vector) throw()
+				inline PackedVector(VectorType& vector) noexcept
 					: vector(vector) { }
-				inline ComponentType& operator[](int i) throw()
+				inline ComponentType& operator[](int i) noexcept
 					{ return vector[i]; }
-				inline PackedVector& operator=(const VectorType& vec) throw()
+				inline PackedVector& operator=(const VectorType& vec) noexcept
 					{
 						vector = vec;
 						return *this;
 					}
-				inline PackedVector& operator=(StrideVector& vec) throw()
+				inline PackedVector& operator=(StrideVector& vec) noexcept
 					{
 						vector[0] = vec[0];
 						vector[1] = vec[1];
@@ -133,7 +133,7 @@ struct MatrixStorageBase
 						vector[3] = vec[3];
 						return *this;
 					}
-				inline PackedVector& operator=(ConstStrideVector& vec) throw()
+				inline PackedVector& operator=(ConstStrideVector& vec) noexcept
 					{
 						vector[0] = vec[0];
 						vector[1] = vec[1];
@@ -141,15 +141,15 @@ struct MatrixStorageBase
 						vector[3] = vec[3];
 						return *this;
 					}
-				inline operator VectorType&() throw() { return vector; }
+				inline operator VectorType&() noexcept { return vector; }
 		};
 		class PackedAccess
 		{
 				VectorsType& vectors;
 			public:
-				inline PackedAccess(VectorsType& vectors) throw()
+				inline PackedAccess(VectorsType& vectors) noexcept
 					: vectors(vectors) { }
-				inline PackedVector operator[](int i) throw()
+				inline PackedVector operator[](int i) noexcept
 					{ return PackedVector(vectors[i]); }
 		};
 		#if 0
@@ -157,20 +157,20 @@ struct MatrixStorageBase
 		{
 				const VectorType& vectors;
 			public:
-				inline ConstPackedVector(const VectorType& vectors) throw()
+				inline ConstPackedVector(const VectorType& vectors) noexcept
 					: vectors(vectors) { }
-				inline const ComponentType& operator[](int i) const throw()
+				inline const ComponentType& operator[](int i) const noexcept
 					{ return vectors[i]; }
-				inline operator const VectorType&() throw() { return vectors; }
+				inline operator const VectorType&() noexcept { return vectors; }
 		};
 		#endif
 		class ConstPackedAccess
 		{
 				const VectorsType& vectors;
 			public:
-				inline ConstPackedAccess(const VectorsType& vectors) throw()
+				inline ConstPackedAccess(const VectorsType& vectors) noexcept
 					: vectors(vectors) { }
-				inline const VectorType& operator[](int i) throw()
+				inline const VectorType& operator[](int i) noexcept
 					{ return vectors[i]; }
 		};
 };
@@ -256,7 +256,7 @@ class Matrix4
 		VectorType vectors[4];
 
 		/// Initialising constructor.
-		Matrix4(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) throw();
+		Matrix4(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept;
 
 		template< typename _Component, class _StorageA >
 		struct VectorMultiplier
@@ -269,7 +269,7 @@ class Matrix4
 			static const VectorType Multiply(
 				const MatrixAType& lhs,
 				const VectorType& rhs
-			) throw();
+			) noexcept;
 		};
 
 		template< typename _Component, class _StorageA, class _StorageB >
@@ -289,156 +289,163 @@ class Matrix4
 			static const MatrixAType Multiply(
 				const MatrixAType& lhs,
 				const MatrixBType& rhs
-			) throw();
+			) noexcept;
 		};
 
 	public:
 		/// Lightweight, non-initialising constructor.
-		inline Matrix4() throw();
+		inline Matrix4() noexcept;
 
 		/// Initialising, copy constructor.
-		inline Matrix4(const ThisType& other) throw();
-		Matrix4(const TransposeType& other) throw();
+		inline Matrix4(const ThisType& other) noexcept;
+		Matrix4(const TransposeType& other) noexcept;
 
 		/// Assignment operator
-		const ThisType& operator=(const ThisType& other) throw();
-		const ThisType& operator=(const TransposeType& other) throw();
+		const ThisType& operator=(const ThisType& other) noexcept;
+		const ThisType& operator=(const TransposeType& other) noexcept;
 
 		/// Construct from row vectors.
-		static const ThisType FromRows(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) throw();
+		static const ThisType FromRows(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept;
 
 		/// Construct from column vectors.
-		static const ThisType FromColumns(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) throw();
+		static const ThisType FromColumns(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept;
 
 		/// Construct from components.
-		static const ThisType FromRowMajor(const ComponentType* components) throw();
-		static const ThisType FromColumnMajor(const ComponentType* components) throw();
+		static const ThisType FromRowMajor(const ComponentType* components) noexcept;
+		static const ThisType FromColumnMajor(const ComponentType* components) noexcept;
 
 		// Convert to raw values; keep the storage mode in mind.
-		inline operator Component*() throw()
+		inline Component* data() noexcept
 			{ return &vectors[0][0]; }
-		inline operator const Component*() const throw()
+		inline const Component* data() const noexcept
 			{ return &vectors[0][0]; }
 
 		/// Get the i-th row
-		inline Row GetRow(int i) throw()
+		inline Row GetRow(int i) noexcept
 			{ Rows rows(vectors); return rows[i]; }
 		/// Get the i-th row
-		inline ConstRow GetRow(int i) const throw()
+		inline ConstRow GetRow(int i) const noexcept
 			{ ConstRows rows(vectors); return rows[i]; }
 		/// Set the i-th row
-		inline void SetRow(int i, const VectorType& vec) throw()
+		inline void SetRow(int i, const VectorType& vec) noexcept
 			{ Rows rows(vectors); rows[i] = vec; }
 		/// Set all rows
-		void SetRows(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) throw();
+		void SetRows(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept;
 
 		/// Get the i-th column
-		inline Column GetColumn(int i) throw()
+		inline Column GetColumn(int i) noexcept
 			{ Columns columns(vectors); return columns[i]; }
 		/// Get the i-th column
-		inline ConstColumn GetColumn(int i) const throw()
+		inline ConstColumn GetColumn(int i) const noexcept
 			{ ConstColumns columns(vectors); return columns[i]; }
 		/// Set the i-th column
-		inline void SetColumn(int i, const VectorType& vec) throw()
+		inline void SetColumn(int i, const VectorType& vec) noexcept
 			{ Columns columns(vectors); columns[i] = vec; }
 		/// Set all columns
-		void SetColumns(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) throw();
+		void SetColumns(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept;
 
 		/// Returns the transpose of this matrix.
 		/// @return The transpose matrix.
-		inline const TransposeType& Transpose() const throw()
+		inline const TransposeType& Transpose() const noexcept
 			{ return reinterpret_cast<const TransposeType&>(*this); }
 
 		/// Inverts this matrix in place, if possible.
 		/// @return true, if the inversion succeeded.
-		bool Invert() throw();
+		bool Invert() noexcept;
+
+		/// Inverts this matrix in place, if possible.
+		/// @return true, if the inversion succeeded.
+		float Determinant() const noexcept;
 
 		/// Returns the negation of this matrix.
 		/// @return The negation of this matrix.
-		ThisType operator-() const throw();
+		ThisType operator-() const noexcept;
 
 		/// Adds another matrix to this in-place.
 		/// @param[in] other The matrix to add.
 		/// @return This matrix, post-operation.
-		const ThisType& operator+=(const ThisType& other) throw();
-		const ThisType& operator+=(const TransposeType& other) throw();
+		const ThisType& operator+=(const ThisType& other) noexcept;
+		const ThisType& operator+=(const TransposeType& other) noexcept;
 		/// Subtracts another matrix from this in-place.
 		/// @param[in] other The matrix to subtract.
 		/// @return This matrix, post-operation.
-		const ThisType& operator-=(const ThisType& other) throw();
-		const ThisType& operator-=(const TransposeType& other) throw();
+		const ThisType& operator-=(const ThisType& other) noexcept;
+		const ThisType& operator-=(const TransposeType& other) noexcept;
 		/// Scales this matrix in-place.
 		/// @param[in] other The value to scale this matrix's components by.
 		/// @return This matrix, post-operation.
-		const ThisType& operator*=(Component other) throw();
+		const ThisType& operator*=(Component other) noexcept;
 		/// Scales this matrix in-place by the inverse of a value.
 		/// @param[in] other The value to divide this matrix's components by.
 		/// @return This matrix, post-operation.
-		const ThisType& operator/=(Component other) throw();
+		const ThisType& operator/=(Component other) noexcept;
+
+		inline const VectorType& operator[](size_t i) const noexcept { return vectors[i]; }
+		inline VectorType& operator[](size_t i) noexcept { return vectors[i]; }
 
 		/// Returns the sum of this matrix and another.
 		/// @param[in] other The matrix to add this to.
 		/// @return The sum of the two matrices.
-		inline const ThisType operator+(const ThisType& other) const throw()
+		inline const ThisType operator+(const ThisType& other) const noexcept
 			{ ThisType result(*this); result += other; return result; }
-		inline const ThisType operator+(const TransposeType& other) const throw()
+		inline const ThisType operator+(const TransposeType& other) const noexcept
 			{ ThisType result(*this); result += other; return result; }
 		/// Returns the result of subtracting another matrix from this matrix.
 		/// @param[in] other The matrix to subtract from this matrix.
 		/// @return The result of the subtraction.
-		inline const ThisType operator-(const ThisType& other) const throw()
+		inline const ThisType operator-(const ThisType& other) const noexcept
 			{ ThisType result(*this); result -= other; return result; }
-		inline const ThisType operator-(const TransposeType& other) const throw()
+		inline const ThisType operator-(const TransposeType& other) const noexcept
 			{ ThisType result(*this); result -= other; return result; }
 		/// Returns the result of multiplying this matrix by a scalar.
 		/// @param[in] other The scalar value to multiply by.
 		/// @return The result of the scale.
-		inline const ThisType operator*(Component other) const throw()
+		inline const ThisType operator*(Component other) const noexcept
 			{ ThisType result(*this); result *= other; return result; }
 		/// Returns the result of dividing this matrix by a scalar.
 		/// @param[in] other The scalar value to divide by.
 		/// @return The result of the scale.
-		inline const ThisType operator/(Component other) const throw()
+		inline const ThisType operator/(Component other) const noexcept
 			{ ThisType result(*this); result *= other; return result; }
 
 		/// Returns the result of multiplying this matrix by a vector.
 		/// @param[in] other The scalar value to multiply by.
 		/// @return The result of the scale.
-		const VectorType operator*(const VectorType& other) const throw()
+		const VectorType operator*(const VectorType& other) const noexcept
 			{ return VectorMultiplier< Component, Storage >::Multiply(*this, other); }
 
 		/// Returns the result of multiplying this matrix by another matrix.
 		/// @param[in] other The matrix value to multiply by.
 		/// @return The result of the multiplication.
 		template< class Storage2 >
-		const ThisType operator*(const Matrix4< Component, Storage2 >& other) const throw()
+		const ThisType operator*(const Matrix4< Component, Storage2 >& other) const noexcept
 			{ return MatrixMultiplier< Component, Storage, Storage2 >::Multiply(*this, other); }
 
 		/// Multiplies this matrix by another matrix in place.
 		/// @param[in] other The scalar value to multiply by.
 		/// @return The result of the scale.
-		inline const ThisType& operator*=(const ThisType& other) throw()
+		inline const ThisType& operator*=(const ThisType& other) noexcept
 			{ *this = *this * other; return *this; }
-		inline const ThisType& operator*=(const TransposeType& other) throw()
+		inline const ThisType& operator*=(const TransposeType& other) noexcept
 			{ *this = *this * other; return *this; }
 
 		/// Equality operator.
 		/// @param[in] other The matrix to compare this against.
 		/// @return True if the two matrices are equal, false otherwise.
-		bool operator==(const ThisType& other) const throw();
-		bool operator==(const TransposeType& other) const throw();
+		bool operator==(const ThisType& other) const noexcept;
+		bool operator==(const TransposeType& other) const noexcept;
 		/// Inequality operator.
 		/// @param[in] other The matrix to compare this against.
 		/// @return True if the two matrices are not equal, false otherwise.
-		bool operator!=(const ThisType& other) const throw();
-		bool operator!=(const TransposeType& other) const throw();
+		bool operator!=(const ThisType& other) const noexcept;
+		bool operator!=(const TransposeType& other) const noexcept;
 
 		/// Return the identity matrix.
 		/// @return The identity matrix.
-		inline static const ThisType& Identity() throw();
+		inline static const ThisType& Identity() noexcept;
 		/// Return a diagonal matrix.
 		/// @return A diagonal matrix.
-		static ThisType Diag(Component a, Component b, Component c, Component d = 1) throw();
+		static ThisType Diag(Component a, Component b, Component c, Component d = 1) noexcept;
 
 		/// Create an orthographic projection matrix
 		/// @param l The horizontal coordinate of the left clipping plane
@@ -448,7 +455,7 @@ class Matrix4
 		/// @param n The depth coordinate of the near clipping plane
 		/// @param f The depth coordinate of the far clipping plane
 		/// @return The specified orthographic projection matrix.
-		static ThisType ProjectOrtho(Component l, Component r, Component b, Component t, Component n, Component f) throw();
+		static ThisType ProjectOrtho(Component l, Component r, Component b, Component t, Component n, Component f) noexcept;
 		/// Create a perspective projection matrix
 		/// @param l The horizontal coordinate of the left clipping plane
 		/// @param r The horizontal coordinate of the right clipping plane
@@ -457,35 +464,39 @@ class Matrix4
 		/// @param n The depth coordinate of the near clipping plane
 		/// @param f The depth coordinate of the far clipping plane
 		/// @return The specified perspective projection matrix.
-		static ThisType ProjectPerspective(Component l, Component r, Component b, Component t, Component n, Component f) throw();
+		static ThisType ProjectPerspective(Component l, Component r, Component b, Component t, Component n, Component f) noexcept;
 
 		/// Return a translation matrix.
 		/// @return A translation matrix.
-		static ThisType Translate (const Vector3< Component >& v) throw();
-		static ThisType Translate (Component x, Component y, Component z) throw();
-		static ThisType TranslateX (Component x) throw();
-		static ThisType TranslateY (Component y) throw();
-		static ThisType TranslateZ (Component z) throw();
+		static ThisType Translate (const Vector3< Component >& v) noexcept;
+		static ThisType Translate (Component x, Component y, Component z) noexcept;
+		static ThisType TranslateX (Component x) noexcept;
+		static ThisType TranslateY (Component y) noexcept;
+		static ThisType TranslateZ (Component z) noexcept;
 
 		/// Return a scaling matrix.
 		/// @return A scaling matrix.
-		static ThisType Scale (Component x, Component y, Component z) throw();
-		static ThisType ScaleX (Component x) throw();
-		static ThisType ScaleY (Component y) throw();
-		static ThisType ScaleZ (Component z) throw();
+		static ThisType Scale (Component x, Component y, Component z) noexcept;
+		static ThisType ScaleX (Component x) noexcept;
+		static ThisType ScaleY (Component y) noexcept;
+		static ThisType ScaleZ (Component z) noexcept;
 
 		/// Return a rotation matrix.
 		/// @return A rotation matrix.
-		static ThisType Rotate (const Vector3< Component >& v, Component angle) throw();
-		static ThisType RotateX (Component angle) throw();
-		static ThisType RotateY (Component angle) throw();
-		static ThisType RotateZ (Component angle) throw();
+		static ThisType Rotate (const Vector3< Component >& v, Component angle) noexcept;
+		static ThisType RotateX (Component angle) noexcept;
+		static ThisType RotateY (Component angle) noexcept;
+		static ThisType RotateZ (Component angle) noexcept;
 
 		/// Return a skew/shearing matrix.
 		/// @return A skew matrix.
-		static ThisType Skew (Component angle_x, Component angle_y) throw();
-		static ThisType SkewX (Component angle) throw();
-		static ThisType SkewY (Component angle) throw();
+		static ThisType Skew (Component angle_x, Component angle_y) noexcept;
+		static ThisType SkewX (Component angle) noexcept;
+		static ThisType SkewY (Component angle) noexcept;
+
+		static ThisType Compose(const Vector3< Component >& translation, const Vector3< Component >& scale,
+			const Vector3< Component >& skew, const Vector4< Component >& perspective, const Vector4< Component >& quaternion) noexcept;
+
 };
 }
 }

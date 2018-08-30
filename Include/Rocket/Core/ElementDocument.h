@@ -127,13 +127,15 @@ public:
 	virtual void LoadScript(Stream* stream, const String& source_name);
 
 	/// Updates the layout if necessary.
-	inline void UpdateLayout() { if (layout_dirty && lock_layout == 0) _UpdateLayout(); }
+	/// The extra argument was added such that layout updates can be done only once per frame
+	inline void UpdateLayout(bool i_really_mean_it = false) { if (i_really_mean_it && layout_dirty && lock_layout == 0) _UpdateLayout(); }
+
 	/// Updates the position of the document based on the style properties.
 	void UpdatePosition();
 	
 	/// Increment/Decrement the layout lock
 	void LockLayout(bool lock);
-
+	
 protected:
 	/// Refreshes the document layout if required.
 	virtual void OnUpdate();

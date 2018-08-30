@@ -103,43 +103,6 @@ const Texture* Decorator::GetTexture(int index) const
 	return &(textures[index]);
 }
 
-// Returns the floating-point value of a numerical property from a dictionary of properties.
-float Decorator::ResolveProperty(const PropertyDictionary& properties, const String& name, float base_value) const
-{
-	const Property* property = properties.GetProperty(name);
-	if (property == NULL)
-	{
-		ROCKET_ERROR;
-		return 0;
-	}
-
-	// Need to include em!
-	if (property->unit & Property::PERCENT)
-		return base_value * property->value.Get< float >() * 0.01f;
-
-	if (property->unit & Property::NUMBER || property->unit & Property::PX)
-		return property->value.Get< float >();
-	    
-    // Values based on pixels-per-inch.
-	if (property->unit & Property::PPI_UNIT)
-	{
-		float inch = property->value.Get< float >() * GetRenderInterface()->GetPixelsPerInch();
-
-		if (property->unit & Property::INCH) // inch
-			return inch;
-		if (property->unit & Property::CM) // centimeter
-			return inch / 2.54f;
-		if (property->unit & Property::MM) // millimeter
-			return inch / 25.4f;
-		if (property->unit & Property::PT) // point
-			return inch / 72.0f;
-		if (property->unit & Property::PC) // pica
-			return inch / 6.0f;
-	}
-
-	ROCKET_ERROR;
-	return 0;
-}
 
 }
 }

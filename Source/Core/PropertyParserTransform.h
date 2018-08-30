@@ -29,18 +29,19 @@
 #define ROCKETCOREPROPERTYPARSERTRANSFORM_H
 
 #include "../../Include/Rocket/Core/PropertyParser.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include "PropertyParserNumber.h"
 
 namespace Rocket {
 namespace Core {
+
+namespace Transforms { struct NumericValue; }
+
 
 /**
 	A property parser that parses a RCSS transform property specification.
 
 	@author Markus Schöngart
  */
-
 class PropertyParserTransform : public PropertyParser
 {
 public:
@@ -67,7 +68,7 @@ private:
 	/// @returns The number of bytes read, if the function call occurs at the beginning of str, 0 otherwise.
 	int Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const;
 
-	PropertyParserNumber abs_number, number, length, angle;
+	PropertyParserNumber number, length, angle;
 };
 
 }

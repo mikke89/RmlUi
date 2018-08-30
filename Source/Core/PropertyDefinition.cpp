@@ -33,7 +33,7 @@
 namespace Rocket {
 namespace Core {
 
-PropertyDefinition::PropertyDefinition(const String& _default_value, bool _inherited, bool _forces_layout) : default_value(_default_value, Property::UNKNOWN)
+PropertyDefinition::PropertyDefinition(const String& _default_value, bool _inherited, bool _forces_layout) : default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None)
 {
 	inherited = _inherited;
 	forces_layout = _forces_layout;
@@ -73,7 +73,7 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 		String unparsed_value = default_value.value.Get< String >();
 		if (!new_parser.parser->ParseValue(default_value, unparsed_value, new_parser.parameters))
 		{
-			default_value.value.Set(unparsed_value);
+			default_value.value.Reset(unparsed_value);
 			default_value.unit = Property::UNKNOWN;
 		}
 	}
@@ -165,6 +165,21 @@ bool PropertyDefinition::IsLayoutForced() const
 const Property* PropertyDefinition::GetDefaultValue() const
 {
 	return &default_value;
+}
+
+/// Returns the default defined for this property.
+
+RelativeTarget PropertyDefinition::GetRelativeTarget() const
+{
+	return relative_target;
+}
+
+/// Set target for units with scaling percentages
+
+PropertyDefinition & PropertyDefinition::SetRelativeTarget(RelativeTarget relative_target) 
+{
+	this->relative_target = relative_target;
+	return *this;
 }
 
 }

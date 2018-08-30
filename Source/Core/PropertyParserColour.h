@@ -29,7 +29,7 @@
 #define ROCKETCOREPROPERTYPARSERCOLOUR_H
 
 #include "../../Include/Rocket/Core/PropertyParser.h"
-#include <map>
+#include <unordered_map>
 
 namespace Rocket {
 namespace Core {

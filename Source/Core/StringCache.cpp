@@ -104,6 +104,10 @@ const String TRANSFORM_ORIGIN = "transform-origin";
 const String TRANSFORM_ORIGIN_X = "transform-origin-x";
 const String TRANSFORM_ORIGIN_Y = "transform-origin-y";
 const String TRANSFORM_ORIGIN_Z = "transform-origin-z";
+const String NONE = "none";
+const String TRANSITION = "transition";
+const String ANIMATION = "animation";
+const String KEYFRAMES = "keyframes";
 const String SCROLL_DEFAULT_STEP_SIZE = "scroll-default-step-size";
 const String OPACITY = "opacity";
 const String POINTER_EVENTS = "pointer-events";
@@ -129,6 +133,8 @@ const String DRAGDROP = "dragdrop";
 const String DRAGOUT = "dragout";
 const String DRAGEND = "dragend";
 const String RESIZE = "resize";
+const String ANIMATIONEND = "animationend";
+const String TRANSITIONEND = "transitionend";
 
 }
 }

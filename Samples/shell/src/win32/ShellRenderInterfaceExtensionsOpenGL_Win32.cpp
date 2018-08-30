@@ -48,10 +48,10 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		glViewport(0, 0, width, height);
 		projection = Rocket::Core::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -1, 1);
 		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(projection);
+		glLoadMatrixf(projection.data());
 		view = Rocket::Core::Matrix4f::Identity();
 		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(view);
+		glLoadMatrixf(view.data());
 
 		if(m_rocket_context != NULL)
 		{

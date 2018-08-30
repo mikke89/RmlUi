@@ -32,6 +32,8 @@
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include <algorithm>
 #include <limits>
+#include "Clock.h"
+#include "ElementAnimation.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
 #include "ElementDefinition.h"
@@ -76,7 +78,8 @@ public:
 };
 
 /// Constructs a new libRocket element.
-Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0), transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true)
+Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0), 
+transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false)
 {
 	tag = _tag.ToLower();
 	parent = NULL;
@@ -161,13 +164,19 @@ void Element::Update()
 
 	// Force a definition reload, if necessary.
 	style->GetDefinition();
+	scroll->Update();
+
+	// Update and advance animations, if necessary.
+	UpdateAnimation();
+	AdvanceAnimations();
 
 	// Update the transform state, if necessary.
 	UpdateTransformState();
 
-	scroll->Update();
 	OnUpdate();
 }
+
+
 
 void Element::Render()
 {
@@ -579,6 +588,28 @@ void Element::GetLocalDimensionProperties(const Property **width, const Property
 	style->GetLocalDimensionProperties(width, height);
 }
 
+Vector2f Element::GetContainingBlock()
+{
+	Vector2f containing_block(0, 0);
+
+	if (offset_parent != NULL)
+	{
+		int position_property = GetPosition();
+		const Box& parent_box = offset_parent->GetBox();
+
+		if (position_property == POSITION_STATIC || position_property == POSITION_RELATIVE)
+		{
+			containing_block = parent_box.GetSize();
+		}
+		else if(position_property == POSITION_ABSOLUTE || position_property == POSITION_FIXED)
+		{
+			containing_block = parent_box.GetSize(Box::PADDING);
+		}
+	}
+
+	return containing_block;
+}
+
 void Element::GetOverflow(int *overflow_x, int *overflow_y)
 {
 	style->GetOverflow(overflow_x, overflow_y);
@@ -672,7 +703,7 @@ const Property *Element::GetTransformOriginZ()
 }
 
 // Returns this element's TransformState
-const TransformState *Element::GetTransformState() const throw()
+const TransformState *Element::GetTransformState() const noexcept
 {
 	return transform_state.get();
 }
@@ -682,7 +713,7 @@ void Element::GetEffectiveTransformState(
 	const TransformState **local_perspective,
 	const TransformState **perspective,
 	const TransformState **transform
-) throw()
+) noexcept
 {
 	UpdateTransformState();
 
@@ -743,7 +774,7 @@ void Element::GetEffectiveTransformState(
 }
 
 // Project a 2D point in pixel coordinates onto the element's plane.
-const Vector2f Element::Project(const Vector2f& point) throw()
+const Vector2f Element::Project(const Vector2f& point) noexcept
 {
 	UpdateTransformState();
 
@@ -860,6 +891,7 @@ const Vector2f Element::Project(const Vector2f& point) throw()
 		return Vector2f(-inf, -inf);
 	}
 }
+
 
 // Iterates over the properties defined on this element.
 bool Element::IterateProperties(int& index, PseudoClassList& pseudo_classes, String& name, const Property*& property) const
@@ -1080,7 +1112,7 @@ float Element::GetScrollLeft()
 // Sets the left scroll offset of the element.
 void Element::SetScrollLeft(float scroll_left)
 {
-	scroll_offset.x = LayoutEngine::Round(Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth()));
+	scroll_offset.x = Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth());
 	scroll->UpdateScrollbar(ElementScroll::HORIZONTAL);
 	DirtyOffset();
 
@@ -1097,7 +1129,7 @@ float Element::GetScrollTop()
 // Sets the top scroll offset of the element.
 void Element::SetScrollTop(float scroll_top)
 {
-	scroll_offset.y = LayoutEngine::Round(Math::Clamp(scroll_top, 0.0f, GetScrollHeight() - GetClientHeight()));
+	scroll_offset.y = Math::Clamp(scroll_top, 0.0f, GetScrollHeight() - GetClientHeight());
 	scroll->UpdateScrollbar(ElementScroll::VERTICAL);
 	DirtyOffset();
 
@@ -1900,6 +1932,12 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	{
 		DirtyTransformState(false, true, false);
 	}
+
+	// Check for `animation' changes
+	if (all_dirty || changed_properties.find(ANIMATION) != changed_properties.end())
+	{
+		DirtyAnimation();
+	}
 }
 
 // Called when a child node has been added somewhere in the hierarchy
@@ -2163,9 +2201,6 @@ void Element::UpdateOffset()
 		relative_offset_position.x = 0;
 		relative_offset_position.y = 0;
 	}
-
-	LayoutEngine::Round(relative_offset_base);
-	LayoutEngine::Round(relative_offset_position);
 }
 
 void Element::BuildLocalStackingContext()
@@ -2250,6 +2285,219 @@ void Element::DirtyStructure()
 	}
 }
 
+
+bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, const Property* start_value)
+{
+	bool result = false;
+
+	if (auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay); it_animation != animations.end())
+	{
+		result = it_animation->AddKey(duration, target_value, *this, tween, true);
+		if (!result)
+			animations.erase(it_animation);
+	}
+
+	return result;
+}
+
+
+bool Element::AddAnimationKey(const String & property_name, const Property & target_value, float duration, Tween tween)
+{
+	ElementAnimation* animation = nullptr;
+
+	for (auto& existing_animation : animations) {
+		if (existing_animation.GetPropertyName() == property_name) {
+			animation = &existing_animation;
+			break;
+		}
+	}
+	if (!animation)
+		return false;
+
+	bool result = animation->AddKey(animation->GetDuration() + duration, target_value, *this, tween, true);
+
+	return result;
+}
+
+
+ElementAnimationList::iterator Element::StartAnimation(const String & property_name, const Property* start_value, int num_iterations, bool alternate_direction, float delay)
+{
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == property_name; });
+
+	if (it == animations.end())
+	{
+		animations.emplace_back();
+		it = animations.end() - 1;
+	}
+
+	if (!start_value)
+		start_value = GetProperty(property_name);
+
+	if (start_value && start_value->definition)
+	{
+		float start_time = Clock::GetElapsedTime() + delay;
+		*it = ElementAnimation{ property_name, *start_value, start_time, 0.0f, num_iterations, alternate_direction, false };
+	}
+	else
+	{
+		animations.erase(it);
+		it = animations.end();
+	}
+
+	return it;
+}
+
+
+bool Element::AddAnimationKeyTime(const String & property_name, const Property* target_value, float time, Tween tween)
+{
+	if (!target_value)
+		target_value = GetProperty(property_name);
+	if (!target_value)
+		return false;
+
+	ElementAnimation* animation = nullptr;
+
+	for (auto& existing_animation : animations) {
+		if (existing_animation.GetPropertyName() == property_name) {
+			animation = &existing_animation;
+			break;
+		}
+	}
+	if (!animation)
+		return false;
+
+	bool result = animation->AddKey(time, *target_value, *this, tween, true);
+
+	return result;
+}
+
+bool Element::StartTransition(const Transition & transition, const Property& start_value, const Property & target_value)
+{
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == transition.name; });
+
+	if (it != animations.end() && !it->IsTransition())
+		return false;
+
+	float duration = transition.duration;
+	float start_time = Clock::GetElapsedTime() + transition.delay;
+
+	if (it == animations.end())
+	{
+		// Add transition as new animation
+		animations.push_back(
+			ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true }
+		);
+		it = (animations.end() - 1);
+	}
+	else
+	{
+		// Compress the duration based on the progress of the current animation
+		float f = it->GetInterpolationFactor();
+		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
+		duration = duration * f;
+		// Replace old transition
+		*it = ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true };
+	}
+
+	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);
+
+	if (result)
+		SetProperty(transition.name, start_value);
+	else
+		animations.erase(it);
+
+	return result;
+}
+
+
+void Element::DirtyAnimation()
+{
+	dirty_animation = true;
+}
+
+void Element::UpdateAnimation()
+{
+	if (dirty_animation)
+	{
+		const Property* property = style->GetLocalProperty(ANIMATION);
+		StyleSheet* stylesheet = nullptr;
+
+		if (property && (stylesheet = GetStyleSheet()))
+		{
+			auto animation_list = property->Get<AnimationList>();
+
+			for (auto& animation : animation_list)
+			{
+				Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
+				if (keyframes_ptr && keyframes_ptr->blocks.size() >= 1 && !animation.paused)
+				{
+					auto& property_names = keyframes_ptr->property_names;
+					auto& blocks = keyframes_ptr->blocks;
+
+					bool has_from_key = (blocks[0].normalized_time == 0);
+					bool has_to_key = (blocks.back().normalized_time == 1);
+
+					// If the first key defines initial conditions for a given property, use those values, else, use this element's current values.
+					for (auto& property : property_names)
+						StartAnimation(property, (has_from_key ? blocks[0].properties.GetProperty(property) : nullptr), animation.num_iterations, animation.alternate, animation.delay);
+
+					// Need to skip the first and last keys if they set the initial and end conditions, respectively.
+					for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
+					{
+						// Add properties of current key to animation
+						float time = blocks[i].normalized_time * animation.duration;
+						for (auto& property : blocks[i].properties.GetProperties())
+							AddAnimationKeyTime(property.first, &property.second, time, animation.tween);
+					}
+
+					// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
+					float time = animation.duration;
+					for (auto& property : property_names)
+						AddAnimationKeyTime(property, (has_to_key ? blocks.back().properties.GetProperty(property) : nullptr), time, animation.tween);
+				}
+			}
+		}
+
+		dirty_animation = false;
+	}
+}
+
+void Element::AdvanceAnimations()
+{
+	if (!animations.empty())
+	{
+		float time = Clock::GetElapsedTime();
+
+		for (auto& animation : animations)
+		{
+			Property property = animation.UpdateAndGetProperty(time, *this);
+			if (property.unit != Property::UNKNOWN)
+				SetProperty(animation.GetPropertyName(), property);
+		}
+
+		auto it_completed = std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); });
+
+		std::vector<Dictionary> dictionary_list;
+		std::vector<bool> is_transition;
+		dictionary_list.reserve(animations.end() - it_completed);
+		is_transition.reserve(animations.end() - it_completed);
+
+		for (auto it = it_completed; it != animations.end(); ++it)
+		{
+			dictionary_list.emplace_back().Set("property", it->GetPropertyName());
+			is_transition.push_back(it->IsTransition());
+		}
+
+		// Need to erase elements before submitting event, as iterators might be invalidated when calling external code.
+		animations.erase(it_completed, animations.end());
+
+		for (size_t i = 0; i < dictionary_list.size(); i++)
+			DispatchEvent(is_transition[i] ? TRANSITIONEND : ANIMATIONEND, dictionary_list[i]);
+	}
+}
+
+
+
 void Element::DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed)
 {
 	for (size_t i = 0; i < children.size(); ++i)
@@ -2273,44 +2521,49 @@ void Element::DirtyTransformState(bool perspective_changed, bool transform_chang
 
 void Element::UpdateTransformState()
 {
-	Context *context = GetContext();
-
-	Vector2f pos = GetAbsoluteOffset(Box::BORDER);
-	Vector2f size = GetBox().GetSize(Box::BORDER);
-
-	if (transform_state_perspective_dirty || transform_state_transform_dirty || transform_state_parent_transform_dirty)
+	if (!(transform_state_perspective_dirty || transform_state_transform_dirty || transform_state_parent_transform_dirty))
 	{
-		if (!transform_state.get())
-		{
-			transform_state.reset(new TransformState());
-		}
+		return;
 	}
 
-	if (transform_state_perspective_dirty)
+	if (!transform_state.get())
 	{
-		bool have_perspective = false;
-		TransformState::Perspective perspective_value;
+		transform_state.reset(new TransformState());
+	}
 
-		perspective_value.vanish = Vector2f(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
-		const Property *perspective = GetPerspective();
-		if (perspective && (perspective->unit != Property::KEYWORD || perspective->value.Get< int >() != PERSPECTIVE_NONE))
+	if(transform_state_perspective_dirty || transform_state_transform_dirty)
+	{
+		Context *context = GetContext();
+		Vector2f pos = GetAbsoluteOffset(Box::BORDER);
+		Vector2f size = GetBox().GetSize(Box::BORDER);
+
+
+		if (transform_state_perspective_dirty)
 		{
-			have_perspective = true;
+			bool have_perspective = false;
+			TransformState::Perspective perspective_value;
 
-			// Compute the perspective value
-			perspective_value.distance = ResolveProperty(perspective, Math::Max(size.x, size.y));
+			perspective_value.vanish = Vector2f(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
-			// Compute the perspective origin, if necessary
-			if (perspective_value.distance > 0)
+			const Property *perspective = GetPerspective();
+			if (perspective && (perspective->unit != Property::KEYWORD || perspective->value.Get< int >() != PERSPECTIVE_NONE))
 			{
-				const Property *perspective_origin_x = GetPerspectiveOriginX();
-				if (perspective_origin_x)
+				have_perspective = true;
+
+				// Compute the perspective value
+				perspective_value.distance = ResolveProperty(perspective, Math::Max(size.x, size.y));
+
+				// Compute the perspective origin, if necessary
+				if (perspective_value.distance > 0)
 				{
-					if (perspective_origin_x->unit == Property::KEYWORD)
+					const Property *perspective_origin_x = GetPerspectiveOriginX();
+					if (perspective_origin_x)
 					{
-						switch (perspective_origin_x->value.Get< int >())
+						if (perspective_origin_x->unit == Property::KEYWORD)
 						{
+							switch (perspective_origin_x->value.Get< int >())
+							{
 							case PERSPECTIVE_ORIGIN_X_LEFT:
 								perspective_value.vanish.x = pos.x;
 								break;
@@ -2322,21 +2575,21 @@ void Element::UpdateTransformState()
 							case PERSPECTIVE_ORIGIN_X_RIGHT:
 								perspective_value.vanish.x = pos.x + size.x;
 								break;
+							}
+						}
+						else
+						{
+							perspective_value.vanish.x = pos.x + ResolveProperty(perspective_origin_x, size.x);
 						}
 					}
-					else
-					{
-						perspective_value.vanish.x = pos.x + ResolveProperty(perspective_origin_x, size.x);
-					}
-				}
 
-				const Property *perspective_origin_y = GetPerspectiveOriginY();
-				if (perspective_origin_y)
-				{
-					if (perspective_origin_y->unit == Property::KEYWORD)
+					const Property *perspective_origin_y = GetPerspectiveOriginY();
+					if (perspective_origin_y)
 					{
-						switch (perspective_origin_y->value.Get< int >())
+						if (perspective_origin_y->unit == Property::KEYWORD)
 						{
+							switch (perspective_origin_y->value.Get< int >())
+							{
 							case PERSPECTIVE_ORIGIN_Y_TOP:
 								perspective_value.vanish.y = pos.y;
 								break;
@@ -2348,68 +2601,68 @@ void Element::UpdateTransformState()
 							case PERSPECTIVE_ORIGIN_Y_BOTTOM:
 								perspective_value.vanish.y = pos.y + size.y;
 								break;
+							}
+						}
+						else
+						{
+							perspective_value.vanish.y = pos.y + ResolveProperty(perspective_origin_y, size.y);
 						}
 					}
-					else
+				}
+			}
+
+			if (have_perspective && context)
+			{
+				perspective_value.view_size = context->GetDimensions();
+				transform_state->SetPerspective(&perspective_value);
+			}
+			else
+			{
+				transform_state->SetPerspective(0);
+			}
+
+			transform_state_perspective_dirty = false;
+		}
+
+		if (transform_state_transform_dirty)
+		{
+			bool have_local_perspective = false;
+			TransformState::LocalPerspective local_perspective;
+
+			bool have_transform = false;
+			Matrix4f transform_value = Matrix4f::Identity();
+			Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
+
+			const Property *transform = GetTransform();
+			if (transform && (transform->unit != Property::KEYWORD || transform->value.Get< int >() != TRANSFORM_NONE))
+			{
+				TransformRef transforms = transform->value.Get< TransformRef >();
+				int n = transforms->GetNumPrimitives();
+				for (int i = 0; i < n; ++i)
+				{
+					const Transforms::Primitive &primitive = transforms->GetPrimitive(i);
+
+					if (primitive.ResolvePerspective(local_perspective.distance, *this))
 					{
-						perspective_value.vanish.y = pos.y + ResolveProperty(perspective_origin_y, size.y);
+						have_local_perspective = true;
+					}
+
+					Matrix4f matrix;
+					if (primitive.ResolveTransform(matrix, *this))
+					{
+						transform_value *= matrix;
+						have_transform = true;
 					}
 				}
-			}
-		}
 
-		if (have_perspective && context)
-		{
-			perspective_value.view_size = context->GetDimensions();
-			transform_state->SetPerspective(&perspective_value);
-		}
-		else
-		{
-			transform_state->SetPerspective(0);
-		}
-
-		transform_state_perspective_dirty = false;
-	}
-
-	if (transform_state_transform_dirty)
-	{
-		bool have_local_perspective = false;
-		TransformState::LocalPerspective local_perspective;
-
-		bool have_transform = false;
-		Matrix4f transform_value = Matrix4f::Identity();
-		Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
-
-		const Property *transform = GetTransform();
-		if (transform && (transform->unit != Property::KEYWORD || transform->value.Get< int >() != TRANSFORM_NONE))
-		{
-			TransformRef transforms = transform->value.Get< TransformRef >();
-			int n = transforms->GetNumPrimitives();
-			for (int i = 0; i < n; ++i)
-			{
-				const Transforms::Primitive &primitive = transforms->GetPrimitive(i);
-
-				if (primitive.ResolvePerspective(local_perspective.distance, *this))
+				// Compute the transform origin
+				const Property *transform_origin_x = GetTransformOriginX();
+				if (transform_origin_x)
 				{
-					have_local_perspective = true;
-				}
-
-				Matrix4f matrix;
-				if (primitive.ResolveTransform(matrix, *this))
-				{
-					transform_value *= matrix;
-					have_transform = true;
-				}
-			}
-
-			// Compute the transform origin
-			const Property *transform_origin_x = GetTransformOriginX();
-			if (transform_origin_x)
-			{
-				if (transform_origin_x->unit == Property::KEYWORD)
-				{
-					switch (transform_origin_x->value.Get< int >())
+					if (transform_origin_x->unit == Property::KEYWORD)
 					{
+						switch (transform_origin_x->value.Get< int >())
+						{
 						case TRANSFORM_ORIGIN_X_LEFT:
 							transform_origin.x = pos.x;
 							break;
@@ -2421,21 +2674,21 @@ void Element::UpdateTransformState()
 						case TRANSFORM_ORIGIN_X_RIGHT:
 							transform_origin.x = pos.x + size.x;
 							break;
+						}
+					}
+					else
+					{
+						transform_origin.x = pos.x + ResolveProperty(transform_origin_x, size.x);
 					}
 				}
-				else
-				{
-					transform_origin.x = pos.x + ResolveProperty(transform_origin_x, size.x);
-				}
-			}
 
-			const Property *transform_origin_y = GetTransformOriginY();
-			if (transform_origin_y)
-			{
-				if (transform_origin_y->unit == Property::KEYWORD)
+				const Property *transform_origin_y = GetTransformOriginY();
+				if (transform_origin_y)
 				{
-					switch (transform_origin_y->value.Get< int >())
+					if (transform_origin_y->unit == Property::KEYWORD)
 					{
+						switch (transform_origin_y->value.Get< int >())
+						{
 						case TRANSFORM_ORIGIN_Y_TOP:
 							transform_origin.y = pos.y;
 							break;
@@ -2447,49 +2700,51 @@ void Element::UpdateTransformState()
 						case TRANSFORM_ORIGIN_Y_BOTTOM:
 							transform_origin.y = pos.y + size.y;
 							break;
+						}
+					}
+					else
+					{
+						transform_origin.y = pos.y + ResolveProperty(transform_origin_y, size.y);
 					}
 				}
-				else
+
+				const Property *transform_origin_z = GetTransformOriginZ();
+				if (transform_origin_z)
 				{
-					transform_origin.y = pos.y + ResolveProperty(transform_origin_y, size.y);
+					transform_origin.z = ResolveProperty(transform_origin_z, Math::Max(size.x, size.y));
 				}
 			}
 
-			const Property *transform_origin_z = GetTransformOriginZ();
-			if (transform_origin_z)
+			if (have_local_perspective && context)
 			{
-				transform_origin.z = ResolveProperty(transform_origin_z, Math::Max(size.x, size.y));
+				local_perspective.view_size = context->GetDimensions();
+				transform_state->SetLocalPerspective(&local_perspective);
 			}
+			else
+			{
+				transform_state->SetLocalPerspective(0);
+			}
+
+			if (have_transform)
+			{
+				// TODO: If we're using the global projection matrix
+				// (perspective < 0), then scale the coordinates from
+				// pixel space to 3D unit space.
+
+				// Transform the Rocket context so that the computed `transform_origin'
+				// lies at the coordinate system origin.
+				transform_value =
+					Matrix4f::Translate(transform_origin)
+					* transform_value
+					* Matrix4f::Translate(-transform_origin);
+			}
+
+			transform_state->SetTransform(have_transform ? &transform_value : 0);
+
+			transform_state_transform_dirty = false;
 		}
-
-		if (have_local_perspective && context)
-		{
-			local_perspective.view_size = context->GetDimensions();
-			transform_state->SetLocalPerspective(&local_perspective);
-		}
-		else
-		{
-			transform_state->SetLocalPerspective(0);
-		}
-
-		if (have_transform)
-		{
-			// TODO: If we're using the global projection matrix
-			// (perspective < 0), then scale the coordinates from
-			// pixel space to 3D unit space.
-
-			// Transform the Rocket context so that the computed `transform_origin'
-			// lies at the coordinate system origin.
-			transform_value =
-				  Matrix4f::Translate(transform_origin)
-				* transform_value
-				* Matrix4f::Translate(-transform_origin);
-		}
-
-		transform_state->SetTransform(have_transform ? &transform_value : 0);
-
-		transform_state_transform_dirty = false;
 	}
+
 
 	if (transform_state_parent_transform_dirty)
 	{
@@ -2498,28 +2753,28 @@ void Element::UpdateTransformState()
 		{
 			parent->UpdateTransformState();
 		}
-	}
 
-	if (transform_state.get())
-	{
-		// Store the parent's new full transform as our parent transform
-		Element *node = 0;
-		Matrix4f parent_transform;
-		for (node = parent; node; node = node->parent)
+		if (transform_state.get())
 		{
-			if (node->GetTransformState() && node->GetTransformState()->GetRecursiveTransform(&parent_transform))
+			// Store the parent's new full transform as our parent transform
+			Element *node = 0;
+			Matrix4f parent_transform;
+			for (node = parent; node; node = node->parent)
 			{
-				transform_state->SetParentRecursiveTransform(&parent_transform);
-				break;
+				if (node->GetTransformState() && node->GetTransformState()->GetRecursiveTransform(&parent_transform))
+				{
+					transform_state->SetParentRecursiveTransform(&parent_transform);
+					break;
+				}
+			}
+			if (!node)
+			{
+				transform_state->SetParentRecursiveTransform(0);
 			}
 		}
-		if (!node)
-		{
-			transform_state->SetParentRecursiveTransform(0);
-		}
-	}
 
-	transform_state_parent_transform_dirty = false;
+		transform_state_parent_transform_dirty = false;
+	}
 
 	// If we neither have a local perspective, nor a perspective nor a
 	// transform, we don't need to keep the large TransformState object

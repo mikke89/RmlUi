@@ -285,13 +285,13 @@ void ShellRenderInterfaceOpenGL::ReleaseTexture(Rocket::Core::TextureHandle text
 void ShellRenderInterfaceOpenGL::PushTransform(const Rocket::Core::RowMajorMatrix4f& transform)
 {
 	glPushMatrix();
-	glLoadMatrixf(transform.Transpose());
+	glLoadMatrixf(transform.Transpose().data());
 	++m_transforms;
 }
 void ShellRenderInterfaceOpenGL::PushTransform(const Rocket::Core::ColumnMajorMatrix4f& transform)
 {
 	glPushMatrix();
-	glLoadMatrixf(transform);
+	glLoadMatrixf(transform.data());
 	++m_transforms;
 }
 

@@ -37,20 +37,16 @@
 #include "Types.h"
 #include "Transform.h"
 #include "TransformState.h"
+#include "Tween.h"
 
 #include <memory>
-
-namespace Rocket {
-namespace Core {
-	class Dictionary;
-}
-}
 
 namespace Rocket {
 namespace Core {
 
 class Context;
 class Decorator;
+class Dictionary;
 class ElementInstancer;
 class EventDispatcher;
 class EventListener;
@@ -218,16 +214,14 @@ public:
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);		
-	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
-	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle it is returned as degrees.
+	/// Resolves one of this element's properties. If the value is a number or px, this is returned. Angles are returned as radians.
+	/// Precentages are resolved based on the second argument (the base value).
 	/// @param[in] name The name of the property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
 	float ResolveProperty(const String& name, float base_value);
-	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. If it's a 
-	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle it is returned as degrees.
+	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. Angles are returned as radians.
+	/// Precentages are resolved based on the second argument (the base value).
 	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
@@ -246,6 +240,8 @@ public:
 	/// Returns local 'width' and 'height' properties from element's style or local cache,
 	/// ignoring default values.
 	void GetLocalDimensionProperties(const Property **width, const Property **height);
+	/// Returns the size of the containing block. Often percentages are scaled relative to this.
+	Vector2f GetContainingBlock();
 	/// Returns 'overflow' properties' values from element's style or local cache.
 	void GetOverflow(int *overflow_x, int *overflow_y);
 	/// Returns 'position' property value from element's style or local cache.
@@ -283,18 +279,29 @@ public:
 	/// Returns 'transform-origin-z' property value from element's style or local cache.
 	const Property *GetTransformOriginZ();
 	/// Returns this element's TransformState
-	const TransformState *GetTransformState() const throw();
+	const TransformState *GetTransformState() const noexcept;
 	/// Returns the TransformStates that are effective for this element.
 	void GetEffectiveTransformState(
 		const TransformState **local_perspective,
 		const TransformState **perspective,
 		const TransformState **transform
-	) throw();
+	) noexcept;
 	/// Project a 2D point in pixel coordinates onto the element's plane.
 	/// @param[in] point The point to project.
 	/// @return The projected coordinates.
-	const Vector2f Project(const Vector2f& point) throw();
+	const Vector2f Project(const Vector2f& point) noexcept;
 
+	/// Start an animation of the given property on this element.
+	/// If an animation of the same property name exists, it will be replaced.
+	/// If start_value is null, the current property value on this element is used.
+	/// @return True if a new animation was added.
+	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
+
+	/// Add a key to an animation, extending its duration.
+	/// If no animation exists for the given property name, the call will be ignored.
+	/// @return True if a new animation key was added.
+	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
+	
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
 	/// @param[out] pseudo_classes The pseudo-classes the property is defined by.
@@ -678,6 +685,21 @@ private:
 	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_pv_changed);
 	void UpdateTransformState();
 
+	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
+	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
+
+	// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
+	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
+
+	/// Start a transition of the given property on this element.
+	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
+	/// @return True if the transition was added.
+	bool StartTransition(const Transition& transition, const Property& start_value, const Property& target_value);
+
+	void DirtyAnimation();
+	void UpdateAnimation();
+	void AdvanceAnimations();
+
 	// Original tag this element came from.
 	String tag;
 
@@ -760,6 +782,9 @@ private:
 	bool transform_state_perspective_dirty;
 	bool transform_state_transform_dirty;
 	bool transform_state_parent_transform_dirty;
+
+	ElementAnimationList animations;
+	bool dirty_animation;
 
 	friend class Context;
 	friend class ElementStyle;

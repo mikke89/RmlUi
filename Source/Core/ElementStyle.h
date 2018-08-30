@@ -36,7 +36,7 @@ namespace Core {
 
 class ElementStyleCache;
 
-typedef std::map<String, int> PropCounter;
+typedef std::unordered_map<String, int> PropCounter;
 
 /**
 	Manages an element's style and property information.
@@ -105,16 +105,31 @@ public:
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
+
+
+	/// Resolves a length property to pixels. Note: This excludes percentages.
+	float ResolveLength(const Property* property);
+	
+	/// Resolves an angle to radians
+	static float ResolveAngle(const Property* property);
+
+	/// Resolves a number-length-percentage property to pixels.
+	float ResolveNumericProperty(const String& property_name, const Property* property);
+
+	/// Resolves the canonical unit (pixels) from 'number-length-percent' property.
+	/// 'percentage' and 'number' gets multiplied by the size of the specified relative reference.
+	float ResolveNumericProperty(const Property* property, RelativeTarget relative_target);
+
 	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle, it is returned as degrees.
+	/// If it's an angle, it is returned as radians.
 	/// @param[in] property Property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
 	float ResolveProperty(const Property *property, float base_value);
 	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
 	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle, it is returned as degrees.
+	/// If it's an angle, it is returned as radians.
 	/// @param[in] name The name of the property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
@@ -206,6 +221,11 @@ private:
 	void DirtyProperties(const PropertyNameList& properties, bool clear_em_properties = true);
 	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
 	void DirtyInheritedProperties(const PropertyNameList& properties);
+
+	static const Property* GetLocalProperty(const String & name, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static const Property* GetProperty(const String & name, Element * element, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, PropertyDictionary * local_properties, ElementDefinition * old_definition, ElementDefinition * new_definition,
+		const PseudoClassList & pseudo_classes_before, const PseudoClassList & pseudo_classes_after);
 
 	// Element these properties belong to
 	Element* element;

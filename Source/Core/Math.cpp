@@ -118,7 +118,13 @@ ROCKETCORE_API float SquareRoot(float value)
 }
 
 // Rounds a floating-point value to the nearest integer.
-ROCKETCORE_API int Round(float value)
+ROCKETCORE_API float RoundFloat(float value)
+{
+	return roundf(value);
+}
+
+// Rounds a floating-point value to the nearest integer.
+ROCKETCORE_API int RoundToInteger(float value)
 {
 	if (value > 0.0f)
 		return RealToInteger(value + 0.5f);
@@ -127,13 +133,13 @@ ROCKETCORE_API int Round(float value)
 }
 
 // Rounds a floating-point value up to the nearest integer.
-ROCKETCORE_API int RoundUp(float value)
+ROCKETCORE_API int RoundUpToInteger(float value)
 {
 	return RealToInteger(ceilf(value));
 }
 
 // Rounds a floating-point value down to the nearest integer.
-ROCKETCORE_API int RoundDown(float value)
+ROCKETCORE_API int RoundDownToInteger(float value)
 {
 	return RealToInteger(floorf(value));
 }

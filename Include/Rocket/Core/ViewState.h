@@ -46,22 +46,22 @@ public:
 	ViewState();
 
 	/// Stores a new projection matrix
-	void SetProjection(const Matrix4f *projection) throw();
+	void SetProjection(const Matrix4f *projection) noexcept;
 
 	/// Stores a new view matrix
-	void SetView(const Matrix4f *view) throw();
+	void SetView(const Matrix4f *view) noexcept;
 
 	/// Retrieves the cancellation matrix (projection * view)⁻¹
-	bool GetProjectionViewInv(Matrix4f& projection_view_inv) const throw();
+	bool GetProjectionViewInv(Matrix4f& projection_view_inv) const noexcept;
 
 	/// Calculates the clip space coordinates ([-1; 1]³) of a 3D vertex in world space.
 	/// @param[in] point The point in world space coordinates.
 	/// @return The clip space coordinates of the point.
-	Vector3f Project(const Vector3f &point) const throw();
+	Vector3f Project(const Vector3f &point) const noexcept;
 	/// Calculates the world space coordinates of a 3D vertex in clip space ([-1; 1]³).
 	/// @param[in] point The point in clip space coordinates.
 	/// @return The world space coordinates of the point.
-	Vector3f Unproject(const Vector3f &point) const throw();
+	Vector3f Unproject(const Vector3f &point) const noexcept;
 
 private:
 	// Flags for stored values
@@ -77,7 +77,7 @@ private:
 
 	// Cached values
 	mutable Matrix4f projection_view_inv;
-	void UpdateProjectionViewInv() const throw();
+	void UpdateProjectionViewInv() const noexcept;
 };
 
 }

@@ -25,11 +25,25 @@
  *
  */
 
+
+inline Variant::Type Variant::GetType() const
+{
+	return type;
+}
+
 // Constructs a variant with internal data.
 template< typename T >
 Variant::Variant(const T& t) : type(NONE)
 {
 	Set( t );
+}
+
+// Clear and set new value
+template< typename T >
+void Variant::Reset(const T& t)
+{
+	Clear();
+	Set(t);
 }
 
 // Templatised data accessor.
@@ -38,65 +52,72 @@ bool Variant::GetInto(T& value) const
 {	
 	switch (type)
 	{
-		case BYTE:
-			return TypeConverter< byte, T >::Convert(*(byte*)data, value);
+	case BYTE:
+		return TypeConverter< byte, T >::Convert(*(byte*)data, value);
 		break;
 
-		case CHAR:
-			return TypeConverter< char, T >::Convert(*(char*)data, value);
+	case CHAR:
+		return TypeConverter< char, T >::Convert(*(char*)data, value);
 		break;
 
-		case FLOAT:
-			return TypeConverter< float, T >::Convert(*(float*)data, value);
+	case FLOAT:
+		return TypeConverter< float, T >::Convert(*(float*)data, value);
 		break;
 
-		case INT:
-			return TypeConverter< int, T >::Convert(*(int*)data, value);
+	case INT:
+		return TypeConverter< int, T >::Convert(*(int*)data, value);
 		break;
 
-		case STRING:
-			return TypeConverter< String, T >::Convert(*(String*)data, value);
+	case STRING:
+		return TypeConverter< String, T >::Convert(*(String*)data, value);
 		break;
 
-		case WORD:
-			return TypeConverter< word, T >::Convert(*(word*)data, value);
+	case WORD:
+		return TypeConverter< word, T >::Convert(*(word*)data, value);
 		break;
 
-		case VECTOR2:
-			return TypeConverter< Vector2f, T >::Convert(*(Vector2f*)data, value);
+	case VECTOR2:
+		return TypeConverter< Vector2f, T >::Convert(*(Vector2f*)data, value);
 		break;
 
-		case VECTOR3:
-			return TypeConverter< Vector3f, T >::Convert(*(Vector3f*)data, value);
+	case VECTOR3:
+		return TypeConverter< Vector3f, T >::Convert(*(Vector3f*)data, value);
 		break;
 
-		case VECTOR4:
-			return TypeConverter< Vector4f, T >::Convert(*(Vector4f*)data, value);
+	case VECTOR4:
+		return TypeConverter< Vector4f, T >::Convert(*(Vector4f*)data, value);
 		break;
 
-		case TRANSFORMREF:
-			return TypeConverter< TransformRef, T >::Convert(*(TransformRef*)data, value);
+	case TRANSFORMREF:
+		return TypeConverter< TransformRef, T >::Convert(*(TransformRef*)data, value);
 		break;
 
-		case COLOURF:
-			return TypeConverter< Colourf, T >::Convert(*(Colourf*)data, value);
+	case TRANSITIONLIST:
+		return TypeConverter< TransitionList, T >::Convert(*(TransitionList*)data, value);
 		break;
 
-		case COLOURB:
-			return TypeConverter< Colourb, T >::Convert(*(Colourb*)data, value);
+	case ANIMATIONLIST:
+		return TypeConverter< AnimationList, T >::Convert(*(AnimationList*)data, value);
 		break;
 
-		case SCRIPTINTERFACE:
-			return TypeConverter< ScriptInterface*, T >::Convert(*(ScriptInterface**)data, value);			
+	case COLOURF:
+		return TypeConverter< Colourf, T >::Convert(*(Colourf*)data, value);
 		break;
 
-		case VOIDPTR:
-			return TypeConverter< void*, T >::Convert(*(void**)data, value);
+	case COLOURB:
+		return TypeConverter< Colourb, T >::Convert(*(Colourb*)data, value);
 		break;
 
-		case NONE:
+	case SCRIPTINTERFACE:
+		return TypeConverter< ScriptInterface*, T >::Convert(*(ScriptInterface**)data, value);
 		break;
 
+	case VOIDPTR:
+		return TypeConverter< void*, T >::Convert(*(void**)data, value);
+		break;
+
+	case NONE:
+		break;
 	}
 
 	return false;

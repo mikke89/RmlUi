@@ -252,6 +252,9 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 			tile_position.x = surface_origin.x + (float) tile_dimensions.x * x;
 			tile_size.x = (float) (x < num_tiles[0] - 1 ? tile_dimensions.x : final_tile_dimensions.x);
 
+			tile_position = tile_position.Round();
+			tile_size = tile_size.Round();
+
 			GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, tile_size, quad_colour, tile_texcoords[0], tile_texcoords[1], index_offset);
 			new_vertices += 4;
 			new_indices += 6;

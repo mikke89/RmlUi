@@ -34,8 +34,8 @@
 namespace Rocket {
 namespace Core {
 
-class ViewState;
-namespace Transforms { class Primitive; }
+namespace Transforms { struct Primitive; }
+class Property;
 
 /**
 	The Transform class holds the information parsed from an element's
@@ -48,41 +48,36 @@ namespace Transforms { class Primitive; }
 	@see Rocket::Core::Variant
  */
 
-class ROCKETCORE_API Transform : public ReferenceCountable
+class ROCKETCORE_API Transform
 {
 public:
+	typedef std::vector< Transforms::Primitive > Primitives;
+
 	/// Default constructor, initializes an identity transform
 	Transform();
 
-	/// Copy constructor
-	Transform(const Transform& other);
+	/// Construct transform with a list of primitives
+	Transform(std::vector<Transforms::Primitive> primitives);
 
-	/// Destructor
-	~Transform();
-
-	/// Swap the content of two Transform instances
-	void Swap(Transform& other);
-
-	/// Assignment operator
-	const Transform& operator=(const Transform& other);
+	/// Helper function to create a Property with TransformRef from list of primitives
+	static Property MakeProperty(std::vector<Transforms::Primitive> primitives);
 
 	/// Remove all Primitives from this Transform
 	void ClearPrimitives();
+
 	/// Add a Primitive to this Transform
 	void AddPrimitive(const Transforms::Primitive& p);
-	/// Return the number of Primitives in this Transform
-	int GetNumPrimitives() const throw()
-		{ return (int)primitives.size(); }
-	/// Return the i-th Primitive in this Transform
-	const Transforms::Primitive& GetPrimitive(int i) const throw()
-		{ return *primitives[i]; }
 
-protected:
-	void OnReferenceDeactivate()
-		{ delete this; }
+	/// Return the number of Primitives in this Transform
+	int GetNumPrimitives() const noexcept;
+
+	/// Return the i-th Primitive in this Transform
+	const Transforms::Primitive& GetPrimitive(int i) const noexcept;
+
+	Primitives& GetPrimitives() noexcept { return primitives; }
+	const Primitives& GetPrimitives() const noexcept { return primitives; }
 
 private:
-	typedef std::vector< Transforms::Primitive * > Primitives;
 	Primitives primitives;
 };
 

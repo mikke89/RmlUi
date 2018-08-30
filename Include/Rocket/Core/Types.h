@@ -37,7 +37,9 @@
 #include <limits.h>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 #include "Platform.h"
@@ -69,7 +71,7 @@ typedef unsigned __int64 uint64_t;
 #include "Vector4.h"
 #include "Matrix4.h"
 #include "String.h"
-#include "Reference.h"
+#include "Transform.h"
 
 namespace Rocket {
 namespace Core {
@@ -90,6 +92,7 @@ typedef ColumnMajorMatrix4f Matrix4f;
 
 class Element;
 class Dictionary;
+class ElementAnimation;
 
 // Types for external interfaces.
 typedef uintptr_t FileHandle;
@@ -100,19 +103,16 @@ typedef uintptr_t DecoratorDataHandle;
 // List of elements.
 typedef std::vector< Element* > ElementList;
 typedef std::set< String > PseudoClassList;
-typedef std::set< String > PropertyNameList;
-typedef std::set< String > AttributeNameList;
+typedef std::unordered_set< String > PropertyNameList;
+typedef std::unordered_set< String > AttributeNameList;
 typedef Dictionary ElementAttributes;
-}
-}
-
-#include <Rocket/Core/Transform.h>
-
-namespace Rocket {
-namespace Core {
+typedef std::vector< ElementAnimation > ElementAnimationList;
 
 // Reference types
-typedef SharedConstReference< Transform > TransformRef;
+typedef std::shared_ptr< Transform > TransformRef;
+
+struct Transition;
+struct TransitionList;
 
 }
 }

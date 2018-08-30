@@ -198,7 +198,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 			if (parent_font == NULL)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(LayoutEngine::Round(parent_font->GetLineHeight() * 0.2f));
+				SetVerticalPosition(float(parent_font->GetLineHeight()) * 0.2f);
 		}
 		break;
 
@@ -209,7 +209,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 			if (parent_font == NULL)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(-1 * LayoutEngine::Round(parent_font->GetLineHeight() * 0.4f));
+				SetVerticalPosition(float(-1 * parent_font->GetLineHeight()) * 0.4f);
 		}
 		break;
 

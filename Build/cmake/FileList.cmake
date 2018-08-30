@@ -17,6 +17,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBorder.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.h
@@ -41,12 +42,14 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BitmapFontDefinitions.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
@@ -57,6 +60,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.h
@@ -103,6 +107,7 @@ set(MASTER_Core_PUB_HDR_FILES
 )
 
 set(Core_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Animation.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BaseXMLParser.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Box.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.h
@@ -178,6 +183,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Types.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/URL.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.inl
@@ -220,6 +226,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Dictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBorder.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.cpp
@@ -284,6 +291,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.cpp

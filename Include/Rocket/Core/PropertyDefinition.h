@@ -39,6 +39,8 @@ namespace Core {
 	@author Peter Curry
  */
 
+enum class RelativeTarget { None, ContainingBlockWidth, ContainingBlockHeight, FontSize, ParentFontSize, LineHeight };
+
 class ROCKETCORE_API PropertyDefinition
 {
 public:
@@ -50,6 +52,9 @@ public:
 	/// @param[in] parser_parameters A comma-separated list of validation parameters for the parser.
 	/// @return This property definition.
 	PropertyDefinition& AddParser(const String& parser_name, const String& parser_parameters = "");
+
+	/// Set target for relative units when resolving sizes such as percentages.
+	PropertyDefinition& SetRelativeTarget(RelativeTarget relative_target);
 
 	/// Called when parsing a RCSS declaration.
 	/// @param property[out] The property to set the parsed value onto.
@@ -71,6 +76,9 @@ public:
 	/// Returns the default defined for this property.
 	const Property* GetDefaultValue() const;
 
+	/// Returns the target for resolving values with percent and possibly number units.
+	RelativeTarget GetRelativeTarget() const;
+
 private:
 	Property default_value;
 	bool inherited;
@@ -83,6 +91,8 @@ private:
 	};
 
 	std::vector< ParserState > parsers;
+
+	RelativeTarget relative_target;
 };
 
 }

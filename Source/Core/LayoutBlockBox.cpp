@@ -511,8 +511,6 @@ void LayoutBlockBox::PositionBlockBox(Vector2f& box_position, const Box& box, in
 	PositionBox(box_position, box.GetEdge(Box::MARGIN, Box::TOP), clear_property);
 	box_position.x += box.GetEdge(Box::MARGIN, Box::LEFT);
 	box_position.y += box.GetEdge(Box::MARGIN, Box::TOP);
-
-	LayoutEngine::Round(box_position);
 }
 
 // Returns the offset from the top-left corner of this box for the next line.

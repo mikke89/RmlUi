@@ -173,17 +173,6 @@ if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DROCKET_STATIC_LIB)
 endif()
 
-#on windows, check for VC10 and fix the multiple compile target issue.
-IF(WIN32)
-  if(MSVC)
-    if(${MSVC_VERSION} STREQUAL 1600 OR ${MSVC_VERSION} STRGREATER 1600)
-      message("Visual Studio 2010 (${MSVC_VERSION}) build fix at play (/FORCE:MULTIPLE)")
-      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:MULTIPLE")
-    endif()
-  endif() 
-ENDIF(WIN32)
-
-
 #===================================
 # Find dependencies ================
 #===================================
@@ -275,6 +264,13 @@ foreach(library ${LIBRARIES})
                            VERSION ${PROJECT_VERSION}
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
     )
+	
+	if (MSVC)
+		target_compile_options(${NAME} PUBLIC "/MP")
+	endif(MSVC)
+	
+	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
+	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
     
     install(TARGETS ${NAME}
             EXPORT libRocketTargets
@@ -282,9 +278,16 @@ foreach(library ${LIBRARIES})
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+	
 
     set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
+
+if (MSVC)
+	target_compile_options(RocketCore PRIVATE "/Yuprecompiled.h")
+	set_source_files_properties(${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp PROPERTIES COMPILE_FLAGS "/Ycprecompiled.h")
+endif(MSVC)
+
 else(NOT BUILD_FRAMEWORK)
 	#===================================
 	# Build combined Framework =========
@@ -468,7 +471,7 @@ endmacro()
 if(BUILD_SAMPLES)
     include(SampleFileList)
 
-    set(samples treeview customlog drag loaddocument transform bitmapfont)
+    set(samples treeview customlog drag loaddocument transform bitmapfont animation)
     set(tutorials template datagrid datagrid_tree tutorial_drag)
     
 if(NOT BUILD_FRAMEWORK)
@@ -583,6 +586,8 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install sample shell library
     add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
+	set_property(TARGET shell PROPERTY CXX_STANDARD 17)
+	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
     if (APPLE)
     	# We only support i386 for the samples as it still uses Carbon
     	set_target_properties(shell PROPERTIES OSX_ARCHITECTURES "i386;")
@@ -591,6 +596,9 @@ endif(NOT BUILD_FRAMEWORK)
     # Build and install the basic samples
     foreach(sample ${samples})
         bl_sample(${sample} ${sample_LIBRARIES})
+		
+		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 17)
+		set_property(TARGET ${sample} PROPERTY CXX_STANDARD_REQUIRED ON)
 
         # The samples always set this as their current working directory
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
@@ -672,7 +680,7 @@ endif(NOT BUILD_FRAMEWORK)
 	endif()
 
 	message("-- Can SFML 2.x sample be built")
-	find_package(SFML 2 COMPONENTS graphics window system)
+	find_package(SFML 2 COMPONENTS graphics window system main)
 	if(NOT SFML_FOUND)
 		message("-- Can SFML 2.x sample be built - no")
 	else()
@@ -708,6 +716,8 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install invaders sample
     bl_sample(invaders ${sample_LIBRARIES})
+	set_property(TARGET invaders PROPERTY CXX_STANDARD 17)
+	set_property(TARGET invaders PROPERTY CXX_STANDARD_REQUIRED ON)
     install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
     install(TARGETS invaders 
     	RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
@@ -716,6 +726,8 @@ endif(NOT BUILD_FRAMEWORK)
 	if(BUILD_PYTHON_BINDINGS)
 	    # Build and install pyinvaders sample
 	    bl_sample(pyinvaders ${sample_LIBRARIES} ${PYTHON_LIBRARIES} ${PY_BINDINGS_LINK_LIBS})
+		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD_REQUIRED ON)
 	    install(DIRECTORY DESTINATION ${SAMPLES_DIR}/pyinvaders)
 	    install(TARGETS pyinvaders
 	    	RUNTIME DESTINATION ${SAMPLES_DIR}/pyinvaders
@@ -724,6 +736,8 @@ endif(NOT BUILD_FRAMEWORK)
     
     if(BUILD_LUA_BINDINGS)
         bl_sample(luainvaders RocketCoreLua RocketControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
         install(TARGETS luainvaders 
         	RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders

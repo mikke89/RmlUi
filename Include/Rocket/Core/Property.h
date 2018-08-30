@@ -57,14 +57,14 @@ public:
 		DEG = 1 << 5,				// number suffixed by 'deg'; fetch as < float >
 		RAD = 1 << 6,				// number suffixed by 'rad'; fetch as < float >
 		COLOUR = 1 << 7,			// colour; fetch as < Colourb >
-		ABSOLUTE_UNIT = NUMBER | PX | DEG | RAD | COLOUR,
+		DP = 1 << 8,				// density-independent pixel; number suffixed by 'dp'; fetch as < float >
+		ABSOLUTE_UNIT = NUMBER | PX | DP | DEG | RAD | COLOUR,
 
 		// Relative values.
-		EM = 1 << 8,				// number suffixed by 'em'; fetch as < float >
-		PERCENT = 1 << 9,			// number suffixed by '%'; fetch as < float >
-		REM = 1 << 10,				// number suffixed by 'rem'; fetch as < float >
-		DP = 1 << 11,				// density-independent pixel; number suffixed by 'dp'; fetch as < float >
-		RELATIVE_UNIT = EM | REM | PERCENT | DP,
+		EM = 1 << 9,				// number suffixed by 'em'; fetch as < float >
+		PERCENT = 1 << 10,			// number suffixed by '%'; fetch as < float >
+		REM = 1 << 11,				// number suffixed by 'rem'; fetch as < float >
+		RELATIVE_UNIT = EM | REM | PERCENT,
 
 		// Values based on pixels-per-inch.
 		INCH = 1 << 12,				// number suffixed by 'in'; fetch as < float >
@@ -74,7 +74,14 @@ public:
 		PC = 1 << 16,				// number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
-		TRANSFORM = 1 << 17			// transform; fetch as < TransformRef >
+		TRANSFORM = 1 << 17,			// transform; fetch as < TransformRef >
+		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
+		ANIMATION = 1 << 19,            // animation; fetch as < AnimationList >
+
+		LENGTH = PX | DP | PPI_UNIT | EM | REM,
+		LENGTH_PERCENT = LENGTH | PERCENT,
+		NUMBER_LENGTH_PERCENT = NUMBER | LENGTH | PERCENT,
+		ANGLE = NUMBER | DEG | RAD
 	};
 
 	Property();
@@ -98,6 +105,9 @@ public:
 	{
 		return value.Get<T>();
 	}
+
+	bool operator==(const Property& other) const { return unit == other.unit && value == other.value; }
+	bool operator!=(const Property& other) const { return !(*this == other); }
 
 	Variant value;
 	Unit unit;

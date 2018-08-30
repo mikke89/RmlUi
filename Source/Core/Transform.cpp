@@ -29,91 +29,47 @@
 #include "../../Include/Rocket/Core/Transform.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include "../../Include/Rocket/Core/ViewState.h"
+#include "../../Include/Rocket/Core/Property.h"
 
 namespace Rocket {
 namespace Core {
 
+
 // Default constructor, initializes an identity transform
 Transform::Transform()
-	: primitives()
 {
 }
 
-Transform::Transform(const Transform& other)
-	: primitives()
+Transform::Transform(std::vector<Transforms::Primitive> primitives) 
+	: primitives(primitives)
 {
-	primitives.reserve(other.primitives.size());
-	Primitives::const_iterator i = other.primitives.begin();
-	Primitives::const_iterator end = other.primitives.end();
-	for (; i != end; ++i)
-	{
-		try
-		{
-			AddPrimitive(**i);
-		}
-		catch(...)
-		{
-			ClearPrimitives();
-			throw;
-		}
-	}
 }
 
-Transform::~Transform()
+Property Transform::MakeProperty(std::vector<Transforms::Primitive> primitives)
 {
-	ClearPrimitives();
+	Property p{ TransformRef{new Transform{primitives}}, Property::TRANSFORM };
+	p.definition = StyleSheetSpecification::GetProperty(TRANSFORM);
+	return p;
 }
 
-// Swap the content of two Transfrom instances
-void Transform::Swap(Transform& other)
+void Transform::ClearPrimitives() 
 {
-	primitives.swap(other.primitives);
-}
-
-// Assignment operato
-const Transform& Transform::operator=(const Transform& other)
-{
-	Transform result(other);
-	Swap(result);
-	return *this;
-}
-
-// Remove all Primitives from this Transform
-void Transform::ClearPrimitives()
-{
-	Primitives::iterator i = primitives.begin();
-	Primitives::iterator end = primitives.end();
-	for (; i != end; ++i)
-	{
-		try
-		{
-			delete *i;
-			*i = 0;
-		}
-		catch(...)
-		{
-		}
-	}
 	primitives.clear();
 }
 
-// Add a Primitive to this Transform
-void Transform::AddPrimitive(const Transforms::Primitive& p)
+void Transform::AddPrimitive(const Transforms::Primitive & p)
 {
-	Transforms::Primitive* q = p.Clone();
-	if (!q)
-	{
-		throw std::bad_alloc();
-	}
-	try
-	{
-		primitives.push_back(q);
-	}
-	catch (...)
-	{
-		delete q;
-		throw;
-	}
+	primitives.push_back(p);
+}
+
+int Transform::GetNumPrimitives() const noexcept 
+{
+	return (int)primitives.size();
+}
+
+const Transforms::Primitive & Transform::GetPrimitive(int i) const noexcept 
+{
+	return primitives[i];
 }
 
 }

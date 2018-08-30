@@ -115,7 +115,7 @@ void HighScores::SubmitScore(const Rocket::Core::String& name, const Rocket::Cor
 				scores[i].alien_kills[j] = alien_kills[j];
 			}
 
-			NotifyRowAdd("scores", i, 1);
+			NotifyRowAdd("scores", (int)i, 1);
 
 			return;
 		}

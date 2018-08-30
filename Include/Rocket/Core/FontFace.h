@@ -69,7 +69,7 @@ protected:
 	bool release_stream;
 
 	typedef std::vector< FontFaceHandle* > HandleList;
-	typedef std::map< int, HandleList > HandleMap;
+	typedef std::unordered_map< int, HandleList > HandleMap;
 	HandleMap handles;
 };
 

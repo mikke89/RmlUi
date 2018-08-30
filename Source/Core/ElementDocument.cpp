@@ -296,16 +296,20 @@ void ElementDocument::LoadScript(Stream* ROCKET_UNUSED_PARAMETER(stream), const 
 // Updates the layout if necessary.
 void ElementDocument::_UpdateLayout()
 {
-	layout_dirty = false;
+	const int max_updates = 3;
+
 	lock_layout++;
+	for(int i = 0; layout_dirty && i < max_updates; i++)
+	{
+		layout_dirty = false;
 
-	Vector2f containing_block(0, 0);
-	if (GetParentNode() != NULL)
-		containing_block = GetParentNode()->GetBox().GetSize();
+		Vector2f containing_block(0, 0);
+		if (GetParentNode() != NULL)
+			containing_block = GetParentNode()->GetBox().GetSize();
 
-	LayoutEngine layout_engine;
-	layout_engine.FormatElement(this, containing_block);
-	
+		LayoutEngine layout_engine;
+		layout_engine.FormatElement(this, containing_block);
+	}
 	lock_layout--;
 }
 

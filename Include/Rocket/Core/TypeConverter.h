@@ -29,6 +29,7 @@
 #define ROCKETCORETYPECONVERTER_H
 
 #include "Types.h"
+#include "Animation.h"
 #include "Log.h"
 #include "Stream.h"
 #include "StringUtilities.h"

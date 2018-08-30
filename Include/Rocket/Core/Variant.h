@@ -76,6 +76,8 @@ public:
 		COLOURB = 'h',
 		SCRIPTINTERFACE = 'p',
 		TRANSFORMREF = 't',
+		TRANSITIONLIST = 'T',
+		ANIMATIONLIST = 'A',
 		VOIDPTR = '*',			
 	};
 
@@ -84,56 +86,16 @@ public:
 
 	/// Gets the current internal representation type.
 	/// @return The type of data stored in the variant internally.
-	Type GetType() const;
+	inline Type GetType() const;
 
 	/// Shares another variant's data with this variant.
 	/// @param[in] copy Variant to share data.
 	void Set(const Variant& copy);
-	/// Sets a byte value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const byte value);
-	/// Sets a signed char value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const char value);
-	/// Sets a float value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const float value);
-	/// Sets a signed int value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const int value);
-	/// Sets a word value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const word value);
-	/// Sets a constant C string value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const char* value);
-	/// Sets a generic void* value on this variant.
-	/// @param[in] value New value to set.
-	void Set(void* value);
-	/// Sets an EMP string value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const String& value);
-	/// Sets a Vector2f value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const Vector2f& value);
-	/// Sets a Vector3f value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const Vector3f& value);
-	/// Sets a Vector4f value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const Vector4f& value);
-	/// Sets a TransformRef value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const TransformRef& value);
-	/// Sets a Colourf value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const Colourf& value);
-	/// Sets a Colourb value on this variant.
-	/// @param[in] value New value to set.
-	void Set(const Colourb& value);
-	/// Sets a script object value on this variant.
-	/// @param[in] value New value to set.
-	void Set(ScriptInterface* value);
+
+	/// Clear and set a new value to this variant.
+	/// @param[in] t New value to set.
+	template<typename T>
+	void Reset(const T& t);
 
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.
@@ -152,7 +114,28 @@ public:
 	/// @param[in] copy Variant to share data.
 	Variant& operator=(const Variant& copy);
 
+	bool operator==(const Variant& other) const;
+	bool operator!=(const Variant& other) const { return !(*this == other); }
+
 private:
+
+	void Set(const byte value);
+	void Set(const char value);
+	void Set(const float value);
+	void Set(const int value);
+	void Set(const word value);
+	void Set(const char* value);
+	void Set(void* value);
+	void Set(const String& value);
+	void Set(const Vector2f& value);
+	void Set(const Vector3f& value);
+	void Set(const Vector4f& value);
+	void Set(const TransformRef& value);
+	void Set(const TransitionList& value);
+	void Set(const AnimationList& value);
+	void Set(const Colourf& value);
+	void Set(const Colourb& value);
+	void Set(ScriptInterface* value);
 	
 #ifdef ROCKET_ARCH_64
 		static const int LOCAL_DATA_SIZE = 40; // Required for Strings

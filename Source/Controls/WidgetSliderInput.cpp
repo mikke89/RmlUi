@@ -47,7 +47,7 @@ WidgetSliderInput::~WidgetSliderInput()
 void WidgetSliderInput::SetValue(float value)
 {
 	float num_steps = (value - min_value) / step;
-	float new_value = min_value + Rocket::Core::Math::Round(num_steps) * step;
+	float new_value = min_value + Rocket::Core::Math::RoundFloat(num_steps) * step;
 
 	SetBarPosition(SetValueInternal(new_value));
 }
@@ -90,7 +90,7 @@ void WidgetSliderInput::FormatElements()
 float WidgetSliderInput::OnBarChange(float bar_position)
 {
 	float new_value = min_value + bar_position * (max_value - min_value);
-	int num_steps = Rocket::Core::Math::Round((new_value - value) / step);
+	int num_steps = Rocket::Core::Math::RoundToInteger((new_value - value) / step);
 
 	return SetValueInternal(value + num_steps * step);
 }

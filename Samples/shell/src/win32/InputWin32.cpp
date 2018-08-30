@@ -93,8 +93,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 			int key_modifier_state = GetKeyModifierState();
 
 			// Check for a shift-~ to toggle the debugger.
-			if (key_identifier == Rocket::Core::Input::KI_OEM_3 &&
-				key_modifier_state & Rocket::Core::Input::KM_SHIFT)
+			if (key_identifier == Rocket::Core::Input::KI_F8)
 			{
 				Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
 				break;

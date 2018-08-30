@@ -39,6 +39,7 @@ namespace Core {
 class Context;
 class FontFaceHandle;
 class RenderInterface;
+class ViewState;
 
 /**
 	Utility functions for dealing with elements.

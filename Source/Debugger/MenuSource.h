@@ -53,6 +53,7 @@ static const char* menu_rcss =
 "	margin-left: 6px;\n"
 "	display: inline-block;\n"
 "	width: 100px;\n"
+"   line-height: 22px;\n"
 "	text-align: center;\n"
 "}\n"
 "button:hover\n"

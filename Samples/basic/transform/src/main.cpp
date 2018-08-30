@@ -63,7 +63,7 @@ public:
 		if (document)
 		{
 			std::stringstream s;
-			s << distance;
+			s << distance << "px";
 			document->SetProperty("perspective", s.str().c_str());
 		}
 	}

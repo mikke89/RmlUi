@@ -40,6 +40,16 @@ class Element;
 class ElementDefinition;
 class StyleSheetNode;
 
+struct KeyframeBlock {
+	float normalized_time;  // [0, 1]
+	PropertyDictionary properties;
+};
+struct Keyframes {
+	std::vector<String> property_names;
+	std::vector<KeyframeBlock> blocks;
+};
+typedef std::unordered_map<String, Keyframes> KeyframesMap;
+
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
 	a new, merged stylesheet.
@@ -50,8 +60,8 @@ class StyleSheetNode;
 class ROCKETCORE_API StyleSheet : public ReferenceCountable
 {
 public:
-	typedef std::set< StyleSheetNode* > NodeList;
-	typedef std::map< String, NodeList > NodeIndex;
+	typedef std::unordered_set< StyleSheetNode* > NodeList;
+	typedef std::unordered_map< String, NodeList > NodeIndex;
 
 	StyleSheet();
 	virtual ~StyleSheet();
@@ -63,6 +73,9 @@ public:
 	StyleSheet* CombineStyleSheet(const StyleSheet* sheet) const;
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
+
+	/// Returns the Keyframes of the given name, or null if it does not exist.
+	Keyframes* GetKeyframes(const String& name);
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
@@ -83,12 +96,15 @@ private:
 	// precedence in the event of a conflict.
 	int specificity_offset;
 
+	// Name of every @keyframes mapped to their keys
+	KeyframesMap keyframes;
+
 	// Map of only nodes with actual style information.
 	NodeIndex styled_node_index;
 	// Map of every node, even empty, un-styled, nodes.
 	NodeIndex complete_node_index;
 
-	typedef std::map< String, ElementDefinition* > ElementDefinitionCache;
+	typedef std::unordered_map< String, ElementDefinition* > ElementDefinitionCache;
 	// Index of element addresses to element definitions.
 	mutable ElementDefinitionCache address_cache;
 	// Index of node sets to element definitions.

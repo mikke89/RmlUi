@@ -25,7 +25,7 @@
  *
  */
 
-#include "../precompiled.h"
+#include "precompiled.h"
 #include "FontParser.h"
 
 namespace Rocket {

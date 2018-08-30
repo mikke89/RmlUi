@@ -38,7 +38,7 @@ ViewState::ViewState()
 {
 }
 
-void ViewState::SetProjection(const Matrix4f *projection) throw()
+void ViewState::SetProjection(const Matrix4f *projection) noexcept
 {
 	if (projection)
 	{
@@ -49,7 +49,7 @@ void ViewState::SetProjection(const Matrix4f *projection) throw()
 	projection_view_inv_dirty = true;
 }
 
-void ViewState::SetView(const Matrix4f *view) throw()
+void ViewState::SetView(const Matrix4f *view) noexcept
 {
 	if (view)
 	{
@@ -60,7 +60,7 @@ void ViewState::SetView(const Matrix4f *view) throw()
 	projection_view_inv_dirty = true;
 }
 
-bool ViewState::GetProjectionViewInv(Matrix4f& projection_view_inv) const throw()
+bool ViewState::GetProjectionViewInv(Matrix4f& projection_view_inv) const noexcept
 {
 	if (have_projection || have_view)
 	{
@@ -79,7 +79,7 @@ bool ViewState::GetProjectionViewInv(Matrix4f& projection_view_inv) const throw(
 	}
 }
 
-Vector3f ViewState::Project(const Vector3f &point) const throw()
+Vector3f ViewState::Project(const Vector3f &point) const noexcept
 {
 	if (have_projection && have_view)
 	{
@@ -99,7 +99,7 @@ Vector3f ViewState::Project(const Vector3f &point) const throw()
 	}
 }
 
-Vector3f ViewState::Unproject(const Vector3f &point) const throw()
+Vector3f ViewState::Unproject(const Vector3f &point) const noexcept
 {
 	if (have_projection || have_view)
 	{
@@ -116,7 +116,7 @@ Vector3f ViewState::Unproject(const Vector3f &point) const throw()
 	}
 }
 
-void ViewState::UpdateProjectionViewInv() const throw()
+void ViewState::UpdateProjectionViewInv() const noexcept
 {
 	ROCKET_ASSERT(projection_view_inv_dirty);
 

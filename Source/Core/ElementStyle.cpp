@@ -89,6 +89,111 @@ const ElementDefinition* ElementStyle::GetDefinition()
 
 	return definition;
 }
+
+
+
+// Returns one of this element's properties.
+const Property* ElementStyle::GetLocalProperty(const String& name, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+{
+	// Check for overriding local properties.
+	if (local_properties != NULL)
+	{
+		const Property* property = local_properties->GetProperty(name);
+		if (property != NULL)
+			return property;
+	}
+
+	// Check for a property defined in an RCSS rule.
+	if (definition != NULL)
+		return definition->GetProperty(name, pseudo_classes);
+
+	return NULL;
+}
+
+// Returns one of this element's properties.
+const Property* ElementStyle::GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+{
+	if (prop_counter.find(name) == prop_counter.end())
+		prop_counter[name] = 0;
+	prop_counter[name] = prop_counter[name] + 1;
+	
+	const Property* local_property = GetLocalProperty(name, local_properties, definition, pseudo_classes);
+	if (local_property != NULL)
+		return local_property;
+
+	// Fetch the property specification.
+	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(name);
+	if (property == NULL)
+		return NULL;
+
+	// If we can inherit this property, return our parent's property.
+	if (property->IsInherited())
+	{
+		Element* parent = element->GetParentNode();
+		while (parent != NULL)
+		{
+			const Property* parent_property = parent->GetStyle()->GetLocalProperty(name);
+			if (parent_property)
+				return parent_property;
+
+			parent = parent->GetParentNode();
+		}
+	}
+
+	// No property available! Return the default value.
+	return property->GetDefaultValue();
+}
+
+// Apply transition to relevant properties if a transition is defined on element.
+// Properties that are part of a transition are removed from the properties list.
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, PropertyDictionary* local_properties, ElementDefinition* old_definition, ElementDefinition* new_definition,
+	const PseudoClassList& pseudo_classes_before, const PseudoClassList& pseudo_classes_after)
+{
+	ROCKET_ASSERT(element);
+	if (!old_definition || !new_definition || properties.empty())
+		return;
+
+	if (const Property* transition_property = GetLocalProperty(TRANSITION, local_properties, new_definition, pseudo_classes_after))
+	{
+		auto transition_list = transition_property->Get<TransitionList>();
+
+		if (!transition_list.none)
+		{
+			auto add_transition = [&](const Transition& transition) {
+				bool transition_added = false;
+				const Property* start_value = GetProperty(transition.name, element, local_properties, old_definition, pseudo_classes_before);
+				const Property* target_value = GetProperty(transition.name, element, nullptr, new_definition, pseudo_classes_after);
+				if (start_value && target_value && (*start_value != *target_value))
+					transition_added = element->StartTransition(transition, *start_value, *target_value);
+				return transition_added;
+			};
+
+			if (transition_list.all)
+			{
+				Transition transition = transition_list.transitions[0];
+				for (auto it = properties.begin(); it != properties.end(); )
+				{
+					transition.name = *it;
+					if (add_transition(transition))
+						it = properties.erase(it);
+					else
+						++it;
+				}
+			}
+			else
+			{
+				for (auto& transition : transition_list.transitions)
+				{
+					if (auto it = properties.find(transition.name); it != properties.end())
+					{
+						if (add_transition(transition))
+							properties.erase(it);
+					}
+				}
+			}
+		}
+	}
+}
 	
 void ElementStyle::UpdateDefinition()
 {
@@ -110,15 +215,17 @@ void ElementStyle::UpdateDefinition()
 			PropertyNameList properties;
 			
 			if (definition != NULL)
-			{
 				definition->GetDefinedProperties(properties, pseudo_classes);
-				definition->RemoveReference();
-			}
-			
-			definition = new_definition;
-			
+
+			if (new_definition != NULL)
+				new_definition->GetDefinedProperties(properties, pseudo_classes);
+
+			TransitionPropertyChanges(element, properties, local_properties, definition, new_definition, pseudo_classes, pseudo_classes);
+
 			if (definition != NULL)
-				definition->GetDefinedProperties(properties, pseudo_classes);
+				definition->RemoveReference();
+
+			definition = new_definition;
 			
 			DirtyProperties(properties);
 			element->GetElementDecoration()->ReloadDecorators();
@@ -140,10 +247,14 @@ void ElementStyle::UpdateDefinition()
 	}
 }
 
+
+
 // Sets or removes a pseudo-class on the element.
 void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 {
 	size_t num_pseudo_classes = pseudo_classes.size();
+
+	auto pseudo_classes_before = pseudo_classes;
 
 	if (activate)
 		pseudo_classes.insert(pseudo_class);
@@ -154,11 +265,13 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 	{
 		element->GetElementDecoration()->DirtyDecorators();
 
-		const ElementDefinition* definition = element->GetDefinition();
 		if (definition != NULL)
 		{
 			PropertyNameList properties;
 			definition->GetDefinedProperties(properties, pseudo_classes, pseudo_class);
+
+			TransitionPropertyChanges(element, properties, local_properties, definition, definition, pseudo_classes_before, pseudo_classes);
+
 			DirtyProperties(properties);
 
 			switch (definition->GetPseudoClassVolatility(pseudo_class))
@@ -269,6 +382,7 @@ bool ElementStyle::SetProperty(const String& name, const Property& property)
 	if (new_property.definition == NULL)
 		return false;
 
+	sizeof(ElementDefinition);
 	if (local_properties == NULL)
 		local_properties = new PropertyDictionary();
 
@@ -291,56 +405,151 @@ void ElementStyle::RemoveProperty(const String& name)
 	}
 }
 
+
+
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(const String& name)
 {
-	if (prop_counter.find(name) == prop_counter.end())
-		prop_counter[name] = 0;
-	prop_counter[name] = prop_counter[name] + 1;
-
-	const Property* local_property = GetLocalProperty(name);
-	if (local_property != NULL)
-		return local_property;
-
-	// Fetch the property specification.
-	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(name);
-	if (property == NULL)
-		return NULL;
-
-	// If we can inherit this property, return our parent's property.
-	if (property->IsInherited())
-	{
-		Element* parent = element->GetParentNode();
-		while (parent != NULL)
-		{
-			const Property* parent_property = parent->style->GetLocalProperty(name);
-			if (parent_property)
-				return parent_property;
-			
-			parent = parent->GetParentNode();
-		}
-	}
-
-	// No property available! Return the default value.
-	return property->GetDefaultValue();
+	return GetProperty(name, element, local_properties, definition, pseudo_classes);
 }
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(const String& name)
 {
-	// Check for overriding local properties.
-	if (local_properties != NULL)
+	return GetLocalProperty(name, local_properties, definition, pseudo_classes);
+}
+
+float ElementStyle::ResolveLength(const Property * property)
+{
+	if (!property)
 	{
-		const Property* property = local_properties->GetProperty(name);
-		if (property != NULL)
-			return property;
+		ROCKET_ERROR;
+		return 0.0f;
 	}
 
-	// Check for a property defined in an RCSS rule.
-	if (definition != NULL)
-		return definition->GetProperty(name, pseudo_classes);
+	if (!(property->unit & Property::LENGTH))
+	{
+		ROCKET_ERRORMSG("Trying to resolve length on a non-length property.");
+		return 0.0f;
+	}
 
-	return NULL;
+	switch (property->unit)
+	{
+	case Property::NUMBER:
+	case Property::PX:
+		return property->value.Get< float >();
+	case Property::EM:
+		return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+	case Property::REM:
+		return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
+	case Property::DP:
+		return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
+	}
+
+	// Values based on pixels-per-inch.
+	if (property->unit & Property::PPI_UNIT)
+	{
+		float inch = property->value.Get< float >() * element->GetRenderInterface()->GetPixelsPerInch();
+
+		switch (property->unit)
+		{
+		case Property::INCH: // inch
+			return inch;
+		case Property::CM: // centimeter
+			return inch * (1.0f / 2.54f);
+		case Property::MM: // millimeter
+			return inch * (1.0f / 25.4f);
+		case Property::PT: // point
+			return inch * (1.0f / 72.0f);
+		case Property::PC: // pica
+			return inch * (1.0f / 6.0f);
+		}
+	}
+
+	// We're not a numeric property; return 0.
+	return 0.0f;
+}
+
+float ElementStyle::ResolveAngle(const Property * property)
+{
+	switch (property->unit)
+	{
+	case Property::NUMBER:
+	case Property::DEG:
+		return Math::DegreesToRadians(property->value.Get< float >());
+	case Property::RAD:
+		return property->value.Get< float >();
+	case Property::PERCENT:
+		return property->value.Get< float >() * 0.01f * 2.0f * Math::ROCKET_PI;
+	}
+	ROCKET_ERRORMSG("Trying to resolve angle on a non-angle property.");
+	return 0.0f;
+}
+
+float ElementStyle::ResolveNumericProperty(const String& property_name, const Property * property)
+{
+	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && property_name == FONT_SIZE))
+	{
+		return ResolveLength(property);
+	}
+
+	auto definition = property->definition;
+	if (!definition) definition = StyleSheetSpecification::GetProperty(property_name);
+	if (!definition) return 0.0f;
+
+	auto relative_target = definition->GetRelativeTarget();
+	
+	return ResolveNumericProperty(property, relative_target);
+}
+
+float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTarget relative_target)
+{
+	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
+	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
+	{
+		return ResolveLength(property);
+	}
+
+	float base_value = 0.0f;
+
+	switch (relative_target)
+	{
+	case RelativeTarget::None:
+		base_value = 1.0f;
+		break;
+	case RelativeTarget::ContainingBlockWidth:
+		base_value = element->GetContainingBlock().x;
+		break;
+	case RelativeTarget::ContainingBlockHeight:
+		base_value = element->GetContainingBlock().y;
+		break;
+	case RelativeTarget::FontSize:
+		base_value = (float)ElementUtilities::GetFontSize(element);
+		break;
+	case RelativeTarget::ParentFontSize:
+		base_value = (float)ElementUtilities::GetFontSize(element->GetParentNode());
+		break;
+	case RelativeTarget::LineHeight:
+		base_value = (float)ElementUtilities::GetLineHeight(element);
+		break;
+	default:
+		break;
+	}
+
+	float scale_value = 0.0f;
+
+	switch (property->unit)
+	{
+	case Property::EM:
+	case Property::NUMBER:
+		scale_value = property->value.Get< float >();
+		break;
+	case Property::PERCENT:
+		scale_value = property->value.Get< float >() * 0.01f;
+		break;
+	}
+
+	return base_value * scale_value;
 }
 
 // Resolves one of this element's properties.
@@ -356,21 +565,21 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 	{
 		case Property::NUMBER:
 		case Property::PX:
-		case Property::DEG:
+		case Property::RAD:
 			return property->value.Get< float >();
 
 		case Property::PERCENT:
 			return base_value * property->value.Get< float >() * 0.01f;
 
 		case Property::EM:
-			return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+			return property->value.Get< float >() * (float)ElementUtilities::GetFontSize(element);
 		case Property::REM:
-			return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
+			return property->value.Get< float >() * (float)ElementUtilities::GetFontSize(element->GetOwnerDocument());
 		case Property::DP:
 			return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
-		case Property::RAD:
-			return Math::RadiansToDegrees(property->value.Get< float >());
+		case Property::DEG:
+			return Math::DegreesToRadians(property->value.Get< float >());
 	}
 
 	// Values based on pixels-per-inch.
@@ -441,9 +650,6 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 
 			case Property::EM:
 				return property->value.Get< float >() * base_value;
-
-			case Property::DP:
-				return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
 			case Property::REM:
 				// If an rem-relative font size is specified, it is expressed relative to the document's
@@ -649,15 +855,12 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 		StyleSheetSpecification::GetRegisteredProperties() == properties ||
 		StyleSheetSpecification::GetRegisteredInheritedProperties() == properties;
 
+
 	if (all_inherited_dirty)
 	{
 		const PropertyNameList &all_inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
 		for (int i = 0; i < element->GetNumChildren(true); i++)
 			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(all_inherited_properties);
-
-		// Clear all cached properties.
-		cache->Clear();
-		cache->ClearInherited();
 	}
 	else
 	{
@@ -678,11 +881,11 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 			for (int i = 0; i < element->GetNumChildren(true); i++)
 				element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
 		}
-
-		// Clear cached properties.
-		cache->Clear();
-		cache->ClearInherited();
 	}
+
+	// Clear all cached properties.
+	cache->Clear();
+	cache->ClearInherited();
 
 	// clear the list of EM-properties, we will refill it in DirtyEmProperties
 	if (clear_em_properties && em_properties != NULL)

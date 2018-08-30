@@ -25,6 +25,7 @@
  *
  */
 
+#include "precompiled.h"
 #include <Rocket/Core/FontProvider.h>
 #include <Rocket/Core/FontFamily.h>
 

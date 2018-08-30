@@ -25,7 +25,7 @@
  *
  */
 
-#include "../precompiled.h"
+#include "precompiled.h"
 #include <Rocket/Core/BitmapFont/FontProvider.h>
 #include "../FontFaceHandle.h"
 #include <Rocket/Core/FontDatabase.h>
