@@ -133,6 +133,14 @@ float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept
 	return number;
 }
 
+String NumericValue::ToString() const noexcept
+{
+	Property prop;
+	prop.value = Variant(number);
+	prop.unit = unit;
+	return prop.ToString();
+}
+
 
 
 
@@ -579,6 +587,20 @@ bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 
 
 
+struct ToStringVisitor
+{
+	template <typename T>
+	String operator()(T& p0)
+	{
+		return p0.ToString();
+	}
+};
+
+String Primitive::ToString() const noexcept
+{
+	String result = std::visit(ToStringVisitor{}, primitive);
+	return result;
+}
 
 
 bool DecomposedMatrix4::Decompose(const Matrix4f & m)

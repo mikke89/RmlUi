@@ -77,6 +77,8 @@ public:
 	Primitives& GetPrimitives() noexcept { return primitives; }
 	const Primitives& GetPrimitives() const noexcept { return primitives; }
 
+	String ToString() const;
+
 private:
 	Primitives primitives;
 };

@@ -28,13 +28,15 @@
 #ifndef ROCKETCORETWEEN_H
 #define ROCKETCORETWEEN_H
 
+#include <array>
+
 namespace Rocket {
 namespace Core {
 
 
 class Tween {
 public:
-	enum Type { None, Back, Bounce, Circular, Cubic, Elastic, Exponential, Linear, Quadratic, Quartic, Quintic, Sine, Callback };
+	enum Type { None, Back, Bounce, Circular, Cubic, Elastic, Exponential, Linear, Quadratic, Quartic, Quintic, Sine, Callback, Count };
 	enum Direction { In = 1, Out = 2, InOut = 3 };
 	typedef float(*CallbackFnc)(float);
 
@@ -130,6 +132,36 @@ public:
 
 	bool operator==(const Tween& other) const { return type_in == other.type_in && type_out == other.type_out && callback == other.callback; }
 	bool operator!=(const Tween& other) const { return !(*this == other); }
+
+	String to_string() const
+	{
+		const std::array<String, size_t(Count)> type_str = { "none", "back", "bounce", "circular", "cubic", "elastic", "exponential", "linear", "quadratic", "quartic", "quintic", "sine", "callback" };
+
+		if (size_t(type_in) < type_str.size() && size_t(type_out) < type_str.size())
+		{
+			if (type_in == None && type_out == None)
+			{
+				return "none";
+			}
+			else if (type_in == type_out)
+			{
+				return type_str[size_t(type_in)] + String("-in-out");
+			}
+			else if (type_in == None)
+			{
+				return type_str[size_t(type_out)] + String("-out");
+			}
+			else if (type_out == None)
+			{
+				return type_str[size_t(type_in)] + String("-in");
+			}
+			else if (type_in != type_out)
+			{
+				return type_str[size_t(type_in)] + String("-in-") + type_str[size_t(type_out)] + String("-out");
+			}
+		}
+		return "unknown";
+	}
 
 private:
 

@@ -56,9 +56,9 @@ public:
 	static bool Convert(const SourceType& src, DestType& dest);
 };
 
-#include "TypeConverter.inl"
+}
+}
 
-}
-}
+#include "TypeConverter.inl"
 
 #endif

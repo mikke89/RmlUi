@@ -56,7 +56,7 @@ public:
 				document->GetElementById("title")->SetInnerRML(title);
 				document->SetProperty("left", Property(position.x, Property::PX));
 				document->SetProperty("top", Property(position.y, Property::PX));
-				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 0.8f, Tween{Tween::Quadratic, Tween::Out}, 1, false, 0.0f);
+				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 1.5f, Tween{Tween::Quadratic, Tween::Out}, 1, true, 0.0f);
 			}
 
 			// Button fun

@@ -25,6 +25,8 @@
  *
  */
 
+namespace Rocket::Core {
+
 template <typename SourceType, typename DestType>
 bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, DestType& /*dest*/)
 {
@@ -350,6 +352,69 @@ public:
 	}
 };
 
+template<>
+class TypeConverter< TransformRef, String >
+{
+public:
+	static bool Convert(const TransformRef& src, String& dest)
+	{
+		if (src) dest = src->ToString();
+		else dest = "none";
+		return true;
+	}
+};
+
+template<>
+class TypeConverter< TransitionList, String >
+{
+public:
+	static bool Convert(const TransitionList& src, String& dest)
+	{
+		if (src.none)
+		{
+			dest = "none";
+			return true;
+		}
+		String tmp;
+		for (size_t i = 0; i < src.transitions.size(); i++)
+		{
+			const Transition& t = src.transitions[i];
+			dest += t.name + " ";
+			dest += t.tween.to_string() + " ";
+			if (TypeConverter< float, String >::Convert(t.duration, tmp)) dest += tmp + "s ";
+			if (t.delay > 0.0f && TypeConverter< float, String >::Convert(t.delay, tmp)) dest += tmp + "s ";
+			if (t.reverse_adjustment_factor > 0.0f && TypeConverter< float, String >::Convert(t.delay, tmp)) dest += tmp;
+			if (dest.Length() > 0) dest.Resize(dest.Length() - 1);
+			if (i != src.transitions.size() - 1) dest += ", ";
+		}
+		return true;
+	}
+};
+
+template<>
+class TypeConverter< AnimationList, String >
+{
+public:
+	static bool Convert(const AnimationList& src, String& dest)
+	{
+		String tmp;
+		for (size_t i = 0; i < src.size(); i++)
+		{
+			const Animation& a = src[i];
+			if (TypeConverter< float, String >::Convert(a.duration, tmp)) dest += tmp + "s ";
+			dest += a.tween.to_string() + " ";
+			if (a.delay > 0.0f && TypeConverter< float, String >::Convert(a.delay, tmp)) dest += tmp + "s ";
+			if (a.alternate) dest += "alternate ";
+			if (a.paused) dest += "paused ";
+			if (a.num_iterations == -1) dest += "infinite ";
+			else if(TypeConverter< int, String >::Convert(a.num_iterations, tmp)) dest += tmp + " ";
+			dest += a.name;
+			if (i != src.size() - 1) dest += ", ";
+		}
+		return true;
+	}
+};
+
 template< typename SourceType, typename InternalType, int count >
 class TypeConverterVectorString
 {
@@ -395,3 +460,5 @@ VECTOR_STRING_CONVERTER(Colourb, byte, 4);
 #undef BASIC_CONVERTER_BOOL
 #undef STRING_VECTOR_CONVERTER
 #undef VECTOR_STRING_CONVERTER
+
+}
