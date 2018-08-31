@@ -136,7 +136,7 @@ private:
 
 	// Set to the auto-repeat timer if either of the arrow buttons have been pressed, -1 if they haven't.
 	float arrow_timers[2];
-	float last_update_time;
+	double last_update_time;
 };
 
 }

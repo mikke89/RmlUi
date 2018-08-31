@@ -219,7 +219,7 @@ private:
 	/// @param[in] active True if need activate keyboard, false if need deactivate.
 	void SetKeyboardActive(bool active);
 
-	float last_update_time;
+	double last_update_time;
 
 	// The cursor geometry.
 	float ideal_cursor_position;

@@ -55,7 +55,7 @@ private:
 
 	std::vector<AnimationKey> keys;
 
-	float last_update_world_time;
+	double last_update_world_time;
 	float time_since_iteration_start;
 	int current_iteration;
 	bool reverse_direction;
@@ -66,11 +66,11 @@ private:
 	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
 public:
 	ElementAnimation() {}
-	ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition);
+	ElementAnimation(const String& property_name, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition);
 
 	bool AddKey(float target_time, const Property & property, Element & element, Tween tween, bool extend_duration);
 
-	Property UpdateAndGetProperty(float time, Element& element);
+	Property UpdateAndGetProperty(double time, Element& element);
 
 	const String& GetPropertyName() const { return property_name; }
 	float GetDuration() const { return duration; }

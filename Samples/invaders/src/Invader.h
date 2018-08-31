@@ -99,14 +99,14 @@ protected:
 	// The animation frame the bomb is on
 	int bomb_animation_frame;
 	// When the last bomb update occured
-	float bomb_frame_start;
+	double bomb_frame_start;
 	// Probability of us dropping a bomb - this is calculated
 	// at construction time and based on our rank and the game
 	// difficulty level
 	float bomb_probability;
 
 	// Time when we should die - 0, until we're hit
-	float death_time;	
+	double death_time;	
 
 	int GetSpriteIndex() const;
 };

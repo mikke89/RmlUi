@@ -228,7 +228,7 @@ void Shell::Log(const char* fmt, ...)
 	printf("%s", buffer);
 }
 
-float Shell::GetElapsedTime() 
+double Shell::GetElapsedTime() 
 {
 	struct timeval now;
 
@@ -238,7 +238,7 @@ float Shell::GetElapsedTime()
 	double usec = now.tv_usec;
 	double result = sec + (usec / 1000000.0);
 
-	return (float) result;
+	return result;
 }
 
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p)

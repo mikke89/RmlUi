@@ -107,7 +107,7 @@ void GameLoop()
 
 	static float deg = 0;
 	Rocket::Core::SystemInterface* system_interface = Rocket::Core::GetSystemInterface();
-	deg = std::fmod(system_interface->GetElapsedTime() * 30.0f, 360.0f);
+	deg = (float)std::fmod(system_interface->GetElapsedTime() * 30.0, 360.0);
 	if (window_1)
 	{
 		window_1->SetRotation(deg);

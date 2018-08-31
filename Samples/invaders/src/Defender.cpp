@@ -36,7 +36,7 @@
 #include "Sprite.h"
 
 const float UPDATE_FREQ = 0.01f;
-const float MOVEMENT_SPEED = 15;
+const float MOVEMENT_SPEED = 300;
 const float BULLET_SPEED = 15;
 const int SPRITE_WIDTH = 64;
 const float RESPAWN_TIME = 1.0f;
@@ -63,12 +63,15 @@ Defender::~Defender()
 
 void Defender::Update()
 {
-	if (Shell::GetElapsedTime() - defender_frame_start < UPDATE_FREQ)
+	float dt = float(Shell::GetElapsedTime() - defender_frame_start);
+	if (dt < UPDATE_FREQ)
 		return;
 	
+	dt = Rocket::Core::Math::Min(dt, 0.1f);
+
 	defender_frame_start = Shell::GetElapsedTime();	
 
-	position.x += (move_direction * MOVEMENT_SPEED);
+	position.x += (move_direction * dt * MOVEMENT_SPEED);
 
 	if (position.x < 5)
 		position.x = 5;
@@ -90,7 +93,7 @@ void Defender::Update()
 		render = !render;
 
 		// Check if we should switch back to our alive state
-		if (Shell::GetElapsedTime() - respawn_start > RESPAWN_TIME)
+		if (float(Shell::GetElapsedTime() - respawn_start) > RESPAWN_TIME)
 		{
 			state = ALIVE;
 			render = true;

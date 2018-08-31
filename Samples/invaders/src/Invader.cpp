@@ -106,7 +106,7 @@ const Rocket::Core::Vector2f& Invader::GetPosition() const
 void Invader::Update()
 {
 	// Update the bombs
-	if (Shell::GetElapsedTime() - bomb_frame_start > BOMB_UPDATE_FREQ)
+	if (float(Shell::GetElapsedTime() - bomb_frame_start) > BOMB_UPDATE_FREQ)
 	{	
 
 		// Update the bomb position if its in flight, or check if we should drop one
@@ -162,7 +162,7 @@ void Invader::Update()
 		bomb_frame_start = Shell::GetElapsedTime();
 	}
 
-	if (state == EXPLODING && Shell::GetElapsedTime() > death_time)
+	if (state == EXPLODING && Shell::GetElapsedTime() - death_time > 0.0)
 		state = DEAD;
 }
 

@@ -279,7 +279,7 @@ private:
 	// The element that was clicked on last.
 	Element* last_click_element;
 	// The time the last click occured.
-	float last_click_time;
+	double last_click_time;
 
 	typedef std::map< String, ElementDocument* > CursorMap;
 	CursorMap cursors;

@@ -32,7 +32,7 @@
 namespace Rocket {
 namespace Core {
 
-float Clock::GetElapsedTime()
+double Clock::GetElapsedTime()
 {
 	SystemInterface* system_interface = GetSystemInterface();
 	if (system_interface != NULL)

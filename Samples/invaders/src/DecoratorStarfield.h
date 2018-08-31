@@ -71,7 +71,7 @@ private:
 	struct StarField
 	{
 		void Update();
-		float last_update;
+		double last_update;
 		Rocket::Core::Vector2f dimensions;
 
 		typedef std::vector< StarLayer > StarLayerList;

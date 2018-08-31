@@ -45,7 +45,7 @@ SystemInterface::~SystemInterface()
 }
 
 // Get the number of seconds elapsed since the start of the application.
-float SystemInterface::GetElapsedTime()
+double SystemInterface::GetElapsedTime()
 {
 	return Shell::GetElapsedTime();
 }

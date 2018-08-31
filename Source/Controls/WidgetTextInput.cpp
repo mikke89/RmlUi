@@ -31,11 +31,12 @@
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
 #include "../../Include/Rocket/Controls/Clipboard.h"
 #include "../../Include/Rocket/Core/SystemInterface.h"
+#include "../Core/Clock.h"
 
 namespace Rocket {
 namespace Controls {
 
-const float CURSOR_BLINK_TIME = 0.7f;
+static const float CURSOR_BLINK_TIME = 0.7f;
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
 {
@@ -90,6 +91,8 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	selection_anchor_index = 0;
 	selection_begin_index = 0;
 	selection_length = 0;
+
+	last_update_time = 0;
 
 	ShowCursor(false);
 }
@@ -180,8 +183,8 @@ void WidgetTextInput::OnUpdate()
 {
 	if (cursor_timer > 0)
 	{
-		float current_time = Core::GetSystemInterface()->GetElapsedTime();
-		cursor_timer -= (current_time - last_update_time);
+		double current_time = Core::Clock::GetElapsedTime();
+		cursor_timer -= float(current_time - last_update_time);
 		last_update_time = current_time;
 
 		while (cursor_timer <= 0)

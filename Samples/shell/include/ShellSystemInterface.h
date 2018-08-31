@@ -40,7 +40,7 @@ class ShellSystemInterface : public Rocket::Core::SystemInterface
 public:
 	/// Get the number of seconds elapsed since the start of the application
 	/// @returns Seconds elapsed
-	virtual float GetElapsedTime();
+	virtual double GetElapsedTime();
 };
 
 #endif

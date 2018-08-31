@@ -28,12 +28,13 @@
 #include "WidgetSlider.h"
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
+#include "../Core/Clock.h"
 
 namespace Rocket {
 namespace Controls {
 
-const float DEFAULT_REPEAT_DELAY = 0.5f;
-const float DEFAULT_REPEAT_PERIOD = 0.1f;
+static const float DEFAULT_REPEAT_DELAY = 0.5f;
+static const float DEFAULT_REPEAT_PERIOD = 0.1f;
 
 WidgetSlider::WidgetSlider(ElementFormControl* _parent)
 {
@@ -169,8 +170,8 @@ void WidgetSlider::Update()
 		{
 			if (!updated_time)
 			{
-				float current_time = Core::GetSystemInterface()->GetElapsedTime();
-				delta_time = current_time - last_update_time;
+				double current_time = Core::Clock::GetElapsedTime();
+				delta_time = float(current_time - last_update_time);
 				last_update_time = current_time;
 			}
 
@@ -468,13 +469,13 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 		if (event.GetTargetElement() == arrows[0])
 		{
 			arrow_timers[0] = DEFAULT_REPEAT_DELAY;
-			last_update_time = Core::GetSystemInterface()->GetElapsedTime();
+			last_update_time = Core::Clock::GetElapsedTime();
 			SetBarPosition(OnLineDecrement());
 		}
 		else if (event.GetTargetElement() == arrows[1])
 		{
 			arrow_timers[1] = DEFAULT_REPEAT_DELAY;
-			last_update_time = Core::GetSystemInterface()->GetElapsedTime();
+			last_update_time = Core::Clock::GetElapsedTime();
 			SetBarPosition(OnLineIncrement());
 		}
 	}

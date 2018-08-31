@@ -304,7 +304,7 @@ Rocket::Core::Input::KeyIdentifier RocketSFMLSystemInterface::TranslateKey(sf::K
 	return Rocket::Core::Input::KI_UNKNOWN;
 };
 
-float RocketSFMLSystemInterface::GetElapsedTime()
+double RocketSFMLSystemInterface::GetElapsedTime()
 {
 	return timer.getElapsedTime().asSeconds();
 };

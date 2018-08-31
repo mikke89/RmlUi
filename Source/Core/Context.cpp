@@ -730,9 +730,9 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		{
 			// Check for a double-click on an element; if one has occured, we send the 'dblclick' event to the hover
 			// element. If not, we'll start a timer to catch the next one.
-			float click_time = GetSystemInterface()->GetElapsedTime();
+			double click_time = GetSystemInterface()->GetElapsedTime();
 			if (active == last_click_element &&
-				click_time - last_click_time < DOUBLE_CLICK_TIME)
+				float(click_time - last_click_time) < DOUBLE_CLICK_TIME)
 			{
 				if (hover)
 					propogate = hover->DispatchEvent(DBLCLICK, parameters, true);

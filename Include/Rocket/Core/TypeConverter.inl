@@ -25,7 +25,8 @@
  *
  */
 
-namespace Rocket::Core {
+namespace Rocket {
+namespace Core {
 
 template <typename SourceType, typename DestType>
 bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, DestType& /*dest*/)
@@ -461,4 +462,5 @@ VECTOR_STRING_CONVERTER(Colourb, byte, 4);
 #undef STRING_VECTOR_CONVERTER
 #undef VECTOR_STRING_CONVERTER
 
+}
 }

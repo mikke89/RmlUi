@@ -43,7 +43,7 @@ public:
 
 	/// Get the number of seconds elapsed since the start of the application.
 	/// @return Elapsed time, in seconds.
-	virtual float GetElapsedTime();
+	virtual double GetElapsedTime();
 
 	/// Log the specified message.
 	/// @param[in] type Type of log message, ERROR, WARNING, etc.

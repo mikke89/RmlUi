@@ -59,7 +59,7 @@ public:
 
 	/// Get the number of seconds elapsed since the start of the application.
 	/// @return Elapsed time, in seconds.
-	virtual float GetElapsedTime() = 0;
+	virtual double GetElapsedTime() = 0;
 
 	/// Translate the input string into the translated string.
 	/// @param[out] translated Translated string ready for display.

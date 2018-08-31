@@ -68,8 +68,8 @@ private:
 	bool bullet_in_flight;
 	Rocket::Core::Vector2f bullet_position;
 
-	float defender_frame_start;
-	float respawn_start;
+	double defender_frame_start;
+	double respawn_start;
 
 	bool render;
 

@@ -37,7 +37,7 @@ public:
 
 	Rocket::Core::Input::KeyIdentifier TranslateKey(sf::Keyboard::Key Key);
 	int GetKeyModifiers(sf::Window *Window);
-	float GetElapsedTime();
+	double GetElapsedTime();
 	bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message);
 
 private:

@@ -80,7 +80,7 @@ public:
 	static void Log(const char* fmt, ...);
 
 	/// Get the number of seconds that have passed since shell startup.
-	static float GetElapsedTime();
+	static double GetElapsedTime();
 	
 	/// Sets the context to send window resized events to.
 	/// @param[in] context The context to send  events to.

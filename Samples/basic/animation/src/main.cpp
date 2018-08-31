@@ -167,9 +167,9 @@ void GameLoop()
 		single_loop = false;
 	}
 
-	static float t_prev = 0.0f;
-	float t = Shell::GetElapsedTime();
-	float dt = t - t_prev;
+	static double t_prev = 0.0f;
+	double t = Shell::GetElapsedTime();
+	float dt = float(t - t_prev);
 	static int count_frames = 0;
 	count_frames += 1;
 	//t_prev = t;

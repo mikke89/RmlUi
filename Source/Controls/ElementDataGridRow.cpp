@@ -31,11 +31,12 @@
 #include "../../Include/Rocket/Controls/DataFormatter.h"
 #include "../../Include/Rocket/Controls/ElementDataGrid.h"
 #include "../../Include/Rocket/Controls/ElementDataGridCell.h"
+#include "../Core/Clock.h"
 
 namespace Rocket {
 namespace Controls {
 
-const float MAX_UPDATE_TIME = 0.01f;
+static const float MAX_UPDATE_TIME = 0.01f;
 
 ElementDataGridRow::ElementDataGridRow(const Rocket::Core::String& tag) : Core::Element(tag)
 {
@@ -127,7 +128,7 @@ bool ElementDataGridRow::UpdateChildren()
 {
 	if (dirty_children)
 	{
-		float start_time = Core::GetSystemInterface()->GetElapsedTime();
+		double start_time = Core::Clock::GetElapsedTime();
 		
 		RowQueue dirty_rows;
 		dirty_rows.push(this);
@@ -137,7 +138,7 @@ bool ElementDataGridRow::UpdateChildren()
 			ElementDataGridRow* dirty_row = dirty_rows.front();
 			dirty_rows.pop();
 			
-			float time_slice = MAX_UPDATE_TIME - (Core::GetSystemInterface()->GetElapsedTime() - start_time);
+			float time_slice = MAX_UPDATE_TIME - float(Core::Clock::GetElapsedTime() - start_time);
 			if (time_slice <= 0.0f)
 				break;
 
@@ -554,7 +555,7 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 // Instantiates the children that haven't been fully loaded yet.
 void ElementDataGridRow::LoadChildren(float time_slice)
 {
-	float start_time = Core::GetSystemInterface()->GetElapsedTime();
+	double start_time = Core::Clock::GetElapsedTime();
 
 	int data_query_offset = -1;
 	int data_query_limit = -1;
@@ -570,7 +571,7 @@ void ElementDataGridRow::LoadChildren(float time_slice)
 	//    In either case, we check if we have a hole that's unfilled, and if
 	//    so, we fill it.
 	bool any_dirty_children = false;
-	for (size_t i = 0; i < children.size() && (Core::GetSystemInterface()->GetElapsedTime() - start_time) < time_slice; i++)
+	for (size_t i = 0; i < children.size() && float(Core::Clock::GetElapsedTime() - start_time) < time_slice; i++)
 	{
 		if (children[i]->dirty_cells)
 		{
@@ -607,7 +608,7 @@ void ElementDataGridRow::LoadChildren(float time_slice)
 		// end of the list or the end of the hole, fill the hole.
 		else if (unfilled_hole && (end_of_list || end_of_hole_found))
 		{
-			float load_time_slice = time_slice - (Core::GetSystemInterface()->GetElapsedTime() - start_time);
+			float load_time_slice = time_slice - float(Core::Clock::GetElapsedTime() - start_time);
 			LoadChildren(data_query_offset, data_query_limit, load_time_slice);
 			data_query_offset =  -1;
 			data_query_limit = -1;
@@ -622,7 +623,7 @@ void ElementDataGridRow::LoadChildren(float time_slice)
 
 void ElementDataGridRow::LoadChildren(int first_row_to_load, int num_rows_to_load, Rocket::Core::Time time_slice)
 {
-	float start_time = Core::GetSystemInterface()->GetElapsedTime();
+	double start_time = Core::Clock::GetElapsedTime();
 
 	// Now fetch these new children from the data source, pass them
 	// through each column's data formatter, and add them as our new
@@ -642,7 +643,7 @@ void ElementDataGridRow::LoadChildren(int first_row_to_load, int num_rows_to_loa
 		// Now load the child with the row in the query.
 		children[index]->Load(query);
 
-		if (Core::GetSystemInterface()->GetElapsedTime() - start_time > time_slice)
+		if (float(Core::Clock::GetElapsedTime() - start_time) > time_slice)
 		{
 			break;
 		}

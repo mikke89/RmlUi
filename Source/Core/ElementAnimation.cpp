@@ -358,7 +358,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 }
 
 
-ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, float start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition)
+ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition)
 	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
 	keys({ AnimationKey{0.0f, current_value, Tween{}} }),
 	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), is_transition(is_transition)
@@ -461,12 +461,13 @@ float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_ke
 
 
 
-Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& element)
+Property ElementAnimation::UpdateAndGetProperty(double world_time, Element& element)
 {
-	if (animation_complete || world_time - last_update_world_time <= 0.0f)
+	float dt = float(world_time - last_update_world_time);
+	if (animation_complete || dt <= 0.0f)
 		return Property{};
 
-	const float dt = Math::Min(world_time - last_update_world_time, 0.1f);
+	dt = Math::Min(dt, 0.1f);
 
 	last_update_world_time = world_time;
 	time_since_iteration_start += dt;
@@ -476,7 +477,7 @@ Property ElementAnimation::UpdateAndGetProperty(float world_time, Element& eleme
 		// Next iteration
 		current_iteration += 1;
 
-		if (num_iterations == -1 || (current_iteration >= 0 && current_iteration < num_iterations) )
+		if (num_iterations == -1 || (current_iteration >= 0 && current_iteration < num_iterations))
 		{
 			time_since_iteration_start -= duration;
 

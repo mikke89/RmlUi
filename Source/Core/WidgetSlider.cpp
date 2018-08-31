@@ -37,8 +37,8 @@
 namespace Rocket {
 namespace Core {
 
-const float DEFAULT_REPEAT_DELAY = 0.5f;
-const float DEFAULT_REPEAT_PERIOD = 0.1f;
+static const float DEFAULT_REPEAT_DELAY = 0.5f;
+static const float DEFAULT_REPEAT_PERIOD = 0.1f;
 
 WidgetSlider::WidgetSlider(Element* _parent)
 {
@@ -170,8 +170,8 @@ void WidgetSlider::Update()
 		{
 			if (!updated_time)
 			{
-				float current_time = Clock::GetElapsedTime();
-				delta_time = current_time - last_update_time;
+				double current_time = Clock::GetElapsedTime();
+				delta_time = float(current_time - last_update_time);
 				last_update_time = current_time;
 			}
 

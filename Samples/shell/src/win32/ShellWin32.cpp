@@ -242,12 +242,12 @@ void Shell::Log(const char* fmt, ...)
 	OutputDebugString(buffer);
 }
 
-float Shell::GetElapsedTime() 
+double Shell::GetElapsedTime() 
 {
 	LARGE_INTEGER counter;
 	QueryPerformanceCounter(&counter);
 
-	return (float)((counter.QuadPart - time_startup.QuadPart) * time_frequency);
+	return double(counter.QuadPart - time_startup.QuadPart) * time_frequency;
 }
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)

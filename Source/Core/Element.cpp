@@ -2335,7 +2335,7 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 
 	if (start_value && start_value->definition)
 	{
-		float start_time = Clock::GetElapsedTime() + delay;
+		double start_time = Clock::GetElapsedTime() + (double)delay;
 		*it = ElementAnimation{ property_name, *start_value, start_time, 0.0f, num_iterations, alternate_direction, false };
 	}
 	else
@@ -2379,7 +2379,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 		return false;
 
 	float duration = transition.duration;
-	float start_time = Clock::GetElapsedTime() + transition.delay;
+	double start_time = Clock::GetElapsedTime() + (double)transition.delay;
 
 	if (it == animations.end())
 	{
@@ -2466,7 +2466,7 @@ void Element::AdvanceAnimations()
 {
 	if (!animations.empty())
 	{
-		float time = Clock::GetElapsedTime();
+		double time = Clock::GetElapsedTime();
 
 		for (auto& animation : animations)
 		{
