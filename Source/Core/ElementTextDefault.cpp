@@ -286,10 +286,13 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 	bool colour_changed = false;
 	bool font_face_changed = false;
 
-	if (changed_properties.find(COLOR) != changed_properties.end())
+	if (changed_properties.find(COLOR) != changed_properties.end() || 
+		changed_properties.find(OPACITY) != changed_properties.end())
 	{
 		// Fetch our (potentially) new colour.
 		Colourb new_colour = GetProperty(COLOR)->value.Get< Colourb >();
+		float opacity = GetProperty(OPACITY)->value.Get< float>();
+		new_colour.alpha = byte(opacity * float(new_colour.alpha));
 		colour_changed = colour != new_colour;
 		if (colour_changed)
 			colour = new_colour;
