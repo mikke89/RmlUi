@@ -62,13 +62,10 @@ public:
 			// Button fun
 			{
 				auto el = document->GetElementById("start_game");
-				PropertyDictionary pd;
-				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "rotate(10) translateX(100px)");
-				auto p = pd.GetProperty("transform");
-				el->Animate("transform", *p, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
-
-				auto pp = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
-				el->AddAnimationKey("transform", pp, 1.3f, Tween{ Tween::Elastic, Tween::InOut });
+				auto p1 = Transform::MakeProperty({ Transforms::Rotate2D{10.f}, Transforms::TranslateX{100.f} });
+				auto p2 = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
+				el->Animate("transform", p1, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
+				el->AddAnimationKey("transform", p2, 1.3f, Tween{ Tween::Elastic, Tween::InOut });
 			}
 			{
 				auto el = document->GetElementById("high_scores");
