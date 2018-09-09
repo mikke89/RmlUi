@@ -240,6 +240,13 @@ void ElementDocument::Hide()
 {
 	SetProperty(VISIBILITY, "hidden");
 	DispatchEvent("hide", Dictionary(), false);
+	
+	if (context)
+	{
+		auto focus = context->GetFocusElement();
+		if (focus && focus != this && focus->GetOwnerDocument() == this)
+			Focus();
+	}
 }
 
 // Close this document
