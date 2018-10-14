@@ -246,6 +246,27 @@ public:
 			{
 				Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
 			}
+			else if (key_identifier == Rocket::Core::Input::KI_LEFT)
+			{
+				auto el = context->GetRootElement()->GetElementById("keyevent_response");
+				if (el) el->Animate("left", Property{ -200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+			}
+			else if (key_identifier == Rocket::Core::Input::KI_RIGHT)
+			{
+				auto el = context->GetRootElement()->GetElementById("keyevent_response");
+				if (el) el->Animate("left", Property{ 200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+			}
+			else if (key_identifier == Rocket::Core::Input::KI_UP)
+			{
+				auto el = context->GetRootElement()->GetElementById("keyevent_response");
+				auto offset_right = Property{ 200.f, Property::PX };
+				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic }, 1, true, 0, &offset_right);
+			}
+			else if (key_identifier == Rocket::Core::Input::KI_DOWN)
+			{
+				auto el = context->GetRootElement()->GetElementById("keyevent_response");
+				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+			}
 		}
 		if (event == "click")
 		{

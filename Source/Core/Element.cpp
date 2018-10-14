@@ -2330,13 +2330,24 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 		it = animations.end() - 1;
 	}
 
-	if (!start_value)
-		start_value = GetProperty(property_name);
+	Property value;
 
-	if (start_value && start_value->definition)
+	if (start_value)
+	{
+		value = *start_value;
+		if (!value.definition)
+			if(auto default_value = GetProperty(property_name))
+				value.definition = default_value->definition;	
+	}
+	else if (auto default_value = GetProperty(property_name))
+	{
+		value = *default_value;
+	}
+
+	if (value.definition)
 	{
 		double start_time = Clock::GetElapsedTime() + (double)delay;
-		*it = ElementAnimation{ property_name, *start_value, start_time, 0.0f, num_iterations, alternate_direction, false };
+		*it = ElementAnimation{ property_name, value, start_time, 0.0f, num_iterations, alternate_direction, false };
 	}
 	else
 	{

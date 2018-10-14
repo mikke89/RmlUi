@@ -153,6 +153,13 @@
 			width: 25px; height: 25px;
 			animation: 2s cubic-in-out infinite alternate some-missing-keys;
 		}
+		#keyevent_response
+		{
+			position: relative;
+			margin: 0; padding: 0;
+			top: 110px; left: 0;
+			width: 100px; height: 55px;
+		}
 		
 	</style>
 </head>
@@ -178,7 +185,7 @@
 	<div style="font-size: 1.5em; text-align: left;">Mixed units tests</div>
 	<div class="container"><div class="plain" id="abs_rel">Pixel vs percentage.</div></div>
 	<div class="container"><div class="plain" id="abs_rel_transform">Pixel vs percentage transform.</div></div>
-	<div class="container"><div class="plain" id="animation_event">Animation event</div></div>
+	<div class="container"><div class="plain" id="animation_event">Animation event</div><div class="plain" id="keyevent_response">Events (press arrow keys)</div></div>
 </div>
 <div style="width: 20%; height: 80%;position: absolute; left: 75%;" id="transition_tests">
 	<div style="font-size: 1.5em; text-align: left;">Transition tests</div>
