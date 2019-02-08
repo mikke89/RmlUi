@@ -241,8 +241,51 @@ void ElementInfo::UpdateSourceElement()
 
 		if (source_element != NULL)
 		{
+			// The element's attribute list is not always synchronized with its internal values, fetch  
+			// them manually here (see e.g. Element::OnAttributeChange for relevant attributes)
+			{
+				name = "id";
+				value = source_element->GetId();
+				if (!value.Empty())
+					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+			}
+			{
+				name = "class";
+				value = source_element->GetClassNames();
+				if (!value.Empty())
+					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+			}
+			{
+				// Not actually an attribute, but may be useful
+				name = "pseudo";
+				value.Clear();
+				for (auto str : source_element->GetActivePseudoClasses())
+					value += " :" + str;
+				if (!value.Empty())
+					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+			}
+			{
+				name = "style";
+				value = "";
+				auto local_properties = source_element->GetLocalProperties();
+				if (local_properties)
+				{
+					for (auto nvp : *local_properties)
+					{
+						auto& prop_name = nvp.first;
+						auto prop_value = nvp.second.ToString();
+						value.Append(Core::String(prop_name.Length() + prop_value.Length() + 12, "%s: %s; ", prop_name.CString(), prop_value.CString()));
+					}
+				}
+				if (!value.Empty())
+					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+			}
+
 			while (source_element->IterateAttributes(index, name, value))
-				attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+			{
+				if(name != "class" && name != "style" && name != "id") 
+					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+			}
 		}
 
 		if (attributes.Empty())

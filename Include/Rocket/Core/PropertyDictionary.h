@@ -34,7 +34,7 @@
 namespace Rocket {
 namespace Core {
 
-typedef std::unordered_map< String, Property > PropertyMap;
+
 
 /**
 	A dictionary to property names to values.

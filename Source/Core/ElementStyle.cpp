@@ -419,6 +419,13 @@ const Property* ElementStyle::GetLocalProperty(const String& name)
 	return GetLocalProperty(name, local_properties, definition, pseudo_classes);
 }
 
+const PropertyMap * ElementStyle::GetLocalProperties() const
+{
+	if (local_properties)
+		return &local_properties->GetProperties();
+	return NULL;
+}
+
 float ElementStyle::ResolveLength(const Property * property)
 {
 	if (!property)

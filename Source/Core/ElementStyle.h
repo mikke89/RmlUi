@@ -105,6 +105,9 @@ public:
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
+	/// Returns the local properties, excluding any properties from local class.
+	/// @return The local properties for this element, or NULL if no properties defined
+	const PropertyMap* GetLocalProperties() const;
 
 
 	/// Resolves a length property to pixels. Note: This excludes percentages.
