@@ -64,7 +64,6 @@ WidgetSlider::~WidgetSlider()
 
 	if (track != NULL)
 	{
-		track->RemoveEventListener("mousedown", this);
 		parent->RemoveChild(track);
 	}
 
@@ -72,6 +71,8 @@ WidgetSlider::~WidgetSlider()
 	parent->RemoveEventListener("focus", this);
 	parent->RemoveEventListener("keydown", this, true);
 	parent->RemoveEventListener("mousedown", this);
+	parent->RemoveEventListener("mouseup", this);
+	parent->RemoveEventListener("mouseout", this);
 
 	parent->RemoveEventListener("drag", this);
 	parent->RemoveEventListener("dragstart", this);
@@ -81,9 +82,6 @@ WidgetSlider::~WidgetSlider()
 	{
 		if (arrows[i] != NULL)
 		{
-			arrows[i]->RemoveEventListener("mousedown", this);
-			arrows[i]->RemoveEventListener("mouseup", this);
-			arrows[i]->RemoveEventListener("mouseout", this);
 			parent->RemoveChild(arrows[i]);
 		}
 	}
@@ -136,24 +134,18 @@ bool WidgetSlider::Initialise()
 	arrows[0]->RemoveReference();
 	arrows[1]->RemoveReference();
 
-	// Attach the listeners as appropriate.
-	track->AddEventListener("mousedown", this);
-
+	// Attach the listeners
+	// All listeners are attached to parent, ensuring that we don't get duplicate events when it bubbles from child to parent
 	parent->AddEventListener("blur", this);
 	parent->AddEventListener("focus", this);
 	parent->AddEventListener("keydown", this, true);
 	parent->AddEventListener("mousedown", this);
+	parent->AddEventListener("mouseup", this);
+	parent->AddEventListener("mouseout", this);
 
 	parent->AddEventListener("drag", this);
 	parent->AddEventListener("dragstart", this);
 	parent->AddEventListener("dragend", this);
-
-	for (int i = 0; i < 2; i++)
-	{
-		arrows[i]->AddEventListener("mousedown", this);
-		arrows[i]->AddEventListener("mouseup", this);
-		arrows[i]->AddEventListener("mouseout", this);
-	}
 
 	return true;
 }
