@@ -591,6 +591,9 @@ public:
 	/// Access the event dispatcher for this element.
 	/// @return The element's dispatcher.
 	EventDispatcher* GetEventDispatcher() const;
+	/// Returns event types with number of listeners for debugging.
+	/// @return Summary of attached listeners.
+	String GetEventDispatcherSummary() const;
 	/// Access the element background.
 	/// @return The element's background.
 	ElementBackground* GetElementBackground() const;

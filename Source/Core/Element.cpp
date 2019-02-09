@@ -1601,6 +1601,11 @@ EventDispatcher* Element::GetEventDispatcher() const
 	return event_dispatcher;
 }
 
+String Element::GetEventDispatcherSummary() const
+{
+	return event_dispatcher->ToString();
+}
+
 // Access the element background.
 ElementBackground* Element::GetElementBackground() const
 {

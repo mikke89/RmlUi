@@ -163,6 +163,20 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const String& name,
 	return propagating;
 }
 
+String EventDispatcher::ToString() const
+{
+	String result;
+	for (auto nvp : events)
+	{
+		result += String(nvp.first.Length() + 32, "%s (%d), ", nvp.first.CString(), static_cast<int>(nvp.second.size()));
+	}
+	if (result.Length() > 2) 
+	{
+		result.Resize(result.Length() - 2);
+	}
+	return result;
+}
+
 void EventDispatcher::TriggerEvents(Event* event)
 {
 	// Look up the event

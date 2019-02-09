@@ -230,17 +230,19 @@ void ElementInfo::UpdateSourceElement()
 			title_content->SetInnerRML("Element Information");
 	}
 
+
 	// Set the attributes:
 	Core::Element* attributes_content = GetElementById("attributes-content");
 	if (attributes_content)
 	{
 		int index = 0;
-		Core::String name;
-		Core::String value;
 		Core::String attributes;
 
 		if (source_element != NULL)
 		{
+			Core::String name;
+			Core::String value;
+
 			// The element's attribute list is not always synchronized with its internal values, fetch  
 			// them manually here (see e.g. Element::OnAttributeChange for relevant attributes)
 			{
@@ -312,6 +314,26 @@ void ElementInfo::UpdateSourceElement()
 		}
 		else
 			properties_content->SetInnerRML(properties);
+	}
+
+	// Set the events:
+	Core::Element* events_content = GetElementById("events-content");
+	if (events_content)
+	{
+		Core::String events;
+
+		if (source_element != NULL)
+		{
+			events = source_element->GetEventDispatcherSummary();
+		}
+
+		if (events.Empty())
+		{
+			while (events_content->HasChildNodes())
+				events_content->RemoveChild(events_content->GetChild(0));
+		}
+		else
+			events_content->SetInnerRML(events);
 	}
 
 	// Set the position:
