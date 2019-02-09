@@ -2027,16 +2027,23 @@ void Element::ProcessEvent(Event& event)
 
 	if (event == MOUSESCROLL)
 	{
-		int wheel_delta = event.GetParameter< int >("wheel_delta", 0);
-		if ((wheel_delta < 0 && GetScrollTop() > 0) ||
-			(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
+		if (GetScrollHeight() > GetClientHeight())
 		{
 			int overflow_property = GetProperty< int >(OVERFLOW_Y);
 			if (overflow_property == OVERFLOW_AUTO ||
 				overflow_property == OVERFLOW_SCROLL)
 			{
-				SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : (GetProperty(SCROLL_DEFAULT_STEP_SIZE) ? GetProperty< int >(SCROLL_DEFAULT_STEP_SIZE) : 0 )));
+				// Stop the propagation if the current element has scrollbars.
+				// This prevents scrolling in parent elements, which is often unintended. If instead desired behavior is
+				// to scroll in parent elements when reaching top/bottom, move StopPropagation inside the next if statement.
 				event.StopPropagation();
+
+				int wheel_delta = event.GetParameter< int >("wheel_delta", 0);
+				if ((wheel_delta < 0 && GetScrollTop() > 0) ||
+					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
+				{
+					SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : (GetProperty(SCROLL_DEFAULT_STEP_SIZE) ? GetProperty< int >(SCROLL_DEFAULT_STEP_SIZE) : 0)));
+				}
 			}
 		}
 
