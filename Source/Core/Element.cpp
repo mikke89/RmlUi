@@ -1,4 +1,3 @@
-#include "..\..\Include\Rocket\Core\Element.h"
 /*
  * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
