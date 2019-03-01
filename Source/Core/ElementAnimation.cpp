@@ -84,9 +84,10 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 {
 	if ((p0.unit & Property::NUMBER_LENGTH_PERCENT) && (p1.unit & Property::NUMBER_LENGTH_PERCENT))
 	{
-		if (p0.unit == p1.unit)
+		if (p0.unit == p1.unit || !definition)
 		{
 			// If we have the same units, we can just interpolate regardless of what the value represents.
+			// Or if we have distinct units but no definition, all bets are off. This shouldn't occur, just interpolate values.
 			float f0 = p0.value.Get<float>();
 			float f1 = p1.value.Get<float>();
 			float f = (1.0f - alpha) * f0 + alpha * f1;
@@ -368,7 +369,10 @@ ElementAnimation::ElementAnimation(const String& property_name, const Property& 
 	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
 	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), is_transition(is_transition)
 {
-	ROCKET_ASSERT(current_value.definition);
+	if (!current_value.definition)
+	{
+		Log::Message(Log::LT_WARNING, "Property in animation key did not have a definition (while adding key '%s').", current_value.ToString().CString());
+	}
 	InternalAddKey(AnimationKey{ 0.0f, current_value, Tween{} });
 }
 
@@ -490,6 +494,7 @@ float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_ke
 
 Property ElementAnimation::UpdateAndGetProperty(double world_time, Element& element)
 {
+	ROCKET_ASSERT(keys.size() >= 2);
 	float dt = float(world_time - last_update_world_time);
 	if (animation_complete || dt <= 0.0f)
 		return Property{};

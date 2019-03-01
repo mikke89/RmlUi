@@ -37,6 +37,7 @@ PropertyDefinition::PropertyDefinition(const String& _default_value, bool _inher
 {
 	inherited = _inherited;
 	forces_layout = _forces_layout;
+	default_value.definition = this;
 }
 
 PropertyDefinition::~PropertyDefinition()

@@ -45,6 +45,8 @@ class ROCKETCORE_API PropertyDefinition
 {
 public:
 	PropertyDefinition(const String& default_value, bool inherited, bool forces_layout);
+	PropertyDefinition(const PropertyDefinition &) = delete; 
+	PropertyDefinition& operator=(const PropertyDefinition &) = delete;
 	virtual ~PropertyDefinition();
 
 	/// Registers a parser to parse values for this definition.
