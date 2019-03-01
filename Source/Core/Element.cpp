@@ -1738,7 +1738,12 @@ void Element::OnAttributeChange(const AttributeNameList& changed_attributes)
 // Called when properties on the element are changed.
 void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 {
-	bool all_dirty = StyleSheetSpecification::GetRegisteredProperties() == changed_properties;
+	bool all_dirty = false;
+	{
+		auto& registered_properties = StyleSheetSpecification::GetRegisteredProperties();
+		if (&registered_properties == &changed_properties || registered_properties == changed_properties)
+			all_dirty = true;
+	}
 
 	if (!IsLayoutDirty())
 	{
@@ -2547,18 +2552,13 @@ void Element::DirtyTransformState(bool perspective_changed, bool transform_chang
 	}
 }
 
+
 void Element::UpdateTransformState()
 {
 	if (!(transform_state_perspective_dirty || transform_state_transform_dirty || transform_state_parent_transform_dirty))
 	{
 		return;
 	}
-
-	if (!transform_state.get())
-	{
-		transform_state.reset(new TransformState());
-	}
-
 
 	if(transform_state_perspective_dirty || transform_state_transform_dirty)
 	{
@@ -2641,10 +2641,12 @@ void Element::UpdateTransformState()
 
 			if (have_perspective && context)
 			{
+				if (!transform_state)
+					transform_state = std::make_unique<TransformState>();
 				perspective_value.view_size = context->GetDimensions();
 				transform_state->SetPerspective(&perspective_value);
 			}
-			else
+			else if (transform_state)
 			{
 				transform_state->SetPerspective(0);
 			}
@@ -2661,10 +2663,10 @@ void Element::UpdateTransformState()
 			Matrix4f transform_value = Matrix4f::Identity();
 			Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
 
-			const Property *transform = GetTransform();
-			if (transform && (transform->unit != Property::KEYWORD || transform->value.Get< int >() != TRANSFORM_NONE))
+			const Property *transform_property = GetTransform();
+			TransformRef transforms;
+			if (transform_property && (transforms = transform_property->value.Get<TransformRef>()))
 			{
-				TransformRef transforms = transform->value.Get< TransformRef >();
 				int n = transforms->GetNumPrimitives();
 				for (int i = 0; i < n; ++i)
 				{
@@ -2745,10 +2747,12 @@ void Element::UpdateTransformState()
 
 			if (have_local_perspective && context)
 			{
+				if (!transform_state)
+					transform_state = std::make_unique<TransformState>();
 				local_perspective.view_size = context->GetDimensions();
 				transform_state->SetLocalPerspective(&local_perspective);
 			}
-			else
+			else if(transform_state)
 			{
 				transform_state->SetLocalPerspective(0);
 			}
@@ -2765,9 +2769,15 @@ void Element::UpdateTransformState()
 					Matrix4f::Translate(transform_origin)
 					* transform_value
 					* Matrix4f::Translate(-transform_origin);
-			}
 
-			transform_state->SetTransform(have_transform ? &transform_value : 0);
+				if (!transform_state)
+					transform_state = std::make_unique<TransformState>();
+				transform_state->SetTransform(&transform_value);
+			}
+			else if (transform_state)
+			{
+				transform_state->SetTransform(0);
+			}
 
 			transform_state_transform_dirty = false;
 		}
@@ -2782,7 +2792,7 @@ void Element::UpdateTransformState()
 			parent->UpdateTransformState();
 		}
 
-		if (transform_state.get())
+		if (transform_state)
 		{
 			// Store the parent's new full transform as our parent transform
 			Element *node = 0;
@@ -2808,9 +2818,9 @@ void Element::UpdateTransformState()
 	// transform, we don't need to keep the large TransformState object
 	// around. GetEffectiveTransformState() will then recursively visit
 	// parents in order to find a non-trivial TransformState.
-	if (transform_state.get() && !transform_state->GetLocalPerspective(0) && !transform_state->GetPerspective(0) && !transform_state->GetTransform(0))
+	if (transform_state && !transform_state->GetLocalPerspective(0) && !transform_state->GetPerspective(0) && !transform_state->GetTransform(0))
 	{
-		transform_state.reset(0);
+		transform_state.reset();
 	}
 }
 

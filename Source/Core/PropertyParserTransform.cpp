@@ -48,7 +48,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 {
 	if(value == NONE)
 	{
-		property.value = Variant(TransformRef(new Transform));
+		property.value = Variant(TransformRef());
 		property.unit = Property::TRANSFORM;
 		return true;
 	}

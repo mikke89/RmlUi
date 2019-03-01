@@ -63,6 +63,8 @@ private:
 	bool animation_complete;
 	bool is_transition;
 
+	bool InternalAddKey(AnimationKey key);
+
 	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
 public:
 	ElementAnimation() {}

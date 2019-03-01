@@ -120,10 +120,6 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 				document->DirtyLayout();
 				document->UpdatePosition();
 			}
-
-			// We need to rebuild our projection matrices when the
-			// dimensions change.
-			root->GetChild(i)->DirtyTransformState(true, false, false);
 		}
 		
 		clip_dimensions = dimensions;

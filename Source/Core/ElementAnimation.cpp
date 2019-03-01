@@ -332,8 +332,14 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 			continue;
 		}
 
-		auto& t0 = keys[i - 1].property.value.Get<TransformRef>();
-		auto& t1 = keys[i].property.value.Get<TransformRef>();
+		auto& prop0 = keys[i - 1].property;
+		auto& prop1 = keys[i].property;
+
+		if(prop0.unit != Property::TRANSFORM || prop1.unit != Property::TRANSFORM)
+			return false;
+
+		auto& t0 = prop0.value.Get<TransformRef>();
+		auto& t1 = prop1.value.Get<TransformRef>();
 
 		auto result = PrepareTransformPair(*t0, *t1, element);
 
@@ -360,25 +366,47 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 
 ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition)
 	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
-	keys({ AnimationKey{0.0f, current_value, Tween{}} }),
 	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), is_transition(is_transition)
 {
 	ROCKET_ASSERT(current_value.definition);
+	InternalAddKey(AnimationKey{ 0.0f, current_value, Tween{} });
+}
+
+bool ElementAnimation::InternalAddKey(AnimationKey key)
+{
+	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
+
+	if (!(key.property.unit & valid_properties))
+	{
+		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", key.property.ToString().CString());
+		return false;
+	}
+
+	if (key.property.unit == Property::TRANSFORM)
+	{
+		if (!key.property.value.Get<TransformRef>())
+			key.property.value.Reset(TransformRef(new Transform));
+	}
+
+	keys.push_back(key);
+
+	return true;
 }
 
 
 bool ElementAnimation::AddKey(float target_time, const Property & in_property, Element& element, Tween tween, bool extend_duration)
 {
-	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
-
-	if (!(in_property.unit & valid_properties))
+	if (keys.empty())
 	{
-		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", in_property.ToString().CString());
+		Log::Message(Log::LT_WARNING, "Element animation was not initialized properly, can't add key.");
+		return false;
+	}
+	if (!InternalAddKey(AnimationKey{ target_time, in_property, tween }))
+	{
 		return false;
 	}
 
 	bool result = true;
-	keys.push_back({ target_time, in_property, tween });
 	auto& property = keys.back().property;
 
 	if (property.unit == Property::TRANSFORM)
@@ -412,7 +440,6 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 
 float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const
 {
-
 	float t = time_since_iteration_start;
 
 	if (reverse_direction)

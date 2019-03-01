@@ -688,7 +688,7 @@ private:
 
 	void DirtyStructure();
 
-	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_pv_changed);
+	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed);
 	void UpdateTransformState();
 
 	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.

@@ -74,7 +74,7 @@ public:
 		PC = 1 << 16,				// number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
-		TRANSFORM = 1 << 17,			// transform; fetch as < TransformRef >
+		TRANSFORM = 1 << 17,			// transform; fetch as < TransformRef >, may be empty
 		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
 		ANIMATION = 1 << 19,            // animation; fetch as < AnimationList >
 
