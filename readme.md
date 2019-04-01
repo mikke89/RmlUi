@@ -11,7 +11,7 @@ this, you don't have to learn a whole new proprietary technology like other libr
 
 ## Features
 
-- Cross platform architecture: Windows, Mac, Linux, iPhone, etc.
+- Cross platform architecture: Windows, macOS, Linux, iOS, etc.
 - Dynamic layout system.
 - Efficient application-wide styling, with a custom-built templating engine.
 - Fully featured control set: buttons, sliders, drop-downs, etc.
