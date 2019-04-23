@@ -65,7 +65,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_posit
 	document_focus_history.push_back(root);
 	focus = root;
 
-	show_cursor = true;
+	enable_cursor = false;
 
 	drag_started = false;
 	drag_verbose = false;
@@ -80,7 +80,6 @@ Context::~Context()
 	PluginRegistry::NotifyContextDestroy(this);
 
 	UnloadAllDocuments();
-	UnloadAllMouseCursors();
 
 	ReleaseUnloadedDocuments();
 
@@ -216,17 +215,6 @@ bool Context::Render()
 			(float)Math::Clamp(mouse_position.y, 0, dimensions.y)),
 			NULL);
 		cursor_proxy->Render();
-	}
-
-	// Render the cursor document if we have one and we're showing the cursor.
-	if (active_cursor &&
-		show_cursor)
-	{
-		active_cursor->Update();
-		active_cursor->SetOffset(Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x),
-			(float)Math::Clamp(mouse_position.y, 0, dimensions.y)),
-			NULL);
-		active_cursor->Render();
 	}
 
 	render_interface->context = NULL;
@@ -378,101 +366,10 @@ void Context::UnloadAllDocuments()
 	root->ReleaseElements(root->deleted_children);
 }
 
-// Adds a previously-loaded cursor document as a mouse cursor within this context.
-void Context::AddMouseCursor(ElementDocument* cursor_document)
+// Enables or disables the mouse cursor.
+void Context::EnableMouseCursor(bool enable)
 {
-	cursor_document->AddReference();
-
-	CursorMap::iterator i = cursors.find(cursor_document->GetTitle());
-	if (i != cursors.end())
-	{
-		if (active_cursor == (*i).second)
-			active_cursor = cursor_document;
-
-		if (default_cursor == (*i).second)
-			default_cursor = cursor_document;
-
-		(*i).second->RemoveReference();
-	}
-	cursors[cursor_document->GetTitle()] = cursor_document;
-
-	if (!default_cursor)
-	{
-		default_cursor = cursor_document;
-		active_cursor = cursor_document;
-	}
-}
-
-// Loads a document as a mouse cursor.
-ElementDocument* Context::LoadMouseCursor(const String& document_path)
-{
-	StreamFile* stream = new StreamFile();
-	if (!stream->Open(document_path))
-		return NULL;
-
-	// Load the document from the stream.
-	ElementDocument* document = Factory::InstanceDocumentStream(this, stream);
-	if (document == NULL)
-	{
-		stream->RemoveReference();
-		return NULL;
-	}
-
-	AddMouseCursor(document);
-
-	// Bind the events, run the layout and fire the 'onload' event.
-	ElementUtilities::BindEventAttributes(document);
-	document->UpdateLayout();
-	document->DispatchEvent(LOAD, Dictionary(), false);
-
-	stream->RemoveReference();
-
-	return document;
-}
-
-// Unload the given cursor.
-void Context::UnloadMouseCursor(const String& cursor_name)
-{
-	CursorMap::iterator i = cursors.find(cursor_name);
-	if (i != cursors.end())
-	{
-		if (default_cursor == (*i).second)
-			default_cursor = NULL;
-
-		if (active_cursor == (*i).second)
-			active_cursor = default_cursor;
-
-		(*i).second->RemoveReference();
-		cursors.erase(i);
-	}
-}
-
-// Unloads all currently loaded cursors.
-void Context::UnloadAllMouseCursors()
-{
-	while (!cursors.empty())
-		UnloadMouseCursor((*cursors.begin()).first.CString());
-}
-
-// Sets a cursor as the active cursor.
-bool Context::SetMouseCursor(const String& cursor_name)
-{
-	CursorMap::iterator i = cursors.find(cursor_name);
-	if (i == cursors.end())
-	{
-		active_cursor = default_cursor;
-		Log::Message(Log::LT_WARNING, "Failed to find cursor '%s' in context '%s', reverting to default cursor.", cursor_name.CString(), name.CString());
-		return false;
-	}
-
-	active_cursor = (*i).second;
-	return true;
-}
-
-// Shows or hides the cursor.
-void Context::ShowMouseCursor(bool show)
-{
-	show_cursor = show;
+	enable_cursor = enable;
 }
 
 // Returns the first document found in the root with the given id.
@@ -1037,11 +934,15 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 
 	hover = GetElementAtPoint(position);
 
-	if (!hover ||
-		hover->GetProperty(CURSOR)->unit == Property::KEYWORD)
-		active_cursor = default_cursor;
-	else
-		SetMouseCursor(hover->GetProperty< String >(CURSOR));
+	if(enable_cursor)
+	{
+		String new_mouse_cursor;
+
+		if (hover && hover->GetProperty(CURSOR)->unit != Property::KEYWORD)
+			new_mouse_cursor = hover->GetProperty< String >(CURSOR);
+
+		GetSystemInterface()->SetMouseCursor(new_mouse_cursor);
+	}
 
 	// Build the new hover chain.
 	ElementSet new_hover_chain;

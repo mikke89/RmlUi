@@ -79,6 +79,10 @@ public:
 	/// @return True to continue execution, false to break into the debugger.
 	virtual bool LogMessage(Log::Type type, const String& message);
 
+	/// Set mouse cursor.
+	/// @param[in] cursor_name Cursor name to activate.
+	virtual void SetMouseCursor(const String& cursor_name);
+
 	/// Activate keyboard (for touchscreen devices)
 	virtual void ActivateKeyboard();
 	

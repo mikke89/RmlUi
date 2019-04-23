@@ -65,7 +65,13 @@ bool SystemInterface::LogMessage(Core::Log::Type type, const Core::String& messa
 
 	return application_interface->LogMessage(type, message);
 }
-	
+
+// Set mouse cursor.
+void SystemInterface::SetMouseCursor(const Core::String& cursor_name)
+{
+	application_interface->SetMouseCursor(cursor_name);
+}
+
 // Activate keyboard (for touchscreen devices)
 void SystemInterface::ActivateKeyboard()
 {

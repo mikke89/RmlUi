@@ -120,26 +120,10 @@ public:
 	/// Unloads all loaded documents.
 	void UnloadAllDocuments();
 
-	/// Adds a previously-loaded cursor document as a mouse cursor within this context. This allows you to share
-	/// cursors between contexts.
-	/// @param[in] cursor_document The document to add as a cursor into this context.
-	void AddMouseCursor(ElementDocument* cursor_document);
-	/// Loads a document as a mouse cursor within this context.
-	/// @param[in] cursor_document_path The path to the document to load as a cursor.
-	/// @return The loaded cursor document, or NULL if no document was loaded. The document is returned with a reference owned by the caller.
-	ElementDocument* LoadMouseCursor(const String& cursor_document_path);
-	/// Unload the given cursor.
-	/// @param[in] cursor_name The name of cursor to unload.
-	void UnloadMouseCursor(const String& cursor_name);
-	/// Unloads all currently loaded cursors.
-	void UnloadAllMouseCursors();
-	/// Sets a cursor as the active cursor.
-	/// @param[in] cursor_name The name of the cursor to activate.
-	/// @return True if a cursor exists with the given name, false if not.
-	bool SetMouseCursor(const String& cursor_name);
-	/// Shows or hides the cursor.
-	/// @param[in] show True to show the cursor, false to hide it.
-	void ShowMouseCursor(bool show);
+	/// Enable or disable handling mouse cursor from this context.
+	/// Only a single context should handle the mouse cursor at the same time.
+	/// @param[in] show True to enable mouse cursor handling, false to disable.
+	void EnableMouseCursor(bool enable);
 
 	/// Returns the first document in the context with the given id.
 	/// @param[in] id The id of the desired document.
@@ -281,12 +265,9 @@ private:
 	// The time the last click occured.
 	double last_click_time;
 
-	typedef std::map< String, ElementDocument* > CursorMap;
-	CursorMap cursors;
-	ElementReference default_cursor;
-	ElementReference active_cursor;
-	bool show_cursor;
-
+	// Enables cursor handling.
+	bool enable_cursor;
+	// Document attached to cursor (e.g. while dragging).
 	ElementDocument* cursor_proxy;
 
 	// The element that is currently being dragged (or about to be dragged).

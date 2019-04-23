@@ -72,6 +72,10 @@ bool SystemInterface::LogMessage(Log::Type ROCKET_UNUSED_PARAMETER(logtype), con
 }
 #endif	
 
+void SystemInterface::SetMouseCursor(const String& cursor_name)
+{
+}
+
 int SystemInterface::TranslateString(String& translated, const String& input)
 {
 	translated = input;
