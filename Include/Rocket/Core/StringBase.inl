@@ -106,6 +106,7 @@ void StringBase< T >::Clear()
 	length = 0;
 	hash = 0;
 	value = (T*)local_buffer;
+	value[0] = 0;
 	buffer_size = LOCAL_BUFFER_SIZE;
 }
 
