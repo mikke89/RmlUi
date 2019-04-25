@@ -225,7 +225,7 @@ bool URL::SetURL(const String& _url)
 		{
 			// If we found a /.. we should be able to find the start of the parent
 			// directory, if we can't something wierd has happend, bail
-			size_t parent_dir_start_pos = path.rfind("/", parent_dir_pos);
+			size_t parent_dir_start_pos = path.rfind("/", parent_dir_pos - 1);
 			if (parent_dir_start_pos == String::npos)
 				break;
 
