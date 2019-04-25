@@ -36,8 +36,6 @@ namespace Core {
 
 class ElementStyleCache;
 
-typedef std::unordered_map<String, int> PropCounter;
-
 /**
 	Manages an element's style and property information.
 	@author Lloyd Weehuizen
@@ -214,8 +212,6 @@ public:
 	const Property *GetTransformOriginY();
 	/// Returns 'transform-origin-z' property value from element's style or local cache.
 	const Property *GetTransformOriginZ();
-
-	static PropCounter &GetPropCounter();
 
 private:
 	// Sets a single property as dirty.

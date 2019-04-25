@@ -72,12 +72,6 @@ ElementStyle::~ElementStyle()
 	delete cache;
 }
 
-static PropCounter prop_counter;
-
-PropCounter &ElementStyle::GetPropCounter()
-{
-	return prop_counter;
-}
 
 // Returns the element's definition, updating if necessary.
 const ElementDefinition* ElementStyle::GetDefinition()
@@ -113,10 +107,6 @@ const Property* ElementStyle::GetLocalProperty(const String& name, PropertyDicti
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
-	if (prop_counter.find(name) == prop_counter.end())
-		prop_counter[name] = 0;
-	prop_counter[name] = prop_counter[name] + 1;
-	
 	const Property* local_property = GetLocalProperty(name, local_properties, definition, pseudo_classes);
 	if (local_property != NULL)
 		return local_property;
