@@ -145,7 +145,7 @@ private:
 	PropertyDictionary properties;
 
 	// This node's child nodes, whether standard tagged children, or further derivations of this tag by ID or class.
-	typedef std::unordered_map< String, StyleSheetNode* > NodeMap;
+	typedef UnorderedMap< String, StyleSheetNode* > NodeMap;
 	NodeMap children[NUM_NODE_TYPES];
 };
 

@@ -34,7 +34,7 @@
 namespace Rocket {
 namespace Core {
 
-typedef std::unordered_map< String, XMLNodeHandler* > NodeHandlers;
+typedef UnorderedMap< String, XMLNodeHandler* > NodeHandlers;
 static NodeHandlers node_handlers;
 static XMLNodeHandler* default_node_handler = NULL;
 

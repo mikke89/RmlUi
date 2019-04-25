@@ -60,7 +60,7 @@ void EventDispatcher::AttachEvent(const String& type, EventListener* listener, b
 	// Ensure the event is in the event list
 	if (event_itr == events.end())
 	{
-		event_itr = events.insert(std::pair< String, Listeners >(type, Listeners())).first;
+		event_itr = events.emplace(type, Listeners()).first;
 	}
 
 	// Add the action to the events

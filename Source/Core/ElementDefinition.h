@@ -47,9 +47,9 @@ class FontEffect;
 // one. This makes it much more straight-forward to query at run-time.
 typedef std::pair< StringList, Property > PseudoClassProperty;
 typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef std::unordered_map< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+typedef UnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
 
-typedef std::unordered_map< String, Decorator* > DecoratorMap;
+typedef UnorderedMap< String, Decorator* > DecoratorMap;
 typedef std::map< StringList, DecoratorMap > PseudoClassDecoratorMap;
 
 /**

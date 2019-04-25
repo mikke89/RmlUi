@@ -51,7 +51,7 @@ struct Keyword {
 };
 
 
-static const std::unordered_map<String, Keyword> keywords = {
+static const UnorderedMap<String, Keyword> keywords = {
 		{"none", {Keyword::NONE} },
 		{"all", {Keyword::ALL}},
 		{"alternate", {Keyword::ALTERNATE}},

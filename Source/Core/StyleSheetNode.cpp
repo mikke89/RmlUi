@@ -64,7 +64,7 @@ StyleSheetNode::~StyleSheetNode()
 {
 	for (int i = 0; i < NUM_NODE_TYPES; i++)
 	{
-		for (NodeMap::iterator j = children[i].begin(); j != children[i].end(); j++)
+		for (NodeMap::iterator j = children[i].begin(); j != children[i].end(); ++j)
 			delete (*j).second;
 	}
 }
@@ -141,7 +141,7 @@ bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset
 
 	for (int i = 0; i < NUM_NODE_TYPES; i++)
 	{
-		for (NodeMap::iterator iterator = node->children[i].begin(); iterator != node->children[i].end(); iterator++)
+		for (NodeMap::iterator iterator = node->children[i].begin(); iterator != node->children[i].end(); ++iterator)
 		{
 			StyleSheetNode* local_node = GetChildNode((*iterator).second->name, (NodeType) i);
 			local_node->MergeHierarchy((*iterator).second, specificity_offset);

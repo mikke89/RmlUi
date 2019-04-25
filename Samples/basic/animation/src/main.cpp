@@ -134,6 +134,8 @@ public:
 		  FPS values
 		  Original: 18.5
 		  Without property counter: 22.0
+		  With std::string: 23.0
+		  robin_hood unordered_flat_map: 24.0
 		
 		*/
 		if (!document)

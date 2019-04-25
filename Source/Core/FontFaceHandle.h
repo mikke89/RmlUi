@@ -125,8 +125,8 @@ protected:
 	FontGlyphList glyphs;
 	FontKerningList kerning;
 
-	typedef std::unordered_map< const FontEffect*, FontFaceLayer* > FontLayerMap;
-	typedef std::unordered_map< String, FontFaceLayer* > FontLayerCache;
+	typedef UnorderedMap< const FontEffect*, FontFaceLayer* > FontLayerMap;
+	typedef UnorderedMap< String, FontFaceLayer* > FontLayerCache;
 	typedef std::vector< FontFaceLayer* > LayerConfiguration;
 	typedef std::vector< LayerConfiguration > LayerConfigurationList;
 

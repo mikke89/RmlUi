@@ -69,7 +69,7 @@ void StyleSheetSpecification::Shutdown()
 {
 	if (instance != NULL)
 	{
-		for (ParserMap::iterator iterator = instance->parsers.begin(); iterator != instance->parsers.end(); iterator++)
+		for (ParserMap::iterator iterator = instance->parsers.begin(); iterator != instance->parsers.end(); ++iterator)
 			(*iterator).second->Release();
 
 		delete instance;

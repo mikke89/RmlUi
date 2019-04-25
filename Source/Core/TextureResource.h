@@ -77,7 +77,7 @@ private:
 	String source;
 
 	typedef std::pair< TextureHandle, Vector2i > TextureData;
-	typedef std::unordered_map< RenderInterface*, TextureData > TextureDataMap;
+	typedef UnorderedMap< RenderInterface*, TextureData > TextureDataMap;
 	mutable TextureDataMap texture_data;
 };
 

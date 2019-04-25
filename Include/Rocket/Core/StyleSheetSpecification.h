@@ -110,7 +110,7 @@ private:
 	void RegisterDefaultProperties();
 
 	// Parsers used by all property definitions.
-	typedef std::unordered_map< String, PropertyParser* > ParserMap;
+	typedef UnorderedMap< String, PropertyParser* > ParserMap;
 	ParserMap parsers;
 
 	// The properties defined in the style sheet specification.

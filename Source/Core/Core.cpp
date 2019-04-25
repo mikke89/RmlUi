@@ -49,7 +49,7 @@ static FileInterfaceDefault file_interface_default;
 #endif
 static bool initialised = false;
 
-typedef std::unordered_map< String, Context* > ContextMap;
+typedef UnorderedMap< String, Context* > ContextMap;
 static ContextMap contexts;
 
 #ifndef ROCKET_VERSION

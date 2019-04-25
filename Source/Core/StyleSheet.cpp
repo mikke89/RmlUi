@@ -56,10 +56,10 @@ StyleSheet::~StyleSheet()
 	delete root;
 
 	// Release our reference count on the cached element definitions.
-	for (ElementDefinitionCache::iterator cache_iterator = address_cache.begin(); cache_iterator != address_cache.end(); cache_iterator++)
+	for (ElementDefinitionCache::iterator cache_iterator = address_cache.begin(); cache_iterator != address_cache.end(); ++cache_iterator)
 		(*cache_iterator).second->RemoveReference();
 
-	for (ElementDefinitionCache::iterator cache_iterator = node_cache.begin(); cache_iterator != node_cache.end(); cache_iterator++)
+	for (ElementDefinitionCache::iterator cache_iterator = node_cache.begin(); cache_iterator != node_cache.end(); ++cache_iterator)
 		(*cache_iterator).second->RemoveReference();
 }
 

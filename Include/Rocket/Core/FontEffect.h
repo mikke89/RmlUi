@@ -121,7 +121,7 @@ private:
 };
 
 typedef std::vector< FontEffect* > FontEffectList;
-typedef std::unordered_map< String, FontEffect* > FontEffectMap;
+typedef UnorderedMap< String, FontEffect* > FontEffectMap;
 
 }
 }

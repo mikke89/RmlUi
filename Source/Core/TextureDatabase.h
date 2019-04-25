@@ -64,7 +64,7 @@ private:
 	TextureDatabase();
 	~TextureDatabase();
 
-	typedef std::unordered_map< String, TextureResource* > TextureMap;
+	typedef UnorderedMap< String, TextureResource* > TextureMap;
 	TextureMap textures;
 };
 

@@ -38,7 +38,7 @@ namespace Core {
 FontDatabase* FontDatabase::instance = NULL;
 FontDatabase::FontProviderTable FontDatabase::font_provider_table;
 
-typedef std::unordered_map< String, FontEffect* > FontEffectCache;
+typedef UnorderedMap< String, FontEffect* > FontEffectCache;
 FontEffectCache font_effect_cache;
 
 FontDatabase::FontDatabase()

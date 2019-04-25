@@ -48,7 +48,7 @@ struct Keyframes {
 	std::vector<String> property_names;
 	std::vector<KeyframeBlock> blocks;
 };
-typedef std::unordered_map<String, Keyframes> KeyframesMap;
+typedef UnorderedMap<String, Keyframes> KeyframesMap;
 
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
@@ -61,7 +61,7 @@ class ROCKETCORE_API StyleSheet : public ReferenceCountable
 {
 public:
 	typedef std::unordered_set< StyleSheetNode* > NodeList;
-	typedef std::unordered_map< String, NodeList > NodeIndex;
+	typedef UnorderedMap< String, NodeList > NodeIndex;
 
 	StyleSheet();
 	virtual ~StyleSheet();
@@ -104,7 +104,7 @@ private:
 	// Map of every node, even empty, un-styled, nodes.
 	NodeIndex complete_node_index;
 
-	typedef std::unordered_map< String, ElementDefinition* > ElementDefinitionCache;
+	typedef UnorderedMap< String, ElementDefinition* > ElementDefinitionCache;
 	// Index of element addresses to element definitions.
 	mutable ElementDefinitionCache address_cache;
 	// Index of node sets to element definitions.

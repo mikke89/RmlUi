@@ -75,14 +75,14 @@ private:
 	StyleSheet* LoadStyleSheet(const String& sheet);
 
 	// Individual loaded stylesheets
-	typedef std::unordered_map<String, StyleSheet*> StyleSheets;
+	typedef UnorderedMap<String, StyleSheet*> StyleSheets;
 	StyleSheets stylesheets;
 
 	// Cache of combined style sheets
 	StyleSheets stylesheet_cache;
 
 	// Custom complex selectors available for style sheets.
-	typedef std::unordered_map< String, StyleSheetNodeSelector* > SelectorMap;
+	typedef UnorderedMap< String, StyleSheetNodeSelector* > SelectorMap;
 	SelectorMap selectors;
 };
 

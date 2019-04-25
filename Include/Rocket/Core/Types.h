@@ -42,6 +42,7 @@
 #include <set>
 #include <unordered_set>
 #include <vector>
+#include "Containers/robin_hood.h"
 
 #include "Platform.h"
 #include "Debug.h"
@@ -109,7 +110,11 @@ typedef std::unordered_set< String > PropertyNameList;
 typedef std::unordered_set< String > AttributeNameList;
 typedef Dictionary ElementAttributes;
 typedef std::vector< ElementAnimation > ElementAnimationList;
-typedef std::unordered_map< String, Property > PropertyMap;
+
+template < typename Key, typename Value>
+using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+
+typedef UnorderedMap< String, Property > PropertyMap;
 
 // Reference types
 typedef std::shared_ptr< Transform > TransformRef;
