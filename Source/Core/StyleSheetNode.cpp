@@ -305,18 +305,20 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 
 	// Determine the tag (and possibly id / class as well) of the next required parent in the RCSS hierarchy.
 	const StyleSheetNode* parent_node = parent;
-	String ancestor_id;
-	StringList ancestor_classes;
-	StringList ancestor_pseudo_classes;
+	const String* ancestor_id = nullptr;
+	thread_local std::vector<const String*> ancestor_classes;
+	thread_local std::vector<const String*> ancestor_pseudo_classes;
+	ancestor_classes.clear();
+	ancestor_pseudo_classes.clear();
 	std::vector< const StyleSheetNode* > ancestor_structural_pseudo_classes;
 
 	while (parent_node != NULL && parent_node->type != TAG)
 	{
 		switch (parent_node->type)
 		{
-			case ID:						ancestor_id = parent_node->name; break;
-			case CLASS:						ancestor_classes.push_back(parent_node->name); break;
-			case PSEUDO_CLASS:				ancestor_pseudo_classes.push_back(parent_node->name); break;
+			case ID:						ancestor_id = &parent_node->name; break;
+			case CLASS:						ancestor_classes.push_back(&parent_node->name); break;
+			case PSEUDO_CLASS:				ancestor_pseudo_classes.push_back(&parent_node->name); break;
 			case STRUCTURAL_PSEUDO_CLASS:	ancestor_structural_pseudo_classes.push_back(parent_node); break;
 			default:						ROCKET_ERRORMSG("Invalid RCSS hierarchy."); return false;
 		}
@@ -341,15 +343,15 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 			continue;
 
 		// Skip this ancestor if the ID of the next style node doesn't match its ID, and one was specified.
-		if (!ancestor_id.Empty() &&
-			ancestor_id != ancestor_element->GetId())
+		if (ancestor_id &&
+			*ancestor_id != ancestor_element->GetId())
 			continue;
 
 		// Skip this ancestor if the class of the next style node don't match its classes.
 		bool resolved_requirements = true;
 		for (size_t i = 0; i < ancestor_classes.size(); ++i)
 		{
-			if (!ancestor_element->IsClassSet(ancestor_classes[i]))
+			if (!ancestor_element->IsClassSet(*ancestor_classes[i]))
 			{
 				resolved_requirements = false;
 				break;
@@ -362,7 +364,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 		resolved_requirements = true;
 		for (size_t i = 0; i < ancestor_pseudo_classes.size(); ++i)
 		{
-			if (!ancestor_element->IsPseudoClassSet(ancestor_pseudo_classes[i]))
+			if (!ancestor_element->IsPseudoClassSet(*ancestor_pseudo_classes[i]))
 			{
 				resolved_requirements = false;
 				break;
