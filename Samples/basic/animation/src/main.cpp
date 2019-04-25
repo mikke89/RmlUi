@@ -128,6 +128,51 @@ public:
 		}
 	}
 
+	void performance_test()
+	{
+		/*
+		  FPS values
+		  Original: 18.5
+		  Without property counter: 22.0
+		
+		*/
+		if (!document)
+			return;
+
+		auto el = document->GetElementById("performance");
+
+		Rocket::Core::String rml;
+
+		for (int i = 0; i < 50; i++)
+		{
+			int index = rand() % 1000;
+			int route = rand() % 50;
+			int max = (rand() % 40) + 10;
+			int value = rand() % max;
+			Rocket::Core::String rml_row(1000, R"(
+			<div class="row">
+				<div class="col col1"><button class="expand" index="%d">+</button>&nbsp;<a>Route %d</a></div>
+				<div class="col col23"><input type="range" class="assign_range" min="0" max="%d" value="%d"/></div>
+				<div class="col col4">Assigned</div>
+				<div class="inrow unmark_collapse">
+					<div class="col col123 assign_text">Assign to route</div>
+					<div class="col col4">
+						<button class="vehicle_depot_assign_confirm" quantity="0">Confirm</button>
+					</div>
+				</div>
+			</div>)",
+				index, 
+				route,
+				max,
+				value
+			);
+			rml += rml_row;
+		}
+
+		if (el)
+			el->SetInnerRML(rml);
+	}
+
 	~DemoWindow()
 	{
 		if (document)
@@ -195,6 +240,8 @@ void GameLoop()
 		count_frames = 0;
 		el->SetInnerRML(Rocket::Core::String{ 20, "FPS: %f", fps });
 	}
+
+	window->performance_test();
 	//static int f_prev = 0.0f;
 	//int df = f - f_prev;
 	//f_prev = f;
