@@ -83,7 +83,7 @@ bool FontProvider::LoadFontFace(const String& file_name)
 
 	if (bm_font == NULL)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
 	}
 
@@ -92,12 +92,12 @@ bool FontProvider::LoadFontFace(const String& file_name)
 
 	if (instance->AddFace(bm_font, bm_font->Face.FamilyName, style, weight, true))
 	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s (from %s).", bm_font->Face.FamilyName.CString(), file_name.CString());
+		Log::Message(Log::LT_INFO, "Loaded font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
 		return true;
 	}
 	else
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", bm_font->Face.FamilyName.CString(), file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
 		return false;
 	}
 
@@ -110,18 +110,18 @@ bool FontProvider::LoadFontFace(const String& file_name, const String& family, F
 	BitmapFontDefinitions *bm_font = (BitmapFontDefinitions*) instance->LoadFace(file_name);
 	if (bm_font == NULL)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
 	}
 
 	if (instance->AddFace(bm_font, family, style, weight, true))
 	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s (from %s).", bm_font->Face.FamilyName.CString(), file_name.CString());
+		Log::Message(Log::LT_INFO, "Loaded font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
 		return true;
 	}
 	else
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", bm_font->Face.FamilyName.CString(), file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
 		return false;
 	}
 

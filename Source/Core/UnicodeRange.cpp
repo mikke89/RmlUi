@@ -49,47 +49,47 @@ UnicodeRange::UnicodeRange(int _min_codepoint, int _max_codepoint)
 bool UnicodeRange::Initialise(const String& unicode_range)
 {
 	// Check for a 'U+' at the start.
-	if (unicode_range.Length() < 2 ||
+	if (unicode_range.size() < 2 ||
 		unicode_range[0] != 'U' ||
 		unicode_range[1] != '+')
 		return false;
 
 	// Check if there's a '-' sign; if so, we've got a range.
-	String::size_type separator_index = unicode_range.Find("-", 2);
+	String::size_type separator_index = unicode_range.find("-", 2);
 	if (separator_index != String::npos)
 	{
-		const char* end = unicode_range.CString() + separator_index;
-		min_codepoint = strtoul(unicode_range.CString() + 2, (char **) &end, 16);
+		const char* end = unicode_range.c_str() + separator_index;
+		min_codepoint = strtoul(unicode_range.c_str() + 2, (char **) &end, 16);
 
-		end = unicode_range.CString() + unicode_range.Length();
-		max_codepoint = strtoul(unicode_range.CString() + separator_index + 1, (char **) &end, 16);
+		end = unicode_range.c_str() + unicode_range.size();
+		max_codepoint = strtoul(unicode_range.c_str() + separator_index + 1, (char **) &end, 16);
 
 		return min_codepoint <= max_codepoint;
 	}
 
 	// No range! Check if we have any wildcards.
-	String::size_type wildcard_index = unicode_range.Find("?", 2);
+	String::size_type wildcard_index = unicode_range.find("?", 2);
 	if (wildcard_index != String::npos)
 	{
-		String range_min(unicode_range.CString() + 2, unicode_range.CString() + wildcard_index);
+		String range_min(unicode_range.c_str() + 2, unicode_range.c_str() + wildcard_index);
 		String range_max(range_min);
 
-		for (String::size_type i = 0; i < unicode_range.Length() - wildcard_index; ++i)
+		for (String::size_type i = 0; i < unicode_range.size() - wildcard_index; ++i)
 		{
 			range_min += "0";
 			range_max += "F";
 		}
 
-		const char* end = range_min.CString() + range_min.Length();
-		min_codepoint = strtoul(range_min.CString(), (char**) &end, 16);
-		end = range_max.CString() + range_max.Length();
-		max_codepoint = strtoul(range_max.CString(), (char**) &end, 16);
+		const char* end = range_min.c_str() + range_min.size();
+		min_codepoint = strtoul(range_min.c_str(), (char**) &end, 16);
+		end = range_max.c_str() + range_max.size();
+		max_codepoint = strtoul(range_max.c_str(), (char**) &end, 16);
 
 		return true;
 	}
 
-	const char* end = unicode_range.CString() + unicode_range.Length();
-	min_codepoint = strtoul(unicode_range.CString() + 2, (char**) &end, 16);
+	const char* end = unicode_range.c_str() + unicode_range.size();
+	min_codepoint = strtoul(unicode_range.c_str() + 2, (char**) &end, 16);
 	max_codepoint = min_codepoint;
 
 	return true;

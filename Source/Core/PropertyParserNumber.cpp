@@ -98,16 +98,16 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 	property.unit = Property::NUMBER;
 
 	// Check for a unit declaration at the end of the number.
-	size_t unit_pos =  value.Length();
+	size_t unit_pos =  value.size();
 	for (size_t i = 0; i < unit_suffixes.size(); i++)
 	{
 		const UnitSuffix& unit_suffix = unit_suffixes[i];
 
-		if (value.Length() < unit_suffix.second.Length())
+		if (value.size() < unit_suffix.second.size())
 			continue;
 
-		size_t test_unit_pos = value.Length() - unit_suffix.second.Length();
-		if (strcasecmp(value.CString() + test_unit_pos, unit_suffix.second.CString()) == 0)
+		size_t test_unit_pos = value.size() - unit_suffix.second.size();
+		if (strcasecmp(value.c_str() + test_unit_pos, unit_suffix.second.c_str()) == 0)
 		{
 			unit_pos = test_unit_pos;
 			property.unit = unit_suffix.first;
@@ -119,7 +119,7 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 	{
 		// Detected unit not allowed (this can only apply to NUMBER, i.e., when no unit was found but one is required).
 		// However, we allow values of "0" if zero_unit is set.
-		bool result = (zero_unit != Property::UNKNOWN && (value.Length() == 1 && value[0] == '0'));
+		bool result = (zero_unit != Property::UNKNOWN && (value.size() == 1 && value[0] == '0'));
 		if(result)
 		{
 			property.unit = zero_unit;
@@ -129,8 +129,8 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 	}
 
 	float float_value;
-	String str_value( value.CString(), value.CString() + unit_pos );
-	if (sscanf(str_value.CString(), "%f", &float_value) == 1)
+	String str_value( value.c_str(), value.c_str() + unit_pos );
+	if (sscanf(str_value.c_str(), "%f", &float_value) == 1)
 	{
 		property.value = Variant(float_value);
 		return true;

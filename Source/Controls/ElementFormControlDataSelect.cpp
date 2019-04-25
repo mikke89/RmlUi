@@ -167,22 +167,22 @@ void ElementFormControlDataSelect::BuildOptions()
 	DataFormatter* data_formatter = NULL;
 
 	// Process the attributes.
-	if (fields_attribute.Empty())
+	if (fields_attribute.empty())
 	{
-		Core::Log::Message(Rocket::Core::Log::LT_ERROR, "DataQuery failed, no fields specified for %s.", GetTagName().CString());
+		Core::Log::Message(Rocket::Core::Log::LT_ERROR, "DataQuery failed, no fields specified for %s.", GetTagName().c_str());
 		return;
 	}
 
-	if (valuefield_attribute.Empty())
+	if (valuefield_attribute.empty())
 	{
-		valuefield_attribute = fields_attribute.Substring(0, fields_attribute.Find(","));
+		valuefield_attribute = fields_attribute.substr(0, fields_attribute.find(","));
 	}
 
-	if (!data_formatter_attribute.Empty())
+	if (!data_formatter_attribute.empty())
 	{
 		data_formatter = DataFormatter::GetDataFormatter(data_formatter_attribute);
 		if (!data_formatter)
-			Core::Log::Message(Rocket::Core::Log::LT_WARNING, "Unable to find data formatter named '%s', formatting skipped.", data_formatter_attribute.CString());
+			Core::Log::Message(Rocket::Core::Log::LT_WARNING, "Unable to find data formatter named '%s', formatting skipped.", data_formatter_attribute.c_str());
 	}
 
 	// Build a list of attributes

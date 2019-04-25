@@ -154,7 +154,7 @@ void Variant::Set(const String& value)
 {
 	if (type == STRING)
 	{
-		((String*)data)->Assign(value);
+		(*(String*)data) = value;
 	}
 	else
 	{

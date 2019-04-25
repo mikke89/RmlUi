@@ -79,13 +79,13 @@ Template* TemplateCache::LoadTemplate(const String& name)
 		new_template = new Template();
 		if (!new_template->Load(stream))
 		{
-			Log::Message(Log::LT_ERROR, "Failed to load template %s.", name.CString());
+			Log::Message(Log::LT_ERROR, "Failed to load template %s.", name.c_str());
 			delete new_template;
 			new_template = NULL;
 		}
-		else if (new_template->GetName().Empty())
+		else if (new_template->GetName().empty())
 		{
-			Log::Message(Log::LT_ERROR, "Failed to load template %s, template is missing its name.", name.CString());
+			Log::Message(Log::LT_ERROR, "Failed to load template %s, template is missing its name.", name.c_str());
 			delete new_template;
 			new_template = NULL;
 		}
@@ -97,7 +97,7 @@ Template* TemplateCache::LoadTemplate(const String& name)
 	}
 	else
 	{
-		Log::Message(Log::LT_ERROR, "Failed to open template file %s.", name.CString());		
+		Log::Message(Log::LT_ERROR, "Failed to open template file %s.", name.c_str());		
 	}
 	stream->RemoveReference();
 

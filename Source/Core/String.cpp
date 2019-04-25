@@ -28,11 +28,14 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/String.h"
 #include "../../Include/Rocket/Core/StringBase.h"
+#include <codecvt>
+#include <algorithm>
 
 namespace Rocket {
 namespace Core {
 
-int ROCKETCORE_API RocketStringFormatString(StringBase<char>& string, int max_size, const char* format, va_list argument_list)
+
+int FormatString(String& string, size_t max_size, const char* format, va_list argument_list)
 {
 	const int INTERNAL_BUFFER_SIZE = 1024;
 	static char buffer[INTERNAL_BUFFER_SIZE];
@@ -43,12 +46,12 @@ int ROCKETCORE_API RocketStringFormatString(StringBase<char>& string, int max_si
 
 	int length = vsnprintf(buffer_ptr, max_size, format, argument_list);
 	buffer_ptr[length >= 0 ? length : max_size] = '\0';
-	#ifdef ROCKET_DEBUG
-		if (length == -1)
-		{
-			Log::Message(Log::LT_WARNING, "String::sprintf: String truncated to %d bytes when processing %s", max_size, format);
-		}
-	#endif
+#ifdef ROCKET_DEBUG
+	if (length == -1)
+	{
+		Log::Message(Log::LT_WARNING, "String::sprintf: String truncated to %d bytes when processing %s", max_size, format);
+	}
+#endif
 
 	string = buffer_ptr;
 
@@ -58,207 +61,63 @@ int ROCKETCORE_API RocketStringFormatString(StringBase<char>& string, int max_si
 	return length;
 }
 
-template <>
-StringBase<char>::StringBase(StringBase<char>::size_type max_size, const char* fmt, ...) : value(local_buffer), buffer_size(LOCAL_BUFFER_SIZE), length(0), hash(0) 
+int FormatString(String& string, size_t max_size, const char* format, ...)
 {
 	va_list argument_list;
-	va_start(argument_list, fmt);
-
-	RocketStringFormatString(*this, (int)max_size, fmt, argument_list);
-
+	va_start(argument_list, format);
+	int result = FormatString(string, (int)max_size, format, argument_list);
 	va_end(argument_list);
+	return result;
 }
-
-template <>
-int StringBase<char>::FormatString(StringBase<char>::size_type max_size, const char* fmt, ...)
+String CreateString(size_t max_size, const char* format, ...)
 {
+	String result;
+	result.reserve(max_size);
 	va_list argument_list;
-	va_start(argument_list, fmt);
-
-	int length = RocketStringFormatString(*this, (int)max_size, fmt, argument_list);
-
+	va_start(argument_list, format);
+	FormatString(result, max_size, format, argument_list);
 	va_end(argument_list);
-
-	return length;
+	return result;
 }
 
-String operator+(const char* cstring, const String& string)
+String ToLower(const String& string) {
+	std::string str_lower = string;
+	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), ::tolower);
+	return str_lower;
+}
+
+
+std::wstring ToWideString(const std::string& str)
 {
-	return String(cstring) + string;
+	std::vector< word > result;
+	StringUtilities::UTF8toUCS2(str, result);
+	return std::wstring(result.data(), result.size());
+
+	//using convert_typeX = std::codecvt_utf8<wchar_t>;
+	//std::wstring_convert<convert_typeX, wchar_t> converterX;
+	//return converterX.from_bytes(str);
 }
 
-//#define ENABLE_STRING_TESTS
-#ifdef ENABLE_STRING_TESTS
-#include <string>
-#include "Rocket/Core/SystemInterface.h"
-ROCKETCORE_API void StringTests()
+std::string ToUTF8(const std::wstring& wstr)
 {
-	SystemInterface* sys = Rocket::Core::GetSystemInterface();
-	
-	std::string ss = "test";
-	String es = "test";
-
-	es = "hello";
-	es.Resize(100);
-	es.Erase(4);
-	es.Erase(2,100);
-	es += "y";
-
-	String sub1 = es.Replace("lo", "l");
-	sub1 = sub1.Replace("h", "!");
-	ROCKET_ASSERT(sub1 == "!el");
-
-	Time start;
-
-	{
-		// Create a few free buffers
-		String tempstring("buffer");
-		String tempstring1("buffer1");
-		String tempstring2("buffer2");
-	}	
-
-	start = sys->GetElapsedTime();
-	for (int i = 0; i < 100000; i++)
-	{
-		std::string str("test");	
-	}
-	printf( "SS Assign Short: %f\n", sys->GetElapsedTime() - start);
-	
-	start = sys->GetElapsedTime();	
-	for (int i = 0; i < 100000; i++)
-	{
-		String str("test");
-	}
-	printf( "ES Assign Short: %f\n", sys->GetElapsedTime() - start);
-
-	start = sys->GetElapsedTime();
-	for (int i = 0; i < 100000; i++)
-	{
-		std::string str("test this really long string that won't fit in a local buffer");	
-	}
-	printf( "SS Assign Long: %f\n", sys->GetElapsedTime() - start);
-	
-	start = sys->GetElapsedTime();	
-	for (int i = 0; i < 100000; i++)
-	{
-		String str("test this really long string that won't fit in a local buffer");
-	}
-	printf( "ES Assign Long: %f\n", sys->GetElapsedTime() - start);
-
-	start = sys->GetElapsedTime();
-	for (int i = 0; i < 100000; i++)
-	{
-		if (ss == "hello")
-		{
-			int bob = 10;
-		}
-	}
-	printf( "SS Compare: %f (char*)\n", sys->GetElapsedTime() - start);
-
-	ss = "bo1";
-	std::string oss = ss;
-	std::string nss = "bob";
-	start = sys->GetElapsedTime();
-	for (int i = 0; i < 100000; i++)
-	{
-		//if (ss == oss)
-		{
-			int bob = 10;
-		}
-		if (ss == nss)
-		{
-			int bob = 10;
-		}
-	}
-	printf( "SS Compare: %f (std::string)\n", sys->GetElapsedTime() - start);
-
-	start = sys->GetElapsedTime();
-	for (int i = 0; i < 100000; i++)
-	{
-		if (es == "hello")
-		{
-			int bob = 10;
-		}
-	}
-	printf( "ES Compare: %f (char*)\n", sys->GetElapsedTime() - start);
-	
-	es = "bo1";
-	String oes = es;
-	String nes = "bob";
-	start = sys->GetElapsedTime();
-	for (int i = 0; i < 100000; i++)
-	{
-		//if (es == oes)
-		{
-			int bob = 10;
-		}
-		
-		if (nes == oes)
-		{
-			int bob = 10;
-		}
-	}
-	printf( "ES Compare: %f (String)\n", sys->GetElapsedTime() - start);
-
-	start = sys->GetElapsedTime();
-	std::string ss_concat = "hello";
-	for (int i = 0; i < 100000; i++)
-	{
-		ss_concat += "y";
-	}
-	printf( "SS +=: %f\n", sys->GetElapsedTime() - start);
-
-	String es_concat = "hello";
-	start = sys->GetElapsedTime();
-	for (int i = 0; i < 100000; i++)
-	{
-		if (i == 42)
-		{
-			int bob = 10;
-		}
-		es_concat += "y";
-	}
-	printf( "ES +=: %f\n", sys->GetElapsedTime() - start);
-
-	const char* x1 = "bob";
-	String s;
-	String t;
-	String u;
-	s = "hello";
-	t = "hell";
-	u = "hello";
-	if (s == t)
-	{
-		int bob = 10;
-	}
-	if (s == u)
-	{
-		int bob = 10;
-	}
-
-	t = s + u;
-	if (t == "hellohello")
-	{
-		int bob = 10;
-	}
-	if (t == "x")
-	{
-		int bob = 10;
-	}
-
-	t += u;
-
-
-	size_t x = s.Find("e");
-	size_t y = s.Find("z");
-	
-	String sub = t.Replace("lo", "l");
-	sub = sub.Replace("h", "!");
-
-	sub.FormatString(128, "%s", "hello");
-	int bob = 10;
+	std::string result;
+	StringUtilities::UCS2toUTF8(wstr.c_str(), wstr.size(), result);
+	return result;
+	//using convert_typeX = std::codecvt_utf8<wchar_t>;
+	//std::wstring_convert<convert_typeX, wchar_t> converterX;
+	//return converterX.to_bytes(wstr);
 }
-#endif
+
+std::string Replace(std::string subject, const std::string& search, const std::string& replace)
+{
+	size_t pos = 0;
+	while ((pos = subject.find(search, pos)) != std::string::npos) {
+		subject.replace(pos, search.length(), replace);
+		pos += replace.length();
+	}
+	return subject;
+}
+
 
 }
 }
@@ -267,7 +126,7 @@ ROCKETCORE_API void StringTests()
 
 ROCKETCORE_API size_t hash< String >::operator()(const String& string) const
 {
-	return StringUtilities::FNVHash(string.CString());
+	return StringUtilities::FNVHash(string.c_str());
 }
 
 }*/

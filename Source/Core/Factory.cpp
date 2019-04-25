@@ -177,7 +177,7 @@ Context* Factory::InstanceContext(const String& name)
 
 ElementInstancer* Factory::RegisterElementInstancer(const String& name, ElementInstancer* instancer)
 {
-	String lower_case_name = name.ToLower();
+	String lower_case_name = ToLower(name);
 	instancer->AddReference();
 
 	// Check if an instancer for this tag is already defined, if so release it
@@ -240,9 +240,9 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	String translated_data;
 	if (system_interface != NULL &&
 		(system_interface->TranslateString(translated_data, text) > 0 ||
-		 translated_data.Find("<") != String::npos))
+		 translated_data.find("<") != String::npos))
 	{
-		StreamMemory* stream = new StreamMemory(translated_data.Length() + 32);
+		StreamMemory* stream = new StreamMemory(translated_data.size() + 32);
 		stream->Write("<body>", 6);
 		stream->Write(translated_data);
 		stream->Write("</body>", 7);
@@ -255,7 +255,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	{
 		// Check if this text node contains only white-space; if so, we don't want to construct it.
 		bool only_white_space = true;
-		for (size_t i = 0; i < translated_data.Length(); ++i)
+		for (size_t i = 0; i < translated_data.size(); ++i)
 		{
 			if (!StringUtilities::IsWhitespace(translated_data[i]))
 			{
@@ -272,7 +272,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		Element* element = Factory::InstanceElement(parent, "#text", "#text", attributes);
 		if (!element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned NULL.", translated_data.CString());
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned NULL.", translated_data.c_str());
 			return false;
 		}
 
@@ -280,12 +280,12 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		ElementText* text_element = dynamic_cast< ElementText* >(element);
 		if (text_element == NULL)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.CString(), typeid(element).name());
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), typeid(element).name());
 			element->RemoveReference();
 			return false;
 		}
 
-		text_element->SetText(translated_data);
+		text_element->SetText(ToWideString(translated_data));
 
 		// Add to active node.
 		parent->AppendChild(element);
@@ -334,7 +334,7 @@ ElementDocument* Factory::InstanceDocumentStream(Rocket::Core::Context* context,
 // Registers an instancer that will be used to instance decorators.
 DecoratorInstancer* Factory::RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer)
 {
-	String lower_case_name = name.ToLower();
+	String lower_case_name = ToLower(name);
 	instancer->AddReference();
 
 	// Check if an instancer for this tag is already defined. If so, release it.
@@ -387,7 +387,7 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 // Registers an instancer that will be used to instance font effects.
 FontEffectInstancer* Factory::RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer)
 {
-	String lower_case_name = name.ToLower();
+	String lower_case_name = ToLower(name);
 	instancer->AddReference();
 
 	// Check if an instancer for this tag is already defined. If so, release it.
@@ -496,7 +496,7 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 // Creates a style sheet containing the passed in styles.
 StyleSheet* Factory::InstanceStyleSheetString(const String& string)
 {
-	StreamMemory* memory_stream = new StreamMemory((const byte*) string.CString(), string.Length());
+	StreamMemory* memory_stream = new StreamMemory((const byte*) string.c_str(), string.size());
 	StyleSheet* style_sheet = InstanceStyleSheetStream(memory_stream);
 	memory_stream->RemoveReference();
 	return style_sheet;

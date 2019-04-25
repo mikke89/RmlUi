@@ -150,7 +150,7 @@ bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte*
 
 FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& file_name)
 {
-    if(file_name.Find(".fnt") != String::npos)
+    if(file_name.find(".fnt") != String::npos)
     {
         return BitmapFont;
     }

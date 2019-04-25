@@ -58,7 +58,7 @@ bool Template::Load(Stream* stream)
 	stream->Read(buffer, stream->Length());
 
 	// Pull out the header
-	const char* head_start = XMLParseTools::FindTag("head", buffer.CString());
+	const char* head_start = XMLParseTools::FindTag("head", buffer.c_str());
 	if (!head_start)	
 		return false;
 
@@ -83,7 +83,7 @@ bool Template::Load(Stream* stream)
 	// storing the ones we're interested in.
 	String attribute_name;
 	String attribute_value;
-	const char* ptr = XMLParseTools::FindTag("template", buffer.CString());
+	const char* ptr = XMLParseTools::FindTag("template", buffer.c_str());
 	if (!ptr)
 		return false;
 
@@ -123,7 +123,7 @@ Element* Template::ParseTemplate(Element* element)
 
 	// If theres an inject attribute on the template, 
 	// attempt to find the required element
-	if (!content.Empty())
+	if (!content.empty())
 	{
 		Element* content_element = ElementUtilities::GetElementById(element, content);
 		if (content_element)

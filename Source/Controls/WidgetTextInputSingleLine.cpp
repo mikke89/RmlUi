@@ -65,7 +65,7 @@ void WidgetTextInputSingleLine::LineBreak()
 void WidgetTextInputSingleLine::SanitiseValue(Core::String& value)
 {
 	Core::String new_value;
-	for (Core::String::size_type i = 0; i < value.Length(); ++i)
+	for (Core::String::size_type i = 0; i < value.size(); ++i)
 	{
 		switch (value[i])
 		{

@@ -164,7 +164,7 @@ void Plugin::Render()
 		for (int i = 0; i < debug_context->GetNumDocuments(); ++i)
 		{
 			Core::ElementDocument* document = debug_context->GetDocument(i);
-			if (document->GetId().Find("rkt-debug-") == 0)
+			if (document->GetId().find("rkt-debug-") == 0)
 				continue;
 
 			std::stack< Core::Element* > element_stack;
@@ -211,7 +211,7 @@ void Plugin::OnShutdown()
 
 		int count = 0;
 		for (ElementInstanceMap::iterator i = elements.begin(); i != elements.end(); ++i)
-			Core::Log::Message(Core::Log::LT_WARNING, "\t(%d) %s -> %s", count++, (*i)->GetTagName().CString(), (*i)->GetAddress().CString());
+			Core::Log::Message(Core::Log::LT_WARNING, "\t(%d) %s -> %s", count++, (*i)->GetTagName().c_str(), (*i)->GetAddress().c_str());
 	}
 
 	delete this;

@@ -144,7 +144,7 @@ Element* XMLParseTools::ParseTemplate(Element* element, const String& template_n
 	Template* parse_template = TemplateCache::GetTemplate(template_name);
 	if (!parse_template)
 	{
-		Log::ParseError(element->GetOwnerDocument()->GetSourceURL(), -1, "Failed to find template '%s'.", template_name.CString());
+		Log::ParseError(element->GetOwnerDocument()->GetSourceURL(), -1, "Failed to find template '%s'.", template_name.c_str());
 		return element;
 	}
 

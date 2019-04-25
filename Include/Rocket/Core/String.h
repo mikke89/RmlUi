@@ -33,44 +33,14 @@
 #include <stdarg.h>
 #include <string.h>
 #include <vector>
+#include <string>
 
 namespace Rocket {
 namespace Core {
 
-typedef StringBase< char > String;
+//typedef StringBase< char > String;
+typedef std::string String;
 typedef std::vector< String > StringList;
-
-// Template specialisation of the constructor and FormatString() methods that use variable argument lists.
-template<>
-ROCKETCORE_API StringBase<char>::StringBase(StringBase<char>::size_type max_size, const char* fmt, ...);
-template<>
-ROCKETCORE_API int StringBase<char>::FormatString(StringBase<char>::size_type max_size, const char* fmt, ...);
-
-// Global operators for adding C strings to strings.
-ROCKETCORE_API String operator+(const char* cstring, const String& string);
-
-// partial specialization follows
-
-/* !!! CHANGING THIS METHOD BREAKS ABI COMPATIBILITY DUE TO INLINING !!! */
-template<>
-ROCKETCORE_API_INLINE bool StringBase< char >::operator<(const char * compare) const
-{
-	return strcmp( value, compare ) < 0;
-}
-
-/* !!! CHANGING THIS METHOD BREAKS ABI COMPATIBILITY DUE TO INLINING !!! */
-template<>
-ROCKETCORE_API_INLINE bool StringBase< char >::operator==(const char * compare) const
-{
-	return strcmp( value, compare ) == 0;
-}
-
-/* !!! CHANGING THIS METHOD BREAKS ABI COMPATIBILITY DUE TO INLINING !!! */
-template<>
-ROCKETCORE_API_INLINE bool StringBase< char >::operator!=(const char * compare) const
-{
-	return strcmp( value, compare ) != 0;
-}
 
 // Redefine Windows APIs as their STDC counterparts.
 #ifdef ROCKET_PLATFORM_WIN32
@@ -78,23 +48,33 @@ ROCKETCORE_API_INLINE bool StringBase< char >::operator!=(const char * compare) 
 	#define strncasecmp strnicmp
 #endif
 
+int FormatString(String& string, size_t max_size, const char* format, ...);
+String CreateString(size_t max_size, const char* format, ...);
+
+String ToLower(const String& string);
+std::string Replace(std::string subject, const std::string& search, const std::string& replace);
+
+std::wstring ToWideString(const std::string& str);
+std::string ToUTF8(const std::wstring& wstr);
+
 struct hash_str_lowercase {
-	std::size_t operator()(const ::Rocket::Core::String& string) const
+	std::size_t operator()(const String& string) const
 	{
-		auto str_lower = string.ToLower();
-		return str_lower.Hash();
+		std::hash<String> hash_fn;
+		return hash_fn(ToLower(string));
 	}
 };
-}
-}
 
-namespace std {
-	template <> struct hash<::Rocket::Core::String> {
-		std::size_t operator()(const ::Rocket::Core::String& string) const
-		{
-			return string.Hash();
-		}
-	};
 }
+}
+//
+//namespace std {
+//	template <> struct hash<::Rocket::Core::String> {
+//		std::size_t operator()(const ::Rocket::Core::String& string) const
+//		{
+//			return string.Hash();
+//		}
+//	};
+//}
 
 #endif

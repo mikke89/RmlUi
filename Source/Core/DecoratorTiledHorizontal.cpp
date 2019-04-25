@@ -65,7 +65,7 @@ bool DecoratorTiledHorizontal::Initialise(const Tile* _tiles, const String* _tex
 	// Load the textures.
 	for (int i = 0; i < 3; i++)
 	{
-		if (!_texture_names[i].Empty())
+		if (!_texture_names[i].empty())
 		{
 			tiles[i] = _tiles[i];
 			tiles[i].texture_index = LoadTexture(_texture_names[i], _rcss_paths[i]);

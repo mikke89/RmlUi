@@ -168,11 +168,11 @@ String EventDispatcher::ToString() const
 	String result;
 	for (auto nvp : events)
 	{
-		result += String(nvp.first.Length() + 32, "%s (%d), ", nvp.first.CString(), static_cast<int>(nvp.second.size()));
+		result += CreateString(nvp.first.size() + 32, "%s (%d), ", nvp.first.c_str(), static_cast<int>(nvp.second.size()));
 	}
-	if (result.Length() > 2) 
+	if (result.size() > 2) 
 	{
-		result.Resize(result.Length() - 2);
+		result.resize(result.size() - 2);
 	}
 	return result;
 }

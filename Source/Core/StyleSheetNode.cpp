@@ -107,7 +107,7 @@ void StyleSheetNode::Write(Stream* stream)
 			hierarchy = hierarchy->parent;
 		}
 
-		stream->Write(String(1024, "%s /* specificity: %d */\n", StringUtilities::StripWhitespace(rule).CString(), specificity));
+		stream->Write(CreateString(1024, "%s /* specificity: %d */\n", StringUtilities::StripWhitespace(rule).c_str(), specificity));
 		stream->Write("{\n");
 
 		const Rocket::Core::PropertyMap& property_map = properties.GetProperties();
@@ -116,7 +116,7 @@ void StyleSheetNode::Write(Stream* stream)
 			const String& name = i->first;
 			const Rocket::Core::Property& property = i->second;
 
-			stream->Write(String(1024, "\t%s: %s; /* specificity: %d */\n", name.CString(), property.value.Get< String >().CString(), property.specificity));
+			stream->Write(CreateString(1024, "\t%s: %s; /* specificity: %d */\n", name.c_str(), property.value.Get< String >().c_str(), property.specificity));
 		}
 
 		stream->Write("}\n\n");
@@ -338,7 +338,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	for (const Element* ancestor_element = element->GetParentNode(); ancestor_element != NULL; ancestor_element = ancestor_element->GetParentNode())
 	{
 		// Skip this ancestor if the name of the next style node doesn't match its tag name, and one was specified.
-		if (!parent_node->name.Empty() 
+		if (!parent_node->name.empty() 
 			&& parent_node->name != ancestor_element->GetTagName())
 			continue;
 
@@ -503,12 +503,12 @@ StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 	int child_a = 1;
 	int child_b = 0;
 
-	size_t parameter_start = child_name.Find("(");
-	size_t parameter_end = child_name.Find(")");
+	size_t parameter_start = child_name.find("(");
+	size_t parameter_end = child_name.find(")");
 	if (parameter_start != String::npos &&
 		parameter_end != String::npos)
 	{
-		String parameters = child_name.Substring(parameter_start + 1, parameter_end - (parameter_start + 1));
+		String parameters = child_name.substr(parameter_start + 1, parameter_end - (parameter_start + 1));
 
 		// Check for 'even' or 'odd' first.
 		if (parameters == "even")
@@ -524,12 +524,12 @@ StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 		else
 		{
 			// Alrighty; we've got an equation in the form of [[+/-]an][(+/-)b]. So, foist up, we split on 'n'.
-			size_t n_index = parameters.Find("n");
+			size_t n_index = parameters.find("n");
 			if (n_index != String::npos)
 			{
 				// The equation is 0n + b. So a = 0, and we only have to parse b.
 				child_a = 0;
-				child_b = atoi(parameters.CString());
+				child_b = atoi(parameters.c_str());
 			}
 			else
 			{
@@ -537,17 +537,17 @@ StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 					child_a = 1;
 				else
 				{
-					String a_parameter = parameters.Substring(0, n_index);
+					String a_parameter = parameters.substr(0, n_index);
 					if (StringUtilities::StripWhitespace(a_parameter) == "-")
 						child_a = -1;
 					else
-						child_a = atoi(a_parameter.CString());
+						child_a = atoi(a_parameter.c_str());
 				}
 
-				if (n_index == parameters.Length() - 1)
+				if (n_index == parameters.size() - 1)
 					child_b = 0;
 				else
-					child_b = atoi(parameters.Substring(n_index + 1).CString());
+					child_b = atoi(parameters.substr(n_index + 1).c_str());
 			}
 		}
 	}
@@ -578,7 +578,7 @@ int StyleSheetNode::CalculateSpecificity()
 	{
 		case TAG:
 		{
-			if (!name.Empty())
+			if (!name.empty())
 				specificity = 10000;
 		}
 		break;

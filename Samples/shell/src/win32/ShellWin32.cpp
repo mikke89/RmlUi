@@ -63,7 +63,7 @@ bool Shell::Initialise(const Rocket::Core::String& path)
 		executable_file_name[0] = 0;
 
 	executable_path = Rocket::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("\\") + 1);
+	executable_path = executable_path.substr(0, executable_path.rfind("\\") + 1);
 	file_interface = new ShellFileInterface(executable_path + path);
 	Rocket::Core::SetFileInterface(file_interface);
 

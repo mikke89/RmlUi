@@ -46,7 +46,7 @@ ElementForm::~ElementForm()
 void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::String& submit_value)
 {
 	Rocket::Core::Dictionary values;
-	if (name.Empty())
+	if (name.empty())
 		values.Set("submit", submit_value);
 	else
 		values.Set(name, submit_value);
@@ -75,7 +75,7 @@ void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::S
 		Rocket::Core::String control_value = control->GetValue();
 
 		// Skip over unnamed form controls.
-		if (control_name.Empty())
+		if (control_name.empty())
 			continue;
 
 		// If the item already exists, append to it.

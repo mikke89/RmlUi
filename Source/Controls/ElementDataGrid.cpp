@@ -127,11 +127,11 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 		}
 		else if (column.fields[i] != Rocket::Controls::DataSource::DEPTH)
 		{
-			if (!column_fields.Empty())
+			if (!column_fields.empty())
 			{
-				column_fields.Append(",");
+				column_fields += ",";
 			}
-			column_fields.Append(column.fields[i]);
+			column_fields += column.fields[i];
 		}
 	}
 
@@ -225,7 +225,7 @@ void ElementDataGrid::OnUpdate()
 	Core::ElementDocument* document = GetOwnerDocument();
 	document->LockLayout(true);
 	
-	if (!new_data_source.Empty())
+	if (!new_data_source.empty())
 	{
 		root->SetDataSource(new_data_source);
 		new_data_source = "";
@@ -286,18 +286,18 @@ void ElementDataGrid::GetInnerRML(Rocket::Core::String& content) const
 		{
 			if (j != columns[i].fields.size() - 1)
 			{
-				column_fields.Append(",");
+				column_fields += ",";
 			}
-			column_fields.Append(columns[i].fields[j]);
+			column_fields += columns[i].fields[j];
 		}
 		Rocket::Core::String width_attribute = header_element->GetAttribute<Rocket::Core::String>("width", "");
 
-		content.Append(Rocket::Core::String(column_fields.Length() + 32, "<col fields=\"%s\"", column_fields.CString()));
-		if (!width_attribute.Empty())
-			content.Append(Rocket::Core::String(width_attribute.Length() + 32, " width=\"%s\"", width_attribute.CString()));
-		content.Append(">");
+		content += Core::CreateString(column_fields.size() + 32, "<col fields=\"%s\"", column_fields.c_str());
+		if (!width_attribute.empty())
+			content += Core::CreateString(width_attribute.size() + 32, " width=\"%s\"", width_attribute.c_str());
+		content += ">";
 		header_element->GetInnerRML(content);
-		content.Append("</col>");
+		content += "</col>";
 	}
 }
 

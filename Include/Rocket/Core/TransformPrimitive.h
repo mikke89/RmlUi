@@ -335,7 +335,7 @@ inline String ResolvedPrimitive<N>::ToString(String unit, bool rad_to_deg, bool 
 	for (size_t i = 0; i < N; i++) {
 		if (TypeConverter<float, String>::Convert(values[i] * multiplier, tmp))
 			result += tmp;
-		if (!unit.Empty() && (!only_unit_on_last_value || (i == N - 1)))
+		if (!unit.empty() && (!only_unit_on_last_value || (i == N - 1)))
 			result += unit;
 		if (i != N - 1) result += ", ";
 	}

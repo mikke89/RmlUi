@@ -337,9 +337,9 @@ String ElementStyle::GetClassNames() const
 	{
 		if (i != 0)
 		{
-			class_names.Append(" ");
+			class_names += " ";
 		}
-		class_names.Append(classes[i]);
+		class_names += classes[i];
 	}
 
 	return class_names;
@@ -358,7 +358,7 @@ bool ElementStyle::SetProperty(const String& name, const String& value)
 	}
 	else
 	{
-		Log::Message(Log::LT_WARNING, "Syntax error parsing inline property declaration '%s: %s;'.", name.CString(), value.CString());
+		Log::Message(Log::LT_WARNING, "Syntax error parsing inline property declaration '%s: %s;'.", name.c_str(), value.c_str());
 		return false;
 	}
 }

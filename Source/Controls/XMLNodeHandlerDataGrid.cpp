@@ -61,7 +61,7 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 			if (element != NULL)
 				element->RemoveReference();
 
-			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create data grid for tag %s.", name.CString());
+			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create data grid for tag %s.", name.c_str());
 			return NULL;
 		}
 

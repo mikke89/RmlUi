@@ -38,7 +38,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 {	
 	char quote = 0;
 	bool last_char_delimiter = true;
-	const char* ptr = string.CString();
+	const char* ptr = string.c_str();
 	const char* start_ptr = NULL;
 	const char* end_ptr = ptr;
 
@@ -89,7 +89,7 @@ void StringUtilities::JoinString(String& string, const StringList& string_list, 
 	{
 		string += string_list[i];
 		if (delimiter != '\0' && i < string_list.size() - 1)
-			string.Append(delimiter);
+			string += delimiter;
 	}
 }
 	
@@ -158,14 +158,14 @@ static int __utf8_forbidden(unsigned char octet)
 // Converts a character array in UTF-8 encoding to a vector of words.
 bool StringUtilities::UTF8toUCS2(const String& input, std::vector< word >& output)
 {
-	if (input.Empty())
+	if (input.empty())
 		return true;
 	
-	unsigned char* p = (unsigned char*) input.CString();
-	unsigned char* lim = p + input.Length();
+	unsigned char* p = (unsigned char*) input.c_str();
+	unsigned char* lim = p + input.size();
 	
 	// Skip the UTF-8 byte order marker if it exists.
-	if (input.Substring(0, 3) == "\xEF\xBB\xBF")
+	if (input.substr(0, 3) == "\xEF\xBB\xBF")
 		p += 3;
 	
 	int num_bytes;
@@ -334,7 +334,7 @@ bool StringUtilities::UCS2toUTF8(const word* input, size_t input_size, String& o
 				break;
 		}
 		
-		//Log::Message(LC_CORE, Log::LT_ALWAYS, "Converting...%c(%d) %d -> %d", *w, *w, w - input, output.Length());
+		//Log::Message(LC_CORE, Log::LT_ALWAYS, "Converting...%c(%d) %d -> %d", *w, *w, w - input, output.size());
 	}
 	
 	return true;
@@ -343,8 +343,8 @@ bool StringUtilities::UCS2toUTF8(const word* input, size_t input_size, String& o
 // Strip whitespace characters from the beginning and end of a string.
 String StringUtilities::StripWhitespace(const String& string)
 {
-	const char* start = string.CString();
-	const char* end = start + string.Length();
+	const char* start = string.c_str();
+	const char* end = start + string.size();
 	
 	while (start < end && IsWhitespace(*start))
 		start++;
@@ -361,7 +361,7 @@ String StringUtilities::StripWhitespace(const String& string)
 // Operators for STL containers using strings.
 bool StringUtilities::StringComparei::operator()(const String& lhs, const String& rhs) const
 {
-	return strcasecmp(lhs.CString(), rhs.CString()) < 0;
+	return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
 }
 
 }

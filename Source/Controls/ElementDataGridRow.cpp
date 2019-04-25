@@ -476,7 +476,7 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 	if (row_information.IsFieldSet(DataSource::CHILD_SOURCE))
 	{
 		Rocket::Core::String data_source = row_information.Get< Rocket::Core::String >(DataSource::CHILD_SOURCE, "");
-		if (!data_source.Empty())
+		if (!data_source.empty())
 		{
 			SetDataSource(data_source);
 		}
@@ -505,11 +505,11 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 			{
 				if (column->fields[i] == DataSource::DEPTH)
 				{
-					raw_data.push_back(Rocket::Core::String(8, "%d", depth));
+					raw_data.push_back(Rocket::Core::CreateString(8, "%d", depth));
 				}
 				else if (column->fields[i] == DataSource::NUM_CHILDREN)
 				{
-					raw_data.push_back(Rocket::Core::String(8, "%d", children.size()));
+					raw_data.push_back(Rocket::Core::CreateString(8, "%d", children.size()));
 				}
 				else
 				{
@@ -528,9 +528,9 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 				{
 					if (i > 0)
 					{
-						cell_string.Append(",");
+						cell_string += ",";
 					}
-					cell_string.Append(raw_data[i]);
+					cell_string += raw_data[i];
 				}
 			}
 
@@ -637,7 +637,7 @@ void ElementDataGridRow::LoadChildren(int first_row_to_load, int num_rows_to_loa
 
 		if (!query.NextRow())
 		{
-			Core::Log::Message(Rocket::Core::Log::LT_WARNING, "Failed to load row %d from data source %s", i, data_table.CString());
+			Core::Log::Message(Rocket::Core::Log::LT_WARNING, "Failed to load row %d from data source %s", i, data_table.c_str());
 		}
 
 		// Now load the child with the row in the query.

@@ -51,7 +51,7 @@ namespace Core {
 
 // Define commonly used basic types.
 typedef unsigned char byte;
-typedef unsigned short word;
+typedef wchar_t word;
 typedef double Time;
 typedef float TimeDelta;
 typedef unsigned int Hash;

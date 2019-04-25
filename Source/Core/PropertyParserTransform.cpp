@@ -55,7 +55,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 
 	auto transform = std::make_unique<Transform>();
 
-	char const* next = value.CString();
+	char const* next = value.c_str();
 
 	Transforms::NumericValue args[16];
 

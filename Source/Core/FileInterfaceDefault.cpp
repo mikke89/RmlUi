@@ -40,7 +40,7 @@ FileInterfaceDefault::~FileInterfaceDefault()
 // Opens a file.
 FileHandle FileInterfaceDefault::Open(const String& path)
 {
-	return (FileHandle)fopen(path.CString(), "rb");	
+	return (FileHandle)fopen(path.c_str(), "rb");	
 }
 
 // Closes a previously opened file.

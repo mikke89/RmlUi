@@ -53,12 +53,12 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 	new_parser.parser = StyleSheetSpecification::GetParser(parser_name);
 	if (new_parser.parser == NULL)
 	{
-		Log::Message(Log::LT_ERROR, "Property was registered with invalid parser '%s'.", parser_name.CString());
+		Log::Message(Log::LT_ERROR, "Property was registered with invalid parser '%s'.", parser_name.c_str());
 		return *this;
 	}
 
 	// Split the parameter list, and set up the map.
-	if (!parser_parameters.Empty())
+	if (!parser_parameters.empty())
 	{
 		StringList parameter_list;
 		StringUtilities::ExpandString(parameter_list, parser_parameters);
@@ -128,22 +128,22 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 		case Property::COLOUR:
 		{
 			Colourb colour = property.value.Get< Colourb >();
-			value.FormatString(32, "rgb(%d,%d,%d,%d)", colour.red, colour.green, colour.blue, colour.alpha);
+			value = CreateString(32, "rgb(%d,%d,%d,%d)", colour.red, colour.green, colour.blue, colour.alpha);
 		}
 		break;
 
-		case Property::PX:		value.Append("px"); break;
-		case Property::DEG:		value.Append("deg"); break;
-		case Property::RAD:		value.Append("rad"); break;
-		case Property::DP:		value.Append("dp"); break;
-		case Property::EM:		value.Append("em"); break;
-		case Property::REM:		value.Append("rem"); break;
-		case Property::PERCENT:	value.Append("%"); break;
-		case Property::INCH:	value.Append("in"); break;
-		case Property::CM:		value.Append("cm"); break;
-		case Property::MM:		value.Append("mm"); break;
-		case Property::PT:		value.Append("pt"); break;
-		case Property::PC:		value.Append("pc"); break;
+		case Property::PX:		value += "px"; break;
+		case Property::DEG:		value += "deg"; break;
+		case Property::RAD:		value += "rad"; break;
+		case Property::DP:		value += "dp"; break;
+		case Property::EM:		value += "em"; break;
+		case Property::REM:		value += "rem"; break;
+		case Property::PERCENT:	value += "%"; break;
+		case Property::INCH:	value += "in"; break;
+		case Property::CM:		value += "cm"; break;
+		case Property::MM:		value += "mm"; break;
+		case Property::PT:		value += "pt"; break;
+		case Property::PC:		value += "pc"; break;
 		default:					break;
 	}
 

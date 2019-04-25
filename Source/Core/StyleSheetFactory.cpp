@@ -149,7 +149,7 @@ StyleSheet* StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 				sheet = sub_sheet;
 		}
 		else
-			Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", sheets[i].CString());
+			Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", sheets[i].c_str());
 	}
 
 	if (sheet == NULL)
@@ -177,8 +177,8 @@ void StyleSheetFactory::ClearStyleSheetCache()
 // Returns one of the available node selectors.
 StyleSheetNodeSelector* StyleSheetFactory::GetSelector(const String& name)
 {
-	size_t index = name.Find("(");
-	SelectorMap::iterator i = instance->selectors.find(name.Substring(0, index));
+	size_t index = name.find("(");
+	SelectorMap::iterator i = instance->selectors.find(name.substr(0, index));
 	if (i == instance->selectors.end())
 		return NULL;
 	return (*i).second;

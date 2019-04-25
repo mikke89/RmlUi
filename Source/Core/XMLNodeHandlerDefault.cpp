@@ -53,7 +53,7 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 	Element* element = Factory::InstanceElement(parent, name, name, attributes);
 	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned NULL.", name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned NULL.", name.c_str());
 		return NULL;
 	}
 

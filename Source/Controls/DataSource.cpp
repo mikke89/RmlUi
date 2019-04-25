@@ -43,13 +43,13 @@ static DataSourceMap data_sources;
 
 DataSource::DataSource(const Rocket::Core::String& _name)
 {
-	if (!_name.Empty())
+	if (!_name.empty())
 	{
 		name = _name;
 	}
 	else
 	{
-		name.FormatString(64, "%x", this);
+		name = Core::CreateString(64, "%x", this);
 	}
 	data_sources[name] = this;
 }
@@ -162,7 +162,7 @@ void DataSource::BuildRowEntries(Rocket::Core::StringList& row, const RowMap& ro
 		else
 		{
 			row[i] = "";
-			Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Failed to find required data source column %s", columns[i].CString());
+			Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Failed to find required data source column %s", columns[i].c_str());
 		}
 	}
 }

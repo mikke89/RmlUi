@@ -149,7 +149,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				else
 				{
 					int element_index;
-					if (sscanf(target_element->GetId().CString(), "a %d", &element_index) == 1)
+					if (sscanf(target_element->GetId().c_str(), "a %d", &element_index) == 1)
 					{
 						Core::Element* new_source_element = source_element;
 						for (int i = 0; i < element_index; i++)
@@ -159,7 +159,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 						}
 						SetSourceElement(new_source_element);
 					}
-					else if (sscanf(target_element->GetId().CString(), "c %d", &element_index) == 1)
+					else if (sscanf(target_element->GetId().c_str(), "c %d", &element_index) == 1)
 					{
 						if (source_element != NULL)
 							SetSourceElement(source_element->GetChild(element_index));
@@ -188,7 +188,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 			{
 				// Check if the id is in the form "a %d" or "c %d" - these are the ancestor or child labels.
 				int element_index;
-				if (sscanf(target_element->GetId().CString(), "a %d", &element_index) == 1)
+				if (sscanf(target_element->GetId().c_str(), "a %d", &element_index) == 1)
 				{
 					hover_element = source_element;
 					for (int i = 0; i < element_index; i++)
@@ -197,14 +197,14 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 							hover_element = hover_element->GetParentNode();
 					}
 				}
-				else if (sscanf(target_element->GetId().CString(), "c %d", &element_index) == 1)
+				else if (sscanf(target_element->GetId().c_str(), "c %d", &element_index) == 1)
 				{
 					if (source_element != NULL)
 						hover_element = source_element->GetChild(element_index);
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
-			else if (owner_document != NULL && owner_document->GetId().Find("rkt-debug-") != 0)
+			else if (owner_document != NULL && owner_document->GetId().find("rkt-debug-") != 0)
 			{
 				hover_element = target_element;
 			}
@@ -248,23 +248,23 @@ void ElementInfo::UpdateSourceElement()
 			{
 				name = "id";
 				value = source_element->GetId();
-				if (!value.Empty())
-					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+				if (!value.empty())
+					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
 			{
 				name = "class";
 				value = source_element->GetClassNames();
-				if (!value.Empty())
-					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+				if (!value.empty())
+					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
 			{
 				// Not actually an attribute, but may be useful
 				name = "pseudo";
-				value.Clear();
+				value.clear();
 				for (auto str : source_element->GetActivePseudoClasses())
 					value += " :" + str;
-				if (!value.Empty())
-					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+				if (!value.empty())
+					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
 			{
 				name = "style";
@@ -276,21 +276,21 @@ void ElementInfo::UpdateSourceElement()
 					{
 						auto& prop_name = nvp.first;
 						auto prop_value = nvp.second.ToString();
-						value.Append(Core::String(prop_name.Length() + prop_value.Length() + 12, "%s: %s; ", prop_name.CString(), prop_value.CString()));
+						value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
 					}
 				}
-				if (!value.Empty())
-					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+				if (!value.empty())
+					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
 
 			while (source_element->IterateAttributes(index, name, value))
 			{
 				if(name != "class" && name != "style" && name != "id") 
-					attributes.Append(Core::String(name.Length() + value.Length() + 32, "%s: <em>%s</em><br />", name.CString(), value.CString()));
+					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
 		}
 
-		if (attributes.Empty())
+		if (attributes.empty())
 		{
 			while (attributes_content->HasChildNodes())
 				attributes_content->RemoveChild(attributes_content->GetChild(0));
@@ -307,7 +307,7 @@ void ElementInfo::UpdateSourceElement()
 		if (source_element != NULL)
 			BuildElementPropertiesRML(properties, source_element, source_element);
 
-		if (properties.Empty())
+		if (properties.empty())
 		{
 			while (properties_content->HasChildNodes())
 				properties_content->RemoveChild(properties_content->GetChild(0));
@@ -327,7 +327,7 @@ void ElementInfo::UpdateSourceElement()
 			events = source_element->GetEventDispatcherSummary();
 		}
 
-		if (events.Empty())
+		if (events.empty())
 		{
 			while (events_content->HasChildNodes())
 				events_content->RemoveChild(events_content->GetChild(0));
@@ -347,10 +347,10 @@ void ElementInfo::UpdateSourceElement()
 			Core::Vector2f element_size = source_element->GetBox().GetSize(Core::Box::BORDER);
 
 			Core::String positions;
-			positions.Append(Core::String(64, "left: <em>%.0fpx</em><br />", element_offset.x));
-			positions.Append(Core::String(64, "top: <em>%.0fpx</em><br />", element_offset.y));
-			positions.Append(Core::String(64, "width: <em>%.0fpx</em><br />", element_size.x));
-			positions.Append(Core::String(64, "height: <em>%.0fpx</em><br />", element_size.y));
+			positions += Core::CreateString(64, "left: <em>%.0fpx</em><br />", element_offset.x);
+			positions += Core::CreateString(64, "top: <em>%.0fpx</em><br />", element_offset.y);
+			positions += Core::CreateString(64, "width: <em>%.0fpx</em><br />", element_size.x);
+			positions += Core::CreateString(64, "height: <em>%.0fpx</em><br />", element_size.y);
 
 			position_content->SetInnerRML(positions);
 		}
@@ -375,18 +375,18 @@ void ElementInfo::UpdateSourceElement()
 		{
 			Core::String ancestor_name = element_ancestor->GetTagName();
 			const Core::String ancestor_id = element_ancestor->GetId();
-			if (!ancestor_id.Empty())
+			if (!ancestor_id.empty())
 			{
 				ancestor_name += "#";
 				ancestor_name += ancestor_id;
 			}
 
-			ancestors.Append(Core::String(ancestor_name.Length() + 32, "<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.CString()));
+			ancestors += Core::CreateString(ancestor_name.size() + 32, "<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.c_str());
 			element_ancestor = element_ancestor->GetParentNode();
 			ancestor_depth++;
 		}
 
-		if (ancestors.Empty())
+		if (ancestors.empty())
 		{
 			while (ancestors_content->HasChildNodes())
 				ancestors_content->RemoveChild(ancestors_content->GetFirstChild());
@@ -412,17 +412,17 @@ void ElementInfo::UpdateSourceElement()
 
 				Core::String child_name = child->GetTagName();
 				const Core::String child_id = child->GetId();
-				if (!child_id.Empty())
+				if (!child_id.empty())
 				{
 					child_name += "#";
 					child_name += child_id;
 				}
 
-				children.Append(Core::String(child_name.Length() + 32, "<p id=\"c %d\">%s</p>", i, child_name.CString()));
+				children += Core::CreateString(child_name.size() + 32, "<p id=\"c %d\">%s</p>", i, child_name.c_str());
 			}
 		}
 
-		if (children.Empty())
+		if (children.empty())
 		{
 			while (children_content->HasChildNodes())
 				children_content->RemoveChild(children_content->GetChild(0));
@@ -457,7 +457,7 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 			NamedPropertyList::iterator insert_iterator = properties.begin();
 			while (insert_iterator != properties.end())
 			{
-				int source_cmp = strcasecmp((*insert_iterator).second->source.CString(), property->source.CString());
+				int source_cmp = strcasecmp((*insert_iterator).second->source.c_str(), property->source.c_str());
 				if (source_cmp > 0 ||
 					(source_cmp == 0 && (*insert_iterator).second->source_line_number >= property->source_line_number))
 					break;
@@ -473,7 +473,7 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 	{
 		// Print the 'inherited from ...' header if we're not the primary element.
 		if (element != primary_element)
-			property_rml += Core::String(element->GetTagName().Length() + 32, "<h3>inherited from %s</h3>", element->GetTagName().CString());
+			property_rml += Core::CreateString(element->GetTagName().size() + 32, "<h3>inherited from %s</h3>", element->GetTagName().c_str());
 
 		NamedPropertyMap::iterator base_properties = property_map.find(Core::PseudoClassList());
 		if (base_properties != property_map.end())
@@ -486,15 +486,15 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 				continue;
 
 			// Print the pseudo-class header.
-			property_rml.Append("<h3>");
+			property_rml += "<h3>";
 
 			for (Core::PseudoClassList::const_iterator j = (*i).first.begin(); j != (*i).first.end(); ++j)
 			{
-				property_rml.Append(" :");
-				property_rml.Append(*j);
+				property_rml += " :";
+				property_rml += *j;
 			}
 
-			property_rml.Append("</h3>");
+			property_rml += "</h3>";
 
 			BuildPropertiesRML(property_rml, (*i).second);
 		}
@@ -518,15 +518,15 @@ void ElementInfo::BuildPropertiesRML(Core::String& property_rml, const NamedProp
 			last_source = properties[i].second->source;
 			last_source_line = properties[i].second->source_line_number;
 
-			property_rml.Append("<h4>");
+			property_rml += "<h4>";
 
-			if (last_source.Empty() &&
+			if (last_source.empty() &&
 				last_source_line == 0)
-				property_rml.Append("<em>inline</em>");
+				property_rml += "<em>inline</em>";
 			else
-				property_rml.Append(Core::String(last_source.Length() + 32, "<em>%s</em>: %d", last_source.CString(), last_source_line));
+				property_rml += Core::CreateString(last_source.size() + 32, "<em>%s</em>: %d", last_source.c_str(), last_source_line);
 
-			property_rml.Append("</h4>");
+			property_rml += "</h4>";
 		}
 
 		BuildPropertyRML(property_rml, properties[i].first, properties[i].second);
@@ -538,25 +538,25 @@ void ElementInfo::BuildPropertyRML(Core::String& property_rml, const Core::Strin
 	Core::String property_value = property->ToString();
 	RemoveTrailingZeroes(property_value);
 
-	property_rml += Core::String(name.Length() + property_value.Length() + 32, "%s: <em>%s;</em><br />", name.CString(), property_value.CString());
+	property_rml += Core::CreateString(name.size() + property_value.size() + 32, "%s: <em>%s;</em><br />", name.c_str(), property_value.c_str());
 }
 
 void ElementInfo::RemoveTrailingZeroes(Core::String& string)
 {
-	if (string.Empty())
+	if (string.empty())
 	{
 		return;
 	}
 
 	// First, check for a decimal point. No point, no chance of trailing zeroes!
-	size_t decimal_point_position = string.Find(".");
+	size_t decimal_point_position = string.find(".");
 	if (decimal_point_position != Core::String::npos)
 	{
 		// Ok, so now we start at the back of the string and find the first
 		// numeral. If the character we find is a zero, then we start counting
 		// back till we find something that isn't a zero or a decimal point -
 		// and then remove all that we've counted.
-		size_t last_zero = string.Length() - 1;
+		size_t last_zero = string.size() - 1;
 		while ((string[last_zero] < '0' || string[last_zero] > '9') && string[last_zero] != '.')
 		{
 			if (last_zero == 0)
@@ -595,13 +595,13 @@ void ElementInfo::RemoveTrailingZeroes(Core::String& string)
 
 		// Now remove everything between first_zero and last_zero, inclusive.
 		if (last_zero > first_zero)
-			string.Erase(first_zero, (last_zero - first_zero) + 1);
+			string.erase(first_zero, (last_zero - first_zero) + 1);
 	}
 }
 
 bool ElementInfo::IsDebuggerElement(Core::Element* element)
 {
-	return element->GetOwnerDocument()->GetId().Find("rkt-debug-") == 0;
+	return element->GetOwnerDocument()->GetId().find("rkt-debug-") == 0;
 }
 
 }

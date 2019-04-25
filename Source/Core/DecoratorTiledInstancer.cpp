@@ -39,37 +39,37 @@ DecoratorTiledInstancer::~DecoratorTiledInstancer()
 // Adds the property declarations for a tile.
 void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool register_repeat_modes)
 {
-	RegisterProperty(String(32, "%s-src", name.CString()), "").AddParser("string");
-	RegisterProperty(String(32, "%s-s-begin", name.CString()), "0").AddParser("length");
-	RegisterProperty(String(32, "%s-s-end", name.CString()), "1").AddParser("length");
-	RegisterProperty(String(32, "%s-t-begin", name.CString()), "0").AddParser("length");
-	RegisterProperty(String(32, "%s-t-end", name.CString()), "1").AddParser("length");
-	RegisterShorthand(String(32, "%s-s", name.CString()), String(64, "%s-s-begin, %s-s-end", name.CString(), name.CString()));
-	RegisterShorthand(String(32, "%s-t", name.CString()), String(64, "%s-t-begin, %s-t-end", name.CString(), name.CString()));
+	RegisterProperty(CreateString(32, "%s-src", name.c_str()), "").AddParser("string");
+	RegisterProperty(CreateString(32, "%s-s-begin", name.c_str()), "0").AddParser("length");
+	RegisterProperty(CreateString(32, "%s-s-end", name.c_str()), "1").AddParser("length");
+	RegisterProperty(CreateString(32, "%s-t-begin", name.c_str()), "0").AddParser("length");
+	RegisterProperty(CreateString(32, "%s-t-end", name.c_str()), "1").AddParser("length");
+	RegisterShorthand(CreateString(32, "%s-s", name.c_str()), CreateString(64, "%s-s-begin, %s-s-end", name.c_str(), name.c_str()));
+	RegisterShorthand(CreateString(32, "%s-t", name.c_str()), CreateString(64, "%s-t-begin, %s-t-end", name.c_str(), name.c_str()));
 
 	if (register_repeat_modes)
 	{
-		RegisterProperty(String(32, "%s-repeat", name.CString()), "stretch")
+		RegisterProperty(CreateString(32, "%s-repeat", name.c_str()), "stretch")
 			.AddParser("keyword", "stretch, clamp-stretch, clamp-truncate, repeat-stretch, repeat-truncate");
-		RegisterShorthand(name, String(256, "%s-src, %s-repeat, %s-s-begin, %s-t-begin, %s-s-end, %s-t-end", name.CString(), name.CString(), name.CString(), name.CString(), name.CString(), name.CString()));
+		RegisterShorthand(name, CreateString(256, "%s-src, %s-repeat, %s-s-begin, %s-t-begin, %s-s-end, %s-t-end", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()));
 	}
 	else
-		RegisterShorthand(name, String(256, "%s-src, %s-s-begin, %s-t-begin, %s-s-end, %s-t-end", name.CString(), name.CString(), name.CString(), name.CString(), name.CString()));
+		RegisterShorthand(name, CreateString(256, "%s-src, %s-s-begin, %s-t-begin, %s-s-end, %s-t-end", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()));
 }
 
 // Retrieves all the properties for a tile from the property dictionary.
 void DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties, const String& name)
 {
-	LoadTexCoord(properties, String(32, "%s-s-begin", name.CString()), tile.texcoords[0].x, tile.texcoords_absolute[0][0]);
-	LoadTexCoord(properties, String(32, "%s-t-begin", name.CString()), tile.texcoords[0].y, tile.texcoords_absolute[0][1]);
-	LoadTexCoord(properties, String(32, "%s-s-end", name.CString()), tile.texcoords[1].x, tile.texcoords_absolute[1][0]);
-	LoadTexCoord(properties, String(32, "%s-t-end", name.CString()), tile.texcoords[1].y, tile.texcoords_absolute[1][1]);
+	LoadTexCoord(properties, CreateString(32, "%s-s-begin", name.c_str()), tile.texcoords[0].x, tile.texcoords_absolute[0][0]);
+	LoadTexCoord(properties, CreateString(32, "%s-t-begin", name.c_str()), tile.texcoords[0].y, tile.texcoords_absolute[0][1]);
+	LoadTexCoord(properties, CreateString(32, "%s-s-end", name.c_str()), tile.texcoords[1].x, tile.texcoords_absolute[1][0]);
+	LoadTexCoord(properties, CreateString(32, "%s-t-end", name.c_str()), tile.texcoords[1].y, tile.texcoords_absolute[1][1]);
 
-	const Property* repeat_property = properties.GetProperty(String(32, "%s-repeat", name.CString()));
+	const Property* repeat_property = properties.GetProperty(CreateString(32, "%s-repeat", name.c_str()));
 	if (repeat_property != NULL)
 		tile.repeat_mode = (DecoratorTiled::TileRepeatMode) repeat_property->value.Get< int >();
 
-	const Property* texture_property = properties.GetProperty(String(32, "%s-src", name.CString()));
+	const Property* texture_property = properties.GetProperty(CreateString(32, "%s-src", name.c_str()));
 	texture_name = texture_property->Get< String >();
 	rcss_path = texture_property->source;
 }

@@ -147,7 +147,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 	// Bail if we don't have a valid font face.
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
 	if (font_face_handle == NULL ||
-		line_begin >= (int) text.Length())
+		line_begin >= (int) text.size())
 		return 0;
 
 	// Determine how we are processing white-space while formatting the text.
@@ -159,13 +159,13 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 							white_space_property == WHITE_SPACE_PRE_WRAP ||
 							white_space_property == WHITE_SPACE_PRE_LINE;
 
-	const word* token_begin = text.CString() + line_begin;
+	const word* token_begin = text.c_str() + line_begin;
 	WString token;
 
-	BuildToken(token, token_begin, text.CString() + text.Length(), true, collapse_white_space, break_at_endline, GetTextTransform());
+	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, GetTextTransform());
 	token_width = (float) font_face_handle->GetStringWidth(token, 0);
 
-	return LastToken(token_begin, text.CString() + text.Length(), collapse_white_space, break_at_endline);
+	return LastToken(token_begin, text.c_str() + text.size(), collapse_white_space, break_at_endline);
 }
 
 // Generates a line of text rendered from this element
@@ -174,7 +174,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
 
 	// Initialise the output variables.
-	line.Clear();
+	line.clear();
 	line_length = 0;
 	line_width = 0;
 
@@ -202,21 +202,21 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 	// white-space parsing parameters. Each section is then appended to the line if it can fit. If not, or if an
 	// endline is found (and we're processing them), then the line is ended. kthxbai!
 
-	const word* token_begin = text.CString() + line_begin;
-	const word* string_end = text.CString() + text.Length();
+	const word* token_begin = text.c_str() + line_begin;
+	const word* string_end = text.c_str() + text.size();
 	while (token_begin != string_end)
 	{
 		WString token;
 		const word* next_token_begin = token_begin;
 
 		// Generate the next token and determine its pixel-length.
-		bool break_line = BuildToken(token, next_token_begin, string_end, line.Empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
-		int token_width = font_face_handle->GetStringWidth(token, line.Empty() ? 0 : line[line.Length() - 1]);
+		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
+		int token_width = font_face_handle->GetStringWidth(token, line.empty() ? 0 : line[line.size() - 1]);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
 		{
-			if (!line.Empty() &&
+			if (!line.empty() &&
 				(line_width + token_width > maximum_line_width ||
 				 LastToken(next_token_begin, string_end, collapse_white_space, break_at_endline) && line_width + token_width > maximum_line_width - right_spacing_width))
 			{
@@ -354,7 +354,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 // Returns the RML of this element
 void ElementTextDefault::GetRML(String& content)
 {
-	text.ToUTF8(content, true);
+	content += ToUTF8(text);
 }
 
 // Forces a reevaluation of applicable font effects.
@@ -434,7 +434,7 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 {
 	ROCKET_ASSERT(token_begin != string_end);
 
-	token.Reserve(string_end - token_begin + token.Length());
+	token.reserve(string_end - token_begin + token.size());
 
 	// Check what the first character of the token is; all we need to know is if it is white-space or not.
 	bool parsing_white_space = StringUtilities::IsWhitespace(*token_begin);
@@ -470,18 +470,16 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 			else
 			{
 				WString ucs2_escape_code(escape_begin + 1, token_begin);
-				String escape_code;
-				ucs2_escape_code.ToUTF8(escape_code);
 
-				if (ucs2_escape_code == "lt")
+				if (ucs2_escape_code == L"lt")
 					character = '<';
-				else if (ucs2_escape_code == "gt")
+				else if (ucs2_escape_code == L"gt")
 					character = '>';
-				else if (ucs2_escape_code == "amp")
+				else if (ucs2_escape_code == L"amp")
 					character = '&';
-				else if (ucs2_escape_code == "quot")
+				else if (ucs2_escape_code == L"quot")
 					character = '"';
-				else if (ucs2_escape_code == "nbsp")
+				else if (ucs2_escape_code == L"nbsp")
 				{
 					character = ' ';
 					force_non_whitespace = true;

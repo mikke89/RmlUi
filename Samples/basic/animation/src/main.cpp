@@ -53,7 +53,7 @@ public:
 		if (document != NULL)
 		{
 			{
-				document->GetElementById("title")->SetInnerRML(title);
+				//document->GetElementById("title")->SetInnerRML(title);
 				document->SetProperty("left", Property(position.x, Property::PX));
 				document->SetProperty("top", Property(position.y, Property::PX));
 				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 1.5f, Tween{Tween::Quadratic, Tween::Out}, 1, true, 0.0f);
@@ -149,7 +149,7 @@ public:
 			int route = rand() % 50;
 			int max = (rand() % 40) + 10;
 			int value = rand() % max;
-			Rocket::Core::String rml_row(1000, R"(
+			Rocket::Core::String rml_row = Rocket::Core::CreateString(1000, R"(
 			<div class="row">
 				<div class="col col1"><button class="expand" index="%d">+</button>&nbsp;<a>Route %d</a></div>
 				<div class="col col23"><input type="range" class="assign_range" min="0" max="%d" value="%d"/></div>
@@ -238,7 +238,7 @@ void GameLoop()
 		auto el = window->GetDocument()->GetElementById("fps");
 		float fps = float(count_frames) / dt;
 		count_frames = 0;
-		el->SetInnerRML(Rocket::Core::String{ 20, "FPS: %f", fps });
+		el->SetInnerRML(Rocket::Core::CreateString( 20, "FPS: %f", fps ));
 	}
 
 	window->performance_test();

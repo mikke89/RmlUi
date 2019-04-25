@@ -79,7 +79,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		if (merge_template)
 			header.MergeHeader(*merge_template->GetHeader());
 		else
-			Log::Message(Log::LT_WARNING, "Template %s not found", header.template_resources[i].CString());
+			Log::Message(Log::LT_WARNING, "Template %s not found", header.template_resources[i].c_str());
 	}
 
 	// Merge the document's header last, as it is the most overriding.
@@ -100,7 +100,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		for (size_t i = 0;i < header.rcss_inline.size(); i++)
 		{			
 			StyleSheet* new_sheet = new StyleSheet();
-			StreamMemory* stream = new StreamMemory((const byte*) header.rcss_inline[i].CString(), header.rcss_inline[i].Length());
+			StreamMemory* stream = new StreamMemory((const byte*) header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
 			stream->SetSourceURL(document_header->source);
 
 			if (new_sheet->LoadStyleSheet(stream))
@@ -142,7 +142,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	// Load internal scripts.
 	for (size_t i = 0; i < header.scripts_inline.size(); i++)
 	{
-		StreamMemory* stream = new StreamMemory((const byte*) header.scripts_inline[i].CString(), header.scripts_inline[i].Length());
+		StreamMemory* stream = new StreamMemory((const byte*) header.scripts_inline[i].c_str(), header.scripts_inline[i].size());
 		LoadScript(stream, "");
 		stream->RemoveReference();
 	}
@@ -282,7 +282,7 @@ ElementText* ElementDocument::CreateTextNode(const String& text)
 	}
 	
 	// Set the text
-	element_text->SetText(text);
+	element_text->SetText(ToWideString(text));
 
 	return element_text;
 }

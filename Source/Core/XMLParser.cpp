@@ -63,10 +63,10 @@ XMLParser::~XMLParser()
 // Registers a custom node handler to be used to a given tag.
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, XMLNodeHandler* handler)
 {
-	String tag = _tag.ToLower();
+	String tag = ToLower(_tag);
 
 	// Check for a default node registration.
-	if (tag.Empty())
+	if (tag.empty())
 	{
 		if (default_node_handler != NULL)
 			default_node_handler->RemoveReference();
@@ -119,7 +119,7 @@ void XMLParser::PushDefaultHandler()
 
 bool XMLParser::PushHandler(const String& tag)
 {
-	NodeHandlers::iterator i = node_handlers.find(tag.ToLower());
+	NodeHandlers::iterator i = node_handlers.find(ToLower(tag));
 	if (i == node_handlers.end())
 		return false;
 
@@ -136,7 +136,7 @@ const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 /// Called when the parser finds the beginning of an element tag.
 void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _attributes)
 {
-	String name = _name.ToLower();
+	String name = ToLower(_name);
 	XMLAttributes attributes;
 	
 	String key;
@@ -144,7 +144,7 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _at
 	int pos = 0;
 	while (_attributes.Iterate(pos, key, value))
 	{
-		attributes.Set(key.ToLower(), *value);
+		attributes.Set(ToLower(key), *value);
 	}
 
 	// Check for a specific handler that will override the child handler.
@@ -175,7 +175,7 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _at
 /// Called when the parser finds the end of an element tag.
 void XMLParser::HandleElementEnd(const String& _name)
 {
-	String name = _name.ToLower();
+	String name = ToLower(_name);
 
 	// Copy the top of the stack
 	ParseFrame frame = stack.top();
@@ -187,7 +187,7 @@ void XMLParser::HandleElementEnd(const String& _name)
 	// Check frame names
 	if (name != frame.tag)
 	{
-		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.CString(), GetSourceURL().GetURL().CString(), GetLineNumber(), frame.tag.CString());
+		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.c_str(), GetSourceURL().GetURL().c_str(), GetLineNumber(), frame.tag.c_str());
 	}
 
 	// Call element end handler

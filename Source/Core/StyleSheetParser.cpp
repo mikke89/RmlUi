@@ -51,10 +51,10 @@ StyleSheetParser::~StyleSheetParser()
 
 static bool IsValidIdentifier(const String& str)
 {
-	if (str.Empty())
+	if (str.empty())
 		return false;
 
-	for (int i = 0; i < str.Length(); i++)
+	for (int i = 0; i < str.size(); i++)
 	{
 		char c = str[i];
 		bool valid = (
@@ -103,7 +103,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 {
 	if (!IsValidIdentifier(identifier))
 	{
-		Log::Message(Log::LT_WARNING, "Invalid keyframes identifier '%s' at %s:%d", identifier.CString(), stream_file_name.CString(), line_number);
+		Log::Message(Log::LT_WARNING, "Invalid keyframes identifier '%s' at %s:%d", identifier.c_str(), stream_file_name.c_str(), line_number);
 		return false;
 	}
 	if (properties.GetNumProperties() == 0)
@@ -119,19 +119,19 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	{
 		float value = 0.0f;
 		int count = 0;
-		rule = rule.ToLower();
+		rule = ToLower(rule);
 		if (rule == "from")
 			rule_values.push_back(0.0f);
 		else if (rule == "to")
 			rule_values.push_back(1.0f);
-		else if(sscanf(rule.CString(), "%f%%%n", &value, &count) == 1)
+		else if(sscanf(rule.c_str(), "%f%%%n", &value, &count) == 1)
 			if(count > 0 && value >= 0.0f && value <= 100.0f)
 				rule_values.push_back(0.01f * value);
 	}
 
 	if (rule_values.empty())
 	{
-		Log::Message(Log::LT_WARNING, "Invalid keyframes rule(s) '%s' at %s:%d", rules.CString(), stream_file_name.CString(), line_number);
+		Log::Message(Log::LT_WARNING, "Invalid keyframes rule(s) '%s' at %s:%d", rules.c_str(), stream_file_name.c_str(), line_number);
 		return false;
 	}
 
@@ -162,7 +162,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 	int rule_count = 0;
 	line_number = 0;
 	stream = _stream;
-	stream_file_name = stream->GetSourceURL().GetURL().Replace("|", ":");
+	stream_file_name = Replace(stream->GetSourceURL().GetURL(), "|", ":");
 
 	enum class State { Global, KeyframesIdentifier, KeyframesRules, Invalid };
 	State state = State::Global;
@@ -201,7 +201,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 				}
 				else
 				{
-					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing stylesheet at %s:%d. Trying to proceed.", token, stream_file_name.CString(), line_number);
+					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing stylesheet at %s:%d. Trying to proceed.", token, stream_file_name.c_str(), line_number);
 				}
 			}
 			break;
@@ -209,16 +209,16 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 			{
 				if (token == '{')
 				{
-					keyframes_identifier.Clear();
-					if (pre_token_str.Substring(0, KEYFRAMES.Length()) == KEYFRAMES)
+					keyframes_identifier.clear();
+					if (pre_token_str.substr(0, KEYFRAMES.size()) == KEYFRAMES)
 					{
-						keyframes_identifier = StringUtilities::StripWhitespace(pre_token_str.Substring(KEYFRAMES.Length()));
+						keyframes_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(KEYFRAMES.size()));
 					}
 					state = State::KeyframesRules;
 				}
 				else
 				{
-					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframes identifier in stylesheet at %s:%d", token, stream_file_name.CString(), line_number);
+					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframes identifier in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
 					state = State::Invalid;
 				}
 			}
@@ -242,7 +242,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 				}
 				else
 				{
-					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframes in stylesheet at %s:%d", token, stream_file_name.CString(), line_number);
+					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframes in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
 					state = State::Invalid;
 				}
 			}
@@ -268,7 +268,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 
 bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, const String& properties)
 {
-	stream = new StreamMemory((const byte*)properties.CString(), properties.Length());
+	stream = new StreamMemory((const byte*)properties.c_str(), properties.size());
 	bool success = ReadProperties(parsed_properties);
 	stream->RemoveReference();
 	stream = NULL;
@@ -297,17 +297,17 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 				if (character == ';')
 				{
 					name = StringUtilities::StripWhitespace(name);
-					if (!name.Empty())
+					if (!name.empty())
 					{
-						Log::Message(Log::LT_WARNING, "Found name with no value parsing property declaration '%s' at %s:%d", name.CString(), stream_file_name.CString(), line_number);
-						name.Clear();
+						Log::Message(Log::LT_WARNING, "Found name with no value parsing property declaration '%s' at %s:%d", name.c_str(), stream_file_name.c_str(), line_number);
+						name.clear();
 					}
 				}
 				else if (character == '}')
 				{
 					name = StringUtilities::StripWhitespace(name);
-					if (!StringUtilities::StripWhitespace(name).Empty())
-						Log::Message(Log::LT_WARNING, "End of rule encountered while parsing property declaration '%s' at %s:%d", name.CString(), stream_file_name.CString(), line_number);
+					if (!StringUtilities::StripWhitespace(name).empty())
+						Log::Message(Log::LT_WARNING, "End of rule encountered while parsing property declaration '%s' at %s:%d", name.c_str(), stream_file_name.c_str(), line_number);
 					return true;
 				}
 				else if (character == ':')
@@ -316,7 +316,7 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 					state = VALUE;
 				}
 				else
-					name.Append(character);
+					name += character;
 			}
 			break;
 			
@@ -327,20 +327,20 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 					value = StringUtilities::StripWhitespace(value);
 
 					if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number))
-						Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.CString(), value.CString(), stream_file_name.CString(), line_number);
+						Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 
-					name.Clear();
-					value.Clear();
+					name.clear();
+					value.clear();
 					state = NAME;
 				}
 				else if (character == '}')
 				{
-					Log::Message(Log::LT_WARNING, "End of rule encountered while parsing property declaration '%s: %s;' in %s: %d.", name.CString(), value.CString(), stream_file_name.CString(), line_number);
+					Log::Message(Log::LT_WARNING, "End of rule encountered while parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 					return true;
 				}
 				else
 				{
-					value.Append(character);
+					value += character;
 					if (character == '"')
 						state = QUOTE;
 				}
@@ -349,7 +349,7 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 
 			case QUOTE:
 			{
-				value.Append(character);
+				value += character;
 				if (character == '"' && previous_character != '/')
 					state = VALUE;
 			}
@@ -359,8 +359,8 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 		previous_character = character;
 	}
 
-	if (!name.Empty() || !value.Empty())
-		Log::Message(Log::LT_WARNING, "Invalid property declaration '%s':'%s' at %s:%d", name.CString(), value.CString(), stream_file_name.CString(), line_number);
+	if (!name.empty() || !value.empty())
+		Log::Message(Log::LT_WARNING, "Invalid property declaration '%s':'%s' at %s:%d", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 	
 	return true;
 }
@@ -386,28 +386,28 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& name
 		StringList structural_pseudo_classes;
 
 		size_t index = 0;
-		while (index < name.Length())
+		while (index < name.size())
 		{
 			size_t start_index = index;
 			size_t end_index = index + 1;
 
 			// Read until we hit the next identifier.
-			while (end_index < name.Length() &&
+			while (end_index < name.size() &&
 				   name[end_index] != '#' &&
 				   name[end_index] != '.' &&
 				   name[end_index] != ':')
 				end_index++;
 
-			String identifier = name.Substring(start_index, end_index - start_index);
-			if (!identifier.Empty())
+			String identifier = name.substr(start_index, end_index - start_index);
+			if (!identifier.empty())
 			{
 				switch (identifier[0])
 				{
-					case '#':	id = identifier.Substring(1); break;
-					case '.':	classes.push_back(identifier.Substring(1)); break;
+					case '#':	id = identifier.substr(1); break;
+					case '.':	classes.push_back(identifier.substr(1)); break;
 					case ':':
 					{
-						String pseudo_class_name = identifier.Substring(1);
+						String pseudo_class_name = identifier.substr(1);
 						if (StyleSheetFactory::GetSelector(pseudo_class_name) != NULL)
 							structural_pseudo_classes.push_back(pseudo_class_name);
 						else
@@ -432,7 +432,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& name
 		leaf_node = leaf_node->GetChildNode(tag, StyleSheetNode::TAG);
 		tag_node = leaf_node;
 
-		if (!id.Empty())
+		if (!id.empty())
 			leaf_node = leaf_node->GetChildNode(id, StyleSheetNode::ID);
 
 		for (size_t j = 0; j < classes.size(); ++j)
@@ -453,7 +453,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& name
 
 char StyleSheetParser::FindToken(String& buffer, const char* tokens, bool remove_token)
 {
-	buffer.Clear();
+	buffer.clear();
 	char character;
 	while (ReadCharacter(character))
 	{
@@ -465,7 +465,7 @@ char StyleSheetParser::FindToken(String& buffer, const char* tokens, bool remove
 		}
 		else
 		{
-			buffer.Append(character);
+			buffer += character;
 			parse_buffer_pos++;
 		}
 	}
@@ -482,7 +482,7 @@ bool StyleSheetParser::ReadCharacter(char& buffer)
 	// stream or we find the requested token
 	do
 	{
-		while (parse_buffer_pos < parse_buffer.Length())
+		while (parse_buffer_pos < parse_buffer.size())
 		{
 			if (parse_buffer[parse_buffer_pos] == '\n')
 				line_number++;
@@ -492,7 +492,7 @@ bool StyleSheetParser::ReadCharacter(char& buffer)
 				if (parse_buffer[parse_buffer_pos] == '*')
 				{
 					parse_buffer_pos++;
-					if (parse_buffer_pos >= parse_buffer.Length())
+					if (parse_buffer_pos >= parse_buffer.size())
 					{
 						if (!FillBuffer())
 							return false;
@@ -508,7 +508,7 @@ bool StyleSheetParser::ReadCharacter(char& buffer)
 				if (parse_buffer[parse_buffer_pos] == '/')
 				{
 					parse_buffer_pos++;
-					if (parse_buffer_pos >= parse_buffer.Length())
+					if (parse_buffer_pos >= parse_buffer.size())
 					{
 						if (!FillBuffer())
 						{
@@ -524,7 +524,7 @@ bool StyleSheetParser::ReadCharacter(char& buffer)
 					{
 						buffer = '/';
 						if (parse_buffer_pos == 0)
-							parse_buffer.Insert(parse_buffer_pos, '/');
+							parse_buffer.insert(parse_buffer.begin() + parse_buffer_pos, '/');
 						else
 							parse_buffer_pos--;
 						return true;
@@ -556,7 +556,7 @@ bool StyleSheetParser::FillBuffer()
 
 	// Read in some data (4092 instead of 4096 to avoid the buffer growing when we have to add back
 	// a character after a failed comment parse.)
-	parse_buffer.Clear();
+	parse_buffer.clear();
 	bool read = stream->Read(parse_buffer, 4092) > 0;
 	parse_buffer_pos = 0;
 

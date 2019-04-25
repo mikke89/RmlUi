@@ -75,10 +75,10 @@ bool FontFaceHandle::Initialise(BitmapFontDefinitions *bm_face, const String& _c
 	// Construct proper path to texture
 	URL fnt_source = bm_face->Face.Source;
 	URL bitmap_source = bm_face->Face.BitmapSource;
-	if(bitmap_source.GetPath().Empty())
+	if(bitmap_source.GetPath().empty())
 	{
 		texture_source = fnt_source.GetPath() + bitmap_source.GetFileName();
-		if(!bitmap_source.GetExtension().Empty())
+		if(!bitmap_source.GetExtension().empty())
 		{
 			texture_source += "." + bitmap_source.GetExtension();
 		}
@@ -90,7 +90,7 @@ bool FontFaceHandle::Initialise(BitmapFontDefinitions *bm_face, const String& _c
 
 	if (!UnicodeRange::BuildList(charset, raw_charset))
 	{
-		Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", raw_charset.CString());
+		Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", raw_charset.c_str());
 		return false;
 	}
 
@@ -114,7 +114,7 @@ int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) 
 {
 	int width = 0;
 
-	for (size_t i = 0; i < string.Length(); i++)
+	for (size_t i = 0; i < string.size(); i++)
 	{
 		word character_code = string[i];
 
@@ -247,8 +247,8 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 		line_width = 0;
 		word prior_character = 0;
 
-		const word* string_iterator = string.CString();
-		const word* string_end = string.CString() + string.Length();
+		const word* string_iterator = string.c_str();
+		const word* string_end = string.c_str() + string.size();
 
 		for (; string_iterator != string_end; string_iterator++)
 		{

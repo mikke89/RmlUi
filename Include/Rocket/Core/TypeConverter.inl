@@ -163,7 +163,7 @@ class TypeConverter< String, type > \
 public: \
 	static bool Convert(const String& src, type& dest) \
 	{ \
-		dest = (type) atof(src.CString()); \
+		dest = (type) atof(src.c_str()); \
 		return true; \
 	} \
 };
@@ -176,7 +176,7 @@ class TypeConverter< String, int >
 public:
 	static bool Convert(const String& src, int& dest)
 	{
-		return sscanf(src.CString(), "%d", &dest) == 1;
+		return sscanf(src.c_str(), "%d", &dest) == 1;
 	}
 };
 
@@ -186,7 +186,7 @@ class TypeConverter< String, unsigned int >
 public:
 	static bool Convert(const String& src, unsigned int& dest)
 	{
-		return sscanf(src.CString(), "%u", &dest) == 1;
+		return sscanf(src.c_str(), "%u", &dest) == 1;
 	}
 };
 
@@ -197,7 +197,7 @@ public:
 	static bool Convert(const String& src, byte& dest)
 	{
 		int value;
-		bool ret = sscanf(src.CString(), "%d", &value) == 1;
+		bool ret = sscanf(src.c_str(), "%d", &value) == 1;
 		dest = (byte) value;
 		return ret && (value <= 255);
 	}
@@ -209,7 +209,7 @@ class TypeConverter< String, bool >
 public:
 	static bool Convert(const String& src, bool& dest)
 	{
-		String lower = src.ToLower();
+		String lower = ToLower(src);
 		if (lower == "1" || lower == "true")
 		{
 			dest = true;
@@ -284,7 +284,7 @@ class TypeConverter< type, String > \
 public: \
 	static bool Convert(const type& src, String& dest) \
 	{ \
-		return dest.FormatString(32, "%.4f", src) > 0; \
+		return FormatString(dest, 32, "%.4f", src) > 0; \
 	} \
 };
 FLOAT_STRING_CONVERTER(float);
@@ -296,7 +296,7 @@ class TypeConverter< int, String >
 public:
 	static bool Convert(const int& src, String& dest)
 	{
-		return dest.FormatString(32, "%d", src) > 0;
+		return FormatString(dest, 32, "%d", src) > 0;
 	}
 };
 
@@ -306,7 +306,7 @@ class TypeConverter< unsigned int, String >
 public:
 	static bool Convert(const unsigned int& src, String& dest)
 	{
-		return dest.FormatString(32, "%u", src) > 0;
+		return FormatString(dest, 32, "%u", src) > 0;
 	}
 };
 
@@ -316,7 +316,7 @@ class TypeConverter< byte, String >
 public:
 	static bool Convert(const byte& src, String& dest)
 	{
-		return dest.FormatString(32, "%u", src) > 0;
+		return FormatString(dest, 32, "%u", src) > 0;
 	}
 };
 
@@ -385,7 +385,7 @@ public:
 			if (TypeConverter< float, String >::Convert(t.duration, tmp)) dest += tmp + "s ";
 			if (t.delay > 0.0f && TypeConverter< float, String >::Convert(t.delay, tmp)) dest += tmp + "s ";
 			if (t.reverse_adjustment_factor > 0.0f && TypeConverter< float, String >::Convert(t.delay, tmp)) dest += tmp;
-			if (dest.Length() > 0) dest.Resize(dest.Length() - 1);
+			if (dest.size() > 0) dest.resize(dest.size() - 1);
 			if (i != src.transitions.size() - 1) dest += ", ";
 		}
 		return true;

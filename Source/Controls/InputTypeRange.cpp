@@ -46,7 +46,7 @@ InputTypeRange::~InputTypeRange()
 // Returns a string representation of the current value of the form control.
 Rocket::Core::String InputTypeRange::GetValue() const
 {
-	return Rocket::Core::String(32, "%f", widget->GetValue());
+	return Rocket::Core::CreateString(32, "%f", widget->GetValue());
 }
 
 // Called every update from the host element.

@@ -84,14 +84,14 @@ void Log::ParseError(const String& filename, int line_number, const char* fmt, .
 	va_end(argument_list);
 
 	if (line_number >= 0)
-		Message(Log::LT_ERROR, "%s:%d: %s", filename.CString(), line_number, buffer);
+		Message(Log::LT_ERROR, "%s:%d: %s", filename.c_str(), line_number, buffer);
 	else
-		Message(Log::LT_ERROR, "%s: %s", filename.CString(), buffer);
+		Message(Log::LT_ERROR, "%s: %s", filename.c_str(), buffer);
 }
 
 bool Assert(const char* msg, const char* file, int line)
 {
-	Rocket::Core::String message(1024, "%s\n%s:%d", msg, file, line);
+	Rocket::Core::String message = CreateString(1024, "%s\n%s:%d", msg, file, line);
 	return GetSystemInterface()->LogMessage(Log::LT_ASSERT, message);
 }
 

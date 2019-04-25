@@ -116,7 +116,7 @@ WidgetTextInput::~WidgetTextInput()
 // Sets the value of the text field.
 void WidgetTextInput::SetValue(const Core::String& value)
 {
-	text_element->SetText(value);
+	text_element->SetText(Core::ToWideString(value));
 	FormatElement();
 
 	UpdateRelativeCursor();
@@ -130,11 +130,11 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 		max_length = _max_length;
 		if (max_length >= 0)
 		{
-			const Core::WString& value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
-			if ((int) value.Length() > max_length)
+			Core::WString value = Core::ToWideString( GetElement()->GetAttribute< Rocket::Core::String >("value", "") );
+			if ((int) value.size() > max_length)
 			{
 				Rocket::Core::String new_value;
-				Core::WString(value.CString(), value.CString() + max_length).ToUTF8(new_value);
+				new_value = Core::ToUTF8(Core::WString(value.c_str(), value.c_str() + max_length));
 
 				GetElement()->SetAttribute("value", new_value);
 			}
@@ -351,10 +351,10 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
                 if (ctrl)
                 {
     				const Core::WString clipboard_content = Clipboard::Get();
-    				for (size_t i = 0; i < clipboard_content.Length(); ++i)
+    				for (size_t i = 0; i < clipboard_content.size(); ++i)
     				{
     					if (max_length > 0 &&
-    						(int) Core::WString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).Length() > max_length)
+    						(int) Core::ToWideString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).size() > max_length)
     						break;
 
     					AddCharacter(clipboard_content[i]);
@@ -383,7 +383,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
 			Rocket::Core::word character = event.GetParameter< Rocket::Core::word >("data", 0);
-			if (max_length < 0 || (int) Core::String(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).Length() < max_length)
+			if (max_length < 0 || (int) Core::String(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).size() < max_length)
 				AddCharacter(character);
 		}
 
@@ -432,13 +432,12 @@ bool WidgetTextInput::AddCharacter(Rocket::Core::word character)
 	if (selection_length > 0)
 		DeleteSelection();
 
-	Core::WString value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
-	value.Insert(GetCursorIndex(), Core::WString(1, character), 1);
+	Core::WString value = Core::ToWideString(GetElement()->GetAttribute< Rocket::Core::String >("value", ""));
+	value.insert(GetCursorIndex(), Core::WString(1, character), 1);
 
 	edit_index += 1;
 
-	Rocket::Core::String utf8_value;
-	value.ToUTF8(utf8_value);
+	Rocket::Core::String utf8_value = Core::ToUTF8(value);
 	GetElement()->SetAttribute("value", utf8_value);
 	DispatchChangeEvent();
 
@@ -462,26 +461,25 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		return true;
 	}
 
-	Core::WString value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+	Core::WString value = Core::ToWideString(GetElement()->GetAttribute< Rocket::Core::String >("value", ""));
 
 	if (back)
 	{
 		if (GetCursorIndex() == 0)
 			return false;
 
-		value.Erase(GetCursorIndex() - 1, 1);
+		value.erase(GetCursorIndex() - 1, 1);
 		edit_index -= 1;
 	}
 	else
 	{
-		if (GetCursorIndex() == (int) value.Length())
+		if (GetCursorIndex() == (int) value.size())
 			return false;
 
-		value.Erase(GetCursorIndex(), 1);
+		value.erase(GetCursorIndex(), 1);
 	}
 
-	Rocket::Core::String utf8_value;
-	value.ToUTF8(utf8_value);
+	Rocket::Core::String utf8_value = Core::ToUTF8(value);
 	GetElement()->SetAttribute("value", utf8_value);
 	DispatchChangeEvent();
 
@@ -494,7 +492,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 void WidgetTextInput::CopySelection()
 {
 	const Core::String& value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
-	Clipboard::Set(Core::String(value.Substring(selection_begin_index, selection_length)));
+	Clipboard::Set(Core::ToWideString(value.substr(selection_begin_index, selection_length)));
 }
 
 // Returns the absolute index of the cursor.
@@ -561,8 +559,8 @@ void WidgetTextInput::UpdateAbsoluteCursor()
 
 	for (int i = 0; i < cursor_line_index; i++)
 	{
-		absolute_cursor_index += (int)lines[i].content.Length();
-		edit_index += (int)lines[i].content.Length() + lines[i].extra_characters;
+		absolute_cursor_index += (int)lines[i].content.size();
+		edit_index += (int)lines[i].content.size() + lines[i].extra_characters;
 	}
 }
 
@@ -584,7 +582,7 @@ void WidgetTextInput::UpdateRelativeCursor()
 			return;
 		}
 
-		num_characters += (int) lines[i].content.Length();
+		num_characters += (int) lines[i].content.size();
 		edit_index += lines[i].extra_characters;
 	}
 
@@ -614,7 +612,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 
 	while (character_index < lines[line_index].content_length)
 	{
-		float next_line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.Substring(0, character_index));
+		float next_line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.substr(0, character_index));
 		if (next_line_width > position)
 		{
 			if (position - line_width < next_line_width - position)
@@ -763,8 +761,8 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 		// field's bounds.
 		bool soft_return = false;
 		if (!last_line &&
-			(line.content.Empty() ||
-			 line.content[line.content.Length() - 1] != '\n'))
+			(line.content.empty() ||
+			 line.content[line.content.size() - 1] != '\n'))
 		{
 			soft_return = true;
 
@@ -773,26 +771,26 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 			for (int i = 1; i >= 0; --i)
 			{
 				int index = line_begin + line.content_length + i;
-				if (index >= (int) text.Length())
+				if (index >= (int) text.size())
 					continue;
 
 				if (text[index] != ' ')
 				{
-					orphan = "";
+					orphan.clear();
 					continue;
 				}
 
 				int next_index = index + 1;
-				if (!orphan.Empty() ||
-					next_index >= (int) text.Length() ||
+				if (!orphan.empty() ||
+					next_index >= (int) text.size() ||
 					text[next_index] != ' ')
 					orphan += ' ';
 			}
 
-			if (!orphan.Empty())
+			if (!orphan.empty())
 			{
 				line.content += orphan;
-				line.content_length += (int) orphan.Length();
+				line.content_length += (int) orphan.size();
 				line_width += Core::ElementUtilities::GetStringWidth(text_element, orphan);
 			}
 		}
@@ -806,7 +804,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 		// The pre-selected text is placed, if there is any (if the selection starts on or before
 		// the beginning of this line, then this will be empty).
-		if (!pre_selection.Empty())
+		if (!pre_selection.empty())
 		{
 			text_element->AddLine(line_position, pre_selection);
 			line_position.x += Core::ElementUtilities::GetStringWidth(text_element, pre_selection);
@@ -814,7 +812,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 		// If there is any selected text on this line, place it in the selected text element and
 		// generate the geometry for its background.
-		if (!selection.Empty())
+		if (!selection.empty())
 		{
 			selected_text_element->AddLine(line_position, selection);
 			int selection_width = Core::ElementUtilities::GetStringWidth(selected_text_element, selection);
@@ -828,7 +826,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 		// If there is any unselected text after the selection on this line, place it in the
 		// standard text element after the selected text.
-		if (!post_selection.Empty())
+		if (!post_selection.empty())
 			text_element->AddLine(line_position, post_selection);
 
 
@@ -854,8 +852,8 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 		// Push the new line into our array of lines, but first check if its content length needs to be truncated to
 		// dodge a trailing endline.
-		if (!line.content.Empty() &&
-			line.content[line.content.Length() - 1] == '\n')
+		if (!line.content.empty() &&
+			line.content[line.content.size() - 1] == '\n')
 			line.content_length -= 1;
 		lines.push_back(line);
 	}
@@ -886,7 +884,7 @@ void WidgetTextInput::UpdateCursorPosition()
 	if (text_element->GetFontFaceHandle() == NULL)
 		return;
 
-	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.Substring(0, cursor_character_index));
+	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.substr(0, cursor_character_index));
 	cursor_position.y = -1 + cursor_line_index * (float) Core::ElementUtilities::GetLineHeight(text_element);
 }
 
@@ -940,10 +938,9 @@ void WidgetTextInput::DeleteSelection()
 {
 	if (selection_length > 0)
 	{
-		const Core::WString& value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+		const Core::WString& value = Core::ToWideString( GetElement()->GetAttribute< Rocket::Core::String >("value", "") );
 
-		Rocket::Core::String new_value;
-		Core::WString(value.Substring(0, selection_begin_index) + value.Substring(selection_begin_index + selection_length)).ToUTF8(new_value);
+		Rocket::Core::String new_value = Core::ToUTF8(Core::WString(value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length)));
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
@@ -961,16 +958,16 @@ void WidgetTextInput::GetLineSelection(Core::WString& pre_selection, Core::WStri
 	// Check if we have any selection at all, and if so if the selection is on this line.
 	if (selection_length <= 0 ||
 		selection_begin_index + selection_length < line_begin ||
-		selection_begin_index > line_begin + (int) line.Length())
+		selection_begin_index > line_begin + (int) line.size())
 	{
 		pre_selection = line;
 		return;
 	}
 
 	// Split the line up into its three parts, depending on the size and placement of the selection.
-	pre_selection = line.Substring(0, Rocket::Core::Math::Max(0, selection_begin_index - line_begin));
-	selection = line.Substring(Rocket::Core::Math::Max(0, selection_begin_index - line_begin), Rocket::Core::Math::Max(0, selection_length + Rocket::Core::Math::Min(0, selection_begin_index - line_begin)));
-	post_selection = line.Substring(selection_begin_index + selection_length - line_begin);
+	pre_selection = line.substr(0, Rocket::Core::Math::Max(0, selection_begin_index - line_begin));
+	selection = line.substr(Rocket::Core::Math::Max(0, selection_begin_index - line_begin), Rocket::Core::Math::Max(0, selection_length + Rocket::Core::Math::Min(0, selection_begin_index - line_begin)));
+	post_selection = line.substr(selection_begin_index + selection_length - line_begin);
 }
 
 void WidgetTextInput::SetKeyboardActive(bool active)

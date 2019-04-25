@@ -100,7 +100,7 @@ void DataQuery::ExecuteQuery(DataSource* _data_source, const Rocket::Core::Strin
 		limit = data_source->GetNumRows(table) - offset;
 	}
 
-	if (!order.Empty())
+	if (!order.empty())
 	{
 		// Fetch the rows from offset to limit.
 		rows.resize(limit);

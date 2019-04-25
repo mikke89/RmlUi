@@ -81,7 +81,7 @@ public:
 Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0), 
 transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false)
 {
-	tag = _tag.ToLower();
+	tag = ToLower(_tag);
 	parent = NULL;
 	focus = NULL;
 	instancer = NULL;
@@ -278,16 +278,16 @@ String Element::GetAddress(bool include_pseudo_classes) const
 	String address(tag);
 
 	// Add the ID if we have one.
-	if (!id.Empty())
+	if (!id.empty())
 	{
 		address += "#";
 		address += id;
 	}
 
 	String classes = style->GetClassNames();
-	if (!classes.Empty())
+	if (!classes.empty())
 	{
-		classes = classes.Replace(".", " ");
+		classes = Replace(classes, ".", " ");
 		address += ".";
 		address += classes;
 	}
@@ -304,7 +304,7 @@ String Element::GetAddress(bool include_pseudo_classes) const
 
 	if (parent)
 	{
-		address.Append(" < ");
+		address += " < ";
 		return address + parent->GetAddress(true);
 	}
 	else
@@ -2019,7 +2019,7 @@ void Element::OnReferenceDeactivate()
 	{
 		// Hopefully we can just delete ourselves.
 		//delete this;
-		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via Rocket Factory. Unable to release.", GetAddress().CString());
+		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via Rocket Factory. Unable to release.", GetAddress().c_str());
 	}
 }
 
@@ -2071,32 +2071,32 @@ void Element::GetRML(String& content)
 {
 	// First we start the open tag, add the attributes then close the open tag.
 	// Then comes the children in order, then we add our close tag.
-	content.Append("<");
-	content.Append(tag);
+	content += "<";
+	content += tag;
 
 	int index = 0;
 	String name;
 	String value;
 	while (IterateAttributes(index, name, value))	
 	{
-		size_t length = name.Length() + value.Length() + 8;
-		String attribute(length, " %s=\"%s\"", name.CString(), value.CString());
-		content.Append(attribute);
+		size_t length = name.size() + value.size() + 8;
+		String attribute = CreateString(length, " %s=\"%s\"", name.c_str(), value.c_str());
+		content += attribute;
 	}
 
 	if (HasChildNodes())
 	{
-		content.Append(">");
+		content += ">";
 
 		GetInnerRML(content);
 
-		content.Append("</");
-		content.Append(tag);
-		content.Append(">");
+		content += "</";
+		content += tag;
+		content += ">";
 	}
 	else
 	{
-		content.Append(" />");
+		content += " />";
 	}
 }
 

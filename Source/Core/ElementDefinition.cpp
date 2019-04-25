@@ -347,11 +347,11 @@ void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const Strin
 	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
 	{
 		const String& property_name = (*property_iterator).first;
-		if (property_name.Length() > property_suffix.Length() &&
-			strcasecmp(property_name.CString() + (property_name.Length() - property_suffix.Length()), property_suffix.CString()) == 0)
+		if (property_name.size() > property_suffix.size() &&
+			strcasecmp(property_name.c_str() + (property_name.size() - property_suffix.size()), property_suffix.c_str()) == 0)
 		{
 			// We've found a group declaration!
-			String group_name = property_name.Substring(0, property_name.Length() - (group_type.Length() + 1));
+			String group_name = property_name.substr(0, property_name.size() - (group_type.size() + 1));
 			String group_class = (*property_iterator).second.value.Get< String >();
 			PropertyDictionary* group_properties = NULL;		
 
@@ -416,11 +416,11 @@ int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_pr
 	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
 	{
 		const String& full_property_name = (*property_iterator).first;
-		if (full_property_name.Length() > group_name.Length() + 1 &&
-			strncasecmp(full_property_name.CString(), group_name.CString(), group_name.Length()) == 0 &&
-			full_property_name[group_name.Length()] == '-')
+		if (full_property_name.size() > group_name.size() + 1 &&
+			strncasecmp(full_property_name.c_str(), group_name.c_str(), group_name.size()) == 0 &&
+			full_property_name[group_name.size()] == '-')
 		{
-			String property_name = full_property_name.Substring(group_name.Length() + 1);
+			String property_name = full_property_name.substr(group_name.size() + 1);
 //			if (property_name == group_type)
 //				continue;
 
@@ -457,7 +457,7 @@ bool ElementDefinition::InstanceDecorator(const String& name, const String& type
 	Decorator* decorator = Factory::InstanceDecorator(type, properties);
 	if (decorator == NULL)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to instance decorator '%s' of type '%s'.", name.CString(), type.CString());
+		Log::Message(Log::LT_WARNING, "Failed to instance decorator '%s' of type '%s'.", name.c_str(), type.c_str());
 		return false;
 	}
 
@@ -508,7 +508,7 @@ bool ElementDefinition::InstanceFontEffect(const String& name, const String& typ
 	FontEffect* font_effect = FontDatabase::GetFontEffect(type, properties);
 	if (font_effect == NULL)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to instance font effect '%s' of type '%s'.", name.CString(), type.CString());
+		Log::Message(Log::LT_WARNING, "Failed to instance font effect '%s' of type '%s'.", name.c_str(), type.c_str());
 		return false;
 	}
 

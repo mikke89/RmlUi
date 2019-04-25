@@ -122,19 +122,19 @@ void ElementImage::OnAttributeChange(const Rocket::Core::AttributeNameList& chan
 
 			if (coords_list.size() != 4)
 			{
-				Rocket::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; coords requires 4 values, found %d.", GetAddress().CString(), coords_list.size());
+				Rocket::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; coords requires 4 values, found %d.", GetAddress().c_str(), coords_list.size());
 				ResetCoords();
 			}
 			else
 			{
 				for (size_t i = 0; i < 4; ++i)
-					coords[i] = atoi(coords_list[i].CString());
+					coords[i] = atoi(coords_list[i].c_str());
 
 				// Check for the validity of the coordinates.
 				if (coords[0] < 0 || coords[2] < coords[0] ||
 					coords[1] < 0 || coords[3] < coords[1])
 				{
-					Rocket::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; invalid coordinate values specified.", GetAddress().CString());
+					Rocket::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; invalid coordinate values specified.", GetAddress().c_str());
 					ResetCoords();
 				}
 				else
@@ -228,7 +228,7 @@ bool ElementImage::LoadTexture()
 
 	// Get the source URL for the image.
 	String image_source = GetAttribute< String >("src", "");
-	if (image_source.Empty())
+	if (image_source.empty())
 		return false;
 
 	geometry_dirty = true;

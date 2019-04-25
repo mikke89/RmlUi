@@ -63,7 +63,7 @@ public:
 		FieldIndices::const_iterator itr = field_indices.find(field_name);
 		if (itr == field_indices.end())
 		{
-			Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Field %s not found in query", field_name.CString());
+			Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Field %s not found in query", field_name.c_str());
 			return default_value;
 		}		
 		
@@ -80,7 +80,7 @@ public:
 		FieldIndices::const_iterator itr = field_indices.find(field_name);
 		if (itr == field_indices.end())
 		{
-			Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Field %s not found in query", field_name.CString());
+			Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Field %s not found in query", field_name.c_str());
 			return false;
 		}		
 

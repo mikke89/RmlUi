@@ -371,7 +371,7 @@ ElementAnimation::ElementAnimation(const String& property_name, const Property& 
 {
 	if (!current_value.definition)
 	{
-		Log::Message(Log::LT_WARNING, "Property in animation key did not have a definition (while adding key '%s').", current_value.ToString().CString());
+		Log::Message(Log::LT_WARNING, "Property in animation key did not have a definition (while adding key '%s').", current_value.ToString().c_str());
 	}
 	InternalAddKey(AnimationKey{ 0.0f, current_value, Tween{} });
 }
@@ -382,7 +382,7 @@ bool ElementAnimation::InternalAddKey(AnimationKey key)
 
 	if (!(key.property.unit & valid_properties))
 	{
-		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", key.property.ToString().CString());
+		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", key.property.ToString().c_str());
 		return false;
 	}
 

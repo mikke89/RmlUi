@@ -35,13 +35,13 @@ static DataFormatterMap data_formatters;
 
 DataFormatter::DataFormatter(const Rocket::Core::String& _name)
 {
-	if (!_name.Empty())
+	if (!_name.empty())
 	{
 		name = _name;
 	}
 	else
 	{
-		name.FormatString(64, "%x", this);
+		name = Core::CreateString(64, "%x", this);
 	}
 	data_formatters[name] = this;
 }

@@ -84,7 +84,7 @@ void DataSourceListener::OnRowChange(DataSource* ROCKET_UNUSED_PARAMETER(data_so
 // Sets up data source and table from a given string.
 bool DataSourceListener::ParseDataSource(DataSource*& data_source, Rocket::Core::String& table_name, const Rocket::Core::String& data_source_name)
 {
-	if (data_source_name.Length() == 0)
+	if (data_source_name.size() == 0)
 	{
 		data_source = NULL;
 		table_name = "";
@@ -94,11 +94,11 @@ bool DataSourceListener::ParseDataSource(DataSource*& data_source, Rocket::Core:
 	Rocket::Core::StringList data_source_parts;
 	Rocket::Core::StringUtilities::ExpandString(data_source_parts, data_source_name, '.');
 
-	DataSource* new_data_source = DataSource::GetDataSource(data_source_parts[0].CString());
+	DataSource* new_data_source = DataSource::GetDataSource(data_source_parts[0].c_str());
 
 	if (data_source_parts.size() != 2 || !new_data_source)
 	{
-		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Bad data source name %s", data_source_name.CString());
+		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Bad data source name %s", data_source_name.c_str());
 		data_source = NULL;
 		table_name = "";
 		return false;

@@ -36,10 +36,10 @@ namespace Core {
 void DocumentHeader::MergeHeader(const DocumentHeader& header)
 {
 	// Copy the title across if ours is empty
-	if (title.Empty())
+	if (title.empty())
 		title = header.title;
 	// Copy the url across if ours is empty
-	if (source.Empty())
+	if (source.empty())
 		source = header.source;
 
 	// Combine internal data	
@@ -57,9 +57,9 @@ void DocumentHeader::MergePaths(StringList& target, const StringList& source, co
 	for (size_t i = 0; i < source.size(); i++)
 	{
 		String joined_path;
-		Rocket::Core::GetSystemInterface()->JoinPath(joined_path, source_path.Replace("|", ":"), source[i].Replace("|", ":"));
+		Rocket::Core::GetSystemInterface()->JoinPath(joined_path, Replace(source_path, "|", ":"), Replace(source[i], "|", ":"));
 
-		target.push_back(joined_path.Replace(":", "|"));
+		target.push_back(Replace(joined_path, ":", "|"));
 	}
 }
 

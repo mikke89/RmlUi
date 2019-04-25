@@ -52,7 +52,7 @@ PropertySpecification::~PropertySpecification()
 // Registers a property with a new definition.
 PropertyDefinition& PropertySpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	String lower_case_name = property_name.ToLower();
+	String lower_case_name = ToLower(property_name);
 
 	// Create the property and validate the default value.
 	PropertyDefinition* property_definition = new PropertyDefinition(default_value, inherited, forces_layout);
@@ -102,12 +102,12 @@ const PropertyNameList& PropertySpecification::GetRegisteredInheritedProperties(
 bool PropertySpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
 	StringList properties;
-	StringUtilities::ExpandString(properties, property_names.ToLower());
+	StringUtilities::ExpandString(properties, ToLower(property_names));
 
 	if (properties.empty())
 		return false;
 
-	String lower_case_name = shorthand_name.ToLower();
+	String lower_case_name = ToLower(shorthand_name);
 
 	// Construct the new shorthand definition and resolve its properties.
 	PropertyShorthandDefinition* property_shorthand = new PropertyShorthandDefinition();
@@ -125,7 +125,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 
 		if (property == NULL && !shorthand_found)
 		{
-			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.CString(), properties[i].CString());
+			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.c_str(), properties[i].c_str());
 			delete property_shorthand;
 
 			return false;
@@ -136,10 +136,10 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 	if (type == AUTO)
 	{
 		if (properties.size() == 4 &&
-			properties[0].Find("-top") != String::npos &&
-			properties[1].Find("-right") != String::npos &&
-			properties[2].Find("-bottom") != String::npos &&
-			properties[3].Find("-left") != String::npos)
+			properties[0].find("-top") != String::npos &&
+			properties[1].find("-right") != String::npos &&
+			properties[2].find("-bottom") != String::npos &&
+			properties[3].find("-left") != String::npos)
 			property_shorthand->type = BOX;
 		else
 			property_shorthand->type = FALL_THROUGH;
@@ -164,7 +164,7 @@ const PropertyShorthandDefinition* PropertySpecification::GetShorthand(const Str
 // Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number) const
 {
-	String lower_case_name = property_name.ToLower();
+	String lower_case_name = ToLower(property_name);
 
 	// Attempt to parse as a single property.
 	const PropertyDefinition* property_definition = GetProperty(lower_case_name);
@@ -351,7 +351,7 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 
 	size_t character_index = 0;
 	char previous_character = 0;
-	while (character_index < values.Length())
+	while (character_index < values.size())
 	{
 		char character = values[character_index];
 		character_index++;
@@ -363,10 +363,10 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 				if (character == ';')
 				{
 					value = StringUtilities::StripWhitespace(value);
-					if (value.Length() > 0)
+					if (value.size() > 0)
 					{
 						values_list.push_back(value);
-						value.Clear();
+						value.clear();
 					}
 				}
 				else if (StringUtilities::IsWhitespace(character))
@@ -374,42 +374,42 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 					if (split_values)
 					{
 						value = StringUtilities::StripWhitespace(value);
-						if (value.Length() > 0)
+						if (value.size() > 0)
 						{
 							values_list.push_back(value);
-							value.Clear();
+							value.clear();
 						}
 					}
 					else
-						value.Append(character);
+						value += character;
 				}
 				else if (character == '"')
 				{
 					if (split_values)
 					{
 						value = StringUtilities::StripWhitespace(value);
-						if (value.Length() > 0)
+						if (value.size() > 0)
 						{
 							values_list.push_back(value);
-							value.Clear();
+							value.clear();
 						}
 						state = VALUE_QUOTE;
 					}
 					else
 					{
-						value.Append(' ');
+						value += ' ';
 						state = VALUE_QUOTE;
 					}
 				}
 				else if (character == '(')
 				{
 					open_parentheses = 1;
-					value.Append(character);
+					value += character;
 					state = VALUE_PARENTHESIS;
 				}
 				else
 				{
-					value.Append(character);
+					value += character;
 				}
 			}
 			break;
@@ -419,11 +419,11 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 				if (previous_character == '/')
 				{
 					if (character == ')' || character == '(')
-						value.Append(character);
+						value += character;
 					else
 					{
-						value.Append('/');
-						value.Append(character);
+						value += '/';
+						value += character;
 					}
 				}
 				else
@@ -431,18 +431,18 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 					if (character == '(')
 					{
 						open_parentheses++;
-						value.Append(character);
+						value += character;
 					}
 					else if (character == ')')
 					{
 						open_parentheses--;
-						value.Append(character);
+						value += character;
 						if (open_parentheses == 0)
 							state = VALUE;
 					}
 					else if (character != '/')
 					{
-						value.Append(character);
+						value += character;
 					}
 				}
 			}
@@ -453,11 +453,11 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 				if (previous_character == '/')
 				{
 					if (character == '"')
-						value.Append(character);
+						value += character;
 					else
 					{
-						value.Append('/');
-						value.Append(character);
+						value += '/';
+						value += character;
 					}
 				}
 				else
@@ -467,19 +467,19 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 						if (split_values)
 						{
 							value = StringUtilities::StripWhitespace(value);
-							if (value.Length() > 0)
+							if (value.size() > 0)
 							{
 								values_list.push_back(value);
-								value.Clear();
+								value.clear();
 							}
 						}
 						else
-							value.Append(' ');
+							value += ' ';
 						state = VALUE;
 					}
 					else if (character != '/')
 					{
-						value.Append(character);
+						value += character;
 					}
 				}
 			}
@@ -491,7 +491,7 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 	if (state == VALUE)
 	{
 		value = StringUtilities::StripWhitespace(value);
-		if (value.Length() > 0)
+		if (value.size() > 0)
 			values_list.push_back(value);
 	}
 

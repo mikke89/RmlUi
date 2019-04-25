@@ -40,12 +40,12 @@ ShellFileInterface::~ShellFileInterface()
 Rocket::Core::FileHandle ShellFileInterface::Open(const Rocket::Core::String& path)
 {
 	// Attempt to open the file relative to the application's root.
-	FILE* fp = fopen((root + path).CString(), "rb");
+	FILE* fp = fopen((root + path).c_str(), "rb");
 	if (fp != NULL)
 		return (Rocket::Core::FileHandle) fp;
 
 	// Attempt to open the file relative to the current working directory.
-	fp = fopen(path.CString(), "rb");
+	fp = fopen(path.c_str(), "rb");
 	return (Rocket::Core::FileHandle) fp;
 }
 

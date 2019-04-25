@@ -69,7 +69,7 @@ Rocket::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, in
 		// Check all the handles if their charsets contain the requested charset.
 		if (!UnicodeRange::BuildList(charset, raw_charset))
 		{
-			Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", _raw_charset.CString());
+			Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", _raw_charset.c_str());
 			return NULL;
 		}
 

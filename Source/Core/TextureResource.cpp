@@ -116,7 +116,7 @@ void TextureResource::Release(RenderInterface* render_interface)
 bool TextureResource::Load(RenderInterface* render_interface) const
 {
 	// Check for special loader tokens.
-	if (!source.Empty() &&
+	if (!source.empty() &&
 		source[0] == '?')
 	{
 		Vector2i dimensions;
@@ -125,7 +125,7 @@ bool TextureResource::Load(RenderInterface* render_interface) const
 		const byte* data = NULL;
 
 		// Find the generation protocol and generate the data accordingly.
-		String protocol = source.Substring(1, source.Find("::") - 1);
+		String protocol = source.substr(1, source.find("::") - 1);
 		if (protocol == "font")
 		{
 			// The requested texture is a font layer.
@@ -135,7 +135,7 @@ bool TextureResource::Load(RenderInterface* render_interface) const
 			FontEffect* layer_id;
 			int texture_id;
 			
-			if (sscanf(source.CString(), "?font::%p/%p/%d", &handle, &layer_id, &texture_id) == 3)
+			if (sscanf(source.c_str(), "?font::%p/%p/%d", &handle, &layer_id, &texture_id) == 3)
 			{
 				handle->GenerateLayerTexture(data,
 											 dimensions,
@@ -161,7 +161,7 @@ bool TextureResource::Load(RenderInterface* render_interface) const
 			}
 			else
 			{
-				Log::Message(Log::LT_WARNING, "Failed to generate internal texture %s.", source.CString());
+				Log::Message(Log::LT_WARNING, "Failed to generate internal texture %s.", source.c_str());
 				texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
 
 				return false;
@@ -173,7 +173,7 @@ bool TextureResource::Load(RenderInterface* render_interface) const
 	Vector2i dimensions;
 	if (!render_interface->LoadTexture(handle, dimensions, source))
 	{
-		Log::Message(Log::LT_WARNING, "Failed to load texture from %s.", source.CString());
+		Log::Message(Log::LT_WARNING, "Failed to load texture from %s.", source.c_str());
 		texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
 
 		return false;

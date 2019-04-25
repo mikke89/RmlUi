@@ -171,7 +171,7 @@ namespace Core {
  equally good collision statistics, needed less code & used less memory.
  */
 
-static String dummy_key = String(128, "###DUMMYROCKETDICTKEY%d###", &dummy_key);
+static String dummy_key = CreateString(128, "###DUMMYROCKETDICTKEY%d###", &dummy_key);
 
 Dictionary::Dictionary() 
 { 
@@ -237,7 +237,7 @@ Dictionary::DictionaryEntry* Dictionary::Retrieve(const String& key, Hash hash) 
 		
 	i = hash & mask;
 	ep = &ep0[i];
-	if (ep->key.Empty() || ep->key == key)
+	if (ep->key.empty() || ep->key == key)
 		return ep;
 	if (ep->key == dummy_key)
 		freeslot = ep;
@@ -253,7 +253,7 @@ Dictionary::DictionaryEntry* Dictionary::Retrieve(const String& key, Hash hash) 
 	for (perturb = hash; ; perturb >>= PERTURB_SHIFT) {
 		i = (i << 2) + i + perturb + 1;
 		ep = &ep0[i & mask];
-		if (ep->key.Empty())    
+		if (ep->key.empty())    
 			return freeslot == NULL ? ep : freeslot;
 		/*if (ep->me_key == key
 		    || (ep->me_hash == hash
@@ -282,7 +282,7 @@ void Dictionary::Insert(const String& key, Hash hash, const Variant& value)
 	} 
 	else 
 	{
-		if (ep->key.Empty())
+		if (ep->key.empty())
 		{
 			num_full++;
 		}
@@ -379,7 +379,7 @@ bool Dictionary::Reserve(int minused)
 			
 			//delete[] ep->key;
 		}
-		else if (!ep->key.Empty()) {	/* dummy_key entry */
+		else if (!ep->key.empty()) {	/* dummy_key entry */
 			--i;
 			ROCKET_ASSERT(ep->key == dummy_key);
 		}
@@ -396,10 +396,10 @@ Variant* Dictionary::Get(const String& key) const
 	Hash hash;
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Get %s", key); );
-	hash = StringUtilities::FNVHash( key.CString() );
+	hash = StringUtilities::FNVHash( key.c_str() );
 	
 	DictionaryEntry* result = Retrieve(key, hash);
-	if (!result || result->key.Empty() || result->key == dummy_key)
+	if (!result || result->key.empty() || result->key == dummy_key)
 	{
 		return NULL;
 	}
@@ -420,7 +420,7 @@ Variant* Dictionary::operator[](const String& key) const
 */
 void Dictionary::Set(const String& key, const Variant &value)
 {
-	if (key.Empty())
+	if (key.empty())
 	{
 		Log::Message(Log::LT_WARNING, "Unable to set value on dictionary, empty key specified.");
 		return;
@@ -430,7 +430,7 @@ void Dictionary::Set(const String& key, const Variant &value)
 	unsigned int n_used;  
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Set %s", key); );
-	hash = StringUtilities::FNVHash( key.CString() );
+	hash = StringUtilities::FNVHash( key.c_str() );
 	
 	ROCKET_ASSERT(num_full <= mask);  /* at least one empty slot */
 	n_used = num_used;  
@@ -458,7 +458,7 @@ bool Dictionary::Remove(const String& key)
 	DictionaryEntry *ep;  
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Remove %s", key) );
-	hash = StringUtilities::FNVHash( key.CString() );
+	hash = StringUtilities::FNVHash( key.c_str() );
 	
 	ep = Retrieve(key, hash);
 	
@@ -494,9 +494,9 @@ void Dictionary::Clear()
 		ROCKET_ASSERT(i < n);
 		++i;
 
-		if (!ep->key.Empty()) {
+		if (!ep->key.empty()) {
 			--n_full;
-			ep->key.Clear();		
+			ep->key.clear();		
 			ep->value.Clear();
 		} else {
 			ROCKET_ASSERT(ep->value.GetType() == Variant::NONE);
@@ -593,7 +593,7 @@ void Dictionary::ResetToMinimumSize()
 	for ( size_t i = 0; i < DICTIONARY_MINSIZE; i++ )
 	{		
 		small_table[i].hash = 0;
-		small_table[i].key.Clear();
+		small_table[i].key.clear();
 		small_table[i].value.Clear();
 	}
 	num_used = 0;

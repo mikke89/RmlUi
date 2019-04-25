@@ -193,7 +193,7 @@ void ElementUtilities::BindEventAttributes(Element* element)
 	// Check for and instance the on* events
 	while(element->IterateAttributes(index, name, value))
 	{
-		if (name.Substring(0, 2) == "on")
+		if (name.substr(0, 2) == "on")
 		{
 			EventListener* listener = Factory::InstanceEventListener(value, element);
 			if (listener)

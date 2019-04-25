@@ -83,7 +83,7 @@ Core::WString Clipboard::Get()
 
 		const Rocket::Core::word* clipboard_text = (const Rocket::Core::word*) GlobalLock(clipboard_data);
 		if (clipboard_text)
-			clipboard_content.Assign(clipboard_text);
+			clipboard_content = clipboard_text;
 		GlobalUnlock(clipboard_data);
 
 		CloseClipboard();
@@ -108,11 +108,11 @@ void Clipboard::Set(const Core::WString& _content)
 		EmptyClipboard();
 
 		Rocket::Core::String win32_content;
-		_content.ToUTF8(win32_content);
+		win32_content = Core::ToUTF8(_content);
 
-		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, win32_content.Length() + 1);
+		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, win32_content.size() + 1);
 		// Replaced strcpy_s with a simple strcpy, because we know for sure it's big enough.
-		strcpy((char*) clipboard_data, win32_content.CString());
+		strcpy((char*) clipboard_data, win32_content.c_str());
 
 		if (SetClipboardData(CF_TEXT, clipboard_data) == NULL)
 		{

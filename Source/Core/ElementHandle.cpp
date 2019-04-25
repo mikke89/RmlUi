@@ -73,11 +73,11 @@ void ElementHandle::ProcessEvent(Event& event)
 		if (!initialised && GetOwnerDocument())
 		{
 			String move_target_name = GetAttribute<String>("move_target", "");
-			if (!move_target_name.Empty())
+			if (!move_target_name.empty())
 				move_target = GetElementById(move_target_name);
 
 			String size_target_name = GetAttribute<String>("size_target", "");
-			if (!size_target_name.Empty())
+			if (!size_target_name.empty())
 				size_target = GetElementById(size_target_name);
 
 			initialised = true;

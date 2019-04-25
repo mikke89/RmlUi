@@ -97,7 +97,7 @@ bool FontProvider::LoadFontFace(const String& file_name)
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
 	if (ft_face == NULL)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
 	}
 
@@ -106,12 +106,12 @@ bool FontProvider::LoadFontFace(const String& file_name)
 
 	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, true))
 	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
+		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
 		return true;
 	}
 	else
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
 		return false;
 	}
 }
@@ -122,18 +122,18 @@ bool FontProvider::LoadFontFace(const String& file_name, const String& family, F
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
 	if (ft_face == NULL)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
 	}
 
 	if (instance->AddFace(ft_face, family, style, weight, true))
 	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
+		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
 		return true;
 	}
 	else
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.CString());
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
 		return false;
 	}
 }
@@ -228,7 +228,7 @@ void* FontProvider::LoadFace(const byte* data, int data_length, const String& so
 	int error = FT_New_Memory_Face(ft_library, (const FT_Byte*) data, data_length, 0, &face);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_ERROR, "FreeType error %d while loading face from %s.", error, source.CString());
+		Log::Message(Log::LT_ERROR, "FreeType error %d while loading face from %s.", error, source.c_str());
 		if (local_data)
 			delete[] data;
 
@@ -241,7 +241,7 @@ void* FontProvider::LoadFace(const byte* data, int data_length, const String& so
 		FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
 		if (face->charmap == NULL)
 		{
-			Log::Message(Log::LT_ERROR, "Font face (from %s) does not contain a Unicode or Apple Roman character map.", source.CString());
+			Log::Message(Log::LT_ERROR, "Font face (from %s) does not contain a Unicode or Apple Roman character map.", source.c_str());
 			FT_Done_Face(face);
 			if (local_data)
 				delete[] data;

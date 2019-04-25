@@ -49,7 +49,7 @@ const PropertySpecification& FontEffectInstancer::GetPropertySpecification() con
 PropertyDefinition& FontEffectInstancer::RegisterProperty(const String& property_name, const String& default_value, bool affects_generation)
 {
 	if (affects_generation)
-		volatile_properties.insert(property_name.ToLower());
+		volatile_properties.insert(ToLower(property_name));
 
 	return properties.RegisterProperty(property_name, default_value, false, false);
 }

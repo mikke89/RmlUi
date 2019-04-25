@@ -192,9 +192,9 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	// element with a different address but an identical output definition.
 	String node_ids;
 	for (size_t i = 0; i < applicable_nodes.size(); i++)
-		node_ids += String(10, "%x ", applicable_nodes[i]);
+		node_ids += CreateString(10, "%x ", applicable_nodes[i]);
 	for (PseudoClassList::iterator i = volatile_pseudo_classes.begin(); i != volatile_pseudo_classes.end(); ++i)
-		node_ids += String(32, ":%s", (*i).CString());
+		node_ids += CreateString(32, ":%s", (*i).c_str());
 
 	cache_iterator = node_cache.find(node_ids);
 	if (cache_iterator != node_cache.end())

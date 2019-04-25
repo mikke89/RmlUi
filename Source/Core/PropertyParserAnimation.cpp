@@ -128,7 +128,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 
 		for (auto& argument : arguments)
 		{
-			if (argument.Empty())
+			if (argument.empty())
 				continue;
 
 			// See if we have a <keyword> or <tween> specifier as defined in keywords
@@ -167,7 +167,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 				float number = 0.0f;
 				int count = 0;
 
-				if (sscanf(argument.CString(), "%fs%n", &number, &count) == 1)
+				if (sscanf(argument.c_str(), "%fs%n", &number, &count) == 1)
 				{
 					// Found a number, if there was an 's' unit, count will be positive
 					if (count > 0)
@@ -207,7 +207,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 		}
 
 		// Validate the parsed transition
-		if (animation.name.Empty() || animation.duration <= 0.0f || (animation.num_iterations < -1 || animation.num_iterations == 0))
+		if (animation.name.empty() || animation.duration <= 0.0f || (animation.num_iterations < -1 || animation.num_iterations == 0))
 		{
 			return false;
 		}
@@ -241,7 +241,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 
 		for (auto& argument : arguments)
 		{
-			if (argument.Empty())
+			if (argument.empty())
 				continue;
 
 			// See if we have a <keyword> or <tween> specifier as defined in keywords
@@ -272,7 +272,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 				float number = 0.0f;
 				int count = 0;
 
-				if (sscanf(argument.CString(), "%fs%n", &number, &count) == 1)
+				if (sscanf(argument.c_str(), "%fs%n", &number, &count) == 1)
 				{
 					// Found a number, if there was an 's' unit, count will be positive
 					if (count > 0)
@@ -350,7 +350,7 @@ bool PropertyParserAnimation::ParseValue(Property & property, const String & val
 {
 	StringList list_of_values;
 	{
-		auto lowercase_value = value.ToLower();
+		auto lowercase_value = ToLower(value);
 		StringUtilities::ExpandString(list_of_values, lowercase_value, ',');
 	}
 

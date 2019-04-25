@@ -62,7 +62,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		{
 			if (element)
 				element->RemoveReference();
-			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.CString());
+			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
 			return NULL;
 		}
 
@@ -117,7 +117,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		Core::Element* element = Core::Factory::InstanceElement(parent, name, name, attributes);
 		if (!element)
 		{
-			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.CString());
+			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
 			return NULL;
 		}
 

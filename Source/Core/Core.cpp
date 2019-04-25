@@ -123,7 +123,7 @@ void Shutdown()
 
 	// Release all remaining contexts.
 	for (ContextMap::iterator itr = contexts.begin(); itr != contexts.end(); ++itr)
-		Core::Log::Message(Log::LT_WARNING, "Context '%s' still active on shutdown.", (*itr).first.CString());
+		Core::Log::Message(Log::LT_WARNING, "Context '%s' still active on shutdown.", (*itr).first.c_str());
 	contexts.clear();
 
 	TemplateCache::Shutdown();
@@ -226,20 +226,20 @@ Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInt
 	if (custom_render_interface == NULL &&
 		render_interface == NULL)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to create context '%s', no render interface specified and no default render interface exists.", name.CString());
+		Log::Message(Log::LT_WARNING, "Failed to create context '%s', no render interface specified and no default render interface exists.", name.c_str());
 		return NULL;
 	}
 
 	if (GetContext(name) != NULL)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to create context '%s', context already exists.", name.CString());
+		Log::Message(Log::LT_WARNING, "Failed to create context '%s', context already exists.", name.c_str());
 		return NULL;
 	}
 
 	Context* new_context = Factory::InstanceContext(name);
 	if (new_context == NULL)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned NULL.", name.CString());
+		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned NULL.", name.c_str());
 		return NULL;
 	}
 

@@ -108,7 +108,7 @@ int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) 
 {
 	int width = 0;
 
-	for (size_t i = 0; i < string.Length(); i++)
+	for (size_t i = 0; i < string.size(); i++)
 	{
 		word character_code = string[i];
 
@@ -241,8 +241,8 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 		line_width = 0;
 		word prior_character = 0;
 
-		const word* string_iterator = string.CString();
-		const word* string_end = string.CString() + string.Length();
+		const word* string_iterator = string.c_str();
+		const word* string_end = string.c_str() + string.size();
 
 		for (; string_iterator != string_end; string_iterator++)
 		{

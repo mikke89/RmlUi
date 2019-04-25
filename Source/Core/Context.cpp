@@ -173,7 +173,7 @@ bool Context::Update()
 		ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 		if (document != NULL && document->lock_layout != 0)
 		{
-			Log::Message(Log::LT_WARNING, "Layout lock leak. Document '%s' had lock layout value: %d", document->title.CString(), document->lock_layout);
+			Log::Message(Log::LT_WARNING, "Layout lock leak. Document '%s' had lock layout value: %d", document->title.c_str(), document->lock_layout);
 			document->lock_layout = 0;
 		}
 	}
@@ -228,14 +228,14 @@ ElementDocument* Context::CreateDocument(const String& tag)
 	Element* element = Factory::InstanceElement(NULL, tag, "body", XMLAttributes());
 	if (element == NULL)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned NULL.", tag.CString());
+		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned NULL.", tag.c_str());
 		return NULL;
 	}
 
 	ElementDocument* document = dynamic_cast< ElementDocument* >(element);
 	if (document == NULL)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', Found type '%s', was expecting derivative of ElementDocument.", tag.CString(), typeid(element).name());
+		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', Found type '%s', was expecting derivative of ElementDocument.", tag.c_str(), typeid(element).name());
 
 		element->RemoveReference();
 		return NULL;
@@ -295,7 +295,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 ElementDocument* Context::LoadDocumentFromMemory(const String& string)
 {
 	// Open the stream based on the string contents.
-	StreamMemory* stream = new StreamMemory((byte*)string.CString(), string.Length());
+	StreamMemory* stream = new StreamMemory((byte*)string.c_str(), string.size());
 	stream->SetSourceURL("[document from memory]");
 
 	// Load the document from the stream.
@@ -519,7 +519,7 @@ bool Context::ProcessTextInput(const String& string)
 {
 	bool consumed = true;
 
-	for (size_t i = 0; i < string.Length(); ++i)
+	for (size_t i = 0; i < string.size(); ++i)
 	{
 		// Generate the parameters for the key event.
 		Dictionary parameters;

@@ -135,7 +135,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	// Add the message to the list of messages for the specified log type.
 	LogMessage log_message;
 	log_message.index = current_index++;
-	log_message.message = Core::String(message).Replace("<", "&lt;").Replace(">", "&gt;");
+	log_message.message = Core::Replace(Core::Replace(Core::String(message), "<", "&lt;"), ">", "&gt;");
 	log_types[type].log_messages.push_back(log_message);
 	if (log_types[type].log_messages.size() >= MAX_LOG_MESSAGES)
 	{
@@ -146,7 +146,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	// "Off" to "Off*" to signal that there are unread logs.
 	if (!log_types[type].visible)
 	{
-		if (!log_types[type].button_name.Empty())
+		if (!log_types[type].button_name.empty())
 		{
 			Rocket::Core::Element* button = GetElementById(log_types[type].button_name);
 			if (button)
@@ -199,9 +199,9 @@ void ElementLog::OnRender()
 			int num_messages = 0;
 			while (next_type != -1 && num_messages < MAX_LOG_MESSAGES)
 			{
-				messages.Append(Core::String(128, "<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">", log_types[next_type].class_name.CString(), log_types[next_type].alert_contents.CString()));
-				messages.Append(log_types[next_type].log_messages[log_pointers[next_type]].message);
-				messages.Append("</p></div>");
+				messages += Core::CreateString(128, "<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">", log_types[next_type].class_name.c_str(), log_types[next_type].alert_contents.c_str());
+				messages += log_types[next_type].log_messages[log_pointers[next_type]].message;
+				messages += "</p></div>";
 				
 				log_pointers[next_type]++;
 				next_type = FindNextEarliestLogType(log_pointers);
@@ -249,7 +249,7 @@ void ElementLog::ProcessEvent(Core::Event& event)
 			{
 				for (int i = 0; i < Core::Log::LT_MAX; i++)
 				{
-					if (!log_types[i].button_name.Empty() && event.GetTargetElement()->GetId() == log_types[i].button_name)
+					if (!log_types[i].button_name.empty() && event.GetTargetElement()->GetId() == log_types[i].button_name)
 					{
 						log_types[i].visible = !log_types[i].visible;
 						if (log_types[i].visible)
