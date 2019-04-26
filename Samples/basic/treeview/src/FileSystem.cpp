@@ -52,7 +52,7 @@ struct FileSystemNode
 {
 	FileSystemNode(const Rocket::Core::String _name, bool _directory, int _depth = -1) : name(_name)
 	{
-		id = Rocket::Core::String(16, "%x", this);
+		id = Rocket::Core::CreateString(16, "%x", this);
 
 		directory = _directory;
 		depth = _depth;
@@ -71,7 +71,7 @@ struct FileSystemNode
 	{
 #ifdef WIN32
 		_finddata_t find_data;
-		intptr_t find_handle = _findfirst((root + name + "/*.*").CString(), &find_data);
+		intptr_t find_handle = _findfirst((root + name + "/*.*").c_str(), &find_data);
 		if (find_handle != -1)
 		{
 			do
@@ -156,7 +156,7 @@ void FileSystem::GetRow(Rocket::Core::StringList& row, const Rocket::Core::Strin
 		else if (columns[i] == "depth")
 		{
 			// Returns the depth of the node (ie, how far down the directory structure it is).
-			row.push_back(Rocket::Core::String(8, "%d", node->child_nodes[row_index]->depth));
+			row.push_back(Rocket::Core::CreateString(8, "%d", node->child_nodes[row_index]->depth));
 		}
 		else if (columns[i] == Rocket::Controls::DataSource::CHILD_SOURCE)
 		{

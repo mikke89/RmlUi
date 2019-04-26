@@ -27,9 +27,6 @@
 
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/String.h"
-#include "../../Include/Rocket/Core/StringBase.h"
-#include <codecvt>
-#include <algorithm>
 
 namespace Rocket {
 namespace Core {
@@ -86,32 +83,24 @@ String ToLower(const String& string) {
 	return str_lower;
 }
 
-
-std::wstring ToWideString(const std::string& str)
+WString ToWideString(const String& str)
 {
-	std::vector< word > result;
+	WString result;
 	StringUtilities::UTF8toUCS2(str, result);
-	return std::wstring(result.data(), result.size());
-
-	//using convert_typeX = std::codecvt_utf8<wchar_t>;
-	//std::wstring_convert<convert_typeX, wchar_t> converterX;
-	//return converterX.from_bytes(str);
+	return result;
 }
 
-std::string ToUTF8(const std::wstring& wstr)
+String ToUTF8(const WString& wstr)
 {
 	std::string result;
-	StringUtilities::UCS2toUTF8(wstr.c_str(), wstr.size(), result);
+	StringUtilities::UCS2toUTF8(wstr, result);
 	return result;
-	//using convert_typeX = std::codecvt_utf8<wchar_t>;
-	//std::wstring_convert<convert_typeX, wchar_t> converterX;
-	//return converterX.to_bytes(wstr);
 }
 
-std::string Replace(std::string subject, const std::string& search, const std::string& replace)
+String Replace(String subject, const String& search, const String& replace)
 {
 	size_t pos = 0;
-	while ((pos = subject.find(search, pos)) != std::string::npos) {
+	while ((pos = subject.find(search, pos)) != String::npos) {
 		subject.replace(pos, search.length(), replace);
 		pos += replace.length();
 	}
@@ -121,12 +110,3 @@ std::string Replace(std::string subject, const std::string& search, const std::s
 
 }
 }
-
-/*namespace std {
-
-ROCKETCORE_API size_t hash< String >::operator()(const String& string) const
-{
-	return StringUtilities::FNVHash(string.c_str());
-}
-
-}*/

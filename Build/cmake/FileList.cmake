@@ -170,8 +170,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Stream.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StreamMemory.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/String.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringBase.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringBase.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheet.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheetKeywords.h

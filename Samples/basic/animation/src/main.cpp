@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This source file is part of libRocket, the HTML/CSS Interface Middleware
  *
  * For the latest information, see http://www.librocket.com
@@ -136,8 +136,10 @@ public:
 		  Without property counter: 22.0
 		  With std::string: 23.0
 		  robin_hood unordered_flat_map: 24.0
+		  Avoid dirtying em's: 27.5
 		
 		*/
+		
 		if (!document)
 			return;
 

@@ -73,16 +73,16 @@ bool SystemInterface::LogMessage(Rocket::Core::Log::Type type, const Rocket::Cor
 		}
 
 		// Print the message and timestamp to file, and force a write in case of a crash.
-		fprintf(fp, "%s (%.2f): %s", prefix, GetElapsedTime(), message.CString());
+		fprintf(fp, "%s (%.2f): %s", prefix, GetElapsedTime(), message.c_str());
 		fflush(fp);
 
 #ifdef ROCKET_PLATFORM_WIN32
 		if (type == Rocket::Core::Log::LT_ASSERT)
 		{
-			Rocket::Core::String assert_message(1024, "%s\nWould you like to interrupt execution?", message.CString());
+			Rocket::Core::String assert_message = Rocket::Core::CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());
 
 			// Return TRUE if the user presses NO (continue execution)
-			return MessageBox(NULL, assert_message.CString(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
+			return MessageBox(NULL, assert_message.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
 		}
 #endif
 	}

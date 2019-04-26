@@ -1792,6 +1792,49 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		}
 	}
 
+	// Fetch a new font face if it has been changed.
+	if (all_dirty ||
+		changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
+		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
+		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
+		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
+		changed_properties.find(FONT_SIZE) != changed_properties.end())
+	{
+		// Store the old em; if it changes, then we need to dirty all em-relative properties.
+		int old_em = -1;
+		if (font_face_handle != NULL)
+			old_em = font_face_handle->GetLineHeight();
+
+		// Fetch the new font face.
+		FontFaceHandle * new_font_face_handle = ElementUtilities::GetFontFaceHandle(this);
+
+		// If this is different from our current font face, then we've got to nuke
+		// all our characters and tell our parent that we have to be re-laid out.
+		if (new_font_face_handle != font_face_handle)
+		{
+			if (font_face_handle)
+				font_face_handle->RemoveReference();
+
+			font_face_handle = new_font_face_handle;
+
+			// Our font face has changed; odds are, so has our em. All of our em-relative values
+			// have therefore probably changed as well, so we'll need to dirty them.
+			int new_em = -1;
+			if (font_face_handle != NULL)
+				new_em = font_face_handle->GetLineHeight();
+
+			// However, if all properties are dirty, we don't need to perform this expensive
+			// step as all properties are dirtied below anyway.
+			if (old_em != new_em && !all_dirty)
+			{
+				style->DirtyEmProperties();
+			}
+		}
+		else if (new_font_face_handle != NULL)
+			new_font_face_handle->RemoveReference();
+	}
+
+
 	// Update the position.
 	if (all_dirty ||
 		changed_properties.find(LEFT) != changed_properties.end() ||
@@ -1880,45 +1923,6 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		changed_properties.find(OPACITY) != changed_properties.end())
 		border->DirtyBorder();
 
-	// Fetch a new font face if it has been changed.
-	if (all_dirty ||
-		changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
-		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
-		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
-		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
-		changed_properties.find(FONT_SIZE) != changed_properties.end())
-	{
-		// Store the old em; if it changes, then we need to dirty all em-relative properties.
-		int old_em = -1;
-		if (font_face_handle != NULL)
-			old_em = font_face_handle->GetLineHeight();
-
-		// Fetch the new font face.
-		FontFaceHandle* new_font_face_handle = ElementUtilities::GetFontFaceHandle(this);
-
-		// If this is different from our current font face, then we've got to nuke
-		// all our characters and tell our parent that we have to be re-laid out.
-		if (new_font_face_handle != font_face_handle)
-		{
-			if (font_face_handle)
-				font_face_handle->RemoveReference();
-
-			font_face_handle = new_font_face_handle;
-
-			// Our font face has changed; odds are, so has our em. All of our em-relative values
-			// have therefore probably changed as well, so we'll need to dirty them.
-			int new_em = -1;
-			if (font_face_handle != NULL)
-				new_em = font_face_handle->GetLineHeight();
-
-			if (old_em != new_em)
-			{
-				style->DirtyEmProperties();
-			}
-		}
-		else if (new_font_face_handle != NULL)
-			new_font_face_handle->RemoveReference();
-	}
 	
 	// Check for clipping state changes
 	if (all_dirty ||
@@ -2293,7 +2297,7 @@ void Element::DirtyStructure()
 	// Clear the cached owner document
 	owner_document = NULL;
 	
-	// Inform all children that the structure is drity
+	// Inform all children that the structure is dirty
 	for (size_t i = 0; i < children.size(); ++i)
 	{
 		const ElementDefinition* element_definition = children[i]->GetStyle()->GetDefinition();

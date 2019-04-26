@@ -105,7 +105,7 @@ void EventManager::ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::
 			Rocket::Core::ElementDocument* target_document = NULL;
 
 			if (values.size() > 1)
-				target_document = context->GetDocument(values[1].CString());
+				target_document = context->GetDocument(values[1].c_str());
 			else
 				target_document = event.GetTargetElement()->GetOwnerDocument();
 
@@ -145,7 +145,7 @@ Rocket::Core::ElementDocument* EventManager::LoadWindow(const Rocket::Core::Stri
 
 	// Attempt to load the referenced RML document.
 	Rocket::Core::String document_path = Rocket::Core::String("data/") + window_name + Rocket::Core::String(".rml");
-	Rocket::Core::ElementDocument* document = context->LoadDocument(document_path.CString());
+	Rocket::Core::ElementDocument* document = context->LoadDocument(document_path.c_str());
 	if (document == NULL)
 	{
 		event_handler = old_event_handler;

@@ -38,7 +38,6 @@
 #include <string>
 #include <map>
 #include <memory>
-#include <unordered_map>
 #include <set>
 #include <unordered_set>
 #include <vector>
@@ -111,9 +110,9 @@ typedef std::unordered_set< String > AttributeNameList;
 typedef Dictionary ElementAttributes;
 typedef std::vector< ElementAnimation > ElementAnimationList;
 
+// Unordered map
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
-
 typedef UnorderedMap< String, Property > PropertyMap;
 
 // Reference types

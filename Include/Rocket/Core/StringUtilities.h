@@ -65,22 +65,16 @@ public:
 	/// Converts a character array in UTF-8 encoding to a vector of words. The UCS-2 words will be encoded as
 	/// either big- or little-endian, depending on the host processor.
 	/// @param[in] input Input string in UTF-8 encoding.
-	/// @param[out] output Output vector of UCS-2 characters.
+	/// @param[out] output Output string of UCS-2 characters.
 	/// @return True if the conversion went successfully, false if any characters had to be skipped (this will occur if they can't fit into UCS-2).
-	static bool UTF8toUCS2(const String& input, std::vector< word >& output);
-	/// Converts a vector of words in UCS-2 encoding into a character array in UTF-8 encoding. This
-	/// function assumes the endianness of the input words to be the same as the host processor.
-	/// @param[in] input Input vector in UCS-2 encoding.
-	/// @param[out] output Output string in UTF-8 encoding.
-	/// @return True if the conversion went successfully, false if not.
-	static bool UCS2toUTF8(const std::vector< word >& input, String& output);
+	static bool UTF8toUCS2(const String& input, WString& output);
+
 	/// Converts an array of words in UCS-2 encoding into a character array in UTF-8 encoding. This
 	/// function assumes the endianness of the input words to be the same as the host processor.
-	/// @param[in] input Input array of words in UCS-2 encoding.
-	/// @param[in] input_size Length of the input array.
+	/// @param[in] input Input string of words in UCS-2 encoding.
 	/// @param[out] output Output string in UTF-8 encoding.
 	/// @return True if the conversion went successfully, false if not.
-	static bool UCS2toUTF8(const word* input, size_t input_size, String& output);
+	static bool UCS2toUTF8(const WString& input, String& output);
 
 	/// Checks if a given value is a whitespace character.
 	/// @param[in] x The character to evaluate.

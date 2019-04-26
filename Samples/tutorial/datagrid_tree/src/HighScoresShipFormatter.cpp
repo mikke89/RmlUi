@@ -28,7 +28,7 @@ void HighScoresShipFormatter::FormatData(Rocket::Core::String& formatted_data, c
 	Rocket::Core::Colourb ship_colour;
 	Rocket::Core::TypeConverter< Rocket::Core::String, Rocket::Core::Colourb >::Convert(raw_data[0], ship_colour);
 
-	Rocket::Core::String colour_string(32, "%d,%d,%d", ship_colour.red, ship_colour.green, ship_colour.blue);
+	Rocket::Core::String colour_string = Rocket::Core::CreateString(32, "%d,%d,%d", ship_colour.red, ship_colour.green, ship_colour.blue);
 
 	formatted_data = "<defender style=\"color: rgb(" + colour_string + ");\" />";
 }

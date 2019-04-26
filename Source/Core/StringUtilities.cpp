@@ -156,10 +156,12 @@ static int __utf8_forbidden(unsigned char octet)
 
 
 // Converts a character array in UTF-8 encoding to a vector of words.
-bool StringUtilities::UTF8toUCS2(const String& input, std::vector< word >& output)
+bool StringUtilities::UTF8toUCS2(const String& input, WString& output)
 {
 	if (input.empty())
 		return true;
+
+	output.reserve(input.size());
 	
 	unsigned char* p = (unsigned char*) input.c_str();
 	unsigned char* lim = p + input.size();
@@ -258,24 +260,19 @@ bool StringUtilities::UTF8toUCS2(const String& input, std::vector< word >& outpu
 			output.push_back((word) ucs4_char);
 	}
 	
-	output.push_back(0);
 	return true;
 }
 
-// Converts a vector of words in UCS-2 encoding a character array in UTF-8 encoding.
-bool StringUtilities::UCS2toUTF8(const std::vector< word >& input, String& output)
-{
-	return UCS2toUTF8(&input[0], input.size(), output);
-}
-
 // Converts an array of words in UCS-2 encoding into a character array in UTF-8 encoding.
-bool StringUtilities::UCS2toUTF8(const word* input, size_t input_size, String& output)
+bool StringUtilities::UCS2toUTF8(const WString& input, String& output)
 {
 	unsigned char *oc;
 	size_t n;
+
+	output.reserve(input.size());
 	
-	word* w = (word*) input;
-	word* wlim = w + input_size;
+	const word* w = input.data();
+	const word* wlim = w + input.size();
 	
 	//Log::Message(LC_CORE, Log::LT_ALWAYS, "UCS2TOUTF8 size: %d", input_size);
 	for (; w < wlim; w++)

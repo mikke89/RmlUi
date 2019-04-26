@@ -62,7 +62,7 @@ void EventHandlerStartGame::ProcessEvent(Rocket::Core::Event& event, const Rocke
 		Rocket::Core::Colourb colour(255, 255, 255);
 		for (size_t i = 0; i < colour_components.size() && i < 3; ++i)
 		{
-			int colour_component = atoi(colour_components[i].CString());
+			int colour_component = atoi(colour_components[i].c_str());
 			if (colour_component < 0)
 				colour_component = 0;
 			if (colour_component > 255)

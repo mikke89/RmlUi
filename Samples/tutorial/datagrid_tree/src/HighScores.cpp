@@ -58,7 +58,7 @@ void HighScores::GetRow(Rocket::Core::StringList& row, const Rocket::Core::Strin
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(Rocket::Core::String(32, "%d", scores[row_index].score));
+				row.push_back(Rocket::Core::CreateString(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
@@ -68,7 +68,7 @@ void HighScores::GetRow(Rocket::Core::StringList& row, const Rocket::Core::Strin
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(Rocket::Core::String(8, "%d", scores[row_index].wave));
+				row.push_back(Rocket::Core::CreateString(8, "%d", scores[row_index].wave));
 			}
 		}
 	}

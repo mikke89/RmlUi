@@ -29,17 +29,14 @@
 #define ROCKETCORESTRING_H
 
 #include "Header.h"
-#include "StringBase.h"
-#include <stdarg.h>
-#include <string.h>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace Rocket {
 namespace Core {
 
-//typedef StringBase< char > String;
 typedef std::string String;
+typedef std::wstring WString;
 typedef std::vector< String > StringList;
 
 // Redefine Windows APIs as their STDC counterparts.
@@ -52,29 +49,12 @@ int FormatString(String& string, size_t max_size, const char* format, ...);
 String CreateString(size_t max_size, const char* format, ...);
 
 String ToLower(const String& string);
-std::string Replace(std::string subject, const std::string& search, const std::string& replace);
+String Replace(String subject, const String& search, const String& replace);
 
-std::wstring ToWideString(const std::string& str);
-std::string ToUTF8(const std::wstring& wstr);
-
-struct hash_str_lowercase {
-	std::size_t operator()(const String& string) const
-	{
-		std::hash<String> hash_fn;
-		return hash_fn(ToLower(string));
-	}
-};
+WString ToWideString(const String& str);
+String ToUTF8(const WString& wstr);
 
 }
 }
-//
-//namespace std {
-//	template <> struct hash<::Rocket::Core::String> {
-//		std::size_t operator()(const ::Rocket::Core::String& string) const
-//		{
-//			return string.Hash();
-//		}
-//	};
-//}
 
 #endif

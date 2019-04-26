@@ -745,22 +745,20 @@ void ElementStyle::DirtyProperties()
 // Dirties em-relative properties.
 void ElementStyle::DirtyEmProperties()
 {
-	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
-
 	if (!em_properties)
 	{
 		// Check if any of these are currently em-relative. If so, dirty them.
 		em_properties = new PropertyNameList;
-		for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+		for (auto& property : StyleSheetSpecification::GetRegisteredProperties())
 		{
 			// Skip font-size; this is relative to our parent's em, not ours.
-			if (*list_iterator == FONT_SIZE)
+			if (property == FONT_SIZE)
 				continue;
 
 			// Get this property from this element. If this is em-relative, then add it to the list to
 			// dirty.
-			if (element->GetProperty(*list_iterator)->unit == Property::EM)
-				em_properties->insert(*list_iterator);
+			if (element->GetProperty(property)->unit == Property::EM)
+				em_properties->insert(property);
 		}
 	}
 
