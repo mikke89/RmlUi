@@ -103,6 +103,8 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	local_stacking_context_forced = false;
 	stacking_context_dirty = false;
 
+	all_properties_dirty = true;
+
 	font_face_handle = NULL;
 	
 	clipping_ignore_depth = 0;
@@ -159,12 +161,12 @@ void Element::Update()
 {
 	ReleaseElements(deleted_children);
 	active_children = children;
-	for (size_t i = 0; i < active_children.size(); i++)
-		active_children[i]->Update();
 
 	// Force a definition reload, if necessary.
-	style->GetDefinition();
+	style->UpdateDefinition();
 	scroll->Update();
+
+	UpdateDirtyProperties();
 
 	// Update and advance animations, if necessary.
 	UpdateAnimation();
@@ -172,6 +174,11 @@ void Element::Update()
 
 	// Update the transform state, if necessary.
 	UpdateTransformState();
+
+	for (size_t i = 0; i < active_children.size(); i++)
+		active_children[i]->Update();
+
+	UpdateDirtyProperties();
 
 	OnUpdate();
 }
@@ -1957,6 +1964,69 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	{
 		DirtyAnimation();
 	}
+}
+
+void Element::DirtyProperties(const PropertyNameList& changed_properties) 
+{ 
+	// 
+	//if (
+	//	changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
+	//	changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
+	//	changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
+	//	changed_properties.find(FONT_STYLE) != changed_properties.end() ||
+	//	changed_properties.find(FONT_SIZE) != changed_properties.end())
+	//{
+	//	// Store the old em; if it changes, then we need to dirty all em-relative properties.
+	//	int old_em = -1;
+	//	if (font_face_handle != NULL)
+	//		old_em = font_face_handle->GetLineHeight();
+
+	//	// Fetch the new font face.
+	//	FontFaceHandle * new_font_face_handle = ElementUtilities::GetFontFaceHandle(this);
+
+	//	// If this is different from our current font face, then we've got to nuke
+	//	// all our characters and tell our parent that we have to be re-laid out.
+	//	if (new_font_face_handle != font_face_handle)
+	//	{
+	//		if (font_face_handle)
+	//			font_face_handle->RemoveReference();
+
+	//		font_face_handle = new_font_face_handle;
+
+	//		// Our font face has changed; odds are, so has our em. All of our em-relative values
+	//		// have therefore probably changed as well, so we'll need to dirty them.
+	//		int new_em = -1;
+	//		if (font_face_handle != NULL)
+	//			new_em = font_face_handle->GetLineHeight();
+
+	//		// However, if all properties are dirty, we don't need to perform this expensive
+	//		// step as all properties are dirtied below anyway.
+	//		if (old_em != new_em && !all_properties_dirty)
+	//		{
+	//			style->DirtyEmProperties();
+	//		}
+	//	}
+	//	else if (new_font_face_handle != NULL)
+	//		new_font_face_handle->RemoveReference();
+	//}
+
+	if (all_properties_dirty)
+		return;
+
+	dirty_properties.insert(changed_properties.begin(), changed_properties.end());
+}
+
+void Element::UpdateDirtyProperties()
+{
+	if (!all_properties_dirty && dirty_properties.empty())
+		return;
+
+	auto& update_properties = (all_properties_dirty ? StyleSheetSpecification::GetRegisteredProperties() : dirty_properties);
+	
+	OnPropertyChange(update_properties);
+
+	all_properties_dirty = false;
+	dirty_properties.clear();
 }
 
 // Called when a child node has been added somewhere in the hierarchy

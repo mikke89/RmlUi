@@ -648,6 +648,10 @@ protected:
 	/// @param[in] changed_properties The properties changed on the element.
 	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
 
+	void DirtyAllProperties() { all_properties_dirty = true; }
+	void DirtyProperties(const PropertyNameList& changed_properties);
+	void UpdateDirtyProperties();
+
 	/// Called when a child node has been added somewhere in the hierarchy.
 	// @param[in] child The element that has been added. This may be this element.
 	virtual void OnChildAdd(Element* child);
@@ -774,6 +778,9 @@ private:
 
 	ElementList stacking_context;
 	bool stacking_context_dirty;
+
+	PropertyNameList dirty_properties;
+	bool all_properties_dirty;
 
 	// The element's font face; used to render text and resolve em / ex properties.
 	FontFaceHandle* font_face_handle;

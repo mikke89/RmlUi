@@ -306,7 +306,7 @@ void ElementDocument::_UpdateLayout()
 	const int max_updates = 3;
 
 	lock_layout++;
-	for(int i = 0; layout_dirty && i < max_updates; i++)
+	if(layout_dirty)//for(int i = 0; layout_dirty && i < max_updates; i++)
 	{
 		layout_dirty = false;
 

@@ -56,7 +56,6 @@ ElementStyle::ElementStyle(Element* _element)
 	cache = new ElementStyleCache(this);
 
 	definition_dirty = true;
-	child_definition_dirty = true;
 }
 
 ElementStyle::~ElementStyle()
@@ -76,10 +75,10 @@ ElementStyle::~ElementStyle()
 // Returns the element's definition, updating if necessary.
 const ElementDefinition* ElementStyle::GetDefinition()
 {
-	if (definition_dirty)
-	{
-		UpdateDefinition();
-	}
+	//if (definition_dirty)
+	//{
+	//	UpdateDefinition();
+	//}
 
 	return definition;
 }
@@ -224,16 +223,6 @@ void ElementStyle::UpdateDefinition()
 		{
 			new_definition->RemoveReference();
 		}
-	}
-	
-	if (child_definition_dirty)
-	{
-		for (int i = 0; i < element->GetNumChildren(true); i++)
-		{
-			element->GetChild(i)->GetStyle()->UpdateDefinition();
-		}
-		
-		child_definition_dirty = false;
 	}
 }
 
@@ -719,14 +708,6 @@ void ElementStyle::DirtyDefinition()
 {
 	definition_dirty = true;
 	DirtyChildDefinitions();
-	
-	// Dirty the child definition update the element tree
-	Element* parent = element->GetParentNode();
-	while (parent)
-	{
-		parent->GetStyle()->child_definition_dirty = true;
-		parent = parent->GetParentNode();
-	}
 }
 
 void ElementStyle::DirtyChildDefinitions()
@@ -847,6 +828,7 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 		return;
 
 	bool all_inherited_dirty = 
+		&properties == &StyleSheetSpecification::GetRegisteredProperties() ||
 		StyleSheetSpecification::GetRegisteredProperties() == properties ||
 		StyleSheetSpecification::GetRegisteredInheritedProperties() == properties;
 
@@ -890,7 +872,8 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 	}
 
 	// And send the event.
-	element->OnPropertyChange(properties);
+	element->DirtyProperties(properties);
+	//element->OnPropertyChange(properties);
 }
 
 // Sets a list of our potentially inherited properties as dirtied by an ancestor.
@@ -928,7 +911,8 @@ void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 	for (int i = 0; i < element->GetNumChildren(true); i++)
 		element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
 
-	element->OnPropertyChange(properties);
+	element->DirtyProperties(properties);
+	//element->OnPropertyChange(properties);
 }
 
 void ElementStyle::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )

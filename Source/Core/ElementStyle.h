@@ -242,8 +242,6 @@ private:
 	ElementDefinition* definition;
 	// Set if a new element definition should be fetched from the style.
 	bool definition_dirty;
-	// Set if a child element has a dirty style definition
-	bool child_definition_dirty;
 	// cached non-inherited properties
 	ElementStyleCache *cache;
 };

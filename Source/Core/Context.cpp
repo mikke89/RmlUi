@@ -194,6 +194,8 @@ bool Context::Render()
 	if (render_interface == NULL)
 		return false;
 
+	root->Update();
+
 	// Update the layout for all documents in the root. This is done now as events during the
 	// update may have caused elements to require an update.
 	for (int i = 0; i < root->GetNumChildren(); ++i)
