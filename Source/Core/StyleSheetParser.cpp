@@ -524,7 +524,7 @@ bool StyleSheetParser::ReadCharacter(char& buffer)
 					{
 						buffer = '/';
 						if (parse_buffer_pos == 0)
-							parse_buffer.insert(parse_buffer.begin() + parse_buffer_pos, '/');
+							parse_buffer.insert(parse_buffer_pos, 1, '/');
 						else
 							parse_buffer_pos--;
 						return true;

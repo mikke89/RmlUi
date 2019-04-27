@@ -86,7 +86,7 @@ int SystemInterface::TranslateString(String& translated, const String& input)
 void SystemInterface::JoinPath(String& translated_path, const String& document_path, const String& path)
 {
 	// If the path is absolute, strip the leading / and return it.
-	if (path.substr(0, 1) == "/")
+	if (path.size() > 0 && path[0] == '/')
 	{
 		translated_path = path.substr(1);
 		return;

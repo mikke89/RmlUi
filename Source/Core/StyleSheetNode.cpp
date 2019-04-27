@@ -524,7 +524,7 @@ StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 		else
 		{
 			// Alrighty; we've got an equation in the form of [[+/-]an][(+/-)b]. So, foist up, we split on 'n'.
-			size_t n_index = parameters.find("n");
+			size_t n_index = parameters.find('n');
 			if (n_index != String::npos)
 			{
 				// The equation is 0n + b. So a = 0, and we only have to parse b.

@@ -330,7 +330,8 @@ bool BaseXMLParser::ReadCDATA(const char* terminator)
 				String tag;
 				if (FindString((const unsigned char*) ">", tag))
 				{
-					String tag_name = StringUtilities::StripWhitespace(tag.substr(tag.find("/") + 1));
+					size_t slash_pos = tag.find('/');
+					String tag_name = StringUtilities::StripWhitespace(slash_pos == String::npos ? tag : tag.substr(slash_pos + 1));
 					if (ToLower(tag_name) == terminator)
 					{
 						data += cdata;

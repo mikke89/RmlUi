@@ -433,7 +433,7 @@ bool WidgetTextInput::AddCharacter(Rocket::Core::word character)
 		DeleteSelection();
 
 	Core::WString value = Core::ToWideString(GetElement()->GetAttribute< Rocket::Core::String >("value", ""));
-	value.insert(GetCursorIndex(), Core::WString(1, character), 1);
+	value.insert(GetCursorIndex(), 1, character);
 
 	edit_index += 1;
 
@@ -964,10 +964,13 @@ void WidgetTextInput::GetLineSelection(Core::WString& pre_selection, Core::WStri
 		return;
 	}
 
+	int line_length = (int)line.size();
+	using namespace Rocket::Core::Math;
+
 	// Split the line up into its three parts, depending on the size and placement of the selection.
-	pre_selection = line.substr(0, Rocket::Core::Math::Max(0, selection_begin_index - line_begin));
-	selection = line.substr(Rocket::Core::Math::Max(0, selection_begin_index - line_begin), Rocket::Core::Math::Max(0, selection_length + Rocket::Core::Math::Min(0, selection_begin_index - line_begin)));
-	post_selection = line.substr(selection_begin_index + selection_length - line_begin);
+	pre_selection = line.substr(0, Max(0, selection_begin_index - line_begin));
+	selection = line.substr(Clamp(selection_begin_index - line_begin, 0, line_length), Max(0, selection_length + Min(0, selection_begin_index - line_begin)));
+	post_selection = line.substr(Clamp(selection_begin_index + selection_length - line_begin, 0, line_length));
 }
 
 void WidgetTextInput::SetKeyboardActive(bool active)
