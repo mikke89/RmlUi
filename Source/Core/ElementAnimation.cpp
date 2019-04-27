@@ -117,9 +117,6 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 	{
 		using namespace Rocket::Core::Transforms;
 
-		// Build the new, interpolating transform
-		auto t = std::make_unique<Transform>();
-
 		auto t0 = p0.value.Get<TransformRef>();
 		auto t1 = p1.value.Get<TransformRef>();
 
@@ -131,6 +128,10 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 			ROCKET_ERRORMSG("Transform primitives not of same size during interpolation. Were the transforms properly prepared for interpolation?");
 			return Property{ t0, Property::TRANSFORM };
 		}
+
+		// Build the new, interpolating transform
+		auto t = std::make_unique<Transform>();
+		t->GetPrimitives().reserve(t0->GetPrimitives().size());
 
 		for (size_t i = 0; i < prim0.size(); i++)
 		{

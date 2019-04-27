@@ -998,6 +998,7 @@ void Element::SetAttributes(const ElementAttributes* _attributes)
 	Variant* value;
 
 	AttributeNameList changed_attributes;
+	changed_attributes.reserve(_attributes->Size());
 
 	while (_attributes->Iterate(index, key, value))
 	{		
