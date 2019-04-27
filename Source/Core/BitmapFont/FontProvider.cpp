@@ -144,14 +144,15 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length, const String&
 // Adds a loaded face to the appropriate font family.
 bool FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
 {
+	String family_lower = ToLower(family);
 	Rocket::Core::FontFamily* font_family = NULL;
-	FontFamilyMap::iterator iterator = instance->font_families.find(family);
+	FontFamilyMap::iterator iterator = instance->font_families.find(family_lower);
 	if (iterator != instance->font_families.end())
 		font_family = (*iterator).second;
 	else
 	{
-		font_family = new FontFamily(family);
-		instance->font_families[family] = font_family;
+		font_family = new FontFamily(family_lower);
+		instance->font_families[family_lower] = font_family;
 	}
 
 	return font_family->AddFace((BitmapFontDefinitions *) face, style, weight, release_stream);

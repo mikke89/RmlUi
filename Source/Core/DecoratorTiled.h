@@ -105,7 +105,7 @@ public:
 			Vector2f texcoords[2];
 		};
 
-		typedef std::map< RenderInterface*, TileData > TileDataMap;
+		typedef std::vector< std::pair< RenderInterface*, TileData > > TileDataMap;
 
 		int texture_index;
 		Vector2f texcoords[2];

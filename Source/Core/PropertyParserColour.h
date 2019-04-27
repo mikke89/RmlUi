@@ -57,7 +57,7 @@ public:
 	virtual void Release();
 
 private:
-	typedef std::map< String, Colourb, StringUtilities::StringComparei > ColourMap;
+	typedef UnorderedMap< String, Colourb> ColourMap;
 	ColourMap html_colours;
 };
 

@@ -203,7 +203,7 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 					continue;
 				}
 
-				if (pseudo_classes.find(rule_pseudo_classes[j]) == pseudo_classes.end())
+				if (std::find(pseudo_classes.begin(), pseudo_classes.end(), rule_pseudo_classes[j]) == pseudo_classes.end())
 				{			
 					rule_valid = false;
 					break;
@@ -255,9 +255,7 @@ bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pse
 				if (property_count > index)
 				{
 					// Copy the list of pseudo-classes.
-					property_pseudo_classes.clear();
-					for (size_t k = 0; k < (*i).second[j].first.size(); ++k)
-						property_pseudo_classes.insert((*i).second[j].first[k]);
+					property_pseudo_classes = (*i).second[j].first;
 
 					property_name = (*i).first;
 					property = &((*i).second[j].second);
@@ -559,7 +557,7 @@ bool ElementDefinition::IsPseudoClassRuleApplicable(const StringList& rule_pseud
 {
 	for (StringList::size_type i = 0; i < rule_pseudo_classes.size(); ++i)
 	{
-		if (element_pseudo_classes.find(rule_pseudo_classes[i]) == element_pseudo_classes.end())
+		if (std::find(element_pseudo_classes.begin(), element_pseudo_classes.end(), rule_pseudo_classes[i]) == element_pseudo_classes.end())
 			return false;
 	}
 

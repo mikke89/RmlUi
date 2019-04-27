@@ -65,11 +65,20 @@ DecoratorTiled::Tile::Tile()
 	texcoords_absolute[1][1] = false;
 }
 
+struct TileDataMapCmp {
+	RenderInterface* find;
+
+	using Element = std::pair< RenderInterface*, DecoratorTiled::Tile::TileData >;
+	bool operator() (const Element& el) const {
+		return el.first == find;
+	}
+};
+
 // Calculates the tile's dimensions from the texture and texture coordinates.
 void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& texture)
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
-	TileDataMap::iterator data_iterator = data.find(render_interface);
+	TileDataMap::iterator data_iterator = std::find_if(data.begin(), data.end(), TileDataMapCmp{ render_interface });
 	if (data_iterator == data.end())
 	{
 		TileData new_data;
@@ -90,7 +99,7 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 		new_data.dimensions.x = Math::AbsoluteValue((new_data.texcoords[1].x * texture_dimensions.x) - (new_data.texcoords[0].x * texture_dimensions.x));
 		new_data.dimensions.y = Math::AbsoluteValue((new_data.texcoords[1].y * texture_dimensions.y) - (new_data.texcoords[0].y * texture_dimensions.y));
 
-		data[render_interface] = new_data;
+		data.emplace_back( render_interface,  new_data );
 	}
 }
 
@@ -98,7 +107,7 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 Vector2f DecoratorTiled::Tile::GetDimensions(Element* element)
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
-	TileDataMap::iterator data_iterator = data.find(render_interface);
+	TileDataMap::iterator data_iterator = std::find_if(data.begin(), data.end(), TileDataMapCmp{ render_interface });
 	if (data_iterator == data.end())
 		return Vector2f(0, 0);
 
@@ -116,7 +125,7 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
     // Apply opacity
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 	
-	TileDataMap::iterator data_iterator = data.find(render_interface);
+	TileDataMap::iterator data_iterator = std::find_if(data.begin(), data.end(), TileDataMapCmp{ render_interface });
 	if (data_iterator == data.end())
 		return;
 

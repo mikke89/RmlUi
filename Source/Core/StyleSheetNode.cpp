@@ -240,7 +240,10 @@ bool StyleSheetNode::GetVolatilePseudoClasses(PseudoClassList& volatile_pseudo_c
 			self_volatile = (*i).second->GetVolatilePseudoClasses(volatile_pseudo_classes) | self_volatile;
 
 		if (self_volatile)
-			volatile_pseudo_classes.insert(name);
+		{
+			if (auto it = std::find(volatile_pseudo_classes.begin(), volatile_pseudo_classes.end(), name); it == volatile_pseudo_classes.end())
+				volatile_pseudo_classes.push_back(name);
+		}
 
 		return self_volatile;
 	}

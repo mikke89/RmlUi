@@ -104,7 +104,7 @@ typedef uintptr_t DecoratorDataHandle;
 
 // List of elements.
 typedef std::vector< Element* > ElementList;
-typedef std::set< String > PseudoClassList;
+typedef std::vector< String > PseudoClassList;
 typedef std::unordered_set< String > PropertyNameList;
 typedef std::unordered_set< String > AttributeNameList;
 typedef std::vector< ElementAnimation > ElementAnimationList;

@@ -128,12 +128,12 @@ protected:
 
 private:
 	typedef std::pair< String, PropertyDictionary > PropertyGroup;
-	typedef std::map< String, PropertyGroup > PropertyGroupMap;
+	typedef UnorderedMap< String, PropertyGroup > PropertyGroupMap;
 
 	typedef std::vector< std::pair< StringList, int > > PseudoClassFontEffectIndex;
-	typedef std::map< String, PseudoClassFontEffectIndex > FontEffectIndex;
+	typedef UnorderedMap< String, PseudoClassFontEffectIndex > FontEffectIndex;
 
-	typedef std::map< String, PseudoClassVolatility > PseudoClassVolatilityMap;
+	typedef UnorderedMap< String, PseudoClassVolatility > PseudoClassVolatilityMap;
 
 	// Finds all propery declarations for a group.
 	void BuildPropertyGroup(PropertyGroupMap& groups, const String& group_type, const PropertyDictionary& element_properties, const PropertyGroupMap* default_properties = NULL);

@@ -231,9 +231,19 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 	auto pseudo_classes_before = pseudo_classes;
 
 	if (activate)
-		pseudo_classes.insert(pseudo_class);
+		pseudo_classes.push_back(pseudo_class);
 	else
-		pseudo_classes.erase(pseudo_class);
+	{
+		// In case of duplicates, we do a loop here. We could do a sort and unique instead,
+		// but that might even be slower for a small list with few duplicates, which
+		// is probably the most common case.
+		auto it = std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class);
+		while(it != pseudo_classes.end())
+		{
+			pseudo_classes.erase(it);
+			it = std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class);
+		}
+	}
 
 	if (pseudo_classes.size() != num_pseudo_classes)
 	{
@@ -268,7 +278,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 // Checks if a specific pseudo-class has been set on the element.
 bool ElementStyle::IsPseudoClassSet(const String& pseudo_class) const
 {
-	return (pseudo_classes.find(pseudo_class) != pseudo_classes.end());
+	return (std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class) != pseudo_classes.end());
 }
 
 const PseudoClassList& ElementStyle::GetActivePseudoClasses() const

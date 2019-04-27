@@ -60,7 +60,7 @@ public:
 
 protected:
 
-    typedef std::map< String, FontFamily*, StringUtilities::StringComparei > FontFamilyMap;
+    typedef UnorderedMap< String, FontFamily*> FontFamilyMap;
     FontFamilyMap font_families;
 };
 

@@ -29,9 +29,9 @@
 #define ROCKETCONTROLSDATASOURCE_H
 
 #include "Header.h"
+#include "../Core/Types.h"
 #include "../Core/String.h"
 #include <list>
-#include <map>
 
 namespace Rocket {
 namespace Controls {
@@ -96,7 +96,7 @@ class ROCKETCONTROLS_API DataSource
 		void NotifyRowChange(const Rocket::Core::String& table);
 
 		/// Helper function for building a result set.
-		typedef std::map< Rocket::Core::String, Rocket::Core::String > RowMap;
+		typedef Core::UnorderedMap< Rocket::Core::String, Rocket::Core::String > RowMap;
 		void BuildRowEntries(Rocket::Core::StringList& row, const RowMap& row_map, const Rocket::Core::StringList& columns);
 
 	private:

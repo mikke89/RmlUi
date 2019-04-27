@@ -124,7 +124,7 @@ private:
 
 	typedef std::vector< Rocket::Core::StringList > Rows;
 	Rows rows;
-	typedef std::map< Rocket::Core::String, size_t > FieldIndices;
+	typedef Core::UnorderedMap< Rocket::Core::String, size_t > FieldIndices;
 	FieldIndices field_indices;
 	
 	void LoadRow();

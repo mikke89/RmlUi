@@ -153,7 +153,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 	else
 	{
 		// Check for the specification of an HTML colour.
-		ColourMap::const_iterator iterator = html_colours.find(value);
+		ColourMap::const_iterator iterator = html_colours.find(ToLower(value));
 		if (iterator == html_colours.end())
 			return false;
 		else
