@@ -32,26 +32,27 @@
 namespace Rocket {
 namespace Core {
 
-typedef std::set< Geometry* > GeometrySet;
-GeometrySet geometries;
+typedef std::unordered_set< Geometry* > GeometrySet;
+//static GeometrySet geometries;
 
 // Adds a geometry to the database.
 void GeometryDatabase::AddGeometry(Geometry* geometry)
 {
-	geometries.insert(geometry);
+	//geometries.insert(geometry);
 }
 
 // Removes a geometry from the database.
 void GeometryDatabase::RemoveGeometry(Geometry* geometry)
 {
-	geometries.erase(geometry);
+	//geometries.erase(geometry);
 }
 
 // Releases all compiled geometries.
 void GeometryDatabase::ReleaseGeometries()
 {
-	for (GeometrySet::iterator i = geometries.begin(); i != geometries.end(); ++i)
-		(*i)->Release();
+	Log::Message(Log::LT_WARNING, "ReleaseGeometry not currently implemented for performance reasons.");
+	//for (GeometrySet::iterator i = geometries.begin(); i != geometries.end(); ++i)
+	//	(*i)->Release();
 }
 
 }

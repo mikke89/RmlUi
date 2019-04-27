@@ -126,20 +126,15 @@ public:
 	/// @param[in] source_name Name of the the script the source comes from, useful for debug information.
 	virtual void LoadScript(Stream* stream, const String& source_name);
 
-	/// Updates the layout if necessary.
-	/// The extra argument was added such that layout updates can be done only once per frame
-	inline void UpdateLayout(bool i_really_mean_it = false) { if (i_really_mean_it && layout_dirty && lock_layout == 0) _UpdateLayout(); }
-
-	/// Updates the position of the document based on the style properties.
-	void UpdatePosition();
+	/// Updates the document, including its layout. Users must call this manually before requesting information such as 
+	/// size or position of an element if any element in the document was recently changed, unless Context::Update has
+	/// already been called after the change. This has a perfomance penalty, only call when strictly necessary.
+	void UpdateDocument();
 	
 	/// Increment/Decrement the layout lock
 	void LockLayout(bool lock);
 	
 protected:
-	/// Refreshes the document layout if required.
-	virtual void OnUpdate();
-
 	/// Repositions the document if necessary.
 	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
 
@@ -156,10 +151,16 @@ protected:
 	virtual void ProcessEvent(Event& event);
 
 private:
-	// Find the next element to focus, starting at the current element
+	/// Find the next element to focus, starting at the current element
 	bool FocusNextTabElement(Element* current_element, bool forward);
 	/// Searches forwards or backwards for a focusable element in the given substree
 	bool SearchFocusSubtree(Element* element, bool forward);
+
+	/// Updates the layout if necessary.
+	void UpdateLayout();
+
+	/// Updates the position of the document based on the style properties.
+	void UpdatePosition();
 
 	// Title of the document
 	String title;
@@ -181,8 +182,7 @@ private:
 
 	friend class Context;
 	friend class Factory;
-	
-	void _UpdateLayout();
+
 };
 
 }

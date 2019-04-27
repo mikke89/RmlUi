@@ -61,6 +61,7 @@ class FontFaceHandle;
 class PropertyDictionary;
 class RenderInterface;
 class StyleSheet;
+struct ElementMeta;
 
 /**
 	A generic element in the DOM tree.
@@ -76,9 +77,6 @@ public:
 	/// @param[in] tag The tag the element was declared as in RML.
 	Element(const String& tag);
 	virtual ~Element();
-
-	void Update();
-	void Render();
 
 	/// Clones this element, returning a new, unparented element.
 	Element* Clone() const;
@@ -624,11 +622,11 @@ public:
 	/// Called for every event sent to this element or one of its descendants.
 	/// @param[in] event The event to process.
 	virtual void ProcessEvent(Event& event);
-	
-	/// Update the element's layout if required.
-	void UpdateLayout();
 
 protected:
+	void Update();
+	void Render();
+
 	/// Forces the element to generate a local stacking context, regardless of the value of its z-index
 	/// property.
 	void ForceLocalStackingContext();
@@ -798,6 +796,8 @@ private:
 
 	ElementAnimationList animations;
 	bool dirty_animation;
+
+	ElementMeta* element_meta;
 
 	friend class Context;
 	friend class ElementStyle;

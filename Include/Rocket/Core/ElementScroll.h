@@ -53,7 +53,7 @@ public:
 	};
 
 	ElementScroll(Element* element);
-	virtual ~ElementScroll();
+	~ElementScroll();
 
 	/// Updates the increment / decrement arrows.
 	void Update();
@@ -81,6 +81,9 @@ public:
 
 	/// Formats the enabled scrollbars based on the current size of the host element.
 	void FormatScrollbars();
+
+	/// Clears the scrollbars, resetting it to initial conditions.
+	void ClearScrollbars();
 
 protected:
 	/// Handles the 'onchange' events for the scrollbars.

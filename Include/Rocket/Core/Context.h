@@ -81,7 +81,6 @@ public:
 	/// @return The current dimensions of the context.
 	const Vector2i& GetDimensions() const;
 
-
 	/// Returns the current state of the view.
 	const ViewState& GetViewState() const noexcept;
 
@@ -92,8 +91,8 @@ public:
 	/// @return The current density-independent pixel ratio of the context.
 	float GetDensityIndependentPixelRatio() const;
 
-
-	/// Updates all elements in the context's documents.
+	/// Updates all elements in the context's documents. 
+	/// This must be called before Context::Render, but after any elements have been changed, added or removed.
 	bool Update();
 	/// Renders all visible elements in the context's documents.
 	bool Render();

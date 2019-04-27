@@ -300,15 +300,22 @@ void ElementDocument::LoadScript(Stream* ROCKET_UNUSED_PARAMETER(stream), const 
 	ROCKET_UNUSED(source_name);
 }
 
-// Updates the layout if necessary.
-void ElementDocument::_UpdateLayout()
+// Updates the document, including its layout
+void ElementDocument::UpdateDocument()
 {
-	const int max_updates = 3;
+	Element::Update();
+	UpdateLayout();
+}
 
-	lock_layout++;
-	if(layout_dirty)//for(int i = 0; layout_dirty && i < max_updates; i++)
+// Updates the layout if necessary.
+void ElementDocument::UpdateLayout()
+{
+	// The lock_layout currently has no effect. Instead, we carefully consider
+	// when we need to call this function.
+	if(layout_dirty)
 	{
 		layout_dirty = false;
+		lock_layout++;
 
 		Vector2f containing_block(0, 0);
 		if (GetParentNode() != NULL)
@@ -316,8 +323,8 @@ void ElementDocument::_UpdateLayout()
 
 		LayoutEngine layout_engine;
 		layout_engine.FormatElement(this, containing_block);
+		lock_layout--;
 	}
-	lock_layout--;
 }
 
 // Updates the position of the document based on the style properties.
@@ -375,12 +382,6 @@ bool ElementDocument::IsLayoutDirty()
 void ElementDocument::DirtyDpProperties()
 {
 	GetStyle()->DirtyDpProperties();
-}
-
-// Refreshes the document layout if required.
-void ElementDocument::OnUpdate()
-{
-	UpdateLayout();
 }
 
 // Repositions the document if necessary.

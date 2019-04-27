@@ -45,10 +45,24 @@ ElementScroll::ElementScroll(Element* _element)
 
 ElementScroll::~ElementScroll()
 {
+	ClearScrollbars();
+}
+
+void ElementScroll::ClearScrollbars()
+{
 	for (int i = 0; i < 2; i++)
 	{
 		if (scrollbars[i].element != NULL)
+		{
 			scrollbars[i].element->RemoveEventListener("scrollchange", this);
+			scrollbars[i] = Scrollbar();
+		}
+	}
+
+	if (corner != NULL)
+	{
+		corner->GetParentNode()->RemoveChild(element);
+		corner = NULL;
 	}
 }
 

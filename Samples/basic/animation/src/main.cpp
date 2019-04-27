@@ -38,8 +38,6 @@
 
 // Animations TODO:
 //  - Update transform animations / resolve keys again when parent box size changes.
-//  - RCSS support? Both @keyframes and transition, maybe.
-//  - Profiling
 //  - [offtopic] Improve performance of transform parser (hashtable)
 //  - [offtopic] Use double for absolute time, get and cache time for each render/update loop
 
@@ -134,16 +132,16 @@ public:
 		  FPS values
 		  Original: 18.5
 		  Without property counter: 22.0
-		  With std::string: 23.0
-		  robin_hood unordered_flat_map: 24.0
+		  With std::string: 23.0  [603fd40]
+		  robin_hood unordered_flat_map: 24.0  [709852f]
 		  Avoid dirtying em's: 27.5
+		  Restructuring update loop: 34.5  [f9892a9]
+		  Element constructor, remove geometry database, remove update() from Context::render: 38.0
 		
 		*/
 		
 		if (!document)
 			return;
-
-		auto el = document->GetElementById("performance");
 
 		Rocket::Core::String rml;
 
@@ -173,7 +171,7 @@ public:
 			rml += rml_row;
 		}
 
-		if (el)
+		if (auto el = document->GetElementById("performance"))
 			el->SetInnerRML(rml);
 	}
 

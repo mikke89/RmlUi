@@ -77,6 +77,18 @@ public:
 	}
 };
 
+// Meta objects for element collected in a single struct to reduce memory allocations
+struct ElementMeta 
+{
+	ElementMeta(Element* el) : event_dispatcher(el), style(el), background(el), border(el), decoration(el), scroll(el)  {}
+	EventDispatcher event_dispatcher;
+	ElementStyle style;
+	ElementBackground background;
+	ElementBorder border;
+	ElementDecoration decoration;
+	ElementScroll scroll;
+};
+
 /// Constructs a new libRocket element.
 Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0), 
 transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false)
@@ -111,12 +123,14 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	clipping_enabled = false;
 	clipping_state_dirty = true;
 
-	event_dispatcher = new EventDispatcher(this);
-	style = new ElementStyle(this);
-	background = new ElementBackground(this);
-	border = new ElementBorder(this);
-	decoration = new ElementDecoration(this);
-	scroll = new ElementScroll(this);
+	element_meta = new ElementMeta(this);
+
+	event_dispatcher = &element_meta->event_dispatcher;
+	style = &element_meta->style;
+	background = &element_meta->background;
+	border = &element_meta->border;
+	decoration = &element_meta->decoration;
+	scroll = &element_meta->scroll;
 }
 
 Element::~Element()
@@ -125,8 +139,8 @@ Element::~Element()
 
 	PluginRegistry::NotifyElementDestroy(this);
 
-	// Delete the scroll funtionality before we delete the children!
-	delete scroll;
+	// Remove scrollbar elements before we delete the children!
+	scroll->ClearScrollbars();
 
 	while (!children.empty())
 	{
@@ -144,11 +158,7 @@ Element::~Element()
 	// Release all deleted children.
 	ReleaseElements(deleted_children);
 
-	delete decoration;
-	delete border;
-	delete background;
-	delete style;
-	delete event_dispatcher;
+	delete element_meta;
 
 	if (font_face_handle != NULL)
 		font_face_handle->RemoveReference();
@@ -162,28 +172,21 @@ void Element::Update()
 	ReleaseElements(deleted_children);
 	active_children = children;
 
-	// Force a definition reload, if necessary.
+	OnUpdate();
+
 	style->UpdateDefinition();
 	scroll->Update();
 
 	UpdateDirtyProperties();
 
-	// Update and advance animations, if necessary.
 	UpdateAnimation();
 	AdvanceAnimations();
 
-	// Update the transform state, if necessary.
 	UpdateTransformState();
 
 	for (size_t i = 0; i < active_children.size(); i++)
 		active_children[i]->Update();
-
-	UpdateDirtyProperties();
-
-	OnUpdate();
 }
-
-
 
 void Element::Render()
 {
@@ -354,14 +357,12 @@ void Element::SetOffset(const Vector2f& offset, Element* _offset_parent, bool _o
 // Returns the position of the top-left corner of one of the areas of this element's primary box.
 Vector2f Element::GetRelativeOffset(Box::Area area)
 {
-	UpdateLayout();
 	return relative_offset_base + relative_offset_position + GetBox().GetPosition(area);
 }
 
 // Returns the position of the top-left corner of one of the areas of this element's primary box.
 Vector2f Element::GetAbsoluteOffset(Box::Area area)
 {
-	UpdateLayout();
 	if (offset_dirty)
 	{
 		offset_dirty = false;
@@ -451,8 +452,6 @@ void Element::AddBox(const Box& box)
 // Returns one of the boxes describing the size of the element.
 const Box& Element::GetBox(int index)
 {
-	UpdateLayout();
-
 	if (index < 0)
 		return boxes[0];
 	else if (index >= GetNumBoxes())
@@ -464,7 +463,6 @@ const Box& Element::GetBox(int index)
 // Returns the number of boxes making up this element's geometry.
 int Element::GetNumBoxes()
 {
-	UpdateLayout();
 	return (int) boxes.size();
 }
 
@@ -1055,28 +1053,24 @@ float Element::GetAbsoluteTop()
 // Gets the width of the left border of an element.
 float Element::GetClientLeft()
 {
-	UpdateLayout();
 	return GetBox().GetPosition(client_area).x;
 }
 
 // Gets the height of the top border of an element.
 float Element::GetClientTop()
 {
-	UpdateLayout();
 	return GetBox().GetPosition(client_area).y;
 }
 
 // Gets the inner width of the element.
 float Element::GetClientWidth()
 {
-	UpdateLayout();
 	return GetBox().GetSize(client_area).x - scroll->GetScrollbarSize(ElementScroll::VERTICAL);
 }
 
 // Gets the inner height of the element.
 float Element::GetClientHeight()
 {
-	UpdateLayout();
 	return GetBox().GetSize(client_area).y - scroll->GetScrollbarSize(ElementScroll::HORIZONTAL);
 }
 
@@ -1089,35 +1083,30 @@ Element* Element::GetOffsetParent()
 // Gets the distance from this element's left border to its offset parent's left border.
 float Element::GetOffsetLeft()
 {
-	UpdateLayout();
 	return relative_offset_base.x + relative_offset_position.x;
 }
 
 // Gets the distance from this element's top border to its offset parent's top border.
 float Element::GetOffsetTop()
 {
-	UpdateLayout();
 	return relative_offset_base.y + relative_offset_position.y;
 }
 
 // Gets the width of the element, including the client area, padding, borders and scrollbars, but not margins.
 float Element::GetOffsetWidth()
 {
-	UpdateLayout();
 	return GetBox().GetSize(Box::BORDER).x;
 }
 
 // Gets the height of the element, including the client area, padding, borders and scrollbars, but not margins.
 float Element::GetOffsetHeight()
 {
-	UpdateLayout();
 	return GetBox().GetSize(Box::BORDER).y;
 }
 
 // Gets the left scroll offset of the element.
 float Element::GetScrollLeft()
 {
-	UpdateLayout();
 	return scroll_offset.x;
 }
 
@@ -1134,7 +1123,6 @@ void Element::SetScrollLeft(float scroll_left)
 // Gets the top scroll offset of the element.
 float Element::GetScrollTop()
 {
-	UpdateLayout();
 	return scroll_offset.y;
 }
 
@@ -2043,14 +2031,6 @@ void Element::OnChildRemove(Element* child)
 		parent->OnChildRemove(child);
 }
 
-// Update the element's layout if required.
-void Element::UpdateLayout()
-{
-	ElementDocument* document = GetOwnerDocument();
-	if (document != NULL)
-		document->UpdateLayout();
-}
-
 // Forces a re-layout of this element, and any other children required.
 void Element::DirtyLayout()
 {
@@ -2062,7 +2042,7 @@ void Element::DirtyLayout()
 /// Increment/Decrement the layout lock
 void Element::LockLayout(bool lock)
 {
-	Element* document = GetOwnerDocument();
+	ElementDocument* document = GetOwnerDocument();
 	if (document != NULL)
 		document->LockLayout(lock);
 }

@@ -873,7 +873,6 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 
 	// And send the event.
 	element->DirtyProperties(properties);
-	//element->OnPropertyChange(properties);
 }
 
 // Sets a list of our potentially inherited properties as dirtied by an ancestor.

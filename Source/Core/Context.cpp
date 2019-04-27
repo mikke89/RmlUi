@@ -166,8 +166,8 @@ float Context::GetDensityIndependentPixelRatio() const
 // Updates all elements in the element tree.
 bool Context::Update()
 {
-#ifdef _DEBUG
-	// Reset all document layout locks (work-around due to leak, possibly in select element?)
+#ifdef ROCKET_DEBUG
+	// Look for leaks in layout lock
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 	{
 		ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
@@ -181,6 +181,10 @@ bool Context::Update()
 
 	root->Update();
 
+	for (int i = 0; i < root->GetNumChildren(); ++i)
+		if (auto doc = root->GetChild(i)->GetOwnerDocument())
+			doc->UpdateLayout();
+
 	// Release any documents that were unloaded during the update.
 	ReleaseUnloadedDocuments();
 
@@ -193,14 +197,6 @@ bool Context::Render()
 	RenderInterface* render_interface = GetRenderInterface();
 	if (render_interface == NULL)
 		return false;
-
-	root->Update();
-
-	// Update the layout for all documents in the root. This is done now as events during the
-	// update may have caused elements to require an update.
-	for (int i = 0; i < root->GetNumChildren(); ++i)
-		if (auto doc = root->GetChild(i)->GetOwnerDocument())
-			doc->UpdateLayout(true);
 
 	render_interface->context = this;
 	ElementUtilities::ApplyActiveClipRegion(this, render_interface);
@@ -254,7 +250,6 @@ ElementDocument* Context::CreateDocument(const String& tag)
 // Load a document into the context.
 ElementDocument* Context::LoadDocument(const String& document_path)
 {	
-	// Open the stream based on the file path
 	StreamFile* stream = new StreamFile();
 	if (!stream->Open(document_path))
 	{
@@ -262,7 +257,6 @@ ElementDocument* Context::LoadDocument(const String& document_path)
 		return NULL;
 	}
 
-	// Load the document from the stream
 	ElementDocument* document = LoadDocument(stream);
 
 	stream->RemoveReference();
@@ -275,18 +269,15 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 {
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
-	// Load the document from the stream.
 	ElementDocument* document = Factory::InstanceDocumentStream(this, stream);
 	if (!document)
 		return NULL;
 
 	root->AppendChild(document);
 
-	// Bind the events, run the layout and fire the 'onload' event.
 	ElementUtilities::BindEventAttributes(document);
-	document->UpdateLayout();
+	document->UpdateDocument();
 
-	// Dispatch the load notifications.
 	PluginRegistry::NotifyDocumentLoad(document);
 	document->DispatchEvent(LOAD, Dictionary(), false);
 
@@ -1002,10 +993,6 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 // Returns the youngest descendent of the given element which is under the given point in screen coodinates.
 Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore_element, Element* element)
 {
-	// Update the layout on all documents prior to this call.
-	for (int i = 0; i < GetNumDocuments(); ++i)
-		GetDocument(i)->UpdateLayout();
-
 	if (element == NULL)
 	{
 		if (ignore_element == root)
