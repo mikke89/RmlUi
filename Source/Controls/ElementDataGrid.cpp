@@ -138,7 +138,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 	columns.push_back(column);
 
 	Rocket::Core::Dictionary parameters;
-	parameters.Set("index", (int)(columns.size() - 1)); 
+	parameters.emplace("index", (int)(columns.size() - 1)); 
 	DispatchEvent("columnadd", parameters);
 }
 

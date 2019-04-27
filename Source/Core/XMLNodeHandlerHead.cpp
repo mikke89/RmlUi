@@ -54,8 +54,8 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 	else if (name == "link")
 	{
 		// Lookup the type and href
-		String type = ToLower(attributes.Get<String>("type", ""));
-		String href = attributes.Get<String>("href", "");
+		String type = ToLower(Get<String>(attributes, "type", ""));
+		String href = Get<String>(attributes, "href", "");
 
 		if (!type.empty() && !href.empty())
 		{
@@ -87,7 +87,7 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 	else if (name == "script")
 	{
 		// Check if its an external string
-		String src = attributes.Get<String>("src", "");
+		String src = Get<String>(attributes, "src", "");
 		if (src.size() > 0)
 		{
 			parser->GetDocumentHeader()->scripts_external.push_back(src);

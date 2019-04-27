@@ -706,6 +706,9 @@ endif(NOT BUILD_FRAMEWORK)
     # Build and install the tutorials
     foreach(tutorial ${tutorials})
         bl_sample(${tutorial} ${sample_LIBRARIES})
+		
+		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD 17)
+		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD_REQUIRED ON)
 
         # The tutorials always set this as their current working directory
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})

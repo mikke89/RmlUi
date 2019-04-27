@@ -60,7 +60,7 @@ bool ElementFormControl::IsSubmitted()
 // Returns the disabled status of the form control.
 bool ElementFormControl::IsDisabled() const
 {
-	return GetAttribute("disabled") != NULL;
+	return HasAttribute("disabled");
 }
 
 // Sets the disabled status of the form control.

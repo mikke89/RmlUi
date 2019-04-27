@@ -67,6 +67,7 @@ extern Rocket::Core::Context* context;
 
 Game::Game()
 {
+	initialized = false;
 	invader_frame_start = 0;
 	defender_lives = 3;	
 	current_invader_direction = 1.0f;	
@@ -113,11 +114,13 @@ void Game::Initialise()
 
 	// Create a new wave
 	InitialiseWave();
+
+	initialized = true;
 }
 
 void Game::Update()
 {
-	if (!GameDetails::GetPaused())
+	if (!GameDetails::GetPaused() && initialized)
 	{
 		if (defender_lives <= 0)
 			return;

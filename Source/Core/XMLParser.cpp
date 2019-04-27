@@ -139,12 +139,9 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _at
 	String name = ToLower(_name);
 	XMLAttributes attributes;
 	
-	String key;
-	Variant* value;
-	int pos = 0;
-	while (_attributes.Iterate(pos, key, value))
+	for (auto& [key, variant] : _attributes)
 	{
-		attributes.Set(ToLower(key), *value);
+		attributes.emplace(key, variant.Get<String>());
 	}
 
 	// Check for a specific handler that will override the child handler.

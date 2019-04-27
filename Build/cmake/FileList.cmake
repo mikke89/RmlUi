@@ -121,7 +121,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Decorator.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/DecoratorInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Dictionary.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Dictionary.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Element.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Element.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementDocument.h
@@ -222,7 +221,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Dictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp

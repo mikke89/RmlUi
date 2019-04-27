@@ -499,7 +499,7 @@ bool Context::ProcessTextInput(word character)
 {
 	// Generate the parameters for the key event.
 	Dictionary parameters;
-	parameters.Set("data", character);
+	parameters.emplace("data", character);
 
 	if (focus)
 		return focus->DispatchEvent(TEXTINPUT, parameters, true);
@@ -516,7 +516,7 @@ bool Context::ProcessTextInput(const String& string)
 	{
 		// Generate the parameters for the key event.
 		Dictionary parameters;
-		parameters.Set("data", string[i]);
+		parameters.emplace("data", string[i]);
 
 		if (focus)
 			consumed = focus->DispatchEvent(TEXTINPUT, parameters, true) && consumed;
@@ -733,7 +733,7 @@ bool Context::ProcessMouseWheel(int wheel_delta, int key_modifier_state)
 	{
 		Dictionary scroll_parameters;
 		GenerateKeyModifierEventParameters(scroll_parameters, key_modifier_state);
-		scroll_parameters.Set("wheel_delta", wheel_delta);
+		scroll_parameters.emplace("wheel_delta", wheel_delta);
 
 		return hover->DispatchEvent(MOUSESCROLL, scroll_parameters, true);
 	}
@@ -909,8 +909,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 			if (!drag_started)
 			{
 				Dictionary drag_start_parameters = drag_parameters;
-				drag_start_parameters.Set("mouse_x", old_mouse_position.x);
-				drag_start_parameters.Set("mouse_y", old_mouse_position.y);
+				drag_start_parameters.emplace("mouse_x", old_mouse_position.x);
+				drag_start_parameters.emplace("mouse_y", old_mouse_position.y);
 				drag->DispatchEvent(DRAGSTART, drag_start_parameters);
 				drag_started = true;
 
@@ -1118,16 +1118,16 @@ void Context::ReleaseDragClone()
 // Builds the parameters for a generic key event.
 void Context::GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier)
 {
-	parameters.Set("key_identifier", (int) key_identifier);
+	parameters.emplace("key_identifier", (int) key_identifier);
 }
 
 // Builds the parameters for a generic mouse event.
 void Context::GenerateMouseEventParameters(Dictionary& parameters, int button_index)
 {
-	parameters.Set("mouse_x", mouse_position.x);
-	parameters.Set("mouse_y", mouse_position.y);
+	parameters.emplace("mouse_x", mouse_position.x);
+	parameters.emplace("mouse_y", mouse_position.y);
 	if (button_index >= 0)
-		parameters.Set("button", button_index);
+		parameters.emplace("button", button_index);
 }
 
 // Builds the parameters for the key modifier state.
@@ -1144,13 +1144,13 @@ void Context::GenerateKeyModifierEventParameters(Dictionary& parameters, int key
 	};
 
 	for (int i = 0; i < 7; i++)
-		parameters.Set(property_names[i], (int) ((key_modifier_state & (1 << i)) > 0));
+		parameters.emplace(property_names[i], (int) ((key_modifier_state & (1 << i)) > 0));
 }
 
 // Builds the parameters for a drag event.
 void Context::GenerateDragEventParameters(Dictionary& parameters)
 {	
-	parameters.Set("drag_element", (void*) *drag);
+	parameters.emplace("drag_element", (void*) *drag);
 }
 
 // Releases all unloaded documents pending destruction.

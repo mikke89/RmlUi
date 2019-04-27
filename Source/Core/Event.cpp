@@ -116,16 +116,16 @@ void Event::ProjectMouse(Element* element)
 {
 	if (element)
 	{
-		Variant *old_mouse_x = parameters_backup.Get("mouse_x");
-		Variant *old_mouse_y = parameters_backup.Get("mouse_y");
+		Variant *old_mouse_x = GetIf(parameters_backup, "mouse_x");
+		Variant *old_mouse_y = GetIf(parameters_backup, "mouse_y");
 		if (!old_mouse_x || !old_mouse_y)
 		{
 			// This is not a mouse event.
 			return;
 		}
 
-		Variant *mouse_x = parameters.Get("mouse_x");
-		Variant *mouse_y = parameters.Get("mouse_y");
+		Variant *mouse_x = GetIf(parameters, "mouse_x");
+		Variant *mouse_y = GetIf(parameters, "mouse_y");
 		if (!mouse_x || !mouse_y)
 		{
 			// This should not happen.

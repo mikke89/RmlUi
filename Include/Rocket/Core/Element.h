@@ -46,7 +46,6 @@ namespace Core {
 
 class Context;
 class Decorator;
-class Dictionary;
 class ElementInstancer;
 class EventDispatcher;
 class EventListener;
@@ -343,7 +342,7 @@ public:
 	/// Gets the specified attribute.
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @return A variant representing the attribute, or NULL if the attribute doesn't exist.
-	Variant* GetAttribute(const String& name) const;
+	Variant* GetAttribute(const String& name);
 	/// Gets the specified attribute, with default value.
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @param[in] default_value Value to return if the attribute doesn't exist.
@@ -352,20 +351,16 @@ public:
 	/// Checks if the element has a certain attribute.
 	/// @param[in] name The name of the attribute to check for.
 	/// @return True if the element has the given attribute, false if not.
-	bool HasAttribute(const String& name);
+	bool HasAttribute(const String& name) const;
 	/// Removes the attribute from the element.
 	/// @param[in] name Name of the attribute.
 	void RemoveAttribute(const String& name);
 	/// Set a group of attributes.
 	/// @param[in] attributes Attributes to set.
 	void SetAttributes(const ElementAttributes* attributes);
-	/// Iterates over the attributes.
-	/// @param[inout] index Index to fetch. This is incremented after the fetch.
-	/// @param[out] name Name of the attribute at the specified index
-	/// @param[out] value Value of the attribute at the specified index.
-	/// @return True if an attribute was successfully fetched.
-	template< typename T >
-	bool IterateAttributes(int& index, String& name, T& value) const;
+	/// Get the attributes of the element.
+	/// @return The attributes
+	const ElementAttributes& GetAttributes() const { return attributes; }
 	/// Returns the number of attributes on the element.
 	/// @return The number of attributes on the element.
 	int GetNumAttributes() const;

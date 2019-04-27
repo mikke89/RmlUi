@@ -184,7 +184,7 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 	PositionBar();
 
 	Rocket::Core::Dictionary parameters;
-	parameters.Set("value", bar_position);
+	parameters.emplace("value", bar_position);
 	parent->DispatchEvent("change", parameters);
 }
 

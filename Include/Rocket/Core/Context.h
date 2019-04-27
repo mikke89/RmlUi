@@ -41,7 +41,6 @@ namespace Rocket {
 namespace Core {
 
 class Stream;
-class Dictionary;
 
 }
 }

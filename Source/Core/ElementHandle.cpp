@@ -134,8 +134,8 @@ void ElementHandle::ProcessEvent(Event& event)
 			}
 
 			Dictionary parameters;
-			parameters.Set("handle_x", x);
-			parameters.Set("handle_y", y);
+			parameters.emplace("handle_x", x);
+			parameters.emplace("handle_y", y);
 			DispatchEvent("handledrag", parameters);
 		}
 	}

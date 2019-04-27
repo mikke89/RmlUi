@@ -49,7 +49,7 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& ROCKE
 	Element* element = parser->GetParseFrame()->element;
 
 	// Check for and apply any template
-	String template_name = attributes.Get<String>("template", "");
+	String template_name = Get<String>(attributes, "template", "");
 	if (!template_name.empty())
 	{
 		element = XMLParseTools::ParseTemplate(element, template_name);

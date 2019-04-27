@@ -186,16 +186,13 @@ int ElementUtilities::GetStringWidth(Element* element, const WString& string)
 
 void ElementUtilities::BindEventAttributes(Element* element)
 {
-	int index = 0;
-	String name;
-	String value;
-
 	// Check for and instance the on* events
-	while(element->IterateAttributes(index, name, value))
+	//while(element->IterateAttributes(index, name, value))
+	for (auto& [name, variant] : element->GetAttributes())
 	{
 		if (name.substr(0, 2) == "on")
 		{
-			EventListener* listener = Factory::InstanceEventListener(value, element);
+			EventListener* listener = Factory::InstanceEventListener(variant.Get<String>(), element);
 			if (listener)
 				element->AddEventListener(&name[2], listener, false);
 		}

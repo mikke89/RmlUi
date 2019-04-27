@@ -940,22 +940,24 @@ const PseudoClassList& Element::GetActivePseudoClasses() const
 }
 
 /// Get the named attribute
-Variant* Element::GetAttribute(const String& name) const
+Variant* Element::GetAttribute(const String& name)
 {
-	return attributes.Get(name);
+	return GetIf(attributes, name);
 }
 
 // Checks if the element has a certain attribute.
-bool Element::HasAttribute(const String& name)
+bool Element::HasAttribute(const String& name) const
 {
-	return attributes.Get(name) != NULL;
+	return attributes.find(name) != attributes.end();
 }
 
 // Removes an attribute from the element
 void Element::RemoveAttribute(const String& name)
 {
-	if (attributes.Remove(name))
+	if (auto it = attributes.find(name); it != attributes.end())
 	{
+		attributes.erase(it);
+
 		AttributeNameList changed_attributes;
 		changed_attributes.insert(name);
 
@@ -993,17 +995,14 @@ Context* Element::GetContext()
 // Set a group of attributes
 void Element::SetAttributes(const ElementAttributes* _attributes)
 {
-	int index = 0;
-	String key;
-	Variant* value;
-
 	AttributeNameList changed_attributes;
-	changed_attributes.reserve(_attributes->Size());
+	changed_attributes.reserve(_attributes->size());
 
-	while (_attributes->Iterate(index, key, value))
-	{		
+	for (auto& [key, value] : *_attributes)
+	{
 		changed_attributes.insert(key);
-		attributes.Set(key, *value);
+		attributes.emplace(key, value);
+
 	}
 
 	OnAttributeChange(changed_attributes);
@@ -1012,7 +1011,7 @@ void Element::SetAttributes(const ElementAttributes* _attributes)
 // Returns the number of attributes on the element.
 int Element::GetNumAttributes() const
 {
-	return attributes.Size();
+	return (int)attributes.size();
 }
 
 // Iterates over all decorators attached to the element.
@@ -2129,14 +2128,11 @@ void Element::GetRML(String& content)
 	content += "<";
 	content += tag;
 
-	int index = 0;
-	String name;
 	String value;
-	while (IterateAttributes(index, name, value))	
+	for( auto& [name, variant] : attributes) // IterateAttributes(index, name, value))	
 	{
-		size_t length = name.size() + value.size() + 8;
-		String attribute = CreateString(length, " %s=\"%s\"", name.c_str(), value.c_str());
-		content += attribute;
+		if (variant.GetInto(value))
+			content += " " + name + "=\"" + value + "\"";
 	}
 
 	if (HasChildNodes())
@@ -2572,7 +2568,7 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			dictionary_list.emplace_back().Set("property", it->GetPropertyName());
+			dictionary_list.emplace_back().emplace("property", it->GetPropertyName());
 			is_transition.push_back(it->IsTransition());
 		}
 

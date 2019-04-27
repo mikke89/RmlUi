@@ -48,7 +48,7 @@ Element* XMLNodeHandlerTemplate::ElementStart(XMLParser* parser, const String& R
 	ROCKET_UNUSED_ASSERT(name);
 	ROCKET_ASSERT(name == "template");
 
-	String template_name = attributes.Get<String>("src", "");
+	String template_name = Get<String>(attributes, "src", "");
 
 	// Tell the parser to use the element handler for all child nodes
 	parser->PushDefaultHandler();

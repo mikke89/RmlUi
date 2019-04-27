@@ -29,6 +29,7 @@
 #include "../../Include/Rocket/Core/StreamMemory.h"
 #include "../../Include/Rocket/Core/Log.h"
 #include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/Rocket/Core/String.h"
 #include "../../Include/Rocket/Core/XMLParser.h"
 #include "../../Include/Rocket/Controls/ElementDataGrid.h"
 
@@ -66,7 +67,7 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 		}
 
 		// Set the data source and table on the data grid.
-		Rocket::Core::String data_source = attributes.Get< Rocket::Core::String >("source", "");
+		Rocket::Core::String data_source = Core::Get<Core::String>(attributes, "source", "");
 		grid->SetDataSource(data_source);
 
 		parent->AppendChild(grid);
@@ -85,7 +86,7 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 		ElementDataGrid* grid = dynamic_cast< ElementDataGrid* >(parent);
 		if (grid != NULL)
 		{
-			grid->AddColumn(attributes.Get< Rocket::Core::String >("fields", ""), attributes.Get< Rocket::Core::String >("formatter", ""), attributes.Get< float >("width", 0), element);
+			grid->AddColumn(Core::Get<Core::String>(attributes, "fields", ""), Core::Get<Core::String>(attributes, "formatter", ""), Core::Get(attributes, "width", 0.0f), element);
 			element->RemoveReference();
 		}
 

@@ -92,9 +92,9 @@ typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
 typedef ColumnMajorMatrix4f Matrix4f;
 
 class Element;
-class Dictionary;
 class ElementAnimation;
 class Property;
+class Variant;
 
 // Types for external interfaces.
 typedef uintptr_t FileHandle;
@@ -107,13 +107,14 @@ typedef std::vector< Element* > ElementList;
 typedef std::set< String > PseudoClassList;
 typedef std::unordered_set< String > PropertyNameList;
 typedef std::unordered_set< String > AttributeNameList;
-typedef Dictionary ElementAttributes;
 typedef std::vector< ElementAnimation > ElementAnimationList;
 
 // Unordered map
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
 typedef UnorderedMap< String, Property > PropertyMap;
+using Dictionary = UnorderedMap< String, Variant >;
+typedef Dictionary ElementAttributes;
 
 // Reference types
 typedef std::shared_ptr< Transform > TransformRef;

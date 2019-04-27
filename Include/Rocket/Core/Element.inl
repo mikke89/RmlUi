@@ -39,7 +39,7 @@ T Element::GetProperty(const String& name)
 template< typename T >
 void Element::SetAttribute(const String& name, const T& value)
 {
-	attributes.Set(name, value);
+	attributes.emplace(name, Variant(value));
 	AttributeNameList changed_attributes;
 	changed_attributes.insert(name);
 
@@ -50,12 +50,6 @@ void Element::SetAttribute(const String& name, const T& value)
 template< typename T >
 T Element::GetAttribute(const String& name, const T& default_value) const
 {			
-	return attributes.Get(name, default_value);
+	return Get(attributes, name, default_value);
 }
 
-// Iterates over the attributes.
-template< typename T >
-bool Element::IterateAttributes(int& index, String& name, T& value) const
-{
-	return attributes.Iterate(index, name, value);
-}

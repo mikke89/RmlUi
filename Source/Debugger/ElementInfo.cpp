@@ -240,51 +240,54 @@ void ElementInfo::UpdateSourceElement()
 
 		if (source_element != NULL)
 		{
-			Core::String name;
-			Core::String value;
+			{
+				Core::String name;
+				Core::String value;
 
-			// The element's attribute list is not always synchronized with its internal values, fetch  
-			// them manually here (see e.g. Element::OnAttributeChange for relevant attributes)
-			{
-				name = "id";
-				value = source_element->GetId();
-				if (!value.empty())
-					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
-			}
-			{
-				name = "class";
-				value = source_element->GetClassNames();
-				if (!value.empty())
-					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
-			}
-			{
-				// Not actually an attribute, but may be useful
-				name = "pseudo";
-				value.clear();
-				for (auto str : source_element->GetActivePseudoClasses())
-					value += " :" + str;
-				if (!value.empty())
-					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
-			}
-			{
-				name = "style";
-				value = "";
-				auto local_properties = source_element->GetLocalProperties();
-				if (local_properties)
+				// The element's attribute list is not always synchronized with its internal values, fetch  
+				// them manually here (see e.g. Element::OnAttributeChange for relevant attributes)
 				{
-					for (auto nvp : *local_properties)
-					{
-						auto& prop_name = nvp.first;
-						auto prop_value = nvp.second.ToString();
-						value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
-					}
+					name = "id";
+					value = source_element->GetId();
+					if (!value.empty())
+						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}
-				if (!value.empty())
-					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+				{
+					name = "class";
+					value = source_element->GetClassNames();
+					if (!value.empty())
+						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+				}
+				{
+					// Not actually an attribute, but may be useful
+					name = "pseudo";
+					value.clear();
+					for (auto str : source_element->GetActivePseudoClasses())
+						value += " :" + str;
+					if (!value.empty())
+						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+				}
+				{
+					name = "style";
+					value = "";
+					auto local_properties = source_element->GetLocalProperties();
+					if (local_properties)
+					{
+						for (auto nvp : *local_properties)
+						{
+							auto& prop_name = nvp.first;
+							auto prop_value = nvp.second.ToString();
+							value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
+						}
+					}
+					if (!value.empty())
+						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+				}
 			}
 
-			while (source_element->IterateAttributes(index, name, value))
+			for(auto& [name, variant] : source_element->GetAttributes())
 			{
+				Core::String value = variant.Get<Core::String>();
 				if(name != "class" && name != "style" && name != "id") 
 					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}

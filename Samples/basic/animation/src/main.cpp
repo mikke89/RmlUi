@@ -136,7 +136,8 @@ public:
 		  robin_hood unordered_flat_map: 24.0  [709852f]
 		  Avoid dirtying em's: 27.5
 		  Restructuring update loop: 34.5  [f9892a9]
-		  Element constructor, remove geometry database, remove update() from Context::render: 38.0
+		  Element constructor, remove geometry database, remove update() from Context::render: 38.0  [1aab59e]
+		  Replace Dictionary with unordered_flat_map: 40.0
 		
 		*/
 		

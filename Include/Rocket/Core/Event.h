@@ -99,7 +99,7 @@ public:
 	template < typename T >
 	T GetParameter(const String& key, const T& default_value)
 	{
-		return parameters.Get(key, default_value);
+		return Get(parameters, key, default_value);
 	}
 	/// Access the dictionary of parameters
 	/// @return The dictionary of parameters

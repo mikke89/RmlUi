@@ -62,7 +62,7 @@ bool InputTypeRadio::OnAttributeChange(const Core::AttributeNameList& changed_at
 			PopRadioSet();
 
 		Rocket::Core::Dictionary parameters;
-		parameters.Set("value", Rocket::Core::String(checked ? GetValue() : ""));
+		parameters.emplace("value", Rocket::Core::String(checked ? GetValue() : ""));
 		element->DispatchEvent("change", parameters);
 	}
 

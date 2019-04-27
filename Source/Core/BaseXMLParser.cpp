@@ -299,7 +299,7 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 			}
 		}
 
- 		attributes.Set(attribute.c_str(), value);
+ 		attributes.emplace(attribute, value);
 
 		// Check for the end of the tag.
 		if (PeekString((const unsigned char*) "/", false) ||
