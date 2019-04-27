@@ -75,11 +75,6 @@ ElementStyle::~ElementStyle()
 // Returns the element's definition, updating if necessary.
 const ElementDefinition* ElementStyle::GetDefinition()
 {
-	//if (definition_dirty)
-	//{
-	//	UpdateDefinition();
-	//}
-
 	return definition;
 }
 

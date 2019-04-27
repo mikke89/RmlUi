@@ -115,6 +115,9 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	local_stacking_context_forced = false;
 	stacking_context_dirty = false;
 
+	structure_dirty = false;
+	parent_structure_dirty = false;
+
 	all_properties_dirty = true;
 
 	font_face_handle = NULL;
@@ -174,13 +177,15 @@ void Element::Update()
 
 	OnUpdate();
 
+	UpdateStructure();
+
 	style->UpdateDefinition();
 	scroll->Update();
 
-	UpdateDirtyProperties();
-
 	UpdateAnimation();
 	AdvanceAnimations();
+
+	UpdateDirtyProperties();
 
 	UpdateTransformState();
 
@@ -2343,18 +2348,33 @@ void Element::DirtyStructure()
 {
 	// Clear the cached owner document
 	owner_document = NULL;
-	
-	// Inform all children that the structure is dirty
-	for (size_t i = 0; i < children.size(); ++i)
-	{
-		const ElementDefinition* element_definition = children[i]->GetStyle()->GetDefinition();
-		if (element_definition != NULL &&
-			element_definition->IsStructurallyVolatile())
-		{
-			children[i]->GetStyle()->DirtyDefinition();
-		}
+	structure_dirty = true;
+}
 
-		children[i]->DirtyStructure();
+void Element::DirtyParentStructure()
+{
+	owner_document = NULL;
+	parent_structure_dirty = true;
+}
+
+void Element::UpdateStructure()
+{
+	if (parent_structure_dirty)
+	{
+		// If children depend on structured selectors, they may need to be updated
+		const ElementDefinition* element_definition = GetStyle()->GetDefinition();
+		if (element_definition != NULL && element_definition->IsStructurallyVolatile())
+		{
+			GetStyle()->DirtyDefinition();
+		}
+	}
+	if (structure_dirty || parent_structure_dirty)
+	{
+		for (size_t i = 0; i < children.size(); ++i)
+			children[i]->DirtyParentStructure();
+
+		structure_dirty = false;
+		parent_structure_dirty = false;
 	}
 }
 

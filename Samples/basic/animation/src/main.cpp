@@ -137,7 +137,8 @@ public:
 		  Avoid dirtying em's: 27.5
 		  Restructuring update loop: 34.5  [f9892a9]
 		  Element constructor, remove geometry database, remove update() from Context::render: 38.0  [1aab59e]
-		  Replace Dictionary with unordered_flat_map: 40.0
+		  Replace Dictionary with unordered_flat_map: 40.0  [b04b4e5]
+		  Dirty flag for structure changes: 43.0
 		
 		*/
 		

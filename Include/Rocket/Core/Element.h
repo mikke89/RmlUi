@@ -684,6 +684,8 @@ private:
 	void DirtyStackingContext();
 
 	void DirtyStructure();
+	void DirtyParentStructure();
+	void UpdateStructure();
 
 	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed);
 	void UpdateTransformState();
@@ -771,6 +773,9 @@ private:
 
 	ElementList stacking_context;
 	bool stacking_context_dirty;
+
+	bool structure_dirty;
+	bool parent_structure_dirty;
 
 	PropertyNameList dirty_properties;
 	bool all_properties_dirty;
