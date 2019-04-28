@@ -160,6 +160,15 @@
 			top: 110px; left: 0;
 			width: 100px; height: 55px;
 		}
+		#performance 
+		{
+			position: absolute;
+			bottom: 0; 
+			height: 30%; 
+			width: 20%;
+			left: -100px;
+			transform: scale(0.5) rotate(-90deg);
+		}
 		
 	</style>
 </head>
@@ -174,7 +183,7 @@
 	<button id="exit" onclick="exit">Exit</button>
 </div>
 
-<div id="performance" style="bottom: 0; height: 30%; width: 20%; position: absolute;"/>
+<div id="performance"/>
 
 <div style="width: 20%; height: 80%;position: absolute; left: 28%;" id="transform_tests">
 	<div style="font-size: 1.5em; text-align: left;">Test transform animations</div>
