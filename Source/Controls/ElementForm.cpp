@@ -47,9 +47,9 @@ void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::S
 {
 	Rocket::Core::Dictionary values;
 	if (name.empty())
-		values.emplace("submit", submit_value);
+		values["submit"] = submit_value;
 	else
-		values.emplace(name, submit_value);
+		values[name] = submit_value;
 
 	Core::ElementList form_controls;
 	Core::ElementUtilities::GetElementsByTagName(form_controls, this, "input");
@@ -83,7 +83,7 @@ void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::S
 		if (value != NULL)
 			value->Reset(value->Get< Rocket::Core::String >() + ", " + control_value);
 		else
-			values.emplace(control_name, control_value);
+			values[control_name] = control_value;
 	}
 
 	DispatchEvent("submit", values);

@@ -39,10 +39,8 @@ T Element::GetProperty(const String& name)
 template< typename T >
 void Element::SetAttribute(const String& name, const T& value)
 {
-	attributes.emplace(name, Variant(value));
-	AttributeNameList changed_attributes;
-	changed_attributes.insert(name);
-
+	attributes[name] = Variant(value);
+	AttributeNameList changed_attributes = { name };
 	OnAttributeChange(changed_attributes);
 }
 

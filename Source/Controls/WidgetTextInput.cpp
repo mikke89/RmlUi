@@ -240,8 +240,8 @@ Core::Element* WidgetTextInput::GetElement()
 void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 {
 	Rocket::Core::Dictionary parameters;
-	parameters.emplace("value", GetElement()->GetAttribute< Rocket::Core::String >("value", ""));
-	parameters.emplace("linebreak", linebreak);
+	parameters["value"] = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+	parameters["linebreak"] = Core::Variant(linebreak);
 	GetElement()->DispatchEvent("change", parameters);
 }
 

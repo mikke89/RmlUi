@@ -204,7 +204,7 @@ void WidgetDropDown::SetSelection(int selection, bool force)
 		value_layout_dirty = true;
 
 		Rocket::Core::Dictionary parameters;
-		parameters.emplace("value", value);
+		parameters["value"] = value;
 		parent_element->DispatchEvent("change", parameters);
 	}
 }

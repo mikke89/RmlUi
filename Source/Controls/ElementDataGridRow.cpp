@@ -409,8 +409,8 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 	DirtyRow();
 
 	Rocket::Core::Dictionary parameters;
-	parameters.emplace("first_row_added", GetChildTableRelativeIndex(first_row_added));
-	parameters.emplace("num_rows_added", num_rows_added);
+	parameters["first_row_added"] = GetChildTableRelativeIndex(first_row_added);
+	parameters["num_rows_added"] = num_rows_added;
 	parent_grid->DispatchEvent("rowadd", parameters);
 }
 
@@ -441,8 +441,8 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
 	document->LockLayout(false);
 
 	Rocket::Core::Dictionary parameters;
-	parameters.emplace("first_row_removed", GetChildTableRelativeIndex(first_row_removed));
-	parameters.emplace("num_rows_removed", num_rows_removed);
+	parameters["first_row_removed"] = GetChildTableRelativeIndex(first_row_removed);
+	parameters["num_rows_removed"] = num_rows_removed;
 	parent_grid->DispatchEvent("rowremove", parameters);
 }
 
@@ -452,8 +452,8 @@ void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_chan
 		children[i]->DirtyCells();
 
 	Rocket::Core::Dictionary parameters;
-	parameters.emplace("first_row_changed", GetChildTableRelativeIndex(first_row_changed));
-	parameters.emplace("num_rows_changed", num_rows_changed);
+	parameters["first_row_changed"] = GetChildTableRelativeIndex(first_row_changed);
+	parameters["num_rows_changed"] = num_rows_changed;
 	parent_grid->DispatchEvent("rowchange", parameters);
 }
 

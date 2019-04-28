@@ -134,8 +134,8 @@ void ElementHandle::ProcessEvent(Event& event)
 			}
 
 			Dictionary parameters;
-			parameters.emplace("handle_x", x);
-			parameters.emplace("handle_y", y);
+			parameters["handle_x"] = x;
+			parameters["handle_y"] = y;
 			DispatchEvent("handledrag", parameters);
 		}
 	}

@@ -29,7 +29,6 @@
 #include "../../Include/Rocket/Core/StreamMemory.h"
 #include "../../Include/Rocket/Core/Log.h"
 #include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/String.h"
 #include "../../Include/Rocket/Core/XMLParser.h"
 #include "../../Include/Rocket/Controls/ElementDataGrid.h"
 

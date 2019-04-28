@@ -285,7 +285,7 @@ void ElementInfo::UpdateSourceElement()
 				}
 			}
 
-			for(auto& [name, variant] : source_element->GetAttributes())
+			for(const auto& [name, variant] : source_element->GetAttributes())
 			{
 				Core::String value = variant.Get<Core::String>();
 				if(name != "class" && name != "style" && name != "id") 

@@ -131,7 +131,7 @@ void ElementTabSet::SetActiveTab(int tab_index)
 		active_tab = tab_index;
 
 		Rocket::Core::Dictionary parameters;
-		parameters.emplace("tab_index", active_tab);
+		parameters["tab_index"] = active_tab;
 		DispatchEvent("tabchange", parameters);
 	}
 }

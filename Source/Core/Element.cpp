@@ -1000,16 +1000,14 @@ Context* Element::GetContext()
 // Set a group of attributes
 void Element::SetAttributes(const ElementAttributes* _attributes)
 {
+	attributes.reserve(attributes.size() + _attributes->size());
+	for (auto& [key, value] : *_attributes)
+		attributes[key] = value;
+
 	AttributeNameList changed_attributes;
 	changed_attributes.reserve(_attributes->size());
-
 	for (auto& [key, value] : *_attributes)
-	{
 		changed_attributes.insert(key);
-		attributes.emplace(key, value);
-
-	}
-
 	OnAttributeChange(changed_attributes);
 }
 
@@ -2133,9 +2131,9 @@ void Element::GetRML(String& content)
 	content += "<";
 	content += tag;
 
-	String value;
-	for( auto& [name, variant] : attributes) // IterateAttributes(index, name, value))	
+	for( auto& [name, variant] : attributes)
 	{
+		String value;
 		if (variant.GetInto(value))
 			content += " " + name + "=\"" + value + "\"";
 	}
@@ -2588,7 +2586,7 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			dictionary_list.emplace_back().emplace("property", it->GetPropertyName());
+			dictionary_list.emplace_back(Dictionary({ { "property", it->GetPropertyName()} }));
 			is_transition.push_back(it->IsTransition());
 		}
 

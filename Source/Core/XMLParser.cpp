@@ -141,7 +141,7 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _at
 	
 	for (auto& [key, variant] : _attributes)
 	{
-		attributes.emplace(key, variant.Get<String>());
+		attributes[key] = variant.Get<String>();
 	}
 
 	// Check for a specific handler that will override the child handler.

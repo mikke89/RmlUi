@@ -55,7 +55,7 @@ bool InputTypeCheckbox::OnAttributeChange(const Core::AttributeNameList& changed
 		element->SetPseudoClass("checked", checked);
 
 		Rocket::Core::Dictionary parameters;
-		parameters.emplace("value", Rocket::Core::String(checked ? GetValue() : ""));
+		parameters["value"] = Rocket::Core::String(checked ? GetValue() : "");
 		element->DispatchEvent("change", parameters);
 	}
 
