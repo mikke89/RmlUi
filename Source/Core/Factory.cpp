@@ -360,15 +360,15 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 	const PropertySpecification& property_specification = (*iterator).second->GetPropertySpecification();
 
 	PropertyDictionary parsed_properties;
-	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
+	for (const auto& [id,value] : properties)
 	{
-		specificity = Math::Max(specificity, (*i).second.specificity);
+		specificity = Math::Max(specificity, value.specificity);
 
 		// Check for the 'z-index' property; we don't want to send this through.
-		if ((*i).first == Z_INDEX)
-			z_index = (*i).second.value.Get< float >();
+		if (id == Z_INDEX)
+			z_index = value.value.Get< float >();
 		else
-			property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
+			property_specification.ParsePropertyDeclaration(parsed_properties, id, value.value.Get< String >(), value.source, value.source_line_number);
 	}
 
 	// Set the property defaults for all unset properties.
@@ -420,22 +420,22 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 	const PropertySpecification& property_specification = (*iterator).second->GetPropertySpecification();
 
 	PropertyDictionary parsed_properties;
-	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
+	for (const auto& [id, value] : properties)
 	{
-		specificity = Math::Max(specificity, i->second.specificity);
+		specificity = Math::Max(specificity, value.specificity);
 
 		// Check for the 'z-index' property; we don't want to send this through.
-		if (i->first == Z_INDEX)
+		if (id == Z_INDEX)
 		{
 			set_z_index = true;
-			z_index = i->second.value.Get< float >();
+			z_index = value.value.Get< float >();
 		}
-		else if (i->first == COLOR)
+		else if (id == COLOR)
 		{
 			static PropertyParserColour colour_parser;
 
 			Property colour_property;
-			if (colour_parser.ParseValue(colour_property, i->second.value.Get< String >(), ParameterMap()))
+			if (colour_parser.ParseValue(colour_property, value.value.Get< String >(), ParameterMap()))
 			{
 				colour = colour_property.value.Get< Colourb >();
 				set_colour = true;
@@ -443,7 +443,7 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 		}
 		else
 		{
-			property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
+			property_specification.ParsePropertyDeclaration(parsed_properties, id, value.value.Get< String >(), value.source, value.source_line_number);
 		}
 	}
 
@@ -452,26 +452,22 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 
 	// Compile an ordered list of the values of the properties used to generate the effect's
 	// textures and geometry.
-	typedef std::list< std::pair< String, String > > GenerationPropertyList;
-	GenerationPropertyList generation_properties;
-	for (PropertyMap::const_iterator i = parsed_properties.GetProperties().begin(); i != parsed_properties.GetProperties().end(); ++i)
+	std::vector<PropertyId> generation_ids;
+	
+	for (const auto& [id, value] : parsed_properties)
 	{
-		if (instancer->volatile_properties.find(i->first) != instancer->volatile_properties.end())
-		{
-			GenerationPropertyList::iterator j = generation_properties.begin();
-			while (j != generation_properties.end() &&
-				   j->first < i->first)
-				++j;
-
-			generation_properties.insert(j, GenerationPropertyList::value_type(i->first, i->second.value.Get< String >()));
-		}
+		if (instancer->volatile_properties.find(id) != instancer->volatile_properties.end())
+			generation_ids.push_back(id);
 	}
 
+	std::sort(generation_ids.begin(), generation_ids.end());
+
 	String generation_key;
-	for (GenerationPropertyList::iterator i = generation_properties.begin(); i != generation_properties.end(); ++i)
+	for (PropertyId id : generation_ids)
 	{
-		generation_key += i->second;
-		generation_key += ";";
+		auto it = parsed_properties.find(id);
+		ROCKET_ASSERT(it != parsed_properties.end());
+		generation_key += it->second.value.Get<String>() + ";";
 	}
 
 	// Now we can actually instance the effect!
@@ -550,9 +546,9 @@ EventInstancer* Factory::RegisterEventInstancer(EventInstancer* instancer)
 }
 
 // Instance an event object.
-Event* Factory::InstanceEvent(Element* target, const String& name, const Dictionary& parameters, bool interruptible)
+Event* Factory::InstanceEvent(Element* target, EventId event_id, const Dictionary& parameters, bool interruptible)
 {
-	Event* event = event_instancer->InstanceEvent(target, name, parameters, interruptible);
+	Event* event = event_instancer->InstanceEvent(target, event_id, parameters, interruptible);
 	if (event != NULL)
 		event->instancer = event_instancer;
 

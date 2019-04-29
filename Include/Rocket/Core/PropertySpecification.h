@@ -35,7 +35,6 @@
 namespace Rocket {
 namespace Core {
 
-class PropertyDictionary;
 struct PropertyShorthandDefinition;
 
 /**
@@ -71,49 +70,49 @@ public:
 	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
 	/// @param[in] forces_layout True if this property requires its parent to be reformatted if changed.
 	/// @return The new property definition, ready to have parsers attached.
-	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout);
+	PropertyDefinition& RegisterProperty(PropertyId property_id, const String& default_value, bool inherited, bool forces_layout);
 	/// Returns a property definition.
 	/// @param[in] property_name The name of the desired property.
 	/// @return The appropriate property definition if it could be found, NULL otherwise.
-	const PropertyDefinition* GetProperty(const String& property_name) const;
+	const PropertyDefinition* GetProperty(PropertyId property_id) const;
 
 	/// Returns the list of the names of all registered property definitions.
 	/// @return The list with stored property names.
-	const PropertyNameList& GetRegisteredProperties() const;
+	const PropertyIdList& GetRegisteredProperties() const;
 
 	/// Returns the list of the names of all registered inherited property definitions.
 	/// @return The list with stored property names.
-	const PropertyNameList& GetRegisteredInheritedProperties() const;
+	const PropertyIdList& GetRegisteredInheritedProperties() const;
 
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type = AUTO);
+	bool RegisterShorthand(PropertyId shorthand_id, const PropertyIdList& property_ids, ShorthandType type = AUTO);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
 	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
-	const PropertyShorthandDefinition* GetShorthand(const String& shorthand_name) const;
+	const PropertyShorthandDefinition* GetShorthand(PropertyId shorthand_id) const;
 
 	/// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 	/// @param dictionary The property dictionary which will hold all declared properties.
 	/// @param property_name The name of the declared property.
 	/// @param property_value The values the property is being set to.
 	/// @return True if all properties were parsed successfully, false otherwise.
-	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
+	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
 	/// Sets all undefined properties in the dictionary to their defaults.
 	/// @param dictionary[in] The dictionary to set the default values on.
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;
 
 private:
-	typedef UnorderedMap< String, PropertyDefinition* > PropertyMap;
-	typedef UnorderedMap< String, PropertyShorthandDefinition* > ShorthandMap;
+	typedef UnorderedMap< PropertyId, PropertyDefinition* > PropertyMap;
+	typedef UnorderedMap< PropertyId, PropertyShorthandDefinition* > ShorthandMap;
 
 	PropertyMap properties;
 	ShorthandMap shorthands;
-	PropertyNameList property_names;
-	PropertyNameList inherited_property_names;
+	PropertyIdList property_names;
+	PropertyIdList inherited_property_names;
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 };

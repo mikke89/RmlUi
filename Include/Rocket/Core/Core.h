@@ -67,6 +67,7 @@
 #include "PropertySpecification.h"
 #include "RenderInterface.h"
 #include "String.h"
+#include "StringCache.h"
 #include "StyleSheet.h"
 #include "StyleSheetKeywords.h"
 #include "StyleSheetSpecification.h"

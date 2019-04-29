@@ -43,7 +43,7 @@ namespace Core {
 class RKTEventFunctor
 {
 public:
-	RKTEventFunctor(const String& event, const Dictionary& parameters, bool interruptible)
+	RKTEventFunctor(EventId event, const Dictionary& parameters, bool interruptible)
 	{
 		this->event = event;
 		this->parameters = &parameters;
@@ -56,7 +56,7 @@ public:
 	}
 
 private:
-	String event;
+	EventId event;
 	const Dictionary* parameters;
 	bool interruptible;
 };

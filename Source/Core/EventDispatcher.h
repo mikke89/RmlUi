@@ -59,13 +59,13 @@ public:
 	/// @param[in] type Type of the event to attach to
 	/// @param[in] event_listener The event listener to be notified when the event fires
 	/// @param[in] in_capture_phase Should the listener be notified in the capture phase
-	void AttachEvent(const String& type, EventListener* event_listener, bool in_capture_phase);
+	void AttachEvent(EventId event_id, EventListener* event_listener, bool in_capture_phase);
 
 	/// Detaches a listener from the specified event name
 	/// @param[in] type Type of the event to attach to
 	/// @para[in]m event_listener The event listener to be notified when the event fires
 	/// @param[in] in_capture_phase Should the listener be notified in the capture phase
-	void DetachEvent(const String& type, EventListener* listener, bool in_capture_phase);
+	void DetachEvent(EventId event_id, EventListener* listener, bool in_capture_phase);
 
 	/// Detaches all events from this dispatcher and all child dispatchers.
 	void DetachAllEvents();
@@ -76,7 +76,7 @@ public:
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can the event propagation be stopped
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(Element* element, const String& name, const Dictionary& parameters, bool interruptible);
+	bool DispatchEvent(Element* element, EventId event_id, const Dictionary& parameters, bool interruptible);
 
 	/// Returns event types with number of listeners for debugging.
 	/// @return Summary of attached listeners.
@@ -92,7 +92,7 @@ private:
 		bool in_capture_phase;
 	};
 	typedef std::vector< Listener > Listeners;
-	typedef UnorderedMap< String, Listeners > Events;
+	typedef UnorderedMap< EventId, Listeners > Events;
 	Events events;
 
 	void TriggerEvents(Event* event);

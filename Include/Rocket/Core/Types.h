@@ -102,17 +102,24 @@ typedef uintptr_t TextureHandle;
 typedef uintptr_t CompiledGeometryHandle;
 typedef uintptr_t DecoratorDataHandle;
 
+enum class PropertyId : uint16_t {};
+enum class EventId : uint16_t {};
+static constexpr PropertyId InvalidPropertyId = static_cast<PropertyId>(0);
+static constexpr EventId InvalidEventId = static_cast<EventId>(0);
+
 // List of elements.
 typedef std::vector< Element* > ElementList;
 typedef std::vector< String > PseudoClassList;
 typedef std::unordered_set< String > PropertyNameList;
+typedef std::unordered_set< PropertyId > PropertyIdList;
 typedef std::unordered_set< String > AttributeNameList;
 typedef std::vector< ElementAnimation > ElementAnimationList;
+
 
 // Unordered map
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
-typedef UnorderedMap< String, Property > PropertyMap;
+typedef UnorderedMap< PropertyId, Property > PropertyMap;
 using Dictionary = UnorderedMap< String, Variant >;
 typedef Dictionary ElementAttributes;
 

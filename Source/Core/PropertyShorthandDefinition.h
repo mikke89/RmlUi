@@ -41,7 +41,7 @@ class PropertyDefinition;
 
 struct PropertyShorthandDefinition
 {
-	typedef std::vector< std::pair< String, const PropertyDefinition* > > PropertyDefinitionList;
+	typedef std::vector< std::pair< PropertyId, const PropertyDefinition* > > PropertyDefinitionList;
 
 	PropertyDefinitionList properties;
 	PropertySpecification::ShorthandType type;

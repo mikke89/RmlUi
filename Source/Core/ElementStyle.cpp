@@ -81,32 +81,31 @@ const ElementDefinition* ElementStyle::GetDefinition()
 
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(const String& name, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetLocalProperty(PropertyId id, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	// Check for overriding local properties.
 	if (local_properties != NULL)
 	{
-		const Property* property = local_properties->GetProperty(name);
-		if (property != NULL)
-			return property;
+		if (auto it = local_properties->find(id); it != local_properties->end())
+			return &it->second;
 	}
 
 	// Check for a property defined in an RCSS rule.
 	if (definition != NULL)
-		return definition->GetProperty(name, pseudo_classes);
+		return definition->GetProperty(id, pseudo_classes);
 
 	return NULL;
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetProperty(PropertyId id, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
-	const Property* local_property = GetLocalProperty(name, local_properties, definition, pseudo_classes);
+	const Property* local_property = GetLocalProperty(id, local_properties, definition, pseudo_classes);
 	if (local_property != NULL)
 		return local_property;
 
 	// Fetch the property specification.
-	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(name);
+	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(id);
 	if (property == NULL)
 		return NULL;
 
@@ -116,7 +115,7 @@ const Property* ElementStyle::GetProperty(const String& name, Element* element, 
 		Element* parent = element->GetParentNode();
 		while (parent != NULL)
 		{
-			const Property* parent_property = parent->GetStyle()->GetLocalProperty(name);
+			const Property* parent_property = parent->GetStyle()->GetLocalProperty(id);
 			if (parent_property)
 				return parent_property;
 
@@ -130,7 +129,7 @@ const Property* ElementStyle::GetProperty(const String& name, Element* element, 
 
 // Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, PropertyDictionary* local_properties, ElementDefinition* old_definition, ElementDefinition* new_definition,
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdList& properties, PropertyDictionary* local_properties, ElementDefinition* old_definition, ElementDefinition* new_definition,
 	const PseudoClassList& pseudo_classes_before, const PseudoClassList& pseudo_classes_after)
 {
 	ROCKET_ASSERT(element);
@@ -145,8 +144,8 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 		{
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
-				const Property* start_value = GetProperty(transition.name, element, local_properties, old_definition, pseudo_classes_before);
-				const Property* target_value = GetProperty(transition.name, element, nullptr, new_definition, pseudo_classes_after);
+				const Property* start_value = GetProperty(transition.property_id, element, local_properties, old_definition, pseudo_classes_before);
+				const Property* target_value = GetProperty(transition.property_id, element, nullptr, new_definition, pseudo_classes_after);
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
 				return transition_added;
@@ -157,7 +156,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 				Transition transition = transition_list.transitions[0];
 				for (auto it = properties.begin(); it != properties.end(); )
 				{
-					transition.name = *it;
+					transition.property_id = *it;
 					if (add_transition(transition))
 						it = properties.erase(it);
 					else
@@ -168,7 +167,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 			{
 				for (auto& transition : transition_list.transitions)
 				{
-					if (auto it = properties.find(transition.name); it != properties.end())
+					if (auto it = properties.find(transition.property_id); it != properties.end())
 					{
 						if (add_transition(transition))
 							properties.erase(it);
@@ -196,7 +195,7 @@ void ElementStyle::UpdateDefinition()
 		// Switch the property definitions if the definition has changed.
 		if (new_definition != definition || new_definition == NULL)
 		{
-			PropertyNameList properties;
+			PropertyIdList properties;
 			
 			if (definition != NULL)
 				definition->GetDefinedProperties(properties, pseudo_classes);
@@ -251,7 +250,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 
 		if (definition != NULL)
 		{
-			PropertyNameList properties;
+			PropertyIdList properties;
 			definition->GetDefinedProperties(properties, pseudo_classes, pseudo_class);
 
 			TransitionPropertyChanges(element, properties, local_properties, definition, definition, pseudo_classes_before, pseudo_classes);
@@ -340,29 +339,30 @@ String ElementStyle::GetClassNames() const
 }
 
 // Sets a local property override on the element.
-bool ElementStyle::SetProperty(const String& name, const String& value)
+bool ElementStyle::SetProperty(PropertyId id, const String& value)
 {
 	if (local_properties == NULL)
 		local_properties = new PropertyDictionary();
 
-	if (StyleSheetSpecification::ParsePropertyDeclaration(*local_properties, name, value))
+	if (StyleSheetSpecification::ParsePropertyDeclaration(*local_properties, id, value))
 	{
-		DirtyProperty(name);
+		DirtyProperty(id);
 		return true;
 	}
 	else
 	{
+		const String& name = GetName(id);
 		Log::Message(Log::LT_WARNING, "Syntax error parsing inline property declaration '%s: %s;'.", name.c_str(), value.c_str());
 		return false;
 	}
 }
 
 // Sets a local property override on the element to a pre-parsed value.
-bool ElementStyle::SetProperty(const String& name, const Property& property)
+bool ElementStyle::SetProperty(PropertyId property_id, const Property& property)
 {
 	Property new_property = property;
 
-	new_property.definition = StyleSheetSpecification::GetProperty(name);
+	new_property.definition = StyleSheetSpecification::GetProperty(property_id);
 	if (new_property.definition == NULL)
 		return false;
 
@@ -370,43 +370,43 @@ bool ElementStyle::SetProperty(const String& name, const Property& property)
 	if (local_properties == NULL)
 		local_properties = new PropertyDictionary();
 
-	local_properties->SetProperty(name, new_property);
-	DirtyProperty(name);
+	(*local_properties)[property_id] = new_property;
+	DirtyProperty(property_id);
 
 	return true;
 }
 
 // Removes a local property override on the element.
-void ElementStyle::RemoveProperty(const String& name)
+void ElementStyle::RemoveProperty(PropertyId property_id)
 {
 	if (local_properties == NULL)
 		return;
 
-	if (local_properties->GetProperty(name) != NULL)
+	if (local_properties->find(property_id) != local_properties->end())
 	{
-		local_properties->RemoveProperty(name);
-		DirtyProperty(name);
+		local_properties->erase(property_id);
+		DirtyProperty(property_id);
 	}
 }
 
 
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(const String& name)
+const Property* ElementStyle::GetProperty(PropertyId property_id)
 {
-	return GetProperty(name, element, local_properties, definition, pseudo_classes);
+	return GetProperty(property_id, element, local_properties, definition, pseudo_classes);
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(const String& name)
+const Property* ElementStyle::GetLocalProperty(PropertyId property_id)
 {
-	return GetLocalProperty(name, local_properties, definition, pseudo_classes);
+	return GetLocalProperty(property_id, local_properties, definition, pseudo_classes);
 }
 
 const PropertyMap * ElementStyle::GetLocalProperties() const
 {
 	if (local_properties)
-		return &local_properties->GetProperties();
+		return local_properties;
 	return NULL;
 }
 
@@ -477,15 +477,15 @@ float ElementStyle::ResolveAngle(const Property * property)
 	return 0.0f;
 }
 
-float ElementStyle::ResolveNumericProperty(const String& property_name, const Property * property)
+float ElementStyle::ResolveNumericProperty(PropertyId property_id, const Property * property)
 {
-	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && property_name == FONT_SIZE))
+	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && property_id == FONT_SIZE))
 	{
 		return ResolveLength(property);
 	}
 
 	auto definition = property->definition;
-	if (!definition) definition = StyleSheetSpecification::GetProperty(property_name);
+	if (!definition) definition = StyleSheetSpecification::GetProperty(property_id);
 	if (!definition) return 0.0f;
 
 	auto relative_target = definition->GetRelativeTarget();
@@ -598,9 +598,9 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 }
 
 // Resolves one of this element's properties.
-float ElementStyle::ResolveProperty(const String& name, float base_value)
+float ElementStyle::ResolveProperty(PropertyId property_id, float base_value)
 {
-	const Property* property = GetProperty(name);
+	const Property* property = GetProperty(property_id);
 	if (!property)
 	{
 		ROCKET_ERROR;
@@ -609,7 +609,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 
 	// The calculated value of the font-size property is inherited, so we need to check if this
 	// is an inherited property. If so, then we return our parent's font size instead.
-	if (name == FONT_SIZE && property->unit & Property::RELATIVE_UNIT)
+	if (property_id == FONT_SIZE && property->unit & Property::RELATIVE_UNIT)
 	{
 		// If the rem unit is used, the font-size is inherited directly from the document,
 		// otherwise we use the parent's font size.
@@ -653,18 +653,18 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 }
 
 // Iterates over the properties defined on the element.
-bool ElementStyle::IterateProperties(int& index, PseudoClassList& property_pseudo_classes, String& name, const Property*& property)
+bool ElementStyle::IterateProperties(int& index, PseudoClassList& property_pseudo_classes, PropertyId& property_id, const Property*& property)
 {
 	// First check for locally defined properties.
 	if (local_properties != NULL)
 	{
-		if (index < local_properties->GetNumProperties())
+		if (index < (int)local_properties->size())
 		{
-			PropertyMap::const_iterator i = local_properties->GetProperties().begin();
+			PropertyMap::const_iterator i = local_properties->cbegin();
 			for (int count = 0; count < index; ++count)
 				++i;
 
-			name = (*i).first;
+			property_id = (*i).first;
 			property = &((*i).second);
 			property_pseudo_classes.clear();
 			++index;
@@ -678,15 +678,15 @@ bool ElementStyle::IterateProperties(int& index, PseudoClassList& property_pseud
 	{
 		int index_offset = 0;
 		if (local_properties != NULL)
-			index_offset = local_properties->GetNumProperties();
+			index_offset = (int)local_properties->size();
 
 		// Offset the index to be relative to the definition before we start indexing. When we do get a property back,
 		// check that it hasn't been overridden by the element's local properties; if so, continue on to the next one.
 		index -= index_offset;
-		while (definition->IterateProperties(index, pseudo_classes, property_pseudo_classes, name, property))
+		while (definition->IterateProperties(index, pseudo_classes, property_pseudo_classes, property_id, property))
 		{
 			if (local_properties == NULL ||
-				local_properties->GetProperty(name) == NULL)
+				local_properties->find(property_id) == local_properties->end())
 			{
 				index += index_offset;
 				return true;
@@ -724,7 +724,7 @@ void ElementStyle::DirtyChildDefinitions()
 // Dirties every property.
 void ElementStyle::DirtyProperties()
 {
-	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
+	const PropertyIdList &properties = StyleSheetSpecification::GetRegisteredProperties();
 	DirtyProperties(properties);
 }
 
@@ -734,7 +734,7 @@ void ElementStyle::DirtyEmProperties()
 	if (!em_properties)
 	{
 		// Check if any of these are currently em-relative. If so, dirty them.
-		em_properties = new PropertyNameList;
+		em_properties = new PropertyIdList;
 		for (auto& property : StyleSheetSpecification::GetRegisteredProperties())
 		{
 			// Skip font-size; this is relative to our parent's em, not ours.
@@ -777,14 +777,14 @@ void ElementStyle::DirtyInheritedEmProperties()
 // Dirties rem properties.
 void ElementStyle::DirtyRemProperties()
 {
-	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
-	PropertyNameList rem_properties;
+	const PropertyIdList& properties = StyleSheetSpecification::GetRegisteredProperties();
+	PropertyIdList rem_properties;
 
 	// Dirty all the properties of this element that use the rem unit.
-	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	for (auto& p : properties)
 	{
-		if (element->GetProperty(*list_iterator)->unit == Property::REM)
-			rem_properties.insert(*list_iterator);
+		if (element->GetProperty(p)->unit == Property::REM)
+			rem_properties.insert(p);
 	}
 
 	if (!rem_properties.empty())
@@ -798,14 +798,14 @@ void ElementStyle::DirtyRemProperties()
 
 void ElementStyle::DirtyDpProperties()
 {
-	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
-	PropertyNameList dp_properties;
+	const PropertyIdList& properties = StyleSheetSpecification::GetRegisteredProperties();
+	PropertyIdList dp_properties;
 
 	// Dirty all the properties of this element that use the dp unit.
-	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	for (auto& p : properties)
 	{
-		if (element->GetProperty(*list_iterator)->unit == Property::DP)
-			dp_properties.insert(*list_iterator);
+		if (element->GetProperty(p)->unit == Property::DP)
+			dp_properties.insert(p);
 	}
 
 	if (!dp_properties.empty())
@@ -818,16 +818,13 @@ void ElementStyle::DirtyDpProperties()
 }
 
 // Sets a single property as dirty.
-void ElementStyle::DirtyProperty(const String& property)
+void ElementStyle::DirtyProperty(PropertyId property_id)
 {
-	PropertyNameList properties;
-	properties.insert(String(property));
-
-	DirtyProperties(properties);
+	DirtyProperties({ property_id });
 }
 
 // Sets a list of properties as dirty.
-void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clear_em_properties)
+void ElementStyle::DirtyProperties(const PropertyIdList& properties, bool clear_em_properties)
 {
 	if (properties.empty())
 		return;
@@ -840,21 +837,21 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 
 	if (all_inherited_dirty)
 	{
-		const PropertyNameList &all_inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
+		const PropertyIdList &all_inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
 		for (int i = 0; i < element->GetNumChildren(true); i++)
 			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(all_inherited_properties);
 	}
 	else
 	{
-		PropertyNameList inherited_properties;
+		PropertyIdList inherited_properties;
 
-		for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
+		for (auto& p : properties)
 		{
 			// If this property is an inherited property, then push it into the list to be passed onto our children.
-			const PropertyDefinition* property = StyleSheetSpecification::GetProperty(*i);
+			const PropertyDefinition* property = StyleSheetSpecification::GetProperty(p);
 			if (property != NULL &&
 				property->IsInherited())
-				inherited_properties.insert(*i);
+				inherited_properties.insert(p);
 		}
 
 		// Pass the list of those properties that are inherited onto our children.
@@ -881,18 +878,18 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 }
 
 // Sets a list of our potentially inherited properties as dirtied by an ancestor.
-void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
+void ElementStyle::DirtyInheritedProperties(const PropertyIdList& properties)
 {
 	bool clear_em_properties = em_properties != NULL;
 
-	PropertyNameList inherited_properties;
-	for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
+	PropertyIdList inherited_properties;
+	for (auto& p : properties)
 	{
-		const Property *property = GetLocalProperty((*i));
+		const Property *property = GetLocalProperty(p);
 		if (property == NULL)
 		{
-			inherited_properties.insert(*i);
-			if (!clear_em_properties && em_properties != NULL && em_properties->find((*i)) != em_properties->end()) {
+			inherited_properties.insert(p);
+			if (!clear_em_properties && em_properties != NULL && em_properties->find(p) != em_properties->end()) {
 				clear_em_properties = true;
 			}
 		}

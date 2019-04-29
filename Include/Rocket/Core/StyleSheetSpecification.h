@@ -66,30 +66,30 @@ public:
 	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
 	/// @param[in] forces_layout True if a change in this property on an element will cause the element's layout to possibly change.
 	/// @return The new property definition, ready to have parsers attached.
-	static PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
+	static PropertyDefinition& RegisterProperty(PropertyId property_id, const String& default_value, bool inherited, bool forces_layout = false);
 	/// Returns a property definition.
 	/// @param[in] property_name The name of the desired property.
 	/// @return The appropriate property definition if it could be found, NULL otherwise.
-	static const PropertyDefinition* GetProperty(const String& property_name);
+	static const PropertyDefinition* GetProperty(PropertyId id);
 
 	/// Returns the list of the names of all registered property definitions.
 	/// @return The list with stored property names.
-	static const PropertyNameList & GetRegisteredProperties();
+	static const PropertyIdList & GetRegisteredProperties();
 
 	/// Returns the list of the names of all registered inherited property definitions.
 	/// @return The list with stored property names.
-	static const PropertyNameList & GetRegisteredInheritedProperties();
+	static const PropertyIdList& GetRegisteredInheritedProperties();
 
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	static bool RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
+	static bool RegisterShorthand(PropertyId shorthand_id, const PropertyIdList& property_ids, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
 	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
-	static const PropertyShorthandDefinition* GetShorthand(const String& shorthand_name);
+	static const PropertyShorthandDefinition* GetShorthand(PropertyId shorthand_id);
 
 	/// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 	/// @param[in] dictionary The property dictionary which will hold all declared properties.
@@ -98,7 +98,7 @@ public:
 	/// @param[in] source_file The file where this property was declared. Used for error reporting, debugging and relative paths for referenced assets.
 	/// @param[in] line_number The location of the source file where this property was declared. Used for error reporting and debugging.
 	/// @return True if all properties were parsed successfully, false otherwise.
-	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0);
+	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId id, const String& property_value, const String& source_file = "", int source_line_number = 0);
 
 private:
 	StyleSheetSpecification();

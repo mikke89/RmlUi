@@ -380,7 +380,7 @@ public:
 		for (size_t i = 0; i < src.transitions.size(); i++)
 		{
 			const Transition& t = src.transitions[i];
-			dest += t.name + " ";
+			dest += GetName(t.property_id) + " ";
 			dest += t.tween.to_string() + " ";
 			if (TypeConverter< float, String >::Convert(t.duration, tmp)) dest += tmp + "s ";
 			if (t.delay > 0.0f && TypeConverter< float, String >::Convert(t.delay, tmp)) dest += tmp + "s ";

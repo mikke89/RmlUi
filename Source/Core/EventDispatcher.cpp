@@ -52,15 +52,15 @@ EventDispatcher::~EventDispatcher()
 	}
 }
 
-void EventDispatcher::AttachEvent(const String& type, EventListener* listener, bool in_capture_phase)
+void EventDispatcher::AttachEvent(EventId event_id, EventListener* listener, bool in_capture_phase)
 {
 	// Look up the event
-	Events::iterator event_itr = events.find(type);
+	Events::iterator event_itr = events.find(event_id);
 
 	// Ensure the event is in the event list
 	if (event_itr == events.end())
 	{
-		event_itr = events.emplace(type, Listeners()).first;
+		event_itr = events.emplace(event_id, Listeners()).first;
 	}
 
 	// Add the action to the events
@@ -69,10 +69,10 @@ void EventDispatcher::AttachEvent(const String& type, EventListener* listener, b
 	listener->OnAttach(element);
 }
 
-void EventDispatcher::DetachEvent(const String& type, EventListener* listener, bool in_capture_phase)
+void EventDispatcher::DetachEvent(EventId event_id, EventListener* listener, bool in_capture_phase)
 {
 	// Look up the event
-	Events::iterator event_itr = events.find(type);
+	Events::iterator event_itr = events.find(event_id);
 
 	// Bail if we can't find the event
 	if (event_itr == events.end())
@@ -110,10 +110,10 @@ void EventDispatcher::DetachAllEvents()
 		element->GetChild(i)->GetEventDispatcher()->DetachAllEvents();
 }
 
-bool EventDispatcher::DispatchEvent(Element* target_element, const String& name, const Dictionary& parameters, bool interruptible)
+bool EventDispatcher::DispatchEvent(Element* target_element, EventId event_id, const Dictionary& parameters, bool interruptible)
 {
 	//Event event(target_element, name, parameters, interruptible);
-	Event* event = Factory::InstanceEvent(target_element, name, parameters, interruptible);
+	Event* event = Factory::InstanceEvent(target_element, event_id, parameters, interruptible);
 	if (event == NULL)
 		return false;
 
@@ -166,9 +166,10 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const String& name,
 String EventDispatcher::ToString() const
 {
 	String result;
-	for (auto nvp : events)
+	for (const auto& nvp : events)
 	{
-		result += CreateString(nvp.first.size() + 32, "%s (%d), ", nvp.first.c_str(), static_cast<int>(nvp.second.size()));
+		auto& name = GetName(nvp.first);
+		result += CreateString(name.size() + 32, "%s (%d), ", name.c_str(), static_cast<int>(nvp.second.size()));
 	}
 	if (result.size() > 2) 
 	{
@@ -180,7 +181,7 @@ String EventDispatcher::ToString() const
 void EventDispatcher::TriggerEvents(Event* event)
 {
 	// Look up the event
-	Events::iterator itr = events.find(event->GetType());
+	Events::iterator itr = events.find(event->GetId());
 
 	if (itr != events.end())
 	{

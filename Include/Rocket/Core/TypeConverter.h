@@ -33,6 +33,7 @@
 #include "Log.h"
 #include "Stream.h"
 #include "StringUtilities.h"
+#include "StringCache.h"
 #include <typeinfo>
 #include <stdlib.h>
 #include <stdio.h>

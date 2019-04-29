@@ -71,8 +71,10 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 
 	// Merge the default (non-pseudo-class) properties.
 	for (size_t i = 0; i < style_sheet_nodes.size(); ++i)
-		properties.Merge(style_sheet_nodes[i]->GetProperties());
-
+	{
+		const auto& merge_properties = style_sheet_nodes[i]->GetProperties();
+		properties.insert(merge_properties.begin(), merge_properties.end());
+	}
 
 	// Merge the pseudo-class properties.
 	PseudoClassPropertyMap merged_pseudo_class_properties;
@@ -88,22 +90,27 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 			if (k == merged_pseudo_class_properties.end())
 				merged_pseudo_class_properties[(*j).first] = (*j).second;
 			else
-				(*k).second.Merge((*j).second);
+			{
+				const auto& merge_properties = (*j).second;
+				k->second.insert(merge_properties.begin(), merge_properties.end());
+			}
 
 			// Search through all entries in this dictionary; we'll insert each one into our optimised list of
 			// pseudo-class properties.
-			for (PropertyMap::const_iterator k = (*j).second.GetProperties().begin(); k != (*j).second.GetProperties().end(); ++k)
+			for (PropertyMap::const_iterator k = (*j).second.begin(); k != (*j).second.end(); ++k)
 			{
-				const String& property_name = (*k).first;
+				PropertyId property_id = (*k).first;
 				const Property& property = (*k).second;
 
 				// Skip this property if its specificity is lower than the base property's, as in
 				// this case it will never be used.
-				const Property* default_property = properties.GetProperty(property_name);
+				const Property* default_property = GetIf(properties, property_id);
 				if (default_property != NULL &&
 					default_property->specificity >= property.specificity)
 					continue;
 
+				// TODO: Pseudo-class should also probably be a PropertyId, for now we do a conversion to String here
+				const String& property_name = GetName(property_id);
 				PseudoClassPropertyDictionary::iterator l = pseudo_class_properties.find(property_name);
 				if (l == pseudo_class_properties.end())
 					pseudo_class_properties[property_name] = PseudoClassPropertyList(1, PseudoClassProperty((*j).first, property));
@@ -126,10 +133,10 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 }
 
 // Returns a specific property from the element definition's base properties.
-const Property* ElementDefinition::GetProperty(const String& name, const PseudoClassList& pseudo_classes) const
+const Property* ElementDefinition::GetProperty(PropertyId property_id, const PseudoClassList& pseudo_classes) const
 {
 	// Find a pseudo-class override for this property.
-	PseudoClassPropertyDictionary::const_iterator property_iterator = pseudo_class_properties.find(name);
+	PseudoClassPropertyDictionary::const_iterator property_iterator = pseudo_class_properties.find(property_id);
 	if (property_iterator != pseudo_class_properties.end())
 	{
 		const PseudoClassPropertyList& property_list = (*property_iterator).second;
@@ -142,19 +149,24 @@ const Property* ElementDefinition::GetProperty(const String& name, const PseudoC
 		}
 	}
 
-	return properties.GetProperty(name);
+	auto it = properties.find(property_id);
+	if (it != properties.end())
+		return &it->second;
+	return nullptr;
 }
 
 // Returns the list of properties this element definition defines for an element with the given set of pseudo-classes.
-void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes) const
+void ElementDefinition::GetDefinedProperties(PropertyIdList& property_ids, const PseudoClassList& pseudo_classes) const
 {
-	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
-		property_names.insert((*i).first);
+	for (auto& p : properties)
+		property_ids.insert(p.first);
 
 	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
 	{
+		PropertyId id = GetPropertyId((*i).first);
+
 		// If this property is already in the default dictionary, don't bother checking for it here.
-		if (property_names.find((*i).first) != property_names.end())
+		if (property_ids.find(id) != property_ids.end())
 			continue;
 
 		const PseudoClassPropertyList& property_list = (*i).second;
@@ -172,18 +184,20 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 		}
 
 		if (property_defined)
-			property_names.insert((*i).first);
+			property_ids.insert(id);
 	}
 }
 
 // Returns the list of properties this element definition has explicit definitions for involving the given
 // pseudo-class.
-void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes, const String& pseudo_class) const
+void ElementDefinition::GetDefinedProperties(PropertyIdList& property_ids, const PseudoClassList& pseudo_classes, const String& pseudo_class) const
 {
 	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
 	{
+		PropertyId id = GetPropertyId((*i).first);
+
 		// If this property has already been found, don't bother checking for it again.
-		if (property_names.find((*i).first) != property_names.end())
+		if (property_ids.find(id) != property_ids.end())
 			continue;
 
 		const PseudoClassPropertyList& property_list = (*i).second;
@@ -219,21 +233,21 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 		}
 
 		if (property_defined)
-			property_names.insert((*i).first);
+			property_ids.insert(id);
 	}
 }
 
 // Iterates over the properties in the definition.
-bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pseudo_classes, PseudoClassList& property_pseudo_classes, String& property_name, const Property*& property) const
+bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pseudo_classes, PseudoClassList& property_pseudo_classes, PropertyId& property_id, const Property*& property) const
 {
-	if (index < properties.GetNumProperties())
+	if (index < (int)properties.size())
 	{
-		PropertyMap::const_iterator i = properties.GetProperties().begin();
+		PropertyMap::const_iterator i = properties.begin();
 		for (int count = 0; count < index; ++count)
 			++i;
 
 		property_pseudo_classes.clear();
-		property_name = (*i).first;
+		property_id = (*i).first;
 		property = &((*i).second);
 		++index;
 
@@ -241,7 +255,7 @@ bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pse
 	}
 
 	// Not in the base properties; check for pseudo-class overrides.
-	int property_count = properties.GetNumProperties();
+	int property_count = (int)properties.size();
 	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
 	{
 		// Iterate over each pseudo-class set that has a definition for this property; if we find one that matches our
@@ -257,7 +271,7 @@ bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pse
 					// Copy the list of pseudo-classes.
 					property_pseudo_classes = (*i).second[j].first;
 
-					property_name = (*i).first;
+					property_id = (*i).first;
 					property = &((*i).second[j].second);
 					++index;
 
@@ -342,7 +356,7 @@ void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const Strin
 {
 	String property_suffix = "-" + group_type;
 
-	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
+	for (PropertyMap::const_iterator property_iterator = element_properties.begin(); property_iterator != element_properties.end(); ++property_iterator)
 	{
 		const String& property_name = (*property_iterator).first;
 		if (property_name.size() > property_suffix.size() &&
@@ -411,7 +425,7 @@ int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_pr
 
 	int num_properties = 0;
 
-	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
+	for (PropertyMap::const_iterator property_iterator = element_properties.begin(); property_iterator != element_properties.end(); ++property_iterator)
 	{
 		const String& full_property_name = (*property_iterator).first;
 		if (full_property_name.size() > group_name.size() + 1 &&
@@ -422,7 +436,7 @@ int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_pr
 //			if (property_name == group_type)
 //				continue;
 
-			group_properties.SetProperty(property_name, (*property_iterator).second);
+			group_properties[property_name] = (*property_iterator).second;
 			num_properties++;
 		}
 	}

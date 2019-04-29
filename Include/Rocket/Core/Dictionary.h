@@ -46,6 +46,12 @@ inline const Variant* GetIf(const Dictionary& dictionary, const String& key)
 		return &(it->second);
 	return nullptr;
 }
+inline const Property* GetIf(const PropertyDictionary& dictionary, PropertyId property_id)
+{
+	if (auto it = dictionary.find(property_id); it != dictionary.end())
+		return &(it->second);
+	return nullptr;
+}
 template<typename T>
 inline T Get(const Dictionary& dictionary, const String& key, const T& default_value)
 {

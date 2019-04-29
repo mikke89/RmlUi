@@ -28,6 +28,7 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/PropertyDictionary.h"
 
+#if 0
 namespace Rocket {
 namespace Core {
 
@@ -104,6 +105,7 @@ void PropertyDictionary::SetProperty(const String& name, const Rocket::Core::Pro
 	Property& new_property = (properties[name] = property);
 	new_property.specificity = specificity;
 }
+}
+}
 
-}
-}
+#endif

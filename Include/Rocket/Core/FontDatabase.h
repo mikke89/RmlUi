@@ -39,7 +39,6 @@ namespace Core {
 class FontEffect;
 class FontFamily;
 class FontFaceHandle;
-class PropertyDictionary;
 
 /**
 	The font database contains all font families currently in use by Rocket.

@@ -57,7 +57,6 @@ class ElementDocument;
 class ElementScroll;
 class ElementStyle;
 class FontFaceHandle;
-class PropertyDictionary;
 class RenderInterface;
 class StyleSheet;
 struct ElementMeta;
@@ -186,31 +185,31 @@ public:
 	/// @param[in] name The name of the new property.
 	/// @param[in] value The new property to set.
 	/// @return True if the property parsed successfully, false otherwise.
-	bool SetProperty(const String& name, const String& value);
+	bool SetProperty(PropertyId property_id, const String& value);
 	/// Sets a local property override on the element to a pre-parsed value.
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
-	bool SetProperty(const String& name, const Property& property);
+	bool SetProperty(PropertyId property_id, const Property& property);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
-	void RemoveProperty(const String& name);
+	void RemoveProperty(PropertyId property_id);
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if no property exists with the given name.
-	const Property* GetProperty(const String& name);		
+	const Property* GetProperty(PropertyId property_id);		
 	/// Returns the values of one of this element's properties.		
 	/// @param[in] name The name of the property to get.
 	/// @return The value of this property.
 	template < typename T >
-	T GetProperty(const String& name);
+	T GetProperty(PropertyId property_id);
 	/// Returns one of this element's properties. If this element is not defined this property, NULL will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
-	const Property* GetLocalProperty(const String& name);
+	const Property* GetLocalProperty(PropertyId property_id);
 	/// Returns the local properties, excluding any properties from local class.
 	/// @return The local properties for this element, or NULL if no properties defined
 	const PropertyMap* GetLocalProperties();
@@ -219,7 +218,7 @@ public:
 	/// @param[in] name The name of the property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
-	float ResolveProperty(const String& name, float base_value);
+	float ResolveProperty(PropertyId property_id, float base_value);
 	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. Angles are returned as radians.
 	/// Precentages are resolved based on the second argument (the base value).
 	/// @param[in] name The property to resolve the value for.
@@ -295,12 +294,12 @@ public:
 	/// If an animation of the same property name exists, it will be replaced.
 	/// If start_value is null, the current property value on this element is used.
 	/// @return True if a new animation was added.
-	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
+	bool Animate(PropertyId property_id, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
 
 	/// Add a key to an animation, extending its duration.
 	/// If no animation exists for the given property name, the call will be ignored.
 	/// @return True if a new animation key was added.
-	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
+	bool AddAnimationKey(PropertyId property_id, const Property& target_value, float duration, Tween tween = Tween{});
 	
 	/// Iterates over the properties defined on this element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
@@ -308,7 +307,7 @@ public:
 	/// @param[out] name The name of the property at the specified index.
 	/// @param[out] property The property at the specified index.
 	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, PseudoClassList& pseudo_classes, String& name, const Property*& property) const;
+	bool IterateProperties(int& index, PseudoClassList& pseudo_classes, PropertyId& property_id, const Property*& property) const;
 	///@}
 
 	/** @name Pseudo-classes
@@ -524,18 +523,18 @@ public:
 	/// @param[in] event Event to attach to.
 	/// @param[in] listener The listener object to be attached.
 	/// @param[in] in_capture_phase True to attach in the capture phase, false in bubble phase.
-	void AddEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
+	void AddEventListener(EventId event_id, EventListener* listener, bool in_capture_phase = false);
 	/// Removes an event listener from this element.
 	/// @param[in] event Event to detach from.
 	/// @param[in] listener The listener object to be detached.
 	/// @param[in] in_capture_phase True to detach from the capture phase, false from the bubble phase.
-	void RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
+	void RemoveEventListener(EventId event_id, EventListener* listener, bool in_capture_phase = false);
 	/// Sends an event to this element.
 	/// @param[in] event Name of the event in string form.
 	/// @param[in] parameters The event parameters.
 	/// @param[in] interruptible True if the propagation of the event be stopped.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible = false);
+	bool DispatchEvent(EventId event_id, const Dictionary& parameters, bool interruptible = false);
 
 	/// Scrolls the parent element's contents so that this element is visible.
 	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.
@@ -639,10 +638,10 @@ protected:
 	virtual void OnAttributeChange(const AttributeNameList& changed_attributes);
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const PropertyIdList& changed_properties);
 
 	void DirtyAllProperties() { all_properties_dirty = true; }
-	void DirtyProperties(const PropertyNameList& changed_properties);
+	void DirtyProperties(const PropertyIdList& changed_properties);
 	void UpdateDirtyProperties();
 
 	/// Called when a child node has been added somewhere in the hierarchy.
@@ -691,10 +690,10 @@ private:
 	void UpdateTransformState();
 
 	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
+	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
 
 	// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
-	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
+	bool AddAnimationKeyTime(PropertyId property_id, const Property * target_value, float time, Tween tween);
 
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
@@ -777,7 +776,7 @@ private:
 	bool structure_dirty;
 	bool parent_structure_dirty;
 
-	PropertyNameList dirty_properties;
+	PropertyIdList dirty_properties;
 	bool all_properties_dirty;
 
 	// The element's font face; used to render text and resolve em / ex properties.

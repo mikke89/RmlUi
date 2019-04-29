@@ -42,53 +42,55 @@ namespace Core {
 	@author Peter Curry
  */
 
-class ROCKETCORE_API PropertyDictionary
-{
-public:
-	PropertyDictionary();
-	~PropertyDictionary();
+using PropertyDictionary = PropertyMap;
 
-	/// Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
-	/// @param[in] name The name of the property to add.
-	/// @param[in] property The value of the new property.
-	void SetProperty(const String& name, const Property& property);
-	/// Removes a property from the dictionary, if it exists.
-	/// @param[in] name The name of the property to remove.
-	void RemoveProperty(const String& name);
-	/// Returns the value of the property with the requested name, if one exists.
-	/// @param[in] name The name of the desired property.
-	const Property* GetProperty(const String& name) const;
-
-	/// Returns the number of properties in the dictionary.
-	/// @return The number of properties in the dictionary.
-	int GetNumProperties() const;
-	/// Returns the map of properties in the dictionary.
-	/// @return The property map.
-	const PropertyMap& GetProperties() const;
-
-	/// Imports into the dictionary, and optionally defines the specificity of, potentially
-	/// un-specified properties. In the case of name conflicts, the incoming properties will
-	/// overwrite the existing properties if their specificity (or their forced specificity)
-	/// are at least equal.
-	/// @param[in] property_dictionary The properties to import.
-	/// @param[in] specificity The specificity for all incoming properties. If this is not specified, the properties will keep their original specificity.
-	void Import(const PropertyDictionary& property_dictionary, int specificity = -1);
-
-	/// Merges the contents of another fully-specified property dictionary with this one.
-	/// Properties defined in the new dictionary will overwrite those with the same name as
-	/// appropriate.
-	/// @param[in] property_dictionary The dictionary to merge.
-	/// @param[in] specificity_offset The specificities of all incoming properties will be offset by this value.
-	void Merge(const PropertyDictionary& property_dictionary, int specificity_offset = 0);
-
-private:
-	// Sets a property on the dictionary and its specificity if there is no name conflict, or its
-	// specificity (given by the parameter, not read from the property itself) is at least equal to
-	// the specificity of the conflicting property.
-	void SetProperty(const String& name, const Rocket::Core::Property& property, int specificity);
-
-	PropertyMap properties;
-};
+//class ROCKETCORE_API PropertyDictionary
+//{
+//public:
+//	PropertyDictionary();
+//	~PropertyDictionary();
+//
+//	/// Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
+//	/// @param[in] name The name of the property to add.
+//	/// @param[in] property The value of the new property.
+//	void SetProperty(const String& name, const Property& property);
+//	/// Removes a property from the dictionary, if it exists.
+//	/// @param[in] name The name of the property to remove.
+//	void RemoveProperty(const String& name);
+//	/// Returns the value of the property with the requested name, if one exists.
+//	/// @param[in] name The name of the desired property.
+//	const Property* GetProperty(const String& name) const;
+//
+//	/// Returns the number of properties in the dictionary.
+//	/// @return The number of properties in the dictionary.
+//	int GetNumProperties() const;
+//	/// Returns the map of properties in the dictionary.
+//	/// @return The property map.
+//	const PropertyMap& GetProperties() const;
+//
+//	/// Imports into the dictionary, and optionally defines the specificity of, potentially
+//	/// un-specified properties. In the case of name conflicts, the incoming properties will
+//	/// overwrite the existing properties if their specificity (or their forced specificity)
+//	/// are at least equal.
+//	/// @param[in] property_dictionary The properties to import.
+//	/// @param[in] specificity The specificity for all incoming properties. If this is not specified, the properties will keep their original specificity.
+//	void Import(const PropertyDictionary& property_dictionary, int specificity = -1);
+//
+//	/// Merges the contents of another fully-specified property dictionary with this one.
+//	/// Properties defined in the new dictionary will overwrite those with the same name as
+//	/// appropriate.
+//	/// @param[in] property_dictionary The dictionary to merge.
+//	/// @param[in] specificity_offset The specificities of all incoming properties will be offset by this value.
+//	void Merge(const PropertyDictionary& property_dictionary, int specificity_offset = 0);
+//
+//private:
+//	// Sets a property on the dictionary and its specificity if there is no name conflict, or its
+//	// specificity (given by the parameter, not read from the property itself) is at least equal to
+//	// the specificity of the conflicting property.
+//	void SetProperty(const String& name, const Rocket::Core::Property& property, int specificity);
+//
+//	PropertyMap properties;
+//};
 
 }
 }

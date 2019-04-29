@@ -455,13 +455,13 @@ void Context::PushDocumentToBack(ElementDocument* document)
 }
 
 // Adds an event listener to the root element.
-void Context::AddEventListener(const String& event, EventListener* listener, bool in_capture_phase)
+void Context::AddEventListener(EventId event, EventListener* listener, bool in_capture_phase)
 {
 	root->AddEventListener(event, listener, in_capture_phase);
 }
 
 // Removes an event listener from the root element.
-void Context::RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase)
+void Context::RemoveEventListener(EventId event, EventListener* listener, bool in_capture_phase)
 {
 	root->RemoveEventListener(event, listener, in_capture_phase);
 }
@@ -570,10 +570,10 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 static Element* FindFocusElement(Element* element)
 {
 	ElementDocument* owner_document = element->GetOwnerDocument();
-	if (!owner_document || owner_document->GetProperty< int >(FOCUS) == FOCUS_NONE)
+	if (!owner_document || owner_document->GetProperty< int >(FOCUS_PROPERTY) == FOCUS_NONE)
 		return NULL;
 	
-	while (element && element->GetProperty< int >(FOCUS) == FOCUS_NONE)
+	while (element && element->GetProperty< int >(FOCUS_PROPERTY) == FOCUS_NONE)
 	{
 		element = element->GetParentNode();
 	}
@@ -644,7 +644,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			drag = hover;
 			while (drag)
 			{
-				int drag_style = drag->GetProperty(DRAG)->value.Get< int >();
+				int drag_style = drag->GetProperty(DRAG_PROPERTY)->value.Get< int >();
 				switch (drag_style)
 				{
 					case DRAG_NONE:		drag = drag->GetParentNode(); continue;
@@ -914,7 +914,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				drag->DispatchEvent(DRAGSTART, drag_start_parameters);
 				drag_started = true;
 
-				if (drag->GetProperty< int >(DRAG) == DRAG_CLONE)
+				if (drag->GetProperty< int >(DRAG_PROPERTY) == DRAG_CLONE)
 				{
 					// Clone the element and attach it to the mouse cursor.
 					CreateDragClone(*drag);
@@ -1100,9 +1100,9 @@ void Context::CreateDragClone(Element* element)
 
 	// Set all the required properties and pseudo-classes on the clone.
 	drag_clone->SetPseudoClass("drag", true);
-	drag_clone->SetProperty("position", "absolute");
-	drag_clone->SetProperty("left", Property(element->GetAbsoluteLeft() - element->GetBox().GetEdge(Box::MARGIN, Box::LEFT) - mouse_position.x, Property::PX));
-	drag_clone->SetProperty("top", Property(element->GetAbsoluteTop() - element->GetBox().GetEdge(Box::MARGIN, Box::TOP) - mouse_position.y, Property::PX));
+	drag_clone->SetProperty(POSITION, "absolute");
+	drag_clone->SetProperty(LEFT, Property(element->GetAbsoluteLeft() - element->GetBox().GetEdge(Box::MARGIN, Box::LEFT) - mouse_position.x, Property::PX));
+	drag_clone->SetProperty(TOP, Property(element->GetAbsoluteTop() - element->GetBox().GetEdge(Box::MARGIN, Box::TOP) - mouse_position.y, Property::PX));
 }
 
 // Releases the drag clone, if one exists.
@@ -1169,7 +1169,7 @@ void Context::ReleaseUnloadedDocuments()
 }
 
 // Sends the specified event to all elements in new_items that don't appear in old_items.
-void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible)
+void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId event, const Dictionary& parameters, bool interruptible)
 {
 	ElementList elements;
 	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));

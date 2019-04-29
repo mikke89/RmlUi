@@ -84,25 +84,25 @@ public:
 	/// Sets a local property override on the element.
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The new property to set.
-	bool SetProperty(const String& name, const String& value);
+	bool SetProperty(PropertyId id, const String& value);
 	/// Sets a local property override on the element to a pre-parsed value.
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
-	bool SetProperty(const String& name, const Property& property);
+	bool SetProperty(PropertyId id, const Property& property);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
-	void RemoveProperty(const String& name);
+	void RemoveProperty(PropertyId id);
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if no property exists with the given name.
-	const Property* GetProperty(const String& name);
+	const Property* GetProperty(PropertyId id);
 	/// Returns one of this element's properties. If this element is not defined this property, NULL will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
-	const Property* GetLocalProperty(const String& name);
+	const Property* GetLocalProperty(PropertyId id);
 	/// Returns the local properties, excluding any properties from local class.
 	/// @return The local properties for this element, or NULL if no properties defined
 	const PropertyMap* GetLocalProperties() const;
@@ -115,7 +115,7 @@ public:
 	static float ResolveAngle(const Property* property);
 
 	/// Resolves a number-length-percentage property to pixels.
-	float ResolveNumericProperty(const String& property_name, const Property* property);
+	float ResolveNumericProperty(PropertyId property_id, const Property* property);
 
 	/// Resolves the canonical unit (pixels) from 'number-length-percent' property.
 	/// 'percentage' and 'number' gets multiplied by the size of the specified relative reference.
@@ -134,7 +134,7 @@ public:
 	/// @param[in] name The name of the property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
-	float ResolveProperty(const String& name, float base_value);
+	float ResolveProperty(PropertyId name, float base_value);
 
 	/// Iterates over the properties defined on the element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
@@ -142,7 +142,7 @@ public:
 	/// @param[out] name The name of the property at the specified index.
 	/// @param[out] property The property at the specified index.
 	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, PseudoClassList& pseudo_classes, String& name, const Property*& property);
+	bool IterateProperties(int& index, PseudoClassList& pseudo_classes, PropertyId& id, const Property*& property);
 
 	/// Returns the active style sheet for this element. This may be NULL.
 	StyleSheet* GetStyleSheet() const;
@@ -215,15 +215,15 @@ public:
 
 private:
 	// Sets a single property as dirty.
-	void DirtyProperty(const String& property);
+	void DirtyProperty(PropertyId property_id);
 	// Sets a list of properties as dirty.
-	void DirtyProperties(const PropertyNameList& properties, bool clear_em_properties = true);
+	void DirtyProperties(const PropertyIdList& properties, bool clear_em_properties = true);
 	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
-	void DirtyInheritedProperties(const PropertyNameList& properties);
+	void DirtyInheritedProperties(const PropertyIdList& properties);
 
-	static const Property* GetLocalProperty(const String & name, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
-	static const Property* GetProperty(const String & name, Element * element, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
-	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, PropertyDictionary * local_properties, ElementDefinition * old_definition, ElementDefinition * new_definition,
+	static const Property* GetLocalProperty(PropertyId id, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static const Property* GetProperty(PropertyId id, Element * element, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static void TransitionPropertyChanges(Element * element, PropertyIdList& properties, PropertyDictionary * local_properties, ElementDefinition * old_definition, ElementDefinition * new_definition,
 		const PseudoClassList & pseudo_classes_before, const PseudoClassList & pseudo_classes_after);
 
 	// Element these properties belong to
@@ -237,7 +237,7 @@ private:
 	// Any properties that have been overridden in this element.
 	PropertyDictionary* local_properties;
 	// All properties (including inherited) that are EM-relative.
-	PropertyNameList* em_properties;
+	PropertyIdList* em_properties;
 	// The definition of this element; if this is NULL one will be fetched from the element's style.
 	ElementDefinition* definition;
 	// Set if a new element definition should be fetched from the style.

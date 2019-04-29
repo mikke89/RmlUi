@@ -73,13 +73,13 @@ protected:
 	/// @param[in] property_name The name of the new property (how it is specified through RCSS).
 	/// @param[in] default_value The default value to be used.
 	/// @return The new property definition, ready to have parsers attached.
-	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value);
+	PropertyDefinition& RegisterProperty(PropertyId property_id, const String& default_value);
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
+	bool RegisterShorthand(PropertyId shorthand_id, const PropertyIdList& property_ids, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
 
 	// Releases the instancer.
 	virtual void OnReferenceDeactivate();

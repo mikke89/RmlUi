@@ -58,7 +58,7 @@ protected:
 
 private:
 	// Loads a single texture coordinate value from the properties.
-	void LoadTexCoord(const PropertyDictionary& properties, const String& name, float& tex_coord, bool& tex_coord_absolute);
+	void LoadTexCoord(const PropertyDictionary& properties, PropertyId id, float& tex_coord, bool& tex_coord_absolute);
 };
 
 }
