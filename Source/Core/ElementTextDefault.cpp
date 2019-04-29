@@ -279,7 +279,7 @@ void ElementTextDefault::SuppressAutoLayout()
 	dirty_layout_on_change = false;
 }
 
-void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_properties)
+void ElementTextDefault::OnPropertyChange(const PropertyIdList& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 

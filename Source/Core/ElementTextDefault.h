@@ -77,7 +77,7 @@ public:
 	virtual void SuppressAutoLayout();
 
 protected:
-	virtual void OnPropertyChange(const PropertyNameList& properties);
+	virtual void OnPropertyChange(const PropertyIdList& properties) override;
 
 	/// Returns the RML of this element
 	/// @param content[out] The raw text.

@@ -110,10 +110,9 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 					continue;
 
 				// TODO: Pseudo-class should also probably be a PropertyId, for now we do a conversion to String here
-				const String& property_name = GetName(property_id);
-				PseudoClassPropertyDictionary::iterator l = pseudo_class_properties.find(property_name);
+				PseudoClassPropertyDictionary::iterator l = pseudo_class_properties.find(property_id);
 				if (l == pseudo_class_properties.end())
-					pseudo_class_properties[property_name] = PseudoClassPropertyList(1, PseudoClassProperty((*j).first, property));
+					pseudo_class_properties[property_id] = PseudoClassPropertyList(1, PseudoClassProperty((*j).first, property));
 				else
 				{
 					// Find the location to insert this entry in the map, based on property priorities.
@@ -163,7 +162,7 @@ void ElementDefinition::GetDefinedProperties(PropertyIdList& property_ids, const
 
 	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
 	{
-		PropertyId id = GetPropertyId((*i).first);
+		PropertyId id = i->first;
 
 		// If this property is already in the default dictionary, don't bother checking for it here.
 		if (property_ids.find(id) != property_ids.end())
@@ -194,7 +193,7 @@ void ElementDefinition::GetDefinedProperties(PropertyIdList& property_ids, const
 {
 	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
 	{
-		PropertyId id = GetPropertyId((*i).first);
+		PropertyId id = i->first;
 
 		// If this property has already been found, don't bother checking for it again.
 		if (property_ids.find(id) != property_ids.end())
@@ -358,7 +357,7 @@ void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const Strin
 
 	for (PropertyMap::const_iterator property_iterator = element_properties.begin(); property_iterator != element_properties.end(); ++property_iterator)
 	{
-		const String& property_name = (*property_iterator).first;
+		const String& property_name = GetName((*property_iterator).first);
 		if (property_name.size() > property_suffix.size() &&
 			strcasecmp(property_name.c_str() + (property_name.size() - property_suffix.size()), property_suffix.c_str()) == 0)
 		{
@@ -427,7 +426,8 @@ int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_pr
 
 	for (PropertyMap::const_iterator property_iterator = element_properties.begin(); property_iterator != element_properties.end(); ++property_iterator)
 	{
-		const String& full_property_name = (*property_iterator).first;
+		PropertyId id = (*property_iterator).first;
+		const String& full_property_name = GetName(id);
 		if (full_property_name.size() > group_name.size() + 1 &&
 			strncasecmp(full_property_name.c_str(), group_name.c_str(), group_name.size()) == 0 &&
 			full_property_name[group_name.size()] == '-')
@@ -436,7 +436,7 @@ int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_pr
 //			if (property_name == group_type)
 //				continue;
 
-			group_properties[property_name] = (*property_iterator).second;
+			group_properties[id] = (*property_iterator).second;
 			num_properties++;
 		}
 	}

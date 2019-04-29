@@ -44,6 +44,17 @@ namespace Core {
 
 using PropertyDictionary = PropertyMap;
 
+/// Merges the contents of another fully-specified property dictionary with this one.
+/// Properties defined in the new dictionary will overwrite those with the same name as
+/// appropriate.
+void Merge(PropertyDictionary& destination, const PropertyDictionary& from, int specificity_offset = 0);
+
+/// Imports into the dictionary, and optionally defines the specificity of, potentially
+/// un-specified properties. In the case of name conflicts, the incoming properties will
+/// overwrite the existing properties if their specificity (or their forced specificity)
+/// are at least equal.
+void Import(PropertyDictionary& destination, const PropertyDictionary& from, int specificity = -1);
+
 //class ROCKETCORE_API PropertyDictionary
 //{
 //public:

@@ -136,7 +136,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdList& p
 	if (!old_definition || !new_definition || properties.empty())
 		return;
 
-	if (const Property* transition_property = GetLocalProperty(TRANSITION, local_properties, new_definition, pseudo_classes_after))
+	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, local_properties, new_definition, pseudo_classes_after))
 	{
 		auto transition_list = transition_property->Get<TransitionList>();
 
@@ -479,7 +479,7 @@ float ElementStyle::ResolveAngle(const Property * property)
 
 float ElementStyle::ResolveNumericProperty(PropertyId property_id, const Property * property)
 {
-	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && property_id == FONT_SIZE))
+	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && property_id == PropertyId::FontSize))
 	{
 		return ResolveLength(property);
 	}
@@ -609,7 +609,7 @@ float ElementStyle::ResolveProperty(PropertyId property_id, float base_value)
 
 	// The calculated value of the font-size property is inherited, so we need to check if this
 	// is an inherited property. If so, then we return our parent's font size instead.
-	if (property_id == FONT_SIZE && property->unit & Property::RELATIVE_UNIT)
+	if (property_id == PropertyId::FontSize && property->unit & Property::RELATIVE_UNIT)
 	{
 		// If the rem unit is used, the font-size is inherited directly from the document,
 		// otherwise we use the parent's font size.
@@ -619,7 +619,7 @@ float ElementStyle::ResolveProperty(PropertyId property_id, float base_value)
 			if (owner_document == NULL)
 				return 0;
 
-			base_value = element->GetOwnerDocument()->ResolveProperty(FONT_SIZE, 0);
+			base_value = element->GetOwnerDocument()->ResolveProperty(PropertyId::FontSize, 0);
 		}
 		else
 		{
@@ -627,11 +627,11 @@ float ElementStyle::ResolveProperty(PropertyId property_id, float base_value)
 			if (parent == NULL)
 				return 0;
 
-			if (GetLocalProperty(FONT_SIZE) == NULL)
-				return parent->ResolveProperty(FONT_SIZE, 0);
+			if (GetLocalProperty(PropertyId::FontSize) == NULL)
+				return parent->ResolveProperty(PropertyId::FontSize, 0);
 
 			// The base value for font size is always the height of *this* element's parent's font.
-			base_value = parent->ResolveProperty(FONT_SIZE, 0);
+			base_value = parent->ResolveProperty(PropertyId::FontSize, 0);
 		}
 
 		switch (property->unit)
@@ -738,7 +738,7 @@ void ElementStyle::DirtyEmProperties()
 		for (auto& property : StyleSheetSpecification::GetRegisteredProperties())
 		{
 			// Skip font-size; this is relative to our parent's em, not ours.
-			if (property == FONT_SIZE)
+			if (property == PropertyId::FontSize)
 				continue;
 
 			// Get this property from this element. If this is em-relative, then add it to the list to
@@ -760,7 +760,7 @@ void ElementStyle::DirtyEmProperties()
 // Dirties font-size on child elements if appropriate.
 void ElementStyle::DirtyInheritedEmProperties()
 {
-	const Property* font_size = element->GetLocalProperty(FONT_SIZE);
+	const Property* font_size = element->GetLocalProperty(PropertyId::FontSize);
 	if (font_size == NULL)
 	{
 		int num_children = element->GetNumChildren(true);
@@ -770,7 +770,7 @@ void ElementStyle::DirtyInheritedEmProperties()
 	else
 	{
 		if (font_size->unit & Property::RELATIVE_UNIT)
-			DirtyProperty(FONT_SIZE);
+			DirtyProperty(PropertyId::FontSize);
 	}
 }
 
@@ -999,43 +999,43 @@ const Property *ElementStyle::GetVerticalAlignProperty()
 // Returns 'perspective' property value from element's style or local cache.
 const Property *ElementStyle::GetPerspective()
 {
-	return element->GetProperty(PERSPECTIVE);
+	return element->GetProperty(PropertyId::Perspective);
 }
 
 // Returns 'perspective-origin-x' property value from element's style or local cache.
 const Property *ElementStyle::GetPerspectiveOriginX()
 {
-	return element->GetProperty(PERSPECTIVE_ORIGIN_X);
+	return element->GetProperty(PropertyId::PerspectiveOriginX);
 }
 
 // Returns 'perspective-origin-y' property value from element's style or local cache.
 const Property *ElementStyle::GetPerspectiveOriginY()
 {
-	return element->GetProperty(PERSPECTIVE_ORIGIN_Y);
+	return element->GetProperty(PropertyId::PerspectiveOriginY);
 }
 
 // Returns 'transform' property value from element's style or local cache.
 const Property *ElementStyle::GetTransform()
 {
-	return element->GetProperty(TRANSFORM);
+	return element->GetProperty(PropertyId::Transform);
 }
 
 // Returns 'transform-origin-x' property value from element's style or local cache.
 const Property *ElementStyle::GetTransformOriginX()
 {
-	return element->GetProperty(TRANSFORM_ORIGIN_X);
+	return element->GetProperty(PropertyId::TransformOriginX);
 }
 
 // Returns 'transform-origin-y' property value from element's style or local cache.
 const Property *ElementStyle::GetTransformOriginY()
 {
-	return element->GetProperty(TRANSFORM_ORIGIN_Y);
+	return element->GetProperty(PropertyId::TransformOriginY);
 }
 
 // Returns 'transform-origin-z' property value from element's style or local cache.
 const Property *ElementStyle::GetTransformOriginZ()
 {
-	return element->GetProperty(TRANSFORM_ORIGIN_Z);
+	return element->GetProperty(PropertyId::TransformOriginZ);
 }
 
 }

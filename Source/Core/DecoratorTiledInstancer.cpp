@@ -39,42 +39,42 @@ DecoratorTiledInstancer::~DecoratorTiledInstancer()
 // Adds the property declarations for a tile.
 void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool register_repeat_modes)
 {
-	RegisterProperty(AddPropertyName( CreateString(32, "%s-src", name.c_str())), "").AddParser("string");
-	RegisterProperty(AddPropertyName( CreateString(32, "%s-s-begin", name.c_str())), "0").AddParser("length");
-	RegisterProperty(AddPropertyName( CreateString(32, "%s-s-end", name.c_str())), "1").AddParser("length");
-	RegisterProperty(AddPropertyName( CreateString(32, "%s-t-begin", name.c_str())), "0").AddParser("length");
-	RegisterProperty(AddPropertyName( CreateString(32, "%s-t-end", name.c_str())), "1").AddParser("length");
-	RegisterShorthand(AddPropertyName(CreateString(32, "%s-s", name.c_str())),
-		{ AddPropertyName(CreateString(32, "%s-s-begin", name.c_str())), AddPropertyName(CreateString(32, "%s-s-end", name.c_str())) }
+	RegisterProperty(CreateOrGetPropertyId( CreateString(32, "%s-src", name.c_str())), "").AddParser("string");
+	RegisterProperty(CreateOrGetPropertyId( CreateString(32, "%s-s-begin", name.c_str())), "0").AddParser("length");
+	RegisterProperty(CreateOrGetPropertyId( CreateString(32, "%s-s-end", name.c_str())), "1").AddParser("length");
+	RegisterProperty(CreateOrGetPropertyId( CreateString(32, "%s-t-begin", name.c_str())), "0").AddParser("length");
+	RegisterProperty(CreateOrGetPropertyId( CreateString(32, "%s-t-end", name.c_str())), "1").AddParser("length");
+	RegisterShorthand(CreateOrGetPropertyId(CreateString(32, "%s-s", name.c_str())),
+		{ CreateOrGetPropertyId(CreateString(32, "%s-s-begin", name.c_str())), CreateOrGetPropertyId(CreateString(32, "%s-s-end", name.c_str())) }
 	);
-	RegisterShorthand(AddPropertyName(CreateString(32, "%s-t", name.c_str())),
-		{ AddPropertyName(CreateString(32, "%s-t-begin", name.c_str())), AddPropertyName(CreateString(32, "%s-t-end", name.c_str())) }
+	RegisterShorthand(CreateOrGetPropertyId(CreateString(32, "%s-t", name.c_str())),
+		{ CreateOrGetPropertyId(CreateString(32, "%s-t-begin", name.c_str())), CreateOrGetPropertyId(CreateString(32, "%s-t-end", name.c_str())) }
 	);
 
 	if (register_repeat_modes)
 	{
-		RegisterProperty(AddPropertyName( CreateString(32, "%s-repeat", name.c_str())), "stretch")
+		RegisterProperty(CreateOrGetPropertyId( CreateString(32, "%s-repeat", name.c_str())), "stretch")
 			.AddParser("keyword", "stretch, clamp-stretch, clamp-truncate, repeat-stretch, repeat-truncate");
 		
-		RegisterShorthand(AddPropertyName(name),
+		RegisterShorthand(CreateOrGetPropertyId(name),
 			{ 
-				AddPropertyName(CreateString(32, "%s-src", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-repeat", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-s-begin", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-t-begin", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-s-end", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-t-end", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-src", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-repeat", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-s-begin", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-t-begin", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-s-end", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-t-end", name.c_str())),
 			}
 		);
 	}
 	else
-		RegisterShorthand(AddPropertyName(name),
+		RegisterShorthand(CreateOrGetPropertyId(name),
 			{
-				AddPropertyName(CreateString(32, "%s-src", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-s-begin", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-t-begin", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-s-end", name.c_str())),
-				AddPropertyName(CreateString(32, "%s-t-end", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-src", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-s-begin", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-t-begin", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-s-end", name.c_str())),
+				CreateOrGetPropertyId(CreateString(32, "%s-t-end", name.c_str())),
 			}
 		);
 }
@@ -87,11 +87,11 @@ void DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile& tile, Stri
 	LoadTexCoord(properties, GetPropertyId( CreateString(32, "%s-s-end", name.c_str())), tile.texcoords[1].x, tile.texcoords_absolute[1][0]);
 	LoadTexCoord(properties, GetPropertyId( CreateString(32, "%s-t-end", name.c_str())), tile.texcoords[1].y, tile.texcoords_absolute[1][1]);
 
-	const Property* repeat_property = GetIf(properties, AddPropertyName( CreateString(32, "%s-repeat", name.c_str())));
+	const Property* repeat_property = GetIf(properties, CreateOrGetPropertyId( CreateString(32, "%s-repeat", name.c_str())));
 	if (repeat_property != NULL)
 		tile.repeat_mode = (DecoratorTiled::TileRepeatMode) repeat_property->value.Get< int >();
 
-	const Property* texture_property = GetIf(properties, AddPropertyName( CreateString(32, "%s-src", name.c_str())));
+	const Property* texture_property = GetIf(properties, CreateOrGetPropertyId( CreateString(32, "%s-src", name.c_str())));
 	texture_name = texture_property->Get< String >();
 	rcss_path = texture_property->source;
 }

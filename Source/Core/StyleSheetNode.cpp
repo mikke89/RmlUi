@@ -72,7 +72,7 @@ StyleSheetNode::~StyleSheetNode()
 // Writes the style sheet node (and all ancestors) into the stream.
 void StyleSheetNode::Write(Stream* stream)
 {
-	if (properties.GetNumProperties() > 0)
+	if (properties.size() > 0)
 	{
 		String rule;
 		StyleSheetNode* hierarchy = this;
@@ -110,12 +110,9 @@ void StyleSheetNode::Write(Stream* stream)
 		stream->Write(CreateString(1024, "%s /* specificity: %d */\n", StringUtilities::StripWhitespace(rule).c_str(), specificity));
 		stream->Write("{\n");
 
-		const Rocket::Core::PropertyMap& property_map = properties.GetProperties();
-		for (Rocket::Core::PropertyMap::const_iterator i = property_map.begin(); i != property_map.end(); ++i)
+		for (const auto& [id, property] : properties)
 		{
-			const String& name = i->first;
-			const Rocket::Core::Property& property = i->second;
-
+			const String& name = Rocket::Core::GetName(id);
 			stream->Write(CreateString(1024, "\t%s: %s; /* specificity: %d */\n", name.c_str(), property.value.Get< String >().c_str(), property.specificity));
 		}
 
@@ -166,7 +163,7 @@ void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_index, StyleSheet:
 
 	// If we are a styled node (ie, have some style attributes attached), then we insert our closest parent tag node
 	// into the list of styled tag nodes.
-	if (properties.GetNumProperties() > 0)
+	if (properties.size() > 0)
 	{
 		StyleSheetNode* tag_node = this;
 		while (tag_node != NULL &&
@@ -206,14 +203,14 @@ int StyleSheetNode::GetSpecificity() const
 // properties.
 void StyleSheetNode::ImportProperties(const PropertyDictionary& _properties, int rule_specificity)
 {
-	properties.Import(_properties, specificity + rule_specificity);
+	Import(properties, _properties, specificity + rule_specificity);
 }
 
 // Merges properties from another node (ie, with potentially differing specificities) into the
 // node's properties.
 void StyleSheetNode::MergeProperties(const PropertyDictionary& _properties, int rule_specificity_offset)
 {
-	properties.Merge(_properties, rule_specificity_offset);
+	Merge(properties, _properties, specificity + rule_specificity_offset);
 }
 
 // Returns the node's default properties.
@@ -442,7 +439,7 @@ void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode*
 		break;
 	}
 
-	if (properties.GetNumProperties() > 0 ||
+	if (properties.size() > 0 ||
 		!children[PSEUDO_CLASS].empty())
 		applicable_nodes.push_back(this);
 
@@ -564,7 +561,7 @@ void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_cla
 	StringList pseudo_classes(ancestor_pseudo_classes);
 	pseudo_classes.push_back(name);
 
-	if (properties.GetNumProperties() > 0)
+	if (properties.size() > 0)
 		pseudo_class_properties[pseudo_classes] = properties;
 
 	for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)

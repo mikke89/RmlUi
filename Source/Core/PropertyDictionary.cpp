@@ -28,10 +28,40 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/PropertyDictionary.h"
 
-#if 0
 namespace Rocket {
 namespace Core {
 
+
+// Sets a property on the dictionary and its specificity if there is no name conflict, or its
+// specificity (given by the parameter, not read from the property itself) is at least equal to
+// the specificity of the conflicting property.
+static inline void SetProperty(PropertyDictionary& properties, PropertyId id, const Property& property, int specificity)
+{
+	PropertyMap::iterator iterator = properties.find(id);
+	if (iterator != properties.end() &&
+		iterator->second.specificity > specificity)
+		return;
+
+	Property & new_property = (properties[id] = property);
+	new_property.specificity = specificity;
+}
+
+void Merge(PropertyDictionary& destination, const PropertyDictionary& from, int specificity_offset)
+{
+	for (const auto& [id, property] : from)
+	{
+		SetProperty(destination, id, property, property.specificity + specificity_offset);
+	}
+}
+void Import(PropertyDictionary& destination, const PropertyDictionary& from, int specificity)
+{
+	for (const auto& [id, property] : from)
+	{
+		SetProperty(destination, id, property, specificity > 0 ? specificity : property.specificity);
+	}
+}
+
+#if 0
 PropertyDictionary::PropertyDictionary()
 {
 }
@@ -105,7 +135,7 @@ void PropertyDictionary::SetProperty(const String& name, const Rocket::Core::Pro
 	Property& new_property = (properties[name] = property);
 	new_property.specificity = specificity;
 }
+#endif
 }
 }
 
-#endif

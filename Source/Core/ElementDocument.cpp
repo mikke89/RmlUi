@@ -53,7 +53,7 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 
 	ForceLocalStackingContext();
 
-	SetProperty(POSITION, "absolute");
+	SetProperty(PropertyId::Position, "absolute");
 }
 
 ElementDocument::~ElementDocument()
@@ -148,7 +148,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	}
 
 	// Hide this document.
-	SetProperty(VISIBILITY, "hidden");
+	SetProperty(PropertyId::Visibility, "hidden");
 }
 
 ElementDocument* ElementDocument::GetOwnerDocument()
@@ -223,7 +223,7 @@ void ElementDocument::Show(int focus_flags)
 	modal = (focus_flags & MODAL) > 0;
 
 	// Set to visible and switch focus if necessary
-	SetProperty(VISIBILITY, "visible");
+	SetProperty(PropertyId::Visibility, "visible");
 	if (focus_flags & FOCUS || focus_flags & MODAL)
 	{
 		// If no element could be focused, focus the window
@@ -233,13 +233,13 @@ void ElementDocument::Show(int focus_flags)
 		}
 	}
 
-	DispatchEvent("show", Dictionary(), false);
+	DispatchEvent(EventId::Show, Dictionary(), false);
 }
 
 void ElementDocument::Hide()
 {
-	SetProperty(VISIBILITY, "hidden");
-	DispatchEvent("hide", Dictionary(), false);
+	SetProperty(PropertyId::Visibility, "hidden");
+	DispatchEvent(EventId::Hide, Dictionary(), false);
 	
 	if (context)
 	{
@@ -338,21 +338,21 @@ void ElementDocument::UpdatePosition()
 	// Work out our containing block; relative offsets are calculated against it.
 	Vector2f containing_block = GetParentNode()->GetBox().GetSize(Box::CONTENT);
 
-	const Property *left = GetLocalProperty(LEFT);
-	const Property *right = GetLocalProperty(RIGHT);
+	const Property *left = GetLocalProperty(PropertyId::Left);
+	const Property *right = GetLocalProperty(PropertyId::Right);
 	if (left != NULL && left->unit != Property::KEYWORD)
-		position.x = ResolveProperty(LEFT, containing_block.x);
+		position.x = ResolveProperty(PropertyId::Left, containing_block.x);
 	else if (right != NULL && right->unit != Property::KEYWORD)
-		position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveProperty(RIGHT, containing_block.x);
+		position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveProperty(PropertyId::Right, containing_block.x);
 	else
 		position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
 
-	const Property *top = GetLocalProperty(TOP);
-	const Property *bottom = GetLocalProperty(BOTTOM);
+	const Property *top = GetLocalProperty(PropertyId::Top);
+	const Property *bottom = GetLocalProperty(PropertyId::Bottom);
 	if (top != NULL && top->unit != Property::KEYWORD)
-		position.y = ResolveProperty(TOP, containing_block.y);
+		position.y = ResolveProperty(PropertyId::Top, containing_block.y);
 	else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-		position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveProperty(BOTTOM, containing_block.y);
+		position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveProperty(PropertyId::Bottom, containing_block.y);
 	else
 		position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
 
@@ -385,18 +385,18 @@ void ElementDocument::DirtyDpProperties()
 }
 
 // Repositions the document if necessary.
-void ElementDocument::OnPropertyChange(const PropertyNameList& changed_properties)
+void ElementDocument::OnPropertyChange(const PropertyIdList& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
 	// If the document's font-size has been changed, we need to dirty all rem properties.
-	if (changed_properties.find(FONT_SIZE) != changed_properties.end())
+	if (changed_properties.find(PropertyId::FontSize) != changed_properties.end())
 		GetStyle()->DirtyRemProperties();
 
-	if (changed_properties.find(TOP) != changed_properties.end() ||
-		changed_properties.find(RIGHT) != changed_properties.end() ||
-		changed_properties.find(BOTTOM) != changed_properties.end() ||
-		changed_properties.find(LEFT) != changed_properties.end())
+	if (changed_properties.find(PropertyId::Top) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Right) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Bottom) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Left) != changed_properties.end())
 		UpdatePosition();
 }
 
@@ -406,7 +406,7 @@ void ElementDocument::ProcessEvent(Event& event)
 	Element::ProcessEvent(event);
 
 	// Process generic keyboard events for this window in capture phase
-	if (event.GetPhase() == Event::PHASE_BUBBLE && event == KEYDOWN)
+	if (event.GetPhase() == Event::PHASE_BUBBLE && event == EventId::Keydown)
 	{
 		int key_identifier = event.GetParameter<int>("key_identifier", Input::KI_UNKNOWN);
 
@@ -421,7 +421,7 @@ void ElementDocument::ProcessEvent(Event& event)
 		{
 			Element* focus_node = GetFocusLeafNode();
 
-			if (focus_node && focus_node->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
+			if (focus_node && focus_node->GetProperty<int>(PropertyId::TabIndex) == TAB_INDEX_AUTO)
 			{
 				focus_node->Click();
 			}
@@ -429,7 +429,7 @@ void ElementDocument::ProcessEvent(Event& event)
 	}
 	else if (event.GetTargetElement() == this)
 	{
-		if (event == RESIZE)
+		if (event == EventId::Resize)
 			UpdatePosition();
 	}
 }
@@ -506,7 +506,7 @@ bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 	}
 
 	// Check if this is the node we're looking for
-	if (element->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
+	if (element->GetProperty<int>(PropertyId::TabIndex) == TAB_INDEX_AUTO)
 	{
 		element->Focus();
 		element->ScrollIntoView(false);

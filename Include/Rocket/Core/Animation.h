@@ -33,6 +33,7 @@
 
 #include "String.h"
 #include "Tween.h"
+#include "../Source/Core/StringCache.h"
 
 namespace Rocket {
 namespace Core {
@@ -52,7 +53,7 @@ typedef std::vector<Animation> AnimationList;
 
 /* Data parsed from the 'transition' property. */
 struct Transition {
-	PropertyId property_id = InvalidPropertyId;
+	PropertyId property_id = PropertyId::Invalid;
 	Tween tween;
 	float duration = 0.0f;
 	float delay = 0.0f;

@@ -102,10 +102,9 @@ typedef uintptr_t TextureHandle;
 typedef uintptr_t CompiledGeometryHandle;
 typedef uintptr_t DecoratorDataHandle;
 
-enum class PropertyId : uint16_t {};
-enum class EventId : uint16_t {};
-static constexpr PropertyId InvalidPropertyId = static_cast<PropertyId>(0);
-static constexpr EventId InvalidEventId = static_cast<EventId>(0);
+enum class PropertyId : uint16_t;
+enum class EventId : uint16_t;
+//enum class PseudoId : uint16_t;
 
 // List of elements.
 typedef std::vector< Element* > ElementList;

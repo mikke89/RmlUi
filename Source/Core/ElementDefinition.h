@@ -48,7 +48,7 @@ class FontEffect;
 //TODO Replace with property IDs
 typedef std::pair< StringList, Property > PseudoClassProperty;
 typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef UnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+typedef UnorderedMap< PropertyId, PseudoClassPropertyList > PseudoClassPropertyDictionary;
 
 typedef UnorderedMap< String, Decorator* > DecoratorMap;
 typedef std::map< StringList, DecoratorMap > PseudoClassDecoratorMap;
