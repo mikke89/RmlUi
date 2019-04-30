@@ -76,7 +76,7 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 	}
 
 	// Shift the cursor down past to clear boxes, if necessary.
-	cursor = ClearBoxes(cursor, element->GetProperty< int >(CLEAR));
+	cursor = ClearBoxes(cursor, element->GetProperty< int >(PropertyId::Clear));
 
 	// Find a place to put this box.
 	Vector2f element_offset;

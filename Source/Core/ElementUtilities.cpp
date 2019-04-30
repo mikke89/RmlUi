@@ -116,11 +116,11 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 FontFaceHandle* ElementUtilities::GetFontFaceHandle(Element* element)
 {
 	// Fetch the new font face.
-	String font_family = element->GetProperty(FONT_FAMILY)->value.Get< String >();
-	String font_charset = element->GetProperty(FONT_CHARSET)->value.Get< String >();
-	Font::Style font_style = (Font::Style) element->GetProperty(FONT_STYLE)->value.Get< int >();
-	Font::Weight font_weight = (Font::Weight) element->GetProperty(FONT_WEIGHT)->value.Get< int >();
-	int font_size = Math::RealToInteger(element->ResolveProperty(FONT_SIZE, 0));
+	String font_family = element->GetProperty(PropertyId::FontFamily)->value.Get< String >();
+	String font_charset = element->GetProperty(PropertyId::FontCharset)->value.Get< String >();
+	Font::Style font_style = (Font::Style) element->GetProperty(PropertyId::FontStyle)->value.Get< int >();
+	Font::Weight font_weight = (Font::Weight) element->GetProperty(PropertyId::FontWeight)->value.Get< int >();
+	int font_size = Math::RealToInteger(element->ResolveProperty(PropertyId::FontSize, 0));
 
 	FontFaceHandle* font = FontDatabase::GetFontFaceHandle(font_family, font_charset, font_style, font_weight, font_size);
 	return font;
@@ -193,7 +193,7 @@ void ElementUtilities::BindEventAttributes(Element* element)
 		{
 			EventListener* listener = Factory::InstanceEventListener(variant.Get<String>(), element);
 			if (listener)
-				element->AddEventListener(name.substr(2), listener, false);
+				element->AddEventListener(GetEventId(name.substr(2)), listener, false);
 		}
 	}
 }

@@ -78,22 +78,18 @@ static void PostprocessKeyframes(KeyframesMap& keyframes_map)
 	{
 		Keyframes& keyframes = keyframes_pair.second;
 		auto& blocks = keyframes.blocks;
-		auto& property_names = keyframes.property_names;
+		auto& property_ids = keyframes.property_ids;
 
 		// Sort keyframes on selector value.
 		std::sort(blocks.begin(), blocks.end(), [](const KeyframeBlock& a, const KeyframeBlock& b) { return a.normalized_time < b.normalized_time; });
 
 		// Add all property names specified by any block
-		if(blocks.size() > 0) property_names.reserve(blocks.size() * blocks[0].properties.GetNumProperties());
+		if(blocks.size() > 0) property_ids.reserve(blocks.size() * blocks[0].properties.size());
 		for(auto& block : blocks)
 		{
-			for (auto& property : block.properties.GetProperties())
-				property_names.push_back(property.first);
+			for (auto& property : block.properties)
+				property_ids.insert(property.first);
 		}
-		// Remove duplicate property names
-		std::sort(property_names.begin(), property_names.end());
-		property_names.erase(std::unique(property_names.begin(), property_names.end()), property_names.end());
-		property_names.shrink_to_fit();
 	}
 
 }
@@ -106,7 +102,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 		Log::Message(Log::LT_WARNING, "Invalid keyframes identifier '%s' at %s:%d", identifier.c_str(), stream_file_name.c_str(), line_number);
 		return false;
 	}
-	if (properties.GetNumProperties() == 0)
+	if (properties.size() == 0)
 		return true;
 
 	StringList rule_list;
@@ -142,7 +138,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 		auto it = std::find_if(keyframes.blocks.begin(), keyframes.blocks.end(), [selector](const KeyframeBlock& keyframe_block) { return Math::AbsoluteValue(keyframe_block.normalized_time - selector) < 0.0001f; });
 		if (it == keyframes.blocks.end())
 		{
-			keyframes.blocks.push_back(KeyframeBlock{ selector });
+			keyframes.blocks.emplace_back( selector );
 			it = (keyframes.blocks.end() - 1);
 		}
 		else
@@ -151,7 +147,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 			it->properties = PropertyDictionary();
 		}
 
-		it->properties.Import(properties);
+		Import(it->properties, properties);
 	}
 
 	return true;
@@ -209,10 +205,11 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 			{
 				if (token == '{')
 				{
+					static const String& keyframes_str = GetName(PropertyId::Keyframes);
 					keyframes_identifier.clear();
-					if (pre_token_str.substr(0, KEYFRAMES.size()) == KEYFRAMES)
+					if (pre_token_str.substr(0, keyframes_str.size()) == keyframes_str)
 					{
-						keyframes_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(KEYFRAMES.size()));
+						keyframes_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(keyframes_str.size()));
 					}
 					state = State::KeyframesRules;
 				}
@@ -325,8 +322,9 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 				if (character == ';')
 				{
 					value = StringUtilities::StripWhitespace(value);
+					PropertyId id = GetPropertyId(name);
 
-					if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number))
+					if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, id, value, stream_file_name, rule_line_number))
 						Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 
 					name.clear();

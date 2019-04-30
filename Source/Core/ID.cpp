@@ -36,8 +36,8 @@ namespace Core {
 template <typename ID>
 class IdNameMap {
 
-	static std::vector<String> name_map;  // IDs are indices into the NameMap
-	static UnorderedMap<String, ID> reverse_map;
+	std::vector<String> name_map;  // IDs are indices into the NameMap
+	UnorderedMap<String, ID> reverse_map;
 
 protected:
 	IdNameMap(ID id_num_to_initialize) {
@@ -216,6 +216,7 @@ inline EventIdNameMap::EventIdNameMap() : IdNameMap(EventId::NumDefinedIds)
 	add(EventId::Handledrag, "handledrag");
 	add(EventId::Resize, "resize");
 	add(EventId::Scroll, "scroll");
+	add(EventId::Scrollchange, "scrollchange");
 	add(EventId::Animationend, "animationend");
 	add(EventId::Transitionend, "transitionend");
 

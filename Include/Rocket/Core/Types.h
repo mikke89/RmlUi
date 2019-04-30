@@ -118,9 +118,13 @@ typedef std::vector< ElementAnimation > ElementAnimationList;
 // Unordered map
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+
 typedef UnorderedMap< PropertyId, Property > PropertyMap;
+using PropertyDictionary = PropertyMap;
+
 using Dictionary = UnorderedMap< String, Variant >;
 typedef Dictionary ElementAttributes;
+
 
 // Reference types
 typedef std::shared_ptr< Transform > TransformRef;

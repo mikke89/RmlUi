@@ -26,6 +26,7 @@
  */
 
 #include "../../Include/Rocket/Controls/Controls.h"
+#include "../../Include/Rocket/Controls/ID.h"
 #include "../../Include/Rocket/Core/ElementInstancerGeneric.h"
 #include "../../Include/Rocket/Core/Factory.h"
 #include "../../Include/Rocket/Core/StyleSheetSpecification.h"
@@ -40,6 +41,9 @@
 
 namespace Rocket {
 namespace Controls {
+
+// See ID.cpp (not exposed to header file)
+void InitialiseIDs();
 
 // Registers the custom element instancers.
 void RegisterElementInstancers()
@@ -126,7 +130,9 @@ void Initialise()
 	// Prevent double initialisation
 	if (!initialised)
 	{
-		Core::StyleSheetSpecification::RegisterProperty("min-rows", "0", false, false).AddParser("number");
+		InitialiseIDs();
+
+		Core::StyleSheetSpecification::RegisterProperty(PropertyId::MinRows, "0", false, false).AddParser("number");
 
 		// Register the element instancers for our custom elements.
 		RegisterElementInstancers();
@@ -139,6 +145,14 @@ void Initialise()
 
 		initialised = true;
 	}
+}
+
+
+
+namespace ControlsPropertyId {
+
+	Core::PropertyId ColumnAdd;
+
 }
 
 }

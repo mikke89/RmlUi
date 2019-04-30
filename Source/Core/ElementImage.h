@@ -86,7 +86,7 @@ protected:
 
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const PropertyIdList& changed_properties);
 
 	/// Regenerates the element's geometry on a resize event.
 	/// @param[in] event The event to process.

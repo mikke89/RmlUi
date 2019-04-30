@@ -25,52 +25,58 @@
  *
  */
 
-#include "precompiled.h"
-#include "../../Include/Rocket/Core/FontEffectInstancer.h"
+#include "../../Include/Rocket/Controls/ID.h"
 
 namespace Rocket {
-namespace Core {
+namespace Controls {
 
-FontEffectInstancer::FontEffectInstancer()
-{
+
+// All ID values are undefined until Rocket::Controls::Initialise
+
+namespace PropertyId {
+
+Core::PropertyId MinRows;
+Core::PropertyId TabIndex;
+
 }
 
-FontEffectInstancer::~FontEffectInstancer()
-{
+namespace EventId {
+
+Core::EventId Columnadd;
+Core::EventId Rowadd;
+Core::EventId Rowchange;
+Core::EventId Rowremove;
+Core::EventId Rowupdate;
+
+Core::EventId Submit;
+Core::EventId Change;
+
+Core::EventId Tabchange;
+
 }
 
-// Returns the property specification associated with the instancer.
-const PropertySpecification& FontEffectInstancer::GetPropertySpecification() const
+// Called from Rocket::Controls::Initialise (not exposed to header file)
+void InitialiseIDs()
 {
-	return properties;
-}
+	{
+		using namespace PropertyId;
+		MinRows = Rocket::Core::CreateOrGetPropertyId("min-rows");
+		TabIndex = Rocket::Core::CreateOrGetPropertyId("tab-index");
+	}
 
-// Registers a property for the font effect.
-PropertyDefinition& FontEffectInstancer::RegisterProperty(const String& property_name, const String& default_value, bool affects_generation, PropertyId* out_property_id)
-{
-	PropertyId id = CreateOrGetPropertyId(ToLower(property_name));
-	if (out_property_id)
-		*out_property_id = id;
+	{	
+		using namespace EventId;
+		Columnadd = Rocket::Core::CreateOrGetEventId("columnadd");
+		Rowadd = Rocket::Core::CreateOrGetEventId("rowadd");
+		Rowchange = Rocket::Core::CreateOrGetEventId("rowchange");
+		Rowremove = Rocket::Core::CreateOrGetEventId("rowremove");
+		Rowupdate = Rocket::Core::CreateOrGetEventId("rowupdate");
 
-	if (affects_generation)
-		volatile_properties.insert(id);
+		Submit = Rocket::Core::CreateOrGetEventId("submit");
+		Change = Rocket::Core::CreateOrGetEventId("change");
 
-	return properties.RegisterProperty(id, default_value, false, false);
-}
-
-// Registers a shorthand property definition.
-bool FontEffectInstancer::RegisterShorthand(const String& shorthand_name, const PropertyIdList& property_ids, PropertySpecification::ShorthandType type, PropertyId* out_property_id)
-{
-	PropertyId id = CreateOrGetPropertyId(ToLower(shorthand_name));
-	if (out_property_id)
-		*out_property_id = id;
-	return properties.RegisterShorthand(id, property_ids, type);
-}
-
-// Releases the instancer.
-void FontEffectInstancer::OnReferenceDeactivate()
-{
-	Release();
+		Tabchange = Rocket::Core::CreateOrGetEventId("tabchange");
+	}
 }
 
 }

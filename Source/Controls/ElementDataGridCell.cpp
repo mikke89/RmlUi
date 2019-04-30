@@ -40,7 +40,7 @@ ElementDataGridCell::ElementDataGridCell(const Rocket::Core::String& tag) : Core
 ElementDataGridCell::~ElementDataGridCell()
 {
 	if (header) {
-		header->RemoveEventListener("resize", this);
+		header->RemoveEventListener(Core::EventId::Resize, this);
 		header->RemoveReference();
 	}
 }
@@ -52,8 +52,8 @@ void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
 	if (header)
 	{
 		header->AddReference();
-		header->AddEventListener("resize", this);
-		SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
+		header->AddEventListener(Core::EventId::Resize, this);
+		SetProperty(Core::PropertyId::Width, Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
 	}
 }
 
@@ -66,11 +66,11 @@ void ElementDataGridCell::ProcessEvent(Core::Event& event)
 {
 	Core::Element::ProcessEvent(event);
 
-	if (event == "resize")
+	if (event == Core::EventId::Resize)
 	{
 		if (event.GetTargetElement() == header)
 		{
-			SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
+			SetProperty(Core::PropertyId::Width, Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
 		}
 	}
 }

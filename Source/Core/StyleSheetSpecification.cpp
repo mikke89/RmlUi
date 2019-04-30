@@ -268,7 +268,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(Id::Cursor, "auto", true, false).AddParser("keyword", "auto").AddParser("string");
 
 	// Functional property specifications.
-	RegisterProperty(Id::DragProperty, "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
+	RegisterProperty(Id::Drag, "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
 	RegisterProperty(Id::TabIndex, "none", false, false).AddParser("keyword", "none, auto");
 	RegisterProperty(Id::Focus, "auto", true, false).AddParser("keyword", "none, auto");
 	RegisterProperty(Id::ScrollbarMargin, "0", false, false).AddParser("length");

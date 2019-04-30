@@ -46,7 +46,7 @@ PropertyParserTransform::~PropertyParserTransform()
 // Called to parse a RCSS transform declaration.
 bool PropertyParserTransform::ParseValue(Property& property, const String& value, const ParameterMap& parameters) const
 {
-	if(value == NONE)
+	if(value == "none")
 	{
 		property.value = Variant(TransformRef());
 		property.unit = Property::TRANSFORM;

@@ -39,8 +39,8 @@ ElementFormControlTextArea::ElementFormControlTextArea(const Rocket::Core::Strin
 {
 	widget = new WidgetTextInputMultiLine(this);
 
-	SetProperty("overflow", "auto");
-	SetProperty("white-space", "pre-wrap");
+	SetProperty(Core::PropertyId::Overflow, "auto");
+	SetProperty(Core::PropertyId::WhiteSpace, "pre-wrap");
 }
 
 ElementFormControlTextArea::~ElementFormControlTextArea()
@@ -151,9 +151,9 @@ void ElementFormControlTextArea::OnAttributeChange(const Core::AttributeNameList
 	if (changed_attributes.find("wrap") != changed_attributes.end())
 	{
 		if (GetWordWrap())
-			SetProperty("white-space", "pre-wrap");
+			SetProperty(Core::PropertyId::WhiteSpace, "pre-wrap");
 		else
-			SetProperty("white-space", "pre");
+			SetProperty(Core::PropertyId::WhiteSpace, "pre");
 	}
 
 	if (changed_attributes.find("rows") != changed_attributes.end() ||
@@ -168,12 +168,12 @@ void ElementFormControlTextArea::OnAttributeChange(const Core::AttributeNameList
 }
 
 // Called when properties on the control are changed.
-void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyNameList& changed_properties)
+void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyIdList& changed_properties)
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 
-	if (changed_properties.find("color") != changed_properties.end() ||
-		changed_properties.find("background-color") != changed_properties.end())
+	if (changed_properties.find(Core::PropertyId::Color) != changed_properties.end() ||
+		changed_properties.find(Core::PropertyId::BackgroundColor) != changed_properties.end())
 		widget->UpdateSelectionColours();
 }
 

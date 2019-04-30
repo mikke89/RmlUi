@@ -913,7 +913,6 @@ void ElementStyle::DirtyInheritedProperties(const PropertyIdList& properties)
 		element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
 
 	element->DirtyProperties(properties);
-	//element->OnPropertyChange(properties);
 }
 
 void ElementStyle::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )

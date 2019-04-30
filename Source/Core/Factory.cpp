@@ -365,7 +365,7 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 		specificity = Math::Max(specificity, value.specificity);
 
 		// Check for the 'z-index' property; we don't want to send this through.
-		if (id == Z_INDEX)
+		if (id == PropertyId::ZIndex)
 			z_index = value.value.Get< float >();
 		else
 			property_specification.ParsePropertyDeclaration(parsed_properties, id, value.value.Get< String >(), value.source, value.source_line_number);
@@ -425,12 +425,12 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 		specificity = Math::Max(specificity, value.specificity);
 
 		// Check for the 'z-index' property; we don't want to send this through.
-		if (id == Z_INDEX)
+		if (id == PropertyId::ZIndex)
 		{
 			set_z_index = true;
 			z_index = value.value.Get< float >();
 		}
-		else if (id == COLOR)
+		else if (id == PropertyId::Color)
 		{
 			static PropertyParserColour colour_parser;
 

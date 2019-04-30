@@ -69,7 +69,7 @@ public:
 	virtual bool OnAttributeChange(const Core::AttributeNameList& changed_attributes);
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const Core::PropertyIdList& changed_properties);
 
 	/// Called when the element is added into a hierarchy.
 	virtual void OnChildAdd();

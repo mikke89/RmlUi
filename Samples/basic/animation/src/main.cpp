@@ -55,8 +55,8 @@ public:
 		{
 			{
 				//document->GetElementById("title")->SetInnerRML(title);
-				document->SetProperty("left", Property(position.x, Property::PX));
-				document->SetProperty("top", Property(position.y, Property::PX));
+				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
+				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
 				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 1.5f, Tween{Tween::Quadratic, Tween::Out}, 1, true, 0.0f);
 			}
 
@@ -65,64 +65,64 @@ public:
 				auto el = document->GetElementById("start_game");
 				auto p1 = Transform::MakeProperty({ Transforms::Rotate2D{10.f}, Transforms::TranslateX{100.f} });
 				auto p2 = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
-				el->Animate("transform", p1, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
-				el->AddAnimationKey("transform", p2, 1.3f, Tween{ Tween::Elastic, Tween::InOut });
+				el->Animate(PropertyId::Transform, p1, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
+				el->AddAnimationKey(PropertyId::Transform, p2, 1.3f, Tween{ Tween::Elastic, Tween::InOut });
 			}
 			{
 				auto el = document->GetElementById("high_scores");
-				el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, Tween{ Tween::Sine, Tween::In }, 10, true, 1.f);
-				el->AddAnimationKey("margin-left", Property(100.f, Property::PX), 3.0f, Tween{ Tween::Circular, Tween::Out });
+				el->Animate(PropertyId::MarginLeft, Property(0.f, Property::PX), 0.3f, Tween{ Tween::Sine, Tween::In }, 10, true, 1.f);
+				el->AddAnimationKey(PropertyId::MarginLeft, Property(100.f, Property::PX), 3.0f, Tween{ Tween::Circular, Tween::Out });
 			}
 			{
 				auto el = document->GetElementById("options");
-				el->Animate("image-color", Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, Tween{}, -1, false);
-				el->AddAnimationKey("image-color", Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
-				el->AddAnimationKey("image-color", Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
-				el->AddAnimationKey("image-color", Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
-				el->AddAnimationKey("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
+				el->Animate(PropertyId::ImageColor, Property(Colourb(128, 255, 255, 255), Property::COLOUR), 0.3f, Tween{}, -1, false);
+				el->AddAnimationKey(PropertyId::ImageColor, Property(Colourb(128, 128, 255, 255), Property::COLOUR), 0.3f);
+				el->AddAnimationKey(PropertyId::ImageColor, Property(Colourb(0, 128, 128, 255), Property::COLOUR), 0.3f);
+				el->AddAnimationKey(PropertyId::ImageColor, Property(Colourb(64, 128, 255, 0), Property::COLOUR), 0.9f);
+				el->AddAnimationKey(PropertyId::ImageColor, Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
 			}
 			{
 				auto el = document->GetElementById("help");
-				el->Animate("margin-left", Property(100.f, Property::PX), 1.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
+				el->Animate(PropertyId::MarginLeft, Property(100.f, Property::PX), 1.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
 			}
 			{
 				auto el = document->GetElementById("exit");
 				PropertyDictionary pd;
-				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "translate(200px, 200px) rotate(1215deg)");
-				el->Animate("transform", *pd.GetProperty("transform"), 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
+				StyleSheetSpecification::ParsePropertyDeclaration(pd, PropertyId::Transform, "translate(200px, 200px) rotate(1215deg)");
+				el->Animate(PropertyId::Transform, pd[PropertyId::Transform], 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
 			}
 
 			// Transform tests
 			{
 				auto el = document->GetElementById("generic");
-				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG}});
-				el->Animate("transform", p, 1.3f, Tween{Tween::Quadratic, Tween::InOut}, -1, true);
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG} });
+				el->Animate(PropertyId::Transform, p, 1.3f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
 			}
 			{
 				auto el = document->GetElementById("combine");
 				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
-				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
+				el->Animate(PropertyId::Transform, p, 8.0f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("decomposition");
 				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
-				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
+				el->Animate(PropertyId::Transform, p, 8.0f, Tween{}, -1, true);
 			}
 
 			// Mixed units tests
 			{
 				auto el = document->GetElementById("abs_rel");
-				el->Animate("margin-left", Property(50.f, Property::PERCENT), 1.5f, Tween{}, -1, true);
+				el->Animate(PropertyId::MarginLeft, Property(50.f, Property::PERCENT), 1.5f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("abs_rel_transform");
 				auto p = Transform::MakeProperty({ Transforms::TranslateX{0, Property::PX} });
-				el->Animate("transform", p, 1.5f, Tween{}, -1, true);
+				el->Animate(PropertyId::Transform, p, 1.5f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("animation_event");
-				el->Animate("top", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
-				el->Animate("left", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate(PropertyId::Top, Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate(PropertyId::Left, Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
 			}
 
 			document->Show();
@@ -143,6 +143,7 @@ public:
 		  Replace Dictionary with unordered_flat_map: 40.0  [b04b4e5]
 		  Dirty flag for structure changes: 43.0  [fdf6f53]
 		  Replacing containers: 46.0  [c307140]
+		  Replacing lots of strings with IDs: 55.0
 		
 		*/
 		
@@ -233,8 +234,8 @@ void GameLoop()
 		static float ff = 0.0f;
 		ff += float(nudge)*0.3f;
 		auto el = window->GetDocument()->GetElementById("exit");
-		auto f = el->GetProperty<float>("margin-left");
-		el->SetProperty("margin-left", Rocket::Core::Property(ff, Rocket::Core::Property::PX));
+		auto f = el->GetProperty<float>(Rocket::Core::PropertyId::MarginLeft);
+		el->SetProperty(Rocket::Core::PropertyId::MarginLeft, Rocket::Core::Property(ff, Rocket::Core::Property::PX));
 		float f_left = el->GetAbsoluteLeft();
 		Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);
 		nudge = 0;
@@ -304,23 +305,23 @@ public:
 			else if (key_identifier == Rocket::Core::Input::KI_LEFT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ -200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+				if (el) el->Animate(PropertyId::Left, Property{ -200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
 			}
 			else if (key_identifier == Rocket::Core::Input::KI_RIGHT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ 200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+				if (el) el->Animate(PropertyId::Left, Property{ 200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
 			}
 			else if (key_identifier == Rocket::Core::Input::KI_UP)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
 				auto offset_right = Property{ 200.f, Property::PX };
-				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic }, 1, true, 0, &offset_right);
+				if (el) el->Animate(PropertyId::Left, Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic }, 1, true, 0, &offset_right);
 			}
 			else if (key_identifier == Rocket::Core::Input::KI_DOWN)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+				if (el) el->Animate(PropertyId::Left, Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
 			}
 		}
 		if (event == "click")
@@ -336,8 +337,8 @@ public:
 			auto el = event.GetTargetElement();
 			if (el->GetId() == "animation_event")
 			{
-				el->Animate("top", Property(Math::RandomReal(200.f), Property::PX), 1.2f, Tween{ Tween::Cubic, Tween::InOut });
-				el->Animate("left", Property(Math::RandomReal(100.f), Property::PERCENT), 0.8f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate(Rocket::Core::PropertyId::Top, Property(Math::RandomReal(200.f), Property::PX), 1.2f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate(Rocket::Core::PropertyId::Left, Property(Math::RandomReal(100.f), Property::PERCENT), 0.8f, Tween{ Tween::Cubic, Tween::InOut });
 			}
 		}
 	}
@@ -425,9 +426,9 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Shell::LoadFonts("assets/");
 
 	window = new DemoWindow("Animation sample", Rocket::Core::Vector2f(81, 100), context);
-	window->GetDocument()->AddEventListener("keydown", new Event("hello"));
-	window->GetDocument()->AddEventListener("keyup", new Event("hello"));
-	window->GetDocument()->AddEventListener("animationend", new Event("hello"));
+	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Keydown, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Keyup, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Animationend, new Event("hello"));
 
 
 	Shell::EventLoop(GameLoop);

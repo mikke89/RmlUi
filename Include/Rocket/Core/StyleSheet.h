@@ -41,6 +41,7 @@ class ElementDefinition;
 class StyleSheetNode;
 
 struct KeyframeBlock {
+	KeyframeBlock(float normalized_time) : normalized_time(normalized_time) {}
 	float normalized_time;  // [0, 1]
 	PropertyDictionary properties;
 };

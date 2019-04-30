@@ -30,6 +30,7 @@
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
 #include "../../Include/Rocket/Controls/Clipboard.h"
+#include "../../Include/Rocket/Controls/ID.h"
 #include "../../Include/Rocket/Core/SystemInterface.h"
 #include "../Core/Clock.h"
 
@@ -43,18 +44,18 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	keyboard_showed = false;
 	
 	parent = _parent;
-	parent->SetProperty("white-space", "pre");
-	parent->SetProperty("overflow", "hidden");
-	parent->SetProperty("drag", "drag");
+	parent->SetProperty(Core::PropertyId::WhiteSpace, "pre");
+	parent->SetProperty(Core::PropertyId::Overflow, "hidden");
+	parent->SetProperty(Core::PropertyId::Drag, "drag");
 	parent->SetClientArea(Rocket::Core::Box::CONTENT);
 
-	parent->AddEventListener("resize", this, true);
-	parent->AddEventListener("keydown", this, true);
-	parent->AddEventListener("textinput", this, true);
-	parent->AddEventListener("focus", this, true);
-	parent->AddEventListener("blur", this, true);
-	parent->AddEventListener("mousedown", this, true);
-	parent->AddEventListener("drag", this, true);
+	parent->AddEventListener(Core::EventId::Resize, this, true);
+	parent->AddEventListener(Core::EventId::Keydown, this, true);
+	parent->AddEventListener(Core::EventId::Textinput, this, true);
+	parent->AddEventListener(Core::EventId::Focus, this, true);
+	parent->AddEventListener(Core::EventId::Blur, this, true);
+	parent->AddEventListener(Core::EventId::Mousedown, this, true);
+	parent->AddEventListener(Core::EventId::Drag, this, true);
 
 	text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rocket::Core::XMLAttributes()));
 	selected_text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rocket::Core::XMLAttributes()));
@@ -99,13 +100,13 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 
 WidgetTextInput::~WidgetTextInput()
 {
-	parent->RemoveEventListener("resize", this, true);
-	parent->RemoveEventListener("keydown", this, true);
-	parent->RemoveEventListener("textinput", this, true);
-	parent->RemoveEventListener("focus", this, true);
-	parent->RemoveEventListener("blur", this, true);
-	parent->RemoveEventListener("mousedown", this, true);
-	parent->RemoveEventListener("drag", this, true);
+	parent->RemoveEventListener(Core::EventId::Resize, this, true);
+	parent->RemoveEventListener(Core::EventId::Keydown, this, true);
+	parent->RemoveEventListener(Core::EventId::Textinput, this, true);
+	parent->RemoveEventListener(Core::EventId::Focus, this, true);
+	parent->RemoveEventListener(Core::EventId::Blur, this, true);
+	parent->RemoveEventListener(Core::EventId::Mousedown, this, true);
+	parent->RemoveEventListener(Core::EventId::Drag, this, true);
 
 	// Remove all the children added by the text widget.
 	parent->RemoveChild(text_element);
@@ -154,24 +155,24 @@ void WidgetTextInput::UpdateSelectionColours()
 	// Determine what the colour of the selected text is. If our 'selection' element has the 'color'
 	// attribute set, then use that. Otherwise, use the inverse of our own text colour.
 	Rocket::Core::Colourb colour;
-	const Rocket::Core::Property* colour_property = selection_element->GetLocalProperty("color");
+	const Rocket::Core::Property* colour_property = selection_element->GetLocalProperty(Core::PropertyId::Color);
 	if (colour_property != NULL)
 		colour = colour_property->Get< Rocket::Core::Colourb >();
 	else
 	{
-		colour = parent->GetProperty< Rocket::Core::Colourb >("color");
+		colour = parent->GetProperty< Rocket::Core::Colourb >(Core::PropertyId::Color);
 		colour.red = 255 - colour.red;
 		colour.green = 255 - colour.green;
 		colour.blue = 255 - colour.blue;
 	}
 
 	// Set the computed text colour on the element holding the selected text.
-	selected_text_element->SetProperty("color", Rocket::Core::Property(colour, Rocket::Core::Property::COLOUR));
+	selected_text_element->SetProperty(Core::PropertyId::Color, Rocket::Core::Property(colour, Rocket::Core::Property::COLOUR));
 
 	// If the 'background-color' property has been set on the 'selection' element, use that as the
 	// background colour for the selected text. Otherwise, use the inverse of the selected text
 	// colour.
-	colour_property = selection_element->GetLocalProperty("background-color");
+	colour_property = selection_element->GetLocalProperty(Core::PropertyId::BackgroundColor);
 	if (colour_property != NULL)
 		selection_colour = colour_property->Get< Rocket::Core::Colourb >();
 	else
@@ -242,7 +243,7 @@ void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 	Rocket::Core::Dictionary parameters;
 	parameters["value"] = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
 	parameters["linebreak"] = Core::Variant(linebreak);
-	GetElement()->DispatchEvent("change", parameters);
+	GetElement()->DispatchEvent(EventId::Change, parameters);
 }
 
 // Processes the "keydown" and "textinput" event to write to the input field, and the "focus" and "blur" to set
@@ -678,8 +679,8 @@ void WidgetTextInput::FormatElement()
 	Core::ElementScroll* scroll = parent->GetElementScroll();
 	float width = parent->GetBox().GetSize(Core::Box::PADDING).x;
 
-	int x_overflow_property = parent->GetProperty< int >("overflow-x");
-	int y_overflow_property = parent->GetProperty< int >("overflow-y");
+	int x_overflow_property = parent->GetProperty< int >(Core::PropertyId::OverflowX);
+	int y_overflow_property = parent->GetProperty< int >(Core::PropertyId::OverflowY);
 
 	if (x_overflow_property == Core::OVERFLOW_SCROLL)
 		scroll->EnableScrollbar(Core::ElementScroll::HORIZONTAL, width);
@@ -876,7 +877,7 @@ void WidgetTextInput::GenerateCursor()
 
 	cursor_size.x = 1;
 	cursor_size.y = (float) Core::ElementUtilities::GetLineHeight(text_element) + 2;
-	Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Rocket::Core::Vector2f(0, 0), cursor_size, parent->GetProperty< Rocket::Core::Colourb >("color"));
+	Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Rocket::Core::Vector2f(0, 0), cursor_size, parent->GetProperty< Rocket::Core::Colourb >(Core::PropertyId::Color));
 }
 
 void WidgetTextInput::UpdateCursorPosition()

@@ -42,7 +42,6 @@ namespace Core {
 	@author Peter Curry
  */
 
-using PropertyDictionary = PropertyMap;
 
 /// Merges the contents of another fully-specified property dictionary with this one.
 /// Properties defined in the new dictionary will overwrite those with the same name as

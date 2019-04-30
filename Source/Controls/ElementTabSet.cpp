@@ -26,6 +26,7 @@
  */
 
 #include "../../Include/Rocket/Controls/ElementTabSet.h"
+#include "../../Include/Rocket/Controls/ID.h"
 #include "../../Include/Rocket/Core/Math.h"
 #include "../../Include/Rocket/Core/Factory.h"
 
@@ -124,15 +125,15 @@ void ElementTabSet::SetActiveTab(int tab_index)
 		Core::Element* new_window = windows->GetChild(tab_index);
 
 		if (old_window)
-			old_window->SetProperty("display", "none");			
+			old_window->SetProperty(Core::PropertyId::Display, "none");
 		if (new_window)
-			new_window->SetProperty("display", "inline-block");
+			new_window->SetProperty(Core::PropertyId::Display, "inline-block");
 
 		active_tab = tab_index;
 
 		Rocket::Core::Dictionary parameters;
 		parameters["tab_index"] = active_tab;
-		DispatchEvent("tabchange", parameters);
+		DispatchEvent(EventId::Tabchange, parameters);
 	}
 }
 
@@ -180,8 +181,8 @@ void ElementTabSet::OnChildAdd(Core::Element* child)
 	if (child->GetParentNode() == GetChildByTag("tabs"))
 	{
 		// Set up the new button and append it
-		child->SetProperty("display", "inline-block");
-		child->AddEventListener("click", this);
+		child->SetProperty(Core::PropertyId::Display, "inline-block");
+		child->AddEventListener(Core::EventId::Click, this);
 
 		if (child->GetParentNode()->GetChild(active_tab) == child)
 			child->SetPseudoClass("selected", true);
@@ -190,11 +191,11 @@ void ElementTabSet::OnChildAdd(Core::Element* child)
 	if (child->GetParentNode() == GetChildByTag("panels"))
 	{
 		// Hide the new tab window
-		child->SetProperty("display", "none");
+		child->SetProperty(Core::PropertyId::Display, "none");
 		
 		// Make the new element visible if its the active tab
 		if (child->GetParentNode()->GetChild(active_tab) == child)
-			child->SetProperty("display", "inline-block");
+			child->SetProperty(Core::PropertyId::Display, "inline-block");
 	}
 }
 
@@ -205,7 +206,7 @@ void ElementTabSet::OnChildRemove(Core::Element* child)
 	// If its a tab, remove its event listener
 	if (child->GetParentNode() == GetChildByTag("tabs"))
 	{
-		child->RemoveEventListener("click", this);
+		child->RemoveEventListener(Core::EventId::Click, this);
 	}
 }
 

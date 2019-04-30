@@ -46,8 +46,8 @@ FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
 FontEffect* FontEffectOutlineInstancer::InstanceFontEffect(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
 {
 	ROCKET_UNUSED(name);
-
-	float width = properties.GetProperty("width")->Get< float >();
+	
+	float width = GetIf(properties, PropertyId::Width)->Get<float>();
 
 	FontEffectOutline* font_effect = new FontEffectOutline();
 	if (font_effect->Initialise(Math::RealToInteger(width)))

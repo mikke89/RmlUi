@@ -258,7 +258,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 					if (transition_list.transitions.size() > 0) // The all keyword can not be part of multiple definitions
 						return false;
 					transition_list.all = true;
-					target_property_ids.insert(ALL);
+					target_property_ids.insert(PropertyId::All);
 				}
 				else if (it->second.type == Keyword::TWEEN)
 				{
@@ -336,7 +336,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 
 		for (const auto& id : target_property_ids)
 		{
-			if (id != InvalidPropertyId)
+			if (id != PropertyId::Invalid)
 			{
 				transition.property_id = id;
 				transition_list.transitions.push_back(transition);

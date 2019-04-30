@@ -241,13 +241,13 @@ void LayoutEngine::BuildBox(Box& box, float& min_height, float& max_height, Layo
 	float box_height = box.GetSize().y;
 	if (box_height < 0)
 	{
-		if (element->GetLocalProperty(MIN_HEIGHT) != NULL)
-			min_height = element->ResolveProperty(MIN_HEIGHT, containing_block.y);
+		if (element->GetLocalProperty(PropertyId::MinHeight) != NULL)
+			min_height = element->ResolveProperty(PropertyId::MinHeight, containing_block.y);
 		else
 			min_height = 0;
 
-		if (element->GetLocalProperty(MAX_HEIGHT) != NULL)
-			max_height = element->ResolveProperty(MAX_HEIGHT, containing_block.y);
+		if (element->GetLocalProperty(PropertyId::MaxHeight) != NULL)
+			max_height = element->ResolveProperty(PropertyId::MaxHeight, containing_block.y);
 		else
 			max_height = FLT_MAX;
 	}
@@ -263,13 +263,13 @@ float LayoutEngine::ClampWidth(float width, Element* element, float containing_b
 {
 	float min_width, max_width;
 
-	if (element->GetLocalProperty(MIN_WIDTH) != NULL)
-		min_width = element->ResolveProperty(MIN_WIDTH, containing_block_width);
+	if (element->GetLocalProperty(PropertyId::MinWidth) != NULL)
+		min_width = element->ResolveProperty(PropertyId::MinWidth, containing_block_width);
 	else
 		min_width = 0;
 
-	if (element->GetLocalProperty(MAX_WIDTH) != NULL)
-		max_width = element->ResolveProperty(MAX_WIDTH, containing_block_width);
+	if (element->GetLocalProperty(PropertyId::MaxWidth) != NULL)
+		max_width = element->ResolveProperty(PropertyId::MaxWidth, containing_block_width);
 	else
 		max_width = FLT_MAX;
 
@@ -281,13 +281,13 @@ float LayoutEngine::ClampHeight(float height, Element* element, float containing
 {
 	float min_height, max_height;
 
-	if (element->GetLocalProperty(MIN_HEIGHT) != NULL)
-		min_height = element->ResolveProperty(MIN_HEIGHT, containing_block_height);
+	if (element->GetLocalProperty(PropertyId::MinHeight) != NULL)
+		min_height = element->ResolveProperty(PropertyId::MinHeight, containing_block_height);
 	else
 		min_height = 0;
 
-	if (element->GetLocalProperty(MAX_HEIGHT) != NULL)
-		max_height = element->ResolveProperty(MAX_HEIGHT, containing_block_height);
+	if (element->GetLocalProperty(PropertyId::MaxHeight) != NULL)
+		max_height = element->ResolveProperty(PropertyId::MaxHeight, containing_block_height);
 	else
 		max_height = FLT_MAX;
 

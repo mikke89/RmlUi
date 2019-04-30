@@ -2541,7 +2541,7 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			dictionary_list.emplace_back(Dictionary({ { "property", it->GetPropertyId()} }));
+			dictionary_list.emplace_back(Dictionary({ { "property", GetName(it->GetPropertyId())} }));
 			is_transition.push_back(it->IsTransition());
 		}
 

@@ -31,6 +31,7 @@
 #include "../../Include/Rocket/Controls/DataFormatter.h"
 #include "../../Include/Rocket/Controls/ElementDataGrid.h"
 #include "../../Include/Rocket/Controls/ElementDataGridCell.h"
+#include "../../Include/Rocket/Controls/ID.h"
 #include "../Core/Clock.h"
 
 namespace Rocket {
@@ -53,8 +54,8 @@ ElementDataGridRow::ElementDataGridRow(const Rocket::Core::String& tag) : Core::
 	dirty_children = false;
 	row_expanded = true;
 
-	SetProperty("white-space", "nowrap");
-	SetProperty("display", Rocket::Core::Property(Rocket::Core::DISPLAY_INLINE_BLOCK, Rocket::Core::Property::KEYWORD));
+	SetProperty(Core::PropertyId::WhiteSpace, "nowrap");
+	SetProperty(Core::PropertyId::Display, Rocket::Core::Property(Rocket::Core::DISPLAY_INLINE_BLOCK, Rocket::Core::Property::KEYWORD));
 }
 
 ElementDataGridRow::~ElementDataGridRow()
@@ -85,7 +86,7 @@ void ElementDataGridRow::Initialise(ElementDataGrid* _parent_grid, ElementDataGr
 	{
 		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(Core::Factory::InstanceElement(this, "#rktctl_datagridcell", "datagridcell", cell_attributes));
 		cell->Initialise(i, header_row->GetChild(i));
-		cell->SetProperty("display", Rocket::Core::Property(Rocket::Core::DISPLAY_INLINE_BLOCK, Rocket::Core::Property::KEYWORD));
+		cell->SetProperty(Core::PropertyId::Display, Rocket::Core::Property(Rocket::Core::DISPLAY_INLINE_BLOCK, Rocket::Core::Property::KEYWORD));
 		AppendChild(cell);
 		cell->RemoveReference();
 	}
@@ -387,7 +388,7 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 
 			if (!row_expanded)
 			{
-				new_row->SetProperty("display", "none");
+				new_row->SetProperty(Core::PropertyId::Display, "none");
 			}
 		}
 
@@ -411,7 +412,7 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 	Rocket::Core::Dictionary parameters;
 	parameters["first_row_added"] = GetChildTableRelativeIndex(first_row_added);
 	parameters["num_rows_added"] = num_rows_added;
-	parent_grid->DispatchEvent("rowadd", parameters);
+	parent_grid->DispatchEvent(EventId::Rowadd, parameters);
 }
 
 void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_removed)
@@ -443,7 +444,7 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
 	Rocket::Core::Dictionary parameters;
 	parameters["first_row_removed"] = GetChildTableRelativeIndex(first_row_removed);
 	parameters["num_rows_removed"] = num_rows_removed;
-	parent_grid->DispatchEvent("rowremove", parameters);
+	parent_grid->DispatchEvent(EventId::Rowremove, parameters);
 }
 
 void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_changed)
@@ -454,7 +455,7 @@ void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_chan
 	Rocket::Core::Dictionary parameters;
 	parameters["first_row_changed"] = GetChildTableRelativeIndex(first_row_changed);
 	parameters["num_rows_changed"] = num_rows_changed;
-	parent_grid->DispatchEvent("rowchange", parameters);
+	parent_grid->DispatchEvent(EventId::Rowchange, parameters);
 }
 
 // Returns the number of rows under this row (children, grandchildren, etc)
@@ -671,7 +672,7 @@ void ElementDataGridRow::DirtyRow()
 // Sets this row's child rows to be visible.
 void ElementDataGridRow::Show()
 {
-	SetProperty("display", "inline-block");
+	SetProperty(Core::PropertyId::Display, "inline-block");
 
 	if (row_expanded)
 	{
@@ -685,7 +686,7 @@ void ElementDataGridRow::Show()
 // Sets this row's children to be invisible.
 void ElementDataGridRow::Hide()
 {
-	SetProperty("display", "none");
+	SetProperty(Core::PropertyId::Display, "none");
 
 	for (size_t i = 0; i < children.size(); i++)
 	{

@@ -81,8 +81,8 @@ void InputTypeButton::OnChildAdd()
 	if (document == NULL)
 		return;
 
-	document->AddEventListener("click", this, true);
-	document->AddEventListener("dblclick", this, true);
+	document->AddEventListener(Core::EventId::Click, this, true);
+	document->AddEventListener(Core::EventId::Dblclick, this, true);
 }
 
 // Called when the element is removed from a hierarchy.
@@ -90,8 +90,8 @@ void InputTypeButton::OnChildRemove()
 {
 	if (document != NULL)
 	{
-		document->RemoveEventListener("click", this, true);
-		document->RemoveEventListener("dblclick", this, true);
+		document->RemoveEventListener(Core::EventId::Click, this, true);
+		document->RemoveEventListener(Core::EventId::Dblclick, this, true);
 		document = NULL;
 	}
 }

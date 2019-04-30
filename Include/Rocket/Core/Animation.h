@@ -33,7 +33,7 @@
 
 #include "String.h"
 #include "Tween.h"
-#include "../Source/Core/StringCache.h"
+#include "ID.h"
 
 namespace Rocket {
 namespace Core {

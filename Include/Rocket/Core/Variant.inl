@@ -35,6 +35,8 @@ inline Variant::Type Variant::GetType() const
 template< typename T >
 Variant::Variant(const T& t) : type(NONE)
 {
+	static_assert(!std::is_same<PropertyId, T>(), "type can't be PropertyId");
+	static_assert(!std::is_same<EventId, T>(), "type can't be EventId");
 	Set( t );
 }
 

@@ -90,13 +90,13 @@ void ElementBorder::GenerateBorder()
 		int* raw_indices = &indices[0];
 
 		Colourb border_colours[4];
-		border_colours[0] = element->GetProperty(BORDER_TOP_COLOR)->value.Get< Colourb >();
-		border_colours[1] = element->GetProperty(BORDER_RIGHT_COLOR)->value.Get< Colourb >();
-		border_colours[2] = element->GetProperty(BORDER_BOTTOM_COLOR)->value.Get< Colourb >();
-		border_colours[3] = element->GetProperty(BORDER_LEFT_COLOR)->value.Get< Colourb >();
+		border_colours[0] = element->GetProperty(PropertyId::BorderTopColor)->value.Get< Colourb >();
+		border_colours[1] = element->GetProperty(PropertyId::BorderRightColor)->value.Get< Colourb >();
+		border_colours[2] = element->GetProperty(PropertyId::BorderBottomColor)->value.Get< Colourb >();
+		border_colours[3] = element->GetProperty(PropertyId::BorderLeftColor)->value.Get< Colourb >();
 
 		// Apply opacity to the border
-		float opacity = element->GetProperty<float>(OPACITY);
+		float opacity = element->GetProperty<float>(PropertyId::Opacity);
 		for(int i = 0; i < 4; ++i) {
 			border_colours[i].alpha = (byte)(opacity * (float)border_colours[i].alpha);
 		}

@@ -88,7 +88,7 @@ bool ElementLog::Initialise()
 	message_content = GetElementById("content");
 	if (message_content)
 	{
-		message_content->AddEventListener("resize", this);
+		message_content->AddEventListener(Core::EventId::Resize, this);
 	}
 
 	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(log_rcss));
@@ -104,7 +104,7 @@ bool ElementLog::Initialise()
 		return false;
 
 	beacon->SetId("rkt-debug-log-beacon");
-	beacon->SetProperty("visibility", "hidden");
+	beacon->SetProperty(Core::PropertyId::Visibility, "hidden");
 	beacon->SetInnerRML(beacon_rml);
 
 	// Remove the initial reference on the beacon.
@@ -112,7 +112,7 @@ bool ElementLog::Initialise()
 
 	Core::Element* button = beacon->GetFirstChild();
 	if (button != NULL)
-		beacon->GetFirstChild()->AddEventListener("click", this);
+		beacon->GetFirstChild()->AddEventListener(Core::EventId::Click, this);
 
 	style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(beacon_rcss));
 	if (style_sheet == NULL)
@@ -164,7 +164,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 			{
 				if (type < current_beacon_level)
 				{
-					beacon->SetProperty("visibility", "visible");
+					beacon->SetProperty(Core::PropertyId::Visibility, "visible");
 
 					current_beacon_level = type;
 					Rocket::Core::Element* beacon_button = beacon->GetFirstChild();
@@ -235,15 +235,15 @@ void ElementLog::ProcessEvent(Core::Event& event)
 			if (event.GetTargetElement() == beacon->GetFirstChild())
 			{
 				if (!IsVisible())
-					SetProperty("visibility", "visible");
+					SetProperty(Core::PropertyId::Visibility, "visible");
 
-				beacon->SetProperty("visibility", "hidden");
+				beacon->SetProperty(Core::PropertyId::Visibility, "hidden");
 				current_beacon_level = Core::Log::LT_MAX;
 			}
 			else if (event.GetTargetElement()->GetId() == "close_button")
 			{
 				if (IsVisible())
-					SetProperty("visibility", "hidden");
+					SetProperty(Core::PropertyId::Visibility, "hidden");
 			}
 			else
 			{

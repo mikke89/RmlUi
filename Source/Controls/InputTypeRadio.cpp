@@ -29,6 +29,7 @@
 #include "../../Include/Rocket/Controls/ElementFormControlInput.h"
 #include "../../Include/Rocket/Core/ElementUtilities.h"
 #include "../../Include/Rocket/Controls/ElementForm.h"
+#include "../../Include/Rocket/Controls/ID.h"
 
 namespace Rocket {
 namespace Controls {
@@ -63,7 +64,7 @@ bool InputTypeRadio::OnAttributeChange(const Core::AttributeNameList& changed_at
 
 		Rocket::Core::Dictionary parameters;
 		parameters["value"] = Rocket::Core::String(checked ? GetValue() : "");
-		element->DispatchEvent("change", parameters);
+		element->DispatchEvent(EventId::Change, parameters);
 	}
 
 	return true;

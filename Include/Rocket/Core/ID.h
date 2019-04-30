@@ -26,12 +26,10 @@
  */
 
  
-#ifndef ROCKETCORESTRINGCACHE_H
-#define ROCKETCORESTRINGCACHE_H
+#ifndef ROCKETCOREID_H
+#define ROCKETCOREID_H
 
-#include "../../Include/Rocket/Core/String.h"
-#include "../../Include/Rocket/Core/Types.h"
-
+#include "Types.h"
 
 namespace Rocket {
 namespace Core {
@@ -173,6 +171,7 @@ enum class EventId : uint16_t
 	Handledrag,
 	Resize,
 	Scroll,
+	Scrollchange,
 	Animationend,
 	Transitionend,
 

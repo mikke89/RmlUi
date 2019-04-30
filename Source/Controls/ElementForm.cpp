@@ -29,6 +29,7 @@
 #include "../../Include/Rocket/Core/Dictionary.h"
 #include "../../Include/Rocket/Core/ElementUtilities.h"
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
+#include "../../Include/Rocket/Controls/ID.h"
 
 namespace Rocket {
 namespace Controls {
@@ -86,7 +87,7 @@ void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::S
 			values[control_name] = control_value;
 	}
 
-	DispatchEvent("submit", values);
+	DispatchEvent(EventId::Submit, values);
 }
 
 }

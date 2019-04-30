@@ -70,7 +70,7 @@ bool InputType::OnAttributeChange(const Core::AttributeNameList& ROCKET_UNUSED_P
 }
 
 // Called when properties on the control are changed.
-void InputType::OnPropertyChange(const Core::PropertyNameList& ROCKET_UNUSED_PARAMETER(changed_properties))
+void InputType::OnPropertyChange(const Core::PropertyIdList& ROCKET_UNUSED_PARAMETER(changed_properties))
 {
 	ROCKET_UNUSED(changed_properties);
 }

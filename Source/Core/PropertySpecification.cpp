@@ -164,6 +164,9 @@ const PropertyShorthandDefinition* PropertySpecification::GetShorthand(PropertyI
 // Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file, int source_line_number) const
 {
+	if (property_id == PropertyId::Invalid)
+		return false;
+
 	// Attempt to parse as a single property.
 	const PropertyDefinition* property_definition = GetProperty(property_id);
 

@@ -72,7 +72,7 @@ protected:
 	virtual void OnAttributeChange(const Core::AttributeNameList& changed_attributes);
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const Core::PropertyIdList& changed_properties);
 
 	/// If we are the added element, this will pass the call onto our type handler.
 	/// @param[in] child The new member of the hierarchy.

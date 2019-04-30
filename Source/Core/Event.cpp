@@ -34,7 +34,7 @@ namespace Core {
 
 Event::Event()
 {
-	event_id = InvalidEventId;
+	event_id = EventId::Invalid;
 	phase = PHASE_UNKNOWN;
 	interruped = false;
 	interruptible = false;

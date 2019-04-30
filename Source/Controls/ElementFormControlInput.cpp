@@ -127,7 +127,7 @@ void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& c
 }
 
 // Called when properties on the element are changed.
-void ElementFormControlInput::OnPropertyChange(const Core::PropertyNameList& changed_properties)
+void ElementFormControlInput::OnPropertyChange(const Core::PropertyIdList& changed_properties)
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 

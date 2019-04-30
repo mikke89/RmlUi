@@ -30,6 +30,8 @@
 
 #include "Header.h"
 #include "Variant.h"
+#include "ID.h"
+#include "Property.h"
 
 namespace Rocket {
 namespace Core {
