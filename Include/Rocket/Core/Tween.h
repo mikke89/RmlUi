@@ -135,7 +135,7 @@ public:
 
 	String to_string() const
 	{
-		const std::array<String, size_t(Count)> type_str = { "none", "back", "bounce", "circular", "cubic", "elastic", "exponential", "linear", "quadratic", "quartic", "quintic", "sine", "callback" };
+		const std::array<String, size_t(Count)> type_str = { { "none", "back", "bounce", "circular", "cubic", "elastic", "exponential", "linear", "quadratic", "quartic", "quintic", "sine", "callback" } };
 
 		if (size_t(type_in) < type_str.size() && size_t(type_out) < type_str.size())
 		{
@@ -195,6 +195,8 @@ private:
 		case Callback:
 			if (callback)
 				return (*callback)(t);
+			break;
+		default:
 			break;
 		}
 		return t;
