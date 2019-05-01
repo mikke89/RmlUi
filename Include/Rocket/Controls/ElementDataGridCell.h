@@ -41,7 +41,7 @@ namespace Controls {
 	@author Robert Curry
  */
 
-class ROCKETCONTROLS_API ElementDataGridCell : public Core::Element, public Core::EventListener
+class ROCKETCONTROLS_API ElementDataGridCell : public Core::Element
 {
 public:
 	ElementDataGridCell(const Rocket::Core::String& tag);
@@ -51,7 +51,7 @@ public:
 	int GetColumn();
 
 protected:
-	virtual void ProcessEvent(Core::Event& event);
+	virtual void OnResize() override;
 
 private:
 	int column;

@@ -117,11 +117,13 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 			if (document != NULL)
 			{
 				document->DirtyLayout();
-				document->UpdatePosition();
+				document->DirtyPosition();
+				document->DispatchEvent(RESIZE, Dictionary());
 			}
 		}
 		
 		clip_dimensions = dimensions;
+
 
 		// TODO: Ensure the user calls ProcessProjectionChange() before
 		// the next rendering phase.
@@ -183,7 +185,10 @@ bool Context::Update()
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 		if (auto doc = root->GetChild(i)->GetOwnerDocument())
+		{
 			doc->UpdateLayout();
+			doc->UpdatePosition();
+		}
 
 	// Release any documents that were unloaded during the update.
 	ReleaseUnloadedDocuments();

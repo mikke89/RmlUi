@@ -630,7 +630,8 @@ protected:
 	virtual void OnUpdate();
 	/// Called during render after backgrounds, borders, decorators, but before children, are rendered.
 	virtual void OnRender();
-
+	/// Called during update if the element size has been changed.
+	virtual void OnResize();
 	/// Called during a layout operation, when the element is being positioned and sized.
 	virtual void OnLayout();
 
@@ -779,6 +780,7 @@ private:
 
 	PropertyNameList dirty_properties;
 	bool all_properties_dirty;
+	bool box_dirty;
 
 	// The element's font face; used to render text and resolve em / ex properties.
 	FontFaceHandle* font_face_handle;

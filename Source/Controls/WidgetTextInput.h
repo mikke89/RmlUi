@@ -76,6 +76,8 @@ public:
 	void OnRender();
 	/// Formats the widget's internal content.
 	void OnLayout();
+	/// Called when the parent element's size changes.
+	void OnResize();
 
 	/// Returns the input element's underlying text element.
 	Core::ElementText* GetTextElement();

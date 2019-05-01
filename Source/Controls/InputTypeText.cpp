@@ -64,6 +64,11 @@ void InputTypeText::OnRender()
 	widget->OnRender();
 }
 
+void InputTypeText::OnResize()
+{
+	widget->OnResize();
+}
+
 // Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputTypeText::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
 {

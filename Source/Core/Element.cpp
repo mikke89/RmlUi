@@ -119,6 +119,7 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	parent_structure_dirty = false;
 
 	all_properties_dirty = true;
+	box_dirty = false;
 
 	font_face_handle = NULL;
 	
@@ -186,6 +187,12 @@ void Element::Update()
 	AdvanceAnimations();
 
 	UpdateDirtyProperties();
+
+	if (box_dirty)
+	{
+		box_dirty = false;
+		OnResize();
+	}
 
 	UpdateTransformState();
 
@@ -435,11 +442,10 @@ void Element::SetBox(const Box& box)
 		boxes[0] = box;
 		boxes.resize(1);
 
+		box_dirty = true;
 		background->DirtyBackground();
 		border->DirtyBorder();
-		decoration->ReloadDecorators();
-
-		DispatchEvent(RESIZE, Dictionary());
+		decoration->DirtyDecorators(true);
 	}
 }
 
@@ -447,11 +453,11 @@ void Element::SetBox(const Box& box)
 void Element::AddBox(const Box& box)
 {
 	boxes.push_back(box);
-	DispatchEvent(RESIZE, Dictionary());
 
+	box_dirty = true;
 	background->DirtyBackground();
 	border->DirtyBorder();
-	decoration->ReloadDecorators();
+	decoration->DirtyDecorators(true);
 }
 
 // Returns one of the boxes describing the size of the element.
@@ -1699,6 +1705,10 @@ void Element::OnRender()
 {
 }
 
+void Element::OnResize()
+{
+}
+
 // Called during a layout operation, when the element is being positioned and sized.
 void Element::OnLayout()
 {
@@ -1905,7 +1915,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		changed_properties.find(OPACITY) != changed_properties.end() ||
 		changed_properties.find(IMAGE_COLOR) != changed_properties.end()) {
         background->DirtyBackground();
-        decoration->ReloadDecorators();
+        decoration->DirtyDecorators(true);
     }
 
 	// Dirty the border if it's changed.

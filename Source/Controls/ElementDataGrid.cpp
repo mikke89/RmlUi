@@ -246,6 +246,18 @@ void ElementDataGrid::OnUpdate()
 	document->LockLayout(false);
 }
 
+
+void ElementDataGrid::OnResize()
+{
+	SetScrollTop(GetScrollHeight() - GetClientHeight());
+
+	for (int i = 0; i < header->GetNumChildren(); i++)
+	{
+		Core::Element* child = header->GetChild(i);
+		columns[i].current_width = child->GetBox().GetSize(Core::Box::MARGIN).x;
+	}
+}
+
 void ElementDataGrid::ProcessEvent(Core::Event& event)
 {
 	Core::Element::ProcessEvent(event);
@@ -256,19 +268,6 @@ void ElementDataGrid::ProcessEvent(Core::Event& event)
 		{
 			root->RefreshRows();
 			DirtyLayout();
-		}
-	}
-	else if (event == "resize")
-	{
-		if (event.GetTargetElement() == this)
-		{
-			SetScrollTop(GetScrollHeight() - GetClientHeight());
-
-			for (int i = 0; i < header->GetNumChildren(); i++)
-			{
-				Core::Element* child = header->GetChild(i);
-				columns[i].current_width = child->GetBox().GetSize(Core::Box::MARGIN).x;
-			}
 		}
 	}
 }

@@ -191,8 +191,7 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 	bar_position = Math::Clamp(_bar_position, 0.0f, 1.0f);
 	PositionBar();
 
-	Dictionary parameters;
-	parameters.emplace("value", bar_position);
+	Dictionary parameters = { {"value", bar_position} };
 	parent->DispatchEvent("scrollchange", parameters);
 }
 

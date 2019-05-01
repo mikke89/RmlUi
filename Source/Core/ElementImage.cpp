@@ -167,15 +167,9 @@ void ElementImage::OnPropertyChange(const PropertyNameList& changed_properties)
 }
 
 // Regenerates the element's geometry.
-void ElementImage::ProcessEvent(Rocket::Core::Event& event)
+void ElementImage::OnResize()
 {
-	Element::ProcessEvent(event);
-
-	if (event.GetTargetElement() == this &&
-		event == RESIZE)
-	{
-		GenerateGeometry();
-	}
+	GenerateGeometry();
 }
 
 void ElementImage::GenerateGeometry()

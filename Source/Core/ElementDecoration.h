@@ -50,14 +50,12 @@ public:
 	ElementDecoration(Element* element);
 	~ElementDecoration();
 
-	// Releases existing decorators and loads all decorators required by the element's definition.
-	bool ReloadDecorators();	
-
 	/// Renders all appropriate decorators.
 	void RenderDecorators();
 
-	/// Mark decorators as dirty and force them to reset themselves
-	void DirtyDecorators();
+	/// Mark decorators as dirty and force them to reset themselves. If full_reload is true, the
+	/// decorators will be reloaded, otherwise only the active_decorators will be updated.
+	void DirtyDecorators(bool full_reload);
 
 	/// Iterates over all active decorators attached to the decoration's element.
 	/// @param[inout] index Index to fetch. This is incremented after the fetch.
@@ -71,6 +69,8 @@ public:
 private:
 	// Loads a single decorator and adds it to the list of loaded decorators for this element.
 	int LoadDecorator(Decorator* decorator);
+	// Releases existing decorators and loads all decorators required by the element's definition.
+	bool ReloadDecorators();
 	// Releases all existing decorators and frees their data.
 	void ReleaseDecorators();
 	// Updates the list of active decorators (if necessary)
@@ -95,6 +95,8 @@ private:
 	// The list of currently active decorators.
 	std::vector< int > active_decorators;
 	bool active_decorators_dirty;
+	// If set, a full reload is necessary
+	bool decorators_dirty;
 
 	// For each unique decorator name, this stores (in order of specificity) the name of the pseudo-class that has
 	// a definition for it, and the index into the list of decorators.

@@ -48,7 +48,6 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->SetProperty("drag", "drag");
 	parent->SetClientArea(Rocket::Core::Box::CONTENT);
 
-	parent->AddEventListener("resize", this, true);
 	parent->AddEventListener("keydown", this, true);
 	parent->AddEventListener("textinput", this, true);
 	parent->AddEventListener("focus", this, true);
@@ -99,7 +98,6 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 
 WidgetTextInput::~WidgetTextInput()
 {
-	parent->RemoveEventListener("resize", this, true);
 	parent->RemoveEventListener("keydown", this, true);
 	parent->RemoveEventListener("textinput", this, true);
 	parent->RemoveEventListener("focus", this, true);
@@ -195,6 +193,24 @@ void WidgetTextInput::OnUpdate()
 	}
 }
 
+void WidgetTextInput::OnResize()
+{
+	GenerateCursor();
+
+	Rocket::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
+	text_element->SetOffset(text_position, parent);
+	selected_text_element->SetOffset(text_position, parent);
+
+	Rocket::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
+	if (new_internal_dimensions != internal_dimensions)
+	{
+		internal_dimensions = new_internal_dimensions;
+
+		FormatElement();
+		UpdateCursorPosition();
+	}
+}
+
 // Renders the cursor, if it is visible.
 void WidgetTextInput::OnRender()
 {
@@ -249,24 +265,7 @@ void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 // the state of the cursor.
 void WidgetTextInput::ProcessEvent(Core::Event& event)
 {
-	if (event == "resize")
-	{
-		GenerateCursor();
-
-		Rocket::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
-		text_element->SetOffset(text_position, parent);
-		selected_text_element->SetOffset(text_position, parent);
-
-		Rocket::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
-		if (new_internal_dimensions != internal_dimensions)
-		{
-			internal_dimensions = new_internal_dimensions;
-
-			FormatElement();
-			UpdateCursorPosition();
-		}
-	}
-	else if (parent->IsDisabled())
+	if (parent->IsDisabled())
 	{
 		return;
 	}

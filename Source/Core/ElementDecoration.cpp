@@ -38,6 +38,7 @@ ElementDecoration::ElementDecoration(Element* _element)
 {
 	element = _element;
 	active_decorators_dirty = false;
+	decorators_dirty = false;
 }
 
 ElementDecoration::~ElementDecoration()
@@ -96,6 +97,7 @@ bool ElementDecoration::ReloadDecorators()
 			(*index_iterator).second.push_back(PseudoClassDecoratorIndex(PseudoClassList(), index));
 	}
 
+	decorators_dirty = false;
 	active_decorators_dirty = true;
 
 	return true;
@@ -163,6 +165,12 @@ void ElementDecoration::UpdateActiveDecorators()
 
 void ElementDecoration::RenderDecorators()
 {
+	if (decorators_dirty)
+	{
+		decorators_dirty = false;
+		ReloadDecorators();
+	}
+
 	UpdateActiveDecorators();
 
 	// Render the decorators attached to this element in its current state.
@@ -173,8 +181,10 @@ void ElementDecoration::RenderDecorators()
 	}
 }
 
-void ElementDecoration::DirtyDecorators()
+void ElementDecoration::DirtyDecorators(bool full_reload)
 {
+	if (full_reload)
+		decorators_dirty = true;
 	active_decorators_dirty = true;
 }
 

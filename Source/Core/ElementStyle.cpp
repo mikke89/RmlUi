@@ -212,7 +212,7 @@ void ElementStyle::UpdateDefinition()
 			definition = new_definition;
 			
 			DirtyProperties(properties);
-			element->GetElementDecoration()->ReloadDecorators();
+			element->GetElementDecoration()->DirtyDecorators(true);
 		}
 		else if (new_definition != NULL)
 		{
@@ -247,7 +247,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 
 	if (pseudo_classes.size() != num_pseudo_classes)
 	{
-		element->GetElementDecoration()->DirtyDecorators();
+		element->GetElementDecoration()->DirtyDecorators(false);
 
 		if (definition != NULL)
 		{

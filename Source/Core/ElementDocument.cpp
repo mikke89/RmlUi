@@ -51,6 +51,8 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 	layout_dirty = true;
 	lock_layout = 0;
 
+	position_dirty = false;
+
 	ForceLocalStackingContext();
 
 	SetProperty(POSITION, "absolute");
@@ -305,6 +307,7 @@ void ElementDocument::UpdateDocument()
 {
 	Element::Update();
 	UpdateLayout();
+	UpdatePosition();
 }
 
 // Updates the layout if necessary.
@@ -330,33 +333,43 @@ void ElementDocument::UpdateLayout()
 // Updates the position of the document based on the style properties.
 void ElementDocument::UpdatePosition()
 {
-	// We are only positioned relative to our parent, so if we're not parented we may as well bail now.
-	if (GetParentNode() == NULL)
-		return;
+	if(position_dirty)
+	{
+		position_dirty = false;
 
-	Vector2f position;
-	// Work out our containing block; relative offsets are calculated against it.
-	Vector2f containing_block = GetParentNode()->GetBox().GetSize(Box::CONTENT);
+		// We are only positioned relative to our parent, so if we're not parented we may as well bail now.
+		if (GetParentNode() == NULL)
+			return;
 
-	const Property *left = GetLocalProperty(LEFT);
-	const Property *right = GetLocalProperty(RIGHT);
-	if (left != NULL && left->unit != Property::KEYWORD)
-		position.x = ResolveProperty(LEFT, containing_block.x);
-	else if (right != NULL && right->unit != Property::KEYWORD)
-		position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveProperty(RIGHT, containing_block.x);
-	else
-		position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
+		Vector2f position;
+		// Work out our containing block; relative offsets are calculated against it.
+		Vector2f containing_block = GetParentNode()->GetBox().GetSize(Box::CONTENT);
 
-	const Property *top = GetLocalProperty(TOP);
-	const Property *bottom = GetLocalProperty(BOTTOM);
-	if (top != NULL && top->unit != Property::KEYWORD)
-		position.y = ResolveProperty(TOP, containing_block.y);
-	else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-		position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveProperty(BOTTOM, containing_block.y);
-	else
-		position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		const Property *left = GetLocalProperty(LEFT);
+		const Property *right = GetLocalProperty(RIGHT);
+		if (left != NULL && left->unit != Property::KEYWORD)
+			position.x = ResolveProperty(LEFT, containing_block.x);
+		else if (right != NULL && right->unit != Property::KEYWORD)
+			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveProperty(RIGHT, containing_block.x);
+		else
+			position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
 
-	SetOffset(position, NULL);
+		const Property *top = GetLocalProperty(TOP);
+		const Property *bottom = GetLocalProperty(BOTTOM);
+		if (top != NULL && top->unit != Property::KEYWORD)
+			position.y = ResolveProperty(TOP, containing_block.y);
+		else if (bottom != NULL && bottom->unit != Property::KEYWORD)
+			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveProperty(BOTTOM, containing_block.y);
+		else
+			position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
+
+		SetOffset(position, NULL);
+	}
+}
+
+void ElementDocument::DirtyPosition()
+{
+	position_dirty = true;
 }
 	
 void ElementDocument::LockLayout(bool lock)
@@ -397,7 +410,7 @@ void ElementDocument::OnPropertyChange(const PropertyNameList& changed_propertie
 		changed_properties.find(RIGHT) != changed_properties.end() ||
 		changed_properties.find(BOTTOM) != changed_properties.end() ||
 		changed_properties.find(LEFT) != changed_properties.end())
-		UpdatePosition();
+		DirtyPosition();
 }
 
 // Processes the 'onpropertychange' event, checking for a change in position or size.
@@ -427,11 +440,11 @@ void ElementDocument::ProcessEvent(Event& event)
 			}
 		}
 	}
-	else if (event.GetTargetElement() == this)
-	{
-		if (event == RESIZE)
-			UpdatePosition();
-	}
+}
+
+void ElementDocument::OnResize()
+{
+	DirtyPosition();
 }
 
 // Find the next element to focus, starting at the current element

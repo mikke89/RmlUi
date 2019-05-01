@@ -81,6 +81,11 @@ void ElementFormControlInput::OnRender()
 	type->OnRender();
 }
 
+void ElementFormControlInput::OnResize()
+{
+	type->OnResize();
+}
+
 // Checks for necessary functional changes in the control as a result of changed attributes.
 void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
 {

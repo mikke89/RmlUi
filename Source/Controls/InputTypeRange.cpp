@@ -55,6 +55,11 @@ void InputTypeRange::OnUpdate()
 	widget->Update();
 }
 
+void InputTypeRange::OnResize()
+{
+	widget->FormatElements();
+}
+
 // Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputTypeRange::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
 {
@@ -89,11 +94,6 @@ bool InputTypeRange::OnAttributeChange(const Core::AttributeNameList& changed_at
 // Checks for necessary functional changes in the control as a result of the event.
 void InputTypeRange::ProcessEvent(Core::Event& event)
 {
-	if (event == "resize" &&
-		event.GetTargetElement() == element)
-	{
-		widget->FormatElements();
-	}
 }
 
 // Sizes the dimensions to the element's inherent size.

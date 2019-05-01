@@ -66,6 +66,8 @@ protected:
 	virtual void OnUpdate();
 	/// Renders the element's underlying type.
 	virtual void OnRender();
+	/// Calls the element's underlying type.
+	virtual void OnResize() override;
 
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.

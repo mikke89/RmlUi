@@ -150,6 +150,9 @@ protected:
 	/// Processes the 'onpropertychange' event, checking for a change in position or size.
 	virtual void ProcessEvent(Event& event);
 
+	/// Called during update if the element size has been changed.
+	virtual void OnResize() override;
+
 private:
 	/// Find the next element to focus, starting at the current element
 	bool FocusNextTabElement(Element* current_element, bool forward);
@@ -161,6 +164,9 @@ private:
 
 	/// Updates the position of the document based on the style properties.
 	void UpdatePosition();
+
+	/// Sets the dirty flag for document positioning
+	void DirtyPosition();
 
 	// Title of the document
 	String title;
@@ -179,6 +185,8 @@ private:
 	// Is the layout dirty?
 	bool layout_dirty;
 	int lock_layout;
+
+	bool position_dirty;
 
 	friend class Context;
 	friend class Factory;

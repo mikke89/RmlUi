@@ -54,7 +54,7 @@ public:
 		if (document != NULL)
 		{
 			{
-				//document->GetElementById("title")->SetInnerRML(title);
+				document->GetElementById("title")->SetInnerRML(title);
 				document->SetProperty("left", Property(position.x, Property::PX));
 				document->SetProperty("top", Property(position.y, Property::PX));
 				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 1.5f, Tween{Tween::Quadratic, Tween::Out}, 1, true, 0.0f);
@@ -143,9 +143,10 @@ public:
 		  Replace Dictionary with unordered_flat_map: 40.0  [b04b4e5]
 		  Dirty flag for structure changes: 43.0  [fdf6f53]
 		  Replacing containers: 46.0  [c307140]
+		  Replace 'resize' event with virtual function call: 65.0
 		
 		*/
-		
+
 		if (!document)
 			return;
 

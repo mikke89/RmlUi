@@ -120,6 +120,8 @@ public:
 protected:
 	virtual void OnUpdate();
 
+	virtual void OnResize() override;
+
 	virtual void ProcessEvent(Core::Event& event);
 
 	/// Gets the markup and content of the element.

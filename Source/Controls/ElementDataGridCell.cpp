@@ -33,14 +33,13 @@
 namespace Rocket {
 namespace Controls {
 
-ElementDataGridCell::ElementDataGridCell(const Rocket::Core::String& tag) : Core::Element(tag)
+ElementDataGridCell::ElementDataGridCell(const Rocket::Core::String& tag) : Core::Element(tag), column(0), header(nullptr)
 {
 }
 
 ElementDataGridCell::~ElementDataGridCell()
 {
 	if (header) {
-		header->RemoveEventListener("resize", this);
 		header->RemoveReference();
 	}
 }
@@ -52,7 +51,6 @@ void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
 	if (header)
 	{
 		header->AddReference();
-		header->AddEventListener("resize", this);
 		SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
 	}
 }
@@ -62,17 +60,9 @@ int ElementDataGridCell::GetColumn()
 	return column;
 }
 
-void ElementDataGridCell::ProcessEvent(Core::Event& event)
+void ElementDataGridCell::OnResize()
 {
-	Core::Element::ProcessEvent(event);
-
-	if (event == "resize")
-	{
-		if (event.GetTargetElement() == header)
-		{
-			SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
-		}
-	}
+	SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
 }
 
 }

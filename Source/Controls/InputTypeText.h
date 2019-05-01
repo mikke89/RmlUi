@@ -59,6 +59,9 @@ public:
 	/// Called every render from the host element.
 	virtual void OnRender();
 
+	/// Called when the parent element's size changes.
+	virtual void OnResize();
+
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.
