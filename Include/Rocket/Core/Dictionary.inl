@@ -25,6 +25,9 @@
  *
  */
 
+namespace Rocket {
+namespace Core {
+
 template< typename T >
 inline void Dictionary::Set(const String& key, const T& value)
 {
@@ -48,16 +51,19 @@ inline bool Dictionary::GetInto(const String& key, T& value) const
 	Variant* variant = Get(key);
 	if (!variant)
 		return false;
-		
-	return variant->GetInto<T>(value);	
+
+	return variant->GetInto<T>(value);
 }
 
 template <typename T>
-inline bool Dictionary::Iterate(int &pos, String& key, T& value) const
+inline bool Dictionary::Iterate(int& pos, String& key, T& value) const
 {
 	Variant* variant;
 	bool iterate = Iterate(pos, key, variant);
 	if (iterate)
 		variant->GetInto(value);
 	return iterate;
+}
+
+}
 }

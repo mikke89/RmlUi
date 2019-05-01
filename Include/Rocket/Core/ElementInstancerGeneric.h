@@ -61,9 +61,9 @@ public:
 	virtual void Release();
 };
 
-#include "ElementInstancerGeneric.inl"
+}
+}
 
-}
-}
+#include "ElementInstancerGeneric.inl"
 
 #endif

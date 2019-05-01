@@ -25,6 +25,9 @@
  *
  */
 
+namespace Rocket {
+namespace Core {
+
 // Default constructor.
 template < typename Type >
 Vector4< Type >::Vector4()
@@ -34,14 +37,14 @@ Vector4< Type >::Vector4()
 // Initialising constructor.
 template < typename Type >
 Vector4< Type >::Vector4(Type _x, Type _y, Type _z, Type _w)
-	: x (_x), y (_y), z (_z), w (_w)
+	: x(_x), y(_y), z(_z), w(_w)
 {
 }
 
 // Implicit conversion from a 3D Vector.
 template < typename Type >
-Vector4< Type >::Vector4(Vector3< Type > const &v, Type w)
-	: x (v.x), y (v.y), z (v.z), w (w)
+Vector4< Type >::Vector4(Vector3< Type > const& v, Type w)
+	: x(v.x), y(v.y), z(v.z), w(w)
 {
 }
 
@@ -49,7 +52,7 @@ Vector4< Type >::Vector4(Vector3< Type > const &v, Type w)
 template < typename Type >
 float Vector4< Type >::Magnitude() const
 {
-	float squared_magnitude = (float) SquaredMagnitude();
+	float squared_magnitude = (float)SquaredMagnitude();
 	if (Math::IsZero(squared_magnitude))
 		return 0;
 
@@ -90,14 +93,14 @@ Vector4< Type > Vector4< Type >::operator-() const
 
 // Returns the sum of this vector and another.
 template < typename Type >
-Vector4< Type > Vector4< Type >::operator+(const Vector4< Type >& rhs) const
+Vector4< Type > Vector4< Type >::operator+(const Vector4< Type > & rhs) const
 {
 	return Vector4< Type >(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
 }
 
 // Returns the result of subtracting another vector from this vector.
 template < typename Type >
-Vector4< Type > Vector4< Type >::operator-(const Vector4< Type >& rhs) const
+Vector4< Type > Vector4< Type >::operator-(const Vector4< Type > & rhs) const
 {
 	return Vector4(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w);
 }
@@ -118,7 +121,7 @@ Vector4< Type > Vector4< Type >::operator/(Type rhs) const
 
 // Adds another vector to this in-place.
 template < typename Type >
-Vector4< Type >& Vector4< Type >::operator+=(const Vector4& rhs)
+Vector4< Type >& Vector4< Type >::operator+=(const Vector4 & rhs)
 {
 	x += rhs.x;
 	y += rhs.y;
@@ -130,7 +133,7 @@ Vector4< Type >& Vector4< Type >::operator+=(const Vector4& rhs)
 
 // Subtracts another vector from this in-place.
 template < typename Type >
-Vector4< Type >& Vector4< Type >::operator-=(const Vector4& rhs)
+Vector4< Type >& Vector4< Type >::operator-=(const Vector4 & rhs)
 {
 	x -= rhs.x;
 	y -= rhs.y;
@@ -142,7 +145,7 @@ Vector4< Type >& Vector4< Type >::operator-=(const Vector4& rhs)
 
 // Scales this vector in-place.
 template < typename Type >
-Vector4< Type >& Vector4< Type >::operator*=(const Type& rhs)
+Vector4< Type >& Vector4< Type >::operator*=(const Type & rhs)
 {
 	x *= rhs;
 	y *= rhs;
@@ -154,7 +157,7 @@ Vector4< Type >& Vector4< Type >::operator*=(const Type& rhs)
 
 // Scales this vector in-place by the inverse of a value.
 template < typename Type >
-Vector4< Type >& Vector4< Type >::operator/=(const Type& rhs)
+Vector4< Type >& Vector4< Type >::operator/=(const Type & rhs)
 {
 	x /= rhs;
 	y /= rhs;
@@ -166,28 +169,28 @@ Vector4< Type >& Vector4< Type >::operator/=(const Type& rhs)
 
 // Equality operator.
 template < typename Type >
-bool Vector4< Type >::operator==(const Vector4& rhs) const
+bool Vector4< Type >::operator==(const Vector4 & rhs) const
 {
 	return (x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w);
 }
 
 // Inequality operator.
 template < typename Type >
-bool Vector4< Type >::operator!=(const Vector4& rhs) const
+bool Vector4< Type >::operator!=(const Vector4 & rhs) const
 {
 	return (x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w);
 }
 
 // Auto-cast operator.
 template < typename Type >
-Vector4< Type >::operator const Type*() const
+Vector4< Type >::operator const Type* () const
 {
 	return &x;
 }
 
 // Constant auto-cast operator.
 template < typename Type >
-Vector4< Type >::operator Type*()
+Vector4< Type >::operator Type* ()
 {
 	return &x;
 }
@@ -197,5 +200,8 @@ Vector4< Type >::operator Type*()
 template < typename Type >
 Vector4< Type >::operator Vector3< Type >() const
 {
-	return Vector3< Type > (x/w, y/w, z/w);
+	return Vector3< Type >(x / w, y / w, z / w);
+}
+
+}
 }

@@ -112,12 +112,8 @@ public:
 }
 }
 
-namespace Rocket {
-namespace Core {
 
 #include "Colour.inl"
 
-}
-}
 
 #endif

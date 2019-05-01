@@ -25,6 +25,8 @@
  *
  */
 
+namespace Rocket {
+namespace Core {
 
 inline Variant::Type Variant::GetType() const
 {
@@ -35,7 +37,7 @@ inline Variant::Type Variant::GetType() const
 template< typename T >
 Variant::Variant(const T& t) : type(NONE)
 {
-	Set( t );
+	Set(t);
 }
 
 // Clear and set new value
@@ -49,7 +51,7 @@ void Variant::Reset(const T& t)
 // Templatised data accessor.
 template< typename T >
 bool Variant::GetInto(T& value) const
-{	
+{
 	switch (type)
 	{
 	case BYTE:
@@ -109,7 +111,7 @@ bool Variant::GetInto(T& value) const
 		break;
 
 	case SCRIPTINTERFACE:
-		return TypeConverter< ScriptInterface*, T >::Convert(*(ScriptInterface**)data, value);
+		return TypeConverter< ScriptInterface*, T >::Convert(*(ScriptInterface * *)data, value);
 		break;
 
 	case VOIDPTR:
@@ -130,4 +132,7 @@ T Variant::Get() const
 	T value;
 	GetInto(value);
 	return value;
+}
+
+}
 }

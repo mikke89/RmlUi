@@ -131,9 +131,9 @@ class Vector3
 		Type z;
 };
 
-#include "Vector3.inl"
+}
+}
 
-}
-}
+#include "Vector3.inl"
 
 #endif

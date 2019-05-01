@@ -143,9 +143,9 @@ private:
 	void Copy(const Dictionary &dict);
 };
 
-#include "Dictionary.inl"
+}
+}
 
-}
-}
+#include "Dictionary.inl"
 
 #endif

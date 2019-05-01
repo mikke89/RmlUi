@@ -25,6 +25,9 @@
  *
  */
 
+namespace Rocket {
+namespace Core {
+
 // Returns the values of one of this element's properties.
 // We can assume the property will exist based on the RCSS inheritance.
 template < typename T >
@@ -49,7 +52,7 @@ void Element::SetAttribute(const String& name, const T& value)
 // Gets the specified attribute, with default value.
 template< typename T >
 T Element::GetAttribute(const String& name, const T& default_value) const
-{			
+{
 	return attributes.Get(name, default_value);
 }
 
@@ -58,4 +61,7 @@ template< typename T >
 bool Element::IterateAttributes(int& index, String& name, T& value) const
 {
 	return attributes.Iterate(index, name, value);
+}
+
+}
 }

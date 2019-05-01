@@ -25,11 +25,14 @@
  *
  */
 
+namespace Rocket {
+namespace Core {
+
 template <typename T>
 ElementInstancerGeneric<T>::~ElementInstancerGeneric()
 {
 }
-	
+
 // Instances an element given the tag name and attributes
 template <typename T>
 Element* ElementInstancerGeneric<T>::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
@@ -53,4 +56,7 @@ template <typename T>
 void ElementInstancerGeneric<T>::Release()
 {
 	delete this;
+}
+
+}
 }

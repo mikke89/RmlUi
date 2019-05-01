@@ -135,9 +135,9 @@ class Vector4
 		Type w;
 };
 
-#include "Vector4.inl"
+}
+}
 
-}
-}
+#include "Vector4.inl"
 
 #endif

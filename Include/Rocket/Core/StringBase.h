@@ -210,10 +210,10 @@ protected:
 	inline StringBase<T>& _Assign(const T* assign, size_type assign_length, size_type count = StringBase<T>::npos);
 	inline void _Insert(size_type index, const T* insert, size_type insert_length, size_type count = StringBase<T>::npos);
 };
-	
-#include "StringBase.inl"
 
 }
 }
+
+#include "StringBase.inl"
 
 #endif
