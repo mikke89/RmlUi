@@ -129,16 +129,19 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 const Property* ElementDefinition::GetProperty(const String& name, const PseudoClassList& pseudo_classes) const
 {
 	// Find a pseudo-class override for this property.
-	PseudoClassPropertyDictionary::const_iterator property_iterator = pseudo_class_properties.find(name);
-	if (property_iterator != pseudo_class_properties.end())
+	if(pseudo_class_properties.size() > 0 && pseudo_classes.size() > 0)
 	{
-		const PseudoClassPropertyList& property_list = (*property_iterator).second;
-		for (size_t i = 0; i < property_list.size(); ++i)
+		PseudoClassPropertyDictionary::const_iterator property_iterator = pseudo_class_properties.find(name);
+		if (property_iterator != pseudo_class_properties.end())
 		{
-			if (!IsPseudoClassRuleApplicable(property_list[i].first, pseudo_classes))
-				continue;
+			const PseudoClassPropertyList& property_list = (*property_iterator).second;
+			for (size_t i = 0; i < property_list.size(); ++i)
+			{
+				if (!IsPseudoClassRuleApplicable(property_list[i].first, pseudo_classes))
+					continue;
 
-			return &property_list[i].second;
+				return &property_list[i].second;
+			}
 		}
 	}
 
