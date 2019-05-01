@@ -336,8 +336,8 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 void PropertySpecification::SetPropertyDefaults(PropertyDictionary& dictionary) const
 {
 	for (auto& [id, value] : properties)
-		if (auto it = dictionary.find(id); it != dictionary.end())
-			it->second = *value->GetDefaultValue();
+		if (auto it = dictionary.find(id); it == dictionary.end())
+			dictionary[id] = *value->GetDefaultValue();
 }
 
 bool PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const
