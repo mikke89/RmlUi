@@ -435,9 +435,14 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 	}
 
 	if(result)
-		if(extend_duration) duration = target_time;
+	{
+		if(extend_duration) 
+			duration = target_time;
+	}
 	else
+	{
 		keys.pop_back();
+	}
 
 	return result;
 }

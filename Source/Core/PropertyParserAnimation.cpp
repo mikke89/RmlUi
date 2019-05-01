@@ -159,6 +159,8 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 				case Keyword::PAUSED:
 					animation.paused = true;
 					break;
+				default:
+					break;
 				}
 			}
 			else
