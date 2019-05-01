@@ -135,15 +135,15 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				{
 					Core::Element* panel = target_element->GetNextSibling();
 					if (panel->IsVisible())
-						panel->SetProperty(Core::PropertyId::Display, "none");
+						panel->SetProperty("display", "none");
 					else
-						panel->SetProperty(Core::PropertyId::Display, "block");
+						panel->SetProperty("display", "block");
 					event.StopPropagation();
 				}
 				else if (event.GetTargetElement()->GetId() == "close_button")
 				{
 					if (IsVisible())
-						SetProperty(Core::PropertyId::Visibility, "hidden");
+						SetProperty("visibility", "hidden");
 				}
 				// Check if the id is in the form "a %d" or "c %d" - these are the ancestor or child labels.
 				else
@@ -275,7 +275,7 @@ void ElementInfo::UpdateSourceElement()
 					{
 						for (auto nvp : *local_properties)
 						{
-							auto& prop_name = Core::GetName(nvp.first);
+							auto& prop_name = nvp.first;
 							auto prop_value = nvp.second.ToString();
 							value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
 						}
@@ -440,17 +440,16 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 	NamedPropertyMap property_map;
 
 	int property_index = 0;
-	Core::PropertyId property_id;
+	Core::String property_name;
 	Core::PseudoClassList property_pseudo_classes;
 	const Core::Property* property;
 
-	while (element->IterateProperties(property_index, property_pseudo_classes, property_id, property))
+	while (element->IterateProperties(property_index, property_pseudo_classes, property_name, property))
 	{
 		// Check that this property isn't overridden or just not inherited.
-		if (primary_element->GetProperty(property_id) != property)
+		if (primary_element->GetProperty(property_name) != property)
 			continue;
 
-		const Core::String& property_name = Core::GetName(property_id);
 		NamedPropertyMap::iterator i = property_map.find(property_pseudo_classes);
 		if (i == property_map.end())
 			property_map[property_pseudo_classes] = NamedPropertyList(1, NamedProperty(property_name, property));

@@ -41,12 +41,11 @@ class ElementDefinition;
 class StyleSheetNode;
 
 struct KeyframeBlock {
-	KeyframeBlock(float normalized_time) : normalized_time(normalized_time) {}
 	float normalized_time;  // [0, 1]
 	PropertyDictionary properties;
 };
 struct Keyframes {
-	PropertyIdList property_ids;
+	std::vector<String> property_names;
 	std::vector<KeyframeBlock> blocks;
 };
 typedef UnorderedMap<String, Keyframes> KeyframesMap;

@@ -68,6 +68,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/StringCache.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNode.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelector.h
@@ -149,7 +150,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Geometry.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/GeometryUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ID.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Input.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Log.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Math.h
@@ -274,7 +274,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ID.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutEngine.cpp
@@ -302,6 +301,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamMemory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/String.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/StringCache.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StringUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.cpp
@@ -395,7 +395,6 @@ set(Controls_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementFormControlTextArea.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementTabSet.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ID.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/SelectOption.h
 )
 
@@ -418,7 +417,6 @@ set(Controls_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlTextArea.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementTabSet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementTextSelection.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ID.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/InputType.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeButton.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeCheckbox.cpp

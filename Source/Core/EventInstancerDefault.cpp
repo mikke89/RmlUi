@@ -40,9 +40,9 @@ EventInstancerDefault::~EventInstancerDefault()
 {
 }
 
-Event* EventInstancerDefault::InstanceEvent(Element* target, EventId event_id, const Dictionary& parameters, bool interruptible)
+Event* EventInstancerDefault::InstanceEvent(Element* target, const String& name, const Dictionary& parameters, bool interruptible)
 {
-	return new Event(target, event_id, parameters, interruptible);
+	return new Event(target, name, parameters, interruptible);
 }
 
 // Releases an event instanced by this instancer.

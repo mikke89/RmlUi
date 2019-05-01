@@ -136,7 +136,7 @@ public:
 	
 protected:
 	/// Repositions the document if necessary.
-	virtual void OnPropertyChange(const PropertyIdList& changed_properties);
+	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
 
 	/// Sets the dirty flag on the layout so the document will format its children before the next render.
 	virtual void DirtyLayout();

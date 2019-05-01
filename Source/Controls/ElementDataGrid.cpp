@@ -27,7 +27,6 @@
 
 #include "../../Include/Rocket/Controls/ElementDataGrid.h"
 #include "../../Include/Rocket/Controls/DataSource.h"
-#include "../../Include/Rocket/Controls/ID.h"
 #include "../../Include/Rocket/Core/Math.h"
 #include "../../Include/Rocket/Core/XMLParser.h"
 #include "../../Include/Rocket/Core/Event.h"
@@ -46,24 +45,24 @@ ElementDataGrid::ElementDataGrid(const Rocket::Core::String& tag) : Core::Elemen
 
 	// Create the row for the column headers:
 	header = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridheader", attributes));
-	header->SetProperty(Core::PropertyId::Display, "block");
+	header->SetProperty("display", "block");
 	header->Initialise(this);
 	AppendChild(header);
 	header->RemoveReference();
 
 	body = Core::Factory::InstanceElement(this, "*", "datagridbody", attributes);
-	body->SetProperty(Core::PropertyId::Display, "none");
-	body->SetProperty(Core::PropertyId::Width, "auto");
+	body->SetProperty("display", "none");
+	body->SetProperty("width", "auto");
 	AppendChild(body);
 	body->RemoveReference();
 
 	body_visible = false;
 
 	root = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridroot", attributes));
-	root->SetProperty(Core::PropertyId::Display, "none");
+	root->SetProperty("display", "none");
 	root->Initialise(this);
 
-	SetProperty(Core::PropertyId::Overflow, "auto");
+	SetProperty("overflow", "auto");
 
 	new_data_source = "";
 }
@@ -109,11 +108,11 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 	// The header elements are added to the header row at the top of the table.
 	if (header_element)
 	{
-		header_element->SetProperty(Core::PropertyId::Display, "inline-block");
+		header_element->SetProperty("display", "inline-block");
 
 		// Push all the width properties from the column onto the header element.
 		Rocket::Core::String width = header_element->GetAttribute<Rocket::Core::String>("width", "100%");
-		header_element->SetProperty(Core::PropertyId::Width, width);
+		header_element->SetProperty("width", width);
 
 		header->AppendChild(header_element);
 	}
@@ -140,7 +139,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 
 	Rocket::Core::Dictionary parameters;
 	parameters["index"] = (int)(columns.size() - 1);
-	DispatchEvent(EventId::Columnadd, parameters);
+	DispatchEvent("columnadd", parameters);
 }
 
 // Returns the number of columns in this table
@@ -235,12 +234,12 @@ void ElementDataGrid::OnUpdate()
 	bool any_new_children = root->UpdateChildren();
 	if (any_new_children)
 	{
-		DispatchEvent(EventId::Rowupdate, Rocket::Core::Dictionary());
+		DispatchEvent("rowupdate", Rocket::Core::Dictionary());
 	}
 	
-	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= Rocket::Core::Math::RealToInteger(ResolveProperty(PropertyId::MinRows, 0))))
+	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= Rocket::Core::Math::RealToInteger(ResolveProperty("min-rows", 0))))
 	{
-		body->SetProperty(Core::PropertyId::Display, "block");
+		body->SetProperty("display", "block");
 		body_visible = true;
 	}
 	

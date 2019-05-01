@@ -28,9 +28,9 @@
 // Returns the values of one of this element's properties.
 // We can assume the property will exist based on the RCSS inheritance.
 template < typename T >
-T Element::GetProperty(PropertyId id)
+T Element::GetProperty(const String& name)
 {
-	const Property* property = GetProperty(id);
+	const Property* property = GetProperty(name);
 	ROCKET_ASSERTMSG(property, "Invalid property name.");
 	return property->Get< T >();
 }

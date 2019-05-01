@@ -34,7 +34,6 @@
 #include "../../Include/Rocket/Core/Property.h"
 #include "../../Include/Rocket/Core/StyleSheetKeywords.h"
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
-#include "../../Include/Rocket/Controls/ID.h"
 
 namespace Rocket {
 namespace Controls {
@@ -53,16 +52,16 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	value_element = Core::Factory::InstanceElement(element, "*", "selectvalue", Rocket::Core::XMLAttributes());
 	selection_element = Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rocket::Core::XMLAttributes());
 
-	value_element->SetProperty(Core::PropertyId::Overflow, "hidden");
+	value_element->SetProperty("overflow", "hidden");
 
-	selection_element->SetProperty(Core::PropertyId::Visibility, "hidden");
-	selection_element->SetProperty(Core::PropertyId::ZIndex, Core::Property(1.0f, Core::Property::NUMBER));
-	selection_element->SetProperty(Core::PropertyId::Clip, "none");
+	selection_element->SetProperty("visibility", "hidden");
+	selection_element->SetProperty("z-index", Core::Property(1.0f, Core::Property::NUMBER));
+	selection_element->SetProperty("clip", "none");
 
-	parent_element->AddEventListener(Core::EventId::Click, this, true);
-	parent_element->AddEventListener(Core::EventId::Blur, this);
-	parent_element->AddEventListener(Core::EventId::Focus, this);
-	parent_element->AddEventListener(Core::EventId::Keydown, this, true);
+	parent_element->AddEventListener("click", this, true);
+	parent_element->AddEventListener("blur", this);
+	parent_element->AddEventListener("focus", this);
+	parent_element->AddEventListener("keydown", this, true);
 
 	// Add the elements to our parent element.
 	parent_element->AppendChild(button_element, false);
@@ -76,12 +75,12 @@ WidgetDropDown::~WidgetDropDown()
 	//   Not always a problem, but sometimes it invalidates the layout lock in Element::RemoveChild, which results in a permanently corrupted document.
 	//   However, we do need to remove events of children.
 	for(auto& option : options)
-		option.GetElement()->RemoveEventListener(Core::EventId::Click, this);
+		option.GetElement()->RemoveEventListener("click", this);
 
-	parent_element->RemoveEventListener(Core::EventId::Click, this, true);
-	parent_element->RemoveEventListener(Core::EventId::Blur, this);
-	parent_element->RemoveEventListener(Core::EventId::Focus, this);
-	parent_element->RemoveEventListener(Core::EventId::Keydown, this, true);
+	parent_element->RemoveEventListener("click", this, true);
+	parent_element->RemoveEventListener("blur", this);
+	parent_element->RemoveEventListener("focus", this);
+	parent_element->RemoveEventListener("keydown", this, true);
 
 	button_element->RemoveReference();
 	selection_element->RemoveReference();
@@ -206,7 +205,7 @@ void WidgetDropDown::SetSelection(int selection, bool force)
 
 		Rocket::Core::Dictionary parameters;
 		parameters["value"] = value;
-		parent_element->DispatchEvent(EventId::Change, parameters);
+		parent_element->DispatchEvent("change", parameters);
 	}
 }
 
@@ -223,10 +222,10 @@ int WidgetDropDown::AddOption(const Rocket::Core::String& rml, const Rocket::Cor
 	Core::Element* element = Core::Factory::InstanceElement(selection_element, "*", "option", Rocket::Core::XMLAttributes());
 
 	// Force to block display and inject the RML. Register a click handler so we can be notified of selection.
-	element->SetProperty(Core::PropertyId::Display, "block");
-	element->SetProperty(Core::PropertyId::Clip, "auto");
+	element->SetProperty("display", "block");
+	element->SetProperty("clip", "auto");
 	element->SetInnerRML(rml);
-	element->AddEventListener(Core::EventId::Click, this);
+	element->AddEventListener("click", this);
 
 	int option_index;
 	if (before < 0 ||
@@ -261,7 +260,7 @@ void WidgetDropDown::RemoveOption(int index)
 		return;
 
 	// Remove the listener and delete the option element.
-	options[index].GetElement()->RemoveEventListener(Core::EventId::Click, this);
+	options[index].GetElement()->RemoveEventListener("click", this);
 	selection_element->RemoveChild(options[index].GetElement());
 	options.erase(options.begin() + index);
 
@@ -332,7 +331,7 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 				element = element->GetParentNode();
 			}
 
-			if (selection_element->GetProperty< int >(Core::PropertyId::Visibility) == Core::VISIBILITY_HIDDEN)
+			if (selection_element->GetProperty< int >("visibility") == Core::VISIBILITY_HIDDEN)
 				ShowSelectBox(true);
 			else
 				ShowSelectBox(false);
@@ -380,13 +379,13 @@ void WidgetDropDown::ShowSelectBox(bool show)
 {
 	if (show)
 	{
-		selection_element->SetProperty(Core::PropertyId::Visibility, "visible");
+		selection_element->SetProperty("visibility", "visible");
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
 	}
 	else
 	{
-		selection_element->SetProperty(Core::PropertyId::Visibility, "hidden");
+		selection_element->SetProperty("visibility", "hidden");
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
 	}

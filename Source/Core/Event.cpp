@@ -34,7 +34,6 @@ namespace Core {
 
 Event::Event()
 {
-	event_id = EventId::Invalid;
 	phase = PHASE_UNKNOWN;
 	interruped = false;
 	interruptible = false;
@@ -42,10 +41,9 @@ Event::Event()
 	target_element = NULL;
 }
 
-Event::Event(Element* _target_element, EventId event_id, const Dictionary& _parameters, bool _interruptible) : event_id(event_id), parameters(_parameters), target_element(_target_element), parameters_backup(_parameters), interruptible(_interruptible)
+Event::Event(Element* _target_element, const String& _type, const Dictionary& _parameters, bool _interruptible) : type(_type), parameters(_parameters), target_element(_target_element), parameters_backup(_parameters), interruptible(_interruptible)
 {
 	phase = PHASE_UNKNOWN;
-	type = GetName(event_id);
 	interruped = false;
 	current_element = NULL;
 }
@@ -74,19 +72,10 @@ const String& Event::GetType() const
 {
 	return type;
 }
-EventId Event::GetId() const
-{
-	return event_id;
-}
 
 bool Event::operator==(const String& _type) const
 {
 	return type == _type;
-}
-
-bool Event::operator==(EventId _id) const
-{
-	return event_id == _id;
 }
 
 void Event::SetPhase(EventPhase _phase)

@@ -46,15 +46,15 @@ const PropertySpecification& DecoratorInstancer::GetPropertySpecification() cons
 }
 
 // Registers a property for the decorator.
-PropertyDefinition& DecoratorInstancer::RegisterProperty(PropertyId property_id, const String& default_value)
+PropertyDefinition& DecoratorInstancer::RegisterProperty(const String& property_name, const String& default_value)
 {
-	return properties.RegisterProperty(property_id, default_value, false, false);
+	return properties.RegisterProperty(property_name, default_value, false, false);
 }
 
 // Registers a shorthand property definition.
-bool DecoratorInstancer::RegisterShorthand(PropertyId shorthand_id, const PropertyIdList& property_ids, PropertySpecification::ShorthandType type)
+bool DecoratorInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type)
 {
-	return properties.RegisterShorthand(shorthand_id, property_ids, type);
+	return properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
 // Releases the instancer.

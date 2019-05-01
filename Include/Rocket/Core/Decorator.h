@@ -39,6 +39,7 @@ namespace Core {
 
 class DecoratorInstancer;
 class Element;
+class PropertyDictionary;
 class Property;
 struct Texture;
 class TextureResource;

@@ -54,7 +54,7 @@ public:
 
 protected:
 	/// Processes 'color' and 'background-color' property changes.
-	virtual void OnPropertyChange(const Rocket::Core::PropertyIdList& changed_properties);
+	virtual void OnPropertyChange(const Rocket::Core::PropertyNameList& changed_properties);
 
 private:
 	WidgetTextInput* widget;

@@ -35,6 +35,7 @@
 namespace Rocket {
 namespace Core {
 
+class PropertyDictionary;
 struct PropertyShorthandDefinition;
 
 /**
@@ -70,30 +71,30 @@ public:
 	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
 	/// @param[in] forces_layout True if this property requires its parent to be reformatted if changed.
 	/// @return The new property definition, ready to have parsers attached.
-	PropertyDefinition& RegisterProperty(PropertyId property_id, const String& default_value, bool inherited, bool forces_layout);
+	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout);
 	/// Returns a property definition.
 	/// @param[in] property_name The name of the desired property.
 	/// @return The appropriate property definition if it could be found, NULL otherwise.
-	const PropertyDefinition* GetProperty(PropertyId property_id) const;
+	const PropertyDefinition* GetProperty(const String& property_name) const;
 
 	/// Returns the list of the names of all registered property definitions.
 	/// @return The list with stored property names.
-	const PropertyIdList& GetRegisteredProperties() const;
+	const PropertyNameList& GetRegisteredProperties() const;
 
 	/// Returns the list of the names of all registered inherited property definitions.
 	/// @return The list with stored property names.
-	const PropertyIdList& GetRegisteredInheritedProperties() const;
+	const PropertyNameList& GetRegisteredInheritedProperties() const;
 
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(PropertyId shorthand_id, const PropertyIdList& property_ids, ShorthandType type = AUTO);
+	bool RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type = AUTO);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
 	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
-	const PropertyShorthandDefinition* GetShorthand(PropertyId shorthand_id) const;
+	const PropertyShorthandDefinition* GetShorthand(const String& shorthand_name) const;
 
 	/// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 	/// @param dictionary The property dictionary which will hold all declared properties.
@@ -106,13 +107,13 @@ public:
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;
 
 private:
-	typedef UnorderedMap< PropertyId, PropertyDefinition* > PropertyMap;
-	typedef UnorderedMap< PropertyId, PropertyShorthandDefinition* > ShorthandMap;
+	typedef UnorderedMap< String, PropertyDefinition* > PropertyMap;
+	typedef UnorderedMap< String, PropertyShorthandDefinition* > ShorthandMap;
 
 	PropertyMap properties;
 	ShorthandMap shorthands;
-	PropertyIdList property_names;
-	PropertyIdList inherited_property_names;
+	PropertyNameList property_names;
+	PropertyNameList inherited_property_names;
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 };

@@ -150,28 +150,28 @@ void ElementStyleCache::GetOffsetProperties(const Property **o_top, const Proper
 	if (o_top)
 	{
 		if (!top)
-			top = style->GetProperty(PropertyId::Top);
+			top = style->GetProperty(TOP);
 		*o_top = top;
 	}
 
 	if (o_bottom)
 	{
 		if (!bottom)
-			bottom = style->GetProperty(PropertyId::Bottom);
+			bottom = style->GetProperty(BOTTOM);
 		*o_bottom = bottom;
 	}
 
 	if (o_left)
 	{
 		if (!left)
-			left = style->GetProperty(PropertyId::Left);
+			left = style->GetProperty(LEFT);
 		*o_left = left;
 	}
 
 	if (o_right)
 	{
 		if (!right)
-			right = style->GetProperty(PropertyId::Right);
+			right = style->GetProperty(RIGHT);
 		*o_right = right;
 	}
 }
@@ -181,28 +181,28 @@ void ElementStyleCache::GetBorderWidthProperties(const Property **o_border_top_w
 	if (o_border_top_width)
 	{
 		if (!border_top_width)
-			border_top_width = style->GetProperty(PropertyId::BorderTopWidth);
+			border_top_width = style->GetProperty(BORDER_TOP_WIDTH);
 		*o_border_top_width = border_top_width;
 	}
 
 	if (o_border_bottom_width)
 	{
 		if (!border_bottom_width)
-			border_bottom_width = style->GetProperty(PropertyId::BorderBottomWidth);
+			border_bottom_width = style->GetProperty(BORDER_BOTTOM_WIDTH);
 		*o_border_bottom_width = border_bottom_width;
 	}
 
 	if (o_border_left_width)
 	{
 		if (!border_left_width)
-			border_left_width = style->GetProperty(PropertyId::BorderLeftWidth);
+			border_left_width = style->GetProperty(BORDER_LEFT_WIDTH);
 		*o_border_left_width = border_left_width;
 	}
 
 	if (o_border_right_width)
 	{
 		if (!border_right_width)
-			border_right_width = style->GetProperty(PropertyId::BorderRightWidth);
+			border_right_width = style->GetProperty(BORDER_RIGHT_WIDTH);
 		*o_border_right_width = border_right_width;
 	}
 }
@@ -212,28 +212,28 @@ void ElementStyleCache::GetMarginProperties(const Property **o_margin_top, const
 	if (o_margin_top)
 	{
 		if (!margin_top)
-			margin_top = style->GetProperty(PropertyId::MarginTop);
+			margin_top = style->GetProperty(MARGIN_TOP);
 		*o_margin_top = margin_top;
 	}
 
 	if (o_margin_bottom)
 	{
 		if (!margin_bottom)
-			margin_bottom = style->GetProperty(PropertyId::MarginBottom);
+			margin_bottom = style->GetProperty(MARGIN_BOTTOM);
 		*o_margin_bottom = margin_bottom;
 	}
 
 	if (o_margin_left)
 	{
 		if (!margin_left)
-			margin_left = style->GetProperty(PropertyId::MarginLeft);
+			margin_left = style->GetProperty(MARGIN_LEFT);
 		*o_margin_left = margin_left;
 	}
 
 	if (o_margin_right)
 	{
 		if (!margin_right)
-			margin_right = style->GetProperty(PropertyId::MarginRight);
+			margin_right = style->GetProperty(MARGIN_RIGHT);
 		*o_margin_right = margin_right;
 	}
 }
@@ -243,28 +243,28 @@ void ElementStyleCache::GetPaddingProperties(const Property **o_padding_top, con
 	if (o_padding_top)
 	{
 		if (!padding_top)
-			padding_top = style->GetProperty(PropertyId::PaddingTop);
+			padding_top = style->GetProperty(PADDING_TOP);
 		*o_padding_top = padding_top;
 	}
 
 	if (o_padding_bottom)
 	{
 		if (!padding_bottom)
-			padding_bottom = style->GetProperty(PropertyId::PaddingBottom);
+			padding_bottom = style->GetProperty(PADDING_BOTTOM);
 		*o_padding_bottom = padding_bottom;
 	}
 
 	if (o_padding_left)
 	{
 		if (!padding_left)
-			padding_left = style->GetProperty(PropertyId::PaddingLeft);
+			padding_left = style->GetProperty(PADDING_LEFT);
 		*o_padding_left = padding_left;
 	}
 
 	if (o_padding_right)
 	{
 		if (!padding_right)
-			padding_right = style->GetProperty(PropertyId::PaddingRight);
+			padding_right = style->GetProperty(PADDING_RIGHT);
 		*o_padding_right = padding_right;
 	}
 }
@@ -274,14 +274,14 @@ void ElementStyleCache::GetDimensionProperties(const Property **o_width, const P
 	if (o_width)
 	{
 		if (!width)
-			width = style->GetProperty(PropertyId::Width);
+			width = style->GetProperty(WIDTH);
 		*o_width = width;
 	}
 
 	if (o_height)
 	{
 		if (!height)
-			height = style->GetProperty(PropertyId::Height);
+			height = style->GetProperty(HEIGHT);
 		*o_height = height;
 	}
 }
@@ -293,7 +293,7 @@ void ElementStyleCache::GetLocalDimensionProperties(const Property **o_width, co
 		if (!have_local_width)
 		{
 			have_local_width = true;
-			local_width = style->GetLocalProperty(PropertyId::Width);
+			local_width = style->GetLocalProperty(WIDTH);
 		}
 		*o_width = local_width;
 	}
@@ -303,7 +303,7 @@ void ElementStyleCache::GetLocalDimensionProperties(const Property **o_width, co
 		if (!have_local_height)
 		{
 			have_local_height = true;
-			local_height = style->GetLocalProperty(PropertyId::Height);
+			local_height = style->GetLocalProperty(HEIGHT);
 		}
 		*o_height = local_height;
 	}
@@ -314,14 +314,14 @@ void ElementStyleCache::GetOverflow(int *o_overflow_x, int *o_overflow_y)
 	if (o_overflow_x)
 	{
 		if (overflow_x < 0)
-			overflow_x = style->GetProperty(PropertyId::OverflowX)->Get< int >();
+			overflow_x = style->GetProperty(OVERFLOW_X)->Get< int >();
 		*o_overflow_x = overflow_x;
 	}
 
 	if (o_overflow_y)
 	{
 		if (overflow_y < 0)
-			overflow_y = style->GetProperty(PropertyId::OverflowY)->Get< int >();
+			overflow_y = style->GetProperty(OVERFLOW_Y)->Get< int >();
 		*o_overflow_y = overflow_y;
 	}
 }
@@ -329,63 +329,63 @@ void ElementStyleCache::GetOverflow(int *o_overflow_x, int *o_overflow_y)
 int ElementStyleCache::GetPosition()
 {
 	if (position < 0)
-		position = style->GetProperty(PropertyId::Position)->Get< int >();
+		position = style->GetProperty(POSITION)->Get< int >();
 	return position;
 }
 
 int ElementStyleCache::GetFloat()
 {
 	if (float_ < 0)
-		float_ = style->GetProperty(PropertyId::Float)->Get< int >();
+		float_ = style->GetProperty(FLOAT)->Get< int >();
 	return float_;
 }
 
 int ElementStyleCache::GetDisplay()
 {
 	if (display < 0)
-		display = style->GetProperty(PropertyId::Display)->Get< int >();
+		display = style->GetProperty(DISPLAY)->Get< int >();
 	return display;
 }
 
 int ElementStyleCache::GetWhitespace()
 {
 	if (whitespace < 0)
-		whitespace = style->GetProperty(PropertyId::WhiteSpace)->Get< int >();
+		whitespace = style->GetProperty(WHITE_SPACE)->Get< int >();
 	return whitespace;
 }
 
 int ElementStyleCache::GetPointerEvents()
 {
 	if (pointer_events < 0)
-		pointer_events = style->GetProperty(PropertyId::PointerEvents)->Get< int >();
+		pointer_events = style->GetProperty(POINTER_EVENTS)->Get< int >();
 	return pointer_events;
 }
 
 const Property *ElementStyleCache::GetLineHeightProperty()
 {
 	if (!line_height)
-		line_height = style->GetProperty(PropertyId::LineHeight);
+		line_height = style->GetProperty(LINE_HEIGHT);
 	return line_height;
 }
 
 int ElementStyleCache::GetTextAlign()
 {
 	if (text_align < 0)
-		text_align = style->GetProperty(PropertyId::TextAlign)->Get< int >();
+		text_align = style->GetProperty(TEXT_ALIGN)->Get< int >();
 	return text_align;
 }
 
 int ElementStyleCache::GetTextTransform()
 {
 	if (text_transform < 0)
-		text_transform = style->GetProperty(PropertyId::TextTransform)->Get< int >();
+		text_transform = style->GetProperty(TEXT_TRANSFORM)->Get< int >();
 	return text_transform;
 }
 
 const Property *ElementStyleCache::GetVerticalAlignProperty()
 {
 	if (!vertical_align)
-		vertical_align = style->GetProperty(PropertyId::VerticalAlign);
+		vertical_align = style->GetProperty(VERTICAL_ALIGN);
 	return vertical_align;
 }
 

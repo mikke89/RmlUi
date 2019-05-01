@@ -158,12 +158,12 @@ public:
 	/// @param[in] event The name of the event to attach to.
 	/// @param[in] listener Listener object to be attached.
 	/// @param[in] in_capture_phase True if the listener is to be attached to the capture phase, false for the bubble phase.
-	void AddEventListener(EventId event, EventListener* listener, bool in_capture_phase = false);
+	void AddEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
 	/// Removes an event listener from the context's root element.
 	/// @param[in] event The name of the event to detach from.
 	/// @param[in] listener Listener object to be detached.
 	/// @param[in] in_capture_phase True to detach from the capture phase, false from the bubble phase.
-	void RemoveEventListener(EventId event, EventListener* listener, bool in_capture_phase = false);
+	void RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
 
 	/// Sends a key down event into this context.
 	/// @param[in] key_identifier The key pressed.
@@ -332,7 +332,7 @@ private:
 	void ReleaseUnloadedDocuments();
 
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
-	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId event, const Dictionary& parameters, bool interruptible);
+	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible);
 
 	friend class Element;
 	friend ROCKETCORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);

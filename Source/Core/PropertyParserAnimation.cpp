@@ -227,8 +227,9 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 
 	for (const String& single_transition_value : transition_values)
 	{
+
 		Transition transition;
-		PropertyIdList target_property_ids;
+		StringList target_property_names;
 
 		StringList arguments;
 		StringUtilities::ExpandString(arguments, single_transition_value, ' ');
@@ -258,7 +259,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 					if (transition_list.transitions.size() > 0) // The all keyword can not be part of multiple definitions
 						return false;
 					transition_list.all = true;
-					target_property_ids.insert(PropertyId::All);
+					target_property_names.push_back("all");
 				}
 				else if (it->second.type == Keyword::TWEEN)
 				{
@@ -304,19 +305,17 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 				}
 				else
 				{
-					PropertyId id = GetPropertyId(argument);
-
 					// Must be a property name or shorthand, expand now
-					if (auto shorthand = StyleSheetSpecification::GetShorthand(id))
+					if (auto shorthand = StyleSheetSpecification::GetShorthand(argument))
 					{
 						// For shorthands, add each underlying property separately
 						for (const auto& property : shorthand->properties)
-							target_property_ids.insert(property.first);
+							target_property_names.push_back(property.first);
 					}
-					else if (auto definition = StyleSheetSpecification::GetProperty(id))
+					else if (auto definition = StyleSheetSpecification::GetProperty(argument))
 					{
 						// Single property
-						target_property_ids.insert(id);
+						target_property_names.push_back(argument);
 					}
 					else
 					{
@@ -328,19 +327,16 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 		}
 
 		// Validate the parsed transition
-		if (target_property_ids.empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
-			|| (transition_list.all && target_property_ids.size() != 1))
+		if (target_property_names.empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
+			|| (transition_list.all && target_property_names.size() != 1))
 		{
 			return false;
 		}
 
-		for (const auto& id : target_property_ids)
+		for (const auto& property_name : target_property_names)
 		{
-			if (id != PropertyId::Invalid)
-			{
-				transition.property_id = id;
-				transition_list.transitions.push_back(transition);
-			}
+			transition.name = property_name;
+			transition_list.transitions.push_back(transition);
 		}
 	}
 

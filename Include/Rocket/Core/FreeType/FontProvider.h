@@ -38,6 +38,7 @@ namespace Core {
 
 class FontEffect;
 class FontFaceHandle;
+class PropertyDictionary;
 
 namespace FreeType {
 

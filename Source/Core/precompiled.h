@@ -29,5 +29,6 @@
 #define ROCKETCOREPRECOMPILED_H
 
 #include "../../Include/Rocket/Core/Core.h"
+#include "StringCache.h"
 
 #endif

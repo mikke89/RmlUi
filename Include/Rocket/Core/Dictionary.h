@@ -30,8 +30,6 @@
 
 #include "Header.h"
 #include "Variant.h"
-#include "ID.h"
-#include "Property.h"
 
 namespace Rocket {
 namespace Core {
@@ -45,12 +43,6 @@ inline Variant* GetIf(Dictionary& dictionary, const String& key)
 inline const Variant* GetIf(const Dictionary& dictionary, const String& key)
 {
 	if (auto it = dictionary.find(key); it != dictionary.end())
-		return &(it->second);
-	return nullptr;
-}
-inline const Property* GetIf(const PropertyDictionary& dictionary, PropertyId property_id)
-{
-	if (auto it = dictionary.find(property_id); it != dictionary.end())
 		return &(it->second);
 	return nullptr;
 }

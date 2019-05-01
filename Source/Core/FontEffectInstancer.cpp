@@ -46,25 +46,18 @@ const PropertySpecification& FontEffectInstancer::GetPropertySpecification() con
 }
 
 // Registers a property for the font effect.
-PropertyDefinition& FontEffectInstancer::RegisterProperty(const String& property_name, const String& default_value, bool affects_generation, PropertyId* out_property_id)
+PropertyDefinition& FontEffectInstancer::RegisterProperty(const String& property_name, const String& default_value, bool affects_generation)
 {
-	PropertyId id = CreateOrGetPropertyId(ToLower(property_name));
-	if (out_property_id)
-		*out_property_id = id;
-
 	if (affects_generation)
-		volatile_properties.insert(id);
+		volatile_properties.insert(ToLower(property_name));
 
-	return properties.RegisterProperty(id, default_value, false, false);
+	return properties.RegisterProperty(property_name, default_value, false, false);
 }
 
 // Registers a shorthand property definition.
-bool FontEffectInstancer::RegisterShorthand(const String& shorthand_name, const PropertyIdList& property_ids, PropertySpecification::ShorthandType type, PropertyId* out_property_id)
+bool FontEffectInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type)
 {
-	PropertyId id = CreateOrGetPropertyId(ToLower(shorthand_name));
-	if (out_property_id)
-		*out_property_id = id;
-	return properties.RegisterShorthand(id, property_ids, type);
+	return properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
 // Releases the instancer.

@@ -90,7 +90,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 			if (self_offset_parent != this)
 			{
 				// Get the next position within our offset parent's containing block.
-				parent->PositionBlockBox(position, box, element->GetProperty< int >(PropertyId::Clear));
+				parent->PositionBlockBox(position, box, element->GetProperty< int >(CLEAR));
 				element->SetOffset(position - (self_offset_parent->GetPosition() - offset_root->GetPosition()), self_offset_parent->GetElement());
 			}
 			else
@@ -544,8 +544,8 @@ float LayoutBlockBox::InternalContentWidth() const
 		if (element)
 		{
 			const Property* width = nullptr;
-			const Property* min_width = element->GetLocalProperty(PropertyId::MinWidth);
-			const Property* max_width = element->GetLocalProperty(PropertyId::MaxWidth);
+			const Property* min_width = element->GetLocalProperty("min-width");
+			const Property* max_width = element->GetLocalProperty("max-width");
 			element->GetLocalDimensionProperties(&width, nullptr);
 			if(width)
 			{

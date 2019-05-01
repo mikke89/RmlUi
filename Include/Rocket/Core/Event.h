@@ -55,7 +55,7 @@ public:
 	/// @param[in] type The event type
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can this event have is propagation stopped?
-	Event(Element* target, EventId event_id, const Dictionary& parameters, bool interruptible = false);
+	Event(Element* target, const String& type, const Dictionary& parameters, bool interruptible = false);
 	/// Destructor
 	virtual ~Event();
 
@@ -82,14 +82,10 @@ public:
 	/// Get the event type.
 	/// @return The event type.
 	const String& GetType() const;
-	/// Get the event id.
-	/// @return The event type.
-	EventId GetId() const;
 	/// Checks if the event is of a certain type.
 	/// @param type The name of the type to check for.
 	/// @return True if the event is of the requested type, false otherwise.
 	bool operator==(const String& type) const;
-	bool operator==(EventId id) const;
 
 	/// Has the event been stopped?
 	/// @return True if the event is still propogating
@@ -118,7 +114,6 @@ private:
 	void ProjectMouse(Element* element);
 
 protected:
-	EventId event_id;
 	String type;
 	Dictionary parameters;
 

@@ -31,6 +31,7 @@
 namespace Rocket {
 namespace Core {
 
+class PropertyDictionary;
 class Stream;
 class StyleSheetNode;
 

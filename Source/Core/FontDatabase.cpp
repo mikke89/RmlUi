@@ -190,17 +190,26 @@ FontEffect* FontDatabase::GetFontEffect(const String& name, const PropertyDictio
 	//  * could be shared with decorators as well
 
 	// Generate a key so we can distinguish unique property sets quickly.
-	typedef std::map< PropertyId, String > SortedPropertyValueList;
-	SortedPropertyValueList sorted_properties;
-	for (const auto& [id, value] : properties)
+	typedef std::list< std::pair< String, String > > PropertyList;
+	PropertyList sorted_properties;
+	for (PropertyMap::const_iterator property_iterator = properties.GetProperties().begin(); property_iterator != properties.GetProperties().end(); ++property_iterator)
 	{
-		sorted_properties.emplace(id, value.Get<String>());
+		// Skip the font-effect declaration.
+		if (property_iterator->first == "font-effect")
+			continue;
+
+		PropertyList::iterator insert = sorted_properties.begin();
+		while (insert != sorted_properties.end() &&
+			   insert->first < property_iterator->first)
+		   ++insert;
+
+		sorted_properties.insert(insert, PropertyList::value_type(property_iterator->first, property_iterator->second.Get< String >()));
 	}
 
 	// Generate the font effect's key from the properties.
 	String key = name + ";";
-	for (const auto& [id, value] : sorted_properties)
-		key += GetName(id) + ":" + value + ";";
+	for (PropertyList::iterator i = sorted_properties.begin(); i != sorted_properties.end(); ++i)
+		key += i->first + ":" + i->second + ";";
 
 	// Check if we have a previously instanced effect.
 	FontEffectCache::iterator i = font_effect_cache.find(key);

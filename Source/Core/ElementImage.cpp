@@ -156,12 +156,12 @@ void ElementImage::OnAttributeChange(const Rocket::Core::AttributeNameList& chan
 		DirtyLayout();
 }
 
-void ElementImage::OnPropertyChange(const PropertyIdList& changed_properties)
+void ElementImage::OnPropertyChange(const PropertyNameList& changed_properties)
 {
     Element::OnPropertyChange(changed_properties);
 
-    if (changed_properties.find(PropertyId::ImageColor) != changed_properties.end() ||
-        changed_properties.find(PropertyId::Opacity) != changed_properties.end()) {
+    if (changed_properties.find(IMAGE_COLOR) != changed_properties.end() ||
+        changed_properties.find(OPACITY) != changed_properties.end()) {
         GenerateGeometry();
     }
 }
@@ -172,7 +172,7 @@ void ElementImage::ProcessEvent(Rocket::Core::Event& event)
 	Element::ProcessEvent(event);
 
 	if (event.GetTargetElement() == this &&
-		event == EventId::Resize)
+		event == RESIZE)
 	{
 		GenerateGeometry();
 	}
@@ -211,8 +211,8 @@ void ElementImage::GenerateGeometry()
 		texcoords[1] = Vector2f(1, 1);
 	}
 
-    float opacity = GetProperty<float>(PropertyId::Opacity);
-	Colourb quad_colour = GetProperty<Colourb>(PropertyId::ImageColor);
+    float opacity = GetProperty<float>(OPACITY);
+	Colourb quad_colour = GetProperty<Colourb>(IMAGE_COLOR);
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 	
 	Vector2f quad_size = GetBox().GetSize(Rocket::Core::Box::CONTENT).Round();

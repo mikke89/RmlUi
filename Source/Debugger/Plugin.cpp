@@ -122,14 +122,14 @@ bool Plugin::SetContext(Core::Context* context)
 	{
 		if (debug_context != NULL)
 		{
-			debug_context->RemoveEventListener(Core::EventId::Click, info_element, true);
-			debug_context->RemoveEventListener(Core::EventId::Mouseover, info_element, true);
+			debug_context->RemoveEventListener("click", info_element, true);
+			debug_context->RemoveEventListener("mouseover", info_element, true);
 		}
 
 		if (context != NULL)
 		{
-			context->AddEventListener(Core::EventId::Click, info_element, true);
-			context->AddEventListener(Core::EventId::Mouseover, info_element, true);
+			context->AddEventListener("click", info_element, true);
+			context->AddEventListener("mouseover", info_element, true);
 		}
 
 		info_element->Reset();
@@ -143,9 +143,9 @@ bool Plugin::SetContext(Core::Context* context)
 void Plugin::SetVisible(bool visibility)
 {
 	if (visibility)
-		menu_element->SetProperty(Core::PropertyId::Visibility, "visible");
+		menu_element->SetProperty("visibility", "visible");
 	else
-		menu_element->SetProperty(Core::PropertyId::Visibility, "hidden");
+		menu_element->SetProperty("visibility", "hidden");
 }
 
 // Returns the visibility of the debugger.
@@ -261,16 +261,16 @@ void Plugin::ProcessEvent(Core::Event& event)
 		if (event.GetTargetElement()->GetId() == "event-log-button")
 		{
 			if (log_element->IsVisible())
-				log_element->SetProperty(Core::PropertyId::Visibility, "hidden");
+				log_element->SetProperty("visibility", "hidden");
 			else
-				log_element->SetProperty(Core::PropertyId::Visibility, "visible");
+				log_element->SetProperty("visibility", "visible");
 		}
 		else if (event.GetTargetElement()->GetId() == "debug-info-button")
 		{
 			if (info_element->IsVisible())
-				info_element->SetProperty(Core::PropertyId::Visibility, "hidden");
+				info_element->SetProperty("visibility", "hidden");
 			else
-				info_element->SetProperty(Core::PropertyId::Visibility, "visible");
+				info_element->SetProperty("visibility", "visible");
 		}
 		else if (event.GetTargetElement()->GetId() == "outlines-button")
 		{
@@ -297,7 +297,7 @@ bool Plugin::LoadMenuElement()
 		return false;
 
 	menu_element->SetId("rkt-debug-menu");
-	menu_element->SetProperty(Core::PropertyId::Visibility, "hidden");
+	menu_element->SetProperty("visibility", "hidden");
 	menu_element->SetInnerRML(menu_rml);
 
 	// Remove our reference on the document.
@@ -321,13 +321,13 @@ bool Plugin::LoadMenuElement()
 
 	// Attach to the buttons.
 	Core::Element* event_log_button = menu_element->GetElementById("event-log-button");
-	event_log_button->AddEventListener(Core::EventId::Click, this);
+	event_log_button->AddEventListener("click", this);
 
 	Core::Element* element_info_button = menu_element->GetElementById("debug-info-button");
-	element_info_button->AddEventListener(Core::EventId::Click, this);
+	element_info_button->AddEventListener("click", this);
 
 	Core::Element* outlines_button = menu_element->GetElementById("outlines-button");
-	outlines_button->AddEventListener(Core::EventId::Click, this);
+	outlines_button->AddEventListener("click", this);
 
 	return true;
 }
@@ -339,7 +339,7 @@ bool Plugin::LoadInfoElement()
 	if (info_element == NULL)
 		return false;
 
-	info_element->SetProperty(Core::PropertyId::Visibility, "hidden");
+	info_element->SetProperty("visibility", "hidden");
 
 	if (!info_element->Initialise())
 	{
@@ -360,7 +360,7 @@ bool Plugin::LoadLogElement()
 	if (log_element == NULL)
 		return false;
 
-	log_element->SetProperty(Core::PropertyId::Visibility, "hidden");
+	log_element->SetProperty("visibility", "hidden");
 
 	if (!log_element->Initialise())
 	{

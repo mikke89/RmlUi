@@ -28,7 +28,6 @@
 #include "WidgetSlider.h"
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
-#include "../../Include/Rocket/Controls/ID.h"
 #include "../Core/Clock.h"
 
 namespace Rocket {
@@ -68,16 +67,16 @@ WidgetSlider::~WidgetSlider()
 		parent->RemoveChild(track);
 	}
 
-	parent->RemoveEventListener(Core::EventId::Blur, this);
-	parent->RemoveEventListener(Core::EventId::Focus, this);
-	parent->RemoveEventListener(Core::EventId::Keydown, this, true);
-	parent->RemoveEventListener(Core::EventId::Mousedown, this);
-	parent->RemoveEventListener(Core::EventId::Mouseup, this);
-	parent->RemoveEventListener(Core::EventId::Mouseout, this);
+	parent->RemoveEventListener("blur", this);
+	parent->RemoveEventListener("focus", this);
+	parent->RemoveEventListener("keydown", this, true);
+	parent->RemoveEventListener("mousedown", this);
+	parent->RemoveEventListener("mouseup", this);
+	parent->RemoveEventListener("mouseout", this);
 
-	parent->RemoveEventListener(Core::EventId::Drag, this);
-	parent->RemoveEventListener(Core::EventId::Dragstart, this);
-	parent->RemoveEventListener(Core::EventId::Dragend, this);
+	parent->RemoveEventListener("drag", this);
+	parent->RemoveEventListener("dragstart", this);
+	parent->RemoveEventListener("dragend", this);
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -91,7 +90,7 @@ WidgetSlider::~WidgetSlider()
 // Initialises the slider to a given orientation.
 bool WidgetSlider::Initialise()
 {
-	parent->SetProperty(Core::PropertyId::Drag, "drag");
+	parent->SetProperty("drag", "drag");
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
 	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rocket::Core::XMLAttributes());
@@ -100,8 +99,8 @@ bool WidgetSlider::Initialise()
 
 	arrows[0] = Core::Factory::InstanceElement(parent, "*", "sliderarrowdec", Rocket::Core::XMLAttributes());
 	arrows[1] = Core::Factory::InstanceElement(parent, "*", "sliderarrowinc", Rocket::Core::XMLAttributes());
-	arrows[0]->SetProperty(Core::PropertyId::Drag, "drag");
-	arrows[1]->SetProperty(Core::PropertyId::Drag, "drag");
+	arrows[0]->SetProperty("drag", "drag");
+	arrows[1]->SetProperty("drag", "drag");
 
 	if (track == NULL ||
 		bar == NULL ||
@@ -137,16 +136,16 @@ bool WidgetSlider::Initialise()
 
 	// Attach the listeners
 	// All listeners are attached to parent, ensuring that we don't get duplicate events when it bubbles from child to parent
-	parent->AddEventListener(Core::EventId::Blur, this);
-	parent->AddEventListener(Core::EventId::Focus, this);
-	parent->AddEventListener(Core::EventId::Keydown, this, true);
-	parent->AddEventListener(Core::EventId::Mousedown, this);
-	parent->AddEventListener(Core::EventId::Mouseup, this);
-	parent->AddEventListener(Core::EventId::Mouseout, this);
+	parent->AddEventListener("blur", this);
+	parent->AddEventListener("focus", this);
+	parent->AddEventListener("keydown", this, true);
+	parent->AddEventListener("mousedown", this);
+	parent->AddEventListener("mouseup", this);
+	parent->AddEventListener("mouseout", this);
 
-	parent->AddEventListener(Core::EventId::Drag, this);
-	parent->AddEventListener(Core::EventId::Dragstart, this);
-	parent->AddEventListener(Core::EventId::Dragend, this);
+	parent->AddEventListener("drag", this);
+	parent->AddEventListener("dragstart", this);
+	parent->AddEventListener("dragend", this);
 
 	return true;
 }
@@ -186,7 +185,7 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 
 	Rocket::Core::Dictionary parameters;
 	parameters["value"] = bar_position;
-	parent->DispatchEvent(EventId::Change, parameters);
+	parent->DispatchEvent("change", parameters);
 }
 
 // Returns the current position of the bar.
@@ -314,7 +313,7 @@ void WidgetSlider::FormatBar(float bar_length)
 	Rocket::Core::Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
 	{
-		if (bar->GetLocalProperty(Core::PropertyId::Height) == NULL)
+		if (bar->GetLocalProperty("height") == NULL)
 			bar_box_content.y = parent->GetBox().GetSize().y;
 	}
 
@@ -326,16 +325,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::TOP) + bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::BOTTOM));
 
-			if (bar->GetLocalProperty(Core::PropertyId::Height) == NULL)
+			if (bar->GetLocalProperty("height") == NULL)
 			{
 				bar_box_content.y = track_length * bar_length;
 
 				// Check for 'min-height' restrictions.
-				float min_track_length = bar->ResolveProperty(Core::PropertyId::MinHeight, track_length);
+				float min_track_length = bar->ResolveProperty("min-height", track_length);
 				bar_box_content.y = Rocket::Core::Math::Max(min_track_length, bar_box_content.y);
 
 				// Check for 'max-height' restrictions.
-				float max_track_length = bar->ResolveProperty(Core::PropertyId::MaxHeight, track_length);
+				float max_track_length = bar->ResolveProperty("max-height", track_length);
 				if (max_track_length > 0)
 					bar_box_content.y = Rocket::Core::Math::Min(max_track_length, bar_box_content.y);
 			}
@@ -347,16 +346,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::LEFT) + bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::RIGHT));
 
-			if (bar->GetLocalProperty(Core::PropertyId::Width) == NULL)
+			if (bar->GetLocalProperty("width") == NULL)
 			{
 				bar_box_content.x = track_length * bar_length;
 
 				// Check for 'min-width' restrictions.
-				float min_track_length = bar->ResolveProperty(Core::PropertyId::MinWidth, track_length);
+				float min_track_length = bar->ResolveProperty("min-width", track_length);
 				bar_box_content.x = Rocket::Core::Math::Max(min_track_length, bar_box_content.x);
 
 				// Check for 'max-width' restrictions.
-				float max_track_length = bar->ResolveProperty(Core::PropertyId::MaxWidth, track_length);
+				float max_track_length = bar->ResolveProperty("max-width", track_length);
 				if (max_track_length > 0)
 					bar_box_content.x = Rocket::Core::Math::Min(max_track_length, bar_box_content.x);
 			}

@@ -54,7 +54,7 @@ void ElementScroll::ClearScrollbars()
 	{
 		if (scrollbars[i].element != NULL)
 		{
-			scrollbars[i].element->RemoveEventListener(EventId::Scrollchange, this);
+			scrollbars[i].element->RemoveEventListener("scrollchange", this);
 			scrollbars[i] = Scrollbar();
 		}
 	}
@@ -82,7 +82,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 	if (!scrollbars[orientation].enabled)
 	{
 		CreateScrollbar(orientation);
-		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, "visible");
+		scrollbars[orientation].element->SetProperty(VISIBILITY, "visible");
 		scrollbars[orientation].enabled = true;
 	}
 
@@ -97,7 +97,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 		if (box.GetSize().y < 0)
 			scrollbars[orientation].size = box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
 										   box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) +
-										   scrollbars[orientation].element->ResolveProperty(PropertyId::Height, element_width);
+										   scrollbars[orientation].element->ResolveProperty(HEIGHT, element_width);
 		else
 			scrollbars[orientation].size = box.GetSize(Box::MARGIN).y;
 	}
@@ -108,7 +108,7 @@ void ElementScroll::DisableScrollbar(Orientation orientation)
 {
 	if (scrollbars[orientation].enabled)
 	{
-		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, "hidden");
+		scrollbars[orientation].element->SetProperty(VISIBILITY, "hidden");
 		scrollbars[orientation].enabled = false;
 	}
 }
@@ -192,7 +192,7 @@ void ElementScroll::FormatScrollbars()
 		}
 
 		float slider_length = containing_block[1 - i];
-		float user_scrollbar_margin = scrollbars[i].element->ResolveProperty(PropertyId::ScrollbarMargin, slider_length);
+		float user_scrollbar_margin = scrollbars[i].element->ResolveProperty(SCROLLBAR_MARGIN, slider_length);
 		float min_scrollbar_margin = GetScrollbarSize(i == VERTICAL ? HORIZONTAL : VERTICAL);
 		slider_length -= Math::Max(user_scrollbar_margin, min_scrollbar_margin);
 
@@ -218,12 +218,12 @@ void ElementScroll::FormatScrollbars()
 		corner->SetBox(corner_box);
 		corner->SetOffset(containing_block - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
 
-		corner->SetProperty(PropertyId::Visibility, "visible");
+		corner->SetProperty(VISIBILITY, "visible");
 	}
 	else
 	{
 		if (corner != NULL)
-			corner->SetProperty(PropertyId::Visibility, "hidden");
+			corner->SetProperty(VISIBILITY, "hidden");
 	}
 }
 
@@ -249,8 +249,8 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 		return true;
 
 	scrollbars[orientation].element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
-	scrollbars[orientation].element->AddEventListener(EventId::Scrollchange, this);
-	scrollbars[orientation].element->SetProperty(PropertyId::Clip, "1");
+	scrollbars[orientation].element->AddEventListener("scrollchange", this);
+	scrollbars[orientation].element->SetProperty(CLIP, "1");
 
 	scrollbars[orientation].widget = new WidgetSliderScroll(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetSlider::VERTICAL : WidgetSlider::HORIZONTAL);

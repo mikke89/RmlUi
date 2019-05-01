@@ -27,7 +27,6 @@
 
 #include "InputTypeCheckbox.h"
 #include "../../Include/Rocket/Controls/ElementFormControlInput.h"
-#include "../../Include/Rocket/Controls/ID.h"
 
 namespace Rocket {
 namespace Controls {
@@ -57,7 +56,7 @@ bool InputTypeCheckbox::OnAttributeChange(const Core::AttributeNameList& changed
 
 		Rocket::Core::Dictionary parameters;
 		parameters["value"] = Rocket::Core::String(checked ? GetValue() : "");
-		element->DispatchEvent(EventId::Change, parameters);
+		element->DispatchEvent("change", parameters);
 	}
 
 	return true;

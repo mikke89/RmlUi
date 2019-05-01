@@ -279,30 +279,30 @@ void ElementTextDefault::SuppressAutoLayout()
 	dirty_layout_on_change = false;
 }
 
-void ElementTextDefault::OnPropertyChange(const PropertyIdList& changed_properties)
+void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
 	bool colour_changed = false;
 	bool font_face_changed = false;
 
-	if (changed_properties.find(PropertyId::Color) != changed_properties.end() || 
-		changed_properties.find(PropertyId::Opacity) != changed_properties.end())
+	if (changed_properties.find(COLOR) != changed_properties.end() || 
+		changed_properties.find(OPACITY) != changed_properties.end())
 	{
 		// Fetch our (potentially) new colour.
-		Colourb new_colour = GetProperty(PropertyId::Color)->value.Get< Colourb >();
-		float opacity = GetProperty(PropertyId::Opacity)->value.Get< float>();
+		Colourb new_colour = GetProperty(COLOR)->value.Get< Colourb >();
+		float opacity = GetProperty(OPACITY)->value.Get< float>();
 		new_colour.alpha = byte(opacity * float(new_colour.alpha));
 		colour_changed = colour != new_colour;
 		if (colour_changed)
 			colour = new_colour;
 	}
 
-	if (changed_properties.find(PropertyId::FontFamily) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontCharset) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontWeight) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontStyle) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontSize) != changed_properties.end())
+	if (changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
+		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
+		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
+		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
+		changed_properties.find(FONT_SIZE) != changed_properties.end())
 	{
 		font_face_changed = true;
 
@@ -310,9 +310,9 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdList& changed_properti
 		font_dirty = true;
 	}
 
-	if (changed_properties.find(PropertyId::TextDecoration) != changed_properties.end())
+	if (changed_properties.find(TEXT_DECORATION) != changed_properties.end())
 	{
-		decoration_property = GetProperty< int >(PropertyId::TextDecoration);
+		decoration_property = GetProperty< int >(TEXT_DECORATION);
 		if (decoration_property != TEXT_DECORATION_NONE)
 		{
 			if (decoration_property != generated_decoration)

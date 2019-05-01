@@ -45,10 +45,9 @@ class FontEffect;
 // PseudoClassPropertyMap defined in StyleSheetNode.h ... bit clumsy). Here the properties are stored as a list
 // of definitions against each property name in specificity-order, along with the pseudo-class requirements for each
 // one. This makes it much more straight-forward to query at run-time.
-//TODO Replace with property IDs
 typedef std::pair< StringList, Property > PseudoClassProperty;
 typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef UnorderedMap< PropertyId, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+typedef UnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
 
 typedef UnorderedMap< String, Decorator* > DecoratorMap;
 typedef std::map< StringList, DecoratorMap > PseudoClassDecoratorMap;
@@ -77,19 +76,19 @@ public:
 	/// @param[in] name The name of the property to return.
 	/// @param[in] pseudo_classes The pseudo-classes currently active on the calling element.
 	/// @return The property defined against the give name, or NULL if no such property was found.
-	const Property* GetProperty(PropertyId id, const PseudoClassList& pseudo_classes) const;
+	const Property* GetProperty(const String& name, const PseudoClassList& pseudo_classes) const;
 
 	/// Returns the list of properties this element definition defines for an element with the given set of
 	/// pseudo-classes.
 	/// @param[out] property_names The list to store the defined properties in.
 	/// @param[in] pseudo_classes The pseudo-classes defined on the querying element.
-	void GetDefinedProperties(PropertyIdList& property_ids, const PseudoClassList& pseudo_classes) const;
+	void GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes) const;
 	/// Returns the list of properties this element definition has explicit definitions for involving the given
 	/// pseudo-class.
 	/// @param[out] property_names The list of store the newly defined / undefined properties in.
 	/// @param[in] pseudo_classes The list of pseudo-classes currently set on the element (post-change).
 	/// @param[in] pseudo_class The pseudo-class that was just activated or deactivated.
-	void GetDefinedProperties(PropertyIdList& property_ids, const PseudoClassList& pseudo_classes, const String& pseudo_class) const;
+	void GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes, const String& pseudo_class) const;
 
 	/// Iterates over the properties in the definition.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch.
@@ -98,7 +97,7 @@ public:
 	/// @param[out] property_name The name of the property at the specified index.
 	/// @param[out] property The property at the specified index.
 	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, const PseudoClassList& pseudo_classes, PseudoClassList& property_pseudo_classes, PropertyId& property_id, const Property*& property) const;
+	bool IterateProperties(int& index, const PseudoClassList& pseudo_classes, PseudoClassList& property_pseudo_classes, String& property_name, const Property*& property) const;
 
 	/// Returns the list of the element definition's instanced decorators in the default state.
 	/// @return The list of instanced decorators.

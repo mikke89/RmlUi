@@ -47,7 +47,7 @@ struct AnimationKey {
 class ElementAnimation
 {
 private:
-	PropertyId property_id;
+	String property_name;
 
 	float duration;           // for a single iteration
 	int num_iterations;       // -1 for infinity
@@ -68,13 +68,13 @@ private:
 	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
 public:
 	ElementAnimation() {}
-	ElementAnimation(PropertyId property_id, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition);
+	ElementAnimation(const String& property_name, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition);
 
 	bool AddKey(float target_time, const Property & property, Element & element, Tween tween, bool extend_duration);
 
 	Property UpdateAndGetProperty(double time, Element& element);
 
-	PropertyId GetPropertyId() const { return property_id; }
+	const String& GetPropertyName() const { return property_name; }
 	float GetDuration() const { return duration; }
 	bool IsComplete() const { return animation_complete; }
 	bool IsTransition() const { return is_transition; }

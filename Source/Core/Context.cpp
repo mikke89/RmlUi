@@ -50,7 +50,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_posit
 	root = Factory::InstanceElement(NULL, "*", "#root", XMLAttributes());
 	root->SetId(name);
 	root->SetOffset(Vector2f(0, 0), NULL);
-	root->SetProperty(PropertyId::ZIndex, "0");
+	root->SetProperty(Z_INDEX, "0");
 
 	Element* element = Factory::InstanceElement(NULL, "body", "body", XMLAttributes());
 	cursor_proxy = dynamic_cast< ElementDocument* >(element);
@@ -279,7 +279,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	document->UpdateDocument();
 
 	PluginRegistry::NotifyDocumentLoad(document);
-	document->DispatchEvent(EventId::Load, Dictionary(), false);
+	document->DispatchEvent(LOAD, Dictionary(), false);
 
 	return document;
 }
@@ -317,7 +317,7 @@ void Context::UnloadDocument(ElementDocument* _document)
 	if (document->GetParentNode() == root)
 	{
 		// Dispatch the unload notifications.
-		document->DispatchEvent(EventId::Unload, Dictionary(), false);
+		document->DispatchEvent(UNLOAD, Dictionary(), false);
 		PluginRegistry::NotifyDocumentUnload(document);
 
 		// Remove the document from the context.
@@ -455,13 +455,13 @@ void Context::PushDocumentToBack(ElementDocument* document)
 }
 
 // Adds an event listener to the root element.
-void Context::AddEventListener(EventId event, EventListener* listener, bool in_capture_phase)
+void Context::AddEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
 	root->AddEventListener(event, listener, in_capture_phase);
 }
 
 // Removes an event listener from the root element.
-void Context::RemoveEventListener(EventId event, EventListener* listener, bool in_capture_phase)
+void Context::RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
 	root->RemoveEventListener(event, listener, in_capture_phase);
 }
@@ -475,9 +475,9 @@ bool Context::ProcessKeyDown(Input::KeyIdentifier key_identifier, int key_modifi
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
 
 	if (focus)
-		return focus->DispatchEvent(EventId::Keydown, parameters, true);
+		return focus->DispatchEvent(KEYDOWN, parameters, true);
 	else
-		return root->DispatchEvent(EventId::Keydown, parameters, true);
+		return root->DispatchEvent(KEYDOWN, parameters, true);
 }
 
 // Sends a key up event into Rocket.
@@ -489,9 +489,9 @@ bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
 
 	if (focus)
-		return focus->DispatchEvent(EventId::Keyup, parameters, true);
+		return focus->DispatchEvent(KEYUP, parameters, true);
 	else
-		return root->DispatchEvent(EventId::Keyup, parameters, true);
+		return root->DispatchEvent(KEYUP, parameters, true);
 }
 
 // Sends a single character of text as text input into Rocket.
@@ -502,9 +502,9 @@ bool Context::ProcessTextInput(word character)
 	parameters["data"] = character;
 
 	if (focus)
-		return focus->DispatchEvent(EventId::Textinput, parameters, true);
+		return focus->DispatchEvent(TEXTINPUT, parameters, true);
 	else
-		return root->DispatchEvent(EventId::Textinput, parameters, true);
+		return root->DispatchEvent(TEXTINPUT, parameters, true);
 }
 
 // Sends a string of text as text input into Rocket.
@@ -519,9 +519,9 @@ bool Context::ProcessTextInput(const String& string)
 		parameters["data"] = string[i];
 
 		if (focus)
-			consumed = focus->DispatchEvent(EventId::Textinput, parameters, true) && consumed;
+			consumed = focus->DispatchEvent(TEXTINPUT, parameters, true) && consumed;
 		else
-			consumed = root->DispatchEvent(EventId::Textinput, parameters, true) && consumed;
+			consumed = root->DispatchEvent(TEXTINPUT, parameters, true) && consumed;
 	}
 
 	return consumed;
@@ -558,11 +558,11 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 	{
 		if (hover)
 		{
-			hover->DispatchEvent(EventId::Mousemove, parameters, true);
+			hover->DispatchEvent(MOUSEMOVE, parameters, true);
 
 			if (drag_hover &&
 				drag_verbose)
-				drag_hover->DispatchEvent(EventId::Dragmove, drag_parameters, true);
+				drag_hover->DispatchEvent(DRAGMOVE, drag_parameters, true);
 		}
 	}
 }
@@ -570,10 +570,10 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 static Element* FindFocusElement(Element* element)
 {
 	ElementDocument* owner_document = element->GetOwnerDocument();
-	if (!owner_document || owner_document->GetProperty< int >(PropertyId::Focus) == FOCUS_NONE)
+	if (!owner_document || owner_document->GetProperty< int >(FOCUS) == FOCUS_NONE)
 		return NULL;
 	
-	while (element && element->GetProperty< int >(PropertyId::Focus) == FOCUS_NONE)
+	while (element && element->GetProperty< int >(FOCUS) == FOCUS_NONE)
 	{
 		element = element->GetParentNode();
 	}
@@ -610,7 +610,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		
 		// Call 'onmousedown' on every item in the hover chain, and copy the hover chain to the active chain.
 		if (hover)
-			propogate = hover->DispatchEvent(EventId::Mousedown, parameters, true);
+			propogate = hover->DispatchEvent(MOUSEDOWN, parameters, true);
 
 		if (propogate)
 		{
@@ -621,7 +621,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 				float(click_time - last_click_time) < DOUBLE_CLICK_TIME)
 			{
 				if (hover)
-					propogate = hover->DispatchEvent(EventId::Dblclick, parameters, true);
+					propogate = hover->DispatchEvent(DBLCLICK, parameters, true);
 
 				last_click_element = NULL;
 				last_click_time = 0;
@@ -644,7 +644,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			drag = hover;
 			while (drag)
 			{
-				int drag_style = drag->GetProperty(PropertyId::Drag)->value.Get< int >();
+				int drag_style = drag->GetProperty(DRAG)->value.Get< int >();
 				switch (drag_style)
 				{
 					case DRAG_NONE:		drag = drag->GetParentNode(); continue;
@@ -660,7 +660,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	{
 		// Not the primary mouse button, so we're not doing any special processing.
 		if (hover)
-			hover->DispatchEvent(EventId::Mousedown, parameters, true);
+			hover->DispatchEvent(MOUSEDOWN, parameters, true);
 	}
 }
 
@@ -676,13 +676,13 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	{
 		// The elements in the new hover chain have the 'onmouseup' event called on them.
 		if (hover)
-			hover->DispatchEvent(EventId::Mouseup, parameters, true);
+			hover->DispatchEvent(MOUSEUP, parameters, true);
 
 		// If the active element (the one that was being hovered over when the mouse button was pressed) is still being
 		// hovered over, we click it.
 		if (hover && active && active == FindFocusElement(*hover))
 		{
-			active->DispatchEvent(EventId::Click, parameters, true);
+			active->DispatchEvent(CLICK, parameters, true);
 		}
 
 		// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
@@ -703,12 +703,12 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 				{
 					if (drag_verbose)
 					{
-						drag_hover->DispatchEvent(EventId::Dragdrop, drag_parameters, true);
-						drag_hover->DispatchEvent(EventId::Dragout, drag_parameters, true);
+						drag_hover->DispatchEvent(DRAGDROP, drag_parameters, true);
+						drag_hover->DispatchEvent(DRAGOUT, drag_parameters, true);
 					}
 				}
 
-				drag->DispatchEvent(EventId::Dragend, drag_parameters, true);
+				drag->DispatchEvent(DRAGEND, drag_parameters, true);
 
 				ReleaseDragClone();
 			}
@@ -722,7 +722,7 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	{
 		// Not the left mouse button, so we're not doing any special processing.
 		if (hover)
-			hover->DispatchEvent(EventId::Mouseup, parameters, true);
+			hover->DispatchEvent(MOUSEUP, parameters, true);
 	}
 }
 
@@ -735,7 +735,7 @@ bool Context::ProcessMouseWheel(int wheel_delta, int key_modifier_state)
 		GenerateKeyModifierEventParameters(scroll_parameters, key_modifier_state);
 		scroll_parameters["wheel_delta"] = wheel_delta;
 
-		return hover->DispatchEvent(EventId::Mousescroll, scroll_parameters, true);
+		return hover->DispatchEvent(MOUSESCROLL, scroll_parameters, true);
 	}
 
 	return true;
@@ -821,7 +821,7 @@ void Context::OnElementRemove(Element* element)
 
 	Dictionary parameters;
 	GenerateMouseEventParameters(parameters, -1);
-	SendEvents(old_hover_chain, hover_chain, EventId::Mouseout, parameters, true);
+	SendEvents(old_hover_chain, hover_chain, MOUSEOUT, parameters, true);
 }
 
 // Internal callback for when a new element gains focus
@@ -857,8 +857,8 @@ bool Context::OnFocusChange(Element* new_focus)
 	Dictionary parameters;
 
 	// Send out blur/focus events.
-	SendEvents(old_chain, new_chain, EventId::Blur, parameters, false);
-	SendEvents(new_chain, old_chain, EventId::Focus, parameters, false);
+	SendEvents(old_chain, new_chain, BLUR, parameters, false);
+	SendEvents(new_chain, old_chain, FOCUS, parameters, false);
 
 	focus = new_focus;
 
@@ -866,7 +866,7 @@ bool Context::OnFocusChange(Element* new_focus)
 	ElementDocument* document = focus->GetOwnerDocument();
 	if (document != NULL)
 	{
-		const Property* z_index_property = document->GetProperty(PropertyId::ZIndex);
+		const Property* z_index_property = document->GetProperty(Z_INDEX);
 		if (z_index_property->unit == Property::KEYWORD &&
 			z_index_property->value.Get< int >() == Z_INDEX_AUTO)
 			document->PullToFront();
@@ -893,7 +893,7 @@ void Context::GenerateClickEvent(Element* element)
 	Dictionary parameters;
 	GenerateMouseEventParameters(parameters, 0);
 
-	element->DispatchEvent(EventId::Click, parameters, true);
+	element->DispatchEvent(CLICK, parameters, true);
 }
 
 // Updates the current hover elements, sending required events.
@@ -911,17 +911,17 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				Dictionary drag_start_parameters = drag_parameters;
 				drag_start_parameters["mouse_x"] = old_mouse_position.x;
 				drag_start_parameters["mouse_y"] = old_mouse_position.y;
-				drag->DispatchEvent(EventId::Dragstart, drag_start_parameters);
+				drag->DispatchEvent(DRAGSTART, drag_start_parameters);
 				drag_started = true;
 
-				if (drag->GetProperty< int >(PropertyId::Drag) == DRAG_CLONE)
+				if (drag->GetProperty< int >(DRAG) == DRAG_CLONE)
 				{
 					// Clone the element and attach it to the mouse cursor.
 					CreateDragClone(*drag);
 				}
 			}
 
-			drag->DispatchEvent(EventId::Drag, drag_parameters);
+			drag->DispatchEvent(DRAG, drag_parameters);
 		}
 	}
 
@@ -931,8 +931,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	{
 		String new_mouse_cursor;
 
-		if (hover && hover->GetProperty(PropertyId::Cursor)->unit != Property::KEYWORD)
-			new_mouse_cursor = hover->GetProperty< String >(PropertyId::Cursor);
+		if (hover && hover->GetProperty(CURSOR)->unit != Property::KEYWORD)
+			new_mouse_cursor = hover->GetProperty< String >(CURSOR);
 
 		GetSystemInterface()->SetMouseCursor(new_mouse_cursor);
 	}
@@ -947,8 +947,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	}
 
 	// Send mouseout / mouseover events.
-	SendEvents(hover_chain, new_hover_chain, EventId::Mouseout, parameters, true);
-	SendEvents(new_hover_chain, hover_chain, EventId::Mouseover, parameters, true);
+	SendEvents(hover_chain, new_hover_chain, MOUSEOUT, parameters, true);
+	SendEvents(new_hover_chain, hover_chain, MOUSEOVER, parameters, true);
 
 	// Send out drag events.
 	if (drag)
@@ -979,8 +979,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 			drag_verbose)
 		{
 			// Send out ondragover and ondragout events as appropriate.
-			SendEvents(drag_hover_chain, new_drag_hover_chain, EventId::Dragout, drag_parameters, true);
-			SendEvents(new_drag_hover_chain, drag_hover_chain, EventId::Dragover, drag_parameters, true);
+			SendEvents(drag_hover_chain, new_drag_hover_chain, DRAGOUT, drag_parameters, true);
+			SendEvents(new_drag_hover_chain, drag_hover_chain, DRAGOVER, drag_parameters, true);
 		}
 
 		drag_hover_chain.swap(new_drag_hover_chain);
@@ -1100,9 +1100,9 @@ void Context::CreateDragClone(Element* element)
 
 	// Set all the required properties and pseudo-classes on the clone.
 	drag_clone->SetPseudoClass("drag", true);
-	drag_clone->SetProperty(PropertyId::Position, "absolute");
-	drag_clone->SetProperty(PropertyId::Left, Property(element->GetAbsoluteLeft() - element->GetBox().GetEdge(Box::MARGIN, Box::LEFT) - mouse_position.x, Property::PX));
-	drag_clone->SetProperty(PropertyId::Top, Property(element->GetAbsoluteTop() - element->GetBox().GetEdge(Box::MARGIN, Box::TOP) - mouse_position.y, Property::PX));
+	drag_clone->SetProperty("position", "absolute");
+	drag_clone->SetProperty("left", Property(element->GetAbsoluteLeft() - element->GetBox().GetEdge(Box::MARGIN, Box::LEFT) - mouse_position.x, Property::PX));
+	drag_clone->SetProperty("top", Property(element->GetAbsoluteTop() - element->GetBox().GetEdge(Box::MARGIN, Box::TOP) - mouse_position.y, Property::PX));
 }
 
 // Releases the drag clone, if one exists.
@@ -1169,7 +1169,7 @@ void Context::ReleaseUnloadedDocuments()
 }
 
 // Sends the specified event to all elements in new_items that don't appear in old_items.
-void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId event, const Dictionary& parameters, bool interruptible)
+void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible)
 {
 	ElementList elements;
 	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));

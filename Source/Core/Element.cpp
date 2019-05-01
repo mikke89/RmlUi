@@ -439,7 +439,7 @@ void Element::SetBox(const Box& box)
 		border->DirtyBorder();
 		decoration->ReloadDecorators();
 
-		DispatchEvent(EventId::Resize, Dictionary());
+		DispatchEvent(RESIZE, Dictionary());
 	}
 }
 
@@ -447,7 +447,7 @@ void Element::SetBox(const Box& box)
 void Element::AddBox(const Box& box)
 {
 	boxes.push_back(box);
-	DispatchEvent(EventId::Resize, Dictionary());
+	DispatchEvent(RESIZE, Dictionary());
 
 	background->DirtyBackground();
 	border->DirtyBorder();
@@ -527,33 +527,33 @@ FontFaceHandle* Element::GetFontFaceHandle() const
 }
 
 // Sets a local property override on the element.
-bool Element::SetProperty(PropertyId property_id, const String& value)
+bool Element::SetProperty(const String& name, const String& value)
 {
-	return style->SetProperty(property_id, value);
+	return style->SetProperty(name, value);
 }
 
 // Removes a local property override on the element.
-void Element::RemoveProperty(PropertyId property_id)
+void Element::RemoveProperty(const String& name)
 {
-	style->RemoveProperty(property_id);
+	style->RemoveProperty(name);
 }
 
 // Sets a local property override on the element to a pre-parsed value.
-bool Element::SetProperty(PropertyId property_id, const Property& property)
+bool Element::SetProperty(const String& name, const Property& property)
 {
-	return style->SetProperty(property_id, property);
+	return style->SetProperty(name, property);
 }
 
 // Returns one of this element's properties.
-const Property* Element::GetProperty(PropertyId property_id)
+const Property* Element::GetProperty(const String& name)
 {
-	return style->GetProperty(property_id);
+	return style->GetProperty(name);	
 }
 
 // Returns one of this element's properties.
-const Property* Element::GetLocalProperty(PropertyId property_id)
+const Property* Element::GetLocalProperty(const String& name)
 {
-	return style->GetLocalProperty(property_id);
+	return style->GetLocalProperty(name);
 }
 
 const PropertyMap * Element::GetLocalProperties()
@@ -562,9 +562,9 @@ const PropertyMap * Element::GetLocalProperties()
 }
 
 // Resolves one of this element's style.
-float Element::ResolveProperty(PropertyId property_id, float base_value)
+float Element::ResolveProperty(const String& name, float base_value)
 {
-	return style->ResolveProperty(property_id, base_value);
+	return style->ResolveProperty(name, base_value);
 }
 
 // Resolves one of this element's style.
@@ -902,16 +902,16 @@ const Vector2f Element::Project(const Vector2f& point) noexcept
 		// return a value that's pretty sure to not match anything,
 		// since this case has nothing to do with the user `picking'
 		// anything.
-		constexpr float inf = std::numeric_limits< float >::infinity();
+		float inf = std::numeric_limits< float >::infinity();
 		return Vector2f(-inf, -inf);
 	}
 }
 
 
 // Iterates over the properties defined on this element.
-bool Element::IterateProperties(int& index, PseudoClassList& pseudo_classes, PropertyId& property_id, const Property*& property) const
+bool Element::IterateProperties(int& index, PseudoClassList& pseudo_classes, String& name, const Property*& property) const
 {
-	return style->IterateProperties(index, pseudo_classes, property_id, property);
+	return style->IterateProperties(index, pseudo_classes, name, property);
 }
 
 // Sets or removes a pseudo-class on the element.
@@ -1120,7 +1120,7 @@ void Element::SetScrollLeft(float scroll_left)
 	scroll->UpdateScrollbar(ElementScroll::HORIZONTAL);
 	DirtyOffset();
 
-	DispatchEvent(EventId::Scroll, Dictionary());
+	DispatchEvent("scroll", Dictionary());
 }
 
 // Gets the top scroll offset of the element.
@@ -1136,7 +1136,7 @@ void Element::SetScrollTop(float scroll_top)
 	scroll->UpdateScrollbar(ElementScroll::VERTICAL);
 	DirtyOffset();
 
-	DispatchEvent(EventId::Scroll, Dictionary());
+	DispatchEvent("scroll", Dictionary());
 }
 
 // Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
@@ -1268,7 +1268,7 @@ void Element::SetInnerRML(const String& rml)
 bool Element::Focus()
 {
 	// Are we allowed focus?
-	int focus_property = GetProperty< int >(PropertyId::Focus);
+	int focus_property = GetProperty< int >(FOCUS);
 	if (focus_property == FOCUS_NONE)
 		return false;
 
@@ -1325,21 +1325,21 @@ void Element::Click()
 }
 
 // Adds an event listener
-void Element::AddEventListener(EventId event_id, EventListener* listener, bool in_capture_phase)
+void Element::AddEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
-	event_dispatcher->AttachEvent(event_id, listener, in_capture_phase);
+	event_dispatcher->AttachEvent(event, listener, in_capture_phase);
 }
 
 // Removes an event listener from this element.
-void Element::RemoveEventListener(EventId event_id, EventListener* listener, bool in_capture_phase)
+void Element::RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
-	event_dispatcher->DetachEvent(event_id, listener, in_capture_phase);
+	event_dispatcher->DetachEvent(event, listener, in_capture_phase);
 }
 
 // Dispatches the specified event
-bool Element::DispatchEvent(EventId event_id, const Dictionary& parameters, bool interruptible)
+bool Element::DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible)
 {
-	return event_dispatcher->DispatchEvent(this, event_id, parameters, interruptible);
+	return event_dispatcher->DispatchEvent(this, event, parameters, interruptible);
 }
 
 // Scrolls the parent element's contents so that this element is visible.
@@ -1356,8 +1356,8 @@ void Element::ScrollIntoView(bool align_with_top)
 	Element* scroll_parent = parent;
 	while (scroll_parent != NULL)
 	{
-		int overflow_x_property = scroll_parent->GetProperty< int >(PropertyId::OverflowX);
-		int overflow_y_property = scroll_parent->GetProperty< int >(PropertyId::OverflowY);
+		int overflow_x_property = scroll_parent->GetProperty< int >(OVERFLOW_X);
+		int overflow_y_property = scroll_parent->GetProperty< int >(OVERFLOW_Y);
 
 		if ((overflow_x_property != OVERFLOW_VISIBLE &&
 			 scroll_parent->GetScrollWidth() > scroll_parent->GetClientWidth()) ||
@@ -1642,12 +1642,12 @@ bool Element::IsClippingEnabled()
 	if (clipping_state_dirty)
 	{
 		// Is clipping enabled for this element, yes unless both overlow properties are set to visible
-		clipping_enabled = style->GetProperty(PropertyId::OverflowX)->Get< int >() != OVERFLOW_VISIBLE
-							|| style->GetProperty(PropertyId::OverflowY)->Get< int >() != OVERFLOW_VISIBLE;
+		clipping_enabled = style->GetProperty(OVERFLOW_X)->Get< int >() != OVERFLOW_VISIBLE 
+							|| style->GetProperty(OVERFLOW_Y)->Get< int >() != OVERFLOW_VISIBLE;
 		
 		// Get the clipping ignore depth from the clip property
 		clipping_ignore_depth = 0;
-		const Property* clip_property = GetProperty(PropertyId::Clip);
+		const Property* clip_property = GetProperty(CLIP);
 		if (clip_property->unit == Property::NUMBER)
 			clipping_ignore_depth = clip_property->Get< int >();
 		else if (clip_property->Get< int >() == CLIP_NONE)
@@ -1725,13 +1725,16 @@ void Element::OnAttributeChange(const AttributeNameList& changed_attributes)
 		StyleSheetParser parser;
 		parser.ParseProperties(properties, GetAttribute< String >("style", ""));
 
-		for (auto& [id, value] : properties)
-			SetProperty(id, value);
+		Rocket::Core::PropertyMap property_map = properties.GetProperties();
+		for (Rocket::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
+		{
+			SetProperty((*i).first, (*i).second);
+		}
 	}
 }
 
 // Called when properties on the element are changed.
-void Element::OnPropertyChange(const PropertyIdList& changed_properties)
+void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 {
 	bool all_dirty = false;
 	{
@@ -1749,9 +1752,9 @@ void Element::OnPropertyChange(const PropertyIdList& changed_properties)
 		else
 		{
 			// Force a relayout if any of the changed properties require it.
-			for (const auto& p : changed_properties)
+			for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
 			{
-				const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(p);
+				const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
 				if (property_definition)
 				{
 					if (property_definition->IsLayoutForced())
@@ -1765,11 +1768,11 @@ void Element::OnPropertyChange(const PropertyIdList& changed_properties)
 	}
 
 	// Update the visibility.
-	if (all_dirty || changed_properties.find(PropertyId::Visibility) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Display) != changed_properties.end())
+	if (all_dirty || changed_properties.find(VISIBILITY) != changed_properties.end() ||
+		changed_properties.find(DISPLAY) != changed_properties.end())
 	{
 		bool new_visibility = GetDisplay() != DISPLAY_NONE &&
-							  GetProperty< int >(PropertyId::Visibility) == VISIBILITY_VISIBLE;
+							  GetProperty< int >(VISIBILITY) == VISIBILITY_VISIBLE;
 
 		if (visible != new_visibility)
 		{
@@ -1780,7 +1783,7 @@ void Element::OnPropertyChange(const PropertyIdList& changed_properties)
 		}
 
 		if (all_dirty || 
-			changed_properties.find(PropertyId::Display) != changed_properties.end())
+			changed_properties.find(DISPLAY) != changed_properties.end())
 		{
 			if (parent != NULL)
 				parent->DirtyStructure();
@@ -1789,11 +1792,11 @@ void Element::OnPropertyChange(const PropertyIdList& changed_properties)
 
 	// Fetch a new font face if it has been changed.
 	if (all_dirty ||
-		changed_properties.find(PropertyId::FontFamily) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontCharset) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontWeight) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontStyle) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontSize) != changed_properties.end())
+		changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
+		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
+		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
+		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
+		changed_properties.find(FONT_SIZE) != changed_properties.end())
 	{
 		// Store the old em; if it changes, then we need to dirty all em-relative properties.
 		int old_em = -1;
@@ -1832,10 +1835,10 @@ void Element::OnPropertyChange(const PropertyIdList& changed_properties)
 
 	// Update the position.
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Left) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Right) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Top) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Bottom) != changed_properties.end())
+		changed_properties.find(LEFT) != changed_properties.end() ||
+		changed_properties.find(RIGHT) != changed_properties.end() ||
+		changed_properties.find(TOP) != changed_properties.end() ||
+		changed_properties.find(BOTTOM) != changed_properties.end())
 	{
 		UpdateOffset();
 		DirtyOffset();
@@ -1843,9 +1846,9 @@ void Element::OnPropertyChange(const PropertyIdList& changed_properties)
 
 	// Update the z-index.
 	if (all_dirty || 
-		changed_properties.find(PropertyId::ZIndex) != changed_properties.end())
+		changed_properties.find(Z_INDEX) != changed_properties.end())
 	{
-		const Property* z_index_property = GetProperty(PropertyId::ZIndex);
+		const Property* z_index_property = GetProperty(Z_INDEX);
 
 		if (z_index_property->unit == Property::KEYWORD &&
 			z_index_property->value.Get< int >() == Z_INDEX_AUTO)
@@ -1898,64 +1901,106 @@ void Element::OnPropertyChange(const PropertyIdList& changed_properties)
 
 	// Dirty the background if it's changed.
     if (all_dirty ||
-        changed_properties.find(PropertyId::BackgroundColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
-		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
-		background->DirtyBackground();
-		decoration->ReloadDecorators();
-	}
+        changed_properties.find(BACKGROUND_COLOR) != changed_properties.end() ||
+		changed_properties.find(OPACITY) != changed_properties.end() ||
+		changed_properties.find(IMAGE_COLOR) != changed_properties.end()) {
+        background->DirtyBackground();
+        decoration->ReloadDecorators();
+    }
 
 	// Dirty the border if it's changed.
-	if (all_dirty ||
-		changed_properties.find(PropertyId::BorderTopWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderRightWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderBottomWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderLeftWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderTopColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderRightColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderBottomColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderLeftColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Opacity) != changed_properties.end())
+	if (all_dirty || 
+		changed_properties.find(BORDER_TOP_WIDTH) != changed_properties.end() ||
+		changed_properties.find(BORDER_RIGHT_WIDTH) != changed_properties.end() ||
+		changed_properties.find(BORDER_BOTTOM_WIDTH) != changed_properties.end() ||
+		changed_properties.find(BORDER_LEFT_WIDTH) != changed_properties.end() ||
+		changed_properties.find(BORDER_TOP_COLOR) != changed_properties.end() ||
+		changed_properties.find(BORDER_RIGHT_COLOR) != changed_properties.end() ||
+		changed_properties.find(BORDER_BOTTOM_COLOR) != changed_properties.end() ||
+		changed_properties.find(BORDER_LEFT_COLOR) != changed_properties.end() ||
+		changed_properties.find(OPACITY) != changed_properties.end())
 		border->DirtyBorder();
 
 	
 	// Check for clipping state changes
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Clip) != changed_properties.end() ||
-		changed_properties.find(PropertyId::OverflowX) != changed_properties.end() ||
-		changed_properties.find(PropertyId::OverflowY) != changed_properties.end())
+		changed_properties.find(CLIP) != changed_properties.end() ||
+		changed_properties.find(OVERFLOW_X) != changed_properties.end() ||
+		changed_properties.find(OVERFLOW_Y) != changed_properties.end())
 	{
 		clipping_state_dirty = true;
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Perspective) != changed_properties.end() ||
-		changed_properties.find(PropertyId::PerspectiveOriginX) != changed_properties.end() ||
-		changed_properties.find(PropertyId::PerspectiveOriginY) != changed_properties.end())
+		changed_properties.find(PERSPECTIVE) != changed_properties.end() ||
+		changed_properties.find(PERSPECTIVE_ORIGIN_X) != changed_properties.end() ||
+		changed_properties.find(PERSPECTIVE_ORIGIN_Y) != changed_properties.end())
 	{
 		DirtyTransformState(true, false, false);
 	}
 
 	// Check for `transform' and `transform-origin' changes
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Transform) != changed_properties.end() ||
-		changed_properties.find(PropertyId::TransformOriginX) != changed_properties.end() ||
-		changed_properties.find(PropertyId::TransformOriginY) != changed_properties.end() ||
-		changed_properties.find(PropertyId::TransformOriginZ) != changed_properties.end())
+		changed_properties.find(TRANSFORM) != changed_properties.end() ||
+		changed_properties.find(TRANSFORM_ORIGIN_X) != changed_properties.end() ||
+		changed_properties.find(TRANSFORM_ORIGIN_Y) != changed_properties.end() ||
+		changed_properties.find(TRANSFORM_ORIGIN_Z) != changed_properties.end())
 	{
 		DirtyTransformState(false, true, false);
 	}
 
 	// Check for `animation' changes
-	if (all_dirty || changed_properties.find(PropertyId::Animation) != changed_properties.end())
+	if (all_dirty || changed_properties.find(ANIMATION) != changed_properties.end())
 	{
 		DirtyAnimation();
 	}
 }
 
-void Element::DirtyProperties(const PropertyIdList& changed_properties)
+void Element::DirtyProperties(const PropertyNameList& changed_properties) 
 { 
+	// 
+	//if (
+	//	changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
+	//	changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
+	//	changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
+	//	changed_properties.find(FONT_STYLE) != changed_properties.end() ||
+	//	changed_properties.find(FONT_SIZE) != changed_properties.end())
+	//{
+	//	// Store the old em; if it changes, then we need to dirty all em-relative properties.
+	//	int old_em = -1;
+	//	if (font_face_handle != NULL)
+	//		old_em = font_face_handle->GetLineHeight();
+
+	//	// Fetch the new font face.
+	//	FontFaceHandle * new_font_face_handle = ElementUtilities::GetFontFaceHandle(this);
+
+	//	// If this is different from our current font face, then we've got to nuke
+	//	// all our characters and tell our parent that we have to be re-laid out.
+	//	if (new_font_face_handle != font_face_handle)
+	//	{
+	//		if (font_face_handle)
+	//			font_face_handle->RemoveReference();
+
+	//		font_face_handle = new_font_face_handle;
+
+	//		// Our font face has changed; odds are, so has our em. All of our em-relative values
+	//		// have therefore probably changed as well, so we'll need to dirty them.
+	//		int new_em = -1;
+	//		if (font_face_handle != NULL)
+	//			new_em = font_face_handle->GetLineHeight();
+
+	//		// However, if all properties are dirty, we don't need to perform this expensive
+	//		// step as all properties are dirtied below anyway.
+	//		if (old_em != new_em && !all_properties_dirty)
+	//		{
+	//			style->DirtyEmProperties();
+	//		}
+	//	}
+	//	else if (new_font_face_handle != NULL)
+	//		new_font_face_handle->RemoveReference();
+	//}
+
 	if (all_properties_dirty)
 		return;
 
@@ -2037,15 +2082,15 @@ void Element::OnReferenceDeactivate()
 
 void Element::ProcessEvent(Event& event)
 {
-	if (event == EventId::Mousedown && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
+	if (event == MOUSEDOWN && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
 		event.GetParameter< int >("button", 0) == 0)
 		SetPseudoClass("active", true);
 
-	if (event == EventId::Mousescroll)
+	if (event == MOUSESCROLL)
 	{
 		if (GetScrollHeight() > GetClientHeight())
 		{
-			int overflow_property = GetProperty< int >(PropertyId::OverflowY);
+			int overflow_property = GetProperty< int >(OVERFLOW_Y);
 			if (overflow_property == OVERFLOW_AUTO ||
 				overflow_property == OVERFLOW_SCROLL)
 			{
@@ -2058,7 +2103,7 @@ void Element::ProcessEvent(Event& event)
 				if ((wheel_delta < 0 && GetScrollTop() > 0) ||
 					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
 				{
-					SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : (GetProperty(PropertyId::ScrollDefaultStepSize) ? GetProperty< int >(PropertyId::ScrollDefaultStepSize) : 0)));
+					SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : (GetProperty(SCROLL_DEFAULT_STEP_SIZE) ? GetProperty< int >(SCROLL_DEFAULT_STEP_SIZE) : 0)));
 				}
 			}
 		}
@@ -2068,14 +2113,14 @@ void Element::ProcessEvent(Event& event)
 
 	if (event.GetTargetElement() == this)
 	{
-		if (event == EventId::Mouseover)
+		if (event == MOUSEOVER)
 			SetPseudoClass("hover", true);
-		else if (event == EventId::Mouseout)
+		else if (event == MOUSEOUT)
 			SetPseudoClass("hover", false);
-		else if (event == EventId::Focus)
-			SetPseudoClass("focus", true);
-		else if (event == EventId::Blur)
-			SetPseudoClass("focus", false);
+		else if (event == FOCUS)
+			SetPseudoClass(FOCUS, true);
+		else if (event == BLUR)
+			SetPseudoClass(FOCUS, false);
 	}
 }
 
@@ -2178,27 +2223,27 @@ void Element::UpdateOffset()
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize(Box::PADDING);
 
-			const Property *left = GetLocalProperty(PropertyId::Left);
-			const Property *right = GetLocalProperty(PropertyId::Right);
+			const Property *left = GetLocalProperty(LEFT);
+			const Property *right = GetLocalProperty(RIGHT);
 			// If the element is anchored left, then the position is offset by that resolved value.
 			if (left != NULL && left->unit != Property::KEYWORD)
-				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (ResolveProperty(PropertyId::Left, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
+				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (ResolveProperty(LEFT, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
 			else if (right != NULL && right->unit != Property::KEYWORD)
-				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (ResolveProperty(PropertyId::Right, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
+				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (ResolveProperty(RIGHT, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
 
-			const Property *top = GetLocalProperty(PropertyId::Top);
-			const Property *bottom = GetLocalProperty(PropertyId::Bottom);
+			const Property *top = GetLocalProperty(TOP);
+			const Property *bottom = GetLocalProperty(BOTTOM);
 			// If the element is anchored top, then the position is offset by that resolved value.
 			if (top != NULL && top->unit != Property::KEYWORD)
-				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (ResolveProperty(PropertyId::Top, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (ResolveProperty(TOP, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
 			else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (ResolveProperty(PropertyId::Bottom, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
+				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (ResolveProperty(BOTTOM, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
 		}
 	}
 	else if (position_property == POSITION_RELATIVE)
@@ -2208,21 +2253,21 @@ void Element::UpdateOffset()
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize();
 
-			const Property *left = GetLocalProperty(PropertyId::Left);
-			const Property *right = GetLocalProperty(PropertyId::Right);
+			const Property *left = GetLocalProperty(LEFT);
+			const Property *right = GetLocalProperty(RIGHT);
 			if (left != NULL && left->unit != Property::KEYWORD)
-				relative_offset_position.x = ResolveProperty(PropertyId::Left, containing_block.x);
+				relative_offset_position.x = ResolveProperty(LEFT, containing_block.x);
 			else if (right != NULL && right->unit != Property::KEYWORD)
-				relative_offset_position.x = -1 * ResolveProperty(PropertyId::Right, containing_block.x);
+				relative_offset_position.x = -1 * ResolveProperty(RIGHT, containing_block.x);
 			else
 				relative_offset_position.x = 0;
 
-			const Property *top = GetLocalProperty(PropertyId::Top);
-			const Property *bottom = GetLocalProperty(PropertyId::Bottom);
+			const Property *top = GetLocalProperty(TOP);
+			const Property *bottom = GetLocalProperty(BOTTOM);
 			if (top != NULL && top->unit != Property::KEYWORD)
-				relative_offset_position.y = ResolveProperty(PropertyId::Top, containing_block.y);
+				relative_offset_position.y = ResolveProperty(TOP, containing_block.y);
 			else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-				relative_offset_position.y = -1 * ResolveProperty(PropertyId::Bottom, containing_block.y);
+				relative_offset_position.y = -1 * ResolveProperty(BOTTOM, containing_block.y);
 			else
 				relative_offset_position.y = 0;
 		}
@@ -2332,11 +2377,11 @@ void Element::UpdateStructure()
 }
 
 
-bool Element::Animate(PropertyId property_id, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, const Property* start_value)
+bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, const Property* start_value)
 {
 	bool result = false;
 
-	if (auto it_animation = StartAnimation(property_id, start_value, num_iterations, alternate_direction, delay); it_animation != animations.end())
+	if (auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay); it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
 		if (!result)
@@ -2347,12 +2392,12 @@ bool Element::Animate(PropertyId property_id, const Property & target_value, flo
 }
 
 
-bool Element::AddAnimationKey(PropertyId property_id, const Property & target_value, float duration, Tween tween)
+bool Element::AddAnimationKey(const String & property_name, const Property & target_value, float duration, Tween tween)
 {
 	ElementAnimation* animation = nullptr;
 
 	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyId() == property_id) {
+		if (existing_animation.GetPropertyName() == property_name) {
 			animation = &existing_animation;
 			break;
 		}
@@ -2366,9 +2411,9 @@ bool Element::AddAnimationKey(PropertyId property_id, const Property & target_va
 }
 
 
-ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction, float delay)
+ElementAnimationList::iterator Element::StartAnimation(const String & property_name, const Property* start_value, int num_iterations, bool alternate_direction, float delay)
 {
-	auto it = std::find_if(animations.begin(), animations.end(), [property_id](const ElementAnimation& el) { return el.GetPropertyId() == property_id; });
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == property_name; });
 
 	if (it == animations.end())
 	{
@@ -2382,10 +2427,10 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 	{
 		value = *start_value;
 		if (!value.definition)
-			if(auto default_value = GetProperty(property_id))
+			if(auto default_value = GetProperty(property_name))
 				value.definition = default_value->definition;	
 	}
-	else if (auto default_value = GetProperty(property_id))
+	else if (auto default_value = GetProperty(property_name))
 	{
 		value = *default_value;
 	}
@@ -2393,7 +2438,7 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 	if (value.definition)
 	{
 		double start_time = Clock::GetElapsedTime() + (double)delay;
-		*it = ElementAnimation{ property_id, value, start_time, 0.0f, num_iterations, alternate_direction, false };
+		*it = ElementAnimation{ property_name, value, start_time, 0.0f, num_iterations, alternate_direction, false };
 	}
 	else
 	{
@@ -2405,17 +2450,17 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 }
 
 
-bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target_value, float time, Tween tween)
+bool Element::AddAnimationKeyTime(const String & property_name, const Property* target_value, float time, Tween tween)
 {
 	if (!target_value)
-		target_value = GetProperty(property_id);
+		target_value = GetProperty(property_name);
 	if (!target_value)
 		return false;
 
 	ElementAnimation* animation = nullptr;
 
 	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyId() == property_id) {
+		if (existing_animation.GetPropertyName() == property_name) {
 			animation = &existing_animation;
 			break;
 		}
@@ -2430,7 +2475,7 @@ bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target
 
 bool Element::StartTransition(const Transition & transition, const Property& start_value, const Property & target_value)
 {
-	auto it = std::find_if(animations.begin(), animations.end(), [&transition](const ElementAnimation& el) { return el.GetPropertyId() == transition.property_id; });
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == transition.name; });
 
 	if (it != animations.end() && !it->IsTransition())
 		return false;
@@ -2442,7 +2487,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	{
 		// Add transition as new animation
 		animations.push_back(
-			ElementAnimation{ transition.property_id, start_value, start_time, 0.0f, 1, false, true }
+			ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true }
 		);
 		it = (animations.end() - 1);
 	}
@@ -2453,13 +2498,13 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
 		duration = duration * f;
 		// Replace old transition
-		*it = ElementAnimation{ transition.property_id, start_value, start_time, 0.0f, 1, false, true };
+		*it = ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true };
 	}
 
 	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);
 
 	if (result)
-		SetProperty(transition.property_id, start_value);
+		SetProperty(transition.name, start_value);
 	else
 		animations.erase(it);
 
@@ -2476,7 +2521,7 @@ void Element::UpdateAnimation()
 {
 	if (dirty_animation)
 	{
-		const Property* property = style->GetLocalProperty(PropertyId::Animation);
+		const Property* property = style->GetLocalProperty(ANIMATION);
 		StyleSheet* stylesheet = nullptr;
 
 		if (property && (stylesheet = GetStyleSheet()))
@@ -2488,29 +2533,29 @@ void Element::UpdateAnimation()
 				Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
 				if (keyframes_ptr && keyframes_ptr->blocks.size() >= 1 && !animation.paused)
 				{
-					auto& property_ids = keyframes_ptr->property_ids;
+					auto& property_names = keyframes_ptr->property_names;
 					auto& blocks = keyframes_ptr->blocks;
 
 					bool has_from_key = (blocks[0].normalized_time == 0);
 					bool has_to_key = (blocks.back().normalized_time == 1);
 
 					// If the first key defines initial conditions for a given property, use those values, else, use this element's current values.
-					for (PropertyId id : property_ids)
-						StartAnimation(id, (has_from_key ? GetIf(blocks[0].properties, id) : nullptr), animation.num_iterations, animation.alternate, animation.delay);
+					for (auto& property : property_names)
+						StartAnimation(property, (has_from_key ? blocks[0].properties.GetProperty(property) : nullptr), animation.num_iterations, animation.alternate, animation.delay);
 
 					// Need to skip the first and last keys if they set the initial and end conditions, respectively.
 					for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
 					{
 						// Add properties of current key to animation
 						float time = blocks[i].normalized_time * animation.duration;
-						for (auto& property : blocks[i].properties)
+						for (auto& property : blocks[i].properties.GetProperties())
 							AddAnimationKeyTime(property.first, &property.second, time, animation.tween);
 					}
 
 					// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
 					float time = animation.duration;
-					for (PropertyId id : property_ids)
-						AddAnimationKeyTime(id, (has_to_key ? GetIf(blocks.back().properties, id) : nullptr), time, animation.tween);
+					for (auto& property : property_names)
+						AddAnimationKeyTime(property, (has_to_key ? blocks.back().properties.GetProperty(property) : nullptr), time, animation.tween);
 				}
 			}
 		}
@@ -2529,7 +2574,7 @@ void Element::AdvanceAnimations()
 		{
 			Property property = animation.UpdateAndGetProperty(time, *this);
 			if (property.unit != Property::UNKNOWN)
-				SetProperty(animation.GetPropertyId(), property);
+				SetProperty(animation.GetPropertyName(), property);
 		}
 
 		auto it_completed = std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); });
@@ -2541,7 +2586,7 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			dictionary_list.emplace_back(Dictionary({ { "property", GetName(it->GetPropertyId())} }));
+			dictionary_list.emplace_back(Dictionary({ { "property", it->GetPropertyName()} }));
 			is_transition.push_back(it->IsTransition());
 		}
 
@@ -2549,7 +2594,7 @@ void Element::AdvanceAnimations()
 		animations.erase(it_completed, animations.end());
 
 		for (size_t i = 0; i < dictionary_list.size(); i++)
-			DispatchEvent(is_transition[i] ? EventId::Transitionend : EventId::Animationend, dictionary_list[i]);
+			DispatchEvent(is_transition[i] ? TRANSITIONEND : ANIMATIONEND, dictionary_list[i]);
 	}
 }
 
