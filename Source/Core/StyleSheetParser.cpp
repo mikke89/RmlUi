@@ -322,9 +322,8 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 				if (character == ';')
 				{
 					value = StringUtilities::StripWhitespace(value);
-					PropertyId id = GetPropertyId(name);
 
-					if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, id, value, stream_file_name, rule_line_number))
+					if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number))
 						Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 
 					name.clear();

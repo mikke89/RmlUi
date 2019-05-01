@@ -133,9 +133,9 @@ const PropertyShorthandDefinition* StyleSheetSpecification::GetShorthand(Propert
 }
 
 // Parses a property declaration, setting any parsed and validated properties on the given dictionary.
-bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file, int source_line_number)
+bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number)
 {
-	return instance->properties.ParsePropertyDeclaration(dictionary, property_id, property_value, source_file, source_line_number);
+	return instance->properties.ParsePropertyDeclaration(dictionary, property_name, property_value, source_file, source_line_number);
 }
 
 // Registers Rocket's default parsers.

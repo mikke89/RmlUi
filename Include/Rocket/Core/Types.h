@@ -117,7 +117,8 @@ typedef std::vector< ElementAnimation > ElementAnimationList;
 
 // Unordered map
 template < typename Key, typename Value>
-using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+//using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+using UnorderedMap = std::unordered_map< Key, Value >;
 
 typedef UnorderedMap< PropertyId, Property > PropertyMap;
 using PropertyDictionary = PropertyMap;

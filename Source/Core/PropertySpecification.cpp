@@ -162,10 +162,9 @@ const PropertyShorthandDefinition* PropertySpecification::GetShorthand(PropertyI
 }
 
 // Parses a property declaration, setting any parsed and validated properties on the given dictionary.
-bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file, int source_line_number) const
+bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number) const
 {
-	if (property_id == PropertyId::Invalid)
-		return false;
+	PropertyId property_id = CreateOrGetPropertyId(property_name);
 
 	// Attempt to parse as a single property.
 	const PropertyDefinition* property_definition = GetProperty(property_id);
@@ -281,7 +280,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 
 			for (size_t i = 0; i < shorthand_definition->properties.size(); i++)
 			{
-				const auto& property_name = shorthand_definition->properties[i].first;
+				const String& property_name = GetName(shorthand_definition->properties[i].first);
 				result |= ParsePropertyDeclaration(dictionary, property_name, property_value, source_file, source_line_number);
 			}
 

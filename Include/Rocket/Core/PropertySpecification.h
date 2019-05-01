@@ -100,7 +100,7 @@ public:
 	/// @param property_name The name of the declared property.
 	/// @param property_value The values the property is being set to.
 	/// @return True if all properties were parsed successfully, false otherwise.
-	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
+	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
 	/// Sets all undefined properties in the dictionary to their defaults.
 	/// @param dictionary[in] The dictionary to set the default values on.
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;

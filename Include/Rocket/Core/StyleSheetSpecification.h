@@ -98,7 +98,7 @@ public:
 	/// @param[in] source_file The file where this property was declared. Used for error reporting, debugging and relative paths for referenced assets.
 	/// @param[in] line_number The location of the source file where this property was declared. Used for error reporting and debugging.
 	/// @return True if all properties were parsed successfully, false otherwise.
-	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId id, const String& property_value, const String& source_file = "", int source_line_number = 0);
+	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& name, const String& property_value, const String& source_file = "", int source_line_number = 0);
 
 private:
 	StyleSheetSpecification();

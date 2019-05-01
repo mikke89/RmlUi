@@ -368,7 +368,7 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 		if (id == PropertyId::ZIndex)
 			z_index = value.value.Get< float >();
 		else
-			property_specification.ParsePropertyDeclaration(parsed_properties, id, value.value.Get< String >(), value.source, value.source_line_number);
+			property_specification.ParsePropertyDeclaration(parsed_properties, GetName(id), value.value.Get< String >(), value.source, value.source_line_number);
 	}
 
 	// Set the property defaults for all unset properties.
@@ -443,7 +443,7 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 		}
 		else
 		{
-			property_specification.ParsePropertyDeclaration(parsed_properties, id, value.value.Get< String >(), value.source, value.source_line_number);
+			property_specification.ParsePropertyDeclaration(parsed_properties, GetName(id), value.value.Get< String >(), value.source, value.source_line_number);
 		}
 	}
 

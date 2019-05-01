@@ -418,10 +418,8 @@ void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const Strin
 }
 
 // Updates a property dictionary of all properties for a single group.
-int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& ROCKET_UNUSED_PARAMETER(group_type), const String& group_name, const PropertyDictionary& element_properties)
+int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& group_type, const String& group_name, const PropertyDictionary& element_properties)
 {
-	ROCKET_UNUSED(group_type);
-
 	int num_properties = 0;
 
 	for (PropertyMap::const_iterator property_iterator = element_properties.begin(); property_iterator != element_properties.end(); ++property_iterator)
@@ -436,7 +434,8 @@ int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_pr
 //			if (property_name == group_type)
 //				continue;
 
-			group_properties[id] = (*property_iterator).second;
+			PropertyId new_id = CreateOrGetPropertyId(group_type + "-" + property_name);
+			group_properties[new_id] = (*property_iterator).second;
 			num_properties++;
 		}
 	}

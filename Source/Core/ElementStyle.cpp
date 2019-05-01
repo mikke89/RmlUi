@@ -344,7 +344,7 @@ bool ElementStyle::SetProperty(PropertyId id, const String& value)
 	if (local_properties == NULL)
 		local_properties = new PropertyDictionary();
 
-	if (StyleSheetSpecification::ParsePropertyDeclaration(*local_properties, id, value))
+	if (StyleSheetSpecification::ParsePropertyDeclaration(*local_properties, GetName(id), value))
 	{
 		DirtyProperty(id);
 		return true;

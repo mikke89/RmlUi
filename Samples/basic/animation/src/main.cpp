@@ -88,7 +88,7 @@ public:
 			{
 				auto el = document->GetElementById("exit");
 				PropertyDictionary pd;
-				StyleSheetSpecification::ParsePropertyDeclaration(pd, PropertyId::Transform, "translate(200px, 200px) rotate(1215deg)");
+				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "translate(200px, 200px) rotate(1215deg)");
 				el->Animate(PropertyId::Transform, pd[PropertyId::Transform], 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
 			}
 
