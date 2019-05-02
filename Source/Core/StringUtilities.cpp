@@ -42,6 +42,14 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 	const char* start_ptr = NULL;
 	const char* end_ptr = ptr;
 
+	size_t num_delimiter_values = std::count(string.begin(), string.end(), delimiter);
+	if (num_delimiter_values == 0)
+	{
+		string_list.push_back(StripWhitespace(string));
+		return;
+	}
+	string_list.reserve(num_delimiter_values + 1);
+
 	while (*ptr)
 	{
 		// Switch into quote mode if the last char was a delimeter ( excluding whitespace )
@@ -59,9 +67,9 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 		else if (*ptr == delimiter && !quote)
 		{
 			if (start_ptr)
-				string_list.push_back(String(start_ptr, end_ptr + 1));
+				string_list.emplace_back(start_ptr, end_ptr + 1);
 			else
-				string_list.push_back("");
+				string_list.emplace_back();
 			last_char_delimiter = true;
 			start_ptr = NULL;
 		}
@@ -79,7 +87,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 
 	// If there's data pending, add it.
 	if (start_ptr)
-		string_list.push_back(String(start_ptr, end_ptr + 1));
+		string_list.emplace_back(start_ptr, end_ptr + 1);
 }
 
 // Joins a list of string values into a single string separated by a character delimiter.

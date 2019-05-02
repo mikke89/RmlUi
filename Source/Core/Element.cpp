@@ -1405,7 +1405,7 @@ void Element::AppendChild(Element* child, bool dom_element)
 	}
 
 	child->GetStyle()->DirtyDefinition();
-	child->GetStyle()->DirtyProperties();
+	all_properties_dirty = true;
 
 	child->OnChildAdd(child);
 	DirtyStackingContext();
@@ -1453,7 +1453,7 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 		children.insert(children.begin() + child_index, child);
 
 		child->GetStyle()->DirtyDefinition();
-		child->GetStyle()->DirtyProperties();
+		all_properties_dirty = true;
 
 		child->OnChildAdd(child);
 		DirtyStackingContext();
@@ -1491,7 +1491,7 @@ bool Element::ReplaceChild(Element* inserted_element, Element* replaced_element)
 	RemoveChild(replaced_element);
 
 	inserted_element->GetStyle()->DirtyDefinition();
-	inserted_element->GetStyle()->DirtyProperties();
+	all_properties_dirty = true;
 	inserted_element->OnChildAdd(inserted_element);
 
 	LockLayout(false);

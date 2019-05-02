@@ -143,7 +143,8 @@ public:
 		  Replace Dictionary with unordered_flat_map: 40.0  [b04b4e5]
 		  Dirty flag for structure changes: 43.0  [fdf6f53]
 		  Replacing containers: 46.0  [c307140]
-		  Replace 'resize' event with virtual function call: 57.0  [7ad658f]
+		  Replace 'resize' event with virtual function call: 53.0  [7ad658f]
+		  Use all_properties_dirty flag when constructing elements: 55.0
 		
 		*/
 
