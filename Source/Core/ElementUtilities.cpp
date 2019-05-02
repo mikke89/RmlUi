@@ -423,7 +423,7 @@ bool ElementUtilities::ApplyTransform(Element &element, bool apply)
 	element.GetEffectiveTransformState(&local_perspective, &perspective, &transform);
 
 	bool have_perspective = false;
-	float perspective_distance;
+	float perspective_distance = 0.0f;
 	Matrix4f the_projection;
 	if (local_perspective)
 	{

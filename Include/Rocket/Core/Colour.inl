@@ -25,6 +25,9 @@
  *
  */
 
+namespace Rocket {
+namespace Core {
+
 // Lightweight, non-initialising constructor.
 template < typename ColourType, int AlphaDefault >
 Colour< ColourType, AlphaDefault >::Colour()
@@ -117,3 +120,6 @@ void ROCKETCORE_API Colour< float, 1 >::operator*=(const Colour& rhs);
 
 template < >
 void ROCKETCORE_API Colour< byte, 255 >::operator*=(const Colour& rhs);
+
+}
+}

@@ -130,7 +130,7 @@ struct Matrix3D : public ResolvedPrimitive< 16 >
 struct TranslateX : public UnresolvedPrimitive< 1 >
 {
 	TranslateX(const NumericValue* values) noexcept : UnresolvedPrimitive(values) { }
-	TranslateX(float x, Property::Unit unit = Property::PX) noexcept : UnresolvedPrimitive({ NumericValue{x, unit} }) { }
+	TranslateX(float x, Property::Unit unit = Property::PX) noexcept : UnresolvedPrimitive({ NumericValue(x, unit) }) { }
 	String ToString() const noexcept { return "translateX" + UnresolvedPrimitive< 1 >::ToString(); }
 };
 

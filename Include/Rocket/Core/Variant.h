@@ -146,9 +146,9 @@ private:
 	char data[LOCAL_DATA_SIZE];
 };
 
-#include "Variant.inl"
+}
+}
 
-}
-}
+#include "Variant.inl"
 
 #endif

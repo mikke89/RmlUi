@@ -132,9 +132,9 @@ class Vector2
 		Type y;
 };
 
-#include "Vector2.inl"
+}
+}
 
-}
-}
+#include "Vector2.inl"
 
 #endif

@@ -807,9 +807,9 @@ private:
 	friend class LayoutInlineBox;
 };
 
-#include "Element.inl"
+}
+}
 
-}
-}
+#include "Element.inl"
 
 #endif

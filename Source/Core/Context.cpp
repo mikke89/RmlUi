@@ -692,7 +692,8 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 
 		// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
 		// have had 'onmouseup' called on them, we can't guarantee this has happened already.
-		std::for_each(active_chain.begin(), active_chain.end(), PseudoClassFunctor("active", false));
+		auto func = PseudoClassFunctor("active", false);
+		std::for_each(active_chain.begin(), active_chain.end(), func);
 		active_chain.clear();
 
 		if (drag)
@@ -1178,7 +1179,8 @@ void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_item
 {
 	ElementList elements;
 	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));
-	std::for_each(elements.begin(), elements.end(), RKTEventFunctor(event, parameters, interruptible));
+	auto func = RKTEventFunctor(event, parameters, interruptible);
+	std::for_each(elements.begin(), elements.end(), func);
 }
 
 void Context::OnReferenceDeactivate()
