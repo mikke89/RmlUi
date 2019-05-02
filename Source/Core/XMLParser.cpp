@@ -134,15 +134,9 @@ const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 }
 
 /// Called when the parser finds the beginning of an element tag.
-void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _attributes)
+void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& attributes)
 {
-	String name = ToLower(_name);
-	XMLAttributes attributes;
-	
-	for (auto& [key, variant] : _attributes)
-	{
-		attributes[key] = variant.Get<String>();
-	}
+	const String name = ToLower(_name);
 
 	// Check for a specific handler that will override the child handler.
 	NodeHandlers::iterator itr = node_handlers.find(name);

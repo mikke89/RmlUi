@@ -40,10 +40,10 @@ namespace Controls {
 // Constructs a new ElementFormControlInput.
 ElementFormControlInput::ElementFormControlInput(const Rocket::Core::String& tag) : ElementFormControl(tag)
 {
+	// OnAttributeChange will be called right after this, possible with a non-default type. Thus,
+	// creating the default InputTypeText here may result in it being destroyed in just a few moments.
+	// Instead, we create the InputTypeText in OnAttributeChange in the case where the type attribute has not been set.
 	type = NULL;
-	type = new InputTypeText(this);
-	type_name = "text";
-	SetClass(type_name, true);
 }
 
 ElementFormControlInput::~ElementFormControlInput()
@@ -91,39 +91,48 @@ void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& c
 {
 	ElementFormControl::OnAttributeChange(changed_attributes);
 
+	Rocket::Core::String new_type_name;
+
 	if (changed_attributes.find("type") != changed_attributes.end())
 	{
-		Rocket::Core::String new_type_name = GetAttribute< Rocket::Core::String >("type", "text");
-		if (new_type_name != type_name)
+		new_type_name = GetAttribute< Rocket::Core::String >("type", "text");
+	}
+	else if (type == NULL)
+	{
+		// Ref. comment in constructor.
+		new_type_name = "text";
+	}
+
+	if (!new_type_name.empty() && new_type_name != type_name)
+	{
+		InputType* new_type = NULL;
+
+		if (new_type_name == "password")
+			new_type = new InputTypeText(this, Rocket::Controls::InputTypeText::OBSCURED);
+		else if (new_type_name == "radio")
+			new_type = new InputTypeRadio(this);
+		else if (new_type_name == "checkbox")
+			new_type = new InputTypeCheckbox(this);
+		else if (new_type_name == "range")
+			new_type = new InputTypeRange(this);
+		else if (new_type_name == "submit")
+			new_type = new InputTypeSubmit(this);
+		else if (new_type_name == "button")
+			new_type = new InputTypeButton(this);
+		else if (type_name == "text")
+			new_type = new InputTypeText(this);
+
+		if (new_type != NULL)
 		{
-			InputType* new_type = NULL;
+			delete type;
+			type = new_type;
 
-			if (new_type_name == "password")
-				new_type = new InputTypeText(this, Rocket::Controls::InputTypeText::OBSCURED);
-			else if (new_type_name == "radio")
-				new_type = new InputTypeRadio(this);
-			else if (new_type_name == "checkbox")
-				new_type = new InputTypeCheckbox(this);
-			else if (new_type_name == "range")
-				new_type = new InputTypeRange(this);
-			else if (new_type_name == "submit")
-				new_type = new InputTypeSubmit(this);
-			else if (new_type_name == "button")
-				new_type = new InputTypeButton(this);
-			else if (type_name == "text")
-				new_type = new InputTypeText(this);
-
-			if (new_type != NULL)
-			{
-				delete type;
-				type = new_type;
-
+			if(!type_name.empty())
 				SetClass(type_name, false);
-				SetClass(new_type_name, true);
-				type_name = new_type_name;
+			SetClass(new_type_name, true);
+			type_name = new_type_name;
 
-				DirtyLayout();
-			}
+			DirtyLayout();
 		}
 	}
 
@@ -143,14 +152,14 @@ void ElementFormControlInput::OnPropertyChange(const Core::PropertyNameList& cha
 // If we are the added element, this will pass the call onto our type handler.
 void ElementFormControlInput::OnChildAdd(Rocket::Core::Element* child)
 {
-	if (child == this)
+	if (child == this && type != NULL)
 		type->OnChildAdd();
 }
 
 // If we are the removed element, this will pass the call onto our type handler.
 void ElementFormControlInput::OnChildRemove(Rocket::Core::Element* child)
 {
-	if (child == this)
+	if (child == this && type != NULL)
 		type->OnChildRemove();
 }
 
@@ -158,11 +167,14 @@ void ElementFormControlInput::OnChildRemove(Rocket::Core::Element* child)
 void ElementFormControlInput::ProcessEvent(Core::Event& event)
 {
 	ElementFormControl::ProcessEvent(event);
-	type->ProcessEvent(event);
+	if(type != NULL)
+		type->ProcessEvent(event);
 }
 
 bool ElementFormControlInput::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
 {
+	if (!type)
+		return false;
 	return type->GetIntrinsicDimensions(dimensions);
 }
 

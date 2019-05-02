@@ -145,6 +145,7 @@ public:
 		  Replacing containers: 46.0  [c307140]
 		  Replace 'resize' event with virtual function call: 53.0  [7ad658f]
 		  Use all_properties_dirty flag when constructing elements: 55.0
+		  Don't double create input elements: 58.0
 		
 		*/
 
