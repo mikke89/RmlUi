@@ -74,7 +74,7 @@ Vector2< Type > Vector2< Type >::Normalise() const
 
 // Generates a rounded vector from this vector.
 template < >
-Vector2< float > Vector2< float >::Round() const
+inline Vector2< float > Vector2< float >::Round() const
 {
 	Vector2 < float > result;
 	result.x = std::roundf(x);
@@ -84,7 +84,7 @@ Vector2< float > Vector2< float >::Round() const
 
 // Generates a rounded vector from this vector.
 template < >
-Vector2< int > Vector2< int >::Round() const
+inline Vector2< int > Vector2< int >::Round() const
 {
 	return *this;
 }
