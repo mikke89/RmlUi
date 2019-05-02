@@ -40,7 +40,7 @@
 //  - Update transform animations / resolve keys again when parent box size changes.
 //  - [offtopic] Improve performance of transform parser (hashtable)
 //  - [offtopic] Use double for absolute time, get and cache time for each render/update loop
-//  - [performance] Replace property name strings with handle IDs (ints).
+//  - [performance] Replace property name strings with handle IDs (ints). Tried this and reverted, see [0e390e9], too little gain for too much complexity.
 //  - [performance] Memory pools for common elements.
 //  - [performance] Try replacing ElementAttributes with vector.
 
@@ -133,7 +133,7 @@ public:
 	{
 		/*
 		  FPS values
-		  Original: 18.5
+		  Original: 18.5  [957f723]
 		  Without property counter: 22.0
 		  With std::string: 23.0  [603fd40]
 		  robin_hood unordered_flat_map: 24.0  [709852f]
@@ -143,7 +143,7 @@ public:
 		  Replace Dictionary with unordered_flat_map: 40.0  [b04b4e5]
 		  Dirty flag for structure changes: 43.0  [fdf6f53]
 		  Replacing containers: 46.0  [c307140]
-		  Replace 'resize' event with virtual function call: 65.0
+		  Replace 'resize' event with virtual function call: 57.0  [7ad658f]
 		
 		*/
 
