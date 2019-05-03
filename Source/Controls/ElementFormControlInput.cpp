@@ -119,7 +119,7 @@ void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& c
 			new_type = new InputTypeSubmit(this);
 		else if (new_type_name == "button")
 			new_type = new InputTypeButton(this);
-		else if (type_name == "text")
+		else if (new_type_name == "text")
 			new_type = new InputTypeText(this);
 
 		if (new_type != NULL)
