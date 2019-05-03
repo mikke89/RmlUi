@@ -269,7 +269,7 @@ foreach(library ${LIBRARIES})
 		target_compile_options(${NAME} PUBLIC "/MP")
 	endif(MSVC)
 	
-	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
+	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
     
     install(TARGETS ${NAME}
@@ -586,7 +586,7 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install sample shell library
     add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
-	set_property(TARGET shell PROPERTY CXX_STANDARD 17)
+	set_property(TARGET shell PROPERTY CXX_STANDARD 11)
 	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
     if (APPLE)
     	# We only support i386 for the samples as it still uses Carbon
@@ -597,7 +597,7 @@ endif(NOT BUILD_FRAMEWORK)
     foreach(sample ${samples})
         bl_sample(${sample} ${sample_LIBRARIES})
 		
-		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 17)
+		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 11)
 		set_property(TARGET ${sample} PROPERTY CXX_STANDARD_REQUIRED ON)
 
         # The samples always set this as their current working directory
@@ -716,7 +716,7 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install invaders sample
     bl_sample(invaders ${sample_LIBRARIES})
-	set_property(TARGET invaders PROPERTY CXX_STANDARD 17)
+	set_property(TARGET invaders PROPERTY CXX_STANDARD 11)
 	set_property(TARGET invaders PROPERTY CXX_STANDARD_REQUIRED ON)
     install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
     install(TARGETS invaders 
@@ -726,7 +726,7 @@ endif(NOT BUILD_FRAMEWORK)
 	if(BUILD_PYTHON_BINDINGS)
 	    # Build and install pyinvaders sample
 	    bl_sample(pyinvaders ${sample_LIBRARIES} ${PYTHON_LIBRARIES} ${PY_BINDINGS_LINK_LIBS})
-		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD 11)
 		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD_REQUIRED ON)
 	    install(DIRECTORY DESTINATION ${SAMPLES_DIR}/pyinvaders)
 	    install(TARGETS pyinvaders
@@ -736,7 +736,7 @@ endif(NOT BUILD_FRAMEWORK)
     
     if(BUILD_LUA_BINDINGS)
         bl_sample(luainvaders RocketCoreLua RocketControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
-		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 11)
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
         install(TARGETS luainvaders 

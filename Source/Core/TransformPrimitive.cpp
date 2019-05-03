@@ -303,6 +303,39 @@ struct ResolveTransformVisitor
 		return false;
 	}
 
+
+	bool run(const PrimitiveVariant& primitive)
+	{
+		switch (primitive.type)
+		{
+		case PrimitiveVariant::MATRIX2D: return this->operator()(primitive.matrix_2d);
+		case PrimitiveVariant::MATRIX3D: return this->operator()(primitive.matrix_3d);
+		case PrimitiveVariant::TRANSLATEX: return this->operator()(primitive.translate_x);
+		case PrimitiveVariant::TRANSLATEY: return this->operator()(primitive.translate_y);
+		case PrimitiveVariant::TRANSLATEZ: return this->operator()(primitive.translate_z);
+		case PrimitiveVariant::TRANSLATE2D: return this->operator()(primitive.translate_2d);
+		case PrimitiveVariant::TRANSLATE3D: return this->operator()(primitive.translate_3d);
+		case PrimitiveVariant::SCALEX: return this->operator()(primitive.scale_x);
+		case PrimitiveVariant::SCALEY: return this->operator()(primitive.scale_y);
+		case PrimitiveVariant::SCALEZ: return this->operator()(primitive.scale_z);
+		case PrimitiveVariant::SCALE2D: return this->operator()(primitive.scale_2d);
+		case PrimitiveVariant::SCALE3D: return this->operator()(primitive.scale_3d);
+		case PrimitiveVariant::ROTATEX: return this->operator()(primitive.rotate_x);
+		case PrimitiveVariant::ROTATEY: return this->operator()(primitive.rotate_y);
+		case PrimitiveVariant::ROTATEZ: return this->operator()(primitive.rotate_z);
+		case PrimitiveVariant::ROTATE2D: return this->operator()(primitive.rotate_2d);
+		case PrimitiveVariant::ROTATE3D: return this->operator()(primitive.rotate_3d);
+		case PrimitiveVariant::SKEWX: return this->operator()(primitive.skew_x);
+		case PrimitiveVariant::SKEWY: return this->operator()(primitive.skew_y);
+		case PrimitiveVariant::SKEW2D: return this->operator()(primitive.skew_2d);
+		case PrimitiveVariant::PERSPECTIVE: return this->operator()(primitive.perspective);
+		case PrimitiveVariant::DECOMPOSEDMATRIX4: return this->operator()(primitive.decomposed_matrix_4);
+		default:
+			break;
+		}
+		ROCKET_ASSERT(false);
+		return false;
+	}
 };
 
 
@@ -313,7 +346,7 @@ bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const noexcept
 {
 	ResolveTransformVisitor visitor{ m, e };
 
-	bool result = std::visit(visitor, primitive);
+	bool result = visitor.run(primitive);
 
 	return result;
 }
@@ -322,9 +355,10 @@ bool Primitive::ResolvePerspective(float & p, Element & e) const noexcept
 {
 	bool result = false;
 
-	if (const Perspective* perspective = std::get_if<Perspective>(&primitive))
+	if (primitive.type == PrimitiveVariant::PERSPECTIVE)
 	{
-		p = perspective->values[0].ResolveDepth(e);
+
+		p = primitive.perspective.values[0].ResolveDepth(e);
 		result = true;
 	}
 
@@ -384,12 +418,44 @@ struct SetIdentityVisitor
 		p.scale = Vector3f(1, 1, 1);
 		p.skew = Vector3f(0, 0, 0);
 	}
-};
 
+
+	void run(PrimitiveVariant& primitive)
+	{
+		switch (primitive.type)
+		{
+		case PrimitiveVariant::MATRIX2D: this->operator()(primitive.matrix_2d); break;
+		case PrimitiveVariant::MATRIX3D: this->operator()(primitive.matrix_3d); break;
+		case PrimitiveVariant::TRANSLATEX: this->operator()(primitive.translate_x); break;
+		case PrimitiveVariant::TRANSLATEY: this->operator()(primitive.translate_y); break;
+		case PrimitiveVariant::TRANSLATEZ: this->operator()(primitive.translate_z); break;
+		case PrimitiveVariant::TRANSLATE2D: this->operator()(primitive.translate_2d); break;
+		case PrimitiveVariant::TRANSLATE3D: this->operator()(primitive.translate_3d); break;
+		case PrimitiveVariant::SCALEX: this->operator()(primitive.scale_x); break;
+		case PrimitiveVariant::SCALEY: this->operator()(primitive.scale_y); break;
+		case PrimitiveVariant::SCALEZ: this->operator()(primitive.scale_z); break;
+		case PrimitiveVariant::SCALE2D: this->operator()(primitive.scale_2d); break;
+		case PrimitiveVariant::SCALE3D: this->operator()(primitive.scale_3d); break;
+		case PrimitiveVariant::ROTATEX: this->operator()(primitive.rotate_x); break;
+		case PrimitiveVariant::ROTATEY: this->operator()(primitive.rotate_y); break;
+		case PrimitiveVariant::ROTATEZ: this->operator()(primitive.rotate_z); break;
+		case PrimitiveVariant::ROTATE2D: this->operator()(primitive.rotate_2d); break;
+		case PrimitiveVariant::ROTATE3D: this->operator()(primitive.rotate_3d); break;
+		case PrimitiveVariant::SKEWX: this->operator()(primitive.skew_x); break;
+		case PrimitiveVariant::SKEWY: this->operator()(primitive.skew_y); break;
+		case PrimitiveVariant::SKEW2D: this->operator()(primitive.skew_2d); break;
+		case PrimitiveVariant::PERSPECTIVE: this->operator()(primitive.perspective); break;
+		case PrimitiveVariant::DECOMPOSEDMATRIX4: this->operator()(primitive.decomposed_matrix_4); break;
+		default:
+			ROCKET_ASSERT(false);
+			break;
+		}
+	}
+};
 
 void Primitive::SetIdentity() noexcept
 {
-	std::visit(SetIdentityVisitor{}, primitive);
+	SetIdentityVisitor{}.run(primitive);
 }
 
 
@@ -457,12 +523,45 @@ struct PrepareVisitor
 		// Perspective must be decomposed
 		return false;
 	}
+
+	bool run(PrimitiveVariant& primitive)
+	{
+		switch (primitive.type)
+		{
+		case PrimitiveVariant::MATRIX2D: return this->operator()(primitive.matrix_2d);
+		case PrimitiveVariant::MATRIX3D: return this->operator()(primitive.matrix_3d);
+		case PrimitiveVariant::TRANSLATEX: return this->operator()(primitive.translate_x);
+		case PrimitiveVariant::TRANSLATEY: return this->operator()(primitive.translate_y);
+		case PrimitiveVariant::TRANSLATEZ: return this->operator()(primitive.translate_z);
+		case PrimitiveVariant::TRANSLATE2D: return this->operator()(primitive.translate_2d);
+		case PrimitiveVariant::TRANSLATE3D: return this->operator()(primitive.translate_3d);
+		case PrimitiveVariant::SCALEX: return this->operator()(primitive.scale_x);
+		case PrimitiveVariant::SCALEY: return this->operator()(primitive.scale_y);
+		case PrimitiveVariant::SCALEZ: return this->operator()(primitive.scale_z);
+		case PrimitiveVariant::SCALE2D: return this->operator()(primitive.scale_2d);
+		case PrimitiveVariant::SCALE3D: return this->operator()(primitive.scale_3d);
+		case PrimitiveVariant::ROTATEX: return this->operator()(primitive.rotate_x);
+		case PrimitiveVariant::ROTATEY: return this->operator()(primitive.rotate_y);
+		case PrimitiveVariant::ROTATEZ: return this->operator()(primitive.rotate_z);
+		case PrimitiveVariant::ROTATE2D: return this->operator()(primitive.rotate_2d);
+		case PrimitiveVariant::ROTATE3D: return this->operator()(primitive.rotate_3d);
+		case PrimitiveVariant::SKEWX: return this->operator()(primitive.skew_x);
+		case PrimitiveVariant::SKEWY: return this->operator()(primitive.skew_y);
+		case PrimitiveVariant::SKEW2D: return this->operator()(primitive.skew_2d);
+		case PrimitiveVariant::PERSPECTIVE: return this->operator()(primitive.perspective);
+		case PrimitiveVariant::DECOMPOSEDMATRIX4: return this->operator()(primitive.decomposed_matrix_4);
+		default:
+			break;
+		}
+		ROCKET_ASSERT(false);
+		return false;
+	}
 };
 
 
 bool Primitive::PrepareForInterpolation(Element & e) noexcept
 {
-	return std::visit(PrepareVisitor{ e }, primitive);
+	return PrepareVisitor{ e }.run(primitive);
 }
 
 
@@ -484,38 +583,79 @@ struct GetGenericTypeVisitor
 
 	template <typename T>
 	GenericType operator()(const T& p) { return GenericType::None; }
+
+	GenericType run(const PrimitiveVariant& primitive)
+	{
+		PrimitiveVariant result = primitive;
+		switch (primitive.type)
+		{
+		case PrimitiveVariant::TRANSLATEX:  return this->operator()(primitive.translate_x); break;
+		case PrimitiveVariant::TRANSLATEY:  return this->operator()(primitive.translate_y); break;
+		case PrimitiveVariant::TRANSLATEZ:  return this->operator()(primitive.translate_z); break;
+		case PrimitiveVariant::TRANSLATE2D: return this->operator()(primitive.translate_2d); break;
+		case PrimitiveVariant::SCALEX:      return this->operator()(primitive.scale_x); break;
+		case PrimitiveVariant::SCALEY:      return this->operator()(primitive.scale_y); break;
+		case PrimitiveVariant::SCALEZ:      return this->operator()(primitive.scale_z); break;
+		case PrimitiveVariant::SCALE2D:     return this->operator()(primitive.scale_2d); break;
+		default:
+			break;
+		}
+		return GenericType::None;
+	}
 };
 
 
 struct ConvertToGenericTypeVisitor
 {
-	PrimitiveVariant operator()(const TranslateX& p) { return Translate3D{ p.values[0], {0.0f, Property::PX}, {0.0f, Property::PX} }; }
-	PrimitiveVariant operator()(const TranslateY& p) { return Translate3D{ {0.0f, Property::PX}, p.values[0], {0.0f, Property::PX} }; }
-	PrimitiveVariant operator()(const TranslateZ& p) { return Translate3D{ {0.0f, Property::PX}, {0.0f, Property::PX}, p.values[0] }; }
-	PrimitiveVariant operator()(const Translate2D& p) { return Translate3D{ p.values[0], p.values[1], {0.0f, Property::PX} }; }
-	PrimitiveVariant operator()(const ScaleX& p) { return Scale3D{ p.values[0], 1.0f, 1.0f }; }
-	PrimitiveVariant operator()(const ScaleY& p) { return Scale3D{  1.0f, p.values[0], 1.0f }; }
-	PrimitiveVariant operator()(const ScaleZ& p) { return Scale3D{  1.0f, 1.0f, p.values[0] }; }
-	PrimitiveVariant operator()(const Scale2D& p) { return Scale3D{ p.values[0], p.values[1], 1.0f }; }
+	Translate3D operator()(const TranslateX& p) { return Translate3D{ p.values[0], {0.0f, Property::PX}, {0.0f, Property::PX} }; }
+	Translate3D operator()(const TranslateY& p) { return Translate3D{ {0.0f, Property::PX}, p.values[0], {0.0f, Property::PX} }; }
+	Translate3D operator()(const TranslateZ& p) { return Translate3D{ {0.0f, Property::PX}, {0.0f, Property::PX}, p.values[0] }; }
+	Translate3D operator()(const Translate2D& p) { return Translate3D{ p.values[0], p.values[1], {0.0f, Property::PX} }; }
+	Scale3D operator()(const ScaleX& p) { return Scale3D{ p.values[0], 1.0f, 1.0f }; }
+	Scale3D operator()(const ScaleY& p) { return Scale3D{  1.0f, p.values[0], 1.0f }; }
+	Scale3D operator()(const ScaleZ& p) { return Scale3D{  1.0f, 1.0f, p.values[0] }; }
+	Scale3D operator()(const Scale2D& p) { return Scale3D{ p.values[0], p.values[1], 1.0f }; }
 
 	template <typename T>
 	PrimitiveVariant operator()(const T& p) { ROCKET_ERROR; return p; }
+
+
+
+	PrimitiveVariant run(const PrimitiveVariant& primitive)
+	{
+		PrimitiveVariant result = primitive;
+		switch (primitive.type)
+		{
+		case PrimitiveVariant::TRANSLATEX: result.translate_3d = this->operator()(primitive.translate_x); break;
+		case PrimitiveVariant::TRANSLATEY: result.translate_3d = this->operator()(primitive.translate_y); break;
+		case PrimitiveVariant::TRANSLATEZ: result.translate_3d = this->operator()(primitive.translate_z); break;
+		case PrimitiveVariant::TRANSLATE2D: result.translate_3d = this->operator()(primitive.translate_2d); break;
+		case PrimitiveVariant::SCALEX: result.scale_3d = this->operator()(primitive.scale_x); break;
+		case PrimitiveVariant::SCALEY: result.scale_3d = this->operator()(primitive.scale_y); break;
+		case PrimitiveVariant::SCALEZ: result.scale_3d = this->operator()(primitive.scale_z); break;
+		case PrimitiveVariant::SCALE2D: result.scale_3d = this->operator()(primitive.scale_2d); break;
+		default:
+			ROCKET_ASSERT(false);
+			break;
+		}
+		return result;
+	}
 };
 
 
 
 bool Primitive::TryConvertToMatchingGenericType(Primitive & p0, Primitive & p1) noexcept
 {
-	if (p0.primitive.index() == p1.primitive.index())
+	if (p0.primitive.type == p1.primitive.type)
 		return true;
 
-	GenericType c0 = std::visit(GetGenericTypeVisitor{}, p0.primitive);
-	GenericType c1 = std::visit(GetGenericTypeVisitor{}, p1.primitive);
+	GenericType c0 = GetGenericTypeVisitor{}.run(p0.primitive);
+	GenericType c1 = GetGenericTypeVisitor{}.run(p1.primitive);
 
 	if (c0 == c1 && c0 != GenericType::None)
 	{
-		p0.primitive = std::visit(ConvertToGenericTypeVisitor{}, p0.primitive);
-		p1.primitive = std::visit(ConvertToGenericTypeVisitor{}, p1.primitive);
+		p0.primitive = ConvertToGenericTypeVisitor{}.run(p0.primitive);
+		p1.primitive = ConvertToGenericTypeVisitor{}.run(p1.primitive);
 		return true;
 	}
 
@@ -565,21 +705,48 @@ struct InterpolateVisitor
 		return true;
 	}
 
-	template <typename T>
-	bool operator()(T& p0)
+	bool run(PrimitiveVariant& variant)
 	{
-		auto& p1 = std::get<T>(other_variant);
-		return Interpolate(p0, p1);
+		ROCKET_ASSERT(variant.type == other_variant.type);
+		switch (variant.type)
+		{
+		case PrimitiveVariant::MATRIX2D: return Interpolate(variant.matrix_2d, other_variant.matrix_2d);
+		case PrimitiveVariant::MATRIX3D: return Interpolate(variant.matrix_3d, other_variant.matrix_3d);
+		case PrimitiveVariant::TRANSLATEX: return Interpolate(variant.translate_x, other_variant.translate_x);
+		case PrimitiveVariant::TRANSLATEY: return Interpolate(variant.translate_y, other_variant.translate_y);
+		case PrimitiveVariant::TRANSLATEZ: return Interpolate(variant.translate_z, other_variant.translate_z);
+		case PrimitiveVariant::TRANSLATE2D: return Interpolate(variant.translate_2d, other_variant.translate_2d);
+		case PrimitiveVariant::TRANSLATE3D: return Interpolate(variant.translate_3d, other_variant.translate_3d);
+		case PrimitiveVariant::SCALEX: return Interpolate(variant.scale_x, other_variant.scale_x);
+		case PrimitiveVariant::SCALEY: return Interpolate(variant.scale_y, other_variant.scale_y);
+		case PrimitiveVariant::SCALEZ: return Interpolate(variant.scale_z, other_variant.scale_z);
+		case PrimitiveVariant::SCALE2D: return Interpolate(variant.scale_2d, other_variant.scale_2d);
+		case PrimitiveVariant::SCALE3D: return Interpolate(variant.scale_3d, other_variant.scale_3d);
+		case PrimitiveVariant::ROTATEX: return Interpolate(variant.rotate_x, other_variant.rotate_x);
+		case PrimitiveVariant::ROTATEY: return Interpolate(variant.rotate_y, other_variant.rotate_y);
+		case PrimitiveVariant::ROTATEZ: return Interpolate(variant.rotate_z, other_variant.rotate_z);
+		case PrimitiveVariant::ROTATE2D: return Interpolate(variant.rotate_2d, other_variant.rotate_2d);
+		case PrimitiveVariant::ROTATE3D: return Interpolate(variant.rotate_3d, other_variant.rotate_3d);
+		case PrimitiveVariant::SKEWX: return Interpolate(variant.skew_x, other_variant.skew_x);
+		case PrimitiveVariant::SKEWY: return Interpolate(variant.skew_y, other_variant.skew_y);
+		case PrimitiveVariant::SKEW2D: return Interpolate(variant.skew_2d, other_variant.skew_2d);
+		case PrimitiveVariant::PERSPECTIVE: return Interpolate(variant.perspective, other_variant.perspective);
+		case PrimitiveVariant::DECOMPOSEDMATRIX4: return Interpolate(variant.decomposed_matrix_4, other_variant.decomposed_matrix_4);
+		default:
+			break;
+		}
+		ROCKET_ASSERT(false);
+		return false;
 	}
 };
 
 
 bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 {
-	if (primitive.index() != other.primitive.index())
+	if (primitive.type != other.primitive.type)
 		return false;
 
-	bool result = std::visit(InterpolateVisitor{ other.primitive, alpha }, primitive);
+	bool result = InterpolateVisitor{ other.primitive, alpha }.run(primitive);
 
 	return result;
 }
@@ -589,16 +756,43 @@ bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 
 struct ToStringVisitor
 {
-	template <typename T>
-	String operator()(T& p0)
+	String run(const PrimitiveVariant& variant)
 	{
-		return p0.ToString();
+		switch (variant.type)
+		{
+		case PrimitiveVariant::MATRIX2D: return variant.matrix_2d.ToString();
+		case PrimitiveVariant::MATRIX3D: return variant.matrix_3d.ToString();
+		case PrimitiveVariant::TRANSLATEX: return variant.translate_x.ToString();
+		case PrimitiveVariant::TRANSLATEY: return variant.translate_y.ToString();
+		case PrimitiveVariant::TRANSLATEZ: return variant.translate_z.ToString();
+		case PrimitiveVariant::TRANSLATE2D: return variant.translate_2d.ToString();
+		case PrimitiveVariant::TRANSLATE3D: return variant.translate_3d.ToString();
+		case PrimitiveVariant::SCALEX: return variant.scale_x.ToString();
+		case PrimitiveVariant::SCALEY: return variant.scale_y.ToString();
+		case PrimitiveVariant::SCALEZ: return variant.scale_z.ToString();
+		case PrimitiveVariant::SCALE2D: return variant.scale_2d.ToString();
+		case PrimitiveVariant::SCALE3D: return variant.scale_3d.ToString();
+		case PrimitiveVariant::ROTATEX: return variant.rotate_x.ToString();
+		case PrimitiveVariant::ROTATEY: return variant.rotate_y.ToString();
+		case PrimitiveVariant::ROTATEZ: return variant.rotate_z.ToString();
+		case PrimitiveVariant::ROTATE2D: return variant.rotate_2d.ToString();
+		case PrimitiveVariant::ROTATE3D: return variant.rotate_3d.ToString();
+		case PrimitiveVariant::SKEWX: return variant.skew_x.ToString();
+		case PrimitiveVariant::SKEWY: return variant.skew_y.ToString();
+		case PrimitiveVariant::SKEW2D: return variant.skew_2d.ToString();
+		case PrimitiveVariant::PERSPECTIVE: return variant.perspective.ToString();
+		case PrimitiveVariant::DECOMPOSEDMATRIX4: return variant.decomposed_matrix_4.ToString();
+		default:
+			break;
+		}
+		ROCKET_ASSERT(false);
+		return String();
 	}
 };
 
 String Primitive::ToString() const noexcept
 {
-	String result = std::visit(ToStringVisitor{}, primitive);
+	String result = ToStringVisitor{}.run(primitive);
 	return result;
 }
 

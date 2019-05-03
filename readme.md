@@ -7,7 +7,7 @@ Original website at http://librocket.com
 
 ## Fork features
 
-This fork contains some additional features over the [original libRocket branch](https://github.com/libRocket/libRocket), briefly documented here. Some of the new features utilize features from C++17, thus, a C++17-compliant compiler should be used.
+This fork contains some additional features over the [original libRocket branch](https://github.com/libRocket/libRocket), briefly documented here.
 
 
 ## Transform property

@@ -2312,7 +2312,8 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 {
 	bool result = false;
 
-	if (auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay); it_animation != animations.end())
+	auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay);
+	if (it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
 		if (!result)
@@ -2517,7 +2518,8 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			dictionary_list.emplace_back().Set("property", it->GetPropertyName());
+			dictionary_list.emplace_back();
+			dictionary_list.back().Set("property", it->GetPropertyName());
 			is_transition.push_back(it->IsTransition());
 		}
 

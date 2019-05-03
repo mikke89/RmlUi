@@ -31,7 +31,6 @@
 #include "Header.h"
 #include "Types.h"
 #include "Property.h"
-#include <variant>
 #include <array>
 
 namespace Rocket {
@@ -277,13 +276,46 @@ struct DecomposedMatrix4
 };
 
 
-using PrimitiveVariant = std::variant<
-	Matrix2D, Matrix3D,
-	TranslateX, TranslateY, TranslateZ, Translate2D, Translate3D,
-	ScaleX, ScaleY, ScaleZ, Scale2D, Scale3D,
-	RotateX, RotateY, RotateZ, Rotate2D, Rotate3D,
-	SkewX, SkewY, Skew2D,
-	Perspective, DecomposedMatrix4>;
+struct PrimitiveVariant {
+
+	enum Type {
+		MATRIX2D, MATRIX3D,
+		TRANSLATEX, TRANSLATEY, TRANSLATEZ, TRANSLATE2D, TRANSLATE3D,
+		SCALEX, SCALEY, SCALEZ, SCALE2D, SCALE3D,
+		ROTATEX, ROTATEY, ROTATEZ, ROTATE2D, ROTATE3D,
+		SKEWX, SKEWY, SKEW2D,
+		PERSPECTIVE, DECOMPOSEDMATRIX4
+	};
+
+	PrimitiveVariant(Type type) : type(type) {}
+
+	Type type;
+
+	union {
+		Matrix2D matrix_2d;
+		Matrix3D matrix_3d;
+		TranslateX translate_x;
+		TranslateY translate_y;
+		TranslateZ translate_z;
+		Translate2D translate_2d;
+		Translate3D translate_3d;
+		ScaleX scale_x;
+		ScaleY scale_y;
+		ScaleZ scale_z;
+		Scale2D scale_2d;
+		Scale3D scale_3d;
+		RotateX rotate_x;
+		RotateY rotate_y;
+		RotateZ rotate_z;
+		Rotate2D rotate_2d;
+		Rotate3D rotate_3d;
+		SkewX skew_x;
+		SkewY skew_y;
+		Skew2D skew_2d;
+		Perspective perspective;
+		DecomposedMatrix4 decomposed_matrix_4;
+	};
+};
 
 
 /**
@@ -300,8 +332,28 @@ struct Primitive
 {
 	PrimitiveVariant primitive;
 
-	template<typename PrimitiveType>
-	Primitive(PrimitiveType primitive) : primitive(primitive) {}
+	Primitive(Matrix2D          p) : primitive(PrimitiveVariant::MATRIX2D) { primitive.matrix_2d = p; }
+	Primitive(Matrix3D          p) : primitive(PrimitiveVariant::MATRIX3D) { primitive.matrix_3d = p; }
+	Primitive(TranslateX        p) : primitive(PrimitiveVariant::TRANSLATEX) { primitive.translate_x = p; }
+	Primitive(TranslateY        p) : primitive(PrimitiveVariant::TRANSLATEY) { primitive.translate_y = p; }
+	Primitive(TranslateZ        p) : primitive(PrimitiveVariant::TRANSLATEZ) { primitive.translate_z = p; }
+	Primitive(Translate2D       p) : primitive(PrimitiveVariant::TRANSLATE2D) { primitive.translate_2d = p; }
+	Primitive(Translate3D       p) : primitive(PrimitiveVariant::TRANSLATE3D) { primitive.translate_3d = p; }
+	Primitive(ScaleX            p) : primitive(PrimitiveVariant::SCALEX) { primitive.scale_x = p; }
+	Primitive(ScaleY            p) : primitive(PrimitiveVariant::SCALEY) { primitive.scale_y = p; }
+	Primitive(ScaleZ            p) : primitive(PrimitiveVariant::SCALEZ) { primitive.scale_z = p; }
+	Primitive(Scale2D           p) : primitive(PrimitiveVariant::SCALE2D) { primitive.scale_2d = p; }
+	Primitive(Scale3D           p) : primitive(PrimitiveVariant::SCALE3D) { primitive.scale_3d = p; }
+	Primitive(RotateX           p) : primitive(PrimitiveVariant::ROTATEX) { primitive.rotate_x = p; }
+	Primitive(RotateY           p) : primitive(PrimitiveVariant::ROTATEY) { primitive.rotate_y = p; }
+	Primitive(RotateZ           p) : primitive(PrimitiveVariant::ROTATEZ) { primitive.rotate_z = p; }
+	Primitive(Rotate2D          p) : primitive(PrimitiveVariant::ROTATE2D) { primitive.rotate_2d = p; }
+	Primitive(Rotate3D          p) : primitive(PrimitiveVariant::ROTATE3D) { primitive.rotate_3d = p; }
+	Primitive(SkewX             p) : primitive(PrimitiveVariant::SKEWX) { primitive.skew_x = p; }
+	Primitive(SkewY             p) : primitive(PrimitiveVariant::SKEWY) { primitive.skew_y = p; }
+	Primitive(Skew2D            p) : primitive(PrimitiveVariant::SKEW2D) { primitive.skew_2d = p; }
+	Primitive(Perspective       p) : primitive(PrimitiveVariant::PERSPECTIVE) { primitive.perspective = p; }
+	Primitive(DecomposedMatrix4 p) : primitive(PrimitiveVariant::DECOMPOSEDMATRIX4) { primitive.decomposed_matrix_4 = p; }
 
 	void SetIdentity() noexcept;
 
