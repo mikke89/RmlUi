@@ -144,9 +144,9 @@ private:
 	int num_allocated_objects;
 };
 
-#include "Pool.inl"
+}
+}
 
-}
-}
+#include "Pool.inl"
 
 #endif

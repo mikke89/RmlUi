@@ -43,6 +43,7 @@
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
 #include "PluginRegistry.h"
+#include "Pool.h"
 #include "StyleSheetParser.h"
 #include "XMLParseTools.h"
 #include "../../Include/Rocket/Core/Core.h"
@@ -77,6 +78,11 @@ public:
 	}
 };
 
+
+struct ElementMetaChunk;
+static Pool< ElementMetaChunk > element_meta_chunk_pool(200, true);
+
+
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta 
 {
@@ -87,7 +93,25 @@ struct ElementMeta
 	ElementBorder border;
 	ElementDecoration decoration;
 	ElementScroll scroll;
+
+	void* ElementMeta::operator new(size_t size)
+	{
+		void* memory = element_meta_chunk_pool.AllocateObject();
+		return memory;
+	}
+	void ElementMeta::operator delete(void* chunk)
+	{
+		element_meta_chunk_pool.DeallocateObject((ElementMetaChunk*)chunk);
+	}
+}; 
+
+struct alignas(ElementMeta) ElementMetaChunk
+{
+	ElementMetaChunk() { memset(buffer, 0, size); }
+	static constexpr size_t size = sizeof(ElementMeta);
+	char buffer[size];
 };
+
 
 /// Constructs a new libRocket element.
 Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0), 

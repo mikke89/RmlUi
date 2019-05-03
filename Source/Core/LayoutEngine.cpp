@@ -44,7 +44,7 @@ namespace Core {
 
 #define MAX(a, b) (a > b ? a : b)
 
-struct LayoutChunk
+struct alignas(LayoutBlockBox) LayoutChunk
 {
 	LayoutChunk()
 	{

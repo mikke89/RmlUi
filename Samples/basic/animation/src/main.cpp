@@ -144,8 +144,9 @@ public:
 		  Dirty flag for structure changes: 43.0  [fdf6f53]
 		  Replacing containers: 46.0  [c307140]
 		  Replace 'resize' event with virtual function call: 53.0  [7ad658f]
-		  Use all_properties_dirty flag when constructing elements: 55.0
-		  Don't double create input elements: 58.0
+		  Use all_properties_dirty flag when constructing elements: 55.0 [fa6bd0a]
+		  Don't double create input elements: 58.0  [e162637]
+		  Memory pool for ElementMeta: 59.0
 		
 		*/
 

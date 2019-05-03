@@ -25,6 +25,11 @@
  *
  */
 
+
+
+namespace Rocket {
+namespace Core {
+
 template < typename PoolType >
 Pool< PoolType >::Pool(int _chunk_size, bool _grow)
 {
@@ -244,4 +249,7 @@ void Pool< PoolType >::CreateChunk()
 	}
 
 	first_free_node = new_chunk->chunk;
+}
+
+}
 }
