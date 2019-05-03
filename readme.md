@@ -10,6 +10,23 @@ Original website at http://librocket.com
 This fork contains some additional features over the [original libRocket branch](https://github.com/libRocket/libRocket), briefly documented here. Some of the new features utilize features from C++17, thus, a C++17-compliant compiler should be used.
 
 
+## Breaking changes
+
+If upgrading from the original libRocket branch, some breaking changes should be considered:
+
+- Rocket::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase.
+- Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the note below for reasoning and a workaround.
+
+## Performance
+
+Users moving to this fork should generally see a substantial performance increase. 
+
+- The update loop has been reworked to avoid doing unnecessary, repeated calculations whenever the document or style is changed. Instead of immediately updating properties on any affected elements, most of this work is done during the Context::Update call in a more carefully chosen order. Note that for this reason, when querying the Rocket API for properties such as size or position, this information may not be up-to-date with changes since the last Context::Update, such as newly added elements or classes. If this information is needed immediately, a call to ElementDocument::UpdateDocument can be made before such queries at a performance penalty.
+- Several containers have been replaced, such as std::map to [robin_hood::unordered_flat_map](https://github.com/martinus/robin-hood-hashing).
+- Reduced number of allocations and unnecessary recursive calls.
+- And many more, smaller optimizations, resulting in more than 4x performance increase for creation and destruction of a large number of elements. A benchmark for this is located in the animation sample for now.
+
+
 ## Transform property
 
 Based on the work of @shoemark, with additional fixes.
@@ -125,6 +142,8 @@ RCSS example usage:
 ```
 
 Internally, animations apply their properties on the local style of the element. Thus, mixing RML style attributes and animations should be avoided on the same element.
+
+Animations currently support full interpolation of transforms, largely following the CSS specifications. Additionally, interpolation support for colors, numbers, lengths, and percentages are implemented.
 
 Animations are very powerful coupled with transforms. See the animation sample project for more examples and details.
 

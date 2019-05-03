@@ -41,8 +41,9 @@
 //  - [offtopic] Improve performance of transform parser (hashtable)
 //  - [offtopic] Use double for absolute time, get and cache time for each render/update loop
 //  - [performance] Replace property name strings with handle IDs (ints). Tried this and reverted, see [0e390e9], too little gain for too much complexity.
-//  - [performance] Memory pools for common elements.
+//  - [performance] Memory pools for common elements. Also, a lot of temporary objects are created and destroyed.
 //  - [performance] Try replacing ElementAttributes with vector.
+//  - [performance] Can we optimize the layouting? E.g. why is ElementTextDefault::GenerateLine being called even when neither text nor size have seemingly been changed.
 
 class DemoWindow
 {
@@ -146,7 +147,7 @@ public:
 		  Replace 'resize' event with virtual function call: 53.0  [7ad658f]
 		  Use all_properties_dirty flag when constructing elements: 55.0 [fa6bd0a]
 		  Don't double create input elements: 58.0  [e162637]
-		  Memory pool for ElementMeta: 59.0
+		  Memory pool for ElementMeta: 59.0  [ece191a]
 		
 		*/
 

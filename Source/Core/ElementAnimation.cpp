@@ -196,7 +196,7 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 	{
 		// Try to match the smallest set of primitives to the larger set, set missing keys in the small set to identity.
 		// Requirement: The small set must match types in the same order they appear in the big set.
-		// Example: (letter indicates type, number represent values)
+		// Example: (letter indicates type, number represents values)
 		// big:       a0 b0 c0 b1
 		//               ^     ^ 
 		// small:     b2 b3   
