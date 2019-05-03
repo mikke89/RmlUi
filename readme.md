@@ -2,12 +2,12 @@
 
 Documentation at https://barotto.github.io/libRocketDoc/
 
-Original website at http://librocket.com
-
 
 ## Fork features
 
-This fork contains some additional features over the [original libRocket branch](https://github.com/libRocket/libRocket), briefly documented here. Some of the new features utilize features from C++17, thus, a C++17-compliant compiler should be used.
+This fork contains some additional features over the [original libRocket branch](https://github.com/libRocket/libRocket), briefly documented here. 
+
+Some of the new features utilize features from C++17, thus, a C++17-compliant compiler should be used. For users that need support for older compilers, there is a (less maintained) C++11 version in the cpp11 branch.
 
 
 ## Transform property
