@@ -32,7 +32,6 @@
 #include <Shell.h>
 #include <Rocket/Core/TransformPrimitive.h>
 
-#include <cmath>
 #include <sstream>
 
 
