@@ -442,7 +442,7 @@ bool LayoutEngine::FormatElementReplaced(Element* element)
 // Executes any special formatting for special elements.
 bool LayoutEngine::FormatElementSpecial(Element* element)
 {
-	static String br("br");
+	static const String br("br");
 	
 	// Check for a <br> tag.
 	if (element->GetTagName() == br)

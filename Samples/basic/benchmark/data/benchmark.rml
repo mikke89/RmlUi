@@ -59,7 +59,7 @@
 			left: -200px;
 			width: 800px;
 			height: 300px;
-			transform: scale(0.6) rotate(-60deg);
+			/*transform: scale(0.6) rotate(-60deg);*/
 		}
 	</style>
 </head>

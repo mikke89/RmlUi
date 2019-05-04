@@ -146,10 +146,13 @@ public:
 	/// Adds a box to the end of the list describing this element's geometry.
 	/// @param[in] box The auxiliary box for the element.
 	void AddBox(const Box& box);
+	/// Returns the main box describing the size of the element.
+	/// @return The box.
+	const Box& GetBox();
 	/// Returns one of the boxes describing the size of the element.
-	/// @param[in] index The index of the desired box. If this is outside of the bounds of the element's list of boxes, it will be clamped.
+	/// @param[in] index The index of the desired box, with 0 being the main box. If outside of bounds, the main box will be returned.
 	/// @return The requested box.
-	const Box& GetBox(int index = 0);
+	const Box& GetBox(int index);
 	/// Returns the number of boxes making up this element's geometry.
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
@@ -751,7 +754,9 @@ private:
 
 	// The size of the element.
 	typedef std::vector< Box > BoxList;
-	BoxList boxes;
+	Box main_box;
+	BoxList additional_boxes;
+
 	// And of the element's internal content.
 	Vector2f content_offset;
 	Vector2f content_box;

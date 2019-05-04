@@ -78,6 +78,8 @@ public:
 		  Don't double create input elements: 58.0  [e162637]
 		  Memory pool for ElementMeta: 59.0  [ece191a]
 		  Include chobo flat containers: 65.0  [1696aa5]
+		  Move benchmark to its own sample (no code change, fps increase because of removal of animation elements): 68.0  [2433880]
+		  Keep the element's main sizing box local: 69.0 
 		
 		*/
 

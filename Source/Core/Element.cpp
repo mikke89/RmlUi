@@ -114,7 +114,7 @@ struct alignas(ElementMeta) ElementMetaChunk
 
 
 /// Constructs a new libRocket element.
-Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0), 
+Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
 transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false)
 {
 	tag = ToLower(_tag);
@@ -460,11 +460,10 @@ void Element::SetContentBox(const Vector2f& _content_offset, const Vector2f& _co
 // Sets the box describing the size of the element.
 void Element::SetBox(const Box& box)
 {
-	if (box != boxes[0] ||
-		boxes.size() > 1)
+	if (box != main_box || additional_boxes.size() > 0)
 	{
-		boxes[0] = box;
-		boxes.resize(1);
+		main_box = box;
+		additional_boxes.clear();
 
 		box_dirty = true;
 		background->DirtyBackground();
@@ -476,7 +475,7 @@ void Element::SetBox(const Box& box)
 // Adds a box to the end of the list describing this element's geometry.
 void Element::AddBox(const Box& box)
 {
-	boxes.push_back(box);
+	additional_boxes.push_back(box);
 
 	box_dirty = true;
 	background->DirtyBackground();
@@ -485,20 +484,28 @@ void Element::AddBox(const Box& box)
 }
 
 // Returns one of the boxes describing the size of the element.
+const Box& Element::GetBox()
+{
+	return main_box;
+}
+
+// Returns one of the boxes describing the size of the element.
 const Box& Element::GetBox(int index)
 {
-	if (index < 0)
-		return boxes[0];
-	else if (index >= GetNumBoxes())
-		return boxes.back();
+	if (index < 1)
+		return main_box;
+	
+	int additional_box_index = index - 1;
+	if (additional_box_index >= (int)additional_boxes.size())
+		return main_box;
 
-	return boxes[index];
+	return additional_boxes[additional_box_index];
 }
 
 // Returns the number of boxes making up this element's geometry.
 int Element::GetNumBoxes()
 {
-	return (int) boxes.size();
+	return 1 + (int)additional_boxes.size();
 }
 
 // Returns the baseline of the element, in pixels offset from the bottom of the element's content area.
@@ -1376,11 +1383,10 @@ bool Element::DispatchEvent(const String& event, const Dictionary& parameters, b
 void Element::ScrollIntoView(bool align_with_top)
 {
 	Vector2f size(0, 0);
-	if (!align_with_top &&
-		!boxes.empty())
+	if (!align_with_top)
 	{
-		size.y = boxes.back().GetOffset().y +
-				 boxes.back().GetSize(Box::BORDER).y;
+		size.y = main_box.GetOffset().y +
+			main_box.GetSize(Box::BORDER).y;
 	}
 
 	Element* scroll_parent = parent;
