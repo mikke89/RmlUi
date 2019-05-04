@@ -50,10 +50,10 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		glViewport(0, 0, width, height);
 		projection = Rocket::Core::Matrix4f::ProjectOrtho(0, width, height, 0, -1, 1);
 		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(projection);
+		glLoadMatrixf(projection.data());
 		view = Rocket::Core::Matrix4f::Identity();
 		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(view);
+		glLoadMatrixf(view.data());
 
 		if(m_rocket_context != NULL)
 		{
@@ -106,7 +106,7 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 void ShellRenderInterfaceOpenGL::DetachFromNative()
 {
 	// Shutdown OpenGL	
-	glXMakeCurrent(this->nwData.display, None, NULL);
+	glXMakeCurrent(this->nwData.display, 0L, NULL);
 	glXDestroyContext(this->nwData.display, this->gl_context);
 	this->gl_context = NULL;
 }

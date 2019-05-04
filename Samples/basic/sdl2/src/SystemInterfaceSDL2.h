@@ -38,7 +38,7 @@ public:
     Rocket::Core::Input::KeyIdentifier TranslateKey(SDL_Keycode sdlkey);
     int TranslateMouseButton(Uint8 button);
 	int GetKeyModifiers();
-	float GetElapsedTime();
+	double GetElapsedTime();
     bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message);
 };
 #endif
