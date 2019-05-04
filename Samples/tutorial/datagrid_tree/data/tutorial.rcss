@@ -3,7 +3,7 @@ body
 	font-family: Delicious;
 	font-weight: normal;
 	font-style: normal;
-	font-size: 15;
+	font-size: 15px;
 	color: white;
 }
 
@@ -35,7 +35,7 @@ div#title-bar span
 	padding-top: 17px;
 	padding-bottom: 48px;
 
-	font-size: 22;
+	font-size: 22px;
 	font-weight: bold;
 
 	text-shadow: 2px 2px black;
