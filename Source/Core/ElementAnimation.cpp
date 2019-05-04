@@ -118,7 +118,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		using namespace Rocket::Core::Transforms;
 
 		// Build the new, interpolating transform
-		auto t = std::make_unique<Transform>();
+		std::unique_ptr<Transform> t(new Transform);
 
 		auto t0 = p0.value.Get<TransformRef>();
 		auto t1 = p1.value.Get<TransformRef>();

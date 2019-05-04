@@ -2644,7 +2644,7 @@ void Element::UpdateTransformState()
 			if (have_perspective && context)
 			{
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				perspective_value.view_size = context->GetDimensions();
 				transform_state->SetPerspective(&perspective_value);
 			}
@@ -2750,7 +2750,7 @@ void Element::UpdateTransformState()
 			if (have_local_perspective && context)
 			{
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				local_perspective.view_size = context->GetDimensions();
 				transform_state->SetLocalPerspective(&local_perspective);
 			}
@@ -2773,7 +2773,7 @@ void Element::UpdateTransformState()
 					* Matrix4f::Translate(-transform_origin);
 
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				transform_state->SetTransform(&transform_value);
 			}
 			else if (transform_state)

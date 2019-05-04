@@ -32,6 +32,8 @@
 #include "Math.h"
 #include <cmath>
 
+#include <cmath>
+
 namespace Rocket {
 namespace Core {
 

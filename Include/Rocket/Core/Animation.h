@@ -64,9 +64,9 @@ struct TransitionList {
 	bool all = false;
 	std::vector<Transition> transitions;
 
-	TransitionList() : none(true), all(false) {}
-	TransitionList(bool n, bool a, std::vector<Transition> t) :
-		none(n), all(a), transitions(t) {}
+	TransitionList() {}
+	TransitionList(bool none, bool all, std::vector<Transition> transitions) :
+		none(none), all(all), transitions(transitions) {}
 };
 
 inline bool operator==(const Animation& a, const Animation& b) { return a.duration == b.duration && a.tween == b.tween && a.delay == b.delay && a.alternate == b.alternate && a.paused == b.paused && a.num_iterations == b.num_iterations && a.name == b.name; }
