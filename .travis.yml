@@ -1,0 +1,55 @@
+sudo: false
+dist: trusty
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode8.3
+      env: ARCH=OSX
+      language: c++
+      compiler: clang
+    - os: linux
+      language: c++
+      compiler: clang
+      env: ARCH=x86_64 CC=clang
+      addons:
+        apt:
+          packages:
+            - clang
+            - cmake
+            - build-essential
+            - libboost-dev
+            - libboost-python-dev
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libfreetype6-dev
+            - libsfml-dev
+            - liblua5.2-dev
+    - os: linux
+      language: c++
+      compiler: gcc
+      env: ARCH=x86_64
+      addons:
+        apt:
+          packages:
+            - cmake
+            - build-essential
+            - libboost-dev
+            - libboost-python-dev
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libfreetype6-dev
+            - libsfml-dev
+            - liblua5.2-dev
+
+install:
+  - if [[ "$CC" == "clang" ]]; then export CC=clang CXX=clang++; fi
+  - cd "$TRAVIS_BUILD_DIR/Build"
+  - if [[ "$ARCH" == "x86_64" ]]; then cmake -D BUILD_PYTHON_BINDINGS=ON -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
+  - if [[ "$ARCH" == "OSX" ]]; then cmake -G Xcode .; fi
+  - cd "$TRAVIS_BUILD_DIR"
+
+script:
+  - cd Build
+  - if [[ "$ARCH" == "x86_64" ]]; then make -j4; fi
+  - if [[ "$ARCH" == "OSX" ]]; then xcodebuild -project librocket.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi
