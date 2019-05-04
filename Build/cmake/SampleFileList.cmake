@@ -92,6 +92,13 @@ set(animation_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/animation/src/main.cpp
 )
 
+set(benchmark_HDR_FILES
+)
+
+set(benchmark_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/src/main.cpp
+)
+
 set(sdl2_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.h

@@ -38,12 +38,7 @@
 
 // Animations TODO:
 //  - Update transform animations / resolve keys again when parent box size changes.
-//  - [offtopic] Improve performance of transform parser (hashtable)
 //  - [offtopic] Use double for absolute time, get and cache time for each render/update loop
-//  - [performance] Replace property name strings with handle IDs (ints). Tried this and reverted, see [0e390e9], too little gain for too much complexity.
-//  - [performance] Memory pools for common elements. Also, a lot of temporary objects are created and destroyed.
-//  - [performance] Try replacing ElementAttributes with vector.
-//  - [performance] Can we optimize the layouting? E.g. why is ElementTextDefault::GenerateLine being called even when neither text nor size have seemingly been changed.
 
 class DemoWindow
 {
@@ -58,7 +53,7 @@ public:
 				document->GetElementById("title")->SetInnerRML(title);
 				document->SetProperty("left", Property(position.x, Property::PX));
 				document->SetProperty("top", Property(position.y, Property::PX));
-				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 1.5f, Tween{Tween::Quadratic, Tween::Out}, 1, true, 0.0f);
+				//document->Animate("opacity", Property(0.0f, Property::NUMBER), 2.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true, 1.0f);
 			}
 
 			// Button fun
@@ -130,63 +125,6 @@ public:
 		}
 	}
 
-	void performance_test()
-	{
-		/*
-		  FPS values
-		  Original: 18.5  [957f723]
-		  Without property counter: 22.0
-		  With std::string: 23.0  [603fd40]
-		  robin_hood unordered_flat_map: 24.0  [709852f]
-		  Avoid dirtying em's: 27.5
-		  Restructuring update loop: 34.5  [f9892a9]
-		  Element constructor, remove geometry database, remove update() from Context::render: 38.0  [1aab59e]
-		  Replace Dictionary with unordered_flat_map: 40.0  [b04b4e5]
-		  Dirty flag for structure changes: 43.0  [fdf6f53]
-		  Replacing containers: 46.0  [c307140]
-		  Replace 'resize' event with virtual function call: 53.0  [7ad658f]
-		  Use all_properties_dirty flag when constructing elements: 55.0 [fa6bd0a]
-		  Don't double create input elements: 58.0  [e162637]
-		  Memory pool for ElementMeta: 59.0  [ece191a]
-		  Include chobo flat containers: 65.0
-		
-		*/
-
-		if (!document)
-			return;
-
-		Rocket::Core::String rml;
-
-		for (int i = 0; i < 50; i++)
-		{
-			int index = rand() % 1000;
-			int route = rand() % 50;
-			int max = (rand() % 40) + 10;
-			int value = rand() % max;
-			Rocket::Core::String rml_row = Rocket::Core::CreateString(1000, R"(
-			<div class="row">
-				<div class="col col1"><button class="expand" index="%d">+</button>&nbsp;<a>Route %d</a></div>
-				<div class="col col23"><input type="range" class="assign_range" min="0" max="%d" value="%d"/></div>
-				<div class="col col4">Assigned</div>
-				<div class="inrow unmark_collapse">
-					<div class="col col123 assign_text">Assign to route</div>
-					<div class="col col4">
-						<button class="vehicle_depot_assign_confirm" quantity="0">Confirm</button>
-					</div>
-				</div>
-			</div>)",
-				index, 
-				route,
-				max,
-				value
-			);
-			rml += rml_row;
-		}
-
-		if (auto el = document->GetElementById("performance"))
-			el->SetInnerRML(rml);
-	}
-
 	~DemoWindow()
 	{
 		if (document)
@@ -231,8 +169,7 @@ void GameLoop()
 	float dt = float(t - t_prev);
 	static int count_frames = 0;
 	count_frames += 1;
-	//t_prev = t;
-	//if(dt > 1.0f)
+
 	if(nudge)
 	{
 		t_prev = t;
@@ -254,13 +191,6 @@ void GameLoop()
 		count_frames = 0;
 		el->SetInnerRML(Rocket::Core::CreateString( 20, "FPS: %f", fps ));
 	}
-
-	window->performance_test();
-	//static int f_prev = 0.0f;
-	//int df = f - f_prev;
-	//f_prev = f;
-	//if(df != 0)
-	//	Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "Animation f = %d,  df = %d", f, df);
 }
 
 
@@ -279,7 +209,6 @@ public:
 
 		if (event == "keydown")
 		{
-			bool key_down = event == "keydown";
 			Rocket::Core::Input::KeyIdentifier key_identifier = (Rocket::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
 			if (key_identifier == Rocket::Core::Input::KI_SPACE)
