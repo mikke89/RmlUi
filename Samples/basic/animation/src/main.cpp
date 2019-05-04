@@ -148,6 +148,7 @@ public:
 		  Use all_properties_dirty flag when constructing elements: 55.0 [fa6bd0a]
 		  Don't double create input elements: 58.0  [e162637]
 		  Memory pool for ElementMeta: 59.0  [ece191a]
+		  Include chobo flat containers: 65.0
 		
 		*/
 

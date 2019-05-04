@@ -47,9 +47,9 @@ class FontEffect;
 // one. This makes it much more straight-forward to query at run-time.
 typedef std::pair< StringList, Property > PseudoClassProperty;
 typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef UnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+typedef SmallUnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
 
-typedef UnorderedMap< String, Decorator* > DecoratorMap;
+typedef SmallUnorderedMap< String, Decorator* > DecoratorMap;
 typedef std::map< StringList, DecoratorMap > PseudoClassDecoratorMap;
 
 /**
@@ -128,12 +128,12 @@ protected:
 
 private:
 	typedef std::pair< String, PropertyDictionary > PropertyGroup;
-	typedef UnorderedMap< String, PropertyGroup > PropertyGroupMap;
+	typedef SmallUnorderedMap< String, PropertyGroup > PropertyGroupMap;
 
 	typedef std::vector< std::pair< StringList, int > > PseudoClassFontEffectIndex;
-	typedef UnorderedMap< String, PseudoClassFontEffectIndex > FontEffectIndex;
+	typedef SmallUnorderedMap< String, PseudoClassFontEffectIndex > FontEffectIndex;
 
-	typedef UnorderedMap< String, PseudoClassVolatility > PseudoClassVolatilityMap;
+	typedef SmallUnorderedMap< String, PseudoClassVolatility > PseudoClassVolatilityMap;
 
 	// Finds all propery declarations for a group.
 	void BuildPropertyGroup(PropertyGroupMap& groups, const String& group_type, const PropertyDictionary& element_properties, const PropertyGroupMap* default_properties = NULL);

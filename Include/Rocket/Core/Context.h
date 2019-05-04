@@ -237,7 +237,7 @@ private:
 
 	ContextInstancer* instancer;
 
-	typedef std::set< ElementReference > ElementSet;
+	typedef SmallUnorderedSet< ElementReference > ElementSet;
 	typedef std::vector< ElementReference > ElementList;
 	// Set of elements that are currently in hover state.
 	ElementSet hover_chain;

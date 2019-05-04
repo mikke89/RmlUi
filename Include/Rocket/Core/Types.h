@@ -41,6 +41,8 @@
 #include <set>
 #include <unordered_set>
 #include <vector>
+#include "Containers/chobo/flat_map.hpp"
+#include "Containers/chobo/flat_set.hpp"
 #include "Containers/robin_hood.h"
 
 #include "Platform.h"
@@ -102,18 +104,25 @@ typedef uintptr_t TextureHandle;
 typedef uintptr_t CompiledGeometryHandle;
 typedef uintptr_t DecoratorDataHandle;
 
-// List of elements.
-typedef std::vector< Element* > ElementList;
-typedef std::vector< String > PseudoClassList;
-typedef std::unordered_set< String > PropertyNameList;
-typedef std::unordered_set< String > AttributeNameList;
-typedef std::vector< ElementAnimation > ElementAnimationList;
-
-// Unordered map
+// Common containers
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+template < typename Key, typename Value>
+using SmallUnorderedMap = chobo::flat_map< Key, Value >;
+template < typename T >
+using SmallUnorderedSet = chobo::flat_set< T >;
+// Note: Strictly speaking, the chobo maps are ordered, but we may want to replace
+// them with unordered containers later. If we really need an ordered container 
+// for some type, we should create an alias.
+
+// Container types for some common lists
+typedef std::vector< Element* > ElementList;
+typedef std::vector< String > PseudoClassList;
+typedef std::vector< ElementAnimation > ElementAnimationList;
+typedef SmallUnorderedSet< String > PropertyNameList;
+typedef SmallUnorderedSet< String > AttributeNameList;
 typedef UnorderedMap< String, Property > PropertyMap;
-using Dictionary = UnorderedMap< String, Variant >;
+typedef SmallUnorderedMap< String, Variant > Dictionary;
 typedef Dictionary ElementAttributes;
 
 // Reference types

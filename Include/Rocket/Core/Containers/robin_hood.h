@@ -31,13 +31,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef ROBIN_HOOD_H_INCLUDED
-#define ROBIN_HOOD_H_INCLUDED
+#ifndef ROCKET_ROBIN_HOOD_H_INCLUDED
+#define ROCKET_ROBIN_HOOD_H_INCLUDED
 
 // see https://semver.org/
-#define ROBIN_HOOD_VERSION_MAJOR 3 // for incompatible API changes
-#define ROBIN_HOOD_VERSION_MINOR 2 // for adding functionality in a backwards-compatible manner
-#define ROBIN_HOOD_VERSION_PATCH 7 // for backwards-compatible bug fixes
+#define ROCKET_ROBIN_HOOD_VERSION_MAJOR 3 // for incompatible API changes
+#define ROCKET_ROBIN_HOOD_VERSION_MINOR 2 // for adding functionality in a backwards-compatible manner
+#define ROCKET_ROBIN_HOOD_VERSION_PATCH 7 // for backwards-compatible bug fixes
 
 #include <algorithm>
 #include <cstdlib>
@@ -48,34 +48,34 @@
 #include <type_traits>
 #include <utility>
 
-// #define ROBIN_HOOD_LOG_ENABLED
-#ifdef ROBIN_HOOD_LOG_ENABLED
+// #define ROCKET_ROBIN_HOOD_LOG_ENABLED
+#ifdef ROCKET_ROBIN_HOOD_LOG_ENABLED
 #    include <iostream>
-#    define ROBIN_HOOD_LOG(x) std::cout << __FUNCTION__ << "@" << __LINE__ << ": " << x << std::endl
+#    define ROCKET_ROBIN_HOOD_LOG(x) std::cout << __FUNCTION__ << "@" << __LINE__ << ": " << x << std::endl
 #else
-#    define ROBIN_HOOD_LOG(x)
+#    define ROCKET_ROBIN_HOOD_LOG(x)
 #endif
 
 // mark unused members with this macro
-#define ROBIN_HOOD_UNUSED(identifier)
+#define ROCKET_ROBIN_HOOD_UNUSED(identifier)
 
 // bitness
 #if SIZE_MAX == UINT32_MAX
-#    define ROBIN_HOOD_BITNESS 32
+#    define ROCKET_ROBIN_HOOD_BITNESS 32
 #elif SIZE_MAX == UINT64_MAX
-#    define ROBIN_HOOD_BITNESS 64
+#    define ROCKET_ROBIN_HOOD_BITNESS 64
 #else
 #    error Unsupported bitness
 #endif
 
 // endianess
 #ifdef _WIN32
-#    define ROBIN_HOOD_LITTLE_ENDIAN 1
-#    define ROBIN_HOOD_BIG_ENDIAN 0
+#    define ROCKET_ROBIN_HOOD_LITTLE_ENDIAN 1
+#    define ROCKET_ROBIN_HOOD_BIG_ENDIAN 0
 #else
 #    if __GNUC__ >= 4
-#        define ROBIN_HOOD_LITTLE_ENDIAN (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-#        define ROBIN_HOOD_BIG_ENDIAN (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#        define ROCKET_ROBIN_HOOD_LITTLE_ENDIAN (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#        define ROCKET_ROBIN_HOOD_BIG_ENDIAN (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #    else
 #        error cannot determine endianness
 #    endif
@@ -83,80 +83,117 @@
 
 // inline
 #ifdef _WIN32
-#    define ROBIN_HOOD_NOINLINE __declspec(noinline)
+#    define ROCKET_ROBIN_HOOD_NOINLINE __declspec(noinline)
 #else
 #    if __GNUC__ >= 4
-#        define ROBIN_HOOD_NOINLINE __attribute__((noinline))
+#        define ROCKET_ROBIN_HOOD_NOINLINE __attribute__((noinline))
 #    else
-#        define ROBIN_HOOD_NOINLINE
+#        define ROCKET_ROBIN_HOOD_NOINLINE
 #    endif
 #endif
 
 // count leading/trailing bits
 #ifdef _WIN32
-#    if ROBIN_HOOD_BITNESS == 32
-#        define ROBIN_HOOD_BITSCANFORWARD _BitScanForward
+#    if ROCKET_ROBIN_HOOD_BITNESS == 32
+#        define ROCKET_ROBIN_HOOD_BITSCANFORWARD _BitScanForward
 #    else
-#        define ROBIN_HOOD_BITSCANFORWARD _BitScanForward64
+#        define ROCKET_ROBIN_HOOD_BITSCANFORWARD _BitScanForward64
 #    endif
 #    include <intrin.h>
-#    pragma intrinsic(ROBIN_HOOD_BITSCANFORWARD)
-#    define ROBIN_HOOD_COUNT_TRAILING_ZEROES(x)                                          \
-        [](size_t mask) -> int {                                                         \
-            unsigned long index;                                                         \
-            return ROBIN_HOOD_BITSCANFORWARD(&index, mask) ? index : ROBIN_HOOD_BITNESS; \
+#    pragma intrinsic(ROCKET_ROBIN_HOOD_BITSCANFORWARD)
+#    define ROCKET_ROBIN_HOOD_COUNT_TRAILING_ZEROES(x)                                      \
+        [](size_t mask) -> int {                                                     \
+            unsigned long index;                                                     \
+            return ROCKET_ROBIN_HOOD_BITSCANFORWARD(&index, mask) ? static_cast<int>(index) \
+                                                           : ROCKET_ROBIN_HOOD_BITNESS;     \
         }(x)
 #else
 #    if __GNUC__ >= 4
-#        if ROBIN_HOOD_BITNESS == 32
-#            define ROBIN_HOOD_CTZ(x) __builtin_ctzl(x)
-#            define ROBIN_HOOD_CLZ(x) __builtin_clzl(x)
+#        if ROCKET_ROBIN_HOOD_BITNESS == 32
+#            define ROCKET_ROBIN_HOOD_CTZ(x) __builtin_ctzl(x)
+#            define ROCKET_ROBIN_HOOD_CLZ(x) __builtin_clzl(x)
 #        else
-#            define ROBIN_HOOD_CTZ(x) __builtin_ctzll(x)
-#            define ROBIN_HOOD_CLZ(x) __builtin_clzll(x)
+#            define ROCKET_ROBIN_HOOD_CTZ(x) __builtin_ctzll(x)
+#            define ROCKET_ROBIN_HOOD_CLZ(x) __builtin_clzll(x)
 #        endif
-#        define ROBIN_HOOD_COUNT_LEADING_ZEROES(x) (x ? ROBIN_HOOD_CLZ(x) : ROBIN_HOOD_BITNESS)
-#        define ROBIN_HOOD_COUNT_TRAILING_ZEROES(x) (x ? ROBIN_HOOD_CTZ(x) : ROBIN_HOOD_BITNESS)
+#        define ROCKET_ROBIN_HOOD_COUNT_LEADING_ZEROES(x) (x ? ROCKET_ROBIN_HOOD_CLZ(x) : ROCKET_ROBIN_HOOD_BITNESS)
+#        define ROCKET_ROBIN_HOOD_COUNT_TRAILING_ZEROES(x) (x ? ROCKET_ROBIN_HOOD_CTZ(x) : ROCKET_ROBIN_HOOD_BITNESS)
 #    else
 #        error clz not supported
 #    endif
 #endif
 
 // umul
+namespace Rocket {
+namespace Core {
 namespace robin_hood {
 namespace detail {
 #if defined(__SIZEOF_INT128__)
-#    define ROBIN_HOOD_UMULH(a, b) \
-        static_cast<uint64_t>(     \
-            (static_cast<unsigned __int128>(a) * static_cast<unsigned __int128>(b)) >> 64u)
+#    if defined(__GNUC__)
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wpedantic"
+using uint128_t = unsigned __int128;
+#        pragma GCC diagnostic pop
+#    endif
+#    define ROCKET_ROBIN_HOOD_UMULH(a, b) \
+        static_cast<uint64_t>((static_cast<uint128_t>(a) * static_cast<uint128_t>(b)) >> 64u)
 
-#    define ROBIN_HOOD_HAS_UMUL128 1
+#    define ROCKET_ROBIN_HOOD_HAS_UMUL128 1
 inline uint64_t umul128(uint64_t a, uint64_t b, uint64_t* high) {
-    auto result = static_cast<unsigned __int128>(a) * static_cast<unsigned __int128>(b);
+    auto result = static_cast<uint128_t>(a) * static_cast<uint128_t>(b);
     *high = static_cast<uint64_t>(result >> 64);
     return static_cast<uint64_t>(result);
 }
-#elif (defined(_WIN32) && ROBIN_HOOD_BITNESS == 64)
-#    define ROBIN_HOOD_HAS_UMUL128 1
+#elif (defined(_WIN32) && ROCKET_ROBIN_HOOD_BITNESS == 64)
+#    define ROCKET_ROBIN_HOOD_HAS_UMUL128 1
 #    include <intrin.h> // for __umulh
 #    pragma intrinsic(__umulh)
 #    pragma intrinsic(_umul128)
-#    define ROBIN_HOOD_UMULH(a, b) __umulh(a, b)
+#    define ROCKET_ROBIN_HOOD_UMULH(a, b) __umulh(a, b)
 inline uint64_t umul128(uint64_t a, uint64_t b, uint64_t* high) {
     return _umul128(a, b, high);
 }
 #endif
+
+// fallthrough
+#ifndef __has_cpp_attribute // For backwards compatibility
+#    define __has_cpp_attribute(x) 0
+#endif
+#if __has_cpp_attribute(clang::fallthrough)
+#    define FALLTHROUGH [[clang::fallthrough]]
+#elif __has_cpp_attribute(gnu::fallthrough)
+#    define FALLTHROUGH [[gnu::fallthrough]]
+#else
+#    define FALLTHROUGH
+#endif
+
+// This cast gets rid of warnings like "cast from ‘uint8_t*’ {aka ‘unsigned char*’} to
+// ‘uint64_t*’ {aka ‘long unsigned int*’} increases required alignment of target type". Use with
+// care!
+template <typename T>
+inline T reinterpret_cast_no_cast_align_warning(void* ptr) {
+    return reinterpret_cast<T>(ptr);
+}
+
+template <typename T>
+inline T reinterpret_cast_no_cast_align_warning(void const* ptr) {
+    return reinterpret_cast<T>(ptr);
+}
 } // namespace detail
 } // namespace robin_hood
+} // namespace Core
+} // namespace Rocket
 
 // likely/unlikely
-#if __GNUC__ >= 4
-#    define ROBIN_HOOD_LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
-#    define ROBIN_HOOD_UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
+#if !defined(_WIN32) && (__GNUC__ >= 4)
+#    define ROCKET_ROBIN_HOOD_LIKELY(condition) __builtin_expect(condition, 1)
+#    define ROCKET_ROBIN_HOOD_UNLIKELY(condition) __builtin_expect(condition, 0)
 #else
-#    define ROBIN_HOOD_LIKELY(condition) condition
-#    define ROBIN_HOOD_UNLIKELY(condition) condition
+#    define ROCKET_ROBIN_HOOD_LIKELY(condition) condition
+#    define ROCKET_ROBIN_HOOD_UNLIKELY(condition) condition
 #endif
+namespace Rocket {
+namespace Core {
 namespace robin_hood {
 
 namespace detail {
@@ -164,13 +201,13 @@ namespace detail {
 // make sure this is not inlined as it is slow and dramatically enlarges code, thus making other
 // inlinings more difficult. Throws are also generally the slow path.
 template <typename E, typename... Args>
-static ROBIN_HOOD_NOINLINE void doThrow(Args&&... args) {
+ROCKET_ROBIN_HOOD_NOINLINE void doThrow(Args&&... args) {
     throw E(std::forward<Args>(args)...);
 }
 
 template <typename E, typename T, typename... Args>
-static T* assertNotNull(T* t, Args&&... args) {
-    if (ROBIN_HOOD_UNLIKELY(nullptr == t)) {
+T* assertNotNull(T* t, Args&&... args) {
+    if (ROCKET_ROBIN_HOOD_UNLIKELY(nullptr == t)) {
         doThrow<E>(std::forward<Args>(args)...);
     }
     return t;
@@ -196,7 +233,7 @@ public:
         , mListForFree(nullptr) {}
 
     // does not copy anything, just creates a new allocator.
-    BulkPoolAllocator(const BulkPoolAllocator& ROBIN_HOOD_UNUSED(o) /*unused*/)
+    BulkPoolAllocator(const BulkPoolAllocator& ROCKET_ROBIN_HOOD_UNUSED(o) /*unused*/)
         : mHead(nullptr)
         , mListForFree(nullptr) {}
 
@@ -216,7 +253,7 @@ public:
         return *this;
     }
 
-    BulkPoolAllocator& operator=(const BulkPoolAllocator& ROBIN_HOOD_UNUSED(o) /*unused*/) {
+    BulkPoolAllocator& operator=(const BulkPoolAllocator& ROCKET_ROBIN_HOOD_UNUSED(o) /*unused*/) {
         // does not do anything
         return *this;
     }
@@ -230,7 +267,7 @@ public:
         while (mListForFree) {
             T* tmp = *mListForFree;
             free(mListForFree);
-            mListForFree = reinterpret_cast<T**>(tmp);
+            mListForFree = reinterpret_cast_no_cast_align_warning<T**>(tmp);
         }
         mHead = nullptr;
     }
@@ -244,7 +281,7 @@ public:
             tmp = performAllocation();
         }
 
-        mHead = *reinterpret_cast<T**>(tmp);
+        mHead = *reinterpret_cast_no_cast_align_warning<T**>(tmp);
         return tmp;
     }
 
@@ -253,7 +290,7 @@ public:
     //  obj->~T();
     //  pool.deallocate(obj);
     void deallocate(T* obj) {
-        *reinterpret_cast<T**>(obj) = mHead;
+        *reinterpret_cast_no_cast_align_warning<T**>(obj) = mHead;
         mHead = obj;
     }
 
@@ -306,23 +343,26 @@ private:
         mListForFree = data;
 
         // create linked list for newly allocated data
-        auto const headT = reinterpret_cast<T*>(reinterpret_cast<char*>(ptr) + ALIGNMENT);
+        auto const headT =
+            reinterpret_cast_no_cast_align_warning<T*>(reinterpret_cast<char*>(ptr) + ALIGNMENT);
 
         auto const head = reinterpret_cast<char*>(headT);
 
         // Visual Studio compiler automatically unrolls this loop, which is pretty cool
         for (size_t i = 0; i < numElements; ++i) {
-            *reinterpret_cast<char**>(head + i * ALIGNED_SIZE) = head + (i + 1) * ALIGNED_SIZE;
+            *reinterpret_cast_no_cast_align_warning<char**>(head + i * ALIGNED_SIZE) =
+                head + (i + 1) * ALIGNED_SIZE;
         }
 
         // last one points to 0
-        *reinterpret_cast<T**>(head + (numElements - 1) * ALIGNED_SIZE) = mHead;
+        *reinterpret_cast_no_cast_align_warning<T**>(head + (numElements - 1) * ALIGNED_SIZE) =
+            mHead;
         mHead = headT;
     }
 
     // Called when no memory is available (mHead == 0).
     // Don't inline this slow path.
-    ROBIN_HOOD_NOINLINE T* performAllocation() {
+    ROCKET_ROBIN_HOOD_NOINLINE T* performAllocation() {
         size_t const numElementsToAlloc = calcNumElementsToAlloc();
 
         // alloc new memory: [prev |T, T, ... T]
@@ -355,7 +395,7 @@ template <typename T, size_t MinSize, size_t MaxSize>
 struct NodeAllocator<T, MinSize, MaxSize, true> {
 
     // we are not using the data, so just free it.
-    void addOrFree(void* ptr, size_t ROBIN_HOOD_UNUSED(numBytes) /*unused*/) {
+    void addOrFree(void* ptr, size_t ROCKET_ROBIN_HOOD_UNUSED(numBytes) /*unused*/) {
         free(ptr);
     }
 };
@@ -406,9 +446,8 @@ struct pair {
 
     // constructor called from the std::piecewise_construct_t ctor
     template <typename... Args1, size_t... Indexes1, typename... Args2, size_t... Indexes2>
-    inline pair(std::tuple<Args1...>& tuple1, std::tuple<Args2...>& tuple2,
-                std::index_sequence<Indexes1...> /*unused*/,
-                std::index_sequence<Indexes2...> /*unused*/)
+    pair(std::tuple<Args1...>& tuple1, std::tuple<Args2...>& tuple2,
+         std::index_sequence<Indexes1...> /*unused*/, std::index_sequence<Indexes2...> /*unused*/)
         : first{std::forward<Args1>(std::get<Indexes1>(tuple1))...}
         , second{std::forward<Args2>(std::get<Indexes2>(tuple2))...} {
         // make visual studio compiler happy about warning about unused tuple1 & tuple2.
@@ -475,32 +514,38 @@ inline size_t hash_bytes(void const* ptr, size_t const len) {
     switch (len & 7u) {
     case 7:
         h ^= static_cast<uint64_t>(data8[6]) << 48u;
-        // fallthrough
+        FALLTHROUGH; // FALLTHROUGH
     case 6:
         h ^= static_cast<uint64_t>(data8[5]) << 40u;
-        // fallthrough
+        FALLTHROUGH; // FALLTHROUGH
     case 5:
         h ^= static_cast<uint64_t>(data8[4]) << 32u;
-        // fallthrough
+        FALLTHROUGH; // FALLTHROUGH
     case 4:
         h ^= static_cast<uint64_t>(data8[3]) << 24u;
-        // fallthrough
+        FALLTHROUGH; // FALLTHROUGH
     case 3:
         h ^= static_cast<uint64_t>(data8[2]) << 16u;
-        // fallthrough
+        FALLTHROUGH; // FALLTHROUGH
     case 2:
         h ^= static_cast<uint64_t>(data8[1]) << 8u;
-        // fallthrough
+        FALLTHROUGH; // FALLTHROUGH
     case 1:
         h ^= static_cast<uint64_t>(data8[0]);
         h *= m;
-    };
+        FALLTHROUGH; // FALLTHROUGH
+    default:
+        break;
+    }
 
     h ^= h >> r;
     h *= m;
     h ^= h >> r;
-
+#if ROCKET_ROBIN_HOOD_BITNESS == 32
     return static_cast<size_t>(h);
+#else
+    return h;
+#endif
 }
 
 template <>
@@ -514,13 +559,13 @@ struct hash<std::string> {
 template <>
 struct hash<uint64_t> {
     size_t operator()(uint64_t const& obj) const {
-#if defined(ROBIN_HOOD_HAS_UMUL128)
+#if defined(ROCKET_ROBIN_HOOD_HAS_UMUL128)
         // 167079903232 masksum, 120428523 ops best: 0xde5fb9d2630458e9
         static constexpr uint64_t k = UINT64_C(0xde5fb9d2630458e9);
         uint64_t h;
         uint64_t l = detail::umul128(obj, k, &h);
         return h + l;
-#elif ROBIN_HOOD_BITNESS == 32
+#elif ROCKET_ROBIN_HOOD_BITNESS == 32
         static constexpr uint32_t k = UINT32_C(0x9a0ecda7);
         uint64_t const r = obj * k;
         uint32_t h = static_cast<uint32_t>(r >> 32);
@@ -549,8 +594,8 @@ struct hash<int64_t> {
 template <>
 struct hash<uint32_t> {
     size_t operator()(uint32_t const& h) const {
-#if ROBIN_HOOD_BITNESS == 32
-        return static_cast<size_t>((UINT64_C(0xca4bcaa75ec3f625) * (uint64_t)h) >> 32);
+#if ROCKET_ROBIN_HOOD_BITNESS == 32
+        return static_cast<size_t>((UINT64_C(0xca4bcaa75ec3f625) * static_cast<uint64_t>(h)) >> 32);
 #else
         return hash<uint64_t>{}(static_cast<uint64_t>(h));
 #endif
@@ -639,17 +684,17 @@ private:
 
     // Small: just allocate on the stack.
     template <typename M>
-    class DataNode<M, true> {
+    class DataNode<M, true> final {
     public:
         template <typename... Args>
-        explicit DataNode(M& ROBIN_HOOD_UNUSED(map) /*unused*/, Args&&... args)
+        explicit DataNode(M& ROCKET_ROBIN_HOOD_UNUSED(map) /*unused*/, Args&&... args)
             : mData(std::forward<Args>(args)...) {}
 
-        DataNode(M& ROBIN_HOOD_UNUSED(map) /*unused*/, DataNode<M, true>&& n)
+        DataNode(M& ROCKET_ROBIN_HOOD_UNUSED(map) /*unused*/, DataNode<M, true>&& n)
             : mData(std::move(n.mData)) {}
 
         // doesn't do anything
-        void destroy(M& ROBIN_HOOD_UNUSED(map) /*unused*/) {}
+        void destroy(M& ROCKET_ROBIN_HOOD_UNUSED(map) /*unused*/) {}
         void destroyDoNotDeallocate() {}
 
         value_type const* operator->() const {
@@ -701,7 +746,7 @@ private:
             ::new (static_cast<void*>(mData)) value_type(std::forward<Args>(args)...);
         }
 
-        DataNode(M& ROBIN_HOOD_UNUSED(map) /*unused*/, DataNode<M, false>&& n)
+        DataNode(M& ROCKET_ROBIN_HOOD_UNUSED(map) /*unused*/, DataNode<M, false>&& n)
             : mData(std::move(n.mData)) {}
 
         void destroy(M& map) {
@@ -867,7 +912,7 @@ private:
             , mInfo(infoPtr) {}
 
         Iter(NodePtr valPtr, uint8_t const* infoPtr,
-             fast_forward_tag ROBIN_HOOD_UNUSED(tag) /*unused*/)
+             fast_forward_tag ROCKET_ROBIN_HOOD_UNUSED(tag) /*unused*/)
             : mKeyVals(valPtr)
             , mInfo(infoPtr) {
             fastForward();
@@ -905,14 +950,14 @@ private:
             int inc;
             do {
                 auto const n = detail::unaligned_load<size_t>(mInfo);
-#if ROBIN_HOOD_LITTLE_ENDIAN
-                inc = ROBIN_HOOD_COUNT_TRAILING_ZEROES(n) / 8;
+#if ROCKET_ROBIN_HOOD_LITTLE_ENDIAN
+                inc = ROCKET_ROBIN_HOOD_COUNT_TRAILING_ZEROES(n) / 8;
 #else
-                inc = ROBIN_HOOD_COUNT_LEADING_ZEROES(n) / 8;
+                inc = ROCKET_ROBIN_HOOD_COUNT_LEADING_ZEROES(n) / 8;
 #endif
                 mInfo += inc;
                 mKeyVals += inc;
-            } while (inc == sizeof(size_t));
+            } while (inc == static_cast<int>(sizeof(size_t)));
         }
 
         friend class unordered_map<IsFlatMap, MaxLoadFactor100, key_type, mapped_type, hasher,
@@ -925,7 +970,7 @@ private:
 
     size_t calcNumBytesInfo(size_t numElements) const {
         const size_t s = sizeof(uint8_t) * (numElements + 1);
-        if (ROBIN_HOOD_UNLIKELY(s / sizeof(uint8_t) != numElements + 1)) {
+        if (ROCKET_ROBIN_HOOD_UNLIKELY(s / sizeof(uint8_t) != numElements + 1)) {
             throwOverflowError();
         }
         // make sure it's a bit larger, so we can load 64bit numbers
@@ -933,7 +978,7 @@ private:
     }
     size_t calcNumBytesNode(size_t numElements) const {
         const size_t s = sizeof(Node) * numElements;
-        if (ROBIN_HOOD_UNLIKELY(s / sizeof(Node) != numElements)) {
+        if (ROCKET_ROBIN_HOOD_UNLIKELY(s / sizeof(Node) != numElements)) {
             throwOverflowError();
         }
         return s;
@@ -942,7 +987,7 @@ private:
         const size_t si = calcNumBytesInfo(numElements);
         const size_t sn = calcNumBytesNode(numElements);
         const size_t s = si + sn;
-        if (ROBIN_HOOD_UNLIKELY(s <= si || s <= sn)) {
+        if (ROCKET_ROBIN_HOOD_UNLIKELY(s <= si || s <= sn)) {
             throwOverflowError();
         }
         return s;
@@ -954,18 +999,18 @@ private:
     template <typename HashKey>
     void keyToIdx(HashKey&& key, size_t& idx, InfoType& info) const {
         static constexpr size_t bad_hash_prevention =
-            std::is_same<::robin_hood::hash<key_type>, hasher>::value
+            std::is_same<::Rocket::Core::robin_hood::hash<key_type>, hasher>::value
                 ? 1
-                : (ROBIN_HOOD_BITNESS == 64 ? UINT64_C(0xb3727c1f779b8d8b) : UINT32_C(0xda4afe47));
+                : (ROCKET_ROBIN_HOOD_BITNESS == 64 ? UINT64_C(0xb3727c1f779b8d8b) : UINT32_C(0xda4afe47));
         idx = Hash::operator()(key) * bad_hash_prevention;
-        info = static_cast<InfoType>(mInfoInc + static_cast<InfoType>(idx >> mInfoHashShift));
+        info = mInfoInc + static_cast<InfoType>(idx >> mInfoHashShift);
         idx &= mMask;
     }
 
     // forwards the index by one, wrapping around at the end
     void next(InfoType* info, size_t* idx) const {
         *idx = (*idx + 1) & mMask;
-        *info = static_cast<InfoType>(*info + mInfoInc);
+        *info += mInfoInc;
     }
 
     void nextWhileLess(InfoType* info, size_t* idx) const {
@@ -987,7 +1032,7 @@ private:
                 ::new (static_cast<void*>(mKeyVals + idx)) Node(std::move(mKeyVals[prev_idx]));
             }
             mInfo[idx] = static_cast<uint8_t>(mInfo[prev_idx] + mInfoInc);
-            if (ROBIN_HOOD_UNLIKELY(mInfo[idx] + mInfoInc > 0xFF)) {
+            if (ROCKET_ROBIN_HOOD_UNLIKELY(mInfo[idx] + mInfoInc > 0xFF)) {
                 mMaxNumElementsAllowed = 0;
             }
             idx = prev_idx;
@@ -1057,13 +1102,13 @@ private:
         // skip forward. Use <= because we are certain that the element is not there.
         while (info <= mInfo[idx]) {
             idx = (idx + 1) & mMask;
-            info = static_cast<InfoType>(info + mInfoInc);
+            info += mInfoInc;
         }
 
         // key not found, so we are now exactly where we want to insert it.
         auto const insertion_idx = idx;
         auto const insertion_info = static_cast<uint8_t>(info);
-        if (ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
+        if (ROCKET_ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
             mMaxNumElementsAllowed = 0;
         }
 
@@ -1096,13 +1141,13 @@ public:
     // payed at the first insert, and not before. Lookup of this empty map works because everybody
     // points to DummyInfoByte::b. parameter bucket_count is dictated by the standard, but we can
     // ignore it.
-    explicit unordered_map(size_t ROBIN_HOOD_UNUSED(bucket_count) /*unused*/ = 0,
+    explicit unordered_map(size_t ROCKET_ROBIN_HOOD_UNUSED(bucket_count) /*unused*/ = 0,
                            const Hash& h = Hash{}, const KeyEqual& equal = KeyEqual{})
         : Hash(h)
         , KeyEqual(equal) {}
 
     template <typename Iter>
-    unordered_map(Iter first, Iter last, size_t ROBIN_HOOD_UNUSED(bucket_count) /*unused*/ = 0,
+    unordered_map(Iter first, Iter last, size_t ROCKET_ROBIN_HOOD_UNUSED(bucket_count) /*unused*/ = 0,
                   const Hash& h = Hash{}, const KeyEqual& equal = KeyEqual{})
         : Hash(h)
         , KeyEqual(equal) {
@@ -1110,7 +1155,7 @@ public:
     }
 
     unordered_map(std::initializer_list<value_type> init,
-                  size_t ROBIN_HOOD_UNUSED(bucket_count) /*unused*/ = 0, const Hash& h = Hash{},
+                  size_t ROCKET_ROBIN_HOOD_UNUSED(bucket_count) /*unused*/ = 0, const Hash& h = Hash{},
                   const KeyEqual& equal = KeyEqual{})
         : Hash(h)
         , KeyEqual(equal) {
@@ -1343,7 +1388,7 @@ public:
     // Returns 1 if key is found, 0 otherwise.
     size_t count(const key_type& key) const {
         auto kv = mKeyVals + findIdx(key);
-        if (kv != reinterpret_cast<Node*>(mInfo)) {
+        if (kv != reinterpret_cast_no_cast_align_warning<Node*>(mInfo)) {
             return 1;
         }
         return 0;
@@ -1353,7 +1398,7 @@ public:
     // Throws std::out_of_range if element cannot be found
     mapped_type& at(key_type const& key) {
         auto kv = mKeyVals + findIdx(key);
-        if (kv == reinterpret_cast<Node*>(mInfo)) {
+        if (kv == reinterpret_cast_no_cast_align_warning<Node*>(mInfo)) {
             doThrow<std::out_of_range>("key not found");
         }
         return kv->getSecond();
@@ -1363,7 +1408,7 @@ public:
     // Throws std::out_of_range if element cannot be found
     mapped_type const& at(key_type const& key) const {
         auto kv = mKeyVals + findIdx(key);
-        if (kv == reinterpret_cast<Node*>(mInfo)) {
+        if (kv == reinterpret_cast_no_cast_align_warning<Node*>(mInfo)) {
             doThrow<std::out_of_range>("key not found");
         }
         return kv->getSecond();
@@ -1410,13 +1455,13 @@ public:
     iterator end() {
         // no need to supply valid info pointer: end() must not be dereferenced, and only node
         // pointer is compared.
-        return iterator{reinterpret_cast<Node*>(mInfo), nullptr};
+        return iterator{reinterpret_cast_no_cast_align_warning<Node*>(mInfo), nullptr};
     }
     const_iterator end() const {
         return cend();
     }
     const_iterator cend() const {
-        return const_iterator{reinterpret_cast<Node*>(mInfo), nullptr};
+        return const_iterator{reinterpret_cast_no_cast_align_warning<Node*>(mInfo), nullptr};
     }
 
     iterator erase(const_iterator pos) {
@@ -1465,7 +1510,7 @@ public:
         while (calcMaxNumElementsAllowed(newSize) < count && newSize != 0) {
             newSize *= 2;
         }
-        if (ROBIN_HOOD_UNLIKELY(newSize == 0)) {
+        if (ROCKET_ROBIN_HOOD_UNLIKELY(newSize == 0)) {
             throwOverflowError();
         }
 
@@ -1473,7 +1518,7 @@ public:
     }
 
     void rehash(size_t numBuckets) {
-        if (ROBIN_HOOD_UNLIKELY((numBuckets & (numBuckets - 1)) != 0)) {
+        if (ROCKET_ROBIN_HOOD_UNLIKELY((numBuckets & (numBuckets - 1)) != 0)) {
             doThrow<std::runtime_error>("rehash only allowed for power of two");
         }
 
@@ -1516,7 +1561,7 @@ public:
 
     // Average number of elements per bucket. Since we allow only 1 per bucket
     float load_factor() const {
-        return static_cast<float>(size()) / (mMask + 1);
+        return static_cast<float>(size()) / static_cast<float>(mMask + 1);
     }
 
     size_t mask() const {
@@ -1524,7 +1569,7 @@ public:
     }
 
 private:
-    ROBIN_HOOD_NOINLINE void throwOverflowError() const {
+    ROCKET_ROBIN_HOOD_NOINLINE void throwOverflowError() const {
         throw std::overflow_error("robin_hood::map overflow");
     }
 
@@ -1564,7 +1609,7 @@ private:
             }
 
             // unlikely that this evaluates to true
-            if (ROBIN_HOOD_UNLIKELY(mNumElements >= mMaxNumElementsAllowed)) {
+            if (ROCKET_ROBIN_HOOD_UNLIKELY(mNumElements >= mMaxNumElementsAllowed)) {
                 increase_size();
                 continue;
             }
@@ -1572,7 +1617,7 @@ private:
             // key not found, so we are now exactly where we want to insert it.
             auto const insertion_idx = idx;
             auto const insertion_info = info;
-            if (ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
+            if (ROCKET_ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
                 mMaxNumElementsAllowed = 0;
             }
 
@@ -1623,7 +1668,7 @@ private:
             }
 
             // unlikely that this evaluates to true
-            if (ROBIN_HOOD_UNLIKELY(mNumElements >= mMaxNumElementsAllowed)) {
+            if (ROCKET_ROBIN_HOOD_UNLIKELY(mNumElements >= mMaxNumElementsAllowed)) {
                 increase_size();
                 continue;
             }
@@ -1631,7 +1676,7 @@ private:
             // key not found, so we are now exactly where we want to insert it.
             auto const insertion_idx = idx;
             auto const insertion_info = info;
-            if (ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
+            if (ROCKET_ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
                 mMaxNumElementsAllowed = 0;
             }
 
@@ -1669,7 +1714,7 @@ private:
     }
 
     bool try_increase_info() {
-        ROBIN_HOOD_LOG("mInfoInc=" << mInfoInc << ", numElements=" << mNumElements
+        ROCKET_ROBIN_HOOD_LOG("mInfoInc=" << mInfoInc << ", numElements=" << mNumElements
                                    << ", maxNumElementsAllowed="
                                    << calcMaxNumElementsAllowed(mMask + 1));
         if (mInfoInc <= 2) {
@@ -1682,7 +1727,7 @@ private:
         // remove one bit of the hash, leaving more space for the distance info.
         // This is extremely fast because we can operate on 8 bytes at once.
         ++mInfoHashShift;
-        auto const data = reinterpret_cast<uint64_t*>(mInfo);
+        auto const data = reinterpret_cast_no_cast_align_warning<uint64_t*>(mInfo);
         auto const numEntries = (mMask + 1) / 8;
 
         for (size_t i = 0; i < numEntries; ++i) {
@@ -1704,7 +1749,7 @@ private:
             return;
         }
 
-        ROBIN_HOOD_LOG("mNumElements=" << mNumElements << ", maxNumElementsAllowed="
+        ROCKET_ROBIN_HOOD_LOG("mNumElements=" << mNumElements << ", maxNumElementsAllowed="
                                        << maxNumElementsAllowed << ", load="
                                        << (static_cast<double>(mNumElements) * 100.0 /
                                            (static_cast<double>(mMask) + 1)));
@@ -1757,5 +1802,6 @@ using unordered_map =
                           MaxLoadFactor100, Key, T, Hash, KeyEqual>;
 
 } // namespace robin_hood
-
+} // namespace Core
+} // namespace Rocket
 #endif

@@ -113,6 +113,8 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/robin_hood.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/chobo/flat_map.hpp
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/chobo/flat_set.hpp
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Context.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ContextInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ConvolutionFilter.h

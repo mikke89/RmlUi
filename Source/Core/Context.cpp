@@ -1130,6 +1130,7 @@ void Context::GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdent
 // Builds the parameters for a generic mouse event.
 void Context::GenerateMouseEventParameters(Dictionary& parameters, int button_index)
 {
+	parameters.reserve(3);
 	parameters["mouse_x"] = mouse_position.x;
 	parameters["mouse_y"] = mouse_position.y;
 	if (button_index >= 0)
@@ -1179,7 +1180,7 @@ void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_item
 {
 	ElementList elements;
 	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));
-	auto func = RKTEventFunctor(event, parameters, interruptible);
+	RKTEventFunctor func(event, parameters, interruptible);
 	std::for_each(elements.begin(), elements.end(), func);
 }
 
