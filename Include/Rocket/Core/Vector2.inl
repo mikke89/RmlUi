@@ -77,8 +77,8 @@ template < >
 inline Vector2< float > Vector2< float >::Round() const
 {
 	Vector2 < float > result;
-	result.x = std::roundf(x);
-	result.y = std::roundf(y);
+	result.x = Math::RoundFloat(x);
+	result.y = Math::RoundFloat(y);
 	return result;
 }
 
