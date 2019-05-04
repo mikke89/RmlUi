@@ -644,6 +644,9 @@ endif(NOT BUILD_FRAMEWORK)
 			include_directories(${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
 			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARY})
+			set_property(TARGET sdl2 PROPERTY CXX_STANDARD 11)
+			set_property(TARGET sdl2 PROPERTY CXX_STANDARD_REQUIRED ON)
+		
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
 			install(TARGETS sdl2
@@ -707,6 +710,9 @@ endif(NOT BUILD_FRAMEWORK)
     foreach(tutorial ${tutorials})
         bl_sample(${tutorial} ${sample_LIBRARIES})
 
+		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD 11)
+		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD_REQUIRED ON)
+		
         # The tutorials always set this as their current working directory
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
         install(TARGETS ${tutorial}

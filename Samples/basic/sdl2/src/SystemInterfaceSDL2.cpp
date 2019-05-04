@@ -402,7 +402,7 @@ int RocketSDL2SystemInterface::GetKeyModifiers()
     return retval;
 }
 
-float RocketSDL2SystemInterface::GetElapsedTime()
+double RocketSDL2SystemInterface::GetElapsedTime()
 {
 	return SDL_GetTicks() / 1000;
 }
