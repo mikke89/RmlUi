@@ -25,6 +25,8 @@
  *
  */
 
+#include <type_traits>
+
 namespace Rocket {
 namespace Core {
 
@@ -70,7 +72,7 @@ Type Vector4< Type >::SquaredMagnitude() const
 template < typename Type >
 Vector4< Type > Vector4< Type >::Normalise() const
 {
-	ROCKET_STATIC_ASSERT(false, Invalid_Operation);
+	ROCKET_STATIC_ASSERT(std::is_floating_point< Type >::value, Invalid_Operation);
 	return *this;
 }
 
