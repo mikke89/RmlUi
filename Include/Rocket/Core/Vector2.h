@@ -30,6 +30,7 @@
 
 #include "Debug.h"
 #include "Math.h"
+#include <cmath>
 
 namespace Rocket {
 namespace Core {

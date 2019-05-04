@@ -78,6 +78,10 @@
 #include "XMLNodeHandler.h"
 #include "XMLParser.h"
 
+#if (__cplusplus < 201402L)
+#include "Cpp11Compat/make_unique.h"
+#endif
+
 namespace Rocket {
 namespace Core {
 

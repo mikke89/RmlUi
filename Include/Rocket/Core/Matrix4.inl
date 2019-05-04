@@ -68,7 +68,6 @@ Matrix4< Component, Storage >::Matrix4(const typename Matrix4< Component, Storag
 	{
 		rows[i] = other_rows[i];
 	}
-	return *this;
 }
 
 // Assignment operator
