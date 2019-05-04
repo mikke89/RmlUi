@@ -369,6 +369,14 @@ void Context::UnloadAllDocuments()
 // Enables or disables the mouse cursor.
 void Context::EnableMouseCursor(bool enable)
 {
+	for (int i = 0; i < GetNumContexts(); i++)
+	{
+		if (Context * other_context = GetContext(i))
+			other_context->enable_cursor = false;
+	}
+
+	// The cursor is set to an invalid name so that it is forced to update in the next update loop.
+	cursor_name = ":reset:";
 	enable_cursor = enable;
 }
 
@@ -937,12 +945,16 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 
 	if(enable_cursor)
 	{
-		String new_mouse_cursor;
+		String new_cursor_name;
 
 		if (hover && hover->GetProperty(CURSOR)->unit != Property::KEYWORD)
-			new_mouse_cursor = hover->GetProperty< String >(CURSOR);
+			new_cursor_name = hover->GetProperty< String >(CURSOR);
 
-		GetSystemInterface()->SetMouseCursor(new_mouse_cursor);
+		if(new_cursor_name != cursor_name)
+		{
+			GetSystemInterface()->SetMouseCursor(new_cursor_name);
+			cursor_name = new_cursor_name;
+		}
 	}
 
 	// Build the new hover chain.
