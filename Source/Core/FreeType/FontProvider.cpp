@@ -88,6 +88,7 @@ void FontProvider::Shutdown()
 		}
 
 		delete instance;
+		instance = NULL;
 	}
 }
 

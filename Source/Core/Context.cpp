@@ -347,6 +347,17 @@ void Context::UnloadDocument(ElementDocument* _document)
 		active = NULL;
 	}
 
+	// Clear other pointers to elements whose owner was deleted
+	if (drag && drag->GetOwnerDocument() == document)
+	{
+		drag = NULL;
+	}
+
+	if (drag_hover && drag_hover->GetOwnerDocument() == document)
+	{
+		drag_hover = NULL;
+	}
+
 	// Rebuild the hover state.
 	UpdateHoverChain(Dictionary(), Dictionary(), mouse_position);
 }
@@ -362,6 +373,15 @@ void Context::UnloadAllDocuments()
 	// before we exit this method.
 	root->active_children.clear();
 	root->ReleaseElements(root->deleted_children);
+
+	// Also need to clear containers that keep ElementReference pointers to elements belonging to removed documents,
+	// essentially preventing them from being released in correct order (before context destroys render interface,
+	// which causes access violation for elements that try to release geometry after context is released)
+	// I don't bother checking what's in chain because we unload all documents, so there shouldn't be any element
+	// that remains here (could check for element->owner == NULL, but that's probably guaranteed)
+	active_chain.clear();
+	hover_chain.clear();
+	drag_hover_chain.clear();
 }
 
 // Enables or disables the mouse cursor.
