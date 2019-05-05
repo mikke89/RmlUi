@@ -269,6 +269,5 @@ this, you don't have to learn a whole new proprietary technology like other libr
  THE SOFTWARE.
 
 
-
-[travis-badge]: https://travis-ci.org/mikke89/libRocket.svg?branch=cpp11
-[travis-url]: https://travis-ci.org/mikke89/libRocket
+[travis-badge]: https://travis-ci.com/mikke89/libRocket.svg?branch=cpp11
+[travis-url]: https://travis-ci.com/mikke89/libRocket

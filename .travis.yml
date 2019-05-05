@@ -45,7 +45,7 @@ matrix:
 install:
   - if [[ "$CC" == "clang" ]]; then export CC=clang CXX=clang++; fi
   - cd "$TRAVIS_BUILD_DIR/Build"
-  - if [[ "$ARCH" == "x86_64" ]]; then cmake -D BUILD_PYTHON_BINDINGS=ON -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
+  - if [[ "$ARCH" == "x86_64" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
   - if [[ "$ARCH" == "OSX" ]]; then cmake -G Xcode .; fi
   - cd "$TRAVIS_BUILD_DIR"
 
