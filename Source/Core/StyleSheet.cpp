@@ -39,6 +39,13 @@
 namespace Rocket {
 namespace Core {
 
+template <class T>
+static inline void hash_combine(std::size_t& seed, const T& v)
+{
+	std::hash<T> hasher;
+	seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
 // Sorts style nodes based on specificity.
 static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* rhs)
 {
@@ -129,7 +136,10 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	}*/
 
 	// See if there are any styles defined for this element.
-	std::vector< const StyleSheetNode* > applicable_nodes;
+	// Using static to avoid allocations. Make sure we don't call this function recursively.
+	static std::vector< const StyleSheetNode* > applicable_nodes;
+	ROCKET_ASSERT(applicable_nodes.empty());
+	applicable_nodes.clear();
 
 	String tags[] = {element->GetTagName(), ""};
 	for (int i = 0; i < 2; i++)
@@ -190,17 +200,18 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 
 	// Check if this puppy has already been cached in the node index; it may be that it has already been created by an
 	// element with a different address but an identical output definition.
-	String node_ids;
-	for (size_t i = 0; i < applicable_nodes.size(); i++)
-		node_ids += CreateString(10, "%x ", applicable_nodes[i]);
-	for (PseudoClassList::iterator i = volatile_pseudo_classes.begin(); i != volatile_pseudo_classes.end(); ++i)
-		node_ids += CreateString(32, ":%s", (*i).c_str());
+	size_t seed = 0;
+	for (const auto* node : applicable_nodes)
+		hash_combine(seed, node);
+	for (const String& str : volatile_pseudo_classes)
+		hash_combine(seed, str);
 
-	cache_iterator = node_cache.find(node_ids);
+	cache_iterator = node_cache.find(seed);
 	if (cache_iterator != node_cache.end())
 	{
 		ElementDefinition* definition = (*cache_iterator).second;
 		definition->AddReference();
+		applicable_nodes.clear();
 		return definition;
 	}
 
@@ -214,9 +225,10 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 //	new_definition->AddReference();
 
 	// Add to the node cache.
-	node_cache[node_ids] = new_definition;
+	node_cache[seed] = new_definition;
 	new_definition->AddReference();
 
+	applicable_nodes.clear();
 	return new_definition;
 }
 
