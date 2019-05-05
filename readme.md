@@ -1,5 +1,7 @@
 # libRocket - The HTML/CSS User Interface Library
 
+[![Build Status][travis-badge]][travis-url]
+
 Documentation at https://barotto.github.io/libRocketDoc/
 
 
@@ -265,3 +267,8 @@ this, you don't have to learn a whole new proprietary technology like other libr
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
+
+
+
+[travis-badge]: https://travis-ci.org/mikke89/libRocket.svg?branch=master
+[travis-url]: https://travis-ci.org/mikke89/libRocket

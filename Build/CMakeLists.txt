@@ -368,6 +368,9 @@ if(BUILD_PYTHON_BINDINGS)
 
         set_target_properties(${NAME} PROPERTIES PREFIX "")
 
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
         install(TARGETS ${NAME}
                 EXPORT libRocketTargets
                 LIBRARY DESTINATION ${PYTHON_INSTDIR}
@@ -392,7 +395,10 @@ if(BUILD_LUA_BINDINGS)
                            VERSION ${PROJECT_VERSION}
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
         )
-        
+
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
         install(TARGETS ${NAME}
             EXPORT libRocketTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
