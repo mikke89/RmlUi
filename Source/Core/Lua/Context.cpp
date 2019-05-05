@@ -77,13 +77,6 @@ int ContextAddEventListener(lua_State* L, Context* obj)
     return 0;
 }
 
-int ContextAddMouseCursor(lua_State* L, Context* obj)
-{
-    Document* cursor_doc = LuaType<Document>::check(L,1);
-    obj->AddMouseCursor(cursor_doc);
-    return 0;   
-}
-
 int ContextCreateDocument(lua_State* L, Context* obj)
 {
     const char* tag;
@@ -105,25 +98,10 @@ int ContextLoadDocument(lua_State* L, Context* obj)
     return 1;
 }
 
-int ContextLoadMouseCursor(lua_State* L, Context* obj)
-{
-    const char* path = luaL_checkstring(L,1);
-    Document* doc = obj->LoadMouseCursor(path);
-    LuaType<Document>::push(L,doc);
-    return 1;
-}
-
 int ContextRender(lua_State* L, Context* obj)
 {
     lua_pushboolean(L,obj->Render());
     return 1;
-}
-
-int ContextShowMouseCursor(lua_State* L, Context* obj)
-{
-    bool show = CHECK_BOOL(L,1);
-    obj->ShowMouseCursor(show);
-    return 0;
 }
 
 int ContextUnloadAllDocuments(lua_State* L, Context* obj)
@@ -132,23 +110,10 @@ int ContextUnloadAllDocuments(lua_State* L, Context* obj)
     return 0;
 }
 
-int ContextUnloadAllMouseCursors(lua_State* L, Context* obj)
-{
-    obj->UnloadAllMouseCursors();
-    return 0;
-}
-
 int ContextUnloadDocument(lua_State* L, Context* obj)
 {
     Document* doc = LuaType<Document>::check(L,1);
     obj->UnloadDocument(doc);
-    return 0;
-}
-
-int ContextUnloadMouseCursor(lua_State* L, Context* obj)
-{
-    const char* name = luaL_checkstring(L,1);
-    obj->UnloadMouseCursor(name);
     return 0;
 }
 
@@ -229,16 +194,11 @@ int ContextSetAttrdimensions(lua_State* L)
 RegType<Context> ContextMethods[] =
 {
     LUAMETHOD(Context,AddEventListener)
-    LUAMETHOD(Context,AddMouseCursor)
     LUAMETHOD(Context,CreateDocument)
     LUAMETHOD(Context,LoadDocument)
-    LUAMETHOD(Context,LoadMouseCursor)
     LUAMETHOD(Context,Render)
-    LUAMETHOD(Context,ShowMouseCursor)
     LUAMETHOD(Context,UnloadAllDocuments)
-    LUAMETHOD(Context,UnloadAllMouseCursors)
     LUAMETHOD(Context,UnloadDocument)
-    LUAMETHOD(Context,UnloadMouseCursor)
     LUAMETHOD(Context,Update)
     { NULL, NULL },
 };
