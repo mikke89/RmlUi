@@ -72,7 +72,7 @@ Vector3< Type > Vector3< Type >::Normalise() const
 }
 
 template <>
-Vector3< float > Vector3< float >::Normalise() const
+inline Vector3< float > Vector3< float >::Normalise() const
 {
 	float magnitude = Magnitude();
 	if (Math::IsZero(magnitude))

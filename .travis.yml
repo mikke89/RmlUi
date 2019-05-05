@@ -4,8 +4,8 @@ dist: trusty
 matrix:
   include:
     - os: osx
-      osx_image: xcode8.3
-      env: ARCH=OSX CC=clang
+      osx_image: xcode9.4
+      env: ARCH=OSX
       language: c++
       compiler: clang
     - os: linux
@@ -51,6 +51,7 @@ matrix:
 install:
   - if [[ "$CC" == "clang" ]]; then export CC=clang-6.0 CXX=clang++-6.0; fi
   - if [[ "$CC" == "gcc" ]]; then export CC=gcc-7 CXX=g++-7; fi
+  - if [[ "$ARCH" == "OSX" ]]; then export CC=clang CXX=clang++; fi
   - cd "$TRAVIS_BUILD_DIR/Build"
   - if [[ "$ARCH" == "x86_64" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
   - if [[ "$ARCH" == "OSX" ]]; then cmake -G Xcode .; fi
