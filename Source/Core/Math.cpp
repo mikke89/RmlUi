@@ -93,6 +93,12 @@ ROCKETCORE_API float ATan2(float y, float x)
 	return atan2f(y, x);
 }
 
+// Evaluates the natural exponential function on a value.
+ROCKETCORE_API float Exp(float value)
+{
+	return exp(value);
+}
+
 // Converts an angle from radians to degrees.
 ROCKETCORE_API float RadiansToDegrees(float angle)
 {
