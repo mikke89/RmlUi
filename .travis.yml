@@ -4,7 +4,7 @@ dist: trusty
 matrix:
   include:
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10.2
       env: ARCH=OSX
       language: c++
       compiler: clang
@@ -19,6 +19,7 @@ matrix:
             - llvm-toolchain-trusty-6.0
           packages:
             - clang-6.0
+            - libstdc++-7-dev
             - cmake
             - build-essential
             - libboost-dev
