@@ -382,7 +382,6 @@ bool ElementStyle::SetProperty(const String& name, const Property& property)
 	if (new_property.definition == NULL)
 		return false;
 
-	sizeof(ElementDefinition);
 	if (local_properties == NULL)
 		local_properties = new PropertyDictionary();
 
