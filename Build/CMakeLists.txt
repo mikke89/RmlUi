@@ -17,13 +17,13 @@ if(APPLE)
 				set (IOS_ARCH armv6 armv7 armv7s arm64)
 				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS")
 			else (${IOS_PLATFORM} STREQUAL "OS")
-				set (IOS_ARCH i386 x86_64)
+				set (IOS_ARCH x86_64)
 				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS Simulator")
 			endif (${IOS_PLATFORM} STREQUAL "OS")
 
 		else(IOS)
 			# set the architectures for OS X
-			set (OSXI_ARCH i386 x86_64)
+			set (OSXI_ARCH x86_64)
 			set (CMAKE_OSX_ARCHITECTURES ${OSXI_ARCH} CACHE string  "Build architecture for OS X universal binaries")		
 		endif(IOS)
 	endif (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
@@ -469,11 +469,6 @@ endif()
     else()
     	add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
     endif()
-    
-    if (APPLE)
-    	# We only support i386 for the samples as it still uses Carbon
-    	set_target_properties(${NAME} PROPERTIES OSX_ARCHITECTURES "i386;" )
-    endif()
 
     target_link_libraries(${NAME} ${ARGN})
 endmacro()
@@ -598,10 +593,6 @@ endif(NOT BUILD_FRAMEWORK)
     add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
 	set_property(TARGET shell PROPERTY CXX_STANDARD 17)
 	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
-    if (APPLE)
-    	# We only support i386 for the samples as it still uses Carbon
-    	set_target_properties(shell PROPERTIES OSX_ARCHITECTURES "i386;")
-    endif()
 
     # Build and install the basic samples
     foreach(sample ${samples})
