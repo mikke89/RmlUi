@@ -1,18 +1,18 @@
-# libMissile - The HTML/CSS User Interface Library Evolved
+# RmlUi - The HTML/CSS User Interface Library Evolved
 
-![libMissile](https://github.com/mikke89/libMissileDoc/raw/fc5db89805ede02d52d967db49e7c54010bff6d8/assets/libmissile.png)
+![RmlUi](https://github.com/mikke89/RmlUiDoc/raw/cc01edd834b003df6c649967bfd552bb0acc3d1e/assets/rmlui.png)
 
-libMissile - now with proper guidance taking control of the rocket, targeting *your* games and applications.
+RmlUi - now with proper guidance taking control of the rocket, targeting *your* games and applications.
 
 ---
 
 [![Build Status][travis-badge]][travis-url]
 
-libMissile is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
+RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
-libMissile uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space.
+RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space.
 
-Documentation is located at https://mikke89.github.io/libMissileDoc/
+Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ## Features
 
@@ -31,9 +31,9 @@ Documentation is located at https://mikke89.github.io/libMissileDoc/
 - Generic event system that binds seamlessly into existing projects.
 
 
-## libMissile features
+## RmlUi features
 
-libMissile introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official libMissile documentation](https://mikke89.github.io/libMissileDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [libMissile documentation repository](https://github.com/mikke89/libMissileDoc).
+RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
 
 A C++17 compiler is required to compile the master branch. For users that need support for older compilers, there is a (less maintained) C++11 version on the cpp11 branch.
 
@@ -156,7 +156,7 @@ Internally, animations apply their properties on the local style of the element.
 
 Animations currently support full interpolation of transforms, largely following the CSS specifications. Additionally, interpolation is supported for colors, numbers, lengths, and percentages.
 
-Animations are very powerful coupled with transforms. See the animation sample project for more examples and details. There are also some [video demonstrations](https://mikke89.github.io/libMissileDoc/pages/libmissile_features.html) of these features in the documentation.
+Animations are very powerful coupled with transforms. See the animation sample project for more examples and details. There are also some [video demonstrations](https://mikke89.github.io/RmlUiDoc/pages/rmlui_features.html) of these features in the documentation.
 
 
 ## Transitions
