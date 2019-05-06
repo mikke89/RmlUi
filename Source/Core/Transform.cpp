@@ -72,9 +72,10 @@ const Transforms::Primitive & Transform::GetPrimitive(int i) const noexcept
 	return primitives[i];
 }
 
-String Transform::ToString() const
+String ToString(const Transform& transform)
 {
 	String result;
+	auto& primitives = transform.GetPrimitives();
 	for (size_t i = 0; i < primitives.size(); i++)
 	{
 		result += primitives[i].ToString();
