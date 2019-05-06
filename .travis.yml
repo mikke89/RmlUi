@@ -11,7 +11,7 @@ matrix:
     - os: linux
       language: c++
       compiler: clang
-      env: ARCH=x86_64 CC=clang
+      env: MATRIX_EVAL="CC=clang-6.0 CXX=clang++-6.0"
       addons:
         apt:
           sources:
@@ -27,12 +27,12 @@ matrix:
             - libsdl2-dev
             - libsdl2-image-dev
             - libfreetype6-dev
-            - libsfml-dev
+            - libglew-dev
             - liblua5.2-dev
     - os: linux
       language: c++
       compiler: gcc
-      env: ARCH=x86_64 CC=gcc
+      env: MATRIX_EVAL="CC=gcc-7 CXX=g++-7"
       addons:
         apt:
           sources:
@@ -46,19 +46,19 @@ matrix:
             - libsdl2-dev
             - libsdl2-image-dev
             - libfreetype6-dev
-            - libsfml-dev
+            - libglew-dev
             - liblua5.2-dev
 
+before_install:
+  - if [[ -n "${MATRIX_EVAL}" ]]; then eval "${MATRIX_EVAL}" ; fi
+
 install:
-  - if [[ "$CC" == "clang" ]]; then export CC=clang-6.0 CXX=clang++-6.0; fi
-  - if [[ "$CC" == "gcc" ]]; then export CC=gcc-7 CXX=g++-7; fi
-  - if [[ "$ARCH" == "OSX" ]]; then export CC=clang CXX=clang++; fi
   - cd "$TRAVIS_BUILD_DIR/Build"
-  - if [[ "$ARCH" == "x86_64" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
-  - if [[ "$ARCH" == "OSX" ]]; then cmake -G Xcode .; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -G Xcode .; fi
   - cd "$TRAVIS_BUILD_DIR"
 
 script:
   - cd Build
-  - if [[ "$ARCH" == "x86_64" ]]; then make -j4; fi
-  - if [[ "$ARCH" == "OSX" ]]; then xcodebuild -project librocket.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project librocket.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi
