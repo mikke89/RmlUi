@@ -1,15 +1,41 @@
-# libRocket - The HTML/CSS User Interface Library
+# libMissile - The HTML/CSS User Interface Library Evolved
+
+![libMissile](https://github.com/mikke89/libMissileDoc/raw/fc5db89805ede02d52d967db49e7c54010bff6d8/assets/libmissile.png)
+
+libMissile - now with proper guidance taking control of the rocket, targeting *your* games and applications.
+
+---
 
 [![Build Status][travis-badge]][travis-url]
 
-Documentation at https://barotto.github.io/libRocketDoc/
+libMissile is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
+
+libMissile uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space.
+
+Documentation is located at https://mikke89.github.io/libMissileDoc/
+
+## Features
+
+- Cross platform architecture: Windows, macOS, Linux, iOS, etc.
+- Dynamic layout system.
+- Full animation and transform support.
+- Efficient application-wide styling, with a custom-built templating engine.
+- Fully featured control set: buttons, sliders, drop-downs, etc.
+- Runtime visual debugging suite.
+- Easily integrated and extensible with Lua ~~or Python~~ scripting.
+
+## Extensible
+
+- Abstracted interfaces for plugging in to any game engine.
+- Decorator engine allowing custom application-specific effects that can be applied to any element.
+- Generic event system that binds seamlessly into existing projects.
 
 
-## Fork features
+## libMissile features
 
-This fork contains some additional features over the [original libRocket branch](https://github.com/libRocket/libRocket), briefly documented here. 
+libMissile introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official libMissile documentation](https://mikke89.github.io/libMissileDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [libMissile documentation repository](https://github.com/mikke89/libMissileDoc).
 
-Some of the new features utilize features from C++17, thus, a C++17-compliant compiler should be used. For users that need support for older compilers, there is a (less maintained) C++11 version in the cpp11 branch.
+A C++17 compiler is required to compile the master branch. For users that need support for older compilers, there is a (less maintained) C++11 version on the cpp11 branch.
 
 
 ## Transform property
@@ -128,8 +154,9 @@ RCSS example usage:
 
 Internally, animations apply their properties on the local style of the element. Thus, mixing RML style attributes and animations should be avoided on the same element.
 
-Animations are very powerful coupled with transforms. See the animation sample project for more examples and details.
+Animations currently support full interpolation of transforms, largely following the CSS specifications. Additionally, interpolation is supported for colors, numbers, lengths, and percentages.
 
+Animations are very powerful coupled with transforms. See the animation sample project for more examples and details. There are also some [video demonstrations](https://mikke89.github.io/libMissileDoc/pages/libmissile_features.html) of these features in the documentation.
 
 
 ## Transitions
@@ -221,30 +248,6 @@ border: 4px #e99;
 
 The slider on the `input.range` element can be dragged from anywhere in the element. Additionally, the `:checked` pseudo class can be used to style the selected item in drop-down lists.
 
-
-
-# libRocket
-
-libRocket is the C++ user interface package based on the HTML and CSS standards. It is 
-designed as a complete solution for any project's interface needs.
-
-libRocket uses the time-tested open standards XHTML1.0 and CSS2.0 (while borrowing features from 
-HTML5 and CSS3), and extends them with features suited towards real-time applications. Because of 
-this, you don't have to learn a whole new proprietary technology like other libraries in this space.
-
-## Features
-
-- Cross platform architecture: Windows, macOS, Linux, iOS, etc.
-- Dynamic layout system.
-- Efficient application-wide styling, with a custom-built templating engine.
-- Fully featured control set: buttons, sliders, drop-downs, etc.
-- Runtime visual debugging suite.
-- Easily integrated and extensible with Python or Lua scripting.
-
-## Extensible
-- Abstracted interfaces for plugging in to any game engine.
-- Decorator engine allowing custom application-specific effects that can be applied to any element.
-- Generic event system that binds seamlessly into existing projects.
 
 ## License (MIT)
  
