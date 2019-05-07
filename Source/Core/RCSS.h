@@ -127,7 +127,7 @@ struct ComputedValues
 	String font_charset; // empty is same as "U+0020-007E"
 	FontStyle font_style = FontStyle::Normal;
 	FontWeight font_weight = FontWeight::Normal;
-	LengthPercentage font_size;
+	float font_size = 12.f;
 
 	TextAlign text_align = TextAlign::Left;
 	TextDecoration text_decoration = TextDecoration::None;

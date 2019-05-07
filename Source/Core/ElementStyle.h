@@ -34,6 +34,8 @@
 namespace Rocket {
 namespace Core {
 
+namespace RCSS { struct ComputedValues; }
+
 class ElementStyleCache;
 
 /**
@@ -212,6 +214,9 @@ public:
 	const Property *GetTransformOriginY();
 	/// Returns 'transform-origin-z' property value from element's style or local cache.
 	const Property *GetTransformOriginZ();
+
+
+	void ComputeValues(RCSS::ComputedValues& values, const RCSS::ComputedValues* parent_values, const RCSS::ComputedValues* document_values, float dp_ratio, float pixels_per_inch);
 
 private:
 	// Sets a single property as dirty.

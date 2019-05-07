@@ -34,6 +34,7 @@
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include "ElementStyle.h"
+#include "RCSS.h"
 
 namespace Rocket {
 namespace Core {
@@ -113,16 +114,15 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 }
 
 // Returns the element's font face.
-FontFaceHandle* ElementUtilities::GetFontFaceHandle(Element* element)
+FontFaceHandle* ElementUtilities::GetFontFaceHandle(const RCSS::ComputedValues& computed_values)
 {
+	static const String default_charset = "U+0020-007E";
 	// Fetch the new font face.
-	String font_family = element->GetProperty(FONT_FAMILY)->value.Get< String >();
-	String font_charset = element->GetProperty(FONT_CHARSET)->value.Get< String >();
-	Font::Style font_style = (Font::Style) element->GetProperty(FONT_STYLE)->value.Get< int >();
-	Font::Weight font_weight = (Font::Weight) element->GetProperty(FONT_WEIGHT)->value.Get< int >();
-	int font_size = Math::RealToInteger(element->ResolveProperty(FONT_SIZE, 0));
 
-	FontFaceHandle* font = FontDatabase::GetFontFaceHandle(font_family, font_charset, font_style, font_weight, font_size);
+	const String& charset = (computed_values.font_charset.empty() ? default_charset : computed_values.font_charset);
+
+	// TODO Synchronize enums
+	FontFaceHandle* font = FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, (Font::Style)computed_values.font_style, (Font::Weight)computed_values.font_weight, computed_values.font_size);
 	return font;
 }
 

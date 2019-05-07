@@ -209,6 +209,22 @@ void Element::Update()
 	style->UpdateDefinition();
 	scroll->Update();
 
+	if(all_properties_dirty || dirty_properties.count("font_family"))
+	{
+		using namespace RCSS;
+		const ComputedValues* parent_values = (parent ? &parent->GetComputedValues() : nullptr);
+		float ppi = GetRenderInterface()->GetPixelsPerInch();
+		float dp_ratio = 1.0f;
+		const ComputedValues* document_values = nullptr;
+		if (auto doc = GetOwnerDocument())
+		{
+			document_values = &doc->GetComputedValues();
+			if (auto context = doc->GetContext())
+				dp_ratio = context->GetDensityIndependentPixelRatio();
+		}
+		style->ComputeValues(element_meta->computed_values, parent_values, document_values, dp_ratio, ppi);
+	}
+
 	UpdateAnimation();
 	AdvanceAnimations();
 
@@ -1846,7 +1862,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 			old_em = font_face_handle->GetLineHeight();
 
 		// Fetch the new font face.
-		FontFaceHandle * new_font_face_handle = ElementUtilities::GetFontFaceHandle(this);
+		FontFaceHandle * new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
 
 		// If this is different from our current font face, then we've got to nuke
 		// all our characters and tell our parent that we have to be re-laid out.
@@ -2122,6 +2138,11 @@ void Element::ProcessEvent(Event& event)
 		else if (event == BLUR)
 			SetPseudoClass(FOCUS, false);
 	}
+}
+
+const RCSS::ComputedValues& Element::GetComputedValues() const
+{
+	return element_meta->computed_values;
 }
 
 void Element::GetRML(String& content)

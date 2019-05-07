@@ -43,9 +43,14 @@
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "FontFaceHandle.h"
+#include "RCSS.h"
+
 
 namespace Rocket {
 namespace Core {
+
+static const RCSS::ComputedValues DefaultComputedValues;
+
 
 ElementStyle::ElementStyle(Element* _element)
 {
@@ -618,7 +623,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 			if (owner_document == NULL)
 				return 0;
 
-			base_value = element->GetOwnerDocument()->ResolveProperty(FONT_SIZE, 0);
+			base_value = owner_document->ResolveProperty(FONT_SIZE, 0);
 		}
 		else
 		{
@@ -1037,6 +1042,173 @@ const Property *ElementStyle::GetTransformOriginY()
 const Property *ElementStyle::GetTransformOriginZ()
 {
 	return element->GetProperty(TRANSFORM_ORIGIN_Z);
+}
+
+
+
+static float ComputeLength(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+{
+	if (!property)
+	{
+		ROCKET_ERROR;
+		return 0.0f;
+	}
+
+	// TODO
+	float base_value = 1.0f;
+
+	switch (property->unit)
+	{
+	case Property::NUMBER:
+	case Property::PX:
+	case Property::RAD:
+		return property->value.Get< float >();
+
+	case Property::PERCENT:
+		return base_value * property->value.Get< float >()* 0.01f;
+
+	case Property::EM:
+		return property->value.Get< float >() * font_size;
+	case Property::REM:
+		return property->value.Get< float >() * document_font_size;
+	case Property::DP:
+		return property->value.Get< float >() * dp_ratio;
+
+	case Property::DEG:
+		return Math::DegreesToRadians(property->value.Get< float >());
+	}
+
+	// Values based on pixels-per-inch.
+	if (property->unit & Property::PPI_UNIT)
+	{
+		float inch = property->value.Get< float >() * pixels_per_inch;
+
+		switch (property->unit)
+		{
+		case Property::INCH: // inch
+			return inch;
+		case Property::CM: // centimeter
+			return inch * (1.0f / 2.54f);
+		case Property::MM: // millimeter
+			return inch * (1.0f / 25.4f);
+		case Property::PT: // point
+			return inch * (1.0f / 72.0f);
+		case Property::PC: // pica
+			return inch * (1.0f / 6.0f);
+		}
+	}
+
+	// We're not a numeric property; return 0.
+	return 0.0f;
+}
+
+
+
+
+static float ComputeAbsoluteLength(const Property& property, float dp_ratio, float pixels_per_inch)
+{
+	ROCKET_ASSERT(property.unit & Property::ABSOLUTE_LENGTH);
+
+	switch (property.unit)
+	{
+	case Property::PX:
+		return property.value.Get< float >();
+	case Property::DP:
+		return property.value.Get< float >()* dp_ratio;
+	default:
+		// Values based on pixels-per-inch.
+		if (property.unit & Property::PPI_UNIT)
+		{
+			float inch = property.value.Get< float >() * pixels_per_inch;
+
+			switch (property.unit)
+			{
+			case Property::INCH: // inch
+				return inch;
+			case Property::CM: // centimeter
+				return inch * (1.0f / 2.54f);
+			case Property::MM: // millimeter
+				return inch * (1.0f / 25.4f);
+			case Property::PT: // point
+				return inch * (1.0f / 72.0f);
+			case Property::PC: // pica
+				return inch * (1.0f / 6.0f);
+			}
+		}
+	}
+
+	ROCKET_ERROR;
+	return 0.0f;
+}
+
+
+
+// Resolves one of this element's properties.
+static float ComputeFontsize(const Property& property, const RCSS::ComputedValues& values, const RCSS::ComputedValues* parent_values, const RCSS::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
+{
+	// The calculated value of the font-size property is inherited, so we need to check if this
+	// is an inherited property. If so, then we return our parent's font size instead.
+	if (property.unit & Property::RELATIVE_UNIT)
+	{
+		float multiplier = 1.0f;
+
+		switch (property.unit)
+		{
+		case Property::PERCENT:
+			multiplier = 0.01f;
+			[[fallthrough]];
+		case Property::EM:
+			if (!parent_values)
+				return 0;
+			return property.value.Get< float >() * multiplier * parent_values->font_size;
+
+		case Property::REM:
+			if (!document_values)
+				return 0;
+			// If the current element is a document, the rem unit is relative to the default size
+			if(&values == document_values)
+				return property.value.Get< float >() * DefaultComputedValues.font_size;
+			// Otherwise it is relative to the document font size
+			return property.value.Get< float >() * document_values->font_size;
+		default:
+			ROCKET_ERRORMSG("A relative unit must be percentage, em or rem.");
+		}
+	}
+
+	return ComputeAbsoluteLength(property, dp_ratio, pixels_per_inch);
+}
+
+
+
+void ElementStyle::ComputeValues(RCSS::ComputedValues& values, const RCSS::ComputedValues* parent_values, const RCSS::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
+{
+	// TODO: Iterate through dirty values, and compute corresponding properties.
+	// Important: Always do font-size first if dirty, because of em-relative values.
+
+	if (auto p = GetLocalProperty(FONT_SIZE))
+		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, pixels_per_inch);
+	else if (parent_values)
+		values.font_size = parent_values->font_size;
+
+	if (auto p = GetLocalProperty(FONT_FAMILY))
+		values.font_family = p->Get<String>();
+	else if (parent_values)
+		values.font_family = parent_values->font_family;
+
+	if (auto p = GetLocalProperty(FONT_CHARSET))
+		values.font_charset = p->Get<String>();
+	else if (parent_values)
+		values.font_charset = parent_values->font_charset;
+
+	if (auto p = GetLocalProperty(FONT_STYLE))
+		values.font_style = (RCSS::FontStyle)p->Get< int >();
+	else if (parent_values)
+		values.font_style = parent_values->font_style;
+
+	if (auto p = GetLocalProperty(FONT_WEIGHT))
+		values.font_weight = (RCSS::FontWeight)p->Get< int >();
+	else if (parent_values)
+		values.font_weight = parent_values->font_weight;
 }
 
 }
