@@ -67,6 +67,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/RCSS.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StringCache.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.h

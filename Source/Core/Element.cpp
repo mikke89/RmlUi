@@ -44,6 +44,7 @@
 #include "LayoutEngine.h"
 #include "PluginRegistry.h"
 #include "Pool.h"
+#include "RCSS.h"
 #include "StyleSheetParser.h"
 #include "XMLParseTools.h"
 #include "../../Include/Rocket/Core/Core.h"
@@ -93,6 +94,7 @@ struct ElementMeta
 	ElementBorder border;
 	ElementDecoration decoration;
 	ElementScroll scroll;
+	RCSS::ComputedValues computed_values;
 
 	void* ElementMeta::operator new(size_t size)
 	{
