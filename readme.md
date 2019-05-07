@@ -2,11 +2,11 @@
 
 ![RmlUi](https://github.com/mikke89/RmlUiDoc/raw/cc01edd834b003df6c649967bfd552bb0acc3d1e/assets/rmlui.png)
 
-RmlUi - now with proper guidance taking control of the rocket, targeting *your* games and applications.
+RmlUi - now with added boosters taking control of the rocket, targeting *your* games and applications.
 
 ---
 
-[![Build Status][travis-badge]][travis-url]
+[![Build Status](https://travis-ci.com/mikke89/RmlUi.svg?branch=master)](https://travis-ci.com/mikke89/RmlUi) [![Build status](https://ci.appveyor.com/api/projects/status/x95oi8mrb001pqhh?svg=true)](https://ci.appveyor.com/project/mikke89/rmlui)
 
 RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
@@ -271,6 +271,3 @@ The slider on the `input.range` element can be dragged from anywhere in the elem
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 
-
-[travis-badge]: https://travis-ci.com/mikke89/libRocket.svg?branch=master
-[travis-url]: https://travis-ci.com/mikke89/libRocket
