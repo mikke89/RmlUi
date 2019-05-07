@@ -41,7 +41,7 @@ class Clock
 public:
 	/// Get the elapsed time since application startup
 	/// @return Seconds elapsed since application startup.
-	static double GetElapsedTime();
+	ROCKETCORE_API static double GetElapsedTime();
 };
 
 }

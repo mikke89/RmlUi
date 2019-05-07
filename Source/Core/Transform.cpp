@@ -72,7 +72,7 @@ const Transforms::Primitive & Transform::GetPrimitive(int i) const noexcept
 	return primitives[i];
 }
 
-String ToString(const Transform& transform)
+ROCKETCORE_API String ToString(const Transform& transform)
 {
 	String result;
 	auto& primitives = transform.GetPrimitives();
