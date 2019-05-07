@@ -354,7 +354,7 @@ public:
 };
 
 
-String ToString(const Transform& transform);
+ROCKETCORE_API String ToString(const Transform& transform);
 
 template<>
 class TypeConverter< TransformRef, String >
