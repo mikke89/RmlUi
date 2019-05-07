@@ -38,6 +38,8 @@
 //  - Memory pools for common elements. Also, a lot of temporary objects are created and destroyed.
 //  - Try replacing ElementAttributes with vector.
 //  - Can we optimize the layouting? E.g. why is ElementTextDefault::GenerateLine being called even when neither text nor size have seemingly been changed.
+//  - During first update after construction: Create computed values of all properties, and use these instead of GetProperty. 
+//       Instead, GetComputedValue which gives either absolute length, percentage, keywords (enum), color, etc. Inherited values then only need to check their nearest parent.
 //  - [bug] Input.range appears only after one additional frame.
 
 class DemoWindow
