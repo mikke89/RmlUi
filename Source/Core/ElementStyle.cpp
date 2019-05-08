@@ -1351,7 +1351,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		else if (name == MARGIN_BOTTOM)
 			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 		else if (name == MARGIN_LEFT)
-			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.margin_left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 
 		else if (name == PADDING_TOP)
 			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
@@ -1360,7 +1360,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		else if (name == PADDING_BOTTOM)
 			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 		else if (name == PADDING_LEFT)
-			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.padding_left = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 
 		else if (name == BORDER_TOP_WIDTH)
 			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
@@ -1369,7 +1369,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		else if (name == BORDER_BOTTOM_WIDTH)
 			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 		else if (name == BORDER_LEFT_WIDTH)
-			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.border_left_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 
 		else if (name == BORDER_TOP_COLOR)
 			values.border_top_color = p->Get<Colourb>();
