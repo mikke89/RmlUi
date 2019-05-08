@@ -109,8 +109,7 @@ int ElementStyleProxy__pairs(lua_State* L)
     //iterate variables
     String key,val;
     const Property* prop;
-    PseudoClassList pseudo;
-    if(obj->owner->IterateProperties((*pindex),pseudo,key,prop))
+    if(obj->owner->IterateProperties((*pindex),key,prop))
     {
         prop->definition->GetValue(val,*prop);
         lua_pushstring(L,key.CString());

@@ -227,7 +227,7 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 }
 
 // Iterates over the properties in the definition.
-bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pseudo_classes, PseudoClassList& property_pseudo_classes, String& property_name, const Property*& property) const
+bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pseudo_classes, String& property_name, const Property*& property, const PseudoClassList** property_pseudo_classes) const
 {
 	if (index < properties.GetNumProperties())
 	{
@@ -235,7 +235,8 @@ bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pse
 		for (int count = 0; count < index; ++count)
 			++i;
 
-		property_pseudo_classes.clear();
+		if (property_pseudo_classes)
+			* property_pseudo_classes = nullptr;
 		property_name = (*i).first;
 		property = &((*i).second);
 		++index;
@@ -252,13 +253,15 @@ bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pse
 		// continue looking if we're still below it.
 		for (size_t j = 0; j < (*i).second.size(); ++j)
 		{
+			// @Performance: We are re-iterating this for every call to this function, can certainly optimize this! See also ++i over.
 			if (IsPseudoClassRuleApplicable((*i).second[j].first, pseudo_classes))
 			{
 				property_count++;
 				if (property_count > index)
 				{
 					// Copy the list of pseudo-classes.
-					property_pseudo_classes = (*i).second[j].first;
+					if(property_pseudo_classes)
+						*property_pseudo_classes = &(*i).second[j].first;
 
 					property_name = (*i).first;
 					property = &((*i).second[j].second);

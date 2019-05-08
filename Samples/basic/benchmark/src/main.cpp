@@ -44,7 +44,7 @@
 
 // Other TODO:
 // - The em-property depends on the current font-size, not font face lineheight! (See Element::OnPropertyChange)
-
+// - Need to think about how we should handle a dirtied property in OnPropertyChange w.r.t. computed values and clearing dirty props. Generally, it should be avoided altogether.
 
 class DemoWindow
 {
@@ -90,7 +90,7 @@ public:
 		  First usage of computed values (font): 74.0  [04dc275]
 		  Computed values, clipping: 77.0
 		  Computed values, background-color, image-color, opacity: 77.0
-		  Computed values, padding, margin border++: 81.0
+		  Computed values, padding, margin border++: 81.0  [bb70d38]
 		
 		*/
 

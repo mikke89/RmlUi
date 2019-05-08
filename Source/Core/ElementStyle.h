@@ -144,7 +144,7 @@ public:
 	/// @param[out] name The name of the property at the specified index.
 	/// @param[out] property The property at the specified index.
 	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, PseudoClassList& pseudo_classes, String& name, const Property*& property);
+	bool IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** pseudo_classes = nullptr);
 
 	/// Returns the active style sheet for this element. This may be NULL.
 	StyleSheet* GetStyleSheet() const;

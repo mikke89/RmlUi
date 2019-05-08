@@ -966,9 +966,9 @@ const Vector2f Element::Project(const Vector2f& point) noexcept
 
 
 // Iterates over the properties defined on this element.
-bool Element::IterateProperties(int& index, PseudoClassList& pseudo_classes, String& name, const Property*& property) const
+bool Element::IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** pseudo_classes) const
 {
-	return style->IterateProperties(index, pseudo_classes, name, property);
+	return style->IterateProperties(index, name, property, pseudo_classes);
 }
 
 // Sets or removes a pseudo-class on the element.

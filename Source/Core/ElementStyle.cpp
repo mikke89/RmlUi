@@ -657,7 +657,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 }
 
 // Iterates over the properties defined on the element.
-bool ElementStyle::IterateProperties(int& index, PseudoClassList& property_pseudo_classes, String& name, const Property*& property)
+bool ElementStyle::IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** property_pseudo_classes)
 {
 	// First check for locally defined properties.
 	if (local_properties != NULL)
@@ -670,7 +670,8 @@ bool ElementStyle::IterateProperties(int& index, PseudoClassList& property_pseud
 
 			name = (*i).first;
 			property = &((*i).second);
-			property_pseudo_classes.clear();
+			if (property_pseudo_classes)
+				* property_pseudo_classes = nullptr;
 			++index;
 
 			return true;
@@ -687,7 +688,7 @@ bool ElementStyle::IterateProperties(int& index, PseudoClassList& property_pseud
 		// Offset the index to be relative to the definition before we start indexing. When we do get a property back,
 		// check that it hasn't been overridden by the element's local properties; if so, continue on to the next one.
 		index -= index_offset;
-		while (definition->IterateProperties(index, pseudo_classes, property_pseudo_classes, name, property))
+		while (definition->IterateProperties(index, pseudo_classes, name, property, property_pseudo_classes))
 		{
 			if (local_properties == NULL ||
 				local_properties->GetProperty(name) == NULL)
@@ -1217,103 +1218,96 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 	// Important: Always do font-size first if dirty, because of em-relative values.
 	// Whenever the font-size changes, we need to dirty all properties making use of em!
 
-
 	if (auto p = GetLocalProperty(FONT_SIZE))
 		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, pixels_per_inch);
 	else if (parent_values)
 		values.font_size = parent_values->font_size;
 
-
 	const float font_size = values.font_size;
 	const float document_font_size = (document_values ? document_values->font_size : DefaultComputedValues.font_size);
 
-
-	if (auto p = GetLocalProperty(FONT_FAMILY))
-		values.font_family = p->Get<String>();
-	else if (parent_values)
+	if (parent_values)
+	{
+		// Properties that are inherited if not defined locally
 		values.font_family = parent_values->font_family;
-	
-	if (auto p = GetLocalProperty(FONT_CHARSET))
-		values.font_charset = p->Get<String>();
-	else if (parent_values)
 		values.font_charset = parent_values->font_charset;
-
-	if (auto p = GetLocalProperty(FONT_STYLE))
-		values.font_style = (Style::FontStyle)p->Get< int >();
-	else if (parent_values)
 		values.font_style = parent_values->font_style;
-
-	if (auto p = GetLocalProperty(FONT_WEIGHT))
-		values.font_weight = (Style::FontWeight)p->Get< int >();
-	else if (parent_values)
 		values.font_weight = parent_values->font_weight;
-
-	if (auto p = GetLocalProperty(TEXT_DECORATION))
-		values.text_decoration = (Style::TextDecoration)p->Get< int >();
-	else if (parent_values)
 		values.text_decoration = parent_values->text_decoration;
-
-
-	if (auto p = GetLocalProperty(OVERFLOW_X))
-		values.overflow_x = (Style::Overflow)p->Get< int >();
-
-	if (auto p = GetLocalProperty(OVERFLOW_Y))
-		values.overflow_y = (Style::Overflow)p->Get< int >();
-
-
-	if (auto p = GetLocalProperty(CLIP))
-		values.clip = ComputeClip(p);
-	else if (parent_values)
 		values.clip = parent_values->clip;
-
-
-	if (auto p = GetLocalProperty(OPACITY))
-		values.opacity = p->Get<float>();
-	else if (parent_values)
 		values.opacity = parent_values->opacity;
-
-	if (auto p = GetLocalProperty(BACKGROUND_COLOR))
-		values.background_color = p->Get<Colourb>();
-
-	if (auto p = GetLocalProperty(IMAGE_COLOR))
-		values.image_color = p->Get<Colourb>();
-
-	if (auto p = GetLocalProperty(COLOR))
-		values.color = p->Get<Colourb>();
-	else if (parent_values)
 		values.color = parent_values->color;
+	}
+
+
+	int index = 0;
+	String name;
+	const Property* p = nullptr;
+
+	while (IterateProperties(index, name, p))
+	{
+		if (name == FONT_FAMILY)
+			values.font_family = p->Get<String>();
+		else if (name == FONT_CHARSET)
+			values.font_charset = p->Get<String>();
+		else if (name == FONT_STYLE)
+			values.font_style = (Style::FontStyle)p->Get< int >();
+		else if (name == FONT_WEIGHT)
+			values.font_weight = (Style::FontWeight)p->Get< int >();
+
+		else if (name == TEXT_DECORATION)
+			values.text_decoration = (Style::TextDecoration)p->Get< int >();
+
+		else if (name == OVERFLOW_X)
+			values.overflow_x = (Style::Overflow)p->Get< int >();
+		else if (name == OVERFLOW_Y)
+			values.overflow_y = (Style::Overflow)p->Get< int >();
+
+		else if (name == CLIP)
+
+			values.clip = ComputeClip(p);
+		else if (name == OPACITY)
+			values.opacity = p->Get<float>();
+
+
+		else if (name == BACKGROUND_COLOR)
+			values.background_color = p->Get<Colourb>();
+		else if (name == IMAGE_COLOR)
+			values.image_color = p->Get<Colourb>();
+		else if (name == COLOR)
+			values.color = p->Get<Colourb>();
+
+
+		else if (name == MARGIN_TOP)
+			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == MARGIN_RIGHT)
+			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == MARGIN_BOTTOM)
+			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == MARGIN_LEFT)
+			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		else if (name == PADDING_TOP)
+			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == PADDING_RIGHT)
+			values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == PADDING_BOTTOM)
+			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == PADDING_LEFT)
+			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 
 
 
-	if(auto p = GetLocalProperty(MARGIN_TOP))
-		values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(MARGIN_RIGHT))
-		values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(MARGIN_BOTTOM))
-		values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(MARGIN_LEFT))
-		values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == BORDER_TOP_WIDTH)
+			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == BORDER_RIGHT_WIDTH)
+			values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == BORDER_BOTTOM_WIDTH)
+			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == BORDER_LEFT_WIDTH)
+			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 
-
-	if (auto p = GetLocalProperty(PADDING_TOP))
-		values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(PADDING_RIGHT))
-		values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(PADDING_BOTTOM))
-		values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(PADDING_LEFT))
-		values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-
-
-
-	if (auto p = GetLocalProperty(BORDER_TOP_WIDTH))
-		values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(BORDER_RIGHT_WIDTH))
-		values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(BORDER_BOTTOM_WIDTH))
-		values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
-	if (auto p = GetLocalProperty(BORDER_LEFT_WIDTH))
-		values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	}
 
 
 

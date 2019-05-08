@@ -441,14 +441,17 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 
 	int property_index = 0;
 	Core::String property_name;
-	Core::PseudoClassList property_pseudo_classes;
+	const Core::PseudoClassList empty_property_pseudo_classes;
+	const Core::PseudoClassList* property_pseudo_classes_ptr = nullptr;
 	const Core::Property* property;
 
-	while (element->IterateProperties(property_index, property_pseudo_classes, property_name, property))
+	while (element->IterateProperties(property_index, property_name, property, &property_pseudo_classes_ptr))
 	{
 		// Check that this property isn't overridden or just not inherited.
 		if (primary_element->GetProperty(property_name) != property)
 			continue;
+
+		const Core::PseudoClassList& property_pseudo_classes = (property_pseudo_classes_ptr ? *property_pseudo_classes_ptr : empty_property_pseudo_classes);
 
 		NamedPropertyMap::iterator i = property_map.find(property_pseudo_classes);
 		if (i == property_map.end())
