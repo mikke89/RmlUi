@@ -30,7 +30,6 @@
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "FontFaceHandle.h"
-#include "RCSS.h"
 #include "../../Include/Rocket/Core/ElementDocument.h"
 #include "../../Include/Rocket/Core/ElementUtilities.h"
 #include "../../Include/Rocket/Core/Event.h"

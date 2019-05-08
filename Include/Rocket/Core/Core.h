@@ -33,6 +33,7 @@
 #include "Header.h"
 #include "Animation.h"
 #include "Box.h"
+#include "ComputedValues.h"
 #include "Context.h"
 #include "ContextInstancer.h"
 #include "Decorator.h"

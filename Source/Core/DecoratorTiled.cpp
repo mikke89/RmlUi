@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "DecoratorTiled.h"
 #include "../../Include/Rocket/Core.h"
-#include "RCSS.h"
 
 namespace Rocket {
 namespace Core {

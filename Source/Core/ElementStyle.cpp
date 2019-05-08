@@ -43,7 +43,6 @@
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "FontFaceHandle.h"
-#include "RCSS.h"
 
 
 namespace Rocket {

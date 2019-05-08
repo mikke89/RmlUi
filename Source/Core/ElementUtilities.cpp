@@ -34,7 +34,6 @@
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Core/TransformPrimitive.h"
 #include "ElementStyle.h"
-#include "RCSS.h"
 
 namespace Rocket {
 namespace Core {

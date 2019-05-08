@@ -31,7 +31,7 @@
 namespace Rocket {
 namespace Core {
 
-#include "../../Include/Rocket/Core/Types.h"
+#include "Types.h"
 
 struct LengthPercentageAuto {
 	enum Type { Length, Percentage, Auto } type = Length;

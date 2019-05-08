@@ -44,7 +44,6 @@
 #include "LayoutEngine.h"
 #include "PluginRegistry.h"
 #include "Pool.h"
-#include "RCSS.h"
 #include "StyleSheetParser.h"
 #include "XMLParseTools.h"
 #include "../../Include/Rocket/Core/Core.h"

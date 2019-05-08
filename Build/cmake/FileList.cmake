@@ -67,7 +67,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/RCSS.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StringCache.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.h
@@ -113,6 +112,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Box.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.inl
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ComputedValues.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/robin_hood.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/chobo/flat_map.hpp
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/chobo/flat_set.hpp
