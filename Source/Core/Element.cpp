@@ -2637,6 +2637,8 @@ void Element::UpdateTransformState()
 		return;
 	}
 
+	const ComputedValues& computed = element_meta->computed_values;
+
 	if(transform_state_perspective_dirty || transform_state_transform_dirty)
 	{
 		Context *context = GetContext();
@@ -2651,69 +2653,23 @@ void Element::UpdateTransformState()
 
 			perspective_value.vanish = Vector2f(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
-			const Property *perspective = GetPerspective();
-			if (perspective && (perspective->unit != Property::KEYWORD || perspective->value.Get< int >() != PERSPECTIVE_NONE))
+			if (computed.perspective > 0.0f)
 			{
 				have_perspective = true;
 
 				// Compute the perspective value
-				perspective_value.distance = ResolveProperty(perspective, Math::Max(size.x, size.y));
+				perspective_value.distance = computed.perspective;
 
 				// Compute the perspective origin, if necessary
-				if (perspective_value.distance > 0)
-				{
-					const Property *perspective_origin_x = GetPerspectiveOriginX();
-					if (perspective_origin_x)
-					{
-						if (perspective_origin_x->unit == Property::KEYWORD)
-						{
-							switch (perspective_origin_x->value.Get< int >())
-							{
-							case PERSPECTIVE_ORIGIN_X_LEFT:
-								perspective_value.vanish.x = pos.x;
-								break;
+				if (computed.perspective_origin_x.type == LengthPercentage::Percentage)
+					perspective_value.vanish.x = pos.x + computed.perspective_origin_x.value * 0.01f * size.x;
+				else
+					perspective_value.vanish.x = pos.x + computed.perspective_origin_x.value;
 
-							case PERSPECTIVE_ORIGIN_X_CENTER:
-								perspective_value.vanish.x = pos.x + size.x * 0.5f;
-								break;
-
-							case PERSPECTIVE_ORIGIN_X_RIGHT:
-								perspective_value.vanish.x = pos.x + size.x;
-								break;
-							}
-						}
-						else
-						{
-							perspective_value.vanish.x = pos.x + ResolveProperty(perspective_origin_x, size.x);
-						}
-					}
-
-					const Property *perspective_origin_y = GetPerspectiveOriginY();
-					if (perspective_origin_y)
-					{
-						if (perspective_origin_y->unit == Property::KEYWORD)
-						{
-							switch (perspective_origin_y->value.Get< int >())
-							{
-							case PERSPECTIVE_ORIGIN_Y_TOP:
-								perspective_value.vanish.y = pos.y;
-								break;
-
-							case PERSPECTIVE_ORIGIN_Y_CENTER:
-								perspective_value.vanish.y = pos.y + size.y * 0.5f;
-								break;
-
-							case PERSPECTIVE_ORIGIN_Y_BOTTOM:
-								perspective_value.vanish.y = pos.y + size.y;
-								break;
-							}
-						}
-						else
-						{
-							perspective_value.vanish.y = pos.y + ResolveProperty(perspective_origin_y, size.y);
-						}
-					}
-				}
+				if (computed.perspective_origin_y.type == LengthPercentage::Percentage)
+					perspective_value.vanish.y = pos.y + computed.perspective_origin_y.value * 0.01f * size.y;
+				else
+					perspective_value.vanish.y = pos.y + computed.perspective_origin_y.value;
 			}
 
 			if (have_perspective && context)
@@ -2740,14 +2696,12 @@ void Element::UpdateTransformState()
 			Matrix4f transform_value = Matrix4f::Identity();
 			Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
 
-			const Property *transform_property = GetTransform();
-			TransformRef transforms;
-			if (transform_property && (transforms = transform_property->value.Get<TransformRef>()))
+			if (computed.transform)
 			{
-				int n = transforms->GetNumPrimitives();
+				int n = computed.transform->GetNumPrimitives();
 				for (int i = 0; i < n; ++i)
 				{
-					const Transforms::Primitive &primitive = transforms->GetPrimitive(i);
+					const Transforms::Primitive &primitive = computed.transform->GetPrimitive(i);
 
 					if (primitive.ResolvePerspective(local_perspective.distance, *this))
 					{
@@ -2763,63 +2717,17 @@ void Element::UpdateTransformState()
 				}
 
 				// Compute the transform origin
-				const Property *transform_origin_x = GetTransformOriginX();
-				if (transform_origin_x)
-				{
-					if (transform_origin_x->unit == Property::KEYWORD)
-					{
-						switch (transform_origin_x->value.Get< int >())
-						{
-						case TRANSFORM_ORIGIN_X_LEFT:
-							transform_origin.x = pos.x;
-							break;
+				if (computed.transform_origin_x.type == LengthPercentage::Percentage)
+					transform_origin.x = pos.x + computed.transform_origin_x.value * size.x * 0.01f;
+				else
+					transform_origin.x = pos.x + computed.transform_origin_x.value;
 
-						case TRANSFORM_ORIGIN_X_CENTER:
-							transform_origin.x = pos.x + size.x * 0.5f;
-							break;
+				if (computed.transform_origin_y.type == LengthPercentage::Percentage)
+					transform_origin.y = pos.y + computed.transform_origin_y.value * size.y * 0.01f;
+				else
+					transform_origin.y = pos.y + computed.transform_origin_y.value;
 
-						case TRANSFORM_ORIGIN_X_RIGHT:
-							transform_origin.x = pos.x + size.x;
-							break;
-						}
-					}
-					else
-					{
-						transform_origin.x = pos.x + ResolveProperty(transform_origin_x, size.x);
-					}
-				}
-
-				const Property *transform_origin_y = GetTransformOriginY();
-				if (transform_origin_y)
-				{
-					if (transform_origin_y->unit == Property::KEYWORD)
-					{
-						switch (transform_origin_y->value.Get< int >())
-						{
-						case TRANSFORM_ORIGIN_Y_TOP:
-							transform_origin.y = pos.y;
-							break;
-
-						case TRANSFORM_ORIGIN_Y_CENTER:
-							transform_origin.y = pos.y + size.y * 0.5f;
-							break;
-
-						case TRANSFORM_ORIGIN_Y_BOTTOM:
-							transform_origin.y = pos.y + size.y;
-							break;
-						}
-					}
-					else
-					{
-						transform_origin.y = pos.y + ResolveProperty(transform_origin_y, size.y);
-					}
-				}
-
-				const Property *transform_origin_z = GetTransformOriginZ();
-				if (transform_origin_z)
-				{
-					transform_origin.z = ResolveProperty(transform_origin_z, Math::Max(size.x, size.y));
-				}
+				transform_origin.z = computed.transform_origin_z;
 			}
 
 			if (have_local_perspective && context)
@@ -2853,7 +2761,7 @@ void Element::UpdateTransformState()
 			}
 			else if (transform_state)
 			{
-				transform_state->SetTransform(0);
+				transform_state->SetTransform(nullptr);
 			}
 
 			transform_state_transform_dirty = false;

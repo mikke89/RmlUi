@@ -174,7 +174,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	window_1 = new DemoWindow("Orthographic transform", Rocket::Core::Vector2f(81, 200), context);
 	if (window_1)
 	{
-		window_1->SetPerspective(0);
+		window_1->SetPerspective(100000);
 	}
 	window_2 = new DemoWindow("Perspective transform", Rocket::Core::Vector2f(593, 200), context);
 	if (window_2)

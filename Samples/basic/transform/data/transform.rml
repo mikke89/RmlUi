@@ -8,7 +8,7 @@
 			width: 350px;
 			height: 300px;
 
-			perspective: 0;
+			perspective: 800;
 		}
 		
 		/* Hide the window icon. */
