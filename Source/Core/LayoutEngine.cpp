@@ -31,6 +31,7 @@
 #include "Pool.h"
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutInlineBoxText.h"
+#include "RCSS.h"
 #include "../../Include/Rocket/Core/Element.h"
 #include "../../Include/Rocket/Core/ElementScroll.h"
 #include "../../Include/Rocket/Core/ElementText.h"
@@ -123,31 +124,23 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		return;
 	}
 
-	// Calculate the padding area.
-	const Property *padding_top, *padding_bottom, *padding_left, *padding_right;
-	element->GetPaddingProperties (&padding_top, &padding_bottom, &padding_left, &padding_right);
+	const ComputedValues& computed = element->GetComputedValues();
 
-	float padding = element->ResolveProperty(padding_top, containing_block.x);
+	// Calculate the padding area.
+	float padding = ResolveProperty(computed.padding_top, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::TOP, Math::Max(0.0f, padding));
-	padding = element->ResolveProperty(padding_right, containing_block.x);
+	padding = ResolveProperty(computed.padding_right, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::RIGHT, Math::Max(0.0f, padding));
-	padding = element->ResolveProperty(padding_bottom, containing_block.x);
+	padding = ResolveProperty(computed.padding_bottom, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::BOTTOM, Math::Max(0.0f, padding));
-	padding = element->ResolveProperty(padding_left, containing_block.x);
+	padding = ResolveProperty(computed.padding_left, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::LEFT, Math::Max(0.0f, padding));
 
 	// Calculate the border area.
-	const Property *border_top_width, *border_bottom_width, *border_left_width, *border_right_width;
-	element->GetBorderWidthProperties (&border_top_width, &border_bottom_width, &border_left_width, &border_right_width);
-
-	float border = element->ResolveProperty(border_top_width, containing_block.x);
-	box.SetEdge(Box::BORDER, Box::TOP, Math::Max(0.0f, border));
-	border = element->ResolveProperty(border_right_width, containing_block.x);
-	box.SetEdge(Box::BORDER, Box::RIGHT, Math::Max(0.0f, border));
-	border = element->ResolveProperty(border_bottom_width, containing_block.x);
-	box.SetEdge(Box::BORDER, Box::BOTTOM, Math::Max(0.0f, border));
-	border = element->ResolveProperty(border_left_width, containing_block.x);
-	box.SetEdge(Box::BORDER, Box::LEFT, Math::Max(0.0f, border));
+	box.SetEdge(Box::BORDER, Box::TOP, Math::Max(0.0f, computed.border_top_width));
+	box.SetEdge(Box::BORDER, Box::RIGHT, Math::Max(0.0f, computed.border_right_width));
+	box.SetEdge(Box::BORDER, Box::BOTTOM, Math::Max(0.0f, computed.border_bottom_width));
+	box.SetEdge(Box::BORDER, Box::LEFT, Math::Max(0.0f, computed.border_left_width));
 
 	// Calculate the size of the content area.
 	Vector2f content_area(-1, -1);
@@ -213,13 +206,10 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		box.SetContent(content_area);
 
 		// Evaluate the margins. Any declared as 'auto' will resolve to 0.
-		const Property *margin_top, *margin_bottom, *margin_left, *margin_right;
-		element->GetMarginProperties(&margin_top, &margin_bottom, &margin_left, &margin_right);
-
-		box.SetEdge(Box::MARGIN, Box::TOP, element->ResolveProperty(margin_top, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::RIGHT, element->ResolveProperty(margin_right, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::BOTTOM, element->ResolveProperty(margin_bottom, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::LEFT, element->ResolveProperty(margin_left, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::TOP, ResolveProperty(computed.margin_top, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::RIGHT, ResolveProperty(computed.margin_right, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::BOTTOM, ResolveProperty(computed.margin_bottom, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::LEFT, ResolveProperty(computed.margin_left, containing_block.x));
 	}
 
 	// The element is block, so we need to run the box through the ringer to potentially evaluate auto margins and

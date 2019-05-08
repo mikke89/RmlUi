@@ -42,6 +42,10 @@
 //       Instead, GetComputedValue which gives either absolute length, percentage, keywords (enum), color, etc. Inherited values then only need to check their nearest parent.
 //  - [bug] Input.range appears only after one additional frame.
 
+// Other TODO:
+// - The em-property depends on the current font-size, not font face lineheight! (See Element::OnPropertyChange)
+
+
 class DemoWindow
 {
 public:
@@ -86,6 +90,7 @@ public:
 		  First usage of computed values (font): 74.0  [04dc275]
 		  Computed values, clipping: 77.0
 		  Computed values, background-color, image-color, opacity: 77.0
+		  Computed values, padding, margin border++: 81.0
 		
 		*/
 

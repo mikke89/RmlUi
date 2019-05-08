@@ -1048,14 +1048,12 @@ const Property *ElementStyle::GetTransformOriginZ()
 
 static float ComputeLength(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
 {
+	// Note that percentages are not lengths! They have to be resolved elsewhere.
 	if (!property)
 	{
 		ROCKET_ERROR;
 		return 0.0f;
 	}
-
-	// TODO
-	float base_value = 1.0f;
 
 	switch (property->unit)
 	{
@@ -1063,9 +1061,6 @@ static float ComputeLength(const Property* property, float font_size, float docu
 	case Property::PX:
 	case Property::RAD:
 		return property->value.Get< float >();
-
-	case Property::PERCENT:
-		return base_value * property->value.Get< float >()* 0.01f;
 
 	case Property::EM:
 		return property->value.Get< float >() * font_size;
@@ -1076,6 +1071,8 @@ static float ComputeLength(const Property* property, float font_size, float docu
 
 	case Property::DEG:
 		return Math::DegreesToRadians(property->value.Get< float >());
+	default: 
+		break;
 	}
 
 	// Values based on pixels-per-inch.
@@ -1095,6 +1092,8 @@ static float ComputeLength(const Property* property, float font_size, float docu
 			return inch * (1.0f / 72.0f);
 		case Property::PC: // pica
 			return inch * (1.0f / 6.0f);
+		default:
+			break;
 		}
 	}
 
@@ -1190,17 +1189,44 @@ static inline Style::Clip ComputeClip(const Property* property)
 	return Style::Clip::Auto;
 }
 
+static inline LengthPercentage ComputeLengthPercentage(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+{
+	if (property->unit & Property::PERCENT)
+		return LengthPercentage(LengthPercentage::Percentage, property->Get<float>());
+
+	return LengthPercentage(LengthPercentage::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
+}
+
+
+static inline LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+{
+	// Assuming here that 'auto' is the only possible keyword
+	if (property->unit & Property::PERCENT)
+		return LengthPercentageAuto(LengthPercentageAuto::Percentage, property->Get<float>());
+	else if (property->unit & Property::KEYWORD)
+		return LengthPercentageAuto(LengthPercentageAuto::Auto);
+
+	return LengthPercentageAuto(LengthPercentageAuto::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
+}
+
 
 // Must be called in correct order, from document root to children elements.
 void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
 {
 	// TODO: Iterate through dirty values, and compute corresponding properties.
 	// Important: Always do font-size first if dirty, because of em-relative values.
+	// Whenever the font-size changes, we need to dirty all properties making use of em!
+
 
 	if (auto p = GetLocalProperty(FONT_SIZE))
 		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, pixels_per_inch);
 	else if (parent_values)
 		values.font_size = parent_values->font_size;
+
+
+	const float font_size = values.font_size;
+	const float document_font_size = (document_values ? document_values->font_size : DefaultComputedValues.font_size);
+
 
 	if (auto p = GetLocalProperty(FONT_FAMILY))
 		values.font_family = p->Get<String>();
@@ -1256,6 +1282,39 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		values.color = p->Get<Colourb>();
 	else if (parent_values)
 		values.color = parent_values->color;
+
+
+
+	if(auto p = GetLocalProperty(MARGIN_TOP))
+		values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(MARGIN_RIGHT))
+		values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(MARGIN_BOTTOM))
+		values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(MARGIN_LEFT))
+		values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+
+	if (auto p = GetLocalProperty(PADDING_TOP))
+		values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(PADDING_RIGHT))
+		values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(PADDING_BOTTOM))
+		values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(PADDING_LEFT))
+		values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+
+
+	if (auto p = GetLocalProperty(BORDER_TOP_WIDTH))
+		values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(BORDER_RIGHT_WIDTH))
+		values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(BORDER_BOTTOM_WIDTH))
+		values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	if (auto p = GetLocalProperty(BORDER_LEFT_WIDTH))
+		values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
 
 
 

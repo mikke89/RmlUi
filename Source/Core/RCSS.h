@@ -33,8 +33,6 @@ namespace Core {
 
 #include "../../Include/Rocket/Core/Types.h"
 
-namespace Style
-{
 struct LengthPercentageAuto {
 	enum Type { Length, Percentage, Auto } type = Length;
 	float value = 0;
@@ -44,6 +42,8 @@ struct LengthPercentageAuto {
 struct LengthPercentage {
 	enum Type { Length, Percentage } type = Length;
 	float value = 0;
+	LengthPercentage() {}
+	LengthPercentage(Type type, float value = 0) : type(type), value(value) {}
 };
 
 struct NumberAuto {
@@ -52,6 +52,11 @@ struct NumberAuto {
 	NumberAuto() {}
 	NumberAuto(Type type, float value = 0) : type(type), value(value) {}
 };
+
+
+namespace Style
+{
+
 
 enum class Display { None, Block, Inline, InlineBlock };
 enum class Position { Static, Relative, Absolute, Fixed };
@@ -149,6 +154,24 @@ struct ComputedValues
 	String animation;  // empty is same as "none"
 };
 }
+
+// Note: Auto must be manually handled during layout, here it returns zero.
+inline float ResolveProperty(LengthPercentageAuto length, float base_value) {
+	if (length.type == LengthPercentageAuto::Length)
+		return length.value;
+	else if (length.type == LengthPercentageAuto::Percentage)
+		return length.value * 0.01f * base_value;
+	return 0.0f;
+}
+
+inline float ResolveProperty(LengthPercentage length, float base_value) {
+	if (length.type == LengthPercentage::Length)
+		return length.value;
+	else if (length.type == LengthPercentage::Percentage)
+		return length.value * 0.01f * base_value;
+	return 0.0f;
+}
+
 
 using ComputedValues = Style::ComputedValues;
 
