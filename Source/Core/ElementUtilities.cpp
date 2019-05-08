@@ -149,7 +149,7 @@ int ElementUtilities::GetLineHeight(Element* element)
 {
 	const Property* line_height_property = element->GetLineHeightProperty();
 
-	if (line_height_property->unit & Property::LENGTH && line_height_property->unit != Property::NUMBER)
+	if (line_height_property->unit & Property::LENGTH)
 	{
 		float value = element->GetStyle()->ResolveLength(line_height_property);
 		return Math::RoundToInteger(value);

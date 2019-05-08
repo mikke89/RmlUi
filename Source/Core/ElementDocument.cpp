@@ -434,7 +434,7 @@ void ElementDocument::ProcessEvent(Event& event)
 		{
 			Element* focus_node = GetFocusLeafNode();
 
-			if (focus_node && focus_node->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
+			if (focus_node && focus_node->GetComputedValues().tab_index == Style::TabIndex::Auto)
 			{
 				focus_node->Click();
 			}
@@ -519,7 +519,7 @@ bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 	}
 
 	// Check if this is the node we're looking for
-	if (element->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
+	if (element->GetComputedValues().tab_index == Style::TabIndex::Auto)
 	{
 		element->Focus();
 		element->ScrollIntoView(false);

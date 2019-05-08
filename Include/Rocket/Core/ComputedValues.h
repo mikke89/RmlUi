@@ -65,8 +65,10 @@ enum class Float { None, Left, Right };
 enum class Clear { None, Left, Right, Both };
 
 struct VerticalAlign {
-	enum Type { Baseline, Middle, Sub, Super, TextTop, TextBottom, Top, Bottom, Length } type = Baseline;
-	float value = 0; // For length type
+	enum Type { Baseline, Middle, Sub, Super, TextTop, TextBottom, Top, Bottom, Length } type;
+	float value; // For length type
+	VerticalAlign(Type type = Baseline) : type(type), value(0) {}
+	VerticalAlign(float value) : type(Length), value(value) {}
 };
 
 
@@ -89,6 +91,17 @@ enum class TabIndex { None, Auto };
 enum class Focus { None, Auto };
 enum class PointerEvents { None, Auto };
 
+enum class OriginX { Left, Center, Right };
+enum class OriginY { Top, Center, Bottom };
+
+struct LineHeight {
+	float value = 12.f*1.2f; // The computed value (length)
+	enum InheritType { Number, Length } inherit_type = Number;
+	float inherit_value = 1.2f;
+	LineHeight() {}
+	LineHeight(float value, InheritType inherit_type, float inherit_value) : value(value), inherit_type(inherit_type), inherit_value(inherit_value) {}
+};
+
 // A computed value is a value resolved as far as possible :before: updating layout. See CSS specs for details of each property.
 struct ComputedValues
 {
@@ -100,9 +113,12 @@ struct ComputedValues
 	Display display = Display::Inline;
 	Position position = Position::Static;
 
-	LengthPercentageAuto top{ LengthPercentageAuto::Auto }, right{ LengthPercentageAuto::Auto }, bottom{ LengthPercentageAuto::Auto }, left{ LengthPercentageAuto::Auto };
+	LengthPercentageAuto top{ LengthPercentageAuto::Auto };
+	LengthPercentageAuto right{ LengthPercentageAuto::Auto };
+	LengthPercentageAuto bottom{ LengthPercentageAuto::Auto };
+	LengthPercentageAuto left{ LengthPercentageAuto::Auto };
 
-	Float _float = Float::None;
+	Float float_ = Float::None;
 	Clear clear = Clear::None;
 
 	NumberAuto z_index = { NumberAuto::Auto };
@@ -112,7 +128,7 @@ struct ComputedValues
 	LengthPercentageAuto height = { LengthPercentageAuto::Auto };
 	LengthPercentage min_height, max_height;
 
-	float line_height = 1.2f;
+	LineHeight line_height;
 	VerticalAlign vertical_align;
 
 	Overflow overflow_x = Overflow::Visible, overflow_y = Overflow::Visible;
@@ -145,13 +161,16 @@ struct ComputedValues
 	PointerEvents pointer_events = PointerEvents::Auto;
 
 	float perspective = 0;
-	float perspective_origin_x = 0.5f, perspective_origin_y = 0.5f; // Relative
+	LengthPercentage perspective_origin_x = { LengthPercentage::Percentage, 50.f };
+	LengthPercentage perspective_origin_y = { LengthPercentage::Percentage, 50.f };
 
-	String transform;
-	float transform_origin_x = 0.5f, transform_origin_y = 0.5f, transform_origin_z = 0.f;
+	TransformRef transform;
+	LengthPercentage transform_origin_x = { LengthPercentage::Percentage, 50.f };
+	LengthPercentage transform_origin_y = { LengthPercentage::Percentage, 50.f };
+	float transform_origin_z = 0.0f;
 
-	String transition; // empty is same as "none"
-	String animation;  // empty is same as "none"
+	TransitionList transition;
+	AnimationList animation;
 };
 }
 

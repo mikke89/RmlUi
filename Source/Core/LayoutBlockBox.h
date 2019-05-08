@@ -115,13 +115,13 @@ public:
 	/// @param[out] box_position The box cursor position.
 	/// @param[in] top_margin The top margin of the box. This will be collapsed as appropriate against other block boxes.
 	/// @param[in] clear_property The value of the underlying element's clear property.
-	void PositionBox(Vector2f& box_position, float top_margin = 0, int clear_property = 0) const;
+	void PositionBox(Vector2f& box_position, float top_margin = 0, Style::Clear clear_property = Style::Clear::None) const;
 	/// Returns the offset from the top-left corner of this box's offset element the next child block box, of the
 	/// given dimensions, will be positioned at. This will include the margins on the new block box.
 	/// @param[out] box_position The block box cursor position.
 	/// @param[in] box The dimensions of the new box.
 	/// @param[in] clear_property The value of the underlying element's clear property.
-	void PositionBlockBox(Vector2f& box_position, const Box& box, int clear_property) const;
+	void PositionBlockBox(Vector2f& box_position, const Box& box, Style::Clear clear_property) const;
 	/// Returns the offset from the top-left corner of this box for the next line.
 	/// @param box_position[out] The line box position.
 	/// @param box_width[out] The available width for the line box.

@@ -205,8 +205,10 @@ void ElementImage::GenerateGeometry()
 		texcoords[1] = Vector2f(1, 1);
 	}
 
-    float opacity = GetProperty<float>(OPACITY);
-	Colourb quad_colour = GetProperty<Colourb>(IMAGE_COLOR);
+	const ComputedValues& computed = GetComputedValues();
+
+	float opacity = computed.opacity;
+	Colourb quad_colour = computed.image_color;
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 	
 	Vector2f quad_size = GetBox().GetSize(Rocket::Core::Box::CONTENT).Round();

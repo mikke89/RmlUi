@@ -1189,6 +1189,49 @@ static inline Style::Clip ComputeClip(const Property* property)
 	return Style::Clip::Auto;
 }
 
+static inline Style::LineHeight ComputeLineHeight(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+{
+	if (property->unit & Property::LENGTH)
+	{
+		float value = ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		return Style::LineHeight(value, Style::LineHeight::Length, value);
+	}
+
+	float scale_factor = 1.0f;
+
+	switch (property->unit)
+	{
+	case Property::NUMBER:
+		scale_factor = property->value.Get< float >();
+		break;
+	case Property::PERCENT:
+		scale_factor = property->value.Get< float >() * 0.01f;
+		break;
+	default:
+		ROCKET_ERRORMSG("Invalid unit for line-height");
+	}
+
+	float value = font_size * scale_factor;
+	return Style::LineHeight(value, Style::LineHeight::Number, scale_factor);
+}
+
+
+static inline Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_height, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+{
+	if (property->unit & Property::LENGTH)
+	{
+		float value = ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		return Style::VerticalAlign(value);
+	}
+	else if (property->unit & Property::PERCENT)
+	{
+		return Style::VerticalAlign(property->Get<float>() * line_height);
+	}
+
+	ROCKET_ASSERT(property->unit & Property::KEYWORD);
+	return Style::VerticalAlign((Style::VerticalAlign::Type)property->Get<int>());
+}
+
 static inline LengthPercentage ComputeLengthPercentage(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
 {
 	if (property->unit & Property::PERCENT)
@@ -1209,14 +1252,36 @@ static inline LengthPercentageAuto ComputeLengthPercentageAuto(const Property* p
 	return LengthPercentageAuto(LengthPercentageAuto::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
 }
 
+static inline LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+{
+	using namespace Style;
+	static_assert((int)OriginX::Left == (int)OriginY::Top && (int)OriginX::Center == (int)OriginY::Center && (int)OriginX::Right == (int)OriginY::Bottom, "");
+
+	if (property->unit & Property::KEYWORD)
+	{
+		float percent = 0.0f;
+		OriginX origin = (OriginX)property->Get<int>();
+		switch (origin)
+		{
+		case OriginX::Left: percent = 0.0f; break;
+		case OriginX::Center: percent = 50.0f; break;
+		case OriginX::Right: percent = 100.f; break;
+		}
+		return LengthPercentage(LengthPercentage::Percentage, percent);
+	}
+	else if (property->unit & Property::PERCENT)
+		return LengthPercentage(LengthPercentage::Percentage, property->Get<float>());
+
+	return LengthPercentage(LengthPercentage::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
+}
+
+
+
 
 // Must be called in correct order, from document root to children elements.
 void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
 {
-	// TODO: Iterate through dirty values, and compute corresponding properties.
-	// Important: Always do font-size first if dirty, because of em-relative values.
-	// Whenever the font-size changes, we need to dirty all properties making use of em!
-
+	// Always do font-size first if dirty, because of em-relative values
 	if (auto p = GetLocalProperty(FONT_SIZE))
 		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, pixels_per_inch);
 	else if (parent_values)
@@ -1225,18 +1290,45 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 	const float font_size = values.font_size;
 	const float document_font_size = (document_values ? document_values->font_size : DefaultComputedValues.font_size);
 
+	// Since vertical-align depends on line-height we compute this before iteration
+	if (auto p = GetLocalProperty(LINE_HEIGHT))
+	{
+		values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+	}
+	else if (parent_values)
+	{
+		// Line height has a special inheritance case for numbers/percent: they inherit them directly instead of computed length, but for lengths, they inherit the length.
+		// See CSS specs for details. Percent is already converted to number.
+		if (parent_values->line_height.inherit_type == Style::LineHeight::Number)
+			values.line_height = Style::LineHeight(font_size * parent_values->line_height.inherit_value, Style::LineHeight::Number, parent_values->line_height.inherit_value);
+		else
+			values.line_height = parent_values->line_height;
+	}
+
+
 	if (parent_values)
 	{
-		// Properties that are inherited if not defined locally
+		// Inherited properties are copied here, but may be overwritten below by locally defined properties
+		// Line-height and font-size are computed above
+		values.clip = parent_values->clip;
+		
+		values.color = parent_values->color;
+		values.opacity = parent_values->opacity;
+
 		values.font_family = parent_values->font_family;
 		values.font_charset = parent_values->font_charset;
 		values.font_style = parent_values->font_style;
 		values.font_weight = parent_values->font_weight;
+
+		values.text_align = parent_values->text_align;
 		values.text_decoration = parent_values->text_decoration;
-		values.clip = parent_values->clip;
-		values.opacity = parent_values->opacity;
-		values.color = parent_values->color;
+		values.text_transform = parent_values->text_transform;
+		values.white_space = parent_values->white_space;
+
+		values.cursor = parent_values->cursor;
 		values.focus = parent_values->focus;
+
+		values.pointer_events = parent_values->pointer_events;
 	}
 
 
@@ -1246,39 +1338,13 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 
 	while (IterateProperties(index, name, p))
 	{
+		using namespace Style;
+
 		// @performance: Can use a switch-case with constexpr hashing function
-		if (name == FONT_FAMILY)
-			values.font_family = p->Get<String>();
-		else if (name == FONT_CHARSET)
-			values.font_charset = p->Get<String>();
-		else if (name == FONT_STYLE)
-			values.font_style = (Style::FontStyle)p->Get< int >();
-		else if (name == FONT_WEIGHT)
-			values.font_weight = (Style::FontWeight)p->Get< int >();
+		// Or even better: a PropertyId enum, but the problem is custom properties such as decorators. We may want to redo the decleration of these perhaps...
+		// @performance: Compare to the list of actually changed properties, skip if not inside it
 
-		else if (name == TEXT_DECORATION)
-			values.text_decoration = (Style::TextDecoration)p->Get< int >();
-
-		else if (name == OVERFLOW_X)
-			values.overflow_x = (Style::Overflow)p->Get< int >();
-		else if (name == OVERFLOW_Y)
-			values.overflow_y = (Style::Overflow)p->Get< int >();
-		else if (name == CLIP)
-			values.clip = ComputeClip(p);
-		else if (name == VISIBILITY)
-			values.visibility = (Style::Visibility)p->Get< int >();
-
-		else if (name == OPACITY)
-			values.opacity = p->Get<float>();
-
-		else if (name == BACKGROUND_COLOR)
-			values.background_color = p->Get<Colourb>();
-		else if (name == IMAGE_COLOR)
-			values.image_color = p->Get<Colourb>();
-		else if (name == COLOR)
-			values.color = p->Get<Colourb>();
-
-		else if (name == MARGIN_TOP)
+		if (name == MARGIN_TOP)
 			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 		else if (name == MARGIN_RIGHT)
 			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
@@ -1305,10 +1371,128 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		else if (name == BORDER_LEFT_WIDTH)
 			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 
-		else if (name == FOCUS)
-			values.focus = (Style::Focus)p->Get<int>();
+		else if (name == BORDER_TOP_COLOR)
+			values.border_top_color = p->Get<Colourb>();
+		else if (name == BORDER_RIGHT_COLOR)
+			values.border_right_color = p->Get<Colourb>();
+		else if (name == BORDER_BOTTOM_COLOR)
+			values.border_bottom_color = p->Get<Colourb>();
+		else if (name == BORDER_LEFT_COLOR)
+			values.border_left_color = p->Get<Colourb>();
+
+		else if (name == DISPLAY)
+			values.display = (Display)p->Get<int>();
+		else if (name == POSITION)
+			values.position = (Position)p->Get<int>();
+
+		else if (name == TOP)
+			values.top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == RIGHT)
+			values.right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == BOTTOM)
+			values.bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == LEFT)
+			values.left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		else if (name == FLOAT)
+			values.float_ = (Float)p->Get<int>();
+		else if (name == CLEAR)
+			values.clear = (Clear)p->Get<int>();
+
 		else if (name == Z_INDEX)
 			values.z_index = (p->unit == Property::KEYWORD ? NumberAuto(NumberAuto::Auto) : NumberAuto(NumberAuto::Number, p->Get<float>()));
+
+		else if (name == WIDTH)
+			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == MIN_WIDTH)
+			values.min_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == MAX_WIDTH)
+			values.max_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		else if (name == HEIGHT)
+			values.height = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == MIN_HEIGHT)
+			values.min_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == MAX_HEIGHT)
+			values.max_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		// (Line-height computed above)
+		else if (name == VERTICAL_ALIGN)
+			values.vertical_align = ComputeVerticalAlign(p, values.line_height.value, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		else if (name == OVERFLOW_X)
+			values.overflow_x = (Overflow)p->Get< int >();
+		else if (name == OVERFLOW_Y)
+			values.overflow_y = (Overflow)p->Get< int >();
+		else if (name == CLIP)
+			values.clip = ComputeClip(p);
+		else if (name == VISIBILITY)
+			values.visibility = (Visibility)p->Get< int >();
+
+
+		else if (name == BACKGROUND_COLOR)
+			values.background_color = p->Get<Colourb>();
+		else if (name == COLOR)
+			values.color = p->Get<Colourb>();
+		else if (name == IMAGE_COLOR)
+			values.image_color = p->Get<Colourb>();
+		else if (name == OPACITY)
+			values.opacity = p->Get<float>();
+
+
+		else if (name == FONT_FAMILY)
+			values.font_family = p->Get<String>();
+		else if (name == FONT_CHARSET)
+			values.font_charset = p->Get<String>();
+		else if (name == FONT_STYLE)
+			values.font_style = (FontStyle)p->Get< int >();
+		else if (name == FONT_WEIGHT)
+			values.font_weight = (FontWeight)p->Get< int >();
+		// (font-size computed above)
+
+		else if (name == TEXT_ALIGN)
+			values.text_align = (TextAlign)p->Get< int >();
+		else if (name == TEXT_DECORATION)
+			values.text_decoration = (TextDecoration)p->Get< int >();
+		else if (name == TEXT_TRANSFORM)
+			values.text_transform = (TextTransform)p->Get< int >();
+		else if (name == WHITE_SPACE)
+			values.white_space = (WhiteSpace)p->Get< int >();
+
+		else if (name == CURSOR)
+			values.cursor = p->Get< String >();
+
+		else if (name == DRAG)
+			values.drag = (Drag)p->Get< int >();
+		else if (name == TAB_INDEX)
+			values.tab_index = (TabIndex)p->Get< int >();
+		else if (name == FOCUS)
+			values.focus = (Focus)p->Get<int>();
+		else if (name == SCROLLBAR_MARGIN)
+			values.scrollbar_margin = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == POINTER_EVENTS)
+			values.pointer_events = (PointerEvents)p->Get<int>();
+
+		else if (name == PERSPECTIVE)
+			values.perspective = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == PERSPECTIVE_ORIGIN_X)
+			values.perspective_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == PERSPECTIVE_ORIGIN_Y)
+			values.perspective_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		else if (name == TRANSFORM)
+			values.transform = p->Get<TransformRef>();
+		else if(name == TRANSFORM_ORIGIN_X)
+			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == TRANSFORM_ORIGIN_Y)
+			values.transform_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		else if (name == TRANSFORM_ORIGIN_Z)
+			values.transform_origin_z = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		else if (name == TRANSITION)
+			values.transition = p->Get<TransitionList>();
+		else if (name == ANIMATION)
+			values.animation = p->Get<AnimationList>();
 
 	}
 

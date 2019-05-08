@@ -40,11 +40,6 @@ const int FLOAT_NONE = 0;
 const int FLOAT_LEFT = 1;
 const int FLOAT_RIGHT = 2;
 
-const int CLEAR_NONE = 0;
-const int CLEAR_LEFT = 1;
-const int CLEAR_RIGHT = 2;
-const int CLEAR_BOTH = 3;
-
 const int DISPLAY_NONE = 0;
 const int DISPLAY_BLOCK = 1;
 const int DISPLAY_INLINE = 2;

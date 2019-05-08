@@ -90,7 +90,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 			if (self_offset_parent != this)
 			{
 				// Get the next position within our offset parent's containing block.
-				parent->PositionBlockBox(position, box, element->GetProperty< int >(CLEAR));
+				parent->PositionBlockBox(position, box, element->GetComputedValues().clear);
 				element->SetOffset(position - (self_offset_parent->GetPosition() - offset_root->GetPosition()), self_offset_parent->GetElement());
 			}
 			else
@@ -144,7 +144,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	vertical_overflow = false;
 
 	layout_engine->BuildBox(box, min_height, max_height, parent, NULL);
-	parent->PositionBlockBox(position, box, 0);
+	parent->PositionBlockBox(position, box, Style::Clear::None);
 	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
 	// Reset the min and max heights; they're not valid for inline block boxes.
@@ -482,7 +482,7 @@ void LayoutBlockBox::CloseAbsoluteElements()
 }
 
 // Returns the offset from the top-left corner of this box that the next child box will be positioned at.
-void LayoutBlockBox::PositionBox(Vector2f& box_position, float top_margin, int clear_property) const
+void LayoutBlockBox::PositionBox(Vector2f& box_position, float top_margin, Style::Clear clear_property) const
 {
 	// If our element is establishing a new offset hierarchy, then any children of ours don't inherit our offset.
 	box_position = GetPosition();
@@ -506,7 +506,7 @@ void LayoutBlockBox::PositionBox(Vector2f& box_position, float top_margin, int c
 
 // Returns the offset from the top-left corner of this box's offset element the next child block box, of the given
 // dimensions, will be positioned at. This will include the margins on the new block box.
-void LayoutBlockBox::PositionBlockBox(Vector2f& box_position, const Box& box, int clear_property) const
+void LayoutBlockBox::PositionBlockBox(Vector2f& box_position, const Box& box, Style::Clear clear_property) const
 {
 	PositionBox(box_position, box.GetEdge(Box::MARGIN, Box::TOP), clear_property);
 	box_position.x += box.GetEdge(Box::MARGIN, Box::LEFT);

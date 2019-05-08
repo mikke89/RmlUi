@@ -76,7 +76,7 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 	}
 
 	// Shift the cursor down past to clear boxes, if necessary.
-	cursor = ClearBoxes(cursor, element->GetProperty< int >(CLEAR));
+	cursor = ClearBoxes(cursor, element->GetComputedValues().clear);
 
 	// Find a place to put this box.
 	Vector2f element_offset;
@@ -101,19 +101,20 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 
 // Determines the appropriate vertical position for an object that is choosing to clear floating elements to the left
 // or right (or both).
-float LayoutBlockBoxSpace::ClearBoxes(float cursor, int clear_property)
+float LayoutBlockBoxSpace::ClearBoxes(float cursor, Style::Clear clear_property)
 {
+	using namespace Style;
 	// Clear left boxes.
-	if (clear_property == CLEAR_LEFT ||
-		clear_property == CLEAR_BOTH)
+	if (clear_property == Clear::Left ||
+		clear_property == Clear::Both)
 	{
 		for (size_t i = 0; i < boxes[LEFT].size(); ++i)
 			cursor = Math::Max(cursor, boxes[LEFT][i].offset.y + boxes[LEFT][i].dimensions.y);
 	}
 
 	// Clear right boxes.
-	if (clear_property == CLEAR_RIGHT ||
-		clear_property == CLEAR_BOTH)
+	if (clear_property == Clear::Right ||
+		clear_property == Clear::Both)
 	{
 		for (size_t i = 0; i < boxes[RIGHT].size(); ++i)
 			cursor = Math::Max(cursor, boxes[RIGHT][i].offset.y + boxes[RIGHT][i].dimensions.y);
