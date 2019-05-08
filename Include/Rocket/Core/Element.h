@@ -61,7 +61,7 @@ class PropertyDictionary;
 class RenderInterface;
 class StyleSheet;
 struct ElementMeta;
-namespace RCSS { struct ComputedValues; }
+namespace Style { struct ComputedValues; }
 
 /**
 	A generic element in the DOM tree.
@@ -622,7 +622,7 @@ public:
 	/// @param[in] event The event to process.
 	virtual void ProcessEvent(Event& event);
 
-	const RCSS::ComputedValues& GetComputedValues() const;
+	const Style::ComputedValues& GetComputedValues() const;
 
 protected:
 	void Update();

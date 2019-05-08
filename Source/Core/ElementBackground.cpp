@@ -31,6 +31,8 @@
 #include "../../Include/Rocket/Core/Element.h"
 #include "../../Include/Rocket/Core/GeometryUtilities.h"
 #include "../../Include/Rocket/Core/Property.h"
+#include "RCSS.h"
+
 
 namespace Rocket {
 namespace Core {
@@ -67,8 +69,9 @@ void ElementBackground::DirtyBackground()
 void ElementBackground::GenerateBackground()
 {
 	// Fetch the new colour for the background. If the colour is transparent, then we don't render any background.
-	Colourb colour = element->GetProperty(BACKGROUND_COLOR)->value.Get< Colourb >();
-	float opacity = element->GetProperty<float>(OPACITY);
+	auto& computed = element->GetComputedValues();
+	Colourb colour = computed.background_color;
+	float opacity = computed.opacity;
 
 	// Apply opacity
 	colour.alpha = (byte)(opacity * (float)colour.alpha);

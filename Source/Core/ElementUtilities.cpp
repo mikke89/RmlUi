@@ -114,15 +114,15 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 }
 
 // Returns the element's font face.
-FontFaceHandle* ElementUtilities::GetFontFaceHandle(const RCSS::ComputedValues& computed_values)
+FontFaceHandle* ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
 {
 	static const String default_charset = "U+0020-007E";
-	// Fetch the new font face.
 
 	const String& charset = (computed_values.font_charset.empty() ? default_charset : computed_values.font_charset);
+	int font_size = (int)computed_values.font_size;
 
 	// TODO Synchronize enums
-	FontFaceHandle* font = FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, (Font::Style)computed_values.font_style, (Font::Weight)computed_values.font_weight, computed_values.font_size);
+	FontFaceHandle* font = FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, (Font::Style)computed_values.font_style, (Font::Weight)computed_values.font_weight, font_size);
 	return font;
 }
 

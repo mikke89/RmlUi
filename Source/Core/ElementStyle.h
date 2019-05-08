@@ -34,7 +34,7 @@
 namespace Rocket {
 namespace Core {
 
-namespace RCSS { struct ComputedValues; }
+namespace Style { struct ComputedValues; }
 
 class ElementStyleCache;
 
@@ -216,7 +216,7 @@ public:
 	const Property *GetTransformOriginZ();
 
 
-	void ComputeValues(RCSS::ComputedValues& values, const RCSS::ComputedValues* parent_values, const RCSS::ComputedValues* document_values, float dp_ratio, float pixels_per_inch);
+	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch);
 
 private:
 	// Sets a single property as dirty.

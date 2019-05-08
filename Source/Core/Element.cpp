@@ -94,7 +94,7 @@ struct ElementMeta
 	ElementBorder border;
 	ElementDecoration decoration;
 	ElementScroll scroll;
-	RCSS::ComputedValues computed_values;
+	Style::ComputedValues computed_values;
 
 	void* ElementMeta::operator new(size_t size)
 	{
@@ -209,9 +209,12 @@ void Element::Update()
 	style->UpdateDefinition();
 	scroll->Update();
 
-	if(all_properties_dirty || dirty_properties.count("font_family"))
+	UpdateAnimation();
+	AdvanceAnimations();
+
+	if(all_properties_dirty || dirty_properties.size() > 0)
 	{
-		using namespace RCSS;
+		using namespace Style;
 		const ComputedValues* parent_values = (parent ? &parent->GetComputedValues() : nullptr);
 		float ppi = GetRenderInterface()->GetPixelsPerInch();
 		float dp_ratio = 1.0f;
@@ -224,9 +227,6 @@ void Element::Update()
 		}
 		style->ComputeValues(element_meta->computed_values, parent_values, document_values, dp_ratio, ppi);
 	}
-
-	UpdateAnimation();
-	AdvanceAnimations();
 
 	UpdateDirtyProperties();
 
@@ -1695,18 +1695,15 @@ bool Element::IsClippingEnabled()
 {
 	if (clipping_state_dirty)
 	{
+		const auto& computed = GetComputedValues();
+
 		// Is clipping enabled for this element, yes unless both overlow properties are set to visible
-		clipping_enabled = style->GetProperty(OVERFLOW_X)->Get< int >() != OVERFLOW_VISIBLE 
-							|| style->GetProperty(OVERFLOW_Y)->Get< int >() != OVERFLOW_VISIBLE;
+		clipping_enabled = computed.overflow_x != Style::Overflow::Visible
+							|| computed.overflow_y != Style::Overflow::Visible;
 		
 		// Get the clipping ignore depth from the clip property
-		clipping_ignore_depth = 0;
-		const Property* clip_property = GetProperty(CLIP);
-		if (clip_property->unit == Property::NUMBER)
-			clipping_ignore_depth = clip_property->Get< int >();
-		else if (clip_property->Get< int >() == CLIP_NONE)
-			clipping_ignore_depth = -1;
-		
+		clipping_ignore_depth = static_cast<int>(computed.clip);
+
 		clipping_state_dirty = false;
 	}
 	
@@ -2140,7 +2137,7 @@ void Element::ProcessEvent(Event& event)
 	}
 }
 
-const RCSS::ComputedValues& Element::GetComputedValues() const
+const Style::ComputedValues& Element::GetComputedValues() const
 {
 	return element_meta->computed_values;
 }

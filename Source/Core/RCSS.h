@@ -33,7 +33,7 @@ namespace Core {
 
 #include "../../Include/Rocket/Core/Types.h"
 
-namespace RCSS
+namespace Style
 {
 struct LengthPercentageAuto {
 	enum Type { Length, Percentage, Auto } type = Length;
@@ -67,10 +67,7 @@ struct VerticalAlign {
 
 enum class Overflow { Visible, Hidden, Auto, Scroll };
 
-struct Clip {
-	enum Type { Auto, Number, None } type = Auto;
-	float value = 0;
-};
+enum class Clip { None = -1, Auto = 0, NumberStart = 1}; // Can contain any positive value as number
 
 enum class Visibility { Visible, Hidden };
 
@@ -114,7 +111,7 @@ struct ComputedValues
 	VerticalAlign vertical_align;
 
 	Overflow overflow_x = Overflow::Visible, overflow_y = Overflow::Visible;
-	Clip clip;
+	Clip clip = Clip::Auto;
 
 	Visibility visibility = Visibility::Visible;
 
@@ -153,6 +150,7 @@ struct ComputedValues
 };
 }
 
+using ComputedValues = Style::ComputedValues;
 
 }
 }

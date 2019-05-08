@@ -40,7 +40,7 @@ class Context;
 class FontFaceHandle;
 class RenderInterface;
 class ViewState;
-namespace RCSS { struct ComputedValues; }
+namespace Style { struct ComputedValues; }
 
 /**
 	Utility functions for dealing with elements.
@@ -82,7 +82,7 @@ public:
 	/// Returns an element's font face.
 	/// @param[in] element The element to determine the font face for.
 	/// @return The element's font face. This will be NULL if no valid RCSS font styles have been set up for this element.
-	static FontFaceHandle* GetFontFaceHandle(const RCSS::ComputedValues& computed_values);
+	static FontFaceHandle* GetFontFaceHandle(const Style::ComputedValues& computed_values);
 	/// Returns an element's density-independent pixel ratio, defined by it's context
 	/// @param[in] element The element to determine the density-independent pixel ratio for.
 	/// @return The density-independent pixel ratio of the context, or 1.0 if no context assigned.

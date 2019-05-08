@@ -49,7 +49,7 @@
 namespace Rocket {
 namespace Core {
 
-static const RCSS::ComputedValues DefaultComputedValues;
+static const Style::ComputedValues DefaultComputedValues;
 
 
 ElementStyle::ElementStyle(Element* _element)
@@ -1144,7 +1144,7 @@ static float ComputeAbsoluteLength(const Property& property, float dp_ratio, flo
 
 
 // Resolves one of this element's properties.
-static float ComputeFontsize(const Property& property, const RCSS::ComputedValues& values, const RCSS::ComputedValues* parent_values, const RCSS::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
+static float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
 {
 	// The calculated value of the font-size property is inherited, so we need to check if this
 	// is an inherited property. If so, then we return our parent's font size instead.
@@ -1179,8 +1179,20 @@ static float ComputeFontsize(const Property& property, const RCSS::ComputedValue
 }
 
 
+static inline Style::Clip ComputeClip(const Property* property)
+{
+	int value = property->Get<int>();
+	if (property->unit == Property::KEYWORD)
+		return (value == CLIP_NONE ? Style::Clip::None : Style::Clip::Auto);
+	else if (property->unit == Property::NUMBER)
+		return (Style::Clip)value;
+	ROCKET_ERRORMSG("Invalid clip type");
+	return Style::Clip::Auto;
+}
 
-void ElementStyle::ComputeValues(RCSS::ComputedValues& values, const RCSS::ComputedValues* parent_values, const RCSS::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
+
+// Must be called in correct order, from document root to children elements.
+void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
 {
 	// TODO: Iterate through dirty values, and compute corresponding properties.
 	// Important: Always do font-size first if dirty, because of em-relative values.
@@ -1194,21 +1206,47 @@ void ElementStyle::ComputeValues(RCSS::ComputedValues& values, const RCSS::Compu
 		values.font_family = p->Get<String>();
 	else if (parent_values)
 		values.font_family = parent_values->font_family;
-
+	
 	if (auto p = GetLocalProperty(FONT_CHARSET))
 		values.font_charset = p->Get<String>();
 	else if (parent_values)
 		values.font_charset = parent_values->font_charset;
 
 	if (auto p = GetLocalProperty(FONT_STYLE))
-		values.font_style = (RCSS::FontStyle)p->Get< int >();
+		values.font_style = (Style::FontStyle)p->Get< int >();
 	else if (parent_values)
 		values.font_style = parent_values->font_style;
 
 	if (auto p = GetLocalProperty(FONT_WEIGHT))
-		values.font_weight = (RCSS::FontWeight)p->Get< int >();
+		values.font_weight = (Style::FontWeight)p->Get< int >();
 	else if (parent_values)
 		values.font_weight = parent_values->font_weight;
+
+
+	if (auto p = GetLocalProperty(OVERFLOW_X))
+		values.overflow_x = (Style::Overflow)p->Get< int >();
+
+	if (auto p = GetLocalProperty(OVERFLOW_Y))
+		values.overflow_y = (Style::Overflow)p->Get< int >();
+
+
+	if (auto p = GetLocalProperty(CLIP))
+		values.clip = ComputeClip(p);
+	else if (parent_values)
+		values.clip = parent_values->clip;
+
+
+	if (auto p = GetLocalProperty(OPACITY))
+		values.opacity = p->Get<float>();
+	else if (parent_values)
+		values.opacity = parent_values->opacity;
+
+	if (auto p = GetLocalProperty(BACKGROUND_COLOR))
+		values.background_color = p->Get<Colourb>();
+
+	if (auto p = GetLocalProperty(IMAGE_COLOR))
+		values.image_color = p->Get<Colourb>();
+
 }
 
 }
