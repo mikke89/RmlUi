@@ -228,6 +228,8 @@ void Element::Update()
 		style->ComputeValues(element_meta->computed_values, parent_values, document_values, dp_ratio, ppi);
 	}
 
+	// Right now we are assuming computed values are calculated before OnPropertyChange
+
 	UpdateDirtyProperties();
 
 	if (box_dirty)

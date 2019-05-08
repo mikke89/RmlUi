@@ -30,6 +30,7 @@
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "FontFaceHandle.h"
+#include "RCSS.h"
 #include "../../Include/Rocket/Core/ElementDocument.h"
 #include "../../Include/Rocket/Core/ElementUtilities.h"
 #include "../../Include/Rocket/Core/Event.h"
@@ -285,13 +286,14 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 
 	bool colour_changed = false;
 	bool font_face_changed = false;
+	auto& computed = GetComputedValues();
 
 	if (changed_properties.find(COLOR) != changed_properties.end() || 
 		changed_properties.find(OPACITY) != changed_properties.end())
 	{
 		// Fetch our (potentially) new colour.
-		Colourb new_colour = GetProperty(COLOR)->value.Get< Colourb >();
-		float opacity = GetProperty(OPACITY)->value.Get< float>();
+		Colourb new_colour = computed.color;
+		float opacity = computed.opacity;
 		new_colour.alpha = byte(opacity * float(new_colour.alpha));
 		colour_changed = colour != new_colour;
 		if (colour_changed)
@@ -312,7 +314,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 
 	if (changed_properties.find(TEXT_DECORATION) != changed_properties.end())
 	{
-		decoration_property = GetProperty< int >(TEXT_DECORATION);
+		decoration_property = (int)computed.text_decoration;
 		if (decoration_property != TEXT_DECORATION_NONE)
 		{
 			if (decoration_property != generated_decoration)

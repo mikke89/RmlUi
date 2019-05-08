@@ -1222,6 +1222,11 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 	else if (parent_values)
 		values.font_weight = parent_values->font_weight;
 
+	if (auto p = GetLocalProperty(TEXT_DECORATION))
+		values.text_decoration = (Style::TextDecoration)p->Get< int >();
+	else if (parent_values)
+		values.text_decoration = parent_values->text_decoration;
+
 
 	if (auto p = GetLocalProperty(OVERFLOW_X))
 		values.overflow_x = (Style::Overflow)p->Get< int >();
@@ -1246,6 +1251,13 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 
 	if (auto p = GetLocalProperty(IMAGE_COLOR))
 		values.image_color = p->Get<Colourb>();
+
+	if (auto p = GetLocalProperty(COLOR))
+		values.color = p->Get<Colourb>();
+	else if (parent_values)
+		values.color = parent_values->color;
+
+
 
 }
 

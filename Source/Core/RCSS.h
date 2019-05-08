@@ -84,7 +84,7 @@ enum class TabIndex { None, Auto };
 enum class Focus { None, Auto };
 enum class PointerEvents { None, Auto };
 
-
+// A computed value is a value resolved as far as possible :before: updating layout. See CSS specs for details of each property.
 struct ComputedValues
 {
 	LengthPercentageAuto margin_top, margin_right, margin_bottom, margin_left;
