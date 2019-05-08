@@ -114,7 +114,6 @@ extern const String TRANSITION;
 extern const String ANIMATION;
 extern const String KEYFRAMES;
 
-extern const String SCROLL_DEFAULT_STEP_SIZE;
 extern const String OPACITY;
 extern const String POINTER_EVENTS;
 

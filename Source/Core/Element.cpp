@@ -229,7 +229,7 @@ void Element::Update()
 	}
 
 	// Right now we are assuming computed values are calculated before OnPropertyChange
-
+	// TODO: Any dirtied properties during the next function call will not have their values computed.
 	UpdateDirtyProperties();
 
 	if (box_dirty)
@@ -1325,8 +1325,8 @@ void Element::SetInnerRML(const String& rml)
 bool Element::Focus()
 {
 	// Are we allowed focus?
-	int focus_property = GetProperty< int >(FOCUS);
-	if (focus_property == FOCUS_NONE)
+	Style::Focus focus_property = element_meta->computed_values.focus;
+	if (focus_property == Style::Focus::None)
 		return false;
 
 	// Ask our context if we can switch focus.
@@ -1412,12 +1412,12 @@ void Element::ScrollIntoView(bool align_with_top)
 	Element* scroll_parent = parent;
 	while (scroll_parent != NULL)
 	{
-		int overflow_x_property = scroll_parent->GetProperty< int >(OVERFLOW_X);
-		int overflow_y_property = scroll_parent->GetProperty< int >(OVERFLOW_Y);
+		Style::Overflow overflow_x_property = scroll_parent->GetComputedValues().overflow_x;
+		Style::Overflow overflow_y_property = scroll_parent->GetComputedValues().overflow_y;
 
-		if ((overflow_x_property != OVERFLOW_VISIBLE &&
+		if ((overflow_x_property != Style::Overflow::Visible &&
 			 scroll_parent->GetScrollWidth() > scroll_parent->GetClientWidth()) ||
-			(overflow_y_property != OVERFLOW_VISIBLE &&
+			(overflow_y_property != Style::Overflow::Visible &&
 			 scroll_parent->GetScrollHeight() > scroll_parent->GetClientHeight()))
 		{
 			Vector2f offset = scroll_parent->GetAbsoluteOffset(Box::BORDER) - GetAbsoluteOffset(Box::BORDER);
@@ -1429,9 +1429,9 @@ void Element::ScrollIntoView(bool align_with_top)
 			if (!align_with_top)
 				scroll_offset.y -= (scroll_parent->GetClientHeight() - size.y);
 
-			if (overflow_x_property != OVERFLOW_VISIBLE)
+			if (overflow_x_property != Style::Overflow::Visible)
 				scroll_parent->SetScrollLeft(scroll_offset.x);
-			if (overflow_y_property != OVERFLOW_VISIBLE)
+			if (overflow_y_property != Style::Overflow::Visible)
 				scroll_parent->SetScrollTop(scroll_offset.y);
 		}
 
@@ -1828,9 +1828,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	if (all_dirty || changed_properties.find(VISIBILITY) != changed_properties.end() ||
 		changed_properties.find(DISPLAY) != changed_properties.end())
 	{
-		bool new_visibility = GetDisplay() != DISPLAY_NONE &&
-							  GetProperty< int >(VISIBILITY) == VISIBILITY_VISIBLE;
-
+		bool new_visibility = (element_meta->computed_values.display != Style::Display::None && element_meta->computed_values.visibility == Style::Visibility::Visible);
+			
 		if (visible != new_visibility)
 		{
 			visible = new_visibility;
@@ -1905,10 +1904,9 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	if (all_dirty || 
 		changed_properties.find(Z_INDEX) != changed_properties.end())
 	{
-		const Property* z_index_property = GetProperty(Z_INDEX);
+		NumberAuto z_index_property = element_meta->computed_values.z_index;
 
-		if (z_index_property->unit == Property::KEYWORD &&
-			z_index_property->value.Get< int >() == Z_INDEX_AUTO)
+		if (z_index_property.type == NumberAuto::Auto)
 		{
 			if (local_stacking_context &&
 				!local_stacking_context_forced)
@@ -1929,16 +1927,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		}
 		else
 		{
-			float new_z_index;
-			if (z_index_property->unit == Property::KEYWORD)
-			{
-				if (z_index_property->value.Get< int >() == Z_INDEX_TOP)
-					new_z_index = FLT_MAX;
-				else
-					new_z_index = -FLT_MAX;
-			}
-			else
-				new_z_index = z_index_property->value.Get< float >();
+			float new_z_index = z_index_property.value;
 
 			if (new_z_index != z_index)
 			{
@@ -2105,9 +2094,9 @@ void Element::ProcessEvent(Event& event)
 	{
 		if (GetScrollHeight() > GetClientHeight())
 		{
-			int overflow_property = GetProperty< int >(OVERFLOW_Y);
-			if (overflow_property == OVERFLOW_AUTO ||
-				overflow_property == OVERFLOW_SCROLL)
+			Style::Overflow overflow_property = element_meta->computed_values.overflow_y;
+			if (overflow_property == Style::Overflow::Auto ||
+				overflow_property == Style::Overflow::Scroll)
 			{
 				// Stop the propagation if the current element has scrollbars.
 				// This prevents scrolling in parent elements, which is often unintended. If instead desired behavior is
@@ -2118,7 +2107,7 @@ void Element::ProcessEvent(Event& event)
 				if ((wheel_delta < 0 && GetScrollTop() > 0) ||
 					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
 				{
-					SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : (GetProperty(SCROLL_DEFAULT_STEP_SIZE) ? GetProperty< int >(SCROLL_DEFAULT_STEP_SIZE) : 0)));
+					SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : 0));
 				}
 			}
 		}

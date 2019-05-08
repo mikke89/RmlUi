@@ -108,7 +108,6 @@ const String NONE = "none";
 const String TRANSITION = "transition";
 const String ANIMATION = "animation";
 const String KEYFRAMES = "keyframes";
-const String SCROLL_DEFAULT_STEP_SIZE = "scroll-default-step-size";
 const String OPACITY = "opacity";
 const String POINTER_EVENTS = "pointer-events";
 const String MOUSEDOWN = "mousedown";

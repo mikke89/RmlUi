@@ -173,19 +173,31 @@ void GameLoop()
 		single_loop = false;
 	}
 
+	static constexpr int buffer_size = 100;
+	static float fps_buffer[buffer_size] = {};
+	static int buffer_index = 0;
+
 	static double t_prev = 0.0f;
 	double t = Shell::GetElapsedTime();
 	float dt = float(t - t_prev);
+	t_prev = t;
 	static int count_frames = 0;
 	count_frames += 1;
 
-	if (window && dt > 0.2f)
+	float fps = 1.0f / dt;
+	fps_buffer[buffer_index] = fps;
+	buffer_index = (++buffer_index % buffer_size);
+
+	if (window && count_frames > buffer_size / 8)
 	{
-		t_prev = t;
+		float fps_mean = 0;
+		for (int i = 0; i < buffer_size; i++)
+			fps_mean += fps_buffer[(buffer_index + i) % buffer_size];
+		fps_mean = fps_mean / (float)buffer_size;
+
 		auto el = window->GetDocument()->GetElementById("fps");
-		float fps = float(count_frames) / dt;
 		count_frames = 0;
-		el->SetInnerRML(Rocket::Core::CreateString( 20, "FPS: %f", fps ));
+		el->SetInnerRML(Rocket::Core::CreateString( 20, "FPS: %f", fps_mean ));
 	}
 }
 

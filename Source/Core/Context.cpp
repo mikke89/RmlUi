@@ -30,6 +30,7 @@
 #include "EventDispatcher.h"
 #include "EventIterators.h"
 #include "PluginRegistry.h"
+#include "RCSS.h"
 #include "StreamFile.h"
 #include "../../Include/Rocket/Core/StreamMemory.h"
 #include <algorithm>
@@ -892,9 +893,8 @@ bool Context::OnFocusChange(Element* new_focus)
 	ElementDocument* document = focus->GetOwnerDocument();
 	if (document != NULL)
 	{
-		const Property* z_index_property = document->GetProperty(Z_INDEX);
-		if (z_index_property->unit == Property::KEYWORD &&
-			z_index_property->value.Get< int >() == Z_INDEX_AUTO)
+		NumberAuto z_index_property = document->GetComputedValues().z_index;
+		if (z_index_property.type == NumberAuto::Auto)
 			document->PullToFront();
 	}
 

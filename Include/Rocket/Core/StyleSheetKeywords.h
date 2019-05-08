@@ -97,10 +97,6 @@ const int VERTICAL_ALIGN_TEXT_BOTTOM = 5;
 const int VERTICAL_ALIGN_TOP = 6;
 const int VERTICAL_ALIGN_BOTTOM = 7;
 
-const int Z_INDEX_AUTO = 0;
-const int Z_INDEX_TOP = 1;
-const int Z_INDEX_BOTTOM = 2;
-
 const int DRAG_NONE = 0;
 const int DRAG_DRAG = 1;
 const int DRAG_DRAG_DROP = 2;

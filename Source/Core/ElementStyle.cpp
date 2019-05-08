@@ -1237,6 +1237,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		values.clip = parent_values->clip;
 		values.opacity = parent_values->opacity;
 		values.color = parent_values->color;
+		values.focus = parent_values->focus;
 	}
 
 
@@ -1246,6 +1247,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 
 	while (IterateProperties(index, name, p))
 	{
+		// @performance: Can use a switch-case with constexpr hashing function
 		if (name == FONT_FAMILY)
 			values.font_family = p->Get<String>();
 		else if (name == FONT_CHARSET)
@@ -1262,13 +1264,13 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.overflow_x = (Style::Overflow)p->Get< int >();
 		else if (name == OVERFLOW_Y)
 			values.overflow_y = (Style::Overflow)p->Get< int >();
-
 		else if (name == CLIP)
-
 			values.clip = ComputeClip(p);
+		else if (name == VISIBILITY)
+			values.visibility = (Style::Visibility)p->Get< int >();
+
 		else if (name == OPACITY)
 			values.opacity = p->Get<float>();
-
 
 		else if (name == BACKGROUND_COLOR)
 			values.background_color = p->Get<Colourb>();
@@ -1276,7 +1278,6 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.image_color = p->Get<Colourb>();
 		else if (name == COLOR)
 			values.color = p->Get<Colourb>();
-
 
 		else if (name == MARGIN_TOP)
 			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
@@ -1296,8 +1297,6 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		else if (name == PADDING_LEFT)
 			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 
-
-
 		else if (name == BORDER_TOP_WIDTH)
 			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 		else if (name == BORDER_RIGHT_WIDTH)
@@ -1306,6 +1305,11 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
 		else if (name == BORDER_LEFT_WIDTH)
 			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+
+		else if (name == FOCUS)
+			values.focus = (Style::Focus)p->Get<int>();
+		else if (name == Z_INDEX)
+			values.z_index = (p->unit == Property::KEYWORD ? NumberAuto(NumberAuto::Auto) : NumberAuto(NumberAuto::Number, p->Get<float>()));
 
 	}
 

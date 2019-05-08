@@ -217,7 +217,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(CLEAR, "none", false, true).AddParser("keyword", "none, left, right, both");
 
 	RegisterProperty(Z_INDEX, "auto", false, false)
-		.AddParser("keyword", "auto, top, bottom")
+		.AddParser("keyword", "auto")
 		.AddParser("number");
 
 	RegisterProperty(WIDTH, "auto", false, true)
