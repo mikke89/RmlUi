@@ -35,7 +35,6 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
 
-A C++17 compiler is required to compile the master branch. For users that need support for older compilers, there is a (less maintained) C++11 version on the cpp11 branch.
 
 
 ## Transform property

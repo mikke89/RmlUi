@@ -2312,7 +2312,8 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 {
 	bool result = false;
 
-	if (auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay); it_animation != animations.end())
+	auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay);
+	if (it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
 		if (!result)
@@ -2517,7 +2518,8 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			dictionary_list.emplace_back().Set("property", it->GetPropertyName());
+			dictionary_list.emplace_back();
+			dictionary_list.back().Set("property", it->GetPropertyName());
 			is_transition.push_back(it->IsTransition());
 		}
 
@@ -2642,7 +2644,7 @@ void Element::UpdateTransformState()
 			if (have_perspective && context)
 			{
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				perspective_value.view_size = context->GetDimensions();
 				transform_state->SetPerspective(&perspective_value);
 			}
@@ -2748,7 +2750,7 @@ void Element::UpdateTransformState()
 			if (have_local_perspective && context)
 			{
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				local_perspective.view_size = context->GetDimensions();
 				transform_state->SetLocalPerspective(&local_perspective);
 			}
@@ -2771,7 +2773,7 @@ void Element::UpdateTransformState()
 					* Matrix4f::Translate(-transform_origin);
 
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				transform_state->SetTransform(&transform_value);
 			}
 			else if (transform_state)
