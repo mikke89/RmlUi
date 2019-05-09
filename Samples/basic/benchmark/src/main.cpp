@@ -92,6 +92,7 @@ public:
 		  Computed values, background-color, image-color, opacity: 77.0
 		  Computed values, padding, margin border++: 81.0  [bb70d38]
 		  Computing all the values (only using a few of them yet): 83.0  [9fe9bdf]
+		  Computed transform and other optimizations: 88.0  [654fa09]
 		
 		*/
 

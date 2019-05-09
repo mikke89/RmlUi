@@ -156,17 +156,14 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		// The element has resized itself, so we only resize it if a RCSS width or height was set explicitly. A value of
 		// 'auto' (or 'auto-fit', ie, both keywords) means keep (or adjust) the intrinsic dimensions.
 		bool auto_width = false, auto_height = false;
-		const Property* width_property, *height_property;
 
-		element->GetDimensionProperties(&width_property, &height_property);
-
-		if (width_property->unit != Property::KEYWORD)
-			content_area.x = element->ResolveProperty(width_property, containing_block.x);
+		if (computed.width.type != LengthPercentageAuto::Auto)
+			content_area.x = ResolveProperty(computed.width, containing_block.x);
 		else
 			auto_width = true;
 
-		if (height_property->unit != Property::KEYWORD)
-			content_area.y = element->ResolveProperty(height_property, containing_block.y);
+		if (computed.height.type != LengthPercentageAuto::Auto)
+			content_area.y = ResolveProperty(computed.height, containing_block.y);
 		else
 			auto_height = true;
 
@@ -196,8 +193,8 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 	{
 		if (replaced_element)
 		{
-			content_area.x = ClampWidth(content_area.x, element, containing_block.x);
-			content_area.y = ClampHeight(content_area.y, element, containing_block.y);
+			content_area.x = ClampWidth(content_area.x, computed, containing_block.x);
+			content_area.y = ClampHeight(content_area.y, computed, containing_block.y);
 		}
 
 		// If the element was not replaced, then we leave its dimension as unsized (-1, -1) and ignore the width and
@@ -216,8 +213,8 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 	else
 	{
 		box.SetContent(content_area);
-		BuildBoxWidth(box, element, containing_block.x);
-		BuildBoxHeight(box, element, containing_block.y);
+		BuildBoxWidth(box, computed, containing_block.x);
+		BuildBoxHeight(box, computed, containing_block.y);
 	}
 }
 
@@ -230,15 +227,9 @@ void LayoutEngine::BuildBox(Box& box, float& min_height, float& max_height, Layo
 	float box_height = box.GetSize().y;
 	if (box_height < 0)
 	{
-		if (element->GetLocalProperty(MIN_HEIGHT) != NULL)
-			min_height = element->ResolveProperty(MIN_HEIGHT, containing_block.y);
-		else
-			min_height = 0;
-
-		if (element->GetLocalProperty(MAX_HEIGHT) != NULL)
-			max_height = element->ResolveProperty(MAX_HEIGHT, containing_block.y);
-		else
-			max_height = FLT_MAX;
+		auto& computed = element->GetComputedValues();
+		min_height = ResolveProperty(computed.min_height, containing_block.y);
+		max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveProperty(computed.max_height, containing_block.y));
 	}
 	else
 	{
@@ -248,37 +239,19 @@ void LayoutEngine::BuildBox(Box& box, float& min_height, float& max_height, Layo
 }
 
 // Clamps the width of an element based from its min-width and max-width properties.
-float LayoutEngine::ClampWidth(float width, Element* element, float containing_block_width)
+float LayoutEngine::ClampWidth(float width, const ComputedValues& computed, float containing_block_width)
 {
-	float min_width, max_width;
-
-	if (element->GetLocalProperty(MIN_WIDTH) != NULL)
-		min_width = element->ResolveProperty(MIN_WIDTH, containing_block_width);
-	else
-		min_width = 0;
-
-	if (element->GetLocalProperty(MAX_WIDTH) != NULL)
-		max_width = element->ResolveProperty(MAX_WIDTH, containing_block_width);
-	else
-		max_width = FLT_MAX;
+	float min_width = ResolveProperty(computed.min_width, containing_block_width);
+	float max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveProperty(computed.max_width, containing_block_width));
 
 	return Math::Clamp(width, min_width, max_width);
 }
 
 // Clamps the height of an element based from its min-height and max-height properties.
-float LayoutEngine::ClampHeight(float height, Element* element, float containing_block_height)
+float LayoutEngine::ClampHeight(float height, const ComputedValues& computed, float containing_block_height)
 {
-	float min_height, max_height;
-
-	if (element->GetLocalProperty(MIN_HEIGHT) != NULL)
-		min_height = element->ResolveProperty(MIN_HEIGHT, containing_block_height);
-	else
-		min_height = 0;
-
-	if (element->GetLocalProperty(MAX_HEIGHT) != NULL)
-		max_height = element->ResolveProperty(MAX_HEIGHT, containing_block_height);
-	else
-		max_height = FLT_MAX;
+	float min_height = ResolveProperty(computed.min_height, containing_block_height);
+	float max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveProperty(computed.max_height, containing_block_height));
 
 	return Math::Clamp(height, min_height, max_height);
 }
@@ -300,20 +273,19 @@ void LayoutEngine::DeallocateLayoutChunk(void* chunk)
 // Positions a single element and its children within this layout.
 bool LayoutEngine::FormatElement(Element* element)
 {
+	auto& computed = element->GetComputedValues();
+
 	// Check if we have to do any special formatting for any elements that don't fit into the standard layout scheme.
 	if (FormatElementSpecial(element))
 		return true;
 
 	// Fetch the display property, and don't lay this element out if it is set to a display type of none.
-	int display_property = element->GetDisplay();
-	if (display_property == DISPLAY_NONE)
+	if (computed.display == Style::Display::None)
 		return true;
 
 	// Check for an absolute position; if this has been set, then we remove it from the flow and add it to the current
 	// block box to be laid out and positioned once the block has been closed and sized.
-	int position_property = element->GetPosition();
-	if (position_property == POSITION_ABSOLUTE ||
-		position_property == POSITION_FIXED)
+	if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
 	{
 		// Display the element as a block element.
 		block_context_box->AddAbsoluteElement(element);
@@ -332,12 +304,12 @@ bool LayoutEngine::FormatElement(Element* element)
 	}
 
 	// The element is nothing exceptional, so we treat it as a normal block, inline or replaced element.
-	switch (display_property)
+	switch (computed.display)
 	{
-		case DISPLAY_BLOCK:			return FormatElementBlock(element); break;
-		case DISPLAY_INLINE:		return FormatElementInline(element); break;
-		case DISPLAY_INLINE_BLOCK:	return FormatElementReplaced(element); break;
-		default:					ROCKET_ERROR;
+		case Style::Display::Block:       return FormatElementBlock(element); break;
+		case Style::Display::Inline:      return FormatElementInline(element); break;
+		case Style::Display::InlineBlock: return FormatElementReplaced(element); break;
+		default: ROCKET_ERROR;
 	}
 
 	return true;
@@ -473,26 +445,27 @@ Vector2f LayoutEngine::GetContainingBlock(const LayoutBlockBox* containing_box)
 }
 
 // Builds the block-specific width and horizontal margins of a Box.
-void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_block_width)
+// OK
+void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float containing_block_width)
 {
 	Vector2f content_area = box.GetSize();
 
 	// Determine if the element has an automatic width, and if not calculate it.
 	bool width_auto;
 	if (content_area.x >= 0)
+	{
 		width_auto = false;
+	}
 	else
 	{
-		const Property* width_property;
-		element->GetDimensionProperties(&width_property, NULL);
-		if (width_property->unit == Property::KEYWORD)
+		if (computed.width.type == LengthPercentageAuto::Auto)
 		{
 			width_auto = true;
 		}
 		else
 		{
 			width_auto = false;
-			content_area.x = element->ResolveProperty(width_property, containing_block_width);
+			content_area.x = ResolveProperty(computed.width, containing_block_width);
 		}
 	}
 
@@ -500,14 +473,10 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 	bool margins_auto[2];
 	int num_auto_margins = 0;
 
-	const Property *margin_left, *margin_right;
-	element->GetMarginProperties(NULL, NULL, &margin_left, &margin_right);
-
 	for (int i = 0; i < 2; ++i)
 	{
-		const Property* margin_property = i == 0 ? margin_left : margin_right;
-		if (margin_property != NULL &&
-			margin_property->unit == Property::KEYWORD)
+		auto* margin_value = (i == 0 ? &computed.margin_left : &computed.margin_right);
+		if (margin_value->type == LengthPercentageAuto::Auto)
 		{
 			margins_auto[i] = true;
 			num_auto_margins++;
@@ -515,7 +484,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, element->ResolveProperty(margin_property, containing_block_width));
+			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, ResolveProperty(*margin_value, containing_block_width));
 		}
 	}
 
@@ -525,15 +494,12 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 		float left = 0.0f, right = 0.0f;
 		// If we are dealing with an absolutely positioned element we need to
 		// consider if the left and right properties are set, since the width can be affected.
-		if (element->GetPosition() == POSITION_ABSOLUTE || 
-			element->GetPosition() == POSITION_FIXED)
+		if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
 		{
-			Property const *left_property, *right_property;
-			element->GetOffsetProperties( NULL, NULL, &left_property, &right_property );
-			if (left_property->unit != Property::KEYWORD) 
-				left = element->ResolveProperty(left_property, containing_block_width );
-			if (right_property->unit != Property::KEYWORD) 
-				right = element->ResolveProperty(right_property, containing_block_width );
+			if (computed.left.type != LengthPercentageAuto::Auto)
+				left = ResolveProperty(computed.left, containing_block_width );
+			if (computed.right.type != LengthPercentageAuto::Auto)
+				right = ResolveProperty(computed.right, containing_block_width);
 		}
 
 		// We resolve any auto margins to 0 and the width is set to whatever is left of the containing block.
@@ -563,7 +529,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 
 	// Clamp the calculated width; if the width is changed by the clamp, then the margins need to be recalculated if
 	// they were set to auto.
-	float clamped_width = ClampWidth(content_area.x, element, containing_block_width);
+	float clamped_width = ClampWidth(content_area.x, computed, containing_block_width);
 	if (clamped_width != content_area.x)
 	{
 		content_area.x = clamped_width;
@@ -577,7 +543,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 			if (margins_auto[1])
 				box.SetEdge(Box::MARGIN, Box::RIGHT, 0);
 
-			BuildBoxWidth(box, element, containing_block_width);
+			BuildBoxWidth(box, computed, containing_block_width);
 		}
 	}
 	else
@@ -585,30 +551,26 @@ void LayoutEngine::BuildBoxWidth(Box& box, Element* element, float containing_bl
 }
 
 // Builds the block-specific height and vertical margins of a Box.
-void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_block_height)
+void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, float containing_block_height)
 {
 	Vector2f content_area = box.GetSize();
 
 	// Determine if the element has an automatic height, and if not calculate it.
 	bool height_auto;
 	if (content_area.y >= 0)
+	{
 		height_auto = false;
+	}
 	else
 	{
-		const Property* height_property;
-		element->GetDimensionProperties(NULL, &height_property);
-		if (height_property == NULL)
-		{
-			height_auto = false;		
-		}
-		else if (height_property->unit == Property::KEYWORD)
+		if (computed.height.type == LengthPercentageAuto::Auto)
 		{
 			height_auto = true;
 		}
 		else
 		{
 			height_auto = false;
-			content_area.y = element->ResolveProperty(height_property, containing_block_height);
+			content_area.y = ResolveProperty(computed.height, containing_block_height);
 		}
 	}
 
@@ -616,14 +578,10 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 	bool margins_auto[2];
 	int num_auto_margins = 0;
 
-	const Property *margin_top, *margin_bottom;
-	element->GetMarginProperties(&margin_top, &margin_bottom, NULL, NULL);
-
 	for (int i = 0; i < 2; ++i)
 	{
-		const Property* margin_property = i == 0 ? margin_top : margin_bottom;
-		if (margin_property != NULL &&
-			margin_property->unit == Property::KEYWORD)
+		auto* margin_value = (i == 0 ? &computed.margin_top : &computed.margin_bottom);
+		if (margin_value->type == LengthPercentageAuto::Auto)
 		{
 			margins_auto[i] = true;
 			num_auto_margins++;
@@ -631,7 +589,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, element->ResolveProperty(margin_property, containing_block_height));
+			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, ResolveProperty(*margin_value, containing_block_height));
 		}
 	}
 
@@ -649,16 +607,14 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 
 		// But if we are dealing with an absolutely positioned element we need to
 		// consider if the top and bottom properties are set, since the height can be affected.
-		if (element->GetPosition() == POSITION_ABSOLUTE || 
-			element->GetPosition() == POSITION_FIXED)
+		if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
 		{
 			float top = 0.0f, bottom = 0.0f;
-			Property const *top_property, *bottom_property;
-			element->GetOffsetProperties( &top_property, &bottom_property, NULL, NULL );
-			if (top_property->unit != Property::KEYWORD && bottom_property->unit != Property::KEYWORD ) 
+
+			if (computed.top.type != LengthPercentageAuto::Auto && computed.bottom.type != LengthPercentageAuto::Auto)
 			{
-				top = element->ResolveProperty(top_property, containing_block_height );
-				bottom = element->ResolveProperty(bottom_property, containing_block_height );
+				top = ResolveProperty(computed.top, containing_block_height );
+				bottom = ResolveProperty(computed.bottom, containing_block_height );
 
 				// The height gets resolved to whatever is left of the containing block
 				content_area.y = containing_block_height - (top +
@@ -692,7 +648,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 	{
 		// Clamp the calculated height; if the height is changed by the clamp, then the margins need to be recalculated if
 		// they were set to auto.
-		float clamped_height = ClampHeight(content_area.y, element, containing_block_height);
+		float clamped_height = ClampHeight(content_area.y, computed, containing_block_height);
 		if (clamped_height != content_area.y)
 		{
 			content_area.y = clamped_height;
@@ -706,7 +662,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, Element* element, float containing_b
 				if (margins_auto[1])
 					box.SetEdge(Box::MARGIN, Box::BOTTOM, 0);
 
-				BuildBoxHeight(box, element, containing_block_height);
+				BuildBoxHeight(box, computed, containing_block_height);
 			}
 
 			return;

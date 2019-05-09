@@ -2642,7 +2642,7 @@ void Element::UpdateTransformState()
 
 	const ComputedValues& computed = element_meta->computed_values;
 
-	if (!computed.transform)
+	if (!computed.transform && computed.perspective <= 0)
 	{
 		transform_state.reset();
 		transform_state_perspective_dirty = false;

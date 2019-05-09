@@ -124,9 +124,9 @@ struct ComputedValues
 	NumberAuto z_index = { NumberAuto::Auto };
 
 	LengthPercentageAuto width = { LengthPercentageAuto::Auto };
-	LengthPercentage min_width, max_width;
+	LengthPercentage min_width, max_width{ LengthPercentage::Length, -1.f };
 	LengthPercentageAuto height = { LengthPercentageAuto::Auto };
-	LengthPercentage min_height, max_height;
+	LengthPercentage min_height, max_height{ LengthPercentage::Length, -1.f };
 
 	LineHeight line_height;
 	VerticalAlign vertical_align;

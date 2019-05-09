@@ -71,13 +71,13 @@ public:
 	/// @param[in] element The element to read the properties from.
 	/// @param[in] containing_block_width The width of the element's containing block.
 	/// @return The clamped width.
-	static float ClampWidth(float width, Element* element, float containing_block_width);
+	static float ClampWidth(float width, const ComputedValues& computed, float containing_block_width);
 	/// Clamps the height of an element based from its min-height and max-height properties.
 	/// @param[in] height The height to clamp.
 	/// @param[in] element The element to read the properties from.
 	/// @param[in] containing_block_height The height of the element's containing block.
 	/// @return The clamped height.
-	static float ClampHeight(float height, Element* element, float containing_block_height);
+	static float ClampHeight(float height, const ComputedValues& computed, float containing_block_height);
 
 	static void* AllocateLayoutChunk(size_t size);
 	static void DeallocateLayoutChunk(void* chunk);
@@ -110,12 +110,12 @@ private:
 	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. If the content area is sized, then it will be used instead of the width property.
 	/// @param[in] element The element the box is being generated for.
 	/// @param[in] containing_block_width The width of the containing block.
-	static void BuildBoxWidth(Box& box, Element* element, float containing_block_width);
+	static void BuildBoxWidth(Box& box, const ComputedValues& computed, float containing_block_width);
 	/// Builds the block-specific height and vertical margins of a Box.
 	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. If the content area is sized, then it will be used instead of the height property.
 	/// @param[in] element The element the box is being generated for.
 	/// @param[in] containing_block_height The height of the containing block.
-	static void BuildBoxHeight(Box& box, Element* element, float containing_block_height);
+	static void BuildBoxHeight(Box& box, const ComputedValues& computed, float containing_block_height);
 
 	// The root block box, representing the document.
 	LayoutBlockBox* block_box;
