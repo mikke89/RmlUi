@@ -40,7 +40,7 @@
 namespace Rocket {
 namespace Core {
 
-static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, int text_transformation);
+static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation);
 static bool LastToken(const word* token_begin, const word* string_end, bool collapse_white_space, bool break_at_endline);
 
 ElementTextDefault::ElementTextDefault(const String& tag) : ElementText(tag), colour(255, 255, 255), decoration(this)
@@ -151,18 +151,20 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 		return 0;
 
 	// Determine how we are processing white-space while formatting the text.
-	int white_space_property = GetWhitespace();
-	bool collapse_white_space = white_space_property == WHITE_SPACE_NORMAL ||
-								white_space_property == WHITE_SPACE_NOWRAP ||
-								white_space_property == WHITE_SPACE_PRE_LINE;
-	bool break_at_endline = white_space_property == WHITE_SPACE_PRE ||
-							white_space_property == WHITE_SPACE_PRE_WRAP ||
-							white_space_property == WHITE_SPACE_PRE_LINE;
+	using namespace Style;
+	auto& computed = GetComputedValues();
+	WhiteSpace white_space_property = computed.white_space;
+	bool collapse_white_space = white_space_property == WhiteSpace::Normal ||
+								white_space_property == WhiteSpace::Nowrap ||
+								white_space_property == WhiteSpace::Preline;
+	bool break_at_endline = white_space_property == WhiteSpace::Pre ||
+							white_space_property == WhiteSpace::Prewrap ||
+							white_space_property == WhiteSpace::Preline;
 
 	const word* token_begin = text.c_str() + line_begin;
 	WString token;
 
-	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, GetTextTransform());
+	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
 	token_width = (float) font_face_handle->GetStringWidth(token, 0);
 
 	return LastToken(token_begin, text.c_str() + text.size(), collapse_white_space, break_at_endline);
@@ -183,20 +185,22 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 		return true;
 
 	// Determine how we are processing white-space while formatting the text.
-	int white_space_property = GetWhitespace();
-	bool collapse_white_space = white_space_property == WHITE_SPACE_NORMAL ||
-								white_space_property == WHITE_SPACE_NOWRAP ||
-								white_space_property == WHITE_SPACE_PRE_LINE;
-	bool break_at_line = maximum_line_width >= 0 &&
-						 (white_space_property == WHITE_SPACE_NORMAL ||
-						  white_space_property == WHITE_SPACE_PRE_WRAP ||
-						  white_space_property == WHITE_SPACE_PRE_LINE);
-	bool break_at_endline = white_space_property == WHITE_SPACE_PRE ||
-							white_space_property == WHITE_SPACE_PRE_WRAP ||
-							white_space_property == WHITE_SPACE_PRE_LINE;
+	using namespace Style;
+	auto& computed = GetComputedValues();
+	WhiteSpace white_space_property = computed.white_space;
+	bool collapse_white_space = white_space_property == WhiteSpace::Normal ||
+								white_space_property == WhiteSpace::Nowrap ||
+								white_space_property == WhiteSpace::Preline;
+	bool break_at_line = maximum_line_width >= 0 && 
+		                   (white_space_property == WhiteSpace::Normal ||
+							white_space_property == WhiteSpace::Prewrap ||
+							white_space_property == WhiteSpace::Preline);
+	bool break_at_endline = white_space_property == WhiteSpace::Pre ||
+							white_space_property == WhiteSpace::Prewrap ||
+							white_space_property == WhiteSpace::Preline;
 
 	// Determine what (if any) text transformation we are putting the characters through.
-	int text_transform_property = GetTextTransform();
+	TextTransform text_transform_property = computed.text_transform;
 
 	// Starting at the line_begin character, we generate sections of the text (we'll call them tokens) depending on the
 	// white-space parsing parameters. Each section is then appended to the line if it can fit. If not, or if an
@@ -431,7 +435,7 @@ void ElementTextDefault::GenerateDecoration(FontFaceHandle* font_face_handle, co
 	font_face_handle->GenerateLine(&decoration, line.position, line.width, line_height, colour);
 }
 
-static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, int text_transformation)
+static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation)
 {
 	ROCKET_ASSERT(token_begin != string_end);
 
@@ -543,12 +547,12 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 		}
 		else
 		{
-			if (text_transformation == TEXT_TRANSFORM_UPPERCASE)
+			if (text_transformation == Style::TextTransform::Uppercase)
 			{
 				if (character >= 'a' && character <= 'z')
 					character += (Rocket::Core::word)('A' - 'a');
 			}
-			else if (text_transformation == TEXT_TRANSFORM_LOWERCASE)
+			else if (text_transformation == Style::TextTransform::Lowercase)
 			{
 				if (character >= 'A' && character <= 'Z')
 					character -= (Rocket::Core::word)('A' - 'a');

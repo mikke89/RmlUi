@@ -445,7 +445,6 @@ Vector2f LayoutEngine::GetContainingBlock(const LayoutBlockBox* containing_box)
 }
 
 // Builds the block-specific width and horizontal margins of a Box.
-// OK
 void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float containing_block_width)
 {
 	Vector2f content_area = box.GetSize();
