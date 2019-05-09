@@ -1279,8 +1279,20 @@ static inline LengthPercentage ComputeOrigin(const Property* property, float fon
 
 
 // Must be called in correct order, from document root to children elements.
-void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
+void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_defaulted, float dp_ratio, float pixels_per_inch)
 {
+	// Generally, this is how it works (for now, we can probably be smarter about this):
+	//   1. Assign default values (clears any newly dirtied properties)
+	//   2. Inherit inheritable values from parent
+	//   3. Assign any local properties (from inline style or stylesheet)
+
+
+	// The next flag is just a small optimization, if the element was just created we don't need to copy all the default values.
+	if (!values_are_defaulted)
+	{
+		values = DefaultComputedValues;
+	}
+
 	// Always do font-size first if dirty, because of em-relative values
 	if (auto p = GetLocalProperty(FONT_SIZE))
 		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, pixels_per_inch);

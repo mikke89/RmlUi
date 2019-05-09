@@ -26,13 +26,14 @@
  */
 
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
+#include "../../Include/Rocket/Core/ComputedValues.h"
 
 namespace Rocket {
 namespace Controls {
 
 ElementFormControl::ElementFormControl(const Rocket::Core::String& tag) : Core::Element(tag)
 {
-	SetProperty("tab-index", "auto");
+	SetProperty("tab-index", Core::Property((int)Core::Style::TabIndex::Auto, Core::Property::KEYWORD));
 }
 
 ElementFormControl::~ElementFormControl()

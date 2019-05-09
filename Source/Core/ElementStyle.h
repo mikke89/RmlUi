@@ -216,7 +216,7 @@ public:
 	const Property *GetTransformOriginZ();
 
 
-	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch);
+	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_defaulted, float dp_ratio, float pixels_per_inch);
 
 private:
 	// Sets a single property as dirty.

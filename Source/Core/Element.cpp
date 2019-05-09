@@ -144,6 +144,7 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	parent_structure_dirty = false;
 
 	all_properties_dirty = true;
+	computed_values_are_default = true;
 	box_dirty = false;
 
 	font_face_handle = NULL;
@@ -224,7 +225,9 @@ void Element::Update()
 			if (auto context = doc->GetContext())
 				dp_ratio = context->GetDensityIndependentPixelRatio();
 		}
-		style->ComputeValues(element_meta->computed_values, parent_values, document_values, dp_ratio, ppi);
+		style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default, dp_ratio, ppi);
+
+		computed_values_are_default = false;
 	}
 
 	// Right now we are assuming computed values are calculated before OnPropertyChange
@@ -2639,6 +2642,16 @@ void Element::UpdateTransformState()
 
 	const ComputedValues& computed = element_meta->computed_values;
 
+	if (!computed.transform)
+	{
+		transform_state.reset();
+		transform_state_perspective_dirty = false;
+		transform_state_transform_dirty = false;
+		transform_state_parent_transform_dirty = false;
+		return;
+	}
+
+
 	if(transform_state_perspective_dirty || transform_state_transform_dirty)
 	{
 		Context *context = GetContext();
@@ -2681,7 +2694,7 @@ void Element::UpdateTransformState()
 			}
 			else if (transform_state)
 			{
-				transform_state->SetPerspective(0);
+				transform_state->SetPerspective(nullptr);
 			}
 
 			transform_state_perspective_dirty = false;
@@ -2739,7 +2752,7 @@ void Element::UpdateTransformState()
 			}
 			else if(transform_state)
 			{
-				transform_state->SetLocalPerspective(0);
+				transform_state->SetLocalPerspective(nullptr);
 			}
 
 			if (have_transform)
@@ -2780,7 +2793,7 @@ void Element::UpdateTransformState()
 		if (transform_state)
 		{
 			// Store the parent's new full transform as our parent transform
-			Element *node = 0;
+			Element *node = nullptr;
 			Matrix4f parent_transform;
 			for (node = parent; node; node = node->parent)
 			{
@@ -2792,7 +2805,7 @@ void Element::UpdateTransformState()
 			}
 			if (!node)
 			{
-				transform_state->SetParentRecursiveTransform(0);
+				transform_state->SetParentRecursiveTransform(nullptr);
 			}
 		}
 
@@ -2803,7 +2816,7 @@ void Element::UpdateTransformState()
 	// transform, we don't need to keep the large TransformState object
 	// around. GetEffectiveTransformState() will then recursively visit
 	// parents in order to find a non-trivial TransformState.
-	if (transform_state && !transform_state->GetLocalPerspective(0) && !transform_state->GetPerspective(0) && !transform_state->GetTransform(0))
+	if (transform_state && !transform_state->GetLocalPerspective(nullptr) && !transform_state->GetPerspective(nullptr) && !transform_state->GetTransform(nullptr))
 	{
 		transform_state.reset();
 	}

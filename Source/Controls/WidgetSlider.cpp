@@ -90,7 +90,7 @@ WidgetSlider::~WidgetSlider()
 // Initialises the slider to a given orientation.
 bool WidgetSlider::Initialise()
 {
-	parent->SetProperty("drag", "drag");
+	parent->SetProperty("drag", Core::Property((int)Core::Style::Drag::Drag, Core::Property::KEYWORD));
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
 	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rocket::Core::XMLAttributes());
