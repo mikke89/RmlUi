@@ -157,12 +157,12 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		// 'auto' (or 'auto-fit', ie, both keywords) means keep (or adjust) the intrinsic dimensions.
 		bool auto_width = false, auto_height = false;
 
-		if (computed.width.type != LengthPercentageAuto::Auto)
+		if (computed.width.type != Style::Width::Auto)
 			content_area.x = ResolveProperty(computed.width, containing_block.x);
 		else
 			auto_width = true;
 
-		if (computed.height.type != LengthPercentageAuto::Auto)
+		if (computed.height.type != Style::Height::Auto)
 			content_area.y = ResolveProperty(computed.height, containing_block.y);
 		else
 			auto_height = true;
@@ -457,7 +457,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float
 	}
 	else
 	{
-		if (computed.width.type == LengthPercentageAuto::Auto)
+		if (computed.width.type == Style::Width::Auto)
 		{
 			width_auto = true;
 		}
@@ -475,7 +475,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float
 	for (int i = 0; i < 2; ++i)
 	{
 		auto* margin_value = (i == 0 ? &computed.margin_left : &computed.margin_right);
-		if (margin_value->type == LengthPercentageAuto::Auto)
+		if (margin_value->type == Style::Margin::Auto)
 		{
 			margins_auto[i] = true;
 			num_auto_margins++;
@@ -495,9 +495,9 @@ void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float
 		// consider if the left and right properties are set, since the width can be affected.
 		if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
 		{
-			if (computed.left.type != LengthPercentageAuto::Auto)
+			if (computed.left.type != Style::Left::Auto)
 				left = ResolveProperty(computed.left, containing_block_width );
-			if (computed.right.type != LengthPercentageAuto::Auto)
+			if (computed.right.type != Style::Right::Auto)
 				right = ResolveProperty(computed.right, containing_block_width);
 		}
 
@@ -562,7 +562,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, floa
 	}
 	else
 	{
-		if (computed.height.type == LengthPercentageAuto::Auto)
+		if (computed.height.type == Style::Height::Auto)
 		{
 			height_auto = true;
 		}
@@ -580,7 +580,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, floa
 	for (int i = 0; i < 2; ++i)
 	{
 		auto* margin_value = (i == 0 ? &computed.margin_top : &computed.margin_bottom);
-		if (margin_value->type == LengthPercentageAuto::Auto)
+		if (margin_value->type == Style::Margin::Auto)
 		{
 			margins_auto[i] = true;
 			num_auto_margins++;
@@ -610,7 +610,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, floa
 		{
 			float top = 0.0f, bottom = 0.0f;
 
-			if (computed.top.type != LengthPercentageAuto::Auto && computed.bottom.type != LengthPercentageAuto::Auto)
+			if (computed.top.type != Style::Top::Auto && computed.bottom.type != Style::Bottom::Auto)
 			{
 				top = ResolveProperty(computed.top, containing_block_height );
 				bottom = ResolveProperty(computed.bottom, containing_block_height );

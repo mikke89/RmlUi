@@ -892,8 +892,8 @@ bool Context::OnFocusChange(Element* new_focus)
 	ElementDocument* document = focus->GetOwnerDocument();
 	if (document != NULL)
 	{
-		NumberAuto z_index_property = document->GetComputedValues().z_index;
-		if (z_index_property.type == NumberAuto::Auto)
+		Style::ZIndex z_index_property = document->GetComputedValues().z_index;
+		if (z_index_property.type == Style::ZIndex::Auto)
 			document->PullToFront();
 	}
 

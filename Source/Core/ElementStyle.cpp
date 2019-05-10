@@ -1098,8 +1098,9 @@ static inline Style::VerticalAlign ComputeVerticalAlign(const Property* property
 	return Style::VerticalAlign((Style::VerticalAlign::Type)property->Get<int>());
 }
 
-static inline LengthPercentage ComputeLengthPercentage(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+static inline Style::LengthPercentage ComputeLengthPercentage(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
 {
+	using namespace Style;
 	if (property->unit & Property::PERCENT)
 		return LengthPercentage(LengthPercentage::Percentage, property->Get<float>());
 
@@ -1107,8 +1108,9 @@ static inline LengthPercentage ComputeLengthPercentage(const Property* property,
 }
 
 
-static inline LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+static inline Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
 {
+	using namespace Style;
 	// Assuming here that 'auto' is the only possible keyword
 	if (property->unit & Property::PERCENT)
 		return LengthPercentageAuto(LengthPercentageAuto::Percentage, property->Get<float>());
@@ -1118,7 +1120,7 @@ static inline LengthPercentageAuto ComputeLengthPercentageAuto(const Property* p
 	return LengthPercentageAuto(LengthPercentageAuto::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
 }
 
-static inline LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
+static inline Style::LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
 {
 	using namespace Style;
 	static_assert((int)OriginX::Left == (int)OriginY::Top && (int)OriginX::Center == (int)OriginY::Center && (int)OriginX::Right == (int)OriginY::Bottom, "");
@@ -1278,7 +1280,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.clear = (Clear)p->Get<int>();
 
 		else if (name == Z_INDEX)
-			values.z_index = (p->unit == Property::KEYWORD ? NumberAuto(NumberAuto::Auto) : NumberAuto(NumberAuto::Number, p->Get<float>()));
+			values.z_index = (p->unit == Property::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>()));
 
 		else if (name == WIDTH)
 			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
@@ -1307,7 +1309,6 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		else if (name == VISIBILITY)
 			values.visibility = (Visibility)p->Get< int >();
 
-
 		else if (name == BACKGROUND_COLOR)
 			values.background_color = p->Get<Colourb>();
 		else if (name == COLOR)
@@ -1316,7 +1317,6 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.image_color = p->Get<Colourb>();
 		else if (name == OPACITY)
 			values.opacity = p->Get<float>();
-
 
 		else if (name == FONT_FAMILY)
 			values.font_family = p->Get<String>();

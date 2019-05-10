@@ -34,6 +34,9 @@
 namespace Rocket {
 namespace Core {
 
+namespace Style
+{
+
 struct LengthPercentageAuto {
 	enum Type { Auto, Length, Percentage } type = Length;
 	float value = 0;
@@ -48,42 +51,44 @@ struct LengthPercentage {
 };
 
 struct NumberAuto {
-	enum Type { Number, Auto } type = Number;
+	enum Type { Auto, Number } type = Number;
 	float value = 0;
 	NumberAuto() {}
 	NumberAuto(Type type, float value = 0) : type(type), value(value) {}
 };
 
 
-namespace Style
-{
-
 using Margin = LengthPercentageAuto;
-using Width = LengthPercentageAuto;
-using Height = LengthPercentageAuto;
+using Padding = LengthPercentage;
+
+enum class Display { None, Block, Inline, InlineBlock };
+enum class Position { Static, Relative, Absolute, Fixed };
 
 using Top = LengthPercentageAuto;
 using Right = LengthPercentageAuto;
 using Bottom = LengthPercentageAuto;
 using Left = LengthPercentageAuto;
 
-using Padding = LengthPercentage;
-
-using MinWidth = LengthPercentage;
-using MaxWidth = LengthPercentage;
-using MinHeight = LengthPercentage;
-using MaxHeight = LengthPercentage;
-
-using PerspectiveOrigin = LengthPercentage;
-using TransformOrigin = LengthPercentage;
-
-
-enum class Display { None, Block, Inline, InlineBlock };
-enum class Position { Static, Relative, Absolute, Fixed };
-
 enum class Float { None, Left, Right };
 enum class Clear { None, Left, Right, Both };
 
+using ZIndex = NumberAuto;
+
+using Width = LengthPercentageAuto;
+using MinWidth = LengthPercentage;
+using MaxWidth = LengthPercentage;
+
+using Height = LengthPercentageAuto;
+using MinHeight = LengthPercentage;
+using MaxHeight = LengthPercentage;
+
+struct LineHeight {
+	float value = 12.f * 1.2f; // The computed value (length)
+	enum InheritType { Number, Length } inherit_type = Number;
+	float inherit_value = 1.2f;
+	LineHeight() {}
+	LineHeight(float value, InheritType inherit_type, float inherit_value) : value(value), inherit_type(inherit_type), inherit_value(inherit_value) {}
+};
 struct VerticalAlign {
 	enum Type { Baseline, Middle, Sub, Super, TextTop, TextBottom, Top, Bottom, Length } type;
 	float value; // For length type
@@ -92,10 +97,9 @@ struct VerticalAlign {
 };
 
 enum class Overflow { Visible, Hidden, Auto, Scroll };
-
 struct Clip {
 	// Note, internally Auto is 0 and None is -1, however, the enum must correspond to the keywords in StyleSheetSpec
-	enum Type { Auto, None, Number }; 
+	enum Type { Auto, None, Number };
 	int number = 0;
 	Clip() {}
 	Clip(Type type, int number = 0) : number(type == Auto ? 0 : (type == None ? -1 : number)) {}
@@ -116,16 +120,12 @@ enum class TabIndex { None, Auto };
 enum class Focus { None, Auto };
 enum class PointerEvents { None, Auto };
 
+using PerspectiveOrigin = LengthPercentage;
+using TransformOrigin = LengthPercentage;
+
 enum class OriginX { Left, Center, Right };
 enum class OriginY { Top, Center, Bottom };
 
-struct LineHeight {
-	float value = 12.f*1.2f; // The computed value (length)
-	enum InheritType { Number, Length } inherit_type = Number;
-	float inherit_value = 1.2f;
-	LineHeight() {}
-	LineHeight(float value, InheritType inherit_type, float inherit_value) : value(value), inherit_type(inherit_type), inherit_value(inherit_value) {}
-};
 
 // A computed value is a value resolved as far as possible :before: updating layout. See CSS specs for details of each property.
 struct ComputedValues
@@ -146,7 +146,7 @@ struct ComputedValues
 	Float float_ = Float::None;
 	Clear clear = Clear::None;
 
-	NumberAuto z_index = { NumberAuto::Auto };
+	ZIndex z_index = { ZIndex::Auto };
 
 	Width width = { Width::Auto };
 	MinWidth min_width;
@@ -202,18 +202,18 @@ struct ComputedValues
 }
 
 // Note: Auto must be manually handled during layout, here it returns zero.
-inline float ResolveProperty(LengthPercentageAuto length, float base_value) {
-	if (length.type == LengthPercentageAuto::Length)
+inline float ResolveProperty(Style::LengthPercentageAuto length, float base_value) {
+	if (length.type == Style::LengthPercentageAuto::Length)
 		return length.value;
-	else if (length.type == LengthPercentageAuto::Percentage)
+	else if (length.type == Style::LengthPercentageAuto::Percentage)
 		return length.value * 0.01f * base_value;
 	return 0.0f;
 }
 
-inline float ResolveProperty(LengthPercentage length, float base_value) {
-	if (length.type == LengthPercentage::Length)
+inline float ResolveProperty(Style::LengthPercentage length, float base_value) {
+	if (length.type == Style::LengthPercentage::Length)
 		return length.value;
-	else if (length.type == LengthPercentage::Percentage)
+	else if (length.type == Style::LengthPercentage::Percentage)
 		return length.value * 0.01f * base_value;
 	return 0.0f;
 }

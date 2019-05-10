@@ -310,8 +310,8 @@ void WidgetSlider::FormatBar(float bar_length)
 
 	const auto& computed = bar->GetComputedValues();
 
-	const LengthPercentageAuto& width = computed.width;
-	const LengthPercentageAuto& height = computed.height;
+	const Style::Width width = computed.width;
+	const Style::Height height = computed.height;
 
 	Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)

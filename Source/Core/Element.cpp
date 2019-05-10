@@ -1805,9 +1805,9 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	if (all_dirty || 
 		changed_properties.find(Z_INDEX) != changed_properties.end())
 	{
-		NumberAuto z_index_property = element_meta->computed_values.z_index;
+		Style::ZIndex z_index_property = element_meta->computed_values.z_index;
 
-		if (z_index_property.type == NumberAuto::Auto)
+		if (z_index_property.type == Style::ZIndex::Auto)
 		{
 			if (local_stacking_context &&
 				!local_stacking_context_forced)
@@ -2137,23 +2137,23 @@ void Element::UpdateOffset()
 			Vector2f containing_block = parent_box.GetSize(Box::PADDING);
 
 			// If the element is anchored left, then the position is offset by that resolved value.
-			if (computed.left.type != LengthPercentageAuto::Auto)
+			if (computed.left.type != Left::Auto)
 				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (::Rocket::Core::ResolveProperty(computed.left, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
 
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			else if (computed.right.type != LengthPercentageAuto::Auto)
+			else if (computed.right.type != Right::Auto)
 				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (::Rocket::Core::ResolveProperty(computed.right, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
 
 			// If the element is anchored top, then the position is offset by that resolved value.
-			if (computed.top.type != LengthPercentageAuto::Auto)
+			if (computed.top.type != Top::Auto)
 				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (::Rocket::Core::ResolveProperty(computed.top, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
 
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			else if (computed.bottom.type != LengthPercentageAuto::Auto)
+			else if (computed.bottom.type != Bottom::Auto)
 				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
 		}
 	}
@@ -2164,16 +2164,16 @@ void Element::UpdateOffset()
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize();
 
-			if (computed.left.type != LengthPercentageAuto::Auto)
+			if (computed.left.type != Left::Auto)
 				relative_offset_position.x = ::Rocket::Core::ResolveProperty(computed.left, containing_block.x);
-			else if (computed.right.type != LengthPercentageAuto::Auto)
+			else if (computed.right.type != Right::Auto)
 				relative_offset_position.x = -1 * ::Rocket::Core::ResolveProperty(computed.right, containing_block.x);
 			else
 				relative_offset_position.x = 0;
 
-			if (computed.top.type != LengthPercentageAuto::Auto)
+			if (computed.top.type != Top::Auto)
 				relative_offset_position.y = ::Rocket::Core::ResolveProperty(computed.top, containing_block.y);
-			else if (computed.bottom.type != LengthPercentageAuto::Auto)
+			else if (computed.bottom.type != Bottom::Auto)
 				relative_offset_position.y = -1 * ::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y);
 			else
 				relative_offset_position.y = 0;
@@ -2570,12 +2570,12 @@ void Element::UpdateTransformState()
 				perspective_value.distance = computed.perspective;
 
 				// Compute the perspective origin, if necessary
-				if (computed.perspective_origin_x.type == LengthPercentage::Percentage)
+				if (computed.perspective_origin_x.type == Style::PerspectiveOrigin::Percentage)
 					perspective_value.vanish.x = pos.x + computed.perspective_origin_x.value * 0.01f * size.x;
 				else
 					perspective_value.vanish.x = pos.x + computed.perspective_origin_x.value;
 
-				if (computed.perspective_origin_y.type == LengthPercentage::Percentage)
+				if (computed.perspective_origin_y.type == Style::PerspectiveOrigin::Percentage)
 					perspective_value.vanish.y = pos.y + computed.perspective_origin_y.value * 0.01f * size.y;
 				else
 					perspective_value.vanish.y = pos.y + computed.perspective_origin_y.value;
@@ -2626,12 +2626,12 @@ void Element::UpdateTransformState()
 				}
 
 				// Compute the transform origin
-				if (computed.transform_origin_x.type == LengthPercentage::Percentage)
+				if (computed.transform_origin_x.type == Style::TransformOrigin::Percentage)
 					transform_origin.x = pos.x + computed.transform_origin_x.value * size.x * 0.01f;
 				else
 					transform_origin.x = pos.x + computed.transform_origin_x.value;
 
-				if (computed.transform_origin_y.type == LengthPercentage::Percentage)
+				if (computed.transform_origin_y.type == Style::TransformOrigin::Percentage)
 					transform_origin.y = pos.y + computed.transform_origin_y.value * size.y * 0.01f;
 				else
 					transform_origin.y = pos.y + computed.transform_origin_y.value;

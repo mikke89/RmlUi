@@ -117,13 +117,13 @@ void ElementHandle::ProcessEvent(Event& event)
 				const auto& computed = GetComputedValues();
 
 				// Check if we have auto-margins; if so, they have to be set to the current margins.
-				if (computed.margin_top.type == LengthPercentageAuto::Auto)
+				if (computed.margin_top.type == Margin::Auto)
 					size_target->SetProperty(MARGIN_TOP, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
-				if (computed.margin_right.type == LengthPercentageAuto::Auto)
+				if (computed.margin_right.type == Margin::Auto)
 					size_target->SetProperty(MARGIN_RIGHT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
-				if (computed.margin_bottom.type == LengthPercentageAuto::Auto)
+				if (computed.margin_bottom.type == Margin::Auto)
 					size_target->SetProperty(MARGIN_BOTTOM, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
-				if (computed.margin_left.type == LengthPercentageAuto::Auto)
+				if (computed.margin_left.type == Margin::Auto)
 					size_target->SetProperty(MARGIN_LEFT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
 
 				int new_x = Math::RealToInteger(size_original_size.x + x);
