@@ -241,7 +241,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		case VerticalAlign::Length:
 		default:
 		{
-			SetVerticalPosition(-1.f * vertical_align_property.Length);
+			SetVerticalPosition(-1.f * vertical_align_property.value);
 		}
 		break;
 	}
