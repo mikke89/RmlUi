@@ -43,9 +43,9 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	keyboard_showed = false;
 	
 	parent = _parent;
-	parent->SetProperty("white-space", "pre");
-	parent->SetProperty("overflow", "hidden");
-	parent->SetProperty("drag", "drag");
+	parent->SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Pre));
+	parent->SetProperty("overflow", Core::Property(Core::Style::Overflow::Hidden));
+	parent->SetProperty("drag", Core::Property(Core::Style::Drag::Drag));
 	parent->SetClientArea(Rocket::Core::Box::CONTENT);
 
 	parent->AddEventListener("keydown", this, true);

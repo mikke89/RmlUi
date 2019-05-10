@@ -39,8 +39,8 @@ ElementFormControlTextArea::ElementFormControlTextArea(const Rocket::Core::Strin
 {
 	widget = new WidgetTextInputMultiLine(this);
 
-	SetProperty("overflow", "auto");
-	SetProperty("white-space", "pre-wrap");
+	SetProperty("overflow", Core::Property(Core::Style::Overflow::Auto));
+	SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Prewrap));
 }
 
 ElementFormControlTextArea::~ElementFormControlTextArea()
@@ -151,9 +151,9 @@ void ElementFormControlTextArea::OnAttributeChange(const Core::AttributeNameList
 	if (changed_attributes.find("wrap") != changed_attributes.end())
 	{
 		if (GetWordWrap())
-			SetProperty("white-space", "pre-wrap");
+			SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Prewrap));
 		else
-			SetProperty("white-space", "pre");
+			SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Pre));
 	}
 
 	if (changed_attributes.find("rows") != changed_attributes.end() ||

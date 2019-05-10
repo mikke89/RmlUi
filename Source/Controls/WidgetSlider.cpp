@@ -90,7 +90,7 @@ WidgetSlider::~WidgetSlider()
 // Initialises the slider to a given orientation.
 bool WidgetSlider::Initialise()
 {
-	Core::Property drag_property = Core::Property((int)Core::Style::Drag::Drag, Core::Property::KEYWORD);
+	Core::Property drag_property = Core::Property(Core::Style::Drag::Drag);
 	parent->SetProperty("drag", drag_property);
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.

@@ -52,11 +52,11 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	value_element = Core::Factory::InstanceElement(element, "*", "selectvalue", Rocket::Core::XMLAttributes());
 	selection_element = Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rocket::Core::XMLAttributes());
 
-	value_element->SetProperty("overflow", "hidden");
+	value_element->SetProperty("overflow", Core::Property(Core::Style::Overflow::Hidden));
 
-	selection_element->SetProperty("visibility", "hidden");
+	selection_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
 	selection_element->SetProperty("z-index", Core::Property(1.0f, Core::Property::NUMBER));
-	selection_element->SetProperty("clip", "none");
+	selection_element->SetProperty("clip", Core::Property(Core::Style::Clip::None));
 
 	parent_element->AddEventListener("click", this, true);
 	parent_element->AddEventListener("blur", this);
@@ -222,8 +222,8 @@ int WidgetDropDown::AddOption(const Rocket::Core::String& rml, const Rocket::Cor
 	Core::Element* element = Core::Factory::InstanceElement(selection_element, "*", "option", Rocket::Core::XMLAttributes());
 
 	// Force to block display and inject the RML. Register a click handler so we can be notified of selection.
-	element->SetProperty("display", "block");
-	element->SetProperty("clip", "auto");
+	element->SetProperty("display", Core::Property(Core::Style::Display::Block));
+	element->SetProperty("clip", Core::Property(Core::Style::Clip::Auto));
 	element->SetInnerRML(rml);
 	element->AddEventListener("click", this);
 
@@ -379,13 +379,13 @@ void WidgetDropDown::ShowSelectBox(bool show)
 {
 	if (show)
 	{
-		selection_element->SetProperty("visibility", "visible");
+		selection_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Visible));
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
 	}
 	else
 	{
-		selection_element->SetProperty("visibility", "hidden");
+		selection_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
 	}
