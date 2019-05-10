@@ -113,17 +113,17 @@ void ElementHandle::ProcessEvent(Event& event)
 
 			if (size_target)
 			{
-				const Property *margin_top, *margin_bottom, *margin_left, *margin_right;
-				size_target->GetMarginProperties(&margin_top, &margin_bottom, &margin_left, &margin_right);
+				using namespace Style;
+				const auto& computed = GetComputedValues();
 
 				// Check if we have auto-margins; if so, they have to be set to the current margins.
-				if (margin_top->unit == Property::KEYWORD)
+				if (computed.margin_top.type == LengthPercentageAuto::Auto)
 					size_target->SetProperty(MARGIN_TOP, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
-				if (margin_right->unit == Property::KEYWORD)
+				if (computed.margin_right.type == LengthPercentageAuto::Auto)
 					size_target->SetProperty(MARGIN_RIGHT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
-				if (margin_bottom->unit == Property::KEYWORD)
+				if (computed.margin_bottom.type == LengthPercentageAuto::Auto)
 					size_target->SetProperty(MARGIN_BOTTOM, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
-				if (margin_left->unit == Property::KEYWORD)
+				if (computed.margin_left.type == LengthPercentageAuto::Auto)
 					size_target->SetProperty(MARGIN_LEFT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
 
 				int new_x = Math::RealToInteger(size_original_size.x + x);

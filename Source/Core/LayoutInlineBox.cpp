@@ -60,7 +60,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 		FontFaceHandle* font_face = element->GetFontFaceHandle();
 		if (font_face != NULL)
 		{
-			height = (float) ElementUtilities::GetLineHeight(element);
+			height = element->GetLineHeight();
 			baseline = (height - font_face->GetLineHeight()) * 0.5f + font_face->GetBaseline();
 		}
 		else
@@ -70,11 +70,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 		}
 	}
 
-	const Property* property = element->GetVerticalAlignProperty();
-	if (property->unit == Property::KEYWORD)
-		vertical_align_property = property->value.Get< int >();
-	else
-		vertical_align_property = -1;
+	vertical_align_property = element->GetComputedValues().vertical_align;
 
 	chained = false;
 	chain = NULL;
@@ -169,18 +165,19 @@ LayoutInlineBox* LayoutInlineBox::FlowContent(bool ROCKET_UNUSED_PARAMETER(first
 // Computes and sets the vertical position of this element, relative to its parent box.
 void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 {
+	using namespace Style;
 	// We're vertically-aligned with one of the standard types.
-	switch (vertical_align_property)
+	switch (vertical_align_property.type)
 	{
 		// Aligned with our parent box's baseline, our relative vertical position is set to 0.
-		case VERTICAL_ALIGN_BASELINE:
+		case VerticalAlign::Baseline:
 		{
 			SetVerticalPosition(0);
 		}
 		break;
 
 		// The middle of this box is aligned with the baseline of its parent's plus half an ex.
-		case VERTICAL_ALIGN_MIDDLE:
+		case VerticalAlign::Middle:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
 			int x_height = 0;
@@ -192,7 +189,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		break;
 
 		// This box's baseline is offset from its parent's so it is appropriate for rendering subscript.
-		case VERTICAL_ALIGN_SUB:
+		case VerticalAlign::Sub:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
 			if (parent_font == NULL)
@@ -203,7 +200,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		break;
 
 		// This box's baseline is offset from its parent's so it is appropriate for rendering superscript.
-		case VERTICAL_ALIGN_SUPER:
+		case VerticalAlign::Super:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
 			if (parent_font == NULL)
@@ -214,7 +211,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		break;
 
 		// The top of this box is aligned to the top of its parent's font.
-		case VERTICAL_ALIGN_TEXT_TOP:
+		case VerticalAlign::TextTop:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
 			if (parent_font == NULL)
@@ -225,7 +222,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		break;
 
 		// The bottom of this box is aligned to the bottom of its parent's font (not the baseline).
-		case VERTICAL_ALIGN_TEXT_BOTTOM:
+		case VerticalAlign::TextBottom:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
 			if (parent_font == NULL)
@@ -236,14 +233,15 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		break;
 
 		// This box is aligned with the line box, not an inline box, so we can't position it yet.
-		case VERTICAL_ALIGN_TOP:
-		case VERTICAL_ALIGN_BOTTOM:
+		case VerticalAlign::Top:
+		case VerticalAlign::Bottom:
 			break;
 
 		// The baseline of this box is offset by a fixed amount from its parent's baseline.
+		case VerticalAlign::Length:
 		default:
 		{
-			SetVerticalPosition(-1 * element->ResolveProperty(element->GetVerticalAlignProperty(), GetParentLineHeight()));
+			SetVerticalPosition(-1.f * vertical_align_property.Length);
 		}
 		break;
 	}
@@ -265,8 +263,8 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 	{
 		// Don't include any of our children that are aligned relative to the line box; the line box treats them
 		// separately.
-		if (children[i]->GetVerticalAlignProperty() != VERTICAL_ALIGN_TOP &&
-			children[i]->GetVerticalAlignProperty() != VERTICAL_ALIGN_BOTTOM)
+		if (children[i]->GetVerticalAlignProperty().type != Style::VerticalAlign::Top &&
+			children[i]->GetVerticalAlignProperty().type != Style::VerticalAlign::Bottom)
 		{
 			float child_ascender, child_descender;
 			children[i]->CalculateBaseline(child_ascender, child_descender);
@@ -284,8 +282,8 @@ void LayoutInlineBox::OffsetBaseline(float ascender)
 	{
 		// Don't offset any of our children that are aligned relative to the line box; the line box will take care of
 		// them separately.
-		if (children[i]->GetVerticalAlignProperty() != VERTICAL_ALIGN_TOP &&
-			children[i]->GetVerticalAlignProperty() != VERTICAL_ALIGN_BOTTOM)
+		if (children[i]->GetVerticalAlignProperty().type != Style::VerticalAlign::Top &&
+			children[i]->GetVerticalAlignProperty().type != Style::VerticalAlign::Bottom)
 			children[i]->OffsetBaseline(ascender + position.y);
 	}
 
@@ -333,7 +331,7 @@ void LayoutInlineBox::SizeElement(bool split)
 	// Resize the box for an unsized inline element.
 	if (box.GetSize() == Vector2f(-1, -1))
 	{
-		box.SetContent(Vector2f(width, (float) ElementUtilities::GetLineHeight(element)));
+		box.SetContent(Vector2f(width, element->GetLineHeight()));
 		if (parent != NULL)
 			parent->width += width;
 	}
@@ -363,7 +361,7 @@ void LayoutInlineBox::SizeElement(bool split)
 }
 
 // Returns the vertical align property of the box's element.
-int LayoutInlineBox::GetVerticalAlignProperty() const
+Style::VerticalAlign LayoutInlineBox::GetVerticalAlignProperty() const
 {
 	return vertical_align_property;
 }
@@ -415,15 +413,6 @@ FontFaceHandle* LayoutInlineBox::GetParentFont() const
 		return line->GetBlockBox()->GetParent()->GetElement()->GetFontFaceHandle();
 	else
 		return parent->GetElement()->GetFontFaceHandle();
-}
-
-// Returns our parent box's line height.
-float LayoutInlineBox::GetParentLineHeight() const
-{
-	if (parent == NULL)
-		return (float) ElementUtilities::GetLineHeight(line->GetBlockBox()->GetParent()->GetElement());
-	else
-		return (float) ElementUtilities::GetLineHeight(parent->GetElement());
 }
 
 }

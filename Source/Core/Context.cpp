@@ -1072,7 +1072,7 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 	}
 
 	// Ignore elements whose pointer events are disabled
-	if (element->GetPointerEvents() == POINTER_EVENTS_NONE)
+	if (element->GetComputedValues().pointer_events == Style::PointerEvents::None)
 		return NULL;
 
 	Vector2f projected_point = element->Project(point);

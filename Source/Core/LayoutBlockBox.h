@@ -222,8 +222,8 @@ private:
 	// The hierarchy will be resumed in an inline-context box once the intervening block box is completed.
 	LayoutInlineBox* interrupted_chain;
 	// Used by block contexts only; stores the value of the overflow property for the element.
-	int overflow_x_property;
-	int overflow_y_property;
+	Style::Overflow overflow_x_property;
+	Style::Overflow overflow_y_property;
 	// Used by block contexts only; if true, we've enabled our vertical scrollbar.
 	bool vertical_overflow;
 

@@ -34,10 +34,6 @@
 namespace Rocket {
 namespace Core {
 
-namespace Style { struct ComputedValues; }
-
-class ElementStyleCache;
-
 /**
 	Manages an element's style and property information.
 	@author Lloyd Weehuizen
@@ -165,57 +161,6 @@ public:
 	// Dirties dp properties.
 	void DirtyDpProperties();
 
-	/// Returns 'top', 'bottom', 'left' and 'right' properties from element's style or local cache.
-	void GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right );	
-	/// Returns 'border-width' properties from element's style or local cache.
-	void GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **border_right_width);
-	/// Returns 'margin' properties from element's style or local cache.
-	void GetMarginProperties(const Property **margin_top, const Property **margin_bottom, const Property **margin_left, const Property **margin_right);
-	/// Returns 'padding' properties from element's style or local cache.
-	void GetPaddingProperties(const Property **padding_top, const Property **padding_bottom, const Property **padding_left, const Property **padding_right);
-	/// Returns 'width' and 'height' properties from element's style or local cache.
-	void GetDimensionProperties(const Property **width, const Property **height);
-	/// Returns local 'width' and 'height' properties from element's style or local cache,
-	/// ignoring default values.
-	void GetLocalDimensionProperties(const Property **width, const Property **height);
-	/// Returns 'overflow' properties' values from element's style or local cache.
-	void GetOverflow(int *overflow_x, int *overflow_y);
-	/// Returns 'position' property value from element's style or local cache.
-	int GetPosition();
-	/// Returns 'float' property value from element's style or local cache.
-	int GetFloat();
-	/// Returns 'display' property value from element's style or local cache.
-	int GetDisplay();
-	/// Returns 'white-space' property value from element's style or local cache.
-	int GetWhitespace();
-	/// Returns 'pointer-events' property value from element's style or local cache.
-	int GetPointerEvents();
-
-	/// Returns 'line-height' property value from element's style or local cache.
-	const Property *GetLineHeightProperty();
-	/// Returns 'text-align' property value from element's style or local cache.
-	int GetTextAlign();
-	/// Returns 'text-transform' property value from element's style or local cache.
-	int GetTextTransform();
-	/// Returns 'vertical-align' property value from element's style or local cache.
-	const Property *GetVerticalAlignProperty();
-
-	/// Returns 'perspective' property value from element's style or local cache.
-	const Property *GetPerspective();
-	/// Returns 'perspective-origin-x' property value from element's style or local cache.
-	const Property *GetPerspectiveOriginX();
-	/// Returns 'perspective-origin-y' property value from element's style or local cache.
-	const Property *GetPerspectiveOriginY();
-	/// Returns 'transform' property value from element's style or local cache.
-	const Property *GetTransform();
-	/// Returns 'transform-origin-x' property value from element's style or local cache.
-	const Property *GetTransformOriginX();
-	/// Returns 'transform-origin-y' property value from element's style or local cache.
-	const Property *GetTransformOriginY();
-	/// Returns 'transform-origin-z' property value from element's style or local cache.
-	const Property *GetTransformOriginZ();
-
-
 	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_defaulted, float dp_ratio, float pixels_per_inch);
 
 private:
@@ -247,8 +192,6 @@ private:
 	ElementDefinition* definition;
 	// Set if a new element definition should be fetched from the style.
 	bool definition_dirty;
-	// cached non-inherited properties
-	ElementStyleCache *cache;
 };
 
 }

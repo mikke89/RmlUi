@@ -120,7 +120,7 @@ bool ElementFormControlTextArea::GetWordWrap()
 bool ElementFormControlTextArea::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
 {
 	dimensions.x = (float) (GetNumColumns() * Core::ElementUtilities::GetStringWidth(this, L"m"));
-	dimensions.y = (float) (GetNumRows() * Core::ElementUtilities::GetLineHeight(this));
+	dimensions.y = (float)GetNumRows() * GetLineHeight();
 
 	return true;
 }

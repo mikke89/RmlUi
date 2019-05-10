@@ -110,7 +110,7 @@ void InputTypeText::ProcessEvent(Core::Event& ROCKET_UNUSED_PARAMETER(event))
 bool InputTypeText::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
 {
 	dimensions.x = (float) (size * Core::ElementUtilities::GetStringWidth(element, L"m"));
-	dimensions.y = (float) Core::ElementUtilities::GetLineHeight(element) + 2;
+	dimensions.y = element->GetLineHeight() + 2.0f;
 
 	return true;
 }

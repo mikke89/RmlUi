@@ -28,10 +28,11 @@
 #ifndef ROCKETCORERCSS_H
 #define ROCKETCORERCSS_H
 
+#include "Types.h"
+#include "Animation.h"
+
 namespace Rocket {
 namespace Core {
-
-#include "Types.h"
 
 struct LengthPercentageAuto {
 	enum Type { Length, Percentage, Auto } type = Length;

@@ -159,7 +159,7 @@ void LayoutInlineBoxText::BuildWordBox()
 
 	Vector2f content_area;
 	line_segmented = !text_element->GenerateToken(content_area.x, line_begin);
-	content_area.y = (float) ElementUtilities::GetLineHeight(element);
+	content_area.y = element->GetLineHeight();
 	box.SetContent(content_area);
 }
 

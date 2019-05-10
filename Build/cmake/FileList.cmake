@@ -25,7 +25,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementImage.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyleCache.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementTextDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.h
@@ -238,7 +237,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementReference.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyleCache.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementText.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementTextDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementUtilities.cpp

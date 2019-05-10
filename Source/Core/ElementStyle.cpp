@@ -27,7 +27,6 @@
 
 #include "precompiled.h"
 #include "ElementStyle.h"
-#include "ElementStyleCache.h"
 #include <algorithm>
 #include "../../Include/Rocket/Core/ElementDocument.h"
 #include "../../Include/Rocket/Core/ElementUtilities.h"
@@ -57,7 +56,6 @@ ElementStyle::ElementStyle(Element* _element)
 	em_properties = NULL;
 	definition = NULL;
 	element = _element;
-	cache = new ElementStyleCache(this);
 
 	definition_dirty = true;
 }
@@ -71,8 +69,6 @@ ElementStyle::~ElementStyle()
 
 	if (definition != NULL)
 		definition->RemoveReference();
-
-	delete cache;
 }
 
 
@@ -433,9 +429,9 @@ float ElementStyle::ResolveLength(const Property * property)
 	case Property::PX:
 		return property->value.Get< float >();
 	case Property::EM:
-		return property->value.Get< float >() * ElementUtilities::GetFontSize(element);
+		return property->value.Get< float >()* element->GetComputedValues().font_size;
 	case Property::REM:
-		return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
+		return property->value.Get< float >()* element->GetOwnerDocument()->GetComputedValues().font_size;
 	case Property::DP:
 		return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 	}
@@ -518,13 +514,13 @@ float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTa
 		base_value = element->GetContainingBlock().y;
 		break;
 	case RelativeTarget::FontSize:
-		base_value = (float)ElementUtilities::GetFontSize(element);
+		base_value = element->GetComputedValues().font_size;
 		break;
 	case RelativeTarget::ParentFontSize:
-		base_value = (float)ElementUtilities::GetFontSize(element->GetParentNode());
+		base_value = element->GetParentNode()->GetComputedValues().font_size;
 		break;
 	case RelativeTarget::LineHeight:
-		base_value = (float)ElementUtilities::GetLineHeight(element);
+		base_value = element->GetLineHeight();
 		break;
 	default:
 		break;
@@ -566,9 +562,9 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 			return base_value * property->value.Get< float >() * 0.01f;
 
 		case Property::EM:
-			return property->value.Get< float >() * (float)ElementUtilities::GetFontSize(element);
+			return property->value.Get< float >() * element->GetComputedValues().font_size;
 		case Property::REM:
-			return property->value.Get< float >() * (float)ElementUtilities::GetFontSize(element->GetOwnerDocument());
+			return property->value.Get< float >() * element->GetOwnerDocument()->GetComputedValues().font_size;
 		case Property::DP:
 			return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
 
@@ -648,7 +644,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 			case Property::REM:
 				// If an rem-relative font size is specified, it is expressed relative to the document's
 				// font height.
-				return property->value.Get< float >() * ElementUtilities::GetFontSize(element->GetOwnerDocument());
+				return property->value.Get< float >() * element->GetOwnerDocument()->GetComputedValues().font_size;
 		}
 	}
 
@@ -869,10 +865,6 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clea
 		}
 	}
 
-	// Clear all cached properties.
-	cache->Clear();
-	cache->ClearInherited();
-
 	// clear the list of EM-properties, we will refill it in DirtyEmProperties
 	if (clear_em_properties && em_properties != NULL)
 	{
@@ -912,138 +904,12 @@ void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 		em_properties = NULL;
 	}
 
-	// Clear cached inherited properties.
-	cache->ClearInherited();
-
 	// Pass the list of those properties that this element doesn't override onto our children.
 	for (int i = 0; i < element->GetNumChildren(true); i++)
 		element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
 
 	element->DirtyProperties(properties);
 }
-
-void ElementStyle::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )
-{
-	cache->GetOffsetProperties(top, bottom, left, right);
-}
-
-void ElementStyle::GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **bottom_right_width)
-{
-	cache->GetBorderWidthProperties(border_top_width, border_bottom_width, border_left_width, bottom_right_width);
-}
-
-void ElementStyle::GetMarginProperties(const Property **margin_top, const Property **margin_bottom, const Property **margin_left, const Property **margin_right)
-{
-	cache->GetMarginProperties(margin_top, margin_bottom, margin_left, margin_right);
-}
-
-void ElementStyle::GetPaddingProperties(const Property **padding_top, const Property **padding_bottom, const Property **padding_left, const Property **padding_right)
-{
-	cache->GetPaddingProperties(padding_top, padding_bottom, padding_left, padding_right);
-}
-
-void ElementStyle::GetDimensionProperties(const Property **width, const Property **height)
-{
-	cache->GetDimensionProperties(width, height);
-}
-
-void ElementStyle::GetLocalDimensionProperties(const Property **width, const Property **height)
-{
-	cache->GetLocalDimensionProperties(width, height);
-}
-
-void ElementStyle::GetOverflow(int *overflow_x, int *overflow_y)
-{
-	cache->GetOverflow(overflow_x, overflow_y);
-}
-
-int ElementStyle::GetPosition()
-{
-	return cache->GetPosition();
-}
-
-int ElementStyle::GetFloat()
-{
-	return cache->GetFloat();
-}
-
-int ElementStyle::GetDisplay()
-{
-	return cache->GetDisplay();
-}
-
-int ElementStyle::GetWhitespace()
-{
-	return cache->GetWhitespace();
-}
-
-int ElementStyle::GetPointerEvents()
-{
-	return cache->GetPointerEvents();
-}
-
-const Property *ElementStyle::GetLineHeightProperty()
-{
-	return cache->GetLineHeightProperty();
-}
-
-int ElementStyle::GetTextAlign()
-{
-	return cache->GetTextAlign();
-}
-
-int ElementStyle::GetTextTransform()
-{
-	return cache->GetTextTransform();
-}
-
-const Property *ElementStyle::GetVerticalAlignProperty()
-{
-	return cache->GetVerticalAlignProperty();
-}
-
-// Returns 'perspective' property value from element's style or local cache.
-const Property *ElementStyle::GetPerspective()
-{
-	return element->GetProperty(PERSPECTIVE);
-}
-
-// Returns 'perspective-origin-x' property value from element's style or local cache.
-const Property *ElementStyle::GetPerspectiveOriginX()
-{
-	return element->GetProperty(PERSPECTIVE_ORIGIN_X);
-}
-
-// Returns 'perspective-origin-y' property value from element's style or local cache.
-const Property *ElementStyle::GetPerspectiveOriginY()
-{
-	return element->GetProperty(PERSPECTIVE_ORIGIN_Y);
-}
-
-// Returns 'transform' property value from element's style or local cache.
-const Property *ElementStyle::GetTransform()
-{
-	return element->GetProperty(TRANSFORM);
-}
-
-// Returns 'transform-origin-x' property value from element's style or local cache.
-const Property *ElementStyle::GetTransformOriginX()
-{
-	return element->GetProperty(TRANSFORM_ORIGIN_X);
-}
-
-// Returns 'transform-origin-y' property value from element's style or local cache.
-const Property *ElementStyle::GetTransformOriginY()
-{
-	return element->GetProperty(TRANSFORM_ORIGIN_Y);
-}
-
-// Returns 'transform-origin-z' property value from element's style or local cache.
-const Property *ElementStyle::GetTransformOriginZ()
-{
-	return element->GetProperty(TRANSFORM_ORIGIN_Z);
-}
-
 
 
 static float ComputeLength(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)

@@ -382,7 +382,7 @@ String Element::GetAddress(bool include_pseudo_classes) const
 // Sets the position of this element, as a two-dimensional offset from another element.
 void Element::SetOffset(const Vector2f& offset, Element* _offset_parent, bool _offset_fixed)
 {
-	_offset_fixed |= GetPosition() == POSITION_FIXED;
+	_offset_fixed |= GetPosition() == Style::Position::Fixed;
 
 	// If our offset has definitely changed, or any of our parenting has, then these are set and
 	// updated based on our left / right / top / bottom properties.
@@ -632,50 +632,21 @@ float Element::ResolveProperty(const Property *property, float base_value)
 	return style->ResolveProperty(property, base_value);
 }
 
-void Element::GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right )
-{
-	style->GetOffsetProperties(top, bottom, left, right);
-}
-
-void Element::GetBorderWidthProperties(const Property **border_top, const Property **border_bottom, const Property **border_left, const Property **bottom_right)
-{
-	style->GetBorderWidthProperties(border_top, border_bottom, border_left, bottom_right);
-}
-
-void Element::GetMarginProperties(const Property **margin_top, const Property **margin_bottom, const Property **margin_left, const Property **margin_right)
-{
-	style->GetMarginProperties(margin_top, margin_bottom, margin_left, margin_right);
-}
-
-void Element::GetPaddingProperties(const Property **padding_top, const Property **padding_bottom, const Property **padding_left, const Property **padding_right)
-{
-	style->GetPaddingProperties(padding_top, padding_bottom, padding_left, padding_right);
-}
-
-void Element::GetDimensionProperties(const Property **width, const Property **height)
-{
-	style->GetDimensionProperties(width, height);
-}
-
-void Element::GetLocalDimensionProperties(const Property **width, const Property **height)
-{
-	style->GetLocalDimensionProperties(width, height);
-}
-
 Vector2f Element::GetContainingBlock()
 {
 	Vector2f containing_block(0, 0);
 
 	if (offset_parent != NULL)
 	{
-		int position_property = GetPosition();
+		using namespace Style;
+		Position position_property = GetPosition();
 		const Box& parent_box = offset_parent->GetBox();
 
-		if (position_property == POSITION_STATIC || position_property == POSITION_RELATIVE)
+		if (position_property == Position::Static || position_property == Position::Relative)
 		{
 			containing_block = parent_box.GetSize();
 		}
-		else if(position_property == POSITION_ABSOLUTE || position_property == POSITION_FIXED)
+		else if(position_property == Position::Absolute || position_property == Position::Fixed)
 		{
 			containing_block = parent_box.GetSize(Box::PADDING);
 		}
@@ -684,96 +655,24 @@ Vector2f Element::GetContainingBlock()
 	return containing_block;
 }
 
-void Element::GetOverflow(int *overflow_x, int *overflow_y)
+Style::Position Element::GetPosition()
 {
-	style->GetOverflow(overflow_x, overflow_y);
+	return element_meta->computed_values.position;
 }
 
-int Element::GetPosition()
+Style::Float Element::GetFloat()
 {
-	return style->GetPosition();
+	return element_meta->computed_values.float_;
 }
 
-int Element::GetFloat()
+Style::Display Element::GetDisplay()
 {
-	return style->GetFloat();
+	return element_meta->computed_values.display;
 }
 
-int Element::GetDisplay()
+float Element::GetLineHeight()
 {
-	return style->GetDisplay();
-}
-
-int Element::GetWhitespace()
-{
-	return style->GetWhitespace();
-}
-
-int Element::GetPointerEvents()
-{
-	return style->GetPointerEvents();
-}
-
-const Property *Element::GetLineHeightProperty()
-{
-	return style->GetLineHeightProperty();
-}
-
-int Element::GetTextAlign()
-{
-	return style->GetTextAlign();
-}
-
-int Element::GetTextTransform()
-{
-	return style->GetTextTransform();
-}
-
-const Property *Element::GetVerticalAlignProperty()
-{
-	return style->GetVerticalAlignProperty();
-}
-
-// Returns 'perspective' property value from element's style or local cache.
-const Property *Element::GetPerspective()
-{
-	return style->GetPerspective();
-}
-
-// Returns 'perspective-origin-x' property value from element's style or local cache.
-const Property *Element::GetPerspectiveOriginX()
-{
-	return style->GetPerspectiveOriginX();
-}
-
-// Returns 'perspective-origin-y' property value from element's style or local cache.
-const Property *Element::GetPerspectiveOriginY()
-{
-	return style->GetPerspectiveOriginY();
-}
-
-// Returns 'transform' property value from element's style or local cache.
-const Property *Element::GetTransform()
-{
-	return style->GetTransform();
-}
-
-// Returns 'transform-origin-x' property value from element's style or local cache.
-const Property *Element::GetTransformOriginX()
-{
-	return style->GetTransformOriginX();
-}
-
-// Returns 'transform-origin-y' property value from element's style or local cache.
-const Property *Element::GetTransformOriginY()
-{
-	return style->GetTransformOriginY();
-}
-
-// Returns 'transform-origin-z' property value from element's style or local cache.
-const Property *Element::GetTransformOriginZ()
-{
-	return style->GetTransformOriginZ();
+	return element_meta->computed_values.line_height.value;
 }
 
 // Returns this element's TransformState
@@ -2109,7 +2008,7 @@ void Element::ProcessEvent(Event& event)
 				if ((wheel_delta < 0 && GetScrollTop() > 0) ||
 					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
 				{
-					SetScrollTop(GetScrollTop() + wheel_delta * (GetFontFaceHandle() ? ElementUtilities::GetLineHeight(this) : 0));
+					SetScrollTop(GetScrollTop() + wheel_delta * GetLineHeight());
 				}
 			}
 		}
@@ -2225,60 +2124,57 @@ void Element::DirtyOffset()
 
 void Element::UpdateOffset()
 {
-	int position_property = GetPosition();
-	if (position_property == POSITION_ABSOLUTE ||
-		position_property == POSITION_FIXED)
+	using namespace Style;
+	const auto& computed = element_meta->computed_values;
+	Position position_property = computed.position;
+
+	if (position_property == Position::Absolute ||
+		position_property == Position::Fixed)
 	{
 		if (offset_parent != NULL)
 		{
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize(Box::PADDING);
 
-			const Property *left = GetLocalProperty(LEFT);
-			const Property *right = GetLocalProperty(RIGHT);
 			// If the element is anchored left, then the position is offset by that resolved value.
-			if (left != NULL && left->unit != Property::KEYWORD)
-				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (ResolveProperty(LEFT, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
+			if (computed.left.type != LengthPercentageAuto::Auto)
+				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (::Rocket::Core::ResolveProperty(computed.left, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
+
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			else if (right != NULL && right->unit != Property::KEYWORD)
-				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (ResolveProperty(RIGHT, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
+			else if (computed.right.type != LengthPercentageAuto::Auto)
+				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (::Rocket::Core::ResolveProperty(computed.right, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
 
-			const Property *top = GetLocalProperty(TOP);
-			const Property *bottom = GetLocalProperty(BOTTOM);
 			// If the element is anchored top, then the position is offset by that resolved value.
-			if (top != NULL && top->unit != Property::KEYWORD)
-				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (ResolveProperty(TOP, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+			if (computed.top.type != LengthPercentageAuto::Auto)
+				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (::Rocket::Core::ResolveProperty(computed.top, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (ResolveProperty(BOTTOM, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
+			else if (computed.bottom.type != LengthPercentageAuto::Auto)
+				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
 		}
 	}
-	else if (position_property == POSITION_RELATIVE)
+	else if (position_property == Position::Relative)
 	{
 		if (offset_parent != NULL)
 		{
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize();
 
-			const Property *left = GetLocalProperty(LEFT);
-			const Property *right = GetLocalProperty(RIGHT);
-			if (left != NULL && left->unit != Property::KEYWORD)
-				relative_offset_position.x = ResolveProperty(LEFT, containing_block.x);
-			else if (right != NULL && right->unit != Property::KEYWORD)
-				relative_offset_position.x = -1 * ResolveProperty(RIGHT, containing_block.x);
+			if (computed.left.type != LengthPercentageAuto::Auto)
+				relative_offset_position.x = ::Rocket::Core::ResolveProperty(computed.left, containing_block.x);
+			else if (computed.right.type != LengthPercentageAuto::Auto)
+				relative_offset_position.x = -1 * ::Rocket::Core::ResolveProperty(computed.right, containing_block.x);
 			else
 				relative_offset_position.x = 0;
 
-			const Property *top = GetLocalProperty(TOP);
-			const Property *bottom = GetLocalProperty(BOTTOM);
-			if (top != NULL && top->unit != Property::KEYWORD)
-				relative_offset_position.y = ResolveProperty(TOP, containing_block.y);
-			else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-				relative_offset_position.y = -1 * ResolveProperty(BOTTOM, containing_block.y);
+			if (computed.top.type != LengthPercentageAuto::Auto)
+				relative_offset_position.y = ::Rocket::Core::ResolveProperty(computed.top, containing_block.y);
+			else if (computed.bottom.type != LengthPercentageAuto::Auto)
+				relative_offset_position.y = -1 * ::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y);
 			else
 				relative_offset_position.y = 0;
 		}
@@ -2315,11 +2211,11 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 		std::pair< Element*, float > ordered_child;
 		ordered_child.first = child;
 
-		if (child->GetPosition() != POSITION_STATIC)
+		if (child->GetPosition() != Style::Position::Static)
 			ordered_child.second = 3;
-		else if (child->GetFloat() != FLOAT_NONE)
+		else if (child->GetFloat() != Style::Float::None)
 			ordered_child.second = 1;
-		else if (child->GetDisplay() == DISPLAY_BLOCK)
+		else if (child->GetDisplay() == Style::Display::Block)
 			ordered_child.second = 0;
 		else
 			ordered_child.second = 2;

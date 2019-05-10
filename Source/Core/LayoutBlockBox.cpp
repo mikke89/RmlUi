@@ -71,7 +71,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	// Determine the offset parent for our children.
 	if (parent != NULL &&
 		parent->offset_parent->GetElement() != NULL &&
-		(element == NULL || element->GetPosition() == POSITION_STATIC))
+		(element == NULL || element->GetPosition() == Style::Position::Static))
 		offset_parent = parent->offset_parent;
 	else
 		offset_parent = this;
@@ -100,17 +100,19 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 
 	if (element != NULL)
 	{
-		wrap_content = element->GetWhitespace() != WHITE_SPACE_NOWRAP;
+		const auto& computed = element->GetComputedValues();
+		wrap_content = computed.white_space != Style::WhiteSpace::Nowrap;
 
 		// Determine if this element should have scrollbars or not, and create them if so.
-		element->GetOverflow(&overflow_x_property, &overflow_y_property);
+		overflow_x_property = computed.overflow_x;
+		overflow_y_property = computed.overflow_y;
 
-		if (overflow_x_property == OVERFLOW_SCROLL)
+		if (overflow_x_property == Style::Overflow::Scroll)
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
 		else
 			element->GetElementScroll()->DisableScrollbar(ElementScroll::HORIZONTAL);
 
-		if (overflow_y_property == OVERFLOW_SCROLL)
+		if (overflow_y_property == Style::Overflow::Scroll)
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSize(Box::PADDING).x);
 		else
 			element->GetElementScroll()->DisableScrollbar(ElementScroll::VERTICAL);
@@ -118,8 +120,8 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	else
 	{
 		wrap_content = true;
-		overflow_x_property = OVERFLOW_VISIBLE;
-		overflow_y_property = OVERFLOW_VISIBLE;
+		overflow_x_property = Style::Overflow::Visible;
+		overflow_y_property = Style::Overflow::Visible;
 	}
 }
 
@@ -223,7 +225,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 			{
 				if (!wrap_content)
 					box.SetContent(Vector2f(content_box.x, box.GetSize().y));
-				else if (overflow_x_property == OVERFLOW_AUTO)
+				else if (overflow_x_property == Style::Overflow::Auto)
 				{
 					element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
 
@@ -265,7 +267,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 	if (context == BLOCK &&
 		element != NULL)
 	{
-		if (element->GetPosition() != POSITION_STATIC)
+		if (element->GetPosition() != Style::Position::Static)
 			CloseAbsoluteElements();
 	}
 
@@ -383,7 +385,7 @@ LayoutInlineBox* LayoutBlockBox::AddInlineElement(Element* element, const Box& b
 // Adds a line-break to this block box.
 void LayoutBlockBox::AddBreak()
 {
-	int line_height = ElementUtilities::GetLineHeight(element);
+	float line_height = element->GetLineHeight();
 
 	// Check for an inline box as our last child; if so, we can simply end its line and bail.
 	if (!block_boxes.empty())
@@ -543,10 +545,9 @@ float LayoutBlockBox::InternalContentWidth() const
 		//  Alternative solution: Add some 'intrinsic_width' property to  every 'LayoutBlockBox' and have that propagate up to the nearest 'inline-block'.
 		if (element)
 		{
-			const Property* width = nullptr;
+			const Property* width = element->GetLocalProperty(WIDTH);
 			const Property* min_width = element->GetLocalProperty("min-width");
 			const Property* max_width = element->GetLocalProperty("max-width");
-			element->GetLocalDimensionProperties(&width, nullptr);
 			if(width)
 			{
 				float w_value = element->ResolveProperty(width, box.GetSize(Box::CONTENT).x);
@@ -670,7 +671,7 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 	// If we're auto-scrolling and our height is fixed, we have to check if this box has exceeded our client height.
 	if (!vertical_overflow &&
 		box_height >= 0 &&
-		overflow_y_property == OVERFLOW_AUTO)
+		overflow_y_property == Style::Overflow::Auto)
 	{
 		if (cursor > box_height - element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL))
 		{

@@ -93,8 +93,8 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 		LayoutInlineBox* inline_box = inline_boxes[i];
 
 		// Check if we've got an element aligned to the line box rather than a baseline.
-		if (inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_TOP ||
-			inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_BOTTOM)
+		if (inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Top ||
+			inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Bottom)
 		{
 			// Get this element to calculate the baseline offsets of its children; it can't calculate its own baseline
 			// because we don't know the height of the line box yet. We don't actually care about its ascender or
@@ -125,10 +125,10 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 
 		// Check again if this element is aligned to the line box. We don't need to worry about offsetting an element
 		// tied to the top of the line box, as its position will always stay at exactly 0.
-		if (inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_TOP ||
-			inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_BOTTOM)
+		if (inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Top||
+			inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Bottom)
 		{
-			if (inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_TOP)
+			if (inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Top)
 				inline_box->OffsetBaseline(inline_box->GetHeight() - inline_box->GetBaseline());
 			else
 				inline_box->OffsetBaseline(dimensions.y - inline_box->GetBaseline());
@@ -140,15 +140,15 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 
 	// Position all the boxes horizontally in the line. We only need to reposition the elements if they're set to
 	// centre or right; the element are already placed left-aligned, and justification occurs at the text level.
-	int text_align_property = parent->GetParent()->GetElement()->GetTextAlign();
-	if (text_align_property == TEXT_ALIGN_CENTER ||
-		text_align_property == TEXT_ALIGN_RIGHT)
+	Style::TextAlign text_align_property = parent->GetParent()->GetElement()->GetComputedValues().text_align;
+	if (text_align_property == Style::TextAlign::Center ||
+		text_align_property == Style::TextAlign::Right)
 	{
 		float element_offset = 0;
 		switch (text_align_property)
 		{
-			case TEXT_ALIGN_CENTER:		element_offset = (dimensions.x - box_cursor) * 0.5f; break;
-			case TEXT_ALIGN_RIGHT:		element_offset = (dimensions.x - box_cursor); break;
+			case Style::TextAlign::Center:  element_offset = (dimensions.x - box_cursor) * 0.5f; break;
+			case Style::TextAlign::Right:   element_offset = (dimensions.x - box_cursor); break;
 		}
 
 		if (element_offset != 0)

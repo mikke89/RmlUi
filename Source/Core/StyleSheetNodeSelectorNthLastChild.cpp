@@ -62,7 +62,7 @@ bool StyleSheetNodeSelectorNthLastChild::IsApplicable(const Element* element, in
 		if (child == element)
 			break;
 
-		if (child->GetDisplay() == DISPLAY_NONE)
+		if (child->GetDisplay() == Style::Display::None)
 			continue;
 
 		element_index++;

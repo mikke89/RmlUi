@@ -598,7 +598,7 @@ void WidgetTextInput::UpdateRelativeCursor()
 // Calculates the line index under a specific vertical position.
 int WidgetTextInput::CalculateLineIndex(float position)
 {
-	float line_height = (float) Core::ElementUtilities::GetLineHeight(parent);
+	float line_height = parent->GetLineHeight();
 	int line_index = Rocket::Core::Math::RealToInteger(position / line_height);
 	return Rocket::Core::Math::Clamp(line_index, 0, (int) (lines.size() - 1));
 }
@@ -739,7 +739,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 	std::vector< int >& selection_indices = selection_geometry.GetIndices();
 
 	// Determine the line-height of the text element.
-	int line_height = Rocket::Core::ElementUtilities::GetLineHeight(parent);
+	float line_height = parent->GetLineHeight();
 
 	int line_begin = 0;
 	Rocket::Core::Vector2f line_position(0, 0);
@@ -818,7 +818,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 			selection_vertices.resize(selection_vertices.size() + 4);
 			selection_indices.resize(selection_indices.size() + 6);
-			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rocket::Core::Vector2f((float)selection_width, (float)line_height), selection_colour, (int)selection_vertices.size() - 4);
+			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rocket::Core::Vector2f((float)selection_width, line_height), selection_colour, (int)selection_vertices.size() - 4);
 
 			line_position.x += selection_width;
 		}
@@ -873,8 +873,8 @@ void WidgetTextInput::GenerateCursor()
 	std::vector< int >& indices = cursor_geometry.GetIndices();
 	indices.resize(6);
 
-	cursor_size.x = 1;
-	cursor_size.y = (float) Core::ElementUtilities::GetLineHeight(text_element) + 2;
+	cursor_size.x = Core::ElementUtilities::GetDensityIndependentPixelRatio(text_element);
+	cursor_size.y = text_element->GetLineHeight() + 2.0f;
 	Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Rocket::Core::Vector2f(0, 0), cursor_size, parent->GetProperty< Rocket::Core::Colourb >("color"));
 }
 
@@ -884,7 +884,7 @@ void WidgetTextInput::UpdateCursorPosition()
 		return;
 
 	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.substr(0, cursor_character_index));
-	cursor_position.y = -1 + cursor_line_index * (float) Core::ElementUtilities::GetLineHeight(text_element);
+	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
 }
 
 // Expand the text selection to the position of the cursor.

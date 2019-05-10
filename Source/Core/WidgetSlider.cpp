@@ -308,13 +308,15 @@ void WidgetSlider::FormatBar(float bar_length)
 	Box bar_box;
 	LayoutEngine::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
 
-	const Property *local_width, *local_height;
-	bar->GetLocalDimensionProperties(&local_width, &local_height);
+	const auto& computed = bar->GetComputedValues();
+
+	const LengthPercentageAuto& width = computed.width;
+	const LengthPercentageAuto& height = computed.height;
 
 	Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
 	{
-		if (local_height == NULL)
+		if (height.type == height.Auto)
 			bar_box_content.y = parent->GetBox().GetSize().y;
 	}
 
@@ -326,16 +328,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM));
 
-			if (local_height == NULL)
+			if (height.type == height.Auto)
 			{
 				bar_box_content.y = track_length * bar_length;
 
 				// Check for 'min-height' restrictions.
-				float min_track_length = bar->ResolveProperty(MIN_HEIGHT, track_length);
+				float min_track_length = ResolveProperty(computed.min_height, track_length);
 				bar_box_content.y = Math::Max(min_track_length, bar_box_content.y);
 
 				// Check for 'max-height' restrictions.
-				float max_track_length = bar->ResolveProperty(MAX_HEIGHT, track_length);
+				float max_track_length = ResolveProperty(computed.max_height, track_length);
 				if (max_track_length > 0)
 					bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
 			}
@@ -347,16 +349,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 
-			if (local_width == NULL)
+			if (width.type == width.Auto)
 			{
 				bar_box_content.x = track_length * bar_length;
 
 				// Check for 'min-width' restrictions.
-				float min_track_length = bar->ResolveProperty(MIN_WIDTH, track_length);
+				float min_track_length = ResolveProperty(computed.min_width, track_length);
 				bar_box_content.x = Math::Max(min_track_length, bar_box_content.x);
 
 				// Check for 'max-width' restrictions.
-				float max_track_length = bar->ResolveProperty(MAX_WIDTH, track_length);
+				float max_track_length = ResolveProperty(computed.max_width, track_length);
 				if (max_track_length > 0)
 					bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
 			}

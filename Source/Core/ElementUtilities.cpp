@@ -134,45 +134,6 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 	return context->GetDensityIndependentPixelRatio();
 }
 
-// Returns an element's font size, if it has a font defined.
-int ElementUtilities::GetFontSize(Element* element)
-{
-	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
-	if (font_face_handle == NULL)
-		return 0;
-	
-	return font_face_handle->GetSize();
-}
-
-// Returns an element's line height, if it has a font defined.
-int ElementUtilities::GetLineHeight(Element* element)
-{
-	const Property* line_height_property = element->GetLineHeightProperty();
-
-	if (line_height_property->unit & Property::LENGTH)
-	{
-		float value = element->GetStyle()->ResolveLength(line_height_property);
-		return Math::RoundToInteger(value);
-	}
-
-	float scale_factor = 1.0f;
-
-	switch (line_height_property->unit)
-	{
-	case Property::NUMBER:
-		scale_factor = line_height_property->value.Get< float >();
-		break;
-	case Property::PERCENT:
-		scale_factor = line_height_property->value.Get< float >() * 0.01f;
-		break;
-	}
-
-	float font_size = (float)GetFontSize(element);
-	float value = font_size * scale_factor;
-
-	return Math::RoundToInteger(value);
-}
-
 // Returns the width of a string rendered within the context of the given element.
 int ElementUtilities::GetStringWidth(Element* element, const WString& string)
 {
@@ -333,19 +294,6 @@ void ElementUtilities::BuildBox(Box& box, const Vector2f& containing_block, Elem
 	LayoutEngine::BuildBox(box, containing_block, element, inline_element);
 }
 
-// Sizes and positions an element within its parent.
-bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset)
-{
-	Element* parent = element->GetParentNode();
-	if (parent == NULL)
-		return false;
-
-	SetBox(element);
-	SetElementOffset(element, offset);
-
-	return true;
-}
-
 // Sizes an element, and positions it within its parent offset from the borders of its content area.
 bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset, PositionAnchor anchor)
 {
@@ -384,8 +332,7 @@ static void SetBox(Element* element)
 	Box box;
 	LayoutEngine::BuildBox(box, containing_block, element);
 
-	const Property *local_height;
-	element->GetLocalDimensionProperties(NULL, &local_height);
+	const Property *local_height = element->GetLocalProperty(HEIGHT);
 	if (local_height == NULL)
 		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
 

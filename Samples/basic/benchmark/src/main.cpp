@@ -94,6 +94,7 @@ public:
 		  Computing all the values (only using a few of them yet): 83.0  [9fe9bdf]
 		  Computed transform and other optimizations: 86.0  [654fa09]
 		  Computed layout engine: 90.0   [e18ac30]
+		  Replace style cache by computed values: 96.0
 		
 		*/
 

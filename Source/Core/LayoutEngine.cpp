@@ -293,8 +293,8 @@ bool LayoutEngine::FormatElement(Element* element)
 	}
 
 	// If the element is floating, we remove it from the flow.
-	int float_property = element->GetFloat();
-	if (float_property != FLOAT_NONE)
+	Style::Float float_property = element->GetFloat();
+	if (float_property != Style::Float::None)
 	{
 		// Format the element as a block element.
 		LayoutEngine layout_engine;

@@ -109,7 +109,7 @@ public:
 
 	/// Returns the vertical align property of the box's element.
 	/// @return the vertical align property, or -1 if it is set to a numerical value.
-	int GetVerticalAlignProperty() const;
+	Style::VerticalAlign GetVerticalAlignProperty() const;
 
 	/// Returns the inline box's element.
 	/// @return The inline box's element.
@@ -140,9 +140,6 @@ protected:
 	/// Returns our parent box's font face handle.
 	/// @return The font face handle of our parent box.
 	FontFaceHandle* GetParentFont() const;
-	/// Returns our parent box's line height.
-	/// @return The line height of our parent box.
-	float GetParentLineHeight() const;
 
 	// The box's element.
 	Element* element;
@@ -159,7 +156,7 @@ protected:
 	float height;
 
 	// The value of this box's element's vertical-align property.
-	int vertical_align_property;
+	Style::VerticalAlign vertical_align_property;
 	// The baseline of the inline element.
 	float baseline;
 

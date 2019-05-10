@@ -98,7 +98,7 @@ private:
 	/// @param cursor[in] The ideal vertical position for the box.
 	/// @param dimensions[in] The size of the box to place.
 	/// @return The maximum width at the box position.
-	float PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, int float_property = FLOAT_NONE) const;
+	float PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, Style::Float float_property = Style::Float::None) const;
 
 	struct SpaceBox
 	{
