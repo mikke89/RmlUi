@@ -1048,11 +1048,11 @@ static inline Style::Clip ComputeClip(const Property* property)
 {
 	int value = property->Get<int>();
 	if (property->unit == Property::KEYWORD)
-		return (value == CLIP_NONE ? Style::Clip::None : Style::Clip::Auto);
+		return Style::Clip(value == CLIP_NONE ? Style::Clip::None : Style::Clip::Auto);
 	else if (property->unit == Property::NUMBER)
-		return (Style::Clip)value;
+		return Style::Clip(Style::Clip::Number, value);
 	ROCKET_ERRORMSG("Invalid clip type");
-	return Style::Clip::Auto;
+	return Style::Clip();
 }
 
 static inline Style::LineHeight ComputeLineHeight(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)

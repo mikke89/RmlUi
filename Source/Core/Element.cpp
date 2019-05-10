@@ -1605,7 +1605,7 @@ bool Element::IsClippingEnabled()
 							|| computed.overflow_y != Style::Overflow::Visible;
 		
 		// Get the clipping ignore depth from the clip property
-		clipping_ignore_depth = static_cast<int>(computed.clip);
+		clipping_ignore_depth = computed.clip.number;
 
 		clipping_state_dirty = false;
 	}

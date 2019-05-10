@@ -35,7 +35,7 @@ namespace Rocket {
 namespace Core {
 
 struct LengthPercentageAuto {
-	enum Type { Length, Percentage, Auto } type = Length;
+	enum Type { Auto, Length, Percentage } type = Length;
 	float value = 0;
 	LengthPercentageAuto() {}
 	LengthPercentageAuto(Type type, float value = 0) : type(type), value(value) {}
@@ -58,6 +58,25 @@ struct NumberAuto {
 namespace Style
 {
 
+using Margin = LengthPercentageAuto;
+using Width = LengthPercentageAuto;
+using Height = LengthPercentageAuto;
+
+using Top = LengthPercentageAuto;
+using Right = LengthPercentageAuto;
+using Bottom = LengthPercentageAuto;
+using Left = LengthPercentageAuto;
+
+using Padding = LengthPercentage;
+
+using MinWidth = LengthPercentage;
+using MaxWidth = LengthPercentage;
+using MinHeight = LengthPercentage;
+using MaxHeight = LengthPercentage;
+
+using PerspectiveOrigin = LengthPercentage;
+using TransformOrigin = LengthPercentage;
+
 
 enum class Display { None, Block, Inline, InlineBlock };
 enum class Position { Static, Relative, Absolute, Fixed };
@@ -72,10 +91,15 @@ struct VerticalAlign {
 	VerticalAlign(float value) : type(Length), value(value) {}
 };
 
-
 enum class Overflow { Visible, Hidden, Auto, Scroll };
 
-enum class Clip { None = -1, Auto = 0, NumberStart = 1}; // Can contain any positive value as number
+struct Clip {
+	// Note, internally Auto is 0 and None is -1, however, the enum must correspond to the keywords in StyleSheetSpec
+	enum Type { Auto, None, Number }; 
+	int number = 0;
+	Clip() {}
+	Clip(Type type, int number = 0) : number(type == Auto ? 0 : (type == None ? -1 : number)) {}
+};
 
 enum class Visibility { Visible, Hidden };
 
@@ -106,34 +130,36 @@ struct LineHeight {
 // A computed value is a value resolved as far as possible :before: updating layout. See CSS specs for details of each property.
 struct ComputedValues
 {
-	LengthPercentageAuto margin_top, margin_right, margin_bottom, margin_left;
-	LengthPercentage padding_top, padding_right, padding_bottom, padding_left;
+	Margin margin_top, margin_right, margin_bottom, margin_left;
+	Padding padding_top, padding_right, padding_bottom, padding_left;
 	float border_top_width = 0, border_right_width = 0, border_bottom_width = 0, border_left_width = 0;
 	Colourb border_top_color{ 255, 255, 255 }, border_right_color{ 255, 255, 255 }, border_bottom_color{ 255, 255, 255 }, border_left_color{ 255, 255, 255 };
 
 	Display display = Display::Inline;
 	Position position = Position::Static;
 
-	LengthPercentageAuto top{ LengthPercentageAuto::Auto };
-	LengthPercentageAuto right{ LengthPercentageAuto::Auto };
-	LengthPercentageAuto bottom{ LengthPercentageAuto::Auto };
-	LengthPercentageAuto left{ LengthPercentageAuto::Auto };
+	Top top{ Top::Auto };
+	Right right{ Right::Auto };
+	Bottom bottom{ Bottom::Auto };
+	Left left{ Left::Auto };
 
 	Float float_ = Float::None;
 	Clear clear = Clear::None;
 
 	NumberAuto z_index = { NumberAuto::Auto };
 
-	LengthPercentageAuto width = { LengthPercentageAuto::Auto };
-	LengthPercentage min_width, max_width{ LengthPercentage::Length, -1.f };
-	LengthPercentageAuto height = { LengthPercentageAuto::Auto };
-	LengthPercentage min_height, max_height{ LengthPercentage::Length, -1.f };
+	Width width = { Width::Auto };
+	MinWidth min_width;
+	MaxWidth max_width{ MaxWidth::Length, -1.f };
+	Height height = { Height::Auto };
+	MinHeight min_height;
+	MaxHeight max_height{ MaxHeight::Length, -1.f };
 
 	LineHeight line_height;
 	VerticalAlign vertical_align;
 
 	Overflow overflow_x = Overflow::Visible, overflow_y = Overflow::Visible;
-	Clip clip = Clip::Auto;
+	Clip clip;
 
 	Visibility visibility = Visibility::Visible;
 
@@ -162,12 +188,12 @@ struct ComputedValues
 	PointerEvents pointer_events = PointerEvents::Auto;
 
 	float perspective = 0;
-	LengthPercentage perspective_origin_x = { LengthPercentage::Percentage, 50.f };
-	LengthPercentage perspective_origin_y = { LengthPercentage::Percentage, 50.f };
+	PerspectiveOrigin perspective_origin_x = { PerspectiveOrigin::Percentage, 50.f };
+	PerspectiveOrigin perspective_origin_y = { PerspectiveOrigin::Percentage, 50.f };
 
 	TransformRef transform;
-	LengthPercentage transform_origin_x = { LengthPercentage::Percentage, 50.f };
-	LengthPercentage transform_origin_y = { LengthPercentage::Percentage, 50.f };
+	TransformOrigin transform_origin_x = { TransformOrigin::Percentage, 50.f };
+	TransformOrigin transform_origin_y = { TransformOrigin::Percentage, 50.f };
 	float transform_origin_z = 0.0f;
 
 	TransitionList transition;

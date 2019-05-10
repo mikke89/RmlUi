@@ -87,13 +87,15 @@ public:
 
 	Property();
 	template < typename PropertyType >
-	Property(PropertyType value, Unit unit, int specificity = -1) : value(Variant(value)), unit(unit), specificity(specificity)
+	Property(PropertyType value, Unit unit, int specificity = -1) : value(value), unit(unit), specificity(specificity)
 	{
 		definition = NULL;
 		parser_index = -1;
 
 		source_line_number = 0;
 	}
+	template<typename EnumType, typename = typename std::enable_if< std::is_enum<EnumType>::value, EnumType >::type>
+	Property(EnumType value) : value(static_cast<int>(value)), unit(KEYWORD), specificity(-1) {}
 
 	~Property();	
 
@@ -114,11 +116,11 @@ public:
 	Unit unit;
 	int specificity;
 
-	const PropertyDefinition* definition;
-	int parser_index;
+	const PropertyDefinition* definition = nullptr;
+	int parser_index = -1;
 
 	String source;
-	int source_line_number;
+	int source_line_number = 0;
 };
 
 }

@@ -38,7 +38,7 @@ namespace Core {
 ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 {
 	// Make sure we can be dragged!
-	SetProperty(DRAG, DRAG);
+	SetProperty(DRAG, Property(Style::Drag::Drag));
 
 	move_target = NULL;
 	size_target = NULL;

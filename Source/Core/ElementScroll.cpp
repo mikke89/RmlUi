@@ -82,7 +82,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 	if (!scrollbars[orientation].enabled)
 	{
 		CreateScrollbar(orientation);
-		scrollbars[orientation].element->SetProperty(VISIBILITY, "visible");
+		scrollbars[orientation].element->SetProperty(VISIBILITY, Property(Style::Visibility::Visible));
 		scrollbars[orientation].enabled = true;
 	}
 
@@ -108,7 +108,7 @@ void ElementScroll::DisableScrollbar(Orientation orientation)
 {
 	if (scrollbars[orientation].enabled)
 	{
-		scrollbars[orientation].element->SetProperty(VISIBILITY, "hidden");
+		scrollbars[orientation].element->SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
 		scrollbars[orientation].enabled = false;
 	}
 }
@@ -218,12 +218,12 @@ void ElementScroll::FormatScrollbars()
 		corner->SetBox(corner_box);
 		corner->SetOffset(containing_block - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
 
-		corner->SetProperty(VISIBILITY, "visible");
+		corner->SetProperty(VISIBILITY, Property(Style::Visibility::Visible));
 	}
 	else
 	{
 		if (corner != NULL)
-			corner->SetProperty(VISIBILITY, "hidden");
+			corner->SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
 	}
 }
 
@@ -250,7 +250,7 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 
 	scrollbars[orientation].element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
 	scrollbars[orientation].element->AddEventListener("scrollchange", this);
-	scrollbars[orientation].element->SetProperty(CLIP, "1");
+	scrollbars[orientation].element->SetProperty(CLIP, Property(1, Property::NUMBER));
 
 	scrollbars[orientation].widget = new WidgetSliderScroll(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetSlider::VERTICAL : WidgetSlider::HORIZONTAL);

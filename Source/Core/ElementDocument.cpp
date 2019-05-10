@@ -55,7 +55,7 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 
 	ForceLocalStackingContext();
 
-	SetProperty(POSITION, "absolute");
+	SetProperty(POSITION, Property(Style::Position::Absolute));
 }
 
 ElementDocument::~ElementDocument()
@@ -150,7 +150,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	}
 
 	// Hide this document.
-	SetProperty(VISIBILITY, "hidden");
+	SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
 }
 
 ElementDocument* ElementDocument::GetOwnerDocument()
@@ -225,7 +225,7 @@ void ElementDocument::Show(int focus_flags)
 	modal = (focus_flags & MODAL) > 0;
 
 	// Set to visible and switch focus if necessary
-	SetProperty(VISIBILITY, "visible");
+	SetProperty(VISIBILITY, Property(Style::Visibility::Visible));
 	if (focus_flags & FOCUS || focus_flags & MODAL)
 	{
 		// If no element could be focused, focus the window
@@ -240,7 +240,7 @@ void ElementDocument::Show(int focus_flags)
 
 void ElementDocument::Hide()
 {
-	SetProperty(VISIBILITY, "hidden");
+	SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
 	DispatchEvent("hide", Dictionary(), false);
 	
 	if (context)

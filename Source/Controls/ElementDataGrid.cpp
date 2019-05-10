@@ -45,24 +45,24 @@ ElementDataGrid::ElementDataGrid(const Rocket::Core::String& tag) : Core::Elemen
 
 	// Create the row for the column headers:
 	header = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridheader", attributes));
-	header->SetProperty("display", "block");
+	header->SetProperty("display", Core::Property(Core::Style::Display::Block));
 	header->Initialise(this);
 	AppendChild(header);
 	header->RemoveReference();
 
 	body = Core::Factory::InstanceElement(this, "*", "datagridbody", attributes);
-	body->SetProperty("display", "none");
-	body->SetProperty("width", "auto");
+	body->SetProperty("display", Core::Property(Core::Style::Display::None));
+	body->SetProperty("width", Core::Property(Core::Style::Width::Auto));
 	AppendChild(body);
 	body->RemoveReference();
 
 	body_visible = false;
 
 	root = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridroot", attributes));
-	root->SetProperty("display", "none");
+	root->SetProperty("display", Core::Property(Core::Style::Display::None));
 	root->Initialise(this);
 
-	SetProperty("overflow", "auto");
+	SetProperty("overflow", Core::Property(Core::Style::Overflow::Auto));
 
 	new_data_source = "";
 }
@@ -108,7 +108,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 	// The header elements are added to the header row at the top of the table.
 	if (header_element)
 	{
-		header_element->SetProperty("display", "inline-block");
+		header_element->SetProperty("display", Core::Property(Core::Style::Display::InlineBlock));
 
 		// Push all the width properties from the column onto the header element.
 		Rocket::Core::String width = header_element->GetAttribute<Rocket::Core::String>("width", "100%");
@@ -239,7 +239,7 @@ void ElementDataGrid::OnUpdate()
 	
 	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= Rocket::Core::Math::RealToInteger(ResolveProperty("min-rows", 0))))
 	{
-		body->SetProperty("display", "block");
+		body->SetProperty("display", Core::Property(Core::Style::Display::Block));
 		body_visible = true;
 	}
 	

@@ -33,7 +33,7 @@ namespace Controls {
 
 ElementFormControl::ElementFormControl(const Rocket::Core::String& tag) : Core::Element(tag)
 {
-	SetProperty("tab-index", Core::Property((int)Core::Style::TabIndex::Auto, Core::Property::KEYWORD));
+	SetProperty("tab-index", Core::Property(Core::Style::TabIndex::Auto));
 }
 
 ElementFormControl::~ElementFormControl()

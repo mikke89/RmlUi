@@ -135,15 +135,15 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				{
 					Core::Element* panel = target_element->GetNextSibling();
 					if (panel->IsVisible())
-						panel->SetProperty("display", "none");
+						panel->SetProperty("display", Core::Property(Core::Style::Display::None));
 					else
-						panel->SetProperty("display", "block");
+						panel->SetProperty("display", Core::Property(Core::Style::Display::Block));
 					event.StopPropagation();
 				}
 				else if (event.GetTargetElement()->GetId() == "close_button")
 				{
 					if (IsVisible())
-						SetProperty("visibility", "hidden");
+						SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
 				}
 				// Check if the id is in the form "a %d" or "c %d" - these are the ancestor or child labels.
 				else

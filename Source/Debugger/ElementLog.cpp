@@ -104,7 +104,7 @@ bool ElementLog::Initialise()
 		return false;
 
 	beacon->SetId("rkt-debug-log-beacon");
-	beacon->SetProperty("visibility", "hidden");
+	beacon->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
 	beacon->SetInnerRML(beacon_rml);
 
 	// Remove the initial reference on the beacon.
@@ -164,7 +164,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 			{
 				if (type < current_beacon_level)
 				{
-					beacon->SetProperty("visibility", "visible");
+					beacon->SetProperty("visibility", Core::Property(Core::Style::Visibility::Visible));
 
 					current_beacon_level = type;
 					Rocket::Core::Element* beacon_button = beacon->GetFirstChild();
@@ -235,15 +235,15 @@ void ElementLog::ProcessEvent(Core::Event& event)
 			if (event.GetTargetElement() == beacon->GetFirstChild())
 			{
 				if (!IsVisible())
-					SetProperty("visibility", "visible");
+					SetProperty("visibility", Core::Property(Core::Style::Visibility::Visible));
 
-				beacon->SetProperty("visibility", "hidden");
+				beacon->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
 				current_beacon_level = Core::Log::LT_MAX;
 			}
 			else if (event.GetTargetElement()->GetId() == "close_button")
 			{
 				if (IsVisible())
-					SetProperty("visibility", "hidden");
+					SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
 			}
 			else
 			{
