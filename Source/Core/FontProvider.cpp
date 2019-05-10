@@ -35,8 +35,8 @@ namespace Core {
 // Returns a handle to a font face that can be used to position and render text.
 Rocket::Core::FontFaceHandle* FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
 {
-	String family_lower = ToLower(family);
-	FontFamilyMap::iterator iterator = font_families.find(family_lower);
+	ROCKET_ASSERTMSG(family == ToLower(family), "Font family name must be converted to lowercase before entering here.");
+	FontFamilyMap::iterator iterator = font_families.find(family);
 	if (iterator == font_families.end())
 		return NULL;
 

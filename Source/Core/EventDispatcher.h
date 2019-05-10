@@ -92,7 +92,7 @@ private:
 		bool in_capture_phase;
 	};
 	typedef std::vector< Listener > Listeners;
-	typedef UnorderedMap< String, Listeners > Events;
+	typedef SmallUnorderedMap< String, Listeners > Events;
 	Events events;
 
 	void TriggerEvents(Event* event);

@@ -115,10 +115,10 @@ struct alignas(ElementMeta) ElementMetaChunk
 
 
 /// Constructs a new libRocket element.
-Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
+Element::Element(const String& tag) : tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
 transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false)
 {
-	tag = ToLower(_tag);
+	ROCKET_ASSERT(tag == ToLower(tag));
 	parent = NULL;
 	focus = NULL;
 	instancer = NULL;

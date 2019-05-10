@@ -309,8 +309,8 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	// Determine the tag (and possibly id / class as well) of the next required parent in the RCSS hierarchy.
 	const StyleSheetNode* parent_node = parent;
 	const String* ancestor_id = nullptr;
-	thread_local std::vector<const String*> ancestor_classes;
-	thread_local std::vector<const String*> ancestor_pseudo_classes;
+	static std::vector<const String*> ancestor_classes;
+	static std::vector<const String*> ancestor_pseudo_classes;
 	ancestor_classes.clear();
 	ancestor_pseudo_classes.clear();
 	std::vector< const StyleSheetNode* > ancestor_structural_pseudo_classes;
