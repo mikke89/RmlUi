@@ -219,12 +219,6 @@ public:
 	/// Returns the local properties, excluding any properties from local class.
 	/// @return The local properties for this element, or NULL if no properties defined
 	const PropertyMap* GetLocalProperties();
-	/// Resolves one of this element's properties. If the value is a number or px, this is returned. Angles are returned as radians.
-	/// Precentages are resolved based on the second argument (the base value).
-	/// @param[in] name The name of the property to resolve the value for.
-	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
-	/// @return The value of this property for this element.
-	float ResolveProperty(const String& name, float base_value);
 	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. Angles are returned as radians.
 	/// Precentages are resolved based on the second argument (the base value).
 	/// @param[in] name The property to resolve the value for.

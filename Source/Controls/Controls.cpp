@@ -126,8 +126,6 @@ void Initialise()
 	// Prevent double initialisation
 	if (!initialised)
 	{
-		Core::StyleSheetSpecification::RegisterProperty("min-rows", "0", false, false).AddParser("number");
-
 		// Register the element instancers for our custom elements.
 		RegisterElementInstancers();
 

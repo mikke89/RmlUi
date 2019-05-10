@@ -476,22 +476,6 @@ float ElementStyle::ResolveAngle(const Property * property)
 	return 0.0f;
 }
 
-float ElementStyle::ResolveNumericProperty(const String& property_name, const Property * property)
-{
-	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && property_name == FONT_SIZE))
-	{
-		return ResolveLength(property);
-	}
-
-	auto definition = property->definition;
-	if (!definition) definition = StyleSheetSpecification::GetProperty(property_name);
-	if (!definition) return 0.0f;
-
-	auto relative_target = definition->GetRelativeTarget();
-	
-	return ResolveNumericProperty(property, relative_target);
-}
-
 float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTarget relative_target)
 {
 	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
@@ -596,60 +580,6 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 	return 0.0f;
 }
 
-// Resolves one of this element's properties.
-float ElementStyle::ResolveProperty(const String& name, float base_value)
-{
-	const Property* property = GetProperty(name);
-	if (!property)
-	{
-		ROCKET_ERROR;
-		return 0.0f;
-	}
-
-	// The calculated value of the font-size property is inherited, so we need to check if this
-	// is an inherited property. If so, then we return our parent's font size instead.
-	if (name == FONT_SIZE && property->unit & Property::RELATIVE_UNIT)
-	{
-		// If the rem unit is used, the font-size is inherited directly from the document,
-		// otherwise we use the parent's font size.
-		if (property->unit & Property::REM)
-		{
-			Rocket::Core::ElementDocument* owner_document = element->GetOwnerDocument();
-			if (owner_document == NULL)
-				return 0;
-
-			base_value = owner_document->ResolveProperty(FONT_SIZE, 0);
-		}
-		else
-		{
-			Rocket::Core::Element* parent = element->GetParentNode();
-			if (parent == NULL)
-				return 0;
-
-			if (GetLocalProperty(FONT_SIZE) == NULL)
-				return parent->ResolveProperty(FONT_SIZE, 0);
-
-			// The base value for font size is always the height of *this* element's parent's font.
-			base_value = parent->ResolveProperty(FONT_SIZE, 0);
-		}
-
-		switch (property->unit)
-		{
-			case Property::PERCENT:
-				return base_value * property->value.Get< float >() * 0.01f;
-
-			case Property::EM:
-				return property->value.Get< float >() * base_value;
-
-			case Property::REM:
-				// If an rem-relative font size is specified, it is expressed relative to the document's
-				// font height.
-				return property->value.Get< float >() * element->GetOwnerDocument()->GetComputedValues().font_size;
-		}
-	}
-
-	return ResolveProperty(property, base_value);
-}
 
 // Iterates over the properties defined on the element.
 bool ElementStyle::IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** property_pseudo_classes)
@@ -921,22 +851,24 @@ static float ComputeLength(const Property* property, float font_size, float docu
 		return 0.0f;
 	}
 
+	float value = property->value.Get<float>();
+
 	switch (property->unit)
 	{
 	case Property::NUMBER:
 	case Property::PX:
 	case Property::RAD:
-		return property->value.Get< float >();
+		return value;
 
 	case Property::EM:
-		return property->value.Get< float >() * font_size;
+		return value * font_size;
 	case Property::REM:
-		return property->value.Get< float >() * document_font_size;
+		return value * document_font_size;
 	case Property::DP:
-		return property->value.Get< float >() * dp_ratio;
+		return value * dp_ratio;
 
 	case Property::DEG:
-		return Math::DegreesToRadians(property->value.Get< float >());
+		return Math::DegreesToRadians(value);
 	default: 
 		break;
 	}
@@ -944,7 +876,7 @@ static float ComputeLength(const Property* property, float font_size, float docu
 	// Values based on pixels-per-inch.
 	if (property->unit & Property::PPI_UNIT)
 	{
-		float inch = property->value.Get< float >() * pixels_per_inch;
+		float inch = value * pixels_per_inch;
 
 		switch (property->unit)
 		{

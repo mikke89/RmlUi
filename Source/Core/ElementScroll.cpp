@@ -97,7 +97,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 		if (box.GetSize().y < 0)
 			scrollbars[orientation].size = box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
 										   box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) +
-										   scrollbars[orientation].element->ResolveProperty(HEIGHT, element_width);
+										   ResolveProperty(scrollbars[orientation].element->GetComputedValues().height, element_width);
 		else
 			scrollbars[orientation].size = box.GetSize(Box::MARGIN).y;
 	}
@@ -192,7 +192,7 @@ void ElementScroll::FormatScrollbars()
 		}
 
 		float slider_length = containing_block[1 - i];
-		float user_scrollbar_margin = scrollbars[i].element->ResolveProperty(SCROLLBAR_MARGIN, slider_length);
+		float user_scrollbar_margin = scrollbars[i].element->GetComputedValues().scrollbar_margin;
 		float min_scrollbar_margin = GetScrollbarSize(i == VERTICAL ? HORIZONTAL : VERTICAL);
 		slider_length -= Math::Max(user_scrollbar_margin, min_scrollbar_margin);
 

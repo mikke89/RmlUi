@@ -111,10 +111,7 @@ public:
 	
 	/// Resolves an angle to radians
 	static float ResolveAngle(const Property* property);
-
-	/// Resolves a number-length-percentage property to pixels.
-	float ResolveNumericProperty(const String& property_name, const Property* property);
-
+	
 	/// Resolves the canonical unit (pixels) from 'number-length-percent' property.
 	/// 'percentage' and 'number' gets multiplied by the size of the specified relative reference.
 	float ResolveNumericProperty(const Property* property, RelativeTarget relative_target);
@@ -126,13 +123,6 @@ public:
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The value of this property for this element.
 	float ResolveProperty(const Property *property, float base_value);
-	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
-	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle, it is returned as radians.
-	/// @param[in] name The name of the property to resolve the value for.
-	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
-	/// @return The value of this property for this element.
-	float ResolveProperty(const String& name, float base_value);
 
 	/// Iterates over the properties defined on the element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.

@@ -16,6 +16,7 @@ If upgrading from the original libRocket branch, some breaking changes should be
 
 - Rocket::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase.
 - Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the note below for reasoning and a workaround.
+- The Controls::DataGrid "min-rows" property has been replaced by an attribute of the same name.
 
 ## Performance
 

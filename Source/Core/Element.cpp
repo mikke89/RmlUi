@@ -621,12 +621,6 @@ const PropertyMap * Element::GetLocalProperties()
 }
 
 // Resolves one of this element's style.
-float Element::ResolveProperty(const String& name, float base_value)
-{
-	return style->ResolveProperty(name, base_value);
-}
-
-// Resolves one of this element's style.
 float Element::ResolveProperty(const Property *property, float base_value)
 {
 	return style->ResolveProperty(property, base_value);

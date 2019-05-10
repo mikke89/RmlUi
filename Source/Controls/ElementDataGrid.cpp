@@ -237,7 +237,7 @@ void ElementDataGrid::OnUpdate()
 		DispatchEvent("rowupdate", Rocket::Core::Dictionary());
 	}
 	
-	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= Rocket::Core::Math::RealToInteger(ResolveProperty("min-rows", 0))))
+	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= GetAttribute("min-rows", 0)))
 	{
 		body->SetProperty("display", Core::Property(Core::Style::Display::Block));
 		body_visible = true;

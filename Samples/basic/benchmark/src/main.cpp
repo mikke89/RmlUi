@@ -96,6 +96,7 @@ public:
 		  Computed layout engine: 90.0   [e18ac30]
 		  Replace style cache by computed values: 96.0
 		  More computed values: 100.0  [edc78bb] !Woo!
+		  Avoid duplicate ToLower++: 103.0  [dec4ef6]
 		  
 		*/
 
