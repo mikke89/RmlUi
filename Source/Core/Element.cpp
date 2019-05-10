@@ -2428,13 +2428,11 @@ void Element::UpdateAnimation()
 {
 	if (dirty_animation)
 	{
-		const Property* property = style->GetLocalProperty(ANIMATION);
+		const auto& animation_list = element_meta->computed_values.animation;
 		StyleSheet* stylesheet = nullptr;
 
-		if (property && (stylesheet = GetStyleSheet()))
+		if (!animation_list.empty() && (stylesheet = GetStyleSheet()))
 		{
-			auto animation_list = property->Get<AnimationList>();
-
 			for (auto& animation : animation_list)
 			{
 				Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);

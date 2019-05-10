@@ -157,7 +157,7 @@ void WidgetTextInput::UpdateSelectionColours()
 		colour = colour_property->Get< Rocket::Core::Colourb >();
 	else
 	{
-		colour = parent->GetProperty< Rocket::Core::Colourb >("color");
+		colour = parent->GetComputedValues().color;
 		colour.red = 255 - colour.red;
 		colour.green = 255 - colour.green;
 		colour.blue = 255 - colour.blue;
@@ -674,18 +674,19 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 // Formats the element, laying out the text and inserting scrollbars as appropriate.
 void WidgetTextInput::FormatElement()
 {
+	using namespace Core::Style;
 	Core::ElementScroll* scroll = parent->GetElementScroll();
 	float width = parent->GetBox().GetSize(Core::Box::PADDING).x;
 
-	int x_overflow_property = parent->GetProperty< int >("overflow-x");
-	int y_overflow_property = parent->GetProperty< int >("overflow-y");
+	Overflow x_overflow_property = parent->GetComputedValues().overflow_x;
+	Overflow y_overflow_property = parent->GetComputedValues().overflow_y;
 
-	if (x_overflow_property == Core::OVERFLOW_SCROLL)
+	if (x_overflow_property == Overflow::Scroll)
 		scroll->EnableScrollbar(Core::ElementScroll::HORIZONTAL, width);
 	else
 		scroll->DisableScrollbar(Core::ElementScroll::HORIZONTAL);
 
-	if (y_overflow_property == Core::OVERFLOW_SCROLL)
+	if (y_overflow_property == Overflow::Scroll)
 		scroll->EnableScrollbar(Core::ElementScroll::VERTICAL, width);
 	else
 		scroll->DisableScrollbar(Core::ElementScroll::VERTICAL);
@@ -694,21 +695,21 @@ void WidgetTextInput::FormatElement()
 	Rocket::Core::Vector2f content_area = FormatText();
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (x_overflow_property == Core::OVERFLOW_AUTO)
+	if (x_overflow_property == Overflow::Auto)
 	{
 		if (parent->GetClientWidth() < content_area.x)
 			scroll->EnableScrollbar(Core::ElementScroll::HORIZONTAL, width);
 	}
 
 	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
-	if (y_overflow_property == Core::OVERFLOW_AUTO)
+	if (y_overflow_property == Overflow::Auto)
 	{
 		if (parent->GetClientHeight() < content_area.y)
 		{
 			scroll->EnableScrollbar(Core::ElementScroll::VERTICAL, width);
 			content_area = FormatText();
 
-			if (x_overflow_property == Core::OVERFLOW_AUTO &&
+			if (x_overflow_property == Overflow::Auto &&
 				parent->GetClientWidth() < content_area.y)
 			{
 				scroll->EnableScrollbar(Core::ElementScroll::HORIZONTAL, width);

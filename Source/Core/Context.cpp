@@ -595,7 +595,7 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 static Element* FindFocusElement(Element* element)
 {
 	ElementDocument* owner_document = element->GetOwnerDocument();
-	if (!owner_document || owner_document->GetProperty< int >(FOCUS) == FOCUS_NONE)
+	if (!owner_document || owner_document->GetComputedValues().focus == Style::Focus::None)
 		return NULL;
 	
 	while (element && element->GetProperty< int >(FOCUS) == FOCUS_NONE)
@@ -669,12 +669,12 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			drag = hover;
 			while (drag)
 			{
-				int drag_style = drag->GetProperty(DRAG)->value.Get< int >();
+				Style::Drag drag_style = drag->GetComputedValues().drag;
 				switch (drag_style)
 				{
-					case DRAG_NONE:		drag = drag->GetParentNode(); continue;
-					case DRAG_BLOCK:	drag = NULL; continue;
-					default:			drag_verbose = (drag_style == DRAG_DRAG_DROP || drag_style == DRAG_CLONE);
+				case Style::Drag::None:		drag = drag->GetParentNode(); continue;
+				case Style::Drag::Block:	drag = NULL; continue;
+				default: drag_verbose = (drag_style == Style::Drag::DragDrop || drag_style == Style::Drag::Clone);
 				}
 
 				break;
@@ -939,7 +939,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				drag->DispatchEvent(DRAGSTART, drag_start_parameters);
 				drag_started = true;
 
-				if (drag->GetProperty< int >(DRAG) == DRAG_CLONE)
+				if (drag->GetComputedValues().drag == Style::Drag::Clone)
 				{
 					// Clone the element and attach it to the mouse cursor.
 					CreateDragClone(*drag);
@@ -956,8 +956,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	{
 		String new_mouse_cursor;
 
-		if (hover && hover->GetProperty(CURSOR)->unit != Property::KEYWORD)
-			new_mouse_cursor = hover->GetProperty< String >(CURSOR);
+		if (hover)
+			new_mouse_cursor = hover->GetComputedValues().cursor;
 
 		GetSystemInterface()->SetMouseCursor(new_mouse_cursor);
 	}

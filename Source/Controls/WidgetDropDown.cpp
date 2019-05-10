@@ -331,7 +331,7 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 				element = element->GetParentNode();
 			}
 
-			if (selection_element->GetProperty< int >("visibility") == Core::VISIBILITY_HIDDEN)
+			if (selection_element->GetComputedValues().visibility == Core::Style::Visibility::Hidden)
 				ShowSelectBox(true);
 			else
 				ShowSelectBox(false);

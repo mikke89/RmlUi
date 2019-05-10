@@ -345,21 +345,19 @@ void ElementDocument::UpdatePosition()
 		// Work out our containing block; relative offsets are calculated against it.
 		Vector2f containing_block = GetParentNode()->GetBox().GetSize(Box::CONTENT);
 
-		const Property *left = GetLocalProperty(LEFT);
-		const Property *right = GetLocalProperty(RIGHT);
-		if (left != NULL && left->unit != Property::KEYWORD)
-			position.x = ResolveProperty(LEFT, containing_block.x);
-		else if (right != NULL && right->unit != Property::KEYWORD)
-			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveProperty(RIGHT, containing_block.x);
+		auto& computed = GetComputedValues();
+
+		if (computed.left.type != Style::Left::Auto)
+			position.x = ::Rocket::Core::ResolveProperty(computed.left, containing_block.x);
+		else if (computed.right.type != Style::Right::Auto)
+			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ::Rocket::Core::ResolveProperty(computed.right, containing_block.x);
 		else
 			position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
 
-		const Property *top = GetLocalProperty(TOP);
-		const Property *bottom = GetLocalProperty(BOTTOM);
-		if (top != NULL && top->unit != Property::KEYWORD)
-			position.y = ResolveProperty(TOP, containing_block.y);
-		else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveProperty(BOTTOM, containing_block.y);
+		if (computed.top.type != Style::Top::Auto)
+			position.y = ::Rocket::Core::ResolveProperty(computed.top, containing_block.y);
+		else if (computed.bottom.type != Style::Bottom::Auto)
+			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y);
 		else
 			position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
 

@@ -310,11 +310,12 @@ void WidgetSlider::FormatBar(float bar_length)
 {
 	Core::Box bar_box;
 	Core::ElementUtilities::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
+	auto& computed = bar->GetComputedValues();
 
 	Rocket::Core::Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
 	{
-		if (bar->GetLocalProperty("height") == NULL)
+		if (computed.height.value == Core::Style::Height::Auto)
 			bar_box_content.y = parent->GetBox().GetSize().y;
 	}
 
@@ -326,16 +327,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::TOP) + bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::BOTTOM));
 
-			if (bar->GetLocalProperty("height") == NULL)
+			if (computed.height.value == Core::Style::Height::Auto)
 			{
 				bar_box_content.y = track_length * bar_length;
 
 				// Check for 'min-height' restrictions.
-				float min_track_length = bar->ResolveProperty("min-height", track_length);
+				float min_track_length = Core::ResolveProperty(computed.min_height, track_length);
 				bar_box_content.y = Rocket::Core::Math::Max(min_track_length, bar_box_content.y);
 
 				// Check for 'max-height' restrictions.
-				float max_track_length = bar->ResolveProperty("max-height", track_length);
+				float max_track_length = Core::ResolveProperty(computed.max_height, track_length);
 				if (max_track_length > 0)
 					bar_box_content.y = Rocket::Core::Math::Min(max_track_length, bar_box_content.y);
 			}
@@ -347,16 +348,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::LEFT) + bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::RIGHT));
 
-			if (bar->GetLocalProperty("width") == NULL)
+			if (computed.width.value == Core::Style::Height::Auto)
 			{
 				bar_box_content.x = track_length * bar_length;
 
 				// Check for 'min-width' restrictions.
-				float min_track_length = bar->ResolveProperty("min-width", track_length);
+				float min_track_length = Core::ResolveProperty(computed.min_width, track_length);
 				bar_box_content.x = Rocket::Core::Math::Max(min_track_length, bar_box_content.x);
 
 				// Check for 'max-width' restrictions.
-				float max_track_length = bar->ResolveProperty("max-width", track_length);
+				float max_track_length = Core::ResolveProperty(computed.max_width, track_length);
 				if (max_track_length > 0)
 					bar_box_content.x = Rocket::Core::Math::Min(max_track_length, bar_box_content.x);
 			}
