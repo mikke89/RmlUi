@@ -97,6 +97,7 @@ public:
 		  Replace style cache by computed values: 96.0
 		  More computed values: 100.0  [edc78bb] !Woo!
 		  Avoid duplicate ToLower++: 103.0  [dec4ef6]
+		  Cleanup and smaller changes: 105.0  [38a559d]
 		  
 		*/
 

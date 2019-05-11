@@ -361,11 +361,6 @@ bool ElementStyle::SetProperty(const String& name, const Property& property)
 {
 	Property new_property = property;
 
-
-	if (name == "white-space")
-		int a = 0;
-
-
 	new_property.definition = StyleSheetSpecification::GetProperty(name);
 	if (new_property.definition == NULL)
 		return false;
