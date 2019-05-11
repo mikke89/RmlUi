@@ -105,24 +105,14 @@ public:
 	/// @return The local properties for this element, or NULL if no properties defined
 	const PropertyMap* GetLocalProperties() const;
 
-
-	/// Resolves a length property to pixels. Note: This excludes percentages.
-	float ResolveLength(const Property* property);
-	
-	/// Resolves an angle to radians
-	static float ResolveAngle(const Property* property);
-	
-	/// Resolves the canonical unit (pixels) from 'number-length-percent' property.
-	/// 'percentage' and 'number' gets multiplied by the size of the specified relative reference.
-	float ResolveNumericProperty(const Property* property, RelativeTarget relative_target);
-
-	/// Resolves one of this element's properties. If the value is a number or px, this is returned. If it's a 
-	/// percentage then it is resolved based on the second argument (the base value).
-	/// If it's an angle, it is returned as radians.
-	/// @param[in] property Property to resolve the value for.
+	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling the base value.
+	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
-	/// @return The value of this property for this element.
+	/// @return The resolved value in 'px' unit.
 	float ResolveLengthPercentage(const Property *property, float base_value);
+	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling by the size of the specified target.
+	/// 'percentage' and 'number' are multiplied by the size of the specified relative reference.
+	float ResolveLengthPercentage(const Property* property, RelativeTarget relative_target);
 
 	/// Iterates over the properties defined on the element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.

@@ -410,39 +410,13 @@ const PropertyMap * ElementStyle::GetLocalProperties() const
 	return NULL;
 }
 
-float ElementStyle::ResolveLength(const Property * property)
-{
-	if (!property)
-	{
-		ROCKET_ERROR;
-		return 0.0f;
-	}
-	float result = ComputeLength(property, element->GetComputedValues().font_size, element->GetOwnerDocument()->GetComputedValues().font_size, ElementUtilities::GetDensityIndependentPixelRatio(element));
-	return result;
-}
-
-float ElementStyle::ResolveAngle(const Property * property)
-{
-	switch (property->unit)
-	{
-	case Property::NUMBER:
-	case Property::DEG:
-		return Math::DegreesToRadians(property->value.Get< float >());
-	case Property::RAD:
-		return property->value.Get< float >();
-	case Property::PERCENT:
-		return property->value.Get< float >() * 0.01f * 2.0f * Math::ROCKET_PI;
-	}
-	ROCKET_ERRORMSG("Trying to resolve angle on a non-angle property.");
-	return 0.0f;
-}
-
-float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTarget relative_target)
+float ElementStyle::ResolveLengthPercentage(const Property * property, RelativeTarget relative_target)
 {
 	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
 	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
 	{
-		return ResolveLength(property);
+		float result = ComputeLength(property, element->GetComputedValues().font_size, element->GetOwnerDocument()->GetComputedValues().font_size, ElementUtilities::GetDensityIndependentPixelRatio(element));
+		return result;
 	}
 
 	float base_value = 0.0f;

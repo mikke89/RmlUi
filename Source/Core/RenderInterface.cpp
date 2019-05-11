@@ -104,12 +104,6 @@ float RenderInterface::GetVerticalTexelOffset()
 	return 0;
 }
 
-// Returns the number of pixels per inch.
-float RenderInterface::GetPixelsPerInch()
-{
-	return 100;
-}
-
 // Called by Rocket when it wants to change the current transform matrix to a new matrix.
 void RenderInterface::PushTransform(const Matrix4f& transform)
 {
