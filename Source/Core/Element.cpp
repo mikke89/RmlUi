@@ -229,8 +229,9 @@ void Element::Update()
 		computed_values_are_default_initialized = false;
 	}
 
-	// Right now we are assuming computed values are calculated before OnPropertyChange
-	// TODO: Any dirtied properties during the next function call will not have their values computed.
+	// Computed values are calculated before OnPropertyChange in UpdateDirtyProperties, thus these can safely be used.
+	// However, new properties set during this call will not be available until the next update loop.
+	// Enable ROCKET_DEBUG to get a warning when this happens.
 	UpdateDirtyProperties();
 
 	if (box_dirty)
@@ -1894,12 +1895,27 @@ void Element::UpdateDirtyProperties()
 	if (!all_properties_dirty && dirty_properties.empty())
 		return;
 
-	auto& update_properties = (all_properties_dirty ? StyleSheetSpecification::GetRegisteredProperties() : dirty_properties);
-	
-	OnPropertyChange(update_properties);
+	if(all_properties_dirty)
+	{
+		// Clear the dirty properties first, so that any new dirty properties during the call are properly added.
+		// They will not actually be evaluated until the next update loop. Thus, setting any properties here should be avoided.
+		all_properties_dirty = false;
+		dirty_properties.clear();
+		OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
+	}
+	else
+	{
+		// Move the underlying dirty properties container to a temporary, so that we can fill it 
+		// with new dirty properties during OnPropertyChange.
+		PropertyNameList properties(std::move(dirty_properties));
+		dirty_properties.clear();
+		OnPropertyChange(properties);
+	}
 
-	all_properties_dirty = false;
-	dirty_properties.clear();
+#ifdef ROCKET_DEBUG
+	if (all_properties_dirty || !dirty_properties.empty())
+		Log::Message(Log::LT_WARNING, "One or more properties were set during OnPropertyChange, these will only be evaluated on the next update call and should be avoided.");
+#endif
 }
 
 // Called when a child node has been added somewhere in the hierarchy

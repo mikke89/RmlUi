@@ -271,7 +271,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(TAB_INDEX, "none", false, false).AddParser("keyword", "none, auto");
 	RegisterProperty(FOCUS, "auto", true, false).AddParser("keyword", "none, auto");
 	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("length");
-	RegisterProperty(POINTER_EVENTS, "auto", true, false).AddParser("keyword", "auto, none");
+	RegisterProperty(POINTER_EVENTS, "auto", true, false).AddParser("keyword", "none, auto");
 
 	// Perspective and Transform specifications
 	RegisterProperty(PERSPECTIVE, "none", false, false).AddParser("keyword", "none").AddParser("length");

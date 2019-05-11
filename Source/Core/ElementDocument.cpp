@@ -225,6 +225,11 @@ void ElementDocument::Show(int focus_flags)
 
 	// Set to visible and switch focus if necessary
 	SetProperty(VISIBILITY, Property(Style::Visibility::Visible));
+	
+	// We should update the document now, otherwise the focusing methods below do not think we are visible
+	// If this turns out to be slow, the more performant approach is just to compute the new visibility property
+	UpdateDocument();
+
 	if (focus_flags & FOCUS || focus_flags & MODAL)
 	{
 		// If no element could be focused, focus the window
@@ -240,6 +245,10 @@ void ElementDocument::Show(int focus_flags)
 void ElementDocument::Hide()
 {
 	SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
+
+	// We should update the document now, so that the focusing below will get the correct visibility
+	UpdateDocument();
+
 	DispatchEvent("hide", Dictionary(), false);
 	
 	if (context)
