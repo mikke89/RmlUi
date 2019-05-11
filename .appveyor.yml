@@ -5,9 +5,11 @@ environment:
   - FREETYPE_VER: 2.10.0
     VS_GENERATOR: Visual Studio 15 2017 Win64
     BUILD_SHARED_LIBS: ON
+    BUILD_SAMPLES: ON
   - FREETYPE_VER: 2.10.0
     VS_GENERATOR: Visual Studio 15 2017 Win64
     BUILD_SHARED_LIBS: OFF
+    BUILD_SAMPLES: OFF
 install:
 - cmd: >-
     cd Dependencies
@@ -20,7 +22,7 @@ install:
 
     cd ../Build
 
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% .
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DBUILD_SAMPLES=%BUILD_SAMPLES% .
 build:
   parallel: true
   verbosity: minimal
