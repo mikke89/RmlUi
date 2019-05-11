@@ -222,9 +222,6 @@ ElementDataGridRow* ElementDataGrid::GetRow(int index) const
 
 void ElementDataGrid::OnUpdate()
 {
-	Core::ElementDocument* document = GetOwnerDocument();
-	document->LockLayout(true);
-	
 	if (!new_data_source.empty())
 	{
 		root->SetDataSource(new_data_source);
@@ -242,8 +239,6 @@ void ElementDataGrid::OnUpdate()
 		body->SetProperty("display", Core::Property(Core::Style::Display::Block));
 		body_visible = true;
 	}
-	
-	document->LockLayout(false);
 }
 
 

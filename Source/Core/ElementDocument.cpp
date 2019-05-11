@@ -49,7 +49,6 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 
 	modal = false;
 	layout_dirty = true;
-	lock_layout = 0;
 
 	position_dirty = false;
 
@@ -313,12 +312,11 @@ void ElementDocument::UpdateDocument()
 // Updates the layout if necessary.
 void ElementDocument::UpdateLayout()
 {
-	// The lock_layout currently has no effect. Instead, we carefully consider
-	// when we need to call this function.
+	// Note: Carefully consider when to call this function for performance reasons.
+	// Ideally, only called once per update loop.
 	if(layout_dirty)
 	{
 		layout_dirty = false;
-		lock_layout++;
 
 		Vector2f containing_block(0, 0);
 		if (GetParentNode() != NULL)
@@ -326,7 +324,6 @@ void ElementDocument::UpdateLayout()
 
 		LayoutEngine layout_engine;
 		layout_engine.FormatElement(this, containing_block);
-		lock_layout--;
 	}
 }
 
@@ -368,16 +365,6 @@ void ElementDocument::UpdatePosition()
 void ElementDocument::DirtyPosition()
 {
 	position_dirty = true;
-}
-	
-void ElementDocument::LockLayout(bool lock)
-{
-	if (lock)
-		lock_layout++;
-	else
-		lock_layout--;
-	
-	ROCKET_ASSERT(lock_layout >= 0);
 }
 
 void ElementDocument::DirtyLayout()

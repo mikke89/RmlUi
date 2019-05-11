@@ -168,19 +168,6 @@ float Context::GetDensityIndependentPixelRatio() const
 // Updates all elements in the element tree.
 bool Context::Update()
 {
-#ifdef ROCKET_DEBUG
-	// Look for leaks in layout lock
-	for (int i = 0; i < root->GetNumChildren(); ++i)
-	{
-		ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
-		if (document != NULL && document->lock_layout != 0)
-		{
-			Log::Message(Log::LT_WARNING, "Layout lock leak. Document '%s' had lock layout value: %d", document->title.c_str(), document->lock_layout);
-			document->lock_layout = 0;
-		}
-	}
-#endif
-
 	root->Update();
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)

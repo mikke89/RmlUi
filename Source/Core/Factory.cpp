@@ -320,13 +320,10 @@ ElementDocument* Factory::InstanceDocumentStream(Rocket::Core::Context* context,
 		return NULL;
 	}
 
-	document->lock_layout = true;
 	document->context = context;
 
 	XMLParser parser(element);
 	parser.Parse(stream);
-
-	document->lock_layout = false;
 
 	return document;
 }

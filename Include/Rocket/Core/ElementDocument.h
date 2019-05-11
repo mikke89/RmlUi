@@ -131,9 +131,6 @@ public:
 	/// already been called after the change. This has a perfomance penalty, only call when strictly necessary.
 	void UpdateDocument();
 	
-	/// Increment/Decrement the layout lock
-	void LockLayout(bool lock);
-	
 protected:
 	/// Repositions the document if necessary.
 	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
@@ -184,7 +181,6 @@ private:
 
 	// Is the layout dirty?
 	bool layout_dirty;
-	int lock_layout;
 
 	bool position_dirty;
 
