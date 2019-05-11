@@ -410,7 +410,7 @@ const PropertyMap * ElementStyle::GetLocalProperties() const
 	return NULL;
 }
 
-float ElementStyle::ResolveLengthPercentage(const Property * property, RelativeTarget relative_target)
+float ElementStyle::ResolveNumberLengthPercentage(const Property * property, RelativeTarget relative_target)
 {
 	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
 	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
@@ -746,7 +746,7 @@ void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 
 
 // Must be called in correct order, from document root to children elements.
-void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_defaulted, float dp_ratio)
+void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
 {
 	// Generally, this is how it works (for now, we can probably be smarter about this):
 	//   1. Assign default values (clears any newly dirtied properties)
@@ -755,7 +755,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 
 
 	// The next flag is just a small optimization, if the element was just created we don't need to copy all the default values.
-	if (!values_are_defaulted)
+	if (!values_are_default_initialized)
 	{
 		values = DefaultComputedValues;
 	}

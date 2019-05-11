@@ -144,7 +144,7 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	parent_structure_dirty = false;
 
 	all_properties_dirty = true;
-	computed_values_are_default = true;
+	computed_values_are_default_initialized = true;
 	box_dirty = false;
 
 	font_face_handle = NULL;
@@ -224,9 +224,9 @@ void Element::Update()
 			if (auto context = doc->GetContext())
 				dp_ratio = context->GetDensityIndependentPixelRatio();
 		}
-		style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default, dp_ratio);
+		style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
 
-		computed_values_are_default = false;
+		computed_values_are_default_initialized = false;
 	}
 
 	// Right now we are assuming computed values are calculated before OnPropertyChange

@@ -742,7 +742,7 @@ private:
 
 	PropertyNameList dirty_properties;
 	bool all_properties_dirty;
-	bool computed_values_are_default;
+	bool computed_values_are_default_initialized;
 	bool box_dirty;
 
 	// The element's font face; used to render text and resolve em / ex properties.

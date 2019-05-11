@@ -110,9 +110,9 @@ public:
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
 	/// @return The resolved value in 'px' unit.
 	float ResolveLengthPercentage(const Property *property, float base_value);
-	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling by the size of the specified target.
-	/// 'percentage' and 'number' are multiplied by the size of the specified relative reference.
-	float ResolveLengthPercentage(const Property* property, RelativeTarget relative_target);
+	/// Resolves a property with units of number, length or percentage. Lengths are resolved to 'px'. 
+	/// Number and percentages are resolved by scaling by the size of the specified target.
+	float ResolveNumberLengthPercentage(const Property* property, RelativeTarget relative_target);
 
 	/// Iterates over the properties defined on the element.
 	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
@@ -141,7 +141,7 @@ public:
 	// Dirties dp properties.
 	void DirtyDpProperties();
 
-	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_defaulted, float dp_ratio);
+	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
 
 private:
 	// Sets a single property as dirty.
