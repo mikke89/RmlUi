@@ -111,7 +111,7 @@ public:
 	/// @return The resolved value in 'px' unit.
 	float ResolveLengthPercentage(const Property *property, float base_value);
 	/// Resolves a property with units of number, length or percentage. Lengths are resolved to 'px'. 
-	/// Number and percentages are resolved by scaling by the size of the specified target.
+	/// Number and percentages are resolved by scaling the size of the specified target.
 	float ResolveNumberLengthPercentage(const Property* property, RelativeTarget relative_target);
 
 	/// Iterates over the properties defined on the element.
@@ -141,6 +141,8 @@ public:
 	// Dirties dp properties.
 	void DirtyDpProperties();
 
+	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
+	/// Must be called in correct order, from document root to children elements.
 	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
 
 private:

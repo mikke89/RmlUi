@@ -745,7 +745,7 @@ void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 
 
 
-// Must be called in correct order, from document root to children elements.
+
 void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
 {
 	// Generally, this is how it works (for now, we can probably be smarter about this):

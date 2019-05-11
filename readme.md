@@ -18,6 +18,7 @@ If upgrading from the original libRocket branch, some breaking changes should be
 - Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the note below for reasoning and a workaround.
 - The Controls::DataGrid "min-rows" property has been replaced by an attribute of the same name.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
+- Removed 'top' and 'bottom' from z-index property.
 
 ## Performance
 

@@ -29,7 +29,7 @@ static const char* common_rcss =
 "body\n"
 "{\n"
 "	font-family: Lacuna;\n"
-"	z-index: top;\n"
+"	z-index: 1000000;\n"
 "	font-size: 13px;\n"
 "   line-height: 1.4;\n"
 "	color: black;\n"

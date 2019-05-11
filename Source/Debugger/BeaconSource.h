@@ -31,7 +31,7 @@ static const char* beacon_rcss =
 "	position: absolute;\n"
 "	top: 5px;\n"
 "	right: 33px;\n"
-"	z-index: top;\n"
+"	z-index: 1000000;\n"
 "	width: 20px;\n"
 "	font-family: Lacuna;\n"
 "	font-size: 12px;\n"

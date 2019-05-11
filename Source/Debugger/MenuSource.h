@@ -31,7 +31,7 @@ static const char* menu_rcss =
 "	width: 100%;\n"
 "	height: 32px;\n"
 "	position: absolute;\n"
-"	z-index: top;\n"
+"	z-index: 1000000;\n"
 "	background: #888;\n"
 "	font-family: Lacuna;\n"
 "	font-size: 14px;\n"
