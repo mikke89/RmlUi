@@ -680,7 +680,11 @@ endif(NOT BUILD_FRAMEWORK)
 	endif()
 
 	message("-- Can SFML 2.x sample be built")
-	find_package(SFML 2 COMPONENTS graphics window system main)
+	if (WIN32)
+		find_package(SFML 2 COMPONENTS graphics window system main)
+	else()
+		find_package(SFML 2 COMPONENTS graphics window system)
+	endif()
 	if(NOT SFML_FOUND)
 		message("-- Can SFML 2.x sample be built - no")
 	else()
@@ -695,7 +699,10 @@ endif(NOT BUILD_FRAMEWORK)
 			include_directories(${SFML_INCLUDE_DIR})
 			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
 		endif()
-
+		
+			set_property(TARGET sfml2 PROPERTY CXX_STANDARD 11)
+			set_property(TARGET sfml2 PROPERTY CXX_STANDARD_REQUIRED ON)
+			
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
 			install(TARGETS sfml2
