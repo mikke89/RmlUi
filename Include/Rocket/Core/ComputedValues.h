@@ -201,22 +201,12 @@ struct ComputedValues
 };
 }
 
-// Note: Auto must be manually handled during layout, here it returns zero.
-inline float ResolveProperty(Style::LengthPercentageAuto length, float base_value) {
-	if (length.type == Style::LengthPercentageAuto::Length)
-		return length.value;
-	else if (length.type == Style::LengthPercentageAuto::Percentage)
-		return length.value * 0.01f * base_value;
-	return 0.0f;
-}
 
-inline float ResolveProperty(Style::LengthPercentage length, float base_value) {
-	if (length.type == Style::LengthPercentage::Length)
-		return length.value;
-	else if (length.type == Style::LengthPercentage::Percentage)
-		return length.value * 0.01f * base_value;
-	return 0.0f;
-}
+// Resolves a computed LengthPercentage value to the base unit 'px'. 
+// Percentages are scaled by the base_value.
+// Note: Auto must be manually handled during layout, here it returns zero.
+float ResolveValue(Style::LengthPercentageAuto length, float base_value);
+float ResolveValue(Style::LengthPercentage length, float base_value);
 
 
 using ComputedValues = Style::ComputedValues;

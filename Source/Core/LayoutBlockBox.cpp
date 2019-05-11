@@ -550,16 +550,16 @@ float LayoutBlockBox::InternalContentWidth() const
 
 			if(computed.width.type != Style::Width::Auto)
 			{
-				float w_value = ResolveProperty(computed.width, block_width);
+				float w_value = ResolveValue(computed.width, block_width);
 				content_width = Math::Max(content_width, w_value);
 			}
 
-			float min_width = ResolveProperty(computed.min_width, block_width);
+			float min_width = ResolveValue(computed.min_width, block_width);
 			content_width = Math::Max(content_width, min_width);
 			
 			if (computed.max_width.value >= 0.f)
 			{
-				float value = ResolveProperty(computed.max_width, block_width);
+				float value = ResolveValue(computed.max_width, block_width);
 				content_width = Math::Min(content_width, value);
 			}
 		}

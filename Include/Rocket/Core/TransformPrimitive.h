@@ -47,7 +47,7 @@ struct NumericValue
 	NumericValue(float number, Property::Unit unit) noexcept;
 
 	/// Resolve a numeric property value for an element.
-	float Resolve(Element& e, float base) const noexcept;
+	float ResolveLengthPercentage(Element& e, float base) const noexcept;
 	/// Resolve a numeric property value with the element's width as relative base value.
 	float ResolveWidth(Element& e) const noexcept;
 	/// Resolve a numeric property value with the element's height as relative base value.

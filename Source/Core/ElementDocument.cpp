@@ -348,16 +348,16 @@ void ElementDocument::UpdatePosition()
 		auto& computed = GetComputedValues();
 
 		if (computed.left.type != Style::Left::Auto)
-			position.x = ::Rocket::Core::ResolveProperty(computed.left, containing_block.x);
+			position.x = ResolveValue(computed.left, containing_block.x);
 		else if (computed.right.type != Style::Right::Auto)
-			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ::Rocket::Core::ResolveProperty(computed.right, containing_block.x);
+			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveValue(computed.right, containing_block.x);
 		else
 			position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
 
 		if (computed.top.type != Style::Top::Auto)
-			position.y = ::Rocket::Core::ResolveProperty(computed.top, containing_block.y);
+			position.y = ResolveValue(computed.top, containing_block.y);
 		else if (computed.bottom.type != Style::Bottom::Auto)
-			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y);
+			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveValue(computed.bottom, containing_block.y);
 		else
 			position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
 

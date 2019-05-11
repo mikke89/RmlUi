@@ -2,6 +2,7 @@
 
 set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DebugFont.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNone.h
@@ -204,6 +205,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/BaseXMLParser.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Box.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Context.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.cpp

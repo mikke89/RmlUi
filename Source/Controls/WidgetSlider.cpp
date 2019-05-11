@@ -332,11 +332,11 @@ void WidgetSlider::FormatBar(float bar_length)
 				bar_box_content.y = track_length * bar_length;
 
 				// Check for 'min-height' restrictions.
-				float min_track_length = Core::ResolveProperty(computed.min_height, track_length);
+				float min_track_length = Core::ResolveValue(computed.min_height, track_length);
 				bar_box_content.y = Rocket::Core::Math::Max(min_track_length, bar_box_content.y);
 
 				// Check for 'max-height' restrictions.
-				float max_track_length = Core::ResolveProperty(computed.max_height, track_length);
+				float max_track_length = Core::ResolveValue(computed.max_height, track_length);
 				if (max_track_length > 0)
 					bar_box_content.y = Rocket::Core::Math::Min(max_track_length, bar_box_content.y);
 			}
@@ -353,11 +353,11 @@ void WidgetSlider::FormatBar(float bar_length)
 				bar_box_content.x = track_length * bar_length;
 
 				// Check for 'min-width' restrictions.
-				float min_track_length = Core::ResolveProperty(computed.min_width, track_length);
+				float min_track_length = Core::ResolveValue(computed.min_width, track_length);
 				bar_box_content.x = Rocket::Core::Math::Max(min_track_length, bar_box_content.x);
 
 				// Check for 'max-width' restrictions.
-				float max_track_length = Core::ResolveProperty(computed.max_width, track_length);
+				float max_track_length = Core::ResolveValue(computed.max_width, track_length);
 				if (max_track_length > 0)
 					bar_box_content.x = Rocket::Core::Math::Min(max_track_length, bar_box_content.x);
 			}

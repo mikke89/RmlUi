@@ -216,7 +216,6 @@ void Element::Update()
 	{
 		using namespace Style;
 		const ComputedValues* parent_values = (parent ? &parent->GetComputedValues() : nullptr);
-		float ppi = GetRenderInterface()->GetPixelsPerInch();
 		float dp_ratio = 1.0f;
 		const ComputedValues* document_values = nullptr;
 		if (auto doc = GetOwnerDocument())
@@ -225,7 +224,7 @@ void Element::Update()
 			if (auto context = doc->GetContext())
 				dp_ratio = context->GetDensityIndependentPixelRatio();
 		}
-		style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default, dp_ratio, ppi);
+		style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default, dp_ratio);
 
 		computed_values_are_default = false;
 	}
@@ -621,9 +620,9 @@ const PropertyMap * Element::GetLocalProperties()
 }
 
 // Resolves one of this element's style.
-float Element::ResolveProperty(const Property *property, float base_value)
+float Element::ResolveLengthPercentage(const Property *property, float base_value)
 {
-	return style->ResolveProperty(property, base_value);
+	return style->ResolveLengthPercentage(property, base_value);
 }
 
 Vector2f Element::GetContainingBlock()
@@ -2132,23 +2131,23 @@ void Element::UpdateOffset()
 
 			// If the element is anchored left, then the position is offset by that resolved value.
 			if (computed.left.type != Left::Auto)
-				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (::Rocket::Core::ResolveProperty(computed.left, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
+				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (ResolveValue(computed.left, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
 
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
 			else if (computed.right.type != Right::Auto)
-				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (::Rocket::Core::ResolveProperty(computed.right, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
+				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (ResolveValue(computed.right, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
 
 			// If the element is anchored top, then the position is offset by that resolved value.
 			if (computed.top.type != Top::Auto)
-				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (::Rocket::Core::ResolveProperty(computed.top, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (ResolveValue(computed.top, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
 
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
 			else if (computed.bottom.type != Bottom::Auto)
-				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
+				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (ResolveValue(computed.bottom, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
 		}
 	}
 	else if (position_property == Position::Relative)
@@ -2159,16 +2158,16 @@ void Element::UpdateOffset()
 			Vector2f containing_block = parent_box.GetSize();
 
 			if (computed.left.type != Left::Auto)
-				relative_offset_position.x = ::Rocket::Core::ResolveProperty(computed.left, containing_block.x);
+				relative_offset_position.x = ResolveValue(computed.left, containing_block.x);
 			else if (computed.right.type != Right::Auto)
-				relative_offset_position.x = -1 * ::Rocket::Core::ResolveProperty(computed.right, containing_block.x);
+				relative_offset_position.x = -1 * ResolveValue(computed.right, containing_block.x);
 			else
 				relative_offset_position.x = 0;
 
 			if (computed.top.type != Top::Auto)
-				relative_offset_position.y = ::Rocket::Core::ResolveProperty(computed.top, containing_block.y);
+				relative_offset_position.y = ResolveValue(computed.top, containing_block.y);
 			else if (computed.bottom.type != Bottom::Auto)
-				relative_offset_position.y = -1 * ::Rocket::Core::ResolveProperty(computed.bottom, containing_block.y);
+				relative_offset_position.y = -1 * ResolveValue(computed.bottom, containing_block.y);
 			else
 				relative_offset_position.y = 0;
 		}

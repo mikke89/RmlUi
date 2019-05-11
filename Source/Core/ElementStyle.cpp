@@ -42,12 +42,13 @@
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "FontFaceHandle.h"
+#include "ComputeProperty.h"
 
 
 namespace Rocket {
 namespace Core {
 
-static const Style::ComputedValues DefaultComputedValues;
+const Style::ComputedValues DefaultComputedValues;
 
 
 ElementStyle::ElementStyle(Element* _element)
@@ -416,48 +417,8 @@ float ElementStyle::ResolveLength(const Property * property)
 		ROCKET_ERROR;
 		return 0.0f;
 	}
-
-	if (!(property->unit & Property::LENGTH))
-	{
-		ROCKET_ERRORMSG("Trying to resolve length on a non-length property.");
-		return 0.0f;
-	}
-
-	switch (property->unit)
-	{
-	case Property::NUMBER:
-	case Property::PX:
-		return property->value.Get< float >();
-	case Property::EM:
-		return property->value.Get< float >()* element->GetComputedValues().font_size;
-	case Property::REM:
-		return property->value.Get< float >()* element->GetOwnerDocument()->GetComputedValues().font_size;
-	case Property::DP:
-		return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
-	}
-
-	// Values based on pixels-per-inch.
-	if (property->unit & Property::PPI_UNIT)
-	{
-		float inch = property->value.Get< float >() * element->GetRenderInterface()->GetPixelsPerInch();
-
-		switch (property->unit)
-		{
-		case Property::INCH: // inch
-			return inch;
-		case Property::CM: // centimeter
-			return inch * (1.0f / 2.54f);
-		case Property::MM: // millimeter
-			return inch * (1.0f / 25.4f);
-		case Property::PT: // point
-			return inch * (1.0f / 72.0f);
-		case Property::PC: // pica
-			return inch * (1.0f / 6.0f);
-		}
-	}
-
-	// We're not a numeric property; return 0.
-	return 0.0f;
+	float result = ComputeLength(property, element->GetComputedValues().font_size, element->GetOwnerDocument()->GetComputedValues().font_size, ElementUtilities::GetDensityIndependentPixelRatio(element));
+	return result;
 }
 
 float ElementStyle::ResolveAngle(const Property * property)
@@ -527,57 +488,24 @@ float ElementStyle::ResolveNumericProperty(const Property * property, RelativeTa
 }
 
 // Resolves one of this element's properties.
-float ElementStyle::ResolveProperty(const Property* property, float base_value)
+float ElementStyle::ResolveLengthPercentage(const Property* property, float base_value)
 {
 	if (!property)
 	{
 		ROCKET_ERROR;
 		return 0.0f;
 	}
+	ROCKET_ASSERT(property->unit & Property::LENGTH_PERCENT);
 
-	switch (property->unit)
-	{
-		case Property::NUMBER:
-		case Property::PX:
-		case Property::RAD:
-			return property->value.Get< float >();
+	const float font_size = element->GetComputedValues().font_size;
+	const float doc_font_size = element->GetOwnerDocument()->GetComputedValues().font_size;
+	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
 
-		case Property::PERCENT:
-			return base_value * property->value.Get< float >() * 0.01f;
+	Style::LengthPercentage computed = ComputeLengthPercentage(property, font_size, doc_font_size, dp_ratio);
 
-		case Property::EM:
-			return property->value.Get< float >() * element->GetComputedValues().font_size;
-		case Property::REM:
-			return property->value.Get< float >() * element->GetOwnerDocument()->GetComputedValues().font_size;
-		case Property::DP:
-			return property->value.Get< float >() * ElementUtilities::GetDensityIndependentPixelRatio(element);
+	float result = ResolveValue(computed, base_value);
 
-		case Property::DEG:
-			return Math::DegreesToRadians(property->value.Get< float >());
-	}
-
-	// Values based on pixels-per-inch.
-	if (property->unit & Property::PPI_UNIT)
-	{
-		float inch = property->value.Get< float >() * element->GetRenderInterface()->GetPixelsPerInch();
-		
-		switch (property->unit)
-		{
-			case Property::INCH: // inch
-				return inch;
-			case Property::CM: // centimeter
-				return inch * (1.0f / 2.54f);
-			case Property::MM: // millimeter
-				return inch * (1.0f / 25.4f);
-			case Property::PT: // point
-				return inch * (1.0f / 72.0f);
-			case Property::PC: // pica
-				return inch * (1.0f / 6.0f);
-		}
-	}
-
-	// We're not a numeric property; return 0.
-	return 0.0f;
+	return result;
 }
 
 
@@ -842,244 +770,9 @@ void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 }
 
 
-static float ComputeLength(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
-{
-	// Note that percentages are not lengths! They have to be resolved elsewhere.
-	if (!property)
-	{
-		ROCKET_ERROR;
-		return 0.0f;
-	}
-
-	float value = property->value.Get<float>();
-
-	switch (property->unit)
-	{
-	case Property::NUMBER:
-	case Property::PX:
-	case Property::RAD:
-		return value;
-
-	case Property::EM:
-		return value * font_size;
-	case Property::REM:
-		return value * document_font_size;
-	case Property::DP:
-		return value * dp_ratio;
-
-	case Property::DEG:
-		return Math::DegreesToRadians(value);
-	default: 
-		break;
-	}
-
-	// Values based on pixels-per-inch.
-	if (property->unit & Property::PPI_UNIT)
-	{
-		float inch = value * pixels_per_inch;
-
-		switch (property->unit)
-		{
-		case Property::INCH: // inch
-			return inch;
-		case Property::CM: // centimeter
-			return inch * (1.0f / 2.54f);
-		case Property::MM: // millimeter
-			return inch * (1.0f / 25.4f);
-		case Property::PT: // point
-			return inch * (1.0f / 72.0f);
-		case Property::PC: // pica
-			return inch * (1.0f / 6.0f);
-		default:
-			break;
-		}
-	}
-
-	// We're not a numeric property; return 0.
-	return 0.0f;
-}
-
-
-
-
-static float ComputeAbsoluteLength(const Property& property, float dp_ratio, float pixels_per_inch)
-{
-	ROCKET_ASSERT(property.unit & Property::ABSOLUTE_LENGTH);
-
-	switch (property.unit)
-	{
-	case Property::PX:
-		return property.value.Get< float >();
-	case Property::DP:
-		return property.value.Get< float >()* dp_ratio;
-	default:
-		// Values based on pixels-per-inch.
-		if (property.unit & Property::PPI_UNIT)
-		{
-			float inch = property.value.Get< float >() * pixels_per_inch;
-
-			switch (property.unit)
-			{
-			case Property::INCH: // inch
-				return inch;
-			case Property::CM: // centimeter
-				return inch * (1.0f / 2.54f);
-			case Property::MM: // millimeter
-				return inch * (1.0f / 25.4f);
-			case Property::PT: // point
-				return inch * (1.0f / 72.0f);
-			case Property::PC: // pica
-				return inch * (1.0f / 6.0f);
-			}
-		}
-	}
-
-	ROCKET_ERROR;
-	return 0.0f;
-}
-
-
-
-// Resolves one of this element's properties.
-static float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, float pixels_per_inch)
-{
-	// The calculated value of the font-size property is inherited, so we need to check if this
-	// is an inherited property. If so, then we return our parent's font size instead.
-	if (property.unit & Property::RELATIVE_UNIT)
-	{
-		float multiplier = 1.0f;
-
-		switch (property.unit)
-		{
-		case Property::PERCENT:
-			multiplier = 0.01f;
-			[[fallthrough]];
-		case Property::EM:
-			if (!parent_values)
-				return 0;
-			return property.value.Get< float >() * multiplier * parent_values->font_size;
-
-		case Property::REM:
-			if (!document_values)
-				return 0;
-			// If the current element is a document, the rem unit is relative to the default size
-			if(&values == document_values)
-				return property.value.Get< float >() * DefaultComputedValues.font_size;
-			// Otherwise it is relative to the document font size
-			return property.value.Get< float >() * document_values->font_size;
-		default:
-			ROCKET_ERRORMSG("A relative unit must be percentage, em or rem.");
-		}
-	}
-
-	return ComputeAbsoluteLength(property, dp_ratio, pixels_per_inch);
-}
-
-
-static inline Style::Clip ComputeClip(const Property* property)
-{
-	int value = property->Get<int>();
-	if (property->unit == Property::KEYWORD)
-		return Style::Clip(value == CLIP_NONE ? Style::Clip::None : Style::Clip::Auto);
-	else if (property->unit == Property::NUMBER)
-		return Style::Clip(Style::Clip::Number, value);
-	ROCKET_ERRORMSG("Invalid clip type");
-	return Style::Clip();
-}
-
-static inline Style::LineHeight ComputeLineHeight(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
-{
-	if (property->unit & Property::LENGTH)
-	{
-		float value = ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch);
-		return Style::LineHeight(value, Style::LineHeight::Length, value);
-	}
-
-	float scale_factor = 1.0f;
-
-	switch (property->unit)
-	{
-	case Property::NUMBER:
-		scale_factor = property->value.Get< float >();
-		break;
-	case Property::PERCENT:
-		scale_factor = property->value.Get< float >() * 0.01f;
-		break;
-	default:
-		ROCKET_ERRORMSG("Invalid unit for line-height");
-	}
-
-	float value = font_size * scale_factor;
-	return Style::LineHeight(value, Style::LineHeight::Number, scale_factor);
-}
-
-
-static inline Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_height, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
-{
-	if (property->unit & Property::LENGTH)
-	{
-		float value = ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch);
-		return Style::VerticalAlign(value);
-	}
-	else if (property->unit & Property::PERCENT)
-	{
-		return Style::VerticalAlign(property->Get<float>() * line_height);
-	}
-
-	ROCKET_ASSERT(property->unit & Property::KEYWORD);
-	return Style::VerticalAlign((Style::VerticalAlign::Type)property->Get<int>());
-}
-
-static inline Style::LengthPercentage ComputeLengthPercentage(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
-{
-	using namespace Style;
-	if (property->unit & Property::PERCENT)
-		return LengthPercentage(LengthPercentage::Percentage, property->Get<float>());
-
-	return LengthPercentage(LengthPercentage::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
-}
-
-
-static inline Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
-{
-	using namespace Style;
-	// Assuming here that 'auto' is the only possible keyword
-	if (property->unit & Property::PERCENT)
-		return LengthPercentageAuto(LengthPercentageAuto::Percentage, property->Get<float>());
-	else if (property->unit & Property::KEYWORD)
-		return LengthPercentageAuto(LengthPercentageAuto::Auto);
-
-	return LengthPercentageAuto(LengthPercentageAuto::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
-}
-
-static inline Style::LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, float pixels_per_inch)
-{
-	using namespace Style;
-	static_assert((int)OriginX::Left == (int)OriginY::Top && (int)OriginX::Center == (int)OriginY::Center && (int)OriginX::Right == (int)OriginY::Bottom, "");
-
-	if (property->unit & Property::KEYWORD)
-	{
-		float percent = 0.0f;
-		OriginX origin = (OriginX)property->Get<int>();
-		switch (origin)
-		{
-		case OriginX::Left: percent = 0.0f; break;
-		case OriginX::Center: percent = 50.0f; break;
-		case OriginX::Right: percent = 100.f; break;
-		}
-		return LengthPercentage(LengthPercentage::Percentage, percent);
-	}
-	else if (property->unit & Property::PERCENT)
-		return LengthPercentage(LengthPercentage::Percentage, property->Get<float>());
-
-	return LengthPercentage(LengthPercentage::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, pixels_per_inch));
-}
-
-
-
 
 // Must be called in correct order, from document root to children elements.
-void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_defaulted, float dp_ratio, float pixels_per_inch)
+void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_defaulted, float dp_ratio)
 {
 	// Generally, this is how it works (for now, we can probably be smarter about this):
 	//   1. Assign default values (clears any newly dirtied properties)
@@ -1095,7 +788,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 
 	// Always do font-size first if dirty, because of em-relative values
 	if (auto p = GetLocalProperty(FONT_SIZE))
-		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, pixels_per_inch);
+		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio);
 	else if (parent_values)
 		values.font_size = parent_values->font_size;
 
@@ -1105,7 +798,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 	// Since vertical-align depends on line-height we compute this before iteration
 	if (auto p = GetLocalProperty(LINE_HEIGHT))
 	{
-		values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+		values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio);
 	}
 	else if (parent_values)
 	{
@@ -1157,31 +850,31 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		// @performance: Compare to the list of actually changed properties, skip if not inside it
 
 		if (name == MARGIN_TOP)
-			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == MARGIN_RIGHT)
-			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == MARGIN_BOTTOM)
-			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == MARGIN_LEFT)
-			values.margin_left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.margin_left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 
 		else if (name == PADDING_TOP)
-			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 		else if (name == PADDING_RIGHT)
-			values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 		else if (name == PADDING_BOTTOM)
-			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 		else if (name == PADDING_LEFT)
-			values.padding_left = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.padding_left = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 
 		else if (name == BORDER_TOP_WIDTH)
-			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
 		else if (name == BORDER_RIGHT_WIDTH)
-			values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
 		else if (name == BORDER_BOTTOM_WIDTH)
-			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
 		else if (name == BORDER_LEFT_WIDTH)
-			values.border_left_width = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.border_left_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
 
 		else if (name == BORDER_TOP_COLOR)
 			values.border_top_color = p->Get<Colourb>();
@@ -1198,13 +891,13 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.position = (Position)p->Get<int>();
 
 		else if (name == TOP)
-			values.top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == RIGHT)
-			values.right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == BOTTOM)
-			values.bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == LEFT)
-			values.left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 
 		else if (name == FLOAT)
 			values.float_ = (Float)p->Get<int>();
@@ -1215,22 +908,22 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.z_index = (p->unit == Property::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>()));
 
 		else if (name == WIDTH)
-			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == MIN_WIDTH)
-			values.min_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.min_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 		else if (name == MAX_WIDTH)
-			values.max_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.max_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 
 		else if (name == HEIGHT)
-			values.height = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.height = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
 		else if (name == MIN_HEIGHT)
-			values.min_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.min_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 		else if (name == MAX_HEIGHT)
-			values.max_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.max_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
 
 		// (Line-height computed above)
 		else if (name == VERTICAL_ALIGN)
-			values.vertical_align = ComputeVerticalAlign(p, values.line_height.value, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.vertical_align = ComputeVerticalAlign(p, values.line_height.value, font_size, document_font_size, dp_ratio);
 
 		else if (name == OVERFLOW_X)
 			values.overflow_x = (Overflow)p->Get< int >();
@@ -1279,25 +972,25 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 		else if (name == FOCUS)
 			values.focus = (Focus)p->Get<int>();
 		else if (name == SCROLLBAR_MARGIN)
-			values.scrollbar_margin = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.scrollbar_margin = ComputeLength(p, font_size, document_font_size, dp_ratio);
 		else if (name == POINTER_EVENTS)
 			values.pointer_events = (PointerEvents)p->Get<int>();
 
 		else if (name == PERSPECTIVE)
-			values.perspective = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.perspective = ComputeLength(p, font_size, document_font_size, dp_ratio);
 		else if (name == PERSPECTIVE_ORIGIN_X)
-			values.perspective_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.perspective_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
 		else if (name == PERSPECTIVE_ORIGIN_Y)
-			values.perspective_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.perspective_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
 
 		else if (name == TRANSFORM)
 			values.transform = p->Get<TransformRef>();
 		else if(name == TRANSFORM_ORIGIN_X)
-			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
 		else if (name == TRANSFORM_ORIGIN_Y)
-			values.transform_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.transform_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
 		else if (name == TRANSFORM_ORIGIN_Z)
-			values.transform_origin_z = ComputeLength(p, font_size, document_font_size, dp_ratio, pixels_per_inch);
+			values.transform_origin_z = ComputeLength(p, font_size, document_font_size, dp_ratio);
 
 		else if (name == TRANSITION)
 			values.transition = p->Get<TransitionList>();

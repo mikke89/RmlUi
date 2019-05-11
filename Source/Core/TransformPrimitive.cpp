@@ -84,31 +84,31 @@ NumericValue::NumericValue(float number, Property::Unit unit) noexcept
 {
 }
 
-float NumericValue::Resolve(Element& e, float base) const noexcept
+float NumericValue::ResolveLengthPercentage(Element& e, float base) const noexcept
 {
 	Property prop;
 	prop.value = Variant(number);
 	prop.unit = unit;
-	return e.ResolveProperty(&prop, base);
+	return e.ResolveLengthPercentage(&prop, base);
 }
 
 float NumericValue::ResolveWidth(Element& e) const noexcept
 {
 	if(unit & (Property::PX | Property::NUMBER)) return number;
-	return Resolve(e, e.GetBox().GetSize(Box::BORDER).x);
+	return ResolveLengthPercentage(e, e.GetBox().GetSize(Box::BORDER).x);
 }
 
 float NumericValue::ResolveHeight(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
-	return Resolve(e, e.GetBox().GetSize(Box::BORDER).y);
+	return ResolveLengthPercentage(e, e.GetBox().GetSize(Box::BORDER).y);
 }
 
 float NumericValue::ResolveDepth(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
 	Vector2f size = e.GetBox().GetSize(Box::BORDER);
-	return Resolve(e, Math::Max(size.x, size.y));
+	return ResolveLengthPercentage(e, Math::Max(size.x, size.y));
 }
 
 float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept

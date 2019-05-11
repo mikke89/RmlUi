@@ -126,13 +126,13 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 	const ComputedValues& computed = element->GetComputedValues();
 
 	// Calculate the padding area.
-	float padding = ResolveProperty(computed.padding_top, containing_block.x);
+	float padding = ResolveValue(computed.padding_top, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::TOP, Math::Max(0.0f, padding));
-	padding = ResolveProperty(computed.padding_right, containing_block.x);
+	padding = ResolveValue(computed.padding_right, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::RIGHT, Math::Max(0.0f, padding));
-	padding = ResolveProperty(computed.padding_bottom, containing_block.x);
+	padding = ResolveValue(computed.padding_bottom, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::BOTTOM, Math::Max(0.0f, padding));
-	padding = ResolveProperty(computed.padding_left, containing_block.x);
+	padding = ResolveValue(computed.padding_left, containing_block.x);
 	box.SetEdge(Box::PADDING, Box::LEFT, Math::Max(0.0f, padding));
 
 	// Calculate the border area.
@@ -158,12 +158,12 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		bool auto_width = false, auto_height = false;
 
 		if (computed.width.type != Style::Width::Auto)
-			content_area.x = ResolveProperty(computed.width, containing_block.x);
+			content_area.x = ResolveValue(computed.width, containing_block.x);
 		else
 			auto_width = true;
 
 		if (computed.height.type != Style::Height::Auto)
-			content_area.y = ResolveProperty(computed.height, containing_block.y);
+			content_area.y = ResolveValue(computed.height, containing_block.y);
 		else
 			auto_height = true;
 
@@ -202,10 +202,10 @@ void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element*
 		box.SetContent(content_area);
 
 		// Evaluate the margins. Any declared as 'auto' will resolve to 0.
-		box.SetEdge(Box::MARGIN, Box::TOP, ResolveProperty(computed.margin_top, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::RIGHT, ResolveProperty(computed.margin_right, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::BOTTOM, ResolveProperty(computed.margin_bottom, containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::LEFT, ResolveProperty(computed.margin_left, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::TOP, ResolveValue(computed.margin_top, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::RIGHT, ResolveValue(computed.margin_right, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::BOTTOM, ResolveValue(computed.margin_bottom, containing_block.x));
+		box.SetEdge(Box::MARGIN, Box::LEFT, ResolveValue(computed.margin_left, containing_block.x));
 	}
 
 	// The element is block, so we need to run the box through the ringer to potentially evaluate auto margins and
@@ -228,8 +228,8 @@ void LayoutEngine::BuildBox(Box& box, float& min_height, float& max_height, Layo
 	if (box_height < 0)
 	{
 		auto& computed = element->GetComputedValues();
-		min_height = ResolveProperty(computed.min_height, containing_block.y);
-		max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveProperty(computed.max_height, containing_block.y));
+		min_height = ResolveValue(computed.min_height, containing_block.y);
+		max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveValue(computed.max_height, containing_block.y));
 	}
 	else
 	{
@@ -241,8 +241,8 @@ void LayoutEngine::BuildBox(Box& box, float& min_height, float& max_height, Layo
 // Clamps the width of an element based from its min-width and max-width properties.
 float LayoutEngine::ClampWidth(float width, const ComputedValues& computed, float containing_block_width)
 {
-	float min_width = ResolveProperty(computed.min_width, containing_block_width);
-	float max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveProperty(computed.max_width, containing_block_width));
+	float min_width = ResolveValue(computed.min_width, containing_block_width);
+	float max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveValue(computed.max_width, containing_block_width));
 
 	return Math::Clamp(width, min_width, max_width);
 }
@@ -250,8 +250,8 @@ float LayoutEngine::ClampWidth(float width, const ComputedValues& computed, floa
 // Clamps the height of an element based from its min-height and max-height properties.
 float LayoutEngine::ClampHeight(float height, const ComputedValues& computed, float containing_block_height)
 {
-	float min_height = ResolveProperty(computed.min_height, containing_block_height);
-	float max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveProperty(computed.max_height, containing_block_height));
+	float min_height = ResolveValue(computed.min_height, containing_block_height);
+	float max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveValue(computed.max_height, containing_block_height));
 
 	return Math::Clamp(height, min_height, max_height);
 }
@@ -464,7 +464,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float
 		else
 		{
 			width_auto = false;
-			content_area.x = ResolveProperty(computed.width, containing_block_width);
+			content_area.x = ResolveValue(computed.width, containing_block_width);
 		}
 	}
 
@@ -483,7 +483,7 @@ void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, ResolveProperty(*margin_value, containing_block_width));
+			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, ResolveValue(*margin_value, containing_block_width));
 		}
 	}
 
@@ -496,9 +496,9 @@ void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float
 		if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
 		{
 			if (computed.left.type != Style::Left::Auto)
-				left = ResolveProperty(computed.left, containing_block_width );
+				left = ResolveValue(computed.left, containing_block_width );
 			if (computed.right.type != Style::Right::Auto)
-				right = ResolveProperty(computed.right, containing_block_width);
+				right = ResolveValue(computed.right, containing_block_width);
 		}
 
 		// We resolve any auto margins to 0 and the width is set to whatever is left of the containing block.
@@ -569,7 +569,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, floa
 		else
 		{
 			height_auto = false;
-			content_area.y = ResolveProperty(computed.height, containing_block_height);
+			content_area.y = ResolveValue(computed.height, containing_block_height);
 		}
 	}
 
@@ -588,7 +588,7 @@ void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, floa
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, ResolveProperty(*margin_value, containing_block_height));
+			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, ResolveValue(*margin_value, containing_block_height));
 		}
 	}
 
@@ -612,8 +612,8 @@ void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, floa
 
 			if (computed.top.type != Style::Top::Auto && computed.bottom.type != Style::Bottom::Auto)
 			{
-				top = ResolveProperty(computed.top, containing_block_height );
-				bottom = ResolveProperty(computed.bottom, containing_block_height );
+				top = ResolveValue(computed.top, containing_block_height );
+				bottom = ResolveValue(computed.bottom, containing_block_height );
 
 				// The height gets resolved to whatever is left of the containing block
 				content_area.y = containing_block_height - (top +
