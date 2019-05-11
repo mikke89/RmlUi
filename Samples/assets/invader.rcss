@@ -199,7 +199,7 @@ datagrid input.text
 	width: 100%;
 	height: auto;
 	margin: 0px;
-	padding: 0px 2px 0px;
+	padding: 0 5px;
 
 	border-width: 1px;
 	border-color: black;

@@ -44,7 +44,7 @@ ElementDataGrid::ElementDataGrid(const Rocket::Core::String& tag) : Core::Elemen
 	Rocket::Core::XMLAttributes attributes;
 
 	// Create the row for the column headers:
-	header = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridheader", attributes));
+	header = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridheader", attributes));
 	header->SetProperty("display", Core::Property(Core::Style::Display::Block));
 	header->Initialise(this);
 	AppendChild(header);
@@ -58,7 +58,7 @@ ElementDataGrid::ElementDataGrid(const Rocket::Core::String& tag) : Core::Elemen
 
 	body_visible = false;
 
-	root = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridroot", attributes));
+	root = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridroot", attributes));
 	root->SetProperty("display", Core::Property(Core::Style::Display::None));
 	root->Initialise(this);
 

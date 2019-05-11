@@ -123,19 +123,20 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 	// warning message.
 	else if (value == "bad_graphics")
 	{
-		Rocket::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
+		using namespace Rocket::Core;
+		ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
 		if (options_body == NULL)
 			return;
 
-		Rocket::Core::Element* bad_warning = options_body->GetElementById("bad_warning");
+		Element* bad_warning = options_body->GetElementById("bad_warning");
 		if (bad_warning)
 		{
 			// The 'value' parameter of an onchange event is set to the value the control would send if it was
 			// submitted; so, the empty string if it is clear or to the 'value' attribute of the control if it is set.
-			if (event.GetParameter< Rocket::Core::String >("value", "").empty())
-				bad_warning->SetProperty("display", "none");
+			if (event.GetParameter< String >("value", "").empty())
+				bad_warning->SetProperty("display", Property(Style::Display::None));
 			else
-				bad_warning->SetProperty("display", "block");
+				bad_warning->SetProperty("display", Property(Style::Display::Block));
 		}
 	}
 }

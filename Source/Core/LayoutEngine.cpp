@@ -83,8 +83,7 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 
 	if (shrink_to_fit)
 	{
-		// For inline blocks, we want to shrink the box back to its inner content width, recreating the LayoutBlockBox.
-		// There is an issue where resize events are not propagated correctly, which affects e.g. DataGridCells.
+		// For inline blocks with 'auto' width, we want to shrink the box back to its inner content width, recreating the LayoutBlockBox.
 		float content_width = block_box->InternalContentWidth();
 
 		if (content_width < containing_block.x)
@@ -393,7 +392,8 @@ bool LayoutEngine::FormatElementReplaced(Element* element)
 	Vector2f containing_block_size = GetContainingBlock(block_context_box);
 
 	LayoutEngine layout_engine;
-	layout_engine.FormatElement(element, containing_block_size, true);
+	bool shrink_to_width = element->GetComputedValues().width.type == Style::Width::Auto;
+	layout_engine.FormatElement(element, containing_block_size, shrink_to_width);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
 

@@ -49,10 +49,7 @@ public:
 
 	void Initialise(int column, Core::Element* header);
 	int GetColumn();
-
-protected:
-	virtual void OnResize() override;
-
+	
 private:
 	int column;
 	Core::Element* header;

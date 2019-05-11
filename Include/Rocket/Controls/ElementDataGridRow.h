@@ -66,8 +66,7 @@ public:
 	/// Returns the number of children that aren't dirty (have been loaded)
 	int GetNumLoadedChildren();
 
-	// Removes all the child cells and fetches them again from the data
-	// source.
+	/// Removes all the child cells and fetches them again from the data source.
 	void RefreshRows();
 
 	/// Returns whether this row is expanded or not.

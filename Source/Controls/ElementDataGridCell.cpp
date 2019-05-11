@@ -51,18 +51,14 @@ void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
 	if (header)
 	{
 		header->AddReference();
-		SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
+		if(auto p = header->GetLocalProperty("width"))
+			SetProperty("width", *p);
 	}
 }
 
 int ElementDataGridCell::GetColumn()
 {
 	return column;
-}
-
-void ElementDataGridCell::OnResize()
-{
-	SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
 }
 
 }
