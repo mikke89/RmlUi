@@ -22,13 +22,14 @@
 				margin-bottom: 20px;
 			}
 			
-			datagrid data_grid_body
+			datagrid datagridbody
 			{
 				min-height: 200px;
 			}
 			datagrid datagridrow
 			{
-				padding: 7px 0;
+				padding-top: 7px;
+				padding-bottom: 7px;
 			}
 			defender
 			{

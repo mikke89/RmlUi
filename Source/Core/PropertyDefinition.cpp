@@ -66,13 +66,18 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 			new_parser.parameters[parameter_list[i]] = (int) i;
 	}
 
+	const int parser_index = (int)parsers.size();
 	parsers.push_back(new_parser);
 
 	// If the default value has not been parsed successfully yet, run it through the new parser.
 	if (default_value.unit == Property::UNKNOWN)
 	{
 		String unparsed_value = default_value.value.Get< String >();
-		if (!new_parser.parser->ParseValue(default_value, unparsed_value, new_parser.parameters))
+		if (new_parser.parser->ParseValue(default_value, unparsed_value, new_parser.parameters))
+		{
+			default_value.parser_index = parser_index;
+		}
+		else
 		{
 			default_value.value.Reset(unparsed_value);
 			default_value.unit = Property::UNKNOWN;
@@ -108,11 +113,26 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 	{
 		case Property::KEYWORD:
 		{
-			if (property.parser_index < 0 || property.parser_index >= (int) parsers.size())
-				return false;
+			int parser_index = property.parser_index;
+			if (parser_index < 0 || parser_index >= (int)parsers.size())
+			{
+				// Look for the keyword parser in the property's list of parsers
+				const auto* keyword_parser = StyleSheetSpecification::GetParser("keyword");
+				for(int i = 0; i < (int)parsers.size(); i++)
+				{
+					if (parsers[i].parser == keyword_parser)
+					{
+						parser_index = i;
+						break;
+					}
+				}
+				// If we couldn't find it, exit now
+				if (parser_index < 0 || parser_index >= (int)parsers.size())
+					return false;
+			}
 
 			int keyword = property.value.Get< int >();
-			for (ParameterMap::const_iterator i = parsers[property.parser_index].parameters.begin(); i != parsers[property.parser_index].parameters.end(); ++i)
+			for (ParameterMap::const_iterator i = parsers[parser_index].parameters.begin(); i != parsers[parser_index].parameters.end(); ++i)
 			{
 				if ((*i).second == keyword)
 				{

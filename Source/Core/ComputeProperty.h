@@ -51,6 +51,8 @@ Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property
 
 Style::LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio);
 
+extern const Style::ComputedValues DefaultComputedValues;
+
 }
 }
 
