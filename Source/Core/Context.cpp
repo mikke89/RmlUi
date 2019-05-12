@@ -65,7 +65,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	document_focus_history.push_back(root);
 	focus = root;
 
-	enable_cursor = false;
+	enable_cursor = true;
 
 	drag_started = false;
 	drag_verbose = false;
@@ -370,12 +370,6 @@ void Context::UnloadAllDocuments()
 // Enables or disables the mouse cursor.
 void Context::EnableMouseCursor(bool enable)
 {
-	for (int i = 0; i < GetNumContexts(); i++)
-	{
-		if (Context * other_context = GetContext(i))
-			other_context->enable_cursor = false;
-	}
-
 	// The cursor is set to an invalid name so that it is forced to update in the next update loop.
 	cursor_name = ":reset:";
 	enable_cursor = enable;
@@ -948,7 +942,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	{
 		String new_cursor_name;
 
-		if (hover && hover->GetProperty(CURSOR)->unit != Property::KEYWORD)
+		if (hover)
 			new_cursor_name = hover->GetProperty< String >(CURSOR);
 
 		if(new_cursor_name != cursor_name)

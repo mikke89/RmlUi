@@ -120,8 +120,8 @@ public:
 	/// Unloads all loaded documents.
 	void UnloadAllDocuments();
 
-	/// Enable or disable handling of the mouse cursor from this context. If enabled, this will disable
-	/// cursor handling in all other contexts.
+	/// Enable or disable handling of the mouse cursor from this context.
+	/// When enabled, changes to the cursor name is transmitted through the system interface.
 	/// @param[in] show True to enable mouse cursor handling, false to disable.
 	void EnableMouseCursor(bool enable);
 

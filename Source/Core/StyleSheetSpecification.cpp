@@ -263,7 +263,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(TEXT_TRANSFORM, "none", true, true).AddParser("keyword", "none, capitalize, uppercase, lowercase");
 	RegisterProperty(WHITE_SPACE, "normal", true, true).AddParser("keyword", "normal, pre, nowrap, pre-wrap, pre-line");
 
-	RegisterProperty(CURSOR, "auto", true, false).AddParser("keyword", "auto").AddParser("string");
+	RegisterProperty(CURSOR, "", true, false).AddParser("string");
 
 	// Functional property specifications.
 	RegisterProperty(DRAG, "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
