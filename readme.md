@@ -250,6 +250,7 @@ The slider on the `input.range` element can be dragged from anywhere in the elem
 
 ## License (MIT)
  
+ Copyright (c) 2019 The RmlUi Team, and contributors\
  Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -269,4 +270,3 @@ The slider on the `input.range` element can be dragged from anywhere in the elem
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
-
