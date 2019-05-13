@@ -62,29 +62,23 @@ public:
 	void ProcessHeader(const DocumentHeader* header);
 
 	/// Returns itself as the current document
-	virtual ElementDocument* GetOwnerDocument();
+	ElementDocument* GetOwnerDocument() override;
 
 	/// Returns the document's context.
-	/// @return The context this document exists within.
 	Context* GetContext();
 
 	/// Sets the document's title.
-	/// @param[in] title The new title of the document.
 	void SetTitle(const String& title);
 	/// Returns the title of this document.
-	/// @return The document's title.
 	const String& GetTitle() const;
 
 	/// Returns the source address of this document.
-	/// @return The source of this document, usually a file name.
 	const String& GetSourceURL() const;
 
 	/// Sets the style sheet this document, and all of its children, uses.
-	/// @param[in] style_sheet The style sheet to set on the document.
 	void SetStyleSheet(StyleSheet* style_sheet);
 	/// Returns the document's style sheet.
-	/// @return The document's style sheet.
-	virtual StyleSheet* GetStyleSheet() const;
+	StyleSheet* GetStyleSheet() const override;
 
 	/// Brings the document to the front of the document stack.
 	void PullToFront();
@@ -133,19 +127,10 @@ public:
 	
 protected:
 	/// Repositions the document if necessary.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
-
-	/// Sets the dirty flag on the layout so the document will format its children before the next render.
-	virtual void DirtyLayout();
-
-	/// Returns true if the document has been marked as needing a re-layout.
-	virtual bool IsLayoutDirty();
-
-	/// Updates all sizes defined by the 'lp' unit.
-	virtual void DirtyDpProperties();
+	virtual void OnPropertyChange(const PropertyNameList& changed_properties) override;
 
 	/// Processes the 'onpropertychange' event, checking for a change in position or size.
-	virtual void ProcessEvent(Event& event);
+	virtual void ProcessEvent(Event& event) override;
 
 	/// Called during update if the element size has been changed.
 	virtual void OnResize() override;
@@ -155,6 +140,15 @@ private:
 	bool FocusNextTabElement(Element* current_element, bool forward);
 	/// Searches forwards or backwards for a focusable element in the given substree
 	bool SearchFocusSubtree(Element* element, bool forward);
+
+	/// Sets the dirty flag on the layout so the document will format its children before the next render.
+	void DirtyLayout() override;
+
+	/// Returns true if the document has been marked as needing a re-layout.
+	bool IsLayoutDirty() override;
+
+	/// Updates all sizes defined by the 'lp' unit.
+	void DirtyDpProperties();
 
 	/// Updates the layout if necessary.
 	void UpdateLayout();
