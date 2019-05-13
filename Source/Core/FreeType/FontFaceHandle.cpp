@@ -239,6 +239,9 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 		const word* string_iterator = string.c_str();
 		const word* string_end = string.c_str() + string.size();
 
+		geometry[geometry_index].GetIndices().reserve(string.size() * 6);
+		geometry[geometry_index].GetVertices().reserve(string.size() * 4);
+
 		for (; string_iterator != string_end; string_iterator++)
 		{
 			if (*string_iterator >= glyphs.size())

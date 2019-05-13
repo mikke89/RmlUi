@@ -142,7 +142,7 @@ public:
 	void DirtyDpProperties();
 
 	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
-	/// Must be called in correct order, from document root to children elements.
+	/// Must be called in correct order, always parent before its children.
 	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
 
 private:

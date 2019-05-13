@@ -270,8 +270,7 @@ void ElementTextDefault::AddLine(const Vector2f& line_position, const WString& l
 	Vector2f baseline_position = line_position + Vector2f(0.0f, (float) font_face_handle->GetLineHeight() - font_face_handle->GetBaseline());
 	lines.push_back(Line(line, baseline_position));
 
-	GenerateGeometry(font_face_handle, lines.back());
-	geometry_dirty = false;
+	geometry_dirty = true;
 
 	if (decoration_property != TEXT_DECORATION_NONE)
 		GenerateDecoration(font_face_handle, lines.back());
@@ -401,20 +400,20 @@ bool ElementTextDefault::UpdateFontConfiguration()
 }
 
 // Clears and regenerates all of the text's geometry.
-void ElementTextDefault::GenerateGeometry(FontFaceHandle* font_face_handle)
+void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle)
 {
 	// Release the old geometry ...
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].Release(true);
 
-	/// ... and generate it all again!
+	// ... and generate it all again!
 	for (size_t i = 0; i < lines.size(); ++i)
 		GenerateGeometry(font_face_handle, lines[i]);
 
 	geometry_dirty = false;
 }
 
-void ElementTextDefault::GenerateGeometry(FontFaceHandle* font_face_handle, Line& line)
+void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle, Line& line)
 {
 	line.width = font_face_handle->GenerateString(geometry, line.text, line.position, colour, font_configuration);
 	for (size_t i = 0; i < geometry.size(); ++i)
@@ -422,7 +421,7 @@ void ElementTextDefault::GenerateGeometry(FontFaceHandle* font_face_handle, Line
 }
 
 // Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-void ElementTextDefault::GenerateDecoration(FontFaceHandle* font_face_handle, const Line& line)
+void ElementTextDefault::GenerateDecoration(const FontFaceHandle* font_face_handle, const Line& line)
 {
 	Font::Line line_height;
 	if (decoration_property == TEXT_DECORATION_OVERLINE)

@@ -105,11 +105,11 @@ private:
 	};
 
 	// Clears and regenerates all of the text's geometry.
-	void GenerateGeometry(FontFaceHandle* font_face_handle);
+	void GenerateGeometry(const FontFaceHandle* font_face_handle);
 	// Generates the geometry for a single line of text.
-	void GenerateGeometry(FontFaceHandle* font_face_handle, Line& line);
+	void GenerateGeometry(const FontFaceHandle* font_face_handle, Line& line);
 	// Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-	void GenerateDecoration(FontFaceHandle* font_face_handle, const Line& line);
+	void GenerateDecoration(const FontFaceHandle* font_face_handle, const Line& line);
 
 	WString text;
 
