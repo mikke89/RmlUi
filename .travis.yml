@@ -29,6 +29,7 @@ matrix:
             - libfreetype6-dev
             - libglew-dev
             - liblua5.2-dev
+            - libsfml-dev
     - os: linux
       language: c++
       compiler: gcc
@@ -48,6 +49,7 @@ matrix:
             - libfreetype6-dev
             - libglew-dev
             - liblua5.2-dev
+            - libsfml-dev
 
 before_install:
   - if [[ -n "${MATRIX_EVAL}" ]]; then eval "${MATRIX_EVAL}" ; fi
