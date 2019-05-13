@@ -36,7 +36,7 @@
 namespace Rocket {
 namespace Controls {
 
-static const float MAX_UPDATE_TIME = 0.01f;
+static const float MAX_UPDATE_TIME = 0.001f;
 
 ElementDataGridRow::ElementDataGridRow(const Rocket::Core::String& tag) : Core::Element(tag)
 {
@@ -336,6 +336,9 @@ void ElementDataGridRow::RefreshChildDependentCells()
 // Called whenever a row is added or removed above ours.
 void ElementDataGridRow::DirtyTableRelativeIndex()
 {
+	if (table_relative_index_dirty)
+		return;
+
 	for (size_t i = 0; i < children.size(); i++)
 	{
 		children[i]->DirtyTableRelativeIndex();
@@ -492,19 +495,24 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 			// XML string, and parse that into the actual Core::Elements. If there is
 			// no formatter, then we just send through the raw text, in CVS form.
 			Rocket::Core::StringList raw_data;
+			raw_data.reserve(column->fields.size());
+			size_t raw_data_total_len = 0;
 			for (size_t i = 0; i < column->fields.size(); i++)
 			{
 				if (column->fields[i] == DataSource::DEPTH)
 				{
 					raw_data.push_back(Rocket::Core::CreateString(8, "%d", depth));
+					raw_data_total_len += raw_data.back().length();
 				}
 				else if (column->fields[i] == DataSource::NUM_CHILDREN)
 				{
 					raw_data.push_back(Rocket::Core::CreateString(8, "%d", children.size()));
+					raw_data_total_len += raw_data.back().length();
 				}
 				else
 				{
 					raw_data.push_back(row_information.Get< Rocket::Core::String >(column->fields[i], ""));
+					raw_data_total_len += raw_data.back().length();
 				}
 			}
 
@@ -515,6 +523,7 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 			}
 			else
 			{
+				cell_string.reserve(raw_data_total_len + raw_data.size() + 1);
 				for (size_t i = 0; i < raw_data.size(); i++)
 				{
 					if (i > 0)
