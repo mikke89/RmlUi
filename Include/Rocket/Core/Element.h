@@ -606,11 +606,11 @@ protected:
 	void DirtyProperties(const PropertyNameList& changed_properties);
 	void UpdateDirtyProperties();
 
-	/// Called when a child node has been added somewhere in the hierarchy.
-	// @param[in] child The element that has been added. This may be this element.
+	/// Called when a child node has been added up to two levels below us in the hierarchy.
+	/// @param[in] child The element that has been added. This may be this element.
 	virtual void OnChildAdd(Element* child);
-	/// Called when a child node has been removed somewhere in the hierarchy.
-	// @param[in] child The element that has been removed. This may be this element.
+	/// Called when a child node has been removed up to two levels below us in the hierarchy.
+	/// @param[in] child The element that has been removed. This may be this element.
 	virtual void OnChildRemove(Element* child);
 
 	/// Forces a re-layout of this element, and any other elements required.

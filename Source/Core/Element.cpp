@@ -78,6 +78,9 @@ public:
 	}
 };
 
+// Determines how many levels up in the hierarchy the OnChildAdd and OnChildRemove are called (starting at the child itself)
+static constexpr int ChildNotifyLevels = 2;
+
 
 struct ElementMetaChunk;
 static Pool< ElementMetaChunk > element_meta_chunk_pool(200, true);
@@ -176,7 +179,10 @@ Element::~Element()
 	{
 		// A simplified version of RemoveChild() for destruction.
 		Element* child = children.front();
-		child->OnChildRemove(child);
+
+		Element* ancestor = child;
+		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
+			ancestor->OnChildRemove(child);
 
 		if (num_non_dom_children > 0)
 			num_non_dom_children--;
@@ -1350,7 +1356,10 @@ void Element::AppendChild(Element* child, bool dom_element)
 	child->GetStyle()->DirtyDefinition();
 	all_properties_dirty = true;
 
-	child->OnChildAdd(child);
+	Element* ancestor = child;
+	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
+		ancestor->OnChildAdd(child);
+
 	DirtyStackingContext();
 	DirtyStructure();
 
@@ -1394,7 +1403,10 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 		child->GetStyle()->DirtyDefinition();
 		all_properties_dirty = true;
 
-		child->OnChildAdd(child);
+		Element* ancestor = child;
+		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
+			ancestor->OnChildAdd(child);
+
 		DirtyStackingContext();
 		DirtyStructure();
 	}
@@ -1427,7 +1439,10 @@ bool Element::ReplaceChild(Element* inserted_element, Element* replaced_element)
 
 	inserted_element->GetStyle()->DirtyDefinition();
 	all_properties_dirty = true;
-	inserted_element->OnChildAdd(inserted_element);
+
+	Element* ancestor = inserted_element;
+	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
+		ancestor->OnChildAdd(inserted_element);
 
 	return true;
 }
@@ -1447,7 +1462,9 @@ bool Element::RemoveChild(Element* child)
 			if (context)
 				context->OnElementRemove(child);
 
-			child->OnChildRemove(child);
+			Element* ancestor = child;
+			for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
+				ancestor->OnChildRemove(child);
 
 			if (child_index >= children.size() - num_non_dom_children)
 				num_non_dom_children--;
@@ -1921,15 +1938,11 @@ void Element::UpdateDirtyProperties()
 // Called when a child node has been added somewhere in the hierarchy
 void Element::OnChildAdd(Element* child)
 {
-	if (parent)
-		parent->OnChildAdd(child);
 }
 
 // Called when a child node has been removed somewhere in the hierarchy
 void Element::OnChildRemove(Element* child)
 {
-	if (parent)
-		parent->OnChildRemove(child);
 }
 
 // Forces a re-layout of this element, and any other children required.
