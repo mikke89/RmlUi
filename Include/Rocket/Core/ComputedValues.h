@@ -168,7 +168,7 @@ struct ComputedValues
 	Colourb image_color = Colourb(255, 255, 255);
 	float opacity = 1;
 
-	String font_family;
+	SharedString font_family;
 	String font_charset; // empty is same as "U+0020-007E"
 	FontStyle font_style = FontStyle::Normal;
 	FontWeight font_weight = FontWeight::Normal;

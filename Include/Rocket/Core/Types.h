@@ -110,10 +110,11 @@ using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
 template < typename Key, typename Value>
 using SmallUnorderedMap = chobo::flat_map< Key, Value >;
 template < typename T >
+using SmallOrderedSet = chobo::flat_set< T >;
+template < typename T >
 using SmallUnorderedSet = chobo::flat_set< T >;
-// Note: Strictly speaking, the chobo maps are ordered, but we may want to replace
-// them with unordered containers later. If we really need an ordered container 
-// for some type, we should create an alias.
+// Note: Right now ordered and unordered set use the same container, but we may
+// want to change this later so use ordered when a sorted container is needed.
 
 // Container types for some common lists
 typedef std::vector< Element* > ElementList;
