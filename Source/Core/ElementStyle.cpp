@@ -916,7 +916,7 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 			values.opacity = p->Get<float>();
 
 		else if (name == FONT_FAMILY)
-			values.font_family = std::make_shared<String>(ToLower(p->Get<String>()));
+			values.font_family = ToLower(p->Get<String>());
 		else if (name == FONT_CHARSET)
 			values.font_charset = p->Get<String>();
 		else if (name == FONT_STYLE)
