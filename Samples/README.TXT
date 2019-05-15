@@ -29,7 +29,6 @@ Directory Overview:
                 installing custom interfaces.
 
                   * customlog    - setting up custom logging
-                  * directx      - using DirectX 9 as a renderer
                   * directx10    - using DirectX 10 as a renderer
                   * drag         - dragging elements between containers
                   * loaddocument - loading your first document
