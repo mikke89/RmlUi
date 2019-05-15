@@ -8,7 +8,7 @@ srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Samples
 samples=( 'shell'
 	'basic/customlog' 'basic/drag' 'basic/loaddocument' 'basic/treeview' 'basic/transform'
-	'basic/sdl2' 'basic/sfml' 'basic/sfml2'
+	'basic/sdl2' 'basic/sfml2'
 	'basic/directx10'
 	'tutorial/template' 'tutorial/datagrid' 'tutorial/datagrid_tree' 'tutorial/tutorial_drag'
 	'invaders' 'luainvaders'

@@ -559,25 +559,6 @@ endif(NOT BUILD_FRAMEWORK)
     endif()
 
 
-	message("-- Can SFML 1.x sample be built")
-	find_package(SFML 1 COMPONENTS graphics window system)
-	if(NOT SFML_FOUND)
-		message("-- Can SFML 1.x sample be built - no")
-	elseif(SFML_VERSION_MAJOR GREATER 1)
-		message("-- Can SFML 1.x sample be built - no: Version 2 detected")
-	else()
-		message("-- Can SFML 1.x sample be built - yes")
-
-		include_directories(${SFML_INCLUDE_DIR})
-
-		bl_sample(sfml ${sample_LIBRARIES} ${SFML_LIBRARIES})
-			# The samples always set this as their current working directory
-			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml)
-			install(TARGETS sfml
-				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml
-				BUNDLE DESTINATION ${SAMPLES_DIR})
-	endif()
-
 	message("-- Can SFML 2.x sample be built")
 	if (WIN32)
 		find_package(SFML 2 COMPONENTS graphics window system main)
@@ -588,7 +569,7 @@ endif(NOT BUILD_FRAMEWORK)
 		message("-- Can SFML 2.x sample be built - no")
 	else()
 		find_package(GLEW)
-                if(GLEW_FOUND)
+		if(GLEW_FOUND)
 			message("-- Can SFML 2.x sample be built - yes: with GLEW")
 			include_directories(${SFML_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 			add_definitions( -DENABLE_GLEW )

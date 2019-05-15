@@ -24,7 +24,6 @@ drag
 invaders
 luainvaders
 sdl2
-sfml
 sfml2
 scores.txt
 options.dat
@@ -116,9 +115,6 @@ treeview.vcxproj.filters
 tutorial_drag.vcproj
 tutorial_drag.vcxproj
 tutorial_drag.vcxproj.filters
-sfml.vcproj
-sfml.vcxproj
-sfml.vcxproj.filters
 sfml2.vcproj
 sfml2.vcxproj
 sfml2.vcxproj.filters
