@@ -26,7 +26,6 @@ luainvaders
 sdl2
 sfml
 sfml2
-ogre3d
 scores.txt
 options.dat
 log.txt
@@ -126,9 +125,6 @@ sfml2.vcxproj.filters
 sdl2.vcproj
 sdl2.vcxproj
 sdl2.vcxproj.filters
-ogre3d.vcproj
-ogre3d.vcxproj
-ogre3d.vcxproj.filters
 
 #Win32 artifacts
 libRocketCore.dll

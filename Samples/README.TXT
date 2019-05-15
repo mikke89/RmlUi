@@ -33,7 +33,6 @@ Directory Overview:
                   * directx10    - using DirectX 10 as a renderer
                   * drag         - dragging elements between containers
                   * loaddocument - loading your first document
-                  * ogre3d       - interfacing with Ogre3D engine
                   * treeview     - using a nested DataSource
 
  * invaders   - A full implementation of the 1970s classic

@@ -52,21 +52,6 @@ set(bitmapfont_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/main.cpp
 )
 
-set(ogre3d_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketFrameListener.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.h
-)
-
-set(ogre3d_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketFrameListener.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.cpp
-)
-
 set(treeview_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileFormatter.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileSystem.h
