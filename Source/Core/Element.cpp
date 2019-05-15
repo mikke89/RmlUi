@@ -98,12 +98,12 @@ struct ElementMeta
 	ElementScroll scroll;
 	Style::ComputedValues computed_values;
 
-	void* ElementMeta::operator new(size_t size)
+	void* operator new(size_t size)
 	{
 		void* memory = element_meta_chunk_pool.AllocateObject();
 		return memory;
 	}
-	void ElementMeta::operator delete(void* chunk)
+	void operator delete(void* chunk)
 	{
 		element_meta_chunk_pool.DeallocateObject((ElementMetaChunk*)chunk);
 	}

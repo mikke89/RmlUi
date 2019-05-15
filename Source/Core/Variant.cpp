@@ -34,11 +34,11 @@ namespace Core {
 Variant::Variant() : type(NONE)
 {
 	// Make sure our object size assumptions fit inside the static buffer
-	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourb);
-	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourf);
-	ROCKET_STATIC_ASSERT(sizeof(String) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_String);
-	ROCKET_STATIC_ASSERT(sizeof(TransitionList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_TRANSITION_LIST);
-	ROCKET_STATIC_ASSERT(sizeof(AnimationList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_ANIMATION_LIST);
+	static_assert(sizeof(Colourb) <= LOCAL_DATA_SIZE, "Local data too small for Colourb");
+	static_assert(sizeof(Colourf) <= LOCAL_DATA_SIZE, "Local data too small for Colourf");
+	static_assert(sizeof(String) <= LOCAL_DATA_SIZE, "Local data too small for String");
+	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
+	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 }
 
 Variant::Variant( const Variant& copy ) : type(NONE)
