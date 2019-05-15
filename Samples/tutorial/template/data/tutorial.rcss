@@ -3,7 +3,7 @@ body
 	font-family: Delicious;
 	font-weight: normal;
 	font-style: normal;
-	font-size: 15;
+	font-size: 15px;
 	color: white;
 }
 

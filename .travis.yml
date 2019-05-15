@@ -1,0 +1,66 @@
+sudo: false
+dist: trusty
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode10.2
+      env: ARCH=OSX
+      language: c++
+      compiler: clang
+    - os: linux
+      language: c++
+      compiler: clang
+      env: MATRIX_EVAL="CC=clang-6.0 CXX=clang++-6.0"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-6.0
+          packages:
+            - clang-6.0
+            - libstdc++-7-dev
+            - cmake
+            - build-essential
+            - libboost-dev
+            - libboost-python-dev
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libfreetype6-dev
+            - libglew-dev
+            - liblua5.2-dev
+            - libsfml-dev
+    - os: linux
+      language: c++
+      compiler: gcc
+      env: MATRIX_EVAL="CC=gcc-7 CXX=g++-7"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - cmake
+            - build-essential
+            - libboost-dev
+            - libboost-python-dev
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libfreetype6-dev
+            - libglew-dev
+            - liblua5.2-dev
+            - libsfml-dev
+
+before_install:
+  - if [[ -n "${MATRIX_EVAL}" ]]; then eval "${MATRIX_EVAL}" ; fi
+
+install:
+  - cd "$TRAVIS_BUILD_DIR/Build"
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -G Xcode .; fi
+  - cd "$TRAVIS_BUILD_DIR"
+
+script:
+  - cd Build
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project librocket.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi

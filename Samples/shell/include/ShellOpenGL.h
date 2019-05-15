@@ -45,6 +45,11 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/glu.h>
+// The None define from X.h conflicts with Rocket code base,
+// use the constant 0L instead where necessary
+#ifdef None
+  #undef None
+#endif
 #endif
 
 #endif

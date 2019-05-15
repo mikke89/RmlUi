@@ -29,12 +29,11 @@
 #define ROCKETCORETRANSFORM_H
 
 #include "Header.h"
-#include "ReferenceCountable.h"
+#include "TransformPrimitive.h"
 
 namespace Rocket {
 namespace Core {
 
-namespace Transforms { struct Primitive; }
 class Property;
 
 /**
@@ -77,11 +76,12 @@ public:
 	Primitives& GetPrimitives() noexcept { return primitives; }
 	const Primitives& GetPrimitives() const noexcept { return primitives; }
 
-	String ToString() const;
-
 private:
 	Primitives primitives;
 };
+
+
+ROCKETCORE_API String ToString(const Transform& transform);
 
 }
 }

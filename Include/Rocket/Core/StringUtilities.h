@@ -31,7 +31,6 @@
 #include "Header.h"
 #include "Types.h"
 #include "String.h"
-#include <stdarg.h>
 
 namespace Rocket {
 namespace Core {

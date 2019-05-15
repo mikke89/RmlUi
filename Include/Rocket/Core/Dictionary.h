@@ -36,13 +36,15 @@ namespace Core {
 
 inline Variant* GetIf(Dictionary& dictionary, const String& key)
 {
-	if (auto it = dictionary.find(key); it != dictionary.end())
+	auto it = dictionary.find(key);
+	if (it != dictionary.end())
 		return &(it->second);
 	return nullptr;
 }
 inline const Variant* GetIf(const Dictionary& dictionary, const String& key)
 {
-	if (auto it = dictionary.find(key); it != dictionary.end())
+	auto it = dictionary.find(key);
+	if (it != dictionary.end())
 		return &(it->second);
 	return nullptr;
 }
@@ -50,7 +52,8 @@ template<typename T>
 inline T Get(const Dictionary& dictionary, const String& key, const T& default_value)
 {
 	T result = default_value;
-	if (auto it = dictionary.find(key); it != dictionary.end())
+	auto it = dictionary.find(key);
+	if (it != dictionary.end())
 		it->second.GetInto(result);
 	return result;
 }

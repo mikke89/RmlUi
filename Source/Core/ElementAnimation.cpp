@@ -130,7 +130,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		}
 
 		// Build the new, interpolating transform
-		auto t = std::make_unique<Transform>();
+		std::unique_ptr<Transform> t(new Transform);
 		t->GetPrimitives().reserve(t0->GetPrimitives().size());
 
 		for (size_t i = 0; i < prim0.size(); i++)
@@ -172,8 +172,8 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 		bool same_primitives = true;
 		for (size_t i = 0; i < prims0.size(); i++)
 		{
-			auto p0_type = prims0[i].primitive.index();
-			auto p1_type = prims1[i].primitive.index();
+			auto p0_type = prims0[i].primitive.type;
+			auto p1_type = prims1[i].primitive.type;
 			if (p0_type != p1_type)
 			{
 				// They are not the same, but see if we can convert them to their more generic form
@@ -182,9 +182,9 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 					same_primitives = false;
 					break;
 				}
-				if (prims0[i].primitive.index() != p0_type)
+				if (prims0[i].primitive.type != p0_type)
 					(int&)result |= (int)PrepareTransformResult::ChangedT0;
-				if (prims1[i].primitive.index() != p1_type)
+				if (prims1[i].primitive.type != p1_type)
 					(int&)result |= (int)PrepareTransformResult::ChangedT1;
 			}
 		}
@@ -218,11 +218,11 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 		for (size_t i_small = 0; i_small < small.size(); i_small++)
 		{
 			match_success = false;
-			auto small_type = small[i_small].primitive.index();
+			auto small_type = small[i_small].primitive.type;
 
 			for (; i_big < big.size(); i_big++)
 			{
-				auto big_type = big[i_big].primitive.index();
+				auto big_type = big[i_big].primitive.type;
 
 				if (small_type == big_type)
 				{
@@ -233,7 +233,7 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 				{
 					// They matched in their more generic form, one or both primitives converted
 					match_success = true;
-					if (big[i_big].primitive.index() != big_type)
+					if (big[i_big].primitive.type != big_type)
 						changed_big = true;
 				}
 
@@ -283,29 +283,10 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 	// If we get here, things get tricky. Need to do full matrix interpolation.
 	// In short, we decompose the Transforms into translation, rotation, scale, skew and perspective components. 
 	// Then, during update, interpolate these components and combine into a new transform matrix.
-	if constexpr(true)
-	{
-		if (!CombineAndDecompose(t0, element))
-			return PrepareTransformResult::Invalid;
-		if (!CombineAndDecompose(t1, element))
-			return PrepareTransformResult::Invalid;
-	}
-	else
-	{
-		// Bad "flat" matrix interpolation
-		for (Transform* t : { &t0, &t1 })
-		{
-			Matrix4f transform_value = Matrix4f::Identity();
-			for (const auto& primitive : t->GetPrimitives())
-			{
-				Matrix4f m;
-				if (primitive.ResolveTransform(m, element))
-					transform_value *= m;
-			}
-			t->ClearPrimitives();
-			t->AddPrimitive({ Matrix3D{transform_value} });
-		}
-	}
+	if (!CombineAndDecompose(t0, element))
+		return PrepareTransformResult::Invalid;
+	if (!CombineAndDecompose(t1, element))
+		return PrepareTransformResult::Invalid;
 
 	return PrepareTransformResult::ChangedT0andT1;
 }

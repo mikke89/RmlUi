@@ -27,7 +27,6 @@
 
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/ViewState.h"
-#include <cmath>
 
 namespace Rocket {
 namespace Core {

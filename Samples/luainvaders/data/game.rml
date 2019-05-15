@@ -26,7 +26,7 @@
 				padding: 9px 0px 0px 65px;
 				margin: 0px 20px;
 
-				font-size: 20;
+				font-size: 20px;
 
 				background-decorator: tiled-horizontal;
 				background-left-image: ../../assets/invader.tga 147px 55px 229px 0px;

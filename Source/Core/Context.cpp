@@ -40,7 +40,7 @@ namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), density_independent_pixel_ratio(1.0f), view_state()
+Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), view_state()
 {
 	instancer = NULL;
 
@@ -65,7 +65,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), mouse_posit
 	document_focus_history.push_back(root);
 	focus = root;
 
-	enable_cursor = false;
+	enable_cursor = true;
 
 	drag_started = false;
 	drag_verbose = false;
@@ -374,6 +374,8 @@ void Context::UnloadAllDocuments()
 // Enables or disables the mouse cursor.
 void Context::EnableMouseCursor(bool enable)
 {
+	// The cursor is set to an invalid name so that it is forced to update in the next update loop.
+	cursor_name = ":reset:";
 	enable_cursor = enable;
 }
 
@@ -941,12 +943,16 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 
 	if(enable_cursor)
 	{
-		String new_mouse_cursor;
+		String new_cursor_name;
 
 		if (hover)
-			new_mouse_cursor = hover->GetComputedValues().cursor;
+			new_cursor_name = hover->GetComputedValues().cursor;
 
-		GetSystemInterface()->SetMouseCursor(new_mouse_cursor);
+		if(new_cursor_name != cursor_name)
+		{
+			GetSystemInterface()->SetMouseCursor(new_cursor_name);
+			cursor_name = new_cursor_name;
+		}
 	}
 
 	// Build the new hover chain.

@@ -167,7 +167,8 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 			{
 				for (auto& transition : transition_list.transitions)
 				{
-					if (auto it = properties.find(transition.name); it != properties.end())
+					auto it = properties.find(transition.name);
+					if (it != properties.end())
 					{
 						if (add_transition(transition))
 							properties.erase(it);

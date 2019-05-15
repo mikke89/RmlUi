@@ -53,7 +53,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		return true;
 	}
 
-	auto transform = std::make_unique<Transform>();
+	std::unique_ptr<Transform> transform(new Transform);
 
 	char const* next = value.c_str();
 

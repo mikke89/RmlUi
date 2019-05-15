@@ -27,6 +27,7 @@
 
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/String.h"
+#include <stdarg.h>
 
 namespace Rocket {
 namespace Core {

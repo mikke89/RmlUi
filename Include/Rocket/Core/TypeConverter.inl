@@ -353,13 +353,16 @@ public:
 	}
 };
 
+
+ROCKETCORE_API String ToString(const Transform& transform);
+
 template<>
 class TypeConverter< TransformRef, String >
 {
 public:
 	static bool Convert(const TransformRef& src, String& dest)
 	{
-		if (src) dest = src->ToString();
+		if (src) dest = ToString(*src);
 		else dest = "none";
 		return true;
 	}

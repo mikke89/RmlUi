@@ -74,7 +74,6 @@ typedef unsigned __int64 uint64_t;
 #include "Vector4.h"
 #include "Matrix4.h"
 #include "String.h"
-#include "Transform.h"
 
 namespace Rocket {
 namespace Core {
@@ -97,6 +96,7 @@ class Element;
 class ElementAnimation;
 class Property;
 class Variant;
+class Transform;
 
 // Types for external interfaces.
 typedef uintptr_t FileHandle;

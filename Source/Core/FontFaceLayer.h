@@ -52,7 +52,7 @@ class FontFaceLayer
 {
 public:
 	FontFaceLayer();
-	~FontFaceLayer();
+	virtual ~FontFaceLayer();
 
 	/// Generates the character and texture data for the layer.
 	/// @param[in] handle The handle generating this layer.

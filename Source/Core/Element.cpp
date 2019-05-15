@@ -917,7 +917,8 @@ bool Element::HasAttribute(const String& name) const
 // Removes an attribute from the element
 void Element::RemoveAttribute(const String& name)
 {
-	if (auto it = attributes.find(name); it != attributes.end())
+	auto it = attributes.find(name);
+	if (it != attributes.end())
 	{
 		attributes.erase(it);
 
@@ -959,13 +960,13 @@ Context* Element::GetContext()
 void Element::SetAttributes(const ElementAttributes* _attributes)
 {
 	attributes.reserve(attributes.size() + _attributes->size());
-	for (auto& [key, value] : *_attributes)
-		attributes[key] = value;
+	for (auto& pair : *_attributes)
+		attributes[pair.first] = pair.second;
 
 	AttributeNameList changed_attributes;
 	changed_attributes.reserve(_attributes->size());
-	for (auto& [key, value] : *_attributes)
-		changed_attributes.insert(key);
+	for (auto& pair : *_attributes)
+		changed_attributes.insert(pair.first);
 	OnAttributeChange(changed_attributes);
 }
 
@@ -2039,8 +2040,10 @@ void Element::GetRML(String& content)
 	content += "<";
 	content += tag;
 
-	for( auto& [name, variant] : attributes)
+	for( auto& pair : attributes)
 	{
+		auto& name = pair.first;
+		auto& variant = pair.second;
 		String value;
 		if (variant.GetInto(value))
 			content += " " + name + "=\"" + value + "\"";
@@ -2286,7 +2289,8 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 {
 	bool result = false;
 
-	if (auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay); it_animation != animations.end())
+	auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay);
+	if (it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
 		if (!result)
@@ -2489,7 +2493,8 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
-			dictionary_list.emplace_back().emplace("property", it->GetPropertyName());
+			dictionary_list.emplace_back();
+			dictionary_list.back().emplace("property", it->GetPropertyName());
 			is_transition.push_back(it->IsTransition());
 		}
 
@@ -2580,7 +2585,7 @@ void Element::UpdateTransformState()
 			if (have_perspective && context)
 			{
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				perspective_value.view_size = context->GetDimensions();
 				transform_state->SetPerspective(&perspective_value);
 			}
@@ -2638,7 +2643,7 @@ void Element::UpdateTransformState()
 			if (have_local_perspective && context)
 			{
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				local_perspective.view_size = context->GetDimensions();
 				transform_state->SetLocalPerspective(&local_perspective);
 			}
@@ -2661,7 +2666,7 @@ void Element::UpdateTransformState()
 					* Matrix4f::Translate(-transform_origin);
 
 				if (!transform_state)
-					transform_state = std::make_unique<TransformState>();
+					transform_state.reset(new TransformState);
 				transform_state->SetTransform(&transform_value);
 			}
 			else if (transform_state)

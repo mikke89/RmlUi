@@ -108,6 +108,10 @@ ROCKETCORE_API float Tan(float angle);
 /// @param[in] x The x-component of the line.
 /// @return The angle of the line in radians.
 ROCKETCORE_API float ATan2(float y, float x);
+/// Evaluates the natural exponential function on a value.
+/// @param[in] value The value
+/// @return e^(value)
+ROCKETCORE_API float Exp(float value);
 
 /// Converts an angle from radians to degrees.
 /// @param[in] The angle, in radians.

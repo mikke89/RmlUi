@@ -89,7 +89,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 							GLX_BLUE_SIZE, 8,
 							GLX_DEPTH_SIZE, 24,
 							GLX_STENCIL_SIZE, 8,
-							None};
+							0L};
 
 	visual_info = glXChooseVisual(display, screen, attribute_list);
 	if (visual_info == NULL)
@@ -158,7 +158,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	}
 
 	// Set the window title and show the window.
-	XSetStandardProperties(display, window, name, "", None, NULL, 0, NULL);
+	XSetStandardProperties(display, window, name, "", 0L, NULL, 0, NULL);
 	XMapRaised(display, window);
 
 	shell_renderer = _shell_renderer;

@@ -285,8 +285,10 @@ void ElementInfo::UpdateSourceElement()
 				}
 			}
 
-			for(const auto& [name, variant] : source_element->GetAttributes())
+			for(const auto& pair : source_element->GetAttributes())
 			{
+				auto& name = pair.first;
+				auto& variant = pair.second;
 				Core::String value = variant.Get<Core::String>();
 				if(name != "class" && name != "style" && name != "id") 
 					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());

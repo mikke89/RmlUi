@@ -1,13 +1,39 @@
-# libRocket - The HTML/CSS User Interface Library
+# RmlUi - The HTML/CSS User Interface Library Evolved
 
-Documentation at https://barotto.github.io/libRocketDoc/
+![RmlUi](https://github.com/mikke89/RmlUiDoc/raw/cc01edd834b003df6c649967bfd552bb0acc3d1e/assets/rmlui.png)
 
-Original website at http://librocket.com
+RmlUi - now with added boosters taking control of the rocket, targeting *your* games and applications.
+
+---
+
+[![Build Status](https://travis-ci.com/mikke89/RmlUi.svg?branch=performance)](https://travis-ci.com/mikke89/RmlUi) [![Build status](https://ci.appveyor.com/api/projects/status/x95oi8mrb001pqhh/branch/performance?svg=true)](https://ci.appveyor.com/project/mikke89/rmlui/branch/performance)
+
+RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
+
+RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space.
+
+Documentation is located at https://mikke89.github.io/RmlUiDoc/
+
+## Features
+
+- Cross platform architecture: Windows, macOS, Linux, iOS, etc.
+- Dynamic layout system.
+- Full animation and transform support.
+- Efficient application-wide styling, with a custom-built templating engine.
+- Fully featured control set: buttons, sliders, drop-downs, etc.
+- Runtime visual debugging suite.
+- Easily integrated and extensible with Lua ~~or Python~~ scripting.
+
+## Extensible
+
+- Abstracted interfaces for plugging in to any game engine.
+- Decorator engine allowing custom application-specific effects that can be applied to any element.
+- Generic event system that binds seamlessly into existing projects.
 
 
-## Fork features
+## RmlUi features
 
-This fork contains some additional features over the [original libRocket branch](https://github.com/libRocket/libRocket), briefly documented here. Some of the new features utilize features from C++17, thus, a C++17-compliant compiler should be used.
+RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
 
 
 ## Breaking changes
@@ -20,6 +46,7 @@ If upgrading from the original libRocket branch, some breaking changes should be
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
 
+
 ## Performance
 
 Users moving to this fork should generally see a substantial performance increase. 
@@ -27,7 +54,7 @@ Users moving to this fork should generally see a substantial performance increas
 - The update loop has been reworked to avoid doing unnecessary, repeated calculations whenever the document or style is changed. Instead of immediately updating properties on any affected elements, most of this work is done during the Context::Update call in a more carefully chosen order. Note that for this reason, when querying the Rocket API for properties such as size or position, this information may not be up-to-date with changes since the last Context::Update, such as newly added elements or classes. If this information is needed immediately, a call to ElementDocument::UpdateDocument can be made before such queries at a performance penalty.
 - Several containers have been replaced, such as std::map to [robin_hood::unordered_flat_map](https://github.com/martinus/robin-hood-hashing).
 - Reduced number of allocations and unnecessary recursive calls.
-- And many more, smaller optimizations, resulting in more than 4x performance increase for creation and destruction of a large number of elements. A benchmark for this is located in the animation sample for now.
+- And many more, smaller optimizations, resulting in more than 5x performance increase for creation and destruction of a large number of elements. A benchmark for this is located in the animation sample for now.
 
 
 ## Transform property
@@ -148,8 +175,9 @@ Internally, animations apply their properties on the local style of the element.
 
 Animations currently support full interpolation of transforms, largely following the CSS specifications. Additionally, interpolation support for colors, numbers, lengths, and percentages are implemented.
 
-Animations are very powerful coupled with transforms. See the animation sample project for more examples and details.
+Animations currently support full interpolation of transforms, largely following the CSS specifications. Additionally, interpolation is supported for colors, numbers, lengths, and percentages.
 
+Animations are very powerful coupled with transforms. See the animation sample project for more examples and details. There are also some [video demonstrations](https://mikke89.github.io/RmlUiDoc/pages/rmlui_features.html) of these features in the documentation.
 
 
 ## Transitions
@@ -242,32 +270,9 @@ border: 4px #e99;
 The slider on the `input.range` element can be dragged from anywhere in the element. Additionally, the `:checked` pseudo class can be used to style the selected item in drop-down lists.
 
 
-
-# libRocket
-
-libRocket is the C++ user interface package based on the HTML and CSS standards. It is 
-designed as a complete solution for any project's interface needs.
-
-libRocket uses the time-tested open standards XHTML1.0 and CSS2.0 (while borrowing features from 
-HTML5 and CSS3), and extends them with features suited towards real-time applications. Because of 
-this, you don't have to learn a whole new proprietary technology like other libraries in this space.
-
-## Features
-
-- Cross platform architecture: Windows, Mac, Linux, iPhone, etc.
-- Dynamic layout system.
-- Efficient application-wide styling, with a custom-built templating engine.
-- Fully featured control set: buttons, sliders, drop-downs, etc.
-- Runtime visual debugging suite.
-- Easily integrated and extensible with Python or Lua scripting.
-
-## Extensible
-- Abstracted interfaces for plugging in to any game engine.
-- Decorator engine allowing custom application-specific effects that can be applied to any element.
-- Generic event system that binds seamlessly into existing projects.
-
 ## License (MIT)
  
+ Copyright (c) 2019 The RmlUi Team, and contributors\
  Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors
  
  Permission is hereby granted, free of charge, to any person obtaining a copy

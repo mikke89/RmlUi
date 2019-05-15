@@ -17,13 +17,13 @@ if(APPLE)
 				set (IOS_ARCH armv6 armv7 armv7s arm64)
 				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS")
 			else (${IOS_PLATFORM} STREQUAL "OS")
-				set (IOS_ARCH i386 x86_64)
+				set (IOS_ARCH x86_64)
 				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string  "Build architecture for iOS Simulator")
 			endif (${IOS_PLATFORM} STREQUAL "OS")
 
 		else(IOS)
 			# set the architectures for OS X
-			set (OSXI_ARCH i386 x86_64)
+			set (OSXI_ARCH x86_64)
 			set (CMAKE_OSX_ARCHITECTURES ${OSXI_ARCH} CACHE string  "Build architecture for OS X universal binaries")		
 		endif(IOS)
 	endif (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
@@ -269,7 +269,7 @@ foreach(library ${LIBRARIES})
 		target_compile_options(${NAME} PUBLIC "/MP")
 	endif(MSVC)
 	
-	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 17)
+	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
     
     install(TARGETS ${NAME}
@@ -368,6 +368,9 @@ if(BUILD_PYTHON_BINDINGS)
 
         set_target_properties(${NAME} PROPERTIES PREFIX "")
 
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
         install(TARGETS ${NAME}
                 EXPORT libRocketTargets
                 LIBRARY DESTINATION ${PYTHON_INSTDIR}
@@ -392,7 +395,10 @@ if(BUILD_LUA_BINDINGS)
                            VERSION ${PROJECT_VERSION}
                            SOVERSION ${LIBROCKET_VERSION_MAJOR}
         )
-        
+
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
+        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
         install(TARGETS ${NAME}
             EXPORT libRocketTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -458,11 +464,6 @@ else()
 endif()
     else()
     	add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
-    endif()
-    
-    if (APPLE)
-    	# We only support i386 for the samples as it still uses Carbon
-    	set_target_properties(${NAME} PROPERTIES OSX_ARCHITECTURES "i386;" )
     endif()
 
     target_link_libraries(${NAME} ${ARGN})
@@ -586,18 +587,14 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install sample shell library
     add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
-	set_property(TARGET shell PROPERTY CXX_STANDARD 17)
+	set_property(TARGET shell PROPERTY CXX_STANDARD 11)
 	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
-    if (APPLE)
-    	# We only support i386 for the samples as it still uses Carbon
-    	set_target_properties(shell PROPERTIES OSX_ARCHITECTURES "i386;")
-    endif()
 
     # Build and install the basic samples
     foreach(sample ${samples})
         bl_sample(${sample} ${sample_LIBRARIES})
 		
-		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 17)
+		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 11)
 		set_property(TARGET ${sample} PROPERTY CXX_STANDARD_REQUIRED ON)
 
         # The samples always set this as their current working directory
@@ -644,6 +641,9 @@ endif(NOT BUILD_FRAMEWORK)
 			include_directories(${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
 			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARY})
+			set_property(TARGET sdl2 PROPERTY CXX_STANDARD 11)
+			set_property(TARGET sdl2 PROPERTY CXX_STANDARD_REQUIRED ON)
+		
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
 			install(TARGETS sdl2
@@ -680,7 +680,11 @@ endif(NOT BUILD_FRAMEWORK)
 	endif()
 
 	message("-- Can SFML 2.x sample be built")
-	find_package(SFML 2 COMPONENTS graphics window system main)
+	if (WIN32)
+		find_package(SFML 2 COMPONENTS graphics window system main)
+	else()
+		find_package(SFML 2 COMPONENTS graphics window system)
+	endif()
 	if(NOT SFML_FOUND)
 		message("-- Can SFML 2.x sample be built - no")
 	else()
@@ -695,7 +699,10 @@ endif(NOT BUILD_FRAMEWORK)
 			include_directories(${SFML_INCLUDE_DIR})
 			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
 		endif()
-
+		
+			set_property(TARGET sfml2 PROPERTY CXX_STANDARD 11)
+			set_property(TARGET sfml2 PROPERTY CXX_STANDARD_REQUIRED ON)
+			
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
 			install(TARGETS sfml2
@@ -710,6 +717,9 @@ endif(NOT BUILD_FRAMEWORK)
 		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD 17)
 		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD_REQUIRED ON)
 
+		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD 11)
+		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD_REQUIRED ON)
+		
         # The tutorials always set this as their current working directory
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
         install(TARGETS ${tutorial}
@@ -719,7 +729,7 @@ endif(NOT BUILD_FRAMEWORK)
 
     # Build and install invaders sample
     bl_sample(invaders ${sample_LIBRARIES})
-	set_property(TARGET invaders PROPERTY CXX_STANDARD 17)
+	set_property(TARGET invaders PROPERTY CXX_STANDARD 11)
 	set_property(TARGET invaders PROPERTY CXX_STANDARD_REQUIRED ON)
     install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
     install(TARGETS invaders 
@@ -729,7 +739,7 @@ endif(NOT BUILD_FRAMEWORK)
 	if(BUILD_PYTHON_BINDINGS)
 	    # Build and install pyinvaders sample
 	    bl_sample(pyinvaders ${sample_LIBRARIES} ${PYTHON_LIBRARIES} ${PY_BINDINGS_LINK_LIBS})
-		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD 11)
 		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD_REQUIRED ON)
 	    install(DIRECTORY DESTINATION ${SAMPLES_DIR}/pyinvaders)
 	    install(TARGETS pyinvaders
@@ -739,7 +749,7 @@ endif(NOT BUILD_FRAMEWORK)
     
     if(BUILD_LUA_BINDINGS)
         bl_sample(luainvaders RocketCoreLua RocketControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
-		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 17)
+		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 11)
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
         install(TARGETS luainvaders 

@@ -132,7 +132,8 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 				continue;
 
 			// See if we have a <keyword> or <tween> specifier as defined in keywords
-			if (auto it = keywords.find(argument); it != keywords.end() && it->second.ValidAnimation())
+			auto it = keywords.find(argument); 
+			if (it != keywords.end() && it->second.ValidAnimation())
 			{
 				switch (it->second.type)
 				{
@@ -247,7 +248,8 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 				continue;
 
 			// See if we have a <keyword> or <tween> specifier as defined in keywords
-			if (auto it = keywords.find(argument); it != keywords.end() && it->second.ValidTransition())
+			auto it = keywords.find(argument);
+			if (it != keywords.end() && it->second.ValidTransition())
 			{
 				if (it->second.type == Keyword::NONE)
 				{

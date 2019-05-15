@@ -222,7 +222,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 		{
 			if (!line.empty() &&
 				(line_width + token_width > maximum_line_width ||
-				 LastToken(next_token_begin, string_end, collapse_white_space, break_at_endline) && line_width + token_width > maximum_line_width - right_spacing_width))
+				 (LastToken(next_token_begin, string_end, collapse_white_space, break_at_endline) && line_width + token_width > maximum_line_width - right_spacing_width)))
 			{
 				return false;
 			}

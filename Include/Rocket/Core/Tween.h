@@ -29,6 +29,7 @@
 #define ROCKETCORETWEEN_H
 
 #include <array>
+#include "Math.h"
 
 namespace Rocket {
 namespace Core {
@@ -91,7 +92,7 @@ public:
 	}
 	static float circular(float t)
 	{
-		return 1.f - sqrt(1.f - t * t);
+		return 1.f - Math::SquareRoot(1.f - t * t);
 	}
 	static float cubic(float t)
 	{
@@ -101,13 +102,13 @@ public:
 	{
 		if (t == 0) return t;
 		if (t == 1) return t;
-		return -exp(7.24f*(t-1.f))*sin((t - 1.1f)*2.f*Math::ROCKET_PI / 0.4f);
+		return -Math::Exp(7.24f*(t-1.f))*Math::Sin((t - 1.1f)*2.f*Math::ROCKET_PI / 0.4f);
 	}
 	static float exponential(float t)
 	{
 		if (t == 0) return t;
 		if (t == 1) return t;
-		return exp(7.24f*(t - 1.f));
+		return Math::Exp(7.24f*(t - 1.f));
 	}
 	static float linear(float t)
 	{
@@ -127,7 +128,7 @@ public:
 	}
 	static float sine(float t)
 	{
-		return 1.f - cos(t*Math::ROCKET_PI*0.5f);
+		return 1.f - Math::Cos(t*Math::ROCKET_PI*0.5f);
 	}
 
 	bool operator==(const Tween& other) const { return type_in == other.type_in && type_out == other.type_out && callback == other.callback; }

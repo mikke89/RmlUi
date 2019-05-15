@@ -147,13 +147,13 @@ int ElementUtilities::GetStringWidth(Element* element, const WString& string)
 void ElementUtilities::BindEventAttributes(Element* element)
 {
 	// Check for and instance the on* events
-	for (const auto& [name, variant] : element->GetAttributes())
+	for (const auto& pair: element->GetAttributes())
 	{
-		if (name.substr(0, 2) == "on")
+		if (pair.first.substr(0, 2) == "on")
 		{
-			EventListener* listener = Factory::InstanceEventListener(variant.Get<String>(), element);
+			EventListener* listener = Factory::InstanceEventListener(pair.second.Get<String>(), element);
 			if (listener)
-				element->AddEventListener(name.substr(2), listener, false);
+				element->AddEventListener(pair.first.substr(2), listener, false);
 		}
 	}
 }
