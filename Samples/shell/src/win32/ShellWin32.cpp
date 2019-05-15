@@ -31,6 +31,7 @@
 #include "ShellFileInterface.h"
 #include <windows.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param);
 

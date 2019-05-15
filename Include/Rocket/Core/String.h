@@ -45,14 +45,14 @@ typedef std::vector< String > StringList;
 	#define strncasecmp strnicmp
 #endif
 
-int FormatString(String& string, size_t max_size, const char* format, ...);
-String CreateString(size_t max_size, const char* format, ...);
+ROCKETCORE_API int FormatString(String& string, size_t max_size, const char* format, ...);
+ROCKETCORE_API String CreateString(size_t max_size, const char* format, ...);
 
-String ToLower(const String& string);
-String Replace(String subject, const String& search, const String& replace);
+ROCKETCORE_API String ToLower(const String& string);
+ROCKETCORE_API String Replace(String subject, const String& search, const String& replace);
 
-WString ToWideString(const String& str);
-String ToUTF8(const WString& wstr);
+ROCKETCORE_API WString ToWideString(const String& str);
+ROCKETCORE_API String ToUTF8(const WString& wstr);
 
 }
 }

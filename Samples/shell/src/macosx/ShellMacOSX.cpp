@@ -33,6 +33,7 @@
 #include <AGL/agl.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 static const EventTypeSpec INPUT_EVENTS[] = {
 	{ kEventClassKeyboard, kEventRawKeyDown },

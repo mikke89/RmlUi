@@ -30,7 +30,7 @@
 
 #include "../../Include/Rocket/Core/EventListener.h"
 #include "../../Include/Rocket/Core/Geometry.h"
-#include "../../Include/Rocket/Core/WString.h"
+#include "../../Include/Rocket/Core/String.h"
 #include "../../Include/Rocket/Core/Vertex.h"
 
 namespace Rocket {

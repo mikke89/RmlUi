@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSCLIPBOARD_H
 #define ROCKETCONTROLSCLIPBOARD_H
 
-#include "../Core/WString.h"
+#include "../Core/String.h"
 
 namespace Rocket {
 namespace Controls {

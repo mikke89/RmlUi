@@ -205,8 +205,8 @@ struct ComputedValues
 // Resolves a computed LengthPercentage value to the base unit 'px'. 
 // Percentages are scaled by the base_value.
 // Note: Auto must be manually handled during layout, here it returns zero.
-float ResolveValue(Style::LengthPercentageAuto length, float base_value);
-float ResolveValue(Style::LengthPercentage length, float base_value);
+ROCKETCORE_API float ResolveValue(Style::LengthPercentageAuto length, float base_value);
+ROCKETCORE_API float ResolveValue(Style::LengthPercentage length, float base_value);
 
 
 using ComputedValues = Style::ComputedValues;

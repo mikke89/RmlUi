@@ -36,6 +36,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 static bool running = false;
 static int screen = -1;

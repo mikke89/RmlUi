@@ -196,7 +196,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector4.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vertex.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ViewState.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/WString.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/XMLNodeHandler.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/XMLParser.h
 )
@@ -344,7 +343,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ViewState.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/WString.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandler.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerDefault.cpp

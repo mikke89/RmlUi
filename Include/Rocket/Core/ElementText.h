@@ -30,7 +30,7 @@
 
 #include "Header.h"
 #include "Element.h"
-#include "WString.h"
+#include "String.h"
 
 namespace Rocket {
 namespace Core {
