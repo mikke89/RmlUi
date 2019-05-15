@@ -52,21 +52,6 @@ set(bitmapfont_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/main.cpp
 )
 
-set(ogre3d_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketFrameListener.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.h
-)
-
-set(ogre3d_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RenderInterfaceOgre3D.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketApplication.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/RocketFrameListener.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/ogre3d/src/SystemInterfaceOgre3D.cpp
-)
-
 set(treeview_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileFormatter.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileSystem.h
@@ -103,17 +88,6 @@ set(sdl2_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.cpp
 )
 
-set(sfml_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/RenderInterfaceSFML.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/SystemInterfaceSFML.h
-)
-
-set(sfml_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/RenderInterfaceSFML.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml/src/SystemInterfaceSFML.cpp
-)
-
 set(sfml2_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/RenderInterfaceSFML.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/SystemInterfaceSFML.h
@@ -123,16 +97,6 @@ set(sfml2_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/RenderInterfaceSFML.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/SystemInterfaceSFML.cpp
-)
-
-set(directx_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/RenderInterfaceDirectX.h
-)
-
-set(directx_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/RenderInterfaceDirectX.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx/src/ShellRenderInterfaceExtensionsDirectX_Win32.cpp
 )
 
 set(directx10_HDR_FILES
@@ -276,41 +240,6 @@ set(luainvaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Mothership.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Shield.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.cpp
-)
-
-set(pyinvaders_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerStarfield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorStarfield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Defender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/HighScores.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Shield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.h
-)
-
-set(pyinvaders_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerStarfield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorStarfield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Defender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/HighScores.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Shield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.cpp
 )
 
 # Deal with platform specific sources for sample shell

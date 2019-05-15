@@ -22,12 +22,9 @@ datagrid
 datagrid_tree
 drag
 invaders
-pyinvaders
 luainvaders
 sdl2
-sfml
 sfml2
-ogre3d
 scores.txt
 options.dat
 log.txt
@@ -100,9 +97,6 @@ drag.vcxproj.filters
 invaders.vcproj
 invaders.vcxproj
 invaders.vcxproj.filters
-pyinvaders.vcproj
-pyinvaders.vcxproj
-pyinvaders.vcxproj.filters
 luainvaders.vcproj
 luainvaders.vcxproj
 luainvaders.vcxproj.filters
@@ -121,18 +115,12 @@ treeview.vcxproj.filters
 tutorial_drag.vcproj
 tutorial_drag.vcxproj
 tutorial_drag.vcxproj.filters
-sfml.vcproj
-sfml.vcxproj
-sfml.vcxproj.filters
 sfml2.vcproj
 sfml2.vcxproj
 sfml2.vcxproj.filters
 sdl2.vcproj
 sdl2.vcxproj
 sdl2.vcxproj.filters
-ogre3d.vcproj
-ogre3d.vcxproj
-ogre3d.vcxproj.filters
 
 #Win32 artifacts
 libRocketCore.dll
@@ -171,7 +159,6 @@ datagrid.app
 datagrid_tree.app
 drag.app
 invaders.app
-pyinvaders.app
 loaddocument.app
 template.app
 treeview.app

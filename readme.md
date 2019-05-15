@@ -22,7 +22,7 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Efficient application-wide styling, with a custom-built templating engine.
 - Fully featured control set: buttons, sliders, drop-downs, etc.
 - Runtime visual debugging suite.
-- Easily integrated and extensible with Lua ~~or Python~~ scripting.
+- Easily integrated and extensible with Lua scripting.
 
 ## Extensible
 

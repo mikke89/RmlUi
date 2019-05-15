@@ -22,8 +22,6 @@ matrix:
             - libstdc++-7-dev
             - cmake
             - build-essential
-            - libboost-dev
-            - libboost-python-dev
             - libsdl2-dev
             - libsdl2-image-dev
             - libfreetype6-dev
@@ -42,8 +40,6 @@ matrix:
             - g++-7
             - cmake
             - build-essential
-            - libboost-dev
-            - libboost-python-dev
             - libsdl2-dev
             - libsdl2-image-dev
             - libfreetype6-dev
