@@ -22,7 +22,6 @@ datagrid
 datagrid_tree
 drag
 invaders
-pyinvaders
 luainvaders
 sdl2
 sfml
@@ -100,9 +99,6 @@ drag.vcxproj.filters
 invaders.vcproj
 invaders.vcxproj
 invaders.vcxproj.filters
-pyinvaders.vcproj
-pyinvaders.vcxproj
-pyinvaders.vcxproj.filters
 luainvaders.vcproj
 luainvaders.vcxproj
 luainvaders.vcxproj.filters
@@ -171,7 +167,6 @@ datagrid.app
 datagrid_tree.app
 drag.app
 invaders.app
-pyinvaders.app
 loaddocument.app
 template.app
 treeview.app

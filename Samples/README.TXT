@@ -20,12 +20,6 @@ in /samples/shell/) before you compile other samples. All the
 SConstructs will build a debug build by default; to build a release
 version, run 'scons release'.
 
-When compiling Python examples, you will need to set up your build
-paths to point at the local copy of Python and Boost. If using Visual
-Studio, change these in the project's include and library paths. If
-using SCons, edit /build/config.py and change the paths as
-appropriate.
-
 Directory Overview:
 
  * assets     - This directory contains the assets shared by
@@ -44,9 +38,6 @@ Directory Overview:
 
  * invaders   - A full implementation of the 1970s classic
                 Space Invaders using the libRocket interface.
-
- * pyinvaders - Python version of the above (only installed
-                with the Python plugin).
 
  * luainvaders- Lua version of the invaders (only installed
                 with the Lua plugin).

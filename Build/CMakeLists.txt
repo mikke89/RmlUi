@@ -86,13 +86,6 @@ if(NOT DEFINED ENV{FREETYPE_DIR})
 	set(ENV{FREETYPE_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
 
-#if(NOT DEFINED ENV{Boost_DIR})
-#	set(ENV{Boost_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
-#endif()
-if(NOT DEFINED ENV{BOOST_ROOT})
-	set(ENV{BOOST_ROOT} "${PROJECT_SOURCE_DIR}/../Dependencies/boost")
-endif()
-
 if(NOT DEFINED ENV{LUA_DIR})
 	set(ENV{LUA_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
 endif()
@@ -134,7 +127,6 @@ if(NOT IOS)
 	option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 endif(NOT IOS)
 
-option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
 
 if(APPLE)
@@ -192,29 +184,6 @@ if(FREETYPE_FOUND)
 		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
 endif()
 mark_as_advanced(FREETYPE_INCLUDE_DIRS FREETYPE_LIBRARY FREETYPE_LINK_DIRECTORIES)
-
-# Boost and Python
-if(BUILD_PYTHON_BINDINGS)
-    find_package(PythonInterp 2 REQUIRED)
-    find_package(PythonLibs 2 REQUIRED)
-    execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,prefix=''))"
-        OUTPUT_VARIABLE PYTHON_INSTDIR
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(PYTHONLIBS_FOUND)
-        include_directories(${PYTHON_INCLUDE_DIR})
-    endif()
-
-    #set(Boost_USE_STATIC_LIBS OFF)
-    #set(Boost_USE_MULTITHREADED ON)
-    find_package(Boost 1.40.0 COMPONENTS python REQUIRED)
-    if(Boost_FOUND)
-        include_directories(${Boost_INCLUDE_DIR})
-        list(APPEND PY_BINDINGS_LINK_LIBS ${PYTHON_LIBRARY} ${Boost_LIBRARIES})
-    endif()
-
-endif()
 
 #Lua
 if(BUILD_LUA_BINDINGS)
@@ -354,31 +323,6 @@ else(NOT BUILD_FRAMEWORK)
     set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
 endif(NOT BUILD_FRAMEWORK)
 
-# Build python bindings
-if(BUILD_PYTHON_BINDINGS)
-    set(LIBRARIES core controls)
-
-    foreach(library ${LIBRARIES})
-        set(NAME _rocket${library})
-
-        add_library(${NAME} MODULE ${Py${library}_SRC_FILES}
-                            ${Py${library}_HDR_FILES}
-                            ${Py${library}_PUB_HDR_FILES}
-        )
-
-        set_target_properties(${NAME} PROPERTIES PREFIX "")
-
-        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
-        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-
-        install(TARGETS ${NAME}
-                EXPORT libRocketTargets
-                LIBRARY DESTINATION ${PYTHON_INSTDIR}
-        )
- 
-    endforeach(library)
-endif()
-
 # Build Lua bindings
 if(BUILD_LUA_BINDINGS)
     set(LIBRARIES Core Controls)
@@ -422,16 +366,6 @@ target_link_libraries(RocketDebugger RocketCore)
 else(NOT BUILD_FRAMEWORK)
 target_link_libraries(Rocket ${CORE_LINK_LIBS})
 endif(NOT BUILD_FRAMEWORK)
-
-if(BUILD_PYTHON_BINDINGS)
-	if(NOT BUILD_FRAMEWORK)
-		target_link_libraries(_rocketcore RocketCore ${PY_BINDINGS_LINK_LIBS})
-		target_link_libraries(_rocketcontrols RocketControls ${PY_BINDINGS_LINK_LIBS})
-	else(NOT BUILD_FRAMEWORK)
-		target_link_libraries(_rocketcore Rocket ${PY_BINDINGS_LINK_LIBS})
-		target_link_libraries(_rocketcontrols Rocket ${PY_BINDINGS_LINK_LIBS})
-	endif(NOT BUILD_FRAMEWORK)
-endif()
 
 if(BUILD_LUA_BINDINGS)
 	if(NOT BUILD_FRAMEWORK)
@@ -733,17 +667,6 @@ endif(NOT BUILD_FRAMEWORK)
     	RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
     	BUNDLE DESTINATION ${SAMPLES_DIR})
 
-	if(BUILD_PYTHON_BINDINGS)
-	    # Build and install pyinvaders sample
-	    bl_sample(pyinvaders ${sample_LIBRARIES} ${PYTHON_LIBRARIES} ${PY_BINDINGS_LINK_LIBS})
-		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD 11)
-		set_property(TARGET pyinvaders PROPERTY CXX_STANDARD_REQUIRED ON)
-	    install(DIRECTORY DESTINATION ${SAMPLES_DIR}/pyinvaders)
-	    install(TARGETS pyinvaders
-	    	RUNTIME DESTINATION ${SAMPLES_DIR}/pyinvaders
-	    	BUNDLE DESTINATION ${SAMPLES_DIR})
-	endif()
-    
     if(BUILD_LUA_BINDINGS)
         bl_sample(luainvaders RocketCoreLua RocketControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 11)
@@ -760,37 +683,15 @@ endif()
 # Installation =====================
 #===================================
 
-if(BUILD_LUA_BINDINGS AND BUILD_PYTHON_BINDINGS)
+if(BUILD_LUA_BINDINGS)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
             DESTINATION include
     )
 else()
-	if(NOT BUILD_LUA_BINDINGS AND NOT BUILD_PYTHON_BINDINGS)
-	    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
-	            DESTINATION include
-	            PATTERN "Python" EXCLUDE
-	            PATTERN "Lua" EXCLUDE
-	    )
-	else()
-		if(BUILD_PYTHON_BINDINGS)
-			install(FILES ${PROJECT_SOURCE_DIR}/bin/rocket.py
-				DESTINATION ${PYTHON_INSTDIR}
-			)
-			install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
-				DESTINATION include
-				PATTERN "Lua" EXCLUDE
-			)
-		else()
-			if(BUILD_LUA_BINDINGS)
-				install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
-					DESTINATION include
-					PATTERN "Python" EXCLUDE
-				)
-			else()
-				message(FATAL_ERROR "ASSERT: Unexpected option combination, this is a logical impossibility.")
-			endif()
-		endif()
-	endif()
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+            DESTINATION include
+            PATTERN "Lua" EXCLUDE
+    )
 endif()
 
 if(BUILD_SAMPLES)
@@ -819,12 +720,6 @@ if(BUILD_SAMPLES)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
             DESTINATION ${SAMPLES_DIR}/invaders
     )
-
-    if(BUILD_PYTHON_BINDINGS)
-        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/data
-                DESTINATION ${SAMPLES_DIR}/pyinvaders
-        )
-    endif()
 
     if(BUILD_LUA_BINDINGS)
         install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 

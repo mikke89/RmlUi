@@ -278,41 +278,6 @@ set(luainvaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.cpp
 )
 
-set(pyinvaders_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerStarfield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorStarfield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Defender.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/HighScores.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Shield.h
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.h
-)
-
-set(pyinvaders_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorInstancerStarfield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/DecoratorStarfield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Defender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/ElementGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Game.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/GameDetails.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/HighScores.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Invader.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Mothership.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/PythonInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Shield.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/pyinvaders/src/Sprite.cpp
-)
-
 # Deal with platform specific sources for sample shell
 if(WIN32)
        list(APPEND shell_SRC_FILES

@@ -11,7 +11,6 @@ def Usage(args):
 	print sys.argv[0] + ' [-hp] [-r revision]'
 	print ''
 	print ' -r\t: Specify rocket internal revision number'
-	print ' -p\t: Include python libraries'
 	print ' -s\t: Include full source code and build files'
 	print ' -h\t: This help screen'
 	print ''
@@ -31,7 +30,7 @@ def CheckVSVars():
 	
 def ProcessOptions(args):
 
-	options = {'ROCKET_VERSION': 'custom', 'BUILD_PYTHON': False, 'FULL_SOURCE': False, 'ARCHIVE_NAME': 'libRocket-sdk'}
+	options = {'ROCKET_VERSION': 'custom', 'FULL_SOURCE': False, 'ARCHIVE_NAME': 'libRocket-sdk'}
 	
 	try:
 		optlist, args = getopt.getopt(args, 'r:phs')
@@ -44,8 +43,6 @@ def ProcessOptions(args):
 			Usage(args)
 		if opt[0] == '-r':
 			options['ROCKET_VERSION'] = opt[1]
-		if opt[0] == '-p':
-			options['BUILD_PYTHON'] = True
 		if opt[0] == '-s':
 			options['FULL_SOURCE'] = True
 			options['ARCHIVE_NAME'] = 'libRocket-source'
@@ -157,10 +154,7 @@ def main():
 	Build('RocketCore', ['Debug', 'Release'], {'ROCKET_VERSION': '\\"' + options['ROCKET_VERSION'] + '\\"'})
 	Build('RocketControls', ['Debug', 'Release'])
 	Build('RocketDebugger', ['Debug', 'Release'])
-	if options['BUILD_PYTHON']:
-		Build('RocketCorePython', ['Debug', 'Release'])
-		Build('RocketControlsPython', ['Debug', 'Release'])
-		
+	
 	DelTree('../dist/libRocket')
 	CopyFiles('../Include', '../dist/libRocket/Include')
 	CopyFiles('../bin', '../dist/libRocket/bin', ['\.dll$', '^[^_].*\.lib$', '\.py$', '\.pyd$'])

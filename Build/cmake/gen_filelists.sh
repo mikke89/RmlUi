@@ -9,7 +9,6 @@ pubhdr='set(lib_PUB_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Source
 hdrpath=Include/Rocket
-pypath=Python
 luapath=Lua
 
 printfiles() {
@@ -28,21 +27,6 @@ printfiles() {
     # Print source files
     echo ${src/lib/$1} >>$file
     find  $srcpath/$1 -maxdepth 1 -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
-    echo -e ')\n' >>$file
-}
-
-printpyfiles() {
-    # Print headers
-    echo ${hdr/lib/Py${1}} | sed 's/PyCo/Pyco/' >>$file
-    find  $srcpath/$1/$pypath -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
-    echo -e ')\n' >>$file
-    # Print public headers
-    echo ${pubhdr/lib/Py${1}} | sed 's/PyCo/Pyco/' >>$file
-    find  $hdrpath/$1/$pypath -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file 2>/dev/null
-    echo -e ')\n' >>$file
-    # Print source files
-    echo ${src/lib/Py${1}} | sed 's/PyCo/Pyco/' >>$file
-    find  $srcpath/$1/$pypath -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
 }
 
@@ -67,9 +51,6 @@ for lib in "Core" "Controls" "Debugger"; do
     printfiles $lib
 done
 
-for lib in "Core" "Controls"; do
-    printpyfiles $lib
-done
 for lib in "Core" "Controls"; do
     printluafiles $lib
 done

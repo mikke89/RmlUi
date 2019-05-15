@@ -11,7 +11,7 @@ samples=( 'shell'
 	'basic/sdl2' 'basic/sfml' 'basic/sfml2'
 	'basic/directx' 'basic/directx10'
 	'tutorial/template' 'tutorial/datagrid' 'tutorial/datagrid_tree' 'tutorial/tutorial_drag'
-	'invaders' 'luainvaders' 'pyinvaders'
+	'invaders' 'luainvaders'
 )
 
 printfiles() {
