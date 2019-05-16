@@ -67,7 +67,7 @@ void LuaDataFormatter::FormatData(Rocket::Core::String& formatted_data, const Ro
     int tbl = lua_gettop(L);
     for(unsigned int i = 0; i < raw_data.size(); i++)
     {
-        lua_pushstring(L,raw_data[i].CString());
+        lua_pushstring(L,raw_data[i].c_str());
         lua_rawseti(L,tbl,i);
     }
     Interpreter::ExecuteCall(1,1); //1 parameter (the table), 1 result (a string)

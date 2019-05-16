@@ -123,7 +123,7 @@ int DocumentGetAttrtitle(lua_State* L)
 {
     Document* doc = LuaType<Document>::check(L,1);
     LUACHECKOBJ(doc);
-    lua_pushstring(L,doc->GetTitle().CString());
+    lua_pushstring(L,doc->GetTitle().c_str());
     return 1;
 }
 

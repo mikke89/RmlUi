@@ -68,12 +68,14 @@ int ElementAttributesProxy__pairs(lua_State* L)
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1) 
         *pindex = 0;
-    String key = "";
-    Variant* val;
-    if(obj->owner->IterateAttributes((*pindex),key,val))
+	const ElementAttributes& attributes = obj->owner->GetAttributes();
+
+    if(*pindex >= 0 && *pindex < (int)attributes.size())
     {
-        lua_pushstring(L,key.CString());
-        PushVariant(L,val);
+		const String& key = attributes.container()[*pindex].first;
+		const Variant* value = &attributes.container()[*pindex].second;
+        lua_pushstring(L,key.c_str());
+        PushVariant(L,value);
     }
     else
     {

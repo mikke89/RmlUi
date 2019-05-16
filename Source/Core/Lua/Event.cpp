@@ -61,7 +61,7 @@ int EventGetAttrtype(lua_State* L)
     Event* evt = LuaType<Event>::check(L,1);
     LUACHECKOBJ(evt);
     String type = evt->GetType();
-    lua_pushstring(L,type.CString());
+    lua_pushstring(L,type.c_str());
     return 1;
 }
 

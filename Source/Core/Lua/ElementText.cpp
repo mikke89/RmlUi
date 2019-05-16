@@ -45,8 +45,7 @@ int ElementTextGetAttrtext(lua_State* L)
 {
     ElementText* obj = LuaType<ElementText>::check(L, 1);
     LUACHECKOBJ(obj);
-    String temp;
-    lua_pushstring(L,obj->GetText().ToUTF8(temp).CString());
+    lua_pushstring(L, ToUTF8(obj->GetText()).c_str());
     return 1;
 }
 
@@ -55,7 +54,7 @@ int ElementTextSetAttrtext(lua_State* L)
     ElementText* obj = LuaType<ElementText>::check(L, 1);
     LUACHECKOBJ(obj);
     const char* text = luaL_checkstring(L,2);
-    obj->SetText(text);
+    obj->SetText(ToWideString(text));
     return 0;
 }
 

@@ -242,7 +242,7 @@ int LuaType<T>::index(lua_State* L)
             {
                 lua_pushvalue(L,1); //push the userdata to the stack [6]
                 if(lua_pcall(L,1,1,0) != 0) //remove one, result is at [6]
-                    Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
+                    Report(L, String(GetTClassName<T>()).append(".__index for ").append(lua_tostring(L,2)).append(": "));
             }
             else
             {
@@ -256,7 +256,7 @@ int LuaType<T>::index(lua_State* L)
                         lua_pushvalue(L,1); //[1] = object -> [7] = object
                         lua_pushvalue(L,2); //[2] = key -> [8] = key
                         if(lua_pcall(L,2,1,0) != 0) //call function at top of stack (__index) -> pop top 2 as args; [7] = return value
-                            Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
+                            Report(L, String(GetTClassName<T>()).append(".__index for ").append(lua_tostring(L,2)).append(": "));
                     }
                     else if(lua_istable(L,-1) )
                         lua_getfield(L,-1,key); //shorthand version of above -> [7] = return value
@@ -298,7 +298,7 @@ int LuaType<T>::newindex(lua_State* L)
         lua_pushvalue(L,1); //userdata at [7]
         lua_pushvalue(L,3); //[8] = copy of [3]
         if(lua_pcall(L,2,0,0) != 0) //call function, pop 2 off push 0 on
-            Report(L, String(GetTClassName<T>()).Append(".__newindex for ").Append(lua_tostring(L,2)).Append(": ")); 
+            Report(L, String(GetTClassName<T>()).append(".__newindex for ").append(lua_tostring(L,2)).append(": ")); 
     }
     else
         lua_pop(L,1); //not a setter function.

@@ -41,7 +41,7 @@ namespace Lua {
 
 /** casts the variant to its specific type before pushing it to the stack 
 @relates Rocket::Core::Lua::LuaType */
-void ROCKETLUA_API PushVariant(lua_State* L, Variant* var);
+void ROCKETLUA_API PushVariant(lua_State* L, const Variant* var);
 
 /** If there are errors on the top of the stack, this will print those out to the log.
 @param L A Lua state, and if not passed in, will use the Interpreter's state
