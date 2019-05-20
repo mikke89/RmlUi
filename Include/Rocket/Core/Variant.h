@@ -31,6 +31,7 @@
 #include "Header.h"
 #include "Types.h"
 #include "TypeConverter.h"
+#include "Animation.h"
 
 namespace Rocket {
 namespace Core {
@@ -136,10 +137,10 @@ private:
 	void Set(const Colourb& value);
 	void Set(ScriptInterface* value);
 	
-	static constexpr size_t LOCAL_DATA_SIZE = sizeof(String);
+	static constexpr size_t LOCAL_DATA_SIZE = sizeof(TransitionList);
 
 	Type type;
-	alignas(std::max_align_t) char data[LOCAL_DATA_SIZE];
+	alignas(TransitionList) char data[LOCAL_DATA_SIZE];
 };
 
 }
