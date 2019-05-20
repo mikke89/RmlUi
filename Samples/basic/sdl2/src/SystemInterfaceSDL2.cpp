@@ -435,7 +435,7 @@ bool RocketSDL2SystemInterface::LogMessage(Rocket::Core::Log::Type type, const R
         break;
 	};
 
-	printf("%s - %s\n", Type.c_str(), message.CString());
+	printf("%s - %s\n", Type.c_str(), message.c_str());
 
 	return true;
 };
