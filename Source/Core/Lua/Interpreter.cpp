@@ -110,14 +110,14 @@ void Interpreter::LoadFile(const String& file)
     Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
     Rocket::Core::FileHandle handle = file_interface->Open(file);
     if(handle == 0) {
-        lua_pushfstring(_L, "LoadFile: Unable to open file: %s", file.CString());
+        lua_pushfstring(_L, "LoadFile: Unable to open file: %s", file.c_str());
         Report(_L);
         return;
     }
 
     size_t size = file_interface->Length(handle);
     if(size == 0) {
-        lua_pushfstring(_L, "LoadFile: File is 0 bytes in size: %s", file.CString());
+        lua_pushfstring(_L, "LoadFile: File is 0 bytes in size: %s", file.c_str());
         Report(_L);
         return;
     }
@@ -125,7 +125,7 @@ void Interpreter::LoadFile(const String& file)
     file_interface->Read(file_contents,size,handle);
     file_interface->Close(handle);
 
-    if(luaL_loadbuffer(_L,file_contents,size,file.CString()) != 0)
+    if(luaL_loadbuffer(_L,file_contents,size,file.c_str()) != 0)
         Report(_L); 
     else //if there were no errors loading, then the compiled function is on the top of the stack
     {
@@ -139,7 +139,7 @@ void Interpreter::LoadFile(const String& file)
 
 void Interpreter::DoString(const Rocket::Core::String& code, const Rocket::Core::String& name)
 {
-    if(luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString()) != 0)
+    if(luaL_loadbuffer(_L,code.c_str(),code.length(), name.c_str()) != 0)
         Report(_L);
     else
     {
@@ -150,7 +150,7 @@ void Interpreter::DoString(const Rocket::Core::String& code, const Rocket::Core:
 
 void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Core::String& name)
 {
-    if(luaL_loadbuffer(_L,code.CString(),code.Length(), name.CString()) != 0)
+    if(luaL_loadbuffer(_L,code.c_str(),code.length(), name.c_str()) != 0)
         Report(_L);
 }
 

@@ -90,7 +90,7 @@ int RocketContextsProxy__pairs(lua_State* L)
     }
     else
     {
-        lua_pushstring(L,value->GetName().CString());
+        lua_pushstring(L,value->GetName().c_str());
         LuaType<Context>::push(L,value);
     }
     return 2;

@@ -61,7 +61,7 @@ Element* LuaElementInstancer::InstanceElement(Element* ROCKET_UNUSED_PARAMETER(p
     {
         PushFunctionsTable(L);
         lua_rawgeti(L,-1,ref_InstanceElement); //push the function
-        lua_pushstring(L,tag.CString()); //push the tag
+        lua_pushstring(L,tag.c_str()); //push the tag
         Interpreter::ExecuteCall(1,1); //we pass in a string, and we want to get an Element back
         ret = LuaType<Element>::check(L,-1);
     }

@@ -225,7 +225,7 @@ void Game::SetScore(int score)
 
 	Rocket::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
 	if (score_element != NULL)
-		score_element->SetInnerRML(Rocket::Core::String(128, "%d", score).c_str());
+		score_element->SetInnerRML(Rocket::Core::CreateString(128, "%d", score).c_str());
 
 	// Update the high score if we've beaten it.
 	if (score > HighScores::GetHighScore())
@@ -237,7 +237,7 @@ void Game::SetHighScore(int score)
 {
 	Rocket::Core::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
 	if (high_score_element != NULL)
-		high_score_element->SetInnerRML(Rocket::Core::String(128, "%d", score).c_str());
+		high_score_element->SetInnerRML(Rocket::Core::CreateString(128, "%d", score).c_str());
 }
 
 void Game::SetLives(int lives)
@@ -246,7 +246,7 @@ void Game::SetLives(int lives)
 
 	Rocket::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
 	if (score_element != NULL)
-		score_element->SetInnerRML(Rocket::Core::String(128, "%d", defender_lives).c_str());
+		score_element->SetInnerRML(Rocket::Core::CreateString(128, "%d", defender_lives).c_str());
 }
 
 void Game::SetWave(int wave)
@@ -255,7 +255,7 @@ void Game::SetWave(int wave)
 
 	Rocket::Core::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
 	if (waves_element != NULL)
-		waves_element->SetInnerRML(Rocket::Core::String(128, "%d", wave).c_str());
+		waves_element->SetInnerRML(Rocket::Core::CreateString(128, "%d", wave).c_str());
 }
 
 void Game::RemoveLife()

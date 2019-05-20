@@ -40,8 +40,8 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
 {
     //compose function
     String function = "return function (event,element,document) ";
-    function.Append(code);
-    function.Append(" end");
+    function.append(code);
+    function.append(" end");
 
     //make sure there is an area to save the function
     lua_State* L = Interpreter::GetLuaState();
@@ -57,7 +57,7 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
     int tbl = lua_gettop(L);
 
     //compile,execute,and save the function
-    if(luaL_loadstring(L,function.CString()) != 0)
+    if(luaL_loadstring(L,function.c_str()) != 0)
     {
         Report(L);
         return;

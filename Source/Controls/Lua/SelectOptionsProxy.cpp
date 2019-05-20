@@ -49,7 +49,7 @@ int SelectOptionsProxy__index(lua_State* L)
         lua_newtable(L);
         LuaType<Rocket::Core::Element>::push(L,opt->GetElement(),false);
         lua_setfield(L,-2,"element");
-        lua_pushstring(L,opt->GetValue().CString());
+        lua_pushstring(L,opt->GetValue().c_str());
         lua_setfield(L,-2,"value");
         return 1;
     }
@@ -91,7 +91,7 @@ int SelectOptionsProxy__ipairs(lua_State* L)
         //fill the value
         LuaType<Rocket::Core::Element>::push(L,opt->GetElement());
         lua_setfield(L,-2,"element");
-        lua_pushstring(L,opt->GetValue().CString());
+        lua_pushstring(L,opt->GetValue().c_str());
         lua_setfield(L,-2,"value");
     }
     return 2;

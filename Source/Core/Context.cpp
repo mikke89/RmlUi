@@ -268,10 +268,15 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	root->AppendChild(document);
 
 	ElementUtilities::BindEventAttributes(document);
-	document->UpdateDocument();
 
+	// The 'load' event is fired before updating the document, because the user might
+	// need to initalize things before running an update. The drawback is that computed
+	// values and layouting are not performed yet, resulting in default values when
+	// querying such information in the event handler.
 	PluginRegistry::NotifyDocumentLoad(document);
 	document->DispatchEvent(LOAD, Dictionary(), false);
+
+	document->UpdateDocument();
 
 	return document;
 }

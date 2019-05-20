@@ -86,7 +86,7 @@ int ContextDocumentsProxy__pairs(lua_State* L)
     //If we found a document 
     if(doc != NULL)
     {
-        lua_pushstring(L,doc->GetId().CString());
+        lua_pushstring(L,doc->GetId().c_str());
         LuaType<Document>::push(L,doc);
     }
     else //if we were at the end and didn't find a document

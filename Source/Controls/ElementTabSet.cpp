@@ -73,7 +73,7 @@ void ElementTabSet::SetTab(int tab_index, Core::Element* element)
 // Set the specified tab index's body element.
 void ElementTabSet::SetPanel(int tab_index, Core::Element* element)
 {	
-	// Append the window
+	// append the window
 	Core::Element* windows = GetChildByTag("panels");
 	if (tab_index >= 0 &&
 		tab_index < windows->GetNumChildren())

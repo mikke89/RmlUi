@@ -130,17 +130,17 @@ int ElementDispatchEvent(lua_State* L, Element* obj)
         switch(type)
         {
 		case LUA_TNUMBER:
-            params.Set(key,(float)lua_tonumber(L,-1));
+            params[key] = (float)lua_tonumber(L,-1);
             break;
 		case LUA_TBOOLEAN: 
-            params.Set(key,CHECK_BOOL(L,-1));
+            params[key] = CHECK_BOOL(L,-1);
             break;
 		case LUA_TSTRING:
-            params.Set(key,luaL_checkstring(L,-1));
+            params[key] = luaL_checkstring(L,-1);
             break;
         case LUA_TUSERDATA:
         case LUA_TLIGHTUSERDATA:
-            params.Set(key,lua_touserdata(L,-1));
+            params[key] = lua_touserdata(L,-1);
             break;
         default:
             break;
@@ -285,7 +285,7 @@ int ElementGetAttrclass_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    const char* classnames = ele->GetClassNames().CString();
+    const char* classnames = ele->GetClassNames().c_str();
     lua_pushstring(L,classnames);
     return 1;
 }
@@ -338,7 +338,7 @@ int ElementGetAttrid(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    lua_pushstring(L,ele->GetId().CString());
+    lua_pushstring(L,ele->GetId().c_str());
     return 1;
 }
 
@@ -346,7 +346,7 @@ int ElementGetAttrinner_rml(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    lua_pushstring(L,ele->GetInnerRML().CString());
+    lua_pushstring(L,ele->GetInnerRML().c_str());
     return 1;
 }
 
@@ -494,7 +494,7 @@ int ElementGetAttrtag_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    lua_pushstring(L,ele->GetTagName().CString());
+    lua_pushstring(L,ele->GetTagName().c_str());
     return 1;
 }
 

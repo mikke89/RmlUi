@@ -166,7 +166,7 @@ int ContextGetAttrname(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
     LUACHECKOBJ(cont);
-    lua_pushstring(L,cont->GetName().CString());
+    lua_pushstring(L,cont->GetName().c_str());
     return 1;
 }
 

@@ -50,7 +50,7 @@ int ElementFormControlGetAttrname(lua_State* L)
 {
     ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
     LUACHECKOBJ(efc);
-    lua_pushstring(L,efc->GetName().CString());
+    lua_pushstring(L,efc->GetName().c_str());
     return 1;
 }
 
@@ -58,7 +58,7 @@ int ElementFormControlGetAttrvalue(lua_State* L)
 {
     ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
     LUACHECKOBJ(efc);
-    lua_pushstring(L,efc->GetValue().CString());
+    lua_pushstring(L,efc->GetValue().c_str());
     return 1;
 }
 

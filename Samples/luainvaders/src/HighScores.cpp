@@ -75,11 +75,11 @@ void HighScores::GetRow(Rocket::Core::StringList& row, const Rocket::Core::Strin
 			}
 			else if (columns[i] == "name_required")
 			{
-				row.push_back(Rocket::Core::String(4, "%d", scores[row_index].name_required));
+				row.push_back(Rocket::Core::CreateString(4, "%d", scores[row_index].name_required));
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(Rocket::Core::String(32, "%d", scores[row_index].score));
+				row.push_back(Rocket::Core::CreateString(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
@@ -89,7 +89,7 @@ void HighScores::GetRow(Rocket::Core::StringList& row, const Rocket::Core::Strin
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(Rocket::Core::String(8, "%d", scores[row_index].wave));
+				row.push_back(Rocket::Core::CreateString(8, "%d", scores[row_index].wave));
 			}
 		}
 	}
@@ -226,8 +226,8 @@ void HighScores::SaveScores()
 		{
 			Rocket::Core::String colour_string;
 			Rocket::Core::TypeConverter< Rocket::Core::Colourb, Rocket::Core::String >::Convert(scores[i].colour, colour_string);
-
-			Rocket::Core::String score(1024, "%s\t%s\t%d\t%d\n", scores[i].name.c_str(), colour_string.c_str(), scores[i].wave, scores[i].score);
+      
+			Rocket::Core::String score = Rocket::Core::CreateString(1024, "%s\t%s\t%d\t%d\n", scores[i].name.c_str(), colour_string.c_str(), scores[i].wave, scores[i].score);
 			fputs(score.c_str(), scores_file);		
 		}
 

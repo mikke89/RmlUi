@@ -54,13 +54,13 @@ void LuaDataSource::GetRow(Rocket::Core::StringList& row, const Rocket::Core::St
     //setup the call
     Interpreter::BeginCall(getRowRef);
     lua_State* L = Interpreter::GetLuaState();
-    lua_pushstring(L,table.CString());
+    lua_pushstring(L,table.c_str());
     lua_pushinteger(L,row_index);
     lua_newtable(L);
     int index = 0;
     for(Rocket::Core::StringList::const_iterator itr = columns.begin(); itr != columns.end(); ++itr)
     {
-        lua_pushstring(L,itr->CString());
+        lua_pushstring(L,itr->c_str());
         lua_rawseti(L,-2,index++);
     }
     Interpreter::ExecuteCall(3,1); //3 parameters, 1 return. After here, the top of the stack contains the return value
@@ -92,7 +92,7 @@ int LuaDataSource::GetNumRows(const Rocket::Core::String& table)
 
     lua_State* L = Interpreter::GetLuaState();
     Interpreter::BeginCall(getNumRowsRef);
-    lua_pushstring(L,table.CString());
+    lua_pushstring(L,table.c_str());
     Interpreter::ExecuteCall(1,1); //1 parameter, 1 return. After this, the top of the stack contains the return value
 
     int res = lua_gettop(L);
