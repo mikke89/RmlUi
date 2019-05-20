@@ -28,8 +28,8 @@
 #ifndef ROCKETCORELUALUATYPE_H
 #define ROCKETCORELUALUATYPE_H
 
-#include <Rocket/Core/Lua/Header.h>
-#include <Rocket/Core/Lua/lua.hpp>
+#include "Header.h"
+#include "lua.hpp"
 
 
 //As an example, if you used this macro like

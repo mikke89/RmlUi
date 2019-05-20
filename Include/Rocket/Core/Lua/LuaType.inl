@@ -26,9 +26,9 @@
  */
  
 //#include "precompiled.h"
-#include <Rocket/Controls/Controls.h>
-#include <Rocket/Core/Core.h>
-#include <Rocket/Core/Lua/Utilities.h>
+#include "../../Controls/Controls.h"
+#include "../Core.h"
+#include "Utilities.h"
 
 namespace Rocket {
 namespace Core {

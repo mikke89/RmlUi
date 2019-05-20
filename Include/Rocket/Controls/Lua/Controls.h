@@ -28,7 +28,7 @@
 #ifndef ROCKETCONTROLSLUACONTROLS_H
 #define ROCKETCONTROLSLUACONTROLS_H
 
-#include <Rocket/Controls/Lua/Header.h>
+#include "Header.h"
 
 namespace Rocket {
 namespace Controls {

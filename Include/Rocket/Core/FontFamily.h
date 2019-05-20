@@ -28,7 +28,7 @@
 #ifndef ROCKETCOREFONTFAMILY_H
 #define ROCKETCOREFONTFAMILY_H
 
-#include <Rocket/Core/StringUtilities.h>
+#include "StringUtilities.h"
 #include "Font.h"
 
 namespace Rocket {

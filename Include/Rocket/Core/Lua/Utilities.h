@@ -30,10 +30,10 @@
 /*
     This file is for free-floating functions that are used across more than one file.
 */
-#include <Rocket/Core/Lua/Header.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Variant.h>
+#include "Header.h"
+#include "lua.hpp"
+#include "LuaType.h"
+#include "../Variant.h"
 
 namespace Rocket {
 namespace Core {
