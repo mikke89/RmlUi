@@ -74,7 +74,7 @@ int EventParametersProxy__pairs(lua_State* L)
     if((*pindex) == -1)
         *pindex = 0;
 	const Dictionary& attributes = *obj->owner->GetParameters();
-    if(pindex >= 0 && *pindex < (int)attributes.size())
+    if(*pindex >= 0 && *pindex < (int)attributes.size())
     {
 		const String& key = attributes.container()[*pindex].first;
 		const Variant* value = &attributes.container()[*pindex].second;
