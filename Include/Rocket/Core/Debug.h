@@ -58,6 +58,7 @@
 #define ROCKET_ERROR
 #define ROCKET_ERRORMSG(m)
 #define ROCKET_VERIFY(x) x
+#define ROCKET_ASSERT_NONRECURSIVE
 #else
 namespace Rocket {
 namespace Core {
