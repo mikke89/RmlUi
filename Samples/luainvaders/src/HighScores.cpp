@@ -227,8 +227,8 @@ void HighScores::SaveScores()
 			Rocket::Core::String colour_string;
 			Rocket::Core::TypeConverter< Rocket::Core::Colourb, Rocket::Core::String >::Convert(scores[i].colour, colour_string);
 
-			Rocket::Core::String score(1024, "%s\t%s\t%d\t%d\n", scores[i].name.CString(), colour_string.CString(), scores[i].wave, scores[i].score);
-			fputs(score.CString(), scores_file);		
+			Rocket::Core::String score(1024, "%s\t%s\t%d\t%d\n", scores[i].name.c_str(), colour_string.c_str(), scores[i].wave, scores[i].score);
+			fputs(score.c_str(), scores_file);		
 		}
 
 		fclose(scores_file);

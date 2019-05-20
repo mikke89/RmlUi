@@ -89,7 +89,7 @@ struct FileSystemNode
 #else
 			struct dirent** file_list = NULL;
 			int file_count = -1;
-			file_count = scandir((root + name).CString(), &file_list, 0, alphasort);
+			file_count = scandir((root + name).c_str(), &file_list, 0, alphasort);
 			if (file_count == -1)
 				return;
 
