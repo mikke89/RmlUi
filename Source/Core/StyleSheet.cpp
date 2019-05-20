@@ -121,6 +121,8 @@ Keyframes * StyleSheet::GetKeyframes(const String & name) {
 // Returns the compiled element definition for a given element hierarchy.
 ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) const
 {
+	ROCKET_ASSERT_NONRECURSIVE;
+
 	// Address cache is disabled for the time being; this doesn't work since the introduction of structural
 	// pseudo-classes.
 	ElementDefinitionCache::iterator cache_iterator;
@@ -138,7 +140,6 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	// See if there are any styles defined for this element.
 	// Using static to avoid allocations. Make sure we don't call this function recursively.
 	static std::vector< const StyleSheetNode* > applicable_nodes;
-	ROCKET_ASSERT(applicable_nodes.empty());
 	applicable_nodes.clear();
 
 	String tags[] = {element->GetTagName(), ""};

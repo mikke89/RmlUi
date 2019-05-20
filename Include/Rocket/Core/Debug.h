@@ -91,17 +91,24 @@ if (!Rocket::Core::Assert(m, __FILE__, __LINE__)) \
 }
 #define ROCKET_VERIFY(x) ROCKET_ASSERT(x)
 
+struct RocketAssertNonrecursive {
+	bool& entered;
+	RocketAssertNonrecursive(bool& entered) : entered(entered) {
+		ROCKET_ASSERTMSG(!entered, "A method defined as non-recursive was entered twice!");
+		entered = true;
+	}
+	~RocketAssertNonrecursive() {
+		entered = false;
+	}
+};
+
+#define ROCKET_ASSERT_NONRECURSIVE \
+static bool rocket_nonrecursive_entered = false; \
+RocketAssertNonrecursive rocket_nonrecursive(rocket_nonrecursive_entered)
+
 }
 }
 #endif
 
-namespace Rocket {
-namespace Core {
-
-template <bool> struct STATIC_ASSERTION_FAILURE;
-template <> struct STATIC_ASSERTION_FAILURE<true>{};	
-	
-}
-}
 
 #endif
