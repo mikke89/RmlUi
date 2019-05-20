@@ -36,7 +36,9 @@ Variant::Variant() : type(NONE)
 	// Make sure our object size assumptions fit inside the static buffer
 	static_assert(sizeof(Colourb) <= LOCAL_DATA_SIZE, "Local data too small for Colourb");
 	static_assert(sizeof(Colourf) <= LOCAL_DATA_SIZE, "Local data too small for Colourf");
+	static_assert(sizeof(Vector4f) <= LOCAL_DATA_SIZE, "Local data too small for Vector4f");
 	static_assert(sizeof(String) <= LOCAL_DATA_SIZE, "Local data too small for String");
+	static_assert(sizeof(TransformRef) <= LOCAL_DATA_SIZE, "Local data too small for TransformRef");
 	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 }

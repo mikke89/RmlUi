@@ -31,7 +31,6 @@
 #include "Header.h"
 #include "Types.h"
 #include "TypeConverter.h"
-#include <list>
 
 namespace Rocket {
 namespace Core {
@@ -137,13 +136,10 @@ private:
 	void Set(const Colourb& value);
 	void Set(ScriptInterface* value);
 	
-#ifdef ROCKET_ARCH_64
-		static const int LOCAL_DATA_SIZE = 40; // Required for Strings
-#else
-		static const int LOCAL_DATA_SIZE = 24;
-#endif
+	static constexpr size_t LOCAL_DATA_SIZE = sizeof(String);
+
 	Type type;
-	char data[LOCAL_DATA_SIZE];
+	alignas(std::max_align_t) char data[LOCAL_DATA_SIZE];
 };
 
 }
