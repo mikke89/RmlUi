@@ -28,7 +28,7 @@
 #ifndef ROCKETCORELUAHEADER_H
 #define ROCKETCORELUAHEADER_H
 
-#include <Rocket/Core/Platform.h>
+#include "../Platform.h"
 
 #ifdef ROCKETLUA_API
 #undef ROCKETLUA_API
