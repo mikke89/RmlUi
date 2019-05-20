@@ -133,15 +133,15 @@ bool RocketSDL2Renderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle
     file_interface->Close(file_handle);
 
     size_t i;
-    for(i = source.Length() - 1; i > 0; i--)
+    for(i = source.length() - 1; i > 0; i--)
     {
         if(source[i] == '.')
             break;
     }
 
-    Rocket::Core::String extension = source.Substring(i+1, source.Length()-i);
+    Rocket::Core::String extension = source.substr(i+1, source.length()-i);
 
-    SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, buffer_size), 1, extension.CString());
+    SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, buffer_size), 1, extension.c_str());
 
     if (surface) {
         SDL_Texture *texture = SDL_CreateTextureFromSurface(mRenderer, surface);
