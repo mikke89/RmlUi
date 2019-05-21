@@ -31,7 +31,6 @@
 #include "../../Include/Rocket/Core/Dictionary.h"
 #include "../../Include/Rocket/Core/ReferenceCountable.h"
 #include <map>
-#include <set>
 #include "../../Include/Rocket/Core/FontEffect.h"
 #include "StyleSheetNode.h"
 
@@ -122,6 +121,91 @@ public:
 	/// @return True if this definition is structurally volatile.
 	bool IsStructurallyVolatile() const;
 
+
+	class Iterator {
+	public:
+		using PropertyIt = PropertyMap::const_iterator;
+		using PseudoIt = PseudoClassPropertyDictionary::const_iterator;
+
+		using difference_type = std::ptrdiff_t;
+		using value_type = Property;
+		using pointer = const Property*;
+		using reference = const Property &;
+		using iterator_category = std::input_iterator_tag;
+
+	private:
+		const StringList& pseudo_classes;
+		PropertyIt it_properties, it_properties_end;
+		PseudoIt it_pseudo_class_properties, it_pseudo_class_properties_end;
+		size_t i_pseudo_class = 0;
+
+		void proceed_to_next_valid()
+		{
+			if (it_properties == it_properties_end)
+			{
+				for (; it_pseudo_class_properties != it_pseudo_class_properties_end; ++it_pseudo_class_properties)
+				{
+					const PseudoClassPropertyList& pseudo_list = it_pseudo_class_properties->second;
+					for (; i_pseudo_class < pseudo_list.size(); ++i_pseudo_class)
+					{
+						if (IsPseudoClassRuleApplicable(pseudo_list[i_pseudo_class].first, pseudo_classes))
+						{
+							return;
+						}
+					}
+					i_pseudo_class = 0;
+					sizeof(Iterator);
+				}
+			}
+		}
+
+	public:
+		Iterator(const StringList& pseudo_classes, PropertyIt it_properties, PseudoIt it_pseudo_class_properties, PropertyIt it_properties_end, PseudoIt it_pseudo_class_properties_end)
+			: pseudo_classes(pseudo_classes), it_properties(it_properties), it_pseudo_class_properties(it_pseudo_class_properties), it_properties_end(it_properties_end), it_pseudo_class_properties_end(it_pseudo_class_properties_end) 
+		{
+			proceed_to_next_valid();
+		}
+		Iterator& operator++() 
+		{ 
+			if (it_properties != it_properties_end)
+			{
+				++it_properties;
+				proceed_to_next_valid();
+				return *this;
+			}
+			++i_pseudo_class;
+			proceed_to_next_valid();
+			return *this; 
+		}
+		bool operator==(Iterator other) const { return it_properties == other.it_properties && it_pseudo_class_properties == other.it_pseudo_class_properties && i_pseudo_class == other.i_pseudo_class; }
+		bool operator!=(Iterator other) const { return !(*this == other); }
+		const Property& operator*() const
+		{
+			if (it_properties != it_properties_end)
+				return it_properties->second;
+			return it_pseudo_class_properties->second[i_pseudo_class].second;
+		}
+		const String& property_name() const 
+		{
+			if (it_properties != it_properties_end)
+				return it_properties->first;
+			return it_pseudo_class_properties->first;
+		}
+		const PseudoClassList* pseudo_class_list() const 
+		{
+			if (it_properties != it_properties_end)
+				return nullptr;
+			return &it_pseudo_class_properties->second[i_pseudo_class].first;
+		}
+	};
+
+	Iterator begin(const StringList& pseudo_classes) const {
+		return Iterator(pseudo_classes, properties.GetProperties().begin(), pseudo_class_properties.begin(), properties.GetProperties().end(), pseudo_class_properties.end());
+	}
+	Iterator end(const StringList& pseudo_classes) const {
+		return Iterator(pseudo_classes, properties.GetProperties().end(), pseudo_class_properties.end(), properties.GetProperties().end(), pseudo_class_properties.end());
+	}
+
 protected:
 	/// Destroys the definition.
 	void OnReferenceDeactivate();
@@ -153,7 +237,7 @@ private:
 	bool InstanceFontEffect(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_class = StringList());
 
 	// Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
-	bool IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes) const;
+	static bool IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);
 
 	// The attributes for the default state of the element, with no pseudo-classes.
 	PropertyDictionary properties;

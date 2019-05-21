@@ -482,7 +482,7 @@ float ElementStyle::ResolveLengthPercentage(const Property* property, float base
 
 
 // Iterates over the properties defined on the element.
-bool ElementStyle::IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** property_pseudo_classes)
+bool ElementStyle::IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** property_pseudo_classes) const
 {
 	// First check for locally defined properties.
 	if (local_properties != NULL)
@@ -503,7 +503,6 @@ bool ElementStyle::IterateProperties(int& index, String& name, const Property*& 
 		}
 	}
 
-	const ElementDefinition* definition = GetDefinition();
 	if (definition != NULL)
 	{
 		int index_offset = 0;

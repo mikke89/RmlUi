@@ -98,6 +98,7 @@ public:
 		  More computed values: 100.0  [edc78bb] !Woo!
 		  Avoid duplicate ToLower++: 103.0  [dec4ef6]
 		  Cleanup and smaller changes: 105.0  [38a559d]
+		  Move dirty properties to elementstyle: 113.0  [0bba316]
 		  
 		*/
 

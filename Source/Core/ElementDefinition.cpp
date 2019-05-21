@@ -559,7 +559,7 @@ bool ElementDefinition::InstanceFontEffect(const String& name, const String& typ
 }
 
 // Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
-bool ElementDefinition::IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes) const
+bool ElementDefinition::IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes)
 {
 	for (StringList::size_type i = 0; i < rule_pseudo_classes.size(); ++i)
 	{
