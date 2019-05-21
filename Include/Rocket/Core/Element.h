@@ -61,6 +61,7 @@ class FontFaceHandle;
 class PropertyDictionary;
 class RenderInterface;
 class StyleSheet;
+class DirtyPropertyList;
 struct ElementMeta;
 
 /**
@@ -602,9 +603,7 @@ protected:
 	/// @param[in] changed_properties The properties changed on the element.
 	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
 
-	void DirtyAllProperties() { all_properties_dirty = true; }
-	void DirtyProperties(const PropertyNameList& changed_properties);
-	void UpdateDirtyProperties();
+	void UpdateDirtyProperties(const DirtyPropertyList& dirty_properties);
 
 	/// Called when a child node has been added up to two levels below us in the hierarchy.
 	/// @param[in] child The element that has been added. This may be this element.
@@ -737,8 +736,6 @@ private:
 	bool structure_dirty;
 	bool parent_structure_dirty;
 
-	PropertyNameList dirty_properties;
-	bool all_properties_dirty;
 	bool computed_values_are_default_initialized;
 	bool box_dirty;
 

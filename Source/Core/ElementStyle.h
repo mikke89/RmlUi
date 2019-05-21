@@ -34,6 +34,81 @@
 namespace Rocket {
 namespace Core {
 
+
+class DirtyPropertyList {
+private:
+	bool all_dirty = false;
+	bool inherited_dirty = false;
+	bool em_relative_dirty = false;
+	PropertyNameList dirty_list;
+
+	inline void CheckInheritance(const String& property_name) {
+		const auto& inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
+		auto it = inherited_properties.find(property_name);
+		if (it != inherited_properties.end())
+			inherited_dirty = true;
+	}
+
+public:
+	DirtyPropertyList(bool all_dirty = false) : all_dirty(all_dirty) {}
+
+	void SetDirty(const String& property_name) {
+		if (all_dirty) return;
+		auto result = dirty_list.insert(property_name);
+		if (!inherited_dirty && result.second)
+			CheckInheritance(property_name);
+	}
+	void SetDirty(const PropertyNameList& properties) {
+		if (all_dirty) return;
+		// @performance: Can be made O(N+M)
+		dirty_list.insert(properties.begin(), properties.end());
+		for(size_t i = 0; i < properties.size() && !inherited_dirty; i++)
+			CheckInheritance(properties.container()[i]);
+	}
+	void SetAllDirty() {
+		Clear();
+		all_dirty = true;
+	}
+	void SetEmRelativeDirty() {
+		em_relative_dirty = true;
+	}
+
+	void Clear() {
+		all_dirty = false;
+		inherited_dirty = false;
+		em_relative_dirty = false;
+		dirty_list.clear();
+	}
+
+	bool Empty() const {
+		return !(all_dirty || inherited_dirty || em_relative_dirty || !dirty_list.empty());
+	}
+
+	bool IsDirty(const String & name) const {
+		if (all_dirty)
+			return true;
+		auto it = dirty_list.find(name);
+		return (it != dirty_list.end());
+	}
+
+	bool AllDirty() const {
+		return all_dirty;
+	}
+
+	bool IsEmRelativeDirty() const {
+		return (all_dirty || em_relative_dirty);
+	}
+
+	bool AnyInheritedDirty() const {
+		return (all_dirty || inherited_dirty);
+	}
+
+	const PropertyNameList& GetList() const {
+		return dirty_list;
+	}
+};
+
+
 /**
 	Manages an element's style and property information.
 	@author Lloyd Weehuizen
@@ -130,12 +205,8 @@ public:
 	/// Dirty all child definitions
 	void DirtyChildDefinitions();
 
-	// Dirties every property.
-	void DirtyProperties();
 	// Dirties em-relative properties.
 	void DirtyEmProperties();
-	// Dirties font-size on child elements if appropriate.
-	void DirtyInheritedEmProperties();
 	// Dirties rem properties.
 	void DirtyRemProperties();
 	// Dirties dp properties.
@@ -143,13 +214,13 @@ public:
 
 	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
 	/// Must be called in correct order, always parent before its children.
-	void ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
+	DirtyPropertyList ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
 
 private:
 	// Sets a single property as dirty.
 	void DirtyProperty(const String& property);
 	// Sets a list of properties as dirty.
-	void DirtyProperties(const PropertyNameList& properties, bool clear_em_properties = true);
+	void DirtyProperties(const PropertyNameList& properties);
 	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
 	void DirtyInheritedProperties(const PropertyNameList& properties);
 
@@ -168,12 +239,12 @@ private:
 
 	// Any properties that have been overridden in this element.
 	PropertyDictionary* local_properties;
-	// All properties (including inherited) that are EM-relative.
-	PropertyNameList* em_properties;
 	// The definition of this element; if this is NULL one will be fetched from the element's style.
 	ElementDefinition* definition;
 	// Set if a new element definition should be fetched from the style.
 	bool definition_dirty;
+
+	DirtyPropertyList dirty_properties;
 };
 
 }

@@ -146,7 +146,6 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	structure_dirty = false;
 	parent_structure_dirty = false;
 
-	all_properties_dirty = true;
 	computed_values_are_default_initialized = true;
 	box_dirty = false;
 
@@ -218,7 +217,6 @@ void Element::Update()
 	UpdateAnimation();
 	AdvanceAnimations();
 
-	if(all_properties_dirty || dirty_properties.size() > 0)
 	{
 		using namespace Style;
 		const ComputedValues* parent_values = (parent ? &parent->GetComputedValues() : nullptr);
@@ -230,15 +228,16 @@ void Element::Update()
 			if (auto context = doc->GetContext())
 				dp_ratio = context->GetDensityIndependentPixelRatio();
 		}
-		style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
+		auto dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
 
 		computed_values_are_default_initialized = false;
+
+		// Computed values are calculated before OnPropertyChange in UpdateDirtyProperties, thus these can safely be used.
+		// However, new properties set during this call will not be available until the next update loop.
+		// Enable ROCKET_DEBUG to get a warning when this happens.
+		UpdateDirtyProperties(dirty_properties);
 	}
 
-	// Computed values are calculated before OnPropertyChange in UpdateDirtyProperties, thus these can safely be used.
-	// However, new properties set during this call will not be available until the next update loop.
-	// Enable ROCKET_DEBUG to get a warning when this happens.
-	UpdateDirtyProperties();
 
 	if (box_dirty)
 	{
@@ -1355,7 +1354,6 @@ void Element::AppendChild(Element* child, bool dom_element)
 	}
 
 	child->GetStyle()->DirtyDefinition();
-	all_properties_dirty = true;
 
 	Element* ancestor = child;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -1402,7 +1400,6 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 		children.insert(children.begin() + child_index, child);
 
 		child->GetStyle()->DirtyDefinition();
-		all_properties_dirty = true;
 
 		Element* ancestor = child;
 		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -1439,7 +1436,6 @@ bool Element::ReplaceChild(Element* inserted_element, Element* replaced_element)
 	RemoveChild(replaced_element);
 
 	inserted_element->GetStyle()->DirtyDefinition();
-	all_properties_dirty = true;
 
 	Element* ancestor = inserted_element;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -1751,13 +1747,8 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
 		changed_properties.find(FONT_SIZE) != changed_properties.end())
 	{
-		// Store the old em; if it changes, then we need to dirty all em-relative properties.
-		int old_em = -1;
-		if (font_face_handle != NULL)
-			old_em = font_face_handle->GetLineHeight();
-
 		// Fetch the new font face.
-		FontFaceHandle * new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
+		FontFaceHandle* new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
 
 		// If this is different from our current font face, then we've got to nuke
 		// all our characters and tell our parent that we have to be re-laid out.
@@ -1767,19 +1758,6 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 				font_face_handle->RemoveReference();
 
 			font_face_handle = new_font_face_handle;
-
-			// Our font face has changed; odds are, so has our em. All of our em-relative values
-			// have therefore probably changed as well, so we'll need to dirty them.
-			int new_em = -1;
-			if (font_face_handle != NULL)
-				new_em = font_face_handle->GetLineHeight();
-
-			// However, if all properties are dirty, we don't need to perform this expensive
-			// step as all properties are dirtied below anyway.
-			if (old_em != new_em && !all_dirty)
-			{
-				style->DirtyEmProperties();
-			}
 		}
 		else if (new_font_face_handle != NULL)
 			new_font_face_handle->RemoveReference();
@@ -1793,6 +1771,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		changed_properties.find(TOP) != changed_properties.end() ||
 		changed_properties.find(BOTTOM) != changed_properties.end())
 	{
+		// TODO: This should happen during/after layout, as the containing box is not properly defined yet
 		UpdateOffset();
 		DirtyOffset();
 	}
@@ -1900,40 +1879,29 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 }
 
-void Element::DirtyProperties(const PropertyNameList& changed_properties) 
-{ 
-	if (all_properties_dirty)
-		return;
-
-	dirty_properties.insert(changed_properties.begin(), changed_properties.end());
-}
-
-void Element::UpdateDirtyProperties()
+void Element::UpdateDirtyProperties(const DirtyPropertyList& dirty_properties)
 {
-	if (!all_properties_dirty && dirty_properties.empty())
+	if (dirty_properties.Empty())
 		return;
 
-	if(all_properties_dirty)
+	if(dirty_properties.AllDirty())
 	{
-		// Clear the dirty properties first, so that any new dirty properties during the call are properly added.
-		// They will not actually be evaluated until the next update loop. Thus, setting any properties here should be avoided.
-		all_properties_dirty = false;
-		dirty_properties.clear();
 		OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
+	}
+	else if (dirty_properties.AnyInheritedDirty())
+	{
+		OnPropertyChange(StyleSheetSpecification::GetRegisteredInheritedProperties());
 	}
 	else
 	{
-		// Move the underlying dirty properties container to a temporary, so that we can fill it 
-		// with new dirty properties during OnPropertyChange.
-		PropertyNameList properties(std::move(dirty_properties));
-		dirty_properties.clear();
-		OnPropertyChange(properties);
+		OnPropertyChange(dirty_properties.GetList());
 	}
 
-#ifdef ROCKET_DEBUG
-	if (all_properties_dirty || !dirty_properties.empty())
-		Log::Message(Log::LT_WARNING, "One or more properties were set during OnPropertyChange, these will only be evaluated on the next update call and should be avoided.");
-#endif
+	// TODO: Add the following check back
+//#ifdef ROCKET_DEBUG
+//	if (all_properties_dirty || !dirty_properties.empty())
+//		Log::Message(Log::LT_WARNING, "One or more properties were set during OnPropertyChange, these will only be evaluated on the next update call and should be avoided.");
+//#endif
 }
 
 // Called when a child node has been added somewhere in the hierarchy

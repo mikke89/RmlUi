@@ -49,10 +49,9 @@ namespace Rocket {
 namespace Core {
 
 
-ElementStyle::ElementStyle(Element* _element)
+ElementStyle::ElementStyle(Element* _element) : dirty_properties(true)
 {
 	local_properties = NULL;
-	em_properties = NULL;
 	definition = NULL;
 	element = _element;
 
@@ -63,8 +62,6 @@ ElementStyle::~ElementStyle()
 {
 	if (local_properties != NULL)
 		delete local_properties;
-	if (em_properties != NULL)
-		delete em_properties;
 
 	if (definition != NULL)
 		definition->RemoveReference();
@@ -211,6 +208,8 @@ void ElementStyle::UpdateDefinition()
 
 			definition = new_definition;
 			
+			// @performance: It may be faster to dirty all properties
+			//dirty_properties.SetAllDirty();
 			DirtyProperties(properties);
 			element->GetElementDecoration()->DirtyDecorators(true);
 		}
@@ -552,57 +551,10 @@ void ElementStyle::DirtyChildDefinitions()
 		element->GetChild(i)->GetStyle()->DirtyDefinition();
 }
 
-// Dirties every property.
-void ElementStyle::DirtyProperties()
-{
-	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
-	DirtyProperties(properties);
-}
-
 // Dirties em-relative properties.
 void ElementStyle::DirtyEmProperties()
 {
-	if (!em_properties)
-	{
-		// Check if any of these are currently em-relative. If so, dirty them.
-		em_properties = new PropertyNameList;
-		for (auto& property : StyleSheetSpecification::GetRegisteredProperties())
-		{
-			// Skip font-size; this is relative to our parent's em, not ours.
-			if (property == FONT_SIZE)
-				continue;
-
-			// Get this property from this element. If this is em-relative, then add it to the list to
-			// dirty.
-			if (element->GetProperty(property)->unit == Property::EM)
-				em_properties->insert(property);
-		}
-	}
-
-	if (!em_properties->empty())
-		DirtyProperties(*em_properties, false);
-
-	// Now dirty all of our descendant's font-size properties that are relative to ems.
-	int num_children = element->GetNumChildren(true);
-	for (int i = 0; i < num_children; ++i)
-		element->GetChild(i)->GetStyle()->DirtyInheritedEmProperties();
-}
-
-// Dirties font-size on child elements if appropriate.
-void ElementStyle::DirtyInheritedEmProperties()
-{
-	const Property* font_size = element->GetLocalProperty(FONT_SIZE);
-	if (font_size == NULL)
-	{
-		int num_children = element->GetNumChildren(true);
-		for (int i = 0; i < num_children; ++i)
-			element->GetChild(i)->GetStyle()->DirtyInheritedEmProperties();
-	}
-	else
-	{
-		if (font_size->unit & Property::RELATIVE_UNIT)
-			DirtyProperty(FONT_SIZE);
-	}
+	dirty_properties.SetEmRelativeDirty();
 }
 
 // Dirties rem properties.
@@ -619,7 +571,7 @@ void ElementStyle::DirtyRemProperties()
 	}
 
 	if (!rem_properties.empty())
-		DirtyProperties(rem_properties, false);
+		DirtyProperties(rem_properties);
 
 	// Now dirty all of our descendant's properties that use the rem unit.
 	int num_children = element->GetNumChildren(true);
@@ -640,7 +592,7 @@ void ElementStyle::DirtyDpProperties()
 	}
 
 	if (!dp_properties.empty())
-		DirtyProperties(dp_properties, false);
+		DirtyProperties(dp_properties);
 
 	// Now dirty all of our descendant's properties that use the dp unit.
 	int num_children = element->GetNumChildren(true);
@@ -651,107 +603,38 @@ void ElementStyle::DirtyDpProperties()
 // Sets a single property as dirty.
 void ElementStyle::DirtyProperty(const String& property)
 {
-	PropertyNameList properties;
-	properties.insert(String(property));
-
-	DirtyProperties(properties);
+	dirty_properties.SetDirty(property);
 }
 
 // Sets a list of properties as dirty.
-void ElementStyle::DirtyProperties(const PropertyNameList& properties, bool clear_em_properties)
+void ElementStyle::DirtyProperties(const PropertyNameList& properties)
 {
-	if (properties.empty())
-		return;
-
-	bool all_inherited_dirty = 
-		&properties == &StyleSheetSpecification::GetRegisteredProperties() ||
-		StyleSheetSpecification::GetRegisteredProperties() == properties ||
-		StyleSheetSpecification::GetRegisteredInheritedProperties() == properties;
-
-
-	if (all_inherited_dirty)
-	{
-		const PropertyNameList &all_inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
-		for (int i = 0; i < element->GetNumChildren(true); i++)
-			element->GetChild(i)->GetStyle()->DirtyInheritedProperties(all_inherited_properties);
-	}
-	else
-	{
-		PropertyNameList inherited_properties;
-
-		for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
-		{
-			// If this property is an inherited property, then push it into the list to be passed onto our children.
-			const PropertyDefinition* property = StyleSheetSpecification::GetProperty(*i);
-			if (property != NULL &&
-				property->IsInherited())
-				inherited_properties.insert(*i);
-		}
-
-		// Pass the list of those properties that are inherited onto our children.
-		if (!inherited_properties.empty())
-		{
-			for (int i = 0; i < element->GetNumChildren(true); i++)
-				element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
-		}
-	}
-
-	// clear the list of EM-properties, we will refill it in DirtyEmProperties
-	if (clear_em_properties && em_properties != NULL)
-	{
-		delete em_properties;
-		em_properties = NULL;
-	}
-
-	// And send the event.
-	element->DirtyProperties(properties);
+	dirty_properties.SetDirty(properties);
 }
 
 // Sets a list of our potentially inherited properties as dirtied by an ancestor.
 void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 {
-	bool clear_em_properties = em_properties != NULL;
-
-	PropertyNameList inherited_properties;
-	for (PropertyNameList::const_iterator i = properties.begin(); i != properties.end(); ++i)
-	{
-		const Property *property = GetLocalProperty((*i));
-		if (property == NULL)
-		{
-			inherited_properties.insert(*i);
-			if (!clear_em_properties && em_properties != NULL && em_properties->find((*i)) != em_properties->end()) {
-				clear_em_properties = true;
-			}
-		}
-	}
-
-	if (inherited_properties.empty())
-		return;
-
-	// clear the list of EM-properties, we will refill it in DirtyEmProperties
-	if (clear_em_properties && em_properties != NULL)
-	{
-		delete em_properties;
-		em_properties = NULL;
-	}
-
-	// Pass the list of those properties that this element doesn't override onto our children.
-	for (int i = 0; i < element->GetNumChildren(true); i++)
-		element->GetChild(i)->GetStyle()->DirtyInheritedProperties(inherited_properties);
-
-	element->DirtyProperties(properties);
+	dirty_properties.SetDirty(properties);
+	return;
 }
 
 
 
-
-void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
+DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
 {
+	ROCKET_ASSERT_NONRECURSIVE;
+
+	if (dirty_properties.Empty())
+		return DirtyPropertyList();
+
 	// Generally, this is how it works (for now, we can probably be smarter about this):
 	//   1. Assign default values (clears any newly dirtied properties)
 	//   2. Inherit inheritable values from parent
 	//   3. Assign any local properties (from inline style or stylesheet)
 
+	const float font_size_before = values.font_size;
+	const float line_height_before = values.line_height.value;
 
 	// The next flag is just a small optimization, if the element was just created we don't need to copy all the default values.
 	if (!values_are_default_initialized)
@@ -760,27 +643,38 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 	}
 
 	// Always do font-size first if dirty, because of em-relative values
-	if (auto p = GetLocalProperty(FONT_SIZE))
-		values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio);
-	else if (parent_values)
-		values.font_size = parent_values->font_size;
+	{
+		if (auto p = GetLocalProperty(FONT_SIZE))
+			values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio);
+		else if (parent_values)
+			values.font_size = parent_values->font_size;
+		
+		if(font_size_before != values.font_size)
+			dirty_properties.SetEmRelativeDirty();
+	}
 
 	const float font_size = values.font_size;
 	const float document_font_size = (document_values ? document_values->font_size : DefaultComputedValues.font_size);
 
+
 	// Since vertical-align depends on line-height we compute this before iteration
-	if (auto p = GetLocalProperty(LINE_HEIGHT))
 	{
-		values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio);
-	}
-	else if (parent_values)
-	{
-		// Line height has a special inheritance case for numbers/percent: they inherit them directly instead of computed length, but for lengths, they inherit the length.
-		// See CSS specs for details. Percent is already converted to number.
-		if (parent_values->line_height.inherit_type == Style::LineHeight::Number)
-			values.line_height = Style::LineHeight(font_size * parent_values->line_height.inherit_value, Style::LineHeight::Number, parent_values->line_height.inherit_value);
-		else
-			values.line_height = parent_values->line_height;
+		if (auto p = GetLocalProperty(LINE_HEIGHT))
+		{
+			values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio);
+		}
+		else if (parent_values)
+		{
+			// Line height has a special inheritance case for numbers/percent: they inherit them directly instead of computed length, but for lengths, they inherit the length.
+			// See CSS specs for details. Percent is already converted to number.
+			if (parent_values->line_height.inherit_type == Style::LineHeight::Number)
+				values.line_height = Style::LineHeight(font_size * parent_values->line_height.inherit_value, Style::LineHeight::Number, parent_values->line_height.inherit_value);
+			else
+				values.line_height = parent_values->line_height;
+		}
+
+		if(line_height_before != values.line_height.value)
+			dirty_properties.SetDirty(VERTICAL_ALIGN);
 	}
 
 
@@ -973,8 +867,18 @@ void ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::Com
 	}
 
 
+	if (dirty_properties.AnyInheritedDirty())
+	{
+		for (int i = 0; i < element->GetNumChildren(true); i++)
+		{
+			auto child = element->GetChild(i);
+			child->GetStyle()->dirty_properties.SetDirty(StyleSheetSpecification::GetRegisteredInheritedProperties());
+		}
+	}
 
-
+	DirtyPropertyList result(std::move(dirty_properties));
+	dirty_properties.Clear();
+	return result;
 }
 
 }
