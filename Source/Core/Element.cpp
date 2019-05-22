@@ -217,7 +217,9 @@ void Element::Update()
 	UpdateAnimation();
 	AdvanceAnimations();
 
+	if(style->AnyPropertiesDirty())
 	{
+		// @performance: Maybe pass the following as function arguments?
 		using namespace Style;
 		const ComputedValues* parent_values = (parent ? &parent->GetComputedValues() : nullptr);
 		float dp_ratio = 1.0f;

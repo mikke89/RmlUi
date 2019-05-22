@@ -550,12 +550,6 @@ void ElementStyle::DirtyChildDefinitions()
 		element->GetChild(i)->GetStyle()->DirtyDefinition();
 }
 
-// Dirties em-relative properties.
-void ElementStyle::DirtyEmProperties()
-{
-	dirty_properties.SetEmRelativeDirty();
-}
-
 // Dirties rem properties.
 void ElementStyle::DirtyRemProperties()
 {
@@ -599,25 +593,55 @@ void ElementStyle::DirtyDpProperties()
 		element->GetChild(i)->GetStyle()->DirtyDpProperties();
 }
 
+bool ElementStyle::AnyPropertiesDirty() const 
+{
+	return !dirty_properties.Empty(); 
+}
+
 // Sets a single property as dirty.
 void ElementStyle::DirtyProperty(const String& property)
 {
-	dirty_properties.SetDirty(property);
+	dirty_properties.Insert(property);
 }
 
 // Sets a list of properties as dirty.
 void ElementStyle::DirtyProperties(const PropertyNameList& properties)
 {
-	dirty_properties.SetDirty(properties);
+	dirty_properties.Insert(properties);
 }
 
 // Sets a list of our potentially inherited properties as dirtied by an ancestor.
 void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 {
-	dirty_properties.SetDirty(properties);
+	dirty_properties.Insert(properties);
 	return;
 }
 
+static void DirtyEmProperties(DirtyPropertyList& dirty_properties, Element* element)
+{
+	// Either we can dirty every property, or we can iterate over all properties and see if anyone uses em-units.
+	// Choose whichever is fastest based on benchmarking.
+#if 1
+	// Dirty every property
+	dirty_properties.DirtyAll();
+#else
+	if (dirty_properties.AllDirty())
+		return;
+
+	// Check if any of these are currently em-relative. If so, dirty them.
+	for (auto& property_name : StyleSheetSpecification::GetRegisteredProperties())
+	{
+		// Skip font-size; this is relative to our parent's em, not ours.
+		if (property_name == FONT_SIZE)
+			continue;
+
+		// Get this property from this element. If this is em-relative, then add it to the list to
+		// dirty.
+		if (element->GetProperty(property_name)->unit == Property::EM)
+			dirty_properties.Insert(property_name);
+	}
+#endif
+}
 
 
 DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
@@ -648,8 +672,8 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		else if (parent_values)
 			values.font_size = parent_values->font_size;
 		
-		if(font_size_before != values.font_size)
-			dirty_properties.SetEmRelativeDirty();
+		if (font_size_before != values.font_size)
+			DirtyEmProperties(dirty_properties, element);
 	}
 
 	const float font_size = values.font_size;
@@ -673,7 +697,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		}
 
 		if(line_height_before != values.line_height.value)
-			dirty_properties.SetDirty(VERTICAL_ALIGN);
+			dirty_properties.Insert(VERTICAL_ALIGN);
 	}
 
 
@@ -866,12 +890,37 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 	}
 
 
-	if (dirty_properties.AnyInheritedDirty())
+	// Next, pass inheritable dirty properties onto our children
+
+	// Static to avoid repeated allocations, requires non-recursion.
+	static PropertyNameList dirty_inherited;
+	dirty_inherited.clear();
+
+	bool all_inherited_dirty = false;
+
+	if (dirty_properties.AllDirty())
 	{
+		all_inherited_dirty = true;
+	}
+	else
+	{
+		// Find all dirtied properties which are also inherited
+		const auto& inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
+		std::set_union(
+			inherited_properties.begin(), inherited_properties.end(), 
+			dirty_properties.GetList().begin(), dirty_properties.GetList().end(), 
+			std::back_inserter(dirty_inherited.modify_container())
+		);
+	}
+
+	if (all_inherited_dirty || dirty_inherited.size() > 0)
+	{
+		// Dirty inherited properties in our children
+		const auto& dirty_inherited_ref = (all_inherited_dirty ? StyleSheetSpecification::GetRegisteredInheritedProperties() : dirty_inherited);
 		for (int i = 0; i < element->GetNumChildren(true); i++)
 		{
 			auto child = element->GetChild(i);
-			child->GetStyle()->dirty_properties.SetDirty(StyleSheetSpecification::GetRegisteredInheritedProperties());
+			child->GetStyle()->dirty_properties.Insert(dirty_inherited_ref);
 		}
 	}
 
