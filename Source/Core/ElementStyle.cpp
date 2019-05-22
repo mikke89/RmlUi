@@ -906,7 +906,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 	{
 		// Find all dirtied properties which are also inherited
 		const auto& inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
-		std::set_union(
+		std::set_intersection(
 			inherited_properties.begin(), inherited_properties.end(), 
 			dirty_properties.GetList().begin(), dirty_properties.GetList().end(), 
 			std::back_inserter(dirty_inherited.modify_container())
