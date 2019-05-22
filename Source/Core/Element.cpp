@@ -1888,10 +1888,6 @@ void Element::UpdateDirtyProperties(const DirtyPropertyList& dirty_properties)
 	{
 		OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
 	}
-	else if (dirty_properties.AnyInheritedDirty())
-	{
-		OnPropertyChange(StyleSheetSpecification::GetRegisteredInheritedProperties());
-	}
 	else
 	{
 		OnPropertyChange(dirty_properties.GetList());
