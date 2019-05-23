@@ -141,7 +141,10 @@ public:
 		}
 		Iterator& operator++()
 		{
-
+			// The iteration proceeds as follows:
+			//  1. Iterate over all the default properties of the element (with no pseudo classes)
+			//  2. Iterate over each pseudo class that has a definition for this property,
+			//      testing each one to see if it matches the currently set pseudo classes.
 			if (it_properties != it_properties_end)
 			{
 				++it_properties;
@@ -159,6 +162,8 @@ public:
 				return { it_properties->first, it_properties->second };
 			return { it_pseudo_class_properties->first,  it_pseudo_class_properties->second[i_pseudo_class].second };
 		}
+
+		// Return the list of pseudo classes which defines the current property, possibly null
 		const PseudoClassList* pseudo_class_list() const
 		{
 			if (it_properties != it_properties_end)
@@ -176,6 +181,7 @@ public:
 		{
 			if (it_properties == it_properties_end)
 			{
+				// Iterate over all the pseudo classes and match the applicable rules
 				for (; it_pseudo_class_properties != it_pseudo_class_properties_end; ++it_pseudo_class_properties)
 				{
 					const PseudoClassPropertyList& pseudo_list = it_pseudo_class_properties->second;
@@ -192,29 +198,18 @@ public:
 		}
 	};
 
-	class IteratorWrapper {
-	private:
-		Iterator _begin, _end;
-		IteratorWrapper(const ElementDefinition& definition, const StringList& pseudo_classes) {
-			_begin = Iterator(pseudo_classes, definition.properties.GetProperties().begin(), definition.pseudo_class_properties.begin(), definition.properties.GetProperties().end(), definition.pseudo_class_properties.end());
-			_end = Iterator(pseudo_classes, definition.properties.GetProperties().end(), definition.pseudo_class_properties.end(), definition.properties.GetProperties().end(), definition.pseudo_class_properties.end());
-		}
-		friend class ElementDefinition;
-	public:
-		Iterator begin() const {
-			return _begin;
-		}
-		Iterator end() const {
-			return _end;
-		}
-	};
 
-	// Iterates over the properties of this definition matching the set of pseudo classes.
-	// Warning: Modifying the element definition or pseudo classes invalidates the iterators.
-	// Warning: The lifetime of pseudo_classes must extend beyond the iterators.
-	IteratorWrapper Iterate(const StringList& pseudo_classes) const {
-		return IteratorWrapper(*this, pseudo_classes);
+	/// Returns an iterator to the first property matching the active set of pseudo_classes.
+	/// Note: Modifying the element definition or pseudo classes invalidates the iterators.
+	/// Note: The lifetime of pseudo_classes must extend beyond the iterators.
+	Iterator begin(const StringList& pseudo_classes) const {
+		return Iterator(pseudo_classes, properties.GetProperties().begin(), pseudo_class_properties.begin(), properties.GetProperties().end(), pseudo_class_properties.end());
 	}
+	/// Returns an iterator to the property following the last property matching the active set of pseudo_classes.
+	Iterator end(const StringList& pseudo_classes) const {
+		return Iterator(pseudo_classes, properties.GetProperties().end(), pseudo_class_properties.end(), properties.GetProperties().end(), pseudo_class_properties.end());
+	}
+
 
 protected:
 	/// Destroys the definition.

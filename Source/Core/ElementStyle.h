@@ -122,6 +122,8 @@ public:
 			return { it_properties->first, it_properties->second };
 		return *it_definition;
 	}
+
+	// Return the list of pseudo classes which defines the current property, possibly null
 	const PseudoClassList* pseudo_class_list() const
 	{
 		if (it_properties != it_properties_end)

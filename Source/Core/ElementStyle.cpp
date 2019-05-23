@@ -610,9 +610,8 @@ ElementStyleIterator ElementStyle::begin() const {
 	ElementDefinition::Iterator it_definition_begin, it_definition_end;
 	if (definition)
 	{
-		auto definition_iterate = definition->Iterate(pseudo_classes);
-		it_definition_begin = definition_iterate.begin();
-		it_definition_end = definition_iterate.end();
+		it_definition_begin = definition->begin(pseudo_classes);
+		it_definition_end = definition->end(pseudo_classes);
 	}
 	return ElementStyleIterator(local, it_local_begin, it_definition_begin, it_local_end, it_definition_end);
 }
@@ -628,8 +627,7 @@ ElementStyleIterator ElementStyle::end() const {
 	ElementDefinition::Iterator it_definition_end;
 	if (definition)
 	{
-		auto definition_iterate = definition->Iterate(pseudo_classes);
-		it_definition_end = definition_iterate.end();
+		it_definition_end = definition->end(pseudo_classes);
 	}
 	return ElementStyleIterator(local, it_local_end, it_definition_end, it_local_end, it_definition_end);
 }
