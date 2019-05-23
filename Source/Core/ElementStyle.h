@@ -83,6 +83,74 @@ public:
 };
 
 
+
+class ElementStyleIterator {
+public:
+	using difference_type = std::ptrdiff_t;
+	using value_type = std::pair<const String&, const Property&>;
+	using pointer = value_type *;
+	using reference = value_type &;
+	using iterator_category = std::input_iterator_tag;
+
+	using PropertyIt = PropertyMap::const_iterator;
+	using DefinitionIt = ElementDefinition::Iterator;
+
+	ElementStyleIterator() : property_map(nullptr) {}
+	ElementStyleIterator(const PropertyMap* property_map, PropertyIt it_properties, DefinitionIt it_definition, PropertyIt it_properties_end, DefinitionIt it_definition_end)
+		: property_map(property_map), it_properties(it_properties), it_definition(it_definition), it_properties_end(it_properties_end), it_definition_end(it_definition_end)
+	{
+		proceed_to_next_valid();
+	}
+	ElementStyleIterator& operator++()
+	{
+		// First, we iterate over the local properties
+		if (it_properties != it_properties_end)
+		{
+			++it_properties;
+			proceed_to_next_valid();
+			return *this;
+		}
+		// Then, we iterate over the properties given by the element's definition
+		++it_definition;
+		proceed_to_next_valid();
+		return *this;
+	}
+	bool operator==(ElementStyleIterator other) const { return property_map == other.property_map && it_properties == other.it_properties && it_definition == other.it_definition; }
+	bool operator!=(ElementStyleIterator other) const { return !(*this == other); }
+	value_type operator*() const {
+		if (it_properties != it_properties_end)
+			return { it_properties->first, it_properties->second };
+		return *it_definition;
+	}
+	const PseudoClassList* pseudo_class_list() const
+	{
+		if (it_properties != it_properties_end)
+			return nullptr;
+		return it_definition.pseudo_class_list();
+	}
+
+private:
+	const PropertyMap* property_map;
+	PropertyIt it_properties, it_properties_end;
+	DefinitionIt it_definition, it_definition_end;
+
+	void proceed_to_next_valid()
+	{
+		// If we've reached the end of the local properties, continue iteration on the definition
+		if (it_properties == it_properties_end)
+		{
+			for (; it_definition != it_definition_end; ++it_definition)
+			{
+				// Skip this property if it has been overridden by the element's local properties
+				if (property_map && property_map->count((*it_definition).first))
+					continue;
+				return;
+			}
+		}
+	}
+};
+
+
 /**
 	Manages an element's style and property information.
 	@author Lloyd Weehuizen
@@ -190,6 +258,12 @@ public:
 	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
 	/// Must be called in correct order, always parent before its children.
 	DirtyPropertyList ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
+
+	/// Returns an iterator to the first property defined on this element.
+	/// Note: Modifying the element's style invalidates its iterators.
+	ElementStyleIterator begin() const;
+	/// Returns an iterator to the property following the last property defined on this element.
+	ElementStyleIterator end() const;
 
 private:
 	// Sets a single property as dirty.

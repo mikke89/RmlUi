@@ -598,6 +598,42 @@ bool ElementStyle::AnyPropertiesDirty() const
 	return !dirty_properties.Empty(); 
 }
 
+ElementStyleIterator ElementStyle::begin() const {
+	const PropertyMap* local = nullptr;
+	PropertyMap::const_iterator it_local_begin, it_local_end;
+	if (local_properties)
+	{
+		local = &local_properties->GetProperties();
+		it_local_begin = local->begin();
+		it_local_end = local->end();
+	}
+	ElementDefinition::Iterator it_definition_begin, it_definition_end;
+	if (definition)
+	{
+		auto definition_iterate = definition->Iterate(pseudo_classes);
+		it_definition_begin = definition_iterate.begin();
+		it_definition_end = definition_iterate.end();
+	}
+	return ElementStyleIterator(local, it_local_begin, it_definition_begin, it_local_end, it_definition_end);
+}
+
+ElementStyleIterator ElementStyle::end() const {
+	const PropertyMap* local = nullptr;
+	PropertyMap::const_iterator it_local_end;
+	if (local_properties)
+	{
+		local = &local_properties->GetProperties();
+		it_local_end = local->end();
+	}
+	ElementDefinition::Iterator it_definition_end;
+	if (definition)
+	{
+		auto definition_iterate = definition->Iterate(pseudo_classes);
+		it_definition_end = definition_iterate.end();
+	}
+	return ElementStyleIterator(local, it_local_end, it_definition_end, it_local_end, it_definition_end);
+}
+
 // Sets a single property as dirty.
 void ElementStyle::DirtyProperty(const String& property)
 {
@@ -727,12 +763,11 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 	}
 
 
-	int index = 0;
-	String name;
-	const Property* p = nullptr;
-
-	while (IterateProperties(index, name, p))
+	for(auto name_property_pair : *this)
 	{
+		auto& name = name_property_pair.first;
+		const Property* p = &name_property_pair.second;
+
 		using namespace Style;
 
 		// @performance: Can use a switch-case with constexpr hashing function
