@@ -57,6 +57,7 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
+class ElementStyleIterator;
 class FontFaceHandle;
 class PropertyDictionary;
 class RenderInterface;
@@ -260,13 +261,12 @@ public:
 	/// @return True if a new animation key was added.
 	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
 	
-	/// Iterates over the properties defined on this element.
-	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
-	/// @param[out] pseudo_classes The pseudo-classes the property is defined by.
-	/// @param[out] name The name of the property at the specified index.
-	/// @param[out] property The property at the specified index.
-	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** pseudo_classes = nullptr) const;
+	/// Iterators for the properties defined on this element.
+	/// @warning Modifying the element's properties or classes invalidates the iterators.
+	/// @return Iterator to the first property defined on this element.
+	ElementStyleIterator IteratePropertiesBegin() const;
+	/// @return Iterator to the one-past-the-last property defined on this element.
+	ElementStyleIterator IteratePropertiesEnd() const;
 	///@}
 
 	/** @name Pseudo-classes

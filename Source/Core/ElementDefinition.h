@@ -82,15 +82,6 @@ public:
 	/// @param[in] pseudo_class The pseudo-class that was just activated or deactivated.
 	void GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes, const String& pseudo_class) const;
 
-	/// Iterates over the properties in the definition.
-	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch.
-	/// @param[in] pseudo_classes The pseudo-classes defined on the querying element.
-	/// @param[out] property_pseudo_classes The pseudo-classes the property is defined by.
-	/// @param[out] property_name The name of the property at the specified index.
-	/// @param[out] property The property at the specified index.
-	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, const PseudoClassList& pseudo_classes, String& property_name, const Property*& property, const PseudoClassList** property_pseudo_classes = nullptr) const;
-
 	/// Returns the list of the element definition's instanced decorators in the default state.
 	/// @return The list of instanced decorators.
 	const DecoratorMap& GetDecorators() const;

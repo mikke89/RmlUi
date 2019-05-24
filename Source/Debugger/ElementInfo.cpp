@@ -27,6 +27,7 @@
 
 #include "ElementInfo.h"
 #include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/Rocket/Core/PropertyIterators.h"
 #include "../../Include/Rocket/Core/Factory.h"
 #include "../../Include/Rocket/Core/StyleSheet.h"
 #include "Geometry.h"
@@ -441,14 +442,15 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 {
 	NamedPropertyMap property_map;
 
-	int property_index = 0;
-	Core::String property_name;
 	const Core::PseudoClassList empty_property_pseudo_classes;
-	const Core::PseudoClassList* property_pseudo_classes_ptr = nullptr;
-	const Core::Property* property;
 
-	while (element->IterateProperties(property_index, property_name, property, &property_pseudo_classes_ptr))
+	auto it_end = element->IteratePropertiesEnd();
+	for(auto it = element->IteratePropertiesBegin(); it != it_end; ++it)
 	{
+		const Core::String& property_name = (*it).first;
+		const Core::Property* property = &(*it).second;
+		const Core::PseudoClassList* property_pseudo_classes_ptr = it.pseudo_class_list();
+
 		// Check that this property isn't overridden or just not inherited.
 		if (primary_element->GetProperty(property_name) != property)
 			continue;

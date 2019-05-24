@@ -227,60 +227,6 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 	}
 }
 
-// Iterates over the properties in the definition.
-bool ElementDefinition::IterateProperties(int& index, const PseudoClassList& pseudo_classes, String& property_name, const Property*& property, const PseudoClassList** property_pseudo_classes) const
-{
-	if (index < properties.GetNumProperties())
-	{
-		PropertyMap::const_iterator i = properties.GetProperties().begin();
-		for (int count = 0; count < index; ++count)
-			++i;
-
-		if (property_pseudo_classes)
-			* property_pseudo_classes = nullptr;
-		property_name = (*i).first;
-		property = &((*i).second);
-		++index;
-
-		return true;
-	}
-
-	// Not in the base properties; check for pseudo-class overrides.
-	int property_count = properties.GetNumProperties();
-	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
-	{
-		// Iterate over each pseudo-class set that has a definition for this property; if we find one that matches our
-		// pseudo-class, increment our index counter and either return that property (if we hit the requested index) or
-		// continue looking if we're still below it.
-		for (size_t j = 0; j < (*i).second.size(); ++j)
-		{
-			// @Performance: We are re-iterating this for every call to this function, can certainly optimize this! See also ++i over.
-			if (IsPseudoClassRuleApplicable((*i).second[j].first, pseudo_classes))
-			{
-				property_count++;
-				if (property_count > index)
-				{
-					// Copy the list of pseudo-classes.
-					if(property_pseudo_classes)
-						*property_pseudo_classes = &(*i).second[j].first;
-
-					property_name = (*i).first;
-					property = &((*i).second[j].second);
-					++index;
-
-					return true;
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
 // Returns the list of the element definition's instanced decorators in the default state.
 const DecoratorMap& ElementDefinition::GetDecorators() const
 {

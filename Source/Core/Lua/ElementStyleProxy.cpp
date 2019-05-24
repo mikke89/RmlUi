@@ -106,12 +106,22 @@ int ElementStyleProxy__pairs(lua_State* L)
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1)
         *pindex = 0;
-    //iterate variables
-    String key,val;
-    const Property* prop;
-    if(obj->owner->IterateProperties((*pindex),key,prop))
+
+	int i = 0;
+	auto it = obj->owner->IteratePropertiesBegin();
+	auto it_end = obj->owner->IteratePropertiesEnd();
+	while (i < (*pindex) && it != it_end)
+	{
+		++it;
+		++i;
+	}
+
+    if(it != it_end)
     {
-        prop->definition->GetValue(val,*prop);
+		const String& key = (*it).first;
+		const Property& property = (*it).second;
+		String val;
+        property.definition->GetValue(val, (*it).second);
         lua_pushstring(L,key.c_str());
         lua_pushstring(L,val.c_str());
     }

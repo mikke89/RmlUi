@@ -480,54 +480,6 @@ float ElementStyle::ResolveLengthPercentage(const Property* property, float base
 	return result;
 }
 
-
-// Iterates over the properties defined on the element.
-bool ElementStyle::IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** property_pseudo_classes) const
-{
-	// First check for locally defined properties.
-	if (local_properties != NULL)
-	{
-		if (index < local_properties->GetNumProperties())
-		{
-			PropertyMap::const_iterator i = local_properties->GetProperties().begin();
-			for (int count = 0; count < index; ++count)
-				++i;
-
-			name = (*i).first;
-			property = &((*i).second);
-			if (property_pseudo_classes)
-				* property_pseudo_classes = nullptr;
-			++index;
-
-			return true;
-		}
-	}
-
-	if (definition != NULL)
-	{
-		int index_offset = 0;
-		if (local_properties != NULL)
-			index_offset = local_properties->GetNumProperties();
-
-		// Offset the index to be relative to the definition before we start indexing. When we do get a property back,
-		// check that it hasn't been overridden by the element's local properties; if so, continue on to the next one.
-		index -= index_offset;
-		while (definition->IterateProperties(index, pseudo_classes, name, property, property_pseudo_classes))
-		{
-			if (local_properties == NULL ||
-				local_properties->GetProperty(name) == NULL)
-			{
-				index += index_offset;
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	return false;
-}
-
 // Returns the active style sheet for this element. This may be NULL.
 StyleSheet* ElementStyle::GetStyleSheet() const
 {

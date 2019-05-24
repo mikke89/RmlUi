@@ -161,14 +161,6 @@ public:
 	/// Number and percentages are resolved by scaling the size of the specified target.
 	float ResolveNumberLengthPercentage(const Property* property, RelativeTarget relative_target);
 
-	/// Iterates over the properties defined on the element.
-	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
-	/// @param[out] pseudo_classes The pseudo-classes the property is defined by.
-	/// @param[out] name The name of the property at the specified index.
-	/// @param[out] property The property at the specified index.
-	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, String& name, const Property*& property, const PseudoClassList** pseudo_classes = nullptr) const;
-
 	/// Returns the active style sheet for this element. This may be NULL.
 	StyleSheet* GetStyleSheet() const;
 
