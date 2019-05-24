@@ -64,6 +64,7 @@
 #include "Property.h"
 #include "PropertyDefinition.h"
 #include "PropertyDictionary.h"
+#include "PropertyIterators.h"
 #include "PropertyParser.h"
 #include "PropertySpecification.h"
 #include "RenderInterface.h"

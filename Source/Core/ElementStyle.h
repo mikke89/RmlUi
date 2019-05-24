@@ -56,7 +56,6 @@ public:
 		all_dirty = true;
 		dirty_list.clear();
 	}
-
 	void Clear() {
 		all_dirty = false;
 		dirty_list.clear();
@@ -65,92 +64,21 @@ public:
 	bool Empty() const {
 		return !all_dirty && dirty_list.empty();
 	}
-
 	bool Contains(const String & name) const {
 		if (all_dirty)
 			return true;
 		auto it = dirty_list.find(name);
 		return (it != dirty_list.end());
 	}
-
 	bool AllDirty() const {
 		return all_dirty;
 	}
-
 	const PropertyNameList& GetList() const {
 		return dirty_list;
 	}
 };
 
 
-
-class ElementStyleIterator {
-public:
-	using difference_type = std::ptrdiff_t;
-	using value_type = std::pair<const String&, const Property&>;
-	using pointer = value_type *;
-	using reference = value_type &;
-	using iterator_category = std::input_iterator_tag;
-
-	using PropertyIt = PropertyMap::const_iterator;
-	using DefinitionIt = ElementDefinition::Iterator;
-
-	ElementStyleIterator() : property_map(nullptr) {}
-	ElementStyleIterator(const PropertyMap* property_map, PropertyIt it_properties, DefinitionIt it_definition, PropertyIt it_properties_end, DefinitionIt it_definition_end)
-		: property_map(property_map), it_properties(it_properties), it_definition(it_definition), it_properties_end(it_properties_end), it_definition_end(it_definition_end)
-	{
-		proceed_to_next_valid();
-	}
-	ElementStyleIterator& operator++()
-	{
-		// First, we iterate over the local properties
-		if (it_properties != it_properties_end)
-		{
-			++it_properties;
-			proceed_to_next_valid();
-			return *this;
-		}
-		// Then, we iterate over the properties given by the element's definition
-		++it_definition;
-		proceed_to_next_valid();
-		return *this;
-	}
-	bool operator==(ElementStyleIterator other) const { return property_map == other.property_map && it_properties == other.it_properties && it_definition == other.it_definition; }
-	bool operator!=(ElementStyleIterator other) const { return !(*this == other); }
-	value_type operator*() const {
-		if (it_properties != it_properties_end)
-			return { it_properties->first, it_properties->second };
-		return *it_definition;
-	}
-
-	// Return the list of pseudo classes which defines the current property, possibly null
-	const PseudoClassList* pseudo_class_list() const
-	{
-		if (it_properties != it_properties_end)
-			return nullptr;
-		return it_definition.pseudo_class_list();
-	}
-
-private:
-	const PropertyMap* property_map;
-	PropertyIt it_properties, it_properties_end;
-	DefinitionIt it_definition, it_definition_end;
-
-	void proceed_to_next_valid()
-	{
-		// If we've reached the end of the local properties, continue iteration on the definition
-		if (it_properties == it_properties_end)
-		{
-			for (; it_definition != it_definition_end; ++it_definition)
-			{
-				// Skip this property if it has been overridden by the element's local properties
-				if (property_map && property_map->count((*it_definition).first))
-					continue;
-				return;
-			}
-		}
-	}
-};
 
 
 /**

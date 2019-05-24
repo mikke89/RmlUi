@@ -164,6 +164,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Property.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDefinition.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDictionary.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyIterators.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyParser.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertySpecification.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ReferenceCountable.h
@@ -290,6 +291,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyIterators.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp

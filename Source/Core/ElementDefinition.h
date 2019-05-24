@@ -39,14 +39,7 @@ namespace Core {
 
 class Decorator;
 class FontEffect;
-
-// Defines for the optimised version of the pseudo-class properties (note the difference from the
-// PseudoClassPropertyMap defined in StyleSheetNode.h ... bit clumsy). Here the properties are stored as a list
-// of definitions against each property name in specificity-order, along with the pseudo-class requirements for each
-// one. This makes it much more straight-forward to query at run-time.
-typedef std::pair< StringList, Property > PseudoClassProperty;
-typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef SmallUnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+class ElementDefinitionIterator;
 
 typedef SmallUnorderedMap< String, Decorator* > DecoratorMap;
 typedef std::map< StringList, DecoratorMap > PseudoClassDecoratorMap;
@@ -121,95 +114,13 @@ public:
 	/// @return True if this definition is structurally volatile.
 	bool IsStructurallyVolatile() const;
 
-
-	class Iterator {
-	public:
-		using difference_type = std::ptrdiff_t;
-		using value_type = std::pair<const String&, const Property&>;
-		using pointer = value_type*;
-		using reference = value_type&;
-		using iterator_category = std::input_iterator_tag;
-
-		using PropertyIt = PropertyMap::const_iterator;
-		using PseudoIt = PseudoClassPropertyDictionary::const_iterator;
-
-		Iterator() : pseudo_classes(nullptr) {}
-		Iterator(const StringList& pseudo_classes, PropertyIt it_properties, PseudoIt it_pseudo_class_properties, PropertyIt it_properties_end, PseudoIt it_pseudo_class_properties_end)
-			: pseudo_classes(&pseudo_classes), it_properties(it_properties), it_pseudo_class_properties(it_pseudo_class_properties), it_properties_end(it_properties_end), it_pseudo_class_properties_end(it_pseudo_class_properties_end)
-		{
-			proceed_to_next_valid();
-		}
-		Iterator& operator++()
-		{
-			// The iteration proceeds as follows:
-			//  1. Iterate over all the default properties of the element (with no pseudo classes)
-			//  2. Iterate over each pseudo class that has a definition for this property,
-			//      testing each one to see if it matches the currently set pseudo classes.
-			if (it_properties != it_properties_end)
-			{
-				++it_properties;
-				proceed_to_next_valid();
-				return *this;
-			}
-			++i_pseudo_class;
-			proceed_to_next_valid();
-			return *this;
-		}
-		bool operator==(Iterator other) const { return pseudo_classes == other.pseudo_classes && it_properties == other.it_properties && it_pseudo_class_properties == other.it_pseudo_class_properties && i_pseudo_class == other.i_pseudo_class; }
-		bool operator!=(Iterator other) const { return !(*this == other); }
-		value_type operator*() const {
-			if (it_properties != it_properties_end)
-				return { it_properties->first, it_properties->second };
-			return { it_pseudo_class_properties->first,  it_pseudo_class_properties->second[i_pseudo_class].second };
-		}
-
-		// Return the list of pseudo classes which defines the current property, possibly null
-		const PseudoClassList* pseudo_class_list() const
-		{
-			if (it_properties != it_properties_end)
-				return nullptr;
-			return &it_pseudo_class_properties->second[i_pseudo_class].first;
-		}
-
-	private:
-		const StringList* pseudo_classes;
-		PropertyIt it_properties, it_properties_end;
-		PseudoIt it_pseudo_class_properties, it_pseudo_class_properties_end;
-		size_t i_pseudo_class = 0;
-
-		void proceed_to_next_valid()
-		{
-			if (it_properties == it_properties_end)
-			{
-				// Iterate over all the pseudo classes and match the applicable rules
-				for (; it_pseudo_class_properties != it_pseudo_class_properties_end; ++it_pseudo_class_properties)
-				{
-					const PseudoClassPropertyList& pseudo_list = it_pseudo_class_properties->second;
-					for (; i_pseudo_class < pseudo_list.size(); ++i_pseudo_class)
-					{
-						if (IsPseudoClassRuleApplicable(pseudo_list[i_pseudo_class].first, *pseudo_classes))
-						{
-							return;
-						}
-					}
-					i_pseudo_class = 0;
-				}
-			}
-		}
-	};
-
-
 	/// Returns an iterator to the first property matching the active set of pseudo_classes.
-	/// Note: Modifying the element definition or pseudo classes invalidates the iterators.
-	/// Note: The lifetime of pseudo_classes must extend beyond the iterators.
-	Iterator begin(const StringList& pseudo_classes) const {
-		return Iterator(pseudo_classes, properties.GetProperties().begin(), pseudo_class_properties.begin(), properties.GetProperties().end(), pseudo_class_properties.end());
-	}
+	ElementDefinitionIterator begin(const StringList& pseudo_classes) const;
 	/// Returns an iterator to the property following the last property matching the active set of pseudo_classes.
-	Iterator end(const StringList& pseudo_classes) const {
-		return Iterator(pseudo_classes, properties.GetProperties().end(), pseudo_class_properties.end(), properties.GetProperties().end(), pseudo_class_properties.end());
-	}
+	ElementDefinitionIterator end(const StringList& pseudo_classes) const;
 
+	/// Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
+	static bool IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);
 
 protected:
 	/// Destroys the definition.
@@ -240,9 +151,6 @@ private:
 	void InstanceFontEffects(const PseudoClassPropertyMap& merged_pseudo_class_properties);
 	// Attempts to instance a font effect.
 	bool InstanceFontEffect(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_class = StringList());
-
-	// Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
-	static bool IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);
 
 	// The attributes for the default state of the element, with no pseudo-classes.
 	PropertyDictionary properties;

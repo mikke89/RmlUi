@@ -132,6 +132,15 @@ typedef std::shared_ptr< Transform > TransformRef;
 struct Transition;
 struct TransitionList;
 
+// Pseudo class properties
+// Defines for the optimised version of the pseudo-class properties (note the difference from the
+// PseudoClassPropertyMap defined in StyleSheetNode.h ... bit clumsy). Here the properties are stored as a list
+// of definitions against each property name in specificity-order, along with the pseudo-class requirements for each
+// one. This makes it much more straight-forward to query at run-time.
+typedef std::pair< StringList, Property > PseudoClassProperty;
+typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
+typedef SmallUnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+
 }
 }
 

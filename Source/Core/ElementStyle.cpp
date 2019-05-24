@@ -607,7 +607,7 @@ ElementStyleIterator ElementStyle::begin() const {
 		it_local_begin = local->begin();
 		it_local_end = local->end();
 	}
-	ElementDefinition::Iterator it_definition_begin, it_definition_end;
+	ElementDefinitionIterator it_definition_begin, it_definition_end;
 	if (definition)
 	{
 		it_definition_begin = definition->begin(pseudo_classes);
@@ -624,7 +624,7 @@ ElementStyleIterator ElementStyle::end() const {
 		local = &local_properties->GetProperties();
 		it_local_end = local->end();
 	}
-	ElementDefinition::Iterator it_definition_end;
+	ElementDefinitionIterator it_definition_end;
 	if (definition)
 	{
 		it_definition_end = definition->end(pseudo_classes);

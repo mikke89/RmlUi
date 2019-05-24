@@ -31,6 +31,7 @@
 #include "../../Include/Rocket/Core/Factory.h"
 #include "../../Include/Rocket/Core/FontDatabase.h"
 #include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/Rocket/Core/PropertyIterators.h"
 
 namespace Rocket {
 namespace Core {
@@ -335,6 +336,14 @@ ElementDefinition::PseudoClassVolatility ElementDefinition::GetPseudoClassVolati
 bool ElementDefinition::IsStructurallyVolatile() const
 {
 	return structurally_volatile;
+}
+
+ElementDefinitionIterator ElementDefinition::begin(const StringList& pseudo_classes) const {
+	return ElementDefinitionIterator(pseudo_classes, properties.GetProperties().begin(), pseudo_class_properties.begin(), properties.GetProperties().end(), pseudo_class_properties.end());
+}
+
+ElementDefinitionIterator ElementDefinition::end(const StringList& pseudo_classes) const {
+	return ElementDefinitionIterator(pseudo_classes, properties.GetProperties().end(), pseudo_class_properties.end(), properties.GetProperties().end(), pseudo_class_properties.end());
 }
 
 // Destroys the definition.
