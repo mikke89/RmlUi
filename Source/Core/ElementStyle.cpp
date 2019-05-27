@@ -182,39 +182,53 @@ void ElementStyle::UpdateDefinition()
 	{
 		definition_dirty = false;
 		
-		ElementDefinition* new_definition = NULL;
+		ElementDefinition* new_definition = nullptr;
 		
 		const StyleSheet* style_sheet = GetStyleSheet();
-		if (style_sheet != NULL)
+		if (style_sheet)
 		{
 			new_definition = style_sheet->GetElementDefinition(element);
 		}
 		
 		// Switch the property definitions if the definition has changed.
-		if (new_definition != definition || new_definition == NULL)
+		if (!definition && new_definition)
+		{
+			// Since we had no definition before there is a likelihood that everything is dirty.
+			// We could do as in the next else-if block, but this is considerably faster.
+			dirty_properties.DirtyAll();
+			element->GetElementDecoration()->DirtyDecorators(true);
+			definition = new_definition;
+		}
+		else if (new_definition != definition)
 		{
 			PropertyNameList properties;
 			
-			if (definition != NULL)
+			if (definition)
 				definition->GetDefinedProperties(properties, pseudo_classes);
 
-			if (new_definition != NULL)
+			if (new_definition)
 				new_definition->GetDefinedProperties(properties, pseudo_classes);
 
 			TransitionPropertyChanges(element, properties, local_properties, definition, new_definition, pseudo_classes, pseudo_classes);
 
-			if (definition != NULL)
+			if (definition)
 				definition->RemoveReference();
 
 			definition = new_definition;
 			
-			// @performance: It may be faster to dirty all properties
-			//dirty_properties.SetAllDirty();
 			DirtyProperties(properties);
 			element->GetElementDecoration()->DirtyDecorators(true);
 		}
-		else if (new_definition != NULL)
+		else if (!new_definition)
 		{
+			// Both definitions empty
+			ROCKET_ASSERT(!definition);
+			// Is this really necessary?
+			element->GetElementDecoration()->DirtyDecorators(true);
+		}
+		else if (new_definition)
+		{
+			// We got the same definition
 			new_definition->RemoveReference();
 		}
 	}
