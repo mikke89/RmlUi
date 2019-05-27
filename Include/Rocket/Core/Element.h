@@ -580,7 +580,7 @@ public:
 	const ComputedValues& GetComputedValues() const;
 
 protected:
-	void Update();
+	void Update(float dp_ratio);
 	void Render();
 
 	/// Forces the element to generate a local stacking context, regardless of the value of its z-index
@@ -602,8 +602,6 @@ protected:
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
 	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
-
-	void UpdateDirtyProperties(const DirtyPropertyList& dirty_properties);
 
 	/// Called when a child node has been added up to two levels below us in the hierarchy.
 	/// @param[in] child The element that has been added. This may be this element.

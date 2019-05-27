@@ -313,7 +313,8 @@ void ElementDocument::LoadScript(Stream* ROCKET_UNUSED_PARAMETER(stream), const 
 // Updates the document, including its layout
 void ElementDocument::UpdateDocument()
 {
-	Element::Update();
+	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
+	Update(dp_ratio);
 	UpdateLayout();
 	UpdatePosition();
 }

@@ -202,7 +202,7 @@ Element::~Element()
 		instancer->RemoveReference();
 }
 
-void Element::Update()
+void Element::Update(float dp_ratio)
 {
 	ReleaseElements(deleted_children);
 	active_children = children;
@@ -219,25 +219,30 @@ void Element::Update()
 
 	if(style->AnyPropertiesDirty())
 	{
-		// @performance: Maybe pass the following as function arguments?
-		using namespace Style;
-		const ComputedValues* parent_values = (parent ? &parent->GetComputedValues() : nullptr);
-		float dp_ratio = 1.0f;
+		const ComputedValues* parent_values = nullptr;
 		const ComputedValues* document_values = nullptr;
+		if (parent)
+			parent_values = &parent->GetComputedValues();
 		if (auto doc = GetOwnerDocument())
-		{
 			document_values = &doc->GetComputedValues();
-			if (auto context = doc->GetContext())
-				dp_ratio = context->GetDensityIndependentPixelRatio();
-		}
+
+		// Compute values and clear dirty properties
 		auto dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
 
 		computed_values_are_default_initialized = false;
 
-		// Computed values are calculated before OnPropertyChange in UpdateDirtyProperties, thus these can safely be used.
+		// Computed values are just calculated and can safely be used in OnPropertyChange.
 		// However, new properties set during this call will not be available until the next update loop.
 		// Enable ROCKET_DEBUG to get a warning when this happens.
-		UpdateDirtyProperties(dirty_properties);
+		if (dirty_properties.AllDirty())
+			OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
+		else if(!dirty_properties.Empty())
+			OnPropertyChange(dirty_properties.GetList());
+
+#ifdef ROCKET_DEBUG
+		if (style->AnyPropertiesDirty())
+			Log::Message(Log::LT_WARNING, "One or more properties were set during OnPropertyChange, these will only be evaluated on the next update call and should be avoided.");
+#endif
 	}
 
 
@@ -250,7 +255,7 @@ void Element::Update()
 	UpdateTransformState();
 
 	for (size_t i = 0; i < active_children.size(); i++)
-		active_children[i]->Update();
+		active_children[i]->Update(dp_ratio);
 }
 
 void Element::Render()
@@ -1882,27 +1887,6 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	{
 		DirtyAnimation();
 	}
-}
-
-void Element::UpdateDirtyProperties(const DirtyPropertyList& dirty_properties)
-{
-	if (dirty_properties.Empty())
-		return;
-
-	if(dirty_properties.AllDirty())
-	{
-		OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
-	}
-	else
-	{
-		OnPropertyChange(dirty_properties.GetList());
-	}
-
-	// TODO: Add the following check back
-//#ifdef ROCKET_DEBUG
-//	if (all_properties_dirty || !dirty_properties.empty())
-//		Log::Message(Log::LT_WARNING, "One or more properties were set during OnPropertyChange, these will only be evaluated on the next update call and should be avoided.");
-//#endif
 }
 
 // Called when a child node has been added somewhere in the hierarchy

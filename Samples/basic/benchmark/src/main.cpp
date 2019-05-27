@@ -99,6 +99,9 @@ public:
 		  Avoid duplicate ToLower++: 103.0  [dec4ef6]
 		  Cleanup and smaller changes: 105.0  [38a559d]
 		  Move dirty properties to elementstyle: 113.0  [0bba316]
+		  (After Windows feature update and MSVC update, no code change): 109.0  [0bba316]
+		  Fixes and element style iterators: 108.0  [0bba316]
+		  Update definition speedup: 115.0  [5d138fa]
 		  
 		*/
 

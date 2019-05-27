@@ -168,7 +168,7 @@ float Context::GetDensityIndependentPixelRatio() const
 // Updates all elements in the element tree.
 bool Context::Update()
 {
-	root->Update();
+	root->Update(density_independent_pixel_ratio);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 		if (auto doc = root->GetChild(i)->GetOwnerDocument())
@@ -200,7 +200,7 @@ bool Context::Render()
 	// Render the cursor proxy so any elements attached the cursor will be rendered below the cursor.
 	if (cursor_proxy != NULL)
 	{
-		cursor_proxy->Update();
+		cursor_proxy->Update(density_independent_pixel_ratio);
 		cursor_proxy->SetOffset(Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x),
 			(float)Math::Clamp(mouse_position.y, 0, dimensions.y)),
 			NULL);
