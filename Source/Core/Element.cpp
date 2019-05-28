@@ -174,21 +174,21 @@ Element::~Element()
 	// Remove scrollbar elements before we delete the children!
 	scroll->ClearScrollbars();
 
-	while (!children.empty())
+	// A simplified version of RemoveChild() for destruction.
+	for (Element* child : children)
 	{
-		// A simplified version of RemoveChild() for destruction.
-		Element* child = children.front();
-
-		Element* ancestor = child;
-		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-			ancestor->OnChildRemove(child);
-
-		if (num_non_dom_children > 0)
-			num_non_dom_children--;
-
-		deleted_children.push_back(child);
-		children.erase(children.begin());
+		Element* child_ancestor = child;
+		for (int i = 0; i <= ChildNotifyLevels && child_ancestor; i++, child_ancestor = child_ancestor->GetParentNode())
+			child_ancestor->OnChildRemove(child);
 	}
+
+	if (deleted_children.empty())
+		deleted_children = std::move(children);
+	else
+		deleted_children.insert(deleted_children.end(), children.begin(), children.end());
+	
+	children.clear();
+	num_non_dom_children = 0;
 
 	// Release all deleted children.
 	ReleaseElements(deleted_children);
