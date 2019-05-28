@@ -628,7 +628,6 @@ protected:
 private:
 	void SetParent(Element* parent);
 
-	void ReleaseDeletedElements();
 	void ReleaseElements(ElementList& elements);
 
 	void DirtyOffset();
@@ -721,7 +720,6 @@ private:
 	ElementList children;
 	int num_non_dom_children;
 
-	ElementList active_children;
 	ElementList deleted_children;
 
 	float z_index;

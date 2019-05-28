@@ -205,7 +205,6 @@ Element::~Element()
 void Element::Update(float dp_ratio)
 {
 	ReleaseElements(deleted_children);
-	active_children = children;
 
 	OnUpdate();
 
@@ -254,8 +253,8 @@ void Element::Update(float dp_ratio)
 
 	UpdateTransformState();
 
-	for (size_t i = 0; i < active_children.size(); i++)
-		active_children[i]->Update(dp_ratio);
+	for (size_t i = 0; i < children.size(); i++)
+		children[i]->Update(dp_ratio);
 }
 
 void Element::Render()
@@ -2027,17 +2026,6 @@ void Element::SetParent(Element* _parent)
 
 	// Save our parent
 	parent = _parent;
-}
-
-void Element::ReleaseDeletedElements()
-{
-	for (size_t i = 0; i < active_children.size(); i++)
-	{
-		active_children[i]->ReleaseDeletedElements();
-	}
-
-	ReleaseElements(deleted_children);
-	active_children = children;
 }
 
 void Element::ReleaseElements(ElementList& released_elements)

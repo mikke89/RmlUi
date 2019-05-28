@@ -363,7 +363,6 @@ void Context::UnloadAllDocuments()
 
 	// Force cleanup of child elements now, reference counts must hit zero so that python (if it's in use) cleans up
 	// before we exit this method.
-	root->active_children.clear();
 	root->ReleaseElements(root->deleted_children);
 
 	// Also need to clear containers that keep ElementReference pointers to elements belonging to removed documents,
