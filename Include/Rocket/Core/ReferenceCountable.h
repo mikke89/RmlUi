@@ -44,23 +44,25 @@ public:
 	/// Constructor.
 	/// @param[in] initial_count The initial reference count of the object.
 	ReferenceCountable(int initial_count = 1);
-	/// Destructor. The reference count must be 0 when this is invoked.
-	virtual ~ReferenceCountable();
 
 	/// Returns the number of references outstanding against this object.
-	virtual int GetReferenceCount();
+	int GetReferenceCount();
 	/// Increases the reference count. If this pushes the count above 0, OnReferenceActivate() will be called. 
-	virtual void AddReference();
+	void AddReference();
 	/// Decreases the reference count. If this pushes the count to 0, OnReferenceDeactivate() will be called. 
-	virtual void RemoveReference();
+	void RemoveReference();
 
-	/// Catches incorrect copy attempts.
-	ReferenceCountable& operator=(const ReferenceCountable& copy);
+	/// Reference countable objects should not be copied
+	ReferenceCountable(const ReferenceCountable&) = delete;
+	ReferenceCountable& operator=(const ReferenceCountable&) = delete;
 
 	/// If any reference countable objects are still allocated, this function will write a leak report to the log.
 	static void DumpLeakReport();
 
 protected:		
+	/// Destructor. The reference count must be 0 when this is invoked.
+	~ReferenceCountable();
+
 	/// A hook method called when the reference count climbs from 0.
 	virtual void OnReferenceActivate();
 	/// A hook method called when the reference count drops to 0.

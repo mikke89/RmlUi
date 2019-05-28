@@ -74,12 +74,6 @@ void ReferenceCountable::RemoveReference()
 	}
 }
 
-ReferenceCountable& ReferenceCountable::operator=(const ReferenceCountable& /*copy*/)
-{
-	ROCKET_ERRORMSG("Attempting to copy a reference counted object. This is not advisable.");
-	return *this;
-}
-
 // If any reference countable objects are still allocated, this function will write a leak report to the log.
 void ReferenceCountable::DumpLeakReport()
 {
