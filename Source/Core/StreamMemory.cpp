@@ -64,38 +64,10 @@ StreamMemory::StreamMemory(const byte* _buffer, size_t _buffer_size)
 	buffer_ptr = buffer;	
 }
 
-StreamMemory::StreamMemory(const StreamMemory& copy) : Stream(copy)
-{
-	buffer = NULL;
-	buffer_ptr = NULL;
-	buffer_size = 0;
-	buffer_used = 0;
-	owns_buffer = true;
-	
-	// Copy the buffer and pointer offsets
-	Reallocate( ( ( copy.buffer_used + BUFFER_INCREMENTS ) / BUFFER_INCREMENTS ) * BUFFER_INCREMENTS );
-	ROCKET_ASSERTMSG(buffer != NULL, "Could not allocate buffer for StreamMemory reader.");
-	if(buffer != NULL)
-	{
-		memcpy( buffer, copy.buffer, copy.buffer_used );
-		buffer_ptr = buffer + ( copy.buffer_ptr - copy.buffer );
-	}
-}
-
 StreamMemory::~StreamMemory() 
 {
 	if ( owns_buffer )
 		free( buffer );
-}
-
-StreamMemory& StreamMemory::operator=( const StreamMemory& copy )
-{
-	// Copy the buffer and pointer offsets
-	Reallocate( ( ( copy.buffer_used + BUFFER_INCREMENTS ) / BUFFER_INCREMENTS ) * BUFFER_INCREMENTS );
-	memcpy( buffer, copy.buffer, copy.buffer_used );
-	buffer_ptr = buffer + ( copy.buffer_ptr - copy.buffer );
-	
-	return *this;
 }
 
 void StreamMemory::Close() 

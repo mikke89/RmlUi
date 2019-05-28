@@ -48,11 +48,7 @@ public:
 	StreamMemory(size_t initial_size);
 	/// Read only memory stream based on the existing buffer
 	StreamMemory(const byte* buffer, size_t buffer_size);
-	/// Copy a memory stream
-	StreamMemory(const StreamMemory& copy); 
 	virtual ~StreamMemory();
-
-	StreamMemory& operator=(const StreamMemory& copy);
 
 	/// Close the stream
 	virtual void Close();	
