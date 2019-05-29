@@ -1119,21 +1119,23 @@ float Element::GetScrollHeight()
 }
 
 // Gets the object representing the declarations of an element's style attributes.
-ElementStyle* Element::GetStyle()
+ElementStyle* Element::GetStyle() const
 {
 	return style;
 }
 
 // Gets the document this element belongs to.
-ElementDocument* Element::GetOwnerDocument()
+ElementDocument* Element::GetOwnerDocument() const
 {
-	if (parent == NULL)
-		return NULL;
-	
-	if (!owner_document)
+#ifdef ROCKET_DEBUG
+	if (parent && !owner_document)
 	{
-		owner_document = parent->GetOwnerDocument();
+		// Since we have a parent but no owner_document, then we must be a 'loose' element -- that is, constructed
+		// outside of a document and not attached to a child of any element in the hierarchy of a document.
+		// This check ensures that we didn't just forget to set the owner document.
+		ROCKET_ASSERT(!parent->GetOwnerDocument());
 	}
+#endif
 
 	return owner_document;
 }
@@ -1426,9 +1428,6 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 // Replaces the second node with the first node.
 bool Element::ReplaceChild(Element* inserted_element, Element* replaced_element)
 {
-	inserted_element->AddReference();
-	inserted_element->SetParent(this);
-
 	ElementList::iterator insertion_point = children.begin();
 	while (insertion_point != children.end() && *insertion_point != replaced_element)
 	{
@@ -1440,6 +1439,9 @@ bool Element::ReplaceChild(Element* inserted_element, Element* replaced_element)
 		AppendChild(inserted_element);
 		return false;
 	}
+
+	inserted_element->AddReference();
+	inserted_element->SetParent(this);
 
 	children.insert(insertion_point, inserted_element);
 	RemoveChild(replaced_element);
@@ -2017,6 +2019,17 @@ void Element::GetRML(String& content)
 	}
 }
 
+void Element::SetOwnerDocument(ElementDocument* document)
+{
+	// If this element is a document, then never change owner_document. Otherwise, this can happen when attaching to the root element.
+	if(owner_document != document && owner_document != this)
+	{
+		owner_document = document;
+		for (Element* child : children)
+			child->SetOwnerDocument(document);
+	}
+}
+
 void Element::SetParent(Element* _parent)
 {	
 	// If there's an old parent, detach from it first.
@@ -2024,8 +2037,9 @@ void Element::SetParent(Element* _parent)
 		parent != _parent)
 		parent->RemoveChild(this);
 
-	// Save our parent
 	parent = _parent;
+
+	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
 }
 
 void Element::ReleaseElements(ElementList& released_elements)
@@ -2046,7 +2060,10 @@ void Element::ReleaseElements(ElementList& released_elements)
 
 		// Set the parent to NULL unless it's been reparented already.
 		if (element->GetParentNode() == this)
-			element->parent = NULL;
+		{
+			element->parent = nullptr;
+			element->SetOwnerDocument(nullptr);
+		}
 
 		element->RemoveReference();
 	}
@@ -2194,13 +2211,11 @@ void Element::DirtyStackingContext()
 void Element::DirtyStructure()
 {
 	// Clear the cached owner document
-	owner_document = NULL;
 	structure_dirty = true;
 }
 
 void Element::DirtyParentStructure()
 {
-	owner_document = NULL;
 	parent_structure_dirty = true;
 }
 

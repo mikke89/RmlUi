@@ -422,11 +422,11 @@ public:
 
 	/// Gets the object representing the declarations of an element's style attributes.
 	/// @return The element's style.
-	ElementStyle* GetStyle();
+	ElementStyle* GetStyle() const;
 
 	/// Gets the document this element belongs to.
 	/// @return This element's document.
-	virtual ElementDocument* GetOwnerDocument();
+	ElementDocument* GetOwnerDocument() const;
 
 	/// Gets this element's parent node.
 	/// @return This element's parent.
@@ -622,6 +622,8 @@ protected:
 	/// Returns the RML of this element and all children.
 	/// @param[out] content The content of this element and those under it, in XML form.
 	virtual void GetRML(String& content);
+
+	void SetOwnerDocument(ElementDocument* document);
 
 	virtual void OnReferenceDeactivate();
 

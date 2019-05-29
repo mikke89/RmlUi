@@ -53,6 +53,7 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 	position_dirty = false;
 
 	ForceLocalStackingContext();
+	SetOwnerDocument(this);
 
 	SetProperty(POSITION, Property(Style::Position::Absolute));
 }
@@ -150,11 +151,6 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 
 	// Hide this document.
 	SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
-}
-
-ElementDocument* ElementDocument::GetOwnerDocument()
-{
-	return this;
 }
 
 // Returns the document's context.

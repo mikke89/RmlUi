@@ -61,9 +61,6 @@ public:
 	/// Process given document header
 	void ProcessHeader(const DocumentHeader* header);
 
-	/// Returns itself as the current document
-	ElementDocument* GetOwnerDocument() override;
-
 	/// Returns the document's context.
 	Context* GetContext();
 
