@@ -41,17 +41,11 @@ namespace Rocket {
 namespace Core {
 
 class Stream;
-
-}
-}
-
-namespace Rocket {
-namespace Core {
-
 class ContextInstancer;
 class ElementDocument;
 class EventListener;
 class RenderInterface;
+enum class DefaultActionPhase;
 
 /**
 	A context for storing, rendering and processing RML documents. Multiple contexts can exist simultaneously.
@@ -333,7 +327,7 @@ private:
 	void ReleaseUnloadedDocuments();
 
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
-	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible);
+	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 
 	friend class Element;
 	friend ROCKETCORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);

@@ -84,7 +84,7 @@ void ElementGame::OnUpdate()
 	game->Update();
 
 	if (game->IsGameOver())
-		DispatchEvent("gameover", Rocket::Core::Dictionary(), false);
+		DispatchEvent("gameover", Rocket::Core::Dictionary(), false, true, Rocket::Core::DefaultActionPhase::Target);
 }
 
 // Renders the game.

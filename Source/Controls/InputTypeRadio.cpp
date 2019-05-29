@@ -63,7 +63,7 @@ bool InputTypeRadio::OnAttributeChange(const Core::AttributeNameList& changed_at
 
 		Rocket::Core::Dictionary parameters;
 		parameters["value"] = Rocket::Core::String(checked ? GetValue() : "");
-		element->DispatchEvent("change", parameters);
+		element->DispatchEvent("change", parameters, false, true, Core::DefaultActionPhase::None);
 	}
 
 	return true;

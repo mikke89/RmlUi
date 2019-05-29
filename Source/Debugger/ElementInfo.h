@@ -61,7 +61,7 @@ public:
 	void RenderSourceElement();
 
 protected:
-	virtual void ProcessEvent(Core::Event& event);
+	virtual void ProcessEvent(Core::Event& event) override;
 
 private:
 	void SetSourceElement(Core::Element* new_source_element);

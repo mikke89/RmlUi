@@ -30,13 +30,13 @@
 
 #include "../../Include/Rocket/Core/String.h"
 #include "../../Include/Rocket/Core/Event.h"
-#include <map>
 
 namespace Rocket {
 namespace Core {
 
 class Element;
 class EventListener;
+
 
 /**
 	The Event Dispatcher manages a list of event listeners (based on URL) and triggers the events via EventHandlers
@@ -76,7 +76,7 @@ public:
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can the event propagation be stopped
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(Element* element, const String& name, const Dictionary& parameters, bool interruptible);
+	bool DispatchEvent(Element* element, const String& name, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 
 	/// Returns event types with number of listeners for debugging.
 	/// @return Summary of attached listeners.
@@ -95,7 +95,7 @@ private:
 	typedef SmallUnorderedMap< String, Listeners > Events;
 	Events events;
 
-	void TriggerEvents(Event* event);
+	void TriggerEvents(Event* event, DefaultActionPhase default_action_phase);
 };
 
 }

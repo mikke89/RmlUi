@@ -85,11 +85,11 @@ protected:
 
 	/// Checks for changes to the image's source or dimensions.
 	/// @param[in] changed_attributes A list of attributes changed on the element.
-	virtual void OnAttributeChange(const AttributeNameList& changed_attributes);
+	virtual void OnAttributeChange(const AttributeNameList& changed_attributes) override;
 
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const PropertyNameList& changed_properties) override;
 
 private:
 	// Generates the element's geometry.

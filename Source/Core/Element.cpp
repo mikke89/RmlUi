@@ -1088,7 +1088,7 @@ void Element::SetScrollLeft(float scroll_left)
 	scroll->UpdateScrollbar(ElementScroll::HORIZONTAL);
 	DirtyOffset();
 
-	DispatchEvent("scroll", Dictionary());
+	DispatchEvent("scroll", Dictionary(), false, true, DefaultActionPhase::None);
 }
 
 // Gets the top scroll offset of the element.
@@ -1104,7 +1104,7 @@ void Element::SetScrollTop(float scroll_top)
 	scroll->UpdateScrollbar(ElementScroll::VERTICAL);
 	DirtyOffset();
 
-	DispatchEvent("scroll", Dictionary());
+	DispatchEvent("scroll", Dictionary(), false, true, DefaultActionPhase::None);
 }
 
 // Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
@@ -1307,9 +1307,9 @@ void Element::RemoveEventListener(const String& event, EventListener* listener, 
 }
 
 // Dispatches the specified event
-bool Element::DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible)
+bool Element::DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
-	return event_dispatcher->DispatchEvent(this, event, parameters, interruptible);
+	return event_dispatcher->DispatchEvent(this, event, parameters, interruptible, bubbles, default_action_phase);
 }
 
 // Scrolls the parent element's contents so that this element is visible.
@@ -2465,7 +2465,7 @@ void Element::AdvanceAnimations()
 		animations.erase(it_completed, animations.end());
 
 		for (size_t i = 0; i < dictionary_list.size(); i++)
-			DispatchEvent(is_transition[i] ? TRANSITIONEND : ANIMATIONEND, dictionary_list[i]);
+			DispatchEvent(is_transition[i] ? TRANSITIONEND : ANIMATIONEND, dictionary_list[i], true, true, DefaultActionPhase::None);
 	}
 }
 

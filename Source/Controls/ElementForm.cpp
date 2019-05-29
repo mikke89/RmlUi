@@ -86,7 +86,7 @@ void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::S
 			values[control_name] = control_value;
 	}
 
-	DispatchEvent("submit", values);
+	DispatchEvent("submit", values, true, true, Core::DefaultActionPhase::None);
 }
 
 }

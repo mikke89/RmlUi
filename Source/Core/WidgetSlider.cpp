@@ -192,7 +192,7 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 	PositionBar();
 
 	Dictionary parameters = { {"value", bar_position} };
-	parent->DispatchEvent("scrollchange", parameters);
+	parent->DispatchEvent("scrollchange", parameters, false, true, DefaultActionPhase::None);
 }
 
 // Returns the current position of the bar.

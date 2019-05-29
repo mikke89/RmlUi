@@ -90,7 +90,7 @@ protected:
 	Element* GetParent() const;
 
 	/// Handles events coming through from the slider's components.
-	virtual void ProcessEvent(Event& event);
+	virtual void ProcessEvent(Event& event) override;
 
 	/// Called when the slider's bar position is set or dragged.
 	/// @param[in] bar_position The new position of the bar (0 representing the start of the track, 1 representing the end).

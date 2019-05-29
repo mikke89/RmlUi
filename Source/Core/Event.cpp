@@ -34,7 +34,7 @@ namespace Core {
 
 Event::Event()
 {
-	phase = PHASE_UNKNOWN;
+	phase = PHASE_NONE;
 	interruped = false;
 	interruptible = false;
 	current_element = NULL;
@@ -43,7 +43,7 @@ Event::Event()
 
 Event::Event(Element* _target_element, const String& _type, const Dictionary& _parameters, bool _interruptible) : type(_type), parameters(_parameters), target_element(_target_element), parameters_backup(_parameters), interruptible(_interruptible)
 {
-	phase = PHASE_UNKNOWN;
+	phase = PHASE_NONE;
 	interruped = false;
 	current_element = NULL;
 }

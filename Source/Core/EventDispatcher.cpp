@@ -54,17 +54,19 @@ EventDispatcher::~EventDispatcher()
 
 void EventDispatcher::AttachEvent(const String& type, EventListener* listener, bool in_capture_phase)
 {
-	// Look up the event
+	// See if event type exists already
 	Events::iterator event_itr = events.find(type);
 
-	// Ensure the event is in the event list
 	if (event_itr == events.end())
 	{
-		event_itr = events.emplace(type, Listeners()).first;
+		// No, add listener to new event type entry
+		event_itr = events.emplace(type, Listeners{ Listener(listener, in_capture_phase) }).first;
 	}
-
-	// Add the action to the events
-	(*event_itr).second.push_back(Listener(listener, in_capture_phase));
+	else
+	{
+		// Yes, add listener to the existing list of events for the type
+		(*event_itr).second.emplace_back(listener, in_capture_phase);
+	}
 
 	listener->OnAttach(element);
 }
@@ -110,9 +112,8 @@ void EventDispatcher::DetachAllEvents()
 		element->GetChild(i)->GetEventDispatcher()->DetachAllEvents();
 }
 
-bool EventDispatcher::DispatchEvent(Element* target_element, const String& name, const Dictionary& parameters, bool interruptible)
+bool EventDispatcher::DispatchEvent(Element* target_element, const String& name, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
-	//Event event(target_element, name, parameters, interruptible);
 	Event* event = Factory::InstanceEvent(target_element, name, parameters, interruptible);
 	if (event == NULL)
 		return false;
@@ -135,7 +136,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const String& name,
 	{
 		EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
 		event->SetCurrentElement(elements[i]);
-		dispatcher->TriggerEvents(event);
+		dispatcher->TriggerEvents(event, default_action_phase);
 	}
 
 	// Target phase - direct at the target
@@ -143,10 +144,10 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const String& name,
 	{
 		event->SetPhase(Event::PHASE_TARGET);
 		event->SetCurrentElement(target_element);
-		TriggerEvents(event);
+		TriggerEvents(event, default_action_phase);
 	}
 
-	if (event->IsPropagating()) 
+	if (bubbles && event->IsPropagating())
 	{
 		event->SetPhase(Event::PHASE_BUBBLE);
 		// Bubble phase - target to root (normal event bindings)
@@ -154,7 +155,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const String& name,
 		{
 			EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
 			event->SetCurrentElement(elements[i]);
-			dispatcher->TriggerEvents(event);
+			dispatcher->TriggerEvents(event, default_action_phase);
 		}
 	}
 
@@ -177,8 +178,11 @@ String EventDispatcher::ToString() const
 	return result;
 }
 
-void EventDispatcher::TriggerEvents(Event* event)
+void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_action_phase)
 {
+	const Event::EventPhase phase = event->GetPhase();
+	const bool do_default_action = ((int)phase & (int)default_action_phase);
+
 	// Look up the event
 	Events::iterator itr = events.find(event->GetType());
 
@@ -198,7 +202,7 @@ void EventDispatcher::TriggerEvents(Event* event)
 			}
 
 			// Send the event to the target element itself.
-			if (event->IsPropagating())
+			if (do_default_action && event->IsPropagating())
 				element->ProcessEvent(*event);
 
 			// Fire all listeners waiting for capture events.
@@ -223,7 +227,7 @@ void EventDispatcher::TriggerEvents(Event* event)
 		}
 	}
 
-	if (event->GetPhase() != Event::PHASE_CAPTURE)
+	if (do_default_action)
 	{
 		// Send the event to the target element.
 		element->ProcessEvent(*event);

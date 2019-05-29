@@ -408,7 +408,8 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 	Rocket::Core::Dictionary parameters;
 	parameters["first_row_added"] = GetChildTableRelativeIndex(first_row_added);
 	parameters["num_rows_added"] = num_rows_added;
-	parent_grid->DispatchEvent("rowadd", parameters);
+	// @performance: Does anyone really use this?
+	parent_grid->DispatchEvent("rowadd", parameters, false, true, Core::DefaultActionPhase::None);
 }
 
 void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_removed)
@@ -437,7 +438,8 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
 	Rocket::Core::Dictionary parameters;
 	parameters["first_row_removed"] = GetChildTableRelativeIndex(first_row_removed);
 	parameters["num_rows_removed"] = num_rows_removed;
-	parent_grid->DispatchEvent("rowremove", parameters);
+	// @performance: Does anyone really use this?
+	parent_grid->DispatchEvent("rowremove", parameters, false, true, Core::DefaultActionPhase::None);
 }
 
 void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_changed)
@@ -448,7 +450,8 @@ void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_chan
 	Rocket::Core::Dictionary parameters;
 	parameters["first_row_changed"] = GetChildTableRelativeIndex(first_row_changed);
 	parameters["num_rows_changed"] = num_rows_changed;
-	parent_grid->DispatchEvent("rowchange", parameters);
+	// @performance: Does anyone really use this?
+	parent_grid->DispatchEvent("rowchange", parameters, false, true, Core::DefaultActionPhase::None);
 }
 
 // Returns the number of rows under this row (children, grandchildren, etc)

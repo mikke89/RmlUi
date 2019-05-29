@@ -118,7 +118,7 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 			{
 				document->DirtyLayout();
 				document->DirtyPosition();
-				document->DispatchEvent(RESIZE, Dictionary());
+				document->DispatchEvent(RESIZE, Dictionary(), false, false, DefaultActionPhase::None);
 			}
 		}
 		
@@ -274,7 +274,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	// values and layouting are not performed yet, resulting in default values when
 	// querying such information in the event handler.
 	PluginRegistry::NotifyDocumentLoad(document);
-	document->DispatchEvent(LOAD, Dictionary(), false);
+	document->DispatchEvent(LOAD, Dictionary(), false, false, DefaultActionPhase::None);
 
 	document->UpdateDocument();
 
@@ -314,7 +314,7 @@ void Context::UnloadDocument(ElementDocument* _document)
 	if (document->GetParentNode() == root)
 	{
 		// Dispatch the unload notifications.
-		document->DispatchEvent(UNLOAD, Dictionary(), false);
+		document->DispatchEvent(UNLOAD, Dictionary(), false, false, DefaultActionPhase::None);
 		PluginRegistry::NotifyDocumentUnload(document);
 
 		// Remove the document from the context.
@@ -493,9 +493,9 @@ bool Context::ProcessKeyDown(Input::KeyIdentifier key_identifier, int key_modifi
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
 
 	if (focus)
-		return focus->DispatchEvent(KEYDOWN, parameters, true);
+		return focus->DispatchEvent(KEYDOWN, parameters, true, true, DefaultActionPhase::Bubble);
 	else
-		return root->DispatchEvent(KEYDOWN, parameters, true);
+		return root->DispatchEvent(KEYDOWN, parameters, true, true, DefaultActionPhase::Bubble);
 }
 
 // Sends a key up event into Rocket.
@@ -507,9 +507,9 @@ bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
 
 	if (focus)
-		return focus->DispatchEvent(KEYUP, parameters, true);
+		return focus->DispatchEvent(KEYUP, parameters, true, true, DefaultActionPhase::Bubble);
 	else
-		return root->DispatchEvent(KEYUP, parameters, true);
+		return root->DispatchEvent(KEYUP, parameters, true, true, DefaultActionPhase::Bubble);
 }
 
 // Sends a single character of text as text input into Rocket.
@@ -520,9 +520,9 @@ bool Context::ProcessTextInput(word character)
 	parameters["data"] = character;
 
 	if (focus)
-		return focus->DispatchEvent(TEXTINPUT, parameters, true);
+		return focus->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble);
 	else
-		return root->DispatchEvent(TEXTINPUT, parameters, true);
+		return root->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble);
 }
 
 // Sends a string of text as text input into Rocket.
@@ -537,9 +537,9 @@ bool Context::ProcessTextInput(const String& string)
 		parameters["data"] = string[i];
 
 		if (focus)
-			consumed = focus->DispatchEvent(TEXTINPUT, parameters, true) && consumed;
+			consumed = focus->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble) && consumed;
 		else
-			consumed = root->DispatchEvent(TEXTINPUT, parameters, true) && consumed;
+			consumed = root->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble) && consumed;
 	}
 
 	return consumed;
@@ -576,11 +576,11 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 	{
 		if (hover)
 		{
-			hover->DispatchEvent(MOUSEMOVE, parameters, true);
+			hover->DispatchEvent(MOUSEMOVE, parameters, true, true, DefaultActionPhase::None);
 
 			if (drag_hover &&
 				drag_verbose)
-				drag_hover->DispatchEvent(DRAGMOVE, drag_parameters, true);
+				drag_hover->DispatchEvent(DRAGMOVE, drag_parameters, true, true, DefaultActionPhase::None);
 		}
 	}
 }
@@ -628,7 +628,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		
 		// Call 'onmousedown' on every item in the hover chain, and copy the hover chain to the active chain.
 		if (hover)
-			propogate = hover->DispatchEvent(MOUSEDOWN, parameters, true);
+			propogate = hover->DispatchEvent(MOUSEDOWN, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 
 		if (propogate)
 		{
@@ -639,7 +639,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 				float(click_time - last_click_time) < DOUBLE_CLICK_TIME)
 			{
 				if (hover)
-					propogate = hover->DispatchEvent(DBLCLICK, parameters, true);
+					propogate = hover->DispatchEvent(DBLCLICK, parameters, true, true, DefaultActionPhase::None);
 
 				last_click_element = NULL;
 				last_click_time = 0;
@@ -678,7 +678,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	{
 		// Not the primary mouse button, so we're not doing any special processing.
 		if (hover)
-			hover->DispatchEvent(MOUSEDOWN, parameters, true);
+			hover->DispatchEvent(MOUSEDOWN, parameters, true, true, DefaultActionPhase::None);
 	}
 }
 
@@ -694,13 +694,13 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	{
 		// The elements in the new hover chain have the 'onmouseup' event called on them.
 		if (hover)
-			hover->DispatchEvent(MOUSEUP, parameters, true);
+			hover->DispatchEvent(MOUSEUP, parameters, true, true, DefaultActionPhase::None);
 
 		// If the active element (the one that was being hovered over when the mouse button was pressed) is still being
 		// hovered over, we click it.
 		if (hover && active && active == FindFocusElement(*hover))
 		{
-			active->DispatchEvent(CLICK, parameters, true);
+			active->DispatchEvent(CLICK, parameters, true, true, DefaultActionPhase::None);
 		}
 
 		// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
@@ -722,12 +722,12 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 				{
 					if (drag_verbose)
 					{
-						drag_hover->DispatchEvent(DRAGDROP, drag_parameters, true);
-						drag_hover->DispatchEvent(DRAGOUT, drag_parameters, true);
+						drag_hover->DispatchEvent(DRAGDROP, drag_parameters, true, true, DefaultActionPhase::None);
+						drag_hover->DispatchEvent(DRAGOUT, drag_parameters, true, true, DefaultActionPhase::None);
 					}
 				}
 
-				drag->DispatchEvent(DRAGEND, drag_parameters, true);
+				drag->DispatchEvent(DRAGEND, drag_parameters, true, true, DefaultActionPhase::None);
 
 				ReleaseDragClone();
 			}
@@ -741,7 +741,7 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	{
 		// Not the left mouse button, so we're not doing any special processing.
 		if (hover)
-			hover->DispatchEvent(MOUSEUP, parameters, true);
+			hover->DispatchEvent(MOUSEUP, parameters, true, true, DefaultActionPhase::None);
 	}
 }
 
@@ -754,7 +754,7 @@ bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 		GenerateKeyModifierEventParameters(scroll_parameters, key_modifier_state);
 		scroll_parameters["wheel_delta"] = wheel_delta;
 
-		return hover->DispatchEvent(MOUSESCROLL, scroll_parameters, true);
+		return hover->DispatchEvent(MOUSESCROLL, scroll_parameters, true, true, DefaultActionPhase::TargetAndBubble);
 	}
 
 	return true;
@@ -840,7 +840,7 @@ void Context::OnElementRemove(Element* element)
 
 	Dictionary parameters;
 	GenerateMouseEventParameters(parameters, -1);
-	SendEvents(old_hover_chain, hover_chain, MOUSEOUT, parameters, true);
+	SendEvents(old_hover_chain, hover_chain, MOUSEOUT, parameters, true, true, DefaultActionPhase::Target);
 }
 
 // Internal callback for when a new element gains focus
@@ -876,8 +876,8 @@ bool Context::OnFocusChange(Element* new_focus)
 	Dictionary parameters;
 
 	// Send out blur/focus events.
-	SendEvents(old_chain, new_chain, BLUR, parameters, false);
-	SendEvents(new_chain, old_chain, FOCUS, parameters, false);
+	SendEvents(old_chain, new_chain, BLUR, parameters, false, false, DefaultActionPhase::Target);
+	SendEvents(new_chain, old_chain, FOCUS, parameters, false, false, DefaultActionPhase::Target);
 
 	focus = new_focus;
 
@@ -911,7 +911,7 @@ void Context::GenerateClickEvent(Element* element)
 	Dictionary parameters;
 	GenerateMouseEventParameters(parameters, 0);
 
-	element->DispatchEvent(CLICK, parameters, true);
+	element->DispatchEvent(CLICK, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 }
 
 // Updates the current hover elements, sending required events.
@@ -929,7 +929,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				Dictionary drag_start_parameters = drag_parameters;
 				drag_start_parameters["mouse_x"] = old_mouse_position.x;
 				drag_start_parameters["mouse_y"] = old_mouse_position.y;
-				drag->DispatchEvent(DRAGSTART, drag_start_parameters);
+				drag->DispatchEvent(DRAGSTART, drag_start_parameters, false, true, DefaultActionPhase::None);
 				drag_started = true;
 
 				if (drag->GetComputedValues().drag == Style::Drag::Clone)
@@ -939,7 +939,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				}
 			}
 
-			drag->DispatchEvent(DRAG, drag_parameters);
+			drag->DispatchEvent(DRAG, drag_parameters, false, true, DefaultActionPhase::None);
 		}
 	}
 
@@ -969,8 +969,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	}
 
 	// Send mouseout / mouseover events.
-	SendEvents(hover_chain, new_hover_chain, MOUSEOUT, parameters, true);
-	SendEvents(new_hover_chain, hover_chain, MOUSEOVER, parameters, true);
+	SendEvents(hover_chain, new_hover_chain, MOUSEOUT, parameters, true, true, DefaultActionPhase::Target);
+	SendEvents(new_hover_chain, hover_chain, MOUSEOVER, parameters, true, true, DefaultActionPhase::Target);
 
 	// Send out drag events.
 	if (drag)
@@ -1001,8 +1001,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 			drag_verbose)
 		{
 			// Send out ondragover and ondragout events as appropriate.
-			SendEvents(drag_hover_chain, new_drag_hover_chain, DRAGOUT, drag_parameters, true);
-			SendEvents(new_drag_hover_chain, drag_hover_chain, DRAGOVER, drag_parameters, true);
+			SendEvents(drag_hover_chain, new_drag_hover_chain, DRAGOUT, drag_parameters, true, false, DefaultActionPhase::None);
+			SendEvents(new_drag_hover_chain, drag_hover_chain, DRAGOVER, drag_parameters, true, false, DefaultActionPhase::None);
 		}
 
 		drag_hover_chain.swap(new_drag_hover_chain);
@@ -1192,11 +1192,11 @@ void Context::ReleaseUnloadedDocuments()
 }
 
 // Sends the specified event to all elements in new_items that don't appear in old_items.
-void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible)
+void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
 	ElementList elements;
 	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));
-	RKTEventFunctor func(event, parameters, interruptible);
+	RKTEventFunctor func(event, parameters, interruptible, bubbles, default_action_phase);
 	std::for_each(elements.begin(), elements.end(), func);
 }
 

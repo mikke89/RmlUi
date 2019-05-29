@@ -139,7 +139,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 
 	Rocket::Core::Dictionary parameters;
 	parameters["index"] = (int)(columns.size() - 1);
-	DispatchEvent("columnadd", parameters);
+	DispatchEvent("columnadd", parameters, false, false, Core::DefaultActionPhase::Target);
 }
 
 // Returns the number of columns in this table
@@ -231,7 +231,8 @@ void ElementDataGrid::OnUpdate()
 	bool any_new_children = root->UpdateChildren();
 	if (any_new_children)
 	{
-		DispatchEvent("rowupdate", Rocket::Core::Dictionary());
+		// @performance: Does anyone really use this?
+		DispatchEvent("rowupdate", Rocket::Core::Dictionary(), false, true, Core::DefaultActionPhase::None);
 	}
 	
 	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= GetAttribute("min-rows", 0)))

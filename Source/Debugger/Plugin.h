@@ -94,7 +94,7 @@ public:
 
 	/// Event handler for events from the debugger elements.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Core::Event& event);
+	virtual void ProcessEvent(Core::Event& event) override;
 
 	/// Access the singleton instance of the debugger
 	/// @return NULL or an instance of the plugin

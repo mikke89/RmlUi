@@ -52,7 +52,7 @@ public:
     virtual ~LuaEventListener();
 
     /// Process the incoming Event
-	virtual void ProcessEvent(Event& event);
+	virtual void ProcessEvent(Event& event) override;
 private:
     //the lua-side function to call when ProcessEvent is called
     int luaFuncRef;

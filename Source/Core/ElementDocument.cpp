@@ -235,7 +235,7 @@ void ElementDocument::Show(int focus_flags)
 		}
 	}
 
-	DispatchEvent("show", Dictionary(), false);
+	DispatchEvent("show", Dictionary(), false, false, DefaultActionPhase::None);
 }
 
 void ElementDocument::Hide()
@@ -245,7 +245,7 @@ void ElementDocument::Hide()
 	// We should update the document now, so that the focusing below will get the correct visibility
 	UpdateDocument();
 
-	DispatchEvent("hide", Dictionary(), false);
+	DispatchEvent("hide", Dictionary(), false, false, DefaultActionPhase::None);
 	
 	if (context)
 	{
@@ -409,7 +409,7 @@ void ElementDocument::ProcessEvent(Event& event)
 {
 	Element::ProcessEvent(event);
 
-	// Process generic keyboard events for this window in capture phase
+	// Process generic keyboard events for this window in bubble phase
 	if (event.GetPhase() == Event::PHASE_BUBBLE && event == KEYDOWN)
 	{
 		int key_identifier = event.GetParameter<int>("key_identifier", Input::KI_UNKNOWN);

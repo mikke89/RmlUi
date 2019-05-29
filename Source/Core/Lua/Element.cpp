@@ -146,7 +146,7 @@ int ElementDispatchEvent(lua_State* L, Element* obj)
             break;
         }
     }
-    obj->DispatchEvent(event,params,false);
+    obj->DispatchEvent(event,params, false, true, DefaultActionPhase::None);
     return 0;
 }
 

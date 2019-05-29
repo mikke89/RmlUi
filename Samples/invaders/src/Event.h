@@ -41,10 +41,10 @@ public:
 	virtual ~Event();
 
 	/// Sends the event value through to Invader's event processing system.
-	virtual void ProcessEvent(Rocket::Core::Event& event);
+	virtual void ProcessEvent(Rocket::Core::Event& event) override;
 
 	/// Destroys the event.
-	virtual void OnDetach(Rocket::Core::Element* element);
+	virtual void OnDetach(Rocket::Core::Element* element) override;
 
 private:
 	Rocket::Core::String value;

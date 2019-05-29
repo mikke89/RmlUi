@@ -39,7 +39,7 @@ public:
 	EventHandlerHighScore();
 	virtual ~EventHandlerHighScore();
 
-	virtual void ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::String& value);
+	virtual void ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::String& value) override;
 };
 
 #endif

@@ -149,7 +149,7 @@ void ElementUtilities::BindEventAttributes(Element* element)
 	// Check for and instance the on* events
 	for (const auto& pair: element->GetAttributes())
 	{
-		if (pair.first.substr(0, 2) == "on")
+		if (pair.first.size() > 2 && pair.first[0] == 'o' && pair.first[1] == 'n')
 		{
 			EventListener* listener = Factory::InstanceEventListener(pair.second.Get<String>(), element);
 			if (listener)

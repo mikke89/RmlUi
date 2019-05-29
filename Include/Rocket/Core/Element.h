@@ -493,7 +493,7 @@ public:
 	/// @param[in] parameters The event parameters.
 	/// @param[in] interruptible True if the propagation of the event be stopped.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible = false);
+	bool DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 
 	/// Scrolls the parent element's contents so that this element is visible.
 	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.

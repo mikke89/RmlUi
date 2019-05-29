@@ -118,11 +118,11 @@ public:
 	ElementDataGridRow* GetRow(int index) const;
 
 protected:
-	virtual void OnUpdate();
+	virtual void OnUpdate() override;
 
 	virtual void OnResize() override;
 
-	virtual void ProcessEvent(Core::Event& event);
+	virtual void ProcessEvent(Core::Event& event) override;
 
 	/// Gets the markup and content of the element.
 	/// @param content[out] The content of the element.

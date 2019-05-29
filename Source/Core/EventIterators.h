@@ -43,22 +43,19 @@ namespace Core {
 class RKTEventFunctor
 {
 public:
-	RKTEventFunctor(const String& event, const Dictionary& parameters, bool interruptible)
-	{
-		this->event = event;
-		this->parameters = &parameters;
-		this->interruptible = interruptible;
-	}
+	RKTEventFunctor(const String& event, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+		: event(event), parameters(&parameters), interruptible(interruptible), bubbles(bubbles), default_action_phase(default_action_phase) {}
 
 	void operator()(ElementReference& element)
 	{
-		element->DispatchEvent(event, *parameters, interruptible);
+		element->DispatchEvent(event, *parameters, interruptible, bubbles, default_action_phase);
 	}
 
 private:
 	String event;
 	const Dictionary* parameters;
-	bool interruptible;
+	bool interruptible, bubbles;
+	DefaultActionPhase default_action_phase;
 };
 
 /**

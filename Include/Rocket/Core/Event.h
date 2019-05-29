@@ -59,7 +59,7 @@ public:
 	/// Destructor
 	virtual ~Event();
 
-	enum EventPhase { PHASE_UNKNOWN, PHASE_CAPTURE, PHASE_TARGET, PHASE_BUBBLE };
+	enum EventPhase { PHASE_NONE, PHASE_CAPTURE = 1, PHASE_TARGET = 2, PHASE_BUBBLE = 4 };
 
 	/// Get the current propagation phase.
 	/// @return Current phase the event is in.
@@ -132,6 +132,8 @@ private:
 
 	friend class Factory;
 };
+
+enum class DefaultActionPhase { None, Target = Event::PHASE_TARGET, Bubble = Event::PHASE_BUBBLE, TargetAndBubble = (Target | Bubble) };
 
 }
 }

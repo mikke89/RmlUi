@@ -55,8 +55,8 @@ public:
 	void AddLogMessage(Core::Log::Type type, const Core::String& message);
 
 protected:
-	virtual void OnRender();
-	virtual void ProcessEvent(Core::Event& event);
+	virtual void OnRender() override;
+	virtual void ProcessEvent(Core::Event& event) override;
 
 private:
 	struct LogMessage

@@ -49,8 +49,8 @@ public:
 	virtual ~ElementHandle();
 
 protected:
-	virtual void OnAttributeChange(const AttributeNameList& changed_attributes);
-	virtual void ProcessEvent(Event& event);
+	virtual void OnAttributeChange(const AttributeNameList& changed_attributes) override;
+	virtual void ProcessEvent(Event& event) override;
 
 	Vector2i drag_start;
 	Vector2f move_original_position;

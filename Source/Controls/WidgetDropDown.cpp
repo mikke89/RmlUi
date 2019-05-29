@@ -205,7 +205,7 @@ void WidgetDropDown::SetSelection(int selection, bool force)
 
 		Rocket::Core::Dictionary parameters;
 		parameters["value"] = value;
-		parent_element->DispatchEvent("change", parameters);
+		parent_element->DispatchEvent("change", parameters, false, true, Core::DefaultActionPhase::None);
 	}
 }
 

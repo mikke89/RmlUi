@@ -49,7 +49,7 @@ ElementHandle::~ElementHandle()
 {
 }
 
-void ElementHandle::OnAttributeChange(const PropertyNameList& changed_attributes)
+void ElementHandle::OnAttributeChange(const AttributeNameList& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);
 
@@ -136,7 +136,7 @@ void ElementHandle::ProcessEvent(Event& event)
 			Dictionary parameters;
 			parameters["handle_x"] = x;
 			parameters["handle_y"] = y;
-			DispatchEvent("handledrag", parameters);
+			DispatchEvent("handledrag", parameters, false, true, DefaultActionPhase::None);
 		}
 	}
 }
