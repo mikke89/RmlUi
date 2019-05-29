@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <limits>
 #include "Clock.h"
+#include "ComputeProperty.h"
 #include "ElementAnimation.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
@@ -1957,11 +1958,17 @@ void Element::ProcessEvent(Event& event)
 				// to scroll in parent elements when reaching top/bottom, move StopPropagation inside the next if statement.
 				event.StopPropagation();
 
-				int wheel_delta = event.GetParameter< int >("wheel_delta", 0);
+				const float wheel_delta = event.GetParameter< float >("wheel_delta", 0.f);
+
 				if ((wheel_delta < 0 && GetScrollTop() > 0) ||
 					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
 				{
-					SetScrollTop(GetScrollTop() + wheel_delta * GetLineHeight());
+					// Defined as three times the default line-height, multiplied by the dp ratio.
+					float default_scroll_length = 3.f * DefaultComputedValues.line_height.value;
+					if (const Context* context = GetContext())
+						default_scroll_length *= context->GetDensityIndependentPixelRatio();
+
+					SetScrollTop(GetScrollTop() + Math::RoundFloat(wheel_delta * default_scroll_length));
 				}
 			}
 		}

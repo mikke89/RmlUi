@@ -84,7 +84,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 			break;
 
 		case WM_MOUSEWHEEL:
-			context->ProcessMouseWheel(((short) HIWORD(w_param)) / -WHEEL_DELTA, GetKeyModifierState());
+			context->ProcessMouseWheel(static_cast<float>((short) HIWORD(w_param)) / static_cast<float>(-WHEEL_DELTA), GetKeyModifierState());
 			break;
 
 		case WM_KEYDOWN:
@@ -92,7 +92,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 			Rocket::Core::Input::KeyIdentifier key_identifier = key_identifier_map[w_param];
 			int key_modifier_state = GetKeyModifierState();
 
-			// Check for a shift-~ to toggle the debugger.
+			// Check for F8 to toggle the debugger.
 			if (key_identifier == Rocket::Core::Input::KI_F8)
 			{
 				Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());

@@ -746,7 +746,7 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 }
 
 // Sends a mouse-wheel movement event into Rocket.
-bool Context::ProcessMouseWheel(int wheel_delta, int key_modifier_state)
+bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 {
 	if (hover)
 	{
