@@ -225,8 +225,6 @@ void ElementLog::OnRender()
 
 void ElementLog::ProcessEvent(Core::Event& event)
 {
-	Core::Element::ProcessEvent(event);
-
 	// Only process events if we're visible
 	if (beacon != NULL)
 	{

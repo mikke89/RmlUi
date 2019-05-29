@@ -59,7 +59,7 @@ public:
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Core::Event& event) override;
+	virtual void ProcessDefaultAction(Core::Event& event) override;
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.

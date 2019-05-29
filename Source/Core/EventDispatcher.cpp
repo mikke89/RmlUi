@@ -190,47 +190,20 @@ void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_act
 	{
 		// Dispatch all actions
 		Listeners& listeners = (*itr).second;
-		if (event->GetPhase() == Event::PHASE_TARGET)
+		for (size_t i = 0; i < listeners.size() && event->IsPropagating(); i++)
 		{
-			// Fire all listeners waiting for bubble events before we send the event to the target itself.
-			for (size_t i = 0; i < listeners.size() && event->IsPropagating(); i++) 
+			if (phase == Event::PHASE_TARGET 
+				|| (phase == Event::PHASE_CAPTURE && listeners[i].in_capture_phase) 
+				|| (phase == Event::PHASE_BUBBLE && !listeners[i].in_capture_phase))
 			{
-				if (!listeners[i].in_capture_phase)
-				{
-					listeners[i].listener->ProcessEvent(*event);
-				}
-			}
-
-			// Send the event to the target element itself.
-			if (do_default_action && event->IsPropagating())
-				element->ProcessEvent(*event);
-
-			// Fire all listeners waiting for capture events.
-			for (size_t i = 0; i < listeners.size() && event->IsPropagating(); i++) 
-			{
-				if (listeners[i].in_capture_phase)
-					listeners[i].listener->ProcessEvent(*event);
-			}
-
-			return;
-		}
-		else
-		{
-			bool in_capture_phase = event->GetPhase() == Event::PHASE_CAPTURE;
-
-			for (size_t i = 0; i < listeners.size() && event->IsPropagating(); i++) 
-			{
-				// If we're in the correct phase, fire the event
-				if (listeners[i].in_capture_phase == in_capture_phase)
-					listeners[i].listener->ProcessEvent(*event);
+				listeners[i].listener->ProcessEvent(*event);
 			}
 		}
 	}
 
 	if (do_default_action)
 	{
-		// Send the event to the target element.
-		element->ProcessEvent(*event);
+		element->ProcessDefaultAction(*event);
 	}
 }
 

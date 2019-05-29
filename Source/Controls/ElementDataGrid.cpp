@@ -139,7 +139,11 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 
 	Rocket::Core::Dictionary parameters;
 	parameters["index"] = (int)(columns.size() - 1);
-	DispatchEvent("columnadd", parameters, false, false, Core::DefaultActionPhase::Target);
+	if (DispatchEvent("columnadd", parameters, false, false, Core::DefaultActionPhase::None))
+	{
+		root->RefreshRows();
+		DirtyLayout();
+	}
 }
 
 // Returns the number of columns in this table
@@ -251,20 +255,6 @@ void ElementDataGrid::OnResize()
 	{
 		Core::Element* child = header->GetChild(i);
 		columns[i].current_width = child->GetBox().GetSize(Core::Box::MARGIN).x;
-	}
-}
-
-void ElementDataGrid::ProcessEvent(Core::Event& event)
-{
-	Core::Element::ProcessEvent(event);
-
-	if (event == "columnadd")
-	{
-		if (event.GetTargetElement() == this)
-		{
-			root->RefreshRows();
-			DirtyLayout();
-		}
 	}
 }
 

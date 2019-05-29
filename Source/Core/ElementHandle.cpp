@@ -63,9 +63,9 @@ void ElementHandle::OnAttributeChange(const AttributeNameList& changed_attribute
 	}
 }
 
-void ElementHandle::ProcessEvent(Event& event)
+void ElementHandle::ProcessDefaultAction(Event& event)
 {
-	Element::ProcessEvent(event);
+	Element::ProcessDefaultAction(event);
 
 	if (event.GetTargetElement() == this)
 	{

@@ -55,7 +55,7 @@ bool InputTypeButton::IsSubmitted()
 }
 
 // Checks for necessary functional changes in the control as a result of the event.
-void InputTypeButton::ProcessEvent(Core::Event& event)
+void InputTypeButton::ProcessDefaultAction(Core::Event& event)
 {
 	// Stop a click event from proceeding any further if this button is disabled.
 	if (event.GetTargetElement() == element &&
@@ -64,6 +64,11 @@ void InputTypeButton::ProcessEvent(Core::Event& event)
 	{
 		event.StopPropagation();
 	}
+}
+
+void InputTypeButton::ProcessEvent(Core::Event& event)
+{
+	ProcessDefaultAction(event);
 }
 
 // Sizes the dimensions to the element's inherent size.

@@ -493,9 +493,9 @@ bool Context::ProcessKeyDown(Input::KeyIdentifier key_identifier, int key_modifi
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
 
 	if (focus)
-		return focus->DispatchEvent(KEYDOWN, parameters, true, true, DefaultActionPhase::Bubble);
+		return focus->DispatchEvent(KEYDOWN, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 	else
-		return root->DispatchEvent(KEYDOWN, parameters, true, true, DefaultActionPhase::Bubble);
+		return root->DispatchEvent(KEYDOWN, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 }
 
 // Sends a key up event into Rocket.
@@ -507,9 +507,9 @@ bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
 
 	if (focus)
-		return focus->DispatchEvent(KEYUP, parameters, true, true, DefaultActionPhase::Bubble);
+		return focus->DispatchEvent(KEYUP, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 	else
-		return root->DispatchEvent(KEYUP, parameters, true, true, DefaultActionPhase::Bubble);
+		return root->DispatchEvent(KEYUP, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 }
 
 // Sends a single character of text as text input into Rocket.
@@ -520,9 +520,9 @@ bool Context::ProcessTextInput(word character)
 	parameters["data"] = character;
 
 	if (focus)
-		return focus->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble);
+		return focus->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 	else
-		return root->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble);
+		return root->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 }
 
 // Sends a string of text as text input into Rocket.
@@ -537,9 +537,9 @@ bool Context::ProcessTextInput(const String& string)
 		parameters["data"] = string[i];
 
 		if (focus)
-			consumed = focus->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble) && consumed;
+			consumed = focus->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::TargetAndBubble) && consumed;
 		else
-			consumed = root->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::Bubble) && consumed;
+			consumed = root->DispatchEvent(TEXTINPUT, parameters, true, true, DefaultActionPhase::TargetAndBubble) && consumed;
 	}
 
 	return consumed;
@@ -580,7 +580,7 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 
 			if (drag_hover &&
 				drag_verbose)
-				drag_hover->DispatchEvent(DRAGMOVE, drag_parameters, true, true, DefaultActionPhase::None);
+				drag_hover->DispatchEvent(DRAGMOVE, drag_parameters, true, true, DefaultActionPhase::Target);
 		}
 	}
 }
@@ -639,7 +639,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 				float(click_time - last_click_time) < DOUBLE_CLICK_TIME)
 			{
 				if (hover)
-					propogate = hover->DispatchEvent(DBLCLICK, parameters, true, true, DefaultActionPhase::None);
+					propogate = hover->DispatchEvent(DBLCLICK, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 
 				last_click_element = NULL;
 				last_click_time = 0;
@@ -678,7 +678,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	{
 		// Not the primary mouse button, so we're not doing any special processing.
 		if (hover)
-			hover->DispatchEvent(MOUSEDOWN, parameters, true, true, DefaultActionPhase::None);
+			hover->DispatchEvent(MOUSEDOWN, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 	}
 }
 
@@ -694,13 +694,13 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	{
 		// The elements in the new hover chain have the 'onmouseup' event called on them.
 		if (hover)
-			hover->DispatchEvent(MOUSEUP, parameters, true, true, DefaultActionPhase::None);
+			hover->DispatchEvent(MOUSEUP, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 
 		// If the active element (the one that was being hovered over when the mouse button was pressed) is still being
 		// hovered over, we click it.
 		if (hover && active && active == FindFocusElement(*hover))
 		{
-			active->DispatchEvent(CLICK, parameters, true, true, DefaultActionPhase::None);
+			active->DispatchEvent(CLICK, parameters, true, true, DefaultActionPhase::TargetAndBubble);
 		}
 
 		// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
@@ -722,8 +722,8 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 				{
 					if (drag_verbose)
 					{
-						drag_hover->DispatchEvent(DRAGDROP, drag_parameters, true, true, DefaultActionPhase::None);
-						drag_hover->DispatchEvent(DRAGOUT, drag_parameters, true, true, DefaultActionPhase::None);
+						drag_hover->DispatchEvent(DRAGDROP, drag_parameters, true, true, DefaultActionPhase::Target);
+						drag_hover->DispatchEvent(DRAGOUT, drag_parameters, true, true, DefaultActionPhase::Target);
 					}
 				}
 
@@ -929,7 +929,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				Dictionary drag_start_parameters = drag_parameters;
 				drag_start_parameters["mouse_x"] = old_mouse_position.x;
 				drag_start_parameters["mouse_y"] = old_mouse_position.y;
-				drag->DispatchEvent(DRAGSTART, drag_start_parameters, false, true, DefaultActionPhase::None);
+				drag->DispatchEvent(DRAGSTART, drag_start_parameters, false, true, DefaultActionPhase::Target);
 				drag_started = true;
 
 				if (drag->GetComputedValues().drag == Style::Drag::Clone)
@@ -939,7 +939,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				}
 			}
 
-			drag->DispatchEvent(DRAG, drag_parameters, false, true, DefaultActionPhase::None);
+			drag->DispatchEvent(DRAG, drag_parameters, false, true, DefaultActionPhase::Target);
 		}
 	}
 
@@ -1001,8 +1001,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 			drag_verbose)
 		{
 			// Send out ondragover and ondragout events as appropriate.
-			SendEvents(drag_hover_chain, new_drag_hover_chain, DRAGOUT, drag_parameters, true, false, DefaultActionPhase::None);
-			SendEvents(new_drag_hover_chain, drag_hover_chain, DRAGOVER, drag_parameters, true, false, DefaultActionPhase::None);
+			SendEvents(drag_hover_chain, new_drag_hover_chain, DRAGOUT, drag_parameters, true, false, DefaultActionPhase::Target);
+			SendEvents(new_drag_hover_chain, drag_hover_chain, DRAGOVER, drag_parameters, true, false, DefaultActionPhase::Target);
 		}
 
 		drag_hover_chain.swap(new_drag_hover_chain);

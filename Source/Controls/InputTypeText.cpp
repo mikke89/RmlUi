@@ -101,7 +101,7 @@ void InputTypeText::OnPropertyChange(const Core::PropertyNameList& changed_prope
 }
 
 // Checks for necessary functional changes in the control as a result of the event.
-void InputTypeText::ProcessEvent(Core::Event& ROCKET_UNUSED_PARAMETER(event))
+void InputTypeText::ProcessDefaultAction(Core::Event& ROCKET_UNUSED_PARAMETER(event))
 {
 	ROCKET_UNUSED(event);
 }

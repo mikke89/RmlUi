@@ -45,8 +45,6 @@ ElementGame::~ElementGame()
 // Intercepts and handles key events.
 void ElementGame::ProcessEvent(Rocket::Core::Event& event)
 {
-	Rocket::Core::Element::ProcessEvent(event);
-
 	if (event == "keydown" ||
 		event == "keyup")
 	{
@@ -84,7 +82,7 @@ void ElementGame::OnUpdate()
 	game->Update();
 
 	if (game->IsGameOver())
-		DispatchEvent("gameover", Rocket::Core::Dictionary(), false, true, Rocket::Core::DefaultActionPhase::Target);
+		DispatchEvent("gameover", Rocket::Core::Dictionary(), false, true, Rocket::Core::DefaultActionPhase::None);
 }
 
 // Renders the game.
@@ -98,5 +96,9 @@ void ElementGame::OnChildAdd(Rocket::Core::Element* element)
 	Rocket::Core::Element::OnChildAdd(element);
 
 	if (element == this)
+	{
 		GetOwnerDocument()->AddEventListener("load", this);
+		GetOwnerDocument()->AddEventListener("keydown", this);
+		GetOwnerDocument()->AddEventListener("keyup", this);
+	}
 }

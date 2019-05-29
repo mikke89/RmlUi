@@ -119,8 +119,6 @@ void ElementInfo::RenderSourceElement()
 
 void ElementInfo::ProcessEvent(Core::Event& event)
 {
-	Core::ElementDocument::ProcessEvent(event);
-
 	// Only process events if we're visible
 	if (IsVisible())
 	{

@@ -574,7 +574,7 @@ public:
 
 	/// Called for every event sent to this element or one of its descendants.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Event& event);
+	virtual void ProcessDefaultAction(Event& event);
 
 	/// Return the computed values of the element's properties. These values are updated as appropriate on every Context::Update.
 	const ComputedValues& GetComputedValues() const;

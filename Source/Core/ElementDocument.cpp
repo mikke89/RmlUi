@@ -405,9 +405,9 @@ void ElementDocument::OnPropertyChange(const PropertyNameList& changed_propertie
 }
 
 // Processes the 'onpropertychange' event, checking for a change in position or size.
-void ElementDocument::ProcessEvent(Event& event)
+void ElementDocument::ProcessDefaultAction(Event& event)
 {
-	Element::ProcessEvent(event);
+	Element::ProcessDefaultAction(event);
 
 	// Process generic keyboard events for this window in bubble phase
 	if (event.GetPhase() == Event::PHASE_BUBBLE && event == KEYDOWN)

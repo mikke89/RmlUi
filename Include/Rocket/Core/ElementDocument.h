@@ -127,7 +127,7 @@ protected:
 	virtual void OnPropertyChange(const PropertyNameList& changed_properties) override;
 
 	/// Processes the 'onpropertychange' event, checking for a change in position or size.
-	virtual void ProcessEvent(Event& event) override;
+	virtual void ProcessDefaultAction(Event& event) override;
 
 	/// Called during update if the element size has been changed.
 	virtual void OnResize() override;

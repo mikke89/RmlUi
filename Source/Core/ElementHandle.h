@@ -50,7 +50,7 @@ public:
 
 protected:
 	virtual void OnAttributeChange(const AttributeNameList& changed_attributes) override;
-	virtual void ProcessEvent(Event& event) override;
+	virtual void ProcessDefaultAction(Event& event) override;
 
 	Vector2i drag_start;
 	Vector2f move_original_position;

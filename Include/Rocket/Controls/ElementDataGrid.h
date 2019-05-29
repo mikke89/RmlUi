@@ -122,8 +122,6 @@ protected:
 
 	virtual void OnResize() override;
 
-	virtual void ProcessEvent(Core::Event& event) override;
-
 	/// Gets the markup and content of the element.
 	/// @param content[out] The content of the element.
 	virtual void GetInnerRML(Rocket::Core::String& content) const;

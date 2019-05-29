@@ -92,7 +92,7 @@ bool InputTypeRange::OnAttributeChange(const Core::AttributeNameList& changed_at
 }
 
 // Checks for necessary functional changes in the control as a result of the event.
-void InputTypeRange::ProcessEvent(Core::Event& event)
+void InputTypeRange::ProcessDefaultAction(Core::Event& event)
 {
 }
 

@@ -1939,7 +1939,7 @@ void Element::OnReferenceDeactivate()
 	}
 }
 
-void Element::ProcessEvent(Event& event)
+void Element::ProcessDefaultAction(Event& event)
 {
 	if (event == MOUSEDOWN && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
 		event.GetParameter< int >("button", 0) == 0)
