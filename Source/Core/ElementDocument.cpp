@@ -410,7 +410,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 	Element::ProcessDefaultAction(event);
 
 	// Process generic keyboard events for this window in bubble phase
-	if (event.GetPhase() == Event::PHASE_BUBBLE && event == KEYDOWN)
+	if (event.GetPhase() == EventPhase::Bubble && event == KEYDOWN)
 	{
 		int key_identifier = event.GetParameter<int>("key_identifier", Input::KI_UNKNOWN);
 

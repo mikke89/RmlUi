@@ -38,6 +38,9 @@ namespace Core {
 class Element;
 class EventInstancer;
 
+enum class EventPhase { None, Capture = 1, Target = 2, Bubble = 4 };
+enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, Bubble = (int)EventPhase::Bubble, TargetAndBubble = ((int)Target | (int)Bubble) };
+
 /**
 	An event that propogates through the element hierarchy. Events follow the DOM3 event specification. See
 	http://www.w3.org/TR/DOM-Level-3-Events/events.html.
@@ -59,7 +62,6 @@ public:
 	/// Destructor
 	virtual ~Event();
 
-	enum EventPhase { PHASE_NONE, PHASE_CAPTURE = 1, PHASE_TARGET = 2, PHASE_BUBBLE = 4 };
 
 	/// Get the current propagation phase.
 	/// @return Current phase the event is in.
@@ -133,7 +135,6 @@ private:
 	friend class Factory;
 };
 
-enum class DefaultActionPhase { None, Target = Event::PHASE_TARGET, Bubble = Event::PHASE_BUBBLE, TargetAndBubble = (Target | Bubble) };
 
 }
 }

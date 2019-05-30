@@ -129,7 +129,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const String& name,
 		walk_element = walk_element->GetParentNode();
 	}
 
-	event->SetPhase(Event::PHASE_CAPTURE);
+	event->SetPhase(EventPhase::Capture);
 	// Capture phase - root, to target (only events that have registered as capture events)
 	// Note: We walk elements in REVERSE as they're placed in the list from the elements parent to the root
 	for (int i = (int)elements.size() - 1; i >= 0 && event->IsPropagating(); i--) 
@@ -142,14 +142,14 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const String& name,
 	// Target phase - direct at the target
 	if (event->IsPropagating()) 
 	{
-		event->SetPhase(Event::PHASE_TARGET);
+		event->SetPhase(EventPhase::Target);
 		event->SetCurrentElement(target_element);
 		TriggerEvents(event, default_action_phase);
 	}
 
 	if (bubbles && event->IsPropagating())
 	{
-		event->SetPhase(Event::PHASE_BUBBLE);
+		event->SetPhase(EventPhase::Bubble);
 		// Bubble phase - target to root (normal event bindings)
 		for (size_t i = 0; i < elements.size() && event->IsPropagating(); i++) 
 		{
@@ -180,7 +180,7 @@ String EventDispatcher::ToString() const
 
 void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_action_phase)
 {
-	const Event::EventPhase phase = event->GetPhase();
+	const EventPhase phase = event->GetPhase();
 	const bool do_default_action = ((int)phase & (int)default_action_phase);
 
 	// Look up the event
@@ -192,9 +192,9 @@ void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_act
 		Listeners& listeners = (*itr).second;
 		for (size_t i = 0; i < listeners.size() && event->IsPropagating(); i++)
 		{
-			if (phase == Event::PHASE_TARGET 
-				|| (phase == Event::PHASE_CAPTURE && listeners[i].in_capture_phase) 
-				|| (phase == Event::PHASE_BUBBLE && !listeners[i].in_capture_phase))
+			if (phase == EventPhase::Target 
+				|| (phase == EventPhase::Capture && listeners[i].in_capture_phase) 
+				|| (phase == EventPhase::Bubble && !listeners[i].in_capture_phase))
 			{
 				listeners[i].listener->ProcessEvent(*event);
 			}
