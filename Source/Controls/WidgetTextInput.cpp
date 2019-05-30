@@ -258,7 +258,7 @@ void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 	Rocket::Core::Dictionary parameters;
 	parameters["value"] = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
 	parameters["linebreak"] = Core::Variant(linebreak);
-	GetElement()->DispatchEvent("change", parameters, false, true, Core::DefaultActionPhase::None);
+	GetElement()->DispatchEvent(Core::EventId::Change, parameters);
 }
 
 // Processes the "keydown" and "textinput" event to write to the input field, and the "focus" and "blur" to set

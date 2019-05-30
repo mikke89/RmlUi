@@ -136,7 +136,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			Dictionary parameters;
 			parameters["handle_x"] = x;
 			parameters["handle_y"] = y;
-			DispatchEvent("handledrag", parameters, false, true, DefaultActionPhase::None);
+			DispatchEvent(EventId::Handledrag, parameters);
 		}
 	}
 }

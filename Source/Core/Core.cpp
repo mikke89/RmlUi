@@ -27,7 +27,7 @@
 
 #include "precompiled.h"
 #include "../../Include/Rocket/Core.h"
-#include <algorithm>
+#include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
 #include "GeometryDatabase.h"
 #include "PluginRegistry.h"
@@ -95,6 +95,8 @@ bool Initialise()
 	}
 
 	Log::Initialise();
+
+	EventSpecificationInterface::Initialize();
 
 	TextureDatabase::Initialise();
 

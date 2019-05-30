@@ -28,15 +28,17 @@
 #ifndef ROCKETCOREEVENT_H
 #define ROCKETCOREEVENT_H
 
+#include "Header.h"
 #include "Dictionary.h"
 #include "ScriptInterface.h"
-#include "Header.h"
+#include "ID.h"
 
 namespace Rocket {
 namespace Core {
 
 class Element;
 class EventInstancer;
+struct EventSpecification;
 
 enum class EventPhase { None, Capture = 1, Target = 2, Bubble = 4 };
 enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, Bubble = (int)EventPhase::Bubble, TargetAndBubble = ((int)Target | (int)Bubble) };
@@ -58,7 +60,7 @@ public:
 	/// @param[in] type The event type
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can this event have is propagation stopped?
-	Event(Element* target, const String& type, const Dictionary& parameters, bool interruptible = false);
+	Event(Element* target, EventId id, const Dictionary& parameters);
 	/// Destructor
 	virtual ~Event();
 
@@ -108,7 +110,12 @@ public:
 	const Dictionary* GetParameters() const;
 
 	/// Release this event.
-	virtual void OnReferenceDeactivate();
+	virtual void OnReferenceDeactivate() override;
+
+
+	EventId GetId() const;
+	DefaultActionPhase GetDefaultActionPhase() const;
+	bool GetBubbles() const;
 
 private:
 	/// Project the mouse coordinates to the current element to enable
@@ -116,7 +123,6 @@ private:
 	void ProjectMouse(Element* element);
 
 protected:
-	String type;
 	Dictionary parameters;
 
 	Element* target_element;
@@ -125,8 +131,8 @@ protected:
 private:
 	Dictionary parameters_backup;
 
-	bool interruptible;
-	bool interruped;
+	const EventSpecification& specification;
+	bool interrupted;
 
 	EventPhase phase;
 

@@ -25,40 +25,40 @@
  *
  */
 
-#ifndef ROCKETCOREEVENTINSTANCERDEFAULT_H
-#define ROCKETCOREEVENTINSTANCERDEFAULT_H
+#ifndef ROCKETCOREEVENTSPECIFICATION_H
+#define ROCKETCOREEVENTSPECIFICATION_H
 
-#include "../../Include/Rocket/Core/EventInstancer.h"
+#include "../../Include/Rocket/Core/Header.h"
+#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/Rocket/Core/ID.h"
 
 namespace Rocket {
 namespace Core {
 
-/**
-	Default instancer for instancing events.
 
-	@author Lloyd Weehuizen
- */
-
-class EventInstancerDefault : public EventInstancer
-{
-public:
-	EventInstancerDefault();
-	virtual ~EventInstancerDefault();
-
-	/// Instance and event object
-	/// @param[in] target Target element of this event.
-	/// @param[in] name Name of this event.
-	/// @param[in] parameters Additional parameters for this event.
-	/// @param[in] interruptible If the event propagation can be stopped.
-	virtual Event* InstanceEvent(Element* target, EventId id, const Dictionary& parameters) override;
-
-	/// Releases an event instanced by this instancer.
-	/// @param[in] event The event to release.
-	virtual void ReleaseEvent(Event* event) override;
-
-	/// Releases this event instancer.
-	virtual void Release() override;
+struct EventSpecification {
+	EventId id;
+	String type;
+	bool interruptible;
+	bool bubbles;
+	DefaultActionPhase default_action_phase;
 };
+
+namespace EventSpecificationInterface {
+
+	void Initialize();
+
+	// Get event specification for the given id.
+	// Returns the 'invalid' event type if no specification exists for id.
+	const EventSpecification& Get(EventId id);
+
+	// Get event id for the given name.
+	// Inserts a new entry with default values if event type is not already specified.
+	EventId GetIdOrDefineDefault(const String& event_type);
+
+}
+
+
 
 }
 }

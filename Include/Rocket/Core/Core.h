@@ -58,6 +58,7 @@
 #include "FontGlyph.h"
 #include "Geometry.h"
 #include "GeometryUtilities.h"
+#include "ID.h"
 #include "Input.h"
 #include "Log.h"
 #include "Plugin.h"

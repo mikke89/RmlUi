@@ -40,6 +40,7 @@
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
+#include "EventSpecification.h"
 #include "ElementDecoration.h"
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
@@ -1088,7 +1089,7 @@ void Element::SetScrollLeft(float scroll_left)
 	scroll->UpdateScrollbar(ElementScroll::HORIZONTAL);
 	DirtyOffset();
 
-	DispatchEvent("scroll", Dictionary(), false, true, DefaultActionPhase::None);
+	DispatchEvent(EventId::Scroll, Dictionary());
 }
 
 // Gets the top scroll offset of the element.
@@ -1104,7 +1105,7 @@ void Element::SetScrollTop(float scroll_top)
 	scroll->UpdateScrollbar(ElementScroll::VERTICAL);
 	DirtyOffset();
 
-	DispatchEvent("scroll", Dictionary(), false, true, DefaultActionPhase::None);
+	DispatchEvent(EventId::Scroll, Dictionary());
 }
 
 // Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
@@ -1297,19 +1298,28 @@ void Element::Click()
 // Adds an event listener
 void Element::AddEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
-	event_dispatcher->AttachEvent(event, listener, in_capture_phase);
+	EventId id = EventSpecificationInterface::GetIdOrDefineDefault(event);
+	event_dispatcher->AttachEvent(id, listener, in_capture_phase);
 }
 
 // Removes an event listener from this element.
 void Element::RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
-	event_dispatcher->DetachEvent(event, listener, in_capture_phase);
+	EventId id = EventSpecificationInterface::GetIdOrDefineDefault(event);
+	event_dispatcher->DetachEvent(id, listener, in_capture_phase);
 }
 
 // Dispatches the specified event
-bool Element::DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+bool Element::DispatchEvent(const String& event, const Dictionary& parameters)
 {
-	return event_dispatcher->DispatchEvent(this, event, parameters, interruptible, bubbles, default_action_phase);
+	EventId id = EventSpecificationInterface::GetIdOrDefineDefault(event);
+	return event_dispatcher->DispatchEvent(this, id, parameters);
+}
+
+// Dispatches the specified event
+bool Element::DispatchEvent(EventId event_id, const Dictionary& parameters)
+{
+	return event_dispatcher->DispatchEvent(this, event_id, parameters);
 }
 
 // Scrolls the parent element's contents so that this element is visible.
@@ -2465,7 +2475,7 @@ void Element::AdvanceAnimations()
 		animations.erase(it_completed, animations.end());
 
 		for (size_t i = 0; i < dictionary_list.size(); i++)
-			DispatchEvent(is_transition[i] ? TRANSITIONEND : ANIMATIONEND, dictionary_list[i], true, true, DefaultActionPhase::None);
+			DispatchEvent(is_transition[i] ? EventId::Transitionend : EventId::Animationend, dictionary_list[i]);
 	}
 }
 

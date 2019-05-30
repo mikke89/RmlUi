@@ -28,24 +28,25 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/Event.h"
 #include "../../Include/Rocket/Core/EventInstancer.h"
+#include "EventSpecification.h"
 
 namespace Rocket {
 namespace Core {
 
-Event::Event()
+Event::Event() : specification(EventSpecificationInterface::Get(EventId::Invalid))
 {
 	phase = EventPhase::None;
-	interruped = false;
-	interruptible = false;
-	current_element = NULL;
-	target_element = NULL;
+	interrupted = false;
+	current_element = nullptr;
+	target_element = nullptr;
 }
 
-Event::Event(Element* _target_element, const String& _type, const Dictionary& _parameters, bool _interruptible) : type(_type), parameters(_parameters), target_element(_target_element), parameters_backup(_parameters), interruptible(_interruptible)
+Event::Event(Element* _target_element, EventId id, const Dictionary& _parameters) 
+	: specification(EventSpecificationInterface::Get(id)), parameters(_parameters), target_element(_target_element), parameters_backup(_parameters)
 {
 	phase = EventPhase::None;
-	interruped = false;
-	current_element = NULL;
+	interrupted = false;
+	current_element = nullptr;
 }
 
 Event::~Event()
@@ -70,12 +71,12 @@ Element* Event::GetTargetElement() const
 
 const String& Event::GetType() const
 {
-	return type;
+	return specification.type;
 }
 
 bool Event::operator==(const String& _type) const
 {
-	return type == _type;
+	return specification.type == _type;
 }
 
 void Event::SetPhase(EventPhase _phase)
@@ -90,15 +91,15 @@ EventPhase Event::GetPhase() const
 
 bool Event::IsPropagating() const
 {
-	return !interruped;
+	return !interrupted;
 }
 
 void Event::StopPropagation()
 {
-	// Set interruped to true if we can be interruped
-	if (interruptible) 
+	// Set interrupted to true if we can be interrupted
+	if (specification.interruptible)
 	{
-		interruped = true;
+		interrupted = true;
 	}
 }
 
@@ -110,6 +111,21 @@ const Dictionary* Event::GetParameters() const
 void Event::OnReferenceDeactivate()
 {
 	instancer->ReleaseEvent(this);
+}
+
+EventId Event::GetId() const
+{
+	return specification.id;
+}
+
+DefaultActionPhase Event::GetDefaultActionPhase() const
+{
+	return specification.default_action_phase;
+}
+
+bool Event::GetBubbles() const
+{
+	return specification.bubbles;
 }
 
 void Event::ProjectMouse(Element* element)

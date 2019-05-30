@@ -30,6 +30,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventIterators.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectNone.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectNoneInstancer.h
@@ -153,6 +154,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Geometry.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/GeometryUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ID.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Input.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Log.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Math.h
@@ -247,6 +249,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/EventListenerInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Factory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.cpp

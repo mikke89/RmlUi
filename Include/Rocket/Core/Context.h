@@ -45,7 +45,7 @@ class ContextInstancer;
 class ElementDocument;
 class EventListener;
 class RenderInterface;
-enum class DefaultActionPhase;
+enum class EventId : uint16_t;
 
 /**
 	A context for storing, rendering and processing RML documents. Multiple contexts can exist simultaneously.
@@ -327,7 +327,7 @@ private:
 	void ReleaseUnloadedDocuments();
 
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
-	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
+	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
 	friend class Element;
 	friend ROCKETCORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);

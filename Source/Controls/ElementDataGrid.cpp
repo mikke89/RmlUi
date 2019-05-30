@@ -139,7 +139,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 
 	Rocket::Core::Dictionary parameters;
 	parameters["index"] = (int)(columns.size() - 1);
-	if (DispatchEvent("columnadd", parameters, false, false, Core::DefaultActionPhase::None))
+	if (DispatchEvent(Core::EventId::Columnadd, parameters))
 	{
 		root->RefreshRows();
 		DirtyLayout();
@@ -236,7 +236,7 @@ void ElementDataGrid::OnUpdate()
 	if (any_new_children)
 	{
 		// @performance: Does anyone really use this?
-		DispatchEvent("rowupdate", Rocket::Core::Dictionary(), false, true, Core::DefaultActionPhase::None);
+		DispatchEvent(Core::EventId::Rowupdate, Rocket::Core::Dictionary());
 	}
 	
 	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= GetAttribute("min-rows", 0)))

@@ -235,7 +235,7 @@ void ElementDocument::Show(int focus_flags)
 		}
 	}
 
-	DispatchEvent("show", Dictionary(), false, false, DefaultActionPhase::None);
+	DispatchEvent(EventId::Show, Dictionary());
 }
 
 void ElementDocument::Hide()
@@ -245,7 +245,7 @@ void ElementDocument::Hide()
 	// We should update the document now, so that the focusing below will get the correct visibility
 	UpdateDocument();
 
-	DispatchEvent("hide", Dictionary(), false, false, DefaultActionPhase::None);
+	DispatchEvent(EventId::Hide, Dictionary());
 	
 	if (context)
 	{

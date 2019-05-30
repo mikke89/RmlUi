@@ -186,7 +186,7 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 
 	Rocket::Core::Dictionary parameters;
 	parameters["value"] = bar_position;
-	parent->DispatchEvent("change", parameters, false, true, Core::DefaultActionPhase::None);
+	parent->DispatchEvent(Core::EventId::Change, parameters);
 }
 
 // Returns the current position of the bar.

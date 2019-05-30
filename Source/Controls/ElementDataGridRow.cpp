@@ -409,7 +409,7 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 	parameters["first_row_added"] = GetChildTableRelativeIndex(first_row_added);
 	parameters["num_rows_added"] = num_rows_added;
 	// @performance: Does anyone really use this?
-	parent_grid->DispatchEvent("rowadd", parameters, false, true, Core::DefaultActionPhase::None);
+	parent_grid->DispatchEvent(Core::EventId::Rowadd, parameters);
 }
 
 void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_removed)
@@ -439,7 +439,7 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
 	parameters["first_row_removed"] = GetChildTableRelativeIndex(first_row_removed);
 	parameters["num_rows_removed"] = num_rows_removed;
 	// @performance: Does anyone really use this?
-	parent_grid->DispatchEvent("rowremove", parameters, false, true, Core::DefaultActionPhase::None);
+	parent_grid->DispatchEvent(Core::EventId::Rowremove, parameters);
 }
 
 void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_changed)
@@ -451,7 +451,7 @@ void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_chan
 	parameters["first_row_changed"] = GetChildTableRelativeIndex(first_row_changed);
 	parameters["num_rows_changed"] = num_rows_changed;
 	// @performance: Does anyone really use this?
-	parent_grid->DispatchEvent("rowchange", parameters, false, true, Core::DefaultActionPhase::None);
+	parent_grid->DispatchEvent(Core::EventId::Rowchange, parameters);
 }
 
 // Returns the number of rows under this row (children, grandchildren, etc)

@@ -46,6 +46,38 @@ If upgrading from the original libRocket branch, some breaking changes should be
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
 
+### Events
+
+Events have some differences, however the existing API should mostly still work.
+
+There is now a distinction between actions executed in event listeners, and default actions for events:
+
+- Event listeners are attached to an element as before. Events following the normal phases: capture (root -> target), target, and bubble (target -> root). Each event listener can be either attached to the bubble phase (default) or capture phase. The target element always fire if reached. Each event type specifies whether it executes the bubble phase or not, see below for details.
+- Default actions are primarily for actions performed internally in the library. They are executed in the function `virtual void Element::ProcessDefaultAction(Event& event)`. However, any object that derives from `Element` can override the default behavior and add new behavior. The default actions follow the normal event phases, but are only executed in the phase according to the `default_action_phase` which is defined for each event type. If an event is cancelled with `Event::StopPropagation()`, then the default action is not performed unless already executed.
+
+
+Each event type now has an associated EventId. Each event type has the following specifications:
+
+- `interruptible`: Whether the event can be cancelled by calling `Event::StopPropagation()`.
+- `bubbles`: Whether the event executes the bubble phase. If true, all three phases, capture, target, and bubble, are executed. If false, only capture and target phases are executed.
+- `default_action_phase`: One of: None, Target, Bubble, BubbleAndTarget. Specifies during which phases the default action is executed, if any. That is, the phase for which `Element::ProcessDefaultAction` is called. See above for details.
+
+For example, the event type `click` has the following specification:
+```
+id: EventId::Click
+name: "click"
+interruptable: true
+bubbles: true
+default_action_phase: BubbleAndTarget
+```
+
+Whenever an event listener is added or event is dispatched, and the provided event type does not already have a specification, the default specification
+`interruptible: true, bubbles: true, default_action_phase: None` is added for that event type. The default specification can be overriden by first calling `EventId Rocket::Core::RegisterEventType(const String& name, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)`. This is only necessary once for each application run.
+
+Breaking change:
+
+- `EventInstancer::InstanceEvent` now takes an `EventId` instead of a `String`.
+
 ## Other changes
 
 - `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.

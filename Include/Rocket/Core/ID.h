@@ -25,39 +25,63 @@
  *
  */
 
-#ifndef ROCKETCOREEVENTINSTANCERDEFAULT_H
-#define ROCKETCOREEVENTINSTANCERDEFAULT_H
-
-#include "../../Include/Rocket/Core/EventInstancer.h"
+ 
+#ifndef ROCKETCOREID_H
+#define ROCKETCOREID_H
 
 namespace Rocket {
 namespace Core {
 
-/**
-	Default instancer for instancing events.
-
-	@author Lloyd Weehuizen
- */
-
-class EventInstancerDefault : public EventInstancer
+enum class EventId : uint16_t 
 {
-public:
-	EventInstancerDefault();
-	virtual ~EventInstancerDefault();
+	Invalid,
 
-	/// Instance and event object
-	/// @param[in] target Target element of this event.
-	/// @param[in] name Name of this event.
-	/// @param[in] parameters Additional parameters for this event.
-	/// @param[in] interruptible If the event propagation can be stopped.
-	virtual Event* InstanceEvent(Element* target, EventId id, const Dictionary& parameters) override;
+	// Core events
+	Mousedown,
+	Mousescroll,
+	Mouseover,
+	Mouseout,
+	Focus,
+	Blur,
+	Keydown,
+	Keyup,
+	Textinput,
+	Mouseup,
+	Click,
+	Dblclick,
+	Load,
+	Unload,
+	Show,
+	Hide,
+	Mousemove,
+	Dragmove,
+	Drag,
+	Dragstart,
+	Dragover,
+	Dragdrop,
+	Dragout,
+	Dragend,
+	Handledrag,
+	Resize,
+	Scroll,
+	Scrollchange,
+	Animationend,
+	Transitionend,
 
-	/// Releases an event instanced by this instancer.
-	/// @param[in] event The event to release.
-	virtual void ReleaseEvent(Event* event) override;
+	// Controls events
+	Change,
+	Submit,
+	Tabchange,
+	Columnadd,
+	Rowadd,
+	Rowchange,
+	Rowremove,
+	Rowupdate,
 
-	/// Releases this event instancer.
-	virtual void Release() override;
+	NumDefinedIds,
+
+	// Custom IDs start here
+	FirstCustomId = NumDefinedIds
 };
 
 }

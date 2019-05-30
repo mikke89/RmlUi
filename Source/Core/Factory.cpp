@@ -547,9 +547,9 @@ EventInstancer* Factory::RegisterEventInstancer(EventInstancer* instancer)
 }
 
 // Instance an event object.
-Event* Factory::InstanceEvent(Element* target, const String& name, const Dictionary& parameters, bool interruptible)
+Event* Factory::InstanceEvent(Element* target, EventId id, const Dictionary& parameters)
 {
-	Event* event = event_instancer->InstanceEvent(target, name, parameters, interruptible);
+	Event* event = event_instancer->InstanceEvent(target, id, parameters);
 	if (event != NULL)
 		event->instancer = event_instancer;
 

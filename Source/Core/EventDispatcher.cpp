@@ -31,6 +31,7 @@
 #include "../../Include/Rocket/Core/Event.h"
 #include "../../Include/Rocket/Core/EventListener.h"
 #include "../../Include/Rocket/Core/Factory.h"
+#include "EventSpecification.h"
 
 namespace Rocket {
 namespace Core {
@@ -52,15 +53,15 @@ EventDispatcher::~EventDispatcher()
 	}
 }
 
-void EventDispatcher::AttachEvent(const String& type, EventListener* listener, bool in_capture_phase)
+void EventDispatcher::AttachEvent(EventId id, EventListener* listener, bool in_capture_phase)
 {
 	// See if event type exists already
-	Events::iterator event_itr = events.find(type);
+	Events::iterator event_itr = events.find(id);
 
 	if (event_itr == events.end())
 	{
 		// No, add listener to new event type entry
-		event_itr = events.emplace(type, Listeners{ Listener(listener, in_capture_phase) }).first;
+		event_itr = events.emplace(id, Listeners{ Listener(listener, in_capture_phase) }).first;
 	}
 	else
 	{
@@ -71,10 +72,10 @@ void EventDispatcher::AttachEvent(const String& type, EventListener* listener, b
 	listener->OnAttach(element);
 }
 
-void EventDispatcher::DetachEvent(const String& type, EventListener* listener, bool in_capture_phase)
+void EventDispatcher::DetachEvent(EventId id, EventListener* listener, bool in_capture_phase)
 {
 	// Look up the event
-	Events::iterator event_itr = events.find(type);
+	Events::iterator event_itr = events.find(id);
 
 	// Bail if we can't find the event
 	if (event_itr == events.end())
@@ -112,11 +113,15 @@ void EventDispatcher::DetachAllEvents()
 		element->GetChild(i)->GetEventDispatcher()->DetachAllEvents();
 }
 
-bool EventDispatcher::DispatchEvent(Element* target_element, const String& name, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const Dictionary& parameters)
 {
-	Event* event = Factory::InstanceEvent(target_element, name, parameters, interruptible);
-	if (event == NULL)
+	Event* event = Factory::InstanceEvent(target_element, id, parameters);
+	if (!event)
 		return false;
+
+	const DefaultActionPhase default_action_phase = event->GetDefaultActionPhase();
+	const bool bubbles = event->GetBubbles();
+
 
 	// Build the element traversal from the tree
 	typedef std::vector<Element*> Elements;
@@ -169,7 +174,8 @@ String EventDispatcher::ToString() const
 	String result;
 	for (auto nvp : events)
 	{
-		result += CreateString(nvp.first.size() + 32, "%s (%d), ", nvp.first.c_str(), static_cast<int>(nvp.second.size()));
+		const EventSpecification& specification = EventSpecificationInterface::Get(nvp.first);
+		result += CreateString(specification.type.size() + 32, "%s (%d), ", specification.type.c_str(), static_cast<int>(nvp.second.size()));
 	}
 	if (result.size() > 2) 
 	{
@@ -181,10 +187,9 @@ String EventDispatcher::ToString() const
 void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_action_phase)
 {
 	const EventPhase phase = event->GetPhase();
-	const bool do_default_action = ((int)phase & (int)default_action_phase);
 
 	// Look up the event
-	Events::iterator itr = events.find(event->GetType());
+	Events::iterator itr = events.find(event->GetId());
 
 	if (itr != events.end())
 	{
@@ -200,6 +205,8 @@ void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_act
 			}
 		}
 	}
+
+	const bool do_default_action = ((int)phase & (int)default_action_phase);
 
 	if (do_default_action)
 	{
