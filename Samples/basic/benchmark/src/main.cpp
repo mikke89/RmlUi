@@ -102,7 +102,8 @@ public:
 		  (After Windows feature update and MSVC update, no code change): 109.0  [0bba316]
 		  Fixes and element style iterators: 108.0  [0bba316]
 		  Update definition speedup: 115.0  [5d138fa]
-		  (Release mode, no code change): 135.0  [5d138fa]
+		  (Full release mode, no code change): 135.0  [5d138fa]
+		  EventIDs: 139.0  [d2c3956]
 		  
 		*/
 

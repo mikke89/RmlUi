@@ -52,7 +52,7 @@ Events have some differences, however the existing API should mostly still work.
 
 There is now a distinction between actions executed in event listeners, and default actions for events:
 
-- Event listeners are attached to an element as before. Events following the normal phases: capture (root -> target), target, and bubble (target -> root). Each event listener can be either attached to the bubble phase (default) or capture phase. The target element always fire if reached. Each event type specifies whether it executes the bubble phase or not, see below for details.
+- Event listeners are attached to an element as before. Events following the normal phases: capture (root -> target), target, and bubble (target -> root). Each event listener can be either attached to the bubble phase (default) or capture phase. The target element always fire if reached. Listeners are executed in the order they are added to the element. Each event type specifies whether it executes the bubble phase or not, see below for details.
 - Default actions are primarily for actions performed internally in the library. They are executed in the function `virtual void Element::ProcessDefaultAction(Event& event)`. However, any object that derives from `Element` can override the default behavior and add new behavior. The default actions follow the normal event phases, but are only executed in the phase according to the `default_action_phase` which is defined for each event type. If an event is cancelled with `Event::StopPropagation()`, then the default action is not performed unless already executed.
 
 
@@ -72,7 +72,11 @@ default_action_phase: BubbleAndTarget
 ```
 
 Whenever an event listener is added or event is dispatched, and the provided event type does not already have a specification, the default specification
-`interruptible: true, bubbles: true, default_action_phase: None` is added for that event type. The default specification can be overriden by first calling `EventId Rocket::Core::RegisterEventType(const String& name, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)`. This is only necessary once for each application run.
+`interruptible: true, bubbles: true, default_action_phase: None` is added for that event type. The default specification can be overriden by first calling `EventId Rocket::Core::RegisterEventType(const String& name, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)`. This is only necessary once for each application run, and should be performed before listeners of the same type are used.
+
+Other changes:
+
+- All event listeners on the current element will always be called after calling StopPropagation(). Only when propagating to the next element, the event is stopped. This is the same behavior as in Javascript.
 
 Breaking change:
 

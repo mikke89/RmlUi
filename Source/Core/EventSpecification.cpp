@@ -46,7 +46,7 @@ void Initialize()
 {
 	// Must be specified in the same order as in EventId
 	specifications = {
-		//      id                 name      interruptible  bubbles     default_action
+		//      id                 type      interruptible  bubbles     default_action
 		{EventId::Invalid       , "invalid"       , false , false , DefaultActionPhase::None},
 		{EventId::Mousedown     , "mousedown"     , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Mousescroll   , "mousescroll"   , true  , true  , DefaultActionPhase::TargetAndBubble},

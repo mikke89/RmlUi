@@ -191,10 +191,10 @@ void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_act
 	{
 		// Dispatch all actions
 		Listeners& listeners = (*itr).second;
-		for (size_t i = 0; i < listeners.size() && event->IsPropagating(); i++)
+		for (size_t i = 0; i < listeners.size(); i++)
 		{
-			if (phase == EventPhase::Target 
-				|| (phase == EventPhase::Capture && listeners[i].in_capture_phase) 
+			if (phase == EventPhase::Target
+				|| (phase == EventPhase::Capture && listeners[i].in_capture_phase)
 				|| (phase == EventPhase::Bubble && !listeners[i].in_capture_phase))
 			{
 				listeners[i].listener->ProcessEvent(*event);
