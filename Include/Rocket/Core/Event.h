@@ -60,7 +60,7 @@ public:
 	/// @param[in] type The event type
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can this event have is propagation stopped?
-	Event(Element* target, EventId id, const Dictionary& parameters);
+	Event(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 	/// Destructor
 	virtual ~Event();
 
@@ -84,12 +84,15 @@ public:
 	Element* GetTargetElement() const;
 
 	/// Get the event type.
-	/// @return The event type.
 	const String& GetType() const;
+	/// Get the event id.
+	EventId GetId() const;
 	/// Checks if the event is of a certain type.
 	/// @param type The name of the type to check for.
 	/// @return True if the event is of the requested type, false otherwise.
 	bool operator==(const String& type) const;
+	/// Checks if the event is of a certain id.
+	bool operator==(EventId id) const;
 
 	/// Has the event been stopped?
 	/// @return True if the event is still propogating
@@ -101,7 +104,7 @@ public:
 	/// @param key[in] The name of the desired parameter.
 	/// @return The value of the requested parameter.
 	template < typename T >
-	T GetParameter(const String& key, const T& default_value)
+	T GetParameter(const String& key, const T& default_value) const
 	{
 		return Get(parameters, key, default_value);
 	}
@@ -111,11 +114,6 @@ public:
 
 	/// Release this event.
 	virtual void OnReferenceDeactivate() override;
-
-
-	EventId GetId() const;
-	DefaultActionPhase GetDefaultActionPhase() const;
-	bool GetBubbles() const;
 
 private:
 	/// Project the mouse coordinates to the current element to enable
@@ -129,12 +127,15 @@ protected:
 	Element* current_element;
 
 private:
-	Dictionary parameters_backup;
-
-	const EventSpecification& specification;
+	String type;
+	EventId id;
+	bool interruptible;
+	
 	bool interrupted;
-
 	EventPhase phase;
+
+	bool has_mouse_position;
+	Vector2f mouse_screen_position;
 
 	EventInstancer* instancer;
 

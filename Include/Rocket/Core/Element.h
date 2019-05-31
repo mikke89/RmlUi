@@ -240,15 +240,11 @@ public:
 	/// Returns this element's TransformState
 	const TransformState *GetTransformState() const noexcept;
 	/// Returns the TransformStates that are effective for this element.
-	void GetEffectiveTransformState(
-		const TransformState **local_perspective,
-		const TransformState **perspective,
-		const TransformState **transform
-	) noexcept;
+	void GetEffectiveTransformState(const TransformState **local_perspective, const TransformState **perspective, const TransformState **transform) const noexcept;
 	/// Project a 2D point in pixel coordinates onto the element's plane.
 	/// @param[in] point The point to project.
 	/// @return The projected coordinates.
-	const Vector2f Project(const Vector2f& point) noexcept;
+	Vector2f Project(const Vector2f& point) const noexcept;
 
 	/// Start an animation of the given property on this element.
 	/// If an animation of the same property name exists, it will be replaced.
@@ -344,7 +340,7 @@ public:
 
 	/// Returns the element's context.
 	/// @return The context this element's document exists within.
-	Context* GetContext();
+	Context* GetContext() const;
 
 	/** @name DOM Properties
 	 */
@@ -489,12 +485,14 @@ public:
 	/// @param[in] in_capture_phase True to detach from the capture phase, false from the bubble phase.
 	void RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
 	/// Sends an event to this element.
-	/// @param[in] event Name of the event in string form.
+	/// @param[in] type Event type in string form.
 	/// @param[in] parameters The event parameters.
-	/// @param[in] interruptible True if the propagation of the event be stopped.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(const String& event, const Dictionary& parameters);
-	bool DispatchEvent(EventId event_id, const Dictionary& parameters);
+	bool DispatchEvent(const String& type, const Dictionary& parameters);
+	/// Sends an event to this element, overriding the default behavior for the given event type.
+	bool DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles);
+	/// Sends an event to this element by event id.
+	bool DispatchEvent(EventId id, const Dictionary& parameters);
 
 	/// Scrolls the parent element's contents so that this element is visible.
 	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.

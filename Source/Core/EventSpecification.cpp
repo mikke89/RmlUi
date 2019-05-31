@@ -33,17 +33,20 @@
 namespace Rocket {
 namespace Core {
 
-// An EventId is an index into the specifications vector
+// An EventId is an index into the specifications vector.
 static std::vector<EventSpecification> specifications = { { EventId::Invalid, "invalid", false, false, DefaultActionPhase::None } };
 
+// Reverse lookup map from event type to id.
 static UnorderedMap<String, EventId> type_lookup;
+
 
 namespace EventSpecificationInterface {
 
 void Initialize()
 {
-	// Must be specified in the same order as their event_id
+	// Must be specified in the same order as in EventId
 	specifications = {
+		//      id                 name      interruptible  bubbles     default_action
 		{EventId::Invalid       , "invalid"       , false , false , DefaultActionPhase::None},
 		{EventId::Mousedown     , "mousedown"     , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Mousescroll   , "mousescroll"   , true  , true  , DefaultActionPhase::TargetAndBubble},
@@ -65,7 +68,7 @@ void Initialize()
 		{EventId::Dragmove      , "dragmove"      , true  , true  , DefaultActionPhase::Target},
 		{EventId::Drag          , "drag"          , false , true  , DefaultActionPhase::Target},
 		{EventId::Dragstart     , "dragstart"     , false , true  , DefaultActionPhase::Target},
-		{EventId::Dragover      , "dragstart"     , true  , false , DefaultActionPhase::Target},
+		{EventId::Dragover      , "dragover"      , true  , false , DefaultActionPhase::Target},
 		{EventId::Dragdrop      , "dragdrop"      , true  , false , DefaultActionPhase::Target},
 		{EventId::Dragout       , "dragout"       , true  , false , DefaultActionPhase::Target},
 		{EventId::Dragend       , "dragend"       , true  , true  , DefaultActionPhase::None},
@@ -79,7 +82,7 @@ void Initialize()
 		{EventId::Change        , "change"        , false , true  , DefaultActionPhase::None},
 		{EventId::Submit        , "submit"        , true  , true  , DefaultActionPhase::None},
 		{EventId::Tabchange     , "tabchange"     , false , true  , DefaultActionPhase::None},
-		{EventId::Columnadd     , "tabchange"     , false , true  , DefaultActionPhase::None},
+		{EventId::Columnadd     , "columnadd"     , false , true  , DefaultActionPhase::None},
 		{EventId::Rowadd        , "rowadd"        , false , true  , DefaultActionPhase::None},
 		{EventId::Rowchange     , "rowchange"     , false , true  , DefaultActionPhase::None},
 		{EventId::Rowremove     , "rowremove"     , false , true  , DefaultActionPhase::None},
@@ -92,7 +95,7 @@ void Initialize()
 		type_lookup.emplace(specification.type, specification.id);
 
 #ifdef ROCKET_DEBUG
-	// Verify all event ids specified
+	// Verify that all event ids are specified
 	ROCKET_ASSERT((int)specifications.size() == (int)EventId::NumDefinedIds);
 
 	for (int i = 0; i < (int)specifications.size(); i++)
@@ -111,21 +114,38 @@ const EventSpecification& Get(EventId id)
 	return specifications[0];
 }
 
-EventId GetIdOrDefineDefault(const String& event_type)
+const EventSpecification& GetOrInsert(const String& event_type)
+{
+	// Default values for new event types defined as follows:
+	constexpr bool interruptible = true;
+	constexpr bool bubbles = true;
+	constexpr DefaultActionPhase default_action_phase = DefaultActionPhase::None;
+
+	return GetOrInsert(event_type, interruptible, bubbles, default_action_phase);
+}
+
+const EventSpecification& GetOrInsert(const String& event_type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
 	auto it = type_lookup.find(event_type);
 
 	if (it != type_lookup.end())
-		return it->second;
+		return Get(it->second);
 
 	// No specification found for this name, insert a new entry with default values
 	EventId new_id = static_cast<EventId>(specifications.size());
-	specifications.push_back(EventSpecification{ new_id, event_type, true, true, DefaultActionPhase::None });
+	specifications.push_back(EventSpecification{ new_id, event_type, interruptible, bubbles, default_action_phase });
 	type_lookup.emplace(event_type, new_id);
-	return new_id;
+	return specifications.back();
 }
 
+EventId GetIdOrInsert(const String& event_type)
+{
+	auto it = type_lookup.find(event_type);
+	if (it != type_lookup.end())
+		return it->second;
 
+	return GetOrInsert(event_type).id;
+}
 
 
 }

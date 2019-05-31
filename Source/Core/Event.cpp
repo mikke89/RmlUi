@@ -28,25 +28,40 @@
 #include "precompiled.h"
 #include "../../Include/Rocket/Core/Event.h"
 #include "../../Include/Rocket/Core/EventInstancer.h"
-#include "EventSpecification.h"
 
 namespace Rocket {
 namespace Core {
 
-Event::Event() : specification(EventSpecificationInterface::Get(EventId::Invalid))
+Event::Event() : id(EventId::Invalid)
 {
+	id = EventId::Invalid;
 	phase = EventPhase::None;
+	interruptible = false;
 	interrupted = false;
 	current_element = nullptr;
 	target_element = nullptr;
+	has_mouse_position = false;
+	mouse_screen_position = Vector2f(0, 0);
 }
 
-Event::Event(Element* _target_element, EventId id, const Dictionary& _parameters) 
-	: specification(EventSpecificationInterface::Get(id)), parameters(_parameters), target_element(_target_element), parameters_backup(_parameters)
+Event::Event(Element* _target_element, EventId id, const String& type, const Dictionary& _parameters, bool interruptible)
+	: id(id), type(type), interruptible(interruptible), parameters(_parameters), target_element(_target_element)
 {
 	phase = EventPhase::None;
 	interrupted = false;
 	current_element = nullptr;
+
+	has_mouse_position = false;
+	mouse_screen_position = Vector2f(0, 0);
+
+	const Variant* mouse_x = GetIf(parameters, "mouse_x");
+	const Variant* mouse_y = GetIf(parameters, "mouse_y");
+	if (mouse_x && mouse_y)
+	{
+		has_mouse_position = true;
+		mouse_x->GetInto(mouse_screen_position.x);
+		mouse_y->GetInto(mouse_screen_position.y);
+	}
 }
 
 Event::~Event()
@@ -55,8 +70,11 @@ Event::~Event()
 
 void Event::SetCurrentElement(Element* element)
 {
-	ProjectMouse(element);
 	current_element = element;
+	if(has_mouse_position)
+	{
+		ProjectMouse(element);
+	}
 }
 
 Element* Event::GetCurrentElement() const
@@ -71,12 +89,17 @@ Element* Event::GetTargetElement() const
 
 const String& Event::GetType() const
 {
-	return specification.type;
+	return type;
 }
 
 bool Event::operator==(const String& _type) const
 {
-	return specification.type == _type;
+	return type == _type;
+}
+
+bool Event::operator==(EventId _id) const
+{
+	return id == _id;
 }
 
 void Event::SetPhase(EventPhase _phase)
@@ -97,7 +120,7 @@ bool Event::IsPropagating() const
 void Event::StopPropagation()
 {
 	// Set interrupted to true if we can be interrupted
-	if (specification.interruptible)
+	if (interruptible)
 	{
 		interrupted = true;
 	}
@@ -115,51 +138,33 @@ void Event::OnReferenceDeactivate()
 
 EventId Event::GetId() const
 {
-	return specification.id;
-}
-
-DefaultActionPhase Event::GetDefaultActionPhase() const
-{
-	return specification.default_action_phase;
-}
-
-bool Event::GetBubbles() const
-{
-	return specification.bubbles;
+	return id;
 }
 
 void Event::ProjectMouse(Element* element)
 {
-	if (element)
+	if(!element)
 	{
-		Variant *old_mouse_x = GetIf(parameters_backup, "mouse_x");
-		Variant *old_mouse_y = GetIf(parameters_backup, "mouse_y");
-		if (!old_mouse_x || !old_mouse_y)
-		{
-			// This is not a mouse event.
-			return;
-		}
+		parameters["mouse_x"] = mouse_screen_position.x;
+		parameters["mouse_y"] = mouse_screen_position.y;
+		return;
+	}
 
+	// Only need to project mouse position if element has a transform state
+	if (element->GetTransformState())
+	{
+		// Project mouse from parent (previous 'mouse_x/y' property) to child (element)
 		Variant *mouse_x = GetIf(parameters, "mouse_x");
 		Variant *mouse_y = GetIf(parameters, "mouse_y");
 		if (!mouse_x || !mouse_y)
 		{
-			// This should not happen.
+			ROCKET_ERROR;
 			return;
 		}
 
-		Vector2f old_mouse(
-			old_mouse_x->Get< float >(),
-			old_mouse_y->Get< float >()
-		);
-		Vector2f mouse = element->Project(old_mouse);
-
-		mouse_x->Reset(mouse.x);
-		mouse_y->Reset(mouse.y);
-	}
-	else
-	{
-		parameters = parameters_backup;
+		Vector2f new_pos = element->Project(mouse_screen_position);
+		mouse_x->Reset(new_pos.x);
+		mouse_y->Reset(new_pos.y);
 	}
 }
 

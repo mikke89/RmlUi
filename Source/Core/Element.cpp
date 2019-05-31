@@ -693,27 +693,25 @@ void Element::GetEffectiveTransformState(
 	const TransformState **local_perspective,
 	const TransformState **perspective,
 	const TransformState **transform
-) noexcept
+) const noexcept
 {
-	UpdateTransformState();
-
 	if (local_perspective)
 	{
-		*local_perspective = 0;
+		*local_perspective = nullptr;
 	}
 	if (perspective)
 	{
-		*perspective = 0;
+		*perspective = nullptr;
 	}
 	if (transform)
 	{
-		*transform = 0;
+		*transform = nullptr;
 	}
 
-	Element *perspective_node = 0, *transform_node = 0;
+	const Element *perspective_node = nullptr, *transform_node = nullptr;
 
 	// Find the TransformState to use for unprojecting.
-	if (transform_state.get() && transform_state->GetLocalPerspective(0))
+	if (transform_state.get() && transform_state->GetLocalPerspective(nullptr))
 	{
 		if (local_perspective)
 		{
@@ -722,10 +720,10 @@ void Element::GetEffectiveTransformState(
 	}
 	else
 	{
-		Element *node = 0;
+		const Element *node = nullptr;
 		for (node = parent; node; node = node->parent)
 		{
-			if (node->transform_state.get() && node->transform_state->GetPerspective(0))
+			if (node->transform_state.get() && node->transform_state->GetPerspective(nullptr))
 			{
 				if (perspective)
 				{
@@ -738,10 +736,10 @@ void Element::GetEffectiveTransformState(
 	}
 
 	// Find the TransformState to use for transforming.
-	Element *node = 0;
+	const Element *node = nullptr;
 	for (node = this; node; node = node->parent)
 	{
-		if (node->transform_state.get() && node->transform_state->GetRecursiveTransform(0))
+		if (node->transform_state.get() && node->transform_state->GetRecursiveTransform(nullptr))
 		{
 			if (transform)
 			{
@@ -754,11 +752,9 @@ void Element::GetEffectiveTransformState(
 }
 
 // Project a 2D point in pixel coordinates onto the element's plane.
-const Vector2f Element::Project(const Vector2f& point) noexcept
+Vector2f Element::Project(const Vector2f& point) const noexcept
 {
-	UpdateTransformState();
-
-	Context *context = GetContext();
+	const Context *context = GetContext();
 	if (!context)
 	{
 		return point;
@@ -957,7 +953,7 @@ Element* Element::GetFocusLeafNode()
 }
 
 // Returns the element's context.
-Context* Element::GetContext()
+Context* Element::GetContext() const
 {
 	ElementDocument* document = GetOwnerDocument();
 	if (document != NULL)
@@ -1298,28 +1294,36 @@ void Element::Click()
 // Adds an event listener
 void Element::AddEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
-	EventId id = EventSpecificationInterface::GetIdOrDefineDefault(event);
+	EventId id = EventSpecificationInterface::GetIdOrInsert(event);
 	event_dispatcher->AttachEvent(id, listener, in_capture_phase);
 }
 
 // Removes an event listener from this element.
 void Element::RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
-	EventId id = EventSpecificationInterface::GetIdOrDefineDefault(event);
+	EventId id = EventSpecificationInterface::GetIdOrInsert(event);
 	event_dispatcher->DetachEvent(id, listener, in_capture_phase);
 }
 
 // Dispatches the specified event
-bool Element::DispatchEvent(const String& event, const Dictionary& parameters)
+bool Element::DispatchEvent(const String& type, const Dictionary& parameters)
 {
-	EventId id = EventSpecificationInterface::GetIdOrDefineDefault(event);
-	return event_dispatcher->DispatchEvent(this, id, parameters);
+	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
+	return event_dispatcher->DispatchEvent(this, specification.id, type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
 }
 
 // Dispatches the specified event
-bool Element::DispatchEvent(EventId event_id, const Dictionary& parameters)
+bool Element::DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles)
 {
-	return event_dispatcher->DispatchEvent(this, event_id, parameters);
+	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
+	return event_dispatcher->DispatchEvent(this, specification.id, type, parameters, interruptible, bubbles, specification.default_action_phase);
+}
+
+// Dispatches the specified event
+bool Element::DispatchEvent(EventId id, const Dictionary& parameters)
+{
+	const EventSpecification& specification = EventSpecificationInterface::Get(id);
+	return event_dispatcher->DispatchEvent(this, specification.id, specification.type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
 }
 
 // Scrolls the parent element's contents so that this element is visible.
@@ -1951,11 +1955,11 @@ void Element::OnReferenceDeactivate()
 
 void Element::ProcessDefaultAction(Event& event)
 {
-	if (event == MOUSEDOWN && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
+	if (event == EventId::Mousedown && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
 		event.GetParameter< int >("button", 0) == 0)
 		SetPseudoClass("active", true);
 
-	if (event == MOUSESCROLL)
+	if (event == EventId::Mousescroll)
 	{
 		if (GetScrollHeight() > GetClientHeight())
 		{
@@ -1986,16 +1990,25 @@ void Element::ProcessDefaultAction(Event& event)
 		return;
 	}
 
-	if (event.GetTargetElement() == this)
+	if (event.GetPhase() == EventPhase::Target)
 	{
-		if (event == MOUSEOVER)
+		switch (event.GetId())
+		{
+		case EventId::Mouseover:
 			SetPseudoClass("hover", true);
-		else if (event == MOUSEOUT)
+			break;
+		case EventId::Mouseout:
 			SetPseudoClass("hover", false);
-		else if (event == FOCUS)
+			break;
+		case EventId::Focus:
 			SetPseudoClass(FOCUS, true);
-		else if (event == BLUR)
+			break;
+		case EventId::Blur:
 			SetPseudoClass(FOCUS, false);
+			break;
+		default:
+			break;
+		}
 	}
 }
 

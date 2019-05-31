@@ -76,7 +76,7 @@ public:
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can the event propagation be stopped
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(Element* element, EventId id, const Dictionary& parameters);
+	bool DispatchEvent(Element* element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 
 	/// Returns event types with number of listeners for debugging.
 	/// @return Summary of attached listeners.

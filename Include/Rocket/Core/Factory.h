@@ -159,7 +159,7 @@ public:
 	/// @param[in] parameters Additional parameters for this event.
 	/// @param[in] interruptible If the event propagation can be stopped.
 	/// @return The instanced event.
-	static Event* InstanceEvent(Element* target, EventId id, const Dictionary& parameters);
+	static Event* InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 
 	/// Register the instancer to be used for all event listeners.
 	/// @return The registered instancer on success, NULL on failure.

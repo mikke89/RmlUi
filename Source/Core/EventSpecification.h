@@ -52,9 +52,17 @@ namespace EventSpecificationInterface {
 	// Returns the 'invalid' event type if no specification exists for id.
 	const EventSpecification& Get(EventId id);
 
+	// Get event specification for the given type.
+	// If not found: Inserts a new entry with given values.
+	const EventSpecification& GetOrInsert(const String& event_type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
+
+	// Get event specification for the given type.
+	// If not found: Inserts a new entry with default values.
+	const EventSpecification& GetOrInsert(const String& event_type);
+
 	// Get event id for the given name.
-	// Inserts a new entry with default values if event type is not already specified.
-	EventId GetIdOrDefineDefault(const String& event_type);
+	// If not found: Inserts a new entry with default values.
+	EventId GetIdOrInsert(const String& event_type);
 
 }
 

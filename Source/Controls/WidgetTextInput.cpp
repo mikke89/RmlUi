@@ -405,8 +405,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			  event == "drag") &&
 			 event.GetTargetElement() == parent)
 	{
-		Rocket::Core::Vector2f mouse_position = Rocket::Core::Vector2f((float) event.GetParameter< int >("mouse_x", 0),
-																 (float) event.GetParameter< int >("mouse_y", 0));
+		Core::Vector2f mouse_position = Core::Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0));
 		mouse_position -= text_element->GetAbsoluteOffset();
 
 		cursor_line_index = CalculateLineIndex(mouse_position.y);

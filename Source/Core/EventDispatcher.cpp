@@ -113,15 +113,11 @@ void EventDispatcher::DetachAllEvents()
 		element->GetChild(i)->GetEventDispatcher()->DetachAllEvents();
 }
 
-bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const Dictionary& parameters)
+bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
-	Event* event = Factory::InstanceEvent(target_element, id, parameters);
+	Event* event = Factory::InstanceEvent(target_element, id, type, parameters, interruptible);
 	if (!event)
 		return false;
-
-	const DefaultActionPhase default_action_phase = event->GetDefaultActionPhase();
-	const bool bubbles = event->GetBubbles();
-
 
 	// Build the element traversal from the tree
 	typedef std::vector<Element*> Elements;
