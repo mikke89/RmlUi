@@ -29,7 +29,6 @@
 #include "ElementTextSelection.h"
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Controls/ElementFormControl.h"
-#include "../../Include/Rocket/Controls/Clipboard.h"
 #include "../../Include/Rocket/Core/SystemInterface.h"
 #include "../Core/Clock.h"
 
@@ -352,14 +351,16 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		{
 			if (ctrl)
 			{
-				const Core::WString clipboard_content = Clipboard::Get();
-				for (size_t i = 0; i < clipboard_content.size(); ++i)
+				Core::WString clipboard_text;
+				Core::GetSystemInterface()->GetClipboardText(clipboard_text);
+
+				for (size_t i = 0; i < clipboard_text.size(); ++i)
 				{
 					if (max_length > 0 &&
 						(int)Core::ToWideString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).size() > max_length)
 						break;
 
-					AddCharacter(clipboard_content[i]);
+					AddCharacter(clipboard_text[i]);
 				}
 			}
 		}
@@ -508,7 +509,8 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 void WidgetTextInput::CopySelection()
 {
 	const Core::String& value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
-	Clipboard::Set(Core::ToWideString(value.substr(selection_begin_index, selection_length)));
+	const Core::WString snippet = Core::ToWideString(value.substr(selection_begin_index, selection_length));
+	Core::GetSystemInterface()->SetClipboardText(snippet);
 }
 
 // Returns the absolute index of the cursor.

@@ -178,6 +178,7 @@ input.submit:disabled
 {
 	background-image-t: 0px 45px;
 	image-color: rgba(50, 150, 150, 120);
+	cursor: unavailable;
 }
 
 

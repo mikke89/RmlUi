@@ -735,6 +735,9 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 			drag = NULL;
 			drag_hover = NULL;
 			drag_hover_chain.clear();
+
+			// We may have changes under our mouse, this ensures that the hover chain is properly updated
+			ProcessMouseMove(mouse_position.x, mouse_position.y, key_modifier_state);
 		}
 	}
 	else
@@ -949,7 +952,9 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	{
 		String new_cursor_name;
 
-		if (hover)
+		if(drag)
+			new_cursor_name = drag->GetComputedValues().cursor;
+		else if (hover)
 			new_cursor_name = hover->GetComputedValues().cursor;
 
 		if(new_cursor_name != cursor_name)

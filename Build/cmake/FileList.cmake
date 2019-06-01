@@ -383,7 +383,6 @@ set(MASTER_Controls_PUB_HDR_FILES
 )
 
 set(Controls_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Clipboard.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Controls.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/DataFormatter.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/DataQuery.h
@@ -405,7 +404,6 @@ set(Controls_PUB_HDR_FILES
 )
 
 set(Controls_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Clipboard.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/Controls.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/DataFormatter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/DataQuery.cpp

@@ -36,6 +36,8 @@
 namespace Rocket {
 namespace Core {
 
+static WString clipboard_text;
+
 SystemInterface::SystemInterface() : ReferenceCountable(0)
 {
 }
@@ -74,6 +76,17 @@ bool SystemInterface::LogMessage(Log::Type ROCKET_UNUSED_PARAMETER(logtype), con
 
 void SystemInterface::SetMouseCursor(const String& cursor_name)
 {
+}
+
+void SystemInterface::SetClipboardText(const WString& text)
+{
+	// The default implementation will only copy and paste within the application
+	clipboard_text = text;
+}
+
+void SystemInterface::GetClipboardText(WString& text)
+{
+	text = clipboard_text;
 }
 
 int SystemInterface::TranslateString(String& translated, const String& input)

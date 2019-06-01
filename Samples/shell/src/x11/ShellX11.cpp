@@ -41,6 +41,7 @@
 static bool running = false;
 static int screen = -1;
 static timeval start_time;
+static Rocket::Core::WString clipboard_text;
 
 static ShellFileInterface* file_interface = NULL;
 
@@ -298,4 +299,21 @@ double Shell::GetElapsedTime()
 	double result = sec + (usec / 1000000.0);
 
 	return result;
+}
+
+void Shell::SetMouseCursor(const Rocket::Core::String& cursor_name)
+{
+	// Not implemented
+}
+
+void Shell::SetClipboardText(const Rocket::Core::WString& text)
+{
+	// Todo: interface with system clipboard
+	clipboard_text = text;
+}
+
+void Shell::GetClipboardText(Rocket::Core::WString& text)
+{
+	// Todo: interface with system clipboard
+	text = clipboard_text;
 }

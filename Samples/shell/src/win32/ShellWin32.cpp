@@ -46,6 +46,12 @@ static LARGE_INTEGER time_startup;
 
 static ShellFileInterface* file_interface = NULL;
 
+static HCURSOR cursor_default = NULL;
+static HCURSOR cursor_move = NULL;
+static HCURSOR cursor_cross = NULL;
+static HCURSOR cursor_unavailable = NULL;
+
+
 bool Shell::Initialise(const Rocket::Core::String& path)
 {
 	instance_handle = GetModuleHandle(NULL);
@@ -67,6 +73,12 @@ bool Shell::Initialise(const Rocket::Core::String& path)
 	executable_path = executable_path.substr(0, executable_path.rfind("\\") + 1);
 	file_interface = new ShellFileInterface(executable_path + path);
 	Rocket::Core::SetFileInterface(file_interface);
+
+	// Load cursors
+	cursor_default = LoadCursorA(NULL, IDC_ARROW);
+	cursor_move = LoadCursorA(NULL, IDC_SIZEALL);
+	cursor_cross = LoadCursorA(NULL, IDC_CROSS);
+	cursor_unavailable = LoadCursorA(NULL, IDC_NO);
 
 	return true;
 }
@@ -91,7 +103,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	window_class.cbWndExtra = 0;
 	window_class.hInstance = instance_handle;
 	window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+	window_class.hCursor = cursor_default;
 	window_class.hbrBackground = NULL;
 	window_class.lpszMenuName = NULL;
 	window_class.lpszClassName = name;
@@ -249,6 +261,75 @@ double Shell::GetElapsedTime()
 	QueryPerformanceCounter(&counter);
 
 	return double(counter.QuadPart - time_startup.QuadPart) * time_frequency;
+}
+
+void Shell::SetMouseCursor(const Rocket::Core::String& cursor_name)
+{
+	if (window_handle)
+	{
+		HCURSOR cursor_handle = NULL;
+		if (cursor_name.empty())
+			cursor_handle = cursor_default;
+		else if(cursor_name == "move")
+			cursor_handle = cursor_move;
+		else if (cursor_name == "cross")
+			cursor_handle = cursor_cross;
+		else if (cursor_name == "unavailable")
+			cursor_handle = cursor_unavailable;
+
+		if (cursor_handle)
+		{
+			SetCursor(cursor_handle);
+			SetClassLongPtrA(window_handle, GCLP_HCURSOR, (LONG_PTR)cursor_handle);
+		}
+	}
+}
+
+void Shell::SetClipboardText(const Rocket::Core::WString& text)
+{
+	if (window_handle)
+	{
+		if (!OpenClipboard(window_handle))
+			return;
+
+		EmptyClipboard();
+
+		size_t size = sizeof(wchar_t) * (text.size() + 1);
+
+		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, size);
+		memcpy(clipboard_data, text.data(), size);
+
+		if (SetClipboardData(CF_UNICODETEXT, clipboard_data) == NULL)
+		{
+			CloseClipboard();
+			GlobalFree(clipboard_data);
+		}
+		else
+			CloseClipboard();
+	}
+}
+
+void Shell::GetClipboardText(Rocket::Core::WString& text)
+{
+	if (window_handle)
+	{
+		if (!OpenClipboard(window_handle))
+			return;
+
+		HANDLE clipboard_data = GetClipboardData(CF_UNICODETEXT);
+		if (clipboard_data == NULL)
+		{
+			CloseClipboard();
+			return;
+		}
+
+		const wchar_t* clipboard_text = (const wchar_t*)GlobalLock(clipboard_data);
+		if (clipboard_text)
+			text = clipboard_text;
+		GlobalUnlock(clipboard_data);
+
+		CloseClipboard();
+	}
 }
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)

@@ -70,6 +70,14 @@ public:
 	/// @param[in] cursor_name Cursor name to activate.
 	virtual void SetMouseCursor(const Core::String& cursor_name);
 
+	/// Set clipboard text.
+	/// @param[in] text Text to apply to clipboard.
+	virtual void SetClipboardText(const Core::WString& text);
+
+	/// Get clipboard text.
+	/// @param[out] text Retrieved text from clipboard.
+	virtual void GetClipboardText(Core::WString& text);
+
 	/// Activate keyboard (for touchscreen devices)
 	virtual void ActivateKeyboard();
 	

@@ -81,6 +81,15 @@ public:
 
 	/// Get the number of seconds that have passed since shell startup.
 	static double GetElapsedTime();
+
+	/// Set mouse cursor.
+	static void SetMouseCursor(const Rocket::Core::String& cursor_name);
+
+	/// Set clipboard text.
+	static void SetClipboardText(const Rocket::Core::WString& text);
+
+	/// Get clipboard text.
+	static void GetClipboardText(Rocket::Core::WString& text);
 	
 	/// Sets the context to send window resized events to.
 	/// @param[in] context The context to send  events to.

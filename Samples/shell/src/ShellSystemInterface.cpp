@@ -33,3 +33,18 @@ double ShellSystemInterface::GetElapsedTime()
 {
 	return Shell::GetElapsedTime();
 }
+
+void ShellSystemInterface::SetMouseCursor(const Rocket::Core::String& cursor_name)
+{
+	Shell::SetMouseCursor(cursor_name);
+}
+
+void ShellSystemInterface::SetClipboardText(const Rocket::Core::WString& text)
+{
+	Shell::SetClipboardText(text);
+}
+
+void ShellSystemInterface::GetClipboardText(Rocket::Core::WString& text)
+{
+	Shell::GetClipboardText(text);
+}

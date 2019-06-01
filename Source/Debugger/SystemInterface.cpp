@@ -72,6 +72,16 @@ void SystemInterface::SetMouseCursor(const Core::String& cursor_name)
 	application_interface->SetMouseCursor(cursor_name);
 }
 
+void SystemInterface::SetClipboardText(const Core::WString& text)
+{
+	application_interface->SetClipboardText(text);
+}
+
+void SystemInterface::GetClipboardText(Core::WString& text)
+{
+	application_interface->GetClipboardText(text);
+}
+
 // Activate keyboard (for touchscreen devices)
 void SystemInterface::ActivateKeyboard()
 {
