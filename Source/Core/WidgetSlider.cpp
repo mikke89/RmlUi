@@ -190,9 +190,19 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 {
 	bar_position = Math::Clamp(_bar_position, 0.0f, 1.0f);
 	PositionBar();
-
-	Dictionary parameters = { {"value", bar_position} };
-	parent->DispatchEvent(EventId::Scrollchange, parameters);
+	
+	// 'parent' is the scrollbar element, its parent again is the actual element we want to scroll
+	Element* element_scroll = parent->GetParentNode();
+	if (!element_scroll)
+	{
+		ROCKET_ERROR;
+		return;
+	}
+	
+	if (orientation == VERTICAL)
+		element_scroll->SetScrollTop(bar_position * (element_scroll->GetScrollHeight() - element_scroll->GetClientHeight()));
+	else if (orientation == HORIZONTAL)
+		element_scroll->SetScrollLeft(bar_position * (element_scroll->GetScrollWidth() - element_scroll->GetClientWidth()));
 }
 
 // Returns the current position of the bar.

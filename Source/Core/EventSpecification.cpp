@@ -75,7 +75,6 @@ void Initialize()
 		{EventId::Handledrag    , "handledrag"    , false , true  , DefaultActionPhase::None},
 		{EventId::Resize        , "resize"        , false , false , DefaultActionPhase::None},
 		{EventId::Scroll        , "scroll"        , false , true  , DefaultActionPhase::None},
-		{EventId::Scrollchange  , "scrollchange"  , false , true  , DefaultActionPhase::None},
 		{EventId::Animationend  , "animationend"  , true  , true  , DefaultActionPhase::None},
 		{EventId::Transitionend , "transitionend" , true  , true  , DefaultActionPhase::None},
 								 				 

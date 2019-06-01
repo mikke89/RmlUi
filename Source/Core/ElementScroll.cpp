@@ -54,7 +54,6 @@ void ElementScroll::ClearScrollbars()
 	{
 		if (scrollbars[i].element != NULL)
 		{
-			scrollbars[i].element->RemoveEventListener("scrollchange", this);
 			scrollbars[i] = Scrollbar();
 		}
 	}
@@ -227,19 +226,6 @@ void ElementScroll::FormatScrollbars()
 	}
 }
 
-// Handles the 'onchange' events for the scrollbars.
-void ElementScroll::ProcessEvent(Event& event)
-{
-	if (event == EventId::Scrollchange)
-	{
-		float value = event.GetParameter< float >("value", 0);
-
-		if (event.GetTargetElement() == scrollbars[VERTICAL].element)
-			element->SetScrollTop(value * (element->GetScrollHeight() - element->GetClientHeight()));
-		else
-			element->SetScrollLeft(value * (element->GetScrollWidth() - element->GetClientWidth()));
-	}
-}
 
 // Creates one of the scroll component's scrollbar.
 bool ElementScroll::CreateScrollbar(Orientation orientation)
@@ -249,7 +235,6 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 		return true;
 
 	scrollbars[orientation].element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
-	scrollbars[orientation].element->AddEventListener("scrollchange", this);
 	scrollbars[orientation].element->SetProperty(CLIP, Property(1, Property::NUMBER));
 
 	scrollbars[orientation].widget = new WidgetSliderScroll(scrollbars[orientation].element);

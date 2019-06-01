@@ -64,7 +64,6 @@ enum class EventId : uint16_t
 	Handledrag,
 	Resize,
 	Scroll,
-	Scrollchange,
 	Animationend,
 	Transitionend,
 

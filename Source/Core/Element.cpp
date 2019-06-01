@@ -1081,11 +1081,15 @@ float Element::GetScrollLeft()
 // Sets the left scroll offset of the element.
 void Element::SetScrollLeft(float scroll_left)
 {
-	scroll_offset.x = Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth());
-	scroll->UpdateScrollbar(ElementScroll::HORIZONTAL);
-	DirtyOffset();
+	const float new_offset = Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth());
+	if (new_offset != scroll_offset.x)
+	{
+		scroll_offset.x = new_offset;
+		scroll->UpdateScrollbar(ElementScroll::HORIZONTAL);
+		DirtyOffset();
 
-	DispatchEvent(EventId::Scroll, Dictionary());
+		DispatchEvent(EventId::Scroll, Dictionary());
+	}
 }
 
 // Gets the top scroll offset of the element.
@@ -1097,11 +1101,15 @@ float Element::GetScrollTop()
 // Sets the top scroll offset of the element.
 void Element::SetScrollTop(float scroll_top)
 {
-	scroll_offset.y = Math::Clamp(scroll_top, 0.0f, GetScrollHeight() - GetClientHeight());
-	scroll->UpdateScrollbar(ElementScroll::VERTICAL);
-	DirtyOffset();
+	const float new_offset = Math::Clamp(scroll_top, 0.0f, GetScrollHeight() - GetClientHeight());
+	if(new_offset != scroll_offset.y)
+	{
+		scroll_offset.y = new_offset;
+		scroll->UpdateScrollbar(ElementScroll::VERTICAL);
+		DirtyOffset();
 
-	DispatchEvent(EventId::Scroll, Dictionary());
+		DispatchEvent(EventId::Scroll, Dictionary());
+	}
 }
 
 // Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
@@ -2101,14 +2109,17 @@ void Element::ReleaseElements(ElementList& released_elements)
 
 void Element::DirtyOffset()
 {
-	offset_dirty = true;
+	if(!offset_dirty)
+	{
+		offset_dirty = true;
 
-	if(transform_state)
-		DirtyTransformState(true, true, false);
+		if(transform_state)
+			DirtyTransformState(true, true, false);
 
-	// Not strictly true ... ?
-	for (size_t i = 0; i < children.size(); i++)
-		children[i]->DirtyOffset();
+		// Not strictly true ... ?
+		for (size_t i = 0; i < children.size(); i++)
+			children[i]->DirtyOffset();
+	}
 }
 
 void Element::UpdateOffset()

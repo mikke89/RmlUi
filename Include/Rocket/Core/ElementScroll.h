@@ -29,7 +29,6 @@
 #define ROCKETCOREELEMENTSCROLL_H
 
 #include "Header.h"
-#include "EventListener.h"
 
 namespace Rocket {
 namespace Core {
@@ -43,7 +42,7 @@ class WidgetSliderScroll;
 	@author Peter Curry
  */
 
-class ROCKETCORE_API ElementScroll : public EventListener
+class ROCKETCORE_API ElementScroll
 {
 public:
 	enum Orientation
@@ -84,10 +83,6 @@ public:
 
 	/// Clears the scrollbars, resetting it to initial conditions.
 	void ClearScrollbars();
-
-protected:
-	/// Handles the 'onchange' events for the scrollbars.
-	void ProcessEvent(Event& event) override;
 
 private:
 	struct Scrollbar
