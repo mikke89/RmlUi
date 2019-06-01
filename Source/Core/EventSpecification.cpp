@@ -75,8 +75,8 @@ void Initialize()
 		{EventId::Handledrag    , "handledrag"    , false , true  , DefaultActionPhase::None},
 		{EventId::Resize        , "resize"        , false , false , DefaultActionPhase::None},
 		{EventId::Scroll        , "scroll"        , false , true  , DefaultActionPhase::None},
-		{EventId::Animationend  , "animationend"  , true  , true  , DefaultActionPhase::None},
-		{EventId::Transitionend , "transitionend" , true  , true  , DefaultActionPhase::None},
+		{EventId::Animationend  , "animationend"  , false , true  , DefaultActionPhase::None},
+		{EventId::Transitionend , "transitionend" , false , true  , DefaultActionPhase::None},
 								 				 
 		{EventId::Change        , "change"        , false , true  , DefaultActionPhase::None},
 		{EventId::Submit        , "submit"        , true  , true  , DefaultActionPhase::None},
@@ -105,12 +105,33 @@ void Initialize()
 #endif
 }
 
-const EventSpecification& Get(EventId id)
+static EventSpecification& GetMutable(EventId id)
 {
 	size_t i = static_cast<size_t>(id);
 	if (i < specifications.size())
 		return specifications[i];
 	return specifications[0];
+}
+
+// Get event specification for the given type.
+// If not found: Inserts a new entry with given values.
+static EventSpecification& GetOrInsert(const String& event_type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+{
+	auto it = type_lookup.find(event_type);
+
+	if (it != type_lookup.end())
+		return GetMutable(it->second);
+
+	// No specification found for this name, insert a new entry with default values
+	EventId new_id = static_cast<EventId>(specifications.size());
+	specifications.push_back(EventSpecification{ new_id, event_type, interruptible, bubbles, default_action_phase });
+	type_lookup.emplace(event_type, new_id);
+	return specifications.back();
+}
+
+const EventSpecification& Get(EventId id)
+{
+	return GetMutable(id);
 }
 
 const EventSpecification& GetOrInsert(const String& event_type)
@@ -123,20 +144,6 @@ const EventSpecification& GetOrInsert(const String& event_type)
 	return GetOrInsert(event_type, interruptible, bubbles, default_action_phase);
 }
 
-const EventSpecification& GetOrInsert(const String& event_type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
-{
-	auto it = type_lookup.find(event_type);
-
-	if (it != type_lookup.end())
-		return Get(it->second);
-
-	// No specification found for this name, insert a new entry with default values
-	EventId new_id = static_cast<EventId>(specifications.size());
-	specifications.push_back(EventSpecification{ new_id, event_type, interruptible, bubbles, default_action_phase });
-	type_lookup.emplace(event_type, new_id);
-	return specifications.back();
-}
-
 EventId GetIdOrInsert(const String& event_type)
 {
 	auto it = type_lookup.find(event_type);
@@ -144,6 +151,23 @@ EventId GetIdOrInsert(const String& event_type)
 		return it->second;
 
 	return GetOrInsert(event_type).id;
+}
+
+EventId InsertOrReplaceCustom(const String& event_type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+{
+	const size_t size_before = specifications.size();
+	EventSpecification& specification = GetOrInsert(event_type, interruptible, bubbles, default_action_phase);
+	bool got_existing_entry = (size_before == specifications.size());
+
+	// If we found an existing entry of same type, replace it, but only if it is a custom event id.
+	if (got_existing_entry && (int)specification.id >= (int)EventId::FirstCustomId)
+	{
+		specification.interruptible = interruptible;
+		specification.bubbles = bubbles;
+		specification.default_action_phase = default_action_phase;
+	}
+
+	return specification.id;
 }
 
 

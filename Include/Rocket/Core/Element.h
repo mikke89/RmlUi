@@ -490,7 +490,7 @@ public:
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
 	bool DispatchEvent(const String& type, const Dictionary& parameters);
 	/// Sends an event to this element, overriding the default behavior for the given event type.
-	bool DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles);
+	bool DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles = true);
 	/// Sends an event to this element by event id.
 	bool DispatchEvent(EventId id, const Dictionary& parameters);
 

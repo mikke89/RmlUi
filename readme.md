@@ -48,44 +48,45 @@ If upgrading from the original libRocket branch, some breaking changes should be
 
 ### Events
 
-Events have some differences, however the existing API should mostly still work.
+There are some changes to events in RmlUi, however, for most users, existing code should still work as before.
 
 There is now a distinction between actions executed in event listeners, and default actions for events:
 
-- Event listeners are attached to an element as before. Events following the normal phases: capture (root -> target), target, and bubble (target -> root). Each event listener can be either attached to the bubble phase (default) or capture phase. The target element always fire if reached. Listeners are executed in the order they are added to the element. Each event type specifies whether it executes the bubble phase or not, see below for details.
-- Default actions are primarily for actions performed internally in the library. They are executed in the function `virtual void Element::ProcessDefaultAction(Event& event)`. However, any object that derives from `Element` can override the default behavior and add new behavior. The default actions follow the normal event phases, but are only executed in the phase according to the `default_action_phase` which is defined for each event type. If an event is cancelled with `Event::StopPropagation()`, then the default action is not performed unless already executed.
+- Event listeners are attached to an element as before. Events follow the normal phases: capture (root -> target), target, and bubble (target -> root). Each event listener can be either attached to the bubble phase (default) or capture phase. The target phase always executes if reached. Listeners are executed in the order they are added to the element. Each event type specifies whether it executes the bubble phase or not, see below for details.
+- Default actions are primarily for actions performed internally in the library. They are executed in the function `virtual void Element::ProcessDefaultAction(Event& event)`. However, any object that derives from `Element` can override the default behavior and add new behavior. The default actions follow the normal event phases, but are only executed in the phase according to their `default_action_phase` which is defined for each event type. If an event is cancelled with `Event::StopPropagation()`, then the default action is not performed unless already executed.
 
 
-Each event type now has an associated EventId. Each event type has the following specifications:
+Each event type now has an associated EventId as well as a specification defined as follows:
 
 - `interruptible`: Whether the event can be cancelled by calling `Event::StopPropagation()`.
-- `bubbles`: Whether the event executes the bubble phase. If true, all three phases, capture, target, and bubble, are executed. If false, only capture and target phases are executed.
-- `default_action_phase`: One of: None, Target, Bubble, BubbleAndTarget. Specifies during which phases the default action is executed, if any. That is, the phase for which `Element::ProcessDefaultAction` is called. See above for details.
+- `bubbles`: Whether the event executes the bubble phase. If true, all three phases: capture, target, and bubble, are executed. If false, only capture and target phases are executed.
+- `default_action_phase`: One of: None, Target, Bubble, TargetAndBubble. Specifies during which phases the default action is executed, if any. That is, the phase for which `Element::ProcessDefaultAction` is called. See above for details.
 
 For example, the event type `click` has the following specification:
 ```
 id: EventId::Click
-name: "click"
-interruptable: true
+type: "click"
+interruptible: true
 bubbles: true
-default_action_phase: BubbleAndTarget
+default_action_phase: TargetAndBubble
 ```
 
 Whenever an event listener is added or event is dispatched, and the provided event type does not already have a specification, the default specification
-`interruptible: true, bubbles: true, default_action_phase: None` is added for that event type. The default specification can be overriden by first calling `EventId Rocket::Core::RegisterEventType(const String& name, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)`. This is only necessary once for each application run, and should be performed before listeners of the same type are used.
+`interruptible: true, bubbles: true, default_action_phase: None` is added for that event type. To provide a custom specification for a new event, first call the method:
+```
+EventId Rocket::Core::RegisterEventType(const String& type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+```
+After this call, any usage of this type will use the provided specification by default. The returned EventId can be used to dispatch events instead of the type string.
 
-Other changes:
-
-- All event listeners on the current element will always be called after calling StopPropagation(). Only when propagating to the next element, the event is stopped. This is the same behavior as in Javascript.
-
-Breaking change:
-
-- `EventInstancer::InstanceEvent` now takes an `EventId` instead of a `String`.
+Various changes:
+- All event listeners on the current element will always be called after calling StopPropagation(). However, the default action on the current element will be prevented. When propagating to the next element, the event is stopped. This behavior is consistent with the standard DOM events model.
+- `Element::DispatchEvent` can now optionally take an `EventId` instead of a `String`.
+- The `resize` event now only applies to the document size, not individual elements.
+- The `scrollchange` event has been replaced by a function call. To capture scroll changes, instead use the `scroll` event.
 
 ## Other changes
 
 - `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
-
 
 ## Performance
 

@@ -119,10 +119,6 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 	if (!event)
 		return false;
 
-	//// Click events may be disabled on the element.
-	//if (id == EventId::Click && target_element->IsDisabled())
-	//	return false;
-
 	// Build the element traversal from the tree
 	typedef std::vector<Element*> Elements;
 	Elements elements;
@@ -152,10 +148,10 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 		TriggerEvents(event, default_action_phase);
 	}
 
+	// Bubble phase - target to root (normal event bindings)
 	if (bubbles && event->IsPropagating())
 	{
 		event->SetPhase(EventPhase::Bubble);
-		// Bubble phase - target to root (normal event bindings)
 		for (size_t i = 0; i < elements.size() && event->IsPropagating(); i++) 
 		{
 			EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
@@ -208,7 +204,7 @@ void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_act
 
 	const bool do_default_action = ((int)phase & (int)default_action_phase);
 
-	if (do_default_action)
+	if (do_default_action && event->IsPropagating())
 	{
 		element->ProcessDefaultAction(*event);
 	}
