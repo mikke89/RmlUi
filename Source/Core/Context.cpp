@@ -200,7 +200,7 @@ bool Context::Render()
 	// Render the cursor proxy so any elements attached the cursor will be rendered below the cursor.
 	if (cursor_proxy != NULL)
 	{
-		cursor_proxy->Update(density_independent_pixel_ratio);
+		cursor_proxy->UpdateDocument();
 		cursor_proxy->SetOffset(Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x),
 			(float)Math::Clamp(mouse_position.y, 0, dimensions.y)),
 			NULL);
