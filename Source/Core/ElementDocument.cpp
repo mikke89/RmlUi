@@ -228,11 +228,8 @@ void ElementDocument::Show(int focus_flags)
 
 	if (focus_flags & FOCUS || focus_flags & MODAL)
 	{
-		// If no element could be focused, focus the window
-		if (!FocusNextTabElement(this, true))
-		{
-			Focus();
-		}
+		// Focus the window when shown
+		Focus();
 	}
 
 	DispatchEvent(EventId::Show, Dictionary());
@@ -410,7 +407,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 	Element::ProcessDefaultAction(event);
 
 	// Process generic keyboard events for this window in bubble phase
-	if (event.GetPhase() == EventPhase::Bubble && event == EventId::Keydown)
+	if (event == EventId::Keydown)
 	{
 		int key_identifier = event.GetParameter<int>("key_identifier", Input::KI_UNKNOWN);
 
