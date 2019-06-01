@@ -149,6 +149,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 		{
 			case Style::TextAlign::Center:  element_offset = (dimensions.x - box_cursor) * 0.5f; break;
 			case Style::TextAlign::Right:   element_offset = (dimensions.x - box_cursor); break;
+			default: break;
 		}
 
 		if (element_offset != 0)

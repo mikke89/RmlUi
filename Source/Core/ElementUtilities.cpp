@@ -332,7 +332,6 @@ static void SetBox(Element* element)
 	Box box;
 	LayoutEngine::BuildBox(box, containing_block, element);
 
-	const Property *local_height = element->GetLocalProperty(HEIGHT);
 	if (element->GetComputedValues().height.type != Style::Height::Auto)
 		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
 

@@ -45,7 +45,7 @@ Event::Event() : id(EventId::Invalid)
 }
 
 Event::Event(Element* _target_element, EventId id, const String& type, const Dictionary& _parameters, bool interruptible)
-	: id(id), type(type), interruptible(interruptible), parameters(_parameters), target_element(_target_element)
+	: parameters(_parameters), target_element(_target_element), type(type), id(id), interruptible(interruptible)
 {
 	phase = EventPhase::None;
 	interrupted = false;

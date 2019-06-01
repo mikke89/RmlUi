@@ -468,6 +468,8 @@ float ElementStyle::ResolveNumberLengthPercentage(const Property * property, Rel
 	case Property::PERCENT:
 		scale_value = property->value.Get< float >() * 0.01f;
 		break;
+	default:
+		break;
 	}
 
 	return base_value * scale_value;

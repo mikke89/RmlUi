@@ -234,7 +234,6 @@ void ElementInfo::UpdateSourceElement()
 	Core::Element* attributes_content = GetElementById("attributes-content");
 	if (attributes_content)
 	{
-		int index = 0;
 		Core::String attributes;
 
 		if (source_element != NULL)

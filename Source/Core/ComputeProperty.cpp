@@ -140,6 +140,8 @@ float ComputeAbsoluteLength(const Property& property, float dp_ratio)
 				return inch * (1.0f / 72.0f);
 			case Property::PC: // pica
 				return inch * (1.0f / 6.0f);
+			default:
+				break;
 			}
 		}
 	}

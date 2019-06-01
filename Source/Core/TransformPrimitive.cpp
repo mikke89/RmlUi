@@ -114,9 +114,7 @@ float NumericValue::ResolveDepth(Element& e) const noexcept
 
 float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept
 {
-	switch (base_unit)
-	{
-	case Property::RAD:
+	if(base_unit == Property::RAD)
 	{
 		switch (unit)
 		{
@@ -127,9 +125,9 @@ float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept
 			return number;
 		case Property::PERCENT:
 			return number * 0.01f * 2.0f * Math::ROCKET_PI;
+		default:
 			break;
 		}
-	}
 	}
 	return number;
 }
@@ -587,7 +585,6 @@ struct GetGenericTypeVisitor
 
 	GenericType run(const PrimitiveVariant& primitive)
 	{
-		PrimitiveVariant result = primitive;
 		switch (primitive.type)
 		{
 		case PrimitiveVariant::TRANSLATEX:  return this->operator()(primitive.translate_x); break;
