@@ -54,6 +54,7 @@ ElementFormControlInput::~ElementFormControlInput()
 // Returns a string representation of the current value of the form control.
 Rocket::Core::String ElementFormControlInput::GetValue() const
 {
+	ROCKET_ASSERT(type);
 	return type->GetValue();
 }
 
@@ -66,23 +67,27 @@ void ElementFormControlInput::SetValue(const Rocket::Core::String& value)
 // Returns if this value should be submitted with the form.
 bool ElementFormControlInput::IsSubmitted()
 {
+	ROCKET_ASSERT(type);
 	return type->IsSubmitted();
 }
 
 // Updates the element's underlying type.
 void ElementFormControlInput::OnUpdate()
 {
+	ROCKET_ASSERT(type);
 	type->OnUpdate();
 }
 
 // Renders the element's underlying type.
 void ElementFormControlInput::OnRender()
 {
+	ROCKET_ASSERT(type);
 	type->OnRender();
 }
 
 void ElementFormControlInput::OnResize()
 {
+	ROCKET_ASSERT(type);
 	type->OnResize();
 }
 

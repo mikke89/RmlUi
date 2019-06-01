@@ -36,14 +36,13 @@ namespace Rocket {
 namespace Controls {
 
 /**
-	A button input type handler. The only functionality a button provides over a normal element is
-	the ability to be disabled to prevent 'click' events from being propagated any further than the
-	element's document.
+	A button input type handler. The only functionality a button provides over a normal element is the ability
+	to be disabled. This prevents 'click' events on this element and the ability to receive focus.
 
 	@author Peter Curry
  */
 
-class InputTypeButton : public InputType, public Core::EventListener
+class InputTypeButton : public InputType
 {
 public:
 	InputTypeButton(ElementFormControlInput* element);
@@ -56,20 +55,10 @@ public:
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
 	virtual void ProcessDefaultAction(Core::Event& event) override;
-	/// If button is disabled, cancels the event during the capture phase
-	virtual void ProcessEvent(Core::Event& event) override;
 
 	/// Sizes the dimensions to the element's inherent size.
-	/// @return True.
+	/// @return False.
 	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions);
-
-	// Called when the element is added into a hierarchy.
-	virtual void OnChildAdd();
-	/// Called when the element is removed from a hierarchy.
-	virtual void OnChildRemove();
-
-private:
-	Core::ElementDocument* document;
 };
 
 }

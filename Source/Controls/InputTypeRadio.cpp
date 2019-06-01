@@ -79,7 +79,7 @@ void InputTypeRadio::OnChildAdd()
 // Checks for necessary functional changes in the control as a result of the event.
 void InputTypeRadio::ProcessDefaultAction(Core::Event& event)
 {
-	if (event == "click" &&
+	if (event == Core::EventId::Click &&
 		!element->IsDisabled())
 		element->SetAttribute("checked", "");
 }

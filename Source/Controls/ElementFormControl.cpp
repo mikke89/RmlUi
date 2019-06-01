@@ -68,10 +68,7 @@ bool ElementFormControl::IsDisabled() const
 void ElementFormControl::SetDisabled(bool disable)
 {
 	if (disable)
-	{
 		SetAttribute("disabled", "");
-		Blur();
-	}
 	else
 		RemoveAttribute("disabled");
 }
@@ -82,7 +79,20 @@ void ElementFormControl::OnAttributeChange(const Core::AttributeNameList& change
 	Core::Element::OnAttributeChange(changed_attributes);
 
 	if (changed_attributes.find("disabled") != changed_attributes.end())
-		SetPseudoClass("disabled", IsDisabled());
+	{
+		bool is_disabled = IsDisabled();
+		SetPseudoClass("disabled", is_disabled);
+
+		// Disable focus when element is disabled. This will also prevent click
+		// events (when originating from user inputs, see Context) to reach the element.
+		if (is_disabled)
+		{
+			SetProperty("focus", Core::Property(Core::Style::Focus::None));
+			Blur();
+		}
+		else
+			RemoveProperty("focus");
+	}
 }
 
 }

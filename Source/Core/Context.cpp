@@ -591,7 +591,7 @@ static Element* FindFocusElement(Element* element)
 	if (!owner_document || owner_document->GetComputedValues().focus == Style::Focus::None)
 		return NULL;
 	
-	while (element && element->GetProperty< int >(FOCUS) == FOCUS_NONE)
+	while (element && element->GetComputedValues().focus == Style::Focus::None)
 	{
 		element = element->GetParentNode();
 	}
@@ -984,18 +984,6 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 			new_drag_hover_chain.insert(element);
 			element = element->GetParentNode();
 		}
-
-/*		if (mouse_moved && !drag_started)
-		{
-			drag->DispatchEvent(DRAGSTART, drag_parameters);
-			drag_started = true;
-
-			if (drag->GetProperty< int >(DRAG) == DRAG_CLONE)
-			{
-				// Clone the element and attach it to the mouse cursor.
-				CreateDragClone(*drag);
-			}
-		}*/
 
 		if (drag_started &&
 			drag_verbose)

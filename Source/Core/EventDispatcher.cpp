@@ -119,6 +119,10 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 	if (!event)
 		return false;
 
+	//// Click events may be disabled on the element.
+	//if (id == EventId::Click && target_element->IsDisabled())
+	//	return false;
+
 	// Build the element traversal from the tree
 	typedef std::vector<Element*> Elements;
 	Elements elements;

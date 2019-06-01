@@ -89,6 +89,13 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 			else
 				spatialisation_option->RemoveAttribute("checked");
 		}
+
+		// Disable the accept button when default values are given
+		Rocket::Controls::ElementFormControlInput* accept = dynamic_cast<Rocket::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
+		if (accept != NULL)
+		{
+			accept->SetDisabled(true);
+		}
 	}
 
 	// Sent from the 'onsubmit' action of the options menu; we read the values sent from the form and make the
@@ -137,6 +144,19 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 				bad_warning->SetProperty("display", Property(Style::Display::None));
 			else
 				bad_warning->SetProperty("display", Property(Style::Display::Block));
+		}
+	}
+	else if (value == "enable_accept")
+	{
+		Rocket::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
+		if (options_body == NULL)
+			return;
+
+		// Enable the accept button when values are changed
+		Rocket::Controls::ElementFormControlInput* accept = dynamic_cast<Rocket::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
+		if (accept != NULL)
+		{
+			accept->SetDisabled(false);
 		}
 	}
 }

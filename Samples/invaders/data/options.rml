@@ -6,7 +6,7 @@
 			body
 			{
 				width: 350px;
-				height: 350px;
+				height: 330px;
 				
 				margin: auto;
 			}
@@ -27,7 +27,7 @@
 		</style>
 	</head>
 	<body template="window" onload="restore">
-		<form onsubmit="store; goto main_menu">
+		<form onsubmit="store; goto main_menu" onchange="enable_accept">
 			<div>
 				<p>
 					Graphics:<br />
@@ -42,7 +42,7 @@
 					<input id="3d" type="checkbox" name="3d" value="true" /> 3D Spatialisation
 				</p>
 			</div>
-			<input type="submit" value="accept">Accept</input>
+			<input type="submit" id="accept" value="accept" disabled>Accept</input>
 			<input type="submit" value="cancel">Cancel</input>
 		</form>
 	</body>

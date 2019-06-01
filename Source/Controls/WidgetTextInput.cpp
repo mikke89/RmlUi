@@ -370,8 +370,6 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			return;
 
 		default:
-		{
-		}
 		break;
 		}
 
@@ -428,7 +426,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			UpdateCursorPosition();
 			ideal_cursor_position = cursor_position.x;
 
-			UpdateSelection(event == "drag" || event.GetParameter< int >("shift_key", 0) > 0);
+			UpdateSelection(event == Core::EventId::Drag || event.GetParameter< int >("shift_key", 0) > 0);
 
 			ShowCursor(true);
 		}

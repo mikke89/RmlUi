@@ -54,7 +54,7 @@ public:
 	virtual void ProcessDefaultAction(Core::Event& event) override;
 
 	/// Sizes the dimensions to the element's inherent size.
-	/// @return True.
+	/// @return False.
 	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions);
 };
 
