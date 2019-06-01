@@ -256,7 +256,7 @@ void Plugin::OnElementDestroy(Core::Element* element)
 // Event handler for events from the debugger elements.
 void Plugin::ProcessEvent(Core::Event& event)
 {
-	if (event == "click")
+	if (event == Core::EventId::Click)
 	{
 		if (event.GetTargetElement()->GetId() == "event-log-button")
 		{

@@ -83,7 +83,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			initialised = true;
 		}
 
-		if (event == DRAGSTART)
+		if (event == EventId::Dragstart)
 		{
 			// Store the drag starting position
 			drag_start.x = event.GetParameter< int >("mouse_x", 0);
@@ -98,7 +98,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			if (size_target)
 				size_original_size = size_target->GetBox().GetSize(Box::CONTENT);
 		}
-		else if (event == DRAG)
+		else if (event == EventId::Drag)
 		{
 			// Work out the delta
 			int x = event.GetParameter< int >("mouse_x", 0) - drag_start.x;

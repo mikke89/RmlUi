@@ -387,7 +387,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 {
 	if (event.GetTargetElement() == bar)
 	{
-		if (event == DRAG)
+		if (event == EventId::Drag)
 		{
 			if (orientation == HORIZONTAL)
 			{
@@ -414,7 +414,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 				}
 			}
 		}
-		else if (event == DRAGSTART)
+		else if (event == EventId::Dragstart)
 		{
 			if (orientation == HORIZONTAL)
 				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Math::RealToInteger(bar->GetAbsoluteOffset().x);
@@ -424,7 +424,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 	}
 	else if (event.GetTargetElement() == track)
 	{
-		if (event == CLICK)
+		if (event == EventId::Click)
 		{
 			if (orientation == HORIZONTAL)
 			{
@@ -443,7 +443,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 		}
 	}
 
-	if (event == MOUSEDOWN)
+	if (event == EventId::Mousedown)
 	{
 		if (event.GetTargetElement() == arrows[0])
 		{
@@ -458,8 +458,8 @@ void WidgetSlider::ProcessEvent(Event& event)
 			SetBarPosition(OnLineIncrement());
 		}
 	}
-	else if (event == MOUSEUP ||
-			 event == MOUSEOUT)
+	else if (event == EventId::Mouseup ||
+			 event == EventId::Mouseout)
 	{
 		if (event.GetTargetElement() == arrows[0])
 			arrow_timers[0] = -1;

@@ -296,7 +296,9 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 		return;
 
 	// Process the button onclick
-	if (event == "click")
+	switch (event.GetId())
+	{
+	case Core::EventId::Click:
 	{
 
 		if (event.GetCurrentElement()->GetParentNode() == selection_element)
@@ -335,43 +337,47 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 				ShowSelectBox(true);
 			else
 				ShowSelectBox(false);
-		}		
+		}
 	}
-	else if (event == "blur" && event.GetTargetElement() == parent_element)
+	break;
+	case Core::EventId::Focus:
 	{
-		ShowSelectBox(false);
+		if (event.GetTargetElement() == parent_element)
+		{
+			value_element->SetPseudoClass("focus", true);
+			button_element->SetPseudoClass("focus", true);
+		}
 	}
-	else if (event == "keydown")
+	case Core::EventId::Blur:
+	{
+		if (event.GetTargetElement() == parent_element)
+		{
+			ShowSelectBox(false);
+			value_element->SetPseudoClass("focus", false);
+			button_element->SetPseudoClass("focus", false);
+		}
+	}
+	break;
+	case Core::EventId::Keydown:
 	{
 		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
 		switch (key_identifier)
 		{
-			case Core::Input::KI_UP:
-				SetSelection((selected_option - 1 + (int)options.size()) % (int)options.size());
-				break;
-			case Core::Input::KI_DOWN:		
-				SetSelection((selected_option + 1) % (int)options.size());
-				break;
-			default:
-				break;
+		case Core::Input::KI_UP:
+			SetSelection((selected_option - 1 + (int)options.size()) % (int)options.size());
+			break;
+		case Core::Input::KI_DOWN:
+			SetSelection((selected_option + 1) % (int)options.size());
+			break;
+		default:
+			break;
 		}
 	}
-
-	if (event.GetTargetElement() == parent_element)
-	{
-		if (event == "focus")
-		{
-			value_element->SetPseudoClass("focus", true);
-			button_element->SetPseudoClass("focus", true);
-		}
-		else if (event == "blur")
-		{
-			value_element->SetPseudoClass("focus", false);
-			button_element->SetPseudoClass("focus", false);
-		}
+	break;
+	default:
+		break;
 	}
-
 }
 
 // Shows or hides the selection box.

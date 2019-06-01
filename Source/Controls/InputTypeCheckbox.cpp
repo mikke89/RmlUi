@@ -65,7 +65,7 @@ bool InputTypeCheckbox::OnAttributeChange(const Core::AttributeNameList& changed
 // Checks for necessary functional changes in the control as a result of the event.
 void InputTypeCheckbox::ProcessDefaultAction(Core::Event& event)
 {
-	if (event == "click" &&
+	if (event == Core::EventId::Click &&
 		!element->IsDisabled())
 	{
 		if (element->HasAttribute("checked"))

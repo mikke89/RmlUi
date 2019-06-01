@@ -60,7 +60,7 @@ void InputTypeButton::ProcessDefaultAction(Core::Event& event)
 	// Stop a click event from proceeding any further if this button is disabled.
 	if (event.GetTargetElement() == element &&
 		element->IsDisabled() &&
-		(event == "click" || event == "dblclick"))
+		(event == Core::EventId::Click || event == Core::EventId::Dblclick))
 	{
 		event.StopPropagation();
 	}

@@ -387,9 +387,13 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 	if (parent->IsDisabled())
 		return;
 
-	if (event == "mousedown")
+	using Rocket::Core::EventId;
+
+	switch (event.GetId())
 	{
-		if(event.GetTargetElement() == parent || event.GetTargetElement() == track) 
+	case EventId::Mousedown:
+	{
+		if (event.GetTargetElement() == parent || event.GetTargetElement() == track)
 		{
 			if (orientation == HORIZONTAL)
 			{
@@ -406,23 +410,47 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
 			}
 		}
+		else if (event.GetTargetElement() == arrows[0])
+		{
+			arrow_timers[0] = DEFAULT_REPEAT_DELAY;
+			last_update_time = Core::Clock::GetElapsedTime();
+			SetBarPosition(OnLineDecrement());
+		}
+		else if (event.GetTargetElement() == arrows[1])
+		{
+			arrow_timers[1] = DEFAULT_REPEAT_DELAY;
+			last_update_time = Core::Clock::GetElapsedTime();
+			SetBarPosition(OnLineIncrement());
+		}
 	}
+	break;
 
-	if (event.GetTargetElement() == parent)
+	case EventId::Mouseup:
+	case EventId::Mouseout:
 	{
-		if (event == "dragstart")
+		if (event.GetTargetElement() == arrows[0])
+			arrow_timers[0] = -1;
+		else if (event.GetTargetElement() == arrows[1])
+			arrow_timers[1] = -1;
+	}
+	break;
+
+	case EventId::Dragstart:
+	{
+		if (event.GetTargetElement() == parent)
 		{
 			bar->SetPseudoClass("active", true);
-		}
-		else if (event == "dragend")
-		{
-			bar->SetPseudoClass("active", false);
+
+			if (orientation == HORIZONTAL)
+				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().x);
+			else
+				bar_drag_anchor = event.GetParameter< int >("mouse_y", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().y);
 		}
 	}
-
-	if (event.GetTargetElement() == parent)
+	break;
+	case EventId::Drag:
 	{
-		if (event == "drag")
+		if (event.GetTargetElement() == parent)
 		{
 			if (orientation == HORIZONTAL)
 			{
@@ -449,72 +477,57 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 				}
 			}
 		}
-		else if (event == "dragstart")
+	}
+	break;
+	case EventId::Dragend:
+	{
+		if (event.GetTargetElement() == parent)
 		{
-			if (orientation == HORIZONTAL)
-				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().x);
-			else
-				bar_drag_anchor = event.GetParameter< int >("mouse_y", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().y);
+			bar->SetPseudoClass("active", false);
 		}
 	}
+	break;
 
-	if (event == "mousedown")
-	{
-		if (event.GetTargetElement() == arrows[0])
-		{
-			arrow_timers[0] = DEFAULT_REPEAT_DELAY;
-			last_update_time = Core::Clock::GetElapsedTime();
-			SetBarPosition(OnLineDecrement());
-		}
-		else if (event.GetTargetElement() == arrows[1])
-		{
-			arrow_timers[1] = DEFAULT_REPEAT_DELAY;
-			last_update_time = Core::Clock::GetElapsedTime();
-			SetBarPosition(OnLineIncrement());
-		}
-	}
-	else if (event == "mouseup" ||
-			 event == "mouseout")
-	{
-		if (event.GetTargetElement() == arrows[0])
-			arrow_timers[0] = -1;
-		else if (event.GetTargetElement() == arrows[1])
-			arrow_timers[1] = -1;
-	}
-	else if (event == "keydown")
+
+	case EventId::Keydown:
 	{
 		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
 		switch (key_identifier)
 		{
-			case Core::Input::KI_LEFT:
-				if (orientation == HORIZONTAL) SetBarPosition(OnLineDecrement());
-				break;
-			case Core::Input::KI_UP:
-				if (orientation == VERTICAL) SetBarPosition(OnLineDecrement());
-				break;
-			case Core::Input::KI_RIGHT:
-				if (orientation == HORIZONTAL) SetBarPosition(OnLineIncrement());
-				break;
-			case Core::Input::KI_DOWN:		
-				if (orientation == VERTICAL) SetBarPosition(OnLineIncrement());
-				break;
-			default:
-				break;
+		case Core::Input::KI_LEFT:
+			if (orientation == HORIZONTAL) SetBarPosition(OnLineDecrement());
+			break;
+		case Core::Input::KI_UP:
+			if (orientation == VERTICAL) SetBarPosition(OnLineDecrement());
+			break;
+		case Core::Input::KI_RIGHT:
+			if (orientation == HORIZONTAL) SetBarPosition(OnLineIncrement());
+			break;
+		case Core::Input::KI_DOWN:
+			if (orientation == VERTICAL) SetBarPosition(OnLineIncrement());
+			break;
+		default:
+			break;
 		}
 	}
+	break;
 
-
-	if (event.GetTargetElement() == parent)
+	case EventId::Focus:
 	{
-		if (event == "focus")
-		{
+		if (event.GetTargetElement() == parent)
 			bar->SetPseudoClass("focus", true);
-		}
-		else if (event == "blur")
-		{
+	}
+	break;
+	case EventId::Blur:
+	{
+		if (event.GetTargetElement() == parent)
 			bar->SetPseudoClass("focus", false);
-		}
+	}
+	break;
+
+	default:
+		break;
 	}
 }
 

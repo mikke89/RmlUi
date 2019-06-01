@@ -266,115 +266,120 @@ void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 void WidgetTextInput::ProcessEvent(Core::Event& event)
 {
 	if (parent->IsDisabled())
-	{
 		return;
-	}
-	else if (event == "keydown")
+
+	using Rocket::Core::EventId;
+
+	switch (event.GetId())
+	{
+	case EventId::Keydown:
 	{
 		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 		bool numlock = event.GetParameter< int >("num_lock_key", 0) > 0;
 		bool shift = event.GetParameter< int >("shift_key", 0) > 0;
-        bool ctrl = event.GetParameter< int >("ctrl_key", 0) > 0;
+		bool ctrl = event.GetParameter< int >("ctrl_key", 0) > 0;
 
 		switch (key_identifier)
 		{
-			case Core::Input::KI_NUMPAD4:	if (numlock) break;
-			case Core::Input::KI_LEFT:		MoveCursorHorizontal(-1, shift); break;
+		case Core::Input::KI_NUMPAD4:	if (numlock) break;
+		case Core::Input::KI_LEFT:		MoveCursorHorizontal(-1, shift); break;
 
-			case Core::Input::KI_NUMPAD6:	if (numlock) break;
-			case Core::Input::KI_RIGHT:		MoveCursorHorizontal(1, shift); break;
+		case Core::Input::KI_NUMPAD6:	if (numlock) break;
+		case Core::Input::KI_RIGHT:		MoveCursorHorizontal(1, shift); break;
 
-			case Core::Input::KI_NUMPAD8:	if (numlock) break;
-			case Core::Input::KI_UP:		MoveCursorVertical(-1, shift); break;
+		case Core::Input::KI_NUMPAD8:	if (numlock) break;
+		case Core::Input::KI_UP:		MoveCursorVertical(-1, shift); break;
 
-			case Core::Input::KI_NUMPAD2:	if (numlock) break;
-			case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
+		case Core::Input::KI_NUMPAD2:	if (numlock) break;
+		case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
 
-			case Core::Input::KI_NUMPAD7:	if (numlock) break;
-			case Core::Input::KI_HOME:		MoveCursorHorizontal(-cursor_character_index, shift); break;
+		case Core::Input::KI_NUMPAD7:	if (numlock) break;
+		case Core::Input::KI_HOME:		MoveCursorHorizontal(-cursor_character_index, shift); break;
 
-			case Core::Input::KI_NUMPAD1:	if (numlock) break;
-			case Core::Input::KI_END:		MoveCursorHorizontal(lines[cursor_line_index].content_length - cursor_character_index, shift); break;
+		case Core::Input::KI_NUMPAD1:	if (numlock) break;
+		case Core::Input::KI_END:		MoveCursorHorizontal(lines[cursor_line_index].content_length - cursor_character_index, shift); break;
 
-			case Core::Input::KI_BACK:
+		case Core::Input::KI_BACK:
+		{
+			if (DeleteCharacter(true))
 			{
-				if (DeleteCharacter(true))
+				FormatElement();
+				UpdateRelativeCursor();
+			}
+
+			ShowCursor(true);
+		}
+		break;
+
+		case Core::Input::KI_DECIMAL:	if (numlock) break;
+		case Core::Input::KI_DELETE:
+		{
+			if (DeleteCharacter(false))
+			{
+				FormatElement();
+				UpdateRelativeCursor();
+			}
+
+			ShowCursor(true);
+		}
+		break;
+
+		case Core::Input::KI_NUMPADENTER:
+		case Core::Input::KI_RETURN:
+		{
+			LineBreak();
+		}
+		break;
+
+		case Core::Input::KI_C:
+		{
+			if (ctrl)
+				CopySelection();
+		}
+		break;
+
+		case Core::Input::KI_X:
+		{
+			if (ctrl)
+			{
+				CopySelection();
+				DeleteSelection();
+			}
+		}
+		break;
+
+		case Core::Input::KI_V:
+		{
+			if (ctrl)
+			{
+				const Core::WString clipboard_content = Clipboard::Get();
+				for (size_t i = 0; i < clipboard_content.size(); ++i)
 				{
-					FormatElement();
-					UpdateRelativeCursor();
+					if (max_length > 0 &&
+						(int)Core::ToWideString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).size() > max_length)
+						break;
+
+					AddCharacter(clipboard_content[i]);
 				}
-
-				ShowCursor(true);
 			}
-			break;
+		}
+		break;
 
-			case Core::Input::KI_DECIMAL:	if (numlock) break;
-			case Core::Input::KI_DELETE:
-			{
-				if (DeleteCharacter(false))
-				{
-					FormatElement();
-					UpdateRelativeCursor();
-				}
+		// Ignore tabs so input fields can be navigated through with keys.
+		case Core::Input::KI_TAB:
+			return;
 
-				ShowCursor(true);
-			}
-			break;
-
-			case Core::Input::KI_NUMPADENTER:
-			case Core::Input::KI_RETURN:
-			{
-				LineBreak();
-			}
-			break;
-
-			case Core::Input::KI_C:
-			{
-                if (ctrl)
-                    CopySelection();
-			}
-			break;
-
-			case Core::Input::KI_X:
-			{
-                if (ctrl)
-                {
-                    CopySelection();
-                    DeleteSelection();
-                }
-			}
-			break;
-
-			case Core::Input::KI_V:
-			{
-                if (ctrl)
-                {
-    				const Core::WString clipboard_content = Clipboard::Get();
-    				for (size_t i = 0; i < clipboard_content.size(); ++i)
-    				{
-    					if (max_length > 0 &&
-    						(int) Core::ToWideString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).size() > max_length)
-    						break;
-
-    					AddCharacter(clipboard_content[i]);
-    				}
-                }
-			}
-			break;
-
-			// Ignore tabs so input fields can be navigated through with keys.
-			case Core::Input::KI_TAB:
-				return;
-
-			default:
-			{
-			}
-			break;
+		default:
+		{
+		}
+		break;
 		}
 
 		event.StopPropagation();
 	}
-	else if (event == "textinput")
+	break;
+
+	case EventId::Textinput:
 	{
 		// Only process the text if no modifier keys are pressed.
 		if (event.GetParameter< int >("ctrl_key", 0) == 0 &&
@@ -382,43 +387,58 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
 			Rocket::Core::word character = event.GetParameter< Rocket::Core::word >("data", 0);
-			if (max_length < 0 || (int) Core::String(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).size() < max_length)
+			if (max_length < 0 || (int)Core::String(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).size() < max_length)
 				AddCharacter(character);
 		}
 
 		ShowCursor(true);
 		event.StopPropagation();
 	}
-	else if (event == "focus" &&
-			 event.GetTargetElement() == parent)
+	break;
+	case EventId::Focus:
 	{
-		UpdateSelection(false);
-		ShowCursor(true, false);
+		if (event.GetTargetElement() == parent)
+		{
+			UpdateSelection(false);
+			ShowCursor(true, false);
+		}
 	}
-	else if (event == "blur" &&
-		     event.GetTargetElement() == parent)
+	break;
+	case EventId::Blur:
 	{
-		ClearSelection();
-		ShowCursor(false, false);
-	}	
-	else if ((event == "mousedown" ||
-			  event == "drag") &&
-			 event.GetTargetElement() == parent)
-	{
-		Core::Vector2f mouse_position = Core::Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0));
-		mouse_position -= text_element->GetAbsoluteOffset();
-
-		cursor_line_index = CalculateLineIndex(mouse_position.y);
-		cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
-
-		UpdateAbsoluteCursor();
-		UpdateCursorPosition();
-		ideal_cursor_position = cursor_position.x;
-
-		UpdateSelection(event == "drag" || event.GetParameter< int >("shift_key", 0) > 0);
-
-		ShowCursor(true);
+		if (event.GetTargetElement() == parent)
+		{
+			ClearSelection();
+			ShowCursor(false, false);
+		}
 	}
+	break;
+	case EventId::Mousedown:
+	case EventId::Drag:
+	{
+		if (event.GetTargetElement() == parent)
+		{
+			Core::Vector2f mouse_position = Core::Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0));
+			mouse_position -= text_element->GetAbsoluteOffset();
+
+			cursor_line_index = CalculateLineIndex(mouse_position.y);
+			cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
+
+			UpdateAbsoluteCursor();
+			UpdateCursorPosition();
+			ideal_cursor_position = cursor_position.x;
+
+			UpdateSelection(event == "drag" || event.GetParameter< int >("shift_key", 0) > 0);
+
+			ShowCursor(true);
+		}
+	}
+	break;
+
+	default:
+		break;
+	}
+
 }
 
 // Adds a new character to the string at the cursor position.

@@ -44,7 +44,7 @@ void ElementDataGridExpandButton::ProcessDefaultAction(Core::Event& event)
 {
 	Core::Element::ProcessDefaultAction(event);
 
-	if (event == "click" && event.GetCurrentElement() == this)
+	if (event == Core::EventId::Click && event.GetCurrentElement() == this)
 	{
 		// Look for the first data grid row above us, and toggle their on/off
 		// state.

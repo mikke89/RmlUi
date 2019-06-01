@@ -144,7 +144,7 @@ int ElementTabSet::GetActiveTab() const
 // Process the incoming event.
 void ElementTabSet::ProcessEvent(Core::Event& event)
 {
-	if (event.GetCurrentElement() == this && event == "click")
+	if (event.GetCurrentElement() == this && event == Core::EventId::Click)
 	{
 		// Find the tab that this click occured on
 		Core::Element* tabs = GetChildByTag("tabs");

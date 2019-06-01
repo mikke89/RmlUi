@@ -206,7 +206,9 @@ public:
 		if(value == "exit")
 			Shell::RequestExit();
 
-		if (event == "keydown")
+		switch (event.GetId())
+		{
+		case EventId::Keydown:
 		{
 			Rocket::Core::Input::KeyIdentifier key_identifier = (Rocket::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
@@ -257,7 +259,9 @@ public:
 				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
 			}
 		}
-		if (event == "click")
+		break;
+
+		case EventId::Click:
 		{
 			auto el = event.GetTargetElement();
 			if (el->GetId() == "transition_class")
@@ -265,7 +269,9 @@ public:
 				el->SetClass("move_me", !el->IsClassSet("move_me"));
 			}
 		}
-		if (event == "animationend")
+		break;
+
+		case EventId::Animationend:
 		{
 			auto el = event.GetTargetElement();
 			if (el->GetId() == "animation_event")
@@ -273,6 +279,11 @@ public:
 				el->Animate("top", Property(Math::RandomReal(200.f), Property::PX), 1.2f, Tween{ Tween::Cubic, Tween::InOut });
 				el->Animate("left", Property(Math::RandomReal(100.f), Property::PERCENT), 0.8f, Tween{ Tween::Cubic, Tween::InOut });
 			}
+		}
+		break;
+
+		default:
+			break;
 		}
 	}
 

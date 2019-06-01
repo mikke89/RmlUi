@@ -49,7 +49,7 @@ bool InputTypeSubmit::IsSubmitted()
 // Checks for necessary functional changes in the control as a result of the event.
 void InputTypeSubmit::ProcessDefaultAction(Core::Event& event)
 {
-	if (event == "click" &&
+	if (event == Core::EventId::Click &&
 		!element->IsDisabled())
 	{
 		Core::Element* parent = element->GetParentNode();

@@ -230,7 +230,7 @@ void ElementScroll::FormatScrollbars()
 // Handles the 'onchange' events for the scrollbars.
 void ElementScroll::ProcessEvent(Event& event)
 {
-	if (event == "scrollchange")
+	if (event == EventId::Scrollchange)
 	{
 		float value = event.GetParameter< float >("value", 0);
 

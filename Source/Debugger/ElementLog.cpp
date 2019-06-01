@@ -228,7 +228,7 @@ void ElementLog::ProcessEvent(Core::Event& event)
 	// Only process events if we're visible
 	if (beacon != NULL)
 	{
-		if (event == "click")
+		if (event == Core::EventId::Click)
 		{
 			if (event.GetTargetElement() == beacon->GetFirstChild())
 			{
@@ -261,7 +261,7 @@ void ElementLog::ProcessEvent(Core::Event& event)
 		}
 	}
 
-	if (event == "resize" && auto_scroll)
+	if (event == Core::EventId::Resize && auto_scroll)
 	{
 		if (message_content != NULL &&
 			message_content->HasChildNodes())

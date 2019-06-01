@@ -122,7 +122,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 	// Only process events if we're visible
 	if (IsVisible())
 	{
-		if (event == "click")
+		if (event == Core::EventId::Click)
 		{
 			Core::Element* target_element = event.GetTargetElement();
 
@@ -177,7 +177,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				}
 			}
 		}
-		else if (event == "mouseover")
+		else if (event == Core::EventId::Mouseover)
 		{
 			Core::Element* target_element = event.GetTargetElement();
 

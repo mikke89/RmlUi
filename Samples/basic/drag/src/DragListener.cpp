@@ -38,7 +38,7 @@ void DragListener::RegisterDraggableContainer(Rocket::Core::Element* element)
 
 void DragListener::ProcessEvent(Rocket::Core::Event& event)
 {
-	if (event == "dragdrop")
+	if (event == Rocket::Core::EventId::Dragdrop)
 	{
 		Rocket::Core::Element* dest_container = event.GetCurrentElement();
 		Rocket::Core::Element* dest_element = event.GetTargetElement();

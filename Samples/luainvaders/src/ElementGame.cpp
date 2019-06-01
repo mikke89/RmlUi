@@ -45,10 +45,10 @@ ElementGame::~ElementGame()
 // Intercepts and handles key events.
 void ElementGame::ProcessEvent(Rocket::Core::Event& event)
 {
-	if (event == "keydown" ||
-		event == "keyup")
+	if (event == Rocket::Core::EventId::Keydown ||
+		event == Rocket::Core::EventId::Keyup)
 	{
-		bool key_down = event == "keydown";
+		bool key_down = (event == Rocket::Core::EventId::Keydown);
 		Rocket::Core::Input::KeyIdentifier key_identifier = (Rocket::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);		
 
 		// Process left and right keys
@@ -70,7 +70,7 @@ void ElementGame::ProcessEvent(Rocket::Core::Event& event)
 		}
 	}
 
-	if (event == "load")
+	if (event == Rocket::Core::EventId::Load)
 	{
 		game->Initialise();
 	}
