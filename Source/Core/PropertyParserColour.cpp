@@ -114,12 +114,15 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 	else if (value.substr(0, 3) == "rgb")
 	{
 		StringList values;
+		values.reserve(4);
 
 		size_t find = value.find('(');
 		if (find == String::npos)
 			return false;
 
-		StringUtilities::ExpandString(values, value.substr(find, value.rfind(')') - find), ',');
+		size_t begin_values = find + 1;
+
+		StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), ',');
 
 		// Check if we're parsing an 'rgba' or 'rgb' colour declaration.
 		if (value.size() > 3 && value[3] == 'a')
