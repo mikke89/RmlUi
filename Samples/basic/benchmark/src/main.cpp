@@ -339,9 +339,9 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Shell::LoadFonts("assets/");
 
 	window = new DemoWindow("Benchmark sample", Rocket::Core::Vector2f(81, 100), context);
-	window->GetDocument()->AddEventListener("keydown", new Event("hello"));
-	window->GetDocument()->AddEventListener("keyup", new Event("hello"));
-	window->GetDocument()->AddEventListener("animationend", new Event("hello"));
+	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Keydown, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Keyup, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Animationend, new Event("hello"));
 
 
 	Shell::EventLoop(GameLoop);

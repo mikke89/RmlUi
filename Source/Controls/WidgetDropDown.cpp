@@ -58,10 +58,10 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	selection_element->SetProperty("z-index", Core::Property(1.0f, Core::Property::NUMBER));
 	selection_element->SetProperty("clip", Core::Property(Core::Style::Clip::None));
 
-	parent_element->AddEventListener("click", this, true);
-	parent_element->AddEventListener("blur", this);
-	parent_element->AddEventListener("focus", this);
-	parent_element->AddEventListener("keydown", this, true);
+	parent_element->AddEventListener(Core::EventId::Click, this, true);
+	parent_element->AddEventListener(Core::EventId::Blur, this);
+	parent_element->AddEventListener(Core::EventId::Focus, this);
+	parent_element->AddEventListener(Core::EventId::Keydown, this, true);
 
 	// Add the elements to our parent element.
 	parent_element->AppendChild(button_element, false);
@@ -75,12 +75,12 @@ WidgetDropDown::~WidgetDropDown()
 	//   Not always a problem, but sometimes it invalidates the layout lock in Element::RemoveChild, which results in a permanently corrupted document.
 	//   However, we do need to remove events of children.
 	for(auto& option : options)
-		option.GetElement()->RemoveEventListener("click", this);
+		option.GetElement()->RemoveEventListener(Core::EventId::Click, this);
 
-	parent_element->RemoveEventListener("click", this, true);
-	parent_element->RemoveEventListener("blur", this);
-	parent_element->RemoveEventListener("focus", this);
-	parent_element->RemoveEventListener("keydown", this, true);
+	parent_element->RemoveEventListener(Core::EventId::Click, this, true);
+	parent_element->RemoveEventListener(Core::EventId::Blur, this);
+	parent_element->RemoveEventListener(Core::EventId::Focus, this);
+	parent_element->RemoveEventListener(Core::EventId::Keydown, this, true);
 
 	button_element->RemoveReference();
 	selection_element->RemoveReference();
@@ -225,7 +225,7 @@ int WidgetDropDown::AddOption(const Rocket::Core::String& rml, const Rocket::Cor
 	element->SetProperty("display", Core::Property(Core::Style::Display::Block));
 	element->SetProperty("clip", Core::Property(Core::Style::Clip::Auto));
 	element->SetInnerRML(rml);
-	element->AddEventListener("click", this);
+	element->AddEventListener(Core::EventId::Click, this);
 
 	int option_index;
 	if (before < 0 ||
@@ -260,7 +260,7 @@ void WidgetDropDown::RemoveOption(int index)
 		return;
 
 	// Remove the listener and delete the option element.
-	options[index].GetElement()->RemoveEventListener("click", this);
+	options[index].GetElement()->RemoveEventListener(Core::EventId::Click, this);
 	selection_element->RemoveChild(options[index].GetElement());
 	options.erase(options.begin() + index);
 

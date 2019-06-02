@@ -36,10 +36,15 @@ namespace Core {
 
 class Element;
 class EventListener;
-
+struct EventListenerEntry {
+	EventListenerEntry(EventId id, EventListener* listener, bool in_capture_phase) : id(id), in_capture_phase(in_capture_phase), listener(listener) {}
+	EventId id;
+	bool in_capture_phase;
+	EventListener* listener;
+};
 
 /**
-	The Event Dispatcher manages a list of event listeners (based on URL) and triggers the events via EventHandlers
+	The Event Dispatcher manages a list of event listeners and triggers the events via EventHandlers
 	whenever requested.
 
 	@author Lloyd Weehuizen
@@ -52,7 +57,7 @@ public:
 	/// @param element Element this dispatcher acts on
 	EventDispatcher(Element* element);
 
-	// Destructor
+	/// Destructor
 	~EventDispatcher();
 
 	/// Attaches a new listener to the specified event name
@@ -85,17 +90,12 @@ public:
 private:
 	Element* element;
 
-	struct Listener
-	{
-		Listener(EventListener* _listener, bool _in_capture_phase) : listener(_listener), in_capture_phase(_in_capture_phase) {}
-		EventListener* listener;
-		bool in_capture_phase;
-	};
-	typedef std::vector< Listener > Listeners;
-	typedef SmallUnorderedMap< EventId, Listeners > Events;
-	Events events;
+	// Listeners are sorted first by (id, phase) and then by the order in which the listener was inserted.
+	// All listeners added are unique.
+	typedef std::vector< EventListenerEntry > Listeners;
+	Listeners listeners;
 
-	void TriggerEvents(Event* event, DefaultActionPhase default_action_phase);
+	void TriggerEvents(Event& event, DefaultActionPhase default_action_phase);
 };
 
 }

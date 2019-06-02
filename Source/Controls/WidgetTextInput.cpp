@@ -47,12 +47,12 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->SetProperty("drag", Core::Property(Core::Style::Drag::Drag));
 	parent->SetClientArea(Rocket::Core::Box::CONTENT);
 
-	parent->AddEventListener("keydown", this, true);
-	parent->AddEventListener("textinput", this, true);
-	parent->AddEventListener("focus", this, true);
-	parent->AddEventListener("blur", this, true);
-	parent->AddEventListener("mousedown", this, true);
-	parent->AddEventListener("drag", this, true);
+	parent->AddEventListener(Core::EventId::Keydown, this, true);
+	parent->AddEventListener(Core::EventId::Textinput, this, true);
+	parent->AddEventListener(Core::EventId::Focus, this, true);
+	parent->AddEventListener(Core::EventId::Blur, this, true);
+	parent->AddEventListener(Core::EventId::Mousedown, this, true);
+	parent->AddEventListener(Core::EventId::Drag, this, true);
 
 	text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rocket::Core::XMLAttributes()));
 	selected_text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rocket::Core::XMLAttributes()));
@@ -97,12 +97,12 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 
 WidgetTextInput::~WidgetTextInput()
 {
-	parent->RemoveEventListener("keydown", this, true);
-	parent->RemoveEventListener("textinput", this, true);
-	parent->RemoveEventListener("focus", this, true);
-	parent->RemoveEventListener("blur", this, true);
-	parent->RemoveEventListener("mousedown", this, true);
-	parent->RemoveEventListener("drag", this, true);
+	parent->RemoveEventListener(Core::EventId::Keydown, this, true);
+	parent->RemoveEventListener(Core::EventId::Textinput, this, true);
+	parent->RemoveEventListener(Core::EventId::Focus, this, true);
+	parent->RemoveEventListener(Core::EventId::Blur, this, true);
+	parent->RemoveEventListener(Core::EventId::Mousedown, this, true);
+	parent->RemoveEventListener(Core::EventId::Drag, this, true);
 
 	// Remove all the children added by the text widget.
 	parent->RemoveChild(text_element);

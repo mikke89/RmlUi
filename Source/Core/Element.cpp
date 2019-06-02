@@ -1301,12 +1301,25 @@ void Element::AddEventListener(const String& event, EventListener* listener, boo
 	event_dispatcher->AttachEvent(id, listener, in_capture_phase);
 }
 
+// Adds an event listener
+void Element::AddEventListener(EventId id, EventListener* listener, bool in_capture_phase)
+{
+	event_dispatcher->AttachEvent(id, listener, in_capture_phase);
+}
+
 // Removes an event listener from this element.
 void Element::RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
 	EventId id = EventSpecificationInterface::GetIdOrInsert(event);
 	event_dispatcher->DetachEvent(id, listener, in_capture_phase);
 }
+
+// Removes an event listener from this element.
+void Element::RemoveEventListener(EventId id, EventListener* listener, bool in_capture_phase)
+{
+	event_dispatcher->DetachEvent(id, listener, in_capture_phase);
+}
+
 
 // Dispatches the specified event
 bool Element::DispatchEvent(const String& type, const Dictionary& parameters)

@@ -63,20 +63,20 @@ WidgetSlider::~WidgetSlider()
 {
 	if (bar != NULL)
 	{
-		bar->RemoveEventListener(DRAG, this);
-		bar->RemoveEventListener(DRAGSTART, this);
+		bar->RemoveEventListener(Core::EventId::Drag, this);
+		bar->RemoveEventListener(Core::EventId::Dragstart, this);
 	}
 
 	if (track != NULL)
-		track->RemoveEventListener(CLICK, this);
+		track->RemoveEventListener(Core::EventId::Click, this);
 
 	for (int i = 0; i < 2; i++)
 	{
 		if (arrows[i] != NULL)
 		{
-			arrows[i]->RemoveEventListener(MOUSEDOWN, this);
-			arrows[i]->RemoveEventListener(MOUSEUP, this);
-			arrows[i]->RemoveEventListener(MOUSEOUT, this);
+			arrows[i]->RemoveEventListener(Core::EventId::Mousedown, this);
+			arrows[i]->RemoveEventListener(Core::EventId::Mouseup, this);
+			arrows[i]->RemoveEventListener(Core::EventId::Mouseout, this);
 		}
 	}
 }
@@ -143,16 +143,16 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	arrows[1]->RemoveReference();
 
 	// Attach the listeners as appropriate.
-	bar->AddEventListener(DRAG, this);
-	bar->AddEventListener(DRAGSTART, this);
+	bar->AddEventListener(EventId::Drag, this);
+	bar->AddEventListener(EventId::Dragstart, this);
 
-	track->AddEventListener(CLICK, this);
+	track->AddEventListener(EventId::Click, this);
 
 	for (int i = 0; i < 2; i++)
 	{
-		arrows[i]->AddEventListener(MOUSEDOWN, this);
-		arrows[i]->AddEventListener(MOUSEUP, this);
-		arrows[i]->AddEventListener(MOUSEOUT, this);
+		arrows[i]->AddEventListener(EventId::Mousedown, this);
+		arrows[i]->AddEventListener(EventId::Mouseup, this);
+		arrows[i]->AddEventListener(EventId::Mouseout, this);
 	}
 
 	return true;

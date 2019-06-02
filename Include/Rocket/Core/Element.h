@@ -479,11 +479,15 @@ public:
 	/// @param[in] listener The listener object to be attached.
 	/// @param[in] in_capture_phase True to attach in the capture phase, false in bubble phase.
 	void AddEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
+	/// Adds an event listener to this element by id.
+	void AddEventListener(EventId id, EventListener* listener, bool in_capture_phase = false);
 	/// Removes an event listener from this element.
 	/// @param[in] event Event to detach from.
 	/// @param[in] listener The listener object to be detached.
 	/// @param[in] in_capture_phase True to detach from the capture phase, false from the bubble phase.
 	void RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
+	/// Removes an event listener from this element by id.
+	void RemoveEventListener(EventId id, EventListener* listener, bool in_capture_phase = false);
 	/// Sends an event to this element.
 	/// @param[in] type Event type in string form.
 	/// @param[in] parameters The event parameters.

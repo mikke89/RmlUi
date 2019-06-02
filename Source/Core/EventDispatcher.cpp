@@ -36,6 +36,19 @@
 namespace Rocket {
 namespace Core {
 
+
+bool operator==(EventListenerEntry a, EventListenerEntry b) { return a.id == b.id && a.in_capture_phase == b.in_capture_phase && a.listener == b.listener; }
+bool operator!=(EventListenerEntry a, EventListenerEntry b) { return !(a == b); }
+
+struct CompareId {
+	bool operator()(EventListenerEntry a, EventListenerEntry b) const { return a.id < b.id; }
+}; 
+struct CompareIdPhase {
+	bool operator()(EventListenerEntry a, EventListenerEntry b) const { return std::tie(a.id, a.in_capture_phase) < std::tie(b.id, b.in_capture_phase); }
+};
+
+
+
 EventDispatcher::EventDispatcher(Element* _element)
 {
 	element = _element;
@@ -44,70 +57,51 @@ EventDispatcher::EventDispatcher(Element* _element)
 EventDispatcher::~EventDispatcher()
 {
 	// Detach from all event dispatchers
-	for (Events::iterator event_itr = events.begin(); event_itr != events.end(); ++event_itr)
-	{
-		for (Listeners::iterator listener_itr = (*event_itr).second.begin(); listener_itr != (*event_itr).second.end(); ++listener_itr)
-		{
-			(*listener_itr).listener->OnDetach(element);
-		}
-	}
+	for (const auto& event : listeners)
+		event.listener->OnDetach(element);
 }
 
 void EventDispatcher::AttachEvent(EventId id, EventListener* listener, bool in_capture_phase)
 {
-	// See if event type exists already
-	Events::iterator event_itr = events.find(id);
+	EventListenerEntry entry(id, listener, in_capture_phase);
 
-	if (event_itr == events.end())
-	{
-		// No, add listener to new event type entry
-		event_itr = events.emplace(id, Listeners{ Listener(listener, in_capture_phase) }).first;
-	}
-	else
-	{
-		// Yes, add listener to the existing list of events for the type
-		(*event_itr).second.emplace_back(listener, in_capture_phase);
-	}
+	// The entries are sorted by (id,phase). Find the bounds of this sort, then find the entry.
+	auto range = std::equal_range(listeners.begin(), listeners.end(), entry, CompareIdPhase());
+	auto it = std::find(range.first, range.second, entry);
 
-	listener->OnAttach(element);
+	if(it == range.second)
+	{
+		// No existing entry found, add it to the end of the (id, phase) range
+		listeners.emplace(it, entry);
+		listener->OnAttach(element);
+	}
 }
+
 
 void EventDispatcher::DetachEvent(EventId id, EventListener* listener, bool in_capture_phase)
 {
-	// Look up the event
-	Events::iterator event_itr = events.find(id);
+	EventListenerEntry entry(id, listener, in_capture_phase);
+	
+	// The entries are sorted by (id,phase). Find the bounds of this sort, then find the entry.
+	// We could also just do a linear search over all the entries, which might be faster for low number of entries.
+	auto range = std::equal_range(listeners.begin(), listeners.end(), entry, CompareIdPhase());
+	auto it = std::find(range.first, range.second, entry);
 
-	// Bail if we can't find the event
-	if (event_itr == events.end())
+	if (it != range.second)
 	{
-		return;
-	}
-
-	// Find the relevant listener and erase it
-	Listeners::iterator listener_itr = (*event_itr).second.begin();
-	while (listener_itr != (*event_itr).second.end())
-	{
-		if ((*listener_itr).listener == listener && (*listener_itr).in_capture_phase == in_capture_phase)
-		{
-			listener_itr = (*event_itr).second.erase(listener_itr);
-			listener->OnDetach(element);
-		}
-		else
-			++listener_itr;
+		// We found our listener, remove it
+		listeners.erase(it);
+		listener->OnDetach(element);
 	}
 }
 
 // Detaches all events from this dispatcher and all child dispatchers.
 void EventDispatcher::DetachAllEvents()
 {
-	for (Events::iterator event_iterator = events.begin(); event_iterator != events.end(); ++event_iterator)
-	{
-		Listeners& listeners = event_iterator->second;
-		for (size_t i = 0; i < listeners.size(); ++i)
-			listeners[i].listener->OnDetach(element);
-	}
+	for (const auto& event : listeners)
+		event.listener->OnDetach(element);
 
-	events.clear();
+	listeners.clear();
 
 	for (int i = 0; i < element->GetNumChildren(true); ++i)
 		element->GetChild(i)->GetEventDispatcher()->DetachAllEvents();
@@ -137,7 +131,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 	{
 		EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
 		event->SetCurrentElement(elements[i]);
-		dispatcher->TriggerEvents(event, default_action_phase);
+		dispatcher->TriggerEvents(*event, default_action_phase);
 	}
 
 	// Target phase - direct at the target
@@ -145,7 +139,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 	{
 		event->SetPhase(EventPhase::Target);
 		event->SetCurrentElement(target_element);
-		TriggerEvents(event, default_action_phase);
+		TriggerEvents(*event, default_action_phase);
 	}
 
 	// Bubble phase - target to root (normal event bindings)
@@ -156,7 +150,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 		{
 			EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
 			event->SetCurrentElement(elements[i]);
-			dispatcher->TriggerEvents(event, default_action_phase);
+			dispatcher->TriggerEvents(*event, default_action_phase);
 		}
 	}
 
@@ -168,45 +162,62 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 String EventDispatcher::ToString() const
 {
 	String result;
-	for (auto nvp : events)
+
+	if (listeners.empty())
+		return result;
+
+	auto add_to_result = [&result](EventId id, int count) {
+		const EventSpecification& specification = EventSpecificationInterface::Get(id);
+		result += CreateString(specification.type.size() + 32, "%s (%d), ", specification.type.c_str(), count);
+	};
+
+	EventId previous_id = listeners[0].id;
+	int count = 0;
+	for (const auto& listener : listeners)
 	{
-		const EventSpecification& specification = EventSpecificationInterface::Get(nvp.first);
-		result += CreateString(specification.type.size() + 32, "%s (%d), ", specification.type.c_str(), static_cast<int>(nvp.second.size()));
+		if (listener.id != previous_id)
+		{
+			add_to_result(previous_id, count);
+			previous_id = listener.id;
+			count = 0;
+		}
+		count++;
 	}
+
+	if (count > 0)
+		add_to_result(previous_id, count);
+
 	if (result.size() > 2) 
-	{
 		result.resize(result.size() - 2);
-	}
+
 	return result;
 }
 
-void EventDispatcher::TriggerEvents(Event* event, DefaultActionPhase default_action_phase)
+void EventDispatcher::TriggerEvents(Event& event, DefaultActionPhase default_action_phase)
 {
-	const EventPhase phase = event->GetPhase();
+	const EventPhase phase = event.GetPhase();
 
-	// Look up the event
-	Events::iterator itr = events.find(event->GetId());
+	// Find the range of entries with matching id and phase, given that listeners are sorted by (id,phase).
+	// In the case of target phase we will match any listener phase.
+	Listeners::iterator begin, end;
+	if (phase == EventPhase::Capture)
+		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, true), CompareIdPhase());
+	else if (phase == EventPhase::Target)
+		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, false), CompareId());
+	else if (phase == EventPhase::Bubble)
+		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, false), CompareIdPhase());
 
-	if (itr != events.end())
+	for (auto it = begin; it != end; ++it)
 	{
-		// Dispatch all actions
-		Listeners& listeners = (*itr).second;
-		for (size_t i = 0; i < listeners.size(); i++)
-		{
-			if (phase == EventPhase::Target
-				|| (phase == EventPhase::Capture && listeners[i].in_capture_phase)
-				|| (phase == EventPhase::Bubble && !listeners[i].in_capture_phase))
-			{
-				listeners[i].listener->ProcessEvent(*event);
-			}
-		}
+		it->listener->ProcessEvent(event);
 	}
 
-	const bool do_default_action = ((int)phase & (int)default_action_phase);
+	const bool do_default_action = ((unsigned int)phase & (unsigned int)default_action_phase);
 
-	if (do_default_action && event->IsPropagating())
+	// Do the default action unless we have been cancelled.
+	if (do_default_action && event.IsPropagating())
 	{
-		element->ProcessDefaultAction(*event);
+		element->ProcessDefaultAction(event);
 	}
 }
 

@@ -179,7 +179,7 @@ void ElementTabSet::OnChildAdd(Core::Element* child)
 	{
 		// Set up the new button and append it
 		child->SetProperty("display", Core::Property(Core::Style::Display::InlineBlock));
-		child->AddEventListener("click", this);
+		child->AddEventListener(Core::EventId::Click, this);
 
 		if (child->GetParentNode()->GetChild(active_tab) == child)
 			child->SetPseudoClass("selected", true);
@@ -203,7 +203,7 @@ void ElementTabSet::OnChildRemove(Core::Element* child)
 	// If its a tab, remove its event listener
 	if (child->GetParentNode() == GetChildByTag("tabs"))
 	{
-		child->RemoveEventListener("click", this);
+		child->RemoveEventListener(Core::EventId::Click, this);
 	}
 }
 

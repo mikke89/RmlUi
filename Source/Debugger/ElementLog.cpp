@@ -88,7 +88,7 @@ bool ElementLog::Initialise()
 	message_content = GetElementById("content");
 	if (message_content)
 	{
-		message_content->AddEventListener("resize", this);
+		message_content->AddEventListener(Core::EventId::Resize, this);
 	}
 
 	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(log_rcss));
@@ -112,7 +112,7 @@ bool ElementLog::Initialise()
 
 	Core::Element* button = beacon->GetFirstChild();
 	if (button != NULL)
-		beacon->GetFirstChild()->AddEventListener("click", this);
+		beacon->GetFirstChild()->AddEventListener(Core::EventId::Click, this);
 
 	style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(beacon_rcss));
 	if (style_sheet == NULL)

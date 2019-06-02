@@ -33,7 +33,7 @@ static DragListener drag_listener;
 // Registers an element as being a container of draggable elements.
 void DragListener::RegisterDraggableContainer(Rocket::Core::Element* element)
 {
-	element->AddEventListener("dragdrop", &drag_listener);
+	element->AddEventListener(Rocket::Core::EventId::Dragdrop, &drag_listener);
 }
 
 void DragListener::ProcessEvent(Rocket::Core::Event& event)

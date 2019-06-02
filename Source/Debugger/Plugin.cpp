@@ -321,13 +321,13 @@ bool Plugin::LoadMenuElement()
 
 	// Attach to the buttons.
 	Core::Element* event_log_button = menu_element->GetElementById("event-log-button");
-	event_log_button->AddEventListener("click", this);
+	event_log_button->AddEventListener(Rocket::Core::EventId::Click, this);
 
 	Core::Element* element_info_button = menu_element->GetElementById("debug-info-button");
-	element_info_button->AddEventListener("click", this);
+	element_info_button->AddEventListener(Rocket::Core::EventId::Click, this);
 
 	Core::Element* outlines_button = menu_element->GetElementById("outlines-button");
-	outlines_button->AddEventListener("click", this);
+	outlines_button->AddEventListener(Rocket::Core::EventId::Click, this);
 
 	return true;
 }

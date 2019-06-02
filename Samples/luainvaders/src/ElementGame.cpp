@@ -97,8 +97,8 @@ void ElementGame::OnChildAdd(Rocket::Core::Element* element)
 
 	if (element == this)
 	{
-		GetOwnerDocument()->AddEventListener("load", this);
-		GetOwnerDocument()->AddEventListener("keydown", this);
-		GetOwnerDocument()->AddEventListener("keyup", this);
+		GetOwnerDocument()->AddEventListener(Rocket::Core::EventId::Load, this);
+		GetOwnerDocument()->AddEventListener(Rocket::Core::EventId::Keydown, this);
+		GetOwnerDocument()->AddEventListener(Rocket::Core::EventId::Keyup, this);
 	}
 }

@@ -67,16 +67,16 @@ WidgetSlider::~WidgetSlider()
 		parent->RemoveChild(track);
 	}
 
-	parent->RemoveEventListener("blur", this);
-	parent->RemoveEventListener("focus", this);
-	parent->RemoveEventListener("keydown", this, true);
-	parent->RemoveEventListener("mousedown", this);
-	parent->RemoveEventListener("mouseup", this);
-	parent->RemoveEventListener("mouseout", this);
-
-	parent->RemoveEventListener("drag", this);
-	parent->RemoveEventListener("dragstart", this);
-	parent->RemoveEventListener("dragend", this);
+	using Core::EventId;
+	parent->RemoveEventListener(EventId::Blur, this);
+	parent->RemoveEventListener(EventId::Focus, this);
+	parent->RemoveEventListener(EventId::Keydown, this, true);
+	parent->RemoveEventListener(EventId::Mousedown, this);
+	parent->RemoveEventListener(EventId::Mouseup, this);
+	parent->RemoveEventListener(EventId::Mouseout, this);
+	parent->RemoveEventListener(EventId::Drag, this);
+	parent->RemoveEventListener(EventId::Dragstart, this);
+	parent->RemoveEventListener(EventId::Dragend, this);
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -137,16 +137,16 @@ bool WidgetSlider::Initialise()
 
 	// Attach the listeners
 	// All listeners are attached to parent, ensuring that we don't get duplicate events when it bubbles from child to parent
-	parent->AddEventListener("blur", this);
-	parent->AddEventListener("focus", this);
-	parent->AddEventListener("keydown", this, true);
-	parent->AddEventListener("mousedown", this);
-	parent->AddEventListener("mouseup", this);
-	parent->AddEventListener("mouseout", this);
-
-	parent->AddEventListener("drag", this);
-	parent->AddEventListener("dragstart", this);
-	parent->AddEventListener("dragend", this);
+	using Core::EventId;
+	parent->AddEventListener(EventId::Blur, this);
+	parent->AddEventListener(EventId::Focus, this);
+	parent->AddEventListener(EventId::Keydown, this, true);
+	parent->AddEventListener(EventId::Mousedown, this);
+	parent->AddEventListener(EventId::Mouseup, this);
+	parent->AddEventListener(EventId::Mouseout, this);
+	parent->AddEventListener(EventId::Drag, this);
+	parent->AddEventListener(EventId::Dragstart, this);
+	parent->AddEventListener(EventId::Dragend, this);
 
 	return true;
 }
