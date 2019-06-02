@@ -928,9 +928,8 @@ void Element::RemoveAttribute(const String& name)
 	{
 		attributes.erase(it);
 
-		AttributeNameList changed_attributes;
-		changed_attributes.insert(name);
-
+		ElementAttributes changed_attributes;
+		changed_attributes.emplace(name, Variant());
 		OnAttributeChange(changed_attributes);
 	}
 }
@@ -963,17 +962,13 @@ Context* Element::GetContext() const
 }
 
 // Set a group of attributes
-void Element::SetAttributes(const ElementAttributes* _attributes)
+void Element::SetAttributes(const ElementAttributes& _attributes)
 {
-	attributes.reserve(attributes.size() + _attributes->size());
-	for (auto& pair : *_attributes)
+	attributes.reserve(attributes.size() + _attributes.size());
+	for (auto& pair : _attributes)
 		attributes[pair.first] = pair.second;
 
-	AttributeNameList changed_attributes;
-	changed_attributes.reserve(_attributes->size());
-	for (auto& pair : *_attributes)
-		changed_attributes.insert(pair.first);
-	OnAttributeChange(changed_attributes);
+	OnAttributeChange(_attributes);
 }
 
 // Returns the number of attributes on the element.
@@ -1689,25 +1684,28 @@ void Element::OnLayout()
 }
 
 // Called when attributes on the element are changed.
-void Element::OnAttributeChange(const AttributeNameList& changed_attributes)
+void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
-	if (changed_attributes.find("id") != changed_attributes.end())
+	auto it = changed_attributes.find("id");
+	if (it != changed_attributes.end())
 	{
-		id = GetAttribute< String >("id", "");
+		id = it->second.Get<String>();
 		style->DirtyDefinition();
 	}
 
-	if (changed_attributes.find("class") != changed_attributes.end())
+	it = changed_attributes.find("class");
+	if (it != changed_attributes.end())
 	{
-		style->SetClassNames(GetAttribute< String >("class", ""));
+		style->SetClassNames(it->second.Get<String>());
 	}
 
 	// Add any inline style declarations.
-	if (changed_attributes.find("style") != changed_attributes.end())
+	it = changed_attributes.find("style");
+	if (it != changed_attributes.end())
 	{
 		PropertyDictionary properties;
 		StyleSheetParser parser;
-		parser.ParseProperties(properties, GetAttribute< String >("style", ""));
+		parser.ParseProperties(properties, it->second.Get<String>());
 
 		Rocket::Core::PropertyMap property_map = properties.GetProperties();
 		for (Rocket::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)

@@ -52,7 +52,7 @@ void WidgetSliderInput::SetValue(float value)
 	SetBarPosition(SetValueInternal(new_value));
 }
 
-float WidgetSliderInput::GetValue()
+float WidgetSliderInput::GetValue() const
 {
 	return value;
 }

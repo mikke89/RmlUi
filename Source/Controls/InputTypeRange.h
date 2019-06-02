@@ -52,7 +52,7 @@ public:
 	virtual Rocket::Core::String GetValue() const;
 
 	/// Called every update from the host element.
-	virtual void OnUpdate();
+	virtual void OnUpdate() override;
 
 	/// Called every time the host element's size changes.
 	virtual void OnResize() override;
@@ -60,7 +60,7 @@ public:
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.
-	virtual bool OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	virtual bool OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
@@ -68,7 +68,7 @@ public:
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions);
+	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions) override;
 
 private:
 	WidgetSliderInput* widget;

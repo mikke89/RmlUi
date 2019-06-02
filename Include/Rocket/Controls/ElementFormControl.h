@@ -77,7 +77,7 @@ public:
 protected:
 	/// Checks for changes to the 'disabled' attribute.
 	/// @param[in] changed_attributes List of changed attributes on the element.
-	virtual void OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	virtual void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 };
 
 }

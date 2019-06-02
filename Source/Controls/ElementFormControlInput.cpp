@@ -92,17 +92,18 @@ void ElementFormControlInput::OnResize()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+void ElementFormControlInput::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	ElementFormControl::OnAttributeChange(changed_attributes);
 
 	Rocket::Core::String new_type_name;
 
-	if (changed_attributes.find("type") != changed_attributes.end())
+	auto it_type = changed_attributes.find("type");
+	if (it_type != changed_attributes.end())
 	{
-		new_type_name = GetAttribute< Rocket::Core::String >("type", "text");
+		new_type_name = it_type->second.Get<Core::String>("text");
 	}
-	else if (type == NULL)
+	else if (!type)
 	{
 		// Ref. comment in constructor.
 		new_type_name = "text";
@@ -110,7 +111,7 @@ void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& c
 
 	if (!new_type_name.empty() && new_type_name != type_name)
 	{
-		InputType* new_type = NULL;
+		InputType* new_type = nullptr;
 
 		if (new_type_name == "password")
 			new_type = new InputTypeText(this, Rocket::Controls::InputTypeText::OBSCURED);
@@ -127,7 +128,7 @@ void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& c
 		else if (new_type_name == "text")
 			new_type = new InputTypeText(this);
 
-		if (new_type != NULL)
+		if (new_type)
 		{
 			delete type;
 			type = new_type;

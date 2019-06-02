@@ -72,7 +72,7 @@ void ElementFormControlDataSelect::OnUpdate()
 }
 
 // Checks for changes to the data source or formatting attributes.
-void ElementFormControlDataSelect::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+void ElementFormControlDataSelect::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	ElementFormControlSelect::OnAttributeChange(changed_attributes);
 

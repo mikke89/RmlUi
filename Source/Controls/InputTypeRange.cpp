@@ -61,32 +61,37 @@ void InputTypeRange::OnResize()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputTypeRange::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+bool InputTypeRange::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	bool dirty_layout = false;
 
 	// Check if maxlength has been defined.
-	if (changed_attributes.find("orientation") != changed_attributes.end())
+	auto it_orientation = changed_attributes.find("orientation");
+	if (it_orientation != changed_attributes.end())
 	{
-		widget->SetOrientation(element->GetAttribute< Rocket::Core::String >("orientation", "horizontal") == "horizontal" ? WidgetSliderInput::HORIZONTAL : WidgetSliderInput::VERTICAL);
+		widget->SetOrientation(it_orientation->second.Get<Rocket::Core::String>("horizontal") == "horizontal" ? WidgetSliderInput::HORIZONTAL : WidgetSliderInput::VERTICAL);
 		dirty_layout = true;
 	}
 
 	// Check if size has been defined.
-	if (changed_attributes.find("step") != changed_attributes.end())
-		widget->SetStep(element->GetAttribute< float >("step", 1.0f));
+	auto it_step = changed_attributes.find("step");
+	if (it_step != changed_attributes.end())
+		widget->SetStep(it_step->second.Get(1.0f));
 
 	// Check if min has been defined.
-	if (changed_attributes.find("min") != changed_attributes.end())
-		widget->SetMinValue(element->GetAttribute< float >("min", 0.0f));
+	auto it_min = changed_attributes.find("min");
+	if (it_min != changed_attributes.end())
+		widget->SetMinValue(it_min->second.Get(0.0f));
 
 	// Check if max has been defined.
-	if (changed_attributes.find("max") != changed_attributes.end())
-		widget->SetMaxValue(element->GetAttribute< float >("max", 100.0f));
+	auto it_max = changed_attributes.find("max");
+	if (it_max != changed_attributes.end())
+		widget->SetMaxValue(it_max->second.Get(100.f));
 
 	// Check if the value has been changed.
-	if (changed_attributes.find("value") != changed_attributes.end())
-		widget->SetValue(element->GetAttribute< float >("value", 0.0f));
+	auto it_value = changed_attributes.find("value");
+	if (it_value != changed_attributes.end())
+		widget->SetValue(it_value->second.Get(0.0f));
 
 	return !dirty_layout;
 }

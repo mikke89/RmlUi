@@ -46,7 +46,7 @@ bool InputTypeCheckbox::IsSubmitted()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputTypeCheckbox::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+bool InputTypeCheckbox::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	// Check if maxlength has been defined.
 	if (changed_attributes.find("checked") != changed_attributes.end())

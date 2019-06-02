@@ -78,14 +78,14 @@ public:
 
 protected:
 	/// Renders the image.
-	virtual void OnRender();
+	virtual void OnRender() override;
 
 	/// Regenerates the element's geometry.
 	virtual void OnResize() override;
 
 	/// Checks for changes to the image's source or dimensions.
 	/// @param[in] changed_attributes A list of attributes changed on the element.
-	virtual void OnAttributeChange(const AttributeNameList& changed_attributes) override;
+	virtual void OnAttributeChange(const ElementAttributes& changed_attributes) override;
 
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.

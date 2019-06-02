@@ -69,7 +69,7 @@ public:
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.
-	virtual bool OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	virtual bool OnAttributeChange(const Core::ElementAttributes& changed_attributes);
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
 	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties);

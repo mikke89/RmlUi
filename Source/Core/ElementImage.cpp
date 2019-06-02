@@ -88,7 +88,7 @@ void ElementImage::OnRender()
 }
 
 // Called when attributes on the element are changed.
-void ElementImage::OnAttributeChange(const Rocket::Core::AttributeNameList& changed_attributes)
+void ElementImage::OnAttributeChange(const Rocket::Core::ElementAttributes& changed_attributes)
 {
 	// Call through to the base element's OnAttributeChange().
 	Rocket::Core::Element::OnAttributeChange(changed_attributes);

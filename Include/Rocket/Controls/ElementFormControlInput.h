@@ -71,17 +71,17 @@ protected:
 
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
-	virtual void OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	virtual void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties) override;
 
 	/// If we are the added element, this will pass the call onto our type handler.
 	/// @param[in] child The new member of the hierarchy.
-	virtual void OnChildAdd(Rocket::Core::Element* child);
+	virtual void OnChildAdd(Rocket::Core::Element* child) override;
 	/// If we are the removed element, this will pass the call onto our type handler.
 	/// @param[in] child The member of the hierarchy that was just removed.
-	virtual void OnChildRemove(Rocket::Core::Element* child);
+	virtual void OnChildRemove(Rocket::Core::Element* child) override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
@@ -89,7 +89,7 @@ protected:
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions);
+	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions) override;
 
 private:
 	InputType* type;

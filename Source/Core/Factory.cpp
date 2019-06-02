@@ -218,7 +218,7 @@ Element* Factory::InstanceElement(Element* parent, const String& instancer_name,
 		if (element)
 		{
 			element->SetInstancer(instancer);
-			element->SetAttributes(&attributes);
+			element->SetAttributes(attributes);
 			ElementUtilities::BindEventAttributes(element);
 
 			PluginRegistry::NotifyElementCreate(element);

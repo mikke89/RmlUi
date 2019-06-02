@@ -127,11 +127,10 @@ bool Variant::GetInto(T& value) const
 
 // Templatised data accessor.
 template< typename T >
-T Variant::Get() const
+T Variant::Get(T default_value) const
 {
-	T value;
-	GetInto(value);
-	return value;
+	GetInto(default_value);
+	return default_value;
 }
 
 }

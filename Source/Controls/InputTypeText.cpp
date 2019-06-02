@@ -70,24 +70,27 @@ void InputTypeText::OnResize()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputTypeText::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+bool InputTypeText::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	bool dirty_layout = false;
 
 	// Check if maxlength has been defined.
-	if (changed_attributes.find("maxlength") != changed_attributes.end())
-		widget->SetMaxLength(element->GetAttribute< int >("maxlength", -1));
+	auto it = changed_attributes.find("maxlength");
+	if (it != changed_attributes.end())
+		widget->SetMaxLength(it->second.Get(-1));
 
 	// Check if size has been defined.
-	if (changed_attributes.find("size") != changed_attributes.end())
+	it = changed_attributes.find("size");
+	if (it != changed_attributes.end())
 	{
-		size = element->GetAttribute< int >("size", 20);
+		size = it->second.Get(20);
 		dirty_layout = true;
 	}
 
 	// Check if the value has been changed.
-	if (changed_attributes.find("value") != changed_attributes.end())
-		widget->SetValue(element->GetAttribute< Rocket::Core::String >("value", ""));
+	it = changed_attributes.find("value");
+	if (it != changed_attributes.end())
+		widget->SetValue(it->second.Get<Core::String>());
 
 	return !dirty_layout;
 }

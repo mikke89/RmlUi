@@ -54,21 +54,21 @@ public:
 	virtual ~InputTypeText();
 
 	/// Called every update from the host element.
-	virtual void OnUpdate();
+	virtual void OnUpdate() override;
 
 	/// Called every render from the host element.
-	virtual void OnRender();
+	virtual void OnRender() override;
 
 	/// Called when the parent element's size changes.
-	virtual void OnResize();
+	virtual void OnResize() override;
 
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.
-	virtual bool OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	virtual bool OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties) override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
@@ -76,7 +76,7 @@ public:
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions);
+	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions) override;
 
 private:
 	int size;

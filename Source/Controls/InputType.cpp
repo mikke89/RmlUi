@@ -66,7 +66,7 @@ void InputType::OnResize()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputType::OnAttributeChange(const Core::AttributeNameList& ROCKET_UNUSED_PARAMETER(changed_attributes))
+bool InputType::OnAttributeChange(const Core::ElementAttributes& ROCKET_UNUSED_PARAMETER(changed_attributes))
 {
 	ROCKET_UNUSED(changed_attributes);
 

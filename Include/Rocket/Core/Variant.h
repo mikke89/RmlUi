@@ -99,9 +99,10 @@ public:
 
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.
+	/// @param[in] default_value The value returned if the conversion failed.
 	/// @return Data in the requested type.
 	template< typename T >
-	T Get() const;
+	T Get(T default_value = T()) const;
 
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.

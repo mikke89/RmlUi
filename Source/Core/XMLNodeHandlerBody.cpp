@@ -58,7 +58,7 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& ROCKE
 	// Apply any attributes to the document
 	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
 	if (document)
-		document->SetAttributes(&attributes);
+		document->SetAttributes(attributes);
 
 	// Tell the parser to use the element handler for all children
 	parser->PushDefaultHandler();

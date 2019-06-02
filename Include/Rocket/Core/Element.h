@@ -311,7 +311,7 @@ public:
 	void RemoveAttribute(const String& name);
 	/// Set a group of attributes.
 	/// @param[in] attributes Attributes to set.
-	void SetAttributes(const ElementAttributes* attributes);
+	void SetAttributes(const ElementAttributes& attributes);
 	/// Get the attributes of the element.
 	/// @return The attributes
 	const ElementAttributes& GetAttributes() const { return attributes; }
@@ -596,8 +596,8 @@ protected:
 	virtual void OnLayout();
 
 	/// Called when attributes on the element are changed.
-	/// @param[in] changed_attributes The attributes changed on the element.
-	virtual void OnAttributeChange(const AttributeNameList& changed_attributes);
+	/// @param[in] changed_attributes Dictionary of attributes changed on the element. Attribute value will be empty if it was unset.
+	virtual void OnAttributeChange(const ElementAttributes& changed_attributes);
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
 	virtual void OnPropertyChange(const PropertyNameList& changed_properties);

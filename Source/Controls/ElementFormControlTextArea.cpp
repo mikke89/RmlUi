@@ -144,7 +144,7 @@ void ElementFormControlTextArea::OnLayout()
 }
 
 // Called when attributes on the element are changed.
-void ElementFormControlTextArea::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+void ElementFormControlTextArea::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	ElementFormControl::OnAttributeChange(changed_attributes);
 

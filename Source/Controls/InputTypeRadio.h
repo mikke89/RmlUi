@@ -47,15 +47,15 @@ public:
 
 	/// Returns if this value should be submitted with the form.
 	/// @return True if the form control is to be submitted, false otherwise.
-	virtual bool IsSubmitted();
+	virtual bool IsSubmitted() override;
 
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.
-	virtual bool OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	virtual bool OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 
 	/// Pops the element's radio set if we are checked.
-	virtual void OnChildAdd();
+	virtual void OnChildAdd() override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
@@ -63,7 +63,7 @@ public:
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions);
+	virtual bool GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions) override;
 
 private:
 	/// Pops all other radio buttons in our form that share our name.

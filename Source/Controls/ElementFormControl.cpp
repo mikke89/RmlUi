@@ -74,7 +74,7 @@ void ElementFormControl::SetDisabled(bool disable)
 }
 
 // Checks for changes to the 'disabled' attribute.
-void ElementFormControl::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+void ElementFormControl::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	Core::Element::OnAttributeChange(changed_attributes);
 
