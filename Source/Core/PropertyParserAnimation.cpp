@@ -232,7 +232,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 	{
 
 		Transition transition;
-		StringList target_property_names;
+		PropertyNameList target_property_names;
 
 		StringList arguments;
 		StringUtilities::ExpandString(arguments, single_transition_value, ' ');
@@ -263,7 +263,6 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 					if (transition_list.transitions.size() > 0) // The all keyword can not be part of multiple definitions
 						return false;
 					transition_list.all = true;
-					target_property_names.push_back("all");
 				}
 				else if (it->second.type == Keyword::TWEEN)
 				{
@@ -312,14 +311,13 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 					// Must be a property name or shorthand, expand now
 					if (auto shorthand = StyleSheetSpecification::GetShorthand(argument))
 					{
-						// For shorthands, add each underlying property separately
-						for (const auto& property : shorthand->properties)
-							target_property_names.push_back(property.first);
+						auto underlying_properties = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand->id);
+						target_property_names.insert(underlying_properties.begin(), underlying_properties.end());
 					}
 					else if (auto definition = StyleSheetSpecification::GetProperty(argument))
 					{
 						// Single property
-						target_property_names.push_back(argument);
+						target_property_names.insert(definition->GetId());
 					}
 					else
 					{
@@ -339,7 +337,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 
 		for (const auto& property_name : target_property_names)
 		{
-			transition.name = property_name;
+			transition.id = property_name;
 			transition_list.transitions.push_back(transition);
 		}
 	}

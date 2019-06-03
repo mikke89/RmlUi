@@ -1115,9 +1115,9 @@ void Context::CreateDragClone(Element* element)
 
 	// Set all the required properties and pseudo-classes on the clone.
 	drag_clone->SetPseudoClass("drag", true);
-	drag_clone->SetProperty("position", Property(Style::Position::Absolute));
-	drag_clone->SetProperty("left", Property(element->GetAbsoluteLeft() - element->GetBox().GetEdge(Box::MARGIN, Box::LEFT) - mouse_position.x, Property::PX));
-	drag_clone->SetProperty("top", Property(element->GetAbsoluteTop() - element->GetBox().GetEdge(Box::MARGIN, Box::TOP) - mouse_position.y, Property::PX));
+	drag_clone->SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
+	drag_clone->SetProperty(PropertyId::Left, Property(element->GetAbsoluteLeft() - element->GetBox().GetEdge(Box::MARGIN, Box::LEFT) - mouse_position.x, Property::PX));
+	drag_clone->SetProperty(PropertyId::Top, Property(element->GetAbsoluteTop() - element->GetBox().GetEdge(Box::MARGIN, Box::TOP) - mouse_position.y, Property::PX));
 }
 
 // Releases the drag clone, if one exists.

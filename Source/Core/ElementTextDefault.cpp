@@ -290,8 +290,8 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 	bool font_face_changed = false;
 	auto& computed = GetComputedValues();
 
-	if (changed_properties.find(COLOR) != changed_properties.end() || 
-		changed_properties.find(OPACITY) != changed_properties.end())
+	if (changed_properties.find(PropertyId::Color) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Opacity) != changed_properties.end())
 	{
 		// Fetch our (potentially) new colour.
 		Colourb new_colour = computed.color;
@@ -302,11 +302,11 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 			colour = new_colour;
 	}
 
-	if (changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
-		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
-		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
-		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
-		changed_properties.find(FONT_SIZE) != changed_properties.end())
+	if (changed_properties.find(PropertyId::FontFamily) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontCharset) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontWeight) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontStyle) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontSize) != changed_properties.end())
 	{
 		font_face_changed = true;
 
@@ -314,7 +314,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 		font_dirty = true;
 	}
 
-	if (changed_properties.find(TEXT_DECORATION) != changed_properties.end())
+	if (changed_properties.find(PropertyId::TextDecoration) != changed_properties.end())
 	{
 		decoration_property = (int)computed.text_decoration;
 		if (decoration_property != TEXT_DECORATION_NONE)

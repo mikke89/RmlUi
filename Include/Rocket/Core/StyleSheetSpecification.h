@@ -109,6 +109,8 @@ public:
 	static const String& GetPropertyName(PropertyId id);
 	static const String& GetShorthandName(ShorthandId id);
 
+	static std::vector<PropertyId> GetShorthandUnderlyingProperties(ShorthandId id);
+
 private:
 	StyleSheetSpecification();
 	~StyleSheetSpecification();

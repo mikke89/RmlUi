@@ -34,6 +34,7 @@
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
+#include "PropertyShorthandDefinition.h"
 
 namespace Rocket {
 namespace Core {
@@ -270,6 +271,30 @@ const String& StyleSheetSpecification::GetPropertyName(PropertyId id)
 const String& StyleSheetSpecification::GetShorthandName(ShorthandId id)
 {
 	return shorthand_id_name_map.GetName(id);
+}
+
+std::vector<PropertyId> StyleSheetSpecification::GetShorthandUnderlyingProperties(ShorthandId id)
+{
+	std::vector<PropertyId> result;
+	const ShorthandDefinition* shorthand = instance->properties.GetShorthand(id);
+	if (!shorthand)
+		return result;
+
+	result.reserve(shorthand->items.size());
+	for (auto& item : shorthand->items)
+	{
+		if (item.type == ShorthandItemType::Property)
+		{
+			result.push_back(item.property_id);
+		}
+		else if (item.type == ShorthandItemType::Shorthand)
+		{
+			// When we have a shorthand pointing to another shorthands, call us recursively
+			std::vector<PropertyId> new_items = GetShorthandUnderlyingProperties(item.shorthand_id);
+			result.insert(result.end(), new_items.begin(), new_items.end());
+		}
+	}
+	return result;
 }
 
 // Registers Rocket's default parsers.

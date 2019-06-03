@@ -81,7 +81,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 	if (!scrollbars[orientation].enabled)
 	{
 		CreateScrollbar(orientation);
-		scrollbars[orientation].element->SetProperty(VISIBILITY, Property(Style::Visibility::Visible));
+		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 		scrollbars[orientation].enabled = true;
 	}
 
@@ -107,7 +107,7 @@ void ElementScroll::DisableScrollbar(Orientation orientation)
 {
 	if (scrollbars[orientation].enabled)
 	{
-		scrollbars[orientation].element->SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
+		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 		scrollbars[orientation].enabled = false;
 	}
 }
@@ -217,12 +217,12 @@ void ElementScroll::FormatScrollbars()
 		corner->SetBox(corner_box);
 		corner->SetOffset(containing_block - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
 
-		corner->SetProperty(VISIBILITY, Property(Style::Visibility::Visible));
+		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 	}
 	else
 	{
 		if (corner != NULL)
-			corner->SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
+			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
 
@@ -235,7 +235,7 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 		return true;
 
 	scrollbars[orientation].element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
-	scrollbars[orientation].element->SetProperty(CLIP, Property(1, Property::NUMBER));
+	scrollbars[orientation].element->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
 	scrollbars[orientation].widget = new WidgetSliderScroll(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetSlider::VERTICAL : WidgetSlider::HORIZONTAL);

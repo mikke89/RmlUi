@@ -78,22 +78,22 @@ static void PostprocessKeyframes(KeyframesMap& keyframes_map)
 	{
 		Keyframes& keyframes = keyframes_pair.second;
 		auto& blocks = keyframes.blocks;
-		auto& property_names = keyframes.property_names;
+		auto& property_ids = keyframes.property_ids;
 
 		// Sort keyframes on selector value.
 		std::sort(blocks.begin(), blocks.end(), [](const KeyframeBlock& a, const KeyframeBlock& b) { return a.normalized_time < b.normalized_time; });
 
 		// Add all property names specified by any block
-		if(blocks.size() > 0) property_names.reserve(blocks.size() * blocks[0].properties.GetNumProperties());
+		if(blocks.size() > 0) property_ids.reserve(blocks.size() * blocks[0].properties.GetNumProperties());
 		for(auto& block : blocks)
 		{
 			for (auto& property : block.properties.GetProperties())
-				property_names.push_back(property.first);
+				property_ids.push_back(property.first);
 		}
 		// Remove duplicate property names
-		std::sort(property_names.begin(), property_names.end());
-		property_names.erase(std::unique(property_names.begin(), property_names.end()), property_names.end());
-		property_names.shrink_to_fit();
+		std::sort(property_ids.begin(), property_ids.end());
+		property_ids.erase(std::unique(property_ids.begin(), property_ids.end()), property_ids.end());
+		property_ids.shrink_to_fit();
 	}
 
 }

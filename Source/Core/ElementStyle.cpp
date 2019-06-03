@@ -102,7 +102,7 @@ const Property* ElementStyle::GetProperty(PropertyId id, Element* element, Prope
 		return local_property;
 
 	// Fetch the property specification.
-	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(name);
+	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(id);
 	if (property == NULL)
 		return NULL;
 
@@ -112,7 +112,7 @@ const Property* ElementStyle::GetProperty(PropertyId id, Element* element, Prope
 		Element* parent = element->GetParentNode();
 		while (parent != NULL)
 		{
-			const Property* parent_property = parent->GetStyle()->GetLocalProperty(name);
+			const Property* parent_property = parent->GetStyle()->GetLocalProperty(id);
 			if (parent_property)
 				return parent_property;
 

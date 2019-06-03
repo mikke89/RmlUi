@@ -63,8 +63,12 @@ PropertyDefinition& PropertySpecification::RegisterProperty(PropertyId id, const
 
 	if (index < properties.size())
 	{
-		// Delete any existing property.
-		delete properties[index];
+		// We don't want to owerwrite an existing entry.
+		if (properties[index])
+		{
+			Log::Message(Log::LT_ERROR, "While registering property '%s': The property is already registered, ignoring.", StyleSheetSpecification::GetPropertyName(id).c_str());
+			return *properties[index];
+		}
 	}
 	else
 	{
@@ -164,8 +168,12 @@ bool PropertySpecification::RegisterShorthand(ShorthandId id, const String& prop
 
 	if (index < shorthands.size())
 	{
-		// Delete any existing property.
-		delete shorthands[index];
+		// We don't want to owerwrite an existing entry.
+		if (shorthands[index])
+		{
+			Log::Message(Log::LT_ERROR, "While registering shorthand '%s': The shorthand is already registered, ignoring.", StyleSheetSpecification::GetShorthandName(id).c_str());
+			return false;
+		}
 	}
 	else
 	{
