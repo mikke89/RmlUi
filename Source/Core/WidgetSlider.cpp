@@ -105,7 +105,7 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	track = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
 
 	bar = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
-	bar->SetProperty(DRAG, Core::Property(Core::Style::Drag::Drag));
+	bar->SetProperty(Core::PropertyId::Drag, Core::Property(Core::Style::Drag::Drag));
 
 	arrows[0] = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
 	arrows[1] = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());

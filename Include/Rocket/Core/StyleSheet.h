@@ -45,7 +45,7 @@ struct KeyframeBlock {
 	PropertyDictionary properties;
 };
 struct Keyframes {
-	std::vector<String> property_names;
+	std::vector<PropertyId> property_ids;
 	std::vector<KeyframeBlock> blocks;
 };
 typedef UnorderedMap<String, Keyframes> KeyframesMap;

@@ -36,6 +36,8 @@ namespace Rocket {
 namespace Core {
 
 class PropertyParser;
+struct ShorthandItemId;
+using ShorthandItemIdList = std::vector<ShorthandItemId>;
 
 /**
 	@author Peter Curry
@@ -66,11 +68,12 @@ public:
 	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
 	/// @param[in] forces_layout True if a change in this property on an element will cause the element's layout to possibly change.
 	/// @return The new property definition, ready to have parsers attached.
-	static PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
+	static PropertyDefinition& RegisterCustomProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
 	/// Returns a property definition.
 	/// @param[in] property_name The name of the desired property.
 	/// @return The appropriate property definition if it could be found, NULL otherwise.
 	static const PropertyDefinition* GetProperty(const String& property_name);
+	static const PropertyDefinition* GetProperty(PropertyId id);
 
 	/// Returns the list of the names of all registered property definitions.
 	/// @return The list with stored property names.
@@ -85,11 +88,12 @@ public:
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	static bool RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
+	static bool RegisterCustomShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
 	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
-	static const PropertyShorthandDefinition* GetShorthand(const String& shorthand_name);
+	static const ShorthandDefinition* GetShorthand(const String& shorthand_name);
+	static const ShorthandDefinition* GetShorthand(ShorthandId id);
 
 	/// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 	/// @param[in] dictionary The property dictionary which will hold all declared properties.
@@ -100,9 +104,17 @@ public:
 	/// @return True if all properties were parsed successfully, false otherwise.
 	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0);
 
+	static PropertyId GetPropertyId(const String& property_name);
+	static ShorthandId GetShorthandId(const String& shorthand_name);
+	static const String& GetPropertyName(PropertyId id);
+	static const String& GetShorthandName(ShorthandId id);
+
 private:
 	StyleSheetSpecification();
 	~StyleSheetSpecification();
+
+	PropertyDefinition& RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
+	bool RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type);
 
 	// Registers Rocket's default parsers.
 	void RegisterDefaultParsers();

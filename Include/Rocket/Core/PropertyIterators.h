@@ -44,7 +44,7 @@ namespace Core {
 class ROCKETCORE_API ElementDefinitionIterator {
 public:
 	using difference_type = std::ptrdiff_t;
-	using value_type = std::pair<const String&, const Property&>;
+	using value_type = std::pair<PropertyId, const Property&>;
 	using pointer = value_type*;
 	using reference = value_type&;
 	using iterator_category = std::input_iterator_tag;
@@ -84,7 +84,7 @@ private:
 class ROCKETCORE_API ElementStyleIterator {
 public:
 	using difference_type = std::ptrdiff_t;
-	using value_type = std::pair<const String&, const Property&>;
+	using value_type = std::pair<PropertyId, const Property&>;
 	using pointer = value_type *;
 	using reference = value_type &;
 	using iterator_category = std::input_iterator_tag;

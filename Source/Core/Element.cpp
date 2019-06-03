@@ -601,31 +601,49 @@ FontFaceHandle* Element::GetFontFaceHandle() const
 // Sets a local property override on the element.
 bool Element::SetProperty(const String& name, const String& value)
 {
-	return style->SetProperty(name, value);
+	// The name may be a shorthand giving us multiple underlying properties
+	PropertyDictionary properties;
+	if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, name, value))
+	{
+		Log::Message(Log::LT_WARNING, "Syntax error parsing inline property declaration '%s: %s;'.", name.c_str(), value.c_str());
+		return false;
+	}
+	for (auto& property : properties.GetProperties())
+	{
+		if (!style->SetProperty(property.first, property.second))
+			return false;
+	}
+	return true;
 }
 
 // Removes a local property override on the element.
 void Element::RemoveProperty(const String& name)
 {
-	style->RemoveProperty(name);
+	style->RemoveProperty(StyleSheetSpecification::GetPropertyId(name));
+}
+
+// Removes a local property override on the element.
+void Element::RemoveProperty(PropertyId id)
+{
+	style->RemoveProperty(id);
 }
 
 // Sets a local property override on the element to a pre-parsed value.
-bool Element::SetProperty(const String& name, const Property& property)
+bool Element::SetProperty(PropertyId id, const Property& property)
 {
-	return style->SetProperty(name, property);
+	return style->SetProperty(id, property);
 }
 
 // Returns one of this element's properties.
 const Property* Element::GetProperty(const String& name)
 {
-	return style->GetProperty(name);	
+	return style->GetProperty(StyleSheetSpecification::GetPropertyId(name));
 }
 
 // Returns one of this element's properties.
 const Property* Element::GetLocalProperty(const String& name)
 {
-	return style->GetLocalProperty(name);
+	return style->GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));
 }
 
 const PropertyMap * Element::GetLocalProperties()
@@ -1723,7 +1741,7 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		Rocket::Core::PropertyMap property_map = properties.GetProperties();
 		for (Rocket::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
 		{
-			SetProperty((*i).first, (*i).second);
+			style->SetProperty((*i).first, (*i).second);
 		}
 	}
 }
@@ -1762,9 +1780,11 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		}
 	}
 
+
+
 	// Update the visibility.
-	if (all_dirty || changed_properties.find(VISIBILITY) != changed_properties.end() ||
-		changed_properties.find(DISPLAY) != changed_properties.end())
+	if (all_dirty || changed_properties.find(PropertyId::Visibility) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Display) != changed_properties.end())
 	{
 		bool new_visibility = (element_meta->computed_values.display != Style::Display::None && element_meta->computed_values.visibility == Style::Visibility::Visible);
 			
@@ -1777,7 +1797,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		}
 
 		if (all_dirty || 
-			changed_properties.find(DISPLAY) != changed_properties.end())
+			changed_properties.find(PropertyId::Display) != changed_properties.end())
 		{
 			if (parent != NULL)
 				parent->DirtyStructure();
@@ -1786,11 +1806,11 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Fetch a new font face if it has been changed.
 	if (all_dirty ||
-		changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
-		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
-		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
-		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
-		changed_properties.find(FONT_SIZE) != changed_properties.end())
+		changed_properties.find(PropertyId::FontFamily) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontCharset) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontWeight) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontStyle) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontSize) != changed_properties.end())
 	{
 		// Fetch the new font face.
 		FontFaceHandle* new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
@@ -1811,10 +1831,10 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Update the position.
 	if (all_dirty ||
-		changed_properties.find(LEFT) != changed_properties.end() ||
-		changed_properties.find(RIGHT) != changed_properties.end() ||
-		changed_properties.find(TOP) != changed_properties.end() ||
-		changed_properties.find(BOTTOM) != changed_properties.end())
+		changed_properties.find(PropertyId::Left) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Right) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Top) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Bottom) != changed_properties.end())
 	{
 		// TODO: This should happen during/after layout, as the containing box is not properly defined yet
 		UpdateOffset();
@@ -1823,7 +1843,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Update the z-index.
 	if (all_dirty || 
-		changed_properties.find(Z_INDEX) != changed_properties.end())
+		changed_properties.find(PropertyId::ZIndex) != changed_properties.end())
 	{
 		Style::ZIndex z_index_property = element_meta->computed_values.z_index;
 
@@ -1868,57 +1888,57 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Dirty the background if it's changed.
     if (all_dirty ||
-        changed_properties.find(BACKGROUND_COLOR) != changed_properties.end() ||
-		changed_properties.find(OPACITY) != changed_properties.end() ||
-		changed_properties.find(IMAGE_COLOR) != changed_properties.end()) {
+        changed_properties.find(PropertyId::BackgroundColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
+		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
         background->DirtyBackground();
         decoration->DirtyDecorators(true);
     }
 
 	// Dirty the border if it's changed.
 	if (all_dirty || 
-		changed_properties.find(BORDER_TOP_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_RIGHT_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_BOTTOM_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_LEFT_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_TOP_COLOR) != changed_properties.end() ||
-		changed_properties.find(BORDER_RIGHT_COLOR) != changed_properties.end() ||
-		changed_properties.find(BORDER_BOTTOM_COLOR) != changed_properties.end() ||
-		changed_properties.find(BORDER_LEFT_COLOR) != changed_properties.end() ||
-		changed_properties.find(OPACITY) != changed_properties.end())
+		changed_properties.find(PropertyId::BorderTopWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderRightWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderBottomWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderLeftWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderTopColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderRightColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderBottomColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderLeftColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Opacity) != changed_properties.end())
 		border->DirtyBorder();
 
 	
 	// Check for clipping state changes
 	if (all_dirty ||
-		changed_properties.find(CLIP) != changed_properties.end() ||
-		changed_properties.find(OVERFLOW_X) != changed_properties.end() ||
-		changed_properties.find(OVERFLOW_Y) != changed_properties.end())
+		changed_properties.find(PropertyId::Clip) != changed_properties.end() ||
+		changed_properties.find(PropertyId::OverflowX) != changed_properties.end() ||
+		changed_properties.find(PropertyId::OverflowY) != changed_properties.end())
 	{
 		clipping_state_dirty = true;
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
 	if (all_dirty ||
-		changed_properties.find(PERSPECTIVE) != changed_properties.end() ||
-		changed_properties.find(PERSPECTIVE_ORIGIN_X) != changed_properties.end() ||
-		changed_properties.find(PERSPECTIVE_ORIGIN_Y) != changed_properties.end())
+		changed_properties.find(PropertyId::Perspective) != changed_properties.end() ||
+		changed_properties.find(PropertyId::PerspectiveOriginX) != changed_properties.end() ||
+		changed_properties.find(PropertyId::PerspectiveOriginY) != changed_properties.end())
 	{
 		DirtyTransformState(true, false, false);
 	}
 
 	// Check for `transform' and `transform-origin' changes
 	if (all_dirty ||
-		changed_properties.find(TRANSFORM) != changed_properties.end() ||
-		changed_properties.find(TRANSFORM_ORIGIN_X) != changed_properties.end() ||
-		changed_properties.find(TRANSFORM_ORIGIN_Y) != changed_properties.end() ||
-		changed_properties.find(TRANSFORM_ORIGIN_Z) != changed_properties.end())
+		changed_properties.find(PropertyId::Transform) != changed_properties.end() ||
+		changed_properties.find(PropertyId::TransformOriginX) != changed_properties.end() ||
+		changed_properties.find(PropertyId::TransformOriginY) != changed_properties.end() ||
+		changed_properties.find(PropertyId::TransformOriginZ) != changed_properties.end())
 	{
 		DirtyTransformState(false, true, false);
 	}
 
 	// Check for `animation' changes
-	if (all_dirty || changed_properties.find(ANIMATION) != changed_properties.end())
+	if (all_dirty || changed_properties.find(PropertyId::Animation) != changed_properties.end())
 	{
 		DirtyAnimation();
 	}
@@ -2296,8 +2316,9 @@ void Element::UpdateStructure()
 bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, const Property* start_value)
 {
 	bool result = false;
+	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
 
-	auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay);
+	auto it_animation = StartAnimation(property_id, start_value, num_iterations, alternate_direction, delay);
 	if (it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
@@ -2313,8 +2334,10 @@ bool Element::AddAnimationKey(const String & property_name, const Property & tar
 {
 	ElementAnimation* animation = nullptr;
 
+	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
+
 	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyName() == property_name) {
+		if (existing_animation.GetPropertyId() == property_id) {
 			animation = &existing_animation;
 			break;
 		}
@@ -2328,9 +2351,9 @@ bool Element::AddAnimationKey(const String & property_name, const Property & tar
 }
 
 
-ElementAnimationList::iterator Element::StartAnimation(const String & property_name, const Property* start_value, int num_iterations, bool alternate_direction, float delay)
+ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction, float delay)
 {
-	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == property_name; });
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == property_id; });
 
 	if (it == animations.end())
 	{
@@ -2344,10 +2367,10 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 	{
 		value = *start_value;
 		if (!value.definition)
-			if(auto default_value = GetProperty(property_name))
+			if(auto default_value = GetProperty(property_id))
 				value.definition = default_value->definition;	
 	}
-	else if (auto default_value = GetProperty(property_name))
+	else if (auto default_value = GetProperty(property_id))
 	{
 		value = *default_value;
 	}
@@ -2355,7 +2378,7 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 	if (value.definition)
 	{
 		double start_time = Clock::GetElapsedTime() + (double)delay;
-		*it = ElementAnimation{ property_name, value, start_time, 0.0f, num_iterations, alternate_direction, false };
+		*it = ElementAnimation{ property_id, value, start_time, 0.0f, num_iterations, alternate_direction, false };
 	}
 	else
 	{
@@ -2367,17 +2390,17 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 }
 
 
-bool Element::AddAnimationKeyTime(const String & property_name, const Property* target_value, float time, Tween tween)
+bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target_value, float time, Tween tween)
 {
 	if (!target_value)
-		target_value = GetProperty(property_name);
+		target_value = style->GetProperty(property_id);
 	if (!target_value)
 		return false;
 
 	ElementAnimation* animation = nullptr;
 
 	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyName() == property_name) {
+		if (existing_animation.GetPropertyId() == property_id) {
 			animation = &existing_animation;
 			break;
 		}
@@ -2392,7 +2415,7 @@ bool Element::AddAnimationKeyTime(const String & property_name, const Property* 
 
 bool Element::StartTransition(const Transition & transition, const Property& start_value, const Property & target_value)
 {
-	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == transition.name; });
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == transition.id; });
 
 	if (it != animations.end() && !it->IsTransition())
 		return false;
@@ -2404,7 +2427,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	{
 		// Add transition as new animation
 		animations.push_back(
-			ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true }
+			ElementAnimation{ transition.id, start_value, start_time, 0.0f, 1, false, true }
 		);
 		it = (animations.end() - 1);
 	}
@@ -2415,13 +2438,13 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
 		duration = duration * f;
 		// Replace old transition
-		*it = ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true };
+		*it = ElementAnimation{ transition.id, start_value, start_time, 0.0f, 1, false, true };
 	}
 
 	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);
 
 	if (result)
-		SetProperty(transition.name, start_value);
+		SetProperty(transition.id, start_value);
 	else
 		animations.erase(it);
 
@@ -2448,15 +2471,15 @@ void Element::UpdateAnimation()
 				Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
 				if (keyframes_ptr && keyframes_ptr->blocks.size() >= 1 && !animation.paused)
 				{
-					auto& property_names = keyframes_ptr->property_names;
+					auto& property_ids = keyframes_ptr->property_ids;
 					auto& blocks = keyframes_ptr->blocks;
 
 					bool has_from_key = (blocks[0].normalized_time == 0);
 					bool has_to_key = (blocks.back().normalized_time == 1);
 
 					// If the first key defines initial conditions for a given property, use those values, else, use this element's current values.
-					for (auto& property : property_names)
-						StartAnimation(property, (has_from_key ? blocks[0].properties.GetProperty(property) : nullptr), animation.num_iterations, animation.alternate, animation.delay);
+					for (PropertyId id : property_ids)
+						StartAnimation(id, (has_from_key ? blocks[0].properties.GetProperty(id) : nullptr), animation.num_iterations, animation.alternate, animation.delay);
 
 					// Need to skip the first and last keys if they set the initial and end conditions, respectively.
 					for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
@@ -2469,8 +2492,8 @@ void Element::UpdateAnimation()
 
 					// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
 					float time = animation.duration;
-					for (auto& property : property_names)
-						AddAnimationKeyTime(property, (has_to_key ? blocks.back().properties.GetProperty(property) : nullptr), time, animation.tween);
+					for (PropertyId id : property_ids)
+						AddAnimationKeyTime(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), time, animation.tween);
 				}
 			}
 		}
@@ -2489,7 +2512,7 @@ void Element::AdvanceAnimations()
 		{
 			Property property = animation.UpdateAndGetProperty(time, *this);
 			if (property.unit != Property::UNKNOWN)
-				SetProperty(animation.GetPropertyName(), property);
+				SetProperty(animation.GetPropertyId(), property);
 		}
 
 		auto it_completed = std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); });
@@ -2502,7 +2525,7 @@ void Element::AdvanceAnimations()
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
 			dictionary_list.emplace_back();
-			dictionary_list.back().emplace("property", it->GetPropertyName());
+			dictionary_list.back().emplace("property", StyleSheetSpecification::GetPropertyName(it->GetPropertyId()));
 			is_transition.push_back(it->IsTransition());
 		}
 

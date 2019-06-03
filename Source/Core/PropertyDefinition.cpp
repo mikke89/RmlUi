@@ -33,7 +33,8 @@
 namespace Rocket {
 namespace Core {
 
-PropertyDefinition::PropertyDefinition(const String& _default_value, bool _inherited, bool _forces_layout) : default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None)
+PropertyDefinition::PropertyDefinition(PropertyId id, const String& _default_value, bool _inherited, bool _forces_layout) 
+	: id(id), default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None)
 {
 	inherited = _inherited;
 	forces_layout = _forces_layout;
@@ -193,6 +194,11 @@ const Property* PropertyDefinition::GetDefaultValue() const
 RelativeTarget PropertyDefinition::GetRelativeTarget() const
 {
 	return relative_target;
+}
+
+PropertyId PropertyDefinition::GetId() const
+{
+	return id;
 }
 
 /// Set target for units with scaling percentages

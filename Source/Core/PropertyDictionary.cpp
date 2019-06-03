@@ -40,21 +40,23 @@ PropertyDictionary::~PropertyDictionary()
 }
 
 // Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
-void PropertyDictionary::SetProperty(const String& name, const Property& property)
+void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {
-	properties[name] = property;
+	ROCKET_ASSERT(id != PropertyId::Invalid && (size_t)id < properties.size());
+	properties[id] = property;
 }
 
 // Removes a property from the dictionary, if it exists.
-void PropertyDictionary::RemoveProperty(const String& name)
+void PropertyDictionary::RemoveProperty(PropertyId id)
 {
-	properties.erase(name);
+	ROCKET_ASSERT(id != PropertyId::Invalid && (size_t)id < properties.size());
+	properties.erase(id);
 }
 
 // Returns the value of the property with the requested name, if one exists.
-const Property* PropertyDictionary::GetProperty(const String& name) const
+const Property* PropertyDictionary::GetProperty(PropertyId id) const
 {
-	PropertyMap::const_iterator iterator = properties.find(name);
+	PropertyMap::const_iterator iterator = properties.find(id);
 	if (iterator == properties.end())
 		return NULL;
 
@@ -94,14 +96,14 @@ void PropertyDictionary::Merge(const PropertyDictionary& property_dictionary, in
 }
 
 // Sets a property on the dictionary and its specificity.
-void PropertyDictionary::SetProperty(const String& name, const Rocket::Core::Property& property, int specificity)
+void PropertyDictionary::SetProperty(PropertyId id, const Rocket::Core::Property& property, int specificity)
 {
-	PropertyMap::iterator iterator = properties.find(name);
+	PropertyMap::iterator iterator = properties.find(id);
 	if (iterator != properties.end() &&
 		iterator->second.specificity > specificity)
 		return;
 
-	Property& new_property = (properties[name] = property);
+	Property& new_property = (properties[id] = property);
 	new_property.specificity = specificity;
 }
 

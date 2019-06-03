@@ -68,7 +68,7 @@ public:
 	/// @param[in] name The name of the property to return.
 	/// @param[in] pseudo_classes The pseudo-classes currently active on the calling element.
 	/// @return The property defined against the give name, or NULL if no such property was found.
-	const Property* GetProperty(const String& name, const PseudoClassList& pseudo_classes) const;
+	const Property* GetProperty(PropertyId id, const PseudoClassList& pseudo_classes) const;
 
 	/// Returns the list of properties this element definition defines for an element with the given set of
 	/// pseudo-classes.
@@ -106,9 +106,9 @@ public:
 	bool IsStructurallyVolatile() const;
 
 	/// Returns an iterator to the first property matching the active set of pseudo_classes.
-	ElementDefinitionIterator begin(const StringList& pseudo_classes) const;
+	ElementDefinitionIterator begin(const PseudoClassList& pseudo_classes) const;
 	/// Returns an iterator to the property following the last property matching the active set of pseudo_classes.
-	ElementDefinitionIterator end(const StringList& pseudo_classes) const;
+	ElementDefinitionIterator end(const PseudoClassList& pseudo_classes) const;
 
 	/// Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
 	static bool IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);

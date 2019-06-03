@@ -43,9 +43,9 @@ private:
 public:
 	DirtyPropertyList(bool all_dirty = false) : all_dirty(all_dirty) {}
 
-	void Insert(const String& property_name) {
+	void Insert(PropertyId id) {
 		if (all_dirty) return;
-		dirty_list.insert(property_name);
+		dirty_list.insert(id);
 	}
 	void Insert(const PropertyNameList& properties) {
 		if (all_dirty) return;
@@ -64,10 +64,10 @@ public:
 	bool Empty() const {
 		return !all_dirty && dirty_list.empty();
 	}
-	bool Contains(const String & name) const {
+	bool Contains(PropertyId id) const {
 		if (all_dirty)
 			return true;
-		auto it = dirty_list.find(name);
+		auto it = dirty_list.find(id);
 		return (it != dirty_list.end());
 	}
 	bool AllDirty() const {
@@ -126,28 +126,24 @@ public:
 	/// @return A string containing all the classes on the element, separated by spaces.
 	String GetClassNames() const;
 
-	/// Sets a local property override on the element.
-	/// @param[in] name The name of the new property.
-	/// @param[in] property The new property to set.
-	bool SetProperty(const String& name, const String& value);
 	/// Sets a local property override on the element to a pre-parsed value.
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
-	bool SetProperty(const String& name, const Property& property);
+	bool SetProperty(PropertyId id, const Property& property);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
-	void RemoveProperty(const String& name);
+	void RemoveProperty(PropertyId id);
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if no property exists with the given name.
-	const Property* GetProperty(const String& name);
+	const Property* GetProperty(PropertyId id);
 	/// Returns one of this element's properties. If this element is not defined this property, NULL will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
-	const Property* GetLocalProperty(const String& name);
+	const Property* GetLocalProperty(PropertyId id);
 	/// Returns the local properties, excluding any properties from local class.
 	/// @return The local properties for this element, or NULL if no properties defined
 	const PropertyMap* GetLocalProperties() const;
@@ -189,14 +185,14 @@ public:
 
 private:
 	// Sets a single property as dirty.
-	void DirtyProperty(const String& property);
+	void DirtyProperty(PropertyId id);
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyNameList& properties);
 	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
 	void DirtyInheritedProperties(const PropertyNameList& properties);
 
-	static const Property* GetLocalProperty(const String & name, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
-	static const Property* GetProperty(const String & name, Element * element, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static const Property* GetLocalProperty(PropertyId id, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static const Property* GetProperty(PropertyId id, Element * element, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
 	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, PropertyDictionary * local_properties, ElementDefinition * old_definition, ElementDefinition * new_definition,
 		const PseudoClassList & pseudo_classes_before, const PseudoClassList & pseudo_classes_after);
 

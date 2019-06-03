@@ -197,16 +197,18 @@ public:
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
-	bool SetProperty(const String& name, const Property& property);
+	bool SetProperty(PropertyId id, const Property& property);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
 	void RemoveProperty(const String& name);
+	void RemoveProperty(PropertyId id);
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if no property exists with the given name.
 	const Property* GetProperty(const String& name);		
+	const Property* GetProperty(PropertyId id);		
 	/// Returns the values of one of this element's properties.		
 	/// @param[in] name The name of the property to get.
 	/// @return The value of this property.
@@ -650,10 +652,10 @@ private:
 	void UpdateTransformState();
 
 	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
+	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
 
 	// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
-	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
+	bool AddAnimationKeyTime(PropertyId property_id, const Property * target_value, float time, Tween tween);
 
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.

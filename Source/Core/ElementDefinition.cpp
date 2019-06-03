@@ -95,19 +95,19 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 			// pseudo-class properties.
 			for (PropertyMap::const_iterator k = (*j).second.GetProperties().begin(); k != (*j).second.GetProperties().end(); ++k)
 			{
-				const String& property_name = (*k).first;
+				PropertyId property_id = (*k).first;
 				const Property& property = (*k).second;
 
 				// Skip this property if its specificity is lower than the base property's, as in
 				// this case it will never be used.
-				const Property* default_property = properties.GetProperty(property_name);
+				const Property* default_property = properties.GetProperty(property_id);
 				if (default_property != NULL &&
 					default_property->specificity >= property.specificity)
 					continue;
 
-				PseudoClassPropertyDictionary::iterator l = pseudo_class_properties.find(property_name);
+				PseudoClassPropertyDictionary::iterator l = pseudo_class_properties.find(property_id);
 				if (l == pseudo_class_properties.end())
-					pseudo_class_properties[property_name] = PseudoClassPropertyList(1, PseudoClassProperty((*j).first, property));
+					pseudo_class_properties[property_id] = PseudoClassPropertyList(1, PseudoClassProperty((*j).first, property));
 				else
 				{
 					// Find the location to insert this entry in the map, based on property priorities.
@@ -127,12 +127,12 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 }
 
 // Returns a specific property from the element definition's base properties.
-const Property* ElementDefinition::GetProperty(const String& name, const PseudoClassList& pseudo_classes) const
+const Property* ElementDefinition::GetProperty(PropertyId id, const PseudoClassList& pseudo_classes) const
 {
 	// Find a pseudo-class override for this property.
 	if(pseudo_class_properties.size() > 0 && pseudo_classes.size() > 0)
 	{
-		PseudoClassPropertyDictionary::const_iterator property_iterator = pseudo_class_properties.find(name);
+		PseudoClassPropertyDictionary::const_iterator property_iterator = pseudo_class_properties.find(id);
 		if (property_iterator != pseudo_class_properties.end())
 		{
 			const PseudoClassPropertyList& property_list = (*property_iterator).second;
@@ -146,7 +146,7 @@ const Property* ElementDefinition::GetProperty(const String& name, const PseudoC
 		}
 	}
 
-	return properties.GetProperty(name);
+	return properties.GetProperty(id);
 }
 
 // Returns the list of properties this element definition defines for an element with the given set of pseudo-classes.
@@ -284,11 +284,11 @@ bool ElementDefinition::IsStructurallyVolatile() const
 	return structurally_volatile;
 }
 
-ElementDefinitionIterator ElementDefinition::begin(const StringList& pseudo_classes) const {
+ElementDefinitionIterator ElementDefinition::begin(const PseudoClassList& pseudo_classes) const {
 	return ElementDefinitionIterator(pseudo_classes, properties.GetProperties().begin(), pseudo_class_properties.begin(), properties.GetProperties().end(), pseudo_class_properties.end());
 }
 
-ElementDefinitionIterator ElementDefinition::end(const StringList& pseudo_classes) const {
+ElementDefinitionIterator ElementDefinition::end(const PseudoClassList& pseudo_classes) const {
 	return ElementDefinitionIterator(pseudo_classes, properties.GetProperties().end(), pseudo_class_properties.end(), properties.GetProperties().end(), pseudo_class_properties.end());
 }
 

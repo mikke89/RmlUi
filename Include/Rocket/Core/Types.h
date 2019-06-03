@@ -97,6 +97,7 @@ class ElementAnimation;
 class Property;
 class Variant;
 class Transform;
+enum class PropertyId : uint16_t;
 
 // Types for external interfaces.
 typedef uintptr_t FileHandle;
@@ -121,8 +122,8 @@ typedef std::vector< Element* > ElementList;
 typedef std::vector< String > PseudoClassList;
 typedef std::vector< ElementAnimation > ElementAnimationList;
 typedef SmallUnorderedSet< String > AttributeNameList;
-typedef SmallOrderedSet< String > PropertyNameList;
-typedef UnorderedMap< String, Property > PropertyMap;
+typedef SmallOrderedSet< PropertyId > PropertyNameList;
+typedef UnorderedMap< PropertyId, Property > PropertyMap;
 typedef SmallUnorderedMap< String, Variant > Dictionary;
 typedef Dictionary ElementAttributes;
 
@@ -137,9 +138,9 @@ struct TransitionList;
 // PseudoClassPropertyMap defined in StyleSheetNode.h ... bit clumsy). Here the properties are stored as a list
 // of definitions against each property name in specificity-order, along with the pseudo-class requirements for each
 // one. This makes it much more straight-forward to query at run-time.
-typedef std::pair< StringList, Property > PseudoClassProperty;
+typedef std::pair< PseudoClassList, Property > PseudoClassProperty;
 typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef SmallUnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+typedef SmallUnorderedMap< PropertyId, PseudoClassPropertyList > PseudoClassPropertyDictionary;
 
 }
 }

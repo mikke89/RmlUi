@@ -77,27 +77,27 @@ const ElementDefinition* ElementStyle::GetDefinition()
 
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(const String& name, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetLocalProperty(PropertyId id, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	// Check for overriding local properties.
 	if (local_properties != NULL)
 	{
-		const Property* property = local_properties->GetProperty(name);
+		const Property* property = local_properties->GetProperty(id);
 		if (property != NULL)
 			return property;
 	}
 
 	// Check for a property defined in an RCSS rule.
 	if (definition != NULL)
-		return definition->GetProperty(name, pseudo_classes);
+		return definition->GetProperty(id, pseudo_classes);
 
 	return NULL;
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetProperty(PropertyId id, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
-	const Property* local_property = GetLocalProperty(name, local_properties, definition, pseudo_classes);
+	const Property* local_property = GetLocalProperty(id, local_properties, definition, pseudo_classes);
 	if (local_property != NULL)
 		return local_property;
 
@@ -133,7 +133,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 	if (!old_definition || !new_definition || properties.empty())
 		return;
 
-	if (const Property* transition_property = GetLocalProperty(TRANSITION, local_properties, new_definition, pseudo_classes_after))
+	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, local_properties, new_definition, pseudo_classes_after))
 	{
 		auto transition_list = transition_property->Get<TransitionList>();
 
@@ -141,8 +141,8 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 		{
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
-				const Property* start_value = GetProperty(transition.name, element, local_properties, old_definition, pseudo_classes_before);
-				const Property* target_value = GetProperty(transition.name, element, nullptr, new_definition, pseudo_classes_after);
+				const Property* start_value = GetProperty(transition.id, element, local_properties, old_definition, pseudo_classes_before);
+				const Property* target_value = GetProperty(transition.id, element, nullptr, new_definition, pseudo_classes_after);
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
 				return transition_added;
@@ -153,7 +153,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 				Transition transition = transition_list.transitions[0];
 				for (auto it = properties.begin(); it != properties.end(); )
 				{
-					transition.name = *it;
+					transition.id = *it;
 					if (add_transition(transition))
 						it = properties.erase(it);
 					else
@@ -164,7 +164,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 			{
 				for (auto& transition : transition_list.transitions)
 				{
-					auto it = properties.find(transition.name);
+					auto it = properties.find(transition.id);
 					if (it != properties.end())
 					{
 						if (add_transition(transition))
@@ -352,67 +352,49 @@ String ElementStyle::GetClassNames() const
 	return class_names;
 }
 
-// Sets a local property override on the element.
-bool ElementStyle::SetProperty(const String& name, const String& value)
-{
-	if (local_properties == NULL)
-		local_properties = new PropertyDictionary();
-
-	if (StyleSheetSpecification::ParsePropertyDeclaration(*local_properties, name, value))
-	{
-		DirtyProperty(name);
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_WARNING, "Syntax error parsing inline property declaration '%s: %s;'.", name.c_str(), value.c_str());
-		return false;
-	}
-}
-
 // Sets a local property override on the element to a pre-parsed value.
-bool ElementStyle::SetProperty(const String& name, const Property& property)
+bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 {
 	Property new_property = property;
 
-	new_property.definition = StyleSheetSpecification::GetProperty(name);
+	new_property.definition = StyleSheetSpecification::GetProperty(id);
 	if (new_property.definition == NULL)
 		return false;
 
 	if (local_properties == NULL)
 		local_properties = new PropertyDictionary();
 
-	local_properties->SetProperty(name, new_property);
-	DirtyProperty(name);
+	local_properties->SetProperty(id, new_property);
+	DirtyProperty(id);
 
 	return true;
 }
 
 // Removes a local property override on the element.
-void ElementStyle::RemoveProperty(const String& name)
+void ElementStyle::RemoveProperty(PropertyId id)
 {
 	if (local_properties == NULL)
 		return;
 
-	if (local_properties->GetProperty(name) != NULL)
+	if (local_properties->GetProperty(id) != NULL)
 	{
-		local_properties->RemoveProperty(name);
-		DirtyProperty(name);
+		local_properties->RemoveProperty(id);
+		DirtyProperty(id);
 	}
 }
 
 
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(const String& name)
+const Property* ElementStyle::GetProperty(PropertyId id)
 {
-	return GetProperty(name, element, local_properties, definition, pseudo_classes);
+	return GetProperty(id, element, local_properties, definition, pseudo_classes);
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(const String& name)
+const Property* ElementStyle::GetLocalProperty(PropertyId id)
 {
-	return GetLocalProperty(name, local_properties, definition, pseudo_classes);
+	return GetLocalProperty(id, local_properties, definition, pseudo_classes);
 }
 
 const PropertyMap * ElementStyle::GetLocalProperties() const
@@ -525,10 +507,12 @@ void ElementStyle::DirtyRemProperties()
 	PropertyNameList rem_properties;
 
 	// Dirty all the properties of this element that use the rem unit.
-	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	for (auto name_property_pair : *this)
 	{
-		if (element->GetProperty(*list_iterator)->unit == Property::REM)
-			rem_properties.insert(*list_iterator);
+		PropertyId id = name_property_pair.first;
+		const Property& property = name_property_pair.second;
+		if (property.unit == Property::REM)
+			rem_properties.insert(id);
 	}
 
 	if (!rem_properties.empty())
@@ -546,10 +530,12 @@ void ElementStyle::DirtyDpProperties()
 	PropertyNameList dp_properties;
 
 	// Dirty all the properties of this element that use the dp unit.
-	for (PropertyNameList::const_iterator list_iterator = properties.begin(); list_iterator != properties.end(); ++list_iterator)
+	for (auto name_property_pair : *this)
 	{
-		if (element->GetProperty(*list_iterator)->unit == Property::DP)
-			dp_properties.insert(*list_iterator);
+		PropertyId id = name_property_pair.first;
+		const Property& property = name_property_pair.second;
+		if (property.unit == Property::DP)
+			dp_properties.insert(id);
 	}
 
 	if (!dp_properties.empty())
@@ -601,9 +587,9 @@ ElementStyleIterator ElementStyle::end() const {
 }
 
 // Sets a single property as dirty.
-void ElementStyle::DirtyProperty(const String& property)
+void ElementStyle::DirtyProperty(PropertyId id)
 {
-	dirty_properties.Insert(property);
+	dirty_properties.Insert(id);
 }
 
 // Sets a list of properties as dirty.
@@ -669,7 +655,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 	// Always do font-size first if dirty, because of em-relative values
 	{
-		if (auto p = GetLocalProperty(FONT_SIZE))
+		if (auto p = GetLocalProperty(PropertyId::FontSize))
 			values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio);
 		else if (parent_values)
 			values.font_size = parent_values->font_size;
@@ -684,7 +670,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 	// Since vertical-align depends on line-height we compute this before iteration
 	{
-		if (auto p = GetLocalProperty(LINE_HEIGHT))
+		if (auto p = GetLocalProperty(PropertyId::LineHeight))
 		{
 			values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio);
 		}
@@ -699,7 +685,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		}
 
 		if(line_height_before != values.line_height.value)
-			dirty_properties.Insert(VERTICAL_ALIGN);
+			dirty_properties.Insert(PropertyId::VerticalAlign);
 	}
 
 
@@ -731,163 +717,226 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 	for(auto name_property_pair : *this)
 	{
-		auto& name = name_property_pair.first;
+		PropertyId id = name_property_pair.first;
 		const Property* p = &name_property_pair.second;
 
 		using namespace Style;
 
-		// @performance: Can use a switch-case with constexpr hashing function
-		// Or even better: a PropertyId enum, but the problem is custom properties such as decorators. We may want to redo the decleration of these perhaps...
-		// @performance: Compare to the list of actually changed properties, skip if not inside it
-
-		if (name == MARGIN_TOP)
+		switch (id)
+		{
+		case PropertyId::MarginTop:
 			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == MARGIN_RIGHT)
+			break;
+		case PropertyId::MarginRight:
 			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == MARGIN_BOTTOM)
+			break;
+		case PropertyId::MarginBottom:
 			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == MARGIN_LEFT)
+			break;
+		case PropertyId::MarginLeft:
 			values.margin_left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == PADDING_TOP)
+		case PropertyId::PaddingTop:
 			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
-		else if (name == PADDING_RIGHT)
+			break;
+		case PropertyId::PaddingRight:
 			values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
-		else if (name == PADDING_BOTTOM)
+			break;
+		case PropertyId::PaddingBottom:
 			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
-		else if (name == PADDING_LEFT)
+			break;
+		case PropertyId::PaddingLeft:
 			values.padding_left = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == BORDER_TOP_WIDTH)
+		case PropertyId::BorderTopWidth:
 			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
-		else if (name == BORDER_RIGHT_WIDTH)
+			break;
+		case PropertyId::BorderRightWidth:
 			values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
-		else if (name == BORDER_BOTTOM_WIDTH)
+			break;
+		case PropertyId::BorderBottomWidth:
 			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
-		else if (name == BORDER_LEFT_WIDTH)
+			break;
+		case PropertyId::BorderLeftWidth:
 			values.border_left_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == BORDER_TOP_COLOR)
+		case PropertyId::BorderTopColor:
 			values.border_top_color = p->Get<Colourb>();
-		else if (name == BORDER_RIGHT_COLOR)
+			break;
+		case PropertyId::BorderRightColor:
 			values.border_right_color = p->Get<Colourb>();
-		else if (name == BORDER_BOTTOM_COLOR)
+			break;
+		case PropertyId::BorderBottomColor:
 			values.border_bottom_color = p->Get<Colourb>();
-		else if (name == BORDER_LEFT_COLOR)
+			break;
+		case PropertyId::BorderLeftColor:
 			values.border_left_color = p->Get<Colourb>();
+			break;
 
-		else if (name == DISPLAY)
+		case PropertyId::Display:
 			values.display = (Display)p->Get<int>();
-		else if (name == POSITION)
+			break;
+		case PropertyId::Position:
 			values.position = (Position)p->Get<int>();
+			break;
 
-		else if (name == TOP)
+		case PropertyId::Top:
 			values.top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == RIGHT)
+			break;
+		case PropertyId::Right:
 			values.right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == BOTTOM)
+			break;
+		case PropertyId::Bottom:
 			values.bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == LEFT)
+			break;
+		case PropertyId::Left:
 			values.left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == FLOAT)
+		case PropertyId::Float:
 			values.float_ = (Float)p->Get<int>();
-		else if (name == CLEAR)
+			break;
+		case PropertyId::Clear:
 			values.clear = (Clear)p->Get<int>();
+			break;
 
-		else if (name == Z_INDEX)
+		case PropertyId::ZIndex:
 			values.z_index = (p->unit == Property::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>()));
+			break;
 
-		else if (name == WIDTH)
+		case PropertyId::Width:
 			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == MIN_WIDTH)
+			break;
+		case PropertyId::MinWidth:
 			values.min_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
-		else if (name == MAX_WIDTH)
+			break;
+		case PropertyId::MaxWidth:
 			values.max_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == HEIGHT)
+		case PropertyId::Height:
 			values.height = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
-		else if (name == MIN_HEIGHT)
+			break;
+		case PropertyId::MinHeight:
 			values.min_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
-		else if (name == MAX_HEIGHT)
+			break;
+		case PropertyId::MaxHeight:
 			values.max_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		// (Line-height computed above)
-		else if (name == VERTICAL_ALIGN)
+		case PropertyId::LineHeight:
+			// (Line-height computed above)
+			break;
+		case PropertyId::VerticalAlign:
 			values.vertical_align = ComputeVerticalAlign(p, values.line_height.value, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == OVERFLOW_X)
+		case PropertyId::OverflowX:
 			values.overflow_x = (Overflow)p->Get< int >();
-		else if (name == OVERFLOW_Y)
+			break;
+		case PropertyId::OverflowY:
 			values.overflow_y = (Overflow)p->Get< int >();
-		else if (name == CLIP)
+			break;
+		case PropertyId::Clip:
 			values.clip = ComputeClip(p);
-		else if (name == VISIBILITY)
+			break;
+		case PropertyId::Visibility:
 			values.visibility = (Visibility)p->Get< int >();
+			break;
 
-		else if (name == BACKGROUND_COLOR)
+		case PropertyId::BackgroundColor:
 			values.background_color = p->Get<Colourb>();
-		else if (name == COLOR)
+			break;
+		case PropertyId::Color:
 			values.color = p->Get<Colourb>();
-		else if (name == IMAGE_COLOR)
+			break;
+		case PropertyId::ImageColor:
 			values.image_color = p->Get<Colourb>();
-		else if (name == OPACITY)
+			break;
+		case PropertyId::Opacity:
 			values.opacity = p->Get<float>();
+			break;
 
-		else if (name == FONT_FAMILY)
+		case PropertyId::FontFamily:
 			values.font_family = ToLower(p->Get<String>());
-		else if (name == FONT_CHARSET)
+			break;
+		case PropertyId::FontCharset:
 			values.font_charset = p->Get<String>();
-		else if (name == FONT_STYLE)
+			break;
+		case PropertyId::FontStyle:
 			values.font_style = (FontStyle)p->Get< int >();
-		else if (name == FONT_WEIGHT)
+			break;
+		case PropertyId::FontWeight:
 			values.font_weight = (FontWeight)p->Get< int >();
-		// (font-size computed above)
+			break;
+		case PropertyId::FontSize:
+			// (font-size computed above)
+			break;
 
-		else if (name == TEXT_ALIGN)
+		case PropertyId::TextAlign:
 			values.text_align = (TextAlign)p->Get< int >();
-		else if (name == TEXT_DECORATION)
+			break;
+		case PropertyId::TextDecoration:
 			values.text_decoration = (TextDecoration)p->Get< int >();
-		else if (name == TEXT_TRANSFORM)
+			break;
+		case PropertyId::TextTransform:
 			values.text_transform = (TextTransform)p->Get< int >();
-		else if (name == WHITE_SPACE)
+			break;
+		case PropertyId::WhiteSpace:
 			values.white_space = (WhiteSpace)p->Get< int >();
+			break;
 
-		else if (name == CURSOR)
+		case PropertyId::Cursor:
 			values.cursor = p->Get< String >();
+			break;
 
-		else if (name == DRAG)
+		case PropertyId::Drag:
 			values.drag = (Drag)p->Get< int >();
-		else if (name == TAB_INDEX)
+			break;
+		case PropertyId::TabIndex:
 			values.tab_index = (TabIndex)p->Get< int >();
-		else if (name == FOCUS)
+			break;
+		case PropertyId::Focus:
 			values.focus = (Focus)p->Get<int>();
-		else if (name == SCROLLBAR_MARGIN)
+			break;
+		case PropertyId::ScrollbarMargin:
 			values.scrollbar_margin = ComputeLength(p, font_size, document_font_size, dp_ratio);
-		else if (name == POINTER_EVENTS)
+			break;
+		case PropertyId::PointerEvents:
 			values.pointer_events = (PointerEvents)p->Get<int>();
+			break;
 
-		else if (name == PERSPECTIVE)
+		case PropertyId::Perspective:
 			values.perspective = ComputeLength(p, font_size, document_font_size, dp_ratio);
-		else if (name == PERSPECTIVE_ORIGIN_X)
+			break;
+		case PropertyId::PerspectiveOriginX:
 			values.perspective_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
-		else if (name == PERSPECTIVE_ORIGIN_Y)
+			break;
+		case PropertyId::PerspectiveOriginY:
 			values.perspective_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == TRANSFORM)
+		case PropertyId::Transform:
 			values.transform = p->Get<TransformRef>();
-		else if(name == TRANSFORM_ORIGIN_X)
+		case PropertyId::TransformOriginX:
 			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
-		else if (name == TRANSFORM_ORIGIN_Y)
+			break;
+		case PropertyId::TransformOriginY:
 			values.transform_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
-		else if (name == TRANSFORM_ORIGIN_Z)
+			break;
+		case PropertyId::TransformOriginZ:
 			values.transform_origin_z = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			break;
 
-		else if (name == TRANSITION)
+		case PropertyId::Transition:
 			values.transition = p->Get<TransitionList>();
-		else if (name == ANIMATION)
+			break;
+		case PropertyId::Animation:
 			values.animation = p->Get<AnimationList>();
-
+		}
 	}
 
 

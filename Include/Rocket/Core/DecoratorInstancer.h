@@ -79,7 +79,7 @@ protected:
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
+	bool RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 
 	// Releases the instancer.
 	virtual void OnReferenceDeactivate();

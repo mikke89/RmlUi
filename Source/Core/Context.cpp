@@ -50,7 +50,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	root = Factory::InstanceElement(NULL, "*", "#root", XMLAttributes());
 	root->SetId(name);
 	root->SetOffset(Vector2f(0, 0), NULL);
-	root->SetProperty(Z_INDEX, Property(0, Property::NUMBER));
+	root->SetProperty(PropertyId::ZIndex, Property(0, Property::NUMBER));
 
 	Element* element = Factory::InstanceElement(NULL, "body", "body", XMLAttributes());
 	cursor_proxy = dynamic_cast< ElementDocument* >(element);

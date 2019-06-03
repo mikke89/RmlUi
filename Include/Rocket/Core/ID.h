@@ -32,6 +32,115 @@
 namespace Rocket {
 namespace Core {
 
+
+enum class ShorthandId : uint16_t
+{
+	Invalid,
+
+	Margin,
+	Padding,
+	BorderWidth,
+	BorderColor,
+	BorderTop,
+	BorderRight,
+	BorderBottom,
+	BorderLeft,
+	Border,
+	Overflow,
+	Background,
+	Font,
+	PerspectiveOrigin,
+	TransformOrigin,
+
+	NumDefinedIds,
+	FirstCustomId = NumDefinedIds
+};
+
+
+enum class PropertyId : uint16_t
+{
+	Invalid,
+
+	MarginTop,
+	MarginRight,
+	MarginBottom,
+	MarginLeft,
+	PaddingTop,
+	PaddingRight,
+	PaddingBottom,
+	PaddingLeft,
+	BorderTopWidth,
+	BorderRightWidth,
+	BorderBottomWidth,
+	BorderLeftWidth,
+	BorderTopColor,
+	BorderRightColor,
+	BorderBottomColor,
+	BorderLeftColor,
+	Display,
+	Position,
+	Top,
+	Right,
+	Bottom,
+	Left,
+	Float,
+	Clear,
+	ZIndex,
+	Width,
+	MinWidth,
+	MaxWidth,
+	Height,
+	MinHeight,
+	MaxHeight,
+	LineHeight,
+	VerticalAlign,
+	OverflowX,
+	OverflowY,
+	Clip,
+	Visibility,
+	BackgroundColor,
+	Color,
+	ImageColor,
+	FontFamily,
+	FontCharset,
+	FontStyle,
+	FontWeight,
+	FontSize,
+	Font,
+	TextAlign,
+	TextDecoration,
+	TextTransform,
+	WhiteSpace,
+	Cursor,
+	Drag,
+	TabIndex,
+	ScrollbarMargin,
+
+	Perspective,
+	PerspectiveOriginX,
+	PerspectiveOriginY,
+	Transform,
+	TransformOriginX,
+	TransformOriginY,
+	TransformOriginZ,
+	None,
+	All,
+
+	Transition,
+	Animation,
+	Keyframes,
+
+	ScrollDefaultStepSize,
+	Opacity,
+	PointerEvents,
+	Focus,
+
+	NumDefinedIds,
+	FirstCustomId = NumDefinedIds
+};
+
+
+
 enum class EventId : uint16_t 
 {
 	Invalid,

@@ -113,7 +113,7 @@ void StyleSheetNode::Write(Stream* stream)
 		const Rocket::Core::PropertyMap& property_map = properties.GetProperties();
 		for (Rocket::Core::PropertyMap::const_iterator i = property_map.begin(); i != property_map.end(); ++i)
 		{
-			const String& name = i->first;
+			const String& name = StyleSheetSpecification::GetPropertyName(i->first);
 			const Rocket::Core::Property& property = i->second;
 
 			stream->Write(CreateString(1024, "\t%s: %s; /* specificity: %d */\n", name.c_str(), property.value.Get< String >().c_str(), property.specificity));
