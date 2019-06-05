@@ -18,6 +18,27 @@ set(shell_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellSystemInterface.cpp
 )
 
+set(animation_HDR_FILES
+)
+
+set(animation_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/animation/src/main.cpp
+)
+
+set(benchmark_HDR_FILES
+)
+
+set(benchmark_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/src/main.cpp
+)
+
+set(bitmapfont_HDR_FILES
+)
+
+set(bitmapfont_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/main.cpp
+)
+
 set(customlog_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/customlog/src/SystemInterface.h
 )
@@ -43,13 +64,6 @@ set(loaddocument_HDR_FILES
 
 set(loaddocument_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/loaddocument/src/main.cpp
-)
-
-set(bitmapfont_HDR_FILES
-)
-
-set(bitmapfont_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/main.cpp
 )
 
 set(ogre3d_HDR_FILES
@@ -83,20 +97,6 @@ set(transform_HDR_FILES
 
 set(transform_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/transform/src/main.cpp
-)
-
-set(animation_HDR_FILES
-)
-
-set(animation_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/animation/src/main.cpp
-)
-
-set(benchmark_HDR_FILES
-)
-
-set(benchmark_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/src/main.cpp
 )
 
 set(sdl2_HDR_FILES

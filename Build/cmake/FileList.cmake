@@ -1,6 +1,13 @@
 # This file was auto-generated with gen_filelists.sh
 
 set(Core_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BitmapFontDefinitions.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
@@ -44,13 +51,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/precompiled.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BitmapFontDefinitions.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
@@ -110,13 +110,14 @@ set(MASTER_Core_PUB_HDR_FILES
 set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Animation.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BaseXMLParser.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BitmapFont/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Box.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ComputedValues.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/robin_hood.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/chobo/flat_map.hpp
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/chobo/flat_set.hpp
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Containers/robin_hood.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Context.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ContextInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ConvolutionFilter.h
@@ -150,7 +151,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontGlyph.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FreeType/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BitmapFont/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Geometry.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/GeometryUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Header.h
@@ -158,9 +158,9 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Input.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Log.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Math.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/MathTypes.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Matrix4.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Matrix4.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/MathTypes.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Platform.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Plugin.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Property.h
@@ -182,12 +182,12 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/SystemInterface.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Texture.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Transform.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TransformState.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TransformPrimitive.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TransformState.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Types.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/URL.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.inl
@@ -205,6 +205,12 @@ set(Core_PUB_HDR_FILES
 
 set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/BaseXMLParser.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Box.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.cpp
@@ -271,12 +277,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontProvider.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
@@ -338,8 +338,8 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutTexture.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Transform.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/UnicodeRange.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
