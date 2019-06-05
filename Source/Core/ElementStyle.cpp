@@ -247,14 +247,12 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 		pseudo_classes.push_back(pseudo_class);
 	else
 	{
-		// In case of duplicates, we do a loop here. We could do a sort and unique instead,
-		// but that might even be slower for a small list with few duplicates, which
-		// is probably the most common case.
+		// In case of duplicates, we do a loop here.
 		auto it = std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class);
 		while(it != pseudo_classes.end())
 		{
-			pseudo_classes.erase(it);
-			it = std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class);
+			auto it_next = pseudo_classes.erase(it);
+			it = std::find(it_next, pseudo_classes.end(), pseudo_class);
 		}
 	}
 
