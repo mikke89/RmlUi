@@ -29,6 +29,7 @@
 #include <Rocket/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include "SystemInterface.h"
 
 Rocket::Core::Context* context = NULL;
@@ -61,12 +62,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/basic/customlog/"
-#else
-#define APP_PATH "../../Samples/basic/customlog/"
-#endif
-
 #ifdef ROCKET_PLATFORM_WIN32
         AllocConsole();
 #endif
@@ -78,7 +73,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Custom File Handler Sample", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
@@ -109,10 +104,10 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Shell::LoadFonts("../../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Load a non-existent document to spawn an error message.
-	Rocket::Core::ElementDocument* invalid_document = context->LoadDocument("../../assets/invalid.rml");
+	Rocket::Core::ElementDocument* invalid_document = context->LoadDocument("assets/invalid.rml");
 	ROCKET_ASSERTMSG(invalid_document != NULL, "Testing ASSERT logging.");
 	if (invalid_document != NULL)
 	{
@@ -121,7 +116,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	}
 
 	// Load and show the demo document.
-	Rocket::Core::ElementDocument* document = context->LoadDocument("../../assets/demo.rml");
+	Rocket::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
 	if (document != NULL)
 	{
 		document->Show();

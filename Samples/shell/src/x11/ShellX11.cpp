@@ -26,6 +26,7 @@
  */
 
 #include <Shell.h>
+#include <ShellOpenGL.h>
 #include <Rocket/Core.h>
 #include "ShellFileInterface.h"
 #include <x11/InputX11.h>
@@ -36,6 +37,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <limits.h>
 
 static bool running = false;
 static int screen = -1;
@@ -43,12 +46,20 @@ static timeval start_time;
 
 static ShellFileInterface* file_interface = NULL;
 
-bool Shell::Initialise(const Rocket::Core::String& path)
+static bool isDirectory(const Rocket::Core::String &path)
+{
+	struct stat sb;
+	return (stat(path.CString(), &sb)==0 && S_ISDIR(sb.st_mode));
+}
+
+bool Shell::Initialise()
 {
 	gettimeofday(&start_time, NULL);
 	InputX11::Initialise();
 
-	file_interface = new ShellFileInterface(path);
+	Rocket::Core::String root = FindSamplesRoot();
+
+	file_interface = new ShellFileInterface(root);
 	Rocket::Core::SetFileInterface(file_interface);
 
 	return true;
@@ -60,6 +71,34 @@ void Shell::Shutdown()
 
 	delete file_interface;
 	file_interface = NULL;
+}
+
+Rocket::Core::String Shell::FindSamplesRoot()
+{
+	char executable_file_name[PATH_MAX];
+	ssize_t len = readlink("/proc/self/exe", executable_file_name, PATH_MAX);
+	if (len == -1) {
+		printf("Unable to determine the executable path!\n");
+		executable_file_name[0] = 0;
+	} else {
+		// readlink() does not append a null byte to buf.
+		executable_file_name[len] = 0;
+	}
+	Rocket::Core::String executable_path = Rocket::Core::String(executable_file_name);
+	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
+	
+	// for "../Samples/" to be valid we must be in the Build directory.
+	// NOTE: we can't use "../../Samples/" because it is valid only if:
+	//  1. we are in the installation directory and
+	//  2. the installation directory is exactly "Samples" (case sensitive).
+	Rocket::Core::String path = "../Samples/";
+	
+	if(!isDirectory(executable_path + path)) {
+		// we probably are in the installation directory, up by 1 should do.
+		path = "../";
+	}
+	
+	return (executable_path + path);
 }
 
 static Display* display = NULL;

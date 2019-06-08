@@ -13,6 +13,7 @@
 #include <Rocket/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include "Inventory.h"
 
 Rocket::Core::Context* context = NULL;
@@ -45,12 +46,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/tutorial/tutorial_drag/"
-#else
-#define APP_PATH "../../Samples/tutorial/tutorial_drag/"
-#endif
-
 #ifdef ROCKET_PLATFORM_WIN32
         AllocConsole();
 #endif
@@ -62,7 +57,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Drag Tutorial", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
@@ -91,7 +86,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Shell::LoadFonts("../../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Load and show the inventory document.
 	Inventory* inventory_1 = new Inventory("Inventory 1", Rocket::Core::Vector2f(50, 200), context);

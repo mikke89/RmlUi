@@ -31,13 +31,7 @@
 #include <Rocket/Core/Types.h>
 #include <Rocket/Core/Context.h>
 #include <Rocket/Core/SystemInterface.h>
-#include <ShellRenderInterfaceExtensions.h>
-
-#ifdef ROCKET_PLATFORM_WIN32
-#define PATH_SEPARATOR	";"
-#else
-#define PATH_SEPARATOR	":"
-#endif
+#include "ShellRenderInterfaceExtensions.h"
 
 /**
 	Shell functions for creating windows, attaching OpenGL and handling input in a platform independent way.
@@ -48,16 +42,15 @@ class Shell
 {
 public:
 	/// Initialise the shell.
-	/// @param[in] path The path (relative to the current working directory) of the application's working directory.
-	static bool Initialise(const Rocket::Core::String& path);
+	static bool Initialise();
 	/// Shutdown the shell.
 	static void Shutdown();
 
+	/// Finds the Samples root directory.
+	static Rocket::Core::String FindSamplesRoot();
+	
 	/// Loads the default fonts from the given path.
 	static void LoadFonts(const char* directory);
-
-	/// Returns the path to the application's executable.
-	static const Rocket::Core::String& GetExecutablePath();
 
 	/// Open a platform specific window, optionally initialising an OpenGL context on it.
 	/// @param[in] title Title of the window.
@@ -87,11 +80,9 @@ public:
 	static void SetContext(Rocket::Core::Context* context);
 
 private:
-	static Rocket::Core::String executable_path;
 	static Rocket::Core::Context* context;
 };
 
-#include "ShellRenderInterfaceOpenGL.h"
 #include "ShellSystemInterface.h"
 
 #endif

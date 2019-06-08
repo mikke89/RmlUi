@@ -144,7 +144,7 @@ Rocket::Core::ElementDocument* EventManager::LoadWindow(const Rocket::Core::Stri
 		event_handler = NULL;
 
 	// Attempt to load the referenced RML document.
-	Rocket::Core::String document_path = Rocket::Core::String("data/") + window_name + Rocket::Core::String(".rml");
+	Rocket::Core::String document_path = Rocket::Core::String("invaders/data/") + window_name + Rocket::Core::String(".rml");
 	Rocket::Core::ElementDocument* document = context->LoadDocument(document_path.CString());
 	if (document == NULL)
 	{

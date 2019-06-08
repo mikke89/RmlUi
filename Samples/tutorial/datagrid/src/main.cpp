@@ -14,6 +14,7 @@
 #include <Rocket/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include "DecoratorInstancerDefender.h"
 #include "HighScores.h"
 
@@ -47,12 +48,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/tutorial/datagrid/"
-#else
-#define APP_PATH "../../Samples/tutorial/datagrid/"
-#endif
-
 #ifdef ROCKET_PLATFORM_WIN32
         AllocConsole();
 #endif
@@ -61,7 +56,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Datagrid Tutorial", shell_renderer, 1024, 768, true))
 	{
 		Shell::Shutdown();
@@ -91,7 +86,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Shell::LoadFonts("../../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Load the defender decorator.
 	Rocket::Core::DecoratorInstancer* decorator_instancer = Rocket::Core::Factory::RegisterDecoratorInstancer("defender", new DecoratorInstancerDefender());
@@ -102,7 +97,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	HighScores::Initialise();
 
 	// Load and show the tutorial document.
-	Rocket::Core::ElementDocument* document = context->LoadDocument("data/tutorial.rml");
+	Rocket::Core::ElementDocument* document = context->LoadDocument("tutorial/datagrid/data/tutorial.rml");
 	document->GetElementById("title")->SetInnerRML(document->GetTitle());
 	if (document != NULL)
 	{

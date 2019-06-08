@@ -30,6 +30,7 @@
 #include <Rocket/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include "FileFormatter.h"
 #include "FileSystem.h"
 
@@ -63,12 +64,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/basic/treeview/"
-#else
-#define APP_PATH "../../Samples/basic/treeview/"
-#endif
-
 #ifdef ROCKET_PLATFORM_WIN32
         AllocConsole();
 #endif
@@ -80,7 +75,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Tree View Sample", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
@@ -110,14 +105,15 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Shell::LoadFonts("../../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Create the file data source and formatter.
-	FileSystem file_system("../Samples/basic/treeview/");
+	Rocket::Core::String root = Shell::FindSamplesRoot();
+	FileSystem file_system(root + "basic/");
 	FileFormatter file_formatter;
 
 	// Load and show the demo document.
-	Rocket::Core::ElementDocument* document = context->LoadDocument("data/treeview.rml");
+	Rocket::Core::ElementDocument* document = context->LoadDocument("basic/treeview/data/treeview.rml");
 	if (document != NULL)
 	{
 		document->GetElementById("title")->SetInnerRML(document->GetTitle());

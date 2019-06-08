@@ -73,7 +73,7 @@ void HighScores::LoadScores()
 {
 	// Open and read the high score file.
 	Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
-	Rocket::Core::FileHandle scores_file = file_interface->Open("high_score.txt");
+	Rocket::Core::FileHandle scores_file = file_interface->Open("tutorial/datagrid/data/high_score.txt");
 	
 	if (scores_file)
 	{

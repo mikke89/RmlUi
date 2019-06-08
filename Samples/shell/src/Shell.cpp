@@ -28,8 +28,6 @@
 #include "Shell.h"
 #include <Rocket/Core/FontDatabase.h>
 
-Rocket::Core::String Shell::executable_path;
-
 /// Loads the default fonts from the given path.
 void Shell::LoadFonts(const char* directory)
 {
@@ -43,11 +41,5 @@ void Shell::LoadFonts(const char* directory)
 	{
 		Rocket::Core::FontDatabase::LoadFontFace(Rocket::Core::String(directory) + font_names[i]);
 	}
-}
-
-// Returns the path to the application's executable.
-const Rocket::Core::String& Shell::GetExecutablePath()
-{
-	return executable_path;
 }
 

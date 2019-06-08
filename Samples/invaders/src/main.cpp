@@ -29,6 +29,7 @@
 #include <Rocket/Controls.h>
 #include <Rocket/Debugger.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include <Input.h>
 #include "DecoratorInstancerDefender.h"
 #include "DecoratorInstancerStarfield.h"
@@ -72,12 +73,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/invaders/"
-#else
-#define APP_PATH "../../Samples/invaders/"
-#endif
-
 #ifdef ROCKET_PLATFORM_WIN32
 	AllocConsole();
 #endif
@@ -89,7 +84,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Rocket Invaders from Mars", shell_renderer, window_width, window_height, false))
 	{
 		Shell::Shutdown();
@@ -122,7 +117,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer->SetContext(context);
 
 	// Load the font faces required for Invaders.
-	Shell::LoadFonts("../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom element and decorator instancers.
 	Rocket::Core::ElementInstancer* element_instancer = new Rocket::Core::ElementInstancerGeneric< ElementGame >();

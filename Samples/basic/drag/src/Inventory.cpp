@@ -32,7 +32,7 @@
 // Constructs a new inventory and opens its window.
 Inventory::Inventory(const Rocket::Core::String& title, const Rocket::Core::Vector2f& position, Rocket::Core::Context* context)
 {
-	document = context->LoadDocument("data/inventory.rml");
+	document = context->LoadDocument("basic/drag/data/inventory.rml");
 	if (document != NULL)
 	{
 		document->GetElementById("title")->SetInnerRML(title);
