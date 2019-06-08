@@ -2297,7 +2297,7 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 {
 	bool result = false;
 
-	auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay);
+	auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay, false);
 	if (it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
@@ -2328,7 +2328,7 @@ bool Element::AddAnimationKey(const String & property_name, const Property & tar
 }
 
 
-ElementAnimationList::iterator Element::StartAnimation(const String & property_name, const Property* start_value, int num_iterations, bool alternate_direction, float delay)
+ElementAnimationList::iterator Element::StartAnimation(const String & property_name, const Property* start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property)
 {
 	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == property_name; });
 
@@ -2354,8 +2354,9 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 
 	if (value.definition)
 	{
+		ElementAnimationOrigin origin = (origin_is_animation_property ? ElementAnimationOrigin::Animation : ElementAnimationOrigin::User);
 		double start_time = Clock::GetElapsedTime() + (double)delay;
-		*it = ElementAnimation{ property_name, value, start_time, 0.0f, num_iterations, alternate_direction, false };
+		*it = ElementAnimation{ property_name, origin, value, start_time, 0.0f, num_iterations, alternate_direction };
 	}
 	else
 	{
@@ -2404,7 +2405,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	{
 		// Add transition as new animation
 		animations.push_back(
-			ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true }
+			ElementAnimation{ transition.name, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false }
 		);
 		it = (animations.end() - 1);
 	}
@@ -2415,7 +2416,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
 		duration = duration * f;
 		// Replace old transition
-		*it = ElementAnimation{ transition.name, start_value, start_time, 0.0f, 1, false, true };
+		*it = ElementAnimation{ transition.name, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false };
 	}
 
 	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);
@@ -2438,11 +2439,27 @@ void Element::UpdateAnimation()
 {
 	if (dirty_animation)
 	{
-		const auto& animation_list = element_meta->computed_values.animation;
+		const AnimationList& animation_list = element_meta->computed_values.animation;
+		bool element_has_animations = (!animation_list.empty() || !animations.empty());
 		StyleSheet* stylesheet = nullptr;
 
-		if (!animation_list.empty() && (stylesheet = GetStyleSheet()))
+		if (element_has_animations && (stylesheet = GetStyleSheet()))
 		{
+			// Remove existing animations
+			{
+				// We only touch the animations that originate from the 'animation' property.
+				auto it_remove = std::remove_if(animations.begin(), animations.end(), 
+					[](const ElementAnimation & animation) { return animation.GetOrigin() == ElementAnimationOrigin::Animation; }
+				);
+
+				// We can decide what to do with ended animations here. Now, we remove the properties modified by the animation.
+				for (auto it = it_remove; it != animations.end(); ++it)
+					RemoveProperty(it->GetPropertyName());
+
+				animations.erase(it_remove, animations.end());
+			}
+
+			// Start animations
 			for (auto& animation : animation_list)
 			{
 				Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
@@ -2456,7 +2473,7 @@ void Element::UpdateAnimation()
 
 					// If the first key defines initial conditions for a given property, use those values, else, use this element's current values.
 					for (auto& property : property_names)
-						StartAnimation(property, (has_from_key ? blocks[0].properties.GetProperty(property) : nullptr), animation.num_iterations, animation.alternate, animation.delay);
+						StartAnimation(property, (has_from_key ? blocks[0].properties.GetProperty(property) : nullptr), animation.num_iterations, animation.alternate, animation.delay, true);
 
 					// Need to skip the first and last keys if they set the initial and end conditions, respectively.
 					for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
@@ -2492,6 +2509,7 @@ void Element::AdvanceAnimations()
 				SetProperty(animation.GetPropertyName(), property);
 		}
 
+		// Remove completed animations
 		auto it_completed = std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); });
 
 		std::vector<Dictionary> dictionary_list;

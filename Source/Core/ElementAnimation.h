@@ -42,7 +42,11 @@ struct AnimationKey {
 	Tween tween;  // Tweening between the previous and this key. Ignored for the first animation key.
 };
 
-
+// The origin is tracked for determining its behavior when adding and removing animations.
+// User: Animation started by the Element API
+// Animation: Animation started by the 'animation' property
+// Transition: Animation started by the 'transition' property
+enum class ElementAnimationOrigin : uint8_t { User, Animation, Transition };
 
 class ElementAnimation
 {
@@ -61,14 +65,14 @@ private:
 	bool reverse_direction;
 
 	bool animation_complete;
-	bool is_transition;
+	ElementAnimationOrigin origin;
 
 	bool InternalAddKey(AnimationKey key);
 
 	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
 public:
 	ElementAnimation() {}
-	ElementAnimation(const String& property_name, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition);
+	ElementAnimation(const String& property_name, ElementAnimationOrigin origin, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction);
 
 	bool AddKey(float target_time, const Property & property, Element & element, Tween tween, bool extend_duration);
 
@@ -77,8 +81,9 @@ public:
 	const String& GetPropertyName() const { return property_name; }
 	float GetDuration() const { return duration; }
 	bool IsComplete() const { return animation_complete; }
-	bool IsTransition() const { return is_transition; }
+	bool IsTransition() const { return origin == ElementAnimationOrigin::Transition; }
 	float GetInterpolationFactor() const { return GetInterpolationFactorAndKeys(nullptr, nullptr); }
+	ElementAnimationOrigin GetOrigin() const { return origin; }
 };
 
 

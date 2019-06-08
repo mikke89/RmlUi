@@ -347,9 +347,9 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 }
 
 
-ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition)
-	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
-	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), is_transition(is_transition)
+ElementAnimation::ElementAnimation(const String& property_name, ElementAnimationOrigin origin, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction)
+	: property_name(property_name), origin(origin), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
+	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false)
 {
 	if (!current_value.definition)
 	{

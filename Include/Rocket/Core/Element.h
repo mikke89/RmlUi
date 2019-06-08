@@ -650,7 +650,7 @@ private:
 	void UpdateTransformState();
 
 	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
+	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property);
 
 	// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
 	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
