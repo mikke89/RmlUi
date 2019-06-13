@@ -37,7 +37,7 @@ int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTAN
 	shell_renderer = &directx_renderer;
 
 	// Generic OS initialisation, creates a window and does not attach OpenGL.
-	if (!Shell::Initialise("../Samples/basic/directx/") ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("DirectX 10 Sample", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
@@ -65,10 +65,10 @@ int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTAN
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Shell::LoadFonts("../../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Load and show the tutorial document.
-	Rocket::Core::ElementDocument* document = context->LoadDocument("../../assets/demo.rml");
+	Rocket::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
 	if (document != NULL)
 	{
 		document->Show();

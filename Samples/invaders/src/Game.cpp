@@ -80,7 +80,7 @@ Game::Game()
 
 	// Use the OpenGL render interface to load our texture.
 	Rocket::Core::Vector2i texture_dimensions;
-	Rocket::Core::GetRenderInterface()->LoadTexture(texture, texture_dimensions, "data/invaders.tga");
+	Rocket::Core::GetRenderInterface()->LoadTexture(texture, texture_dimensions, "invaders/data/invaders.tga");
 
 	defender = new Defender(this);
 }

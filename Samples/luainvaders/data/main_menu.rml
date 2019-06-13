@@ -28,8 +28,8 @@ function MainMenu.CloseLogo(document)
 end
 		</script>
 	</head>
-	<body template="luawindow" onload="Window.OnWindowLoad(document) document.context:LoadDocument('data/logo.rml'):Show()" onunload="MainMenu.CloseLogo(document)">
-		<button onclick="document.context:LoadDocument('data/start_game.rml'):Show() document:Close()">Start Game</button><br />
+	<body template="luawindow" onload="Window.OnWindowLoad(document) document.context:LoadDocument('luainvaders/data/logo.rml'):Show()" onunload="MainMenu.CloseLogo(document)">
+		<button onclick="document.context:LoadDocument('luainvaders/data/start_game.rml'):Show() document:Close()">Start Game</button><br />
 		<button onclick="Window.LoadMenu('high_score',document)">High Scores</button><br />
 		<button onclick="Window.LoadMenu('options',document)">Options</button><br />
 		<button onclick="Window.LoadMenu('help',document)">Help</button><br />

@@ -59,29 +59,15 @@ ShellFileInterface* file_interface = NULL;
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p);
 static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, void* p);
 
-bool Shell::Initialise(const Rocket::Core::String& path)
+bool Shell::Initialise()
 {
 	gettimeofday(&start_time, NULL);
 
 	InputMacOSX::Initialise();
 
-	// Find the location of the executable.
-	CFBundleRef bundle = CFBundleGetMainBundle();
-	CFURLRef executable_url = CFBundleCopyExecutableURL(bundle);
-	CFStringRef executable_posix_file_name = CFURLCopyFileSystemPath(executable_url, kCFURLPOSIXPathStyle);
-	CFIndex max_length = CFStringGetMaximumSizeOfFileSystemRepresentation(executable_posix_file_name);
-	char* executable_file_name = new char[max_length];
-	if (!CFStringGetFileSystemRepresentation(executable_posix_file_name, executable_file_name, max_length))
-		executable_file_name[0] = 0;
+	Rocket::Core::String root = FindSamplesRoot();
 
-	executable_path = Rocket::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
-
-	delete[] executable_file_name;
-	CFRelease(executable_posix_file_name);
-	CFRelease(executable_url);
-
-	file_interface = new ShellFileInterface(executable_path + "../../../" + path);
+	file_interface = new ShellFileInterface(root);
 	Rocket::Core::SetFileInterface(file_interface);
 
 	return true;
@@ -91,6 +77,29 @@ void Shell::Shutdown()
 {
 	delete file_interface;
 	file_interface = NULL;
+}
+
+Rocket::Core::String Shell::FindSamplesRoot()
+{
+	Rocket::Core::String path = "../../Samples/";
+	
+	// Find the location of the executable.
+	CFBundleRef bundle = CFBundleGetMainBundle();
+	CFURLRef executable_url = CFBundleCopyExecutableURL(bundle);
+	CFStringRef executable_posix_file_name = CFURLCopyFileSystemPath(executable_url, kCFURLPOSIXPathStyle);
+	CFIndex max_length = CFStringGetMaximumSizeOfFileSystemRepresentation(executable_posix_file_name);
+	char* executable_file_name = new char[max_length];
+	if (!CFStringGetFileSystemRepresentation(executable_posix_file_name, executable_file_name, max_length))
+		executable_file_name[0] = 0;
+
+	Rocket::Core::String executable_path = Rocket::Core::String(executable_file_name);
+	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
+
+	delete[] executable_file_name;
+	CFRelease(executable_posix_file_name);
+	CFRelease(executable_url);
+
+	return (executable_path + "../../../" + path);
 }
 
 static ShellRenderInterfaceExtensions *shell_renderer;

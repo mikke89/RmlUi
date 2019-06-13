@@ -32,6 +32,7 @@
 
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include "DecoratorInstancerDefender.h"
 #include "DecoratorInstancerStarfield.h"
 #include "ElementGame.h"
@@ -62,11 +63,6 @@ int APIENTRY WinMain(HINSTANCE, HINSTANCE, char*, int)
 int main(int, char**)
 #endif
 {
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/luainvaders/"
-#else
-#define APP_PATH "../../Samples/luainvaders/"
-#endif
 
 #ifdef ROCKET_PLATFORM_WIN32
 	DoAllocConsole();
@@ -79,7 +75,7 @@ int main(int, char**)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Rocket Invaders from Mars (Lua Powered)", shell_renderer, window_width, window_height, false))
 	{
 		Shell::Shutdown();
@@ -115,7 +111,7 @@ int main(int, char**)
 	shell_renderer->SetContext(context);
 
 	// Load the font faces required for Invaders.
-	Shell::LoadFonts("../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom decorator instancers.
 	Rocket::Core::DecoratorInstancer* decorator_instancer = new DecoratorInstancerStarfield();
@@ -131,7 +127,7 @@ int main(int, char**)
 
 	// Fire off the startup script.
     LuaInterface::Initialise(Rocket::Core::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples
-    Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String("lua/start.lua"));
+    Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String("luainvaders/lua/start.lua"));
 
 	Shell::EventLoop(GameLoop);	
 

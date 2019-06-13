@@ -30,6 +30,7 @@
 #include <Rocket/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include <Rocket/Core/TransformPrimitive.h>
 
 #include <sstream>
@@ -332,7 +333,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../../Samples/") ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Animation Sample", shell_renderer, width, height, true))
 	{
 		Shell::Shutdown();

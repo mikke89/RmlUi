@@ -45,7 +45,7 @@ static LARGE_INTEGER time_startup;
 
 static ShellFileInterface* file_interface = NULL;
 
-bool Shell::Initialise(const Rocket::Core::String& path)
+bool Shell::Initialise()
 {
 	instance_handle = GetModuleHandle(NULL);
 	InputWin32::Initialise();
@@ -56,15 +56,9 @@ bool Shell::Initialise(const Rocket::Core::String& path)
 
 	time_frequency = 1.0 / (double) time_ticks_per_second.QuadPart;
 
-	// Fetch the path of the executable, append the path onto that.
-	char executable_file_name[MAX_PATH];
-	if (GetModuleFileNameA(instance_handle, executable_file_name, MAX_PATH) >= MAX_PATH &&
-		GetLastError() == ERROR_INSUFFICIENT_BUFFER)
-		executable_file_name[0] = 0;
-
-	executable_path = Rocket::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("\\") + 1);
-	file_interface = new ShellFileInterface(executable_path + path);
+	Rocket::Core::String root = FindSamplesRoot();
+	
+	file_interface = new ShellFileInterface(root);
 	Rocket::Core::SetFileInterface(file_interface);
 
 	return true;
@@ -76,6 +70,24 @@ void Shell::Shutdown()
 
 	delete file_interface;
 	file_interface = NULL;
+}
+
+Rocket::Core::String Shell::FindSamplesRoot()
+{
+	Rocket::Core::String path = "../../Samples/";
+	
+	// Fetch the path of the executable, append the path onto that.
+	char executable_file_name[MAX_PATH];
+	if (GetModuleFileNameA(instance_handle, executable_file_name, MAX_PATH) >= MAX_PATH &&
+		GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+	{
+		executable_file_name[0] = 0;
+	}
+
+	Rocket::Core::String executable_path = Rocket::Core::String(executable_file_name);
+	executable_path = executable_path.Substring(0, executable_path.RFind("\\") + 1);
+	
+	return executable_path + path;
 }
 
 static ShellRenderInterfaceExtensions *shell_renderer = NULL;

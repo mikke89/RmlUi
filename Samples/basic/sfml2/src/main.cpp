@@ -41,7 +41,8 @@
 #include "RenderInterfaceSFML.h"
 #include <Rocket/Core/Input.h>
 #include <Rocket/Debugger/Debugger.h>
-#include "ShellFileInterface.h"
+#include <Shell.h>
+#include <ShellFileInterface.h>
 
 int main(int argc, char **argv)
 {
@@ -71,7 +72,8 @@ int main(int argc, char **argv)
 
 	// NOTE: if fonts and rml are not found you'll probably have to adjust
 	// the path information in the string
-	ShellFileInterface FileInterface("../Samples/assets/");
+	Rocket::Core::String root = Shell::FindSamplesRoot();
+	ShellFileInterface FileInterface(root);
 
 	if(!MyWindow.isOpen())
 		return 1;
@@ -86,17 +88,17 @@ int main(int argc, char **argv)
 	if(!Rocket::Core::Initialise())
 		return 1;
 
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Bold.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-BoldItalic.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Italic.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Roman.otf");
+	Rocket::Core::FontDatabase::LoadFontFace("assets/Delicious-Bold.otf");
+	Rocket::Core::FontDatabase::LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rocket::Core::FontDatabase::LoadFontFace("assets/Delicious-Italic.otf");
+	Rocket::Core::FontDatabase::LoadFontFace("assets/Delicious-Roman.otf");
 
 	Rocket::Core::Context *Context = Rocket::Core::CreateContext("default",
 		Rocket::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
 
 	Rocket::Debugger::Initialise(Context);
 
-	Rocket::Core::ElementDocument *Document = Context->LoadDocument("demo.rml");
+	Rocket::Core::ElementDocument *Document = Context->LoadDocument("assets/demo.rml");
 
 	if(Document)
 	{

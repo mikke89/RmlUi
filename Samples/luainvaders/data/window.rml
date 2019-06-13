@@ -9,7 +9,7 @@ function Window.OnWindowLoad(document)
 end
 	
 function Window.LoadMenu(name,document)
-	local doc = document.context:LoadDocument('data/' .. name .. '.rml')
+	local doc = document.context:LoadDocument('luainvaders/data/' .. name .. '.rml')
 	if doc then
 		doc:Show()
 		document:Close()

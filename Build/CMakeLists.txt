@@ -657,6 +657,12 @@ if(BUILD_SAMPLES)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/data
             DESTINATION ${SAMPLES_DIR}/tutorial/tutorial_drag
     )
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/animation/data
+            DESTINATION ${SAMPLES_DIR}/basic/animation
+    )
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/transform/data
+            DESTINATION ${SAMPLES_DIR}/basic/transform
+    )
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/data
             DESTINATION ${SAMPLES_DIR}/basic/treeview
     )

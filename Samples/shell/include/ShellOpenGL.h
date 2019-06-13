@@ -50,6 +50,13 @@
 #ifdef None
   #undef None
 #endif
+
+struct __X11NativeWindowData
+{
+	Window window;
+	Display *display;
+	XVisualInfo *visual_info;
+};
 #endif
 
 #endif

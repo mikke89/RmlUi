@@ -36,15 +36,6 @@
 	@author Peter Curry
  */
 
-#if defined(ROCKET_PLATFORM_LINUX)
-struct __X11NativeWindowData
-{
-	Window window;
-	Display *display;
-	XVisualInfo *visual_info;
-};
-#endif
-
 class ShellRenderInterfaceOpenGL : public Rocket::Core::RenderInterface,  public ShellRenderInterfaceExtensions
 {
 public:

@@ -29,6 +29,7 @@
 #include <Rocket/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 
 Rocket::Core::Context* context = NULL;
 
@@ -60,12 +61,6 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	ROCKET_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/basic/loaddocument/"
-#else
-#define APP_PATH "../../Samples/basic/loaddocument/"
-#endif
-
 #ifdef ROCKET_PLATFORM_WIN32
         AllocConsole();
 #endif
@@ -77,7 +72,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Load Document Sample", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
@@ -106,10 +101,10 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Shell::LoadFonts("../../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Load and show the demo document.
-	Rocket::Core::ElementDocument* document = context->LoadDocument("../../assets/demo.rml");
+	Rocket::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
 	if (document != NULL)
 	{
 		document->Show();
