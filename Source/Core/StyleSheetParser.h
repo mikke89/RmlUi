@@ -67,7 +67,7 @@ private:
 	// How far we've read through the buffer.
 	size_t parse_buffer_pos;
 
-	// The name of the file we'r parsing.
+	// The name of the file we're parsing.
 	String stream_file_name;
 	// Current line number we're parsing.
 	size_t line_number;

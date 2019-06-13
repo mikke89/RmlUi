@@ -50,7 +50,7 @@ Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_
 	String texture_name;
 	String rcss_path;
 
-	GetTileProperties(tile, texture_name, rcss_path, properties, "image");
+	GetTileProperties(0, tile, texture_name, rcss_path, properties);
 
 	DecoratorTiledImage* decorator = new DecoratorTiledImage();
 	if (decorator->Initialise(tile, texture_name, rcss_path))

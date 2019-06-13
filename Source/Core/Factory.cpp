@@ -349,12 +349,14 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 	float z_index = 0;
 	int specificity = -1;
 
-	DecoratorInstancerMap::iterator iterator = decorator_instancers.find(name);
+	auto iterator = decorator_instancers.find(name);
 	if (iterator == decorator_instancers.end())
 		return NULL;
 
+	DecoratorInstancer* instancer = iterator->second;
+
 	// Turn the generic, un-parsed properties we've got into a properly parsed dictionary.
-	const PropertySpecification& property_specification = (*iterator).second->GetPropertySpecification();
+	const PropertySpecification& property_specification = instancer->GetPropertySpecification();
 
 	PropertyDictionary parsed_properties;
 	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
@@ -371,13 +373,13 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 	// Set the property defaults for all unset properties.
 	property_specification.SetPropertyDefaults(parsed_properties);
 
-	Decorator* decorator = (*iterator).second->InstanceDecorator(name, parsed_properties);
+	Decorator* decorator = instancer->InstanceDecorator(name, parsed_properties);
 	if (decorator == NULL)
 		return NULL;
 
 	decorator->SetZIndex(z_index);
 	decorator->SetSpecificity(specificity);
-	decorator->instancer = (*iterator).second;
+	decorator->instancer = instancer;
 	return decorator;
 }
 

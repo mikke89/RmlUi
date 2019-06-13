@@ -48,13 +48,14 @@ Decorator* DecoratorTiledVerticalInstancer::InstanceDecorator(const String& ROCK
 {
 	ROCKET_UNUSED(name);
 
-	DecoratorTiled::Tile tiles[3];
-	String texture_names[3];
-	String rcss_paths[3];
+	constexpr size_t num_tiles = 3;
 
-	GetTileProperties(tiles[0], texture_names[0], rcss_paths[0], properties, "top-image");
-	GetTileProperties(tiles[1], texture_names[1], rcss_paths[1], properties, "bottom-image");
-	GetTileProperties(tiles[2], texture_names[2], rcss_paths[2], properties, "center-image");
+	DecoratorTiled::Tile tiles[num_tiles];
+	String texture_names[num_tiles];
+	String rcss_paths[num_tiles];
+
+	for (size_t i = 0; i < num_tiles; i++)
+		GetTileProperties(i, tiles[i], texture_names[i], rcss_paths[i], properties);
 
 	DecoratorTiledVertical* decorator = new DecoratorTiledVertical();
 	if (decorator->Initialise(tiles, texture_names, rcss_paths))

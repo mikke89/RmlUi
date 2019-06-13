@@ -36,15 +36,9 @@
 namespace Rocket {
 namespace Core {
 
-PropertySpecification::PropertySpecification() :
-	// Reserve space for all defined ids and some more for custom properties
-	properties(2 * (size_t)PropertyId::NumDefinedIds, nullptr),
-	shorthands(2 * (size_t)ShorthandId::NumDefinedIds, nullptr)
+PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) 
+	: properties(reserve_num_properties, nullptr), shorthands(reserve_num_shorthands, nullptr), property_map(reserve_num_properties), shorthand_map(reserve_num_shorthands)
 {
-	static bool initialized = false;
-	// Right now, we must access this as a singleton for consistency of property ids
-	ROCKET_ASSERT(!initialized);
-	initialized = true;
 }
 
 PropertySpecification::~PropertySpecification()
@@ -56,8 +50,13 @@ PropertySpecification::~PropertySpecification()
 }
 
 // Registers a property with a new definition.
-PropertyDefinition& PropertySpecification::RegisterProperty(PropertyId id, const String& default_value, bool inherited, bool forces_layout)
+PropertyDefinition& PropertySpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id)
 {
+	if (id == PropertyId::Invalid)
+		id = property_map.GetOrCreateId(property_name);
+	else
+		property_map.AddPair(id, property_name);
+
 	size_t index = (size_t)id;
 	ROCKET_ASSERT(index < (size_t)INT16_MAX);
 
@@ -93,6 +92,11 @@ const PropertyDefinition* PropertySpecification::GetProperty(PropertyId id) cons
 	return properties[(size_t)id];
 }
 
+const PropertyDefinition* PropertySpecification::GetProperty(const String& property_name) const
+{
+	return GetProperty(property_map.GetId(property_name));
+}
+
 // Fetches a list of the names of all registered property definitions.
 const PropertyNameList& PropertySpecification::GetRegisteredProperties(void) const
 {
@@ -106,8 +110,13 @@ const PropertyNameList& PropertySpecification::GetRegisteredInheritedProperties(
 }
 
 // Registers a shorthand property definition.
-bool PropertySpecification::RegisterShorthand(ShorthandId id, const String& property_names, ShorthandType type)
+bool PropertySpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id)
 {
+	if (id == ShorthandId::Invalid)
+		id = shorthand_map.GetOrCreateId(shorthand_name);
+	else
+		shorthand_map.AddPair(id, shorthand_name);
+
 	StringList property_list;
 	StringUtilities::ExpandString(property_list, ToLower(property_names));
 	ShorthandItemIdList id_list;
@@ -192,6 +201,11 @@ const ShorthandDefinition* PropertySpecification::GetShorthand(ShorthandId id) c
 		return nullptr;
 
 	return shorthands[(size_t)id];
+}
+
+const ShorthandDefinition* PropertySpecification::GetShorthand(const String& shorthand_name) const
+{
+	return GetShorthand(shorthand_map.GetId(shorthand_name));
 }
 
 bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file, int source_line_number) const

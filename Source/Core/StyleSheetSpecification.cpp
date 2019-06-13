@@ -40,83 +40,13 @@ namespace Rocket {
 namespace Core {
 
 
-
-
-template <typename ID>
-class IdNameMap {
-	std::vector<String> name_map;  // IDs are indices into the name_map
-	UnorderedMap<String, ID> reverse_map;
-
-protected:
-	IdNameMap(size_t num_ids_to_reserve) {
-		static_assert((int)ID::Invalid == 0, "Invalid id must be zero");
-		name_map.resize(num_ids_to_reserve);
-		reverse_map.reserve(num_ids_to_reserve);
-		AddPair(ID::Invalid, "invalid");
-	}
-
-public:
-	void AddPair(ID id, const String& name) {
-		// Should only be used for defined IDs
-		ROCKET_ASSERT((size_t)id < name_map.size());
-		name_map[(size_t)id] = name;
-		bool inserted = reverse_map.emplace(name, id).second;
-		ROCKET_ASSERT(inserted);
-	}
-
-	void AssertAllInserted(ID last_property_inserted) const {
-		ROCKET_ASSERT(name_map.size() == (size_t)last_property_inserted && reverse_map.size() == (size_t)last_property_inserted);
-	}
-
-	ID GetId(const String& name)
-	{
-		auto it = reverse_map.find(name);
-		if (it != reverse_map.end())
-			return it->second;
-		return ID::Invalid;
-	}
-	const String& GetName(ID id)
-	{
-		if (static_cast<size_t>(id) < name_map.size())
-			return name_map[static_cast<size_t>(id)];
-		return name_map[static_cast<size_t>(ID::Invalid)];
-	}
-
-	ID GetOrCreateId(const String& name)
-	{
-		ID next_id = static_cast<ID>(name_map.size());
-
-		// Only insert if not already in list
-		auto pair = reverse_map.emplace(name, next_id);
-		const auto& it = pair.first;
-		bool inserted = pair.second;
-
-		if (inserted)
-			name_map.push_back(name);
-
-		// Return the property id that already existed, or the new one if inserted
-		return it->second;
-	}
-};
-
-class PropertyIdNameMap : public IdNameMap<PropertyId> {
-public:
-	PropertyIdNameMap() : IdNameMap(2*(size_t)PropertyId::NumDefinedIds) {}
-};
-
-class ShorthandIdNameMap : public IdNameMap<ShorthandId> {
-public:
-	ShorthandIdNameMap() : IdNameMap(2*(size_t)ShorthandId::NumDefinedIds) {}
-};
-
-static PropertyIdNameMap property_id_name_map;
-static ShorthandIdNameMap shorthand_id_name_map;
-
 static StyleSheetSpecification* instance = NULL;
 
 
 
-StyleSheetSpecification::StyleSheetSpecification()
+StyleSheetSpecification::StyleSheetSpecification() : 
+	// Reserve space for all defined ids and some more for custom properties
+	properties(2 * (size_t)PropertyId::NumDefinedIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
 	ROCKET_ASSERT(instance == NULL);
 	instance = this;
@@ -130,14 +60,12 @@ StyleSheetSpecification::~StyleSheetSpecification()
 
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	property_id_name_map.AddPair(id, property_name);
-	return properties.RegisterProperty(id, default_value, inherited, forces_layout);
+	return properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
 }
 
 bool StyleSheetSpecification::RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type)
 {
-	shorthand_id_name_map.AddPair(id, shorthand_name);
-	return properties.RegisterShorthand(id, property_names, type);
+	return properties.RegisterShorthand(shorthand_name, property_names, type, id);
 }
 
 bool StyleSheetSpecification::Initialise()
@@ -186,18 +114,16 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 }
 
 // Registers a property with a new definition.
-PropertyDefinition& StyleSheetSpecification::RegisterCustomProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
+PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	PropertyId id = property_id_name_map.GetOrCreateId(property_name);
-	ROCKET_ASSERTMSG((size_t)id < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
-	return instance->properties.RegisterProperty(id, default_value, inherited, forces_layout);
+	ROCKET_ASSERTMSG((size_t)instance->properties.property_map.GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
+	return instance->properties.RegisterProperty(property_name, default_value, inherited, forces_layout);
 }
 
 // Returns a property definition.
 const PropertyDefinition* StyleSheetSpecification::GetProperty(const String& property_name)
 {
-	PropertyId id = property_id_name_map.GetId(property_name);
-	return instance->properties.GetProperty(id);
+	return instance->properties.GetProperty(property_name);
 }
 
 const PropertyDefinition* StyleSheetSpecification::GetProperty(PropertyId id)
@@ -217,19 +143,17 @@ const PropertyNameList & StyleSheetSpecification::GetRegisteredInheritedProperti
 }
 
 // Registers a shorthand property definition.
-bool StyleSheetSpecification::RegisterCustomShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
+bool StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
-	ROCKET_ASSERTMSG(property_id_name_map.GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
-	ShorthandId id = shorthand_id_name_map.GetOrCreateId(shorthand_name);
-	ROCKET_ASSERTMSG((size_t)id < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
-	return instance->properties.RegisterShorthand(id, property_names, type);
+	ROCKET_ASSERTMSG(instance->properties.property_map.GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
+	ROCKET_ASSERTMSG((size_t)instance->properties.shorthand_map.GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
+	return instance->properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
 // Returns a shorthand definition.
 const ShorthandDefinition* StyleSheetSpecification::GetShorthand(const String& shorthand_name)
 {
-	ShorthandId id = shorthand_id_name_map.GetOrCreateId(shorthand_name);
-	return instance->properties.GetShorthand(id);
+	return instance->properties.GetShorthand(shorthand_name);
 }
 
 const ShorthandDefinition* StyleSheetSpecification::GetShorthand(ShorthandId id)
@@ -255,22 +179,22 @@ bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dicti
 
 PropertyId StyleSheetSpecification::GetPropertyId(const String& property_name)
 {
-	return property_id_name_map.GetId(property_name);
+	return instance->properties.property_map.GetId(property_name);
 }
 
 ShorthandId StyleSheetSpecification::GetShorthandId(const String& shorthand_name)
 {
-	return shorthand_id_name_map.GetId(shorthand_name);
+	return instance->properties.shorthand_map.GetId(shorthand_name);
 }
 
 const String& StyleSheetSpecification::GetPropertyName(PropertyId id)
 {
-	return property_id_name_map.GetName(id);
+	return instance->properties.property_map.GetName(id);
 }
 
 const String& StyleSheetSpecification::GetShorthandName(ShorthandId id)
 {
-	return shorthand_id_name_map.GetName(id);
+	return instance->properties.shorthand_map.GetName(id);
 }
 
 std::vector<PropertyId> StyleSheetSpecification::GetShorthandUnderlyingProperties(ShorthandId id)
@@ -446,8 +370,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Transition, TRANSITION, "none", false, false).AddParser(TRANSITION);
 	RegisterProperty(PropertyId::Animation, ANIMATION, "none", false, false).AddParser(ANIMATION);
 
-	property_id_name_map.AssertAllInserted(PropertyId::NumDefinedIds);
-	shorthand_id_name_map.AssertAllInserted(ShorthandId::NumDefinedIds);
+	instance->properties.property_map.AssertAllInserted(PropertyId::NumDefinedIds);
+	instance->properties.shorthand_map.AssertAllInserted(ShorthandId::NumDefinedIds);
 }
 
 }

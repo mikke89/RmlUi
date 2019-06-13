@@ -299,7 +299,7 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 					name = StringUtilities::StripWhitespace(name);
 					if (!name.empty())
 					{
-						Log::Message(Log::LT_WARNING, "Found name with no value parsing property declaration '%s' at %s:%d", name.c_str(), stream_file_name.c_str(), line_number);
+						Log::Message(Log::LT_WARNING, "Found name with no value while parsing property declaration '%s' at %s:%d", name.c_str(), stream_file_name.c_str(), line_number);
 						name.clear();
 					}
 				}

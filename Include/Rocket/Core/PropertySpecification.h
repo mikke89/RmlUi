@@ -39,6 +39,77 @@ class StyleSheetSpecification;
 class PropertyDictionary;
 struct ShorthandDefinition;
 
+
+
+template <typename ID>
+class IdNameMap {
+	std::vector<String> name_map;  // IDs are indices into the name_map
+	UnorderedMap<String, ID> reverse_map;
+
+protected:
+	IdNameMap(size_t num_ids_to_reserve) {
+		static_assert((int)ID::Invalid == 0, "Invalid id must be zero");
+		name_map.resize(num_ids_to_reserve);
+		reverse_map.reserve(num_ids_to_reserve);
+		AddPair(ID::Invalid, "invalid");
+	}
+
+public:
+	void AddPair(ID id, const String& name) {
+		// Should only be used for defined IDs
+		ROCKET_ASSERT((size_t)id < name_map.size());
+		name_map[(size_t)id] = name;
+		bool inserted = reverse_map.emplace(name, id).second;
+		ROCKET_ASSERT(inserted);
+	}
+
+	void AssertAllInserted(ID last_property_inserted) const {
+		ROCKET_ASSERT(name_map.size() == (size_t)last_property_inserted && reverse_map.size() == (size_t)last_property_inserted);
+	}
+
+	ID GetId(const String& name) const
+	{
+		auto it = reverse_map.find(name);
+		if (it != reverse_map.end())
+			return it->second;
+		return ID::Invalid;
+	}
+	const String& GetName(ID id)
+	{
+		if (static_cast<size_t>(id) < name_map.size())
+			return name_map[static_cast<size_t>(id)];
+		return name_map[static_cast<size_t>(ID::Invalid)];
+	}
+
+	ID GetOrCreateId(const String& name)
+	{
+		ID next_id = static_cast<ID>(name_map.size());
+
+		// Only insert if not already in list
+		auto pair = reverse_map.emplace(name, next_id);
+		const auto& it = pair.first;
+		bool inserted = pair.second;
+
+		if (inserted)
+			name_map.push_back(name);
+
+		// Return the property id that already existed, or the new one if inserted
+		return it->second;
+	}
+};
+
+class PropertyIdNameMap : public IdNameMap<PropertyId> {
+public:
+	PropertyIdNameMap(size_t reserve_num_properties) : IdNameMap(reserve_num_properties) {}
+};
+
+class ShorthandIdNameMap : public IdNameMap<ShorthandId> {
+public:
+	ShorthandIdNameMap(size_t reserve_num_shorthands) : IdNameMap(2 * (size_t)ShorthandId::NumDefinedIds) {}
+};
+
+
+
 enum class ShorthandType
 {
 	// Normal; properties that fail to parse fall-through to the next until they parse correctly, and any
@@ -75,17 +146,22 @@ using ShorthandItemIdList = std::vector<ShorthandItemId>;
 class ROCKETCORE_API PropertySpecification
 {
 public:
+	PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands);
+	~PropertySpecification();
+
 	/// Registers a property with a new definition.
 	/// @param[in] property_name The name to register the new property under.
 	/// @param[in] default_value The default value to be used for an element if it has no other definition provided.
 	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
 	/// @param[in] forces_layout True if this property requires its parent to be reformatted if changed.
+	/// @param[in] id If 'Invalid' then automatically assigns a new id, otherwise assigns the given id.
 	/// @return The new property definition, ready to have parsers attached.
-	PropertyDefinition& RegisterProperty(PropertyId id, const String& default_value, bool inherited, bool forces_layout);
+	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id = PropertyId::Invalid);
 	/// Returns a property definition.
 	/// @param[in] id The id of the desired property.
 	/// @return The appropriate property definition if it could be found, NULL otherwise.
 	const PropertyDefinition* GetProperty(PropertyId id) const;
+	const PropertyDefinition* GetProperty(const String& property_name) const;
 
 	/// Returns the list of the names of all registered property definitions.
 	/// @return The list with stored property names.
@@ -99,12 +175,14 @@ public:
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
+	/// @param[in] id If 'Invalid' then automatically assigns a new id, otherwise assigns the given id.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(ShorthandId id, const String& property_names, ShorthandType type);
+	bool RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id = ShorthandId::Invalid);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
 	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
 	const ShorthandDefinition* GetShorthand(ShorthandId id) const;
+	const ShorthandDefinition* GetShorthand(const String& shorthand_name) const;
 
 	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
 
@@ -119,14 +197,15 @@ public:
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;
 
 private:
-	PropertySpecification();
-	~PropertySpecification();
-
 	typedef std::vector< PropertyDefinition* > Properties;
 	typedef std::vector< ShorthandDefinition* > Shorthands;
 
 	Properties properties;
 	Shorthands shorthands;
+
+	PropertyIdNameMap property_map;
+	ShorthandIdNameMap shorthand_map;
+
 	PropertyNameList property_names;
 	PropertyNameList inherited_property_names;
 
