@@ -208,6 +208,21 @@ const ShorthandDefinition* PropertySpecification::GetShorthand(const String& sho
 	return GetShorthand(shorthand_map.GetId(shorthand_name));
 }
 
+bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number) const
+{
+	// Try as a property first
+	PropertyId property_id = property_map.GetId(property_name);
+	if (property_id != PropertyId::Invalid)
+		return ParsePropertyDeclaration(dictionary, property_id, property_value, source_file, source_line_number);
+
+	// Then, as a shorthand
+	ShorthandId shorthand_id = shorthand_map.GetId(property_name);
+	if (shorthand_id != ShorthandId::Invalid)
+		return ParseShorthandDeclaration(dictionary, shorthand_id, property_value, source_file, source_line_number);
+
+	return false;
+}
+
 bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file, int source_line_number) const
 {
 	// Parse as a single property.

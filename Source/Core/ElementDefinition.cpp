@@ -27,9 +27,7 @@
 
 #include "precompiled.h"
 #include "ElementDefinition.h"
-#include "../../Include/Rocket/Core/Decorator.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/FontDatabase.h"
+#include "StyleSheetNode.h"
 #include "../../Include/Rocket/Core/Log.h"
 #include "../../Include/Rocket/Core/PropertyIterators.h"
 
@@ -43,20 +41,6 @@ ElementDefinition::ElementDefinition()
 
 ElementDefinition::~ElementDefinition()
 {
-	for (DecoratorMap::iterator i = decorators.begin(); i != decorators.end(); ++i)
-		(*i).second->RemoveReference();
-
-	for (PseudoClassDecoratorMap::iterator i = pseudo_class_decorators.begin(); i != pseudo_class_decorators.end(); ++i)
-	{
-		for (DecoratorMap::iterator j = (*i).second.begin(); j != (*i).second.end(); ++j)
-		{
-			if ((*j).second != NULL)
-				(*j).second->RemoveReference();
-		}
-	}
-
-	for (size_t i = 0; i < font_effects.size(); ++i)
-		font_effects[i]->RemoveReference();
 }
 
 // Initialises the element definition from a list of style sheet nodes.
@@ -121,9 +105,6 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 			}
 		}
 	}
-
-	InstanceDecorators(merged_pseudo_class_properties);
-	InstanceFontEffects(merged_pseudo_class_properties);
 }
 
 // Returns a specific property from the element definition's base properties.
@@ -227,47 +208,6 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 	}
 }
 
-// Returns the list of the element definition's instanced decorators in the default state.
-const DecoratorMap& ElementDefinition::GetDecorators() const
-{
-	return decorators;
-}
-
-// Returns the map of pseudo-class names to overriding instanced decorators.
-const PseudoClassDecoratorMap& ElementDefinition::GetPseudoClassDecorators() const
-{
-	return pseudo_class_decorators;
-}
-
-// Appends this definition's font effects into a provided map of effects.
-void ElementDefinition::GetFontEffects(FontEffectMap& applicable_font_effects, const PseudoClassList& pseudo_classes) const
-{
-	// Check each set of named effects, looking for applicable ones.
-	for (FontEffectIndex::const_iterator i = font_effect_index.begin(); i != font_effect_index.end(); ++i)
-	{
-		// Search through this list, finding the first effect that is valid (depending on
-		// pseudo-classes).
-		const PseudoClassFontEffectIndex& index = i->second;
-		for (size_t j = 0; j < index.size(); ++j)
-		{
-			if (IsPseudoClassRuleApplicable(index[j].first, pseudo_classes))
-			{
-				// This is the most specific valid font effect this element has under the name. If
-				// the map of effects already has an effect with the same name, the effect with the
-				// highest specificity will prevail.
-				FontEffect* applicable_effect = font_effects[index[j].second];
-
-				FontEffectMap::iterator map_iterator = applicable_font_effects.find(i->first);
-				if (map_iterator == applicable_font_effects.end() ||
-					map_iterator->second->GetSpecificity() < applicable_effect->GetSpecificity())
-					applicable_font_effects[i->first] = applicable_effect;
-
-				break;
-			}
-		}
-	}
-}
-
 // Returns the volatility of a pseudo-class.
 ElementDefinition::PseudoClassVolatility ElementDefinition::GetPseudoClassVolatility(const String& pseudo_class) const
 {
@@ -296,221 +236,6 @@ ElementDefinitionIterator ElementDefinition::end(const PseudoClassList& pseudo_c
 void ElementDefinition::OnReferenceDeactivate()
 {
 	delete this;
-}
-
-// Finds all propery declarations for a group.
-void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const String& group_type, const PropertyDictionary& element_properties, const PropertyGroupMap* default_properties)
-{
-	String property_suffix = "-" + group_type;
-
-	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
-	{
-		const String& property_name = (*property_iterator).first;
-		if (property_name.size() > property_suffix.size() &&
-			strcasecmp(property_name.c_str() + (property_name.size() - property_suffix.size()), property_suffix.c_str()) == 0)
-		{
-			// We've found a group declaration!
-			String group_name = property_name.substr(0, property_name.size() - (group_type.size() + 1));
-			String group_class = (*property_iterator).second.value.Get< String >();
-			PropertyDictionary* group_properties = NULL;		
-
-			// Check if we have an existing definition by this name; if so, we're only overriding the type.
-			PropertyGroupMap::iterator existing_definition = groups.find(group_name);
-			if (existing_definition != groups.end())
-			{
-				(*existing_definition).second.first = group_class;
-				group_properties = &(*existing_definition).second.second;
-			}
-			else
-			{
-				// Check if we have any default decorator definitions, and if the new decorator has a default. If so,
-				// we make a copy of the default properties for the new decorator.
-				if (default_properties != NULL)
-				{
-					PropertyGroupMap::const_iterator default_definition = default_properties->find(group_name);
-					if (default_definition != default_properties->end())
-						group_properties = &(*groups.insert(PropertyGroupMap::value_type(group_name, PropertyGroup(group_class, (*default_definition).second.second))).first).second.second;
-				}
-
-				// If we still haven't got somewhere to put the properties for the new decorator, make a new
-				// definition.
-				if (group_properties == NULL)
-					group_properties = &(*groups.insert(PropertyGroupMap::value_type(group_name, PropertyGroup(group_class, PropertyDictionary()))).first).second.second;
-			}
-
-			// Now find all of this decorator's properties.
-			BuildPropertyGroupDictionary(*group_properties, group_type, group_name, element_properties);
-		}
-	}
-
-	// Now go through all the default decorator definitions and see if the new property list redefines any properties
-	// used by them.
-	if (default_properties != NULL)
-	{
-		for (PropertyGroupMap::const_iterator default_definition_iterator = default_properties->begin(); default_definition_iterator != default_properties->end(); ++default_definition_iterator)
-		{
-			const String& default_definition_name = (*default_definition_iterator).first;
-
-			// Check the list of new definitions hasn't defined this decorator already; if so, it overrode the
-			// decorator type and so has inherited all the properties anyway.
-			if (groups.find(default_definition_name) == groups.end())
-			{
-				// Nope! Make a copy of the decorator's properties and see if the new dictionary overrides any of the
-				// properties.
-				PropertyDictionary decorator_properties = (*default_definition_iterator).second.second;
-				if (BuildPropertyGroupDictionary(decorator_properties, group_type, default_definition_name, element_properties) > 0)
-					groups[default_definition_name] = PropertyGroup((*default_definition_iterator).second.first, decorator_properties);
-			}
-		}
-	}
-}
-
-// Updates a property dictionary of all properties for a single group.
-int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& ROCKET_UNUSED_PARAMETER(group_type), const String& group_name, const PropertyDictionary& element_properties)
-{
-	ROCKET_UNUSED(group_type);
-
-	int num_properties = 0;
-
-	for (PropertyMap::const_iterator property_iterator = element_properties.GetProperties().begin(); property_iterator != element_properties.GetProperties().end(); ++property_iterator)
-	{
-		const String& full_property_name = (*property_iterator).first;
-		if (full_property_name.size() > group_name.size() + 1 &&
-			strncasecmp(full_property_name.c_str(), group_name.c_str(), group_name.size()) == 0 &&
-			full_property_name[group_name.size()] == '-')
-		{
-			String property_name = full_property_name.substr(group_name.size() + 1);
-//			if (property_name == group_type)
-//				continue;
-
-			group_properties.SetProperty(property_name, (*property_iterator).second);
-			num_properties++;
-		}
-	}
-
-	return num_properties;
-}
-
-// Builds decorator definitions from the parsed properties and instances decorators as appropriate.
-void ElementDefinition::InstanceDecorators(const PseudoClassPropertyMap& merged_pseudo_class_properties)
-{
-	// Now we have the complete property list, we can compile decorator properties and instance as appropriate.
-	PropertyGroupMap decorator_definitions;
-	BuildPropertyGroup(decorator_definitions, "decorator", properties);
-	for (PropertyGroupMap::iterator i = decorator_definitions.begin(); i != decorator_definitions.end(); ++i)
-		InstanceDecorator((*i).first, (*i).second.first, (*i).second.second);
-
-	// Now go through all the pseudo-class properties ...
-	for (PseudoClassPropertyMap::const_iterator pseudo_class_iterator = merged_pseudo_class_properties.begin(); pseudo_class_iterator != merged_pseudo_class_properties.end(); ++pseudo_class_iterator)
-	{
-		PropertyGroupMap pseudo_class_decorator_definitions;
-		BuildPropertyGroup(pseudo_class_decorator_definitions, "decorator", (*pseudo_class_iterator).second, &decorator_definitions);
-		for (PropertyGroupMap::iterator i = pseudo_class_decorator_definitions.begin(); i != pseudo_class_decorator_definitions.end(); ++i)
-			InstanceDecorator((*i).first, (*i).second.first, (*i).second.second, (*pseudo_class_iterator).first);
-	}
-}
-
-// Attempts to instance a decorator into a given list.
-bool ElementDefinition::InstanceDecorator(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_classes)
-{
-	Decorator* decorator = Factory::InstanceDecorator(type, properties);
-	if (decorator == NULL)
-	{
-		Log::Message(Log::LT_WARNING, "Failed to instance decorator '%s' of type '%s'.", name.c_str(), type.c_str());
-		return false;
-	}
-
-	if (pseudo_classes.empty())
-	{
-		if (decorator != NULL)
-			decorators[name] = decorator;
-	}
-	else
-	{
-		PseudoClassDecoratorMap::iterator i = pseudo_class_decorators.find(pseudo_classes);
-		if (i == pseudo_class_decorators.end())
-		{
-			DecoratorMap decorators;
-			decorators[name] = decorator;
-
-			pseudo_class_decorators[pseudo_classes] = decorators;
-		}
-		else
-			(*i).second[name] = decorator;
-	}
-
-	return true;
-}
-
-// Builds font effect definitions from the parsed properties and instances font effects as appropriate.
-void ElementDefinition::InstanceFontEffects(const PseudoClassPropertyMap& merged_pseudo_class_properties)
-{
-	// Now we have the complete property list, we can compile font-effect properties and instance as appropriate.
-	PropertyGroupMap font_effect_definitions;
-	BuildPropertyGroup(font_effect_definitions, "font-effect", properties);
-	for (PropertyGroupMap::iterator i = font_effect_definitions.begin(); i != font_effect_definitions.end(); ++i)
-		InstanceFontEffect((*i).first, (*i).second.first, (*i).second.second);
-
-	// Now go through all the pseudo-class properties ...
-	for (PseudoClassPropertyMap::const_iterator pseudo_class_iterator = merged_pseudo_class_properties.begin(); pseudo_class_iterator != merged_pseudo_class_properties.end(); ++pseudo_class_iterator)
-	{
-		PropertyGroupMap pseudo_class_font_effect_definitions;
-		BuildPropertyGroup(pseudo_class_font_effect_definitions, "font-effect", (*pseudo_class_iterator).second, &font_effect_definitions);
-		for (PropertyGroupMap::iterator i = pseudo_class_font_effect_definitions.begin(); i != pseudo_class_font_effect_definitions.end(); ++i)
-			InstanceFontEffect((*i).first, (*i).second.first, (*i).second.second, (*pseudo_class_iterator).first);
-	}
-}
-
-// Attempts to instance a font effect.
-bool ElementDefinition::InstanceFontEffect(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_classes)
-{
-	FontEffect* font_effect = FontDatabase::GetFontEffect(type, properties);
-	if (font_effect == NULL)
-	{
-		Log::Message(Log::LT_WARNING, "Failed to instance font effect '%s' of type '%s'.", name.c_str(), type.c_str());
-		return false;
-	}
-
-	// Push the instanced effect into the list of effects.
-	int effect_index = (int) font_effects.size();
-	font_effects.push_back(font_effect);
-
-	// Get a reference to the index list we're adding this effect to.
-	PseudoClassFontEffectIndex* index = NULL;
-	FontEffectIndex::iterator index_iterator = font_effect_index.find(name);
-	if (index_iterator == font_effect_index.end())
-	{
-		// No others; create a new index for this name.
-		index = &(font_effect_index.insert(FontEffectIndex::value_type(name, PseudoClassFontEffectIndex())).first->second);
-	}
-	else
-	{
-		index = &(index_iterator->second);
-	}
-
-	// Add the new effect into the index.
-	PseudoClassFontEffectIndex::iterator insert_iterator;
-	for (insert_iterator = index->begin(); insert_iterator != index->end(); ++insert_iterator)
-	{
-		// Keep iterating until we find an effect whose specificity is below the new effect's. The
-		// new effect will be inserted before it in the list.
-		if (font_effects[insert_iterator->second]->GetSpecificity() < font_effect->GetSpecificity())
-			break;
-	}
-
-	index->insert(insert_iterator, PseudoClassFontEffectIndex::value_type(pseudo_classes, effect_index));
-
-
-	// Mark the effect's pseudo-classes as volatile.
-	for (size_t i = 0; i < pseudo_classes.size(); ++i)
-	{
-		PseudoClassVolatilityMap::const_iterator j = pseudo_class_volatility.find(pseudo_classes[i]);
-		if (j == pseudo_class_volatility.end())
-			pseudo_class_volatility[pseudo_classes[i]] = FONT_VOLATILE;
-	}
-
-
-	return true;
 }
 
 // Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.

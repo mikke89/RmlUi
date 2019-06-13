@@ -64,7 +64,8 @@ public:
 	}
 
 	void AssertAllInserted(ID last_property_inserted) const {
-		ROCKET_ASSERT(name_map.size() == (size_t)last_property_inserted && reverse_map.size() == (size_t)last_property_inserted);
+		ptrdiff_t cnt = std::count_if(name_map.begin(), name_map.end(), [](const String& name) { return !name.empty(); });
+		ROCKET_ASSERT(cnt == (ptrdiff_t)last_property_inserted && reverse_map.size() == (size_t)last_property_inserted);
 	}
 
 	ID GetId(const String& name) const
@@ -183,6 +184,9 @@ public:
 	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
 	const ShorthandDefinition* GetShorthand(ShorthandId id) const;
 	const ShorthandDefinition* GetShorthand(const String& shorthand_name) const;
+
+	/// Parse declaration by name, whether its a property or shorthand.
+	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
 
 	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
 

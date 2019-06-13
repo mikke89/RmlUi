@@ -73,7 +73,7 @@ StyleSheet::~StyleSheet()
 bool StyleSheet::LoadStyleSheet(Stream* stream)
 {
 	StyleSheetParser parser;
-	specificity_offset = parser.Parse(root, keyframes, stream);
+	specificity_offset = parser.Parse(root, keyframes, decorator_map, stream);
 	return specificity_offset >= 0;
 }
 
@@ -89,9 +89,17 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 	}
 
 	// Any matching @keyframe names are overridden as per CSS rules
+	new_sheet->keyframes = keyframes;
 	for (auto& other_keyframes : other_sheet->keyframes)
 	{
 		new_sheet->keyframes[other_keyframes.first] = other_keyframes.second;
+	}
+
+	// Any matching @decorator names are overridden
+	new_sheet->decorator_map = other_sheet->decorator_map;
+	for (auto& other_decorator: other_sheet->decorator_map)
+	{
+		new_sheet->decorator_map[other_decorator.first] = other_decorator.second;
 	}
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet->specificity_offset;

@@ -55,48 +55,6 @@ bool ElementDecoration::ReloadDecorators()
 	if (definition == NULL)
 		return true;
 
-	// Generate the decorator sets for pseudo-classes with overrides.
-	const PseudoClassDecoratorMap& pseudo_class_decorators = definition->GetPseudoClassDecorators();
-	for (PseudoClassDecoratorMap::const_iterator i = pseudo_class_decorators.begin(); i != pseudo_class_decorators.end(); ++i)
-	{
-		for (DecoratorMap::const_iterator j = (*i).second.begin(); j != (*i).second.end(); ++j)
-		{
-			int index = LoadDecorator((*j).second);
-
-			// Add it into the index. If a decorator with the same name already exists for this element, then we add it
-			// into the list at the right position (sorted by specificity, descending).
-			PseudoClassDecoratorIndexList* pseudo_class_decorator_index = NULL;
-			DecoratorIndex::iterator index_iterator = decorator_index.find((*j).first);
-			if (index_iterator == decorator_index.end())
-				pseudo_class_decorator_index = &(*decorator_index.insert(DecoratorIndex::value_type((*j).first, PseudoClassDecoratorIndexList())).first).second;
-			else
-				pseudo_class_decorator_index = &(*index_iterator).second;
-
-			// Add the decorator index at the right point to maintain the order of the list.
-			PseudoClassDecoratorIndexList::iterator k = pseudo_class_decorator_index->begin();
-			for (; k != pseudo_class_decorator_index->end(); ++k)
-			{
-				if (decorators[(*k).second].decorator->GetSpecificity() < decorators[index].decorator->GetSpecificity())
-					break;
-			}
-
-			pseudo_class_decorator_index->insert(k, PseudoClassDecoratorIndex(PseudoClassList((*i).first.begin(), (*i).first.end()), index));
-		}
-	}
-
-	// Put the decorators for the element's default state at the end of any index lists.
-	const DecoratorMap& default_decorators = definition->GetDecorators();
-	for (DecoratorMap::const_iterator i = default_decorators.begin(); i != default_decorators.end(); ++i)
-	{
-		int index = LoadDecorator((*i).second);
-
-		DecoratorIndex::iterator index_iterator = decorator_index.find((*i).first);
-		if (index_iterator == decorator_index.end())
-			decorator_index.insert(DecoratorIndex::value_type((*i).first, PseudoClassDecoratorIndexList(1, PseudoClassDecoratorIndex(PseudoClassList(), index))));
-		else
-			(*index_iterator).second.push_back(PseudoClassDecoratorIndex(PseudoClassList(), index));
-	}
-
 	decorators_dirty = false;
 	active_decorators_dirty = true;
 

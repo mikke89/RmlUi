@@ -37,6 +37,11 @@ enum class ShorthandId : uint16_t
 {
 	Invalid,
 
+	/*
+	  The following values define the shorthand ids for the main stylesheet specification.
+	  These values must not be used in places that have their own property specification,
+	  such as decorators and font-effects.
+	*/
 	Margin,
 	Padding,
 	BorderWidth,
@@ -61,6 +66,11 @@ enum class PropertyId : uint16_t
 {
 	Invalid,
 
+	/*
+	  The following values define the property ids for the main stylesheet specification.
+	  These values must not be used in places that have their own property specification,
+	  such as decorators and font-effects.
+	*/
 	MarginTop,
 	MarginRight,
 	MarginBottom,
@@ -106,7 +116,6 @@ enum class PropertyId : uint16_t
 	FontStyle,
 	FontWeight,
 	FontSize,
-	Font,
 	TextAlign,
 	TextDecoration,
 	TextTransform,
@@ -123,14 +132,10 @@ enum class PropertyId : uint16_t
 	TransformOriginX,
 	TransformOriginY,
 	TransformOriginZ,
-	None,
-	All,
 
 	Transition,
 	Animation,
-	Keyframes,
 
-	ScrollDefaultStepSize,
 	Opacity,
 	PointerEvents,
 	Focus,

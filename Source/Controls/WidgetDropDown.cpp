@@ -52,11 +52,12 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	value_element = Core::Factory::InstanceElement(element, "*", "selectvalue", Rocket::Core::XMLAttributes());
 	selection_element = Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rocket::Core::XMLAttributes());
 
-	value_element->SetProperty("overflow", Core::Property(Core::Style::Overflow::Hidden));
+	value_element->SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Hidden));
+	value_element->SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Hidden));
 
-	selection_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
-	selection_element->SetProperty("z-index", Core::Property(1.0f, Core::Property::NUMBER));
-	selection_element->SetProperty("clip", Core::Property(Core::Style::Clip::None));
+	selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+	selection_element->SetProperty(Core::PropertyId::ZIndex, Core::Property(1.0f, Core::Property::NUMBER));
+	selection_element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::None));
 
 	parent_element->AddEventListener(Core::EventId::Click, this, true);
 	parent_element->AddEventListener(Core::EventId::Blur, this);
@@ -222,8 +223,8 @@ int WidgetDropDown::AddOption(const Rocket::Core::String& rml, const Rocket::Cor
 	Core::Element* element = Core::Factory::InstanceElement(selection_element, "*", "option", Rocket::Core::XMLAttributes());
 
 	// Force to block display and inject the RML. Register a click handler so we can be notified of selection.
-	element->SetProperty("display", Core::Property(Core::Style::Display::Block));
-	element->SetProperty("clip", Core::Property(Core::Style::Clip::Auto));
+	element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
+	element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Auto));
 	element->SetInnerRML(rml);
 	element->AddEventListener(Core::EventId::Click, this);
 
@@ -385,13 +386,13 @@ void WidgetDropDown::ShowSelectBox(bool show)
 {
 	if (show)
 	{
-		selection_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Visible));
+		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
 	}
 	else
 	{
-		selection_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
 	}

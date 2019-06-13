@@ -42,9 +42,10 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	keyboard_showed = false;
 	
 	parent = _parent;
-	parent->SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Pre));
-	parent->SetProperty("overflow", Core::Property(Core::Style::Overflow::Hidden));
-	parent->SetProperty("drag", Core::Property(Core::Style::Drag::Drag));
+	parent->SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Pre));
+	parent->SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Hidden));
+	parent->SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Hidden));
+	parent->SetProperty(Core::PropertyId::Drag, Core::Property(Core::Style::Drag::Drag));
 	parent->SetClientArea(Rocket::Core::Box::CONTENT);
 
 	parent->AddEventListener(Core::EventId::Keydown, this, true);
@@ -163,7 +164,7 @@ void WidgetTextInput::UpdateSelectionColours()
 	}
 
 	// Set the computed text colour on the element holding the selected text.
-	selected_text_element->SetProperty("color", Rocket::Core::Property(colour, Rocket::Core::Property::COLOUR));
+	selected_text_element->SetProperty(Core::PropertyId::Color, Rocket::Core::Property(colour, Rocket::Core::Property::COLOUR));
 
 	// If the 'background-color' property has been set on the 'selection' element, use that as the
 	// background colour for the selected text. Otherwise, use the inverse of the selected text

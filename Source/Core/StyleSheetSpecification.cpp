@@ -164,17 +164,7 @@ const ShorthandDefinition* StyleSheetSpecification::GetShorthand(ShorthandId id)
 // Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number)
 {
-	// Try as a property first
-	PropertyId property_id = GetPropertyId(property_name);
-	if(property_id != PropertyId::Invalid)
-		return instance->properties.ParsePropertyDeclaration(dictionary, property_id, property_value, source_file, source_line_number);
-
-	// Then, as a shorthand
-	ShorthandId shorthand_id = GetShorthandId(property_name);
-	if(shorthand_id != ShorthandId::Invalid)
-		return instance->properties.ParseShorthandDeclaration(dictionary, shorthand_id, property_value, source_file, source_line_number);
-
-	return false;
+	return instance->properties.ParsePropertyDeclaration(dictionary, property_name, property_value, source_file, source_line_number);
 }
 
 PropertyId StyleSheetSpecification::GetPropertyId(const String& property_name)
@@ -219,6 +209,11 @@ std::vector<PropertyId> StyleSheetSpecification::GetShorthandUnderlyingPropertie
 		}
 	}
 	return result;
+}
+
+const PropertySpecification& StyleSheetSpecification::GetPropertySpecification()
+{
+	return instance->properties;
 }
 
 // Registers Rocket's default parsers.

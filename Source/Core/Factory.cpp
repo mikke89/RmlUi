@@ -343,6 +343,15 @@ DecoratorInstancer* Factory::RegisterDecoratorInstancer(const String& name, Deco
 	return instancer;
 }
 
+const PropertySpecification* Factory::GetDecoratorPropertySpecification(const String& name)
+{
+	auto iterator = decorator_instancers.find(name);
+	if (iterator == decorator_instancers.end())
+		return nullptr;
+	
+	return &iterator->second->GetPropertySpecification();
+}
+
 // Attempts to instance a decorator from an instancer registered with the factory.
 Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties)
 {

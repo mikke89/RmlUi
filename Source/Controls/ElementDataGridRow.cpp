@@ -53,8 +53,8 @@ ElementDataGridRow::ElementDataGridRow(const Rocket::Core::String& tag) : Core::
 	dirty_children = false;
 	row_expanded = true;
 
-	SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Nowrap));
-	SetProperty("display", Core::Property(Core::Style::Display::InlineBlock));
+	SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Nowrap));
+	SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 }
 
 ElementDataGridRow::~ElementDataGridRow()
@@ -85,7 +85,7 @@ void ElementDataGridRow::Initialise(ElementDataGrid* _parent_grid, ElementDataGr
 	{
 		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(Core::Factory::InstanceElement(this, "#rktctl_datagridcell", "datagridcell", cell_attributes));
 		cell->Initialise(i, header_row->GetChild(i));
-		cell->SetProperty("display", Core::Property(Core::Style::Display::InlineBlock));
+		cell->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 		AppendChild(cell);
 		cell->RemoveReference();
 	}
@@ -386,7 +386,7 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 
 			if (!row_expanded)
 			{
-				new_row->SetProperty("display", Core::Property(Core::Style::Display::None));
+				new_row->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 			}
 		}
 
@@ -674,7 +674,7 @@ void ElementDataGridRow::DirtyRow()
 // Sets this row's child rows to be visible.
 void ElementDataGridRow::Show()
 {
-	SetProperty("display", Core::Property(Core::Style::Display::InlineBlock));
+	SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 
 	if (row_expanded)
 	{
@@ -688,7 +688,7 @@ void ElementDataGridRow::Show()
 // Sets this row's children to be invisible.
 void ElementDataGridRow::Hide()
 {
-	SetProperty("display", Core::Property(Core::Style::Display::None));
+	SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 
 	for (size_t i = 0; i < children.size(); i++)
 	{

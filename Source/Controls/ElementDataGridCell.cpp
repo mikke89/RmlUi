@@ -52,7 +52,7 @@ void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
 	{
 		header->AddReference();
 		if(auto p = header->GetLocalProperty("width"))
-			SetProperty("width", *p);
+			SetProperty(Core::PropertyId::Width, *p);
 	}
 }
 

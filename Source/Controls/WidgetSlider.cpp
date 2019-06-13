@@ -91,7 +91,7 @@ WidgetSlider::~WidgetSlider()
 bool WidgetSlider::Initialise()
 {
 	Core::Property drag_property = Core::Property(Core::Style::Drag::Drag);
-	parent->SetProperty("drag", drag_property);
+	parent->SetProperty(Core::PropertyId::Drag, drag_property);
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
 	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rocket::Core::XMLAttributes());
@@ -100,8 +100,8 @@ bool WidgetSlider::Initialise()
 
 	arrows[0] = Core::Factory::InstanceElement(parent, "*", "sliderarrowdec", Rocket::Core::XMLAttributes());
 	arrows[1] = Core::Factory::InstanceElement(parent, "*", "sliderarrowinc", Rocket::Core::XMLAttributes());
-	arrows[0]->SetProperty("drag", drag_property);
-	arrows[1]->SetProperty("drag", drag_property);
+	arrows[0]->SetProperty(Core::PropertyId::Drag, drag_property);
+	arrows[1]->SetProperty(Core::PropertyId::Drag, drag_property);
 
 	if (track == NULL ||
 		bar == NULL ||

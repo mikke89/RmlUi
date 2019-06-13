@@ -157,16 +157,73 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	return true;
 }
 
-int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Stream* _stream)
+bool StyleSheetParser::ParseDecoratorBlock(DecoratorSpecificationMap& decorator_map, const String& at_name)
+{
+	StringList name_type;
+	StringUtilities::ExpandString(name_type, at_name, ':');
+
+	if (name_type.size() != 2 || name_type[0].empty() || name_type[1].empty())
+	{
+		Log::Message(Log::LT_WARNING, "Decorator syntax error at %s:%d. Use syntax: '@decorator name : type { ... }'.", stream_file_name.c_str(), line_number);
+		return false;
+	}
+
+	const String& name = name_type[0];
+	String decorator_type = name_type[1];
+
+	auto it_find = decorator_map.find(name);
+	if (it_find != decorator_map.end())
+	{
+		Log::Message(Log::LT_WARNING, "Decorator with name '%s' already declared, ignoring decorator at %s:%d.", name.c_str(), stream_file_name.c_str(), line_number);
+		return false;
+	}
+
+	// Get the property specification associated with the decorator type
+	const PropertySpecification* property_specification = Factory::GetDecoratorPropertySpecification(decorator_type);
+	PropertyDictionary properties;
+
+	if(!property_specification)
+	{
+		// Type is not a declared decorator type, instead, see if it is another decorator name, then we inherit its properties.
+		auto it = decorator_map.find(decorator_type);
+		if (it != decorator_map.end())
+		{
+			// Yes, try to retrieve the property specification from the parent type, and add its property values.
+			property_specification = Factory::GetDecoratorPropertySpecification(it->first);
+			properties = it->second.properties;
+			decorator_type = it->second.decorator_type;
+		}
+
+		// If we still don't have a property specification, we cannot continue.
+		if (!property_specification)
+		{
+			Log::Message(Log::LT_WARNING, "Invalid decorator type '%s' declared at %s:%d.", decorator_type.c_str(), stream_file_name.c_str(), line_number);
+			return false;
+		}
+	}
+
+	if (!ReadProperties(properties, *property_specification))
+		return false;
+
+	decorator_map.emplace(name, DecoratorSpecification{ std::move(decorator_type), std::move(properties) });
+
+	return true;
+}
+
+int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, Stream* _stream)
 {
 	int rule_count = 0;
 	line_number = 0;
 	stream = _stream;
 	stream_file_name = Replace(stream->GetSourceURL().GetURL(), "|", ":");
 
-	enum class State { Global, KeyframesIdentifier, KeyframesRules, Invalid };
+	enum class State { Global, AtRuleIdentifier, AtRuleBlock, Invalid };
 	State state = State::Global;
-	String keyframes_identifier;
+
+	// At-rules given by the following syntax in global space: @identifier name { block }
+	enum class AtRule { None, Keyframes, Decorator };
+	AtRule at_rule = AtRule::None;
+	String at_rule_name;
 
 	// Look for more styles while data is available
 	while (FillBuffer())
@@ -183,7 +240,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 				{
 					// Read the attributes
 					PropertyDictionary properties;
-					if (!ReadProperties(properties))
+					if (!ReadProperties(properties, StyleSheetSpecification::GetPropertySpecification()))
 						continue;
 
 					StringList style_name_list;
@@ -197,7 +254,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 				}
 				else if (token == '@')
 				{
-					state = State::KeyframesIdentifier;
+					state = State::AtRuleIdentifier;
 				}
 				else
 				{
@@ -205,45 +262,99 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 				}
 			}
 			break;
-			case State::KeyframesIdentifier:
+			case State::AtRuleIdentifier:
 			{
 				if (token == '{')
 				{
-					keyframes_identifier.clear();
-					if (pre_token_str.substr(0, KEYFRAMES.size()) == KEYFRAMES)
+					String at_rule_identifier = pre_token_str.substr(0, pre_token_str.find(' '));
+					at_rule_name = StringUtilities::StripWhitespace(pre_token_str.substr(at_rule_identifier.size()));
+
+					if (at_rule_identifier == KEYFRAMES)
 					{
-						keyframes_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(KEYFRAMES.size()));
+						at_rule = AtRule::Keyframes;
 					}
-					state = State::KeyframesRules;
+					else if (at_rule_identifier == "decorator")
+					{
+						at_rule = AtRule::Decorator;
+					}
+					else
+					{
+						// Invalid identifier, should ignore
+						at_rule = AtRule::None;
+						Log::Message(Log::LT_WARNING, "Invalid at-rule identifier '%s' found in stylesheet at %s:%d", at_rule_identifier.c_str(), stream_file_name.c_str(), line_number);
+					}
+					state = State::AtRuleBlock;
+
 				}
 				else
 				{
-					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframes identifier in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
+					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing at-rule identifier in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
 					state = State::Invalid;
 				}
 			}
 			break;
-			case State::KeyframesRules:
+			case State::AtRuleBlock:
 			{
-				if (token == '{')
+				switch (at_rule)
 				{
-					state = State::KeyframesRules;
+				case AtRule::Keyframes:
+				{
+					if (token == '{')
+					{
+						// Each keyframe in keyframes has its own block which is processed here
+						state = State::AtRuleBlock;
 
-					PropertyDictionary properties;
-					if (!ReadProperties(properties))
-						continue;
+						PropertyDictionary properties;
+						if (!ReadProperties(properties, StyleSheetSpecification::GetPropertySpecification()))
+							continue;
 
-					if (!ParseKeyframeBlock(keyframes, keyframes_identifier, pre_token_str, properties))
-						continue;
+						if (!ParseKeyframeBlock(keyframes, at_rule_name, pre_token_str, properties))
+							continue;
+					}
+					else if (token == '}')
+					{
+						at_rule = AtRule::None;
+						at_rule_name.clear();
+						state = State::Global;
+					}
+					else
+					{
+						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing at-rule block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
+						state = State::Invalid;
+					}
 				}
-				else if (token == '}')
+				break;
+				case AtRule::Decorator:
 				{
-					state = State::Global;
+					if (token == '}')
+					{
+						// Process the decorator
+						ParseDecoratorBlock(decorator_map, at_rule_name);
+
+						at_rule = AtRule::None;
+						at_rule_name.clear();
+						state = State::Global;
+					}
+					else
+					{
+						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing at-rule block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
+						state = State::Invalid;
+					}
 				}
-				else
+				break;
+				case AtRule::None:
 				{
-					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframes in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
-					state = State::Invalid;
+					// Invalid at-rule, trying to continue
+					if (token == '}')
+					{
+						at_rule = AtRule::None;
+						at_rule_name.clear();
+						state = State::Global;
+					}
+				}
+				break;
+				default:
+					ROCKET_ERROR;
 				}
 			}
 			break;
@@ -269,13 +380,13 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, const String& properties)
 {
 	stream = new StreamMemory((const byte*)properties.c_str(), properties.size());
-	bool success = ReadProperties(parsed_properties);
+	bool success = ReadProperties(parsed_properties, StyleSheetSpecification::GetPropertySpecification());
 	stream->RemoveReference();
 	stream = NULL;
 	return success;
 }
 
-bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
+bool StyleSheetParser::ReadProperties(PropertyDictionary& properties, const PropertySpecification& property_specification)
 {
 	int rule_line_number = (int)line_number;
 	String name;
@@ -326,7 +437,7 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties)
 				{
 					value = StringUtilities::StripWhitespace(value);
 
-					if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number))
+					if (!property_specification.ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number))
 						Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 
 					name.clear();

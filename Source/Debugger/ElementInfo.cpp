@@ -30,6 +30,7 @@
 #include "../../Include/Rocket/Core/PropertyIterators.h"
 #include "../../Include/Rocket/Core/Factory.h"
 #include "../../Include/Rocket/Core/StyleSheet.h"
+#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
 #include "Geometry.h"
 #include "CommonSource.h"
 #include "InfoSource.h"
@@ -134,15 +135,15 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				{
 					Core::Element* panel = target_element->GetNextSibling();
 					if (panel->IsVisible())
-						panel->SetProperty("display", Core::Property(Core::Style::Display::None));
+						panel->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 					else
-						panel->SetProperty("display", Core::Property(Core::Style::Display::Block));
+						panel->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
 					event.StopPropagation();
 				}
 				else if (event.GetTargetElement()->GetId() == "close_button")
 				{
 					if (IsVisible())
-						SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+						SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 				}
 				// Check if the id is in the form "a %d" or "c %d" - these are the ancestor or child labels.
 				else
@@ -273,7 +274,7 @@ void ElementInfo::UpdateSourceElement()
 					{
 						for (auto nvp : *local_properties)
 						{
-							auto& prop_name = nvp.first;
+							auto& prop_name = Core::StyleSheetSpecification::GetPropertyName(nvp.first);
 							auto prop_value = nvp.second.ToString();
 							value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
 						}
@@ -444,12 +445,13 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 	auto it_end = element->IteratePropertiesEnd();
 	for(auto it = element->IteratePropertiesBegin(); it != it_end; ++it)
 	{
-		const Core::String& property_name = (*it).first;
+		const Core::PropertyId property_id = (*it).first;
+		const Core::String& property_name = Core::StyleSheetSpecification::GetPropertyName((*it).first);
 		const Core::Property* property = &(*it).second;
 		const Core::PseudoClassList* property_pseudo_classes_ptr = it.pseudo_class_list();
 
 		// Check that this property isn't overridden or just not inherited.
-		if (primary_element->GetProperty(property_name) != property)
+		if (primary_element->GetProperty(property_id) != property)
 			continue;
 
 		const Core::PseudoClassList& property_pseudo_classes = (property_pseudo_classes_ptr ? *property_pseudo_classes_ptr : empty_property_pseudo_classes);

@@ -50,6 +50,14 @@ struct Keyframes {
 };
 typedef UnorderedMap<String, Keyframes> KeyframesMap;
 
+struct DecoratorSpecification {
+	String decorator_type;
+	PropertyDictionary properties;
+};
+
+using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
+
+
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
 	a new, merged stylesheet.
@@ -98,6 +106,9 @@ private:
 
 	// Name of every @keyframes mapped to their keys
 	KeyframesMap keyframes;
+
+	// Name of every @decorator mapped to their specification
+	DecoratorSpecificationMap decorator_map;
 
 	// Map of only nodes with actual style information.
 	NodeIndex styled_node_index;

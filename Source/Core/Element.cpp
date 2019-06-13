@@ -641,6 +641,12 @@ const Property* Element::GetProperty(const String& name)
 }
 
 // Returns one of this element's properties.
+const Property* Element::GetProperty(PropertyId id)
+{
+	return style->GetProperty(id);
+}
+
+// Returns one of this element's properties.
 const Property* Element::GetLocalProperty(const String& name)
 {
 	return style->GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));

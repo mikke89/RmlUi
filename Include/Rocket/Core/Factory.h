@@ -49,6 +49,7 @@ class FontEffect;
 class FontEffectInstancer;
 class StyleSheet;
 class PropertyDictionary;
+class PropertySpecification;
 enum class EventId : uint16_t;
 
 /**
@@ -115,6 +116,10 @@ public:
 	/// @param[in] instancer The instancer to call when the decorator name is encountered.
 	/// @return The added instancer if the registration was successful, NULL otherwise.
 	static DecoratorInstancer* RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer);
+	/// Retrieves the property specification of a decorator registered with the factory.
+	/// @param[in] name The name of the decorator.
+	/// @return The property specification if the decorator exists, NULL otherwise.
+	static const PropertySpecification* GetDecoratorPropertySpecification(const String& name);
 	/// Attempts to instance a decorator from an instancer registered with the factory.
 	/// @param[in] name The name of the desired decorator type.
 	/// @param[in] properties The properties associated with the decorator.

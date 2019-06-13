@@ -30,19 +30,12 @@
 
 #include "../../Include/Rocket/Core/Dictionary.h"
 #include "../../Include/Rocket/Core/ReferenceCountable.h"
-#include <map>
-#include "../../Include/Rocket/Core/FontEffect.h"
-#include "StyleSheetNode.h"
 
 namespace Rocket {
 namespace Core {
 
-class Decorator;
-class FontEffect;
+class StyleSheetNode;
 class ElementDefinitionIterator;
-
-typedef SmallUnorderedMap< String, Decorator* > DecoratorMap;
-typedef std::map< StringList, DecoratorMap > PseudoClassDecoratorMap;
 
 /**
 	@author Peter Curry
@@ -82,19 +75,6 @@ public:
 	/// @param[in] pseudo_class The pseudo-class that was just activated or deactivated.
 	void GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes, const String& pseudo_class) const;
 
-	/// Returns the list of the element definition's instanced decorators in the default state.
-	/// @return The list of instanced decorators.
-	const DecoratorMap& GetDecorators() const;
-	/// Returns the map of pseudo-class names to overriding instanced decorators.
-	/// @return The map of the overriding decorators for each pseudo-class.
-	const PseudoClassDecoratorMap& GetPseudoClassDecorators() const;
-
-	/// Appends this definition's font effects (appropriately for the given pseudo classes) into a
-	/// provided map of effects.
-	/// @param[out] font_effects The outgoing map of font effects.
-	/// @param[in] pseudo_classes Pseudo-classes active on the querying element.
-	void GetFontEffects(FontEffectMap& font_effects, const PseudoClassList& pseudo_classes) const;
-
 	/// Returns the volatility of a pseudo-class.
 	/// @param[in] pseudo_class The name of the pseudo-class to check for volatility.
 	/// @return The volatility of the pseudo-class.
@@ -118,46 +98,12 @@ protected:
 	void OnReferenceDeactivate();
 
 private:
-	typedef std::pair< String, PropertyDictionary > PropertyGroup;
-	typedef SmallUnorderedMap< String, PropertyGroup > PropertyGroupMap;
-
-	typedef std::vector< std::pair< StringList, int > > PseudoClassFontEffectIndex;
-	typedef SmallUnorderedMap< String, PseudoClassFontEffectIndex > FontEffectIndex;
-
 	typedef SmallUnorderedMap< String, PseudoClassVolatility > PseudoClassVolatilityMap;
-
-	// Finds all propery declarations for a group.
-	void BuildPropertyGroup(PropertyGroupMap& groups, const String& group_type, const PropertyDictionary& element_properties, const PropertyGroupMap* default_properties = NULL);
-	// Updates a property dictionary of all properties for a single group.
-	int BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& group_type, const String& group_name, const PropertyDictionary& element_properties);
-
-	// Builds decorator definitions from the parsed properties and instances decorators as
-	// appropriate.
-	void InstanceDecorators(const PseudoClassPropertyMap& merged_pseudo_class_properties);
-	// Attempts to instance a decorator.
-	bool InstanceDecorator(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_class = StringList());
-
-	// Builds font effect definitions from the parsed properties and instances font effects as
-	// appropriate.
-	void InstanceFontEffects(const PseudoClassPropertyMap& merged_pseudo_class_properties);
-	// Attempts to instance a font effect.
-	bool InstanceFontEffect(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_class = StringList());
 
 	// The attributes for the default state of the element, with no pseudo-classes.
 	PropertyDictionary properties;
 	// The overridden attributes for the element's pseudo-classes.
 	PseudoClassPropertyDictionary pseudo_class_properties;
-
-	// The instanced decorators for this element definition.
-	DecoratorMap decorators;
-	// The overridden decorators for the element's pseudo-classes.
-	PseudoClassDecoratorMap pseudo_class_decorators;
-
-	// The list of every decorator used by this element in every class.
-	FontEffectList font_effects;
-	// For each unique decorator name, this stores (in order of specificity) the name of the
-	// pseudo-class that has a definition for it, and the index into the list of decorators.
-	FontEffectIndex font_effect_index;
 
 	// The list of volatile pseudo-classes in this definition, and how volatile they are.
 	PseudoClassVolatilityMap pseudo_class_volatility;
