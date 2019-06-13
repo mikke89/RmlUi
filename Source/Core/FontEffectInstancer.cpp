@@ -48,10 +48,11 @@ const PropertySpecification& FontEffectInstancer::GetPropertySpecification() con
 // Registers a property for the font effect.
 PropertyDefinition& FontEffectInstancer::RegisterProperty(const String& property_name, const String& default_value, bool affects_generation)
 {
+	PropertyDefinition& definition = properties.RegisterProperty(ToLower(property_name), default_value, false, false);
 	if (affects_generation)
-		volatile_properties.insert(ToLower(property_name));
+		volatile_properties.insert(definition.GetId());
 
-	return properties.RegisterProperty(property_name, default_value, false, false);
+	return definition;
 }
 
 // Registers a shorthand property definition.

@@ -48,6 +48,10 @@
 #include "Platform.h"
 #include "Debug.h"
 
+#ifdef ROCKET_DEBUG
+#include <unordered_map>
+#endif
+
 namespace Rocket {
 namespace Core {
 
@@ -106,8 +110,13 @@ typedef uintptr_t CompiledGeometryHandle;
 typedef uintptr_t DecoratorDataHandle;
 
 // Common containers
+#ifdef ROCKET_DEBUG
+template < typename Key, typename Value>
+using UnorderedMap = std::unordered_map< Key, Value >;
+#else
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+#endif
 template < typename Key, typename Value>
 using SmallUnorderedMap = chobo::flat_map< Key, Value >;
 template < typename T >

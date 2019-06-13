@@ -377,12 +377,20 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	// Build up a list of all applicable font effects set by our parent nodes.
 	FontEffectMap font_effects;
+
+	// @hack/todo: Only using the "none" font-effect for now
+	static FontEffect* font_effect = nullptr;
+	if(!font_effect)
+		font_effect = FontDatabase::GetFontEffect("none", PropertyDictionary());
+	ROCKET_ASSERT(font_effect);
+	font_effects.emplace("", font_effect);
+
 	Element* element = GetParentNode();
 	while (element != NULL)
 	{
 		const ElementDefinition* element_definition = element->GetDefinition();
-		if (element_definition != NULL)
-			element_definition->GetFontEffects(font_effects, element->GetStyle()->GetActivePseudoClasses());
+		//if (element_definition != NULL)
+		//	element_definition->GetFontEffects(font_effects, element->GetStyle()->GetActivePseudoClasses());
 
 		element = element->GetParentNode();
 	}

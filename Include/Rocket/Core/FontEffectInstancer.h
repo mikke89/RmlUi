@@ -89,7 +89,7 @@ private:
 	PropertySpecification properties;
 
 	// Properties that define the geometry.
-	std::unordered_set< String > volatile_properties;
+	std::unordered_set< PropertyId > volatile_properties;
 
 	friend class Factory;
 };

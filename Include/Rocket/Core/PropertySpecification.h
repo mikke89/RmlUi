@@ -49,7 +49,7 @@ class IdNameMap {
 protected:
 	IdNameMap(size_t num_ids_to_reserve) {
 		static_assert((int)ID::Invalid == 0, "Invalid id must be zero");
-		name_map.resize(num_ids_to_reserve);
+		name_map.reserve(num_ids_to_reserve);
 		reverse_map.reserve(num_ids_to_reserve);
 		AddPair(ID::Invalid, "invalid");
 	}
@@ -57,7 +57,8 @@ protected:
 public:
 	void AddPair(ID id, const String& name) {
 		// Should only be used for defined IDs
-		ROCKET_ASSERT((size_t)id < name_map.size());
+		if ((size_t)id >= name_map.size())
+			name_map.resize(1 + (size_t)id);
 		name_map[(size_t)id] = name;
 		bool inserted = reverse_map.emplace(name, id).second;
 		ROCKET_ASSERT(inserted);
@@ -84,6 +85,9 @@ public:
 
 	ID GetOrCreateId(const String& name)
 	{
+		// All predefined properties must be set before adding custom properties here
+		ROCKET_ASSERT(name_map.size() == reverse_map.size());
+
 		ID next_id = static_cast<ID>(name_map.size());
 
 		// Only insert if not already in list

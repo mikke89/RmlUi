@@ -372,11 +372,7 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 	{
 		specificity = Math::Max(specificity, (*i).second.specificity);
 
-		// Check for the 'z-index' property; we don't want to send this through.
-		if ((*i).first == Z_INDEX)
-			z_index = (*i).second.value.Get< float >();
-		else
-			property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
+		property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
 	}
 
 	// Set the property defaults for all unset properties.
@@ -433,23 +429,23 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 		specificity = Math::Max(specificity, i->second.specificity);
 
 		// Check for the 'z-index' property; we don't want to send this through.
-		if (i->first == Z_INDEX)
-		{
-			set_z_index = true;
-			z_index = i->second.value.Get< float >();
-		}
-		else if (i->first == COLOR)
-		{
-			static PropertyParserColour colour_parser;
+		//if (i->first == Z_INDEX)
+		//{
+		//	set_z_index = true;
+		//	z_index = i->second.value.Get< float >();
+		//}
+		//else if (i->first == COLOR)
+		//{
+		//	static PropertyParserColour colour_parser;
 
-			Property colour_property;
-			if (colour_parser.ParseValue(colour_property, i->second.value.Get< String >(), ParameterMap()))
-			{
-				colour = colour_property.value.Get< Colourb >();
-				set_colour = true;
-			}
-		}
-		else
+		//	Property colour_property;
+		//	if (colour_parser.ParseValue(colour_property, i->second.value.Get< String >(), ParameterMap()))
+		//	{
+		//		colour = colour_property.value.Get< Colourb >();
+		//		set_colour = true;
+		//	}
+		//}
+		//else
 		{
 			property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
 		}
@@ -460,7 +456,7 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 
 	// Compile an ordered list of the values of the properties used to generate the effect's
 	// textures and geometry.
-	typedef std::list< std::pair< String, String > > GenerationPropertyList;
+	typedef std::list< std::pair< PropertyId, String > > GenerationPropertyList;
 	GenerationPropertyList generation_properties;
 	for (PropertyMap::const_iterator i = parsed_properties.GetProperties().begin(); i != parsed_properties.GetProperties().end(); ++i)
 	{

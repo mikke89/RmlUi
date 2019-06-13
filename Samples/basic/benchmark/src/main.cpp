@@ -57,8 +57,8 @@ public:
 		{
 			{
 				document->GetElementById("title")->SetInnerRML(title);
-				document->SetProperty("left", Property(position.x, Property::PX));
-				document->SetProperty("top", Property(position.y, Property::PX));
+				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
+				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
 			}
 
 			document->Show();
