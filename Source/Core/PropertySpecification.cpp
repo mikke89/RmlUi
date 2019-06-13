@@ -86,7 +86,7 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 // Returns a property definition.
 const PropertyDefinition* PropertySpecification::GetProperty(PropertyId id) const
 {
-	if (id == PropertyId::Invalid || (size_t)id < properties.size())
+	if (id == PropertyId::Invalid || (size_t)id >= properties.size())
 		return nullptr;
 
 	return properties[(size_t)id];
@@ -197,7 +197,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 // Returns a shorthand definition.
 const ShorthandDefinition* PropertySpecification::GetShorthand(ShorthandId id) const
 {
-	if (id == ShorthandId::Invalid || (size_t)id < properties.size())
+	if (id == ShorthandId::Invalid || (size_t)id >= shorthands.size())
 		return nullptr;
 
 	return shorthands[(size_t)id];

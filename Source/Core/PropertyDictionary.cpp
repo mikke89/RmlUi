@@ -42,14 +42,14 @@ PropertyDictionary::~PropertyDictionary()
 // Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {
-	ROCKET_ASSERT(id != PropertyId::Invalid && (size_t)id < properties.size());
+	ROCKET_ASSERT(id != PropertyId::Invalid);
 	properties[id] = property;
 }
 
 // Removes a property from the dictionary, if it exists.
 void PropertyDictionary::RemoveProperty(PropertyId id)
 {
-	ROCKET_ASSERT(id != PropertyId::Invalid && (size_t)id < properties.size());
+	ROCKET_ASSERT(id != PropertyId::Invalid);
 	properties.erase(id);
 }
 

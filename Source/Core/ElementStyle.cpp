@@ -921,6 +921,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 		case PropertyId::Transform:
 			values.transform = p->Get<TransformRef>();
+			break;
 		case PropertyId::TransformOriginX:
 			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
 			break;
@@ -936,6 +937,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			break;
 		case PropertyId::Animation:
 			values.animation = p->Get<AnimationList>();
+			break;
 		}
 	}
 
