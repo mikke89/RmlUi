@@ -82,6 +82,12 @@ void DecoratorTiledInstancer::GetTileProperties(size_t tile_index, DecoratorTile
 	const Property* texture_property = properties.GetProperty(ids.src);
 	texture_name = texture_property->Get< String >();
 	rcss_path = texture_property->source;
+
+	// Declaring the name 'none' is the same as an empty string. This gives an easy way to skip certain
+	// tiles in a shorthand since we can't always declare an empty string.
+	static const String none_texture_name = "none";
+	if (texture_name == none_texture_name)
+		texture_name.clear();
 }
 
 // Loads a single texture coordinate value from the properties.

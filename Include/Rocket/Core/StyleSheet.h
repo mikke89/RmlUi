@@ -90,6 +90,8 @@ public:
 	/// Returns the Decorator of the given name, or null if it does not exist.
 	Decorator* GetDecorator(const String& name) const;
 
+	Decorator* GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number);
+
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
 	ElementDefinition* GetElementDefinition(const Element* element) const;

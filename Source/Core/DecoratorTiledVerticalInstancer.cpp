@@ -37,6 +37,7 @@ DecoratorTiledVerticalInstancer::DecoratorTiledVerticalInstancer()
 	RegisterTileProperty("top-image", false);
 	RegisterTileProperty("bottom-image", false);
 	RegisterTileProperty("center-image", true);
+	RegisterShorthand("decorator", "top-image, center-image, bottom-image", ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorTiledVerticalInstancer::~DecoratorTiledVerticalInstancer()

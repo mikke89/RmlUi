@@ -652,6 +652,11 @@ const Property* Element::GetLocalProperty(const String& name)
 	return style->GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));
 }
 
+const Property* Element::GetLocalProperty(PropertyId id)
+{
+	return style->GetLocalProperty(id);
+}
+
 const PropertyMap * Element::GetLocalProperties()
 {
 	return style->GetLocalProperties();

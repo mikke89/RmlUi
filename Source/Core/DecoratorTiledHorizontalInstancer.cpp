@@ -37,6 +37,7 @@ DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer()
 	RegisterTileProperty("left-image", false);
 	RegisterTileProperty("right-image", false);
 	RegisterTileProperty("center-image", true);
+	RegisterShorthand("decorator", "left-image, center-image, right-image", ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorTiledHorizontalInstancer::~DecoratorTiledHorizontalInstancer()

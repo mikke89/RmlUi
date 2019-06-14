@@ -45,6 +45,8 @@ DecoratorTiledBoxInstancer::DecoratorTiledBoxInstancer()
 	RegisterTileProperty("bottom-image", true);
 
 	RegisterTileProperty("center-image", true);
+
+	RegisterShorthand("decorator", "top-left-image, top-image, top-right-image, left-image, center-image, right-image, bottom-left-image, bottom-image, bottom-right-image", ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorTiledBoxInstancer::~DecoratorTiledBoxInstancer()

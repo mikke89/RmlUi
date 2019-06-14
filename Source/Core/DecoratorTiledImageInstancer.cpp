@@ -35,6 +35,7 @@ namespace Core {
 DecoratorTiledImageInstancer::DecoratorTiledImageInstancer()
 {
 	RegisterTileProperty("image", false);
+	RegisterShorthand("decorator", "image", ShorthandType::Recursive);
 }
 
 DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer()

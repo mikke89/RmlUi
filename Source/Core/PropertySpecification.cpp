@@ -154,9 +154,9 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 			if(property)
 				item = ShorthandItem(id_list[i].property_id, property);
 		}
-		else if (id_list[i].type == ShorthandItemType::Shorthand && type == ShorthandType::Recursive)
+		else if (id_list[i].type == ShorthandItemType::Shorthand && (type == ShorthandType::Recursive || type == ShorthandType::RecursiveCommaSeparated))
 		{
-			// The recursive type (and only that) can hold other shorthands
+			// The recursive types (and only those) can hold other shorthands
 			const ShorthandDefinition* shorthand = GetShorthand(id_list[i].shorthand_id);
 			if (shorthand)
 				item = ShorthandItem(id_list[i].shorthand_id, shorthand);
@@ -309,6 +309,33 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 				result &= ParsePropertyDeclaration(dictionary, item.property_id, property_value, source_file, source_line_number);
 			else if (item.type == ShorthandItemType::Shorthand)
 				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, property_value, source_file, source_line_number);
+			else
+				result = false;
+		}
+
+		if (!result)
+			return false;
+	}
+	else if (shorthand_definition->type == ShorthandType::RecursiveCommaSeparated)
+	{
+		bool result = true;
+
+		StringList subvalues;
+		StringUtilities::ExpandString(subvalues, property_value);
+
+		if (shorthand_definition->items.size() != subvalues.size())
+		{
+			// We must declare all subvalues
+			return false;
+		}
+
+		for (size_t i = 0; i < shorthand_definition->items.size(); i++)
+		{
+			const ShorthandItem& item = shorthand_definition->items[i];
+			if (item.type == ShorthandItemType::Property)
+				result &= ParsePropertyDeclaration(dictionary, item.property_id, subvalues[i], source_file, source_line_number);
+			else if (item.type == ShorthandItemType::Shorthand)
+				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, subvalues[i], source_file, source_line_number);
 			else
 				result = false;
 		}

@@ -39,7 +39,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 	char quote = 0;
 	bool last_char_delimiter = true;
 	const char* ptr = string.c_str();
-	const char* start_ptr = NULL;
+	const char* start_ptr = nullptr;
 	const char* end_ptr = ptr;
 
 	size_t num_delimiter_values = std::count(string.begin(), string.end(), delimiter);
@@ -48,7 +48,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 		string_list.push_back(StripWhitespace(string));
 		return;
 	}
-	string_list.reserve(num_delimiter_values + 1);
+	string_list.reserve(string_list.size() + num_delimiter_values + 1);
 
 	while (*ptr)
 	{
@@ -71,7 +71,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 			else
 				string_list.emplace_back();
 			last_char_delimiter = true;
-			start_ptr = NULL;
+			start_ptr = nullptr;
 		}
 		// Otherwise if its not white space or we're in quote mode, advance the pointers
 		else if (!isspace(*ptr) || quote)
@@ -89,6 +89,53 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 	if (start_ptr)
 		string_list.emplace_back(start_ptr, end_ptr + 1);
 }
+
+
+void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character)
+{
+	int quote_mode_depth = 0;
+	const char* ptr = string.c_str();
+	const char* start_ptr = nullptr;
+	const char* end_ptr = ptr;
+
+	while (*ptr)
+	{
+		// Increment the quote depth for each quote character encountered
+		if (*ptr == quote_character)
+		{
+			++quote_mode_depth;
+		}
+		// And decrement it for every unquote character
+		else if (*ptr == unquote_character)
+		{
+			--quote_mode_depth;
+		}
+
+		// If we encouter a delimiter while not in quote mode, add the item to the list
+		if (*ptr == delimiter && quote_mode_depth == 0)
+		{
+			if (start_ptr)
+				string_list.emplace_back(start_ptr, end_ptr + 1);
+			else
+				string_list.emplace_back();
+			start_ptr = nullptr;
+		}
+		// Otherwise if its not white space or we're in quote mode, advance the pointers
+		else if (!isspace(*ptr) || quote_mode_depth > 0)
+		{
+			if (!start_ptr)
+				start_ptr = ptr;
+			end_ptr = ptr;
+		}
+
+		ptr++;
+	}
+
+	// If there's data pending, add it.
+	if (start_ptr)
+		string_list.emplace_back(start_ptr, end_ptr + 1);
+}
+
 
 // Joins a list of string values into a single string separated by a character delimiter.
 void StringUtilities::JoinString(String& string, const StringList& string_list, const char delimiter)

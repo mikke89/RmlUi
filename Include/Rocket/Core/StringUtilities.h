@@ -49,6 +49,13 @@ public:
 	/// @param[in] string String to expand.
 	/// @param[in] delimiter Delimiter found between entries in the string list.
 	static void ExpandString(StringList& string_list, const String& string, const char delimiter = ',');
+	/// Expands character-delimited list of values with custom quote characters.
+	/// @param[out] string_list Resulting list of values.
+	/// @param[in] string String to expand.
+	/// @param[in] delimiter Delimiter found between entries in the string list.
+	/// @param[in] quote_character Begin quote
+	/// @param[in] unquote_character End quote
+	static void ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character);
 	/// Joins a list of string values into a single string separated by a character delimiter.
 	/// @param[out] string Resulting concatenated string.
 	/// @param[in] string_list Input list of string values.

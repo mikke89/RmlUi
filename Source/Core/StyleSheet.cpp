@@ -142,6 +142,60 @@ Decorator* StyleSheet::GetDecorator(const String& name) const
 	return it->second.decorator;
 }
 
+Decorator* StyleSheet::GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number)
+{
+	// Try to find a decorator declared with @decorator or otherwise previously instanced shorthand decorator.
+	auto it_find = decorator_map.find(decorator_value);
+	if (it_find != decorator_map.end())
+	{
+		return it_find->second.decorator;
+	}
+
+	// The decorator does not exist, try to instance a new one from a shorthand decorator value declared as:
+	//   decorator: <type>( <shorthand> );
+	// where <type> is the decorator type and the value <shorthand> is applied to its "decorator"-shorthand.
+
+	// Check syntax
+	size_t shorthand_open = decorator_value.find('(');
+	size_t shorthand_close = decorator_value.rfind(')');
+	if (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close)
+		return nullptr;
+
+	String type = StringUtilities::StripWhitespace(decorator_value.substr(0, shorthand_open));
+
+	// Check for valid decorator type
+	const PropertySpecification* specification = Factory::GetDecoratorPropertySpecification(type);
+	if (!specification)
+		return nullptr;
+
+	String shorthand = decorator_value.substr(shorthand_open + 1, shorthand_close - shorthand_open - 1);
+
+	// Parse the shorthand properties
+	PropertyDictionary properties;
+	if (!specification->ParsePropertyDeclaration(properties, "decorator", shorthand, source_file, source_line_number))
+	{
+		Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", decorator_value.c_str(), source_file.c_str(), source_line_number);
+		return nullptr;
+	}
+
+	specification->SetPropertyDefaults(properties);
+
+	Decorator* decorator = Factory::InstanceDecorator(type, properties);
+	if (!decorator)
+		return nullptr;
+
+	// Insert decorator into map
+	auto result = decorator_map.emplace(decorator_value, DecoratorSpecification{ type, properties, decorator });
+	
+	if (!result.second)
+	{
+		decorator->RemoveReference();
+		return nullptr;
+	}
+
+	return decorator;
+}
+
 // Returns the compiled element definition for a given element hierarchy.
 ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) const
 {

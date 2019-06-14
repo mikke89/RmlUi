@@ -227,12 +227,10 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 	stream = _stream;
 	stream_file_name = Replace(stream->GetSourceURL().GetURL(), "|", ":");
 
-	enum class State { Global, AtRuleIdentifier, AtRuleBlock, Invalid };
+	enum class State { Global, AtRuleIdentifier, KeyframeBlock, Invalid };
 	State state = State::Global;
 
 	// At-rules given by the following syntax in global space: @identifier name { block }
-	enum class AtRule { None, Keyframes, Decorator };
-	AtRule at_rule = AtRule::None;
 	String at_rule_name;
 
 	// Look for more styles while data is available
@@ -281,21 +279,18 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 
 					if (at_rule_identifier == KEYFRAMES)
 					{
-						at_rule = AtRule::Keyframes;
-						state = State::AtRuleBlock;
+						state = State::KeyframeBlock;
 					}
 					else if (at_rule_identifier == "decorator")
 					{
 						ParseDecoratorBlock(decorator_map, at_rule_name);
 						
-						at_rule = AtRule::None;
 						at_rule_name.clear();
 						state = State::Global;
 					}
 					else
 					{
 						// Invalid identifier, should ignore
-						at_rule = AtRule::None;
 						at_rule_name.clear();
 						state = State::Global;
 						Log::Message(Log::LT_WARNING, "Invalid at-rule identifier '%s' found in stylesheet at %s:%d", at_rule_identifier.c_str(), stream_file_name.c_str(), line_number);
@@ -309,65 +304,27 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 				}
 			}
 			break;
-			case State::AtRuleBlock:
+			case State::KeyframeBlock:
 			{
-				switch (at_rule)
+				if (token == '{')
 				{
-				case AtRule::Keyframes:
-				{
-					if (token == '{')
-					{
-						// Each keyframe in keyframes has its own block which is processed here
-						state = State::AtRuleBlock;
+					// Each keyframe in keyframes has its own block which is processed here
+					PropertyDictionary properties;
+					if (!ReadProperties(properties, StyleSheetSpecification::GetPropertySpecification()))
+						continue;
 
-						PropertyDictionary properties;
-						if (!ReadProperties(properties, StyleSheetSpecification::GetPropertySpecification()))
-							continue;
-
-						if (!ParseKeyframeBlock(keyframes, at_rule_name, pre_token_str, properties))
-							continue;
-					}
-					else if (token == '}')
-					{
-						at_rule = AtRule::None;
-						at_rule_name.clear();
-						state = State::Global;
-					}
-					else
-					{
-						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframe block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
-						state = State::Invalid;
-					}
+					if (!ParseKeyframeBlock(keyframes, at_rule_name, pre_token_str, properties))
+						continue;
 				}
-				break;
-				case AtRule::Decorator:
+				else if (token == '}')
 				{
-					if (token == '{')
-					{
-						// Process the decorator
-						ParseDecoratorBlock(decorator_map, at_rule_name);
-
-					}
-					else
-					{
-						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing decorator block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
-						state = State::Invalid;
-					}
+					at_rule_name.clear();
+					state = State::Global;
 				}
-				break;
-				case AtRule::None:
+				else
 				{
-					// Invalid at-rule, trying to continue
-					if (token == '}')
-					{
-						at_rule = AtRule::None;
-						at_rule_name.clear();
-						state = State::Global;
-					}
-				}
-				break;
-				default:
-					ROCKET_ERROR;
+					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframe block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
+					state = State::Invalid;
 				}
 			}
 			break;

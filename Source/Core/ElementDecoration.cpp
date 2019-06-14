@@ -50,21 +50,24 @@ bool ElementDecoration::ReloadDecorators()
 {
 	ReleaseDecorators();
 
-	const StyleSheet* stylesheet = element->GetStyleSheet();
+	StyleSheet* stylesheet = element->GetStyleSheet();
 	if (!stylesheet)
 		return true;
 
-	const String& decorator_value = element->GetComputedValues().decorator;
-	if (decorator_value.empty())
+	const Property* property = element->GetLocalProperty(PropertyId::Decorator);
+	if (!property)
 		return true;
+
+	String decorator_value = property->Get<String>();
 
 	// @performance: Can optimize for the case of only one decorator
 	StringList decorator_list;
-	StringUtilities::ExpandString(decorator_list, decorator_value);
+	// We use custom quote characters as we don't want to split on any commas inside parenthesis, which may appear in decorator shorthands.
+	StringUtilities::ExpandString(decorator_list, decorator_value, ',', '(', ')');
 
 	for (const String& name : decorator_list)
 	{
-		Decorator* decorator = stylesheet->GetDecorator(name);
+		Decorator* decorator = stylesheet->GetOrInstanceDecorator(name, property->source, property->source_line_number);
 
 		if (decorator)
 			LoadDecorator(decorator);

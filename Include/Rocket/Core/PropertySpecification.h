@@ -124,8 +124,10 @@ enum class ShorthandType
 	Replicate,
 	// For 'padding', 'margin', etc; up to four properties are expected.
 	Box,
-	// Recursively resolves the full value string on each property, whether it is a normal property or another shorthand.
-	Recursive
+	// Repeatedly resolves the full value string on each property, whether it is a normal property or another shorthand.
+	Recursive,
+	// Comma-separated list of properties or shorthands, the number of declared values must match the specified.
+	RecursiveCommaSeparated
 };
 
 enum class ShorthandItemType { Invalid, Property, Shorthand };
