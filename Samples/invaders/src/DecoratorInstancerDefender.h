@@ -51,6 +51,9 @@ public:
 
 	/// Releases the instancer.
 	void Release();
+
+private:
+	Rocket::Core::PropertyId id_image_src;
 };
 
 #endif

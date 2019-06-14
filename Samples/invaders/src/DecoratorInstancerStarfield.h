@@ -52,6 +52,9 @@ public:
 
 	/// Releases the instancer.
 	void Release();
+
+private:
+	Rocket::Core::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;
 };
 
 #endif

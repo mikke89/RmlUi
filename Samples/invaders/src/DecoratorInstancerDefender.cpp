@@ -32,7 +32,7 @@
 
 DecoratorInstancerDefender::DecoratorInstancerDefender()
 {
-	RegisterProperty("image-src", "").AddParser("string");
+	id_image_src = RegisterProperty("image-src", "").AddParser("string").GetId();
 }
 
 DecoratorInstancerDefender::~DecoratorInstancerDefender()
@@ -44,7 +44,7 @@ Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Roc
 {
 	ROCKET_UNUSED(name);
 
-	const Rocket::Core::Property* image_source_property = properties.GetProperty("image-src");
+	const Rocket::Core::Property* image_source_property = properties.GetProperty(id_image_src);
 	Rocket::Core::String image_source = image_source_property->Get< Rocket::Core::String >();
 
 	DecoratorDefender* decorator = new DecoratorDefender();
