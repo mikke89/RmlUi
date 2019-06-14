@@ -110,7 +110,8 @@ void ElementDecoration::RenderDecorators()
 	}
 
 	// Render the decorators attached to this element in its current state.
-	for (size_t i = 0; i < decorators.size(); i++)
+	// Render from back to front for correct render order.
+	for (int i = (int)decorators.size() - 1; i >= 0; i--)
 	{
 		DecoratorHandle& decorator = decorators[i];
 		decorator.decorator->RenderElement(element, decorator.decorator_data);

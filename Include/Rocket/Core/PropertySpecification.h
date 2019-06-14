@@ -76,7 +76,7 @@ public:
 			return it->second;
 		return ID::Invalid;
 	}
-	const String& GetName(ID id)
+	const String& GetName(ID id) const
 	{
 		if (static_cast<size_t>(id) < name_map.size())
 			return name_map[static_cast<size_t>(id)];
@@ -203,6 +203,9 @@ public:
 	/// Sets all undefined properties in the dictionary to their defaults.
 	/// @param dictionary[in] The dictionary to set the default values on.
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;
+
+	/// Returns the properties of dictionary converted to a string.
+	String PropertiesToString(const PropertyDictionary& dictionary) const;
 
 private:
 	typedef std::vector< PropertyDefinition* > Properties;

@@ -361,6 +361,16 @@ void PropertySpecification::SetPropertyDefaults(PropertyDictionary& dictionary) 
 	}
 }
 
+String PropertySpecification::PropertiesToString(const PropertyDictionary& dictionary) const
+{
+	String result;
+	for (auto& pair : dictionary.GetProperties())
+	{
+		result += property_map.GetName(pair.first) + ": " + pair.second.ToString() + '\n';
+	}
+	return result;
+}
+
 
 bool PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const
 {

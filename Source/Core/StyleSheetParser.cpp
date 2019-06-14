@@ -205,6 +205,9 @@ bool StyleSheetParser::ParseDecoratorBlock(DecoratorSpecificationMap& decorator_
 	if (!ReadProperties(properties, *property_specification))
 		return false;
 
+	// Set non-defined properties to their defaults
+	property_specification->SetPropertyDefaults(properties);
+
 	Decorator* decorator = Factory::InstanceDecorator(decorator_type, properties);
 	if (!decorator)
 	{

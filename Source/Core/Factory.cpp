@@ -355,32 +355,30 @@ const PropertySpecification* Factory::GetDecoratorPropertySpecification(const St
 // Attempts to instance a decorator from an instancer registered with the factory.
 Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties)
 {
+	// TODO: z-index, specificity no longer part of decorator
 	float z_index = 0;
 	int specificity = -1;
 
 	auto iterator = decorator_instancers.find(name);
 	if (iterator == decorator_instancers.end())
-		return NULL;
+		return nullptr;
 
 	DecoratorInstancer* instancer = iterator->second;
 
 	// Turn the generic, un-parsed properties we've got into a properly parsed dictionary.
 	const PropertySpecification& property_specification = instancer->GetPropertySpecification();
 
-	PropertyDictionary parsed_properties;
-	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
+	// Verify all properties set
+	if((size_t)properties.GetNumProperties() != property_specification.GetRegisteredProperties().size())
 	{
-		specificity = Math::Max(specificity, (*i).second.specificity);
-
-		property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
+		// If this occurs, call e.g. property_specification.SetPropertyDefaults(properties) before instancing decorator.
+		Log::Message(Log::LT_WARNING, "Some properties were not defined while instancing decorator '%s', make sure non-set properties are set to their default values.", name.c_str());
+		return nullptr;
 	}
 
-	// Set the property defaults for all unset properties.
-	property_specification.SetPropertyDefaults(parsed_properties);
-
-	Decorator* decorator = instancer->InstanceDecorator(name, parsed_properties);
-	if (decorator == NULL)
-		return NULL;
+	Decorator* decorator = instancer->InstanceDecorator(name, properties);
+	if (!decorator)
+		return nullptr;
 
 	decorator->SetZIndex(z_index);
 	decorator->SetSpecificity(specificity);
