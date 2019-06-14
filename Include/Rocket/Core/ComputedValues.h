@@ -199,8 +199,7 @@ struct ComputedValues
 	TransitionList transition;
 	AnimationList animation;
 
-	String decorator;
-	String font_effect;
+	// Decorators and font-effects are not computed, retrieve from local property
 };
 }
 

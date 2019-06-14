@@ -939,11 +939,10 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			values.animation = p->Get<AnimationList>();
 			break;
 
+		// Decorators and font-effects are not computed, they are specified as they are given.
 		case PropertyId::Decorator:
-			values.decorator = p->Get<String>();
 			break;
 		case PropertyId::FontEffect:
-			values.font_effect = p->Get<String>();
 			break;
 		}
 	}
