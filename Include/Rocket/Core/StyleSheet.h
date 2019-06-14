@@ -32,6 +32,7 @@
 #include "ReferenceCountable.h"
 #include <set>
 #include "PropertyDictionary.h"
+#include "Texture.h"
 
 namespace Rocket {
 namespace Core {
@@ -40,6 +41,7 @@ class Element;
 class ElementDefinition;
 class StyleSheetNode;
 class Decorator;
+struct Spritesheet;
 
 struct KeyframeBlock {
 	float normalized_time;  // [0, 1]
@@ -55,6 +57,78 @@ struct DecoratorSpecification {
 	String decorator_type;
 	PropertyDictionary properties;
 	Decorator* decorator = nullptr;
+};
+
+struct Sprite {
+	Rectangle rectangle;
+	Spritesheet* sprite_sheet;
+	String name;
+};
+
+struct Spritesheet {
+	String name;
+	String image_source;
+	String definition_source;
+	int definition_line_number;
+	Texture texture;
+	std::vector<std::unique_ptr<Sprite>> sprites;
+
+	Spritesheet(const String& name, const String& definition_source, int definition_line_number) : name(name), definition_source(definition_source), definition_line_number(definition_line_number) {}
+
+	void AddSprite(const String& name, Rectangle rectangle)
+	{
+		sprites.emplace_back(new Sprite{ rectangle, this, name });
+	}
+};
+
+using SpriteMap = UnorderedMap<String, const Sprite*>;
+using SpritesheetMap = UnorderedMap<String, std::unique_ptr<Spritesheet>>;
+
+class SpriteSheetList {
+public:
+	bool AddSpriteSheet(std::unique_ptr<Spritesheet> in_sprite_sheet) {
+		ROCKET_ASSERT(in_sprite_sheet);
+		Spritesheet& spritesheet = *in_sprite_sheet;
+		auto result = spritesheet_map.emplace(spritesheet.name, std::move(in_sprite_sheet));
+		if (!result.second)
+		{
+			Log::Message(Log::LT_WARNING, "Spritesheet '%s' has the same name as another spritesheet, skipped. See %s:%d", spritesheet.name.c_str(), spritesheet.definition_source.c_str(), spritesheet.definition_line_number);
+			return false;
+		}
+
+		auto& sprites = spritesheet.sprites;
+		for (auto it = sprites.begin(); it != sprites.end();)
+		{
+			ROCKET_ASSERT(*it);
+			const String& name = (*it)->name;
+			auto result = sprite_map.emplace(name, it->get());
+			if (!result.second)
+			{
+				Log::Message(Log::LT_WARNING, "Sprite '%s' has the same name as another sprite, skipped. See %s:%d", name.c_str(), spritesheet.definition_source.c_str(), spritesheet.definition_line_number);
+				it = sprites.erase(it);
+			}
+			else
+				++it;
+		}
+
+		// Load the texture
+		spritesheet.texture.Load(spritesheet.image_source, spritesheet.definition_source);
+		
+		return true;
+	}
+
+	const Sprite* GetSprite(const String& name)
+	{
+		auto it = sprite_map.find(name);
+		if (it != sprite_map.end())
+			return it->second;
+		return nullptr;
+	}
+
+
+private:
+	SpritesheetMap spritesheet_map;
+	SpriteMap sprite_map;
 };
 
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
@@ -116,6 +190,8 @@ private:
 
 	// Name of every @decorator mapped to their specification
 	DecoratorSpecificationMap decorator_map;
+
+	SpriteSheetList sprite_sheets;
 
 	// Map of only nodes with actual style information.
 	NodeIndex styled_node_index;

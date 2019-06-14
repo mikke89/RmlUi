@@ -63,7 +63,7 @@ PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, con
 	return properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
 }
 
-bool StyleSheetSpecification::RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type)
+ShorthandId StyleSheetSpecification::RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type)
 {
 	return properties.RegisterShorthand(shorthand_name, property_names, type, id);
 }
@@ -143,7 +143,7 @@ const PropertyNameList & StyleSheetSpecification::GetRegisteredInheritedProperti
 }
 
 // Registers a shorthand property definition.
-bool StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
+ShorthandId StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
 	ROCKET_ASSERTMSG(instance->properties.property_map.GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
 	ROCKET_ASSERTMSG((size_t)instance->properties.shorthand_map.GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");

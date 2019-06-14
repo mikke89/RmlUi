@@ -35,9 +35,11 @@
 namespace Rocket {
 namespace Core {
 
-PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) 
-	: properties(reserve_num_properties, nullptr), shorthands(reserve_num_shorthands, nullptr), property_map(reserve_num_properties), shorthand_map(reserve_num_shorthands)
+PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) : 
+	// Increment reserve numbers by one because the 'invalid' property occupies the first element
+	properties(reserve_num_properties + 1, nullptr), shorthands(reserve_num_shorthands + 1, nullptr), property_map(reserve_num_properties + 1), shorthand_map(reserve_num_shorthands + 1)
 {
+	property_names.reserve(reserve_num_properties);
 }
 
 PropertySpecification::~PropertySpecification()
@@ -112,7 +114,7 @@ const PropertyNameList& PropertySpecification::GetRegisteredInheritedProperties(
 }
 
 // Registers a shorthand property definition.
-bool PropertySpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id)
+ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id)
 {
 	if (id == ShorthandId::Invalid)
 		id = shorthand_map.GetOrCreateId(shorthand_name);
@@ -138,10 +140,10 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 	}
 
 	if (id_list.empty() || id_list.size() != property_list.size())
-		return false;
+		return ShorthandId::Invalid;
 
 	if (id_list.empty())
-		return false;
+		return ShorthandId::Invalid;
 
 	// Construct the new shorthand definition and resolve its properties.
 	std::unique_ptr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());
@@ -165,7 +167,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 		if (item.type == ShorthandItemType::Invalid)
 		{
 			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.c_str(), property_list[i].c_str());
-			return false;
+			return ShorthandId::Invalid;
 		}
 		property_shorthand->items.push_back(item);
 	}
@@ -182,7 +184,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 		if (shorthands[index])
 		{
 			Log::Message(Log::LT_ERROR, "The shorthand '%s' already exists, ignoring.", shorthand_name.c_str());
-			return false;
+			return ShorthandId::Invalid;
 		}
 	}
 	else
@@ -192,7 +194,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 	}
 
 	shorthands[index] = property_shorthand.release();
-	return true;
+	return id;
 }
 
 // Returns a shorthand definition.

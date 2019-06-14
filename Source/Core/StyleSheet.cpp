@@ -77,7 +77,7 @@ StyleSheet::~StyleSheet()
 bool StyleSheet::LoadStyleSheet(Stream* stream)
 {
 	StyleSheetParser parser;
-	specificity_offset = parser.Parse(root, keyframes, decorator_map, stream);
+	specificity_offset = parser.Parse(root, keyframes, decorator_map, sprite_sheets, stream);
 	return specificity_offset >= 0;
 }
 

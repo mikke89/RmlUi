@@ -46,11 +46,29 @@ div#title_bar div#icon
 	height: 39px;
 }
 
+@spritesheet theme {
+	src: invader.tga;
+	title-bar-l: 147px 0px 82px 85px;
+	title-bar-c: 229px 0px 1px 85px;
+	title-bar-r: 231px 0px 15px 85px;
+	
+	window-tl: 0px 0px 133px 140px;
+	window-t:  134px 0px 1px 140px;
+	window-tr: 136px 0px 10px 140px;
+	window-l:  0px 139px 10px 1px;
+	window-c:  11px 139px 12px 1px;
+	window-r:  10px 139px -10px 1px; /* mirrored left */
+	window-bl: 0px 140px 11px 11px;
+	window-b:  11px 140px 1px 11px;
+	window-br: 136px 140px 10px 11px;
+}
+
 @decorator title_bar : tiled-horizontal {
 	left-image: invader.tga 147px 0px 229px 85px;
 	center-image: invader.tga stretch 229px 0px 230px 85px;
 	right-image: invader.tga 231px 0px 246px 85px;
 }
+
 
 div#title_bar span
 {
@@ -87,7 +105,11 @@ div#window
 	width: auto;
 	padding: 10px 15px;
 
-	decorator: window;
+	decorator: tiled-box(
+		window-tl, window-t stretch, window-tr, 
+		window-l stretch, window-c stretch, window-r stretch,
+		window-bl, window-b stretch, window-br
+	);
 }
 
 div#content

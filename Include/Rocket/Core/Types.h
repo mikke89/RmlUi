@@ -92,6 +92,11 @@ typedef Vector3< float > Vector3f;
 typedef Vector4< int > Vector4i;
 typedef Vector4< float > Vector4f;
 
+struct Rectangle {
+	Rectangle(float x = 0, float y = 0, float width = 0, float height = 0) : x(x), y(y), width(width), height(height) {}
+	float x, y, width, height;
+};
+
 typedef Matrix4< float, ColumnMajorStorage< float > > ColumnMajorMatrix4f;
 typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
 typedef ColumnMajorMatrix4f Matrix4f;

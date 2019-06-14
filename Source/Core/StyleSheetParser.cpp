@@ -30,6 +30,7 @@
 #include <algorithm>
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
+#include "ComputeProperty.h"
 #include "../../Include/Rocket/Core/Log.h"
 #include "../../Include/Rocket/Core/StreamMemory.h"
 #include "../../Include/Rocket/Core/StyleSheet.h"
@@ -37,6 +38,90 @@
 
 namespace Rocket {
 namespace Core {
+
+
+class AbstractPropertyParser {
+public:
+	virtual bool Parse(const String& name, const String& value, const String& stream_file_name, int rule_line_number) = 0;
+};
+
+/*
+ *  PropertySpecificationParser just passes the parsing to a property specification. Usually
+ *    the main stylesheet specification, except for e.g. @decorator blocks.
+*/
+class PropertySpecificationParser : public AbstractPropertyParser {
+private:
+	PropertyDictionary& properties;
+	const PropertySpecification& specification;
+
+public:
+	PropertySpecificationParser(PropertyDictionary& properties, const PropertySpecification& specification) : properties(properties), specification(specification) {}
+
+	bool Parse(const String& name, const String& value, const String& stream_file_name, int rule_line_number) override
+	{
+		return specification.ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number);
+	}
+};
+
+/*
+ *  Spritesheets need a special parser because its property names are really arbitrary keys,
+ *    while its values are always rectangles. Thus, it must be parsed with a special "rectangle" parser
+ *    for every name-value pair.
+*/
+class SpritesheetPropertyParser : public AbstractPropertyParser {
+private:
+	Spritesheet* spritesheet = nullptr;
+	PropertyDictionary properties;
+	PropertySpecification specification;
+	PropertyId id_rx, id_ry, id_rw, id_rh;
+	ShorthandId id_rectangle;
+public:
+	SpritesheetPropertyParser() : specification(4, 1) 
+	{
+		id_rx = specification.RegisterProperty("rectangle-y", "", false, false).AddParser("length").GetId();
+		id_ry = specification.RegisterProperty("rectangle-w", "", false, false).AddParser("length").GetId();
+		id_rw = specification.RegisterProperty("rectangle-h", "", false, false).AddParser("length").GetId();
+		id_rh = specification.RegisterProperty("rectangle-x", "", false, false).AddParser("length").GetId();
+		id_rectangle = specification.RegisterShorthand("rectangle", "rectangle-x, rectangle-y, rectangle-w, rectangle-h", ShorthandType::FallThrough);
+	}
+
+	void SetSpritesheet(Spritesheet* in_spritesheet) {
+		spritesheet = in_spritesheet;
+	}
+
+	bool Parse(const String& name, const String& value, const String& stream_file_name, int rule_line_number) override
+	{
+		ROCKET_ASSERT(spritesheet);
+
+		static const String str_src = "src";
+		static const String str_rectangle = "rectangle";
+		if (name == str_src)
+		{
+			spritesheet->image_source = value;
+		}
+		else
+		{
+			if (!specification.ParseShorthandDeclaration(properties, id_rectangle, value, stream_file_name, rule_line_number))
+				return false;
+
+			Rectangle rectangle;
+			if (auto property = properties.GetProperty(id_rx))
+				rectangle.x = ComputeAbsoluteLength(*property, 1.f);
+			if (auto property = properties.GetProperty(id_ry))
+				rectangle.y = ComputeAbsoluteLength(*property, 1.f);
+			if (auto property = properties.GetProperty(id_rw))
+				rectangle.width = ComputeAbsoluteLength(*property, 1.f);
+			if (auto property = properties.GetProperty(id_rh))
+				rectangle.height = ComputeAbsoluteLength(*property, 1.f);
+
+			spritesheet->AddSprite(name, rectangle);
+		}
+
+		return true;
+	}
+};
+
+
 
 StyleSheetParser::StyleSheetParser()
 {
@@ -202,7 +287,8 @@ bool StyleSheetParser::ParseDecoratorBlock(DecoratorSpecificationMap& decorator_
 		}
 	}
 
-	if (!ReadProperties(properties, *property_specification))
+	PropertySpecificationParser parser(properties, *property_specification);
+	if (!ReadProperties(parser))
 		return false;
 
 	// Set non-defined properties to their defaults
@@ -220,7 +306,7 @@ bool StyleSheetParser::ParseDecoratorBlock(DecoratorSpecificationMap& decorator_
 	return true;
 }
 
-int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, Stream* _stream)
+int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpriteSheetList& sprite_sheets, Stream* _stream)
 {
 	int rule_count = 0;
 	line_number = 0;
@@ -248,7 +334,8 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 				{
 					// Read the attributes
 					PropertyDictionary properties;
-					if (!ReadProperties(properties, StyleSheetSpecification::GetPropertySpecification()))
+					PropertySpecificationParser parser(properties, StyleSheetSpecification::GetPropertySpecification());
+					if (!ReadProperties(parser))
 						continue;
 
 					StringList style_name_list;
@@ -288,6 +375,36 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 						at_rule_name.clear();
 						state = State::Global;
 					}
+					else if (at_rule_identifier == "spritesheet")
+					{
+						// This is reasonably heavy to initialize, so we make it static
+						static SpritesheetPropertyParser spritesheet_property_parser;
+
+						std::unique_ptr<Spritesheet> sprite_sheet(new Spritesheet(at_rule_name, stream_file_name, (int)line_number));
+						spritesheet_property_parser.SetSpritesheet(sprite_sheet.get());
+
+						ReadProperties(spritesheet_property_parser);
+
+						if (sprite_sheet->sprites.empty())
+						{
+							Log::Message(Log::LT_WARNING, "Spritesheet with name '%s' had no sprites defined, ignored. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
+						}
+						else if (sprite_sheet->name.empty())
+						{
+							Log::Message(Log::LT_WARNING, "No name given for @spritesheet at %s:%d", stream_file_name.c_str(), line_number);
+						}
+						else if (sprite_sheet->image_source.empty())
+						{
+							Log::Message(Log::LT_WARNING, "No image source (property 'src') specified for spritesheet '%s'. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
+						}
+						else
+						{
+							sprite_sheets.AddSpriteSheet(std::move(sprite_sheet));
+						}
+
+						at_rule_name.clear();
+						state = State::Global;
+					}
 					else
 					{
 						// Invalid identifier, should ignore
@@ -310,7 +427,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 				{
 					// Each keyframe in keyframes has its own block which is processed here
 					PropertyDictionary properties;
-					if (!ReadProperties(properties, StyleSheetSpecification::GetPropertySpecification()))
+					PropertySpecificationParser parser(properties, StyleSheetSpecification::GetPropertySpecification());
 						continue;
 
 					if (!ParseKeyframeBlock(keyframes, at_rule_name, pre_token_str, properties))
@@ -350,13 +467,15 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, const String& properties)
 {
 	stream = new StreamMemory((const byte*)properties.c_str(), properties.size());
-	bool success = ReadProperties(parsed_properties, StyleSheetSpecification::GetPropertySpecification());
+	PropertySpecificationParser parser(parsed_properties, StyleSheetSpecification::GetPropertySpecification());
+	bool success = ReadProperties(parser);
 	stream->RemoveReference();
 	stream = NULL;
 	return success;
 }
 
-bool StyleSheetParser::ReadProperties(PropertyDictionary& properties, const PropertySpecification& property_specification)
+
+bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 {
 	int rule_line_number = (int)line_number;
 	String name;
@@ -407,7 +526,7 @@ bool StyleSheetParser::ReadProperties(PropertyDictionary& properties, const Prop
 				{
 					value = StringUtilities::StripWhitespace(value);
 
-					if (!property_specification.ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number))
+					if (!property_parser.Parse(name, value, stream_file_name, rule_line_number))
 						Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 
 					name.clear();

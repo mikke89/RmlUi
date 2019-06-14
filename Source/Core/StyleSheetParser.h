@@ -32,9 +32,9 @@ namespace Rocket {
 namespace Core {
 
 class PropertyDictionary;
-class PropertySpecification;
 class Stream;
 class StyleSheetNode;
+class AbstractPropertyParser;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -52,7 +52,7 @@ public:
 	/// @param node The root node the stream will be parsed into
 	/// @param stream The stream to read
 	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(StyleSheetNode* node, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, Stream* stream);
+	int Parse(StyleSheetNode* node, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpriteSheetList& sprite_sheets, Stream* stream);
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into
@@ -76,7 +76,7 @@ private:
 	// Parses properties from the parse buffer into the dictionary
 	// @param properties The dictionary to store the properties in
 	// @param property_specification The specification used to parse the values. Normally the default stylesheet specification, but not for e.g. all at-rules such as decorators.
-	bool ReadProperties(PropertyDictionary& properties, const PropertySpecification& property_specification);
+	bool ReadProperties(AbstractPropertyParser& property_parser);
 
 	// Import properties into the stylesheet node
 	// @param node Node to import into

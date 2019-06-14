@@ -86,7 +86,7 @@ public:
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	static bool RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
+	static ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
 	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
@@ -116,7 +116,7 @@ private:
 	~StyleSheetSpecification();
 
 	PropertyDefinition& RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
-	bool RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type);
+	ShorthandId RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type);
 
 	// Registers Rocket's default parsers.
 	void RegisterDefaultParsers();
