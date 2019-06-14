@@ -10,11 +10,9 @@
 
 				margin: auto;
 			}
-			
 			div#title_bar div#icon
 			{
-				icon-image-s: 179px 230px;
-				icon-image-t: 152px 191px;
+				decorator: image( ../../assets/invader.tga 179px 152px 230px 191px);
 			}
 		</style>
 	</head>

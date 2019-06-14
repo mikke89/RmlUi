@@ -33,6 +33,7 @@
 DecoratorInstancerDefender::DecoratorInstancerDefender()
 {
 	id_image_src = RegisterProperty("image-src", "").AddParser("string").GetId();
+	RegisterShorthand("decorator", "image-src", Rocket::Core::ShorthandType::FallThrough);
 }
 
 DecoratorInstancerDefender::~DecoratorInstancerDefender()

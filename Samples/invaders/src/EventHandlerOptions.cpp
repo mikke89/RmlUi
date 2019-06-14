@@ -141,9 +141,9 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 			// The 'value' parameter of an onchange event is set to the value the control would send if it was
 			// submitted; so, the empty string if it is clear or to the 'value' attribute of the control if it is set.
 			if (event.GetParameter< String >("value", "").empty())
-				bad_warning->SetProperty("display", Property(Style::Display::None));
+				bad_warning->SetProperty(PropertyId::Display, Property(Style::Display::None));
 			else
-				bad_warning->SetProperty("display", Property(Style::Display::Block));
+				bad_warning->SetProperty(PropertyId::Display, Property(Style::Display::Block));
 		}
 	}
 	else if (value == "enable_accept")

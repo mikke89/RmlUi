@@ -13,8 +13,7 @@
 			
 			div#title_bar div#icon
 			{
-				icon-image-s: 281px 331px;
-				icon-image-t: 152px 191px;
+				decorator: image( ../../assets/invader.tga 281px 152px 331px 191px);
 			}
 			
 			datagrid
@@ -37,8 +36,7 @@
 				width: 64px;
 				height: 16px;
 				
-				defender-decorator: defender;
-				defender-image-src: high_scores_defender.tga;
+				decorator: defender( high_scores_defender.tga );
 			}			
 		</style>
 	</head>

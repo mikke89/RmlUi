@@ -17,23 +17,29 @@
 			width: 64px;
 			height: 16px;
 			
-			defender-decorator: defender;
-			defender-image-src: ../../../assets/high_scores_defender.tga;
+			decorator: defender( ../../../assets/high_scores_defender.tga );
 		}
 		
 		defender.alien_1
 		{
-			defender-image-src: ../../../assets/high_scores_alien_1.tga;
+			decorator: defender( ../../../assets/high_scores_alien_1.tga );
 		}
 		
 		defender.alien_2
 		{
-			defender-image-src: ../../../assets/high_scores_alien_2.tga;
+			decorator: defender( ../../../assets/high_scores_alien_2.tga );
 		}
 		
 		defender.alien_3
 		{
-			defender-image-src: ../../../assets/high_scores_alien_3.tga;
+			decorator: defender( ../../../assets/high_scores_alien_3.tga );
+		}
+		
+		@decorator datagridheader : tiled-horizontal 
+		{
+			left-image: ../../../assets/invader.tga 127px 192px 143px 223px;
+			center-image: ../../../assets/invader.tga stretch 143px 192px 145px 223px;
+			right-image: ../../../assets/invader.tga 145px 192px 160px 223px;
 		}
 		
 		datagridheader
@@ -42,10 +48,19 @@
 			height: 25px;
 			padding: 5px 10px 0px 10px;
 		
-			background-decorator: tiled-horizontal;
-			background-left-image: ../../../assets/invader.tga 127px 192px 143px 223px;
-			background-center-image: ../../../assets/invader.tga stretch 143px 192px 145px 223px;
-			background-right-image: ../../../assets/invader.tga 145px 192px 160px 223px;
+			decorator: datagridheader;
+		}
+		
+		@decorator datagridbody : tiled-box 
+		{
+			top-left-image: ../../../assets/invader.tga 281px 275px 292px 284px;
+			top-right-image: ../../../assets/invader.tga 294px 275px 305px 284px;
+			top-image: ../../../assets/invader.tga stretch 292px 275px 293px 284px;
+			bottom-left-image: ../../../assets/invader.tga 281px 285px 292px 296px;
+			bottom-right-image: ../../../assets/invader.tga 294px 285px 305px 296px;
+			bottom-image: ../../../assets/invader.tga stretch 292px 285px 293px 296px;
+			left-image: ../../../assets/invader.tga stretch 281px 283px 292px 284px;
+			center-image: ../../../assets/invader.tga stretch 292px 283px 293px 284px;
 		}
 		
 		datagridbody
@@ -57,20 +72,31 @@
 			margin-right: 3px;
 			padding: 0px 4px 4px 4px;
 			
-			background-decorator: tiled-box;
-			background-top-left-image: ../../../assets/invader.tga 281px 275px 292px 284px;
-			background-top-right-image: ../../../assets/invader.tga 294px 275px 305px 284px;
-			background-top-image: ../../../assets/invader.tga stretch 292px 275px 293px 284px;
-			background-bottom-left-image: ../../../assets/invader.tga 281px 285px 292px 296px;
-			background-bottom-right-image: ../../../assets/invader.tga 294px 285px 305px 296px;
-			background-bottom-image: ../../../assets/invader.tga stretch 292px 285px 293px 296px;
-			background-left-image: ../../../assets/invader.tga stretch 281px 283px 292px 284px;
-			background-center-image: ../../../assets/invader.tga stretch 292px 283px 293px 284px;
+			decorator: datagridbody;
 		}
 		
 		datagrid datagridrow:nth-child(even)
 		{
 			background: #FFFFFFA0;
+		}
+		
+		@decorator expand : image {
+			image: ../../../assets/invader.tga 3px 232px 20px 249px;
+		}
+		@decorator expand-hover : expand {
+			icon-image-s: 21px 38px;
+		}
+		@decorator expand-active : expand {
+			icon-image-s: 39px 56px;
+		}
+		@decorator collapse : expand {
+			icon-image-t: 39px 56px;
+		}
+		@decorator collapse-hover : expand-hover {
+			icon-image-t: 39px 56px;
+		}
+		@decorator collapse-active : expand-active {
+			icon-image-t: 39px 56px;
 		}
 		
 		datagridexpand
@@ -81,23 +107,32 @@
 			height: 17px;
 			width: 17px;
 			
-			icon-decorator: image;
-			icon-image: ../../../assets/invader.tga 3px 232px 20px 249px;
+			decorator: expand;
 		}
 		
 		datagridexpand:hover
 		{
-			icon-image-s: 21px 38px;
+			decorator: expand-hover;
 		}
 		
 		datagridexpand:active
 		{
-			icon-image-s: 39px 56px;
+			decorator: expand-active;
 		}
 		
 		datagridexpand.collapsed
 		{
-			icon-image-t: 250px 267px;
+			decorator: collapse;
+		}
+		
+		datagridexpand.collapsed:hover
+		{
+			decorator: collapse-hover;
+		}
+		
+		datagridexpand.collapsed:active
+		{
+			decorator: collapse-active;
 		}
 	</style>
 </head>

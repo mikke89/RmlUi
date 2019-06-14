@@ -189,7 +189,7 @@ bool StyleSheetParser::ParseDecoratorBlock(DecoratorSpecificationMap& decorator_
 		if (it != decorator_map.end())
 		{
 			// Yes, try to retrieve the property specification from the parent type, and add its property values.
-			property_specification = Factory::GetDecoratorPropertySpecification(it->first);
+			property_specification = Factory::GetDecoratorPropertySpecification(it->second.decorator_type);
 			properties = it->second.properties;
 			decorator_type = it->second.decorator_type;
 		}
