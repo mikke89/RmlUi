@@ -93,7 +93,7 @@ static const char* common_rcss =
 "	background: white;\n"
 "	border-width: 2px;\n"
 "	border-color: #888;\n"
-"	border-width-top: 0px;\n"
+"	border-top-width: 0px;\n"
 "}\n"
 ".error\n"
 "{\n"

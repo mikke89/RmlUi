@@ -37,7 +37,6 @@ namespace Core {
 ElementDecoration::ElementDecoration(Element* _element)
 {
 	element = _element;
-	active_decorators_dirty = false;
 	decorators_dirty = false;
 }
 
@@ -51,12 +50,25 @@ bool ElementDecoration::ReloadDecorators()
 {
 	ReleaseDecorators();
 
-	const ElementDefinition* definition = element->GetDefinition();
-	if (definition == NULL)
+	const StyleSheet* stylesheet = element->GetStyleSheet();
+	if (!stylesheet)
 		return true;
 
-	decorators_dirty = false;
-	active_decorators_dirty = true;
+	const String& decorator_value = element->GetComputedValues().decorator;
+	if (decorator_value.empty())
+		return true;
+
+	// @performance: Can optimize for the case of only one decorator
+	StringList decorator_list;
+	StringUtilities::ExpandString(decorator_list, decorator_value);
+
+	for (const String& name : decorator_list)
+	{
+		Decorator* decorator = stylesheet->GetDecorator(name);
+
+		if (decorator)
+			LoadDecorator(decorator);
+	}
 
 	return true;
 }
@@ -85,65 +97,29 @@ void ElementDecoration::ReleaseDecorators()
 	}
 
 	decorators.clear();
-	active_decorators.clear();
-	decorator_index.clear();
 }
 
-// Updates the list of active decorators (if necessary).
-void ElementDecoration::UpdateActiveDecorators()
-{
-	if (active_decorators_dirty)
-	{
-		active_decorators.clear();
-
-		for (DecoratorIndex::iterator i = decorator_index.begin(); i != decorator_index.end(); ++i)
-		{
-			PseudoClassDecoratorIndexList& indices = (*i).second;
-			for (size_t j = 0; j < indices.size(); ++j)
-			{
-				if (element->ArePseudoClassesSet(indices[j].first))
-				{
-					// Insert the new index into the list of active decorators, ordered by z-index.
-					float z_index = decorators[indices[j].second].decorator->GetZIndex();
-					std::vector< int >::iterator insert_iterator = active_decorators.begin();
-					while (insert_iterator != active_decorators.end() &&
-						   z_index > decorators[(*insert_iterator)].decorator->GetZIndex())
-						++insert_iterator;
-
-					active_decorators.insert(insert_iterator, indices[j].second);
-
-					break;
-				}
-			}
-		}
-
-		active_decorators_dirty = false;
-	}
-}
 
 void ElementDecoration::RenderDecorators()
 {
+	// @performance: Ignore dirty flag if e.g. pseudo classes do not affect the decorators
 	if (decorators_dirty)
 	{
 		decorators_dirty = false;
 		ReloadDecorators();
 	}
 
-	UpdateActiveDecorators();
-
 	// Render the decorators attached to this element in its current state.
-	for (size_t i = 0; i < active_decorators.size(); i++)
+	for (size_t i = 0; i < decorators.size(); i++)
 	{
-		DecoratorHandle& decorator = decorators[active_decorators[i]];
+		DecoratorHandle& decorator = decorators[i];
 		decorator.decorator->RenderElement(element, decorator.decorator_data);
 	}
 }
 
-void ElementDecoration::DirtyDecorators(bool full_reload)
+void ElementDecoration::DirtyDecorators()
 {
-	if (full_reload)
-		decorators_dirty = true;
-	active_decorators_dirty = true;
+	decorators_dirty = true;
 }
 
 // Iterates over all active decorators attached to the decoration's element.
@@ -152,27 +128,11 @@ bool ElementDecoration::IterateDecorators(int& index, PseudoClassList& pseudo_cl
 	if (index < 0)
 		return false;
 
-	size_t count = 0;
-
-	for (DecoratorIndex::const_iterator index_iterator = decorator_index.begin(); index_iterator != decorator_index.end(); ++index_iterator)
+	if (index < (int)decorators.size())
 	{
-		// This is the list of all pseudo-classes that have a decorator under this name.
-		const PseudoClassDecoratorIndexList& decorator_index_list = index_iterator->second;
-		if (count + decorator_index_list.size() <= (size_t) index)
-		{
-			count += decorator_index_list.size();
-			continue;
-		}
-
-		// This is the one we're looking for.
-		name = index_iterator->first;
-
-		int relative_index = index - (int)count;
-		pseudo_classes = decorator_index_list[relative_index].first;
-
-		const DecoratorHandle& decorator_handle = decorators[decorator_index_list[relative_index].second];
-		decorator = decorator_handle.decorator;
-		decorator_data = decorator_handle.decorator_data;
+		decorator = decorators[index].decorator;
+		decorator_data = decorators[index].decorator_data;
+		name = ":not implemented:";
 
 		index += 1;
 		return true;

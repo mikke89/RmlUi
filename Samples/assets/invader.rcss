@@ -45,6 +45,12 @@ div#title_bar div#icon
 	icon-image-src: invader.tga;
 }
 
+@decorator title-bar : tiled-horizontal {
+	left-image: invader.tga 147px 0px 229px 85px;
+	center-image: invader.tga stretch 229px 0px 230px 85px;
+	right-image: invader.tga 231px 0px 246px 85px;
+}
+
 div#title_bar span
 {
 	padding-left: 85px;
@@ -59,12 +65,19 @@ div#title_bar span
 	outline-width: 1px;
 	outline-color: black;
 
-	background-decorator: tiled-horizontal;
-	background-left-image: invader.tga 147px 0px 229px 85px;
-	background-center-image: invader.tga stretch 229px 0px 230px 85px;
-	background-right-image: invader.tga 231px 0px 246px 85px;
+	decorator: title-bar;
 }
 
+@decorator window : tiled-box {
+	top-left-image: invader.tga 0px 0px 133px 140px;
+	top-right-image: invader.tga 136px 0px 146px 140px;
+	top-image: invader.tga stretch 134px 0px 135px 140px;
+	bottom-left-image: invader.tga 0px 140px 11px 151px;
+	bottom-right-image: invader.tga 136px 140px 146px 151px;
+	bottom-image: invader.tga stretch 11px 140px 12px 151px;
+	left-image: invader.tga stretch 0px 139px 10px 140px;
+	center-image: invader.tga stretch 11px 139px 12px 140px;
+}
 
 
 div#window
@@ -72,15 +85,7 @@ div#window
 	width: auto;
 	padding: 10px 15px;
 
-	background-decorator: tiled-box;
-	background-top-left-image: invader.tga 0px 0px 133px 140px;
-	background-top-right-image: invader.tga 136px 0px 146px 140px;
-	background-top-image: invader.tga stretch 134px 0px 135px 140px;
-	background-bottom-left-image: invader.tga 0px 140px 11px 151px;
-	background-bottom-right-image: invader.tga 136px 140px 146px 151px;
-	background-bottom-image: invader.tga stretch 11px 140px 12px 151px;
-	background-left-image: invader.tga stretch 0px 139px 10px 140px;
-	background-center-image: invader.tga stretch 11px 139px 12px 140px;
+	decorator: window;
 }
 
 div#content

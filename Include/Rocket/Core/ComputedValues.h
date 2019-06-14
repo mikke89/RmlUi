@@ -198,6 +198,9 @@ struct ComputedValues
 
 	TransitionList transition;
 	AnimationList animation;
+
+	String decorator;
+	String font_effect;
 };
 }
 

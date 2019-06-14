@@ -214,6 +214,7 @@ private:
 	PropertyIdNameMap property_map;
 	ShorthandIdNameMap shorthand_map;
 
+	// todo: Do we really need these?
 	PropertyNameList property_names;
 	PropertyNameList inherited_property_names;
 

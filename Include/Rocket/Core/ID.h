@@ -140,6 +140,9 @@ enum class PropertyId : uint16_t
 	PointerEvents,
 	Focus,
 
+	Decorator,
+	FontEffect,
+
 	NumDefinedIds,
 	FirstCustomId = NumDefinedIds
 };

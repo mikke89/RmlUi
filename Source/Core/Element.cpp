@@ -503,7 +503,7 @@ void Element::SetBox(const Box& box)
 		box_dirty = true;
 		background->DirtyBackground();
 		border->DirtyBorder();
-		decoration->DirtyDecorators(true);
+		decoration->DirtyDecorators();
 	}
 }
 
@@ -515,7 +515,7 @@ void Element::AddBox(const Box& box)
 	box_dirty = true;
 	background->DirtyBackground();
 	border->DirtyBorder();
-	decoration->DirtyDecorators(true);
+	decoration->DirtyDecorators();
 }
 
 // Returns one of the boxes describing the size of the element.
@@ -1897,9 +1897,16 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
         changed_properties.find(PropertyId::BackgroundColor) != changed_properties.end() ||
 		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
 		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
-        background->DirtyBackground();
-        decoration->DirtyDecorators(true);
+		background->DirtyBackground();
     }
+	
+	// Dirty the decoration if it's changed.
+	if (all_dirty ||
+		changed_properties.find(PropertyId::Decorator) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
+		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
+		decoration->DirtyDecorators();
+	}
 
 	// Dirty the border if it's changed.
 	if (all_dirty || 

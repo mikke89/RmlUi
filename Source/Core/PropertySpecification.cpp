@@ -31,7 +31,6 @@
 #include "../../Include/Rocket/Core/Log.h"
 #include "../../Include/Rocket/Core/PropertyDefinition.h"
 #include "../../Include/Rocket/Core/PropertyDictionary.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
 
 namespace Rocket {
 namespace Core {
@@ -65,7 +64,7 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 		// We don't want to owerwrite an existing entry.
 		if (properties[index])
 		{
-			Log::Message(Log::LT_ERROR, "While registering property '%s': The property is already registered, ignoring.", StyleSheetSpecification::GetPropertyName(id).c_str());
+			Log::Message(Log::LT_ERROR, "While registering property '%s': The property is already registered, ignoring.", property_name.c_str());
 			return *properties[index];
 		}
 	}
@@ -79,6 +78,9 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 	PropertyDefinition* property_definition = new PropertyDefinition(id, default_value, inherited, forces_layout);
 
 	properties[index] = property_definition;
+	property_names.insert(id);
+	if (inherited)
+		inherited_property_names.insert(id);
 
 	return *property_definition;
 }
@@ -124,12 +126,12 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 
 	for (auto& name : property_list)
 	{
-		PropertyId property_id = StyleSheetSpecification::GetPropertyId(name);
+		PropertyId property_id = property_map.GetId(name);
 		if (property_id != PropertyId::Invalid)
 			id_list.emplace_back(property_id);
 		else
 		{
-			ShorthandId shorthand_id = StyleSheetSpecification::GetShorthandId(name);
+			ShorthandId shorthand_id = shorthand_map.GetId(name);
 			if (shorthand_id != ShorthandId::Invalid)
 				id_list.emplace_back(shorthand_id);
 		}
@@ -142,7 +144,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 		return false;
 
 	// Construct the new shorthand definition and resolve its properties.
-	ShorthandDefinition* property_shorthand = new ShorthandDefinition();
+	std::unique_ptr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());
 	for (size_t i = 0; i < id_list.size(); i++)
 	{
 		ShorthandItem item;
@@ -162,14 +164,13 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 
 		if (item.type == ShorthandItemType::Invalid)
 		{
-			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", StyleSheetSpecification::GetShorthandName(id).c_str(), property_list[i].c_str());
-			delete property_shorthand;
-
+			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.c_str(), property_list[i].c_str());
 			return false;
 		}
 		property_shorthand->items.push_back(item);
 	}
 
+	property_shorthand->id = id;
 	property_shorthand->type = type;
 
 	const size_t index = (size_t)id;
@@ -180,7 +181,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 		// We don't want to owerwrite an existing entry.
 		if (shorthands[index])
 		{
-			Log::Message(Log::LT_ERROR, "While registering shorthand '%s': The shorthand is already registered, ignoring.", StyleSheetSpecification::GetShorthandName(id).c_str());
+			Log::Message(Log::LT_ERROR, "The shorthand '%s' already exists, ignoring.", shorthand_name.c_str());
 			return false;
 		}
 	}
@@ -190,7 +191,7 @@ bool PropertySpecification::RegisterShorthand(const String& shorthand_name, cons
 		shorthands.resize((index * 3) / 2 + 1, nullptr);
 	}
 
-	shorthands[index] = property_shorthand;
+	shorthands[index] = property_shorthand.release();
 	return true;
 }
 

@@ -205,7 +205,14 @@ bool StyleSheetParser::ParseDecoratorBlock(DecoratorSpecificationMap& decorator_
 	if (!ReadProperties(properties, *property_specification))
 		return false;
 
-	decorator_map.emplace(name, DecoratorSpecification{ std::move(decorator_type), std::move(properties) });
+	Decorator* decorator = Factory::InstanceDecorator(decorator_type, properties);
+	if (!decorator)
+	{
+		Log::Message(Log::LT_WARNING, "Could not instance decorator of type '%s' declared at %s:%d.", decorator_type.c_str(), stream_file_name.c_str(), line_number);
+		return false;
+	}
+
+	decorator_map.emplace(name, DecoratorSpecification{ std::move(decorator_type), std::move(properties), decorator });
 
 	return true;
 }
@@ -272,18 +279,24 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 					if (at_rule_identifier == KEYFRAMES)
 					{
 						at_rule = AtRule::Keyframes;
+						state = State::AtRuleBlock;
 					}
 					else if (at_rule_identifier == "decorator")
 					{
-						at_rule = AtRule::Decorator;
+						ParseDecoratorBlock(decorator_map, at_rule_name);
+						
+						at_rule = AtRule::None;
+						at_rule_name.clear();
+						state = State::Global;
 					}
 					else
 					{
 						// Invalid identifier, should ignore
 						at_rule = AtRule::None;
+						at_rule_name.clear();
+						state = State::Global;
 						Log::Message(Log::LT_WARNING, "Invalid at-rule identifier '%s' found in stylesheet at %s:%d", at_rule_identifier.c_str(), stream_file_name.c_str(), line_number);
 					}
-					state = State::AtRuleBlock;
 
 				}
 				else
@@ -319,25 +332,22 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Decor
 					}
 					else
 					{
-						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing at-rule block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
+						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing keyframe block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
 						state = State::Invalid;
 					}
 				}
 				break;
 				case AtRule::Decorator:
 				{
-					if (token == '}')
+					if (token == '{')
 					{
 						// Process the decorator
 						ParseDecoratorBlock(decorator_map, at_rule_name);
 
-						at_rule = AtRule::None;
-						at_rule_name.clear();
-						state = State::Global;
 					}
 					else
 					{
-						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing at-rule block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
+						Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing decorator block in stylesheet at %s:%d", token, stream_file_name.c_str(), line_number);
 						state = State::Invalid;
 					}
 				}

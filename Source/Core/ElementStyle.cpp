@@ -196,7 +196,7 @@ void ElementStyle::UpdateDefinition()
 			// Since we had no definition before there is a likelihood that everything is dirty.
 			// We could do as in the next else-if block, but this is considerably faster.
 			dirty_properties.DirtyAll();
-			element->GetElementDecoration()->DirtyDecorators(true);
+			element->GetElementDecoration()->DirtyDecorators();
 			definition = new_definition;
 		}
 		else if (new_definition != definition)
@@ -217,14 +217,14 @@ void ElementStyle::UpdateDefinition()
 			definition = new_definition;
 			
 			DirtyProperties(properties);
-			element->GetElementDecoration()->DirtyDecorators(true);
+			element->GetElementDecoration()->DirtyDecorators();
 		}
 		else if (!new_definition)
 		{
 			// Both definitions empty
 			ROCKET_ASSERT(!definition);
 			// Is this really necessary?
-			element->GetElementDecoration()->DirtyDecorators(true);
+			element->GetElementDecoration()->DirtyDecorators();
 		}
 		else if (new_definition)
 		{
@@ -260,7 +260,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 
 	if (pseudo_classes.size() != num_pseudo_classes)
 	{
-		element->GetElementDecoration()->DirtyDecorators(false);
+		element->GetElementDecoration()->DirtyDecorators();
 
 		if (definition != NULL)
 		{
@@ -937,6 +937,13 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			break;
 		case PropertyId::Animation:
 			values.animation = p->Get<AnimationList>();
+			break;
+
+		case PropertyId::Decorator:
+			values.decorator = p->Get<String>();
+			break;
+		case PropertyId::FontEffect:
+			values.font_effect = p->Get<String>();
 			break;
 		}
 	}

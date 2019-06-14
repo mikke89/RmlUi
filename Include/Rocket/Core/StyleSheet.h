@@ -39,6 +39,7 @@ namespace Core {
 class Element;
 class ElementDefinition;
 class StyleSheetNode;
+class Decorator;
 
 struct KeyframeBlock {
 	float normalized_time;  // [0, 1]
@@ -53,6 +54,7 @@ typedef UnorderedMap<String, Keyframes> KeyframesMap;
 struct DecoratorSpecification {
 	String decorator_type;
 	PropertyDictionary properties;
+	Decorator* decorator = nullptr;
 };
 
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
@@ -84,6 +86,9 @@ public:
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	Keyframes* GetKeyframes(const String& name);
+
+	/// Returns the Decorator of the given name, or null if it does not exist.
+	Decorator* GetDecorator(const String& name) const;
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.

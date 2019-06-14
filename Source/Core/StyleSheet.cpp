@@ -62,6 +62,10 @@ StyleSheet::~StyleSheet()
 {
 	delete root;
 
+	// Release decorators
+	for (auto& pair : decorator_map)
+		pair.second.decorator->RemoveReference();
+
 	// Release our reference count on the cached element definitions.
 	for (ElementDefinitionCache::iterator cache_iterator = address_cache.begin(); cache_iterator != address_cache.end(); ++cache_iterator)
 		(*cache_iterator).second->RemoveReference();
@@ -95,12 +99,15 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 		new_sheet->keyframes[other_keyframes.first] = other_keyframes.second;
 	}
 
-	// Any matching @decorator names are overridden
-	new_sheet->decorator_map = other_sheet->decorator_map;
+	// Copy over the decorators, and replace any matching decorator names from other_sheet
+	// @todo / @leak: Add and remove references as appropriate, not sufficient as is!
+	new_sheet->decorator_map = decorator_map;
 	for (auto& other_decorator: other_sheet->decorator_map)
 	{
 		new_sheet->decorator_map[other_decorator.first] = other_decorator.second;
 	}
+	for (auto& pair : new_sheet->decorator_map)
+		pair.second.decorator->AddReference();
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet->specificity_offset;
 	return new_sheet;
@@ -119,11 +126,20 @@ void StyleSheet::BuildNodeIndex()
 }
 
 // Returns the Keyframes of the given name, or null if it does not exist.
-Keyframes * StyleSheet::GetKeyframes(const String & name) {
+Keyframes * StyleSheet::GetKeyframes(const String & name)
+{
 	auto it = keyframes.find(name);
 	if (it != keyframes.end())
 		return &(it->second);
 	return nullptr;
+}
+
+Decorator* StyleSheet::GetDecorator(const String& name) const
+{
+	auto it = decorator_map.find(name);
+	if (it == decorator_map.end())
+		return nullptr;
+	return it->second.decorator;
 }
 
 // Returns the compiled element definition for a given element hierarchy.
