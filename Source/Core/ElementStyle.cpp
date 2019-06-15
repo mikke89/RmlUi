@@ -77,7 +77,7 @@ const ElementDefinition* ElementStyle::GetDefinition()
 
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(const String& name, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetLocalProperty(const String& name, const PropertyDictionary* local_properties, const ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	// Check for overriding local properties.
 	if (local_properties != NULL)
@@ -95,7 +95,7 @@ const Property* ElementStyle::GetLocalProperty(const String& name, PropertyDicti
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(const String& name, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetProperty(const String& name, Element* element, const PropertyDictionary* local_properties, const ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	const Property* local_property = GetLocalProperty(name, local_properties, definition, pseudo_classes);
 	if (local_property != NULL)
@@ -126,13 +126,15 @@ const Property* ElementStyle::GetProperty(const String& name, Element* element, 
 
 // Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, PropertyDictionary* local_properties, ElementDefinition* old_definition, ElementDefinition* new_definition,
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary* local_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition,
 	const PseudoClassList& pseudo_classes_before, const PseudoClassList& pseudo_classes_after)
 {
 	ROCKET_ASSERT(element);
 	if (!old_definition || !new_definition || properties.empty())
 		return;
 
+	// We get the local property instead of the computed value here, because we want to intercept property changes even before the computed values are ready.
+	// Now that we have the concept of computed values, we may want do this operation directly on them instead.
 	if (const Property* transition_property = GetLocalProperty(TRANSITION, local_properties, new_definition, pseudo_classes_after))
 	{
 		auto transition_list = transition_property->Get<TransitionList>();
@@ -148,14 +150,8 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 				return transition_added;
 			};
 
-			// TODO: Right now we are removing all previous transitions. This ensures that previsouly transitioned properties
-			// that are no longer in the transition list are properly removed. However, this resets transitions that are quickly
-			// changed, instead of doing a time-compression of the values. We should only remove those that are no longer part
-			// of our transitions.
-
 			if (transition_list.all)
 			{
-				element->RemoveTransitions();
 				Transition transition = transition_list.transitions[0];
 				for (auto it = properties.begin(); it != properties.end(); )
 				{
@@ -170,7 +166,6 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 			{
 				for (auto& transition : transition_list.transitions)
 				{
-					element->RemoveTransition(transition.name);
 					auto it = properties.find(transition.name);
 					if (it != properties.end())
 					{

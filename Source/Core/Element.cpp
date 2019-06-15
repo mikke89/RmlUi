@@ -121,7 +121,7 @@ struct alignas(ElementMeta) ElementMetaChunk
 
 /// Constructs a new libRocket element.
 Element::Element(const String& tag) : tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
-transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false)
+transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false), dirty_transition(false)
 {
 	ROCKET_ASSERT(tag == ToLower(tag));
 	parent = NULL;
@@ -213,8 +213,8 @@ void Element::Update(float dp_ratio)
 	UpdateStructure();
 
 	style->UpdateDefinition();
-	scroll->Update();
 
+	UpdateTransition();
 	UpdateAnimation();
 	AdvanceAnimations();
 
@@ -228,7 +228,7 @@ void Element::Update(float dp_ratio)
 			document_values = &doc->GetComputedValues();
 
 		// Compute values and clear dirty properties
-		auto dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
+		DirtyPropertyList dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
 
 		computed_values_are_default_initialized = false;
 
@@ -254,6 +254,8 @@ void Element::Update(float dp_ratio)
 	}
 
 	UpdateTransformState();
+
+	scroll->Update();
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio);
@@ -1920,7 +1922,12 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	// Check for `animation' changes
 	if (all_dirty || changed_properties.find(ANIMATION) != changed_properties.end())
 	{
-		DirtyAnimation();
+		dirty_animation = true;
+	}
+	// Check for `transition' changes
+	if (all_dirty || changed_properties.find(TRANSITION) != changed_properties.end())
+	{
+		dirty_transition = true;
 	}
 }
 
@@ -2429,44 +2436,58 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	return result;
 }
 
-void Element::RemoveTransitions()
+void Element::UpdateTransition()
 {
-	// We only touch the animations that originate from the 'transition' property.
-	auto it_remove = std::remove_if(animations.begin(), animations.end(),
-		[](const ElementAnimation & animation) { return animation.IsTransition(); }
-	);
+	if(dirty_transition)
+	{
+		dirty_transition = false;
 
-	// We can decide what to do with ended animations here. Now, we remove the properties modified by the animation.
-	for (auto it = it_remove; it != animations.end(); ++it)
-		RemoveProperty(it->GetPropertyName());
+		// Remove all transitions that are no longer in our local list
+		const TransitionList& keep_transitions = GetComputedValues().transition;
 
-	animations.erase(it_remove, animations.end());
-}
+		if (keep_transitions.all)
+			return;
 
-void Element::RemoveTransition(const String& property_name)
-{
-	// We only touch the animations that originate from the 'transition' property.
-	auto it_remove = std::remove_if(animations.begin(), animations.end(),
-		[&property_name](const ElementAnimation & animation) { return animation.IsTransition() && animation.GetPropertyName() == property_name; }
-	);
+		auto it_remove = animations.end();
 
-	// We can decide what to do with ended animations here. Now, we remove the properties modified by the animation.
-	for (auto it = it_remove; it != animations.end(); ++it)
-		RemoveProperty(it->GetPropertyName());
+		if (keep_transitions.none)
+		{
+			// All transitions should be removed, but only touch the animations that originate from the 'transition' property.
+			it_remove = std::remove_if(animations.begin(), animations.end(),
+				[](const ElementAnimation& animation) -> bool { return animation.IsTransition(); }
+			);
+		}
+		else
+		{
+			// Only remove the transitions that are not in our keep list.
+			const auto& transitions = keep_transitions.transitions;
 
-	animations.erase(it_remove, animations.end());
-}
+			it_remove = std::remove_if(animations.begin(), animations.end(),
+				[&transitions](const ElementAnimation& animation) -> bool {
+					if (!animation.IsTransition())
+						return false;
+					auto it = std::find_if(transitions.begin(), transitions.end(), 
+						[&animation](const Transition& transition) { return animation.GetPropertyName() == transition.name; }
+					);
+					return it == transitions.end();
+				}
+			);
+		}
 
+		// We can decide what to do with ended animations here, just removing them seems to be the CSS approach.
+		for (auto it = it_remove; it != animations.end(); ++it)
+			RemoveProperty(it->GetPropertyName());
 
-void Element::DirtyAnimation()
-{
-	dirty_animation = true;
+		animations.erase(it_remove, animations.end());
+	}
 }
 
 void Element::UpdateAnimation()
 {
 	if (dirty_animation)
 	{
+		dirty_animation = false;
+
 		const AnimationList& animation_list = element_meta->computed_values.animation;
 		bool element_has_animations = (!animation_list.empty() || !animations.empty());
 		StyleSheet* stylesheet = nullptr;
@@ -2480,7 +2501,7 @@ void Element::UpdateAnimation()
 					[](const ElementAnimation & animation) { return animation.GetOrigin() == ElementAnimationOrigin::Animation; }
 				);
 
-				// We can decide what to do with ended animations here. Now, we remove the properties modified by the animation.
+				// We can decide what to do with ended animations here, should be consistent with removal of transitions.
 				for (auto it = it_remove; it != animations.end(); ++it)
 					RemoveProperty(it->GetPropertyName());
 
@@ -2488,9 +2509,9 @@ void Element::UpdateAnimation()
 			}
 
 			// Start animations
-			for (auto& animation : animation_list)
+			for (const auto& animation : animation_list)
 			{
-				Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
+				const Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
 				if (keyframes_ptr && keyframes_ptr->blocks.size() >= 1 && !animation.paused)
 				{
 					auto& property_names = keyframes_ptr->property_names;
@@ -2519,8 +2540,6 @@ void Element::UpdateAnimation()
 				}
 			}
 		}
-
-		dirty_animation = false;
 	}
 }
 

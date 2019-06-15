@@ -649,21 +649,24 @@ private:
 	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed);
 	void UpdateTransformState();
 
-	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
+	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
 	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property);
 
-	// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
+	/// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
 	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
 
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
-	/// @return True if the transition was added.
+	/// @return True if the transition was added or replaced.
 	bool StartTransition(const Transition& transition, const Property& start_value, const Property& target_value);
-	void RemoveTransitions();
-	void RemoveTransition(const String& property_name);
 
-	void DirtyAnimation();
+	/// Removes all transitions that are no longer part of the element's 'transition' property.
+	void UpdateTransition();
+
+	/// Starts new animations and removes animations no longer part of the element's 'animation' property.
 	void UpdateAnimation();
+
+	/// Advances the animations (including transitions) forward in time.
 	void AdvanceAnimations();
 
 	// Original tag this element came from.
@@ -758,6 +761,7 @@ private:
 
 	ElementAnimationList animations;
 	bool dirty_animation;
+	bool dirty_transition;
 
 	ElementMeta* element_meta;
 

@@ -195,9 +195,9 @@ private:
 	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
 	void DirtyInheritedProperties(const PropertyNameList& properties);
 
-	static const Property* GetLocalProperty(const String & name, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
-	static const Property* GetProperty(const String & name, Element * element, PropertyDictionary * local_properties, ElementDefinition * definition, const PseudoClassList & pseudo_classes);
-	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, PropertyDictionary * local_properties, ElementDefinition * old_definition, ElementDefinition * new_definition,
+	static const Property* GetLocalProperty(const String & name, const PropertyDictionary * local_properties, const ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static const Property* GetProperty(const String & name, Element * element, const PropertyDictionary * local_properties, const ElementDefinition * definition, const PseudoClassList & pseudo_classes);
+	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, const PropertyDictionary * local_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition,
 		const PseudoClassList & pseudo_classes_before, const PseudoClassList & pseudo_classes_after);
 
 	// Element these properties belong to
