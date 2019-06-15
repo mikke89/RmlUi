@@ -109,7 +109,7 @@ typedef std::unordered_set< String > PropertyNameList;
 typedef std::unordered_set< String > AttributeNameList;
 typedef Dictionary ElementAttributes;
 typedef std::vector< ElementAnimation > ElementAnimationList;
-typedef std::unordered_map< String, Property > PropertyMap;
+typedef std::map< String, Property > PropertyMap;
 
 // Reference types
 typedef std::shared_ptr< Transform > TransformRef;

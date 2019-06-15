@@ -49,7 +49,7 @@ ElementHandle::~ElementHandle()
 {
 }
 
-void ElementHandle::OnAttributeChange(const PropertyNameList& changed_attributes)
+void ElementHandle::OnAttributeChange(const AttributeNameList& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);
 
