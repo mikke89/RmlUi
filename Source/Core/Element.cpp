@@ -2429,6 +2429,34 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	return result;
 }
 
+void Element::RemoveTransitions()
+{
+	// We only touch the animations that originate from the 'transition' property.
+	auto it_remove = std::remove_if(animations.begin(), animations.end(),
+		[](const ElementAnimation & animation) { return animation.IsTransition(); }
+	);
+
+	// We can decide what to do with ended animations here. Now, we remove the properties modified by the animation.
+	for (auto it = it_remove; it != animations.end(); ++it)
+		RemoveProperty(it->GetPropertyName());
+
+	animations.erase(it_remove, animations.end());
+}
+
+void Element::RemoveTransition(const String& property_name)
+{
+	// We only touch the animations that originate from the 'transition' property.
+	auto it_remove = std::remove_if(animations.begin(), animations.end(),
+		[&property_name](const ElementAnimation & animation) { return animation.IsTransition() && animation.GetPropertyName() == property_name; }
+	);
+
+	// We can decide what to do with ended animations here. Now, we remove the properties modified by the animation.
+	for (auto it = it_remove; it != animations.end(); ++it)
+		RemoveProperty(it->GetPropertyName());
+
+	animations.erase(it_remove, animations.end());
+}
+
 
 void Element::DirtyAnimation()
 {

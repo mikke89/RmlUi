@@ -148,8 +148,14 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 				return transition_added;
 			};
 
+			// TODO: Right now we are removing all previous transitions. This ensures that previsouly transitioned properties
+			// that are no longer in the transition list are properly removed. However, this resets transitions that are quickly
+			// changed, instead of doing a time-compression of the values. We should only remove those that are no longer part
+			// of our transitions.
+
 			if (transition_list.all)
 			{
+				element->RemoveTransitions();
 				Transition transition = transition_list.transitions[0];
 				for (auto it = properties.begin(); it != properties.end(); )
 				{
@@ -164,6 +170,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 			{
 				for (auto& transition : transition_list.transitions)
 				{
+					element->RemoveTransition(transition.name);
 					auto it = properties.find(transition.name);
 					if (it != properties.end())
 					{
