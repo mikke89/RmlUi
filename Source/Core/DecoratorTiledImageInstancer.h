@@ -44,7 +44,7 @@ public:
 	~DecoratorTiledImageInstancer();
 
 	/// Instances an image decorator.
-	std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) override;
+	std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) override;
 };
 
 }

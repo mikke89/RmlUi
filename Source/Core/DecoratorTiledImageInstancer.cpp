@@ -43,7 +43,7 @@ DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer()
 }
 
 
-std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const StyleSheet& style_sheet)
+std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	ROCKET_UNUSED(name);
 
@@ -51,7 +51,7 @@ std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const
 	String texture_name;
 	String rcss_path;
 
-	GetTileProperties(0, tile, texture_name, rcss_path, properties, style_sheet);
+	GetTileProperties(0, tile, texture_name, rcss_path, properties, interface);
 	
 	auto decorator = std::make_shared<DecoratorTiledImage>();
 

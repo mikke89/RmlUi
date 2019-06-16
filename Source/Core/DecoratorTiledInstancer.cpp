@@ -64,7 +64,7 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 }
 
 // Retrieves all the properties for a tile from the property dictionary.
-void DecoratorTiledInstancer::GetTileProperties(size_t tile_index, DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties, const StyleSheet& style_sheet)
+void DecoratorTiledInstancer::GetTileProperties(size_t tile_index, DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	ROCKET_ASSERT(tile_index < tile_property_ids.size());
 
@@ -82,7 +82,7 @@ void DecoratorTiledInstancer::GetTileProperties(size_t tile_index, DecoratorTile
 
 	// @performance / @todo: We want some way to determine sprite or image instead of always doing the lookup as a sprite name.
 	// @performance: We already have the texture loaded in the spritesheet, very unnecessary to return as name and then convert to texture again.
-	if (const Sprite * sprite = style_sheet.GetSprite(texture_name))
+	if (const Sprite * sprite = interface.GetSprite(texture_name))
 	{
 		texture_name = sprite->sprite_sheet->image_source;
 		rcss_path = sprite->sprite_sheet->definition_source;

@@ -45,7 +45,7 @@ public:
 	/// @param name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successful, NULL if an error occured.
-	std::shared_ptr<Rocket::Core::Decorator> InstanceDecorator(const Rocket::Core::String& name, const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::StyleSheet& style_sheet) override;
+	std::shared_ptr<Rocket::Core::Decorator> InstanceDecorator(const Rocket::Core::String& name, const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::DecoratorInstancerInterface& interface) override;
 
 private:
 	Rocket::Core::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;

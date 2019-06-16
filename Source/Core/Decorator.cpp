@@ -36,36 +36,10 @@ namespace Core {
 
 Decorator::Decorator()
 {
-	z_index = 0;
-	specificity = -1;
 }
 
 Decorator::~Decorator()
 {
-}
-
-// Sets the z-index of the decorator.
-void Decorator::SetZIndex(float _z_index)
-{
-	z_index = _z_index;
-}
-
-// Returns the decorator's z-index.
-float Decorator::GetZIndex() const
-{
-	return z_index;
-}
-
-// Sets the specificity of the decorator.
-void Decorator::SetSpecificity(int _specificity)
-{
-	specificity = _specificity;
-}
-
-// Returns the specificity of the decorator.
-int Decorator::GetSpecificity() const
-{
-	return specificity;
 }
 
 // Attempts to load a texture into the list of textures in use by the decorator.

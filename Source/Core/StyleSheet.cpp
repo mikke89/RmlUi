@@ -205,7 +205,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 
 			specification->SetPropertyDefaults(properties);
 
-			std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(type, properties, *this);
+			std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
 
 			if (decorator)
 				decorator_list.emplace_back(std::move(decorator));

@@ -29,7 +29,6 @@
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Core/StreamMemory.h"
 #include "ContextInstancerDefault.h"
-#include "DecoratorNoneInstancer.h"
 #include "DecoratorTiledBoxInstancer.h"
 #include "DecoratorTiledHorizontalInstancer.h"
 #include "DecoratorTiledImageInstancer.h"
@@ -110,7 +109,6 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("tiled-vertical", std::make_unique<DecoratorTiledVerticalInstancer>());
 	RegisterDecoratorInstancer("tiled-box", std::make_unique<DecoratorTiledBoxInstancer>());
 	RegisterDecoratorInstancer("image", std::make_unique<DecoratorTiledImageInstancer>());
-	RegisterDecoratorInstancer("none", std::make_unique<DecoratorNoneInstancer>());
 
 	RegisterFontEffectInstancer("shadow", new FontEffectShadowInstancer())->RemoveReference();
 	RegisterFontEffectInstancer("outline", new FontEffectOutlineInstancer())->RemoveReference();
@@ -347,12 +345,8 @@ const PropertySpecification* Factory::GetDecoratorPropertySpecification(const St
 }
 
 // Attempts to instance a decorator from an instancer registered with the factory.
-std::shared_ptr<Decorator> Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet)
+std::shared_ptr<Decorator> Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
-	// TODO: z-index, specificity no longer part of decorator
-	float z_index = 0;
-	int specificity = -1;
-
 	auto iterator = decorator_instancers.find(name);
 	if (iterator == decorator_instancers.end())
 		return nullptr;
@@ -370,13 +364,10 @@ std::shared_ptr<Decorator> Factory::InstanceDecorator(const String& name, const 
 		return nullptr;
 	}
 
-	std::shared_ptr<Decorator> decorator = instancer.InstanceDecorator(name, properties, style_sheet);
+	std::shared_ptr<Decorator> decorator = instancer.InstanceDecorator(name, properties, interface);
 	if (!decorator)
 		return nullptr;
 
-	decorator->SetZIndex(z_index);
-	decorator->SetSpecificity(specificity);
-	decorator->instancer = &instancer;
 	return decorator;
 }
 

@@ -57,5 +57,10 @@ ShorthandId DecoratorInstancer::RegisterShorthand(const String& shorthand_name, 
 	return properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
+
+const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const {
+	return style_sheet.GetSprite(name);
+}
+
 }
 }

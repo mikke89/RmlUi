@@ -35,7 +35,11 @@
 namespace Rocket {
 namespace Core {
 
+struct Sprite;
+class StyleSheet;
 class Decorator;
+class DecoratorInstancerInterface;
+
 
 /**
 	An element instancer provides a method for allocating and deallocating decorators.
@@ -55,8 +59,9 @@ public:
 	/// Instances a decorator given the property tag and attributes from the RCSS file.
 	/// @param[in] name The type of decorator desired. For example, "decorator: simple(...);" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
-	/// @return The decorator if it was instanced successfully, NULL if an error occured.
-	virtual std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) = 0;
+	/// @param[in] interface An interface for querying the active style sheet.
+	/// @return A shared_ptr to the decorator if it was instanced successfully.
+	virtual std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) = 0;
 
 	/// Returns the property specification associated with the instancer.
 	const PropertySpecification& GetPropertySpecification() const;
@@ -67,7 +72,7 @@ protected:
 	/// @param[in] default_value The default value to be used.
 	/// @return The new property definition, ready to have parsers attached.
 	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value);
-	/// Registers a shorthand property definition.
+	/// Registers a shorthand property definition. Specify a shorthand name of 'decorator' to parse anonymous decorators.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
@@ -76,6 +81,18 @@ protected:
 
 private:
 	PropertySpecification properties;
+};
+
+
+class ROCKETCORE_API DecoratorInstancerInterface {
+public:
+	DecoratorInstancerInterface(const StyleSheet& style_sheet) : style_sheet(style_sheet) {}
+
+	/// Get a sprite from any @spritesheet in the style sheet the decorator is being instanced on.
+	const Sprite* GetSprite(const String& name) const;
+
+private:
+	const StyleSheet& style_sheet;
 };
 
 }
