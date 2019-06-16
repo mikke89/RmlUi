@@ -34,6 +34,8 @@
 namespace Rocket {
 namespace Core {
 
+class StyleSheet;
+
 /**
 	@author Peter Curry
  */
@@ -54,7 +56,7 @@ protected:
 	/// @param[out] rcss_path The path of the RCSS file that generated the texture path.
 	/// @param[in] properties The user-defined list of parameters for the decorator.
 	/// @param[in] name The name of the tile to fetch the properties for.
-	void GetTileProperties(size_t tile_index, DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties);
+	void GetTileProperties(size_t tile_index, DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties, const StyleSheet& style_sheet);
 
 private:
 	// Loads a single texture coordinate value from the properties.

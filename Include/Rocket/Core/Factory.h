@@ -124,7 +124,7 @@ public:
 	/// @param[in] name The name of the desired decorator type.
 	/// @param[in] properties The properties associated with the decorator.
 	/// @return The newly instanced decorator, or NULL if the decorator could not be instanced.
-	static Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties);
+	static Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet);
 
 	/// Registers an instancer that will be used to instance font effects.
 	/// @param[in] name The name of the font effect the instancer will be called for.

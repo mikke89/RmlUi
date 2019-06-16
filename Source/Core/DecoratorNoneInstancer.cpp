@@ -37,10 +37,11 @@ DecoratorNoneInstancer::~DecoratorNoneInstancer()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Decorator* DecoratorNoneInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& ROCKET_UNUSED_PARAMETER(properties))
+Decorator* DecoratorNoneInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& ROCKET_UNUSED_PARAMETER(properties), const StyleSheet& ROCKET_UNUSED_PARAMETER(style_sheet))
 {
 	ROCKET_UNUSED(name);
 	ROCKET_UNUSED(properties);
+	ROCKET_UNUSED(style_sheet);
 
 	return new DecoratorNone();
 }

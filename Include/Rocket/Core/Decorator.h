@@ -90,13 +90,17 @@ public:
 
 protected:
 	/// Releases the decorator through its instancer.
-	virtual void OnReferenceDeactivate();
+	virtual void OnReferenceDeactivate() override;
 
 	/// Attempts to load a texture into the list of textures in use by the decorator.
 	/// @param[in] texture_name The name of the texture to load.
 	/// @param[in] rcss_path The RCSS file the decorator definition was loaded from; this is used to resolve relative paths.
 	/// @return The index of the texture if the load was successful, or -1 if the load failed.
 	int LoadTexture(const String& texture_name, const String& rcss_path);
+	/// Adds a texture if it is valid into the list of textures in use by the decorator.
+	/// @param[in] texture The texture to add.
+	/// @return The index of the texture if it is successful, or -1 if it is invalid.
+	int AddTexture(const Texture& texture);
 	/// Returns one of the decorator's previously loaded textures.
 	/// @param[in] index The index of the desired texture.
 	/// @return The texture at the appropriate index, or NULL if the index was invalid.

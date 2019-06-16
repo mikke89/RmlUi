@@ -57,7 +57,7 @@ public:
 	/// @param[in] name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successfully, NULL if an error occured.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties) = 0;
+	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) = 0;
 	/// Releases the given decorator.
 	/// @param[in] decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
 	virtual void ReleaseDecorator(Decorator* decorator) = 0;

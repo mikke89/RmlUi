@@ -41,15 +41,16 @@ class DecoratorTiledImageInstancer : public DecoratorTiledInstancer
 {
 public:
 	DecoratorTiledImageInstancer();
-	virtual ~DecoratorTiledImageInstancer();
+	~DecoratorTiledImageInstancer();
 
 	/// Instances an image decorator.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties);
+	Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) override;
+
 	/// Releases the given decorator.
-	virtual void ReleaseDecorator(Decorator* decorator);
+	void ReleaseDecorator(Decorator* decorator) override;
 
 	/// Releases the instancer.
-	virtual void Release();
+	void Release() override;
 };
 
 }

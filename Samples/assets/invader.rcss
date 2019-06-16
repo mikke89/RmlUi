@@ -56,7 +56,7 @@ div#title_bar div#icon
 	window-t:  134px 0px 1px 140px;
 	window-tr: 136px 0px 10px 140px;
 	window-l:  0px 139px 10px 1px;
-	window-c:  11px 139px 12px 1px;
+	window-c:  11px 139px 1px 1px;
 	window-r:  10px 139px -10px 1px; /* mirrored left */
 	window-bl: 0px 140px 11px 11px;
 	window-b:  11px 140px 1px 11px;
@@ -99,12 +99,17 @@ div#title_bar span
 	bottom-right-image: invader.tga 136px 140px 146px 151px;
 }
 
+@decorator window-test : image {
+	image: window-c;
+	/*image: invader.tga 11px 139px 12px 140px;*/
+}
+
 
 div#window
 {
 	width: auto;
 	padding: 10px 15px;
-
+	
 	decorator: tiled-box(
 		window-tl, window-t stretch, window-tr, 
 		window-l stretch, window-c stretch, window-r stretch,

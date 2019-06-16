@@ -77,13 +77,15 @@ StyleSheet::~StyleSheet()
 bool StyleSheet::LoadStyleSheet(Stream* stream)
 {
 	StyleSheetParser parser;
-	specificity_offset = parser.Parse(root, keyframes, decorator_map, sprite_sheets, stream);
+	specificity_offset = parser.Parse(root, stream, *this, keyframes, decorator_map, spritesheet_list);
 	return specificity_offset >= 0;
 }
 
 /// Combines this style sheet with another one, producing a new sheet
 StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 {
+	ROCKET_ASSERT(other_sheet);
+
 	StyleSheet* new_sheet = new StyleSheet();
 	if (!new_sheet->root->MergeHierarchy(root) ||
 		!new_sheet->root->MergeHierarchy(other_sheet->root, specificity_offset))
@@ -108,6 +110,10 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 	}
 	for (auto& pair : new_sheet->decorator_map)
 		pair.second.decorator->AddReference();
+
+
+	new_sheet->spritesheet_list = other_sheet->spritesheet_list;
+	new_sheet->spritesheet_list.Merge(spritesheet_list);
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet->specificity_offset;
 	return new_sheet;
@@ -140,6 +146,11 @@ Decorator* StyleSheet::GetDecorator(const String& name) const
 	if (it == decorator_map.end())
 		return nullptr;
 	return it->second.decorator;
+}
+
+const Sprite* StyleSheet::GetSprite(const String& name) const
+{
+	return spritesheet_list.GetSprite(name);
 }
 
 Decorator* StyleSheet::GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number)
@@ -180,7 +191,7 @@ Decorator* StyleSheet::GetOrInstanceDecorator(const String& decorator_value, con
 
 	specification->SetPropertyDefaults(properties);
 
-	Decorator* decorator = Factory::InstanceDecorator(type, properties);
+	Decorator* decorator = Factory::InstanceDecorator(type, properties, *this);
 	if (!decorator)
 		return nullptr;
 

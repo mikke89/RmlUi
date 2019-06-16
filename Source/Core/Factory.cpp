@@ -353,7 +353,7 @@ const PropertySpecification* Factory::GetDecoratorPropertySpecification(const St
 }
 
 // Attempts to instance a decorator from an instancer registered with the factory.
-Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties)
+Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet)
 {
 	// TODO: z-index, specificity no longer part of decorator
 	float z_index = 0;
@@ -376,7 +376,7 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 		return nullptr;
 	}
 
-	Decorator* decorator = instancer->InstanceDecorator(name, properties);
+	Decorator* decorator = instancer->InstanceDecorator(name, properties, style_sheet);
 	if (!decorator)
 		return nullptr;
 

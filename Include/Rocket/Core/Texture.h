@@ -73,6 +73,12 @@ public:
 	/// Releases this texture's resource (if any), and sets it to another texture's resource.
 	const Texture& operator=(const Texture&);
 
+	/// Returns true if the texture points to the same underlying resource.
+	bool operator==(const Texture&) const;
+
+	/// Returns true if the underlying resource is set.
+	operator bool() const;
+
 private:
 	TextureResource* resource;
 };

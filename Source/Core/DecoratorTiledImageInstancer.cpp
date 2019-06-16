@@ -42,8 +42,8 @@ DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer()
 {
 }
 
-// Instances a box decorator.
-Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+
+Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const StyleSheet& style_sheet)
 {
 	ROCKET_UNUSED(name);
 
@@ -51,9 +51,15 @@ Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_
 	String texture_name;
 	String rcss_path;
 
-	GetTileProperties(0, tile, texture_name, rcss_path, properties);
+	GetTileProperties(0, tile, texture_name, rcss_path, properties, style_sheet);
+	
+	if (texture_name == "window-c" || (texture_name == "invader.tga" && tile.texcoords[0].x == 11))
+	{
+		int i = 0;
+	}
 
 	DecoratorTiledImage* decorator = new DecoratorTiledImage();
+
 	if (decorator->Initialise(tile, texture_name, rcss_path))
 		return decorator;
 
@@ -62,13 +68,11 @@ Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_
 	return NULL;
 }
 
-// Releases the given decorator.
 void DecoratorTiledImageInstancer::ReleaseDecorator(Decorator* decorator)
 {
 	delete decorator;
 }
 
-// Releases the instancer.
 void DecoratorTiledImageInstancer::Release()
 {
 	delete this;

@@ -62,7 +62,6 @@ struct DecoratorSpecification {
 struct Sprite {
 	Rectangle rectangle;
 	Spritesheet* sprite_sheet;
-	String name;
 };
 
 struct Spritesheet {
@@ -71,58 +70,105 @@ struct Spritesheet {
 	String definition_source;
 	int definition_line_number;
 	Texture texture;
-	std::vector<std::unique_ptr<Sprite>> sprites;
+	StringList sprite_names; 
 
-	Spritesheet(const String& name, const String& definition_source, int definition_line_number) : name(name), definition_source(definition_source), definition_line_number(definition_line_number) {}
-
-	void AddSprite(const String& name, Rectangle rectangle)
-	{
-		sprites.emplace_back(new Sprite{ rectangle, this, name });
-	}
+	Spritesheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, const Texture& texture)
+		: name(name), image_source(image_source), definition_source(definition_source), definition_line_number(definition_line_number), texture(texture) {}
 };
 
-using SpriteMap = UnorderedMap<String, const Sprite*>;
-using SpritesheetMap = UnorderedMap<String, std::unique_ptr<Spritesheet>>;
+using SpriteMap = UnorderedMap<String, Sprite>;
+using SpritesheetMap = UnorderedMap<String, std::shared_ptr<Spritesheet>>;
+using SpriteDefinitionList = std::vector<std::pair<String, Rectangle>>;
 
-class SpriteSheetList {
+class SpritesheetList {
 public:
-	bool AddSpriteSheet(std::unique_ptr<Spritesheet> in_sprite_sheet) {
-		ROCKET_ASSERT(in_sprite_sheet);
-		Spritesheet& spritesheet = *in_sprite_sheet;
-		auto result = spritesheet_map.emplace(spritesheet.name, std::move(in_sprite_sheet));
-		if (!result.second)
+
+	bool AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, const SpriteDefinitionList& sprite_definitions)
+	{
+		// Load the texture
+		Texture texture;
+		if (!texture.Load(image_source, definition_source))
 		{
-			Log::Message(Log::LT_WARNING, "Spritesheet '%s' has the same name as another spritesheet, skipped. See %s:%d", spritesheet.name.c_str(), spritesheet.definition_source.c_str(), spritesheet.definition_line_number);
+			Log::Message(Log::LT_WARNING, "Could not load image '%s' specified in spritesheet '%s' at %s:%d", image_source.c_str(), name.c_str(), definition_source.c_str(), definition_line_number);
 			return false;
 		}
 
-		auto& sprites = spritesheet.sprites;
-		for (auto it = sprites.begin(); it != sprites.end();)
+		auto result = spritesheet_map.emplace(name, std::make_shared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture));
+		if (!result.second)
 		{
-			ROCKET_ASSERT(*it);
-			const String& name = (*it)->name;
-			auto result = sprite_map.emplace(name, it->get());
-			if (!result.second)
-			{
-				Log::Message(Log::LT_WARNING, "Sprite '%s' has the same name as another sprite, skipped. See %s:%d", name.c_str(), spritesheet.definition_source.c_str(), spritesheet.definition_line_number);
-				it = sprites.erase(it);
-			}
-			else
-				++it;
+			Log::Message(Log::LT_WARNING, "Spritesheet '%s' has the same name as another spritesheet, ignored. See %s:%d", name.c_str(), definition_source.c_str(), definition_line_number);
+			return false;
 		}
 
-		// Load the texture
-		spritesheet.texture.Load(spritesheet.image_source, spritesheet.definition_source);
+		Spritesheet& spritesheet = *result.first->second;
+		StringList& sprite_names = spritesheet.sprite_names;
 		
+		// Insert all the sprites with names not already defined in the global sprite list.
+		int num_removed_sprite_names = 0;
+		for (auto& sprite_definition : sprite_definitions)
+		{
+			const String& sprite_name = sprite_definition.first;
+			const Rectangle& sprite_rectangle = sprite_definition.second;
+			auto result = sprite_map.emplace(sprite_name, Sprite{ sprite_rectangle, &spritesheet });
+			if (result.second)
+			{
+				sprite_names.push_back(sprite_name);
+			}
+			else
+			{
+				Log::Message(Log::LT_WARNING, "Sprite '%s' has the same name as an existing sprite, skipped. See %s:%d", sprite_name.c_str(), definition_source.c_str(), definition_line_number);
+			}
+		}
+
 		return true;
 	}
 
-	const Sprite* GetSprite(const String& name)
+	// Note: The pointer is invalidated whenever another sprite is added. Do not store it around.
+	const Sprite* GetSprite(const String& name) const
 	{
 		auto it = sprite_map.find(name);
 		if (it != sprite_map.end())
-			return it->second;
+			return &it->second;
 		return nullptr;
+	}
+
+	// Merge other into this
+	void Merge(const SpritesheetList& other)
+	{
+		for (auto& pair : other.spritesheet_map)
+		{
+			auto sheet_result = spritesheet_map.emplace(pair);
+			bool sheet_inserted = sheet_result.second;
+			if (sheet_inserted)
+			{
+				const String& sheet_name = sheet_result.first->first;
+				Spritesheet& sheet = *sheet_result.first->second;
+
+				// The spritesheet was succesfully added, now try to add each sprite to the global list.
+				// Each sprite name must be unique, if we fail, we must also remove the sprite from the spritesheet.
+				for (auto it = sheet.sprite_names.begin(); it != sheet.sprite_names.end(); )
+				{
+					const String& sprite_name = *it;
+					auto it_sprite = other.sprite_map.find(sprite_name);
+					bool success = false;
+					if(it_sprite != other.sprite_map.end())
+					{
+						auto sprite_result = sprite_map.emplace(*it, it_sprite->second);
+						success = sprite_result.second;
+					}
+
+					if (success)
+					{
+						++it;
+					}
+					else
+					{
+						Log::Message(Log::LT_WARNING, "Duplicate sprite name '%s' found while merging style sheets, defined in %s:%d.", sprite_name.c_str(), sheet.definition_source.c_str(), sheet.definition_line_number);
+						it = sheet.sprite_names.erase(it);
+					}
+				}
+			}
+		}
 	}
 
 
@@ -164,6 +210,8 @@ public:
 	/// Returns the Decorator of the given name, or null if it does not exist.
 	Decorator* GetDecorator(const String& name) const;
 
+	const Sprite* GetSprite(const String& name) const;
+
 	Decorator* GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number);
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
@@ -191,7 +239,7 @@ private:
 	// Name of every @decorator mapped to their specification
 	DecoratorSpecificationMap decorator_map;
 
-	SpriteSheetList sprite_sheets;
+	SpritesheetList spritesheet_list;
 
 	// Map of only nodes with actual style information.
 	NodeIndex styled_node_index;

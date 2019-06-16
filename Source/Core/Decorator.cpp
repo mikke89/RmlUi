@@ -37,7 +37,7 @@ namespace Core {
 
 Decorator::Decorator()
 {
-	instancer = NULL;
+	instancer = nullptr;
 	z_index = 0;
 	specificity = -1;
 }
@@ -73,7 +73,7 @@ int Decorator::GetSpecificity() const
 // Releases the decorator through its instancer.
 void Decorator::OnReferenceDeactivate()
 {
-	if (instancer != NULL)
+	if (instancer)
 		instancer->ReleaseDecorator(this);
 }
 
@@ -91,14 +91,27 @@ int Decorator::LoadTexture(const String& texture_name, const String& rcss_path)
 		return -1;
 
 	textures.push_back(texture);
-	return (int) textures.size() - 1;
+	return (int)textures.size() - 1;
+}
+
+int Decorator::AddTexture(const Texture& texture)
+{
+	if (!texture)
+		return -1;
+
+	auto it = std::find(textures.begin(), textures.end(), texture);
+	if (it != textures.end())
+		return (int)(it - textures.begin());
+
+	textures.push_back(texture);
+	return (int)textures.size() - 1;
 }
 
 // Returns one of the decorator's previously loaded textures.
 const Texture* Decorator::GetTexture(int index) const
 {
 	if (index < 0 || index >= (int) textures.size())
-		return NULL;
+		return nullptr;
 
 	return &(textures[index]);
 }

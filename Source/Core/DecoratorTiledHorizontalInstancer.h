@@ -41,15 +41,15 @@ class DecoratorTiledHorizontalInstancer : public DecoratorTiledInstancer
 {
 public:
 	DecoratorTiledHorizontalInstancer();
-	virtual ~DecoratorTiledHorizontalInstancer();
+	~DecoratorTiledHorizontalInstancer();
 
 	/// Instances a horizontal decorator.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties);
+	Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet);
 	/// Releases the given decorator.
-	virtual void ReleaseDecorator(Decorator* decorator);
+	void ReleaseDecorator(Decorator* decorator);
 
 	/// Releases the instancer.
-	virtual void Release();
+	void Release();
 };
 
 }

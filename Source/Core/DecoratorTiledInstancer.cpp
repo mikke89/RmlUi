@@ -64,42 +64,73 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 }
 
 // Retrieves all the properties for a tile from the property dictionary.
-void DecoratorTiledInstancer::GetTileProperties(size_t tile_index, DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties)
+void DecoratorTiledInstancer::GetTileProperties(size_t tile_index, DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties, const StyleSheet& style_sheet)
 {
 	ROCKET_ASSERT(tile_index < tile_property_ids.size());
 
 	const TilePropertyIds& ids = tile_property_ids[tile_index];
 
-	LoadTexCoord(properties, ids.s_begin, tile.texcoords[0].x, tile.texcoords_absolute[0][0]);
-	LoadTexCoord(properties, ids.t_begin, tile.texcoords[0].y, tile.texcoords_absolute[0][1]);
-	LoadTexCoord(properties, ids.s_end, tile.texcoords[1].x, tile.texcoords_absolute[1][0]);
-	LoadTexCoord(properties, ids.t_end, tile.texcoords[1].y, tile.texcoords_absolute[1][1]);
-
-	const Property* repeat_property = properties.GetProperty(ids.repeat);
-	if (repeat_property != NULL)
-		tile.repeat_mode = (DecoratorTiled::TileRepeatMode) repeat_property->value.Get< int >();
-
 	const Property* texture_property = properties.GetProperty(ids.src);
 	texture_name = texture_property->Get< String >();
 	rcss_path = texture_property->source;
 
-	// Declaring the name 'none' is the same as an empty string. This gives an easy way to skip certain
+	if (texture_name == "window-c")
+	{
+		int i = 0;
+	}
+
+	// Declaring the name 'auto' is the same as an empty string. This gives an easy way to skip certain
 	// tiles in a shorthand since we can't always declare an empty string.
-	static const String none_texture_name = "none";
+	static const String none_texture_name = "auto";
 	if (texture_name == none_texture_name)
 		texture_name.clear();
+
+	// @performance / @todo: We want some way to determine sprite or image instead of always do the lookup up as a sprite name.
+	// @performance: We already have the texture loaded in the spritesheet, very unnecessary to return as name and then convert to texture again.
+	if (const Sprite * sprite = style_sheet.GetSprite(texture_name))
+	{
+		texture_name = sprite->sprite_sheet->image_source;
+		rcss_path = sprite->sprite_sheet->definition_source;
+
+		tile.texcoords[0].x = sprite->rectangle.x;
+		tile.texcoords[0].y = sprite->rectangle.y;
+		tile.texcoords[1].x = sprite->rectangle.x + sprite->rectangle.width;
+		tile.texcoords[1].y = sprite->rectangle.y + sprite->rectangle.height;
+
+		tile.texcoords_absolute[0][0] = true;
+		tile.texcoords_absolute[0][1] = true;
+		tile.texcoords_absolute[1][0] = true;
+		tile.texcoords_absolute[1][1] = true;
+	}
+	else
+	{
+		LoadTexCoord(properties, ids.s_begin, tile.texcoords[0].x, tile.texcoords_absolute[0][0]);
+		LoadTexCoord(properties, ids.t_begin, tile.texcoords[0].y, tile.texcoords_absolute[0][1]);
+		LoadTexCoord(properties, ids.s_end, tile.texcoords[1].x, tile.texcoords_absolute[1][0]);
+		LoadTexCoord(properties, ids.t_end, tile.texcoords[1].y, tile.texcoords_absolute[1][1]);
+	}
+
+	if(ids.repeat != PropertyId::Invalid)
+	{
+		const Property* repeat_property = properties.GetProperty(ids.repeat);
+		ROCKET_ASSERT(repeat_property);
+		tile.repeat_mode = (DecoratorTiled::TileRepeatMode) repeat_property->value.Get< int >();
+	}
 }
 
 // Loads a single texture coordinate value from the properties.
 void DecoratorTiledInstancer::LoadTexCoord(const PropertyDictionary& properties, PropertyId id, float& tex_coord, bool& tex_coord_absolute)
 {
 	const Property* property = properties.GetProperty(id);
-	if (property == NULL)
-		return;
+
+	// May fail if we forgot to set default values before instancing the tile
+	ROCKET_ASSERT(property);
 
 	tex_coord = property->value.Get< float >();
 	if (property->unit == Property::PX)
+	{
 		tex_coord_absolute = true;
+	}
 	else
 	{
 		tex_coord_absolute = false;

@@ -102,5 +102,15 @@ const Texture& Texture::operator=(const Texture& copy)
 	return *this;
 }
 
+bool Texture::operator==(const Texture& other) const
+{
+	return resource == other.resource;
+}
+
+Texture::operator bool() const
+{
+	return static_cast<bool>(resource);
+}
+
 }
 }
