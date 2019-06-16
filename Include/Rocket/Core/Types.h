@@ -106,6 +106,8 @@ class ElementAnimation;
 class Property;
 class Variant;
 class Transform;
+class Decorator;
+struct Animation;
 enum class PropertyId : uint16_t;
 
 // Types for external interfaces.
@@ -146,6 +148,9 @@ typedef std::shared_ptr< Transform > TransformRef;
 
 struct Transition;
 struct TransitionList;
+
+using DecoratorList = std::vector<std::shared_ptr<Decorator>>;
+using AnimationList = std::vector<Animation>;
 
 // Pseudo class properties
 // Defines for the optimised version of the pseudo-class properties (note the difference from the

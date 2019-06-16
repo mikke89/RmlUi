@@ -29,7 +29,6 @@
 #define ROCKETCORETYPECONVERTER_H
 
 #include "Types.h"
-#include "Animation.h"
 #include "Log.h"
 #include "Stream.h"
 #include "StringUtilities.h"
@@ -55,6 +54,47 @@ class TypeConverter
 public:	
 	static bool Convert(const SourceType& src, DestType& dest);
 };
+
+
+// Some more complex types are defined in cpp-file
+
+template<> class TypeConverter< TransformRef, TransformRef > {
+public:
+	ROCKETCORE_API static bool Convert(const TransformRef& src, TransformRef& dest);
+};
+
+template<> class TypeConverter< TransformRef, String > {
+public:
+	ROCKETCORE_API static bool Convert(const TransformRef& src, String& dest);
+};
+
+template<> class TypeConverter< TransitionList, TransitionList > {
+public:
+	ROCKETCORE_API static bool Convert(const TransitionList& src, TransitionList& dest);
+};
+template<> class TypeConverter< TransitionList, String > {
+public:
+	ROCKETCORE_API static bool Convert(const TransitionList& src, String& dest);
+};
+
+template<> class TypeConverter< AnimationList, AnimationList > {
+public:
+	ROCKETCORE_API static bool Convert(const AnimationList& src, AnimationList& dest);
+};
+template<> class TypeConverter< AnimationList, String > {
+public:
+	ROCKETCORE_API static bool Convert(const AnimationList& src, String& dest);
+};
+
+template<> class TypeConverter< DecoratorList, DecoratorList > {
+public:
+	ROCKETCORE_API static bool Convert(const DecoratorList& src, DecoratorList& dest);
+};
+template<> class TypeConverter< DecoratorList, String > {
+public:
+	ROCKETCORE_API static bool Convert(const DecoratorList& src, String& dest);
+};
+
 
 }
 }

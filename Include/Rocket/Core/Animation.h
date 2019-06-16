@@ -48,8 +48,6 @@ struct Animation {
 	String name;
 };
 
-typedef std::vector<Animation> AnimationList;
-
 /* Data parsed from the 'transition' property. */
 struct Transition {
 	PropertyId id;
