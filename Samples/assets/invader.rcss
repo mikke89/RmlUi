@@ -61,6 +61,10 @@ div#title_bar div#icon
 	window-bl: 0px 140px 11px 11px;
 	window-b:  11px 140px 1px 11px;
 	window-br: 136px 140px 10px 11px;
+	
+	button: 247px 0px 159px 45px;
+	button-hover:  247px 45px 159px 45px;
+	button-active: 247px 90px 159px 45px;
 }
 
 @decorator title_bar : tiled-horizontal {
@@ -182,7 +186,7 @@ input.submit
 	text-align: center;
 	tab-index: auto;
 
-	decorator: image(invader.tga 247px 0px 406px 45px);
+	decorator: image(button);
 }
 
 button:focus,
@@ -198,18 +202,18 @@ input.submit:focus
 button:hover,
 input.submit:hover
 {
-	decorator: image(invader.tga 247px 45px 406px 90px);
+	decorator: image(button-hover);
 }
 
 button:active,
 input.submit:active
 {
-	decorator: image(invader.tga 247px 90px 406px 135px);
+	decorator: image(button-active);
 }
 
 input.submit:disabled
 {
-	decorator: image(invader.tga 247px 0px 406px 45px);
+	decorator: image(button);
 	image-color: rgba(50, 150, 150, 120);
 	cursor: unavailable;
 }

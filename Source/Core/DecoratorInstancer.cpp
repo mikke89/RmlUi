@@ -57,11 +57,5 @@ ShorthandId DecoratorInstancer::RegisterShorthand(const String& shorthand_name, 
 	return properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
-// Releases the instancer.
-void DecoratorInstancer::OnReferenceDeactivate()
-{
-	Release();
-}
-
 }
 }

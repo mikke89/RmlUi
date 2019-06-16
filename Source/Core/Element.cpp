@@ -1006,12 +1006,6 @@ int Element::GetNumAttributes() const
 	return (int)attributes.size();
 }
 
-// Iterates over all decorators attached to the element.
-bool Element::IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data)
-{
-	return decoration->IterateDecorators(index, pseudo_classes, name, decorator, decorator_data);
-}
-
 // Gets the name of the element.
 const String& Element::GetTagName() const
 {

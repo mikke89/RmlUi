@@ -37,25 +37,13 @@ DecoratorNoneInstancer::~DecoratorNoneInstancer()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Decorator* DecoratorNoneInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& ROCKET_UNUSED_PARAMETER(properties), const StyleSheet& ROCKET_UNUSED_PARAMETER(style_sheet))
+std::shared_ptr<Decorator> DecoratorNoneInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& ROCKET_UNUSED_PARAMETER(properties), const StyleSheet& ROCKET_UNUSED_PARAMETER(style_sheet))
 {
 	ROCKET_UNUSED(name);
 	ROCKET_UNUSED(properties);
 	ROCKET_UNUSED(style_sheet);
 
-	return new DecoratorNone();
-}
-
-// Releases the given decorator.
-void DecoratorNoneInstancer::ReleaseDecorator(Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorNoneInstancer::Release()
-{
-	delete this;
+	return std::make_shared<DecoratorNone>();
 }
 
 }

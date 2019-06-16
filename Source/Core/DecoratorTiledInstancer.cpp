@@ -73,19 +73,14 @@ void DecoratorTiledInstancer::GetTileProperties(size_t tile_index, DecoratorTile
 	const Property* texture_property = properties.GetProperty(ids.src);
 	texture_name = texture_property->Get< String >();
 	rcss_path = texture_property->source;
-
-	if (texture_name == "window-c")
-	{
-		int i = 0;
-	}
-
+	
 	// Declaring the name 'auto' is the same as an empty string. This gives an easy way to skip certain
 	// tiles in a shorthand since we can't always declare an empty string.
 	static const String none_texture_name = "auto";
 	if (texture_name == none_texture_name)
 		texture_name.clear();
 
-	// @performance / @todo: We want some way to determine sprite or image instead of always do the lookup up as a sprite name.
+	// @performance / @todo: We want some way to determine sprite or image instead of always doing the lookup as a sprite name.
 	// @performance: We already have the texture loaded in the spritesheet, very unnecessary to return as name and then convert to texture again.
 	if (const Sprite * sprite = style_sheet.GetSprite(texture_name))
 	{

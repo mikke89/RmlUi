@@ -48,13 +48,7 @@ public:
 	/// @param name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successful, NULL if an error occured.
-	Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) override;
-	/// Releases the given decorator.
-	/// @param decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	void ReleaseDecorator(Decorator* decorator) override;
-
-	/// Releases the instancer.
-	void Release() override;
+	std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) override;
 };
 
 }

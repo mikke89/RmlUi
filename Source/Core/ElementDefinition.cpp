@@ -44,7 +44,7 @@ ElementDefinition::~ElementDefinition()
 }
 
 // Initialises the element definition from a list of style sheet nodes.
-void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& style_sheet_nodes, const PseudoClassList& volatile_pseudo_classes, bool _structurally_volatile)
+void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& style_sheet_nodes, const PseudoClassList& volatile_pseudo_classes, bool _structurally_volatile, const StyleSheet& style_sheet)
 {
 	// Set the volatile structure flag.
 	structurally_volatile = _structurally_volatile;
@@ -105,6 +105,13 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 			}
 		}
 	}
+
+	// Turn the decorator properties from String to DecoratorList.
+	// This is essentially an optimization, we could do this just as well in e.g. ComputeValues() or ElementDecoration, but when we do it here, we only need to do it once.
+	// Note, since the user may set a new decorator through its style, we we need to do it again in ComputeValues.
+
+
+
 }
 
 // Returns a specific property from the element definition's base properties.

@@ -44,13 +44,7 @@ public:
 	~DecoratorTiledImageInstancer();
 
 	/// Instances an image decorator.
-	Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) override;
-
-	/// Releases the given decorator.
-	void ReleaseDecorator(Decorator* decorator) override;
-
-	/// Releases the instancer.
-	void Release() override;
+	std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) override;
 };
 
 }

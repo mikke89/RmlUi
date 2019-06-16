@@ -54,7 +54,7 @@ DecoratorTiledBoxInstancer::~DecoratorTiledBoxInstancer()
 }
 
 // Instances a box decorator.
-Decorator* DecoratorTiledBoxInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const StyleSheet& style_sheet)
+std::shared_ptr<Decorator>DecoratorTiledBoxInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const StyleSheet& style_sheet)
 {
 	ROCKET_UNUSED(name);
 
@@ -67,25 +67,11 @@ Decorator* DecoratorTiledBoxInstancer::InstanceDecorator(const String& ROCKET_UN
 	for(size_t i = 0; i < num_tiles; i++)
 		GetTileProperties(i, tiles[i], texture_names[i], rcss_paths[i], properties, style_sheet);
 
-	DecoratorTiledBox* decorator = new DecoratorTiledBox();
+	auto decorator = std::make_shared<DecoratorTiledBox>();
 	if (decorator->Initialise(tiles, texture_names, rcss_paths))
 		return decorator;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
-}
-
-// Releases the given decorator.
-void DecoratorTiledBoxInstancer::ReleaseDecorator(Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorTiledBoxInstancer::Release()
-{
-	delete this;
+	return nullptr;
 }
 
 }

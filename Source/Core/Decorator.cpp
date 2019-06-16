@@ -29,7 +29,6 @@
 #include "../../Include/Rocket/Core/Decorator.h"
 #include "TextureDatabase.h"
 #include "TextureResource.h"
-#include "../../Include/Rocket/Core/DecoratorInstancer.h"
 #include "../../Include/Rocket/Core/PropertyDefinition.h"
 
 namespace Rocket {
@@ -37,7 +36,6 @@ namespace Core {
 
 Decorator::Decorator()
 {
-	instancer = nullptr;
 	z_index = 0;
 	specificity = -1;
 }
@@ -68,13 +66,6 @@ void Decorator::SetSpecificity(int _specificity)
 int Decorator::GetSpecificity() const
 {
 	return specificity;
-}
-
-// Releases the decorator through its instancer.
-void Decorator::OnReferenceDeactivate()
-{
-	if (instancer)
-		instancer->ReleaseDecorator(this);
 }
 
 // Attempts to load a texture into the list of textures in use by the decorator.

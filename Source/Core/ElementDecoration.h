@@ -56,18 +56,9 @@ public:
 	/// Mark decorators as dirty and force them to reset themselves.
 	void DirtyDecorators();
 
-	/// Iterates over all active decorators attached to the decoration's element.
-	/// @param[inout] index Index to fetch. This is incremented after the fetch.
-	/// @param[out] pseudo_classes The pseudo-classes the decorator required to be active before it renders.
-	/// @param[out] name The name of the decorator at the specified index.
-	/// @param[out] decorator The decorator at the specified index.
-	/// @param[out] decorator_data This element's handle to any data is has stored against the decorator.
-	/// @return True if a decorator was successfully fetched, false if not.
-	bool IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data) const;
-
 private:
 	// Loads a single decorator and adds it to the list of loaded decorators for this element.
-	int LoadDecorator(Decorator* decorator);
+	int LoadDecorator(std::shared_ptr<Decorator> decorator);
 	// Releases existing decorators and loads all decorators required by the element's definition.
 	bool ReloadDecorators();
 	// Releases all existing decorators and frees their data.
@@ -75,7 +66,7 @@ private:
 
 	struct DecoratorHandle
 	{
-		Decorator* decorator;
+		std::shared_ptr<Decorator> decorator;
 		DecoratorDataHandle decorator_data;
 	};
 

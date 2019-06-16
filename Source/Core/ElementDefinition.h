@@ -55,7 +55,7 @@ public:
 	virtual ~ElementDefinition();
 
 	/// Initialises the element definition from a list of style sheet nodes.
-	void Initialise(const std::vector< const StyleSheetNode* >& style_sheet_nodes, const PseudoClassList& volatile_pseudo_classes, bool structurally_volatile);
+	void Initialise(const std::vector< const StyleSheetNode* >& style_sheet_nodes, const PseudoClassList& volatile_pseudo_classes, bool structurally_volatile, const StyleSheet& style_sheet);
 
 	/// Returns a specific property from the element definition's base properties.
 	/// @param[in] name The name of the property to return.

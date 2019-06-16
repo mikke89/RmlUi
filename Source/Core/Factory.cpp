@@ -60,7 +60,7 @@ typedef UnorderedMap< String, ElementInstancer* > ElementInstancerMap;
 static ElementInstancerMap element_instancers;
 
 // Decorator instancers.
-typedef UnorderedMap< String, DecoratorInstancer* > DecoratorInstancerMap;
+typedef UnorderedMap< String, std::unique_ptr<DecoratorInstancer> > DecoratorInstancerMap;
 static DecoratorInstancerMap decorator_instancers;
 
 // Font effect instancers.
@@ -106,11 +106,11 @@ bool Factory::Initialise()
 	RegisterElementInstancer("body", new ElementInstancerGeneric< ElementDocument >())->RemoveReference();
 
 	// Bind the default decorator instancers
-	RegisterDecoratorInstancer("tiled-horizontal", new DecoratorTiledHorizontalInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("tiled-vertical", new DecoratorTiledVerticalInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("tiled-box", new DecoratorTiledBoxInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("image", new DecoratorTiledImageInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("none", new DecoratorNoneInstancer())->RemoveReference();
+	RegisterDecoratorInstancer("tiled-horizontal", std::make_unique<DecoratorTiledHorizontalInstancer>());
+	RegisterDecoratorInstancer("tiled-vertical", std::make_unique<DecoratorTiledVerticalInstancer>());
+	RegisterDecoratorInstancer("tiled-box", std::make_unique<DecoratorTiledBoxInstancer>());
+	RegisterDecoratorInstancer("image", std::make_unique<DecoratorTiledImageInstancer>());
+	RegisterDecoratorInstancer("none", std::make_unique<DecoratorNoneInstancer>());
 
 	RegisterFontEffectInstancer("shadow", new FontEffectShadowInstancer())->RemoveReference();
 	RegisterFontEffectInstancer("outline", new FontEffectOutlineInstancer())->RemoveReference();
@@ -131,8 +131,6 @@ void Factory::Shutdown()
 		(*i).second->RemoveReference();
 	element_instancers.clear();
 
-	for (DecoratorInstancerMap::iterator i = decorator_instancers.begin(); i != decorator_instancers.end(); ++i)
-		(*i).second->RemoveReference();
 	decorator_instancers.clear();
 
 	for (FontEffectInstancerMap::iterator i = font_effect_instancers.begin(); i != font_effect_instancers.end(); ++i)
@@ -328,19 +326,15 @@ ElementDocument* Factory::InstanceDocumentStream(Rocket::Core::Context* context,
 	return document;
 }
 
+
 // Registers an instancer that will be used to instance decorators.
-DecoratorInstancer* Factory::RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer)
+void Factory::RegisterDecoratorInstancer(const String& name, std::unique_ptr<DecoratorInstancer> instancer)
 {
+	if (!instancer)
+		return;
+
 	String lower_case_name = ToLower(name);
-	instancer->AddReference();
-
-	// Check if an instancer for this tag is already defined. If so, release it.
-	DecoratorInstancerMap::iterator iterator = decorator_instancers.find(lower_case_name);
-	if (iterator != decorator_instancers.end())
-		(*iterator).second->RemoveReference();
-
-	decorator_instancers[lower_case_name] = instancer;
-	return instancer;
+	decorator_instancers[lower_case_name] = std::move(instancer);
 }
 
 const PropertySpecification* Factory::GetDecoratorPropertySpecification(const String& name)
@@ -353,7 +347,7 @@ const PropertySpecification* Factory::GetDecoratorPropertySpecification(const St
 }
 
 // Attempts to instance a decorator from an instancer registered with the factory.
-Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet)
+std::shared_ptr<Decorator> Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet)
 {
 	// TODO: z-index, specificity no longer part of decorator
 	float z_index = 0;
@@ -363,10 +357,10 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 	if (iterator == decorator_instancers.end())
 		return nullptr;
 
-	DecoratorInstancer* instancer = iterator->second;
+	DecoratorInstancer& instancer = *iterator->second;
 
 	// Turn the generic, un-parsed properties we've got into a properly parsed dictionary.
-	const PropertySpecification& property_specification = instancer->GetPropertySpecification();
+	const PropertySpecification& property_specification = instancer.GetPropertySpecification();
 
 	// Verify all properties set
 	if((size_t)properties.GetNumProperties() != property_specification.GetRegisteredProperties().size())
@@ -376,13 +370,13 @@ Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictiona
 		return nullptr;
 	}
 
-	Decorator* decorator = instancer->InstanceDecorator(name, properties, style_sheet);
+	std::shared_ptr<Decorator> decorator = instancer.InstanceDecorator(name, properties, style_sheet);
 	if (!decorator)
 		return nullptr;
 
 	decorator->SetZIndex(z_index);
 	decorator->SetSpecificity(specificity);
-	decorator->instancer = instancer;
+	decorator->instancer = &instancer;
 	return decorator;
 }
 

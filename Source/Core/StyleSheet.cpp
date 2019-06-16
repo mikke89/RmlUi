@@ -62,10 +62,6 @@ StyleSheet::~StyleSheet()
 {
 	delete root;
 
-	// Release decorators
-	for (auto& pair : decorator_map)
-		pair.second.decorator->RemoveReference();
-
 	// Release our reference count on the cached element definitions.
 	for (ElementDefinitionCache::iterator cache_iterator = address_cache.begin(); cache_iterator != address_cache.end(); ++cache_iterator)
 		(*cache_iterator).second->RemoveReference();
@@ -102,15 +98,11 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 	}
 
 	// Copy over the decorators, and replace any matching decorator names from other_sheet
-	// @todo / @leak: Add and remove references as appropriate, not sufficient as is!
 	new_sheet->decorator_map = decorator_map;
 	for (auto& other_decorator: other_sheet->decorator_map)
 	{
 		new_sheet->decorator_map[other_decorator.first] = other_decorator.second;
 	}
-	for (auto& pair : new_sheet->decorator_map)
-		pair.second.decorator->AddReference();
-
 
 	new_sheet->spritesheet_list = other_sheet->spritesheet_list;
 	new_sheet->spritesheet_list.Merge(spritesheet_list);
@@ -140,7 +132,7 @@ Keyframes * StyleSheet::GetKeyframes(const String & name)
 	return nullptr;
 }
 
-Decorator* StyleSheet::GetDecorator(const String& name) const
+std::shared_ptr<Decorator> StyleSheet::GetDecorator(const String& name) const
 {
 	auto it = decorator_map.find(name);
 	if (it == decorator_map.end())
@@ -153,7 +145,7 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-Decorator* StyleSheet::GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number)
+std::shared_ptr<Decorator> StyleSheet::GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number)
 {
 	// Try to find a decorator declared with @decorator or otherwise previously instanced shorthand decorator.
 	auto it_find = decorator_map.find(decorator_value);
@@ -191,7 +183,7 @@ Decorator* StyleSheet::GetOrInstanceDecorator(const String& decorator_value, con
 
 	specification->SetPropertyDefaults(properties);
 
-	Decorator* decorator = Factory::InstanceDecorator(type, properties, *this);
+	std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(type, properties, *this);
 	if (!decorator)
 		return nullptr;
 
@@ -200,7 +192,6 @@ Decorator* StyleSheet::GetOrInstanceDecorator(const String& decorator_value, con
 	
 	if (!result.second)
 	{
-		decorator->RemoveReference();
 		return nullptr;
 	}
 
@@ -308,7 +299,7 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	// Create the new definition and add it to our cache. One reference count is added, bringing the total to two; one
 	// for the element that requested it, and one for the cache.
 	ElementDefinition* new_definition = new ElementDefinition();
-	new_definition->Initialise(applicable_nodes, volatile_pseudo_classes, structurally_volatile);
+	new_definition->Initialise(applicable_nodes, volatile_pseudo_classes, structurally_volatile, *this);
 
 	// Add to the address cache.
 //	address_cache[element_address] = new_definition;

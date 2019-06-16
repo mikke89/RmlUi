@@ -323,20 +323,6 @@ public:
 	int GetNumAttributes() const;
 	//@}
 
-	/** @name Decorators
-	 */
-	//@{
-	/// Iterates over all decorators attached to the element. Note that all decorators are iterated
-	/// over, not just active ones.
-	/// @param[inout] index Index to fetch. This is incremented after the fetch.
-	/// @param[out] pseudo_classes The pseudo-classes the decorator required to be active before it renders.
-	/// @param[out] name The name of the decorator at the specified index.
-	/// @param[out] decorator The decorator at the specified index.
-	/// @param[out] decorator_data This element's handle to any data is has stored against the decorator.
-	/// @return True if a decorator was successfully fetched, false if not.
-	bool IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data);
-	//@}
-
 	/// Gets the outer-most focus element down the tree from this node.
 	/// @return Outer-most focus element.
 	Element* GetFocusLeafNode();

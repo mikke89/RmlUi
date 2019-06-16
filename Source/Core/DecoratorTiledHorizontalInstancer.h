@@ -44,7 +44,7 @@ public:
 	~DecoratorTiledHorizontalInstancer();
 
 	/// Instances a horizontal decorator.
-	Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet);
+	std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet);
 	/// Releases the given decorator.
 	void ReleaseDecorator(Decorator* decorator);
 

@@ -43,7 +43,7 @@ DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer()
 }
 
 
-Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const StyleSheet& style_sheet)
+std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const StyleSheet& style_sheet)
 {
 	ROCKET_UNUSED(name);
 
@@ -53,29 +53,12 @@ Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_
 
 	GetTileProperties(0, tile, texture_name, rcss_path, properties, style_sheet);
 	
-	if (texture_name == "window-c" || (texture_name == "invader.tga" && tile.texcoords[0].x == 11))
-	{
-		int i = 0;
-	}
-
-	DecoratorTiledImage* decorator = new DecoratorTiledImage();
+	auto decorator = std::make_shared<DecoratorTiledImage>();
 
 	if (decorator->Initialise(tile, texture_name, rcss_path))
 		return decorator;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
-}
-
-void DecoratorTiledImageInstancer::ReleaseDecorator(Decorator* decorator)
-{
-	delete decorator;
-}
-
-void DecoratorTiledImageInstancer::Release()
-{
-	delete this;
+	return nullptr;
 }
 
 }

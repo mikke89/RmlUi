@@ -45,7 +45,7 @@ DecoratorInstancerStarfield::~DecoratorInstancerStarfield()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Rocket::Core::Decorator* DecoratorInstancerStarfield::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name), const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::StyleSheet& style_sheet)
+std::shared_ptr<Rocket::Core::Decorator> DecoratorInstancerStarfield::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name), const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::StyleSheet& style_sheet)
 {
 	ROCKET_UNUSED(name);
 
@@ -57,23 +57,9 @@ Rocket::Core::Decorator* DecoratorInstancerStarfield::InstanceDecorator(const Ro
 	int top_density = Rocket::Core::Math::RealToInteger(properties.GetProperty(id_top_density)->Get< float >());
 	int bottom_density = Rocket::Core::Math::RealToInteger(properties.GetProperty(id_bottom_density)->Get< float >());
 
-	DecoratorStarfield* decorator = new DecoratorStarfield();
+	auto decorator = std::make_shared<DecoratorStarfield>();
 	if (decorator->Initialise(num_layers, top_colour, bottom_colour, top_speed, bottom_speed, top_density, bottom_density))
 		return decorator;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
-}
-
-// Releases the given decorator.
-void DecoratorInstancerStarfield::ReleaseDecorator(Rocket::Core::Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorInstancerStarfield::Release()
-{
-	delete this;
+	return nullptr;
 }

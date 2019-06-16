@@ -28,7 +28,6 @@
 #ifndef ROCKETCOREDECORATOR_H
 #define ROCKETCOREDECORATOR_H
 
-#include "ReferenceCountable.h"
 #include <vector>
 #include "Header.h"
 #include "Texture.h"
@@ -50,7 +49,7 @@ class TextureResource;
 	@author Peter Curry
  */
 
-class ROCKETCORE_API Decorator : public ReferenceCountable
+class ROCKETCORE_API Decorator
 {
 public:
 	Decorator();
@@ -89,9 +88,6 @@ public:
 	static const DecoratorDataHandle INVALID_DECORATORDATAHANDLE = 0;
 
 protected:
-	/// Releases the decorator through its instancer.
-	virtual void OnReferenceDeactivate() override;
-
 	/// Attempts to load a texture into the list of textures in use by the decorator.
 	/// @param[in] texture_name The name of the texture to load.
 	/// @param[in] rcss_path The RCSS file the decorator definition was loaded from; this is used to resolve relative paths.

@@ -56,7 +56,7 @@ typedef UnorderedMap<String, Keyframes> KeyframesMap;
 struct DecoratorSpecification {
 	String decorator_type;
 	PropertyDictionary properties;
-	Decorator* decorator = nullptr;
+	std::shared_ptr<Decorator> decorator;
 };
 
 struct Sprite {
@@ -208,11 +208,11 @@ public:
 	Keyframes* GetKeyframes(const String& name);
 
 	/// Returns the Decorator of the given name, or null if it does not exist.
-	Decorator* GetDecorator(const String& name) const;
+	std::shared_ptr<Decorator> GetDecorator(const String& name) const;
 
 	const Sprite* GetSprite(const String& name) const;
 
-	Decorator* GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number);
+	std::shared_ptr<Decorator> GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number);
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.

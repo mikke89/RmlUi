@@ -67,22 +67,21 @@ bool ElementDecoration::ReloadDecorators()
 
 	for (const String& name : decorator_list)
 	{
-		Decorator* decorator = stylesheet->GetOrInstanceDecorator(name, property->source, property->source_line_number);
+		std::shared_ptr<Decorator> decorator = stylesheet->GetOrInstanceDecorator(name, property->source, property->source_line_number);
 
 		if (decorator)
-			LoadDecorator(decorator);
+			LoadDecorator(std::move(decorator));
 	}
 
 	return true;
 }
 
 // Loads a single decorator and adds it to the list of loaded decorators for this element.
-int ElementDecoration::LoadDecorator(Decorator* decorator)
+int ElementDecoration::LoadDecorator(std::shared_ptr<Decorator> decorator)
 {
 	DecoratorHandle element_decorator;
-	element_decorator.decorator = decorator;
-	element_decorator.decorator->AddReference();
 	element_decorator.decorator_data = decorator->GenerateElementData(element);
+	element_decorator.decorator = std::move(decorator);
 
 	decorators.push_back(element_decorator);
 	return (int) (decorators.size() - 1);
@@ -95,8 +94,6 @@ void ElementDecoration::ReleaseDecorators()
 	{
 		if (decorators[i].decorator_data)
 			decorators[i].decorator->ReleaseElementData(decorators[i].decorator_data);
-
-		decorators[i].decorator->RemoveReference();
 	}
 
 	decorators.clear();
@@ -124,25 +121,6 @@ void ElementDecoration::RenderDecorators()
 void ElementDecoration::DirtyDecorators()
 {
 	decorators_dirty = true;
-}
-
-// Iterates over all active decorators attached to the decoration's element.
-bool ElementDecoration::IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data) const
-{
-	if (index < 0)
-		return false;
-
-	if (index < (int)decorators.size())
-	{
-		decorator = decorators[index].decorator;
-		decorator_data = decorators[index].decorator_data;
-		name = ":not implemented:";
-
-		index += 1;
-		return true;
-	}
-
-	return false;
 }
 
 }

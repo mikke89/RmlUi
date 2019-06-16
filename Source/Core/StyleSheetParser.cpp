@@ -304,14 +304,14 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	// Set non-defined properties to their defaults
 	property_specification->SetPropertyDefaults(properties);
 
-	Decorator* decorator = Factory::InstanceDecorator(decorator_type, properties, style_sheet);
+	std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(decorator_type, properties, style_sheet);
 	if (!decorator)
 	{
 		Log::Message(Log::LT_WARNING, "Could not instance decorator of type '%s' declared at %s:%d.", decorator_type.c_str(), stream_file_name.c_str(), line_number);
 		return false;
 	}
 
-	decorator_map.emplace(name, DecoratorSpecification{ std::move(decorator_type), std::move(properties), decorator });
+	decorator_map.emplace(name, DecoratorSpecification{ std::move(decorator_type), std::move(properties), std::move(decorator) });
 
 	return true;
 }

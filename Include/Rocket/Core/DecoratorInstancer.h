@@ -28,7 +28,6 @@
 #ifndef ROCKETCOREDECORATORINSTANCER_H
 #define ROCKETCOREDECORATORINSTANCER_H
 
-#include "ReferenceCountable.h"
 #include "Header.h"
 #include "PropertyDictionary.h"
 #include "PropertySpecification.h"
@@ -47,23 +46,17 @@ class Decorator;
 	@author Peter Curry
  */
 
-class ROCKETCORE_API DecoratorInstancer : public ReferenceCountable
+class ROCKETCORE_API DecoratorInstancer
 {
 public:
 	DecoratorInstancer();
 	virtual ~DecoratorInstancer();
 
 	/// Instances a decorator given the property tag and attributes from the RCSS file.
-	/// @param[in] name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
+	/// @param[in] name The type of decorator desired. For example, "decorator: simple(...);" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successfully, NULL if an error occured.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) = 0;
-	/// Releases the given decorator.
-	/// @param[in] decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	virtual void ReleaseDecorator(Decorator* decorator) = 0;
-
-	/// Releases the instancer.
-	virtual void Release() = 0;
+	virtual std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const StyleSheet& style_sheet) = 0;
 
 	/// Returns the property specification associated with the instancer.
 	const PropertySpecification& GetPropertySpecification() const;
@@ -80,9 +73,6 @@ protected:
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
 	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
-
-	// Releases the instancer.
-	virtual void OnReferenceDeactivate();
 
 private:
 	PropertySpecification properties;

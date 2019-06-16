@@ -44,13 +44,7 @@ public:
 	/// @param[in] name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successful, NULL if an error occured.
-	Rocket::Core::Decorator* InstanceDecorator(const Rocket::Core::String& name, const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::StyleSheet& style_sheet) override;
-	/// Releases the given decorator.
-	/// @param[in] decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	void ReleaseDecorator(Rocket::Core::Decorator* decorator) override;
-
-	/// Releases the instancer.
-	void Release() override;
+	std::shared_ptr<Rocket::Core::Decorator> InstanceDecorator(const Rocket::Core::String& name, const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::StyleSheet& style_sheet) override;
 
 private:
 	Rocket::Core::PropertyId id_image_src;
