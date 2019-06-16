@@ -78,6 +78,7 @@ public:
 		TRANSFORMREF = 't',
 		TRANSITIONLIST = 'T',
 		ANIMATIONLIST = 'A',
+		DECORATORLIST = 'D',
 		VOIDPTR = '*',			
 	};
 
@@ -134,6 +135,7 @@ private:
 	void Set(const TransformRef& value);
 	void Set(const TransitionList& value);
 	void Set(const AnimationList& value);
+	void Set(const DecoratorList& value);
 	void Set(const Colourf& value);
 	void Set(const Colourb& value);
 	void Set(ScriptInterface* value);

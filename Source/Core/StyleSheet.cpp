@@ -112,14 +112,14 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 }
 
 // Builds the node index for a combined style sheet.
-void StyleSheet::BuildNodeIndex()
+void StyleSheet::BuildNodeIndexAndOptimizeProperties()
 {
 	if (complete_node_index.empty())
 	{
 		styled_node_index.clear();
 		complete_node_index.clear();
 
-		root->BuildIndex(styled_node_index, complete_node_index);
+		root->BuildIndexAndOptimizeProperties(styled_node_index, complete_node_index, *this);
 	}
 }
 
@@ -145,58 +145,81 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-std::shared_ptr<Decorator> StyleSheet::GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number)
+DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const String& source_file, int source_line_number) const
 {
-	// Try to find a decorator declared with @decorator or otherwise previously instanced shorthand decorator.
-	auto it_find = decorator_map.find(decorator_value);
-	if (it_find != decorator_map.end())
-	{
-		return it_find->second.decorator;
-	}
-
-	// The decorator does not exist, try to instance a new one from a shorthand decorator value declared as:
-	//   decorator: <type>( <shorthand> );
-	// where <type> is the decorator type and the value <shorthand> is applied to its "decorator"-shorthand.
-
-	// Check syntax
-	size_t shorthand_open = decorator_value.find('(');
-	size_t shorthand_close = decorator_value.rfind(')');
-	if (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close)
-		return nullptr;
-
-	String type = StringUtilities::StripWhitespace(decorator_value.substr(0, shorthand_open));
-
-	// Check for valid decorator type
-	const PropertySpecification* specification = Factory::GetDecoratorPropertySpecification(type);
-	if (!specification)
-		return nullptr;
-
-	String shorthand = decorator_value.substr(shorthand_open + 1, shorthand_close - shorthand_open - 1);
-
-	// Parse the shorthand properties
-	PropertyDictionary properties;
-	if (!specification->ParsePropertyDeclaration(properties, "decorator", shorthand, source_file, source_line_number))
-	{
-		Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", decorator_value.c_str(), source_file.c_str(), source_line_number);
-		return nullptr;
-	}
-
-	specification->SetPropertyDefaults(properties);
-
-	std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(type, properties, *this);
-	if (!decorator)
-		return nullptr;
-
-	// Insert decorator into map
-	auto result = decorator_map.emplace(decorator_value, DecoratorSpecification{ type, properties, decorator });
+	// Decorators are declared as
+	//   decorator: <decorator-value>[, <decorator-value> ...];
+	// Where <decorator-value> is either a @decorator name:
+	//   decorator: invader-theme-background, ...;
+	// or is an anonymous decorator with inline properties
+	//   decorator: tiled-box( <shorthand properties> ), ...;
 	
-	if (!result.second)
+	DecoratorList decorator_list;
+	if (decorator_string_value.empty() || decorator_string_value == NONE)
+		return decorator_list;
+
+	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
+	StringList decorator_string_list;
+	StringUtilities::ExpandString(decorator_string_list, decorator_string_value, ',', '(', ')');
+
+	decorator_list.reserve(decorator_string_list.size());
+
+	// Get or instance each decorator in the comma-separated string list
+	for (const String& decorator_string : decorator_string_list)
 	{
-		return nullptr;
+		const size_t shorthand_open = decorator_string.find('(');
+		const size_t shorthand_close = decorator_string.rfind(')');
+		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
+
+		if (invalid_parenthesis)
+		{
+			// We found no parenthesis, that means the value must be a name of a @decorator rule, look it up
+			std::shared_ptr<Decorator> decorator = GetDecorator(decorator_string);
+			if (decorator)
+				decorator_list.emplace_back(std::move(decorator));
+			else
+				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
+		}
+		else
+		{
+			// Since we have parentheses it must be an anonymous decorator with inline properties
+			const String type = StringUtilities::StripWhitespace(decorator_string.substr(0, shorthand_open));
+
+			// Check for valid decorator type
+			const PropertySpecification* specification = Factory::GetDecoratorPropertySpecification(type);
+			if (!specification)
+			{
+				Log::Message(Log::LT_WARNING, "Decorator type '%s' not found, declared at %s:%d", type.c_str(), source_file.c_str(), source_line_number);
+				continue;
+			}
+
+			const String shorthand = decorator_string.substr(shorthand_open + 1, shorthand_close - shorthand_open - 1);
+
+			// Parse the shorthand properties
+			PropertyDictionary properties;
+			if (!specification->ParsePropertyDeclaration(properties, "decorator", shorthand, source_file, source_line_number))
+			{
+				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
+				continue;
+			}
+
+			specification->SetPropertyDefaults(properties);
+
+			std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(type, properties, *this);
+
+			if (decorator)
+				decorator_list.emplace_back(std::move(decorator));
+			else
+			{
+				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
+				continue;
+			}
+		}
 	}
 
-	return decorator;
+	return decorator_list;
 }
+
 
 // Returns the compiled element definition for a given element hierarchy.
 ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) const
@@ -299,7 +322,7 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	// Create the new definition and add it to our cache. One reference count is added, bringing the total to two; one
 	// for the element that requested it, and one for the cache.
 	ElementDefinition* new_definition = new ElementDefinition();
-	new_definition->Initialise(applicable_nodes, volatile_pseudo_classes, structurally_volatile, *this);
+	new_definition->Initialise(applicable_nodes, volatile_pseudo_classes, structurally_volatile);
 
 	// Add to the address cache.
 //	address_cache[element_address] = new_definition;

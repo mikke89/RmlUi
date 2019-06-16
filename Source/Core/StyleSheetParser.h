@@ -88,7 +88,7 @@ private:
 	// Attempts to parse a @keyframes block
 	bool ParseKeyframeBlock(KeyframesMap & keyframes_map, const String & identifier, const String & rules, const PropertyDictionary & properties);
 
-	// Attempts to parse a @keyframes block
+	// Attempts to parse a @decorator block
 	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet);
 
 	// Attempts to find one of the given character tokens in the active stream

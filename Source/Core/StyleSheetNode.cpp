@@ -152,7 +152,7 @@ bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset
 }
 
 // Builds up a style sheet's index recursively.
-void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index)
+void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index, const StyleSheet& style_sheet)
 {
 	// If this is a tag node, then we insert it into the list of all tag nodes. Makes sense, neh?
 	if (type == TAG)
@@ -181,12 +181,30 @@ void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_index, StyleSheet:
 			else
 				(*iterator).second.insert(tag_node);
 		}
+
+		// Turn any decorator properties from String to DecoratorList.
+		// This is essentially an optimization, it will work fine to skip this step and let ElementStyle::ComputeValues() do all the work.
+		// However, when we do it here, we only need to do it once.
+		// Note, since the user may set a new decorator through its style, we still do the conversion as necessary again in ComputeValues.
+		if (const Property* property = properties.GetProperty(PropertyId::Decorator))
+		{
+			if (property->unit == Property::STRING)
+			{
+				const String string_value = property->Get<String>();
+				DecoratorList decorator_list = style_sheet.InstanceDecoratorsFromString(string_value, property->source, property->source_line_number);
+
+				Property new_property = *property;
+				new_property.value.Reset(std::move(decorator_list));
+				new_property.unit = Property::DECORATOR;
+				properties.SetProperty(PropertyId::Decorator, new_property);
+			}
+		}
 	}
 
 	for (int i = 0; i < NUM_NODE_TYPES; i++)
 	{
 		for (NodeMap::iterator j = children[i].begin(); j != children[i].end(); ++j)
-			(*j).second->BuildIndex(styled_index, complete_index);
+			(*j).second->BuildIndexAndOptimizeProperties(styled_index, complete_index, style_sheet);
 	}
 }
 

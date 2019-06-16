@@ -939,9 +939,24 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			values.animation = p->Get<AnimationList>();
 			break;
 
-		// Decorators and font-effects are not computed, they are specified as they are given.
 		case PropertyId::Decorator:
+			values.decorator.clear();
+			// Usually the decorator is converted from string after the style sheet is set on the ElementDocument. However, if the
+			// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
+			if (p->unit == Property::DECORATOR)
+			{
+				values.decorator = p->Get<DecoratorList>();
+			}
+			else if (p->unit == Property::STRING)
+			{
+				if(const StyleSheet* style_sheet = GetStyleSheet())
+				{
+					String value = p->Get<String>();
+					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source, p->source_line_number);
+				}
+			}
 			break;
+
 		case PropertyId::FontEffect:
 			break;
 		}

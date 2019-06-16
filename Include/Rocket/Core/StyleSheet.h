@@ -61,7 +61,7 @@ struct DecoratorSpecification {
 
 struct Sprite {
 	Rectangle rectangle;
-	Spritesheet* sprite_sheet;
+	const Spritesheet* sprite_sheet;
 };
 
 struct Spritesheet {
@@ -201,8 +201,9 @@ public:
 
 	/// Combines this style sheet with another one, producing a new sheet.
 	StyleSheet* CombineStyleSheet(const StyleSheet* sheet) const;
-	/// Builds the node index for a combined style sheet.
-	void BuildNodeIndex();
+	/// Builds the node index for a combined style sheet, and optimizes some properties for faster retrieval.
+	/// Specifically, converts all decorator properties from strings to instanced decorator lists.
+	void BuildNodeIndexAndOptimizeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	Keyframes* GetKeyframes(const String& name);
@@ -210,9 +211,11 @@ public:
 	/// Returns the Decorator of the given name, or null if it does not exist.
 	std::shared_ptr<Decorator> GetDecorator(const String& name) const;
 
-	const Sprite* GetSprite(const String& name) const;
+	/// Parses the decorator property from a string and returns a list of instanced decorators
+	DecoratorList InstanceDecoratorsFromString(const String& decorator_string_value, const String& source_file, int source_line_number) const;
 
-	std::shared_ptr<Decorator> GetOrInstanceDecorator(const String& decorator_value, const String& source_file, int source_line_number);
+	/// Get sprite located in any spritesheet within this stylesheet
+	const Sprite* GetSprite(const String& name) const;
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.

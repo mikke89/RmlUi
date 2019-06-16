@@ -188,7 +188,7 @@ void ElementDocument::SetStyleSheet(StyleSheet* _style_sheet)
 	if (style_sheet != NULL)
 	{
 		style_sheet->AddReference();
-		style_sheet->BuildNodeIndex();
+		style_sheet->BuildNodeIndexAndOptimizeProperties();
 	}
 
 	GetStyle()->DirtyDefinition();

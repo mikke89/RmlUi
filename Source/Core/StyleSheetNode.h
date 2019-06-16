@@ -70,8 +70,8 @@ public:
 
 	/// Merges an entire tree hierarchy into our hierarchy.
 	bool MergeHierarchy(StyleSheetNode* node, int specificity_offset = 0);
-	/// Builds up a style sheet's index recursively.
-	void BuildIndex(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index);
+	/// Builds up a style sheet's index recursively and optimizes some properties for faster retrieval.
+	void BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index, const StyleSheet& style_sheet);
 
 	/// Returns the name of this node.
 	const String& GetName() const;

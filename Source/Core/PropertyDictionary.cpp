@@ -58,7 +58,7 @@ const Property* PropertyDictionary::GetProperty(PropertyId id) const
 {
 	PropertyMap::const_iterator iterator = properties.find(id);
 	if (iterator == properties.end())
-		return NULL;
+		return nullptr;
 
 	return &(*iterator).second;
 }

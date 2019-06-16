@@ -70,13 +70,13 @@ private:
 		DecoratorDataHandle decorator_data;
 	};
 
-	typedef std::vector< DecoratorHandle > DecoratorList;
+	typedef std::vector< DecoratorHandle > DecoratorHandleList;
 
 	// The element this decorator belongs to
 	Element* element;
 
 	// The list of every decorator used by this element in every class.
-	DecoratorList decorators;
+	DecoratorHandleList decorators;
 
 	// If set, a full reload is necessary
 	bool decorators_dirty;

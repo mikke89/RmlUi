@@ -199,7 +199,7 @@ struct ComputedValues
 	TransitionList transition;
 	AnimationList animation;
 
-	// Decorators and font-effects are not computed, retrieve from local property
+	DecoratorList decorator;
 };
 }
 

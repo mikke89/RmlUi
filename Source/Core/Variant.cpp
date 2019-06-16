@@ -41,6 +41,7 @@ Variant::Variant() : type(NONE)
 	static_assert(sizeof(TransformRef) <= LOCAL_DATA_SIZE, "Local data too small for TransformRef");
 	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
+	static_assert(sizeof(DecoratorList) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorList");
 }
 
 Variant::Variant( const Variant& copy ) : type(NONE)
@@ -85,6 +86,11 @@ void Variant::Clear()
 			AnimationList* animation_list = (AnimationList*)data;
 			animation_list->~AnimationList();
 		}
+		case DECORATORLIST:
+		{
+			DecoratorList* decorator_list = (DecoratorList*)data;
+			decorator_list->~DecoratorList();
+		}
 		break;
 		default:
 		break;
@@ -118,6 +124,10 @@ void Variant::Set(const Variant& copy)
 
 	case ANIMATIONLIST:
 		Set(*(AnimationList*)copy.data);
+		break;
+
+	case DECORATORLIST:
+		Set(*(DecoratorList*)copy.data);
 		break;
 
 	default:
@@ -238,6 +248,19 @@ void Variant::Set(const AnimationList& value)
 	}
 }
 
+void Variant::Set(const DecoratorList& value)
+{
+	if (type == DECORATORLIST)
+	{
+		*(DecoratorList*)data = value;
+	}
+	else
+	{
+		type = DECORATORLIST;
+		new(data) DecoratorList(value);
+	}
+}
+
 void Variant::Set(const Colourf& value)
 {
 	type = COLOURF;
@@ -295,6 +318,8 @@ bool Variant::operator==(const Variant & other) const
 		return DEFAULT_VARIANT_COMPARE(TransitionList);
 	case ANIMATIONLIST:
 		return DEFAULT_VARIANT_COMPARE(AnimationList);
+	case DECORATORLIST:
+		return DEFAULT_VARIANT_COMPARE(DecoratorList);
 	case COLOURF:
 		return DEFAULT_VARIANT_COMPARE(Colourf);
 	case COLOURB:
