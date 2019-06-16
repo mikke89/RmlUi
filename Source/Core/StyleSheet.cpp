@@ -186,32 +186,34 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 			const String type = StringUtilities::StripWhitespace(decorator_string.substr(0, shorthand_open));
 
 			// Check for valid decorator type
-			const PropertySpecification* specification = Factory::GetDecoratorPropertySpecification(type);
-			if (!specification)
+			DecoratorInstancer* instancer = Factory::GetDecoratorInstancer(type);
+			if (!instancer)
 			{
 				Log::Message(Log::LT_WARNING, "Decorator type '%s' not found, declared at %s:%d", type.c_str(), source_file.c_str(), source_line_number);
 				continue;
 			}
 
 			const String shorthand = decorator_string.substr(shorthand_open + 1, shorthand_close - shorthand_open - 1);
+			const PropertySpecification& specification = instancer->GetPropertySpecification();
 
-			// Parse the shorthand properties
+			// Parse the shorthand properties given by the 'decorator' shorthand property
 			PropertyDictionary properties;
-			if (!specification->ParsePropertyDeclaration(properties, "decorator", shorthand, source_file, source_line_number))
+			if (!specification.ParsePropertyDeclaration(properties, "decorator", shorthand, source_file, source_line_number))
 			{
 				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
 				continue;
 			}
 
-			specification->SetPropertyDefaults(properties);
+			// Set unspecified values to their defaults
+			specification.SetPropertyDefaults(properties);
 
-			std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
+			std::shared_ptr<Decorator> decorator = instancer->InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
 
 			if (decorator)
 				decorator_list.emplace_back(std::move(decorator));
 			else
 			{
-				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Decorator '%s' could not be instanced, declared at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
 				continue;
 			}
 		}

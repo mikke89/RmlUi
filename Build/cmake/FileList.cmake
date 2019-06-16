@@ -170,6 +170,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ReferenceCountable.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/RenderInterface.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ScriptInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Spritesheet.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Stream.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StreamMemory.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/String.h
@@ -300,6 +301,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ReferenceCountable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Spritesheet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Stream.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamMemory.cpp

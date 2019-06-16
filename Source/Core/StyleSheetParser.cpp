@@ -273,38 +273,40 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 		return false;
 	}
 
-	// Get the property specification associated with the decorator type
-	const PropertySpecification* property_specification = Factory::GetDecoratorPropertySpecification(decorator_type);
+	// Get the instancer associated with the decorator type
+	DecoratorInstancer* decorator_instancer = Factory::GetDecoratorInstancer(decorator_type);
 	PropertyDictionary properties;
 
-	if(!property_specification)
+	if(!decorator_instancer)
 	{
 		// Type is not a declared decorator type, instead, see if it is another decorator name, then we inherit its properties.
 		auto it = decorator_map.find(decorator_type);
 		if (it != decorator_map.end())
 		{
-			// Yes, try to retrieve the property specification from the parent type, and add its property values.
-			property_specification = Factory::GetDecoratorPropertySpecification(it->second.decorator_type);
+			// Yes, try to retrieve the instancer from the parent type, and add its property values.
+			decorator_instancer = Factory::GetDecoratorInstancer(it->second.decorator_type);
 			properties = it->second.properties;
 			decorator_type = it->second.decorator_type;
 		}
 
-		// If we still don't have a property specification, we cannot continue.
-		if (!property_specification)
+		// If we still don't have an instancer, we cannot continue.
+		if (!decorator_instancer)
 		{
 			Log::Message(Log::LT_WARNING, "Invalid decorator type '%s' declared at %s:%d.", decorator_type.c_str(), stream_file_name.c_str(), line_number);
 			return false;
 		}
 	}
 
-	PropertySpecificationParser parser(properties, *property_specification);
+	const PropertySpecification& property_specification = decorator_instancer->GetPropertySpecification();
+
+	PropertySpecificationParser parser(properties, property_specification);
 	if (!ReadProperties(parser))
 		return false;
 
 	// Set non-defined properties to their defaults
-	property_specification->SetPropertyDefaults(properties);
+	property_specification.SetPropertyDefaults(properties);
 
-	std::shared_ptr<Decorator> decorator = Factory::InstanceDecorator(decorator_type, properties, DecoratorInstancerInterface(style_sheet));
+	std::shared_ptr<Decorator> decorator = decorator_instancer->InstanceDecorator(decorator_type, properties, DecoratorInstancerInterface(style_sheet));
 	if (!decorator)
 	{
 		Log::Message(Log::LT_WARNING, "Could not instance decorator of type '%s' declared at %s:%d.", decorator_type.c_str(), stream_file_name.c_str(), line_number);

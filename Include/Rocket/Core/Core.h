@@ -69,6 +69,7 @@
 #include "PropertyParser.h"
 #include "PropertySpecification.h"
 #include "RenderInterface.h"
+#include "Spritesheet.h"
 #include "String.h"
 #include "StyleSheet.h"
 #include "StyleSheetKeywords.h"

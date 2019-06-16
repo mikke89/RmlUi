@@ -335,40 +335,14 @@ void Factory::RegisterDecoratorInstancer(const String& name, std::unique_ptr<Dec
 	decorator_instancers[lower_case_name] = std::move(instancer);
 }
 
-const PropertySpecification* Factory::GetDecoratorPropertySpecification(const String& name)
+// Retrieves a decorator instancer registered with the factory.
+DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 {
 	auto iterator = decorator_instancers.find(name);
 	if (iterator == decorator_instancers.end())
 		return nullptr;
 	
-	return &iterator->second->GetPropertySpecification();
-}
-
-// Attempts to instance a decorator from an instancer registered with the factory.
-std::shared_ptr<Decorator> Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
-{
-	auto iterator = decorator_instancers.find(name);
-	if (iterator == decorator_instancers.end())
-		return nullptr;
-
-	DecoratorInstancer& instancer = *iterator->second;
-
-	// Turn the generic, un-parsed properties we've got into a properly parsed dictionary.
-	const PropertySpecification& property_specification = instancer.GetPropertySpecification();
-
-	// Verify all properties set
-	if((size_t)properties.GetNumProperties() != property_specification.GetRegisteredProperties().size())
-	{
-		// If this occurs, call e.g. property_specification.SetPropertyDefaults(properties) before instancing decorator.
-		Log::Message(Log::LT_WARNING, "Some properties were not defined while instancing decorator '%s', make sure non-set properties are set to their default values.", name.c_str());
-		return nullptr;
-	}
-
-	std::shared_ptr<Decorator> decorator = instancer.InstanceDecorator(name, properties, interface);
-	if (!decorator)
-		return nullptr;
-
-	return decorator;
+	return iterator->second.get();
 }
 
 // Registers an instancer that will be used to instance font effects.

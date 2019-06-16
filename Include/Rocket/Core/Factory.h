@@ -117,15 +117,10 @@ public:
 	/// @param[in] instancer The instancer to call when the decorator name is encountered.
 	/// @return The added instancer if the registration was successful, NULL otherwise.
 	static void RegisterDecoratorInstancer(const String& name, std::unique_ptr<DecoratorInstancer> instancer);
-	/// Retrieves the property specification of a decorator registered with the factory.
-	/// @param[in] name The name of the decorator.
-	/// @return The property specification if the decorator exists, NULL otherwise.
-	static const PropertySpecification* GetDecoratorPropertySpecification(const String& name);
-	/// Attempts to instance a decorator from an instancer registered with the factory.
+	/// Retrieves a decorator instancer registered with the factory.
 	/// @param[in] name The name of the desired decorator type.
-	/// @param[in] properties The properties associated with the decorator.
-	/// @return The newly instanced decorator, or NULL if the decorator could not be instanced.
-	static std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface);
+	/// @return The decorator instancer it it exists, NULL otherwise.
+	static DecoratorInstancer* GetDecoratorInstancer(const String& name);
 
 	/// Registers an instancer that will be used to instance font effects.
 	/// @param[in] name The name of the font effect the instancer will be called for.
