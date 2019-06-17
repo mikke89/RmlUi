@@ -66,7 +66,7 @@ bool Texture::Load(const String& source, const String& source_path)
 String Texture::GetSource() const
 {
 	if (resource == NULL)
-		return NULL;
+		return String();
 
 	return resource->GetSource();
 }
