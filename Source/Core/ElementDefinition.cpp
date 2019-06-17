@@ -50,8 +50,8 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 	structurally_volatile = _structurally_volatile;
 
 	// Mark all the volatile pseudo-classes as structurally volatile.
-	for (PseudoClassList::const_iterator i = volatile_pseudo_classes.begin(); i != volatile_pseudo_classes.end(); ++i)
-		pseudo_class_volatility[*i] = STRUCTURE_VOLATILE;
+	for (const String& pseudo_name : volatile_pseudo_classes)
+		pseudo_class_volatility[pseudo_name] = STRUCTURE_VOLATILE;
 
 
 	// Merge the default (non-pseudo-class) properties.
@@ -60,47 +60,41 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 
 
 	// Merge the pseudo-class properties.
-	PseudoClassPropertyMap merged_pseudo_class_properties;
 	for (size_t i = 0; i < style_sheet_nodes.size(); ++i)
 	{
-		// Merge all the pseudo-classes.
-		PseudoClassPropertyMap node_properties;
-		style_sheet_nodes[i]->GetPseudoClassProperties(node_properties);
-		for (PseudoClassPropertyMap::iterator j = node_properties.begin(); j != node_properties.end(); ++j)
+		PseudoClassPropertyMap pseudo_properties_map;
+		style_sheet_nodes[i]->GetPseudoClassProperties(pseudo_properties_map);
+		for (auto& pseudo_properties_pair : pseudo_properties_map)
 		{
-			// Merge the property maps into one uber-map; for the decorators.
-			PseudoClassPropertyMap::iterator k = merged_pseudo_class_properties.find((*j).first);
-			if (k == merged_pseudo_class_properties.end())
-				merged_pseudo_class_properties[(*j).first] = (*j).second;
-			else
-				(*k).second.Merge((*j).second);
+			const StringList& pseudo_classes = pseudo_properties_pair.first;
+			PropertyDictionary& pseudo_properties = pseudo_properties_pair.second;
 
 			// Search through all entries in this dictionary; we'll insert each one into our optimised list of
 			// pseudo-class properties.
-			for (PropertyMap::const_iterator k = (*j).second.GetProperties().begin(); k != (*j).second.GetProperties().end(); ++k)
+			for (auto& property_pair : pseudo_properties.GetProperties())
 			{
-				PropertyId property_id = (*k).first;
-				const Property& property = (*k).second;
+				PropertyId property_id = property_pair.first;
+				const Property& property = property_pair.second;
 
 				// Skip this property if its specificity is lower than the base property's, as in
 				// this case it will never be used.
 				const Property* default_property = properties.GetProperty(property_id);
-				if (default_property != NULL &&
-					default_property->specificity >= property.specificity)
+				if (default_property && (default_property->specificity >= property.specificity))
 					continue;
 
-				PseudoClassPropertyDictionary::iterator l = pseudo_class_properties.find(property_id);
-				if (l == pseudo_class_properties.end())
-					pseudo_class_properties[property_id] = PseudoClassPropertyList(1, PseudoClassProperty((*j).first, property));
+				auto it = pseudo_class_properties.find(property_id);
+				if (it == pseudo_class_properties.end())
+					pseudo_class_properties[property_id] = PseudoClassPropertyList(1, PseudoClassProperty(pseudo_classes, property));
 				else
 				{
+					PseudoClassPropertyList& pseudo_property_list = it->second;
+
 					// Find the location to insert this entry in the map, based on property priorities.
 					int index = 0;
-					while (index < (int) (*l).second.size() &&
-						   (*l).second[index].second.specificity > property.specificity)
+					while (index < (int)pseudo_property_list.size() && pseudo_property_list[index].second.specificity > property.specificity)
 						index++;
 
-					(*l).second.insert((*l).second.begin() + index, PseudoClassProperty((*j).first, property));
+					pseudo_property_list.insert(pseudo_property_list.begin() + index, PseudoClassProperty(pseudo_classes, property));
 				}
 			}
 		}
