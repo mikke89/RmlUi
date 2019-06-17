@@ -25,20 +25,18 @@ DecoratorInstancerDefender::~DecoratorInstancerDefender()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name), const Rocket::Core::PropertyDictionary& properties)
+std::shared_ptr<Rocket::Core::Decorator> DecoratorInstancerDefender::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name), const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::DecoratorInstancerInterface& interface)
 {
 	ROCKET_UNUSED(name);
 
 	const Rocket::Core::Property* image_source_property = properties.GetProperty(id_image_src);
 	Rocket::Core::String image_source = image_source_property->Get< Rocket::Core::String >();
 
-	DecoratorDefender* decorator = new DecoratorDefender();
+	auto decorator = std::make_shared<DecoratorDefender>();
 	if (decorator->Initialise(image_source, image_source_property->source))
 		return decorator;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
+	return nullptr;
 }
 
 // Releases the given decorator.

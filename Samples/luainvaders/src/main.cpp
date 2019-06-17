@@ -118,13 +118,8 @@ int main(int, char**)
 	Shell::LoadFonts("../assets/");
 
 	// Register Invader's custom decorator instancers.
-	Rocket::Core::DecoratorInstancer* decorator_instancer = new DecoratorInstancerStarfield();
-	Rocket::Core::Factory::RegisterDecoratorInstancer("starfield", decorator_instancer);
-	decorator_instancer->RemoveReference();
-
-	decorator_instancer = new DecoratorInstancerDefender();
-	Rocket::Core::Factory::RegisterDecoratorInstancer("defender", decorator_instancer);
-	decorator_instancer->RemoveReference();	
+	Rocket::Core::Factory::RegisterDecoratorInstancer("starfield", std::make_unique<DecoratorInstancerStarfield>());
+	Rocket::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
 
 	// Construct the game singletons.
 	HighScores::Initialise();

@@ -118,7 +118,7 @@ int ElementStyleProxy__pairs(lua_State* L)
 
     if(it != it_end)
     {
-		const String& key = (*it).first;
+		const String& key = Rocket::Core::StyleSheetSpecification::GetPropertyName((*it).first);
 		const Property& property = (*it).second;
 		String val;
         property.definition->GetValue(val, (*it).second);

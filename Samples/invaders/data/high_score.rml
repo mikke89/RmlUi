@@ -13,7 +13,7 @@
 			
 			div#title_bar div#icon
 			{
-				decorator: image( ../../assets/invader.tga 281px 152px 331px 191px);
+				decorator: image( icon-hiscore );
 			}
 			
 			datagrid

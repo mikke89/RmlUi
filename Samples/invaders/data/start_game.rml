@@ -13,7 +13,7 @@
 			
 			div#title_bar div#icon
 			{
-				decorator: image( ../../assets/invader.tga 230px 152px 281px 191px);
+				decorator: image( icon-game );
 			}
 			
 			form div

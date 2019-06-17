@@ -13,7 +13,7 @@
 			
 			div#title_bar div#icon
 			{
-				decorator: image( ../../assets/invader.tga 332px 191px 383px 231px);
+				decorator: image( icon-flag );
 			}
 		</style>
 	</head>

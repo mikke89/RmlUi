@@ -21,12 +21,6 @@
 				height: 100%;
 			}
 			
-			@decorator div : tiled-horizontal {
-				left-image: ../../assets/invader.tga 147px 55px 229px 0px;
-				center-image: ../../assets/invader.tga stretch 229px 55px 230px 0px;
-				right-image: ../../assets/invader.tga 231px 55px 246px 0px;
-			}
-
 			div
 			{
 				height: 47px;
@@ -35,7 +29,7 @@
 
 				font-size: 20px;
 
-				decorator: div;
+				decorator: tiled-horizontal( huditem-l, huditem-c, huditem-r );
 			}
 
 			div#score_div
@@ -62,14 +56,6 @@
 				width: 80px;
 			}
 			
-			@decorator icon : image {
-				image: ../../assets/invader.tga 0px 152px 0px 191px;
-			}
-			@decorator icon-score : icon { image-s: 434px 485px; }
-			@decorator icon-hiscore : icon { image-s: 281px 332px; }
-			@decorator icon-waves : icon { image-s: 332px 383px; }
-			@decorator icon-lives : icon { image-s: 383px 434px; }
-
 			icon
 			{
 				display: block;
@@ -83,22 +69,22 @@
 
 			div#score_div icon
 			{
-				decorator: icon-score;
+				decorator: image( icon-score );
 			}
 
 			div#hiscore_div icon
 			{
-				decorator: icon-hiscore;
+				decorator: image( icon-hiscore );
 			}
 
 			div#waves_div icon
 			{
-				decorator: icon-waves;
+				decorator: image( icon-waves );
 			}
 
 			div#lives_div icon
 			{
-				decorator: icon-lives;
+				decorator: image( icon-lives );
 			}
 		</style>
 	</head>

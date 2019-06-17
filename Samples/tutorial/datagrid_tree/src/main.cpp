@@ -98,9 +98,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Shell::LoadFonts("../../assets/");
 
 	// Load the defender decorator.
-	Rocket::Core::DecoratorInstancer* decorator_instancer = Rocket::Core::Factory::RegisterDecoratorInstancer("defender", new DecoratorInstancerDefender());
-	if (decorator_instancer != NULL)
-		decorator_instancer->RemoveReference();
+	Rocket::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
 
 	// Add the ship formatter.
 	HighScoresShipFormatter ship_formatter;
