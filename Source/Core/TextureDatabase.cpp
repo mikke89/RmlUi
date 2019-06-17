@@ -62,10 +62,10 @@ void TextureDatabase::Shutdown()
 TextureResource* TextureDatabase::Fetch(const String& source, const String& source_directory)
 {
 	String path;
-	if (source.substr(0, 1) == "?")
+	if (source.size() > 0 && source[0] == '?')
 		path = source;
 	else
-		GetSystemInterface()->JoinPath(path, Replace(source_directory, "|", ":"), source);
+		GetSystemInterface()->JoinPath(path, Replace(source_directory, '|', ':'), source);
 
 	TextureMap::iterator iterator = instance->textures.find(path);
 	if (iterator != instance->textures.end())

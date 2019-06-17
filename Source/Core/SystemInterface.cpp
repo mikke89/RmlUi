@@ -106,8 +106,8 @@ void SystemInterface::JoinPath(String& translated_path, const String& document_p
 	}
 
 	// If the path is a Windows-style absolute path, return it directly.
-	size_t drive_pos = path.find(":");
-	size_t slash_pos = Math::Min(path.find("/"), path.find("\\"));
+	size_t drive_pos = path.find(':');
+	size_t slash_pos = Math::Min(path.find('/'), path.find('\\'));
 	if (drive_pos != String::npos &&
 		drive_pos < slash_pos)
 	{
@@ -117,16 +117,16 @@ void SystemInterface::JoinPath(String& translated_path, const String& document_p
 
 	// Strip off the referencing document name.
 	translated_path = document_path;
-	translated_path = Replace(translated_path, "\\", "/");
-	size_t file_start = translated_path.rfind("/");
+	translated_path = Replace(translated_path, '\\', '/');
+	size_t file_start = translated_path.rfind('/');
 	if (file_start != String::npos)
 		translated_path.resize(file_start + 1);
 	else
 		translated_path.clear();
 
 	// Append the paths and send through URL to removing any '..'.
-	URL url(Replace(translated_path, ":", "|") + Replace(path, "\\", "/"));
-	translated_path = Replace(url.GetPathedFileName(), "|", ":");
+	URL url(Replace(translated_path, ':', '|') + Replace(path, '\\', '/'));
+	translated_path = Replace(url.GetPathedFileName(), '|', ':');
 }
 	
 // Activate keyboard (for touchscreen devices)

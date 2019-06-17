@@ -323,7 +323,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 	int rule_count = 0;
 	line_number = 0;
 	stream = _stream;
-	stream_file_name = Replace(stream->GetSourceURL().GetURL(), "|", ":");
+	stream_file_name = Replace(stream->GetSourceURL().GetURL(), '|', ':');
 
 	enum class State { Global, AtRuleIdentifier, KeyframeBlock, Invalid };
 	State state = State::Global;

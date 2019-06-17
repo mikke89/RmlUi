@@ -50,6 +50,7 @@ ROCKETCORE_API String CreateString(size_t max_size, const char* format, ...);
 
 ROCKETCORE_API String ToLower(const String& string);
 ROCKETCORE_API String Replace(String subject, const String& search, const String& replace);
+ROCKETCORE_API String Replace(String subject, char search, char replace);
 
 ROCKETCORE_API WString ToWideString(const String& str);
 ROCKETCORE_API String ToUTF8(const WString& wstr);

@@ -44,11 +44,10 @@ public:
 	virtual ~DecoratorTiledHorizontal();
 
 	/// Initialises the tiles for the decorator.
-	/// @param tiles[in] The declaration for all three tiles.
-	/// @param texture_names[in] The application-specific path to the texture for the three tiles.
-	/// @param rcss_paths[in] The paths to the RCSS files that defined the texture sources.
-	/// @return True if all the images loaded (or are pending loading) and are of compatible sizes, false otherwise.
-	bool Initialise(const Tile* tiles, const String* texture_names, const String* rcss_paths);
+	/// @param[in] tiles The declaration for all three tiles.
+	/// @param[in] textures The textures for the three tiles.
+	/// @return True if all the tiles and textures are properly specified.
+	bool Initialise(const Tile* tiles, const Texture* textures);
 
 	/// Called on a decorator to generate any required per-element data for a newly decorated element.
 	virtual DecoratorDataHandle GenerateElementData(Element* element);

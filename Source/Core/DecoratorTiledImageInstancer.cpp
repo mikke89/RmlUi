@@ -32,7 +32,7 @@
 namespace Rocket {
 namespace Core {
 
-DecoratorTiledImageInstancer::DecoratorTiledImageInstancer()
+DecoratorTiledImageInstancer::DecoratorTiledImageInstancer() : DecoratorTiledInstancer(1)
 {
 	RegisterTileProperty("image", false);
 	RegisterShorthand("decorator", "image", ShorthandType::Recursive);
@@ -48,17 +48,17 @@ std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const
 	ROCKET_UNUSED(name);
 
 	DecoratorTiled::Tile tile;
-	String texture_name;
-	String rcss_path;
+	Texture texture;
 
-	GetTileProperties(0, tile, texture_name, rcss_path, properties, interface);
+	if (!GetTileProperties(&tile, &texture, 1, properties, interface))
+		return nullptr;
 	
 	auto decorator = std::make_shared<DecoratorTiledImage>();
 
-	if (decorator->Initialise(tile, texture_name, rcss_path))
-		return decorator;
+	if (!decorator->Initialise(tile, texture))
+		return nullptr;
 
-	return nullptr;
+	return decorator;
 }
 
 }

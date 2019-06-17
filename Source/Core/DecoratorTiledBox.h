@@ -45,10 +45,9 @@ public:
 
 	/// Initialises the tiles for the decorator.
 	/// @param[in] tiles The declaration for all eight tiles.
-	/// @param[in] texture_names The application-specific path to the texture for the eight tiles.
-	/// @param[in] rcss_paths The paths to the RCSS files that defined the texture sources.
-	/// @return True if all the images loaded (or are pending loading) and are of compatible sizes, false otherwise.
-	bool Initialise(const Tile* tiles, const String* texture_names, const String* rcss_paths);
+	/// @param[in] textures The textures for the eight tiles.
+	/// @return True if all the tiles and textures are properly specified.
+	bool Initialise(const Tile* tiles, const Texture* textures);
 
 	/// Called on a decorator to generate any required per-element data for a newly decorated element.
 	virtual DecoratorDataHandle GenerateElementData(Element* element);

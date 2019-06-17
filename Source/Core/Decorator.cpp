@@ -45,18 +45,21 @@ Decorator::~Decorator()
 // Attempts to load a texture into the list of textures in use by the decorator.
 int Decorator::LoadTexture(const String& texture_name, const String& rcss_path)
 {
-	for (size_t i = 0; i < textures.size(); i++)
+	if (texture_name == first_texture.GetSource())
+		return 0;
+
+	for (size_t i = 0; i < additional_textures.size(); i++)
 	{
-		if (texture_name == textures[i].GetSource())
-			return (int) i;
+		if (texture_name == additional_textures[i].GetSource())
+			return (int)i + 1;
 	}
 
 	Texture texture;
 	if (!texture.Load(texture_name, rcss_path))
 		return -1;
 
-	textures.push_back(texture);
-	return (int)textures.size() - 1;
+	additional_textures.push_back(texture);
+	return (int)additional_textures.size();
 }
 
 int Decorator::AddTexture(const Texture& texture)
@@ -64,21 +67,31 @@ int Decorator::AddTexture(const Texture& texture)
 	if (!texture)
 		return -1;
 
-	auto it = std::find(textures.begin(), textures.end(), texture);
-	if (it != textures.end())
-		return (int)(it - textures.begin());
+	if (!first_texture)
+		first_texture = texture;
 
-	textures.push_back(texture);
-	return (int)textures.size() - 1;
+	if (first_texture == texture)
+		return 0;
+
+	auto it = std::find(additional_textures.begin(), additional_textures.end(), texture);
+	if (it != additional_textures.end())
+		return (int)(it - additional_textures.begin()) + 1;
+
+	additional_textures.push_back(texture);
+	return (int)additional_textures.size();
 }
 
 // Returns one of the decorator's previously loaded textures.
 const Texture* Decorator::GetTexture(int index) const
 {
-	if (index < 0 || index >= (int) textures.size())
+	if (index == 0)
+		return &first_texture;
+	
+	index -= 1;
+	if (index < 0 || index >= (int)additional_textures.size())
 		return nullptr;
 
-	return &(textures[index]);
+	return &(additional_textures[index]);
 }
 
 

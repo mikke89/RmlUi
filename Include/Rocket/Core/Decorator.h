@@ -88,7 +88,9 @@ protected:
 
 private:
 	// Stores a list of textures in use by this decorator.
-	std::vector< Texture > textures;
+	// Optimized for the common case of a single texture.
+	Texture first_texture;
+	std::vector< Texture > additional_textures;
 };
 
 }

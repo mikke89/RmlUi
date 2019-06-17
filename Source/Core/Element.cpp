@@ -368,7 +368,7 @@ String Element::GetAddress(bool include_pseudo_classes) const
 	String classes = style->GetClassNames();
 	if (!classes.empty())
 	{
-		classes = Replace(classes, ".", " ");
+		classes = Replace(classes, '.', ' ');
 		address += ".";
 		address += classes;
 	}

@@ -32,7 +32,7 @@
 namespace Rocket {
 namespace Core {
 
-DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer()
+DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer() : DecoratorTiledInstancer(3)
 {
 	RegisterTileProperty("left-image", false);
 	RegisterTileProperty("right-image", false);
@@ -51,17 +51,16 @@ std::shared_ptr<Decorator> DecoratorTiledHorizontalInstancer::InstanceDecorator(
 	constexpr size_t num_tiles = 3;
 
 	DecoratorTiled::Tile tiles[num_tiles];
-	String texture_names[num_tiles];
-	String rcss_paths[num_tiles];
+	Texture textures[num_tiles];
 
-	for (size_t i = 0; i < num_tiles; i++)
-		GetTileProperties(i, tiles[i], texture_names[i], rcss_paths[i], properties, interface);
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, interface))
+		return nullptr;
 
 	auto decorator = std::make_shared<DecoratorTiledHorizontal>();
-	if (decorator->Initialise(tiles, texture_names, rcss_paths))
-		return decorator;
+	if (!decorator->Initialise(tiles, textures))
+		return nullptr;
 
-	return nullptr;
+	return decorator;
 }
 
 

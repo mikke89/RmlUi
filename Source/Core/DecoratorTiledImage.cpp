@@ -42,14 +42,6 @@ DecoratorTiledImage::~DecoratorTiledImage()
 {
 }
 
-// Initialises the tiles for the decorator.
-bool DecoratorTiledImage::Initialise(const Tile& _tile, const String& _texture_name, const String& _rcss_path)
-{
-	tile = _tile;
-	tile.texture_index = LoadTexture(_texture_name, _rcss_path);
-	return (tile.texture_index >= 0);
-}
-
 bool DecoratorTiledImage::Initialise(const Tile& _tile, const Texture& _texture)
 {
 	tile = _tile;

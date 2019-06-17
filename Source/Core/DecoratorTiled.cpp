@@ -48,58 +48,58 @@ static Vector2f oriented_texcoords[6][2] = {{Vector2f(0, 0), Vector2f(1, 1)},
 													   {Vector2f(1, 0), Vector2f(0, 1)},
 													   {Vector2f(0, 1), Vector2f(1, 0)}};
 
-DecoratorTiled::Tile::Tile()
+DecoratorTiled::Tile::Tile() : position(0, 0), size(1, 1)
 {
 	texture_index = -1;
 	repeat_mode = STRETCH;
 	orientation = ROTATE_0_CW;
 
-	texcoords[0].x = 0;
-	texcoords[0].y = 0;
-	texcoords[1].x = 1;
-	texcoords[1].y = 1;
-
-	texcoords_absolute[0][0] = false;
-	texcoords_absolute[0][1] = false;
-	texcoords_absolute[1][0] = false;
-	texcoords_absolute[1][1] = false;
+	position_absolute[0] = false;
+	position_absolute[1] = false;
+	size_absolute[0] = false;
+	size_absolute[1] = false;
 }
 
-struct TileDataMapCmp {
-	RenderInterface* find;
-
-	using Element = std::pair< RenderInterface*, DecoratorTiled::Tile::TileData >;
-	bool operator() (const Element& el) const {
-		return el.first == find;
-	}
-};
 
 // Calculates the tile's dimensions from the texture and texture coordinates.
 void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& texture)
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
-	TileDataMap::iterator data_iterator = std::find_if(data.begin(), data.end(), TileDataMapCmp{ render_interface });
+	auto data_iterator = data.find(render_interface);
 	if (data_iterator == data.end())
 	{
 		TileData new_data;
-		Vector2i texture_dimensions = texture.GetDimensions(render_interface);
+		const Vector2i texture_dimensions_i = texture.GetDimensions(render_interface);
+		const Vector2f texture_dimensions((float)texture_dimensions_i.x, (float)texture_dimensions_i.y);
 
-		for (int i = 0; i < 2; i++)
+		if (texture_dimensions.x == 0 || texture_dimensions.y == 0)
 		{
-			new_data.texcoords[i] = texcoords[i];
+			new_data.size = Vector2f(0, 0);
+			new_data.texcoords[0] = Vector2f(0, 0);
+			new_data.texcoords[1] = Vector2f(0, 0);
+		}
+		else
+		{
+			// Need to scale the coordinates to normalized units and 'size' to absolute size (pixels)
+			for(int i = 0; i < 2; i++)
+			{
+				float size_relative = size[i];
+				new_data.size[i] = Math::AbsoluteValue(size[i]);
 
-			if (texcoords_absolute[i][0] &&
-				texture_dimensions.x > 0)
-				new_data.texcoords[i].x /= texture_dimensions.x;
-			if (texcoords_absolute[i][1] &&
-				texture_dimensions.y > 0)
-				new_data.texcoords[i].y /= texture_dimensions.y;
+				if (size_absolute[i])
+					size_relative /= texture_dimensions[i];
+				else
+					new_data.size[i] *= texture_dimensions[i];
+				
+				new_data.texcoords[0][i] = position[i];
+				if (position_absolute[i])
+					new_data.texcoords[0][i] /= texture_dimensions[i];
+
+				new_data.texcoords[1][i] = size_relative + new_data.texcoords[0][i];
+			}
 		}
 
-		new_data.dimensions.x = Math::AbsoluteValue((new_data.texcoords[1].x * texture_dimensions.x) - (new_data.texcoords[0].x * texture_dimensions.x));
-		new_data.dimensions.y = Math::AbsoluteValue((new_data.texcoords[1].y * texture_dimensions.y) - (new_data.texcoords[0].y * texture_dimensions.y));
-
-		data.emplace_back( render_interface,  new_data );
+		data.emplace( render_interface, new_data );
 	}
 }
 
@@ -107,11 +107,11 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 Vector2f DecoratorTiled::Tile::GetDimensions(Element* element)
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
-	TileDataMap::iterator data_iterator = std::find_if(data.begin(), data.end(), TileDataMapCmp{ render_interface });
+	auto data_iterator = data.find(render_interface);
 	if (data_iterator == data.end())
 		return Vector2f(0, 0);
 
-	return data_iterator->second.dimensions;
+	return data_iterator->second.size;
 }
 
 // Generates geometry to render this tile across a surface.
@@ -125,8 +125,8 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 
     // Apply opacity
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
-	
-	TileDataMap::iterator data_iterator = std::find_if(data.begin(), data.end(), TileDataMapCmp{ render_interface });
+
+	auto data_iterator = data.find(render_interface);
 	if (data_iterator == data.end())
 		return;
 
@@ -216,7 +216,7 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 		tile_position.y = surface_origin.y + (float) tile_dimensions.y * y;
 
 		Vector2f tile_size;
-		tile_size.y = (float) (y < num_tiles[1] - 1 ? data.dimensions.y : final_tile_dimensions.y);
+		tile_size.y = (float) (y < num_tiles[1] - 1 ? data.size.y : final_tile_dimensions.y);
 
 		// Squish the texture coordinates in the y if we're clamping and this is the last in a double-tile.
 		Vector2f tile_texcoords[2];
