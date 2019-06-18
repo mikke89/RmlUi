@@ -342,6 +342,12 @@ bool operator!=(const flat_set<T, Compare, Container>& a, const flat_set<T, Comp
     return a.container() != b.container();
 }
 
+template <typename T, typename Compare, typename Container>
+bool operator<(const flat_set<T, Compare, Container>& a, const flat_set<T, Compare, Container>& b)
+{
+	return a.container() < b.container();
+}
+
 }
 }
 }
