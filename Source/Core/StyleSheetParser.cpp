@@ -77,6 +77,7 @@ private:
 	PropertySpecification specification;
 	PropertyId id_rx, id_ry, id_rw, id_rh;
 	ShorthandId id_rectangle;
+
 public:
 	SpritesheetPropertyParser() : specification(4, 1) 
 	{
@@ -104,7 +105,6 @@ public:
 	bool Parse(const String& name, const String& value, const String& stream_file_name, int rule_line_number) override
 	{
 		static const String str_src = "src";
-		static const String str_rectangle = "rectangle";
 		if (name == str_src)
 		{
 			image_source = value;
@@ -442,6 +442,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					// Each keyframe in keyframes has its own block which is processed here
 					PropertyDictionary properties;
 					PropertySpecificationParser parser(properties, StyleSheetSpecification::GetPropertySpecification());
+					if(!ReadProperties(parser))
 						continue;
 
 					if (!ParseKeyframeBlock(keyframes, at_rule_name, pre_token_str, properties))
