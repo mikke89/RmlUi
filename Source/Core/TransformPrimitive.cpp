@@ -509,7 +509,7 @@ struct PrepareVisitor
 	}
 	bool operator()(Matrix3D& p)
 	{
-		// Matrices must be decomposed for interpolatino
+		// Matrices must be decomposed for interpolation
 		return false;
 	}
 	bool operator()(Matrix2D& p)

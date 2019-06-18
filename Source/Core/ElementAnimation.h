@@ -37,6 +37,7 @@ namespace Core {
 
 
 struct AnimationKey {
+	AnimationKey(float time, const Property& property, Tween tween) : time(time), property(property), tween(tween) {}
 	float time;   // Local animation time (Zero means the time when the animation iteration starts)
 	Property property;
 	Tween tween;  // Tweening between the previous and this key. Ignored for the first animation key.
@@ -63,7 +64,7 @@ private:
 	bool animation_complete;
 	bool is_transition;
 
-	bool InternalAddKey(AnimationKey key);
+	bool InternalAddKey(float time, const Property& property, Tween tween);
 
 	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
 public:

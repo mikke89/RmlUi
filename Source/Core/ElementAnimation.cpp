@@ -301,7 +301,6 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 
 	int count_iterations = -1;
 	const int max_iterations = 3 * N;
-	if (start_index < 1) start_index = 1;
 
 	std::vector<bool> dirty_list(N + 1, false);
 	dirty_list[start_index] = true;
@@ -355,26 +354,27 @@ ElementAnimation::ElementAnimation(PropertyId property_id, const Property& curre
 	{
 		Log::Message(Log::LT_WARNING, "Property in animation key did not have a definition (while adding key '%s').", current_value.ToString().c_str());
 	}
-	InternalAddKey(AnimationKey{ 0.0f, current_value, Tween{} });
+	InternalAddKey(0.0f, current_value, Tween{});
 }
 
-bool ElementAnimation::InternalAddKey(AnimationKey key)
+bool ElementAnimation::InternalAddKey(float time, const Property& property, Tween tween)
 {
 	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
 
-	if (!(key.property.unit & valid_properties))
+	if (!(property.unit & valid_properties))
 	{
-		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", key.property.ToString().c_str());
+		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", property.ToString().c_str());
 		return false;
 	}
+
+	keys.emplace_back(time, property, tween);
+	AnimationKey& key = keys.back();
 
 	if (key.property.unit == Property::TRANSFORM)
 	{
 		if (!key.property.value.Get<TransformRef>())
 			key.property.value.Reset(TransformRef(new Transform));
 	}
-
-	keys.push_back(key);
 
 	return true;
 }
@@ -387,7 +387,7 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 		Log::Message(Log::LT_WARNING, "Element animation was not initialized properly, can't add key.");
 		return false;
 	}
-	if (!InternalAddKey(AnimationKey{ target_time, in_property, tween }))
+	if (!InternalAddKey(target_time, in_property, tween))
 	{
 		return false;
 	}
@@ -398,7 +398,7 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 	if (property.unit == Property::TRANSFORM)
 	{
 		bool must_decompose = false;
-		auto& transform = *property.value.Get<TransformRef>();
+		Transform& transform = *property.value.Get<TransformRef>();
 
 		for (auto& primitive : transform.GetPrimitives())
 		{
