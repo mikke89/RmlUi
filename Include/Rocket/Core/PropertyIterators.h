@@ -53,7 +53,7 @@ public:
 	using PseudoIt = PseudoClassPropertyDictionary::const_iterator;
 
 	ElementDefinitionIterator();
-	ElementDefinitionIterator(const StringList& pseudo_classes, PropertyIt it_properties, PseudoIt it_pseudo_class_properties, PropertyIt it_properties_end, PseudoIt it_pseudo_class_properties_end);
+	ElementDefinitionIterator(const PseudoClassList& pseudo_classes, PropertyIt it_properties, PseudoIt it_pseudo_class_properties, PropertyIt it_properties_end, PseudoIt it_pseudo_class_properties_end);
 	ElementDefinitionIterator& operator++();
 	bool operator==(const ElementDefinitionIterator& other) const { return pseudo_classes == other.pseudo_classes && it_properties == other.it_properties && it_pseudo_class_properties == other.it_pseudo_class_properties && i_pseudo_class == other.i_pseudo_class; }
 	bool operator!=(const ElementDefinitionIterator& other) const { return !(*this == other); }
@@ -69,7 +69,7 @@ public:
 	const PseudoClassList* pseudo_class_list() const;
 
 private:
-	const StringList* pseudo_classes;
+	const PseudoClassList* pseudo_classes;
 	PropertyIt it_properties, it_properties_end;
 	PseudoIt it_pseudo_class_properties, it_pseudo_class_properties_end;
 	size_t i_pseudo_class = 0;

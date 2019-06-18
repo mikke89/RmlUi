@@ -239,26 +239,16 @@ void ElementStyle::UpdateDefinition()
 // Sets or removes a pseudo-class on the element.
 void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 {
-	size_t num_pseudo_classes = pseudo_classes.size();
+	PseudoClassList pseudo_classes_before = pseudo_classes;
 
-	auto pseudo_classes_before = pseudo_classes;
+	bool changed = false;
 
 	if (activate)
-		pseudo_classes.push_back(pseudo_class);
+		changed = pseudo_classes.insert(pseudo_class).second;
 	else
-	{
-		// In case of duplicates, we do a loop here. We could do a sort and unique instead,
-		// but that might even be slower for a small list with few duplicates, which
-		// is probably the most common case.
-		auto it = std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class);
-		while(it != pseudo_classes.end())
-		{
-			pseudo_classes.erase(it);
-			it = std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class);
-		}
-	}
+		changed = (pseudo_classes.erase(pseudo_class) == 1);
 
-	if (pseudo_classes.size() != num_pseudo_classes)
+	if (changed)
 	{
 		element->GetElementDecoration()->DirtyDecorators();
 

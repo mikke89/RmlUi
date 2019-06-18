@@ -66,7 +66,7 @@ void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& s
 		style_sheet_nodes[i]->GetPseudoClassProperties(pseudo_properties_map);
 		for (auto& pseudo_properties_pair : pseudo_properties_map)
 		{
-			const StringList& pseudo_classes = pseudo_properties_pair.first;
+			const PseudoClassList& pseudo_classes = pseudo_properties_pair.first;
 			PropertyDictionary& pseudo_properties = pseudo_properties_pair.second;
 
 			// Search through all entries in this dictionary; we'll insert each one into our optimised list of
@@ -130,13 +130,15 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
 		property_names.insert((*i).first);
 
-	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
+	for (const auto& pseudo_class_properties_pair : pseudo_class_properties)
 	{
+		PropertyId property_id = pseudo_class_properties_pair.first;
+
 		// If this property is already in the default dictionary, don't bother checking for it here.
-		if (property_names.find((*i).first) != property_names.end())
+		if (property_names.find(property_id) != property_names.end())
 			continue;
 
-		const PseudoClassPropertyList& property_list = (*i).second;
+		const PseudoClassPropertyList& property_list = pseudo_class_properties_pair.second;
 
 		// Search through all the pseudo-class combinations that have a definition for this property; if the calling
 		// element matches at least one of them, then add it to the list.
@@ -151,7 +153,7 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 		}
 
 		if (property_defined)
-			property_names.insert((*i).first);
+			property_names.insert(property_id);
 	}
 }
 
@@ -159,13 +161,15 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 // pseudo-class.
 void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes, const String& pseudo_class) const
 {
-	for (PseudoClassPropertyDictionary::const_iterator i = pseudo_class_properties.begin(); i != pseudo_class_properties.end(); ++i)
+	for (const auto& pseudo_class_properties_pair : pseudo_class_properties)
 	{
+		PropertyId property_id = pseudo_class_properties_pair.first;
+
 		// If this property has already been found, don't bother checking for it again.
-		if (property_names.find((*i).first) != property_names.end())
+		if (property_names.find(property_id) != property_names.end())
 			continue;
 
-		const PseudoClassPropertyList& property_list = (*i).second;
+		const PseudoClassPropertyList& property_list = pseudo_class_properties_pair.second;
 
 		bool property_defined = false;
 		for (size_t j = 0; j < property_list.size(); ++j)
@@ -173,16 +177,16 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 			bool rule_valid = true;
 			bool found_toggled_pseudo_class = false;
 
-			const StringList& rule_pseudo_classes = property_list[j].first;
-			for (size_t j = 0; j < rule_pseudo_classes.size(); ++j)
+			const PseudoClassList& rule_pseudo_classes = property_list[j].first;
+			for (const String& rule_pseudo_class : rule_pseudo_classes)
 			{
-				if (rule_pseudo_classes[j] == pseudo_class)
+				if (rule_pseudo_class == pseudo_class)
 				{
 					found_toggled_pseudo_class = true;
 					continue;
 				}
 
-				if (std::find(pseudo_classes.begin(), pseudo_classes.end(), rule_pseudo_classes[j]) == pseudo_classes.end())
+				if (pseudo_classes.count(rule_pseudo_class) == 0)
 				{			
 					rule_valid = false;
 					break;
@@ -198,7 +202,7 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names, c
 		}
 
 		if (property_defined)
-			property_names.insert((*i).first);
+			property_names.insert(property_id);
 	}
 }
 
@@ -233,15 +237,12 @@ void ElementDefinition::OnReferenceDeactivate()
 }
 
 // Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
-bool ElementDefinition::IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes)
+bool ElementDefinition::IsPseudoClassRuleApplicable(const PseudoClassList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes)
 {
-	for (StringList::size_type i = 0; i < rule_pseudo_classes.size(); ++i)
-	{
-		if (std::find(element_pseudo_classes.begin(), element_pseudo_classes.end(), rule_pseudo_classes[i]) == element_pseudo_classes.end())
-			return false;
-	}
-
-	return true;
+	// The rule pseudo classes must be a subset of the element pseudo classes
+	// Note, requires PseudoClassList to be an @ordered container.
+	bool result = std::includes(element_pseudo_classes.begin(), element_pseudo_classes.end(), rule_pseudo_classes.begin(), rule_pseudo_classes.end());
+	return result;
 }
 
 }

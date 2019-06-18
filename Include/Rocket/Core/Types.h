@@ -126,13 +126,13 @@ template < typename T >
 using SmallOrderedSet = chobo::flat_set< T >;
 template < typename T >
 using SmallUnorderedSet = chobo::flat_set< T >;
-// Note: Right now ordered and unordered set use the same container, but we may
+// Note: Right now small ordered and unordered set use the same container, but we may
 // want to change this later so use ordered when a sorted container is needed.
 
 // Container types for some common lists
 typedef std::vector< Element* > ElementList;
-typedef std::vector< String > PseudoClassList;
 typedef std::vector< ElementAnimation > ElementAnimationList;
+typedef SmallOrderedSet< String > PseudoClassList; /* Ordered reason: See ElementDefinition */
 typedef SmallUnorderedSet< String > AttributeNameList;
 typedef SmallOrderedSet< PropertyId > PropertyNameList;
 typedef UnorderedMap< PropertyId, Property > PropertyMap;

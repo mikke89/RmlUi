@@ -243,8 +243,9 @@ const PropertyDictionary& StyleSheetNode::GetProperties() const
 // Builds the properties of all of the pseudo-classes of this style sheet node into a single map.
 void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties) const
 {
+	PseudoClassList pseudo_class_list;
 	for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
-		(*i).second->GetPseudoClassProperties(pseudo_class_properties, StringList());
+		(*i).second->GetPseudoClassProperties(pseudo_class_properties, pseudo_class_list);
 }
 
 // Adds to a list the names of this node's pseudo-classes which are deemed volatile.
@@ -259,9 +260,7 @@ bool StyleSheetNode::GetVolatilePseudoClasses(PseudoClassList& volatile_pseudo_c
 
 		if (self_volatile)
 		{
-			auto it = std::find(volatile_pseudo_classes.begin(), volatile_pseudo_classes.end(), name);
-			if (it == volatile_pseudo_classes.end())
-				volatile_pseudo_classes.push_back(name);
+			volatile_pseudo_classes.insert(name);
 		}
 
 		return self_volatile;
@@ -578,13 +577,16 @@ StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 }
 
 // Recursively builds up a list of all pseudo-classes branching from a single node.
-void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties, const StringList& ancestor_pseudo_classes)
+void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties, const PseudoClassList& ancestor_pseudo_classes)
 {
-	StringList pseudo_classes(ancestor_pseudo_classes);
-	pseudo_classes.push_back(name);
+	PseudoClassList pseudo_classes(ancestor_pseudo_classes);
+	pseudo_classes.insert(name);
 
 	if (properties.GetNumProperties() > 0)
+	{
+		ROCKET_ASSERT(pseudo_class_properties.count(pseudo_classes) == 0);
 		pseudo_class_properties[pseudo_classes] = properties;
+	}
 
 	for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
 		(*i).second->GetPseudoClassProperties(pseudo_class_properties, pseudo_classes);

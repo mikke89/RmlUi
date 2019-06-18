@@ -36,7 +36,7 @@ namespace Core {
 // Return the list of pseudo classes which defines the current property, possibly null
 ElementDefinitionIterator::ElementDefinitionIterator() : pseudo_classes(nullptr) {}
 
-ElementDefinitionIterator::ElementDefinitionIterator(const StringList& pseudo_classes, PropertyIt it_properties, PseudoIt it_pseudo_class_properties, PropertyIt it_properties_end, PseudoIt it_pseudo_class_properties_end)
+ElementDefinitionIterator::ElementDefinitionIterator(const PseudoClassList& pseudo_classes, PropertyIt it_properties, PseudoIt it_pseudo_class_properties, PropertyIt it_properties_end, PseudoIt it_pseudo_class_properties_end)
 	: pseudo_classes(&pseudo_classes), it_properties(it_properties), it_pseudo_class_properties(it_pseudo_class_properties), it_properties_end(it_properties_end), it_pseudo_class_properties_end(it_pseudo_class_properties_end)
 {
 	proceed_to_next_valid();

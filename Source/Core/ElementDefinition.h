@@ -91,7 +91,7 @@ public:
 	ElementDefinitionIterator end(const PseudoClassList& pseudo_classes) const;
 
 	/// Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
-	static bool IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);
+	static bool IsPseudoClassRuleApplicable(const PseudoClassList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);
 
 protected:
 	/// Destroys the definition.

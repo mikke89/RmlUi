@@ -37,7 +37,7 @@ namespace Core {
 
 class StyleSheetNodeSelector;
 
-typedef std::map< StringList, PropertyDictionary > PseudoClassPropertyMap;
+typedef std::map< PseudoClassList, PropertyDictionary > PseudoClassPropertyMap;
 
 /**
 	A style sheet is composed of a tree of nodes.
@@ -121,7 +121,7 @@ private:
 	// Constructs a structural pseudo-class child node.
 	StyleSheetNode* CreateStructuralChild(const String& child_name);
 	// Recursively builds up a list of all pseudo-classes branching from a single node.
-	void GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties, const StringList& ancestor_pseudo_classes);
+	void GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties, const PseudoClassList& ancestor_pseudo_classes);
 
 	int CalculateSpecificity();
 
