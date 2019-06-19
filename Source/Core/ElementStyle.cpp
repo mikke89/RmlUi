@@ -43,11 +43,12 @@
 #include "ElementDefinition.h"
 #include "FontFaceHandle.h"
 #include "ComputeProperty.h"
+#include "DirtyPropertyList.h"
+#include "PropertiesIterator.h"
 
 
 namespace Rocket {
 namespace Core {
-
 
 ElementStyle::ElementStyle(Element* _element) : dirty_properties(true)
 {
@@ -68,13 +69,10 @@ ElementStyle::~ElementStyle()
 }
 
 
-// Returns the element's definition, updating if necessary.
 const ElementDefinition* ElementStyle::GetDefinition()
 {
 	return definition;
 }
-
-
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(PropertyId id, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
@@ -490,51 +488,22 @@ void ElementStyle::DirtyChildDefinitions()
 		element->GetChild(i)->GetStyle()->DirtyDefinition();
 }
 
-// Dirties rem properties.
-void ElementStyle::DirtyRemProperties()
+void ElementStyle::DirtyPropertiesWithUnitRecursive(Property::Unit unit)
 {
-	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
-	PropertyNameList rem_properties;
-
-	// Dirty all the properties of this element that use the rem unit.
-	for (auto name_property_pair : *this)
+	// Dirty all the properties of this element that use the unit.
+	for (auto it = Iterate(); !it.AtEnd(); ++it)
 	{
+		auto name_property_pair = *it;
 		PropertyId id = name_property_pair.first;
 		const Property& property = name_property_pair.second;
-		if (property.unit == Property::REM)
-			rem_properties.insert(id);
+		if (property.unit == unit)
+			DirtyProperty(id);
 	}
 
-	if (!rem_properties.empty())
-		DirtyProperties(rem_properties);
-
-	// Now dirty all of our descendant's properties that use the rem unit.
+	// Now dirty all of our descendant's properties that use the unit.
 	int num_children = element->GetNumChildren(true);
 	for (int i = 0; i < num_children; ++i)
-		element->GetChild(i)->GetStyle()->DirtyRemProperties();
-}
-
-void ElementStyle::DirtyDpProperties()
-{
-	const PropertyNameList &properties = StyleSheetSpecification::GetRegisteredProperties();
-	PropertyNameList dp_properties;
-
-	// Dirty all the properties of this element that use the dp unit.
-	for (auto name_property_pair : *this)
-	{
-		PropertyId id = name_property_pair.first;
-		const Property& property = name_property_pair.second;
-		if (property.unit == Property::DP)
-			dp_properties.insert(id);
-	}
-
-	if (!dp_properties.empty())
-		DirtyProperties(dp_properties);
-
-	// Now dirty all of our descendant's properties that use the dp unit.
-	int num_children = element->GetNumChildren(true);
-	for (int i = 0; i < num_children; ++i)
-		element->GetChild(i)->GetStyle()->DirtyDpProperties();
+		element->GetChild(i)->GetStyle()->DirtyPropertiesWithUnitRecursive(unit);
 }
 
 bool ElementStyle::AnyPropertiesDirty() const 
@@ -542,38 +511,35 @@ bool ElementStyle::AnyPropertiesDirty() const
 	return !dirty_properties.Empty(); 
 }
 
-ElementStyleIterator ElementStyle::begin() const {
-	const PropertyMap* local = nullptr;
-	PropertyMap::const_iterator it_local_begin, it_local_end;
-	if (local_properties)
-	{
-		local = &local_properties->GetProperties();
-		it_local_begin = local->begin();
-		it_local_end = local->end();
-	}
-	ElementDefinitionIterator it_definition_begin, it_definition_end;
-	if (definition)
-	{
-		it_definition_begin = definition->begin(pseudo_classes);
-		it_definition_end = definition->end(pseudo_classes);
-	}
-	return ElementStyleIterator(local, it_local_begin, it_definition_begin, it_local_end, it_definition_end);
-}
+PropertiesIterator ElementStyle::Iterate() const {
+	// Note: Value initialized iterators are only guaranteed to compare equal in C++14, and only for iterators satisfying the ForwardIterator requirements.
+#ifdef _MSC_VER
+	// Null forward iterator supported since VS 2015
+	static_assert(_MSC_VER >= 1900, "Visual Studio 2015 or higher required, see comment.");
+#else
+	static_assert(__cplusplus >= 201402L, "C++14 or higher required, see comment.");
+#endif
 
-ElementStyleIterator ElementStyle::end() const {
-	const PropertyMap* local = nullptr;
-	PropertyMap::const_iterator it_local_end;
+	PropertyMap::const_iterator it_style_begin{}, it_style_end{};
 	if (local_properties)
 	{
-		local = &local_properties->GetProperties();
-		it_local_end = local->end();
+		const PropertyMap& property_map = local_properties->GetProperties();
+		it_style_begin = property_map.begin();
+		it_style_end = property_map.end();
 	}
-	ElementDefinitionIterator it_definition_end;
+	
+	PseudoClassPropertyDictionary::const_iterator it_pseudo{}, it_pseudo_end{};
+	PropertyMap::const_iterator it_base{}, it_base_end{};
 	if (definition)
 	{
-		it_definition_end = definition->end(pseudo_classes);
+		const PseudoClassPropertyDictionary& pseudo = definition->GetPseudoClassProperties();
+		const PropertyMap& base = definition->GetProperties().GetProperties();
+		it_pseudo = pseudo.begin();
+		it_pseudo_end = pseudo.end();
+		it_base = base.begin();
+		it_base_end = base.end();
 	}
-	return ElementStyleIterator(local, it_local_end, it_definition_end, it_local_end, it_definition_end);
+	return PropertiesIterator(pseudo_classes, it_style_begin, it_style_end, it_pseudo, it_pseudo_end, it_base, it_base_end);
 }
 
 // Sets a single property as dirty.
@@ -592,7 +558,6 @@ void ElementStyle::DirtyProperties(const PropertyNameList& properties)
 void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
 {
 	dirty_properties.Insert(properties);
-	return;
 }
 
 static void DirtyEmProperties(DirtyPropertyList& dirty_properties, Element* element)
@@ -704,10 +669,10 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		values.pointer_events = parent_values->pointer_events;
 	}
 
-
-	for(auto name_property_pair : *this)
+	for (auto it = Iterate(); !it.AtEnd(); ++it)
 	{
-		PropertyId id = name_property_pair.first;
+		auto name_property_pair = *it;
+		const PropertyId id = name_property_pair.first;
 		const Property* p = &name_property_pair.second;
 
 		using namespace Style;
@@ -931,14 +896,14 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 		case PropertyId::Decorator:
 			values.decorator.clear();
-			// Usually the decorator is converted from string after the style sheet is set on the ElementDocument. However, if the
-			// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
 			if (p->unit == Property::DECORATOR)
 			{
 				values.decorator = p->Get<DecoratorList>();
 			}
 			else if (p->unit == Property::STRING)
 			{
+				// Usually the decorator is converted from string after the style sheet is set on the ElementDocument. However, if the
+				// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
 				if(const StyleSheet* style_sheet = GetStyleSheet())
 				{
 					String value = p->Get<String>();
@@ -961,7 +926,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 	bool all_inherited_dirty = false;
 
-	if (dirty_properties.AllDirty())
+	if (dirty_properties.IsAllDirty())
 	{
 		all_inherited_dirty = true;
 	}
@@ -969,11 +934,8 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 	{
 		// Find all dirtied properties which are also inherited
 		const auto& inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
-		std::set_intersection(
-			inherited_properties.begin(), inherited_properties.end(), 
-			dirty_properties.GetList().begin(), dirty_properties.GetList().end(), 
-			std::back_inserter(dirty_inherited.modify_container())
-		);
+		for (PropertyId id : inherited_properties)
+			dirty_properties.Insert(id);
 	}
 
 	if (all_inherited_dirty || dirty_inherited.size() > 0)
@@ -986,7 +948,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			child->GetStyle()->dirty_properties.Insert(dirty_inherited_ref);
 		}
 	}
-
+	
 	DirtyPropertyList result(std::move(dirty_properties));
 	dirty_properties.Clear();
 	return result;

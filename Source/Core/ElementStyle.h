@@ -28,58 +28,14 @@
 #ifndef ROCKETCOREELEMENTSTYLE_H
 #define ROCKETCOREELEMENTSTYLE_H
 
-#include "ElementDefinition.h"
 #include "../../Include/Rocket/Core/Types.h"
+#include "DirtyPropertyList.h"
 
 namespace Rocket {
 namespace Core {
 
-
-class DirtyPropertyList {
-private:
-	bool all_dirty = false;
-	PropertyNameList dirty_list;
-
-public:
-	DirtyPropertyList(bool all_dirty = false) : all_dirty(all_dirty) {}
-
-	void Insert(PropertyId id) {
-		if (all_dirty) return;
-		dirty_list.insert(id);
-	}
-	void Insert(const PropertyNameList& properties) {
-		if (all_dirty) return;
-		// @performance: Can be made O(N+M)
-		dirty_list.insert(properties.begin(), properties.end());
-	}
-	void DirtyAll() {
-		all_dirty = true;
-		dirty_list.clear();
-	}
-	void Clear() {
-		all_dirty = false;
-		dirty_list.clear();
-	}
-
-	bool Empty() const {
-		return !all_dirty && dirty_list.empty();
-	}
-	bool Contains(PropertyId id) const {
-		if (all_dirty)
-			return true;
-		auto it = dirty_list.find(id);
-		return (it != dirty_list.end());
-	}
-	bool AllDirty() const {
-		return all_dirty;
-	}
-	const PropertyNameList& GetList() const {
-		return dirty_list;
-	}
-};
-
-
-
+class ElementDefinition;
+class PropertiesIterator;
 
 /**
 	Manages an element's style and property information.
@@ -94,7 +50,7 @@ public:
 	ElementStyle(Element* element);
 	~ElementStyle();
 
-	/// Returns the element's definition, updating if necessary.
+	/// Returns the element's definition.
 	const ElementDefinition* GetDefinition();
 	
 	/// Update this definition if required
@@ -165,10 +121,8 @@ public:
 	/// Dirty all child definitions
 	void DirtyChildDefinitions();
 
-	/// Dirties rem properties.
-	void DirtyRemProperties();
-	/// Dirties dp properties.
-	void DirtyDpProperties();
+	/// Dirties all properties with a given unit on the current element and recursively on all children.
+	void DirtyPropertiesWithUnitRecursive(Property::Unit unit);
 
 	/// Returns true if any properties are dirty such that computed values need to be recomputed
 	bool AnyPropertiesDirty() const;
@@ -177,11 +131,9 @@ public:
 	/// Must be called in correct order, always parent before its children.
 	DirtyPropertyList ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
 
-	/// Returns an iterator to the first property defined on this element.
-	/// Note: Modifying the element's style invalidates its iterators.
-	ElementStyleIterator begin() const;
-	/// Returns an iterator to the property following the last property defined on this element.
-	ElementStyleIterator end() const;
+	/// Returns an iterator for iterating the local properties of this element.
+	/// Note: Modifying the element's style invalidates its iterator.
+	PropertiesIterator Iterate() const;
 
 private:
 	// Sets a single property as dirty.

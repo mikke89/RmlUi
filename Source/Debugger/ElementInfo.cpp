@@ -27,7 +27,7 @@
 
 #include "ElementInfo.h"
 #include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/PropertyIterators.h"
+#include "../../Include/Rocket/Core/PropertiesIteratorView.h"
 #include "../../Include/Rocket/Core/Factory.h"
 #include "../../Include/Rocket/Core/StyleSheet.h"
 #include "../../Include/Rocket/Core/StyleSheetSpecification.h"
@@ -440,21 +440,16 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 {
 	NamedPropertyMap property_map;
 
-	const Core::PseudoClassList empty_property_pseudo_classes;
-
-	auto it_end = element->IteratePropertiesEnd();
-	for(auto it = element->IteratePropertiesBegin(); it != it_end; ++it)
+	for(auto it = element->IterateLocalProperties(); !it.AtEnd(); ++it)
 	{
-		const Core::PropertyId property_id = (*it).first;
-		const Core::String& property_name = Core::StyleSheetSpecification::GetPropertyName((*it).first);
-		const Core::Property* property = &(*it).second;
-		const Core::PseudoClassList* property_pseudo_classes_ptr = it.pseudo_class_list();
+		const Core::PropertyId property_id = it.GetId();
+		const Core::String& property_name = it.GetName();
+		const Core::Property* property = &it.GetProperty();
+		const Core::PseudoClassList& property_pseudo_classes = it.GetPseudoClassList();
 
 		// Check that this property isn't overridden or just not inherited.
 		if (primary_element->GetProperty(property_id) != property)
 			continue;
-
-		const Core::PseudoClassList& property_pseudo_classes = (property_pseudo_classes_ptr ? *property_pseudo_classes_ptr : empty_property_pseudo_classes);
 
 		NamedPropertyMap::iterator i = property_map.find(property_pseudo_classes);
 		if (i == property_map.end())

@@ -15,6 +15,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DirtyPropertyList.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.h
@@ -59,6 +60,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIterator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
@@ -161,10 +163,10 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/MathTypes.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Platform.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Plugin.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertiesIteratorView.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Property.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDefinition.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDictionary.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyIterators.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyParser.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertySpecification.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ReferenceCountable.h
@@ -288,10 +290,10 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIteratorView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyIterators.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp

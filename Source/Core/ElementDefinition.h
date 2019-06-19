@@ -85,10 +85,8 @@ public:
 	/// @return True if this definition is structurally volatile.
 	bool IsStructurallyVolatile() const;
 
-	/// Returns an iterator to the first property matching the active set of pseudo_classes.
-	ElementDefinitionIterator begin(const PseudoClassList& pseudo_classes) const;
-	/// Returns an iterator to the property following the last property matching the active set of pseudo_classes.
-	ElementDefinitionIterator end(const PseudoClassList& pseudo_classes) const;
+	const PropertyDictionary& GetProperties() const { return properties; }
+	const PseudoClassPropertyDictionary& GetPseudoClassProperties() const { return pseudo_class_properties; }
 
 	/// Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
 	static bool IsPseudoClassRuleApplicable(const PseudoClassList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);

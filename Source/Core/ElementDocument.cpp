@@ -382,7 +382,7 @@ bool ElementDocument::IsLayoutDirty()
 
 void ElementDocument::DirtyDpProperties()
 {
-	GetStyle()->DirtyDpProperties();
+	GetStyle()->DirtyPropertiesWithUnitRecursive(Property::DP);
 }
 
 // Repositions the document if necessary.
@@ -392,7 +392,7 @@ void ElementDocument::OnPropertyChange(const PropertyNameList& changed_propertie
 
 	// If the document's font-size has been changed, we need to dirty all rem properties.
 	if (changed_properties.find(PropertyId::FontSize) != changed_properties.end())
-		GetStyle()->DirtyRemProperties();
+		GetStyle()->DirtyPropertiesWithUnitRecursive(Property::REM);
 
 	if (changed_properties.find(PropertyId::Top) != changed_properties.end() ||
 		changed_properties.find(PropertyId::Right) != changed_properties.end() ||

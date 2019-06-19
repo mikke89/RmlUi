@@ -34,6 +34,7 @@
 #include <limits>
 #include "Clock.h"
 #include "ComputeProperty.h"
+#include "DirtyPropertyList.h"
 #include "ElementAnimation.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
@@ -45,6 +46,7 @@
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
 #include "PluginRegistry.h"
+#include "PropertiesIterator.h"
 #include "Pool.h"
 #include "StyleSheetParser.h"
 #include "XMLParseTools.h"
@@ -235,10 +237,10 @@ void Element::Update(float dp_ratio)
 		// Computed values are just calculated and can safely be used in OnPropertyChange.
 		// However, new properties set during this call will not be available until the next update loop.
 		// Enable ROCKET_DEBUG to get a warning when this happens.
-		if (dirty_properties.AllDirty())
+		if (dirty_properties.IsAllDirty())
 			OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
 		else if(!dirty_properties.Empty())
-			OnPropertyChange(dirty_properties.GetList());
+			OnPropertyChange(dirty_properties.ToPropertyList());
 
 #ifdef ROCKET_DEBUG
 		if (style->AnyPropertiesDirty())
@@ -897,15 +899,11 @@ Vector2f Element::Project(const Vector2f& point) const noexcept
 	}
 }
 
-ElementStyleIterator Element::IteratePropertiesBegin() const
+PropertiesIteratorView Element::IterateLocalProperties() const
 {
-	return style->begin();
+	return PropertiesIteratorView(std::make_unique<PropertiesIterator>(style->Iterate()));
 }
 
-ElementStyleIterator Element::IteratePropertiesEnd() const
-{
-	return style->end();
-}
 
 // Sets or removes a pseudo-class on the element.
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)

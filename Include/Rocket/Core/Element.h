@@ -57,7 +57,7 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
-class ElementStyleIterator;
+class PropertiesIteratorView;
 class FontFaceHandle;
 class PropertyDictionary;
 class RenderInterface;
@@ -260,12 +260,10 @@ public:
 	/// @return True if a new animation key was added.
 	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
 	
-	/// Iterators for the properties defined on this element.
-	/// @warning Modifying the element's properties or classes invalidates the iterators.
+	/// Iterator for the local (non-inherited) properties defined on this element.
+	/// @warning Modifying the element's properties or classes invalidates the iterator.
 	/// @return Iterator to the first property defined on this element.
-	ElementStyleIterator IteratePropertiesBegin() const;
-	/// @return Iterator to the one-past-the-last property defined on this element.
-	ElementStyleIterator IteratePropertiesEnd() const;
+	PropertiesIteratorView IterateLocalProperties() const;
 	///@}
 
 	/** @name Pseudo-classes
