@@ -179,11 +179,12 @@ void ElementStyle::UpdateDefinition()
 	if (definition_dirty)
 	{
 		definition_dirty = false;
+
+		bool definition_changed = false;
 		
 		ElementDefinition* new_definition = nullptr;
 		
-		const StyleSheet* style_sheet = GetStyleSheet();
-		if (style_sheet)
+		if (const StyleSheet * style_sheet = GetStyleSheet())
 		{
 			new_definition = style_sheet->GetElementDefinition(element);
 		}
@@ -193,12 +194,13 @@ void ElementStyle::UpdateDefinition()
 		{
 			// Since we had no definition before there is a likelihood that everything is dirty.
 			// We could do as in the next else-if block, but this is considerably faster.
+			definition_changed = true;
 			dirty_properties.DirtyAll();
-			element->GetElementDecoration()->DirtyDecorators();
 			definition = new_definition;
 		}
 		else if (new_definition != definition)
 		{
+			definition_changed = true;
 			PropertyNameList properties;
 			
 			if (definition)
@@ -215,20 +217,16 @@ void ElementStyle::UpdateDefinition()
 			definition = new_definition;
 			
 			DirtyProperties(properties);
-			element->GetElementDecoration()->DirtyDecorators();
-		}
-		else if (!new_definition)
-		{
-			// Both definitions empty
-			ROCKET_ASSERT(!definition);
-			// Is this really necessary?
-			element->GetElementDecoration()->DirtyDecorators();
 		}
 		else if (new_definition)
 		{
 			// We got the same definition
+			ROCKET_ASSERT(new_definition == definition);
 			new_definition->RemoveReference();
 		}
+
+		if (definition_changed)
+			DirtyChildDefinitions();
 	}
 }
 
@@ -479,7 +477,6 @@ StyleSheet* ElementStyle::GetStyleSheet() const
 void ElementStyle::DirtyDefinition()
 {
 	definition_dirty = true;
-	DirtyChildDefinitions();
 }
 
 void ElementStyle::DirtyChildDefinitions()

@@ -118,8 +118,6 @@ public:
 
 	/// Mark definition and all children dirty
 	void DirtyDefinition();
-	/// Dirty all child definitions
-	void DirtyChildDefinitions();
 
 	/// Dirties all properties with a given unit on the current element and recursively on all children.
 	void DirtyPropertiesWithUnitRecursive(Property::Unit unit);
@@ -136,6 +134,8 @@ public:
 	PropertiesIterator Iterate() const;
 
 private:
+	// Dirty all child definitions
+	void DirtyChildDefinitions();
 	// Sets a single property as dirty.
 	void DirtyProperty(PropertyId id);
 	// Sets a list of properties as dirty.
