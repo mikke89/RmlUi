@@ -932,7 +932,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		// Find all dirtied properties which are also inherited
 		const auto& inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
 		for (PropertyId id : inherited_properties)
-			dirty_properties.Insert(id);
+			dirty_inherited.insert(id);
 	}
 
 	if (all_inherited_dirty || dirty_inherited.size() > 0)
