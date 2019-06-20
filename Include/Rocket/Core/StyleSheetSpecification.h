@@ -36,6 +36,7 @@ namespace Rocket {
 namespace Core {
 
 class PropertyParser;
+class DirtyPropertyList;
 
 /**
 	@author Peter Curry
@@ -106,6 +107,7 @@ public:
 	static ShorthandId GetShorthandId(const String& shorthand_name);
 	static const String& GetPropertyName(PropertyId id);
 	static const String& GetShorthandName(ShorthandId id);
+	static const DirtyPropertyList& GetRegisteredInheritedPropertyBitList();
 
 	static std::vector<PropertyId> GetShorthandUnderlyingProperties(ShorthandId id);
 

@@ -35,6 +35,7 @@
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
 #include "PropertyShorthandDefinition.h"
+#include "DirtyPropertyList.h"
 
 namespace Rocket {
 namespace Core {
@@ -42,6 +43,7 @@ namespace Core {
 
 static StyleSheetSpecification* instance = NULL;
 
+static DirtyPropertyList registered_inherited_properties;
 
 
 StyleSheetSpecification::StyleSheetSpecification() : 
@@ -50,6 +52,7 @@ StyleSheetSpecification::StyleSheetSpecification() :
 {
 	ROCKET_ASSERT(instance == NULL);
 	instance = this;
+	registered_inherited_properties.Clear();
 }
 
 StyleSheetSpecification::~StyleSheetSpecification()
@@ -60,7 +63,10 @@ StyleSheetSpecification::~StyleSheetSpecification()
 
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	return properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
+	auto& result = properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
+	if (inherited)
+		registered_inherited_properties.Insert(result.GetId());
+	return result;
 }
 
 ShorthandId StyleSheetSpecification::RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type)
@@ -117,7 +123,7 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
 	ROCKET_ASSERTMSG((size_t)instance->properties.property_map.GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
-	return instance->properties.RegisterProperty(property_name, default_value, inherited, forces_layout);
+	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, inherited, forces_layout); 
 }
 
 // Returns a property definition.
@@ -185,6 +191,11 @@ const String& StyleSheetSpecification::GetPropertyName(PropertyId id)
 const String& StyleSheetSpecification::GetShorthandName(ShorthandId id)
 {
 	return instance->properties.shorthand_map.GetName(id);
+}
+
+const DirtyPropertyList& StyleSheetSpecification::GetRegisteredInheritedPropertyBitList()
+{
+	return registered_inherited_properties;
 }
 
 std::vector<PropertyId> StyleSheetSpecification::GetShorthandUnderlyingProperties(ShorthandId id)

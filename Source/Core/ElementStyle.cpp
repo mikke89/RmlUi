@@ -586,26 +586,29 @@ static void DirtyEmProperties(DirtyPropertyList& dirty_properties, Element* elem
 
 DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
 {
-	ROCKET_ASSERT_NONRECURSIVE;
-
 	if (dirty_properties.Empty())
 		return DirtyPropertyList();
 
-	// Generally, this is how it works (for now, we can probably be smarter about this):
-	//   1. Assign default values (clears any newly dirtied properties)
+	// Generally, this is how it works:
+	//   1. Assign default values (clears any removed properties)
 	//   2. Inherit inheritable values from parent
 	//   3. Assign any local properties (from inline style or stylesheet)
 
 	const float font_size_before = values.font_size;
-	const float line_height_before = values.line_height.value;
+	const Style::LineHeight line_height_before = values.line_height;
 
 	// The next flag is just a small optimization, if the element was just created we don't need to copy all the default values.
 	if (!values_are_default_initialized)
 	{
+		// This needs to be done in case some properties were removed and thus not in our local style anymore.
+		// If we skipped this, the old dirty value would be unmodified, instead, now it is set to its default value.
+		// Strictly speaking, we only really need to do this for the dirty values, and only non-inherited. However,
+		// it seems assigning the whole thing is faster in most cases.
 		values = DefaultComputedValues;
 	}
 
 	// Always do font-size first if dirty, because of em-relative values
+	if(dirty_properties.Contains(PropertyId::FontSize))
 	{
 		if (auto p = GetLocalProperty(PropertyId::FontSize))
 			values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio);
@@ -615,12 +618,17 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		if (font_size_before != values.font_size)
 			DirtyEmProperties(dirty_properties, element);
 	}
+	else
+	{
+		values.font_size = font_size_before;
+	}
 
 	const float font_size = values.font_size;
 	const float document_font_size = (document_values ? document_values->font_size : DefaultComputedValues.font_size);
 
 
 	// Since vertical-align depends on line-height we compute this before iteration
+	if(dirty_properties.Contains(PropertyId::LineHeight))
 	{
 		if (auto p = GetLocalProperty(PropertyId::LineHeight))
 		{
@@ -636,8 +644,12 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 				values.line_height = parent_values->line_height;
 		}
 
-		if(line_height_before != values.line_height.value)
+		if(line_height_before.value != values.line_height.value || line_height_before.inherit_value != values.line_height.inherit_value)
 			dirty_properties.Insert(PropertyId::VerticalAlign);
+	}
+	else
+	{
+		values.line_height = line_height_before;
 	}
 
 
@@ -665,6 +677,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 		values.pointer_events = parent_values->pointer_events;
 	}
+
 
 	for (auto it = Iterate(); !it.AtEnd(); ++it)
 	{
@@ -916,33 +929,16 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 
 	// Next, pass inheritable dirty properties onto our children
+	// @performance: We might avoid an allocation here in case of dirty non-inherited custom properties. Instead of the initial copy and &=, introduce & operator.
+	DirtyPropertyList dirty_inherited_properties = dirty_properties;
+	dirty_inherited_properties &= StyleSheetSpecification::GetRegisteredInheritedPropertyBitList();
 
-	// Static to avoid repeated allocations, requires non-recursion.
-	static PropertyNameList dirty_inherited;
-	dirty_inherited.clear();
-
-	bool all_inherited_dirty = false;
-
-	if (dirty_properties.IsAllDirty())
+	if (!dirty_inherited_properties.Empty())
 	{
-		all_inherited_dirty = true;
-	}
-	else
-	{
-		// Find all dirtied properties which are also inherited
-		const auto& inherited_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
-		for (PropertyId id : inherited_properties)
-			dirty_inherited.insert(id);
-	}
-
-	if (all_inherited_dirty || dirty_inherited.size() > 0)
-	{
-		// Dirty inherited properties in our children
-		const auto& dirty_inherited_ref = (all_inherited_dirty ? StyleSheetSpecification::GetRegisteredInheritedProperties() : dirty_inherited);
 		for (int i = 0; i < element->GetNumChildren(true); i++)
 		{
 			auto child = element->GetChild(i);
-			child->GetStyle()->dirty_properties.Insert(dirty_inherited_ref);
+			child->GetStyle()->dirty_properties |= dirty_inherited_properties;
 		}
 	}
 	

@@ -93,6 +93,34 @@ public:
 		return dirty_set.test(0);
 	}
 
+	// Union with another set
+	DirtyPropertyList& operator|=(const DirtyPropertyList& other)
+	{
+		dirty_set |= other.dirty_set;
+		if (other.dirty_custom_properties.size() > 0)
+			dirty_custom_properties.insert(other.dirty_custom_properties.begin(), other.dirty_custom_properties.end());
+		return *this;
+	}
+
+	// Intersection with another set
+	DirtyPropertyList& operator&=(const DirtyPropertyList& other)
+	{
+		dirty_set &= other.dirty_set;
+		if (dirty_custom_properties.size() > 0 && other.dirty_custom_properties.size() > 0 && !dirty_set.test(0))
+		{
+			for (auto it = dirty_custom_properties.begin(); it != dirty_custom_properties.end();)
+				if (other.dirty_custom_properties.count(*it) == 0)
+					it = dirty_custom_properties.erase(it);
+				else
+					++it;
+		}
+		else
+		{
+			dirty_custom_properties.clear();
+		}
+		return *this;
+	}
+
 	PropertyNameList ToPropertyList() const {
 		if (IsAllDirty())
 			return StyleSheetSpecification::GetRegisteredProperties();
