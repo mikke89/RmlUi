@@ -38,24 +38,16 @@ class StyleSheetNode;
 class ElementDefinitionIterator;
 
 /**
+	ElementDefinition provides an element's applicable properties from its stylesheet.
+
 	@author Peter Curry
  */
 
 class ElementDefinition : public ReferenceCountable
 {
 public:
-	enum PseudoClassVolatility
-	{
-		STABLE,					// pseudo-class has no volatility
-		FONT_VOLATILE,			// pseudo-class may impact on font effects
-		STRUCTURE_VOLATILE		// pseudo-class may impact on definitions of child elements
-	};
-
-	ElementDefinition();
+	ElementDefinition(const std::vector< const StyleSheetNode* >& style_sheet_nodes);
 	virtual ~ElementDefinition();
-
-	/// Initialises the element definition from a list of style sheet nodes.
-	void Initialise(const std::vector< const StyleSheetNode* >& style_sheet_nodes);
 
 	/// Returns a specific property from the element definition's base properties.
 	/// @param[in] name The name of the property to return.

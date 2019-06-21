@@ -28,25 +28,19 @@
 #include "precompiled.h"
 #include "ElementDefinition.h"
 #include "StyleSheetNode.h"
-#include "../../Include/Rocket/Core/Log.h"
 
 namespace Rocket {
 namespace Core {
 
-ElementDefinition::ElementDefinition()
+ElementDefinition::ElementDefinition(const std::vector< const StyleSheetNode* >& style_sheet_nodes)
 {
+	// Initialises the element definition from the list of style sheet nodes.
+	for (size_t i = 0; i < style_sheet_nodes.size(); ++i)
+		properties.Merge(style_sheet_nodes[i]->GetProperties());
 }
 
 ElementDefinition::~ElementDefinition()
 {
-}
-
-// Initialises the element definition from a list of style sheet nodes.
-void ElementDefinition::Initialise(const std::vector< const StyleSheetNode* >& style_sheet_nodes)
-{
-	// Merge the default (non-pseudo-class) properties.
-	for (size_t i = 0; i < style_sheet_nodes.size(); ++i)
-		properties.Merge(style_sheet_nodes[i]->GetProperties());
 }
 
 // Returns a specific property from the element definition's base properties.

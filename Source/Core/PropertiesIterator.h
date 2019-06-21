@@ -42,26 +42,20 @@ class PropertiesIterator {
 public:
 	using ValueType = std::pair<PropertyId, const Property&>;
 	using PropertyIt = PropertyMap::const_iterator;
-	using PseudoIt = PseudoClassPropertyDictionary::const_iterator;
 
-	PropertiesIterator(const PseudoClassList& element_pseudo_classes, PropertyIt it_style, PropertyIt it_style_end, PseudoIt it_pseudo, PseudoIt it_pseudo_end, PropertyIt it_base, PropertyIt it_base_end)
-		: element_pseudo_classes(&element_pseudo_classes), it_style(it_style), it_style_end(it_style_end), it_pseudo(it_pseudo), it_pseudo_end(it_pseudo_end), it_base(it_base), it_base_end(it_base_end)
+	PropertiesIterator(const PseudoClassList& element_pseudo_classes, PropertyIt it_style, PropertyIt it_style_end, PropertyIt it_definition, PropertyIt it_definition_end)
+		: element_pseudo_classes(&element_pseudo_classes), it_style(it_style), it_style_end(it_style_end), it_definition(it_definition), it_definition_end(it_definition_end)
 	{
-		if (this->element_pseudo_classes->empty())
-			this->it_pseudo = this->it_pseudo_end;
 		ProceedToNextValid();
 	}
 
 	PropertiesIterator& operator++() {
 		if (it_style != it_style_end)
-			// First, we iterate over the local properties
+			// We iterate over the local style properties first
 			++it_style;
-		else if (it_pseudo != it_pseudo_end)
-			// Then, we iterate over the properties given by the pseudo classes in the element's definition
-			++i_pseudo_class;
 		else
-			// Finally, we iterate over the base properties given by the element's definition
-			++it_base;
+			// .. and then over the properties given by the element's definition
+			++it_definition;
 		// If we reached the end of one of the iterator pairs, we need to continue iteration on the next pair.
 		ProceedToNextValid();
 		return *this;
@@ -71,9 +65,7 @@ public:
 	{
 		if (it_style != it_style_end)
 			return { it_style->first, it_style->second };
-		if (it_pseudo != it_pseudo_end)
-			return { it_pseudo->first, it_pseudo->second[i_pseudo_class].second };
-		return { it_base->first, it_base->second };
+		return { it_definition->first, it_definition->second };
 	}
 
 	bool AtEnd() const {
@@ -83,8 +75,7 @@ public:
 	// Return the list of pseudo classes which defines the current property, possibly null.
 	const PseudoClassList* GetPseudoClassList() const
 	{
-		if (it_style == it_style_end && it_pseudo != it_pseudo_end)
-			return &it_pseudo->second[i_pseudo_class].first;
+		// TODO: Not implemented
 		return nullptr;
 	}
 
@@ -92,9 +83,7 @@ private:
 	const PseudoClassList* element_pseudo_classes;
 	DirtyPropertyList iterated_properties;
 	PropertyIt it_style, it_style_end;
-	PseudoIt it_pseudo, it_pseudo_end;
-	PropertyIt it_base, it_base_end;
-	size_t i_pseudo_class = 0;
+	PropertyIt it_definition, it_definition_end;
 	bool at_end = false;
 
 	inline bool IsDirtyRemove(PropertyId id)
@@ -107,21 +96,17 @@ private:
 		return false;
 	}
 
-	inline void ProceedToNextValid() {
+	inline void ProceedToNextValid() 
+	{
 		for (; it_style != it_style_end; ++it_style)
 		{
 			if (IsDirtyRemove(it_style->first))
 				return;
 		}
 
-		// Iterate over all the pseudo classes and match the applicable rules
-		for (; it_pseudo != it_pseudo_end; ++it_pseudo)
+		for (; it_definition != it_definition_end; ++it_definition)
 		{
-		}
-
-		for (; it_base != it_base_end; ++it_base)
-		{
-			if (IsDirtyRemove(it_base->first))
+			if (IsDirtyRemove(it_definition->first))
 				return;
 		}
 

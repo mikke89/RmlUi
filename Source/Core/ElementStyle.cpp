@@ -71,10 +71,10 @@ const ElementDefinition* ElementStyle::GetDefinition() const
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& local_properties, const ElementDefinition* definition)
+const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition)
 {
 	// Check for overriding local properties.
-	const Property* property = local_properties.GetProperty(id);
+	const Property* property = inline_properties.GetProperty(id);
 	if (property)
 		return property;
 
@@ -86,9 +86,9 @@ const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDict
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& local_properties, const ElementDefinition* definition)
+const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties, const ElementDefinition* definition)
 {
-	const Property* local_property = GetLocalProperty(id, local_properties, definition);
+	const Property* local_property = GetLocalProperty(id, inline_properties, definition);
 	if (local_property)
 		return local_property;
 
@@ -117,13 +117,13 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 
 // Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary& local_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition)
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary& inline_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition)
 {
 	ROCKET_ASSERT(element);
 	if (!old_definition || !new_definition || properties.empty())
 		return;
 
-	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, local_properties, new_definition))
+	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, inline_properties, new_definition))
 	{
 		auto transition_list = transition_property->Get<TransitionList>();
 
@@ -133,7 +133,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
-				const Property* start_value = GetProperty(transition.id, element, local_properties, old_definition);
+				const Property* start_value = GetProperty(transition.id, element, inline_properties, old_definition);
 				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition);
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
@@ -203,7 +203,7 @@ void ElementStyle::UpdateDefinition()
 			if (new_definition)
 				new_definition->GetDefinedProperties(properties);
 
-			TransitionPropertyChanges(element, properties, local_properties, definition, new_definition);
+			TransitionPropertyChanges(element, properties, inline_properties, definition, new_definition);
 
 			if (definition)
 				definition->RemoveReference();
@@ -318,7 +318,7 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	if (!new_property.definition)
 		return false;
 
-	local_properties.SetProperty(id, new_property);
+	inline_properties.SetProperty(id, new_property);
 	DirtyProperty(id);
 
 	return true;
@@ -327,10 +327,10 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 // Removes a local property override on the element.
 void ElementStyle::RemoveProperty(PropertyId id)
 {
-	int size_before = local_properties.GetNumProperties();
-	local_properties.RemoveProperty(id);
+	int size_before = inline_properties.GetNumProperties();
+	inline_properties.RemoveProperty(id);
 
-	if(local_properties.GetNumProperties() != size_before)
+	if(inline_properties.GetNumProperties() != size_before)
 		DirtyProperty(id);
 }
 
@@ -339,18 +339,18 @@ void ElementStyle::RemoveProperty(PropertyId id)
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(PropertyId id) const
 {
-	return GetProperty(id, element, local_properties, definition);
+	return GetProperty(id, element, inline_properties, definition);
 }
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 {
-	return GetLocalProperty(id, local_properties, definition);
+	return GetLocalProperty(id, inline_properties, definition);
 }
 
 const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 {
-	return local_properties.GetProperties();
+	return inline_properties.GetProperties();
 }
 
 // Returns the active style sheet for this element. This may be NULL.
@@ -481,22 +481,18 @@ PropertiesIterator ElementStyle::Iterate() const {
 	static_assert(__cplusplus >= 201402L, "C++14 or higher required, see comment.");
 #endif
 
-	const PropertyMap& property_map = local_properties.GetProperties();
+	const PropertyMap& property_map = inline_properties.GetProperties();
 	auto it_style_begin = property_map.begin();
 	auto it_style_end = property_map.end();
 
-	PseudoClassPropertyDictionary::const_iterator it_pseudo{}, it_pseudo_end{};
-	PropertyMap::const_iterator it_base{}, it_base_end{};
+	PropertyMap::const_iterator it_definition{}, it_definition_end{};
 	if (definition)
 	{
-		static const PseudoClassPropertyDictionary pseudo;
-		const PropertyMap& base = definition->GetProperties().GetProperties();
-		it_pseudo = pseudo.begin();
-		it_pseudo_end = pseudo.end();
-		it_base = base.begin();
-		it_base_end = base.end();
+		const PropertyMap& definition_properties = definition->GetProperties().GetProperties();
+		it_definition = definition_properties.begin();
+		it_definition_end = definition_properties.end();
 	}
-	return PropertiesIterator(pseudo_classes, it_style_begin, it_style_end, it_pseudo, it_pseudo_end, it_base, it_base_end);
+	return PropertiesIterator(pseudo_classes, it_style_begin, it_style_end, it_definition, it_definition_end);
 }
 
 // Sets a single property as dirty.

@@ -274,16 +274,12 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 
 	// Create the new definition and add it to our cache. One reference count is added, bringing the total to two; one
 	// for the element that requested it, and one for the cache.
-	ElementDefinition* new_definition = new ElementDefinition();
-	new_definition->Initialise(applicable_nodes);
-
-
+	ElementDefinition* new_definition = new ElementDefinition(applicable_nodes);
 
 	// Add to the node cache.
 	node_cache[seed] = new_definition;
 	new_definition->AddReference();
 
-	applicable_nodes.clear();
 	return new_definition;
 }
 

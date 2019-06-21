@@ -132,7 +132,7 @@ using SmallUnorderedSet = chobo::flat_set< T >;
 // Container types for some common lists
 typedef std::vector< Element* > ElementList;
 typedef std::vector< ElementAnimation > ElementAnimationList;
-typedef SmallOrderedSet< String > PseudoClassList; /* Ordered reason: See ElementDefinition */
+typedef SmallUnorderedSet< String > PseudoClassList;
 typedef SmallUnorderedSet< String > AttributeNameList;
 typedef SmallOrderedSet< PropertyId > PropertyNameList;
 typedef UnorderedMap< PropertyId, Property > PropertyMap;
@@ -147,15 +147,6 @@ struct TransitionList;
 
 using DecoratorList = std::vector<std::shared_ptr<Decorator>>;
 using AnimationList = std::vector<Animation>;
-
-// Pseudo class properties
-// Defines for the optimised version of the pseudo-class properties (note the difference from the
-// PseudoClassPropertyMap defined in StyleSheetNode.h ... bit clumsy). Here the properties are stored as a list
-// of definitions against each property name in specificity-order, along with the pseudo-class requirements for each
-// one. This makes it much more straight-forward to query at run-time.
-typedef std::pair< PseudoClassList, Property > PseudoClassProperty;
-typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef SmallUnorderedMap< PropertyId, PseudoClassPropertyList > PseudoClassPropertyDictionary;
 
 }
 }

@@ -142,9 +142,9 @@ private:
 	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
 	void DirtyInheritedProperties(const PropertyNameList& properties);
 
-	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary & local_properties, const ElementDefinition * definition);
-	static const Property* GetProperty(PropertyId id, const Element * element, const PropertyDictionary & local_properties, const ElementDefinition * definition);
-	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, const PropertyDictionary & local_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition);
+	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary & inline_properties, const ElementDefinition * definition);
+	static const Property* GetProperty(PropertyId id, const Element * element, const PropertyDictionary & inline_properties, const ElementDefinition * definition);
+	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, const PropertyDictionary & inline_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition);
 
 	// Element these properties belong to
 	Element* element;
@@ -155,8 +155,8 @@ private:
 	PseudoClassList pseudo_classes;
 
 	// Any properties that have been overridden in this element.
-	PropertyDictionary local_properties;
-	// The definition of this element; if this is NULL one will be fetched from the element's style.
+	PropertyDictionary inline_properties;
+	// The definition of this element, provides applicable properties from the stylesheet.
 	ElementDefinition* definition;
 	// Set if a new element definition should be fetched from the style.
 	bool definition_dirty;

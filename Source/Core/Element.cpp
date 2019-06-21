@@ -1801,7 +1801,9 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		if (all_dirty || 
 			changed_properties.find(PropertyId::Display) != changed_properties.end())
 		{
-			// TODO: Is this really necessary. It has problems, because any change to definitions as a result of this will only be reflected on the next frame.
+			// Due to structural pseudo-classes, this may change the element definition in siblings and parent.
+			// However, the definitions will only be changed on the next update loop which may result in jarring behavior for one @frame.
+			// A possible workaround is to add the parent to a list of elements that need to be updated again.
 			if (parent != NULL)
 				parent->DirtyStructure();
 		}
@@ -1839,7 +1841,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		changed_properties.find(PropertyId::Top) != changed_properties.end() ||
 		changed_properties.find(PropertyId::Bottom) != changed_properties.end())
 	{
-		// TODO: This should happen during/after layout, as the containing box is not properly defined yet
+		// TODO: This should happen during/after layout, as the containing box is not properly defined yet. Off-by-one @frame issue.
 		UpdateOffset();
 		DirtyOffset();
 	}
