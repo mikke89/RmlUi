@@ -269,16 +269,15 @@ void ElementInfo::UpdateSourceElement()
 				{
 					name = "style";
 					value = "";
-					auto local_properties = source_element->GetLocalProperties();
-					if (local_properties)
+					const Core::PropertyMap& style_properties = source_element->GetLocalStyleProperties();
+
+					for (auto nvp : style_properties)
 					{
-						for (auto nvp : *local_properties)
-						{
-							auto& prop_name = Core::StyleSheetSpecification::GetPropertyName(nvp.first);
-							auto prop_value = nvp.second.ToString();
-							value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
-						}
+						auto& prop_name = Core::StyleSheetSpecification::GetPropertyName(nvp.first);
+						auto prop_value = nvp.second.ToString();
+						value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
 					}
+
 					if (!value.empty())
 						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}

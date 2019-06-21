@@ -52,8 +52,7 @@ namespace Core {
 
 ElementStyle::ElementStyle(Element* _element) : dirty_properties(true)
 {
-	local_properties = NULL;
-	definition = NULL;
+	definition = nullptr;
 	element = _element;
 
 	definition_dirty = true;
@@ -61,54 +60,48 @@ ElementStyle::ElementStyle(Element* _element) : dirty_properties(true)
 
 ElementStyle::~ElementStyle()
 {
-	if (local_properties != NULL)
-		delete local_properties;
-
-	if (definition != NULL)
+	if (definition)
 		definition->RemoveReference();
 }
 
 
-const ElementDefinition* ElementStyle::GetDefinition()
+const ElementDefinition* ElementStyle::GetDefinition() const
 {
 	return definition;
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(PropertyId id, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& local_properties, const ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	// Check for overriding local properties.
-	if (local_properties != NULL)
-	{
-		const Property* property = local_properties->GetProperty(id);
-		if (property != NULL)
-			return property;
-	}
+	const Property* property = local_properties.GetProperty(id);
+	if (property)
+		return property;
 
 	// Check for a property defined in an RCSS rule.
-	if (definition != NULL)
+	if (definition)
 		return definition->GetProperty(id, pseudo_classes);
 
-	return NULL;
+	return nullptr;
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(PropertyId id, Element* element, PropertyDictionary* local_properties, ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& local_properties, const ElementDefinition* definition, const PseudoClassList& pseudo_classes)
 {
 	const Property* local_property = GetLocalProperty(id, local_properties, definition, pseudo_classes);
-	if (local_property != NULL)
+	if (local_property)
 		return local_property;
 
 	// Fetch the property specification.
 	const PropertyDefinition* property = StyleSheetSpecification::GetProperty(id);
-	if (property == NULL)
-		return NULL;
+	if (!property)
+		return nullptr;
 
 	// If we can inherit this property, return our parent's property.
 	if (property->IsInherited())
 	{
 		Element* parent = element->GetParentNode();
-		while (parent != NULL)
+		while (parent)
 		{
 			const Property* parent_property = parent->GetStyle()->GetLocalProperty(id);
 			if (parent_property)
@@ -124,7 +117,7 @@ const Property* ElementStyle::GetProperty(PropertyId id, Element* element, Prope
 
 // Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, PropertyDictionary* local_properties, ElementDefinition* old_definition, ElementDefinition* new_definition,
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary& local_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition,
 	const PseudoClassList& pseudo_classes_before, const PseudoClassList& pseudo_classes_after)
 {
 	ROCKET_ASSERT(element);
@@ -137,10 +130,12 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 
 		if (!transition_list.none)
 		{
+			static const PropertyDictionary empty_properties;
+
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
 				const Property* start_value = GetProperty(transition.id, element, local_properties, old_definition, pseudo_classes_before);
-				const Property* target_value = GetProperty(transition.id, element, nullptr, new_definition, pseudo_classes_after);
+				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition, pseudo_classes_after);
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
 				return transition_added;
@@ -246,9 +241,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 
 	if (changed)
 	{
-		element->GetElementDecoration()->DirtyDecorators();
-
-		if (definition != NULL)
+		if (definition)
 		{
 			PropertyNameList properties;
 			definition->GetDefinedProperties(properties, pseudo_classes, pseudo_class);
@@ -344,13 +337,10 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	Property new_property = property;
 
 	new_property.definition = StyleSheetSpecification::GetProperty(id);
-	if (new_property.definition == NULL)
+	if (!new_property.definition)
 		return false;
 
-	if (local_properties == NULL)
-		local_properties = new PropertyDictionary();
-
-	local_properties->SetProperty(id, new_property);
+	local_properties.SetProperty(id, new_property);
 	DirtyProperty(id);
 
 	return true;
@@ -359,38 +349,44 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 // Removes a local property override on the element.
 void ElementStyle::RemoveProperty(PropertyId id)
 {
-	if (local_properties == NULL)
-		return;
+	int size_before = local_properties.GetNumProperties();
+	local_properties.RemoveProperty(id);
 
-	if (local_properties->GetProperty(id) != NULL)
-	{
-		local_properties->RemoveProperty(id);
+	if(local_properties.GetNumProperties() != size_before)
 		DirtyProperty(id);
-	}
 }
 
 
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(PropertyId id)
+const Property* ElementStyle::GetProperty(PropertyId id) const
 {
 	return GetProperty(id, element, local_properties, definition, pseudo_classes);
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(PropertyId id)
+const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 {
 	return GetLocalProperty(id, local_properties, definition, pseudo_classes);
 }
 
-const PropertyMap * ElementStyle::GetLocalProperties() const
+const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 {
-	if (local_properties)
-		return &local_properties->GetProperties();
-	return NULL;
+	return local_properties.GetProperties();
 }
 
-float ElementStyle::ResolveNumberLengthPercentage(const Property * property, RelativeTarget relative_target)
+// Returns the active style sheet for this element. This may be NULL.
+StyleSheet* ElementStyle::GetStyleSheet() const
+{
+	ElementDocument* document = element->GetOwnerDocument();
+	if (document)
+		return document->GetStyleSheet();
+
+	return nullptr;
+}
+
+
+float ElementStyle::ResolveNumberLengthPercentage(const Property * property, RelativeTarget relative_target) const
 {
 	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
 	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
@@ -444,7 +440,7 @@ float ElementStyle::ResolveNumberLengthPercentage(const Property * property, Rel
 }
 
 // Resolves one of this element's properties.
-float ElementStyle::ResolveLengthPercentage(const Property* property, float base_value)
+float ElementStyle::ResolveLengthPercentage(const Property* property, float base_value) const
 {
 	if (!property)
 	{
@@ -462,16 +458,6 @@ float ElementStyle::ResolveLengthPercentage(const Property* property, float base
 	float result = ResolveValue(computed, base_value);
 
 	return result;
-}
-
-// Returns the active style sheet for this element. This may be NULL.
-StyleSheet* ElementStyle::GetStyleSheet() const
-{
-	ElementDocument* document = element->GetOwnerDocument();
-	if (document != NULL)
-		return document->GetStyleSheet();
-
-	return NULL;
 }
 
 void ElementStyle::DirtyDefinition()
@@ -517,14 +503,10 @@ PropertiesIterator ElementStyle::Iterate() const {
 	static_assert(__cplusplus >= 201402L, "C++14 or higher required, see comment.");
 #endif
 
-	PropertyMap::const_iterator it_style_begin{}, it_style_end{};
-	if (local_properties)
-	{
-		const PropertyMap& property_map = local_properties->GetProperties();
-		it_style_begin = property_map.begin();
-		it_style_end = property_map.end();
-	}
-	
+	const PropertyMap& property_map = local_properties.GetProperties();
+	auto it_style_begin = property_map.begin();
+	auto it_style_end = property_map.end();
+
 	PseudoClassPropertyDictionary::const_iterator it_pseudo{}, it_pseudo_end{};
 	PropertyMap::const_iterator it_base{}, it_base_end{};
 	if (definition)

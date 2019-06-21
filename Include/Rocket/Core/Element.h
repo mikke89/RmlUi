@@ -220,9 +220,9 @@ public:
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
 	const Property* GetLocalProperty(PropertyId id);
-	/// Returns the local properties, excluding any properties from local class.
+	/// Returns the local style properties, excluding any properties from local class.
 	/// @return The local properties for this element, or NULL if no properties defined
-	const PropertyMap* GetLocalProperties();
+	const PropertyMap& GetLocalStyleProperties();
 	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling the base value.
 	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.

@@ -659,9 +659,9 @@ const Property* Element::GetLocalProperty(PropertyId id)
 	return style->GetLocalProperty(id);
 }
 
-const PropertyMap * Element::GetLocalProperties()
+const PropertyMap& Element::GetLocalStyleProperties()
 {
-	return style->GetLocalProperties();
+	return style->GetLocalStyleProperties();
 }
 
 // Resolves one of this element's style.
