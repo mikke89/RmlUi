@@ -354,9 +354,10 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	const String* ancestor_id = nullptr;
 	static std::vector<const String*> ancestor_classes;
 	static std::vector<const String*> ancestor_pseudo_classes;
+	static std::vector< const StyleSheetNode* > ancestor_structural_pseudo_classes;
 	ancestor_classes.clear();
 	ancestor_pseudo_classes.clear();
-	std::vector< const StyleSheetNode* > ancestor_structural_pseudo_classes;
+	ancestor_structural_pseudo_classes.clear();
 
 	while (parent_node != NULL && parent_node->type != TAG)
 	{
