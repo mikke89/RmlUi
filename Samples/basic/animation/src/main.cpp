@@ -50,8 +50,8 @@ public:
 		{
 			{
 				document->GetElementById("title")->SetInnerRML(title);
-				document->SetProperty("left", Property(position.x, Property::PX));
-				document->SetProperty("top", Property(position.y, Property::PX));
+				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
+				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
 				//document->Animate("opacity", Property(0.0f, Property::NUMBER), 2.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true, 1.0f);
 			}
 
@@ -84,7 +84,7 @@ public:
 				auto el = document->GetElementById("exit");
 				PropertyDictionary pd;
 				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "translate(200px, 200px) rotate(1215deg)");
-				el->Animate("transform", *pd.GetProperty("transform"), 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
+				el->Animate("transform", *pd.GetProperty(PropertyId::Transform), 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
 			}
 
 			// Transform tests
@@ -176,7 +176,7 @@ void GameLoop()
 		ff += float(nudge)*0.3f;
 		auto el = window->GetDocument()->GetElementById("exit");
 		auto f = el->GetProperty<float>("margin-left");
-		el->SetProperty("margin-left", Rocket::Core::Property(ff, Rocket::Core::Property::PX));
+		el->SetProperty(Rocket::Core::PropertyId::MarginLeft, Rocket::Core::Property(ff, Rocket::Core::Property::PX));
 		float f_left = el->GetAbsoluteLeft();
 		Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);
 		nudge = 0;

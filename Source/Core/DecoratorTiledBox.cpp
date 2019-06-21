@@ -60,18 +60,13 @@ DecoratorTiledBox::~DecoratorTiledBox()
 }
 
 // Initialises the tiles for the decorator.
-bool DecoratorTiledBox::Initialise(const Tile* _tiles, const String* _texture_names, const String* _rcss_paths)
+bool DecoratorTiledBox::Initialise(const Tile* _tiles, const Texture* _textures)
 {
 	// Load the textures.
 	for (int i = 0; i < 9; i++)
 	{
-		if (!_texture_names[i].empty())
-		{
-			tiles[i] = _tiles[i];
-			tiles[i].texture_index = LoadTexture(_texture_names[i], _rcss_paths[i]);
-			if (tiles[i].texture_index < 0)
-				return false;
-		}
+		tiles[i] = _tiles[i];
+		tiles[i].texture_index = AddTexture(_textures[i]);
 	}
 
 	// If only one side of the left / right edges have been configured, then mirror the tile for the other side.

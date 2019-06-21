@@ -45,24 +45,25 @@ ElementDataGrid::ElementDataGrid(const Rocket::Core::String& tag) : Core::Elemen
 
 	// Create the row for the column headers:
 	header = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridheader", attributes));
-	header->SetProperty("display", Core::Property(Core::Style::Display::Block));
+	header->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
 	header->Initialise(this);
 	AppendChild(header);
 	header->RemoveReference();
 
 	body = Core::Factory::InstanceElement(this, "*", "datagridbody", attributes);
-	body->SetProperty("display", Core::Property(Core::Style::Display::None));
-	body->SetProperty("width", Core::Property(Core::Style::Width::Auto));
+	body->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
+	body->SetProperty(Core::PropertyId::Width, Core::Property(Core::Style::Width::Auto));
 	AppendChild(body);
 	body->RemoveReference();
 
 	body_visible = false;
 
 	root = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridroot", attributes));
-	root->SetProperty("display", Core::Property(Core::Style::Display::None));
+	root->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 	root->Initialise(this);
 
-	SetProperty("overflow", Core::Property(Core::Style::Overflow::Auto));
+	SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Auto));
+	SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Auto));
 
 	new_data_source = "";
 }
@@ -108,7 +109,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 	// The header elements are added to the header row at the top of the table.
 	if (header_element)
 	{
-		header_element->SetProperty("display", Core::Property(Core::Style::Display::InlineBlock));
+		header_element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 
 		// Push all the width properties from the column onto the header element.
 		Rocket::Core::String width = header_element->GetAttribute<Rocket::Core::String>("width", "100%");
@@ -241,7 +242,7 @@ void ElementDataGrid::OnUpdate()
 	
 	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= GetAttribute("min-rows", 0)))
 	{
-		body->SetProperty("display", Core::Property(Core::Style::Display::Block));
+		body->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
 		body_visible = true;
 	}
 }

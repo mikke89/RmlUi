@@ -30,140 +30,46 @@
 
 #include "../../Include/Rocket/Core/Dictionary.h"
 #include "../../Include/Rocket/Core/ReferenceCountable.h"
-#include <map>
-#include "../../Include/Rocket/Core/FontEffect.h"
-#include "StyleSheetNode.h"
 
 namespace Rocket {
 namespace Core {
 
-class Decorator;
-class FontEffect;
+class StyleSheetNode;
 class ElementDefinitionIterator;
 
-typedef SmallUnorderedMap< String, Decorator* > DecoratorMap;
-typedef std::map< StringList, DecoratorMap > PseudoClassDecoratorMap;
-
 /**
+	ElementDefinition provides an element's applicable properties from its stylesheet.
+
 	@author Peter Curry
  */
 
 class ElementDefinition : public ReferenceCountable
 {
 public:
-	enum PseudoClassVolatility
-	{
-		STABLE,					// pseudo-class has no volatility
-		FONT_VOLATILE,			// pseudo-class may impact on font effects
-		STRUCTURE_VOLATILE		// pseudo-class may impact on definitions of child elements
-	};
-
-	ElementDefinition();
+	ElementDefinition(const std::vector< const StyleSheetNode* >& style_sheet_nodes);
 	virtual ~ElementDefinition();
-
-	/// Initialises the element definition from a list of style sheet nodes.
-	void Initialise(const std::vector< const StyleSheetNode* >& style_sheet_nodes, const PseudoClassList& volatile_pseudo_classes, bool structurally_volatile);
 
 	/// Returns a specific property from the element definition's base properties.
 	/// @param[in] name The name of the property to return.
 	/// @param[in] pseudo_classes The pseudo-classes currently active on the calling element.
 	/// @return The property defined against the give name, or NULL if no such property was found.
-	const Property* GetProperty(const String& name, const PseudoClassList& pseudo_classes) const;
+	const Property* GetProperty(PropertyId id) const;
 
 	/// Returns the list of properties this element definition defines for an element with the given set of
 	/// pseudo-classes.
 	/// @param[out] property_names The list to store the defined properties in.
 	/// @param[in] pseudo_classes The pseudo-classes defined on the querying element.
-	void GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes) const;
-	/// Returns the list of properties this element definition has explicit definitions for involving the given
-	/// pseudo-class.
-	/// @param[out] property_names The list of store the newly defined / undefined properties in.
-	/// @param[in] pseudo_classes The list of pseudo-classes currently set on the element (post-change).
-	/// @param[in] pseudo_class The pseudo-class that was just activated or deactivated.
-	void GetDefinedProperties(PropertyNameList& property_names, const PseudoClassList& pseudo_classes, const String& pseudo_class) const;
+	void GetDefinedProperties(PropertyNameList& property_names) const;
 
-	/// Returns the list of the element definition's instanced decorators in the default state.
-	/// @return The list of instanced decorators.
-	const DecoratorMap& GetDecorators() const;
-	/// Returns the map of pseudo-class names to overriding instanced decorators.
-	/// @return The map of the overriding decorators for each pseudo-class.
-	const PseudoClassDecoratorMap& GetPseudoClassDecorators() const;
-
-	/// Appends this definition's font effects (appropriately for the given pseudo classes) into a
-	/// provided map of effects.
-	/// @param[out] font_effects The outgoing map of font effects.
-	/// @param[in] pseudo_classes Pseudo-classes active on the querying element.
-	void GetFontEffects(FontEffectMap& font_effects, const PseudoClassList& pseudo_classes) const;
-
-	/// Returns the volatility of a pseudo-class.
-	/// @param[in] pseudo_class The name of the pseudo-class to check for volatility.
-	/// @return The volatility of the pseudo-class.
-	PseudoClassVolatility GetPseudoClassVolatility(const String& pseudo_class) const;
-
-	/// Returns true if this definition is built from nodes using structural selectors, and therefore is reliant on
-	/// siblings remaining stable.
-	/// @return True if this definition is structurally volatile.
-	bool IsStructurallyVolatile() const;
-
-	/// Returns an iterator to the first property matching the active set of pseudo_classes.
-	ElementDefinitionIterator begin(const StringList& pseudo_classes) const;
-	/// Returns an iterator to the property following the last property matching the active set of pseudo_classes.
-	ElementDefinitionIterator end(const StringList& pseudo_classes) const;
-
-	/// Returns true if the pseudo-class requirement of a rule is met by a list of an element's pseudo-classes.
-	static bool IsPseudoClassRuleApplicable(const StringList& rule_pseudo_classes, const PseudoClassList& element_pseudo_classes);
+	const PropertyDictionary& GetProperties() const { return properties; }
 
 protected:
 	/// Destroys the definition.
 	void OnReferenceDeactivate();
 
 private:
-	typedef std::pair< String, PropertyDictionary > PropertyGroup;
-	typedef SmallUnorderedMap< String, PropertyGroup > PropertyGroupMap;
-
-	typedef std::vector< std::pair< StringList, int > > PseudoClassFontEffectIndex;
-	typedef SmallUnorderedMap< String, PseudoClassFontEffectIndex > FontEffectIndex;
-
-	typedef SmallUnorderedMap< String, PseudoClassVolatility > PseudoClassVolatilityMap;
-
-	// Finds all propery declarations for a group.
-	void BuildPropertyGroup(PropertyGroupMap& groups, const String& group_type, const PropertyDictionary& element_properties, const PropertyGroupMap* default_properties = NULL);
-	// Updates a property dictionary of all properties for a single group.
-	int BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& group_type, const String& group_name, const PropertyDictionary& element_properties);
-
-	// Builds decorator definitions from the parsed properties and instances decorators as
-	// appropriate.
-	void InstanceDecorators(const PseudoClassPropertyMap& merged_pseudo_class_properties);
-	// Attempts to instance a decorator.
-	bool InstanceDecorator(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_class = StringList());
-
-	// Builds font effect definitions from the parsed properties and instances font effects as
-	// appropriate.
-	void InstanceFontEffects(const PseudoClassPropertyMap& merged_pseudo_class_properties);
-	// Attempts to instance a font effect.
-	bool InstanceFontEffect(const String& name, const String& type, const PropertyDictionary& properties, const StringList& pseudo_class = StringList());
-
 	// The attributes for the default state of the element, with no pseudo-classes.
 	PropertyDictionary properties;
-	// The overridden attributes for the element's pseudo-classes.
-	PseudoClassPropertyDictionary pseudo_class_properties;
-
-	// The instanced decorators for this element definition.
-	DecoratorMap decorators;
-	// The overridden decorators for the element's pseudo-classes.
-	PseudoClassDecoratorMap pseudo_class_decorators;
-
-	// The list of every decorator used by this element in every class.
-	FontEffectList font_effects;
-	// For each unique decorator name, this stores (in order of specificity) the name of the
-	// pseudo-class that has a definition for it, and the index into the list of decorators.
-	FontEffectIndex font_effect_index;
-
-	// The list of volatile pseudo-classes in this definition, and how volatile they are.
-	PseudoClassVolatilityMap pseudo_class_volatility;
-
-	// True if this definition has the potential to change as sibling elements are added or removed.
-	bool structurally_volatile;
 };
 
 }

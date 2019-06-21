@@ -143,9 +143,9 @@ bool Plugin::SetContext(Core::Context* context)
 void Plugin::SetVisible(bool visibility)
 {
 	if (visibility)
-		menu_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Visible));
+		menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 	else
-		menu_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+		menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 }
 
 // Returns the visibility of the debugger.
@@ -261,16 +261,16 @@ void Plugin::ProcessEvent(Core::Event& event)
 		if (event.GetTargetElement()->GetId() == "event-log-button")
 		{
 			if (log_element->IsVisible())
-				log_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+				log_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 			else
-				log_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Visible));
+				log_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		}
 		else if (event.GetTargetElement()->GetId() == "debug-info-button")
 		{
 			if (info_element->IsVisible())
-				info_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+				info_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 			else
-				info_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Visible));
+				info_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		}
 		else if (event.GetTargetElement()->GetId() == "outlines-button")
 		{
@@ -297,7 +297,7 @@ bool Plugin::LoadMenuElement()
 		return false;
 
 	menu_element->SetId("rkt-debug-menu");
-	menu_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+	menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	menu_element->SetInnerRML(menu_rml);
 
 	// Remove our reference on the document.
@@ -339,7 +339,7 @@ bool Plugin::LoadInfoElement()
 	if (info_element == NULL)
 		return false;
 
-	info_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+	info_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 
 	if (!info_element->Initialise())
 	{
@@ -360,7 +360,7 @@ bool Plugin::LoadLogElement()
 	if (log_element == NULL)
 		return false;
 
-	log_element->SetProperty("visibility", Core::Property(Core::Style::Visibility::Hidden));
+	log_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 
 	if (!log_element->Initialise())
 	{

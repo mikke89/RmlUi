@@ -32,49 +32,35 @@
 namespace Rocket {
 namespace Core {
 
-DecoratorTiledVerticalInstancer::DecoratorTiledVerticalInstancer()
+DecoratorTiledVerticalInstancer::DecoratorTiledVerticalInstancer() : DecoratorTiledInstancer(3)
 {
 	RegisterTileProperty("top-image", false);
 	RegisterTileProperty("bottom-image", false);
 	RegisterTileProperty("center-image", true);
+	RegisterShorthand("decorator", "top-image, center-image, bottom-image", ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorTiledVerticalInstancer::~DecoratorTiledVerticalInstancer()
 {
 }
 
-// Instances a box decorator.
-Decorator* DecoratorTiledVerticalInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+std::shared_ptr<Decorator> DecoratorTiledVerticalInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	ROCKET_UNUSED(name);
 
-	DecoratorTiled::Tile tiles[3];
-	String texture_names[3];
-	String rcss_paths[3];
+	constexpr size_t num_tiles = 3;
 
-	GetTileProperties(tiles[0], texture_names[0], rcss_paths[0], properties, "top-image");
-	GetTileProperties(tiles[1], texture_names[1], rcss_paths[1], properties, "bottom-image");
-	GetTileProperties(tiles[2], texture_names[2], rcss_paths[2], properties, "center-image");
+	DecoratorTiled::Tile tiles[num_tiles];
+	Texture textures[num_tiles];
 
-	DecoratorTiledVertical* decorator = new DecoratorTiledVertical();
-	if (decorator->Initialise(tiles, texture_names, rcss_paths))
-		return decorator;
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, interface))
+		return nullptr;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
-}
+	auto decorator = std::make_shared<DecoratorTiledVertical>();
+	if (!decorator->Initialise(tiles, textures))
+		return nullptr;
 
-// Releases the given decorator.
-void DecoratorTiledVerticalInstancer::ReleaseDecorator(Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorTiledVerticalInstancer::Release()
-{
-	delete this;
+	return decorator;
 }
 
 }

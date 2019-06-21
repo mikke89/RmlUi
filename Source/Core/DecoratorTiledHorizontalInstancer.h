@@ -41,15 +41,10 @@ class DecoratorTiledHorizontalInstancer : public DecoratorTiledInstancer
 {
 public:
 	DecoratorTiledHorizontalInstancer();
-	virtual ~DecoratorTiledHorizontalInstancer();
+	~DecoratorTiledHorizontalInstancer();
 
 	/// Instances a horizontal decorator.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties);
-	/// Releases the given decorator.
-	virtual void ReleaseDecorator(Decorator* decorator);
-
-	/// Releases the instancer.
-	virtual void Release();
+	std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) override;
 };
 
 }

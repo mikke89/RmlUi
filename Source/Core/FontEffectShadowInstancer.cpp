@@ -32,13 +32,11 @@
 namespace Rocket {
 namespace Core {
 
-FontEffectShadowInstancer::FontEffectShadowInstancer()
+FontEffectShadowInstancer::FontEffectShadowInstancer() : offset_x(PropertyId::Invalid), offset_y(PropertyId::Invalid)
 {
-	RegisterProperty("offset-x", "0", true)
-		.AddParser("length");
-	RegisterProperty("offset-y", "0", true)
-		.AddParser("length");
-	RegisterShorthand("offset", "offset-x, offset-y");
+	offset_x = RegisterProperty("offset-x", "0", true).AddParser("length").GetId();
+	offset_y = RegisterProperty("offset-y", "0", true).AddParser("length").GetId();
+	RegisterShorthand("offset", "offset-x, offset-y", ShorthandType::FallThrough);
 }
 
 FontEffectShadowInstancer::~FontEffectShadowInstancer()
@@ -51,8 +49,8 @@ FontEffect* FontEffectShadowInstancer::InstanceFontEffect(const String& ROCKET_U
 	ROCKET_UNUSED(name);
 
 	Vector2i offset;
-	offset.x = Math::RealToInteger(properties.GetProperty("offset-x")->Get< float >());
-	offset.y = Math::RealToInteger(properties.GetProperty("offset-y")->Get< float >());
+	offset.x = Math::RealToInteger(properties.GetProperty(offset_x)->Get< float >());
+	offset.y = Math::RealToInteger(properties.GetProperty(offset_y)->Get< float >());
 
 	FontEffectShadow* font_effect = new FontEffectShadow();
 	if (font_effect->Initialise(offset))

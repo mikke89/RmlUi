@@ -34,6 +34,7 @@
 #include <limits>
 #include "Clock.h"
 #include "ComputeProperty.h"
+#include "DirtyPropertyList.h"
 #include "ElementAnimation.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
@@ -45,6 +46,7 @@
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
 #include "PluginRegistry.h"
+#include "PropertiesIterator.h"
 #include "Pool.h"
 #include "StyleSheetParser.h"
 #include "XMLParseTools.h"
@@ -146,7 +148,6 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	stacking_context_dirty = false;
 
 	structure_dirty = false;
-	parent_structure_dirty = false;
 
 	computed_values_are_default_initialized = true;
 	box_dirty = false;
@@ -213,6 +214,7 @@ void Element::Update(float dp_ratio)
 	UpdateStructure();
 
 	style->UpdateDefinition();
+	scroll->Update();
 
 	UpdateTransition();
 	UpdateAnimation();
@@ -228,17 +230,17 @@ void Element::Update(float dp_ratio)
 			document_values = &doc->GetComputedValues();
 
 		// Compute values and clear dirty properties
-		DirtyPropertyList dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
+		auto dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
 
 		computed_values_are_default_initialized = false;
 
 		// Computed values are just calculated and can safely be used in OnPropertyChange.
 		// However, new properties set during this call will not be available until the next update loop.
 		// Enable ROCKET_DEBUG to get a warning when this happens.
-		if (dirty_properties.AllDirty())
+		if (dirty_properties.IsAllDirty())
 			OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
 		else if(!dirty_properties.Empty())
-			OnPropertyChange(dirty_properties.GetList());
+			OnPropertyChange(dirty_properties.ToPropertyList());
 
 #ifdef ROCKET_DEBUG
 		if (style->AnyPropertiesDirty())
@@ -254,8 +256,6 @@ void Element::Update(float dp_ratio)
 	}
 
 	UpdateTransformState();
-
-	scroll->Update();
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio);
@@ -370,7 +370,7 @@ String Element::GetAddress(bool include_pseudo_classes) const
 	String classes = style->GetClassNames();
 	if (!classes.empty())
 	{
-		classes = Replace(classes, ".", " ");
+		classes = Replace(classes, '.', ' ');
 		address += ".";
 		address += classes;
 	}
@@ -505,7 +505,7 @@ void Element::SetBox(const Box& box)
 		box_dirty = true;
 		background->DirtyBackground();
 		border->DirtyBorder();
-		decoration->DirtyDecorators(true);
+		decoration->DirtyDecorators();
 	}
 }
 
@@ -517,7 +517,7 @@ void Element::AddBox(const Box& box)
 	box_dirty = true;
 	background->DirtyBackground();
 	border->DirtyBorder();
-	decoration->DirtyDecorators(true);
+	decoration->DirtyDecorators();
 }
 
 // Returns one of the boxes describing the size of the element.
@@ -603,36 +603,65 @@ FontFaceHandle* Element::GetFontFaceHandle() const
 // Sets a local property override on the element.
 bool Element::SetProperty(const String& name, const String& value)
 {
-	return style->SetProperty(name, value);
+	// The name may be a shorthand giving us multiple underlying properties
+	PropertyDictionary properties;
+	if (!StyleSheetSpecification::ParsePropertyDeclaration(properties, name, value))
+	{
+		Log::Message(Log::LT_WARNING, "Syntax error parsing inline property declaration '%s: %s;'.", name.c_str(), value.c_str());
+		return false;
+	}
+	for (auto& property : properties.GetProperties())
+	{
+		if (!style->SetProperty(property.first, property.second))
+			return false;
+	}
+	return true;
 }
 
 // Removes a local property override on the element.
 void Element::RemoveProperty(const String& name)
 {
-	style->RemoveProperty(name);
+	style->RemoveProperty(StyleSheetSpecification::GetPropertyId(name));
+}
+
+// Removes a local property override on the element.
+void Element::RemoveProperty(PropertyId id)
+{
+	style->RemoveProperty(id);
 }
 
 // Sets a local property override on the element to a pre-parsed value.
-bool Element::SetProperty(const String& name, const Property& property)
+bool Element::SetProperty(PropertyId id, const Property& property)
 {
-	return style->SetProperty(name, property);
+	return style->SetProperty(id, property);
 }
 
 // Returns one of this element's properties.
 const Property* Element::GetProperty(const String& name)
 {
-	return style->GetProperty(name);	
+	return style->GetProperty(StyleSheetSpecification::GetPropertyId(name));
+}
+
+// Returns one of this element's properties.
+const Property* Element::GetProperty(PropertyId id)
+{
+	return style->GetProperty(id);
 }
 
 // Returns one of this element's properties.
 const Property* Element::GetLocalProperty(const String& name)
 {
-	return style->GetLocalProperty(name);
+	return style->GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));
 }
 
-const PropertyMap * Element::GetLocalProperties()
+const Property* Element::GetLocalProperty(PropertyId id)
 {
-	return style->GetLocalProperties();
+	return style->GetLocalProperty(id);
+}
+
+const PropertyMap& Element::GetLocalStyleProperties()
+{
+	return style->GetLocalStyleProperties();
 }
 
 // Resolves one of this element's style.
@@ -870,15 +899,11 @@ Vector2f Element::Project(const Vector2f& point) const noexcept
 	}
 }
 
-ElementStyleIterator Element::IteratePropertiesBegin() const
+PropertiesIteratorView Element::IterateLocalProperties() const
 {
-	return style->begin();
+	return PropertiesIteratorView(std::make_unique<PropertiesIterator>(style->Iterate()));
 }
 
-ElementStyleIterator Element::IteratePropertiesEnd() const
-{
-	return style->end();
-}
 
 // Sets or removes a pseudo-class on the element.
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)
@@ -977,12 +1002,6 @@ void Element::SetAttributes(const ElementAttributes& _attributes)
 int Element::GetNumAttributes() const
 {
 	return (int)attributes.size();
-}
-
-// Iterates over all decorators attached to the element.
-bool Element::IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data)
-{
-	return decoration->IterateDecorators(index, pseudo_classes, name, decorator, decorator_data);
 }
 
 // Gets the name of the element.
@@ -1725,7 +1744,7 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		Rocket::Core::PropertyMap property_map = properties.GetProperties();
 		for (Rocket::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
 		{
-			SetProperty((*i).first, (*i).second);
+			style->SetProperty((*i).first, (*i).second);
 		}
 	}
 }
@@ -1764,9 +1783,11 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		}
 	}
 
+
+
 	// Update the visibility.
-	if (all_dirty || changed_properties.find(VISIBILITY) != changed_properties.end() ||
-		changed_properties.find(DISPLAY) != changed_properties.end())
+	if (all_dirty || changed_properties.find(PropertyId::Visibility) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Display) != changed_properties.end())
 	{
 		bool new_visibility = (element_meta->computed_values.display != Style::Display::None && element_meta->computed_values.visibility == Style::Visibility::Visible);
 			
@@ -1779,8 +1800,11 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		}
 
 		if (all_dirty || 
-			changed_properties.find(DISPLAY) != changed_properties.end())
+			changed_properties.find(PropertyId::Display) != changed_properties.end())
 		{
+			// Due to structural pseudo-classes, this may change the element definition in siblings and parent.
+			// However, the definitions will only be changed on the next update loop which may result in jarring behavior for one @frame.
+			// A possible workaround is to add the parent to a list of elements that need to be updated again.
 			if (parent != NULL)
 				parent->DirtyStructure();
 		}
@@ -1788,11 +1812,11 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Fetch a new font face if it has been changed.
 	if (all_dirty ||
-		changed_properties.find(FONT_FAMILY) != changed_properties.end() ||
-		changed_properties.find(FONT_CHARSET) != changed_properties.end() ||
-		changed_properties.find(FONT_WEIGHT) != changed_properties.end() ||
-		changed_properties.find(FONT_STYLE) != changed_properties.end() ||
-		changed_properties.find(FONT_SIZE) != changed_properties.end())
+		changed_properties.find(PropertyId::FontFamily) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontCharset) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontWeight) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontStyle) != changed_properties.end() ||
+		changed_properties.find(PropertyId::FontSize) != changed_properties.end())
 	{
 		// Fetch the new font face.
 		FontFaceHandle* new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
@@ -1813,19 +1837,19 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Update the position.
 	if (all_dirty ||
-		changed_properties.find(LEFT) != changed_properties.end() ||
-		changed_properties.find(RIGHT) != changed_properties.end() ||
-		changed_properties.find(TOP) != changed_properties.end() ||
-		changed_properties.find(BOTTOM) != changed_properties.end())
+		changed_properties.find(PropertyId::Left) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Right) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Top) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Bottom) != changed_properties.end())
 	{
-		// TODO: This should happen during/after layout, as the containing box is not properly defined yet
+		// TODO: This should happen during/after layout, as the containing box is not properly defined yet. Off-by-one @frame issue.
 		UpdateOffset();
 		DirtyOffset();
 	}
 
 	// Update the z-index.
 	if (all_dirty || 
-		changed_properties.find(Z_INDEX) != changed_properties.end())
+		changed_properties.find(PropertyId::ZIndex) != changed_properties.end())
 	{
 		Style::ZIndex z_index_property = element_meta->computed_values.z_index;
 
@@ -1870,62 +1894,69 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Dirty the background if it's changed.
     if (all_dirty ||
-        changed_properties.find(BACKGROUND_COLOR) != changed_properties.end() ||
-		changed_properties.find(OPACITY) != changed_properties.end() ||
-		changed_properties.find(IMAGE_COLOR) != changed_properties.end()) {
-        background->DirtyBackground();
-        decoration->DirtyDecorators(true);
+        changed_properties.find(PropertyId::BackgroundColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
+		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
+		background->DirtyBackground();
     }
+	
+	// Dirty the decoration if it's changed.
+	if (all_dirty ||
+		changed_properties.find(PropertyId::Decorator) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
+		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
+		decoration->DirtyDecorators();
+	}
 
 	// Dirty the border if it's changed.
 	if (all_dirty || 
-		changed_properties.find(BORDER_TOP_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_RIGHT_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_BOTTOM_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_LEFT_WIDTH) != changed_properties.end() ||
-		changed_properties.find(BORDER_TOP_COLOR) != changed_properties.end() ||
-		changed_properties.find(BORDER_RIGHT_COLOR) != changed_properties.end() ||
-		changed_properties.find(BORDER_BOTTOM_COLOR) != changed_properties.end() ||
-		changed_properties.find(BORDER_LEFT_COLOR) != changed_properties.end() ||
-		changed_properties.find(OPACITY) != changed_properties.end())
+		changed_properties.find(PropertyId::BorderTopWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderRightWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderBottomWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderLeftWidth) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderTopColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderRightColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderBottomColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::BorderLeftColor) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Opacity) != changed_properties.end())
 		border->DirtyBorder();
 
 	
 	// Check for clipping state changes
 	if (all_dirty ||
-		changed_properties.find(CLIP) != changed_properties.end() ||
-		changed_properties.find(OVERFLOW_X) != changed_properties.end() ||
-		changed_properties.find(OVERFLOW_Y) != changed_properties.end())
+		changed_properties.find(PropertyId::Clip) != changed_properties.end() ||
+		changed_properties.find(PropertyId::OverflowX) != changed_properties.end() ||
+		changed_properties.find(PropertyId::OverflowY) != changed_properties.end())
 	{
 		clipping_state_dirty = true;
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
 	if (all_dirty ||
-		changed_properties.find(PERSPECTIVE) != changed_properties.end() ||
-		changed_properties.find(PERSPECTIVE_ORIGIN_X) != changed_properties.end() ||
-		changed_properties.find(PERSPECTIVE_ORIGIN_Y) != changed_properties.end())
+		changed_properties.find(PropertyId::Perspective) != changed_properties.end() ||
+		changed_properties.find(PropertyId::PerspectiveOriginX) != changed_properties.end() ||
+		changed_properties.find(PropertyId::PerspectiveOriginY) != changed_properties.end())
 	{
 		DirtyTransformState(true, false, false);
 	}
 
 	// Check for `transform' and `transform-origin' changes
 	if (all_dirty ||
-		changed_properties.find(TRANSFORM) != changed_properties.end() ||
-		changed_properties.find(TRANSFORM_ORIGIN_X) != changed_properties.end() ||
-		changed_properties.find(TRANSFORM_ORIGIN_Y) != changed_properties.end() ||
-		changed_properties.find(TRANSFORM_ORIGIN_Z) != changed_properties.end())
+		changed_properties.find(PropertyId::Transform) != changed_properties.end() ||
+		changed_properties.find(PropertyId::TransformOriginX) != changed_properties.end() ||
+		changed_properties.find(PropertyId::TransformOriginY) != changed_properties.end() ||
+		changed_properties.find(PropertyId::TransformOriginZ) != changed_properties.end())
 	{
 		DirtyTransformState(false, true, false);
 	}
 
 	// Check for `animation' changes
-	if (all_dirty || changed_properties.find(ANIMATION) != changed_properties.end())
+	if (all_dirty || changed_properties.find(PropertyId::Animation) != changed_properties.end())
 	{
 		dirty_animation = true;
 	}
 	// Check for `transition' changes
-	if (all_dirty || changed_properties.find(TRANSITION) != changed_properties.end())
+	if (all_dirty || changed_properties.find(PropertyId::Transition) != changed_properties.end())
 	{
 		dirty_transition = true;
 	}
@@ -2269,33 +2300,17 @@ void Element::DirtyStackingContext()
 
 void Element::DirtyStructure()
 {
-	// Clear the cached owner document
 	structure_dirty = true;
-}
-
-void Element::DirtyParentStructure()
-{
-	parent_structure_dirty = true;
 }
 
 void Element::UpdateStructure()
 {
-	if (parent_structure_dirty)
+	if (structure_dirty)
 	{
-		// If children depend on structured selectors, they may need to be updated
-		const ElementDefinition* element_definition = GetStyle()->GetDefinition();
-		if (element_definition != NULL && element_definition->IsStructurallyVolatile())
-		{
-			GetStyle()->DirtyDefinition();
-		}
-	}
-	if (structure_dirty || parent_structure_dirty)
-	{
-		for (size_t i = 0; i < children.size(); ++i)
-			children[i]->DirtyParentStructure();
-
 		structure_dirty = false;
-		parent_structure_dirty = false;
+
+		// If this element or its children depend on structured selectors, they may need to be updated.
+		GetStyle()->DirtyDefinition();
 	}
 }
 
@@ -2303,8 +2318,9 @@ void Element::UpdateStructure()
 bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, const Property* start_value)
 {
 	bool result = false;
+	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
 
-	auto it_animation = StartAnimation(property_name, start_value, num_iterations, alternate_direction, delay, false);
+	auto it_animation = StartAnimation(property_id, start_value, num_iterations, alternate_direction, delay, false);
 	if (it_animation != animations.end())
 	{
 		result = it_animation->AddKey(duration, target_value, *this, tween, true);
@@ -2320,8 +2336,10 @@ bool Element::AddAnimationKey(const String & property_name, const Property & tar
 {
 	ElementAnimation* animation = nullptr;
 
+	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
+
 	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyName() == property_name) {
+		if (existing_animation.GetPropertyId() == property_id) {
 			animation = &existing_animation;
 			break;
 		}
@@ -2335,9 +2353,9 @@ bool Element::AddAnimationKey(const String & property_name, const Property & tar
 }
 
 
-ElementAnimationList::iterator Element::StartAnimation(const String & property_name, const Property* start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property)
+ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property)
 {
-	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == property_name; });
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == property_id; });
 
 	if (it == animations.end())
 	{
@@ -2351,10 +2369,10 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 	{
 		value = *start_value;
 		if (!value.definition)
-			if(auto default_value = GetProperty(property_name))
+			if(auto default_value = GetProperty(property_id))
 				value.definition = default_value->definition;	
 	}
-	else if (auto default_value = GetProperty(property_name))
+	else if (auto default_value = GetProperty(property_id))
 	{
 		value = *default_value;
 	}
@@ -2363,7 +2381,7 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 	{
 		ElementAnimationOrigin origin = (origin_is_animation_property ? ElementAnimationOrigin::Animation : ElementAnimationOrigin::User);
 		double start_time = Clock::GetElapsedTime() + (double)delay;
-		*it = ElementAnimation{ property_name, origin, value, start_time, 0.0f, num_iterations, alternate_direction };
+		*it = ElementAnimation{ property_id, origin, value, start_time, 0.0f, num_iterations, alternate_direction };
 	}
 	else
 	{
@@ -2375,17 +2393,17 @@ ElementAnimationList::iterator Element::StartAnimation(const String & property_n
 }
 
 
-bool Element::AddAnimationKeyTime(const String & property_name, const Property* target_value, float time, Tween tween)
+bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target_value, float time, Tween tween)
 {
 	if (!target_value)
-		target_value = GetProperty(property_name);
+		target_value = style->GetProperty(property_id);
 	if (!target_value)
 		return false;
 
 	ElementAnimation* animation = nullptr;
 
 	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyName() == property_name) {
+		if (existing_animation.GetPropertyId() == property_id) {
 			animation = &existing_animation;
 			break;
 		}
@@ -2400,7 +2418,7 @@ bool Element::AddAnimationKeyTime(const String & property_name, const Property* 
 
 bool Element::StartTransition(const Transition & transition, const Property& start_value, const Property & target_value)
 {
-	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyName() == transition.name; });
+	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == transition.id; });
 
 	if (it != animations.end() && !it->IsTransition())
 		return false;
@@ -2412,7 +2430,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	{
 		// Add transition as new animation
 		animations.push_back(
-			ElementAnimation{ transition.name, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false }
+			ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false }
 		);
 		it = (animations.end() - 1);
 	}
@@ -2423,13 +2441,13 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
 		duration = duration * f;
 		// Replace old transition
-		*it = ElementAnimation{ transition.name, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false };
+		*it = ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false };
 	}
 
 	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);
 
 	if (result)
-		SetProperty(transition.name, start_value);
+		SetProperty(transition.id, start_value);
 	else
 		animations.erase(it);
 
@@ -2467,7 +2485,7 @@ void Element::UpdateTransition()
 					if (!animation.IsTransition())
 						return false;
 					auto it = std::find_if(transitions.begin(), transitions.end(), 
-						[&animation](const Transition& transition) { return animation.GetPropertyName() == transition.name; }
+						[&animation](const Transition& transition) { return animation.GetPropertyId() == transition.id; }
 					);
 					return it == transitions.end();
 				}
@@ -2476,7 +2494,7 @@ void Element::UpdateTransition()
 
 		// We can decide what to do with ended animations here, just removing them seems to be the CSS approach.
 		for (auto it = it_remove; it != animations.end(); ++it)
-			RemoveProperty(it->GetPropertyName());
+			RemoveProperty(it->GetPropertyId());
 
 		animations.erase(it_remove, animations.end());
 	}
@@ -2503,7 +2521,7 @@ void Element::UpdateAnimation()
 
 				// We can decide what to do with ended animations here, should be consistent with removal of transitions.
 				for (auto it = it_remove; it != animations.end(); ++it)
-					RemoveProperty(it->GetPropertyName());
+					RemoveProperty(it->GetPropertyId());
 
 				animations.erase(it_remove, animations.end());
 			}
@@ -2514,15 +2532,15 @@ void Element::UpdateAnimation()
 				const Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
 				if (keyframes_ptr && keyframes_ptr->blocks.size() >= 1 && !animation.paused)
 				{
-					auto& property_names = keyframes_ptr->property_names;
+					auto& property_ids = keyframes_ptr->property_ids;
 					auto& blocks = keyframes_ptr->blocks;
 
 					bool has_from_key = (blocks[0].normalized_time == 0);
 					bool has_to_key = (blocks.back().normalized_time == 1);
 
 					// If the first key defines initial conditions for a given property, use those values, else, use this element's current values.
-					for (auto& property : property_names)
-						StartAnimation(property, (has_from_key ? blocks[0].properties.GetProperty(property) : nullptr), animation.num_iterations, animation.alternate, animation.delay, true);
+					for (PropertyId id : property_ids)
+						StartAnimation(id, (has_from_key ? blocks[0].properties.GetProperty(id) : nullptr), animation.num_iterations, animation.alternate, animation.delay, true);
 
 					// Need to skip the first and last keys if they set the initial and end conditions, respectively.
 					for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
@@ -2535,8 +2553,8 @@ void Element::UpdateAnimation()
 
 					// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
 					float time = animation.duration;
-					for (auto& property : property_names)
-						AddAnimationKeyTime(property, (has_to_key ? blocks.back().properties.GetProperty(property) : nullptr), time, animation.tween);
+					for (PropertyId id : property_ids)
+						AddAnimationKeyTime(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), time, animation.tween);
 				}
 			}
 		}
@@ -2553,7 +2571,7 @@ void Element::AdvanceAnimations()
 		{
 			Property property = animation.UpdateAndGetProperty(time, *this);
 			if (property.unit != Property::UNKNOWN)
-				SetProperty(animation.GetPropertyName(), property);
+				SetProperty(animation.GetPropertyId(), property);
 		}
 
 		// Remove completed animations
@@ -2567,7 +2585,7 @@ void Element::AdvanceAnimations()
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
 			dictionary_list.emplace_back();
-			dictionary_list.back().emplace("property", it->GetPropertyName());
+			dictionary_list.back().emplace("property", StyleSheetSpecification::GetPropertyName(it->GetPropertyId()));
 			is_transition.push_back(it->IsTransition());
 		}
 

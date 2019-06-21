@@ -1250,7 +1250,7 @@ public:
             // it will be the end() iterator.
             mKeyVals = reinterpret_cast<Node*>(&mMask);
             // we need to point somewhere thats 0 as long as we're empty
-            mInfo = reinterpret_cast<uint8_t*>(mMask);
+            mInfo = reinterpret_cast<uint8_t*>(&mMask);
             Hash::operator=(static_cast<const Hash&>(o));
             KeyEqual::operator=(static_cast<const KeyEqual&>(o));
             DataPool::operator=(static_cast<DataPool const&>(o));

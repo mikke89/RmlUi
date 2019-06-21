@@ -160,8 +160,8 @@ void ElementImage::OnPropertyChange(const PropertyNameList& changed_properties)
 {
     Element::OnPropertyChange(changed_properties);
 
-    if (changed_properties.find(IMAGE_COLOR) != changed_properties.end() ||
-        changed_properties.find(OPACITY) != changed_properties.end()) {
+    if (changed_properties.find(PropertyId::ImageColor) != changed_properties.end() ||
+        changed_properties.find(PropertyId::Opacity) != changed_properties.end()) {
         GenerateGeometry();
     }
 }

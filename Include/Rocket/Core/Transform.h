@@ -81,7 +81,6 @@ private:
 };
 
 
-ROCKETCORE_API String ToString(const Transform& transform);
 
 }
 }

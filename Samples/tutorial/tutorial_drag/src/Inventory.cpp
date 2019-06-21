@@ -8,8 +8,8 @@ Inventory::Inventory(const Rocket::Core::String& title, const Rocket::Core::Vect
 	if (document != NULL)
 	{
 		document->GetElementById("title")->SetInnerRML(title);
-		document->SetProperty("left", Rocket::Core::Property(position.x, Rocket::Core::Property::PX));
-		document->SetProperty("top", Rocket::Core::Property(position.y, Rocket::Core::Property::PX));
+		document->SetProperty(Rocket::Core::PropertyId::Left, Rocket::Core::Property(position.x, Rocket::Core::Property::PX));
+		document->SetProperty(Rocket::Core::PropertyId::Top, Rocket::Core::Property(position.y, Rocket::Core::Property::PX));
 		document->Show();
 	}
 }

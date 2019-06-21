@@ -57,9 +57,9 @@ void DocumentHeader::MergePaths(StringList& target, const StringList& source, co
 	for (size_t i = 0; i < source.size(); i++)
 	{
 		String joined_path;
-		Rocket::Core::GetSystemInterface()->JoinPath(joined_path, Replace(source_path, "|", ":"), Replace(source[i], "|", ":"));
+		Rocket::Core::GetSystemInterface()->JoinPath(joined_path, Replace(source_path, '|', ':'), Replace(source[i], '|', ':'));
 
-		target.push_back(Replace(joined_path, ":", "|"));
+		target.push_back(Replace(joined_path, ':', '|'));
 	}
 }
 

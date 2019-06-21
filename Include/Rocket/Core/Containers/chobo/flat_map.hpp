@@ -456,6 +456,12 @@ bool operator!=(const flat_map<Key, T, Compare, Container>& a, const flat_map<Ke
     return a.container() != b.container();
 }
 
+template <typename Key, typename T, typename Compare, typename Container>
+bool operator<(const flat_map<Key, T, Compare, Container>& a, const flat_map<Key, T, Compare, Container>& b)
+{
+	return a.container() < b.container();
+}
+
 }
 }
 }

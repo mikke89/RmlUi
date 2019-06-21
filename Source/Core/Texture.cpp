@@ -66,7 +66,7 @@ bool Texture::Load(const String& source, const String& source_path)
 String Texture::GetSource() const
 {
 	if (resource == NULL)
-		return NULL;
+		return String();
 
 	return resource->GetSource();
 }
@@ -100,6 +100,16 @@ const Texture& Texture::operator=(const Texture& copy)
 		resource->AddReference();
 
 	return *this;
+}
+
+bool Texture::operator==(const Texture& other) const
+{
+	return resource == other.resource;
+}
+
+Texture::operator bool() const
+{
+	return static_cast<bool>(resource);
 }
 
 }

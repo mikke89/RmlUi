@@ -39,12 +39,34 @@ class PropertyDefinition;
 	@author Peter Curry
  */
 
-struct PropertyShorthandDefinition
-{
-	typedef std::vector< std::pair< String, const PropertyDefinition* > > PropertyDefinitionList;
 
-	PropertyDefinitionList properties;
-	PropertySpecification::ShorthandType type;
+
+struct ShorthandItem {
+	ShorthandItem() : type(ShorthandItemType::Invalid), property_id(PropertyId::Invalid), property_definition(nullptr) {}
+	ShorthandItem(PropertyId id, const PropertyDefinition* definition) : type(ShorthandItemType::Property), property_id(id), property_definition(definition) {}
+	ShorthandItem(ShorthandId id, const ShorthandDefinition* definition) : type(ShorthandItemType::Shorthand), shorthand_id(id), shorthand_definition(definition) {}
+
+	ShorthandItemType type;
+	union {
+		struct {
+			PropertyId property_id;
+			const PropertyDefinition* property_definition;
+		};
+		struct {
+			ShorthandId shorthand_id;
+			const ShorthandDefinition* shorthand_definition;
+		};
+	};
+};
+
+// A list of shorthands or properties
+typedef std::vector< ShorthandItem > ShorthandItemList;
+
+struct ShorthandDefinition
+{
+	ShorthandId id;
+	ShorthandItemList items; 
+	ShorthandType type;
 };
 
 }

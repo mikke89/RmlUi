@@ -32,10 +32,9 @@
 namespace Rocket {
 namespace Core {
 
-FontEffectOutlineInstancer::FontEffectOutlineInstancer()
+FontEffectOutlineInstancer::FontEffectOutlineInstancer() : id_width(PropertyId::Invalid)
 {
-	RegisterProperty("width", "1", true)
-		.AddParser("length");
+	id_width = RegisterProperty("width", "1", true).AddParser("length").GetId();
 }
 
 FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
@@ -47,7 +46,7 @@ FontEffect* FontEffectOutlineInstancer::InstanceFontEffect(const String& ROCKET_
 {
 	ROCKET_UNUSED(name);
 
-	float width = properties.GetProperty("width")->Get< float >();
+	float width = properties.GetProperty(id_width)->Get< float >();
 
 	FontEffectOutline* font_effect = new FontEffectOutline();
 	if (font_effect->Initialise(Math::RealToInteger(width)))

@@ -57,7 +57,7 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
-class ElementStyleIterator;
+class PropertiesIteratorView;
 class FontFaceHandle;
 class PropertyDictionary;
 class RenderInterface;
@@ -197,16 +197,18 @@ public:
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
-	bool SetProperty(const String& name, const Property& property);
+	bool SetProperty(PropertyId id, const Property& property);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
 	void RemoveProperty(const String& name);
+	void RemoveProperty(PropertyId id);
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if no property exists with the given name.
 	const Property* GetProperty(const String& name);		
+	const Property* GetProperty(PropertyId id);		
 	/// Returns the values of one of this element's properties.		
 	/// @param[in] name The name of the property to get.
 	/// @return The value of this property.
@@ -217,9 +219,10 @@ public:
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
-	/// Returns the local properties, excluding any properties from local class.
+	const Property* GetLocalProperty(PropertyId id);
+	/// Returns the local style properties, excluding any properties from local class.
 	/// @return The local properties for this element, or NULL if no properties defined
-	const PropertyMap* GetLocalProperties();
+	const PropertyMap& GetLocalStyleProperties();
 	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling the base value.
 	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
@@ -257,12 +260,10 @@ public:
 	/// @return True if a new animation key was added.
 	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
 	
-	/// Iterators for the properties defined on this element.
-	/// @warning Modifying the element's properties or classes invalidates the iterators.
+	/// Iterator for the local (non-inherited) properties defined on this element.
+	/// @warning Modifying the element's properties or classes invalidates the iterator.
 	/// @return Iterator to the first property defined on this element.
-	ElementStyleIterator IteratePropertiesBegin() const;
-	/// @return Iterator to the one-past-the-last property defined on this element.
-	ElementStyleIterator IteratePropertiesEnd() const;
+	PropertiesIteratorView IterateLocalProperties() const;
 	///@}
 
 	/** @name Pseudo-classes
@@ -318,20 +319,6 @@ public:
 	/// Returns the number of attributes on the element.
 	/// @return The number of attributes on the element.
 	int GetNumAttributes() const;
-	//@}
-
-	/** @name Decorators
-	 */
-	//@{
-	/// Iterates over all decorators attached to the element. Note that all decorators are iterated
-	/// over, not just active ones.
-	/// @param[inout] index Index to fetch. This is incremented after the fetch.
-	/// @param[out] pseudo_classes The pseudo-classes the decorator required to be active before it renders.
-	/// @param[out] name The name of the decorator at the specified index.
-	/// @param[out] decorator The decorator at the specified index.
-	/// @param[out] decorator_data This element's handle to any data is has stored against the decorator.
-	/// @return True if a decorator was successfully fetched, false if not.
-	bool IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data);
 	//@}
 
 	/// Gets the outer-most focus element down the tree from this node.
@@ -643,17 +630,16 @@ private:
 	void DirtyStackingContext();
 
 	void DirtyStructure();
-	void DirtyParentStructure();
 	void UpdateStructure();
 
 	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed);
 	void UpdateTransformState();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property);
+	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property);
 
 	/// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
-	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
+	bool AddAnimationKeyTime(PropertyId property_id, const Property * target_value, float time, Tween tween);
 
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
@@ -740,7 +726,6 @@ private:
 	bool stacking_context_dirty;
 
 	bool structure_dirty;
-	bool parent_structure_dirty;
 
 	bool computed_values_are_default_initialized;
 	bool box_dirty;

@@ -31,59 +31,74 @@
 #include "../../Include/Rocket/Core/Log.h"
 #include "../../Include/Rocket/Core/PropertyDefinition.h"
 #include "../../Include/Rocket/Core/PropertyDictionary.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
 
 namespace Rocket {
 namespace Core {
 
-PropertySpecification::PropertySpecification()
+PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) : 
+	// Increment reserve numbers by one because the 'invalid' property occupies the first element
+	properties(reserve_num_properties + 1, nullptr), shorthands(reserve_num_shorthands + 1, nullptr), property_map(reserve_num_properties + 1), shorthand_map(reserve_num_shorthands + 1)
 {
+	property_names.reserve(reserve_num_properties);
 }
 
 PropertySpecification::~PropertySpecification()
 {
-	for (PropertyMap::iterator iterator = properties.begin(); iterator != properties.end(); ++iterator)
-		delete (*iterator).second;
-
-	for (ShorthandMap::iterator iterator = shorthands.begin(); iterator != shorthands.end(); ++iterator)
-		delete (*iterator).second;
+	for (PropertyDefinition* p : properties)
+		delete p;
+	for (ShorthandDefinition* s : shorthands)
+		delete s;
 }
 
 // Registers a property with a new definition.
-PropertyDefinition& PropertySpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
+PropertyDefinition& PropertySpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id)
 {
-	String lower_case_name = ToLower(property_name);
+	if (id == PropertyId::Invalid)
+		id = property_map.GetOrCreateId(property_name);
+	else
+		property_map.AddPair(id, property_name);
 
-	// Create the property and validate the default value.
-	PropertyDefinition* property_definition = new PropertyDefinition(default_value, inherited, forces_layout);
+	size_t index = (size_t)id;
+	ROCKET_ASSERT(index < (size_t)INT16_MAX);
 
-	// Delete any existing property.
-	PropertyMap::iterator iterator = properties.find(lower_case_name);
-	if (iterator != properties.end())
+	if (index < properties.size())
 	{
-		delete (*iterator).second;
+		// We don't want to owerwrite an existing entry.
+		if (properties[index])
+		{
+			Log::Message(Log::LT_ERROR, "While registering property '%s': The property is already registered, ignoring.", property_name.c_str());
+			return *properties[index];
+		}
 	}
 	else
 	{
-		property_names.insert(lower_case_name);
-		if (inherited)
-		{
-			inherited_property_names.insert(lower_case_name);
-		}
+		// Resize vector to hold the new index
+		properties.resize((index*3)/2 + 1, nullptr);
 	}
 
-	properties[lower_case_name] = property_definition;
+	// Create and insert the new property
+	PropertyDefinition* property_definition = new PropertyDefinition(id, default_value, inherited, forces_layout);
+
+	properties[index] = property_definition;
+	property_names.insert(id);
+	if (inherited)
+		inherited_property_names.insert(id);
+
 	return *property_definition;
 }
 
 // Returns a property definition.
+const PropertyDefinition* PropertySpecification::GetProperty(PropertyId id) const
+{
+	if (id == PropertyId::Invalid || (size_t)id >= properties.size())
+		return nullptr;
+
+	return properties[(size_t)id];
+}
+
 const PropertyDefinition* PropertySpecification::GetProperty(const String& property_name) const
 {
-	PropertyMap::const_iterator iterator = properties.find(property_name);
-	if (iterator == properties.end())
-		return NULL;
-
-	return (*iterator).second;
+	return GetProperty(property_map.GetId(property_name));
 }
 
 // Fetches a list of the names of all registered property definitions.
@@ -99,234 +114,268 @@ const PropertyNameList& PropertySpecification::GetRegisteredInheritedProperties(
 }
 
 // Registers a shorthand property definition.
-bool PropertySpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
+ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id)
 {
-	StringList properties;
-	StringUtilities::ExpandString(properties, ToLower(property_names));
+	if (id == ShorthandId::Invalid)
+		id = shorthand_map.GetOrCreateId(shorthand_name);
+	else
+		shorthand_map.AddPair(id, shorthand_name);
 
-	if (properties.empty())
-		return false;
+	StringList property_list;
+	StringUtilities::ExpandString(property_list, ToLower(property_names));
+	ShorthandItemIdList id_list;
+	id_list.reserve(property_list.size());
 
-	String lower_case_name = ToLower(shorthand_name);
+	for (auto& name : property_list)
+	{
+		PropertyId property_id = property_map.GetId(name);
+		if (property_id != PropertyId::Invalid)
+			id_list.emplace_back(property_id);
+		else
+		{
+			ShorthandId shorthand_id = shorthand_map.GetId(name);
+			if (shorthand_id != ShorthandId::Invalid)
+				id_list.emplace_back(shorthand_id);
+		}
+	}
+
+	if (id_list.empty() || id_list.size() != property_list.size())
+		return ShorthandId::Invalid;
+
+	if (id_list.empty())
+		return ShorthandId::Invalid;
 
 	// Construct the new shorthand definition and resolve its properties.
-	PropertyShorthandDefinition* property_shorthand = new PropertyShorthandDefinition();
-	for (size_t i = 0; i < properties.size(); i++)
+	std::unique_ptr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());
+	for (size_t i = 0; i < id_list.size(); i++)
 	{
-		const PropertyDefinition* property = GetProperty(properties[i]);
-		bool shorthand_found = false;
-
-		if (property == NULL && type == RECURSIVE)
+		ShorthandItem item;
+		if (id_list[i].type == ShorthandItemType::Property)
 		{
-			// See if recursive type points to another shorthand instead
-			const PropertyShorthandDefinition* shorthand = GetShorthand(properties[i]);
-			shorthand_found = (shorthand != NULL);
+			const PropertyDefinition* property = GetProperty(id_list[i].property_id);
+			if(property)
+				item = ShorthandItem(id_list[i].property_id, property);
+		}
+		else if (id_list[i].type == ShorthandItemType::Shorthand && (type == ShorthandType::Recursive || type == ShorthandType::RecursiveCommaSeparated))
+		{
+			// The recursive types (and only those) can hold other shorthands
+			const ShorthandDefinition* shorthand = GetShorthand(id_list[i].shorthand_id);
+			if (shorthand)
+				item = ShorthandItem(id_list[i].shorthand_id, shorthand);
 		}
 
-		if (property == NULL && !shorthand_found)
+		if (item.type == ShorthandItemType::Invalid)
 		{
-			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.c_str(), properties[i].c_str());
-			delete property_shorthand;
-
-			return false;
+			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.c_str(), property_list[i].c_str());
+			return ShorthandId::Invalid;
 		}
-		property_shorthand->properties.push_back(PropertyShorthandDefinition::PropertyDefinitionList::value_type(properties[i], property));
+		property_shorthand->items.push_back(item);
 	}
 
-	if (type == AUTO)
+	property_shorthand->id = id;
+	property_shorthand->type = type;
+
+	const size_t index = (size_t)id;
+	ROCKET_ASSERT(index < (size_t)INT16_MAX);
+
+	if (index < shorthands.size())
 	{
-		if (properties.size() == 4 &&
-			properties[0].find("-top") != String::npos &&
-			properties[1].find("-right") != String::npos &&
-			properties[2].find("-bottom") != String::npos &&
-			properties[3].find("-left") != String::npos)
-			property_shorthand->type = BOX;
-		else
-			property_shorthand->type = FALL_THROUGH;
+		// We don't want to owerwrite an existing entry.
+		if (shorthands[index])
+		{
+			Log::Message(Log::LT_ERROR, "The shorthand '%s' already exists, ignoring.", shorthand_name.c_str());
+			return ShorthandId::Invalid;
+		}
 	}
 	else
-		property_shorthand->type = type;
+	{
+		// Resize vector to hold the new index
+		shorthands.resize((index * 3) / 2 + 1, nullptr);
+	}
 
-	shorthands[lower_case_name] = property_shorthand;
-	return true;
+	shorthands[index] = property_shorthand.release();
+	return id;
 }
 
 // Returns a shorthand definition.
-const PropertyShorthandDefinition* PropertySpecification::GetShorthand(const String& shorthand_name) const
+const ShorthandDefinition* PropertySpecification::GetShorthand(ShorthandId id) const
 {
-	ShorthandMap::const_iterator iterator = shorthands.find(shorthand_name);
-	if (iterator == shorthands.end())
-		return NULL;
+	if (id == ShorthandId::Invalid || (size_t)id >= shorthands.size())
+		return nullptr;
 
-	return (*iterator).second;
+	return shorthands[(size_t)id];
+}
+
+const ShorthandDefinition* PropertySpecification::GetShorthand(const String& shorthand_name) const
+{
+	return GetShorthand(shorthand_map.GetId(shorthand_name));
+}
+
+bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number) const
+{
+	// Try as a property first
+	PropertyId property_id = property_map.GetId(property_name);
+	if (property_id != PropertyId::Invalid)
+		return ParsePropertyDeclaration(dictionary, property_id, property_value, source_file, source_line_number);
+
+	// Then, as a shorthand
+	ShorthandId shorthand_id = shorthand_map.GetId(property_name);
+	if (shorthand_id != ShorthandId::Invalid)
+		return ParseShorthandDeclaration(dictionary, shorthand_id, property_value, source_file, source_line_number);
+
+	return false;
+}
+
+bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file, int source_line_number) const
+{
+	// Parse as a single property.
+	const PropertyDefinition* property_definition = GetProperty(property_id);
+	if (!property_definition)
+		return false;
+
+	StringList property_values;
+	if (!ParsePropertyValues(property_values, property_value, false) || property_values.size() == 0)
+		return false;
+
+	Property new_property;
+	new_property.source = source_file;
+	new_property.source_line_number = source_line_number;
+	if (!property_definition->ParseValue(new_property, property_values[0]))
+		return false;
+	
+	dictionary.SetProperty(property_id, new_property);
+	return true;
 }
 
 // Parses a property declaration, setting any parsed and validated properties on the given dictionary.
-bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number) const
+bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value, const String& source_file, int source_line_number) const
 {
-	String lower_case_name = ToLower(property_name);
-
-	// Attempt to parse as a single property.
-	const PropertyDefinition* property_definition = GetProperty(lower_case_name);
-
 	StringList property_values;
-	if (!ParsePropertyValues(property_values, property_value, property_definition == NULL) || property_values.size() == 0)
+	if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
 		return false;
 
-	if (property_definition != NULL)
-	{
-		Property new_property;
-		new_property.source = source_file;
-		new_property.source_line_number = source_line_number;
-		if (property_definition->ParseValue(new_property, property_values[0]))
-		{
-			dictionary.SetProperty(lower_case_name, new_property);
-			return true;
-		}
-
+	// Parse as a shorthand.
+	const ShorthandDefinition* shorthand_definition = GetShorthand(shorthand_id);
+	if (!shorthand_definition)
 		return false;
-	}
 
-	// Try as a shorthand.
-	const PropertyShorthandDefinition* shorthand_definition = GetShorthand(lower_case_name);
-	if (shorthand_definition != NULL)
+	// If this definition is a 'box'-style shorthand (x-top, x-right, x-bottom, x-left, etc) and there are fewer
+	// than four values
+	if (shorthand_definition->type == ShorthandType::Box &&
+		property_values.size() < 4)
 	{
-		// If this definition is a 'box'-style shorthand (x-top, x-right, x-bottom, x-left, etc) and there are fewer
-		// than four values
-		if (shorthand_definition->type == BOX &&
-			property_values.size() < 4)
+		// This array tells which property index each side is parsed from
+		std::array<int, 4> box_side_to_value_index = { 0,0,0,0 };
+		switch (property_values.size())
 		{
-			switch (property_values.size())
-			{
-				// Only one value is defined, so it is parsed onto all four sides.
-				case 1:
-				{
-					for (int i = 0; i < 4; i++)
-					{
-						Property new_property;
-						if (!shorthand_definition->properties[i].second->ParseValue(new_property, property_values[0]))
-							return false;
-
-						new_property.source = source_file;
-						new_property.source_line_number = source_line_number;
-						dictionary.SetProperty(shorthand_definition->properties[i].first, new_property);
-					}
-				}
-				break;
-
-				// Two values are defined, so the first one is parsed onto the top and bottom value, the second onto
-				// the left and right.
-				case 2:
-				{
-					// Parse the first value into the top and bottom properties.
-					Property new_property;
-					new_property.source = source_file;
-					new_property.source_line_number = source_line_number;
-
-					if (!shorthand_definition->properties[0].second->ParseValue(new_property, property_values[0]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[0].first, new_property);
-
-					if (!shorthand_definition->properties[2].second->ParseValue(new_property, property_values[0]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[2].first, new_property);
-
-					// Parse the second value into the left and right properties.
-					if (!shorthand_definition->properties[1].second->ParseValue(new_property, property_values[1]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[1].first, new_property);
-
-					if (!shorthand_definition->properties[3].second->ParseValue(new_property, property_values[1]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[3].first, new_property);
-				}
-				break;
-
-				// Three values are defined, so the first is parsed into the top value, the second onto the left and
-				// right, and the third onto the bottom.
-				case 3:
-				{
-					// Parse the first value into the top property.
-					Property new_property;
-					new_property.source = source_file;
-					new_property.source_line_number = source_line_number;
-
-					if (!shorthand_definition->properties[0].second->ParseValue(new_property, property_values[0]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[0].first, new_property);
-
-					// Parse the second value into the left and right properties.
-					if (!shorthand_definition->properties[1].second->ParseValue(new_property, property_values[1]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[1].first, new_property);
-
-					if (!shorthand_definition->properties[3].second->ParseValue(new_property, property_values[1]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[3].first, new_property);
-
-					// Parse the third value into the bottom property.
-					if (!shorthand_definition->properties[2].second->ParseValue(new_property, property_values[2]))
-						return false;
-					dictionary.SetProperty(shorthand_definition->properties[2].first, new_property);
-				}
-				break;
-
-				default:	break;
-			}
+		case 1:
+			// Only one value is defined, so it is parsed onto all four sides.
+			box_side_to_value_index = { 0,0,0,0 };
+			break;
+		case 2:
+			// Two values are defined, so the first one is parsed onto the top and bottom value, the second onto
+			// the left and right.
+			box_side_to_value_index = { 0,1,0,1 };
+			break;
+		case 3:
+			// Three values are defined, so the first is parsed into the top value, the second onto the left and
+			// right, and the third onto the bottom.
+			box_side_to_value_index = { 0,1,2,1 };
+			break;
+		default:
+			ROCKET_ERROR;
+			break;
 		}
-		else if (shorthand_definition->type == RECURSIVE)
+
+		for (int i = 0; i < 4; i++)
 		{
-			bool result = false;
-
-			for (size_t i = 0; i < shorthand_definition->properties.size(); i++)
-			{
-				const auto& property_name = shorthand_definition->properties[i].first;
-				result |= ParsePropertyDeclaration(dictionary, property_name, property_value, source_file, source_line_number);
-			}
-
-			if (!result)
+			ROCKET_ASSERT(shorthand_definition->items[i].type == ShorthandItemType::Property);
+			Property new_property;
+			int value_index = box_side_to_value_index[i];
+			if (!shorthand_definition->items[i].property_definition->ParseValue(new_property, property_values[value_index]))
 				return false;
+
+			new_property.source = source_file;
+			new_property.source_line_number = source_line_number;
+			dictionary.SetProperty(shorthand_definition->items[i].property_definition->GetId(), new_property);
 		}
-		else
-		{
-			size_t value_index = 0;
-			size_t property_index = 0;
-
-			for (; value_index < property_values.size() && property_index < shorthand_definition->properties.size(); property_index++)
-			{
-				Property new_property;
-				new_property.source = source_file;
-				new_property.source_line_number = source_line_number;
-
-				if (!shorthand_definition->properties[property_index].second->ParseValue(new_property, property_values[value_index]))
-				{
-					// This definition failed to parse; if we're falling through, try the next property. If there is no
-					// next property, then abort!
-					if (shorthand_definition->type == FALL_THROUGH)
-					{
-						if (property_index + 1 < shorthand_definition->properties.size())
-							continue;
-					}
-					return false;
-				}
-
-				dictionary.SetProperty(shorthand_definition->properties[property_index].first, new_property);
-
-				// Increment the value index, unless we're replicating the last value and we're up to the last value.
-				if (shorthand_definition->type != REPLICATE ||
-					value_index < property_values.size() - 1)
-					value_index++;
-			}
-		}
-
-		return true;
 	}
+	else if (shorthand_definition->type == ShorthandType::Recursive)
+	{
+		bool result = true;
 
-	// Can't find it! Store as an unknown string value.
-	Property new_property(property_value, Property::UNKNOWN);
-	new_property.source = source_file;
-	new_property.source_line_number = source_line_number;
-	dictionary.SetProperty(lower_case_name, new_property);
+		for (size_t i = 0; i < shorthand_definition->items.size(); i++)
+		{
+			const ShorthandItem& item = shorthand_definition->items[i];
+			if (item.type == ShorthandItemType::Property)
+				result &= ParsePropertyDeclaration(dictionary, item.property_id, property_value, source_file, source_line_number);
+			else if (item.type == ShorthandItemType::Shorthand)
+				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, property_value, source_file, source_line_number);
+			else
+				result = false;
+		}
+
+		if (!result)
+			return false;
+	}
+	else if (shorthand_definition->type == ShorthandType::RecursiveCommaSeparated)
+	{
+		bool result = true;
+
+		StringList subvalues;
+		StringUtilities::ExpandString(subvalues, property_value);
+
+		if (shorthand_definition->items.size() != subvalues.size())
+		{
+			// We must declare all subvalues
+			return false;
+		}
+
+		for (size_t i = 0; i < shorthand_definition->items.size(); i++)
+		{
+			const ShorthandItem& item = shorthand_definition->items[i];
+			if (item.type == ShorthandItemType::Property)
+				result &= ParsePropertyDeclaration(dictionary, item.property_id, subvalues[i], source_file, source_line_number);
+			else if (item.type == ShorthandItemType::Shorthand)
+				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, subvalues[i], source_file, source_line_number);
+			else
+				result = false;
+		}
+
+		if (!result)
+			return false;
+	}
+	else
+	{
+		size_t value_index = 0;
+		size_t property_index = 0;
+
+		for (; value_index < property_values.size() && property_index < shorthand_definition->items.size(); property_index++)
+		{
+			Property new_property;
+			new_property.source = source_file;
+			new_property.source_line_number = source_line_number;
+
+			if (!shorthand_definition->items[property_index].property_definition->ParseValue(new_property, property_values[value_index]))
+			{
+				// This definition failed to parse; if we're falling through, try the next property. If there is no
+				// next property, then abort!
+				if (shorthand_definition->type == ShorthandType::FallThrough)
+				{
+					if (property_index + 1 < shorthand_definition->items.size())
+						continue;
+				}
+				return false;
+			}
+
+			dictionary.SetProperty(shorthand_definition->items[property_index].property_id, new_property);
+
+			// Increment the value index, unless we're replicating the last value and we're up to the last value.
+			if (shorthand_definition->type != ShorthandType::Replicate ||
+				value_index < property_values.size() - 1)
+				value_index++;
+		}
+	}
 
 	return true;
 }
@@ -334,12 +383,23 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 // Sets all undefined properties in the dictionary to their defaults.
 void PropertySpecification::SetPropertyDefaults(PropertyDictionary& dictionary) const
 {
-	for (PropertyMap::const_iterator i = properties.begin(); i != properties.end(); ++i)
+	for (PropertyDefinition* property : properties)
 	{
-		if (dictionary.GetProperty((*i).first) == NULL)
-			dictionary.SetProperty((*i).first, *(*i).second->GetDefaultValue());
+		if (property && dictionary.GetProperty(property->GetId()) == NULL)
+			dictionary.SetProperty(property->GetId(), *property->GetDefaultValue());
 	}
 }
+
+String PropertySpecification::PropertiesToString(const PropertyDictionary& dictionary) const
+{
+	String result;
+	for (auto& pair : dictionary.GetProperties())
+	{
+		result += property_map.GetName(pair.first) + ": " + pair.second.ToString() + '\n';
+	}
+	return result;
+}
+
 
 bool PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const
 {

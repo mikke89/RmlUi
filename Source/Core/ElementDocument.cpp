@@ -55,7 +55,7 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 	ForceLocalStackingContext();
 	SetOwnerDocument(this);
 
-	SetProperty(POSITION, Property(Style::Position::Absolute));
+	SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
 }
 
 ElementDocument::~ElementDocument()
@@ -150,7 +150,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	}
 
 	// Hide this document.
-	SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
+	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 }
 
 // Returns the document's context.
@@ -188,7 +188,7 @@ void ElementDocument::SetStyleSheet(StyleSheet* _style_sheet)
 	if (style_sheet != NULL)
 	{
 		style_sheet->AddReference();
-		style_sheet->BuildNodeIndex();
+		style_sheet->BuildNodeIndexAndOptimizeProperties();
 	}
 
 	GetStyle()->DirtyDefinition();
@@ -220,7 +220,7 @@ void ElementDocument::Show(int focus_flags)
 	modal = (focus_flags & MODAL) > 0;
 
 	// Set to visible and switch focus if necessary
-	SetProperty(VISIBILITY, Property(Style::Visibility::Visible));
+	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 	
 	// We should update the document now, otherwise the focusing methods below do not think we are visible
 	// If this turns out to be slow, the more performant approach is just to compute the new visibility property
@@ -237,7 +237,7 @@ void ElementDocument::Show(int focus_flags)
 
 void ElementDocument::Hide()
 {
-	SetProperty(VISIBILITY, Property(Style::Visibility::Hidden));
+	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 
 	// We should update the document now, so that the focusing below will get the correct visibility
 	UpdateDocument();
@@ -382,7 +382,7 @@ bool ElementDocument::IsLayoutDirty()
 
 void ElementDocument::DirtyDpProperties()
 {
-	GetStyle()->DirtyDpProperties();
+	GetStyle()->DirtyPropertiesWithUnitRecursive(Property::DP);
 }
 
 // Repositions the document if necessary.
@@ -391,13 +391,13 @@ void ElementDocument::OnPropertyChange(const PropertyNameList& changed_propertie
 	Element::OnPropertyChange(changed_properties);
 
 	// If the document's font-size has been changed, we need to dirty all rem properties.
-	if (changed_properties.find(FONT_SIZE) != changed_properties.end())
-		GetStyle()->DirtyRemProperties();
+	if (changed_properties.find(PropertyId::FontSize) != changed_properties.end())
+		GetStyle()->DirtyPropertiesWithUnitRecursive(Property::REM);
 
-	if (changed_properties.find(TOP) != changed_properties.end() ||
-		changed_properties.find(RIGHT) != changed_properties.end() ||
-		changed_properties.find(BOTTOM) != changed_properties.end() ||
-		changed_properties.find(LEFT) != changed_properties.end())
+	if (changed_properties.find(PropertyId::Top) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Right) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Bottom) != changed_properties.end() ||
+		changed_properties.find(PropertyId::Left) != changed_properties.end())
 		DirtyPosition();
 }
 

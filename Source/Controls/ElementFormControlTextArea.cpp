@@ -39,8 +39,9 @@ ElementFormControlTextArea::ElementFormControlTextArea(const Rocket::Core::Strin
 {
 	widget = new WidgetTextInputMultiLine(this);
 
-	SetProperty("overflow", Core::Property(Core::Style::Overflow::Auto));
-	SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Prewrap));
+	SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Auto));
+	SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Auto));
+	SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Prewrap));
 }
 
 ElementFormControlTextArea::~ElementFormControlTextArea()
@@ -151,9 +152,9 @@ void ElementFormControlTextArea::OnAttributeChange(const Core::ElementAttributes
 	if (changed_attributes.find("wrap") != changed_attributes.end())
 	{
 		if (GetWordWrap())
-			SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Prewrap));
+			SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Prewrap));
 		else
-			SetProperty("white-space", Core::Property(Core::Style::WhiteSpace::Pre));
+			SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Pre));
 	}
 
 	if (changed_attributes.find("rows") != changed_attributes.end() ||
@@ -172,8 +173,8 @@ void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyNameList& 
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 
-	if (changed_properties.find("color") != changed_properties.end() ||
-		changed_properties.find("background-color") != changed_properties.end())
+	if (changed_properties.find(Core::PropertyId::Color) != changed_properties.end() ||
+		changed_properties.find(Core::PropertyId::BackgroundColor) != changed_properties.end())
 		widget->UpdateSelectionColours();
 }
 

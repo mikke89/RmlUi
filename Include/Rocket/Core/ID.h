@@ -32,6 +32,123 @@
 namespace Rocket {
 namespace Core {
 
+
+enum class ShorthandId : uint16_t
+{
+	Invalid,
+
+	/*
+	  The following values define the shorthand ids for the main stylesheet specification.
+	  These values must not be used in places that have their own property specification,
+	  such as decorators and font-effects.
+	*/
+	Margin,
+	Padding,
+	BorderWidth,
+	BorderColor,
+	BorderTop,
+	BorderRight,
+	BorderBottom,
+	BorderLeft,
+	Border,
+	Overflow,
+	Background,
+	Font,
+	PerspectiveOrigin,
+	TransformOrigin,
+
+	NumDefinedIds,
+	FirstCustomId = NumDefinedIds
+};
+
+
+enum class PropertyId : uint16_t
+{
+	Invalid,
+
+	/*
+	  The following values define the property ids for the main stylesheet specification.
+	  These values must not be used in places that have their own property specification,
+	  such as decorators and font-effects.
+	*/
+	MarginTop,
+	MarginRight,
+	MarginBottom,
+	MarginLeft,
+	PaddingTop,
+	PaddingRight,
+	PaddingBottom,
+	PaddingLeft,
+	BorderTopWidth,
+	BorderRightWidth,
+	BorderBottomWidth,
+	BorderLeftWidth,
+	BorderTopColor,
+	BorderRightColor,
+	BorderBottomColor,
+	BorderLeftColor,
+	Display,
+	Position,
+	Top,
+	Right,
+	Bottom,
+	Left,
+	Float,
+	Clear,
+	ZIndex,
+	Width,
+	MinWidth,
+	MaxWidth,
+	Height,
+	MinHeight,
+	MaxHeight,
+	LineHeight,
+	VerticalAlign,
+	OverflowX,
+	OverflowY,
+	Clip,
+	Visibility,
+	BackgroundColor,
+	Color,
+	ImageColor,
+	FontFamily,
+	FontCharset,
+	FontStyle,
+	FontWeight,
+	FontSize,
+	TextAlign,
+	TextDecoration,
+	TextTransform,
+	WhiteSpace,
+	Cursor,
+	Drag,
+	TabIndex,
+	ScrollbarMargin,
+
+	Perspective,
+	PerspectiveOriginX,
+	PerspectiveOriginY,
+	Transform,
+	TransformOriginX,
+	TransformOriginY,
+	TransformOriginZ,
+
+	Transition,
+	Animation,
+
+	Opacity,
+	PointerEvents,
+	Focus,
+
+	Decorator,
+	FontEffect,
+
+	NumDefinedIds,
+	FirstCustomId = NumDefinedIds
+};
+
+
+
 enum class EventId : uint16_t 
 {
 	Invalid,

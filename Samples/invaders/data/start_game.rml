@@ -13,8 +13,7 @@
 			
 			div#title_bar div#icon
 			{
-				icon-image-s: 230px 281px;
-				icon-image-t: 152px 191px;
+				decorator: image( icon-game );
 			}
 			
 			form div

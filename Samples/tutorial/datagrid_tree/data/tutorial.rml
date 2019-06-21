@@ -3,6 +3,31 @@
 	<link type="text/template" href="template.rml"/>
 	<title>Datagrid Tutorial</title>
 	<style>
+		@spritesheet datagrid-theme
+		{
+			src: ../../../assets/invader.tga;
+			
+			datagridbody-tl: 281px 275px 11px 9px;
+			datagridbody-t:  292px 275px 1px 9px;
+			datagridbody-tr: 294px 275px 11px 9px;
+			datagridbody-l:  281px 283px 11px 1px;
+			datagridbody-c:  292px 283px 1px 1px;
+			datagridbody-bl: 281px 285px 11px 11px;
+			datagridbody-b:  292px 285px 1px 11px;
+			datagridbody-br: 294px 285px 11px 11px;
+			
+			datagridheader-l: 127px 192px 16px 31px;
+			datagridheader-c: 143px 192px 2px 31px;
+			datagridheader-r: 145px 192px 15px 31px;
+			
+			datagridexpand: 3px 232px 17px 17px;
+			datagridexpand-hover: 21px 232px 17px 17px;
+			datagridexpand-active: 39px 232px 17px 17px;
+			datagridexpand-collapsed: 3px 250px 17px 17px;
+			datagridexpand-collapsed-hover: 21px 250px 17px 17px;
+			datagridexpand-collapsed-active: 39px 250px 17px 17px;
+		}
+	
 		body
 		{
 			width: 400px;
@@ -17,23 +42,22 @@
 			width: 64px;
 			height: 16px;
 			
-			defender-decorator: defender;
-			defender-image-src: ../../../assets/high_scores_defender.tga;
+			decorator: defender( ../../../assets/high_scores_defender.tga );
 		}
 		
 		defender.alien_1
 		{
-			defender-image-src: ../../../assets/high_scores_alien_1.tga;
+			decorator: defender( ../../../assets/high_scores_alien_1.tga );
 		}
 		
 		defender.alien_2
 		{
-			defender-image-src: ../../../assets/high_scores_alien_2.tga;
+			decorator: defender( ../../../assets/high_scores_alien_2.tga );
 		}
 		
 		defender.alien_3
 		{
-			defender-image-src: ../../../assets/high_scores_alien_3.tga;
+			decorator: defender( ../../../assets/high_scores_alien_3.tga );
 		}
 		
 		datagridheader
@@ -42,10 +66,7 @@
 			height: 25px;
 			padding: 5px 10px 0px 10px;
 		
-			background-decorator: tiled-horizontal;
-			background-left-image: ../../../assets/invader.tga 127px 192px 143px 223px;
-			background-center-image: ../../../assets/invader.tga stretch 143px 192px 145px 223px;
-			background-right-image: ../../../assets/invader.tga 145px 192px 160px 223px;
+			decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
 		}
 		
 		datagridbody
@@ -57,15 +78,11 @@
 			margin-right: 3px;
 			padding: 0px 4px 4px 4px;
 			
-			background-decorator: tiled-box;
-			background-top-left-image: ../../../assets/invader.tga 281px 275px 292px 284px;
-			background-top-right-image: ../../../assets/invader.tga 294px 275px 305px 284px;
-			background-top-image: ../../../assets/invader.tga stretch 292px 275px 293px 284px;
-			background-bottom-left-image: ../../../assets/invader.tga 281px 285px 292px 296px;
-			background-bottom-right-image: ../../../assets/invader.tga 294px 285px 305px 296px;
-			background-bottom-image: ../../../assets/invader.tga stretch 292px 285px 293px 296px;
-			background-left-image: ../../../assets/invader.tga stretch 281px 283px 292px 284px;
-			background-center-image: ../../../assets/invader.tga stretch 292px 283px 293px 284px;
+			decorator: tiled-box(
+				datagridbody-tl, datagridbody-t, datagridbody-tr, 
+				datagridbody-l, datagridbody-c, auto,  /* auto mirrors left */
+				datagridbody-bl, datagridbody-b, datagridbody-br
+			);
 		}
 		
 		datagrid datagridrow:nth-child(even)
@@ -81,23 +98,32 @@
 			height: 17px;
 			width: 17px;
 			
-			icon-decorator: image;
-			icon-image: ../../../assets/invader.tga 3px 232px 20px 249px;
+			decorator: image( datagridexpand );
 		}
-		
+
 		datagridexpand:hover
 		{
-			icon-image-s: 21px 38px;
+			decorator: image( datagridexpand-hover );
 		}
-		
+
 		datagridexpand:active
 		{
-			icon-image-s: 39px 56px;
+			decorator: image( datagridexpand-active  );
 		}
-		
+
 		datagridexpand.collapsed
 		{
-			icon-image-t: 250px 267px;
+			decorator: image( datagridexpand-collapsed );
+		}
+
+		datagridexpand.collapsed:hover
+		{
+			decorator: image( datagridexpand-collapsed-hover );
+		}
+
+		datagridexpand.collapsed:active
+		{
+			decorator: image( datagridexpand-collapsed-active  );
 		}
 	</style>
 </head>

@@ -45,6 +45,8 @@ StyleSheetNode::StyleSheetNode(const String& name, NodeType _type, StyleSheetNod
 	selector = NULL;
 	a = 0;
 	b = 0;
+
+	is_structurally_volatile = true;
 }
 
 // Constructs a structural style-sheet node.
@@ -113,7 +115,7 @@ void StyleSheetNode::Write(Stream* stream)
 		const Rocket::Core::PropertyMap& property_map = properties.GetProperties();
 		for (Rocket::Core::PropertyMap::const_iterator i = property_map.begin(); i != property_map.end(); ++i)
 		{
-			const String& name = i->first;
+			const String& name = StyleSheetSpecification::GetPropertyName(i->first);
 			const Rocket::Core::Property& property = i->second;
 
 			stream->Write(CreateString(1024, "\t%s: %s; /* specificity: %d */\n", name.c_str(), property.value.Get< String >().c_str(), property.specificity));
@@ -152,7 +154,7 @@ bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset
 }
 
 // Builds up a style sheet's index recursively.
-void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index)
+void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index, const StyleSheet& style_sheet)
 {
 	// If this is a tag node, then we insert it into the list of all tag nodes. Makes sense, neh?
 	if (type == TAG)
@@ -181,14 +183,55 @@ void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_index, StyleSheet:
 			else
 				(*iterator).second.insert(tag_node);
 		}
+
+		// Turn any decorator properties from String to DecoratorList.
+		// This is essentially an optimization, it will work fine to skip this step and let ElementStyle::ComputeValues() do all the work.
+		// However, when we do it here, we only need to do it once.
+		// Note, since the user may set a new decorator through its style, we still do the conversion as necessary again in ComputeValues.
+		if (const Property* property = properties.GetProperty(PropertyId::Decorator))
+		{
+			if (property->unit == Property::STRING)
+			{
+				const String string_value = property->Get<String>();
+				DecoratorList decorator_list = style_sheet.InstanceDecoratorsFromString(string_value, property->source, property->source_line_number);
+
+				Property new_property = *property;
+				new_property.value.Reset(std::move(decorator_list));
+				new_property.unit = Property::DECORATOR;
+				properties.SetProperty(PropertyId::Decorator, new_property);
+			}
+		}
 	}
 
 	for (int i = 0; i < NUM_NODE_TYPES; i++)
 	{
 		for (NodeMap::iterator j = children[i].begin(); j != children[i].end(); ++j)
-			(*j).second->BuildIndex(styled_index, complete_index);
+			(*j).second->BuildIndexAndOptimizeProperties(styled_index, complete_index, style_sheet);
 	}
 }
+
+
+bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structural_pseudo_class)
+{
+	// If any ancestor or descendant is a structural pseudo class, then we are structurally volatile.
+	bool self_is_structural_pseudo_class = (type == STRUCTURAL_PSEUDO_CLASS);
+
+	// Check our children for structural pseudo-classes.
+	bool descendant_is_structural_pseudo_class = false;
+	for (int i = 0; i < NUM_NODE_TYPES; ++i)
+	{
+		for (auto& child_name_node : children[i])
+		{
+			if (child_name_node.second->SetStructurallyVolatileRecursive(self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class))
+				descendant_is_structural_pseudo_class = true;
+		}
+	}
+
+	is_structurally_volatile = (self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
+
+	return (self_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
+}
+
 
 // Returns the name of this node.
 const String& StyleSheetNode::GetName() const
@@ -225,8 +268,9 @@ const PropertyDictionary& StyleSheetNode::GetProperties() const
 // Builds the properties of all of the pseudo-classes of this style sheet node into a single map.
 void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties) const
 {
+	PseudoClassList pseudo_class_list;
 	for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
-		(*i).second->GetPseudoClassProperties(pseudo_class_properties, StringList());
+		(*i).second->GetPseudoClassProperties(pseudo_class_properties, pseudo_class_list);
 }
 
 // Adds to a list the names of this node's pseudo-classes which are deemed volatile.
@@ -241,9 +285,7 @@ bool StyleSheetNode::GetVolatilePseudoClasses(PseudoClassList& volatile_pseudo_c
 
 		if (self_volatile)
 		{
-			auto it = std::find(volatile_pseudo_classes.begin(), volatile_pseudo_classes.end(), name);
-			if (it == volatile_pseudo_classes.end())
-				volatile_pseudo_classes.push_back(name);
+			volatile_pseudo_classes.insert(name);
 		}
 
 		return self_volatile;
@@ -312,9 +354,10 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	const String* ancestor_id = nullptr;
 	static std::vector<const String*> ancestor_classes;
 	static std::vector<const String*> ancestor_pseudo_classes;
+	static std::vector< const StyleSheetNode* > ancestor_structural_pseudo_classes;
 	ancestor_classes.clear();
 	ancestor_pseudo_classes.clear();
-	std::vector< const StyleSheetNode* > ancestor_structural_pseudo_classes;
+	ancestor_structural_pseudo_classes.clear();
 
 	while (parent_node != NULL && parent_node->type != TAG)
 	{
@@ -443,58 +486,21 @@ void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode*
 		break;
 	}
 
-	if (properties.GetNumProperties() > 0 ||
-		!children[PSEUDO_CLASS].empty())
+	if (properties.GetNumProperties() > 0)
 		applicable_nodes.push_back(this);
 
 	for (int i = CLASS; i < NUM_NODE_TYPES; i++)
 	{
-		// Don't recurse into pseudo-classes; they can't be built into the root definition.
-		if (i == PSEUDO_CLASS)
-			continue;
-
-		for (NodeMap::const_iterator j = children[i].begin(); j != children[i].end(); ++j)
-			(*j).second->GetApplicableDescendants(applicable_nodes, element);
+		for (auto& child_tag_node : children[i])
+			child_tag_node.second->GetApplicableDescendants(applicable_nodes, element);
 	}
 }
 
-// Returns true if this node employs a structural selector, and therefore generates element definitions that are
-// sensitive to sibling changes.
-bool StyleSheetNode::IsStructurallyVolatile(bool check_ancestors) const
+bool StyleSheetNode::IsStructurallyVolatile() const
 {
-	if (type == STRUCTURAL_PSEUDO_CLASS)
-		return true;
-
-	if (!children[STRUCTURAL_PSEUDO_CLASS].empty())
-		return true;
-
-	// Check our children for structural pseudo-classes.
-	for (int i = 0; i < NUM_NODE_TYPES; ++i)
-	{
-		if (i == STRUCTURAL_PSEUDO_CLASS)
-			continue;
-
-		for (NodeMap::const_iterator j = children[i].begin(); j != children[i].end(); ++j)
-		{
-			if ((*j).second->IsStructurallyVolatile(false))
-				return true;
-		}
-	}
-
-	if (check_ancestors)
-	{
-		StyleSheetNode* ancestor = parent;
-		while (ancestor != NULL)
-		{
-			if (ancestor->type == STRUCTURAL_PSEUDO_CLASS)
-				return true;
-
-			ancestor = ancestor->parent;
-		}
-	}
-
-	return false;
+	return is_structurally_volatile;
 }
+
 
 // Constructs a structural pseudo-class child node.
 StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
@@ -560,13 +566,16 @@ StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 }
 
 // Recursively builds up a list of all pseudo-classes branching from a single node.
-void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties, const StringList& ancestor_pseudo_classes)
+void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties, const PseudoClassList& ancestor_pseudo_classes)
 {
-	StringList pseudo_classes(ancestor_pseudo_classes);
-	pseudo_classes.push_back(name);
+	PseudoClassList pseudo_classes(ancestor_pseudo_classes);
+	pseudo_classes.insert(name);
 
 	if (properties.GetNumProperties() > 0)
+	{
+		ROCKET_ASSERT(pseudo_class_properties.count(pseudo_classes) == 0);
 		pseudo_class_properties[pseudo_classes] = properties;
+	}
 
 	for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
 		(*i).second->GetPseudoClassProperties(pseudo_class_properties, pseudo_classes);

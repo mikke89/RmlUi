@@ -28,10 +28,10 @@
 #ifndef ROCKETCORESTYLESHEET_H
 #define ROCKETCORESTYLESHEET_H
 
-#include "Dictionary.h"
 #include "ReferenceCountable.h"
-#include <set>
 #include "PropertyDictionary.h"
+#include "Spritesheet.h"
+#include <set>
 
 namespace Rocket {
 namespace Core {
@@ -39,16 +39,28 @@ namespace Core {
 class Element;
 class ElementDefinition;
 class StyleSheetNode;
+class Decorator;
+class SpritesheetList;
+struct Sprite;
+struct Spritesheet;
 
 struct KeyframeBlock {
 	float normalized_time;  // [0, 1]
 	PropertyDictionary properties;
 };
 struct Keyframes {
-	std::vector<String> property_names;
+	std::vector<PropertyId> property_ids;
 	std::vector<KeyframeBlock> blocks;
 };
-typedef UnorderedMap<String, Keyframes> KeyframesMap;
+using KeyframesMap = UnorderedMap<String, Keyframes>;
+
+struct DecoratorSpecification {
+	String decorator_type;
+	PropertyDictionary properties;
+	std::shared_ptr<Decorator> decorator;
+};
+using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
+
 
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
@@ -71,11 +83,21 @@ public:
 
 	/// Combines this style sheet with another one, producing a new sheet.
 	StyleSheet* CombineStyleSheet(const StyleSheet* sheet) const;
-	/// Builds the node index for a combined style sheet.
-	void BuildNodeIndex();
+	/// Builds the node index for a combined style sheet, and optimizes some properties for faster retrieval.
+	/// Specifically, converts all decorator properties from strings to instanced decorator lists.
+	void BuildNodeIndexAndOptimizeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	Keyframes* GetKeyframes(const String& name);
+
+	/// Returns the Decorator of the given name, or null if it does not exist.
+	std::shared_ptr<Decorator> GetDecorator(const String& name) const;
+
+	/// Parses the decorator property from a string and returns a list of instanced decorators.
+	DecoratorList InstanceDecoratorsFromString(const String& decorator_string_value, const String& source_file, int source_line_number) const;
+
+	/// Get sprite located in any spritesheet within this stylesheet.
+	const Sprite* GetSprite(const String& name) const;
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
@@ -99,14 +121,18 @@ private:
 	// Name of every @keyframes mapped to their keys
 	KeyframesMap keyframes;
 
+	// Name of every @decorator mapped to their specification
+	DecoratorSpecificationMap decorator_map;
+
+	// Name of every @spritesheet and underlying sprites mapped to their values
+	SpritesheetList spritesheet_list;
+
 	// Map of only nodes with actual style information.
 	NodeIndex styled_node_index;
 	// Map of every node, even empty, un-styled, nodes.
 	NodeIndex complete_node_index;
 
 	typedef UnorderedMap< size_t, ElementDefinition* > ElementDefinitionCache;
-	// Index of element addresses to element definitions.
-	mutable ElementDefinitionCache address_cache;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
 };

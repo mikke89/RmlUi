@@ -35,9 +35,10 @@ Inventory::Inventory(const Rocket::Core::String& title, const Rocket::Core::Vect
 	document = context->LoadDocument("data/inventory.rml");
 	if (document != NULL)
 	{
+		using Rocket::Core::PropertyId;
 		document->GetElementById("title")->SetInnerRML(title);
-		document->SetProperty("left", Rocket::Core::Property(position.x, Rocket::Core::Property::PX));
-		document->SetProperty("top", Rocket::Core::Property(position.y, Rocket::Core::Property::PX));
+		document->SetProperty(PropertyId::Left, Rocket::Core::Property(position.x, Rocket::Core::Property::PX));
+		document->SetProperty(PropertyId::Top, Rocket::Core::Property(position.y, Rocket::Core::Property::PX));
 		document->Show();
 	}
 

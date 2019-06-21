@@ -33,7 +33,7 @@ namespace Controls {
 
 ElementFormControl::ElementFormControl(const Rocket::Core::String& tag) : Core::Element(tag)
 {
-	SetProperty("tab-index", Core::Property(Core::Style::TabIndex::Auto));
+	SetProperty(Core::PropertyId::TabIndex, Core::Property(Core::Style::TabIndex::Auto));
 }
 
 ElementFormControl::~ElementFormControl()
@@ -87,7 +87,7 @@ void ElementFormControl::OnAttributeChange(const Core::ElementAttributes& change
 		// events (when originating from user inputs, see Context) to reach the element.
 		if (is_disabled)
 		{
-			SetProperty("focus", Core::Property(Core::Style::Focus::None));
+			SetProperty(Core::PropertyId::Focus, Core::Property(Core::Style::Focus::None));
 			Blur();
 		}
 		else

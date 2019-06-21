@@ -198,6 +198,8 @@ struct ComputedValues
 
 	TransitionList transition;
 	AnimationList animation;
+
+	DecoratorList decorator;
 };
 }
 

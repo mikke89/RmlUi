@@ -129,13 +129,8 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Rocket::Core::Factory::RegisterElementInstancer("game", element_instancer);
 	element_instancer->RemoveReference();
 
-	Rocket::Core::DecoratorInstancer* decorator_instancer = new DecoratorInstancerStarfield();
-	Rocket::Core::Factory::RegisterDecoratorInstancer("starfield", decorator_instancer);
-	decorator_instancer->RemoveReference();
-
-	decorator_instancer = new DecoratorInstancerDefender();
-	Rocket::Core::Factory::RegisterDecoratorInstancer("defender", decorator_instancer);
-	decorator_instancer->RemoveReference();
+	Rocket::Core::Factory::RegisterDecoratorInstancer("starfield", std::make_unique<DecoratorInstancerStarfield>());
+	Rocket::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
 
 	// Register Invader's data formatters
 	HighScoresNameFormatter name_formatter;

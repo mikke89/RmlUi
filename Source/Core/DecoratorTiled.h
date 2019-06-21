@@ -101,15 +101,19 @@ public:
 
 		struct TileData
 		{
-			Vector2f dimensions;
-			Vector2f texcoords[2];
+			Vector2f size; // 'px' units
+			Vector2f texcoords[2]; // relative units
 		};
 
-		typedef std::vector< std::pair< RenderInterface*, TileData > > TileDataMap;
+		using TileDataMap = SmallUnorderedMap< RenderInterface*, TileData >;
 
 		int texture_index;
-		Vector2f texcoords[2];
-		bool texcoords_absolute[2][2];
+
+		// Position and size within the texture, absolute or relative units
+		Vector2f position, size;
+
+		// Absolute is 'px' units, otherwise relative to the dimensions of the texture
+		bool position_absolute[2], size_absolute[2];
 
 		mutable TileDataMap data;
 

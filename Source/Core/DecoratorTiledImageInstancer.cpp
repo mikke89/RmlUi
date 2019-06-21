@@ -32,45 +32,33 @@
 namespace Rocket {
 namespace Core {
 
-DecoratorTiledImageInstancer::DecoratorTiledImageInstancer()
+DecoratorTiledImageInstancer::DecoratorTiledImageInstancer() : DecoratorTiledInstancer(1)
 {
 	RegisterTileProperty("image", false);
+	RegisterShorthand("decorator", "image", ShorthandType::Recursive);
 }
 
 DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer()
 {
 }
 
-// Instances a box decorator.
-Decorator* DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+
+std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	ROCKET_UNUSED(name);
 
 	DecoratorTiled::Tile tile;
-	String texture_name;
-	String rcss_path;
+	Texture texture;
 
-	GetTileProperties(tile, texture_name, rcss_path, properties, "image");
+	if (!GetTileProperties(&tile, &texture, 1, properties, interface))
+		return nullptr;
+	
+	auto decorator = std::make_shared<DecoratorTiledImage>();
 
-	DecoratorTiledImage* decorator = new DecoratorTiledImage();
-	if (decorator->Initialise(tile, texture_name, rcss_path))
-		return decorator;
+	if (!decorator->Initialise(tile, texture))
+		return nullptr;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
-}
-
-// Releases the given decorator.
-void DecoratorTiledImageInstancer::ReleaseDecorator(Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorTiledImageInstancer::Release()
-{
-	delete this;
+	return decorator;
 }
 
 }

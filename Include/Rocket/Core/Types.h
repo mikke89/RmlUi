@@ -48,6 +48,10 @@
 #include "Platform.h"
 #include "Debug.h"
 
+#ifdef ROCKET_DEBUG
+#include <unordered_map>
+#endif
+
 namespace Rocket {
 namespace Core {
 
@@ -97,6 +101,10 @@ class ElementAnimation;
 class Property;
 class Variant;
 class Transform;
+class Decorator;
+struct Animation;
+struct Rectangle;
+enum class PropertyId : uint16_t;
 
 // Types for external interfaces.
 typedef uintptr_t FileHandle;
@@ -105,24 +113,29 @@ typedef uintptr_t CompiledGeometryHandle;
 typedef uintptr_t DecoratorDataHandle;
 
 // Common containers
+#ifdef ROCKET_DEBUG
+template < typename Key, typename Value>
+using UnorderedMap = std::unordered_map< Key, Value >;
+#else
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+#endif
 template < typename Key, typename Value>
 using SmallUnorderedMap = chobo::flat_map< Key, Value >;
 template < typename T >
 using SmallOrderedSet = chobo::flat_set< T >;
 template < typename T >
 using SmallUnorderedSet = chobo::flat_set< T >;
-// Note: Right now ordered and unordered set use the same container, but we may
+// Note: Right now small ordered and unordered set use the same container, but we may
 // want to change this later so use ordered when a sorted container is needed.
 
 // Container types for some common lists
 typedef std::vector< Element* > ElementList;
-typedef std::vector< String > PseudoClassList;
 typedef std::vector< ElementAnimation > ElementAnimationList;
+typedef SmallUnorderedSet< String > PseudoClassList;
 typedef SmallUnorderedSet< String > AttributeNameList;
-typedef SmallOrderedSet< String > PropertyNameList;
-typedef UnorderedMap< String, Property > PropertyMap;
+typedef SmallOrderedSet< PropertyId > PropertyNameList;
+typedef UnorderedMap< PropertyId, Property > PropertyMap;
 typedef SmallUnorderedMap< String, Variant > Dictionary;
 typedef Dictionary ElementAttributes;
 
@@ -132,14 +145,8 @@ typedef std::shared_ptr< Transform > TransformRef;
 struct Transition;
 struct TransitionList;
 
-// Pseudo class properties
-// Defines for the optimised version of the pseudo-class properties (note the difference from the
-// PseudoClassPropertyMap defined in StyleSheetNode.h ... bit clumsy). Here the properties are stored as a list
-// of definitions against each property name in specificity-order, along with the pseudo-class requirements for each
-// one. This makes it much more straight-forward to query at run-time.
-typedef std::pair< StringList, Property > PseudoClassProperty;
-typedef std::vector< PseudoClassProperty > PseudoClassPropertyList;
-typedef SmallUnorderedMap< String, PseudoClassPropertyList > PseudoClassPropertyDictionary;
+using DecoratorList = std::vector<std::shared_ptr<Decorator>>;
+using AnimationList = std::vector<Animation>;
 
 }
 }

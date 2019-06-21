@@ -108,20 +108,19 @@ int ElementStyleProxy__pairs(lua_State* L)
         *pindex = 0;
 
 	int i = 0;
-	auto it = obj->owner->IteratePropertiesBegin();
-	auto it_end = obj->owner->IteratePropertiesEnd();
-	while (i < (*pindex) && it != it_end)
+	auto it = obj->owner->IterateLocalProperties();
+	while (i < (*pindex) && !it.AtEnd())
 	{
 		++it;
 		++i;
 	}
 
-    if(it != it_end)
+    if(!it.AtEnd())
     {
-		const String& key = (*it).first;
-		const Property& property = (*it).second;
+		const String& key = it.GetName();
+		const Property& property = it.GetProperty();
 		String val;
-        property.definition->GetValue(val, (*it).second);
+        property.definition->GetValue(val, property);
         lua_pushstring(L,key.c_str());
         lua_pushstring(L,val.c_str());
     }

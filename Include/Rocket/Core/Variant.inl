@@ -102,6 +102,10 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< AnimationList, T >::Convert(*(AnimationList*)data, value);
 		break;
 
+	case DECORATORLIST:
+		return TypeConverter< DecoratorList, T >::Convert(*(DecoratorList*)data, value);
+		break;
+
 	case COLOURF:
 		return TypeConverter< Colourf, T >::Convert(*(Colourf*)data, value);
 		break;

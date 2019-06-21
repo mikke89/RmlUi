@@ -42,16 +42,11 @@ DecoratorTiledImage::~DecoratorTiledImage()
 {
 }
 
-// Initialises the tiles for the decorator.
-bool DecoratorTiledImage::Initialise(const Tile& _tile, const String& _texture_name, const String& _rcss_path)
+bool DecoratorTiledImage::Initialise(const Tile& _tile, const Texture& _texture)
 {
-	// Load the texture.
 	tile = _tile;
-	tile.texture_index = LoadTexture(_texture_name, _rcss_path);
-	if (tile.texture_index < 0)
-		return false;
-
-	return true;
+	tile.texture_index = AddTexture(_texture);
+	return (tile.texture_index >= 0);
 }
 
 // Called on a decorator to generate any required per-element data for a newly decorated element.

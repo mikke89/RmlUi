@@ -1,3 +1,44 @@
+@spritesheet theme 
+{
+	src: ../../../assets/invader.tga;
+
+	title-bar-l: 147px 0px 82px 85px;
+	title-bar-c: 229px 0px  1px 85px;
+	title-bar-r: 231px 0px 15px 85px;
+	
+	window-tl: 0px 0px 133px 140px;
+	window-t:  134px 0px 1px 140px;
+	window-tr: 136px 0px 10px 140px;
+	window-l:  0px 139px 10px 1px;
+	window-c:  11px 139px 1px 1px;
+	window-r:  10px 139px -10px 1px; /* mirrored left */
+	window-bl: 0px 140px 11px 11px;
+	window-b:  11px 140px 1px 11px;
+	window-br: 136px 140px 10px 11px;
+	
+	slidertrack-t: 70px 199px 27px 2px;
+	slidertrack-c: 70px 201px 27px 1px;
+	slidertrack-b: 70px 202px 27px 2px;
+	
+	sliderbar-t:         56px 152px 23px 23px;
+	sliderbar-c:         56px 175px 23px 1px;
+	sliderbar-b:         56px 176px 23px 22px;
+	sliderbar-hover-t:   80px 152px 23px 23px;
+	sliderbar-hover-c:   80px 175px 23px 1px;
+	sliderbar-hover-b:   80px 176px 23px 22px;
+	sliderbar-active-t: 104px 152px 23px 23px;
+	sliderbar-active-c: 104px 175px 23px 1px;
+	sliderbar-active-b: 104px 176px 23px 22px;
+	 
+	sliderarrowdec: 0px 152px 27px 24px;
+	sliderarrowdec-hover: 0px 177px 27px 24px;
+	sliderarrowdec-active: 0px 202px 27px 24px;
+	
+	sliderarrowinc: 28px 152px 27px 24px;
+	sliderarrowinc-hover: 28px 177px 27px 24px;
+	sliderarrowinc-active: 28px 202px 27px 24px;
+}
+
 body
 {
 	font-family: Delicious;
@@ -9,19 +50,14 @@ body
 
 body.window
 {
-	background-decorator: tiled-box;
-	background-top-left-image: ../../../assets/invader.tga 0px 0px 133px 140px;
-	background-top-right-image: ../../../assets/invader.tga 136px 0px 146px 140px;
-	background-top-image: ../../../assets/invader.tga stretch 134px 0px 135px 140px;
-	background-bottom-left-image: ../../../assets/invader.tga 0px 140px 11px 151px;
-	background-bottom-right-image: ../../../assets/invader.tga 136px 140px 146px 151px;
-	background-bottom-image: ../../../assets/invader.tga stretch 11px 140px 12px 151px;
-	background-left-image: ../../../assets/invader.tga stretch 0px 139px 10px 140px;
-	background-center-image: ../../../assets/invader.tga stretch 11px 139px 12px 140px;
-	
 	padding: 10px 15px;
+	
+	decorator: tiled-box(
+		window-tl, window-t, window-tr, 
+		window-l, window-c, window-r,
+		window-bl, window-b, window-br
+	);
 }
-
 div#title-bar
 {
 	position: absolute;
@@ -39,11 +75,8 @@ div#title-bar span
 	font-weight: bold;
 
 	text-shadow: 2px 2px black;
-
-	background-decorator: tiled-horizontal;
-	background-left-image: ../../../assets/invader.tga 147px 0px 229px 85px;
-	background-center-image: ../../../assets/invader.tga stretch 229px 0px 230px 85px;
-	background-right-image: ../../../assets/invader.tga 231px 0px 246px 85px;
+	
+	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 }
 
 div#content
@@ -56,18 +89,19 @@ div#content
 
 scrollbarvertical
 {
-	width: 27px;
 	margin-top: -6px;
 	margin-bottom: -6px;
 	margin-right: -11px;
+	width: 27px;
 }
 
 scrollbarvertical slidertrack
 {
-	background-decorator: tiled-vertical;
-	background-top-image: ../../../assets/invader.tga 56px 199px 83px 201px;
-	background-center-image: ../../../assets/invader.tga stretch 56px 201px 83px 202px;
-	background-bottom-image: ../../../assets/invader.tga 56px 203px 83px 204px;
+	decorator: tiled-vertical( slidertrack-t, slidertrack-c, slidertrack-b );
+}
+scrollbarvertical slidertrack:active
+{
+	image-color: #aaa;
 }
 
 scrollbarvertical sliderbar
@@ -76,24 +110,17 @@ scrollbarvertical sliderbar
 	width: 23px;
 	min-height: 46px;
 
-	background-decorator: tiled-vertical;
-	background-top-image: ../../../assets/invader.tga 56px 152px 79px 175px;
-	background-center-image: ../../../assets/invader.tga stretch 56px 175px 79px 175px;
-	background-bottom-image: ../../../assets/invader.tga 56px 176px 79px 198px;
+	decorator: tiled-vertical( sliderbar-t, sliderbar-c, sliderbar-b );
 }
 
 scrollbarvertical sliderbar:hover
 {
-	background-top-image-s: 80px 103px;
-	background-center-image-s: 80px 103px;
-	background-bottom-image-s: 80px 103px;
+	decorator: tiled-vertical( sliderbar-hover-t, sliderbar-hover-c, sliderbar-hover-b );
 }
 
 scrollbarvertical sliderbar:active
 {
-	background-top-image-s: 104px 127px;
-	background-center-image-s: 104px 127px;
-	background-bottom-image-s: 104px 127px;
+	decorator: tiled-vertical( sliderbar-active-t, sliderbar-active-c, sliderbar-active-b );
 }
 
 scrollbarvertical sliderarrowdec,
@@ -105,24 +132,26 @@ scrollbarvertical sliderarrowinc
 
 scrollbarvertical sliderarrowdec
 {
-	icon-decorator: image;
-	icon-image: ../../../assets/invader.tga 0px 152px 27px 176px;
+	decorator: image( sliderarrowdec );
+}
+scrollbarvertical sliderarrowdec:hover
+{
+	decorator: image( sliderarrowdec-hover );
+}
+scrollbarvertical sliderarrowdec:active
+{
+	decorator: image( sliderarrowdec-active );
 }
 
 scrollbarvertical sliderarrowinc
 {
-	icon-decorator: image;
-	icon-image: ../../../assets/invader.tga 28px 152px 55px 176px;
+	decorator: image( sliderarrowinc );
 }
-
-scrollbarvertical sliderarrowdec:hover,
 scrollbarvertical sliderarrowinc:hover
 {
-	icon-image-t: 177px 201px;
+	decorator: image( sliderarrowinc-hover );
 }
-
-scrollbarvertical sliderarrowdec:active,
 scrollbarvertical sliderarrowinc:active
 {
-	icon-image-t: 202px 226px;
+	decorator: image( sliderarrowinc-active );
 }

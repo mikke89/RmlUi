@@ -51,13 +51,13 @@ public:
 	/// Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
 	/// @param[in] name The name of the property to add.
 	/// @param[in] property The value of the new property.
-	void SetProperty(const String& name, const Property& property);
+	void SetProperty(PropertyId id, const Property& property);
 	/// Removes a property from the dictionary, if it exists.
 	/// @param[in] name The name of the property to remove.
-	void RemoveProperty(const String& name);
+	void RemoveProperty(PropertyId id);
 	/// Returns the value of the property with the requested name, if one exists.
 	/// @param[in] name The name of the desired property.
-	const Property* GetProperty(const String& name) const;
+	const Property* GetProperty(PropertyId id) const;
 
 	/// Returns the number of properties in the dictionary.
 	/// @return The number of properties in the dictionary.
@@ -85,7 +85,7 @@ private:
 	// Sets a property on the dictionary and its specificity if there is no name conflict, or its
 	// specificity (given by the parameter, not read from the property itself) is at least equal to
 	// the specificity of the conflicting property.
-	void SetProperty(const String& name, const Rocket::Core::Property& property, int specificity);
+	void SetProperty(PropertyId id, const Rocket::Core::Property& property, int specificity);
 
 	PropertyMap properties;
 };

@@ -13,8 +13,7 @@
 			
 			div#title_bar div#icon
 			{
-				icon-image-s: 179px 230px;
-				icon-image-t: 152px 191px;
+				decorator: image( icon-invader );
 			}
 		</style>
 	</head>

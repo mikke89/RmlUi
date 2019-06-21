@@ -29,7 +29,6 @@
 #include "../../Include/Rocket/Core.h"
 #include "../../Include/Rocket/Core/StreamMemory.h"
 #include "ContextInstancerDefault.h"
-#include "DecoratorNoneInstancer.h"
 #include "DecoratorTiledBoxInstancer.h"
 #include "DecoratorTiledHorizontalInstancer.h"
 #include "DecoratorTiledImageInstancer.h"
@@ -60,7 +59,7 @@ typedef UnorderedMap< String, ElementInstancer* > ElementInstancerMap;
 static ElementInstancerMap element_instancers;
 
 // Decorator instancers.
-typedef UnorderedMap< String, DecoratorInstancer* > DecoratorInstancerMap;
+typedef UnorderedMap< String, std::unique_ptr<DecoratorInstancer> > DecoratorInstancerMap;
 static DecoratorInstancerMap decorator_instancers;
 
 // Font effect instancers.
@@ -106,11 +105,10 @@ bool Factory::Initialise()
 	RegisterElementInstancer("body", new ElementInstancerGeneric< ElementDocument >())->RemoveReference();
 
 	// Bind the default decorator instancers
-	RegisterDecoratorInstancer("tiled-horizontal", new DecoratorTiledHorizontalInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("tiled-vertical", new DecoratorTiledVerticalInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("tiled-box", new DecoratorTiledBoxInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("image", new DecoratorTiledImageInstancer())->RemoveReference();
-	RegisterDecoratorInstancer("none", new DecoratorNoneInstancer())->RemoveReference();
+	RegisterDecoratorInstancer("tiled-horizontal", std::make_unique<DecoratorTiledHorizontalInstancer>());
+	RegisterDecoratorInstancer("tiled-vertical", std::make_unique<DecoratorTiledVerticalInstancer>());
+	RegisterDecoratorInstancer("tiled-box", std::make_unique<DecoratorTiledBoxInstancer>());
+	RegisterDecoratorInstancer("image", std::make_unique<DecoratorTiledImageInstancer>());
 
 	RegisterFontEffectInstancer("shadow", new FontEffectShadowInstancer())->RemoveReference();
 	RegisterFontEffectInstancer("outline", new FontEffectOutlineInstancer())->RemoveReference();
@@ -131,8 +129,6 @@ void Factory::Shutdown()
 		(*i).second->RemoveReference();
 	element_instancers.clear();
 
-	for (DecoratorInstancerMap::iterator i = decorator_instancers.begin(); i != decorator_instancers.end(); ++i)
-		(*i).second->RemoveReference();
 	decorator_instancers.clear();
 
 	for (FontEffectInstancerMap::iterator i = font_effect_instancers.begin(); i != font_effect_instancers.end(); ++i)
@@ -328,57 +324,25 @@ ElementDocument* Factory::InstanceDocumentStream(Rocket::Core::Context* context,
 	return document;
 }
 
+
 // Registers an instancer that will be used to instance decorators.
-DecoratorInstancer* Factory::RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer)
+void Factory::RegisterDecoratorInstancer(const String& name, std::unique_ptr<DecoratorInstancer> instancer)
 {
+	if (!instancer)
+		return;
+
 	String lower_case_name = ToLower(name);
-	instancer->AddReference();
-
-	// Check if an instancer for this tag is already defined. If so, release it.
-	DecoratorInstancerMap::iterator iterator = decorator_instancers.find(lower_case_name);
-	if (iterator != decorator_instancers.end())
-		(*iterator).second->RemoveReference();
-
-	decorator_instancers[lower_case_name] = instancer;
-	return instancer;
+	decorator_instancers[lower_case_name] = std::move(instancer);
 }
 
-// Attempts to instance a decorator from an instancer registered with the factory.
-Decorator* Factory::InstanceDecorator(const String& name, const PropertyDictionary& properties)
+// Retrieves a decorator instancer registered with the factory.
+DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 {
-	float z_index = 0;
-	int specificity = -1;
-
-	DecoratorInstancerMap::iterator iterator = decorator_instancers.find(name);
+	auto iterator = decorator_instancers.find(name);
 	if (iterator == decorator_instancers.end())
-		return NULL;
-
-	// Turn the generic, un-parsed properties we've got into a properly parsed dictionary.
-	const PropertySpecification& property_specification = (*iterator).second->GetPropertySpecification();
-
-	PropertyDictionary parsed_properties;
-	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
-	{
-		specificity = Math::Max(specificity, (*i).second.specificity);
-
-		// Check for the 'z-index' property; we don't want to send this through.
-		if ((*i).first == Z_INDEX)
-			z_index = (*i).second.value.Get< float >();
-		else
-			property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
-	}
-
-	// Set the property defaults for all unset properties.
-	property_specification.SetPropertyDefaults(parsed_properties);
-
-	Decorator* decorator = (*iterator).second->InstanceDecorator(name, parsed_properties);
-	if (decorator == NULL)
-		return NULL;
-
-	decorator->SetZIndex(z_index);
-	decorator->SetSpecificity(specificity);
-	decorator->instancer = (*iterator).second;
-	return decorator;
+		return nullptr;
+	
+	return iterator->second.get();
 }
 
 // Registers an instancer that will be used to instance font effects.
@@ -422,23 +386,23 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 		specificity = Math::Max(specificity, i->second.specificity);
 
 		// Check for the 'z-index' property; we don't want to send this through.
-		if (i->first == Z_INDEX)
-		{
-			set_z_index = true;
-			z_index = i->second.value.Get< float >();
-		}
-		else if (i->first == COLOR)
-		{
-			static PropertyParserColour colour_parser;
+		//if (i->first == Z_INDEX)
+		//{
+		//	set_z_index = true;
+		//	z_index = i->second.value.Get< float >();
+		//}
+		//else if (i->first == COLOR)
+		//{
+		//	static PropertyParserColour colour_parser;
 
-			Property colour_property;
-			if (colour_parser.ParseValue(colour_property, i->second.value.Get< String >(), ParameterMap()))
-			{
-				colour = colour_property.value.Get< Colourb >();
-				set_colour = true;
-			}
-		}
-		else
+		//	Property colour_property;
+		//	if (colour_parser.ParseValue(colour_property, i->second.value.Get< String >(), ParameterMap()))
+		//	{
+		//		colour = colour_property.value.Get< Colourb >();
+		//		set_colour = true;
+		//	}
+		//}
+		//else
 		{
 			property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
 		}
@@ -449,7 +413,7 @@ FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictio
 
 	// Compile an ordered list of the values of the properties used to generate the effect's
 	// textures and geometry.
-	typedef std::list< std::pair< String, String > > GenerationPropertyList;
+	typedef std::list< std::pair< PropertyId, String > > GenerationPropertyList;
 	GenerationPropertyList generation_properties;
 	for (PropertyMap::const_iterator i = parsed_properties.GetProperties().begin(); i != parsed_properties.GetProperties().end(); ++i)
 	{

@@ -55,8 +55,8 @@ void ElementTextSelection::OnPropertyChange(const Rocket::Core::PropertyNameList
 		return;
 
 	// Check for a colour change.
-	if (changed_properties.find("color") != changed_properties.end() ||
-		changed_properties.find("background-color") != changed_properties.end())
+	if (changed_properties.find(Core::PropertyId::Color) != changed_properties.end() ||
+		changed_properties.find(Core::PropertyId::BackgroundColor) != changed_properties.end())
 	{
 		widget->UpdateSelectionColours();
 	}

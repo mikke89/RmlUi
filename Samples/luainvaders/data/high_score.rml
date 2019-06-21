@@ -13,14 +13,12 @@
 			
 			div#title_bar div#icon
 			{
-				icon-image-s: 281px 331px;
-				icon-image-t: 152px 191px;
+				decorator: image( icon-hiscore );
 			}
 			
 			datagrid
 			{
 				margin-bottom: 20px;
-				min-rows: 10;
 			}
 			
 			datagrid data_grid_body
@@ -34,8 +32,7 @@
 				width: 64px;
 				height: 16px;
 				
-				defender-decorator: defender;
-				defender-image-src: high_scores_defender.tga;
+				decorator: defender( high_scores_defender.tga );
 			}
 		</style>
 		<script>
@@ -65,7 +62,7 @@ end
 		</script>
 	</head>
 	<body template="luawindow" onload="HighScore.OnLoad(document) Game.SubmitHighScore()" onunload="Game.SetHighScoreName('Anon')">
-		<datagrid id="datagrid" source="high_scores.scores">
+		<datagrid id="datagrid" source="high_scores.scores" min-rows"10">
 			<col fields="name,name_required" formatter="name" width="40%">Pilot:</col>
 			<col fields="colour" formatter="ship" width="20%">Ship:</col>
 			<col fields="wave" width="20%">Wave:</col>

@@ -108,6 +108,17 @@ String Replace(String subject, const String& search, const String& replace)
 	return subject;
 }
 
+String Replace(String subject, char search, char replace)
+{
+	const size_t size = subject.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (subject[i] == search)
+			subject[i] = replace;
+	}
+	return subject;
+}
+
 
 }
 }

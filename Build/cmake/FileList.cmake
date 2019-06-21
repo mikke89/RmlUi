@@ -12,8 +12,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DebugFont.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNone.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNoneInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.h
@@ -24,6 +22,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DirtyPropertyList.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.h
@@ -61,6 +60,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIterator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
@@ -163,15 +163,16 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Matrix4.inl
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Platform.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Plugin.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertiesIteratorView.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Property.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDefinition.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDictionary.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyIterators.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyParser.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertySpecification.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ReferenceCountable.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/RenderInterface.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ScriptInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Spritesheet.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Stream.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StreamMemory.h
     ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/String.h
@@ -221,8 +222,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Core.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Decorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNone.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNoneInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.cpp
@@ -291,10 +290,10 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIteratorView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyIterators.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp
@@ -304,6 +303,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ReferenceCountable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Spritesheet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Stream.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamMemory.cpp
@@ -340,6 +340,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Transform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/TypeConverter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/UnicodeRange.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp

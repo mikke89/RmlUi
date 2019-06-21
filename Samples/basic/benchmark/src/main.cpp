@@ -57,8 +57,8 @@ public:
 		{
 			{
 				document->GetElementById("title")->SetInnerRML(title);
-				document->SetProperty("left", Property(position.x, Property::PX));
-				document->SetProperty("top", Property(position.y, Property::PX));
+				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
+				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
 			}
 
 			document->Show();
@@ -104,6 +104,7 @@ public:
 		  Update definition speedup: 115.0  [5d138fa]
 		  (Full release mode, no code change): 135.0  [5d138fa]
 		  EventIDs: 139.0  [d2c3956]
+		  More on events and EventIDs: 146.0  [fd44d9c]
 		  
 		*/
 

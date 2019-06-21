@@ -56,6 +56,9 @@ public:
 
 	/// Releases the instancer.
 	virtual void Release();
+
+private:
+	PropertyId id_width;
 };
 
 }

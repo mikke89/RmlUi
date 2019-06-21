@@ -98,8 +98,8 @@ bool InputTypeText::OnAttributeChange(const Core::ElementAttributes& changed_att
 // Called when properties on the control are changed.
 void InputTypeText::OnPropertyChange(const Core::PropertyNameList& changed_properties)
 {
-	if (changed_properties.find("color") != changed_properties.end() ||
-		changed_properties.find("background-color") != changed_properties.end())
+	if (changed_properties.find(Core::PropertyId::Color) != changed_properties.end() ||
+		changed_properties.find(Core::PropertyId::BackgroundColor) != changed_properties.end())
 		widget->UpdateSelectionColours();
 }
 

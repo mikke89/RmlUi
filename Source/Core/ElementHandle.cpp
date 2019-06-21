@@ -38,7 +38,7 @@ namespace Core {
 ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 {
 	// Make sure we can be dragged!
-	SetProperty(DRAG, Property(Style::Drag::Drag));
+	SetProperty(PropertyId::Drag, Property(Style::Drag::Drag));
 
 	move_target = NULL;
 	size_target = NULL;
@@ -107,8 +107,8 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			// Update the move and size objects
 			if (move_target)
 			{
-				move_target->SetProperty(LEFT, Property(Math::RealToInteger(move_original_position.x + x), Property::PX));
-				move_target->SetProperty(TOP, Property(Math::RealToInteger(move_original_position.y + y), Property::PX));
+				move_target->SetProperty(PropertyId::Left, Property(Math::RealToInteger(move_original_position.x + x), Property::PX));
+				move_target->SetProperty(PropertyId::Top, Property(Math::RealToInteger(move_original_position.y + y), Property::PX));
 			}
 
 			if (size_target)
@@ -118,19 +118,19 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 
 				// Check if we have auto-margins; if so, they have to be set to the current margins.
 				if (computed.margin_top.type == Margin::Auto)
-					size_target->SetProperty(MARGIN_TOP, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
+					size_target->SetProperty(PropertyId::MarginTop, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
 				if (computed.margin_right.type == Margin::Auto)
-					size_target->SetProperty(MARGIN_RIGHT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
+					size_target->SetProperty(PropertyId::MarginRight, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
 				if (computed.margin_bottom.type == Margin::Auto)
-					size_target->SetProperty(MARGIN_BOTTOM, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
+					size_target->SetProperty(PropertyId::MarginBottom, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
 				if (computed.margin_left.type == Margin::Auto)
-					size_target->SetProperty(MARGIN_LEFT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
+					size_target->SetProperty(PropertyId::MarginLeft, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
 
 				int new_x = Math::RealToInteger(size_original_size.x + x);
 				int new_y = Math::RealToInteger(size_original_size.y + y);
 
-				size_target->SetProperty(WIDTH, Property(Math::Max< float >((float) new_x, 0), Property::PX));
-				size_target->SetProperty(HEIGHT, Property(Math::Max< float >((float) new_y, 0), Property::PX));
+				size_target->SetProperty(PropertyId::Width, Property(Math::Max< float >((float) new_x, 0), Property::PX));
+				size_target->SetProperty(PropertyId::Height, Property(Math::Max< float >((float) new_y, 0), Property::PX));
 			}
 
 			Dictionary parameters;

@@ -25,39 +25,54 @@
  *
  */
 
-#ifndef ROCKETCOREDECORATORNONEINSTANCER_H
-#define ROCKETCOREDECORATORNONEINSTANCER_H
-
-#include "../../Include/Rocket/Core/DecoratorInstancer.h"
+#include "precompiled.h"
+#include "../../Include/Rocket/Core/PropertiesIteratorView.h"
+#include "PropertiesIterator.h"
 
 namespace Rocket {
 namespace Core {
 
-/**
-	The instancer for the none decorator.
 
-	@author Peter Curry
- */
 
-class DecoratorNoneInstancer : public DecoratorInstancer
+PropertiesIteratorView::PropertiesIteratorView(std::unique_ptr<PropertiesIterator> ptr) : ptr(std::move(ptr)) {}
+
+PropertiesIteratorView::~PropertiesIteratorView()
+{}
+
+PropertiesIteratorView& PropertiesIteratorView::operator++()
 {
-public:
-	virtual ~DecoratorNoneInstancer();
+	++(*ptr);
+	return *this;
+}
 
-	/// Instances a decorator given the property tag and attributes from the RCSS file.
-	/// @param name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
-	/// @param properties All RCSS properties associated with the decorator.
-	/// @return The decorator if it was instanced successful, NULL if an error occured.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties);
-	/// Releases the given decorator.
-	/// @param decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	virtual void ReleaseDecorator(Decorator* decorator);
+PropertyId PropertiesIteratorView::GetId() const
+{
+	return (*(*ptr)).first;
+}
 
-	/// Releases the instancer.
-	virtual void Release();
-};
+const String& PropertiesIteratorView::GetName() const
+{
+	return Core::StyleSheetSpecification::GetPropertyName(GetId());
+}
+
+const Property& PropertiesIteratorView::GetProperty() const
+{
+	return (*(*ptr)).second;
+}
+
+bool PropertiesIteratorView::AtEnd() const {
+	return ptr->AtEnd();
+}
+
+const PseudoClassList& PropertiesIteratorView::GetPseudoClassList() const
+{
+	static const PseudoClassList empty_pseudo_class_list;
+	const PseudoClassList* pseudo_list_ptr = ptr->GetPseudoClassList();
+	if (!pseudo_list_ptr)
+		return empty_pseudo_class_list;
+
+	return *pseudo_list_ptr;
+}
 
 }
 }
-
-#endif
