@@ -228,20 +228,6 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 {
 	ROCKET_ASSERT_NONRECURSIVE;
 
-	// Address cache is disabled for the time being; this doesn't work since the introduction of structural
-	// pseudo-classes.
-	ElementDefinitionCache::iterator cache_iterator;
-/*	String element_address = element->GetAddress();
-
-	// Look the address up in the definition, see if we've processed a similar element before.
-	cache_iterator = address_cache.find(element_address);
-	if (cache_iterator != address_cache.end())
-	{
-		ElementDefinition* definition = (*cache_iterator).second;
-		definition->AddReference();
-		return definition;
-	}*/
-
 	// See if there are any styles defined for this element.
 	// Using static to avoid allocations. Make sure we don't call this function recursively.
 	static std::vector< const StyleSheetNode* > applicable_nodes;
@@ -250,19 +236,19 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	String tags[] = {element->GetTagName(), ""};
 	for (int i = 0; i < 2; i++)
 	{
-		NodeIndex::const_iterator iterator = styled_node_index.find(tags[i]);
-		if (iterator != styled_node_index.end())
+		auto it_nodes = styled_node_index.find(tags[i]);
+		if (it_nodes != styled_node_index.end())
 		{
-			const NodeList& nodes = (*iterator).second;
+			const NodeList& nodes = it_nodes->second;
 
 			// There are! Now see if we satisfy all of their parenting requirements. What this involves is traversing the style
 			// nodes backwards, trying to match nodes in the element's hierarchy to nodes in the style hierarchy.
-			for (NodeList::const_iterator iterator = nodes.begin(); iterator != nodes.end(); iterator++)
+			for (StyleSheetNode* node : nodes)
 			{
-				if ((*iterator)->IsApplicable(element))
+				if (node->IsApplicable(element))
 				{
 					// Get the node to add any of its non-tag children that we match into our list.
-					(*iterator)->GetApplicableDescendants(applicable_nodes, element);
+					node->GetApplicableDescendants(applicable_nodes, element);
 				}
 			}
 		}
@@ -276,20 +262,20 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 
 	for (int i = 0; i < 2; ++i)
 	{
-		NodeIndex::const_iterator iterator = complete_node_index.find(tags[i]);
-		if (iterator != complete_node_index.end())
+		auto it_nodes = complete_node_index.find(tags[i]);
+		if (it_nodes != complete_node_index.end())
 		{
-			const NodeList& nodes = (*iterator).second;
+			const NodeList& nodes = it_nodes->second;
 
 			// See if we satisfy all of the parenting requirements for each of these nodes (as in the previous loop).
-			for (NodeList::const_iterator iterator = nodes.begin(); iterator != nodes.end(); iterator++)
+			for (StyleSheetNode* node : nodes)
 			{
-				structurally_volatile |= (*iterator)->IsStructurallyVolatile();
+				structurally_volatile |= node->IsStructurallyVolatile();
 
-				if ((*iterator)->IsApplicable(element))
+				if (node->IsApplicable(element))
 				{
 					std::vector< const StyleSheetNode* > volatile_nodes;
-					(*iterator)->GetApplicableDescendants(volatile_nodes, element);
+					node->GetApplicableDescendants(volatile_nodes, element);
 
 					for (size_t i = 0; i < volatile_nodes.size(); ++i)
 						volatile_nodes[i]->GetVolatilePseudoClasses(volatile_pseudo_classes);
@@ -312,7 +298,7 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	for (const String& str : volatile_pseudo_classes)
 		hash_combine(seed, str);
 
-	cache_iterator = node_cache.find(seed);
+	auto cache_iterator = node_cache.find(seed);
 	if (cache_iterator != node_cache.end())
 	{
 		ElementDefinition* definition = (*cache_iterator).second;
