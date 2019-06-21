@@ -630,7 +630,6 @@ private:
 	void DirtyStackingContext();
 
 	void DirtyStructure();
-	void DirtyParentStructure();
 	void UpdateStructure();
 
 	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed);
@@ -722,7 +721,6 @@ private:
 	bool stacking_context_dirty;
 
 	bool structure_dirty;
-	bool parent_structure_dirty;
 
 	bool computed_values_are_default_initialized;
 	bool box_dirty;

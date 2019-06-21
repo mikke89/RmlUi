@@ -133,8 +133,6 @@ private:
 	NodeIndex complete_node_index;
 
 	typedef UnorderedMap< size_t, ElementDefinition* > ElementDefinitionCache;
-	// Index of element addresses to element definitions.
-	mutable ElementDefinitionCache address_cache;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
 };

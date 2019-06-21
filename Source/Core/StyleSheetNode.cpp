@@ -486,18 +486,13 @@ void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode*
 		break;
 	}
 
-	if (properties.GetNumProperties() > 0 ||
-		!children[PSEUDO_CLASS].empty())
+	if (properties.GetNumProperties() > 0)
 		applicable_nodes.push_back(this);
 
 	for (int i = CLASS; i < NUM_NODE_TYPES; i++)
 	{
-		// Don't recurse into pseudo-classes; they can't be built into the root definition.
-		if (i == PSEUDO_CLASS)
-			continue;
-
-		for (NodeMap::const_iterator j = children[i].begin(); j != children[i].end(); ++j)
-			(*j).second->GetApplicableDescendants(applicable_nodes, element);
+		for (auto& child_tag_node : children[i])
+			child_tag_node.second->GetApplicableDescendants(applicable_nodes, element);
 	}
 }
 

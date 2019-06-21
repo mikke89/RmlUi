@@ -71,7 +71,7 @@ const ElementDefinition* ElementStyle::GetDefinition() const
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& local_properties, const ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& local_properties, const ElementDefinition* definition)
 {
 	// Check for overriding local properties.
 	const Property* property = local_properties.GetProperty(id);
@@ -80,15 +80,15 @@ const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDict
 
 	// Check for a property defined in an RCSS rule.
 	if (definition)
-		return definition->GetProperty(id, pseudo_classes);
+		return definition->GetProperty(id);
 
 	return nullptr;
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& local_properties, const ElementDefinition* definition, const PseudoClassList& pseudo_classes)
+const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& local_properties, const ElementDefinition* definition)
 {
-	const Property* local_property = GetLocalProperty(id, local_properties, definition, pseudo_classes);
+	const Property* local_property = GetLocalProperty(id, local_properties, definition);
 	if (local_property)
 		return local_property;
 
@@ -117,14 +117,13 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 
 // Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary& local_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition,
-	const PseudoClassList& pseudo_classes_before, const PseudoClassList& pseudo_classes_after)
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary& local_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition)
 {
 	ROCKET_ASSERT(element);
 	if (!old_definition || !new_definition || properties.empty())
 		return;
 
-	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, local_properties, new_definition, pseudo_classes_after))
+	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, local_properties, new_definition))
 	{
 		auto transition_list = transition_property->Get<TransitionList>();
 
@@ -134,8 +133,8 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
-				const Property* start_value = GetProperty(transition.id, element, local_properties, old_definition, pseudo_classes_before);
-				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition, pseudo_classes_after);
+				const Property* start_value = GetProperty(transition.id, element, local_properties, old_definition);
+				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition);
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
 				return transition_added;
@@ -199,12 +198,12 @@ void ElementStyle::UpdateDefinition()
 			PropertyNameList properties;
 			
 			if (definition)
-				definition->GetDefinedProperties(properties, pseudo_classes);
+				definition->GetDefinedProperties(properties);
 
 			if (new_definition)
-				new_definition->GetDefinedProperties(properties, pseudo_classes);
+				new_definition->GetDefinedProperties(properties);
 
-			TransitionPropertyChanges(element, properties, local_properties, definition, new_definition, pseudo_classes, pseudo_classes);
+			TransitionPropertyChanges(element, properties, local_properties, definition, new_definition);
 
 			if (definition)
 				definition->RemoveReference();
@@ -220,8 +219,9 @@ void ElementStyle::UpdateDefinition()
 			new_definition->RemoveReference();
 		}
 
-		if (definition_changed)
-			DirtyChildDefinitions();
+		// Even if the definition was not changed, the child definitions may have changed as a result of anything that
+		// could change the definition of this element, such as a new pseudo class.
+		DirtyChildDefinitions();
 	}
 }
 
@@ -241,29 +241,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 
 	if (changed)
 	{
-		if (definition)
-		{
-			PropertyNameList properties;
-			definition->GetDefinedProperties(properties, pseudo_classes, pseudo_class);
-
-			TransitionPropertyChanges(element, properties, local_properties, definition, definition, pseudo_classes_before, pseudo_classes);
-
-			DirtyProperties(properties);
-
-			switch (definition->GetPseudoClassVolatility(pseudo_class))
-			{
-				case ElementDefinition::FONT_VOLATILE:
-					element->DirtyFont();
-					break;
-
-				case ElementDefinition::STRUCTURE_VOLATILE:
-					DirtyChildDefinitions();
-					break;
-
-				default:
-					break;
-			}
-		}
+		DirtyDefinition();
 	}
 }
 
@@ -361,13 +339,13 @@ void ElementStyle::RemoveProperty(PropertyId id)
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(PropertyId id) const
 {
-	return GetProperty(id, element, local_properties, definition, pseudo_classes);
+	return GetProperty(id, element, local_properties, definition);
 }
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 {
-	return GetLocalProperty(id, local_properties, definition, pseudo_classes);
+	return GetLocalProperty(id, local_properties, definition);
 }
 
 const PropertyMap& ElementStyle::GetLocalStyleProperties() const
@@ -511,7 +489,7 @@ PropertiesIterator ElementStyle::Iterate() const {
 	PropertyMap::const_iterator it_base{}, it_base_end{};
 	if (definition)
 	{
-		const PseudoClassPropertyDictionary& pseudo = definition->GetPseudoClassProperties();
+		static const PseudoClassPropertyDictionary pseudo;
 		const PropertyMap& base = definition->GetProperties().GetProperties();
 		it_pseudo = pseudo.begin();
 		it_pseudo_end = pseudo.end();

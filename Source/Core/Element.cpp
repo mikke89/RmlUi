@@ -148,7 +148,6 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	stacking_context_dirty = false;
 
 	structure_dirty = false;
-	parent_structure_dirty = false;
 
 	computed_values_are_default_initialized = true;
 	box_dirty = false;
@@ -1802,6 +1801,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		if (all_dirty || 
 			changed_properties.find(PropertyId::Display) != changed_properties.end())
 		{
+			// TODO: Is this really necessary. It has problems, because any change to definitions as a result of this will only be reflected on the next frame.
 			if (parent != NULL)
 				parent->DirtyStructure();
 		}
@@ -2292,33 +2292,17 @@ void Element::DirtyStackingContext()
 
 void Element::DirtyStructure()
 {
-	// Clear the cached owner document
 	structure_dirty = true;
-}
-
-void Element::DirtyParentStructure()
-{
-	parent_structure_dirty = true;
 }
 
 void Element::UpdateStructure()
 {
-	if (parent_structure_dirty)
+	if (structure_dirty)
 	{
-		// If children depend on structured selectors, they may need to be updated
-		const ElementDefinition* element_definition = GetStyle()->GetDefinition();
-		if (element_definition != NULL && element_definition->IsStructurallyVolatile())
-		{
-			GetStyle()->DirtyDefinition();
-		}
-	}
-	if (structure_dirty || parent_structure_dirty)
-	{
-		for (size_t i = 0; i < children.size(); ++i)
-			children[i]->DirtyParentStructure();
-
 		structure_dirty = false;
-		parent_structure_dirty = false;
+
+		// If this element or its children depend on structured selectors, they may need to be updated.
+		GetStyle()->DirtyDefinition();
 	}
 }
 

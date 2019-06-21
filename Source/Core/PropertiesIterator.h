@@ -117,16 +117,6 @@ private:
 		// Iterate over all the pseudo classes and match the applicable rules
 		for (; it_pseudo != it_pseudo_end; ++it_pseudo)
 		{
-			const PseudoClassPropertyList& pseudo_list = it_pseudo->second;
-			for (; i_pseudo_class < pseudo_list.size(); ++i_pseudo_class)
-			{
-				if (ElementDefinition::IsPseudoClassRuleApplicable(pseudo_list[i_pseudo_class].first, *element_pseudo_classes))
-				{
-					if (IsDirtyRemove(it_pseudo->first))
-						return;
-				}
-			}
-			i_pseudo_class = 0;
 		}
 
 		for (; it_base != it_base_end; ++it_base)

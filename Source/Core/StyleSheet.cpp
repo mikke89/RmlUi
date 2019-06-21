@@ -62,10 +62,6 @@ StyleSheet::~StyleSheet()
 {
 	delete root;
 
-	// Release our reference count on the cached element definitions.
-	for (ElementDefinitionCache::iterator cache_iterator = address_cache.begin(); cache_iterator != address_cache.end(); ++cache_iterator)
-		(*cache_iterator).second->RemoveReference();
-
 	for (ElementDefinitionCache::iterator cache_iterator = node_cache.begin(); cache_iterator != node_cache.end(); ++cache_iterator)
 		(*cache_iterator).second->RemoveReference();
 }
@@ -257,38 +253,8 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 
 	std::sort(applicable_nodes.begin(), applicable_nodes.end(), StyleSheetNodeSort);
 
-	// Compile the list of volatile pseudo-classes for this element definition.
-	PseudoClassList volatile_pseudo_classes;
-	bool structurally_volatile = false;
-
-	for (int i = 0; i < 2; ++i)
-	{
-		auto it_nodes = complete_node_index.find(tags[i]);
-		if (it_nodes != complete_node_index.end())
-		{
-			const NodeList& nodes = it_nodes->second;
-
-			// See if we satisfy all of the parenting requirements for each of these nodes (as in the previous loop).
-			for (StyleSheetNode* node : nodes)
-			{
-				structurally_volatile |= node->IsStructurallyVolatile();
-
-				if (node->IsApplicable(element))
-				{
-					std::vector< const StyleSheetNode* > volatile_nodes;
-					node->GetApplicableDescendants(volatile_nodes, element);
-
-					for (size_t i = 0; i < volatile_nodes.size(); ++i)
-						volatile_nodes[i]->GetVolatilePseudoClasses(volatile_pseudo_classes);
-				}
-			}
-		}
-	}
-
 	// If this element definition won't actually store any information, don't bother with it.
-	if (applicable_nodes.empty() &&
-		volatile_pseudo_classes.empty() &&
-		!structurally_volatile)
+	if (applicable_nodes.empty())
 		return NULL;
 
 	// Check if this puppy has already been cached in the node index; it may be that it has already been created by an
@@ -296,8 +262,6 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	size_t seed = 0;
 	for (const auto* node : applicable_nodes)
 		hash_combine(seed, node);
-	for (const String& str : volatile_pseudo_classes)
-		hash_combine(seed, str);
 
 	auto cache_iterator = node_cache.find(seed);
 	if (cache_iterator != node_cache.end())
@@ -311,11 +275,9 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	// Create the new definition and add it to our cache. One reference count is added, bringing the total to two; one
 	// for the element that requested it, and one for the cache.
 	ElementDefinition* new_definition = new ElementDefinition();
-	new_definition->Initialise(applicable_nodes, volatile_pseudo_classes, structurally_volatile);
+	new_definition->Initialise(applicable_nodes);
 
-	// Add to the address cache.
-//	address_cache[element_address] = new_definition;
-//	new_definition->AddReference();
+
 
 	// Add to the node cache.
 	node_cache[seed] = new_definition;
