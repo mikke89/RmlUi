@@ -45,6 +45,8 @@ StyleSheetNode::StyleSheetNode(const String& name, NodeType _type, StyleSheetNod
 	selector = NULL;
 	a = 0;
 	b = 0;
+
+	is_structurally_volatile = true;
 }
 
 // Constructs a structural style-sheet node.
@@ -207,6 +209,29 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 			(*j).second->BuildIndexAndOptimizeProperties(styled_index, complete_index, style_sheet);
 	}
 }
+
+
+bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structural_pseudo_class)
+{
+	// If any ancestor or descendant is a structural pseudo class, then we are structurally volatile.
+	bool self_is_structural_pseudo_class = (type == STRUCTURAL_PSEUDO_CLASS);
+
+	// Check our children for structural pseudo-classes.
+	bool descendant_is_structural_pseudo_class = false;
+	for (int i = 0; i < NUM_NODE_TYPES; ++i)
+	{
+		for (auto& child_name_node : children[i])
+		{
+			if (child_name_node.second->SetStructurallyVolatileRecursive(self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class))
+				descendant_is_structural_pseudo_class = true;
+		}
+	}
+
+	is_structurally_volatile = (self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
+
+	return (self_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
+}
+
 
 // Returns the name of this node.
 const String& StyleSheetNode::GetName() const
@@ -475,43 +500,11 @@ void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode*
 	}
 }
 
-// Returns true if this node employs a structural selector, and therefore generates element definitions that are
-// sensitive to sibling changes.
-bool StyleSheetNode::IsStructurallyVolatile(bool check_ancestors) const
+bool StyleSheetNode::IsStructurallyVolatile() const
 {
-	if (type == STRUCTURAL_PSEUDO_CLASS)
-		return true;
-
-	if (!children[STRUCTURAL_PSEUDO_CLASS].empty())
-		return true;
-
-	// Check our children for structural pseudo-classes.
-	for (int i = 0; i < NUM_NODE_TYPES; ++i)
-	{
-		if (i == STRUCTURAL_PSEUDO_CLASS)
-			continue;
-
-		for (NodeMap::const_iterator j = children[i].begin(); j != children[i].end(); ++j)
-		{
-			if ((*j).second->IsStructurallyVolatile(false))
-				return true;
-		}
-	}
-
-	if (check_ancestors)
-	{
-		StyleSheetNode* ancestor = parent;
-		while (ancestor != NULL)
-		{
-			if (ancestor->type == STRUCTURAL_PSEUDO_CLASS)
-				return true;
-
-			ancestor = ancestor->parent;
-		}
-	}
-
-	return false;
+	return is_structurally_volatile;
 }
+
 
 // Constructs a structural pseudo-class child node.
 StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)

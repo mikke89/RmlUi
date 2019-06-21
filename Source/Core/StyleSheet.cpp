@@ -120,6 +120,7 @@ void StyleSheet::BuildNodeIndexAndOptimizeProperties()
 		complete_node_index.clear();
 
 		root->BuildIndexAndOptimizeProperties(styled_node_index, complete_node_index, *this);
+		root->SetStructurallyVolatileRecursive(false);
 	}
 }
 
