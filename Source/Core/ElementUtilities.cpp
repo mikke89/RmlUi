@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +27,16 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include <queue>
 #include <limits>
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
-#include "../../Include/Rocket/Core.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ElementStyle.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Builds and sets the box for an element.
@@ -277,7 +278,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 // Sets the clipping region from an element and its ancestors.
 bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
 {	
-	Rocket::Core::RenderInterface* render_interface = NULL;
+	Rml::Core::RenderInterface* render_interface = NULL;
 	if (element)
 	{
 		render_interface = element->GetRenderInterface();
@@ -380,7 +381,7 @@ bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset,
 static void SetBox(Element* element)
 {
 	Element* parent = element->GetParentNode();
-	ROCKET_ASSERT(parent != NULL);
+	RMLUI_ASSERT(parent != NULL);
 
 	Vector2f containing_block = parent->GetBox().GetSize();
 	containing_block.x -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);

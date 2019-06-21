@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/ElementDocument.h"
-#include "../../Include/Rocket/Core/StreamMemory.h"
-#include "../../Include/Rocket/Core.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/StreamMemory.h"
+#include "../../Include/RmlUi/Core.h"
 #include "DocumentHeader.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
@@ -39,7 +40,7 @@
 #include "TemplateCache.h"
 #include "XMLParseTools.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
@@ -294,10 +295,10 @@ bool ElementDocument::IsModal() const
 }
 
 // Default load script implementation
-void ElementDocument::LoadScript(Stream* ROCKET_UNUSED_PARAMETER(stream), const String& ROCKET_UNUSED_PARAMETER(source_name))
+void ElementDocument::LoadScript(Stream* RMLUI_UNUSED_PARAMETER(stream), const String& RMLUI_UNUSED_PARAMETER(source_name))
 {
-	ROCKET_UNUSED(stream);
-	ROCKET_UNUSED(source_name);
+	RMLUI_UNUSED(stream);
+	RMLUI_UNUSED(source_name);
 }
 
 // Updates the layout if necessary.
@@ -359,7 +360,7 @@ void ElementDocument::LockLayout(bool lock)
 	else
 		lock_layout--;
 	
-	ROCKET_ASSERT(lock_layout >= 0);
+	RMLUI_ASSERT(lock_layout >= 0);
 }
 
 void ElementDocument::DirtyLayout()

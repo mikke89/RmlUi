@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +27,13 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/String.h"
-#include "../../Include/Rocket/Core/StringBase.h"
+#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/StringBase.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
-int ROCKETCORE_API RocketStringFormatString(StringBase<char>& string, int max_size, const char* format, va_list argument_list)
+int RMLUICORE_API RmlUiStringFormatString(StringBase<char>& string, int max_size, const char* format, va_list argument_list)
 {
 	const int INTERNAL_BUFFER_SIZE = 1024;
 	static char buffer[INTERNAL_BUFFER_SIZE];
@@ -43,7 +44,7 @@ int ROCKETCORE_API RocketStringFormatString(StringBase<char>& string, int max_si
 
 	int length = vsnprintf(buffer_ptr, max_size, format, argument_list);
 	buffer_ptr[length >= 0 ? length : max_size] = '\0';
-	#ifdef ROCKET_DEBUG
+	#ifdef RMLUI_DEBUG
 		if (length == -1)
 		{
 			Log::Message(Log::LT_WARNING, "String::sprintf: String truncated to %d bytes when processing %s", max_size, format);
@@ -64,7 +65,7 @@ StringBase<char>::StringBase(StringBase<char>::size_type max_size, const char* f
 	va_list argument_list;
 	va_start(argument_list, fmt);
 
-	RocketStringFormatString(*this, (int)max_size, fmt, argument_list);
+	RmlUiStringFormatString(*this, (int)max_size, fmt, argument_list);
 
 	va_end(argument_list);
 }
@@ -75,7 +76,7 @@ int StringBase<char>::FormatString(StringBase<char>::size_type max_size, const c
 	va_list argument_list;
 	va_start(argument_list, fmt);
 
-	int length = RocketStringFormatString(*this, (int)max_size, fmt, argument_list);
+	int length = RmlUiStringFormatString(*this, (int)max_size, fmt, argument_list);
 
 	va_end(argument_list);
 
@@ -90,10 +91,10 @@ String operator+(const char* cstring, const String& string)
 //#define ENABLE_STRING_TESTS
 #ifdef ENABLE_STRING_TESTS
 #include <string>
-#include "Rocket/Core/SystemInterface.h"
-ROCKETCORE_API void StringTests()
+#include "RmlUi/Core/SystemInterface.h"
+RMLUICORE_API void StringTests()
 {
-	SystemInterface* sys = Rocket::Core::GetSystemInterface();
+	SystemInterface* sys = Rml::Core::GetSystemInterface();
 	
 	std::string ss = "test";
 	String es = "test";
@@ -106,7 +107,7 @@ ROCKETCORE_API void StringTests()
 
 	String sub1 = es.Replace("lo", "l");
 	sub1 = sub1.Replace("h", "!");
-	ROCKET_ASSERT(sub1 == "!el");
+	RMLUI_ASSERT(sub1 == "!el");
 
 	Time start;
 
@@ -265,7 +266,7 @@ ROCKETCORE_API void StringTests()
 
 /*namespace std {
 
-ROCKETCORE_API size_t hash< String >::operator()(const String& string) const
+RMLUICORE_API size_t hash< String >::operator()(const String& string) const
 {
 	return StringUtilities::FNVHash(string.CString());
 }

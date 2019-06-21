@@ -10,8 +10,8 @@ bin64/*
 Win32/
 
 /lib/
-RocketCore.dir/
-RocketControls.dir/
-RocketDebugger.dir/
+RmlCore.dir/
+RmlControls.dir/
+RmlDebugger.dir/
 
 Win32/

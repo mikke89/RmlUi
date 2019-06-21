@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael Ragazzon
  *
@@ -28,10 +28,10 @@
 #include "precompiled.h"
 #include "ElementAnimation.h"
 #include "ElementStyle.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 
@@ -49,10 +49,10 @@ static Colourf ColourToLinearSpace(Colourb c)
 static Colourb ColourFromLinearSpace(Colourf c)
 {
 	Colourb result;
-	result.red = (Rocket::Core::byte)Math::Clamp(c.red*c.red*255.f, 0.0f, 255.f);
-	result.green = (Rocket::Core::byte)Math::Clamp(c.green*c.green*255.f, 0.0f, 255.f);
-	result.blue = (Rocket::Core::byte)Math::Clamp(c.blue*c.blue*255.f, 0.0f, 255.f);
-	result.alpha = (Rocket::Core::byte)Math::Clamp(c.alpha*255.f, 0.0f, 255.f);
+	result.red = (Rml::Core::byte)Math::Clamp(c.red*c.red*255.f, 0.0f, 255.f);
+	result.green = (Rml::Core::byte)Math::Clamp(c.green*c.green*255.f, 0.0f, 255.f);
+	result.blue = (Rml::Core::byte)Math::Clamp(c.blue*c.blue*255.f, 0.0f, 255.f);
+	result.alpha = (Rml::Core::byte)Math::Clamp(c.alpha*255.f, 0.0f, 255.f);
 	return result;
 }
 
@@ -115,7 +115,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 
 	if (p0.unit == Property::TRANSFORM && p1.unit == Property::TRANSFORM)
 	{
-		using namespace Rocket::Core::Transforms;
+		using namespace Rml::Core::Transforms;
 
 		// Build the new, interpolating transform
 		std::unique_ptr<Transform> t(new Transform);
@@ -128,7 +128,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 
 		if (prim0.size() != prim1.size())
 		{
-			ROCKET_ERRORMSG("Transform primitives not of same size during interpolation. Were the transforms properly prepared for interpolation?");
+			RMLUI_ERRORMSG("Transform primitives not of same size during interpolation. Were the transforms properly prepared for interpolation?");
 			return Property{ t0, Property::TRANSFORM };
 		}
 
@@ -137,7 +137,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 			Primitive p = prim0[i];
 			if (!p.InterpolateWith(prim1[i], alpha))
 			{
-				ROCKET_ERRORMSG("Transform primitives can not be interpolated. Were the transforms properly prepared for interpolation?");
+				RMLUI_ERRORMSG("Transform primitives can not be interpolated. Were the transforms properly prepared for interpolation?");
 				return Property{ t0, Property::TRANSFORM };
 			}
 			t->AddPrimitive(p);
@@ -452,7 +452,7 @@ float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_ke
 		key0 = (key1 == 0 ? 0 : key1 - 1);
 	}
 
-	ROCKET_ASSERT(key0 >= 0 && key0 < (int)keys.size() && key1 >= 0 && key1 < (int)keys.size());
+	RMLUI_ASSERT(key0 >= 0 && key0 < (int)keys.size() && key1 >= 0 && key1 < (int)keys.size());
 
 	float alpha = 0.0f;
 
@@ -480,7 +480,7 @@ float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_ke
 
 Property ElementAnimation::UpdateAndGetProperty(double world_time, Element& element)
 {
-	ROCKET_ASSERT(keys.size() >= 2);
+	RMLUI_ASSERT(keys.size() >= 2);
 	float dt = float(world_time - last_update_world_time);
 	if (animation_complete || dt <= 0.0f)
 		return Property{};

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,13 +32,13 @@
 #include "LayoutEngine.h"
 #include "LayoutInlineBoxText.h"
 #include "FontFaceHandle.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/ElementText.h"
-#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 #include <stack>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 static float GetSpacing(const Box& box, Box::Edge edge)
@@ -184,7 +185,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 // Closes one of the line box's inline boxes.
 void LayoutLineBox::CloseInlineBox(LayoutInlineBox* inline_box)
 {
-	ROCKET_ASSERT(open_inline_box == inline_box);
+	RMLUI_ASSERT(open_inline_box == inline_box);
 
 	open_inline_box = inline_box->GetParent();
 	box_cursor += GetSpacing(inline_box->GetBox(), Box::RIGHT);

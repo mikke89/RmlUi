@@ -8,7 +8,7 @@ masterpubhdr='set(MASTER_lib_PUB_HDR_FILES'
 pubhdr='set(lib_PUB_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Source
-hdrpath=Include/Rocket
+hdrpath=Include/RmlUi
 luapath=Lua
 
 printfiles() {
@@ -18,7 +18,7 @@ printfiles() {
     echo -e ')\n' >>$file
     # Print master header for library
     echo ${masterpubhdr/lib/$1} >>$file
-    echo '    '$srcdir/Include/Rocket/$1.h >>$file
+    echo '    '$srcdir/Include/RmlUi/$1.h >>$file
     echo -e ')\n' >>$file
     # Print public headers sub directory
     echo ${pubhdr/lib/$1} >>$file

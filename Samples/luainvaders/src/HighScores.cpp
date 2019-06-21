@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +27,14 @@
  */
 
 #include "HighScores.h"
-#include <Rocket/Core/TypeConverter.h>
+#include <RmlUi/Core/TypeConverter.h>
 #include <stdio.h>
 
 HighScores* HighScores::instance = NULL;
 
-HighScores::HighScores() : Rocket::Controls::DataSource("high_scores")
+HighScores::HighScores() : Rml::Controls::DataSource("high_scores")
 {
-	ROCKET_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == NULL);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -46,7 +47,7 @@ HighScores::HighScores() : Rocket::Controls::DataSource("high_scores")
 
 HighScores::~HighScores()
 {
-	ROCKET_ASSERT(instance == this);
+	RMLUI_ASSERT(instance == this);
 
 	SaveScores();
 
@@ -63,7 +64,7 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns)
+void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns)
 {
 	if (table == "scores")
 	{
@@ -75,27 +76,27 @@ void HighScores::GetRow(Rocket::Core::StringList& row, const Rocket::Core::Strin
 			}
 			else if (columns[i] == "name_required")
 			{
-				row.push_back(Rocket::Core::String(4, "%d", scores[row_index].name_required));
+				row.push_back(Rml::Core::String(4, "%d", scores[row_index].name_required));
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(Rocket::Core::String(32, "%d", scores[row_index].score));
+				row.push_back(Rml::Core::String(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
-				Rocket::Core::String colour_string;
-				Rocket::Core::TypeConverter< Rocket::Core::Colourb, Rocket::Core::String >::Convert(scores[row_index].colour, colour_string);
+				Rml::Core::String colour_string;
+				Rml::Core::TypeConverter< Rml::Core::Colourb, Rml::Core::String >::Convert(scores[row_index].colour, colour_string);
 				row.push_back(colour_string);
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(Rocket::Core::String(8, "%d", scores[row_index].wave));
+				row.push_back(Rml::Core::String(8, "%d", scores[row_index].wave));
 			}
 		}
 	}
 }
 
-int HighScores::GetNumRows(const Rocket::Core::String& table)
+int HighScores::GetNumRows(const Rml::Core::String& table)
 {
 	if (table == "scores")
 	{
@@ -123,18 +124,18 @@ int HighScores::GetHighScore()
 	return instance->scores[0].score;
 }
 
-void HighScores::SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score)
+void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score)
 {
 	instance->SubmitScore(name, colour, wave, score, false);
 }
 
-void HighScores::SubmitScore(const Rocket::Core::Colourb& colour, int wave, int score)
+void HighScores::SubmitScore(const Rml::Core::Colourb& colour, int wave, int score)
 {
 	instance->SubmitScore("", colour, wave, score, true);
 }
 
 // Sets the name of the last player to submit their score.
-void HighScores::SubmitName(const Rocket::Core::String& name)
+void HighScores::SubmitName(const Rml::Core::String& name)
 {
 	for (int i = 0; i < instance->GetNumRows("scores"); i++)
 	{
@@ -147,7 +148,7 @@ void HighScores::SubmitName(const Rocket::Core::String& name)
 	}
 }
 
-void HighScores::SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score, bool name_required)
+void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score, bool name_required)
 {
 	for (int i = 0; i < NUM_SCORES; i++)
 	{
@@ -195,17 +196,17 @@ void HighScores::LoadScores()
 		char buffer[1024];
 		while (fgets(buffer, 1024, scores_file))
 		{
-			Rocket::Core::StringList score_parts;
-			Rocket::Core::StringUtilities::ExpandString(score_parts, Rocket::Core::String(buffer), '\t');
+			Rml::Core::StringList score_parts;
+			Rml::Core::StringUtilities::ExpandString(score_parts, Rml::Core::String(buffer), '\t');
 			if (score_parts.size() == 4)
 			{
-				Rocket::Core::Colourb colour;
+				Rml::Core::Colourb colour;
 				int wave;
 				int score;
 
-				if (Rocket::Core::TypeConverter< Rocket::Core::String , Rocket::Core::Colourb >::Convert(score_parts[1], colour) &&
-					Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[2], wave) &&
-					Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[3], score))
+				if (Rml::Core::TypeConverter< Rml::Core::String , Rml::Core::Colourb >::Convert(score_parts[1], colour) &&
+					Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[2], wave) &&
+					Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[3], score))
 				{
 					SubmitScore(score_parts[0], colour, wave, score);
 				}
@@ -224,10 +225,10 @@ void HighScores::SaveScores()
 	{
 		for (int i = 0; i < GetNumRows("scores"); i++)
 		{
-			Rocket::Core::String colour_string;
-			Rocket::Core::TypeConverter< Rocket::Core::Colourb, Rocket::Core::String >::Convert(scores[i].colour, colour_string);
+			Rml::Core::String colour_string;
+			Rml::Core::TypeConverter< Rml::Core::Colourb, Rml::Core::String >::Convert(scores[i].colour, colour_string);
 
-			Rocket::Core::String score(1024, "%s\t%s\t%d\t%d\n", scores[i].name.CString(), colour_string.CString(), scores[i].wave, scores[i].score);
+			Rml::Core::String score(1024, "%s\t%s\t%d\t%d\n", scores[i].name.CString(), colour_string.CString(), scores[i].wave, scores[i].score);
 			fputs(score.CString(), scores_file);		
 		}
 

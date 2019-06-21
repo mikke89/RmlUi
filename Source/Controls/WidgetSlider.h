@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +26,12 @@
  *
  */
 
-#ifndef ROCKETCONTROLSWIDGETSLIDER_H
-#define ROCKETCONTROLSWIDGETSLIDER_H
+#ifndef RMLUICONTROLSWIDGETSLIDER_H
+#define RMLUICONTROLSWIDGETSLIDER_H
 
-#include "../../Include/Rocket/Core/EventListener.h"
+#include "../../Include/RmlUi/Core/EventListener.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 class ElementFormControl;
@@ -75,14 +76,14 @@ public:
 
 	/// Sets the dimensions to the size of the slider.
 	/// @param[in] dimensions The dimensions to size.
-	void GetDimensions(Rocket::Core::Vector2f& dimensions) const;
+	void GetDimensions(Rml::Core::Vector2f& dimensions) const;
 
 protected:
 	/// Lays out and resizes the slider's internal elements.
 	/// @param[in] containing_block The padded box containing the slider. This is used to resolve relative properties.
 	/// @param[in] slider_length The total length, in pixels, of the slider widget.
 	/// @param[in] bar_length The total length of the bar, as a proportion of the track length. If this is -1, the intrinsic length will be used.
-	void FormatElements(const Rocket::Core::Vector2f& containing_block, float slider_length, float bar_length = -1);
+	void FormatElements(const Rml::Core::Vector2f& containing_block, float slider_length, float bar_length = -1);
 	/// Lays out and positions the bar element.
 	/// @param[in] bar_length The total length of the bar, as a proportion of the track length. If this is -1, the intrinsic length will be used.
 	void FormatBar(float bar_length = -1);

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,111 +27,111 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Math.h"
+#include "../../Include/RmlUi/Core/Math.h"
 #include <time.h>
 #include <math.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Math {
 
-const float ROCKET_PI = 3.141592653f;
+const float RMLUI_PI = 3.141592653f;
 
 static const float FZERO = 0.0001f;
 
 // Evaluates if a number is, or close to, zero.
-ROCKETCORE_API bool IsZero(float value)
+RMLUICORE_API bool IsZero(float value)
 {
 	return AbsoluteValue(value) < FZERO;
 }
 
 // Evaluates if two floating-point numbers are equal, or so similar that they could be considered
 // so.
-ROCKETCORE_API bool AreEqual(float value_0, float value_1)
+RMLUICORE_API bool AreEqual(float value_0, float value_1)
 {
 	return IsZero(value_1 - value_0);
 }
 
 // Calculates the absolute value of a number.
-ROCKETCORE_API float AbsoluteValue(float value)
+RMLUICORE_API float AbsoluteValue(float value)
 {
 	return fabsf(value);
 }
 
 // Calculates the cosine of an angle.
-ROCKETCORE_API float Cos(float angle)
+RMLUICORE_API float Cos(float angle)
 {
 	return cosf(angle);
 }
 
 // Calculates the arc-cosine of an value.
-ROCKETCORE_API float ACos(float value)
+RMLUICORE_API float ACos(float value)
 {
 	return acos(value);
 }
 
 // Calculates the sine of an angle.
-ROCKETCORE_API float Sin(float angle)
+RMLUICORE_API float Sin(float angle)
 {
 	return sin(angle);
 }
 
 // Calculates the arc-sine of an value.
-ROCKETCORE_API float ASin(float angle)
+RMLUICORE_API float ASin(float angle)
 {
 	return asinf(angle);
 }
 
 // Calculates the tangent of an angle.
-ROCKETCORE_API float Tan(float angle)
+RMLUICORE_API float Tan(float angle)
 {
 	return tanf(angle);
 }
 
 // Calculates the angle of a two-dimensional line.
-ROCKETCORE_API float ATan2(float y, float x)
+RMLUICORE_API float ATan2(float y, float x)
 {
 	return atan2f(y, x);
 }
 
 // Evaluates the natural exponential function on a value.
-ROCKETCORE_API float Exp(float value)
+RMLUICORE_API float Exp(float value)
 {
 	return exp(value);
 }
 
 // Converts an angle from radians to degrees.
-ROCKETCORE_API float RadiansToDegrees(float angle)
+RMLUICORE_API float RadiansToDegrees(float angle)
 {
-	return angle * (180.0f / ROCKET_PI);
+	return angle * (180.0f / RMLUI_PI);
 }
 
 // Converts an angle from degrees to radians.
-ROCKETCORE_API float DegreesToRadians(float angle)
+RMLUICORE_API float DegreesToRadians(float angle)
 {
-	return angle * (ROCKET_PI / 180.0f);
+	return angle * (RMLUI_PI / 180.0f);
 }
 
 // Normalises and angle in radians
-ROCKETCORE_API float NormaliseAngle(float angle)
+RMLUICORE_API float NormaliseAngle(float angle)
 {
-	return fmodf(angle, ROCKET_PI * 2.0f);
+	return fmodf(angle, RMLUI_PI * 2.0f);
 }
 
 // Calculates the square root of a value.
-ROCKETCORE_API float SquareRoot(float value)
+RMLUICORE_API float SquareRoot(float value)
 {
 	return sqrtf(value);
 }
 
 // Rounds a floating-point value to the nearest integer.
-ROCKETCORE_API float RoundFloat(float value)
+RMLUICORE_API float RoundFloat(float value)
 {
 	return roundf(value);
 }
 
 // Rounds a floating-point value to the nearest integer.
-ROCKETCORE_API int RoundToInteger(float value)
+RMLUICORE_API int RoundToInteger(float value)
 {
 	if (value > 0.0f)
 		return RealToInteger(value + 0.5f);
@@ -139,21 +140,21 @@ ROCKETCORE_API int RoundToInteger(float value)
 }
 
 // Rounds a floating-point value up to the nearest integer.
-ROCKETCORE_API int RoundUpToInteger(float value)
+RMLUICORE_API int RoundUpToInteger(float value)
 {
 	return RealToInteger(ceilf(value));
 }
 
 // Rounds a floating-point value down to the nearest integer.
-ROCKETCORE_API int RoundDownToInteger(float value)
+RMLUICORE_API int RoundDownToInteger(float value)
 {
 	return RealToInteger(floorf(value));
 }
 
 // Efficiently truncates a floating-point value into an integer.
-ROCKETCORE_API int RealToInteger(float value)
+RMLUICORE_API int RealToInteger(float value)
 {
-#if defined(ROCKET_PLATFORM_WIN32) && !defined(_M_X64) && !defined(__amd64__) && !defined(__MINGW32__)
+#if defined(RMLUI_PLATFORM_WIN32) && !defined(_M_X64) && !defined(__amd64__) && !defined(__MINGW32__)
 	int i;
 	_asm
 	{
@@ -201,7 +202,7 @@ putsign:
 }
 
 // Converts the given number to a power of two, rounding up if necessary.
-ROCKETCORE_API int ToPowerOfTwo(int number)
+RMLUICORE_API int ToPowerOfTwo(int number)
 {
 	// Check if the number is already a power of two.
 	if ((number & (number - 1)) == 0)
@@ -223,7 +224,7 @@ ROCKETCORE_API int ToPowerOfTwo(int number)
 }
 
 // Converts from a hexadecimal digit to decimal.
-ROCKETCORE_API int HexToDecimal(char hex_digit)
+RMLUICORE_API int HexToDecimal(char hex_digit)
 {
 	if (hex_digit >= '0' && hex_digit <= '9')
 		return hex_digit - '0';
@@ -236,19 +237,19 @@ ROCKETCORE_API int HexToDecimal(char hex_digit)
 }
 
 // Generates a random floating-point value between 0 and a user-specified value.
-ROCKETCORE_API float RandomReal(float max_value)
+RMLUICORE_API float RandomReal(float max_value)
 {
 	return (rand() / (float) RAND_MAX) * max_value;
 }
 
 // Generates a random integer value between 0 and a user-specified value.
-ROCKETCORE_API int RandomInteger(int max_value)
+RMLUICORE_API int RandomInteger(int max_value)
 {
 	return (rand() % max_value);
 }
 
 // Generates a random boolean value, with equal chance of true or false.
-ROCKETCORE_API bool RandomBool()
+RMLUICORE_API bool RandomBool()
 {
 	return RandomInteger(2) == 1;
 }

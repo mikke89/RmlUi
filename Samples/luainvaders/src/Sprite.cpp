@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "Sprite.h"
 #include <ShellOpenGL.h>
 
-Sprite::Sprite(const Rocket::Core::Vector2f& dimensions, const Rocket::Core::Vector2f& top_left_texcoord, const Rocket::Core::Vector2f& bottom_right_texcoord) : dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
+Sprite::Sprite(const Rml::Core::Vector2f& dimensions, const Rml::Core::Vector2f& top_left_texcoord, const Rml::Core::Vector2f& bottom_right_texcoord) : dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
 {
 }
 
@@ -36,7 +37,7 @@ Sprite::~Sprite()
 {
 }
 
-void Sprite::Render(const Rocket::Core::Vector2f& position)
+void Sprite::Render(const Rml::Core::Vector2f& position)
 {
 	glTexCoord2f(top_left_texcoord.x, top_left_texcoord.y);
 	glVertex2f(position.x, position.y);

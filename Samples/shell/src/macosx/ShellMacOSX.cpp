@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include "Shell.h"
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include "ShellFileInterface.h"
 #include "macosx/InputMacOSX.h"
 #include <Carbon/Carbon.h>
@@ -65,10 +66,10 @@ bool Shell::Initialise()
 
 	InputMacOSX::Initialise();
 
-	Rocket::Core::String root = FindSamplesRoot();
+	Rml::Core::String root = FindSamplesRoot();
 
 	file_interface = new ShellFileInterface(root);
-	Rocket::Core::SetFileInterface(file_interface);
+	Rml::Core::SetFileInterface(file_interface);
 
 	return true;
 }
@@ -79,9 +80,9 @@ void Shell::Shutdown()
 	file_interface = NULL;
 }
 
-Rocket::Core::String Shell::FindSamplesRoot()
+Rml::Core::String Shell::FindSamplesRoot()
 {
-	Rocket::Core::String path = "../../Samples/";
+	Rml::Core::String path = "../../Samples/";
 	
 	// Find the location of the executable.
 	CFBundleRef bundle = CFBundleGetMainBundle();
@@ -92,7 +93,7 @@ Rocket::Core::String Shell::FindSamplesRoot()
 	if (!CFStringGetFileSystemRepresentation(executable_posix_file_name, executable_file_name, max_length))
 		executable_file_name[0] = 0;
 
-	Rocket::Core::String executable_path = Rocket::Core::String(executable_file_name);
+	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
 	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
 
 	delete[] executable_file_name;
@@ -268,7 +269,7 @@ static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, v
 					Shell::RequestExit();
 					break;
 				case kEventWindowBoundsChanged:
-					// Window resized, update the rocket context
+					// Window resized, update the rmlui context
 					UInt32 attributes;
 					GetEventParameter(event, kEventParamAttributes, typeUInt32, NULL, sizeof(UInt32), NULL, &attributes);
 

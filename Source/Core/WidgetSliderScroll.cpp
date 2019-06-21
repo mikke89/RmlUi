@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "precompiled.h"
 #include "WidgetSliderScroll.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 WidgetSliderScroll::WidgetSliderScroll(Element* parent) : WidgetSlider(parent)
@@ -43,9 +44,9 @@ WidgetSliderScroll::~WidgetSliderScroll()
 }
 
 // Sets the length of the entire track in some arbitrary unit.
-void WidgetSliderScroll::SetTrackLength(float _track_length, bool ROCKET_UNUSED_PARAMETER(force_resize))
+void WidgetSliderScroll::SetTrackLength(float _track_length, bool RMLUI_UNUSED_PARAMETER(force_resize))
 {
-	ROCKET_UNUSED(force_resize);
+	RMLUI_UNUSED(force_resize);
 
 	if (track_length != _track_length)
 	{
@@ -55,9 +56,9 @@ void WidgetSliderScroll::SetTrackLength(float _track_length, bool ROCKET_UNUSED_
 }
 
 // Sets the length the bar represents in some arbitrary unit, relative to the track length.
-void WidgetSliderScroll::SetBarLength(float _bar_length, bool ROCKET_UNUSED_PARAMETER(force_resize))
+void WidgetSliderScroll::SetBarLength(float _bar_length, bool RMLUI_UNUSED_PARAMETER(force_resize))
 {
-	ROCKET_UNUSED(force_resize);
+	RMLUI_UNUSED(force_resize);
 	
 	if (bar_length != _bar_length)
 	{
@@ -109,18 +110,18 @@ float WidgetSliderScroll::OnLineDecrement()
 
 // Called when the slider is incremented by one 'page', either by the page-up key or a mouse-click on the track
 // below / right of the bar.
-float WidgetSliderScroll::OnPageIncrement(float ROCKET_UNUSED_PARAMETER(click_position))
+float WidgetSliderScroll::OnPageIncrement(float RMLUI_UNUSED_PARAMETER(click_position))
 {
-	ROCKET_UNUSED(click_position);
+	RMLUI_UNUSED(click_position);
 	
 	return Scroll(bar_length);
 }
 
 // Called when the slider is incremented by one 'page', either by the page-down key or a mouse-click on the track
 // above / left of the bar.
-float WidgetSliderScroll::OnPageDecrement(float ROCKET_UNUSED_PARAMETER(click_position))
+float WidgetSliderScroll::OnPageDecrement(float RMLUI_UNUSED_PARAMETER(click_position))
 {
-	ROCKET_UNUSED(click_position);
+	RMLUI_UNUSED(click_position);
 	
 	return Scroll(-bar_length);
 }

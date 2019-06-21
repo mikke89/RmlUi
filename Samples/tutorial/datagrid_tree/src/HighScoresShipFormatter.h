@@ -12,20 +12,20 @@
 #ifndef HIGHSCORESSHIPFORMATTER_H
 #define HIGHSCORESSHIPFORMATTER_H
 
-#include <Rocket/Controls/DataFormatter.h>
+#include <RmlUi/Controls/DataFormatter.h>
 
 /**
 	Formats the colour of the player's ship to a <defender> tag, which is linked to the defender decorator.
 	@author Robert Curry
  */
 
-class HighScoresShipFormatter : public Rocket::Controls::DataFormatter
+class HighScoresShipFormatter : public Rml::Controls::DataFormatter
 {
 	public:
 		HighScoresShipFormatter();
 		~HighScoresShipFormatter();
 
-		void FormatData(Rocket::Core::String& formatted_data, const Rocket::Core::StringList& raw_data);
+		void FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data);
 };
 
 #endif

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +26,14 @@
  *
  */
 
-#ifndef ROCKETCOREBITMAPFONTFAMILY_H
-#define ROCKETCOREBITMAPFONTFAMILY_H
+#ifndef RMLUICOREBITMAPFONTFAMILY_H
+#define RMLUICOREBITMAPFONTFAMILY_H
 
-#include "../../../Include/Rocket/Core/Font.h"
-#include "../../../Include/Rocket/Core/FontFamily.h"
+#include "../../../Include/RmlUi/Core/Font.h"
+#include "../../../Include/RmlUi/Core/FontFamily.h"
 #include "BitmapFontDefinitions.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 class FontFace;
@@ -44,7 +45,7 @@ namespace BitmapFont {
 	@author Peter Curry
  */
 
-class FontFamily : public Rocket::Core::FontFamily
+class FontFamily : public Rml::Core::FontFamily
 {
 public:
 	FontFamily(const String& name);

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +31,12 @@
 #include <algorithm>
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
-#include "../../Include/Rocket/Core/Log.h"
-#include "../../Include/Rocket/Core/StreamMemory.h"
-#include "../../Include/Rocket/Core/StyleSheet.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/StreamMemory.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 StyleSheetParser::StyleSheetParser()
@@ -248,7 +249,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, KeyframesMap& keyframes, Strea
 			}
 			break;
 			default:
-				ROCKET_ERROR;
+				RMLUI_ERROR;
 				state = State::Invalid;
 				break;
 			}

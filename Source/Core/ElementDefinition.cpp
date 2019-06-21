@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +28,12 @@
 
 #include "precompiled.h"
 #include "ElementDefinition.h"
-#include "../../Include/Rocket/Core/Decorator.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/FontDatabase.h"
-#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/RmlUi/Core/Decorator.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/FontDatabase.h"
+#include "../../Include/RmlUi/Core/Log.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 ElementDefinition::ElementDefinition()
@@ -407,9 +408,9 @@ void ElementDefinition::BuildPropertyGroup(PropertyGroupMap& groups, const Strin
 }
 
 // Updates a property dictionary of all properties for a single group.
-int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& ROCKET_UNUSED_PARAMETER(group_type), const String& group_name, const PropertyDictionary& element_properties)
+int ElementDefinition::BuildPropertyGroupDictionary(PropertyDictionary& group_properties, const String& RMLUI_UNUSED_PARAMETER(group_type), const String& group_name, const PropertyDictionary& element_properties)
 {
-	ROCKET_UNUSED(group_type);
+	RMLUI_UNUSED(group_type);
 
 	int num_properties = 0;
 

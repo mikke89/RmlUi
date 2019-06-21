@@ -12,8 +12,8 @@
 #ifndef HIGHSCORES_H
 #define HIGHSCORES_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Controls/DataSource.h>
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Controls/DataSource.h>
 
 const int NUM_SCORES = 10;
 const int NUM_ALIEN_TYPES = 3;
@@ -23,14 +23,14 @@ const int NUM_ALIEN_TYPES = 3;
 	@author Robert Curry
  */
 
-class HighScores : public Rocket::Controls::DataSource
+class HighScores : public Rml::Controls::DataSource
 {
 public:
 	static void Initialise();
 	static void Shutdown();
 
-	void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns);
-	int GetNumRows(const Rocket::Core::String& table);
+	void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns);
+	int GetNumRows(const Rml::Core::String& table);
 
 private:
 	HighScores();
@@ -38,13 +38,13 @@ private:
 
 	static HighScores* instance;
 
-	void SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score, int alien_kills[]);
+	void SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score, int alien_kills[]);
 	void LoadScores();
 
 	struct Score
 	{
-		Rocket::Core::String name;
-		Rocket::Core::Colourb colour;
+		Rml::Core::String name;
+		Rml::Core::Colourb colour;
 		int score;
 		int wave;
 

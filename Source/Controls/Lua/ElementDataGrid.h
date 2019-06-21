@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +26,16 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAELEMENTDATAGRID_H
-#define ROCKETCONTROLSLUAELEMENTDATAGRID_H
+#ifndef RMLUICONTROLSLUAELEMENTDATAGRID_H
+#define RMLUICONTROLSLUAELEMENTDATAGRID_H
 
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Controls/ElementDataGrid.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Controls/ElementDataGrid.h>
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -46,7 +47,7 @@ int ElementDataGridSetDataSource(lua_State* L, ElementDataGrid* obj);
 int ElementDataGridGetAttrrows(lua_State* L);
 
 
-extern Rocket::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[];
+extern Rml::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[];
 extern luaL_Reg ElementDataGridGetters[];
 extern luaL_Reg ElementDataGridSetters[];
 
@@ -54,9 +55,9 @@ extern luaL_Reg ElementDataGridSetters[];
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
+namespace Rml { namespace Core { namespace Lua {
 //this will be used to "inherit" from Element
-template<> void ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::ElementDataGrid)
+template<> void ExtraInit<Rml::Controls::ElementDataGrid>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::ElementDataGrid)
 }}}
 #endif

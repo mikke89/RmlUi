@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +28,16 @@
  
 #include "precompiled.h"
 #include "LuaDataFormatter.h"
-#include <Rocket/Core/Lua/Interpreter.h>
-#include <Rocket/Core/Log.h>
+#include <RmlUi/Core/Lua/Interpreter.h>
+#include <RmlUi/Core/Log.h>
 
-using Rocket::Core::Lua::Interpreter;
-using Rocket::Core::Log;
-namespace Rocket {
+using Rml::Core::Lua::Interpreter;
+using Rml::Core::Log;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
-LuaDataFormatter::LuaDataFormatter(const Rocket::Core::String& name) : Rocket::Controls::DataFormatter(name), ref_FormatData(LUA_NOREF)
+LuaDataFormatter::LuaDataFormatter(const Rml::Core::String& name) : Rml::Controls::DataFormatter(name), ref_FormatData(LUA_NOREF)
 {
     
 }
@@ -46,7 +47,7 @@ LuaDataFormatter::~LuaDataFormatter()
     //empty
 }
 
-void LuaDataFormatter::FormatData(Rocket::Core::String& formatted_data, const Rocket::Core::StringList& raw_data)
+void LuaDataFormatter::FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data)
 {
     if(ref_FormatData == LUA_NOREF || ref_FormatData == LUA_REFNIL)
     {
@@ -79,7 +80,7 @@ void LuaDataFormatter::FormatData(Rocket::Core::String& formatted_data, const Ro
         lua_settop(L,top);
         return;
     }
-    formatted_data = Rocket::Core::String(lua_tostring(L,-1));
+    formatted_data = Rml::Core::String(lua_tostring(L,-1));
     lua_settop(L,top);
 }
 

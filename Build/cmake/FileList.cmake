@@ -103,101 +103,101 @@ set(Core_HDR_FILES
 )
 
 set(MASTER_Core_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core.h
 )
 
 set(Core_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Animation.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BaseXMLParser.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Box.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Colour.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Context.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ContextInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ConvolutionFilter.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Core.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Debug.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Decorator.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/DecoratorInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Dictionary.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Dictionary.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Element.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Element.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementDocument.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementInstancerGeneric.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementInstancerGeneric.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementReference.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementScroll.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementText.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ElementUtilities.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Event.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/EventInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/EventListener.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/EventListenerInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Factory.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FileInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Font.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontDatabase.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontEffect.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontEffectInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontGlyph.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/FreeType/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/BitmapFont/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Geometry.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/GeometryUtilities.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Input.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Log.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Math.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Matrix4.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Matrix4.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/MathTypes.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Platform.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Plugin.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Property.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDefinition.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyDictionary.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertyParser.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/PropertySpecification.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ReferenceCountable.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/RenderInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ScriptInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Stream.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StreamMemory.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/String.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringBase.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringBase.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StringUtilities.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheet.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheetKeywords.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/StyleSheetSpecification.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/SystemInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Texture.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Transform.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TransformState.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TransformPrimitive.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/TypeConverter.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Types.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Tween.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/URL.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Variant.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector2.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector2.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector3.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector3.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector4.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vector4.inl
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Vertex.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/ViewState.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/WString.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/XMLNodeHandler.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/XMLParser.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Animation.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BaseXMLParser.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Box.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Context.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ContextInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ConvolutionFilter.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Core.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecoratorInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementReference.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Event.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListener.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListenerInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Factory.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Font.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontDatabase.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontFace.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontGlyph.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontProvider.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FreeType/FontProvider.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BitmapFont/FontProvider.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Geometry.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/GeometryUtilities.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Input.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Log.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Math.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/MathTypes.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Plugin.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Property.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDefinition.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDictionary.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyParser.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ReferenceCountable.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Stream.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/String.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringBase.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringBase.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringUtilities.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheet.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetKeywords.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetSpecification.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Transform.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformState.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformPrimitive.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Types.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Tween.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/URL.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector2.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector2.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector3.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector3.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vertex.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ViewState.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/WString.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLNodeHandler.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLParser.h
 )
 
 set(Core_SRC_FILES
@@ -376,29 +376,29 @@ set(Controls_HDR_FILES
 )
 
 set(MASTER_Controls_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls.h
 )
 
 set(Controls_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Clipboard.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Controls.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/DataFormatter.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/DataQuery.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/DataSource.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/DataSourceListener.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementDataGrid.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementDataGridCell.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementDataGridExpandButton.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementDataGridRow.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementForm.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementFormControl.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementFormControlDataSelect.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementFormControlInput.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementFormControlSelect.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementFormControlTextArea.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/ElementTabSet.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/SelectOption.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Clipboard.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Controls.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataFormatter.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataQuery.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataSource.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataSourceListener.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGrid.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGridCell.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGridExpandButton.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGridRow.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementForm.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControl.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlDataSelect.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlInput.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlSelect.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlTextArea.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementTabSet.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/SelectOption.h
 )
 
 set(Controls_SRC_FILES
@@ -456,12 +456,12 @@ set(Debugger_HDR_FILES
 )
 
 set(MASTER_Debugger_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Debugger.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h
 )
 
 set(Debugger_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Debugger/Debugger.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Debugger/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger/Debugger.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger/Header.h
 )
 
 set(Debugger_SRC_FILES
@@ -497,17 +497,17 @@ set(LuaCore_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListener.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListenerInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/precompiled.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Rocket.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RocketContextsProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUi.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUiContextsProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2f.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2i.h
 )
 
 set(LuaCore_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/Interpreter.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/LuaType.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Core/Lua/Utilities.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/Interpreter.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/LuaType.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/Utilities.h
 )
 
 set(LuaCore_SRC_FILES
@@ -533,8 +533,8 @@ set(LuaCore_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListener.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListenerInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/precompiled.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Rocket.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RocketContextsProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUi.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUiContextsProxy.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Utilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2f.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2i.cpp
@@ -560,8 +560,8 @@ set(LuaControls_HDR_FILES
 )
 
 set(LuaControls_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Lua/Controls.h
-    ${PROJECT_SOURCE_DIR}/Include/Rocket/Controls/Lua/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Lua/Controls.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Lua/Header.h
 )
 
 set(LuaControls_SRC_FILES

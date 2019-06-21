@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +28,9 @@
 
   
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Element.h"
-#include "../../Include/Rocket/Core/Dictionary.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include <algorithm>
 #include <limits>
 #include "Clock.h"
@@ -45,9 +46,9 @@
 #include "PluginRegistry.h"
 #include "StyleSheetParser.h"
 #include "XMLParseTools.h"
-#include "../../Include/Rocket/Core/Core.h"
+#include "../../Include/RmlUi/Core/Core.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 /**
@@ -77,7 +78,7 @@ public:
 	}
 };
 
-/// Constructs a new libRocket element.
+/// Constructs a new RmlUi element.
 Element::Element(const String& _tag) : relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), boxes(1), content_offset(0, 0), content_box(0, 0), 
 transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false)
 {
@@ -119,7 +120,7 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 
 Element::~Element()
 {
-	ROCKET_ASSERT(parent == NULL);	
+	RMLUI_ASSERT(parent == NULL);	
 
 	PluginRegistry::NotifyElementDestroy(this);
 
@@ -468,9 +469,9 @@ float Element::GetBaseline() const
 }
 
 // Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size.
-bool Element::GetIntrinsicDimensions(Vector2f& ROCKET_UNUSED_PARAMETER(dimensions))
+bool Element::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions))
 {
-	ROCKET_UNUSED(dimensions);
+	RMLUI_UNUSED(dimensions);
 
 	return false;
 }
@@ -875,7 +876,7 @@ const Vector2f Element::Project(const Vector2f& point) noexcept
 		if (transform)
 		{
 			projected = transform->Untransform(intersection3d);
-			//ROCKET_ASSERT(fabs(projected.z) < 0.0001);
+			//RMLUI_ASSERT(fabs(projected.z) < 0.0001);
 		}
 		else
 		{
@@ -1668,7 +1669,7 @@ RenderInterface* Element::GetRenderInterface()
 	if (context != NULL)
 		return context->GetRenderInterface();
 
-	return Rocket::Core::GetRenderInterface();
+	return Rml::Core::GetRenderInterface();
 }
 
 void Element::SetInstancer(ElementInstancer* _instancer)
@@ -1727,8 +1728,8 @@ void Element::OnAttributeChange(const AttributeNameList& changed_attributes)
 		StyleSheetParser parser;
 		parser.ParseProperties(properties, GetAttribute< String >("style", ""));
 
-		Rocket::Core::PropertyMap property_map = properties.GetProperties();
-		for (Rocket::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
+		Rml::Core::PropertyMap property_map = properties.GetProperties();
+		for (Rml::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
 		{
 			SetProperty((*i).first, (*i).second);
 		}
@@ -2019,7 +2020,7 @@ void Element::OnReferenceDeactivate()
 	{
 		// Hopefully we can just delete ourselves.
 		//delete this;
-		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via Rocket Factory. Unable to release.", GetAddress().CString());
+		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via RmlUi Factory. Unable to release.", GetAddress().CString());
 	}
 }
 
@@ -2765,7 +2766,7 @@ void Element::UpdateTransformState()
 				// (perspective < 0), then scale the coordinates from
 				// pixel space to 3D unit space.
 
-				// Transform the Rocket context so that the computed `transform_origin'
+				// Transform the RmlUi context so that the computed `transform_origin'
 				// lies at the coordinate system origin.
 				transform_value =
 					Matrix4f::Translate(transform_origin)

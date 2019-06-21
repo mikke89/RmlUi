@@ -10,16 +10,16 @@
  */
 
 #include "HighScores.h"
-#include <Rocket/Core/StringUtilities.h>
-#include <Rocket/Core/TypeConverter.h>
-#include <Rocket/Core.h>
+#include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/TypeConverter.h>
+#include <RmlUi/Core.h>
 #include <stdio.h>
 
 HighScores* HighScores::instance = NULL;
 
 HighScores::HighScores()
 {
-	ROCKET_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == NULL);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -32,7 +32,7 @@ HighScores::HighScores()
 
 HighScores::~HighScores()
 {
-	ROCKET_ASSERT(instance == this);
+	RMLUI_ASSERT(instance == this);
 	instance = NULL;
 }
 
@@ -46,7 +46,7 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score)
+void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score)
 {
 	for (size_t i = 0; i < NUM_SCORES; i++)
 	{
@@ -72,8 +72,8 @@ void HighScores::SubmitScore(const Rocket::Core::String& name, const Rocket::Cor
 void HighScores::LoadScores()
 {
 	// Open and read the high score file.
-	Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
-	Rocket::Core::FileHandle scores_file = file_interface->Open("tutorial/datagrid/data/high_score.txt");
+	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
+	Rml::Core::FileHandle scores_file = file_interface->Open("tutorial/datagrid/data/high_score.txt");
 	
 	if (scores_file)
 	{
@@ -88,23 +88,23 @@ void HighScores::LoadScores()
 			file_interface->Close(scores_file);
 			buffer[scores_length] = 0;
 
-			Rocket::Core::StringList score_lines;
-			Rocket::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
+			Rml::Core::StringList score_lines;
+			Rml::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
 			delete[] buffer;
 			
 			for (size_t i = 0; i < score_lines.size(); i++)
 			{
-				Rocket::Core::StringList score_parts;
-				Rocket::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
+				Rml::Core::StringList score_parts;
+				Rml::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
 				if (score_parts.size() == 4)
 				{
-					Rocket::Core::Colourb colour;
+					Rml::Core::Colourb colour;
 					int wave;
 					int score;
 
-					if (Rocket::Core::TypeConverter< Rocket::Core::String , Rocket::Core::Colourb >::Convert(score_parts[1], colour) &&
-						Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[2], wave) &&
-						Rocket::Core::TypeConverter< Rocket::Core::String, int >::Convert(score_parts[3], score))
+					if (Rml::Core::TypeConverter< Rml::Core::String , Rml::Core::Colourb >::Convert(score_parts[1], colour) &&
+						Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[2], wave) &&
+						Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[3], score))
 					{
 						SubmitScore(score_parts[0], colour, wave, score);
 					}

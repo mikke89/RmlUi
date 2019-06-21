@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +27,10 @@
  */
 
 #include "EventHandlerOptions.h"
-#include <Rocket/Core/ElementDocument.h>
-#include <Rocket/Core/ElementUtilities.h>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Controls/ElementFormControlInput.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementUtilities.h>
+#include <RmlUi/Core/Event.h>
+#include <RmlUi/Controls/ElementFormControlInput.h>
 #include "EventManager.h"
 #include "GameDetails.h"
 
@@ -41,7 +42,7 @@ EventHandlerOptions::~EventHandlerOptions()
 {
 }
 
-void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::String& value)
+void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value)
 {
 	// Sent from the 'onload' of the options screen; we set the options on the interface to match those previously set
 	// this game session.
@@ -49,12 +50,12 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 	{
 		// Fetch the document from the target of the 'onload' event. From here we can fetch the options elements by ID
 		// to manipulate them directly.
-		Rocket::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
+		Rml::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
 		if (options_body == NULL)
 			return;
 
 		// Get the current graphics setting, and translate that into the ID of the radio button we need to set.
-		Rocket::Core::String graphics_option_id;
+		Rml::Core::String graphics_option_id;
 		switch (GameDetails::GetGraphicsQuality())
 		{
 			case GameDetails::GOOD:		graphics_option_id = "good"; break;
@@ -66,12 +67,12 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 		// Fetch the radio button from the document by ID, cast it to a radio button interface and set it as checked.
 		// This will automatically pop the other radio buttons in the set. Note that we could have not cast and called
 		// the 'Click()' function instead, but this method will avoid event overhead.
-		Rocket::Controls::ElementFormControlInput* graphics_option = dynamic_cast< Rocket::Controls::ElementFormControlInput* >(options_body->GetElementById(graphics_option_id));
+		Rml::Controls::ElementFormControlInput* graphics_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById(graphics_option_id));
 		if (graphics_option != NULL)
 			graphics_option->SetAttribute("checked", "");
 
 		// Fetch the reverb option by ID and set its checked status from the game options.
-		Rocket::Controls::ElementFormControlInput* reverb_option = dynamic_cast< Rocket::Controls::ElementFormControlInput* >(options_body->GetElementById("reverb"));
+		Rml::Controls::ElementFormControlInput* reverb_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("reverb"));
 		if (reverb_option != NULL)
 		{
 			if (GameDetails::GetReverb())
@@ -81,7 +82,7 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 		}
 
 		// Similarly, fetch the 3D spatialisation option by ID and set its checked status.
-		Rocket::Controls::ElementFormControlInput* spatialisation_option = dynamic_cast< Rocket::Controls::ElementFormControlInput* >(options_body->GetElementById("3d"));
+		Rml::Controls::ElementFormControlInput* spatialisation_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("3d"));
 		if (spatialisation_option != NULL)
 		{
 			if (GameDetails::Get3DSpatialisation())
@@ -97,15 +98,15 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 	{
 		// First check which button was clicked to submit the form; if it was 'cancel', then we don't want to
 		// propagate the changes.
-		if (event.GetParameter< Rocket::Core::String >("submit", "cancel") == "accept")
+		if (event.GetParameter< Rml::Core::String >("submit", "cancel") == "accept")
 		{
 			// Fetch the results of the form submission. These are stored as parameters directly on the event itself.
 			// Like HTML form events, the name of the parameter is the 'name' attribute of the control, and the value
 			// is whatever was put into the 'value' attribute. Checkbox values are only sent through if the box was
 			// clicked. Radio buttons send through one value for the active button.
-			Rocket::Core::String graphics = event.GetParameter< Rocket::Core::String >("graphics", "ok");
-			bool reverb = event.GetParameter< Rocket::Core::String >("reverb", "") == "true";
-			bool spatialisation = event.GetParameter< Rocket::Core::String >("3d", "") == "true";
+			Rml::Core::String graphics = event.GetParameter< Rml::Core::String >("graphics", "ok");
+			bool reverb = event.GetParameter< Rml::Core::String >("reverb", "") == "true";
+			bool spatialisation = event.GetParameter< Rml::Core::String >("3d", "") == "true";
 
 			if (graphics == "good")
 				GameDetails::SetGraphicsQuality(GameDetails::GOOD);
@@ -123,16 +124,16 @@ void EventHandlerOptions::ProcessEvent(Rocket::Core::Event& event, const Rocket:
 	// warning message.
 	else if (value == "bad_graphics")
 	{
-		Rocket::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
+		Rml::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
 		if (options_body == NULL)
 			return;
 
-		Rocket::Core::Element* bad_warning = options_body->GetElementById("bad_warning");
+		Rml::Core::Element* bad_warning = options_body->GetElementById("bad_warning");
 		if (bad_warning)
 		{
 			// The 'value' parameter of an onchange event is set to the value the control would send if it was
 			// submitted; so, the empty string if it is clear or to the 'value' attribute of the control if it is set.
-			if (event.GetParameter< Rocket::Core::String >("value", "").Empty())
+			if (event.GetParameter< Rml::Core::String >("value", "").Empty())
 				bad_warning->SetProperty("display", "none");
 			else
 				bad_warning->SetProperty("display", "block");

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +27,15 @@
  */
 
 #include "ElementInfo.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "Geometry.h"
 #include "CommonSource.h"
 #include "InfoSource.h"
 #include <map>
 
-namespace Rocket {
+namespace Rml {
 namespace Debugger {
 
 ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
@@ -51,7 +52,7 @@ ElementInfo::~ElementInfo()
 bool ElementInfo::Initialise()
 {
 	SetInnerRML(info_rml);
-	SetId("rkt-debug-info");
+	SetId("rmlui-debug-info");
 
 	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(info_rcss));
 	if (style_sheet == NULL)
@@ -204,7 +205,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
-			else if (owner_document != NULL && owner_document->GetId().Find("rkt-debug-") != 0)
+			else if (owner_document != NULL && owner_document->GetId().Find("rmlui-debug-") != 0)
 			{
 				hover_element = target_element;
 			}
@@ -601,7 +602,7 @@ void ElementInfo::RemoveTrailingZeroes(Core::String& string)
 
 bool ElementInfo::IsDebuggerElement(Core::Element* element)
 {
-	return element->GetOwnerDocument()->GetId().Find("rkt-debug-") == 0;
+	return element->GetOwnerDocument()->GetId().Find("rmlui-debug-") == 0;
 }
 
 }

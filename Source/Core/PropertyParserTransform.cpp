@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
  *
@@ -27,9 +27,9 @@
 
 #include "precompiled.h"
 #include "PropertyParserTransform.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 PropertyParserTransform::PropertyParserTransform()

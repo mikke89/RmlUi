@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,36 +26,36 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/DataQuery.h"
-#include "../../Include/Rocket/Controls/DataSource.h"
+#include "../../Include/RmlUi/Controls/DataQuery.h"
+#include "../../Include/RmlUi/Controls/DataSource.h"
 #include <algorithm>
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 class DataQuerySort
 {
 	public:
-		DataQuerySort(const Rocket::Core::StringList& _order_parameters)
+		DataQuerySort(const Rml::Core::StringList& _order_parameters)
 		{
 			order_parameters = _order_parameters;
 		}
 
-		bool operator()(const Rocket::Core::StringList& ROCKET_UNUSED_PARAMETER(left), const Rocket::Core::StringList& ROCKET_UNUSED_PARAMETER(right))
+		bool operator()(const Rml::Core::StringList& RMLUI_UNUSED_PARAMETER(left), const Rml::Core::StringList& RMLUI_UNUSED_PARAMETER(right))
 		{
-			ROCKET_UNUSED(left);
-			ROCKET_UNUSED(right);
+			RMLUI_UNUSED(left);
+			RMLUI_UNUSED(right);
 
 			return false;
 		}
 
 	private:
-		Rocket::Core::StringList order_parameters;
+		Rml::Core::StringList order_parameters;
 };
 
 
 
-DataQuery::DataQuery(DataSource* data_source, const Rocket::Core::String& table, const Rocket::Core::String& _fields, int offset, int limit, const Rocket::Core::String& order)
+DataQuery::DataQuery(DataSource* data_source, const Rml::Core::String& table, const Rml::Core::String& _fields, int offset, int limit, const Rml::Core::String& order)
 {
 	ExecuteQuery(data_source, table, _fields, offset, limit, order);
 }
@@ -77,7 +78,7 @@ DataQuery::~DataQuery()
 
 
 
-void DataQuery::ExecuteQuery(DataSource* _data_source, const Rocket::Core::String& _table, const Rocket::Core::String& _fields, int _offset, int _limit, const Rocket::Core::String& order)
+void DataQuery::ExecuteQuery(DataSource* _data_source, const Rml::Core::String& _table, const Rml::Core::String& _fields, int _offset, int _limit, const Rml::Core::String& order)
 {
 	data_source = _data_source;
 	table = _table;
@@ -85,7 +86,7 @@ void DataQuery::ExecuteQuery(DataSource* _data_source, const Rocket::Core::Strin
 	limit = _limit;
 
 	// Set up the field list and field index cache.
-	Rocket::Core::StringUtilities::ExpandString(fields, _fields);
+	Rml::Core::StringUtilities::ExpandString(fields, _fields);
 	for (size_t i = 0; i < fields.size(); i++)
 	{
 		field_indices[fields[i]] = i;
@@ -110,8 +111,8 @@ void DataQuery::ExecuteQuery(DataSource* _data_source, const Rocket::Core::Strin
 		}
 
 		// Now sort the rows, based on the ordering requirements.
-		Rocket::Core::StringList order_parameters;
-		Rocket::Core::StringUtilities::ExpandString(order_parameters, order);
+		Rml::Core::StringList order_parameters;
+		Rml::Core::StringUtilities::ExpandString(order_parameters, order);
 		sort(rows.begin(), rows.end(), DataQuerySort(order_parameters));
 	}
 }
@@ -133,7 +134,7 @@ bool DataQuery::NextRow()
 
 
 
-bool DataQuery::IsFieldSet(const Rocket::Core::String& field) const
+bool DataQuery::IsFieldSet(const Rml::Core::String& field) const
 {
 	FieldIndices::const_iterator itr = field_indices.find(field);
 	if (itr == field_indices.end() || (*itr).second >= (int)rows[current_row].size())
@@ -148,10 +149,10 @@ bool DataQuery::IsFieldSet(const Rocket::Core::String& field) const
 
 void DataQuery::LoadRow()
 {
-	ROCKET_ASSERT(current_row <= (int)rows.size());
+	RMLUI_ASSERT(current_row <= (int)rows.size());
 	if (current_row >= (int)rows.size())
 	{
-		rows.push_back(Rocket::Core::StringList());
+		rows.push_back(Rml::Core::StringList());
 		data_source->GetRow(rows[current_row], table, offset + current_row, fields);
 	}
 }

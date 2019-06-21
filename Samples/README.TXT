@@ -1,9 +1,9 @@
 =====================================================================
- libRocket Sample Applications
+ RmlUi Sample Applications
 =====================================================================
 
 This directory contains a collection of sample applications
-that demonstrate the use of libRocket in small, easy
+that demonstrate the use of RmlUi in small, easy
 to understand applications.
 
 To build the samples, you can either use Microsoft Visual Studio
@@ -35,7 +35,7 @@ Directory Overview:
                   * treeview     - using a nested DataSource
 
  * invaders   - A full implementation of the 1970s classic
-                Space Invaders using the libRocket interface.
+                Space Invaders using the RmlUi interface.
 
  * luainvaders- Lua version of the invaders (only installed
                 with the Lua plugin).
@@ -46,7 +46,7 @@ Directory Overview:
                 Supports Windows, MacOSX and Linux
 
  * tutorial   - Tutorial code that should be used in conjunction
-                with the tutorials on the libRocket website.
-                http://www.librocket.com/wiki/documentation
+                with the tutorials on the RmlUi website.
+                https://mikke89.github.io/RmlUiDoc/
 
 =====================================================================

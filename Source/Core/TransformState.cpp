@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
  *
@@ -26,9 +26,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/TransformState.h"
+#include "../../Include/RmlUi/Core/TransformState.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 Matrix4f TransformState::Perspective::GetProjection() const noexcept

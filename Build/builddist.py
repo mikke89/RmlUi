@@ -10,7 +10,7 @@ import re
 def Usage(args):
 	print sys.argv[0] + ' [-hp] [-r revision]'
 	print ''
-	print ' -r\t: Specify rocket internal revision number'
+	print ' -r\t: Specify RmlUi internal revision number'
 	print ' -s\t: Include full source code and build files'
 	print ' -h\t: This help screen'
 	print ''
@@ -30,7 +30,7 @@ def CheckVSVars():
 	
 def ProcessOptions(args):
 
-	options = {'ROCKET_VERSION': 'custom', 'FULL_SOURCE': False, 'ARCHIVE_NAME': 'libRocket-sdk'}
+	options = {'RMLUI_VERSION': 'custom', 'FULL_SOURCE': False, 'ARCHIVE_NAME': 'RmlUi-sdk'}
 	
 	try:
 		optlist, args = getopt.getopt(args, 'r:phs')
@@ -42,10 +42,10 @@ def ProcessOptions(args):
 		if opt[0] == '-h':
 			Usage(args)
 		if opt[0] == '-r':
-			options['ROCKET_VERSION'] = opt[1]
+			options['RMLUI_VERSION'] = opt[1]
 		if opt[0] == '-s':
 			options['FULL_SOURCE'] = True
-			options['ARCHIVE_NAME'] = 'libRocket-source'
+			options['ARCHIVE_NAME'] = 'RmlUi-source'
 			
 	return options
 		
@@ -151,19 +151,19 @@ def main():
 	CheckVSVars()
 	options = ProcessOptions(sys.argv[1:])
 	
-	Build('RocketCore', ['Debug', 'Release'], {'ROCKET_VERSION': '\\"' + options['ROCKET_VERSION'] + '\\"'})
-	Build('RocketControls', ['Debug', 'Release'])
-	Build('RocketDebugger', ['Debug', 'Release'])
+	Build('RmlCore', ['Debug', 'Release'], {'RMLUI_VERSION': '\\"' + options['RMLUI_VERSION'] + '\\"'})
+	Build('RmlControls', ['Debug', 'Release'])
+	Build('RmlDebugger', ['Debug', 'Release'])
 	
-	DelTree('../dist/libRocket')
-	CopyFiles('../Include', '../dist/libRocket/Include')
-	CopyFiles('../bin', '../dist/libRocket/bin', ['\.dll$', '^[^_].*\.lib$', '\.py$', '\.pyd$'])
-	CopyFiles('../Samples', '../dist/libRocket/Samples', ['\.h$', '\.cpp$', '\.vcproj$', '\.sln$', '\.vcproj\.user$', '\.rml$', '\.rcss$', '\.tga$', '\.py$', '\.otf$', '\.txt$'])
+	DelTree('../dist/RmlUi')
+	CopyFiles('../Include', '../dist/RmlUi/Include')
+	CopyFiles('../bin', '../dist/RmlUi/bin', ['\.dll$', '^[^_].*\.lib$', '\.py$', '\.pyd$'])
+	CopyFiles('../Samples', '../dist/RmlUi/Samples', ['\.h$', '\.cpp$', '\.vcproj$', '\.sln$', '\.vcproj\.user$', '\.rml$', '\.rcss$', '\.tga$', '\.py$', '\.otf$', '\.txt$'])
 	if options['FULL_SOURCE']:
-		CopyFiles('../Build', '../dist/libRocket/Build', ['\.vcproj$', '\.sln$', '\.vsprops$', '\.py$'])
-		CopyFiles('../Source', '../dist/libRocket/Source', ['\.cpp$', '\.h$', '\.inl$'])
-	shutil.copyfile('../changelog.txt', '../dist/libRocket/changelog.txt')
-	Archive(options['ARCHIVE_NAME'] + '-' + options['ROCKET_VERSION'], '../dist/libRocket');
+		CopyFiles('../Build', '../dist/RmlUi/Build', ['\.vcproj$', '\.sln$', '\.vsprops$', '\.py$'])
+		CopyFiles('../Source', '../dist/RmlUi/Source', ['\.cpp$', '\.h$', '\.inl$'])
+	shutil.copyfile('../changelog.txt', '../dist/RmlUi/changelog.txt')
+	Archive(options['ARCHIVE_NAME'] + '-' + options['RMLUI_VERSION'], '../dist/RmlUi');
 	
 if __name__ == '__main__':
 	main()

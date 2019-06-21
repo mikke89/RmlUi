@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include "Shield.h"
-#include <Rocket/Core/Math.h>
+#include <RmlUi/Core/Math.h>
 #include <ShellOpenGL.h>
 #include "Game.h"
 #include "GameDetails.h"
@@ -108,12 +109,12 @@ void Shield::InitialiseCells()
 	}
 }
 
-void Shield::SetPosition(const Rocket::Core::Vector2f& _position)
+void Shield::SetPosition(const Rml::Core::Vector2f& _position)
 {
 	position = _position;
 }
 
-const Rocket::Core::Vector2f& Shield::GetPosition() const
+const Rml::Core::Vector2f& Shield::GetPosition() const
 {
 	return position;
 }
@@ -134,7 +135,7 @@ void Shield::Render()
 			{
 				if (shield_cells[i][j] == ON)
 				{
-					Rocket::Core::Vector2f cell_position = position + Rocket::Core::Vector2f((float) (PIXEL_SIZE * i), (float) (PIXEL_SIZE * j));
+					Rml::Core::Vector2f cell_position = position + Rml::Core::Vector2f((float) (PIXEL_SIZE * i), (float) (PIXEL_SIZE * j));
 					glVertex2f(cell_position.x, cell_position.y);
 				}
 			}
@@ -146,7 +147,7 @@ void Shield::Render()
 	}
 }
 
-bool Shield::CheckHit(const Rocket::Core::Vector2f& check_position)
+bool Shield::CheckHit(const Rml::Core::Vector2f& check_position)
 {
 	float sprite_size = PIXEL_SIZE * NUM_SHIELD_CELLS;
 
@@ -176,8 +177,8 @@ void Shield::SustainDamage()
 		int num_shields_to_lose = (NUM_SHIELD_CELLS * NUM_SHIELD_CELLS) / MAX_HEALTH;
 		while (num_shields_to_lose > 0)
 		{
-			int x = Rocket::Core::Math::RandomInteger(NUM_SHIELD_CELLS);
-			int y = Rocket::Core::Math::RandomInteger(NUM_SHIELD_CELLS);
+			int x = Rml::Core::Math::RandomInteger(NUM_SHIELD_CELLS);
+			int y = Rml::Core::Math::RandomInteger(NUM_SHIELD_CELLS);
 			if (shield_cells[x][y] != DESTROYED)
 			{
 				shield_cells[x][y] = DESTROYED;

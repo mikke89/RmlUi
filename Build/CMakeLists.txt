@@ -1,5 +1,5 @@
 #===================================
-# Build script for libRocket =======
+# Build script for RmlUi ===========
 #===================================
 
 if(APPLE)
@@ -49,16 +49,16 @@ if(POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif(POLICY CMP0042)
 
-project(libRocket C CXX)
+project(RmlUi C CXX)
 
 # paths
 include(GNUInstallDirs)
 
-set(LIBROCKET_VERSION_MAJOR 1)
-set(LIBROCKET_VERSION_MINOR 3)
-set(LIBROCKET_VERSION_PATCH 0)
-set(LIBROCKET_VERSION_TWEAK 0)
-set(PROJECT_VERSION ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBROCKET_VERSION_PATCH}.${LIBROCKET_VERSION_TWEAK})
+set(RMLUI_VERSION_MAJOR 2)
+set(RMLUI_VERSION_MINOR 0)
+set(RMLUI_VERSION_PATCH 0)
+set(RMLUI_VERSION_TWEAK 0)
+set(PROJECT_VERSION ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK})
 
 # Search in the 'cmake' directory for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -161,7 +161,7 @@ else(APPLE)
 endif(APPLE)
 
 if(NOT BUILD_SHARED_LIBS)
-	add_definitions(-DROCKET_STATIC_LIB)
+	add_definitions(-DRMLUI_STATIC_LIB)
 endif()
 
 #===================================
@@ -219,7 +219,7 @@ if(NOT BUILD_FRAMEWORK)
 set(LIBRARIES Core Controls Debugger)
 
 foreach(library ${LIBRARIES})
-    set(NAME Rocket${library})
+    set(NAME Rml${library})
 
     add_library(${NAME}
                         ${${library}_HDR_FILES}
@@ -230,7 +230,7 @@ foreach(library ${LIBRARIES})
 
     set_target_properties(${NAME} PROPERTIES
                            VERSION ${PROJECT_VERSION}
-                           SOVERSION ${LIBROCKET_VERSION_MAJOR}
+                           SOVERSION ${RMLUI_VERSION_MAJOR}
     )
 	
 	if (MSVC)
@@ -241,18 +241,18 @@ foreach(library ${LIBRARIES})
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
     
     install(TARGETS ${NAME}
-            EXPORT libRocketTargets
+            EXPORT RmlUiTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 	
 
-    set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
+    set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
 
 if (MSVC)
-	target_compile_options(RocketCore PRIVATE "/Yuprecompiled.h")
+	target_compile_options(RmlCore PRIVATE "/Yuprecompiled.h")
 	set_source_files_properties(${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp PROPERTIES COMPILE_FLAGS "/Ycprecompiled.h")
 endif(MSVC)
 
@@ -261,7 +261,7 @@ else(NOT BUILD_FRAMEWORK)
 	# Build combined Framework =========
 	#===================================
 
-	set(NAME Rocket)
+	set(NAME Rml)
 
 	set(MASTER_PUB_HDR_FILES
 		${MASTER_Core_PUB_HDR_FILES}
@@ -286,7 +286,7 @@ else(NOT BUILD_FRAMEWORK)
 
 	set_target_properties(${NAME} PROPERTIES
 		VERSION ${PROJECT_VERSION}
-		SOVERSION ${LIBROCKET_VERSION_MAJOR}
+		SOVERSION ${RMLUI_VERSION_MAJOR}
 	)
 
 		set_property(SOURCE ${MASTER_PUB_HDR_FILES}
@@ -304,22 +304,22 @@ else(NOT BUILD_FRAMEWORK)
 		set_target_properties(${NAME} PROPERTIES
 			FRAMEWORK TRUE
 			FRAMEWORK_VERSION ${PROJECT_VERSION}
-			MACOSX_FRAMEWORK_IDENTIFIER com.librocketb.${NAME}
-			MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${LIBROCKET_VERSION_MAJOR}.${LIBROCKET_VERSION_MINOR}.${LIBROCKET_VERSION_PATCH}.${LIBROCKET_VERSION_TWEAK}
+			MACOSX_FRAMEWORK_IDENTIFIER com.rmlui.${NAME}
+			MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK}
 			MACOSX_FRAMEWORK_BUNDLE_VERSION ${PROJECT_VERSION}
 			XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
 			PUBLIC_HEADER ${MASTER_PUB_HDR_FILES}
 		)
 
     install(TARGETS ${NAME}
-            EXPORT libRocketTargets
+            EXPORT RmlUiTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             FRAMEWORK DESTINATION Library/Frameworks
     )
 
-    set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
+    set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif(NOT BUILD_FRAMEWORK)
 
 # Build Lua bindings
@@ -327,7 +327,7 @@ if(BUILD_LUA_BINDINGS)
     set(LIBRARIES Core Controls)
 
     foreach(library ${LIBRARIES})
-        set(NAME Rocket${library}Lua)
+        set(NAME Rml${library}Lua)
 
         add_library(${NAME} ${Lua${library}_SRC_FILES}
                             ${Lua${library}_HDR_FILES}
@@ -336,20 +336,20 @@ if(BUILD_LUA_BINDINGS)
 
         set_target_properties(${NAME} PROPERTIES
                            VERSION ${PROJECT_VERSION}
-                           SOVERSION ${LIBROCKET_VERSION_MAJOR}
+                           SOVERSION ${RMLUI_VERSION_MAJOR}
         )
 
         set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
         set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
         install(TARGETS ${NAME}
-            EXPORT libRocketTargets
+            EXPORT RmlUiTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
         
-        set(ROCKET_EXPORTED_TARGETS ${ROCKET_EXPORTED_TARGETS} ${NAME})
+        set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
     endforeach(library)
 endif()
 
@@ -359,20 +359,20 @@ endif()
 #===================================
 
 if(NOT BUILD_FRAMEWORK)
-target_link_libraries(RocketCore ${CORE_LINK_LIBS})
-target_link_libraries(RocketControls RocketCore)
-target_link_libraries(RocketDebugger RocketCore)
+target_link_libraries(RmlCore ${CORE_LINK_LIBS})
+target_link_libraries(RmlControls RmlCore)
+target_link_libraries(RmlDebugger RmlCore)
 else(NOT BUILD_FRAMEWORK)
-target_link_libraries(Rocket ${CORE_LINK_LIBS})
+target_link_libraries(Rml ${CORE_LINK_LIBS})
 endif(NOT BUILD_FRAMEWORK)
 
 if(BUILD_LUA_BINDINGS)
 	if(NOT BUILD_FRAMEWORK)
-		target_link_libraries(RocketCoreLua RocketCore ${LUA_BINDINGS_LINK_LIBS})
-		target_link_libraries(RocketControlsLua RocketControls RocketCoreLua ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlCoreLua RmlCore ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlControlsLua RmlControls RmlCoreLua ${LUA_BINDINGS_LINK_LIBS})
 	else(NOT BUILD_FRAMEWORK)
-		target_link_libraries(RocketCoreLua Rocket ${LUA_BINDINGS_LINK_LIBS})
-		target_link_libraries(RocketControlsLua Rocket RocketCoreLua ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlCoreLua Rml ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlControlsLua Rml RmlCoreLua ${LUA_BINDINGS_LINK_LIBS})
 	endif(NOT BUILD_FRAMEWORK)
 endif()
 
@@ -411,14 +411,14 @@ if(BUILD_SAMPLES)
 if(NOT BUILD_FRAMEWORK)
     set(sample_LIBRARIES
     	shell 
-    	RocketCore 
-    	RocketControls
-    	RocketDebugger
+    	RmlCore 
+    	RmlControls
+    	RmlDebugger
     )
 else(NOT BUILD_FRAMEWORK)
     set(sample_LIBRARIES
     	shell 
-    	Rocket
+    	Rml
     )
 endif(NOT BUILD_FRAMEWORK)
 
@@ -491,7 +491,7 @@ endif(NOT BUILD_FRAMEWORK)
         endif()
     endif()
    
-    set(SAMPLES_DIR opt/Rocket/Samples CACHE PATH "path to samples dir")
+    set(SAMPLES_DIR opt/Rml/Samples CACHE PATH "path to samples dir")
 
     # The samples and tutorials use the shell library
     include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
@@ -614,7 +614,7 @@ endif(NOT BUILD_FRAMEWORK)
     	BUNDLE DESTINATION ${SAMPLES_DIR})
 
     if(BUILD_LUA_BINDINGS)
-        bl_sample(luainvaders RocketCoreLua RocketControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+        bl_sample(luainvaders RmlCoreLua RmlControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 11)
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
         install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
@@ -630,11 +630,11 @@ endif()
 #===================================
 
 if(BUILD_LUA_BINDINGS)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
             DESTINATION include
     )
 else()
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rocket
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
             DESTINATION include
             PATTERN "Lua" EXCLUDE
     )
@@ -698,34 +698,34 @@ if(PkgHelpers_AVAILABLE)
   set (INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Include")
 
   # generate configuration for install tree
-  configure_package_config_file(libRocketConfig.cmake.install.in
-    ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfig.cmake
-    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/libRocket/cmake
+  configure_package_config_file(RmlUiConfig.cmake.install.in
+    ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
+    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake
     PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
   write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion )
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/install/libRocketConfigVersion.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/libRocket/cmake )
-  install(EXPORT libRocketTargets
-    DESTINATION ${LIB_INSTALL_DIR}/libRocket/cmake)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake )
+  install(EXPORT RmlUiTargets
+    DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake)
 
   # generate configuration for build tree
-  configure_package_config_file(libRocketConfig.cmake.build.in
-    ${CMAKE_CURRENT_BINARY_DIR}/libRocketConfig.cmake
+  configure_package_config_file(RmlUiConfig.cmake.build.in
+    ${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfig.cmake
     INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
     PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)
-  export(TARGETS ${ROCKET_EXPORTED_TARGETS}
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/libRocketTargets.cmake")
+  export(TARGETS ${RMLUI_EXPORTED_TARGETS}
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake")
   write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/libRocketConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion )
-  set(libRocket_DIR "${CMAKE_CURRENT_BINARY_DIR}" CACHE PATH "The directory containing a CMake configuration file for libRocket.")
+  set(RmlUi_DIR "${CMAKE_CURRENT_BINARY_DIR}" CACHE PATH "The directory containing a CMake configuration file for RmlUi.")
 else()
-  message("If you wish to use find_package(libRocket) in your own project to find libRocket library"
+  message("If you wish to use find_package(RmlUi) in your own project to find RmlUi library"
     " please update cmake to version which provides CMakePackageConfighelpers module"
-    " or write generators for libRocketConfig.cmake by yourself.")
+    " or write generators for RmlUiConfig.cmake by yourself.")
 endif()

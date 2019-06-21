@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
  *
@@ -25,7 +25,7 @@
  *
  */
 
-#include <Rocket/Core/Core.h>
+#include <RmlUi/Core/Core.h>
 #include "RenderInterfaceSFML.h"
 
 #ifndef GL_CLAMP_TO_EDGE
@@ -33,18 +33,18 @@
 #endif
 
 #ifdef ENABLE_GLEW
-class RocketSFMLRendererGeometryHandler
+class RmlUiSFMLRendererGeometryHandler
 {
 public:
 	GLuint VertexID, IndexID;
 	int NumVertices;
-	Rocket::Core::TextureHandle Texture;
+	Rml::Core::TextureHandle Texture;
 
-	RocketSFMLRendererGeometryHandler() : VertexID(0), IndexID(0), Texture(0), NumVertices(0)
+	RmlUiSFMLRendererGeometryHandler() : VertexID(0), IndexID(0), Texture(0), NumVertices(0)
 	{
 	};
 
-	~RocketSFMLRendererGeometryHandler()
+	~RmlUiSFMLRendererGeometryHandler()
 	{
 		if(VertexID)
 			glDeleteBuffers(1, &VertexID);
@@ -57,29 +57,29 @@ public:
 };
 #endif
 
-struct RocketSFMLRendererVertex
+struct RmlUiSFMLRendererVertex
 {
 	sf::Vector2f Position, TexCoord;
 	sf::Color Color;
 };
 
-RocketSFMLRenderer::RocketSFMLRenderer()
+RmlUiSFMLRenderer::RmlUiSFMLRenderer()
 {
 }
 
-void RocketSFMLRenderer::SetWindow(sf::RenderWindow *Window)
+void RmlUiSFMLRenderer::SetWindow(sf::RenderWindow *Window)
 {
 	MyWindow = Window;
 
 	Resize();
 };
 
-sf::RenderWindow *RocketSFMLRenderer::GetWindow()
+sf::RenderWindow *RmlUiSFMLRenderer::GetWindow()
 {
 	return MyWindow;
 };
 
-void RocketSFMLRenderer::Resize()
+void RmlUiSFMLRenderer::Resize()
 {
 	static sf::View View;
 	View.setViewport(sf::FloatRect(0, (float)MyWindow->getSize().x, (float)MyWindow->getSize().y, 0));
@@ -93,15 +93,15 @@ void RocketSFMLRenderer::Resize()
 	glViewport(0, 0, MyWindow->getSize().x, MyWindow->getSize().y);
 };
 
-// Called by Rocket when it wants to render geometry that it does not wish to optimise.
-void RocketSFMLRenderer::RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
+// Called by RmlUi when it wants to render geometry that it does not wish to optimise.
+void RmlUiSFMLRenderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation)
 {
 	MyWindow->pushGLStates();
 	glTranslatef(translation.x, translation.y, 0);
 
-	std::vector<Rocket::Core::Vector2f> Positions(num_vertices);
-	std::vector<Rocket::Core::Colourb> Colors(num_vertices);
-	std::vector<Rocket::Core::Vector2f> TexCoords(num_vertices);
+	std::vector<Rml::Core::Vector2f> Positions(num_vertices);
+	std::vector<Rml::Core::Colourb> Colors(num_vertices);
+	std::vector<Rml::Core::Vector2f> TexCoords(num_vertices);
 
 	for(int i = 0; i < num_vertices; i++)
 	{
@@ -144,11 +144,11 @@ void RocketSFMLRenderer::RenderGeometry(Rocket::Core::Vertex* vertices, int num_
 	MyWindow->popGLStates();
 }
 
-// Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.		
-Rocket::Core::CompiledGeometryHandle RocketSFMLRenderer::CompileGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rocket::Core::TextureHandle texture)
+// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.		
+Rml::Core::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::Core::TextureHandle texture)
 {
 #ifdef ENABLE_GLEW
-	std::vector<RocketSFMLRendererVertex> Data(num_vertices);
+	std::vector<RmlUiSFMLRendererVertex> Data(num_vertices);
 
 	for(unsigned long i = 0; i < Data.size(); i++)
 	{
@@ -158,12 +158,12 @@ Rocket::Core::CompiledGeometryHandle RocketSFMLRenderer::CompileGeometry(Rocket:
 			vertices[i].colour.blue, vertices[i].colour.alpha);
 	};
 
-	RocketSFMLRendererGeometryHandler *Geometry = new RocketSFMLRendererGeometryHandler();
+	RmlUiSFMLRendererGeometryHandler *Geometry = new RmlUiSFMLRendererGeometryHandler();
 	Geometry->NumVertices = num_indices;
 
 	glGenBuffers(1, &Geometry->VertexID);
 	glBindBuffer(GL_ARRAY_BUFFER, Geometry->VertexID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(RocketSFMLRendererVertex) * num_vertices, &Data[0],
+	glBufferData(GL_ARRAY_BUFFER, sizeof(RmlUiSFMLRendererVertex) * num_vertices, &Data[0],
 		GL_STATIC_DRAW);
 
 	glGenBuffers(1, &Geometry->IndexID);
@@ -174,17 +174,17 @@ Rocket::Core::CompiledGeometryHandle RocketSFMLRenderer::CompileGeometry(Rocket:
 
 	Geometry->Texture = texture;
 
-	return (Rocket::Core::CompiledGeometryHandle)Geometry;
+	return (Rml::Core::CompiledGeometryHandle)Geometry;
 #else
-	return (Rocket::Core::CompiledGeometryHandle)NULL;
+	return (Rml::Core::CompiledGeometryHandle)NULL;
 #endif
 }
 
-// Called by Rocket when it wants to render application-compiled geometry.		
-void RocketSFMLRenderer::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const Rocket::Core::Vector2f& translation)
+// Called by RmlUi when it wants to render application-compiled geometry.		
+void RmlUiSFMLRenderer::RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry, const Rml::Core::Vector2f& translation)
 {
 #ifdef ENABLE_GLEW
-	RocketSFMLRendererGeometryHandler *RealGeometry = (RocketSFMLRendererGeometryHandler *)geometry;
+	RmlUiSFMLRendererGeometryHandler *RealGeometry = (RmlUiSFMLRendererGeometryHandler *)geometry;
 
 	MyWindow->pushGLStates();
 	glTranslatef(translation.x, translation.y, 0);
@@ -209,9 +209,9 @@ void RocketSFMLRenderer::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHa
 	#define BUFFER_OFFSET(x) ((char*)0 + x)
 
 	glBindBuffer(GL_ARRAY_BUFFER, RealGeometry->VertexID);
-	glVertexPointer(2, GL_FLOAT, sizeof(RocketSFMLRendererVertex), BUFFER_OFFSET(0));
-	glTexCoordPointer(2, GL_FLOAT, sizeof(RocketSFMLRendererVertex), BUFFER_OFFSET(sizeof(sf::Vector2f)));
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(RocketSFMLRendererVertex), BUFFER_OFFSET(sizeof(sf::Vector2f[2])));
+	glVertexPointer(2, GL_FLOAT, sizeof(RmlUiSFMLRendererVertex), BUFFER_OFFSET(0));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(RmlUiSFMLRendererVertex), BUFFER_OFFSET(sizeof(sf::Vector2f)));
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(RmlUiSFMLRendererVertex), BUFFER_OFFSET(sizeof(sf::Vector2f[2])));
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, RealGeometry->IndexID);
 	glDrawElements(GL_TRIANGLES, RealGeometry->NumVertices, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
@@ -226,22 +226,22 @@ void RocketSFMLRenderer::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHa
 
 	MyWindow->popGLStates();
 #else
-	ROCKET_ASSERT(false);
+	RMLUI_ASSERT(false);
 #endif
 }
 
-// Called by Rocket when it wants to release application-compiled geometry.		
-void RocketSFMLRenderer::ReleaseCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry)
+// Called by RmlUi when it wants to release application-compiled geometry.		
+void RmlUiSFMLRenderer::ReleaseCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry)
 {
 #ifdef ENABLE_GLEW
-	delete (RocketSFMLRendererGeometryHandler *)geometry;
+	delete (RmlUiSFMLRendererGeometryHandler *)geometry;
 #else
-	ROCKET_ASSERT(false);
+	RMLUI_ASSERT(false);
 #endif
 }
 
-// Called by Rocket when it wants to enable or disable scissoring to clip content.		
-void RocketSFMLRenderer::EnableScissorRegion(bool enable)
+// Called by RmlUi when it wants to enable or disable scissoring to clip content.		
+void RmlUiSFMLRenderer::EnableScissorRegion(bool enable)
 {
 	if (enable)
 		glEnable(GL_SCISSOR_TEST);
@@ -249,17 +249,17 @@ void RocketSFMLRenderer::EnableScissorRegion(bool enable)
 		glDisable(GL_SCISSOR_TEST);
 }
 
-// Called by Rocket when it wants to change the scissor region.		
-void RocketSFMLRenderer::SetScissorRegion(int x, int y, int width, int height)
+// Called by RmlUi when it wants to change the scissor region.		
+void RmlUiSFMLRenderer::SetScissorRegion(int x, int y, int width, int height)
 {
 	glScissor(x, MyWindow->getSize().y - (y + height), width, height);
 }
 
-// Called by Rocket when a texture is required by the library.		
-bool RocketSFMLRenderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
+// Called by RmlUi when a texture is required by the library.		
+bool RmlUiSFMLRenderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rml::Core::Vector2i& texture_dimensions, const Rml::Core::String& source)
 {
-	Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
-	Rocket::Core::FileHandle file_handle = file_interface->Open(source);
+	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
+	Rml::Core::FileHandle file_handle = file_interface->Open(source);
 	if (file_handle == NULL)
 		return false;
 
@@ -282,14 +282,14 @@ bool RocketSFMLRenderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle
 	};
 	delete buffer;
 
-	texture_handle = (Rocket::Core::TextureHandle) texture;
-	texture_dimensions = Rocket::Core::Vector2i(texture->getSize().x, texture->getSize().y);
+	texture_handle = (Rml::Core::TextureHandle) texture;
+	texture_dimensions = Rml::Core::Vector2i(texture->getSize().x, texture->getSize().y);
 
 	return true;
 }
 
-// Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
-bool RocketSFMLRenderer::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const Rocket::Core::byte* source, const Rocket::Core::Vector2i& source_dimensions)
+// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
+bool RmlUiSFMLRenderer::GenerateTexture(Rml::Core::TextureHandle& texture_handle, const Rml::Core::byte* source, const Rml::Core::Vector2i& source_dimensions)
 {
 	sf::Texture *texture = new sf::Texture();
 
@@ -299,13 +299,13 @@ bool RocketSFMLRenderer::GenerateTexture(Rocket::Core::TextureHandle& texture_ha
 	}
 
 	texture->update(source, source_dimensions.x, source_dimensions.y, 0, 0);
-	texture_handle = (Rocket::Core::TextureHandle)texture;
+	texture_handle = (Rml::Core::TextureHandle)texture;
 
 	return true;
 }
 
-// Called by Rocket when a loaded texture is no longer required.		
-void RocketSFMLRenderer::ReleaseTexture(Rocket::Core::TextureHandle texture_handle)
+// Called by RmlUi when a loaded texture is no longer required.		
+void RmlUiSFMLRenderer::ReleaseTexture(Rml::Core::TextureHandle texture_handle)
 {
 	delete (sf::Texture *)texture_handle;
 }

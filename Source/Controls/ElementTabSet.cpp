@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +26,14 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementTabSet.h"
-#include "../../Include/Rocket/Core/Math.h"
-#include "../../Include/Rocket/Core/Factory.h"
+#include "../../Include/RmlUi/Controls/ElementTabSet.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
-ElementTabSet::ElementTabSet(const Rocket::Core::String& tag) : Core::Element(tag)
+ElementTabSet::ElementTabSet(const Rml::Core::String& tag) : Core::Element(tag)
 {
 	active_tab = 0;
 }
@@ -42,18 +43,18 @@ ElementTabSet::~ElementTabSet()
 }
 
 // Sets the specifed tab index's tab title RML.
-void ElementTabSet::SetTab(int tab_index, const Rocket::Core::String& rml)
+void ElementTabSet::SetTab(int tab_index, const Rml::Core::String& rml)
 {
-	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "tab", Rocket::Core::XMLAttributes());
+	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "tab", Rml::Core::XMLAttributes());
 	Core::Factory::InstanceElementText(element, rml);
 	SetTab(tab_index, element);
 	element->RemoveReference();
 }
 
 // Sets the specifed tab index's tab panel RML.
-void ElementTabSet::SetPanel(int tab_index, const Rocket::Core::String& rml)
+void ElementTabSet::SetPanel(int tab_index, const Rml::Core::String& rml)
 {
-	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "panel", Rocket::Core::XMLAttributes());
+	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "panel", Rml::Core::XMLAttributes());
 	Core::Factory::InstanceElementText(element, rml);
 	SetPanel(tab_index, element);
 	element->RemoveReference();
@@ -130,7 +131,7 @@ void ElementTabSet::SetActiveTab(int tab_index)
 
 		active_tab = tab_index;
 
-		Rocket::Core::Dictionary parameters;
+		Rml::Core::Dictionary parameters;
 		parameters.Set("tab_index", active_tab);
 		DispatchEvent("tabchange", parameters);
 	}
@@ -209,7 +210,7 @@ void ElementTabSet::OnChildRemove(Core::Element* child)
 	}
 }
 
-Core::Element* ElementTabSet::GetChildByTag(const Rocket::Core::String& tag)
+Core::Element* ElementTabSet::GetChildByTag(const Rml::Core::String& tag)
 {
 	// Look for the existing child
 	for (int i = 0; i < GetNumChildren(); i++)
@@ -219,22 +220,22 @@ Core::Element* ElementTabSet::GetChildByTag(const Rocket::Core::String& tag)
 	}
 
 	// If it doesn't exist, create it
-	Core::Element* element = Core::Factory::InstanceElement(this, "*", tag, Rocket::Core::XMLAttributes());
+	Core::Element* element = Core::Factory::InstanceElement(this, "*", tag, Rml::Core::XMLAttributes());
 	AppendChild(element);
 	element->RemoveReference();
 	return element;
 }
 
-void ElementTabSet::OnAttach(Core::Element * ROCKET_UNUSED_PARAMETER(element))
+void ElementTabSet::OnAttach(Core::Element * RMLUI_UNUSED_PARAMETER(element))
 {
-	ROCKET_UNUSED(element);
+	RMLUI_UNUSED(element);
 
 	AddReference();
 }
 
-void ElementTabSet::OnDetach(Core::Element * ROCKET_UNUSED_PARAMETER(element))
+void ElementTabSet::OnDetach(Core::Element * RMLUI_UNUSED_PARAMETER(element))
 {
-	ROCKET_UNUSED(element);
+	RMLUI_UNUSED(element);
 
 	RemoveReference();
 }

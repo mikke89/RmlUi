@@ -32,7 +32,7 @@ Formatters["ship"] = DataFormatter.new("ship",SecondFormatData)
 
 
 function Startup()
-	maincontext = rocket.contexts["main"]
+	maincontext = rmlui.contexts["main"]
 	maincontext:LoadDocument("luainvaders/data/background.rml"):Show()
 	maincontext:LoadDocument("luainvaders/data/main_menu.rml"):Show()
 end

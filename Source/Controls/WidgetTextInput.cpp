@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +28,13 @@
 
 #include "WidgetTextInput.h"
 #include "ElementTextSelection.h"
-#include "../../Include/Rocket/Core.h"
-#include "../../Include/Rocket/Controls/ElementFormControl.h"
-#include "../../Include/Rocket/Controls/Clipboard.h"
-#include "../../Include/Rocket/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Controls/ElementFormControl.h"
+#include "../../Include/RmlUi/Controls/Clipboard.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../Core/Clock.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 static const float CURSOR_BLINK_TIME = 0.7f;
@@ -46,7 +47,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->SetProperty("white-space", "pre");
 	parent->SetProperty("overflow", "hidden");
 	parent->SetProperty("drag", "drag");
-	parent->SetClientArea(Rocket::Core::Box::CONTENT);
+	parent->SetClientArea(Rml::Core::Box::CONTENT);
 
 	parent->AddEventListener("resize", this, true);
 	parent->AddEventListener("keydown", this, true);
@@ -56,8 +57,8 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->AddEventListener("mousedown", this, true);
 	parent->AddEventListener("drag", this, true);
 
-	text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rocket::Core::XMLAttributes()));
-	selected_text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rocket::Core::XMLAttributes()));
+	text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes()));
+	selected_text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes()));
 	if (text_element != NULL)
 	{
 		text_element->SuppressAutoLayout();
@@ -70,7 +71,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	}
 
 	// Create the dummy selection element.
-	selection_element = Core::Factory::InstanceElement(parent, "#selection", "selection", Rocket::Core::XMLAttributes());
+	selection_element = Core::Factory::InstanceElement(parent, "#selection", "selection", Rml::Core::XMLAttributes());
 	ElementTextSelection* text_selection_element = dynamic_cast< ElementTextSelection* >(selection_element);
 	if (text_selection_element != NULL)
 	{
@@ -130,10 +131,10 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 		max_length = _max_length;
 		if (max_length >= 0)
 		{
-			const Core::WString& value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+			const Core::WString& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 			if ((int) value.Length() > max_length)
 			{
-				Rocket::Core::String new_value;
+				Rml::Core::String new_value;
 				Core::WString(value.CString(), value.CString() + max_length).ToUTF8(new_value);
 
 				GetElement()->SetAttribute("value", new_value);
@@ -153,29 +154,29 @@ void WidgetTextInput::UpdateSelectionColours()
 {
 	// Determine what the colour of the selected text is. If our 'selection' element has the 'color'
 	// attribute set, then use that. Otherwise, use the inverse of our own text colour.
-	Rocket::Core::Colourb colour;
-	const Rocket::Core::Property* colour_property = selection_element->GetLocalProperty("color");
+	Rml::Core::Colourb colour;
+	const Rml::Core::Property* colour_property = selection_element->GetLocalProperty("color");
 	if (colour_property != NULL)
-		colour = colour_property->Get< Rocket::Core::Colourb >();
+		colour = colour_property->Get< Rml::Core::Colourb >();
 	else
 	{
-		colour = parent->GetProperty< Rocket::Core::Colourb >("color");
+		colour = parent->GetProperty< Rml::Core::Colourb >("color");
 		colour.red = 255 - colour.red;
 		colour.green = 255 - colour.green;
 		colour.blue = 255 - colour.blue;
 	}
 
 	// Set the computed text colour on the element holding the selected text.
-	selected_text_element->SetProperty("color", Rocket::Core::Property(colour, Rocket::Core::Property::COLOUR));
+	selected_text_element->SetProperty("color", Rml::Core::Property(colour, Rml::Core::Property::COLOUR));
 
 	// If the 'background-color' property has been set on the 'selection' element, use that as the
 	// background colour for the selected text. Otherwise, use the inverse of the selected text
 	// colour.
 	colour_property = selection_element->GetLocalProperty("background-color");
 	if (colour_property != NULL)
-		selection_colour = colour_property->Get< Rocket::Core::Colourb >();
+		selection_colour = colour_property->Get< Rml::Core::Colourb >();
 	else
-		selection_colour = Rocket::Core::Colourb(255 - colour.red, 255 - colour.green, 255 - colour.blue, colour.alpha);
+		selection_colour = Rml::Core::Colourb(255 - colour.red, 255 - colour.green, 255 - colour.blue, colour.alpha);
 }
 
 // Updates the cursor, if necessary.
@@ -200,7 +201,7 @@ void WidgetTextInput::OnRender()
 {
 	Core::ElementUtilities::SetClippingRegion(text_element);
 
-	Rocket::Core::Vector2f text_translation = parent->GetAbsoluteOffset() - Rocket::Core::Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
+	Rml::Core::Vector2f text_translation = parent->GetAbsoluteOffset() - Rml::Core::Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
 	selection_geometry.Render(text_translation);
 
 	if (cursor_visible &&
@@ -225,7 +226,7 @@ Core::ElementText* WidgetTextInput::GetTextElement()
 }
 
 // Returns the input element's maximum allowed text dimensions.
-const Rocket::Core::Vector2f& WidgetTextInput::GetTextDimensions() const
+const Rml::Core::Vector2f& WidgetTextInput::GetTextDimensions() const
 {
 	return internal_dimensions;
 }
@@ -239,8 +240,8 @@ Core::Element* WidgetTextInput::GetElement()
 // Dispatches a change event to the widget's element.
 void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 {
-	Rocket::Core::Dictionary parameters;
-	parameters.Set("value", GetElement()->GetAttribute< Rocket::Core::String >("value", ""));
+	Rml::Core::Dictionary parameters;
+	parameters.Set("value", GetElement()->GetAttribute< Rml::Core::String >("value", ""));
 	parameters.Set("linebreak", linebreak);
 	GetElement()->DispatchEvent("change", parameters);
 }
@@ -253,11 +254,11 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 	{
 		GenerateCursor();
 
-		Rocket::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
+		Rml::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
 		text_element->SetOffset(text_position, parent);
 		selected_text_element->SetOffset(text_position, parent);
 
-		Rocket::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
+		Rml::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
 		if (new_internal_dimensions != internal_dimensions)
 		{
 			internal_dimensions = new_internal_dimensions;
@@ -354,7 +355,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
     				for (size_t i = 0; i < clipboard_content.Length(); ++i)
     				{
     					if (max_length > 0 &&
-    						(int) Core::WString(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).Length() > max_length)
+    						(int) Core::WString(GetElement()->GetAttribute< Rml::Core::String >("value", "")).Length() > max_length)
     						break;
 
     					AddCharacter(clipboard_content[i]);
@@ -382,8 +383,8 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("alt_key", 0) == 0 &&
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
-			Rocket::Core::word character = event.GetParameter< Rocket::Core::word >("data", 0);
-			if (max_length < 0 || (int) Core::String(GetElement()->GetAttribute< Rocket::Core::String >("value", "")).Length() < max_length)
+			Rml::Core::word character = event.GetParameter< Rml::Core::word >("data", 0);
+			if (max_length < 0 || (int) Core::String(GetElement()->GetAttribute< Rml::Core::String >("value", "")).Length() < max_length)
 				AddCharacter(character);
 		}
 
@@ -406,7 +407,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			  event == "drag") &&
 			 event.GetTargetElement() == parent)
 	{
-		Rocket::Core::Vector2f mouse_position = Rocket::Core::Vector2f((float) event.GetParameter< int >("mouse_x", 0),
+		Rml::Core::Vector2f mouse_position = Rml::Core::Vector2f((float) event.GetParameter< int >("mouse_x", 0),
 																 (float) event.GetParameter< int >("mouse_y", 0));
 		mouse_position -= text_element->GetAbsoluteOffset();
 
@@ -424,7 +425,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 }
 
 // Adds a new character to the string at the cursor position.
-bool WidgetTextInput::AddCharacter(Rocket::Core::word character)
+bool WidgetTextInput::AddCharacter(Rml::Core::word character)
 {
 	if (!IsCharacterValid(character))
 		return false;
@@ -432,12 +433,12 @@ bool WidgetTextInput::AddCharacter(Rocket::Core::word character)
 	if (selection_length > 0)
 		DeleteSelection();
 
-	Core::WString value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+	Core::WString value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 	value.Insert(GetCursorIndex(), Core::WString(1, character), 1);
 
 	edit_index += 1;
 
-	Rocket::Core::String utf8_value;
+	Rml::Core::String utf8_value;
 	value.ToUTF8(utf8_value);
 	GetElement()->SetAttribute("value", utf8_value);
 	DispatchChangeEvent();
@@ -462,7 +463,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		return true;
 	}
 
-	Core::WString value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+	Core::WString value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
 	if (back)
 	{
@@ -480,7 +481,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		value.Erase(GetCursorIndex(), 1);
 	}
 
-	Rocket::Core::String utf8_value;
+	Rml::Core::String utf8_value;
 	value.ToUTF8(utf8_value);
 	GetElement()->SetAttribute("value", utf8_value);
 	DispatchChangeEvent();
@@ -493,7 +494,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 // Copies the selection (if any) to the clipboard.
 void WidgetTextInput::CopySelection()
 {
-	const Core::String& value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+	const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 	Clipboard::Set(Core::String(value.Substring(selection_begin_index, selection_length)));
 }
 
@@ -507,7 +508,7 @@ int WidgetTextInput::GetCursorIndex() const
 void WidgetTextInput::MoveCursorHorizontal(int distance, bool select)
 {
 	absolute_cursor_index += distance;
-	absolute_cursor_index = Rocket::Core::Math::Max(0, absolute_cursor_index);
+	absolute_cursor_index = Rml::Core::Math::Max(0, absolute_cursor_index);
 
 	UpdateRelativeCursor();
 	ideal_cursor_position = cursor_position.x;
@@ -554,7 +555,7 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 // Updates the absolute cursor index from the relative cursor indices.
 void WidgetTextInput::UpdateAbsoluteCursor()
 {
-	ROCKET_ASSERT(cursor_line_index < (int) lines.size())
+	RMLUI_ASSERT(cursor_line_index < (int) lines.size())
 
 	absolute_cursor_index = cursor_character_index;
 	edit_index = cursor_character_index;
@@ -602,8 +603,8 @@ void WidgetTextInput::UpdateRelativeCursor()
 int WidgetTextInput::CalculateLineIndex(float position)
 {
 	float line_height = (float) Core::ElementUtilities::GetLineHeight(parent);
-	int line_index = Rocket::Core::Math::RealToInteger(position / line_height);
-	return Rocket::Core::Math::Clamp(line_index, 0, (int) (lines.size() - 1));
+	int line_index = Rml::Core::Math::RealToInteger(position / line_height);
+	return Rml::Core::Math::Clamp(line_index, 0, (int) (lines.size() - 1));
 }
 
 // Calculates the character index along a line under a specific horizontal position.
@@ -618,7 +619,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 		if (next_line_width > position)
 		{
 			if (position - line_width < next_line_width - position)
-				return Rocket::Core::Math::Max(0, character_index - 1);
+				return Rml::Core::Math::Max(0, character_index - 1);
 			else
 				return character_index;
 		}
@@ -694,7 +695,7 @@ void WidgetTextInput::FormatElement()
 		scroll->DisableScrollbar(Core::ElementScroll::VERTICAL);
 
 	// Format the text and determine its total area.
-	Rocket::Core::Vector2f content_area = FormatText();
+	Rml::Core::Vector2f content_area = FormatText();
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
 	if (x_overflow_property == Core::OVERFLOW_AUTO)
@@ -719,16 +720,16 @@ void WidgetTextInput::FormatElement()
 		}
 	}
 
-	parent->SetContentBox(Rocket::Core::Vector2f(0, 0), content_area);
+	parent->SetContentBox(Rml::Core::Vector2f(0, 0), content_area);
 	scroll->FormatScrollbars();
 }
 
 // Formats the input element's text field.
-Rocket::Core::Vector2f WidgetTextInput::FormatText()
+Rml::Core::Vector2f WidgetTextInput::FormatText()
 {
 	absolute_cursor_index = edit_index;
 
-	Rocket::Core::Vector2f content_area(0, 0);
+	Rml::Core::Vector2f content_area(0, 0);
 
 	// Clear the old lines, and all the lines in the text elements.
 	lines.clear();
@@ -742,10 +743,10 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 	std::vector< int >& selection_indices = selection_geometry.GetIndices();
 
 	// Determine the line-height of the text element.
-	int line_height = Rocket::Core::ElementUtilities::GetLineHeight(parent);
+	int line_height = Rml::Core::ElementUtilities::GetLineHeight(parent);
 
 	int line_begin = 0;
-	Rocket::Core::Vector2f line_position(0, 0);
+	Rml::Core::Vector2f line_position(0, 0);
 	bool last_line = false;
 
 	// Keep generating lines until all the text content is placed.
@@ -821,7 +822,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 			selection_vertices.resize(selection_vertices.size() + 4);
 			selection_indices.resize(selection_indices.size() + 6);
-			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rocket::Core::Vector2f((float)selection_width, (float)line_height), selection_colour, (int)selection_vertices.size() - 4);
+			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rml::Core::Vector2f((float)selection_width, (float)line_height), selection_colour, (int)selection_vertices.size() - 4);
 
 			line_position.x += selection_width;
 		}
@@ -839,7 +840,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 
 		// Grow the content area width-wise if this line is the longest so far, and push the
 		// height out.
-		content_area.x = Rocket::Core::Math::Max(content_area.x, line_width + cursor_size.x);
+		content_area.x = Rml::Core::Math::Max(content_area.x, line_width + cursor_size.x);
 		content_area.y = line_position.y;
 
 		// Push a trailing '\r' token onto the back to indicate a soft return if necessary.
@@ -878,7 +879,7 @@ void WidgetTextInput::GenerateCursor()
 
 	cursor_size.x = 1;
 	cursor_size.y = (float) Core::ElementUtilities::GetLineHeight(text_element) + 2;
-	Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Rocket::Core::Vector2f(0, 0), cursor_size, parent->GetProperty< Rocket::Core::Colourb >("color"));
+	Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Rml::Core::Vector2f(0, 0), cursor_size, parent->GetProperty< Rml::Core::Colourb >("color"));
 }
 
 void WidgetTextInput::UpdateCursorPosition()
@@ -940,9 +941,9 @@ void WidgetTextInput::DeleteSelection()
 {
 	if (selection_length > 0)
 	{
-		const Core::WString& value = GetElement()->GetAttribute< Rocket::Core::String >("value", "");
+		const Core::WString& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-		Rocket::Core::String new_value;
+		Rml::Core::String new_value;
 		Core::WString(value.Substring(0, selection_begin_index) + value.Substring(selection_begin_index + selection_length)).ToUTF8(new_value);
 		GetElement()->SetAttribute("value", new_value);
 
@@ -968,8 +969,8 @@ void WidgetTextInput::GetLineSelection(Core::WString& pre_selection, Core::WStri
 	}
 
 	// Split the line up into its three parts, depending on the size and placement of the selection.
-	pre_selection = line.Substring(0, Rocket::Core::Math::Max(0, selection_begin_index - line_begin));
-	selection = line.Substring(Rocket::Core::Math::Max(0, selection_begin_index - line_begin), Rocket::Core::Math::Max(0, selection_length + Rocket::Core::Math::Min(0, selection_begin_index - line_begin)));
+	pre_selection = line.Substring(0, Rml::Core::Math::Max(0, selection_begin_index - line_begin));
+	selection = line.Substring(Rml::Core::Math::Max(0, selection_begin_index - line_begin), Rml::Core::Math::Max(0, selection_length + Rml::Core::Math::Min(0, selection_begin_index - line_begin)));
 	post_selection = line.Substring(selection_begin_index + selection_length - line_begin);
 }
 

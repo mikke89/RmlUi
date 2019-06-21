@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,23 +26,23 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/DataSource.h"
-#include "../../Include/Rocket/Controls/DataSourceListener.h"
-#include "../../Include/Rocket/Core/StringUtilities.h"
-#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/RmlUi/Controls/DataSource.h"
+#include "../../Include/RmlUi/Controls/DataSourceListener.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/Log.h"
 #include <algorithm>
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
-const Rocket::Core::String DataSource::CHILD_SOURCE("#child_data_source");
-const Rocket::Core::String DataSource::DEPTH("#depth");
-const Rocket::Core::String DataSource::NUM_CHILDREN("#num_children");
+const Rml::Core::String DataSource::CHILD_SOURCE("#child_data_source");
+const Rml::Core::String DataSource::DEPTH("#depth");
+const Rml::Core::String DataSource::NUM_CHILDREN("#num_children");
 
-typedef std::map< Rocket::Core::String, DataSource* > DataSourceMap;
+typedef std::map< Rml::Core::String, DataSource* > DataSourceMap;
 static DataSourceMap data_sources;
 
-DataSource::DataSource(const Rocket::Core::String& _name)
+DataSource::DataSource(const Rml::Core::String& _name)
 {
 	if (!_name.Empty())
 	{
@@ -70,12 +71,12 @@ DataSource::~DataSource()
 	}
 }
 
-const Rocket::Core::String& DataSource::GetDataSourceName()
+const Rml::Core::String& DataSource::GetDataSourceName()
 {
 	return name;
 }
 
-DataSource* DataSource::GetDataSource(const Rocket::Core::String& data_source_name)
+DataSource* DataSource::GetDataSource(const Rml::Core::String& data_source_name)
 {
 	DataSourceMap::iterator i = data_sources.find(data_source_name);
 	if (i == data_sources.end())
@@ -90,7 +91,7 @@ void DataSource::AttachListener(DataSourceListener* listener)
 {
 	if (find(listeners.begin(), listeners.end(), listener) != listeners.end())
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return;
 	}
 	listeners.push_back(listener);
@@ -99,7 +100,7 @@ void DataSource::AttachListener(DataSourceListener* listener)
 void DataSource::DetachListener(DataSourceListener* listener)
 {
 	ListenerList::iterator i = find(listeners.begin(), listeners.end(), listener);
-	ROCKET_ASSERT(i != listeners.end());
+	RMLUI_ASSERT(i != listeners.end());
 	if (i != listeners.end())
 	{
 		listeners.erase(i);
@@ -111,7 +112,7 @@ void* DataSource::GetScriptObject() const
 	return NULL;
 }
 
-void DataSource::NotifyRowAdd(const Rocket::Core::String& table, int first_row_added, int num_rows_added)
+void DataSource::NotifyRowAdd(const Rml::Core::String& table, int first_row_added, int num_rows_added)
 {
 	ListenerList listeners_copy = listeners;
 	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
@@ -120,7 +121,7 @@ void DataSource::NotifyRowAdd(const Rocket::Core::String& table, int first_row_a
 	}
 }
 
-void DataSource::NotifyRowRemove(const Rocket::Core::String& table, int first_row_removed, int num_rows_removed)
+void DataSource::NotifyRowRemove(const Rml::Core::String& table, int first_row_removed, int num_rows_removed)
 {
 	ListenerList listeners_copy = listeners;
 	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
@@ -129,7 +130,7 @@ void DataSource::NotifyRowRemove(const Rocket::Core::String& table, int first_ro
 	}
 }
 
-void DataSource::NotifyRowChange(const Rocket::Core::String& table, int first_row_changed, int num_rows_changed)
+void DataSource::NotifyRowChange(const Rml::Core::String& table, int first_row_changed, int num_rows_changed)
 {
 	ListenerList listeners_copy = listeners;
 	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
@@ -138,7 +139,7 @@ void DataSource::NotifyRowChange(const Rocket::Core::String& table, int first_ro
 	}
 }
 
-void DataSource::NotifyRowChange(const Rocket::Core::String& table)
+void DataSource::NotifyRowChange(const Rml::Core::String& table)
 {
 	ListenerList listeners_copy = listeners;
 	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
@@ -147,7 +148,7 @@ void DataSource::NotifyRowChange(const Rocket::Core::String& table)
 	}
 }
 
-void DataSource::BuildRowEntries(Rocket::Core::StringList& row, const RowMap& row_map, const Rocket::Core::StringList& columns)
+void DataSource::BuildRowEntries(Rml::Core::StringList& row, const RowMap& row_map, const Rml::Core::StringList& columns)
 {
 	// Reserve the number of entries.
 	row.resize(columns.size());
@@ -162,7 +163,7 @@ void DataSource::BuildRowEntries(Rocket::Core::StringList& row, const RowMap& ro
 		else
 		{
 			row[i] = "";
-			Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Failed to find required data source column %s", columns[i].CString());
+			Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Failed to find required data source column %s", columns[i].CString());
 		}
 	}
 }

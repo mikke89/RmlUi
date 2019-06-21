@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include <Shell.h>
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include <win32/InputWin32.h>
 #include "ShellFileInterface.h"
 #include <windows.h>
@@ -56,10 +57,10 @@ bool Shell::Initialise()
 
 	time_frequency = 1.0 / (double) time_ticks_per_second.QuadPart;
 
-	Rocket::Core::String root = FindSamplesRoot();
+	Rml::Core::String root = FindSamplesRoot();
 	
 	file_interface = new ShellFileInterface(root);
-	Rocket::Core::SetFileInterface(file_interface);
+	Rml::Core::SetFileInterface(file_interface);
 
 	return true;
 }
@@ -72,9 +73,9 @@ void Shell::Shutdown()
 	file_interface = NULL;
 }
 
-Rocket::Core::String Shell::FindSamplesRoot()
+Rml::Core::String Shell::FindSamplesRoot()
 {
-	Rocket::Core::String path = "../../Samples/";
+	Rml::Core::String path = "../../Samples/";
 	
 	// Fetch the path of the executable, append the path onto that.
 	char executable_file_name[MAX_PATH];
@@ -84,7 +85,7 @@ Rocket::Core::String Shell::FindSamplesRoot()
 		executable_file_name[0] = 0;
 	}
 
-	Rocket::Core::String executable_path = Rocket::Core::String(executable_file_name);
+	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
 	executable_path = executable_path.Substring(0, executable_path.RFind("\\") + 1);
 	
 	return executable_path + path;

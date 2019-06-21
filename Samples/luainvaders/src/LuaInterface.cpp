@@ -1,13 +1,13 @@
 #include "LuaInterface.h"
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
 #include "Game.h"
 #include "GameDetails.h"
-#include <Rocket/Core/Log.h>
+#include <RmlUi/Core/Log.h>
 #include <Shell.h>
-#include <Rocket/Core/Factory.h>
+#include <RmlUi/Core/Factory.h>
 #include "HighScores.h"
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Types.h>
 #include "ElementGameInstancer.h"
 
 //we have to create the binding ourselves, and these are the functions that will be
@@ -22,7 +22,7 @@ int GameSetHighScoreName(lua_State* L);
 void LuaInterface::Initialise(lua_State* L)
 {
     InitGame(L);
-    Rocket::Core::Factory::RegisterElementInstancer("game",new ElementGameInstancer())->RemoveReference();
+    Rml::Core::Factory::RegisterElementInstancer("game",new ElementGameInstancer())->RemoveReference();
 }
 
 void LuaInterface::InitGame(lua_State *L)
@@ -33,7 +33,7 @@ void LuaInterface::InitGame(lua_State *L)
 
     if(lua_isnil(L,game))
     {
-        Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Error creating the Game table from C++ in LuaInterface::InitGame");
+        Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Error creating the Game table from C++ in LuaInterface::InitGame");
         return;
     }
     
@@ -91,7 +91,7 @@ int GameSetDifficulty(lua_State* L)
 
 int GameSetDefenderColour(lua_State* L)
 {
-    Rocket::Core::Colourb* colour = Rocket::Core::Lua::LuaType<Rocket::Core::Colourb>::check(L,1);
+    Rml::Core::Colourb* colour = Rml::Core::Lua::LuaType<Rml::Core::Colourb>::check(L,1);
     GameDetails::SetDefenderColour(*colour);
     return 0;
 }

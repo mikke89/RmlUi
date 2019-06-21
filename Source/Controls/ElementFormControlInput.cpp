@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +26,8 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
-#include "../../Include/Rocket/Core/Event.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlInput.h"
+#include "../../Include/RmlUi/Core/Event.h"
 #include "InputTypeButton.h"
 #include "InputTypeCheckbox.h"
 #include "InputTypeRadio.h"
@@ -34,11 +35,11 @@
 #include "InputTypeSubmit.h"
 #include "InputTypeText.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 // Constructs a new ElementFormControlInput.
-ElementFormControlInput::ElementFormControlInput(const Rocket::Core::String& tag) : ElementFormControl(tag)
+ElementFormControlInput::ElementFormControlInput(const Rml::Core::String& tag) : ElementFormControl(tag)
 {
 	type = NULL;
 	type = new InputTypeText(this);
@@ -52,13 +53,13 @@ ElementFormControlInput::~ElementFormControlInput()
 }
 
 // Returns a string representation of the current value of the form control.
-Rocket::Core::String ElementFormControlInput::GetValue() const
+Rml::Core::String ElementFormControlInput::GetValue() const
 {
 	return type->GetValue();
 }
 
 // Sets the current value of the form control.
-void ElementFormControlInput::SetValue(const Rocket::Core::String& value)
+void ElementFormControlInput::SetValue(const Rml::Core::String& value)
 {
 	SetAttribute("value", value);
 }
@@ -88,13 +89,13 @@ void ElementFormControlInput::OnAttributeChange(const Core::AttributeNameList& c
 
 	if (changed_attributes.find("type") != changed_attributes.end())
 	{
-		Rocket::Core::String new_type_name = GetAttribute< Rocket::Core::String >("type", "text");
+		Rml::Core::String new_type_name = GetAttribute< Rml::Core::String >("type", "text");
 		if (new_type_name != type_name)
 		{
 			InputType* new_type = NULL;
 
 			if (new_type_name == "password")
-				new_type = new InputTypeText(this, Rocket::Controls::InputTypeText::OBSCURED);
+				new_type = new InputTypeText(this, Rml::Controls::InputTypeText::OBSCURED);
 			else if (new_type_name == "radio")
 				new_type = new InputTypeRadio(this);
 			else if (new_type_name == "checkbox")
@@ -136,14 +137,14 @@ void ElementFormControlInput::OnPropertyChange(const Core::PropertyNameList& cha
 }
 
 // If we are the added element, this will pass the call onto our type handler.
-void ElementFormControlInput::OnChildAdd(Rocket::Core::Element* child)
+void ElementFormControlInput::OnChildAdd(Rml::Core::Element* child)
 {
 	if (child == this)
 		type->OnChildAdd();
 }
 
 // If we are the removed element, this will pass the call onto our type handler.
-void ElementFormControlInput::OnChildRemove(Rocket::Core::Element* child)
+void ElementFormControlInput::OnChildRemove(Rml::Core::Element* child)
 {
 	if (child == this)
 		type->OnChildRemove();
@@ -156,7 +157,7 @@ void ElementFormControlInput::ProcessEvent(Core::Event& event)
 	type->ProcessEvent(event);
 }
 
-bool ElementFormControlInput::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
+bool ElementFormControlInput::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 {
 	return type->GetIntrinsicDimensions(dimensions);
 }

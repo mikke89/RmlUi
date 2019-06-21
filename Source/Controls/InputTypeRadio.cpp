@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +27,11 @@
  */
 
 #include "InputTypeRadio.h"
-#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Controls/ElementForm.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlInput.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Controls/ElementForm.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 InputTypeRadio::InputTypeRadio(ElementFormControlInput* element) : InputType(element)
@@ -61,8 +62,8 @@ bool InputTypeRadio::OnAttributeChange(const Core::AttributeNameList& changed_at
 		if (checked)
 			PopRadioSet();
 
-		Rocket::Core::Dictionary parameters;
-		parameters.Set("value", Rocket::Core::String(checked ? GetValue() : ""));
+		Rml::Core::Dictionary parameters;
+		parameters.Set("value", Rml::Core::String(checked ? GetValue() : ""));
 		element->DispatchEvent("change", parameters);
 	}
 
@@ -85,7 +86,7 @@ void InputTypeRadio::ProcessEvent(Core::Event& event)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeRadio::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
+bool InputTypeRadio::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 {
 	dimensions.x = 16;
 	dimensions.y = 16;
@@ -113,7 +114,7 @@ void InputTypeRadio::PopRadioSet()
 			ElementFormControlInput* radio_control = dynamic_cast< ElementFormControlInput* >(form_controls[i]);
 			if (radio_control != NULL &&
 				element != radio_control &&
-				radio_control->GetAttribute< Rocket::Core::String >("type", "text") == "radio" &&
+				radio_control->GetAttribute< Rml::Core::String >("type", "text") == "radio" &&
 				radio_control->GetName() == element->GetName())
 			{
 				radio_control->RemoveAttribute("checked");

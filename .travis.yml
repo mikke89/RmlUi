@@ -59,4 +59,4 @@ install:
 script:
   - cd Build
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project librocket.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +28,9 @@
 
 #include "InputTypeRange.h"
 #include "WidgetSliderInput.h"
-#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlInput.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 InputTypeRange::InputTypeRange(ElementFormControlInput* element) : InputType(element)
@@ -44,9 +45,9 @@ InputTypeRange::~InputTypeRange()
 }
 
 // Returns a string representation of the current value of the form control.
-Rocket::Core::String InputTypeRange::GetValue() const
+Rml::Core::String InputTypeRange::GetValue() const
 {
-	return Rocket::Core::String(32, "%f", widget->GetValue());
+	return Rml::Core::String(32, "%f", widget->GetValue());
 }
 
 // Called every update from the host element.
@@ -63,7 +64,7 @@ bool InputTypeRange::OnAttributeChange(const Core::AttributeNameList& changed_at
 	// Check if maxlength has been defined.
 	if (changed_attributes.find("orientation") != changed_attributes.end())
 	{
-		widget->SetOrientation(element->GetAttribute< Rocket::Core::String >("orientation", "horizontal") == "horizontal" ? WidgetSliderInput::HORIZONTAL : WidgetSliderInput::VERTICAL);
+		widget->SetOrientation(element->GetAttribute< Rml::Core::String >("orientation", "horizontal") == "horizontal" ? WidgetSliderInput::HORIZONTAL : WidgetSliderInput::VERTICAL);
 		dirty_layout = true;
 	}
 
@@ -97,7 +98,7 @@ void InputTypeRange::ProcessEvent(Core::Event& event)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeRange::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
+bool InputTypeRange::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 {
 	widget->GetDimensions(dimensions);
 	return true;

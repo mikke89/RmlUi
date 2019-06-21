@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael Ragazzon
  *
@@ -28,11 +28,11 @@
 
 #include "precompiled.h"
 #include "PropertyParserAnimation.h"
-#include "../../Include/Rocket/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "PropertyShorthandDefinition.h"
 
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +29,10 @@
 #ifndef SHELLINPUT_H
 #define SHELLINPUT_H
 
-#include <Rocket/Core/Input.h>
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/Types.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 class Context;
@@ -47,15 +48,15 @@ class Input
 public:
 	/// Sets the context to send input events to.
 	/// @param[in] context The context to send input events to.
-	static void SetContext(Rocket::Core::Context* context);
+	static void SetContext(Rml::Core::Context* context);
 	/// Returns the character code for a key identifer / key modifier combination.
 	/// @param[in] key_identifier The key to generate a character code for.
 	/// @param[in] key_modifier_state The configuration of the key modifiers.
 	/// @return The character code.
-	static Rocket::Core::word GetCharacterCode(Rocket::Core::Input::KeyIdentifier key_identifier, int key_modifier_state);
+	static Rml::Core::word GetCharacterCode(Rml::Core::Input::KeyIdentifier key_identifier, int key_modifier_state);
 
 protected:
-	static Rocket::Core::Context* context;
+	static Rml::Core::Context* context;
 };
 
 #endif

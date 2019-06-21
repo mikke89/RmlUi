@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +26,13 @@
  *
  */
 
-#include <Rocket/Core.h>
-#include <Rocket/Debugger.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
 
-Rocket::Core::Context* context = NULL;
+Rml::Core::Context* context = NULL;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -44,24 +45,24 @@ void GameLoop()
 	shell_renderer->PresentRenderBuffer();
 }
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
+int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
 #else
-int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv))
+int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 #endif
 {
-#ifdef ROCKET_PLATFORM_WIN32
-	ROCKET_UNUSED(instance_handle);
-	ROCKET_UNUSED(previous_instance_handle);
-	ROCKET_UNUSED(command_line);
-	ROCKET_UNUSED(command_show);
+#ifdef RMLUI_PLATFORM_WIN32
+	RMLUI_UNUSED(instance_handle);
+	RMLUI_UNUSED(previous_instance_handle);
+	RMLUI_UNUSED(command_line);
+	RMLUI_UNUSED(command_show);
 #else
-	ROCKET_UNUSED(argc);
-	ROCKET_UNUSED(argv);
+	RMLUI_UNUSED(argc);
+	RMLUI_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
         AllocConsole();
 #endif
 
@@ -79,32 +80,32 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 		return -1;
 	}
 
-	// Rocket initialisation.
-	Rocket::Core::SetRenderInterface(&opengl_renderer);
+	// RmlUi initialisation.
+	Rml::Core::SetRenderInterface(&opengl_renderer);
 	shell_renderer->SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
-	Rocket::Core::SetSystemInterface(&system_interface);
+	Rml::Core::SetSystemInterface(&system_interface);
 
-	Rocket::Core::Initialise();
+	Rml::Core::Initialise();
 
-	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(window_width, window_height));
+	// Create the main RmlUi context and set it on the shell's input layer.
+	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
 	if (context == NULL)
 	{
-		Rocket::Core::Shutdown();
+		Rml::Core::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	Rocket::Debugger::Initialise(context);
+	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
 	Shell::LoadFonts("assets/");
 
 	// Load and show the demo document.
-	Rocket::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
+	Rml::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
 	if (document != NULL)
 	{
 		document->Show();
@@ -113,9 +114,9 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	Shell::EventLoop(GameLoop);
 
-	// Shutdown Rocket.
+	// Shutdown RmlUi.
 	context->RemoveReference();
-	Rocket::Core::Shutdown();
+	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +31,12 @@
 #include "FontFaceHandle.h"
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
-#include "../../Include/Rocket/Core/ElementText.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Constructs a new inline box for an element.
@@ -129,7 +130,7 @@ void LayoutInlineBox::Close()
 		chain->Close();
 	else
 	{
-		ROCKET_ASSERT(line != NULL);
+		RMLUI_ASSERT(line != NULL);
 		line->CloseInlineBox(this);
 	}
 }
@@ -151,11 +152,11 @@ bool LayoutInlineBox::IsLastChild() const
 }
 
 // Flows the inline box's content into its parent line.
-LayoutInlineBox* LayoutInlineBox::FlowContent(bool ROCKET_UNUSED_PARAMETER(first_box), float ROCKET_UNUSED_PARAMETER(available_width), float ROCKET_UNUSED_PARAMETER(right_spacing_width))
+LayoutInlineBox* LayoutInlineBox::FlowContent(bool RMLUI_UNUSED_PARAMETER(first_box), float RMLUI_UNUSED_PARAMETER(available_width), float RMLUI_UNUSED_PARAMETER(right_spacing_width))
 {
-	ROCKET_UNUSED(first_box);
-	ROCKET_UNUSED(available_width);
-	ROCKET_UNUSED(right_spacing_width);
+	RMLUI_UNUSED(first_box);
+	RMLUI_UNUSED(available_width);
+	RMLUI_UNUSED(right_spacing_width);
 
 	// If we're representing a sized element, then add our element's width onto our parent's.
 	if (parent != NULL &&

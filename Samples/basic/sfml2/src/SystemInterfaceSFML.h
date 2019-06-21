@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
  *
@@ -27,18 +27,18 @@
 #ifndef SYSTEMINTEFACESFML_H
 #define SYSTEMINTEFACESFML_H
 
-#include <Rocket/Core/SystemInterface.h>
-#include <Rocket/Core/Input.h>
+#include <RmlUi/Core/SystemInterface.h>
+#include <RmlUi/Core/Input.h>
 #include <SFML/Graphics.hpp>
 
-class RocketSFMLSystemInterface : public Rocket::Core::SystemInterface
+class RmlUiSFMLSystemInterface : public Rml::Core::SystemInterface
 {
 public:
 
-	Rocket::Core::Input::KeyIdentifier TranslateKey(sf::Keyboard::Key Key);
+	Rml::Core::Input::KeyIdentifier TranslateKey(sf::Keyboard::Key Key);
 	int GetKeyModifiers(sf::Window *Window);
 	double GetElapsedTime();
-	bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message);
+	bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message);
 
 private:
 	sf::Clock timer;

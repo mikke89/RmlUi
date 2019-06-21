@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +27,14 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/FontProvider.h>
-#include <Rocket/Core/FontFamily.h>
+#include <RmlUi/Core/FontProvider.h>
+#include <RmlUi/Core/FontFamily.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Returns a handle to a font face that can be used to position and render text.
-Rocket::Core::FontFaceHandle* FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
+Rml::Core::FontFaceHandle* FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
 {
 	FontFamilyMap::iterator iterator = font_families.find(family);
 	if (iterator == font_families.end())

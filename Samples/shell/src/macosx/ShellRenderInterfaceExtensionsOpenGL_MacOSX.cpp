@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,38 +29,38 @@
 #include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <Carbon/Carbon.h>
-#include <Rocket/Core/Context.h>
-#include <Rocket/Core.h>
-#include <Rocket/Core/Platform.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Core/Platform.h>
 
 void ShellRenderInterfaceOpenGL::SetContext(void *context)
 {
-	m_rocket_context = context;
+	m_rmlui_context = context;
 }
 
 void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 {
 	if(m_width != width || m_height != height) {
-		Rocket::Core::Matrix4f projection, view;
+		Rml::Core::Matrix4f projection, view;
 
 		m_width = width;
 		m_height = height;
 
 		glViewport(0, 0, width, height);
-		projection = Rocket::Core::Matrix4f::ProjectOrtho(0, width, height, 0, -1, 1);
+		projection = Rml::Core::Matrix4f::ProjectOrtho(0, width, height, 0, -1, 1);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(projection);
-		view = Rocket::Core::Matrix4f::Identity();
+		view = Rml::Core::Matrix4f::Identity();
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(view);
 
 		aglUpdateContext(gl_context);
 
-		if(m_rocket_context != NULL)
+		if(m_rmlui_context != NULL)
 		{
-			((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
-			((Rocket::Core::Context*)m_rocket_context)->ProcessProjectionChange(projection);
-			((Rocket::Core::Context*)m_rocket_context)->ProcessViewChange(view);
+			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
+			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(projection);
+			((Rml::Core::Context*)m_rmlui_context)->ProcessViewChange(view);
 		}
 	}
 }

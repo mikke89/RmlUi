@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +27,12 @@
  */
 
 #include "XMLNodeHandlerTabSet.h"
-#include "../../Include/Rocket/Core/Log.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/XMLParser.h"
-#include "../../Include/Rocket/Controls/ElementTabSet.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Controls/ElementTabSet.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 XMLNodeHandlerTabSet::XMLNodeHandlerTabSet()
@@ -42,9 +43,9 @@ XMLNodeHandlerTabSet::~XMLNodeHandlerTabSet()
 {
 }
 
-Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const Rocket::Core::String& name, const Rocket::Core::XMLAttributes& attributes)
+Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const Rml::Core::String& name, const Rml::Core::XMLAttributes& attributes)
 {
-	ROCKET_ASSERT(name == "tabset" ||
+	RMLUI_ASSERT(name == "tabset" ||
 			   name == "tabs" ||
 			   name == "tab" ||
 			   name == "panels" ||
@@ -62,7 +63,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		{
 			if (element)
 				element->RemoveReference();
-			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.CString());
+			Core::Log::Message(Rml::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.CString());
 			return NULL;
 		}
 
@@ -117,7 +118,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		Core::Element* element = Core::Factory::InstanceElement(parent, name, name, attributes);
 		if (!element)
 		{
-			Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.CString());
+			Core::Log::Message(Rml::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.CString());
 			return NULL;
 		}
 
@@ -129,15 +130,15 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 	return NULL;
 }
 
-bool XMLNodeHandlerTabSet::ElementEnd(Core::XMLParser* ROCKET_UNUSED_PARAMETER(parser), const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name))
+bool XMLNodeHandlerTabSet::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(parser), const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name))
 {
-	ROCKET_UNUSED(parser);
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(parser);
+	RMLUI_UNUSED(name);
 
 	return true;
 }
 
-bool XMLNodeHandlerTabSet::ElementData(Core::XMLParser* parser, const Rocket::Core::String& data)
+bool XMLNodeHandlerTabSet::ElementData(Core::XMLParser* parser, const Rml::Core::String& data)
 {	
 	return Core::Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }

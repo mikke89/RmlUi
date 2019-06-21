@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "GameDetails.h"
 
 static GameDetails::Difficulty difficulty = GameDetails::EASY;
-static Rocket::Core::Colourb colour = Rocket::Core::Colourb(255, 0, 0);
+static Rml::Core::Colourb colour = Rml::Core::Colourb(255, 0, 0);
 static int score = -1;
 static int wave = 0;
 static bool paused = false;
@@ -58,13 +59,13 @@ GameDetails::Difficulty GameDetails::GetDifficulty()
 }
 
 // Sets the colour of the player's ship.
-void GameDetails::SetDefenderColour(const Rocket::Core::Colourb& _colour)
+void GameDetails::SetDefenderColour(const Rml::Core::Colourb& _colour)
 {
 	colour = _colour;
 }
 
 // Returns the player's ship colour.
-const Rocket::Core::Colourb& GameDetails::GetDefenderColour()
+const Rml::Core::Colourb& GameDetails::GetDefenderColour()
 {
 	return colour;
 }

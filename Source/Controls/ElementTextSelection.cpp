@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +29,10 @@
 #include "ElementTextSelection.h"
 #include "WidgetTextInput.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
-ElementTextSelection::ElementTextSelection(const Rocket::Core::String& tag) : Rocket::Core::Element(tag)
+ElementTextSelection::ElementTextSelection(const Rml::Core::String& tag) : Rml::Core::Element(tag)
 {
 	widget = NULL;
 }
@@ -47,7 +48,7 @@ void ElementTextSelection::SetWidget(WidgetTextInput* _widget)
 }
 
 // Processes 'color' and 'background-color' property changes.
-void ElementTextSelection::OnPropertyChange(const Rocket::Core::PropertyNameList& changed_properties)
+void ElementTextSelection::OnPropertyChange(const Rml::Core::PropertyNameList& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 

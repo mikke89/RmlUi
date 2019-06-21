@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +29,8 @@
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Controls/DataSource.h>
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Controls/DataSource.h>
 
 struct FileSystemNode;
 
@@ -38,17 +39,17 @@ struct FileSystemNode;
 	@author Peter Curry
  */
 
-class FileSystem : public Rocket::Controls::DataSource
+class FileSystem : public Rml::Controls::DataSource
 {
 public:
-	FileSystem(const Rocket::Core::String& root);
+	FileSystem(const Rml::Core::String& root);
 	virtual ~FileSystem();
 
-	virtual void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns);
-	virtual int GetNumRows(const Rocket::Core::String& table);
+	virtual void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns);
+	virtual int GetNumRows(const Rml::Core::String& table);
 
 private:
-	FileSystemNode* GetNode(const Rocket::Core::String& table);
+	FileSystemNode* GetNode(const Rml::Core::String& table);
 };
 
 #endif

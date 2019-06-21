@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +31,12 @@
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
 #include "LayoutLineBox.h"
-#include "../../Include/Rocket/Core/ElementText.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/Log.h"
-#include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/Property.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 LayoutInlineBoxText::LayoutInlineBoxText(Element* element, int _line_begin) : LayoutInlineBox(element, Box())
@@ -60,7 +61,7 @@ bool LayoutInlineBoxText::CanOverflow() const
 LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
 {
 	ElementText* text_element = GetTextElement();
-	ROCKET_ASSERT(text_element != NULL);
+	RMLUI_ASSERT(text_element != NULL);
 
 	int line_length;
 	float line_width;
@@ -121,9 +122,9 @@ void LayoutInlineBoxText::PositionElement()
 }
 
 // Sizes the inline box's element.
-void LayoutInlineBoxText::SizeElement(bool ROCKET_UNUSED_PARAMETER(split))
+void LayoutInlineBoxText::SizeElement(bool RMLUI_UNUSED_PARAMETER(split))
 {
-	ROCKET_UNUSED(split);
+	RMLUI_UNUSED(split);
 }
 
 void* LayoutInlineBoxText::operator new(size_t size)
@@ -146,7 +147,7 @@ ElementText* LayoutInlineBoxText::GetTextElement()
 void LayoutInlineBoxText::BuildWordBox()
 {
 	ElementText* text_element = GetTextElement();
-	ROCKET_ASSERT(text_element != NULL);
+	RMLUI_ASSERT(text_element != NULL);
 
 	FontFaceHandle* font_face_handle = text_element->GetFontFaceHandle();
 	if (font_face_handle == NULL)

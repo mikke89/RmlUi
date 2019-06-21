@@ -1,7 +1,7 @@
 /*
- * This source file is part of rocket, the HTML/CSS Interface Middleware
+ * This source file is part of rmlui, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
  *
@@ -26,9 +26,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Types.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 Vector4i operator*(int lhs, const Vector4i& rhs)

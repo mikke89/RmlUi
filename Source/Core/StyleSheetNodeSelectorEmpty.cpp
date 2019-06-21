@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +28,10 @@
 
 #include "precompiled.h"
 #include "StyleSheetNodeSelectorEmpty.h"
-#include "../../Include/Rocket/Core/ElementText.h"
-#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 StyleSheetNodeSelectorEmpty::StyleSheetNodeSelectorEmpty()
@@ -42,10 +43,10 @@ StyleSheetNodeSelectorEmpty::~StyleSheetNodeSelectorEmpty()
 }
 
 // Returns true if the element has no DOM children.
-bool StyleSheetNodeSelectorEmpty::IsApplicable(const Element* element, int ROCKET_UNUSED_PARAMETER(a), int ROCKET_UNUSED_PARAMETER(b))
+bool StyleSheetNodeSelectorEmpty::IsApplicable(const Element* element, int RMLUI_UNUSED_PARAMETER(a), int RMLUI_UNUSED_PARAMETER(b))
 {
-	ROCKET_UNUSED(a);
-	ROCKET_UNUSED(b);
+	RMLUI_UNUSED(a);
+	RMLUI_UNUSED(b);
 
 	for (int i = 0; i < element->GetNumChildren(); ++i)
 	{

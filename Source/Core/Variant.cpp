@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,19 +27,19 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Variant.h"
+#include "../../Include/RmlUi/Core/Variant.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 Variant::Variant() : type(NONE)
 {
 	// Make sure our object size assumptions fit inside the static buffer
-	ROCKET_STATIC_ASSERT(sizeof(Colourb) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourb);
-	ROCKET_STATIC_ASSERT(sizeof(Colourf) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourf);
-	ROCKET_STATIC_ASSERT(sizeof(String) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_String);
-	ROCKET_STATIC_ASSERT(sizeof(TransitionList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_TRANSITION_LIST);
-	ROCKET_STATIC_ASSERT(sizeof(AnimationList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_ANIMATION_LIST);
+	RMLUI_STATIC_ASSERT(sizeof(Colourb) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourb);
+	RMLUI_STATIC_ASSERT(sizeof(Colourf) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_Colourf);
+	RMLUI_STATIC_ASSERT(sizeof(String) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_String);
+	RMLUI_STATIC_ASSERT(sizeof(TransitionList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_TRANSITION_LIST);
+	RMLUI_STATIC_ASSERT(sizeof(AnimationList) <= LOCAL_DATA_SIZE, LOCAL_DATA_TOO_SMALL_FOR_ANIMATION_LIST);
 }
 
 Variant::Variant( const Variant& copy ) : type(NONE)
@@ -305,7 +306,7 @@ bool Variant::operator==(const Variant & other) const
 		return true;
 		break;
 	}
-	ROCKET_ERRORMSG("Variant comparison not implemented for this type.");
+	RMLUI_ERRORMSG("Variant comparison not implemented for this type.");
 	return false;
 }
 

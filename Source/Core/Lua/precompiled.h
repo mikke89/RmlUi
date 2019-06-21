@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +26,11 @@
  *
  */
  
-#ifndef ROCKETCORELUAPRECOMPILED_H
-#define ROCKETCORELUAPRECOMPILED_H
+#ifndef RMLUICORELUAPRECOMPILED_H
+#define RMLUICORELUAPRECOMPILED_H
 
-#include <Rocket/Core/Core.h>
-#include <Rocket/Core/Debug.h>
-#include <Rocket/Controls/Controls.h>
-#include <Rocket/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Debug.h>
+#include <RmlUi/Controls/Controls.h>
+#include <RmlUi/Core/Lua/LuaType.h>
 #endif

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,9 @@
  */
 
 #include "EventHandlerHighScore.h"
-#include <Rocket/Core/ElementDocument.h>
-#include <Rocket/Core/ElementUtilities.h>
-#include <Rocket/Core/Input.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementUtilities.h>
+#include <RmlUi/Core/Input.h>
 #include "EventManager.h"
 #include "GameDetails.h"
 #include "HighScores.h"
@@ -41,7 +42,7 @@ EventHandlerHighScore::~EventHandlerHighScore()
 {
 }
 
-void EventHandlerHighScore::ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::String& value)
+void EventHandlerHighScore::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value)
 {
 	if (value == "add_score")
 	{
@@ -56,15 +57,15 @@ void EventHandlerHighScore::ProcessEvent(Rocket::Core::Event& event, const Rocke
 	}
 	else if (value == "enter_name")
 	{
-		if (event.GetParameter< int >("key_identifier", Rocket::Core::Input::KI_UNKNOWN) == Rocket::Core::Input::KI_RETURN)
+		if (event.GetParameter< int >("key_identifier", Rml::Core::Input::KI_UNKNOWN) == Rml::Core::Input::KI_RETURN)
 		{
-			Rocket::Core::String name = event.GetCurrentElement()->GetAttribute< Rocket::Core::String >("value", "Anon.");
+			Rml::Core::String name = event.GetCurrentElement()->GetAttribute< Rml::Core::String >("value", "Anon.");
 			HighScores::SubmitName(name);
 		}
 	}
 	else if (value == "check_input")
 	{
-		Rocket::Core::Element* name_input_field = event.GetTargetElement()->GetElementById("player_input");
+		Rml::Core::Element* name_input_field = event.GetTargetElement()->GetElementById("player_input");
 		if (name_input_field)
 		{
 			name_input_field->Focus();

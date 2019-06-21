@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,18 +28,18 @@
  
 #include "precompiled.h"
 #include "LuaDataSource.h"
-#include <Rocket/Core/Lua/Interpreter.h>
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/String.h>
+#include <RmlUi/Core/Lua/Interpreter.h>
+#include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/String.h>
 
-using Rocket::Core::Lua::Interpreter;
-using Rocket::Core::Log;
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::Interpreter;
+using Rml::Core::Log;
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
-LuaDataSource::LuaDataSource(const Rocket::Core::String& name) : DataSource(name), getRowRef(LUA_NOREF), getNumRowsRef(LUA_NOREF)
+LuaDataSource::LuaDataSource(const Rml::Core::String& name) : DataSource(name), getRowRef(LUA_NOREF), getNumRowsRef(LUA_NOREF)
 {
 }
 
@@ -47,7 +48,7 @@ LuaDataSource::LuaDataSource(const Rocket::Core::String& name) : DataSource(name
 /// @param[in] table The name of the table to query.
 /// @param[in] row_index The index of the desired row.
 /// @param[in] columns The list of desired columns within the row.
-void LuaDataSource::GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns)
+void LuaDataSource::GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns)
 {
     if(getRowRef == LUA_NOREF || getRowRef == LUA_REFNIL) return;
 
@@ -58,7 +59,7 @@ void LuaDataSource::GetRow(Rocket::Core::StringList& row, const Rocket::Core::St
     lua_pushinteger(L,row_index);
     lua_newtable(L);
     int index = 0;
-    for(Rocket::Core::StringList::const_iterator itr = columns.begin(); itr != columns.end(); ++itr)
+    for(Rml::Core::StringList::const_iterator itr = columns.begin(); itr != columns.end(); ++itr)
     {
         lua_pushstring(L,itr->CString());
         lua_rawseti(L,-2,index++);
@@ -86,7 +87,7 @@ void LuaDataSource::GetRow(Rocket::Core::StringList& row, const Rocket::Core::St
 /// Fetches the number of rows within one of this data source's tables.
 /// @param[in] table The name of the table to query.
 /// @return The number of rows within the specified table. Returns -1 in case of an incorrect Lua function.
-int LuaDataSource::GetNumRows(const Rocket::Core::String& table)
+int LuaDataSource::GetNumRows(const Rml::Core::String& table)
 {
     if(getNumRowsRef == LUA_NOREF || getNumRowsRef == LUA_REFNIL) return -1;
 

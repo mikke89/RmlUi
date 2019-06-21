@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +26,11 @@
  *
  */
 
-#ifndef ROCKETINVADERSELEMENTGAME_H
-#define ROCKETINVADERSELEMENTGAME_H
+#ifndef RMLUIINVADERSELEMENTGAME_H
+#define RMLUIINVADERSELEMENTGAME_H
 
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/EventListener.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/EventListener.h>
 
 class Game;
 
@@ -37,19 +38,19 @@ class Game;
 	@author Peter Curry
  */
 
-class ElementGame : public Rocket::Core::Element, public Rocket::Core::EventListener
+class ElementGame : public Rml::Core::Element, public Rml::Core::EventListener
 {
 public:
-	ElementGame(const Rocket::Core::String& tag);
+	ElementGame(const Rml::Core::String& tag);
 	virtual ~ElementGame();
 
 	/// Intercepts and handles key events.
-	void ProcessEvent(Rocket::Core::Event& event);
+	void ProcessEvent(Rml::Core::Event& event);
 
 	/// Receive notifications when child elements are added
 	/// This will only get called when we're added to the tree,
 	/// which allows us to bind to onload
-	void OnChildAdd(Rocket::Core::Element* element);
+	void OnChildAdd(Rml::Core::Element* element);
 
 protected:
 	/// Updates the game.

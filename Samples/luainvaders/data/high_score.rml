@@ -57,7 +57,7 @@ function HighScore.OnLoad(window)
 end
 	
 function HighScore.OnKeyDown(event)
-	if event.parameters['key_identifier'] == rocket.key_identifier.RETURN then
+	if event.parameters['key_identifier'] == rmlui.key_identifier.RETURN then
         Game.SetHighScoreName(Element.As.ElementFormControlInput(event.current_element).value)
 		--Game.SetHighScoreName(event.current_element:AsType(Element.etype.input).value)
     end

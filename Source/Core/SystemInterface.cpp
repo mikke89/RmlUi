@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +27,14 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/SystemInterface.h"
-#include "../../Include/Rocket/Core/Log.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/Log.h"
 
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 #include <windows.h>
 #endif
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 SystemInterface::SystemInterface() : ReferenceCountable(0)
@@ -44,7 +45,7 @@ SystemInterface::~SystemInterface()
 {
 }
 
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 {
 	// By default we just send a platform message
@@ -63,9 +64,9 @@ bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 	return true;
 }
 #else
-bool SystemInterface::LogMessage(Log::Type ROCKET_UNUSED_PARAMETER(logtype), const String& message)
+bool SystemInterface::LogMessage(Log::Type RMLUI_UNUSED_PARAMETER(logtype), const String& message)
 {
-	ROCKET_UNUSED(logtype);
+	RMLUI_UNUSED(logtype);
 
 	fprintf(stderr,"%s\n", message.CString());
 	return true;

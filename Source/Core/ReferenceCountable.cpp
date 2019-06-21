@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/ReferenceCountable.h"
+#include "../../Include/RmlUi/Core/ReferenceCountable.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 static int num_outstanding_objects = 0;
@@ -43,7 +44,7 @@ ReferenceCountable::ReferenceCountable(int initial_count)
 // Destructor. The reference count must be 0 when this is invoked.
 ReferenceCountable::~ReferenceCountable()
 {
-	ROCKET_ASSERT(reference_count == 0);
+	RMLUI_ASSERT(reference_count == 0);
 	--num_outstanding_objects;
 }
 
@@ -66,7 +67,7 @@ void ReferenceCountable::AddReference()
 // Removes a reference from the object.
 void ReferenceCountable::RemoveReference()
 {
-	ROCKET_ASSERT(reference_count > 0);
+	RMLUI_ASSERT(reference_count > 0);
 	reference_count--;	
 	if (reference_count == 0)
 	{
@@ -76,7 +77,7 @@ void ReferenceCountable::RemoveReference()
 
 ReferenceCountable& ReferenceCountable::operator=(const ReferenceCountable& /*copy*/)
 {
-	ROCKET_ERRORMSG("Attempting to copy a reference counted object. This is not advisable.");
+	RMLUI_ERRORMSG("Attempting to copy a reference counted object. This is not advisable.");
 	return *this;
 }
 

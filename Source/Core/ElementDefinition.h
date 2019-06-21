@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#ifndef ROCKETCOREELEMENTDEFINITION_H
-#define ROCKETCOREELEMENTDEFINITION_H
+#ifndef RMLUICOREELEMENTDEFINITION_H
+#define RMLUICOREELEMENTDEFINITION_H
 
-#include "../../Include/Rocket/Core/Dictionary.h"
-#include "../../Include/Rocket/Core/ReferenceCountable.h"
+#include "../../Include/RmlUi/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/ReferenceCountable.h"
 #include <map>
 #include <set>
-#include "../../Include/Rocket/Core/FontEffect.h"
+#include "../../Include/RmlUi/Core/FontEffect.h"
 #include "StyleSheetNode.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 class Decorator;

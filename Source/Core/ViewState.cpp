@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
  *
@@ -26,9 +26,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/ViewState.h"
+#include "../../Include/RmlUi/Core/ViewState.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 ViewState::ViewState()
@@ -117,7 +117,7 @@ Vector3f ViewState::Unproject(const Vector3f &point) const noexcept
 
 void ViewState::UpdateProjectionViewInv() const noexcept
 {
-	ROCKET_ASSERT(projection_view_inv_dirty);
+	RMLUI_ASSERT(projection_view_inv_dirty);
 
 	if (have_projection && have_view)
 	{

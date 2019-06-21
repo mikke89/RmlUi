@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +26,12 @@
  *
  */
 
-#ifndef ROCKETSHELL_H
-#define ROCKETSHELL_H
+#ifndef RMLUISHELL_H
+#define RMLUISHELL_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/Context.h>
-#include <Rocket/Core/SystemInterface.h>
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/SystemInterface.h>
 #include "ShellRenderInterfaceExtensions.h"
 
 /**
@@ -47,7 +48,7 @@ public:
 	static void Shutdown();
 
 	/// Finds the Samples root directory.
-	static Rocket::Core::String FindSamplesRoot();
+	static Rml::Core::String FindSamplesRoot();
 	
 	/// Loads the default fonts from the given path.
 	static void LoadFonts(const char* directory);
@@ -77,10 +78,10 @@ public:
 	
 	/// Sets the context to send window resized events to.
 	/// @param[in] context The context to send  events to.
-	static void SetContext(Rocket::Core::Context* context);
+	static void SetContext(Rml::Core::Context* context);
 
 private:
-	static Rocket::Core::Context* context;
+	static Rml::Core::Context* context;
 };
 
 #include "ShellSystemInterface.h"

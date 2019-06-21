@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +26,9 @@
  *
  */
 
-#include <Rocket/Core.h>
-#include <Rocket/Controls.h>
-#include <Rocket/Debugger.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Controls.h>
+#include <RmlUi/Debugger.h>
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <Input.h>
@@ -43,7 +44,7 @@
 #include "HighScoresNameFormatter.h"
 #include "HighScoresShipFormatter.h"
 
-Rocket::Core::Context* context = NULL;
+Rml::Core::Context* context = NULL;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -56,24 +57,24 @@ void GameLoop()
 	shell_renderer->PresentRenderBuffer();
 }
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
+int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
 #else
-int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv))
+int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 #endif
 {
-#ifdef ROCKET_PLATFORM_WIN32
-	ROCKET_UNUSED(instance_handle);
-	ROCKET_UNUSED(previous_instance_handle);
-	ROCKET_UNUSED(command_line);
-	ROCKET_UNUSED(command_show);
+#ifdef RMLUI_PLATFORM_WIN32
+	RMLUI_UNUSED(instance_handle);
+	RMLUI_UNUSED(previous_instance_handle);
+	RMLUI_UNUSED(command_line);
+	RMLUI_UNUSED(command_show);
 #else
-	ROCKET_UNUSED(argc);
-	ROCKET_UNUSED(argv);
+	RMLUI_UNUSED(argc);
+	RMLUI_UNUSED(argv);
 #endif
 
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 	AllocConsole();
 #endif
 
@@ -85,34 +86,34 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("Rocket Invaders from Mars", shell_renderer, window_width, window_height, false))
+		!Shell::OpenWindow("RmlUi Invaders from Mars", shell_renderer, window_width, window_height, false))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
-	// Rocket initialisation.
-	Rocket::Core::SetRenderInterface(&opengl_renderer);
+	// RmlUi initialisation.
+	Rml::Core::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
-	Rocket::Core::SetSystemInterface(&system_interface);
+	Rml::Core::SetSystemInterface(&system_interface);
 
-	Rocket::Core::Initialise();
-	// Initialise the Rocket Controls library.
-	Rocket::Controls::Initialise();
+	Rml::Core::Initialise();
+	// Initialise the RmlUi Controls library.
+	Rml::Controls::Initialise();
 
-	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(window_width, window_height));
+	// Create the main RmlUi context and set it on the shell's input layer.
+	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
 	if (context == NULL)
 	{
-		Rocket::Core::Shutdown();
+		Rml::Core::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	// Initialise the Rocket debugger.
-	Rocket::Debugger::Initialise(context);
+	// Initialise the RmlUi debugger.
+	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
@@ -120,16 +121,16 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom element and decorator instancers.
-	Rocket::Core::ElementInstancer* element_instancer = new Rocket::Core::ElementInstancerGeneric< ElementGame >();
-	Rocket::Core::Factory::RegisterElementInstancer("game", element_instancer);
+	Rml::Core::ElementInstancer* element_instancer = new Rml::Core::ElementInstancerGeneric< ElementGame >();
+	Rml::Core::Factory::RegisterElementInstancer("game", element_instancer);
 	element_instancer->RemoveReference();
 
-	Rocket::Core::DecoratorInstancer* decorator_instancer = new DecoratorInstancerStarfield();
-	Rocket::Core::Factory::RegisterDecoratorInstancer("starfield", decorator_instancer);
+	Rml::Core::DecoratorInstancer* decorator_instancer = new DecoratorInstancerStarfield();
+	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", decorator_instancer);
 	decorator_instancer->RemoveReference();
 
 	decorator_instancer = new DecoratorInstancerDefender();
-	Rocket::Core::Factory::RegisterDecoratorInstancer("defender", decorator_instancer);
+	Rml::Core::Factory::RegisterDecoratorInstancer("defender", decorator_instancer);
 	decorator_instancer->RemoveReference();
 
 	// Register Invader's data formatters
@@ -141,7 +142,7 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 
 	// Initialise the event instancer and handlers.
 	EventInstancer* event_instancer = new EventInstancer();
-	Rocket::Core::Factory::RegisterEventListenerInstancer(event_instancer);
+	Rml::Core::Factory::RegisterEventListenerInstancer(event_instancer);
 	event_instancer->RemoveReference();
 
 	EventManager::RegisterEventHandler("start_game", new EventHandlerStartGame());
@@ -159,9 +160,9 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	// Release the event handlers.
 	EventManager::Shutdown();
 
-	// Shutdown Rocket.
+	// Shutdown RmlUi.
 	context->RemoveReference();
-	Rocket::Core::Shutdown();
+	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

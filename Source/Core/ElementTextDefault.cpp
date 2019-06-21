@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +31,14 @@
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "FontFaceHandle.h"
-#include "../../Include/Rocket/Core/ElementDocument.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/Event.h"
-#include "../../Include/Rocket/Core/FontDatabase.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/FontDatabase.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, int text_transformation);
@@ -432,7 +433,7 @@ void ElementTextDefault::GenerateDecoration(FontFaceHandle* font_face_handle, co
 
 static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, int text_transformation)
 {
-	ROCKET_ASSERT(token_begin != string_end);
+	RMLUI_ASSERT(token_begin != string_end);
 
 	token.Reserve(string_end - token_begin + token.Length());
 
@@ -547,12 +548,12 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 			if (text_transformation == TEXT_TRANSFORM_UPPERCASE)
 			{
 				if (character >= 'a' && character <= 'z')
-					character += (Rocket::Core::word)('A' - 'a');
+					character += (Rml::Core::word)('A' - 'a');
 			}
 			else if (text_transformation == TEXT_TRANSFORM_LOWERCASE)
 			{
 				if (character >= 'A' && character <= 'Z')
-					character -= (Rocket::Core::word)('A' - 'a');
+					character -= (Rml::Core::word)('A' - 'a');
 			}
 
 			token += character;

@@ -10,8 +10,8 @@
  */
 
 #include "DecoratorInstancerDefender.h"
-#include <Rocket/Core/Math.h>
-#include <Rocket/Core/String.h>
+#include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/String.h>
 #include "DecoratorDefender.h"
 
 DecoratorInstancerDefender::DecoratorInstancerDefender()
@@ -24,12 +24,12 @@ DecoratorInstancerDefender::~DecoratorInstancerDefender()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name), const Rocket::Core::PropertyDictionary& properties)
+Rml::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name), const Rml::Core::PropertyDictionary& properties)
 {
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(name);
 
-	const Rocket::Core::Property* image_source_property = properties.GetProperty("image-src");
-	Rocket::Core::String image_source = image_source_property->Get< Rocket::Core::String >();
+	const Rml::Core::Property* image_source_property = properties.GetProperty("image-src");
+	Rml::Core::String image_source = image_source_property->Get< Rml::Core::String >();
 
 	DecoratorDefender* decorator = new DecoratorDefender();
 	if (decorator->Initialise(image_source, image_source_property->source))
@@ -41,7 +41,7 @@ Rocket::Core::Decorator* DecoratorInstancerDefender::InstanceDecorator(const Roc
 }
 
 // Releases the given decorator.
-void DecoratorInstancerDefender::ReleaseDecorator(Rocket::Core::Decorator* decorator)
+void DecoratorInstancerDefender::ReleaseDecorator(Rml::Core::Decorator* decorator)
 {
 	delete decorator;
 }

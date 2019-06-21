@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,22 +30,22 @@
 #include "ElementStyle.h"
 #include "ElementStyleCache.h"
 #include <algorithm>
-#include "../../Include/Rocket/Core/ElementDocument.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/Log.h"
-#include "../../Include/Rocket/Core/Math.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/PropertyDefinition.h"
-#include "../../Include/Rocket/Core/PropertyDictionary.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "FontFaceHandle.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 ElementStyle::ElementStyle(Element* _element)
@@ -149,7 +150,7 @@ const Property* ElementStyle::GetProperty(const String& name, Element* element, 
 void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, PropertyDictionary* local_properties, ElementDefinition* old_definition, ElementDefinition* new_definition,
 	const PseudoClassList& pseudo_classes_before, const PseudoClassList& pseudo_classes_after)
 {
-	ROCKET_ASSERT(element);
+	RMLUI_ASSERT(element);
 	if (!old_definition || !new_definition || properties.empty())
 		return;
 
@@ -430,13 +431,13 @@ float ElementStyle::ResolveLength(const Property * property)
 {
 	if (!property)
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return 0.0f;
 	}
 
 	if (!(property->unit & Property::LENGTH))
 	{
-		ROCKET_ERRORMSG("Trying to resolve length on a non-length property.");
+		RMLUI_ERRORMSG("Trying to resolve length on a non-length property.");
 		return 0.0f;
 	}
 
@@ -487,9 +488,9 @@ float ElementStyle::ResolveAngle(const Property * property)
 	case Property::RAD:
 		return property->value.Get< float >();
 	case Property::PERCENT:
-		return property->value.Get< float >() * 0.01f * 2.0f * Math::ROCKET_PI;
+		return property->value.Get< float >() * 0.01f * 2.0f * Math::RMLUI_PI;
 	}
-	ROCKET_ERRORMSG("Trying to resolve angle on a non-angle property.");
+	RMLUI_ERRORMSG("Trying to resolve angle on a non-angle property.");
 	return 0.0f;
 }
 
@@ -564,7 +565,7 @@ float ElementStyle::ResolveProperty(const Property* property, float base_value)
 {
 	if (!property)
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return 0.0f;
 	}
 
@@ -619,7 +620,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 	const Property* property = GetProperty(name);
 	if (!property)
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return 0.0f;
 	}
 
@@ -631,7 +632,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 		// otherwise we use the parent's font size.
 		if (property->unit & Property::REM)
 		{
-			Rocket::Core::ElementDocument* owner_document = element->GetOwnerDocument();
+			Rml::Core::ElementDocument* owner_document = element->GetOwnerDocument();
 			if (owner_document == NULL)
 				return 0;
 
@@ -639,7 +640,7 @@ float ElementStyle::ResolveProperty(const String& name, float base_value)
 		}
 		else
 		{
-			Rocket::Core::Element* parent = element->GetParentNode();
+			Rml::Core::Element* parent = element->GetParentNode();
 			if (parent == NULL)
 				return 0;
 

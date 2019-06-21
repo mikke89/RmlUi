@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "precompiled.h"
 #include "UnicodeRange.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 UnicodeRange::UnicodeRange()
@@ -42,7 +43,7 @@ UnicodeRange::UnicodeRange(int _min_codepoint, int _max_codepoint)
 	min_codepoint = _min_codepoint;
 	max_codepoint = _max_codepoint;
 
-	ROCKET_ASSERT(min_codepoint <= max_codepoint);
+	RMLUI_ASSERT(min_codepoint <= max_codepoint);
 }
 
 // Initialises the range from a unicode range in string form.

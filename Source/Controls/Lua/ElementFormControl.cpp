@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +28,13 @@
  
 #include "precompiled.h"
 #include "ElementFormControl.h"
-#include <Rocket/Controls/ElementFormControl.h>
-#include <Rocket/Core/Element.h>
-#include <Rocket/../../Source/Core/Lua/Element.h>
-#include <Rocket/Core/Lua/Utilities.h>
+#include <RmlUi/Controls/ElementFormControl.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/../../Source/Core/Lua/Element.h>
+#include <RmlUi/Core/Lua/Utilities.h>
 
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -91,7 +92,7 @@ int ElementFormControlSetAttrvalue(lua_State* L)
 }
 
 
-Rocket::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[] = 
+Rml::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[] = 
 {
     { NULL, NULL },
 };
@@ -115,16 +116,16 @@ luaL_Reg ElementFormControlSetters[] =
 }
 }
 }
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<Rocket::Controls::ElementFormControl>(lua_State* L, int metatable_index)
+template<> void ExtraInit<Rml::Controls::ElementFormControl>(lua_State* L, int metatable_index)
 {
     ExtraInit<Element>(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    AddTypeToElementAsTable<Rocket::Controls::ElementFormControl>(L);
+    AddTypeToElementAsTable<Rml::Controls::ElementFormControl>(L);
 }
-using Rocket::Controls::ElementFormControl;
+using Rml::Controls::ElementFormControl;
 LUACONTROLSTYPEDEFINE(ElementFormControl,true)
 }
 }

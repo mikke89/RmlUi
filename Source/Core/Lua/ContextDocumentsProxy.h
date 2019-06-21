@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +26,14 @@
  *
  */
  
-#ifndef ROCKETCORELUACONTEXTDOCUMENTSPROXY_H
-#define ROCKETCORELUACONTEXTDOCUMENTSPROXY_H
+#ifndef RMLUICORELUACONTEXTDOCUMENTSPROXY_H
+#define RMLUICORELUACONTEXTDOCUMENTSPROXY_H
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Context.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Context.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
 //where owner is the context that we should look information from

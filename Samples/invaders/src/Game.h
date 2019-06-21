@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +26,11 @@
  *
  */
 
-#ifndef ROCKETINVADERSGAME_H
-#define ROCKETINVADERSGAME_H
+#ifndef RMLUIINVADERSGAME_H
+#define RMLUIINVADERSGAME_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/Texture.h>
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Texture.h>
 
 class Shield;
 class Invader;
@@ -88,7 +89,7 @@ public:
 	void RemoveLife();
 
 	/// Get the dimensions of the game window.
-	const Rocket::Core::Vector2f GetWindowDimensions();	
+	const Rml::Core::Vector2f GetWindowDimensions();	
 
 private:
 
@@ -97,9 +98,9 @@ private:
 	// The direction they're moving
 	float current_invader_direction;
 	// Time of the last invader update
-	Rocket::Core::Time invader_frame_start;
+	Rml::Core::Time invader_frame_start;
 	// How often the invaders move
-	Rocket::Core::Time invader_move_freq;
+	Rml::Core::Time invader_move_freq;
 
 	// Helper function to move the invaders
 	void MoveInvaders();
@@ -114,7 +115,7 @@ private:
 	Shield** shields;
 
 	// Texture that contains the sprites
-	Rocket::Core::TextureHandle texture;
+	Rml::Core::TextureHandle texture;
 
 	void InitialiseShields();
 	void InitialiseWave();

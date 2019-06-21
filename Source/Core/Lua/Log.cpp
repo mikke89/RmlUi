@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +28,12 @@
  
 #include "precompiled.h"
 #include "Log.h"
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/StringUtilities.h>
+#include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/StringUtilities.h>
 
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
 
@@ -45,7 +46,7 @@ template<> void ExtraInit<Log>(lua_State* L, int metatable_index)
     lua_pushcfunction(L,LogMessage);
     lua_setfield(L,method_index, "Message");
 
-    //construct the "logtype" table, so that we can use the Rocket::Core::Log::Type enum like Log.logtype.always in Lua for Log::LT_ALWAYS
+    //construct the "logtype" table, so that we can use the Rml::Core::Log::Type enum like Log.logtype.always in Lua for Log::LT_ALWAYS
     lua_newtable(L);
     int logtype = lua_gettop(L);
     lua_pushvalue(L,-1); //copy of the new table, so that the logtype index will stay valid

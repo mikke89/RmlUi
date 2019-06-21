@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include "Game.h"
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include <Shell.h>
 #include <ShellOpenGL.h>
 #include "Defender.h"
@@ -62,7 +63,7 @@ const int SHIELD_START_X = 176;
 const int SHIELD_START_Y = 600;
 
 // The game's element context (declared in main.cpp).
-extern Rocket::Core::Context* context;
+extern Rml::Core::Context* context;
 
 Game::Game()
 {
@@ -79,8 +80,8 @@ Game::Game()
 		shields[i] = NULL;
 
 	// Use the OpenGL render interface to load our texture.
-	Rocket::Core::Vector2i texture_dimensions;
-	Rocket::Core::GetRenderInterface()->LoadTexture(texture, texture_dimensions, "luainvaders/data/invaders.tga");
+	Rml::Core::Vector2i texture_dimensions;
+	Rml::Core::GetRenderInterface()->LoadTexture(texture, texture_dimensions, "luainvaders/data/invaders.tga");
 
 	defender = new Defender(this);
 }
@@ -223,9 +224,9 @@ void Game::SetScore(int score)
 {
 	GameDetails::SetScore(score);
 
-	Rocket::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
+	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
 	if (score_element != NULL)
-		score_element->SetInnerRML(Rocket::Core::String(128, "%d", score).CString());
+		score_element->SetInnerRML(Rml::Core::String(128, "%d", score).CString());
 
 	// Update the high score if we've beaten it.
 	if (score > HighScores::GetHighScore())
@@ -235,27 +236,27 @@ void Game::SetScore(int score)
 // Sets the player's high-score.
 void Game::SetHighScore(int score)
 {
-	Rocket::Core::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
+	Rml::Core::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
 	if (high_score_element != NULL)
-		high_score_element->SetInnerRML(Rocket::Core::String(128, "%d", score).CString());
+		high_score_element->SetInnerRML(Rml::Core::String(128, "%d", score).CString());
 }
 
 void Game::SetLives(int lives)
 {
 	defender_lives = lives;
 
-	Rocket::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
+	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
 	if (score_element != NULL)
-		score_element->SetInnerRML(Rocket::Core::String(128, "%d", defender_lives).CString());
+		score_element->SetInnerRML(Rml::Core::String(128, "%d", defender_lives).CString());
 }
 
 void Game::SetWave(int wave)
 {
 	GameDetails::SetWave(wave);
 
-	Rocket::Core::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
+	Rml::Core::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
 	if (waves_element != NULL)
-		waves_element->SetInnerRML(Rocket::Core::String(128, "%d", wave).CString());
+		waves_element->SetInnerRML(Rml::Core::String(128, "%d", wave).CString());
 }
 
 void Game::RemoveLife()
@@ -276,14 +277,14 @@ bool Game::IsGameOver() const
 	return game_over;
 }
 
-const Rocket::Core::Vector2f Game::GetWindowDimensions()
+const Rml::Core::Vector2f Game::GetWindowDimensions()
 {
-	return Rocket::Core::Vector2f((float) WINDOW_WIDTH, (float) WINDOW_HEIGHT);
+	return Rml::Core::Vector2f((float) WINDOW_WIDTH, (float) WINDOW_HEIGHT);
 }
 
 void Game::MoveInvaders()
 {
-	Rocket::Core::Vector2f new_positions[NUM_INVADERS];
+	Rml::Core::Vector2f new_positions[NUM_INVADERS];
 
 	// We loop through all invaders, calculating their new positions, if any of them go over the screen bounds,
 	// then we switch direction, move the invaders down and start at 0 again
@@ -306,7 +307,7 @@ void Game::MoveInvaders()
 				if (invaders[j]->GetState() == Invader::DEAD)
 					continue;
 
-				Rocket::Core::Vector2f position = invaders[j]->GetPosition();
+				Rml::Core::Vector2f position = invaders[j]->GetPosition();
 				position.y += INVADER_SPACING_Y;
 				invaders[j]->SetPosition(position);
 			}
@@ -353,7 +354,7 @@ void Game::OnGameOver()
 
 void Game::InitialiseShields()
 {
-	Rocket::Core::Vector2f shield_array_start_position((float) SHIELD_START_X, (float) SHIELD_START_Y);
+	Rml::Core::Vector2f shield_array_start_position((float) SHIELD_START_X, (float) SHIELD_START_Y);
 
 	for (int x = 0; x < NUM_SHIELD_ARRAYS; x++)
 	{
@@ -369,7 +370,7 @@ void Game::InitialiseShields()
 			}
 
 			shields[(x * NUM_SHIELDS_PER_ARRAY) + i] = new Shield(this, type);
-			shields[(x * NUM_SHIELDS_PER_ARRAY) + i]->SetPosition(shield_array_start_position + Rocket::Core::Vector2f((float) SHIELD_SIZE * i, 0));
+			shields[(x * NUM_SHIELDS_PER_ARRAY) + i]->SetPosition(shield_array_start_position + Rml::Core::Vector2f((float) SHIELD_SIZE * i, 0));
 		}
 
 		// Middle row (row of 4)
@@ -385,15 +386,15 @@ void Game::InitialiseShields()
 			}
 
 			shields[(x * NUM_SHIELDS_PER_ARRAY) + 4 + i] = new Shield(this, type);
-			shields[(x * NUM_SHIELDS_PER_ARRAY) + 4 + i]->SetPosition(shield_array_start_position + Rocket::Core::Vector2f((float) SHIELD_SIZE * i, (float) SHIELD_SIZE));
+			shields[(x * NUM_SHIELDS_PER_ARRAY) + 4 + i]->SetPosition(shield_array_start_position + Rml::Core::Vector2f((float) SHIELD_SIZE * i, (float) SHIELD_SIZE));
 		}
 
 		// Bottom row (2, one on each end)
 		shields[(x * NUM_SHIELDS_PER_ARRAY) + 8] = new Shield(this, Shield::REGULAR);
-		shields[(x * NUM_SHIELDS_PER_ARRAY) + 8]->SetPosition(shield_array_start_position + Rocket::Core::Vector2f(0, (float) SHIELD_SIZE * 2));
+		shields[(x * NUM_SHIELDS_PER_ARRAY) + 8]->SetPosition(shield_array_start_position + Rml::Core::Vector2f(0, (float) SHIELD_SIZE * 2));
 
 		shields[(x * NUM_SHIELDS_PER_ARRAY) + 9] = new Shield(this, Shield::REGULAR);
-		shields[(x * NUM_SHIELDS_PER_ARRAY) + 9]->SetPosition(shield_array_start_position + Rocket::Core::Vector2f((float) SHIELD_SIZE * 3, (float) SHIELD_SIZE * 2));
+		shields[(x * NUM_SHIELDS_PER_ARRAY) + 9]->SetPosition(shield_array_start_position + Rml::Core::Vector2f((float) SHIELD_SIZE * 3, (float) SHIELD_SIZE * 2));
 
 		shield_array_start_position.x += SHIELD_SPACING_X;
 	}
@@ -418,7 +419,7 @@ void Game::InitialiseWave()
 		}
 
 		// Determine position of top left invader
-		Rocket::Core::Vector2f invader_position((float) (WINDOW_WIDTH - (NUM_INVADERS_PER_ROW * INVADER_SPACING_X)) / 2, (float) (INVADER_START_Y + (y * INVADER_SPACING_Y)));
+		Rml::Core::Vector2f invader_position((float) (WINDOW_WIDTH - (NUM_INVADERS_PER_ROW * INVADER_SPACING_X)) / 2, (float) (INVADER_START_Y + (y * INVADER_SPACING_Y)));
 	
 		for (int x = 0; x < NUM_INVADERS_PER_ROW; x++)
 		{

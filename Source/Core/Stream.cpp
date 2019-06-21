@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +27,11 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Stream.h"
+#include "../../Include/RmlUi/Core/Stream.h"
 #include <algorithm>
 #include <stdio.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 const size_t READ_BLOCK_SIZE = 1024;
@@ -118,12 +119,12 @@ size_t Stream::Write(const String& string)
 }
 
 // Push onto the front of the stream
-size_t Stream::PushFront(const void* ROCKET_UNUSED_PARAMETER(buffer), size_t ROCKET_UNUSED_PARAMETER(bytes))
+size_t Stream::PushFront(const void* RMLUI_UNUSED_PARAMETER(buffer), size_t RMLUI_UNUSED_PARAMETER(bytes))
 {
-	ROCKET_UNUSED(buffer);
-	ROCKET_UNUSED(bytes);
+	RMLUI_UNUSED(buffer);
+	RMLUI_UNUSED(bytes);
 
-	ROCKET_ERRORMSG("No generic way to PushFront to a stream.");
+	RMLUI_ERRORMSG("No generic way to PushFront to a stream.");
 	return false;
 }
 
@@ -138,11 +139,11 @@ size_t Stream::PushBack(const void* buffer, size_t bytes)
 }
 
 // Push onto the front of the stream
-size_t Stream::PopFront(size_t ROCKET_UNUSED_PARAMETER(bytes))
+size_t Stream::PopFront(size_t RMLUI_UNUSED_PARAMETER(bytes))
 {
-	ROCKET_UNUSED(bytes);
+	RMLUI_UNUSED(bytes);
 
-	ROCKET_ERRORMSG("No generic way to PopFront from a stream.");
+	RMLUI_ERRORMSG("No generic way to PopFront from a stream.");
 	return 0;
 }
 

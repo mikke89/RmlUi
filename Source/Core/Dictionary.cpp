@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/Dictionary.h"
 
 /* NOTE: This is dictionary implementation is copied from PYTHON 
    which is well known for its dictionary SPEED.
@@ -66,7 +67,7 @@
  it's two-thirds full.
 */
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 
@@ -171,7 +172,7 @@ namespace Core {
  equally good collision statistics, needed less code & used less memory.
  */
 
-static String dummy_key = String(128, "###DUMMYROCKETDICTKEY%d###", &dummy_key);
+static String dummy_key = String(128, "###DUMMYRMLUIDICTKEY%d###", &dummy_key);
 
 Dictionary::Dictionary() 
 { 
@@ -312,14 +313,14 @@ bool Dictionary::Reserve(int minused)
 	DictionaryEntry small_copy[DICTIONARY_MINSIZE];
 	
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Reserve %d", minused); )
-	ROCKET_ASSERT(minused >= 0);
+	RMLUI_ASSERT(minused >= 0);
 	
 	/* Find the smallest table size > minused. */
 	newsize = DICTIONARY_MINSIZE;
 	while(newsize <= minused) {
 		newsize <<= 1;	// double the table size and test again
 		if(newsize <= 0) {
-			ROCKET_ASSERT(newsize > 0);
+			RMLUI_ASSERT(newsize > 0);
 			return false; // newsize has overflowed the max size for this platform, abort
 		}
 	}
@@ -330,7 +331,7 @@ bool Dictionary::Reserve(int minused)
 	
 	/* Get space for a new table. */
 	oldtable = table;
-	ROCKET_ASSERT(oldtable != NULL);
+	RMLUI_ASSERT(oldtable != NULL);
 	is_oldtable_malloced = oldtable != small_table;
 	
 	if (newsize == DICTIONARY_MINSIZE) {
@@ -347,14 +348,14 @@ bool Dictionary::Reserve(int minused)
 			as lookdict needs at least one virgin slot to
 			terminate failing searches.  If fill < size, it's
 			merely desirable, as dummies slow searches. */
-			ROCKET_ASSERT(num_full > num_used);
+			RMLUI_ASSERT(num_full > num_used);
 			memcpy(small_copy, oldtable, sizeof(small_copy));
 			oldtable = small_copy;
 		}
 	}	else {
 		newtable = new DictionaryEntry[newsize];
 		
-		ROCKET_ASSERT(newtable);
+		RMLUI_ASSERT(newtable);
 		
 		if (newtable == NULL) {
 			return false;
@@ -362,7 +363,7 @@ bool Dictionary::Reserve(int minused)
 	}
 	
 	/* Make the dict empty, using the new table. */
-	ROCKET_ASSERT(newtable != oldtable);
+	RMLUI_ASSERT(newtable != oldtable);
 	table = newtable;
 	mask = newsize - 1;
 	//memset(newtable, 0, sizeof(DictionaryEntry) * newsize);
@@ -381,7 +382,7 @@ bool Dictionary::Reserve(int minused)
 		}
 		else if (!ep->key.Empty()) {	/* dummy_key entry */
 			--i;
-			ROCKET_ASSERT(ep->key == dummy_key);
+			RMLUI_ASSERT(ep->key == dummy_key);
 		}
 /* else key == value == NULL:  nothing to do */
 	}
@@ -432,7 +433,7 @@ void Dictionary::Set(const String& key, const Variant &value)
 	DICTIONARY_DEBUG_CODE( Log::Message(LC_CORE, Log::LT_ALWAYS, "Dictionary::Set %s", key); );
 	hash = StringUtilities::FNVHash( key.CString() );
 	
-	ROCKET_ASSERT(num_full <= mask);  /* at least one empty slot */
+	RMLUI_ASSERT(num_full <= mask);  /* at least one empty slot */
 	n_used = num_used;  
 	
 	Insert( key, hash, value );  
@@ -491,7 +492,7 @@ void Dictionary::Clear()
 	// Clear things up
 	for (ep = table; n_full > 0; ++ep) {
 		
-		ROCKET_ASSERT(i < n);
+		RMLUI_ASSERT(i < n);
 		++i;
 
 		if (!ep->key.Empty()) {
@@ -499,7 +500,7 @@ void Dictionary::Clear()
 			ep->key.Clear();		
 			ep->value.Clear();
 		} else {
-			ROCKET_ASSERT(ep->value.GetType() == Variant::NONE);
+			RMLUI_ASSERT(ep->value.GetType() == Variant::NONE);
 		}
 	}
 

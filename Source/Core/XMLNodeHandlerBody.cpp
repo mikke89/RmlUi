@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,9 +29,9 @@
 #include "precompiled.h"
 #include "XMLNodeHandlerBody.h"
 #include "XMLParseTools.h"
-#include "../../Include/Rocket/Core.h"
+#include "../../Include/RmlUi/Core.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 XMLNodeHandlerBody::XMLNodeHandlerBody()
@@ -41,10 +42,10 @@ XMLNodeHandlerBody::~XMLNodeHandlerBody()
 {
 }
 
-Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& ROCKET_UNUSED_ASSERT_PARAMETER(name), const XMLAttributes& attributes)
+Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI_UNUSED_ASSERT_PARAMETER(name), const XMLAttributes& attributes)
 {
-	ROCKET_UNUSED_ASSERT(name);
-	ROCKET_ASSERT(name == "body");
+	RMLUI_UNUSED_ASSERT(name);
+	RMLUI_ASSERT(name == "body");
 
 	Element* element = parser->GetParseFrame()->element;
 
@@ -66,10 +67,10 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& ROCKE
 	return element;
 }
 
-bool XMLNodeHandlerBody::ElementEnd(XMLParser* ROCKET_UNUSED_PARAMETER(parser), const String& ROCKET_UNUSED_PARAMETER(name))
+bool XMLNodeHandlerBody::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))
 {
-	ROCKET_UNUSED(parser);
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(parser);
+	RMLUI_UNUSED(name);
 
 	return true;
 }

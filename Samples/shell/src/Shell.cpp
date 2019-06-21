@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +27,20 @@
  */
 
 #include "Shell.h"
-#include <Rocket/Core/FontDatabase.h>
+#include <RmlUi/Core/FontDatabase.h>
 
 /// Loads the default fonts from the given path.
 void Shell::LoadFonts(const char* directory)
 {
-	Rocket::Core::String font_names[4];
+	Rml::Core::String font_names[4];
 	font_names[0] = "Delicious-Roman.otf";
 	font_names[1] = "Delicious-Italic.otf";
 	font_names[2] = "Delicious-Bold.otf";
 	font_names[3] = "Delicious-BoldItalic.otf";
 
-	for (int i = 0; i < sizeof(font_names) / sizeof(Rocket::Core::String); i++)
+	for (int i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
 	{
-		Rocket::Core::FontDatabase::LoadFontFace(Rocket::Core::String(directory) + font_names[i]);
+		Rml::Core::FontDatabase::LoadFontFace(Rml::Core::String(directory) + font_names[i]);
 	}
 }
 

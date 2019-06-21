@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael Ragazzon
  *
@@ -25,14 +25,14 @@
  *
  */
 
-#ifndef ROCKETCOREELEMENTANIMATION_H
-#define ROCKETCOREELEMENTANIMATION_H
+#ifndef RMLUICOREELEMENTANIMATION_H
+#define RMLUICOREELEMENTANIMATION_H
 
-#include "../../Include/Rocket/Core/Header.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/Tween.h"
+#include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Tween.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 

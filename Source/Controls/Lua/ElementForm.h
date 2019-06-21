@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,32 +26,32 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAELEMENTFORM_H
-#define ROCKETCONTROLSLUAELEMENTFORM_H
+#ifndef RMLUICONTROLSLUAELEMENTFORM_H
+#define RMLUICONTROLSLUAELEMENTFORM_H
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Controls/ElementForm.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Controls/ElementForm.h>
 
-using Rocket::Core::Lua::LuaType;
+using Rml::Core::Lua::LuaType;
 
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
 //method
 int ElementFormSubmit(lua_State* L, ElementForm* obj);
 
-extern Rocket::Core::Lua::RegType<ElementForm> ElementFormMethods[];
+extern Rml::Core::Lua::RegType<ElementForm> ElementFormMethods[];
 extern luaL_Reg ElementFormGetters[];
 extern luaL_Reg ElementFormSetters[];
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
+namespace Rml { namespace Core { namespace Lua {
 //this will be used to "inherit" from Element
-template<> void ExtraInit<Rocket::Controls::ElementForm>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::ElementForm)
+template<> void ExtraInit<Rml::Controls::ElementForm>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::ElementForm)
 }}}
 #endif

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,33 +26,33 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUASELECTOPTIONSPROXY_H
-#define ROCKETCONTROLSLUASELECTOPTIONSPROXY_H
+#ifndef RMLUICONTROLSLUASELECTOPTIONSPROXY_H
+#define RMLUICONTROLSLUASELECTOPTIONSPROXY_H
 
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Controls/ElementFormControlSelect.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Controls/ElementFormControlSelect.h>
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 //where owner is the ElementFormControlSelect that we should look up information from
-struct SelectOptionsProxy { Rocket::Controls::ElementFormControlSelect* owner;  };
+struct SelectOptionsProxy { Rml::Controls::ElementFormControlSelect* owner;  };
 
 int SelectOptionsProxy__index(lua_State* L);
 int SelectOptionsProxy__pairs(lua_State* L);
 int SelectOptionsProxy__ipairs(lua_State* L);
 
-extern Rocket::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[];
+extern Rml::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[];
 extern luaL_Reg SelectOptionsProxyGetters[];
 extern luaL_Reg SelectOptionsProxySetters[];
 
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
-template<> void ExtraInit<Rocket::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::Lua::SelectOptionsProxy)
+namespace Rml { namespace Core { namespace Lua {
+template<> void ExtraInit<Rml::Controls::Lua::SelectOptionsProxy>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::Lua::SelectOptionsProxy)
 }}}
 #endif

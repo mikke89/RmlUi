@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#ifndef ROCKETCOREBITMAPFONTFACELAYER_H
-#define ROCKETCOREBITMAPFONTFACELAYER_H
+#ifndef RMLUICOREBITMAPFONTFACELAYER_H
+#define RMLUICOREBITMAPFONTFACELAYER_H
 
-#include <Rocket/Core/Header.h>
-#include <Rocket/Core/FontGlyph.h>
-#include <Rocket/Core/Geometry.h>
-#include <Rocket/Core/GeometryUtilities.h>
-#include <Rocket/Core/String.h>
+#include <RmlUi/Core/Header.h>
+#include <RmlUi/Core/FontGlyph.h>
+#include <RmlUi/Core/Geometry.h>
+#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/String.h>
 #include "../FontFaceLayer.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 	class TextureLayout;
@@ -48,7 +49,7 @@ namespace BitmapFont {
 	@author Peter Curry
  */
 
-class FontFaceLayer : public Rocket::Core::FontFaceLayer
+class FontFaceLayer : public Rml::Core::FontFaceLayer
 {
 public:
 	FontFaceLayer();
@@ -60,7 +61,7 @@ public:
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
 	/// @param[in] deep_clone If true, the clones geometry will be completely cloned and the effect will have no option to affect even the glyph origins.
 	/// @return True if the layer was generated successfully, false if not.
-	virtual bool Initialise(const Rocket::Core::FontFaceHandle* handle, FontEffect* effect = NULL, const Rocket::Core::FontFaceLayer* clone = NULL, bool deep_clone = false) override;
+	virtual bool Initialise(const Rml::Core::FontFaceHandle* handle, FontEffect* effect = NULL, const Rml::Core::FontFaceLayer* clone = NULL, bool deep_clone = false) override;
 
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.

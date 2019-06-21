@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/Clipboard.h"
-#include "../../Include/Rocket/Core/Types.h"
-#include "../../Include/Rocket/Core/WString.h"
-#if defined ROCKET_PLATFORM_WIN32
+#include "../../Include/RmlUi/Controls/Clipboard.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core/WString.h"
+#if defined RMLUI_PLATFORM_WIN32
 #include <windows.h>
 #endif
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 static HWND application_hwnd = NULL;
 
 static BOOL CALLBACK FindApplicationWindow(HWND hwnd, LPARAM process_id)
@@ -66,7 +67,7 @@ static Core::WString content;
 // Get the current contents of the clipboard.
 Core::WString Clipboard::Get()
 {
-	#if defined ROCKET_PLATFORM_WIN32
+	#if defined RMLUI_PLATFORM_WIN32
 	if (GetHWND())
 	{
 		Core::WString clipboard_content;
@@ -81,7 +82,7 @@ Core::WString Clipboard::Get()
 			return clipboard_content;
 		}
 
-		const Rocket::Core::word* clipboard_text = (const Rocket::Core::word*) GlobalLock(clipboard_data);
+		const Rml::Core::word* clipboard_text = (const Rml::Core::word*) GlobalLock(clipboard_data);
 		if (clipboard_text)
 			clipboard_content.Assign(clipboard_text);
 		GlobalUnlock(clipboard_data);
@@ -99,7 +100,7 @@ Core::WString Clipboard::Get()
 // Set the contents of the clipboard.
 void Clipboard::Set(const Core::WString& _content)
 {
-	#if defined ROCKET_PLATFORM_WIN32
+	#if defined RMLUI_PLATFORM_WIN32
 	if (GetHWND())
 	{
 		if (!OpenClipboard(GetHWND()))
@@ -107,7 +108,7 @@ void Clipboard::Set(const Core::WString& _content)
 
 		EmptyClipboard();
 
-		Rocket::Core::String win32_content;
+		Rml::Core::String win32_content;
 		_content.ToUTF8(win32_content);
 
 		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, win32_content.Length() + 1);
@@ -129,7 +130,7 @@ void Clipboard::Set(const Core::WString& _content)
 	#endif
 }
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 // Set the window handle of the application.
 void Clipboard::SetHWND(void* hwnd)
 {

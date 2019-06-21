@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +26,16 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementForm.h"
-#include "../../Include/Rocket/Core/Dictionary.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Controls/ElementFormControl.h"
+#include "../../Include/RmlUi/Controls/ElementForm.h"
+#include "../../Include/RmlUi/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Controls/ElementFormControl.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 // Constructs a new ElementForm. This should not be called directly; use the Factory instead.
-ElementForm::ElementForm(const Rocket::Core::String& tag) : Core::Element(tag)
+ElementForm::ElementForm(const Rml::Core::String& tag) : Core::Element(tag)
 {
 }
 
@@ -43,9 +44,9 @@ ElementForm::~ElementForm()
 }
 
 // Submits the form.
-void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::String& submit_value)
+void ElementForm::Submit(const Rml::Core::String& name, const Rml::Core::String& submit_value)
 {
-	Rocket::Core::Dictionary values;
+	Rml::Core::Dictionary values;
 	if (name.Empty())
 		values.Set("submit", submit_value);
 	else
@@ -71,19 +72,19 @@ void ElementForm::Submit(const Rocket::Core::String& name, const Rocket::Core::S
 		if (!control->IsSubmitted())
 			continue;
 
-		Rocket::Core::String control_name = control->GetName();
-		Rocket::Core::String control_value = control->GetValue();
+		Rml::Core::String control_name = control->GetName();
+		Rml::Core::String control_value = control->GetValue();
 
 		// Skip over unnamed form controls.
 		if (control_name.Empty())
 			continue;
 
 		// If the item already exists, append to it.
-		Rocket::Core::Variant* value = values.Get(control_name);
+		Rml::Core::Variant* value = values.Get(control_name);
 		if (value != NULL)
-			value->Reset(value->Get< Rocket::Core::String >() + ", " + control_value);
+			value->Reset(value->Get< Rml::Core::String >() + ", " + control_value);
 		else
-			values.Set< Rocket::Core::String >(control_name, control_value);					
+			values.Set< Rml::Core::String >(control_name, control_value);					
 	}
 
 	DispatchEvent("submit", values);

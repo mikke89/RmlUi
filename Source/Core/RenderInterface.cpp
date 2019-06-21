@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +27,10 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "TextureDatabase.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 RenderInterface::RenderInterface() : ReferenceCountable(0)
@@ -41,55 +42,55 @@ RenderInterface::~RenderInterface()
 {
 }
 
-// Called by Rocket when it wants to compile geometry it believes will be static for the forseeable future.
-CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* ROCKET_UNUSED_PARAMETER(vertices), int ROCKET_UNUSED_PARAMETER(num_vertices), int* ROCKET_UNUSED_PARAMETER(indices), int ROCKET_UNUSED_PARAMETER(num_indices), TextureHandle ROCKET_UNUSED_PARAMETER(texture))
+// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
+CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* RMLUI_UNUSED_PARAMETER(vertices), int RMLUI_UNUSED_PARAMETER(num_vertices), int* RMLUI_UNUSED_PARAMETER(indices), int RMLUI_UNUSED_PARAMETER(num_indices), TextureHandle RMLUI_UNUSED_PARAMETER(texture))
 {
-	ROCKET_UNUSED(vertices);
-	ROCKET_UNUSED(num_vertices);
-	ROCKET_UNUSED(indices);
-	ROCKET_UNUSED(num_indices);
-	ROCKET_UNUSED(texture);
+	RMLUI_UNUSED(vertices);
+	RMLUI_UNUSED(num_vertices);
+	RMLUI_UNUSED(indices);
+	RMLUI_UNUSED(num_indices);
+	RMLUI_UNUSED(texture);
 
 	return 0;
 }
 
-// Called by Rocket when it wants to render application-compiled geometry.
-void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED_PARAMETER(geometry), const Vector2f& ROCKET_UNUSED_PARAMETER(translation))
+// Called by RmlUi when it wants to render application-compiled geometry.
+void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry), const Vector2f& RMLUI_UNUSED_PARAMETER(translation))
 {
-	ROCKET_UNUSED(geometry);
-	ROCKET_UNUSED(translation);
+	RMLUI_UNUSED(geometry);
+	RMLUI_UNUSED(translation);
 }
 
-// Called by Rocket when it wants to release application-compiled geometry.
-void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle ROCKET_UNUSED_PARAMETER(geometry))
+// Called by RmlUi when it wants to release application-compiled geometry.
+void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry))
 {
-	ROCKET_UNUSED(geometry);
+	RMLUI_UNUSED(geometry);
 }
 
-// Called by Rocket when a texture is required by the library.
-bool RenderInterface::LoadTexture(TextureHandle& ROCKET_UNUSED_PARAMETER(texture_handle), Vector2i& ROCKET_UNUSED_PARAMETER(texture_dimensions), const String& ROCKET_UNUSED_PARAMETER(source))
+// Called by RmlUi when a texture is required by the library.
+bool RenderInterface::LoadTexture(TextureHandle& RMLUI_UNUSED_PARAMETER(texture_handle), Vector2i& RMLUI_UNUSED_PARAMETER(texture_dimensions), const String& RMLUI_UNUSED_PARAMETER(source))
 {
-	ROCKET_UNUSED(texture_handle);
-	ROCKET_UNUSED(texture_dimensions);
-	ROCKET_UNUSED(source);
+	RMLUI_UNUSED(texture_handle);
+	RMLUI_UNUSED(texture_dimensions);
+	RMLUI_UNUSED(source);
 
 	return false;
 }
 
-// Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
-bool RenderInterface::GenerateTexture(TextureHandle& ROCKET_UNUSED_PARAMETER(texture_handle), const byte* ROCKET_UNUSED_PARAMETER(source), const Vector2i& ROCKET_UNUSED_PARAMETER(source_dimensions))
+// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
+bool RenderInterface::GenerateTexture(TextureHandle& RMLUI_UNUSED_PARAMETER(texture_handle), const byte* RMLUI_UNUSED_PARAMETER(source), const Vector2i& RMLUI_UNUSED_PARAMETER(source_dimensions))
 {
-	ROCKET_UNUSED(texture_handle);
-	ROCKET_UNUSED(source);
-	ROCKET_UNUSED(source_dimensions);
+	RMLUI_UNUSED(texture_handle);
+	RMLUI_UNUSED(source);
+	RMLUI_UNUSED(source_dimensions);
 	
 	return false;
 }
 
-// Called by Rocket when a loaded texture is no longer required.
-void RenderInterface::ReleaseTexture(TextureHandle ROCKET_UNUSED_PARAMETER(texture))
+// Called by RmlUi when a loaded texture is no longer required.
+void RenderInterface::ReleaseTexture(TextureHandle RMLUI_UNUSED_PARAMETER(texture))
 {
-	ROCKET_UNUSED(texture);
+	RMLUI_UNUSED(texture);
 }
 
 // Returns the native horizontal texel offset for the renderer.
@@ -110,12 +111,12 @@ float RenderInterface::GetPixelsPerInch()
 	return 100;
 }
 
-// Called by Rocket when it wants to change the current transform matrix to a new matrix.
+// Called by RmlUi when it wants to change the current transform matrix to a new matrix.
 void RenderInterface::PushTransform(const Matrix4f& transform)
 {
 }
 
-// Called by Rocket when it wants to revert the latest transform change.
+// Called by RmlUi when it wants to revert the latest transform change.
 void RenderInterface::PopTransform(const Matrix4f& transform)
 {
 }

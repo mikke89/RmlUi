@@ -1,7 +1,7 @@
 <rml>
 	<head>
 		<title>game</title>
-		<link type="text/rcss" href="../../assets/rkt.rcss"/>
+		<link type="text/rcss" href="../../assets/rml.rcss"/>
 		<link type="text/rcss" href="../../assets/invader.rcss"/>
 		<style>
 			body

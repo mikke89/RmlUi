@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +27,15 @@
  */
  
 #include "precompiled.h"
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/Element.h>
-#include <Rocket/Core/Dictionary.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Event.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/Dictionary.h>
 #include "EventParametersProxy.h"
 
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
 template<> void ExtraInit<Event>(lua_State* L, int metatable_index) { return; }

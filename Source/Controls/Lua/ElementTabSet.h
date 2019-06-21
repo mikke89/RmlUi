@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +26,15 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAELEMENTTABSET_H
-#define ROCKETCONTROLSLUAELEMENTTABSET_H
+#ifndef RMLUICONTROLSLUAELEMENTTABSET_H
+#define RMLUICONTROLSLUAELEMENTTABSET_H
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Controls/ElementTabSet.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Controls/ElementTabSet.h>
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -48,7 +49,7 @@ int ElementTabSetGetAttrnum_tabs(lua_State* L);
 //setter
 int ElementTabSetSetAttractive_tab(lua_State* L);
 
-extern Rocket::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[];
+extern Rml::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[];
 extern luaL_Reg ElementTabSetGetters[];
 extern luaL_Reg ElementTabSetSetters[];
 
@@ -56,9 +57,9 @@ extern luaL_Reg ElementTabSetSetters[];
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
+namespace Rml { namespace Core { namespace Lua {
 //this will be used to "inherit" from Element
-template<> void ExtraInit<Rocket::Controls::ElementTabSet>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::ElementTabSet)
+template<> void ExtraInit<Rml::Controls::ElementTabSet>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::ElementTabSet)
 }}}
 #endif

@@ -1,7 +1,7 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 David Wimsey
  *
@@ -26,7 +26,7 @@
  */
 
 #include "RenderInterfaceDirectX10.h"
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include <d3d10.h>
 #include <d3dx10.h>
 
@@ -35,7 +35,7 @@
 
 void RenderInterfaceDirectX10::SetContext(void *context)
 {
-	m_rocket_context = context;
+	m_rmlui_context = context;
 }
 
 void RenderInterfaceDirectX10::SetViewport(int width, int height)
@@ -88,16 +88,16 @@ void RenderInterfaceDirectX10::SetViewport(int width, int height)
 		D3DXMatrixOrthoOffCenterLH(&this->m_matProjection, 0, width, height, 0, -1, 1);
 		m_pProjectionMatrixVariable->SetMatrix((float*)this->m_matProjection);
 
-		if(m_rocket_context != NULL)
+		if(m_rmlui_context != NULL)
 		{
-			((Rocket::Core::Context*)m_rocket_context)->SetDimensions(Rocket::Core::Vector2i(width, height));
-			Rocket::Core::Matrix4f mat;
+			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
+			Rml::Core::Matrix4f mat;
 			mat = m_matProjection;
 			mat = mat.Transpose();
-			((Rocket::Core::Context*)m_rocket_context)->ProcessProjectionChange(mat);
+			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(mat);
 			mat = m_matWorld;
 			mat = mat.Transpose();
-			((Rocket::Core::Context*)m_rocket_context)->ProcessViewChange(mat);
+			((Rml::Core::Context*)m_rmlui_context)->ProcessViewChange(mat);
 		}
 	}
 }
@@ -191,13 +191,13 @@ bool RenderInterfaceDirectX10::AttachToNative(void *nativeWindow)
 	rasterDesc.FrontCounterClockwise=TRUE;
 	if(FAILED(this->m_pD3D10Device->CreateRasterizerState(&rasterDesc, &this->m_pScissorTestEnable)))
 	{
-		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorEnable");
+		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Can't create Raster State - ScissorEnable");
 	}
 
 	rasterDesc.ScissorEnable=FALSE;
 	if(FAILED(this->m_pD3D10Device->CreateRasterizerState(&rasterDesc, &this->m_pScissorTestDisable)))
 	{
-		Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR, "Can't create Raster State - ScissorDisable");
+		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Can't create Raster State - ScissorDisable");
 	}
 
 	return true;
