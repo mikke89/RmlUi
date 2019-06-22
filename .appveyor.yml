@@ -21,8 +21,11 @@ install:
     mv win64 lib
 
     cd ..
+    
+    mkdir Build
+    cd Build
 
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DBUILD_SAMPLES=%BUILD_SAMPLES% .
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DBUILD_SAMPLES=%BUILD_SAMPLES% ..
 build:
   parallel: true
   verbosity: minimal

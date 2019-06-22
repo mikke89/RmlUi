@@ -33,7 +33,6 @@ endif(APPLE)
 
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0015 NEW)
-	cmake_policy(SET CMP0074 NEW)
 endif(COMMAND cmake_policy)
 
 # Enable the use of MACOSX_RPATH by default for CMake v3.0+; this effectively 
@@ -47,6 +46,9 @@ endif(COMMAND cmake_policy)
 if(POLICY CMP0042)
 	cmake_policy(SET CMP0042 NEW)
 endif(POLICY CMP0042)
+if(POLICY CMP0074)
+	cmake_policy(SET CMP0074 NEW)
+endif(POLICY CMP0074)
 
 project(RmlUi C CXX)
 
