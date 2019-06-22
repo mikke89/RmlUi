@@ -2,11 +2,13 @@
 # Build script for RmlUi ===========
 #===================================
 
+cmake_minimum_required(VERSION 3.0)
+
 if(APPLE)
 	# This has to be before most other options so CMake properly handles the 
 	# compiler variables, it MUST bebefore the project() definition
 	if(IOS_PLATFORM)
-		set(CMAKE_TOOLCHAIN_FILE cmake/Platform/iOS.cmake)
+		set(CMAKE_TOOLCHAIN_FILE Cmake/Platform/iOS.cmake)
 	endif(IOS_PLATFORM)
 
 	option(BUILD_UNIVERSAL_BINARIES "Build universal binaries for all architectures supported" ON)
@@ -29,12 +31,9 @@ if(APPLE)
 	endif (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
 endif(APPLE)
 
-# We use the new OSX_ARCHITECTURES property
-# and GNUInstallDirs module
-cmake_minimum_required(VERSION 2.8.5)
-
 if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0015 NEW)
+	cmake_policy(SET CMP0015 NEW)
+	cmake_policy(SET CMP0074 NEW)
 endif(COMMAND cmake_policy)
 
 # Enable the use of MACOSX_RPATH by default for CMake v3.0+; this effectively 
@@ -46,7 +45,7 @@ endif(COMMAND cmake_policy)
 # cmake --help-policy cmp0042
 # http://www.kitware.com/blog/home/post/510
 if(POLICY CMP0042)
-  cmake_policy(SET CMP0042 NEW)
+	cmake_policy(SET CMP0042 NEW)
 endif(POLICY CMP0042)
 
 project(RmlUi C CXX)
@@ -61,13 +60,7 @@ set(RMLUI_VERSION_TWEAK 0)
 set(PROJECT_VERSION ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK})
 
 # Search in the 'cmake' directory for additional CMake modules.
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
-# Old versions of CMake need some updated Modules, but we don't want
-# to override newer versions of CMake which have working versions
-if(CMAKE_MAJOR_VERSION LESS 3)
-	list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/v2fixes)
-endif()
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Cmake;${PROJECT_SOURCE_DIR}/Cmake/Modules)
 
 #===================================
 # Environment tests ================
@@ -83,23 +76,23 @@ include(TestForSTDNamespace)
 #===================================
 
 if(NOT DEFINED ENV{FREETYPE_DIR})
-	set(ENV{FREETYPE_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+	set(ENV{FREETYPE_DIR} "${PROJECT_SOURCE_DIR}/Dependencies")
 endif()
 
 if(NOT DEFINED ENV{LUA_DIR})
-	set(ENV{LUA_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+	set(ENV{LUA_DIR} "${PROJECT_SOURCE_DIR}/Dependencies")
 endif()
 
 if(NOT DEFINED ENV{SDL2DIR})
-	set(ENV{SDL2DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+	set(ENV{SDL2DIR} "${PROJECT_SOURCE_DIR}/Dependencies")
 endif()
 
 if(NOT DEFINED ENV{SDL2_IMAGE_DIR})
-	set(ENV{SDL2_IMAGE_DIR} "${PROJECT_SOURCE_DIR}/../Dependencies")
+	set(ENV{SDL2_IMAGE_DIR} "${PROJECT_SOURCE_DIR}/Dependencies")
 endif()
 
 if(NOT DEFINED ENV{SFML_ROOT})
-	set(ENV{SFML_ROOT} "${PROJECT_SOURCE_DIR}/../Dependencies")
+	set(ENV{SFML_ROOT} "${PROJECT_SOURCE_DIR}/Dependencies")
 endif()
 
 #===================================
@@ -118,9 +111,9 @@ endif(APPLE)
 #===================================
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING
-        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-        FORCE)
+	set(CMAKE_BUILD_TYPE Release CACHE STRING
+		"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+		FORCE)
 endif()
 
 if(NOT IOS)
@@ -135,8 +128,8 @@ endif()
 
 option(BUILD_SAMPLES "Build samples" OFF)
 if(WIN32)
-	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples.  Only applies if BUILD_SAMPLES is ON" OFF)
-	option(SKIP_DIRECTX10_SAMPLE "Skip build of DirectX 10 related sample.  Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" OFF)
+	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples. Only applies if BUILD_SAMPLES is ON" ON)
+	option(SKIP_DIRECTX10_SAMPLE "Skip build of DirectX 10 related sample. Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" ON)
 endif()
 
 if(APPLE)
@@ -169,32 +162,21 @@ endif()
 #===================================
 
 # FreeType
-if(CMAKE_MAJOR_VERSION LESS 3)
-	# Freetype changed the layout of its header files, we  need to use 
-	# the FindFreetype module from cmake v3 at least, included here
-	find_package(Freetype-v2fix REQUIRED)	
-else()
-	find_package(Freetype REQUIRED)	
-endif()
+find_package(Freetype REQUIRED)	
 
 if(FREETYPE_FOUND)
-		include_directories(${FREETYPE_INCLUDE_DIRS})
-		link_directories(${FREETYPE_LINK_DIRS})
-		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
+	include_directories(${FREETYPE_INCLUDE_DIRS})
+	link_directories(${FREETYPE_LINK_DIRS})
+	list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
 endif()
-mark_as_advanced(FREETYPE_INCLUDE_DIRS FREETYPE_LIBRARY FREETYPE_LINK_DIRECTORIES)
 
 #Lua
 if(BUILD_LUA_BINDINGS)
-    if(CMAKE_MAJOR_VERSION LESS 3)
-        find_package(Lua-v2fix)
-    else()
-        find_package(Lua)
-    endif()
-    if(LUA_FOUND)
-        include_directories(${LUA_INCLUDE_DIR})
-        list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
-    endif()
+	find_package(Lua)
+	if(LUA_FOUND)
+		include_directories(${LUA_INCLUDE_DIR})
+		list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
+	endif()
 endif()
 
 
@@ -202,10 +184,8 @@ endif()
 # Setup paths ======================
 #===================================
 
-set(PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/..)
-
 include_directories(
-    ${PROJECT_SOURCE_DIR}/Include
+	${PROJECT_SOURCE_DIR}/Include
 )
 
 # Include list of source files
@@ -219,19 +199,19 @@ if(NOT BUILD_FRAMEWORK)
 set(LIBRARIES Core Controls Debugger)
 
 foreach(library ${LIBRARIES})
-    set(NAME Rml${library})
+	set(NAME Rml${library})
 
-    add_library(${NAME}
-                        ${${library}_HDR_FILES}
-                        ${${library}_PUB_HDR_FILES}
-                        ${MASTER_${library}_PUB_HDR_FILES}
-			${${library}_SRC_FILES}
-    )
+	add_library(${NAME}
+		${${library}_HDR_FILES}
+		${${library}_PUB_HDR_FILES}
+		${MASTER_${library}_PUB_HDR_FILES}
+		${${library}_SRC_FILES}
+	)
 
-    set_target_properties(${NAME} PROPERTIES
-                           VERSION ${PROJECT_VERSION}
-                           SOVERSION ${RMLUI_VERSION_MAJOR}
-    )
+	set_target_properties(${NAME} PROPERTIES
+	   VERSION ${PROJECT_VERSION}
+	   SOVERSION ${RMLUI_VERSION_MAJOR}
+	)
 	
 	if (MSVC)
 		target_compile_options(${NAME} PUBLIC "/MP")
@@ -239,16 +219,16 @@ foreach(library ${LIBRARIES})
 	
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-    
-    install(TARGETS ${NAME}
-            EXPORT RmlUiTargets
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
+	
+	install(TARGETS ${NAME}
+		EXPORT RmlUiTargets
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	)
 	
 
-    set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
+	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
 
 if (MSVC)
@@ -289,68 +269,68 @@ else(NOT BUILD_FRAMEWORK)
 		SOVERSION ${RMLUI_VERSION_MAJOR}
 	)
 
-		set_property(SOURCE ${MASTER_PUB_HDR_FILES}
-			PROPERTY MACOSX_PACKAGE_LOCATION Headers
-		)
-		set_property(SOURCE ${Core_PUB_HDR_FILES}
-			PROPERTY MACOSX_PACKAGE_LOCATION Headers/Core
-		)
-		set_property(SOURCE ${Controls_PUB_HDR_FILES}
-			PROPERTY MACOSX_PACKAGE_LOCATION Headers/Controls
-		)
-		set_property(SOURCE ${Debugger_PUB_HDR_FILES}
-			PROPERTY MACOSX_PACKAGE_LOCATION Headers/Debugger
-		)
-		set_target_properties(${NAME} PROPERTIES
-			FRAMEWORK TRUE
-			FRAMEWORK_VERSION ${PROJECT_VERSION}
-			MACOSX_FRAMEWORK_IDENTIFIER com.rmlui.${NAME}
-			MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK}
-			MACOSX_FRAMEWORK_BUNDLE_VERSION ${PROJECT_VERSION}
-			XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
-			PUBLIC_HEADER ${MASTER_PUB_HDR_FILES}
-		)
+	set_property(SOURCE ${MASTER_PUB_HDR_FILES}
+		PROPERTY MACOSX_PACKAGE_LOCATION Headers
+	)
+	set_property(SOURCE ${Core_PUB_HDR_FILES}
+		PROPERTY MACOSX_PACKAGE_LOCATION Headers/Core
+	)
+	set_property(SOURCE ${Controls_PUB_HDR_FILES}
+		PROPERTY MACOSX_PACKAGE_LOCATION Headers/Controls
+	)
+	set_property(SOURCE ${Debugger_PUB_HDR_FILES}
+		PROPERTY MACOSX_PACKAGE_LOCATION Headers/Debugger
+	)
+	set_target_properties(${NAME} PROPERTIES
+		FRAMEWORK TRUE
+		FRAMEWORK_VERSION ${PROJECT_VERSION}
+		MACOSX_FRAMEWORK_IDENTIFIER com.rmlui.${NAME}
+		MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK}
+		MACOSX_FRAMEWORK_BUNDLE_VERSION ${PROJECT_VERSION}
+		XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+		PUBLIC_HEADER ${MASTER_PUB_HDR_FILES}
+	)
 
-    install(TARGETS ${NAME}
-            EXPORT RmlUiTargets
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            FRAMEWORK DESTINATION Library/Frameworks
-    )
+	install(TARGETS ${NAME}
+		EXPORT RmlUiTargets
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		FRAMEWORK DESTINATION Library/Frameworks
+	)
 
-    set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
+	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif(NOT BUILD_FRAMEWORK)
 
 # Build Lua bindings
 if(BUILD_LUA_BINDINGS)
-    set(LIBRARIES Core Controls)
+	set(LIBRARIES Core Controls)
 
-    foreach(library ${LIBRARIES})
-        set(NAME Rml${library}Lua)
+	foreach(library ${LIBRARIES})
+		set(NAME Rml${library}Lua)
 
-        add_library(${NAME} ${Lua${library}_SRC_FILES}
-                            ${Lua${library}_HDR_FILES}
-                            ${Lua${library}_PUB_HDR_FILES}
-        )
+		add_library(${NAME} ${Lua${library}_SRC_FILES}
+			${Lua${library}_HDR_FILES}
+			${Lua${library}_PUB_HDR_FILES}
+		)
 
-        set_target_properties(${NAME} PROPERTIES
-                           VERSION ${PROJECT_VERSION}
-                           SOVERSION ${RMLUI_VERSION_MAJOR}
-        )
+		set_target_properties(${NAME} PROPERTIES
+		   VERSION ${PROJECT_VERSION}
+		   SOVERSION ${RMLUI_VERSION_MAJOR}
+		)
 
-        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
-        set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+		set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
+		set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
-        install(TARGETS ${NAME}
-            EXPORT RmlUiTargets
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        )
-        
-        set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
-    endforeach(library)
+		install(TARGETS ${NAME}
+			EXPORT RmlUiTargets
+			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		)
+		
+		set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
+	endforeach(library)
 endif()
 
 
@@ -384,54 +364,54 @@ endif()
 # Build and link the samples
 macro(bl_sample NAME)
 	if (WIN32)
-    	add_executable(${NAME} WIN32 ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
+		add_executable(${NAME} WIN32 ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 	elseif(APPLE)
 		add_executable(${NAME} MACOSX_BUNDLE ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 
 		# The first rpath is to the proper location where the framework/library SHOULD be, the second is to the location actually seen
 		# in the build environment
-if(BUILD_FRAMEWORK)
-		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../Frameworks")
-else()
-		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../lib")
-endif()
-    else()
-    	add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
-    endif()
+		if(BUILD_FRAMEWORK)
+			set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../Frameworks")
+		else()
+			set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-rpath @executable_path/../lib")
+		endif()
+	else()
+		add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
+	endif()
 
-    target_link_libraries(${NAME} ${ARGN})
+	target_link_libraries(${NAME} ${ARGN})
 endmacro()
 
 if(BUILD_SAMPLES)
-    include(SampleFileList)
+	include(SampleFileList)
 
-    set(samples treeview customlog drag loaddocument transform bitmapfont animation)
-    set(tutorials template datagrid datagrid_tree tutorial_drag)
-    
+	set(samples treeview customlog drag loaddocument transform bitmapfont animation)
+	set(tutorials template datagrid datagrid_tree tutorial_drag)
+	
 if(NOT BUILD_FRAMEWORK)
-    set(sample_LIBRARIES
-    	shell 
-    	RmlCore 
-    	RmlControls
-    	RmlDebugger
-    )
+	set(sample_LIBRARIES
+		shell 
+		RmlCore 
+		RmlControls
+		RmlDebugger
+	)
 else(NOT BUILD_FRAMEWORK)
-    set(sample_LIBRARIES
-    	shell 
-    	Rml
-    )
+	set(sample_LIBRARIES
+		shell 
+		Rml
+	)
 endif(NOT BUILD_FRAMEWORK)
 
 	# Find OpenGL 
 	find_package(OpenGL REQUIRED)
-    	   
-    if(OPENGL_FOUND)
+		   
+	if(OPENGL_FOUND)
 	include_directories(${OPENGL_INCLUDE_DIR})
 	list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
-    endif()
-    
-    # Set up required system libraries
-    if(WIN32)
+	endif()
+	
+	# Set up required system libraries
+	if(WIN32)
 		if(SKIP_DIRECTX_SAMPLES)
 			message("-- Skipping all DirectX samples")
 			set(SKIP_DIRECTX10_SAMPLE ON)
@@ -470,50 +450,54 @@ endif(NOT BUILD_FRAMEWORK)
 				set(SKIP_DIRECTX10_SAMPLE ON)
 			endif()
 		endif()
-    elseif(APPLE)
+	elseif(APPLE)
 		include(FindCarbon)
-    	find_package(Carbon REQUIRED)
-    	
-    	if (Carbon_FOUND)
-    		include_directories(${Carbon_INCLUDE_DIR})
-        	list(APPEND sample_LIBRARIES ${Carbon_LIBRARIES})
-    	endif()
-    else()
-    	find_package(X11 REQUIRED)
-        if (X11_FOUND)
-        	list(APPEND sample_LIBRARIES ${X11_LIBRARIES})
+		find_package(Carbon REQUIRED)
+		
+		if (Carbon_FOUND)
+			include_directories(${Carbon_INCLUDE_DIR})
+			list(APPEND sample_LIBRARIES ${Carbon_LIBRARIES})
+		endif()
+	else()
+		find_package(X11 REQUIRED)
+		if (X11_FOUND)
+			list(APPEND sample_LIBRARIES ${X11_LIBRARIES})
 		# shell/src/x11/InputX11.cpp:InitialiseX11Keymap uses Xkb if
 		# possible instead of XGetKeyboardMapping for performance
 		if(X11_Xkb_FOUND)
 			FIND_PACKAGE_MESSAGE(X11 "Found X11 KBlib: ${X11_X11_LIB}" "[${X11_X11_LIB}][${X11_XkbINCLUDE_DIR}]")
 			add_definitions(-DHAS_X11XKBLIB)
 		endif()
-        endif()
-    endif()
+		endif()
+	endif()
    
-    set(SAMPLES_DIR opt/Rml/Samples CACHE PATH "path to samples dir")
+	set(SAMPLES_DIR opt/RmlUi/Samples CACHE PATH "path to samples dir")
+	
+	if(WIN32)
+		mark_as_advanced(SAMPLES_DIR)
+	endif()
 
-    # The samples and tutorials use the shell library
-    include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
+	# The samples and tutorials use the shell library
+	include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
 
-    # Build and install sample shell library
-    add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
+	# Build and install sample shell library
+	add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
 	set_property(TARGET shell PROPERTY CXX_STANDARD 11)
 	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
 
-    # Build and install the basic samples
-    foreach(sample ${samples})
-        bl_sample(${sample} ${sample_LIBRARIES})
+	# Build and install the basic samples
+	foreach(sample ${samples})
+		bl_sample(${sample} ${sample_LIBRARIES})
 		
 		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 11)
 		set_property(TARGET ${sample} PROPERTY CXX_STANDARD_REQUIRED ON)
 
-        # The samples always set this as their current working directory
-        install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
-        install(TARGETS ${sample} 
-        	RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
-        	BUNDLE DESTINATION ${SAMPLES_DIR})
-    endforeach()
+		# The samples always set this as their current working directory
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
+		install(TARGETS ${sample} 
+			RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
+			BUNDLE DESTINATION ${SAMPLES_DIR})
+	endforeach()
 
 	if(WIN32)
 		if(NOT SKIP_DIRECTX10_SAMPLE)
@@ -529,14 +513,14 @@ endif(NOT BUILD_FRAMEWORK)
 		endif()
 	endif()
 
-    message("-- Can SDL2 sample be built")
-    find_package(SDL2)
-    if(SDL2_FOUND)
+	message("-- Can SDL2 sample be built")
+	find_package(SDL2)
+	if(SDL2_FOUND)
 	find_package(SDL2_image)
 	if(SDL2_IMAGE_FOUND)
 		find_package(GLEW)
 		if(GLEW_FOUND)
-        		message("-- Can SDL2 sample be built - yes")
+			message("-- Can SDL2 sample be built - yes")
 			include_directories(${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
 			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARY})
@@ -554,9 +538,9 @@ endif(NOT BUILD_FRAMEWORK)
 	else()
 	        message("-- Can SDL2 sample be built - SDL2_image not found")
 	endif()
-    else()
-        message("-- Can SDL2 sample be built - SDL2 not found")
-    endif()
+	else()
+		message("-- Can SDL2 sample be built - SDL2 not found")
+	endif()
 
 
 	message("-- Can SFML 2.x sample be built")
@@ -590,38 +574,38 @@ endif(NOT BUILD_FRAMEWORK)
 				BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
 
-    # Build and install the tutorials
-    foreach(tutorial ${tutorials})
-        bl_sample(${tutorial} ${sample_LIBRARIES})
+	# Build and install the tutorials
+	foreach(tutorial ${tutorials})
+		bl_sample(${tutorial} ${sample_LIBRARIES})
 
 		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD 11)
 		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD_REQUIRED ON)
 		
-        # The tutorials always set this as their current working directory
-        install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
-        install(TARGETS ${tutorial}
-                RUNTIME DESTINATION ${SAMPLES_DIR}/${tutorial}
-                BUNDLE DESTINATION ${SAMPLES_DIR})
-    endforeach()
+		# The tutorials always set this as their current working directory
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
+		install(TARGETS ${tutorial}
+			RUNTIME DESTINATION ${SAMPLES_DIR}/${tutorial}
+			BUNDLE DESTINATION ${SAMPLES_DIR})
+	endforeach()
 
-    # Build and install invaders sample
-    bl_sample(invaders ${sample_LIBRARIES})
+	# Build and install invaders sample
+	bl_sample(invaders ${sample_LIBRARIES})
 	set_property(TARGET invaders PROPERTY CXX_STANDARD 11)
 	set_property(TARGET invaders PROPERTY CXX_STANDARD_REQUIRED ON)
-    install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
-    install(TARGETS invaders 
-    	RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
-    	BUNDLE DESTINATION ${SAMPLES_DIR})
+	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
+	install(TARGETS invaders 
+		RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
+		BUNDLE DESTINATION ${SAMPLES_DIR})
 
-    if(BUILD_LUA_BINDINGS)
-        bl_sample(luainvaders RmlCoreLua RmlControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+	if(BUILD_LUA_BINDINGS)
+		bl_sample(luainvaders RmlCoreLua RmlControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 11)
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
-        install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
-        install(TARGETS luainvaders 
-        	RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
-        	BUNDLE DESTINATION ${SAMPLES_DIR})
-    endif()
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
+		install(TARGETS luainvaders 
+			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
+			BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
 endif()
 
 
@@ -630,57 +614,57 @@ endif()
 #===================================
 
 if(BUILD_LUA_BINDINGS)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
-            DESTINATION include
-    )
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
+			DESTINATION include
+	)
 else()
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
-            DESTINATION include
-            PATTERN "Lua" EXCLUDE
-    )
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
+			DESTINATION include
+			PATTERN "Lua" EXCLUDE
+	)
 endif()
 
 if(BUILD_SAMPLES)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
-            DESTINATION ${SAMPLES_DIR}
-    )
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
+			DESTINATION ${SAMPLES_DIR}
+	)
 
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/data
-            DESTINATION ${SAMPLES_DIR}/tutorial/template
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/data
-            DESTINATION ${SAMPLES_DIR}/tutorial/datagrid
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/data
-            DESTINATION ${SAMPLES_DIR}/tutorial/datagrid_tree
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/data
-            DESTINATION ${SAMPLES_DIR}/tutorial/tutorial_drag
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/animation/data
-            DESTINATION ${SAMPLES_DIR}/basic/animation
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/transform/data
-            DESTINATION ${SAMPLES_DIR}/basic/transform
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/data
-            DESTINATION ${SAMPLES_DIR}/basic/treeview
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/drag/data
-            DESTINATION ${SAMPLES_DIR}/basic/drag
-    )
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
-            DESTINATION ${SAMPLES_DIR}/invaders
-    )
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/data
+			DESTINATION ${SAMPLES_DIR}/tutorial/template
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/data
+			DESTINATION ${SAMPLES_DIR}/tutorial/datagrid
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/data
+			DESTINATION ${SAMPLES_DIR}/tutorial/datagrid_tree
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/data
+			DESTINATION ${SAMPLES_DIR}/tutorial/tutorial_drag
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/animation/data
+			DESTINATION ${SAMPLES_DIR}/basic/animation
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/transform/data
+			DESTINATION ${SAMPLES_DIR}/basic/transform
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/data
+			DESTINATION ${SAMPLES_DIR}/basic/treeview
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/drag/data
+			DESTINATION ${SAMPLES_DIR}/basic/drag
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
+			DESTINATION ${SAMPLES_DIR}/invaders
+	)
 
-    if(BUILD_LUA_BINDINGS)
-        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
-                DESTINATION ${SAMPLES_DIR}/luainvaders
-        )
-        install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua 
-                DESTINATION ${SAMPLES_DIR}/luainvaders
-        )
-    endif()
+	if(BUILD_LUA_BINDINGS)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
+				DESTINATION ${SAMPLES_DIR}/luainvaders
+		)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua 
+				DESTINATION ${SAMPLES_DIR}/luainvaders
+		)
+	endif()
 endif()
 
 #===================================
@@ -688,44 +672,43 @@ endif()
 #===================================
 
 # Try to include helper module
-include(CMakePackageConfigHelpers OPTIONAL
-  RESULT_VARIABLE PkgHelpers_AVAILABLE)
+include(CMakePackageConfigHelpers OPTIONAL RESULT_VARIABLE PkgHelpers_AVAILABLE)
+
 # guard against older versions of cmake which do not provide it
 if(PkgHelpers_AVAILABLE)
+	set (INCLUDE_INSTALL_DIR "include")
+	set (LIB_INSTALL_DIR "lib")
+	set (INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Include")
 
-  set (INCLUDE_INSTALL_DIR "include")
-  set (LIB_INSTALL_DIR "lib")
-  set (INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Include")
+	# generate configuration for install tree
+	configure_package_config_file(${PROJECT_SOURCE_DIR}/Cmake/RmlUiConfig.cmake.install.in
+		${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
+		INSTALL_DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake
+		PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
+	write_basic_package_version_file(
+		${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake
+		VERSION ${PROJECT_VERSION}
+		COMPATIBILITY SameMajorVersion )
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake
+		DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake )
+	install(EXPORT RmlUiTargets
+		DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake)
 
-  # generate configuration for install tree
-  configure_package_config_file(RmlUiConfig.cmake.install.in
-    ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
-    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake
-    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
-  write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion )
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake )
-  install(EXPORT RmlUiTargets
-    DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake)
-
-  # generate configuration for build tree
-  configure_package_config_file(RmlUiConfig.cmake.build.in
-    ${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
-    PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)
-  export(TARGETS ${RMLUI_EXPORTED_TARGETS}
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake")
-  write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion )
-  set(RmlUi_DIR "${CMAKE_CURRENT_BINARY_DIR}" CACHE PATH "The directory containing a CMake configuration file for RmlUi.")
+	# generate configuration for build tree
+	configure_package_config_file(${PROJECT_SOURCE_DIR}/Cmake/RmlUiConfig.cmake.build.in
+		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfig.cmake
+		INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+		PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)
+	export(TARGETS ${RMLUI_EXPORTED_TARGETS}
+		FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake")
+	write_basic_package_version_file(
+		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfigVersion.cmake
+		VERSION ${PROJECT_VERSION}
+		COMPATIBILITY SameMajorVersion )
+	set(RmlUi_DIR "${CMAKE_CURRENT_BINARY_DIR}" CACHE PATH "The directory containing a CMake configuration file for RmlUi.")
 else()
-  message("If you wish to use find_package(RmlUi) in your own project to find RmlUi library"
-    " please update cmake to version which provides CMakePackageConfighelpers module"
-    " or write generators for RmlUiConfig.cmake by yourself.")
+	message("If you wish to use find_package(RmlUi) in your own project to find RmlUi library"
+		" please update cmake to version which provides CMakePackageConfighelpers module"
+		" or write generators for RmlUiConfig.cmake by yourself.")
 endif()

@@ -155,15 +155,15 @@ def main():
 	Build('RmlControls', ['Debug', 'Release'])
 	Build('RmlDebugger', ['Debug', 'Release'])
 	
-	DelTree('../dist/RmlUi')
-	CopyFiles('../Include', '../dist/RmlUi/Include')
-	CopyFiles('../bin', '../dist/RmlUi/bin', ['\.dll$', '^[^_].*\.lib$', '\.py$', '\.pyd$'])
-	CopyFiles('../Samples', '../dist/RmlUi/Samples', ['\.h$', '\.cpp$', '\.vcproj$', '\.sln$', '\.vcproj\.user$', '\.rml$', '\.rcss$', '\.tga$', '\.py$', '\.otf$', '\.txt$'])
+	DelTree('../Distribution/RmlUi')
+	CopyFiles('../Include', '../Distribution/RmlUi/Include')
+	CopyFiles('../Build', '../Distribution/RmlUi/Build', ['\.dll$', '^[^_].*\.lib$', '\.py$', '\.pyd$'])
+	CopyFiles('../Samples', '../Distribution/RmlUi/Samples', ['\.h$', '\.cpp$', '\.vcproj$', '\.sln$', '\.vcproj\.user$', '\.rml$', '\.rcss$', '\.tga$', '\.py$', '\.otf$', '\.txt$'])
 	if options['FULL_SOURCE']:
-		CopyFiles('../Build', '../dist/RmlUi/Build', ['\.vcproj$', '\.sln$', '\.vsprops$', '\.py$'])
-		CopyFiles('../Source', '../dist/RmlUi/Source', ['\.cpp$', '\.h$', '\.inl$'])
-	shutil.copyfile('../changelog.txt', '../dist/RmlUi/changelog.txt')
-	Archive(options['ARCHIVE_NAME'] + '-' + options['RMLUI_VERSION'], '../dist/RmlUi');
+		CopyFiles('../Build', '../Distribution/RmlUi/Build', ['\.vcproj$', '\.sln$', '\.vsprops$', '\.py$'])
+		CopyFiles('../Source', '../Distribution/RmlUi/Source', ['\.cpp$', '\.h$', '\.inl$'])
+	shutil.copyfile('../changelog.txt', '../Distribution/RmlUi/changelog.txt')
+	Archive(options['ARCHIVE_NAME'] + '-' + options['RMLUI_VERSION'], '../Distribution/RmlUi');
 	
 if __name__ == '__main__':
 	main()
