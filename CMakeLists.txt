@@ -388,7 +388,7 @@ if(BUILD_SAMPLES)
 	include(SampleFileList)
 
 	set(samples treeview customlog drag loaddocument transform bitmapfont animation)
-	set(tutorials template datagrid datagrid_tree tutorial_drag)
+	set(tutorials template datagrid datagrid_tree drag)
 	
 if(NOT BUILD_FRAMEWORK)
 	set(sample_LIBRARIES
@@ -578,14 +578,15 @@ endif(NOT BUILD_FRAMEWORK)
 
 	# Build and install the tutorials
 	foreach(tutorial ${tutorials})
-		bl_sample(${tutorial} ${sample_LIBRARIES})
+		set(tutorial_fullname tutorial_${tutorial})
+		bl_sample(${tutorial_fullname} ${sample_LIBRARIES})
 
-		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD 11)
-		set_property(TARGET ${tutorial} PROPERTY CXX_STANDARD_REQUIRED ON)
+		set_property(TARGET ${tutorial_fullname} PROPERTY CXX_STANDARD 11)
+		set_property(TARGET ${tutorial_fullname} PROPERTY CXX_STANDARD_REQUIRED ON)
 		
 		# The tutorials always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
-		install(TARGETS ${tutorial}
+		install(TARGETS ${tutorial_fullname}
 			RUNTIME DESTINATION ${SAMPLES_DIR}/${tutorial}
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()

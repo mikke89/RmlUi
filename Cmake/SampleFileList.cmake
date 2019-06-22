@@ -110,34 +110,34 @@ set(directx10_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/ShellRenderInterfaceExtensionsDirectX10_Win32.cpp
 )
 
-set(template_HDR_FILES
+set(tutorial_template_HDR_FILES
 )
 
-set(template_SRC_FILES
+set(tutorial_template_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/src/main.cpp
 )
 
-set(datagrid_HDR_FILES
+set(tutorial_datagrid_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorDefender.h
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorInstancerDefender.h
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/HighScores.h
 )
 
-set(datagrid_SRC_FILES
+set(tutorial_datagrid_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorInstancerDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/HighScores.cpp
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/main.cpp
 )
 
-set(datagrid_tree_HDR_FILES
+set(tutorial_datagrid_tree_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorDefender.h
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorInstancerDefender.h
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScores.h
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScoresShipFormatter.h
 )
 
-set(datagrid_tree_SRC_FILES
+set(tutorial_datagrid_tree_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorInstancerDefender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScores.cpp
@@ -146,12 +146,12 @@ set(datagrid_tree_SRC_FILES
 )
 
 set(tutorial_drag_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/src/Inventory.h
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/drag/src/Inventory.h
 )
 
 set(tutorial_drag_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/src/Inventory.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/drag/src/Inventory.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/tutorial/drag/src/main.cpp
 )
 
 set(invaders_HDR_FILES
