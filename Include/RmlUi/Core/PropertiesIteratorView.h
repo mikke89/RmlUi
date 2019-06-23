@@ -52,8 +52,10 @@ class PropertiesIterator;
 class RMLUICORE_API PropertiesIteratorView {
 public:
 	PropertiesIteratorView(std::unique_ptr<PropertiesIterator> ptr);
-	PropertiesIteratorView(PropertiesIteratorView&&) = default;
-	PropertiesIteratorView& operator=(PropertiesIteratorView&&) = default;
+	PropertiesIteratorView(PropertiesIteratorView&& other);
+	PropertiesIteratorView& operator=(PropertiesIteratorView&& other);
+	PropertiesIteratorView(const PropertiesIteratorView& other) = delete;
+	PropertiesIteratorView& operator=(const PropertiesIteratorView&) = delete;
 	~PropertiesIteratorView();
 
 	PropertiesIteratorView& operator++();
@@ -67,6 +69,7 @@ public:
 	const Property& GetProperty() const;
 
 	// Returns the list of pseudo classes which defines the current property, possibly empty.
+	// @todo Currently returns an empty list.
 	const PseudoClassList& GetPseudoClassList() const;
 
 private:

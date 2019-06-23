@@ -37,6 +37,14 @@ namespace Core {
 
 PropertiesIteratorView::PropertiesIteratorView(std::unique_ptr<PropertiesIterator> ptr) : ptr(std::move(ptr)) {}
 
+PropertiesIteratorView::PropertiesIteratorView(PropertiesIteratorView&& other) : ptr(std::move(other.ptr)) {}
+
+PropertiesIteratorView& PropertiesIteratorView::operator=(PropertiesIteratorView&& other) 
+{
+	ptr = std::move(other.ptr);
+	return *this;
+}
+
 PropertiesIteratorView::~PropertiesIteratorView()
 {}
 

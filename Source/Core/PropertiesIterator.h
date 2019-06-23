@@ -30,7 +30,6 @@
 
 #include "../../Include/RmlUi/Core/Types.h"
 #include "DirtyPropertyList.h"
-#include "ElementDefinition.h"
 
 namespace Rml {
 namespace Core {
