@@ -64,6 +64,12 @@ bool Shell::Initialise()
 
 	time_frequency = 1.0 / (double) time_ticks_per_second.QuadPart;
 
+	// Load cursors
+	cursor_default = LoadCursorA(NULL, IDC_ARROW);
+	cursor_move = LoadCursorA(NULL, IDC_SIZEALL);
+	cursor_cross = LoadCursorA(NULL, IDC_CROSS);
+	cursor_unavailable = LoadCursorA(NULL, IDC_NO);
+
 	Rml::Core::String root = FindSamplesRoot();
 	
 	file_interface = new ShellFileInterface(root);
