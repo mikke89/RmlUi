@@ -31,12 +31,110 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Generic event system that binds seamlessly into existing projects.
 
 
-## RmlUi features
+## RmlUi 3.0 features
 
-RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
+### Performance
+
+The main effort in RmlUi 3.0 has been on improving the performance of the library. Users should see a substantial performance increase when upgrading.
+
+- The update loop has been reworked to avoid doing unnecessary, repeated calculations whenever the document or style is changed. Instead of immediately updating properties on any affected elements, most of this work is done during the Context::Update call in a more carefully chosen order. Note that for this reason, when querying the Rocket API for properties such as size or position, this information may not be up-to-date with changes since the last Context::Update, such as newly added elements or classes. If this information is needed immediately, a call to ElementDocument::UpdateDocument can be made before such queries at a performance penalty.
+- Several containers have been replaced, such as std::map to [robin_hood::unordered_flat_map](https://github.com/martinus/robin-hood-hashing).
+- Reduced number of allocations and unnecessary recursive calls.
+- And many more, smaller optimizations, resulting in more than 5x performance increase for creation and destruction of a large number of elements. A benchmark for this is located in the animation sample for now.
 
 
-## Breaking changes
+### Sprite sheets
+
+The RCSS at-rule `@spritesheet` can be used to declare a sprite sheet. A sprite sheet consists of a single image and multiple sprites each specifying a region of the image. Sprites can in turn be used in decorators.
+
+A sprite sheet can be declared in RCSS as in the following example.
+```CSS
+@spritesheet theme 
+{
+	src: invader.tga;
+	
+	title-bar-l: 147px 0px 82px 85px;
+	title-bar-c: 229px 0px  1px 85px;
+	title-bar-r: 231px 0px 15px 85px;
+	
+	icon-invader: 179px 152px 51px 39px;
+	icon-game:    230px 152px 51px 39px;
+	icon-score:   434px 152px 51px 39px;
+	icon-help:    128px 152px 51px 39px;
+}
+```
+The first property `src` provides the filename of the image for the sprite sheet. Every other property specifies a sprite as `<name>: <rectangle>`. A sprite's name applies globally to the style sheet, and must be unique. A rectangle is declared as `x y width height`, each of which must be in `px` units. Here, `x` and `y` refers to the position in the image with the origin placed at the top-left corner, and `width` and `height` extends the rectangle right and down.
+
+The sprite name can be used in decorators, such as:
+```CSS
+decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
+```
+This creates a tiled decorator where the `title-bar-l` and `title-bar-r` sprites occupies the left and right parts of the element at their native size, while `title-bar-c` occupies the center and is stretched horizontally as the element is stretched.
+
+
+### Decorators
+
+The new RCSS `decorator` property replaces the old decorator declarations in libRocket. A decorator is declared by the name of the decorator type and its properties in parenthesis. Some examples follow.
+
+```CSS
+/* declares an image decorater by a sprite name */
+decorator: image( icon-invader );
+
+/* declares a tiled-box decorater by several sprites */
+decorator: tiled-box(
+	window-tl, window-t, window-tr, 
+	window-l, window-c, window-r,
+	window-bl, window-b, window-br
+);
+
+ /* declares an image decorator by the url of an image, and a rectangle inside it */
+decorator: image( invader.tga 5px 10px 30px 30px );
+```
+
+The `decorator` property follows the normal cascading rules, is non-inherited, and has the default value `none` which specifies no decorator on the element. Unlike in libRocket, decorators can now be set on the element's style, although we recommend declaring them in style sheets for performance reasons.
+
+Furthermore, multiple decorators can be specified on any element by a comma-separated list of decorators.
+```CSS
+/* declares two decorators on the same element, the first will be rendered on top of the latter */
+decorator: image( icon-invader ), tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
+```
+
+When creating a custom decorator, you can provide a shorthand property named `decorator` which will be used to parse the text inside the parenthesis of the property declaration. This allows specifying the decorator with inline properties as in the above examples.
+
+
+### Decorator at-rule
+
+Note: This part is experimental. If it turns out there are very few use-cases for this feature, it may be removed in the future. Feedback is welcome.
+
+The `@decorator` at-rule in RCSS can be used to declare a decorator when the shorthand syntax given above is not sufficient. It is best served with an example, we use the custom `starfield` decorator type from the invaders sample. In the style sheet, we can populate it with properties as follows.
+
+```CSS
+@decorator stars : starfield {
+	num-layers: 5;
+	top-colour: #fffc;
+	bottom-colour: #fff3;
+	top-speed: 80.0;
+	bottom-speed: 20.0;
+	top-density: 8;
+	bottom-density: 20;
+}
+```
+And then use it in a decorator.
+```CSS
+decorator: stars;
+```
+Note the lack of parenthesis which means it is a decorator name and not a type with shorthand properties declared.
+
+
+
+### Other changes
+
+- `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
+- The system interface now has two new functions for setting and getting text to and from the clipboard: `virtual void SystemInterface::SetClipboardText(const Core::WString& text)` and `virtual void SystemInterface::GetClipboardText(Core::WString& text)`.
+
+
+
+### Breaking changes
 
 If upgrading from the original libRocket branch, some breaking changes should be considered:
 
@@ -45,8 +143,10 @@ If upgrading from the original libRocket branch, some breaking changes should be
 - The Controls::DataGrid "min-rows" property has been replaced by an attribute of the same name.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
+- See changes to the declaration of decorators above.
 
-### Events
+
+#### Events
 
 There are some changes to events in RmlUi, however, for most users, existing code should still work as before.
 
@@ -84,22 +184,13 @@ Various changes:
 - The `resize` event now only applies to the document size, not individual elements.
 - The `scrollchange` event has been replaced by a function call. To capture scroll changes, instead use the `scroll` event.
 
-## Other changes
-
-- `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
-- The system interface now has two new functions for setting and getting text to and from the clipboard: `virtual void SystemInterface::SetClipboardText(const Core::WString& text)` and `virtual void SystemInterface::GetClipboardText(Core::WString& text)`.
-
-## Performance
-
-Users moving to this fork should generally see a substantial performance increase. 
-
-- The update loop has been reworked to avoid doing unnecessary, repeated calculations whenever the document or style is changed. Instead of immediately updating properties on any affected elements, most of this work is done during the Context::Update call in a more carefully chosen order. Note that for this reason, when querying the Rocket API for properties such as size or position, this information may not be up-to-date with changes since the last Context::Update, such as newly added elements or classes. If this information is needed immediately, a call to ElementDocument::UpdateDocument can be made before such queries at a performance penalty.
-- Several containers have been replaced, such as std::map to [robin_hood::unordered_flat_map](https://github.com/martinus/robin-hood-hashing).
-- Reduced number of allocations and unnecessary recursive calls.
-- And many more, smaller optimizations, resulting in more than 5x performance increase for creation and destruction of a large number of elements. A benchmark for this is located in the animation sample for now.
 
 
-## Transform property
+## RmlUi 2.0 features
+
+RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
+
+### Transform property
 
 Based on the work of @shoemark, with additional fixes.
 
@@ -144,7 +235,7 @@ Angles are in degrees by default.
 
 
 
-## Animations
+### Animations
 
 
 Most RCSS properties can be animated, this includes properties representing lengths, colors, or transforms. From C++, an animation can be started on an Element by calling
@@ -220,7 +311,7 @@ Animations currently support full interpolation of transforms, largely following
 Animations are very powerful coupled with transforms. See the animation sample project for more examples and details. There are also some [video demonstrations](https://mikke89.github.io/RmlUiDoc/pages/rmlui_features.html) of these features in the documentation.
 
 
-## Transitions
+### Transitions
 
 Transitions apply an animation between two property values on an element when its property changes. Transitions are implemented in RCSS similar to how they operate in CSS. However, in RCSS, they only apply when a class or pseudo-class is added to or removed from an element.
 
@@ -248,7 +339,7 @@ Example usage:
 See the animation sample project for more examples and details.
 
 
-## Density-independent pixel (dp)
+### Density-independent pixel (dp)
 
 The `dp` unit behaves like `px` except that its size can be set globally to scale relative to pixels. This makes it easy to achieve a scalable user interface. Set the ratio globally on the context by calling:
 
@@ -268,7 +359,7 @@ div#header
 ```
 
 
-## Pointer events
+### Pointer events
 
 Set the element property to disregard mouse input events on this and descending elements.
 ```CSS
@@ -277,7 +368,7 @@ pointer-events: none;
 Default is `auto`.
 
 
-## Image-color property
+### Image-color property
 
 Non-standard RCSS property which multiplies a color with images in `<img>` tags and image decorators. Useful for `:hover`-events and for applying transparency.
 ```CSS
@@ -287,7 +378,7 @@ icon-image: background.png 34px 0px 66px 28px;
 ```
 
 
-## Inline-block
+### Inline-block
 
 Unlike the original branch, elements with
 ```CSS
@@ -297,7 +388,7 @@ will shrink to the width of their content, like in CSS.
 
 
 
-## Border shorthand
+### Border shorthand
 
 Enables the `border` property shorthand.
 ```CSS
@@ -305,7 +396,7 @@ border: 4px #e99;
 ```
 
 
-## Various changes
+### Various changes
 
 The slider on the `input.range` element can be dragged from anywhere in the element. Additionally, the `:checked` pseudo class can be used to style the selected item in drop-down lists.
 
