@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014, David Wimsey
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +26,13 @@
  *
  */
 
-#ifndef ROCKETSHELLRENDERINTERFACE_H
-#define ROCKETSHELLRENDERINTERFACE_H
+#ifndef RMLUISHELLRENDERINTERFACE_H
+#define RMLUISHELLRENDERINTERFACE_H
 
 /**
 	Extensions to the RenderInterface class used by the Samples Shell to
  	handle various bits of rendering and rendering upkeep that would normally
- 	be handled by the application rather than the libRocket RenderInterface class.
+ 	be handled by the application rather than the RmlUi RenderInterface class.
 	@author David Wimsey
  */
 
@@ -45,7 +46,7 @@ public:
     virtual void SetViewport(int width, int height) = 0;
 	
     /**
-	 * @param[in] context Rocket::Core::Context to set dimensions on when SetViewport is called
+	 * @param[in] context Rml::Core::Context to set dimensions on when SetViewport is called
      */
     virtual void SetContext(void *context) = 0;
 	

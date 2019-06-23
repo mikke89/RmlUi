@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include "DecoratorStarfield.h"
-#include <Rocket/Core/Math.h>
+#include <RmlUi/Core/Math.h>
 #include "DecoratorInstancerStarfield.h"
 
 DecoratorInstancerStarfield::DecoratorInstancerStarfield()
@@ -45,17 +46,17 @@ DecoratorInstancerStarfield::~DecoratorInstancerStarfield()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-std::shared_ptr<Rocket::Core::Decorator> DecoratorInstancerStarfield::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name), const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::DecoratorInstancerInterface& interface)
+std::shared_ptr<Rml::Core::Decorator> DecoratorInstancerStarfield::InstanceDecorator(const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name), const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface)
 {
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(name);
 
-	int num_layers = Rocket::Core::Math::RealToInteger(properties.GetProperty(id_num_layers)->Get< float >());
-	Rocket::Core::Colourb top_colour = properties.GetProperty(id_top_colour)->Get< Rocket::Core::Colourb >();
-	Rocket::Core::Colourb bottom_colour = properties.GetProperty(id_bottom_colour)->Get< Rocket::Core::Colourb >();
+	int num_layers = Rml::Core::Math::RealToInteger(properties.GetProperty(id_num_layers)->Get< float >());
+	Rml::Core::Colourb top_colour = properties.GetProperty(id_top_colour)->Get< Rml::Core::Colourb >();
+	Rml::Core::Colourb bottom_colour = properties.GetProperty(id_bottom_colour)->Get< Rml::Core::Colourb >();
 	float top_speed = properties.GetProperty(id_top_speed)->Get< float >();
 	float bottom_speed = properties.GetProperty(id_bottom_speed)->Get< float >();
-	int top_density = Rocket::Core::Math::RealToInteger(properties.GetProperty(id_top_density)->Get< float >());
-	int bottom_density = Rocket::Core::Math::RealToInteger(properties.GetProperty(id_bottom_density)->Get< float >());
+	int top_density = Rml::Core::Math::RealToInteger(properties.GetProperty(id_top_density)->Get< float >());
+	int bottom_density = Rml::Core::Math::RealToInteger(properties.GetProperty(id_bottom_density)->Get< float >());
 
 	auto decorator = std::make_shared<DecoratorStarfield>();
 	if (decorator->Initialise(num_layers, top_colour, bottom_colour, top_speed, bottom_speed, top_density, bottom_density))

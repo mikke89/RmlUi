@@ -1,6 +1,6 @@
 <template name="window" content="content">
 <head>
-	<link type="text/css" href="../../../assets/rkt.rcss"/>
+	<link type="text/css" href="../../../assets/rml.rcss"/>
 	<link type="text/css" href="tutorial.rcss"/>
 </head>
 <body class="window">

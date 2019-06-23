@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +26,12 @@
  *
  */
 
-#ifndef ROCKETCONTROLSXMLNODEHANDLERTABSET_H
-#define ROCKETCONTROLSXMLNODEHANDLERTABSET_H
+#ifndef RMLUICONTROLSXMLNODEHANDLERTABSET_H
+#define RMLUICONTROLSXMLNODEHANDLERTABSET_H
 
-#include "../../Include/Rocket/Core/XMLNodeHandler.h"
+#include "../../Include/RmlUi/Core/XMLNodeHandler.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 /**
@@ -46,11 +47,11 @@ public:
 	virtual ~XMLNodeHandlerTabSet();
 
 	/// Called when a new element start is opened
-	virtual Core::Element* ElementStart(Core::XMLParser* parser, const Rocket::Core::String& name, const Rocket::Core::XMLAttributes& attributes);
+	virtual Core::Element* ElementStart(Core::XMLParser* parser, const Rml::Core::String& name, const Rml::Core::XMLAttributes& attributes);
 	/// Called when an element is closed
-	virtual bool ElementEnd(Core::XMLParser* parser, const Rocket::Core::String& name);
+	virtual bool ElementEnd(Core::XMLParser* parser, const Rml::Core::String& name);
 	/// Called for element data
-	virtual bool ElementData(Core::XMLParser* parser, const Rocket::Core::String& data);
+	virtual bool ElementData(Core::XMLParser* parser, const Rml::Core::String& data);
 
 	virtual void Release();
 };

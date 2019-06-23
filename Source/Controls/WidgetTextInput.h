@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +26,15 @@
  *
  */
 
-#ifndef ROCKETCONTROLSWIDGETTEXTINPUT_H
-#define ROCKETCONTROLSWIDGETTEXTINPUT_H
+#ifndef RMLUICONTROLSWIDGETTEXTINPUT_H
+#define RMLUICONTROLSWIDGETTEXTINPUT_H
 
-#include "../../Include/Rocket/Core/EventListener.h"
-#include "../../Include/Rocket/Core/Geometry.h"
-#include "../../Include/Rocket/Core/String.h"
-#include "../../Include/Rocket/Core/Vertex.h"
+#include "../../Include/RmlUi/Core/EventListener.h"
+#include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Vertex.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 class ElementText;
@@ -82,7 +83,7 @@ public:
 	/// Returns the input element's underlying text element.
 	Core::ElementText* GetTextElement();
 	/// Returns the input element's maximum allowed text dimensions.
-	const Rocket::Core::Vector2f& GetTextDimensions() const;
+	const Rml::Core::Vector2f& GetTextDimensions() const;
 
 protected:
 	/// Processes the "keydown" and "textinput" event to write to the input field, and the "focus" and
@@ -92,7 +93,7 @@ protected:
 	/// Adds a new character to the string at the cursor position.
 	/// @param[in] character The character to add to the string.
 	/// @return True if the character was successfully added, false otherwise.
-	bool AddCharacter(Rocket::Core::word character);
+	bool AddCharacter(Rml::Core::word character);
 	/// Deletes a character from the string.
 	/// @param[in] backward True to delete a character behind the cursor, false for in front of the cursor.
 	/// @return True if a character was deleted, false otherwise.
@@ -100,7 +101,7 @@ protected:
 	/// Returns true if the given character is permitted in the input field, false if not.
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
-	virtual bool IsCharacterValid(Rocket::Core::word character) = 0;
+	virtual bool IsCharacterValid(Rml::Core::word character) = 0;
 	/// Called when the user pressed enter.
 	virtual void LineBreak() = 0;
 
@@ -147,7 +148,7 @@ private:
 	void FormatElement();
 	/// Formats the input element's text field.
 	/// @return The content area of the element.
-	Rocket::Core::Vector2f FormatText();
+	Rml::Core::Vector2f FormatText();
 
 	/// Generates the text cursor.
 	void GenerateCursor();
@@ -188,8 +189,8 @@ private:
 
 	Core::ElementText* text_element;
 	Core::ElementText* selected_text_element;
-	Rocket::Core::Vector2f internal_dimensions;
-	Rocket::Core::Vector2f scroll_offset;
+	Rml::Core::Vector2f internal_dimensions;
+	Rml::Core::Vector2f scroll_offset;
 
 	typedef std::vector< Line > LineList;
 	LineList lines;
@@ -209,7 +210,7 @@ private:
 	int selection_length;
 
 	// The colour of the background of selected text.
-	Rocket::Core::Colourb selection_colour;
+	Rml::Core::Colourb selection_colour;
 	// The selection background.
 	Core::Geometry selection_geometry;
 
@@ -225,8 +226,8 @@ private:
 
 	// The cursor geometry.
 	float ideal_cursor_position;
-	Rocket::Core::Vector2f cursor_position;
-	Rocket::Core::Vector2f cursor_size;
+	Rml::Core::Vector2f cursor_position;
+	Rml::Core::Vector2f cursor_size;
 	Core::Geometry cursor_geometry;
 };
 

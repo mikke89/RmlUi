@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +30,13 @@
 #include "LayoutBlockBox.h"
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutEngine.h"
-#include "../../Include/Rocket/Core/Element.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/ElementScroll.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ElementScroll.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Creates a new block box for rendering a block element.
@@ -277,7 +278,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 // Called by a closing block box child.
 bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 {
-	ROCKET_ASSERT(context == BLOCK);
+	RMLUI_ASSERT(context == BLOCK);
 	box_cursor = (child->GetPosition().y - child->box.GetEdge(Box::MARGIN, Box::TOP) - (box.GetPosition().y + position.y)) + child->GetBox().GetSize(Box::MARGIN).y;
 
 	return CatchVerticalOverflow();
@@ -286,7 +287,7 @@ bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 // Called by a closing line box child.
 LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain)
 {
-	ROCKET_ASSERT(context == INLINE);
+	RMLUI_ASSERT(context == INLINE);
 	if (child->GetDimensions().x > 0)
 		box_cursor = (child->GetPosition().y - (box.GetPosition().y + position.y)) + child->GetDimensions().y;
 
@@ -314,7 +315,7 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInline
 // Adds a new block element to this block box.
 LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 {
-	ROCKET_ASSERT(context == BLOCK);
+	RMLUI_ASSERT(context == BLOCK);
 
 	// Check if our most previous block box is rendering in an inline context.
 	if (!block_boxes.empty() &&
@@ -425,7 +426,7 @@ bool LayoutBlockBox::AddFloatElement(Element* element)
 // Adds an element to this block box to be handled as an absolutely-positioned element.
 void LayoutBlockBox::AddAbsoluteElement(Element* element)
 {
-	ROCKET_ASSERT(context == BLOCK);
+	RMLUI_ASSERT(context == BLOCK);
 
 	AbsoluteElement absolute_element;
 	absolute_element.element = element;

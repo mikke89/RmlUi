@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +26,14 @@
  *
  */
 
-#ifndef ROCKETCORELAYOUTBLOCKBOX_H
-#define ROCKETCORELAYOUTBLOCKBOX_H
+#ifndef RMLUICORELAYOUTBLOCKBOX_H
+#define RMLUICORELAYOUTBLOCKBOX_H
 
 #include "LayoutLineBox.h"
-#include "../../Include/Rocket/Core/Box.h"
-#include "../../Include/Rocket/Core/Types.h"
+#include "../../Include/RmlUi/Core/Box.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 class LayoutBlockBoxSpace;

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,37 +29,37 @@
 #ifndef SHELLFILEINTERFACE_H
 #define SHELLFILEINTERFACE_H
 
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/FileInterface.h>
+#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/FileInterface.h>
 
 /**
-	Rocket file interface for the shell examples.
+	RmlUi file interface for the shell examples.
 	@author Lloyd Weehuizen
  */
 
-class ShellFileInterface : public Rocket::Core::FileInterface
+class ShellFileInterface : public Rml::Core::FileInterface
 {
 public:
-	ShellFileInterface(const Rocket::Core::String& root);
+	ShellFileInterface(const Rml::Core::String& root);
 	virtual ~ShellFileInterface();
 
 	/// Opens a file.		
-	virtual Rocket::Core::FileHandle Open(const Rocket::Core::String& path);
+	virtual Rml::Core::FileHandle Open(const Rml::Core::String& path);
 
 	/// Closes a previously opened file.		
-	virtual void Close(Rocket::Core::FileHandle file);
+	virtual void Close(Rml::Core::FileHandle file);
 
 	/// Reads data from a previously opened file.		
-	virtual size_t Read(void* buffer, size_t size, Rocket::Core::FileHandle file);
+	virtual size_t Read(void* buffer, size_t size, Rml::Core::FileHandle file);
 
 	/// Seeks to a point in a previously opened file.		
-	virtual bool Seek(Rocket::Core::FileHandle file, long offset, int origin);
+	virtual bool Seek(Rml::Core::FileHandle file, long offset, int origin);
 
 	/// Returns the current position of the file pointer.		
-	virtual size_t Tell(Rocket::Core::FileHandle file);
+	virtual size_t Tell(Rml::Core::FileHandle file);
 
 private:
-	Rocket::Core::String root;
+	Rml::Core::String root;
 };
 
 #endif

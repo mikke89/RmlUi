@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,19 +26,19 @@
  *
  */
 
-#ifndef ROCKETCOREFONTFACEHANDLE_H
-#define ROCKETCOREFONTFACEHANDLE_H
+#ifndef RMLUICOREFONTFACEHANDLE_H
+#define RMLUICOREFONTFACEHANDLE_H
 
-#include "../../Include/Rocket/Core/ReferenceCountable.h"
+#include "../../Include/RmlUi/Core/ReferenceCountable.h"
 #include "UnicodeRange.h"
-#include "../../Include/Rocket/Core/Font.h"
-#include "../../Include/Rocket/Core/FontEffect.h"
-#include "../../Include/Rocket/Core/FontGlyph.h"
-#include "../../Include/Rocket/Core/Geometry.h"
-#include "../../Include/Rocket/Core/String.h"
-#include "../../Include/Rocket/Core/Texture.h"
+#include "../../Include/RmlUi/Core/Font.h"
+#include "../../Include/RmlUi/Core/FontEffect.h"
+#include "../../Include/RmlUi/Core/FontGlyph.h"
+#include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Texture.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 class FontFaceLayer;

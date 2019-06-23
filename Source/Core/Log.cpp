@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +27,14 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Log.h"
-#include "../../Include/Rocket/Core.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core.h"
 #include <stdarg.h>
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 #include <windows.h>
 #endif
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Initialises the logging interface.
@@ -92,7 +93,7 @@ void Log::ParseError(const String& filename, int line_number, const char* fmt, .
 
 bool Assert(const char* msg, const char* file, int line)
 {
-	Rocket::Core::String message = CreateString(1024, "%s\n%s:%d", msg, file, line);
+	Rml::Core::String message = CreateString(1024, "%s\n%s:%d", msg, file, line);
 	return GetSystemInterface()->LogMessage(Log::LT_ASSERT, message);
 }
 

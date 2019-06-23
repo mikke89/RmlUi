@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "precompiled.h"
 #include "FontEffectNone.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 FontEffectNone::FontEffectNone()
@@ -40,22 +41,22 @@ FontEffectNone::~FontEffectNone()
 }
 
 // Resizes and repositions the glyph to fit the outline.
-bool FontEffectNone::GetGlyphSize(Vector2i& ROCKET_UNUSED_PARAMETER(origin), Vector2i& ROCKET_UNUSED_PARAMETER(dimensions), const FontGlyph& ROCKET_UNUSED_PARAMETER(glyph)) const
+bool FontEffectNone::GetGlyphSize(Vector2i& RMLUI_UNUSED_PARAMETER(origin), Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
-	ROCKET_UNUSED(origin);
-	ROCKET_UNUSED(dimensions);
-	ROCKET_UNUSED(glyph);
+	RMLUI_UNUSED(origin);
+	RMLUI_UNUSED(dimensions);
+	RMLUI_UNUSED(glyph);
 
 	return false;
 }
 
 // Expands the original glyph texture for the outline.
-void FontEffectNone::GenerateGlyphTexture(byte* ROCKET_UNUSED_PARAMETER(destination_data), const Vector2i& ROCKET_UNUSED_PARAMETER(destination_dimensions), int ROCKET_UNUSED_PARAMETER(destination_stride), const FontGlyph& ROCKET_UNUSED_PARAMETER(glyph)) const
+void FontEffectNone::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), const Vector2i& RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
-	ROCKET_UNUSED(destination_data);
-	ROCKET_UNUSED(destination_dimensions);
-	ROCKET_UNUSED(destination_stride);
-	ROCKET_UNUSED(glyph);
+	RMLUI_UNUSED(destination_data);
+	RMLUI_UNUSED(destination_dimensions);
+	RMLUI_UNUSED(destination_stride);
+	RMLUI_UNUSED(glyph);
 }
 
 }

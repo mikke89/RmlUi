@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +27,11 @@
  */
 
 #include "WidgetSlider.h"
-#include "../../Include/Rocket/Core.h"
-#include "../../Include/Rocket/Controls/ElementFormControl.h"
+#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Controls/ElementFormControl.h"
 #include "../Core/Clock.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 static const float DEFAULT_REPEAT_DELAY = 0.5f;
@@ -94,12 +95,12 @@ bool WidgetSlider::Initialise()
 	parent->SetProperty(Core::PropertyId::Drag, drag_property);
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
-	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rocket::Core::XMLAttributes());
+	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rml::Core::XMLAttributes());
 
-	bar = Core::Factory::InstanceElement(parent, "*", "sliderbar", Rocket::Core::XMLAttributes());
+	bar = Core::Factory::InstanceElement(parent, "*", "sliderbar", Rml::Core::XMLAttributes());
 
-	arrows[0] = Core::Factory::InstanceElement(parent, "*", "sliderarrowdec", Rocket::Core::XMLAttributes());
-	arrows[1] = Core::Factory::InstanceElement(parent, "*", "sliderarrowinc", Rocket::Core::XMLAttributes());
+	arrows[0] = Core::Factory::InstanceElement(parent, "*", "sliderarrowdec", Rml::Core::XMLAttributes());
+	arrows[1] = Core::Factory::InstanceElement(parent, "*", "sliderarrowinc", Rml::Core::XMLAttributes());
 	arrows[0]->SetProperty(Core::PropertyId::Drag, drag_property);
 	arrows[1]->SetProperty(Core::PropertyId::Drag, drag_property);
 
@@ -181,10 +182,10 @@ void WidgetSlider::Update()
 // Sets the position of the bar.
 void WidgetSlider::SetBarPosition(float _bar_position)
 {
-	bar_position = Rocket::Core::Math::Clamp(_bar_position, 0.0f, 1.0f);
+	bar_position = Rml::Core::Math::Clamp(_bar_position, 0.0f, 1.0f);
 	PositionBar();
 
-	Rocket::Core::Dictionary parameters;
+	Rml::Core::Dictionary parameters;
 	parameters["value"] = bar_position;
 	parent->DispatchEvent(Core::EventId::Change, parameters);
 }
@@ -208,7 +209,7 @@ WidgetSlider::Orientation WidgetSlider::GetOrientation() const
 }
 
 // Sets the dimensions to the size of the slider.
-void WidgetSlider::GetDimensions(Rocket::Core::Vector2f& dimensions) const
+void WidgetSlider::GetDimensions(Rml::Core::Vector2f& dimensions) const
 {
 	switch (orientation)
 	{
@@ -218,17 +219,17 @@ void WidgetSlider::GetDimensions(Rocket::Core::Vector2f& dimensions) const
 }
 
 // Lays out and resizes the internal elements.
-void WidgetSlider::FormatElements(const Rocket::Core::Vector2f& containing_block, float slider_length, float bar_length)
+void WidgetSlider::FormatElements(const Rml::Core::Vector2f& containing_block, float slider_length, float bar_length)
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
 
 	// Build the box for the containing slider element. As the containing block is not guaranteed to have a defined
 	// height, we must use the width for both axes.
 	Core::Box parent_box;
-	Core::ElementUtilities::BuildBox(parent_box, Rocket::Core::Vector2f(containing_block.x, containing_block.x), parent);
+	Core::ElementUtilities::BuildBox(parent_box, Rml::Core::Vector2f(containing_block.x, containing_block.x), parent);
 
 	// Set the length of the slider.
-	Rocket::Core::Vector2f content = parent_box.GetSize();
+	Rml::Core::Vector2f content = parent_box.GetSize();
 	content[length_axis] = slider_length;
 	parent_box.SetContent(content);
 
@@ -251,10 +252,10 @@ void WidgetSlider::FormatElements(const Rocket::Core::Vector2f& containing_block
 		Core::ElementUtilities::BuildBox(arrow_box, parent_box.GetSize(), arrows[i]);
 
 		// Clamp the size to (0, 0).
-		Rocket::Core::Vector2f arrow_size = arrow_box.GetSize();
+		Rml::Core::Vector2f arrow_size = arrow_box.GetSize();
 		if (arrow_size.x < 0 ||
 			arrow_size.y < 0)
-			arrow_box.SetContent(Rocket::Core::Vector2f(0, 0));
+			arrow_box.SetContent(Rml::Core::Vector2f(0, 0));
 
 		arrows[i]->SetBox(arrow_box);
 
@@ -268,7 +269,7 @@ void WidgetSlider::FormatElements(const Rocket::Core::Vector2f& containing_block
 
 	if (orientation == VERTICAL)
 	{
-		Rocket::Core::Vector2f offset(arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT), arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP));
+		Rml::Core::Vector2f offset(arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT), arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP));
 		arrows[0]->SetOffset(offset, parent);
 
 		offset.x = track->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT);
@@ -281,7 +282,7 @@ void WidgetSlider::FormatElements(const Rocket::Core::Vector2f& containing_block
 	}
 	else
 	{
-		Rocket::Core::Vector2f offset(arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT), arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP));
+		Rml::Core::Vector2f offset(arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT), arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP));
 		arrows[0]->SetOffset(offset, parent);
 
 		offset.x += arrows[0]->GetBox().GetSize(Core::Box::BORDER).x + arrows[0]->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::RIGHT) + track->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT);
@@ -312,7 +313,7 @@ void WidgetSlider::FormatBar(float bar_length)
 	Core::ElementUtilities::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
 	auto& computed = bar->GetComputedValues();
 
-	Rocket::Core::Vector2f bar_box_content = bar_box.GetSize();
+	Rml::Core::Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
 	{
 		if (computed.height.value == Core::Style::Height::Auto)
@@ -321,7 +322,7 @@ void WidgetSlider::FormatBar(float bar_length)
 
 	if (bar_length >= 0)
 	{
-		Rocket::Core::Vector2f track_size = track->GetBox().GetSize();
+		Rml::Core::Vector2f track_size = track->GetBox().GetSize();
 
 		if (orientation == VERTICAL)
 		{
@@ -333,16 +334,16 @@ void WidgetSlider::FormatBar(float bar_length)
 
 				// Check for 'min-height' restrictions.
 				float min_track_length = Core::ResolveValue(computed.min_height, track_length);
-				bar_box_content.y = Rocket::Core::Math::Max(min_track_length, bar_box_content.y);
+				bar_box_content.y = Rml::Core::Math::Max(min_track_length, bar_box_content.y);
 
 				// Check for 'max-height' restrictions.
 				float max_track_length = Core::ResolveValue(computed.max_height, track_length);
 				if (max_track_length > 0)
-					bar_box_content.y = Rocket::Core::Math::Min(max_track_length, bar_box_content.y);
+					bar_box_content.y = Rml::Core::Math::Min(max_track_length, bar_box_content.y);
 			}
 
 			// Make sure we haven't gone further than we're allowed to (min-height may have made us too big).
-			bar_box_content.y = Rocket::Core::Math::Min(bar_box_content.y, track_length);
+			bar_box_content.y = Rml::Core::Math::Min(bar_box_content.y, track_length);
 		}
 		else
 		{
@@ -354,16 +355,16 @@ void WidgetSlider::FormatBar(float bar_length)
 
 				// Check for 'min-width' restrictions.
 				float min_track_length = Core::ResolveValue(computed.min_width, track_length);
-				bar_box_content.x = Rocket::Core::Math::Max(min_track_length, bar_box_content.x);
+				bar_box_content.x = Rml::Core::Math::Max(min_track_length, bar_box_content.x);
 
 				// Check for 'max-width' restrictions.
 				float max_track_length = Core::ResolveValue(computed.max_width, track_length);
 				if (max_track_length > 0)
-					bar_box_content.x = Rocket::Core::Math::Min(max_track_length, bar_box_content.x);
+					bar_box_content.x = Rml::Core::Math::Min(max_track_length, bar_box_content.x);
 			}
 
 			// Make sure we haven't gone further than we're allowed to (min-width may have made us too big).
-			bar_box_content.x = Rocket::Core::Math::Min(bar_box_content.x, track_length);
+			bar_box_content.x = Rml::Core::Math::Min(bar_box_content.x, track_length);
 		}
 	}
 
@@ -387,7 +388,7 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 	if (parent->IsDisabled())
 		return;
 
-	using Rocket::Core::EventId;
+	using Rml::Core::EventId;
 
 	switch (event.GetId())
 	{
@@ -442,9 +443,9 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 			bar->SetPseudoClass("active", true);
 
 			if (orientation == HORIZONTAL)
-				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().x);
+				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Rml::Core::Math::RealToInteger(bar->GetAbsoluteOffset().x);
 			else
-				bar_drag_anchor = event.GetParameter< int >("mouse_y", 0) - Rocket::Core::Math::RealToInteger(bar->GetAbsoluteOffset().y);
+				bar_drag_anchor = event.GetParameter< int >("mouse_y", 0) - Rml::Core::Math::RealToInteger(bar->GetAbsoluteOffset().y);
 		}
 	}
 	break;
@@ -459,7 +460,7 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 				{
 					float traversable_track_origin = track->GetAbsoluteOffset().x + bar_drag_anchor;
 					float new_bar_position = (event.GetParameter< float >("mouse_x", 0) - traversable_track_origin) / traversable_track_length;
-					new_bar_position = Rocket::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
+					new_bar_position = Rml::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
 
 					SetBarPosition(OnBarChange(new_bar_position));
 				}
@@ -471,7 +472,7 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 				{
 					float traversable_track_origin = track->GetAbsoluteOffset().y + bar_drag_anchor;
 					float new_bar_position = (event.GetParameter< float >("mouse_y", 0) - traversable_track_origin) / traversable_track_length;
-					new_bar_position = Rocket::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
+					new_bar_position = Rml::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
 
 					SetBarPosition(OnBarChange(new_bar_position));
 				}
@@ -533,18 +534,18 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 
 void WidgetSlider::PositionBar()
 {
-	const Rocket::Core::Vector2f& track_dimensions = track->GetBox().GetSize();
-	const Rocket::Core::Vector2f& bar_dimensions = bar->GetBox().GetSize(Core::Box::BORDER);
+	const Rml::Core::Vector2f& track_dimensions = track->GetBox().GetSize();
+	const Rml::Core::Vector2f& bar_dimensions = bar->GetBox().GetSize(Core::Box::BORDER);
 
 	if (orientation == VERTICAL)
 	{
 		float traversable_track_length = track_dimensions.y - bar_dimensions.y;
-		bar->SetOffset(Rocket::Core::Vector2f(bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT), track->GetRelativeOffset().y + traversable_track_length * bar_position), parent);
+		bar->SetOffset(Rml::Core::Vector2f(bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT), track->GetRelativeOffset().y + traversable_track_length * bar_position), parent);
 	}
 	else
 	{
 		float traversable_track_length = track_dimensions.x - bar_dimensions.x;
-		bar->SetOffset(Rocket::Core::Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP)), parent);
+		bar->SetOffset(Rml::Core::Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP)), parent);
 	}
 }
 

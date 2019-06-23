@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,26 +26,26 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementDataGrid.h"
-#include "../../Include/Rocket/Controls/DataSource.h"
-#include "../../Include/Rocket/Core/Math.h"
-#include "../../Include/Rocket/Core/XMLParser.h"
-#include "../../Include/Rocket/Core/Event.h"
-#include "../../Include/Rocket/Core/ElementDocument.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Controls/DataFormatter.h"
-#include "../../Include/Rocket/Controls/ElementDataGridRow.h"
+#include "../../Include/RmlUi/Controls/ElementDataGrid.h"
+#include "../../Include/RmlUi/Controls/DataSource.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Controls/DataFormatter.h"
+#include "../../Include/RmlUi/Controls/ElementDataGridRow.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
-ElementDataGrid::ElementDataGrid(const Rocket::Core::String& tag) : Core::Element(tag)
+ElementDataGrid::ElementDataGrid(const Rml::Core::String& tag) : Core::Element(tag)
 {
-	Rocket::Core::XMLAttributes attributes;
+	Rml::Core::XMLAttributes attributes;
 
 	// Create the row for the column headers:
-	header = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridheader", attributes));
+	header = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridheader", attributes));
 	header->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
 	header->Initialise(this);
 	AppendChild(header);
@@ -58,7 +59,7 @@ ElementDataGrid::ElementDataGrid(const Rocket::Core::String& tag) : Core::Elemen
 
 	body_visible = false;
 
-	root = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridroot", attributes));
+	root = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridroot", attributes));
 	root->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 	root->Initialise(this);
 
@@ -73,15 +74,15 @@ ElementDataGrid::~ElementDataGrid()
 	root->RemoveReference();
 }
 
-void ElementDataGrid::SetDataSource(const Rocket::Core::String& data_source_name)
+void ElementDataGrid::SetDataSource(const Rml::Core::String& data_source_name)
 {
 	new_data_source = data_source_name;
 }
 
 // Adds a column to the table.
-bool ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket::Core::String& formatter, float initial_width, const Rocket::Core::String& header_rml)
+bool ElementDataGrid::AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, const Rml::Core::String& header_rml)
 {
-	Core::Element* header_element = Core::Factory::InstanceElement(this, "datagridcolumn", "datagridcolumn", Rocket::Core::XMLAttributes());
+	Core::Element* header_element = Core::Factory::InstanceElement(this, "datagridcolumn", "datagridcolumn", Rml::Core::XMLAttributes());
 	if (header_element == NULL)
 		return false;
 
@@ -97,10 +98,10 @@ bool ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 }
 
 // Adds a column to the table.
-void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket::Core::String& formatter, float initial_width, Core::Element* header_element)
+void ElementDataGrid::AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, Core::Element* header_element)
 {
 	Column column;
-	Rocket::Core::StringUtilities::ExpandString(column.fields, fields);
+	Rml::Core::StringUtilities::ExpandString(column.fields, fields);
 	column.formatter = DataFormatter::GetDataFormatter(formatter);
 	column.header = header;
 	column.current_width = initial_width;
@@ -112,7 +113,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 		header_element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 
 		// Push all the width properties from the column onto the header element.
-		Rocket::Core::String width = header_element->GetAttribute<Rocket::Core::String>("width", "100%");
+		Rml::Core::String width = header_element->GetAttribute<Rml::Core::String>("width", "100%");
 		header_element->SetProperty("width", width);
 
 		header->AppendChild(header_element);
@@ -122,11 +123,11 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 	for (size_t i = 0; i < column.fields.size(); i++)
 	{
 		// Don't append the depth or num_children fields, as they're handled by the row.
-		if (column.fields[i] == Rocket::Controls::DataSource::NUM_CHILDREN)
+		if (column.fields[i] == Rml::Controls::DataSource::NUM_CHILDREN)
 		{
 			column.refresh_on_child_change = true;
 		}
-		else if (column.fields[i] != Rocket::Controls::DataSource::DEPTH)
+		else if (column.fields[i] != Rml::Controls::DataSource::DEPTH)
 		{
 			if (!column_fields.empty())
 			{
@@ -138,7 +139,7 @@ void ElementDataGrid::AddColumn(const Rocket::Core::String& fields, const Rocket
 
 	columns.push_back(column);
 
-	Rocket::Core::Dictionary parameters;
+	Rml::Core::Dictionary parameters;
 	parameters["index"] = (int)(columns.size() - 1);
 	if (DispatchEvent(Core::EventId::Columnadd, parameters))
 	{
@@ -158,7 +159,7 @@ const ElementDataGrid::Column* ElementDataGrid::GetColumn(int column_index)
 {
 	if (column_index < 0 || column_index >= (int)columns.size())
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return NULL;
 	}
 
@@ -166,7 +167,7 @@ const ElementDataGrid::Column* ElementDataGrid::GetColumn(int column_index)
 }
 
 /// Returns a CSV string containing all the fields that each column requires, in order.
-const Rocket::Core::String& ElementDataGrid::GetAllColumnFields()
+const Rml::Core::String& ElementDataGrid::GetAllColumnFields()
 {
 	return column_fields;
 }
@@ -175,8 +176,8 @@ const Rocket::Core::String& ElementDataGrid::GetAllColumnFields()
 ElementDataGridRow* ElementDataGrid::AddRow(ElementDataGridRow* parent, int index)
 {
 	// Now we make a new row at the right place then return it.
-	Rocket::Core::XMLAttributes attributes;
-	ElementDataGridRow* new_row = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rktctl_datagridrow", "datagridrow", attributes));
+	Rml::Core::XMLAttributes attributes;
+	ElementDataGridRow* new_row = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridrow", attributes));
 
 	new_row->Initialise(this, parent, index, header, parent->GetDepth() + 1);
 
@@ -237,7 +238,7 @@ void ElementDataGrid::OnUpdate()
 	if (any_new_children)
 	{
 		// @performance: Does anyone really use this?
-		DispatchEvent(Core::EventId::Rowupdate, Rocket::Core::Dictionary());
+		DispatchEvent(Core::EventId::Rowupdate, Rml::Core::Dictionary());
 	}
 	
 	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= GetAttribute("min-rows", 0)))
@@ -260,14 +261,14 @@ void ElementDataGrid::OnResize()
 }
 
 // Gets the markup and content of the element.
-void ElementDataGrid::GetInnerRML(Rocket::Core::String& content) const
+void ElementDataGrid::GetInnerRML(Rml::Core::String& content) const
 {
 	// The only content we have is the columns, and inside them the header elements.
 	for (size_t i = 0; i < columns.size(); i++)
 	{
 		Core::Element* header_element = header->GetChild((int)i);
 
-		Rocket::Core::String column_fields;
+		Rml::Core::String column_fields;
 		for (size_t j = 0; j < columns[i].fields.size(); j++)
 		{
 			if (j != columns[i].fields.size() - 1)
@@ -276,7 +277,7 @@ void ElementDataGrid::GetInnerRML(Rocket::Core::String& content) const
 			}
 			column_fields += columns[i].fields[j];
 		}
-		Rocket::Core::String width_attribute = header_element->GetAttribute<Rocket::Core::String>("width", "");
+		Rml::Core::String width_attribute = header_element->GetAttribute<Rml::Core::String>("width", "");
 
 		content += Core::CreateString(column_fields.size() + 32, "<col fields=\"%s\"", column_fields.c_str());
 		if (!width_attribute.empty())

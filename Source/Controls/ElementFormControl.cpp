@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +26,13 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementFormControl.h"
-#include "../../Include/Rocket/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Controls/ElementFormControl.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
-ElementFormControl::ElementFormControl(const Rocket::Core::String& tag) : Core::Element(tag)
+ElementFormControl::ElementFormControl(const Rml::Core::String& tag) : Core::Element(tag)
 {
 	SetProperty(Core::PropertyId::TabIndex, Core::Property(Core::Style::TabIndex::Auto));
 }
@@ -41,13 +42,13 @@ ElementFormControl::~ElementFormControl()
 }
 
 // Returns the name of the form control.
-Rocket::Core::String ElementFormControl::GetName() const
+Rml::Core::String ElementFormControl::GetName() const
 {
-	return GetAttribute<Rocket::Core::String>("name", "");	
+	return GetAttribute<Rml::Core::String>("name", "");	
 }
 
 // Sets the name of the form control.
-void ElementFormControl::SetName(const Rocket::Core::String& name)
+void ElementFormControl::SetName(const Rml::Core::String& name)
 {
 	SetAttribute("name", name);
 }

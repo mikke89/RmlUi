@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +27,12 @@
  */
 
 #include "InputTypeText.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "WidgetTextInputSingleLine.h"
 #include "WidgetTextInputSingleLinePassword.h"
-#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlInput.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 InputTypeText::InputTypeText(ElementFormControlInput* element, Visibility visibility) : InputType(element)
@@ -42,7 +43,7 @@ InputTypeText::InputTypeText(ElementFormControlInput* element, Visibility visibi
 		widget = new WidgetTextInputSingleLinePassword(element);
 
 	widget->SetMaxLength(element->GetAttribute< int >("maxlength", -1));
-	widget->SetValue(element->GetAttribute< Rocket::Core::String >("value", ""));
+	widget->SetValue(element->GetAttribute< Rml::Core::String >("value", ""));
 
 	size = element->GetAttribute< int >("size", 20);
 }
@@ -104,13 +105,13 @@ void InputTypeText::OnPropertyChange(const Core::PropertyNameList& changed_prope
 }
 
 // Checks for necessary functional changes in the control as a result of the event.
-void InputTypeText::ProcessDefaultAction(Core::Event& ROCKET_UNUSED_PARAMETER(event))
+void InputTypeText::ProcessDefaultAction(Core::Event& RMLUI_UNUSED_PARAMETER(event))
 {
-	ROCKET_UNUSED(event);
+	RMLUI_UNUSED(event);
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeText::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
+bool InputTypeText::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 {
 	dimensions.x = (float) (size * Core::ElementUtilities::GetStringWidth(element, L"m"));
 	dimensions.y = element->GetLineHeight() + 2.0f;

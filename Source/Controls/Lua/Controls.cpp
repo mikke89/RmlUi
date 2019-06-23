@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +27,11 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Controls/Lua/Controls.h>
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Lua/Interpreter.h>
-#include <Rocket/Core/Log.h>
+#include <RmlUi/Controls/Lua/Controls.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Lua/Interpreter.h>
+#include <RmlUi/Core/Log.h>
 #include "SelectOptionsProxy.h"
 #include "DataFormatter.h"
 #include "DataSource.h"
@@ -44,20 +45,20 @@
 #include "ElementDataGridRow.h"
 #include "ElementTabSet.h"
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
-//This will define all of the types from RocketControls for Lua. There is not a
-//corresponding function for types of RocketCore, because they are defined automatically
+//This will define all of the types from RmlControls for Lua. There is not a
+//corresponding function for types of RmlCore, because they are defined automatically
 //when the Interpreter starts.
 void RegisterTypes(lua_State* L)
 {
-    if(Rocket::Core::Lua::Interpreter::GetLuaState() == NULL)
+    if(Rml::Core::Lua::Interpreter::GetLuaState() == NULL)
     {
-        Rocket::Core::Log::Message(Rocket::Core::Log::LT_ERROR,
-            "In Rocket::Controls::Lua::RegisterTypes: Tried to register the \'Controls\' types for Lua without first initializing the Interpreter.");
+        Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR,
+            "In Rml::Controls::Lua::RegisterTypes: Tried to register the \'Controls\' types for Lua without first initializing the Interpreter.");
         return;
     }
     LuaType<ElementForm>::Register(L);

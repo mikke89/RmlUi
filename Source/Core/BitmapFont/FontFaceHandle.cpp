@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,14 +32,14 @@
 #include <algorithm>
 #include "../TextureLayout.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace BitmapFont {
 
 class FontEffectSort
 {
 public:
-	bool operator()(const Rocket::Core::FontEffect* lhs, const Rocket::Core::FontEffect* rhs)
+	bool operator()(const Rml::Core::FontEffect* lhs, const Rml::Core::FontEffect* rhs)
 	{
 		return lhs->GetZIndex() < rhs->GetZIndex();
 	}
@@ -206,7 +207,7 @@ int FontFaceHandle::GenerateLayerConfiguration(FontEffectMap& font_effects)
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, Rocket::Core::FontEffect* layer_id, int texture_id)
+bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, Rml::Core::FontEffect* layer_id, int texture_id)
 {
 	FontLayerMap::iterator layer_iterator = layers.find(layer_id);
 	if (layer_iterator == layers.end())
@@ -221,14 +222,14 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 	int geometry_index = 0;
 	int line_width = 0;
 
-	ROCKET_ASSERT(layer_configuration_index >= 0);
-	ROCKET_ASSERT(layer_configuration_index < (int) layer_configurations.size());
+	RMLUI_ASSERT(layer_configuration_index >= 0);
+	RMLUI_ASSERT(layer_configuration_index < (int) layer_configurations.size());
 
 	// Fetch the requested configuration and generate the geometry for each one.
 	const LayerConfiguration& layer_configuration = layer_configurations[layer_configuration_index];
 	for (size_t i = 0; i < layer_configuration.size(); ++i)
 	{
-		Rocket::Core::FontFaceLayer* layer = layer_configuration[i];
+		Rml::Core::FontFaceLayer* layer = layer_configuration[i];
 
 		Colourb layer_colour;
 		if (layer == base_layer)
@@ -354,7 +355,7 @@ void FontFaceHandle::BuildGlyphMap(BitmapFontDefinitions *bm_face, const Unicode
 	}
 }
 
-void Rocket::Core::BitmapFont::FontFaceHandle::BuildGlyph(FontGlyph& glyph, CharacterInfo *bm_glyph)
+void Rml::Core::BitmapFont::FontFaceHandle::BuildGlyph(FontGlyph& glyph, CharacterInfo *bm_glyph)
 {
 	// Set the glyph's dimensions.
 	glyph.dimensions.x = bm_glyph->Width;
@@ -374,7 +375,7 @@ void Rocket::Core::BitmapFont::FontFaceHandle::BuildGlyph(FontGlyph& glyph, Char
 	glyph.bitmap_data = NULL;
 }
 
-int Rocket::Core::BitmapFont::FontFaceHandle::GetKerning(word lhs, word rhs) const
+int Rml::Core::BitmapFont::FontFaceHandle::GetKerning(word lhs, word rhs) const
 {
 	if( bm_face != NULL)
 	{
@@ -385,14 +386,14 @@ int Rocket::Core::BitmapFont::FontFaceHandle::GetKerning(word lhs, word rhs) con
 }
 
 // Generates (or shares) a layer derived from a font effect.
-Rocket::Core::FontFaceLayer* FontFaceHandle::GenerateLayer( FontEffect* font_effect)
+Rml::Core::FontFaceLayer* FontFaceHandle::GenerateLayer( FontEffect* font_effect)
 {
 	// See if this effect has been instanced before, as part of a different configuration.
 	FontLayerMap::iterator i = layers.find(font_effect);
 	if (i != layers.end())
 		return i->second;
 
-	Rocket::Core::FontFaceLayer* layer = new Rocket::Core::BitmapFont::FontFaceLayer();
+	Rml::Core::FontFaceLayer* layer = new Rml::Core::BitmapFont::FontFaceLayer();
 	layers[font_effect] = layer;
 
 	if (font_effect == NULL)
@@ -402,7 +403,7 @@ Rocket::Core::FontFaceLayer* FontFaceHandle::GenerateLayer( FontEffect* font_eff
 	else
 	{
 		// Determine which, if any, layer the new layer should copy its geometry and textures from.
-		Rocket::Core::FontFaceLayer* clone = NULL;
+		Rml::Core::FontFaceLayer* clone = NULL;
 		bool deep_clone = true;
 		String generation_key;
 
@@ -424,10 +425,10 @@ Rocket::Core::FontFaceLayer* FontFaceHandle::GenerateLayer( FontEffect* font_eff
 
 		// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
 		if (clone == NULL)
-			layer_cache[generation_key] = (Rocket::Core::FontFaceLayer*) layer;
+			layer_cache[generation_key] = (Rml::Core::FontFaceLayer*) layer;
 	}
 
-	return (Rocket::Core::FontFaceLayer*)layer;
+	return (Rml::Core::FontFaceLayer*)layer;
 }
 
 }

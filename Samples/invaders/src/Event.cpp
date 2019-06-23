@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "Event.h"
 #include "EventManager.h"
 
-Event::Event(const Rocket::Core::String& value) : value(value)
+Event::Event(const Rml::Core::String& value) : value(value)
 {
 }
 
@@ -37,15 +38,15 @@ Event::~Event()
 }
 
 // Sends the event value through to Invader's event processing system.
-void Event::ProcessEvent(Rocket::Core::Event& event)
+void Event::ProcessEvent(Rml::Core::Event& event)
 {
 	EventManager::ProcessEvent(event, value);
 }
 
 // Destroys the event.
-void Event::OnDetach(Rocket::Core::Element* ROCKET_UNUSED_PARAMETER(element))
+void Event::OnDetach(Rml::Core::Element* RMLUI_UNUSED_PARAMETER(element))
 {
-	ROCKET_UNUSED(element);
+	RMLUI_UNUSED(element);
 
 	delete this;
 }

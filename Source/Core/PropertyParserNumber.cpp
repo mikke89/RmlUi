@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "precompiled.h"
 #include "PropertyParserNumber.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 PropertyParserNumber::PropertyParserNumber(int units, Property::Unit zero_unit)
@@ -90,9 +91,9 @@ PropertyParserNumber::~PropertyParserNumber()
 }
 
 // Called to parse a RCSS number declaration.
-bool PropertyParserNumber::ParseValue(Property& property, const String& value, const ParameterMap& ROCKET_UNUSED_PARAMETER(parameters)) const
+bool PropertyParserNumber::ParseValue(Property& property, const String& value, const ParameterMap& RMLUI_UNUSED_PARAMETER(parameters)) const
 {
-	ROCKET_UNUSED(parameters);
+	RMLUI_UNUSED(parameters);
 
 	// Default to a simple number.
 	property.unit = Property::NUMBER;

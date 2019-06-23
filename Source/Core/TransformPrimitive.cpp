@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +27,12 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
-#include "../../Include/Rocket/Core/TypeConverter.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/TypeConverter.h"
 #include <iostream>
 #include <unordered_map>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Transforms {
 
@@ -124,7 +125,7 @@ float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept
 		case Property::RAD:
 			return number;
 		case Property::PERCENT:
-			return number * 0.01f * 2.0f * Math::ROCKET_PI;
+			return number * 0.01f * 2.0f * Math::RMLUI_PI;
 		default:
 			break;
 		}
@@ -332,7 +333,7 @@ struct ResolveTransformVisitor
 		default:
 			break;
 		}
-		ROCKET_ASSERT(false);
+		RMLUI_ASSERT(false);
 		return false;
 	}
 };
@@ -446,7 +447,7 @@ struct SetIdentityVisitor
 		case PrimitiveVariant::PERSPECTIVE: this->operator()(primitive.perspective); break;
 		case PrimitiveVariant::DECOMPOSEDMATRIX4: this->operator()(primitive.decomposed_matrix_4); break;
 		default:
-			ROCKET_ASSERT(false);
+			RMLUI_ASSERT(false);
 			break;
 		}
 	}
@@ -552,7 +553,7 @@ struct PrepareVisitor
 		default:
 			break;
 		}
-		ROCKET_ASSERT(false);
+		RMLUI_ASSERT(false);
 		return false;
 	}
 };
@@ -615,7 +616,7 @@ struct ConvertToGenericTypeVisitor
 	Scale3D operator()(const Scale2D& p) { return Scale3D{ p.values[0], p.values[1], 1.0f }; }
 
 	template <typename T>
-	PrimitiveVariant operator()(const T& p) { ROCKET_ERROR; return p; }
+	PrimitiveVariant operator()(const T& p) { RMLUI_ERROR; return p; }
 
 
 
@@ -633,7 +634,7 @@ struct ConvertToGenericTypeVisitor
 		case PrimitiveVariant::SCALEZ: result.scale_3d = this->operator()(primitive.scale_z); break;
 		case PrimitiveVariant::SCALE2D: result.scale_3d = this->operator()(primitive.scale_2d); break;
 		default:
-			ROCKET_ASSERT(false);
+			RMLUI_ASSERT(false);
 			break;
 		}
 		return result;
@@ -705,7 +706,7 @@ struct InterpolateVisitor
 
 	bool run(PrimitiveVariant& variant)
 	{
-		ROCKET_ASSERT(variant.type == other_variant.type);
+		RMLUI_ASSERT(variant.type == other_variant.type);
 		switch (variant.type)
 		{
 		case PrimitiveVariant::MATRIX2D: return Interpolate(variant.matrix_2d, other_variant.matrix_2d);
@@ -733,7 +734,7 @@ struct InterpolateVisitor
 		default:
 			break;
 		}
-		ROCKET_ASSERT(false);
+		RMLUI_ASSERT(false);
 		return false;
 	}
 };
@@ -756,7 +757,7 @@ bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 template<size_t N>
 inline String ToString(const Transforms::ResolvedPrimitive<N>& p, String unit, bool rad_to_deg = false, bool only_unit_on_last_value = false) noexcept {
 	float multiplier = 1.0f;
-	if (rad_to_deg) multiplier = 180.f / Math::ROCKET_PI;
+	if (rad_to_deg) multiplier = 180.f / Math::RMLUI_PI;
 	String tmp;
 	String result = "(";
 	for (size_t i = 0; i < N; i++) {
@@ -838,7 +839,7 @@ struct ToStringVisitor
 		default:
 			break;
 		}
-		ROCKET_ASSERT(false);
+		RMLUI_ASSERT(false);
 		return String();
 	}
 };

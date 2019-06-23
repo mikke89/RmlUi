@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Variant.h"
+#include "../../Include/RmlUi/Core/Variant.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 Variant::Variant() : type(NONE)
@@ -332,7 +333,7 @@ bool Variant::operator==(const Variant & other) const
 		return true;
 		break;
 	}
-	ROCKET_ERRORMSG("Variant comparison not implemented for this type.");
+	RMLUI_ERRORMSG("Variant comparison not implemented for this type.");
 	return false;
 }
 

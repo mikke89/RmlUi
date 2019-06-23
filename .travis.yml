@@ -22,8 +22,6 @@ matrix:
             - libstdc++-7-dev
             - cmake
             - build-essential
-            - libboost-dev
-            - libboost-python-dev
             - libsdl2-dev
             - libsdl2-image-dev
             - libfreetype6-dev
@@ -42,8 +40,6 @@ matrix:
             - g++-7
             - cmake
             - build-essential
-            - libboost-dev
-            - libboost-python-dev
             - libsdl2-dev
             - libsdl2-image-dev
             - libfreetype6-dev
@@ -55,12 +51,10 @@ before_install:
   - if [[ -n "${MATRIX_EVAL}" ]]; then eval "${MATRIX_EVAL}" ; fi
 
 install:
-  - cd "$TRAVIS_BUILD_DIR/Build"
+  - cd "$TRAVIS_BUILD_DIR"
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -G Xcode .; fi
-  - cd "$TRAVIS_BUILD_DIR"
 
 script:
-  - cd Build
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project librocket.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi

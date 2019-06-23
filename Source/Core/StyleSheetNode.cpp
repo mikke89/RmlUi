@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +29,11 @@
 #include "precompiled.h"
 #include "StyleSheetNode.h"
 #include <algorithm>
-#include "../../Include/Rocket/Core/Element.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNodeSelector.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 StyleSheetNode::StyleSheetNode(const String& name, NodeType _type, StyleSheetNode* _parent) : name(name)
@@ -112,11 +113,11 @@ void StyleSheetNode::Write(Stream* stream)
 		stream->Write(CreateString(1024, "%s /* specificity: %d */\n", StringUtilities::StripWhitespace(rule).c_str(), specificity));
 		stream->Write("{\n");
 
-		const Rocket::Core::PropertyMap& property_map = properties.GetProperties();
-		for (Rocket::Core::PropertyMap::const_iterator i = property_map.begin(); i != property_map.end(); ++i)
+		const Rml::Core::PropertyMap& property_map = properties.GetProperties();
+		for (Rml::Core::PropertyMap::const_iterator i = property_map.begin(); i != property_map.end(); ++i)
 		{
 			const String& name = StyleSheetSpecification::GetPropertyName(i->first);
-			const Rocket::Core::Property& property = i->second;
+			const Rml::Core::Property& property = i->second;
 
 			stream->Write(CreateString(1024, "\t%s: %s; /* specificity: %d */\n", name.c_str(), property.value.Get< String >().c_str(), property.specificity));
 		}
@@ -341,7 +342,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	// We must have a parent; if not, something's amok with the style tree.
 	if (parent == NULL)
 	{
-		ROCKET_ERRORMSG("Invalid RCSS hierarchy.");
+		RMLUI_ERRORMSG("Invalid RCSS hierarchy.");
 		return false;
 	}
 
@@ -367,7 +368,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 			case CLASS:						ancestor_classes.push_back(&parent_node->name); break;
 			case PSEUDO_CLASS:				ancestor_pseudo_classes.push_back(&parent_node->name); break;
 			case STRUCTURAL_PSEUDO_CLASS:	ancestor_structural_pseudo_classes.push_back(parent_node); break;
-			default:						ROCKET_ERRORMSG("Invalid RCSS hierarchy."); return false;
+			default:						RMLUI_ERRORMSG("Invalid RCSS hierarchy."); return false;
 		}
 
 		parent_node = parent_node->parent;
@@ -376,7 +377,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	// Check for an invalid RCSS hierarchy.
 	if (parent_node == NULL)
 	{
-		ROCKET_ERRORMSG("Invalid RCSS hierarchy.");
+		RMLUI_ERRORMSG("Invalid RCSS hierarchy.");
 		return false;
 	}
 
@@ -446,7 +447,7 @@ void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode*
 	// Check if this node matches this element.
 	switch (type)
 	{
-		ROCKET_UNUSED_SWITCH_ENUM(NUM_NODE_TYPES);
+		RMLUI_UNUSED_SWITCH_ENUM(NUM_NODE_TYPES);
 		case ROOT:
 		case TAG:
 		{
@@ -573,7 +574,7 @@ void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_cla
 
 	if (properties.GetNumProperties() > 0)
 	{
-		ROCKET_ASSERT(pseudo_class_properties.count(pseudo_classes) == 0);
+		RMLUI_ASSERT(pseudo_class_properties.count(pseudo_classes) == 0);
 		pseudo_class_properties[pseudo_classes] = properties;
 	}
 

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +28,15 @@
 
 #include "precompiled.h"
 #include "LuaElementInstancer.h"
-#include <Rocket/Core/Platform.h>
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/Interpreter.h>
-#include <Rocket/Core/Log.h>
+#include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/Interpreter.h>
+#include <RmlUi/Core/Log.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
-//This will be called from Rocket::Core::Lua::ElementInstancernew
+//This will be called from Rml::Core::Lua::ElementInstancernew
 LuaElementInstancer::LuaElementInstancer(lua_State* L) : ElementInstancer(), ref_InstanceElement(LUA_NOREF)
 {
     if(lua_type(L,1) != LUA_TFUNCTION && !lua_isnoneornil(L,1))
@@ -49,10 +50,10 @@ LuaElementInstancer::LuaElementInstancer(lua_State* L) : ElementInstancer(), ref
     lua_pop(L,1); //pop the ELEMENTINSTANCERFUNCTIONS table
 }
 
-Element* LuaElementInstancer::InstanceElement(Element* ROCKET_UNUSED_PARAMETER(parent), const String& tag, const XMLAttributes& ROCKET_UNUSED_PARAMETER(attributes))
+Element* LuaElementInstancer::InstanceElement(Element* RMLUI_UNUSED_PARAMETER(parent), const String& tag, const XMLAttributes& RMLUI_UNUSED_PARAMETER(attributes))
 {
-    ROCKET_UNUSED(parent);
-    ROCKET_UNUSED(attributes);
+    RMLUI_UNUSED(parent);
+    RMLUI_UNUSED(attributes);
 
     lua_State* L = Interpreter::GetLuaState();
     int top = lua_gettop(L);

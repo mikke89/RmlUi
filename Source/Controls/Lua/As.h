@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAAS_H
-#define ROCKETCONTROLSLUAAS_H
+#ifndef RMLUICONTROLSLUAAS_H
+#define RMLUICONTROLSLUAAS_H
 /*
     These are helper functions to fill up the Element.As table with types that are able to be casted
 */
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Element.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Element.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -44,9 +45,9 @@ namespace Lua {
 template<typename ToType>
 int CastFromElementTo(lua_State* L)
 {
-    Rocket::Core::Element* ele = Rocket::Core::Lua::LuaType<Rocket::Core::Element>::check(L,1);
+    Rml::Core::Element* ele = Rml::Core::Lua::LuaType<Rml::Core::Element>::check(L,1);
     LUACHECKOBJ(ele);
-    Rocket::Core::Lua::LuaType<ToType>::push(L,(ToType*)ele,false);
+    Rml::Core::Lua::LuaType<ToType>::push(L,(ToType*)ele,false);
     return 1;
 }
 
@@ -59,8 +60,8 @@ void AddCastFunctionToElementAsTable(lua_State* L)
     lua_getfield(L,-1,"As");
     if(!lua_isnoneornil(L,-1))
     {
-        lua_pushcfunction(L,Rocket::Controls::Lua::CastFromElementTo<T>);
-        lua_setfield(L,-2,Rocket::Core::Lua::GetTClassName<T>());
+        lua_pushcfunction(L,Rml::Controls::Lua::CastFromElementTo<T>);
+        lua_setfield(L,-2,Rml::Core::Lua::GetTClassName<T>());
     }
     lua_settop(L,top); //pop "As" and "Element"
 }

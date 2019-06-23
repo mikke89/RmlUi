@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include "precompiled.h"
 #include "ComputeProperty.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 
@@ -59,7 +60,7 @@ float ResolveValue(Style::LengthPercentage length, float base_value)
 
 float ComputeLength(const Property* property, float font_size, float document_font_size, float dp_ratio)
 {
-	ROCKET_ASSERT(property);
+	RMLUI_ASSERT(property);
 	
 	float value = property->value.Get<float>();
 
@@ -114,7 +115,7 @@ float ComputeLength(const Property* property, float font_size, float document_fo
 
 float ComputeAbsoluteLength(const Property& property, float dp_ratio)
 {
-	ROCKET_ASSERT(property.unit & Property::ABSOLUTE_LENGTH);
+	RMLUI_ASSERT(property.unit & Property::ABSOLUTE_LENGTH);
 
 	switch (property.unit)
 	{
@@ -146,7 +147,7 @@ float ComputeAbsoluteLength(const Property& property, float dp_ratio)
 		}
 	}
 
-	ROCKET_ERROR;
+	RMLUI_ERROR;
 	return 0.0f;
 }
 
@@ -180,7 +181,7 @@ float ComputeFontsize(const Property& property, const Style::ComputedValues& val
 			// Otherwise it is relative to the document font size
 			return property.value.Get< float >() * document_values->font_size;
 		default:
-			ROCKET_ERRORMSG("A relative unit must be percentage, em or rem.");
+			RMLUI_ERRORMSG("A relative unit must be percentage, em or rem.");
 		}
 	}
 
@@ -195,7 +196,7 @@ Style::Clip ComputeClip(const Property* property)
 		return Style::Clip(value == CLIP_NONE ? Style::Clip::None : Style::Clip::Auto);
 	else if (property->unit == Property::NUMBER)
 		return Style::Clip(Style::Clip::Number, value);
-	ROCKET_ERRORMSG("Invalid clip type");
+	RMLUI_ERRORMSG("Invalid clip type");
 	return Style::Clip();
 }
 
@@ -218,7 +219,7 @@ Style::LineHeight ComputeLineHeight(const Property* property, float font_size, f
 		scale_factor = property->value.Get< float >() * 0.01f;
 		break;
 	default:
-		ROCKET_ERRORMSG("Invalid unit for line-height");
+		RMLUI_ERRORMSG("Invalid unit for line-height");
 	}
 
 	float value = font_size * scale_factor;
@@ -238,7 +239,7 @@ Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_h
 		return Style::VerticalAlign(property->Get<float>() * line_height);
 	}
 
-	ROCKET_ASSERT(property->unit & Property::KEYWORD);
+	RMLUI_ASSERT(property->unit & Property::KEYWORD);
 	return Style::VerticalAlign((Style::VerticalAlign::Type)property->Get<int>());
 }
 

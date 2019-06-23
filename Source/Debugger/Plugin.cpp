@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +27,8 @@
  */
 
 #include "Plugin.h"
-#include "../../Include/Rocket/Core/Types.h"
-#include "../../Include/Rocket/Core.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core.h"
 #include "ElementContextHook.h"
 #include "ElementInfo.h"
 #include "ElementLog.h"
@@ -37,14 +38,14 @@
 #include "SystemInterface.h"
 #include <stack>
 
-namespace Rocket {
+namespace Rml {
 namespace Debugger {
 
 Plugin* Plugin::instance = NULL;
 
 Plugin::Plugin()
 {
-	ROCKET_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == NULL);
 	instance = this;
 	host_context = NULL;
 	debug_context = NULL;
@@ -164,7 +165,7 @@ void Plugin::Render()
 		for (int i = 0; i < debug_context->GetNumDocuments(); ++i)
 		{
 			Core::ElementDocument* document = debug_context->GetDocument(i);
-			if (document->GetId().find("rkt-debug-") == 0)
+			if (document->GetId().find("rmlui-debug-") == 0)
 				continue;
 
 			std::stack< Core::Element* > element_stack;
@@ -198,7 +199,7 @@ void Plugin::Render()
 	}
 }
 
-// Called when Rocket shuts down.
+// Called when RmlUi shuts down.
 void Plugin::OnShutdown()
 {
 	// Release the elements before we leak track, this ensures the debugger hook has been cleared
@@ -217,7 +218,7 @@ void Plugin::OnShutdown()
 	delete this;
 }
 
-// Called whenever a Rocket context is destroyed.
+// Called whenever a RmlUi context is destroyed.
 void Plugin::OnContextDestroy(Core::Context* context)
 {
 	if (context == debug_context)
@@ -296,7 +297,7 @@ bool Plugin::LoadMenuElement()
 	if (menu_element == NULL)
 		return false;
 
-	menu_element->SetId("rkt-debug-menu");
+	menu_element->SetId("rmlui-debug-menu");
 	menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	menu_element->SetInnerRML(menu_rml);
 
@@ -317,17 +318,17 @@ bool Plugin::LoadMenuElement()
 	menu_element->AddReference();
 
 	// Set the version info in the menu.
-	menu_element->GetElementById("version-number")->SetInnerRML("v" + Rocket::Core::GetVersion());
+	menu_element->GetElementById("version-number")->SetInnerRML("v" + Rml::Core::GetVersion());
 
 	// Attach to the buttons.
 	Core::Element* event_log_button = menu_element->GetElementById("event-log-button");
-	event_log_button->AddEventListener(Rocket::Core::EventId::Click, this);
+	event_log_button->AddEventListener(Rml::Core::EventId::Click, this);
 
 	Core::Element* element_info_button = menu_element->GetElementById("debug-info-button");
-	element_info_button->AddEventListener(Rocket::Core::EventId::Click, this);
+	element_info_button->AddEventListener(Rml::Core::EventId::Click, this);
 
 	Core::Element* outlines_button = menu_element->GetElementById("outlines-button");
-	outlines_button->AddEventListener(Rocket::Core::EventId::Click, this);
+	outlines_button->AddEventListener(Rml::Core::EventId::Click, this);
 
 	return true;
 }

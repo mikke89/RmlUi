@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,17 +27,17 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include <algorithm>
 #include "ElementDefinition.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
 #include "StyleSheetParser.h"
-#include "../../Include/Rocket/Core/Element.h"
-#include "../../Include/Rocket/Core/PropertyDefinition.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 template <class T>
@@ -76,7 +77,7 @@ bool StyleSheet::LoadStyleSheet(Stream* stream)
 /// Combines this style sheet with another one, producing a new sheet
 StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 {
-	ROCKET_ASSERT(other_sheet);
+	RMLUI_ASSERT(other_sheet);
 
 	StyleSheet* new_sheet = new StyleSheet();
 	if (!new_sheet->root->MergeHierarchy(root) ||
@@ -223,7 +224,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 // Returns the compiled element definition for a given element hierarchy.
 ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) const
 {
-	ROCKET_ASSERT_NONRECURSIVE;
+	RMLUI_ASSERT_NONRECURSIVE;
 
 	// See if there are any styles defined for this element.
 	// Using static to avoid allocations. Make sure we don't call this function recursively.

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +26,14 @@
  *
  */
 
-#ifndef ROCKETCOREFREETYPEFONTFACE_H
-#define ROCKETCOREFREETYPEFONTFACE_H
+#ifndef RMLUICOREFREETYPEFONTFACE_H
+#define RMLUICOREFREETYPEFONTFACE_H
 
-#include "../../../Include/Rocket/Core/FontFace.h"
+#include "../../../Include/RmlUi/Core/FontFace.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace FreeType {
 /**
@@ -41,7 +42,7 @@ namespace FreeType {
 
 class FontFaceHandle;
 
-class FontFace : public Rocket::Core::FontFace
+class FontFace : public Rml::Core::FontFace
 {
 public:
 	FontFace(FT_Face face, Font::Style style, Font::Weight weight, bool release_stream);
@@ -51,7 +52,7 @@ public:
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
-	Rocket::Core::FontFaceHandle* GetHandle(const String& charset, int size);
+	Rml::Core::FontFaceHandle* GetHandle(const String& charset, int size);
 
 	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
 	/// but existing ones can still be fetched.

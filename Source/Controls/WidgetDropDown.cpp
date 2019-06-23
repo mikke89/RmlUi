@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +27,16 @@
  */
 
 #include "WidgetDropDown.h"
-#include "../../Include/Rocket/Core/Math.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/Event.h"
-#include "../../Include/Rocket/Core/Input.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/StyleSheetKeywords.h"
-#include "../../Include/Rocket/Controls/ElementFormControl.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/Input.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
+#include "../../Include/RmlUi/Controls/ElementFormControl.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 WidgetDropDown::WidgetDropDown(ElementFormControl* element)
@@ -48,9 +49,9 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	selected_option = -1;
 
 	// Create the button and selection elements.
-	button_element = Core::Factory::InstanceElement(parent_element, "*", "selectarrow", Rocket::Core::XMLAttributes());
-	value_element = Core::Factory::InstanceElement(element, "*", "selectvalue", Rocket::Core::XMLAttributes());
-	selection_element = Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rocket::Core::XMLAttributes());
+	button_element = Core::Factory::InstanceElement(parent_element, "*", "selectarrow", Rml::Core::XMLAttributes());
+	value_element = Core::Factory::InstanceElement(element, "*", "selectvalue", Rml::Core::XMLAttributes());
+	selection_element = Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rml::Core::XMLAttributes());
 
 	value_element->SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Hidden));
 	value_element->SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Hidden));
@@ -98,7 +99,7 @@ void WidgetDropDown::OnRender()
 
 		// Layout the selection box.
 		Core::ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(Core::Box::BORDER));
-		selection_element->SetOffset(Rocket::Core::Vector2f(box.GetEdge(Core::Box::MARGIN, Core::Box::LEFT), parent_element->GetBox().GetSize(Core::Box::BORDER).y + box.GetEdge(Core::Box::MARGIN, Core::Box::TOP)), parent_element);
+		selection_element->SetOffset(Rml::Core::Vector2f(box.GetEdge(Core::Box::MARGIN, Core::Box::LEFT), parent_element->GetBox().GetSize(Core::Box::BORDER).y + box.GetEdge(Core::Box::MARGIN, Core::Box::TOP)), parent_element);
 
 		box_layout_dirty = false;
 	}
@@ -124,11 +125,11 @@ void WidgetDropDown::OnLayout()
 	// Layout the button and selection boxes.
 	Core::Box parent_box = parent_element->GetBox();
 
-	Core::ElementUtilities::PositionElement(button_element, Rocket::Core::Vector2f(0, 0), Core::ElementUtilities::TOP_RIGHT);
-	Core::ElementUtilities::PositionElement(selection_element, Rocket::Core::Vector2f(0, 0), Core::ElementUtilities::TOP_LEFT);
+	Core::ElementUtilities::PositionElement(button_element, Rml::Core::Vector2f(0, 0), Core::ElementUtilities::TOP_RIGHT);
+	Core::ElementUtilities::PositionElement(selection_element, Rml::Core::Vector2f(0, 0), Core::ElementUtilities::TOP_LEFT);
 
 	// Calculate the value element position and size.
-	Rocket::Core::Vector2f size;
+	Rml::Core::Vector2f size;
 	size.x = parent_element->GetBox().GetSize(Core::Box::CONTENT).x - button_element->GetBox().GetSize(Core::Box::MARGIN).x;
 	size.y = parent_element->GetBox().GetSize(Core::Box::CONTENT).y;
 
@@ -140,7 +141,7 @@ void WidgetDropDown::OnLayout()
 }
 
 // Sets the value of the widget.
-void WidgetDropDown::SetValue(const Rocket::Core::String& _value)
+void WidgetDropDown::SetValue(const Rml::Core::String& _value)
 {
 	for (size_t i = 0; i < options.size(); ++i)
 	{
@@ -162,7 +163,7 @@ void WidgetDropDown::SetValue(const Rocket::Core::String& _value)
 }
 
 // Returns the current value of the widget.
-const Rocket::Core::String& WidgetDropDown::GetValue() const
+const Rml::Core::String& WidgetDropDown::GetValue() const
 {
 	return value;
 }
@@ -170,7 +171,7 @@ const Rocket::Core::String& WidgetDropDown::GetValue() const
 // Sets the index of the selection. If the new index lies outside of the bounds, it will be clamped.
 void WidgetDropDown::SetSelection(int selection, bool force)
 {
-	Rocket::Core::String new_value;
+	Rml::Core::String new_value;
 
 	if (selection < 0 ||
 		selection >= (int) options.size())
@@ -192,7 +193,7 @@ void WidgetDropDown::SetSelection(int selection, bool force)
 		selected_option = selection;
 		value = new_value;
 
-		Rocket::Core::String value_rml;
+		Rml::Core::String value_rml;
 		if (selected_option >= 0) 
 		{
 			auto* el = options[selected_option].GetElement();
@@ -204,7 +205,7 @@ void WidgetDropDown::SetSelection(int selection, bool force)
 		value_element->SetInnerRML(value_rml);
 		value_layout_dirty = true;
 
-		Rocket::Core::Dictionary parameters;
+		Rml::Core::Dictionary parameters;
 		parameters["value"] = value;
 		parent_element->DispatchEvent(Core::EventId::Change, parameters);
 	}
@@ -217,10 +218,10 @@ int WidgetDropDown::GetSelection() const
 }
 
 // Adds a new option to the select control.
-int WidgetDropDown::AddOption(const Rocket::Core::String& rml, const Rocket::Core::String& value, int before, bool select, bool selectable)
+int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::String& value, int before, bool select, bool selectable)
 {
 	// Instance a new element for the option.
-	Core::Element* element = Core::Factory::InstanceElement(selection_element, "*", "option", Rocket::Core::XMLAttributes());
+	Core::Element* element = Core::Factory::InstanceElement(selection_element, "*", "option", Rml::Core::XMLAttributes());
 
 	// Force to block display and inject the RML. Register a click handler so we can be notified of selection.
 	element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));

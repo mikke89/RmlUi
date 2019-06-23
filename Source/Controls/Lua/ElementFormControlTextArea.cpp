@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +28,11 @@
  
 #include "precompiled.h"
 #include "ElementFormControlTextArea.h"
-#include <Rocket/Controls/ElementFormControl.h>
+#include <RmlUi/Controls/ElementFormControl.h>
 #include "ElementFormControl.h"
-#include <Rocket/Core/Lua/Utilities.h>
+#include <RmlUi/Core/Lua/Utilities.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -107,7 +108,7 @@ int ElementFormControlTextAreaSetAttrwordwrap(lua_State* L)
 }
 
 
-Rocket::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[] =
+Rml::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[] =
 {
     { NULL, NULL },
 };
@@ -133,17 +134,17 @@ luaL_Reg ElementFormControlTextAreaSetters[] =
 }
 }
 }
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<Rocket::Controls::ElementFormControlTextArea>(lua_State* L, int metatable_index)
+template<> void ExtraInit<Rml::Controls::ElementFormControlTextArea>(lua_State* L, int metatable_index)
 {
-    ExtraInit<Rocket::Controls::ElementFormControl>(L,metatable_index);
-    LuaType<Rocket::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
-    AddTypeToElementAsTable<Rocket::Controls::ElementFormControlTextArea>(L);
+    ExtraInit<Rml::Controls::ElementFormControl>(L,metatable_index);
+    LuaType<Rml::Controls::ElementFormControl>::_regfunctions(L,metatable_index,metatable_index-1);
+    AddTypeToElementAsTable<Rml::Controls::ElementFormControlTextArea>(L);
 }
 
-using Rocket::Controls::ElementFormControlTextArea;
+using Rml::Controls::ElementFormControlTextArea;
 LUACONTROLSTYPEDEFINE(ElementFormControlTextArea,true)
 }
 }

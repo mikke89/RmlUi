@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +38,7 @@ EventInstancer::~EventInstancer()
 }
 
 // Instances a new event handle for Invaders.
-Rocket::Core::EventListener* EventInstancer::InstanceEventListener(const Rocket::Core::String& value, Rocket::Core::Element* element)
+Rml::Core::EventListener* EventInstancer::InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element)
 {
 	return new Event(value);
 }

@@ -8,7 +8,7 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 [![Build Status](https://travis-ci.com/mikke89/RmlUi.svg?branch=performance)](https://travis-ci.com/mikke89/RmlUi) [![Build status](https://ci.appveyor.com/api/projects/status/x95oi8mrb001pqhh/branch/performance?svg=true)](https://ci.appveyor.com/project/mikke89/rmlui/branch/performance)
 
-RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
+RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRmlUi/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
 RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space.
 
@@ -22,7 +22,7 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Efficient application-wide styling, with a custom-built templating engine.
 - Fully featured control set: buttons, sliders, drop-downs, etc.
 - Runtime visual debugging suite.
-- Easily integrated and extensible with Lua ~~or Python~~ scripting.
+- Easily integrated and extensible with Lua scripting.
 
 ## Extensible
 
@@ -33,14 +33,14 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ## RmlUi features
 
-RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
+RmlUi introduces several features over the [original libRocket branch](https://github.com/libRmlUi/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
 
 
 ## Breaking changes
 
 If upgrading from the original libRocket branch, some breaking changes should be considered:
 
-- Rocket::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase. Similarly, Rocket::Core::WString is now an alias for std::wstring.
+- Rml::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase. Similarly, Rml::Core::WString is now an alias for std::wstring.
 - Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the note below for reasoning and a workaround.
 - The Controls::DataGrid "min-rows" property has been replaced by an attribute of the same name.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
@@ -74,7 +74,7 @@ default_action_phase: TargetAndBubble
 Whenever an event listener is added or event is dispatched, and the provided event type does not already have a specification, the default specification
 `interruptible: true, bubbles: true, default_action_phase: None` is added for that event type. To provide a custom specification for a new event, first call the method:
 ```
-EventId Rocket::Core::RegisterEventType(const String& type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+EventId Rml::Core::RegisterEventType(const String& type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 ```
 After this call, any usage of this type will use the provided specification by default. The returned EventId can be used to dispatch events instead of the type string.
 
@@ -314,8 +314,8 @@ The slider on the `input.range` element can be dragged from anywhere in the elem
 
 ## License (MIT)
  
- Copyright (c) 2019 The RmlUi Team, and contributors\
  Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors
+ Copyright (c) 2019 The RmlUi Team, and contributors\
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal

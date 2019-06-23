@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +27,16 @@
  */
  
 #include "precompiled.h"
-#include <Rocket/Core/Lua/Interpreter.h>
-#include <Rocket/Core/Lua/Utilities.h>
-#include <Rocket/Core/Log.h>
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/FileInterface.h>
-#include <Rocket/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/Interpreter.h>
+#include <RmlUi/Core/Lua/Utilities.h>
+#include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Lua/LuaType.h>
 #include "LuaDocumentElementInstancer.h"
-#include <Rocket/Core/Factory.h>
+#include <RmlUi/Core/Factory.h>
 #include "LuaEventListenerInstancer.h"
-#include "Rocket.h"
+#include "RmlUi.h"
 //the types I made
 #include "ContextDocumentsProxy.h"
 #include "EventParametersProxy.h"
@@ -54,14 +55,14 @@
 #include "ElementChildNodesProxy.h"
 #include "ElementText.h"
 #include "GlobalLuaFunctions.h"
-#include "RocketContextsProxy.h"
+#include "RmlUiContextsProxy.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
 lua_State* Interpreter::_L = NULL;
 //typedefs for nicer Lua names
-typedef Rocket::Core::ElementDocument Document;
+typedef Rml::Core::ElementDocument Document;
 
 void Interpreter::Startup()
 {
@@ -89,17 +90,17 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
         LuaType<ElementText>::Register(L);
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
-    LuaType<LuaRocket>::Register(L);
+    LuaType<LuaRmlUi>::Register(L);
     LuaType<ElementInstancer>::Register(L);
     //Proxy tables
     LuaType<ContextDocumentsProxy>::Register(L);
     LuaType<EventParametersProxy>::Register(L);
     LuaType<ElementAttributesProxy>::Register(L);
     LuaType<ElementChildNodesProxy>::Register(L);
-    LuaType<RocketContextsProxy>::Register(L);
+    LuaType<RmlUiContextsProxy>::Register(L);
     OverrideLuaGlobalFunctions(L);
-    //push the global variable "rocket" to use the "Rocket" methods
-    LuaRocketPushrocketGlobal(L);
+    //push the global variable "rmlui" to use the "RmlUi" methods
+    LuaRmlUiPushrmluiGlobal(L);
 }
 
 
@@ -107,8 +108,8 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
 void Interpreter::LoadFile(const String& file)
 {
     //use the file interface to get the contents of the script
-    Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
-    Rocket::Core::FileHandle handle = file_interface->Open(file);
+    Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
+    Rml::Core::FileHandle handle = file_interface->Open(file);
     if(handle == 0) {
         lua_pushfstring(_L, "LoadFile: Unable to open file: %s", file.c_str());
         Report(_L);
@@ -137,7 +138,7 @@ void Interpreter::LoadFile(const String& file)
 }
 
 
-void Interpreter::DoString(const Rocket::Core::String& code, const Rocket::Core::String& name)
+void Interpreter::DoString(const Rml::Core::String& code, const Rml::Core::String& name)
 {
     if(luaL_loadbuffer(_L,code.c_str(),code.length(), name.c_str()) != 0)
         Report(_L);
@@ -148,7 +149,7 @@ void Interpreter::DoString(const Rocket::Core::String& code, const Rocket::Core:
     }
 }
 
-void Interpreter::LoadString(const Rocket::Core::String& code, const Rocket::Core::String& name)
+void Interpreter::LoadString(const Rml::Core::String& code, const Rml::Core::String& name)
 {
     if(luaL_loadbuffer(_L,code.c_str(),code.length(), name.c_str()) != 0)
         Report(_L);
@@ -222,14 +223,14 @@ void Interpreter::OnShutdown()
 
 void Interpreter::Initialise()
 {
-    Rocket::Core::Lua::Interpreter::Initialise(NULL);
+    Rml::Core::Lua::Interpreter::Initialise(NULL);
 }
 
 void Interpreter::Initialise(lua_State *luaStatePointer)
 {
 	Interpreter *iPtr = new Interpreter();
 	iPtr->_L = luaStatePointer;
-	Rocket::Core::RegisterPlugin(iPtr);
+	Rml::Core::RegisterPlugin(iPtr);
 }
 
 void Interpreter::Shutdown()

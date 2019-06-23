@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,7 @@
 #include <ShellFileInterface.h>
 #include <stdio.h>
 
-ShellFileInterface::ShellFileInterface(const Rocket::Core::String& root) : root(root)
+ShellFileInterface::ShellFileInterface(const Rml::Core::String& root) : root(root)
 {
 }
 
@@ -37,38 +38,38 @@ ShellFileInterface::~ShellFileInterface()
 }
 
 // Opens a file.
-Rocket::Core::FileHandle ShellFileInterface::Open(const Rocket::Core::String& path)
+Rml::Core::FileHandle ShellFileInterface::Open(const Rml::Core::String& path)
 {
 	// Attempt to open the file relative to the application's root.
 	FILE* fp = fopen((root + path).c_str(), "rb");
 	if (fp != NULL)
-		return (Rocket::Core::FileHandle) fp;
+		return (Rml::Core::FileHandle) fp;
 
 	// Attempt to open the file relative to the current working directory.
 	fp = fopen(path.c_str(), "rb");
-	return (Rocket::Core::FileHandle) fp;
+	return (Rml::Core::FileHandle) fp;
 }
 
 // Closes a previously opened file.
-void ShellFileInterface::Close(Rocket::Core::FileHandle file)
+void ShellFileInterface::Close(Rml::Core::FileHandle file)
 {
 	fclose((FILE*) file);
 }
 
 // Reads data from a previously opened file.
-size_t ShellFileInterface::Read(void* buffer, size_t size, Rocket::Core::FileHandle file)
+size_t ShellFileInterface::Read(void* buffer, size_t size, Rml::Core::FileHandle file)
 {
 	return fread(buffer, 1, size, (FILE*) file);
 }
 
 // Seeks to a point in a previously opened file.
-bool ShellFileInterface::Seek(Rocket::Core::FileHandle file, long offset, int origin)
+bool ShellFileInterface::Seek(Rml::Core::FileHandle file, long offset, int origin)
 {
 	return fseek((FILE*) file, offset, origin) == 0;
 }
 
 // Returns the current position of the file pointer.
-size_t ShellFileInterface::Tell(Rocket::Core::FileHandle file)
+size_t ShellFileInterface::Tell(Rml::Core::FileHandle file)
 {
 	return ftell((FILE*) file);
 }

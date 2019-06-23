@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +29,15 @@
 #include "precompiled.h"
 #include "ElementStyle.h"
 #include <algorithm>
-#include "../../Include/Rocket/Core/ElementDocument.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/Log.h"
-#include "../../Include/Rocket/Core/Math.h"
-#include "../../Include/Rocket/Core/Property.h"
-#include "../../Include/Rocket/Core/PropertyDefinition.h"
-#include "../../Include/Rocket/Core/PropertyDictionary.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
 #include "ElementDecoration.h"
@@ -47,7 +48,7 @@
 #include "PropertiesIterator.h"
 
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 ElementStyle::ElementStyle(Element* _element) : dirty_properties(true)
@@ -119,7 +120,7 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 // Properties that are part of a transition are removed from the properties list.
 void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary& inline_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition)
 {
-	ROCKET_ASSERT(element);
+	RMLUI_ASSERT(element);
 	if (!old_definition || !new_definition || properties.empty())
 		return;
 
@@ -217,7 +218,7 @@ void ElementStyle::UpdateDefinition()
 		else if (new_definition)
 		{
 			// We got the same definition
-			ROCKET_ASSERT(new_definition == definition);
+			RMLUI_ASSERT(new_definition == definition);
 			new_definition->RemoveReference();
 		}
 
@@ -424,10 +425,10 @@ float ElementStyle::ResolveLengthPercentage(const Property* property, float base
 {
 	if (!property)
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return 0.0f;
 	}
-	ROCKET_ASSERT(property->unit & Property::LENGTH_PERCENT);
+	RMLUI_ASSERT(property->unit & Property::LENGTH_PERCENT);
 
 	const float font_size = element->GetComputedValues().font_size;
 	const float doc_font_size = element->GetOwnerDocument()->GetComputedValues().font_size;

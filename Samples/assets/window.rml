@@ -1,6 +1,6 @@
 <template name="window" content="content">
 <head>
-	<link type="text/rcss" href="rkt.rcss"/>
+	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="invader.rcss"/>
 </head>
 <body class="window">

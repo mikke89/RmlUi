@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +30,7 @@
 #include "FontEffectNoneInstancer.h"
 #include "FontEffectNone.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 FontEffectNoneInstancer::FontEffectNoneInstancer()
@@ -41,10 +42,10 @@ FontEffectNoneInstancer::~FontEffectNoneInstancer()
 }
 
 // Instances an outline font effect.
-FontEffect* FontEffectNoneInstancer::InstanceFontEffect(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& ROCKET_UNUSED_PARAMETER(properties))
+FontEffect* FontEffectNoneInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& RMLUI_UNUSED_PARAMETER(properties))
 {
-	ROCKET_UNUSED(name);
-	ROCKET_UNUSED(properties);
+	RMLUI_UNUSED(name);
+	RMLUI_UNUSED(properties);
 
 	FontEffectNone* none_effect = new FontEffectNone();
 	return none_effect;

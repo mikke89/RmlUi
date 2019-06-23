@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +26,10 @@
  *
  */
 
-#ifndef ROCKETINVADERSSPRITE_H
-#define ROCKETINVADERSSPRITE_H
+#ifndef RMLUIINVADERSSPRITE_H
+#define RMLUIINVADERSSPRITE_H
 
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Types.h>
 
 /**
 	@author Peter Curry
@@ -37,14 +38,14 @@
 class Sprite
 {
 public:
-	Sprite(const Rocket::Core::Vector2f& dimensions, const Rocket::Core::Vector2f& top_left_texcoord, const Rocket::Core::Vector2f& bottom_right_texcoord);
+	Sprite(const Rml::Core::Vector2f& dimensions, const Rml::Core::Vector2f& top_left_texcoord, const Rml::Core::Vector2f& bottom_right_texcoord);
 	~Sprite();
 
-	void Render(const Rocket::Core::Vector2f& position);
+	void Render(const Rml::Core::Vector2f& position);
 
-	Rocket::Core::Vector2f dimensions;
-	Rocket::Core::Vector2f top_left_texcoord;
-	Rocket::Core::Vector2f bottom_right_texcoord;
+	Rml::Core::Vector2f dimensions;
+	Rml::Core::Vector2f top_left_texcoord;
+	Rml::Core::Vector2f bottom_right_texcoord;
 };
 
 #endif

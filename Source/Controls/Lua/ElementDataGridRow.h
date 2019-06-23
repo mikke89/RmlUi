@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +26,16 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAELEMENTDATAGRIDROW_H
-#define ROCKETCONTROLSLUAELEMENTDATAGRIDROW_H
+#ifndef RMLUICONTROLSLUAELEMENTDATAGRIDROW_H
+#define RMLUICONTROLSLUAELEMENTDATAGRIDROW_H
 
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Controls/ElementDataGridRow.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Controls/ElementDataGridRow.h>
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -49,7 +50,7 @@ int ElementDataGridRowGetAttrparent_grid(lua_State* L);
 int ElementDataGridRowSetAttrrow_expanded(lua_State* L);
 
 
-extern Rocket::Core::Lua::RegType<ElementDataGridRow> ElementDataGridRowMethods[];
+extern Rml::Core::Lua::RegType<ElementDataGridRow> ElementDataGridRowMethods[];
 extern luaL_Reg ElementDataGridRowGetters[];
 extern luaL_Reg ElementDataGridRowSetters[];
 
@@ -58,9 +59,9 @@ extern luaL_Reg ElementDataGridRowSetters[];
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
+namespace Rml { namespace Core { namespace Lua {
 //this will be used to "inherit" from Element
-template<> void ExtraInit<Rocket::Controls::ElementDataGridRow>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::ElementDataGridRow)
+template<> void ExtraInit<Rml::Controls::ElementDataGridRow>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::ElementDataGridRow)
 }}}
 #endif

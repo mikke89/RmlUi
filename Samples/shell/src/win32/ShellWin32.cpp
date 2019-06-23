@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include <Shell.h>
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include <win32/InputWin32.h>
 #include "ShellFileInterface.h"
 #include <windows.h>
@@ -52,7 +53,7 @@ static HCURSOR cursor_cross = NULL;
 static HCURSOR cursor_unavailable = NULL;
 
 
-bool Shell::Initialise(const Rocket::Core::String& path)
+bool Shell::Initialise()
 {
 	instance_handle = GetModuleHandle(NULL);
 	InputWin32::Initialise();
@@ -63,22 +64,10 @@ bool Shell::Initialise(const Rocket::Core::String& path)
 
 	time_frequency = 1.0 / (double) time_ticks_per_second.QuadPart;
 
-	// Fetch the path of the executable, append the path onto that.
-	char executable_file_name[MAX_PATH];
-	if (GetModuleFileNameA(instance_handle, executable_file_name, MAX_PATH) >= MAX_PATH &&
-		GetLastError() == ERROR_INSUFFICIENT_BUFFER)
-		executable_file_name[0] = 0;
-
-	executable_path = Rocket::Core::String(executable_file_name);
-	executable_path = executable_path.substr(0, executable_path.rfind("\\") + 1);
-	file_interface = new ShellFileInterface(executable_path + path);
-	Rocket::Core::SetFileInterface(file_interface);
-
-	// Load cursors
-	cursor_default = LoadCursorA(NULL, IDC_ARROW);
-	cursor_move = LoadCursorA(NULL, IDC_SIZEALL);
-	cursor_cross = LoadCursorA(NULL, IDC_CROSS);
-	cursor_unavailable = LoadCursorA(NULL, IDC_NO);
+	Rml::Core::String root = FindSamplesRoot();
+	
+	file_interface = new ShellFileInterface(root);
+	Rml::Core::SetFileInterface(file_interface);
 
 	return true;
 }
@@ -89,6 +78,24 @@ void Shell::Shutdown()
 
 	delete file_interface;
 	file_interface = NULL;
+}
+
+Rml::Core::String Shell::FindSamplesRoot()
+{
+	Rml::Core::String path = "../../Samples/";
+	
+	// Fetch the path of the executable, append the path onto that.
+	char executable_file_name[MAX_PATH];
+	if (GetModuleFileNameA(instance_handle, executable_file_name, MAX_PATH) >= MAX_PATH &&
+		GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+	{
+		executable_file_name[0] = 0;
+	}
+
+	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
+	executable_path = executable_path.substr(0, executable_path.rfind("\\") + 1);
+	
+	return executable_path + path;
 }
 
 static ShellRenderInterfaceExtensions *shell_renderer = NULL;
@@ -263,7 +270,7 @@ double Shell::GetElapsedTime()
 	return double(counter.QuadPart - time_startup.QuadPart) * time_frequency;
 }
 
-void Shell::SetMouseCursor(const Rocket::Core::String& cursor_name)
+void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 {
 	if (window_handle)
 	{
@@ -285,7 +292,7 @@ void Shell::SetMouseCursor(const Rocket::Core::String& cursor_name)
 	}
 }
 
-void Shell::SetClipboardText(const Rocket::Core::WString& text)
+void Shell::SetClipboardText(const Rml::Core::WString& text)
 {
 	if (window_handle)
 	{
@@ -309,7 +316,7 @@ void Shell::SetClipboardText(const Rocket::Core::WString& text)
 	}
 }
 
-void Shell::GetClipboardText(Rocket::Core::WString& text)
+void Shell::GetClipboardText(Rml::Core::WString& text)
 {
 	if (window_handle)
 	{

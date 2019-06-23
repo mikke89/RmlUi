@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,23 +37,24 @@
 // OpenGL Extension Wrangler Library (GLEW)
 //#include <GL/glew.h>
 
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include "SystemInterfaceSFML.h"
 #include "RenderInterfaceSFML.h"
-#include <Rocket/Core/Input.h>
-#include <Rocket/Debugger/Debugger.h>
-#include "ShellFileInterface.h"
+#include <RmlUi/Core/Input.h>
+#include <RmlUi/Debugger/Debugger.h>
+#include <Shell.h>
+#include <ShellFileInterface.h>
 
 int main(int argc, char **argv)
 {
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
         AllocConsole();
 #endif
 
         int window_width = 1024;
         int window_height = 768;
 
-	sf::RenderWindow MyWindow(sf::VideoMode(window_width, window_height), "libRocket with SFML2", sf::Style::Close);
+	sf::RenderWindow MyWindow(sf::VideoMode(window_width, window_height), "RmlUi with SFML2", sf::Style::Close);
 	MyWindow.setVerticalSyncEnabled(true);
 
 #ifdef ENABLE_GLEW
@@ -66,37 +68,38 @@ int main(int argc, char **argv)
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 #endif
 
-	RocketSFMLRenderer Renderer;
-	RocketSFMLSystemInterface SystemInterface;
+	RmlUiSFMLRenderer Renderer;
+	RmlUiSFMLSystemInterface SystemInterface;
 
 	// NOTE: if fonts and rml are not found you'll probably have to adjust
 	// the path information in the string
-	ShellFileInterface FileInterface("../Samples/assets/");
+	Rml::Core::String root = Shell::FindSamplesRoot();
+	ShellFileInterface FileInterface(root);
 
 	if(!MyWindow.isOpen())
 		return 1;
 
 	Renderer.SetWindow(&MyWindow);
 
-	Rocket::Core::SetFileInterface(&FileInterface);
-	Rocket::Core::SetRenderInterface(&Renderer);
-	Rocket::Core::SetSystemInterface(&SystemInterface);
+	Rml::Core::SetFileInterface(&FileInterface);
+	Rml::Core::SetRenderInterface(&Renderer);
+	Rml::Core::SetSystemInterface(&SystemInterface);
 
 
-	if(!Rocket::Core::Initialise())
+	if(!Rml::Core::Initialise())
 		return 1;
 
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Bold.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-BoldItalic.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Italic.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Roman.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Bold.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Italic.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Roman.otf");
 
-	Rocket::Core::Context *Context = Rocket::Core::CreateContext("default",
-		Rocket::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
+	Rml::Core::Context *Context = Rml::Core::CreateContext("default",
+		Rml::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
 
-	Rocket::Debugger::Initialise(Context);
+	Rml::Debugger::Initialise(Context);
 
-	Rocket::Core::ElementDocument *Document = Context->LoadDocument("demo.rml");
+	Rml::Core::ElementDocument *Document = Context->LoadDocument("assets/demo.rml");
 
 	if(Document)
 	{
@@ -151,7 +154,7 @@ int main(int argc, char **argv)
 			case sf::Event::KeyReleased:
 				if(event.key.code == sf::Keyboard::F8)
 				{
-					Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
+					Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 				};
 
 				if(event.key.code == sf::Keyboard::Escape) {
@@ -171,7 +174,7 @@ int main(int argc, char **argv)
 	};
 
 	Context->RemoveReference();
-	Rocket::Core::Shutdown();
+	Rml::Core::Shutdown();
 
 	return 0;
 };

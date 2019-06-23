@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,18 +28,18 @@
 #ifndef SYSTEMINTEFACESDL2_H
 #define SYSTEMINTEFACESDL2_H
 
-#include <Rocket/Core/SystemInterface.h>
-#include <Rocket/Core/Input.h>
+#include <RmlUi/Core/SystemInterface.h>
+#include <RmlUi/Core/Input.h>
 
 #include <SDL.h>
 
-class RocketSDL2SystemInterface : public Rocket::Core::SystemInterface
+class RmlUiSDL2SystemInterface : public Rml::Core::SystemInterface
 {
 public:
-    Rocket::Core::Input::KeyIdentifier TranslateKey(SDL_Keycode sdlkey);
+    Rml::Core::Input::KeyIdentifier TranslateKey(SDL_Keycode sdlkey);
     int TranslateMouseButton(Uint8 button);
 	int GetKeyModifiers();
 	double GetElapsedTime();
-    bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message);
+    bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message);
 };
 #endif

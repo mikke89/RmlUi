@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +26,15 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROLTEXTAREA_H
-#define ROCKETCONTROLSLUAELEMENTFORMCONTROLTEXTAREA_H
+#ifndef RMLUICONTROLSLUAELEMENTFORMCONTROLTEXTAREA_H
+#define RMLUICONTROLSLUAELEMENTFORMCONTROLTEXTAREA_H
 
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Controls/ElementFormControlTextArea.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Controls/ElementFormControlTextArea.h>
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -49,16 +50,16 @@ int ElementFormControlTextAreaSetAttrmaxlength(lua_State* L);
 int ElementFormControlTextAreaSetAttrrows(lua_State* L);
 int ElementFormControlTextAreaSetAttrwordwrap(lua_State* L);
 
-extern Rocket::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[];
+extern Rml::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[];
 extern luaL_Reg ElementFormControlTextAreaGetters[];
 extern luaL_Reg ElementFormControlTextAreaSetters[];
 
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
+namespace Rml { namespace Core { namespace Lua {
 //inherits from ElementFormControl which inherits from Element
-template<> void ExtraInit<Rocket::Controls::ElementFormControlTextArea>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::ElementFormControlTextArea)
+template<> void ExtraInit<Rml::Controls::ElementFormControlTextArea>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::ElementFormControlTextArea)
 }}}
 #endif

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +26,20 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/Controls.h"
-#include "../../Include/Rocket/Core/ElementInstancerGeneric.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
-#include "../../Include/Rocket/Core/XMLParser.h"
-#include "../../Include/Rocket/Core/Plugin.h"
-#include "../../Include/Rocket/Core/Core.h"
+#include "../../Include/RmlUi/Controls/Controls.h"
+#include "../../Include/RmlUi/Core/ElementInstancerGeneric.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Plugin.h"
+#include "../../Include/RmlUi/Core/Core.h"
 #include "ElementTextSelection.h"
 #include "XMLNodeHandlerDataGrid.h"
 #include "XMLNodeHandlerTabSet.h"
 #include "XMLNodeHandlerTextArea.h"
-#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlInput.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 // Registers the custom element instancers.
@@ -81,11 +82,11 @@ void RegisterElementInstancers()
 	instancer->RemoveReference();
 
 	instancer = new Core::ElementInstancerGeneric< ElementDataGridCell >();
-	Core::Factory::RegisterElementInstancer("#rktctl_datagridcell", instancer);
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", instancer);
 	instancer->RemoveReference();
 
 	instancer = new Core::ElementInstancerGeneric< ElementDataGridRow >();
-	Core::Factory::RegisterElementInstancer("#rktctl_datagridrow", instancer);
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", instancer);
 	instancer->RemoveReference();
 }
 
@@ -106,7 +107,7 @@ void RegisterXMLNodeHandlers()
 
 static bool initialised = false;
 
-class ControlsPlugin : public Rocket::Core::Plugin
+class ControlsPlugin : public Rml::Core::Plugin
 {
 public:
 	void OnShutdown()
@@ -117,7 +118,7 @@ public:
 
 	int GetEventClasses()
 	{
-		return Rocket::Core::Plugin::EVT_BASIC;
+		return Rml::Core::Plugin::EVT_BASIC;
 	}
 };
 
@@ -133,7 +134,7 @@ void Initialise()
 		RegisterXMLNodeHandlers();
 
 		// Register the controls plugin, so we'll be notified on Shutdown
-		Rocket::Core::RegisterPlugin(new ControlsPlugin());
+		Rml::Core::RegisterPlugin(new ControlsPlugin());
 
 		initialised = true;
 	}

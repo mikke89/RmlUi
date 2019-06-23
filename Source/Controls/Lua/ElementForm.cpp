@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +28,11 @@
  
 #include "precompiled.h"
 #include "ElementForm.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Controls/ElementForm.h>
-#include <Rocket/Core/Lua/Utilities.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Controls/ElementForm.h>
+#include <RmlUi/Core/Lua/Utilities.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -51,7 +52,7 @@ int ElementFormSubmit(lua_State* L, ElementForm* obj)
     return 0;
 }
 
-Rocket::Core::Lua::RegType<ElementForm> ElementFormMethods[] =
+Rml::Core::Lua::RegType<ElementForm> ElementFormMethods[] =
 {
     LUAMETHOD(ElementForm,Submit)
     { NULL, NULL },
@@ -71,17 +72,17 @@ luaL_Reg ElementFormSetters[] =
 }
 }
 }
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<Rocket::Controls::ElementForm>(lua_State* L, int metatable_index)
+template<> void ExtraInit<Rml::Controls::ElementForm>(lua_State* L, int metatable_index)
 {
     //inherit from Element
     ExtraInit<Element>(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    AddTypeToElementAsTable<Rocket::Controls::ElementForm>(L);
+    AddTypeToElementAsTable<Rml::Controls::ElementForm>(L);
 }
-using Rocket::Controls::ElementForm;
+using Rml::Controls::ElementForm;
 LUACONTROLSTYPEDEFINE(ElementForm,true)
 }
 }

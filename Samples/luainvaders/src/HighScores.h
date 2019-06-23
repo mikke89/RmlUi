@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,32 +26,32 @@
  *
  */
 
-#ifndef ROCKETINVADERSHIGHSCORES_H
-#define ROCKETINVADERSHIGHSCORES_H
+#ifndef RMLUIINVADERSHIGHSCORES_H
+#define RMLUIINVADERSHIGHSCORES_H
 
-#include <Rocket/Controls/DataSource.h>
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Controls/DataSource.h>
+#include <RmlUi/Core/Types.h>
 
 const int NUM_SCORES = 10;
 
-class HighScores : public Rocket::Controls::DataSource
+class HighScores : public Rml::Controls::DataSource
 {
 public:
 	static void Initialise();
 	static void Shutdown();
 
-	void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns);
-	int GetNumRows(const Rocket::Core::String& table);
+	void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns);
+	int GetNumRows(const Rml::Core::String& table);
 
 	static int GetHighScore();
 
 	/// Two functions to add a score to the chart.
 	/// Adds a full score, including a name. This won't prompt the user to enter their name.
-	static void SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score);
+	static void SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score);
 	/// Adds a score, and causes an input field to appear to request the user for their name.
-	static void SubmitScore(const Rocket::Core::Colourb& colour, int wave, int score);
+	static void SubmitScore(const Rml::Core::Colourb& colour, int wave, int score);
 	/// Sets the name of the last player to submit their score.
-	static void SubmitName(const Rocket::Core::String& name);
+	static void SubmitName(const Rml::Core::String& name);
 
 private:
 	HighScores();
@@ -58,15 +59,15 @@ private:
 
 	static HighScores* instance;
 
-	void SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score, bool name_required);
+	void SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score, bool name_required);
 	void LoadScores();
 	void SaveScores();
 
 	struct Score
 	{
-		Rocket::Core::String name;
+		Rml::Core::String name;
 		bool name_required;
-		Rocket::Core::Colourb colour;
+		Rml::Core::Colourb colour;
 		int score;
 		int wave;
 	};

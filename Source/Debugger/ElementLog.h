@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +26,14 @@
  *
  */
 
-#ifndef ROCKETDEBUGGERELEMENTLOG_H
-#define ROCKETDEBUGGERELEMENTLOG_H
+#ifndef RMLUIDEBUGGERELEMENTLOG_H
+#define RMLUIDEBUGGERELEMENTLOG_H
 
-#include "../../Include/Rocket/Core/ElementDocument.h"
-#include "../../Include/Rocket/Core/EventListener.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/EventListener.h"
 #include <deque>
 
-namespace Rocket {
+namespace Rml {
 namespace Debugger {
 
 class SystemInterface;

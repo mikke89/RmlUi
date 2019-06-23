@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +26,11 @@
  *
  */
 
-#ifndef ROCKETINVADERSEVENTMANAGER_H
-#define ROCKETINVADERSEVENTMANAGER_H
+#ifndef RMLUIINVADERSEVENTMANAGER_H
+#define RMLUIINVADERSEVENTMANAGER_H
 
-#include <Rocket/Core/Event.h>
-#include <Rocket/Core/ElementDocument.h>
+#include <RmlUi/Core/Event.h>
+#include <RmlUi/Core/ElementDocument.h>
 
 class EventHandler;
 
@@ -46,15 +47,15 @@ public:
 	/// Registers a new event handler with the manager.
 	/// @param[in] handler_name The name of the handler; this must be the same as the window it is handling events for.
 	/// @param[in] handler The event handler.
-	static void RegisterEventHandler(const Rocket::Core::String& handler_name, EventHandler* handler);
+	static void RegisterEventHandler(const Rml::Core::String& handler_name, EventHandler* handler);
 
-	/// Processes an event coming through from Rocket.
-	/// @param[in] event The Rocket event that spawned the application event.
+	/// Processes an event coming through from RmlUi.
+	/// @param[in] event The RmlUi event that spawned the application event.
 	/// @param[in] value The application-specific event value.
-	static void ProcessEvent(Rocket::Core::Event& event, const Rocket::Core::String& value);
+	static void ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value);
 	/// Loads a window and binds the event handler for it.
 	/// @param[in] window_name The name of the window to load.
-	static Rocket::Core::ElementDocument* LoadWindow(const Rocket::Core::String& window_name);
+	static Rml::Core::ElementDocument* LoadWindow(const Rml::Core::String& window_name);
 
 private:
 	EventManager();

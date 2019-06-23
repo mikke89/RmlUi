@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +26,12 @@
  *
  */
 
-#include <Rocket/Core.h>
-#include <Rocket/Controls.h>
-#include <Rocket/Debugger.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Controls.h>
+#include <RmlUi/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 
 #include <cmath>
 #include <sstream>
@@ -37,14 +39,14 @@
 class DemoWindow
 {
 public:
-	DemoWindow(const Rocket::Core::String &title, const Rocket::Core::Vector2f &position, Rocket::Core::Context *context)
+	DemoWindow(const Rml::Core::String &title, const Rml::Core::Vector2f &position, Rml::Core::Context *context)
 	{
 		document = context->LoadDocument("basic/transform/data/transform.rml");
 		if (document != NULL)
 		{
 			document->GetElementById("title")->SetInnerRML(title);
-			document->SetProperty(Rocket::Core::PropertyId::Left, Rocket::Core::Property(position.x, Rocket::Core::Property::PX));
-			document->SetProperty(Rocket::Core::PropertyId::Top, Rocket::Core::Property(position.y, Rocket::Core::Property::PX));
+			document->SetProperty(Rml::Core::PropertyId::Left, Rml::Core::Property(position.x, Rml::Core::Property::PX));
+			document->SetProperty(Rml::Core::PropertyId::Top, Rml::Core::Property(position.y, Rml::Core::Property::PX));
 			document->Show();
 		}
 	}
@@ -89,10 +91,10 @@ public:
 	}
 
 private:
-	Rocket::Core::ElementDocument *document;
+	Rml::Core::ElementDocument *document;
 };
 
-Rocket::Core::Context* context = NULL;
+Rml::Core::Context* context = NULL;
 ShellRenderInterfaceExtensions *shell_renderer;
 DemoWindow* window_1 = NULL;
 DemoWindow* window_2 = NULL;
@@ -106,7 +108,7 @@ void GameLoop()
 	shell_renderer->PresentRenderBuffer();
 
 	static float deg = 0;
-	Rocket::Core::SystemInterface* system_interface = Rocket::Core::GetSystemInterface();
+	Rml::Core::SystemInterface* system_interface = Rml::Core::GetSystemInterface();
 	deg = (float)std::fmod(system_interface->GetElapsedTime() * 30.0, 360.0);
 	if (window_1)
 	{
@@ -118,65 +120,65 @@ void GameLoop()
 	}
 }
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
+int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
 #else
-int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv))
+int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 #endif
 {
-#ifdef ROCKET_PLATFORM_WIN32
-	ROCKET_UNUSED(instance_handle);
-	ROCKET_UNUSED(previous_instance_handle);
-	ROCKET_UNUSED(command_line);
-	ROCKET_UNUSED(command_show);
+#ifdef RMLUI_PLATFORM_WIN32
+	RMLUI_UNUSED(instance_handle);
+	RMLUI_UNUSED(previous_instance_handle);
+	RMLUI_UNUSED(command_line);
+	RMLUI_UNUSED(command_show);
 #else
-	ROCKET_UNUSED(argc);
-	ROCKET_UNUSED(argv);
+	RMLUI_UNUSED(argc);
+	RMLUI_UNUSED(argv);
 #endif
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../../Samples/") ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Transform Sample", shell_renderer, 1024, 768, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
-	// Rocket initialisation.
-	Rocket::Core::SetRenderInterface(&opengl_renderer);
+	// RmlUi initialisation.
+	Rml::Core::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(1024,768);
 
 	ShellSystemInterface system_interface;
-	Rocket::Core::SetSystemInterface(&system_interface);
+	Rml::Core::SetSystemInterface(&system_interface);
 
-	Rocket::Core::Initialise();
+	Rml::Core::Initialise();
 
-	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(1024, 768));
+	// Create the main RmlUi context and set it on the shell's input layer.
+	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(1024, 768));
 	if (context == NULL)
 	{
-		Rocket::Core::Shutdown();
+		Rml::Core::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	Rocket::Controls::Initialise();
-	Rocket::Debugger::Initialise(context);
+	Rml::Controls::Initialise();
+	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
 	Shell::LoadFonts("assets/");
 
-	window_1 = new DemoWindow("Orthographic transform", Rocket::Core::Vector2f(81, 200), context);
+	window_1 = new DemoWindow("Orthographic transform", Rml::Core::Vector2f(81, 200), context);
 	if (window_1)
 	{
 		window_1->SetPerspective(100000);
 	}
-	window_2 = new DemoWindow("Perspective transform", Rocket::Core::Vector2f(593, 200), context);
+	window_2 = new DemoWindow("Perspective transform", Rml::Core::Vector2f(593, 200), context);
 	if (window_2)
 	{
 		window_2->SetPerspective(800);
@@ -188,9 +190,9 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	delete window_1;
 	delete window_2;
 
-	// Shutdown Rocket.
+	// Shutdown RmlUi.
 	context->RemoveReference();
-	Rocket::Core::Shutdown();
+	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

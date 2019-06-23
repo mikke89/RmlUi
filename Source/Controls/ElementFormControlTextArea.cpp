@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementFormControlTextArea.h"
-#include "../../Include/Rocket/Core/Math.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
-#include "../../Include/Rocket/Core/ElementText.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlTextArea.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
 #include "WidgetTextInputMultiLine.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 // Constructs a new ElementFormControlTextArea.
-ElementFormControlTextArea::ElementFormControlTextArea(const Rocket::Core::String& tag) : ElementFormControl(tag)
+ElementFormControlTextArea::ElementFormControlTextArea(const Rml::Core::String& tag) : ElementFormControl(tag)
 {
 	widget = new WidgetTextInputMultiLine(this);
 
@@ -50,13 +51,13 @@ ElementFormControlTextArea::~ElementFormControlTextArea()
 }
 
 // Returns a string representation of the current value of the form control.
-Rocket::Core::String ElementFormControlTextArea::GetValue() const
+Rml::Core::String ElementFormControlTextArea::GetValue() const
 {
-	return GetAttribute< Rocket::Core::String >("value", "");
+	return GetAttribute< Rml::Core::String >("value", "");
 }
 
 // Sets the current value of the form control.
-void ElementFormControlTextArea::SetValue(const Rocket::Core::String& value)
+void ElementFormControlTextArea::SetValue(const Rml::Core::String& value)
 {
 	SetAttribute("value", value);
 }
@@ -65,7 +66,7 @@ void ElementFormControlTextArea::SetValue(const Rocket::Core::String& value)
 // fixed-width font.
 void ElementFormControlTextArea::SetNumColumns(int num_columns)
 {
-	SetAttribute< int >("cols", Rocket::Core::Math::Max(1, num_columns));
+	SetAttribute< int >("cols", Rml::Core::Math::Max(1, num_columns));
 }
 
 // Returns the approximate number of characters visible at once.
@@ -77,7 +78,7 @@ int ElementFormControlTextArea::GetNumColumns() const
 // Sets the number of visible lines of text in the text area.
 void ElementFormControlTextArea::SetNumRows(int num_rows)
 {
-	SetAttribute< int >("rows", Rocket::Core::Math::Max(1, num_rows));
+	SetAttribute< int >("rows", Rml::Core::Math::Max(1, num_rows));
 }
 
 // Returns the number of visible lines of text in the text area.
@@ -113,12 +114,12 @@ void ElementFormControlTextArea::SetWordWrap(bool word_wrap)
 // Returns the state of word-wrapping in the text area.
 bool ElementFormControlTextArea::GetWordWrap()
 {
-	Rocket::Core::String attribute = GetAttribute< Rocket::Core::String >("wrap", "");
+	Rml::Core::String attribute = GetAttribute< Rml::Core::String >("wrap", "");
 	return attribute != "nowrap";
 }
 
 // Returns the control's inherent size, based on the length of the input field and the current font size.
-bool ElementFormControlTextArea::GetIntrinsicDimensions(Rocket::Core::Vector2f& dimensions)
+bool ElementFormControlTextArea::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 {
 	dimensions.x = (float) (GetNumColumns() * Core::ElementUtilities::GetStringWidth(this, L"m"));
 	dimensions.y = (float)GetNumRows() * GetLineHeight();
@@ -179,7 +180,7 @@ void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyNameList& 
 }
 
 // Returns the text content of the element.
-void ElementFormControlTextArea::GetInnerRML(Rocket::Core::String& content) const
+void ElementFormControlTextArea::GetInnerRML(Rml::Core::String& content) const
 {
 	content = GetValue();
 }

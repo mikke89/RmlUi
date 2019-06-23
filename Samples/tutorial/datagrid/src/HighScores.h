@@ -12,7 +12,7 @@
 #ifndef HIGHSCORES_H
 #define HIGHSCORES_H
 
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Types.h>
 
 const int NUM_SCORES = 10;
 
@@ -33,13 +33,13 @@ private:
 
 	static HighScores* instance;
 
-	void SubmitScore(const Rocket::Core::String& name, const Rocket::Core::Colourb& colour, int wave, int score);
+	void SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score);
 	void LoadScores();
 
 	struct Score
 	{
-		Rocket::Core::String name;
-		Rocket::Core::Colourb colour;
+		Rml::Core::String name;
+		Rml::Core::Colourb colour;
 		int score;
 		int wave;
 	};

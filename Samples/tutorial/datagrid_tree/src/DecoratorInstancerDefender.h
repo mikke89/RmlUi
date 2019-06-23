@@ -12,14 +12,14 @@
 #ifndef DECORATORINSTANCERDEFENDER_H
 #define DECORATORINSTANCERDEFENDER_H
 
-#include <Rocket/Core/DecoratorInstancer.h>
+#include <RmlUi/Core/DecoratorInstancer.h>
 
 /**
 	Decorator instancer for the Defender decorator.
 	@author Robert Curry
  */
 
-class DecoratorInstancerDefender : public Rocket::Core::DecoratorInstancer
+class DecoratorInstancerDefender : public Rml::Core::DecoratorInstancer
 {
 public:
 	DecoratorInstancerDefender();
@@ -30,17 +30,17 @@ public:
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @param[in] interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the decorator if it was instanced successfully.
-	std::shared_ptr<Rocket::Core::Decorator> InstanceDecorator(const Rocket::Core::String& name, const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::DecoratorInstancerInterface& interface) override;
+	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
 
 	/// Releases the given decorator.
 	/// @param decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	void ReleaseDecorator(Rocket::Core::Decorator* decorator);
+	void ReleaseDecorator(Rml::Core::Decorator* decorator);
 
 	/// Releases the instancer.
 	void Release();
 
 private:
-	Rocket::Core::PropertyId id_image_src;
+	Rml::Core::PropertyId id_image_src;
 };
 
 #endif

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +26,12 @@
  *
  */
 
-#ifndef ROCKETCONTROLSWIDGETTEXTINPUTSINGLELINE_H
-#define ROCKETCONTROLSWIDGETTEXTINPUTSINGLELINE_H
+#ifndef RMLUICONTROLSWIDGETTEXTINPUTSINGLELINE_H
+#define RMLUICONTROLSWIDGETTEXTINPUTSINGLELINE_H
 
 #include "WidgetTextInput.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 /**
@@ -53,7 +54,7 @@ protected:
 	/// Returns true if the given character is permitted in the input field, false if not.
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
-	virtual bool IsCharacterValid(Rocket::Core::word character);
+	virtual bool IsCharacterValid(Rml::Core::word character);
 	/// Called when the user pressed enter.
 	virtual void LineBreak();
 

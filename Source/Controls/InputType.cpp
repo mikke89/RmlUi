@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,9 @@
  */
 
 #include "InputType.h"
-#include "../../Include/Rocket/Controls/ElementFormControlInput.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlInput.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 InputType::InputType(ElementFormControlInput* element) : element(element)
@@ -40,9 +41,9 @@ InputType::~InputType()
 }
 
 // Returns a string representation of the current value of the form control.
-Rocket::Core::String InputType::GetValue() const
+Rml::Core::String InputType::GetValue() const
 {
-	return element->GetAttribute< Rocket::Core::String >("value", "");
+	return element->GetAttribute< Rml::Core::String >("value", "");
 }
 
 // Returns if this value should be submitted with the form.
@@ -66,17 +67,17 @@ void InputType::OnResize()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputType::OnAttributeChange(const Core::ElementAttributes& ROCKET_UNUSED_PARAMETER(changed_attributes))
+bool InputType::OnAttributeChange(const Core::ElementAttributes& RMLUI_UNUSED_PARAMETER(changed_attributes))
 {
-	ROCKET_UNUSED(changed_attributes);
+	RMLUI_UNUSED(changed_attributes);
 
 	return true;
 }
 
 // Called when properties on the control are changed.
-void InputType::OnPropertyChange(const Core::PropertyNameList& ROCKET_UNUSED_PARAMETER(changed_properties))
+void InputType::OnPropertyChange(const Core::PropertyNameList& RMLUI_UNUSED_PARAMETER(changed_properties))
 {
-	ROCKET_UNUSED(changed_properties);
+	RMLUI_UNUSED(changed_properties);
 }
 
 // Called when the element is added into a hierarchy.

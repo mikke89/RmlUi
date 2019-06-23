@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +27,16 @@
  */
 
 #include "precompiled.h"
-#include <Rocket/Core/BitmapFont/FontProvider.h>
+#include <RmlUi/Core/BitmapFont/FontProvider.h>
 #include "../FontFaceHandle.h"
-#include <Rocket/Core/FontDatabase.h>
-#include <Rocket/Core/StreamMemory.h>
+#include <RmlUi/Core/FontDatabase.h>
+#include <RmlUi/Core/StreamMemory.h>
 #include "FontFamily.h"
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include "BitmapFontDefinitions.h"
 #include "FontParser.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace BitmapFont {
 
@@ -44,13 +45,13 @@ FontProvider* FontProvider::instance = NULL;
 
 FontProvider::FontProvider()
 {
-	ROCKET_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == NULL);
 	instance = this;
 }
 
 FontProvider::~FontProvider()
 {
-	ROCKET_ASSERT(instance == this);
+	RMLUI_ASSERT(instance == this);
 	instance = NULL;
 }
 
@@ -145,7 +146,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length, const String&
 bool FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
 {
 	String family_lower = ToLower(family);
-	Rocket::Core::FontFamily* font_family = NULL;
+	Rml::Core::FontFamily* font_family = NULL;
 	FontFamilyMap::iterator iterator = instance->font_families.find(family_lower);
 	if (iterator != instance->font_families.end())
 		font_family = (*iterator).second;

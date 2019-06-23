@@ -10,9 +10,9 @@
  */
 
 #include "HighScoresShipFormatter.h"
-#include <Rocket/Core/TypeConverter.h>
+#include <RmlUi/Core/TypeConverter.h>
 
-HighScoresShipFormatter::HighScoresShipFormatter() : Rocket::Controls::DataFormatter("ship")
+HighScoresShipFormatter::HighScoresShipFormatter() : Rml::Controls::DataFormatter("ship")
 {
 }
 
@@ -20,15 +20,15 @@ HighScoresShipFormatter::~HighScoresShipFormatter()
 {
 }
 
-void HighScoresShipFormatter::FormatData(Rocket::Core::String& formatted_data, const Rocket::Core::StringList& raw_data)
+void HighScoresShipFormatter::FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data)
 {
 	// Data format:
 	// raw_data[0] is the colour, in "%d, %d, %d, %d" format.
 
-	Rocket::Core::Colourb ship_colour;
-	Rocket::Core::TypeConverter< Rocket::Core::String, Rocket::Core::Colourb >::Convert(raw_data[0], ship_colour);
+	Rml::Core::Colourb ship_colour;
+	Rml::Core::TypeConverter< Rml::Core::String, Rml::Core::Colourb >::Convert(raw_data[0], ship_colour);
 
-	Rocket::Core::String colour_string = Rocket::Core::CreateString(32, "%d,%d,%d", ship_colour.red, ship_colour.green, ship_colour.blue);
+	Rml::Core::String colour_string = Rml::Core::CreateString(32, "%d,%d,%d", ship_colour.red, ship_colour.green, ship_colour.blue);
 
 	formatted_data = "<defender style=\"color: rgb(" + colour_string + ");\" />";
 }

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +27,16 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core.h"
+#include "../../Include/RmlUi/Core.h"
 #include "EventDispatcher.h"
 #include "EventIterators.h"
 #include "PluginRegistry.h"
 #include "StreamFile.h"
-#include "../../Include/Rocket/Core/StreamMemory.h"
+#include "../../Include/RmlUi/Core/StreamMemory.h"
 #include <algorithm>
 #include <iterator>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
@@ -44,7 +45,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 {
 	instancer = NULL;
 
-	// Initialise this to NULL; this will be set in Rocket::Core::CreateContext().
+	// Initialise this to NULL; this will be set in Rml::Core::CreateContext().
 	render_interface = NULL;
 
 	root = Factory::InstanceElement(NULL, "*", "#root", XMLAttributes());
@@ -484,7 +485,7 @@ void Context::RemoveEventListener(const String& event, EventListener* listener, 
 	root->RemoveEventListener(event, listener, in_capture_phase);
 }
 
-// Sends a key down event into Rocket.
+// Sends a key down event into RmlUi.
 bool Context::ProcessKeyDown(Input::KeyIdentifier key_identifier, int key_modifier_state)
 {
 	// Generate the parameters for the key event.
@@ -498,7 +499,7 @@ bool Context::ProcessKeyDown(Input::KeyIdentifier key_identifier, int key_modifi
 		return root->DispatchEvent(EventId::Keydown, parameters);
 }
 
-// Sends a key up event into Rocket.
+// Sends a key up event into RmlUi.
 bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier_state)
 {
 	// Generate the parameters for the key event.
@@ -512,7 +513,7 @@ bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier
 		return root->DispatchEvent(EventId::Keyup, parameters);
 }
 
-// Sends a single character of text as text input into Rocket.
+// Sends a single character of text as text input into RmlUi.
 bool Context::ProcessTextInput(word character)
 {
 	// Generate the parameters for the key event.
@@ -525,7 +526,7 @@ bool Context::ProcessTextInput(word character)
 		return root->DispatchEvent(EventId::Textinput, parameters);
 }
 
-// Sends a string of text as text input into Rocket.
+// Sends a string of text as text input into RmlUi.
 bool Context::ProcessTextInput(const String& string)
 {
 	bool consumed = true;
@@ -545,7 +546,7 @@ bool Context::ProcessTextInput(const String& string)
 	return consumed;
 }
 
-// Sends a mouse movement event into Rocket.
+// Sends a mouse movement event into RmlUi.
 void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 {
 	// Check whether the mouse moved since the last event came through.
@@ -599,7 +600,7 @@ static Element* FindFocusElement(Element* element)
 	return element;
 }
 
-// Sends a mouse-button down event into Rocket.
+// Sends a mouse-button down event into RmlUi.
 void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 {
 	Dictionary parameters;
@@ -682,7 +683,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	}
 }
 
-// Sends a mouse-button up event into Rocket.
+// Sends a mouse-button up event into RmlUi.
 void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 {
 	Dictionary parameters;
@@ -748,7 +749,7 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	}
 }
 
-// Sends a mouse-wheel movement event into Rocket.
+// Sends a mouse-wheel movement event into RmlUi.
 bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 {
 	if (hover)
@@ -763,13 +764,13 @@ bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 	return true;
 }
 
-// Notifies Rocket of a change in the projection matrix.
+// Notifies RmlUi of a change in the projection matrix.
 void Context::ProcessProjectionChange(const Matrix4f &projection)
 {
 	view_state.SetProjection(&projection);
 }
 
-// Notifies Rocket of a change in the view matrix.
+// Notifies RmlUi of a change in the view matrix.
 void Context::ProcessViewChange(const Matrix4f &view)
 {
 	view_state.SetView(&view);
@@ -803,7 +804,7 @@ void Context::SetActiveClipRegion(const Vector2i& origin, const Vector2i& dimens
 // Sets the instancer to use for releasing this object.
 void Context::SetInstancer(ContextInstancer* _instancer)
 {
-	ROCKET_ASSERT(instancer == NULL);
+	RMLUI_ASSERT(instancer == NULL);
 	instancer = _instancer;
 	instancer->AddReference();	
 }
@@ -1189,7 +1190,7 @@ void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_item
 {
 	ElementList elements;
 	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));
-	RKTEventFunctor func(id, parameters);
+	RmlEventFunctor func(id, parameters);
 	std::for_each(elements.begin(), elements.end(), func);
 }
 

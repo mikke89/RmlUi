@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,21 +29,21 @@
 #ifndef DRAGLISTENER_H
 #define DRAGLISTENER_H
 
-#include <Rocket/Core/EventListener.h>
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/EventListener.h>
+#include <RmlUi/Core/Types.h>
 
 /**
 	@author Pete
  */
 
-class DragListener : public Rocket::Core::EventListener
+class DragListener : public Rml::Core::EventListener
 {
 public:
 	/// Registers an elemenet as being a container of draggable elements.
-	static void RegisterDraggableContainer(Rocket::Core::Element* element);
+	static void RegisterDraggableContainer(Rml::Core::Element* element);
 
 protected:
-	virtual void ProcessEvent(Rocket::Core::Event& event);
+	virtual void ProcessEvent(Rml::Core::Event& event);
 };
 
 #endif

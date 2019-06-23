@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +27,23 @@
  */
 
 #include "DragListener.h"
-#include <Rocket/Core/Element.h>
+#include <RmlUi/Core/Element.h>
 
 static DragListener drag_listener;
 
 // Registers an element as being a container of draggable elements.
-void DragListener::RegisterDraggableContainer(Rocket::Core::Element* element)
+void DragListener::RegisterDraggableContainer(Rml::Core::Element* element)
 {
-	element->AddEventListener(Rocket::Core::EventId::Dragdrop, &drag_listener);
+	element->AddEventListener(Rml::Core::EventId::Dragdrop, &drag_listener);
 }
 
-void DragListener::ProcessEvent(Rocket::Core::Event& event)
+void DragListener::ProcessEvent(Rml::Core::Event& event)
 {
-	if (event == Rocket::Core::EventId::Dragdrop)
+	if (event == Rml::Core::EventId::Dragdrop)
 	{
-		Rocket::Core::Element* dest_container = event.GetCurrentElement();
-		Rocket::Core::Element* dest_element = event.GetTargetElement();
-		Rocket::Core::Element* drag_element = static_cast< Rocket::Core::Element* >(event.GetParameter< void* >("drag_element", NULL));
+		Rml::Core::Element* dest_container = event.GetCurrentElement();
+		Rml::Core::Element* dest_element = event.GetTargetElement();
+		Rml::Core::Element* drag_element = static_cast< Rml::Core::Element* >(event.GetParameter< void* >("drag_element", NULL));
 
 		if (dest_container == dest_element)
 		{
@@ -55,7 +56,7 @@ void DragListener::ProcessEvent(Rocket::Core::Event& event)
 			// The dragged element was dragged onto an item inside a container. In order to get the
 			// element in the right place, it will be inserted into the container before the item
 			// it was dragged on top of.
-			Rocket::Core::Element* insert_before = dest_element;
+			Rml::Core::Element* insert_before = dest_element;
 
 			// Unless of course if it was dragged on top of an item in its own container; we need
 			// to check then if it was moved up or down with the container.
@@ -63,7 +64,7 @@ void DragListener::ProcessEvent(Rocket::Core::Event& event)
 			{
 				// Check whether we're moving this icon from the left or the right.
 
-				Rocket::Core::Element* previous_icon = insert_before->GetPreviousSibling();
+				Rml::Core::Element* previous_icon = insert_before->GetPreviousSibling();
 				while (previous_icon != NULL)
 				{
 					if (previous_icon == drag_element)

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +30,7 @@
 #include "DecoratorTiledImageInstancer.h"
 #include "DecoratorTiledImage.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 DecoratorTiledImageInstancer::DecoratorTiledImageInstancer() : DecoratorTiledInstancer(1)
@@ -43,9 +44,9 @@ DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer()
 }
 
 
-std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& ROCKET_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
+std::shared_ptr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(name);
 
 	DecoratorTiled::Tile tile;
 	Texture texture;

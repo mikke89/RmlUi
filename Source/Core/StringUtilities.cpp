@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +27,11 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 #include <ctype.h>
 #include <stdio.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Expands character-delimited list of values in a single string to a whitespace-trimmed list of values.
@@ -356,7 +357,7 @@ bool StringUtilities::UCS2toUTF8(const WString& input, String& output)
 		// Convert to little endian.
 		word ch = (*w >> 8) & 0x00FF;
 		ch |= (*w << 8) & 0xFF00;
-		//		word ch = EMPConvertEndian(*w, ROCKET_ENDIAN_BIG);
+		//		word ch = EMPConvertEndian(*w, RMLUI_ENDIAN_BIG);
 		
 		oc = (unsigned char *)&ch;
 		switch (n)

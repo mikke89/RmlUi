@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +26,15 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUAELEMENTFORMCONTROL_H
-#define ROCKETCONTROLSLUAELEMENTFORMCONTROL_H
+#ifndef RMLUICONTROLSLUAELEMENTFORMCONTROL_H
+#define RMLUICONTROLSLUAELEMENTFORMCONTROL_H
 
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Controls/ElementFormControl.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Controls/ElementFormControl.h>
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -47,16 +48,16 @@ int ElementFormControlSetAttrdisabled(lua_State* L);
 int ElementFormControlSetAttrname(lua_State* L);
 int ElementFormControlSetAttrvalue(lua_State* L);
 
-extern Rocket::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[];
+extern Rml::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[];
 extern luaL_Reg ElementFormControlGetters[];
 extern luaL_Reg ElementFormControlSetters[];
 
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
-template<> void ExtraInit<Rocket::Controls::ElementFormControl>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::ElementFormControl)
+namespace Rml { namespace Core { namespace Lua {
+template<> void ExtraInit<Rml::Controls::ElementFormControl>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::ElementFormControl)
 }}}
 #endif
 

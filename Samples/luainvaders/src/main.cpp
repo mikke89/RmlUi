@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +27,22 @@
  */
 
 #define _WIN32_WINNT 0x0500
-#include <Rocket/Core.h>
-#include <Rocket/Controls.h>
-#include <Rocket/Debugger.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Controls.h>
+#include <RmlUi/Debugger.h>
 
 #include <Input.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include "DecoratorInstancerDefender.h"
 #include "DecoratorInstancerStarfield.h"
 #include "ElementGame.h"
 #include "HighScores.h"
-#include <Rocket/Core/Lua/Interpreter.h>
-#include <Rocket/Controls/Lua/Controls.h>
+#include <RmlUi/Core/Lua/Interpreter.h>
+#include <RmlUi/Controls/Lua/Controls.h>
 #include "LuaInterface.h"
 
-Rocket::Core::Context* context = NULL;
+Rml::Core::Context* context = NULL;
 
 void DoAllocConsole();
 
@@ -55,20 +57,15 @@ void GameLoop()
 	shell_renderer->PresentRenderBuffer();
 }
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 #include <windows.h>
 int APIENTRY WinMain(HINSTANCE, HINSTANCE, char*, int)
 #else
 int main(int, char**)
 #endif
 {
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/luainvaders/"
-#else
-#define APP_PATH "../../Samples/luainvaders/"
-#endif
 
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 	DoAllocConsole();
 #endif
 
@@ -79,68 +76,68 @@ int main(int, char**)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise(APP_PATH) ||
-		!Shell::OpenWindow("Rocket Invaders from Mars (Lua Powered)", shell_renderer, window_width, window_height, false))
+	if (!Shell::Initialise() ||
+		!Shell::OpenWindow("RmlUi Invaders from Mars (Lua Powered)", shell_renderer, window_width, window_height, false))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
-	// Rocket initialisation.
-	Rocket::Core::SetRenderInterface(&opengl_renderer);
+	// RmlUi initialisation.
+	Rml::Core::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
-	Rocket::Core::SetSystemInterface(&system_interface);
+	Rml::Core::SetSystemInterface(&system_interface);
 
-	Rocket::Core::Initialise();
-	// Initialise the Rocket Controls library.
-	Rocket::Controls::Initialise();
+	Rml::Core::Initialise();
+	// Initialise the RmlUi Controls library.
+	Rml::Controls::Initialise();
 
 	// Initialise the Lua interface
-	Rocket::Core::Lua::Interpreter::Initialise();
-	Rocket::Controls::Lua::RegisterTypes(Rocket::Core::Lua::Interpreter::GetLuaState());
+	Rml::Core::Lua::Interpreter::Initialise();
+	Rml::Controls::Lua::RegisterTypes(Rml::Core::Lua::Interpreter::GetLuaState());
 
-	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(window_width, window_height));
+	// Create the main RmlUi context and set it on the shell's input layer.
+	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
 	if (context == NULL)
 	{
-		Rocket::Core::Shutdown();
+		Rml::Core::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	Rocket::Debugger::Initialise(context);
+	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
 	// Load the font faces required for Invaders.
-	Shell::LoadFonts("../assets/");
+	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom decorator instancers.
-	Rocket::Core::Factory::RegisterDecoratorInstancer("starfield", std::make_unique<DecoratorInstancerStarfield>());
-	Rocket::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
+	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", std::make_unique<DecoratorInstancerStarfield>());
+	Rml::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
 
 	// Construct the game singletons.
 	HighScores::Initialise();
 
 	// Fire off the startup script.
-    LuaInterface::Initialise(Rocket::Core::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples
-    Rocket::Core::Lua::Interpreter::LoadFile(Rocket::Core::String("lua/start.lua"));
+    LuaInterface::Initialise(Rml::Core::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples
+    Rml::Core::Lua::Interpreter::LoadFile(Rml::Core::String("luainvaders/lua/start.lua"));
 
 	Shell::EventLoop(GameLoop);	
 
-	// Shutdown the Rocket contexts.	
+	// Shutdown the RmlUi contexts.	
 	context->RemoveReference();
 	
-	// Shutdown Lua  before we shut down Rocket.
-	Rocket::Core::Lua::Interpreter::Shutdown();
+	// Shutdown Lua  before we shut down RmlUi.
+	Rml::Core::Lua::Interpreter::Shutdown();
 
 	// Shut down the game singletons.
 	HighScores::Shutdown();
 
-	// Shutdown Rocket.
-	Rocket::Core::Shutdown();
+	// Shutdown RmlUi.
+	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();
@@ -148,7 +145,7 @@ int main(int, char**)
 	return 0;
 }
 
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 
 #include <windows.h>
 #include <fcntl.h>

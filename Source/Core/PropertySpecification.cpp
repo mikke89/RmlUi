@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +27,13 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/PropertySpecification.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "PropertyShorthandDefinition.h"
-#include "../../Include/Rocket/Core/Log.h"
-#include "../../Include/Rocket/Core/PropertyDefinition.h"
-#include "../../Include/Rocket/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertyDictionary.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) : 
@@ -59,7 +60,7 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 		property_map.AddPair(id, property_name);
 
 	size_t index = (size_t)id;
-	ROCKET_ASSERT(index < (size_t)INT16_MAX);
+	RMLUI_ASSERT(index < (size_t)INT16_MAX);
 
 	if (index < properties.size())
 	{
@@ -176,7 +177,7 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 	property_shorthand->type = type;
 
 	const size_t index = (size_t)id;
-	ROCKET_ASSERT(index < (size_t)INT16_MAX);
+	RMLUI_ASSERT(index < (size_t)INT16_MAX);
 
 	if (index < shorthands.size())
 	{
@@ -283,13 +284,13 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 			box_side_to_value_index = { 0,1,2,1 };
 			break;
 		default:
-			ROCKET_ERROR;
+			RMLUI_ERROR;
 			break;
 		}
 
 		for (int i = 0; i < 4; i++)
 		{
-			ROCKET_ASSERT(shorthand_definition->items[i].type == ShorthandItemType::Property);
+			RMLUI_ASSERT(shorthand_definition->items[i].type == ShorthandItemType::Property);
 			Property new_property;
 			int value_index = box_side_to_value_index[i];
 			if (!shorthand_definition->items[i].property_definition->ParseValue(new_property, property_values[value_index]))

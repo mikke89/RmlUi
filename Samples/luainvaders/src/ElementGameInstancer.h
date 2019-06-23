@@ -1,8 +1,8 @@
 #ifndef ELEMENTGAMEINSTANCER_H
 #define ELEMENTGAMEINSTANCER_H
-#include <Rocket/Core/ElementInstancer.h>
+#include <RmlUi/Core/ElementInstancer.h>
 
-class ElementGameInstancer : public Rocket::Core::ElementInstancer
+class ElementGameInstancer : public Rml::Core::ElementInstancer
 {
 public:
 	virtual ~ElementGameInstancer();
@@ -10,11 +10,11 @@ public:
 	/// Instances an element given the tag name and attributes
 	/// @param tag Name of the element to instance
 	/// @param attributes vector of name value pairs
-    virtual Rocket::Core::Element* InstanceElement(Rocket::Core::Element* parent, const Rocket::Core::String& tag, const Rocket::Core::XMLAttributes& attributes);
+    virtual Rml::Core::Element* InstanceElement(Rml::Core::Element* parent, const Rml::Core::String& tag, const Rml::Core::XMLAttributes& attributes);
 
 	/// Releases the given element
 	/// @param element to release
-	virtual void ReleaseElement(Rocket::Core::Element* element);
+	virtual void ReleaseElement(Rml::Core::Element* element);
 
 	/// Release the instancer
 	virtual void Release();

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +26,15 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUADATASOURCE_H
-#define ROCKETCONTROLSLUADATASOURCE_H
+#ifndef RMLUICONTROLSLUADATASOURCE_H
+#define RMLUICONTROLSLUADATASOURCE_H
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
 #include "LuaDataSource.h"
 
-using Rocket::Core::Lua::LuaType;
-namespace Rocket {
+using Rml::Core::Lua::LuaType;
+namespace Rml {
 namespace Controls {
 namespace Lua {
 typedef LuaDataSource DataSource;
@@ -47,7 +48,7 @@ int DataSourceNotifyRowChange(lua_State* L, DataSource* obj);
 int DataSourceSetAttrGetNumRows(lua_State* L);
 int DataSourceSetAttrGetRow(lua_State* L);
 
-extern Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[];
+extern Rml::Core::Lua::RegType<DataSource> DataSourceMethods[];
 extern luaL_Reg DataSourceGetters[];
 extern luaL_Reg DataSourceSetters[];
 
@@ -56,8 +57,8 @@ extern luaL_Reg DataSourceSetters[];
 }
 }
 }
-namespace Rocket { namespace Core { namespace Lua {
-template<> void ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index);
-LUACONTROLSTYPEDECLARE(Rocket::Controls::Lua::DataSource)
+namespace Rml { namespace Core { namespace Lua {
+template<> void ExtraInit<Rml::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index);
+LUACONTROLSTYPEDECLARE(Rml::Controls::Lua::DataSource)
 }}}
 #endif

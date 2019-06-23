@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +28,7 @@
 
  
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "PropertyParserNumber.h"
 #include "PropertyParserAnimation.h"
 #include "PropertyParserColour.h"
@@ -37,7 +38,7 @@
 #include "PropertyShorthandDefinition.h"
 #include "DirtyPropertyList.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 
@@ -50,14 +51,14 @@ StyleSheetSpecification::StyleSheetSpecification() :
 	// Reserve space for all defined ids and some more for custom properties
 	properties(2 * (size_t)PropertyId::NumDefinedIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
-	ROCKET_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == NULL);
 	instance = this;
 	registered_inherited_properties.Clear();
 }
 
 StyleSheetSpecification::~StyleSheetSpecification()
 {
-	ROCKET_ASSERT(instance == this);
+	RMLUI_ASSERT(instance == this);
 	instance = NULL;
 }
 
@@ -122,7 +123,7 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 // Registers a property with a new definition.
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	ROCKET_ASSERTMSG((size_t)instance->properties.property_map.GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
+	RMLUI_ASSERTMSG((size_t)instance->properties.property_map.GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
 	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, inherited, forces_layout); 
 }
 
@@ -151,8 +152,8 @@ const PropertyNameList & StyleSheetSpecification::GetRegisteredInheritedProperti
 // Registers a shorthand property definition.
 ShorthandId StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
-	ROCKET_ASSERTMSG(instance->properties.property_map.GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
-	ROCKET_ASSERTMSG((size_t)instance->properties.shorthand_map.GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
+	RMLUI_ASSERTMSG(instance->properties.property_map.GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
+	RMLUI_ASSERTMSG((size_t)instance->properties.shorthand_map.GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
 	return instance->properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
@@ -227,7 +228,7 @@ const PropertySpecification& StyleSheetSpecification::GetPropertySpecification()
 	return instance->properties;
 }
 
-// Registers Rocket's default parsers.
+// Registers RmlUi's default parsers.
 void StyleSheetSpecification::RegisterDefaultParsers()
 {
 	RegisterParser("number", new PropertyParserNumber(Property::NUMBER));
@@ -244,7 +245,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 }
 
 
-// Registers Rocket's default style properties.
+// Registers RmlUi's default style properties.
 void StyleSheetSpecification::RegisterDefaultProperties()
 {
 	// Style property specifications (ala RCSS).

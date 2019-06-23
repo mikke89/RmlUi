@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,34 +26,34 @@
  *
  */
  
-#ifndef ROCKETCONTROLSLUALUADATASOURCE_H
-#define ROCKETCONTROLSLUALUADATASOURCE_H
+#ifndef RMLUICONTROLSLUALUADATASOURCE_H
+#define RMLUICONTROLSLUALUADATASOURCE_H
 
-#include <Rocket/Core/Lua/LuaType.h>
-#include <Rocket/Core/Lua/lua.hpp>
-#include <Rocket/Controls/DataSource.h>
-#include <Rocket/Core/String.h>
+#include <RmlUi/Core/Lua/LuaType.h>
+#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Controls/DataSource.h>
+#include <RmlUi/Core/String.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
-class LuaDataSource : public Rocket::Controls::DataSource
+class LuaDataSource : public Rml::Controls::DataSource
 {
 public:
     //default initilialize the lua func references to -1
-    LuaDataSource(const Rocket::Core::String& name = "");
+    LuaDataSource(const Rml::Core::String& name = "");
 
 	/// Fetches the contents of one row of a table within the data source.
 	/// @param[out] row The list of values in the table.
 	/// @param[in] table The name of the table to query.
 	/// @param[in] row_index The index of the desired row.
 	/// @param[in] columns The list of desired columns within the row.
-	virtual void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns);
+	virtual void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns);
 	/// Fetches the number of rows within one of this data source's tables.
 	/// @param[in] table The name of the table to query.
 	/// @return The number of rows within the specified table. Returns -1 in case of an incorrect Lua function.
-	virtual int GetNumRows(const Rocket::Core::String& table);
+	virtual int GetNumRows(const Rml::Core::String& table);
 
     //make the protected members of DataSource public
     using DataSource::NotifyRowAdd;

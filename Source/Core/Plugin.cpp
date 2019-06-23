@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Plugin.h"
+#include "../../Include/RmlUi/Core/Plugin.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 Plugin::~Plugin()
@@ -49,47 +50,47 @@ void Plugin::OnShutdown()
 }
 
 // Called when a new context is created.
-void Plugin::OnContextCreate(Context* ROCKET_UNUSED_PARAMETER(context))
+void Plugin::OnContextCreate(Context* RMLUI_UNUSED_PARAMETER(context))
 {
-	ROCKET_UNUSED(context);
+	RMLUI_UNUSED(context);
 }
 
 // Called when a context is destroyed.
-void Plugin::OnContextDestroy(Context* ROCKET_UNUSED_PARAMETER(context))
+void Plugin::OnContextDestroy(Context* RMLUI_UNUSED_PARAMETER(context))
 {
-	ROCKET_UNUSED(context);
+	RMLUI_UNUSED(context);
 }
 
 // Called when a document load request occurs, before the document's file is opened.
-void Plugin::OnDocumentOpen(Context* ROCKET_UNUSED_PARAMETER(context), const String& ROCKET_UNUSED_PARAMETER(document_path))
+void Plugin::OnDocumentOpen(Context* RMLUI_UNUSED_PARAMETER(context), const String& RMLUI_UNUSED_PARAMETER(document_path))
 {
-	ROCKET_UNUSED(context);
-	ROCKET_UNUSED(document_path);
+	RMLUI_UNUSED(context);
+	RMLUI_UNUSED(document_path);
 }
 
 // Called when a document is successfully loaded from file or instanced, initialised and added to
 // its context.
-void Plugin::OnDocumentLoad(ElementDocument* ROCKET_UNUSED_PARAMETER(document))
+void Plugin::OnDocumentLoad(ElementDocument* RMLUI_UNUSED_PARAMETER(document))
 {
-	ROCKET_UNUSED(document);
+	RMLUI_UNUSED(document);
 }
 
 // Called when a document is unloaded from its context.
-void Plugin::OnDocumentUnload(ElementDocument* ROCKET_UNUSED_PARAMETER(document))
+void Plugin::OnDocumentUnload(ElementDocument* RMLUI_UNUSED_PARAMETER(document))
 {
-	ROCKET_UNUSED(document);
+	RMLUI_UNUSED(document);
 }
 
 // Called when a new element is created.
-void Plugin::OnElementCreate(Element* ROCKET_UNUSED_PARAMETER(element))
+void Plugin::OnElementCreate(Element* RMLUI_UNUSED_PARAMETER(element))
 {
-	ROCKET_UNUSED(element);
+	RMLUI_UNUSED(element);
 }
 
 // Called when an element is destroyed.
-void Plugin::OnElementDestroy(Element* ROCKET_UNUSED_PARAMETER(element))
+void Plugin::OnElementDestroy(Element* RMLUI_UNUSED_PARAMETER(element))
 {
-	ROCKET_UNUSED(element);
+	RMLUI_UNUSED(element);
 }
 
 }

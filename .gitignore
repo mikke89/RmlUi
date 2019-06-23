@@ -1,19 +1,16 @@
-# Ignore compiled python code
-*.pyc
+# Primary cmake build target
+/Build/
+
 # Ignore MacOSX directory info
 .DS_Store
+
 # VS user project files
+.vs/
 *.suo
 *.user
 *.opensdf
-bin/*
-bin64/*
 *.dir/
 Win32/
+x64/
 
-/lib/
-RocketCore.dir/
-RocketControls.dir/
-RocketDebugger.dir/
-
-Win32/
+/Distribution/

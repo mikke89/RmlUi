@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,9 +29,9 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
-#include <Rocket/Core/String.h>
-#include <Rocket/Core/Context.h>
-#include <Rocket/Core/ElementDocument.h>
+#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/ElementDocument.h>
 
 /**
 	@author Peter Curry
@@ -43,16 +44,16 @@ public:
 	/// @param[in] title The title of the new inventory.
 	/// @param[in] position The position of the inventory window.
 	/// @param[in] context The context to open the inventory window in.
-	Inventory(const Rocket::Core::String& title, const Rocket::Core::Vector2f& position, Rocket::Core::Context* context);
+	Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& position, Rml::Core::Context* context);
 	/// Destroys the inventory and closes its window.
 	~Inventory();
 
 	/// Adds a brand-new item into this inventory.
 	/// @param[in] name The name of this item.
-	void AddItem(const Rocket::Core::String& name);
+	void AddItem(const Rml::Core::String& name);
 
 private:
-	Rocket::Core::ElementDocument* document;
+	Rml::Core::ElementDocument* document;
 };
 
 #endif

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementFormControlDataSelect.h"
-#include "../../Include/Rocket/Controls/DataQuery.h"
-#include "../../Include/Rocket/Controls/DataSource.h"
-#include "../../Include/Rocket/Controls/DataFormatter.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlDataSelect.h"
+#include "../../Include/RmlUi/Controls/DataQuery.h"
+#include "../../Include/RmlUi/Controls/DataSource.h"
+#include "../../Include/RmlUi/Controls/DataFormatter.h"
 #include "WidgetDropDown.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 // Constructs a new ElementFormControlDataSelect.
-ElementFormControlDataSelect::ElementFormControlDataSelect(const Rocket::Core::String& tag) : ElementFormControlSelect(tag)
+ElementFormControlDataSelect::ElementFormControlDataSelect(const Rml::Core::String& tag) : ElementFormControlSelect(tag)
 {
 	data_source = NULL;
 	initialised = false;
@@ -50,7 +51,7 @@ ElementFormControlDataSelect::~ElementFormControlDataSelect()
 }
 
 // Sets the data source the control's options are driven from.
-void ElementFormControlDataSelect::SetDataSource(const Rocket::Core::String& _data_source)
+void ElementFormControlDataSelect::SetDataSource(const Rml::Core::String& _data_source)
 {
 	SetAttribute("source", _data_source);
 }
@@ -63,7 +64,7 @@ void ElementFormControlDataSelect::OnUpdate()
 	{
 		initialised = true;
 
-		if (ParseDataSource(data_source, data_table, GetAttribute< Rocket::Core::String >("source", "")))
+		if (ParseDataSource(data_source, data_table, GetAttribute< Rml::Core::String >("source", "")))
 		{
 			data_source->AttachListener(this);
 			BuildOptions();
@@ -107,42 +108,42 @@ void ElementFormControlDataSelect::OnDataSourceDestroy(DataSource* _data_source)
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowAdd(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED_PARAMETER(first_row_added), int ROCKET_UNUSED_PARAMETER(num_rows_added))
+void ElementFormControlDataSelect::OnRowAdd(DataSource* RMLUI_UNUSED_PARAMETER(data_source), const Rml::Core::String& table, int RMLUI_UNUSED_PARAMETER(first_row_added), int RMLUI_UNUSED_PARAMETER(num_rows_added))
 {
-	ROCKET_UNUSED(data_source);
-	ROCKET_UNUSED(first_row_added);
-	ROCKET_UNUSED(num_rows_added);
+	RMLUI_UNUSED(data_source);
+	RMLUI_UNUSED(first_row_added);
+	RMLUI_UNUSED(num_rows_added);
 
 	if (table == data_table)
 		BuildOptions();
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowRemove(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED_PARAMETER(first_row_removed), int ROCKET_UNUSED_PARAMETER(num_rows_removed))
+void ElementFormControlDataSelect::OnRowRemove(DataSource* RMLUI_UNUSED_PARAMETER(data_source), const Rml::Core::String& table, int RMLUI_UNUSED_PARAMETER(first_row_removed), int RMLUI_UNUSED_PARAMETER(num_rows_removed))
 {
-	ROCKET_UNUSED(data_source);
-	ROCKET_UNUSED(first_row_removed);
-	ROCKET_UNUSED(num_rows_removed);
+	RMLUI_UNUSED(data_source);
+	RMLUI_UNUSED(first_row_removed);
+	RMLUI_UNUSED(num_rows_removed);
 	
 	if (table == data_table)
 		BuildOptions();
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowChange(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table, int ROCKET_UNUSED_PARAMETER(first_row_changed), int ROCKET_UNUSED_PARAMETER(num_rows_changed))
+void ElementFormControlDataSelect::OnRowChange(DataSource* RMLUI_UNUSED_PARAMETER(data_source), const Rml::Core::String& table, int RMLUI_UNUSED_PARAMETER(first_row_changed), int RMLUI_UNUSED_PARAMETER(num_rows_changed))
 {
-	ROCKET_UNUSED(data_source);
-	ROCKET_UNUSED(first_row_changed);
-	ROCKET_UNUSED(num_rows_changed);
+	RMLUI_UNUSED(data_source);
+	RMLUI_UNUSED(first_row_changed);
+	RMLUI_UNUSED(num_rows_changed);
 	
 	if (table == data_table)
 		BuildOptions();
 }
 
 // Rebuilds the available options from the data source.
-void ElementFormControlDataSelect::OnRowChange(DataSource* ROCKET_UNUSED_PARAMETER(data_source), const Rocket::Core::String& table)
+void ElementFormControlDataSelect::OnRowChange(DataSource* RMLUI_UNUSED_PARAMETER(data_source), const Rml::Core::String& table)
 {
-	ROCKET_UNUSED(data_source);
+	RMLUI_UNUSED(data_source);
 
 	if (table == data_table)
 		BuildOptions();
@@ -158,18 +159,18 @@ void ElementFormControlDataSelect::BuildOptions()
 
 	// Store the old selection value and index. These will be used to restore the selection to the
 	// most appropriate option after the options have been rebuilt.
-	Rocket::Core::String old_value = GetValue();
+	Rml::Core::String old_value = GetValue();
 	int old_selection = GetSelection();
 
-	Rocket::Core::String fields_attribute = GetAttribute<Rocket::Core::String>("fields", "");
-	Rocket::Core::String valuefield_attribute = GetAttribute<Rocket::Core::String>("valuefield", "");
-	Rocket::Core::String data_formatter_attribute = GetAttribute<Rocket::Core::String>("formatter", "");
+	Rml::Core::String fields_attribute = GetAttribute<Rml::Core::String>("fields", "");
+	Rml::Core::String valuefield_attribute = GetAttribute<Rml::Core::String>("valuefield", "");
+	Rml::Core::String data_formatter_attribute = GetAttribute<Rml::Core::String>("formatter", "");
 	DataFormatter* data_formatter = NULL;
 
 	// Process the attributes.
 	if (fields_attribute.empty())
 	{
-		Core::Log::Message(Rocket::Core::Log::LT_ERROR, "DataQuery failed, no fields specified for %s.", GetTagName().c_str());
+		Core::Log::Message(Rml::Core::Log::LT_ERROR, "DataQuery failed, no fields specified for %s.", GetTagName().c_str());
 		return;
 	}
 
@@ -182,24 +183,24 @@ void ElementFormControlDataSelect::BuildOptions()
 	{
 		data_formatter = DataFormatter::GetDataFormatter(data_formatter_attribute);
 		if (!data_formatter)
-			Core::Log::Message(Rocket::Core::Log::LT_WARNING, "Unable to find data formatter named '%s', formatting skipped.", data_formatter_attribute.c_str());
+			Core::Log::Message(Rml::Core::Log::LT_WARNING, "Unable to find data formatter named '%s', formatting skipped.", data_formatter_attribute.c_str());
 	}
 
 	// Build a list of attributes
-	Rocket::Core::String fields(valuefield_attribute);
+	Rml::Core::String fields(valuefield_attribute);
 	fields += ",";
 	fields += fields_attribute;
 
 	DataQuery query(data_source, data_table, fields);
 	while (query.NextRow())
 	{
-		Rocket::Core::StringList fields;
-		Rocket::Core::String value = query.Get<Rocket::Core::String>(0, "");
+		Rml::Core::StringList fields;
+		Rml::Core::String value = query.Get<Rml::Core::String>(0, "");
 
 		for (size_t i = 1; i < query.GetNumFields(); ++i)
-			fields.push_back(query.Get< Rocket::Core::String>(i, ""));
+			fields.push_back(query.Get< Rml::Core::String>(i, ""));
 
-		Rocket::Core::String formatted("");
+		Rml::Core::String formatted("");
 		if (fields.size() > 0)
 			formatted = fields[0];
 
@@ -225,7 +226,7 @@ void ElementFormControlDataSelect::BuildOptions()
 		}
 
 		// Failed to find an option with the same value. Attempt to at least set the same index.
-		int new_selection = Rocket::Core::Math::Clamp(old_selection, 0, GetNumOptions() - 1);
+		int new_selection = Rml::Core::Math::Clamp(old_selection, 0, GetNumOptions() - 1);
 		if (GetNumOptions() == 0)
 			new_selection = -1;
 

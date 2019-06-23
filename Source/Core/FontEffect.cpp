@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +27,11 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/FontEffect.h"
-#include "../../Include/Rocket/Core/FontDatabase.h"
-#include "../../Include/Rocket/Core/FontEffectInstancer.h"
+#include "../../Include/RmlUi/Core/FontEffect.h"
+#include "../../Include/RmlUi/Core/FontDatabase.h"
+#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 FontEffect::FontEffect() : colour(255, 255, 255)
@@ -57,22 +58,22 @@ bool FontEffect::HasUniqueTexture() const
 }
 
 // Gets the effect to resize and reposition a glyph's bitmap.
-bool FontEffect::GetGlyphMetrics(Vector2i& ROCKET_UNUSED_PARAMETER(origin), Vector2i& ROCKET_UNUSED_PARAMETER(dimensions), const FontGlyph& ROCKET_UNUSED_PARAMETER(glyph)) const
+bool FontEffect::GetGlyphMetrics(Vector2i& RMLUI_UNUSED_PARAMETER(origin), Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
-	ROCKET_UNUSED(origin);
-	ROCKET_UNUSED(dimensions);
-	ROCKET_UNUSED(glyph);
+	RMLUI_UNUSED(origin);
+	RMLUI_UNUSED(dimensions);
+	RMLUI_UNUSED(glyph);
 
 	return false;
 }
 
 // Requests the effect to generate the texture data for a single glyph's bitmap.
-void FontEffect::GenerateGlyphTexture(byte* ROCKET_UNUSED_PARAMETER(destination_data), const Vector2i& ROCKET_UNUSED_PARAMETER(destination_dimensions), int ROCKET_UNUSED_PARAMETER(destination_stride), const FontGlyph& ROCKET_UNUSED_PARAMETER(glyph)) const
+void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), const Vector2i& RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
-	ROCKET_UNUSED(destination_data);
-	ROCKET_UNUSED(destination_dimensions);
-	ROCKET_UNUSED(destination_stride);
-	ROCKET_UNUSED(glyph);
+	RMLUI_UNUSED(destination_data);
+	RMLUI_UNUSED(destination_dimensions);
+	RMLUI_UNUSED(destination_stride);
+	RMLUI_UNUSED(glyph);
 }
 
 // Sets the colour of the effect's geometry.

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +26,10 @@
  *
  */
 
-#ifndef ROCKETINVADERSDEFENDER_H
-#define ROCKETINVADERSDEFENDER_H
+#ifndef RMLUIINVADERSDEFENDER_H
+#define RMLUIINVADERSDEFENDER_H
 
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Types.h>
 
 class Game;
 class Sprite;
@@ -57,16 +58,16 @@ public:
 	void Fire();	
 
 	/// Check if an object at the given position would hit the defender.
-	bool CheckHit(const Rocket::Core::Vector2f& position);
+	bool CheckHit(const Rml::Core::Vector2f& position);
 
 private:
 	Game* game;
-	Rocket::Core::Vector2f position;	
+	Rml::Core::Vector2f position;	
 	
 	float move_direction;
 	
 	bool bullet_in_flight;
-	Rocket::Core::Vector2f bullet_position;
+	Rml::Core::Vector2f bullet_position;
 
 	float defender_frame_start;
 	float respawn_start;

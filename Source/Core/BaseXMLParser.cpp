@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +27,9 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/BaseXMLParser.h"
+#include "../../Include/RmlUi/Core/BaseXMLParser.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Most file layers cache 4k.
@@ -81,22 +82,22 @@ int BaseXMLParser::GetLineNumber()
 }
 
 // Called when the parser finds the beginning of an element tag.
-void BaseXMLParser::HandleElementStart(const String& ROCKET_UNUSED_PARAMETER(name), const XMLAttributes& ROCKET_UNUSED_PARAMETER(attributes))
+void BaseXMLParser::HandleElementStart(const String& RMLUI_UNUSED_PARAMETER(name), const XMLAttributes& RMLUI_UNUSED_PARAMETER(attributes))
 {
-	ROCKET_UNUSED(name);
-	ROCKET_UNUSED(attributes);
+	RMLUI_UNUSED(name);
+	RMLUI_UNUSED(attributes);
 }
 
 // Called when the parser finds the end of an element tag.
-void BaseXMLParser::HandleElementEnd(const String& ROCKET_UNUSED_PARAMETER(name))
+void BaseXMLParser::HandleElementEnd(const String& RMLUI_UNUSED_PARAMETER(name))
 {
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(name);
 }
 
 // Called when the parser encounters data.
-void BaseXMLParser::HandleData(const String& ROCKET_UNUSED_PARAMETER(data))
+void BaseXMLParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data))
 {
-	ROCKET_UNUSED(data);
+	RMLUI_UNUSED(data);
 }
 
 void BaseXMLParser::ReadHeader()
@@ -449,7 +450,7 @@ bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
 				buffer_size *= 2;
 				int read_offset = (int)(read - buffer);
 				unsigned char* new_buffer = (unsigned char*) realloc(buffer, buffer_size);
-				ROCKET_ASSERTMSG(new_buffer != NULL, "Unable to allocate larger buffer for Peek() call");
+				RMLUI_ASSERTMSG(new_buffer != NULL, "Unable to allocate larger buffer for Peek() call");
 				if(new_buffer == NULL)
 				{
 					return false;

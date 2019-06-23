@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,12 +30,12 @@
 #include "WidgetSlider.h"
 #include "Clock.h"
 #include "LayoutEngine.h"
-#include "../../Include/Rocket/Core/Element.h"
-#include "../../Include/Rocket/Core/Event.h"
-#include "../../Include/Rocket/Core/Factory.h"
-#include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Property.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 static const float DEFAULT_REPEAT_DELAY = 0.5f;
@@ -87,7 +88,7 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	// Check that we haven't already been successfully initialised.
 	if (orientation != UNKNOWN)
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return false;
 	}
 
@@ -95,7 +96,7 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	if (_orientation != HORIZONTAL &&
 		_orientation != VERTICAL)
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return false;
 	}
 
@@ -195,7 +196,7 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 	Element* element_scroll = parent->GetParentNode();
 	if (!element_scroll)
 	{
-		ROCKET_ERROR;
+		RMLUI_ERROR;
 		return;
 	}
 	
@@ -222,7 +223,7 @@ void WidgetSlider::GetDimensions(Vector2f& dimensions) const
 {
 	switch (orientation)
 	{
-		ROCKET_UNUSED_SWITCH_ENUM(UNKNOWN);
+		RMLUI_UNUSED_SWITCH_ENUM(UNKNOWN);
 		case VERTICAL:		dimensions.x = 256; dimensions.y = 16; break;
 		case HORIZONTAL:	dimensions.x = 16; dimensions.y = 256; break;
 	}

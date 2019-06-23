@@ -90,8 +90,8 @@
 Game = Game or {} --namespace for functions
 
 function Game.OnKeyDown(event, document)
-	if event.parameters['key_identifier'] == rocket.key_identifier.ESCAPE then
-		document.context:LoadDocument('data/pause.rml'):Show()
+	if event.parameters['key_identifier'] == rmlui.key_identifier.ESCAPE then
+		document.context:LoadDocument('luainvaders/data/pause.rml'):Show()
     end
 end
 		</script>

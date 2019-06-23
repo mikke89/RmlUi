@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,32 +26,32 @@
  *
  */
 
-#include <Rocket/Core/Core.h>
+#include <RmlUi/Core/Core.h>
 #include <SDL_image.h>
 
 #include "RenderInterfaceSDL2.h"
 
 #if !(SDL_VIDEO_RENDER_OGL)
-    #error "Only the opengl sdl backend is supported. To add support for others, see http://mdqinc.com/blog/2013/01/integrating-librocket-with-sdl-2/"
+    #error "Only the opengl sdl backend is supported."
 #endif
 
-RocketSDL2Renderer::RocketSDL2Renderer(SDL_Renderer* renderer, SDL_Window* screen)
+RmlUiSDL2Renderer::RmlUiSDL2Renderer(SDL_Renderer* renderer, SDL_Window* screen)
 {
     mRenderer = renderer;
     mScreen = screen;
 }
 
-// Called by Rocket when it wants to render geometry that it does not wish to optimise.
-void RocketSDL2Renderer::RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
+// Called by RmlUi when it wants to render geometry that it does not wish to optimise.
+void RmlUiSDL2Renderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation)
 {
     // SDL uses shaders that we need to disable here  
     glUseProgramObjectARB(0);
     glPushMatrix();
     glTranslatef(translation.x, translation.y, 0);
  
-    std::vector<Rocket::Core::Vector2f> Positions(num_vertices);
-    std::vector<Rocket::Core::Colourb> Colors(num_vertices);
-    std::vector<Rocket::Core::Vector2f> TexCoords(num_vertices);
+    std::vector<Rml::Core::Vector2f> Positions(num_vertices);
+    std::vector<Rml::Core::Colourb> Colors(num_vertices);
+    std::vector<Rml::Core::Vector2f> TexCoords(num_vertices);
     float texw, texh;
  
     SDL_Texture* sdl_texture = NULL;
@@ -98,8 +99,8 @@ void RocketSDL2Renderer::RenderGeometry(Rocket::Core::Vertex* vertices, int num_
 }
 
 
-// Called by Rocket when it wants to enable or disable scissoring to clip content.		
-void RocketSDL2Renderer::EnableScissorRegion(bool enable)
+// Called by RmlUi when it wants to enable or disable scissoring to clip content.		
+void RmlUiSDL2Renderer::EnableScissorRegion(bool enable)
 {
     if (enable)
         glEnable(GL_SCISSOR_TEST);
@@ -107,20 +108,20 @@ void RocketSDL2Renderer::EnableScissorRegion(bool enable)
         glDisable(GL_SCISSOR_TEST);
 }
 
-// Called by Rocket when it wants to change the scissor region.		
-void RocketSDL2Renderer::SetScissorRegion(int x, int y, int width, int height)
+// Called by RmlUi when it wants to change the scissor region.		
+void RmlUiSDL2Renderer::SetScissorRegion(int x, int y, int width, int height)
 {
     int w_width, w_height;
     SDL_GetWindowSize(mScreen, &w_width, &w_height);
     glScissor(x, w_height - (y + height), width, height);
 }
 
-// Called by Rocket when a texture is required by the library.		
-bool RocketSDL2Renderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
+// Called by RmlUi when a texture is required by the library.		
+bool RmlUiSDL2Renderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rml::Core::Vector2i& texture_dimensions, const Rml::Core::String& source)
 {
 
-    Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
-    Rocket::Core::FileHandle file_handle = file_interface->Open(source);
+    Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
+    Rml::Core::FileHandle file_handle = file_interface->Open(source);
     if (!file_handle)
         return false;
 
@@ -139,7 +140,7 @@ bool RocketSDL2Renderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle
             break;
     }
 
-    Rocket::Core::String extension = source.substr(i+1, source.length()-i);
+    Rml::Core::String extension = source.substr(i+1, source.length()-i);
 
     SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, buffer_size), 1, extension.c_str());
 
@@ -147,8 +148,8 @@ bool RocketSDL2Renderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle
         SDL_Texture *texture = SDL_CreateTextureFromSurface(mRenderer, surface);
 
         if (texture) {
-            texture_handle = (Rocket::Core::TextureHandle) texture;
-            texture_dimensions = Rocket::Core::Vector2i(surface->w, surface->h);
+            texture_handle = (Rml::Core::TextureHandle) texture;
+            texture_dimensions = Rml::Core::Vector2i(surface->w, surface->h);
             SDL_FreeSurface(surface);
         }
         else
@@ -162,8 +163,8 @@ bool RocketSDL2Renderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle
     return false;
 }
 
-// Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
-bool RocketSDL2Renderer::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const Rocket::Core::byte* source, const Rocket::Core::Vector2i& source_dimensions)
+// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
+bool RmlUiSDL2Renderer::GenerateTexture(Rml::Core::TextureHandle& texture_handle, const Rml::Core::byte* source, const Rml::Core::Vector2i& source_dimensions)
 {
     #if SDL_BYTEORDER == SDL_BIG_ENDIAN
         Uint32 rmask = 0xff000000;
@@ -181,12 +182,12 @@ bool RocketSDL2Renderer::GenerateTexture(Rocket::Core::TextureHandle& texture_ha
     SDL_Texture *texture = SDL_CreateTextureFromSurface(mRenderer, surface);
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     SDL_FreeSurface(surface);
-    texture_handle = (Rocket::Core::TextureHandle) texture;
+    texture_handle = (Rml::Core::TextureHandle) texture;
     return true;
 }
 
-// Called by Rocket when a loaded texture is no longer required.		
-void RocketSDL2Renderer::ReleaseTexture(Rocket::Core::TextureHandle texture_handle)
+// Called by RmlUi when a loaded texture is no longer required.		
+void RmlUiSDL2Renderer::ReleaseTexture(Rml::Core::TextureHandle texture_handle)
 {
     SDL_DestroyTexture((SDL_Texture*) texture_handle);
 }

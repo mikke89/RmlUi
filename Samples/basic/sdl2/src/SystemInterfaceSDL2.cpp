@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +25,12 @@
  * THE SOFTWARE.
  *
  */
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include "SystemInterfaceSDL2.h"
 
-Rocket::Core::Input::KeyIdentifier RocketSDL2SystemInterface::TranslateKey(SDL_Keycode sdlkey)
+Rml::Core::Input::KeyIdentifier RmlUiSDL2SystemInterface::TranslateKey(SDL_Keycode sdlkey)
 {
-    using namespace Rocket::Core::Input;
+    using namespace Rml::Core::Input;
 
 
     switch(sdlkey) {
@@ -369,7 +370,7 @@ Rocket::Core::Input::KeyIdentifier RocketSDL2SystemInterface::TranslateKey(SDL_K
     }
 }
 
-int RocketSDL2SystemInterface::TranslateMouseButton(Uint8 button)
+int RmlUiSDL2SystemInterface::TranslateMouseButton(Uint8 button)
 {
     switch(button)
     {
@@ -384,54 +385,54 @@ int RocketSDL2SystemInterface::TranslateMouseButton(Uint8 button)
     }
 }
 
-int RocketSDL2SystemInterface::GetKeyModifiers()
+int RmlUiSDL2SystemInterface::GetKeyModifiers()
 {
     SDL_Keymod sdlMods = SDL_GetModState();
 
     int retval = 0;
 
     if(sdlMods & KMOD_CTRL)
-        retval |= Rocket::Core::Input::KM_CTRL;
+        retval |= Rml::Core::Input::KM_CTRL;
 
     if(sdlMods & KMOD_SHIFT)
-        retval |= Rocket::Core::Input::KM_SHIFT;
+        retval |= Rml::Core::Input::KM_SHIFT;
 
     if(sdlMods & KMOD_ALT)
-        retval |= Rocket::Core::Input::KM_ALT;
+        retval |= Rml::Core::Input::KM_ALT;
 
     return retval;
 }
 
-double RocketSDL2SystemInterface::GetElapsedTime()
+double RmlUiSDL2SystemInterface::GetElapsedTime()
 {
 	return SDL_GetTicks() / 1000;
 }
 
-bool RocketSDL2SystemInterface::LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message)
+bool RmlUiSDL2SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message)
 {
 	std::string Type;
 
 	switch(type)
 	{
-	case Rocket::Core::Log::LT_ALWAYS:
+	case Rml::Core::Log::LT_ALWAYS:
 		Type = "[Always]";
 		break;
-	case Rocket::Core::Log::LT_ERROR:
+	case Rml::Core::Log::LT_ERROR:
 		Type = "[Error]";
 		break;
-	case Rocket::Core::Log::LT_ASSERT:
+	case Rml::Core::Log::LT_ASSERT:
 		Type = "[Assert]";
 		break;
-	case Rocket::Core::Log::LT_WARNING:
+	case Rml::Core::Log::LT_WARNING:
 		Type = "[Warning]";
 		break;
-	case Rocket::Core::Log::LT_INFO:
+	case Rml::Core::Log::LT_INFO:
 		Type = "[Info]";
 		break;
-	case Rocket::Core::Log::LT_DEBUG:
+	case Rml::Core::Log::LT_DEBUG:
 		Type = "[Debug]";
 		break;
-    case Rocket::Core::Log::LT_MAX:
+    case Rml::Core::Log::LT_MAX:
         break;
 	};
 

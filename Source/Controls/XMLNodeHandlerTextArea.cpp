@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +27,10 @@
  */
 
 #include "XMLNodeHandlerTextArea.h"
-#include "../../Include/Rocket/Core.h"
-#include "../../Include/Rocket/Controls/ElementFormControlTextArea.h"
+#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlTextArea.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 XMLNodeHandlerTextArea::XMLNodeHandlerTextArea()
@@ -40,7 +41,7 @@ XMLNodeHandlerTextArea::~XMLNodeHandlerTextArea()
 {
 }
 
-Core::Element* XMLNodeHandlerTextArea::ElementStart(Core::XMLParser* parser, const Rocket::Core::String& name, const Rocket::Core::XMLAttributes& attributes)
+Core::Element* XMLNodeHandlerTextArea::ElementStart(Core::XMLParser* parser, const Rml::Core::String& name, const Rml::Core::XMLAttributes& attributes)
 {
 	ElementFormControlTextArea* text_area = dynamic_cast< ElementFormControlTextArea* >(parser->GetParseFrame()->element);
 	if (text_area == NULL)
@@ -58,21 +59,21 @@ Core::Element* XMLNodeHandlerTextArea::ElementStart(Core::XMLParser* parser, con
 	return NULL;
 }
 
-bool XMLNodeHandlerTextArea::ElementEnd(Core::XMLParser* ROCKET_UNUSED_PARAMETER(parser), const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name))
+bool XMLNodeHandlerTextArea::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(parser), const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name))
 {
-	ROCKET_UNUSED(parser);
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(parser);
+	RMLUI_UNUSED(name);
 
 	return true;
 }
 
-bool XMLNodeHandlerTextArea::ElementData(Core::XMLParser* parser, const Rocket::Core::String& data)
+bool XMLNodeHandlerTextArea::ElementData(Core::XMLParser* parser, const Rml::Core::String& data)
 {
 	ElementFormControlTextArea* text_area = dynamic_cast< ElementFormControlTextArea* >(parser->GetParseFrame()->element);
 	if (text_area != NULL)
 	{
 		// Do any necessary translation.
-		Rocket::Core::String translated_data;
+		Rml::Core::String translated_data;
 		Core::GetSystemInterface()->TranslateString(translated_data, data);
 
 		text_area->SetValue(translated_data);

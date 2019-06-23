@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +28,12 @@
  
 #include "precompiled.h"
 #include "ContextDocumentsProxy.h"
-#include <Rocket/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementDocument.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
-typedef Rocket::Core::ElementDocument Document;
+typedef Rml::Core::ElementDocument Document;
 template<> void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_index)
 {
     lua_pushcfunction(L,ContextDocumentsProxy__index);

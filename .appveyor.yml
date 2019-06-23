@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: 2.0.{build}
 image: Visual Studio 2017
 environment:
   matrix:
@@ -14,15 +14,16 @@ install:
 - cmd: >-
     cd Dependencies
 
-    appveyor DownloadFile https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v2.10.0/freetype-%FREETYPE_VER%.zip
+    appveyor DownloadFile https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v%FREETYPE_VER%/freetype-%FREETYPE_VER%.zip
 
     unzip -o freetype-%FREETYPE_VER%.zip
 
     mv win64 lib
 
-    cd ../Build
+    cd ..
 
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DBUILD_SAMPLES=%BUILD_SAMPLES% -DSKIP_DIRECTX_SAMPLES=ON .
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DBUILD_SAMPLES=%BUILD_SAMPLES% .
 build:
+  project: RmlUi.sln
   parallel: true
   verbosity: minimal

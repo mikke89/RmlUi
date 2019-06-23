@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +28,11 @@
  
 #include "precompiled.h"
 #include "DataSource.h"
-#include <Rocket/Core/Log.h>
+#include <RmlUi/Core/Log.h>
 
-using Rocket::Core::Log;
+using Rml::Core::Log;
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 typedef LuaDataSource DataSource;
@@ -110,7 +111,7 @@ int DataSourceSetAttrGetRow(lua_State* L)
 }
 
 
-Rocket::Core::Lua::RegType<DataSource> DataSourceMethods[] =
+Rml::Core::Lua::RegType<DataSource> DataSourceMethods[] =
 {
     LUAMETHOD(DataSource,NotifyRowAdd)
     LUAMETHOD(DataSource,NotifyRowRemove)
@@ -135,16 +136,16 @@ luaL_Reg DataSourceSetters[] =
 }
 }
 }
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<Rocket::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) 
+template<> void ExtraInit<Rml::Controls::Lua::LuaDataSource>(lua_State* L, int metatable_index) 
 { 
-    lua_pushcfunction(L,Rocket::Controls::Lua::DataSourcenew);
+    lua_pushcfunction(L,Rml::Controls::Lua::DataSourcenew);
     lua_setfield(L,metatable_index-1,"new");
     return;
 }
-using Rocket::Controls::Lua::DataSource;
+using Rml::Controls::Lua::DataSource;
 LUACONTROLSTYPEDEFINE(DataSource,false)
 }
 }

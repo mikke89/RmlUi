@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,11 +30,11 @@
 #include "FontFaceLayer.h"
 #include "FontFaceHandle.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace BitmapFont {
 
-FontFaceLayer::FontFaceLayer() : Rocket::Core::FontFaceLayer()
+FontFaceLayer::FontFaceLayer() : Rml::Core::FontFaceLayer()
 {
 	handle = NULL;
 	effect = NULL;
@@ -44,16 +45,16 @@ FontFaceLayer::~FontFaceLayer()
 }
 
 // Generates the character and texture data for the layer.
-bool FontFaceLayer::Initialise(const Rocket::Core::FontFaceHandle* _handle, FontEffect* _effect, const Rocket::Core::FontFaceLayer* clone, bool deep_clone)
+bool FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _handle, FontEffect* _effect, const Rml::Core::FontFaceLayer* clone, bool deep_clone)
 {
 	(void)(_effect);
 
-	Rocket::Core::BitmapFont::FontFaceHandle
+	Rml::Core::BitmapFont::FontFaceHandle
 		* bm_font_face_handle;
 
 	handle = _handle;
 
-	bm_font_face_handle = ( Rocket::Core::BitmapFont::FontFaceHandle * ) handle;
+	bm_font_face_handle = ( Rml::Core::BitmapFont::FontFaceHandle * ) handle;
 
 	const FontGlyphList& glyphs = handle->GetGlyphs();
 

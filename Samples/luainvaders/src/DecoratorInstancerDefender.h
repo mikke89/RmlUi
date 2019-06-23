@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +26,16 @@
  *
  */
 
-#ifndef ROCKETINVADERSDECORATORINSTANCERDEFENDER_H
-#define ROCKETINVADERSDECORATORINSTANCERDEFENDER_H
+#ifndef RMLUIINVADERSDECORATORINSTANCERDEFENDER_H
+#define RMLUIINVADERSDECORATORINSTANCERDEFENDER_H
 
-#include <Rocket/Core/DecoratorInstancer.h>
+#include <RmlUi/Core/DecoratorInstancer.h>
 
 /**
 	@author Robert Curry
  */
 
-class DecoratorInstancerDefender : public Rocket::Core::DecoratorInstancer
+class DecoratorInstancerDefender : public Rml::Core::DecoratorInstancer
 {
 public:
 	DecoratorInstancerDefender();
@@ -44,10 +45,10 @@ public:
 	/// @param[in] name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successful, NULL if an error occured.
-	std::shared_ptr<Rocket::Core::Decorator> InstanceDecorator(const Rocket::Core::String& name, const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::DecoratorInstancerInterface& interface) override;
+	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
 
 private:
-	Rocket::Core::PropertyId id_image_src;
+	Rml::Core::PropertyId id_image_src;
 };
 
 #endif

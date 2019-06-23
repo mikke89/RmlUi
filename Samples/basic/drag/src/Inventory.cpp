@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,19 +27,19 @@
  */
 
 #include "Inventory.h"
-#include <Rocket/Core/Factory.h>
+#include <RmlUi/Core/Factory.h>
 #include "DragListener.h"
 
 // Constructs a new inventory and opens its window.
-Inventory::Inventory(const Rocket::Core::String& title, const Rocket::Core::Vector2f& position, Rocket::Core::Context* context)
+Inventory::Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& position, Rml::Core::Context* context)
 {
-	document = context->LoadDocument("data/inventory.rml");
+	document = context->LoadDocument("basic/drag/data/inventory.rml");
 	if (document != NULL)
 	{
-		using Rocket::Core::PropertyId;
+		using Rml::Core::PropertyId;
 		document->GetElementById("title")->SetInnerRML(title);
-		document->SetProperty(PropertyId::Left, Rocket::Core::Property(position.x, Rocket::Core::Property::PX));
-		document->SetProperty(PropertyId::Top, Rocket::Core::Property(position.y, Rocket::Core::Property::PX));
+		document->SetProperty(PropertyId::Left, Rml::Core::Property(position.x, Rml::Core::Property::PX));
+		document->SetProperty(PropertyId::Top, Rml::Core::Property(position.y, Rml::Core::Property::PX));
 		document->Show();
 	}
 
@@ -56,17 +57,17 @@ Inventory::~Inventory()
 }
 
 // Adds a brand-new item into this inventory.
-void Inventory::AddItem(const Rocket::Core::String& name)
+void Inventory::AddItem(const Rml::Core::String& name)
 {
 	if (document == NULL)
 		return;
 
-	Rocket::Core::Element* content = document->GetElementById("content");
+	Rml::Core::Element* content = document->GetElementById("content");
 	if (content == NULL)
 		return;
 
 	// Create the new 'icon' element.
-	Rocket::Core::Element* icon = Rocket::Core::Factory::InstanceElement(content, "icon", "icon", Rocket::Core::XMLAttributes());
+	Rml::Core::Element* icon = Rml::Core::Factory::InstanceElement(content, "icon", "icon", Rml::Core::XMLAttributes());
 	icon->SetInnerRML(name);
 	content->AppendChild(icon);
 

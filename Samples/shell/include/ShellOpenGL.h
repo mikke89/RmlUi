@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,31 +26,38 @@
  *
  */
 
-#ifndef ROCKETSHELLOPENGL_H
-#define ROCKETSHELLOPENGL_H
+#ifndef RMLUISHELLOPENGL_H
+#define RMLUISHELLOPENGL_H
 
-#include <Rocket/Core/Platform.h>
+#include <RmlUi/Core/Platform.h>
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <gl/Gl.h>
 #include <gl/Glu.h>
-#elif defined ROCKET_PLATFORM_MACOSX
+#elif defined RMLUI_PLATFORM_MACOSX
 #include <AGL/agl.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
-#elif defined ROCKET_PLATFORM_UNIX
+#elif defined RMLUI_PLATFORM_UNIX
 #include <GL/glx.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/glu.h>
-// The None define from X.h conflicts with Rocket code base,
+// The None define from X.h conflicts with RmlUi code base,
 // use the constant 0L instead where necessary
 #ifdef None
   #undef None
 #endif
+
+struct __X11NativeWindowData
+{
+	Window window;
+	Display *display;
+	XVisualInfo *visual_info;
+};
 #endif
 
 #endif

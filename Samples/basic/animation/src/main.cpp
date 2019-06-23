@@ -1,9 +1,10 @@
 ﻿/*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2018 Michael Ragazzon
+ * Copyright (c) 2018 Michael R. P. Ragazzon
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +26,13 @@
  *
  */
 
-#include <Rocket/Core.h>
-#include <Rocket/Controls.h>
-#include <Rocket/Debugger.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Controls.h>
+#include <RmlUi/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
-#include <Rocket/Core/TransformPrimitive.h>
+#include <ShellRenderInterfaceOpenGL.h>
+#include <RmlUi/Core/TransformPrimitive.h>
 
 #include <sstream>
 
@@ -42,9 +44,9 @@
 class DemoWindow
 {
 public:
-	DemoWindow(const Rocket::Core::String &title, const Rocket::Core::Vector2f &position, Rocket::Core::Context *context)
+	DemoWindow(const Rml::Core::String &title, const Rml::Core::Vector2f &position, Rml::Core::Context *context)
 	{
-		using namespace Rocket::Core;
+		using namespace Rml::Core;
 		document = context->LoadDocument("basic/animation/data/animation.rml");
 		if (document != NULL)
 		{
@@ -133,16 +135,16 @@ public:
 		}
 	}
 
-	Rocket::Core::ElementDocument * GetDocument() {
+	Rml::Core::ElementDocument * GetDocument() {
 		return document;
 	}
 
 private:
-	Rocket::Core::ElementDocument *document;
+	Rml::Core::ElementDocument *document;
 };
 
 
-Rocket::Core::Context* context = NULL;
+Rml::Core::Context* context = NULL;
 ShellRenderInterfaceExtensions *shell_renderer;
 DemoWindow* window = NULL;
 
@@ -176,9 +178,9 @@ void GameLoop()
 		ff += float(nudge)*0.3f;
 		auto el = window->GetDocument()->GetElementById("exit");
 		auto f = el->GetProperty<float>("margin-left");
-		el->SetProperty(Rocket::Core::PropertyId::MarginLeft, Rocket::Core::Property(ff, Rocket::Core::Property::PX));
+		el->SetProperty(Rml::Core::PropertyId::MarginLeft, Rml::Core::Property(ff, Rml::Core::Property::PX));
 		float f_left = el->GetAbsoluteLeft();
-		Rocket::Core::Log::Message(Rocket::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);
+		Rml::Core::Log::Message(Rml::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);
 		nudge = 0;
 	}
 
@@ -188,20 +190,20 @@ void GameLoop()
 		auto el = window->GetDocument()->GetElementById("fps");
 		float fps = float(count_frames) / dt;
 		count_frames = 0;
-		el->SetInnerRML(Rocket::Core::CreateString( 20, "FPS: %f", fps ));
+		el->SetInnerRML(Rml::Core::CreateString( 20, "FPS: %f", fps ));
 	}
 }
 
 
 
-class Event : public Rocket::Core::EventListener
+class Event : public Rml::Core::EventListener
 {
 public:
-	Event(const Rocket::Core::String& value) : value(value) {}
+	Event(const Rml::Core::String& value) : value(value) {}
 
-	void ProcessEvent(Rocket::Core::Event& event) override
+	void ProcessEvent(Rml::Core::Event& event) override
 	{
-		using namespace Rocket::Core;
+		using namespace Rml::Core;
 
 		if(value == "exit")
 			Shell::RequestExit();
@@ -210,50 +212,50 @@ public:
 		{
 		case EventId::Keydown:
 		{
-			Rocket::Core::Input::KeyIdentifier key_identifier = (Rocket::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+			Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
-			if (key_identifier == Rocket::Core::Input::KI_SPACE)
+			if (key_identifier == Rml::Core::Input::KI_SPACE)
 			{
 				pause_loop = !pause_loop;
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_RETURN)
+			else if (key_identifier == Rml::Core::Input::KI_RETURN)
 			{
 				pause_loop = true;
 				single_loop = true;
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_OEM_PLUS)
+			else if (key_identifier == Rml::Core::Input::KI_OEM_PLUS)
 			{
 				nudge = 1;
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_OEM_MINUS)
+			else if (key_identifier == Rml::Core::Input::KI_OEM_MINUS)
 			{
 				nudge = -1;
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_ESCAPE)
+			else if (key_identifier == Rml::Core::Input::KI_ESCAPE)
 			{
 				Shell::RequestExit();
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_F8)
+			else if (key_identifier == Rml::Core::Input::KI_F8)
 			{
-				Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
+				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_LEFT)
+			else if (key_identifier == Rml::Core::Input::KI_LEFT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
 				if (el) el->Animate("left", Property{ -200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_RIGHT)
+			else if (key_identifier == Rml::Core::Input::KI_RIGHT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
 				if (el) el->Animate("left", Property{ 200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_UP)
+			else if (key_identifier == Rml::Core::Input::KI_UP)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
 				auto offset_right = Property{ 200.f, Property::PX };
 				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic }, 1, true, 0, &offset_right);
 			}
-			else if (key_identifier == Rocket::Core::Input::KI_DOWN)
+			else if (key_identifier == Rml::Core::Input::KI_DOWN)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
 				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
@@ -287,19 +289,19 @@ public:
 		}
 	}
 
-	void OnDetach(Rocket::Core::Element* element) override { delete this; }
+	void OnDetach(Rml::Core::Element* element) override { delete this; }
 
 private:
-	Rocket::Core::String value;
+	Rml::Core::String value;
 };
 
 
-class EventInstancer : public Rocket::Core::EventListenerInstancer
+class EventInstancer : public Rml::Core::EventListenerInstancer
 {
 public:
 
 	/// Instances a new event handle for Invaders.
-	Rocket::Core::EventListener* InstanceEventListener(const Rocket::Core::String& value, Rocket::Core::Element* element) override
+	Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element) override
 	{
 		return new Event(value);
 	}
@@ -309,21 +311,21 @@ public:
 };
 
 
-#if defined ROCKET_PLATFORM_WIN32
+#if defined RMLUI_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE ROCKET_UNUSED_PARAMETER(instance_handle), HINSTANCE ROCKET_UNUSED_PARAMETER(previous_instance_handle), char* ROCKET_UNUSED_PARAMETER(command_line), int ROCKET_UNUSED_PARAMETER(command_show))
+int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
 #else
-int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv))
+int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 #endif
 {
-#ifdef ROCKET_PLATFORM_WIN32
-	ROCKET_UNUSED(instance_handle);
-	ROCKET_UNUSED(previous_instance_handle);
-	ROCKET_UNUSED(command_line);
-	ROCKET_UNUSED(command_show);
+#ifdef RMLUI_PLATFORM_WIN32
+	RMLUI_UNUSED(instance_handle);
+	RMLUI_UNUSED(previous_instance_handle);
+	RMLUI_UNUSED(command_line);
+	RMLUI_UNUSED(command_show);
 #else
-	ROCKET_UNUSED(argc);
-	ROCKET_UNUSED(argv);
+	RMLUI_UNUSED(argc);
+	RMLUI_UNUSED(argv);
 #endif
 
 	const int width = 1800;
@@ -333,55 +335,55 @@ int main(int ROCKET_UNUSED_PARAMETER(argc), char** ROCKET_UNUSED_PARAMETER(argv)
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise("../../Samples/") ||
+	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("Animation Sample", shell_renderer, width, height, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
-	// Rocket initialisation.
-	Rocket::Core::SetRenderInterface(&opengl_renderer);
+	// RmlUi initialisation.
+	Rml::Core::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(width, height);
 
 	ShellSystemInterface system_interface;
-	Rocket::Core::SetSystemInterface(&system_interface);
+	Rml::Core::SetSystemInterface(&system_interface);
 
-	Rocket::Core::Initialise();
+	Rml::Core::Initialise();
 
-	// Create the main Rocket context and set it on the shell's input layer.
-	context = Rocket::Core::CreateContext("main", Rocket::Core::Vector2i(width, height));
+	// Create the main RmlUi context and set it on the shell's input layer.
+	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(width, height));
 	if (context == NULL)
 	{
-		Rocket::Core::Shutdown();
+		Rml::Core::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	Rocket::Controls::Initialise();
-	Rocket::Debugger::Initialise(context);
+	Rml::Controls::Initialise();
+	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
 	EventInstancer* event_instancer = new EventInstancer();
-	Rocket::Core::Factory::RegisterEventListenerInstancer(event_instancer);
+	Rml::Core::Factory::RegisterEventListenerInstancer(event_instancer);
 	event_instancer->RemoveReference();
 
 	Shell::LoadFonts("assets/");
 
-	window = new DemoWindow("Animation sample", Rocket::Core::Vector2f(81, 100), context);
-	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Keydown, new Event("hello"));
-	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Keyup, new Event("hello"));
-	window->GetDocument()->AddEventListener(Rocket::Core::EventId::Animationend, new Event("hello"));
+	window = new DemoWindow("Animation sample", Rml::Core::Vector2f(81, 100), context);
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, new Event("hello"));
 
 
 	Shell::EventLoop(GameLoop);
 
 	delete window;
 
-	// Shutdown Rocket.
+	// Shutdown RmlUi.
 	context->RemoveReference();
-	Rocket::Core::Shutdown();
+	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

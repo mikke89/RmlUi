@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#ifndef ROCKETINVADERSDECORATORINSTANCERSTARFIELD_H
-#define ROCKETINVADERSDECORATORINSTANCERSTARFIELD_H
+#ifndef RMLUIINVADERSDECORATORINSTANCERSTARFIELD_H
+#define RMLUIINVADERSDECORATORINSTANCERSTARFIELD_H
 
-#include <Rocket/Core/DecoratorInstancer.h>
+#include <RmlUi/Core/DecoratorInstancer.h>
 #include "DecoratorStarfield.h"
 
 /**
 	@author Robert Curry
  */
 
-class DecoratorInstancerStarfield : public Rocket::Core::DecoratorInstancer
+class DecoratorInstancerStarfield : public Rml::Core::DecoratorInstancer
 {
 public:
 	DecoratorInstancerStarfield();
@@ -45,10 +46,10 @@ public:
 	/// @param name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successful, NULL if an error occured.
-	std::shared_ptr<Rocket::Core::Decorator> InstanceDecorator(const Rocket::Core::String& name, const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::DecoratorInstancerInterface& interface) override;
+	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
 
 private:
-	Rocket::Core::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;
+	Rml::Core::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;
 };
 
 #endif

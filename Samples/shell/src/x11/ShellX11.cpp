@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,8 @@
  */
 
 #include <Shell.h>
-#include <Rocket/Core.h>
+#include <ShellOpenGL.h>
+#include <RmlUi/Core.h>
 #include "ShellFileInterface.h"
 #include <x11/InputX11.h>
 #include <X11/Xlib.h>
@@ -36,22 +38,31 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdarg.h>
+#include <sys/stat.h>
+#include <limits.h>
 
 static bool running = false;
 static int screen = -1;
 static timeval start_time;
-static Rocket::Core::WString clipboard_text;
+static Rml::Core::WString clipboard_text;
 
 static ShellFileInterface* file_interface = NULL;
 
-bool Shell::Initialise(const Rocket::Core::String& path)
+static bool isDirectory(const Rml::Core::String &path)
+{
+	struct stat sb;
+	return (stat(path.c_str(), &sb)==0 && S_ISDIR(sb.st_mode));
+}
+
+bool Shell::Initialise()
 {
 	gettimeofday(&start_time, NULL);
 	InputX11::Initialise();
 
-	file_interface = new ShellFileInterface(path);
-	Rocket::Core::SetFileInterface(file_interface);
+	Rml::Core::String root = FindSamplesRoot();
+
+	file_interface = new ShellFileInterface(root);
+	Rml::Core::SetFileInterface(file_interface);
 
 	return true;
 }
@@ -62,6 +73,34 @@ void Shell::Shutdown()
 
 	delete file_interface;
 	file_interface = NULL;
+}
+
+Rml::Core::String Shell::FindSamplesRoot()
+{
+	char executable_file_name[PATH_MAX];
+	ssize_t len = readlink("/proc/self/exe", executable_file_name, PATH_MAX);
+	if (len == -1) {
+		printf("Unable to determine the executable path!\n");
+		executable_file_name[0] = 0;
+	} else {
+		// readlink() does not append a null byte to buf.
+		executable_file_name[len] = 0;
+	}
+	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
+	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
+	
+	// for "../Samples/" to be valid we must be in the Build directory.
+	// NOTE: we can't use "../../Samples/" because it is valid only if:
+	//  1. we are in the installation directory and
+	//  2. the installation directory is exactly "Samples" (case sensitive).
+	Rml::Core::String path = "../Samples/";
+	
+	if(!isDirectory(executable_path + path)) {
+		// we probably are in the installation directory, up by 1 should do.
+		path = "../";
+	}
+	
+	return (executable_path + path);
 }
 
 static Display* display = NULL;
@@ -301,18 +340,18 @@ double Shell::GetElapsedTime()
 	return result;
 }
 
-void Shell::SetMouseCursor(const Rocket::Core::String& cursor_name)
+void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 {
 	// Not implemented
 }
 
-void Shell::SetClipboardText(const Rocket::Core::WString& text)
+void Shell::SetClipboardText(const Rml::Core::WString& text)
 {
 	// Todo: interface with system clipboard
 	clipboard_text = text;
 }
 
-void Shell::GetClipboardText(Rocket::Core::WString& text)
+void Shell::GetClipboardText(Rml::Core::WString& text)
 {
 	// Todo: interface with system clipboard
 	text = clipboard_text;

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +26,8 @@
  *
  */
 
-#ifndef ROCKETINPUTWIN32_H
-#define ROCKETINPUTWIN32_H
+#ifndef RMLUIINPUTWIN32_H
+#define RMLUIINPUTWIN32_H
 
 #include <Input.h>
 #if !defined _WIN32_WINNT || _WIN32_WINNT < 0x0500
@@ -36,7 +37,7 @@
 #include <windows.h>
 
 /**
-	Processes Windows input events and passes them through to Rocket. Feel free to take this class and integrate it
+	Processes Windows input events and passes them through to RmlUi. Feel free to take this class and integrate it
 	with your project.
 	@author Lloyd Weehuizen
  */

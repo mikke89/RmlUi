@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +26,14 @@
  *
  */
 
-#ifndef ROCKETDEBUGGERPLUGIN_H
-#define ROCKETDEBUGGERPLUGIN_H
+#ifndef RMLUIDEBUGGERPLUGIN_H
+#define RMLUIDEBUGGERPLUGIN_H
 
-#include "../../Include/Rocket/Core/EventListener.h"
-#include "../../Include/Rocket/Core/Plugin.h"
+#include "../../Include/RmlUi/Core/EventListener.h"
+#include "../../Include/RmlUi/Core/Plugin.h"
 #include <set>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 class ElementDocument;
@@ -47,7 +48,7 @@ class ElementContextHook;
 class SystemInterface;
 
 /**
-	Rocket plugin interface for the debugger.
+	RmlUi plugin interface for the debugger.
 
 	@author Robert Curry
  */
@@ -78,10 +79,10 @@ public:
 	/// Renders any debug elements in the debug context.
 	void Render();
 
-	/// Called when Rocket shuts down.
+	/// Called when RmlUi shuts down.
 	virtual void OnShutdown();
 
-	/// Called whenever a Rocket context is destroyed.
+	/// Called whenever a RmlUi context is destroyed.
 	/// @param[in] context The destroyed context.
 	virtual void OnContextDestroy(Core::Context* context);
 

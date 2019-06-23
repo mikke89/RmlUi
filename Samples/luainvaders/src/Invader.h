@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +26,10 @@
  *
  */
 
-#ifndef ROCKETINVADERSINVADER_H
-#define ROCKETINVADERSINVADER_H
+#ifndef RMLUIINVADERSINVADER_H
+#define RMLUIINVADERSINVADER_H
 
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Types.h>
 
 class Game;
 
@@ -50,10 +51,10 @@ public:
 
 	/// Set the invaders screen position
 	/// @param position Position in screen space
-	void SetPosition(const Rocket::Core::Vector2f& position);
+	void SetPosition(const Rml::Core::Vector2f& position);
 	/// Get the current invader position
 	/// @returns The invaders position in screen space
-	const Rocket::Core::Vector2f& GetPosition() const;
+	const Rml::Core::Vector2f& GetPosition() const;
 
 	/// Update the invader
 	virtual void Update();	
@@ -74,7 +75,7 @@ public:
 	/// If a hit is detected, will explode and start the death timer
 	/// @param position Position to do the hit check at
 	/// @returns If the invader was hit
-	bool CheckHit(const Rocket::Core::Vector2f& position);
+	bool CheckHit(const Rml::Core::Vector2f& position);
 
 protected:
 	// Game this invader is in
@@ -85,7 +86,7 @@ protected:
 	// The invader type we represent
 	InvaderType type;
 	// The current position in screen space of the invader
-	Rocket::Core::Vector2f position;
+	Rml::Core::Vector2f position;
 	// Our current animation frame
 	int animation_frame;
 
@@ -95,7 +96,7 @@ protected:
 	// Our current in-flight bomb, or none. (may be not none if we're dead.)
 	BombType bomb;
 	// The current position of the bomb in screen space
-	Rocket::Core::Vector2f bomb_position;
+	Rml::Core::Vector2f bomb_position;
 	// The animation frame the bomb is on
 	int bomb_animation_frame;
 	// When the last bomb update occured

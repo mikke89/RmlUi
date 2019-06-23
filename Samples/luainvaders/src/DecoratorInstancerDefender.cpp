@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +27,14 @@
  */
 
 #include "DecoratorInstancerDefender.h"
-#include <Rocket/Core/Math.h>
-#include <Rocket/Core/String.h>
+#include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/String.h>
 #include "DecoratorDefender.h"
 
 DecoratorInstancerDefender::DecoratorInstancerDefender()
 {
 	id_image_src = RegisterProperty("image-src", "").AddParser("string").GetId();
-	RegisterShorthand("decorator", "image-src", Rocket::Core::ShorthandType::FallThrough);
+	RegisterShorthand("decorator", "image-src", Rml::Core::ShorthandType::FallThrough);
 }
 
 DecoratorInstancerDefender::~DecoratorInstancerDefender()
@@ -41,12 +42,12 @@ DecoratorInstancerDefender::~DecoratorInstancerDefender()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-std::shared_ptr<Rocket::Core::Decorator> DecoratorInstancerDefender::InstanceDecorator(const Rocket::Core::String& ROCKET_UNUSED_PARAMETER(name), const Rocket::Core::PropertyDictionary& properties, const Rocket::Core::DecoratorInstancerInterface& interface)
+std::shared_ptr<Rml::Core::Decorator> DecoratorInstancerDefender::InstanceDecorator(const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name), const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface)
 {
-	ROCKET_UNUSED(name);
+	RMLUI_UNUSED(name);
 
-	const Rocket::Core::Property* image_source_property = properties.GetProperty(id_image_src);
-	Rocket::Core::String image_source = image_source_property->Get< Rocket::Core::String >();
+	const Rml::Core::Property* image_source_property = properties.GetProperty(id_image_src);
+	Rml::Core::String image_source = image_source_property->Get< Rml::Core::String >();
 
 	auto decorator = std::make_shared<DecoratorDefender>();
 	if (decorator->Initialise(image_source, image_source_property->source))

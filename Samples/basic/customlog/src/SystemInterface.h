@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,14 +29,14 @@
 #ifndef SYSTEMINTERFACE_H
 #define SYSTEMINTERFACE_H
 
-#include <Rocket/Core/SystemInterface.h>
+#include <RmlUi/Core/SystemInterface.h>
 
 /**
-	Sample custom Rocket system interface for writing log messages to file.
+	Sample custom RmlUi system interface for writing log messages to file.
 	@author Lloyd Weehuizen
  */
 
-class SystemInterface : public Rocket::Core::SystemInterface
+class SystemInterface : public Rml::Core::SystemInterface
 {
 public:
 	SystemInterface();
@@ -49,7 +50,7 @@ public:
 	/// @param[in] type Type of log message, ERROR, WARNING, etc.
 	/// @param[in] message Message to log.
 	/// @return True to continue execution, false to break into the debugger.
-	virtual bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message);
+	virtual bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message);
 
 private:
 	FILE* fp;

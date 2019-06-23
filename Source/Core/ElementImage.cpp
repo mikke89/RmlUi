@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +28,11 @@
 
 #include "precompiled.h"
 #include "ElementImage.h"
-#include "../../Include/Rocket/Core.h"
+#include "../../Include/RmlUi/Core.h"
 #include "TextureDatabase.h"
 #include "TextureResource.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // Constructs a new ElementImage.
@@ -84,14 +85,14 @@ void ElementImage::OnRender()
 		GenerateGeometry();
 
 	// Render the geometry beginning at this element's content region.
-	geometry.Render(GetAbsoluteOffset(Rocket::Core::Box::CONTENT).Round());
+	geometry.Render(GetAbsoluteOffset(Rml::Core::Box::CONTENT).Round());
 }
 
 // Called when attributes on the element are changed.
-void ElementImage::OnAttributeChange(const Rocket::Core::ElementAttributes& changed_attributes)
+void ElementImage::OnAttributeChange(const Rml::Core::ElementAttributes& changed_attributes)
 {
 	// Call through to the base element's OnAttributeChange().
-	Rocket::Core::Element::OnAttributeChange(changed_attributes);
+	Rml::Core::Element::OnAttributeChange(changed_attributes);
 
 	float dirty_layout = false;
 
@@ -122,7 +123,7 @@ void ElementImage::OnAttributeChange(const Rocket::Core::ElementAttributes& chan
 
 			if (coords_list.size() != 4)
 			{
-				Rocket::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; coords requires 4 values, found %d.", GetAddress().c_str(), coords_list.size());
+				Rml::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; coords requires 4 values, found %d.", GetAddress().c_str(), coords_list.size());
 				ResetCoords();
 			}
 			else
@@ -134,7 +135,7 @@ void ElementImage::OnAttributeChange(const Rocket::Core::ElementAttributes& chan
 				if (coords[0] < 0 || coords[2] < coords[0] ||
 					coords[1] < 0 || coords[3] < coords[1])
 				{
-					Rocket::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; invalid coordinate values specified.", GetAddress().c_str());
+					Rml::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; invalid coordinate values specified.", GetAddress().c_str());
 					ResetCoords();
 				}
 				else
@@ -177,7 +178,7 @@ void ElementImage::GenerateGeometry()
 	// Release the old geometry before specifying the new vertices.
 	geometry.Release(true);
 
-	std::vector< Rocket::Core::Vertex >& vertices = geometry.GetVertices();
+	std::vector< Rml::Core::Vertex >& vertices = geometry.GetVertices();
 	std::vector< int >& indices = geometry.GetIndices();
 
 	vertices.resize(4);
@@ -211,9 +212,9 @@ void ElementImage::GenerateGeometry()
 	Colourb quad_colour = computed.image_color;
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 	
-	Vector2f quad_size = GetBox().GetSize(Rocket::Core::Box::CONTENT).Round();
+	Vector2f quad_size = GetBox().GetSize(Rml::Core::Box::CONTENT).Round();
 
-	Rocket::Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour,  texcoords[0], texcoords[1]);
+	Rml::Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour,  texcoords[0], texcoords[1]);
 
 	geometry_dirty = false;
 }
@@ -229,7 +230,7 @@ bool ElementImage::LoadTexture()
 
 	geometry_dirty = true;
 
-	Rocket::Core::ElementDocument* document = GetOwnerDocument();
+	Rml::Core::ElementDocument* document = GetOwnerDocument();
 	URL source_url(document == NULL ? "" : document->GetSourceURL());
 
 	if (!texture.Load(image_source, source_url.GetPath()))

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +26,10 @@
  *
  */
 
-#ifndef ROCKETINVADERSSHIELD_H
-#define ROCKETINVADERSSHIELD_H
+#ifndef RMLUIINVADERSSHIELD_H
+#define RMLUIINVADERSSHIELD_H
 
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Types.h>
 
 class Game;
 
@@ -55,10 +56,10 @@ public:
 
 	/// Set the shield's screen position
 	/// @param position Position in screen space
-	void SetPosition(const Rocket::Core::Vector2f& position);
+	void SetPosition(const Rml::Core::Vector2f& position);
 	/// Get the current shield position
 	/// @returns The shield's position in screen space
-	const Rocket::Core::Vector2f& GetPosition() const;
+	const Rml::Core::Vector2f& GetPosition() const;
 
 	/// Render the shield.
 	void Render();
@@ -67,7 +68,7 @@ public:
 	/// If a hit is detected, will degrade the shield.
 	/// @param position Position to do the hit check at
 	/// @returns If the shield was hit
-	bool CheckHit(const Rocket::Core::Vector2f& position);
+	bool CheckHit(const Rml::Core::Vector2f& position);
 
 protected:
 	void SustainDamage();
@@ -78,7 +79,7 @@ protected:
 	// The invader type we represent
 	ShieldType type;
 	// The current position in screen space of the shield
-	Rocket::Core::Vector2f position;
+	Rml::Core::Vector2f position;
 
 	// Our current state - starts at 4, degrades once per hit.
 	int health;

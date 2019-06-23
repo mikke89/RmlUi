@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +28,10 @@
 
 #include "precompiled.h"
 #include "EventSpecification.h"
-#include "../../Include/Rocket/Core/ID.h"
+#include "../../Include/RmlUi/Core/ID.h"
 
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 // An EventId is an index into the specifications vector.
@@ -93,14 +94,14 @@ void Initialize()
 	for (auto& specification : specifications)
 		type_lookup.emplace(specification.type, specification.id);
 
-#ifdef ROCKET_DEBUG
+#ifdef RMLUI_DEBUG
 	// Verify that all event ids are specified
-	ROCKET_ASSERT((int)specifications.size() == (int)EventId::NumDefinedIds);
+	RMLUI_ASSERT((int)specifications.size() == (int)EventId::NumDefinedIds);
 
 	for (int i = 0; i < (int)specifications.size(); i++)
 	{
 		// Verify correct order
-		ROCKET_ASSERT(i == (int)specifications[i].id);
+		RMLUI_ASSERT(i == (int)specifications[i].id);
 	}
 #endif
 }

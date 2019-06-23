@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +26,10 @@
  *
  */
 
-#include <Rocket/Core.h>
-#include <Rocket/Core/Input.h>
-#include <Rocket/Debugger/Debugger.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Core/Input.h>
+#include <RmlUi/Debugger/Debugger.h>
+#include <Shell.h>
 #include <ShellFileInterface.h>
 
 #include "SystemInterfaceSDL2.h"
@@ -39,17 +41,7 @@
 
 int main(int argc, char **argv)
 {
-#ifdef ROCKET_PLATFORM_LINUX
-#define APP_PATH "../Samples/basic/sdl2/"
-#else
-#ifdef ROCKET_PLATFORM_MACOSX
-#define APP_PATH "../../../../../Samples/basic/sdl2/"
-#else
-#define APP_PATH "../../Samples/basic/sdl2/"
-#endif
-#endif
-
-#ifdef ROCKET_PLATFORM_WIN32
+#ifdef RMLUI_PLATFORM_WIN32
         DoAllocConsole();
 #endif
 
@@ -57,7 +49,7 @@ int main(int argc, char **argv)
         int window_height = 768;
 
     SDL_Init( SDL_INIT_VIDEO );
-    SDL_Window * screen = SDL_CreateWindow("LibRocket SDL2 test", 20, 20, window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Window * screen = SDL_CreateWindow("LibRmlUi SDL2 test", 20, 20, window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     SDL_GLContext glcontext = SDL_GL_CreateContext(screen);
     int oglIdx = -1;
     int nRD = SDL_GetNumRenderDrivers();
@@ -84,28 +76,30 @@ int main(int argc, char **argv)
     glLoadIdentity();
     glOrtho(0, window_width, window_height, 0, 0, 1);
  
-	RocketSDL2Renderer Renderer(renderer, screen);
-	RocketSDL2SystemInterface SystemInterface;
-	ShellFileInterface FileInterface("../Samples/assets/");
+	RmlUiSDL2Renderer Renderer(renderer, screen);
+	RmlUiSDL2SystemInterface SystemInterface;
+	
+	Rml::Core::String root = Shell::FindSamplesRoot();
+	ShellFileInterface FileInterface(root);
 
-	Rocket::Core::SetFileInterface(&FileInterface);
-	Rocket::Core::SetRenderInterface(&Renderer);
-    Rocket::Core::SetSystemInterface(&SystemInterface);
+	Rml::Core::SetFileInterface(&FileInterface);
+	Rml::Core::SetRenderInterface(&Renderer);
+    Rml::Core::SetSystemInterface(&SystemInterface);
 
-	if(!Rocket::Core::Initialise())
+	if(!Rml::Core::Initialise())
 		return 1;
 
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Bold.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-BoldItalic.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Italic.otf");
-	Rocket::Core::FontDatabase::LoadFontFace("Delicious-Roman.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Bold.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Italic.otf");
+	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Roman.otf");
 
-	Rocket::Core::Context *Context = Rocket::Core::CreateContext("default",
-		Rocket::Core::Vector2i(window_width, window_height));
+	Rml::Core::Context *Context = Rml::Core::CreateContext("default",
+		Rml::Core::Vector2i(window_width, window_height));
 
-	Rocket::Debugger::Initialise(Context);
+	Rml::Debugger::Initialise(Context);
 
-	Rocket::Core::ElementDocument *Document = Context->LoadDocument("demo.rml");
+	Rml::Core::ElementDocument *Document = Context->LoadDocument("assets/demo.rml");
 
 	if(Document)
 	{
@@ -155,12 +149,12 @@ int main(int argc, char **argv)
 
                 case SDL_KEYDOWN:
                 {
-                    // Intercept SHIFT + ~ key stroke to toggle libRocket's 
+                    // Intercept SHIFT + ~ key stroke to toggle RmlUi's 
                     // visual debugger tool
                     if( event.key.keysym.sym == SDLK_BACKQUOTE && 
                         event.key.keysym.mod == KMOD_LSHIFT )
                     {
-                        Rocket::Debugger::SetVisible( ! Rocket::Debugger::IsVisible() );
+                        Rml::Debugger::SetVisible( ! Rml::Debugger::IsVisible() );
                         break;
                     }
                     
@@ -176,7 +170,7 @@ int main(int argc, char **argv)
 	}
 
     Context->RemoveReference();
-    Rocket::Core::Shutdown();
+    Rml::Core::Shutdown();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(screen);

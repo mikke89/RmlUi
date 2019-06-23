@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +28,9 @@
 
 #include "precompiled.h"
 #include "DecoratorTiledInstancer.h"
-#include "../../Include/Rocket/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 DecoratorTiledInstancer::DecoratorTiledInstancer(size_t num_tiles)
@@ -87,7 +88,7 @@ static void LoadTexCoord(const Property& property, float& tex_coord, bool& tex_c
 // Retrieves all the properties for a tile from the property dictionary.
 bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) const
 {
-	ROCKET_ASSERT(num_tiles_and_textures == tile_property_ids.size());
+	RMLUI_ASSERT(num_tiles_and_textures == tile_property_ids.size());
 
 	String previous_texture_name;
 	Texture previous_texture;

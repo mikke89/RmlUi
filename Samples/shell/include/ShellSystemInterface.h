@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#ifndef ROCKETSHELLSYSTEMINTERFACE_H
-#define ROCKETSHELLSYSTEMINTERFACE_H
+#ifndef RMLUISHELLSYSTEMINTERFACE_H
+#define RMLUISHELLSYSTEMINTERFACE_H
 
-#include <Rocket/Core/SystemInterface.h>
+#include <RmlUi/Core/SystemInterface.h>
 
 /**
-	A custom system interface for Rocket. This provides timing information.
+	A custom system interface for RmlUi. This provides timing information.
 	@author Lloyd Weehuizen
  */
 
-class ShellSystemInterface : public Rocket::Core::SystemInterface
+class ShellSystemInterface : public Rml::Core::SystemInterface
 {
 public:
 	/// Get the number of seconds elapsed since the start of the application
@@ -44,15 +45,15 @@ public:
 
 	/// Set mouse cursor.
 	/// @param[in] cursor_name Cursor name to activate.
-	virtual void SetMouseCursor(const Rocket::Core::String& cursor_name);
+	virtual void SetMouseCursor(const Rml::Core::String& cursor_name);
 
 	/// Set clipboard text.
 	/// @param[in] text Text to apply to clipboard.
-	virtual void SetClipboardText(const Rocket::Core::WString& text);
+	virtual void SetClipboardText(const Rml::Core::WString& text);
 
 	/// Get clipboard text.
 	/// @param[out] text Retrieved text from clipboard.
-	virtual void GetClipboardText(Rocket::Core::WString& text);
+	virtual void GetClipboardText(Rml::Core::WString& text);
 };
 
 #endif

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +27,10 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/URL.h"
+#include "../../Include/RmlUi/Core/URL.h"
 #include <stdio.h>
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 const char* DEFAULT_PROTOCOL = "file";
@@ -45,14 +46,14 @@ URL::URL()
 URL::URL(const String& _url)
 {
 	port = 0;
-	ROCKET_VERIFY(SetURL(_url));
+	RMLUI_VERIFY(SetURL(_url));
 }
 
 // Constructs a new URL from the given string.
 URL::URL(const char* _url)
 {
 	port = 0;
-	ROCKET_VERIFY(SetURL(_url));
+	RMLUI_VERIFY(SetURL(_url));
 }
 
 // Destroys the URL.
@@ -493,7 +494,7 @@ void URL::ConstructURL() const
 		}
 		url +=  "@" ;
 	}
-	ROCKET_ASSERTMSG( password.empty() || ( !password.empty() && !login.empty() ), "Can't have a password without a login!" );
+	RMLUI_ASSERTMSG( password.empty() || ( !password.empty() && !login.empty() ), "Can't have a password without a login!" );
 
 	// Append the host.
 	url += host;
@@ -503,7 +504,7 @@ void URL::ConstructURL() const
 	{		
 		if (port > 0)
 		{
-			ROCKET_ASSERTMSG( !host.empty(), "Can't have a port without a host!" );
+			RMLUI_ASSERTMSG( !host.empty(), "Can't have a port without a host!" );
 			char port_string[16];
 			sprintf(port_string, ":%d/", port);
 			url += port_string;

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +26,17 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/ElementFormControlSelect.h"
-#include "../../Include/Rocket/Core/ElementText.h"
-#include "../../Include/Rocket/Core/Event.h"
-#include "../../Include/Rocket/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlSelect.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "WidgetDropDown.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
 // Constructs a new ElementFormControlSelect.
-ElementFormControlSelect::ElementFormControlSelect(const Rocket::Core::String& tag) : ElementFormControl(tag)
+ElementFormControlSelect::ElementFormControlSelect(const Rml::Core::String& tag) : ElementFormControl(tag)
 {
 	widget = new WidgetDropDown(this);
 }
@@ -46,18 +47,18 @@ ElementFormControlSelect::~ElementFormControlSelect()
 }
 
 // Returns a string representation of the current value of the form control.
-Rocket::Core::String ElementFormControlSelect::GetValue() const
+Rml::Core::String ElementFormControlSelect::GetValue() const
 {
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	return widget->GetValue();
 }
 
 // Sets the current value of the form control.
-void ElementFormControlSelect::SetValue(const Rocket::Core::String& value)
+void ElementFormControlSelect::SetValue(const Rml::Core::String& value)
 {
 	OnUpdate();
 
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	widget->SetValue(value);
 }
 
@@ -66,14 +67,14 @@ void ElementFormControlSelect::SetSelection(int selection)
 {
 	OnUpdate();
 
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	widget->SetSelection(selection);
 }
 
 // Returns the index of the currently selected item.
 int ElementFormControlSelect::GetSelection() const
 {
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	return widget->GetSelection();
 }
 
@@ -82,7 +83,7 @@ SelectOption* ElementFormControlSelect::GetOption(int index)
 {
 	OnUpdate();
 
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	return widget->GetOption(index);
 }
 
@@ -91,16 +92,16 @@ int ElementFormControlSelect::GetNumOptions()
 {
 	OnUpdate();
 
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	return widget->GetNumOptions();
 }
 
 // Adds a new option to the select control.
-int ElementFormControlSelect::Add(const Rocket::Core::String& rml, const Rocket::Core::String& value, int before, bool selectable)
+int ElementFormControlSelect::Add(const Rml::Core::String& rml, const Rml::Core::String& value, int before, bool selectable)
 {
 	OnUpdate();
 
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	return widget->AddOption(rml, value, before, false, selectable);
 }
 
@@ -109,7 +110,7 @@ void ElementFormControlSelect::Remove(int index)
 {
 	OnUpdate();
 
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	widget->RemoveOption(index);
 }
 
@@ -118,7 +119,7 @@ void ElementFormControlSelect::RemoveAll()
 {
 	OnUpdate();
 
-	ROCKET_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != NULL);
 	widget->ClearOptions();
 }
 
@@ -133,10 +134,10 @@ void ElementFormControlSelect::OnUpdate()
 		Core::Element* child = GetFirstChild();
 
 		// Check for a value attribute.
-		Rocket::Core::String attribute_value = child->GetAttribute<Rocket::Core::String>("value", "");
+		Rml::Core::String attribute_value = child->GetAttribute<Rml::Core::String>("value", "");
 
 		// Pull the inner RML and add the option.
-		Rocket::Core::String rml;
+		Rml::Core::String rml;
 		child->GetInnerRML(rml);
 		widget->AddOption(rml, attribute_value, -1, child->GetAttribute("selected") != NULL, child->GetAttribute("unselectable") == NULL);
 
@@ -159,7 +160,7 @@ void ElementFormControlSelect::OnLayout()
 }
 
 // Returns true to mark this element as replaced.
-bool ElementFormControlSelect::GetIntrinsicDimensions(Rocket::Core::Vector2f& intrinsic_dimensions)
+bool ElementFormControlSelect::GetIntrinsicDimensions(Rml::Core::Vector2f& intrinsic_dimensions)
 {
 	intrinsic_dimensions.x = 128;
 	intrinsic_dimensions.y = 16;

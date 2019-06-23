@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,19 +26,13 @@
  *
  */
 
-#ifndef ROCKETSHELL_H
-#define ROCKETSHELL_H
+#ifndef RMLUISHELL_H
+#define RMLUISHELL_H
 
-#include <Rocket/Core/Types.h>
-#include <Rocket/Core/Context.h>
-#include <Rocket/Core/SystemInterface.h>
-#include <ShellRenderInterfaceExtensions.h>
-
-#ifdef ROCKET_PLATFORM_WIN32
-#define PATH_SEPARATOR	";"
-#else
-#define PATH_SEPARATOR	":"
-#endif
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/SystemInterface.h>
+#include "ShellRenderInterfaceExtensions.h"
 
 /**
 	Shell functions for creating windows, attaching OpenGL and handling input in a platform independent way.
@@ -48,16 +43,15 @@ class Shell
 {
 public:
 	/// Initialise the shell.
-	/// @param[in] path The path (relative to the current working directory) of the application's working directory.
-	static bool Initialise(const Rocket::Core::String& path);
+	static bool Initialise();
 	/// Shutdown the shell.
 	static void Shutdown();
 
+	/// Finds the Samples root directory.
+	static Rml::Core::String FindSamplesRoot();
+	
 	/// Loads the default fonts from the given path.
 	static void LoadFonts(const char* directory);
-
-	/// Returns the path to the application's executable.
-	static const Rocket::Core::String& GetExecutablePath();
 
 	/// Open a platform specific window, optionally initialising an OpenGL context on it.
 	/// @param[in] title Title of the window.
@@ -83,24 +77,22 @@ public:
 	static double GetElapsedTime();
 
 	/// Set mouse cursor.
-	static void SetMouseCursor(const Rocket::Core::String& cursor_name);
+	static void SetMouseCursor(const Rml::Core::String& cursor_name);
 
 	/// Set clipboard text.
-	static void SetClipboardText(const Rocket::Core::WString& text);
+	static void SetClipboardText(const Rml::Core::WString& text);
 
 	/// Get clipboard text.
-	static void GetClipboardText(Rocket::Core::WString& text);
+	static void GetClipboardText(Rml::Core::WString& text);
 	
 	/// Sets the context to send window resized events to.
 	/// @param[in] context The context to send  events to.
-	static void SetContext(Rocket::Core::Context* context);
+	static void SetContext(Rml::Core::Context* context);
 
 private:
-	static Rocket::Core::String executable_path;
-	static Rocket::Core::Context* context;
+	static Rml::Core::Context* context;
 };
 
-#include "ShellRenderInterfaceOpenGL.h"
 #include "ShellSystemInterface.h"
 
 #endif

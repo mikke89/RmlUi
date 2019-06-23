@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,13 +29,13 @@
 #include "precompiled.h"
 #include "FontFace.h"
 #include "FontFaceHandle.h"
-#include "../../../Include/Rocket/Core/Log.h"
+#include "../../../Include/RmlUi/Core/Log.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace FreeType {
 
-FontFace::FontFace(FT_Face _face, Font::Style _style, Font::Weight _weight, bool _release_stream) : Rocket::Core::FontFace(_style, _weight, _release_stream)
+FontFace::FontFace(FT_Face _face, Font::Style _style, Font::Weight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
 {
 	face = _face;
 }
@@ -45,7 +46,7 @@ FontFace::~FontFace()
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-Rocket::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
+Rml::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
 {
 	UnicodeRangeList charset;
 
@@ -62,7 +63,7 @@ Rocket::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, in
 			if (handles[i]->GetRawCharset() == _raw_charset)
 			{
 				handles[i]->AddReference();
-				return (Rocket::Core::FreeType::FontFaceHandle*)handles[i];
+				return (Rml::Core::FreeType::FontFaceHandle*)handles[i];
 			}
 		}
 
@@ -87,7 +88,7 @@ Rocket::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, in
 			if (range_contained)
 			{
 				handles[i]->AddReference();
-				return (Rocket::Core::FreeType::FontFaceHandle*)handles[i];
+				return (Rml::Core::FreeType::FontFaceHandle*)handles[i];
 			}
 		}
 	}

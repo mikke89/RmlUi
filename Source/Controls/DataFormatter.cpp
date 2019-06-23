@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +26,15 @@
  *
  */
 
-#include "../../Include/Rocket/Controls/DataFormatter.h"
+#include "../../Include/RmlUi/Controls/DataFormatter.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 
-typedef std::map< Rocket::Core::String, DataFormatter* > DataFormatterMap;
+typedef std::map< Rml::Core::String, DataFormatter* > DataFormatterMap;
 static DataFormatterMap data_formatters;
 
-DataFormatter::DataFormatter(const Rocket::Core::String& _name)
+DataFormatter::DataFormatter(const Rml::Core::String& _name)
 {
 	if (!_name.empty())
 	{
@@ -50,12 +51,12 @@ DataFormatter::~DataFormatter()
 {
 }
 
-const Rocket::Core::String& DataFormatter::GetDataFormatterName()
+const Rml::Core::String& DataFormatter::GetDataFormatterName()
 {
 	return name;
 }
 
-DataFormatter* DataFormatter::GetDataFormatter(const Rocket::Core::String& data_formatter_name)
+DataFormatter* DataFormatter::GetDataFormatter(const Rml::Core::String& data_formatter_name)
 {
 	DataFormatterMap::iterator i = data_formatters.find(data_formatter_name);
 	if (i == data_formatters.end())

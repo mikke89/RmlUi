@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include "Shell.h"
-#include <Rocket/Core.h>
+#include <RmlUi/Core.h>
 #include "ShellFileInterface.h"
 #include "macosx/InputMacOSX.h"
 #include <Carbon/Carbon.h>
@@ -54,19 +55,37 @@ static const EventTypeSpec WINDOW_EVENTS[] = {
 
 static WindowRef window;
 static timeval start_time;
-static Rocket::Core::WString clipboard_text;
+static Rml::Core::WString clipboard_text;
 
 ShellFileInterface* file_interface = NULL;
 
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p);
 static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, void* p);
 
-bool Shell::Initialise(const Rocket::Core::String& path)
+bool Shell::Initialise()
 {
 	gettimeofday(&start_time, NULL);
 
 	InputMacOSX::Initialise();
 
+	Rml::Core::String root = FindSamplesRoot();
+
+	file_interface = new ShellFileInterface(root);
+	Rml::Core::SetFileInterface(file_interface);
+
+	return true;
+}
+
+void Shell::Shutdown()
+{
+	delete file_interface;
+	file_interface = NULL;
+}
+
+Rml::Core::String Shell::FindSamplesRoot()
+{
+	Rml::Core::String path = "../../Samples/";
+	
 	// Find the location of the executable.
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFURLRef executable_url = CFBundleCopyExecutableURL(bundle);
@@ -76,23 +95,14 @@ bool Shell::Initialise(const Rocket::Core::String& path)
 	if (!CFStringGetFileSystemRepresentation(executable_posix_file_name, executable_file_name, max_length))
 		executable_file_name[0] = 0;
 
-	executable_path = Rocket::Core::String(executable_file_name);
+	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
 	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
 
 	delete[] executable_file_name;
 	CFRelease(executable_posix_file_name);
 	CFRelease(executable_url);
 
-	file_interface = new ShellFileInterface(executable_path + "../../../" + path);
-	Rocket::Core::SetFileInterface(file_interface);
-
-	return true;
-}
-
-void Shell::Shutdown()
-{
-	delete file_interface;
-	file_interface = NULL;
+	return (executable_path + "../../../" + path);
 }
 
 static ShellRenderInterfaceExtensions *shell_renderer;
@@ -243,19 +253,19 @@ double Shell::GetElapsedTime()
 	return result;
 }
 
-void Shell::SetMouseCursor(const Rocket::Core::String& cursor_name)
+void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 {
 	// Not implemented
 }
 
 
-void Shell::SetClipboardText(const Rocket::Core::WString& text)
+void Shell::SetClipboardText(const Rml::Core::WString& text)
 {
 	// Todo: interface with system clipboard
 	clipboard_text = text;
 }
 
-void Shell::GetClipboardText(Rocket::Core::WString& text)
+void Shell::GetClipboardText(Rml::Core::WString& text)
 {
 	// Todo: interface with system clipboard
 	text = clipboard_text;
@@ -279,7 +289,7 @@ static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, v
 					Shell::RequestExit();
 					break;
 				case kEventWindowBoundsChanged:
-					// Window resized, update the rocket context
+					// Window resized, update the rmlui context
 					UInt32 attributes;
 					GetEventParameter(event, kEventParamAttributes, typeUInt32, NULL, sizeof(UInt32), NULL, &attributes);
 

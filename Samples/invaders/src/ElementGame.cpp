@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +27,13 @@
  */
 
 #include "ElementGame.h"
-#include <Rocket/Core/ElementDocument.h>
-#include <Rocket/Core/Input.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Input.h>
 #include "Defender.h"
 #include "EventManager.h"
 #include "Game.h"
 
-ElementGame::ElementGame(const Rocket::Core::String& tag) : Rocket::Core::Element(tag)
+ElementGame::ElementGame(const Rml::Core::String& tag) : Rml::Core::Element(tag)
 {
 	game = new Game();
 }
@@ -43,15 +44,15 @@ ElementGame::~ElementGame()
 }
 
 // Intercepts and handles key events.
-void ElementGame::ProcessEvent(Rocket::Core::Event& event)
+void ElementGame::ProcessEvent(Rml::Core::Event& event)
 {
-	if (event == Rocket::Core::EventId::Keydown ||
-		event == Rocket::Core::EventId::Keyup)
+	if (event == Rml::Core::EventId::Keydown ||
+		event == Rml::Core::EventId::Keyup)
 	{
-		bool key_down = (event == Rocket::Core::EventId::Keydown);
-		Rocket::Core::Input::KeyIdentifier key_identifier = (Rocket::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+		bool key_down = (event == Rml::Core::EventId::Keydown);
+		Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
-		if (key_identifier == Rocket::Core::Input::KI_ESCAPE &&
+		if (key_identifier == Rml::Core::Input::KI_ESCAPE &&
 			!key_down)
 		{
 			EventManager::LoadWindow("pause");
@@ -60,23 +61,23 @@ void ElementGame::ProcessEvent(Rocket::Core::Event& event)
 		// Process left and right keys
 		if (key_down)
 		{
-			if (key_identifier == Rocket::Core::Input::KI_LEFT)
+			if (key_identifier == Rml::Core::Input::KI_LEFT)
 				game->GetDefender()->StartMove(-1.0f);
-			if (key_identifier == Rocket::Core::Input::KI_RIGHT)
+			if (key_identifier == Rml::Core::Input::KI_RIGHT)
 				game->GetDefender()->StartMove(1.0f);
-			if (key_identifier == Rocket::Core::Input::KI_SPACE)
+			if (key_identifier == Rml::Core::Input::KI_SPACE)
 				game->GetDefender()->Fire();
 		}		
 		else if (!key_down)
 		{
-			if (key_identifier == Rocket::Core::Input::KI_LEFT)
+			if (key_identifier == Rml::Core::Input::KI_LEFT)
 				game->GetDefender()->StopMove(-1.0f);
-			if (key_identifier == Rocket::Core::Input::KI_RIGHT)
+			if (key_identifier == Rml::Core::Input::KI_RIGHT)
 				game->GetDefender()->StopMove(1.0f);				
 		}
 	}
 
-	if (event == Rocket::Core::EventId::Load)
+	if (event == Rml::Core::EventId::Load)
 	{
 		game->Initialise();
 	}
@@ -94,14 +95,14 @@ void ElementGame::OnRender()
 	game->Render();
 }
 
-void ElementGame::OnChildAdd(Rocket::Core::Element* element)
+void ElementGame::OnChildAdd(Rml::Core::Element* element)
 {
-	Rocket::Core::Element::OnChildAdd(element);
+	Rml::Core::Element::OnChildAdd(element);
 
 	if (element == this)
 	{
-		GetOwnerDocument()->AddEventListener(Rocket::Core::EventId::Load, this);
-		GetOwnerDocument()->AddEventListener(Rocket::Core::EventId::Keydown, this);
-		GetOwnerDocument()->AddEventListener(Rocket::Core::EventId::Keyup, this);
+		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Load, this);
+		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Keydown, this);
+		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Keyup, this);
 	}
 }

@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +26,10 @@
  *
  */
 
-#ifndef ROCKETINVADERSGAMEDETAILS_H
-#define ROCKETINVADERSGAMEDETAILS_H
+#ifndef RMLUIINVADERSGAMEDETAILS_H
+#define RMLUIINVADERSGAMEDETAILS_H
 
-#include <Rocket/Core/Types.h>
+#include <RmlUi/Core/Types.h>
 
 /**
 	@author Peter Curry
@@ -48,10 +49,10 @@ public:
 
 	/// Sets the colour of the player's ship.
 	/// @param[in] colour The new ship colour.
-	static void SetDefenderColour(const Rocket::Core::Colourb& colour);
+	static void SetDefenderColour(const Rml::Core::Colourb& colour);
 	/// Returns the player's ship colour.
 	/// @return The colour of the player's ship.
-	static const Rocket::Core::Colourb& GetDefenderColour();
+	static const Rml::Core::Colourb& GetDefenderColour();
 
 	/// Sets the score the player achieved in the last game.
 	/// @param[in] score The player's score.

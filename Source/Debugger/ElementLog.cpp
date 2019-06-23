@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +27,12 @@
  */
 
 #include "ElementLog.h"
-#include "../../Include/Rocket/Core.h"
+#include "../../Include/RmlUi/Core.h"
 #include "CommonSource.h"
 #include "BeaconSource.h"
 #include "LogSource.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Debugger {
 
 const int MAX_LOG_MESSAGES = 50;
@@ -83,7 +84,7 @@ ElementLog::~ElementLog()
 bool ElementLog::Initialise()
 {
 	SetInnerRML(log_rml);
-	SetId("rkt-debug-log");
+	SetId("rmlui-debug-log");
 
 	message_content = GetElementById("content");
 	if (message_content)
@@ -103,7 +104,7 @@ bool ElementLog::Initialise()
 	if (beacon == NULL)
 		return false;
 
-	beacon->SetId("rkt-debug-log-beacon");
+	beacon->SetId("rmlui-debug-log-beacon");
 	beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	beacon->SetInnerRML(beacon_rml);
 
@@ -148,7 +149,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	{
 		if (!log_types[type].button_name.empty())
 		{
-			Rocket::Core::Element* button = GetElementById(log_types[type].button_name);
+			Rml::Core::Element* button = GetElementById(log_types[type].button_name);
 			if (button)
 			{
 				button->SetInnerRML("Off*");
@@ -167,7 +168,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 					beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 
 					current_beacon_level = type;
-					Rocket::Core::Element* beacon_button = beacon->GetFirstChild();
+					Rml::Core::Element* beacon_button = beacon->GetFirstChild();
 					if (beacon_button)
 					{
 						beacon_button->SetClassNames(log_types[type].class_name);

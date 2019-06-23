@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +28,12 @@
  
 #include "precompiled.h"
 #include "ElementDataGrid.h"
-#include <Rocket/Core/Element.h>
-#include <Rocket/Controls/ElementDataGridRow.h>
-#include <Rocket/Core/Lua/Utilities.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Controls/ElementDataGridRow.h>
+#include <RmlUi/Core/Lua/Utilities.h>
 
 
-namespace Rocket {
+namespace Rml {
 namespace Controls {
 namespace Lua {
 
@@ -81,7 +82,7 @@ int ElementDataGridGetAttrrows(lua_State* L)
 
 
 
-Rocket::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[] =
+Rml::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[] =
 {
     LUAMETHOD(ElementDataGrid,AddColumn)
     LUAMETHOD(ElementDataGrid,SetDataSource)
@@ -103,16 +104,16 @@ luaL_Reg ElementDataGridSetters[] =
 }
 }
 }
-namespace Rocket {
+namespace Rml {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<Rocket::Controls::ElementDataGrid>(lua_State* L, int metatable_index)
+template<> void ExtraInit<Rml::Controls::ElementDataGrid>(lua_State* L, int metatable_index)
 {
     ExtraInit<Element>(L,metatable_index);
     LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    AddTypeToElementAsTable<Rocket::Controls::ElementDataGrid>(L);
+    AddTypeToElementAsTable<Rml::Controls::ElementDataGrid>(L);
 }
-using Rocket::Controls::ElementDataGrid;
+using Rml::Controls::ElementDataGrid;
 LUACONTROLSTYPEDEFINE(ElementDataGrid,true)
 }
 }

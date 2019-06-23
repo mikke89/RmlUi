@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +27,12 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/Rocket/Core/Transform.h"
-#include "../../Include/Rocket/Core/TransformPrimitive.h"
-#include "../../Include/Rocket/Core/ViewState.h"
-#include "../../Include/Rocket/Core/Property.h"
+#include "../../Include/RmlUi/Core/Transform.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/ViewState.h"
+#include "../../Include/RmlUi/Core/Property.h"
 
-namespace Rocket {
+namespace Rml {
 namespace Core {
 
 

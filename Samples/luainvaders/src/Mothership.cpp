@@ -1,9 +1,10 @@
 /*
- * This source file is part of libRocket, the HTML/CSS Interface Middleware
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
- * For the latest information, see http://www.librocket.com
+ * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@
  */
 
 #include "Mothership.h"
-#include <Rocket/Core/Math.h>
+#include <RmlUi/Core/Math.h>
 #include "Shell.h"
 #include "Game.h"
 #include "Sprite.h"
@@ -42,7 +43,7 @@ Mothership::Mothership(Game* game, int index) : Invader(game, Invader::MOTHERSHI
 	// Start off dead, and set up our position
 	state = DEAD;
 	update_frame_start = 0;
-	position = Rocket::Core::Vector2f(-SPRITE_WIDTH, 64.0f);
+	position = Rml::Core::Vector2f(-SPRITE_WIDTH, 64.0f);
 }
 
 Mothership::~Mothership()
@@ -69,9 +70,9 @@ void Mothership::Update()
 		update_frame_start = Shell::GetElapsedTime();
 	}
 	// Determine if we should come out of hiding
-	else if (Rocket::Core::Math::RandomReal(1.0f) < APPEARANCE_PROBABILITY)
+	else if (Rml::Core::Math::RandomReal(1.0f) < APPEARANCE_PROBABILITY)
 	{
-		direction = Rocket::Core::Math::RandomReal(1.0f) < 0.5 ? -1.0f : 1.0f;
+		direction = Rml::Core::Math::RandomReal(1.0f) < 0.5 ? -1.0f : 1.0f;
 
 		if (direction < 0)
 			position.x = game->GetWindowDimensions().x + SPRITE_WIDTH;
