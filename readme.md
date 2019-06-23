@@ -8,7 +8,7 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 [![Build Status](https://travis-ci.com/mikke89/RmlUi.svg?branch=performance)](https://travis-ci.com/mikke89/RmlUi) [![Build status](https://ci.appveyor.com/api/projects/status/x95oi8mrb001pqhh/branch/performance?svg=true)](https://ci.appveyor.com/project/mikke89/rmlui/branch/performance)
 
-RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRmlUi/libRocket) project, introducing new features, bug fixes, and performance improvements. 
+RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
 RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space.
 
@@ -33,7 +33,7 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ## RmlUi features
 
-RmlUi introduces several features over the [original libRocket branch](https://github.com/libRmlUi/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
+RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
 
 
 ## Breaking changes
@@ -215,8 +215,6 @@ RCSS example usage:
 
 Internally, animations apply their properties on the local style of the element. Thus, mixing RML style attributes and animations should be avoided on the same element.
 
-Animations currently support full interpolation of transforms, largely following the CSS specifications. Additionally, interpolation support for colors, numbers, lengths, and percentages are implemented.
-
 Animations currently support full interpolation of transforms, largely following the CSS specifications. Additionally, interpolation is supported for colors, numbers, lengths, and percentages.
 
 Animations are very powerful coupled with transforms. See the animation sample project for more examples and details. There are also some [video demonstrations](https://mikke89.github.io/RmlUiDoc/pages/rmlui_features.html) of these features in the documentation.
@@ -334,3 +332,4 @@ The slider on the `input.range` element can be dragged from anywhere in the elem
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
+ 
