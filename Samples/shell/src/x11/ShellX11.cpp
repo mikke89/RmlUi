@@ -40,6 +40,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <limits.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 static bool running = false;
 static int screen = -1;
@@ -87,7 +89,7 @@ Rml::Core::String Shell::FindSamplesRoot()
 		executable_file_name[len] = 0;
 	}
 	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
+	executable_path = executable_path.substr(0, executable_path.rfind("/") + 1);
 	
 	// for "../Samples/" to be valid we must be in the Build directory.
 	// NOTE: we can't use "../../Samples/" because it is valid only if:

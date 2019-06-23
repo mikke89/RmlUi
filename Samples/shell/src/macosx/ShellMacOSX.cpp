@@ -96,7 +96,7 @@ Rml::Core::String Shell::FindSamplesRoot()
 		executable_file_name[0] = 0;
 
 	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
+	executable_path = executable_path.substr(0, executable_path.rfind("/") + 1);
 
 	delete[] executable_file_name;
 	CFRelease(executable_posix_file_name);
