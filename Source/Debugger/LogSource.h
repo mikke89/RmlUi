@@ -30,7 +30,7 @@ static const char* log_rcss = R"RCSS(body
 {
 	width: 400dp;
 	height: 300dp;
-	min-width: 200dp;
+	min-width: 230dp;
 	min-height: 150dp;
 	top: 42dp;
 	left: 20dp;
@@ -38,7 +38,7 @@ static const char* log_rcss = R"RCSS(body
 div#tools
 {
 	float: right;
-	width: 137dp;
+	width: 182dp;
 }
 div.log-entry
 {
@@ -58,11 +58,25 @@ div.log-entry div.icon
 div.button
 {
 	display: inline-block;
-	width: 30dp;
+	width: 28dp;
 	text-align: center;
 	border-width: 1px;
 	font-weight: bold;
 	margin-right: 3dp;
+}
+div.button.clear
+{
+	border-color: #666;
+	background-color: #aaa;
+	color: #111;
+}
+div.button:hover
+{
+	border-color: #ddd;
+}
+div.button:active
+{
+	border-color: #fff;
 }
 div.button.last
 {
@@ -77,16 +91,16 @@ div.log-entry p.message
 
 static const char* log_rml = R"RML(
 <h1>
-	<handle id="position_handle" move_target="#document">
-		<div id="close_button">X</div>
-		<div id="tools">
-			<div id="error_button" class="button error">On</div>
-			<div id="warning_button" class="button warning">On</div>
-			<div id="info_button" class="button info">Off</div>
-			<div id="debug_button" class="button debug last">On</div>
-		</div>
-		<div style="width: 100dp;">Event Log</div>
-	</handle>
+	<handle id="position_handle" move_target="#document"/>
+	<div id="close_button">X</div>
+	<div id="tools">
+		<div id="clear_button" class="button clear" style="width: 45dp;">Clear</div>
+		<div id="error_button" class="button error">On</div>
+		<div id="warning_button" class="button warning">On</div>
+		<div id="info_button" class="button info">Off</div>
+		<div id="debug_button" class="button debug last">On</div>
+	</div>
+	<div style="width: 100dp;">Event Log</div>
 </h1>
 <div id="content">
 	No messages in log.

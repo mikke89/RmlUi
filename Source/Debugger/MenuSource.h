@@ -61,6 +61,10 @@ button:hover
 {
 	background: #eee;
 }
+button:active
+{
+	background: #fff;
+}
 div#version-info
 {
 	padding: 0px;

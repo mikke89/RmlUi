@@ -49,7 +49,7 @@ h1
 	position: absolute;
 	top: 0px;
 	height: 22dp;
-	padding: 4dp;
+	padding: 4dp 5dp;
 	color: white;
 	background-color: #888;
 	font-size: 15dp;
@@ -71,12 +71,21 @@ h4
 }
 handle#position_handle
 {
-	height: 100%;
-	width: 100%;
+	display: block;
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0; 
+}
+h1 .button
+{
+	z-index: 1;
 }
 div#close_button
 {
 	margin-left: 10dp;
+	z-index: 1;
 	float: right;
 	width: 18dp;
 	color: black;
@@ -84,6 +93,14 @@ div#close_button
 	border-width: 1px;
 	border-color: #666;
 	text-align: center;
+}
+div#close_button:hover
+{
+	background-color: #eee;
+}
+div#close_button:active
+{
+	background-color: #fff;
 }
 div#content
 {

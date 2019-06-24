@@ -63,10 +63,9 @@ scrollbarvertical
 
 static const char* info_rml = R"RML(
 <h1>
-	<handle id="position_handle" move_target="#document">
-		<div id="close_button">X</div>
-		<div id="title-content" style="width: 200dp;">Element Information</div>
-	</handle>
+	<handle id="position_handle" move_target="#document"/>
+	<div id="close_button">X</div>
+	<div id="title-content" style="width: 200dp;">Element Information</div>
 </h1>
 <div id="content">
 	<div id ="attributes">

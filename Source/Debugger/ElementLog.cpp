@@ -243,8 +243,20 @@ void ElementLog::ProcessEvent(Core::Event& event)
 			}
 			else if (event.GetTargetElement()->GetId() == "close_button")
 			{
-				if (IsVisible())
-					SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+				SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+			}
+			else if (event.GetTargetElement()->GetId() == "clear_button")
+			{
+				for (int i = 0; i < Core::Log::LT_MAX; i++)
+				{
+					log_types[i].log_messages.clear();
+					if (!log_types[i].visible)
+					{
+						if (Element * button = GetElementById(log_types[i].button_name))
+							button->SetInnerRML("Off");
+					}
+				}
+				dirty_logs = true;
 			}
 			else
 			{
