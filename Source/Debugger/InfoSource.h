@@ -26,76 +26,78 @@
  *
  */
 
-static const char* info_rcss =
-"body\n"
-"{\n"
-"	width: 320dp;\n"
-"	min-width: 320dp;\n"
-"	min-height: 150dp;\n"
-"	margin-top: 42dp;\n"
-"	margin-right: 20dp;\n"
-"	margin-left: auto;\n"
-"}\n"
-"div#content\n"
-"{\n"
-"   height: auto;\n"
-"	max-height: 650dp;\n"
-"}\n"
-"div#content div h2\n"
-"{\n"
-"	padding-left: 5dp;\n"
-"}\n"
-"div#content div div\n"
-"{\n"
-"	font-size: 12dp;\n"
-"	padding-left: 10dp;\n"
-"}\n"
-"div#ancestors p:hover,\n"
-"div#children p:hover\n"
-"{\n"
-"	background-color: #ddd;\n"
-"}\n"
-"scrollbarvertical\n"
-"{\n"
-"	scrollbar-margin: 0px;\n"
-"}\n";
+static const char* info_rcss = R"RCSS(
+body
+{
+	width: 320dp;
+	min-width: 320dp;
+	min-height: 150dp;
+	margin-top: 42dp;
+	margin-right: 20dp;
+	margin-left: auto;
+}
+div#content
+{
+   height: auto;
+	max-height: 650dp;
+}
+div#content div h2
+{
+	padding-left: 5dp;
+}
+div#content div div
+{
+	font-size: 12dp;
+	padding-left: 10dp;
+}
+div#ancestors p:hover,
+div#children p:hover
+{
+	background-color: #ddd;
+}
+scrollbarvertical
+{
+	scrollbar-margin: 0px;
+}
+)RCSS";
 
-static const char* info_rml =
-"<h1>\n"
-"	<handle id=\"position_handle\" move_target=\"#document\">\n"
-"		<div id=\"close_button\">X</div>\n"
-"		<div id=\"title-content\" style=\"width: 200dp;\">Element Information</div>\n"
-"	</handle>\n"
-"</h1>\n"
-"<div id=\"content\">\n"
-"	<div id =\"attributes\">\n"
-"		<h2>Attributes</h2>\n"
-"		<div id=\"attributes-content\">\n"
-"		</div>\n"
-"	</div>\n"
-"	<div id =\"properties\">\n"
-"		<h2>Properties</h2>\n"
-"		<div id=\"properties-content\">\n"
-"		</div>\n"
-"	</div>\n"
-"	<div id =\"events\">\n"
-"		<h2>Events</h2>\n"
-"		<div id=\"events-content\">\n"
-"		</div>\n"
-"	</div>\n"
-"	<div id =\"position\">\n"
-"		<h2>Position</h2>\n"
-"		<div id=\"position-content\">\n"
-"		</div>\n"
-"	</div>\n"
-"	<div id =\"ancestors\">\n"
-"		<h2>Ancestors</h2>\n"
-"		<div id=\"ancestors-content\">\n"
-"		</div>\n"
-"	</div>\n"
-"	<div id =\"children\">\n"
-"		<h2>Children</h2>\n"
-"		<div id=\"children-content\">\n"
-"		</div>\n"
-"	</div>\n"
-"</div>\n";
+static const char* info_rml = R"RML(
+<h1>
+	<handle id="position_handle" move_target="#document">
+		<div id="close_button">X</div>
+		<div id="title-content" style="width: 200dp;">Element Information</div>
+	</handle>
+</h1>
+<div id="content">
+	<div id ="attributes">
+		<h2>Attributes</h2>
+		<div id="attributes-content">
+		</div>
+	</div>
+	<div id ="properties">
+		<h2>Properties</h2>
+		<div id="properties-content">
+		</div>
+	</div>
+	<div id ="events">
+		<h2>Events</h2>
+		<div id="events-content">
+		</div>
+	</div>
+	<div id ="position">
+		<h2>Position</h2>
+		<div id="position-content">
+		</div>
+	</div>
+	<div id ="ancestors">
+		<h2>Ancestors</h2>
+		<div id="ancestors-content">
+		</div>
+	</div>
+	<div id ="children">
+		<h2>Children</h2>
+		<div id="children-content">
+		</div>
+	</div>
+</div>
+)RML";

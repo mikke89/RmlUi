@@ -26,69 +26,70 @@
  *
  */
 
-static const char* log_rcss =
-"body\n"
-"{\n"
-"	width: 400dp;\n"
-"   height: 300dp;\n"
-"	min-width: 200dp;\n"
-"	min-height: 150dp;\n"
-"	top: 42dp;\n"
-"	left: 20dp;\n"
-"}\n"
-"div#tools\n"
-"{\n"
-"	float: right;\n"
-"	width: 137dp;\n"
-"}\n"
-"div.log-entry\n"
-"{\n"
-"	margin: 3dp 2dp;\n"
-"}\n"
-"div.log-entry div.icon\n"
-"{\n"
-"	float: left;\n"
-"	display: block;\n"
-"	width: 18dp;\n"
-"	height: 18dp;\n"
-"	text-align: center;\n"
-"	border-width: 1px;\n"
-"	margin-right: 5dp;\n"
-"	font-weight: bold;\n"
-"}\n"
-"div.button\n"
-"{\n"
-"	display: inline-block;"
-"	width: 30dp;\n"
-"	text-align: center;\n"
-"	border-width: 1px;\n"
-"	font-weight: bold;\n"
-"	margin-right: 3dp;\n"
-"}\n"
-"div.button.last\n"
-"{\n"
-"	margin-right: 0px;\n"
-"}\n"
-"div.log-entry p.message\n"
-"{\n"
-"	display: block;\n"
-"	margin-left: 20dp;\n"
-"}\n";
+static const char* log_rcss = R"RCSS(body
+{
+	width: 400dp;
+	height: 300dp;
+	min-width: 200dp;
+	min-height: 150dp;
+	top: 42dp;
+	left: 20dp;
+}
+div#tools
+{
+	float: right;
+	width: 137dp;
+}
+div.log-entry
+{
+	margin: 3dp 2dp;
+}
+div.log-entry div.icon
+{
+	float: left;
+	display: block;
+	width: 18dp;
+	height: 18dp;
+	text-align: center;
+	border-width: 1px;
+	margin-right: 5dp;
+	font-weight: bold;
+}
+div.button
+{
+	display: inline-block;
+	width: 30dp;
+	text-align: center;
+	border-width: 1px;
+	font-weight: bold;
+	margin-right: 3dp;
+}
+div.button.last
+{
+	margin-right: 0px;
+}
+div.log-entry p.message
+{
+	display: block;
+	margin-left: 20dp;
+}
+)RCSS";
 
-static const char* log_rml =
-"<h1>\n"
-"	<handle id=\"position_handle\" move_target=\"#document\">\n"
-"		<div id=\"close_button\">X</div>\n"
-"		<div id=\"tools\">\n"
-"			<div id=\"error_button\" class=\"button error\">On</div>\n"
-"			<div id=\"warning_button\" class=\"button warning\">On</div>\n"
-"			<div id=\"info_button\" class=\"button info\">Off</div>\n"
-"			<div id=\"debug_button\" class=\"button debug last\">On</div>\n"
-"		</div>\n"
-"		<div style=\"width: 100dp;\">Event Log</div>\n"
-"	</handle>\n"
-"</h1>\n"
-"<div id=\"content\">\n"
-"	No messages in log.\n"
-"</div>\n"
-"<handle id=\"size_handle\" size_target=\"#document\" />";
+static const char* log_rml = R"RML(
+<h1>
+	<handle id="position_handle" move_target="#document">
+		<div id="close_button">X</div>
+		<div id="tools">
+			<div id="error_button" class="button error">On</div>
+			<div id="warning_button" class="button warning">On</div>
+			<div id="info_button" class="button info">Off</div>
+			<div id="debug_button" class="button debug last">On</div>
+		</div>
+		<div style="width: 100dp;">Event Log</div>
+	</handle>
+</h1>
+<div id="content">
+	No messages in log.
+</div>
+<handle id="size_handle" size_target="#document" />
+)RML";

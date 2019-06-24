@@ -26,152 +26,153 @@
  *
  */
 
-static const char* common_rcss =
-"body\n"
-"{\n"
-"	font-family: Lacuna;\n"
-"	z-index: 1000000;\n"
-"	font-size: 13dp;\n"
-"   line-height: 1.4;\n"
-"	color: black;\n"
-"	padding-top: 30dp;\n"
-"}\n"
-"div, h1, h2, h3, h4, p\n"
-"{\n"
-"	display: block;\n"
-"}\n"
-"em\n"
-"{\n"
-"	font-style: italic;\n"
-"}\n"
-"h1\n"
-"{\n"
-"	position: absolute;\n"
-"	top: 0px;\n"
-"	height: 22dp;\n"
-"	padding: 4dp;\n"
-"	color: white;\n"
-"	background-color: #888;\n"
-"	font-size: 15dp;\n"
-"}\n"
-"h2\n"
-"{\n"
-"	background-color: #ddd;\n"
-"	border-width: 1px 0px;\n"
-"	border-color: #888;\n"
-"}\n"
-"h3\n"
-"{\n"
-"	margin-top: 1em;\n"
-"	color: red;\n"
-"}\n"
-"h4\n"
-"{\n"
-"	color: #cc0000;\n"
-"}\n"
-"handle#position_handle\n"
-"{\n"
-"	height: 100%;\n"
-"	width: 100%;\n"
-"}\n"
-"div#close_button\n"
-"{\n"
-"	margin-left: 10dp;\n"
-"	float: right;\n"
-"	width: 18dp;\n"
-"	color: black;\n"
-"	background-color: #ddd;\n"
-"	border-width: 1px;\n"
-"	border-color: #666;\n"
-"	text-align: center;\n"
-"}\n"
-"div#content\n"
-"{\n"
-"	position: relative;\n"
-"   width: auto;\n"
-"   height: 100%;\n"
-"	overflow: auto;\n"
-"	background: white;\n"
-"	border-width: 2dp;\n"
-"	border-color: #888;\n"
-"	border-top-width: 0px;\n"
-"}\n"
-".error\n"
-"{\n"
-"	background: #d24040;\n"
-"	color: white;\n"
-"	border-color: #b74e4e;\n"
-"}\n"
-".warning\n"
-"{\n"
-"	background: #e8d34e;\n"
-"	color: black;\n"
-"	border-color: #ca9466;\n"
-"}\n"
-".info\n"
-"{\n"
-"	background: #2a9cdb;\n"
-"	color: white;\n"
-"	border-color: #3b70bb;\n"
-"}\n"
-".debug\n"
-"{\n"
-"	background: #3fab2a;\n"
-"	color: white;\n"
-"	border-color: #226c13;\n"
-"}\n"
-"scrollbarvertical\n"
-"{\n"
-"	width: 16dp;\n"
-"	scrollbar-margin: 16px;\n"
-"}\n"
-"scrollbarhorizontal\n"
-"{\n"
-"	height: 16dp;\n"
-"	scrollbar-margin: 16px;\n"
-"}\n"
-"scrollbarvertical slidertrack,\n"
-"scrollbarhorizontal slidertrack\n"
-"{\n"
-"	background: #aaa;\n"
-"	border-color: #888;\n"
-"}\n"
-"scrollbarvertical slidertrack\n"
-"{\n"
-"	border-left-width: 1px;\n"
-"}\n"
-"scrollbarhorizontal slidertrack\n"
-"{\n"
-"	height: 15dp;\n"
-"	border-top-width: 1px;\n"
-"}\n"
-"scrollbarvertical sliderbar,\n"
-"scrollbarhorizontal sliderbar\n"
-"{\n"
-"	background: #ddd;\n"
-"	border-color: #888;\n"
-"}"
-"scrollbarvertical sliderbar\n"
-"{\n"
-"	border-width: 1px 0px;\n"
-"	margin-left: 1dp;\n"
-"}\n"
-"scrollbarhorizontal sliderbar\n"
-"{\n"
-"	height: 15dp;\n"
-"	border-width: 0px 1px;\n"
-"	margin-top: 1dp;\n"
-"}\n"
-"scrollbarcorner\n"
-"{\n"
-"	background: #888;\n"
-"}\n"
-"handle#size_handle\n"
-"{\n"
-"	position: absolute;\n"
-"	width: 16dp;\n"
-"	height: 16dp;\n"
-"	bottom: -2dp;\n"
-"	right: 2dp;\n"
-"	background-color: #888;\n"
-"}\n";
+static const char* common_rcss = R"RCSS(
+body
+{
+	font-family: Lacuna;
+	z-index: 1000000;
+	font-size: 13dp;
+	line-height: 1.4;
+	color: black;
+	padding-top: 30dp;
+}
+div, h1, h2, h3, h4, p
+{
+	display: block;
+}
+em
+{
+	font-style: italic;
+}
+h1
+{
+	position: absolute;
+	top: 0px;
+	height: 22dp;
+	padding: 4dp;
+	color: white;
+	background-color: #888;
+	font-size: 15dp;
+}
+h2
+{
+	background-color: #ddd;
+	border-width: 1px 0px;
+	border-color: #888;
+}
+h3
+{
+	margin-top: 1em;
+	color: red;
+}
+h4
+{
+	color: #cc0000;
+}
+handle#position_handle
+{
+	height: 100%;
+	width: 100%;
+}
+div#close_button
+{
+	margin-left: 10dp;
+	float: right;
+	width: 18dp;
+	color: black;
+	background-color: #ddd;
+	border-width: 1px;
+	border-color: #666;
+	text-align: center;
+}
+div#content
+{
+	position: relative;
+	width: auto;
+	height: 100%;
+	overflow: auto;
+	background: white;
+	border-width: 2dp;
+	border-color: #888;
+	border-top-width: 0px;
+}
+.error
+{
+	background: #d24040;
+	color: white;
+	border-color: #b74e4e;
+}
+.warning
+{
+	background: #e8d34e;
+	color: black;
+	border-color: #ca9466;
+}
+.info
+{
+	background: #2a9cdb;
+	color: white;
+	border-color: #3b70bb;
+}
+.debug
+{
+	background: #3fab2a;
+	color: white;
+	border-color: #226c13;
+}
+scrollbarvertical
+{
+	width: 16dp;
+	scrollbar-margin: 16px;
+}
+scrollbarhorizontal
+{
+	height: 16dp;
+	scrollbar-margin: 16px;
+}
+scrollbarvertical slidertrack,
+scrollbarhorizontal slidertrack
+{
+	background: #aaa;
+	border-color: #888;
+}
+scrollbarvertical slidertrack
+{
+	border-left-width: 1px;
+}
+scrollbarhorizontal slidertrack
+{
+	height: 15dp;
+	border-top-width: 1px;
+}
+scrollbarvertical sliderbar,
+scrollbarhorizontal sliderbar
+{
+	background: #ddd;
+	border-color: #888;
+}
+scrollbarvertical sliderbar
+{
+	border-width: 1px 0px;
+	margin-left: 1dp;
+}
+scrollbarhorizontal sliderbar
+{
+	height: 15dp;
+	border-width: 0px 1px;
+	margin-top: 1dp;
+}
+scrollbarcorner
+{
+	background: #888;
+}
+handle#size_handle
+{
+	position: absolute;
+	width: 16dp;
+	height: 16dp;
+	bottom: -2dp;
+	right: 2dp;
+	background-color: #888;
+}
+)RCSS";
