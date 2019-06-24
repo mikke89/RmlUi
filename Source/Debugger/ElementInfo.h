@@ -47,7 +47,7 @@ class ElementInfo : public Core::ElementDocument, public Core::EventListener
 {
 public:
 	ElementInfo(const Core::String& tag);
-	virtual ~ElementInfo();
+	~ElementInfo();
 
 	/// Initialises the info element.
 	/// @return True if the element initialised successfully, false otherwise.
@@ -62,7 +62,7 @@ public:
 	void RenderSourceElement();
 
 protected:
-	virtual void ProcessEvent(Core::Event& event) override;
+	void ProcessEvent(Core::Event& event) override;
 
 private:
 	void SetSourceElement(Core::Element* new_source_element);

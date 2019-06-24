@@ -99,6 +99,8 @@ bool ElementLog::Initialise()
 	SetStyleSheet(style_sheet);
 	style_sheet->RemoveReference();
 
+	AddEventListener(Core::EventId::Click, this);
+
 	// Create the log beacon.
 	beacon = GetContext()->CreateDocument();
 	if (beacon == NULL)

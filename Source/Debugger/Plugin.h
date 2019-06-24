@@ -57,7 +57,7 @@ class Plugin : public Core::Plugin, public Core::EventListener
 {
 public:
 	Plugin();
-	virtual ~Plugin();
+	~Plugin();
 
 	/// Initialises the debugging tools into the given context.
 	/// @param[in] context The context to load the tools into.
@@ -80,22 +80,22 @@ public:
 	void Render();
 
 	/// Called when RmlUi shuts down.
-	virtual void OnShutdown();
+	void OnShutdown() override;
 
 	/// Called whenever a RmlUi context is destroyed.
 	/// @param[in] context The destroyed context.
-	virtual void OnContextDestroy(Core::Context* context);
+	void OnContextDestroy(Core::Context* context) override;
 
 	/// Called whenever an element is created.
 	/// @param[in] element The created element.
-	virtual void OnElementCreate(Core::Element* element);
+	void OnElementCreate(Core::Element* element) override;
 	/// Called whenever an element is destroyed.
 	/// @param[in] element The destroyed element.
-	virtual void OnElementDestroy(Core::Element* element);
+	void OnElementDestroy(Core::Element* element) override;
 
 	/// Event handler for events from the debugger elements.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Core::Event& event) override;
+	void ProcessEvent(Core::Event& event) override;
 
 	/// Access the singleton instance of the debugger
 	/// @return NULL or an instance of the plugin
@@ -106,7 +106,6 @@ private:
 	bool LoadMenuElement();
 	bool LoadInfoElement();
 	bool LoadLogElement();
-	bool LoadHookElement();
 
 	// Release all loaded elements
 	void ReleaseElements();

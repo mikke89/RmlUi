@@ -56,6 +56,9 @@ bool ElementInfo::Initialise()
 	SetInnerRML(info_rml);
 	SetId("rmlui-debug-info");
 
+	AddEventListener(Core::EventId::Click, this);
+	AddEventListener(Core::EventId::Mouseover, this);
+
 	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(info_rcss));
 	if (style_sheet == NULL)
 		return false;
