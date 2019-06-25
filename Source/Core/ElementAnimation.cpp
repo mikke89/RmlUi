@@ -118,8 +118,8 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 	{
 		using namespace Rml::Core::Transforms;
 
-		auto t0 = p0.value.Get<TransformRef>();
-		auto t1 = p1.value.Get<TransformRef>();
+		auto& t0 = p0.value.GetReference<TransformRef>();
+		auto& t1 = p1.value.GetReference<TransformRef>();
 
 		const auto& prim0 = t0->GetPrimitives();
 		const auto& prim1 = t1->GetPrimitives();
@@ -321,8 +321,8 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 		if(prop0.unit != Property::TRANSFORM || prop1.unit != Property::TRANSFORM)
 			return false;
 
-		auto t0 = prop0.value.Get<TransformRef>();
-		auto t1 = prop1.value.Get<TransformRef>();
+		auto& t0 = prop0.value.GetReference<TransformRef>();
+		auto& t1 = prop1.value.GetReference<TransformRef>();
 
 		auto result = PrepareTransformPair(*t0, *t1, element);
 
@@ -373,7 +373,7 @@ bool ElementAnimation::InternalAddKey(float time, const Property& property, Twee
 
 	if (key.property.unit == Property::TRANSFORM)
 	{
-		if (!key.property.value.Get<TransformRef>())
+		if (!key.property.value.GetReference<TransformRef>())
 			key.property.value = std::make_shared<Transform>();
 	}
 
@@ -399,7 +399,7 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 	if (property.unit == Property::TRANSFORM)
 	{
 		bool must_decompose = false;
-		Transform& transform = *property.value.Get<TransformRef>();
+		Transform& transform = *property.value.GetReference<TransformRef>();
 
 		for (auto& primitive : transform.GetPrimitives())
 		{

@@ -45,9 +45,14 @@ Variant::Variant() : type(NONE)
 	static_assert(sizeof(DecoratorList) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorList");
 }
 
-Variant::Variant( const Variant& copy ) : type(NONE)
+Variant::Variant(const Variant& copy) : type(NONE)
 {
 	Set(copy);
+}
+
+Variant::Variant(Variant&& other) : type(NONE)
+{
+	Set(std::move(other));
 }
 
 Variant::~Variant() 
@@ -133,9 +138,42 @@ void Variant::Set(const Variant& copy)
 
 	default:
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
+		type = copy.type;
 		break;
 	}
-	type = copy.type;
+	RMLUI_ASSERT(type == copy.type);
+}
+
+void Variant::Set(Variant&& other)
+{
+	switch (other.type)
+	{
+	case STRING:
+		Set(std::move(*(String*)other.data));
+		break;
+
+	case TRANSFORMREF:
+		Set(std::move(*(TransformRef*)other.data));
+		break;
+
+	case TRANSITIONLIST:
+		Set(std::move(*(TransitionList*)other.data));
+		break;
+
+	case ANIMATIONLIST:
+		Set(std::move(*(AnimationList*)other.data));
+		break;
+
+	case DECORATORLIST:
+		Set(std::move(*(DecoratorList*)other.data));
+		break;
+
+	default:
+		memcpy(data, other.data, LOCAL_DATA_SIZE);
+		type = other.type;
+		break;
+	}
+	RMLUI_ASSERT(type == other.type);
 }
 
 void Variant::Set(const byte value)
@@ -161,20 +199,6 @@ void Variant::Set(const int value)
 	type = INT;
 	SET_VARIANT(int);
 }
-
-void Variant::Set(const String& value) 
-{
-	if (type == STRING)
-	{
-		(*(String*)data) = value;
-	}
-	else
-	{
-		type = STRING;
-		new(data) String(value);
-	}
-}
-
 void Variant::Set(const word value)
 {
 	type = WORD;
@@ -210,6 +234,51 @@ void Variant::Set(const Vector4f& value)
 	SET_VARIANT(Vector4f);
 }
 
+void Variant::Set(const Colourf& value)
+{
+	type = COLOURF;
+	SET_VARIANT(Colourf);
+}
+
+void Variant::Set(const Colourb& value)
+{
+	type = COLOURB;
+	SET_VARIANT(Colourb);
+}
+
+void Variant::Set(ScriptInterface* value)
+{
+	type = SCRIPTINTERFACE;
+	memcpy(data, &value, sizeof(ScriptInterface*));
+}
+
+
+void Variant::Set(const String& value)
+{
+	if (type == STRING)
+	{
+		(*(String*)data) = value;
+	}
+	else
+	{
+		type = STRING;
+		new(data) String(value);
+	}
+}
+void Variant::Set(String&& value)
+{
+	if (type == STRING)
+	{
+		(*(String*)data) = std::move(value);
+	}
+	else
+	{
+		type = STRING;
+		new(data) String(std::move(value));
+	}
+}
+
+
 void Variant::Set(const TransformRef& value)
 {
 	if (type == TRANSFORMREF)
@@ -220,6 +289,18 @@ void Variant::Set(const TransformRef& value)
 	{
 		type = TRANSFORMREF;
 		new(data) TransformRef(value);
+	}
+}
+void Variant::Set(TransformRef&& value)
+{
+	if (type == TRANSFORMREF)
+	{
+		(*(TransformRef*)data) = std::move(value);
+	}
+	else
+	{
+		type = TRANSFORMREF;
+		new(data) TransformRef(std::move(value));
 	}
 }
 
@@ -235,6 +316,19 @@ void Variant::Set(const TransitionList& value)
 		new(data) TransitionList(value);
 	}
 }
+void Variant::Set(TransitionList&& value)
+{
+	if (type == TRANSITIONLIST)
+	{
+		(*(TransitionList*)data) = std::move(value);
+	}
+	else
+	{
+		type = TRANSITIONLIST;
+		new(data) TransitionList(std::move(value));
+	}
+}
+
 void Variant::Set(const AnimationList& value)
 {
 	if (type == ANIMATIONLIST)
@@ -245,6 +339,18 @@ void Variant::Set(const AnimationList& value)
 	{
 		type = ANIMATIONLIST;
 		new(data) AnimationList(value);
+	}
+}
+void Variant::Set(AnimationList&& value)
+{
+	if (type == ANIMATIONLIST)
+	{
+		(*(AnimationList*)data) = std::move(value);
+	}
+	else
+	{
+		type = ANIMATIONLIST;
+		new(data) AnimationList(std::move(value));
 	}
 }
 
@@ -260,23 +366,17 @@ void Variant::Set(const DecoratorList& value)
 		new(data) DecoratorList(value);
 	}
 }
-
-void Variant::Set(const Colourf& value)
+void Variant::Set(DecoratorList&& value)
 {
-	type = COLOURF;
-	SET_VARIANT(Colourf);
-}
-
-void Variant::Set(const Colourb& value)
-{
-	type = COLOURB;
-	SET_VARIANT(Colourb);
-}
-
-void Variant::Set(ScriptInterface* value) 
-{
-	type = SCRIPTINTERFACE;
-	memcpy(data, &value, sizeof(ScriptInterface*));
+	if (type == DECORATORLIST)
+	{
+		(*(DecoratorList*)data) = std::move(value);
+	}
+	else
+	{
+		type = DECORATORLIST;
+		new(data) DecoratorList(std::move(value));
+	}
 }
 
 Variant& Variant::operator=(const Variant& copy)
@@ -284,6 +384,14 @@ Variant& Variant::operator=(const Variant& copy)
 	if (copy.type != type)
 		Clear();
 	Set(copy);
+	return *this;
+}
+
+Variant& Variant::operator=(Variant&& other)
+{
+	if (other.type != type)
+		Clear();
+	Set(std::move(other));
 	return *this;
 }
 

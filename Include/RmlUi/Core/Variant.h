@@ -49,17 +49,6 @@ namespace Core {
 class RMLUICORE_API Variant
 {
 public:
-	Variant();
-	/// Templatised constructors don't work for the copy constructor, so we have to define it
-	/// explicitly.
-	Variant(const Variant&);
-	/// Constructs a variant with internal data.
-	/// @param[in] t Data of a supported type to set on the variant.
-	template< typename T >
-	Variant(const T& t);
-
-	~Variant();
-
 	/// Type of data stored in the variant.
 	enum Type
 	{
@@ -67,7 +56,7 @@ public:
 		BYTE = 'b',
 		CHAR = 'c',
 		FLOAT = 'f',
-		INT = 'i', 
+		INT = 'i',
 		STRING = 's',
 		WORD = 'w',
 		VECTOR2 = '2',
@@ -80,15 +69,32 @@ public:
 		TRANSITIONLIST = 'T',
 		ANIMATIONLIST = 'A',
 		DECORATORLIST = 'D',
-		VOIDPTR = '*',			
+		VOIDPTR = '*',
 	};
 
-	/// Clears the data structure stored by the variant.
+	Variant();
+	Variant(const Variant&);
+	Variant(Variant&&);
+	Variant& operator=(const Variant& copy);
+	Variant& operator=(Variant&& other);
+	~Variant();
+
+	// Construct by variant type
+	template< typename T >
+	Variant(const T& t);
+	template< typename T >
+	Variant(T&& t);
+
+	// Assign by variant type
+	template<typename T>
+	Variant& operator=(const T& t);
+	template<typename T>
+	Variant& operator=(T&& t);
+
 	void Clear();
 
-	/// Gets the current internal representation type.
-	/// @return The type of data stored in the variant internally.
 	inline Type GetType() const;
+
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.
 	/// @param[in] default_value The value returned if the conversion failed.
@@ -103,14 +109,10 @@ public:
 	template< typename T >
 	bool GetInto(T& value) const;
 
-	/// Copy another variant.
-	/// @param[in] copy Variant to copy.
-	Variant& operator=(const Variant& copy);
-
-	/// Clear and set a new value to this variant.
-	/// @param[in] t New value to set.
-	template<typename T>
-	Variant& operator=(const T& t);
+	/// Returns a reference to the variants underlying type.
+	/// @warning: Undefined behavior if T does not represent the underlying type of the variant.
+	template< typename T>
+	const T& GetReference() const;
 
 	bool operator==(const Variant& other) const;
 	bool operator!=(const Variant& other) const { return !(*this == other); }
@@ -120,6 +122,7 @@ private:
 	/// Copy another variant's data to this variant.
 	/// @warning Does not clear existing data.
 	void Set(const Variant& copy);
+	void Set(Variant&& other);
 
 	void Set(const byte value);
 	void Set(const char value);
@@ -128,17 +131,23 @@ private:
 	void Set(const word value);
 	void Set(const char* value);
 	void Set(void* value);
-	void Set(const String& value);
 	void Set(const Vector2f& value);
 	void Set(const Vector3f& value);
 	void Set(const Vector4f& value);
-	void Set(const TransformRef& value);
-	void Set(const TransitionList& value);
-	void Set(const AnimationList& value);
-	void Set(const DecoratorList& value);
 	void Set(const Colourf& value);
 	void Set(const Colourb& value);
 	void Set(ScriptInterface* value);
+
+	void Set(const String& value);
+	void Set(String&& value);
+	void Set(const TransformRef& value);
+	void Set(TransformRef&& value);
+	void Set(const TransitionList& value);
+	void Set(TransitionList&& value);
+	void Set(const AnimationList& value);
+	void Set(AnimationList&& value);
+	void Set(const DecoratorList& value);
+	void Set(DecoratorList&& value);
 	
 	static constexpr size_t LOCAL_DATA_SIZE = sizeof(TransitionList);
 

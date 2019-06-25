@@ -36,10 +36,6 @@ PropertyDictionary::PropertyDictionary()
 {
 }
 
-PropertyDictionary::~PropertyDictionary()
-{
-}
-
 // Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {

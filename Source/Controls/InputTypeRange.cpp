@@ -67,10 +67,11 @@ bool InputTypeRange::OnAttributeChange(const Core::ElementAttributes& changed_at
 	bool dirty_layout = false;
 
 	// Check if maxlength has been defined.
-	auto it_orientation = changed_attributes.find("orientation");
+	static const Core::String str_orientation = "orientation";
+	auto it_orientation = changed_attributes.find(str_orientation);
 	if (it_orientation != changed_attributes.end())
 	{
-		widget->SetOrientation(it_orientation->second.Get<Rml::Core::String>("horizontal") == "horizontal" ? WidgetSliderInput::HORIZONTAL : WidgetSliderInput::VERTICAL);
+		widget->SetOrientation(it_orientation->second.Get<Rml::Core::String>(str_orientation) == str_orientation ? WidgetSliderInput::HORIZONTAL : WidgetSliderInput::VERTICAL);
 		dirty_layout = true;
 	}
 

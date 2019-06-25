@@ -99,8 +99,6 @@ public:
 	template<typename EnumType, typename = typename std::enable_if< std::is_enum<EnumType>::value, EnumType >::type>
 	Property(EnumType value) : value(static_cast<int>(value)), unit(KEYWORD), specificity(-1) {}
 
-	~Property();	
-
 	/// Get the value of the property as a string.
 	String ToString() const;
 

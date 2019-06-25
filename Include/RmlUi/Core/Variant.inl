@@ -41,12 +41,28 @@ Variant::Variant(const T& t) : type(NONE)
 	Set(t);
 }
 
+// Constructs a variant by moving data
+template< typename T >
+Variant::Variant(T&& t) : type(NONE)
+{
+	Set(std::move(t));
+}
+
 // Clear and set new value
 template< typename T >
 Variant& Variant::operator=(const T& t)
 {
 	Clear();
 	Set(t);
+	return *this;
+}
+
+// Clear and set new value
+template< typename T >
+Variant& Variant::operator=(T&& t)
+{
+	Clear();
+	Set(std::move(t));
 	return *this;
 }
 
@@ -137,6 +153,12 @@ T Variant::Get(T default_value) const
 {
 	GetInto(default_value);
 	return default_value;
+}
+
+template<typename T>
+inline const T& Variant::GetReference() const
+{
+	return *(T*)data;
 }
 
 }

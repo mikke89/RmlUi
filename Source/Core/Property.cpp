@@ -39,10 +39,6 @@ Property::Property() : unit(UNKNOWN), specificity(-1)
 	parser_index = -1;
 }
 
-Property::~Property()
-{
-}
-
 String Property::ToString() const
 {
 	if (definition == NULL)

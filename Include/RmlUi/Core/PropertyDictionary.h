@@ -47,7 +47,6 @@ class RMLUICORE_API PropertyDictionary
 {
 public:
 	PropertyDictionary();
-	~PropertyDictionary();
 
 	/// Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
 	/// @param[in] name The name of the property to add.
