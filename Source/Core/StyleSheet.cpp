@@ -88,6 +88,7 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 	}
 
 	// Any matching @keyframe names are overridden as per CSS rules
+	new_sheet->keyframes.reserve(keyframes.size() + other_sheet->keyframes.size());
 	new_sheet->keyframes = keyframes;
 	for (auto& other_keyframes : other_sheet->keyframes)
 	{
@@ -95,12 +96,17 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 	}
 
 	// Copy over the decorators, and replace any matching decorator names from other_sheet
+	new_sheet->decorator_map.reserve(decorator_map.size() + other_sheet->decorator_map.size());
 	new_sheet->decorator_map = decorator_map;
 	for (auto& other_decorator: other_sheet->decorator_map)
 	{
 		new_sheet->decorator_map[other_decorator.first] = other_decorator.second;
 	}
 
+	new_sheet->spritesheet_list.Reserve(
+		spritesheet_list.NumSpriteSheets() + other_sheet->spritesheet_list.NumSpriteSheets(),
+		spritesheet_list.NumSprites() + other_sheet->spritesheet_list.NumSprites()
+	);
 	new_sheet->spritesheet_list = other_sheet->spritesheet_list;
 	new_sheet->spritesheet_list.Merge(spritesheet_list);
 

@@ -123,5 +123,22 @@ void SpritesheetList::Merge(const SpritesheetList& other)
 	}
 }
 
+void SpritesheetList::Reserve(size_t size_sprite_sheets, size_t size_sprites) 
+{ 
+	spritesheet_map.reserve(size_sprite_sheets);
+	// There seems to be a bug in robin hood unordered map (or we are doing something wrong). For certain sizes, we don't find any sprites during the merge after.
+	//sprite_map.reserve(size_sprites);
+}
+
+size_t SpritesheetList::NumSpriteSheets() const 
+{
+	return spritesheet_map.size();
+}
+
+size_t SpritesheetList::NumSprites() const 
+{ 
+	return sprite_map.size();
+}
+
 }
 }

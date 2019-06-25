@@ -83,6 +83,10 @@ public:
 	/// Merge 'other' into this.
 	void Merge(const SpritesheetList& other);
 
+	void Reserve(size_t size_sprite_sheets, size_t size_sprites);
+	size_t NumSpriteSheets() const;
+	size_t NumSprites() const;
+
 private:
 	SpritesheetMap spritesheet_map;
 	SpriteMap sprite_map;
