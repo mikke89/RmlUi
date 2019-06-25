@@ -89,16 +89,6 @@ public:
 	/// Gets the current internal representation type.
 	/// @return The type of data stored in the variant internally.
 	inline Type GetType() const;
-
-	/// Shares another variant's data with this variant.
-	/// @param[in] copy Variant to share data.
-	void Set(const Variant& copy);
-
-	/// Clear and set a new value to this variant.
-	/// @param[in] t New value to set.
-	template<typename T>
-	void Reset(const T& t);
-
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.
 	/// @param[in] default_value The value returned if the conversion failed.
@@ -113,14 +103,23 @@ public:
 	template< typename T >
 	bool GetInto(T& value) const;
 
-	/// Assigns another variant's internal data to this variant.
-	/// @param[in] copy Variant to share data.
+	/// Copy another variant.
+	/// @param[in] copy Variant to copy.
 	Variant& operator=(const Variant& copy);
+
+	/// Clear and set a new value to this variant.
+	/// @param[in] t New value to set.
+	template<typename T>
+	Variant& operator=(const T& t);
 
 	bool operator==(const Variant& other) const;
 	bool operator!=(const Variant& other) const { return !(*this == other); }
 
 private:
+
+	/// Copy another variant's data to this variant.
+	/// @warning Does not clear existing data.
+	void Set(const Variant& copy);
 
 	void Set(const byte value);
 	void Set(const char value);

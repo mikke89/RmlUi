@@ -81,7 +81,7 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 		}
 		else
 		{
-			default_value.value.Reset(unparsed_value);
+			default_value.value = unparsed_value;
 			default_value.unit = Property::UNKNOWN;
 		}
 	}

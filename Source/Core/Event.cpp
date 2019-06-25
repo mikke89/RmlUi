@@ -164,8 +164,8 @@ void Event::ProjectMouse(Element* element)
 		}
 
 		Vector2f new_pos = element->Project(mouse_screen_position);
-		mouse_x->Reset(new_pos.x);
-		mouse_y->Reset(new_pos.y);
+		*mouse_x = new_pos.x;
+		*mouse_y = new_pos.y;
 	}
 }
 

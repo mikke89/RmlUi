@@ -132,7 +132,6 @@ void Variant::Set(const Variant& copy)
 		break;
 
 	default:
-		Clear();
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
 		break;
 	}
@@ -282,6 +281,8 @@ void Variant::Set(ScriptInterface* value)
 
 Variant& Variant::operator=(const Variant& copy)
 {
+	if (copy.type != type)
+		Clear();
 	Set(copy);
 	return *this;
 }

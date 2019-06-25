@@ -374,7 +374,7 @@ bool ElementAnimation::InternalAddKey(float time, const Property& property, Twee
 	if (key.property.unit == Property::TRANSFORM)
 	{
 		if (!key.property.value.Get<TransformRef>())
-			key.property.value.Reset(TransformRef(new Transform));
+			key.property.value = std::make_shared<Transform>();
 	}
 
 	return true;

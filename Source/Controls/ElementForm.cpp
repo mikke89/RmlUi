@@ -82,7 +82,7 @@ void ElementForm::Submit(const Rml::Core::String& name, const Rml::Core::String&
 		// If the item already exists, append to it.
 		Rml::Core::Variant* value = GetIf(values, control_name);
 		if (value != NULL)
-			value->Reset(value->Get< Rml::Core::String >() + ", " + control_value);
+			*value = value->Get< Rml::Core::String >() + ", " + control_value;
 		else
 			values[control_name] = control_value;
 	}

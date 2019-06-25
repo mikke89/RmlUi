@@ -43,10 +43,11 @@ Variant::Variant(const T& t) : type(NONE)
 
 // Clear and set new value
 template< typename T >
-void Variant::Reset(const T& t)
+Variant& Variant::operator=(const T& t)
 {
 	Clear();
 	Set(t);
+	return *this;
 }
 
 // Templatised data accessor.

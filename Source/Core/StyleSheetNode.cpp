@@ -197,7 +197,7 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 				DecoratorList decorator_list = style_sheet.InstanceDecoratorsFromString(string_value, property->source, property->source_line_number);
 
 				Property new_property = *property;
-				new_property.value.Reset(std::move(decorator_list));
+				new_property.value = std::move(decorator_list);
 				new_property.unit = Property::DECORATOR;
 				properties.SetProperty(PropertyId::Decorator, new_property);
 			}
