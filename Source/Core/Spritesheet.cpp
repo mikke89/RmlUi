@@ -153,7 +153,7 @@ String SpritesheetList::ToString() const
 	result += CreateString(100, "\n#Sprites: %d\n", sprite_map.size());
 	for (auto& sprite : sprite_map)
 	{
-		result += CreateString(100, "  In '%s': %s\n", sprite.second.sprite_sheet->name, sprite.first.c_str());
+		result += CreateString(100, "  In '%s': %s\n", sprite.second.sprite_sheet->name.c_str(), sprite.first.c_str());
 	}
 
 	return result;
