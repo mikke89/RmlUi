@@ -641,8 +641,8 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/data
 			DESTINATION ${SAMPLES_DIR}/tutorial/datagrid_tree
 	)
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/tutorial_drag/data
-			DESTINATION ${SAMPLES_DIR}/tutorial/tutorial_drag
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/drag/data
+			DESTINATION ${SAMPLES_DIR}/tutorial/drag
 	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/animation/data
 			DESTINATION ${SAMPLES_DIR}/basic/animation
