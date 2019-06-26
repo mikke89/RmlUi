@@ -55,7 +55,7 @@ project(RmlUi C CXX)
 # paths
 include(GNUInstallDirs)
 
-set(RMLUI_VERSION_MAJOR 2)
+set(RMLUI_VERSION_MAJOR 3)
 set(RMLUI_VERSION_MINOR 0)
 set(RMLUI_VERSION_PATCH 0)
 set(RMLUI_VERSION_TWEAK 0)

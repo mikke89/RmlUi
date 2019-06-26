@@ -131,15 +131,15 @@ Note the lack of parenthesis which means it is a decorator name and not a type w
 
 - `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
 - The system interface now has two new functions for setting and getting text to and from the clipboard: `virtual void SystemInterface::SetClipboardText(const Core::WString& text)` and `virtual void SystemInterface::GetClipboardText(Core::WString& text)`.
-
+- The debugger now has the ability to clear the log. Additionally, the displayed element information updates when the element changes.
 
 
 ### Breaking changes
 
-If upgrading from the original libRocket branch, some breaking changes should be considered:
+Breaking changes since RmlUi v2.0.
 
 - Rml::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase. Similarly, Rml::Core::WString is now an alias for std::wstring.
-- Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the note below for reasoning and a workaround.
+- Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the description under *performance* for reasoning and a workaround.
 - The Controls::DataGrid "min-rows" property has been replaced by an attribute of the same name.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
