@@ -34,35 +34,17 @@ inline Variant::Type Variant::GetType() const
 	return type;
 }
 
-// Constructs a variant with internal data.
-template< typename T >
-Variant::Variant(const T& t) : type(NONE)
-{
-	Set(t);
-}
-
-// Constructs a variant by moving data
 template< typename T >
 Variant::Variant(T&& t) : type(NONE)
 {
-	Set(std::move(t));
+	Set(std::forward<T>(t));
 }
 
-// Clear and set new value
-template< typename T >
-Variant& Variant::operator=(const T& t)
-{
-	Clear();
-	Set(t);
-	return *this;
-}
-
-// Clear and set new value
 template< typename T >
 Variant& Variant::operator=(T&& t)
 {
 	Clear();
-	Set(std::move(t));
+	Set(std::forward<T>(t));
 	return *this;
 }
 

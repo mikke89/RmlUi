@@ -81,13 +81,9 @@ public:
 
 	// Construct by variant type
 	template< typename T >
-	Variant(const T& t);
-	template< typename T >
 	Variant(T&& t);
 
 	// Assign by variant type
-	template<typename T>
-	Variant& operator=(const T& t);
 	template<typename T>
 	Variant& operator=(T&& t);
 
