@@ -44,15 +44,15 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 		return false;
 	}
 
-	auto result = spritesheet_map.emplace(name, std::make_shared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture));
+	auto sprite_sheet = std::make_shared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture);
+	auto result = spritesheet_map.emplace(name, sprite_sheet);
 	if (!result.second)
 	{
 		Log::Message(Log::LT_WARNING, "Spritesheet '%s' has the same name as another spritesheet, ignored. See %s:%d", name.c_str(), definition_source.c_str(), definition_line_number);
 		return false;
 	}
 
-	Spritesheet& spritesheet = *result.first->second;
-	StringList& sprite_names = spritesheet.sprite_names;
+	StringList& sprite_names = sprite_sheet->sprite_names;
 
 	// Insert all the sprites with names not already defined in the global sprite list.
 	int num_removed_sprite_names = 0;
@@ -60,7 +60,7 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 	{
 		const String& sprite_name = sprite_definition.first;
 		const Rectangle& sprite_rectangle = sprite_definition.second;
-		auto result = sprite_map.emplace(sprite_name, Sprite{ sprite_rectangle, &spritesheet });
+		auto result = sprite_map.emplace(sprite_name, Sprite{ sprite_rectangle, sprite_sheet.get() });
 		if (result.second)
 		{
 			sprite_names.push_back(sprite_name);
@@ -90,35 +90,37 @@ void SpritesheetList::Merge(const SpritesheetList& other)
 	for (auto& pair : other.spritesheet_map)
 	{
 		auto sheet_result = spritesheet_map.emplace(pair);
+		const String& sheet_name = sheet_result.first->first;
+		const Spritesheet& sheet = *sheet_result.first->second;
 		bool sheet_inserted = sheet_result.second;
+		
 		if (sheet_inserted)
 		{
-			const String& sheet_name = sheet_result.first->first;
-			Spritesheet& sheet = *sheet_result.first->second;
-
-			// The spritesheet was succesfully added, now try to add each sprite to the global list.
-			// Each sprite name must be unique, if we fail, we must also remove the sprite from the spritesheet.
-			for (auto it = sheet.sprite_names.begin(); it != sheet.sprite_names.end(); )
+			// The sprite sheet was succesfully added, now try to add each sprite to the global list.
+			for (const String& sprite_name  : sheet.sprite_names)
 			{
-				const String& sprite_name = *it;
+				// Lookup the sprite in the other map.
 				auto it_sprite = other.sprite_map.find(sprite_name);
-				bool success = false;
 				if (it_sprite != other.sprite_map.end())
 				{
-					auto sprite_result = sprite_map.emplace(*it, it_sprite->second);
-					success = sprite_result.second;
-				}
+					// Add the sprite into our map. Each sprite name must be unique.
+					auto sprite_result = sprite_map.emplace(sprite_name, it_sprite->second);
+					bool inserted = sprite_result.second;
 
-				if (success)
-				{
-					++it;
+					if (!inserted)
+					{
+						Log::Message(Log::LT_WARNING, "Duplicate sprite name '%s' found while merging style sheets, defined in %s:%d.", sprite_name.c_str(), sheet.definition_source.c_str(), sheet.definition_line_number);
+					}
 				}
 				else
 				{
-					Log::Message(Log::LT_WARNING, "Duplicate sprite name '%s' found while merging style sheets, defined in %s:%d.", sprite_name.c_str(), sheet.definition_source.c_str(), sheet.definition_line_number);
-					it = sheet.sprite_names.erase(it);
+					RMLUI_ERRORMSG("Something went wrong while merging style sheets.");
 				}
 			}
+		}
+		else
+		{
+			Log::Message(Log::LT_WARNING, "Duplicate sprite sheet name '%s' found while merging style sheets, defined in %s:%d.", sheet_name.c_str(), sheet.definition_source.c_str(), sheet.definition_line_number);
 		}
 	}
 }
@@ -126,8 +128,7 @@ void SpritesheetList::Merge(const SpritesheetList& other)
 void SpritesheetList::Reserve(size_t size_sprite_sheets, size_t size_sprites) 
 { 
 	spritesheet_map.reserve(size_sprite_sheets);
-	// There seems to be a bug in robin hood unordered map (or we are doing something wrong). For certain sizes, we don't find any sprites during the merge after.
-	//sprite_map.reserve(size_sprites);
+	sprite_map.reserve(size_sprites);
 }
 
 size_t SpritesheetList::NumSpriteSheets() const 
@@ -138,6 +139,24 @@ size_t SpritesheetList::NumSpriteSheets() const
 size_t SpritesheetList::NumSprites() const 
 { 
 	return sprite_map.size();
+}
+
+String SpritesheetList::ToString() const
+{
+	String result = CreateString(100, "#SpriteSheets: %d\n", spritesheet_map.size());
+
+	for (auto& sheet : spritesheet_map)
+	{
+		result += CreateString(100, "  Sheet '%s'.   #Sprites %d.\n", sheet.first.c_str(), sheet.second->sprite_names.size());
+	}
+
+	result += CreateString(100, "\n#Sprites: %d\n", sprite_map.size());
+	for (auto& sprite : sprite_map)
+	{
+		result += CreateString(100, "  In '%s': %s\n", sprite.second.sprite_sheet->name, sprite.first.c_str());
+	}
+
+	return result;
 }
 
 }
