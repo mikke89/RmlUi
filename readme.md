@@ -33,8 +33,7 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ## RmlUi features
 
-RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) is being updated with new documentation, some of the new features are also briefly documented here. Pull requests are welcome for improving the documentation at the [RmlUi documentation repository](https://github.com/mikke89/RmlUiDoc).
-
+RmlUi introduces several features over the [original libRocket branch](https://github.com/libRocket/libRocket). While some of the new features are briefly documented here, take a look at the [official RmlUi documentation](https://mikke89.github.io/RmlUiDoc/) for more details.
 
 
 ## Transform property
@@ -245,7 +244,9 @@ border: 4px #e99;
 
 ## Various changes
 
-The slider on the `input.range` element can be dragged from anywhere in the element. Additionally, the `:checked` pseudo class can be used to style the selected item in drop-down lists.
+- The namespace has changed from `Rocket` to `Rml`, and include path from `<Rocket/...>` to `<RmlUi/...>`.
+- The slider on the `input.range` element can be dragged from anywhere in the element.
+- The `:checked` pseudo class can be used to style the selected item in drop-down lists.
 
 
 ## License (MIT)
