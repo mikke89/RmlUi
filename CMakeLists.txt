@@ -243,7 +243,7 @@ else(NOT BUILD_FRAMEWORK)
 	# Build combined Framework =========
 	#===================================
 
-	set(NAME Rml)
+	set(NAME RmlUi)
 
 	set(MASTER_PUB_HDR_FILES
 		${MASTER_Core_PUB_HDR_FILES}
@@ -345,7 +345,7 @@ target_link_libraries(RmlCore ${CORE_LINK_LIBS})
 target_link_libraries(RmlControls RmlCore)
 target_link_libraries(RmlDebugger RmlCore)
 else(NOT BUILD_FRAMEWORK)
-target_link_libraries(Rml ${CORE_LINK_LIBS})
+target_link_libraries(RmlUi ${CORE_LINK_LIBS})
 endif(NOT BUILD_FRAMEWORK)
 
 if(BUILD_LUA_BINDINGS)
@@ -353,8 +353,8 @@ if(BUILD_LUA_BINDINGS)
 		target_link_libraries(RmlCoreLua RmlCore ${LUA_BINDINGS_LINK_LIBS})
 		target_link_libraries(RmlControlsLua RmlControls RmlCoreLua ${LUA_BINDINGS_LINK_LIBS})
 	else(NOT BUILD_FRAMEWORK)
-		target_link_libraries(RmlCoreLua Rml ${LUA_BINDINGS_LINK_LIBS})
-		target_link_libraries(RmlControlsLua Rml RmlCoreLua ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlCoreLua RmlUi ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlControlsLua RmlUi RmlCoreLua ${LUA_BINDINGS_LINK_LIBS})
 	endif(NOT BUILD_FRAMEWORK)
 endif()
 
@@ -400,7 +400,7 @@ if(NOT BUILD_FRAMEWORK)
 else(NOT BUILD_FRAMEWORK)
 	set(sample_LIBRARIES
 		shell 
-		Rml
+		RmlUi
 	)
 endif(NOT BUILD_FRAMEWORK)
 
@@ -617,11 +617,11 @@ endif()
 #===================================
 
 if(BUILD_LUA_BINDINGS)
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/RmlUi
 			DESTINATION include
 	)
 else()
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/Rml
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/RmlUi
 			DESTINATION include
 			PATTERN "Lua" EXCLUDE
 	)
