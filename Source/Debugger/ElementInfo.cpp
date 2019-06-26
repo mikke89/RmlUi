@@ -27,6 +27,7 @@
  */
 
 #include "ElementInfo.h"
+#include "../../Include/RmlUi/Core.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/Factory.h"
@@ -44,6 +45,7 @@ ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
 {
 	hover_element = NULL;
 	source_element = NULL;
+	previous_update_time = 0.0;
 }
 
 ElementInfo::~ElementInfo()
@@ -74,6 +76,22 @@ void ElementInfo::Reset()
 {
 	hover_element = NULL;
 	SetSourceElement(NULL);
+}
+
+void ElementInfo::OnUpdate()
+{
+	if (source_element && IsVisible())
+	{
+		const double t = Core::GetSystemInterface()->GetElapsedTime();
+		const float dt = (float)(t - previous_update_time);
+
+		constexpr float update_interval = 0.3f;
+
+		if (dt > update_interval)
+		{
+			UpdateSourceElement();
+		}
+	}
 }
 
 // Called when an element is destroyed.
@@ -224,6 +242,8 @@ void ElementInfo::SetSourceElement(Core::Element* new_source_element)
 
 void ElementInfo::UpdateSourceElement()
 {
+	previous_update_time = Core::GetSystemInterface()->GetElapsedTime();
+
 	// Set the title:
 	Core::Element* title_content = GetElementById("title-content");
 	if (title_content != NULL)
@@ -302,8 +322,11 @@ void ElementInfo::UpdateSourceElement()
 			while (attributes_content->HasChildNodes())
 				attributes_content->RemoveChild(attributes_content->GetChild(0));
 		}
-		else
+		else if (attributes != attributes_rml)
+		{
 			attributes_content->SetInnerRML(attributes);
+			attributes_rml = std::move(attributes);
+		}
 	}
 
 	// Set the properties:
@@ -319,8 +342,11 @@ void ElementInfo::UpdateSourceElement()
 			while (properties_content->HasChildNodes())
 				properties_content->RemoveChild(properties_content->GetChild(0));
 		}
-		else
+		else if (properties != properties_rml)
+		{
 			properties_content->SetInnerRML(properties);
+			properties_rml = std::move(properties);
+		}
 	}
 
 	// Set the events:
@@ -339,8 +365,11 @@ void ElementInfo::UpdateSourceElement()
 			while (events_content->HasChildNodes())
 				events_content->RemoveChild(events_content->GetChild(0));
 		}
-		else
+		else if (events != events_rml)
+		{
 			events_content->SetInnerRML(events);
+			events_rml = std::move(events);
+		}
 	}
 
 	// Set the position:
@@ -398,8 +427,11 @@ void ElementInfo::UpdateSourceElement()
 			while (ancestors_content->HasChildNodes())
 				ancestors_content->RemoveChild(ancestors_content->GetFirstChild());
 		}
-		else
+		else if (ancestors != ancestors_rml)
+		{
 			ancestors_content->SetInnerRML(ancestors);
+			ancestors_rml = std::move(ancestors);
+		}
 	}
 
 	// Set the children:
@@ -434,8 +466,11 @@ void ElementInfo::UpdateSourceElement()
 			while (children_content->HasChildNodes())
 				children_content->RemoveChild(children_content->GetChild(0));
 		}
-		else
+		else if(children != children_rml)
+		{
 			children_content->SetInnerRML(children);
+			children_rml = std::move(children);
+		}
 	}
 }
 

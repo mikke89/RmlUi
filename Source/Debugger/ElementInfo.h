@@ -63,6 +63,8 @@ public:
 
 protected:
 	void ProcessEvent(Core::Event& event) override;
+	/// Updates the element info if changed
+	void OnUpdate() override;
 
 private:
 	void SetSourceElement(Core::Element* new_source_element);
@@ -75,6 +77,10 @@ private:
 	void RemoveTrailingZeroes(Core::String& string);
 
 	bool IsDebuggerElement(Core::Element* element);
+
+	double previous_update_time;
+
+	Core::String attributes_rml, properties_rml, events_rml, ancestors_rml, children_rml;
 
 	Core::Element* hover_element;
 	Core::Element* source_element;
