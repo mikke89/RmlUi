@@ -36,15 +36,6 @@
 namespace Rml {
 namespace Core {
 
-class FontEffectSort
-{
-public:
-	bool operator()(const FontEffect* lhs, const FontEffect* rhs)
-	{
-		return lhs->GetZIndex() < rhs->GetZIndex();
-	}
-};
-
 FontFaceHandle::FontFaceHandle()
 {
 	size = 0;
@@ -130,17 +121,10 @@ int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) 
 }
 
 // Generates, if required, the layer configuration for a given array of font effects.
-int FontFaceHandle::GenerateLayerConfiguration(FontEffectMap& font_effects)
+int FontFaceHandle::GenerateLayerConfiguration(const FontEffectList& font_effects)
 {
 	if (font_effects.empty())
 		return 0;
-
-	// Prepare a list of effects, sorted by z-index.
-	FontEffectList sorted_effects;
-	for (FontEffectMap::const_iterator i = font_effects.begin(); i != font_effects.end(); ++i)
-		sorted_effects.push_back(i->second);
-
-	std::sort(sorted_effects.begin(), sorted_effects.end(), FontEffectSort());
 
 	// Check each existing configuration for a match with this arrangement of effects.
 	int configuration_index = 1;
@@ -148,9 +132,9 @@ int FontFaceHandle::GenerateLayerConfiguration(FontEffectMap& font_effects)
 	{
 		const LayerConfiguration& configuration = layer_configurations[configuration_index];
 
-		// Check the size is correct. For a math, there should be one layer in the configuration
+		// Check the size is correct. For a match, there should be one layer in the configuration
 		// plus an extra for the base layer.
-		if (configuration.size() != sorted_effects.size() + 1)
+		if (configuration.size() != font_effects.size() + 1)
 			continue;
 
 		// Check through each layer, checking it was created by the same effect as the one we're
@@ -164,14 +148,14 @@ int FontFaceHandle::GenerateLayerConfiguration(FontEffectMap& font_effects)
 
 			// If the ith layer's effect doesn't match the equivalent effect, then this
 			// configuration can't match.
-			if (configuration[i]->GetFontEffect() != sorted_effects[effect_index])
+			if (configuration[i]->GetFontEffect() != font_effects[effect_index].get())
 				break;
 
 			// Check the next one ...
 			++effect_index;
 		}
 
-		if (effect_index == sorted_effects.size())
+		if (effect_index == font_effects.size())
 			return configuration_index;
 	}
 
@@ -181,16 +165,15 @@ int FontFaceHandle::GenerateLayerConfiguration(FontEffectMap& font_effects)
 
 	bool added_base_layer = false;
 
-	for (size_t i = 0; i < sorted_effects.size(); ++i)
+	for (size_t i = 0; i < font_effects.size(); ++i)
 	{
-		if (!added_base_layer &&
-			sorted_effects[i]->GetZIndex() >= 0)
+		if (!added_base_layer && font_effects[i]->GetLayer() == FontEffect::Layer::Front)
 		{
 			layer_configuration.push_back(base_layer);
 			added_base_layer = true;
 		}
 
-		layer_configuration.push_back(GenerateLayer(sorted_effects[i]));
+		layer_configuration.push_back(GenerateLayer(font_effects[i]));
 	}
 
 	// Add the base layer now if we still haven't added it.
@@ -309,24 +292,24 @@ void FontFaceHandle::OnReferenceDeactivate()
 }
 
 // Generates (or shares) a layer derived from a font effect.
-FontFaceLayer* FontFaceHandle::GenerateLayer(FontEffect* font_effect)
+FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<FontEffect>& font_effect)
 {
 	// See if this effect has been instanced before, as part of a different configuration.
-	FontLayerMap::iterator i = layers.find(font_effect);
+	FontLayerMap::iterator i = layers.find(font_effect.get());
 	if (i != layers.end())
 		return i->second;
 
 	FontFaceLayer* layer = new FontFaceLayer();
-	layers[font_effect] = layer;
+	layers[font_effect.get()] = layer;
 
-	if (font_effect == NULL)
+	if (!font_effect)
 	{
 		layer->Initialise(this);
 	}
 	else
 	{
 		// Determine which, if any, layer the new layer should copy its geometry and textures from.
-		FontFaceLayer* clone = NULL;
+		FontFaceLayer* clone = nullptr;
 		bool deep_clone = true;
 		String generation_key;
 
@@ -337,7 +320,9 @@ FontFaceLayer* FontFaceHandle::GenerateLayer(FontEffect* font_effect)
 		}
 		else
 		{
-			generation_key = font_effect->GetName() + ";" + font_effect->GetGenerationKey();
+			// TODO: Add font effect name here
+			String name = "xyz"; // font_effect->GetName()
+			generation_key = name + ";" + font_effect->GetGenerationKey();
 			FontLayerCache::iterator cache_iterator = layer_cache.find(generation_key);
 			if (cache_iterator != layer_cache.end())
 				clone = cache_iterator->second;
@@ -347,7 +332,7 @@ FontFaceLayer* FontFaceHandle::GenerateLayer(FontEffect* font_effect)
 		layer->Initialise(this, font_effect, clone, deep_clone);
 
 		// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
-		if (clone == NULL)
+		if (!clone)
 			layer_cache[generation_key] = layer;
 	}
 

@@ -36,6 +36,7 @@
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
 namespace Core {
@@ -224,6 +225,82 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	}
 
 	return decorator_list;
+}
+
+FontEffectList StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const String& source_file, int source_line_number) const
+{	
+	// Font-effects are declared as
+	//   font-effect: <font-effect-value>[, <font-effect-value> ...];
+	// Where <font-effect-value> is declared with inline properties, e.g.
+	//   font-effect: outline( 1px black ), ...;
+
+	FontEffectList font_effect_list;
+	if (font_effect_string_value.empty() || font_effect_string_value == NONE)
+		return font_effect_list;
+
+	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
+	StringList font_effect_string_list;
+	StringUtilities::ExpandString(font_effect_string_list, font_effect_string_value, ',', '(', ')');
+
+	font_effect_list.reserve(font_effect_string_list.size());
+
+	// Get or instance each decorator in the comma-separated string list
+	for (const String& font_effect_string : font_effect_string_list)
+	{
+		const size_t shorthand_open = font_effect_string.find('(');
+		const size_t shorthand_close = font_effect_string.rfind(')');
+		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
+
+		if (invalid_parenthesis)
+		{
+			// We found no parenthesis, font-effects can only be declared anonymously for now.
+			Log::Message(Log::LT_WARNING, "Invalid syntax for font-effect '%s', declared at %s:%d", font_effect_string.c_str(), source_file.c_str(), source_line_number);
+		}
+		else
+		{
+			// Since we have parentheses it must be an anonymous decorator with inline properties
+			const String type = StringUtilities::StripWhitespace(font_effect_string.substr(0, shorthand_open));
+
+			// Check for valid font-effect type
+			FontEffectInstancer* instancer = Factory::GetFontEffectInstancer(type);
+			if (!instancer)
+			{
+				Log::Message(Log::LT_WARNING, "Font-effect type '%s' not found, declared at %s:%d", type.c_str(), source_file.c_str(), source_line_number);
+				continue;
+			}
+
+			const String shorthand = font_effect_string.substr(shorthand_open + 1, shorthand_close - shorthand_open - 1);
+			const PropertySpecification& specification = instancer->GetPropertySpecification();
+
+			// Parse the shorthand properties given by the 'font-effect' shorthand property
+			PropertyDictionary properties;
+			if (!specification.ParsePropertyDeclaration(properties, "font-effect", shorthand, source_file, source_line_number))
+			{
+				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", font_effect_string.c_str(), source_file.c_str(), source_line_number);
+				continue;
+			}
+
+			// Set unspecified values to their defaults
+			specification.SetPropertyDefaults(properties);
+
+			std::shared_ptr<FontEffect> font_effect = instancer->InstanceFontEffect(type, properties);
+
+			if (font_effect)
+				font_effect_list.emplace_back(std::move(font_effect));
+			else
+			{
+				Log::Message(Log::LT_WARNING, "Font-effect '%s' could not be instanced, declared at %s:%d", font_effect_string.c_str(), source_file.c_str(), source_line_number);
+				continue;
+			}
+		}
+	}
+
+	// Partition the list such that the back layer effects appear before the front layer effects
+	std::stable_partition(font_effect_list.begin(), font_effect_list.end(), 
+		[](const std::shared_ptr<FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
+	);
+
+	return font_effect_list;
 }
 
 

@@ -97,17 +97,6 @@ public:
 	/// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
 	static FontFaceHandle* GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size);
 
-	/// Returns a font effect, either a newly-instanced effect from the factory or an identical
-	/// shared effect.
-	/// @param[in] name The name of the desired font effect type.
-	/// @param[in] properties The properties associated with the font effect.
-	/// @return The requested font effect, or NULL if the font effect could not be found or instanced.
-	static FontEffect* GetFontEffect(const String& name, const PropertyDictionary& properties);
-
-	/// Removes a font effect from the font database's cache.
-	/// @param[in] The effect to release.
-	static void ReleaseFontEffect(const FontEffect* effect);
-
     static void AddFontProvider(FontProvider * provider);
 
     static void RemoveFontProvider(FontProvider * provider);

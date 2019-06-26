@@ -200,6 +200,7 @@ struct ComputedValues
 	AnimationList animation;
 
 	DecoratorList decorator;
+	FontEffectList font_effect; // Sorted by layer first (back then front), then by declaration order.
 };
 }
 

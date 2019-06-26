@@ -37,25 +37,19 @@ namespace Core {
 FontFaceLayer::FontFaceLayer() : colour(255, 255, 255)
 {
 	handle = NULL;
-	effect = NULL;
 }
 
 FontFaceLayer::~FontFaceLayer()
 {
-	if (effect != NULL)
-		effect->RemoveReference();
 }
 
 // Generates the character and texture data for the layer.
-bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, FontEffect* _effect, const FontFaceLayer* clone, bool deep_clone)
+bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, std::shared_ptr<FontEffect> _effect, const FontFaceLayer* clone, bool deep_clone)
 {
 	handle = _handle;
 	effect = _effect;
-	if (effect != NULL)
-	{
-		effect->AddReference();
+	if (effect)
 		colour = effect->GetColour();
-	}
 
 	const FontGlyphList& glyphs = handle->GetGlyphs();
 
@@ -151,7 +145,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, FontEffect* _effec
 		for (int i = 0; i < texture_layout.GetNumTextures(); ++i)
 		{
 			Texture texture;
-			if (!texture.Load(CreateString(64, "?font::%p/%p/%d", handle, effect, i)))
+			if (!texture.Load(CreateString(64, "?font::%p/%p/%d", handle, effect.get(), i)))
 				return false;
 
 			textures.push_back(texture);
@@ -215,7 +209,7 @@ bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture
 // Returns the effect used to generate the layer.
 const FontEffect* FontFaceLayer::GetFontEffect() const
 {
-	return effect;
+	return effect.get();
 }
 
 // Returns on the layer's textures.

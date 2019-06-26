@@ -38,8 +38,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/EventIterators.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectNone.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectNoneInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
@@ -261,8 +259,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontDatabase.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectNone.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectNoneInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.cpp

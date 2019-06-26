@@ -68,18 +68,14 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	int GetStringWidth(const WString& string, word prior_character = 0) const;
+	int GetStringWidth(const WString& string, word prior_character = 0) const override;
 
-	/// Generates, if required, the layer configuration for a given array of font effects.
-	/// @param[in] font_effects The list of font effects to generate the configuration for.
-	/// @return The index to use when generating geometry using this configuration.
-	int GenerateLayerConfiguration(FontEffectMap& font_effects);
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.
 	/// @param[out] texture_dimensions The dimensions of the texture.
 	/// @param[in] layer_id The id of the layer to request the texture data from.
 	/// @param[in] texture_id The index of the texture within the layer to generate.
-	bool GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id);
+	bool GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id) override;
 
 	/// Generates the geometry required to render a single line of text.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
@@ -87,20 +83,20 @@ public:
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0) const;
+	int GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0) const override;
 	/// Generates the geometry required to render a line above, below or through a line of text.
 	/// @param[out] geometry The geometry to append the newly created geometry into.
 	/// @param[in] position The position of the baseline of the lined text.
 	/// @param[in] width The width of the string to line.
 	/// @param[in] height The height to render the line at.
 	/// @param[in] colour The colour to draw the line in.
-	void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const;
+	void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const override;
 
 protected:
 	/// Destroys the handle.
-	virtual void OnReferenceDeactivate();
+	void OnReferenceDeactivate() override;
 
-	int GetKerning(word lhs, word rhs) const;
+	int GetKerning(word lhs, word rhs) const override;
 
 private:
 	void GenerateMetrics(void);

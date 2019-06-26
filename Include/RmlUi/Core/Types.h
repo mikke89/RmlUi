@@ -103,6 +103,7 @@ class Property;
 class Variant;
 class Transform;
 class Decorator;
+class FontEffect;
 struct Animation;
 struct Rectangle;
 enum class PropertyId : uint16_t;
@@ -147,6 +148,7 @@ struct Transition;
 struct TransitionList;
 
 using DecoratorList = std::vector<std::shared_ptr<Decorator>>;
+using FontEffectList = std::vector<std::shared_ptr<FontEffect>>;
 using AnimationList = std::vector<Animation>;
 
 }

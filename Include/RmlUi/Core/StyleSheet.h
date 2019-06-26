@@ -41,6 +41,7 @@ class Element;
 class ElementDefinition;
 class StyleSheetNode;
 class Decorator;
+class FontEffect;
 class SpritesheetList;
 struct Sprite;
 struct Spritesheet;
@@ -61,6 +62,13 @@ struct DecoratorSpecification {
 	std::shared_ptr<Decorator> decorator;
 };
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
+
+struct FontEffectSpecification {
+	String font_effect_type;
+	PropertyDictionary properties;
+	std::shared_ptr<FontEffect> decorator;
+};
+using FontEffectSpecificationMap = UnorderedMap<String, FontEffectSpecification >;
 
 
 /**
@@ -97,6 +105,9 @@ public:
 	/// Parses the decorator property from a string and returns a list of instanced decorators.
 	DecoratorList InstanceDecoratorsFromString(const String& decorator_string_value, const String& source_file, int source_line_number) const;
 
+	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
+	FontEffectList InstanceFontEffectsFromString(const String& font_effect_string_value, const String& source_file, int source_line_number) const;
+
 	/// Get sprite located in any spritesheet within this stylesheet.
 	const Sprite* GetSprite(const String& name) const;
 
@@ -124,6 +135,8 @@ private:
 
 	// Name of every @decorator mapped to their specification
 	DecoratorSpecificationMap decorator_map;
+
+	FontEffectSpecificationMap font_effect_map;
 
 	// Name of every @spritesheet and underlying sprites mapped to their values
 	SpritesheetList spritesheet_list;

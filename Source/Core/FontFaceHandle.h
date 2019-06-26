@@ -84,7 +84,7 @@ public:
 	/// Generates, if required, the layer configuration for a given array of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
 	/// @return The index to use when generating geometry using this configuration.
-	virtual int GenerateLayerConfiguration(FontEffectMap& font_effects) = 0;
+	virtual int GenerateLayerConfiguration(const FontEffectList& font_effects);
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.
 	/// @param[out] texture_dimensions The dimensions of the texture.
@@ -116,8 +116,8 @@ public:
 
 protected:
 	/// Destroys the handle.
-	virtual void OnReferenceDeactivate();
-	FontFaceLayer* GenerateLayer(FontEffect* font_effect);
+	void OnReferenceDeactivate() override;
+	FontFaceLayer* GenerateLayer(const std::shared_ptr<FontEffect>& font_effect);
 	virtual int GetKerning(word lhs, word rhs) const = 0;
 
 	typedef std::vector< int > GlyphKerningList;

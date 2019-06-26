@@ -38,7 +38,6 @@
 #include "ElementImage.h"
 #include "ElementTextDefault.h"
 #include "EventInstancerDefault.h"
-#include "FontEffectNoneInstancer.h"
 #include "FontEffectOutlineInstancer.h"
 #include "FontEffectShadowInstancer.h"
 #include "PluginRegistry.h"
@@ -64,7 +63,7 @@ typedef UnorderedMap< String, std::unique_ptr<DecoratorInstancer> > DecoratorIns
 static DecoratorInstancerMap decorator_instancers;
 
 // Font effect instancers.
-typedef UnorderedMap< String, FontEffectInstancer* > FontEffectInstancerMap;
+typedef UnorderedMap< String, std::unique_ptr<FontEffectInstancer> > FontEffectInstancerMap;
 static FontEffectInstancerMap font_effect_instancers;
 
 // The context instancer.
@@ -111,9 +110,8 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("tiled-box", std::make_unique<DecoratorTiledBoxInstancer>());
 	RegisterDecoratorInstancer("image", std::make_unique<DecoratorTiledImageInstancer>());
 
-	RegisterFontEffectInstancer("shadow", new FontEffectShadowInstancer())->RemoveReference();
-	RegisterFontEffectInstancer("outline", new FontEffectOutlineInstancer())->RemoveReference();
-	RegisterFontEffectInstancer("none", new FontEffectNoneInstancer())->RemoveReference();
+	RegisterFontEffectInstancer("shadow", std::make_unique<FontEffectShadowInstancer>());
+	RegisterFontEffectInstancer("outline", std::make_unique<FontEffectOutlineInstancer>());
 
 	// Register the core XML node handlers.
 	XMLParser::RegisterNodeHandler("", new XMLNodeHandlerDefault())->RemoveReference();
@@ -132,8 +130,6 @@ void Factory::Shutdown()
 
 	decorator_instancers.clear();
 
-	for (FontEffectInstancerMap::iterator i = font_effect_instancers.begin(); i != font_effect_instancers.end(); ++i)
-		(*i).second->RemoveReference();
 	font_effect_instancers.clear();
 
 	if (context_instancer)
@@ -347,113 +343,24 @@ DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 }
 
 // Registers an instancer that will be used to instance font effects.
-FontEffectInstancer* Factory::RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer)
+void Factory::RegisterFontEffectInstancer(const String& name, std::unique_ptr<FontEffectInstancer> instancer)
 {
+	if (!instancer)
+		return;
+
 	String lower_case_name = ToLower(name);
-	instancer->AddReference();
-
-	// Check if an instancer for this tag is already defined. If so, release it.
-	FontEffectInstancerMap::iterator iterator = font_effect_instancers.find(lower_case_name);
-	if (iterator != font_effect_instancers.end())
-		(*iterator).second->RemoveReference();
-
-	font_effect_instancers[lower_case_name] = instancer;
-	return instancer;
+	font_effect_instancers[lower_case_name] = std::move(instancer);
 }
 
-// Attempts to instance a font effect from an instancer registered with the factory.
-FontEffect* Factory::InstanceFontEffect(const String& name, const PropertyDictionary& properties)
+FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)
 {
-	bool set_colour = false;
-	Colourb colour(255, 255, 255);
-
-	bool set_z_index = false;
-	float z_index = 0;
-
-	int specificity = -1;
-
-	FontEffectInstancerMap::iterator iterator = font_effect_instancers.find(name);
+	auto iterator = font_effect_instancers.find(name);
 	if (iterator == font_effect_instancers.end())
-		return NULL;
+		return nullptr;
 
-	FontEffectInstancer* instancer = iterator->second;
-
-	// Turn the generic, un-parsed properties we've got into a properly parsed dictionary.
-	const PropertySpecification& property_specification = (*iterator).second->GetPropertySpecification();
-
-	PropertyDictionary parsed_properties;
-	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
-	{
-		specificity = Math::Max(specificity, i->second.specificity);
-
-		// Check for the 'z-index' property; we don't want to send this through.
-		//if (i->first == Z_INDEX)
-		//{
-		//	set_z_index = true;
-		//	z_index = i->second.value.Get< float >();
-		//}
-		//else if (i->first == COLOR)
-		//{
-		//	static PropertyParserColour colour_parser;
-
-		//	Property colour_property;
-		//	if (colour_parser.ParseValue(colour_property, i->second.value.Get< String >(), ParameterMap()))
-		//	{
-		//		colour = colour_property.value.Get< Colourb >();
-		//		set_colour = true;
-		//	}
-		//}
-		//else
-		{
-			property_specification.ParsePropertyDeclaration(parsed_properties, (*i).first, (*i).second.value.Get< String >(), (*i).second.source, (*i).second.source_line_number);
-		}
-	}
-
-	// Set the property defaults for all unset properties.
-	property_specification.SetPropertyDefaults(parsed_properties);
-
-	// Compile an ordered list of the values of the properties used to generate the effect's
-	// textures and geometry.
-	typedef std::list< std::pair< PropertyId, String > > GenerationPropertyList;
-	GenerationPropertyList generation_properties;
-	for (PropertyMap::const_iterator i = parsed_properties.GetProperties().begin(); i != parsed_properties.GetProperties().end(); ++i)
-	{
-		if (instancer->volatile_properties.find(i->first) != instancer->volatile_properties.end())
-		{
-			GenerationPropertyList::iterator j = generation_properties.begin();
-			while (j != generation_properties.end() &&
-				   j->first < i->first)
-				++j;
-
-			generation_properties.insert(j, GenerationPropertyList::value_type(i->first, i->second.value.Get< String >()));
-		}
-	}
-
-	String generation_key;
-	for (GenerationPropertyList::iterator i = generation_properties.begin(); i != generation_properties.end(); ++i)
-	{
-		generation_key += i->second;
-		generation_key += ";";
-	}
-
-	// Now we can actually instance the effect!
-	FontEffect* font_effect = (*iterator).second->InstanceFontEffect(name, parsed_properties);
-	if (font_effect == NULL)
-		return NULL;
-
-	font_effect->name = name;
-	font_effect->generation_key = generation_key;
-
-	if (set_z_index)
-		font_effect->SetZIndex(z_index);
-
-	if (set_colour)
-		font_effect->SetColour(colour);
-
-	font_effect->SetSpecificity(specificity);
-	font_effect->instancer = (*iterator).second;
-	return font_effect;
+	return iterator->second.get();
 }
+
 
 // Creates a style sheet containing the passed in styles.
 StyleSheet* Factory::InstanceStyleSheetString(const String& string)

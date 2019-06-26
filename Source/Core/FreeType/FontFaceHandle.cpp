@@ -37,14 +37,6 @@ namespace Rml {
 namespace Core {
 namespace FreeType {
 
-class FontEffectSort
-{
-public:
-	bool operator()(const FontEffect* lhs, const FontEffect* rhs)
-	{
-		return lhs->GetZIndex() < rhs->GetZIndex();
-	}
-};
 
 FontFaceHandle::FontFaceHandle()
 {
@@ -122,77 +114,6 @@ int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) 
 	}
 
 	return width;
-}
-
-// Generates, if required, the layer configuration for a given array of font effects.
-int FontFaceHandle::GenerateLayerConfiguration(FontEffectMap& font_effects)
-{
-	if (font_effects.empty())
-		return 0;
-
-	// Prepare a list of effects, sorted by z-index.
-	FontEffectList sorted_effects;
-	for (FontEffectMap::const_iterator i = font_effects.begin(); i != font_effects.end(); ++i)
-		sorted_effects.push_back(i->second);
-
-	std::sort(sorted_effects.begin(), sorted_effects.end(), FontEffectSort());
-
-	// Check each existing configuration for a match with this arrangement of effects.
-	int configuration_index = 1;
-	for (; configuration_index < (int) layer_configurations.size(); ++configuration_index)
-	{
-		const LayerConfiguration& configuration = layer_configurations[configuration_index];
-
-		// Check the size is correct. For a math, there should be one layer in the configuration
-		// plus an extra for the base layer.
-		if (configuration.size() != sorted_effects.size() + 1)
-			continue;
-
-		// Check through each layer, checking it was created by the same effect as the one we're
-		// checking.
-		size_t effect_index = 0;
-		for (size_t i = 0; i < configuration.size(); ++i)
-		{
-			// Skip the base layer ...
-			if (configuration[i]->GetFontEffect() == NULL)
-				continue;
-
-			// If the ith layer's effect doesn't match the equivalent effect, then this
-			// configuration can't match.
-			if (configuration[i]->GetFontEffect() != sorted_effects[effect_index])
-				break;
-
-			// Check the next one ...
-			++effect_index;
-		}
-
-		if (effect_index == sorted_effects.size())
-			return configuration_index;
-	}
-
-	// No match, so we have to generate a new layer configuration.
-	layer_configurations.push_back(LayerConfiguration());
-	LayerConfiguration& layer_configuration = layer_configurations.back();
-
-	bool added_base_layer = false;
-
-	for (size_t i = 0; i < sorted_effects.size(); ++i)
-	{
-		if (!added_base_layer &&
-			sorted_effects[i]->GetZIndex() >= 0)
-		{
-			layer_configuration.push_back(base_layer);
-			added_base_layer = true;
-		}
-
-		layer_configuration.push_back(GenerateLayer(sorted_effects[i]));
-	}
-
-	// Add the base layer now if we still haven't added it.
-	if (!added_base_layer)
-		layer_configuration.push_back(base_layer);
-
-	return (int) (layer_configurations.size() - 1);
 }
 
 // Generates the texture data for a layer (for the texture database).

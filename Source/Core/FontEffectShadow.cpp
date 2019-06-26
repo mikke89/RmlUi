@@ -34,8 +34,7 @@ namespace Core {
 
 FontEffectShadow::FontEffectShadow() : offset(0, 0)
 {
-	// Default the z-index of a shadow effect to be behind the main layer.
-	SetZIndex(-1);
+	SetLayer(Layer::Back);
 }
 
 FontEffectShadow::~FontEffectShadow()

@@ -39,9 +39,6 @@ namespace Core {
 FontDatabase* FontDatabase::instance = NULL;
 FontDatabase::FontProviderTable FontDatabase::font_provider_table;
 
-typedef UnorderedMap< String, FontEffect* > FontEffectCache;
-FontEffectCache font_effect_cache;
-
 FontDatabase::FontDatabase()
 {
 	RMLUI_ASSERT(instance == NULL);
@@ -179,72 +176,6 @@ FontFaceHandle* FontDatabase::GetFontFaceHandle(const String& family, const Stri
     }
 
     return NULL;
-}
-
-// Returns a font effect, either a newly-instanced effect from the factory or an identical shared
-// effect.
-FontEffect* FontDatabase::GetFontEffect(const String& name, const PropertyDictionary& properties)
-{
-	// The caching here should be moved into the Factory for optimal behaviour. This system has a
-	// few shortfalls:
-	//  * ignores default properties
-	//  * could be shared with decorators as well
-
-	// Generate a key so we can distinguish unique property sets quickly.
-	typedef std::list< std::pair< PropertyId, String > > PropertyList;
-	PropertyList sorted_properties;
-	for (PropertyMap::const_iterator property_iterator = properties.GetProperties().begin(); property_iterator != properties.GetProperties().end(); ++property_iterator)
-	{
-		// Skip the font-effect declaration.
-		//if (property_iterator->first == "font-effect")
-		//	continue;
-
-		PropertyList::iterator insert = sorted_properties.begin();
-		while (insert != sorted_properties.end() &&
-			   insert->first < property_iterator->first)
-		   ++insert;
-
-		sorted_properties.insert(insert, PropertyList::value_type(property_iterator->first, property_iterator->second.Get< String >()));
-	}
-
-	// Generate the font effect's key from the properties.
-	String key = name + ";";
-	String str_id;
-	for (PropertyList::iterator i = sorted_properties.begin(); i != sorted_properties.end(); ++i)
-	{
-		TypeConverter<int, String>::Convert((int)i->first, str_id);
-		key += str_id + ":" + i->second + ";";
-	}
-
-	// Check if we have a previously instanced effect.
-	FontEffectCache::iterator i = font_effect_cache.find(key);
-	if (i != font_effect_cache.end())
-	{
-		FontEffect* effect = i->second;
-		effect->AddReference();
-
-		return effect;
-	}
-
-	FontEffect* font_effect = Factory::InstanceFontEffect(name, properties);
-	if (font_effect == NULL)
-		return NULL;
-
-	font_effect_cache[key] = font_effect;
-	return font_effect;
-}
-
-// Removes a font effect from the font database's cache.
-void FontDatabase::ReleaseFontEffect(const FontEffect* effect)
-{
-	for (FontEffectCache::iterator i = font_effect_cache.begin(); i != font_effect_cache.end(); ++i)
-	{
-		if (i->second == effect)
-		{
-			font_effect_cache.erase(i);
-			return;
-		}
-	}
 }
 
 void FontDatabase::AddFontProvider(FontProvider * provider)

@@ -157,10 +157,8 @@ div#title_bar span
 
 	font-size: 22px;
 	font-weight: bold;
-
-	outline-font-effect: outline;
-	outline-width: 1px;
-	outline-color: black;
+	
+	font-effect: outline(1px black);
 
 	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 }
@@ -206,9 +204,7 @@ h1
 	font-size: 16px;
 	font-weight: bold;
 
-	shadow-font-effect: shadow;
-	shadow-offset: 1px 1px;
-	shadow-color: black;
+	font-effect: shadow(1px 1px black);
 }
 
 
@@ -250,9 +246,7 @@ input.submit:focus
 {
     font-weight: bold;
     
-    shadow-font-effect: shadow;
-    shadow-offset: 1px 1px;
-    shadow-color: black;
+    font-effect: shadow(1px 1px black);
 }
 
 button:hover,

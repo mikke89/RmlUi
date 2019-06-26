@@ -125,6 +125,29 @@ decorator: stars;
 ```
 Note the lack of parenthesis which means it is a decorator name and not a type with shorthand properties declared.
 
+### Font-effects
+
+The new RCSS `font-effect` property replaces the old font-effect declarations in libRocket. A font-effect is declared similar to a decorator, by the name of the font-effect type and its properties in parenthesis. Some examples follow.
+
+```CSS
+/* declares an outline font-effect with width 5px and color #f66 */
+font-effect: outline( 5px #f66 );
+
+/* declares a shadow font-effect with 2px offset in both x- and y-direction, and the given color */
+font-effect: shadow( 2px 2px #333 );
+```
+
+The `font-effect` property follows the normal cascading rules, is non-inherited (subject to feedback), and has the default value `none` which specifies no font-effect on the element. Unlike in libRocket, font-effects can now be set on the element's style, although we recommend declaring them in style sheets for performance reasons.
+
+Furthermore, multiple font-effects can be specified on any element by a comma-separated list of font-effects.
+```CSS
+/* declares two font-effects on the same element */
+font-effect: shadow(3px 3px green), outline(2px black);
+```
+
+When creating a custom font-effect, you can provide a shorthand property named `font-effect` which will be used to parse the text inside the parenthesis of the property declaration. This allows specifying the font-effect with inline properties as in the above examples.
+
+There is currently no equivalent of the `@decorator` at-rule for font-effects. If there is a desire for such a feature, please provide some feedback.
 
 
 ### Other changes
@@ -143,7 +166,7 @@ Breaking changes since RmlUi v2.0.
 - The Controls::DataGrid "min-rows" property has been replaced by an attribute of the same name.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
-- See changes to the declaration of decorators above.
+- See changes to the declaration of decorators and font-effects above.
 
 
 #### Events

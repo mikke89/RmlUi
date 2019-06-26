@@ -376,25 +376,12 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	font_dirty = false;
 
-	// Build up a list of all applicable font effects set by our parent nodes.
-	FontEffectMap font_effects;
+	const Element* parent = GetParentNode();
+	if (!parent)
+		return false;
 
-	// @hack/todo: Only using the "none" font-effect for now
-	static FontEffect* font_effect = nullptr;
-	if(!font_effect)
-		font_effect = FontDatabase::GetFontEffect("none", PropertyDictionary());
-	RMLUI_ASSERT(font_effect);
-	font_effects.emplace("", font_effect);
-
-	Element* element = GetParentNode();
-	while (element != NULL)
-	{
-		const ElementDefinition* element_definition = element->GetDefinition();
-		//if (element_definition != NULL)
-		//	element_definition->GetFontEffects(font_effects, element->GetStyle()->GetActivePseudoClasses());
-
-		element = element->GetParentNode();
-	}
+	// Our parent defines the font-effect for this text element
+	const FontEffectList& font_effects = parent->GetComputedValues().font_effect;
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.

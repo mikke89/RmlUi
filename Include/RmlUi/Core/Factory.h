@@ -127,14 +127,13 @@ public:
 	/// @param[in] name The name of the font effect the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the font effect name is encountered.
 	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static FontEffectInstancer* RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer);
-	/// Attempts to instance a font effect from an instancer registered with the factory.
-	/// @param[in] name The name of the desired font effect type.
-	/// @param[in] properties The properties associated with the font effect.
-	/// @return The newly instanced font effect, or NULL if the font effect could not be instanced.
-	static FontEffect* InstanceFontEffect(const String& name, const PropertyDictionary& properties);
+	static void RegisterFontEffectInstancer(const String& name, std::unique_ptr<FontEffectInstancer> instancer);
+	/// Retrieves a font-effect instancer registered with the factory.
+	/// @param[in] name The name of the desired font-effect type.
+	/// @return The font-effect instancer it it exists, NULL otherwise.
+	static FontEffectInstancer* GetFontEffectInstancer(const String& name);
 
-	/// Creates a style sheet from a user-generated string.
+/// Creates a style sheet from a user-generated string.
 	/// @param[in] string The contents of the style sheet.
 	/// @return A pointer to the newly created style sheet.
 	static StyleSheet* InstanceStyleSheetString(const String& string);
