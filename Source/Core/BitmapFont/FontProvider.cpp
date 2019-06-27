@@ -38,24 +38,22 @@
 
 namespace Rml {
 namespace Core {
-namespace BitmapFont {
 
+BitmapFont::FontProvider* BitmapFont::FontProvider::instance = NULL;
 
-FontProvider* FontProvider::instance = NULL;
-
-FontProvider::FontProvider()
+BitmapFont::FontProvider::FontProvider()
 {
 	RMLUI_ASSERT(instance == NULL);
 	instance = this;
 }
 
-FontProvider::~FontProvider()
+BitmapFont::FontProvider::~FontProvider()
 {
 	RMLUI_ASSERT(instance == this);
 	instance = NULL;
 }
 
-bool FontProvider::Initialise()
+bool BitmapFont::FontProvider::Initialise()
 {
 	if (instance == NULL)
 	{
@@ -67,7 +65,7 @@ bool FontProvider::Initialise()
 	return true;
 }
 
-void FontProvider::Shutdown()
+void BitmapFont::FontProvider::Shutdown()
 {
 	if (instance != NULL)
 	{
@@ -78,9 +76,9 @@ void FontProvider::Shutdown()
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-bool FontProvider::LoadFontFace(const String& file_name)
+bool BitmapFont::FontProvider::LoadFontFace(const String& file_name)
 {
-	BitmapFontDefinitions *bm_font = (BitmapFontDefinitions*) instance->LoadFace(file_name);
+	BitmapFont::BitmapFontDefinitions *bm_font = (BitmapFont::BitmapFontDefinitions*) instance->LoadFace(file_name);
 
 	if (bm_font == NULL)
 	{
@@ -106,9 +104,9 @@ bool FontProvider::LoadFontFace(const String& file_name)
 }
 
 // Loads a new font face.
-bool FontProvider::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
+bool BitmapFont::FontProvider::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
 {
-	BitmapFontDefinitions *bm_font = (BitmapFontDefinitions*) instance->LoadFace(file_name);
+	BitmapFont::BitmapFontDefinitions *bm_font = (BitmapFont::BitmapFontDefinitions*) instance->LoadFace(file_name);
 	if (bm_font == NULL)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
@@ -129,21 +127,21 @@ bool FontProvider::LoadFontFace(const String& file_name, const String& family, F
 	return true;
 }
 
-bool FontProvider::LoadFontFace(const byte* data, int data_length)
+bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length)
 {
 	// TODO: Loading from memory
 	return false;
 }
 
 // Adds a new font face to the database, loading from memory.
-bool FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
+bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
 {
 	// TODO Loading from memory
 	return false;
 }
 
 // Adds a loaded face to the appropriate font family.
-bool FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
+bool BitmapFont::FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
 {
 	String family_lower = ToLower(family);
 	Rml::Core::FontFamily* font_family = NULL;
@@ -157,14 +155,13 @@ bool FontProvider::AddFace(void* face, const String& family, Font::Style style, 
 	}
 
 	return font_family->AddFace((BitmapFontDefinitions *) face, style, weight, release_stream);
-	return true;
 }
 
 // Loads a FreeType face.
-void* FontProvider::LoadFace(const String& file_name)
+void* BitmapFont::FontProvider::LoadFace(const String& file_name)
 {
-	BitmapFontDefinitions *bm_face = new BitmapFontDefinitions();
-	FontParser parser( bm_face );
+	BitmapFont::BitmapFontDefinitions *bm_face = new BitmapFont::BitmapFontDefinitions();
+	BitmapFont::FontParser parser( bm_face );
 
 	FileInterface* file_interface = GetFileInterface();
 	FileHandle handle = file_interface->Open(file_name);
@@ -190,12 +187,12 @@ void* FontProvider::LoadFace(const String& file_name)
 }
 
 // Loads a FreeType face from memory.
-void* FontProvider::LoadFace(const byte* data, int data_length, const String& source, bool local_data)
+void* BitmapFont::FontProvider::LoadFace(const byte* data, int data_length, const String& source, bool local_data)
 {
 	URL file_url = source + ".fnt";
 
-	BitmapFontDefinitions *bm_face = new BitmapFontDefinitions();
-	FontParser parser( bm_face );
+	BitmapFont::BitmapFontDefinitions *bm_face = new BitmapFont::BitmapFontDefinitions();
+	BitmapFont::FontParser parser( bm_face );
 	StreamMemory* stream = new StreamMemory( data, data_length );
 	stream->SetSourceURL( file_url );
 
@@ -205,6 +202,5 @@ void* FontProvider::LoadFace(const byte* data, int data_length, const String& so
 	return bm_face;
 }
 
-}
 }
 }

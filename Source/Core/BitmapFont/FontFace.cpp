@@ -33,20 +33,19 @@
 
 namespace Rml {
 namespace Core {
-namespace BitmapFont {
 
-FontFace::FontFace(BitmapFontDefinitions *_face, Font::Style _style, Font::Weight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
+BitmapFont::FontFace::FontFace(BitmapFontDefinitions *_face, Font::Style _style, Font::Weight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
 {
 	face = _face;
 }
 
-FontFace::~FontFace()
+BitmapFont::FontFace::~FontFace()
 {
 	ReleaseFace();
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-Rml::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int size)
+Rml::Core::FontFaceHandle* BitmapFont::FontFace::GetHandle(const String& _raw_charset, int size)
 {
 	UnicodeRangeList charset;
 
@@ -63,7 +62,7 @@ Rml::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int s
 			if (handles[i]->GetRawCharset() == _raw_charset)
 			{
 				handles[i]->AddReference();
-				return (FontFaceHandle*)handles[i];
+				return handles[i];
 			}
 		}
 
@@ -88,7 +87,7 @@ Rml::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int s
 			if (range_contained)
 			{
 				handles[i]->AddReference();
-				return (FontFaceHandle*)handles[i];
+				return handles[i];
 			}
 		}
 	}
@@ -101,7 +100,7 @@ Rml::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int s
 	}
 
 	// Construct and initialise the new handle.
-	FontFaceHandle* handle = new FontFaceHandle();
+	BitmapFont::FontFaceHandle* handle = new BitmapFont::FontFaceHandle();
 	if (!handle->Initialise(face, _raw_charset, size))
 	{
 		handle->RemoveReference();
@@ -121,11 +120,10 @@ Rml::Core::FontFaceHandle* FontFace::GetHandle(const String& _raw_charset, int s
 }
 
 // Releases the face's structure.
-void FontFace::ReleaseFace()
+void BitmapFont::FontFace::ReleaseFace()
 {
 	delete face;
 }
 
-}
 }
 }

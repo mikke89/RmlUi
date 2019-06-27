@@ -31,9 +31,8 @@
 
 namespace Rml {
 namespace Core {
-namespace BitmapFont {
 
-FontParser::FontParser( BitmapFontDefinitions *face )
+BitmapFont::FontParser::FontParser( BitmapFontDefinitions *face )
 	: BaseXMLParser()
 {
 	bm_face = face;
@@ -41,12 +40,12 @@ FontParser::FontParser( BitmapFontDefinitions *face )
 	kern_id = 0;
 }
 
-FontParser::~FontParser()
+BitmapFont::FontParser::~FontParser()
 {
 }
 
 // Called when the parser finds the beginning of an element tag.
-void FontParser::HandleElementStart(const String& name, const XMLAttributes& attributes)
+void BitmapFont::FontParser::HandleElementStart(const String& name, const XMLAttributes& attributes)
 {
 	if ( name == "info" )
 	{
@@ -68,7 +67,8 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
 	else if ( name == "chars" )
 	{
 		bm_face->CommonCharactersInfo.CharacterCount = Get(attributes, "count", 0);
-		bm_face->CharactersInfo = new CharacterInfo[ Get(attributes, "count", 0) ];
+		// Memory @leak ?
+		bm_face->CharactersInfo = new BitmapFont::CharacterInfo[ Get(attributes, "count", 0) ];
 	}
 	else if ( name == "char" )
 	{
@@ -86,7 +86,8 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
 	else if ( name == "kernings" )
 	{
 		bm_face->CommonCharactersInfo.KerningCount = Get(attributes, "count", 0);
-		bm_face->KerningsInfo = new KerningInfo[ Get(attributes, "count", 0) ];
+		// Memory @leak ?
+		bm_face->KerningsInfo = new BitmapFont::KerningInfo[ Get(attributes, "count", 0) ];
 	}
 	else if ( name == "kerning" )
 	{
@@ -99,17 +100,16 @@ void FontParser::HandleElementStart(const String& name, const XMLAttributes& att
 }
 
 // Called when the parser finds the end of an element tag.
-void FontParser::HandleElementEnd(const String& RMLUI_UNUSED_PARAMETER(name))
+void BitmapFont::FontParser::HandleElementEnd(const String& RMLUI_UNUSED_PARAMETER(name))
 {
 	RMLUI_UNUSED(name);
 }
 
 // Called when the parser encounters data.
-void FontParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data))
+void BitmapFont::FontParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data))
 {
 	RMLUI_UNUSED(data);
 }
 
-}
 }
 }

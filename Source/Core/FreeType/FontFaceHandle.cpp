@@ -40,7 +40,7 @@ namespace FreeType {
 
 FontFaceHandle::FontFaceHandle()
 {
-	ft_face = NULL;
+	ft_face = nullptr;
 }
 
 FontFaceHandle::~FontFaceHandle()
@@ -83,130 +83,12 @@ bool FontFaceHandle::Initialise(FT_Face ft_face, const String& _charset, int _si
 	GenerateMetrics();
 
 	// Generate the default layer and layer configuration.
-	base_layer = GenerateLayer(NULL);
+	base_layer = GenerateLayer(nullptr);
 	layer_configurations.push_back(LayerConfiguration());
 	layer_configurations.back().push_back(base_layer);
 
 
 	return true;
-}
-
-// Returns the width a string will take up if rendered with this handle.
-int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) const
-{
-	int width = 0;
-
-	for (size_t i = 0; i < string.size(); i++)
-	{
-		word character_code = string[i];
-
-		if (character_code >= glyphs.size())
-			continue;
-		const FontGlyph &glyph = glyphs[character_code];
-
-		// Adjust the cursor for the kerning between this character and the previous one.
-		if (prior_character != 0)
-			width += GetKerning(prior_character, string[i]);
-		// Adjust the cursor for this character's advance.
-		width += glyph.advance;
-
-		prior_character = character_code;
-	}
-
-	return width;
-}
-
-// Generates the texture data for a layer (for the texture database).
-bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id)
-{
-	FontLayerMap::iterator layer_iterator = layers.find(layer_id);
-	if (layer_iterator == layers.end())
-		return false;
-
-	return layer_iterator->second->GenerateTexture(texture_data, texture_dimensions, texture_id);
-}
-
-// Generates the geometry required to render a single line of text.
-int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index) const
-{
-	int geometry_index = 0;
-	int line_width = 0;
-
-	RMLUI_ASSERT(layer_configuration_index >= 0);
-	RMLUI_ASSERT(layer_configuration_index < (int) layer_configurations.size());
-
-	// Fetch the requested configuration and generate the geometry for each one.
-	const LayerConfiguration& layer_configuration = layer_configurations[layer_configuration_index];
-	for (size_t i = 0; i < layer_configuration.size(); ++i)
-	{
-		FontFaceLayer* layer = layer_configuration[i];
-
-		Colourb layer_colour;
-		if (layer == base_layer)
-			layer_colour = colour;
-		else
-			layer_colour = layer->GetColour();
-
-		// Resize the geometry list if required.
-		if ((int) geometry.size() < geometry_index + layer->GetNumTextures())
-			geometry.resize(geometry_index + layer->GetNumTextures());
-
-		// Bind the textures to the geometries.
-		for (int i = 0; i < layer->GetNumTextures(); ++i)
-			geometry[geometry_index + i].SetTexture(layer->GetTexture(i));
-
-		line_width = 0;
-		word prior_character = 0;
-
-		const word* string_iterator = string.c_str();
-		const word* string_end = string.c_str() + string.size();
-
-		geometry[geometry_index].GetIndices().reserve(string.size() * 6);
-		geometry[geometry_index].GetVertices().reserve(string.size() * 4);
-
-		for (; string_iterator != string_end; string_iterator++)
-		{
-			if (*string_iterator >= glyphs.size())
-				continue;
-			const FontGlyph &glyph = glyphs[*string_iterator];
-
-			// Adjust the cursor for the kerning between this character and the previous one.
-			if (prior_character != 0)
-				line_width += GetKerning(prior_character, *string_iterator);
-
-			layer->GenerateGeometry(&geometry[geometry_index], *string_iterator, Vector2f(position.x + line_width, position.y), layer_colour);
-
-			line_width += glyph.advance;
-			prior_character = *string_iterator;
-		}
-
-		geometry_index += layer->GetNumTextures();
-	}
-
-	// Cull any excess geometry from a previous generation.
-	geometry.resize(geometry_index);
-
-	return line_width;
-}
-
-// Generates the geometry required to render a line above, below or through a line of text.
-void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const
-{
-	std::vector< Vertex >& line_vertices = geometry->GetVertices();
-	std::vector< int >& line_indices = geometry->GetIndices();
-
-	float offset;
-	switch (height)
-	{
-		case Font::UNDERLINE:			offset = -underline_position; break;
-		case Font::OVERLINE:			// where to place? offset = -line_height - underline_position; break;
-		case Font::STRIKE_THROUGH:		// where to place? offset = -line_height * 0.5f; break;
-		default:						return;
-	}
-
-	line_vertices.resize(line_vertices.size() + 4);
-	line_indices.resize(line_indices.size() + 6);
-	GeometryUtilities::GenerateQuad(&line_vertices[0] + (line_vertices.size() - 4), &line_indices[0] + (line_indices.size() - 6), Vector2f(position.x, position.y + offset).Round(), Vector2f((float) width, underline_thickness), colour, (int)line_vertices.size() - 4);
 }
 
 // Destroys the handle.

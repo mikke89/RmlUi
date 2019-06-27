@@ -32,20 +32,19 @@
 
 namespace Rml {
 namespace Core {
-namespace BitmapFont {
 
-FontFaceLayer::FontFaceLayer() : Rml::Core::FontFaceLayer()
+BitmapFont::FontFaceLayer::FontFaceLayer() : Rml::Core::FontFaceLayer()
 {
 	handle = NULL;
 	effect = NULL;
 }
 
-FontFaceLayer::~FontFaceLayer()
+BitmapFont::FontFaceLayer::~FontFaceLayer()
 {
 }
 
 // Generates the character and texture data for the layer.
-bool FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _handle, std::shared_ptr<const FontEffect> _effect, const Rml::Core::FontFaceLayer* clone, bool deep_clone)
+bool BitmapFont::FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _handle, std::shared_ptr<const FontEffect> _effect, const Rml::Core::FontFaceLayer* clone, bool deep_clone)
 {
 	(void)(_effect);
 
@@ -118,11 +117,10 @@ bool FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _handle, std::sh
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture_dimensions, int texture_id)
+bool BitmapFont::FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture_dimensions, int texture_id)
 {
 	return true;
 }
 
-}
 }
 }

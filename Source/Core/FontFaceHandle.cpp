@@ -47,7 +47,7 @@ FontFaceHandle::FontFaceHandle()
 	underline_position = 0;
 	underline_thickness = 0;
 
-	base_layer = NULL;
+	base_layer = nullptr;
 }
 
 FontFaceHandle::~FontFaceHandle()
@@ -217,6 +217,8 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 		// Resize the geometry list if required.
 		if ((int) geometry.size() < geometry_index + layer->GetNumTextures())
 			geometry.resize(geometry_index + layer->GetNumTextures());
+		
+		RMLUI_ASSERT(!geometry.empty());
 
 		// Bind the textures to the geometries.
 		for (int i = 0; i < layer->GetNumTextures(); ++i)
@@ -225,23 +227,23 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 		line_width = 0;
 		word prior_character = 0;
 
-		const word* string_iterator = string.c_str();
-		const word* string_end = string.c_str() + string.size();
+		geometry[geometry_index].GetIndices().reserve(string.size() * 6);
+		geometry[geometry_index].GetVertices().reserve(string.size() * 4);
 
-		for (; string_iterator != string_end; string_iterator++)
+		for (const word character : string)
 		{
-			if (*string_iterator >= glyphs.size())
+			if (character >= glyphs.size())
 				continue;
-			const FontGlyph &glyph = glyphs[*string_iterator];
+			const FontGlyph &glyph = glyphs[character];
 
 			// Adjust the cursor for the kerning between this character and the previous one.
 			if (prior_character != 0)
-				line_width += GetKerning(prior_character, *string_iterator);
+				line_width += GetKerning(prior_character, character);
 
-			layer->GenerateGeometry(&geometry[geometry_index], *string_iterator, Vector2f(position.x + line_width, position.y), layer_colour);
+			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), layer_colour);
 
 			line_width += glyph.advance;
-			prior_character = *string_iterator;
+			prior_character = character;
 		}
 
 		geometry_index += layer->GetNumTextures();
@@ -270,7 +272,14 @@ void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, 
 
 	line_vertices.resize(line_vertices.size() + 4);
 	line_indices.resize(line_indices.size() + 6);
-	GeometryUtilities::GenerateQuad(&line_vertices[0] + (line_vertices.size() - 4), &line_indices[0] + (line_indices.size() - 6), Vector2f(position.x, position.y + offset).Round(), Vector2f((float) width, underline_thickness), colour, (int)line_vertices.size() - 4);
+	GeometryUtilities::GenerateQuad(
+		&line_vertices[0] + ((int)line_vertices.size() - 4),
+		&line_indices[0] + ((int)line_indices.size() - 6),
+		Vector2f(position.x, position.y + offset).Round(),
+		Vector2f((float) width, underline_thickness),
+		colour, 
+		(int)line_vertices.size() - 4
+	);
 }
 
 // Returns the font face's raw charset (the charset range as a string).
@@ -291,6 +300,11 @@ void FontFaceHandle::OnReferenceDeactivate()
 	delete this;
 }
 
+Rml::Core::FontFaceLayer* FontFaceHandle::CreateNewLayer()
+{
+	return new Rml::Core::FontFaceLayer();
+}
+
 // Generates (or shares) a layer derived from a font effect.
 FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<const FontEffect>& font_effect)
 {
@@ -299,7 +313,7 @@ FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<const FontEff
 	if (i != layers.end())
 		return i->second;
 
-	FontFaceLayer* layer = new FontFaceLayer();
+	FontFaceLayer* layer = CreateNewLayer();
 	layers[font_effect.get()] = layer;
 
 	if (!font_effect)

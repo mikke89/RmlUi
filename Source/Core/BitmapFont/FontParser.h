@@ -33,7 +33,6 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Dictionary.h>
 #include "BitmapFontDefinitions.h"
-#include <set>
 
 namespace Rml {
 namespace Core {
@@ -50,11 +49,11 @@ class FontParser : public BaseXMLParser
 		virtual ~FontParser();
 
 		/// Called when the parser finds the beginning of an element tag.
-		virtual void HandleElementStart(const String& name, const XMLAttributes& attributes);
+		void HandleElementStart(const String& name, const XMLAttributes& attributes) override;
 		/// Called when the parser finds the end of an element tag.
-		virtual void HandleElementEnd(const String& name);
+		void HandleElementEnd(const String& name) override;
 		/// Called when the parser encounters data.
-		virtual void HandleData(const String& data);
+		void HandleData(const String& data) override;
 
 	private:
 		FontParser();

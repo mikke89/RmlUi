@@ -32,25 +32,23 @@
 
 namespace Rml {
 namespace Core {
-namespace BitmapFont {
 
-FontFamily::FontFamily(const String& name) : Rml::Core::FontFamily(name)
+BitmapFont::FontFamily::FontFamily(const String& name) : Rml::Core::FontFamily(name)
 {
 }
 
-FontFamily::~FontFamily()
+BitmapFont::FontFamily::~FontFamily()
 {
 }
 
 // Adds a new face to the family.
-bool FontFamily::AddFace( void *bm_face, Font::Style style, Font::Weight weight, bool release_stream)
+bool BitmapFont::FontFamily::AddFace( void *bm_face, Font::Style style, Font::Weight weight, bool release_stream)
 {
-	Rml::Core::FontFace* face = new FontFace((BitmapFontDefinitions*)bm_face, style, weight, release_stream);
+	Rml::Core::FontFace* face = new BitmapFont::FontFace((BitmapFontDefinitions*)bm_face, style, weight, release_stream);
 	font_faces.push_back(face);
 
 	return true;
 }
 
-}
 }
 }
