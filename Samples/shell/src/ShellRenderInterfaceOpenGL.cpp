@@ -32,11 +32,9 @@
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
-ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL()
+ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(0), m_transforms(0), m_rmlui_context(NULL)
 {
-	m_rmlui_context = NULL;
-	m_width = 0;
-	m_height = 0;
+
 }
 
 // Called by RmlUi when it wants to render geometry that it does not wish to optimise.
