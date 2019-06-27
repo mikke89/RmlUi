@@ -324,7 +324,7 @@ bool RenderInterfaceDirectX10::LoadTexture(Rml::Core::TextureHandle& texture_han
 {
 	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
 	Rml::Core::FileHandle file_handle = file_interface->Open(source);
-	if (file_handle == NULL)
+	if (!file_handle)
 		return false;
 
 	file_interface->Seek(file_handle, 0, SEEK_END);
