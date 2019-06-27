@@ -63,7 +63,7 @@ DecoratorTiled::Tile::Tile() : position(0, 0), size(1, 1)
 
 
 // Calculates the tile's dimensions from the texture and texture coordinates.
-void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& texture)
+void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& texture) const
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
 	auto data_iterator = data.find(render_interface);
@@ -105,7 +105,7 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 }
 
 // Get this tile's dimensions.
-Vector2f DecoratorTiled::Tile::GetDimensions(Element* element)
+Vector2f DecoratorTiled::Tile::GetDimensions(Element* element) const
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
 	auto data_iterator = data.find(render_interface);
@@ -275,7 +275,7 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 }
 
 // Scales a tile dimensions by a fixed value along one axis.
-void DecoratorTiled::ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, int axis)
+void DecoratorTiled::ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, int axis) const
 {
 	if (tile_dimensions[axis] != axis_value)
 	{

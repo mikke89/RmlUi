@@ -87,9 +87,9 @@ public:
 		Tile();
 
 		/// Calculates the tile's dimensions from the texture and texture coordinates.
-		void CalculateDimensions(Element* element, const Texture& texture);
+		void CalculateDimensions(Element* element, const Texture& texture) const;
 		/// Get this tile's dimensions.
-		Vector2f GetDimensions(Element* element);
+		Vector2f GetDimensions(Element* element) const;
 
 		/// Generates geometry to render this tile across a surface.
 		/// @param[out] vertices The array to store the generated vertex data.
@@ -127,7 +127,7 @@ protected:
 	/// @param tile_dimensions[in, out] The tile dimensions to scale.
 	/// @param axis_value[in] The fixed value to scale against.
 	/// @param axis[in] The axis to scale against; either 0 (for x) or 1 (for y).
-	void ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, int axis);
+	void ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, int axis) const;
 };
 
 }

@@ -45,7 +45,7 @@ FontFaceLayer::~FontFaceLayer()
 }
 
 // Generates the character and texture data for the layer.
-bool FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _handle, std::shared_ptr<FontEffect> _effect, const Rml::Core::FontFaceLayer* clone, bool deep_clone)
+bool FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _handle, std::shared_ptr<const FontEffect> _effect, const Rml::Core::FontFaceLayer* clone, bool deep_clone)
 {
 	(void)(_effect);
 

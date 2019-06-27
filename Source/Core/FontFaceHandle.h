@@ -117,7 +117,7 @@ public:
 protected:
 	/// Destroys the handle.
 	void OnReferenceDeactivate() override;
-	FontFaceLayer* GenerateLayer(const std::shared_ptr<FontEffect>& font_effect);
+	FontFaceLayer* GenerateLayer(const std::shared_ptr<const FontEffect>& font_effect);
 	virtual int GetKerning(word lhs, word rhs) const = 0;
 
 	typedef std::vector< int > GlyphKerningList;

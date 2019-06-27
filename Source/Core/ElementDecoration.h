@@ -59,7 +59,7 @@ public:
 
 private:
 	// Loads a single decorator and adds it to the list of loaded decorators for this element.
-	int LoadDecorator(std::shared_ptr<Decorator> decorator);
+	int LoadDecorator(std::shared_ptr<const Decorator> decorator);
 	// Releases existing decorators and loads all decorators required by the element's definition.
 	bool ReloadDecorators();
 	// Releases all existing decorators and frees their data.
@@ -67,7 +67,7 @@ private:
 
 	struct DecoratorHandle
 	{
-		std::shared_ptr<Decorator> decorator;
+		std::shared_ptr<const Decorator> decorator;
 		DecoratorDataHandle decorator_data;
 	};
 

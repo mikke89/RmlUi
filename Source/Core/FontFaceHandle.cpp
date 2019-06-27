@@ -292,7 +292,7 @@ void FontFaceHandle::OnReferenceDeactivate()
 }
 
 // Generates (or shares) a layer derived from a font effect.
-FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<FontEffect>& font_effect)
+FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<const FontEffect>& font_effect)
 {
 	// See if this effect has been instanced before, as part of a different configuration.
 	FontLayerMap::iterator i = layers.find(font_effect.get());

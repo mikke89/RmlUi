@@ -147,8 +147,8 @@ typedef std::shared_ptr< Transform > TransformRef;
 struct Transition;
 struct TransitionList;
 
-using DecoratorList = std::vector<std::shared_ptr<Decorator>>;
-using FontEffectList = std::vector<std::shared_ptr<FontEffect>>;
+using DecoratorList = std::vector<std::shared_ptr<const Decorator>>;
+using FontEffectList = std::vector<std::shared_ptr<const FontEffect>>;
 using AnimationList = std::vector<Animation>;
 
 }

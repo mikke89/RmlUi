@@ -297,7 +297,7 @@ FontEffectList StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 
 	// Partition the list such that the back layer effects appear before the front layer effects
 	std::stable_partition(font_effect_list.begin(), font_effect_list.end(), 
-		[](const std::shared_ptr<FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
+		[](const std::shared_ptr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
 	);
 
 	return font_effect_list;
