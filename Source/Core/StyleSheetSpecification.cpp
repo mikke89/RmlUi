@@ -378,7 +378,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Animation, ANIMATION, "none", false, false).AddParser(ANIMATION);
 
 	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("string");
-	RegisterProperty(PropertyId::FontEffect, "font-effect", "", false, false).AddParser("string");
+	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("string");
 
 	instance->properties.property_map.AssertAllInserted(PropertyId::NumDefinedIds);
 	instance->properties.shorthand_map.AssertAllInserted(ShorthandId::NumDefinedIds);

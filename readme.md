@@ -137,7 +137,7 @@ font-effect: outline( 5px #f66 );
 font-effect: shadow( 2px 2px #333 );
 ```
 
-The `font-effect` property follows the normal cascading rules, is non-inherited (subject to feedback), and has the default value `none` which specifies no font-effect on the element. Unlike in libRocket, font-effects can now be set on the element's style, although we recommend declaring them in style sheets for performance reasons.
+The `font-effect` property follows the normal cascading rules, is inherited, and has the default value `none` which specifies no font-effect on the element. Unlike in libRocket, font-effects can now be set on the element's style, although we recommend declaring them in style sheets for performance reasons.
 
 Furthermore, multiple font-effects can be specified on any element by a comma-separated list of font-effects.
 ```CSS

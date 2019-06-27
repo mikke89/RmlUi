@@ -244,9 +244,8 @@ input.submit
 button:focus,
 input.submit:focus
 {
-    font-weight: bold;
-    
-    font-effect: shadow(1px 1px black);
+	font-weight: bold;
+	font-effect: shadow(1px 1px black);
 }
 
 button:hover,

@@ -382,8 +382,8 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	static const FontEffectList empty_font_effects;
 
-	// Our parent defines the font-effect for this text element
-	const FontEffectList* font_effects = parent->GetComputedValues().font_effect.get();
+	// Fetch the font-effect for this text element
+	const FontEffectList* font_effects = GetComputedValues().font_effect.get();
 	if (!font_effects)
 		font_effects = &empty_font_effects;
 

@@ -55,7 +55,7 @@ public:
 	virtual ~FontEffectInstancer();
 
 	/// Instances a font effect given the property tag and attributes from the RCSS file.
-	/// @param[in] name The type of font effect desired. For example, "title-font-effect: outline;" is declared as type "outline".
+	/// @param[in] name The type of font effect desired. For example, "font-effect: outline(1px black);" is declared as type "outline".
 	/// @param[in] properties All RCSS properties associated with the font effect.
 	/// @param[in] interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the font-effect if it was instanced successfully.

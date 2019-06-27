@@ -635,6 +635,8 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		values.focus = parent_values->focus;
 
 		values.pointer_events = parent_values->pointer_events;
+		
+		values.font_effect = parent_values->font_effect;
 	}
 
 
