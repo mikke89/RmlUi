@@ -260,7 +260,7 @@ bool RmlUiSFMLRenderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rm
 {
 	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
 	Rml::Core::FileHandle file_handle = file_interface->Open(source);
-	if (file_handle == NULL)
+	if (!file_handle)
 		return false;
 
 	file_interface->Seek(file_handle, 0, SEEK_END);
@@ -275,12 +275,12 @@ bool RmlUiSFMLRenderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rm
 
 	if(!texture->loadFromMemory(buffer, buffer_size))
 	{
-		delete buffer;
+		delete[] buffer;
 		delete texture;
 
 		return false;
 	};
-	delete buffer;
+	delete[] buffer;
 
 	texture_handle = (Rml::Core::TextureHandle) texture;
 	texture_dimensions = Rml::Core::Vector2i(texture->getSize().x, texture->getSize().y);
