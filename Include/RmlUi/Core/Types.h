@@ -149,6 +149,7 @@ struct TransitionList;
 
 using DecoratorList = std::vector<std::shared_ptr<const Decorator>>;
 using FontEffectList = std::vector<std::shared_ptr<const FontEffect>>;
+using FontEffectListPtr = std::shared_ptr<const FontEffectList>;
 using AnimationList = std::vector<Animation>;
 
 }

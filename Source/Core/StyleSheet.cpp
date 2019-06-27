@@ -221,16 +221,17 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	return decorator_list;
 }
 
-FontEffectList StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const String& source_file, int source_line_number) const
+FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const String& source_file, int source_line_number) const
 {	
 	// Font-effects are declared as
 	//   font-effect: <font-effect-value>[, <font-effect-value> ...];
 	// Where <font-effect-value> is declared with inline properties, e.g.
 	//   font-effect: outline( 1px black ), ...;
 
-	FontEffectList font_effect_list;
 	if (font_effect_string_value.empty() || font_effect_string_value == NONE)
-		return font_effect_list;
+		return nullptr;
+
+	FontEffectList font_effect_list;
 
 	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
 	StringList font_effect_string_list;
@@ -278,7 +279,6 @@ FontEffectList StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 			specification.SetPropertyDefaults(properties);
 
 			std::shared_ptr<FontEffect> font_effect = instancer->InstanceFontEffect(type, properties);
-
 			if (font_effect)
 			{
 				// Create a unique hash value for the given type and values
@@ -303,7 +303,7 @@ FontEffectList StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 		[](const std::shared_ptr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
 	);
 
-	return font_effect_list;
+	return std::make_shared<FontEffectList>(std::move(font_effect_list));
 }
 
 

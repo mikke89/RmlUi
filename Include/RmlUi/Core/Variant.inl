@@ -90,22 +90,6 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< Vector4f, T >::Convert(*(Vector4f*)data, value);
 		break;
 
-	case TRANSFORMREF:
-		return TypeConverter< TransformRef, T >::Convert(*(TransformRef*)data, value);
-		break;
-
-	case TRANSITIONLIST:
-		return TypeConverter< TransitionList, T >::Convert(*(TransitionList*)data, value);
-		break;
-
-	case ANIMATIONLIST:
-		return TypeConverter< AnimationList, T >::Convert(*(AnimationList*)data, value);
-		break;
-
-	case DECORATORLIST:
-		return TypeConverter< DecoratorList, T >::Convert(*(DecoratorList*)data, value);
-		break;
-
 	case COLOURF:
 		return TypeConverter< Colourf, T >::Convert(*(Colourf*)data, value);
 		break;
@@ -122,6 +106,25 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< void*, T >::Convert(*(void**)data, value);
 		break;
 
+	case TRANSFORMREF:
+		return TypeConverter< TransformRef, T >::Convert(*(TransformRef*)data, value);
+		break;
+
+	case TRANSITIONLIST:
+		return TypeConverter< TransitionList, T >::Convert(*(TransitionList*)data, value);
+		break;
+
+	case ANIMATIONLIST:
+		return TypeConverter< AnimationList, T >::Convert(*(AnimationList*)data, value);
+		break;
+
+	case DECORATORLIST:
+		return TypeConverter< DecoratorList, T >::Convert(*(DecoratorList*)data, value);
+		break;
+
+	case FONTEFFECTLISTPTR:
+		return TypeConverter< FontEffectListPtr, T >::Convert(*(FontEffectListPtr*)data, value);
+		break;
 	case NONE:
 		break;
 	}

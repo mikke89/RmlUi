@@ -124,11 +124,35 @@ bool TypeConverter<DecoratorList, DecoratorList>::Convert(const DecoratorList& s
 bool TypeConverter<DecoratorList, String>::Convert(const DecoratorList& src, String& dest)
 {
 	// Todo. For now, we just count the number of decorators
-	if (!TypeConverter<int, String>::Convert((int)src.size(), dest))
+	if (src.empty())
+		dest = "none";
+	else if (TypeConverter<int, String>::Convert((int)src.size(), dest))
+		dest += " decorator(s)";
+	else
 		return false;
-	dest += " decorator(s)";
 	return true;
 }
+
+
+bool TypeConverter<FontEffectListPtr, FontEffectListPtr>::Convert(const FontEffectListPtr& src, FontEffectListPtr& dest)
+{
+	dest = src;
+	return true;
+}
+
+
+bool TypeConverter<FontEffectListPtr, String>::Convert(const FontEffectListPtr& src, String& dest)
+{
+	// Todo. For now, we just count the number of font-effects
+	if (!src || src->empty())
+		dest = "none";
+	else if (TypeConverter<int, String>::Convert((int)src->size(), dest))
+		dest += " font-effect(s)";
+	else	
+		return false;
+	return true;
+}
+
 
 
 

@@ -96,6 +96,16 @@ public:
 	RMLUICORE_API static bool Convert(const DecoratorList& src, String& dest);
 };
 
+template<> class TypeConverter< FontEffectListPtr, FontEffectListPtr> {
+public:
+	RMLUICORE_API static bool Convert(const FontEffectListPtr& src, FontEffectListPtr& dest);
+};
+template<> class TypeConverter< FontEffectListPtr, String > {
+public:
+	RMLUICORE_API static bool Convert(const FontEffectListPtr& src, String& dest);
+};
+
+
 
 }
 }

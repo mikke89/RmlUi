@@ -881,9 +881,12 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			}
 			break;
 		case PropertyId::FontEffect:
-			values.font_effect.clear();
-			// TODO/performance: Add font-effect property type and precache like decorator
-			if (p->unit == Property::STRING)
+			values.font_effect.reset();
+			if (p->unit == Property::FONTEFFECT)
+			{
+				values.font_effect = p->Get<FontEffectListPtr>();
+			}
+			else if (p->unit == Property::STRING)
 			{
 				if (const StyleSheet * style_sheet = GetStyleSheet())
 				{

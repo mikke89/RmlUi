@@ -79,6 +79,7 @@ public:
 		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
 		ANIMATION = 1 << 19,            // animation; fetch as < AnimationList >
 		DECORATOR = 1 << 20,            // decorator; fetch as < DecoratorList >
+		FONTEFFECT = 1 << 21,           // font-effect; fetch as < FontEffectListPtr >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM,
 		LENGTH_PERCENT = LENGTH | PERCENT,

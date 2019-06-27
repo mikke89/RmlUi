@@ -202,6 +202,21 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 				properties.SetProperty(PropertyId::Decorator, new_property);
 			}
 		}
+
+		// Turn any font-effect properties from String to FontEffectListPtr. See comments for decorator, they apply here as well.
+		if (const Property * property = properties.GetProperty(PropertyId::FontEffect))
+		{
+			if (property->unit == Property::STRING)
+			{
+				const String string_value = property->Get<String>();
+				FontEffectListPtr font_effects = style_sheet.InstanceFontEffectsFromString(string_value, property->source, property->source_line_number);
+
+				Property new_property = *property;
+				new_property.value = std::move(font_effects);
+				new_property.unit = Property::FONTEFFECT;
+				properties.SetProperty(PropertyId::FontEffect, new_property);
+			}
+		}
 	}
 
 	for (int i = 0; i < NUM_NODE_TYPES; i++)

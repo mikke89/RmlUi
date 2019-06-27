@@ -380,12 +380,16 @@ bool ElementTextDefault::UpdateFontConfiguration()
 	if (!parent)
 		return false;
 
+	static const FontEffectList empty_font_effects;
+
 	// Our parent defines the font-effect for this text element
-	const FontEffectList& font_effects = parent->GetComputedValues().font_effect;
+	const FontEffectList* font_effects = parent->GetComputedValues().font_effect.get();
+	if (!font_effects)
+		font_effects = &empty_font_effects;
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.
-	int new_configuration = GetFontFaceHandle()->GenerateLayerConfiguration(font_effects);
+	int new_configuration = GetFontFaceHandle()->GenerateLayerConfiguration(*font_effects);
 	if (new_configuration != font_configuration)
 	{
 		font_configuration = new_configuration;
