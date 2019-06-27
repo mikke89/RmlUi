@@ -77,10 +77,10 @@ public:
 	Layer GetLayer() const;
 	void SetLayer(Layer layer);
 
-	/// Returns the font effect's generation key.
-	/// @return A hash of the effect's properties used to generate the geometry and texture data.
-	// TODO: Always empty.
-	const String& GetGenerationKey() const;
+	/// Returns the font effect's fingerprint.
+	/// @return A hash of the effect's type and properties used to generate the geometry and texture data.
+	size_t GetFingerprint() const;
+	void SetFingerprint(size_t fingerprint);
 
 private:
 	Layer layer;
@@ -88,8 +88,8 @@ private:
 	// The colour of the effect's geometry.
 	Colourb colour;
 
-	// A string identifying the properties that affected the generation of the effect's geometry and texture data.
-	String generation_key;
+	// A hash value identifying the properties that affected the generation of the effect's geometry and texture data.
+	size_t fingerprint;
 };
 
 }

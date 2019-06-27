@@ -326,6 +326,7 @@ FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<const FontEff
 		FontFaceLayer* clone = nullptr;
 		bool deep_clone = true;
 		String generation_key;
+		size_t fingerprint = font_effect->GetFingerprint();
 
 		if (!font_effect->HasUniqueTexture())
 		{
@@ -334,10 +335,7 @@ FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<const FontEff
 		}
 		else
 		{
-			// TODO: Add font effect name here
-			String name = "xyz"; // font_effect->GetName()
-			generation_key = name + ";" + font_effect->GetGenerationKey();
-			FontLayerCache::iterator cache_iterator = layer_cache.find(generation_key);
+			FontLayerCache::iterator cache_iterator = layer_cache.find(fingerprint);
 			if (cache_iterator != layer_cache.end())
 				clone = cache_iterator->second;
 		}
@@ -347,7 +345,7 @@ FontFaceLayer* FontFaceHandle::GenerateLayer(const std::shared_ptr<const FontEff
 
 		// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
 		if (!clone)
-			layer_cache[generation_key] = layer;
+			layer_cache[fingerprint] = layer;
 	}
 
 	return layer;

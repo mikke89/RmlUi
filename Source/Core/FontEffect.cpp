@@ -90,10 +90,14 @@ void FontEffect::SetLayer(Layer _layer)
 	layer = _layer;
 }
 
-// Returns the font effect's geometry / texture generation key.
-const String& FontEffect::GetGenerationKey() const
+size_t FontEffect::GetFingerprint() const
 {
-	return generation_key;
+	return fingerprint;
+}
+
+void FontEffect::SetFingerprint(size_t _fingerprint)
+{
+	fingerprint = _fingerprint;
 }
 
 }

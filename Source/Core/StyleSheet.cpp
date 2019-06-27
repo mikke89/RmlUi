@@ -33,6 +33,7 @@
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
 #include "StyleSheetParser.h"
+#include "Utilities.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
@@ -40,13 +41,6 @@
 
 namespace Rml {
 namespace Core {
-
-template <class T>
-static inline void hash_combine(std::size_t& seed, const T& v)
-{
-	std::hash<T> hasher;
-	seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
 
 // Sorts style nodes based on specificity.
 static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* rhs)
@@ -286,7 +280,16 @@ FontEffectList StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 			std::shared_ptr<FontEffect> font_effect = instancer->InstanceFontEffect(type, properties);
 
 			if (font_effect)
+			{
+				// Create a unique hash value for the given type and values
+				size_t fingerprint = std::hash<String>{}(type);
+				for (const auto& id_value : properties.GetProperties())
+					Utilities::HashCombine(fingerprint, id_value.second.Get<String>());
+
+				font_effect->SetFingerprint(fingerprint);
+
 				font_effect_list.emplace_back(std::move(font_effect));
+			}
 			else
 			{
 				Log::Message(Log::LT_WARNING, "Font-effect '%s' could not be instanced, declared at %s:%d", font_effect_string.c_str(), source_file.c_str(), source_line_number);
@@ -344,8 +347,8 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	// Check if this puppy has already been cached in the node index; it may be that it has already been created by an
 	// element with a different address but an identical output definition.
 	size_t seed = 0;
-	for (const auto* node : applicable_nodes)
-		hash_combine(seed, node);
+	for (const StyleSheetNode* node : applicable_nodes)
+		Utilities::HashCombine(seed, node);
 
 	auto cache_iterator = node_cache.find(seed);
 	if (cache_iterator != node_cache.end())
