@@ -31,7 +31,7 @@ matrix:
     - os: linux
       language: c++
       compiler: gcc
-      env: MATRIX_EVAL="CC=gcc-7 CXX=g++-7"
+      env: MATRIX_EVAL="CC=gcc-7 CXX=g++-7" VALGRIND_SAMPLES="1"
       addons:
         apt:
           sources:
@@ -46,6 +46,8 @@ matrix:
             - libglew-dev
             - liblua5.2-dev
             - libsfml-dev
+            - mesa-utils
+            - valgrind
 
 before_install:
   - if [[ -n "${MATRIX_EVAL}" ]]; then eval "${MATRIX_EVAL}" ; fi
@@ -55,6 +57,27 @@ install:
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -G Xcode .; fi
 
+before_script:
+  - if [[ "$VALGRIND_SAMPLES" == "1" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0 && sh -e /etc/init.d/xvfb start && sleep 3; fi
+
 script:
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi
+  - if [[ "$VALGRIND_SAMPLES" == "1" ]]; then mkdir build && make DESTDIR=build install; fi
+  - |
+    if [[ "$VALGRIND_SAMPLES" == "1" ]]; then
+        cnt=0
+        vout=$(mktemp)
+        for f in $(find $TRAVIS_BUILD_DIR/build/usr/local/opt/RmlUi/Samples/ -executable -type f); do 
+            cd `dirname $f`
+            sample=$(basename $f)
+            printf "\033[0;36m$sample\033[0m\n"
+            LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build/usr/local/lib timeout --preserve-status --signal=TERM --kill-after=15 10 valgrind --leak-check=full --suppressions=$TRAVIS_BUILD_DIR/.travis.valgrind.supp --error-exitcode=1 --log-fd=1 ./$sample >>$vout
+            cnt=$((cnt+1))
+        done;
+
+        cat $vout
+        okcnt=$(grep 'ERROR SUMMARY: 0 errors' $vout | wc -l)
+
+        if [[ "$okcnt" != "$cnt" ]]; then exit 1; fi
+    fi
