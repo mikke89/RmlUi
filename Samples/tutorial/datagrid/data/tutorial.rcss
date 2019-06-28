@@ -74,7 +74,7 @@ div#title-bar span
 	font-size: 22px;
 	font-weight: bold;
 
-	text-shadow: 2px 2px black;
+	font-effect: shadow(2px 2px black);
 	
 	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 }

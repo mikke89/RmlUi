@@ -14,7 +14,7 @@ icon
     
     font-size: 12px;
     text-align: center;
-    text-shadow: 1px 1px black;
+    font-effect: shadow(1px 1px black);
 	
 	cursor: move;
     
