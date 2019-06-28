@@ -1,0 +1,15 @@
+{
+    Driver_leaks_1
+    Memcheck:Leak
+    obj:/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so
+}
+{
+    Driver_cond_1
+    Memcheck:Cond
+    obj:/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so
+}
+{
+    Driver_leaks_2
+    Memcheck:Leak
+    obj:/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so
+}
