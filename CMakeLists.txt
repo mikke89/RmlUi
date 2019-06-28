@@ -647,6 +647,9 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/animation/data
 			DESTINATION ${SAMPLES_DIR}/basic/animation
 	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/data
+			DESTINATION ${SAMPLES_DIR}/basic/benchmark
+	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/transform/data
 			DESTINATION ${SAMPLES_DIR}/basic/transform
 	)
