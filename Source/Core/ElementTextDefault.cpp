@@ -376,10 +376,6 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	font_dirty = false;
 
-	const Element* parent = GetParentNode();
-	if (!parent)
-		return false;
-
 	static const FontEffectList empty_font_effects;
 
 	// Fetch the font-effect for this text element
