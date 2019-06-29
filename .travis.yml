@@ -72,7 +72,7 @@ script:
             cd `dirname $f`
             sample=$(basename $f)
             printf "\033[0;36m$sample\033[0m\n"
-            LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build/usr/local/lib timeout --preserve-status --signal=TERM --kill-after=15 10 valgrind --leak-check=full --suppressions=$TRAVIS_BUILD_DIR/.travis.valgrind.supp --error-exitcode=1 --log-fd=1 ./$sample >>$vout
+            LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build/usr/local/lib timeout --preserve-status --signal=TERM --kill-after=15 10 valgrind --leak-check=full --track-origins=yes --suppressions=$TRAVIS_BUILD_DIR/.travis.valgrind.supp --error-exitcode=1 --log-fd=1 ./$sample >>$vout
             cnt=$((cnt+1))
         done;
 
