@@ -108,12 +108,19 @@ void ElementInfo::RenderHoverElement()
 {
 	if (hover_element)
 	{
+		Core::ElementUtilities::ApplyTransform(*hover_element);
 		for (int i = 0; i < hover_element->GetNumBoxes(); i++)
 		{
 			// Render the content area.
 			const Core::Box element_box = hover_element->GetBox(i);
-			Geometry::RenderOutline(hover_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::BORDER), element_box.GetSize(Core::Box::BORDER), Core::Colourb(255, 0, 0, 255), 1);
+			Geometry::RenderOutline(
+				hover_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::BORDER), 
+				element_box.GetSize(Core::Box::BORDER), 
+				Core::Colourb(255, 0, 0, 255), 
+				1
+			);
 		}
+		Core::ElementUtilities::UnapplyTransform(*hover_element);
 	}
 }
 
@@ -121,6 +128,8 @@ void ElementInfo::RenderSourceElement()
 {
 	if (source_element)
 	{
+		Core::ElementUtilities::ApplyTransform(*source_element);
+
 		for (int i = 0; i < source_element->GetNumBoxes(); i++)
 		{
 			const Core::Box element_box = source_element->GetBox(i);
@@ -137,6 +146,8 @@ void ElementInfo::RenderSourceElement()
 			// Border area:
 			Geometry::RenderBox(source_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::MARGIN), element_box.GetSize(Core::Box::MARGIN), source_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::BORDER), element_box.GetSize(Core::Box::BORDER), Core::Colourb(240, 255, 131, 128));
 		}
+
+		Core::ElementUtilities::UnapplyTransform(*source_element);
 	}
 }
 

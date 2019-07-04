@@ -177,14 +177,22 @@ void Plugin::Render()
 				element_stack.pop();
 				if (element->IsVisible())
 				{
+					Core::ElementUtilities::ApplyTransform(*element);
 					for (int j = 0; j < element->GetNumBoxes(); ++j)
 					{
 						const Core::Box& box = element->GetBox(j);
-						Geometry::RenderOutline(element->GetAbsoluteOffset(Core::Box::BORDER) + box.GetPosition(Core::Box::BORDER), box.GetSize(Core::Box::BORDER), Core::Colourb(255, 0, 0, 128), 1);
+						Geometry::RenderOutline(
+							element->GetAbsoluteOffset(Core::Box::BORDER) + box.GetPosition(Core::Box::BORDER), 
+							box.GetSize(Core::Box::BORDER), 
+							Core::Colourb(255, 0, 0, 128), 
+							1
+						);
 					}
 
 					for (int j = 0; j < element->GetNumChildren(); ++j)
 						element_stack.push(element->GetChild(j));
+					
+					Core::ElementUtilities::UnapplyTransform(*element);
 				}
 			}
 		}
