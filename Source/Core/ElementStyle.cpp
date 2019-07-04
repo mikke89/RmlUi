@@ -177,8 +177,6 @@ void ElementStyle::UpdateDefinition()
 	{
 		definition_dirty = false;
 
-		bool definition_changed = false;
-		
 		ElementDefinition* new_definition = nullptr;
 		
 		if (const StyleSheet * style_sheet = GetStyleSheet())
@@ -191,13 +189,11 @@ void ElementStyle::UpdateDefinition()
 		{
 			// Since we had no definition before there is a likelihood that everything is dirty.
 			// We could do as in the next else-if block, but this is considerably faster.
-			definition_changed = true;
 			dirty_properties.DirtyAll();
 			definition = new_definition;
 		}
 		else if (new_definition != definition)
 		{
-			definition_changed = true;
 			PropertyNameList properties;
 			
 			if (definition)
@@ -233,7 +229,6 @@ void ElementStyle::UpdateDefinition()
 // Sets or removes a pseudo-class on the element.
 void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 {
-	PseudoClassList pseudo_classes_before = pseudo_classes;
 
 	bool changed = false;
 
@@ -251,7 +246,7 @@ void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 // Checks if a specific pseudo-class has been set on the element.
 bool ElementStyle::IsPseudoClassSet(const String& pseudo_class) const
 {
-	return (std::find(pseudo_classes.begin(), pseudo_classes.end(), pseudo_class) != pseudo_classes.end());
+	return (pseudo_classes.count(pseudo_class) == 1);
 }
 
 const PseudoClassList& ElementStyle::GetActivePseudoClasses() const
