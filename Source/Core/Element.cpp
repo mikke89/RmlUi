@@ -214,12 +214,12 @@ void Element::Update(float dp_ratio)
 
 	UpdateStructure();
 
-	style->UpdateDefinition();
-	scroll->Update();
-
 	UpdateTransition();
 	UpdateAnimation();
 	AdvanceAnimations();
+
+	style->UpdateDefinition();
+	scroll->Update();
 
 	if(style->AnyPropertiesDirty())
 	{
