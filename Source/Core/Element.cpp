@@ -2472,23 +2472,25 @@ void Element::UpdateTransition()
 		if (keep_transitions.none)
 		{
 			// All transitions should be removed, but only touch the animations that originate from the 'transition' property.
-			it_remove = std::remove_if(animations.begin(), animations.end(),
-				[](const ElementAnimation& animation) -> bool { return animation.IsTransition(); }
+			// Move all animations to be erased in a valid state at the end of the list, and erase later.
+			it_remove = std::partition(animations.begin(), animations.end(),
+				[](const ElementAnimation& animation) -> bool { return !animation.IsTransition(); }
 			);
 		}
 		else
 		{
 			// Only remove the transitions that are not in our keep list.
-			const auto& transitions = keep_transitions.transitions;
+			const auto& keep_transitions_list = keep_transitions.transitions;
 
-			it_remove = std::remove_if(animations.begin(), animations.end(),
-				[&transitions](const ElementAnimation& animation) -> bool {
+			it_remove = std::partition(animations.begin(), animations.end(),
+				[&keep_transitions_list](const ElementAnimation& animation) -> bool {
 					if (!animation.IsTransition())
-						return false;
-					auto it = std::find_if(transitions.begin(), transitions.end(), 
+						return true;
+					auto it = std::find_if(keep_transitions_list.begin(), keep_transitions_list.end(),
 						[&animation](const Transition& transition) { return animation.GetPropertyId() == transition.id; }
 					);
-					return it == transitions.end();
+					bool keep_animation = (it != keep_transitions_list.end());
+					return keep_animation;
 				}
 			);
 		}
@@ -2514,10 +2516,12 @@ void Element::UpdateAnimation()
 		if (element_has_animations && (stylesheet = GetStyleSheet()))
 		{
 			// Remove existing animations
+			// Note: We are effectively restarting all animations whenever 'drty_animation' is set. Use the dirty flag with care,
+			// or find another approach which only updates actual "dirty" animations.
 			{
 				// We only touch the animations that originate from the 'animation' property.
-				auto it_remove = std::remove_if(animations.begin(), animations.end(), 
-					[](const ElementAnimation & animation) { return animation.GetOrigin() == ElementAnimationOrigin::Animation; }
+				auto it_remove = std::partition(animations.begin(), animations.end(), 
+					[](const ElementAnimation & animation) { return animation.GetOrigin() != ElementAnimationOrigin::Animation; }
 				);
 
 				// We can decide what to do with ended animations here, should be consistent with removal of transitions.
@@ -2575,8 +2579,8 @@ void Element::AdvanceAnimations()
 				SetProperty(animation.GetPropertyId(), property);
 		}
 
-		// Remove completed animations
-		auto it_completed = std::remove_if(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return animation.IsComplete(); });
+		// Move all completed animations to the end of the list
+		auto it_completed = std::partition(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return !animation.IsComplete(); });
 
 		std::vector<Dictionary> dictionary_list;
 		std::vector<bool> is_transition;
