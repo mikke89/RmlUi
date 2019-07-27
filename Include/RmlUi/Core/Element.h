@@ -30,7 +30,6 @@
 #define RMLUICOREELEMENT_H
 
 #include "ReferenceCountable.h"
-#include "ScriptInterface.h"
 #include "Header.h"
 #include "Box.h"
 #include "ComputedValues.h"
@@ -72,7 +71,7 @@ struct ElementMeta;
 	@author Peter Curry
  */
 
-class RMLUICORE_API Element : public ScriptInterface
+class RMLUICORE_API Element : public ReferenceCountable
 {
 public:
 	/// Constructs a new RmlUi element. This should not be called directly; use the Factory

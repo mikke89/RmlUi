@@ -64,7 +64,6 @@ public:
 		VECTOR4 = '4',
 		COLOURF = 'g',
 		COLOURB = 'h',
-		SCRIPTINTERFACE = 'p',
 		TRANSFORMREF = 't',
 		TRANSITIONLIST = 'T',
 		ANIMATIONLIST = 'A',
@@ -133,7 +132,6 @@ private:
 	void Set(const Vector4f& value);
 	void Set(const Colourf& value);
 	void Set(const Colourb& value);
-	void Set(ScriptInterface* value);
 
 	void Set(const String& value);
 	void Set(String&& value);

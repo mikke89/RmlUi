@@ -29,7 +29,6 @@
 #ifndef RMLUICONTROLSDATAFORMATTER_H
 #define RMLUICONTROLSDATAFORMATTER_H
 
-#include "../Core/ScriptInterface.h"
 #include "../Core/String.h"
 #include "Header.h"
 

@@ -26,6 +26,7 @@
  *
  */
 
+#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Controls/DataFormatter.h"
 
 namespace Rml {

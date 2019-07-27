@@ -117,9 +117,6 @@ PASS_THROUGH(Colourb);
 PASS_THROUGH(String);
 
 // Pointer types need to be typedef'd
-class ScriptInterface;
-typedef ScriptInterface* ScriptInterfacePtr;
-PASS_THROUGH(ScriptInterfacePtr);
 typedef void* voidPtr;
 PASS_THROUGH(voidPtr);
 

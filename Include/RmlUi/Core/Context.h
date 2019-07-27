@@ -35,7 +35,6 @@
 #include "ElementReference.h"
 #include "Input.h"
 #include "String.h"
-#include "ScriptInterface.h"
 #include "ViewState.h"
 
 namespace Rml {
@@ -54,7 +53,7 @@ enum class EventId : uint16_t;
 	@author Peter Curry
  */
 
-class RMLUICORE_API Context : public ScriptInterface
+class RMLUICORE_API Context : public ReferenceCountable
 {
 public:
 	/// Constructs a new, uninitialised context. This should not be called directly, use Core::CreateContext()
