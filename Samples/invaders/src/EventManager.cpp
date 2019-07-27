@@ -161,8 +161,5 @@ Rml::Core::ElementDocument* EventManager::LoadWindow(const Rml::Core::String& wi
 	document->Focus();
 	document->Show();
 
-	// Remove the caller's reference.
-	document->RemoveReference();
-
 	return document;
 }

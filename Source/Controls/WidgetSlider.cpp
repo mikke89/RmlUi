@@ -95,46 +95,24 @@ bool WidgetSlider::Initialise()
 	parent->SetProperty(Core::PropertyId::Drag, drag_property);
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
-	track = Core::Factory::InstanceElement(parent, "*", "slidertrack", Rml::Core::XMLAttributes());
+	Core::ElementPtr track_element = Core::Factory::InstanceElement(parent, "*", "slidertrack", Core::XMLAttributes());
+	Core::ElementPtr bar_element = Core::Factory::InstanceElement(parent, "*", "sliderbar", Core::XMLAttributes());
+	Core::ElementPtr arrow0_element = Core::Factory::InstanceElement(parent, "*", "sliderarrowdec", Core::XMLAttributes());
+	Core::ElementPtr arrow1_element = Core::Factory::InstanceElement(parent, "*", "sliderarrowinc", Core::XMLAttributes());
 
-	bar = Core::Factory::InstanceElement(parent, "*", "sliderbar", Rml::Core::XMLAttributes());
-
-	arrows[0] = Core::Factory::InstanceElement(parent, "*", "sliderarrowdec", Rml::Core::XMLAttributes());
-	arrows[1] = Core::Factory::InstanceElement(parent, "*", "sliderarrowinc", Rml::Core::XMLAttributes());
-	arrows[0]->SetProperty(Core::PropertyId::Drag, drag_property);
-	arrows[1]->SetProperty(Core::PropertyId::Drag, drag_property);
-
-	if (track == NULL ||
-		bar == NULL ||
-		arrows[0] == NULL ||
-		arrows[1] == NULL)
+	if (!track_element || !bar_element || !arrow0_element || !arrow1_element)
 	{
-		if (track != NULL)
-			track->RemoveReference();
-
-		if (bar != NULL)
-			bar->RemoveReference();
-
-		if (arrows[0] != NULL)
-			arrows[0]->RemoveReference();
-
-		if (arrows[1] != NULL)
-			arrows[1]->RemoveReference();
-
 		return false;
 	}
 
 	// Add them as non-DOM elements.
-	parent->AppendChild(track, false);
-	parent->AppendChild(bar, false);
-	parent->AppendChild(arrows[0], false);
-	parent->AppendChild(arrows[1], false);
+	track = parent->AppendChild(std::move(track_element), false);
+	bar = parent->AppendChild(std::move(bar_element), false);
+	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
+	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
 
-	// Remove the initial references on the elements.
-	track->RemoveReference();
-	bar->RemoveReference();
-	arrows[0]->RemoveReference();
-	arrows[1]->RemoveReference();
+	arrows[0]->SetProperty(Core::PropertyId::Drag, drag_property);
+	arrows[1]->SetProperty(Core::PropertyId::Drag, drag_property);
 
 	// Attach the listeners
 	// All listeners are attached to parent, ensuring that we don't get duplicate events when it bubbles from child to parent

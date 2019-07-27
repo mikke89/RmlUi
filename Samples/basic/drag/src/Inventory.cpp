@@ -51,7 +51,6 @@ Inventory::~Inventory()
 {
 	if (document != NULL)
 	{
-		document->RemoveReference();
 		document->Close();
 	}
 }
@@ -67,10 +66,6 @@ void Inventory::AddItem(const Rml::Core::String& name)
 		return;
 
 	// Create the new 'icon' element.
-	Rml::Core::Element* icon = Rml::Core::Factory::InstanceElement(content, "icon", "icon", Rml::Core::XMLAttributes());
+	Rml::Core::Element* icon = content->AppendChild(Rml::Core::Factory::InstanceElement(content, "icon", "icon", Rml::Core::XMLAttributes()));
 	icon->SetInnerRML(name);
-	content->AppendChild(icon);
-
-	// Release the initial reference on the element now that the document has it.
-	icon->RemoveReference();
 }

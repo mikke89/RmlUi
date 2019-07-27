@@ -46,32 +46,28 @@ XMLNodeHandlerDataGrid::~XMLNodeHandlerDataGrid()
 
 Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, const Rml::Core::String& name, const Rml::Core::XMLAttributes& attributes)
 {
-	Core::Element* element = NULL;
+	Core::Element* result = nullptr;
 	Core::Element* parent = parser->GetParseFrame()->element;
 
-	RMLUI_ASSERT(name == "datagrid" ||
-			   name == "col");
+	RMLUI_ASSERT(name == "datagrid" || name == "col");
 
 	if (name == "datagrid")
 	{
 		// Attempt to instance the grid.
-		element = Core::Factory::InstanceElement(parent, name, name, attributes);
-		ElementDataGrid* grid = dynamic_cast< ElementDataGrid* >(element);
-		if (grid == NULL)
+		Core::ElementPtr element = Core::Factory::InstanceElement(parent, name, name, attributes);
+		ElementDataGrid* grid = dynamic_cast< ElementDataGrid* >(element.get());
+		if (!grid)
 		{
-			if (element != NULL)
-				element->RemoveReference();
-
+			element.reset();
 			Core::Log::Message(Rml::Core::Log::LT_ERROR, "Instancer failed to create data grid for tag %s.", name.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		// Set the data source and table on the data grid.
 		Rml::Core::String data_source = Core::Get<Core::String>(attributes, "source", "");
 		grid->SetDataSource(data_source);
 
-		parent->AppendChild(grid);
-		grid->RemoveReference();
+		result = parent->AppendChild(std::move(element));
 
 		// Switch to this handler for all columns.
 		parser->PushHandler("datagrid");
@@ -79,16 +75,15 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 	else if (name == "col")
 	{
 		// Make a new node handler to handle the header elements.		
-		element = Core::Factory::InstanceElement(parent, "datagridcolumn", "datagridcolumn", attributes);
-		if (element == NULL)
-			return NULL;
+		Core::ElementPtr element = Core::Factory::InstanceElement(parent, "datagridcolumn", "datagridcolumn", attributes);
+		if (!element)
+			return nullptr;
+
+		result = element.get();
 
 		ElementDataGrid* grid = dynamic_cast< ElementDataGrid* >(parent);
-		if (grid != NULL)
-		{
-			grid->AddColumn(Core::Get<Core::String>(attributes, "fields", ""), Core::Get<Core::String>(attributes, "formatter", ""), Core::Get(attributes, "width", 0.0f), element);
-			element->RemoveReference();
-		}
+		if (grid)
+			grid->AddColumn(Core::Get<Core::String>(attributes, "fields", ""), Core::Get<Core::String>(attributes, "formatter", ""), Core::Get(attributes, "width", 0.0f), std::move(element));
 
 		// Switch to element handler for all children.
 		parser->PushDefaultHandler();
@@ -98,7 +93,7 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 		RMLUI_ERROR;
 	}
 
-	return element;
+	return result;
 }
 
 bool XMLNodeHandlerDataGrid::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(parser), const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name))

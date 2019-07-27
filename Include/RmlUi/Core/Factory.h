@@ -83,18 +83,18 @@ public:
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.
 	/// @param[in] instancer The instancer to call when the tag is encountered.
 	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static ElementInstancer* RegisterElementInstancer(const String& name, ElementInstancer* instancer);
+	static ElementInstancerPtr RegisterElementInstancer(const String& name, ElementInstancerPtr instancer);
 	/// Returns the element instancer for the specified tag.
 	/// @param[in] tag Name of the tag to get the instancer for.
 	/// @return The requested element instancer, or NULL if no such instancer is registered.
-	static ElementInstancer* GetElementInstancer(const String& tag);
+	static ElementInstancerPtr GetElementInstancer(const String& tag);
 	/// Instances a single element.
 	/// @param[in] parent The parent of the new element, or NULL for a root tag.
 	/// @param[in] instancer The name of the instancer to create the element with.
 	/// @param[in] tag The tag of the element to be instanced.
 	/// @param[in] attributes The attributes to instance the element with.
 	/// @return The instanced element, or NULL if the instancing failed.
-	static Element* InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
+	static ElementPtr InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
 
 	/// Instances a single text element containing a string. The string is assumed to contain no RML markup, but will
 	/// be translated and therefore may have some introduced. In this case more than one element may be instanced.
@@ -111,7 +111,7 @@ public:
 	/// @param[in] context The context that is creating the document.
 	/// @param[in] stream The stream to instance from.
 	/// @return The instanced document, or NULL if an error occurred.
-	static ElementDocument* InstanceDocumentStream(Rml::Core::Context* context, Stream* stream);
+	static ElementPtr InstanceDocumentStream(Rml::Core::Context* context, Stream* stream);
 
 	/// Registers an instancer that will be used to instance decorators.
 	/// @param[in] name The name of the decorator the instancer will be called for.

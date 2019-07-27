@@ -43,36 +43,40 @@ const float DOUBLE_CLICK_TIME = 0.5f;
 
 Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), view_state()
 {
-	instancer = NULL;
+	instancer = nullptr;
 
-	// Initialise this to NULL; this will be set in Rml::Core::CreateContext().
-	render_interface = NULL;
+	// Initialise this to nullptr; this will be set in Rml::Core::CreateContext().
+	render_interface = nullptr;
 
-	root = Factory::InstanceElement(NULL, "*", "#root", XMLAttributes());
+	root = Factory::InstanceElement(nullptr, "*", "#root", XMLAttributes());
 	root->SetId(name);
-	root->SetOffset(Vector2f(0, 0), NULL);
+	root->SetOffset(Vector2f(0, 0), nullptr);
 	root->SetProperty(PropertyId::ZIndex, Property(0, Property::NUMBER));
 
-	Element* element = Factory::InstanceElement(NULL, "body", "body", XMLAttributes());
-	cursor_proxy = dynamic_cast< ElementDocument* >(element);
-	if (cursor_proxy == NULL)
-	{
-		if (element != NULL)
-			element->RemoveReference();
-	}
+	cursor_proxy = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
+	ElementDocument* cursor_proxy_document = dynamic_cast< ElementDocument* >(cursor_proxy.get());
+	if (cursor_proxy_document)
+		cursor_proxy_document->context = this;
 	else
-		cursor_proxy->context = this;
+		cursor_proxy.reset();
+		
 
-	document_focus_history.push_back(root);
-	focus = root;
+	document_focus_history.push_back(root.get());
+	focus = root.get();
 
 	enable_cursor = true;
 
+	focus = nullptr;
+	hover = nullptr;
+	active = nullptr;
+	drag = nullptr;
+
 	drag_started = false;
 	drag_verbose = false;
-	drag_clone = NULL;
+	drag_clone = nullptr;
+	drag_hover = nullptr;
 
-	last_click_element = NULL;
+	last_click_element = nullptr;
 	last_click_time = 0;
 }
 
@@ -84,11 +88,9 @@ Context::~Context()
 
 	ReleaseUnloadedDocuments();
 
-	if (cursor_proxy != NULL)
-		cursor_proxy->RemoveReference();
+	cursor_proxy.reset();
 
-	if (root != NULL)
-		root->RemoveReference();
+	root.reset();
 
 	if (instancer)
 		instancer->RemoveReference();
@@ -115,7 +117,7 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 		for (int i = 0; i < root->GetNumChildren(); ++i)
 		{
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
-			if (document != NULL)
+			if (document != nullptr)
 			{
 				document->DirtyLayout();
 				document->DirtyPosition();
@@ -153,7 +155,7 @@ void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_r
 		for (int i = 0; i < root->GetNumChildren(); ++i)
 		{
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
-			if (document != NULL)
+			if (document != nullptr)
 			{
 				document->DirtyDpProperties();
 			}
@@ -188,7 +190,7 @@ bool Context::Update()
 bool Context::Render()
 {
 	RenderInterface* render_interface = GetRenderInterface();
-	if (render_interface == NULL)
+	if (render_interface == nullptr)
 		return false;
 
 	render_interface->context = this;
@@ -196,19 +198,19 @@ bool Context::Render()
 
 	root->Render();
 
-	ElementUtilities::SetClippingRegion(NULL, this);
+	ElementUtilities::SetClippingRegion(nullptr, this);
 
 	// Render the cursor proxy so any elements attached the cursor will be rendered below the cursor.
-	if (cursor_proxy != NULL)
+	if (cursor_proxy)
 	{
-		cursor_proxy->UpdateDocument();
+		static_cast<ElementDocument&>(*cursor_proxy).UpdateDocument();
 		cursor_proxy->SetOffset(Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x),
 			(float)Math::Clamp(mouse_position.y, 0, dimensions.y)),
-			NULL);
+			nullptr);
 		cursor_proxy->Render();
 	}
 
-	render_interface->context = NULL;
+	render_interface->context = nullptr;
 
 	return true;
 }
@@ -216,24 +218,22 @@ bool Context::Render()
 // Creates a new, empty document and places it into this context.
 ElementDocument* Context::CreateDocument(const String& tag)
 {
-	Element* element = Factory::InstanceElement(NULL, tag, "body", XMLAttributes());
-	if (element == NULL)
+	ElementPtr element = Factory::InstanceElement(nullptr, tag, "body", XMLAttributes());
+	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned NULL.", tag.c_str());
-		return NULL;
+		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned nullptr.", tag.c_str());
+		return nullptr;
 	}
 
-	ElementDocument* document = dynamic_cast< ElementDocument* >(element);
-	if (document == NULL)
+	ElementDocument* document = dynamic_cast< ElementDocument* >(element.get());
+	if (!document)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', Found type '%s', was expecting derivative of ElementDocument.", tag.c_str(), typeid(element).name());
-
-		element->RemoveReference();
-		return NULL;
+		return nullptr;
 	}
 
 	document->context = this;
-	root->AppendChild(document);
+	root->AppendChild(std::move(element));
 
 	PluginRegistry::NotifyDocumentLoad(document);
 
@@ -247,7 +247,7 @@ ElementDocument* Context::LoadDocument(const String& document_path)
 	if (!stream->Open(document_path))
 	{
 		stream->RemoveReference();
-		return NULL;
+		return nullptr;
 	}
 
 	ElementDocument* document = LoadDocument(stream);
@@ -262,11 +262,13 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 {
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
-	ElementDocument* document = Factory::InstanceDocumentStream(this, stream);
-	if (!document)
-		return NULL;
+	ElementPtr element = Factory::InstanceDocumentStream(this, stream);
+	if (!element)
+		return nullptr;
 
-	root->AppendChild(document);
+	ElementDocument* document = static_cast<ElementDocument*>(element.get());
+	
+	root->AppendChild(std::move(element));
 
 	ElementUtilities::BindEventAttributes(document);
 
@@ -303,23 +305,22 @@ void Context::UnloadDocument(ElementDocument* _document)
 	// Has this document already been unloaded?
 	for (size_t i = 0; i < unloaded_documents.size(); ++i)
 	{
-		if (unloaded_documents[i] == _document)
+		if (unloaded_documents[i].get() == _document)
 			return;
 	}
 
 	// Add a reference, to ensure the document isn't released
 	// while we're closing it.
-	unloaded_documents.push_back(_document);
 	ElementDocument* document = _document;
 
-	if (document->GetParentNode() == root)
+	if (document->GetParentNode() == root.get())
 	{
 		// Dispatch the unload notifications.
 		document->DispatchEvent(EventId::Unload, Dictionary());
 		PluginRegistry::NotifyDocumentUnload(document);
 
 		// Remove the document from the context.
-		root->RemoveChild(document);
+		unloaded_documents.push_back( root->ReleaseChild(document) );
 	}
 
 	// Remove the item from the focus history.
@@ -330,25 +331,25 @@ void Context::UnloadDocument(ElementDocument* _document)
 	// Focus to the previous document if the old document is the current focus.
 	if (focus && focus->GetOwnerDocument() == document)
 	{
-		focus = NULL;
+		focus = nullptr;
 		document_focus_history.back()->GetFocusLeafNode()->Focus();
 	}
 
 	// Clear the active element if the old document is the active element.
 	if (active && active->GetOwnerDocument() == document)
 	{
-		active = NULL;
+		active = nullptr;
 	}
 
 	// Clear other pointers to elements whose owner was deleted
 	if (drag && drag->GetOwnerDocument() == document)
 	{
-		drag = NULL;
+		drag = nullptr;
 	}
 
 	if (drag_hover && drag_hover->GetOwnerDocument() == document)
 	{
-		drag_hover = NULL;
+		drag_hover = nullptr;
 	}
 
 	// Rebuild the hover state.
@@ -364,13 +365,13 @@ void Context::UnloadAllDocuments()
 
 	// Force cleanup of child elements now, reference counts must hit zero so that python (if it's in use) cleans up
 	// before we exit this method.
-	root->ReleaseElements(root->deleted_children);
+	root->ReleaseElements();
 
 	// Also need to clear containers that keep ElementReference pointers to elements belonging to removed documents,
 	// essentially preventing them from being released in correct order (before context destroys render interface,
 	// which causes access violation for elements that try to release geometry after context is released)
 	// I don't bother checking what's in chain because we unload all documents, so there shouldn't be any element
-	// that remains here (could check for element->owner == NULL, but that's probably guaranteed)
+	// that remains here (could check for element->owner == nullptr, but that's probably guaranteed)
 	active_chain.clear();
 	hover_chain.clear();
 	drag_hover_chain.clear();
@@ -390,22 +391,22 @@ ElementDocument* Context::GetDocument(const String& id)
 	for (int i = 0; i < root->GetNumChildren(); i++)
 	{
 		ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
-		if (document == NULL)
+		if (document == nullptr)
 			continue;
 
 		if (document->GetId() == id)
 			return document;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // Returns a document in the context by index.
 ElementDocument* Context::GetDocument(int index)
 {
 	Element* element = root->GetChild(index);
-	if (element == NULL)
-		return NULL;
+	if (element == nullptr)
+		return nullptr;
 
 	return element->GetOwnerDocument();
 }
@@ -419,19 +420,19 @@ int Context::GetNumDocuments() const
 // Returns the hover element.
 Element* Context::GetHoverElement()
 {
-	return *hover;
+	return hover;
 }
 
 // Returns the focus element.
 Element* Context::GetFocusElement()
 {
-	return *focus;
+	return focus;
 }
 
 // Returns the root element.
 Element* Context::GetRootElement()
 {
-	return root;
+	return root.get();
 }
 
 // Brings the document to the front of the document stack.
@@ -445,8 +446,9 @@ void Context::PullDocumentToFront(ElementDocument* document)
 		{
 			if (root->GetChild(i) == document)
 			{
+				ElementPtr element = std::move(root->children[i]);
 				root->children.erase(root->children.begin() + i);
-				root->children.insert(root->children.begin() + root->GetNumChildren(), document);
+				root->children.insert(root->children.begin() + root->GetNumChildren(), std::move(element));
 
 				root->DirtyStackingContext();
 			}
@@ -464,8 +466,9 @@ void Context::PushDocumentToBack(ElementDocument* document)
 		{
 			if (root->GetChild(i) == document)
 			{
+				ElementPtr element = std::move(root->children[i]);
 				root->children.erase(root->children.begin() + i);
-				root->children.insert(root->children.begin(), document);
+				root->children.insert(root->children.begin(), std::move(element));
 
 				root->DirtyStackingContext();
 			}
@@ -590,7 +593,7 @@ static Element* FindFocusElement(Element* element)
 {
 	ElementDocument* owner_document = element->GetOwnerDocument();
 	if (!owner_document || owner_document->GetComputedValues().focus == Style::Focus::None)
-		return NULL;
+		return nullptr;
 	
 	while (element && element->GetComputedValues().focus == Style::Focus::None)
 	{
@@ -609,13 +612,13 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 
 	if (button_index == 0)
 	{
-		Element* new_focus = *hover;
+		Element* new_focus = hover;
 		
 		// Set the currently hovered element to focus if it isn't already the focus.
 		if (hover)
 		{
-			new_focus = FindFocusElement(*hover);
-			if (new_focus && new_focus != *focus)
+			new_focus = FindFocusElement(hover);
+			if (new_focus && new_focus != focus)
 			{
 				if (!new_focus->Focus())
 					return;
@@ -642,12 +645,12 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 				if (hover)
 					propogate = hover->DispatchEvent(EventId::Dblclick, parameters);
 
-				last_click_element = NULL;
+				last_click_element = nullptr;
 				last_click_time = 0;
 			}
 			else
 			{
-				last_click_element = *active;
+				last_click_element = active;
 				last_click_time = click_time;
 			
 			}
@@ -667,7 +670,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 				switch (drag_style)
 				{
 				case Style::Drag::None:		drag = drag->GetParentNode(); continue;
-				case Style::Drag::Block:	drag = NULL; continue;
+				case Style::Drag::Block:	drag = nullptr; continue;
 				default: drag_verbose = (drag_style == Style::Drag::DragDrop || drag_style == Style::Drag::Clone);
 				}
 
@@ -699,7 +702,7 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 
 		// If the active element (the one that was being hovered over when the mouse button was pressed) is still being
 		// hovered over, we click it.
-		if (hover && active && active == FindFocusElement(*hover))
+		if (hover && active && active == FindFocusElement(hover))
 		{
 			active->DispatchEvent(EventId::Click, parameters);
 		}
@@ -733,8 +736,8 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 				ReleaseDragClone();
 			}
 
-			drag = NULL;
-			drag_hover = NULL;
+			drag = nullptr;
+			drag_hover = nullptr;
 			drag_hover_chain.clear();
 
 			// We may have changes under our mouse, this ensures that the hover chain is properly updated
@@ -804,7 +807,7 @@ void Context::SetActiveClipRegion(const Vector2i& origin, const Vector2i& dimens
 // Sets the instancer to use for releasing this object.
 void Context::SetInstancer(ContextInstancer* _instancer)
 {
-	RMLUI_ASSERT(instancer == NULL);
+	RMLUI_ASSERT(instancer == nullptr);
 	instancer = _instancer;
 	instancer->AddReference();	
 }
@@ -820,9 +823,9 @@ void Context::OnElementRemove(Element* element)
 	hover_chain.erase(i);
 
 	Element* hover_element = element;
-	while (hover_element != NULL)
+	while (hover_element != nullptr)
 	{
-		Element* next_hover_element = NULL;
+		Element* next_hover_element = nullptr;
 
 		// Look for a child on this element's children that is also hovered.
 		for (int j = 0; j < hover_element->GetNumChildren(true); ++j)
@@ -853,8 +856,8 @@ bool Context::OnFocusChange(Element* new_focus)
 	ElementSet old_chain;
 	ElementSet new_chain;
 
-	Element* old_focus = *(focus);
-	ElementDocument* old_document = old_focus ? old_focus->GetOwnerDocument() : NULL;
+	Element* old_focus = focus;
+	ElementDocument* old_document = old_focus ? old_focus->GetOwnerDocument() : nullptr;
 	ElementDocument* new_document = new_focus->GetOwnerDocument();
 
 	// If the current focus is modal and the new focus is not modal, deny the request
@@ -887,7 +890,7 @@ bool Context::OnFocusChange(Element* new_focus)
 
 	// Raise the element's document to the front, if desired.
 	ElementDocument* document = focus->GetOwnerDocument();
-	if (document != NULL)
+	if (document != nullptr)
 	{
 		Style::ZIndex z_index_property = document->GetComputedValues().z_index;
 		if (z_index_property.type == Style::ZIndex::Auto)
@@ -902,7 +905,7 @@ bool Context::OnFocusChange(Element* new_focus)
 		if (itr != document_focus_history.end())
 			document_focus_history.erase(itr);
 
-		if (new_document != NULL)
+		if (new_document != nullptr)
 			document_focus_history.push_back(new_document);
 	}
 
@@ -939,7 +942,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				if (drag->GetComputedValues().drag == Style::Drag::Clone)
 				{
 					// Clone the element and attach it to the mouse cursor.
-					CreateDragClone(*drag);
+					CreateDragClone(drag);
 				}
 			}
 
@@ -967,8 +970,8 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 
 	// Build the new hover chain.
 	ElementSet new_hover_chain;
-	Element* element = *hover;
-	while (element != NULL)
+	Element* element = hover;
+	while (element != nullptr)
 	{
 		new_hover_chain.insert(element);
 		element = element->GetParentNode();
@@ -981,11 +984,11 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	// Send out drag events.
 	if (drag)
 	{
-		drag_hover = GetElementAtPoint(position, *drag);
+		drag_hover = GetElementAtPoint(position, drag);
 
 		ElementSet new_drag_hover_chain;
-		element = *drag_hover;
-		while (element != NULL)
+		element = drag_hover;
+		while (element != nullptr)
 		{
 			new_drag_hover_chain.insert(element);
 			element = element->GetParentNode();
@@ -1009,21 +1012,21 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 // Returns the youngest descendent of the given element which is under the given point in screen coodinates.
 Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore_element, Element* element)
 {
-	if (element == NULL)
+	if (element == nullptr)
 	{
-		if (ignore_element == root)
-			return NULL;
+		if (ignore_element == root.get())
+			return nullptr;
 
-		element = root;
+		element = root.get();
 	}
 
 	// Check if any documents have modal focus; if so, only check down than document.
-	if (element == root)
+	if (element == root.get())
 	{
 		if (focus)
 		{
 			ElementDocument* focus_document = focus->GetOwnerDocument();
-			if (focus_document != NULL &&
+			if (focus_document != nullptr &&
 				focus_document->IsModal())
 			{
 				element = focus_document;
@@ -1041,10 +1044,10 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 
 		for (int i = (int) element->stacking_context.size() - 1; i >= 0; --i)
 		{
-			if (ignore_element != NULL)
+			if (ignore_element != nullptr)
 			{
 				Element* element_hierarchy = element->stacking_context[i];
-				while (element_hierarchy != NULL)
+				while (element_hierarchy != nullptr)
 				{
 					if (element_hierarchy == ignore_element)
 						break;
@@ -1052,19 +1055,19 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 					element_hierarchy = element_hierarchy->GetParentNode();
 				}
 
-				if (element_hierarchy != NULL)
+				if (element_hierarchy != nullptr)
 					continue;
 			}
 
 			Element* child_element = GetElementAtPoint(point, ignore_element, element->stacking_context[i]);
-			if (child_element != NULL)
+			if (child_element != nullptr)
 				return child_element;
 		}
 	}
 
 	// Ignore elements whose pointer events are disabled
 	if (element->GetComputedValues().pointer_events == Style::PointerEvents::None)
-		return NULL;
+		return nullptr;
 
 	Vector2f projected_point = element->Project(point);
 
@@ -1085,13 +1088,13 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 	if (within_element)
 		return element;
 
-	return NULL;
+	return nullptr;
 }
 
 // Creates the drag clone from the given element.
 void Context::CreateDragClone(Element* element)
 {
-	if (cursor_proxy == NULL)
+	if (!cursor_proxy)
 	{
 		Log::Message(Log::LT_ERROR, "Unable to create drag clone, no cursor proxy document.");
 		return;
@@ -1100,19 +1103,20 @@ void Context::CreateDragClone(Element* element)
 	ReleaseDragClone();
 
 	// Instance the drag clone.
-	drag_clone = element->Clone();
-	if (drag_clone == NULL)
+	ElementPtr element_drag_clone = element->Clone();
+	if (!element_drag_clone)
 	{
 		Log::Message(Log::LT_ERROR, "Unable to duplicate drag clone.");
 		return;
 	}
 
+	drag_clone = element_drag_clone.get();
+
 	// Append the clone to the cursor proxy element.
-	cursor_proxy->AppendChild(drag_clone);
-	drag_clone->RemoveReference();
+	cursor_proxy->AppendChild(std::move(element_drag_clone));
 
 	// Set the style sheet on the cursor proxy.
-	cursor_proxy->SetStyleSheet(element->GetStyleSheet());
+	static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheet(element->GetStyleSheet());
 
 	// Set all the required properties and pseudo-classes on the clone.
 	drag_clone->SetPseudoClass("drag", true);
@@ -1124,10 +1128,10 @@ void Context::CreateDragClone(Element* element)
 // Releases the drag clone, if one exists.
 void Context::ReleaseDragClone()
 {
-	if (drag_clone != NULL)
+	if (drag_clone)
 	{
 		cursor_proxy->RemoveChild(drag_clone);
-		drag_clone = NULL;
+		drag_clone = nullptr;
 	}
 }
 
@@ -1167,7 +1171,7 @@ void Context::GenerateKeyModifierEventParameters(Dictionary& parameters, int key
 // Builds the parameters for a drag event.
 void Context::GenerateDragEventParameters(Dictionary& parameters)
 {	
-	parameters["drag_element"] = (void*) *drag;
+	parameters["drag_element"] = (void*)drag;
 }
 
 // Releases all unloaded documents pending destruction.
@@ -1175,7 +1179,7 @@ void Context::ReleaseUnloadedDocuments()
 {
 	if (!unloaded_documents.empty())
 	{
-		ElementList documents = unloaded_documents;
+		OwnedElementList documents = std::move(unloaded_documents);
 		unloaded_documents.clear();
 
 		// Clear the deleted list.
@@ -1183,6 +1187,11 @@ void Context::ReleaseUnloadedDocuments()
 			documents[i]->GetEventDispatcher()->DetachAllEvents();
 		documents.clear();
 	}
+}
+
+void Context::ElementRemovedFromContext(Element* element, Element* move_focus)
+{
+
 }
 
 // Sends the specified event to all elements in new_items that don't appear in old_items.
@@ -1196,7 +1205,7 @@ void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_item
 
 void Context::OnReferenceDeactivate()
 {
-	if (instancer != NULL)
+	if (instancer != nullptr)
 	{
 		instancer->ReleaseContext(this);
 	}

@@ -83,7 +83,7 @@ bool Plugin::Initialise(Core::Context* context)
 		return false;
 	}
 
-	Core::Factory::RegisterElementInstancer("debug-hook", new Core::ElementInstancerGeneric< ElementContextHook >())->RemoveReference();
+	Core::Factory::RegisterElementInstancer("debug-hook", std::make_shared<Core::ElementInstancerGeneric< ElementContextHook >>());
 
 	return true;
 }
@@ -92,25 +92,22 @@ bool Plugin::Initialise(Core::Context* context)
 bool Plugin::SetContext(Core::Context* context)
 {
 	// Remove the debug hook from the old context.
-	if (debug_context != NULL &&
-		hook_element != NULL)
+	if (debug_context && hook_element)
 	{
 		debug_context->UnloadDocument(hook_element);
-		hook_element->RemoveReference();
-		hook_element = NULL;
+		hook_element = nullptr;
 	}
 
 	// Add the debug hook into the new context.
-	if (context != NULL)
+	if (context)
 	{
 		Core::ElementDocument* element = context->CreateDocument("debug-hook");
-		if (element == NULL)
+		if (!element)
 			return false;
 
 		hook_element = dynamic_cast< ElementContextHook* >(element);
-		if (hook_element == NULL)
+		if (!hook_element)
 		{
-			element->RemoveReference();
 			context->UnloadDocument(element);
 			return false;
 		}
@@ -119,15 +116,15 @@ bool Plugin::SetContext(Core::Context* context)
 	}
 
 	// Attach the info element to the new context.
-	if (info_element != NULL)
+	if (info_element)
 	{
-		if (debug_context != NULL)
+		if (debug_context)
 		{
 			debug_context->RemoveEventListener("click", info_element, true);
 			debug_context->RemoveEventListener("mouseover", info_element, true);
 		}
 
-		if (context != NULL)
+		if (context)
 		{
 			context->AddEventListener("click", info_element, true);
 			context->AddEventListener("mouseover", info_element, true);
@@ -309,9 +306,6 @@ bool Plugin::LoadMenuElement()
 	menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	menu_element->SetInnerRML(menu_rml);
 
-	// Remove our reference on the document.
-	menu_element->RemoveReference();
-
 	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(menu_rcss);
 	if (style_sheet == NULL)
 	{
@@ -323,7 +317,6 @@ bool Plugin::LoadMenuElement()
 
 	menu_element->SetStyleSheet(style_sheet);
 	style_sheet->RemoveReference();
-	menu_element->AddReference();
 
 	// Set the version info in the menu.
 	menu_element->GetElementById("version-number")->SetInnerRML("v" + Rml::Core::GetVersion());
@@ -343,7 +336,7 @@ bool Plugin::LoadMenuElement()
 
 bool Plugin::LoadInfoElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-info", new Core::ElementInstancerGeneric< ElementInfo >())->RemoveReference();
+	Core::Factory::RegisterElementInstancer("debug-info", std::make_shared<Core::ElementInstancerGeneric< ElementInfo >>());
 	info_element = dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
 	if (info_element == NULL)
 		return false;
@@ -352,7 +345,6 @@ bool Plugin::LoadInfoElement()
 
 	if (!info_element->Initialise())
 	{
-		info_element->RemoveReference();
 		host_context->UnloadDocument(info_element);
 		info_element = NULL;
 
@@ -364,7 +356,7 @@ bool Plugin::LoadInfoElement()
 
 bool Plugin::LoadLogElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-log", new Core::ElementInstancerGeneric< ElementLog >())->RemoveReference();
+	Core::Factory::RegisterElementInstancer("debug-log", std::make_shared<Core::ElementInstancerGeneric< ElementLog >>());
 	log_element = dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
 	if (log_element == NULL)
 		return false;
@@ -373,7 +365,6 @@ bool Plugin::LoadLogElement()
 
 	if (!log_element->Initialise())
 	{
-		log_element->RemoveReference();
 		host_context->UnloadDocument(log_element);
 		log_element = NULL;
 
@@ -390,26 +381,22 @@ void Plugin::ReleaseElements()
 {
 	if (menu_element)
 	{
-		menu_element->RemoveReference();
 		menu_element = NULL;
 	}
 
 	if (info_element)
 	{
-		info_element->RemoveReference();
 		info_element = NULL;
 	}
 
 	if (log_element)
 	{
-		log_element->RemoveReference();
 		log_element = NULL;
 		delete log_hook;
 	}
 
 	if (hook_element)
 	{
-		hook_element->RemoveReference();
 		hook_element = NULL;
 	}
 }

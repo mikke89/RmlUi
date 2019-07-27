@@ -110,9 +110,6 @@ bool ElementLog::Initialise()
 	beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	beacon->SetInnerRML(beacon_rml);
 
-	// Remove the initial reference on the beacon.
-	beacon->RemoveReference();
-
 	Core::Element* button = beacon->GetFirstChild();
 	if (button != NULL)
 		beacon->GetFirstChild()->AddEventListener(Core::EventId::Click, this);

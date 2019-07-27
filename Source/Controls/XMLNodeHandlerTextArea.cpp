@@ -44,16 +44,15 @@ XMLNodeHandlerTextArea::~XMLNodeHandlerTextArea()
 Core::Element* XMLNodeHandlerTextArea::ElementStart(Core::XMLParser* parser, const Rml::Core::String& name, const Rml::Core::XMLAttributes& attributes)
 {
 	ElementFormControlTextArea* text_area = dynamic_cast< ElementFormControlTextArea* >(parser->GetParseFrame()->element);
-	if (text_area == NULL)
+	if (!text_area)
 	{
-		Core::Element* new_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
-		if (new_element == NULL)
-			return NULL;
+		Core::ElementPtr new_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
+		if (!new_element)
+			return nullptr;
 
-		parser->GetParseFrame()->element->AppendChild(new_element);
-		new_element->RemoveReference();
+		Core::Element* result = parser->GetParseFrame()->element->AppendChild(std::move(new_element));
 
-		return new_element;
+		return result;
 	}
 
 	return NULL;

@@ -231,18 +231,18 @@ void ElementScroll::FormatScrollbars()
 // Creates one of the scroll component's scrollbar.
 bool ElementScroll::CreateScrollbar(Orientation orientation)
 {
-	if (scrollbars[orientation].element != NULL &&
-		scrollbars[orientation].widget != NULL)
+	if (scrollbars[orientation].element &&
+		scrollbars[orientation].widget)
 		return true;
 
-	scrollbars[orientation].element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
+	ElementPtr scrollbar_element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
+	scrollbars[orientation].element = scrollbar_element.get();
 	scrollbars[orientation].element->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
 	scrollbars[orientation].widget = new WidgetSliderScroll(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetSlider::VERTICAL : WidgetSlider::HORIZONTAL);
 
-	element->AppendChild(scrollbars[orientation].element, false);
-	scrollbars[orientation].element->RemoveReference();
+	element->AppendChild(std::move(scrollbar_element), false);
 
 	return true;
 }
@@ -253,9 +253,9 @@ bool ElementScroll::CreateCorner()
 	if (corner != NULL)
 		return true;
 
-	corner = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
-	element->AppendChild(corner, false);
-	corner->RemoveReference();
+	ElementPtr corner_element = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
+	corner = corner_element.get();
+	element->AppendChild(std::move(corner_element), false);
 
 	return true;
 }

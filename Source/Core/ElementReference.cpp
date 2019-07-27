@@ -59,11 +59,11 @@ ElementReference::operator bool() const
 // Assigns a new element for this reference to point to.
 ElementReference& ElementReference::operator=(Element* _element)
 {
-	if (_element != NULL)
+	/*if (_element != NULL)
 		_element->AddReference();
 
 	if (element != NULL)
-		element->RemoveReference();
+		element->RemoveReference();*/
 
 	element = _element;
 	return *this;

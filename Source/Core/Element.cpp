@@ -179,36 +179,44 @@ Element::~Element()
 	scroll->ClearScrollbars();
 
 	// A simplified version of RemoveChild() for destruction.
-	for (Element* child : children)
+	for (ElementPtr& child : children)
 	{
-		Element* child_ancestor = child;
+		Element* child_ancestor = child.get();
 		for (int i = 0; i <= ChildNotifyLevels && child_ancestor; i++, child_ancestor = child_ancestor->GetParentNode())
-			child_ancestor->OnChildRemove(child);
+			child_ancestor->OnChildRemove(child.get());
+
+		child->parent = nullptr;
+		child->SetOwnerDocument(nullptr);
 	}
 
 	if (deleted_children.empty())
+	{
 		deleted_children = std::move(children);
+		children.clear();
+	}
 	else
-		deleted_children.insert(deleted_children.end(), children.begin(), children.end());
+	{
+		deleted_children.reserve(deleted_children.size() + children.size());
+		for (auto& child : children)
+			deleted_children.push_back(std::move(child));
+		children.clear();
+	}
 	
 	children.clear();
 	num_non_dom_children = 0;
 
 	// Release all deleted children.
-	ReleaseElements(deleted_children);
+	ReleaseElements();
 
 	delete element_meta;
 
 	if (font_face_handle != NULL)
 		font_face_handle->RemoveReference();
-
-	if (instancer)
-		instancer->RemoveReference();
 }
 
 void Element::Update(float dp_ratio)
 {
-	ReleaseElements(deleted_children);
+	ReleaseElements();
 
 	OnUpdate();
 
@@ -295,18 +303,18 @@ void Element::Render()
 }
 
 // Clones this element, returning a new, unparented element.
-Element* Element::Clone() const
+ElementPtr Element::Clone() const
 {
-	Element* clone = NULL;
+	ElementPtr clone;
 
-	if (instancer != NULL)
+	if (instancer)
 	{
-		clone = instancer->InstanceElement(NULL, GetTagName(), attributes);
-		if (clone != NULL)
+		clone = instancer->InstanceElement(nullptr, GetTagName(), attributes);
+		if (clone)
 			clone->SetInstancer(instancer);
 	}
 	else
-		clone = Factory::InstanceElement(NULL, GetTagName(), GetTagName(), attributes);
+		clone = Factory::InstanceElement(nullptr, GetTagName(), GetTagName(), attributes);
 
 	if (clone != NULL)
 	{
@@ -1177,8 +1185,8 @@ Element* Element::GetNextSibling() const
 
 	for (size_t i = 0; i < parent->children.size() - (parent->num_non_dom_children + 1); i++)
 	{
-		if (parent->children[i] == this)
-			return parent->children[i + 1];
+		if (parent->children[i].get() == this)
+			return parent->children[i + 1].get();
 	}
 
 	return NULL;
@@ -1192,8 +1200,8 @@ Element* Element::GetPreviousSibling() const
 
 	for (size_t i = 1; i < parent->children.size() - parent->num_non_dom_children; i++)
 	{
-		if (parent->children[i] == this)
-			return parent->children[i - 1];
+		if (parent->children[i].get() == this)
+			return parent->children[i - 1].get();
 	}
 
 	return NULL;
@@ -1203,7 +1211,7 @@ Element* Element::GetPreviousSibling() const
 Element* Element::GetFirstChild() const
 {
 	if (GetNumChildren() > 0)
-		return children[0];
+		return children[0].get();
 
 	return NULL;
 }
@@ -1212,7 +1220,7 @@ Element* Element::GetFirstChild() const
 Element* Element::GetLastChild() const
 {
 	if (GetNumChildren() > 0)
-		return *(children.end() - (num_non_dom_children + 1));
+		return (children.end() - (num_non_dom_children + 1))->get();
 
 	return NULL;
 }
@@ -1220,9 +1228,9 @@ Element* Element::GetLastChild() const
 Element* Element::GetChild(int index) const
 {
 	if (index < 0 || index >= (int) children.size())
-		return NULL;
+		return nullptr;
 
-	return children[index];
+	return children[index].get();
 }
 
 int Element::GetNumChildren(bool include_non_dom_elements) const
@@ -1251,9 +1259,10 @@ void Element::SetInnerRML(const String& rml)
 {
 	// Remove all DOM children.
 	while ((int) children.size() > num_non_dom_children)
-		RemoveChild(children.front());
+		RemoveChild(children.front().get());
 
-	Factory::InstanceElementText(this, rml);
+	if(!rml.empty())
+		Factory::InstanceElementText(this, rml);
 }
 
 // Sets the current element as the focus object.
@@ -1405,35 +1414,39 @@ void Element::ScrollIntoView(bool align_with_top)
 }
 
 // Appends a child to this element
-void Element::AppendChild(Element* child, bool dom_element)
+Element* Element::AppendChild(ElementPtr child, bool dom_element)
 {
-	child->AddReference();
-	child->SetParent(this);
+	RMLUI_ASSERT(child);
+	Element* child_ptr = child.get();
+	child_ptr->SetParent(this);
 	if (dom_element)
-		children.insert(children.end() - num_non_dom_children, child);
+		children.insert(children.end() - num_non_dom_children, std::move(child));
 	else
 	{
-		children.push_back(child);
+		children.push_back(std::move(child));
 		num_non_dom_children++;
 	}
 
-	child->GetStyle()->DirtyDefinition();
+	child_ptr->GetStyle()->DirtyDefinition();
 
-	Element* ancestor = child;
+	Element* ancestor = child_ptr;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-		ancestor->OnChildAdd(child);
+		ancestor->OnChildAdd(child_ptr);
 
 	DirtyStackingContext();
 	DirtyStructure();
 
 	if (dom_element)
 		DirtyLayout();
+
+	return child_ptr;
 }
 
 // Adds a child to this element, directly after the adjacent element. Inherits
 // the dom/non-dom status from the adjacent element.
-void Element::InsertBefore(Element* child, Element* adjacent_element)
+Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 {
+	RMLUI_ASSERT(child);
 	// Find the position in the list of children of the adjacent element. If
 	// it's NULL or we can't find it, then we insert it at the end of the dom
 	// children, as a dom element.
@@ -1443,7 +1456,7 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 	{
 		for (child_index = 0; child_index < children.size(); child_index++)
 		{
-			if (children[child_index] == adjacent_element)
+			if (children[child_index].get() == adjacent_element)
 			{
 				found_child = true;
 				break;
@@ -1451,72 +1464,89 @@ void Element::InsertBefore(Element* child, Element* adjacent_element)
 		}
 	}
 
+	Element* child_ptr = nullptr;
+
 	if (found_child)
 	{
-		child->AddReference();
-		child->SetParent(this);
+		child_ptr = child.get();
+		child_ptr->SetParent(this);
 
 		if ((int) child_index >= GetNumChildren())
 			num_non_dom_children++;
 		else
 			DirtyLayout();
 
-		children.insert(children.begin() + child_index, child);
+		children.insert(children.begin() + child_index, std::move(child));
 
-		child->GetStyle()->DirtyDefinition();
+		child_ptr->GetStyle()->DirtyDefinition();
 
-		Element* ancestor = child;
+		Element* ancestor = child_ptr;
 		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-			ancestor->OnChildAdd(child);
+			ancestor->OnChildAdd(child_ptr);
 
 		DirtyStackingContext();
 		DirtyStructure();
 	}
 	else
 	{
-		AppendChild(child);
+		child_ptr = AppendChild(std::move(child));
 	}	
+
+	return child_ptr;
 }
 
 // Replaces the second node with the first node.
-bool Element::ReplaceChild(Element* inserted_element, Element* replaced_element)
+bool Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_element)
 {
-	ElementList::iterator insertion_point = children.begin();
-	while (insertion_point != children.end() && *insertion_point != replaced_element)
+	RMLUI_ASSERT(inserted_element);
+	auto insertion_point = children.begin();
+	while (insertion_point != children.end() && insertion_point->get() != replaced_element)
 	{
 		++insertion_point;
 	}
 
+	Element* inserted_element_ptr = inserted_element.get();
+
 	if (insertion_point == children.end())
 	{
-		AppendChild(inserted_element);
+		AppendChild(std::move(inserted_element));
 		return false;
 	}
 
-	inserted_element->AddReference();
-	inserted_element->SetParent(this);
+	inserted_element_ptr->SetParent(this);
 
-	children.insert(insertion_point, inserted_element);
+	children.insert(insertion_point, std::move(inserted_element));
 	RemoveChild(replaced_element);
 
-	inserted_element->GetStyle()->DirtyDefinition();
+	inserted_element_ptr->GetStyle()->DirtyDefinition();
 
-	Element* ancestor = inserted_element;
+	Element* ancestor = inserted_element_ptr;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-		ancestor->OnChildAdd(inserted_element);
+		ancestor->OnChildAdd(inserted_element_ptr);
+
+	return true;
+}
+
+bool Element::RemoveChild(Element* child)
+{
+	ElementPtr released_child = ReleaseChild(child);
+	if (!released_child)
+		return false;
+
+	//deleted_children.push_back(std::move(released_child));
 
 	return true;
 }
 
 // Removes the specified child
-bool Element::RemoveChild(Element* child)
+ElementPtr Element::ReleaseChild(Element* child)
 {
 	size_t child_index = 0;
 
-	for (ElementList::iterator itr = children.begin(); itr != children.end(); ++itr)
+	for (auto itr = children.begin(); itr != children.end(); ++itr)
 	{
 		// Add the element to the delete list
-		if ((*itr) == child)
+		if (itr->get() == child)
 		{
 			// Inform the context of the element's pending removal (if we have a valid context).
 			Context* context = GetContext();
@@ -1530,21 +1560,26 @@ bool Element::RemoveChild(Element* child)
 			if (child_index >= children.size() - num_non_dom_children)
 				num_non_dom_children--;
 
-			deleted_children.push_back(child);
+			ElementPtr result = std::move(*itr);
+
+			// Clear parent
+			result->parent = nullptr;
+			result->SetOwnerDocument(nullptr);
+
 			children.erase(itr);
 
-			// Remove the child element as the focussed child of this element.
+			// Remove the child element as the focused child of this element.
 			if (child == focus)
 			{
-				focus = NULL;
+				focus = nullptr;
 
 				// If this child (or a descendant of this child) is the context's currently
-				// focussed element, set the focus to us instead.
+				// focused element, set the focus to us instead.
 				Context* context = GetContext();
-				if (context != NULL)
+				if (context)
 				{
 					Element* focus_element = context->GetFocusElement();
-					while (focus_element != NULL)
+					while (focus_element)
 					{
 						if (focus_element == child)
 						{
@@ -1561,14 +1596,15 @@ bool Element::RemoveChild(Element* child)
 			DirtyStackingContext();
 			DirtyStructure();
 
-			return true;
+			return result;
 		}
 
 		child_index++;
 	}
 
-	return false;
+	return nullptr;
 }
+
 
 bool Element::HasChildNodes() const
 {
@@ -1673,20 +1709,19 @@ bool Element::IsClippingEnabled()
 RenderInterface* Element::GetRenderInterface()
 {
 	Context* context = GetContext();
-	if (context != NULL)
+	if (context)
 		return context->GetRenderInterface();
 
 	return Rml::Core::GetRenderInterface();
 }
 
-void Element::SetInstancer(ElementInstancer* _instancer)
+void Element::SetInstancer(const ElementInstancerPtr& _instancer)
 {
 	// Only record the first instancer being set as some instancers call other instancers to do their dirty work, in
 	// which case we don't want to update the lowest level instancer.
-	if (instancer == NULL)
+	if (!instancer)
 	{
 		instancer = _instancer;
-		instancer->AddReference();
 	}
 }
 
@@ -1997,20 +2032,6 @@ void Element::DirtyFont()
 		children[i]->DirtyFont();
 }
 
-void Element::OnReferenceDeactivate()
-{
-	if (instancer)
-	{
-		instancer->ReleaseElement(this);
-	}
-	else
-	{
-		// Hopefully we can just delete ourselves.
-		//delete this;
-		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via RmlUi Factory. Unable to release.", GetAddress().c_str());
-	}
-}
-
 void Element::ProcessDefaultAction(Event& event)
 {
 	if (event == EventId::Mousedown && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
@@ -2113,7 +2134,7 @@ void Element::SetOwnerDocument(ElementDocument* document)
 	if(owner_document != document && owner_document != this)
 	{
 		owner_document = document;
-		for (Element* child : children)
+		for (ElementPtr& child : children)
 			child->SetOwnerDocument(document);
 	}
 }
@@ -2130,31 +2151,45 @@ void Element::SetParent(Element* _parent)
 	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
 }
 
-void Element::ReleaseElements(ElementList& released_elements)
+void Element::ReleaseElements()
 {
-	// Remove deleted children from this element.
-	while (!released_elements.empty())
-	{
-		Element* element = released_elements.back();
-		released_elements.pop_back();
+	//for (auto& element : deleted_children)
+	//{
+	//	// Set the parent to NULL unless it's been reparented already.
+	//	if (element->GetParentNode() == this)
+	//	{
+	//		element->parent = nullptr;
+	//		element->SetOwnerDocument(nullptr);
+	//	}
+	//}
+	
+	deleted_children.clear();
 
-		// If this element has been added back into our list, then we remove our previous oustanding reference on it
-		// and continue.
-		if (std::find(children.begin(), children.end(), element) != children.end())
-		{
-			element->RemoveReference();
-			continue;
-		}
+	// Todo: See if some of the old functionality is required after change to unique pointers:
 
-		// Set the parent to NULL unless it's been reparented already.
-		if (element->GetParentNode() == this)
-		{
-			element->parent = nullptr;
-			element->SetOwnerDocument(nullptr);
-		}
+	//// Remove deleted children from this element.
+	//while (!deleted_children.empty())
+	//{
+	//	ElementPtr element = std::move(deleted_children.back());
+	//	deleted_children.pop_back();
 
-		element->RemoveReference();
-	}
+	//	// If this element has been added back into our list, then we remove our previous oustanding reference on it
+	//	// and continue.
+	//	if (std::find(children.begin(), children.end(), element) != children.end())
+	//	{
+	//		element->RemoveReference();
+	//		continue;
+	//	}
+
+	//	// Set the parent to NULL unless it's been reparented already.
+	//	if (element->GetParentNode() == this)
+	//	{
+	//		element->parent = nullptr;
+	//		element->SetOwnerDocument(nullptr);
+	//	}
+
+	//	element->RemoveReference();
+	//}
 }
 
 void Element::DirtyOffset()
@@ -2253,7 +2288,7 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 	std::vector< std::pair< Element*, float > > ordered_children;
 	for (size_t i = 0; i < children.size(); ++i)
 	{
-		Element* child = children[i];
+		Element* child = children[i].get();
 
 		if (!child->IsVisible())
 			continue;
@@ -2814,6 +2849,16 @@ void Element::UpdateTransformState()
 		transform_state.reset();
 	}
 }
+
+void ElementDeleter::operator()(Element* element) const 
+{
+	ElementInstancerPtr& instancer = element->instancer;
+	if (instancer)
+		instancer->ReleaseElement(element);
+	else
+		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via RmlUi Factory. Unable to release.", element->GetAddress().c_str());
+};
+
 
 }
 }

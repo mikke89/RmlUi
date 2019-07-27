@@ -45,23 +45,25 @@ ElementDataGrid::ElementDataGrid(const Rml::Core::String& tag) : Core::Element(t
 	Rml::Core::XMLAttributes attributes;
 
 	// Create the row for the column headers:
-	header = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridheader", attributes));
+	Core::ElementPtr element = Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridheader", attributes);
+	header = static_cast<ElementDataGridRow*>(element.get());
 	header->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
 	header->Initialise(this);
-	AppendChild(header);
-	header->RemoveReference();
+	AppendChild(std::move(element));
 
-	body = Core::Factory::InstanceElement(this, "*", "datagridbody", attributes);
+	element = Core::Factory::InstanceElement(this, "*", "datagridbody", attributes);
+	body = element.get();
 	body->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 	body->SetProperty(Core::PropertyId::Width, Core::Property(Core::Style::Width::Auto));
-	AppendChild(body);
-	body->RemoveReference();
+	AppendChild(std::move(element));
 
 	body_visible = false;
 
-	root = static_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridroot", attributes));
+	element = Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridroot", attributes);
+	root = static_cast<ElementDataGridRow*>(element.get());
 	root->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 	root->Initialise(this);
+	AppendChild(std::move(element), false);
 
 	SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Auto));
 	SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Auto));
@@ -71,7 +73,6 @@ ElementDataGrid::ElementDataGrid(const Rml::Core::String& tag) : Core::Element(t
 
 ElementDataGrid::~ElementDataGrid()
 {
-	root->RemoveReference();
 }
 
 void ElementDataGrid::SetDataSource(const Rml::Core::String& data_source_name)
@@ -82,23 +83,21 @@ void ElementDataGrid::SetDataSource(const Rml::Core::String& data_source_name)
 // Adds a column to the table.
 bool ElementDataGrid::AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, const Rml::Core::String& header_rml)
 {
-	Core::Element* header_element = Core::Factory::InstanceElement(this, "datagridcolumn", "datagridcolumn", Rml::Core::XMLAttributes());
-	if (header_element == NULL)
+	Core::ElementPtr header_element = Core::Factory::InstanceElement(this, "datagridcolumn", "datagridcolumn", Rml::Core::XMLAttributes());
+	if (!header_element)
 		return false;
 
-	if (!Core::Factory::InstanceElementText(header_element, header_rml))
+	if (!Core::Factory::InstanceElementText(header_element.get(), header_rml))
 	{
-		header_element->RemoveReference();
 		return false;
 	}
 
-	AddColumn(fields, formatter, initial_width, header_element);
-	header_element->RemoveReference();
+	AddColumn(fields, formatter, initial_width, std::move(header_element));
 	return true;
 }
 
 // Adds a column to the table.
-void ElementDataGrid::AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, Core::Element* header_element)
+void ElementDataGrid::AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, Core::ElementPtr header_element)
 {
 	Column column;
 	Rml::Core::StringUtilities::ExpandString(column.fields, fields);
@@ -116,7 +115,7 @@ void ElementDataGrid::AddColumn(const Rml::Core::String& fields, const Rml::Core
 		Rml::Core::String width = header_element->GetAttribute<Rml::Core::String>("width", "100%");
 		header_element->SetProperty("width", width);
 
-		header->AppendChild(header_element);
+		header->AppendChild(std::move(header_element));
 	}
 
 	// Add the fields that this column requires to the concatenated string of all column fields.
@@ -177,7 +176,8 @@ ElementDataGridRow* ElementDataGrid::AddRow(ElementDataGridRow* parent, int inde
 {
 	// Now we make a new row at the right place then return it.
 	Rml::Core::XMLAttributes attributes;
-	ElementDataGridRow* new_row = dynamic_cast< ElementDataGridRow* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridrow", attributes));
+	Core::ElementPtr element = Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridrow", attributes);
+	ElementDataGridRow* new_row = dynamic_cast< ElementDataGridRow* >(element.get());
 
 	new_row->Initialise(this, parent, index, header, parent->GetDepth() + 1);
 
@@ -189,8 +189,7 @@ ElementDataGridRow* ElementDataGrid::AddRow(ElementDataGridRow* parent, int inde
 	{
 		child_to_insert_before = body->GetChild(table_relative_index);
 	}
-	body->InsertBefore(new_row, child_to_insert_before);
-	new_row->RemoveReference();
+	body->InsertBefore(std::move(element), child_to_insert_before);
 
 	// As the rows have changed, we need to lay out the document again.
 	DirtyLayout();

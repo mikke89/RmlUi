@@ -36,9 +36,9 @@ ElementInstancerGeneric<T>::~ElementInstancerGeneric()
 
 // Instances an element given the tag name and attributes
 template <typename T>
-Element* ElementInstancerGeneric<T>::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
+ElementPtr ElementInstancerGeneric<T>::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
 {
-	return new T(tag);
+	return ElementPtr(new T(tag));
 }
 
 
@@ -48,15 +48,6 @@ template <typename T>
 void ElementInstancerGeneric<T>::ReleaseElement(Element* element)
 {
 	delete element;
-}
-
-
-
-// Release the instancer
-template <typename T>
-void ElementInstancerGeneric<T>::Release()
-{
-	delete this;
 }
 
 }

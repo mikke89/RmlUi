@@ -84,11 +84,11 @@ void ElementDataGridRow::Initialise(ElementDataGrid* _parent_grid, ElementDataGr
 	Rml::Core::XMLAttributes cell_attributes;
 	for (int i = 0; i < num_columns; i++)
 	{
-		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridcell", "datagridcell", cell_attributes));
+		Core::ElementPtr element = Core::Factory::InstanceElement(this, "#rmlctl_datagridcell", "datagridcell", cell_attributes);
+		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(element.get());
 		cell->Initialise(i, header_row->GetChild(i));
 		cell->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
-		AppendChild(cell);
-		cell->RemoveReference();
+		AppendChild(std::move(element));
 	}
 }
 

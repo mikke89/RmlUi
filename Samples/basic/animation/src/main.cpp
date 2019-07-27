@@ -126,7 +126,6 @@ public:
 	{
 		if (document)
 		{
-			document->RemoveReference();
 			document->Close();
 		}
 	}

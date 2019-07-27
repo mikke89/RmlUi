@@ -52,7 +52,7 @@ class Element;
 	@author Lloyd Weehuizen
  */ 
 
-class RMLUICORE_API ElementInstancer : public ReferenceCountable
+class RMLUICORE_API ElementInstancer : public NonCopyMoveable
 {
 public:
 	virtual ~ElementInstancer();
@@ -61,15 +61,10 @@ public:
 	/// @param[in] parent The element the new element is destined to be parented to.
 	/// @param[in] tag The tag of the element to instance.
 	/// @param[in] attributes Dictionary of attributes.
-	virtual Element* InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) = 0;
+	virtual ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) = 0;
 	/// Releases an element instanced by this instancer.
 	/// @param[in] element The element to release.
 	virtual void ReleaseElement(Element* element) = 0;
-	/// Release the instancer.
-	virtual void Release() = 0;
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

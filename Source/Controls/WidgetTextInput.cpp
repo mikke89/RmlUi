@@ -56,27 +56,26 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->AddEventListener(Core::EventId::Mousedown, this, true);
 	parent->AddEventListener(Core::EventId::Drag, this, true);
 
-	text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes()));
-	selected_text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes()));
-	if (text_element != NULL)
+	Core::ElementPtr unique_text = Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes());
+	text_element = dynamic_cast< Core::ElementText* >(unique_text.get());
+	Core::ElementPtr unique_selected_text = Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes());
+	selected_text_element = dynamic_cast< Core::ElementText* >(unique_selected_text.get());
+	if (text_element)
 	{
 		text_element->SuppressAutoLayout();
-		parent->AppendChild(text_element, false);
-		text_element->RemoveReference();
+		parent->AppendChild(std::move(unique_text), false);
 
 		selected_text_element->SuppressAutoLayout();
-		parent->AppendChild(selected_text_element, false);
-		selected_text_element->RemoveReference();
+		parent->AppendChild(std::move(unique_selected_text), false);
 	}
 
 	// Create the dummy selection element.
-	selection_element = Core::Factory::InstanceElement(parent, "#selection", "selection", Rml::Core::XMLAttributes());
-	ElementTextSelection* text_selection_element = dynamic_cast< ElementTextSelection* >(selection_element);
-	if (text_selection_element != NULL)
+	Core::ElementPtr unique_selection = Core::Factory::InstanceElement(parent, "#selection", "selection", Rml::Core::XMLAttributes());
+	if (ElementTextSelection* text_selection_element = dynamic_cast<ElementTextSelection*>(unique_selection.get()))
 	{
+		selection_element = text_selection_element;
 		text_selection_element->SetWidget(this);
-		parent->AppendChild(text_selection_element, false);
-		text_selection_element->RemoveReference();
+		parent->AppendChild(std::move(unique_selection), false);
 	}
 
 	edit_index = 0;

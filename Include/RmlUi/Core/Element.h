@@ -71,7 +71,7 @@ struct ElementMeta;
 	@author Peter Curry
  */
 
-class RMLUICORE_API Element : public ReferenceCountable
+class RMLUICORE_API Element : public NonCopyMoveable
 {
 public:
 	/// Constructs a new RmlUi element. This should not be called directly; use the Factory
@@ -81,7 +81,7 @@ public:
 	virtual ~Element();
 
 	/// Clones this element, returning a new, unparented element.
-	Element* Clone() const;
+	ElementPtr Clone() const;
 
 	/** @name Classes
 	 */
@@ -492,21 +492,22 @@ public:
 	/// Append a child to this element.
 	/// @param[in] element The element to append as a child.
 	/// @param[in] dom_element True if the element is to be part of the DOM, false otherwise. Only set this to false if you know what you're doing!
-	void AppendChild(Element* element, bool dom_element = true);
+	Element* AppendChild(ElementPtr element, bool dom_element = true);
 	/// Adds a child to this element, directly after the adjacent element. The new element inherits the DOM/non-DOM
 	/// status from the adjacent element.
 	/// @param[in] element Element to insert into the this element.
 	/// @param[in] adjacent_element The element to insert directly before.
-	void InsertBefore(Element* element, Element* adjacent_element);
+	Element* InsertBefore(ElementPtr element, Element* adjacent_element);
 	/// Replaces the second node with the first node.
 	/// @param[in] inserted_element The element that will be inserted and replace the other element.
 	/// @param[in] replaced_element The existing element that will be replaced. If this doesn't exist, inserted_element will be appended.
 	/// @return True if the replaced_element was found, false otherwise.
-	bool ReplaceChild(Element* inserted_element, Element* replaced_element);
+	bool ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
 	/// Remove a child element from this element.
 	/// @param[in] The element to remove.
 	/// @returns True if the element was found and removed.
 	bool RemoveChild(Element* element);
+	ElementPtr ReleaseChild(Element* element);
 	/// Returns whether or not this element has any DOM children.
 	/// @return True if the element has at least one DOM child, false otherwise.
 	bool HasChildNodes() const;
@@ -560,7 +561,7 @@ public:
 
 	/// Sets the instancer to use for releasing this element.
 	/// @param[in] instancer Instancer to set on this element.
-	void SetInstancer(ElementInstancer* instancer);
+	void SetInstancer(const ElementInstancerPtr& instancer);
 
 	/// Called for every event sent to this element or one of its descendants.
 	/// @param[in] event The event to process.
@@ -615,12 +616,10 @@ protected:
 
 	void SetOwnerDocument(ElementDocument* document);
 
-	virtual void OnReferenceDeactivate();
-
 private:
 	void SetParent(Element* parent);
 
-	void ReleaseElements(ElementList& elements);
+	void ReleaseElements();
 
 	void DirtyOffset();
 	void UpdateOffset();
@@ -662,7 +661,7 @@ private:
 	String id;
 
 	// Instancer that created us, used for destruction.
-	ElementInstancer* instancer;
+	ElementInstancerPtr instancer;
 
 	// Parent element.
 	Element* parent;
@@ -713,10 +712,10 @@ private:
 	// True if the element is visible and active.
 	bool visible;
 
-	ElementList children;
+	OwnedElementList children;
 	int num_non_dom_children;
 
-	ElementList deleted_children;
+	OwnedElementList deleted_children;
 
 	float z_index;
 	bool local_stacking_context;
@@ -754,7 +753,9 @@ private:
 	friend class ElementStyle;
 	friend class LayoutEngine;
 	friend class LayoutInlineBox;
+	friend struct ElementDeleter;
 };
+
 
 }
 }

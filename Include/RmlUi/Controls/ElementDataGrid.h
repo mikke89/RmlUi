@@ -94,7 +94,7 @@ public:
 	/// @param[in] formatter The name of the data formatter to be used to format the raw column data into RML.
 	/// @param[in] initial_width The initial width, in pixels, of the column.
 	/// @param[in] header_element The element hierarchy to use as the column header.
-	void AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, Core::Element* header_element);
+	void AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, Core::ElementPtr header_element);
 	/// Returns the number of columns in this table
 	int GetNumColumns();
 	/// Returns the column at the specified index.

@@ -57,37 +57,35 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		parser->PushHandler("tabset");
 
 		// Attempt to instance the tabset
-		Core::Element* element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);		
-		ElementTabSet* tabset = dynamic_cast< ElementTabSet* >(element);
+		Core::ElementPtr element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);		
+		ElementTabSet* tabset = dynamic_cast< ElementTabSet* >(element.get());
 		if (!tabset)
 		{
-			if (element)
-				element->RemoveReference();
 			Core::Log::Message(Rml::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		// Add the TabSet into the document
-		parser->GetParseFrame()->element->AppendChild(element);
-		element->RemoveReference();
+		Core::Element* result = parser->GetParseFrame()->element->AppendChild(std::move(element));
 
-		return element;
+		return result;
 	}	
 	else if (name == "tab")
 	{
 		// Call default element handler for all children.
 		parser->PushDefaultHandler();
 
-		Core::Element* tab_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, "*", "tab", attributes);
+		Core::ElementPtr tab_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, "*", "tab", attributes);
+		Core::Element* result = nullptr;
 
 		ElementTabSet* tabset = dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
 		if (tabset)
 		{
-			tabset->SetTab(-1, tab_element);
-			tab_element->RemoveReference();
+			result = tab_element.get();
+			tabset->SetTab(-1, std::move(tab_element));
 		}
 
-		return tab_element;
+		return result;
 
 	}
 	else if (name == "panel")
@@ -95,16 +93,17 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		// Call default element handler for all children.
 		parser->PushDefaultHandler();
 
-		Core::Element* panel_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, "*", "panel", attributes);
+		Core::ElementPtr panel_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, "*", "panel", attributes);
+		Core::Element* result = nullptr;
 
 		ElementTabSet* tabset = dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
 		if (tabset)
 		{
-			tabset->SetPanel(-1, panel_element);
-			panel_element->RemoveReference();
+			result = panel_element.get();
+			tabset->SetPanel(-1, std::move(panel_element));
 		}
 
-		return panel_element;
+		return panel_element.get();
 	}
 	else if (name == "tabs" || name == "panels")
 	{	
@@ -115,19 +114,19 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		Core::Element* parent = parser->GetParseFrame()->element;
 
 		// Attempt to instance the element with the instancer.
-		Core::Element* element = Core::Factory::InstanceElement(parent, name, name, attributes);
+		Core::ElementPtr element = Core::Factory::InstanceElement(parent, name, name, attributes);
 		if (!element)
 		{
 			Core::Log::Message(Rml::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		// Add the element to its parent and remove the initial reference.
-		parent->AppendChild(element);
-		element->RemoveReference();
+		Core::Element* result = parent->AppendChild(std::move(element));
+		return result;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool XMLNodeHandlerTabSet::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(parser), const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name))

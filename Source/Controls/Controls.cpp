@@ -45,49 +45,27 @@ namespace Controls {
 // Registers the custom element instancers.
 void RegisterElementInstancers()
 {
-	Core::ElementInstancer* instancer = new Core::ElementInstancerGeneric< ElementForm >();
-	Core::Factory::RegisterElementInstancer("form", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("form", std::make_shared<Core::ElementInstancerGeneric< ElementForm >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlInput >();
-	Core::Factory::RegisterElementInstancer("input", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("input", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlInput >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlDataSelect >();
-	instancer = Core::Factory::RegisterElementInstancer("dataselect", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("dataselect", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlDataSelect >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlSelect >();
-	Core::Factory::RegisterElementInstancer("select", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("select", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlSelect >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlTextArea >();
-	Core::Factory::RegisterElementInstancer("textarea", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("textarea", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlTextArea >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementTextSelection >();
-	Core::Factory::RegisterElementInstancer("#selection", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("#selection", std::make_shared<Core::ElementInstancerGeneric< ElementTextSelection >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementTabSet >();
-	Core::Factory::RegisterElementInstancer("tabset", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("tabset", std::make_shared<Core::ElementInstancerGeneric< ElementTabSet >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementDataGrid >();
-	Core::Factory::RegisterElementInstancer("datagrid", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("datagrid", std::make_shared<Core::ElementInstancerGeneric< ElementDataGrid >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementDataGridExpandButton >();
-	Core::Factory::RegisterElementInstancer("datagridexpand", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("datagridexpand", std::make_shared<Core::ElementInstancerGeneric< ElementDataGridExpandButton >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementDataGridCell >();
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", std::make_shared<Core::ElementInstancerGeneric< ElementDataGridCell >>());
 
-	instancer = new Core::ElementInstancerGeneric< ElementDataGridRow >();
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", std::make_shared<Core::ElementInstancerGeneric< ElementDataGridRow >>());
 }
 
 void RegisterXMLNodeHandlers()

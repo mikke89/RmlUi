@@ -48,8 +48,8 @@ void DragListener::ProcessEvent(Rml::Core::Event& event)
 		if (dest_container == dest_element)
 		{
 			// The dragged element was dragged directly onto a container.
-			drag_element->GetParentNode()->RemoveChild(drag_element);
-			dest_container->AppendChild(drag_element);
+			Rml::Core::ElementPtr element = drag_element->GetParentNode()->ReleaseChild(drag_element);
+			dest_container->AppendChild(std::move(element));
 		}
 		else
 		{
@@ -77,8 +77,8 @@ void DragListener::ProcessEvent(Rml::Core::Event& event)
 				}
 			}
 
-			drag_element->GetParentNode()->RemoveChild(drag_element);
-			dest_container->InsertBefore(drag_element, insert_before);
+			Rml::Core::ElementPtr element = drag_element->GetParentNode()->ReleaseChild(drag_element);
+			dest_container->InsertBefore(std::move(element), insert_before);
 		}
 	}
 }

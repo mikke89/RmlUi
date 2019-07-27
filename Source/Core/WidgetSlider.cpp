@@ -103,45 +103,23 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	orientation = _orientation;
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
-	track = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
+	ElementPtr track_element = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
+	ElementPtr bar_element = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
+	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
+	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
 
-	bar = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
-	bar->SetProperty(Core::PropertyId::Drag, Core::Property(Core::Style::Drag::Drag));
-
-	arrows[0] = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
-	arrows[1] = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
-
-	if (track == NULL ||
-		bar == NULL ||
-		arrows[0] == NULL ||
-		arrows[1] == NULL)
+	if (!track_element || !bar_element || !arrow0_element || !arrow1_element)
 	{
-		if (track != NULL)
-			track->RemoveReference();
-
-		if (bar != NULL)
-			bar->RemoveReference();
-
-		if (arrows[0] != NULL)
-			arrows[0]->RemoveReference();
-
-		if (arrows[1] != NULL)
-			arrows[1]->RemoveReference();
-
 		return false;
 	}
 
 	// Add them as non-DOM elements.
-	parent->AppendChild(track, false);
-	parent->AppendChild(bar, false);
-	parent->AppendChild(arrows[0], false);
-	parent->AppendChild(arrows[1], false);
+	track = parent->AppendChild(std::move(track_element), false);
+	bar = parent->AppendChild(std::move(bar_element), false);
+	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
+	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
 
-	// Remove the initial references on the elements.
-	track->RemoveReference();
-	bar->RemoveReference();
-	arrows[0]->RemoveReference();
-	arrows[1]->RemoveReference();
+	bar->SetProperty(Core::PropertyId::Drag, Core::Property(Core::Style::Drag::Drag));
 
 	// Attach the listeners as appropriate.
 	bar->AddEventListener(EventId::Drag, this);

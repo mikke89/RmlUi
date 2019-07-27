@@ -60,11 +60,11 @@ public:
 	/// Set the specifed tab index's title element.
 	/// @param[in] tab_index The tab index to set. If it doesn't already exist, it will be created.
 	/// @param[in] element The root of the element tree to set as the tab title.
-	void SetTab(int tab_index, Core::Element* element);
+	void SetTab(int tab_index, Core::ElementPtr element);
 	/// Set the specified tab index's body element.
 	/// @param[in] tab_index The tab index to set. If it doesn't already exist, it will be created.
 	/// @param[in] element The root of the element tree to set as the window.
-	void SetPanel(int tab_index, Core::Element* element);
+	void SetPanel(int tab_index, Core::ElementPtr element);
 
 	/// Remove one of the tab set's panels and its corresponding tab.
 	/// @param[in] tab_index The tab index to remove. If no tab matches this index, nothing will be removed.
@@ -84,12 +84,6 @@ public:
 
 	/// Process the incoming event.
 	void ProcessEvent(Core::Event& event) override;
-
-	/// Called when the listener has been attached to a new Element
-	void OnAttach(Element* element);
-
-	/// Called when the listener has been detached from a Element
-	void OnDetach(Element* element);
 
 protected:
 	// Catch child add/removes so we can correctly set up their events.

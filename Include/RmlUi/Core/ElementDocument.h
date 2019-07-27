@@ -103,10 +103,10 @@ public:
 
 	/// Creates the named element.
 	/// @param[in] name The tag name of the element.
-	Element* CreateElement(const String& name);
+	ElementPtr CreateElement(const String& name);
 	/// Create a text element with the given text content.
 	/// @param[in] text The text content of the text element.
-	ElementText* CreateTextNode(const String& text);
+	ElementPtr CreateTextNode(const String& text);
 
 	/// Does the document have modal display set.
 	/// @return True if the document is hogging focus.

@@ -121,9 +121,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom element and decorator instancers.
-	Rml::Core::ElementInstancer* element_instancer = new Rml::Core::ElementInstancerGeneric< ElementGame >();
-	Rml::Core::Factory::RegisterElementInstancer("game", element_instancer);
-	element_instancer->RemoveReference();
+	Rml::Core::Factory::RegisterElementInstancer("game", std::make_shared<Rml::Core::ElementInstancerGeneric< ElementGame >>());
 
 	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", std::make_unique<DecoratorInstancerStarfield>());
 	Rml::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());

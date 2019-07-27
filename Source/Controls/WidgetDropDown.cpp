@@ -49,9 +49,9 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	selected_option = -1;
 
 	// Create the button and selection elements.
-	button_element = Core::Factory::InstanceElement(parent_element, "*", "selectarrow", Rml::Core::XMLAttributes());
-	value_element = Core::Factory::InstanceElement(element, "*", "selectvalue", Rml::Core::XMLAttributes());
-	selection_element = Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rml::Core::XMLAttributes());
+	button_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectarrow", Rml::Core::XMLAttributes()), false);
+	value_element = parent_element->AppendChild(Core::Factory::InstanceElement(element, "*", "selectvalue", Rml::Core::XMLAttributes()), false);
+	selection_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rml::Core::XMLAttributes()), false);
 
 	value_element->SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Hidden));
 	value_element->SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Hidden));
@@ -64,17 +64,11 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	parent_element->AddEventListener(Core::EventId::Blur, this);
 	parent_element->AddEventListener(Core::EventId::Focus, this);
 	parent_element->AddEventListener(Core::EventId::Keydown, this, true);
-
-	// Add the elements to our parent element.
-	parent_element->AppendChild(button_element, false);
-	parent_element->AppendChild(selection_element, false);
-	parent_element->AppendChild(value_element, false);
 }
 
 WidgetDropDown::~WidgetDropDown()
 {
 	// We shouldn't clear the options ourselves, as removing the element will automatically clear children.
-	//   Not always a problem, but sometimes it invalidates the layout lock in Element::RemoveChild, which results in a permanently corrupted document.
 	//   However, we do need to remove events of children.
 	for(auto& option : options)
 		option.GetElement()->RemoveEventListener(Core::EventId::Click, this);
@@ -83,10 +77,6 @@ WidgetDropDown::~WidgetDropDown()
 	parent_element->RemoveEventListener(Core::EventId::Blur, this);
 	parent_element->RemoveEventListener(Core::EventId::Focus, this);
 	parent_element->RemoveEventListener(Core::EventId::Keydown, this, true);
-
-	button_element->RemoveReference();
-	selection_element->RemoveReference();
-	value_element->RemoveReference();
 }
 
 // Updates the selection box layout if necessary.
@@ -221,7 +211,7 @@ int WidgetDropDown::GetSelection() const
 int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::String& value, int before, bool select, bool selectable)
 {
 	// Instance a new element for the option.
-	Core::Element* element = Core::Factory::InstanceElement(selection_element, "*", "option", Rml::Core::XMLAttributes());
+	Core::ElementPtr element = Core::Factory::InstanceElement(selection_element, "*", "option", Rml::Core::XMLAttributes());
 
 	// Force to block display and inject the RML. Register a click handler so we can be notified of selection.
 	element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
@@ -233,18 +223,16 @@ int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::Str
 	if (before < 0 ||
 		before >= (int) options.size())
 	{
-		selection_element->AppendChild(element);
-		options.push_back(SelectOption(element, value, selectable));
+		Core::Element* ptr = selection_element->AppendChild(std::move(element));
+		options.push_back(SelectOption(ptr, value, selectable));
 		option_index = (int) options.size() - 1;
 	}
 	else
 	{
-		selection_element->InsertBefore(element, selection_element->GetChild(before));
-		options.insert(options.begin() + before, SelectOption(element, value, selectable));
+		Core::Element* ptr = selection_element->InsertBefore(std::move(element), selection_element->GetChild(before));
+		options.insert(options.begin() + before, SelectOption(ptr, value, selectable));
 		option_index = before;
 	}
-
-	element->RemoveReference();
 
 	// Select the option if appropriate.
 	if (select)

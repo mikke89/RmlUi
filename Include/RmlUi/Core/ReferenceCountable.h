@@ -34,6 +34,17 @@
 namespace Rml {
 namespace Core {
 
+
+class NonCopyMoveable {
+public:
+	NonCopyMoveable() {}
+	~NonCopyMoveable() {}
+	NonCopyMoveable(const NonCopyMoveable&) = delete;
+	NonCopyMoveable& operator=(const NonCopyMoveable&) = delete;
+	NonCopyMoveable(NonCopyMoveable&&) = delete;
+	NonCopyMoveable& operator=(NonCopyMoveable&&) = delete;
+};
+
 /**
 	A base class for any class that wishes to be reference counted.
 	@author Robert Curry

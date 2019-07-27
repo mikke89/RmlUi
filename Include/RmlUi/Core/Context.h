@@ -241,16 +241,16 @@ private:
 	ElementList document_focus_history;
 
 	// Documents that have been unloaded from the context but not yet released.
-	ElementList unloaded_documents;
+	OwnedElementList unloaded_documents;
 
 	// Root of the element tree.
-	Element* root;
+	ElementPtr root;
 	// The element that current has input focus.
-	ElementReference focus;
+	Element* focus;
 	// The top-most element being hovered over.
-	ElementReference hover;
+	Element* hover;
 	// The element that was being hovered over when the primary mouse button was pressed most recently.
-	ElementReference active;
+	Element* active;
 
 	// The element that was clicked on last.
 	Element* last_click_element;
@@ -261,10 +261,10 @@ private:
 	bool enable_cursor;
 	String cursor_name;
 	// Document attached to cursor (e.g. while dragging).
-	ElementDocument* cursor_proxy;
+	ElementPtr cursor_proxy;
 
 	// The element that is currently being dragged (or about to be dragged).
-	ElementReference drag;
+	Element* drag;
 	// True if a drag has begun (ie, the ondragstart event has been fired for the drag element), false otherwise.
 	bool drag_started;
 	// True if the current drag is a verbose drag (ie, sends ondragover, ondragout, ondragdrop, etc, events).
@@ -274,7 +274,7 @@ private:
 
 	// The element currently being dragged over; this is equivalent to hover, but only set while an element is being
 	// dragged, and excludes the dragged element.
-	ElementReference drag_hover;
+	Element* drag_hover;
 	// Set of elements that are currently being dragged over; this differs from the hover state as the dragged element
 	// itself can't be part of it.
 	ElementSet drag_hover_chain;
@@ -325,6 +325,8 @@ private:
 
 	// Releases all unloaded documents pending destruction.
 	void ReleaseUnloadedDocuments();
+
+	void ElementRemovedFromContext(Element* element, Element* move_focus);
 
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);

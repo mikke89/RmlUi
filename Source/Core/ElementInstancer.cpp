@@ -37,10 +37,5 @@ ElementInstancer::~ElementInstancer()
 {
 }
 
-void ElementInstancer::OnReferenceDeactivate()
-{
-	Release();
-}
-
 }
 }

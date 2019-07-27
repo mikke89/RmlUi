@@ -260,35 +260,34 @@ void ElementDocument::Close()
 		context->UnloadDocument(this);
 }
 
-Element* ElementDocument::CreateElement(const String& name)
+ElementPtr ElementDocument::CreateElement(const String& name)
 {
 	return Factory::InstanceElement(NULL, name, name, XMLAttributes());
 }
 
 // Create a text element.
-ElementText* ElementDocument::CreateTextNode(const String& text)
+ElementPtr ElementDocument::CreateTextNode(const String& text)
 {
 	// Create the element.
-	Element* element = CreateElement("#text");
+	ElementPtr element = CreateElement("#text");
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer returned NULL.");
-		return NULL;
+		return nullptr;
 	}
 
 	// Cast up
-	ElementText* element_text = dynamic_cast< ElementText* >(element);
+	ElementText* element_text = dynamic_cast< ElementText* >(element.get());
 	if (!element_text)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer didn't return a derivative of ElementText.");
-		element->RemoveReference();
-		return NULL;
+		return nullptr;
 	}
 	
 	// Set the text
 	element_text->SetText(ToWideString(text));
 
-	return element_text;
+	return element;
 }
 
 // Is the current document modal

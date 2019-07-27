@@ -51,18 +51,17 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 	Element* parent = parser->GetParseFrame()->element;
 
 	// Attempt to instance the element with the instancer
-	Element* element = Factory::InstanceElement(parent, name, name, attributes);
+	ElementPtr element = Factory::InstanceElement(parent, name, name, attributes);
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned NULL.", name.c_str());
-		return NULL;
+		return nullptr;
 	}
 
 	// Add the element to its parent and remove the reference
-	parent->AppendChild(element);
-	element->RemoveReference();
+	Element* result = parent->AppendChild(std::move(element));
 
-	return element;
+	return result;
 }
 
 bool XMLNodeHandlerDefault::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))

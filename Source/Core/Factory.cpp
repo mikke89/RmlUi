@@ -55,7 +55,7 @@ namespace Rml {
 namespace Core {
 
 // Element instancers.
-typedef UnorderedMap< String, ElementInstancer* > ElementInstancerMap;
+typedef UnorderedMap< String, ElementInstancerPtr > ElementInstancerMap;
 static ElementInstancerMap element_instancers;
 
 // Decorator instancers.
@@ -98,11 +98,11 @@ bool Factory::Initialise()
 		event_listener_instancer = NULL;
 
 	// Bind the default element instancers
-	RegisterElementInstancer("*", new ElementInstancerGeneric< Element >())->RemoveReference();
-	RegisterElementInstancer("img", new ElementInstancerGeneric< ElementImage >())->RemoveReference();
-	RegisterElementInstancer("#text", new ElementInstancerGeneric< ElementTextDefault >())->RemoveReference();
-	RegisterElementInstancer("handle", new ElementInstancerGeneric< ElementHandle >())->RemoveReference();
-	RegisterElementInstancer("body", new ElementInstancerGeneric< ElementDocument >())->RemoveReference();
+	RegisterElementInstancer("*", std::make_shared<ElementInstancerGeneric< Element >>());
+	RegisterElementInstancer("img", std::make_shared < ElementInstancerGeneric< ElementImage >>());
+	RegisterElementInstancer("#text", std::make_shared < ElementInstancerGeneric< ElementTextDefault >>());
+	RegisterElementInstancer("handle", std::make_shared < ElementInstancerGeneric< ElementHandle >>());
+	RegisterElementInstancer("body", std::make_shared < ElementInstancerGeneric< ElementDocument >>());
 
 	// Bind the default decorator instancers
 	RegisterDecoratorInstancer("tiled-horizontal", std::make_unique<DecoratorTiledHorizontalInstancer>());
@@ -124,8 +124,6 @@ bool Factory::Initialise()
 
 void Factory::Shutdown()
 {
-	for (ElementInstancerMap::iterator i = element_instancers.begin(); i != element_instancers.end(); ++i)
-		(*i).second->RemoveReference();
 	element_instancers.clear();
 
 	decorator_instancers.clear();
@@ -168,53 +166,44 @@ Context* Factory::InstanceContext(const String& name)
 	return new_context;
 }
 
-ElementInstancer* Factory::RegisterElementInstancer(const String& name, ElementInstancer* instancer)
+ElementInstancerPtr Factory::RegisterElementInstancer(const String& name, ElementInstancerPtr instancer)
 {
 	String lower_case_name = ToLower(name);
-	instancer->AddReference();
-
-	// Check if an instancer for this tag is already defined, if so release it
-	ElementInstancerMap::iterator itr = element_instancers.find(lower_case_name);
-	if (itr != element_instancers.end())
-	{
-		(*itr).second->RemoveReference();
-	}
-
 	element_instancers[lower_case_name] = instancer;
 	return instancer;
 }
 
 // Looks up the instancer for the given element
-ElementInstancer* Factory::GetElementInstancer(const String& tag)
+ElementInstancerPtr Factory::GetElementInstancer(const String& tag)
 {
 	ElementInstancerMap::iterator instancer_iterator = element_instancers.find(tag);
 	if (instancer_iterator == element_instancers.end())
 	{
 		instancer_iterator = element_instancers.find("*");
 		if (instancer_iterator == element_instancers.end())
-			return NULL;
+			return nullptr;
 	}
 
 	return (*instancer_iterator).second;
 }
 
 // Instances a single element.
-Element* Factory::InstanceElement(Element* parent, const String& instancer_name, const String& tag, const XMLAttributes& attributes)
+ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_name, const String& tag, const XMLAttributes& attributes)
 {
-	ElementInstancer* instancer = GetElementInstancer(instancer_name);
+	ElementInstancerPtr instancer = GetElementInstancer(instancer_name);
 
 	if (instancer)
 	{
-		Element* element = instancer->InstanceElement(parent, tag, attributes);		
+		ElementPtr element = instancer->InstanceElement(parent, tag, attributes);		
 
 		// Process the generic attributes and bind any events
 		if (element)
 		{
 			element->SetInstancer(instancer);
 			element->SetAttributes(attributes);
-			ElementUtilities::BindEventAttributes(element);
+			ElementUtilities::BindEventAttributes(element.get());
 
-			PluginRegistry::NotifyElementCreate(element);
+			PluginRegistry::NotifyElementCreate(element.get());
 		}
 
 		return element;
@@ -262,7 +251,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 
 		// Attempt to instance the element.
 		XMLAttributes attributes;
-		Element* element = Factory::InstanceElement(parent, "#text", "#text", attributes);
+		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
 		if (!element)
 		{
 			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned NULL.", translated_data.c_str());
@@ -270,19 +259,17 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		}
 
 		// Assign the element its text value.
-		ElementText* text_element = dynamic_cast< ElementText* >(element);
-		if (text_element == NULL)
+		ElementText* text_element = dynamic_cast< ElementText* >(element.get());
+		if (!text_element)
 		{
 			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), typeid(element).name());
-			element->RemoveReference();
 			return false;
 		}
 
 		text_element->SetText(ToWideString(translated_data));
 
 		// Add to active node.
-		parent->AppendChild(element);
-		element->RemoveReference();
+		parent->AppendChild(std::move(element));
 	}
 
 	return true;
@@ -297,28 +284,28 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 }
 
 // Instances a element tree based on the stream
-ElementDocument* Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* stream)
+ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* stream)
 {
-	Element* element = Factory::InstanceElement(NULL, "body", "body", XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned NULL.");
-		return NULL;
+		return nullptr;
 	}
 
-	ElementDocument* document = dynamic_cast< ElementDocument* >(element);
+	ElementDocument* document = dynamic_cast< ElementDocument* >(element.get());
 	if (!document)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document element. Found type '%s', was expecting derivative of ElementDocument.", typeid(element).name());
-		return NULL;
+		return nullptr;
 	}
 
 	document->context = context;
 
-	XMLParser parser(element);
+	XMLParser parser(element.get());
 	parser.Parse(stream);
 
-	return document;
+	return element;
 }
 
 

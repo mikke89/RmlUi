@@ -42,6 +42,8 @@ class Element;
 	@author Peter Curry
  */
 
+ // TODO: Remove class
+
 class RMLUICORE_API ElementReference
 {
 public:

@@ -134,10 +134,6 @@ private:
 	// Loads a specific set of children. Called by the above function.
 	void LoadChildren(int first_row_to_load, int num_rows_to_load, Rml::Core::Time time_slice);
 
-	// If the cells need reloading, this takes care of it. If any children
-	// need updating, they are added to the queue.
-	void UpdateCellsAndChildren(RowQueue& dirty_rows);
-
 	// Sets the dirty_cells flag on this row, and lets our ancestors know.
 	void DirtyCells();
 	// Sets the dirty children flag on this row and the row's ancestors.

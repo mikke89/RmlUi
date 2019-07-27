@@ -52,14 +52,11 @@ public:
 	/// Instances an element given the tag name and attributes
 	/// @param tag Name of the element to instance
 	/// @param attributes vector of name value pairs
-	virtual Element* InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes);
+	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
 
 	/// Releases the given element
 	/// @param element to release
-	virtual void ReleaseElement(Element* element);
-
-	/// Release the instancer
-	virtual void Release();
+	void ReleaseElement(Element* element) override;
 };
 
 }

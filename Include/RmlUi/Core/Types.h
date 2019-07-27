@@ -98,6 +98,12 @@ typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
 typedef ColumnMajorMatrix4f Matrix4f;
 
 class Element;
+struct ElementDeleter {
+	void operator()(Element* element) const;
+};
+class ElementInstancer;
+using ElementPtr = std::unique_ptr<Element>;
+using ElementInstancerPtr = std::shared_ptr<ElementInstancer>;
 class ElementAnimation;
 class Property;
 class Variant;
@@ -131,8 +137,11 @@ using SmallUnorderedSet = chobo::flat_set< T >;
 // Note: Right now small ordered and unordered set use the same container, but we may
 // want to change this later so use ordered when a sorted container is needed.
 
+
+
 // Container types for some common lists
 typedef std::vector< Element* > ElementList;
+using OwnedElementList = std::vector< ElementPtr >;
 typedef std::vector< ElementAnimation > ElementAnimationList;
 typedef SmallUnorderedSet< String > PseudoClassList;
 typedef SmallUnorderedSet< String > AttributeNameList;

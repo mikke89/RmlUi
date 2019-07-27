@@ -45,42 +45,40 @@ ElementTabSet::~ElementTabSet()
 // Sets the specifed tab index's tab title RML.
 void ElementTabSet::SetTab(int tab_index, const Rml::Core::String& rml)
 {
-	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "tab", Rml::Core::XMLAttributes());
-	Core::Factory::InstanceElementText(element, rml);
-	SetTab(tab_index, element);
-	element->RemoveReference();
+	Core::ElementPtr element = Core::Factory::InstanceElement(NULL, "*", "tab", Rml::Core::XMLAttributes());
+	Core::Factory::InstanceElementText(element.get(), rml);
+	SetTab(tab_index, std::move(element));
 }
 
 // Sets the specifed tab index's tab panel RML.
 void ElementTabSet::SetPanel(int tab_index, const Rml::Core::String& rml)
 {
-	Core::Element* element = Core::Factory::InstanceElement(NULL, "*", "panel", Rml::Core::XMLAttributes());
-	Core::Factory::InstanceElementText(element, rml);
-	SetPanel(tab_index, element);
-	element->RemoveReference();
+	Core::ElementPtr element = Core::Factory::InstanceElement(NULL, "*", "panel", Rml::Core::XMLAttributes());
+	Core::Factory::InstanceElementText(element.get(), rml);
+	SetPanel(tab_index, std::move(element));
 }
 
 // Set the specifed tab index's title element.
-void ElementTabSet::SetTab(int tab_index, Core::Element* element)
+void ElementTabSet::SetTab(int tab_index, Core::ElementPtr element)
 {	
 	Core::Element* tabs = GetChildByTag("tabs");
 	if (tab_index >= 0 &&
 		tab_index < tabs->GetNumChildren())
-		tabs->ReplaceChild(GetChild(tab_index), element);
+		tabs->ReplaceChild(std::move(element), GetChild(tab_index));
 	else
-		tabs->AppendChild(element);
+		tabs->AppendChild(std::move(element));
 }
 
 // Set the specified tab index's body element.
-void ElementTabSet::SetPanel(int tab_index, Core::Element* element)
+void ElementTabSet::SetPanel(int tab_index, Core::ElementPtr element)
 {	
 	// append the window
 	Core::Element* windows = GetChildByTag("panels");
 	if (tab_index >= 0 &&
 		tab_index < windows->GetNumChildren())
-		windows->ReplaceChild(GetChild(tab_index), element);
+		windows->ReplaceChild(std::move(element), GetChild(tab_index));
 	else
-		windows->AppendChild(element);
+		windows->AppendChild(std::move(element));
 }
 
 // Remove one of the tab set's panels and its corresponding tab.
@@ -218,24 +216,9 @@ Core::Element* ElementTabSet::GetChildByTag(const Rml::Core::String& tag)
 	}
 
 	// If it doesn't exist, create it
-	Core::Element* element = Core::Factory::InstanceElement(this, "*", tag, Rml::Core::XMLAttributes());
-	AppendChild(element);
-	element->RemoveReference();
-	return element;
-}
-
-void ElementTabSet::OnAttach(Core::Element * RMLUI_UNUSED_PARAMETER(element))
-{
-	RMLUI_UNUSED(element);
-
-	AddReference();
-}
-
-void ElementTabSet::OnDetach(Core::Element * RMLUI_UNUSED_PARAMETER(element))
-{
-	RMLUI_UNUSED(element);
-
-	RemoveReference();
+	Core::ElementPtr element = Core::Factory::InstanceElement(this, "*", tag, Rml::Core::XMLAttributes());
+	Core::Element* result = AppendChild(std::move(element));
+	return result;
 }
 
 

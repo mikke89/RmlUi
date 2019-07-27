@@ -40,9 +40,6 @@ ElementDataGridCell::ElementDataGridCell(const Rml::Core::String& tag) : Core::E
 
 ElementDataGridCell::~ElementDataGridCell()
 {
-	if (header) {
-		header->RemoveReference();
-	}
 }
 
 void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
@@ -51,7 +48,6 @@ void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
 	header = _header;
 	if (header)
 	{
-		header->AddReference();
 		if(auto p = header->GetLocalProperty("width"))
 			SetProperty(Core::PropertyId::Width, *p);
 	}
