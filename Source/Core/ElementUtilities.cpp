@@ -251,11 +251,12 @@ bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
 	if (!render_interface || !context)
 		return false;
 	
-	Vector2i clip_origin, clip_dimensions;
+	Vector2i clip_origin = { -1, -1 };
+	Vector2i clip_dimensions = { -1, -1 };
 	bool clip = element && GetClippingRegion(clip_origin, clip_dimensions, element);
 	
-	Vector2i current_origin;
-	Vector2i current_dimensions;
+	Vector2i current_origin = { -1, -1 };
+	Vector2i current_dimensions = { -1, -1 };
 	bool current_clip = context->GetActiveClipRegion(current_origin, current_dimensions);
 	if (current_clip != clip || (clip && (clip_origin != current_origin || clip_dimensions != current_dimensions)))
 	{
