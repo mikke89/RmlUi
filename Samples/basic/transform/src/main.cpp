@@ -42,7 +42,7 @@ public:
 	DemoWindow(const Rml::Core::String &title, const Rml::Core::Vector2f &position, Rml::Core::Context *context)
 	{
 		document = context->LoadDocument("basic/transform/data/transform.rml");
-		if (document != NULL)
+		if (document)
 		{
 			document->GetElementById("title")->SetInnerRML(title);
 			document->SetProperty(Rml::Core::PropertyId::Left, Rml::Core::Property(position.x, Rml::Core::Property::PX));
@@ -54,10 +54,7 @@ public:
 	~DemoWindow()
 	{
 		if (document)
-		{
-			document->RemoveReference();
 			document->Close();
-		}
 	}
 
 	void SetPerspective(float distance)

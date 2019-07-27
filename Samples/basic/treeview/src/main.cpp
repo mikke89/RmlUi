@@ -115,11 +115,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Load and show the demo document.
 	Rml::Core::ElementDocument* document = context->LoadDocument("basic/treeview/data/treeview.rml");
-	if (document != NULL)
+	if (document)
 	{
 		document->GetElementById("title")->SetInnerRML(document->GetTitle());
 		document->Show();
-		document->RemoveReference();
 	}
 
 	Shell::EventLoop(GameLoop);

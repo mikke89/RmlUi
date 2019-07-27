@@ -105,12 +105,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Load and show the demo document.
-	Rml::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
-	if (document != NULL)
-	{
+	if (Rml::Core::ElementDocument * document = context->LoadDocument("assets/demo.rml"))
 		document->Show();
-		document->RemoveReference();
-	}
 
 	Shell::EventLoop(GameLoop);
 

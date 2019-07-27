@@ -5,7 +5,7 @@
 Inventory::Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& position, Rml::Core::Context* context)
 {
 	document = context->LoadDocument("tutorial/drag/data/inventory.rml");
-	if (document != NULL)
+	if (document)
 	{
 		document->GetElementById("title")->SetInnerRML(title);
 		document->SetProperty(Rml::Core::PropertyId::Left, Rml::Core::Property(position.x, Rml::Core::Property::PX));
@@ -17,28 +17,22 @@ Inventory::Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& 
 // Destroys the inventory and closes its window.
 Inventory::~Inventory()
 {
-	if (document != NULL)
-	{
-		document->RemoveReference();
+	if (document)
 		document->Close();
-	}
 }
 
 // Adds a brand-new item into this inventory.
 void Inventory::AddItem(const Rml::Core::String& name)
 {
-	if (document == NULL)
+	if (!document)
 		return;
 
 	Rml::Core::Element* content = document->GetElementById("content");
-	if (content == NULL)
+	if (!content)
 		return;
 
 	// Create the new 'icon' element.
-	Rml::Core::Element* icon = Rml::Core::Factory::InstanceElement(content, "icon", "icon", Rml::Core::XMLAttributes());
+	Rml::Core::ElementPtr icon = Rml::Core::Factory::InstanceElement(content, "icon", "icon", Rml::Core::XMLAttributes());
 	icon->SetInnerRML(name);
-	content->AppendChild(icon);
-
-	// Release the initial reference on the element now that the document has it.
-	icon->RemoveReference();
+	content->AppendChild(std::move(icon));
 }

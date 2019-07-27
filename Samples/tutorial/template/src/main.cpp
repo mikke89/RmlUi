@@ -88,12 +88,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Load and show the tutorial document.
-	Rml::Core::ElementDocument* document = context->LoadDocument("tutorial/template/data/tutorial.rml");
-	if (document != NULL)
-	{
+	if (Rml::Core::ElementDocument * document = context->LoadDocument("tutorial/template/data/tutorial.rml"))
 		document->Show();
-		document->RemoveReference();
-	}
 
 	Shell::EventLoop(GameLoop);
 

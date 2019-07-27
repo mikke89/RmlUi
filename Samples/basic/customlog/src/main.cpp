@@ -112,7 +112,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	RMLUI_ASSERTMSG(invalid_document != NULL, "Testing ASSERT logging.");
 	if (invalid_document != NULL)
 	{
-		invalid_document->RemoveReference();
 		invalid_document->Close();
 	}
 
@@ -121,7 +120,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	if (document != NULL)
 	{
 		document->Show();
-		document->RemoveReference();
 	}
 
 	Shell::EventLoop(GameLoop);

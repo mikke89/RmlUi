@@ -103,11 +103,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Load and show the tutorial document.
 	Rml::Core::ElementDocument* document = context->LoadDocument("tutorial/datagrid_tree/data/tutorial.rml");
-	document->GetElementById("title")->SetInnerRML(document->GetTitle());
-	if (document != NULL)
+	if (document)
 	{
+		document->GetElementById("title")->SetInnerRML(document->GetTitle());
 		document->Show();
-		document->RemoveReference();
 	}
 
 	Shell::EventLoop(GameLoop);
