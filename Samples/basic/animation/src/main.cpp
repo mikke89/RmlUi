@@ -37,10 +37,6 @@
 #include <sstream>
 
 
-// Animations TODO:
-//  - Update transform animations / resolve keys again when parent box size changes.
-//  - [offtopic] Use double for absolute time, get and cache time for each render/update loop
-
 class DemoWindow
 {
 public:

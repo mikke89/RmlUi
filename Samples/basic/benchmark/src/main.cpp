@@ -34,20 +34,6 @@
 #include <ShellRenderInterfaceOpenGL.h>
 
 
-// Performance TODO:
-//  - Improve performance of transform parser (hashtable)
-//  - Replace property name strings with handle IDs (ints). Tried this and reverted, see [0e390e9], too little gain for too much complexity.
-//  - Memory pools for common elements. Also, a lot of temporary objects are created and destroyed.
-//  - Try replacing ElementAttributes with vector.
-//  - Can we optimize the layouting? E.g. why is ElementTextDefault::GenerateLine being called even when neither text nor size have seemingly been changed.
-//  - During first update after construction: Create computed values of all properties, and use these instead of GetProperty. 
-//       Instead, GetComputedValue which gives either absolute length, percentage, keywords (enum), color, etc. Inherited values then only need to check their nearest parent.
-//  - [bug] Input.range appears only after one additional frame.
-
-// Other TODO:
-// - The em-property depends on the current font-size, not font face lineheight! (See Element::OnPropertyChange)
-// - Need to think about how we should handle a dirtied property in OnPropertyChange w.r.t. computed values and clearing dirty props. Generally, it should be avoided altogether.
-
 class DemoWindow
 {
 public:
@@ -107,6 +93,7 @@ public:
 		  (Full release mode, no code change): 135.0  [5d138fa]
 		  EventIDs: 139.0  [d2c3956]
 		  More on events and EventIDs: 146.0  [fd44d9c]
+		  New decorator and font-effect syntax and misc (on a considerably lower clocked CPU): 156 [6619ab4]
 		  
 		*/
 
