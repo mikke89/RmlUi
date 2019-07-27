@@ -326,8 +326,6 @@ private:
 	// Releases all unloaded documents pending destruction.
 	void ReleaseUnloadedDocuments();
 
-	void ElementRemovedFromContext(Element* element, Element* move_focus);
-
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 

@@ -83,11 +83,11 @@ public:
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.
 	/// @param[in] instancer The instancer to call when the tag is encountered.
 	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static ElementInstancerPtr RegisterElementInstancer(const String& name, ElementInstancerPtr instancer);
+	static ElementInstancer* RegisterElementInstancer(const String& name, ElementInstancerPtr instancer);
 	/// Returns the element instancer for the specified tag.
 	/// @param[in] tag Name of the tag to get the instancer for.
 	/// @return The requested element instancer, or NULL if no such instancer is registered.
-	static ElementInstancerPtr GetElementInstancer(const String& tag);
+	static ElementInstancer* GetElementInstancer(const String& tag);
 	/// Instances a single element.
 	/// @param[in] parent The parent of the new element, or NULL for a root tag.
 	/// @param[in] instancer The name of the instancer to create the element with.

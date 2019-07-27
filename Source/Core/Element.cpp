@@ -189,24 +189,8 @@ Element::~Element()
 		child->SetOwnerDocument(nullptr);
 	}
 
-	if (deleted_children.empty())
-	{
-		deleted_children = std::move(children);
-		children.clear();
-	}
-	else
-	{
-		deleted_children.reserve(deleted_children.size() + children.size());
-		for (auto& child : children)
-			deleted_children.push_back(std::move(child));
-		children.clear();
-	}
-	
 	children.clear();
 	num_non_dom_children = 0;
-
-	// Release all deleted children.
-	ReleaseElements();
 
 	delete element_meta;
 
@@ -216,8 +200,6 @@ Element::~Element()
 
 void Element::Update(float dp_ratio)
 {
-	ReleaseElements();
-
 	OnUpdate();
 
 	UpdateStructure();
@@ -1496,7 +1478,7 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 }
 
 // Replaces the second node with the first node.
-bool Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_element)
+ElementPtr Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_element)
 {
 	RMLUI_ASSERT(inserted_element);
 	auto insertion_point = children.begin();
@@ -1510,13 +1492,13 @@ bool Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_elemen
 	if (insertion_point == children.end())
 	{
 		AppendChild(std::move(inserted_element));
-		return false;
+		return nullptr;
 	}
 
 	inserted_element_ptr->SetParent(this);
 
 	children.insert(insertion_point, std::move(inserted_element));
-	RemoveChild(replaced_element);
+	ElementPtr result = RemoveChild(replaced_element);
 
 	inserted_element_ptr->GetStyle()->DirtyDefinition();
 
@@ -1524,22 +1506,11 @@ bool Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_elemen
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
 		ancestor->OnChildAdd(inserted_element_ptr);
 
-	return true;
-}
-
-bool Element::RemoveChild(Element* child)
-{
-	ElementPtr released_child = ReleaseChild(child);
-	if (!released_child)
-		return false;
-
-	//deleted_children.push_back(std::move(released_child));
-
-	return true;
+	return result;
 }
 
 // Removes the specified child
-ElementPtr Element::ReleaseChild(Element* child)
+ElementPtr Element::RemoveChild(Element* child)
 {
 	size_t child_index = 0;
 
@@ -1715,7 +1686,7 @@ RenderInterface* Element::GetRenderInterface()
 	return Rml::Core::GetRenderInterface();
 }
 
-void Element::SetInstancer(const ElementInstancerPtr& _instancer)
+void Element::SetInstancer(ElementInstancer* _instancer)
 {
 	// Only record the first instancer being set as some instancers call other instancers to do their dirty work, in
 	// which case we don't want to update the lowest level instancer.
@@ -2149,47 +2120,6 @@ void Element::SetParent(Element* _parent)
 	parent = _parent;
 
 	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
-}
-
-void Element::ReleaseElements()
-{
-	//for (auto& element : deleted_children)
-	//{
-	//	// Set the parent to NULL unless it's been reparented already.
-	//	if (element->GetParentNode() == this)
-	//	{
-	//		element->parent = nullptr;
-	//		element->SetOwnerDocument(nullptr);
-	//	}
-	//}
-	
-	deleted_children.clear();
-
-	// Todo: See if some of the old functionality is required after change to unique pointers:
-
-	//// Remove deleted children from this element.
-	//while (!deleted_children.empty())
-	//{
-	//	ElementPtr element = std::move(deleted_children.back());
-	//	deleted_children.pop_back();
-
-	//	// If this element has been added back into our list, then we remove our previous oustanding reference on it
-	//	// and continue.
-	//	if (std::find(children.begin(), children.end(), element) != children.end())
-	//	{
-	//		element->RemoveReference();
-	//		continue;
-	//	}
-
-	//	// Set the parent to NULL unless it's been reparented already.
-	//	if (element->GetParentNode() == this)
-	//	{
-	//		element->parent = nullptr;
-	//		element->SetOwnerDocument(nullptr);
-	//	}
-
-	//	element->RemoveReference();
-	//}
 }
 
 void Element::DirtyOffset()
@@ -2849,16 +2779,6 @@ void Element::UpdateTransformState()
 		transform_state.reset();
 	}
 }
-
-void ElementDeleter::operator()(Element* element) const 
-{
-	ElementInstancerPtr& instancer = element->instancer;
-	if (instancer)
-		instancer->ReleaseElement(element);
-	else
-		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via RmlUi Factory. Unable to release.", element->GetAddress().c_str());
-};
-
 
 }
 }

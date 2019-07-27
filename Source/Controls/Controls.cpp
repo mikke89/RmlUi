@@ -45,27 +45,27 @@ namespace Controls {
 // Registers the custom element instancers.
 void RegisterElementInstancers()
 {
-	Core::Factory::RegisterElementInstancer("form", std::make_shared<Core::ElementInstancerGeneric< ElementForm >>());
+	Core::Factory::RegisterElementInstancer("form", std::make_unique<Core::ElementInstancerGeneric< ElementForm >>());
 
-	Core::Factory::RegisterElementInstancer("input", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlInput >>());
+	Core::Factory::RegisterElementInstancer("input", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlInput >>());
 
-	Core::Factory::RegisterElementInstancer("dataselect", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlDataSelect >>());
+	Core::Factory::RegisterElementInstancer("dataselect", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlDataSelect >>());
 
-	Core::Factory::RegisterElementInstancer("select", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlSelect >>());
+	Core::Factory::RegisterElementInstancer("select", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlSelect >>());
 
-	Core::Factory::RegisterElementInstancer("textarea", std::make_shared<Core::ElementInstancerGeneric< ElementFormControlTextArea >>());
+	Core::Factory::RegisterElementInstancer("textarea", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlTextArea >>());
 
-	Core::Factory::RegisterElementInstancer("#selection", std::make_shared<Core::ElementInstancerGeneric< ElementTextSelection >>());
+	Core::Factory::RegisterElementInstancer("#selection", std::make_unique<Core::ElementInstancerGeneric< ElementTextSelection >>());
 
-	Core::Factory::RegisterElementInstancer("tabset", std::make_shared<Core::ElementInstancerGeneric< ElementTabSet >>());
+	Core::Factory::RegisterElementInstancer("tabset", std::make_unique<Core::ElementInstancerGeneric< ElementTabSet >>());
 
-	Core::Factory::RegisterElementInstancer("datagrid", std::make_shared<Core::ElementInstancerGeneric< ElementDataGrid >>());
+	Core::Factory::RegisterElementInstancer("datagrid", std::make_unique<Core::ElementInstancerGeneric< ElementDataGrid >>());
 
-	Core::Factory::RegisterElementInstancer("datagridexpand", std::make_shared<Core::ElementInstancerGeneric< ElementDataGridExpandButton >>());
+	Core::Factory::RegisterElementInstancer("datagridexpand", std::make_unique<Core::ElementInstancerGeneric< ElementDataGridExpandButton >>());
 
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", std::make_shared<Core::ElementInstancerGeneric< ElementDataGridCell >>());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", std::make_unique<Core::ElementInstancerGeneric< ElementDataGridCell >>());
 
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", std::make_shared<Core::ElementInstancerGeneric< ElementDataGridRow >>());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", std::make_unique<Core::ElementInstancerGeneric< ElementDataGridRow >>());
 }
 
 void RegisterXMLNodeHandlers()

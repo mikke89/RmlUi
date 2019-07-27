@@ -501,13 +501,12 @@ public:
 	/// Replaces the second node with the first node.
 	/// @param[in] inserted_element The element that will be inserted and replace the other element.
 	/// @param[in] replaced_element The existing element that will be replaced. If this doesn't exist, inserted_element will be appended.
-	/// @return True if the replaced_element was found, false otherwise.
-	bool ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
+	/// @return A unique pointer to the element if found, discard the result to immediately destroy;
+	ElementPtr ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
 	/// Remove a child element from this element.
 	/// @param[in] The element to remove.
-	/// @returns True if the element was found and removed.
-	bool RemoveChild(Element* element);
-	ElementPtr ReleaseChild(Element* element);
+	/// @returns A unique pointer to the element if found, discard the result to immediately destroy;
+	ElementPtr RemoveChild(Element* element);
 	/// Returns whether or not this element has any DOM children.
 	/// @return True if the element has at least one DOM child, false otherwise.
 	bool HasChildNodes() const;
@@ -561,7 +560,7 @@ public:
 
 	/// Sets the instancer to use for releasing this element.
 	/// @param[in] instancer Instancer to set on this element.
-	void SetInstancer(const ElementInstancerPtr& instancer);
+	void SetInstancer(ElementInstancer* instancer);
 
 	/// Called for every event sent to this element or one of its descendants.
 	/// @param[in] event The event to process.
@@ -619,8 +618,6 @@ protected:
 private:
 	void SetParent(Element* parent);
 
-	void ReleaseElements();
-
 	void DirtyOffset();
 	void UpdateOffset();
 
@@ -661,7 +658,7 @@ private:
 	String id;
 
 	// Instancer that created us, used for destruction.
-	ElementInstancerPtr instancer;
+	ElementInstancer* instancer;
 
 	// Parent element.
 	Element* parent;
@@ -715,8 +712,6 @@ private:
 	OwnedElementList children;
 	int num_non_dom_children;
 
-	OwnedElementList deleted_children;
-
 	float z_index;
 	bool local_stacking_context;
 	bool local_stacking_context_forced;
@@ -755,7 +750,6 @@ private:
 	friend class LayoutInlineBox;
 	friend struct ElementDeleter;
 };
-
 
 }
 }

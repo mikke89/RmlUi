@@ -98,11 +98,11 @@ bool Factory::Initialise()
 		event_listener_instancer = NULL;
 
 	// Bind the default element instancers
-	RegisterElementInstancer("*", std::make_shared<ElementInstancerGeneric< Element >>());
-	RegisterElementInstancer("img", std::make_shared < ElementInstancerGeneric< ElementImage >>());
-	RegisterElementInstancer("#text", std::make_shared < ElementInstancerGeneric< ElementTextDefault >>());
-	RegisterElementInstancer("handle", std::make_shared < ElementInstancerGeneric< ElementHandle >>());
-	RegisterElementInstancer("body", std::make_shared < ElementInstancerGeneric< ElementDocument >>());
+	RegisterElementInstancer("*", std::make_unique<ElementInstancerGeneric< Element >>());
+	RegisterElementInstancer("img", std::make_unique < ElementInstancerGeneric< ElementImage >>());
+	RegisterElementInstancer("#text", std::make_unique < ElementInstancerGeneric< ElementTextDefault >>());
+	RegisterElementInstancer("handle", std::make_unique < ElementInstancerGeneric< ElementHandle >>());
+	RegisterElementInstancer("body", std::make_unique < ElementInstancerGeneric< ElementDocument >>());
 
 	// Bind the default decorator instancers
 	RegisterDecoratorInstancer("tiled-horizontal", std::make_unique<DecoratorTiledHorizontalInstancer>());
@@ -166,15 +166,16 @@ Context* Factory::InstanceContext(const String& name)
 	return new_context;
 }
 
-ElementInstancerPtr Factory::RegisterElementInstancer(const String& name, ElementInstancerPtr instancer)
+ElementInstancer* Factory::RegisterElementInstancer(const String& name, ElementInstancerPtr instancer)
 {
+	ElementInstancer* result = instancer.get();
 	String lower_case_name = ToLower(name);
-	element_instancers[lower_case_name] = instancer;
-	return instancer;
+	element_instancers[lower_case_name] = std::move(instancer);
+	return result;
 }
 
 // Looks up the instancer for the given element
-ElementInstancerPtr Factory::GetElementInstancer(const String& tag)
+ElementInstancer* Factory::GetElementInstancer(const String& tag)
 {
 	ElementInstancerMap::iterator instancer_iterator = element_instancers.find(tag);
 	if (instancer_iterator == element_instancers.end())
@@ -184,13 +185,13 @@ ElementInstancerPtr Factory::GetElementInstancer(const String& tag)
 			return nullptr;
 	}
 
-	return (*instancer_iterator).second;
+	return instancer_iterator->second.get();
 }
 
 // Instances a single element.
 ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_name, const String& tag, const XMLAttributes& attributes)
 {
-	ElementInstancerPtr instancer = GetElementInstancer(instancer_name);
+	ElementInstancer* instancer = GetElementInstancer(instancer_name);
 
 	if (instancer)
 	{

@@ -139,7 +139,7 @@ void ElementFormControlSelect::OnUpdate()
 		// Pull the inner RML and add the option.
 		Rml::Core::String rml;
 		child->GetInnerRML(rml);
-		widget->AddOption(rml, attribute_value, -1, child->GetAttribute("selected") != NULL, child->GetAttribute("unselectable") == NULL);
+		widget->AddOption(rml, attribute_value, -1, child->GetAttribute("selected"), !child->GetAttribute("unselectable"));
 
 		RemoveChild(child);
 	}

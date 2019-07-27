@@ -319,8 +319,8 @@ void Context::UnloadDocument(ElementDocument* _document)
 		document->DispatchEvent(EventId::Unload, Dictionary());
 		PluginRegistry::NotifyDocumentUnload(document);
 
-		// Remove the document from the context.
-		unloaded_documents.push_back( root->ReleaseChild(document) );
+		// Move document to a temporary location to be released later.
+		unloaded_documents.push_back( root->RemoveChild(document) );
 	}
 
 	// Remove the item from the focus history.
@@ -362,10 +362,6 @@ void Context::UnloadAllDocuments()
 	// Unload all children.
 	while (root->GetNumChildren(true) > 0)
 		UnloadDocument(root->GetChild(0)->GetOwnerDocument());
-
-	// Force cleanup of child elements now, reference counts must hit zero so that python (if it's in use) cleans up
-	// before we exit this method.
-	root->ReleaseElements();
 
 	// Also need to clear containers that keep ElementReference pointers to elements belonging to removed documents,
 	// essentially preventing them from being released in correct order (before context destroys render interface,
@@ -1187,11 +1183,6 @@ void Context::ReleaseUnloadedDocuments()
 			documents[i]->GetEventDispatcher()->DetachAllEvents();
 		documents.clear();
 	}
-}
-
-void Context::ElementRemovedFromContext(Element* element, Element* move_focus)
-{
-
 }
 
 // Sends the specified event to all elements in new_items that don't appear in old_items.

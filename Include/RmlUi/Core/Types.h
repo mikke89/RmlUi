@@ -98,12 +98,9 @@ typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
 typedef ColumnMajorMatrix4f Matrix4f;
 
 class Element;
-struct ElementDeleter {
-	void operator()(Element* element) const;
-};
 class ElementInstancer;
 using ElementPtr = std::unique_ptr<Element>;
-using ElementInstancerPtr = std::shared_ptr<ElementInstancer>;
+using ElementInstancerPtr = std::unique_ptr<ElementInstancer>;
 class ElementAnimation;
 class Property;
 class Variant;
