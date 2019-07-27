@@ -219,7 +219,8 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 		animation_list.push_back(std::move(animation));
 	}
 
-	property = Property{ animation_list, Property::ANIMATION };
+	property.value = std::move(animation_list);
+	property.unit = Property::ANIMATION;
 
 	return true;
 }
@@ -343,7 +344,8 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 		}
 	}
 
-	property = Property{ transition_list, Property::TRANSITION };
+	property.value = std::move(transition_list);
+	property.unit = Property::TRANSITION;
 
 	return true;
 }
