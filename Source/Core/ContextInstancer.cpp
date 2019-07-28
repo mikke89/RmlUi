@@ -36,10 +36,5 @@ ContextInstancer::~ContextInstancer()
 {
 }
 
-void ContextInstancer::OnReferenceDeactivate()
-{
-	Release();
-}
-
 }
 }

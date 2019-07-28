@@ -86,9 +86,6 @@ public:
 	/// @param[in] context The destroyed context.
 	void OnContextDestroy(Core::Context* context) override;
 
-	/// Called whenever an element is created.
-	/// @param[in] element The created element.
-	void OnElementCreate(Core::Element* element) override;
 	/// Called whenever an element is destroyed.
 	/// @param[in] element The destroyed element.
 	void OnElementDestroy(Core::Element* element) override;
@@ -123,10 +120,6 @@ private:
 	SystemInterface* log_hook;
 
 	bool render_outlines;
-
-	// Keep track of instanced elements for leak tracking.
-	typedef std::unordered_set< Core::Element* > ElementInstanceMap;
-	ElementInstanceMap elements;
 
 	// Singleton instance
 	static Plugin* instance;

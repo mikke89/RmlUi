@@ -92,8 +92,7 @@ Context::~Context()
 
 	root.reset();
 
-	if (instancer)
-		instancer->RemoveReference();
+	instancer.reset();
 
 	if (render_interface)
 		render_interface->RemoveReference();
@@ -801,11 +800,10 @@ void Context::SetActiveClipRegion(const Vector2i& origin, const Vector2i& dimens
 }
 
 // Sets the instancer to use for releasing this object.
-void Context::SetInstancer(ContextInstancer* _instancer)
+void Context::SetInstancer(SharedPtr<ContextInstancer> _instancer)
 {
 	RMLUI_ASSERT(instancer == nullptr);
-	instancer = _instancer;
-	instancer->AddReference();	
+	instancer = std::move(_instancer);
 }
 
 // Internal callback for when an element is removed from the hierarchy.
@@ -1194,9 +1192,9 @@ void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_item
 	std::for_each(elements.begin(), elements.end(), func);
 }
 
-void Context::OnReferenceDeactivate()
+void Context::Release()
 {
-	if (instancer != nullptr)
+	if (instancer)
 	{
 		instancer->ReleaseContext(this);
 	}

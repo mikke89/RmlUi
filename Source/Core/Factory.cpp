@@ -67,7 +67,7 @@ typedef UnorderedMap< String, std::unique_ptr<FontEffectInstancer> > FontEffectI
 static FontEffectInstancerMap font_effect_instancers;
 
 // The context instancer.
-static ContextInstancer* context_instancer = NULL;
+static SharedPtr<ContextInstancer> context_instancer;
 
 // The event instancer
 static EventInstancer* event_instancer = NULL;
@@ -86,8 +86,8 @@ Factory::~Factory()
 bool Factory::Initialise()
 {
 	// Bind the default context instancer.
-	if (context_instancer == NULL)
-		context_instancer = new ContextInstancerDefault();
+	if (!context_instancer)
+		context_instancer = std::make_shared<ContextInstancerDefault>();
 
 	// Bind default event instancer
 	if (event_instancer == NULL)
@@ -130,9 +130,7 @@ void Factory::Shutdown()
 
 	font_effect_instancers.clear();
 
-	if (context_instancer)
-		context_instancer->RemoveReference();
-	context_instancer = NULL;
+	context_instancer.reset();
 
 	if (event_listener_instancer)
 		event_listener_instancer->RemoveReference();
@@ -146,23 +144,19 @@ void Factory::Shutdown()
 }
 
 // Registers the instancer to use when instancing contexts.
-ContextInstancer* Factory::RegisterContextInstancer(ContextInstancer* instancer)
+ContextInstancer* Factory::RegisterContextInstancer(SharedPtr<ContextInstancer> instancer)
 {
-	instancer->AddReference();
-	if (context_instancer != NULL)
-		context_instancer->RemoveReference();
-
-	context_instancer = instancer;
-	return instancer;
+	ContextInstancer* result = instancer.get();
+	context_instancer = std::move(instancer);
+	return result;
 }
 
 // Instances a new context.
-Context* Factory::InstanceContext(const String& name)
+UniquePtr<Context> Factory::InstanceContext(const String& name)
 {
-	Context* new_context = context_instancer->InstanceContext(name);
-	if (new_context != NULL)
+	UniquePtr<Context> new_context = context_instancer->InstanceContext(name);
+	if (new_context)
 		new_context->SetInstancer(context_instancer);
-
 	return new_context;
 }
 

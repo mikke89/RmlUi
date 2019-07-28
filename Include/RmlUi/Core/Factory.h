@@ -73,11 +73,11 @@ public:
 
 	/// Registers the instancer to use when instancing contexts.
 	/// @param[in] instancer The new context instancer.
-	static ContextInstancer* RegisterContextInstancer(ContextInstancer* instancer);
+	static ContextInstancer* RegisterContextInstancer(SharedPtr<ContextInstancer> instancer);
 	/// Instances a new context.
 	/// @param[in] name The name of the new context.
 	/// @return The new context, or NULL if no context could be created.
-	static Context* InstanceContext(const String& name);
+	static UniquePtr<Context> InstanceContext(const String& name);
 
 	/// Registers an element instancer that will be used to instance an element when the specified tag is encountered.
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.

@@ -65,6 +65,7 @@ template<typename T>
 class RMLUICORE_API Releaser final : public ReleaserBase {
 public:
 	void operator()(T* target) const {
+		static_assert(std::is_base_of<Releasable, T>::value, "Releaser can only operate with classes derived from Releasable.");
 		Release(static_cast<Releasable*>(target));
 	}
 };

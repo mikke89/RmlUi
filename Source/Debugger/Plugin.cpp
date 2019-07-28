@@ -211,15 +211,6 @@ void Plugin::OnShutdown()
 	// and that we don't try send the messages to the debug log window
 	ReleaseElements();
 
-	if (!elements.empty())
-	{
-		Core::Log::Message(Core::Log::LT_WARNING, "%u leaked elements detected.", elements.size());
-
-		int count = 0;
-		for (ElementInstanceMap::iterator i = elements.begin(); i != elements.end(); ++i)
-			Core::Log::Message(Core::Log::LT_WARNING, "\t(%d) %s -> %s", count++, (*i)->GetTagName().c_str(), (*i)->GetAddress().c_str());
-	}
-
 	delete this;
 }
 
@@ -229,7 +220,7 @@ void Plugin::OnContextDestroy(Core::Context* context)
 	if (context == debug_context)
 	{
 		// The context we're debugging is being destroyed, so we need to remove our debug hook elements.
-		SetContext(NULL);
+		SetContext(nullptr);
 	}
 
 	if (context == host_context)
@@ -238,24 +229,15 @@ void Plugin::OnContextDestroy(Core::Context* context)
 
 		ReleaseElements();
 
-		Geometry::SetContext(NULL);
-		context = NULL;
+		Geometry::SetContext(nullptr);
+		context = nullptr;
 	}
-}
-
-// Called whenever an element is created.
-void Plugin::OnElementCreate(Core::Element* element)
-{
-	// Store the stack addresses for this frame.
-	elements.insert(element);
 }
 
 // Called whenever an element is destroyed.
 void Plugin::OnElementDestroy(Core::Element* element)
 {
-	elements.erase(element);
-
-	if (info_element != NULL)
+	if (info_element)
 		info_element->OnElementDestroy(element);
 }
 
@@ -381,23 +363,31 @@ void Plugin::ReleaseElements()
 {
 	if (menu_element)
 	{
-		menu_element = NULL;
+		if (auto parent = menu_element->GetParentNode())
+			parent->RemoveChild(menu_element);
+		menu_element = nullptr;
 	}
 
 	if (info_element)
 	{
-		info_element = NULL;
+		if (auto parent = info_element->GetParentNode())
+			parent->RemoveChild(info_element);
+		info_element = nullptr;
 	}
 
 	if (log_element)
 	{
-		log_element = NULL;
+		if (auto parent = log_element->GetParentNode())
+			parent->RemoveChild(log_element);
+		log_element = nullptr;
 		delete log_hook;
 	}
 
 	if (hook_element)
 	{
-		hook_element = NULL;
+		if (auto parent = hook_element->GetParentNode())
+			parent->RemoveChild(hook_element);
+		hook_element = nullptr;
 	}
 }
 

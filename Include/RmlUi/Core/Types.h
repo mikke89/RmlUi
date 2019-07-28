@@ -98,10 +98,15 @@ typedef Matrix4< float, ColumnMajorStorage< float > > ColumnMajorMatrix4f;
 typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
 typedef ColumnMajorMatrix4f Matrix4f;
 
+template<typename T>
+using UniquePtr = std::unique_ptr<T, Releaser<T>>;
+template<typename T>
+using SharedPtr = std::shared_ptr<T>;
+
 class Element;
 class ElementInstancer;
-using ElementPtr = std::unique_ptr<Element, Releaser<Element>>;
-using ElementInstancerPtr = std::unique_ptr<ElementInstancer, Releaser<ElementInstancer>>;
+using ElementPtr = UniquePtr<Element>;
+using ElementInstancerPtr = UniquePtr<ElementInstancer>;
 class ElementAnimation;
 class Property;
 class Variant;

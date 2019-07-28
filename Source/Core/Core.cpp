@@ -51,30 +51,13 @@ static FileInterfaceDefault file_interface_default;
 #endif
 static bool initialised = false;
 
-typedef UnorderedMap< String, Context* > ContextMap;
+using ContextMap = UnorderedMap< String, UniquePtr<Context> >;
 static ContextMap contexts;
 
 #ifndef RMLUI_VERSION
 	#define RMLUI_VERSION "custom"
 #endif
 
-/**
-	A 'plugin' for unobtrusively intercepting the destruction of contexts.
- */
-
-class PluginContextRelease : public Plugin
-{
-	public:
-		virtual void OnShutdown()
-		{
-			delete this;
-		}
-
-		virtual void OnContextDestroy(Context* context)
-		{
-			contexts.erase(context->GetName());
-		}
-};
 
 bool Initialise()
 {
@@ -112,7 +95,6 @@ bool Initialise()
 	Factory::Initialise();
 
 	// Notify all plugins we're starting up.
-	PluginRegistry::RegisterPlugin(new PluginContextRelease());
 	PluginRegistry::NotifyInitialise();
 
 	initialised = true;
@@ -125,9 +107,6 @@ void Shutdown()
 	// Notify all plugins we're being shutdown.
 	PluginRegistry::NotifyShutdown();
 
-	// Release all remaining contexts.
-	for (ContextMap::iterator itr = contexts.begin(); itr != contexts.end(); ++itr)
-		Core::Log::Message(Log::LT_WARNING, "Context '%s' still active on shutdown.", (*itr).first.c_str());
 	contexts.clear();
 
 	TemplateCache::Shutdown();
@@ -225,26 +204,25 @@ FileInterface* GetFileInterface()
 Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* custom_render_interface)
 {
 	if (!initialised)
-		return NULL;
+		return nullptr;
 
-	if (custom_render_interface == NULL &&
-		render_interface == NULL)
+	if (!custom_render_interface && !render_interface)
 	{
 		Log::Message(Log::LT_WARNING, "Failed to create context '%s', no render interface specified and no default render interface exists.", name.c_str());
-		return NULL;
+		return nullptr;
 	}
 
-	if (GetContext(name) != NULL)
+	if (GetContext(name))
 	{
 		Log::Message(Log::LT_WARNING, "Failed to create context '%s', context already exists.", name.c_str());
-		return NULL;
+		return nullptr;
 	}
 
-	Context* new_context = Factory::InstanceContext(name);
-	if (new_context == NULL)
+	UniquePtr<Context> new_context = Factory::InstanceContext(name);
+	if (!new_context)
 	{
 		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned NULL.", name.c_str());
-		return NULL;
+		return nullptr;
 	}
 
 	// Set the render interface on the context, and add a reference onto it.
@@ -263,11 +241,24 @@ Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInt
 		// install an identity view, by default
 		new_context->ProcessViewChange(Matrix4f::Identity());
 	}
-	contexts[name] = new_context;
 
-	PluginRegistry::NotifyContextCreate(new_context);
+	Context* new_context_raw = new_context.get();
+	contexts[name] = std::move(new_context);
 
-	return new_context;
+	PluginRegistry::NotifyContextCreate(new_context_raw);
+
+	return new_context_raw;
+}
+
+bool RemoveContext(const String& name)
+{
+	auto it = contexts.find(name);
+	if (it != contexts.end())
+	{
+		contexts.erase(it);
+		return true;
+	}
+	return false;
 }
 
 // Fetches a previously constructed context by name.
@@ -275,9 +266,9 @@ Context* GetContext(const String& name)
 {
 	ContextMap::iterator i = contexts.find(name);
 	if (i == contexts.end())
-		return NULL;
+		return nullptr;
 
-	return (*i).second;
+	return i->second.get();
 }
 
 // Fetches a context by index.
@@ -296,9 +287,9 @@ Context* GetContext(int index)
 	}
 
 	if (i == contexts.end())
-		return NULL;
+		return nullptr;
 
-	return (*i).second;
+	return i->second.get();
 }
 
 // Returns the number of active contexts.

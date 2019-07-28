@@ -53,7 +53,7 @@ enum class EventId : uint16_t;
 	@author Peter Curry
  */
 
-class RMLUICORE_API Context : public ReferenceCountable
+class RMLUICORE_API Context : public Releasable
 {
 public:
 	/// Constructs a new, uninitialised context. This should not be called directly, use Core::CreateContext()
@@ -219,17 +219,17 @@ public:
 
 	/// Sets the instancer to use for releasing this object.
 	/// @param[in] instancer The context's instancer.
-	void SetInstancer(ContextInstancer* instancer);
+	void SetInstancer(SharedPtr<ContextInstancer> instancer);
 
 protected:
-	virtual void OnReferenceDeactivate();
+	void Release() override;
 
 private:
 	String name;
 	Vector2i dimensions;
 	float density_independent_pixel_ratio;
 
-	ContextInstancer* instancer;
+	SharedPtr<ContextInstancer> instancer;
 
 	typedef SmallOrderedSet< ElementReference > ElementSet;
 	typedef std::vector< ElementReference > ElementList;

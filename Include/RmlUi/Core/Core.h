@@ -132,7 +132,11 @@ RMLUICORE_API FileInterface* GetFileInterface();
 /// @param[in] dimensions The initial dimensions of the new context.
 /// @param[in] render_interface The custom render interface to use, or NULL to use the default.
 /// @return The new context, or NULL if the context could not be created.
-RMLUICORE_API Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* render_interface = NULL);
+RMLUICORE_API Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* render_interface = nullptr);
+/// Removes a context.
+/// @param[in] name The name of the context to remove.
+/// @return True if name is a valid context, false otherwise.
+RMLUICORE_API bool RemoveContext(const String& name);
 /// Fetches a previously constructed context by name.
 /// @param[in] name The name of the desired context.
 /// @return The desired context, or NULL if no context exists with the given name.
