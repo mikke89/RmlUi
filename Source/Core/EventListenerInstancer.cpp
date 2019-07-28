@@ -36,10 +36,5 @@ EventListenerInstancer::~EventListenerInstancer()
 {
 }
 
-void EventListenerInstancer::OnReferenceDeactivate()
-{
-	Release();
-}
-
 }
 }

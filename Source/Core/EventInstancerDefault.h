@@ -51,14 +51,14 @@ public:
 	/// @param[in] name Name of this event.
 	/// @param[in] parameters Additional parameters for this event.
 	/// @param[in] interruptible If the event propagation can be stopped.
-	virtual Event* InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible) override;
+	UniquePtr<Event> InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible) override;
 
 	/// Releases an event instanced by this instancer.
 	/// @param[in] event The event to release.
-	virtual void ReleaseEvent(Event* event) override;
+	void ReleaseEvent(Event* event) override;
 
 	/// Releases this event instancer.
-	virtual void Release() override;
+	void Release() override;
 };
 
 }

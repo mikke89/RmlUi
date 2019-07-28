@@ -42,10 +42,10 @@ public:
 	virtual ~Event();
 
 	/// Sends the event value through to Invader's event processing system.
-	virtual void ProcessEvent(Rml::Core::Event& event) override;
+	void ProcessEvent(Rml::Core::Event& event) override;
 
 	/// Destroys the event.
-	virtual void OnDetach(Rml::Core::Element* element) override;
+	void OnDetach(Rml::Core::Element* element) override;
 
 private:
 	Rml::Core::String value;

@@ -153,18 +153,18 @@ public:
 	/// Registers an instancer for all events.
 	/// @param[in] instancer The instancer to be called.
 	/// @return The registered instanced on success, NULL on failure.
-	static EventInstancer* RegisterEventInstancer(EventInstancer* instancer);
+	static EventInstancer* RegisterEventInstancer(UniquePtr<EventInstancer> instancer);
 	/// Instance and event object
 	/// @param[in] target Target element of this event.
 	/// @param[in] name Name of this event.
 	/// @param[in] parameters Additional parameters for this event.
 	/// @param[in] interruptible If the event propagation can be stopped.
 	/// @return The instanced event.
-	static Event* InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
+	static UniquePtr<Event> InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 
 	/// Register the instancer to be used for all event listeners.
 	/// @return The registered instancer on success, NULL on failure.
-	static EventListenerInstancer* RegisterEventListenerInstancer(EventListenerInstancer* instancer);
+	static EventListenerInstancer* RegisterEventListenerInstancer(UniquePtr<EventListenerInstancer> instancer);
 	/// Instance an event listener with the given string. This is used for instancing listeners for the on* events from
 	/// RML.
 	/// @param[in] value The parameters to the event listener.

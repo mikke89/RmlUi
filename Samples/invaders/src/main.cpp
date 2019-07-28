@@ -134,9 +134,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	HighScores::Initialise();
 
 	// Initialise the event instancer and handlers.
-	EventInstancer* event_instancer = new EventInstancer();
-	Rml::Core::Factory::RegisterEventListenerInstancer(event_instancer);
-	event_instancer->RemoveReference();
+	Rml::Core::Factory::RegisterEventListenerInstancer(Rml::Core::UniquePtr<Rml::Core::EventListenerInstancer>(new EventInstancer));
 
 	EventManager::RegisterEventHandler("start_game", new EventHandlerStartGame());
 	EventManager::RegisterEventHandler("high_score", new EventHandlerHighScore());

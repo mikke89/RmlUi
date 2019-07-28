@@ -46,7 +46,7 @@ class EventListener;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API EventListenerInstancer : public ReferenceCountable
+class RMLUICORE_API EventListenerInstancer : public Releasable
 {
 public:
 	virtual ~EventListenerInstancer();
@@ -56,11 +56,9 @@ public:
 	/// @param element Element that triggers the events.
 	virtual EventListener* InstanceEventListener(const String& value, Element* element) = 0;
 
+protected:
 	/// Releases this event listener instancer.
 	virtual void Release() = 0;
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

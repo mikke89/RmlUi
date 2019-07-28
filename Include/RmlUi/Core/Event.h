@@ -51,7 +51,7 @@ enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, Bubble =
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API Event : public ReferenceCountable
+class RMLUICORE_API Event : public Releasable
 {
 public:
 	/// Constructor
@@ -113,10 +113,11 @@ public:
 	/// @return The dictionary of parameters
 	const Dictionary* GetParameters() const;
 
-	/// Release this event.
-	virtual void OnReferenceDeactivate() override;
 
 private:
+	/// Release this event.
+	void Release() override;
+
 	/// Project the mouse coordinates to the current element to enable
 	/// interacting with transformed elements.
 	void ProjectMouse(Element* element);

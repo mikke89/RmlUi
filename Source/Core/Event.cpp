@@ -132,7 +132,7 @@ const Dictionary* Event::GetParameters() const
 	return &parameters;
 }
 
-void Event::OnReferenceDeactivate()
+void Event::Release()
 {
 	instancer->ReleaseEvent(this);
 }

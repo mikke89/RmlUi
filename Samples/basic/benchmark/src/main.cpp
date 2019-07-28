@@ -321,9 +321,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	EventInstancer* event_instancer = new EventInstancer();
-	Rml::Core::Factory::RegisterEventListenerInstancer(event_instancer);
-	event_instancer->RemoveReference();
+	Rml::Core::Factory::RegisterEventListenerInstancer(Rml::Core::UniquePtr<Rml::Core::EventListenerInstancer>(new EventInstancer));
 
 	Shell::LoadFonts("assets/");
 

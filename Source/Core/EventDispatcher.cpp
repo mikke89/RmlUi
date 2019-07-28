@@ -110,7 +110,7 @@ void EventDispatcher::DetachAllEvents()
 
 bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
-	Event* event = Factory::InstanceEvent(target_element, id, type, parameters, interruptible);
+	UniquePtr<Event> event = Factory::InstanceEvent(target_element, id, type, parameters, interruptible);
 	if (!event)
 		return false;
 
@@ -156,7 +156,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 	}
 
 	bool propagating = event->IsPropagating();
-	event->RemoveReference();
+
 	return propagating;
 }
 

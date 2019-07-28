@@ -70,10 +70,10 @@ static FontEffectInstancerMap font_effect_instancers;
 static SharedPtr<ContextInstancer> context_instancer;
 
 // The event instancer
-static EventInstancer* event_instancer = NULL;
+static UniquePtr<EventInstancer> event_instancer;
 
 // Event listener instancer.
-static EventListenerInstancer* event_listener_instancer = NULL;
+static UniquePtr<EventListenerInstancer> event_listener_instancer;
 
 Factory::Factory()
 {
@@ -90,12 +90,12 @@ bool Factory::Initialise()
 		context_instancer = std::make_shared<ContextInstancerDefault>();
 
 	// Bind default event instancer
-	if (event_instancer == NULL)
-		event_instancer = new EventInstancerDefault();
+	if (!event_instancer)
+		event_instancer = UniquePtr<EventInstancer>(new EventInstancerDefault);
 
 	// No default event listener instancer
-	if (event_listener_instancer == NULL)
-		event_listener_instancer = NULL;
+	if (!event_listener_instancer)
+		event_listener_instancer = nullptr;
 
 	// Bind the default element instancers
 	RegisterElementInstancer("*", ElementInstancerPtr(new ElementInstancerGeneric< Element >));
@@ -132,13 +132,9 @@ void Factory::Shutdown()
 
 	context_instancer.reset();
 
-	if (event_listener_instancer)
-		event_listener_instancer->RemoveReference();
-	event_listener_instancer = NULL;
+	event_listener_instancer.reset();
 
-	if (event_instancer)
-		event_instancer->RemoveReference();
-	event_instancer = NULL;
+	event_instancer.reset();
 
 	XMLParser::ReleaseHandlers();
 }
@@ -389,37 +385,27 @@ void Factory::ClearTemplateCache()
 }
 
 // Registers an instancer for all RmlEvents
-EventInstancer* Factory::RegisterEventInstancer(EventInstancer* instancer)
+EventInstancer* Factory::RegisterEventInstancer(UniquePtr<EventInstancer> instancer)
 {
-	instancer->AddReference();
-
-	if (event_instancer)
-		event_instancer->RemoveReference();
-
-	event_instancer = instancer;
-	return instancer;
+	event_instancer = std::move(instancer);
+	return event_instancer.get();
 }
 
 // Instance an event object.
-Event* Factory::InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible)
+UniquePtr<Event> Factory::InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible)
 {
-	Event* event = event_instancer->InstanceEvent(target, id, type, parameters, interruptible);
-	if (event != NULL)
-		event->instancer = event_instancer;
+	UniquePtr<Event> event = event_instancer->InstanceEvent(target, id, type, parameters, interruptible);
+	if (event)
+		event->instancer = event_instancer.get();
 
 	return event;
 }
 
 // Register an instancer for all event listeners
-EventListenerInstancer* Factory::RegisterEventListenerInstancer(EventListenerInstancer* instancer)
+EventListenerInstancer* Factory::RegisterEventListenerInstancer(UniquePtr<EventListenerInstancer> instancer)
 {
-	instancer->AddReference();
-
-	if (event_listener_instancer)
-		event_listener_instancer->RemoveReference();
-
-	event_listener_instancer = instancer;
-	return instancer;
+	event_listener_instancer = std::move(instancer);
+	return event_listener_instancer.get();
 }
 
 // Instance an event listener with the given string
@@ -429,7 +415,7 @@ EventListener* Factory::InstanceEventListener(const String& value, Element* elem
 	if (event_listener_instancer)
 		return event_listener_instancer->InstanceEventListener(value, element);
 
-	return NULL;
+	return nullptr;
 }
 
 }
