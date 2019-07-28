@@ -49,7 +49,6 @@ public:
 	/// Constructor
 	/// @param[in] element The element this structure belongs to.
 	ElementStyle(Element* element);
-	~ElementStyle();
 
 	/// Returns the element's definition.
 	const ElementDefinition* GetDefinition() const;
@@ -158,7 +157,7 @@ private:
 	// Any properties that have been overridden in this element.
 	PropertyDictionary inline_properties;
 	// The definition of this element, provides applicable properties from the stylesheet.
-	ElementDefinition* definition;
+	std::shared_ptr<ElementDefinition> definition;
 	// Set if a new element definition should be fetched from the style.
 	bool definition_dirty;
 

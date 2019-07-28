@@ -40,10 +40,6 @@ ElementDefinition::ElementDefinition(const std::vector< const StyleSheetNode* >&
 		properties.Merge(style_sheet_nodes[i]->GetProperties());
 }
 
-ElementDefinition::~ElementDefinition()
-{
-}
-
 // Returns a specific property from the element definition's base properties.
 const Property* ElementDefinition::GetProperty(PropertyId id) const
 {
@@ -56,13 +52,6 @@ void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names) c
 	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
 		property_names.insert((*i).first);
 }
-
-// Destroys the definition.
-void ElementDefinition::OnReferenceDeactivate()
-{
-	delete this;
-}
-
 
 }
 }

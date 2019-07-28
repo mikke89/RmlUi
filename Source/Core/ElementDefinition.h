@@ -44,11 +44,10 @@ class ElementDefinitionIterator;
 	@author Peter Curry
  */
 
-class ElementDefinition : public ReferenceCountable
+class ElementDefinition : public NonCopyMoveable
 {
 public:
 	ElementDefinition(const std::vector< const StyleSheetNode* >& style_sheet_nodes);
-	virtual ~ElementDefinition();
 
 	/// Returns a specific property from the element definition's base properties.
 	/// @param[in] name The name of the property to return.
@@ -63,10 +62,6 @@ public:
 	void GetDefinedProperties(PropertyNameList& property_names) const;
 
 	const PropertyDictionary& GetProperties() const { return properties; }
-
-protected:
-	/// Destroys the definition.
-	void OnReferenceDeactivate();
 
 private:
 	// The attributes for the default state of the element, with no pseudo-classes.

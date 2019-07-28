@@ -105,7 +105,7 @@ public:
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
-	ElementDefinition* GetElementDefinition(const Element* element) const;
+	std::shared_ptr<ElementDefinition> GetElementDefinition(const Element* element) const;
 
 protected:
 	/// Destroys the style sheet.
@@ -113,7 +113,7 @@ protected:
 
 private:
 	// Root level node, attributes from special nodes like "body" get added to this node
-	StyleSheetNode* root;
+	std::unique_ptr<StyleSheetNode> root;
 
 	// The maximum specificity offset used in this style sheet to distinguish between properties in
 	// similarly-specific rules, but declared on different lines. When style sheets are merged, the
@@ -136,7 +136,7 @@ private:
 	// Map of every node, even empty, un-styled, nodes.
 	NodeIndex complete_node_index;
 
-	typedef UnorderedMap< size_t, ElementDefinition* > ElementDefinitionCache;
+	typedef UnorderedMap< size_t, std::shared_ptr<ElementDefinition> > ElementDefinitionCache;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
 };

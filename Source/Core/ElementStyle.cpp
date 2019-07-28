@@ -59,16 +59,9 @@ ElementStyle::ElementStyle(Element* _element) : dirty_properties(true)
 	definition_dirty = true;
 }
 
-ElementStyle::~ElementStyle()
-{
-	if (definition)
-		definition->RemoveReference();
-}
-
-
 const ElementDefinition* ElementStyle::GetDefinition() const
 {
-	return definition;
+	return definition.get();
 }
 
 // Returns one of this element's properties.
@@ -177,7 +170,7 @@ void ElementStyle::UpdateDefinition()
 	{
 		definition_dirty = false;
 
-		ElementDefinition* new_definition = nullptr;
+		std::shared_ptr<ElementDefinition> new_definition;
 		
 		if (const StyleSheet * style_sheet = GetStyleSheet())
 		{
@@ -202,20 +195,11 @@ void ElementStyle::UpdateDefinition()
 			if (new_definition)
 				new_definition->GetDefinedProperties(properties);
 
-			TransitionPropertyChanges(element, properties, inline_properties, definition, new_definition);
-
-			if (definition)
-				definition->RemoveReference();
+			TransitionPropertyChanges(element, properties, inline_properties, definition.get(), new_definition.get());
 
 			definition = new_definition;
 			
 			DirtyProperties(properties);
-		}
-		else if (new_definition)
-		{
-			// We got the same definition
-			RMLUI_ASSERT(new_definition == definition);
-			new_definition->RemoveReference();
 		}
 
 		// Even if the definition was not changed, the child definitions may have changed as a result of anything that
@@ -337,13 +321,13 @@ void ElementStyle::RemoveProperty(PropertyId id)
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(PropertyId id) const
 {
-	return GetProperty(id, element, inline_properties, definition);
+	return GetProperty(id, element, inline_properties, definition.get());
 }
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 {
-	return GetLocalProperty(id, inline_properties, definition);
+	return GetLocalProperty(id, inline_properties, definition.get());
 }
 
 const PropertyMap& ElementStyle::GetLocalStyleProperties() const

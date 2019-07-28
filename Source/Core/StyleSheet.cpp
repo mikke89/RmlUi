@@ -50,22 +50,18 @@ static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* 
 
 StyleSheet::StyleSheet()
 {
-	root = new StyleSheetNode("", StyleSheetNode::ROOT);
+	root = std::make_unique<StyleSheetNode>("", StyleSheetNode::ROOT);
 	specificity_offset = 0;
 }
 
 StyleSheet::~StyleSheet()
 {
-	delete root;
-
-	for (ElementDefinitionCache::iterator cache_iterator = node_cache.begin(); cache_iterator != node_cache.end(); ++cache_iterator)
-		(*cache_iterator).second->RemoveReference();
 }
 
 bool StyleSheet::LoadStyleSheet(Stream* stream)
 {
 	StyleSheetParser parser;
-	specificity_offset = parser.Parse(root, stream, *this, keyframes, decorator_map, spritesheet_list);
+	specificity_offset = parser.Parse(root.get(), stream, *this, keyframes, decorator_map, spritesheet_list);
 	return specificity_offset >= 0;
 }
 
@@ -75,8 +71,8 @@ StyleSheet* StyleSheet::CombineStyleSheet(const StyleSheet* other_sheet) const
 	RMLUI_ASSERT(other_sheet);
 
 	StyleSheet* new_sheet = new StyleSheet();
-	if (!new_sheet->root->MergeHierarchy(root) ||
-		!new_sheet->root->MergeHierarchy(other_sheet->root, specificity_offset))
+	if (!new_sheet->root->MergeHierarchy(root.get()) ||
+		!new_sheet->root->MergeHierarchy(other_sheet->root.get(), specificity_offset))
 	{
 		delete new_sheet;
 		return NULL;
@@ -308,7 +304,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 
 
 // Returns the compiled element definition for a given element hierarchy.
-ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) const
+std::shared_ptr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
 {
 	RMLUI_ASSERT_NONRECURSIVE;
 
@@ -353,19 +349,17 @@ ElementDefinition* StyleSheet::GetElementDefinition(const Element* element) cons
 	auto cache_iterator = node_cache.find(seed);
 	if (cache_iterator != node_cache.end())
 	{
-		ElementDefinition* definition = (*cache_iterator).second;
-		definition->AddReference();
+		std::shared_ptr<ElementDefinition>& definition = (*cache_iterator).second;
 		applicable_nodes.clear();
 		return definition;
 	}
 
 	// Create the new definition and add it to our cache. One reference count is added, bringing the total to two; one
 	// for the element that requested it, and one for the cache.
-	ElementDefinition* new_definition = new ElementDefinition(applicable_nodes);
+	auto new_definition = std::make_shared<ElementDefinition>(applicable_nodes);
 
 	// Add to the node cache.
 	node_cache[seed] = new_definition;
-	new_definition->AddReference();
 
 	return new_definition;
 }
