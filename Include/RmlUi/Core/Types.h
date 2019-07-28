@@ -48,6 +48,7 @@
 
 #include "Platform.h"
 #include "Debug.h"
+#include "ReferenceCountable.h"
 
 #ifdef RMLUI_DEBUG
 #include <unordered_map>
@@ -99,8 +100,8 @@ typedef ColumnMajorMatrix4f Matrix4f;
 
 class Element;
 class ElementInstancer;
-using ElementPtr = std::unique_ptr<Element>;
-using ElementInstancerPtr = std::unique_ptr<ElementInstancer>;
+using ElementPtr = std::unique_ptr<Element, Releaser<Element>>;
+using ElementInstancerPtr = std::unique_ptr<ElementInstancer, Releaser<ElementInstancer>>;
 class ElementAnimation;
 class Property;
 class Variant;

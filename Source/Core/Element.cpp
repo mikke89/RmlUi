@@ -2110,6 +2110,14 @@ void Element::SetOwnerDocument(ElementDocument* document)
 	}
 }
 
+void Element::Release()
+{
+	if (instancer)
+		instancer->ReleaseElement(this);
+	else
+		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via RmlUi Factory. Unable to release.", GetAddress().c_str());
+}
+
 void Element::SetParent(Element* _parent)
 {	
 	// If there's an old parent, detach from it first.

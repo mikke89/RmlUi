@@ -45,27 +45,27 @@ namespace Controls {
 // Registers the custom element instancers.
 void RegisterElementInstancers()
 {
-	Core::Factory::RegisterElementInstancer("form", std::make_unique<Core::ElementInstancerGeneric< ElementForm >>());
+	Core::Factory::RegisterElementInstancer("form", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementForm >));
 
-	Core::Factory::RegisterElementInstancer("input", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlInput >>());
+	Core::Factory::RegisterElementInstancer("input", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlInput >));
 
-	Core::Factory::RegisterElementInstancer("dataselect", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlDataSelect >>());
+	Core::Factory::RegisterElementInstancer("dataselect", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlDataSelect >));
 
-	Core::Factory::RegisterElementInstancer("select", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlSelect >>());
+	Core::Factory::RegisterElementInstancer("select", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlSelect >));
 
-	Core::Factory::RegisterElementInstancer("textarea", std::make_unique<Core::ElementInstancerGeneric< ElementFormControlTextArea >>());
+	Core::Factory::RegisterElementInstancer("textarea", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlTextArea >));
 
-	Core::Factory::RegisterElementInstancer("#selection", std::make_unique<Core::ElementInstancerGeneric< ElementTextSelection >>());
+	Core::Factory::RegisterElementInstancer("#selection", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementTextSelection >));
 
-	Core::Factory::RegisterElementInstancer("tabset", std::make_unique<Core::ElementInstancerGeneric< ElementTabSet >>());
+	Core::Factory::RegisterElementInstancer("tabset", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementTabSet >));
 
-	Core::Factory::RegisterElementInstancer("datagrid", std::make_unique<Core::ElementInstancerGeneric< ElementDataGrid >>());
+	Core::Factory::RegisterElementInstancer("datagrid", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGrid >));
 
-	Core::Factory::RegisterElementInstancer("datagridexpand", std::make_unique<Core::ElementInstancerGeneric< ElementDataGridExpandButton >>());
+	Core::Factory::RegisterElementInstancer("datagridexpand", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridExpandButton >));
 
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", std::make_unique<Core::ElementInstancerGeneric< ElementDataGridCell >>());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridCell >));
 
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", std::make_unique<Core::ElementInstancerGeneric< ElementDataGridRow >>());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridRow >));
 }
 
 void RegisterXMLNodeHandlers()

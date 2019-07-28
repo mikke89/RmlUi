@@ -35,7 +35,7 @@ namespace Rml {
 namespace Core {
 
 
-class NonCopyMoveable {
+class RMLUICORE_API NonCopyMoveable {
 public:
 	NonCopyMoveable() {}
 	~NonCopyMoveable() {}
@@ -44,6 +44,33 @@ public:
 	NonCopyMoveable(NonCopyMoveable&&) = delete;
 	NonCopyMoveable& operator=(NonCopyMoveable&&) = delete;
 };
+
+
+class ReleaserBase;
+
+class RMLUICORE_API Releasable : public NonCopyMoveable {
+protected:
+	virtual void Release() = 0;
+	friend class ReleaserBase;
+};
+
+class RMLUICORE_API ReleaserBase {
+protected:
+	void Release(Releasable* target) const {
+		target->Release();
+	}
+};
+
+template<typename T>
+class RMLUICORE_API Releaser final : public ReleaserBase {
+public:
+	void operator()(T* target) const {
+		Release(static_cast<Releasable*>(target));
+	}
+};
+
+
+
 
 /**
 	A base class for any class that wishes to be reference counted.

@@ -71,7 +71,7 @@ struct ElementMeta;
 	@author Peter Curry
  */
 
-class RMLUICORE_API Element : public NonCopyMoveable
+class RMLUICORE_API Element : public Releasable
 {
 public:
 	/// Constructs a new RmlUi element. This should not be called directly; use the Factory
@@ -614,6 +614,8 @@ protected:
 	virtual void GetRML(String& content);
 
 	void SetOwnerDocument(ElementDocument* document);
+
+	void Release() override;
 
 private:
 	void SetParent(Element* parent);

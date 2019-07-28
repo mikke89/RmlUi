@@ -83,7 +83,7 @@ bool Plugin::Initialise(Core::Context* context)
 		return false;
 	}
 
-	Core::Factory::RegisterElementInstancer("debug-hook", std::make_unique<Core::ElementInstancerGeneric< ElementContextHook >>());
+	Core::Factory::RegisterElementInstancer("debug-hook", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementContextHook >));
 
 	return true;
 }
@@ -336,7 +336,7 @@ bool Plugin::LoadMenuElement()
 
 bool Plugin::LoadInfoElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-info", std::make_unique<Core::ElementInstancerGeneric< ElementInfo >>());
+	Core::Factory::RegisterElementInstancer("debug-info", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementInfo >));
 	info_element = dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
 	if (info_element == NULL)
 		return false;
@@ -356,7 +356,7 @@ bool Plugin::LoadInfoElement()
 
 bool Plugin::LoadLogElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-log", std::make_unique<Core::ElementInstancerGeneric< ElementLog >>());
+	Core::Factory::RegisterElementInstancer("debug-log", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementLog >));
 	log_element = dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
 	if (log_element == NULL)
 		return false;

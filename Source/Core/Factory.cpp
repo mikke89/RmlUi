@@ -98,11 +98,11 @@ bool Factory::Initialise()
 		event_listener_instancer = NULL;
 
 	// Bind the default element instancers
-	RegisterElementInstancer("*", std::make_unique<ElementInstancerGeneric< Element >>());
-	RegisterElementInstancer("img", std::make_unique < ElementInstancerGeneric< ElementImage >>());
-	RegisterElementInstancer("#text", std::make_unique < ElementInstancerGeneric< ElementTextDefault >>());
-	RegisterElementInstancer("handle", std::make_unique < ElementInstancerGeneric< ElementHandle >>());
-	RegisterElementInstancer("body", std::make_unique < ElementInstancerGeneric< ElementDocument >>());
+	RegisterElementInstancer("*", ElementInstancerPtr(new ElementInstancerGeneric< Element >));
+	RegisterElementInstancer("img", ElementInstancerPtr(new ElementInstancerGeneric< ElementImage >));
+	RegisterElementInstancer("#text", ElementInstancerPtr(new ElementInstancerGeneric< ElementTextDefault >));
+	RegisterElementInstancer("handle", ElementInstancerPtr(new ElementInstancerGeneric< ElementHandle >));
+	RegisterElementInstancer("body", ElementInstancerPtr(new ElementInstancerGeneric< ElementDocument >));
 
 	// Bind the default decorator instancers
 	RegisterDecoratorInstancer("tiled-horizontal", std::make_unique<DecoratorTiledHorizontalInstancer>());
