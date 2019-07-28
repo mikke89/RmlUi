@@ -290,8 +290,8 @@ private:
 	// The current view state
 	ViewState view_state;
 
-	// Internal callback for when an element is removed from the hierarchy.
-	void OnElementRemove(Element* element);
+	// Internal callback for when an element is detached or removed from the hierarchy.
+	void OnElementDetach(Element* element);
 	// Internal callback for when a new element gains focus.
 	bool OnFocusChange(Element* element);
 

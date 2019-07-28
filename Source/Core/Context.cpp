@@ -807,7 +807,7 @@ void Context::SetInstancer(SharedPtr<ContextInstancer> _instancer)
 }
 
 // Internal callback for when an element is removed from the hierarchy.
-void Context::OnElementRemove(Element* element)
+void Context::OnElementDetach(Element* element)
 {
 	ElementSet::iterator i = hover_chain.find(element);
 	if (i == hover_chain.end())

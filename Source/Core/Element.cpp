@@ -185,8 +185,7 @@ Element::~Element()
 		for (int i = 0; i <= ChildNotifyLevels && child_ancestor; i++, child_ancestor = child_ancestor->GetParentNode())
 			child_ancestor->OnChildRemove(child.get());
 
-		child->parent = nullptr;
-		child->SetOwnerDocument(nullptr);
+		child->SetParent(nullptr);
 	}
 
 	children.clear();
@@ -1519,11 +1518,6 @@ ElementPtr Element::RemoveChild(Element* child)
 		// Add the element to the delete list
 		if (itr->get() == child)
 		{
-			// Inform the context of the element's pending removal (if we have a valid context).
-			Context* context = GetContext();
-			if (context)
-				context->OnElementRemove(child);
-
 			Element* ancestor = child;
 			for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
 				ancestor->OnChildRemove(child);
@@ -1531,13 +1525,10 @@ ElementPtr Element::RemoveChild(Element* child)
 			if (child_index >= children.size() - num_non_dom_children)
 				num_non_dom_children--;
 
-			ElementPtr result = std::move(*itr);
-
-			// Clear parent
-			result->parent = nullptr;
-			result->SetOwnerDocument(nullptr);
-
+			ElementPtr detached_child = std::move(*itr);
 			children.erase(itr);
+
+			detached_child->SetParent(nullptr);
 
 			// Remove the child element as the focused child of this element.
 			if (child == focus)
@@ -1546,8 +1537,7 @@ ElementPtr Element::RemoveChild(Element* child)
 
 				// If this child (or a descendant of this child) is the context's currently
 				// focused element, set the focus to us instead.
-				Context* context = GetContext();
-				if (context)
+				if (Context * context = GetContext())
 				{
 					Element* focus_element = context->GetFocusElement();
 					while (focus_element)
@@ -1567,7 +1557,7 @@ ElementPtr Element::RemoveChild(Element* child)
 			DirtyStackingContext();
 			DirtyStructure();
 
-			return result;
+			return detached_child;
 		}
 
 		child_index++;
@@ -2101,6 +2091,13 @@ void Element::GetRML(String& content)
 
 void Element::SetOwnerDocument(ElementDocument* document)
 {
+	if (owner_document && !document)
+	{
+		// We are detaching from the document and thereby also the context.
+		if (Context * context = owner_document->GetContext())
+			context->OnElementDetach(this);
+	}
+
 	// If this element is a document, then never change owner_document. Otherwise, this can happen when attaching to the root element.
 	if(owner_document != document && owner_document != this)
 	{
@@ -2120,10 +2117,8 @@ void Element::Release()
 
 void Element::SetParent(Element* _parent)
 {	
-	// If there's an old parent, detach from it first.
-	if (parent &&
-		parent != _parent)
-		parent->RemoveChild(this);
+	// Assumes we are already detached from the hierarchy or we are detaching now.
+	RMLUI_ASSERT(!parent || !_parent);
 
 	parent = _parent;
 
