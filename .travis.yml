@@ -54,7 +54,7 @@ before_install:
 
 install:
   - cd "$TRAVIS_BUILD_DIR"
-  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=OFF -DBUILD_SAMPLES=ON .; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -G Xcode .; fi
 
 before_script:

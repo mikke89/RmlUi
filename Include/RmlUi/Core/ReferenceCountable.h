@@ -30,6 +30,7 @@
 #define RMLUICOREREFERENCECOUNTABLE_H
 
 #include "Header.h"
+#include <type_traits>
 
 namespace Rml {
 namespace Core {
