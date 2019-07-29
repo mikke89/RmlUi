@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 #endif
 
 	auto Renderer = std::make_shared<RmlUiSFMLRenderer>();
-	auto SystemInterface = std::make_shared<RmlUiSFMLSystemInterface>;
+	auto SystemInterface = std::make_shared<RmlUiSFMLSystemInterface>();
 
 	// NOTE: if fonts and rml are not found you'll probably have to adjust
 	// the path information in the string
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	if(!MyWindow.isOpen())
 		return 1;
 
-	Renderer.SetWindow(&MyWindow);
+	Renderer->SetWindow(&MyWindow);
 
 	Rml::Core::SetFileInterface(FileInterface);
 	Rml::Core::SetRenderInterface(Renderer);
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 			switch(event.type)
 			{
 			case sf::Event::Resized:
-				Renderer.Resize();
+				Renderer->Resize();
 				break;
 			case sf::Event::MouseMoved:
 				Context->ProcessMouseMove(event.mouseMove.x, event.mouseMove.y,
