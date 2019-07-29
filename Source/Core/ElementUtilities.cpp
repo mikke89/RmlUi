@@ -114,7 +114,7 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 }
 
 // Returns the element's font face.
-FontFaceHandle* ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
+SharedPtr<FontFaceHandle> ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
 {
 	static const String default_charset = "U+0020-007E";
 
@@ -122,8 +122,7 @@ FontFaceHandle* ElementUtilities::GetFontFaceHandle(const Style::ComputedValues&
 	int font_size = (int)computed_values.font_size;
 
 	// TODO Synchronize enums
-	FontFaceHandle* font = FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, (Font::Style)computed_values.font_style, (Font::Weight)computed_values.font_weight, font_size);
-	return font;
+	return FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, (Font::Style)computed_values.font_style, (Font::Weight)computed_values.font_weight, font_size);
 }
 
 float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)

@@ -44,10 +44,10 @@ FontFamily::~FontFamily()
 }
 
 // Returns a handle to the most appropriate font in the family, at the correct size.
-FontFaceHandle* FontFamily::GetFaceHandle(const String& charset, Font::Style style, Font::Weight weight, int size)
+SharedPtr<FontFaceHandle> FontFamily::GetFaceHandle(const String& charset, Font::Style style, Font::Weight weight, int size)
 {
 	// Search for a face of the same style, and match the weight as closely as we can.
-	FontFace* matching_face = NULL;
+	FontFace* matching_face = nullptr;
 	for (size_t i = 0; i < font_faces.size(); i++)
 	{
 		// If we've found a face matching the style, then ... great! We'll match it regardless of the weight. However,
@@ -61,8 +61,8 @@ FontFaceHandle* FontFamily::GetFaceHandle(const String& charset, Font::Style sty
 		}
 	}
 
-	if (matching_face == NULL)
-		return NULL;
+	if (matching_face == nullptr)
+		return nullptr;
 
 	return matching_face->GetHandle(charset, size);
 }

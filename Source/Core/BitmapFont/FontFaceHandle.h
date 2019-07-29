@@ -72,9 +72,6 @@ public:
 	}
 
 protected:
-	/// Destroys the handle.
-	void OnReferenceDeactivate() override;
-
 	Rml::Core::FontFaceLayer* CreateNewLayer() override;
 
 private:

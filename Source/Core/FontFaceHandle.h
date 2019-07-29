@@ -47,7 +47,7 @@ class FontFaceLayer;
 	@author Peter Curry
  */
 
-class FontFaceHandle : public ReferenceCountable
+class FontFaceHandle : public NonCopyMoveable
 {
 public:
 	FontFaceHandle();
@@ -115,7 +115,6 @@ public:
 	const UnicodeRangeList& GetCharset() const;
 
 protected:
-	void OnReferenceDeactivate() override;
 
 	virtual int GetKerning(word lhs, word rhs) const = 0;
 	virtual FontFaceLayer* CreateNewLayer();

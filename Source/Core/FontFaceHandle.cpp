@@ -294,12 +294,6 @@ const UnicodeRangeList& FontFaceHandle::GetCharset() const
 	return charset;
 }
 
-// Destroys the handle.
-void FontFaceHandle::OnReferenceDeactivate()
-{
-	delete this;
-}
-
 Rml::Core::FontFaceLayer* FontFaceHandle::CreateNewLayer()
 {
 	return new Rml::Core::FontFaceLayer();

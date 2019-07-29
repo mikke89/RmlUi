@@ -34,12 +34,12 @@ namespace Rml {
 namespace Core {
 
 // Returns a handle to a font face that can be used to position and render text.
-Rml::Core::FontFaceHandle* FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
+SharedPtr<FontFaceHandle> FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
 {
 	RMLUI_ASSERTMSG(family == ToLower(family), "Font family name must be converted to lowercase before entering here.");
 	FontFamilyMap::iterator iterator = font_families.find(family);
 	if (iterator == font_families.end())
-		return NULL;
+		return nullptr;
 
 	return (*iterator).second->GetFaceHandle(charset, style, weight, size);
 }

@@ -93,12 +93,6 @@ bool BitmapFont::FontFaceHandle::Initialise(BitmapFontDefinitions *_bm_face, con
 	return true;
 }
 
-// Destroys the handle.
-void BitmapFont::FontFaceHandle::OnReferenceDeactivate()
-{
-	delete this;
-}
-
 void BitmapFont::FontFaceHandle::GenerateMetrics(BitmapFontDefinitions *bm_face)
 {
 	line_height = bm_face->CommonCharactersInfo.LineHeight;

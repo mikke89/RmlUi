@@ -193,8 +193,7 @@ Element::~Element()
 
 	delete element_meta;
 
-	if (font_face_handle != NULL)
-		font_face_handle->RemoveReference();
+	font_face_handle.reset();
 }
 
 void Element::Update(float dp_ratio)
@@ -590,7 +589,7 @@ float Element::GetZIndex() const
 // Returns the element's font face handle.
 FontFaceHandle* Element::GetFontFaceHandle() const
 {
-	return font_face_handle;
+	return font_face_handle.get();
 }
 
 // Sets a local property override on the element.
@@ -1819,19 +1818,14 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		changed_properties.find(PropertyId::FontSize) != changed_properties.end())
 	{
 		// Fetch the new font face.
-		FontFaceHandle* new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
+		SharedPtr<FontFaceHandle> new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
 
 		// If this is different from our current font face, then we've got to nuke
 		// all our characters and tell our parent that we have to be re-laid out.
 		if (new_font_face_handle != font_face_handle)
 		{
-			if (font_face_handle)
-				font_face_handle->RemoveReference();
-
 			font_face_handle = new_font_face_handle;
 		}
-		else if (new_font_face_handle != NULL)
-			new_font_face_handle->RemoveReference();
 	}
 
 

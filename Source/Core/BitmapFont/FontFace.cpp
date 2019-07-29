@@ -45,7 +45,7 @@ BitmapFont::FontFace::~FontFace()
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-Rml::Core::FontFaceHandle* BitmapFont::FontFace::GetHandle(const String& _raw_charset, int size)
+SharedPtr<Rml::Core::FontFaceHandle> BitmapFont::FontFace::GetHandle(const String& _raw_charset, int size)
 {
 	UnicodeRangeList charset;
 
@@ -61,7 +61,6 @@ Rml::Core::FontFaceHandle* BitmapFont::FontFace::GetHandle(const String& _raw_ch
 		{
 			if (handles[i]->GetRawCharset() == _raw_charset)
 			{
-				handles[i]->AddReference();
 				return handles[i];
 			}
 		}
@@ -70,7 +69,7 @@ Rml::Core::FontFaceHandle* BitmapFont::FontFace::GetHandle(const String& _raw_ch
 		if (!UnicodeRange::BuildList(charset, raw_charset))
 		{
 			Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", _raw_charset.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		for (size_t i = 0; i < handles.size(); ++i)
@@ -86,25 +85,23 @@ Rml::Core::FontFaceHandle* BitmapFont::FontFace::GetHandle(const String& _raw_ch
 
 			if (range_contained)
 			{
-				handles[i]->AddReference();
 				return handles[i];
 			}
 		}
 	}
 
 	// See if this face has been released.
-	if (face == NULL)
+	if (!face)
 	{
 		Log::Message(Log::LT_WARNING, "Font face has been released, unable to generate new handle.");
-		return NULL;
+		return nullptr;
 	}
 
 	// Construct and initialise the new handle.
-	BitmapFont::FontFaceHandle* handle = new BitmapFont::FontFaceHandle();
+	auto handle = std::make_shared<BitmapFont::FontFaceHandle>();
 	if (!handle->Initialise(face, _raw_charset, size))
 	{
-		handle->RemoveReference();
-		return NULL;
+		return nullptr;
 	}
 
 	// Save the handle, and add a reference for the callee. The initial reference will be removed when the font face
@@ -113,8 +110,6 @@ Rml::Core::FontFaceHandle* BitmapFont::FontFace::GetHandle(const String& _raw_ch
 		(*iterator).second.push_back(handle);
 	else
 		handles[size] = HandleList(1, handle);
-
-	handle->AddReference();
 
 	return handle;
 }

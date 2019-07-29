@@ -44,12 +44,7 @@ FontFace::FontFace(Font::Style _style, Font::Weight _weight, bool _release_strea
 
 FontFace::~FontFace()
 {
-	for (HandleMap::iterator iterator = handles.begin(); iterator != handles.end(); ++iterator)
-	{
-		HandleList& handle_list = (*iterator).second;
-		for (size_t i = 0; i < handle_list.size(); ++i)
-			handle_list[i]->RemoveReference();
-	}
+	handles.clear();
 }
 
 // Returns the style of the font face.

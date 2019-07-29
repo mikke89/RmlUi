@@ -57,7 +57,7 @@ public:
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
-    virtual FontFaceHandle* GetHandle(const String& charset, int size) = 0;
+    virtual SharedPtr<FontFaceHandle> GetHandle(const String& charset, int size) = 0;
 
 	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
 	/// but existing ones can still be fetched.
@@ -69,7 +69,7 @@ protected:
 
 	bool release_stream;
 
-	typedef std::vector< FontFaceHandle* > HandleList;
+	typedef std::vector< SharedPtr<FontFaceHandle> > HandleList;
 	typedef UnorderedMap< int, HandleList > HandleMap;
 	HandleMap handles;
 };

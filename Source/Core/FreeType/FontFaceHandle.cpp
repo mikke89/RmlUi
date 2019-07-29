@@ -91,12 +91,6 @@ bool FontFaceHandle::Initialise(FT_Face ft_face, const String& _charset, int _si
 	return true;
 }
 
-// Destroys the handle.
-void FontFaceHandle::OnReferenceDeactivate()
-{
-	delete this;
-}
-
 void FontFaceHandle::GenerateMetrics()
 {
 	line_height = ft_face->size->metrics.height >> 6;

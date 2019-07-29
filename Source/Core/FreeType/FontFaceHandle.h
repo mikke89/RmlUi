@@ -63,9 +63,6 @@ public:
 	bool Initialise(FT_Face ft_face, const String& charset, int size);
 
 protected:
-	/// Destroys the handle.
-	void OnReferenceDeactivate() override;
-
 	int GetKerning(word lhs, word rhs) const override;
 
 private:

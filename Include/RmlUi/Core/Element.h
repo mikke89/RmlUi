@@ -727,7 +727,7 @@ private:
 	bool box_dirty;
 
 	// The element's font face; used to render text and resolve em / ex properties.
-	FontFaceHandle* font_face_handle;
+	SharedPtr<FontFaceHandle> font_face_handle;
 	
 	// Cached rendering information
 	int clipping_ignore_depth;

@@ -62,7 +62,7 @@ public:
 	/// @param[in] weight The weight of the desired handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
-    FontFaceHandle* GetFaceHandle(const String& charset, Font::Style style, Font::Weight weight, int size);
+	SharedPtr<FontFaceHandle> GetFaceHandle(const String& charset, Font::Style style, Font::Weight weight, int size);
 
 protected:
 	String name;

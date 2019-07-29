@@ -159,21 +159,21 @@ FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& f
 }
 
 // Returns a handle to a font face that can be used to position and render text.
-FontFaceHandle* FontDatabase::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
+SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
 {
     size_t provider_count = font_provider_table.size();
 
     for(size_t provider_index = 0; provider_index < provider_count; ++provider_index)
     {
-        FontFaceHandle * face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
+		SharedPtr<FontFaceHandle> face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
 
         if(face_handle)
         {
-            return face_handle;
+            return std::move(face_handle);
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void FontDatabase::AddFontProvider(FontProvider * provider)
