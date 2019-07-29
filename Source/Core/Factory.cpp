@@ -215,14 +215,13 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		(system_interface->TranslateString(translated_data, text) > 0 ||
 		 translated_data.find("<") != String::npos))
 	{
-		StreamMemory* stream = new StreamMemory(translated_data.size() + 32);
+		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
 		stream->Write("<body>", 6);
 		stream->Write(translated_data);
 		stream->Write("</body>", 7);
 		stream->Seek(0, SEEK_SET);
 
-		InstanceElementStream(parent, stream);
-		stream->RemoveReference();
+		InstanceElementStream(parent, stream.get());
 	}
 	else
 	{
@@ -343,20 +342,16 @@ FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)
 // Creates a style sheet containing the passed in styles.
 SharedPtr<StyleSheet> Factory::InstanceStyleSheetString(const String& string)
 {
-	StreamMemory* memory_stream = new StreamMemory((const byte*) string.c_str(), string.size());
-	SharedPtr<StyleSheet> style_sheet = InstanceStyleSheetStream(memory_stream);
-	memory_stream->RemoveReference();
-	return style_sheet;
+	auto memory_stream = std::make_unique<StreamMemory>((const byte*) string.c_str(), string.size());
+	return InstanceStyleSheetStream(memory_stream.get());
 }
 
 // Creates a style sheet from a file.
 SharedPtr<StyleSheet> Factory::InstanceStyleSheetFile(const String& file_name)
 {
-	StreamFile* file_stream = new StreamFile();
+	auto file_stream = std::make_unique<StreamFile>();
 	file_stream->Open(file_name);
-	SharedPtr<StyleSheet> style_sheet = InstanceStyleSheetStream(file_stream);
-	file_stream->RemoveReference();
-	return style_sheet;
+	return InstanceStyleSheetStream(file_stream.get());
 }
 
 // Creates a style sheet from an Stream.

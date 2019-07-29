@@ -36,13 +36,14 @@ namespace Core {
 
 const size_t READ_BLOCK_SIZE = 1024;
 
-Stream::Stream() : ReferenceCountable(1)
+Stream::Stream()
 {
 	stream_mode = 0;
 }
 
 Stream::~Stream()
 {
+	Close();
 }
 
 void Stream::Close()
@@ -158,13 +159,6 @@ void Stream::SetStreamDetails(const URL& _url, int _stream_mode)
 {
 	url = _url;
 	stream_mode = _stream_mode;
-}
-
-// Deletes the stream.
-void Stream::OnReferenceDeactivate()
-{
-	Close();
-	delete this;
 }
 
 }

@@ -37,13 +37,10 @@ namespace Core {
 
 Template::Template()
 {
-	body = NULL;
 }
 
 Template::~Template()
 {
-	if (body)
-		body->RemoveReference();
 }
 
 const String& Template::GetName() const
@@ -97,18 +94,18 @@ bool Template::Load(Stream* stream)
 	}
 
 	// Create a stream around the header, parse it and store it
-	StreamMemory* header_stream = new StreamMemory((const byte*) head_start,head_end - head_start);
+	auto header_stream = std::make_unique<StreamMemory>((const byte*) head_start,head_end - head_start);
 	header_stream->SetSourceURL(stream->GetSourceURL());
 
-	XMLParser parser(NULL);
-	parser.Parse(header_stream);
+	XMLParser parser(nullptr);
+	parser.Parse(header_stream.get());
 
-	header_stream->RemoveReference();
+	header_stream.reset();
 
 	header = *parser.GetDocumentHeader();
 
 	// Store the body in stream form
-	body = new StreamMemory(body_end - body_start);	
+	body = std::make_unique<StreamMemory>(body_end - body_start);	
 	body->SetSourceURL(stream->GetSourceURL());
 	body->PushBack(body_start, body_end - body_start);
 
@@ -120,7 +117,7 @@ Element* Template::ParseTemplate(Element* element)
 	body->Seek(0, SEEK_SET);
 
 	XMLParser parser(element);
-	parser.Parse(body);
+	parser.Parse(body.get());
 
 	// If theres an inject attribute on the template, 
 	// attempt to find the required element

@@ -74,11 +74,11 @@ Template* TemplateCache::LoadTemplate(const String& name)
 
 	// Nope, we better load it
 	Template* new_template = NULL;
-	StreamFile* stream = new StreamFile();
+	auto stream = std::make_unique<StreamFile>();
 	if (stream->Open(name))
 	{
 		new_template = new Template();
-		if (!new_template->Load(stream))
+		if (!new_template->Load(stream.get()))
 		{
 			Log::Message(Log::LT_ERROR, "Failed to load template %s.", name.c_str());
 			delete new_template;
@@ -100,7 +100,6 @@ Template* TemplateCache::LoadTemplate(const String& name)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to open template file %s.", name.c_str());		
 	}
-	stream->RemoveReference();
 
 	return new_template;
 }

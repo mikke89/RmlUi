@@ -241,16 +241,12 @@ ElementDocument* Context::CreateDocument(const String& tag)
 // Load a document into the context.
 ElementDocument* Context::LoadDocument(const String& document_path)
 {	
-	StreamFile* stream = new StreamFile();
+	auto stream = std::make_unique<StreamFile>();
+
 	if (!stream->Open(document_path))
-	{
-		stream->RemoveReference();
 		return nullptr;
-	}
 
-	ElementDocument* document = LoadDocument(stream);
-
-	stream->RemoveReference();
+	ElementDocument* document = LoadDocument(stream.get());
 
 	return document;
 }
@@ -286,13 +282,11 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 ElementDocument* Context::LoadDocumentFromMemory(const String& string)
 {
 	// Open the stream based on the string contents.
-	StreamMemory* stream = new StreamMemory((byte*)string.c_str(), string.size());
+	auto stream = std::make_unique<StreamMemory>((byte*)string.c_str(), string.size());
 	stream->SetSourceURL("[document from memory]");
 
 	// Load the document from the stream.
-	ElementDocument* document = LoadDocument(stream);
-
-	stream->RemoveReference();
+	ElementDocument* document = LoadDocument(stream.get());
 
 	return document;
 }

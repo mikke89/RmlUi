@@ -52,39 +52,39 @@ public:
 	virtual ~StreamMemory();
 
 	/// Close the stream
-	virtual void Close();	
+	void Close() override;	
 
 	/// Are we at the end of the stream
-	virtual bool IsEOS() const;
+	bool IsEOS() const override;
 
 	/// Size of this stream ( in bytes )
-	virtual size_t Length() const;
+	size_t Length() const override;
 
 	/// Get Stream position ( in bytes )
-	size_t Tell() const;
+	size_t Tell() const override;
 
 	/// Set Stream position ( in bytes )
-	bool Seek(long offset, int origin) const;
+	bool Seek(long offset, int origin) const override;
 
 	/// Read from the stream
 	using Stream::Read;
-	virtual size_t Read(void* buffer, size_t bytes) const;
+	size_t Read(void* buffer, size_t bytes) const override;
 
 	/// Peek into the stream
-	virtual size_t Peek(void *buffer, size_t bytes) const;
+	size_t Peek(void *buffer, size_t bytes) const override;
 
 	/// Write to the stream
 	using Stream::Write;
-	virtual size_t Write(const void* buffer, size_t bytes);
+	size_t Write(const void* buffer, size_t bytes) override;
 
 	/// Truncate the stream to the specified length
-	virtual size_t Truncate(size_t bytes);
+	size_t Truncate(size_t bytes) override;
 
 	/// Push onto the front of the stream
-	virtual size_t PushFront(const void* buffer, size_t bytes);
+	size_t PushFront(const void* buffer, size_t bytes) override;
 
 	/// Pop from the front of the stream
-	virtual size_t PopFront(size_t bytes);
+	size_t PopFront(size_t bytes) override;
 
 	/// Raw access to the stream
 	const byte* RawStream() const;
@@ -93,10 +93,10 @@ public:
 	void Erase(size_t offset, size_t bytes);
 
 	/// Does the stream have data available for reading
-	virtual bool IsReadReady();
+	bool IsReadReady() override;
 
 	/// Is the stream able to accept data now
-	virtual bool IsWriteReady();
+	bool IsWriteReady() override;
 
 	/// Sets this streams source URL, useful data that is stored
 	/// in memory streams that originated from files

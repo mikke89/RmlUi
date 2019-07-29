@@ -482,11 +482,12 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 
 bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, const String& properties)
 {
-	stream = new StreamMemory((const byte*)properties.c_str(), properties.size());
+	RMLUI_ASSERT(!stream);
+	auto stream_owner = std::make_unique<StreamMemory>((const byte*)properties.c_str(), properties.size());
+	stream = stream_owner.get();
 	PropertySpecificationParser parser(parsed_properties, StyleSheetSpecification::GetPropertySpecification());
 	bool success = ReadProperties(parser);
-	stream->RemoveReference();
-	stream = NULL;
+	stream = nullptr;
 	return success;
 }
 
