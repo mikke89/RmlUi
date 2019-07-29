@@ -61,27 +61,27 @@ public:
 	void Resize();
 
 	/// Called by RmlUi when it wants to render geometry that it does not wish to optimise.
-	virtual void RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation);
+	void RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation) override;
 
 	/// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
-	virtual Rml::Core::CompiledGeometryHandle CompileGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::Core::TextureHandle texture);
+	Rml::Core::CompiledGeometryHandle CompileGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::Core::TextureHandle texture) override;
 
 	/// Called by RmlUi when it wants to render application-compiled geometry.
-	virtual void RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry, const Rml::Core::Vector2f& translation);
+	void RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry, const Rml::Core::Vector2f& translation) override;
 	/// Called by RmlUi when it wants to release application-compiled geometry.
-	virtual void ReleaseCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry);
+	void ReleaseCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry) override;
 
 	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
-	virtual void EnableScissorRegion(bool enable);
+	void EnableScissorRegion(bool enable) override;
 	/// Called by RmlUi when it wants to change the scissor region.
-	virtual void SetScissorRegion(int x, int y, int width, int height);
+	void SetScissorRegion(int x, int y, int width, int height) override;
 
 	/// Called by RmlUi when a texture is required by the library.
-	virtual bool LoadTexture(Rml::Core::TextureHandle& texture_handle, Rml::Core::Vector2i& texture_dimensions, const Rml::Core::String& source);
+	bool LoadTexture(Rml::Core::TextureHandle& texture_handle, Rml::Core::Vector2i& texture_dimensions, const Rml::Core::String& source) override;
 	/// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
-	virtual bool GenerateTexture(Rml::Core::TextureHandle& texture_handle, const Rml::Core::byte* source, const Rml::Core::Vector2i& source_dimensions);
+	bool GenerateTexture(Rml::Core::TextureHandle& texture_handle, const Rml::Core::byte* source, const Rml::Core::Vector2i& source_dimensions) override;
 	/// Called by RmlUi when a loaded texture is no longer required.
-	virtual void ReleaseTexture(Rml::Core::TextureHandle texture_handle);
+	void ReleaseTexture(Rml::Core::TextureHandle texture_handle) override;
 
 private:
 	sf::RenderWindow *MyWindow;

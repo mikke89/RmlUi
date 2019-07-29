@@ -46,7 +46,7 @@ namespace Core {
 	@author Peter Curry
  */
 
-class RMLUICORE_API FileInterface : public ReferenceCountable
+class RMLUICORE_API FileInterface : public NonCopyMoveable
 {
 public:
 	FileInterface();
@@ -82,12 +82,6 @@ public:
 	/// @param file The handle of the file to be queried.
 	/// @return The length of the file in bytes.
 	virtual size_t Length(FileHandle file);
-
-	/// Called when this file interface is released.
-	virtual void Release();
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

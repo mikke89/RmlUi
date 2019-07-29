@@ -52,7 +52,7 @@ namespace Core {
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API SystemInterface : public ReferenceCountable
+class RMLUICORE_API SystemInterface : public NonCopyMoveable
 {
 public:
 	SystemInterface();
@@ -97,12 +97,6 @@ public:
 	
 	/// Deactivate keyboard (for touchscreen devices)
 	virtual void DeactivateKeyboard();
-	
-	/// Called when this system interface is no longer required.
-	virtual void Release();
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

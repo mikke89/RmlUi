@@ -33,13 +33,14 @@
 namespace Rml {
 namespace Core {
 
-RenderInterface::RenderInterface() : ReferenceCountable(0)
+RenderInterface::RenderInterface()
 {
-	context = NULL;
+	context = nullptr;
 }
 
 RenderInterface::~RenderInterface()
 {
+	TextureDatabase::ReleaseTextures(this);
 }
 
 // Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
@@ -113,17 +114,6 @@ void RenderInterface::PushTransform(const Matrix4f& transform)
 // Called by RmlUi when it wants to revert the latest transform change.
 void RenderInterface::PopTransform(const Matrix4f& transform)
 {
-}
-
-// Called when this render interface is released.
-void RenderInterface::Release()
-{
-}
-
-void RenderInterface::OnReferenceDeactivate()
-{
-	TextureDatabase::ReleaseTextures(this);
-	Release();
 }
 
 // Get the context currently being rendered.

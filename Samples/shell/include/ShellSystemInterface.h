@@ -41,19 +41,19 @@ class ShellSystemInterface : public Rml::Core::SystemInterface
 public:
 	/// Get the number of seconds elapsed since the start of the application
 	/// @returns Seconds elapsed
-	virtual double GetElapsedTime();
+	double GetElapsedTime() override;
 
 	/// Set mouse cursor.
 	/// @param[in] cursor_name Cursor name to activate.
-	virtual void SetMouseCursor(const Rml::Core::String& cursor_name);
+	void SetMouseCursor(const Rml::Core::String& cursor_name) override;
 
 	/// Set clipboard text.
 	/// @param[in] text Text to apply to clipboard.
-	virtual void SetClipboardText(const Rml::Core::WString& text);
+	void SetClipboardText(const Rml::Core::WString& text) override;
 
 	/// Get clipboard text.
 	/// @param[out] text Retrieved text from clipboard.
-	virtual void GetClipboardText(Rml::Core::WString& text);
+	void GetClipboardText(Rml::Core::WString& text) override;
 };
 
 #endif

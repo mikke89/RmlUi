@@ -39,7 +39,8 @@ public:
     Rml::Core::Input::KeyIdentifier TranslateKey(SDL_Keycode sdlkey);
     int TranslateMouseButton(Uint8 button);
 	int GetKeyModifiers();
-	double GetElapsedTime();
-    bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message);
+	
+	double GetElapsedTime() override;
+    bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message) override;
 };
 #endif

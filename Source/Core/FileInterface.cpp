@@ -32,7 +32,7 @@
 namespace Rml {
 namespace Core {
 
-FileInterface::FileInterface() : ReferenceCountable(0)
+FileInterface::FileInterface()
 {
 }
 
@@ -48,16 +48,6 @@ size_t FileInterface::Length(FileHandle file)
     size_t length = Tell( file);
     Seek( file, (long)current_position, SEEK_SET);
     return length;
-}
-
-// Called when this file interface is released.
-void FileInterface::Release()
-{
-}
-
-void FileInterface::OnReferenceDeactivate()
-{
-	Release();
 }
 
 }

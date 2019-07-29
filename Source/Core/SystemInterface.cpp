@@ -39,7 +39,7 @@ namespace Core {
 
 static WString clipboard_text;
 
-SystemInterface::SystemInterface() : ReferenceCountable(0)
+SystemInterface::SystemInterface()
 {
 }
 
@@ -138,16 +138,6 @@ void SystemInterface::ActivateKeyboard()
 // Deactivate keyboard (for touchscreen devices)
 void SystemInterface::DeactivateKeyboard() 
 {
-}
-
-// Called when this system interface is released.
-void SystemInterface::Release()
-{
-}
-
-void SystemInterface::OnReferenceDeactivate()
-{
-	Release();
 }
 
 }

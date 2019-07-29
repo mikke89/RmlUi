@@ -29,6 +29,7 @@
 #include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <RmlUi/Core.h>
+#include <type_traits>
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
@@ -281,16 +282,15 @@ void ShellRenderInterfaceOpenGL::ReleaseTexture(Rml::Core::TextureHandle texture
 }
 
 // Called by RmlUi when it wants to set the current transform matrix to a new matrix.
-void ShellRenderInterfaceOpenGL::PushTransform(const Rml::Core::RowMajorMatrix4f& transform)
+void ShellRenderInterfaceOpenGL::PushTransform(const Rml::Core::Matrix4f& transform)
 {
 	glPushMatrix();
-	glLoadMatrixf(transform.Transpose().data());
-	++m_transforms;
-}
-void ShellRenderInterfaceOpenGL::PushTransform(const Rml::Core::ColumnMajorMatrix4f& transform)
-{
-	glPushMatrix();
-	glLoadMatrixf(transform.data());
+
+	if(std::is_same<Rml::Core::Matrix4f, Rml::Core::ColumnMajorMatrix4f>::value)
+		glLoadMatrixf(transform.data());
+	else if (std::is_same<Rml::Core::Matrix4f, Rml::Core::RowMajorMatrix4f>::value)
+		glLoadMatrixf(transform.Transpose().data());
+
 	++m_transforms;
 }
 

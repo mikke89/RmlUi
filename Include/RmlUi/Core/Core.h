@@ -105,16 +105,19 @@ RMLUICORE_API String GetVersion();
 
 /// Sets the interface through which all system requests are made. This must be called before Initialise().
 /// @param[in] system_interface The application-specified logging interface.
-RMLUICORE_API void SetSystemInterface(SystemInterface* system_interface);
+/// @return The previously set system interface.
+RMLUICORE_API void SetSystemInterface(SharedPtr<SystemInterface> system_interface);
 /// Returns RmlUi's system interface.
 /// @return RmlUi's system interface.
 RMLUICORE_API SystemInterface* GetSystemInterface();
+/// Returns a copy of the shared pointer to the system interface.
+RMLUICORE_API SharedPtr<SystemInterface> GetSystemInterfaceSharedPtr();
 
 /// Sets the interface through which all rendering requests are made. This is not required to be called, but if it is
 /// it must be called before Initialise(). If no render interface is specified, then all contexts must have a custom
 /// render interface.
 /// @param[in] render_interface Render interface implementation.
-RMLUICORE_API void SetRenderInterface(RenderInterface* render_interface);
+RMLUICORE_API void SetRenderInterface(SharedPtr<RenderInterface> render_interface);
 /// Returns RmlUi's default's render interface.
 /// @return RmlUi's render interface.
 RMLUICORE_API RenderInterface* GetRenderInterface();
@@ -122,7 +125,7 @@ RMLUICORE_API RenderInterface* GetRenderInterface();
 /// Sets the interface through which all file I/O requests are made. This is not required to be called, but if it is it
 /// must be called before Initialise().
 /// @param[in] file_interface The application-specified file interface
-RMLUICORE_API void SetFileInterface(FileInterface* file_interface);
+RMLUICORE_API void SetFileInterface(SharedPtr<FileInterface> file_interface);
 /// Returns RmlUi's file interface.
 /// @return RmlUi's file interface.
 RMLUICORE_API FileInterface* GetFileInterface();
@@ -132,7 +135,7 @@ RMLUICORE_API FileInterface* GetFileInterface();
 /// @param[in] dimensions The initial dimensions of the new context.
 /// @param[in] render_interface The custom render interface to use, or NULL to use the default.
 /// @return The new context, or NULL if the context could not be created.
-RMLUICORE_API Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* render_interface = nullptr);
+RMLUICORE_API Context* CreateContext(const String& name, const Vector2i& dimensions, SharedPtr<RenderInterface> render_interface = nullptr);
 /// Removes a context.
 /// @param[in] name The name of the context to remove.
 /// @return True if name is a valid context, false otherwise.

@@ -48,7 +48,7 @@ class SystemInterface : public Core::SystemInterface
 public:
 	/// Instances a new debugging log interface.
 	/// @param[in] log The logging element to send messages to.
-	SystemInterface(ElementLog* log);
+	SystemInterface(Core::SystemInterface* application_interface, ElementLog* log);
 	virtual ~SystemInterface();
 
 	/// Get the number of seconds elapsed since the start of the application.

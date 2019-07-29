@@ -37,6 +37,7 @@ namespace Rml {
 namespace Core {
 
 class ElementDocument;
+class SystemInterface;
 
 }
 
@@ -117,7 +118,9 @@ private:
 	ElementInfo* info_element;
 	ElementLog* log_element;
 	ElementContextHook* hook_element;
-	SystemInterface* log_hook;
+
+	Core::SharedPtr<Core::SystemInterface> application_interface;
+	Core::SharedPtr<SystemInterface> log_interface;
 
 	bool render_outlines;
 

@@ -33,18 +33,15 @@
 namespace Rml {
 namespace Debugger {
 
-SystemInterface::SystemInterface(ElementLog* _log)
+SystemInterface::SystemInterface(Core::SystemInterface* _application_interface, ElementLog* _log)
 {
+	application_interface = _application_interface;
 	log = _log;
-	application_interface = Core::GetSystemInterface();
-	application_interface->AddReference();
-	Core::SetSystemInterface(this);
 }
 
 SystemInterface::~SystemInterface()
 {
-	Core::SetSystemInterface(application_interface);
-	application_interface->RemoveReference();
+	application_interface = nullptr;
 }
 
 // Get the number of seconds elapsed since the start of the application.

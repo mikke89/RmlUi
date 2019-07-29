@@ -41,14 +41,12 @@ namespace Rml {
 namespace Core {
 
 // RmlUi's renderer interface.
-static RenderInterface* render_interface = NULL;
+static SharedPtr<RenderInterface> render_interface = nullptr;
 /// RmlUi's system interface.
-static SystemInterface* system_interface = NULL;
+static SharedPtr<SystemInterface> system_interface = nullptr;
 // RmlUi's file I/O interface.
-FileInterface* file_interface =  NULL;
-#ifndef RMLUI_NO_FILE_INTERFACE_DEFAULT
-static FileInterfaceDefault file_interface_default;
-#endif
+static SharedPtr<FileInterface> file_interface = nullptr;
+
 static bool initialised = false;
 
 using ContextMap = UnorderedMap< String, UniquePtr<Context> >;
@@ -62,17 +60,16 @@ static ContextMap contexts;
 bool Initialise()
 {
 	// Check for valid interfaces, or install default interfaces as appropriate.
-	if (system_interface == NULL)
+	if (!system_interface)
 	{	
 		Log::Message(Log::LT_ERROR, "No system interface set!");
 		return false;
 	}
 
-	if (file_interface == NULL)
+	if (!file_interface)
 	{		
 #ifndef RMLUI_NO_FILE_INTERFACE_DEFAULT
-		file_interface = &file_interface_default;
-		file_interface->AddReference();
+		file_interface = std::make_shared<FileInterfaceDefault>();
 #else
 		Log::Message(Log::LT_ERROR, "No file interface set!");
 		return false;
@@ -121,18 +118,9 @@ void Shutdown()
 
 	initialised = false;
 
-	if (render_interface != NULL)
-		render_interface->RemoveReference();
-
-	if (file_interface != NULL)
-		file_interface->RemoveReference();
-
-	if (system_interface != NULL)
-		system_interface->RemoveReference();
-	
-	render_interface = NULL;
-	file_interface = NULL;
-	system_interface = NULL;
+	render_interface.reset();
+	file_interface.reset();
+	system_interface.reset();
 }
 
 // Returns the version of this RmlUi library.
@@ -142,67 +130,48 @@ String GetVersion()
 }
 
 // Sets the interface through which all RmlUi messages will be routed.
-void SetSystemInterface(SystemInterface* _system_interface)
+void SetSystemInterface(SharedPtr<SystemInterface> _system_interface)
 {
-	if (system_interface == _system_interface)
-		return;
-
-	if (system_interface != NULL)
-		system_interface->RemoveReference();
-
-	system_interface = _system_interface;
-	if (system_interface != NULL)
-		system_interface->AddReference();
+	system_interface = std::move(_system_interface);
 }
 
 // Returns RmlUi's system interface.
 SystemInterface* GetSystemInterface()
 {
+	return system_interface.get();
+}
+
+SharedPtr<SystemInterface> GetSystemInterfaceSharedPtr()
+{
 	return system_interface;
 }
 
 // Sets the interface through which all rendering requests are made.
-void SetRenderInterface(RenderInterface* _render_interface)
+void SetRenderInterface(SharedPtr<RenderInterface> _render_interface)
 {
-	if (render_interface == _render_interface)
-		return;
-
-	if (render_interface != NULL)
-		render_interface->RemoveReference();
-
-	render_interface = _render_interface;
-	if (render_interface != NULL)
-		render_interface->AddReference();
+	render_interface = std::move(_render_interface);
 }
 
 // Returns RmlUi's render interface.
 RenderInterface* GetRenderInterface()
 {
-	return render_interface;
+	return render_interface.get();
 }
 
 // Sets the interface through which all file I/O requests are made.
-void SetFileInterface(FileInterface* _file_interface)
+void SetFileInterface(SharedPtr<FileInterface> _file_interface)
 {
-	if (file_interface == _file_interface)
-		return;
-
-	if (file_interface != NULL)
-		file_interface->RemoveReference();
-
-	file_interface = _file_interface;
-	if (file_interface != NULL)
-		file_interface->AddReference();
+	file_interface = std::move(_file_interface);
 }
 
 // Returns RmlUi's file interface.
 FileInterface* GetFileInterface()
 {
-	return file_interface;
+	return file_interface.get();
 }
 
 // Creates a new element context.
-Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* custom_render_interface)
+Context* CreateContext(const String& name, const Vector2i& dimensions, SharedPtr<RenderInterface> custom_render_interface)
 {
 	if (!initialised)
 		return nullptr;
@@ -228,10 +197,9 @@ Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInt
 
 	// Set the render interface on the context, and add a reference onto it.
 	if (custom_render_interface)
-		new_context->render_interface = custom_render_interface;
+		new_context->render_interface = std::move(custom_render_interface);
 	else
 		new_context->render_interface = render_interface;
-	new_context->render_interface->AddReference();
 
 	new_context->SetDimensions(dimensions);
 	if (dimensions.x > 0 && dimensions.y > 0)

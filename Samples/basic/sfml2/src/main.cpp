@@ -68,22 +68,22 @@ int main(int argc, char **argv)
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 #endif
 
-	RmlUiSFMLRenderer Renderer;
-	RmlUiSFMLSystemInterface SystemInterface;
+	auto Renderer = std::make_shared<RmlUiSFMLRenderer>();
+	auto SystemInterface = std::make_shared<RmlUiSFMLSystemInterface>;
 
 	// NOTE: if fonts and rml are not found you'll probably have to adjust
 	// the path information in the string
 	Rml::Core::String root = Shell::FindSamplesRoot();
-	ShellFileInterface FileInterface(root);
+	auto FileInterface = std::make_shared<ShellFileInterface>(root);
 
 	if(!MyWindow.isOpen())
 		return 1;
 
 	Renderer.SetWindow(&MyWindow);
 
-	Rml::Core::SetFileInterface(&FileInterface);
-	Rml::Core::SetRenderInterface(&Renderer);
-	Rml::Core::SetSystemInterface(&SystemInterface);
+	Rml::Core::SetFileInterface(FileInterface);
+	Rml::Core::SetRenderInterface(Renderer);
+	Rml::Core::SetSystemInterface(SystemInterface);
 
 
 	if(!Rml::Core::Initialise())
@@ -128,27 +128,27 @@ int main(int argc, char **argv)
 				break;
 			case sf::Event::MouseMoved:
 				Context->ProcessMouseMove(event.mouseMove.x, event.mouseMove.y,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface->GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::MouseButtonPressed:
 				Context->ProcessMouseButtonDown(event.mouseButton.button,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface->GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::MouseButtonReleased:
 				Context->ProcessMouseButtonUp(event.mouseButton.button,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface->GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::MouseWheelMoved:
 				Context->ProcessMouseWheel(-event.mouseWheel.delta,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface->GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::TextEntered:
 				if (event.text.unicode > 32)
 					Context->ProcessTextInput(event.text.unicode);
 				break;
 			case sf::Event::KeyPressed:
-				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.code),
-					SystemInterface.GetKeyModifiers(&MyWindow));
+				Context->ProcessKeyDown(SystemInterface->TranslateKey(event.key.code),
+					SystemInterface->GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::KeyReleased:
 				if(event.key.code == sf::Keyboard::F8)
@@ -160,8 +160,8 @@ int main(int argc, char **argv)
 					MyWindow.close();
 				}
 
-				Context->ProcessKeyUp(SystemInterface.TranslateKey(event.key.code),
-					SystemInterface.GetKeyModifiers(&MyWindow));
+				Context->ProcessKeyUp(SystemInterface->TranslateKey(event.key.code),
+					SystemInterface->GetKeyModifiers(&MyWindow));
 				break;
 			case sf::Event::Closed:
 				MyWindow.close();

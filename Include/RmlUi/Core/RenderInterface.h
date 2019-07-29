@@ -47,7 +47,7 @@ class Context;
 	@author Peter Curry
  */
 
-class RMLUICORE_API RenderInterface : public ReferenceCountable
+class RMLUICORE_API RenderInterface : public NonCopyMoveable
 {
 public:
 	RenderInterface();
@@ -122,15 +122,9 @@ public:
 	///            It always equals the argument of the latest call to PushTransform().
 	virtual void PopTransform(const Matrix4f& transform);
 
-	/// Called when this render interface is released.
-	virtual void Release();
-
 	/// Get the context currently being rendered. This is only valid during RenderGeometry,
 	/// CompileGeometry, RenderCompiledGeometry, EnableScissorRegion and SetScissorRegion.
 	Context* GetContext() const;
-
-protected:
-	virtual void OnReferenceDeactivate();
 
 private:
 	Context* context;

@@ -49,7 +49,7 @@ Plugin::Plugin()
 	instance = this;
 	host_context = nullptr;
 	debug_context = nullptr;
-	log_hook = nullptr;
+	log_interface = nullptr;
 
 	menu_element = nullptr;
 	info_element = nullptr;
@@ -352,7 +352,9 @@ bool Plugin::LoadLogElement()
 	}
 
 	// Make the system interface; this will trap the log messages for us.
-	log_hook = new SystemInterface(log_element);
+	application_interface = Core::GetSystemInterfaceSharedPtr();
+	log_interface = std::make_shared<SystemInterface>(application_interface.get(), log_element);
+	Core::SetSystemInterface(log_interface);
 
 	return true;
 }
@@ -377,7 +379,9 @@ void Plugin::ReleaseElements()
 		{
 			host_context->UnloadDocument(log_element);
 			log_element = nullptr;
-			delete log_hook;
+			Core::SetSystemInterface(application_interface);
+			application_interface.reset();
+			log_interface.reset();
 		}
 	}
 

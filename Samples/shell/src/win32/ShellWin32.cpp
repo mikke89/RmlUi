@@ -45,7 +45,7 @@ static HINSTANCE instance_handle = NULL;
 static double time_frequency;
 static LARGE_INTEGER time_startup;
 
-static ShellFileInterface* file_interface = NULL;
+static Rml::Core::SharedPtr<ShellFileInterface> file_interface;
 
 static HCURSOR cursor_default = NULL;
 static HCURSOR cursor_move = NULL;
@@ -72,7 +72,7 @@ bool Shell::Initialise()
 
 	Rml::Core::String root = FindSamplesRoot();
 	
-	file_interface = new ShellFileInterface(root);
+	file_interface = std::make_shared<ShellFileInterface>(root);
 	Rml::Core::SetFileInterface(file_interface);
 
 	return true;
@@ -82,8 +82,7 @@ void Shell::Shutdown()
 {
 	InputWin32::Shutdown();
 
-	delete file_interface;
-	file_interface = NULL;
+	file_interface.reset();
 }
 
 Rml::Core::String Shell::FindSamplesRoot()

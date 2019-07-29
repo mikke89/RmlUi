@@ -284,7 +284,7 @@ private:
 	Vector2i mouse_position;
 
 	// The render interface this context renders through.
-	RenderInterface* render_interface;
+	SharedPtr<RenderInterface> render_interface;
 	Vector2i clip_origin;
 	Vector2i clip_dimensions;
 
@@ -331,7 +331,7 @@ private:
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
 	friend class Element;
-	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);
+	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, SharedPtr<RenderInterface>);
 };
 
 }

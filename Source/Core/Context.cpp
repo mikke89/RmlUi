@@ -94,8 +94,7 @@ Context::~Context()
 
 	instancer.reset();
 
-	if (render_interface)
-		render_interface->RemoveReference();
+	render_interface.reset();
 }
 
 // Returns the name of the context.
@@ -775,7 +774,7 @@ void Context::ProcessViewChange(const Matrix4f &view)
 // Gets the context's render interface.
 RenderInterface* Context::GetRenderInterface() const
 {
-	return render_interface;
+	return render_interface.get();
 }
 	
 // Gets the current clipping region for the render traversal

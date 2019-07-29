@@ -35,11 +35,11 @@
 class RmlUiSFMLSystemInterface : public Rml::Core::SystemInterface
 {
 public:
-
 	Rml::Core::Input::KeyIdentifier TranslateKey(sf::Keyboard::Key Key);
 	int GetKeyModifiers(sf::Window *Window);
-	double GetElapsedTime();
-	bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message);
+	
+	double GetElapsedTime() override;
+	bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message) override;
 
 private:
 	sf::Clock timer;
