@@ -104,7 +104,6 @@ int main(int argc, char **argv)
 	if(Document)
 	{
 		Document->Show();
-		Document->RemoveReference();
 		fprintf(stdout, "\nDocument loaded");
 	}
 	else
@@ -149,10 +148,8 @@ int main(int argc, char **argv)
 
                 case SDL_KEYDOWN:
                 {
-                    // Intercept SHIFT + ~ key stroke to toggle RmlUi's 
-                    // visual debugger tool
-                    if( event.key.keysym.sym == SDLK_BACKQUOTE && 
-                        event.key.keysym.mod == KMOD_LSHIFT )
+                    // Intercept F8 key stroke to toggle RmlUi's visual debugger tool
+                    if( event.key.keysym.sym == SDLK_F8 )
                     {
                         Rml::Debugger::SetVisible( ! Rml::Debugger::IsVisible() );
                         break;
@@ -169,7 +166,6 @@ int main(int argc, char **argv)
 		Context->Update();
 	}
 
-    Context->RemoveReference();
     Rml::Core::Shutdown();
 
     SDL_DestroyRenderer(renderer);

@@ -104,7 +104,6 @@ int main(int argc, char **argv)
 	if(Document)
 	{
 		Document->Show();
-		Document->RemoveReference();
 		fprintf(stdout, "\nDocument loaded");
 	}
 	else
@@ -167,13 +166,14 @@ int main(int argc, char **argv)
 			case sf::Event::Closed:
 				MyWindow.close();
 				break;
+			default:
+				break;
 			};
 		};
 
 		Context->Update();
 	};
 
-	Context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	return 0;
