@@ -41,7 +41,7 @@ TextureResource::TextureResource()
 
 TextureResource::~TextureResource()
 {
-	TextureDatabase::RemoveTexture(this);
+	Release();
 }
 
 // Attempts to load a texture from the application into the resource.
@@ -54,9 +54,9 @@ bool TextureResource::Load(const String& _source)
 }
 
 // Returns the resource's underlying texture.
-TextureHandle TextureResource::GetHandle(RenderInterface* render_interface) const
+TextureHandle TextureResource::GetHandle(RenderInterface* render_interface)
 {
-	TextureDataMap::iterator texture_iterator = texture_data.find(render_interface);
+	auto texture_iterator = texture_data.find(render_interface);
 	if (texture_iterator == texture_data.end())
 	{
 		Load(render_interface);
@@ -67,9 +67,9 @@ TextureHandle TextureResource::GetHandle(RenderInterface* render_interface) cons
 }
 
 // Returns the dimensions of the resource's texture.
-const Vector2i& TextureResource::GetDimensions(RenderInterface* render_interface) const
+const Vector2i& TextureResource::GetDimensions(RenderInterface* render_interface)
 {
-	TextureDataMap::iterator texture_iterator = texture_data.find(render_interface);
+	auto texture_iterator = texture_data.find(render_interface);
 	if (texture_iterator == texture_data.end())
 	{
 		Load(render_interface);
@@ -88,13 +88,13 @@ const String& TextureResource::GetSource() const
 // Releases the texture's handle.
 void TextureResource::Release(RenderInterface* render_interface)
 {
-	if (render_interface == NULL)
+	if (!render_interface)
 	{
-		for (TextureDataMap::iterator texture_iterator = texture_data.begin(); texture_iterator != texture_data.end(); ++texture_iterator)
+		for (auto& interface_data_pair : texture_data)
 		{
-			TextureHandle handle = texture_iterator->second.first;
+			TextureHandle handle = interface_data_pair.second.first;
 			if (handle)
-				texture_iterator->first->ReleaseTexture(handle);
+				interface_data_pair.first->ReleaseTexture(handle);
 		}
 
 		texture_data.clear();
@@ -114,16 +114,15 @@ void TextureResource::Release(RenderInterface* render_interface)
 }
 
 // Attempts to load the texture from the source.
-bool TextureResource::Load(RenderInterface* render_interface) const
+bool TextureResource::Load(RenderInterface* render_interface)
 {
 	// Check for special loader tokens.
-	if (!source.empty() &&
-		source[0] == '?')
+	if (!source.empty() && source[0] == '?')
 	{
 		Vector2i dimensions;
 
 		bool delete_data = false;
-		const byte* data = NULL;
+		const byte* data = nullptr;
 
 		// Find the generation protocol and generate the data accordingly.
 		String protocol = source.substr(1, source.find("::") - 1);
@@ -147,7 +146,7 @@ bool TextureResource::Load(RenderInterface* render_interface) const
 
 		// If texture data was generated, great! Otherwise, fallback to the LoadTexture() code and
 		// hope the client knows what the hell to do with the question mark in their file name.
-		if (data != NULL)
+		if (data)
 		{
 			TextureHandle handle;
 			bool success = render_interface->GenerateTexture(handle, data, dimensions);
@@ -182,12 +181,6 @@ bool TextureResource::Load(RenderInterface* render_interface) const
 
 	texture_data[render_interface] = TextureData(handle, dimensions);
 	return true;
-}
-
-void TextureResource::OnReferenceDeactivate()
-{
-	Release();
-	delete this;
 }
 
 }

@@ -60,7 +60,7 @@ void TextureDatabase::Shutdown()
 
 // If the requested texture is already in the database, it will be returned with an extra reference count. If not, it
 // will be loaded through the application's render interface.
-TextureResource* TextureDatabase::Fetch(const String& source, const String& source_directory)
+SharedPtr<TextureResource> TextureDatabase::Fetch(const String& source, const String& source_directory)
 {
 	String path;
 	if (source.size() > 0 && source[0] == '?')
@@ -71,15 +71,13 @@ TextureResource* TextureDatabase::Fetch(const String& source, const String& sour
 	TextureMap::iterator iterator = instance->textures.find(path);
 	if (iterator != instance->textures.end())
 	{
-		(*iterator).second->AddReference();
-		return (*iterator).second;
+		return iterator->second;
 	}
 
-	TextureResource* resource = new TextureResource();
+	auto resource = std::make_shared<TextureResource>();
 	if (!resource->Load(path))
 	{
-		resource->RemoveReference();
-		return NULL;
+		return nullptr;
 	}
 
 	instance->textures[resource->GetSource()] = resource;
@@ -96,7 +94,7 @@ void TextureDatabase::ReleaseTextures()
 // Removes a texture from the database.
 void TextureDatabase::RemoveTexture(TextureResource* texture)
 {
-	if (instance != NULL)
+	if (instance)
 	{
 		TextureMap::iterator iterator = instance->textures.find(texture->GetSource());
 		if (iterator != instance->textures.end())
@@ -107,7 +105,7 @@ void TextureDatabase::RemoveTexture(TextureResource* texture)
 // Release all textures bound through a render interface.
 void TextureDatabase::ReleaseTextures(RenderInterface* render_interface)
 {
-	if (instance != NULL)
+	if (instance)
 	{
 		for (TextureMap::iterator i = instance->textures.begin(); i != instance->textures.end(); ++i)
 			i->second->Release(render_interface);

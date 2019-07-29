@@ -47,12 +47,6 @@ class RenderInterface;
 struct RMLUICORE_API Texture
 {
 public:
-	/// Constructs an unloaded texture with no resource.
-	Texture();
-	/// Constructs a texture sharing the resource of another.
-	Texture(const Texture&);
-	~Texture();
-
 	/// Attempts to load a texture.
 	/// @param[in] source The name of the texture.
 	/// @param[in] source_path The path of the resource that is requesting the texture (ie, the RCSS file in which it was specified, etc).
@@ -61,7 +55,7 @@ public:
 
 	/// Returns the texture's source name. This is usually the name of the file the texture was loaded from.
 	/// @return The name of the this texture's source. This will be the empty string if this texture is not loaded.
-	String GetSource() const;
+	const String& GetSource() const;
 	/// Returns the texture's handle.
 	/// @param[in] The render interface that is requesting the handle.
 	/// @return The texture's handle. This will be NULL if the texture isn't loaded.
@@ -71,9 +65,6 @@ public:
 	/// @return The texture's dimensions. This will be (0, 0) if the texture isn't loaded.
 	Vector2i GetDimensions(RenderInterface* render_interface) const;
 
-	/// Releases this texture's resource (if any), and sets it to another texture's resource.
-	const Texture& operator=(const Texture&);
-
 	/// Returns true if the texture points to the same underlying resource.
 	bool operator==(const Texture&) const;
 
@@ -81,7 +72,7 @@ public:
 	operator bool() const;
 
 private:
-	TextureResource* resource;
+	SharedPtr<TextureResource> resource;
 };
 
 }

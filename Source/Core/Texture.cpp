@@ -34,40 +34,19 @@
 namespace Rml {
 namespace Core {
 
-// Constructs an unloaded texture with no resource.
-Texture::Texture()
-{
-	resource = NULL;
-}
-
-// Constructs a texture sharing the resource of another.
-Texture::Texture(const Texture& copy)
-{
-	resource = NULL;
-	*this = copy;
-}
-
-Texture::~Texture()
-{
-	if (resource)
-		resource->RemoveReference();
-}
-
 // Attempts to load a texture.
 bool Texture::Load(const String& source, const String& source_path)
 {
-	if (resource != NULL)
-		resource->RemoveReference();
-
 	resource = TextureDatabase::Fetch(source, source_path);
-	return resource != NULL;
+	return resource != nullptr;
 }
 
 // Returns the texture's source name. This is usually the name of the file the texture was loaded from.
-String Texture::GetSource() const
+const String& Texture::GetSource() const
 {
-	if (resource == NULL)
-		return String();
+	static String empty_string;
+	if (!resource)
+		return empty_string;
 
 	return resource->GetSource();
 }
@@ -75,7 +54,7 @@ String Texture::GetSource() const
 // Returns the texture's handle. 
 TextureHandle Texture::GetHandle(RenderInterface* render_interface) const
 {
-	if (resource == NULL)
+	if (!resource)
 		return 0;
 
 	return resource->GetHandle(render_interface);
@@ -84,23 +63,10 @@ TextureHandle Texture::GetHandle(RenderInterface* render_interface) const
 // Returns the texture's dimensions.
 Vector2i Texture::GetDimensions(RenderInterface* render_interface) const
 {
-	if (resource == NULL)
+	if (!resource)
 		return Vector2i(0, 0);
 
 	return resource->GetDimensions(render_interface);
-}
-
-// Releases this texture's resource (if any), and sets it to another texture's resource.
-const Texture& Texture::operator=(const Texture& copy)
-{
-	if (resource != NULL)
-		resource->RemoveReference();
-
-	resource = copy.resource;
-	if (resource != NULL)
-		resource->AddReference();
-
-	return *this;
 }
 
 bool Texture::operator==(const Texture& other) const

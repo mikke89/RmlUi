@@ -37,8 +37,6 @@
 namespace Rml {
 namespace Core {
 
-class TextureResource;
-
 /**
 	The 'img' element. The image element can have a rectangular sub-region of its source texture
 	specified with the 'coords' attribute; the element will render this region rather than the

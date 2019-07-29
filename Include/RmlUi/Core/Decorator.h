@@ -42,7 +42,6 @@ class Element;
 class PropertyDictionary;
 class Property;
 struct Texture;
-class TextureResource;
 
 /**
 	The abstract base class for any visual object that can be attached to any element.

@@ -30,7 +30,6 @@
 #include "ElementImage.h"
 #include "../../Include/RmlUi/Core.h"
 #include "TextureDatabase.h"
-#include "TextureResource.h"
 
 namespace Rml {
 namespace Core {

@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "TextureDatabase.h"
-#include "TextureResource.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
