@@ -98,6 +98,10 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< Colourb, T >::Convert(*(Colourb*)data, value);
 		break;
 
+	case SCRIPTINTERFACE:
+		return TypeConverter< ScriptInterface*, T >::Convert(*(ScriptInterface * *)data, value);
+		break;
+
 	case VOIDPTR:
 		return TypeConverter< void*, T >::Convert(*(void**)data, value);
 		break;

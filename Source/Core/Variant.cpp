@@ -263,6 +263,13 @@ void Variant::Set(const Colourb& value)
 	SET_VARIANT(Colourb);
 }
 
+void Variant::Set(ScriptInterface* value)
+{
+	type = SCRIPTINTERFACE;
+	memcpy(data, &value, sizeof(ScriptInterface*));
+}
+
+
 void Variant::Set(const String& value)
 {
 	if (type == STRING)
@@ -460,6 +467,8 @@ bool Variant::operator==(const Variant & other) const
 		return DEFAULT_VARIANT_COMPARE(Colourf);
 	case COLOURB:
 		return DEFAULT_VARIANT_COMPARE(Colourb);
+	case SCRIPTINTERFACE:
+		return DEFAULT_VARIANT_COMPARE(ScriptInterface*);
 	case VOIDPTR:
 		return DEFAULT_VARIANT_COMPARE(void*);
 	case TRANSFORMREF:

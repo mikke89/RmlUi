@@ -26,51 +26,32 @@
  *
  */
 
-#include "../../Include/RmlUi/Controls/DataFormatter.h"
+#ifndef RMLUICORESCRIPTINTERFACE_H
+#define RMLUICORESCRIPTINTERFACE_H
+
+#include "Header.h"
+#include "ReferenceCountable.h"
+#include "Types.h"
 
 namespace Rml {
-namespace Controls {
+namespace Core {
 
-typedef std::map< Rml::Core::String, DataFormatter* > DataFormatterMap;
-static DataFormatterMap data_formatters;
+/**
+	Base class for all objects that hold a scriptable object.
+	@author Peter Curry
+ */
 
-DataFormatter::DataFormatter(const Rml::Core::String& _name)
-{
-	if (!_name.empty())
+class RMLUICORE_API ScriptInterface : public Releasable {
+public:
+	virtual ~ScriptInterface() { }
+
+	virtual ScriptObject GetScriptObject() const
 	{
-		name = _name;
+		return nullptr;
 	}
-	else
-	{
-		name = Core::CreateString(64, "%x", this);
-	}
-	data_formatters[name] = this;
-}
-
-DataFormatter::~DataFormatter()
-{
-}
-
-const Rml::Core::String& DataFormatter::GetDataFormatterName()
-{
-	return name;
-}
-
-DataFormatter* DataFormatter::GetDataFormatter(const Rml::Core::String& data_formatter_name)
-{
-	DataFormatterMap::iterator i = data_formatters.find(data_formatter_name);
-	if (i == data_formatters.end())
-	{
-		return NULL;
-	}
-
-	return (*i).second;
-}
-
-void* DataFormatter::GetScriptObject() const
-{
-	return NULL;
-}
+};
 
 }
 }
+
+#endif

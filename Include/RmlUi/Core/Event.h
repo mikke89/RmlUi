@@ -31,7 +31,7 @@
 
 #include "Header.h"
 #include "Dictionary.h"
-#include "ReferenceCountable.h"
+#include "ScriptInterface.h"
 #include "ID.h"
 
 namespace Rml {
@@ -51,7 +51,7 @@ enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, Bubble =
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API Event : public Releasable
+class RMLUICORE_API Event : public ScriptInterface
 {
 public:
 	/// Constructor
