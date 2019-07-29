@@ -104,10 +104,11 @@ bool Initialise()
 
 void Shutdown()
 {
+	// Clear out all contexts, which should also clean up all attached elements.
+	contexts.clear();
+
 	// Notify all plugins we're being shutdown.
 	PluginRegistry::NotifyShutdown();
-
-	contexts.clear();
 
 	TemplateCache::Shutdown();
 	StyleSheetFactory::Shutdown();

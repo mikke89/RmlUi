@@ -230,7 +230,7 @@ void Plugin::OnContextDestroy(Core::Context* context)
 		ReleaseElements();
 
 		Geometry::SetContext(nullptr);
-		context = nullptr;
+		host_context = nullptr;
 	}
 }
 
