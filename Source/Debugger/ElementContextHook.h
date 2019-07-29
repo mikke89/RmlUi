@@ -50,7 +50,7 @@ public:
 
 	void Initialise(Plugin* debugger);
 
-	virtual void OnRender();
+	void OnRender() override;
 
 private:
 	Plugin* debugger;

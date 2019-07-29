@@ -41,26 +41,27 @@
 namespace Rml {
 namespace Debugger {
 
-Plugin* Plugin::instance = NULL;
+Plugin* Plugin::instance = nullptr;
 
 Plugin::Plugin()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
-	host_context = NULL;
-	debug_context = NULL;
-	log_hook = NULL;
+	host_context = nullptr;
+	debug_context = nullptr;
+	log_hook = nullptr;
 
-	menu_element = NULL;
-	info_element = NULL;
-	log_element = NULL;
+	menu_element = nullptr;
+	info_element = nullptr;
+	log_element = nullptr;
+	hook_element = nullptr;
 
 	render_outlines = false;
 }
 
 Plugin::~Plugin()
 {
-	instance = NULL;
+	instance = nullptr;
 }
 
 // Initialises the debugging tools into the given context.
@@ -105,6 +106,7 @@ bool Plugin::SetContext(Core::Context* context)
 		if (!element)
 			return false;
 
+		RMLUI_ASSERT(!hook_element);
 		hook_element = dynamic_cast< ElementContextHook* >(element);
 		if (!hook_element)
 		{
@@ -156,8 +158,7 @@ bool Plugin::IsVisible()
 void Plugin::Render()
 {
 	// Render the outlines of the debug context's elements.
-	if (render_outlines &&
-		debug_context != NULL)
+	if (render_outlines && debug_context)
 	{
 		for (int i = 0; i < debug_context->GetNumDocuments(); ++i)
 		{
@@ -196,8 +197,7 @@ void Plugin::Render()
 	}
 
 	// Render the info element's boxes.
-	if (info_element != NULL &&
-		info_element->IsVisible())
+	if (info_element && info_element->IsVisible())
 	{
 		info_element->RenderHoverElement();
 		info_element->RenderSourceElement();
@@ -318,7 +318,7 @@ bool Plugin::LoadInfoElement()
 {
 	Core::Factory::RegisterElementInstancer("debug-info", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementInfo >));
 	info_element = dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
-	if (info_element == NULL)
+	if (!info_element)
 		return false;
 
 	info_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
@@ -326,7 +326,7 @@ bool Plugin::LoadInfoElement()
 	if (!info_element->Initialise())
 	{
 		host_context->UnloadDocument(info_element);
-		info_element = NULL;
+		info_element = nullptr;
 
 		return false;
 	}
@@ -338,7 +338,7 @@ bool Plugin::LoadLogElement()
 {
 	Core::Factory::RegisterElementInstancer("debug-log", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementLog >));
 	log_element = dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
-	if (log_element == NULL)
+	if (!log_element)
 		return false;
 
 	log_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
@@ -346,7 +346,7 @@ bool Plugin::LoadLogElement()
 	if (!log_element->Initialise())
 	{
 		host_context->UnloadDocument(log_element);
-		log_element = NULL;
+		log_element = nullptr;
 
 		return false;
 	}
@@ -359,33 +359,35 @@ bool Plugin::LoadLogElement()
 
 void Plugin::ReleaseElements()
 {
-	if (menu_element)
+	if (host_context)
 	{
-		if (auto parent = menu_element->GetParentNode())
-			parent->RemoveChild(menu_element);
-		menu_element = nullptr;
+		if (menu_element)
+		{
+			host_context->UnloadDocument(menu_element);
+			menu_element = nullptr;
+		}
+
+		if (info_element)
+		{
+			host_context->UnloadDocument(info_element);
+			info_element = nullptr;
+		}
+
+		if (log_element)
+		{
+			host_context->UnloadDocument(log_element);
+			log_element = nullptr;
+			delete log_hook;
+		}
 	}
 
-	if (info_element)
+	if (debug_context)
 	{
-		if (auto parent = info_element->GetParentNode())
-			parent->RemoveChild(info_element);
-		info_element = nullptr;
-	}
-
-	if (log_element)
-	{
-		if (auto parent = log_element->GetParentNode())
-			parent->RemoveChild(log_element);
-		log_element = nullptr;
-		delete log_hook;
-	}
-
-	if (hook_element)
-	{
-		if (auto parent = hook_element->GetParentNode())
-			parent->RemoveChild(hook_element);
-		hook_element = nullptr;
+		if (hook_element)
+		{
+			debug_context->UnloadDocument(hook_element);
+			hook_element = nullptr;
+		}
 	}
 }
 

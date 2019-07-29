@@ -308,8 +308,6 @@ void Context::UnloadDocument(ElementDocument* _document)
 			return;
 	}
 
-	// Add a reference, to ensure the document isn't released
-	// while we're closing it.
 	ElementDocument* document = _document;
 
 	if (document->GetParentNode() == root.get())
