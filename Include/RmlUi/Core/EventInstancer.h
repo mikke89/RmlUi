@@ -29,7 +29,7 @@
 #ifndef RMLUICOREEVENTINSTANCER_H
 #define RMLUICOREEVENTINSTANCER_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Header.h"
 
 namespace Rml {

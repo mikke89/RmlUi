@@ -48,7 +48,7 @@
 
 #include "Platform.h"
 #include "Debug.h"
-#include "ReferenceCountable.h"
+#include "Traits.h"
 
 #ifdef RMLUI_DEBUG
 #include <unordered_map>

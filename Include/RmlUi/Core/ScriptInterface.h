@@ -30,7 +30,7 @@
 #define RMLUICORESCRIPTINTERFACE_H
 
 #include "Header.h"
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Types.h"
 
 namespace Rml {

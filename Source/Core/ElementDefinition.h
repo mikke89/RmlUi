@@ -30,7 +30,7 @@
 #define RMLUICOREELEMENTDEFINITION_H
 
 #include "../../Include/RmlUi/Core/Dictionary.h"
-#include "../../Include/RmlUi/Core/ReferenceCountable.h"
+#include "../../Include/RmlUi/Core/Traits.h"
 
 namespace Rml {
 namespace Core {

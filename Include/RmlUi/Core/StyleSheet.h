@@ -29,7 +29,7 @@
 #ifndef RMLUICORESTYLESHEET_H
 #define RMLUICORESTYLESHEET_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "PropertyDictionary.h"
 #include "Spritesheet.h"
 #include <set>

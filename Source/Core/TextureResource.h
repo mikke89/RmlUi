@@ -29,7 +29,7 @@
 #ifndef RMLUICORETEXTURERESOURCE_H
 #define RMLUICORETEXTURERESOURCE_H
 
-#include "../../Include/RmlUi/Core/ReferenceCountable.h"
+#include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/Texture.h"
 
 namespace Rml {

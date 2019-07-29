@@ -29,8 +29,8 @@
 #ifndef RMLUICORECONTEXTINSTANCER_H
 #define RMLUICORECONTEXTINSTANCER_H
 
-#include "ReferenceCountable.h"
 #include "Header.h"
+#include "Traits.h"
 
 namespace Rml {
 namespace Core {

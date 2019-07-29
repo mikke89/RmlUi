@@ -29,7 +29,7 @@
 #ifndef RMLUICORERENDERINTERFACE_H
 #define RMLUICORERENDERINTERFACE_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Header.h"
 #include "Texture.h"
 #include "Vertex.h"

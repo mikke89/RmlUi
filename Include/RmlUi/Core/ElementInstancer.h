@@ -29,7 +29,7 @@
 #ifndef RMLUICOREELEMENTINSTANCER_H
 #define RMLUICOREELEMENTINSTANCER_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "XMLParser.h"
 #include "Header.h"
 

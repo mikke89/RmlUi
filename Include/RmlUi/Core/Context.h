@@ -31,7 +31,7 @@
 
 #include "Header.h"
 #include "Types.h"
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Input.h"
 #include "String.h"
 #include "ScriptInterface.h"

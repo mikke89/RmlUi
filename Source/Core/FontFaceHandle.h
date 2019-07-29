@@ -29,7 +29,7 @@
 #ifndef RMLUICOREFONTFACEHANDLE_H
 #define RMLUICOREFONTFACEHANDLE_H
 
-#include "../../Include/RmlUi/Core/ReferenceCountable.h"
+#include "../../Include/RmlUi/Core/Traits.h"
 #include "UnicodeRange.h"
 #include "../../Include/RmlUi/Core/Font.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"

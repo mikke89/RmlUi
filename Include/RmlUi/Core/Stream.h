@@ -30,7 +30,7 @@
 #define RMLUICORESTREAM_H
 
 #include "Header.h"
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Types.h"
 #include "URL.h"
 #include <list>

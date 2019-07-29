@@ -29,7 +29,7 @@
 #ifndef RMLUICOREXMLNODEHANDLER_H
 #define RMLUICOREXMLNODEHANDLER_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "XMLParser.h"
 #include "Header.h"
 

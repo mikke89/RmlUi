@@ -29,7 +29,7 @@
 #ifndef RMLUICOREFONTEFFECTINSTANCER_H
 #define RMLUICOREFONTEFFECTINSTANCER_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Header.h"
 #include "PropertyDictionary.h"
 #include "PropertySpecification.h"

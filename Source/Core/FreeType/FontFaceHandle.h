@@ -29,7 +29,6 @@
 #ifndef RMLUICOREFREETYPEFONTFACEHANDLE_H
 #define RMLUICOREFREETYPEFONTFACEHANDLE_H
 
-#include "../../../Include/RmlUi/Core/ReferenceCountable.h"
 #include "../UnicodeRange.h"
 #include "../FontFaceHandle.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"

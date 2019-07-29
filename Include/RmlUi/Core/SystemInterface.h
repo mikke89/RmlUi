@@ -30,7 +30,7 @@
 #define RMLUICORESYSTEMINTERFACE_H
 
 #include "Log.h"
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "String.h"
 #include "Header.h"
 
