@@ -56,7 +56,7 @@ public:
 	/// @param[in] tag The tag the custom parser will handle.
 	/// @param[in] handler The custom handler.
 	/// @return The registered XML node handler.
-	static XMLNodeHandler* RegisterNodeHandler(const String& tag, XMLNodeHandler* handler);
+	static XMLNodeHandler* RegisterNodeHandler(const String& tag, SharedPtr<XMLNodeHandler> handler);
 	/// Releases all registered node handlers. This is called internally.
 	static void ReleaseHandlers();
 
@@ -96,11 +96,11 @@ public:
 
 protected:
 	/// Called when the parser finds the beginning of an element tag.
-	virtual void HandleElementStart(const String& name, const XMLAttributes& attributes);
+	void HandleElementStart(const String& name, const XMLAttributes& attributes) override;
 	/// Called when the parser finds the end of an element tag.
-	virtual void HandleElementEnd(const String& name);
+	void HandleElementEnd(const String& name) override;
 	/// Called when the parser encounters data.
-	virtual void HandleData(const String& data);
+	void HandleData(const String& data) override;
 
 private:
 	// The header of the document being parsed.

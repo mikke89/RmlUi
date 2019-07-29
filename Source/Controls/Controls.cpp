@@ -46,41 +46,25 @@ namespace Controls {
 void RegisterElementInstancers()
 {
 	Core::Factory::RegisterElementInstancer("form", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementForm >));
-
 	Core::Factory::RegisterElementInstancer("input", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlInput >));
-
 	Core::Factory::RegisterElementInstancer("dataselect", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlDataSelect >));
-
 	Core::Factory::RegisterElementInstancer("select", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlSelect >));
 
 	Core::Factory::RegisterElementInstancer("textarea", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlTextArea >));
-
 	Core::Factory::RegisterElementInstancer("#selection", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementTextSelection >));
-
 	Core::Factory::RegisterElementInstancer("tabset", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementTabSet >));
 
 	Core::Factory::RegisterElementInstancer("datagrid", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGrid >));
-
 	Core::Factory::RegisterElementInstancer("datagridexpand", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridExpandButton >));
-
 	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridCell >));
-
 	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridRow >));
 }
 
 void RegisterXMLNodeHandlers()
 {
-	Core::XMLNodeHandler* node_handler = new XMLNodeHandlerDataGrid();
-	Core::XMLParser::RegisterNodeHandler("datagrid", node_handler);
-	node_handler->RemoveReference();
-
-	node_handler = new XMLNodeHandlerTabSet();
-	Core::XMLParser::RegisterNodeHandler("tabset", node_handler);
-	node_handler->RemoveReference();
-
-	node_handler = new XMLNodeHandlerTextArea();
-	Core::XMLParser::RegisterNodeHandler("textarea", node_handler);
-	node_handler->RemoveReference();
+	Core::XMLParser::RegisterNodeHandler("datagrid", std::make_shared<XMLNodeHandlerDataGrid>());
+	Core::XMLParser::RegisterNodeHandler("tabset", std::make_shared<XMLNodeHandlerTabSet>());
+	Core::XMLParser::RegisterNodeHandler("textarea", std::make_shared<XMLNodeHandlerTextArea>());
 }
 
 static bool initialised = false;

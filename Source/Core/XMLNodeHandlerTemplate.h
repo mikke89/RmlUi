@@ -44,16 +44,14 @@ class XMLNodeHandlerTemplate : public XMLNodeHandler
 {
 public:
 	XMLNodeHandlerTemplate();
-	virtual ~XMLNodeHandlerTemplate();
+	~XMLNodeHandlerTemplate();
 
 	/// Called when a new element start is opened
-	virtual Element* ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes);
+	Element* ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes) override;
 	/// Called when an element is closed
-	virtual bool ElementEnd(XMLParser* parser, const String& name);
+	bool ElementEnd(XMLParser* parser, const String& name) override;
 	/// Called for element data
-	virtual bool ElementData(XMLParser* parser, const String& data);
-
-	virtual void Release();
+	bool ElementData(XMLParser* parser, const String& data) override;
 };
 
 }

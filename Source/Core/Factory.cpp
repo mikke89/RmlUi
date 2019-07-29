@@ -114,10 +114,10 @@ bool Factory::Initialise()
 	RegisterFontEffectInstancer("outline", std::make_unique<FontEffectOutlineInstancer>());
 
 	// Register the core XML node handlers.
-	XMLParser::RegisterNodeHandler("", new XMLNodeHandlerDefault())->RemoveReference();
-	XMLParser::RegisterNodeHandler("body", new XMLNodeHandlerBody())->RemoveReference();
-	XMLParser::RegisterNodeHandler("head", new XMLNodeHandlerHead())->RemoveReference();
-	XMLParser::RegisterNodeHandler("template", new XMLNodeHandlerTemplate())->RemoveReference();
+	XMLParser::RegisterNodeHandler("", std::make_shared<XMLNodeHandlerDefault>());
+	XMLParser::RegisterNodeHandler("body", std::make_shared<XMLNodeHandlerBody>());
+	XMLParser::RegisterNodeHandler("head", std::make_shared<XMLNodeHandlerHead>());
+	XMLParser::RegisterNodeHandler("template", std::make_shared<XMLNodeHandlerTemplate>());
 
 	return true;
 }

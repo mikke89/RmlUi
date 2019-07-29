@@ -35,9 +35,9 @@
 namespace Rml {
 namespace Core {
 
-typedef UnorderedMap< String, XMLNodeHandler* > NodeHandlers;
+typedef UnorderedMap< String, SharedPtr<XMLNodeHandler> > NodeHandlers;
 static NodeHandlers node_handlers;
-static XMLNodeHandler* default_node_handler = NULL;
+static SharedPtr<XMLNodeHandler> default_node_handler;
 
 XMLParser::XMLParser(Element* root)
 {
@@ -62,43 +62,26 @@ XMLParser::~XMLParser()
 }
 
 // Registers a custom node handler to be used to a given tag.
-XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, XMLNodeHandler* handler)
+XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
 {
 	String tag = ToLower(_tag);
 
 	// Check for a default node registration.
 	if (tag.empty())
 	{
-		if (default_node_handler != NULL)
-			default_node_handler->RemoveReference();
-
-		default_node_handler = handler;
-		default_node_handler->AddReference();
-		return default_node_handler;
+		default_node_handler = std::move(handler);
+		return default_node_handler.get();
 	}
 
-	NodeHandlers::iterator i = node_handlers.find(tag);
-	if (i != node_handlers.end())
-		(*i).second->RemoveReference();
-
-	node_handlers[tag] = handler;
-	handler->AddReference();
-
-	return handler;
+	XMLNodeHandler* result = handler.get();
+	node_handlers[tag] = std::move(handler);
+	return result;
 }
 
 // Releases all registered node handlers. This is called internally.
 void XMLParser::ReleaseHandlers()
 {
-	if (default_node_handler != NULL)
-	{
-		default_node_handler->RemoveReference();
-		default_node_handler = NULL;
-	}
-
-	for (NodeHandlers::iterator i = node_handlers.begin(); i != node_handlers.end(); ++i)
-		(*i).second->RemoveReference();
-
+	default_node_handler.reset();
 	node_handlers.clear();
 }
 
@@ -115,7 +98,7 @@ const URL& XMLParser::GetSourceURL() const
 // Pushes the default element handler onto the parse stack.
 void XMLParser::PushDefaultHandler()
 {
-	active_handler = default_node_handler;
+	active_handler = default_node_handler.get();
 }
 
 bool XMLParser::PushHandler(const String& tag)
@@ -124,7 +107,7 @@ bool XMLParser::PushHandler(const String& tag)
 	if (i == node_handlers.end())
 		return false;
 
-	active_handler = (*i).second;
+	active_handler = i->second.get();
 	return true;
 }
 
@@ -142,12 +125,12 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 	// Check for a specific handler that will override the child handler.
 	NodeHandlers::iterator itr = node_handlers.find(name);
 	if (itr != node_handlers.end())
-		active_handler = (*itr).second;
+		active_handler = itr->second.get();
 
 	// Store the current active handler, so we can use it through this function (as active handler may change)
 	XMLNodeHandler* node_handler = active_handler;
 
-	Element* element = NULL;
+	Element* element = nullptr;
 
 	// Get the handler to handle the open tag
 	if (node_handler)
@@ -159,7 +142,7 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 	ParseFrame frame;
 	frame.node_handler = node_handler;
 	frame.child_handler = active_handler;
-	frame.element = element != NULL ? element : stack.top().element;
+	frame.element = (element ? element : stack.top().element);
 	frame.tag = name;
 	stack.push(frame);
 }

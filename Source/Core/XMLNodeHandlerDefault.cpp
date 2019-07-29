@@ -81,10 +81,6 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 	return Factory::InstanceElementText(parent, data);
 }
 
-void XMLNodeHandlerDefault::Release()
-{
-	delete this;
-}
 
 }
 }

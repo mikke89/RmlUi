@@ -70,10 +70,5 @@ bool XMLNodeHandlerTemplate::ElementData(XMLParser* parser, const String& data)
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 
-void XMLNodeHandlerTemplate::Release()
-{
-	delete this;
-}
-
 }
 }

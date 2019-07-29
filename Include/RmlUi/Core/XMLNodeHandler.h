@@ -45,7 +45,7 @@ class XMLParser;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API XMLNodeHandler : public ReferenceCountable
+class RMLUICORE_API XMLNodeHandler : public NonCopyMoveable
 {
 public:
 	virtual ~XMLNodeHandler();
@@ -66,12 +66,6 @@ public:
 	/// @param parser The parser executing the parse.
 	/// @param data The element data.
 	virtual bool ElementData(XMLParser* parser, const String& data) = 0;
-
-	/// Called to release the node handler.
-	virtual void Release() = 0;
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

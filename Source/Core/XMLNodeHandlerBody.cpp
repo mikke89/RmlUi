@@ -80,10 +80,5 @@ bool XMLNodeHandlerBody::ElementData(XMLParser* parser, const String& data)
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 
-void XMLNodeHandlerBody::Release()
-{
-	delete this;
-}
-
 }
 }

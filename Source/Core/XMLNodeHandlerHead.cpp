@@ -138,10 +138,5 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data)
 	return true;
 }
 
-void XMLNodeHandlerHead::Release()
-{
-	delete this;
-}
-
 }
 }
