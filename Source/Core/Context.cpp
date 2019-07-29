@@ -353,11 +353,7 @@ void Context::UnloadAllDocuments()
 	while (root->GetNumChildren(true) > 0)
 		UnloadDocument(root->GetChild(0)->GetOwnerDocument());
 
-	// Also need to clear containers that keep ElementReference pointers to elements belonging to removed documents,
-	// essentially preventing them from being released in correct order (before context destroys render interface,
-	// which causes access violation for elements that try to release geometry after context is released)
-	// I don't bother checking what's in chain because we unload all documents, so there shouldn't be any element
-	// that remains here (could check for element->owner == nullptr, but that's probably guaranteed)
+	// The element lists may point to elements that are getting removed.
 	active_chain.clear();
 	hover_chain.clear();
 	drag_hover_chain.clear();

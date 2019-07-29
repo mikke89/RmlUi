@@ -32,7 +32,6 @@
 #include "Header.h"
 #include "Types.h"
 #include "ReferenceCountable.h"
-#include "ElementReference.h"
 #include "Input.h"
 #include "String.h"
 #include "ScriptInterface.h"
@@ -232,8 +231,8 @@ private:
 
 	SharedPtr<ContextInstancer> instancer;
 
-	typedef SmallOrderedSet< ElementReference > ElementSet;
-	typedef std::vector< ElementReference > ElementList;
+	using ElementSet = SmallOrderedSet< Element* > ;
+	using ElementList = std::vector< Element* >;
 	// Set of elements that are currently in hover state.
 	ElementSet hover_chain;
 	// List of elements that are currently in active state.

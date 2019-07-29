@@ -131,7 +131,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementReference.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h
@@ -242,7 +241,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementImage.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementReference.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementText.cpp
