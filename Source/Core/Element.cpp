@@ -333,9 +333,12 @@ String Element::GetClassNames() const
 }
 
 // Returns the active style sheet for this element. This may be NULL.
-StyleSheet* Element::GetStyleSheet() const
+const SharedPtr<StyleSheet>& Element::GetStyleSheet() const
 {
-	return style->GetStyleSheet();
+	if (ElementDocument * document = GetOwnerDocument())
+		return document->GetStyleSheet();
+	static SharedPtr<StyleSheet> null_style_sheet;
+	return null_style_sheet;
 }
 
 // Returns the element's definition, updating if necessary.
@@ -2481,7 +2484,7 @@ void Element::UpdateAnimation()
 		bool element_has_animations = (!animation_list.empty() || !animations.empty());
 		StyleSheet* stylesheet = nullptr;
 
-		if (element_has_animations && (stylesheet = GetStyleSheet()))
+		if (element_has_animations && (stylesheet = GetStyleSheet().get()))
 		{
 			// Remove existing animations
 			// Note: We are effectively restarting all animations whenever 'drty_animation' is set. Use the dirty flag with care,

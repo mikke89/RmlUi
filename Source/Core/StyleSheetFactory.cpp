@@ -91,29 +91,27 @@ void StyleSheetFactory::Shutdown()
 	}
 }
 
-StyleSheet* StyleSheetFactory::GetStyleSheet(const String& sheet_name)
+SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const String& sheet_name)
 {
 	// Look up the sheet definition in the cache
 	StyleSheets::iterator itr = instance->stylesheets.find(sheet_name);
 	if (itr != instance->stylesheets.end())
 	{
-		(*itr).second->AddReference();
 		return (*itr).second;
 	}
 
 	// Don't currently have the sheet, attempt to load it
-	StyleSheet* sheet = instance->LoadStyleSheet(sheet_name);
-	if (sheet == NULL)
-		return NULL;
+	SharedPtr<StyleSheet> sheet = instance->LoadStyleSheet(sheet_name);
+	if (!sheet)
+		return nullptr;
 
 	// Add it to the cache, and add a reference count so the cache will keep hold of it.
 	instance->stylesheets[sheet_name] = sheet;
-	sheet->AddReference();
 
 	return sheet;
 }
 
-StyleSheet* StyleSheetFactory::GetStyleSheet(const StringList& sheets)
+SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 {
 	// Generate a unique key for these sheets
 	String combined_key;
@@ -127,23 +125,19 @@ StyleSheet* StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 	StyleSheets::iterator itr = instance->stylesheet_cache.find(combined_key);
 	if (itr != instance->stylesheet_cache.end())
 	{
-		(*itr).second->AddReference();
 		return (*itr).second;
 	}
 
 	// Load and combine the sheets.
-	StyleSheet* sheet = NULL;
+	SharedPtr<StyleSheet> sheet;
 	for (size_t i = 0; i < sheets.size(); i++)
 	{
-		StyleSheet* sub_sheet = GetStyleSheet(sheets[i]);
+		SharedPtr<StyleSheet> sub_sheet = GetStyleSheet(sheets[i]);
 		if (sub_sheet)
 		{
 			if (sheet)
 			{
-				StyleSheet* new_sheet = sheet->CombineStyleSheet(sub_sheet);
-				sheet->RemoveReference();
-				sub_sheet->RemoveReference();
-
+				SharedPtr<StyleSheet> new_sheet = sheet->CombineStyleSheet(*sub_sheet);
 				sheet = new_sheet;
 			}
 			else
@@ -153,24 +147,17 @@ StyleSheet* StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 			Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", sheets[i].c_str());
 	}
 
-	if (sheet == NULL)
-		return NULL;
+	if (!sheet)
+		return nullptr;
 
 	// Add to cache, and a reference to the sheet to hold it in the cache.
 	instance->stylesheet_cache[combined_key] = sheet;
-	sheet->AddReference();
 	return sheet;
 }
 
 // Clear the style sheet cache.
 void StyleSheetFactory::ClearStyleSheetCache()
 {
-	for (StyleSheets::iterator i = instance->stylesheets.begin(); i != instance->stylesheets.end(); ++i)
-		(*i).second->RemoveReference();
-
-	for (StyleSheets::iterator i = instance->stylesheet_cache.begin(); i != instance->stylesheet_cache.end(); ++i)
-		(*i).second->RemoveReference();
-
 	instance->stylesheets.clear();
 	instance->stylesheet_cache.clear();
 }
@@ -185,20 +172,19 @@ StyleSheetNodeSelector* StyleSheetFactory::GetSelector(const String& name)
 	return (*i).second;
 }
 
-StyleSheet* StyleSheetFactory::LoadStyleSheet(const String& sheet)
+SharedPtr<StyleSheet> StyleSheetFactory::LoadStyleSheet(const String& sheet)
 {
-	StyleSheet* new_style_sheet = NULL;
+	SharedPtr<StyleSheet> new_style_sheet;
 
 	// Open stream, construct new sheet and pass the stream into the sheet
 	// TODO: Make this support ASYNC
 	StreamFile* stream = new StreamFile();
 	if (stream->Open(sheet))
 	{
-		new_style_sheet = new StyleSheet();
+		new_style_sheet = std::make_shared<StyleSheet>();
 		if (!new_style_sheet->LoadStyleSheet(stream))
 		{
-			new_style_sheet->RemoveReference();
-			new_style_sheet = NULL;
+			new_style_sheet = nullptr;
 		}
 	}
 

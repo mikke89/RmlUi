@@ -104,7 +104,7 @@ public:
 
 	/// Returns the active style sheet for this element. This may be NULL.
 	/// @return The element's style sheet.
-	virtual StyleSheet* GetStyleSheet() const;
+	virtual const SharedPtr<StyleSheet>& GetStyleSheet() const;
 
 	/// Returns the element's definition, updating if necessary.
 	/// @return The element's definition.

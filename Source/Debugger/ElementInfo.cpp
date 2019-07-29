@@ -61,12 +61,11 @@ bool ElementInfo::Initialise()
 	AddEventListener(Core::EventId::Click, this);
 	AddEventListener(Core::EventId::Mouseover, this);
 
-	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(info_rcss));
-	if (style_sheet == NULL)
+	Core::SharedPtr<Core::StyleSheet> style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(info_rcss));
+	if (!style_sheet)
 		return false;
 
-	SetStyleSheet(style_sheet);
-	style_sheet->RemoveReference();
+	SetStyleSheet(std::move(style_sheet));
 
 	return true;
 }

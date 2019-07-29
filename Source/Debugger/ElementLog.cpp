@@ -92,18 +92,17 @@ bool ElementLog::Initialise()
 		message_content->AddEventListener(Core::EventId::Resize, this);
 	}
 
-	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(log_rcss));
-	if (style_sheet == NULL)
+	Core::SharedPtr<Core::StyleSheet> style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(log_rcss));
+	if (!style_sheet)
 		return false;
 
-	SetStyleSheet(style_sheet);
-	style_sheet->RemoveReference();
+	SetStyleSheet(std::move(style_sheet));
 
 	AddEventListener(Core::EventId::Click, this);
 
 	// Create the log beacon.
 	beacon = GetContext()->CreateDocument();
-	if (beacon == NULL)
+	if (!beacon)
 		return false;
 
 	beacon->SetId("rmlui-debug-log-beacon");
@@ -111,20 +110,18 @@ bool ElementLog::Initialise()
 	beacon->SetInnerRML(beacon_rml);
 
 	Core::Element* button = beacon->GetFirstChild();
-	if (button != NULL)
+	if (button)
 		beacon->GetFirstChild()->AddEventListener(Core::EventId::Click, this);
 
 	style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(beacon_rcss));
-	if (style_sheet == NULL)
+	if (!style_sheet)
 	{
 		GetContext()->UnloadDocument(beacon);
-		beacon = NULL;
-
+		beacon = nullptr;
 		return false;
 	}
 
 	beacon->SetStyleSheet(style_sheet);
-	style_sheet->RemoveReference();
 
 	return true;
 }

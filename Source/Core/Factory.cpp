@@ -341,35 +341,33 @@ FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)
 
 
 // Creates a style sheet containing the passed in styles.
-StyleSheet* Factory::InstanceStyleSheetString(const String& string)
+SharedPtr<StyleSheet> Factory::InstanceStyleSheetString(const String& string)
 {
 	StreamMemory* memory_stream = new StreamMemory((const byte*) string.c_str(), string.size());
-	StyleSheet* style_sheet = InstanceStyleSheetStream(memory_stream);
+	SharedPtr<StyleSheet> style_sheet = InstanceStyleSheetStream(memory_stream);
 	memory_stream->RemoveReference();
 	return style_sheet;
 }
 
 // Creates a style sheet from a file.
-StyleSheet* Factory::InstanceStyleSheetFile(const String& file_name)
+SharedPtr<StyleSheet> Factory::InstanceStyleSheetFile(const String& file_name)
 {
 	StreamFile* file_stream = new StreamFile();
 	file_stream->Open(file_name);
-	StyleSheet* style_sheet = InstanceStyleSheetStream(file_stream);
+	SharedPtr<StyleSheet> style_sheet = InstanceStyleSheetStream(file_stream);
 	file_stream->RemoveReference();
 	return style_sheet;
 }
 
 // Creates a style sheet from an Stream.
-StyleSheet* Factory::InstanceStyleSheetStream(Stream* stream)
+SharedPtr<StyleSheet> Factory::InstanceStyleSheetStream(Stream* stream)
 {
-	StyleSheet* style_sheet = new StyleSheet();
+	SharedPtr<StyleSheet> style_sheet = std::make_shared<StyleSheet>();
 	if (style_sheet->LoadStyleSheet(stream))
 	{
 		return style_sheet;
 	}
-
-	style_sheet->RemoveReference();
-	return NULL;
+	return nullptr;
 }
 
 // Clears the style sheet cache. This will force style sheets to be reloaded.

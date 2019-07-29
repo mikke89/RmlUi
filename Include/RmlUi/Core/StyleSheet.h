@@ -70,7 +70,7 @@ using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StyleSheet : public ReferenceCountable
+class RMLUICORE_API StyleSheet : public NonCopyMoveable
 {
 public:
 	typedef std::unordered_set< StyleSheetNode* > NodeList;
@@ -83,7 +83,7 @@ public:
 	bool LoadStyleSheet(Stream* stream);
 
 	/// Combines this style sheet with another one, producing a new sheet.
-	StyleSheet* CombineStyleSheet(const StyleSheet* sheet) const;
+	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
 	/// Builds the node index for a combined style sheet, and optimizes some properties for faster retrieval.
 	/// Specifically, converts all decorator properties from strings to instanced decorator lists.
 	void BuildNodeIndexAndOptimizeProperties();
@@ -106,10 +106,6 @@ public:
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
 	std::shared_ptr<ElementDefinition> GetElementDefinition(const Element* element) const;
-
-protected:
-	/// Destroys the style sheet.
-	virtual void OnReferenceDeactivate();
 
 private:
 	// Root level node, attributes from special nodes like "body" get added to this node

@@ -61,8 +61,6 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 
 ElementDocument::~ElementDocument()
 {
-	if (style_sheet != NULL)
-		style_sheet->RemoveReference();
 }
 
 void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
@@ -93,43 +91,38 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 
 	// If a style-sheet (or sheets) has been specified for this element, then we load them and set the combined sheet
 	// on the element; all of its children will inherit it by default.
-	StyleSheet* style_sheet = NULL;
+	SharedPtr<StyleSheet> new_style_sheet;
 	if (header.rcss_external.size() > 0)
-		style_sheet = StyleSheetFactory::GetStyleSheet(header.rcss_external);
+		new_style_sheet = StyleSheetFactory::GetStyleSheet(header.rcss_external);
 
 	// Combine any inline sheets.
 	if (header.rcss_inline.size() > 0)
 	{			
 		for (size_t i = 0;i < header.rcss_inline.size(); i++)
 		{			
-			StyleSheet* new_sheet = new StyleSheet();
+			std::unique_ptr<StyleSheet> inline_sheet = std::make_unique<StyleSheet>();
 			StreamMemory* stream = new StreamMemory((const byte*) header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
 			stream->SetSourceURL(document_header->source);
 
-			if (new_sheet->LoadStyleSheet(stream))
+			if (inline_sheet->LoadStyleSheet(stream))
 			{
-				if (style_sheet)
+				if (new_style_sheet)
 				{
-					StyleSheet* combined_sheet = style_sheet->CombineStyleSheet(new_sheet);
-					style_sheet->RemoveReference();
-					new_sheet->RemoveReference();
-					style_sheet = combined_sheet;
+					SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*inline_sheet);
+					new_style_sheet = combined_sheet;
 				}
 				else
-					style_sheet = new_sheet;
+					new_style_sheet = std::move(inline_sheet);
 			}
-			else
-				new_sheet->RemoveReference();
 
 			stream->RemoveReference();
 		}		
 	}
 
 	// If a style sheet is available, set it on the document and release it.
-	if (style_sheet)
+	if (new_style_sheet)
 	{
-		SetStyleSheet(style_sheet);
-		style_sheet->RemoveReference();
+		SetStyleSheet(std::move(new_style_sheet));
 	}
 
 	// Load external scripts.
@@ -177,26 +170,21 @@ const String& ElementDocument::GetSourceURL() const
 }
 
 // Sets the style sheet this document, and all of its children, uses.
-void ElementDocument::SetStyleSheet(StyleSheet* _style_sheet)
+void ElementDocument::SetStyleSheet(SharedPtr<StyleSheet> _style_sheet)
 {
 	if (style_sheet == _style_sheet)
 		return;
 
-	if (style_sheet != NULL)
-		style_sheet->RemoveReference();
-
 	style_sheet = _style_sheet;
-	if (style_sheet != NULL)
-	{
-		style_sheet->AddReference();
+	
+	if (style_sheet)
 		style_sheet->BuildNodeIndexAndOptimizeProperties();
-	}
 
 	GetStyle()->DirtyDefinition();
 }
 
 // Returns the document's style sheet.
-StyleSheet* ElementDocument::GetStyleSheet() const
+const SharedPtr<StyleSheet>& ElementDocument::GetStyleSheet() const
 {
 	return style_sheet;
 }

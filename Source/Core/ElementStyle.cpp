@@ -172,7 +172,7 @@ void ElementStyle::UpdateDefinition()
 
 		std::shared_ptr<ElementDefinition> new_definition;
 		
-		if (const StyleSheet * style_sheet = GetStyleSheet())
+		if (auto& style_sheet = element->GetStyleSheet())
 		{
 			new_definition = style_sheet->GetElementDefinition(element);
 		}
@@ -334,17 +334,6 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 {
 	return inline_properties.GetProperties();
 }
-
-// Returns the active style sheet for this element. This may be NULL.
-StyleSheet* ElementStyle::GetStyleSheet() const
-{
-	ElementDocument* document = element->GetOwnerDocument();
-	if (document)
-		return document->GetStyleSheet();
-
-	return nullptr;
-}
-
 
 float ElementStyle::ResolveNumberLengthPercentage(const Property * property, RelativeTarget relative_target) const
 {
@@ -854,7 +843,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			{
 				// Usually the decorator is converted from string after the style sheet is set on the ElementDocument. However, if the
 				// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
-				if(const StyleSheet* style_sheet = GetStyleSheet())
+				if(auto& style_sheet = element->GetStyleSheet())
 				{
 					String value = p->Get<String>();
 					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source, p->source_line_number);
@@ -869,7 +858,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			}
 			else if (p->unit == Property::STRING)
 			{
-				if (const StyleSheet * style_sheet = GetStyleSheet())
+				if (auto & style_sheet = element->GetStyleSheet())
 				{
 					String value = p->Get<String>();
 					values.font_effect = style_sheet->InstanceFontEffectsFromString(value, p->source, p->source_line_number);

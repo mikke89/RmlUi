@@ -136,15 +136,15 @@ public:
 /// Creates a style sheet from a user-generated string.
 	/// @param[in] string The contents of the style sheet.
 	/// @return A pointer to the newly created style sheet.
-	static StyleSheet* InstanceStyleSheetString(const String& string);
+	static SharedPtr<StyleSheet> InstanceStyleSheetString(const String& string);
 	/// Creates a style sheet from a file.
 	/// @param[in] file_name The location of the style sheet file.
 	/// @return A pointer to the newly created style sheet.
-	static StyleSheet* InstanceStyleSheetFile(const String& file_name);
+	static SharedPtr<StyleSheet> InstanceStyleSheetFile(const String& file_name);
 	/// Creates a style sheet from an Stream.
 	/// @param[in] stream A pointer to the stream containing the style sheet's contents.
 	/// @return A pointer to the newly created style sheet.
-	static StyleSheet* InstanceStyleSheetStream(Stream* stream);
+	static SharedPtr<StyleSheet> InstanceStyleSheetStream(Stream* stream);
 	/// Clears the style sheet cache. This will force style sheets to be reloaded.
 	static void ClearStyleSheetCache();
 	/// Clears the template cache. This will force template to be reloaded.

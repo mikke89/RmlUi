@@ -103,9 +103,6 @@ public:
 	/// Returns the local style properties, excluding any properties from local class.
 	const PropertyMap& GetLocalStyleProperties() const;
 
-	/// Returns the active style sheet for this element. This may be NULL.
-	StyleSheet* GetStyleSheet() const;
-
 	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling the base value.
 	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.

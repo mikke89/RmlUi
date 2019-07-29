@@ -74,9 +74,9 @@ public:
 	const String& GetSourceURL() const;
 
 	/// Sets the style sheet this document, and all of its children, uses.
-	void SetStyleSheet(StyleSheet* style_sheet);
+	void SetStyleSheet(SharedPtr<StyleSheet> style_sheet);
 	/// Returns the document's style sheet.
-	StyleSheet* GetStyleSheet() const override;
+	const SharedPtr<StyleSheet>& GetStyleSheet() const override;
 
 	/// Brings the document to the front of the document stack.
 	void PullToFront();
@@ -164,7 +164,7 @@ private:
 	String source_url;
 
 	// The document's style sheet.
-	StyleSheet* style_sheet;
+	SharedPtr<StyleSheet> style_sheet;
 
 	Context* context;
 

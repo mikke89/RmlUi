@@ -281,24 +281,22 @@ bool Plugin::LoadFont()
 bool Plugin::LoadMenuElement()
 {
 	menu_element = host_context->CreateDocument();
-	if (menu_element == NULL)
+	if (!menu_element)
 		return false;
 
 	menu_element->SetId("rmlui-debug-menu");
 	menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	menu_element->SetInnerRML(menu_rml);
 
-	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(menu_rcss);
-	if (style_sheet == NULL)
+	Core::SharedPtr<Core::StyleSheet> style_sheet = Core::Factory::InstanceStyleSheetString(menu_rcss);
+	if (!style_sheet)
 	{
 		host_context->UnloadDocument(menu_element);
-		menu_element = NULL;
-
+		menu_element = nullptr;
 		return false;
 	}
 
-	menu_element->SetStyleSheet(style_sheet);
-	style_sheet->RemoveReference();
+	menu_element->SetStyleSheet(std::move(style_sheet));
 
 	// Set the version info in the menu.
 	menu_element->GetElementById("version-number")->SetInnerRML("v" + Rml::Core::GetVersion());
