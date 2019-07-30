@@ -46,7 +46,7 @@ FontEffectShadowInstancer::~FontEffectShadowInstancer()
 {
 }
 
-std::shared_ptr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
 {
 	RMLUI_UNUSED(name);
 

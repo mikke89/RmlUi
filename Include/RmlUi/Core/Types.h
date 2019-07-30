@@ -57,12 +57,10 @@
 namespace Rml {
 namespace Core {
 
-// Define commonly used basic types.
+// Commonly used basic types
 typedef unsigned char byte;
 typedef wchar_t word;
 typedef double Time;
-typedef float TimeDelta;
-typedef unsigned int Hash;
 typedef void* ScriptObject;
 
 }
@@ -84,86 +82,96 @@ typedef unsigned __int64 uint64_t;
 namespace Rml {
 namespace Core {
 
-// Default colour types.
-typedef Colour< float, 1 > Colourf;
-typedef Colour< byte, 255 > Colourb;
-typedef Vector2< int > Vector2i;
-typedef Vector2< float > Vector2f;
-typedef Vector3< int > Vector3i;
-typedef Vector3< float > Vector3f;
-typedef Vector4< int > Vector4i;
-typedef Vector4< float > Vector4f;
 
-typedef Matrix4< float, ColumnMajorStorage< float > > ColumnMajorMatrix4f;
-typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
-typedef ColumnMajorMatrix4f Matrix4f;
-
-template<typename T>
-using UniquePtr = std::unique_ptr<T, Releaser<T>>;
-template<typename T>
-using SharedPtr = std::shared_ptr<T>;
+// Color and linear algebra
+using Colourf = Colour< float, 1 >;
+using Colourb = Colour< byte, 255 >;
+using Vector2i = Vector2< int >;
+using Vector2f = Vector2< float >;
+using Vector3i = Vector3< int >;
+using Vector3f = Vector3< float >;
+using Vector4i = Vector4< int >;
+using Vector4f = Vector4< float >;
+using ColumnMajorMatrix4f = Matrix4< float, ColumnMajorStorage< float > >;
+using RowMajorMatrix4f = Matrix4< float, RowMajorStorage< float > >;
+using Matrix4f = ColumnMajorMatrix4f;
 
 
+// Common classes
 class Element;
 class ElementInstancer;
-using ElementPtr = UniquePtr<Element>;
-using ElementInstancerPtr = UniquePtr<ElementInstancer>;
 class ElementAnimation;
+class Context;
+class Event;
 class Property;
 class Variant;
 class Transform;
 class Decorator;
 class FontEffect;
 struct Animation;
+struct Transition;
+struct TransitionList;
 struct Rectangle;
 enum class PropertyId : uint16_t;
 
-// Types for external interfaces.
-typedef uintptr_t FileHandle;
-typedef uintptr_t TextureHandle;
-typedef uintptr_t CompiledGeometryHandle;
-typedef uintptr_t DecoratorDataHandle;
 
-// Common containers
+// Types for external interfaces.
+using FileHandle = uintptr_t;
+using TextureHandle = uintptr_t;
+using CompiledGeometryHandle = uintptr_t;
+using DecoratorDataHandle = uintptr_t;
+
+
+// Smart pointer types
+template<typename T>
+using UniquePtr = std::unique_ptr<T>;
+template<typename T>
+using UniqueReleaserPtr = std::unique_ptr<T, Releaser<T>>;
+template<typename T>
+using SharedPtr = std::shared_ptr<T>;
+
+using ElementPtr = UniqueReleaserPtr<Element>;
+using ContextPtr = UniqueReleaserPtr<Context>;
+using EventPtr = UniqueReleaserPtr<Event>;
+
+// Custom containers
 #ifdef RMLUI_DEBUG
-template < typename Key, typename Value>
+template <typename Key, typename Value>
 using UnorderedMap = std::unordered_map< Key, Value >;
 #else
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
 #endif
-template < typename Key, typename Value>
+template <typename Key, typename Value>
 using SmallUnorderedMap = chobo::flat_map< Key, Value >;
-template < typename T >
+template <typename T>
 using SmallOrderedSet = chobo::flat_set< T >;
-template < typename T >
+template <typename T>
 using SmallUnorderedSet = chobo::flat_set< T >;
-// Note: Right now small ordered and unordered set use the same container, but we may
-// want to change this later so use ordered when a sorted container is needed.
+// Note: Right now the SmallOrderedSet and SmallUnorderedSet use the same container. However, as we may 
+// want to change this later, use the ordered container strictly when a sorted container is needed.
 
 
-
-// Container types for some common lists
-typedef std::vector< Element* > ElementList;
+// Container types for common classes
+using ElementList = std::vector< Element* >;
 using OwnedElementList = std::vector< ElementPtr >;
-typedef std::vector< ElementAnimation > ElementAnimationList;
-typedef SmallUnorderedSet< String > PseudoClassList;
-typedef SmallUnorderedSet< String > AttributeNameList;
-typedef SmallOrderedSet< PropertyId > PropertyNameList;
-typedef UnorderedMap< PropertyId, Property > PropertyMap;
-typedef SmallUnorderedMap< String, Variant > Dictionary;
-typedef Dictionary ElementAttributes;
+using ElementAnimationList = std::vector< ElementAnimation >;
 
-// Reference types
-typedef std::shared_ptr< Transform > TransformRef;
+using PseudoClassList = SmallUnorderedSet< String >;
+using AttributeNameList = SmallUnorderedSet< String >;
+using PropertyNameList = SmallOrderedSet< PropertyId >;
+using PropertyMap = UnorderedMap< PropertyId, Property >;
 
-struct Transition;
-struct TransitionList;
+using Dictionary = SmallUnorderedMap< String, Variant >;
+using ElementAttributes = Dictionary;
 
-using DecoratorList = std::vector<std::shared_ptr<const Decorator>>;
-using FontEffectList = std::vector<std::shared_ptr<const FontEffect>>;
-using FontEffectListPtr = std::shared_ptr<const FontEffectList>;
+using DecoratorList = std::vector<SharedPtr<const Decorator>>;
+using FontEffectList = std::vector<SharedPtr<const FontEffect>>;
 using AnimationList = std::vector<Animation>;
+
+// Additional smart pointers
+using TransformPtr = SharedPtr< Transform >;
+using FontEffectListPtr = SharedPtr<const FontEffectList>;
 
 }
 }

@@ -137,8 +137,8 @@ private:
 
 	void Set(const String& value);
 	void Set(String&& value);
-	void Set(const TransformRef& value);
-	void Set(TransformRef&& value);
+	void Set(const TransformPtr& value);
+	void Set(TransformPtr&& value);
 	void Set(const TransitionList& value);
 	void Set(TransitionList&& value);
 	void Set(const AnimationList& value);

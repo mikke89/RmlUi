@@ -49,12 +49,12 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 {
 	if(value == NONE)
 	{
-		property.value = Variant(TransformRef());
+		property.value = Variant(TransformPtr());
 		property.unit = Property::TRANSFORM;
 		return true;
 	}
 
-	std::unique_ptr<Transform> transform(new Transform);
+	UniquePtr<Transform> transform(new Transform);
 
 	char const* next = value.c_str();
 
@@ -176,7 +176,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		}
 	}
 	
-	property.value = Variant(TransformRef(std::move(transform)));
+	property.value = Variant(TransformPtr(std::move(transform)));
 	property.unit = Property::TRANSFORM;
 
 	return true;

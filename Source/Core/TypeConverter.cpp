@@ -34,13 +34,13 @@
 namespace Rml {
 namespace Core {
 
-bool TypeConverter<TransformRef, TransformRef>::Convert(const TransformRef& src, TransformRef& dest)
+bool TypeConverter<TransformPtr, TransformPtr>::Convert(const TransformPtr& src, TransformPtr& dest)
 {
 	dest = src;
 	return true;
 }
 
-bool TypeConverter<TransformRef, String>::Convert(const TransformRef& src, String& dest)
+bool TypeConverter<TransformPtr, String>::Convert(const TransformPtr& src, String& dest)
 {
 	if (src)
 	{

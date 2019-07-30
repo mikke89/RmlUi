@@ -78,7 +78,7 @@ public:
 	/// Instances a new context.
 	/// @param[in] name The name of the new context.
 	/// @return The new context, or NULL if no context could be created.
-	static UniquePtr<Context> InstanceContext(const String& name);
+	static ContextPtr InstanceContext(const String& name);
 
 	/// Registers a non-owning pointer to the element instancer that will be used to instance an element when the specified tag is encountered.
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.
@@ -163,10 +163,10 @@ public:
 	/// @param[in] parameters Additional parameters for this event.
 	/// @param[in] interruptible If the event propagation can be stopped.
 	/// @return The instanced event.
-	static UniquePtr<Event> InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
+	static EventPtr InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 
 	/// Register the instancer to be used for all event listeners.
-	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown, or until a new instancer is set.
 	static void RegisterEventListenerInstancer(EventListenerInstancer* instancer);
 	/// Instance an event listener with the given string. This is used for instancing listeners for the on* events from RML.
 	/// @param[in] value The parameters to the event listener.

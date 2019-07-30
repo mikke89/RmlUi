@@ -124,7 +124,7 @@ Keyframes * StyleSheet::GetKeyframes(const String & name)
 	return nullptr;
 }
 
-std::shared_ptr<Decorator> StyleSheet::GetDecorator(const String& name) const
+SharedPtr<Decorator> StyleSheet::GetDecorator(const String& name) const
 {
 	auto it = decorator_map.find(name);
 	if (it == decorator_map.end())
@@ -166,7 +166,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, that means the value must be a name of a @decorator rule, look it up
-			std::shared_ptr<Decorator> decorator = GetDecorator(decorator_string);
+			SharedPtr<Decorator> decorator = GetDecorator(decorator_string);
 			if (decorator)
 				decorator_list.emplace_back(std::move(decorator));
 			else
@@ -199,7 +199,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 			// Set unspecified values to their defaults
 			specification.SetPropertyDefaults(properties);
 
-			std::shared_ptr<Decorator> decorator = instancer->InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
+			SharedPtr<Decorator> decorator = instancer->InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
 
 			if (decorator)
 				decorator_list.emplace_back(std::move(decorator));
@@ -271,7 +271,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 			// Set unspecified values to their defaults
 			specification.SetPropertyDefaults(properties);
 
-			std::shared_ptr<FontEffect> font_effect = instancer->InstanceFontEffect(type, properties);
+			SharedPtr<FontEffect> font_effect = instancer->InstanceFontEffect(type, properties);
 			if (font_effect)
 			{
 				// Create a unique hash value for the given type and values
@@ -293,7 +293,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 
 	// Partition the list such that the back layer effects appear before the front layer effects
 	std::stable_partition(font_effect_list.begin(), font_effect_list.end(), 
-		[](const std::shared_ptr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
+		[](const SharedPtr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
 	);
 
 	return std::make_shared<FontEffectList>(std::move(font_effect_list));
@@ -301,7 +301,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 
 
 // Returns the compiled element definition for a given element hierarchy.
-std::shared_ptr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
+SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
 {
 	RMLUI_ASSERT_NONRECURSIVE;
 
@@ -346,7 +346,7 @@ std::shared_ptr<ElementDefinition> StyleSheet::GetElementDefinition(const Elemen
 	auto cache_iterator = node_cache.find(seed);
 	if (cache_iterator != node_cache.end())
 	{
-		std::shared_ptr<ElementDefinition>& definition = (*cache_iterator).second;
+		SharedPtr<ElementDefinition>& definition = (*cache_iterator).second;
 		applicable_nodes.clear();
 		return definition;
 	}

@@ -59,14 +59,14 @@ public:
 
 // Some more complex types are defined in cpp-file
 
-template<> class TypeConverter< TransformRef, TransformRef > {
+template<> class TypeConverter< TransformPtr, TransformPtr > {
 public:
-	RMLUICORE_API static bool Convert(const TransformRef& src, TransformRef& dest);
+	RMLUICORE_API static bool Convert(const TransformPtr& src, TransformPtr& dest);
 };
 
-template<> class TypeConverter< TransformRef, String > {
+template<> class TypeConverter< TransformPtr, String > {
 public:
-	RMLUICORE_API static bool Convert(const TransformRef& src, String& dest);
+	RMLUICORE_API static bool Convert(const TransformPtr& src, String& dest);
 };
 
 template<> class TypeConverter< TransitionList, TransitionList > {

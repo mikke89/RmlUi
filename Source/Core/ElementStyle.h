@@ -154,7 +154,7 @@ private:
 	// Any properties that have been overridden in this element.
 	PropertyDictionary inline_properties;
 	// The definition of this element, provides applicable properties from the stylesheet.
-	std::shared_ptr<ElementDefinition> definition;
+	SharedPtr<ElementDefinition> definition;
 	// Set if a new element definition should be fetched from the style.
 	bool definition_dirty;
 

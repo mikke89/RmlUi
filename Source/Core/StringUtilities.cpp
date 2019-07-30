@@ -148,34 +148,9 @@ void StringUtilities::JoinString(String& string, const StringList& string_list, 
 			string += delimiter;
 	}
 }
-	
-// Hashes a string of data to an integer value using the FNV algorithm.
-Hash StringUtilities::FNVHash(const char *string, int length)
-{
-	// FNV-1 hash algorithm
-	Hash hval = 0;
-	unsigned char* bp = (unsigned char *)string;	// start of buffer
-	unsigned char* be = (unsigned char *)string + length;
-	
-	// FNV-1 hash each octet in the buffer
-	while (*bp || (length >= 0 && bp < be)) 
-	{
-		// xor the bottom with the current octet
-		hval ^= *bp++;
-		
-		/* multiply by the 32 bit FNV magic prime mod 2^32 */
-#if !defined(__GNUC__)		
-		const unsigned int FNV_32_PRIME = ((unsigned int)16777619);
-		hval *= FNV_32_PRIME;
-#else
-		hval += (hval<<1) + (hval<<4) + (hval<<7) + (hval<<8) + (hval<<24);
-#endif
-	}
-			 
-	return hval;
-}
-	
-	// Defines, helper functions for the UTF8 / UCS2 conversion functions.
+
+
+// Defines, helper functions for the UTF8 / UCS2 conversion functions.
 #define _NXT	0x80
 #define _SEQ2	0xc0
 #define _SEQ3	0xe0

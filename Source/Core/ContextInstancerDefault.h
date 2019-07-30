@@ -49,7 +49,7 @@ public:
 	/// Instances a context.
 	/// @param[in] name Name of this context.
 	/// @return The instanced context.
-	UniquePtr<Context> InstanceContext(const String& name) override;
+	ContextPtr InstanceContext(const String& name) override;
 
 	/// Releases a context previously created by this context.
 	/// @param[in] context The context to release.

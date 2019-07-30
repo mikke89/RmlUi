@@ -46,7 +46,7 @@ public:
 	FontEffectOutlineInstancer();
 	virtual ~FontEffectOutlineInstancer();
 
-	std::shared_ptr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
 
 private:
 	PropertyId id_width, id_color;

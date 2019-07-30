@@ -45,7 +45,7 @@ DecoratorTiledHorizontalInstancer::~DecoratorTiledHorizontalInstancer()
 {
 }
 
-std::shared_ptr<Decorator> DecoratorTiledHorizontalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
+SharedPtr<Decorator> DecoratorTiledHorizontalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	RMLUI_UNUSED(name);
 

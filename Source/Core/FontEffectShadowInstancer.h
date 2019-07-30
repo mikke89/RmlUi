@@ -46,7 +46,7 @@ public:
 	FontEffectShadowInstancer();
 	virtual ~FontEffectShadowInstancer();
 
-	std::shared_ptr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
 
 private:
 	PropertyId id_offset_x, id_offset_y, id_color;

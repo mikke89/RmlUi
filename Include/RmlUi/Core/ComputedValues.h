@@ -191,7 +191,7 @@ struct ComputedValues
 	PerspectiveOrigin perspective_origin_x = { PerspectiveOrigin::Percentage, 50.f };
 	PerspectiveOrigin perspective_origin_y = { PerspectiveOrigin::Percentage, 50.f };
 
-	TransformRef transform;
+	TransformPtr transform;
 	TransformOrigin transform_origin_x = { TransformOrigin::Percentage, 50.f };
 	TransformOrigin transform_origin_y = { TransformOrigin::Percentage, 50.f };
 	float transform_origin_z = 0.0f;

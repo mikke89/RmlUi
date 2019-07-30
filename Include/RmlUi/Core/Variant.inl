@@ -107,7 +107,7 @@ bool Variant::GetInto(T& value) const
 		break;
 
 	case TRANSFORMREF:
-		return TypeConverter< TransformRef, T >::Convert(*(TransformRef*)data, value);
+		return TypeConverter< TransformPtr, T >::Convert(*(TransformPtr*)data, value);
 		break;
 
 	case TRANSITIONLIST:

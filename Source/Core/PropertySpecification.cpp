@@ -147,7 +147,7 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 		return ShorthandId::Invalid;
 
 	// Construct the new shorthand definition and resolve its properties.
-	std::unique_ptr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());
+	UniquePtr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());
 	for (size_t i = 0; i < id_list.size(); i++)
 	{
 		ShorthandItem item;

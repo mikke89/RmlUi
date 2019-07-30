@@ -48,11 +48,11 @@ static SystemInterface* system_interface = nullptr;
 static FileInterface* file_interface = nullptr;
 
 // Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
-static std::unique_ptr<FileInterface> default_file_interface;
+static UniquePtr<FileInterface> default_file_interface;
 
 static bool initialised = false;
 
-using ContextMap = UnorderedMap< String, UniquePtr<Context> >;
+using ContextMap = UnorderedMap< String, ContextPtr >;
 static ContextMap contexts;
 
 #ifndef RMLUI_VERSION
@@ -189,7 +189,7 @@ Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInt
 		return nullptr;
 	}
 
-	UniquePtr<Context> new_context = Factory::InstanceContext(name);
+	ContextPtr new_context = Factory::InstanceContext(name);
 	if (!new_context)
 	{
 		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned NULL.", name.c_str());

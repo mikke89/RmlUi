@@ -54,7 +54,7 @@ public:
 	/// @param[in] name Name of this event.
 	/// @param[in] parameters Additional parameters for this event.
 	/// @param[in] interruptible If the event propagation can be stopped.
-	virtual UniquePtr<Event> InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible) = 0;
+	virtual EventPtr InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible) = 0;
 
 	/// Releases an event instanced by this instancer.
 	/// @param[in] event The event to release.

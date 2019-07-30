@@ -735,7 +735,7 @@ private:
 	bool clipping_state_dirty;
 
 	// Transform state
-	std::unique_ptr< TransformState > transform_state;
+	UniquePtr< TransformState > transform_state;
 	bool transform_state_perspective_dirty;
 	bool transform_state_transform_dirty;
 	bool transform_state_parent_transform_dirty;

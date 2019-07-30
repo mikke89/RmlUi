@@ -65,7 +65,7 @@ bool ElementDecoration::ReloadDecorators()
 }
 
 // Loads a single decorator and adds it to the list of loaded decorators for this element.
-int ElementDecoration::LoadDecorator(std::shared_ptr<const Decorator> decorator)
+int ElementDecoration::LoadDecorator(SharedPtr<const Decorator> decorator)
 {
 	DecoratorHandle element_decorator;
 	element_decorator.decorator_data = decorator->GenerateElementData(element);

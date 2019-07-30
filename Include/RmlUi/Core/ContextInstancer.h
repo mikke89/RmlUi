@@ -52,7 +52,7 @@ public:
 	/// Instances a context.
 	/// @param[in] name Name of this context.
 	/// @return The instanced context.
-	virtual UniquePtr<Context> InstanceContext(const String& name) = 0;
+	virtual ContextPtr InstanceContext(const String& name) = 0;
 
 	/// Releases a context previously created by this context.
 	/// @param[in] context The context to release.

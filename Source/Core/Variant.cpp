@@ -39,7 +39,7 @@ Variant::Variant() : type(NONE)
 	static_assert(sizeof(Colourf) <= LOCAL_DATA_SIZE, "Local data too small for Colourf");
 	static_assert(sizeof(Vector4f) <= LOCAL_DATA_SIZE, "Local data too small for Vector4f");
 	static_assert(sizeof(String) <= LOCAL_DATA_SIZE, "Local data too small for String");
-	static_assert(sizeof(TransformRef) <= LOCAL_DATA_SIZE, "Local data too small for TransformRef");
+	static_assert(sizeof(TransformPtr) <= LOCAL_DATA_SIZE, "Local data too small for TransformPtr");
 	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 	static_assert(sizeof(DecoratorList) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorList");
@@ -76,8 +76,8 @@ void Variant::Clear()
 		case TRANSFORMREF:
 		{
 			// Clean up the transform.
-			TransformRef* transform = (TransformRef*)data;
-			transform->~TransformRef();
+			TransformPtr* transform = (TransformPtr*)data;
+			transform->~TransformPtr();
 		}
 		break;
 		case TRANSITIONLIST:
@@ -129,7 +129,7 @@ void Variant::Set(const Variant& copy)
 		break;
 
 	case TRANSFORMREF:
-		Set(*(TransformRef*)copy.data);
+		Set(*(TransformPtr*)copy.data);
 		break;
 
 	case TRANSITIONLIST:
@@ -165,7 +165,7 @@ void Variant::Set(Variant&& other)
 		break;
 
 	case TRANSFORMREF:
-		Set(std::move(*(TransformRef*)other.data));
+		Set(std::move(*(TransformPtr*)other.data));
 		break;
 
 	case TRANSITIONLIST:
@@ -296,28 +296,28 @@ void Variant::Set(String&& value)
 }
 
 
-void Variant::Set(const TransformRef& value)
+void Variant::Set(const TransformPtr& value)
 {
 	if (type == TRANSFORMREF)
 	{
-		SET_VARIANT(TransformRef);
+		SET_VARIANT(TransformPtr);
 	}
 	else
 	{
 		type = TRANSFORMREF;
-		new(data) TransformRef(value);
+		new(data) TransformPtr(value);
 	}
 }
-void Variant::Set(TransformRef&& value)
+void Variant::Set(TransformPtr&& value)
 {
 	if (type == TRANSFORMREF)
 	{
-		(*(TransformRef*)data) = std::move(value);
+		(*(TransformPtr*)data) = std::move(value);
 	}
 	else
 	{
 		type = TRANSFORMREF;
-		new(data) TransformRef(std::move(value));
+		new(data) TransformPtr(std::move(value));
 	}
 }
 
@@ -472,7 +472,7 @@ bool Variant::operator==(const Variant & other) const
 	case VOIDPTR:
 		return DEFAULT_VARIANT_COMPARE(void*);
 	case TRANSFORMREF:
-		return DEFAULT_VARIANT_COMPARE(TransformRef);
+		return DEFAULT_VARIANT_COMPARE(TransformPtr);
 	case TRANSITIONLIST:
 		return DEFAULT_VARIANT_COMPARE(TransitionList);
 	case ANIMATIONLIST:

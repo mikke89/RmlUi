@@ -41,9 +41,9 @@ ContextInstancerDefault::~ContextInstancerDefault()
 {
 }
 
-UniquePtr<Context> ContextInstancerDefault::InstanceContext(const String& name)
+ContextPtr ContextInstancerDefault::InstanceContext(const String& name)
 {
-	return UniquePtr<Context>(new Context(name));
+	return ContextPtr(new Context(name));
 }
 
 // Releases a context previously created by this context.

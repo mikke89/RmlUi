@@ -45,7 +45,7 @@ DecoratorTiledVerticalInstancer::~DecoratorTiledVerticalInstancer()
 {
 }
 
-std::shared_ptr<Decorator> DecoratorTiledVerticalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
+SharedPtr<Decorator> DecoratorTiledVerticalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	RMLUI_UNUSED(name);
 

@@ -45,7 +45,7 @@ public:
 	~DecoratorTiledVerticalInstancer();
 
 	/// Instances a vertical decorator.
-	std::shared_ptr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) override;
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) override;
 };
 
 }

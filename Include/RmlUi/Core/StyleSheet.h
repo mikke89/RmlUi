@@ -59,7 +59,7 @@ using KeyframesMap = UnorderedMap<String, Keyframes>;
 struct DecoratorSpecification {
 	String decorator_type;
 	PropertyDictionary properties;
-	std::shared_ptr<Decorator> decorator;
+	SharedPtr<Decorator> decorator;
 };
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
@@ -92,7 +92,7 @@ public:
 	Keyframes* GetKeyframes(const String& name);
 
 	/// Returns the Decorator of the given name, or null if it does not exist.
-	std::shared_ptr<Decorator> GetDecorator(const String& name) const;
+	SharedPtr<Decorator> GetDecorator(const String& name) const;
 
 	/// Parses the decorator property from a string and returns a list of instanced decorators.
 	DecoratorList InstanceDecoratorsFromString(const String& decorator_string_value, const String& source_file, int source_line_number) const;
@@ -105,11 +105,11 @@ public:
 
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
-	std::shared_ptr<ElementDefinition> GetElementDefinition(const Element* element) const;
+	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element) const;
 
 private:
 	// Root level node, attributes from special nodes like "body" get added to this node
-	std::unique_ptr<StyleSheetNode> root;
+	UniquePtr<StyleSheetNode> root;
 
 	// The maximum specificity offset used in this style sheet to distinguish between properties in
 	// similarly-specific rules, but declared on different lines. When style sheets are merged, the
@@ -132,7 +132,7 @@ private:
 	// Map of every node, even empty, un-styled, nodes.
 	NodeIndex complete_node_index;
 
-	typedef UnorderedMap< size_t, std::shared_ptr<ElementDefinition> > ElementDefinitionCache;
+	typedef UnorderedMap< size_t, SharedPtr<ElementDefinition> > ElementDefinitionCache;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
 };

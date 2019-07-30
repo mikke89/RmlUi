@@ -170,7 +170,7 @@ void ElementStyle::UpdateDefinition()
 	{
 		definition_dirty = false;
 
-		std::shared_ptr<ElementDefinition> new_definition;
+		SharedPtr<ElementDefinition> new_definition;
 		
 		if (auto& style_sheet = element->GetStyleSheet())
 		{
@@ -814,7 +814,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 			break;
 
 		case PropertyId::Transform:
-			values.transform = p->Get<TransformRef>();
+			values.transform = p->Get<TransformPtr>();
 			break;
 		case PropertyId::TransformOriginX:
 			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);

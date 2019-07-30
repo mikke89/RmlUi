@@ -63,12 +63,6 @@ public:
 	/// @param[in] delimiter Delimiter to insert between the individual values.
 	static void JoinString(String& string, const StringList& string_list, const char delimiter = ',');
 
-	/// Hashes a string of data to an integer value using the FNV algorithm.
-	/// @param[in] data Data to hash.
-	/// @param[in] length Length of the string to hash. If this is -1, the data will be interpreted as a C string.
-	/// @return Integer hash of the data.
-	static Hash FNVHash(const char* data, int length = -1);
-
 	/// Converts a character array in UTF-8 encoding to a vector of words. The UCS-2 words will be encoded as
 	/// either big- or little-endian, depending on the host processor.
 	/// @param[in] input Input string in UTF-8 encoding.

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREREFERENCECOUNTABLE_H
-#define RMLUICOREREFERENCECOUNTABLE_H
+#ifndef RMLUICORETRAITS_H
+#define RMLUICORETRAITS_H
 
 #include "Header.h"
 #include <type_traits>

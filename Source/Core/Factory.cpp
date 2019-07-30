@@ -78,7 +78,7 @@ static EventListenerInstancer* event_listener_instancer = nullptr;
 
 // Default instancers are constructed and destroyed on Initialise and Shutdown, respectively.
 struct DefaultInstancers {
-	template<typename T> using Ptr = std::unique_ptr<T>;
+	template<typename T> using Ptr = UniquePtr<T>;
 
 	Ptr<ContextInstancer> context_default;
 	Ptr<EventInstancer> event_default;
@@ -98,7 +98,7 @@ struct DefaultInstancers {
 	Ptr<FontEffectInstancer> font_effect_outline = std::make_unique<FontEffectOutlineInstancer>();
 };
 
-static std::unique_ptr<DefaultInstancers> default_instancers;
+static UniquePtr<DefaultInstancers> default_instancers;
 
 
 Factory::Factory()
@@ -183,9 +183,9 @@ void Factory::RegisterContextInstancer(ContextInstancer* instancer)
 }
 
 // Instances a new context.
-UniquePtr<Context> Factory::InstanceContext(const String& name)
+ContextPtr Factory::InstanceContext(const String& name)
 {
-	UniquePtr<Context> new_context = context_instancer->InstanceContext(name);
+	ContextPtr new_context = context_instancer->InstanceContext(name);
 	if (new_context)
 		new_context->SetInstancer(context_instancer);
 	return new_context;
@@ -410,9 +410,9 @@ void Factory::RegisterEventInstancer(EventInstancer* instancer)
 }
 
 // Instance an event object.
-UniquePtr<Event> Factory::InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible)
+EventPtr Factory::InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible)
 {
-	UniquePtr<Event> event = event_instancer->InstanceEvent(target, id, type, parameters, interruptible);
+	EventPtr event = event_instancer->InstanceEvent(target, id, type, parameters, interruptible);
 	if (event)
 		event->instancer = event_instancer;
 	return event;

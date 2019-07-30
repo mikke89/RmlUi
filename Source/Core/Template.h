@@ -67,7 +67,7 @@ private:
 	String name;
 	String content;
 	DocumentHeader header;
-	std::unique_ptr<StreamMemory> body;
+	UniquePtr<StreamMemory> body;
 };
 
 }

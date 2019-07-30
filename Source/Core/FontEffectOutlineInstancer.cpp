@@ -45,7 +45,7 @@ FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
 }
 
 // Instances an outline font effect.
-std::shared_ptr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+SharedPtr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
 {
 	RMLUI_UNUSED(name);
 

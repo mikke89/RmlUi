@@ -64,7 +64,7 @@ struct Spritesheet {
 		: name(name), image_source(image_source), definition_source(definition_source), definition_line_number(definition_line_number), texture(texture) {}
 };
 
-using SpritesheetMap = SmallUnorderedMap<String, std::shared_ptr<const Spritesheet>>; // key: spritesheet name (as given in @spritesheet)
+using SpritesheetMap = SmallUnorderedMap<String, SharedPtr<const Spritesheet>>; // key: spritesheet name (as given in @spritesheet)
 using SpriteDefinitionList = std::vector<std::pair<String, Rectangle>>; // Sprite name and rectangle
 
 

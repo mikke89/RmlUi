@@ -119,7 +119,7 @@ protected:
 	virtual int GetKerning(word lhs, word rhs) const = 0;
 	virtual FontFaceLayer* CreateNewLayer();
 
-	FontFaceLayer* GenerateLayer(const std::shared_ptr<const FontEffect>& font_effect);
+	FontFaceLayer* GenerateLayer(const SharedPtr<const FontEffect>& font_effect);
 
 	typedef std::vector< int > GlyphKerningList;
 	typedef std::vector< GlyphKerningList > FontKerningList;

@@ -59,7 +59,7 @@ public:
 	/// @param[in] properties All RCSS properties associated with the font effect.
 	/// @param[in] interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the font-effect if it was instanced successfully.
-	virtual std::shared_ptr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) = 0;
+	virtual SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) = 0;
 
 	/// Returns the property specification associated with the instancer.
 	const PropertySpecification& GetPropertySpecification() const;
