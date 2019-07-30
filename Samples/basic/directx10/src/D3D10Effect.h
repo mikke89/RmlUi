@@ -48,7 +48,7 @@ const char * pEffectData="float4x4 matWorld;"
     "{" 
 	"SetBlendState(AlphaBlendingOn, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);"
     "SetVertexShader( CompileShader( vs_4_0, VS() ) );" 
-    "SetGeometryShader( NULL );" 
+    "SetGeometryShader( nullptr );" 
     "SetPixelShader( CompileShader( ps_4_0, PS() ) ); " 
     "}"
 "}";

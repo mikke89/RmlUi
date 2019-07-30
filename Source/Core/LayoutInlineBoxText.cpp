@@ -61,7 +61,7 @@ bool LayoutInlineBoxText::CanOverflow() const
 LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
 {
 	ElementText* text_element = GetTextElement();
-	RMLUI_ASSERT(text_element != NULL);
+	RMLUI_ASSERT(text_element != nullptr);
 
 	int line_length;
 	float line_width;
@@ -78,7 +78,7 @@ LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float availabl
 	if (overflow)
 		return new LayoutInlineBoxText(element, line_begin + line_length);
 
-	return NULL;
+	return nullptr;
 }
 
 // Computes and sets the vertical position of this element, relative to its parent inline box (or block box, for an un-nested inline box).
@@ -98,7 +98,7 @@ void LayoutInlineBoxText::OffsetBaseline(float ascender)
 	float leading = 0;
 
 	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
-	if (font_face_handle != NULL)
+	if (font_face_handle != nullptr)
 		leading = height - font_face_handle->GetLineHeight();
 
 	// Offset by the half-leading.
@@ -147,10 +147,10 @@ ElementText* LayoutInlineBoxText::GetTextElement()
 void LayoutInlineBoxText::BuildWordBox()
 {
 	ElementText* text_element = GetTextElement();
-	RMLUI_ASSERT(text_element != NULL);
+	RMLUI_ASSERT(text_element != nullptr);
 
 	FontFaceHandle* font_face_handle = text_element->GetFontFaceHandle();
-	if (font_face_handle == NULL)
+	if (font_face_handle == nullptr)
 	{
 		height = 0;
 		baseline = 0;

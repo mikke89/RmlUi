@@ -58,7 +58,7 @@ public:
 	const String& GetSource() const;
 	/// Returns the texture's handle.
 	/// @param[in] The render interface that is requesting the handle.
-	/// @return The texture's handle. This will be NULL if the texture isn't loaded.
+	/// @return The texture's handle. This will be nullptr if the texture isn't loaded.
 	TextureHandle GetHandle(RenderInterface* render_interface) const;
 	/// Returns the texture's dimensions.
 	/// @param[in] The render interface that is requesting the dimensions.

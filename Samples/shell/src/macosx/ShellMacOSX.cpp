@@ -64,7 +64,7 @@ static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, v
 
 bool Shell::Initialise()
 {
-	gettimeofday(&start_time, NULL);
+	gettimeofday(&start_time, nullptr);
 
 	InputMacOSX::Initialise();
 
@@ -119,7 +119,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	if (result != noErr)
 		return false;
 
-	CFStringRef window_title = CFStringCreateWithCString(NULL, name, kCFStringEncodingUTF8);
+	CFStringRef window_title = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
 	if (result != noErr)
 		return false;
 
@@ -134,7 +134,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 
 	ShowWindow(window);
     
-	if(shell_renderer != NULL) {
+	if(shell_renderer != nullptr) {
 		shell_renderer->AttachToNative(window);
 	}
     return true;
@@ -157,8 +157,8 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 	error = InstallApplicationEventHandler(NewEventHandlerUPP(InputMacOSX::EventHandler),
 										   GetEventTypeCount(INPUT_EVENTS),
 										   INPUT_EVENTS,
-										   NULL,
-										   NULL);
+										   nullptr,
+										   nullptr);
 	if (error != noErr)
 		DisplayError("Unable to install handler for input events, error: %d.", error);
 
@@ -166,8 +166,8 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 									  NewEventHandlerUPP(EventHandler),
 									  GetEventTypeCount(WINDOW_EVENTS),
 									  WINDOW_EVENTS,
-									  NULL,
-									  NULL);
+									  nullptr,
+									  nullptr);
 	if (error != noErr)
 		DisplayError("Unable to install handler for window events, error: %d.", error);
 
@@ -188,7 +188,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 void Shell::RequestExit()
 {
 	EventRef event;
-	OSStatus result = CreateEvent(NULL, // default allocator
+	OSStatus result = CreateEvent(nullptr, // default allocator
 								  kEventClassApplication, 
 								  kEventAppQuit, 
 								  0,						  
@@ -243,7 +243,7 @@ double Shell::GetElapsedTime()
 {
 	struct timeval now;
 
-	gettimeofday(&now, NULL);
+	gettimeofday(&now, nullptr);
 
 	double sec = now.tv_sec - start_time.tv_sec;
 	double usec = now.tv_usec;
@@ -290,12 +290,12 @@ static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, v
 				case kEventWindowBoundsChanged:
 					// Window resized, update the rmlui context
 					UInt32 attributes;
-					GetEventParameter(event, kEventParamAttributes, typeUInt32, NULL, sizeof(UInt32), NULL, &attributes);
+					GetEventParameter(event, kEventParamAttributes, typeUInt32, nullptr, sizeof(UInt32), nullptr, &attributes);
 
 					if(attributes & kWindowBoundsChangeSizeChanged)
 					{
 						Rect bounds;
-						GetEventParameter(event, kEventParamCurrentBounds, typeQDRectangle, NULL, sizeof(Rect), NULL, &bounds);
+						GetEventParameter(event, kEventParamCurrentBounds, typeQDRectangle, nullptr, sizeof(Rect), nullptr, &bounds);
 
 						UInt32 width = bounds.right - bounds.left;
 						UInt32 height = bounds.bottom - bounds.top;

@@ -127,13 +127,13 @@ Element::Element(const String& tag) : tag(tag), relative_offset_base(0, 0), rela
 transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false), dirty_transition(false)
 {
 	RMLUI_ASSERT(tag == ToLower(tag));
-	parent = NULL;
-	focus = NULL;
-	instancer = NULL;
-	owner_document = NULL;
+	parent = nullptr;
+	focus = nullptr;
+	instancer = nullptr;
+	owner_document = nullptr;
 
 	offset_fixed = false;
-	offset_parent = NULL;
+	offset_parent = nullptr;
 	offset_dirty = true;
 
 	client_area = Box::PADDING;
@@ -153,7 +153,7 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	computed_values_are_default_initialized = true;
 	box_dirty = false;
 
-	font_face_handle = NULL;
+	font_face_handle = nullptr;
 	
 	clipping_ignore_depth = 0;
 	clipping_enabled = false;
@@ -171,7 +171,7 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 
 Element::~Element()
 {
-	RMLUI_ASSERT(parent == NULL);	
+	RMLUI_ASSERT(parent == nullptr);	
 
 	PluginRegistry::NotifyElementDestroy(this);
 
@@ -296,7 +296,7 @@ ElementPtr Element::Clone() const
 	else
 		clone = Factory::InstanceElement(nullptr, GetTagName(), GetTagName(), attributes);
 
-	if (clone != NULL)
+	if (clone != nullptr)
 	{
 		String inner_rml;
 		GetInnerRML(inner_rml);
@@ -331,7 +331,7 @@ String Element::GetClassNames() const
 	return style->GetClassNames();
 }
 
-// Returns the active style sheet for this element. This may be NULL.
+// Returns the active style sheet for this element. This may be nullptr.
 const SharedPtr<StyleSheet>& Element::GetStyleSheet() const
 {
 	if (ElementDocument * document = GetOwnerDocument())
@@ -432,7 +432,7 @@ Vector2f Element::GetAbsoluteOffset(Box::Area area)
 	{
 		offset_dirty = false;
 
-		if (offset_parent != NULL)
+		if (offset_parent != nullptr)
 			absolute_offset = offset_parent->GetAbsoluteOffset(Box::BORDER) + relative_offset_base + relative_offset_position;
 		else
 			absolute_offset = relative_offset_base + relative_offset_position;
@@ -441,7 +441,7 @@ Vector2f Element::GetAbsoluteOffset(Box::Area area)
 		if (!offset_fixed)
 		{
 			Element* scroll_parent = parent;
-			while (scroll_parent != NULL)
+			while (scroll_parent != nullptr)
 			{
 				absolute_offset -= (scroll_parent->scroll_offset + scroll_parent->content_offset);
 				if (scroll_parent == offset_parent)
@@ -666,7 +666,7 @@ Vector2f Element::GetContainingBlock()
 {
 	Vector2f containing_block(0, 0);
 
-	if (offset_parent != NULL)
+	if (offset_parent != nullptr)
 	{
 		using namespace Style;
 		Position position_property = GetPosition();
@@ -974,10 +974,10 @@ Element* Element::GetFocusLeafNode()
 Context* Element::GetContext() const
 {
 	ElementDocument* document = GetOwnerDocument();
-	if (document != NULL)
+	if (document != nullptr)
 		return document->GetContext();
 
-	return NULL;
+	return nullptr;
 }
 
 // Set a group of attributes
@@ -1163,8 +1163,8 @@ Element* Element::GetParentNode() const
 // Gets the element immediately following this one in the tree.
 Element* Element::GetNextSibling() const
 {
-	if (parent == NULL)
-		return NULL;
+	if (parent == nullptr)
+		return nullptr;
 
 	for (size_t i = 0; i < parent->children.size() - (parent->num_non_dom_children + 1); i++)
 	{
@@ -1172,14 +1172,14 @@ Element* Element::GetNextSibling() const
 			return parent->children[i + 1].get();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // Gets the element immediately preceding this one in the tree.
 Element* Element::GetPreviousSibling() const
 {
-	if (parent == NULL)
-		return NULL;
+	if (parent == nullptr)
+		return nullptr;
 
 	for (size_t i = 1; i < parent->children.size() - parent->num_non_dom_children; i++)
 	{
@@ -1187,7 +1187,7 @@ Element* Element::GetPreviousSibling() const
 			return parent->children[i - 1].get();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // Returns the first child of this element.
@@ -1196,7 +1196,7 @@ Element* Element::GetFirstChild() const
 	if (GetNumChildren() > 0)
 		return children[0].get();
 
-	return NULL;
+	return nullptr;
 }
 
 // Gets the last child of this element.
@@ -1205,7 +1205,7 @@ Element* Element::GetLastChild() const
 	if (GetNumChildren() > 0)
 		return (children.end() - (num_non_dom_children + 1))->get();
 
-	return NULL;
+	return nullptr;
 }
 
 Element* Element::GetChild(int index) const
@@ -1258,14 +1258,14 @@ bool Element::Focus()
 
 	// Ask our context if we can switch focus.
 	Context* context = GetContext();
-	if (context == NULL)
+	if (context == nullptr)
 		return false;
 
 	if (!context->OnFocusChange(this))
 		return false;
 
 	// Set this as the end of the focus chain.
-	focus = NULL;
+	focus = nullptr;
 
 	// Update the focus chain up the hierarchy.
 	Element* element = this;
@@ -1284,7 +1284,7 @@ void Element::Blur()
 	if (parent)
 	{
 		Context* context = GetContext();
-		if (context == NULL)
+		if (context == nullptr)
 			return;
 
 		if (context->GetFocusElement() == this)
@@ -1293,7 +1293,7 @@ void Element::Blur()
 		}
 		else if (parent->focus == this)
 		{
-			parent->focus = NULL;
+			parent->focus = nullptr;
 		}
 	}
 }
@@ -1302,7 +1302,7 @@ void Element::Blur()
 void Element::Click()
 {
 	Context* context = GetContext();
-	if (context == NULL)
+	if (context == nullptr)
 		return;
 
 	context->GenerateClickEvent(this);
@@ -1367,7 +1367,7 @@ void Element::ScrollIntoView(bool align_with_top)
 	}
 
 	Element* scroll_parent = parent;
-	while (scroll_parent != NULL)
+	while (scroll_parent != nullptr)
 	{
 		Style::Overflow overflow_x_property = scroll_parent->GetComputedValues().overflow_x;
 		Style::Overflow overflow_y_property = scroll_parent->GetComputedValues().overflow_y;
@@ -1431,7 +1431,7 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 {
 	RMLUI_ASSERT(child);
 	// Find the position in the list of children of the adjacent element. If
-	// it's NULL or we can't find it, then we insert it at the end of the dom
+	// it's nullptr or we can't find it, then we insert it at the end of the dom
 	// children, as a dom element.
 	size_t child_index = 0;
 	bool found_child = false;
@@ -1586,7 +1586,7 @@ Element* Element::GetElementById(const String& id)
 	else
 	{
 		Element* search_root = GetOwnerDocument();
-		if (search_root == NULL)
+		if (search_root == nullptr)
 			search_root = this;
 		return ElementUtilities::GetElementById(search_root, id);
 	}
@@ -1793,7 +1793,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		{
 			visible = new_visibility;
 
-			if (parent != NULL)
+			if (parent != nullptr)
 				parent->DirtyStackingContext();
 		}
 
@@ -1803,7 +1803,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 			// Due to structural pseudo-classes, this may change the element definition in siblings and parent.
 			// However, the definitions will only be changed on the next update loop which may result in jarring behavior for one @frame.
 			// A possible workaround is to add the parent to a list of elements that need to be updated again.
-			if (parent != NULL)
+			if (parent != nullptr)
 				parent->DirtyStructure();
 		}
 	}
@@ -1873,7 +1873,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 			{
 				z_index = new_z_index;
 
-				if (parent != NULL)
+				if (parent != nullptr)
 					parent->DirtyStackingContext();
 			}
 
@@ -1969,7 +1969,7 @@ void Element::OnChildRemove(Element* child)
 void Element::DirtyLayout()
 {
 	Element* document = GetOwnerDocument();
-	if (document != NULL)
+	if (document != nullptr)
 		document->DirtyLayout();
 }
 
@@ -1977,7 +1977,7 @@ void Element::DirtyLayout()
 bool Element::IsLayoutDirty()
 {
 	Element* document = GetOwnerDocument();
-	if (document != NULL)
+	if (document != nullptr)
 		return document->IsLayoutDirty();
 	return false;
 }
@@ -2145,7 +2145,7 @@ void Element::UpdateOffset()
 	if (position_property == Position::Absolute ||
 		position_property == Position::Fixed)
 	{
-		if (offset_parent != NULL)
+		if (offset_parent != nullptr)
 		{
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize(Box::PADDING);
@@ -2173,7 +2173,7 @@ void Element::UpdateOffset()
 	}
 	else if (position_property == Position::Relative)
 	{
-		if (offset_parent != NULL)
+		if (offset_parent != nullptr)
 		{
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize();
@@ -2255,11 +2255,11 @@ void Element::DirtyStackingContext()
 	// The first ancestor of ours that doesn't have an automatic z-index is the ancestor that is establishing our local
 	// stacking context.
 	Element* stacking_context_parent = this;
-	while (stacking_context_parent != NULL &&
+	while (stacking_context_parent != nullptr &&
 		   !stacking_context_parent->local_stacking_context)
 		stacking_context_parent = stacking_context_parent->GetParentNode();
 
-	if (stacking_context_parent != NULL)
+	if (stacking_context_parent != nullptr)
 		stacking_context_parent->stacking_context_dirty = true;
 }
 

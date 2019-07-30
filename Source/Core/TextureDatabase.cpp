@@ -34,18 +34,18 @@
 namespace Rml {
 namespace Core {
 
-static TextureDatabase* instance = NULL;
+static TextureDatabase* instance = nullptr;
 
 TextureDatabase::TextureDatabase()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
 TextureDatabase::~TextureDatabase()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
 }
 
 void TextureDatabase::Initialise()

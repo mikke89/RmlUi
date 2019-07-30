@@ -159,7 +159,7 @@ const ElementDataGrid::Column* ElementDataGrid::GetColumn(int column_index)
 	if (column_index < 0 || column_index >= (int)columns.size())
 	{
 		RMLUI_ERROR;
-		return NULL;
+		return nullptr;
 	}
 
 	return &columns[column_index];
@@ -184,7 +184,7 @@ ElementDataGridRow* ElementDataGrid::AddRow(ElementDataGridRow* parent, int inde
 	// We need to work out the table-specific row.
 	int table_relative_index = parent->GetChildTableRelativeIndex(index);
 
-	Core::Element* child_to_insert_before = NULL;
+	Core::Element* child_to_insert_before = nullptr;
 	if (table_relative_index < body->GetNumChildren())
 	{
 		child_to_insert_before = body->GetChild(table_relative_index);

@@ -129,9 +129,9 @@ RMLUICORE_API FileInterface* GetFileInterface();
 /// Creates a new element context.
 /// @param[in] name The new name of the context. This must be unique.
 /// @param[in] dimensions The initial dimensions of the new context.
-/// @param[in] render_interface The custom render interface to use, or NULL to use the default.
+/// @param[in] render_interface The custom render interface to use, or nullptr to use the default.
 /// @lifetime If specified, the render interface must be kept alive until after the context is destroyed or the call to Core::Shutdown.
-/// @return A non-owning pointer to the new context, or NULL if the context could not be created.
+/// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
 RMLUICORE_API Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* render_interface = nullptr);
 /// Removes and destroys a context.
 /// @param[in] name The name of the context to remove.
@@ -139,11 +139,11 @@ RMLUICORE_API Context* CreateContext(const String& name, const Vector2i& dimensi
 RMLUICORE_API bool RemoveContext(const String& name);
 /// Fetches a previously constructed context by name.
 /// @param[in] name The name of the desired context.
-/// @return The desired context, or NULL if no context exists with the given name.
+/// @return The desired context, or nullptr if no context exists with the given name.
 RMLUICORE_API Context* GetContext(const String& name);
 /// Fetches a context by index.
 /// @param[in] index The index of the desired context. If this is outside of the valid range of contexts, it will be clamped.
-/// @return The requested context, or NULL if no contexts exist.
+/// @return The requested context, or nullptr if no contexts exist.
 RMLUICORE_API Context* GetContext(int index);
 /// Returns the number of active contexts.
 /// @return The total number of active RmlUi contexts.

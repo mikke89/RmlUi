@@ -79,12 +79,12 @@ int RmlUiContextsProxy__pairs(lua_State* L)
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1)
         *pindex = 0;
-    Context* value = NULL;
+    Context* value = nullptr;
     if((*pindex)++ < GetNumContexts())
     {
         value = GetContext(*pindex);
     }
-    if(value == NULL)
+    if(value == nullptr)
     {
         lua_pushnil(L);
         lua_pushnil(L);
@@ -105,12 +105,12 @@ int RmlUiContextsProxy__ipairs(lua_State* L)
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1)
         *pindex = 0;
-    Context* value = NULL;
+    Context* value = nullptr;
     if((*pindex)++ < GetNumContexts())
     {
         value = GetContext(*pindex);
     }
-    if(value == NULL)
+    if(value == nullptr)
     {
         lua_pushnil(L);
         lua_pushnil(L);
@@ -125,15 +125,15 @@ int RmlUiContextsProxy__ipairs(lua_State* L)
 
 RegType<RmlUiContextsProxy> RmlUiContextsProxyMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg RmlUiContextsProxyGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg RmlUiContextsProxySetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(RmlUiContextsProxy,false)

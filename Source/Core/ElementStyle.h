@@ -93,12 +93,12 @@ public:
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
-	/// @return The value of this property for this element, or NULL if no property exists with the given name.
+	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
 	const Property* GetProperty(PropertyId id) const;
-	/// Returns one of this element's properties. If this element is not defined this property, NULL will be
+	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
-	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
+	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(PropertyId id) const;
 	/// Returns the local style properties, excluding any properties from local class.
 	const PropertyMap& GetLocalStyleProperties() const;

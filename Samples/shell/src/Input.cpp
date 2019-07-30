@@ -303,7 +303,7 @@ char keypad_map[2][18] =
 
 
 
-Rml::Core::Context* Input::context = NULL;
+Rml::Core::Context* Input::context = nullptr;
 
 
 

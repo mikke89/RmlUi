@@ -86,18 +86,18 @@ Rml::Core::Lua::RegType<ElementDataGrid> ElementDataGridMethods[] =
 {
     LUAMETHOD(ElementDataGrid,AddColumn)
     LUAMETHOD(ElementDataGrid,SetDataSource)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementDataGridGetters[] =
 {
     LUAGETTER(ElementDataGrid,rows)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementDataGridSetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 

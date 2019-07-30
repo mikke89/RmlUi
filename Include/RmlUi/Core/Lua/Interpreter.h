@@ -93,7 +93,7 @@ public:
     static lua_State* GetLuaState();
 
     /** Creates the plugin. 
-	@remark This is equivilent to calling Initialise(NULL).
+	@remark This is equivilent to calling Initialise(nullptr).
       */
     static void Initialise();
     /** Creates the plugin and adds RmlUi to an existing Lua context if one is provided.
@@ -101,7 +101,7 @@ public:
 	 Interpreter::Shutdown() calles lua_close on the lua_State pointer provided here, do not call Interpreter::Shutdown if you
 	 must call lua_close yourself or if you need to continue to use the lua_State pointer provided here.  Internally, it calls
 	 Interpreter::Startup() and registers the "body" tag to generate a LuaDocument rather than a Rml::Core::ElementDocument.
-	 If the argument provided is NULL, a Lua context is created automatically instead. */
+	 If the argument provided is nullptr, a Lua context is created automatically instead. */
     static void Initialise(lua_State *_L);
 
     /** Stops the plugin by calling lua_close

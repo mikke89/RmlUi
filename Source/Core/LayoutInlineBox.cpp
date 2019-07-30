@@ -42,9 +42,9 @@ namespace Core {
 // Constructs a new inline box for an element.
 LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(0, 0), box(_box)
 {
-	line = NULL;
+	line = nullptr;
 
-	parent = NULL;
+	parent = nullptr;
 	element = _element;
 
 	width = 0;
@@ -59,7 +59,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 	else
 	{
 		FontFaceHandle* font_face = element->GetFontFaceHandle();
-		if (font_face != NULL)
+		if (font_face != nullptr)
 		{
 			height = element->GetLineHeight();
 			baseline = (height - font_face->GetLineHeight()) * 0.5f + font_face->GetBaseline();
@@ -74,15 +74,15 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 	vertical_align_property = element->GetComputedValues().vertical_align;
 
 	chained = false;
-	chain = NULL;
+	chain = nullptr;
 }
 
 // Constructs a new inline box for a split box.
 LayoutInlineBox::LayoutInlineBox(LayoutInlineBox* _chain) : position(0, 0), box(_chain->GetBox())
 {
-	line = NULL;
+	line = nullptr;
 
-	parent = NULL;
+	parent = nullptr;
 	element = _chain->element;
 
 	width = 0;
@@ -91,7 +91,7 @@ LayoutInlineBox::LayoutInlineBox(LayoutInlineBox* _chain) : position(0, 0), box(
 	vertical_align_property = _chain->vertical_align_property;
 
 	_chain->chain = this;
-	chain = NULL;
+	chain = nullptr;
 	chained = true;
 
 	// As we're a split box, our left side is cleared and content set back to (-1, -1).
@@ -115,7 +115,7 @@ void LayoutInlineBox::SetLine(LayoutLineBox* _line)
 void LayoutInlineBox::SetParent(LayoutInlineBox* _parent)
 {
 	parent = _parent;
-	if (parent != NULL)
+	if (parent != nullptr)
 		parent->children.push_back(this);
 }
 
@@ -126,7 +126,7 @@ void LayoutInlineBox::Close()
 		chain->Close();
 	else
 	{
-		RMLUI_ASSERT(line != NULL);
+		RMLUI_ASSERT(line != nullptr);
 		line->CloseInlineBox(this);
 	}
 }
@@ -141,7 +141,7 @@ bool LayoutInlineBox::CanOverflow() const
 bool LayoutInlineBox::IsLastChild() const
 {
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return true;
 
 	return parent->GetLastChild() == element;
@@ -155,12 +155,12 @@ LayoutInlineBox* LayoutInlineBox::FlowContent(bool RMLUI_UNUSED_PARAMETER(first_
 	RMLUI_UNUSED(right_spacing_width);
 
 	// If we're representing a sized element, then add our element's width onto our parent's.
-	if (parent != NULL &&
+	if (parent != nullptr &&
 		box.GetSize().x > 0)
 		parent->width += box.GetSize(Box::MARGIN).x;
 
 	// Nothing else to do here; static elements will automatically be 'flowed' into their lines when they are placed.
-	return NULL;
+	return nullptr;
 }
 
 // Computes and sets the vertical position of this element, relative to its parent box.
@@ -182,7 +182,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		{
 			FontFaceHandle* parent_font = GetParentFont();
 			int x_height = 0;
-			if (parent_font != NULL)
+			if (parent_font != nullptr)
 				x_height = parent_font->GetXHeight() / -2;
 
 			SetVerticalPosition(x_height + (height / 2 - baseline));
@@ -193,7 +193,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		case VerticalAlign::Sub:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == NULL)
+			if (parent_font == nullptr)
 				SetVerticalPosition(0);
 			else
 				SetVerticalPosition(float(parent_font->GetLineHeight()) * 0.2f);
@@ -204,7 +204,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		case VerticalAlign::Super:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == NULL)
+			if (parent_font == nullptr)
 				SetVerticalPosition(0);
 			else
 				SetVerticalPosition(float(-1 * parent_font->GetLineHeight()) * 0.4f);
@@ -215,7 +215,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		case VerticalAlign::TextTop:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == NULL)
+			if (parent_font == nullptr)
 				SetVerticalPosition(0);
 			else
 				SetVerticalPosition((height - baseline) - (parent_font->GetLineHeight() - parent_font->GetBaseline()));
@@ -226,7 +226,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		case VerticalAlign::TextBottom:
 		{
 			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == NULL)
+			if (parent_font == nullptr)
 				SetVerticalPosition(0);
 			else
 				SetVerticalPosition(parent_font->GetBaseline() - baseline);
@@ -333,7 +333,7 @@ void LayoutInlineBox::SizeElement(bool split)
 	if (box.GetSize() == Vector2f(-1, -1))
 	{
 		box.SetContent(Vector2f(width, element->GetLineHeight()));
-		if (parent != NULL)
+		if (parent != nullptr)
 			parent->width += width;
 	}
 
@@ -351,7 +351,7 @@ void LayoutInlineBox::SizeElement(bool split)
 		element_box.SetOffset((line->GetPosition() + position) - element->GetRelativeOffset(Box::BORDER));
 		element->AddBox(element_box);
 
-		if (chain != NULL)
+		if (chain != nullptr)
 			element->OnLayout();
 	}
 	else
@@ -410,7 +410,7 @@ void LayoutInlineBox::operator delete(void* chunk)
 // Returns our parent box's font face handle.
 FontFaceHandle* LayoutInlineBox::GetParentFont() const
 {
-	if (parent == NULL)
+	if (parent == nullptr)
 		return line->GetBlockBox()->GetParent()->GetElement()->GetFontFaceHandle();
 	else
 		return parent->GetElement()->GetFontFaceHandle();

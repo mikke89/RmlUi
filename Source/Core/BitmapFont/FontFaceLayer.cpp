@@ -35,8 +35,8 @@ namespace Core {
 
 BitmapFont::FontFaceLayer::FontFaceLayer() : Rml::Core::FontFaceLayer()
 {
-	handle = NULL;
-	effect = NULL;
+	handle = nullptr;
+	effect = nullptr;
 }
 
 BitmapFont::FontFaceLayer::~FontFaceLayer()
@@ -58,7 +58,7 @@ bool BitmapFont::FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _han
 	const FontGlyphList& glyphs = handle->GetGlyphs();
 
 	// Clone the geometry and textures from the clone layer.
-	if (clone != NULL)
+	if (clone != nullptr)
 	{
 		// Copy the cloned layer's characters.
 		characters = clone->characters;

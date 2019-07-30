@@ -46,7 +46,7 @@ StyleSheetNodeSelectorNthOfType::~StyleSheetNodeSelectorNthOfType()
 bool StyleSheetNodeSelectorNthOfType::IsApplicable(const Element* element, int a, int b)
 {
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	// Start counting elements until we find this one.

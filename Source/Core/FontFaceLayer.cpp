@@ -36,7 +36,7 @@ namespace Core {
 
 FontFaceLayer::FontFaceLayer() : colour(255, 255, 255)
 {
-	handle = NULL;
+	handle = nullptr;
 }
 
 FontFaceLayer::~FontFaceLayer()
@@ -54,7 +54,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 	const FontGlyphList& glyphs = handle->GetGlyphs();
 
 	// Clone the geometry and textures from the clone layer.
-	if (clone != NULL)
+	if (clone != nullptr)
 	{
 		// Copy the cloned layer's characters.
 		characters = clone->characters;
@@ -65,7 +65,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 
 		// Request the effect (if we have one) adjust the origins as appropriate.
 		if (!deep_clone &&
-			effect != NULL)
+			effect != nullptr)
 		{
 			for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
 			{
@@ -101,7 +101,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 			Vector2i glyph_dimensions = glyph.bitmap_dimensions;
 
 			// Adjust glyph origin / dimensions for the font effect.
-			if (effect != NULL)
+			if (effect != nullptr)
 			{
 				if (!effect->GetGlyphMetrics(glyph_origin, glyph_dimensions, glyph))
 					continue;
@@ -179,10 +179,10 @@ bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture
 
 		const FontGlyph& glyph = glyphs[rectangle.GetId()];
 
-		if (effect == NULL)
+		if (effect == nullptr)
 		{
 			// Copy the glyph's bitmap data into its allocated texture.
-			if (glyph.bitmap_data != NULL)
+			if (glyph.bitmap_data != nullptr)
 			{
 				byte* destination = rectangle.GetTextureData();
 				byte* source = glyph.bitmap_data;

@@ -143,7 +143,7 @@ int FontFaceHandle::GenerateLayerConfiguration(const FontEffectList& font_effect
 		for (size_t i = 0; i < configuration.size(); ++i)
 		{
 			// Skip the base layer ...
-			if (configuration[i]->GetFontEffect() == NULL)
+			if (configuration[i]->GetFontEffect() == nullptr)
 				continue;
 
 			// If the ith layer's effect doesn't match the equivalent effect, then this

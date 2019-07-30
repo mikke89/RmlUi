@@ -269,7 +269,7 @@ SelectOption* WidgetDropDown::GetOption(int index)
 {
 	if (index < 0 ||
 		index >= GetNumOptions())
-		return NULL;
+		return nullptr;
 
 	return &options[index];
 }

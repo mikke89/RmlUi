@@ -64,7 +64,7 @@ DataQuery::DataQuery(DataSource* data_source, const Rml::Core::String& table, co
 
 DataQuery::DataQuery()
 {
-	data_source = NULL;
+	data_source = nullptr;
 	table = "";
 	offset = -1;
 	limit = -1;

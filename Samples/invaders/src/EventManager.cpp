@@ -38,8 +38,8 @@
 // The game's element context (declared in main.cpp).
 extern Rml::Core::Context* context;
 
-// The event handler for the current screen. This may be NULL if the current screen has no specific functionality.
-static EventHandler* event_handler = NULL;
+// The event handler for the current screen. This may be nullptr if the current screen has no specific functionality.
+static EventHandler* event_handler = nullptr;
 
 // The event handlers registered with the manager.
 typedef std::map< Rml::Core::String, EventHandler* > EventHandlerMap;
@@ -60,7 +60,7 @@ void EventManager::Shutdown()
 		delete (*i).second;
 
 	event_handlers.clear();
-	event_handler = NULL;
+	event_handler = nullptr;
 }
 
 // Registers a new event handler with the manager.
@@ -103,14 +103,14 @@ void EventManager::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String
 		}
 		else if (values[0] == "close")
 		{
-			Rml::Core::ElementDocument* target_document = NULL;
+			Rml::Core::ElementDocument* target_document = nullptr;
 
 			if (values.size() > 1)
 				target_document = context->GetDocument(values[1].c_str());
 			else
 				target_document = event.GetTargetElement()->GetOwnerDocument();
 
-			if (target_document != NULL)
+			if (target_document != nullptr)
 				target_document->Close();
 		}
 		else if (values[0] == "exit")
@@ -127,7 +127,7 @@ void EventManager::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String
 		}
 		else
 		{
-			if (event_handler != NULL)
+			if (event_handler != nullptr)
 				event_handler->ProcessEvent(event, commands[i]);
 		}
 	}
@@ -142,12 +142,12 @@ Rml::Core::ElementDocument* EventManager::LoadWindow(const Rml::Core::String& wi
 	if (iterator != event_handlers.end())
 		event_handler = (*iterator).second;
 	else
-		event_handler = NULL;
+		event_handler = nullptr;
 
 	// Attempt to load the referenced RML document.
 	Rml::Core::String document_path = Rml::Core::String("invaders/data/") + window_name + Rml::Core::String(".rml");
 	Rml::Core::ElementDocument* document = context->LoadDocument(document_path.c_str());
-	if (document == NULL)
+	if (document == nullptr)
 	{
 		event_handler = old_event_handler;
 		return nullptr;
@@ -155,7 +155,7 @@ Rml::Core::ElementDocument* EventManager::LoadWindow(const Rml::Core::String& wi
 
 	// Set the element's title on the title; IDd 'title' in the RML.
 	Rml::Core::Element* title = document->GetElementById("title");
-	if (title != NULL)
+	if (title != nullptr)
 		title->SetInnerRML(document->GetTitle());
 
 	document->Focus();

@@ -43,7 +43,7 @@ StyleSheetNode::StyleSheetNode(const String& name, NodeType _type, StyleSheetNod
 
 	specificity = CalculateSpecificity();
 
-	selector = NULL;
+	selector = nullptr;
 	a = 0;
 	b = 0;
 
@@ -79,7 +79,7 @@ void StyleSheetNode::Write(Stream* stream)
 	{
 		String rule;
 		StyleSheetNode* hierarchy = this;
-		while (hierarchy != NULL)
+		while (hierarchy != nullptr)
 		{
 			switch (hierarchy->type)
 			{
@@ -172,11 +172,11 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 	if (properties.GetNumProperties() > 0)
 	{
 		StyleSheetNode* tag_node = this;
-		while (tag_node != NULL &&
+		while (tag_node != nullptr &&
 			   tag_node->type != TAG)
 			tag_node = tag_node->parent;
 
-		if (tag_node != NULL)
+		if (tag_node != nullptr)
 		{
 			StyleSheet::NodeIndex::iterator iterator = styled_index.find(tag_node->name);
 			if (iterator == styled_index.end())
@@ -329,7 +329,7 @@ StyleSheetNode* StyleSheetNode::GetChildNode(const String& child_name, NodeType 
 	{
 		if (create)
 		{
-			StyleSheetNode* new_node = NULL;
+			StyleSheetNode* new_node = nullptr;
 
 			// Create the node; structural pseudo-classes require a little extra leg-work.
 			if (child_type == STRUCTURAL_PSEUDO_CLASS)
@@ -337,14 +337,14 @@ StyleSheetNode* StyleSheetNode::GetChildNode(const String& child_name, NodeType 
 			else
 				new_node = new StyleSheetNode(child_name, child_type, this);
 
-			if (new_node != NULL)
+			if (new_node != nullptr)
 			{
 				children[child_type][child_name] = new_node;
 				return new_node;
 			}
 		}
 
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -355,7 +355,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	// here whether or not it also matches the required hierarchy.
 
 	// We must have a parent; if not, something's amok with the style tree.
-	if (parent == NULL)
+	if (parent == nullptr)
 	{
 		RMLUI_ERRORMSG("Invalid RCSS hierarchy.");
 		return false;
@@ -375,7 +375,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	ancestor_pseudo_classes.clear();
 	ancestor_structural_pseudo_classes.clear();
 
-	while (parent_node != NULL && parent_node->type != TAG)
+	while (parent_node != nullptr && parent_node->type != TAG)
 	{
 		switch (parent_node->type)
 		{
@@ -390,7 +390,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 	}
 
 	// Check for an invalid RCSS hierarchy.
-	if (parent_node == NULL)
+	if (parent_node == nullptr)
 	{
 		RMLUI_ERRORMSG("Invalid RCSS hierarchy.");
 		return false;
@@ -398,7 +398,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 
 	// Now we know the name / class / ID / pseudo-class / structural requirements for the next ancestor requirement of
 	// the element. So we look back through the element's ancestors to find one that matches.
-	for (const Element* ancestor_element = element->GetParentNode(); ancestor_element != NULL; ancestor_element = ancestor_element->GetParentNode())
+	for (const Element* ancestor_element = element->GetParentNode(); ancestor_element != nullptr; ancestor_element = ancestor_element->GetParentNode())
 	{
 		// Skip this ancestor if the name of the next style node doesn't match its tag name, and one was specified.
 		if (!parent_node->name.empty() 
@@ -493,7 +493,7 @@ void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode*
 
 		case STRUCTURAL_PSEUDO_CLASS:
 		{
-			if (selector == NULL)
+			if (selector == nullptr)
 				return;
 
 			if (!selector->IsApplicable(element, a, b))
@@ -522,8 +522,8 @@ bool StyleSheetNode::IsStructurallyVolatile() const
 StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 {
 	StyleSheetNodeSelector* child_selector = StyleSheetFactory::GetSelector(child_name);
-	if (child_selector == NULL)
-		return NULL;
+	if (child_selector == nullptr)
+		return nullptr;
 
 	// Parse the 'a' and 'b' values.
 	int child_a = 1;
@@ -634,7 +634,7 @@ int StyleSheetNode::CalculateSpecificity()
 	}
 
 	// Add our parent's specificity onto ours.
-	if (parent != NULL)
+	if (parent != nullptr)
 		specificity += parent->CalculateSpecificity();
 
 	return specificity;

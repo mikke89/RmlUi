@@ -43,7 +43,7 @@ namespace Core {
 class FontGlyph
 {
 public:
-	FontGlyph() : character(0), dimensions(0,0), bearing(0,0), advance(0), bitmap_data(NULL),
+	FontGlyph() : character(0), dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr),
 		bitmap_dimensions(0,0)
 	{
 	}
@@ -61,7 +61,7 @@ public:
 	int advance;
 
 	/// 8-bit opacity information for the glyph's bitmap. The size of the data is given by the
-	/// dimensions, below. This will be NULL if the glyph has no bitmap data.
+	/// dimensions, below. This will be nullptr if the glyph has no bitmap data.
 	byte* bitmap_data;
 	/// The dimensions of the glyph's bitmap.
 	Vector2i bitmap_dimensions;

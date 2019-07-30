@@ -35,13 +35,13 @@ namespace Core {
 
 Property::Property() : unit(UNKNOWN), specificity(-1)
 {
-	definition = NULL;
+	definition = nullptr;
 	parser_index = -1;
 }
 
 String Property::ToString() const
 {
-	if (definition == NULL)
+	if (definition == nullptr)
 		return value.Get< String >();
 
 	String string;

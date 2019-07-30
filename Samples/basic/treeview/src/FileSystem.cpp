@@ -40,7 +40,7 @@ struct FileSystemNode;
 
 typedef std::map< Rml::Core::String, FileSystemNode* > NodeMap;
 
-FileSystemNode* file_system_root = NULL;
+FileSystemNode* file_system_root = nullptr;
 NodeMap node_map;
 
 
@@ -88,7 +88,7 @@ struct FileSystemNode
 			_findclose(find_handle);
 		}
 #else
-			struct dirent** file_list = NULL;
+			struct dirent** file_list = nullptr;
 			int file_count = -1;
 			file_count = scandir((root + name).c_str(), &file_list, 0, alphasort);
 			if (file_count == -1)
@@ -136,7 +136,7 @@ FileSystem::FileSystem(const Rml::Core::String& root) : Rml::Controls::DataSourc
 FileSystem::~FileSystem()
 {
 	delete file_system_root;
-	file_system_root = NULL;
+	file_system_root = nullptr;
 }
 
 void FileSystem::GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns)
@@ -144,7 +144,7 @@ void FileSystem::GetRow(Rml::Core::StringList& row, const Rml::Core::String& tab
 	// Get the node that data is being queried from; one of its children (as indexed by row_index)
 	// is the actual node the data will be read from.
 	FileSystemNode* node = GetNode(table);
-	if (node == NULL)
+	if (node == nullptr)
 		return;
 
 	for (size_t i = 0; i < columns.size(); i++)
@@ -171,7 +171,7 @@ int FileSystem::GetNumRows(const Rml::Core::String& table)
 {
 	FileSystemNode* node = GetNode(table);
 
-	if (node != NULL)
+	if (node != nullptr)
 		return (int) node->child_nodes.size();
 
 	return 0;
@@ -189,5 +189,5 @@ FileSystemNode* FileSystem::GetNode(const Rml::Core::String& table)
 			return i->second;
 	}
 
-	return NULL;
+	return nullptr;
 }

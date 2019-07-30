@@ -87,7 +87,7 @@ bool DataSourceListener::ParseDataSource(DataSource*& data_source, Rml::Core::St
 {
 	if (data_source_name.size() == 0)
 	{
-		data_source = NULL;
+		data_source = nullptr;
 		table_name = "";
 		return false;
 	}
@@ -100,7 +100,7 @@ bool DataSourceListener::ParseDataSource(DataSource*& data_source, Rml::Core::St
 	if (data_source_parts.size() != 2 || !new_data_source)
 	{
 		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Bad data source name %s", data_source_name.c_str());
-		data_source = NULL;
+		data_source = nullptr;
 		table_name = "";
 		return false;
 	}

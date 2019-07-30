@@ -40,10 +40,10 @@ const int MAX_LOG_MESSAGES = 50;
 ElementLog::ElementLog(const Core::String& tag) : Core::ElementDocument(tag)
 {
 	dirty_logs = false;
-	beacon = NULL;
+	beacon = nullptr;
 	current_beacon_level = Core::Log::LT_MAX;
 	auto_scroll = true;
-	message_content = NULL;
+	message_content = nullptr;
 	current_index = 0;
 
 	// Set up the log type buttons.
@@ -157,7 +157,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	{
 		if (!IsVisible())
 		{
-			if (beacon != NULL)
+			if (beacon != nullptr)
 			{
 				if (type < current_beacon_level)
 				{
@@ -223,7 +223,7 @@ void ElementLog::OnRender()
 void ElementLog::ProcessEvent(Core::Event& event)
 {
 	// Only process events if we're visible
-	if (beacon != NULL)
+	if (beacon != nullptr)
 	{
 		if (event == Core::EventId::Click)
 		{
@@ -272,7 +272,7 @@ void ElementLog::ProcessEvent(Core::Event& event)
 
 	if (event == Core::EventId::Resize && auto_scroll)
 	{
-		if (message_content != NULL &&
+		if (message_content != nullptr &&
 			message_content->HasChildNodes())
 			message_content->GetLastChild()->ScrollIntoView();
 	}

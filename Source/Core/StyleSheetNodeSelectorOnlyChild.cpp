@@ -49,7 +49,7 @@ bool StyleSheetNodeSelectorOnlyChild::IsApplicable(const Element* element, int R
 	RMLUI_UNUSED(b);
 
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	for (int i = 0; i < parent->GetNumChildren(); ++i)
@@ -61,7 +61,7 @@ bool StyleSheetNodeSelectorOnlyChild::IsApplicable(const Element* element, int R
 			continue;
 
 		// Skip the child if it is trivial.
-		if (dynamic_cast< const ElementText* >(element) != NULL ||
+		if (dynamic_cast< const ElementText* >(element) != nullptr ||
 			child->GetDisplay() == Style::Display::None)
 			continue;
 

@@ -41,7 +41,7 @@ SystemInterface::SystemInterface()
 
 SystemInterface::~SystemInterface()
 {
-	if (fp != NULL)
+	if (fp != nullptr)
 		fclose(fp);
 }
 
@@ -53,7 +53,7 @@ double SystemInterface::GetElapsedTime()
 
 bool SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message)
 {
-	if (fp != NULL)
+	if (fp != nullptr)
 	{
 		// Select a prefix appropriate for the severity of the message.
 		const char* prefix;
@@ -83,7 +83,7 @@ bool SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::Str
 			Rml::Core::String assert_message = Rml::Core::CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());
 
 			// Return TRUE if the user presses NO (continue execution)
-			return MessageBox(NULL, assert_message.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
+			return MessageBox(nullptr, assert_message.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
 		}
 #endif
 	}

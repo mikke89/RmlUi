@@ -39,9 +39,9 @@ Pool< PoolType >::Pool(int _chunk_size, bool _grow)
 
 	num_allocated_objects = 0;
 
-	pool = NULL;
-	first_allocated_node = NULL;
-	first_free_node = NULL;
+	pool = nullptr;
+	first_allocated_node = nullptr;
+	first_free_node = nullptr;
 
 	if (_chunk_size > 0)
 		Initialise(_chunk_size, _grow);
@@ -75,7 +75,7 @@ void Pool< PoolType >::Initialise(int _chunk_size, bool _grow)
 
 	grow = _grow;
 	chunk_size = _chunk_size;
-	pool = NULL;
+	pool = nullptr;
 
 	// Create the initial chunk.
 	CreateChunk();
@@ -93,17 +93,17 @@ template < typename PoolType >
 PoolType* Pool< PoolType >::AllocateObject()
 {
 	// We can't allocate a new object if the deallocated list is empty.
-	if (first_free_node == NULL)
+	if (first_free_node == nullptr)
 	{
 		// Attempt to grow the pool first.
 		if (grow)
 		{
 			CreateChunk();
-			if (first_free_node == NULL)
-				return NULL;
+			if (first_free_node == nullptr)
+				return nullptr;
 		}
 		else
-			return NULL;
+			return nullptr;
 	}
 
 	// We're about to allocate an object.
@@ -114,21 +114,21 @@ PoolType* Pool< PoolType >::AllocateObject()
 
 	// Remove the newly allocated object from the list of deallocated objects.
 	first_free_node = first_free_node->next;
-	if (first_free_node != NULL)
-		first_free_node->previous = NULL;
+	if (first_free_node != nullptr)
+		first_free_node->previous = nullptr;
 
 	// Add the newly allocated object to the head of the list of allocated objects.
-	if (first_allocated_node != NULL)
+	if (first_allocated_node != nullptr)
 	{
-		allocated_object->previous = NULL;
+		allocated_object->previous = nullptr;
 		allocated_object->next = first_allocated_node;
 		first_allocated_node->previous = allocated_object;
 	}
 	else
 	{
 		// This object is the only allocated object.
-		allocated_object->previous = NULL;
-		allocated_object->next = NULL;
+		allocated_object->previous = nullptr;
+		allocated_object->next = nullptr;
 	}
 
 	first_allocated_node = allocated_object;
@@ -151,7 +151,7 @@ void Pool< PoolType >::DeallocateObject(Iterator& iterator)
 	PoolNode* previous_object = object->previous;
 	PoolNode* next_object = object->next;
 
-	if (previous_object != NULL)
+	if (previous_object != nullptr)
 		previous_object->next = next_object;
 	else
 	{
@@ -159,18 +159,18 @@ void Pool< PoolType >::DeallocateObject(Iterator& iterator)
 		first_allocated_node = next_object;
 	}
 
-	if (next_object != NULL)
+	if (next_object != nullptr)
 		next_object->previous = previous_object;
 
 	// Insert the freed node at the beginning of the free object list.
-	if (first_free_node == NULL)
+	if (first_free_node == nullptr)
 	{
-		object->previous = NULL;
-		object->next = NULL;
+		object->previous = nullptr;
+		object->next = nullptr;
 	}
 	else
 	{
-		object->previous = NULL;
+		object->previous = nullptr;
 		object->next = first_free_node;
 	}
 
@@ -204,7 +204,7 @@ int Pool< PoolType >::GetNumChunks() const
 	int num_chunks = 0;
 
 	PoolChunk* chunk = pool;
-	while (chunk != NULL)
+	while (chunk != nullptr)
 	{
 		++num_chunks;
 		chunk = chunk->next;
@@ -239,7 +239,7 @@ void Pool< PoolType >::CreateChunk()
 	for (int i = 0; i < chunk_size; i++)
 	{
 		if (i == 0)
-			new_chunk->chunk[i].previous = NULL ;
+			new_chunk->chunk[i].previous = nullptr ;
 		else
 			new_chunk->chunk[i].previous = &new_chunk->chunk[i - 1];
 

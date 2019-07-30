@@ -100,15 +100,15 @@ int EventParametersProxy__ipairs(lua_State* L)
 
 RegType<EventParametersProxy> EventParametersProxyMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg EventParametersProxyGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg EventParametersProxySetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(EventParametersProxy,false)

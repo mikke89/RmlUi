@@ -46,7 +46,7 @@ void Geometry::SetContext(Core::Context* _context)
 // Renders a one-pixel rectangular outline.
 void Geometry::RenderOutline(const Core::Vector2f& origin, const Core::Vector2f& dimensions, const Core::Colourb& colour, float width)
 {
-	if (context == NULL)
+	if (context == nullptr)
 		return;
 
 	Core::RenderInterface* render_interface = context->GetRenderInterface();
@@ -65,7 +65,7 @@ void Geometry::RenderOutline(const Core::Vector2f& origin, const Core::Vector2f&
 // Renders a box.
 void Geometry::RenderBox(const Core::Vector2f& origin, const Core::Vector2f& dimensions, const Core::Colourb& colour)
 {
-	if (context == NULL)
+	if (context == nullptr)
 		return;
 
 	Core::RenderInterface* render_interface = context->GetRenderInterface();

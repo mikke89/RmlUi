@@ -72,7 +72,7 @@ public:
 
 	/// Returns one of the scrollbar elements.
 	/// @param[in] orientation Which scrollbar to return.
-	/// @return The requested scrollbar, or NULL if it does not exist.
+	/// @return The requested scrollbar, or nullptr if it does not exist.
 	Element* GetScrollbar(Orientation orientation);
 	/// Returns the size, in pixels, of one of the scrollbars; for a vertical scrollbar, this is width, for a horizontal scrollbar, this is height.
 	/// @param[in] orientation Which scrollbar (vertical or horizontal) to query.

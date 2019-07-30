@@ -76,7 +76,7 @@ int ElementAddEventListener(lua_State* L, Element* obj)
 
     const char* event = luaL_checkstring(L,1);
 
-    LuaEventListener* listener = NULL;
+    LuaEventListener* listener = nullptr;
     int type = lua_type(L,2);
     if(type == LUA_TFUNCTION)
     {
@@ -92,7 +92,7 @@ int ElementAddEventListener(lua_State* L, Element* obj)
 		Log::Message(Log::LT_WARNING, "Lua Context:AddEventLisener's 2nd argument can only be a Lua function or a string, you passed in a %s", lua_typename(L,type));
 	}
 
-    if(listener != NULL)
+    if(listener != nullptr)
     {
         obj->AddEventListener(event,listener,capture);
     }
@@ -328,7 +328,7 @@ int ElementGetAttrfirst_child(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* child = ele->GetFirstChild();
-    if(child == NULL)
+    if(child == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,child,false);
@@ -356,7 +356,7 @@ int ElementGetAttrlast_child(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* child = ele->GetLastChild();
-    if(child == NULL)
+    if(child == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,child,false);
@@ -368,7 +368,7 @@ int ElementGetAttrnext_sibling(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* sibling = ele->GetNextSibling();
-    if(sibling == NULL)
+    if(sibling == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,sibling,false);
@@ -430,7 +430,7 @@ int ElementGetAttrparent_node(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* parent = ele->GetParentNode();
-    if(parent == NULL)
+    if(parent == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,parent,false);
@@ -442,7 +442,7 @@ int ElementGetAttrprevious_sibling(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* sibling = ele->GetPreviousSibling();
-    if(sibling == NULL)
+    if(sibling == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,sibling,false);
@@ -570,7 +570,7 @@ RegType<Element> ElementMethods[] =
     LUAMETHOD(Element,ScrollIntoView)
     LUAMETHOD(Element,SetAttribute)
     LUAMETHOD(Element,SetClass)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementGetters[] =
@@ -601,7 +601,7 @@ luaL_Reg ElementGetters[] =
     LUAGETTER(Element,scroll_width)
     LUAGETTER(Element,style)
     LUAGETTER(Element,tag_name)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementSetters[] =
@@ -611,7 +611,7 @@ luaL_Reg ElementSetters[] =
     LUASETTER(Element,inner_rml)
     LUASETTER(Element,scroll_left)
     LUASETTER(Element,scroll_top)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(Element,true)

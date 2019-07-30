@@ -45,7 +45,7 @@ public:
 	/// Instances a decorator given the property tag and attributes from the RCSS file.
 	/// @param name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param properties All RCSS properties associated with the decorator.
-	/// @return The decorator if it was instanced successful, NULL if an error occured.
+	/// @return The decorator if it was instanced successful, nullptr if an error occured.
 	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
 
 private:

@@ -52,7 +52,7 @@ public:
 	/// Returns a specific property from the element definition's base properties.
 	/// @param[in] name The name of the property to return.
 	/// @param[in] pseudo_classes The pseudo-classes currently active on the calling element.
-	/// @return The property defined against the give name, or NULL if no such property was found.
+	/// @return The property defined against the give name, or nullptr if no such property was found.
 	const Property* GetProperty(PropertyId id) const;
 
 	/// Returns the list of properties this element definition defines for an element with the given set of

@@ -61,7 +61,7 @@ public:
 	};
 
 	/// Constructs a generic style-sheet node.
-	StyleSheetNode(const String& name, NodeType type, StyleSheetNode* parent = NULL);
+	StyleSheetNode(const String& name, NodeType type, StyleSheetNode* parent = nullptr);
 	/// Constructs a structural style-sheet node.
 	StyleSheetNode(const String& name, StyleSheetNode* parent, StyleSheetNodeSelector* selector, int a, int b);
 	~StyleSheetNode();
@@ -130,7 +130,7 @@ private:
 
 	int CalculateSpecificity();
 
-	// The parent of this node; is NULL for the root node.
+	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent;
 
 	// The name and type.

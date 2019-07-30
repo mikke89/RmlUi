@@ -53,7 +53,7 @@ LayoutLineBox::LayoutLineBox(LayoutBlockBox* _parent) : position(-1, -1), dimens
 	parent = _parent;
 
 	box_cursor = 0;
-	open_inline_box = NULL;
+	open_inline_box = nullptr;
 
 	position_set = false;
 	wrap_content = false;
@@ -107,7 +107,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 		}
 		// Otherwise, we have an element anchored to a baseline, so we can fetch its ascender and descender relative
 		// to our baseline.
-		else if (inline_box->GetParent() == NULL)
+		else if (inline_box->GetParent() == nullptr)
 		{
 			float box_ascender, box_descender;
 			inline_box->CalculateBaseline(box_ascender, box_descender);
@@ -135,7 +135,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 				inline_box->OffsetBaseline(dimensions.y - inline_box->GetBaseline());
 		}
 		// Otherwise, this element is tied to a baseline.
-		else if (inline_box->GetParent() == NULL)
+		else if (inline_box->GetParent() == nullptr)
 			inline_box->OffsetBaseline(ascender);
 	}
 
@@ -168,7 +168,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 		// Check if this inline box is part of the open box chain.
 		bool inline_box_open = false;
 		LayoutInlineBox* open_box = open_inline_box;
-		while (open_box != NULL &&
+		while (open_box != nullptr &&
 			   !inline_box_open)
 		{
 			if (inline_boxes[i] == open_box)
@@ -195,7 +195,7 @@ void LayoutLineBox::CloseInlineBox(LayoutInlineBox* inline_box)
 // Attempts to add a new element to this line box.
 LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 {
-	if (dynamic_cast< ElementText* >(element) != NULL)
+	if (dynamic_cast< ElementText* >(element) != nullptr)
 		return AddBox(new LayoutInlineBoxText(element));
 	else
 		return AddBox(new LayoutInlineBox(element, box));
@@ -232,11 +232,11 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 			right_spacing = GetSpacing(box->GetBox(), Box::RIGHT);
 			// Add the right spacing for any ancestor elements that must close immediately after it.
 			LayoutInlineBox* closing_box = box;
-			while (closing_box != NULL &&
+			while (closing_box != nullptr &&
 				   closing_box->IsLastChild())
 			{
 				closing_box = closing_box->GetParent();
-				if (closing_box != NULL)
+				if (closing_box != nullptr)
 					right_spacing += GetSpacing(closing_box->GetBox(), Box::RIGHT);
 			}
 
@@ -259,15 +259,15 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 		// Build up the spacing required on the right side of this element. This consists of the right spacing on the
 		// new element, and the right spacing on all parent element that will close next.
 		right_spacing = GetSpacing(box->GetBox(), Box::RIGHT);
-		if (open_inline_box != NULL &&
+		if (open_inline_box != nullptr &&
 			box->IsLastChild())
 		{
 			LayoutInlineBox* closing_box = open_inline_box;
-			while (closing_box != NULL &&
+			while (closing_box != nullptr &&
 				   closing_box->IsLastChild())
 			{
 				closing_box = closing_box->GetParent();
-				if (closing_box != NULL)
+				if (closing_box != nullptr)
 					right_spacing += GetSpacing(closing_box->GetBox(), Box::RIGHT);
 			}
 		}
@@ -301,7 +301,7 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 
 	// If our box overflowed, then we'll close this line (as no more content will fit onto it) and tell our block box
 	// to make a new line.
-	if (overflow_box != NULL)
+	if (overflow_box != nullptr)
 	{
 		open_inline_box = open_inline_box->GetParent();
 		return Close(overflow_box);
@@ -315,7 +315,7 @@ void LayoutLineBox::AddChainedBox(LayoutInlineBox* chained_box)
 {
 	std::stack< LayoutInlineBox* > hierarchy;
 	LayoutInlineBox* chain = chained_box;
-	while (chain != NULL)
+	while (chain != nullptr)
 	{
 		hierarchy.push(chain);
 		chain = chain->GetParent();

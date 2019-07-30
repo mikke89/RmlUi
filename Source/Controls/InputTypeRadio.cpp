@@ -98,13 +98,13 @@ bool InputTypeRadio::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 void InputTypeRadio::PopRadioSet()
 {
 	// Uncheck all other radio buttons with our name in the form.
-	ElementForm* form = NULL;
+	ElementForm* form = nullptr;
 	Core::Element* parent = element->GetParentNode();
-	while (parent != NULL &&
-		   (form = dynamic_cast< ElementForm* >(parent)) == NULL)
+	while (parent != nullptr &&
+		   (form = dynamic_cast< ElementForm* >(parent)) == nullptr)
 	   parent = parent->GetParentNode();
 
-	if (form != NULL)
+	if (form != nullptr)
 	{
 		Core::ElementList form_controls;
 		Core::ElementUtilities::GetElementsByTagName(form_controls, form, "input");
@@ -112,7 +112,7 @@ void InputTypeRadio::PopRadioSet()
 		for (size_t i = 0; i < form_controls.size(); ++i)
 		{
 			ElementFormControlInput* radio_control = dynamic_cast< ElementFormControlInput* >(form_controls[i]);
-			if (radio_control != NULL &&
+			if (radio_control != nullptr &&
 				element != radio_control &&
 				radio_control->GetAttribute< Rml::Core::String >("type", "text") == "radio" &&
 				radio_control->GetName() == element->GetName())

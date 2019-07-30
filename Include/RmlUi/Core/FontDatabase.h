@@ -87,14 +87,14 @@ public:
     static bool LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight);
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
-	/// it can find, but in the event a font family is requested that does not exist, NULL will be returned instead of a
+	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
 	/// valid handle.
 	/// @param[in] family The family of the desired font handle.
 	/// @param[in] charset The set of characters required in the font face, as a comma-separated list of unicode ranges.
 	/// @param[in] style The style of the desired font handle.
 	/// @param[in] weight The weight of the desired font handle.
 	/// @param[in] size The size of desired handle, in points.
-	/// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
+	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
 	static SharedPtr<FontFaceHandle> GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size);
 
     static void AddFontProvider(FontProvider * provider);

@@ -116,19 +116,19 @@ Rml::Core::Lua::RegType<DataSource> DataSourceMethods[] =
     LUAMETHOD(DataSource,NotifyRowAdd)
     LUAMETHOD(DataSource,NotifyRowRemove)
     LUAMETHOD(DataSource,NotifyRowChange)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataSourceGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataSourceSetters[] =
 {
     LUASETTER(DataSource,GetNumRows)
     LUASETTER(DataSource,GetRow)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 

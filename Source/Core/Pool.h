@@ -69,14 +69,14 @@ public:
 		/// node this iterator references is invalid.
 		inline void operator++()
 		{
-			RMLUI_ASSERT(node != NULL);
+			RMLUI_ASSERT(node != nullptr);
 			node = node->next;
 		}
 		/// Returns true if it is OK to deference or increment this
 		/// iterator.
 		inline operator bool()
 		{
-			return (node != NULL);
+			return (node != nullptr);
 		}
 
 		/// Returns the object referenced by the iterator's current
@@ -113,7 +113,7 @@ public:
 
 	/// Attempts to allocate a deallocated object in the memory pool. If
 	/// the process is successful, the newly allocated object is returned.
-	/// If the process fails (due to no free objects being available), NULL
+	/// If the process fails (due to no free objects being available), nullptr
 	/// is returned.
 	inline PoolType* AllocateObject();
 

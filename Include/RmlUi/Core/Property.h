@@ -92,7 +92,7 @@ public:
 	template < typename PropertyType >
 	Property(PropertyType value, Unit unit, int specificity = -1) : value(value), unit(unit), specificity(specificity)
 	{
-		definition = NULL;
+		definition = nullptr;
 		parser_index = -1;
 
 		source_line_number = 0;

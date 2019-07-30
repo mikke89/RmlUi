@@ -43,10 +43,10 @@ WidgetSlider::WidgetSlider(ElementFormControl* _parent)
 
 	orientation = HORIZONTAL;
 
-	track = NULL;
-	bar = NULL;
-	arrows[0] = NULL;
-	arrows[1] = NULL;
+	track = nullptr;
+	bar = nullptr;
+	arrows[0] = nullptr;
+	arrows[1] = nullptr;
 
 	bar_position = 0;
 	bar_drag_anchor = 0;
@@ -58,12 +58,12 @@ WidgetSlider::WidgetSlider(ElementFormControl* _parent)
 
 WidgetSlider::~WidgetSlider()
 {
-	if (bar != NULL)
+	if (bar != nullptr)
 	{
 		parent->RemoveChild(bar);
 	}
 
-	if (track != NULL)
+	if (track != nullptr)
 	{
 		parent->RemoveChild(track);
 	}
@@ -81,7 +81,7 @@ WidgetSlider::~WidgetSlider()
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (arrows[i] != NULL)
+		if (arrows[i] != nullptr)
 		{
 			parent->RemoveChild(arrows[i]);
 		}

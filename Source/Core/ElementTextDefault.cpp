@@ -147,7 +147,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 {
 	// Bail if we don't have a valid font face.
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
-	if (font_face_handle == NULL ||
+	if (font_face_handle == nullptr ||
 		line_begin >= (int) text.size())
 		return 0;
 
@@ -182,7 +182,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 	line_width = 0;
 
 	// Bail if we don't have a valid font face.
-	if (font_face_handle == NULL)
+	if (font_face_handle == nullptr)
 		return true;
 
 	// Determine how we are processing white-space while formatting the text.
@@ -262,7 +262,7 @@ void ElementTextDefault::AddLine(const Vector2f& line_position, const WString& l
 {
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
 
-	if (font_face_handle == NULL)
+	if (font_face_handle == nullptr)
 		return;
 
 	if (font_dirty)
@@ -325,7 +325,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 				decoration.Release(true);
 
 				FontFaceHandle* font_face_handle = GetFontFaceHandle();
-				if (font_face_handle != NULL)
+				if (font_face_handle != nullptr)
 				{
 					for (size_t i = 0; i < lines.size(); ++i)
 						GenerateDecoration(font_face_handle, lines[i]);
@@ -371,7 +371,7 @@ void ElementTextDefault::DirtyFont()
 // Updates the configuration this element uses for its font.
 bool ElementTextDefault::UpdateFontConfiguration()
 {
-	if (GetFontFaceHandle() == NULL)
+	if (GetFontFaceHandle() == nullptr)
 		return false;
 
 	font_dirty = false;

@@ -36,24 +36,24 @@
 namespace Rml {
 namespace Core {
 
-FontDatabase* FontDatabase::instance = NULL;
+FontDatabase* FontDatabase::instance = nullptr;
 FontDatabase::FontProviderTable FontDatabase::font_provider_table;
 
 FontDatabase::FontDatabase()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
 FontDatabase::~FontDatabase()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
 }
 
 bool FontDatabase::Initialise()
 {
-	if (instance == NULL)
+	if (instance == nullptr)
 	{
 		new FontDatabase();
 
@@ -69,7 +69,7 @@ bool FontDatabase::Initialise()
 
 void FontDatabase::Shutdown()
 {
-	if (instance != NULL)
+	if (instance != nullptr)
 	{
         FreeType::FontProvider::Shutdown();
         BitmapFont::FontProvider::Shutdown();

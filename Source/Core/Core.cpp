@@ -192,7 +192,7 @@ Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInt
 	ContextPtr new_context = Factory::InstanceContext(name);
 	if (!new_context)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned NULL.", name.c_str());
+		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned nullptr.", name.c_str());
 		return nullptr;
 	}
 

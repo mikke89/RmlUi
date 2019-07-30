@@ -72,15 +72,15 @@ int SelectOptionsProxy__ipairs(lua_State* L)
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1)
         *pindex = 0;
-    SelectOption* opt = NULL;
+    SelectOption* opt = nullptr;
     while((*pindex) < proxy->owner->GetNumOptions())
     {
         opt = proxy->owner->GetOption((*pindex)++);
-        if(opt != NULL) 
+        if(opt != nullptr) 
             break;
     }
     //we got to the end without finding an option
-    if(opt == NULL)
+    if(opt == nullptr)
     {
         lua_pushnil(L);
         lua_pushnil(L);
@@ -100,17 +100,17 @@ int SelectOptionsProxy__ipairs(lua_State* L)
 
 Rml::Core::Lua::RegType<SelectOptionsProxy> SelectOptionsProxyMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg SelectOptionsProxyGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg SelectOptionsProxySetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 

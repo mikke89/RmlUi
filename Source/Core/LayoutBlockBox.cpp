@@ -49,36 +49,36 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 
 	context = BLOCK;
 	element = _element;
-	interrupted_chain = NULL;
+	interrupted_chain = nullptr;
 
 	box_cursor = 0;
 	vertical_overflow = false;
 
 	// Get our offset root from our parent, if it has one; otherwise, our element is the offset parent.
-	if (parent != NULL &&
-		parent->offset_root->GetElement() != NULL)
+	if (parent != nullptr &&
+		parent->offset_root->GetElement() != nullptr)
 		offset_root = parent->offset_root;
 	else
 		offset_root = this;
 
 	// Determine the offset parent for this element.
 	LayoutBlockBox* self_offset_parent;
-	if (parent != NULL &&
-		parent->offset_parent->GetElement() != NULL)
+	if (parent != nullptr &&
+		parent->offset_parent->GetElement() != nullptr)
 		self_offset_parent = parent->offset_parent;
 	else
 		self_offset_parent = this;
 
 	// Determine the offset parent for our children.
-	if (parent != NULL &&
-		parent->offset_parent->GetElement() != NULL &&
-		(element == NULL || element->GetPosition() == Style::Position::Static))
+	if (parent != nullptr &&
+		parent->offset_parent->GetElement() != nullptr &&
+		(element == nullptr || element->GetPosition() == Style::Position::Static))
 		offset_parent = parent->offset_parent;
 	else
 		offset_parent = this;
 
 	// Build the box for our element, and position it if we can.
-	if (parent != NULL)
+	if (parent != nullptr)
 	{
 		space->ImportSpace(*parent->space);
 
@@ -86,7 +86,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 		layout_engine->BuildBox(box, min_height, max_height, parent, element);
 
 		// Position ourselves within our containing block (if we have a valid offset parent).
-		if (parent->GetElement() != NULL)
+		if (parent->GetElement() != nullptr)
 		{
 			if (self_offset_parent != this)
 			{
@@ -95,11 +95,11 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 				element->SetOffset(position - (self_offset_parent->GetPosition() - offset_root->GetPosition()), self_offset_parent->GetElement());
 			}
 			else
-				element->SetOffset(position, NULL);
+				element->SetOffset(position, nullptr);
 		}
 	}
 
-	if (element != NULL)
+	if (element != nullptr)
 	{
 		const auto& computed = element->GetComputedValues();
 		wrap_content = computed.white_space != Style::WhiteSpace::Nowrap;
@@ -140,13 +140,13 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	line_boxes.push_back(new LayoutLineBox(this));
 	wrap_content = parent->wrap_content;
 
-	element = NULL;
-	interrupted_chain = NULL;
+	element = nullptr;
+	interrupted_chain = nullptr;
 
 	box_cursor = 0;
 	vertical_overflow = false;
 
-	layout_engine->BuildBox(box, min_height, max_height, parent, NULL);
+	layout_engine->BuildBox(box, min_height, max_height, parent, nullptr);
 	parent->PositionBlockBox(position, box, Style::Clear::None);
 	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
@@ -197,14 +197,14 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		Vector2f content_area = box.GetSize();
 		content_area.y = Math::Clamp(box_cursor, min_height, max_height);
 
-		if (element != NULL)
+		if (element != nullptr)
 			content_area.y = Math::Max(content_area.y, space->GetDimensions().y);
 
 		box.SetContent(content_area);
 	}
 
 	// Set the computed box on the element.
-	if (element != NULL)
+	if (element != nullptr)
 	{
 		if (context == BLOCK)
 		{
@@ -255,7 +255,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 	}
 
 	// Increment the parent's cursor.
-	if (parent != NULL)
+	if (parent != nullptr)
 	{
 		// If this close fails, it means this block box has caused our parent block box to generate an automatic
 		// vertical scrollbar.
@@ -266,7 +266,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 	// If we represent a positioned element, then we can now (as we've been sized) act as the containing block for all
 	// the absolutely-positioned elements of our descendants.
 	if (context == BLOCK &&
-		element != NULL)
+		element != nullptr)
 	{
 		if (element->GetPosition() != Style::Position::Static)
 			CloseAbsoluteElements();
@@ -303,13 +303,13 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInline
 	// Add a new line box.
 	line_boxes.push_back(new LayoutLineBox(this));
 
-	if (overflow_chain != NULL)
+	if (overflow_chain != nullptr)
 		line_boxes.back()->AddChainedBox(overflow_chain);
 
-	if (overflow != NULL)
+	if (overflow != nullptr)
 		return line_boxes.back()->AddBox(overflow);
 
-	return NULL;
+	return nullptr;
 }
 
 // Adds a new block element to this block box.
@@ -323,7 +323,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 	{
 		LayoutBlockBox* inline_block_box = block_boxes.back();
 		LayoutInlineBox* open_inline_box = inline_block_box->line_boxes.back()->GetOpenInlineBox();
-		if (open_inline_box != NULL)
+		if (open_inline_box != nullptr)
 		{
 			// There's an open inline box chain, which means this block element is parented to it. The chain needs to
 			// be positioned (if it hasn't already), closed and duplicated after this block box closes. Also, this
@@ -332,7 +332,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 			// create a new line in the inline block box; we want this line to be in an inline box after our block
 			// element.
 			if (inline_block_box->Close() != OK)
-				return NULL;
+				return nullptr;
 
 			interrupted_chain = open_inline_box;
 		}
@@ -340,7 +340,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 		{
 			// There are no open inline boxes, so this inline box just needs to be closed.
 			if (CloseInlineBlockBox() != OK)
-				return NULL;
+				return nullptr;
 		}
 	}
 
@@ -365,10 +365,10 @@ LayoutInlineBox* LayoutBlockBox::AddInlineElement(Element* element, const Box& b
 		{
 			block_boxes.push_back(new LayoutBlockBox(layout_engine, this));
 
-			if (interrupted_chain != NULL)
+			if (interrupted_chain != nullptr)
 			{
 				block_boxes.back()->line_boxes.back()->AddChainedBox(interrupted_chain);
-				interrupted_chain = NULL;
+				interrupted_chain = nullptr;
 			}
 
 			inline_box = block_boxes.back()->AddInlineElement(element, box);
@@ -685,7 +685,7 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 			space = new LayoutBlockBoxSpace(this);
 
 			box_cursor = 0;
-			interrupted_chain = NULL;
+			interrupted_chain = nullptr;
 
 			return false;
 		}

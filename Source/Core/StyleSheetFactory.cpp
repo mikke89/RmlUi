@@ -46,17 +46,17 @@
 namespace Rml {
 namespace Core {
 
-static StyleSheetFactory* instance = NULL;
+static StyleSheetFactory* instance = nullptr;
 
 StyleSheetFactory::StyleSheetFactory()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
 StyleSheetFactory::~StyleSheetFactory()
 {
-	instance = NULL;
+	instance = nullptr;
 }
 
 bool StyleSheetFactory::Initialise()
@@ -80,7 +80,7 @@ bool StyleSheetFactory::Initialise()
 
 void StyleSheetFactory::Shutdown()
 {
-	if (instance != NULL)
+	if (instance != nullptr)
 	{
 		ClearStyleSheetCache();
 
@@ -168,7 +168,7 @@ StyleSheetNodeSelector* StyleSheetFactory::GetSelector(const String& name)
 	size_t index = name.find("(");
 	SelectorMap::iterator i = instance->selectors.find(name.substr(0, index));
 	if (i == instance->selectors.end())
-		return NULL;
+		return nullptr;
 	return (*i).second;
 }
 

@@ -69,18 +69,18 @@ int ElementInstancerSetAttrInstanceElement(lua_State* L)
 
 RegType<ElementInstancer> ElementInstancerMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementInstancerGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementInstancerSetters[] =
 {
     LUASETTER(ElementInstancer,InstanceElement)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(ElementInstancer,true)

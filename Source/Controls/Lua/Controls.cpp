@@ -55,7 +55,7 @@ namespace Lua {
 //when the Interpreter starts.
 void RegisterTypes(lua_State* L)
 {
-    if(Rml::Core::Lua::Interpreter::GetLuaState() == NULL)
+    if(Rml::Core::Lua::Interpreter::GetLuaState() == nullptr)
     {
         Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR,
             "In Rml::Controls::Lua::RegisterTypes: Tried to register the \'Controls\' types for Lua without first initializing the Interpreter.");

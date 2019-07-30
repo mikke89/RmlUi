@@ -54,7 +54,7 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(view.data());
 
-		if(m_rmlui_context != NULL)
+		if(m_rmlui_context != nullptr)
 		{
 			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
 			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(projection);
@@ -65,10 +65,10 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 
 bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 {
-	this->render_context = NULL;
+	this->render_context = nullptr;
 	this->window_handle = (HWND)nativeWindow;
 	this->device_context = GetDC(this->window_handle);
-	if (this->device_context == NULL)
+	if (this->device_context == nullptr)
 	{
 		Shell::DisplayError("Could not get device context.");
 		return false;
@@ -102,7 +102,7 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 	}
 
 	this->render_context = wglCreateContext(this->device_context);
-	if (this->render_context == NULL)
+	if (this->render_context == nullptr)
 	{ 
 		Shell::DisplayError("Could not create OpenGL rendering context.");
 		return false;
@@ -138,17 +138,17 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 void ShellRenderInterfaceOpenGL::DetachFromNative()
 {
 	// Shutdown OpenGL
-	if (this->render_context != NULL)
+	if (this->render_context != nullptr)
 	{
-		wglMakeCurrent(NULL, NULL); 
+		wglMakeCurrent(nullptr, nullptr); 
 		wglDeleteContext(this->render_context);
-		this->render_context = NULL;
+		this->render_context = nullptr;
 	}
 
-	if (this->device_context != NULL)
+	if (this->device_context != nullptr)
 	{
 		ReleaseDC(this->window_handle, this->device_context);
-		this->device_context = NULL;
+		this->device_context = nullptr;
 	}
 }
 

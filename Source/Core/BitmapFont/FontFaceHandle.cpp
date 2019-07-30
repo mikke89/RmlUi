@@ -156,12 +156,12 @@ void BitmapFont::FontFaceHandle::BuildGlyph(FontGlyph& glyph, CharacterInfo *bm_
 	glyph.bitmap_dimensions.x = bm_glyph->X;
 	glyph.bitmap_dimensions.y = bm_glyph->Y;
 
-	glyph.bitmap_data = NULL;
+	glyph.bitmap_data = nullptr;
 }
 
 int BitmapFont::FontFaceHandle::GetKerning(word lhs, word rhs) const
 {
-	if( bm_face != NULL)
+	if( bm_face != nullptr)
 	{
 		return bm_face->BM_Helper_GetXKerning(lhs, rhs);
 	}

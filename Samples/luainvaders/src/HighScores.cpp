@@ -30,11 +30,11 @@
 #include <RmlUi/Core/TypeConverter.h>
 #include <stdio.h>
 
-HighScores* HighScores::instance = NULL;
+HighScores* HighScores::instance = nullptr;
 
 HighScores::HighScores() : Rml::Controls::DataSource("high_scores")
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -51,7 +51,7 @@ HighScores::~HighScores()
 
 	SaveScores();
 
-	instance = NULL;
+	instance = nullptr;
 }
 
 void HighScores::Initialise()

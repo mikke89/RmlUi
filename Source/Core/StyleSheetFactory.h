@@ -65,7 +65,7 @@ public:
 
 	/// Returns one of the available node selectors.
 	/// @param name[in] The name of the desired selector.
-	/// @return The selector registered with the given name, or NULL if none exists.
+	/// @return The selector registered with the given name, or nullptr if none exists.
 	static StyleSheetNodeSelector* GetSelector(const String& name);
 
 private:

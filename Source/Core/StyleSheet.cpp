@@ -335,7 +335,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 
 	// If this element definition won't actually store any information, don't bother with it.
 	if (applicable_nodes.empty())
-		return NULL;
+		return nullptr;
 
 	// Check if this puppy has already been cached in the node index; it may be that it has already been created by an
 	// element with a different address but an identical output definition.

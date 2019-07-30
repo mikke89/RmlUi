@@ -167,7 +167,7 @@ public:
 	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id = PropertyId::Invalid);
 	/// Returns a property definition.
 	/// @param[in] id The id of the desired property.
-	/// @return The appropriate property definition if it could be found, NULL otherwise.
+	/// @return The appropriate property definition if it could be found, nullptr otherwise.
 	const PropertyDefinition* GetProperty(PropertyId id) const;
 	const PropertyDefinition* GetProperty(const String& property_name) const;
 
@@ -188,7 +188,7 @@ public:
 	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id = ShorthandId::Invalid);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
-	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
+	/// @return The appropriate shorthand definition if it could be found, nullptr otherwise.
 	const ShorthandDefinition* GetShorthand(ShorthandId id) const;
 	const ShorthandDefinition* GetShorthand(const String& shorthand_name) const;
 

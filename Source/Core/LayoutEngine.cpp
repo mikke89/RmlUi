@@ -60,8 +60,8 @@ static Pool< LayoutChunk > layout_chunk_pool(200, true);
 
 LayoutEngine::LayoutEngine()
 {
-	block_box = NULL;
-	block_context_box = NULL;
+	block_box = nullptr;
+	block_context_box = nullptr;
 }
 
 LayoutEngine::~LayoutEngine()
@@ -71,7 +71,7 @@ LayoutEngine::~LayoutEngine()
 // Formats the contents for a root-level element (usually a document or floating element).
 bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block, bool shrink_to_fit)
 {
-	block_box = new LayoutBlockBox(this, NULL, NULL);
+	block_box = new LayoutBlockBox(this, nullptr, nullptr);
 	block_box->GetBox().SetContent(containing_block);
 
 	block_context_box = block_box->AddBlockElement(element);
@@ -92,7 +92,7 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 			Vector2f shrinked_block_size(content_width, containing_block.y);
 			
 			delete block_box;
-			block_box = new LayoutBlockBox(this, NULL, NULL);
+			block_box = new LayoutBlockBox(this, nullptr, nullptr);
 			block_box->GetBox().SetContent(shrinked_block_size);
 
 			block_context_box = block_box->AddBlockElement(element);
@@ -117,7 +117,7 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 // Generates the box for an element.
 void LayoutEngine::BuildBox(Box& box, const Vector2f& containing_block, Element* element, bool inline_element)
 {
-	if (element == NULL)
+	if (element == nullptr)
 	{
 		box.SetContent(containing_block);
 		return;
@@ -319,7 +319,7 @@ bool LayoutEngine::FormatElement(Element* element)
 bool LayoutEngine::FormatElementBlock(Element* element)
 {
 	LayoutBlockBox* new_block_context_box = block_context_box->AddBlockElement(element);
-	if (new_block_context_box == NULL)
+	if (new_block_context_box == nullptr)
 		return false;
 
 	block_context_box = new_block_context_box;
@@ -423,20 +423,20 @@ Vector2f LayoutEngine::GetContainingBlock(const LayoutBlockBox* containing_box)
 	Vector2f containing_block;
 
 	containing_block.x = containing_box->GetBox().GetSize(Box::CONTENT).x;
-	if (containing_box->GetElement() != NULL)
+	if (containing_box->GetElement() != nullptr)
 		containing_block.x -= containing_box->GetElement()->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
 
 	while ((containing_block.y = containing_box->GetBox().GetSize(Box::CONTENT).y) < 0)
 	{
 		containing_box = containing_box->GetParent();
-		if (containing_box == NULL)
+		if (containing_box == nullptr)
 		{
 			RMLUI_ERROR;
 			containing_block.y = 0;
 		}
 	}
-	if (containing_box != NULL &&
-		containing_box->GetElement() != NULL)
+	if (containing_box != nullptr &&
+		containing_box->GetElement() != nullptr)
 		containing_block.y -= containing_box->GetElement()->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
 
 	containing_block.x = Math::Max(0.0f, containing_block.x);

@@ -82,12 +82,12 @@ class RMLUICORE_API BaseXMLParser
 		bool ReadOpenTag();
 		bool ReadCloseTag();
 		bool ReadAttributes(XMLAttributes& attributes);
-		bool ReadCDATA(const char* terminator = NULL);
+		bool ReadCDATA(const char* terminator = nullptr);
 
 		// Reads from the stream until a complete word is found.
 		// @param[out] word Word thats been found
 		// @param[in] terminators List of characters that terminate the search
-		bool FindWord(String& word, const char* terminators = NULL);
+		bool FindWord(String& word, const char* terminators = nullptr);
 		// Reads from the stream until the given character set is found. All
 		// intervening characters will be returned in data.
 		bool FindString(const unsigned char* string, String& data);

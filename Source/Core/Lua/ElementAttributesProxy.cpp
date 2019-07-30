@@ -96,16 +96,16 @@ int ElementAttributesProxy__ipairs(lua_State* L)
 
 RegType<ElementAttributesProxy> ElementAttributesProxyMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementAttributesProxyGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg ElementAttributesProxySetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(ElementAttributesProxy,false)

@@ -137,7 +137,7 @@ public:
 StyleSheetParser::StyleSheetParser()
 {
 	line_number = 0;
-	stream = NULL;
+	stream = nullptr;
 	parse_buffer_pos = 0;
 }
 
@@ -585,7 +585,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 // Updates the StyleNode tree, creating new nodes as necessary, setting the definition index
 bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& names, const PropertyDictionary& properties, int rule_specificity)
 {
-	StyleSheetNode* tag_node = NULL;
+	StyleSheetNode* tag_node = nullptr;
 	StyleSheetNode* leaf_node = node;
 
 	StringList nodes;
@@ -625,7 +625,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& name
 					case ':':
 					{
 						String pseudo_class_name = identifier.substr(1);
-						if (StyleSheetFactory::GetSelector(pseudo_class_name) != NULL)
+						if (StyleSheetFactory::GetSelector(pseudo_class_name) != nullptr)
 							structural_pseudo_classes.push_back(pseudo_class_name);
 						else
 							pseudo_classes.push_back(pseudo_class_name);
@@ -674,7 +674,7 @@ char StyleSheetParser::FindToken(String& buffer, const char* tokens, bool remove
 	char character;
 	while (ReadCharacter(character))
 	{
-		if (strchr(tokens, character) != NULL)
+		if (strchr(tokens, character) != nullptr)
 		{
 			if (remove_token)
 				parse_buffer_pos++;

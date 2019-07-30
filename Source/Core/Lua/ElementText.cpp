@@ -61,19 +61,19 @@ int ElementTextSetAttrtext(lua_State* L)
 
 RegType<ElementText> ElementTextMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTextGetters[] =
 {
     LUAGETTER(ElementText,text)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTextSetters[] =
 {
     LUASETTER(ElementText,text)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(ElementText,true)

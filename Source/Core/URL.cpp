@@ -85,7 +85,7 @@ bool URL::SetURL(const String& _url)
 	// Find the protocol. This consists of the string appearing before the
 	// '://' token (ie, file://, http://).
 	const char* host_begin = strchr(_url.c_str(), ':');
-	if (NULL != host_begin)
+	if (nullptr != host_begin)
 	{
 		protocol = String(_url.c_str(), host_begin);
 		if (0 != strncmp(host_begin, "://", 3))
@@ -137,7 +137,7 @@ bool URL::SetURL(const String& _url)
 		path_begin = strchr(host_begin, '/');
 		// Search for the colon in the host name, which will indicate a port.
 		const char* port_begin = strchr(host_begin, ':');
-		if (NULL != port_begin && (NULL == path_begin || port_begin < path_begin))
+		if (nullptr != port_begin && (nullptr == path_begin || port_begin < path_begin))
 		{
 			if (1 != sscanf(port_begin, ":%d", &port))
 			{
@@ -148,7 +148,7 @@ bool URL::SetURL(const String& _url)
 			host = String(host_begin, port_begin);
 
 			// Don't continue if there is no path.
-			if (NULL == path_begin)
+			if (nullptr == path_begin)
 			{
 				return true;
 			}
@@ -160,7 +160,7 @@ bool URL::SetURL(const String& _url)
 		{
 			port = -1;
 
-			if (NULL == path_begin)
+			if (nullptr == path_begin)
 			{
 				host = host_begin;
 				return true;
@@ -209,7 +209,7 @@ bool URL::SetURL(const String& _url)
 	// Find the path. This is the string appearing after the host, terminated
 	// by the last forward slash.
 	const char* file_name_begin = strrchr(path_begin, '/');
-	if (NULL == file_name_begin)
+	if (nullptr == file_name_begin)
 	{
 		// No path!
 		file_name_begin = path_begin;
@@ -242,7 +242,7 @@ bool URL::SetURL(const String& _url)
 	// Find the file name. This is the string after the trailing slash of the
 	// path, and just before the extension.
 	const char* extension_begin = strrchr(file_name_begin, '.');
-	if (NULL == extension_begin)
+	if (nullptr == extension_begin)
 	{
 		file_name = file_name_begin;
 		extension = "";

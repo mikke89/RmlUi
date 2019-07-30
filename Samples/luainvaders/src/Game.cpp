@@ -73,11 +73,11 @@ Game::Game()
 	current_invader_direction = 1.0f;	
 	invaders = new Invader*[NUM_INVADERS + 1];
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
-		invaders[i] = NULL;	
+		invaders[i] = nullptr;	
 
 	shields = new Shield*[NUM_SHIELDS];
 	for (int i = 0; i < NUM_SHIELDS; i++)
-		shields[i] = NULL;
+		shields[i] = nullptr;
 
 	// Use the OpenGL render interface to load our texture.
 	Rml::Core::Vector2i texture_dimensions;
@@ -225,7 +225,7 @@ void Game::SetScore(int score)
 	GameDetails::SetScore(score);
 
 	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
-	if (score_element != NULL)
+	if (score_element != nullptr)
 		score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", score).c_str());
 
 	// Update the high score if we've beaten it.
@@ -237,7 +237,7 @@ void Game::SetScore(int score)
 void Game::SetHighScore(int score)
 {
 	Rml::Core::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
-	if (high_score_element != NULL)
+	if (high_score_element != nullptr)
 		high_score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", score).c_str());
 }
 
@@ -246,7 +246,7 @@ void Game::SetLives(int lives)
 	defender_lives = lives;
 
 	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
-	if (score_element != NULL)
+	if (score_element != nullptr)
 		score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", defender_lives).c_str());
 }
 
@@ -255,7 +255,7 @@ void Game::SetWave(int wave)
 	GameDetails::SetWave(wave);
 
 	Rml::Core::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
-	if (waves_element != NULL)
+	if (waves_element != nullptr)
 		waves_element->SetInnerRML(Rml::Core::CreateString(128, "%d", wave).c_str());
 }
 

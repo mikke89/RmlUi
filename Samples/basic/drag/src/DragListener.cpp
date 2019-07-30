@@ -43,7 +43,7 @@ void DragListener::ProcessEvent(Rml::Core::Event& event)
 	{
 		Rml::Core::Element* dest_container = event.GetCurrentElement();
 		Rml::Core::Element* dest_element = event.GetTargetElement();
-		Rml::Core::Element* drag_element = static_cast< Rml::Core::Element* >(event.GetParameter< void* >("drag_element", NULL));
+		Rml::Core::Element* drag_element = static_cast< Rml::Core::Element* >(event.GetParameter< void* >("drag_element", nullptr));
 
 		if (dest_container == dest_element)
 		{
@@ -65,7 +65,7 @@ void DragListener::ProcessEvent(Rml::Core::Event& event)
 				// Check whether we're moving this icon from the left or the right.
 
 				Rml::Core::Element* previous_icon = insert_before->GetPreviousSibling();
-				while (previous_icon != NULL)
+				while (previous_icon != nullptr)
 				{
 					if (previous_icon == drag_element)
 					{

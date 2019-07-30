@@ -49,7 +49,7 @@ bool StyleSheetNodeSelectorOnlyOfType::IsApplicable(const Element* element, int 
 	RMLUI_UNUSED(b);
 
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	for (int i = 0; i < parent->GetNumChildren(); ++i)

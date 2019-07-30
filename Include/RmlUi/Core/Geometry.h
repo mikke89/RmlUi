@@ -49,7 +49,7 @@ struct Texture;
 class RMLUICORE_API Geometry
 {
 public:
-	Geometry(Element* host_element = NULL);
+	Geometry(Element* host_element = nullptr);
 	Geometry(Context* host_context);
 	~Geometry();
 

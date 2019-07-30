@@ -143,17 +143,17 @@ int ElementStyleProxy__ipairs(lua_State* L)
 
 RegType<ElementStyleProxy> ElementStyleProxyMethods[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementStyleProxyGetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementStyleProxySetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(ElementStyleProxy,false)

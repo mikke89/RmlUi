@@ -220,7 +220,7 @@ RegType<Vector2f> Vector2fMethods[] =
     LUAMETHOD(Vector2f,DotProduct)
     LUAMETHOD(Vector2f,Normalise)
     LUAMETHOD(Vector2f,Rotate)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg Vector2fGetters[]= 
@@ -228,14 +228,14 @@ luaL_Reg Vector2fGetters[]=
     LUAGETTER(Vector2f,x)
     LUAGETTER(Vector2f,y)
     LUAGETTER(Vector2f,magnitude)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg Vector2fSetters[]= 
 {
     LUASETTER(Vector2f,x)
     LUASETTER(Vector2f,y)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(Vector2f,false)

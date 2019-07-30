@@ -56,7 +56,7 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(view.data());
 
-		if(m_rmlui_context != NULL)
+		if(m_rmlui_context != nullptr)
 		{
 			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
 			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(projection);
@@ -71,8 +71,8 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 	this->nwData.window = ((__X11NativeWindowData *)nativeWindow)->window;
 	this->nwData.visual_info = ((__X11NativeWindowData *)nativeWindow)->visual_info;
 
-	this->gl_context = glXCreateContext(nwData.display, nwData.visual_info, NULL, GL_TRUE);
-	if (this->gl_context == NULL)
+	this->gl_context = glXCreateContext(nwData.display, nwData.visual_info, nullptr, GL_TRUE);
+	if (this->gl_context == nullptr)
 		return false;
 	
 	if (!glXMakeCurrent(nwData.display, nwData.window, this->gl_context))
@@ -107,9 +107,9 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 void ShellRenderInterfaceOpenGL::DetachFromNative()
 {
 	// Shutdown OpenGL	
-	glXMakeCurrent(this->nwData.display, 0L, NULL);
+	glXMakeCurrent(this->nwData.display, 0L, nullptr);
 	glXDestroyContext(this->nwData.display, this->gl_context);
-	this->gl_context = NULL;
+	this->gl_context = nullptr;
 }
 
 void ShellRenderInterfaceOpenGL::PrepareRenderBuffer()

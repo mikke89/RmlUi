@@ -91,10 +91,10 @@ private:
 	Rml::Core::ElementDocument *document;
 };
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
-DemoWindow* window_1 = NULL;
-DemoWindow* window_2 = NULL;
+DemoWindow* window_1 = nullptr;
+DemoWindow* window_2 = nullptr;
 
 void GameLoop()
 {
@@ -156,7 +156,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(1024, 768));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();

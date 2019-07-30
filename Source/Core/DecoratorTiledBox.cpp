@@ -268,9 +268,9 @@ DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element) con
 	}
 
 	// Set the textures on the geometry.
-	const Texture* texture = NULL;
+	const Texture* texture = nullptr;
 	int texture_index = 0;
-	while ((texture = GetTexture(texture_index)) != NULL)
+	while ((texture = GetTexture(texture_index)) != nullptr)
 		data->geometry[texture_index++]->SetTexture(texture);
 
 	return reinterpret_cast<DecoratorDataHandle>(data);

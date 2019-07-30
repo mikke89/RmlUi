@@ -54,7 +54,7 @@ public:
 	/// @param parser The parser executing the parse.
 	/// @param name The XML tag name.
 	/// @param attributes The tag attributes.
-	/// @return The new element, may be NULL if no element was created.
+	/// @return The new element, may be nullptr if no element was created.
 	virtual Element* ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes) = 0;
 
 	/// Called when an element is closed.

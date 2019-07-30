@@ -153,7 +153,7 @@ void WidgetTextInput::UpdateSelectionColours()
 	// attribute set, then use that. Otherwise, use the inverse of our own text colour.
 	Rml::Core::Colourb colour;
 	const Rml::Core::Property* colour_property = selection_element->GetLocalProperty("color");
-	if (colour_property != NULL)
+	if (colour_property != nullptr)
 		colour = colour_property->Get< Rml::Core::Colourb >();
 	else
 	{
@@ -170,7 +170,7 @@ void WidgetTextInput::UpdateSelectionColours()
 	// background colour for the selected text. Otherwise, use the inverse of the selected text
 	// colour.
 	colour_property = selection_element->GetLocalProperty("background-color");
-	if (colour_property != NULL)
+	if (colour_property != nullptr)
 		selection_colour = colour_property->Get< Rml::Core::Colourb >();
 	else
 		selection_colour = Rml::Core::Colourb(255 - colour.red, 255 - colour.green, 255 - colour.blue, colour.alpha);
@@ -901,7 +901,7 @@ void WidgetTextInput::GenerateCursor()
 
 void WidgetTextInput::UpdateCursorPosition()
 {
-	if (text_element->GetFontFaceHandle() == NULL)
+	if (text_element->GetFontFaceHandle() == nullptr)
 		return;
 
 	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.substr(0, cursor_character_index));

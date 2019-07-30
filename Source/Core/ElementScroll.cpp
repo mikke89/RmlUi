@@ -41,7 +41,7 @@ namespace Core {
 ElementScroll::ElementScroll(Element* _element)
 {
 	element = _element;
-	corner = NULL;
+	corner = nullptr;
 }
 
 ElementScroll::~ElementScroll()
@@ -53,16 +53,16 @@ void ElementScroll::ClearScrollbars()
 {
 	for (int i = 0; i < 2; i++)
 	{
-		if (scrollbars[i].element != NULL)
+		if (scrollbars[i].element != nullptr)
 		{
 			scrollbars[i] = Scrollbar();
 		}
 	}
 
-	if (corner != NULL)
+	if (corner != nullptr)
 	{
 		corner->GetParentNode()->RemoveChild(element);
-		corner = NULL;
+		corner = nullptr;
 	}
 }
 
@@ -71,7 +71,7 @@ void ElementScroll::Update()
 {
 	for (int i = 0; i < 2; i++)
 	{
-		if (scrollbars[i].widget != NULL)
+		if (scrollbars[i].widget != nullptr)
 			scrollbars[i].widget->Update();
 	}
 }
@@ -134,7 +134,7 @@ void ElementScroll::UpdateScrollbar(Orientation orientation)
 	else
 		bar_position /= traversable_track;
 
-	if (scrollbars[orientation].widget != NULL)
+	if (scrollbars[orientation].widget != nullptr)
 	{
 		bar_position = Math::Clamp(bar_position, 0.0f, 1.0f);
 
@@ -222,7 +222,7 @@ void ElementScroll::FormatScrollbars()
 	}
 	else
 	{
-		if (corner != NULL)
+		if (corner != nullptr)
 			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
@@ -250,7 +250,7 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 // Creates the scrollbar corner.
 bool ElementScroll::CreateCorner()
 {
-	if (corner != NULL)
+	if (corner != nullptr)
 		return true;
 
 	ElementPtr corner_element = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
@@ -262,20 +262,20 @@ bool ElementScroll::CreateCorner()
 
 ElementScroll::Scrollbar::Scrollbar()
 {
-	element = NULL;
-	widget = NULL;
+	element = nullptr;
+	widget = nullptr;
 	enabled = false;
 	size = 0;
 }
 
 ElementScroll::Scrollbar::~Scrollbar()
 {
-	if (widget != NULL)
+	if (widget != nullptr)
 		delete widget;
 
-	if (element != NULL)
+	if (element != nullptr)
 	{
-		if (element->GetParentNode() != NULL)
+		if (element->GetParentNode() != nullptr)
 			element->GetParentNode()->RemoveChild(element);
 	}
 }

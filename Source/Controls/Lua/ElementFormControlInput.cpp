@@ -148,7 +148,7 @@ int ElementFormControlInputSetAttrstep(lua_State* L)
 
 Rml::Core::Lua::RegType<ElementFormControlInput> ElementFormControlInputMethods[] = 
 {
-    {NULL,NULL},
+    {nullptr,nullptr},
 };
 
 luaL_Reg ElementFormControlInputGetters[] = 
@@ -159,7 +159,7 @@ luaL_Reg ElementFormControlInputGetters[] =
     LUAGETTER(ElementFormControlInput,max)
     LUAGETTER(ElementFormControlInput,min)
     LUAGETTER(ElementFormControlInput,step)
-    {NULL,NULL},
+    {nullptr,nullptr},
 };
 
 luaL_Reg ElementFormControlInputSetters[] = 
@@ -170,7 +170,7 @@ luaL_Reg ElementFormControlInputSetters[] =
     LUASETTER(ElementFormControlInput,max)
     LUASETTER(ElementFormControlInput,min)
     LUASETTER(ElementFormControlInput,step)
-    {NULL,NULL},
+    {nullptr,nullptr},
 };
 
 }

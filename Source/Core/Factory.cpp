@@ -232,7 +232,7 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 		return element;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // Instances a single text element containing a string.
@@ -243,7 +243,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	// Do any necessary translation. If any substitutions were made then new XML may have been introduced, so we'll
 	// have to run the data through the XML parser again.
 	String translated_data;
-	if (system_interface != NULL &&
+	if (system_interface != nullptr &&
 		(system_interface->TranslateString(translated_data, text) > 0 ||
 		 translated_data.find("<") != String::npos))
 	{
@@ -276,7 +276,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
 		if (!element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned NULL.", translated_data.c_str());
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", translated_data.c_str());
 			return false;
 		}
 
@@ -311,7 +311,7 @@ ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* 
 	ElementPtr element = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
 	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned NULL.");
+		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned nullptr.");
 		return nullptr;
 	}
 

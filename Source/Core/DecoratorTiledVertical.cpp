@@ -127,9 +127,9 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 	tiles[BOTTOM].GenerateGeometry(data->geometry[tiles[BOTTOM].texture_index]->GetVertices(), data->geometry[tiles[BOTTOM].texture_index]->GetIndices(), element, Vector2f(0, padded_size.y - bottom_dimensions.y), bottom_dimensions, bottom_dimensions);
 
 	// Set the textures on the geometry.
-	const Texture* texture = NULL;
+	const Texture* texture = nullptr;
 	int texture_index = 0;
-	while ((texture = GetTexture(texture_index)) != NULL)
+	while ((texture = GetTexture(texture_index)) != nullptr)
 		data->geometry[texture_index++]->SetTexture(texture);
 
 	return reinterpret_cast<DecoratorDataHandle>(data);

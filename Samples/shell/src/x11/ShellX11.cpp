@@ -58,7 +58,7 @@ static bool isDirectory(const Rml::Core::String &path)
 
 bool Shell::Initialise()
 {
-	gettimeofday(&start_time, NULL);
+	gettimeofday(&start_time, nullptr);
 	InputX11::Initialise();
 
 	Rml::Core::String root = FindSamplesRoot();
@@ -104,16 +104,16 @@ Rml::Core::String Shell::FindSamplesRoot()
 	return (executable_path + path);
 }
 
-static Display* display = NULL;
-static XVisualInfo* visual_info = NULL;
+static Display* display = nullptr;
+static XVisualInfo* visual_info = nullptr;
 static Window window = 0;
 
-static ShellRenderInterfaceExtensions *shell_renderer = NULL;
+static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
 
 bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
 	display = XOpenDisplay(0);
-	if (display == NULL)
+	if (display == nullptr)
 		return false;
 
 	// This initialise they keyboard to keycode mapping system of X11
@@ -134,7 +134,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 							0L};
 
 	visual_info = glXChooseVisual(display, screen, attribute_list);
-	if (visual_info == NULL)
+	if (visual_info == nullptr)
 	{
 		return false;
   	}
@@ -174,7 +174,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	{
 		// Force the window to remain at the fixed size by asking the window manager nicely, it may choose to ignore us
 		XSizeHints* win_size_hints = XAllocSizeHints();		// Allocate a size hint structure
-		if (win_size_hints == NULL)
+		if (win_size_hints == nullptr)
 		{
 			fprintf(stderr, "XAllocSizeHints - out of memory\n");
 		}
@@ -200,11 +200,11 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	}
 
 	// Set the window title and show the window.
-	XSetStandardProperties(display, window, name, "", 0L, NULL, 0, NULL);
+	XSetStandardProperties(display, window, name, "", 0L, nullptr, 0, nullptr);
 	XMapRaised(display, window);
 
 	shell_renderer = _shell_renderer;
-	if(shell_renderer != NULL)
+	if(shell_renderer != nullptr)
 	{
 		struct __X11NativeWindowData nwData;
 		nwData.display = display;
@@ -217,22 +217,22 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 
 void Shell::CloseWindow()
 {
-	if(shell_renderer != NULL)
+	if(shell_renderer != nullptr)
 	{
 		shell_renderer->DetachFromNative();
 	}
 
-	if (display != NULL)
+	if (display != nullptr)
 	{
 		XCloseDisplay(display);
-		display = NULL;
+		display = nullptr;
 	}
 }
 
 // Returns a platform-dependent handle to the window.
 void* Shell::GetWindowHandle()
 {
-	return NULL;
+	return nullptr;
 }
 
 void Shell::EventLoop(ShellIdleFunction idle_function)
@@ -245,7 +245,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 		while (XPending(display) > 0)
 		{
 			XEvent event;
-			char *event_type = NULL;
+			char *event_type = nullptr;
 			XNextEvent(display, &event);
 
 			switch (event.type)
@@ -258,7 +258,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 					if (strcmp(event_type, "WM_PROTOCOLS") == 0)
 						running = false;
 					XFree(event_type);
-					event_type = NULL;
+					event_type = nullptr;
 				}
 				break;
 
@@ -332,7 +332,7 @@ double Shell::GetElapsedTime()
 {
 	struct timeval now;
 
-	gettimeofday(&now, NULL);
+	gettimeofday(&now, nullptr);
 
 	double sec = now.tv_sec - start_time.tv_sec;
 	double usec = now.tv_usec - start_time.tv_usec;

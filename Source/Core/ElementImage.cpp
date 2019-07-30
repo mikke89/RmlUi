@@ -230,11 +230,11 @@ bool ElementImage::LoadTexture()
 	geometry_dirty = true;
 
 	Rml::Core::ElementDocument* document = GetOwnerDocument();
-	URL source_url(document == NULL ? "" : document->GetSourceURL());
+	URL source_url(document == nullptr ? "" : document->GetSourceURL());
 
 	if (!texture.Load(image_source, source_url.GetPath()))
 	{
-		geometry.SetTexture(NULL);
+		geometry.SetTexture(nullptr);
 		return false;
 	}
 

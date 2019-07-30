@@ -96,7 +96,7 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 	}
 
 	// No elements constructed
-	return NULL;
+	return nullptr;
 }
 
 bool XMLNodeHandlerHead::ElementEnd(XMLParser* parser, const String& name)
@@ -123,7 +123,7 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data)
 	if (tag == "title")
 	{
 		SystemInterface* system_interface = GetSystemInterface();
-		if (system_interface != NULL)
+		if (system_interface != nullptr)
 			system_interface->TranslateString(parser->GetDocumentHeader()->title, data);
 	}
 

@@ -77,7 +77,7 @@ public:
 	static void RegisterContextInstancer(ContextInstancer* instancer);
 	/// Instances a new context.
 	/// @param[in] name The name of the new context.
-	/// @return The new context, or NULL if no context could be created.
+	/// @return The new context, or nullptr if no context could be created.
 	static ContextPtr InstanceContext(const String& name);
 
 	/// Registers a non-owning pointer to the element instancer that will be used to instance an element when the specified tag is encountered.
@@ -87,14 +87,14 @@ public:
 	static void RegisterElementInstancer(const String& name, ElementInstancer* instancer);
 	/// Returns the element instancer for the specified tag.
 	/// @param[in] tag Name of the tag to get the instancer for.
-	/// @return The requested element instancer, or NULL if no such instancer is registered.
+	/// @return The requested element instancer, or nullptr if no such instancer is registered.
 	static ElementInstancer* GetElementInstancer(const String& tag);
 	/// Instances a single element.
-	/// @param[in] parent The parent of the new element, or NULL for a root tag.
+	/// @param[in] parent The parent of the new element, or nullptr for a root tag.
 	/// @param[in] instancer The name of the instancer to create the element with.
 	/// @param[in] tag The tag of the element to be instanced.
 	/// @param[in] attributes The attributes to instance the element with.
-	/// @return The instanced element, or NULL if the instancing failed.
+	/// @return The instanced element, or nullptr if the instancing failed.
 	static ElementPtr InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
 
 	/// Instances a single text element containing a string. The string is assumed to contain no RML markup, but will
@@ -111,29 +111,29 @@ public:
 	/// Instances a document from a stream.
 	/// @param[in] context The context that is creating the document.
 	/// @param[in] stream The stream to instance from.
-	/// @return The instanced document, or NULL if an error occurred.
+	/// @return The instanced document, or nullptr if an error occurred.
 	static ElementPtr InstanceDocumentStream(Rml::Core::Context* context, Stream* stream);
 
 	/// Registers a non-owning pointer to an instancer that will be used to instance decorators.
 	/// @param[in] name The name of the decorator the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the decorator name is encountered.
 	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
-	/// @return The added instancer if the registration was successful, NULL otherwise.
+	/// @return The added instancer if the registration was successful, nullptr otherwise.
 	static void RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer);
 	/// Retrieves a decorator instancer registered with the factory.
 	/// @param[in] name The name of the desired decorator type.
-	/// @return The decorator instancer it it exists, NULL otherwise.
+	/// @return The decorator instancer it it exists, nullptr otherwise.
 	static DecoratorInstancer* GetDecoratorInstancer(const String& name);
 
 	/// Registers a non-owning pointer to an instancer that will be used to instance font effects.
 	/// @param[in] name The name of the font effect the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the font effect name is encountered.
 	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
-	/// @return The added instancer if the registration was successful, NULL otherwise.
+	/// @return The added instancer if the registration was successful, nullptr otherwise.
 	static void RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer);
 	/// Retrieves a font-effect instancer registered with the factory.
 	/// @param[in] name The name of the desired font-effect type.
-	/// @return The font-effect instancer it it exists, NULL otherwise.
+	/// @return The font-effect instancer it it exists, nullptr otherwise.
 	static FontEffectInstancer* GetFontEffectInstancer(const String& name);
 
 	/// Creates a style sheet from a user-generated string.

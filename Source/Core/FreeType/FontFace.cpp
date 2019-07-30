@@ -70,7 +70,7 @@ SharedPtr<Rml::Core::FontFaceHandle> FontFace::GetHandle(const String& _raw_char
 		if (!UnicodeRange::BuildList(charset, raw_charset))
 		{
 			Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", _raw_charset.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		for (size_t i = 0; i < handles.size(); ++i)
@@ -118,7 +118,7 @@ SharedPtr<Rml::Core::FontFaceHandle> FontFace::GetHandle(const String& _raw_char
 // Releases the face's FreeType face structure.
 void FontFace::ReleaseFace()
 {
-	if (face != NULL)
+	if (face != nullptr)
 	{
 		FT_Byte* face_memory = face->stream->base;
 		FT_Done_Face(face);
@@ -126,7 +126,7 @@ void FontFace::ReleaseFace()
 		if (release_stream)
 			delete[] face_memory;
 
-		face = NULL;
+		face = nullptr;
 	}
 }
 

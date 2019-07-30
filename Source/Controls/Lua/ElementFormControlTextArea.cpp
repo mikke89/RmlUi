@@ -110,7 +110,7 @@ int ElementFormControlTextAreaSetAttrwordwrap(lua_State* L)
 
 Rml::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlTextAreaGetters[] =
@@ -119,7 +119,7 @@ luaL_Reg ElementFormControlTextAreaGetters[] =
     LUAGETTER(ElementFormControlTextArea,maxlength)
     LUAGETTER(ElementFormControlTextArea,rows)
     LUAGETTER(ElementFormControlTextArea,wordwrap)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlTextAreaSetters[] =
@@ -128,7 +128,7 @@ luaL_Reg ElementFormControlTextAreaSetters[] =
     LUASETTER(ElementFormControlTextArea,maxlength)
     LUASETTER(ElementFormControlTextArea,rows)
     LUASETTER(ElementFormControlTextArea,wordwrap)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }

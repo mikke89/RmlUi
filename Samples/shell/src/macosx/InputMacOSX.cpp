@@ -67,7 +67,7 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 				case kEventMouseDown:
 				{
 					EventMouseButton mouse_button;
-					if (GetEventParameter(event, kEventParamMouseButton, typeMouseButton, NULL, sizeof(EventMouseButton), NULL, &mouse_button) == noErr)
+					if (GetEventParameter(event, kEventParamMouseButton, typeMouseButton, nullptr, sizeof(EventMouseButton), nullptr, &mouse_button) == noErr)
 						context->ProcessMouseButtonDown(mouse_button - 1, GetKeyModifierState(event));
 				}
 				break;
@@ -75,7 +75,7 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 				case kEventMouseUp:
 				{
 					EventMouseButton mouse_button;
-					if (GetEventParameter(event, kEventParamMouseButton, typeMouseButton, NULL, sizeof(EventMouseButton), NULL, &mouse_button) == noErr)
+					if (GetEventParameter(event, kEventParamMouseButton, typeMouseButton, nullptr, sizeof(EventMouseButton), nullptr, &mouse_button) == noErr)
 						context->ProcessMouseButtonUp(mouse_button - 1, GetKeyModifierState(event));
 				}
 				break;
@@ -85,8 +85,8 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 					EventMouseWheelAxis axis;
 					SInt32 delta;
 
-					if (GetEventParameter(event, kEventParamMouseWheelAxis, typeMouseWheelAxis, NULL, sizeof(EventMouseWheelAxis), NULL, &axis) == noErr &&
-						GetEventParameter(event, kEventParamMouseWheelDelta, typeLongInteger, NULL, sizeof(SInt32), NULL, &delta) == noErr)
+					if (GetEventParameter(event, kEventParamMouseWheelAxis, typeMouseWheelAxis, nullptr, sizeof(EventMouseWheelAxis), nullptr, &axis) == noErr &&
+						GetEventParameter(event, kEventParamMouseWheelDelta, typeLongInteger, nullptr, sizeof(SInt32), nullptr, &delta) == noErr)
 					{
 						if (axis == kEventMouseWheelAxisY)
 							context->ProcessMouseWheel(-delta, GetKeyModifierState(event));
@@ -98,7 +98,7 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 				case kEventMouseDragged:
 				{
 					HIPoint position;
-					if (GetEventParameter(event, kEventParamWindowMouseLocation, typeHIPoint, NULL, sizeof(HIPoint), NULL, &position) == noErr)
+					if (GetEventParameter(event, kEventParamWindowMouseLocation, typeHIPoint, nullptr, sizeof(HIPoint), nullptr, &position) == noErr)
 						context->ProcessMouseMove(position.x, position.y - 22, GetKeyModifierState(event));
 				}
 				break;
@@ -113,7 +113,7 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 				case kEventRawKeyDown:
 				{
 					UInt32 key_code;
-					if (GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key_code) == noErr)
+					if (GetEventParameter(event, kEventParamKeyCode, typeUInt32, nullptr, sizeof(UInt32), nullptr, &key_code) == noErr)
 					{
 						Rml::Core::Input::KeyIdentifier key_identifier = key_identifier_map[key_code & 0xFF];
 						int key_modifier_state = GetKeyModifierState(event);
@@ -139,7 +139,7 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 				case kEventRawKeyUp:
 				{
 					UInt32 key_code;
-					if (GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key_code) == noErr)
+					if (GetEventParameter(event, kEventParamKeyCode, typeUInt32, nullptr, sizeof(UInt32), nullptr, &key_code) == noErr)
 					{
 						Rml::Core::Input::KeyIdentifier key_identifier = key_identifier_map[key_code & 0xFF];
 						int key_modifier_state = GetKeyModifierState(event);
@@ -162,7 +162,7 @@ static int GetKeyModifierState(EventRef event)
 	int key_modifier_state = 0;
 
 	UInt32 carbon_key_modifier_state;
-	if (GetEventParameter(event, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &carbon_key_modifier_state) == noErr)
+	if (GetEventParameter(event, kEventParamKeyModifiers, typeUInt32, nullptr, sizeof(UInt32), nullptr, &carbon_key_modifier_state) == noErr)
 	{
 		if (carbon_key_modifier_state & KEY_ALT)
 			key_modifier_state |= Rml::Core::Input::KM_ALT;

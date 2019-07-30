@@ -88,18 +88,18 @@ int DataFormatterSetAttrFormatData(lua_State* L)
 
 Rml::Core::Lua::RegType<DataFormatter> DataFormatterMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataFormatterGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataFormatterSetters[] =
 {
     LUASETTER(DataFormatter,FormatData)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }

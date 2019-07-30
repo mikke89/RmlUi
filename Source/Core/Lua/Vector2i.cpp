@@ -184,7 +184,7 @@ int Vector2iSetAttry(lua_State*L)
 
 RegType<Vector2i> Vector2iMethods[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg Vector2iGetters[]= 
@@ -192,14 +192,14 @@ luaL_Reg Vector2iGetters[]=
     LUAGETTER(Vector2i,x)
     LUAGETTER(Vector2i,y)
     LUAGETTER(Vector2i,magnitude)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg Vector2iSetters[]= 
 {
     LUASETTER(Vector2i,x)
     LUASETTER(Vector2i,y)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(Vector2i,false)

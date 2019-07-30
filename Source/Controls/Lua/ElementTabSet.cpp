@@ -93,20 +93,20 @@ Rml::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[] =
 {
     LUAMETHOD(ElementTabSet,SetPanel)
     LUAMETHOD(ElementTabSet,SetTab)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTabSetGetters[] =
 {
     LUAGETTER(ElementTabSet,active_tab)
     LUAGETTER(ElementTabSet,num_tabs)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTabSetSetters[] =
 {
     LUASETTER(ElementTabSet,active_tab)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 

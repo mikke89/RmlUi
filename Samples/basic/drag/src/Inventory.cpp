@@ -34,7 +34,7 @@
 Inventory::Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& position, Rml::Core::Context* context)
 {
 	document = context->LoadDocument("basic/drag/data/inventory.rml");
-	if (document != NULL)
+	if (document != nullptr)
 	{
 		using Rml::Core::PropertyId;
 		document->GetElementById("title")->SetInnerRML(title);
@@ -49,7 +49,7 @@ Inventory::Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& 
 // Destroys the inventory and closes its window.
 Inventory::~Inventory()
 {
-	if (document != NULL)
+	if (document != nullptr)
 	{
 		document->Close();
 	}
@@ -58,11 +58,11 @@ Inventory::~Inventory()
 // Adds a brand-new item into this inventory.
 void Inventory::AddItem(const Rml::Core::String& name)
 {
-	if (document == NULL)
+	if (document == nullptr)
 		return;
 
 	Rml::Core::Element* content = document->GetElementById("content");
-	if (content == NULL)
+	if (content == nullptr)
 		return;
 
 	// Create the new 'icon' element.

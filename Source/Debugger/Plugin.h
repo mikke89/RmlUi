@@ -96,7 +96,7 @@ public:
 	void ProcessEvent(Core::Event& event) override;
 
 	/// Access the singleton instance of the debugger
-	/// @return NULL or an instance of the plugin
+	/// @return nullptr or an instance of the plugin
 	static Plugin* GetInstance();
 
 private:

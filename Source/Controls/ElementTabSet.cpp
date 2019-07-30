@@ -45,7 +45,7 @@ ElementTabSet::~ElementTabSet()
 // Sets the specifed tab index's tab title RML.
 void ElementTabSet::SetTab(int tab_index, const Rml::Core::String& rml)
 {
-	Core::ElementPtr element = Core::Factory::InstanceElement(NULL, "*", "tab", Rml::Core::XMLAttributes());
+	Core::ElementPtr element = Core::Factory::InstanceElement(nullptr, "*", "tab", Rml::Core::XMLAttributes());
 	Core::Factory::InstanceElementText(element.get(), rml);
 	SetTab(tab_index, std::move(element));
 }
@@ -53,7 +53,7 @@ void ElementTabSet::SetTab(int tab_index, const Rml::Core::String& rml)
 // Sets the specifed tab index's tab panel RML.
 void ElementTabSet::SetPanel(int tab_index, const Rml::Core::String& rml)
 {
-	Core::ElementPtr element = Core::Factory::InstanceElement(NULL, "*", "panel", Rml::Core::XMLAttributes());
+	Core::ElementPtr element = Core::Factory::InstanceElement(nullptr, "*", "panel", Rml::Core::XMLAttributes());
 	Core::Factory::InstanceElementText(element.get(), rml);
 	SetPanel(tab_index, std::move(element));
 }

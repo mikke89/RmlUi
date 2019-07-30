@@ -43,8 +43,8 @@ namespace Debugger {
 
 ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
 {
-	hover_element = NULL;
-	source_element = NULL;
+	hover_element = nullptr;
+	source_element = nullptr;
 	previous_update_time = 0.0;
 }
 
@@ -73,8 +73,8 @@ bool ElementInfo::Initialise()
 // Clears the element references.
 void ElementInfo::Reset()
 {
-	hover_element = NULL;
-	SetSourceElement(NULL);
+	hover_element = nullptr;
+	SetSourceElement(nullptr);
 }
 
 void ElementInfo::OnUpdate()
@@ -97,10 +97,10 @@ void ElementInfo::OnUpdate()
 void ElementInfo::OnElementDestroy(Core::Element* element)
 {
 	if (hover_element == element)
-		hover_element = NULL;
+		hover_element = nullptr;
 
 	if (source_element == element)
-		source_element = NULL;
+		source_element = nullptr;
 }
 
 void ElementInfo::RenderHoverElement()
@@ -186,21 +186,21 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 						Core::Element* new_source_element = source_element;
 						for (int i = 0; i < element_index; i++)
 						{
-							if (new_source_element != NULL)
+							if (new_source_element != nullptr)
 								new_source_element = new_source_element->GetParentNode();
 						}
 						SetSourceElement(new_source_element);
 					}
 					else if (sscanf(target_element->GetId().c_str(), "c %d", &element_index) == 1)
 					{
-						if (source_element != NULL)
+						if (source_element != nullptr)
 							SetSourceElement(source_element->GetChild(element_index));
 					}
 					event.StopPropagation();
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
-			else if (target_element->GetOwnerDocument() != NULL && !IsDebuggerElement(target_element))
+			else if (target_element->GetOwnerDocument() != nullptr && !IsDebuggerElement(target_element))
 			{
 				Core::Element* new_source_element = target_element;
 				if (new_source_element != source_element)
@@ -225,18 +225,18 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 					hover_element = source_element;
 					for (int i = 0; i < element_index; i++)
 					{
-						if (hover_element != NULL)
+						if (hover_element != nullptr)
 							hover_element = hover_element->GetParentNode();
 					}
 				}
 				else if (sscanf(target_element->GetId().c_str(), "c %d", &element_index) == 1)
 				{
-					if (source_element != NULL)
+					if (source_element != nullptr)
 						hover_element = source_element->GetChild(element_index);
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
-			else if (owner_document != NULL && owner_document->GetId().find("rmlui-debug-") != 0)
+			else if (owner_document != nullptr && owner_document->GetId().find("rmlui-debug-") != 0)
 			{
 				hover_element = target_element;
 			}
@@ -256,9 +256,9 @@ void ElementInfo::UpdateSourceElement()
 
 	// Set the title:
 	Core::Element* title_content = GetElementById("title-content");
-	if (title_content != NULL)
+	if (title_content != nullptr)
 	{
-		if (source_element != NULL)
+		if (source_element != nullptr)
 			title_content->SetInnerRML(source_element->GetTagName());
 		else
 			title_content->SetInnerRML("Element Information");
@@ -271,7 +271,7 @@ void ElementInfo::UpdateSourceElement()
 	{
 		Core::String attributes;
 
-		if (source_element != NULL)
+		if (source_element != nullptr)
 		{
 			{
 				Core::String name;
@@ -344,7 +344,7 @@ void ElementInfo::UpdateSourceElement()
 	if (properties_content)
 	{
 		Core::String properties;
-		if (source_element != NULL)
+		if (source_element != nullptr)
 			BuildElementPropertiesRML(properties, source_element, source_element);
 
 		if (properties.empty())
@@ -365,7 +365,7 @@ void ElementInfo::UpdateSourceElement()
 	{
 		Core::String events;
 
-		if (source_element != NULL)
+		if (source_element != nullptr)
 		{
 			events = source_element->GetEventDispatcherSummary();
 		}
@@ -387,7 +387,7 @@ void ElementInfo::UpdateSourceElement()
 	if (position_content)
 	{
 		// left, top, width, height.
-		if (source_element != NULL)
+		if (source_element != nullptr)
 		{
 			Core::Vector2f element_offset = source_element->GetRelativeOffset(Core::Box::BORDER);
 			Core::Vector2f element_size = source_element->GetBox().GetSize(Core::Box::BORDER);
@@ -412,8 +412,8 @@ void ElementInfo::UpdateSourceElement()
 	if (ancestors_content)
 	{
 		Core::String ancestors;
-		Core::Element* element_ancestor = NULL;
-		if (source_element != NULL)
+		Core::Element* element_ancestor = nullptr;
+		if (source_element != nullptr)
 			element_ancestor = source_element->GetParentNode();
 
 		int ancestor_depth = 1;
@@ -449,7 +449,7 @@ void ElementInfo::UpdateSourceElement()
 	if (children_content)
 	{
 		Core::String children;
-		if (source_element != NULL)
+		if (source_element != nullptr)
 		{
 			for (int i = 0; i < source_element->GetNumChildren(); i++)
 			{
@@ -552,7 +552,7 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 		}
 	}
 
-	if (element->GetParentNode() != NULL)
+	if (element->GetParentNode() != nullptr)
 		BuildElementPropertiesRML(property_rml, element->GetParentNode(), primary_element);
 }
 

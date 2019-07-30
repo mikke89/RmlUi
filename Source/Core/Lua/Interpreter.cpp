@@ -60,13 +60,13 @@
 namespace Rml {
 namespace Core {
 namespace Lua {
-lua_State* Interpreter::_L = NULL;
+lua_State* Interpreter::_L = nullptr;
 //typedefs for nicer Lua names
 typedef Rml::Core::ElementDocument Document;
 
 void Interpreter::Startup()
 {
-	if(_L == NULL)
+	if(_L == nullptr)
 	{
 		Log::Message(Log::LT_INFO, "Loading Lua interpreter");
 		_L = luaL_newstate();
@@ -223,7 +223,7 @@ void Interpreter::OnShutdown()
 
 void Interpreter::Initialise()
 {
-    Rml::Core::Lua::Interpreter::Initialise(NULL);
+    Rml::Core::Lua::Interpreter::Initialise(nullptr);
 }
 
 void Interpreter::Initialise(lua_State *luaStatePointer)

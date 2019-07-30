@@ -15,7 +15,7 @@
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -74,7 +74,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();

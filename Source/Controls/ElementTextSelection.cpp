@@ -34,7 +34,7 @@ namespace Controls {
 
 ElementTextSelection::ElementTextSelection(const Rml::Core::String& tag) : Rml::Core::Element(tag)
 {
-	widget = NULL;
+	widget = nullptr;
 }
 
 ElementTextSelection::~ElementTextSelection()
@@ -52,7 +52,7 @@ void ElementTextSelection::OnPropertyChange(const Rml::Core::PropertyNameList& c
 {
 	Element::OnPropertyChange(changed_properties);
 
-	if (widget == NULL)
+	if (widget == nullptr)
 		return;
 
 	// Check for a colour change.

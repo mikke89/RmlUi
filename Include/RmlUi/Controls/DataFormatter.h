@@ -59,7 +59,7 @@ public:
 	/// @parameter [in] data_formatter_name The name of the data formatter to
 	/// be returned.
 	/// @return If the data formatter with the specified name has been
-	/// constructed, a pointer to it will be returned. Otherwise, NULL.
+	/// constructed, a pointer to it will be returned. Otherwise, nullptr.
 	static DataFormatter* GetDataFormatter(const Rml::Core::String& data_formatter_name);
 
 	/// Formats the raw results of a data source request into RML.

@@ -33,7 +33,7 @@
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
-ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(0), m_transforms(0), m_rmlui_context(NULL)
+ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(0), m_transforms(0), m_rmlui_context(nullptr)
 {
 
 }
@@ -77,7 +77,7 @@ Rml::Core::CompiledGeometryHandle ShellRenderInterfaceOpenGL::CompileGeometry(Rm
 	RMLUI_UNUSED(num_indices);
 	RMLUI_UNUSED(texture);
 
-	return (Rml::Core::CompiledGeometryHandle) NULL;
+	return (Rml::Core::CompiledGeometryHandle) nullptr;
 }
 
 // Called by RmlUi when it wants to render application-compiled geometry.		

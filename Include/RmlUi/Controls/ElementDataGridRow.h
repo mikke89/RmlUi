@@ -54,7 +54,7 @@ public:
 	ElementDataGridRow(const Rml::Core::String& tag);
 	virtual ~ElementDataGridRow();
 
-	void Initialise(ElementDataGrid* parent_grid, ElementDataGridRow* parent_row = NULL, int child_index = -1, ElementDataGridRow* header_row = NULL, int depth = -1);
+	void Initialise(ElementDataGrid* parent_grid, ElementDataGridRow* parent_row = nullptr, int child_index = -1, ElementDataGridRow* header_row = nullptr, int depth = -1);
 	void SetChildIndex(int child_index);
 	int GetDepth();
 

@@ -42,7 +42,7 @@
 #include <RmlUi/Controls/Lua/Controls.h>
 #include "LuaInterface.h"
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 
 void DoAllocConsole();
 
@@ -100,7 +100,7 @@ int main(int, char**)
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -174,7 +174,7 @@ void DoAllocConsole()
 	fp = _fdopen( hConHandle, "w" );
 
 	*stdout = *fp;
-	setvbuf( stdout, NULL, _IONBF, 0 );
+	setvbuf( stdout, nullptr, _IONBF, 0 );
 
 	// redirect unbuffered STDIN to the console
 	lStdHandle = (long)GetStdHandle(STD_INPUT_HANDLE);
@@ -182,7 +182,7 @@ void DoAllocConsole()
 	fp = _fdopen( hConHandle, "r" );
 
 	*stdin = *fp;
-	setvbuf( stdin, NULL, _IONBF, 0 );
+	setvbuf( stdin, nullptr, _IONBF, 0 );
 
 	// redirect unbuffered STDERR to the console
 	lStdHandle = (long)GetStdHandle(STD_ERROR_HANDLE);
@@ -190,7 +190,7 @@ void DoAllocConsole()
 	fp = _fdopen( hConHandle, "w" );
 	*stderr = *fp;
 
-	setvbuf( stderr, NULL, _IONBF, 0 );
+	setvbuf( stderr, nullptr, _IONBF, 0 );
 	ShowWindow(GetConsoleWindow(), SW_SHOW);
 }
 #endif

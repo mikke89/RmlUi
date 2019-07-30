@@ -157,20 +157,20 @@ RegType<Document> DocumentMethods[] =
     LUAMETHOD(Document,Close)
     LUAMETHOD(Document,CreateElement)
     LUAMETHOD(Document,CreateTextNode)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DocumentGetters[] =
 {
     LUAGETTER(Document,title)
     LUAGETTER(Document,context)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DocumentSetters[] =
 {
     LUASETTER(Document,title)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(Document,true)

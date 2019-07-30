@@ -97,20 +97,20 @@ Rml::Core::Lua::RegType<ElementFormControlSelect> ElementFormControlSelectMethod
 {
     LUAMETHOD(ElementFormControlSelect,Add)
     LUAMETHOD(ElementFormControlSelect,Remove)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlSelectGetters[] =
 {
     LUAGETTER(ElementFormControlSelect,options)
     LUAGETTER(ElementFormControlSelect,selection)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlSelectSetters[] =
 {
     LUASETTER(ElementFormControlSelect,selection)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }

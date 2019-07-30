@@ -55,7 +55,7 @@ Core::Element* XMLNodeHandlerTextArea::ElementStart(Core::XMLParser* parser, con
 		return result;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool XMLNodeHandlerTextArea::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(parser), const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name))
@@ -69,7 +69,7 @@ bool XMLNodeHandlerTextArea::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(
 bool XMLNodeHandlerTextArea::ElementData(Core::XMLParser* parser, const Rml::Core::String& data)
 {
 	ElementFormControlTextArea* text_area = dynamic_cast< ElementFormControlTextArea* >(parser->GetParseFrame()->element);
-	if (text_area != NULL)
+	if (text_area != nullptr)
 	{
 		// Do any necessary translation.
 		Rml::Core::String translated_data;

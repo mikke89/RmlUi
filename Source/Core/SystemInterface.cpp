@@ -56,7 +56,7 @@ bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 		String message_user = CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());	
 
 		// Return TRUE if the user presses NO (continue execution)
-		return (IDNO == MessageBoxA(NULL, message_user.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL));
+		return (IDNO == MessageBoxA(nullptr, message_user.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL));
 	}
 	else
 	{

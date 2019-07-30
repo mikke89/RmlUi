@@ -50,7 +50,7 @@ void InputWin32::Shutdown()
 
 void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_param)
 {
-	if (context == NULL)
+	if (context == nullptr)
 		return;
 
 	// Process all mouse and keyboard events

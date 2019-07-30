@@ -39,25 +39,25 @@ namespace Rml {
 namespace Core {
 namespace FreeType {
 
-FontProvider* FontProvider::instance = NULL;
+FontProvider* FontProvider::instance = nullptr;
 
-static FT_Library ft_library = NULL;
+static FT_Library ft_library = nullptr;
 
 FontProvider::FontProvider()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
 FontProvider::~FontProvider()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
 }
 
 bool FontProvider::Initialise()
 {
-	if (instance == NULL)
+	if (instance == nullptr)
 	{
 		new FontProvider();
 
@@ -77,20 +77,20 @@ bool FontProvider::Initialise()
 
 void FontProvider::Shutdown()
 {
-	if (instance != NULL)
+	if (instance != nullptr)
 	{
 		for (FontFamilyMap::iterator i = instance->font_families.begin(); i != instance->font_families.end(); ++i)
 			delete (*i).second;
 
-		if (ft_library != NULL)
+		if (ft_library != nullptr)
 		{
 			FT_Done_FreeType(ft_library);
-			ft_library = NULL;
+			ft_library = nullptr;
 		}
 
 		FontDatabase::RemoveFontProvider(instance);
 		delete instance;
-		instance = NULL;
+		instance = nullptr;
 	}
 }
 
@@ -98,7 +98,7 @@ void FontProvider::Shutdown()
 bool FontProvider::LoadFontFace(const String& file_name)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
-	if (ft_face == NULL)
+	if (ft_face == nullptr)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
@@ -123,7 +123,7 @@ bool FontProvider::LoadFontFace(const String& file_name)
 bool FontProvider::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
-	if (ft_face == NULL)
+	if (ft_face == nullptr)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
@@ -145,7 +145,7 @@ bool FontProvider::LoadFontFace(const String& file_name, const String& family, F
 bool FontProvider::LoadFontFace(const byte* data, int data_length)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
-	if (ft_face == NULL)
+	if (ft_face == nullptr)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
 		return false;
@@ -170,7 +170,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length)
 bool FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
-	if (ft_face == NULL)
+	if (ft_face == nullptr)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
 		return false;
@@ -192,7 +192,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length, const String&
 bool FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
 {
 	String family_lower = ToLower(family);
-	FontFamily* font_family = NULL;
+	FontFamily* font_family = nullptr;
 	FontFamilyMap::iterator iterator = font_families.find(family_lower);
 	if (iterator != font_families.end())
 		font_family = (FontFamily*)(*iterator).second;
@@ -213,7 +213,7 @@ void* FontProvider::LoadFace(const String& file_name)
 
 	if (!handle)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	size_t length = file_interface->Length(handle);
@@ -228,7 +228,7 @@ void* FontProvider::LoadFace(const String& file_name)
 // Loads a FreeType face from memory.
 void* FontProvider::LoadFace(const byte* data, int data_length, const String& source, bool local_data)
 {
-	FT_Face face = NULL;
+	FT_Face face = nullptr;
 	int error = FT_New_Memory_Face(ft_library, (const FT_Byte*) data, data_length, 0, &face);
 	if (error != 0)
 	{
@@ -236,21 +236,21 @@ void* FontProvider::LoadFace(const byte* data, int data_length, const String& so
 		if (local_data)
 			delete[] data;
 
-		return NULL;
+		return nullptr;
 	}
 
 	// Initialise the character mapping on the face.
-	if (face->charmap == NULL)
+	if (face->charmap == nullptr)
 	{
 		FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
-		if (face->charmap == NULL)
+		if (face->charmap == nullptr)
 		{
 			Log::Message(Log::LT_ERROR, "Font face (from %s) does not contain a Unicode or Apple Roman character map.", source.c_str());
 			FT_Done_Face(face);
 			if (local_data)
 				delete[] data;
 
-			return NULL;
+			return nullptr;
 		}
 	}
 

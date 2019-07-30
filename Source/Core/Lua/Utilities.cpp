@@ -35,7 +35,7 @@ namespace Lua {
 
 void PushVariant(lua_State* L, const Variant* var)
 {
-    if(var == NULL)
+    if(var == nullptr)
     {
         lua_pushnil(L);
         return;

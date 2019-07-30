@@ -66,7 +66,7 @@ Element* ElementUtilities::GetElementById(Element* root_element, const String& i
 			search_queue.push(element->GetChild(i));
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag)
@@ -128,7 +128,7 @@ SharedPtr<FontFaceHandle> ElementUtilities::GetFontFaceHandle(const Style::Compu
 float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 {
 	Context* context = element->GetContext();
-	if (context == NULL)
+	if (context == nullptr)
 		return 1.0f;
 
 	return context->GetDensityIndependentPixelRatio();
@@ -138,7 +138,7 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 int ElementUtilities::GetStringWidth(Element* element, const WString& string)
 {
 	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
-	if (font_face_handle == NULL)
+	if (font_face_handle == nullptr)
 		return 0;
 
 	return font_face_handle->GetStringWidth(string);
@@ -173,7 +173,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 	// complete clipping region for the element.
 	Element* clipping_element = element->GetParentNode();
 
-	while (clipping_element != NULL)
+	while (clipping_element != nullptr)
 	{
 		// Merge the existing clip region with the current clip region if we aren't ignoring clip regions.
 		if (num_ignored_clips == 0 && clipping_element->IsClippingEnabled())
@@ -233,7 +233,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 // Sets the clipping region from an element and its ancestors.
 bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
 {	
-	Rml::Core::RenderInterface* render_interface = NULL;
+	Rml::Core::RenderInterface* render_interface = nullptr;
 	if (element)
 	{
 		render_interface = element->GetRenderInterface();
@@ -268,7 +268,7 @@ bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
 
 void ElementUtilities::ApplyActiveClipRegion(Context* context, RenderInterface* render_interface)
 {
-	if (render_interface == NULL)
+	if (render_interface == nullptr)
 		return;
 	
 	Vector2i origin;
@@ -299,7 +299,7 @@ void ElementUtilities::BuildBox(Box& box, const Vector2f& containing_block, Elem
 bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset, PositionAnchor anchor)
 {
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	SetBox(element);
@@ -324,7 +324,7 @@ bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset,
 static void SetBox(Element* element)
 {
 	Element* parent = element->GetParentNode();
-	RMLUI_ASSERT(parent != NULL);
+	RMLUI_ASSERT(parent != nullptr);
 
 	Vector2f containing_block = parent->GetBox().GetSize();
 	containing_block.x -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);

@@ -69,7 +69,7 @@ public:
 
 	/// Returns one of the select control's option elements.
 	/// @param[in] The index of the desired option element.
-	/// @return The option element at the given index. This will be NULL if the index is out of bounds.
+	/// @return The option element at the given index. This will be nullptr if the index is out of bounds.
 	SelectOption* GetOption(int index);
 	/// Returns the number of options in the select control.
 	/// @return The number of options.

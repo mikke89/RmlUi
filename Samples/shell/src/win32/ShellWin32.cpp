@@ -38,24 +38,24 @@ static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM
 
 static bool activated = true;
 static bool running = false;
-static const char* instance_name = NULL;
-static HWND window_handle = NULL;
-static HINSTANCE instance_handle = NULL;
+static const char* instance_name = nullptr;
+static HWND window_handle = nullptr;
+static HINSTANCE instance_handle = nullptr;
 
 static double time_frequency;
 static LARGE_INTEGER time_startup;
 
 static std::unique_ptr<ShellFileInterface> file_interface;
 
-static HCURSOR cursor_default = NULL;
-static HCURSOR cursor_move = NULL;
-static HCURSOR cursor_cross = NULL;
-static HCURSOR cursor_unavailable = NULL;
+static HCURSOR cursor_default = nullptr;
+static HCURSOR cursor_move = nullptr;
+static HCURSOR cursor_cross = nullptr;
+static HCURSOR cursor_unavailable = nullptr;
 
 
 bool Shell::Initialise()
 {
-	instance_handle = GetModuleHandle(NULL);
+	instance_handle = GetModuleHandle(nullptr);
 	InputWin32::Initialise();
 
 	LARGE_INTEGER time_ticks_per_second;
@@ -65,10 +65,10 @@ bool Shell::Initialise()
 	time_frequency = 1.0 / (double) time_ticks_per_second.QuadPart;
 
 	// Load cursors
-	cursor_default = LoadCursorA(NULL, IDC_ARROW);
-	cursor_move = LoadCursorA(NULL, IDC_SIZEALL);
-	cursor_cross = LoadCursorA(NULL, IDC_CROSS);
-	cursor_unavailable = LoadCursorA(NULL, IDC_NO);
+	cursor_default = LoadCursorA(nullptr, IDC_ARROW);
+	cursor_move = LoadCursorA(nullptr, IDC_SIZEALL);
+	cursor_cross = LoadCursorA(nullptr, IDC_CROSS);
+	cursor_unavailable = LoadCursorA(nullptr, IDC_NO);
 
 	Rml::Core::String root = FindSamplesRoot();
 	
@@ -103,7 +103,7 @@ Rml::Core::String Shell::FindSamplesRoot()
 	return executable_path + path;
 }
 
-static ShellRenderInterfaceExtensions *shell_renderer = NULL;
+static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
 bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
 	WNDCLASS window_class;
@@ -114,10 +114,10 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	window_class.cbClsExtra = 0;
 	window_class.cbWndExtra = 0;
 	window_class.hInstance = instance_handle;
-	window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	window_class.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
 	window_class.hCursor = cursor_default;
-	window_class.hbrBackground = NULL;
-	window_class.lpszMenuName = NULL;
+	window_class.hbrBackground = nullptr;
+	window_class.lpszMenuName = nullptr;
 	window_class.lpszClassName = name;
 
 	if (!RegisterClass(&window_class))
@@ -134,10 +134,10 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 								   WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW,
 								   0, 0,	// Window position.
 								   width, height,// Window size.
-								   NULL,
-								   NULL,
+								   nullptr,
+								   nullptr,
 								   instance_handle,
-								   NULL);
+								   nullptr);
 	if (!window_handle)
 	{
 		DisplayError("Could not create window.");
@@ -162,7 +162,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	SetWindowLong(window_handle, GWL_EXSTYLE, extended_style);
 	SetWindowLong(window_handle, GWL_STYLE, style);
 
-	if (_shell_renderer != NULL)
+	if (_shell_renderer != nullptr)
 	{
 		shell_renderer = _shell_renderer;
 		if(!shell_renderer->AttachToNative(window_handle))
@@ -207,9 +207,9 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 	// Loop on PeekMessage() / GetMessage() until exit has been requested.
 	while (running)
 	{
-		if (PeekMessage(&message, NULL, 0, 0, PM_NOREMOVE))
+		if (PeekMessage(&message, nullptr, 0, 0, PM_NOREMOVE))
 		{
-			GetMessage(&message, NULL, 0, 0);
+			GetMessage(&message, nullptr, 0, 0);
 
 			TranslateMessage(&message);
 			DispatchMessage(&message);
@@ -279,7 +279,7 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 {
 	if (window_handle)
 	{
-		HCURSOR cursor_handle = NULL;
+		HCURSOR cursor_handle = nullptr;
 		if (cursor_name.empty())
 			cursor_handle = cursor_default;
 		else if(cursor_name == "move")
@@ -311,7 +311,7 @@ void Shell::SetClipboardText(const Rml::Core::WString& text)
 		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, size);
 		memcpy(clipboard_data, text.data(), size);
 
-		if (SetClipboardData(CF_UNICODETEXT, clipboard_data) == NULL)
+		if (SetClipboardData(CF_UNICODETEXT, clipboard_data) == nullptr)
 		{
 			CloseClipboard();
 			GlobalFree(clipboard_data);
@@ -329,7 +329,7 @@ void Shell::GetClipboardText(Rml::Core::WString& text)
 			return;
 
 		HANDLE clipboard_data = GetClipboardData(CF_UNICODETEXT);
-		if (clipboard_data == NULL)
+		if (clipboard_data == nullptr)
 		{
 			CloseClipboard();
 			return;

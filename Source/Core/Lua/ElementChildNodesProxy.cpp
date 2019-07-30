@@ -93,15 +93,15 @@ int ElementChildNodesProxy__ipairs(lua_State* L)
 
 RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg ElementChildNodesProxyGetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg ElementChildNodesProxySetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(ElementChildNodesProxy,false)

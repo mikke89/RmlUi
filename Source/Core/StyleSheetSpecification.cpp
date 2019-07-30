@@ -42,7 +42,7 @@ namespace Rml {
 namespace Core {
 
 
-static StyleSheetSpecification* instance = NULL;
+static StyleSheetSpecification* instance = nullptr;
 
 static DirtyPropertyList registered_inherited_properties;
 
@@ -51,7 +51,7 @@ StyleSheetSpecification::StyleSheetSpecification() :
 	// Reserve space for all defined ids and some more for custom properties
 	properties(2 * (size_t)PropertyId::NumDefinedIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 	registered_inherited_properties.Clear();
 }
@@ -59,7 +59,7 @@ StyleSheetSpecification::StyleSheetSpecification() :
 StyleSheetSpecification::~StyleSheetSpecification()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
 }
 
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout)
@@ -77,7 +77,7 @@ ShorthandId StyleSheetSpecification::RegisterShorthand(ShorthandId id, const Str
 
 bool StyleSheetSpecification::Initialise()
 {
-	if (instance == NULL)
+	if (instance == nullptr)
 	{
 		new StyleSheetSpecification();
 
@@ -90,7 +90,7 @@ bool StyleSheetSpecification::Initialise()
 
 void StyleSheetSpecification::Shutdown()
 {
-	if (instance != NULL)
+	if (instance != nullptr)
 	{
 		for (ParserMap::iterator iterator = instance->parsers.begin(); iterator != instance->parsers.end(); ++iterator)
 			(*iterator).second->Release();
@@ -115,7 +115,7 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 {
 	ParserMap::iterator iterator = instance->parsers.find(parser_name);
 	if (iterator == instance->parsers.end())
-		return NULL;
+		return nullptr;
 
 	return (*iterator).second;
 }

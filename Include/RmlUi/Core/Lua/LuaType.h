@@ -51,7 +51,7 @@
 #define LUASETTER(type,varname) { #varname, type##SetAttr##varname },
 
 #define CHECK_BOOL(L,narg) (lua_toboolean((L),(narg)) > 0 ? true : false )
-#define LUACHECKOBJ(obj) if((obj) == NULL) { lua_pushnil(L); return 1; }
+#define LUACHECKOBJ(obj) if((obj) == nullptr) { lua_pushnil(L); return 1; }
 
  /** Used to remove repetitive typing at the cost of flexibility. When you use this, you @em must have 
  functions with the same name as defined in the macro. For example, if you used @c Element as type, you would
@@ -149,7 +149,7 @@ public:
     static inline int push(lua_State *L, T* obj, bool gc=false);
     /** Statically casts the item at the position on the Lua stack
     @param narg[in] Position of the item to cast on the Lua stack
-    @return A pointer to an object of type T or @c NULL   */
+    @return A pointer to an object of type T or @c nullptr   */
     static inline T* check(lua_State* L, int narg);
 
     /** For calling a C closure with upvalues. Used by the functions defined by RegType

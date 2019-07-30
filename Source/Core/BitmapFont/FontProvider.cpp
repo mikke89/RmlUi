@@ -39,23 +39,23 @@
 namespace Rml {
 namespace Core {
 
-BitmapFont::FontProvider* BitmapFont::FontProvider::instance = NULL;
+BitmapFont::FontProvider* BitmapFont::FontProvider::instance = nullptr;
 
 BitmapFont::FontProvider::FontProvider()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
 BitmapFont::FontProvider::~FontProvider()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
 }
 
 bool BitmapFont::FontProvider::Initialise()
 {
-	if (instance == NULL)
+	if (instance == nullptr)
 	{
 		new FontProvider();
 
@@ -67,11 +67,11 @@ bool BitmapFont::FontProvider::Initialise()
 
 void BitmapFont::FontProvider::Shutdown()
 {
-	if (instance != NULL)
+	if (instance != nullptr)
 	{
 		FontDatabase::RemoveFontProvider(instance);
 		delete instance;
-		instance = NULL;
+		instance = nullptr;
 	}
 }
 
@@ -80,7 +80,7 @@ bool BitmapFont::FontProvider::LoadFontFace(const String& file_name)
 {
 	BitmapFont::BitmapFontDefinitions *bm_font = (BitmapFont::BitmapFontDefinitions*) instance->LoadFace(file_name);
 
-	if (bm_font == NULL)
+	if (bm_font == nullptr)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
@@ -107,7 +107,7 @@ bool BitmapFont::FontProvider::LoadFontFace(const String& file_name)
 bool BitmapFont::FontProvider::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
 {
 	BitmapFont::BitmapFontDefinitions *bm_font = (BitmapFont::BitmapFontDefinitions*) instance->LoadFace(file_name);
-	if (bm_font == NULL)
+	if (bm_font == nullptr)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
 		return false;
@@ -144,7 +144,7 @@ bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length, c
 bool BitmapFont::FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
 {
 	String family_lower = ToLower(family);
-	Rml::Core::FontFamily* font_family = NULL;
+	Rml::Core::FontFamily* font_family = nullptr;
 	FontFamilyMap::iterator iterator = instance->font_families.find(family_lower);
 	if (iterator != instance->font_families.end())
 		font_family = (*iterator).second;
@@ -168,7 +168,7 @@ void* BitmapFont::FontProvider::LoadFace(const String& file_name)
 
 	if (!handle)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	size_t length = file_interface->Length(handle);

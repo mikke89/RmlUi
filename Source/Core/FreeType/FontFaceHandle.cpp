@@ -177,7 +177,7 @@ void FontFaceHandle::BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 		if (ft_glyph->bitmap.pixel_mode != FT_PIXEL_MODE_MONO &&
 			ft_glyph->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY)
 		{
-			glyph.bitmap_data = NULL;
+			glyph.bitmap_data = nullptr;
 			Log::Message(Log::LT_WARNING, "Unable to render glyph on the font face '%s %s'; unsupported pixel mode (%d).", ft_glyph->face->family_name, ft_glyph->face->style_name, ft_glyph->bitmap.pixel_mode);
 		}
 		else
@@ -233,7 +233,7 @@ void FontFaceHandle::BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 		}
 	}
 	else
-		glyph.bitmap_data = NULL;
+		glyph.bitmap_data = nullptr;
 }
 
 int FontFaceHandle::GetKerning(word lhs, word rhs) const

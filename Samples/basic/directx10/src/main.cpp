@@ -10,7 +10,7 @@
 // For _T unicode/mbcs macro
 #include <tchar.h>
 
-static Rml::Core::Context* context = NULL;
+static Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -54,7 +54,7 @@ int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANC
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -69,7 +69,7 @@ int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANC
 
 	// Load and show the tutorial document.
 	Rml::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
-	if (document != NULL)
+	if (document != nullptr)
 	{
 		document->Show();
 		document->RemoveReference();

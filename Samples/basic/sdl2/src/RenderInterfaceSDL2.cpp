@@ -54,7 +54,7 @@ void RmlUiSDL2Renderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vert
     std::vector<Rml::Core::Vector2f> TexCoords(num_vertices);
     float texw, texh;
  
-    SDL_Texture* sdl_texture = NULL;
+    SDL_Texture* sdl_texture = nullptr;
     if(texture)
     {
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);

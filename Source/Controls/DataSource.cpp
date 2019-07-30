@@ -81,7 +81,7 @@ DataSource* DataSource::GetDataSource(const Rml::Core::String& data_source_name)
 	DataSourceMap::iterator i = data_sources.find(data_source_name);
 	if (i == data_sources.end())
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	return (*i).second;
@@ -109,7 +109,7 @@ void DataSource::DetachListener(DataSourceListener* listener)
 
 void* DataSource::GetScriptObject() const
 {
-	return NULL;
+	return nullptr;
 }
 
 void DataSource::NotifyRowAdd(const Rml::Core::String& table, int first_row_added, int num_rows_added)

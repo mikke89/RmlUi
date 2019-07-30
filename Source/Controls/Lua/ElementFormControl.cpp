@@ -94,7 +94,7 @@ int ElementFormControlSetAttrvalue(lua_State* L)
 
 Rml::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlGetters[] = 
@@ -102,7 +102,7 @@ luaL_Reg ElementFormControlGetters[] =
     LUAGETTER(ElementFormControl,disabled)
     LUAGETTER(ElementFormControl,name)
     LUAGETTER(ElementFormControl,value)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlSetters[] = 
@@ -110,7 +110,7 @@ luaL_Reg ElementFormControlSetters[] =
     LUASETTER(ElementFormControl,disabled)
     LUASETTER(ElementFormControl,name)
     LUASETTER(ElementFormControl,value)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }

@@ -45,8 +45,8 @@ namespace Core {
 
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
 {
-	style_sheet = NULL;
-	context = NULL;
+	style_sheet = nullptr;
+	context = nullptr;
 
 	modal = false;
 	layout_dirty = true;
@@ -189,14 +189,14 @@ const SharedPtr<StyleSheet>& ElementDocument::GetStyleSheet() const
 // Brings the document to the front of the document stack.
 void ElementDocument::PullToFront()
 {
-	if (context != NULL)
+	if (context != nullptr)
 		context->PullDocumentToFront(this);
 }
 
 // Sends the document to the back of the document stack.
 void ElementDocument::PushToBack()
 {
-	if (context != NULL)
+	if (context != nullptr)
 		context->PushDocumentToBack(this);
 }
 
@@ -241,13 +241,13 @@ void ElementDocument::Hide()
 // Close this document
 void ElementDocument::Close()
 {
-	if (context != NULL)
+	if (context != nullptr)
 		context->UnloadDocument(this);
 }
 
 ElementPtr ElementDocument::CreateElement(const String& name)
 {
-	return Factory::InstanceElement(NULL, name, name, XMLAttributes());
+	return Factory::InstanceElement(nullptr, name, name, XMLAttributes());
 }
 
 // Create a text element.
@@ -257,7 +257,7 @@ ElementPtr ElementDocument::CreateTextNode(const String& text)
 	ElementPtr element = CreateElement("#text");
 	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer returned NULL.");
+		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer returned nullptr.");
 		return nullptr;
 	}
 
@@ -307,7 +307,7 @@ void ElementDocument::UpdateLayout()
 		layout_dirty = false;
 
 		Vector2f containing_block(0, 0);
-		if (GetParentNode() != NULL)
+		if (GetParentNode() != nullptr)
 			containing_block = GetParentNode()->GetBox().GetSize();
 
 		LayoutEngine layout_engine;
@@ -323,7 +323,7 @@ void ElementDocument::UpdatePosition()
 		position_dirty = false;
 
 		// We are only positioned relative to our parent, so if we're not parented we may as well bail now.
-		if (GetParentNode() == NULL)
+		if (GetParentNode() == nullptr)
 			return;
 
 		Vector2f position;
@@ -346,7 +346,7 @@ void ElementDocument::UpdatePosition()
 		else
 			position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
 
-		SetOffset(position, NULL);
+		SetOffset(position, nullptr);
 	}
 }
 

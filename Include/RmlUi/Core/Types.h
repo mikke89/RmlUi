@@ -29,11 +29,6 @@
 #ifndef RMLUICORETYPES_H
 #define RMLUICORETYPES_H
 
-// Define NULL as zero.
-#if !defined NULL
-#define NULL 0
-#endif
-
 #include <float.h>
 #include <limits.h>
 #include <string>

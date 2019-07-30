@@ -53,7 +53,7 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 
 	// Fetch the parser.
 	new_parser.parser = StyleSheetSpecification::GetParser(parser_name);
-	if (new_parser.parser == NULL)
+	if (new_parser.parser == nullptr)
 	{
 		Log::Message(Log::LT_ERROR, "Property was registered with invalid parser '%s'.", parser_name.c_str());
 		return *this;

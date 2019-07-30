@@ -185,7 +185,7 @@ int ColourbSetAttralpha(lua_State* L)
 
 int ColourbSetAttrrgba(lua_State* L)
 {
-    Colourb* obj = NULL;
+    Colourb* obj = nullptr;
     int top = lua_gettop(L);
     //each of the items are optional.
     if(top > 0)
@@ -210,7 +210,7 @@ int ColourbSetAttrrgba(lua_State* L)
 
 RegType<Colourb> ColourbMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ColourbGetters[] =
@@ -220,7 +220,7 @@ luaL_Reg ColourbGetters[] =
     LUAGETTER(Colourb,blue)
     LUAGETTER(Colourb,alpha)
     LUAGETTER(Colourb,rgba)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ColourbSetters[] =
@@ -230,7 +230,7 @@ luaL_Reg ColourbSetters[] =
     LUASETTER(Colourb,blue)
     LUASETTER(Colourb,alpha)
     LUASETTER(Colourb,rgba)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 LUACORETYPEDEFINE(Colourb,false)

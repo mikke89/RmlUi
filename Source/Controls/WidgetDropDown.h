@@ -86,7 +86,7 @@ public:
 
 	/// Returns on of the widget's options.
 	/// @param[in] The index of the desired option.
-	/// @return The option. This may be NULL if the index was out of bounds.
+	/// @return The option. This may be nullptr if the index was out of bounds.
 	SelectOption* GetOption(int index);
 	/// Returns the number of options in the widget.
 	/// @return The number of options.

@@ -57,7 +57,7 @@ void InputTypeSubmit::ProcessDefaultAction(Core::Event& event)
 		while (parent)
 		{
 			ElementForm* form = dynamic_cast< ElementForm* >(parent);
-			if (form != NULL)
+			if (form != nullptr)
 			{
 				form->Submit(element->GetAttribute< Rml::Core::String >("name", ""), element->GetAttribute< Rml::Core::String >("value", ""));
 				return;

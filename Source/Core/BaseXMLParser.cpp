@@ -37,8 +37,8 @@ const int DEFAULT_BUFFER_SIZE = 4096;
 
 BaseXMLParser::BaseXMLParser()
 {
-	read = NULL;
-	buffer = NULL;
+	read = nullptr;
+	buffer = nullptr;
 	buffer_used = 0;
 	buffer_size = 0;
 	open_tag_depth = 0;
@@ -312,7 +312,7 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 bool BaseXMLParser::ReadCDATA(const char* terminator)
 {
 	String cdata;
-	if (terminator == NULL)
+	if (terminator == nullptr)
 	{
 		FindString((const unsigned char*) "]]>", cdata);
 		data += cdata;
@@ -450,8 +450,8 @@ bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
 				buffer_size *= 2;
 				int read_offset = (int)(read - buffer);
 				unsigned char* new_buffer = (unsigned char*) realloc(buffer, buffer_size);
-				RMLUI_ASSERTMSG(new_buffer != NULL, "Unable to allocate larger buffer for Peek() call");
-				if(new_buffer == NULL)
+				RMLUI_ASSERTMSG(new_buffer != nullptr, "Unable to allocate larger buffer for Peek() call");
+				if(new_buffer == nullptr)
 				{
 					return false;
 				}

@@ -61,7 +61,7 @@ DataFormatter* DataFormatter::GetDataFormatter(const Rml::Core::String& data_for
 	DataFormatterMap::iterator i = data_formatters.find(data_formatter_name);
 	if (i == data_formatters.end())
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	return (*i).second;
@@ -69,7 +69,7 @@ DataFormatter* DataFormatter::GetDataFormatter(const Rml::Core::String& data_for
 
 void* DataFormatter::GetScriptObject() const
 {
-	return NULL;
+	return nullptr;
 }
 
 }

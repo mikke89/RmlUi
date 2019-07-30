@@ -78,7 +78,7 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
 	if(element)
 		parent = element->GetOwnerDocument();
 	else
-		parent = NULL;
+		parent = nullptr;
     strFunc = function;
     lua_settop(L,top);
 }
@@ -103,7 +103,7 @@ LuaEventListener::LuaEventListener(lua_State* L, int narg, Element* element)
 	if(element)
 		parent = element->GetOwnerDocument();
 	else
-		parent = NULL;
+		parent = nullptr;
     lua_settop(L,top);
 }
 
@@ -119,7 +119,7 @@ LuaEventListener::~LuaEventListener()
 void LuaEventListener::ProcessEvent(Event& event)
 {
     //not sure if this is the right place to do this, but if the element we are attached to isn't a document, then
-    //the 'parent' variable will be NULL, because element->ower_document hasn't been set on the construction. We should
+    //the 'parent' variable will be nullptr, because element->ower_document hasn't been set on the construction. We should
     //correct that
     if(!parent && attached) parent = attached->GetOwnerDocument();
     lua_State* L = Interpreter::GetLuaState();

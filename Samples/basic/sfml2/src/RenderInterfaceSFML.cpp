@@ -177,7 +177,7 @@ Rml::Core::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Core::
 
 	return (Rml::Core::CompiledGeometryHandle)Geometry;
 #else
-	return (Rml::Core::CompiledGeometryHandle)NULL;
+	return (Rml::Core::CompiledGeometryHandle)nullptr;
 #endif
 }
 

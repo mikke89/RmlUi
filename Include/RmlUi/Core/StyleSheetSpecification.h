@@ -59,7 +59,7 @@ public:
 	static bool RegisterParser(const String& parser_name, PropertyParser* parser);
 	/// Returns the parser registered with a specific name.
 	/// @param[in] parser_name The name of the desired parser.
-	/// @return The parser registered under the given name, or NULL if no such parser exists.
+	/// @return The parser registered under the given name, or nullptr if no such parser exists.
 	static PropertyParser* GetParser(const String& parser_name);
 
 	/// Registers a custom property with a new definition.
@@ -71,7 +71,7 @@ public:
 	static PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
 	/// Returns a property definition.
 	/// @param[in] property_name The name of the desired property.
-	/// @return The appropriate property definition if it could be found, NULL otherwise.
+	/// @return The appropriate property definition if it could be found, nullptr otherwise.
 	static const PropertyDefinition* GetProperty(const String& property_name);
 	static const PropertyDefinition* GetProperty(PropertyId id);
 
@@ -91,7 +91,7 @@ public:
 	static ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
-	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
+	/// @return The appropriate shorthand definition if it could be found, nullptr otherwise.
 	static const ShorthandDefinition* GetShorthand(const String& shorthand_name);
 	static const ShorthandDefinition* GetShorthand(ShorthandId id);
 

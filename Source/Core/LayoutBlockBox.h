@@ -61,7 +61,7 @@ public:
 
 	/// Creates a new block box for rendering a block element.
 	/// @param layout_engine[in] The layout engine that created this block box.
-	/// @param parent[in] The parent of this block box. This will be NULL for the root element.
+	/// @param parent[in] The parent of this block box. This will be nullptr for the root element.
 	/// @param element[in] The element this block box is laying out.
 	LayoutBlockBox(LayoutEngine* layout_engine, LayoutBlockBox* parent, Element* element);
 	/// Creates a new block box in an inline context.
@@ -82,7 +82,7 @@ public:
 	/// Called by a closing line box child. Increments the cursor, and creates a new line box to fit the overflow
 	/// (if any).
 	/// @param child[in] The closing child line box.
-	/// @param overflow[in] The overflow from the closing line box. May be NULL if there was no overflow.
+	/// @param overflow[in] The overflow from the closing line box. May be nullptr if there was no overflow.
 	/// @param overflow_chain[in] The end of the chained hierarchy to be spilled over to the new line, as the parent to the overflow box (if one exists).
 	/// @return If the line box had overflow, this will be the last inline box created by the overflow.
 	LayoutInlineBox* CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain);
@@ -189,7 +189,7 @@ private:
 
 	// The box's layout engine.
 	LayoutEngine* layout_engine;
-	// The element this box represents. This will be NULL for boxes rendering in an inline context.
+	// The element this box represents. This will be nullptr for boxes rendering in an inline context.
 	Element* element;
 
 	// The element we'll be computing our offset relative to during layout.
@@ -197,7 +197,7 @@ private:
 	// The element this block box's children are to be offset from.
 	LayoutBlockBox* offset_parent;
 
-	// The box's block parent. This will be NULL for the root of the box tree.
+	// The box's block parent. This will be nullptr for the root of the box tree.
 	LayoutBlockBox* parent;
 
 	// The context of the box's context; either block or inline.

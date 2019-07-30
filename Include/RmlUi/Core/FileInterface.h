@@ -54,7 +54,7 @@ public:
 
 	/// Opens a file.
 	/// @param file The file handle to write to.
-	/// @return A valid file handle, or NULL on failure
+	/// @return A valid file handle, or nullptr on failure
 	virtual FileHandle Open(const String& path) = 0;
 	/// Closes a previously opened file.
 	/// @param file The file handle previously opened through Open().

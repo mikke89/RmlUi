@@ -37,7 +37,7 @@ namespace Core {
 
 TextureLayoutTexture::TextureLayoutTexture() : dimensions(0, 0)
 {
-	texture_data = NULL;
+	texture_data = nullptr;
 }
 
 TextureLayoutTexture::~TextureLayoutTexture()

@@ -74,7 +74,7 @@ const char* XMLParseTools::FindTag(const char* tag, const char* string, bool clo
 		ptr++;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool XMLParseTools::ReadAttribute(const char* &string, String& name, String& value)

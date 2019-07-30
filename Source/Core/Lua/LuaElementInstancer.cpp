@@ -57,7 +57,7 @@ Element* LuaElementInstancer::InstanceElement(Element* RMLUI_UNUSED_PARAMETER(pa
 
     lua_State* L = Interpreter::GetLuaState();
     int top = lua_gettop(L);
-    Element* ret = NULL;
+    Element* ret = nullptr;
     if(ref_InstanceElement != LUA_REFNIL && ref_InstanceElement != LUA_NOREF)
     {
         PushFunctionsTable(L);

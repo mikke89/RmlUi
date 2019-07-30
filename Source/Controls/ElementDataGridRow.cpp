@@ -41,12 +41,12 @@ static const float MAX_UPDATE_TIME = 0.001f;
 
 ElementDataGridRow::ElementDataGridRow(const Rml::Core::String& tag) : Core::Element(tag)
 {
-	parent_grid = NULL;
-	parent_row = NULL;
+	parent_grid = nullptr;
+	parent_row = nullptr;
 	child_index = -1;
 	depth = -1;
 
-	data_source = NULL;
+	data_source = nullptr;
 
 	table_relative_index = -1;
 	table_relative_index_dirty = true;
@@ -63,7 +63,7 @@ ElementDataGridRow::~ElementDataGridRow()
 	if (data_source)
 	{
 		data_source->DetachListener(this);
-		data_source = NULL;
+		data_source = nullptr;
 	}
 }
 
@@ -112,10 +112,10 @@ int ElementDataGridRow::GetDepth()
 
 void ElementDataGridRow::SetDataSource(const Rml::Core::String& data_source_name)
 {
-	if (data_source != NULL)
+	if (data_source != nullptr)
 	{
 		data_source->DetachListener(this);
-		data_source = NULL;
+		data_source = nullptr;
 	}
 
 	if (ParseDataSource(data_source, data_table, data_source_name))
@@ -253,10 +253,10 @@ ElementDataGrid* ElementDataGridRow::GetParentGrid()
 
 void ElementDataGridRow::OnDataSourceDestroy(DataSource* RMLUI_UNUSED_PARAMETER(_data_source))
 {
-	if(data_source != NULL)
+	if(data_source != nullptr)
 	{
 		data_source->DetachListener(this);
-		data_source = NULL;
+		data_source = nullptr;
 	}
 	RemoveChildren();
 }
@@ -292,7 +292,7 @@ void ElementDataGridRow::RefreshRows()
 	RemoveChildren();
 
 	// Load the children from the data source.
-	if (data_source != NULL)
+	if (data_source != nullptr)
 	{
 		int num_rows = data_source->GetNumRows(data_table);
 		if (num_rows > 0)
@@ -375,7 +375,7 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 
 	// We need to make a row for each new child, then pass through the cell
 	// information and the child's data source (if one exists.)
-	if (data_source != NULL)
+	if (data_source != nullptr)
 	{
 		for (int i = 0; i < num_rows_added; i++)
 		{

@@ -44,7 +44,7 @@ ElementFormControlInput::ElementFormControlInput(const Rml::Core::String& tag) :
 	// OnAttributeChange will be called right after this, possible with a non-default type. Thus,
 	// creating the default InputTypeText here may result in it being destroyed in just a few moments.
 	// Instead, we create the InputTypeText in OnAttributeChange in the case where the type attribute has not been set.
-	type = NULL;
+	type = nullptr;
 }
 
 ElementFormControlInput::~ElementFormControlInput()
@@ -152,21 +152,21 @@ void ElementFormControlInput::OnPropertyChange(const Core::PropertyNameList& cha
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 
-	if (type != NULL)
+	if (type != nullptr)
 		type->OnPropertyChange(changed_properties);
 }
 
 // If we are the added element, this will pass the call onto our type handler.
 void ElementFormControlInput::OnChildAdd(Rml::Core::Element* child)
 {
-	if (child == this && type != NULL)
+	if (child == this && type != nullptr)
 		type->OnChildAdd();
 }
 
 // If we are the removed element, this will pass the call onto our type handler.
 void ElementFormControlInput::OnChildRemove(Rml::Core::Element* child)
 {
-	if (child == this && type != NULL)
+	if (child == this && type != nullptr)
 		type->OnChildRemove();
 }
 
@@ -174,7 +174,7 @@ void ElementFormControlInput::OnChildRemove(Rml::Core::Element* child)
 void ElementFormControlInput::ProcessDefaultAction(Core::Event& event)
 {
 	ElementFormControl::ProcessDefaultAction(event);
-	if(type != NULL)
+	if(type != nullptr)
 		type->ProcessDefaultAction(event);
 }
 

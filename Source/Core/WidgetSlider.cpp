@@ -47,10 +47,10 @@ WidgetSlider::WidgetSlider(Element* _parent)
 
 	orientation = UNKNOWN;
 
-	track = NULL;
-	bar = NULL;
-	arrows[0] = NULL;
-	arrows[1] = NULL;
+	track = nullptr;
+	bar = nullptr;
+	arrows[0] = nullptr;
+	arrows[1] = nullptr;
 
 	bar_position = 0;
 	bar_drag_anchor = 0;
@@ -62,18 +62,18 @@ WidgetSlider::WidgetSlider(Element* _parent)
 
 WidgetSlider::~WidgetSlider()
 {
-	if (bar != NULL)
+	if (bar != nullptr)
 	{
 		bar->RemoveEventListener(Core::EventId::Drag, this);
 		bar->RemoveEventListener(Core::EventId::Dragstart, this);
 	}
 
-	if (track != NULL)
+	if (track != nullptr)
 		track->RemoveEventListener(Core::EventId::Click, this);
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (arrows[i] != NULL)
+		if (arrows[i] != nullptr)
 		{
 			arrows[i]->RemoveEventListener(Core::EventId::Mousedown, this);
 			arrows[i]->RemoveEventListener(Core::EventId::Mouseup, this);

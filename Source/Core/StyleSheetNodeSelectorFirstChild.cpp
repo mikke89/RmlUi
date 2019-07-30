@@ -49,7 +49,7 @@ bool StyleSheetNodeSelectorFirstChild::IsApplicable(const Element* element, int 
 	RMLUI_UNUSED(b);
 
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	int child_index = 0;
@@ -61,7 +61,7 @@ bool StyleSheetNodeSelectorFirstChild::IsApplicable(const Element* element, int 
 			return true;
 
 		// If this child is not a text element, then the selector fails; this element is non-trivial.
-		if (dynamic_cast< ElementText* >(child) == NULL &&
+		if (dynamic_cast< ElementText* >(child) == nullptr &&
 			child->GetDisplay() != Style::Display::None)
 			return false;
 

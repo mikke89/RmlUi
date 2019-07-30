@@ -35,7 +35,7 @@ namespace Core {
 ConvolutionFilter::ConvolutionFilter()
 {
 	kernel_size = 0;
-	kernel = NULL;
+	kernel = nullptr;
 
 	operation = MEDIAN;
 }
@@ -64,7 +64,7 @@ bool ConvolutionFilter::Initialise(int _kernel_size, FilterOperation _operation)
 // Returns a reference to one of the rows of the filter kernel.
 float* ConvolutionFilter::operator[](int index)
 {
-	RMLUI_ASSERT(kernel != NULL);
+	RMLUI_ASSERT(kernel != nullptr);
 
 	index = Math::Max(index, 0);
 	index = Math::Min(index, kernel_size - 1);

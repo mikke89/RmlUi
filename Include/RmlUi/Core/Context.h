@@ -92,19 +92,19 @@ public:
 
 	/// Creates a new, empty document and places it into this context.
 	/// @param[in] tag The document type to create.
-	/// @return The new document, or NULL if no document could be created. The document is returned with a reference owned by the caller.
+	/// @return The new document, or nullptr if no document could be created. The document is returned with a reference owned by the caller.
 	ElementDocument* CreateDocument(const String& tag = "body");
 	/// Load a document into the context.
 	/// @param[in] document_path The path to the document to load.
-	/// @return The loaded document, or NULL if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded. The document is returned with a reference owned by the caller.
 	ElementDocument* LoadDocument(const String& document_path);
 	/// Load a document into the context.
 	/// @param[in] document_stream The opened stream, ready to read.
-	/// @return The loaded document, or NULL if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded. The document is returned with a reference owned by the caller.
 	ElementDocument* LoadDocument(Stream* document_stream);
 	/// Load a document into the context.
 	/// @param[in] string The string containing the document RML.
-	/// @return The loaded document, or NULL if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded. The document is returned with a reference owned by the caller.
 	ElementDocument* LoadDocumentFromMemory(const String& string);
 	/// Unload the given document.
 	/// @param[in] document The document to unload.
@@ -119,11 +119,11 @@ public:
 
 	/// Returns the first document in the context with the given id.
 	/// @param[in] id The id of the desired document.
-	/// @return The document (if it was found), or NULL if no document exists with the ID. The document is returned with a borrowed reference.
+	/// @return The document (if it was found), or nullptr if no document exists with the ID. The document is returned with a borrowed reference.
 	ElementDocument* GetDocument(const String& id);
 	/// Returns a document in the context by index.
 	/// @param[in] index The index of the desired document.
-	/// @return The document (if one exists with this index), or NULL if the index was invalid. The document is returned with a borrowed reference.
+	/// @return The document (if one exists with this index), or nullptr if the index was invalid. The document is returned with a borrowed reference.
 	ElementDocument* GetDocument(int index);
 	/// Returns the number of documents in the context.
 	/// @return The number of documents in the context.
@@ -304,8 +304,8 @@ private:
 	// @param[in] point The point to test.
 	// @param[in] ignore_element If set, this element and its descendents will be ignored.
 	// @param[in] element Used internally.
-	// @return The element under the point, or NULL if nothing is.
-	Element* GetElementAtPoint(const Vector2f& point, const Element* ignore_element = NULL, Element* element = NULL);
+	// @return The element under the point, or nullptr if nothing is.
+	Element* GetElementAtPoint(const Vector2f& point, const Element* ignore_element = nullptr, Element* element = nullptr);
 
 	// Creates the drag clone from the given element. The old drag clone will be released if
 	// necessary.

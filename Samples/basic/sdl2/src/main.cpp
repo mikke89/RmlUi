@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		fprintf(stdout, "\nDocument is NULL");
+		fprintf(stdout, "\nDocument is nullptr");
 	}
 
     bool done = false;

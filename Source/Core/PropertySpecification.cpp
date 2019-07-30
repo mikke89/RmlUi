@@ -386,7 +386,7 @@ void PropertySpecification::SetPropertyDefaults(PropertyDictionary& dictionary) 
 {
 	for (PropertyDefinition* property : properties)
 	{
-		if (property && dictionary.GetProperty(property->GetId()) == NULL)
+		if (property && dictionary.GetProperty(property->GetId()) == nullptr)
 			dictionary.SetProperty(property->GetId(), *property->GetDefaultValue());
 	}
 }

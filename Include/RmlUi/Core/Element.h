@@ -102,7 +102,7 @@ public:
 	String GetClassNames() const;
 	//@}
 
-	/// Returns the active style sheet for this element. This may be NULL.
+	/// Returns the active style sheet for this element. This may be nullptr.
 	/// @return The element's style sheet.
 	virtual const SharedPtr<StyleSheet>& GetStyleSheet() const;
 
@@ -206,7 +206,7 @@ public:
 	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
-	/// @return The value of this property for this element, or NULL if no property exists with the given name.
+	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
 	const Property* GetProperty(const String& name);		
 	const Property* GetProperty(PropertyId id);		
 	/// Returns the values of one of this element's properties.		
@@ -214,14 +214,14 @@ public:
 	/// @return The value of this property.
 	template < typename T >
 	T GetProperty(const String& name);
-	/// Returns one of this element's properties. If this element is not defined this property, NULL will be
+	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
-	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
+	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
 	const Property* GetLocalProperty(PropertyId id);
 	/// Returns the local style properties, excluding any properties from local class.
-	/// @return The local properties for this element, or NULL if no properties defined
+	/// @return The local properties for this element, or nullptr if no properties defined
 	const PropertyMap& GetLocalStyleProperties();
 	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling the base value.
 	/// @param[in] name The property to resolve the value for.
@@ -296,7 +296,7 @@ public:
 	void SetAttribute(const String& name, const T& value);
 	/// Gets the specified attribute.
 	/// @param[in] name Name of the attribute to retrieve.
-	/// @return A variant representing the attribute, or NULL if the attribute doesn't exist.
+	/// @return A variant representing the attribute, or nullptr if the attribute doesn't exist.
 	Variant* GetAttribute(const String& name);
 	/// Gets the specified attribute, with default value.
 	/// @param[in] name Name of the attribute to retrieve.
@@ -416,17 +416,17 @@ public:
 	Element* GetParentNode() const;
 
 	/// Gets the element immediately following this one in the tree.
-	/// @return This element's next sibling element, or NULL if there is no sibling element.
+	/// @return This element's next sibling element, or nullptr if there is no sibling element.
 	Element* GetNextSibling() const;
 	/// Gets the element immediately preceding this one in the tree.
-	/// @return This element's previous sibling element, or NULL if there is no sibling element.
+	/// @return This element's previous sibling element, or nullptr if there is no sibling element.
 	Element* GetPreviousSibling() const;
 
 	/// Returns the first child of this element.
-	/// @return This element's first child, or NULL if it contains no children.
+	/// @return This element's first child, or nullptr if it contains no children.
 	Element* GetFirstChild() const;
 	/// Gets the last child of this element.
-	/// @return This element's last child, or NULL if it contains no children.
+	/// @return This element's last child, or nullptr if it contains no children.
 	Element* GetLastChild() const;
 	/// Get the child element at the given index.
 	/// @param[in] index Index of child to get.
@@ -513,7 +513,7 @@ public:
 
 	/// Get a child element by its ID.
 	/// @param[in] id Id of the the child element
-	/// @return The child of this element with the given ID, or NULL if no such child exists.
+	/// @return The child of this element with the given ID, or nullptr if no such child exists.
 	Element* GetElementById(const String& id);
 	/// Get all descendant elements with the given tag.
 	/// @param[out] elements Resulting elements.

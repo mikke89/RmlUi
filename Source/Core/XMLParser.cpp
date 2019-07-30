@@ -45,13 +45,13 @@ XMLParser::XMLParser(Element* root)
 
 	// Add the first frame.
 	ParseFrame frame;
-	frame.node_handler = NULL;
-	frame.child_handler = NULL;
+	frame.node_handler = nullptr;
+	frame.child_handler = nullptr;
 	frame.element = root;
 	frame.tag = "";
 	stack.push(frame);
 
-	active_handler = NULL;
+	active_handler = nullptr;
 
 	header = new DocumentHeader();
 }

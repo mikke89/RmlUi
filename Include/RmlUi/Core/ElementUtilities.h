@@ -82,7 +82,7 @@ public:
 
 	/// Returns an element's font face.
 	/// @param[in] element The element to determine the font face for.
-	/// @return The element's font face. This will be NULL if no valid RCSS font styles have been set up for this element.
+	/// @return The element's font face. This will be nullptr if no valid RCSS font styles have been set up for this element.
 	static SharedPtr<FontFaceHandle> GetFontFaceHandle(const Style::ComputedValues& computed_values);
 	/// Returns an element's density-independent pixel ratio, defined by it's context
 	/// @param[in] element The element to determine the density-independent pixel ratio for.
@@ -108,7 +108,7 @@ public:
 	/// @param[in] element The element to generate the clipping region from.
 	/// @param[in] context The context of the element; if this is not supplied, it will be derived from the element.
 	/// @return The visibility of the given element within its clipping region.
-	static bool SetClippingRegion(Element* element, Context* context = NULL);
+	static bool SetClippingRegion(Element* element, Context* context = nullptr);
 	/// Applies the clip region from the render interface to the renderer
 	/// @param[in] context The context to read the clip region from
 	/// @param[in] render_interface The render interface to update.
