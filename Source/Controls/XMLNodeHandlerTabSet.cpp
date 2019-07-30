@@ -142,10 +142,5 @@ bool XMLNodeHandlerTabSet::ElementData(Core::XMLParser* parser, const Rml::Core:
 	return Core::Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 
-void XMLNodeHandlerTabSet::Release()
-{
-	delete this;
-}
-
 }
 }

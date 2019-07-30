@@ -81,10 +81,5 @@ bool XMLNodeHandlerTextArea::ElementData(Core::XMLParser* parser, const Rml::Cor
 	return true;
 }
 
-void XMLNodeHandlerTextArea::Release()
-{
-	delete this;
-}
-
 }
 }

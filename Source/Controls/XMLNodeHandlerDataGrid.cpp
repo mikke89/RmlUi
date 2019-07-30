@@ -112,10 +112,5 @@ bool XMLNodeHandlerDataGrid::ElementData(Core::XMLParser* parser, const Rml::Cor
 	return Core::Factory::InstanceElementText(parent, data);
 }
 
-void XMLNodeHandlerDataGrid::Release()
-{
-	delete this;
-}
-
 }
 }

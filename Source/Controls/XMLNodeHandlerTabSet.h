@@ -47,13 +47,11 @@ public:
 	virtual ~XMLNodeHandlerTabSet();
 
 	/// Called when a new element start is opened
-	virtual Core::Element* ElementStart(Core::XMLParser* parser, const Rml::Core::String& name, const Rml::Core::XMLAttributes& attributes);
+	Core::Element* ElementStart(Core::XMLParser* parser, const Rml::Core::String& name, const Rml::Core::XMLAttributes& attributes) override;
 	/// Called when an element is closed
-	virtual bool ElementEnd(Core::XMLParser* parser, const Rml::Core::String& name);
+	bool ElementEnd(Core::XMLParser* parser, const Rml::Core::String& name) override;
 	/// Called for element data
-	virtual bool ElementData(Core::XMLParser* parser, const Rml::Core::String& data);
-
-	virtual void Release();
+	bool ElementData(Core::XMLParser* parser, const Rml::Core::String& data) override;
 };
 
 }
