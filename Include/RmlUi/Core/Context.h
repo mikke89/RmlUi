@@ -219,7 +219,7 @@ public:
 
 	/// Sets the instancer to use for releasing this object.
 	/// @param[in] instancer The context's instancer.
-	void SetInstancer(SharedPtr<ContextInstancer> instancer);
+	void SetInstancer(ContextInstancer* instancer);
 
 protected:
 	void Release() override;
@@ -229,7 +229,7 @@ private:
 	Vector2i dimensions;
 	float density_independent_pixel_ratio;
 
-	SharedPtr<ContextInstancer> instancer;
+	ContextInstancer* instancer;
 
 	using ElementSet = SmallOrderedSet< Element* > ;
 	using ElementList = std::vector< Element* >;
@@ -283,7 +283,7 @@ private:
 	Vector2i mouse_position;
 
 	// The render interface this context renders through.
-	SharedPtr<RenderInterface> render_interface;
+	RenderInterface* render_interface;
 	Vector2i clip_origin;
 	Vector2i clip_dimensions;
 
@@ -330,7 +330,7 @@ private:
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
 	friend class Element;
-	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, SharedPtr<RenderInterface>);
+	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);
 };
 
 }

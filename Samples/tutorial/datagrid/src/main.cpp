@@ -52,8 +52,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
         AllocConsole();
 #endif
 
-	auto opengl_renderer = std::make_shared<ShellRenderInterfaceOpenGL>();
-	shell_renderer = opengl_renderer.get();
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
@@ -64,10 +64,11 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(opengl_renderer);
-	opengl_renderer->SetViewport(1024,768);
+	Rml::Core::SetRenderInterface(&opengl_renderer);
+	opengl_renderer.SetViewport(1024,768);
 
-	Rml::Core::SetSystemInterface(std::make_shared<ShellSystemInterface>());
+	ShellSystemInterface system_interface;
+	Rml::Core::SetSystemInterface(&system_interface);
 
 	Rml::Core::Initialise();
 	Rml::Controls::Initialise();
@@ -88,7 +89,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Load the defender decorator.
-	Rml::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
+	DecoratorInstancerDefender decorator_instancer_defender;
+	Rml::Core::Factory::RegisterDecoratorInstancer("defender", &decorator_instancer_defender);
 
 	// Construct the high scores.
 	HighScores::Initialise();

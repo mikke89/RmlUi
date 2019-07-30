@@ -48,7 +48,7 @@ static int screen = -1;
 static timeval start_time;
 static Rml::Core::WString clipboard_text;
 
-static Rml::Core::SharedPtr<ShellFileInterface> file_interface;
+static std::unique_ptr<ShellFileInterface> file_interface;
 
 static bool isDirectory(const Rml::Core::String &path)
 {
@@ -63,8 +63,8 @@ bool Shell::Initialise()
 
 	Rml::Core::String root = FindSamplesRoot();
 
-	file_interface = std::make_shared<ShellFileInterface>(root);
-	Rml::Core::SetFileInterface(file_interface);
+	file_interface = std::make_unique<ShellFileInterface>(root);
+	Rml::Core::SetFileInterface(file_interface.get());
 
 	return true;
 }

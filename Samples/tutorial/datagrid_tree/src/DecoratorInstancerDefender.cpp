@@ -38,15 +38,3 @@ std::shared_ptr<Rml::Core::Decorator> DecoratorInstancerDefender::InstanceDecora
 
 	return nullptr;
 }
-
-// Releases the given decorator.
-void DecoratorInstancerDefender::ReleaseDecorator(Rml::Core::Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorInstancerDefender::Release()
-{
-	delete this;
-}

@@ -46,7 +46,7 @@ class EventListener;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API EventListenerInstancer : public Releasable
+class RMLUICORE_API EventListenerInstancer
 {
 public:
 	virtual ~EventListenerInstancer();
@@ -55,10 +55,6 @@ public:
 	/// @param value Value of the event.
 	/// @param element Element that triggers the events.
 	virtual EventListener* InstanceEventListener(const String& value, Element* element) = 0;
-
-protected:
-	/// Releases this event listener instancer.
-	virtual void Release() = 0;
 };
 
 }

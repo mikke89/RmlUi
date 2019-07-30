@@ -42,22 +42,46 @@
 namespace Rml {
 namespace Controls {
 
+struct ElementInstancers {
+	using Ptr = std::unique_ptr<Core::ElementInstancer>;
+	template<typename T> using ElementInstancerGeneric = Core::ElementInstancerGeneric<T>;
+
+	Ptr form = std::make_unique<ElementInstancerGeneric<ElementForm>>();
+	Ptr input = std::make_unique<ElementInstancerGeneric<ElementFormControlInput>>();
+	Ptr dataselect = std::make_unique<ElementInstancerGeneric<ElementFormControlDataSelect>>();
+	Ptr select = std::make_unique<ElementInstancerGeneric<ElementFormControlSelect>>();
+	
+	Ptr textarea = std::make_unique<ElementInstancerGeneric<ElementFormControlTextArea>>();
+	Ptr selection = std::make_unique<ElementInstancerGeneric<ElementTextSelection>>();
+	Ptr tabset  = std::make_unique<ElementInstancerGeneric<ElementTabSet>>();
+	
+	Ptr datagrid = std::make_unique<ElementInstancerGeneric<ElementDataGrid>>();
+	Ptr datagrid_expand = std::make_unique<ElementInstancerGeneric<ElementDataGridExpandButton>>();
+	Ptr datagrid_cell = std::make_unique<ElementInstancerGeneric<ElementDataGridCell>>();
+	Ptr datagrid_row = std::make_unique<ElementInstancerGeneric<ElementDataGridRow>>();
+};
+
+static std::unique_ptr<ElementInstancers> element_instancers;
+
+
 // Registers the custom element instancers.
 void RegisterElementInstancers()
 {
-	Core::Factory::RegisterElementInstancer("form", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementForm >));
-	Core::Factory::RegisterElementInstancer("input", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlInput >));
-	Core::Factory::RegisterElementInstancer("dataselect", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlDataSelect >));
-	Core::Factory::RegisterElementInstancer("select", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlSelect >));
+	element_instancers = std::make_unique<ElementInstancers>();
 
-	Core::Factory::RegisterElementInstancer("textarea", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementFormControlTextArea >));
-	Core::Factory::RegisterElementInstancer("#selection", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementTextSelection >));
-	Core::Factory::RegisterElementInstancer("tabset", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementTabSet >));
+	Core::Factory::RegisterElementInstancer("form", element_instancers->form.get());
+	Core::Factory::RegisterElementInstancer("input", element_instancers->input.get());
+	Core::Factory::RegisterElementInstancer("dataselect", element_instancers->dataselect.get());
+	Core::Factory::RegisterElementInstancer("select", element_instancers->select.get());
 
-	Core::Factory::RegisterElementInstancer("datagrid", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGrid >));
-	Core::Factory::RegisterElementInstancer("datagridexpand", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridExpandButton >));
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridCell >));
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementDataGridRow >));
+	Core::Factory::RegisterElementInstancer("textarea", element_instancers->textarea.get());
+	Core::Factory::RegisterElementInstancer("#selection", element_instancers->selection.get());
+	Core::Factory::RegisterElementInstancer("tabset", element_instancers->tabset.get());
+
+	Core::Factory::RegisterElementInstancer("datagrid", element_instancers->datagrid.get());
+	Core::Factory::RegisterElementInstancer("datagridexpand", element_instancers->datagrid_expand.get());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", element_instancers->datagrid_cell.get());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", element_instancers->datagrid_row.get());
 }
 
 void RegisterXMLNodeHandlers()
@@ -74,6 +98,7 @@ class ControlsPlugin : public Rml::Core::Plugin
 public:
 	void OnShutdown()
 	{
+		element_instancers.reset();
 		initialised = false;
 		delete this;
 	}

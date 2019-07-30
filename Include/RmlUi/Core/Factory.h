@@ -71,19 +71,20 @@ public:
 	/// Cleanup and shutdown the factory
 	static void Shutdown();
 
-	/// Registers the instancer to use when instancing contexts.
+	/// Registers a non-owning pointer to the instancer used to instance contexts.
 	/// @param[in] instancer The new context instancer.
-	static ContextInstancer* RegisterContextInstancer(SharedPtr<ContextInstancer> instancer);
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterContextInstancer(ContextInstancer* instancer);
 	/// Instances a new context.
 	/// @param[in] name The name of the new context.
 	/// @return The new context, or NULL if no context could be created.
 	static UniquePtr<Context> InstanceContext(const String& name);
 
-	/// Registers an element instancer that will be used to instance an element when the specified tag is encountered.
+	/// Registers a non-owning pointer to the element instancer that will be used to instance an element when the specified tag is encountered.
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.
 	/// @param[in] instancer The instancer to call when the tag is encountered.
-	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static ElementInstancer* RegisterElementInstancer(const String& name, ElementInstancerPtr instancer);
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterElementInstancer(const String& name, ElementInstancer* instancer);
 	/// Returns the element instancer for the specified tag.
 	/// @param[in] tag Name of the tag to get the instancer for.
 	/// @return The requested element instancer, or NULL if no such instancer is registered.
@@ -113,27 +114,29 @@ public:
 	/// @return The instanced document, or NULL if an error occurred.
 	static ElementPtr InstanceDocumentStream(Rml::Core::Context* context, Stream* stream);
 
-	/// Registers an instancer that will be used to instance decorators.
+	/// Registers a non-owning pointer to an instancer that will be used to instance decorators.
 	/// @param[in] name The name of the decorator the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the decorator name is encountered.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
 	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static void RegisterDecoratorInstancer(const String& name, std::unique_ptr<DecoratorInstancer> instancer);
+	static void RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer);
 	/// Retrieves a decorator instancer registered with the factory.
 	/// @param[in] name The name of the desired decorator type.
 	/// @return The decorator instancer it it exists, NULL otherwise.
 	static DecoratorInstancer* GetDecoratorInstancer(const String& name);
 
-	/// Registers an instancer that will be used to instance font effects.
+	/// Registers a non-owning pointer to an instancer that will be used to instance font effects.
 	/// @param[in] name The name of the font effect the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the font effect name is encountered.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
 	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static void RegisterFontEffectInstancer(const String& name, std::unique_ptr<FontEffectInstancer> instancer);
+	static void RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer);
 	/// Retrieves a font-effect instancer registered with the factory.
 	/// @param[in] name The name of the desired font-effect type.
 	/// @return The font-effect instancer it it exists, NULL otherwise.
 	static FontEffectInstancer* GetFontEffectInstancer(const String& name);
 
-/// Creates a style sheet from a user-generated string.
+	/// Creates a style sheet from a user-generated string.
 	/// @param[in] string The contents of the style sheet.
 	/// @return A pointer to the newly created style sheet.
 	static SharedPtr<StyleSheet> InstanceStyleSheetString(const String& string);
@@ -152,8 +155,8 @@ public:
 
 	/// Registers an instancer for all events.
 	/// @param[in] instancer The instancer to be called.
-	/// @return The registered instanced on success, NULL on failure.
-	static EventInstancer* RegisterEventInstancer(UniquePtr<EventInstancer> instancer);
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterEventInstancer(EventInstancer* instancer);
 	/// Instance and event object
 	/// @param[in] target Target element of this event.
 	/// @param[in] name Name of this event.
@@ -163,10 +166,9 @@ public:
 	static UniquePtr<Event> InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 
 	/// Register the instancer to be used for all event listeners.
-	/// @return The registered instancer on success, NULL on failure.
-	static EventListenerInstancer* RegisterEventListenerInstancer(UniquePtr<EventListenerInstancer> instancer);
-	/// Instance an event listener with the given string. This is used for instancing listeners for the on* events from
-	/// RML.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterEventListenerInstancer(EventListenerInstancer* instancer);
+	/// Instance an event listener with the given string. This is used for instancing listeners for the on* events from RML.
 	/// @param[in] value The parameters to the event listener.
 	/// @return The instanced event listener.
 	static EventListener* InstanceEventListener(const String& value, Element* element);

@@ -69,8 +69,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
     int window_width = 1024;
     int window_height = 768;
 
-	auto opengl_renderer = std::make_shared<ShellRenderInterfaceOpenGL>();
-	shell_renderer = opengl_renderer.get();
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
@@ -81,10 +81,11 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(opengl_renderer);
+	Rml::Core::SetRenderInterface(&opengl_renderer);
 	shell_renderer->SetViewport(window_width, window_height);
 
-	Rml::Core::SetSystemInterface(std::make_shared<ShellSystemInterface>());
+	ShellSystemInterface system_interface;
+	Rml::Core::SetSystemInterface(&system_interface);
 
 	Rml::Core::Initialise();
 

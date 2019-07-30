@@ -76,15 +76,15 @@ int main(int argc, char **argv)
     glLoadIdentity();
     glOrtho(0, window_width, window_height, 0, 0, 1);
  
-	auto Renderer = std::make_shared<RmlUiSDL2Renderer>(renderer, screen);
-	auto SystemInterface = std::make_shared<RmlUiSDL2SystemInterface>();
+	RmlUiSDL2Renderer Renderer(renderer, screen);
+	RmlUiSDL2SystemInterface SystemInterface;
 	
 	Rml::Core::String root = Shell::FindSamplesRoot();
-	auto FileInterface = std::make_shared<ShellFileInterface>(root);
+	ShellFileInterface FileInterface(root);
 
-	Rml::Core::SetFileInterface(FileInterface);
-	Rml::Core::SetRenderInterface(Renderer);
-    Rml::Core::SetSystemInterface(SystemInterface);
+	Rml::Core::SetFileInterface(&FileInterface);
+	Rml::Core::SetRenderInterface(&Renderer);
+    Rml::Core::SetSystemInterface(&SystemInterface);
 
 	if(!Rml::Core::Initialise())
 		return 1;
@@ -132,18 +132,18 @@ int main(int argc, char **argv)
                     break;
 
                 case SDL_MOUSEMOTION:
-                    Context->ProcessMouseMove(event.motion.x, event.motion.y, SystemInterface->GetKeyModifiers());
+                    Context->ProcessMouseMove(event.motion.x, event.motion.y, SystemInterface.GetKeyModifiers());
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    Context->ProcessMouseButtonDown(SystemInterface->TranslateMouseButton(event.button.button), SystemInterface->GetKeyModifiers());
+                    Context->ProcessMouseButtonDown(SystemInterface.TranslateMouseButton(event.button.button), SystemInterface.GetKeyModifiers());
                     break;
 
                 case SDL_MOUSEBUTTONUP:
-                    Context->ProcessMouseButtonUp(SystemInterface->TranslateMouseButton(event.button.button), SystemInterface->GetKeyModifiers());
+                    Context->ProcessMouseButtonUp(SystemInterface.TranslateMouseButton(event.button.button), SystemInterface.GetKeyModifiers());
                     break;
 
                 case SDL_MOUSEWHEEL:
-                    Context->ProcessMouseWheel(event.wheel.y, SystemInterface->GetKeyModifiers());
+                    Context->ProcessMouseWheel(event.wheel.y, SystemInterface.GetKeyModifiers());
                     break;
 
                 case SDL_KEYDOWN:
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
                         break;
                     }
                     
-                    Context->ProcessKeyDown(SystemInterface->TranslateKey(event.key.keysym.sym), SystemInterface->GetKeyModifiers());
+                    Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.keysym.sym), SystemInterface.GetKeyModifiers());
                     break;
                 }
                 

@@ -81,8 +81,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	int window_width = 1024;
 	int window_height = 768;
 
-	auto opengl_renderer = std::make_shared<ShellRenderInterfaceOpenGL>();
-	shell_renderer = opengl_renderer.get();
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
@@ -93,10 +93,11 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(opengl_renderer);
-	opengl_renderer->SetViewport(window_width, window_height);
+	Rml::Core::SetRenderInterface(&opengl_renderer);
+	opengl_renderer.SetViewport(window_width, window_height);
 
-	Rml::Core::SetSystemInterface(std::make_shared<ShellSystemInterface>());
+	ShellSystemInterface system_interface;
+	Rml::Core::SetSystemInterface(&system_interface);
 
 	Rml::Core::Initialise();
 	// Initialise the RmlUi Controls library.
@@ -120,10 +121,13 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom element and decorator instancers.
-	Rml::Core::Factory::RegisterElementInstancer("game", Rml::Core::ElementInstancerPtr(new Rml::Core::ElementInstancerGeneric< ElementGame >));
+	Rml::Core::ElementInstancerGeneric< ElementGame > element_instancer_game;
+	Rml::Core::Factory::RegisterElementInstancer("game", &element_instancer_game);
 
-	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", std::make_unique<DecoratorInstancerStarfield>());
-	Rml::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
+	DecoratorInstancerStarfield decorator_instancer_starfield;
+	DecoratorInstancerDefender decorator_instancer_defender;
+	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", &decorator_instancer_starfield);
+	Rml::Core::Factory::RegisterDecoratorInstancer("defender", &decorator_instancer_defender);
 
 	// Register Invader's data formatters
 	HighScoresNameFormatter name_formatter;
@@ -133,7 +137,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	HighScores::Initialise();
 
 	// Initialise the event instancer and handlers.
-	Rml::Core::Factory::RegisterEventListenerInstancer(Rml::Core::UniquePtr<Rml::Core::EventListenerInstancer>(new EventInstancer));
+	EventInstancer event_listener_instancer;
+	Rml::Core::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
 	EventManager::RegisterEventHandler("start_game", new EventHandlerStartGame());
 	EventManager::RegisterEventHandler("high_score", new EventHandlerHighScore());

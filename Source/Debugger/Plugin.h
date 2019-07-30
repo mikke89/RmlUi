@@ -119,8 +119,10 @@ private:
 	ElementLog* log_element;
 	ElementContextHook* hook_element;
 
-	Core::SharedPtr<Core::SystemInterface> application_interface;
-	Core::SharedPtr<SystemInterface> log_interface;
+	Core::SystemInterface* application_interface;
+	std::unique_ptr<SystemInterface> log_interface;
+
+	std::unique_ptr<Core::ElementInstancer> hook_element_instancer, info_element_instancer, log_element_instancer;
 
 	bool render_outlines;
 

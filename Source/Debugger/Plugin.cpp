@@ -57,6 +57,8 @@ Plugin::Plugin()
 	hook_element = nullptr;
 
 	render_outlines = false;
+
+	application_interface = nullptr;
 }
 
 Plugin::~Plugin()
@@ -84,7 +86,8 @@ bool Plugin::Initialise(Core::Context* context)
 		return false;
 	}
 
-	Core::Factory::RegisterElementInstancer("debug-hook", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementContextHook >));
+	hook_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementContextHook> >();
+	Core::Factory::RegisterElementInstancer("debug-hook", hook_element_instancer.get());
 
 	return true;
 }
@@ -211,6 +214,8 @@ void Plugin::OnShutdown()
 	// and that we don't try send the messages to the debug log window
 	ReleaseElements();
 
+	hook_element_instancer.reset();
+
 	delete this;
 }
 
@@ -316,7 +321,8 @@ bool Plugin::LoadMenuElement()
 
 bool Plugin::LoadInfoElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-info", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementInfo >));
+	info_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementInfo> >();
+	Core::Factory::RegisterElementInstancer("debug-info", info_element_instancer.get());
 	info_element = dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
 	if (!info_element)
 		return false;
@@ -336,7 +342,8 @@ bool Plugin::LoadInfoElement()
 
 bool Plugin::LoadLogElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-log", Core::ElementInstancerPtr(new Core::ElementInstancerGeneric< ElementLog >));
+	log_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementLog> >();
+	Core::Factory::RegisterElementInstancer("debug-log", log_element_instancer.get());
 	log_element = dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
 	if (!log_element)
 		return false;
@@ -352,9 +359,9 @@ bool Plugin::LoadLogElement()
 	}
 
 	// Make the system interface; this will trap the log messages for us.
-	application_interface = Core::GetSystemInterfaceSharedPtr();
-	log_interface = std::make_shared<SystemInterface>(application_interface.get(), log_element);
-	Core::SetSystemInterface(log_interface);
+	application_interface = Core::GetSystemInterface();
+	log_interface = std::make_unique<SystemInterface>(application_interface, log_element);
+	Core::SetSystemInterface(log_interface.get());
 
 	return true;
 }
@@ -380,7 +387,7 @@ void Plugin::ReleaseElements()
 			host_context->UnloadDocument(log_element);
 			log_element = nullptr;
 			Core::SetSystemInterface(application_interface);
-			application_interface.reset();
+			application_interface = nullptr;
 			log_interface.reset();
 		}
 	}

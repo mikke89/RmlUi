@@ -261,9 +261,6 @@ public:
 	{
 		return new Event(value);
 	}
-
-	/// Destroys the instancer.
-	void Release() override { delete this; }
 };
 
 
@@ -287,8 +284,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	const int width = 1800;
 	const int height = 1000;
 
-	auto opengl_renderer = std::make_shared<ShellRenderInterfaceOpenGL>();
-	shell_renderer = opengl_renderer.get();
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
@@ -299,10 +296,11 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(opengl_renderer);
-	opengl_renderer->SetViewport(width, height);
+	Rml::Core::SetRenderInterface(&opengl_renderer);
+	opengl_renderer.SetViewport(width, height);
 
-	Rml::Core::SetSystemInterface(std::make_shared<ShellSystemInterface>());
+	ShellSystemInterface system_interface;
+	Rml::Core::SetSystemInterface(&system_interface);
 
 	Rml::Core::Initialise();
 
@@ -320,7 +318,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	Rml::Core::Factory::RegisterEventListenerInstancer(Rml::Core::UniquePtr<Rml::Core::EventListenerInstancer>(new EventInstancer));
+	EventInstancer event_listener_instancer;
+	Rml::Core::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
 	Shell::LoadFonts("assets/");
 

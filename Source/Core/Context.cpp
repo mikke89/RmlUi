@@ -92,9 +92,9 @@ Context::~Context()
 
 	root.reset();
 
-	instancer.reset();
+	instancer = nullptr;
 
-	render_interface.reset();
+	render_interface = nullptr;
 }
 
 // Returns the name of the context.
@@ -764,7 +764,7 @@ void Context::ProcessViewChange(const Matrix4f &view)
 // Gets the context's render interface.
 RenderInterface* Context::GetRenderInterface() const
 {
-	return render_interface.get();
+	return render_interface;
 }
 	
 // Gets the current clipping region for the render traversal
@@ -787,10 +787,10 @@ void Context::SetActiveClipRegion(const Vector2i& origin, const Vector2i& dimens
 }
 
 // Sets the instancer to use for releasing this object.
-void Context::SetInstancer(SharedPtr<ContextInstancer> _instancer)
+void Context::SetInstancer(ContextInstancer* _instancer)
 {
 	RMLUI_ASSERT(instancer == nullptr);
-	instancer = std::move(_instancer);
+	instancer = _instancer;
 }
 
 // Internal callback for when an element is removed from the hierarchy.

@@ -57,7 +57,7 @@ static WindowRef window;
 static timeval start_time;
 static Rml::Core::WString clipboard_text;
 
-static Rml::Core::SharedPtr<ShellFileInterface> file_interface;
+static std::unique_ptr<ShellFileInterface> file_interface;
 
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p);
 static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, void* p);
@@ -70,8 +70,8 @@ bool Shell::Initialise()
 
 	Rml::Core::String root = FindSamplesRoot();
 
-	file_interface = std::make_shared<ShellFileInterface>(root);
-	Rml::Core::SetFileInterface(file_interface);
+	file_interface = std::make_unique<ShellFileInterface>(root);
+	Rml::Core::SetFileInterface(file_interface.get());
 
 	return true;
 }

@@ -1671,8 +1671,7 @@ bool Element::IsClippingEnabled()
 // Gets the render interface owned by this element's context.
 RenderInterface* Element::GetRenderInterface()
 {
-	Context* context = GetContext();
-	if (context)
+	if (Context* context = GetContext())
 		return context->GetRenderInterface();
 
 	return Rml::Core::GetRenderInterface();

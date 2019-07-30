@@ -32,13 +32,6 @@ public:
 	/// @return A shared_ptr to the decorator if it was instanced successfully.
 	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
 
-	/// Releases the given decorator.
-	/// @param decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	void ReleaseDecorator(Rml::Core::Decorator* decorator);
-
-	/// Releases the instancer.
-	void Release();
-
 private:
 	Rml::Core::PropertyId id_image_src;
 };

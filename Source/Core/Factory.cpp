@@ -55,25 +55,51 @@ namespace Rml {
 namespace Core {
 
 // Element instancers.
-typedef UnorderedMap< String, ElementInstancerPtr > ElementInstancerMap;
+typedef UnorderedMap< String, ElementInstancer* > ElementInstancerMap;
 static ElementInstancerMap element_instancers;
 
 // Decorator instancers.
-typedef UnorderedMap< String, std::unique_ptr<DecoratorInstancer> > DecoratorInstancerMap;
+typedef UnorderedMap< String, DecoratorInstancer* > DecoratorInstancerMap;
 static DecoratorInstancerMap decorator_instancers;
 
 // Font effect instancers.
-typedef UnorderedMap< String, std::unique_ptr<FontEffectInstancer> > FontEffectInstancerMap;
+typedef UnorderedMap< String, FontEffectInstancer* > FontEffectInstancerMap;
 static FontEffectInstancerMap font_effect_instancers;
 
 // The context instancer.
-static SharedPtr<ContextInstancer> context_instancer;
+static ContextInstancer* context_instancer = nullptr;;
 
 // The event instancer
-static UniquePtr<EventInstancer> event_instancer;
+static EventInstancer* event_instancer = nullptr;;
 
 // Event listener instancer.
-static UniquePtr<EventListenerInstancer> event_listener_instancer;
+static EventListenerInstancer* event_listener_instancer = nullptr;
+
+
+// Default instancers are constructed and destroyed on Initialise and Shutdown, respectively.
+struct DefaultInstancers {
+	template<typename T> using Ptr = std::unique_ptr<T>;
+
+	Ptr<ContextInstancer> context_default;
+	Ptr<EventInstancer> event_default;
+
+	Ptr<ElementInstancer> element_default = std::make_unique<ElementInstancerGeneric<Element>>();
+	Ptr<ElementInstancer> element_img = std::make_unique<ElementInstancerGeneric<ElementImage>>();
+	Ptr<ElementInstancer> element_text_default = std::make_unique<ElementInstancerGeneric<ElementTextDefault>>();
+	Ptr<ElementInstancer> element_handle = std::make_unique<ElementInstancerGeneric<ElementHandle>>();
+	Ptr<ElementInstancer> element_body = std::make_unique<ElementInstancerGeneric<ElementDocument>>();
+
+	Ptr<DecoratorInstancer> decorator_tiled_horizontal = std::make_unique<DecoratorTiledHorizontalInstancer>();
+	Ptr<DecoratorInstancer> decorator_tiled_vertical = std::make_unique<DecoratorTiledVerticalInstancer>();
+	Ptr<DecoratorInstancer> decorator_tiled_box = std::make_unique<DecoratorTiledBoxInstancer>();
+	Ptr<DecoratorInstancer> decorator_image = std::make_unique<DecoratorTiledImageInstancer>();
+
+	Ptr<FontEffectInstancer> font_effect_shadow = std::make_unique<FontEffectShadowInstancer>();
+	Ptr<FontEffectInstancer> font_effect_outline = std::make_unique<FontEffectOutlineInstancer>();
+};
+
+static std::unique_ptr<DefaultInstancers> default_instancers;
+
 
 Factory::Factory()
 {
@@ -83,35 +109,44 @@ Factory::~Factory()
 {
 }
 
+
 bool Factory::Initialise()
 {
+	default_instancers = std::make_unique<DefaultInstancers>();
+
 	// Bind the default context instancer.
 	if (!context_instancer)
-		context_instancer = std::make_shared<ContextInstancerDefault>();
+	{
+		default_instancers->context_default = std::make_unique<ContextInstancerDefault>();
+		context_instancer = default_instancers->context_default.get();
+	}
 
 	// Bind default event instancer
 	if (!event_instancer)
-		event_instancer = UniquePtr<EventInstancer>(new EventInstancerDefault);
+	{
+		default_instancers->event_default = std::make_unique<EventInstancerDefault>();
+		event_instancer = default_instancers->event_default.get();
+	}
 
 	// No default event listener instancer
 	if (!event_listener_instancer)
 		event_listener_instancer = nullptr;
 
 	// Bind the default element instancers
-	RegisterElementInstancer("*", ElementInstancerPtr(new ElementInstancerGeneric< Element >));
-	RegisterElementInstancer("img", ElementInstancerPtr(new ElementInstancerGeneric< ElementImage >));
-	RegisterElementInstancer("#text", ElementInstancerPtr(new ElementInstancerGeneric< ElementTextDefault >));
-	RegisterElementInstancer("handle", ElementInstancerPtr(new ElementInstancerGeneric< ElementHandle >));
-	RegisterElementInstancer("body", ElementInstancerPtr(new ElementInstancerGeneric< ElementDocument >));
+	RegisterElementInstancer("*", default_instancers->element_default.get());
+	RegisterElementInstancer("img", default_instancers->element_img.get());
+	RegisterElementInstancer("#text", default_instancers->element_text_default.get());
+	RegisterElementInstancer("handle", default_instancers->element_handle.get());
+	RegisterElementInstancer("body", default_instancers->element_body.get());
 
 	// Bind the default decorator instancers
-	RegisterDecoratorInstancer("tiled-horizontal", std::make_unique<DecoratorTiledHorizontalInstancer>());
-	RegisterDecoratorInstancer("tiled-vertical", std::make_unique<DecoratorTiledVerticalInstancer>());
-	RegisterDecoratorInstancer("tiled-box", std::make_unique<DecoratorTiledBoxInstancer>());
-	RegisterDecoratorInstancer("image", std::make_unique<DecoratorTiledImageInstancer>());
+	RegisterDecoratorInstancer("tiled-horizontal", default_instancers->decorator_tiled_horizontal.get());
+	RegisterDecoratorInstancer("tiled-vertical", default_instancers->decorator_tiled_vertical.get());
+	RegisterDecoratorInstancer("tiled-box", default_instancers->decorator_tiled_box.get());
+	RegisterDecoratorInstancer("image", default_instancers->decorator_image.get());
 
-	RegisterFontEffectInstancer("shadow", std::make_unique<FontEffectShadowInstancer>());
-	RegisterFontEffectInstancer("outline", std::make_unique<FontEffectOutlineInstancer>());
+	RegisterFontEffectInstancer("shadow", default_instancers->font_effect_shadow.get());
+	RegisterFontEffectInstancer("outline", default_instancers->font_effect_outline.get());
 
 	// Register the core XML node handlers.
 	XMLParser::RegisterNodeHandler("", std::make_shared<XMLNodeHandlerDefault>());
@@ -130,21 +165,21 @@ void Factory::Shutdown()
 
 	font_effect_instancers.clear();
 
-	context_instancer.reset();
+	context_instancer = nullptr;
 
-	event_listener_instancer.reset();
+	event_listener_instancer = nullptr;
 
-	event_instancer.reset();
+	event_instancer = nullptr;
 
 	XMLParser::ReleaseHandlers();
+
+	default_instancers.reset();
 }
 
 // Registers the instancer to use when instancing contexts.
-ContextInstancer* Factory::RegisterContextInstancer(SharedPtr<ContextInstancer> instancer)
+void Factory::RegisterContextInstancer(ContextInstancer* instancer)
 {
-	ContextInstancer* result = instancer.get();
-	context_instancer = std::move(instancer);
-	return result;
+	context_instancer = instancer;
 }
 
 // Instances a new context.
@@ -156,12 +191,9 @@ UniquePtr<Context> Factory::InstanceContext(const String& name)
 	return new_context;
 }
 
-ElementInstancer* Factory::RegisterElementInstancer(const String& name, ElementInstancerPtr instancer)
+void Factory::RegisterElementInstancer(const String& name, ElementInstancer* instancer)
 {
-	ElementInstancer* result = instancer.get();
-	String lower_case_name = ToLower(name);
-	element_instancers[lower_case_name] = std::move(instancer);
-	return result;
+	element_instancers[ToLower(name)] = instancer;
 }
 
 // Looks up the instancer for the given element
@@ -175,7 +207,7 @@ ElementInstancer* Factory::GetElementInstancer(const String& tag)
 			return nullptr;
 	}
 
-	return instancer_iterator->second.get();
+	return instancer_iterator->second;
 }
 
 // Instances a single element.
@@ -300,13 +332,10 @@ ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* 
 
 
 // Registers an instancer that will be used to instance decorators.
-void Factory::RegisterDecoratorInstancer(const String& name, std::unique_ptr<DecoratorInstancer> instancer)
+void Factory::RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer)
 {
-	if (!instancer)
-		return;
-
-	String lower_case_name = ToLower(name);
-	decorator_instancers[lower_case_name] = std::move(instancer);
+	RMLUI_ASSERT(instancer);
+	decorator_instancers[ToLower(name)] = instancer;
 }
 
 // Retrieves a decorator instancer registered with the factory.
@@ -316,17 +345,14 @@ DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 	if (iterator == decorator_instancers.end())
 		return nullptr;
 	
-	return iterator->second.get();
+	return iterator->second;
 }
 
 // Registers an instancer that will be used to instance font effects.
-void Factory::RegisterFontEffectInstancer(const String& name, std::unique_ptr<FontEffectInstancer> instancer)
+void Factory::RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer)
 {
-	if (!instancer)
-		return;
-
-	String lower_case_name = ToLower(name);
-	font_effect_instancers[lower_case_name] = std::move(instancer);
+	RMLUI_ASSERT(instancer);
+	font_effect_instancers[ToLower(name)] = instancer;
 }
 
 FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)
@@ -335,7 +361,7 @@ FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)
 	if (iterator == font_effect_instancers.end())
 		return nullptr;
 
-	return iterator->second.get();
+	return iterator->second;
 }
 
 
@@ -378,10 +404,9 @@ void Factory::ClearTemplateCache()
 }
 
 // Registers an instancer for all RmlEvents
-EventInstancer* Factory::RegisterEventInstancer(UniquePtr<EventInstancer> instancer)
+void Factory::RegisterEventInstancer(EventInstancer* instancer)
 {
-	event_instancer = std::move(instancer);
-	return event_instancer.get();
+	event_instancer = instancer;
 }
 
 // Instance an event object.
@@ -389,16 +414,14 @@ UniquePtr<Event> Factory::InstanceEvent(Element* target, EventId id, const Strin
 {
 	UniquePtr<Event> event = event_instancer->InstanceEvent(target, id, type, parameters, interruptible);
 	if (event)
-		event->instancer = event_instancer.get();
-
+		event->instancer = event_instancer;
 	return event;
 }
 
 // Register an instancer for all event listeners
-EventListenerInstancer* Factory::RegisterEventListenerInstancer(UniquePtr<EventListenerInstancer> instancer)
+void Factory::RegisterEventListenerInstancer(EventListenerInstancer* instancer)
 {
-	event_listener_instancer = std::move(instancer);
-	return event_listener_instancer.get();
+	event_listener_instancer = instancer;
 }
 
 // Instance an event listener with the given string

@@ -44,9 +44,6 @@ public:
 	/// Instances a new event handle for Invaders.
 	Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element) override;
 
-protected:
-	/// Destroys the instancer.
-	void Release() override;
 };
 
 #endif
