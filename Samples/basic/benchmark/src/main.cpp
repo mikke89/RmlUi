@@ -94,6 +94,7 @@ public:
 		  EventIDs: 139.0  [d2c3956]
 		  More on events and EventIDs: 146.0  [fd44d9c]
 		  New decorator and font-effect syntax and misc (on a considerably lower clocked CPU): 156 [6619ab4]
+		  Removal of manual reference counting: 170 [cb347e1]
 		  
 		*/
 

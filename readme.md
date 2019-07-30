@@ -150,6 +150,63 @@ When creating a custom font-effect, you can provide a shorthand property named `
 There is currently no equivalent of the `@decorator` at-rule for font-effects. If there is a desire for such a feature, please provide some feedback.
 
 
+
+### Removal of manual reference counting
+
+All manual reference counting has been removed in favor of smart pointers. There is no longer a need to manually decrement the reference count, such as `element->RemoveReference()` as before. This change also establishes a clear ownership of objects. For the user-facing API, this means raw pointers are non-owning, while unique and shared pointers declare ownership. Internally, there may still be uniquely owning raw pointers, as this is a work-in-progress.
+
+#### Core API
+
+The Core API takes raw pointers as before such as for its interfaces. With the new semantics, this means the library retains a non-owning reference. Thus, all construction and destruction of such objects is the responsibility of the user. Typically, the objects must stay alive until after `Core::Shutdown` is called. Each relevant function is commented with its lifetime requirements.
+
+As an example, the system interface can be constructed into a unique pointer.
+```C++
+auto system_interface = std::make_unique<MySystemInterface>();
+Rml::Core::SetSystemInterface(system_interface.get());
+Rml::Core::Initialise();
+...
+Rml::Core::Shutdown();
+system_interface.reset();
+```
+Or simply from a stack object.
+```C++
+MySystemInterface system_interface;
+Rml::Core::SetSystemInterface(&system_interface);
+Rml::Core::Initialise();
+...
+Rml::Core::Shutdown();
+```
+
+#### Element API
+
+When constructing new elements, there is again no longer a need to decrement the reference count as before. Instead, the element is returned with a unique ownership
+```C++
+ElementPtr ElementDocument::CreateElement(const String& name);
+```
+where `ElementPtr` is a unique pointer and an alias as follows.
+```C++
+using ElementPtr = std::unique_ptr<Element, Releaser<Element>>;
+```
+Note that, the custom deleter `Releaser` is there to ensure the element is released from the `ElementInstancer` in which it was created.
+
+After having called `ElementDocument::CreateElement`, the element can be moved into the list of children of another element.
+```C++
+ElementPtr new_child = document->CreateElement("div");
+element->AppendChild( std::move(new_child) );
+```
+Since we moved `new_child`, we cannot use the pointer anymore. Instead, `Element::AppendChild` returns a non-owning raw pointer to the appended child which can be used. Furthermore, the new element can be constructed in-place, e.g.
+```C++
+Element* new_child = element->AppendChild( document->CreateElement("div") );
+```
+and now `new_child` can safely be used until the element is destroyed.
+
+There are aliases to the smart pointers which are used internally for consistency with the library's naming scheme.
+```C++
+template<typename T> using UniquePtr = std::unique_ptr<T>;
+template<typename T> using SharedPtr = std::shared_ptr<T>;
+```
+
+
 ### Other changes
 
 - `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
@@ -167,6 +224,7 @@ Breaking changes since RmlUi v2.0.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
 - See changes to the declaration of decorators and font-effects above.
+- Also, see removal of manual reference counting above.
 
 
 #### Events
