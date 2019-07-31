@@ -143,13 +143,13 @@ Rml::Core::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
 DemoWindow* window = nullptr;
 
-bool pause_loop = false;
+bool run_loop = true;
 bool single_loop = false;
 int nudge = 0;
 
 void GameLoop()
 {
-	if(!pause_loop || single_loop)
+	if(run_loop || single_loop)
 	{
 		context->Update();
 
@@ -211,11 +211,11 @@ public:
 
 			if (key_identifier == Rml::Core::Input::KI_SPACE)
 			{
-				pause_loop = !pause_loop;
+				run_loop = !run_loop;
 			}
 			else if (key_identifier == Rml::Core::Input::KI_RETURN)
 			{
-				pause_loop = true;
+				run_loop = false;
 				single_loop = true;
 			}
 			else if (key_identifier == Rml::Core::Input::KI_OEM_PLUS)

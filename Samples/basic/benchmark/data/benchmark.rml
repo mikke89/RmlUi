@@ -66,6 +66,7 @@
 
 <body template="window">
 <div id="fps"/>
+<div id="click_test"/>
 <div id="performance"/>
 </body>
 </rml>

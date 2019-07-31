@@ -133,6 +133,37 @@ public:
 			el->SetInnerRML(rml);
 	}
 
+	class SimpleEventListener : public Rml::Core::EventListener {
+	public:
+		void ProcessEvent(Rml::Core::Event& event) override {
+			static int i = 0;
+			event.GetTargetElement()->SetProperty("background-color", i++ % 2 == 0 ? "green" : "orange");
+		}
+	} simple_event_listener;
+
+	void click_test()
+	{
+		if (!document)
+			return;
+
+		Rml::Core::String rml;
+		
+		static int i = 0;
+		if(i++ % 2 == 0)
+			rml = Rml::Core::CreateString(1000, R"( <div style="width: 100px; height: 100px; background-color: #c33;"/> )");
+		else
+			rml = "<p>Wohooo!!!</p>";
+
+		if (auto el = document->GetElementById("click_test"))
+		{
+			el->SetInnerRML(rml);
+			if (auto child = el->GetChild(0))
+				child->AddEventListener(Rml::Core::EventId::Mouseup, &simple_event_listener);
+		}
+	}
+
+
+
 	~DemoWindow()
 	{
 		if (document)
@@ -154,19 +185,23 @@ Rml::Core::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
 DemoWindow* window = nullptr;
 
-bool pause_loop = false;
-bool single_loop = false;
+bool run_loop = true;
+bool single_loop = true;
 bool run_update = true;
+bool single_loop_update = true;
 
 void GameLoop()
 {
-	if (!pause_loop || single_loop)
+	if (run_update || single_loop_update)
 	{
-		if (run_update)
-		{
-			window->performance_test();
-		}
+		window->performance_test();
+		//window->click_test();
 
+		single_loop_update = false;
+	}
+
+	if (run_loop || single_loop)
+	{
 		context->Update();
 
 		shell_renderer->PrepareRenderBuffer();
@@ -224,12 +259,17 @@ public:
 
 			if (key_identifier == Rml::Core::Input::KI_SPACE)
 			{
-				pause_loop = !pause_loop;
+				run_loop = !run_loop;
 			}
-			else if (key_identifier == Rml::Core::Input::KI_OEM_PLUS)
+			else if (key_identifier == Rml::Core::Input::KI_DOWN)
 			{
-				pause_loop = true;
+				run_loop = false;
 				single_loop = true;
+			}
+			else if (key_identifier == Rml::Core::Input::KI_RIGHT)
+			{
+				run_update = false;
+				single_loop_update = true;
 			}
 			else if (key_identifier == Rml::Core::Input::KI_RETURN)
 			{

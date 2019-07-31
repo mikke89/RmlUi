@@ -60,13 +60,10 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	else
 		cursor_proxy.reset();
 		
+	enable_cursor = true;
 
 	document_focus_history.push_back(root.get());
 	focus = root.get();
-
-	enable_cursor = true;
-
-	focus = nullptr;
 	hover = nullptr;
 	active = nullptr;
 	drag = nullptr;
@@ -709,11 +706,14 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 					if (drag_verbose)
 					{
 						drag_hover->DispatchEvent(EventId::Dragdrop, drag_parameters);
-						drag_hover->DispatchEvent(EventId::Dragout, drag_parameters);
+						// User may have removed the element, do an extra check.
+						if(drag_hover) 
+							drag_hover->DispatchEvent(EventId::Dragout, drag_parameters);
 					}
 				}
 
-				drag->DispatchEvent(EventId::Dragend, drag_parameters);
+				if(drag)
+					drag->DispatchEvent(EventId::Dragend, drag_parameters);
 
 				ReleaseDragClone();
 			}
@@ -796,39 +796,54 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 // Internal callback for when an element is removed from the hierarchy.
 void Context::OnElementDetach(Element* element)
 {
-	ElementSet::iterator i = hover_chain.find(element);
-	if (i == hover_chain.end())
-		return;
-
-	ElementSet old_hover_chain = hover_chain;
-	hover_chain.erase(i);
-
-	Element* hover_element = element;
-	while (hover_element != nullptr)
+	auto it_hover = hover_chain.find(element);
+	if (it_hover != hover_chain.end())
 	{
-		Element* next_hover_element = nullptr;
+		Dictionary parameters;
+		GenerateMouseEventParameters(parameters, -1);
+		RmlEventFunctor send_event(EventId::Mouseout, parameters);
+		send_event(element);
 
-		// Look for a child on this element's children that is also hovered.
-		for (int j = 0; j < hover_element->GetNumChildren(true); ++j)
-		{
-			// Is this child also in the hover chain?
-			Element* hover_child_element = hover_element->GetChild(j);
-			ElementSet::iterator k = hover_chain.find(hover_child_element);
-			if (k != hover_chain.end())
-			{
-				next_hover_element = hover_child_element;
-				hover_chain.erase(k);
+		hover_chain.erase(it_hover);
 
-				break;
-			}
-		}
-
-		hover_element = next_hover_element;
+		if (hover == element)
+			hover = nullptr;
 	}
 
-	Dictionary parameters;
-	GenerateMouseEventParameters(parameters, -1);
-	SendEvents(old_hover_chain, hover_chain, EventId::Mouseout, parameters);
+	auto it_active = std::find(active_chain.begin(), active_chain.end(), element);
+	if (it_active != active_chain.end())
+	{
+		active_chain.erase(it_active);
+
+		if (active == element)
+			active = nullptr;
+	}
+
+	if (drag)
+	{
+		auto it = drag_hover_chain.find(element);
+		if (it != drag_hover_chain.end())
+		{
+			drag_hover_chain.erase(it);
+
+			if (drag_hover == element)
+				drag_hover = nullptr;
+		}
+
+		if (drag == element)
+		{
+			// The dragged element is being removed, silently cancel the drag operation
+			if (drag_started)
+				ReleaseDragClone();
+
+			drag = nullptr;
+			drag_hover = nullptr;
+			drag_hover_chain.clear();
+		}
+	}
+
+	// Focus already cleared by Element::RemoveChild
+	RMLUI_ASSERT(element != focus); 
 }
 
 // Internal callback for when a new element gains focus
