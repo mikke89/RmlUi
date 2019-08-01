@@ -57,9 +57,6 @@ public:
 	/// Releases the given element
 	/// @param element to release
 	void ReleaseElement(Element* element) override;
-
-	/// Release the instancer
-	void Release() override;
 };
 
 }

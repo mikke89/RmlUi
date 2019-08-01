@@ -52,7 +52,7 @@ class Element;
 	@author Lloyd Weehuizen
  */ 
 
-class RMLUICORE_API ElementInstancer : public Releasable
+class RMLUICORE_API ElementInstancer : public NonCopyMoveable
 {
 public:
 	virtual ~ElementInstancer();

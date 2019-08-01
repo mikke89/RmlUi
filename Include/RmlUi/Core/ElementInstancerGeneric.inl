@@ -50,13 +50,5 @@ void ElementInstancerGeneric<T>::ReleaseElement(Element* element)
 	delete element;
 }
 
-
-// Release the instancer
-template <typename T>
-void ElementInstancerGeneric<T>::Release()
-{
-	delete this;
-}
-
 }
 }
