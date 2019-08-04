@@ -104,7 +104,7 @@ luaL_Reg ElementChildNodesProxySetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ElementChildNodesProxy,false)
+LUACORETYPEDEFINE(ElementChildNodesProxy)
 }
 }
 }

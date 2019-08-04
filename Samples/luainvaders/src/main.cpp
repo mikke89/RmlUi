@@ -115,8 +115,10 @@ int main(int, char**)
 	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom decorator instancers.
-	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", std::make_unique<DecoratorInstancerStarfield>());
-	Rml::Core::Factory::RegisterDecoratorInstancer("defender", std::make_unique<DecoratorInstancerDefender>());
+	DecoratorInstancerStarfield decorator_starfield;
+	DecoratorInstancerDefender decorator_defender;
+	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", &decorator_starfield);
+	Rml::Core::Factory::RegisterDecoratorInstancer("defender", &decorator_defender);
 
 	// Construct the game singletons.
 	HighScores::Initialise();
@@ -127,10 +129,9 @@ int main(int, char**)
 
 	Shell::EventLoop(GameLoop);	
 
-	// Shutdown the RmlUi contexts.	
-	context->RemoveReference();
-	
-	// Shutdown Lua  before we shut down RmlUi.
+	Rml::Core::RemoveContext(context->GetName());
+
+	// Shutdown Lua before we shut down RmlUi.
 	Rml::Core::Lua::Interpreter::Shutdown();
 
 	// Shut down the game singletons.

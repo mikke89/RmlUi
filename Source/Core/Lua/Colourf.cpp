@@ -203,7 +203,7 @@ luaL_Reg ColourfSetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Colourf,false)
+LUACORETYPEDEFINE(Colourf)
 
 
 }

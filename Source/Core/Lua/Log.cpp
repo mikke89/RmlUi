@@ -95,7 +95,7 @@ luaL_Reg LogSetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Log,false)
+LUACORETYPEDEFINE(Log)
 }
 }
 }

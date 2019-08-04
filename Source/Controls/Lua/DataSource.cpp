@@ -146,7 +146,7 @@ template<> void ExtraInit<Rml::Controls::Lua::LuaDataSource>(lua_State* L, int m
     return;
 }
 using Rml::Controls::Lua::DataSource;
-LUACONTROLSTYPEDEFINE(DataSource,false)
+LUACONTROLSTYPEDEFINE(DataSource)
 }
 }
 }

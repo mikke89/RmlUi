@@ -136,7 +136,7 @@ luaL_Reg RmlUiContextsProxySetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(RmlUiContextsProxy,false)
+LUACORETYPEDEFINE(RmlUiContextsProxy)
 }
 }
 }

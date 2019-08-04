@@ -129,7 +129,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControlSelect>(lua_State* L,
     AddTypeToElementAsTable<Rml::Controls::ElementFormControlSelect>(L);
 }
 using Rml::Controls::ElementFormControlSelect;
-LUACONTROLSTYPEDEFINE(ElementFormControlSelect,true)
+LUACONTROLSTYPEDEFINE(ElementFormControlSelect)
 }
 }
 }

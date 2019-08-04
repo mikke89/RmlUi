@@ -128,7 +128,7 @@ template<> void ExtraInit<Rml::Controls::ElementDataGridRow>(lua_State* L, int m
     AddTypeToElementAsTable<Rml::Controls::ElementDataGridRow>(L);
 }
 using Rml::Controls::ElementDataGridRow;
-LUACONTROLSTYPEDEFINE(ElementDataGridRow,true)
+LUACONTROLSTYPEDEFINE(ElementDataGridRow)
 }
 }
 }

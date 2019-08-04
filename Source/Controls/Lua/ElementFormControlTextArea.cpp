@@ -145,7 +145,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControlTextArea>(lua_State* 
 }
 
 using Rml::Controls::ElementFormControlTextArea;
-LUACONTROLSTYPEDEFINE(ElementFormControlTextArea,true)
+LUACONTROLSTYPEDEFINE(ElementFormControlTextArea)
 }
 }
 }

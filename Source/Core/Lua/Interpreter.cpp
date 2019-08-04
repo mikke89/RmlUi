@@ -88,6 +88,7 @@ void Interpreter::RegisterCoreTypes(lua_State* L)
         //things that inherit from Element
         LuaType<Document>::Register(L);
         LuaType<ElementText>::Register(L);
+    LuaType<ElementPtr>::Register(L);
     LuaType<Event>::Register(L);
     LuaType<Context>::Register(L);
     LuaType<LuaRmlUi>::Register(L);
@@ -210,15 +211,24 @@ int Interpreter::GetEventClasses()
     return EVT_BASIC;
 }
 
+static LuaDocumentElementInstancer* g_lua_document_element_instancer = nullptr;
+static LuaEventListenerInstancer* g_lua_event_listener_instancer = nullptr;
+
 void Interpreter::OnInitialise()
 {
     Startup();
-    Factory::RegisterElementInstancer("body",new LuaDocumentElementInstancer())->RemoveReference();
-    Factory::RegisterEventListenerInstancer(new LuaEventListenerInstancer())->RemoveReference();
+	g_lua_document_element_instancer = new LuaDocumentElementInstancer();
+	g_lua_event_listener_instancer = new LuaEventListenerInstancer();
+    Factory::RegisterElementInstancer("body", g_lua_document_element_instancer);
+	Factory::RegisterEventListenerInstancer(g_lua_event_listener_instancer);
 }
 
 void Interpreter::OnShutdown()
 {
+	delete g_lua_document_element_instancer;
+	delete g_lua_event_listener_instancer;
+	g_lua_document_element_instancer = nullptr;
+	g_lua_event_listener_instancer = nullptr;
 }
 
 void Interpreter::Initialise()

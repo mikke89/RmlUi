@@ -76,7 +76,7 @@ luaL_Reg ElementTextSetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ElementText,true)
+LUACORETYPEDEFINE(ElementText)
 }
 }
 }

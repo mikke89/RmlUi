@@ -77,7 +77,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControlDataSelect>(lua_State
 }
 
 using Rml::Controls::ElementFormControlDataSelect;
-LUACONTROLSTYPEDEFINE(ElementFormControlDataSelect,true)
+LUACONTROLSTYPEDEFINE(ElementFormControlDataSelect)
 }
 }
 }

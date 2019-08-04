@@ -19,10 +19,12 @@ int GameSetDefenderColour(lua_State* L);
 int GameSubmitHighScore(lua_State* L);
 int GameSetHighScoreName(lua_State* L);
 
+static ElementGameInstancer game_instancer;
+
 void LuaInterface::Initialise(lua_State* L)
 {
     InitGame(L);
-    Rml::Core::Factory::RegisterElementInstancer("game",new ElementGameInstancer())->RemoveReference();
+    Rml::Core::Factory::RegisterElementInstancer("game", &game_instancer);
 }
 
 void LuaInterface::InitGame(lua_State *L)

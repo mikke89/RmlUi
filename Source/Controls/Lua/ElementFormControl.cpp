@@ -126,7 +126,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControl>(lua_State* L, int m
     AddTypeToElementAsTable<Rml::Controls::ElementFormControl>(L);
 }
 using Rml::Controls::ElementFormControl;
-LUACONTROLSTYPEDEFINE(ElementFormControl,true)
+LUACONTROLSTYPEDEFINE(ElementFormControl)
 }
 }
 }

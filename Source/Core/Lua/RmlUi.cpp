@@ -325,7 +325,7 @@ luaL_Reg LuaRmlUiSetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(LuaRmlUi,false)
+LUACORETYPEDEFINE(LuaRmlUi)
 }
 }
 }

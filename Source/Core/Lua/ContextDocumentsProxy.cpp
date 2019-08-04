@@ -148,7 +148,7 @@ luaL_Reg ContextDocumentsProxySetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ContextDocumentsProxy,false)
+LUACORETYPEDEFINE(ContextDocumentsProxy)
 
 }
 }

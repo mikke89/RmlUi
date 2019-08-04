@@ -108,7 +108,7 @@ luaL_Reg ElementAttributesProxySetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ElementAttributesProxy,false)
+LUACORETYPEDEFINE(ElementAttributesProxy)
 }
 }
 }

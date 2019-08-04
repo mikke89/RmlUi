@@ -86,7 +86,7 @@ int ContextCreateDocument(lua_State* L, Context* obj)
     else
         tag = luaL_checkstring(L,1);
     Document* doc = obj->CreateDocument(tag);
-    LuaType<Document>::push(L,doc,true);
+    LuaType<Document>::push(L,doc,false);
     return 1;
 }
 
@@ -95,7 +95,6 @@ int ContextLoadDocument(lua_State* L, Context* obj)
     const char* path = luaL_checkstring(L,1);
     Document* doc = obj->LoadDocument(path);
     LuaType<Document>::push(L,doc,false);
-	doc->RemoveReference();
     return 1;
 }
 
@@ -221,7 +220,7 @@ luaL_Reg ContextSetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Context,true)
+LUACORETYPEDEFINE(Context)
 }
 }
 }

@@ -21,7 +21,7 @@
 				margin-bottom: 20px;
 			}
 			
-			datagrid data_grid_body
+			datagrid datagridbody
 			{
 				min-height: 200px;
 			}
@@ -44,7 +44,7 @@ function HighScore.OnRowAdd(_,_,document)
 	input = document:GetElementById('player_input')
 	if input then
 		input:Focus()
-    end
+	end
 end
 
 function HighScore.OnLoad(window)
@@ -55,18 +55,18 @@ end
 	
 function HighScore.OnKeyDown(event)
 	if event.parameters['key_identifier'] == rmlui.key_identifier.RETURN then
-        Game.SetHighScoreName(Element.As.ElementFormControlInput(event.current_element).value)
+		Game.SetHighScoreName(Element.As.ElementFormControlInput(event.current_element).value)
 		--Game.SetHighScoreName(event.current_element:AsType(Element.etype.input).value)
-    end
+	end
 end
 		</script>
 	</head>
 	<body template="luawindow" onload="HighScore.OnLoad(document) Game.SubmitHighScore()" onunload="Game.SetHighScoreName('Anon')">
-		<datagrid id="datagrid" source="high_scores.scores" min-rows"10">
-			<col fields="name,name_required" formatter="name" width="40%">Pilot:</col>
-			<col fields="colour" formatter="ship" width="20%">Ship:</col>
-			<col fields="wave" width="20%">Wave:</col>
-			<col fields="score" width="20%">Score:</col>
+		<datagrid id="datagrid" source="high_scores.scores" min-rows="10">
+			<col fields="name,name_required" formatter="name" width="40%">Pilot</col>
+			<col fields="colour" formatter="ship" width="20%">Ship</col>
+			<col fields="wave" width="20%">Wave</col>
+			<col fields="score" width="20%">Score</col>
 		</datagrid>
 		<button onclick="Window.LoadMenu('main_menu',document)">Main Menu</button>
 	</body>

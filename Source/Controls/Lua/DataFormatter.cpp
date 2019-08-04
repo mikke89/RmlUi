@@ -116,7 +116,7 @@ template<> void ExtraInit<DataFormatter>(lua_State* L, int metatable_index)
     lua_setfield(L,metatable_index-1,"new");
     return;
 }
-LUACONTROLSTYPEDEFINE(DataFormatter,false)
+LUACONTROLSTYPEDEFINE(DataFormatter)
 }
 }
 }

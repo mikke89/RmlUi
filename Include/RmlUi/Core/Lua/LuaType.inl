@@ -93,8 +93,8 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
         *ptrHold = obj; 
         lua_pushvalue(L, mt); // ->[3] = copy of [1]
         lua_setmetatable(L, -2); //[-2 = 2] -> [2]'s metatable = [3]; pop [3]
-        char name[32];
-        tostring(name,obj);
+        char name[max_pointer_string_size];
+        tostring(name, max_pointer_string_size, obj);
         lua_getfield(L,LUA_REGISTRYINDEX,"DO NOT TRASH"); //->[3] = value returned from function
         if(lua_isnil(L,-1) ) //if [3] hasn't been created yet, then create it
         {
@@ -114,13 +114,6 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
             //to lua before, we need to set it to nil
             lua_pushnil(L); // ->[4] = nil
             lua_setfield(L,-2,name); //represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
-        }
-
-        if(IsReferenceCounted<T>())
-        {
-            //If you look at the gc_T function, reference countables do not
-            //care about the "DO NOT TRASH" table
-            ((Rml::Core::ReferenceCountable*)obj)->AddReference();
         }
 
         lua_pop(L,1); // -> pop [3]
@@ -166,9 +159,9 @@ int LuaType<T>::thunk(lua_State* L)
 
 
 template<typename T>
-void LuaType<T>::tostring(char* buff, void* obj)
+void LuaType<T>::tostring(char* buff, size_t buff_size, void* obj)
 {
-    sprintf(buff,"%p",obj);
+    snprintf(buff, buff_size, "%p", obj);
 }
 
 
@@ -178,28 +171,18 @@ int LuaType<T>::gc_T(lua_State* L)
     T * obj = check(L,1); //[1] = this userdata
     if(obj == nullptr)
         return 0;
-    if(IsReferenceCounted<T>())
-    {
-        // ReferenceCountables do not care about the "DO NOT TRASH" table.
-        // Because userdata is pushed which contains a pointer to the pointer
-        // of 'obj', 'obj' will be garbage collected for every time 'obj' was pushed.
-        ((Rml::Core::ReferenceCountable*)obj)->RemoveReference();
-        return 0;
-    }
+
     lua_getfield(L,LUA_REGISTRYINDEX,"DO NOT TRASH"); //->[2] = return value from this
     if(lua_istable(L,-1) ) //[-1 = 2], if it is a table
     {
-        char name[32];
-        tostring(name,obj);
-        lua_getfield(L,-1, std::string(name).c_str()); //[-1 = 2] -> [3] = the value returned from if <ClassName> exists in the table to not gc
+        char name[max_pointer_string_size];
+        tostring(name, max_pointer_string_size, obj);
+        lua_getfield(L,-1,name); //[-1 = 2] -> [3] = the value returned from if <ClassName> exists in the table to not gc
         if(lua_isnoneornil(L,-1) ) //[-1 = 3] if it doesn't exist, then we are free to garbage collect c++ side
-        {
-            if(!IsReferenceCounted<T>())
-            {
-                delete obj;
-                obj = nullptr;
-            }
-        }
+		{
+			delete obj;
+			obj = nullptr;
+		}
     }
     lua_pop(L,3); //balance function
     return 0;
@@ -209,10 +192,10 @@ int LuaType<T>::gc_T(lua_State* L)
 template<typename T>
 int LuaType<T>::tostring_T(lua_State* L)
 {
-    char buff[32];
+    char buff[max_pointer_string_size];
     T** ptrHold = (T**)lua_touserdata(L,1);
     T *obj = *ptrHold;
-    sprintf(buff, "%p", obj);
+    snprintf(buff, max_pointer_string_size, "%p", obj);
     lua_pushfstring(L, "%s (%s)", GetTClassName<T>(), buff);
     return 1;
 }

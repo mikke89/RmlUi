@@ -83,7 +83,7 @@ template<> void ExtraInit<Rml::Controls::ElementForm>(lua_State* L, int metatabl
     AddTypeToElementAsTable<Rml::Controls::ElementForm>(L);
 }
 using Rml::Controls::ElementForm;
-LUACONTROLSTYPEDEFINE(ElementForm,true)
+LUACONTROLSTYPEDEFINE(ElementForm)
 }
 }
 }

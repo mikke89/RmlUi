@@ -126,7 +126,7 @@ template<> void ExtraInit<Rml::Controls::ElementTabSet>(lua_State* L, int metata
 }
 
 using Rml::Controls::ElementTabSet;
-LUACONTROLSTYPEDEFINE(ElementTabSet,true)
+LUACONTROLSTYPEDEFINE(ElementTabSet)
 }
 }
 }

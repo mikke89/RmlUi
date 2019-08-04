@@ -186,7 +186,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControlInput>(lua_State* L, 
     AddTypeToElementAsTable<Rml::Controls::ElementFormControlInput>(L);
 }
 using Rml::Controls::ElementFormControlInput;
-LUACONTROLSTYPEDEFINE(ElementFormControlInput,true)
+LUACONTROLSTYPEDEFINE(ElementFormControlInput)
 }
 }
 }

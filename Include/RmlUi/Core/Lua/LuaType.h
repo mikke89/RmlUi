@@ -58,20 +58,18 @@
  have to have functions named @c ElementMethods, @c ElementGetters, @c ElementSetters that return the appropriate
  types.
  @param is_reference_counted true if the type inherits from Rml::Core::ReferenceCountable, false otherwise*/
-#define LUACORETYPEDEFINE(type,is_ref_counted) \
+#define LUACORETYPEDEFINE(type) \
     template<> const char* GetTClassName<type>() { return #type; } \
     template<> RegType<type>* GetMethodTable<type>() { return type##Methods; } \
     template<> luaL_Reg* GetAttrTable<type>() { return type##Getters; } \
     template<> luaL_Reg* SetAttrTable<type>() { return type##Setters; } \
-    template<> bool IsReferenceCounted<type>() { return (is_ref_counted); } \
 
 //We can't use LUACORETYPEDEFINE due to namespace issues
-#define LUACONTROLSTYPEDEFINE(type,is_ref_counted) \
+#define LUACONTROLSTYPEDEFINE(type) \
     template<> const char* GetTClassName<type>() { return #type; } \
     template<> RegType<type>* GetMethodTable<type>() { return Rml::Controls::Lua::type##Methods; } \
     template<> luaL_Reg* GetAttrTable<type>() { return Rml::Controls::Lua::type##Getters; } \
     template<> luaL_Reg* SetAttrTable<type>() { return Rml::Controls::Lua::type##Setters; } \
-    template<> bool IsReferenceCounted<type>() { return (is_ref_counted); } \
 
 /** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
 getting the name of the type, method tables, and if it is reference counted.
@@ -82,7 +80,6 @@ the LUACORETYPEDEFINE macro, or make sure that the function signatures are @em e
     template<> RMLUILUA_API RegType<type>* GetMethodTable<type>(); \
     template<> RMLUILUA_API luaL_Reg* GetAttrTable<type>(); \
     template<> RMLUILUA_API luaL_Reg* SetAttrTable<type>(); \
-    template<> RMLUILUA_API bool IsReferenceCounted<type>(); \
 
 /** Used to remove repetitive typing at the cost of flexibility. It creates function prototypes for
 getting the name of the type, method tables, and if it is reference counted.
@@ -93,7 +90,6 @@ the LUACORETYPEDEFINE macro, or make sure that the function signatures are @em e
     template<> RMLUILUA_API RegType<type>* GetMethodTable<type>(); \
     template<> RMLUILUA_API luaL_Reg* GetAttrTable<type>(); \
     template<> RMLUILUA_API luaL_Reg* SetAttrTable<type>(); \
-    template<> RMLUILUA_API bool IsReferenceCounted<type>(); \
 
 namespace Rml {
 namespace Core {
@@ -114,8 +110,7 @@ template<typename T> RMLUILUA_API luaL_Reg* GetAttrTable();
 template<typename T> RMLUILUA_API luaL_Reg* SetAttrTable();
 /** String representation of the class */
 template<typename T> RMLUILUA_API const char* GetTClassName();
-/** bool for if it is reference counted */
-template<typename T> RMLUILUA_API bool IsReferenceCounted();
+
 /** gets called from the LuaType<T>::Register function, right before @c _regfunctions.
 If you want to inherit from another class, in the function you would want
 to call @c _regfunctions<superclass>, where method is metatable_index - 1. Anything
@@ -156,7 +151,7 @@ public:
     @return The value that RegType.func returns   */
     static inline int thunk(lua_State* L);
     /** String representation of the pointer. Called by the __tostring metamethod  */
-    static inline void tostring(char* buff, void* obj);
+    static inline void tostring(char* buff, size_t buff_size, void* obj);
     //these are metamethods
     /** The __gc metamethod. If the object was pushed by push(lua_State*,T*,bool) with the third
     argument as true, it will either decrease the reference count or call delete depending on if
@@ -177,7 +172,10 @@ public:
     metatable, and the getters exist in __getters and setters in __setters. The reason for __getters and __setters
     is to have the objects use a 'dot' syntax for properties and a 'colon' syntax for methods.*/
     static inline void _regfunctions(lua_State* L, int meta, int method);
+
 private:
+	static constexpr size_t max_pointer_string_size = 32;
+
     LuaType(); //hide constructor
 
 };

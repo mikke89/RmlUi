@@ -109,10 +109,7 @@ LuaEventListener::LuaEventListener(lua_State* L, int narg, Element* element)
 
 LuaEventListener::~LuaEventListener()
 {
-    if(attached)
-        attached->RemoveReference();
-    if(parent)
-        parent->RemoveReference();
+
 }
 
 /// Process the incoming Event

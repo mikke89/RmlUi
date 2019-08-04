@@ -61,7 +61,6 @@ int Elementnew(lua_State* L)
     const char* tag = luaL_checkstring(L,1);
     Element* ele = new Element(tag);
     LuaType<Element>::push(L,ele,true);
-    ele->RemoveReference();
     return 1;
 }
 
@@ -101,8 +100,11 @@ int ElementAddEventListener(lua_State* L, Element* obj)
 
 int ElementAppendChild(lua_State* L, Element* obj)
 {
-    Element* ele = LuaType<Element>::check(L,1);
-    obj->AppendChild(ele);
+	ElementPtr* element = LuaType<ElementPtr>::check(L, 1);
+	if (*element)
+		obj->AppendChild(std::move(*element));
+	else
+		Log::Message(Log::LT_WARNING, "Could not append child to element '%s', as the child was null. Was it already moved from?", obj->GetAddress().c_str());
     return 0;
 }
 
@@ -203,9 +205,12 @@ int ElementHasChildNodes(lua_State* L, Element* obj)
 
 int ElementInsertBefore(lua_State* L, Element* obj)
 {
-    Element* element = LuaType<Element>::check(L,1);
+    ElementPtr* element = LuaType<ElementPtr>::check(L,1);
     Element* adjacent = LuaType<Element>::check(L,2);
-    obj->InsertBefore(element,adjacent);
+	if(*element)
+		obj->InsertBefore(std::move(*element), adjacent);
+	else
+		Log::Message(Log::LT_WARNING, "Could not insert child to element '%s', as the child was null. Was it already moved from?", obj->GetAddress().c_str());
     return 0;
 }
 
@@ -226,15 +231,18 @@ int ElementRemoveAttribute(lua_State* L, Element* obj)
 int ElementRemoveChild(lua_State* L, Element* obj)
 {
     Element* element = LuaType<Element>::check(L,1);
-    lua_pushboolean(L,obj->RemoveChild(element));
+    lua_pushboolean(L,static_cast<bool>(obj->RemoveChild(element)));
     return 1;
 }
 
 int ElementReplaceChild(lua_State* L, Element* obj)
 {
-    Element* inserted = LuaType<Element>::check(L,1);
+    ElementPtr* inserted = LuaType<ElementPtr>::check(L,1);
     Element* replaced = LuaType<Element>::check(L,2);
-    lua_pushboolean(L,obj->ReplaceChild(inserted,replaced));
+	if(*inserted)
+		lua_pushboolean(L, static_cast<bool>(obj->ReplaceChild(std::move(*inserted),replaced)));
+	else
+		Log::Message(Log::LT_WARNING, "Could not replace child in element '%s', as the child was null. Was it already moved from?", obj->GetAddress().c_str());
     return 1;
 }
 
@@ -614,7 +622,42 @@ luaL_Reg ElementSetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Element,true)
+LUACORETYPEDEFINE(Element)
+
+
+
+
+
+
+
+
+
+
+
+template<> void ExtraInit<ElementPtr>(lua_State* L, int metatable_index)
+{
+	return;
+}
+
+RegType<ElementPtr> ElementPtrMethods[] =
+{
+	{ nullptr, nullptr },
+};
+
+luaL_Reg ElementPtrGetters[] =
+{
+	{ nullptr, nullptr },
+};
+
+luaL_Reg ElementPtrSetters[] =
+{
+	{ nullptr, nullptr },
+};
+
+LUACORETYPEDEFINE(ElementPtr)
+
+
+
 }
 }
 }

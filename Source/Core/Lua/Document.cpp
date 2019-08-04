@@ -102,9 +102,8 @@ int DocumentClose(lua_State* L, Document* obj)
 int DocumentCreateElement(lua_State* L, Document* obj)
 {
     const char* tag = luaL_checkstring(L,1);
-    Element* ele = obj->CreateElement(tag);
-    LuaType<Element>::push(L,ele,true);
-    ele->RemoveReference();
+    ElementPtr* ele = new ElementPtr( obj->CreateElement(tag) );
+    LuaType<ElementPtr>::push(L,ele,true);
     return 1;
 }
 
@@ -112,9 +111,8 @@ int DocumentCreateTextNode(lua_State* L, Document* obj)
 {
     //need ElementText object first
     const char* text = luaL_checkstring(L,1);
-    ElementText* et = obj->CreateTextNode(text);
-    LuaType<ElementText>::push(L, et, true);
-    et->RemoveReference();
+    ElementPtr* et = new ElementPtr( obj->CreateTextNode(text) );
+    LuaType<ElementPtr>::push(L, et, true);
 	return 1;
 }
 
@@ -173,7 +171,7 @@ luaL_Reg DocumentSetters[] =
     { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Document,true)
+LUACORETYPEDEFINE(Document)
 }
 }
 }

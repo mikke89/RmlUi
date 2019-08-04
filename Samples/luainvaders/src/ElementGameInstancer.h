@@ -10,14 +10,11 @@ public:
 	/// Instances an element given the tag name and attributes
 	/// @param tag Name of the element to instance
 	/// @param attributes vector of name value pairs
-    virtual Rml::Core::Element* InstanceElement(Rml::Core::Element* parent, const Rml::Core::String& tag, const Rml::Core::XMLAttributes& attributes);
+    Rml::Core::ElementPtr InstanceElement(Rml::Core::Element* parent, const Rml::Core::String& tag, const Rml::Core::XMLAttributes& attributes) override;
 
 	/// Releases the given element
 	/// @param element to release
-	virtual void ReleaseElement(Rml::Core::Element* element);
-
-	/// Release the instancer
-	virtual void Release();
+	void ReleaseElement(Rml::Core::Element* element) override;
 };
 
 #endif
