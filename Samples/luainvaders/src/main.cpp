@@ -129,11 +129,6 @@ int main(int, char**)
 
 	Shell::EventLoop(GameLoop);	
 
-	Rml::Core::RemoveContext(context->GetName());
-
-	// Shutdown Lua before we shut down RmlUi.
-	Rml::Core::Lua::Interpreter::Shutdown();
-
 	// Shut down the game singletons.
 	HighScores::Shutdown();
 

@@ -37,6 +37,9 @@ namespace Rml {
 namespace Core {
 namespace Lua {
 
+class LuaDocumentElementInstancer;
+class LuaEventListenerInstancer;
+
 /**
     This initializes the Lua interpreter, and has functions to load the scripts or
     call functions that exist in Lua.
@@ -46,6 +49,24 @@ namespace Lua {
 class RMLUILUA_API Interpreter : public Plugin
 {
 public:
+	/** Creates the plugin.
+	@remark This is equivilent to calling Initialise(nullptr). */
+	static void Initialise();
+
+	/** Creates the plugin and adds RmlUi to an existing Lua state if one is provided.
+	 @remark If nullptr is passed as an argument, the plugin will automatically create the lua state during initialisation
+	   and close the state during the call to Rml::Core::Shutdown(). Otherwise, if a Lua state is provided, the user is 
+	   responsible for closing the provided Lua state. The state must then be closed after the call to Rml::Core::Shutdown().
+	 @remark The plugin registers the "body" tag to generate a LuaDocument rather than a Rml::Core::ElementDocument. */
+	static void Initialise(lua_State* L);
+
+	/**
+	@return The lua_State that the Interpreter created in Interpreter::Startup()
+	@remark This class lacks a SetLuaState for a reason. If you have to use a seperate Lua binding and want to keep the types
+	from RmlUi, then use this lua_State; it will already have all of the libraries loaded, and all of the types defined.
+	Alternatively, you can call RegisterCoreTypes(lua_State*) with your own Lua state if you need them defined in it. */
+	static lua_State* GetLuaState();
+
     /** This function calls luaL_loadfile and then lua_pcall, reporting the errors (if any)
     @param[in] file Fully qualified file name to execute.
     @remark Somewhat misleading name if you are used to the Lua meaning of "load file". It behaves
@@ -77,53 +98,26 @@ public:
     /** removes 'res' number of items from the stack
     @param[in] res Number of results to remove from the stack.   */
     static void EndCall(int res = 0);
-
-    /** This will populate the global Lua table with all of the Lua core types by calling LuaType<T>::Register
-    @param[in] L The lua_State to use to register the types
-    @remark This is called automatically inside of Interpreter::Startup(), so you do not have to 
-    call this function upon initialization of the Interpreter. If you are using RmlControlsLua, then you
-    \em will need to call Rml::Controls::Lua::RegisterTypes(lua_State*)     */
-    static void RegisterCoreTypes(lua_State* L);
-
-    /** 
-    @return The lua_State that the Interpreter created in Interpreter::Startup()
-    @remark This class lacks a SetLuaState for a reason. If you have to use a seperate Lua binding and want to keep the types
-    from RmlUi, then use this lua_State; it will already have all of the libraries loaded, and all of the types defined.
-    Alternatively, you can call RegisterCoreTypes(lua_State*) with your own Lua state if you need them defined in it. */
-    static lua_State* GetLuaState();
-
-    /** Creates the plugin. 
-	@remark This is equivilent to calling Initialise(nullptr).
-      */
-    static void Initialise();
-    /** Creates the plugin and adds RmlUi to an existing Lua context if one is provided.
-	 @remark Call this function only once, and special care must be taken when destroying the lua_State passed to this method.
-	 Interpreter::Shutdown() calles lua_close on the lua_State pointer provided here, do not call Interpreter::Shutdown if you
-	 must call lua_close yourself or if you need to continue to use the lua_State pointer provided here.  Internally, it calls
-	 Interpreter::Startup() and registers the "body" tag to generate a LuaDocument rather than a Rml::Core::ElementDocument.
-	 If the argument provided is nullptr, a Lua context is created automatically instead. */
-    static void Initialise(lua_State *_L);
-
-    /** Stops the plugin by calling lua_close
-	 @remark Shutdown calls lua_Close on the lua_State associated with the Interpreter.  If a lua_State was provided in the
-	 original call to Initialise, Shutdown should not be called OR you must not call lua_Close from within your code. */
-	static void Shutdown();
     
-    /** @sa Rml::Core::Plugin::GetEventClasses */
-    virtual int GetEventClasses();
-    /** @sa Rml::Core::Plugin::OnInitialise */
-    virtual void OnInitialise();
-    /** Currently does nothing. You must call Interpreter::Shutdown yourself at the appropriate time.
-    @sa Rml::Core::Plugin::OnShutdown    */
-    virtual void OnShutdown();
 private:
-    /** Creates a lua_State for @var _L and calls luaL_openlibs, then calls Interpreter::RegisterCoreTypes(lua_State*)
-    @remark called by Interpreter::Initialise()    */
-    void Startup();
+    int GetEventClasses() override;
+    
+	void OnInitialise() override;
+    
+	void OnShutdown() override;
 
-    /** Lua state that Interpreter::Initialise() creates.    */
-    static lua_State* _L;
+	/** This will populate the global Lua table with all of the Lua core types by calling LuaType<T>::Register
+	@param[in] L The lua_State to use to register the types
+	@remark This is called automatically inside of Interpreter::Startup(), so you do not have to
+	call this function upon initialization of the Interpreter. If you are using RmlControlsLua, then you
+	\em will need to call Rml::Controls::Lua::RegisterTypes(lua_State*)     */
+	static void RegisterCoreTypes(lua_State* L);
+
+	LuaDocumentElementInstancer* lua_document_element_instancer = nullptr;
+	LuaEventListenerInstancer* lua_event_listener_instancer = nullptr;
+	bool owns_lua_state = false;
 };
+
 }
 }
 }

@@ -1269,10 +1269,10 @@ bool Element::Focus()
 
 	// Update the focus chain up the hierarchy.
 	Element* element = this;
-	while (element->GetParentNode())
+	while (Element* parent = element->GetParentNode())
 	{
-		element->GetParentNode()->focus = element;
-		element = element->GetParentNode();
+		parent->focus = element;
+		element = parent;
 	}
 
 	return true;
