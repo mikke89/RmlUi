@@ -56,9 +56,9 @@ public:
 	void ProcessEvent(Event& event) override;
 private:
     //the lua-side function to call when ProcessEvent is called
-    int luaFuncRef;
-    Element* attached;
-    ElementDocument* parent;
+    int luaFuncRef = 0;
+    Element* attached = nullptr;
+    ElementDocument* parent = nullptr;
     String strFunc; //for debugging purposes
 };
 

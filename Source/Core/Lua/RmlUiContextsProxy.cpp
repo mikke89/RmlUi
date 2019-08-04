@@ -61,7 +61,7 @@ int RmlUiContextsProxy__index(lua_State* L)
         }
         else
         {
-            int key = luaL_checkinteger(L,2);
+            int key = (int)luaL_checkinteger(L,2);
             LuaType<Context>::push(L,GetContext(key));
         }
         return 1;

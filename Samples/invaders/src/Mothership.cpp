@@ -35,7 +35,7 @@
 const int SPRITE_WIDTH = 64;
 
 const float APPEARANCE_PROBABILITY = 0.001f;
-const float UPDATE_FREQ = 0.025f;
+const double UPDATE_FREQ = 0.025;
 const float MOVEMENT_SPEED = 5;
 
 Mothership::Mothership(Game* game, int index) : Invader(game, Invader::MOTHERSHIP, index)
@@ -43,6 +43,7 @@ Mothership::Mothership(Game* game, int index) : Invader(game, Invader::MOTHERSHI
 	// Start off dead, and set up our position
 	state = DEAD;
 	update_frame_start = 0;
+	direction = 0;
 	position = Rml::Core::Vector2f(-SPRITE_WIDTH, 64.0f);
 }
 

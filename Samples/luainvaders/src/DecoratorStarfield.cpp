@@ -124,8 +124,8 @@ void DecoratorStarfield::RenderElement(Rml::Core::Element* RMLUI_UNUSED_PARAMETE
 
 void DecoratorStarfield::StarField::Update()
 {
-	float time = Shell::GetElapsedTime();
-	float delta_time = time - last_update;
+	double time = Shell::GetElapsedTime();
+	float delta_time = float(time - last_update);
 	last_update = time;
 
 	if (!GameDetails::GetPaused())

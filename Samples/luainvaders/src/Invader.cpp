@@ -36,13 +36,13 @@
 #include "Shield.h"
 #include "Sprite.h"
 
-const float BOMB_UPDATE_FREQ = 0.04f;
-const float BOMB_RAY_SPEED = 10;
-const float BOMB_MISSILE_SPEED = 7;
-const float BOMB_PROBABILITY_EASY = 0.002f;
-const float BOMB_PROBABILITY_HARD = 0.005f;
-const float EXPLOSION_TIME = 0.25f;
-const Rml::Core::Colourb MOTHERSHIP_COLOUR = Rml::Core::Colourb(255, 0, 0, 255);
+static const double BOMB_UPDATE_FREQ = 0.04;
+static const float BOMB_RAY_SPEED = 10;
+static const float BOMB_MISSILE_SPEED = 7;
+static const float BOMB_PROBABILITY_EASY = 0.002f;
+static const float BOMB_PROBABILITY_HARD = 0.005f;
+static const float EXPLOSION_TIME = 0.25;
+static const Rml::Core::Colourb MOTHERSHIP_COLOUR = Rml::Core::Colourb(255, 0, 0, 255);
 
 Sprite invader_sprites[] =
 {

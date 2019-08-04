@@ -197,12 +197,12 @@ int ColourbSetAttrrgba(lua_State* L)
             if(top > 2)
             {
                 if(top > 3)
-                    obj->alpha = luaL_checkinteger(L,4);
-                obj->blue = luaL_checkinteger(L,3);
+                    obj->alpha = (byte)luaL_checkinteger(L,4);
+                obj->blue = (byte)luaL_checkinteger(L,3);
             }
-            obj->green = luaL_checkinteger(L,2);
+            obj->green = (byte)luaL_checkinteger(L,2);
         }
-        obj->red = luaL_checkinteger(L,1);
+        obj->red = (byte)luaL_checkinteger(L,1);
     }
     return 0;
 }

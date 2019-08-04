@@ -99,7 +99,7 @@ int LuaDataSource::GetNumRows(const Rml::Core::String& table)
     int res = lua_gettop(L);
     if(lua_type(L,res) == LUA_TNUMBER)
     {
-        return luaL_checkinteger(L,res);
+        return (int)luaL_checkinteger(L,res);
     }
     else
     {

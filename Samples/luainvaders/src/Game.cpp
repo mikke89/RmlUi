@@ -69,6 +69,7 @@ Game::Game()
 {
 	invader_frame_start = 0;
 	defender_lives = 3;	
+	invader_move_freq = 0;
 	game_over = false;
 	current_invader_direction = 1.0f;	
 	invaders = new Invader*[NUM_INVADERS + 1];
@@ -440,6 +441,6 @@ void Game::InitialiseWave()
 	invaders[MOTHERSHIP] = new Mothership(this, MOTHERSHIP);
 
 	// Update the move frequency	
-	invader_move_freq = ((((float)GameDetails::GetWave())-100.0f)/140.0f);
+	invader_move_freq = ((float)GameDetails::GetWave()-100.0f)/140.0f;
 	invader_move_freq *= invader_move_freq;
 }

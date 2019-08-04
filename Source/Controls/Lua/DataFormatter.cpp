@@ -37,7 +37,7 @@ namespace Lua {
 //method
 int DataFormatternew(lua_State* L)
 {
-    DataFormatter* df;
+    DataFormatter* df = nullptr;
     int ref = LUA_NOREF;
     int top = lua_gettop(L);
     if(top == 0)

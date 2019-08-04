@@ -55,7 +55,7 @@ int ContextDocumentsProxy__index(lua_State* L)
         if(type == LUA_TSTRING)
             ret = proxy->owner->GetDocument(luaL_checkstring(L,2));
         else
-            ret = proxy->owner->GetDocument(luaL_checkinteger(L,2));
+            ret = proxy->owner->GetDocument((int)luaL_checkinteger(L,2));
         LuaType<Document>::push(L,ret,false);
         return 1;
     }

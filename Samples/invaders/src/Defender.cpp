@@ -51,6 +51,7 @@ Defender::Defender(Game* _game)
 	move_direction = 0;
 	defender_frame_start = 0;
 	bullet_in_flight = false;
+	respawn_start = 0;
 	game = _game;
 	position.x = game->GetWindowDimensions().x / 2;
 	position.y = game->GetWindowDimensions().y - 50;

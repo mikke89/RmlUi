@@ -52,7 +52,7 @@ int ElementChildNodesProxy__index(lua_State* L)
     {
         ElementChildNodesProxy* obj = LuaType<ElementChildNodesProxy>::check(L,1);
         LUACHECKOBJ(obj);
-        int key = luaL_checkinteger(L,2);
+        int key = (int)luaL_checkinteger(L,2);
         Element* child = obj->owner->GetChild(key);
         LuaType<Element>::push(L,child,false);
         return 1;

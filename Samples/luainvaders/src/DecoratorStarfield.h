@@ -72,7 +72,7 @@ private:
 	struct StarField
 	{
 		void Update();
-		float last_update;
+		double last_update;
 		Rml::Core::Vector2f dimensions;
 
 		typedef std::vector< StarLayer > StarLayerList;

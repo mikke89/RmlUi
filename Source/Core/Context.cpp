@@ -849,6 +849,8 @@ void Context::OnElementDetach(Element* element)
 // Internal callback for when a new element gains focus
 bool Context::OnFocusChange(Element* new_focus)
 {
+	RMLUI_ASSERT(new_focus);
+
 	ElementSet old_chain;
 	ElementSet new_chain;
 

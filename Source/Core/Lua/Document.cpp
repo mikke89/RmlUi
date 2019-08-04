@@ -81,7 +81,7 @@ int DocumentShow(lua_State* L, Document* obj)
         obj->Show();
     else
     {
-        int flag = luaL_checkinteger(L,1);
+        int flag = (int)luaL_checkinteger(L,1);
         obj->Show(flag);
     }
     return 0;

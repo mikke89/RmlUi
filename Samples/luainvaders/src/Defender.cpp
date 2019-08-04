@@ -36,11 +36,11 @@
 #include "Shield.h"
 #include "Sprite.h"
 
-const float UPDATE_FREQ = 0.01f;
-const float MOVEMENT_SPEED = 15;
-const float BULLET_SPEED = 15;
-const int SPRITE_WIDTH = 64;
-const float RESPAWN_TIME = 1.0f;
+static const float UPDATE_FREQ = 0.01f;
+static const float MOVEMENT_SPEED = 300;
+static const float BULLET_SPEED = 15;
+static const int SPRITE_WIDTH = 64;
+static const float RESPAWN_TIME = 1.0f;
 
 Sprite defender_sprite(Rml::Core::Vector2f(60, 31), Rml::Core::Vector2f(0, 0.5), Rml::Core::Vector2f(0.23437500, 0.98437500));
 Sprite bullet_sprite(Rml::Core::Vector2f(4, 20), Rml::Core::Vector2f(0.4921875, 0.515625), Rml::Core::Vector2f(0.5078125, 0.828125));
@@ -51,6 +51,7 @@ Defender::Defender(Game* _game)
 	move_direction = 0;
 	defender_frame_start = 0;
 	bullet_in_flight = false;
+	respawn_start = 0;
 	game = _game;
 	position.x = game->GetWindowDimensions().x / 2;
 	position.y = game->GetWindowDimensions().y - 50;
@@ -64,12 +65,15 @@ Defender::~Defender()
 
 void Defender::Update()
 {
-	if (Shell::GetElapsedTime() - defender_frame_start < UPDATE_FREQ)
+	float dt = float(Shell::GetElapsedTime() - defender_frame_start);
+	if (dt < UPDATE_FREQ)
 		return;
+
+	dt = Rml::Core::Math::Min(dt, 0.1f);
 	
 	defender_frame_start = Shell::GetElapsedTime();	
 
-	position.x += (move_direction * MOVEMENT_SPEED);
+	position.x += (move_direction * dt * MOVEMENT_SPEED);
 
 	if (position.x < 5)
 		position.x = 5;
@@ -91,7 +95,7 @@ void Defender::Update()
 		render = !render;
 
 		// Check if we should switch back to our alive state
-		if (Shell::GetElapsedTime() - respawn_start > RESPAWN_TIME)
+		if (float(Shell::GetElapsedTime() - respawn_start) > RESPAWN_TIME)
 		{
 			state = ALIVE;
 			render = true;
