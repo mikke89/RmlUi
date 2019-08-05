@@ -52,13 +52,18 @@ public:
 
     virtual ~LuaEventListener();
 
-    /// Process the incoming Event
+	// Deletes itself, which also unreferences the Lua function.
+	void OnDetach(Element* element) override;
+
+	// Calls the associated Lua function.
 	void ProcessEvent(Event& event) override;
+
 private:
     //the lua-side function to call when ProcessEvent is called
-    int luaFuncRef = 0;
+    int luaFuncRef = -1;
+
     Element* attached = nullptr;
-    ElementDocument* parent = nullptr;
+    ElementDocument* owner_document = nullptr;
     String strFunc; //for debugging purposes
 };
 

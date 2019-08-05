@@ -43,13 +43,13 @@ LuaDocument::LuaDocument(const String& tag) : ElementDocument(tag)
 void LuaDocument::LoadScript(Stream* stream, const String& source_name)
 {
     //if it is loaded from a file
-    if(source_name != "")
+    if(!source_name.empty())
     {
         Interpreter::LoadFile(source_name);
     }
     else
     {
-        String buffer = "";
+        String buffer;
         stream->Read(buffer,stream->Length()); //just do the whole thing
         Interpreter::DoString(buffer, this->GetSourceURL());
     }

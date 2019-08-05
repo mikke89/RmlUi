@@ -157,7 +157,7 @@ public:
 	/// @param[in] instancer The instancer to be called.
 	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
 	static void RegisterEventInstancer(EventInstancer* instancer);
-	/// Instance and event object
+	/// Instance an event object
 	/// @param[in] target Target element of this event.
 	/// @param[in] name Name of this event.
 	/// @param[in] parameters Additional parameters for this event.
