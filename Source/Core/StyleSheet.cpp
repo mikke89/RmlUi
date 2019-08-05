@@ -347,12 +347,10 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	if (cache_iterator != node_cache.end())
 	{
 		SharedPtr<ElementDefinition>& definition = (*cache_iterator).second;
-		applicable_nodes.clear();
 		return definition;
 	}
 
-	// Create the new definition and add it to our cache. One reference count is added, bringing the total to two; one
-	// for the element that requested it, and one for the cache.
+	// Create the new definition and add it to our cache.
 	auto new_definition = std::make_shared<ElementDefinition>(applicable_nodes);
 
 	// Add to the node cache.

@@ -187,19 +187,34 @@ void ElementStyle::UpdateDefinition()
 		}
 		else if (new_definition != definition)
 		{
-			PropertyNameList properties;
+			PropertyNameList changed_properties;
 			
 			if (definition)
-				definition->GetDefinedProperties(properties);
+				definition->GetDefinedProperties(changed_properties);
 
 			if (new_definition)
-				new_definition->GetDefinedProperties(properties);
+				new_definition->GetDefinedProperties(changed_properties);
 
-			TransitionPropertyChanges(element, properties, inline_properties, definition.get(), new_definition.get());
+			if (definition && new_definition)
+			{
+				// Remove properties that compare equal from the changed list.
+				for (auto it = changed_properties.begin(); it != changed_properties.end();)
+				{
+					PropertyId id = *it;
+					const Property* p0 = definition->GetProperty(id);
+					const Property* p1 = new_definition->GetProperty(id);
+					if (p0 && p1 && *p0 == *p1)
+						it = changed_properties.erase(it);
+					else
+						++it;
+				}
+			}
+
+			TransitionPropertyChanges(element, changed_properties, inline_properties, definition.get(), new_definition.get());
 
 			definition = new_definition;
 			
-			DirtyProperties(properties);
+			DirtyProperties(changed_properties);
 		}
 
 		// Even if the definition was not changed, the child definitions may have changed as a result of anything that

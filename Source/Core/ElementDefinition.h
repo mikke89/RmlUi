@@ -49,22 +49,18 @@ class ElementDefinition : public NonCopyMoveable
 public:
 	ElementDefinition(const std::vector< const StyleSheetNode* >& style_sheet_nodes);
 
-	/// Returns a specific property from the element definition's base properties.
-	/// @param[in] name The name of the property to return.
-	/// @param[in] pseudo_classes The pseudo-classes currently active on the calling element.
+	/// Returns a specific property from the element definition.
+	/// @param[in] id The id of the property to return.
 	/// @return The property defined against the give name, or nullptr if no such property was found.
 	const Property* GetProperty(PropertyId id) const;
 
-	/// Returns the list of properties this element definition defines for an element with the given set of
-	/// pseudo-classes.
-	/// @param[out] property_names The list to store the defined properties in.
-	/// @param[in] pseudo_classes The pseudo-classes defined on the querying element.
+	/// Returns the list of property ids this element definition defines.
+	/// @param[out] property_names The list to store the defined property ids in.
 	void GetDefinedProperties(PropertyNameList& property_names) const;
 
 	const PropertyDictionary& GetProperties() const { return properties; }
 
 private:
-	// The attributes for the default state of the element, with no pseudo-classes.
 	PropertyDictionary properties;
 };
 
