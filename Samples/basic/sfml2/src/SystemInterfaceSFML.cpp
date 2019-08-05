@@ -300,6 +300,8 @@ Rml::Core::Input::KeyIdentifier RmlUiSFMLSystemInterface::TranslateKey(sf::Keybo
 	case sf::Keyboard::Tab:
 		return Rml::Core::Input::KI_TAB;
 		break;
+	default:
+		break;
 	};
 
 	return Rml::Core::Input::KI_UNKNOWN;
@@ -333,6 +335,8 @@ bool RmlUiSFMLSystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::
 		break;
 	case Rml::Core::Log::LT_DEBUG:
 		Type = "[Debug]";
+		break;
+	default:
 		break;
 	};
 

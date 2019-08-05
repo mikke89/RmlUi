@@ -57,7 +57,7 @@ public:
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 
 	// Destroys the parser.
-	void Release();
+	void Release() override;
 
 private:
 	/// Scan a string for a parameterized keyword with a certain number of numeric arguments.

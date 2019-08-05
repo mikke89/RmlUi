@@ -79,7 +79,8 @@ private:
 
 	void BuildGlyphMap(BitmapFontDefinitions *bm_face, const UnicodeRange& unicode_range);
 	void BuildGlyph(FontGlyph& glyph, CharacterInfo *ft_glyph);
-	int GetKerning(word lhs, word rhs) const;
+
+	int GetKerning(word lhs, word rhs) const override;
 
 	BitmapFontDefinitions * bm_face;
 	String texture_source;

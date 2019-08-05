@@ -63,11 +63,13 @@ public:
 		name_map[(size_t)id] = name;
 		bool inserted = reverse_map.emplace(name, id).second;
 		RMLUI_ASSERT(inserted);
+		(void)inserted;
 	}
 
 	void AssertAllInserted(ID last_property_inserted) const {
 		ptrdiff_t cnt = std::count_if(name_map.begin(), name_map.end(), [](const String& name) { return !name.empty(); });
 		RMLUI_ASSERT(cnt == (ptrdiff_t)last_property_inserted && reverse_map.size() == (size_t)last_property_inserted);
+		(void)cnt;
 	}
 
 	ID GetId(const String& name) const
