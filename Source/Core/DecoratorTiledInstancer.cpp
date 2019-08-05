@@ -100,11 +100,6 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		const Property* src_property = properties.GetProperty(ids.src);
 		const String texture_name = src_property->Get< String >();
 
-		if (texture_name == "window-tl")
-		{
-			int i = 0;
-		}
-
 		// Skip the tile if it has no source name.
 		// Declaring the name 'auto' is the same as an empty string. This gives an easy way to skip certain
 		// tiles in a shorthand since we can't always declare an empty string.

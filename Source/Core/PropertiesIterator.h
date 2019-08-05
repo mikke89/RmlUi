@@ -43,8 +43,8 @@ public:
 	using ValueType = std::pair<PropertyId, const Property&>;
 	using PropertyIt = PropertyMap::const_iterator;
 
-	PropertiesIterator(const PseudoClassList& element_pseudo_classes, PropertyIt it_style, PropertyIt it_style_end, PropertyIt it_definition, PropertyIt it_definition_end)
-		: element_pseudo_classes(&element_pseudo_classes), it_style(it_style), it_style_end(it_style_end), it_definition(it_definition), it_definition_end(it_definition_end)
+	PropertiesIterator(PropertyIt it_style, PropertyIt it_style_end, PropertyIt it_definition, PropertyIt it_definition_end)
+		: it_style(it_style), it_style_end(it_style_end), it_definition(it_definition), it_definition_end(it_definition_end)
 	{
 		ProceedToNextValid();
 	}
@@ -80,7 +80,6 @@ public:
 	}
 
 private:
-	const PseudoClassList* element_pseudo_classes;
 	DirtyPropertyList iterated_properties;
 	PropertyIt it_style, it_style_end;
 	PropertyIt it_definition, it_definition_end;

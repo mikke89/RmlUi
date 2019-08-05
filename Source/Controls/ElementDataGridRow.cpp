@@ -409,19 +409,14 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 	Rml::Core::Dictionary parameters;
 	parameters["first_row_added"] = GetChildTableRelativeIndex(first_row_added);
 	parameters["num_rows_added"] = num_rows_added;
-	// @performance: Does anyone really use this?
+	
 	parent_grid->DispatchEvent(Core::EventId::Rowadd, parameters);
 }
 
 void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_removed)
 {
 	if (num_rows_removed == -1)
-	{
 		num_rows_removed = (int)children.size() - first_row_removed;
-	}
-
-	// prevent relayout of the document while removing rows
-	Core::ElementDocument* document = parent_grid->GetOwnerDocument();
 
 	for (int i = num_rows_removed - 1; i >= 0; i--)
 	{
@@ -439,7 +434,7 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
 	Rml::Core::Dictionary parameters;
 	parameters["first_row_removed"] = GetChildTableRelativeIndex(first_row_removed);
 	parameters["num_rows_removed"] = num_rows_removed;
-	// @performance: Does anyone really use this?
+	
 	parent_grid->DispatchEvent(Core::EventId::Rowremove, parameters);
 }
 
@@ -451,7 +446,7 @@ void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_chan
 	Rml::Core::Dictionary parameters;
 	parameters["first_row_changed"] = GetChildTableRelativeIndex(first_row_changed);
 	parameters["num_rows_changed"] = num_rows_changed;
-	// @performance: Does anyone really use this?
+	
 	parent_grid->DispatchEvent(Core::EventId::Rowchange, parameters);
 }
 

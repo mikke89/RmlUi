@@ -463,7 +463,7 @@ PropertiesIterator ElementStyle::Iterate() const {
 		it_definition = definition_properties.begin();
 		it_definition_end = definition_properties.end();
 	}
-	return PropertiesIterator(pseudo_classes, it_style_begin, it_style_end, it_definition, it_definition_end);
+	return PropertiesIterator(it_style_begin, it_style_end, it_definition, it_definition_end);
 }
 
 // Sets a single property as dirty.

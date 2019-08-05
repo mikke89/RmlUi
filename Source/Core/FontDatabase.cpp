@@ -168,9 +168,7 @@ SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, 
 		SharedPtr<FontFaceHandle> face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
 
         if(face_handle)
-        {
-            return std::move(face_handle);
-        }
+            return face_handle;
     }
 
     return nullptr;

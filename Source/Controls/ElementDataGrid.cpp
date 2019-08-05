@@ -236,7 +236,6 @@ void ElementDataGrid::OnUpdate()
 	bool any_new_children = root->UpdateChildren();
 	if (any_new_children)
 	{
-		// @performance: Does anyone really use this?
 		DispatchEvent(Core::EventId::Rowupdate, Rml::Core::Dictionary());
 	}
 	

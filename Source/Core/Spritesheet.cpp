@@ -55,7 +55,6 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 	StringList& sprite_names = sprite_sheet->sprite_names;
 
 	// Insert all the sprites with names not already defined in the global sprite list.
-	int num_removed_sprite_names = 0;
 	for (auto& sprite_definition : sprite_definitions)
 	{
 		const String& sprite_name = sprite_definition.first;
