@@ -93,7 +93,7 @@ public:
 	int GetNumOptions() const;
 
 	/// Processes the incoming event.
-	virtual void ProcessEvent(Core::Event& event) override;
+	void ProcessEvent(Core::Event& event) override;
 
 private:
 	typedef std::vector< SelectOption > OptionList;

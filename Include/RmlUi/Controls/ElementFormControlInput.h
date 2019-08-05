@@ -54,43 +54,43 @@ public:
 
 	/// Returns a string representation of the current value of the form control.
 	/// @return The value of the form control.
-	virtual Rml::Core::String GetValue() const;
+	Rml::Core::String GetValue() const override;
 	/// Sets the current value of the form control.
 	/// @param value[in] The new value of the form control.
-	virtual void SetValue(const Rml::Core::String& value);
+	void SetValue(const Rml::Core::String& value) override;
 	/// Returns if this value's type should be submitted with the form.
 	/// @return True if the form control is to be submitted, false otherwise.
-	virtual bool IsSubmitted();
+	bool IsSubmitted() override;
 
 protected:
 	/// Updates the element's underlying type.
-	virtual void OnUpdate();
+	void OnUpdate() override;
 	/// Renders the element's underlying type.
-	virtual void OnRender();
+	void OnRender() override;
 	/// Calls the element's underlying type.
-	virtual void OnResize() override;
+	void OnResize() override;
 
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
-	virtual void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
+	void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties) override;
+	void OnPropertyChange(const Core::PropertyNameList& changed_properties) override;
 
 	/// If we are the added element, this will pass the call onto our type handler.
 	/// @param[in] child The new member of the hierarchy.
-	virtual void OnChildAdd(Rml::Core::Element* child) override;
+	void OnChildAdd(Rml::Core::Element* child) override;
 	/// If we are the removed element, this will pass the call onto our type handler.
 	/// @param[in] child The member of the hierarchy that was just removed.
-	virtual void OnChildRemove(Rml::Core::Element* child) override;
+	void OnChildRemove(Rml::Core::Element* child) override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
-	virtual void ProcessDefaultAction(Core::Event& event) override;
+	void ProcessDefaultAction(Core::Event& event) override;
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions) override;
+	bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions) override;
 
 private:
 	InputType* type;

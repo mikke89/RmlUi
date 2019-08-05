@@ -89,11 +89,11 @@ public:
 	ElementDataGrid* GetParentGrid();
 
 protected:
-	virtual void OnDataSourceDestroy(DataSource* data_source);
-	virtual void OnRowAdd(DataSource* data_source, const Rml::Core::String& table, int first_row_added, int num_rows_added);
-	virtual void OnRowRemove(DataSource* data_source, const Rml::Core::String& table, int first_row_removed, int num_rows_removed);
-	virtual void OnRowChange(DataSource* data_source, const Rml::Core::String& table, int first_row_changed, int num_rows_changed);
-	virtual void OnRowChange(DataSource* data_source, const Rml::Core::String& table);
+	void OnDataSourceDestroy(DataSource* data_source) override;
+	void OnRowAdd(DataSource* data_source, const Rml::Core::String& table, int first_row_added, int num_rows_added) override;
+	void OnRowRemove(DataSource* data_source, const Rml::Core::String& table, int first_row_removed, int num_rows_removed) override;
+	void OnRowChange(DataSource* data_source, const Rml::Core::String& table, int first_row_changed, int num_rows_changed) override;
+	void OnRowChange(DataSource* data_source, const Rml::Core::String& table) override;
 
 private:
 	typedef std::queue< ElementDataGridRow* > RowQueue;

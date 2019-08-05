@@ -59,10 +59,6 @@ public:
 	/// Releases an event instanced by this instancer.
 	/// @param[in] event The event to release.
 	virtual void ReleaseEvent(Event* event) = 0;
-
-protected:
-	/// Releases this event instancer.
-	virtual void Release() = 0;
 };
 
 }

@@ -45,8 +45,8 @@ public:
 	FileSystem(const Rml::Core::String& root);
 	virtual ~FileSystem();
 
-	virtual void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns);
-	virtual int GetNumRows(const Rml::Core::String& table);
+	void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns) override;
+	int GetNumRows(const Rml::Core::String& table) override;
 
 private:
 	FileSystemNode* GetNode(const Rml::Core::String& table);

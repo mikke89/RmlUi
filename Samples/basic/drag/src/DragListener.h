@@ -43,7 +43,7 @@ public:
 	static void RegisterDraggableContainer(Rml::Core::Element* element);
 
 protected:
-	virtual void ProcessEvent(Rml::Core::Event& event);
+	void ProcessEvent(Rml::Core::Event& event) override;
 };
 
 #endif

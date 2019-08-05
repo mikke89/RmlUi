@@ -125,13 +125,13 @@ public:
 	
 protected:
 	/// Repositions the document if necessary.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties) override;
+	void OnPropertyChange(const PropertyNameList& changed_properties) override;
 
 	/// Processes the 'onpropertychange' event, checking for a change in position or size.
-	virtual void ProcessDefaultAction(Event& event) override;
+	void ProcessDefaultAction(Event& event) override;
 
 	/// Called during update if the element size has been changed.
-	virtual void OnResize() override;
+	void OnResize() override;
 
 private:
 	/// Find the next element to focus, starting at the current element

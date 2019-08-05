@@ -44,22 +44,22 @@ namespace BitmapFont {
 
 class FontParser : public BaseXMLParser
 {
-	public:
-		FontParser( BitmapFontDefinitions *face );
-		virtual ~FontParser();
+public:
+	FontParser( BitmapFontDefinitions *face );
+	virtual ~FontParser();
 
-		/// Called when the parser finds the beginning of an element tag.
-		void HandleElementStart(const String& name, const XMLAttributes& attributes) override;
-		/// Called when the parser finds the end of an element tag.
-		void HandleElementEnd(const String& name) override;
-		/// Called when the parser encounters data.
-		void HandleData(const String& data) override;
+	/// Called when the parser finds the beginning of an element tag.
+	void HandleElementStart(const String& name, const XMLAttributes& attributes) override;
+	/// Called when the parser finds the end of an element tag.
+	void HandleElementEnd(const String& name) override;
+	/// Called when the parser encounters data.
+	void HandleData(const String& data) override;
 
-	private:
-		FontParser();
-		BitmapFontDefinitions *bm_face;
-		int char_id;
-		int kern_id;
+private:
+	FontParser();
+	BitmapFontDefinitions *bm_face;
+	int char_id;
+	int kern_id;
 };
 
 }

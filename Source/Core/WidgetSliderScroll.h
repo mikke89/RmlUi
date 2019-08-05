@@ -69,23 +69,23 @@ protected:
 	/// Called when the slider's bar position is set or dragged.
 	/// @param bar_position[in] The new position of the bar (0 representing the start of the track, 1 representing the end).
 	/// @return The new position of the bar.
-	virtual float OnBarChange(float bar_position);
+	float OnBarChange(float bar_position) override;
 	/// Called when the slider is incremented by one 'line', either by the down / right key or a mouse-click on the
 	/// increment arrow.
 	/// @return The new position of the bar.
-	virtual float OnLineIncrement();
+	float OnLineIncrement() override;
 	/// Called when the slider is decremented by one 'line', either by the up / left key or a mouse-click on the
 	/// decrement arrow.
 	/// @return The new position of the bar.
-	virtual float OnLineDecrement();
+	float OnLineDecrement() override;
 	/// Called when the slider is incremented by one 'page', either by the page-up key or a mouse-click on the
 	/// track below / right of the bar.
 	/// @return The new position of the bar.
-	virtual float OnPageIncrement(float click_position);
+	float OnPageIncrement(float click_position) override;
 	/// Called when the slider is incremented by one 'page', either by the page-down key or a mouse-click on the
 	/// track above / left of the bar.
 	/// @return The new position of the bar.
-	virtual float OnPageDecrement(float click_position);
+	float OnPageDecrement(float click_position) override;
 
 private:
 	// Returns the bar position after scrolling for a number of pixels.

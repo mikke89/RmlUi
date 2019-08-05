@@ -55,7 +55,7 @@ public:
 
 protected:
 	/// Processes 'color' and 'background-color' property changes.
-	virtual void OnPropertyChange(const Rml::Core::PropertyNameList& changed_properties);
+	void OnPropertyChange(const Rml::Core::PropertyNameList& changed_properties) override;
 
 private:
 	WidgetTextInput* widget;

@@ -41,7 +41,7 @@ class LuaDocument : public ElementDocument
 {
 public:
     LuaDocument(const String& tag);
-    virtual void LoadScript(Stream* stream, const String& source_name);
+    void LoadScript(Stream* stream, const String& source_name) override;
 };
 
 }

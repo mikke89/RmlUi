@@ -87,8 +87,8 @@ public:
 
 protected:
 	// Catch child add/removes so we can correctly set up their events.
-	virtual void OnChildAdd(Core::Element* child);
-	virtual void OnChildRemove(Core::Element* child);
+	void OnChildAdd(Core::Element* child) override;
+	void OnChildRemove(Core::Element* child) override;
 
 private:
 	Core::Element* GetChildByTag(const Rml::Core::String& tag);

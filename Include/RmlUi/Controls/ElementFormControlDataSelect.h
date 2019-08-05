@@ -60,22 +60,22 @@ public:
 protected:
 	/// If a new data source has been set on the control, this will attach to it and build the
 	/// initial options.
-	virtual void OnUpdate();
+	void OnUpdate() override;
 
 	/// Checks for changes to the data source or formatting attributes.
 	/// @param[in] changed_attributes List of changed attributes on the element.
-	virtual void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
+	void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 
 	/// Detaches from the data source and rebuilds the options.
-	virtual void OnDataSourceDestroy(DataSource* data_source);
+	void OnDataSourceDestroy(DataSource* data_source) override;
 	/// Rebuilds the available options from the data source.
-	virtual void OnRowAdd(DataSource* data_source, const Rml::Core::String& table, int first_row_added, int num_rows_added);
+	void OnRowAdd(DataSource* data_source, const Rml::Core::String& table, int first_row_added, int num_rows_added) override;
 	/// Rebuilds the available options from the data source.
-	virtual void OnRowRemove(DataSource* data_source, const Rml::Core::String& table, int first_row_removed, int num_rows_removed);
+	void OnRowRemove(DataSource* data_source, const Rml::Core::String& table, int first_row_removed, int num_rows_removed) override;
 	/// Rebuilds the available options from the data source.
-	virtual void OnRowChange(DataSource* data_source, const Rml::Core::String& table, int first_row_changed, int num_rows_changed);
+	void OnRowChange(DataSource* data_source, const Rml::Core::String& table, int first_row_changed, int num_rows_changed) override;
 	/// Rebuilds the available options from the data source.
-	virtual void OnRowChange(DataSource* data_source, const Rml::Core::String& table);
+	void OnRowChange(DataSource* data_source, const Rml::Core::String& table) override;
 
 private:
 	// Builds the option list from the data source.

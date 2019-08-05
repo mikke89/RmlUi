@@ -865,6 +865,9 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 				}
 			}
 			break;
+
+		default:
+			break;
 		}
 	}
 

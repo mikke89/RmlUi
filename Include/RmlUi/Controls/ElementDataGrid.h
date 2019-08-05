@@ -119,13 +119,13 @@ public:
 	ElementDataGridRow* GetRow(int index) const;
 
 protected:
-	virtual void OnUpdate() override;
+	void OnUpdate() override;
 
-	virtual void OnResize() override;
+	void OnResize() override;
 
 	/// Gets the markup and content of the element.
 	/// @param content[out] The content of the element.
-	virtual void GetInnerRML(Rml::Core::String& content) const;
+	void GetInnerRML(Rml::Core::String& content) const override;
 
 private:
 	typedef std::vector< Column > ColumnList;

@@ -47,7 +47,7 @@ public:
 	virtual ~StyleSheetNodeSelectorOnlyChild();
 
 	// Returns true if the element is the only non-trivial DOM child of its parent.
-	virtual bool IsApplicable(const Element* element, int a, int b);
+	bool IsApplicable(const Element* element, int a, int b) override;
 };
 
 }

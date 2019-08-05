@@ -50,28 +50,28 @@ public:
 
 	/// Returns true if this box is capable of overflowing, or if it must be rendered on a single line.
 	/// @return True if this box can overflow, false otherwise.
-	virtual bool CanOverflow() const;
+	bool CanOverflow() const override;
 
 	/// Flows the inline box's content into its parent line.
 	/// @param[in] first_box True if this box is the first box containing content to be flowed into this line.
 	/// @param available_width[in] The width available for flowing this box's content. This is measured from the left side of this box's content area.
 	/// @param right_spacing_width[in] The width of the spacing that must be left on the right of the element if no overflow occurs. If overflow occurs, then the entire width can be used.
 	/// @return The overflow box containing any content that spilled over from the flow. This must be nullptr if no overflow occured.
-	virtual LayoutInlineBox* FlowContent(bool first_box, float available_width, float right_spacing_width);
+	LayoutInlineBox* FlowContent(bool first_box, float available_width, float right_spacing_width) override;
 
 	/// Computes and sets the vertical position of this element, relative to its parent inline box (or block box,
 	/// for an un-nested inline box).
 	/// @param ascender[out] The maximum ascender of this inline box and all of its children.
 	/// @param descender[out] The maximum descender of this inline box and all of its children.
-	virtual void CalculateBaseline(float& ascender, float& descender);
+	void CalculateBaseline(float& ascender, float& descender) override;
 	/// Offsets the baseline of this box, and all of its children, by the ascender of the parent line box.
 	/// @param ascender[in] The ascender of the line box.
-	virtual void OffsetBaseline(float ascender);
+	void OffsetBaseline(float ascender) override;
 
 	/// Positions the inline box's element.
-	virtual void PositionElement();
+	void PositionElement() override;
 	/// Sizes the inline box's element.
-	virtual void SizeElement(bool split);
+	void SizeElement(bool split) override;
 
 	void* operator new(size_t size);
 	void operator delete(void* chunk);

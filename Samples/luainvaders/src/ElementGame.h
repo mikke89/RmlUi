@@ -54,9 +54,9 @@ public:
 
 protected:
 	/// Updates the game.
-	virtual void OnUpdate() override;
+	void OnUpdate() override;
 	/// Renders the game.
-	virtual void OnRender() override;
+	void OnRender() override;
 
 private:
 	Game* game;

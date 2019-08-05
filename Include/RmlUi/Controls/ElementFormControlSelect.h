@@ -55,10 +55,10 @@ public:
 
 	/// Returns a string representation of the current value of the form control.
 	/// @return The value of the form control.
-	virtual Rml::Core::String GetValue() const;
+	Rml::Core::String GetValue() const override;
 	/// Sets the current value of the form control.
 	/// @param[in] value The new value of the form control.
-	virtual void SetValue(const Rml::Core::String& value);
+	void SetValue(const Rml::Core::String& value) override;
 
 	/// Sets the index of the selection. If the new index lies outside of the bounds, it will be clamped.
 	/// @param[in] selection The new selection index.
@@ -91,17 +91,17 @@ public:
 
 protected:
 	/// Moves all children to be under control of the widget.
-	virtual void OnUpdate();
+	void OnUpdate() override;
 	/// Updates the layout of the widget's elements.
-	virtual void OnRender();
+	void OnRender() override;
 
 	/// Forces an internal layout.
-	virtual void OnLayout();
+	void OnLayout() override;
 
 	/// Returns true to mark this element as replaced.
 	/// @param[out] intrinsic_dimensions Set to the arbitrary dimensions of 128 x 16 just to give this element a size. Resize with the 'width' and 'height' properties.
 	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rml::Core::Vector2f& intrinsic_dimensions);
+	bool GetIntrinsicDimensions(Rml::Core::Vector2f& intrinsic_dimensions) override;
 
 	WidgetDropDown* widget;
 };

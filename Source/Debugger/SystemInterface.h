@@ -53,37 +53,37 @@ public:
 
 	/// Get the number of seconds elapsed since the start of the application.
 	/// @return Elapsed time, in seconds.
-	virtual double GetElapsedTime();
+	double GetElapsedTime() override;
 
 	/// Translate the input string into the translated string.
 	/// @param[out] translated Translated string ready for display.
 	/// @param[in] input String as received from XML.
 	/// @return Number of translations that occured.
-	virtual int TranslateString(Core::String& translated, const Core::String& input);
+	int TranslateString(Core::String& translated, const Core::String& input) override;
 
 	/// Log the specified message.
 	/// @param[in] type Type of log message, ERROR, WARNING, etc.
 	/// @param[in] message Message to log.
 	/// @return True to continue execution, false to break into the debugger.
-	virtual bool LogMessage(Core::Log::Type type, const Core::String& message);
+	bool LogMessage(Core::Log::Type type, const Core::String& message) override;
 
 	/// Set mouse cursor.
 	/// @param[in] cursor_name Cursor name to activate.
-	virtual void SetMouseCursor(const Core::String& cursor_name);
+	void SetMouseCursor(const Core::String& cursor_name) override;
 
 	/// Set clipboard text.
 	/// @param[in] text Text to apply to clipboard.
-	virtual void SetClipboardText(const Core::WString& text);
+	void SetClipboardText(const Core::WString& text) override;
 
 	/// Get clipboard text.
 	/// @param[out] text Retrieved text from clipboard.
-	virtual void GetClipboardText(Core::WString& text);
+	void GetClipboardText(Core::WString& text) override;
 
 	/// Activate keyboard (for touchscreen devices)
-	virtual void ActivateKeyboard();
+	void ActivateKeyboard() override;
 	
 	/// Deactivate keyboard (for touchscreen devices)
-	virtual void DeactivateKeyboard();
+	void DeactivateKeyboard() override;
 private:
 	Core::SystemInterface* application_interface;
 	ElementLog* log;

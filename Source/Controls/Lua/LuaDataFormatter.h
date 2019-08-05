@@ -42,7 +42,7 @@ public:
     LuaDataFormatter(const Rml::Core::String& name = "");
     ~LuaDataFormatter();
 
-    virtual void FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data);
+    void FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data) override;
 
     //Helper function used to push on to the stack the table where the function ref should be stored
     static void PushDataFormatterFunctionTable(lua_State* L);

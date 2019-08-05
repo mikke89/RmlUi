@@ -47,7 +47,7 @@ public:
 	virtual ~StyleSheetNodeSelectorEmpty();
 
 	// Returns true if the element has no DOM children.
-	virtual bool IsApplicable(const Element* element, int a, int b);
+	bool IsApplicable(const Element* element, int a, int b) override;
 };
 
 }
