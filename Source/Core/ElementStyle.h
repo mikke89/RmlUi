@@ -30,7 +30,7 @@
 #define RMLUICOREELEMENTSTYLE_H
 
 #include "../../Include/RmlUi/Core/Types.h"
-#include "DirtyPropertyList.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 
 namespace Rml {
 namespace Core {
@@ -123,7 +123,7 @@ public:
 
 	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
 	/// Must be called in correct order, always parent before its children.
-	DirtyPropertyList ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
+	PropertyIdSet ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio);
 
 	/// Returns an iterator for iterating the local properties of this element.
 	/// Note: Modifying the element's style invalidates its iterator.
@@ -135,13 +135,13 @@ private:
 	// Sets a single property as dirty.
 	void DirtyProperty(PropertyId id);
 	// Sets a list of properties as dirty.
-	void DirtyProperties(const PropertyNameList& properties);
+	void DirtyProperties(const PropertyIdSet& properties);
 	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
-	void DirtyInheritedProperties(const PropertyNameList& properties);
+	void DirtyInheritedProperties(const PropertyIdSet& properties);
 
 	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary & inline_properties, const ElementDefinition * definition);
 	static const Property* GetProperty(PropertyId id, const Element * element, const PropertyDictionary & inline_properties, const ElementDefinition * definition);
-	static void TransitionPropertyChanges(Element * element, PropertyNameList & properties, const PropertyDictionary & inline_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition);
+	static void TransitionPropertyChanges(Element * element, PropertyIdSet & properties, const PropertyDictionary & inline_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition);
 
 	// Element these properties belong to
 	Element* element;
@@ -158,7 +158,7 @@ private:
 	// Set if a new element definition should be fetched from the style.
 	bool definition_dirty;
 
-	DirtyPropertyList dirty_properties;
+	PropertyIdSet dirty_properties;
 };
 
 }

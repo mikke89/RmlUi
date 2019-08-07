@@ -30,12 +30,12 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include <algorithm>
 #include <limits>
 #include "Clock.h"
 #include "ComputeProperty.h"
-#include "DirtyPropertyList.h"
 #include "ElementAnimation.h"
 #include "ElementBackground.h"
 #include "ElementBorder.h"
@@ -226,10 +226,8 @@ void Element::Update(float dp_ratio)
 		// Computed values are just calculated and can safely be used in OnPropertyChange.
 		// However, new properties set during this call will not be available until the next update loop.
 		// Enable RMLUI_DEBUG to get a warning when this happens.
-		if (dirty_properties.IsAllDirty())
-			OnPropertyChange(StyleSheetSpecification::GetRegisteredProperties());
-		else if(!dirty_properties.Empty())
-			OnPropertyChange(dirty_properties.ToPropertyList());
+		if(!dirty_properties.Empty())
+			OnPropertyChange(dirty_properties);
 
 #ifdef RMLUI_DEBUG
 		if (style->AnyPropertiesDirty())
@@ -1748,15 +1746,10 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 }
 
 // Called when properties on the element are changed.
-void Element::OnPropertyChange(const PropertyNameList& changed_properties)
+void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
-	bool all_dirty = false;
-	{
-		auto& registered_properties = StyleSheetSpecification::GetRegisteredProperties();
-		if (&registered_properties == &changed_properties || registered_properties == changed_properties)
-			all_dirty = true;
-	}
-
+	const bool all_dirty = changed_properties.IsAllSet();
+	
 	if (!IsLayoutDirty())
 	{
 		if (all_dirty)
@@ -1766,9 +1759,9 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		else
 		{
 			// Force a relayout if any of the changed properties require it.
-			for (PropertyNameList::const_iterator i = changed_properties.begin(); i != changed_properties.end(); ++i)
+			for (PropertyId id : changed_properties)
 			{
-				const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(*i);
+				const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(id);
 				if (property_definition)
 				{
 					if (property_definition->IsLayoutForced())
@@ -1782,10 +1775,9 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 	}
 
 
-
 	// Update the visibility.
-	if (all_dirty || changed_properties.find(PropertyId::Visibility) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Display) != changed_properties.end())
+	if (all_dirty || changed_properties.Contains(PropertyId::Visibility) ||
+		changed_properties.Contains(PropertyId::Display))
 	{
 		bool new_visibility = (element_meta->computed_values.display != Style::Display::None && element_meta->computed_values.visibility == Style::Visibility::Visible);
 			
@@ -1798,7 +1790,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 		}
 
 		if (all_dirty || 
-			changed_properties.find(PropertyId::Display) != changed_properties.end())
+			changed_properties.Contains(PropertyId::Display))
 		{
 			// Due to structural pseudo-classes, this may change the element definition in siblings and parent.
 			// However, the definitions will only be changed on the next update loop which may result in jarring behavior for one @frame.
@@ -1810,11 +1802,11 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Fetch a new font face if it has been changed.
 	if (all_dirty ||
-		changed_properties.find(PropertyId::FontFamily) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontCharset) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontWeight) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontStyle) != changed_properties.end() ||
-		changed_properties.find(PropertyId::FontSize) != changed_properties.end())
+		changed_properties.Contains(PropertyId::FontFamily) ||
+		changed_properties.Contains(PropertyId::FontCharset) ||
+		changed_properties.Contains(PropertyId::FontWeight) ||
+		changed_properties.Contains(PropertyId::FontStyle) ||
+		changed_properties.Contains(PropertyId::FontSize))
 	{
 		// Fetch the new font face.
 		SharedPtr<FontFaceHandle> new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
@@ -1830,10 +1822,10 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Update the position.
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Left) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Right) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Top) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Bottom) != changed_properties.end())
+		changed_properties.Contains(PropertyId::Left) ||
+		changed_properties.Contains(PropertyId::Right) ||
+		changed_properties.Contains(PropertyId::Top) ||
+		changed_properties.Contains(PropertyId::Bottom))
 	{
 		// TODO: This should happen during/after layout, as the containing box is not properly defined yet. Off-by-one @frame issue.
 		UpdateOffset();
@@ -1842,7 +1834,7 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Update the z-index.
 	if (all_dirty || 
-		changed_properties.find(PropertyId::ZIndex) != changed_properties.end())
+		changed_properties.Contains(PropertyId::ZIndex))
 	{
 		Style::ZIndex z_index_property = element_meta->computed_values.z_index;
 
@@ -1887,69 +1879,69 @@ void Element::OnPropertyChange(const PropertyNameList& changed_properties)
 
 	// Dirty the background if it's changed.
     if (all_dirty ||
-        changed_properties.find(PropertyId::BackgroundColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
-		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
+        changed_properties.Contains(PropertyId::BackgroundColor) ||
+		changed_properties.Contains(PropertyId::Opacity) ||
+		changed_properties.Contains(PropertyId::ImageColor)) {
 		background->DirtyBackground();
     }
 	
 	// Dirty the decoration if it's changed.
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Decorator) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Opacity) != changed_properties.end() ||
-		changed_properties.find(PropertyId::ImageColor) != changed_properties.end()) {
+		changed_properties.Contains(PropertyId::Decorator) ||
+		changed_properties.Contains(PropertyId::Opacity) ||
+		changed_properties.Contains(PropertyId::ImageColor)) {
 		decoration->DirtyDecorators();
 	}
 
 	// Dirty the border if it's changed.
 	if (all_dirty || 
-		changed_properties.find(PropertyId::BorderTopWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderRightWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderBottomWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderLeftWidth) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderTopColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderRightColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderBottomColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::BorderLeftColor) != changed_properties.end() ||
-		changed_properties.find(PropertyId::Opacity) != changed_properties.end())
+		changed_properties.Contains(PropertyId::BorderTopWidth) ||
+		changed_properties.Contains(PropertyId::BorderRightWidth) ||
+		changed_properties.Contains(PropertyId::BorderBottomWidth) ||
+		changed_properties.Contains(PropertyId::BorderLeftWidth) ||
+		changed_properties.Contains(PropertyId::BorderTopColor) ||
+		changed_properties.Contains(PropertyId::BorderRightColor) ||
+		changed_properties.Contains(PropertyId::BorderBottomColor) ||
+		changed_properties.Contains(PropertyId::BorderLeftColor) ||
+		changed_properties.Contains(PropertyId::Opacity))
 		border->DirtyBorder();
 
 	
 	// Check for clipping state changes
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Clip) != changed_properties.end() ||
-		changed_properties.find(PropertyId::OverflowX) != changed_properties.end() ||
-		changed_properties.find(PropertyId::OverflowY) != changed_properties.end())
+		changed_properties.Contains(PropertyId::Clip) ||
+		changed_properties.Contains(PropertyId::OverflowX) ||
+		changed_properties.Contains(PropertyId::OverflowY))
 	{
 		clipping_state_dirty = true;
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Perspective) != changed_properties.end() ||
-		changed_properties.find(PropertyId::PerspectiveOriginX) != changed_properties.end() ||
-		changed_properties.find(PropertyId::PerspectiveOriginY) != changed_properties.end())
+		changed_properties.Contains(PropertyId::Perspective) ||
+		changed_properties.Contains(PropertyId::PerspectiveOriginX) ||
+		changed_properties.Contains(PropertyId::PerspectiveOriginY))
 	{
 		DirtyTransformState(true, false, false);
 	}
 
 	// Check for `transform' and `transform-origin' changes
 	if (all_dirty ||
-		changed_properties.find(PropertyId::Transform) != changed_properties.end() ||
-		changed_properties.find(PropertyId::TransformOriginX) != changed_properties.end() ||
-		changed_properties.find(PropertyId::TransformOriginY) != changed_properties.end() ||
-		changed_properties.find(PropertyId::TransformOriginZ) != changed_properties.end())
+		changed_properties.Contains(PropertyId::Transform) ||
+		changed_properties.Contains(PropertyId::TransformOriginX) ||
+		changed_properties.Contains(PropertyId::TransformOriginY) ||
+		changed_properties.Contains(PropertyId::TransformOriginZ))
 	{
 		DirtyTransformState(false, true, false);
 	}
 
 	// Check for `animation' changes
-	if (all_dirty || changed_properties.find(PropertyId::Animation) != changed_properties.end())
+	if (all_dirty || changed_properties.Contains(PropertyId::Animation))
 	{
 		dirty_animation = true;
 	}
 	// Check for `transition' changes
-	if (all_dirty || changed_properties.find(PropertyId::Transition) != changed_properties.end())
+	if (all_dirty || changed_properties.Contains(PropertyId::Transition))
 	{
 		dirty_transition = true;
 	}

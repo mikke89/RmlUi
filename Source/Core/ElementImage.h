@@ -88,7 +88,7 @@ protected:
 
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	void OnPropertyChange(const PropertyNameList& changed_properties) override;
+	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 private:
 	// Generates the element's geometry.

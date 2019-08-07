@@ -29,6 +29,7 @@
  
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "PropertyParserNumber.h"
 #include "PropertyParserAnimation.h"
 #include "PropertyParserColour.h"
@@ -36,7 +37,6 @@
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
 #include "PropertyShorthandDefinition.h"
-#include "DirtyPropertyList.h"
 
 namespace Rml {
 namespace Core {
@@ -44,7 +44,7 @@ namespace Core {
 
 static StyleSheetSpecification* instance = nullptr;
 
-static DirtyPropertyList registered_inherited_properties;
+static PropertyIdSet registered_inherited_properties;
 
 
 StyleSheetSpecification::StyleSheetSpecification() : 
@@ -139,12 +139,12 @@ const PropertyDefinition* StyleSheetSpecification::GetProperty(PropertyId id)
 }
 
 // Fetches a list of the names of all registered property definitions.
-const PropertyNameList& StyleSheetSpecification::GetRegisteredProperties()
+const PropertyIdSet& StyleSheetSpecification::GetRegisteredProperties()
 {
 	return instance->properties.GetRegisteredProperties();
 }
 
-const PropertyNameList & StyleSheetSpecification::GetRegisteredInheritedProperties()
+const PropertyIdSet & StyleSheetSpecification::GetRegisteredInheritedProperties()
 {
 	return instance->properties.GetRegisteredInheritedProperties();
 }
@@ -194,30 +194,28 @@ const String& StyleSheetSpecification::GetShorthandName(ShorthandId id)
 	return instance->properties.shorthand_map.GetName(id);
 }
 
-const DirtyPropertyList& StyleSheetSpecification::GetRegisteredInheritedPropertyBitList()
+const PropertyIdSet& StyleSheetSpecification::GetRegisteredInheritedPropertyBitList()
 {
 	return registered_inherited_properties;
 }
 
-std::vector<PropertyId> StyleSheetSpecification::GetShorthandUnderlyingProperties(ShorthandId id)
+PropertyIdSet StyleSheetSpecification::GetShorthandUnderlyingProperties(ShorthandId id)
 {
-	std::vector<PropertyId> result;
+	PropertyIdSet result;
 	const ShorthandDefinition* shorthand = instance->properties.GetShorthand(id);
 	if (!shorthand)
 		return result;
 
-	result.reserve(shorthand->items.size());
 	for (auto& item : shorthand->items)
 	{
 		if (item.type == ShorthandItemType::Property)
 		{
-			result.push_back(item.property_id);
+			result.Insert(item.property_id);
 		}
 		else if (item.type == ShorthandItemType::Shorthand)
 		{
-			// When we have a shorthand pointing to another shorthands, call us recursively
-			std::vector<PropertyId> new_items = GetShorthandUnderlyingProperties(item.shorthand_id);
-			result.insert(result.end(), new_items.begin(), new_items.end());
+			// When we have a shorthand pointing to another shorthands, call us recursively. Add the union of the previous result and new properties.
+			result |= GetShorthandUnderlyingProperties(item.shorthand_id);
 		}
 	}
 	return result;

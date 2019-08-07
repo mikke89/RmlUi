@@ -29,7 +29,7 @@
 #define RMLUICOREPROPERTIESITERATOR_H
 
 #include "../../Include/RmlUi/Core/Types.h"
-#include "DirtyPropertyList.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 
 namespace Rml {
 namespace Core {
@@ -80,7 +80,7 @@ public:
 	}
 
 private:
-	DirtyPropertyList iterated_properties;
+	PropertyIdSet iterated_properties;
 	PropertyIt it_style, it_style_end;
 	PropertyIt it_definition, it_definition_end;
 	bool at_end = false;

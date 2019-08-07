@@ -36,8 +36,6 @@
 namespace Rml {
 namespace Controls {
 
-class Element;
-
 /**
 	Abstract base class for a data formatter. A data formatter takes raw data
 	and processes it into a final string. They are usually used in conjunction

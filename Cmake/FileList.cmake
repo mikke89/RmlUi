@@ -22,7 +22,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DirtyPropertyList.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.h
@@ -165,6 +164,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Property.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDefinition.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDictionary.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyIdSet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyParser.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h

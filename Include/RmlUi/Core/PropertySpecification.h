@@ -32,6 +32,7 @@
 #include "Header.h"
 #include "Element.h"
 #include "PropertyDefinition.h"
+#include "PropertyIdSet.h"
 
 namespace Rml {
 namespace Core {
@@ -41,7 +42,7 @@ class PropertyDictionary;
 struct ShorthandDefinition;
 
 
-
+// todo: We probably don't need to expose this in a public header
 template <typename ID>
 class IdNameMap {
 	std::vector<String> name_map;  // IDs are indices into the name_map
@@ -175,11 +176,11 @@ public:
 
 	/// Returns the list of the names of all registered property definitions.
 	/// @return The list with stored property names.
-	const PropertyNameList& GetRegisteredProperties() const;
+	const PropertyIdSet& GetRegisteredProperties() const;
 
 	/// Returns the list of the names of all registered inherited property definitions.
 	/// @return The list with stored property names.
-	const PropertyNameList& GetRegisteredInheritedProperties() const;
+	const PropertyIdSet& GetRegisteredInheritedProperties() const;
 
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
@@ -223,8 +224,8 @@ private:
 	ShorthandIdNameMap shorthand_map;
 
 	// todo: Do we really need these?
-	PropertyNameList property_names;
-	PropertyNameList inherited_property_names;
+	PropertyIdSet property_names;
+	PropertyIdSet inherited_property_names;
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 

@@ -103,12 +103,12 @@ class Variant;
 class Transform;
 class Decorator;
 class FontEffect;
+class PropertyIdSet;
 struct Animation;
 struct Transition;
 struct TransitionList;
 struct Rectangle;
 enum class PropertyId : uint16_t;
-
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;
@@ -154,7 +154,6 @@ using ElementAnimationList = std::vector< ElementAnimation >;
 
 using PseudoClassList = SmallUnorderedSet< String >;
 using AttributeNameList = SmallUnorderedSet< String >;
-using PropertyNameList = SmallOrderedSet< PropertyId >;
 using PropertyMap = UnorderedMap< PropertyId, Property >;
 
 using Dictionary = SmallUnorderedMap< String, Variant >;

@@ -75,7 +75,7 @@ protected:
 	void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	void OnPropertyChange(const Core::PropertyNameList& changed_properties) override;
+	void OnPropertyChange(const Core::PropertyIdSet& changed_properties) override;
 
 	/// If we are the added element, this will pass the call onto our type handler.
 	/// @param[in] child The new member of the hierarchy.

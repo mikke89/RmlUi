@@ -234,7 +234,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 	{
 
 		Transition transition;
-		PropertyNameList target_property_names;
+		PropertyIdSet target_property_names;
 
 		StringList arguments;
 		StringUtilities::ExpandString(arguments, single_transition_value, ' ');
@@ -313,13 +313,13 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 					// Must be a property name or shorthand, expand now
 					if (auto shorthand = StyleSheetSpecification::GetShorthand(argument))
 					{
-						auto underlying_properties = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand->id);
-						target_property_names.insert(underlying_properties.begin(), underlying_properties.end());
+						PropertyIdSet underlying_properties = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand->id);
+						target_property_names |= underlying_properties;
 					}
 					else if (auto definition = StyleSheetSpecification::GetProperty(argument))
 					{
 						// Single property
-						target_property_names.insert(definition->GetId());
+						target_property_names.Insert(definition->GetId());
 					}
 					else
 					{
@@ -331,8 +331,8 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 		}
 
 		// Validate the parsed transition
-		if (target_property_names.empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
-			|| (transition_list.all && target_property_names.size() != 1))
+		if (target_property_names.Empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
+			|| (transition_list.all && target_property_names.Size() != 1))
 		{
 			return false;
 		}

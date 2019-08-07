@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "WidgetTextInputMultiLine.h"
 
 namespace Rml {
@@ -170,12 +171,12 @@ void ElementFormControlTextArea::OnAttributeChange(const Core::ElementAttributes
 }
 
 // Called when properties on the control are changed.
-void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyNameList& changed_properties)
+void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyIdSet& changed_properties)
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 
-	if (changed_properties.find(Core::PropertyId::Color) != changed_properties.end() ||
-		changed_properties.find(Core::PropertyId::BackgroundColor) != changed_properties.end())
+	if (changed_properties.Contains(Core::PropertyId::Color) ||
+		changed_properties.Contains(Core::PropertyId::BackgroundColor))
 		widget->UpdateSelectionColours();
 }
 

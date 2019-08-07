@@ -28,6 +28,7 @@
 
 #include "ElementTextSelection.h"
 #include "WidgetTextInput.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 
 namespace Rml {
 namespace Controls {
@@ -48,7 +49,7 @@ void ElementTextSelection::SetWidget(WidgetTextInput* _widget)
 }
 
 // Processes 'color' and 'background-color' property changes.
-void ElementTextSelection::OnPropertyChange(const Rml::Core::PropertyNameList& changed_properties)
+void ElementTextSelection::OnPropertyChange(const Rml::Core::PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
@@ -56,8 +57,8 @@ void ElementTextSelection::OnPropertyChange(const Rml::Core::PropertyNameList& c
 		return;
 
 	// Check for a colour change.
-	if (changed_properties.find(Core::PropertyId::Color) != changed_properties.end() ||
-		changed_properties.find(Core::PropertyId::BackgroundColor) != changed_properties.end())
+	if (changed_properties.Contains(Core::PropertyId::Color) ||
+		changed_properties.Contains(Core::PropertyId::BackgroundColor))
 	{
 		widget->UpdateSelectionColours();
 	}

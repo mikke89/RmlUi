@@ -106,7 +106,7 @@ protected:
 	void OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	void OnPropertyChange(const Core::PropertyNameList& changed_properties) override;
+	void OnPropertyChange(const Core::PropertyIdSet& changed_properties) override;
 
 	/// Returns the text content of the element.
 	/// @param[out] content The content of the element.

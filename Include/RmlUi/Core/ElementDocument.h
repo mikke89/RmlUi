@@ -125,7 +125,7 @@ public:
 	
 protected:
 	/// Repositions the document if necessary.
-	void OnPropertyChange(const PropertyNameList& changed_properties) override;
+	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 	/// Processes the 'onpropertychange' event, checking for a change in position or size.
 	void ProcessDefaultAction(Event& event) override;

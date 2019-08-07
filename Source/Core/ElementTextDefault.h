@@ -78,7 +78,7 @@ public:
 	void SuppressAutoLayout() override;
 
 protected:
-	void OnPropertyChange(const PropertyNameList& properties) override;
+	void OnPropertyChange(const PropertyIdSet& properties) override;
 
 	/// Returns the RML of this element
 	/// @param content[out] The raw text.

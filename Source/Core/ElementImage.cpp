@@ -156,12 +156,12 @@ void ElementImage::OnAttributeChange(const Rml::Core::ElementAttributes& changed
 		DirtyLayout();
 }
 
-void ElementImage::OnPropertyChange(const PropertyNameList& changed_properties)
+void ElementImage::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
     Element::OnPropertyChange(changed_properties);
 
-    if (changed_properties.find(PropertyId::ImageColor) != changed_properties.end() ||
-        changed_properties.find(PropertyId::Opacity) != changed_properties.end()) {
+    if (changed_properties.Contains(PropertyId::ImageColor) ||
+        changed_properties.Contains(PropertyId::Opacity)) {
         GenerateGeometry();
     }
 }

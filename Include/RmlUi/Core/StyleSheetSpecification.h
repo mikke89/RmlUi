@@ -37,7 +37,6 @@ namespace Rml {
 namespace Core {
 
 class PropertyParser;
-class DirtyPropertyList;
 
 /**
 	@author Peter Curry
@@ -77,11 +76,11 @@ public:
 
 	/// Returns the list of the names of all registered property definitions.
 	/// @return The list with stored property names.
-	static const PropertyNameList & GetRegisteredProperties();
+	static const PropertyIdSet & GetRegisteredProperties();
 
 	/// Returns the list of the names of all registered inherited property definitions.
 	/// @return The list with stored property names.
-	static const PropertyNameList & GetRegisteredInheritedProperties();
+	static const PropertyIdSet & GetRegisteredInheritedProperties();
 
 	/// Registers a custom shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
@@ -108,9 +107,11 @@ public:
 	static ShorthandId GetShorthandId(const String& shorthand_name);
 	static const String& GetPropertyName(PropertyId id);
 	static const String& GetShorthandName(ShorthandId id);
-	static const DirtyPropertyList& GetRegisteredInheritedPropertyBitList();
+	// todo: Now, this should be equal to GetRegisteredInheritedProperties():
+	static const PropertyIdSet& GetRegisteredInheritedPropertyBitList();
 
-	static std::vector<PropertyId> GetShorthandUnderlyingProperties(ShorthandId id);
+	// Get the underlying property ids associated by a shorthand.
+	static PropertyIdSet GetShorthandUnderlyingProperties(ShorthandId id);
 
 	static const PropertySpecification& GetPropertySpecification();
 

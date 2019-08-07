@@ -45,10 +45,10 @@ const Property* ElementDefinition::GetProperty(PropertyId id) const
 	return properties.GetProperty(id);
 }
 
-void ElementDefinition::GetDefinedProperties(PropertyNameList& property_names) const
+void ElementDefinition::GetDefinedProperties(PropertyIdSet& property_names) const
 {
 	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
-		property_names.insert((*i).first);
+		property_names.Insert((*i).first);
 }
 
 }

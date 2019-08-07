@@ -62,7 +62,6 @@ class FontFaceHandle;
 class PropertyDictionary;
 class RenderInterface;
 class StyleSheet;
-class DirtyPropertyList;
 struct ElementMeta;
 
 /**
@@ -591,7 +590,7 @@ protected:
 	virtual void OnAttributeChange(const ElementAttributes& changed_attributes);
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const PropertyIdSet& changed_properties);
 
 	/// Called when a child node has been added up to two levels below us in the hierarchy.
 	/// @param[in] child The element that has been added. This may be this element.

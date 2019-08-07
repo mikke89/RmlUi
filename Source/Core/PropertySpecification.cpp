@@ -40,7 +40,6 @@ PropertySpecification::PropertySpecification(size_t reserve_num_properties, size
 	// Increment reserve numbers by one because the 'invalid' property occupies the first element
 	properties(reserve_num_properties + 1, nullptr), shorthands(reserve_num_shorthands + 1, nullptr), property_map(reserve_num_properties + 1), shorthand_map(reserve_num_shorthands + 1)
 {
-	property_names.reserve(reserve_num_properties);
 }
 
 PropertySpecification::~PropertySpecification()
@@ -81,9 +80,9 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 	PropertyDefinition* property_definition = new PropertyDefinition(id, default_value, inherited, forces_layout);
 
 	properties[index] = property_definition;
-	property_names.insert(id);
+	property_names.Insert(id);
 	if (inherited)
-		inherited_property_names.insert(id);
+		inherited_property_names.Insert(id);
 
 	return *property_definition;
 }
@@ -103,13 +102,13 @@ const PropertyDefinition* PropertySpecification::GetProperty(const String& prope
 }
 
 // Fetches a list of the names of all registered property definitions.
-const PropertyNameList& PropertySpecification::GetRegisteredProperties(void) const
+const PropertyIdSet& PropertySpecification::GetRegisteredProperties(void) const
 {
 	return property_names;
 }
 
 // Fetches a list of the names of all registered property definitions.
-const PropertyNameList& PropertySpecification::GetRegisteredInheritedProperties(void) const
+const PropertyIdSet& PropertySpecification::GetRegisteredInheritedProperties(void) const
 {
 	return inherited_property_names;
 }

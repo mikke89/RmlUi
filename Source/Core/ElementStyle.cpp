@@ -36,6 +36,7 @@
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ElementBackground.h"
@@ -44,18 +45,18 @@
 #include "ElementDefinition.h"
 #include "FontFaceHandle.h"
 #include "ComputeProperty.h"
-#include "DirtyPropertyList.h"
 #include "PropertiesIterator.h"
 
 
 namespace Rml {
 namespace Core {
 
-ElementStyle::ElementStyle(Element* _element) : dirty_properties(true)
+ElementStyle::ElementStyle(Element* _element)
 {
 	definition = nullptr;
 	element = _element;
 
+	dirty_properties.SetAll();
 	definition_dirty = true;
 }
 
@@ -111,10 +112,10 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 
 // Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList& properties, const PropertyDictionary& inline_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition)
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition)
 {
 	RMLUI_ASSERT(element);
-	if (!old_definition || !new_definition || properties.empty())
+	if (!old_definition || !new_definition || properties.Empty())
 		return;
 
 	// We get the local property instead of the computed value here, because we want to intercept property changes even before the computed values are ready.
@@ -143,7 +144,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 				{
 					transition.id = *it;
 					if (add_transition(transition))
-						it = properties.erase(it);
+						it = properties.Erase(it);
 					else
 						++it;
 				}
@@ -152,11 +153,10 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyNameList&
 			{
 				for (auto& transition : transition_list.transitions)
 				{
-					auto it = properties.find(transition.id);
-					if (it != properties.end())
+					if (properties.Contains(transition.id))
 					{
 						if (add_transition(transition))
-							properties.erase(it);
+							properties.Erase(transition.id);
 					}
 				}
 			}
@@ -182,12 +182,12 @@ void ElementStyle::UpdateDefinition()
 		{
 			// Since we had no definition before there is a likelihood that everything is dirty.
 			// We could do as in the next else-if block, but this is considerably faster.
-			dirty_properties.DirtyAll();
+			dirty_properties.SetAll();
 			definition = new_definition;
 		}
 		else if (new_definition != definition)
 		{
-			PropertyNameList changed_properties;
+			PropertyIdSet changed_properties;
 			
 			if (definition)
 				definition->GetDefinedProperties(changed_properties);
@@ -198,13 +198,14 @@ void ElementStyle::UpdateDefinition()
 			if (definition && new_definition)
 			{
 				// Remove properties that compare equal from the changed list.
+				// todo/performance: We can 'and' two property id sets instead and only compare the resulting set.
 				for (auto it = changed_properties.begin(); it != changed_properties.end();)
 				{
 					PropertyId id = *it;
 					const Property* p0 = definition->GetProperty(id);
 					const Property* p1 = new_definition->GetProperty(id);
 					if (p0 && p1 && *p0 == *p1)
-						it = changed_properties.erase(it);
+						it = changed_properties.Erase(it);
 					else
 						++it;
 				}
@@ -488,24 +489,25 @@ void ElementStyle::DirtyProperty(PropertyId id)
 }
 
 // Sets a list of properties as dirty.
-void ElementStyle::DirtyProperties(const PropertyNameList& properties)
+void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 {
-	dirty_properties.Insert(properties);
+	dirty_properties |= properties;
 }
 
 // Sets a list of our potentially inherited properties as dirtied by an ancestor.
-void ElementStyle::DirtyInheritedProperties(const PropertyNameList& properties)
+void ElementStyle::DirtyInheritedProperties(const PropertyIdSet& properties)
 {
-	dirty_properties.Insert(properties);
+	// todo: We no longer need to do anything special (inheritance handled in computevalues): Can safely remove function, replace with DirtyProperties().
+	dirty_properties |= properties;
 }
 
-static void DirtyEmProperties(DirtyPropertyList& dirty_properties, Element* element)
+static void DirtyEmProperties(PropertyIdSet& dirty_properties, Element* element)
 {
 	// Either we can dirty every property, or we can iterate over all properties and see if anyone uses em-units.
 	// Choose whichever is fastest based on benchmarking.
 #if 1
 	// Dirty every property
-	dirty_properties.DirtyAll();
+	dirty_properties.SetAll();
 #else
 	if (dirty_properties.AllDirty())
 		return;
@@ -526,10 +528,10 @@ static void DirtyEmProperties(DirtyPropertyList& dirty_properties, Element* elem
 }
 
 
-DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
+PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
 {
 	if (dirty_properties.Empty())
-		return DirtyPropertyList();
+		return PropertyIdSet();
 
 	// Generally, this is how it works:
 	//   1. Assign default values (clears any removed properties)
@@ -889,7 +891,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 
 	// Next, pass inheritable dirty properties onto our children
 	// @performance: We might avoid an allocation here in case of dirty non-inherited custom properties. Instead of the initial copy and &=, introduce & operator.
-	DirtyPropertyList dirty_inherited_properties = dirty_properties;
+	PropertyIdSet dirty_inherited_properties = dirty_properties;
 	dirty_inherited_properties &= StyleSheetSpecification::GetRegisteredInheritedPropertyBitList();
 
 	if (!dirty_inherited_properties.Empty())
@@ -901,7 +903,7 @@ DirtyPropertyList ElementStyle::ComputeValues(Style::ComputedValues& values, con
 		}
 	}
 	
-	DirtyPropertyList result(std::move(dirty_properties));
+	PropertyIdSet result(std::move(dirty_properties));
 	dirty_properties.Clear();
 	return result;
 }

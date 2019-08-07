@@ -75,7 +75,7 @@ bool InputType::OnAttributeChange(const Core::ElementAttributes& RMLUI_UNUSED_PA
 }
 
 // Called when properties on the control are changed.
-void InputType::OnPropertyChange(const Core::PropertyNameList& RMLUI_UNUSED_PARAMETER(changed_properties))
+void InputType::OnPropertyChange(const Core::PropertyIdSet& RMLUI_UNUSED_PARAMETER(changed_properties))
 {
 	RMLUI_UNUSED(changed_properties);
 }

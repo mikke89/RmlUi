@@ -56,7 +56,7 @@ public:
 
 	/// Returns the list of property ids this element definition defines.
 	/// @param[out] property_names The list to store the defined property ids in.
-	void GetDefinedProperties(PropertyNameList& property_names) const;
+	void GetDefinedProperties(PropertyIdSet& property_names) const;
 
 	const PropertyDictionary& GetProperties() const { return properties; }
 
