@@ -72,6 +72,7 @@ public:
 			defined_ids.reset((size_t)id);
 		else
 			custom_ids.erase(id);
+		defined_ids.reset(0);
 	}
 
 	bool Empty() const {
@@ -104,6 +105,13 @@ public:
 		return *this;
 	}
 
+	PropertyIdSet operator|(const PropertyIdSet& other) const
+	{
+		PropertyIdSet result = *this;
+		result |= other;
+		return result;
+	}
+
 	// Intersection with another set
 	PropertyIdSet& operator&=(const PropertyIdSet& other)
 	{
@@ -121,6 +129,19 @@ public:
 			custom_ids.clear();
 		}
 		return *this;
+	}
+	
+	PropertyIdSet operator&(const PropertyIdSet& other) const
+	{
+		PropertyIdSet result;
+		result.defined_ids = (defined_ids & other.defined_ids);
+		if (custom_ids.size() > 0 && other.custom_ids.size() > 0 && !defined_ids.test(0))
+		{
+			for (PropertyId id : custom_ids)
+				if (other.custom_ids.count(id) == 1)
+					result.custom_ids.insert(id);
+		}
+		return result;
 	}
 
 	// Iterator support

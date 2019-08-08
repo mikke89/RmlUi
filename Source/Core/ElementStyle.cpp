@@ -190,24 +190,22 @@ void ElementStyle::UpdateDefinition()
 			PropertyIdSet changed_properties;
 			
 			if (definition)
-				definition->GetDefinedProperties(changed_properties);
+				changed_properties = definition->GetPropertyIds();
 
 			if (new_definition)
-				new_definition->GetDefinedProperties(changed_properties);
+				changed_properties |= new_definition->GetPropertyIds();
 
 			if (definition && new_definition)
 			{
 				// Remove properties that compare equal from the changed list.
-				// todo/performance: We can 'and' two property id sets instead and only compare the resulting set.
-				for (auto it = changed_properties.begin(); it != changed_properties.end();)
+				const PropertyIdSet properties_in_both_definitions = (definition->GetPropertyIds() & new_definition->GetPropertyIds());
+
+				for (PropertyId id : properties_in_both_definitions)
 				{
-					PropertyId id = *it;
 					const Property* p0 = definition->GetProperty(id);
 					const Property* p1 = new_definition->GetProperty(id);
 					if (p0 && p1 && *p0 == *p1)
-						it = changed_properties.Erase(it);
-					else
-						++it;
+						changed_properties.Erase(id);
 				}
 			}
 
@@ -494,13 +492,6 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 	dirty_properties |= properties;
 }
 
-// Sets a list of our potentially inherited properties as dirtied by an ancestor.
-void ElementStyle::DirtyInheritedProperties(const PropertyIdSet& properties)
-{
-	// todo: We no longer need to do anything special (inheritance handled in computevalues): Can safely remove function, replace with DirtyProperties().
-	dirty_properties |= properties;
-}
-
 static void DirtyEmProperties(PropertyIdSet& dirty_properties, Element* element)
 {
 	// Either we can dirty every property, or we can iterate over all properties and see if anyone uses em-units.
@@ -537,6 +528,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	//   1. Assign default values (clears any removed properties)
 	//   2. Inherit inheritable values from parent
 	//   3. Assign any local properties (from inline style or stylesheet)
+	//   4. Dirty properties in children that are inherited
 
 	const float font_size_before = values.font_size;
 	const Style::LineHeight line_height_before = values.line_height;
@@ -890,9 +882,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 
 	// Next, pass inheritable dirty properties onto our children
-	// @performance: We might avoid an allocation here in case of dirty non-inherited custom properties. Instead of the initial copy and &=, introduce & operator.
-	PropertyIdSet dirty_inherited_properties = dirty_properties;
-	dirty_inherited_properties &= StyleSheetSpecification::GetRegisteredInheritedProperties();
+	PropertyIdSet dirty_inherited_properties = (dirty_properties & StyleSheetSpecification::GetRegisteredInheritedProperties());
 
 	if (!dirty_inherited_properties.Empty())
 	{

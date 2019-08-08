@@ -136,8 +136,6 @@ private:
 	void DirtyProperty(PropertyId id);
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
-	// Sets a list of our potentially inherited properties as dirtied by an ancestor.
-	void DirtyInheritedProperties(const PropertyIdSet& properties);
 
 	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary & inline_properties, const ElementDefinition * definition);
 	static const Property* GetProperty(PropertyId id, const Element * element, const PropertyDictionary & inline_properties, const ElementDefinition * definition);

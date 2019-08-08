@@ -38,6 +38,9 @@ ElementDefinition::ElementDefinition(const std::vector< const StyleSheetNode* >&
 	// Initialises the element definition from the list of style sheet nodes.
 	for (size_t i = 0; i < style_sheet_nodes.size(); ++i)
 		properties.Merge(style_sheet_nodes[i]->GetProperties());
+
+	for (auto& property : properties.GetProperties())
+		property_ids.Insert(property.first);
 }
 
 const Property* ElementDefinition::GetProperty(PropertyId id) const
@@ -45,10 +48,9 @@ const Property* ElementDefinition::GetProperty(PropertyId id) const
 	return properties.GetProperty(id);
 }
 
-void ElementDefinition::GetDefinedProperties(PropertyIdSet& property_names) const
+const PropertyIdSet& ElementDefinition::GetPropertyIds() const
 {
-	for (PropertyMap::const_iterator i = properties.GetProperties().begin(); i != properties.GetProperties().end(); ++i)
-		property_names.Insert((*i).first);
+	return property_ids;
 }
 
 }
