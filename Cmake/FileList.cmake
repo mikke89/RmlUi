@@ -48,6 +48,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutEngine.h

@@ -26,7 +26,6 @@
  *
  */
 
- 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
@@ -37,6 +36,7 @@
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
 #include "PropertyShorthandDefinition.h"
+#include "IdNameMap.h"
 
 namespace Rml {
 namespace Core {
@@ -44,16 +44,12 @@ namespace Core {
 
 static StyleSheetSpecification* instance = nullptr;
 
-static PropertyIdSet registered_inherited_properties;
-
-
 StyleSheetSpecification::StyleSheetSpecification() : 
 	// Reserve space for all defined ids and some more for custom properties
 	properties(2 * (size_t)PropertyId::NumDefinedIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
 	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
-	registered_inherited_properties.Clear();
 }
 
 StyleSheetSpecification::~StyleSheetSpecification()
@@ -64,10 +60,7 @@ StyleSheetSpecification::~StyleSheetSpecification()
 
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	auto& result = properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
-	if (inherited)
-		registered_inherited_properties.Insert(result.GetId());
-	return result;
+	return properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
 }
 
 ShorthandId StyleSheetSpecification::RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type)
@@ -123,7 +116,7 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 // Registers a property with a new definition.
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	RMLUI_ASSERTMSG((size_t)instance->properties.property_map.GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
+	RMLUI_ASSERTMSG((size_t)instance->properties.property_map->GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
 	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, inherited, forces_layout); 
 }
 
@@ -152,8 +145,8 @@ const PropertyIdSet & StyleSheetSpecification::GetRegisteredInheritedProperties(
 // Registers a shorthand property definition.
 ShorthandId StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
-	RMLUI_ASSERTMSG(instance->properties.property_map.GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
-	RMLUI_ASSERTMSG((size_t)instance->properties.shorthand_map.GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
+	RMLUI_ASSERTMSG(instance->properties.property_map->GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
+	RMLUI_ASSERTMSG((size_t)instance->properties.shorthand_map->GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
 	return instance->properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
@@ -176,27 +169,22 @@ bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dicti
 
 PropertyId StyleSheetSpecification::GetPropertyId(const String& property_name)
 {
-	return instance->properties.property_map.GetId(property_name);
+	return instance->properties.property_map->GetId(property_name);
 }
 
 ShorthandId StyleSheetSpecification::GetShorthandId(const String& shorthand_name)
 {
-	return instance->properties.shorthand_map.GetId(shorthand_name);
+	return instance->properties.shorthand_map->GetId(shorthand_name);
 }
 
 const String& StyleSheetSpecification::GetPropertyName(PropertyId id)
 {
-	return instance->properties.property_map.GetName(id);
+	return instance->properties.property_map->GetName(id);
 }
 
 const String& StyleSheetSpecification::GetShorthandName(ShorthandId id)
 {
-	return instance->properties.shorthand_map.GetName(id);
-}
-
-const PropertyIdSet& StyleSheetSpecification::GetRegisteredInheritedPropertyBitList()
-{
-	return registered_inherited_properties;
+	return instance->properties.shorthand_map->GetName(id);
 }
 
 PropertyIdSet StyleSheetSpecification::GetShorthandUnderlyingProperties(ShorthandId id)
@@ -378,8 +366,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("string");
 	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("string");
 
-	instance->properties.property_map.AssertAllInserted(PropertyId::NumDefinedIds);
-	instance->properties.shorthand_map.AssertAllInserted(ShorthandId::NumDefinedIds);
+	instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds);
+	instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds);
 }
 
 }

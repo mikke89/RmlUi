@@ -39,85 +39,9 @@ namespace Core {
 
 class StyleSheetSpecification;
 class PropertyDictionary;
+class PropertyIdNameMap;
+class ShorthandIdNameMap;
 struct ShorthandDefinition;
-
-
-// todo: We probably don't need to expose this in a public header
-template <typename ID>
-class IdNameMap {
-	std::vector<String> name_map;  // IDs are indices into the name_map
-	UnorderedMap<String, ID> reverse_map;
-
-protected:
-	IdNameMap(size_t num_ids_to_reserve) {
-		static_assert((int)ID::Invalid == 0, "Invalid id must be zero");
-		name_map.reserve(num_ids_to_reserve);
-		reverse_map.reserve(num_ids_to_reserve);
-		AddPair(ID::Invalid, "invalid");
-	}
-
-public:
-	void AddPair(ID id, const String& name) {
-		// Should only be used for defined IDs
-		if ((size_t)id >= name_map.size())
-			name_map.resize(1 + (size_t)id);
-		name_map[(size_t)id] = name;
-		bool inserted = reverse_map.emplace(name, id).second;
-		RMLUI_ASSERT(inserted);
-		(void)inserted;
-	}
-
-	void AssertAllInserted(ID last_property_inserted) const {
-		ptrdiff_t cnt = std::count_if(name_map.begin(), name_map.end(), [](const String& name) { return !name.empty(); });
-		RMLUI_ASSERT(cnt == (ptrdiff_t)last_property_inserted && reverse_map.size() == (size_t)last_property_inserted);
-		(void)cnt;
-	}
-
-	ID GetId(const String& name) const
-	{
-		auto it = reverse_map.find(name);
-		if (it != reverse_map.end())
-			return it->second;
-		return ID::Invalid;
-	}
-	const String& GetName(ID id) const
-	{
-		if (static_cast<size_t>(id) < name_map.size())
-			return name_map[static_cast<size_t>(id)];
-		return name_map[static_cast<size_t>(ID::Invalid)];
-	}
-
-	ID GetOrCreateId(const String& name)
-	{
-		// All predefined properties must be set before adding custom properties here
-		RMLUI_ASSERT(name_map.size() == reverse_map.size());
-
-		ID next_id = static_cast<ID>(name_map.size());
-
-		// Only insert if not already in list
-		auto pair = reverse_map.emplace(name, next_id);
-		const auto& it = pair.first;
-		bool inserted = pair.second;
-
-		if (inserted)
-			name_map.push_back(name);
-
-		// Return the property id that already existed, or the new one if inserted
-		return it->second;
-	}
-};
-
-class PropertyIdNameMap : public IdNameMap<PropertyId> {
-public:
-	PropertyIdNameMap(size_t reserve_num_properties) : IdNameMap(reserve_num_properties) {}
-};
-
-class ShorthandIdNameMap : public IdNameMap<ShorthandId> {
-public:
-	ShorthandIdNameMap(size_t reserve_num_shorthands) : IdNameMap(2 * (size_t)ShorthandId::NumDefinedIds) {}
-};
-
-
 
 enum class ShorthandType
 {
@@ -134,19 +58,6 @@ enum class ShorthandType
 	RecursiveCommaSeparated
 };
 
-enum class ShorthandItemType { Invalid, Property, Shorthand };
-struct ShorthandItemId {
-	ShorthandItemId() : type(ShorthandItemType::Invalid) {}
-	ShorthandItemId(PropertyId id) : type(ShorthandItemType::Property), property_id(id) {}
-	ShorthandItemId(ShorthandId id) : type(ShorthandItemType::Shorthand), shorthand_id(id) {}
-
-	ShorthandItemType type;
-	union {
-		PropertyId property_id;
-		ShorthandId shorthand_id;
-	};
-};
-using ShorthandItemIdList = std::vector<ShorthandItemId>;
 
 /**
 	A property specification stores a group of property definitions.
@@ -174,12 +85,10 @@ public:
 	const PropertyDefinition* GetProperty(PropertyId id) const;
 	const PropertyDefinition* GetProperty(const String& property_name) const;
 
-	/// Returns the list of the names of all registered property definitions.
-	/// @return The list with stored property names.
+	/// Returns the id set of all registered property definitions.
 	const PropertyIdSet& GetRegisteredProperties() const;
 
-	/// Returns the list of the names of all registered inherited property definitions.
-	/// @return The list with stored property names.
+	/// Returns the id set of all registered inherited property definitions.
 	const PropertyIdSet& GetRegisteredInheritedProperties() const;
 
 	/// Registers a shorthand property definition.
@@ -197,33 +106,29 @@ public:
 
 	/// Parse declaration by name, whether its a property or shorthand.
 	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
-
+	/// Parse property declaration by ID
 	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
-
-	/// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
-	/// @param dictionary The property dictionary which will hold all declared properties.
-	/// @param property_name The name of the declared property.
-	/// @param property_value The values the property is being set to.
+	/// Parses a shorthand declaration, setting any parsed and validated properties on the given dictionary.
 	/// @return True if all properties were parsed successfully, false otherwise.
 	bool ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
+
 	/// Sets all undefined properties in the dictionary to their defaults.
-	/// @param dictionary[in] The dictionary to set the default values on.
+	/// @param dictionary[in-out] The dictionary to set the default values on.
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;
 
 	/// Returns the properties of dictionary converted to a string.
 	String PropertiesToString(const PropertyDictionary& dictionary) const;
 
 private:
-	typedef std::vector< PropertyDefinition* > Properties;
-	typedef std::vector< ShorthandDefinition* > Shorthands;
+	using Properties = std::vector< UniquePtr<PropertyDefinition> >;
+	using Shorthands = std::vector< UniquePtr<ShorthandDefinition> >;
 
 	Properties properties;
 	Shorthands shorthands;
 
-	PropertyIdNameMap property_map;
-	ShorthandIdNameMap shorthand_map;
+	UniquePtr<PropertyIdNameMap> property_map;
+	UniquePtr<ShorthandIdNameMap> shorthand_map;
 
-	// todo: Do we really need these?
 	PropertyIdSet property_names;
 	PropertyIdSet inherited_property_names;
 

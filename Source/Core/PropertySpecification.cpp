@@ -28,35 +28,34 @@
 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
-#include "PropertyShorthandDefinition.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "PropertyShorthandDefinition.h"
+#include "IdNameMap.h"
 
 namespace Rml {
 namespace Core {
 
+
 PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) : 
 	// Increment reserve numbers by one because the 'invalid' property occupies the first element
-	properties(reserve_num_properties + 1, nullptr), shorthands(reserve_num_shorthands + 1, nullptr), property_map(reserve_num_properties + 1), shorthand_map(reserve_num_shorthands + 1)
+	properties(reserve_num_properties + 1), shorthands(reserve_num_shorthands + 1),
+	property_map(std::make_unique<PropertyIdNameMap>(reserve_num_properties + 1)), shorthand_map(std::make_unique<ShorthandIdNameMap>(reserve_num_shorthands + 1))
 {
 }
 
 PropertySpecification::~PropertySpecification()
 {
-	for (PropertyDefinition* p : properties)
-		delete p;
-	for (ShorthandDefinition* s : shorthands)
-		delete s;
 }
 
 // Registers a property with a new definition.
 PropertyDefinition& PropertySpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id)
 {
 	if (id == PropertyId::Invalid)
-		id = property_map.GetOrCreateId(property_name);
+		id = property_map->GetOrCreateId(property_name);
 	else
-		property_map.AddPair(id, property_name);
+		property_map->AddPair(id, property_name);
 
 	size_t index = (size_t)id;
 	RMLUI_ASSERT(index < (size_t)INT16_MAX);
@@ -73,18 +72,16 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 	else
 	{
 		// Resize vector to hold the new index
-		properties.resize((index*3)/2 + 1, nullptr);
+		properties.resize((index*3)/2 + 1);
 	}
 
 	// Create and insert the new property
-	PropertyDefinition* property_definition = new PropertyDefinition(id, default_value, inherited, forces_layout);
-
-	properties[index] = property_definition;
+	properties[index] = std::make_unique<PropertyDefinition>(id, default_value, inherited, forces_layout);
 	property_names.Insert(id);
 	if (inherited)
 		inherited_property_names.Insert(id);
 
-	return *property_definition;
+	return *properties[index];
 }
 
 // Returns a property definition.
@@ -93,12 +90,12 @@ const PropertyDefinition* PropertySpecification::GetProperty(PropertyId id) cons
 	if (id == PropertyId::Invalid || (size_t)id >= properties.size())
 		return nullptr;
 
-	return properties[(size_t)id];
+	return properties[(size_t)id].get();
 }
 
 const PropertyDefinition* PropertySpecification::GetProperty(const String& property_name) const
 {
-	return GetProperty(property_map.GetId(property_name));
+	return GetProperty(property_map->GetId(property_name));
 }
 
 // Fetches a list of the names of all registered property definitions.
@@ -117,56 +114,43 @@ const PropertyIdSet& PropertySpecification::GetRegisteredInheritedProperties(voi
 ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id)
 {
 	if (id == ShorthandId::Invalid)
-		id = shorthand_map.GetOrCreateId(shorthand_name);
+		id = shorthand_map->GetOrCreateId(shorthand_name);
 	else
-		shorthand_map.AddPair(id, shorthand_name);
+		shorthand_map->AddPair(id, shorthand_name);
 
 	StringList property_list;
 	StringUtilities::ExpandString(property_list, ToLower(property_names));
-	ShorthandItemIdList id_list;
-	id_list.reserve(property_list.size());
-
-	for (auto& name : property_list)
-	{
-		PropertyId property_id = property_map.GetId(name);
-		if (property_id != PropertyId::Invalid)
-			id_list.emplace_back(property_id);
-		else
-		{
-			ShorthandId shorthand_id = shorthand_map.GetId(name);
-			if (shorthand_id != ShorthandId::Invalid)
-				id_list.emplace_back(shorthand_id);
-		}
-	}
-
-	if (id_list.empty() || id_list.size() != property_list.size())
-		return ShorthandId::Invalid;
-
-	if (id_list.empty())
-		return ShorthandId::Invalid;
 
 	// Construct the new shorthand definition and resolve its properties.
 	UniquePtr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());
-	for (size_t i = 0; i < id_list.size(); i++)
+
+	for (const String& name : property_list)
 	{
 		ShorthandItem item;
-		if (id_list[i].type == ShorthandItemType::Property)
+
+		PropertyId property_id = property_map->GetId(name);
+		if (property_id != PropertyId::Invalid)
 		{
-			const PropertyDefinition* property = GetProperty(id_list[i].property_id);
-			if(property)
-				item = ShorthandItem(id_list[i].property_id, property);
+			// We have a valid property
+			if (const PropertyDefinition* property = GetProperty(property_id))
+				item = ShorthandItem(property_id, property);
 		}
-		else if (id_list[i].type == ShorthandItemType::Shorthand && (type == ShorthandType::Recursive || type == ShorthandType::RecursiveCommaSeparated))
+		else
 		{
-			// The recursive types (and only those) can hold other shorthands
-			const ShorthandDefinition* shorthand = GetShorthand(id_list[i].shorthand_id);
-			if (shorthand)
-				item = ShorthandItem(id_list[i].shorthand_id, shorthand);
+			// Otherwise, we must be a shorthand
+			ShorthandId shorthand_id = shorthand_map->GetId(name);
+
+			// Test for valid shorthand id. The recursive types (and only those) can hold other shorthands.
+			if (shorthand_id != ShorthandId::Invalid && (type == ShorthandType::Recursive || type == ShorthandType::RecursiveCommaSeparated))
+			{
+				if (const ShorthandDefinition * shorthand = GetShorthand(shorthand_id))
+					item = ShorthandItem(shorthand_id, shorthand);
+			}
 		}
 
 		if (item.type == ShorthandItemType::Invalid)
 		{
-			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.c_str(), property_list[i].c_str());
+			Log::Message(Log::LT_ERROR, "Shorthand property '%s' was registered with invalid property '%s'.", shorthand_name.c_str(), name.c_str());
 			return ShorthandId::Invalid;
 		}
 		property_shorthand->items.push_back(item);
@@ -190,10 +174,10 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 	else
 	{
 		// Resize vector to hold the new index
-		shorthands.resize((index * 3) / 2 + 1, nullptr);
+		shorthands.resize((index * 3) / 2 + 1);
 	}
 
-	shorthands[index] = property_shorthand.release();
+	shorthands[index] = std::move(property_shorthand);
 	return id;
 }
 
@@ -203,23 +187,23 @@ const ShorthandDefinition* PropertySpecification::GetShorthand(ShorthandId id) c
 	if (id == ShorthandId::Invalid || (size_t)id >= shorthands.size())
 		return nullptr;
 
-	return shorthands[(size_t)id];
+	return shorthands[(size_t)id].get();
 }
 
 const ShorthandDefinition* PropertySpecification::GetShorthand(const String& shorthand_name) const
 {
-	return GetShorthand(shorthand_map.GetId(shorthand_name));
+	return GetShorthand(shorthand_map->GetId(shorthand_name));
 }
 
 bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number) const
 {
 	// Try as a property first
-	PropertyId property_id = property_map.GetId(property_name);
+	PropertyId property_id = property_map->GetId(property_name);
 	if (property_id != PropertyId::Invalid)
 		return ParsePropertyDeclaration(dictionary, property_id, property_value, source_file, source_line_number);
 
 	// Then, as a shorthand
-	ShorthandId shorthand_id = shorthand_map.GetId(property_name);
+	ShorthandId shorthand_id = shorthand_map->GetId(property_name);
 	if (shorthand_id != ShorthandId::Invalid)
 		return ParseShorthandDeclaration(dictionary, shorthand_id, property_value, source_file, source_line_number);
 
@@ -383,7 +367,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 // Sets all undefined properties in the dictionary to their defaults.
 void PropertySpecification::SetPropertyDefaults(PropertyDictionary& dictionary) const
 {
-	for (PropertyDefinition* property : properties)
+	for (const auto& property : properties)
 	{
 		if (property && dictionary.GetProperty(property->GetId()) == nullptr)
 			dictionary.SetProperty(property->GetId(), *property->GetDefaultValue());
@@ -395,7 +379,7 @@ String PropertySpecification::PropertiesToString(const PropertyDictionary& dicti
 	String result;
 	for (auto& pair : dictionary.GetProperties())
 	{
-		result += property_map.GetName(pair.first) + ": " + pair.second.ToString() + '\n';
+		result += property_map->GetName(pair.first) + ": " + pair.second.ToString() + '\n';
 	}
 	return result;
 }

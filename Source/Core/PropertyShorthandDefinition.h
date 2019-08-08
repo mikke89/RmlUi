@@ -29,19 +29,17 @@
 #ifndef RMLUICOREPROPERTYSHORTHANDDEFINITION_H
 #define RMLUICOREPROPERTYSHORTHANDDEFINITION_H
 
-#include "../../Include/RmlUi/Core/PropertySpecification.h"
+#include "../../Include/RmlUi/Core/ID.h"
 
 namespace Rml {
 namespace Core {
 
+enum class ShorthandType;
 class PropertyDefinition;
 
-/**
-	@author Peter Curry
- */
+enum class ShorthandItemType { Invalid, Property, Shorthand };
 
-
-
+// Each entry in a shorthand points either to another shorthand or a property
 struct ShorthandItem {
 	ShorthandItem() : type(ShorthandItemType::Invalid), property_id(PropertyId::Invalid), property_definition(nullptr) {}
 	ShorthandItem(PropertyId id, const PropertyDefinition* definition) : type(ShorthandItemType::Property), property_id(id), property_definition(definition) {}
@@ -49,19 +47,17 @@ struct ShorthandItem {
 
 	ShorthandItemType type;
 	union {
-		struct {
-			PropertyId property_id;
-			const PropertyDefinition* property_definition;
-		};
-		struct {
-			ShorthandId shorthand_id;
-			const ShorthandDefinition* shorthand_definition;
-		};
+		PropertyId property_id;
+		ShorthandId shorthand_id;
+	};
+	union {
+		const PropertyDefinition* property_definition;
+		const ShorthandDefinition* shorthand_definition;
 	};
 };
 
 // A list of shorthands or properties
-typedef std::vector< ShorthandItem > ShorthandItemList;
+using ShorthandItemList = std::vector< ShorthandItem >;
 
 struct ShorthandDefinition
 {

@@ -892,7 +892,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	// Next, pass inheritable dirty properties onto our children
 	// @performance: We might avoid an allocation here in case of dirty non-inherited custom properties. Instead of the initial copy and &=, introduce & operator.
 	PropertyIdSet dirty_inherited_properties = dirty_properties;
-	dirty_inherited_properties &= StyleSheetSpecification::GetRegisteredInheritedPropertyBitList();
+	dirty_inherited_properties &= StyleSheetSpecification::GetRegisteredInheritedProperties();
 
 	if (!dirty_inherited_properties.Empty())
 	{

@@ -107,8 +107,6 @@ public:
 	static ShorthandId GetShorthandId(const String& shorthand_name);
 	static const String& GetPropertyName(PropertyId id);
 	static const String& GetShorthandName(ShorthandId id);
-	// todo: Now, this should be equal to GetRegisteredInheritedProperties():
-	static const PropertyIdSet& GetRegisteredInheritedPropertyBitList();
 
 	// Get the underlying property ids associated by a shorthand.
 	static PropertyIdSet GetShorthandUnderlyingProperties(ShorthandId id);
