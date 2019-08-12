@@ -5,8 +5,8 @@
 		<style>
 			body
 			{
-				width: 350px;
-				height: 350px;
+				width: 440px;
+				height: 440px;
 				
 				margin: auto;
 			}
@@ -25,7 +25,11 @@
 			{
 				min-height: 200px;
 			}
-			
+			datagrid datagridrow
+			{
+				padding-top: 7px;
+				padding-bottom: 7px;
+			}
 			defender
 			{
 				display: block;
@@ -61,13 +65,13 @@ function HighScore.OnKeyDown(event)
 end
 		</script>
 	</head>
-	<body template="luawindow" onload="HighScore.OnLoad(document) Game.SubmitHighScore()" onunload="Game.SetHighScoreName('Anon')">
+	<body template="luawindow" onload="HighScore.OnLoad(document) Game.SubmitHighScore()">
 		<datagrid id="datagrid" source="high_scores.scores" min-rows="10">
 			<col fields="name,name_required" formatter="name" width="40%">Pilot</col>
 			<col fields="colour" formatter="ship" width="20%">Ship</col>
 			<col fields="wave" width="20%">Wave</col>
 			<col fields="score" width="20%">Score</col>
 		</datagrid>
-		<button onclick="Window.LoadMenu('main_menu',document)">Main Menu</button>
+		<button onclick="Game.SetHighScoreName('Anon') Window.LoadMenu('main_menu',document)">Main Menu</button>
 	</body>
 </rml>
