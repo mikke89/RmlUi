@@ -111,6 +111,10 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 	ScaleTileDimensions(bottom_dimensions, padded_size.x, 0);
 	ScaleTileDimensions(centre_dimensions, padded_size.x, 0);
 
+	// Round the outer tile heights now so that we don't get gaps when rounding again in GenerateGeometry.
+	top_dimensions.y = Math::RoundFloat(top_dimensions.y);
+	bottom_dimensions.y = Math::RoundFloat(bottom_dimensions.y);
+
 	// Shrink the y-sizes on the left and right tiles if necessary.
 	if (padded_size.y < top_dimensions.y + bottom_dimensions.y)
 	{
@@ -144,11 +148,11 @@ void DecoratorTiledVertical::ReleaseElementData(DecoratorDataHandle element_data
 // Called to render the decorator on an element.
 void DecoratorTiledVertical::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
-	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING);
+	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING).Round();
 	DecoratorTiledVerticalData* data = reinterpret_cast< DecoratorTiledVerticalData* >(element_data);
 
 	for (int i = 0; i < 3; i++)
-		data->geometry[i]->Render(translation.Round());
+		data->geometry[i]->Render(translation);
 }
 
 }

@@ -24,7 +24,7 @@
 			div
 			{
 				height: 47px;
-				padding: 9px 0px 0px 65px;
+				padding: 8px 0px 0px 65px;
 				margin: 0px 20px;
 
 				font-size: 20px;
