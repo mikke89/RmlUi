@@ -159,6 +159,12 @@ if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DRMLUI_STATIC_LIB)
 endif()
 
+option(NO_THIRDPARTY_CONTAINERS "Only use standard library containers." OFF)
+if( NO_THIRDPARTY_CONTAINERS )
+	add_definitions(-DRMLUI_NO_THIRDPARTY_CONTAINERS)
+	message("-- No third-party containers will be used: Make sure to #define RMLUI_NO_THIRDPARTY_CONTAINERS before including RmlUi in your project.")
+endif()
+
 #===================================
 # Find dependencies ================
 #===================================

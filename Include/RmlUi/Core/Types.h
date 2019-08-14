@@ -37,16 +37,17 @@
 #include <set>
 #include <unordered_set>
 #include <vector>
-#include "Containers/chobo/flat_map.hpp"
-#include "Containers/chobo/flat_set.hpp"
-#include "Containers/robin_hood.h"
 
 #include "Platform.h"
 #include "Debug.h"
 #include "Traits.h"
 
-#ifdef RMLUI_DEBUG
+#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 #include <unordered_map>
+#else
+#include "Containers/chobo/flat_map.hpp"
+#include "Containers/chobo/flat_set.hpp"
+#include "Containers/robin_hood.h"
 #endif
 
 namespace Rml {
@@ -129,22 +130,26 @@ using ElementPtr = UniqueReleaserPtr<Element>;
 using ContextPtr = UniqueReleaserPtr<Context>;
 using EventPtr = UniqueReleaserPtr<Event>;
 
-// Custom containers
-#ifdef RMLUI_DEBUG
+// Containers
+#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 template <typename Key, typename Value>
 using UnorderedMap = std::unordered_map< Key, Value >;
+template <typename Key, typename Value>
+using SmallUnorderedMap = UnorderedMap< Key, Value >;
+template <typename T>
+using SmallOrderedSet = std::set< T >;
+template <typename T>
+using SmallUnorderedSet = std::unordered_set< T >;
 #else
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
-#endif
 template <typename Key, typename Value>
 using SmallUnorderedMap = chobo::flat_map< Key, Value >;
 template <typename T>
 using SmallOrderedSet = chobo::flat_set< T >;
 template <typename T>
 using SmallUnorderedSet = chobo::flat_set< T >;
-// Note: Right now the SmallOrderedSet and SmallUnorderedSet use the same container. However, as we may 
-// want to change this later, use the ordered container strictly when a sorted container is needed.
+#endif
 
 
 // Container types for common classes
