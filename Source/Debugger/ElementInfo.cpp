@@ -499,9 +499,13 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 		if (primary_element->GetProperty(property_id) != property)
 			continue;
 
-		NamedPropertyMap::iterator i = property_map.find(property_pseudo_classes);
+		NamedPropertyMap::iterator i = std::find_if(property_map.begin(), property_map.end(),
+			[&property_pseudo_classes](const NamedPropertyPair& pair) { return pair.first == property_pseudo_classes; }
+		);
 		if (i == property_map.end())
-			property_map[property_pseudo_classes] = NamedPropertyList(1, NamedProperty(property_name, property));
+		{
+			property_map.emplace_back(property_pseudo_classes, NamedPropertyList(1, NamedProperty(property_name, property)));
+		}
 		else
 		{
 			// Find a place in this list of properties to insert the new one.
@@ -527,14 +531,19 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 		if (element != primary_element)
 			property_rml += Core::CreateString(element->GetTagName().size() + 32, "<h3>inherited from %s</h3>", element->GetTagName().c_str());
 
-		NamedPropertyMap::iterator base_properties = property_map.find(Core::PseudoClassList());
-		if (base_properties != property_map.end())
-			BuildPropertiesRML(property_rml, (*base_properties).second);
+		for (const NamedPropertyPair& pair : property_map)
+		{
+			if (pair.first.empty())
+			{
+				BuildPropertiesRML(property_rml, pair.second);
+				break;
+			}
+		}
 
 		for (NamedPropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
 		{
 			// Skip the base property list, we've already printed it.
-			if (i == base_properties)
+			if (i->first.empty())
 				continue;
 
 			// Print the pseudo-class header.

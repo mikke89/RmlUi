@@ -71,14 +71,17 @@ int EventParametersProxy__pairs(lua_State* L)
 {
     EventParametersProxy* obj = LuaType<EventParametersProxy>::check(L,1);
     LUACHECKOBJ(obj);
-    int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1)
-        *pindex = 0;
+    int& pindex = *(int*)lua_touserdata(L,3);
+    if((pindex) == -1)
+        pindex = 0;
 	const Dictionary& attributes = *obj->owner->GetParameters();
-    if(*pindex >= 0 && *pindex < (int)attributes.size())
+    if(pindex >= 0 && pindex < (int)attributes.size())
     {
-		const String& key = attributes.container()[*pindex].first;
-		const Variant* value = &attributes.container()[*pindex].second;
+		auto it = attributes.begin();
+		for (int i = 0; i < pindex; ++i)
+			++it;
+		const String& key = it->first;
+		const Variant* value = &it->second;
         lua_pushstring(L,key.c_str());
         PushVariant(L,value);
     }

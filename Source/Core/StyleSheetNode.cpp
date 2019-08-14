@@ -281,14 +281,6 @@ const PropertyDictionary& StyleSheetNode::GetProperties() const
 	return properties;
 }
 
-// Builds the properties of all of the pseudo-classes of this style sheet node into a single map.
-void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties) const
-{
-	PseudoClassList pseudo_class_list;
-	for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
-		(*i).second->GetPseudoClassProperties(pseudo_class_properties, pseudo_class_list);
-}
-
 // Adds to a list the names of this node's pseudo-classes which are deemed volatile.
 bool StyleSheetNode::GetVolatilePseudoClasses(PseudoClassList& volatile_pseudo_classes) const
 {
@@ -579,22 +571,6 @@ StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
 	}
 
 	return new StyleSheetNode(child_name, this, child_selector, child_a, child_b);
-}
-
-// Recursively builds up a list of all pseudo-classes branching from a single node.
-void StyleSheetNode::GetPseudoClassProperties(PseudoClassPropertyMap& pseudo_class_properties, const PseudoClassList& ancestor_pseudo_classes)
-{
-	PseudoClassList pseudo_classes(ancestor_pseudo_classes);
-	pseudo_classes.insert(name);
-
-	if (properties.GetNumProperties() > 0)
-	{
-		RMLUI_ASSERT(pseudo_class_properties.count(pseudo_classes) == 0);
-		pseudo_class_properties[pseudo_classes] = properties;
-	}
-
-	for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
-		(*i).second->GetPseudoClassProperties(pseudo_class_properties, pseudo_classes);
 }
 
 int StyleSheetNode::CalculateSpecificity()

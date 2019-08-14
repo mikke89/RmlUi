@@ -38,7 +38,7 @@
 
 struct FileSystemNode;
 
-typedef std::map< Rml::Core::String, FileSystemNode* > NodeMap;
+typedef Rml::Core::UnorderedMap< Rml::Core::String, FileSystemNode* > NodeMap;
 
 FileSystemNode* file_system_root = nullptr;
 NodeMap node_map;

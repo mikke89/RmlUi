@@ -33,7 +33,6 @@
 #include <Shell.h>
 #include "EventHandler.h"
 #include "GameDetails.h"
-#include <map>
 
 // The game's element context (declared in main.cpp).
 extern Rml::Core::Context* context;
@@ -42,7 +41,7 @@ extern Rml::Core::Context* context;
 static EventHandler* event_handler = nullptr;
 
 // The event handlers registered with the manager.
-typedef std::map< Rml::Core::String, EventHandler* > EventHandlerMap;
+typedef Rml::Core::SmallUnorderedMap< Rml::Core::String, EventHandler* > EventHandlerMap;
 EventHandlerMap event_handlers;
 
 EventManager::EventManager()

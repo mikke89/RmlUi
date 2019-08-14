@@ -111,7 +111,7 @@ class RMLUICORE_API BaseXMLParser
 		// The loose data being read.
 		String data;
 
-		std::unordered_set< String > cdata_tags;
+		SmallUnorderedSet< String > cdata_tags;
 };
 
 }

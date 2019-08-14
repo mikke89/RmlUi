@@ -39,7 +39,7 @@ const Rml::Core::String DataSource::CHILD_SOURCE("#child_data_source");
 const Rml::Core::String DataSource::DEPTH("#depth");
 const Rml::Core::String DataSource::NUM_CHILDREN("#num_children");
 
-typedef std::map< Rml::Core::String, DataSource* > DataSourceMap;
+typedef Core::UnorderedMap< Rml::Core::String, DataSource* > DataSourceMap;
 static DataSourceMap data_sources;
 
 DataSource::DataSource(const Rml::Core::String& _name)

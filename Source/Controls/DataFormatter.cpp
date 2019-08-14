@@ -31,7 +31,7 @@
 namespace Rml {
 namespace Controls {
 
-typedef std::map< Rml::Core::String, DataFormatter* > DataFormatterMap;
+typedef Core::UnorderedMap< Rml::Core::String, DataFormatter* > DataFormatterMap;
 static DataFormatterMap data_formatters;
 
 DataFormatter::DataFormatter(const Rml::Core::String& _name)
