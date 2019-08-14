@@ -179,9 +179,9 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	dirty_logs = true;
 }
 
-void ElementLog::OnRender()
+void ElementLog::OnUpdate()
 {
-	Core::ElementDocument::OnRender();
+	Core::ElementDocument::OnUpdate();
 
 	if (dirty_logs)
 	{

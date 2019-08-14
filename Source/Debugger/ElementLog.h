@@ -56,7 +56,7 @@ public:
 	void AddLogMessage(Core::Log::Type type, const Core::String& message);
 
 protected:
-	void OnRender() override;
+	void OnUpdate() override;
 	void ProcessEvent(Core::Event& event) override;
 
 private:
