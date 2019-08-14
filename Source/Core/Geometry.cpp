@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core.h"
-#include "GeometryDatabase.h"
 
 namespace Rml {
 namespace Core {
@@ -41,8 +40,6 @@ Geometry::Geometry(Element* _host_element)
 {
 	host_element = _host_element;
 	host_context = nullptr;
-
-	GeometryDatabase::AddGeometry(this);
 
 	texture = nullptr;
 
@@ -56,8 +53,6 @@ Geometry::Geometry(Context* _host_context)
 	host_element = nullptr;
 	host_context = _host_context;
 
-	GeometryDatabase::AddGeometry(this);
-
 	texture = nullptr;
 
 	fixed_texcoords = false;
@@ -67,8 +62,6 @@ Geometry::Geometry(Context* _host_context)
 
 Geometry::~Geometry()
 {
-	GeometryDatabase::RemoveGeometry(this);
-
 	Release();
 }
 

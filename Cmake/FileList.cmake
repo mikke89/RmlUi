@@ -47,7 +47,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/precompiled.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
@@ -273,7 +272,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.cpp
