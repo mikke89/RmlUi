@@ -114,6 +114,9 @@ public:
 				<div class="col col1"><button class="expand" index="%d">+</button>&nbsp;<a>Route %d</a></div>
 				<div class="col col23"><input type="range" class="assign_range" min="0" max="%d" value="%d"/></div>
 				<div class="col col4">Assigned</div>
+				<select>
+					<option>Red</option><option>Blue</option><option selected>Green</option><option style="background-color: yellow;">Yellow</option>
+				</select>
 				<div class="inrow unmark_collapse">
 					<div class="col col123 assign_text">Assign to route</div>
 					<div class="col col4">

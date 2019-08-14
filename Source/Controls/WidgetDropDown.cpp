@@ -50,7 +50,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	// Create the button and selection elements.
 	button_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectarrow", Rml::Core::XMLAttributes()), false);
-	value_element = parent_element->AppendChild(Core::Factory::InstanceElement(element, "*", "selectvalue", Rml::Core::XMLAttributes()), false);
+	value_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectvalue", Rml::Core::XMLAttributes()), false);
 	selection_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rml::Core::XMLAttributes()), false);
 
 	value_element->SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Hidden));
@@ -208,29 +208,42 @@ int WidgetDropDown::GetSelection() const
 }
 
 // Adds a new option to the select control.
-int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::String& value, int before, bool select, bool selectable)
+int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::String& new_value, int before, bool select, bool selectable)
 {
-	// Instance a new element for the option.
 	Core::ElementPtr element = Core::Factory::InstanceElement(selection_element, "*", "option", Rml::Core::XMLAttributes());
+	element->SetInnerRML(rml);
 
-	// Force to block display and inject the RML. Register a click handler so we can be notified of selection.
+	bool result = AddOption(std::move(element), new_value, before, select, selectable);
+
+	return result;
+}
+
+int WidgetDropDown::AddOption(Rml::Core::ElementPtr element, const Rml::Core::String& new_value, int before, bool select, bool selectable)
+{
+	static const Core::String str_option = "option";
+
+	if (element->GetTagName() != str_option)
+	{
+		Core::Log::Message(Core::Log::LT_WARNING, "A child of '%s' must be of type 'option' but '%s' was given. See element '%s'.", parent_element->GetTagName().c_str(), element->GetTagName().c_str(), parent_element->GetAddress().c_str());
+		return -1;
+	}
+
+	// Force to block display. Register a click handler so we can be notified of selection.
 	element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
 	element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Auto));
-	element->SetInnerRML(rml);
 	element->AddEventListener(Core::EventId::Click, this);
 
 	int option_index;
-	if (before < 0 ||
-		before >= (int) options.size())
+	if (before < 0 || before >= (int)options.size())
 	{
 		Core::Element* ptr = selection_element->AppendChild(std::move(element));
-		options.push_back(SelectOption(ptr, value, selectable));
-		option_index = (int) options.size() - 1;
+		options.push_back(SelectOption(ptr, new_value, selectable));
+		option_index = (int)options.size() - 1;
 	}
 	else
 	{
 		Core::Element* ptr = selection_element->InsertBefore(std::move(element), selection_element->GetChild(before));
-		options.insert(options.begin() + before, SelectOption(ptr, value, selectable));
+		options.insert(options.begin() + before, SelectOption(ptr, new_value, selectable));
 		option_index = before;
 	}
 
