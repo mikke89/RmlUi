@@ -55,49 +55,6 @@ public:
 
 	void performance_test()
 	{
-		/*
-		  FPS values
-		  Original: 18.5  [957f723]
-		  Without property counter: 22.0
-		  With std::string: 23.0  [603fd40]
-		  robin_hood unordered_flat_map: 24.0  [709852f]
-		  Avoid dirtying em's: 27.5
-		  Restructuring update loop: 34.5  [f9892a9]
-		  Element constructor, remove geometry database, remove update() from Context::render: 38.0  [1aab59e]
-		  Replace Dictionary with unordered_flat_map: 40.0  [b04b4e5]
-		  Dirty flag for structure changes: 43.0  [fdf6f53]
-		  Replacing containers: 46.0  [c307140]
-		  Replace 'resize' event with virtual function call: 53.0  [7ad658f]
-		  Use all_properties_dirty flag when constructing elements: 55.0 [fa6bd0a]
-		  Don't double create input elements: 58.0  [e162637]
-		  Memory pool for ElementMeta: 59.0  [ece191a]
-		  Include chobo flat containers: 65.0  [1696aa5]
-		  Move benchmark to its own sample (no code change, fps increase because of removal of animation elements): 68.0  [2433880]
-		  Keep the element's main sizing box local: 69.0  [cf928b2]
-		  Improved hashing of element definition: 70.0  [5cb9e1d]
-		  First usage of computed values (font): 74.0  [04dc275]
-		  Computed values, clipping: 77.0
-		  Computed values, background-color, image-color, opacity: 77.0
-		  Computed values, padding, margin border++: 81.0  [bb70d38]
-		  Computing all the values (only using a few of them yet): 83.0  [9fe9bdf]
-		  Computed transform and other optimizations: 86.0  [654fa09]
-		  Computed layout engine: 90.0   [e18ac30]
-		  Replace style cache by computed values: 96.0
-		  More computed values: 100.0  [edc78bb] !Woo!
-		  Avoid duplicate ToLower++: 103.0  [dec4ef6]
-		  Cleanup and smaller changes: 105.0  [38a559d]
-		  Move dirty properties to elementstyle: 113.0  [0bba316]
-		  (After Windows feature update and MSVC update, no code change): 109.0  [0bba316]
-		  Fixes and element style iterators: 108.0  [0bba316]
-		  Update definition speedup: 115.0  [5d138fa]
-		  (Full release mode, no code change): 135.0  [5d138fa]
-		  EventIDs: 139.0  [d2c3956]
-		  More on events and EventIDs: 146.0  [fd44d9c]
-		  New decorator and font-effect syntax and misc (on a considerably lower clocked CPU): 156 [6619ab4]
-		  Removal of manual reference counting: 170 [cb347e1]
-		  
-		*/
-
 		if (!document)
 			return;
 
