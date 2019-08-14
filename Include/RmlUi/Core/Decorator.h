@@ -81,6 +81,8 @@ protected:
 	/// @param[in] texture The texture to add.
 	/// @return The index of the texture if it is successful, or -1 if it is invalid.
 	int AddTexture(const Texture& texture);
+	/// Get number of textures in use by the decorator.
+	int GetNumTextures() const;
 	/// Returns one of the decorator's previously loaded textures.
 	/// @param[in] index The index of the desired texture.
 	/// @return The texture at the appropriate index, or nullptr if the index was invalid.

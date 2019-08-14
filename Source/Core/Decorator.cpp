@@ -81,6 +81,13 @@ int Decorator::AddTexture(const Texture& texture)
 	return (int)additional_textures.size();
 }
 
+int Decorator::GetNumTextures() const
+{
+	int result = (first_texture ? 1 : 0);
+	result += (int)additional_textures.size();
+	return result;
+}
+
 // Returns one of the decorator's previously loaded textures.
 const Texture* Decorator::GetTexture(int index) const
 {

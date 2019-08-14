@@ -38,19 +38,20 @@ namespace Core {
 
 struct DecoratorTiledVerticalData
 {
-	DecoratorTiledVerticalData(Element* host_element)
+	DecoratorTiledVerticalData(Element* host_element, int num_textures) : num_textures(num_textures)
 	{
-		for (int i = 0; i < 3; ++i)
-			geometry[i] = new Geometry(host_element);
+		geometry = new Geometry[num_textures];
+		for (int i = 0; i < num_textures; i++)
+			geometry[i].SetHostElement(host_element);
 	}
 
 	~DecoratorTiledVerticalData()
 	{
-		for (int i = 0; i < 3; ++i)
-			delete geometry[i];
+		delete[] geometry;
 	}
 
-	Geometry* geometry[3];
+	const int num_textures;
+	Geometry* geometry;
 };
 
 DecoratorTiledVertical::DecoratorTiledVertical()
@@ -98,7 +99,8 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 	for (int i = 0; i < 3; i++)
 		tiles[i].CalculateDimensions(element, *GetTexture(tiles[i].texture_index));
 
-	DecoratorTiledVerticalData* data = new DecoratorTiledVerticalData(element);
+	const int num_textures = GetNumTextures();
+	DecoratorTiledVerticalData* data = new DecoratorTiledVerticalData(element, num_textures);
 
 	Vector2f padded_size = element->GetBox().GetSize(Box::PADDING);
 
@@ -124,17 +126,17 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 	}
 
 	// Generate the geometry for the left tile.
-	tiles[TOP].GenerateGeometry(data->geometry[tiles[TOP].texture_index]->GetVertices(), data->geometry[tiles[TOP].texture_index]->GetIndices(), element, Vector2f(0, 0), top_dimensions, top_dimensions);
+	tiles[TOP].GenerateGeometry(data->geometry[tiles[TOP].texture_index].GetVertices(), data->geometry[tiles[TOP].texture_index].GetIndices(), element, Vector2f(0, 0), top_dimensions, top_dimensions);
 	// Generate the geometry for the centre tiles.
-	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index]->GetVertices(), data->geometry[tiles[CENTRE].texture_index]->GetIndices(), element, Vector2f(0, top_dimensions.y), Vector2f(centre_dimensions.x, padded_size.y - (top_dimensions.y + bottom_dimensions.y)), centre_dimensions);
+	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(), data->geometry[tiles[CENTRE].texture_index].GetIndices(), element, Vector2f(0, top_dimensions.y), Vector2f(centre_dimensions.x, padded_size.y - (top_dimensions.y + bottom_dimensions.y)), centre_dimensions);
 	// Generate the geometry for the right tile.
-	tiles[BOTTOM].GenerateGeometry(data->geometry[tiles[BOTTOM].texture_index]->GetVertices(), data->geometry[tiles[BOTTOM].texture_index]->GetIndices(), element, Vector2f(0, padded_size.y - bottom_dimensions.y), bottom_dimensions, bottom_dimensions);
+	tiles[BOTTOM].GenerateGeometry(data->geometry[tiles[BOTTOM].texture_index].GetVertices(), data->geometry[tiles[BOTTOM].texture_index].GetIndices(), element, Vector2f(0, padded_size.y - bottom_dimensions.y), bottom_dimensions, bottom_dimensions);
 
 	// Set the textures on the geometry.
 	const Texture* texture = nullptr;
 	int texture_index = 0;
 	while ((texture = GetTexture(texture_index)) != nullptr)
-		data->geometry[texture_index++]->SetTexture(texture);
+		data->geometry[texture_index++].SetTexture(texture);
 
 	return reinterpret_cast<DecoratorDataHandle>(data);
 }
@@ -151,8 +153,8 @@ void DecoratorTiledVertical::RenderElement(Element* element, DecoratorDataHandle
 	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING).Round();
 	DecoratorTiledVerticalData* data = reinterpret_cast< DecoratorTiledVerticalData* >(element_data);
 
-	for (int i = 0; i < 3; i++)
-		data->geometry[i]->Render(translation);
+	for (int i = 0; i < data->num_textures; i++)
+		data->geometry[i].Render(translation);
 }
 
 }
