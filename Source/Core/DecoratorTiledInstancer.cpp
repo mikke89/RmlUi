@@ -46,8 +46,8 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 	ids.src = RegisterProperty(CreateString(32, "%s-src", name.c_str()), "").AddParser("string").GetId();
 	ids.x = RegisterProperty(CreateString(32, "%s-x", name.c_str()), "0px").AddParser("number_length_percent").GetId();
 	ids.y = RegisterProperty(CreateString(32, "%s-y", name.c_str()), "0px").AddParser("number_length_percent").GetId();
-	ids.width = RegisterProperty(CreateString(32, "%s-width", name.c_str()), "0px").AddParser("number_length_percent").GetId();
-	ids.height = RegisterProperty(CreateString(32, "%s-height", name.c_str()), "0px").AddParser("number_length_percent").GetId();
+	ids.width = RegisterProperty(CreateString(32, "%s-width", name.c_str()), "1.0").AddParser("number_length_percent").GetId();
+	ids.height = RegisterProperty(CreateString(32, "%s-height", name.c_str()), "1.0").AddParser("number_length_percent").GetId();
 	RegisterShorthand(CreateString(32, "%s-pos", name.c_str()), CreateString(64, "%s-x, %s-y", name.c_str(), name.c_str()), ShorthandType::FallThrough);
 	RegisterShorthand(CreateString(32, "%s-size", name.c_str()), CreateString(64, "%s-width, %s-height", name.c_str(), name.c_str()), ShorthandType::FallThrough);
 
@@ -107,47 +107,30 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		if (texture_name.empty() || texture_name == auto_str)
 			continue;
 
-		// A tile is always either a sprite or a texture with position and dimensions specified.
-		bool src_is_sprite = false;
-
 		// We are required to set default values before instancing the tile, thus, all properties should always be dereferencable.
 		// If the debugger captures a zero-dereference, check that all properties for every tile is set and default values are set just before instancing.
-		const Property& width_property = *properties.GetProperty(ids.width);
-		float width = width_property.Get<float>();
-		if (width == 0.0f)
-		{
-			// A sprite always has its own dimensions, thus, we let zero width/height define that it is a sprite.
-			src_is_sprite = true;
-		}
 
 		DecoratorTiled::Tile& tile = tiles[i];
 		Texture& texture = textures[i];
 
-		if (src_is_sprite)
+		// A tile is always either a sprite or a texture with position and dimensions specified.
+		if (const Sprite * sprite = interface.GetSprite(texture_name))
 		{
-			if (const Sprite * sprite = interface.GetSprite(texture_name))
-			{
-				tile.position.x = sprite->rectangle.x;
-				tile.position.y = sprite->rectangle.y;
-				tile.size.x = sprite->rectangle.width;
-				tile.size.y = sprite->rectangle.height;
+			tile.position.x = sprite->rectangle.x;
+			tile.position.y = sprite->rectangle.y;
+			tile.size.x = sprite->rectangle.width;
+			tile.size.y = sprite->rectangle.height;
 
-				tile.position_absolute[0] = tile.position_absolute[1] = true;
-				tile.size_absolute[0] = tile.size_absolute[1] = true;
+			tile.position_absolute[0] = tile.position_absolute[1] = true;
+			tile.size_absolute[0] = tile.size_absolute[1] = true;
 
-				texture = sprite->sprite_sheet->texture;
-			}
-			else
-			{
-				Log::Message(Log::LT_WARNING, "The sprite '%s' given in decorator could not be found, declared at %s:%d", texture_name.c_str(), src_property->source.c_str(), src_property->source_line_number);
-				return false;
-			}
+			texture = sprite->sprite_sheet->texture;
 		}
 		else
 		{
 			LoadTexCoord(*properties.GetProperty(ids.x), tile.position.x, tile.position_absolute[0]);
 			LoadTexCoord(*properties.GetProperty(ids.y), tile.position.y, tile.position_absolute[1]);
-			LoadTexCoord(width_property, tile.size.x, tile.size_absolute[0]);
+			LoadTexCoord(*properties.GetProperty(ids.width), tile.size.x, tile.size_absolute[0]);
 			LoadTexCoord(*properties.GetProperty(ids.height), tile.size.y, tile.size_absolute[1]);
 
 			// Since the common use case is to specify the same texture for all tiles, we
@@ -163,7 +146,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			}
 			else
 			{
-				Log::Message(Log::LT_WARNING, "Could not load texture '%s' given in decorator at %s:%d", texture_name.c_str(), src_property->source.c_str(), src_property->source_line_number);
+				Log::Message(Log::LT_WARNING, "Texture name '%s' is neither a valid sprite name nor a texture file. Specified in decorator at %s:%d.", texture_name.c_str(), src_property->source.c_str(), src_property->source_line_number);
 				return false;
 			}
 		}
