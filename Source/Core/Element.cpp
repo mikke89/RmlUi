@@ -1754,20 +1754,18 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 // Called when properties on the element are changed.
 void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
-	const bool all_dirty = changed_properties.IsAllSet();
-
 	if (!IsLayoutDirty())
 	{
 		// Force a relayout if any of the changed properties require it.
 		const PropertyIdSet changed_properties_forcing_layout = (changed_properties & StyleSheetSpecification::GetRegisteredPropertiesForcingLayout());
 		
-		if(all_dirty || !changed_properties_forcing_layout.Empty())
+		if(!changed_properties_forcing_layout.Empty())
 			DirtyLayout();
 	}
 
 
 	// Update the visibility.
-	if (all_dirty || changed_properties.Contains(PropertyId::Visibility) ||
+	if (changed_properties.Contains(PropertyId::Visibility) ||
 		changed_properties.Contains(PropertyId::Display))
 	{
 		bool new_visibility = (element_meta->computed_values.display != Style::Display::None && element_meta->computed_values.visibility == Style::Visibility::Visible);
@@ -1780,8 +1778,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 				parent->DirtyStackingContext();
 		}
 
-		if (all_dirty || 
-			changed_properties.Contains(PropertyId::Display))
+		if (changed_properties.Contains(PropertyId::Display))
 		{
 			// Due to structural pseudo-classes, this may change the element definition in siblings and parent.
 			// However, the definitions will only be changed on the next update loop which may result in jarring behavior for one @frame.
@@ -1792,8 +1789,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Fetch a new font face if it has been changed.
-	if (all_dirty ||
-		changed_properties.Contains(PropertyId::FontFamily) ||
+	if (changed_properties.Contains(PropertyId::FontFamily) ||
 		changed_properties.Contains(PropertyId::FontCharset) ||
 		changed_properties.Contains(PropertyId::FontWeight) ||
 		changed_properties.Contains(PropertyId::FontStyle) ||
@@ -1812,8 +1808,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 
 	// Update the position.
-	if (all_dirty ||
-		changed_properties.Contains(PropertyId::Left) ||
+	if (changed_properties.Contains(PropertyId::Left) ||
 		changed_properties.Contains(PropertyId::Right) ||
 		changed_properties.Contains(PropertyId::Top) ||
 		changed_properties.Contains(PropertyId::Bottom))
@@ -1824,8 +1819,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Update the z-index.
-	if (all_dirty || 
-		changed_properties.Contains(PropertyId::ZIndex))
+	if (changed_properties.Contains(PropertyId::ZIndex))
 	{
 		Style::ZIndex z_index_property = element_meta->computed_values.z_index;
 
@@ -1869,24 +1863,21 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Dirty the background if it's changed.
-    if (all_dirty ||
-        changed_properties.Contains(PropertyId::BackgroundColor) ||
+    if (changed_properties.Contains(PropertyId::BackgroundColor) ||
 		changed_properties.Contains(PropertyId::Opacity) ||
 		changed_properties.Contains(PropertyId::ImageColor)) {
 		background->DirtyBackground();
     }
 	
 	// Dirty the decoration if it's changed.
-	if (all_dirty ||
-		changed_properties.Contains(PropertyId::Decorator) ||
+	if (changed_properties.Contains(PropertyId::Decorator) ||
 		changed_properties.Contains(PropertyId::Opacity) ||
 		changed_properties.Contains(PropertyId::ImageColor)) {
 		decoration->DirtyDecorators();
 	}
 
 	// Dirty the border if it's changed.
-	if (all_dirty || 
-		changed_properties.Contains(PropertyId::BorderTopWidth) ||
+	if (changed_properties.Contains(PropertyId::BorderTopWidth) ||
 		changed_properties.Contains(PropertyId::BorderRightWidth) ||
 		changed_properties.Contains(PropertyId::BorderBottomWidth) ||
 		changed_properties.Contains(PropertyId::BorderLeftWidth) ||
@@ -1899,8 +1890,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 	
 	// Check for clipping state changes
-	if (all_dirty ||
-		changed_properties.Contains(PropertyId::Clip) ||
+	if (changed_properties.Contains(PropertyId::Clip) ||
 		changed_properties.Contains(PropertyId::OverflowX) ||
 		changed_properties.Contains(PropertyId::OverflowY))
 	{
@@ -1908,8 +1898,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
-	if (all_dirty ||
-		changed_properties.Contains(PropertyId::Perspective) ||
+	if (changed_properties.Contains(PropertyId::Perspective) ||
 		changed_properties.Contains(PropertyId::PerspectiveOriginX) ||
 		changed_properties.Contains(PropertyId::PerspectiveOriginY))
 	{
@@ -1917,8 +1906,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Check for `transform' and `transform-origin' changes
-	if (all_dirty ||
-		changed_properties.Contains(PropertyId::Transform) ||
+	if (changed_properties.Contains(PropertyId::Transform) ||
 		changed_properties.Contains(PropertyId::TransformOriginX) ||
 		changed_properties.Contains(PropertyId::TransformOriginY) ||
 		changed_properties.Contains(PropertyId::TransformOriginZ))
@@ -1927,12 +1915,12 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Check for `animation' changes
-	if (all_dirty || changed_properties.Contains(PropertyId::Animation))
+	if (changed_properties.Contains(PropertyId::Animation))
 	{
 		dirty_animation = true;
 	}
 	// Check for `transition' changes
-	if (all_dirty || changed_properties.Contains(PropertyId::Transition))
+	if (changed_properties.Contains(PropertyId::Transition))
 	{
 		dirty_transition = true;
 	}
