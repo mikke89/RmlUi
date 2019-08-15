@@ -46,8 +46,6 @@ class LayoutLineBox;
 
 class LayoutInlineBox
 {
-friend class LayoutInlineBoxText;
-
 public:
 	/// Constructs a new inline box for an element.
 	/// @param element[in] The element this inline box is flowing.

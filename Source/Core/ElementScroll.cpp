@@ -242,7 +242,10 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 	scrollbars[orientation].widget = new WidgetSliderScroll(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetSlider::VERTICAL : WidgetSlider::HORIZONTAL);
 
-	element->AppendChild(std::move(scrollbar_element), false);
+	Element* child = element->AppendChild(std::move(scrollbar_element), false);
+
+	// The construction of scrollbars can occur during layouting, then we need some properties and computed values straight away.
+	child->UpdateProperties();
 
 	return true;
 }

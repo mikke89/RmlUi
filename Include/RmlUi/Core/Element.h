@@ -619,6 +619,8 @@ protected:
 private:
 	void SetParent(Element* parent);
 
+	void UpdateProperties();
+
 	void DirtyOffset();
 	void UpdateOffset();
 
@@ -750,6 +752,7 @@ private:
 	friend class LayoutEngine;
 	friend class LayoutInlineBox;
 	friend struct ElementDeleter;
+	friend class ElementScroll;
 };
 
 }

@@ -206,35 +206,9 @@ void Element::Update(float dp_ratio)
 	UpdateAnimation();
 	AdvanceAnimations();
 
-	style->UpdateDefinition();
 	scroll->Update();
 
-	if(style->AnyPropertiesDirty())
-	{
-		const ComputedValues* parent_values = nullptr;
-		const ComputedValues* document_values = nullptr;
-		if (parent)
-			parent_values = &parent->GetComputedValues();
-		if (auto doc = GetOwnerDocument())
-			document_values = &doc->GetComputedValues();
-
-		// Compute values and clear dirty properties
-		auto dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
-
-		computed_values_are_default_initialized = false;
-
-		// Computed values are just calculated and can safely be used in OnPropertyChange.
-		// However, new properties set during this call will not be available until the next update loop.
-		// Enable RMLUI_DEBUG to get a warning when this happens.
-		if(!dirty_properties.Empty())
-			OnPropertyChange(dirty_properties);
-
-#ifdef RMLUI_DEBUG
-		if (style->AnyPropertiesDirty())
-			Log::Message(Log::LT_WARNING, "One or more properties were set during OnPropertyChange, these will only be evaluated on the next update call and should be avoided.");
-#endif
-	}
-
+	UpdateProperties();
 
 	if (box_dirty)
 	{
@@ -246,6 +220,38 @@ void Element::Update(float dp_ratio)
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio);
+}
+
+
+void Element::UpdateProperties()
+{
+	style->UpdateDefinition();
+
+	if (style->AnyPropertiesDirty())
+	{
+		const ComputedValues* parent_values = nullptr;
+		if (parent)
+			parent_values = &parent->GetComputedValues();
+
+		const ComputedValues* document_values = nullptr;
+		float dp_ratio = 1.0f;
+		if (auto doc = GetOwnerDocument())
+		{
+			document_values = &doc->GetComputedValues();
+			if (Context * context = doc->GetContext())
+				dp_ratio = context->GetDensityIndependentPixelRatio();
+		}
+
+		// Compute values and clear dirty properties
+		PropertyIdSet dirty_properties = style->ComputeValues(element_meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio);
+
+		computed_values_are_default_initialized = false;
+
+		// Computed values are just calculated and can safely be used in OnPropertyChange.
+		// However, new properties set during this call will not be available until the next update loop.
+		if (!dirty_properties.Empty())
+			OnPropertyChange(dirty_properties);
+	}
 }
 
 void Element::Render()
@@ -1749,7 +1755,7 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	const bool all_dirty = changed_properties.IsAllSet();
-	
+
 	if (!IsLayoutDirty())
 	{
 		// Force a relayout if any of the changed properties require it.
