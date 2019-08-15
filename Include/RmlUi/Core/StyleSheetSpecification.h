@@ -74,13 +74,12 @@ public:
 	static const PropertyDefinition* GetProperty(const String& property_name);
 	static const PropertyDefinition* GetProperty(PropertyId id);
 
-	/// Returns the list of the names of all registered property definitions.
-	/// @return The list with stored property names.
-	static const PropertyIdSet & GetRegisteredProperties();
-
-	/// Returns the list of the names of all registered inherited property definitions.
-	/// @return The list with stored property names.
-	static const PropertyIdSet & GetRegisteredInheritedProperties();
+	/// Returns the id set of all registered property definitions.
+	static const PropertyIdSet& GetRegisteredProperties();
+	/// Returns the id set of all registered inherited property definitions.
+	static const PropertyIdSet& GetRegisteredInheritedProperties();
+	/// Returns the id set of all registered property definitions that may dirty the layout.
+	static const PropertyIdSet& GetRegisteredPropertiesForcingLayout();
 
 	/// Registers a custom shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.

@@ -87,9 +87,10 @@ public:
 
 	/// Returns the id set of all registered property definitions.
 	const PropertyIdSet& GetRegisteredProperties() const;
-
 	/// Returns the id set of all registered inherited property definitions.
 	const PropertyIdSet& GetRegisteredInheritedProperties() const;
+	/// Returns the id set of all registered property definitions that may dirty the layout.
+	const PropertyIdSet& GetRegisteredPropertiesForcingLayout() const;
 
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
@@ -131,6 +132,7 @@ private:
 
 	PropertyIdSet property_names;
 	PropertyIdSet inherited_property_names;
+	PropertyIdSet properties_forcing_layout;
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 

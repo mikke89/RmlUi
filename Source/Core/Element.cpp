@@ -1752,26 +1752,11 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	
 	if (!IsLayoutDirty())
 	{
-		if (all_dirty)
-		{
+		// Force a relayout if any of the changed properties require it.
+		const PropertyIdSet changed_properties_forcing_layout = (changed_properties & StyleSheetSpecification::GetRegisteredPropertiesForcingLayout());
+		
+		if(all_dirty || !changed_properties_forcing_layout.Empty())
 			DirtyLayout();
-		}
-		else
-		{
-			// Force a relayout if any of the changed properties require it.
-			for (PropertyId id : changed_properties)
-			{
-				const PropertyDefinition* property_definition = StyleSheetSpecification::GetProperty(id);
-				if (property_definition)
-				{
-					if (property_definition->IsLayoutForced())
-					{
-						DirtyLayout();
-						break;
-					}
-				}
-			}
-		}
 	}
 
 

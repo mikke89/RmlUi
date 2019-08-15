@@ -80,6 +80,8 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 	property_names.Insert(id);
 	if (inherited)
 		inherited_property_names.Insert(id);
+	if (forces_layout)
+		properties_forcing_layout.Insert(id);
 
 	return *properties[index];
 }
@@ -108,6 +110,11 @@ const PropertyIdSet& PropertySpecification::GetRegisteredProperties(void) const
 const PropertyIdSet& PropertySpecification::GetRegisteredInheritedProperties(void) const
 {
 	return inherited_property_names;
+}
+
+const PropertyIdSet& PropertySpecification::GetRegisteredPropertiesForcingLayout() const
+{
+	return properties_forcing_layout;
 }
 
 // Registers a shorthand property definition.

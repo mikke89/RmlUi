@@ -131,7 +131,6 @@ const PropertyDefinition* StyleSheetSpecification::GetProperty(PropertyId id)
 	return instance->properties.GetProperty(id);
 }
 
-// Fetches a list of the names of all registered property definitions.
 const PropertyIdSet& StyleSheetSpecification::GetRegisteredProperties()
 {
 	return instance->properties.GetRegisteredProperties();
@@ -140,6 +139,11 @@ const PropertyIdSet& StyleSheetSpecification::GetRegisteredProperties()
 const PropertyIdSet & StyleSheetSpecification::GetRegisteredInheritedProperties()
 {
 	return instance->properties.GetRegisteredInheritedProperties();
+}
+
+const PropertyIdSet& StyleSheetSpecification::GetRegisteredPropertiesForcingLayout()
+{
+	return instance->properties.GetRegisteredPropertiesForcingLayout();
 }
 
 // Registers a shorthand property definition.
