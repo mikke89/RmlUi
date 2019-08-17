@@ -36,16 +36,95 @@
 #include "Geometry.h"
 #include "CommonSource.h"
 #include "InfoSource.h"
-#include <map>
 
 namespace Rml {
 namespace Debugger {
+
+static void PrettyFormatNumbers(Core::String& string)
+{
+	// Removes trailing zeros and truncates decimal digits to the specified number of significant digits.
+	constexpr int num_significant_digits = 4;
+
+	if (string.empty())
+		return;
+
+	// First, check for a decimal point. No point, no chance of trailing zeroes!
+	size_t decimal_point_position = 0;
+
+	while ((decimal_point_position = string.find('.', decimal_point_position + 1)) != Core::String::npos)
+	{
+		// Find the left-most digit.
+		int pos_left = (int)decimal_point_position - 1; // non-inclusive
+		while (pos_left >= 0 && string[pos_left] >= '0' && string[pos_left] <= '9')
+			pos_left--;
+
+		// Significant digits left of the decimal point. We also consider all zero digits significant on the left side.
+		const int significant_left = (int)decimal_point_position - (pos_left + 1);
+
+		// Let's not touch numbers that don't start with a digit before the decimal.
+		if (significant_left == 0)
+			continue;
+
+		const int max_significant_right = std::max(num_significant_digits - significant_left, 0);
+
+		// Find the right-most digit and number of non-zero digits less than our maximum.
+		int pos_right = (int)decimal_point_position + 1; // non-inclusive
+		int significant_right = 0;
+		while (pos_right < (int)string.size() && string[pos_right] >= '0' && string[pos_right] <= '9')
+		{
+			const int current_digit_right = pos_right - (int)decimal_point_position;
+			if (string[pos_right] != '0' && current_digit_right <= max_significant_right)
+				significant_right = current_digit_right;
+			pos_right++;
+		}
+
+		size_t pos_cut_start = decimal_point_position + (size_t)(significant_right + 1);
+		size_t pos_cut_end = (size_t)pos_right;
+
+		// Remove the decimal point if we don't have any right digits.
+		if (pos_cut_start == decimal_point_position + 1)
+			pos_cut_start = decimal_point_position;
+
+		string.erase(string.begin() + pos_cut_start, string.begin() + pos_cut_end);
+	}
+
+	return;
+}
+
+static bool TestPrettyFormat(Core::String string, Core::String should_be)
+{
+	Core::String original = string;
+	PrettyFormatNumbers(string);
+	bool result = (string == should_be);
+	if (!result)
+		Core::Log::Message(Core::Log::LT_ERROR, "Remove trailing string failed. PrettyFormatNumbers('%s') == '%s' != '%s'", original.c_str(), string.c_str(), should_be.c_str());
+	return result;
+}
 
 ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
 {
 	hover_element = nullptr;
 	source_element = nullptr;
 	previous_update_time = 0.0;
+
+	RMLUI_ASSERT(TestPrettyFormat("0.15", "0.15"));
+	RMLUI_ASSERT(TestPrettyFormat("0.150", "0.15"));
+	RMLUI_ASSERT(TestPrettyFormat("1.15", "1.15"));
+	RMLUI_ASSERT(TestPrettyFormat("1.150", "1.15"));
+	RMLUI_ASSERT(TestPrettyFormat("123.15", "123.1"));
+	RMLUI_ASSERT(TestPrettyFormat("1234.5", "1234"));
+	RMLUI_ASSERT(TestPrettyFormat("12.15", "12.15"));
+	RMLUI_ASSERT(TestPrettyFormat("12.154", "12.15"));
+	RMLUI_ASSERT(TestPrettyFormat("12.154666", "12.15"));
+	RMLUI_ASSERT(TestPrettyFormat("15889", "15889"));
+	RMLUI_ASSERT(TestPrettyFormat("15889.1", "15889"));
+	RMLUI_ASSERT(TestPrettyFormat("0.00660", "0.006"));
+	RMLUI_ASSERT(TestPrettyFormat("0.000001", "0"));
+	RMLUI_ASSERT(TestPrettyFormat("0.00000100", "0"));
+	RMLUI_ASSERT(TestPrettyFormat("a .", "a ."));
+	RMLUI_ASSERT(TestPrettyFormat("a .0", "a .0"));
+	RMLUI_ASSERT(TestPrettyFormat("a 0.0", "a 0"));
+	RMLUI_ASSERT(TestPrettyFormat("hello.world: 14.5600 1.1 0.55623 more.values: 0.1544 0.", "hello.world: 14.56 1.1 0.556 more.values: 0.154 0"));
 }
 
 ElementInfo::~ElementInfo()
@@ -316,6 +395,7 @@ void ElementInfo::UpdateSourceElement()
 		{
 			while (attributes_content->HasChildNodes())
 				attributes_content->RemoveChild(attributes_content->GetChild(0));
+			attributes_rml.clear();
 		}
 		else if (attributes != attributes_rml)
 		{
@@ -336,6 +416,7 @@ void ElementInfo::UpdateSourceElement()
 		{
 			while (properties_content->HasChildNodes())
 				properties_content->RemoveChild(properties_content->GetChild(0));
+			properties_rml.clear();
 		}
 		else if (properties != properties_rml)
 		{
@@ -359,6 +440,7 @@ void ElementInfo::UpdateSourceElement()
 		{
 			while (events_content->HasChildNodes())
 				events_content->RemoveChild(events_content->GetChild(0));
+			events_rml.clear();
 		}
 		else if (events != events_rml)
 		{
@@ -414,6 +496,7 @@ void ElementInfo::UpdateSourceElement()
 		{
 			while (ancestors_content->HasChildNodes())
 				ancestors_content->RemoveChild(ancestors_content->GetFirstChild());
+			ancestors_rml.clear();
 		}
 		else if (ancestors != ancestors_rml)
 		{
@@ -453,6 +536,7 @@ void ElementInfo::UpdateSourceElement()
 		{
 			while (children_content->HasChildNodes())
 				children_content->RemoveChild(children_content->GetChild(0));
+			children_rml.clear();
 		}
 		else if(children != children_rml)
 		{
@@ -531,68 +615,11 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 void ElementInfo::BuildPropertyRML(Core::String& property_rml, const Core::String& name, const Core::Property* property)
 {
 	Core::String property_value = property->ToString();
-	RemoveTrailingZeroes(property_value);
+	PrettyFormatNumbers(property_value);
 
 	property_rml += Core::CreateString(name.size() + property_value.size() + 32, "%s: <em>%s;</em><br />", name.c_str(), property_value.c_str());
 }
 
-void ElementInfo::RemoveTrailingZeroes(Core::String& string)
-{
-	if (string.empty())
-	{
-		return;
-	}
-
-	// First, check for a decimal point. No point, no chance of trailing zeroes!
-	size_t decimal_point_position = string.find(".");
-	if (decimal_point_position != Core::String::npos)
-	{
-		// Ok, so now we start at the back of the string and find the first
-		// numeral. If the character we find is a zero, then we start counting
-		// back till we find something that isn't a zero or a decimal point -
-		// and then remove all that we've counted.
-		size_t last_zero = string.size() - 1;
-		while ((string[last_zero] < '0' || string[last_zero] > '9') && string[last_zero] != '.')
-		{
-			if (last_zero == 0)
-			{
-				return;
-			}
-			if (string[last_zero] == '.')
-			{
-				break;
-			}
-			last_zero--;
-		}
-
-		if (!(string[last_zero] == '0' || string[last_zero] == '.'))
-		{
-			return;
-		}
-
-		// Now find the first character that isn't a zero (unless we're just
-		// chopping off the dangling decimal point)
-		size_t first_zero = last_zero;
-		if (string[last_zero] == '0')
-		{
-			while (first_zero > 0 && string[first_zero - 1] == '0')
-			{
-				first_zero--;
-			}
-
-			// Check for a preceeding decimal point - if it's all zeroes until the
-			// decimal, then we should remove it too.
-			if (string[first_zero - 1] == '.')
-			{
-				first_zero--;
-			}
-		}
-
-		// Now remove everything between first_zero and last_zero, inclusive.
-		if (last_zero > first_zero)
-			string.erase(first_zero, (last_zero - first_zero) + 1);
-	}
-}
 
 bool ElementInfo::IsDebuggerElement(Core::Element* element)
 {

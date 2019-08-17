@@ -344,7 +344,7 @@ const SharedPtr<StyleSheet>& Element::GetStyleSheet() const
 	return null_style_sheet;
 }
 
-// Returns the element's definition, updating if necessary.
+// Returns the element's definition.
 const ElementDefinition* Element::GetDefinition()
 {
 	return style->GetDefinition();

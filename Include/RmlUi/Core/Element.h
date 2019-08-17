@@ -105,7 +105,7 @@ public:
 	/// @return The element's style sheet.
 	virtual const SharedPtr<StyleSheet>& GetStyleSheet() const;
 
-	/// Returns the element's definition, updating if necessary.
+	/// Returns the element's definition.
 	/// @return The element's definition.
 	const ElementDefinition* GetDefinition();
 

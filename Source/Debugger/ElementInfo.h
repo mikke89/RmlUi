@@ -72,8 +72,6 @@ private:
 	void BuildElementPropertiesRML(Core::String& property_rml, Core::Element* element, Core::Element* primary_element);
 	void BuildPropertyRML(Core::String& property_rml, const Core::String& name, const Core::Property* property);
 
-	void RemoveTrailingZeroes(Core::String& string);
-
 	bool IsDebuggerElement(Core::Element* element);
 
 	double previous_update_time;
