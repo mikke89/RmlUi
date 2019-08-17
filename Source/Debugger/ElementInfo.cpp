@@ -40,13 +40,15 @@
 namespace Rml {
 namespace Debugger {
 
-static void PrettyFormatNumbers(Core::String& string)
+static Core::String PrettyFormatNumbers(const Core::String& in_string)
 {
 	// Removes trailing zeros and truncates decimal digits to the specified number of significant digits.
 	constexpr int num_significant_digits = 4;
 
+	Core::String string = in_string;
+
 	if (string.empty())
-		return;
+		return string;
 
 	// First, check for a decimal point. No point, no chance of trailing zeroes!
 	size_t decimal_point_position = 0;
@@ -88,16 +90,15 @@ static void PrettyFormatNumbers(Core::String& string)
 		string.erase(string.begin() + pos_cut_start, string.begin() + pos_cut_end);
 	}
 
-	return;
+	return string;
 }
 
-static bool TestPrettyFormat(Core::String string, Core::String should_be)
+static bool TestPrettyFormat(Core::String original, Core::String should_be)
 {
-	Core::String original = string;
-	PrettyFormatNumbers(string);
-	bool result = (string == should_be);
+	Core::String formatted = PrettyFormatNumbers(original);
+	bool result = (formatted == should_be);
 	if (!result)
-		Core::Log::Message(Core::Log::LT_ERROR, "Remove trailing string failed. PrettyFormatNumbers('%s') == '%s' != '%s'", original.c_str(), string.c_str(), should_be.c_str());
+		Core::Log::Message(Core::Log::LT_ERROR, "Remove trailing string failed. PrettyFormatNumbers('%s') == '%s' != '%s'", original.c_str(), formatted.c_str(), should_be.c_str());
 	return result;
 }
 
@@ -105,6 +106,9 @@ ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
 {
 	hover_element = nullptr;
 	source_element = nullptr;
+	show_source_element = true;
+	update_source_element = true;
+	force_update_once = false;
 	previous_update_time = 0.0;
 
 	RMLUI_ASSERT(TestPrettyFormat("0.15", "0.15"));
@@ -139,6 +143,7 @@ bool ElementInfo::Initialise()
 
 	AddEventListener(Core::EventId::Click, this);
 	AddEventListener(Core::EventId::Mouseover, this);
+	AddEventListener(Core::EventId::Mouseout, this);
 
 	Core::SharedPtr<Core::StyleSheet> style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(info_rcss));
 	if (!style_sheet)
@@ -153,20 +158,31 @@ bool ElementInfo::Initialise()
 void ElementInfo::Reset()
 {
 	hover_element = nullptr;
+	show_source_element = true;
+	update_source_element = true;
 	SetSourceElement(nullptr);
 }
 
 void ElementInfo::OnUpdate()
 {
-	if (source_element && IsVisible())
+	if (source_element && (update_source_element || force_update_once) && IsVisible())
 	{
 		const double t = Core::GetSystemInterface()->GetElapsedTime();
 		const float dt = (float)(t - previous_update_time);
 
 		constexpr float update_interval = 0.3f;
 
-		if (dt > update_interval)
+		if (dt > update_interval || (force_update_once))
 		{
+			if (force_update_once && source_element)
+			{
+				// Since an update is being forced, it is possibly because we are reacting to an event and made some changes.
+				// Update the source element's document to reflect any recent changes.
+				if (auto document = source_element->GetOwnerDocument())
+					document->UpdateDocument();
+			}
+			force_update_once = false;
+
 			UpdateSourceElement();
 		}
 	}
@@ -191,9 +207,11 @@ void ElementInfo::RenderHoverElement()
 		{
 			// Render the content area.
 			const Core::Box element_box = hover_element->GetBox(i);
+			Core::Vector2f size = element_box.GetSize(Core::Box::BORDER);
+			size = Core::Vector2f(std::max(size.x, 2.0f), std::max(size.y, 2.0f));
 			Geometry::RenderOutline(
 				hover_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::BORDER), 
-				element_box.GetSize(Core::Box::BORDER), 
+				size,
 				Core::Colourb(255, 0, 0, 255), 
 				1
 			);
@@ -204,7 +222,7 @@ void ElementInfo::RenderHoverElement()
 
 void ElementInfo::RenderSourceElement()
 {
-	if (source_element)
+	if (source_element && show_source_element)
 	{
 		Core::ElementUtilities::ApplyTransform(*source_element);
 
@@ -241,20 +259,49 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 			// Deal with clicks on our own elements differently.
 			if (target_element->GetOwnerDocument() == this)
 			{
-				// If it's a pane title, then we need to toggle the visibility of its sibling (the contents pane underneath it).
-				if (target_element->GetTagName() == "h2")
-				{
-					Core::Element* panel = target_element->GetNextSibling();
-					if (panel->IsVisible())
-						panel->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
-					else
-						panel->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
-					event.StopPropagation();
-				}
-				else if (event.GetTargetElement()->GetId() == "close_button")
+				const Core::String& id = event.GetTargetElement()->GetId();
+				
+				if (id == "close_button")
 				{
 					if (IsVisible())
 						SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+				}
+				else if (id == "update_source")
+				{
+					update_source_element = !update_source_element;
+					target_element->SetClass("active", update_source_element);
+				}
+				else if (id == "show_source")
+				{
+					show_source_element = !target_element->IsClassSet("active");;
+					target_element->SetClass("active", show_source_element);
+				}
+				else if (event.GetTargetElement()->GetId() == "update_source")
+				{
+					if (IsVisible())
+						SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+				}
+				else if (target_element->GetTagName() == "pseudo" && source_element)
+				{
+					const Core::String name = target_element->GetAttribute<Core::String>("name", "");
+					
+					if (!name.empty())
+					{
+						bool pseudo_active = target_element->IsClassSet("active");
+						if (name == "focus")
+						{
+							if (!pseudo_active)
+								source_element->Focus();
+							else if (auto document = source_element->GetOwnerDocument())
+								document->Focus();
+						}
+						else
+						{
+							source_element->SetPseudoClass(name, !pseudo_active);
+						}
+
+						force_update_once = true;
+					}
 				}
 				// Check if the id is in the form "a %d" or "c %d" - these are the ancestor or child labels.
 				else
@@ -275,8 +322,8 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 						if (source_element != nullptr)
 							SetSourceElement(source_element->GetChild(element_index));
 					}
-					event.StopPropagation();
 				}
+				event.StopPropagation();
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
 			else if (target_element->GetOwnerDocument() != nullptr && !IsDebuggerElement(target_element))
@@ -292,14 +339,13 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 		else if (event == Core::EventId::Mouseover)
 		{
 			Core::Element* target_element = event.GetTargetElement();
-
-			// Deal with clicks on our own elements differently.
 			Core::ElementDocument* owner_document = target_element->GetOwnerDocument();
 			if (owner_document == this)
 			{
 				// Check if the id is in the form "a %d" or "c %d" - these are the ancestor or child labels.
+				const Core::String& id = target_element->GetId();
 				int element_index;
-				if (sscanf(target_element->GetId().c_str(), "a %d", &element_index) == 1)
+				if (sscanf(id.c_str(), "a %d", &element_index) == 1)
 				{
 					hover_element = source_element;
 					for (int i = 0; i < element_index; i++)
@@ -308,10 +354,28 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 							hover_element = hover_element->GetParentNode();
 					}
 				}
-				else if (sscanf(target_element->GetId().c_str(), "c %d", &element_index) == 1)
+				else if (sscanf(id.c_str(), "c %d", &element_index) == 1)
 				{
 					if (source_element != nullptr)
 						hover_element = source_element->GetChild(element_index);
+				}
+				else
+				{
+					hover_element = nullptr;
+				}
+
+				if(event.GetPhase() == Core::EventPhase::Bubble)
+				{
+					if (id == "show_source" && !show_source_element)
+					{
+						// Preview the source element view while hovering
+						show_source_element = true;
+					}
+
+					if (id == "show_source" || id == "update_source")
+					{
+						UpdateTitle();
+					}
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
@@ -320,33 +384,87 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				hover_element = target_element;
 			}
 		}
+		else if (event == Core::EventId::Mouseout && event.GetPhase() == Core::EventPhase::Bubble)
+		{
+			Core::Element* target_element = event.GetTargetElement();
+			Core::ElementDocument* owner_document = target_element->GetOwnerDocument();
+			if (owner_document == this)
+			{
+				const Core::String& id = target_element->GetId();
+				if (id == "show_source")
+				{
+					// Disable the preview of the source element view
+					if (show_source_element && !target_element->IsClassSet("active"))
+						show_source_element = false;
+				}
+
+				if (id == "show_source" || id == "update_source")
+				{
+					UpdateTitle();
+					event.StopPropagation();
+				}
+			}
+		}
 	}
 }
 
 void ElementInfo::SetSourceElement(Core::Element* new_source_element)
 {
 	source_element = new_source_element;
-	UpdateSourceElement();
+	force_update_once = true;
 }
 
 void ElementInfo::UpdateSourceElement()
 {
 	previous_update_time = Core::GetSystemInterface()->GetElapsedTime();
 
-	// Set the title:
-	Core::Element* title_content = GetElementById("title-content");
-	if (title_content != nullptr)
+	// Set the title
+	UpdateTitle();
+
+	// Set the pseudo classes
+	if (Core::Element* pseudo = GetElementById("pseudo"))
 	{
-		if (source_element != nullptr)
-			title_content->SetInnerRML(source_element->GetTagName());
-		else
-			title_content->SetInnerRML("Element Information");
+		Core::PseudoClassList list;
+		if (source_element)
+			list = source_element->GetActivePseudoClasses();
+
+		// There are some fixed pseudo classes that we always show and iterate through to determine if they are set.
+		// We also want to show other pseudo classes when they are set, they are added under the #extra element last.
+		for (int i = 0; i < pseudo->GetNumChildren(); i++)
+		{
+			Element* child = pseudo->GetChild(i);
+			const Core::String name = child->GetAttribute<Core::String>("name", "");
+
+			if (!name.empty())
+			{
+				bool active = (list.erase(name) == 1);
+				child->SetClass("active", active);
+			}
+			else if(child->GetId() == "extra")
+			{
+				// First, we iterate through the extra elements and remove those that are no longer active.
+				for (int j = 0; j < child->GetNumChildren(); j++)
+				{
+					Element* grandchild = child->GetChild(j);
+					const Core::String grandchild_name = grandchild->GetAttribute<Core::String>("name", "");
+					bool active = (list.erase(grandchild_name) == 1);
+					if(!active)
+						child->RemoveChild(grandchild);
+				}
+				// Finally, create new pseudo buttons for the rest of the active pseudo classes.
+				for (auto& extra_pseudo : list)
+				{
+					Core::Element* grandchild = child->AppendChild(CreateElement("pseudo"));
+					grandchild->SetClass("active", true);
+					grandchild->SetAttribute("name", extra_pseudo);
+					grandchild->SetInnerRML(":" + extra_pseudo);
+				}
+			}
+		}
 	}
 
-
-	// Set the attributes:
-	Core::Element* attributes_content = GetElementById("attributes-content");
-	if (attributes_content)
+	// Set the attributes
+	if (Core::Element* attributes_content = GetElementById("attributes-content"))
 	{
 		Core::String attributes;
 
@@ -367,15 +485,6 @@ void ElementInfo::UpdateSourceElement()
 				{
 					name = "class";
 					value = source_element->GetClassNames();
-					if (!value.empty())
-						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
-				}
-				{
-					// Not actually an attribute, but may be useful
-					name = "pseudo";
-					value.clear();
-					for (auto str : source_element->GetActivePseudoClasses())
-						value += " :" + str;
 					if (!value.empty())
 						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}
@@ -404,9 +513,8 @@ void ElementInfo::UpdateSourceElement()
 		}
 	}
 
-	// Set the properties:
-	Core::Element* properties_content = GetElementById("properties-content");
-	if (properties_content)
+	// Set the properties
+	if (Core::Element* properties_content = GetElementById("properties-content"))
 	{
 		Core::String properties;
 		if (source_element != nullptr)
@@ -425,9 +533,8 @@ void ElementInfo::UpdateSourceElement()
 		}
 	}
 
-	// Set the events:
-	Core::Element* events_content = GetElementById("events-content");
-	if (events_content)
+	// Set the events
+	if (Core::Element* events_content = GetElementById("events-content"))
 	{
 		Core::String events;
 
@@ -449,9 +556,8 @@ void ElementInfo::UpdateSourceElement()
 		}
 	}
 
-	// Set the position:
-	Core::Element* position_content = GetElementById("position-content");
-	if (position_content)
+	// Set the position
+	if (Core::Element* position_content = GetElementById("position-content"))
 	{
 		// left, top, width, height.
 		if (source_element != nullptr)
@@ -459,13 +565,15 @@ void ElementInfo::UpdateSourceElement()
 			Core::Vector2f element_offset = source_element->GetRelativeOffset(Core::Box::BORDER);
 			Core::Vector2f element_size = source_element->GetBox().GetSize(Core::Box::BORDER);
 
-			Core::String positions;
-			positions += Core::CreateString(64, "left: <em>%.0fpx</em><br />", element_offset.x);
-			positions += Core::CreateString(64, "top: <em>%.0fpx</em><br />", element_offset.y);
-			positions += Core::CreateString(64, "width: <em>%.0fpx</em><br />", element_size.x);
-			positions += Core::CreateString(64, "height: <em>%.0fpx</em><br />", element_size.y);
+			Core::String positions = Core::CreateString(400, R"(
+				<span class='name'>left: </span><em>%fpx</em><br/>
+				<span class='name'>top: </span><em>%fpx</em><br/>
+				<span class='name'>width: </span><em>%fpx</em><br/>
+				<span class='name'>height: </span><em>%fpx</em><br/>)",
+				element_offset.x, element_offset.y, element_size.x, element_size.y
+			);
 
-			position_content->SetInnerRML(positions);
+			position_content->SetInnerRML( PrettyFormatNumbers(positions) );
 		}
 		else
 		{
@@ -474,9 +582,8 @@ void ElementInfo::UpdateSourceElement()
 		}
 	}
 
-	// Set the ancestors:
-	Core::Element* ancestors_content = GetElementById("ancestors-content");
-	if (ancestors_content)
+	// Set the ancestors
+	if (Core::Element* ancestors_content = GetElementById("ancestors-content"))
 	{
 		Core::String ancestors;
 		Core::Element* element_ancestor = nullptr;
@@ -505,9 +612,8 @@ void ElementInfo::UpdateSourceElement()
 		}
 	}
 
-	// Set the children:
-	Core::Element* children_content = GetElementById("children-content");
-	if (children_content)
+	// Set the children
+	if (Core::Element* children_content = GetElementById("children-content"))
 	{
 		Core::String children;
 		if (source_element != nullptr)
@@ -576,7 +682,7 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 		// Print the 'inherited from ...' header if we're not the primary element.
 		if (element != primary_element)
 		{
-			property_rml += "<h3 class='mark'>inherited from " + element->GetAddress(false, false) + "</h3>";
+			property_rml += "<h3 class='strong'>inherited from " + element->GetAddress(false, false) + "</h3>";
 		}
 
 		const Core::PropertySource* previous_source = nullptr;
@@ -614,10 +720,28 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 
 void ElementInfo::BuildPropertyRML(Core::String& property_rml, const Core::String& name, const Core::Property* property)
 {
-	Core::String property_value = property->ToString();
-	PrettyFormatNumbers(property_value);
+	Core::String property_value = PrettyFormatNumbers(property->ToString());
 
-	property_rml += Core::CreateString(name.size() + property_value.size() + 32, "%s: <em>%s;</em><br />", name.c_str(), property_value.c_str());
+	property_rml += "<span class='name'>" + name + "</span>: " + property_value + "<br/>";
+}
+
+void ElementInfo::UpdateTitle()
+{
+	auto title_content = GetElementById("title-content");
+	auto show_source = GetElementById("show_source");
+	auto update_source = GetElementById("update_source");
+
+	if (title_content && show_source && update_source)
+	{
+		if (show_source->IsPseudoClassSet("hover"))
+			title_content->SetInnerRML("<em>(draw element dimensions)</em>");
+		else if (update_source->IsPseudoClassSet("hover"))
+			title_content->SetInnerRML("<em>(update info continuously)</em>");
+		else if (source_element)
+			title_content->SetInnerRML(source_element->GetTagName());
+		else
+			title_content->SetInnerRML("Element Information");
+	}
 }
 
 

@@ -82,13 +82,6 @@ h1 .button
 {
 	z-index: 1;
 }
-h3.mark
-{
-	margin-top: 1.0em;
-	padding: 2dp;
-	color: #900;
-	background-color: #eee;
-}
 div#close_button
 {
 	margin-left: 10dp;

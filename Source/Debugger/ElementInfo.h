@@ -72,11 +72,20 @@ private:
 	void BuildElementPropertiesRML(Core::String& property_rml, Core::Element* element, Core::Element* primary_element);
 	void BuildPropertyRML(Core::String& property_rml, const Core::String& name, const Core::Property* property);
 
+	void UpdateTitle();
+
 	bool IsDebuggerElement(Core::Element* element);
 
 	double previous_update_time;
 
 	Core::String attributes_rml, properties_rml, events_rml, ancestors_rml, children_rml;
+
+	// Draws the dimensions of the source element.
+	bool show_source_element;
+	// Updates the source element information at regular intervals.
+	bool update_source_element;
+	// Forces an update to the source element during the next update loop.
+	bool force_update_once;
 
 	Core::Element* hover_element;
 	Core::Element* source_element;
