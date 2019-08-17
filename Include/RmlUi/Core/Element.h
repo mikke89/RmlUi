@@ -112,7 +112,7 @@ public:
 	/// Fills a string with the full address of this element.
 	/// @param[in] include_pseudo_classes True if the address is to include the pseudo-classes of the leaf element.
 	/// @return The address of the element, including its full parentage.
-	String GetAddress(bool include_pseudo_classes = false) const;
+	String GetAddress(bool include_pseudo_classes = false, bool include_parents = true) const;
 
 	/// Sets the position of this element, as a two-dimensional offset from another element.
 	/// @param[in] offset The offset (in pixels) of our primary box's top-left border corner from our offset parent's top-left border corner.

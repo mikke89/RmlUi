@@ -106,12 +106,12 @@ public:
 	const ShorthandDefinition* GetShorthand(const String& shorthand_name) const;
 
 	/// Parse declaration by name, whether its a property or shorthand.
-	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
+	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const;
 	/// Parse property declaration by ID
-	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
+	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value) const;
 	/// Parses a shorthand declaration, setting any parsed and validated properties on the given dictionary.
 	/// @return True if all properties were parsed successfully, false otherwise.
-	bool ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
+	bool ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value) const;
 
 	/// Sets all undefined properties in the dictionary to their defaults.
 	/// @param dictionary[in-out] The dictionary to set the default values on.

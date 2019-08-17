@@ -139,14 +139,15 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			{
 				texture = previous_texture;
 			}
-			else if (texture.Load(texture_name, src_property->source))
+			else if (src_property->source && texture.Load(texture_name, src_property->source->path))
 			{
 				previous_texture_name = texture_name;
 				previous_texture = texture;
 			}
 			else
 			{
-				Log::Message(Log::LT_WARNING, "Texture name '%s' is neither a valid sprite name nor a texture file. Specified in decorator at %s:%d.", texture_name.c_str(), src_property->source.c_str(), src_property->source_line_number);
+				auto& source = src_property->source;
+				Log::Message(Log::LT_WARNING, "Texture name '%s' is neither a valid sprite name nor a texture file. Specified in decorator at %s:%d.", texture_name.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
 				return false;
 			}
 		}

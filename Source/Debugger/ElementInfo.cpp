@@ -300,21 +300,6 @@ void ElementInfo::UpdateSourceElement()
 					if (!value.empty())
 						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}
-				{
-					name = "style";
-					value = "";
-					const Core::PropertyMap& style_properties = source_element->GetLocalStyleProperties();
-
-					for (auto nvp : style_properties)
-					{
-						auto& prop_name = Core::StyleSheetSpecification::GetPropertyName(nvp.first);
-						auto prop_value = nvp.second.ToString();
-						value += Core::CreateString(prop_name.size() + prop_value.size() + 12, "%s: %s; ", prop_name.c_str(), prop_value.c_str());
-					}
-
-					if (!value.empty())
-						attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
-				}
 			}
 
 			for(const auto& pair : source_element->GetAttributes())
@@ -419,14 +404,7 @@ void ElementInfo::UpdateSourceElement()
 		int ancestor_depth = 1;
 		while (element_ancestor)
 		{
-			Core::String ancestor_name = element_ancestor->GetTagName();
-			const Core::String ancestor_id = element_ancestor->GetId();
-			if (!ancestor_id.empty())
-			{
-				ancestor_name += "#";
-				ancestor_name += ancestor_id;
-			}
-
+			Core::String ancestor_name = element_ancestor->GetAddress(false, false);
 			ancestors += Core::CreateString(ancestor_name.size() + 32, "<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.c_str());
 			element_ancestor = element_ancestor->GetParentNode();
 			ancestor_depth++;
@@ -486,112 +464,68 @@ void ElementInfo::UpdateSourceElement()
 
 void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::Element* element, Core::Element* primary_element)
 {
-	NamedPropertyMap property_map;
+	NamedPropertyList property_list;
 
 	for(auto it = element->IterateLocalProperties(); !it.AtEnd(); ++it)
 	{
-		const Core::PropertyId property_id = it.GetId();
+		Core::PropertyId property_id = it.GetId();
 		const Core::String& property_name = it.GetName();
-		const Core::Property* property = &it.GetProperty();
-		const Core::PseudoClassList& property_pseudo_classes = it.GetPseudoClassList();
+		const Core::Property* prop = &it.GetProperty();
 
 		// Check that this property isn't overridden or just not inherited.
-		if (primary_element->GetProperty(property_id) != property)
+		if (primary_element->GetLocalProperty(property_id) != prop)
 			continue;
 
-		NamedPropertyMap::iterator i = std::find_if(property_map.begin(), property_map.end(),
-			[&property_pseudo_classes](const NamedPropertyPair& pair) { return pair.first == property_pseudo_classes; }
-		);
-		if (i == property_map.end())
-		{
-			property_map.emplace_back(property_pseudo_classes, NamedPropertyList(1, NamedProperty(property_name, property)));
-		}
-		else
-		{
-			// Find a place in this list of properties to insert the new one.
-			NamedPropertyList& properties = (*i).second;
-			NamedPropertyList::iterator insert_iterator = properties.begin();
-			while (insert_iterator != properties.end())
-			{
-				int source_cmp = strcasecmp((*insert_iterator).second->source.c_str(), property->source.c_str());
-				if (source_cmp > 0 ||
-					(source_cmp == 0 && (*insert_iterator).second->source_line_number >= property->source_line_number))
-					break;
-
-				++insert_iterator;
-			}
-
-			(*i).second.insert(insert_iterator, NamedProperty(property_name, property));
-		}
+		property_list.push_back(NamedProperty{ property_name, prop });
 	}
 
-	if (!property_map.empty())
+	std::sort(property_list.begin(), property_list.end(),
+		[](const NamedProperty& a, const NamedProperty& b) {
+			if (a.second->source && !b.second->source) return false;
+			if (!a.second->source && b.second->source) return true;
+			return a.second->specificity > b.second->specificity; 
+		}
+	);
+
+	if (!property_list.empty())
 	{
 		// Print the 'inherited from ...' header if we're not the primary element.
 		if (element != primary_element)
-			property_rml += Core::CreateString(element->GetTagName().size() + 32, "<h3>inherited from %s</h3>", element->GetTagName().c_str());
-
-		for (const NamedPropertyPair& pair : property_map)
 		{
-			if (pair.first.empty())
-			{
-				BuildPropertiesRML(property_rml, pair.second);
-				break;
-			}
+			property_rml += "<h3 class='mark'>inherited from " + element->GetAddress(false, false) + "</h3>";
 		}
 
-		for (NamedPropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
+		const Core::PropertySource* previous_source = nullptr;
+		bool first_iteration = true;
+
+		for (auto& named_property : property_list)
 		{
-			// Skip the base property list, we've already printed it.
-			if (i->first.empty())
-				continue;
-
-			// Print the pseudo-class header.
-			property_rml += "<h3>";
-
-			for (Core::PseudoClassList::const_iterator j = (*i).first.begin(); j != (*i).first.end(); ++j)
+			auto& source = named_property.second->source;
+			if(source.get() != previous_source || first_iteration)
 			{
-				property_rml += " :";
-				property_rml += *j;
+				previous_source = source.get();
+				first_iteration = false;
+
+				// Print the rule name header.
+				if(source)
+				{
+					Core::String str_line_number;
+					Core::TypeConverter<int, Core::String>::Convert(source->line_number, str_line_number);
+					property_rml += "<h3>" + source->rule_name + "</h3>";
+					property_rml += "<h4>" + source->path + " : " + str_line_number + "</h4>";
+				}
+				else
+				{
+					property_rml += "<h3><em>inline</em></h3>";
+				}
 			}
 
-			property_rml += "</h3>";
-
-			BuildPropertiesRML(property_rml, (*i).second);
+			BuildPropertyRML(property_rml, named_property.first, named_property.second);
 		}
 	}
 
 	if (element->GetParentNode() != nullptr)
 		BuildElementPropertiesRML(property_rml, element->GetParentNode(), primary_element);
-}
-
-void ElementInfo::BuildPropertiesRML(Core::String& property_rml, const NamedPropertyList& properties)
-{
-	Core::String last_source;
-	int last_source_line = -1;
-
-	for (size_t i = 0; i < properties.size(); ++i)
-	{
-		if (i == 0 ||
-			last_source != properties[i].second->source ||
-			last_source_line != properties[i].second->source_line_number)
-		{
-			last_source = properties[i].second->source;
-			last_source_line = properties[i].second->source_line_number;
-
-			property_rml += "<h4>";
-
-			if (last_source.empty() &&
-				last_source_line == 0)
-				property_rml += "<em>inline</em>";
-			else
-				property_rml += Core::CreateString(last_source.size() + 32, "<em>%s</em>: %d", last_source.c_str(), last_source_line);
-
-			property_rml += "</h4>";
-		}
-
-		BuildPropertyRML(property_rml, properties[i].first, properties[i].second);
-	}
 }
 
 void ElementInfo::BuildPropertyRML(Core::String& property_rml, const Core::String& name, const Core::Property* property)

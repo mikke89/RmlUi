@@ -37,8 +37,6 @@ namespace Debugger {
 
 typedef std::pair< Core::String, const Core::Property* > NamedProperty;
 typedef std::vector< NamedProperty > NamedPropertyList;
-typedef std::pair<Core::PseudoClassList, NamedPropertyList> NamedPropertyPair;
-typedef std::vector< NamedPropertyPair > NamedPropertyMap;
 
 /**
 	@author Robert Curry
@@ -72,7 +70,6 @@ private:
 	void UpdateSourceElement();
 
 	void BuildElementPropertiesRML(Core::String& property_rml, Core::Element* element, Core::Element* primary_element);
-	void BuildPropertiesRML(Core::String& property_rml, const NamedPropertyList& properties);
 	void BuildPropertyRML(Core::String& property_rml, const Core::String& name, const Core::Property* property);
 
 	void RemoveTrailingZeroes(Core::String& string);

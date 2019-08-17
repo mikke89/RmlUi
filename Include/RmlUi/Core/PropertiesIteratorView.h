@@ -68,10 +68,6 @@ public:
 	const String& GetName() const;
 	const Property& GetProperty() const;
 
-	// Returns the list of pseudo classes which defines the current property, possibly empty.
-	// @todo Currently returns an empty list.
-	const PseudoClassList& GetPseudoClassList() const;
-
 private:
 	UniquePtr<PropertiesIterator> ptr;
 };

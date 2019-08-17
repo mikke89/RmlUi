@@ -72,13 +72,6 @@ public:
 		return at_end;
 	}
 
-	// Return the list of pseudo classes which defines the current property, possibly null.
-	const PseudoClassList* GetPseudoClassList() const
-	{
-		// TODO: Not implemented
-		return nullptr;
-	}
-
 private:
 	PropertyIdSet iterated_properties;
 	PropertyIt it_style, it_style_end;

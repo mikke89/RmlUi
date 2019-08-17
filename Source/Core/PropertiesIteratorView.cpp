@@ -73,15 +73,5 @@ bool PropertiesIteratorView::AtEnd() const {
 	return ptr->AtEnd();
 }
 
-const PseudoClassList& PropertiesIteratorView::GetPseudoClassList() const
-{
-	static const PseudoClassList empty_pseudo_class_list;
-	const PseudoClassList* pseudo_list_ptr = ptr->GetPseudoClassList();
-	if (!pseudo_list_ptr)
-		return empty_pseudo_class_list;
-
-	return *pseudo_list_ptr;
-}
-
 }
 }

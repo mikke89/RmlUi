@@ -48,9 +48,12 @@ std::shared_ptr<Rml::Core::Decorator> DecoratorInstancerDefender::InstanceDecora
 
 	const Rml::Core::Property* image_source_property = properties.GetProperty(id_image_src);
 	Rml::Core::String image_source = image_source_property->Get< Rml::Core::String >();
+	Rml::Core::String source_path;
+	if (auto & source = image_source_property->source)
+		source_path = source->path;
 
 	auto decorator = std::make_shared<DecoratorDefender>();
-	if (decorator->Initialise(image_source, image_source_property->source))
+	if (decorator->Initialise(image_source, source_path))
 		return decorator;
 	
 	return nullptr;

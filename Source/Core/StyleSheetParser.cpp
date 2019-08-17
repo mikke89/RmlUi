@@ -43,7 +43,7 @@ namespace Core {
 
 class AbstractPropertyParser {
 public:
-	virtual bool Parse(const String& name, const String& value, const String& stream_file_name, int rule_line_number) = 0;
+	virtual bool Parse(const String& name, const String& value) = 0;
 };
 
 /*
@@ -58,9 +58,9 @@ private:
 public:
 	PropertySpecificationParser(PropertyDictionary& properties, const PropertySpecification& specification) : properties(properties), specification(specification) {}
 
-	bool Parse(const String& name, const String& value, const String& stream_file_name, int rule_line_number) override
+	bool Parse(const String& name, const String& value) override
 	{
-		return specification.ParsePropertyDeclaration(properties, name, value, stream_file_name, rule_line_number);
+		return specification.ParsePropertyDeclaration(properties, name, value);
 	}
 };
 
@@ -103,7 +103,7 @@ public:
 		sprite_definitions.clear();
 	}
 
-	bool Parse(const String& name, const String& value, const String& stream_file_name, int rule_line_number) override
+	bool Parse(const String& name, const String& value) override
 	{
 		static const String str_src = "src";
 		if (name == str_src)
@@ -112,7 +112,7 @@ public:
 		}
 		else
 		{
-			if (!specification.ParseShorthandDeclaration(properties, id_rectangle, value, stream_file_name, rule_line_number))
+			if (!specification.ParseShorthandDeclaration(properties, id_rectangle, value))
 				return false;
 
 			Rectangle rectangle;
@@ -345,18 +345,25 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 			{
 				if (token == '{')
 				{
+					const int rule_line_number = (int)line_number;
+					
 					// Read the attributes
 					PropertyDictionary properties;
 					PropertySpecificationParser parser(properties, StyleSheetSpecification::GetPropertySpecification());
 					if (!ReadProperties(parser))
 						continue;
 
-					StringList style_name_list;
-					StringUtilities::ExpandString(style_name_list, pre_token_str);
+					StringList rule_name_list;
+					StringUtilities::ExpandString(rule_name_list, pre_token_str);
+
 
 					// Add style nodes to the root of the tree
-					for (size_t i = 0; i < style_name_list.size(); i++)
-						ImportProperties(node, style_name_list[i], properties, rule_count);
+					for (size_t i = 0; i < rule_name_list.size(); i++)
+					{
+						auto source = std::make_shared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
+						properties.SetSourceOfAllProperties(source);
+						ImportProperties(node, rule_name_list[i], properties, rule_count, rule_line_number);
+					}
 
 					rule_count++;
 				}
@@ -494,7 +501,7 @@ bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, co
 
 bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 {
-	int rule_line_number = (int)line_number;
+	const int rule_line_number = (int)line_number;
 	String name;
 	String value;
 
@@ -543,7 +550,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 				{
 					value = StringUtilities::StripWhitespace(value);
 
-					if (!property_parser.Parse(name, value, stream_file_name, rule_line_number))
+					if (!property_parser.Parse(name, value))
 						Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 
 					name.clear();
@@ -583,13 +590,13 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 }
 
 // Updates the StyleNode tree, creating new nodes as necessary, setting the definition index
-bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& names, const PropertyDictionary& properties, int rule_specificity)
+bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number)
 {
 	StyleSheetNode* tag_node = nullptr;
 	StyleSheetNode* leaf_node = node;
 
 	StringList nodes;
-	StringUtilities::ExpandString(nodes, names, ' ');
+	StringUtilities::ExpandString(nodes, rule_name, ' ');
 
 	// Create each node going down the tree
 	for (size_t i = 0; i < nodes.size(); i++)

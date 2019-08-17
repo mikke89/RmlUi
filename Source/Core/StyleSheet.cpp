@@ -137,7 +137,7 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const String& source_file, int source_line_number) const
+DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const PropertySource* source) const
 {
 	// Decorators are declared as
 	//   decorator: <decorator-value>[, <decorator-value> ...];
@@ -149,6 +149,9 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	DecoratorList decorator_list;
 	if (decorator_string_value.empty() || decorator_string_value == NONE)
 		return decorator_list;
+
+	const char* source_name = (source ? source->path.c_str() : "");
+	const int source_line_number = (source ? source->line_number : 0);
 
 	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
 	StringList decorator_string_list;
@@ -170,7 +173,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 			if (decorator)
 				decorator_list.emplace_back(std::move(decorator));
 			else
-				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator_string.c_str(), source_name, source_line_number);
 		}
 		else
 		{
@@ -181,7 +184,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 			DecoratorInstancer* instancer = Factory::GetDecoratorInstancer(type);
 			if (!instancer)
 			{
-				Log::Message(Log::LT_WARNING, "Decorator type '%s' not found, declared at %s:%d", type.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Decorator type '%s' not found, declared at %s:%d", type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
 				continue;
 			}
 
@@ -190,9 +193,9 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 
 			// Parse the shorthand properties given by the 'decorator' shorthand property
 			PropertyDictionary properties;
-			if (!specification.ParsePropertyDeclaration(properties, "decorator", shorthand, source_file, source_line_number))
+			if (!specification.ParsePropertyDeclaration(properties, "decorator", shorthand))
 			{
-				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", decorator_string.c_str(), source_name, source_line_number);
 				continue;
 			}
 
@@ -205,7 +208,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 				decorator_list.emplace_back(std::move(decorator));
 			else
 			{
-				Log::Message(Log::LT_WARNING, "Decorator '%s' could not be instanced, declared at %s:%d", decorator_string.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Decorator '%s' could not be instanced, declared at %s:%d", decorator_string.c_str(), source_name, source_line_number);
 				continue;
 			}
 		}
@@ -214,7 +217,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	return decorator_list;
 }
 
-FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const String& source_file, int source_line_number) const
+FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const PropertySource* source) const
 {	
 	// Font-effects are declared as
 	//   font-effect: <font-effect-value>[, <font-effect-value> ...];
@@ -223,6 +226,9 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 
 	if (font_effect_string_value.empty() || font_effect_string_value == NONE)
 		return nullptr;
+
+	const char* source_name = (source ? source->path.c_str() : "");
+	const int source_line_number = (source ? source->line_number : 0);
 
 	FontEffectList font_effect_list;
 
@@ -242,7 +248,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, font-effects can only be declared anonymously for now.
-			Log::Message(Log::LT_WARNING, "Invalid syntax for font-effect '%s', declared at %s:%d", font_effect_string.c_str(), source_file.c_str(), source_line_number);
+			Log::Message(Log::LT_WARNING, "Invalid syntax for font-effect '%s', declared at %s:%d", font_effect_string.c_str(), source_name, source_line_number);
 		}
 		else
 		{
@@ -253,7 +259,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 			FontEffectInstancer* instancer = Factory::GetFontEffectInstancer(type);
 			if (!instancer)
 			{
-				Log::Message(Log::LT_WARNING, "Font-effect type '%s' not found, declared at %s:%d", type.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Font-effect type '%s' not found, declared at %s:%d", type.c_str(), source_name, source_line_number);
 				continue;
 			}
 
@@ -262,9 +268,9 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 
 			// Parse the shorthand properties given by the 'font-effect' shorthand property
 			PropertyDictionary properties;
-			if (!specification.ParsePropertyDeclaration(properties, "font-effect", shorthand, source_file, source_line_number))
+			if (!specification.ParsePropertyDeclaration(properties, "font-effect", shorthand))
 			{
-				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", font_effect_string.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", font_effect_string.c_str(), source_name, source_line_number);
 				continue;
 			}
 
@@ -285,7 +291,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 			}
 			else
 			{
-				Log::Message(Log::LT_WARNING, "Font-effect '%s' could not be instanced, declared at %s:%d", font_effect_string.c_str(), source_file.c_str(), source_line_number);
+				Log::Message(Log::LT_WARNING, "Font-effect '%s' could not be instanced, declared at %s:%d", font_effect_string.c_str(), source_name, source_line_number);
 				continue;
 			}
 		}

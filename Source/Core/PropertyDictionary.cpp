@@ -92,6 +92,12 @@ void PropertyDictionary::Merge(const PropertyDictionary& property_dictionary, in
 	}
 }
 
+void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source)
+{
+	for (auto& p : properties)
+		p.second.source = property_source;
+}
+
 // Sets a property on the dictionary and its specificity.
 void PropertyDictionary::SetProperty(PropertyId id, const Rml::Core::Property& property, int specificity)
 {

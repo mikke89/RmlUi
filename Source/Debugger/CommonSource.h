@@ -62,7 +62,7 @@ h2
 }
 h3
 {
-	margin-top: 1em;
+	margin-top: 0.6em;
 	color: red;
 }
 h4
@@ -81,6 +81,13 @@ handle#position_handle
 h1 .button
 {
 	z-index: 1;
+}
+h3.mark
+{
+	margin-top: 1.0em;
+	padding: 2dp;
+	color: #900;
+	background-color: #eee;
 }
 div#close_button
 {

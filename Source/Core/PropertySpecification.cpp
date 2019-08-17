@@ -202,22 +202,22 @@ const ShorthandDefinition* PropertySpecification::GetShorthand(const String& sho
 	return GetShorthand(shorthand_map->GetId(shorthand_name));
 }
 
-bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number) const
+bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const
 {
 	// Try as a property first
 	PropertyId property_id = property_map->GetId(property_name);
 	if (property_id != PropertyId::Invalid)
-		return ParsePropertyDeclaration(dictionary, property_id, property_value, source_file, source_line_number);
+		return ParsePropertyDeclaration(dictionary, property_id, property_value);
 
 	// Then, as a shorthand
 	ShorthandId shorthand_id = shorthand_map->GetId(property_name);
 	if (shorthand_id != ShorthandId::Invalid)
-		return ParseShorthandDeclaration(dictionary, shorthand_id, property_value, source_file, source_line_number);
+		return ParseShorthandDeclaration(dictionary, shorthand_id, property_value);
 
 	return false;
 }
 
-bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value, const String& source_file, int source_line_number) const
+bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value) const
 {
 	// Parse as a single property.
 	const PropertyDefinition* property_definition = GetProperty(property_id);
@@ -229,8 +229,6 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 		return false;
 
 	Property new_property;
-	new_property.source = source_file;
-	new_property.source_line_number = source_line_number;
 	if (!property_definition->ParseValue(new_property, property_values[0]))
 		return false;
 	
@@ -239,7 +237,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 }
 
 // Parses a property declaration, setting any parsed and validated properties on the given dictionary.
-bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value, const String& source_file, int source_line_number) const
+bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value) const
 {
 	StringList property_values;
 	if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
@@ -286,8 +284,6 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 			if (!shorthand_definition->items[i].property_definition->ParseValue(new_property, property_values[value_index]))
 				return false;
 
-			new_property.source = source_file;
-			new_property.source_line_number = source_line_number;
 			dictionary.SetProperty(shorthand_definition->items[i].property_definition->GetId(), new_property);
 		}
 	}
@@ -299,9 +295,9 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		{
 			const ShorthandItem& item = shorthand_definition->items[i];
 			if (item.type == ShorthandItemType::Property)
-				result &= ParsePropertyDeclaration(dictionary, item.property_id, property_value, source_file, source_line_number);
+				result &= ParsePropertyDeclaration(dictionary, item.property_id, property_value);
 			else if (item.type == ShorthandItemType::Shorthand)
-				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, property_value, source_file, source_line_number);
+				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, property_value);
 			else
 				result = false;
 		}
@@ -326,9 +322,9 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		{
 			const ShorthandItem& item = shorthand_definition->items[i];
 			if (item.type == ShorthandItemType::Property)
-				result &= ParsePropertyDeclaration(dictionary, item.property_id, subvalues[i], source_file, source_line_number);
+				result &= ParsePropertyDeclaration(dictionary, item.property_id, subvalues[i]);
 			else if (item.type == ShorthandItemType::Shorthand)
-				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, subvalues[i], source_file, source_line_number);
+				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, subvalues[i]);
 			else
 				result = false;
 		}
@@ -344,8 +340,6 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		for (; value_index < property_values.size() && property_index < shorthand_definition->items.size(); property_index++)
 		{
 			Property new_property;
-			new_property.source = source_file;
-			new_property.source_line_number = source_line_number;
 
 			if (!shorthand_definition->items[property_index].property_definition->ParseValue(new_property, property_values[value_index]))
 			{

@@ -37,6 +37,14 @@ namespace Core {
 
 class PropertyDefinition;
 
+struct RMLUICORE_API PropertySource {
+	PropertySource(String path, int line_number, String rule_name) : path(path), line_number(line_number), rule_name(rule_name) {}
+	String path;
+	int line_number;
+	String rule_name;
+};
+
+
 /**
 	@author Peter Curry
  */
@@ -94,8 +102,6 @@ public:
 	{
 		definition = nullptr;
 		parser_index = -1;
-
-		source_line_number = 0;
 	}
 	template<typename EnumType, typename = typename std::enable_if< std::is_enum<EnumType>::value, EnumType >::type>
 	Property(EnumType value) : value(static_cast<int>(value)), unit(KEYWORD), specificity(-1) {}
@@ -120,8 +126,7 @@ public:
 	const PropertyDefinition* definition = nullptr;
 	int parser_index = -1;
 
-	String source;
-	int source_line_number = 0;
+	SharedPtr<const PropertySource> source;
 };
 
 }

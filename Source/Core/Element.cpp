@@ -351,7 +351,7 @@ const ElementDefinition* Element::GetDefinition()
 }
 
 // Fills an String with the full address of this element.
-String Element::GetAddress(bool include_pseudo_classes) const
+String Element::GetAddress(bool include_pseudo_classes, bool include_parents) const
 {
 	// Add the tag name onto the address.
 	String address(tag);
@@ -366,7 +366,7 @@ String Element::GetAddress(bool include_pseudo_classes) const
 	String classes = style->GetClassNames();
 	if (!classes.empty())
 	{
-		classes = Replace(classes, '.', ' ');
+		classes = Replace(classes, ' ', '.');
 		address += ".";
 		address += classes;
 	}
@@ -381,10 +381,10 @@ String Element::GetAddress(bool include_pseudo_classes) const
 		}
 	}
 
-	if (parent)
+	if (include_parents && parent)
 	{
 		address += " < ";
-		return address + parent->GetAddress(true);
+		return address + parent->GetAddress(true, true);
 	}
 	else
 		return address;
