@@ -27,6 +27,7 @@
  */
 
 #include "FileSystem.h"
+#include <RmlUi/Core/StringUtilities.h>
 #include <cstdlib>
 #include <cstdio>
 

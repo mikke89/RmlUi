@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Controls/DataFormatter.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
 namespace Controls {

@@ -193,7 +193,7 @@ ContextPtr Factory::InstanceContext(const String& name)
 
 void Factory::RegisterElementInstancer(const String& name, ElementInstancer* instancer)
 {
-	element_instancers[ToLower(name)] = instancer;
+	element_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
 // Looks up the instancer for the given element
@@ -288,7 +288,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 			return false;
 		}
 
-		text_element->SetText(ToWideString(translated_data));
+		text_element->SetText(StringUtilities::ToUCS2(translated_data));
 
 		// Add to active node.
 		parent->AppendChild(std::move(element));
@@ -335,7 +335,7 @@ ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* 
 void Factory::RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer)
 {
 	RMLUI_ASSERT(instancer);
-	decorator_instancers[ToLower(name)] = instancer;
+	decorator_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
 // Retrieves a decorator instancer registered with the factory.
@@ -352,7 +352,7 @@ DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 void Factory::RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer)
 {
 	RMLUI_ASSERT(instancer);
-	font_effect_instancers[ToLower(name)] = instancer;
+	font_effect_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
 FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)

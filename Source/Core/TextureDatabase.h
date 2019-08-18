@@ -29,8 +29,7 @@
 #ifndef RMLUICORETEXTUREDATABASE_H
 #define RMLUICORETEXTUREDATABASE_H
 
-#include "../../Include/RmlUi/Core/String.h"
-#include <map>
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {

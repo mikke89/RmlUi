@@ -30,9 +30,104 @@
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include <ctype.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 namespace Rml {
 namespace Core {
+
+static bool UTF8toUCS2(const String& input, WString& output);
+static bool UCS2toUTF8(const WString& input, String& output);
+
+
+static int FormatString(String& string, size_t max_size, const char* format, va_list argument_list)
+{
+	const int INTERNAL_BUFFER_SIZE = 1024;
+	static char buffer[INTERNAL_BUFFER_SIZE];
+	char* buffer_ptr = buffer;
+
+	if (max_size + 1 > INTERNAL_BUFFER_SIZE)
+		buffer_ptr = new char[max_size + 1];
+
+	int length = vsnprintf(buffer_ptr, max_size, format, argument_list);
+	buffer_ptr[length >= 0 ? length : max_size] = '\0';
+#ifdef RMLUI_DEBUG
+	if (length == -1)
+	{
+		Log::Message(Log::LT_WARNING, "FormatString: String truncated to %d bytes when processing %s", max_size, format);
+	}
+#endif
+
+	string = buffer_ptr;
+
+	if (buffer_ptr != buffer)
+		delete[] buffer_ptr;
+
+	return length;
+}
+
+int FormatString(String& string, size_t max_size, const char* format, ...)
+{
+	va_list argument_list;
+	va_start(argument_list, format);
+	int result = FormatString(string, (int)max_size, format, argument_list);
+	va_end(argument_list);
+	return result;
+}
+String CreateString(size_t max_size, const char* format, ...)
+{
+	String result;
+	result.reserve(max_size);
+	va_list argument_list;
+	va_start(argument_list, format);
+	FormatString(result, max_size, format, argument_list);
+	va_end(argument_list);
+	return result;
+}
+
+
+String StringUtilities::ToLower(const String& string) {
+	String str_lower = string;
+	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), ::tolower);
+	return str_lower;
+}
+
+WString StringUtilities::ToUCS2(const String& str)
+{
+	WString result;
+	if (!UTF8toUCS2(str, result))
+		Log::Message(Log::LT_WARNING, "Failed to convert UTF8 string to UCS2.");
+	return result;
+}
+
+String StringUtilities::ToUTF8(const WString& wstr)
+{
+	String result;
+	if(!UCS2toUTF8(wstr, result))
+		Log::Message(Log::LT_WARNING, "Failed to convert UCS2 string to UTF8.");
+	return result;
+}
+
+String StringUtilities::Replace(String subject, const String& search, const String& replace)
+{
+	size_t pos = 0;
+	while ((pos = subject.find(search, pos)) != String::npos) {
+		subject.replace(pos, search.length(), replace);
+		pos += replace.length();
+	}
+	return subject;
+}
+
+String StringUtilities::Replace(String subject, char search, char replace)
+{
+	const size_t size = subject.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (subject[i] == search)
+			subject[i] = replace;
+	}
+	return subject;
+}
+
 
 // Expands character-delimited list of values in a single string to a whitespace-trimmed list of values.
 void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter)
@@ -150,6 +245,32 @@ void StringUtilities::JoinString(String& string, const StringList& string_list, 
 }
 
 
+
+// Strip whitespace characters from the beginning and end of a string.
+String StringUtilities::StripWhitespace(const String& string)
+{
+	const char* start = string.c_str();
+	const char* end = start + string.size();
+
+	while (start < end && IsWhitespace(*start))
+		start++;
+
+	while (end > start && IsWhitespace(*(end - 1)))
+		end--;
+
+	if (start < end)
+		return String(start, end);
+
+	return String();
+}
+
+// Operators for STL containers using strings.
+bool StringUtilities::StringComparei::operator()(const String& lhs, const String& rhs) const
+{
+	return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+}
+
+
 // Defines, helper functions for the UTF8 / UCS2 conversion functions.
 #define _NXT	0x80
 #define _SEQ2	0xc0
@@ -187,7 +308,7 @@ static int __utf8_forbidden(unsigned char octet)
 
 
 // Converts a character array in UTF-8 encoding to a vector of words.
-bool StringUtilities::UTF8toUCS2(const String& input, WString& output)
+static bool UTF8toUCS2(const String& input, WString& output)
 {
 	if (input.empty())
 		return true;
@@ -295,7 +416,7 @@ bool StringUtilities::UTF8toUCS2(const String& input, WString& output)
 }
 
 // Converts an array of words in UCS-2 encoding into a character array in UTF-8 encoding.
-bool StringUtilities::UCS2toUTF8(const WString& input, String& output)
+static bool UCS2toUTF8(const WString& input, String& output)
 {
 	unsigned char *oc;
 	size_t n;
@@ -366,30 +487,6 @@ bool StringUtilities::UCS2toUTF8(const WString& input, String& output)
 	}
 	
 	return true;
-}
-
-// Strip whitespace characters from the beginning and end of a string.
-String StringUtilities::StripWhitespace(const String& string)
-{
-	const char* start = string.c_str();
-	const char* end = start + string.size();
-	
-	while (start < end && IsWhitespace(*start))
-		start++;
-	
-	while (end > start && IsWhitespace(*(end - 1)))
-		end--;
-	
-	if (start < end)
-		return String(start, end);
-	
-	return String();
-}
-
-// Operators for STL containers using strings.
-bool StringUtilities::StringComparei::operator()(const String& lhs, const String& rhs) const
-{
-	return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
 }
 
 }

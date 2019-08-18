@@ -29,8 +29,8 @@
 #ifndef RMLUICONTROLSDATAFORMATTER_H
 #define RMLUICONTROLSDATAFORMATTER_H
 
+#include "../Core/Types.h"
 #include "../Core/ScriptInterface.h"
-#include "../Core/String.h"
 #include "Header.h"
 
 namespace Rml {

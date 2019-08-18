@@ -32,7 +32,6 @@
 #include "../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
-#include "../../Include/RmlUi/Core/String.h"
 #include "../../Include/RmlUi/Core/Texture.h"
 #include "TextureLayout.h"
 

@@ -31,7 +31,6 @@
 
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/String.h"
 #include "../../Include/RmlUi/Core/Vertex.h"
 
 namespace Rml {

@@ -215,7 +215,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	{
 		float value = 0.0f;
 		int count = 0;
-		rule = ToLower(rule);
+		rule = StringUtilities::ToLower(rule);
 		if (rule == "from")
 			rule_values.push_back(0.0f);
 		else if (rule == "to")
@@ -324,7 +324,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 	int rule_count = 0;
 	line_number = begin_line_number;
 	stream = _stream;
-	stream_file_name = Replace(stream->GetSourceURL().GetURL(), '|', ':');
+	stream_file_name = StringUtilities::Replace(stream->GetSourceURL().GetURL(), '|', ':');
 
 	enum class State { Global, AtRuleIdentifier, KeyframeBlock, Invalid };
 	State state = State::Global;
@@ -501,7 +501,6 @@ bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, co
 
 bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 {
-	const int rule_line_number = (int)line_number;
 	String name;
 	String value;
 

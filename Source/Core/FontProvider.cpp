@@ -36,7 +36,7 @@ namespace Core {
 // Returns a handle to a font face that can be used to position and render text.
 SharedPtr<FontFaceHandle> FontProvider::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
 {
-	RMLUI_ASSERTMSG(family == ToLower(family), "Font family name must be converted to lowercase before entering here.");
+	RMLUI_ASSERTMSG(family == StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
 	FontFamilyMap::iterator iterator = font_families.find(family);
 	if (iterator == font_families.end())
 		return nullptr;

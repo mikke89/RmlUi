@@ -29,9 +29,9 @@
 #ifndef RMLUICORESYSTEMINTERFACE_H
 #define RMLUICORESYSTEMINTERFACE_H
 
+#include "Types.h"
 #include "Log.h"
 #include "Traits.h"
-#include "String.h"
 #include "Header.h"
 
 namespace Rml {

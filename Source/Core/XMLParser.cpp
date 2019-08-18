@@ -64,7 +64,7 @@ XMLParser::~XMLParser()
 // Registers a custom node handler to be used to a given tag.
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
 {
-	String tag = ToLower(_tag);
+	String tag = StringUtilities::ToLower(_tag);
 
 	// Check for a default node registration.
 	if (tag.empty())
@@ -103,7 +103,7 @@ void XMLParser::PushDefaultHandler()
 
 bool XMLParser::PushHandler(const String& tag)
 {
-	NodeHandlers::iterator i = node_handlers.find(ToLower(tag));
+	NodeHandlers::iterator i = node_handlers.find(StringUtilities::ToLower(tag));
 	if (i == node_handlers.end())
 		return false;
 
@@ -120,7 +120,7 @@ const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 /// Called when the parser finds the beginning of an element tag.
 void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& attributes)
 {
-	const String name = ToLower(_name);
+	const String name = StringUtilities::ToLower(_name);
 
 	// Check for a specific handler that will override the child handler.
 	NodeHandlers::iterator itr = node_handlers.find(name);
@@ -150,7 +150,7 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 /// Called when the parser finds the end of an element tag.
 void XMLParser::HandleElementEnd(const String& _name)
 {
-	String name = ToLower(_name);
+	String name = StringUtilities::ToLower(_name);
 
 	// Copy the top of the stack
 	ParseFrame frame = stack.top();

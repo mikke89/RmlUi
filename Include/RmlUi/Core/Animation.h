@@ -31,7 +31,7 @@
 #define RMLUICOREANIMATION_H
 
 
-#include "String.h"
+#include "Types.h"
 #include "Tween.h"
 
 namespace Rml {

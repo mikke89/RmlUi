@@ -52,7 +52,7 @@ BaseXMLParser::~BaseXMLParser()
 void BaseXMLParser::RegisterCDATATag(const String& tag)
 {
 	if (!tag.empty())
-		cdata_tags.insert(ToLower(tag));
+		cdata_tags.insert(StringUtilities::ToLower(tag));
 }
 
 // Parses the given stream as an XML file, and calls the handlers when
@@ -232,7 +232,7 @@ bool BaseXMLParser::ReadOpenTag()
 	// Check if this tag needs to processed as CDATA.
 	if (section_opened)
 	{
-		String lcase_tag_name = ToLower(tag_name);
+		String lcase_tag_name = StringUtilities::ToLower(tag_name);
 		if (cdata_tags.find(lcase_tag_name) != cdata_tags.end())
 		{
 			if (ReadCDATA(lcase_tag_name.c_str()))
@@ -341,7 +341,7 @@ bool BaseXMLParser::ReadCDATA(const char* terminator)
 				{
 					size_t slash_pos = tag.find('/');
 					String tag_name = StringUtilities::StripWhitespace(slash_pos == String::npos ? tag : tag.substr(slash_pos + 1));
-					if (ToLower(tag_name) == terminator)
+					if (StringUtilities::ToLower(tag_name) == terminator)
 					{
 						data += cdata;
 						return true;

@@ -207,7 +207,7 @@ class TypeConverter< String, bool >
 public:
 	static bool Convert(const String& src, bool& dest)
 	{
-		String lower = ToLower(src);
+		String lower = StringUtilities::ToLower(src);
 		if (lower == "1" || lower == "true")
 		{
 			dest = true;

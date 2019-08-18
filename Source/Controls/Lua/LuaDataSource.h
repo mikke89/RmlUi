@@ -32,7 +32,6 @@
 #include <RmlUi/Core/Lua/LuaType.h>
 #include <RmlUi/Core/Lua/lua.hpp>
 #include <RmlUi/Controls/DataSource.h>
-#include <RmlUi/Core/String.h>
 
 namespace Rml {
 namespace Controls {

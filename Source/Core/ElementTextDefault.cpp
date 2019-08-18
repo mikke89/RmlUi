@@ -359,7 +359,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 // Returns the RML of this element
 void ElementTextDefault::GetRML(String& content)
 {
-	content += ToUTF8(text);
+	content += StringUtilities::ToUTF8(text);
 }
 
 // Forces a reevaluation of applicable font effects.

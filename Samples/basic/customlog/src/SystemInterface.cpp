@@ -28,6 +28,7 @@
 
 #include "SystemInterface.h"
 #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/StringUtilities.h>
 #include <Shell.h>
 #include <stdio.h>
 #ifdef RMLUI_PLATFORM_WIN32

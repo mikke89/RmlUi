@@ -93,6 +93,7 @@ static Core::String PrettyFormatNumbers(const Core::String& in_string)
 	return string;
 }
 
+#ifdef RMLUI_DEBUG
 static bool TestPrettyFormat(Core::String original, Core::String should_be)
 {
 	Core::String formatted = PrettyFormatNumbers(original);
@@ -101,6 +102,7 @@ static bool TestPrettyFormat(Core::String original, Core::String should_be)
 		Core::Log::Message(Core::Log::LT_ERROR, "Remove trailing string failed. PrettyFormatNumbers('%s') == '%s' != '%s'", original.c_str(), formatted.c_str(), should_be.c_str());
 	return result;
 }
+#endif
 
 ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
 {

@@ -29,7 +29,7 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
-#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
 

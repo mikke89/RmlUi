@@ -355,7 +355,7 @@ bool PropertyParserAnimation::ParseValue(Property & property, const String & val
 {
 	StringList list_of_values;
 	{
-		auto lowercase_value = ToLower(value);
+		auto lowercase_value = StringUtilities::ToLower(value);
 		StringUtilities::ExpandString(list_of_values, lowercase_value, ',');
 	}
 

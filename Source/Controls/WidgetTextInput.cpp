@@ -114,7 +114,7 @@ WidgetTextInput::~WidgetTextInput()
 // Sets the value of the text field.
 void WidgetTextInput::SetValue(const Core::String& value)
 {
-	text_element->SetText(Core::ToWideString(value));
+	text_element->SetText(Core::StringUtilities::ToUCS2(value));
 	FormatElement();
 
 	UpdateRelativeCursor();
@@ -128,11 +128,11 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 		max_length = _max_length;
 		if (max_length >= 0)
 		{
-			Core::WString value = Core::ToWideString( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
+			Core::WString value = Core::StringUtilities::ToUCS2( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
 			if ((int) value.size() > max_length)
 			{
 				Rml::Core::String new_value;
-				new_value = Core::ToUTF8(Core::WString(value.c_str(), value.c_str() + max_length));
+				new_value = Core::StringUtilities::ToUTF8(Core::WString(value.c_str(), value.c_str() + max_length));
 
 				GetElement()->SetAttribute("value", new_value);
 			}
@@ -358,7 +358,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 				for (size_t i = 0; i < clipboard_text.size(); ++i)
 				{
 					if (max_length > 0 &&
-						(int)Core::ToWideString(GetElement()->GetAttribute< Rml::Core::String >("value", "")).size() > max_length)
+						(int)Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", "")).size() > max_length)
 						break;
 
 					AddCharacter(clipboard_text[i]);
@@ -450,12 +450,12 @@ bool WidgetTextInput::AddCharacter(Rml::Core::word character)
 	if (selection_length > 0)
 		DeleteSelection();
 
-	Core::WString value = Core::ToWideString(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
+	Core::WString value = Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
 	value.insert(GetCursorIndex(), 1, character);
 
 	edit_index += 1;
 
-	Rml::Core::String utf8_value = Core::ToUTF8(value);
+	Rml::Core::String utf8_value = Core::StringUtilities::ToUTF8(value);
 	GetElement()->SetAttribute("value", utf8_value);
 	DispatchChangeEvent();
 
@@ -479,7 +479,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		return true;
 	}
 
-	Core::WString value = Core::ToWideString(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
+	Core::WString value = Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
 
 	if (back)
 	{
@@ -497,7 +497,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		value.erase(GetCursorIndex(), 1);
 	}
 
-	Rml::Core::String utf8_value = Core::ToUTF8(value);
+	Rml::Core::String utf8_value = Core::StringUtilities::ToUTF8(value);
 	GetElement()->SetAttribute("value", utf8_value);
 	DispatchChangeEvent();
 
@@ -510,7 +510,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 void WidgetTextInput::CopySelection()
 {
 	const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-	const Core::WString snippet = Core::ToWideString(value.substr(selection_begin_index, selection_length));
+	const Core::WString snippet = Core::StringUtilities::ToUCS2(value.substr(selection_begin_index, selection_length));
 	Core::GetSystemInterface()->SetClipboardText(snippet);
 }
 
@@ -958,9 +958,9 @@ void WidgetTextInput::DeleteSelection()
 {
 	if (selection_length > 0)
 	{
-		const Core::WString& value = Core::ToWideString( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
+		const Core::WString& value = Core::StringUtilities::ToUCS2( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
 
-		Rml::Core::String new_value = Core::ToUTF8(Core::WString(value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length)));
+		Rml::Core::String new_value = Core::StringUtilities::ToUTF8(Core::WString(value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length)));
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.

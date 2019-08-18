@@ -30,7 +30,6 @@
 #include <RmlUi/Core/Lua/Interpreter.h>
 #include <RmlUi/Core/Lua/Utilities.h>
 #include <RmlUi/Core/Log.h>
-#include <RmlUi/Core/String.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Lua/LuaType.h>
 #include "LuaDocumentElementInstancer.h"

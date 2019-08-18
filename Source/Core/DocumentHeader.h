@@ -29,7 +29,7 @@
 #ifndef RMLUICOREDOCUMENTHEADER_H
 #define RMLUICOREDOCUMENTHEADER_H
 
-#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {

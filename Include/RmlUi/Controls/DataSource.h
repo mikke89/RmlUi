@@ -31,7 +31,6 @@
 
 #include "Header.h"
 #include "../Core/Types.h"
-#include "../Core/String.h"
 #include <list>
 
 namespace Rml {

@@ -30,7 +30,7 @@
 #define RMLUICOREEVENTLISTENERINSTANCER_H
 
 #include "Traits.h"
-#include "String.h"
+#include "Types.h"
 #include "Header.h"
 #include "Element.h"
 

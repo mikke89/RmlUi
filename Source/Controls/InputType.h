@@ -29,7 +29,6 @@
 #ifndef RMLUICONTROLSINPUTTYPE_H
 #define RMLUICONTROLSINPUTTYPE_H
 
-#include "../../Include/RmlUi/Core/String.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Types.h"
 

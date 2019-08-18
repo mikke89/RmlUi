@@ -31,7 +31,6 @@
 
 #include "Header.h"
 #include "Box.h"
-#include "String.h"
 #include "Types.h"
 
 namespace Rml {

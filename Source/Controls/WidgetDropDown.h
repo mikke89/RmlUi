@@ -29,7 +29,6 @@
 #ifndef RMLUICONTROLSWIDGETDROPDOWN_H
 #define RMLUICONTROLSWIDGETDROPDOWN_H
 
-#include "../../Include/RmlUi/Core/String.h"
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Controls/SelectOption.h"
 #include <vector>

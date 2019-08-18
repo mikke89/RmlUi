@@ -33,7 +33,6 @@
 #include <RmlUi/Core/FontGlyph.h>
 #include <RmlUi/Core/Geometry.h>
 #include <RmlUi/Core/GeometryUtilities.h>
-#include <RmlUi/Core/String.h>
 #include "../FontFaceLayer.h"
 
 namespace Rml {

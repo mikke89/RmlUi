@@ -764,7 +764,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::FontFamily:
-			values.font_family = ToLower(p->Get<String>());
+			values.font_family = StringUtilities::ToLower(p->Get<String>());
 			break;
 		case PropertyId::FontCharset:
 			values.font_charset = p->Get<String>();

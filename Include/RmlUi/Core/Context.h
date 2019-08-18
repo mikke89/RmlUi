@@ -33,7 +33,6 @@
 #include "Types.h"
 #include "Traits.h"
 #include "Input.h"
-#include "String.h"
 #include "ScriptInterface.h"
 #include "ViewState.h"
 

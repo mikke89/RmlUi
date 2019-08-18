@@ -30,7 +30,6 @@
 #define RMLUICORELAYOUTINLINEBOXTEXT_H
 
 #include "LayoutInlineBox.h"
-#include "../../Include/RmlUi/Core/String.h"
 
 namespace Rml {
 namespace Core {

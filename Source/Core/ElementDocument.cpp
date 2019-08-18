@@ -270,7 +270,7 @@ ElementPtr ElementDocument::CreateTextNode(const String& text)
 	}
 	
 	// Set the text
-	element_text->SetText(ToWideString(text));
+	element_text->SetText(StringUtilities::ToUCS2(text));
 
 	return element;
 }

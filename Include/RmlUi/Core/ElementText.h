@@ -30,8 +30,8 @@
 #define RMLUICOREELEMENTTEXT_H
 
 #include "Header.h"
+#include "Types.h"
 #include "Element.h"
-#include "String.h"
 
 namespace Rml {
 namespace Core {

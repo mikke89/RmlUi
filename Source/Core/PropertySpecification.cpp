@@ -126,7 +126,7 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 		shorthand_map->AddPair(id, shorthand_name);
 
 	StringList property_list;
-	StringUtilities::ExpandString(property_list, ToLower(property_names));
+	StringUtilities::ExpandString(property_list, StringUtilities::ToLower(property_names));
 
 	// Construct the new shorthand definition and resolve its properties.
 	UniquePtr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());

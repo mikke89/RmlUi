@@ -35,7 +35,6 @@
 #include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/String.h"
 #include "../../Include/RmlUi/Core/Texture.h"
 
 namespace Rml {

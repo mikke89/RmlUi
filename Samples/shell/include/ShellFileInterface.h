@@ -29,7 +29,7 @@
 #ifndef SHELLFILEINTERFACE_H
 #define SHELLFILEINTERFACE_H
 
-#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/FileInterface.h>
 
 /**

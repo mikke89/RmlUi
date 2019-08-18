@@ -30,7 +30,7 @@
 #ifndef RMLUICORESTRINGCACHE_H
 #define RMLUICORESTRINGCACHE_H
 
-#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {

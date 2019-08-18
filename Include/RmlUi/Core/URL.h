@@ -30,8 +30,7 @@
 #define RMLUICOREURL_H
 
 #include "Header.h"
-#include "String.h"
-#include <map>
+#include "Types.h"
 
 namespace Rml {
 namespace Core {

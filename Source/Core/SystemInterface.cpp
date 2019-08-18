@@ -116,6 +116,8 @@ void SystemInterface::JoinPath(String& translated_path, const String& document_p
 		return;
 	}
 
+	using StringUtilities::Replace;
+
 	// Strip off the referencing document name.
 	translated_path = document_path;
 	translated_path = Replace(translated_path, '\\', '/');

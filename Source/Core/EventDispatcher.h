@@ -29,7 +29,7 @@
 #ifndef RMLUICOREEVENTDISPATCHER_H
 #define RMLUICOREEVENTDISPATCHER_H
 
-#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Event.h"
 
 namespace Rml {

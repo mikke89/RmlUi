@@ -30,7 +30,6 @@
 #include "LuaDataSource.h"
 #include <RmlUi/Core/Lua/Interpreter.h>
 #include <RmlUi/Core/Log.h>
-#include <RmlUi/Core/String.h>
 
 using Rml::Core::Lua::Interpreter;
 using Rml::Core::Log;

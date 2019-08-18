@@ -129,10 +129,12 @@ bool ElementLog::Initialise()
 // Adds a log message to the debug log.
 void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message)
 {
+	using Core::StringUtilities::Replace;
+
 	// Add the message to the list of messages for the specified log type.
 	LogMessage log_message;
 	log_message.index = current_index++;
-	log_message.message = Core::Replace(Core::Replace(Core::String(message), "<", "&lt;"), ">", "&gt;");
+	log_message.message = Replace(Replace(Core::String(message), "<", "&lt;"), ">", "&gt;");
 	log_types[type].log_messages.push_back(log_message);
 	if (log_types[type].log_messages.size() >= MAX_LOG_MESSAGES)
 	{

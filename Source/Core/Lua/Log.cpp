@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "Log.h"
 #include <RmlUi/Core/Log.h>
-#include <RmlUi/Core/String.h>
 #include <RmlUi/Core/StringUtilities.h>
 
 

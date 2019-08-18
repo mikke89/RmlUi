@@ -143,7 +143,7 @@ bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length, c
 // Adds a loaded face to the appropriate font family.
 bool BitmapFont::FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
 {
-	String family_lower = ToLower(family);
+	String family_lower = StringUtilities::ToLower(family);
 	Rml::Core::FontFamily* font_family = nullptr;
 	FontFamilyMap::iterator iterator = instance->font_families.find(family_lower);
 	if (iterator != instance->font_families.end())

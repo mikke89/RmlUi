@@ -73,7 +73,6 @@ typedef unsigned __int64 uint64_t;
 #include "Vector3.h"
 #include "Vector4.h"
 #include "Matrix4.h"
-#include "String.h"
 
 namespace Rml {
 namespace Core {
@@ -117,6 +116,10 @@ using TextureHandle = uintptr_t;
 using CompiledGeometryHandle = uintptr_t;
 using DecoratorDataHandle = uintptr_t;
 
+// Strings
+using String = std::string;
+using WString = std::wstring;
+using StringList = std::vector< String >;
 
 // Smart pointer types
 template<typename T>

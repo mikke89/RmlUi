@@ -30,7 +30,6 @@
 #define RMLUICORELUALUAEVENTLISTENER_H
 
 #include <RmlUi/Core/EventListener.h>
-#include <RmlUi/Core/String.h>
 #include <RmlUi/Core/Lua/lua.hpp>
 
 namespace Rml {

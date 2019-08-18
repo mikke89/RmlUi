@@ -126,7 +126,7 @@ struct alignas(ElementMeta) ElementMetaChunk
 Element::Element(const String& tag) : tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
 transform_state(), transform_state_perspective_dirty(true), transform_state_transform_dirty(true), transform_state_parent_transform_dirty(true), dirty_animation(false), dirty_transition(false)
 {
-	RMLUI_ASSERT(tag == ToLower(tag));
+	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
 	focus = nullptr;
 	instancer = nullptr;
@@ -366,7 +366,7 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 	String classes = style->GetClassNames();
 	if (!classes.empty())
 	{
-		classes = Replace(classes, ' ', '.');
+		classes = StringUtilities::Replace(classes, ' ', '.');
 		address += ".";
 		address += classes;
 	}

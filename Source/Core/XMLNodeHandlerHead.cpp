@@ -55,7 +55,7 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 	else if (name == "link")
 	{
 		// Lookup the type and href
-		String type = ToLower(Get<String>(attributes, "type", ""));
+		String type = StringUtilities::ToLower(Get<String>(attributes, "type", ""));
 		String href = Get<String>(attributes, "href", "");
 
 		if (!type.empty() && !href.empty())

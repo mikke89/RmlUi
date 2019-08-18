@@ -172,7 +172,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Spritesheet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Stream.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/String.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetKeywords.h
@@ -300,7 +299,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Stream.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamMemory.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/String.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StringCache.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StringUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheet.cpp

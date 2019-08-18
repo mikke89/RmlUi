@@ -11,7 +11,7 @@
 
 #include "DecoratorInstancerDefender.h"
 #include <RmlUi/Core/Math.h>
-#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/Types.h>
 #include "DecoratorDefender.h"
 
 DecoratorInstancerDefender::DecoratorInstancerDefender()
