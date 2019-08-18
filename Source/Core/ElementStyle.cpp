@@ -855,7 +855,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 				if(auto& style_sheet = element->GetStyleSheet())
 				{
 					String value = p->Get<String>();
-					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source.get());
+					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source);
 				}
 			}
 			break;
@@ -870,7 +870,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 				if (auto & style_sheet = element->GetStyleSheet())
 				{
 					String value = p->Get<String>();
-					values.font_effect = style_sheet->InstanceFontEffectsFromString(value, p->source.get());
+					values.font_effect = style_sheet->InstanceFontEffectsFromString(value, p->source);
 				}
 			}
 			break;

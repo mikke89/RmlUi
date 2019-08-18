@@ -95,10 +95,10 @@ public:
 	SharedPtr<Decorator> GetDecorator(const String& name) const;
 
 	/// Parses the decorator property from a string and returns a list of instanced decorators.
-	DecoratorList InstanceDecoratorsFromString(const String& decorator_string_value, const PropertySource* source) const;
+	DecoratorList InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
 
 	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
-	FontEffectListPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const PropertySource* source) const;
+	FontEffectListPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
 
 	/// Get sprite located in any spritesheet within this stylesheet.
 	const Sprite* GetSprite(const String& name) const;

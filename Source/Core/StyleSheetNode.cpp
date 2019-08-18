@@ -194,7 +194,7 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 			if (property->unit == Property::STRING)
 			{
 				const String string_value = property->Get<String>();
-				DecoratorList decorator_list = style_sheet.InstanceDecoratorsFromString(string_value, property->source.get());
+				DecoratorList decorator_list = style_sheet.InstanceDecoratorsFromString(string_value, property->source);
 
 				Property new_property = *property;
 				new_property.value = std::move(decorator_list);
@@ -209,7 +209,7 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 			if (property->unit == Property::STRING)
 			{
 				const String string_value = property->Get<String>();
-				FontEffectListPtr font_effects = style_sheet.InstanceFontEffectsFromString(string_value, property->source.get());
+				FontEffectListPtr font_effects = style_sheet.InstanceFontEffectsFromString(string_value, property->source);
 
 				Property new_property = *property;
 				new_property.value = std::move(font_effects);
