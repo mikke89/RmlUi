@@ -61,16 +61,16 @@ struct NumberAuto {
 using Margin = LengthPercentageAuto;
 using Padding = LengthPercentage;
 
-enum class Display { None, Block, Inline, InlineBlock };
-enum class Position { Static, Relative, Absolute, Fixed };
+enum class Display : uint8_t { None, Block, Inline, InlineBlock };
+enum class Position : uint8_t { Static, Relative, Absolute, Fixed };
 
 using Top = LengthPercentageAuto;
 using Right = LengthPercentageAuto;
 using Bottom = LengthPercentageAuto;
 using Left = LengthPercentageAuto;
 
-enum class Float { None, Left, Right };
-enum class Clear { None, Left, Right, Both };
+enum class Float : uint8_t { None, Left, Right };
+enum class Clear : uint8_t { None, Left, Right, Both };
 
 using ZIndex = NumberAuto;
 
@@ -96,7 +96,7 @@ struct VerticalAlign {
 	VerticalAlign(float value) : type(Length), value(value) {}
 };
 
-enum class Overflow { Visible, Hidden, Auto, Scroll };
+enum class Overflow : uint8_t { Visible, Hidden, Auto, Scroll };
 struct Clip {
 	// Note, internally Auto is 0 and None is -1, however, the enum must correspond to the keywords in StyleSheetSpec
 	enum Type { Auto, None, Number };
@@ -105,26 +105,26 @@ struct Clip {
 	Clip(Type type, int number = 0) : number(type == Auto ? 0 : (type == None ? -1 : number)) {}
 };
 
-enum class Visibility { Visible, Hidden };
+enum class Visibility : uint8_t { Visible, Hidden };
 
-enum class FontStyle { Normal, Italic };
-enum class FontWeight { Normal, Bold };
+enum class FontStyle : uint8_t { Normal, Italic };
+enum class FontWeight : uint8_t { Normal, Bold };
 
-enum class TextAlign { Left, Right, Center, Justify };
-enum class TextDecoration { None, Underline };
-enum class TextTransform { None, Capitalize, Uppercase, Lowercase };
-enum class WhiteSpace { Normal, Pre, Nowrap, Prewrap, Preline };
+enum class TextAlign : uint8_t { Left, Right, Center, Justify };
+enum class TextDecoration : uint8_t { None, Underline };
+enum class TextTransform : uint8_t { None, Capitalize, Uppercase, Lowercase };
+enum class WhiteSpace : uint8_t { Normal, Pre, Nowrap, Prewrap, Preline };
 
-enum class Drag { None, Drag, DragDrop, Block, Clone };
-enum class TabIndex { None, Auto };
-enum class Focus { None, Auto };
-enum class PointerEvents { None, Auto };
+enum class Drag : uint8_t { None, Drag, DragDrop, Block, Clone };
+enum class TabIndex : uint8_t { None, Auto };
+enum class Focus : uint8_t { None, Auto };
+enum class PointerEvents : uint8_t { None, Auto };
 
 using PerspectiveOrigin = LengthPercentage;
 using TransformOrigin = LengthPercentage;
 
-enum class OriginX { Left, Center, Right };
-enum class OriginY { Top, Center, Bottom };
+enum class OriginX : uint8_t { Left, Center, Right };
+enum class OriginY : uint8_t { Top, Center, Bottom };
 
 
 // A computed value is a value resolved as far as possible :before: updating layout. See CSS specs for details of each property.
