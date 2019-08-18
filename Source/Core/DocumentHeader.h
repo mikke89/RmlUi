@@ -34,6 +34,8 @@
 namespace Rml {
 namespace Core {
 
+using LineNumberList = std::vector<int>;
+
 /**
 	The document header struct contains the
 	header details gathered from an XML document parse.
@@ -53,6 +55,7 @@ public:
 
 	/// Inline RCSS definitions
 	StringList rcss_inline;
+	LineNumberList rcss_inline_line_numbers;
 	/// External RCSS definitions that should be loaded
 	StringList rcss_external;
 

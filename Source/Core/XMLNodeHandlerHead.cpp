@@ -133,7 +133,10 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data)
 
 	// Store an inline style
 	if (tag == "style" && data.size() > 0)
+	{
 		parser->GetDocumentHeader()->rcss_inline.push_back(data);
+		parser->GetDocumentHeader()->rcss_inline_line_numbers.push_back(parser->GetLineNumberOpenTag());
+	}
 
 	return true;
 }

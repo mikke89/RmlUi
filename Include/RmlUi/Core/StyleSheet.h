@@ -80,7 +80,7 @@ public:
 	virtual ~StyleSheet();
 
 	/// Loads a style from a CSS definition.
-	bool LoadStyleSheet(Stream* stream);
+	bool LoadStyleSheet(Stream* stream, int begin_line_number = 1);
 
 	/// Combines this style sheet with another one, producing a new sheet.
 	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;

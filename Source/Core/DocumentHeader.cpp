@@ -45,6 +45,7 @@ void DocumentHeader::MergeHeader(const DocumentHeader& header)
 
 	// Combine internal data	
 	rcss_inline.insert(rcss_inline.end(), header.rcss_inline.begin(), header.rcss_inline.end());	
+	rcss_inline_line_numbers.insert(rcss_inline_line_numbers.end(), header.rcss_inline_line_numbers.begin(), header.rcss_inline_line_numbers.end());
 	scripts_inline.insert(scripts_inline.end(), header.scripts_inline.begin(), header.scripts_inline.end());
 	
 	// Combine external data, keeping relative paths

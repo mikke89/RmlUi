@@ -62,7 +62,9 @@ class RMLUICORE_API BaseXMLParser
 
 		/// Get the line number in the stream.
 		/// @return The line currently being processed in the XML stream.
-		int GetLineNumber();
+		int GetLineNumber() const;
+		/// Get the line number of the last open tag in the stream.
+		int GetLineNumberOpenTag() const;
 
 		/// Called when the parser finds the beginning of an element tag.
 		virtual void HandleElementStart(const String& name, const XMLAttributes& attributes);
@@ -104,6 +106,7 @@ class RMLUICORE_API BaseXMLParser
 		int buffer_size;
 		int buffer_used;
 		int line_number;
+		int line_number_open_tag;
 		int open_tag_depth;
 
 		// The element attributes being read.

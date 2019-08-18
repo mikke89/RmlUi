@@ -76,9 +76,14 @@ void BaseXMLParser::Parse(Stream* stream)
 }
 
 // Get the current file line number
-int BaseXMLParser::GetLineNumber()
+int BaseXMLParser::GetLineNumber() const
 {
 	return line_number;
+}
+
+int BaseXMLParser::GetLineNumberOpenTag() const
+{
+	return line_number_open_tag;
 }
 
 // Called when the parser finds the beginning of an element tag.
@@ -112,6 +117,7 @@ void BaseXMLParser::ReadHeader()
 void BaseXMLParser::ReadBody()
 {
 	open_tag_depth = 0;
+	line_number_open_tag = 0;
 
 	for(;;)
 	{
@@ -148,7 +154,9 @@ void BaseXMLParser::ReadBody()
 		}
 		else
 		{
-			if (!ReadOpenTag())
+			if (ReadOpenTag())
+				line_number_open_tag = line_number;
+			else
 				break;
 		}
 	}

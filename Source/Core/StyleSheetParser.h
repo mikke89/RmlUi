@@ -53,7 +53,7 @@ public:
 	/// @param node The root node the stream will be parsed into
 	/// @param stream The stream to read
 	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(StyleSheetNode* node, Stream* stream, const StyleSheet& style_sheet, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpritesheetList& spritesheet_list);
+	int Parse(StyleSheetNode* node, Stream* stream, const StyleSheet& style_sheet, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpritesheetList& spritesheet_list, int begin_line_number);
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into

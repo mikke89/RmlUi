@@ -104,7 +104,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 			auto stream = std::make_unique<StreamMemory>((const byte*) header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
 			stream->SetSourceURL(document_header->source);
 
-			if (inline_sheet->LoadStyleSheet(stream.get()))
+			if (inline_sheet->LoadStyleSheet(stream.get(), header.rcss_inline_line_numbers[i]))
 			{
 				if (new_style_sheet)
 				{

@@ -58,10 +58,10 @@ StyleSheet::~StyleSheet()
 {
 }
 
-bool StyleSheet::LoadStyleSheet(Stream* stream)
+bool StyleSheet::LoadStyleSheet(Stream* stream, int begin_line_number)
 {
 	StyleSheetParser parser;
-	specificity_offset = parser.Parse(root.get(), stream, *this, keyframes, decorator_map, spritesheet_list);
+	specificity_offset = parser.Parse(root.get(), stream, *this, keyframes, decorator_map, spritesheet_list, begin_line_number);
 	return specificity_offset >= 0;
 }
 
