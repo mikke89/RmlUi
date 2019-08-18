@@ -51,9 +51,11 @@ bool ElementDecoration::ReloadDecorators()
 {
 	ReleaseDecorators();
 
-	const DecoratorList& decorator_list = element->GetComputedValues().decorator;
+	auto& decorator_list_ptr = element->GetComputedValues().decorator;
+	if (!decorator_list_ptr)
+		return true;
 
-	for (const auto& decorator : decorator_list)
+	for (const auto& decorator : *decorator_list_ptr)
 	{
 		if (decorator)
 		{

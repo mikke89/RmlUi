@@ -87,13 +87,13 @@ public:
 	RMLUICORE_API static bool Convert(const AnimationList& src, String& dest);
 };
 
-template<> class TypeConverter< DecoratorList, DecoratorList > {
+template<> class TypeConverter< DecoratorListPtr, DecoratorListPtr > {
 public:
-	RMLUICORE_API static bool Convert(const DecoratorList& src, DecoratorList& dest);
+	RMLUICORE_API static bool Convert(const DecoratorListPtr& src, DecoratorListPtr& dest);
 };
-template<> class TypeConverter< DecoratorList, String > {
+template<> class TypeConverter< DecoratorListPtr, String > {
 public:
-	RMLUICORE_API static bool Convert(const DecoratorList& src, String& dest);
+	RMLUICORE_API static bool Convert(const DecoratorListPtr& src, String& dest);
 };
 
 template<> class TypeConverter< FontEffectListPtr, FontEffectListPtr> {

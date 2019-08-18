@@ -137,7 +137,7 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const
+DecoratorListPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const
 {
 	// Decorators are declared as
 	//   decorator: <decorator-value>[, <decorator-value> ...];
@@ -148,7 +148,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	
 	DecoratorList decorator_list;
 	if (decorator_string_value.empty() || decorator_string_value == NONE)
-		return decorator_list;
+		return nullptr;
 
 	const char* source_path = (source ? source->path.c_str() : "");
 	const int source_line_number = (source ? source->line_number : 0);
@@ -216,7 +216,7 @@ DecoratorList StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 		}
 	}
 
-	return decorator_list;
+	return std::make_shared<DecoratorList>(std::move(decorator_list));
 }
 
 FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const

@@ -143,8 +143,8 @@ private:
 	void Set(TransitionList&& value);
 	void Set(const AnimationList& value);
 	void Set(AnimationList&& value);
-	void Set(const DecoratorList& value);
-	void Set(DecoratorList&& value);
+	void Set(const DecoratorListPtr& value);
+	void Set(DecoratorListPtr&& value);
 	void Set(const FontEffectListPtr& value);
 	void Set(FontEffectListPtr&& value);
 	

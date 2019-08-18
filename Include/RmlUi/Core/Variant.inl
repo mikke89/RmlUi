@@ -119,7 +119,7 @@ bool Variant::GetInto(T& value) const
 		break;
 
 	case DECORATORLIST:
-		return TypeConverter< DecoratorList, T >::Convert(*(DecoratorList*)data, value);
+		return TypeConverter< DecoratorListPtr, T >::Convert(*(DecoratorListPtr*)data, value);
 		break;
 
 	case FONTEFFECTLISTPTR:

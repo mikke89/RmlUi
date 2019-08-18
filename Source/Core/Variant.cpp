@@ -42,7 +42,7 @@ Variant::Variant() : type(NONE)
 	static_assert(sizeof(TransformPtr) <= LOCAL_DATA_SIZE, "Local data too small for TransformPtr");
 	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
-	static_assert(sizeof(DecoratorList) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorList");
+	static_assert(sizeof(DecoratorListPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorListPtr");
 	static_assert(sizeof(FontEffectListPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectListPtr");
 }
 
@@ -96,8 +96,8 @@ void Variant::Clear()
 		break;
 		case DECORATORLIST:
 		{
-			DecoratorList* decorator_list = (DecoratorList*)data;
-			decorator_list->~DecoratorList();
+			DecoratorListPtr* decorator_list = (DecoratorListPtr*)data;
+			decorator_list->~DecoratorListPtr();
 		}
 		break;
 		case FONTEFFECTLISTPTR:
@@ -141,7 +141,7 @@ void Variant::Set(const Variant& copy)
 		break;
 
 	case DECORATORLIST:
-		Set(*(DecoratorList*)copy.data);
+		Set(*(DecoratorListPtr*)copy.data);
 		break;
 
 	case FONTEFFECTLISTPTR:
@@ -177,7 +177,7 @@ void Variant::Set(Variant&& other)
 		break;
 
 	case DECORATORLIST:
-		Set(std::move(*(DecoratorList*)other.data));
+		Set(std::move(*(DecoratorListPtr*)other.data));
 		break;
 
 	case FONTEFFECTLISTPTR:
@@ -371,28 +371,28 @@ void Variant::Set(AnimationList&& value)
 	}
 }
 
-void Variant::Set(const DecoratorList& value)
+void Variant::Set(const DecoratorListPtr& value)
 {
 	if (type == DECORATORLIST)
 	{
-		*(DecoratorList*)data = value;
+		*(DecoratorListPtr*)data = value;
 	}
 	else
 	{
 		type = DECORATORLIST;
-		new(data) DecoratorList(value);
+		new(data) DecoratorListPtr(value);
 	}
 }
-void Variant::Set(DecoratorList&& value)
+void Variant::Set(DecoratorListPtr&& value)
 {
 	if (type == DECORATORLIST)
 	{
-		(*(DecoratorList*)data) = std::move(value);
+		(*(DecoratorListPtr*)data) = std::move(value);
 	}
 	else
 	{
 		type = DECORATORLIST;
-		new(data) DecoratorList(std::move(value));
+		new(data) DecoratorListPtr(std::move(value));
 	}
 }
 void Variant::Set(const FontEffectListPtr& value)
@@ -478,7 +478,7 @@ bool Variant::operator==(const Variant & other) const
 	case ANIMATIONLIST:
 		return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case DECORATORLIST:
-		return DEFAULT_VARIANT_COMPARE(DecoratorList);
+		return DEFAULT_VARIANT_COMPARE(DecoratorListPtr);
 	case FONTEFFECTLISTPTR:
 		return DEFAULT_VARIANT_COMPARE(FontEffectListPtr);
 	case NONE:

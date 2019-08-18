@@ -194,12 +194,14 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 			if (property->unit == Property::STRING)
 			{
 				const String string_value = property->Get<String>();
-				DecoratorList decorator_list = style_sheet.InstanceDecoratorsFromString(string_value, property->source);
-
-				Property new_property = *property;
-				new_property.value = std::move(decorator_list);
-				new_property.unit = Property::DECORATOR;
-				properties.SetProperty(PropertyId::Decorator, new_property);
+				
+				if(DecoratorListPtr decorator_list = style_sheet.InstanceDecoratorsFromString(string_value, property->source))
+				{
+					Property new_property = *property;
+					new_property.value = std::move(decorator_list);
+					new_property.unit = Property::DECORATOR;
+					properties.SetProperty(PropertyId::Decorator, new_property);
+				}
 			}
 		}
 

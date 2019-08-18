@@ -174,6 +174,7 @@ using AnimationList = std::vector<Animation>;
 // Additional smart pointers
 using TransformPtr = SharedPtr< Transform >;
 using FontEffectListPtr = SharedPtr<const FontEffectList>;
+using DecoratorListPtr = SharedPtr<const DecoratorList>;
 
 }
 }

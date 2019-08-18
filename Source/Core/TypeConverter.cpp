@@ -113,19 +113,19 @@ bool TypeConverter<AnimationList, String>::Convert(const AnimationList& src, Str
 	return true;
 }
 
-bool TypeConverter<DecoratorList, DecoratorList>::Convert(const DecoratorList& src, DecoratorList& dest)
+bool TypeConverter<DecoratorListPtr, DecoratorListPtr>::Convert(const DecoratorListPtr& src, DecoratorListPtr& dest)
 {
 	dest = src;
 	return true;
 }
 
 
-bool TypeConverter<DecoratorList, String>::Convert(const DecoratorList& src, String& dest)
+bool TypeConverter<DecoratorListPtr, String>::Convert(const DecoratorListPtr& src, String& dest)
 {
 	// Todo. For now, we just count the number of decorators
-	if (src.empty())
+	if (!src || src->empty())
 		dest = "none";
-	else if (TypeConverter<int, String>::Convert((int)src.size(), dest))
+	else if (TypeConverter<int, String>::Convert((int)src->size(), dest))
 		dest += " decorator(s)";
 	else
 		return false;

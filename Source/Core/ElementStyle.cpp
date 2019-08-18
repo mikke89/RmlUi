@@ -843,24 +843,26 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Decorator:
-			values.decorator.clear();
 			if (p->unit == Property::DECORATOR)
 			{
-				values.decorator = p->Get<DecoratorList>();
+				values.decorator = p->Get<DecoratorListPtr>();
 			}
 			else if (p->unit == Property::STRING)
 			{
 				// Usually the decorator is converted from string after the style sheet is set on the ElementDocument. However, if the
 				// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
-				if(auto& style_sheet = element->GetStyleSheet())
+				if (auto & style_sheet = element->GetStyleSheet())
 				{
 					String value = p->Get<String>();
 					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source);
 				}
+				else
+					values.decorator.reset();
 			}
+			else
+				values.decorator.reset();
 			break;
 		case PropertyId::FontEffect:
-			values.font_effect.reset();
 			if (p->unit == Property::FONTEFFECT)
 			{
 				values.font_effect = p->Get<FontEffectListPtr>();
@@ -872,7 +874,11 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 					String value = p->Get<String>();
 					values.font_effect = style_sheet->InstanceFontEffectsFromString(value, p->source);
 				}
+				else
+					values.font_effect.reset();
 			}
+			else
+				values.font_effect.reset();
 			break;
 
 		default:
