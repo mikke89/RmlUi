@@ -147,6 +147,7 @@ void ElementTextDefault::OnRender()
 // Generates a token of text from this element, returning only the width.
 bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 {
+	RMLUI_ASSERT_NONRECURSIVE;
 	RMLUI_ZoneScoped;
 
 	// Bail if we don't have a valid font face.
@@ -167,7 +168,8 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 							white_space_property == WhiteSpace::Preline;
 
 	const word* token_begin = text.c_str() + line_begin;
-	WString token;
+	static WString token; // Avoids allocations, requires non-recursiveness.
+	token.clear();
 
 	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
 	token_width = (float) font_face_handle->GetStringWidth(token, 0);
@@ -178,6 +180,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 // Generates a line of text rendered from this element
 bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix)
 {
+	RMLUI_ASSERT_NONRECURSIVE;
 	RMLUI_ZoneScoped;
 
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
@@ -217,7 +220,8 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 	const word* string_end = text.c_str() + text.size();
 	while (token_begin != string_end)
 	{
-		WString token;
+		static WString token;  // Avoids allocations, requires non-recursiveness.
+		token.clear();
 		const word* next_token_begin = token_begin;
 
 		// Generate the next token and determine its pixel-length.
