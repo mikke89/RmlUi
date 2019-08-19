@@ -91,7 +91,6 @@ private:
 
 	CompiledGeometryHandle compiled_geometry;
 	bool compile_attempted;
-	bool fixed_texcoords;
 };
 
 typedef std::vector< Geometry > GeometryList;

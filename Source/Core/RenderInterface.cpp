@@ -94,18 +94,6 @@ void RenderInterface::ReleaseTexture(TextureHandle RMLUI_UNUSED_PARAMETER(textur
 	RMLUI_UNUSED(texture);
 }
 
-// Returns the native horizontal texel offset for the renderer.
-float RenderInterface::GetHorizontalTexelOffset()
-{
-	return 0;
-}
-
-// Returns the native vertical texel offset for the renderer.
-float RenderInterface::GetVerticalTexelOffset()
-{
-	return 0;
-}
-
 // Called by RmlUi when it wants to change the current transform matrix to a new matrix.
 void RenderInterface::PushTransform(const Matrix4f& transform)
 {

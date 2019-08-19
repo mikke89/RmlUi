@@ -107,13 +107,6 @@ public:
 	/// @param texture The texture handle to release.
 	virtual void ReleaseTexture(TextureHandle texture);
 
-	/// Returns the native horizontal texel offset for the renderer.
-	/// @return The renderer's horizontal texel offset. The default implementation returns 0.
-	virtual float GetHorizontalTexelOffset();
-	/// Returns the native vertical texel offset for the renderer.
-	/// @return The renderer's vertical texel offset. The default implementation returns 0.
-	virtual float GetVerticalTexelOffset();
-
 	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
 	/// @param[in] transform The new transform to apply.
 	virtual void PushTransform(const Matrix4f& transform);
