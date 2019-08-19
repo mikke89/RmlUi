@@ -305,6 +305,7 @@ void ElementDocument::UpdateLayout()
 	if(layout_dirty)
 	{
 		RMLUI_ZoneScoped;
+		RMLUI_ZoneText(source_url.c_str(), source_url.size());
 
 		layout_dirty = false;
 

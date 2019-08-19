@@ -1252,6 +1252,8 @@ String Element::GetInnerRML() const {
 // Sets the markup and content of the element. All existing children will be replaced.
 void Element::SetInnerRML(const String& rml)
 {
+	RMLUI_ZoneScopedC(0x6495ED);
+
 	// Remove all DOM children.
 	while ((int) children.size() > num_non_dom_children)
 		RemoveChild(children.front().get());

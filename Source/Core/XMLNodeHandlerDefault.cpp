@@ -47,6 +47,8 @@ XMLNodeHandlerDefault::~XMLNodeHandlerDefault()
 
 Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
 {	
+	RMLUI_ZoneScopedC(0x556B2F);
+
 	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
 
@@ -74,6 +76,8 @@ bool XMLNodeHandlerDefault::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser)
 
 bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 {
+	RMLUI_ZoneScopedC(0x006400);
+
 	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
 

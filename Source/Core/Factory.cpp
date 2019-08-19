@@ -247,6 +247,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		(system_interface->TranslateString(translated_data, text) > 0 ||
 		 translated_data.find("<") != String::npos))
 	{
+		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
 		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
 		stream->Write("<body>", 6);
 		stream->Write(translated_data);
@@ -257,6 +258,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	}
 	else
 	{
+		RMLUI_ZoneScopedNC("InstanceText", 0x8FBC8F);
 		// Check if this text node contains only white-space; if so, we don't want to construct it.
 		bool only_white_space = true;
 		for (size_t i = 0; i < translated_data.size(); ++i)

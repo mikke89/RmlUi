@@ -116,6 +116,8 @@ void BaseXMLParser::ReadHeader()
 
 void BaseXMLParser::ReadBody()
 {
+	RMLUI_ZoneScoped;
+
 	open_tag_depth = 0;
 	line_number_open_tag = 0;
 

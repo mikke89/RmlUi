@@ -95,6 +95,8 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 
 		if (content_width < containing_block.x)
 		{
+			RMLUI_ZoneScopedNC("shrink_to_fit", 0xB27222);
+
 			Vector2f shrinked_block_size(content_width, containing_block.y);
 			
 			delete block_box;

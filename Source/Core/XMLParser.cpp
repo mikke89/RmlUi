@@ -120,6 +120,7 @@ const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 /// Called when the parser finds the beginning of an element tag.
 void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& attributes)
 {
+	RMLUI_ZoneScoped;
 	const String name = StringUtilities::ToLower(_name);
 
 	// Check for a specific handler that will override the child handler.
@@ -150,6 +151,7 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 /// Called when the parser finds the end of an element tag.
 void XMLParser::HandleElementEnd(const String& _name)
 {
+	RMLUI_ZoneScoped;
 	String name = StringUtilities::ToLower(_name);
 
 	// Copy the top of the stack
@@ -175,6 +177,7 @@ void XMLParser::HandleElementEnd(const String& _name)
 /// Called when the parser encounters data.
 void XMLParser::HandleData(const String& data)
 {
+	RMLUI_ZoneScoped;
 	if (stack.top().node_handler)
 		stack.top().node_handler->ElementData(this, data);
 }
