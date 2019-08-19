@@ -34,6 +34,8 @@
 namespace Rml {
 namespace Core {
 
+class FontFaceHandle;
+
 namespace Style
 {
 
@@ -173,6 +175,9 @@ struct ComputedValues
 	FontStyle font_style = FontStyle::Normal;
 	FontWeight font_weight = FontWeight::Normal;
 	float font_size = 12.f;
+	// Font face used to render text and resolve ex properties. Does not represent a true property
+	// like most computed values, but placed here as it is used and inherited in a similar manner.
+	SharedPtr<FontFaceHandle> font_face_handle;
 
 	TextAlign text_align = TextAlign::Left;
 	TextDecoration text_decoration = TextDecoration::None;

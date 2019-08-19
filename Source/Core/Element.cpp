@@ -153,8 +153,6 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	computed_values_are_default_initialized = true;
 	box_dirty = false;
 
-	font_face_handle = nullptr;
-	
 	clipping_ignore_depth = 0;
 	clipping_enabled = false;
 	clipping_state_dirty = true;
@@ -192,8 +190,6 @@ Element::~Element()
 	num_non_dom_children = 0;
 
 	delete element_meta;
-
-	font_face_handle.reset();
 }
 
 void Element::Update(float dp_ratio)
@@ -593,7 +589,7 @@ float Element::GetZIndex() const
 // Returns the element's font face handle.
 FontFaceHandle* Element::GetFontFaceHandle() const
 {
-	return font_face_handle.get();
+	return element_meta->computed_values.font_face_handle.get();
 }
 
 // Sets a local property override on the element.
@@ -1788,25 +1784,6 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		}
 	}
 
-	// Fetch a new font face if it has been changed.
-	if (changed_properties.Contains(PropertyId::FontFamily) ||
-		changed_properties.Contains(PropertyId::FontCharset) ||
-		changed_properties.Contains(PropertyId::FontWeight) ||
-		changed_properties.Contains(PropertyId::FontStyle) ||
-		changed_properties.Contains(PropertyId::FontSize))
-	{
-		// Fetch the new font face.
-		SharedPtr<FontFaceHandle> new_font_face_handle = ElementUtilities::GetFontFaceHandle(element_meta->computed_values);
-
-		// If this is different from our current font face, then we've got to nuke
-		// all our characters and tell our parent that we have to be re-laid out.
-		if (new_font_face_handle != font_face_handle)
-		{
-			font_face_handle = new_font_face_handle;
-		}
-	}
-
-
 	// Update the position.
 	if (changed_properties.Contains(PropertyId::Left) ||
 		changed_properties.Contains(PropertyId::Right) ||
@@ -1951,13 +1928,6 @@ bool Element::IsLayoutDirty()
 	if (document != nullptr)
 		return document->IsLayoutDirty();
 	return false;
-}
-
-// Forces a reevaluation of applicable font effects.
-void Element::DirtyFont()
-{
-	for (size_t i = 0; i < children.size(); ++i)
-		children[i]->DirtyFont();
 }
 
 void Element::ProcessDefaultAction(Event& event)

@@ -362,12 +362,6 @@ void ElementTextDefault::GetRML(String& content)
 	content += StringUtilities::ToUTF8(text);
 }
 
-// Forces a reevaluation of applicable font effects.
-void ElementTextDefault::DirtyFont()
-{
-	font_dirty = true;
-}
-
 // Updates the configuration this element uses for its font.
 bool ElementTextDefault::UpdateFontConfiguration()
 {

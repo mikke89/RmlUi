@@ -84,9 +84,6 @@ protected:
 	/// @param content[out] The raw text.
 	void GetRML(String& content) override;
 
-	/// Forces a reevaluation of applicable font effects.
-	void DirtyFont() override;
-
 private:
 	// Updates the configuration this element uses for its font, depending on which font effects
 	// are active.

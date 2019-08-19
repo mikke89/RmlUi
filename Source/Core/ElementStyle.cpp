@@ -602,6 +602,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		values.font_charset = parent_values->font_charset;
 		values.font_style = parent_values->font_style;
 		values.font_weight = parent_values->font_weight;
+		values.font_face_handle = parent_values->font_face_handle;
 
 		values.text_align = parent_values->text_align;
 		values.text_decoration = parent_values->text_decoration;
@@ -765,18 +766,23 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		case PropertyId::FontFamily:
 			values.font_family = StringUtilities::ToLower(p->Get<String>());
+			values.font_face_handle.reset();
 			break;
 		case PropertyId::FontCharset:
 			values.font_charset = p->Get<String>();
+			values.font_face_handle.reset();
 			break;
 		case PropertyId::FontStyle:
 			values.font_style = (FontStyle)p->Get< int >();
+			values.font_face_handle.reset();
 			break;
 		case PropertyId::FontWeight:
 			values.font_weight = (FontWeight)p->Get< int >();
+			values.font_face_handle.reset();
 			break;
 		case PropertyId::FontSize:
 			// (font-size computed above)
+			values.font_face_handle.reset();
 			break;
 
 		case PropertyId::TextAlign:
@@ -886,6 +892,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		}
 	}
 
+	// The font-face handle is nulled when local font properties are set. In that case we need to retrieve a new handle.
+	if (!values.font_face_handle)
+		values.font_face_handle = ElementUtilities::GetFontFaceHandle(values);
 
 	// Next, pass inheritable dirty properties onto our children
 	PropertyIdSet dirty_inherited_properties = (dirty_properties & StyleSheetSpecification::GetRegisteredInheritedProperties());

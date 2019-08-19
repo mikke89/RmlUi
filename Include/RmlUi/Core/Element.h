@@ -605,9 +605,6 @@ protected:
 	/// Returns true if the element has been marked as needing a re-layout.
 	virtual bool IsLayoutDirty();
 
-	/// Forces a reevaluation of applicable font effects.
-	virtual void DirtyFont();
-
 	/// Returns the RML of this element and all children.
 	/// @param[out] content The content of this element and those under it, in XML form.
 	virtual void GetRML(String& content);
@@ -727,9 +724,6 @@ private:
 	bool computed_values_are_default_initialized;
 	bool box_dirty;
 
-	// The element's font face; used to render text and resolve em / ex properties.
-	SharedPtr<FontFaceHandle> font_face_handle;
-	
 	// Cached rendering information
 	int clipping_ignore_depth;
 	bool clipping_enabled;
