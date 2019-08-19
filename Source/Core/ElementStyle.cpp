@@ -422,7 +422,7 @@ void ElementStyle::DirtyDefinition()
 
 void ElementStyle::DirtyInheritedProperties()
 {
-	dirty_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
+	dirty_properties |= StyleSheetSpecification::GetRegisteredInheritedProperties();
 }
 
 void ElementStyle::DirtyChildDefinitions()
