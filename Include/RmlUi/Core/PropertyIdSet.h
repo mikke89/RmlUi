@@ -57,12 +57,6 @@ public:
 			custom_ids.insert(id);
 	}
 
-	void SetAll() {
-		// We are using PropertyId::Invalid (0) as a flag for all properties set.
-		// However, we set the whole set so that we don't have to do the extra check
-		// for the first bit in Contains().
-		defined_ids.set();
-	}
 	void Clear() {
 		defined_ids.reset();
 		custom_ids.clear();
@@ -72,7 +66,6 @@ public:
 			defined_ids.reset((size_t)id);
 		else
 			custom_ids.erase(id);
-		defined_ids.reset(0);
 	}
 
 	bool Empty() const {
@@ -81,20 +74,12 @@ public:
 	bool Contains(PropertyId id) const {
 		if ((size_t)id < N)
 			return defined_ids.test((size_t)id);
-		else if (defined_ids.test(0))
-			return true;
 		else
 			return custom_ids.count(id) == 1;
 	}
-	bool IsAllSet() const {
-		return defined_ids.test(0);
-	}
 
 	size_t Size() const {
-		if(defined_ids.test(0))
-			return N - 1 + custom_ids.size(); // (don't count PropertyId::Invalid)
-		else
-			return defined_ids.count() + custom_ids.size();
+		return defined_ids.count() + custom_ids.size();
 	}
 
 	// Union with another set
@@ -116,7 +101,7 @@ public:
 	PropertyIdSet& operator&=(const PropertyIdSet& other)
 	{
 		defined_ids &= other.defined_ids;
-		if (custom_ids.size() > 0 && other.custom_ids.size() > 0 && !defined_ids.test(0))
+		if (custom_ids.size() > 0 && other.custom_ids.size() > 0)
 		{
 			for (auto it = custom_ids.begin(); it != custom_ids.end();)
 				if (other.custom_ids.count(*it) == 0)
@@ -135,7 +120,7 @@ public:
 	{
 		PropertyIdSet result;
 		result.defined_ids = (defined_ids & other.defined_ids);
-		if (custom_ids.size() > 0 && other.custom_ids.size() > 0 && !defined_ids.test(0))
+		if (custom_ids.size() > 0 && other.custom_ids.size() > 0)
 		{
 			for (PropertyId id : custom_ids)
 				if (other.custom_ids.count(id) == 1)

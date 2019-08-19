@@ -1410,8 +1410,6 @@ Element* Element::AppendChild(ElementPtr child, bool dom_element)
 		num_non_dom_children++;
 	}
 
-	child_ptr->GetStyle()->DirtyDefinition();
-
 	Element* ancestor = child_ptr;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
 		ancestor->OnChildAdd(child_ptr);
@@ -1461,8 +1459,6 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 
 		children.insert(children.begin() + child_index, std::move(child));
 
-		child_ptr->GetStyle()->DirtyDefinition();
-
 		Element* ancestor = child_ptr;
 		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
 			ancestor->OnChildAdd(child_ptr);
@@ -1500,8 +1496,6 @@ ElementPtr Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_
 
 	children.insert(insertion_point, std::move(inserted_element));
 	ElementPtr result = RemoveChild(replaced_element);
-
-	inserted_element_ptr->GetStyle()->DirtyDefinition();
 
 	Element* ancestor = inserted_element_ptr;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -2061,6 +2055,13 @@ void Element::SetParent(Element* _parent)
 	RMLUI_ASSERT(!parent || !_parent);
 
 	parent = _parent;
+
+	if (parent)
+	{
+		// We need to update our definition and make sure we inherit the properties of our new parent.
+		style->DirtyDefinition();
+		style->DirtyInheritedProperties();
+	}
 
 	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
 }

@@ -56,7 +56,6 @@ ElementStyle::ElementStyle(Element* _element)
 	definition = nullptr;
 	element = _element;
 
-	dirty_properties.SetAll();
 	definition_dirty = true;
 }
 
@@ -178,14 +177,7 @@ void ElementStyle::UpdateDefinition()
 		}
 		
 		// Switch the property definitions if the definition has changed.
-		if (!definition && new_definition)
-		{
-			// Since we had no definition before there is a likelihood that everything is dirty.
-			// We could do as in the next else-if block, but this is considerably faster.
-			dirty_properties.SetAll();
-			definition = new_definition;
-		}
-		else if (new_definition != definition)
+		if (new_definition != definition)
 		{
 			PropertyIdSet changed_properties;
 			
@@ -207,9 +199,10 @@ void ElementStyle::UpdateDefinition()
 					if (p0 && p1 && *p0 == *p1)
 						changed_properties.Erase(id);
 				}
-			}
 
-			TransitionPropertyChanges(element, changed_properties, inline_properties, definition.get(), new_definition.get());
+				// Transition changed properties if transition property is set
+				TransitionPropertyChanges(element, changed_properties, inline_properties, definition.get(), new_definition.get());
+			}
 
 			definition = new_definition;
 			
@@ -227,7 +220,6 @@ void ElementStyle::UpdateDefinition()
 // Sets or removes a pseudo-class on the element.
 void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
 {
-
 	bool changed = false;
 
 	if (activate)
@@ -428,6 +420,11 @@ void ElementStyle::DirtyDefinition()
 	definition_dirty = true;
 }
 
+void ElementStyle::DirtyInheritedProperties()
+{
+	dirty_properties = StyleSheetSpecification::GetRegisteredInheritedProperties();
+}
+
 void ElementStyle::DirtyChildDefinitions()
 {
 	for (int i = 0; i < element->GetNumChildren(true); i++)
@@ -492,33 +489,6 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 	dirty_properties |= properties;
 }
 
-static void DirtyEmProperties(PropertyIdSet& dirty_properties, Element* element)
-{
-	// Either we can dirty every property, or we can iterate over all properties and see if anyone uses em-units.
-	// Choose whichever is fastest based on benchmarking.
-#if 1
-	// Dirty every property
-	dirty_properties.SetAll();
-#else
-	if (dirty_properties.AllDirty())
-		return;
-
-	// Check if any of these are currently em-relative. If so, dirty them.
-	for (auto& property_name : StyleSheetSpecification::GetRegisteredProperties())
-	{
-		// Skip font-size; this is relative to our parent's em, not ours.
-		if (property_name == FONT_SIZE)
-			continue;
-
-		// Get this property from this element. If this is em-relative, then add it to the list to
-		// dirty.
-		if (element->GetProperty(property_name)->unit == Property::EM)
-			dirty_properties.Insert(property_name);
-	}
-#endif
-}
-
-
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
 {
 	if (dirty_properties.Empty())
@@ -543,6 +513,8 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		values = DefaultComputedValues;
 	}
 
+	bool dirty_em_properties = false;
+
 	// Always do font-size first if dirty, because of em-relative values
 	if(dirty_properties.Contains(PropertyId::FontSize))
 	{
@@ -552,7 +524,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.font_size = parent_values->font_size;
 		
 		if (font_size_before != values.font_size)
-			DirtyEmProperties(dirty_properties, element);
+			dirty_em_properties = true;
 	}
 	else
 	{
@@ -623,6 +595,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		auto name_property_pair = *it;
 		const PropertyId id = name_property_pair.first;
 		const Property* p = &name_property_pair.second;
+
+		if (dirty_em_properties && p->unit == Property::EM)
+			dirty_properties.Insert(id);
 
 		using namespace Style;
 

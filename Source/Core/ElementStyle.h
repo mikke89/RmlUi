@@ -112,8 +112,13 @@ public:
 	/// Number and percentages are resolved by scaling the size of the specified target.
 	float ResolveNumberLengthPercentage(const Property* property, RelativeTarget relative_target) const;
 
-	/// Mark definition and all children dirty
+	/// Mark definition and all children dirty.
 	void DirtyDefinition();
+
+	/// Mark inherited properties dirty.
+	/// Inherited properties will automatically be set when parent inherited properties are changed. However,
+	/// some operations may require to dirty these manually, such as when moving an element into another.
+	void DirtyInheritedProperties();
 
 	/// Dirties all properties with a given unit on the current element and recursively on all children.
 	void DirtyPropertiesWithUnitRecursive(Property::Unit unit);
