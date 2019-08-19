@@ -45,6 +45,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	box_layout_dirty = false;
 	value_layout_dirty = false;
+	box_visible = false;
 
 	selected_option = -1;
 
@@ -82,7 +83,7 @@ WidgetDropDown::~WidgetDropDown()
 // Updates the selection box layout if necessary.
 void WidgetDropDown::OnRender()
 {
-	if (box_layout_dirty)
+	if (box_visible && box_layout_dirty)
 	{
 		Core::Box box;
 		Core::ElementUtilities::BuildBox(box, parent_element->GetBox().GetSize(), selection_element);
@@ -105,6 +106,8 @@ void WidgetDropDown::OnRender()
 
 void WidgetDropDown::OnLayout()
 {
+	RMLUI_ZoneScopedNC("DropDownLayout", 0x7FFF00);
+
 	if(parent_element->IsDisabled())
 	{
 		// Propagate disabled state to selectvalue and selectarrow
@@ -398,6 +401,7 @@ void WidgetDropDown::ShowSelectBox(bool show)
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
 	}
+	box_visible = show;
 }
 
 }
