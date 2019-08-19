@@ -194,6 +194,8 @@ Element::~Element()
 
 void Element::Update(float dp_ratio)
 {
+	RMLUI_ZoneScoped;
+
 	OnUpdate();
 
 	UpdateStructure();
@@ -252,6 +254,12 @@ void Element::UpdateProperties()
 
 void Element::Render()
 {
+#ifdef RMLUI_ENABLE_PROFILING
+	auto name = GetAddress(false, false);
+	RMLUI_ZoneScoped;
+	RMLUI_ZoneText(name.c_str(), name.size());
+#endif
+
 	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
 		BuildLocalStackingContext();
@@ -271,7 +279,11 @@ void Element::Render()
 		border->RenderBorder();
 		decoration->RenderDecorators();
 
-		OnRender();
+		{
+			RMLUI_ZoneScopedNC("OnRender", 0x228B22);
+
+			OnRender();
+		}
 	}
 
 	// Render the rest of the elements in the stacking context.
@@ -1744,6 +1756,8 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 // Called when properties on the element are changed.
 void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
+	RMLUI_ZoneScoped;
+
 	if (!IsLayoutDirty())
 	{
 		// Force a relayout if any of the changed properties require it.
@@ -2156,6 +2170,8 @@ void Element::BuildLocalStackingContext()
 
 void Element::BuildStackingContext(ElementList* new_stacking_context)
 {
+	RMLUI_ZoneScoped;
+
 	// Build the list of ordered children. Our child list is sorted within the stacking context so stacked elements
 	// will render in the right order; ie, positioned elements will render on top of inline elements, which will render
 	// on top of floated elements, which will render on top of block elements.

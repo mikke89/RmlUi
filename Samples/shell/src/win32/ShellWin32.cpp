@@ -216,9 +216,6 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 		}
 
 		idle_function();
-
-		if (!activated)
-			Sleep(10);
 	}
 }
 

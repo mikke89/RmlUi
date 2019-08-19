@@ -71,6 +71,12 @@ LayoutEngine::~LayoutEngine()
 // Formats the contents for a root-level element (usually a document or floating element).
 bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block, bool shrink_to_fit)
 {
+#ifdef RMLUI_ENABLE_PROFILING
+	RMLUI_ZoneScopedC(0xB22222);
+	auto name = CreateString(80, "%s %x", element->GetAddress(false, false).c_str(), element);
+	RMLUI_ZoneName(name.c_str(), name.size());
+#endif
+
 	block_box = new LayoutBlockBox(this, nullptr, nullptr);
 	block_box->GetBox().SetContent(containing_block);
 
@@ -273,6 +279,12 @@ void LayoutEngine::DeallocateLayoutChunk(void* chunk)
 // Positions a single element and its children within this layout.
 bool LayoutEngine::FormatElement(Element* element)
 {
+#ifdef RMLUI_ENABLE_PROFILING
+	RMLUI_ZoneScoped;
+	auto name = CreateString(80, ">%s %x", element->GetAddress(false, false).c_str(), element);
+	RMLUI_ZoneName(name.c_str(), name.size());
+#endif
+
 	auto& computed = element->GetComputedValues();
 
 	// Check if we have to do any special formatting for any elements that don't fit into the standard layout scheme.
@@ -318,6 +330,8 @@ bool LayoutEngine::FormatElement(Element* element)
 // Formats and positions an element as a block element.
 bool LayoutEngine::FormatElementBlock(Element* element)
 {
+	RMLUI_ZoneScopedC(0x2F4F4F);
+
 	LayoutBlockBox* new_block_context_box = block_context_box->AddBlockElement(element);
 	if (new_block_context_box == nullptr)
 		return false;
@@ -368,6 +382,8 @@ bool LayoutEngine::FormatElementBlock(Element* element)
 // Formats and positions an element as an inline element.
 bool LayoutEngine::FormatElementInline(Element* element)
 {
+	RMLUI_ZoneScopedC(0x3F6F6F);
+
 	Box box;
 	float min_height, max_height;
 	BuildBox(box, min_height, max_height, block_context_box, element, true);
@@ -389,6 +405,8 @@ bool LayoutEngine::FormatElementInline(Element* element)
 // Positions an element as a sized inline element, formatting its internal hierarchy as a block element.
 bool LayoutEngine::FormatElementReplaced(Element* element)
 {
+	RMLUI_ZoneScopedC(0x1F2F2F);
+
 	// Format the element separately as a block element, then position it inside our own layout as an inline element.
 	Vector2f containing_block_size = GetContainingBlock(block_context_box);
 
@@ -448,6 +466,8 @@ Vector2f LayoutEngine::GetContainingBlock(const LayoutBlockBox* containing_box)
 // Builds the block-specific width and horizontal margins of a Box.
 void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float containing_block_width)
 {
+	RMLUI_ZoneScoped;
+
 	Vector2f content_area = box.GetSize();
 
 	// Determine if the element has an automatic width, and if not calculate it.
@@ -553,6 +573,8 @@ void LayoutEngine::BuildBoxWidth(Box& box, const ComputedValues& computed, float
 // Builds the block-specific height and vertical margins of a Box.
 void LayoutEngine::BuildBoxHeight(Box& box, const ComputedValues& computed, float containing_block_height)
 {
+	RMLUI_ZoneScoped;
+
 	Vector2f content_area = box.GetSize();
 
 	// Determine if the element has an automatic height, and if not calculate it.

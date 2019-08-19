@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "Platform.h"
+#include "Profiling.h"
 #include "Debug.h"
 #include "Traits.h"
 

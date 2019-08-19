@@ -49,6 +49,7 @@ ElementDecoration::~ElementDecoration()
 // Releases existing decorators and loads all decorators required by the element's definition.
 bool ElementDecoration::ReloadDecorators()
 {
+	RMLUI_ZoneScopedC(0xB22222);
 	ReleaseDecorators();
 
 	auto& decorator_list_ptr = element->GetComputedValues().decorator;

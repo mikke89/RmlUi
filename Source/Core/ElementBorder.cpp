@@ -48,6 +48,7 @@ ElementBorder::~ElementBorder()
 // Renders the element's border, if it has one.
 void ElementBorder::RenderBorder()
 {
+	RMLUI_ZoneScoped;
 	if (border_dirty)
 	{
 		border_dirty = false;

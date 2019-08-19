@@ -79,6 +79,8 @@ const WString& ElementTextDefault::GetText() const
 
 void ElementTextDefault::OnRender()
 {
+	RMLUI_ZoneScoped;
+
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
 	if (!font_face_handle)
 		return;
@@ -145,6 +147,8 @@ void ElementTextDefault::OnRender()
 // Generates a token of text from this element, returning only the width.
 bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 {
+	RMLUI_ZoneScoped;
+
 	// Bail if we don't have a valid font face.
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
 	if (font_face_handle == nullptr ||
@@ -174,6 +178,8 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 // Generates a line of text rendered from this element
 bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix)
 {
+	RMLUI_ZoneScoped;
+
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
 
 	// Initialise the output variables.
@@ -285,6 +291,8 @@ void ElementTextDefault::SuppressAutoLayout()
 
 void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
+	RMLUI_ZoneScoped;
+
 	Element::OnPropertyChange(changed_properties);
 
 	bool colour_changed = false;
@@ -365,6 +373,8 @@ void ElementTextDefault::GetRML(String& content)
 // Updates the configuration this element uses for its font.
 bool ElementTextDefault::UpdateFontConfiguration()
 {
+	RMLUI_ZoneScoped;
+
 	if (GetFontFaceHandle() == nullptr)
 		return false;
 
@@ -392,6 +402,8 @@ bool ElementTextDefault::UpdateFontConfiguration()
 // Clears and regenerates all of the text's geometry.
 void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle)
 {
+	RMLUI_ZoneScopedC(0xD2691E);
+
 	// Release the old geometry ...
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].Release(true);
@@ -413,6 +425,8 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle
 // Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
 void ElementTextDefault::GenerateDecoration(const FontFaceHandle* font_face_handle, const Line& line)
 {
+	RMLUI_ZoneScopedC(0xA52A2A);
+	
 	Font::Line line_height;
 	if (decoration_property == TEXT_DECORATION_OVERLINE)
 		line_height = Font::OVERLINE;

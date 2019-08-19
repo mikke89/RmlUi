@@ -160,6 +160,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Plugin.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Profiling.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertiesIteratorView.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Property.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDefinition.h
@@ -283,6 +284,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Profiling.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIteratorView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp

@@ -50,6 +50,7 @@ ElementBackground::~ElementBackground()
 // Renders the element's background, if it has one.
 void ElementBackground::RenderBackground()
 {
+	RMLUI_ZoneScoped;
 	if (background_dirty)
 	{
 		background_dirty = false;

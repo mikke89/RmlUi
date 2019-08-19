@@ -146,6 +146,8 @@ ElementText* LayoutInlineBoxText::GetTextElement()
 // Builds a box for the first word of the element.
 void LayoutInlineBoxText::BuildWordBox()
 {
+	RMLUI_ZoneScoped;
+
 	ElementText* text_element = GetTextElement();
 	RMLUI_ASSERT(text_element != nullptr);
 

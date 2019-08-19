@@ -304,6 +304,8 @@ void ElementDocument::UpdateLayout()
 	// Ideally, only called once per update loop.
 	if(layout_dirty)
 	{
+		RMLUI_ZoneScoped;
+
 		layout_dirty = false;
 
 		Vector2f containing_block(0, 0);
@@ -320,6 +322,8 @@ void ElementDocument::UpdatePosition()
 {
 	if(position_dirty)
 	{
+		RMLUI_ZoneScoped;
+
 		position_dirty = false;
 
 		// We are only positioned relative to our parent, so if we're not parented we may as well bail now.

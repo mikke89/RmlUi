@@ -82,6 +82,8 @@ void Geometry::SetHostElement(Element* _host_element)
 
 void Geometry::Render(const Vector2f& translation)
 {
+	RMLUI_ZoneScoped;
+
 	RenderInterface* render_interface = GetRenderInterface();
 	if (render_interface == nullptr)
 		return;

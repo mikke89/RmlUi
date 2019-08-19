@@ -42,6 +42,8 @@ namespace Core {
 // Creates a new block box for rendering a block element.
 LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _parent, Element* _element) : position(0, 0)
 {
+	RMLUI_ZoneScoped;
+
 	space = new LayoutBlockBoxSpace(this);
 
 	layout_engine = _layout_engine;
@@ -287,6 +289,8 @@ bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 // Called by a closing line box child.
 LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain)
 {
+	RMLUI_ZoneScoped;
+
 	RMLUI_ASSERT(context == INLINE);
 	if (child->GetDimensions().x > 0)
 		box_cursor = (child->GetPosition().y - (box.GetPosition().y + position.y)) + child->GetDimensions().y;
@@ -315,6 +319,8 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInline
 // Adds a new block element to this block box.
 LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 {
+	RMLUI_ZoneScoped;
+
 	RMLUI_ASSERT(context == BLOCK);
 
 	// Check if our most previous block box is rendering in an inline context.
@@ -351,6 +357,8 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 // Adds a new inline element to this inline box.
 LayoutInlineBox* LayoutBlockBox::AddInlineElement(Element* element, const Box& box)
 {
+	RMLUI_ZoneScoped;
+
 	if (context == BLOCK)
 	{
 		LayoutInlineBox* inline_box;
@@ -674,6 +682,7 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 	{
 		if (cursor > box_height - element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL))
 		{
+			RMLUI_ZoneScopedC(0xDD3322);
 			vertical_overflow = true;
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSize(Box::PADDING).x);
 

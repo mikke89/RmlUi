@@ -161,4 +161,5 @@ void ShellRenderInterfaceOpenGL::PresentRenderBuffer()
 {
 	// Flips the OpenGL buffers.
 	SwapBuffers(this->device_context);
+	RMLUI_FrameMark;
 }

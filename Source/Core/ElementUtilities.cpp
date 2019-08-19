@@ -353,6 +353,8 @@ static void SetElementOffset(Element* element, const Vector2f& offset)
 // Applies an element's `perspective' and `transform' properties.
 bool ElementUtilities::ApplyTransform(Element &element, bool apply)
 {
+	RMLUI_ZoneScoped;
+
 	Context *context = element.GetContext();
 	if (!context)
 	{

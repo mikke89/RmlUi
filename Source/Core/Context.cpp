@@ -166,6 +166,8 @@ float Context::GetDensityIndependentPixelRatio() const
 // Updates all elements in the element tree.
 bool Context::Update()
 {
+	RMLUI_ZoneScoped;
+
 	root->Update(density_independent_pixel_ratio);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
@@ -184,6 +186,8 @@ bool Context::Update()
 // Renders all visible elements in the element tree.
 bool Context::Render()
 {
+	RMLUI_ZoneScoped;
+
 	RenderInterface* render_interface = GetRenderInterface();
 	if (render_interface == nullptr)
 		return false;
