@@ -591,7 +591,6 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 // Updates the StyleNode tree, creating new nodes as necessary, setting the definition index
 bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number)
 {
-	StyleSheetNode* tag_node = nullptr;
 	StyleSheetNode* leaf_node = node;
 
 	StringList nodes;
@@ -606,7 +605,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 		String id;
 		StringList classes;
 		StringList pseudo_classes;
-		StringList structural_pseudo_classes;
+		NodeSelectorList structural_pseudo_classes;
 
 		size_t index = 0;
 		while (index < name.size())
@@ -631,8 +630,9 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 					case ':':
 					{
 						String pseudo_class_name = identifier.substr(1);
-						if (StyleSheetFactory::GetSelector(pseudo_class_name) != nullptr)
-							structural_pseudo_classes.push_back(pseudo_class_name);
+						NodeSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
+						if (node_selector.selector)
+							structural_pseudo_classes.push_back(node_selector);
 						else
 							pseudo_classes.push_back(pseudo_class_name);
 					}
@@ -652,20 +652,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 		std::sort(structural_pseudo_classes.begin(), structural_pseudo_classes.end());
 
 		// Get the named child node.
-		leaf_node = leaf_node->GetChildNode(tag, StyleSheetNode::TAG);
-		tag_node = leaf_node;
-
-		if (!id.empty())
-			leaf_node = leaf_node->GetChildNode(id, StyleSheetNode::ID);
-
-		for (size_t j = 0; j < classes.size(); ++j)
-			leaf_node = leaf_node->GetChildNode(classes[j], StyleSheetNode::CLASS);
-
-		for (size_t j = 0; j < structural_pseudo_classes.size(); ++j)
-			leaf_node = leaf_node->GetChildNode(structural_pseudo_classes[j], StyleSheetNode::STRUCTURAL_PSEUDO_CLASS);
-
-		for (size_t j = 0; j < pseudo_classes.size(); ++j)
-			leaf_node = leaf_node->GetChildNode(pseudo_classes[j], StyleSheetNode::PSEUDO_CLASS);
+		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes));
 	}
 
 	// Merge the new properties with those already on the leaf node.

@@ -168,7 +168,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 							white_space_property == WhiteSpace::Preline;
 
 	const word* token_begin = text.c_str() + line_begin;
-	static WString token; // Avoids allocations, requires non-recursiveness.
+	static WString token; // Avoids allocations, requires non-recursiveness. TODO: Doesn't actually behave like this, maybe use a stack-allocated string instead?
 	token.clear();
 
 	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
@@ -220,7 +220,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 	const word* string_end = text.c_str() + text.size();
 	while (token_begin != string_end)
 	{
-		static WString token;  // Avoids allocations, requires non-recursiveness.
+		static WString token;  // Avoids allocations, requires non-recursiveness. TODO: Doesn't actually behave like this, maybe use a stack-allocated string instead?
 		token.clear();
 		const word* next_token_begin = token_begin;
 

@@ -36,159 +36,99 @@
 namespace Rml {
 namespace Core {
 
-StyleSheetNode::StyleSheetNode(const String& name, NodeType _type, StyleSheetNode* _parent) : name(name)
+StyleSheetNode::StyleSheetNode() : parent(nullptr)
 {
-	type = _type;
-	parent = _parent;
-
 	specificity = CalculateSpecificity();
-
-	selector = nullptr;
-	a = 0;
-	b = 0;
-
 	is_structurally_volatile = true;
 }
 
-// Constructs a structural style-sheet node.
-StyleSheetNode::StyleSheetNode(const String& name, StyleSheetNode* _parent, StyleSheetNodeSelector* _selector, int _a, int _b) : name(name)
-{
-	type = STRUCTURAL_PSEUDO_CLASS;
-	parent = _parent;
 
+StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const NodeSelectorList& structural_pseudo_classes)
+	: parent(parent), tag(tag), id(id), class_names(classes), pseudo_class_names(pseudo_classes)
+{
 	specificity = CalculateSpecificity();
-
-	selector = _selector;
-	a = _a;
-	b = _b;
+	is_structurally_volatile = true;
 }
 
-StyleSheetNode::~StyleSheetNode()
+StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, NodeSelectorList&& structural_pseudo_classes) 
+	: parent(parent), tag(std::move(tag)), id(std::move(id)), class_names(std::move(classes)), pseudo_class_names(std::move(pseudo_classes))
 {
-	for (int i = 0; i < NUM_NODE_TYPES; i++)
-	{
-		for (NodeMap::iterator j = children[i].begin(); j != children[i].end(); ++j)
-			delete (*j).second;
-	}
+	specificity = CalculateSpecificity();
+	is_structurally_volatile = true;
 }
 
-// Writes the style sheet node (and all ancestors) into the stream.
-void StyleSheetNode::Write(Stream* stream)
+StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const StyleSheetNode& other)
 {
-	if (properties.GetNumProperties() > 0)
+	// See if we match the target child
+	for (const auto& child : children)
 	{
-		String rule;
-		StyleSheetNode* hierarchy = this;
-		while (hierarchy != nullptr)
-		{
-			switch (hierarchy->type)
-			{
-				case TAG:
-					rule = " " + hierarchy->name + rule;
-					break;
-
-				case CLASS:
-					rule = "." + hierarchy->name + rule;
-					break;
-
-				case ID:
-					rule = "#" + hierarchy->name + rule;
-					break;
-
-				case PSEUDO_CLASS:
-					rule = ":" + hierarchy->name + rule;
-					break;
-
-				case STRUCTURAL_PSEUDO_CLASS:
-					rule = ":" + hierarchy->name + rule;
-					break;
-
-				default:
-					break;
-			}
-
-			hierarchy = hierarchy->parent;
-		}
-
-		stream->Write(CreateString(1024, "%s /* specificity: %d */\n", StringUtilities::StripWhitespace(rule).c_str(), specificity));
-		stream->Write("{\n");
-
-		const Rml::Core::PropertyMap& property_map = properties.GetProperties();
-		for (Rml::Core::PropertyMap::const_iterator i = property_map.begin(); i != property_map.end(); ++i)
-		{
-			const String& name = StyleSheetSpecification::GetPropertyName(i->first);
-			const Rml::Core::Property& property = i->second;
-
-			stream->Write(CreateString(1024, "\t%s: %s; /* specificity: %d */\n", name.c_str(), property.value.Get< String >().c_str(), property.specificity));
-		}
-
-		stream->Write("}\n\n");
+		if (child->IsEquivalent(other.tag, other.id, other.class_names, other.pseudo_class_names, other.structural_selectors))
+			return child.get();
 	}
 
-	for (size_t i = 0; i < NUM_NODE_TYPES; ++i)
+	// We don't, so create a new child
+	auto child = std::make_unique<StyleSheetNode>(this, other.tag, other.id, other.class_names, other.pseudo_class_names, other.structural_selectors);
+	StyleSheetNode* result = child.get();
+
+	children.push_back(std::move(child));
+
+	return result;
+}
+
+StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, NodeSelectorList&& structural_pseudo_classes)
+{
+	// @performance: Maybe sort children by tag,id or something else?
+
+	// See if we match an existing child
+	for (const auto& child : children)
 	{
-		for (NodeMap::iterator j = children[i].begin(); j != children[i].end(); ++j)
-			(*j).second->Write(stream);
+		if (child->IsEquivalent(tag, id, classes, pseudo_classes, structural_pseudo_classes))
+			return child.get();
 	}
+
+	// We don't, so create a new child
+	auto child = std::make_unique<StyleSheetNode>(this, std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes));
+	StyleSheetNode* result = child.get();
+
+	children.push_back(std::move(child));
+
+	return result;
 }
 
 // Merges an entire tree hierarchy into our hierarchy.
 bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
 {
 	// Merge the other node's properties into ours.
-	MergeProperties(node->properties, specificity_offset);
+	properties.Merge(node->properties, specificity_offset);
 
-	selector = node->selector;
-	a = node->a;
-	b = node->b;
-
-	for (int i = 0; i < NUM_NODE_TYPES; i++)
+	for (const auto& other_child : node->children)
 	{
-		for (NodeMap::iterator iterator = node->children[i].begin(); iterator != node->children[i].end(); ++iterator)
-		{
-			StyleSheetNode* local_node = GetChildNode((*iterator).second->name, (NodeType) i);
-			local_node->MergeHierarchy((*iterator).second, specificity_offset);
-		}
+		StyleSheetNode* local_node = GetOrCreateChildNode(*other_child);
+		local_node->MergeHierarchy(other_child.get(), specificity_offset);
 	}
 
 	return true;
 }
 
 // Builds up a style sheet's index recursively.
-void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index, const StyleSheet& style_sheet)
+void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_node_index, const StyleSheet& style_sheet)
 {
-	// If this is a tag node, then we insert it into the list of all tag nodes. Makes sense, neh?
-	if (type == TAG)
+	// If this has properties defined, then we insert it into the styled node index.
+	if(properties.GetNumProperties() > 0)
 	{
-		StyleSheet::NodeIndex::iterator iterator = complete_index.find(name);
-		if (iterator == complete_index.end())
-			(*complete_index.insert(StyleSheet::NodeIndex::value_type(name, StyleSheet::NodeList())).first).second.insert(this);
-		else
-			(*iterator).second.insert(this);
+		StyleSheet::NodeList& nodes = styled_node_index[tag];
+		auto it = std::find(nodes.begin(), nodes.end(), this);
+		if(it == nodes.end())
+			nodes.push_back(this);
 	}
 
-	// If we are a styled node (ie, have some style attributes attached), then we insert our closest parent tag node
-	// into the list of styled tag nodes.
+	// Turn any decorator and font-effect properties from String to DecoratorList / FontEffectList.
+	// This is essentially an optimization, it will work fine to skip this step and let ElementStyle::ComputeValues() do all the work.
+	// However, when we do it here, we only need to do it once.
+	// Note, since the user may set a new decorator through its style, we still do the conversion as necessary again in ComputeValues.
 	if (properties.GetNumProperties() > 0)
 	{
-		StyleSheetNode* tag_node = this;
-		while (tag_node != nullptr &&
-			   tag_node->type != TAG)
-			tag_node = tag_node->parent;
-
-		if (tag_node != nullptr)
-		{
-			StyleSheet::NodeIndex::iterator iterator = styled_index.find(tag_node->name);
-			if (iterator == styled_index.end())
-				(*styled_index.insert(StyleSheet::NodeIndex::value_type(tag_node->name, StyleSheet::NodeList())).first).second.insert(tag_node);
-			else
-				(*iterator).second.insert(tag_node);
-		}
-
-		// Turn any decorator properties from String to DecoratorList.
-		// This is essentially an optimization, it will work fine to skip this step and let ElementStyle::ComputeValues() do all the work.
-		// However, when we do it here, we only need to do it once.
-		// Note, since the user may set a new decorator through its style, we still do the conversion as necessary again in ComputeValues.
+		// Decorators
 		if (const Property* property = properties.GetProperty(PropertyId::Decorator))
 		{
 			if (property->unit == Property::STRING)
@@ -205,7 +145,7 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 			}
 		}
 
-		// Turn any font-effect properties from String to FontEffectListPtr. See comments for decorator, they apply here as well.
+		// Font-effects
 		if (const Property * property = properties.GetProperty(PropertyId::FontEffect))
 		{
 			if (property->unit == Property::STRING)
@@ -221,10 +161,9 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 		}
 	}
 
-	for (int i = 0; i < NUM_NODE_TYPES; i++)
+	for (auto& child : children)
 	{
-		for (NodeMap::iterator j = children[i].begin(); j != children[i].end(); ++j)
-			(*j).second->BuildIndexAndOptimizeProperties(styled_index, complete_index, style_sheet);
+		child->BuildIndexAndOptimizeProperties(styled_node_index, style_sheet);
 	}
 }
 
@@ -232,17 +171,14 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structural_pseudo_class)
 {
 	// If any ancestor or descendant is a structural pseudo class, then we are structurally volatile.
-	bool self_is_structural_pseudo_class = (type == STRUCTURAL_PSEUDO_CLASS);
+	bool self_is_structural_pseudo_class = (!structural_selectors.empty());
 
 	// Check our children for structural pseudo-classes.
 	bool descendant_is_structural_pseudo_class = false;
-	for (int i = 0; i < NUM_NODE_TYPES; ++i)
+	for (auto& child : children)
 	{
-		for (auto& child_name_node : children[i])
-		{
-			if (child_name_node.second->SetStructurallyVolatileRecursive(self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class))
-				descendant_is_structural_pseudo_class = true;
-		}
+		if (child->SetStructurallyVolatileRecursive(self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class))
+			descendant_is_structural_pseudo_class = true;
 	}
 
 	is_structurally_volatile = (self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
@@ -250,11 +186,27 @@ bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structura
 	return (self_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
 }
 
+bool StyleSheetNode::IsEquivalent(const String& _tag, const String& _id, const StringList& _class_names, const StringList& _pseudo_class_names, const NodeSelectorList& _structural_selectors) const
+{
+	if (tag != _tag)
+		return false;
+	if (id != _id)
+		return false;
+	if (class_names != _class_names)
+		return false;
+	if (pseudo_class_names != _pseudo_class_names)
+		return false;
+	if (structural_selectors != _structural_selectors)
+		return false;
+
+	return true;
+}
+
 
 // Returns the name of this node.
-const String& StyleSheetNode::GetName() const
+const String& StyleSheetNode::GetTag() const
 {
-	return name;
+	return tag;
 }
 
 // Returns the specificity of this node.
@@ -270,76 +222,39 @@ void StyleSheetNode::ImportProperties(const PropertyDictionary& _properties, int
 	properties.Import(_properties, specificity + rule_specificity);
 }
 
-// Merges properties from another node (ie, with potentially differing specificities) into the
-// node's properties.
-void StyleSheetNode::MergeProperties(const PropertyDictionary& _properties, int rule_specificity_offset)
-{
-	properties.Merge(_properties, rule_specificity_offset);
-}
-
 // Returns the node's default properties.
 const PropertyDictionary& StyleSheetNode::GetProperties() const
 {
 	return properties;
 }
 
-// Adds to a list the names of this node's pseudo-classes which are deemed volatile.
-bool StyleSheetNode::GetVolatilePseudoClasses(PseudoClassList& volatile_pseudo_classes) const
+bool StyleSheetNode::Match(const Element* element, const StyleSheetNode* node)
 {
-	if (type == PSEUDO_CLASS)
+	if (!node->tag.empty() && node->tag != element->GetTagName())
+		return false;
+
+	if (!node->id.empty() && node->id != element->GetId())
+		return false;
+
+	for (auto& name : node->class_names)
 	{
-		bool self_volatile = !children[TAG].empty();
-
-		for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
-			self_volatile = (*i).second->GetVolatilePseudoClasses(volatile_pseudo_classes) | self_volatile;
-
-		if (self_volatile)
-		{
-			volatile_pseudo_classes.insert(name);
-		}
-
-		return self_volatile;
-	}
-	else
-	{
-		for (NodeMap::const_iterator i = children[PSEUDO_CLASS].begin(); i != children[PSEUDO_CLASS].end(); ++i)
-			(*i).second->GetVolatilePseudoClasses(volatile_pseudo_classes);
+		if (!element->IsClassSet(name))
+			return false;
 	}
 
-	return false;
-}
-
-// Returns a direct child node of this node of the requested type.
-StyleSheetNode* StyleSheetNode::GetChildNode(const String& child_name, NodeType child_type, bool create)
-{
-	// Look for a node with given name.
-	NodeMap::iterator iterator = children[child_type].find(child_name);
-	if (iterator != children[child_type].end())
+	for (auto& name : node->pseudo_class_names)
 	{
-		// Traverse into node.
-		return (*iterator).second;
+		if (!element->IsPseudoClassSet(name))
+			return false;
 	}
-	else
+
+	for (auto& node_selector : node->structural_selectors)
 	{
-		if (create)
-		{
-			StyleSheetNode* new_node = nullptr;
-
-			// Create the node; structural pseudo-classes require a little extra leg-work.
-			if (child_type == STRUCTURAL_PSEUDO_CLASS)
-				new_node = CreateStructuralChild(child_name);
-			else
-				new_node = new StyleSheetNode(child_name, child_type, this);
-
-			if (new_node != nullptr)
-			{
-				children[child_type][child_name] = new_node;
-				return new_node;
-			}
-		}
-
-		return nullptr;
+		if (!node_selector.selector->IsApplicable(element, node_selector.a, node_selector.b))
+			return false;
 	}
+	
+	return true;
 }
 
 // Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
@@ -355,155 +270,26 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 		return false;
 	}
 
-	// If we've hit a child of the root of the style sheet tree, then we're done; no more lineage to resolve.
-	if (parent->type == ROOT)
-		return true;
-
-	// Determine the tag (and possibly id / class as well) of the next required parent in the RCSS hierarchy.
-	const StyleSheetNode* parent_node = parent;
-	const String* ancestor_id = nullptr;
-	static std::vector<const String*> ancestor_classes;
-	static std::vector<const String*> ancestor_pseudo_classes;
-	static std::vector< const StyleSheetNode* > ancestor_structural_pseudo_classes;
-	ancestor_classes.clear();
-	ancestor_pseudo_classes.clear();
-	ancestor_structural_pseudo_classes.clear();
-
-	while (parent_node != nullptr && parent_node->type != TAG)
-	{
-		switch (parent_node->type)
-		{
-			case ID:						ancestor_id = &parent_node->name; break;
-			case CLASS:						ancestor_classes.push_back(&parent_node->name); break;
-			case PSEUDO_CLASS:				ancestor_pseudo_classes.push_back(&parent_node->name); break;
-			case STRUCTURAL_PSEUDO_CLASS:	ancestor_structural_pseudo_classes.push_back(parent_node); break;
-			default:						RMLUI_ERRORMSG("Invalid RCSS hierarchy."); return false;
-		}
-
-		parent_node = parent_node->parent;
-	}
-
-	// Check for an invalid RCSS hierarchy.
-	if (parent_node == nullptr)
-	{
-		RMLUI_ERRORMSG("Invalid RCSS hierarchy.");
+	const StyleSheetNode* node = this;
+	
+	// Check for matching local requirements
+	if (!Match(element, node))
 		return false;
-	}
 
-	// Now we know the name / class / ID / pseudo-class / structural requirements for the next ancestor requirement of
-	// the element. So we look back through the element's ancestors to find one that matches.
-	for (const Element* ancestor_element = element->GetParentNode(); ancestor_element != nullptr; ancestor_element = ancestor_element->GetParentNode())
+	// Then match each parent node
+	for(node = node->parent; node && node->parent; node = node->parent)
 	{
-		// Skip this ancestor if the name of the next style node doesn't match its tag name, and one was specified.
-		if (!parent_node->name.empty() 
-			&& parent_node->name != ancestor_element->GetTagName())
-			continue;
-
-		// Skip this ancestor if the ID of the next style node doesn't match its ID, and one was specified.
-		if (ancestor_id &&
-			*ancestor_id != ancestor_element->GetId())
-			continue;
-
-		// Skip this ancestor if the class of the next style node don't match its classes.
-		bool resolved_requirements = true;
-		for (size_t i = 0; i < ancestor_classes.size(); ++i)
+		for(element = element->GetParentNode(); element; element = element->GetParentNode())
 		{
-			if (!ancestor_element->IsClassSet(*ancestor_classes[i]))
-			{
-				resolved_requirements = false;
+			if (Match(element, node))
 				break;
-			}
 		}
-		if (!resolved_requirements)
-			continue;
 
-		// Skip this ancestor if the required pseudo-classes of the style node aren't set on it.
-		resolved_requirements = true;
-		for (size_t i = 0; i < ancestor_pseudo_classes.size(); ++i)
-		{
-			if (!ancestor_element->IsPseudoClassSet(*ancestor_pseudo_classes[i]))
-			{
-				resolved_requirements = false;
-				break;
-			}
-		}
-		if (!resolved_requirements)
-			continue;
-
-		// Skip this ancestor if the required structural pseudo-classes of the style node aren't applicable to it.
-		resolved_requirements = true;
-		for (size_t i = 0; i < ancestor_structural_pseudo_classes.size(); ++i)
-		{
-			if (!ancestor_structural_pseudo_classes[i]->selector->IsApplicable(ancestor_element, ancestor_structural_pseudo_classes[i]->a, ancestor_structural_pseudo_classes[i]->b))
-			{
-				resolved_requirements = false;
-				break;
-			}
-		}
-		if (!resolved_requirements)
-			continue;
-
-		return parent_node->IsApplicable(ancestor_element);
+		if (!element)
+			return false;
 	}
 
-	// We hit the end of the hierarchy before matching the required ancestor, so bail.
-	return false;
-}
-
-// Appends all applicable non-tag descendants of this node into the given element list.
-void StyleSheetNode::GetApplicableDescendants(std::vector< const StyleSheetNode* >& applicable_nodes, const Element* element) const
-{
-	// Check if this node matches this element.
-	switch (type)
-	{
-		RMLUI_UNUSED_SWITCH_ENUM(NUM_NODE_TYPES);
-		case ROOT:
-		case TAG:
-		{
-			// These nodes always match.
-		}
-		break;
-
-		case CLASS:
-		{
-			if (!element->IsClassSet(name))
-				return;
-		}
-		break;
-
-		case ID:
-		{
-			if (name != element->GetId())
-				return;
-		}
-		break;
-
-		case PSEUDO_CLASS:
-		{
-			if (!element->IsPseudoClassSet(name))
-				return;
-		}
-		break;
-
-		case STRUCTURAL_PSEUDO_CLASS:
-		{
-			if (selector == nullptr)
-				return;
-
-			if (!selector->IsApplicable(element, a, b))
-				return;
-		}
-		break;
-	}
-
-	if (properties.GetNumProperties() > 0)
-		applicable_nodes.push_back(this);
-
-	for (int i = CLASS; i < NUM_NODE_TYPES; i++)
-	{
-		for (auto& child_tag_node : children[i])
-			child_tag_node.second->GetApplicableDescendants(applicable_nodes, element);
-	}
+	return true;
 }
 
 bool StyleSheetNode::IsStructurallyVolatile() const
@@ -512,107 +298,26 @@ bool StyleSheetNode::IsStructurallyVolatile() const
 }
 
 
-// Constructs a structural pseudo-class child node.
-StyleSheetNode* StyleSheetNode::CreateStructuralChild(const String& child_name)
-{
-	StyleSheetNodeSelector* child_selector = StyleSheetFactory::GetSelector(child_name);
-	if (child_selector == nullptr)
-		return nullptr;
-
-	// Parse the 'a' and 'b' values.
-	int child_a = 1;
-	int child_b = 0;
-
-	size_t parameter_start = child_name.find("(");
-	size_t parameter_end = child_name.find(")");
-	if (parameter_start != String::npos &&
-		parameter_end != String::npos)
-	{
-		String parameters = child_name.substr(parameter_start + 1, parameter_end - (parameter_start + 1));
-
-		// Check for 'even' or 'odd' first.
-		if (parameters == "even")
-		{
-			child_a = 2;
-			child_b = 0;
-		}
-		else if (parameters == "odd")
-		{
-			child_a = 2;
-			child_b = 1;
-		}
-		else
-		{
-			// Alrighty; we've got an equation in the form of [[+/-]an][(+/-)b]. So, foist up, we split on 'n'.
-			size_t n_index = parameters.find('n');
-			if (n_index != String::npos)
-			{
-				// The equation is 0n + b. So a = 0, and we only have to parse b.
-				child_a = 0;
-				child_b = atoi(parameters.c_str());
-			}
-			else
-			{
-				if (n_index == 0)
-					child_a = 1;
-				else
-				{
-					String a_parameter = parameters.substr(0, n_index);
-					if (StringUtilities::StripWhitespace(a_parameter) == "-")
-						child_a = -1;
-					else
-						child_a = atoi(a_parameter.c_str());
-				}
-
-				if (n_index == parameters.size() - 1)
-					child_b = 0;
-				else
-					child_b = atoi(parameters.substr(n_index + 1).c_str());
-			}
-		}
-	}
-
-	return new StyleSheetNode(child_name, this, child_selector, child_a, child_b);
-}
-
 int StyleSheetNode::CalculateSpecificity()
 {
 	// Calculate the specificity of just this node; tags are worth 10,000, IDs 1,000,000 and other specifiers (classes
 	// and pseudo-classes) 100,000.
 
 	int specificity = 0;
-	switch (type)
-	{
-		case TAG:
-		{
-			if (!name.empty())
-				specificity = 10000;
-		}
-		break;
 
-		case CLASS:
-		case PSEUDO_CLASS:
-		case STRUCTURAL_PSEUDO_CLASS:
-		{
-			specificity = 100000;
-		}
-		break;
+	if (!tag.empty())
+		specificity += 10000;
 
-		case ID:
-		{
-			specificity = 1000000;
-		}
-		break;
+	if (!id.empty())
+		specificity += 1000000;
 
-		default:
-		{
-			specificity = 0;
-		}
-		break;
-	}
+	specificity += 100000*(int)class_names.size();
+	specificity += 100000*(int)pseudo_class_names.size();
+	specificity += 100000*(int)structural_selectors.size();
 
 	// Add our parent's specificity onto ours.
-	if (parent != nullptr)
+	// @performance: Replace with parent->specificity
+	if (parent)
 		specificity += parent->CalculateSpecificity();
 
 	return specificity;

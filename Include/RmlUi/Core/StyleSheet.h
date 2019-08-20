@@ -73,7 +73,7 @@ using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 class RMLUICORE_API StyleSheet : public NonCopyMoveable
 {
 public:
-	typedef std::unordered_set< StyleSheetNode* > NodeList;
+	typedef std::vector< StyleSheetNode* > NodeList;
 	typedef UnorderedMap< String, NodeList > NodeIndex;
 
 	StyleSheet();
@@ -127,10 +127,8 @@ private:
 	// Name of every @spritesheet and underlying sprites mapped to their values
 	SpritesheetList spritesheet_list;
 
-	// Map of only nodes with actual style information.
+	// Map of all styled nodes, that is, they have one or more properties.
 	NodeIndex styled_node_index;
-	// Map of every node, even empty, un-styled, nodes.
-	NodeIndex complete_node_index;
 
 	typedef UnorderedMap< size_t, SharedPtr<ElementDefinition> > ElementDefinitionCache;
 	// Index of node sets to element definitions.

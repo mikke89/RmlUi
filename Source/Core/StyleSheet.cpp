@@ -50,7 +50,7 @@ static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* 
 
 StyleSheet::StyleSheet()
 {
-	root = std::make_unique<StyleSheetNode>("", StyleSheetNode::ROOT);
+	root = std::make_unique<StyleSheetNode>();
 	specificity_offset = 0;
 }
 
@@ -105,12 +105,10 @@ SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 // Builds the node index for a combined style sheet.
 void StyleSheet::BuildNodeIndexAndOptimizeProperties()
 {
-	if (complete_node_index.empty())
+	if (styled_node_index.empty())
 	{
-		styled_node_index.clear();
-		complete_node_index.clear();
-
-		root->BuildIndexAndOptimizeProperties(styled_node_index, complete_node_index, *this);
+		//styled_node_index.clear();
+		root->BuildIndexAndOptimizeProperties(styled_node_index, *this);
 		root->SetStructurallyVolatileRecursive(false);
 	}
 }
@@ -334,8 +332,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 			{
 				if (node->IsApplicable(element))
 				{
-					// Get the node to add any of its non-tag children that we match into our list.
-					node->GetApplicableDescendants(applicable_nodes, element);
+					applicable_nodes.push_back(node);
 				}
 			}
 		}

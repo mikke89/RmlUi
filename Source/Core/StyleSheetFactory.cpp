@@ -29,6 +29,7 @@
 #include "precompiled.h"
 #include "StyleSheetFactory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "StyleSheetNode.h"
 #include "StreamFile.h"
 #include "StyleSheetNodeSelectorNthChild.h"
 #include "StyleSheetNodeSelectorNthLastChild.h"
@@ -163,13 +164,67 @@ void StyleSheetFactory::ClearStyleSheetCache()
 }
 
 // Returns one of the available node selectors.
-StyleSheetNodeSelector* StyleSheetFactory::GetSelector(const String& name)
+NodeSelector StyleSheetFactory::GetSelector(const String& name)
 {
 	size_t index = name.find("(");
-	SelectorMap::iterator i = instance->selectors.find(name.substr(0, index));
-	if (i == instance->selectors.end())
-		return nullptr;
-	return (*i).second;
+	auto it = instance->selectors.find(name.substr(0, index));
+	if (it == instance->selectors.end())
+		return NodeSelector(nullptr, 0, 0);
+
+	// Parse the 'a' and 'b' values.
+	int a = 1;
+	int b = 0;
+
+	size_t parameter_start = name.find("(");
+	size_t parameter_end = name.find(")");
+	if (parameter_start != String::npos &&
+		parameter_end != String::npos)
+	{
+		String parameters = name.substr(parameter_start + 1, parameter_end - (parameter_start + 1));
+
+		// Check for 'even' or 'odd' first.
+		if (parameters == "even")
+		{
+			a = 2;
+			b = 0;
+		}
+		else if (parameters == "odd")
+		{
+			a = 2;
+			b = 1;
+		}
+		else
+		{
+			// Alrighty; we've got an equation in the form of [[+/-]an][(+/-)b]. So, foist up, we split on 'n'.
+			size_t n_index = parameters.find('n');
+			if (n_index != String::npos)
+			{
+				// The equation is 0n + b. So a = 0, and we only have to parse b.
+				a = 0;
+				b = atoi(parameters.c_str());
+			}
+			else
+			{
+				if (n_index == 0)
+					a = 1;
+				else
+				{
+					String a_parameter = parameters.substr(0, n_index);
+					if (StringUtilities::StripWhitespace(a_parameter) == "-")
+						a = -1;
+					else
+						a = atoi(a_parameter.c_str());
+				}
+
+				if (n_index == parameters.size() - 1)
+					b = 0;
+				else
+					b = atoi(parameters.substr(n_index + 1).c_str());
+			}
+		}
+	}
+
+	return NodeSelector(it->second, a, b);
 }
 
 SharedPtr<StyleSheet> StyleSheetFactory::LoadStyleSheet(const String& sheet)
