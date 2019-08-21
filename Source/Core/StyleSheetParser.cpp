@@ -589,23 +589,42 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 }
 
 // Updates the StyleNode tree, creating new nodes as necessary, setting the definition index
-bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number)
+bool StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number)
 {
 	StyleSheetNode* leaf_node = node;
 
 	StringList nodes;
-	StringUtilities::ExpandString(nodes, rule_name, ' ', '(', ')');
+
+	// Find child combinators, the RCSS '>' rule.
+	size_t i_child = rule_name.find('>');
+	while (i_child != String::npos)
+	{
+		// So we found one! Next, we want to format the rule such that the '>' is located at the 
+		// end of the left-hand-side node, and that there is a space to the right-hand-side. This ensures that
+		// the selector is applied to the "parent", and that parent and child are expanded properly below.
+		size_t i_begin = i_child;
+		while (i_begin > 0 && rule_name[i_begin - 1] == ' ')
+			i_begin--;
+
+		const size_t i_end = i_child + 1;
+		rule_name.replace(i_begin, i_end - i_begin, "> ");
+		i_child = rule_name.find('>', i_begin + 1);
+	}
+
+	// Expand each individual node separated by spaces. Don't expand inside parenthesis because of structural selectors.
+	StringUtilities::ExpandString(nodes, rule_name, ' ', '(', ')', true);
 
 	// Create each node going down the tree
 	for (size_t i = 0; i < nodes.size(); i++)
 	{
-		String name = nodes[i];
+		const String& name = nodes[i];
 
 		String tag;
 		String id;
 		StringList classes;
 		StringList pseudo_classes;
 		StructuralSelectorList structural_pseudo_classes;
+		bool child_combinator = false;
 
 		size_t index = 0;
 		while (index < name.size())
@@ -617,7 +636,8 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 			while (end_index < name.size() &&
 				   name[end_index] != '#' &&
 				   name[end_index] != '.' &&
-				   name[end_index] != ':')
+				   name[end_index] != ':' &&
+				   name[end_index] != '>')
 				end_index++;
 
 			String identifier = name.substr(start_index, end_index - start_index);
@@ -637,22 +657,22 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 							pseudo_classes.push_back(pseudo_class_name);
 					}
 					break;
+					case '>':	child_combinator = true; break;
 
-					default:	tag = identifier;
+					default:	if(identifier != "*") tag = identifier;
 				}
 			}
 
 			index = end_index;
 		}
 
-		// Sort the classes and pseudo-classes so they are consistent across equivalent declarations that shuffle the
-		// order around.
+		// Sort the classes and pseudo-classes so they are consistent across equivalent declarations that shuffle the order around.
 		std::sort(classes.begin(), classes.end());
 		std::sort(pseudo_classes.begin(), pseudo_classes.end());
 		std::sort(structural_pseudo_classes.begin(), structural_pseudo_classes.end());
 
 		// Get the named child node.
-		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes));
+		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes), child_combinator);
 	}
 
 	// Merge the new properties with those already on the leaf node.

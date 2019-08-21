@@ -62,12 +62,12 @@ class StyleSheetNode
 {
 public:
 	StyleSheetNode();
-	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors);
-	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors);
+	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, bool child_combinator);
+	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
 
-	/// Retrieves a child node with the given properties if they match an existing node, or else creates a new one.
-	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors);
-	/// Retrieves or creates a child node with properties equivalent to the 'other' node.
+	/// Retrieves a child node with the given requirements if they match an existing node, or else creates a new one.
+	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
+	/// Retrieves or creates a child node with requirements equivalent to the 'other' node.
 	StyleSheetNode* GetOrCreateChildNode(const StyleSheetNode& other);
 
 	/// Merges an entire tree hierarchy into our hierarchy.
@@ -97,8 +97,8 @@ public:
 	bool IsStructurallyVolatile() const;
 
 private:
-	// Returns true if the properties of this node equals the given arguments.
-	bool IsEquivalent(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_pseudo_classes) const;
+	// Returns true if the requirements of this node equals the given arguments.
+	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_pseudo_classes, bool child_combinator) const;
 
 	int CalculateSpecificity();
 
@@ -109,14 +109,14 @@ private:
 
 	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent;
-	//bool child_selector; // The '>' CSS selector: Parent node must be applicable to the element parent.
 
+	// Node requirements
 	String tag;
 	String id;
-
 	StringList class_names;
 	StringList pseudo_class_names;
 	StructuralSelectorList structural_selectors; // Represents structural pseudo classes
+	bool child_combinator; // The '>' combinator: This node only matches if the element is a parent of the previous matching element.
 
 	// True if any ancestor, descendent, or self is a structural pseudo class.
 	bool is_structurally_volatile;
@@ -125,10 +125,8 @@ private:
 	// node with a lower value.
 	int specificity;
 
-	// The generic properties for this node.
 	PropertyDictionary properties;
 
-	// This node's child nodes, whether standard tagged children, or further derivations of this tag by ID or class.
 	StyleSheetNodeList children;
 };
 

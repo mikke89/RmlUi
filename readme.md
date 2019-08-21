@@ -40,7 +40,7 @@ The main effort in RmlUi 3.0 has been on improving the performance of the librar
 - The update loop has been reworked to avoid doing unnecessary, repeated calculations whenever the document or style is changed. Instead of immediately updating properties on any affected elements, most of this work is done during the Context::Update call in a more carefully chosen order. Note that for this reason, when querying the Rocket API for properties such as size or position, this information may not be up-to-date with changes since the last Context::Update, such as newly added elements or classes. If this information is needed immediately, a call to ElementDocument::UpdateDocument can be made before such queries at a performance penalty.
 - Several containers have been replaced, such as std::map to [robin_hood::unordered_flat_map](https://github.com/martinus/robin-hood-hashing).
 - Reduced number of allocations and unnecessary recursive calls.
-- And many more, smaller optimizations, resulting in about 10x performance increase for creation and destruction of a large number of elements. A benchmark for this is located in the animation sample for now.
+- And many more, smaller optimizations, resulting in about 10x performance increase for creation and destruction of a large number of elements. A benchmark is included with the samples.
 
 
 ### Sprite sheets
@@ -149,7 +149,28 @@ When creating a custom font-effect, you can provide a shorthand property named `
 
 There is currently no equivalent of the `@decorator` at-rule for font-effects. If there is a desire for such a feature, please provide some feedback.
 
+### RCSS Selectors
 
+The child combinator `>` is now introduced in RCSS, which can be used as in CSS to select a child of another element.
+```RCSS
+p.green_theme > button { image-color: #0f0; }
+```
+Here, any `button` elements which have a parent `p.green_theme` will have their image color set to green. 
+
+Furthermore, the universal selector `*` can now be used in RCSS. This selector matches any element.
+```RCSS
+div.red_theme > * > p { color: #f00; }
+```
+Here, `p` grandchildren of `div.red_theme` will have their color set to red. The universal selector can also be used in combination with other selectors, such as `*.great#content:hover`.
+
+### Debugger improvements
+
+The debugger has been improved in several aspects:
+
+- Live updating of values. Can now see the effect of animations and other property changes.
+- Can now toggle drawing of element dimension box, and live update of values.
+- Can toggle pseudo classes on the selected element.
+- Support for transforms. The element's dimension box is drawn with the transform applied.
 
 ### Removal of manual reference counting
 

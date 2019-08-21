@@ -43,7 +43,7 @@ namespace Rml {
 namespace Core {
 
 // Sorts style nodes based on specificity.
-static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* rhs)
+inline static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* rhs)
 {
 	return lhs->GetSpecificity() < rhs->GetSpecificity();
 }
@@ -105,12 +105,9 @@ SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 // Builds the node index for a combined style sheet.
 void StyleSheet::BuildNodeIndexAndOptimizeProperties()
 {
-	if (styled_node_index.empty())
-	{
-		//styled_node_index.clear();
-		root->BuildIndexAndOptimizeProperties(styled_node_index, *this);
-		root->SetStructurallyVolatileRecursive(false);
-	}
+	styled_node_index.clear();
+	root->BuildIndexAndOptimizeProperties(styled_node_index, *this);
+	root->SetStructurallyVolatileRecursive(false);
 }
 
 // Returns the Keyframes of the given name, or null if it does not exist.
