@@ -605,7 +605,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 		String id;
 		StringList classes;
 		StringList pseudo_classes;
-		NodeSelectorList structural_pseudo_classes;
+		StructuralSelectorList structural_pseudo_classes;
 
 		size_t index = 0;
 		while (index < name.size())
@@ -630,7 +630,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 					case ':':
 					{
 						String pseudo_class_name = identifier.substr(1);
-						NodeSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
+						StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
 						if (node_selector.selector)
 							structural_pseudo_classes.push_back(node_selector);
 						else

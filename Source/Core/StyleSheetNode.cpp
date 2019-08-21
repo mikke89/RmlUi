@@ -42,16 +42,15 @@ StyleSheetNode::StyleSheetNode() : parent(nullptr)
 	is_structurally_volatile = true;
 }
 
-
-StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const NodeSelectorList& structural_pseudo_classes)
-	: parent(parent), tag(tag), id(id), class_names(classes), pseudo_class_names(pseudo_classes)
+StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors)
+	: parent(parent), tag(tag), id(id), class_names(classes), pseudo_class_names(pseudo_classes), structural_selectors(structural_selectors)
 {
 	specificity = CalculateSpecificity();
 	is_structurally_volatile = true;
 }
 
-StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, NodeSelectorList&& structural_pseudo_classes) 
-	: parent(parent), tag(std::move(tag)), id(std::move(id)), class_names(std::move(classes)), pseudo_class_names(std::move(pseudo_classes))
+StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors)
+	: parent(parent), tag(std::move(tag)), id(std::move(id)), class_names(std::move(classes)), pseudo_class_names(std::move(pseudo_classes)), structural_selectors(std::move(structural_selectors))
 {
 	specificity = CalculateSpecificity();
 	is_structurally_volatile = true;
@@ -75,10 +74,8 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const StyleSheetNode& other
 	return result;
 }
 
-StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, NodeSelectorList&& structural_pseudo_classes)
+StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_pseudo_classes)
 {
-	// @performance: Maybe sort children by tag,id or something else?
-
 	// See if we match an existing child
 	for (const auto& child : children)
 	{
@@ -116,7 +113,9 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 	// If this has properties defined, then we insert it into the styled node index.
 	if(properties.GetNumProperties() > 0)
 	{
-		StyleSheet::NodeList& nodes = styled_node_index[tag];
+		// The keys of the node index is a hashed combination of tag and id. These are used for fast lookup of applicable nodes.
+		size_t node_hash = StyleSheet::NodeHash(tag, id);
+		StyleSheet::NodeList& nodes = styled_node_index[node_hash];
 		auto it = std::find(nodes.begin(), nodes.end(), this);
 		if(it == nodes.end())
 			nodes.push_back(this);
@@ -186,7 +185,7 @@ bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structura
 	return (self_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
 }
 
-bool StyleSheetNode::IsEquivalent(const String& _tag, const String& _id, const StringList& _class_names, const StringList& _pseudo_class_names, const NodeSelectorList& _structural_selectors) const
+bool StyleSheetNode::IsEquivalent(const String& _tag, const String& _id, const StringList& _class_names, const StringList& _pseudo_class_names, const StructuralSelectorList& _structural_selectors) const
 {
 	if (tag != _tag)
 		return false;
@@ -200,13 +199,6 @@ bool StyleSheetNode::IsEquivalent(const String& _tag, const String& _id, const S
 		return false;
 
 	return true;
-}
-
-
-// Returns the name of this node.
-const String& StyleSheetNode::GetTag() const
-{
-	return tag;
 }
 
 // Returns the specificity of this node.
@@ -228,27 +220,43 @@ const PropertyDictionary& StyleSheetNode::GetProperties() const
 	return properties;
 }
 
-bool StyleSheetNode::Match(const Element* element, const StyleSheetNode* node)
+inline bool StyleSheetNode::Match(const Element* element) const
 {
-	if (!node->tag.empty() && node->tag != element->GetTagName())
+	if (!tag.empty() && tag != element->GetTagName())
 		return false;
 
-	if (!node->id.empty() && node->id != element->GetId())
+	if (!id.empty() && id != element->GetId())
 		return false;
 
-	for (auto& name : node->class_names)
+	if (!MatchClassPseudoClass(element))
+		return false;
+
+	if (!MatchStructuralSelector(element))
+		return false;
+
+	return true;
+}
+
+inline bool StyleSheetNode::MatchClassPseudoClass(const Element* element) const
+{
+	for (auto& name : class_names)
 	{
 		if (!element->IsClassSet(name))
 			return false;
 	}
 
-	for (auto& name : node->pseudo_class_names)
+	for (auto& name : pseudo_class_names)
 	{
 		if (!element->IsPseudoClassSet(name))
 			return false;
 	}
 
-	for (auto& node_selector : node->structural_selectors)
+	return true;
+}
+
+inline bool StyleSheetNode::MatchStructuralSelector(const Element* element) const
+{
+	for (auto& node_selector : structural_selectors)
 	{
 		if (!node_selector.selector->IsApplicable(element, node_selector.a, node_selector.b))
 			return false;
@@ -258,36 +266,35 @@ bool StyleSheetNode::Match(const Element* element, const StyleSheetNode* node)
 }
 
 // Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
-bool StyleSheetNode::IsApplicable(const Element* element) const
+bool StyleSheetNode::IsApplicable(const Element* const in_element) const
 {
-	// This function is called with an element that matches a style node only with the tag name. We have to determine
+	// This function is called with an element that matches a style node only with the tag name and id. We have to determine
 	// here whether or not it also matches the required hierarchy.
-
-	// We must have a parent; if not, something's amok with the style tree.
-	if (parent == nullptr)
-	{
-		RMLUI_ERRORMSG("Invalid RCSS hierarchy.");
-		return false;
-	}
-
-	const StyleSheetNode* node = this;
 	
-	// Check for matching local requirements
-	if (!Match(element, node))
+	// Check for matching local class, pseudo class, and structural requirements. Id and tag have already been checked in StyleSheet.
+	if (!MatchClassPseudoClass(in_element))
 		return false;
 
-	// Then match each parent node
-	for(node = node->parent; node && node->parent; node = node->parent)
+	const Element* element = in_element;
+
+	// Then we must match every parent node.
+	for(const StyleSheetNode* node = parent; node && node->parent; node = node->parent)
 	{
+		// Try a match on every element ancestor.
 		for(element = element->GetParentNode(); element; element = element->GetParentNode())
 		{
-			if (Match(element, node))
+			if (node->Match(element))
 				break;
 		}
 
+		// We have run out of element ancestors before we matched every node. Bail out.
 		if (!element)
 			return false;
 	}
+
+	// Check for matching local class, pseudo class, and structural requirements. Id and tag have already been checked in StyleSheet.
+	if (!MatchStructuralSelector(in_element))
+		return false;
 
 	return true;
 }
@@ -316,9 +323,8 @@ int StyleSheetNode::CalculateSpecificity()
 	specificity += 100000*(int)structural_selectors.size();
 
 	// Add our parent's specificity onto ours.
-	// @performance: Replace with parent->specificity
 	if (parent)
-		specificity += parent->CalculateSpecificity();
+		specificity += parent->specificity;
 
 	return specificity;
 }

@@ -307,6 +307,15 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 	return std::make_shared<FontEffectList>(std::move(font_effect_list));
 }
 
+size_t StyleSheet::NodeHash(const String& tag, const String& id)
+{
+	size_t seed = 0;
+	if (!tag.empty())
+		seed = std::hash<String>()(tag);
+	if(!id.empty())
+		Utilities::HashCombine(seed, id);
+	return seed;
+}
 
 // Returns the compiled element definition for a given element hierarchy.
 SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
@@ -318,16 +327,36 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	static std::vector< const StyleSheetNode* > applicable_nodes;
 	applicable_nodes.clear();
 
-	String tags[] = {element->GetTagName(), ""};
-	for (int i = 0; i < 2; i++)
+	const String& tag = element->GetTagName();
+	const String& id = element->GetId();
+
+	// The styled_node_index is hashed with the tag and id of the RCSS rule. However, we must also check
+	// the rules which don't have them defined, because they apply regardless of tag and id.
+	std::array<size_t, 4> node_hash;
+	int num_hashes = 2;
+
+	node_hash[0] = 0;
+	node_hash[1] = NodeHash(tag, String());
+
+	// If we don't have an id, we can safely skip nodes that define an id. Otherwise, we also check the id nodes.
+	if (!id.empty())
 	{
-		auto it_nodes = styled_node_index.find(tags[i]);
+		num_hashes = 4;
+		node_hash[2] = NodeHash(String(), id);
+		node_hash[3] = NodeHash(tag, id);
+	}
+
+	// The hashes are keys into a set of applicable nodes (given tag and id).
+	for (int i = 0; i < num_hashes; i++)
+	{
+		auto it_nodes = styled_node_index.find(node_hash[i]);
 		if (it_nodes != styled_node_index.end())
 		{
 			const NodeList& nodes = it_nodes->second;
 
-			// There are! Now see if we satisfy all of their parenting requirements. What this involves is traversing the style
-			// nodes backwards, trying to match nodes in the element's hierarchy to nodes in the style hierarchy.
+			// Now see if we satisfy all of the requirements not yet tested: classes, pseudo classes, structural selectors, 
+			// and the full requirements of parent nodes. What this involves is traversing the style nodes backwards, 
+			// trying to match nodes in the element's hierarchy to nodes in the style hierarchy.
 			for (StyleSheetNode* node : nodes)
 			{
 				if (node->IsApplicable(element))
@@ -344,8 +373,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	if (applicable_nodes.empty())
 		return nullptr;
 
-	// Check if this puppy has already been cached in the node index; it may be that it has already been created by an
-	// element with a different address but an identical output definition.
+	// Check if this puppy has already been cached in the node index.
 	size_t seed = 0;
 	for (const StyleSheetNode* node : applicable_nodes)
 		Utilities::HashCombine(seed, node);
@@ -359,8 +387,6 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 
 	// Create the new definition and add it to our cache.
 	auto new_definition = std::make_shared<ElementDefinition>(applicable_nodes);
-
-	// Add to the node cache.
 	node_cache[seed] = new_definition;
 
 	return new_definition;

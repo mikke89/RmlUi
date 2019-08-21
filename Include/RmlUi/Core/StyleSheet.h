@@ -74,7 +74,7 @@ class RMLUICORE_API StyleSheet : public NonCopyMoveable
 {
 public:
 	typedef std::vector< StyleSheetNode* > NodeList;
-	typedef UnorderedMap< String, NodeList > NodeIndex;
+	typedef UnorderedMap< size_t, NodeList > NodeIndex;
 
 	StyleSheet();
 	virtual ~StyleSheet();
@@ -106,6 +106,9 @@ public:
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
 	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element) const;
+
+	/// Retrieve the hash key used to look-up applicable nodes in the node index.
+	static size_t NodeHash(const String& tag, const String& id);
 
 private:
 	// Root level node, attributes from special nodes like "body" get added to this node

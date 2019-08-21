@@ -164,12 +164,12 @@ void StyleSheetFactory::ClearStyleSheetCache()
 }
 
 // Returns one of the available node selectors.
-NodeSelector StyleSheetFactory::GetSelector(const String& name)
+StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 {
 	size_t index = name.find("(");
 	auto it = instance->selectors.find(name.substr(0, index));
 	if (it == instance->selectors.end())
-		return NodeSelector(nullptr, 0, 0);
+		return StructuralSelector(nullptr, 0, 0);
 
 	// Parse the 'a' and 'b' values.
 	int a = 1;
@@ -224,7 +224,7 @@ NodeSelector StyleSheetFactory::GetSelector(const String& name)
 		}
 	}
 
-	return NodeSelector(it->second, a, b);
+	return StructuralSelector(it->second, a, b);
 }
 
 SharedPtr<StyleSheet> StyleSheetFactory::LoadStyleSheet(const String& sheet)
