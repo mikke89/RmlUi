@@ -86,11 +86,6 @@ public:
 // Determines how many levels up in the hierarchy the OnChildAdd and OnChildRemove are called (starting at the child itself)
 static constexpr int ChildNotifyLevels = 2;
 
-
-struct ElementMetaChunk;
-static Pool< ElementMetaChunk > element_meta_chunk_pool(200, true);
-
-
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta 
 {
@@ -102,24 +97,10 @@ struct ElementMeta
 	ElementDecoration decoration;
 	ElementScroll scroll;
 	Style::ComputedValues computed_values;
-
-	void* operator new(size_t size)
-	{
-		void* memory = element_meta_chunk_pool.AllocateObject();
-		return memory;
-	}
-	void operator delete(void* chunk)
-	{
-		element_meta_chunk_pool.DeallocateObject((ElementMetaChunk*)chunk);
-	}
-}; 
-
-struct alignas(ElementMeta) ElementMetaChunk
-{
-	ElementMetaChunk() { memset(buffer, 0, size); }
-	static constexpr size_t size = sizeof(ElementMeta);
-	char buffer[size];
 };
+
+
+static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 
 
 /// Constructs a new RmlUi element.
@@ -157,7 +138,7 @@ transform_state(), transform_state_perspective_dirty(true), transform_state_tran
 	clipping_enabled = false;
 	clipping_state_dirty = true;
 
-	element_meta = new ElementMeta(this);
+	element_meta = element_meta_chunk_pool.AllocateAndConstruct(this);
 
 	event_dispatcher = &element_meta->event_dispatcher;
 	style = &element_meta->style;
@@ -189,7 +170,7 @@ Element::~Element()
 	children.clear();
 	num_non_dom_children = 0;
 
-	delete element_meta;
+	element_meta_chunk_pool.DestroyAndDeallocate(element_meta);
 }
 
 void Element::Update(float dp_ratio)

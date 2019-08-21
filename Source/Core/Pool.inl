@@ -89,8 +89,9 @@ typename Pool< PoolType >::Iterator Pool< PoolType >::Begin()
 }
 
 // Attempts to allocate a deallocated object in the memory pool.
-template < typename PoolType >
-PoolType* Pool< PoolType >::AllocateObject()
+template<typename PoolType>
+template<typename ...Args>
+inline PoolType* Pool<PoolType>::AllocateAndConstruct(Args&&... args)
 {
 	// We can't allocate a new object if the deallocated list is empty.
 	if (first_free_node == nullptr)
@@ -133,18 +134,18 @@ PoolType* Pool< PoolType >::AllocateObject()
 
 	first_allocated_node = allocated_object;
 
-	return new (&allocated_object->object) PoolType();
+	return new (allocated_object->object) PoolType(std::forward<Args>(args)...);
 }
 
 // Deallocates the object pointed to by the given iterator.
 template < typename PoolType >
-void Pool< PoolType >::DeallocateObject(Iterator& iterator)
+void Pool< PoolType >::DestroyAndDeallocate(Iterator& iterator)
 {
 	// We're about to deallocate an object.
 	--num_allocated_objects;
 
 	PoolNode* object = iterator.node;
-	object->object.~PoolType();
+	reinterpret_cast<PoolType*>(object->object)->~PoolType();
 
 	// Get the previous and next pointers now, because they will be overwritten
 	// before we're finished.
@@ -182,12 +183,12 @@ void Pool< PoolType >::DeallocateObject(Iterator& iterator)
 
 // Deallocates the given object.
 template < typename PoolType >
-void Pool< PoolType >::DeallocateObject(PoolType* object)
+void Pool< PoolType >::DestroyAndDeallocate(PoolType* object)
 {
 	// This assumes the object has the same address as the node, which will be
 	// true as long as the struct definition does not change.
 	Iterator iterator((PoolNode*) object);
-	DeallocateObject(iterator);
+	DestroyAndDeallocate(iterator);
 }
 
 // Returns the number of objects in the pool.

@@ -83,9 +83,9 @@ struct DefaultInstancers {
 	Ptr<ContextInstancer> context_default;
 	Ptr<EventInstancer> event_default;
 
-	Ptr<ElementInstancer> element_default = std::make_unique<ElementInstancerGeneric<Element>>();
+	Ptr<ElementInstancer> element_default = std::make_unique<ElementInstancerElement>();
+	Ptr<ElementInstancer> element_text_default = std::make_unique<ElementInstancerTextDefault>();
 	Ptr<ElementInstancer> element_img = std::make_unique<ElementInstancerGeneric<ElementImage>>();
-	Ptr<ElementInstancer> element_text_default = std::make_unique<ElementInstancerGeneric<ElementTextDefault>>();
 	Ptr<ElementInstancer> element_handle = std::make_unique<ElementInstancerGeneric<ElementHandle>>();
 	Ptr<ElementInstancer> element_body = std::make_unique<ElementInstancerGeneric<ElementDocument>>();
 

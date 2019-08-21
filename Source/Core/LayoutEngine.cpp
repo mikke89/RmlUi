@@ -45,15 +45,10 @@ namespace Core {
 
 #define MAX(a, b) (a > b ? a : b)
 
-struct alignas(LayoutBlockBox) LayoutChunk
+struct LayoutChunk
 {
-	LayoutChunk()
-	{
-		memset(buffer, 0, size);
-	}
-
 	static const unsigned int size = MAX(sizeof(LayoutBlockBox), MAX(sizeof(LayoutInlineBox), MAX(sizeof(LayoutInlineBoxText), MAX(sizeof(LayoutLineBox), sizeof(LayoutBlockBoxSpace)))));
-	char buffer[size];
+	alignas(std::max_align_t) char buffer[size];
 };
 
 static Pool< LayoutChunk > layout_chunk_pool(200, true);
@@ -270,12 +265,12 @@ void* LayoutEngine::AllocateLayoutChunk(size_t RMLUI_UNUSED_ASSERT_PARAMETER(siz
 
 	RMLUI_ASSERT(size <= LayoutChunk::size);
 
-	return layout_chunk_pool.AllocateObject();
+	return layout_chunk_pool.AllocateAndConstruct();
 }
 
 void LayoutEngine::DeallocateLayoutChunk(void* chunk)
 {
-	layout_chunk_pool.DeallocateObject((LayoutChunk*) chunk);
+	layout_chunk_pool.DestroyAndDeallocate((LayoutChunk*) chunk);
 }
 
 // Positions a single element and its children within this layout.

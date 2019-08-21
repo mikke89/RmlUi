@@ -128,8 +128,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h
