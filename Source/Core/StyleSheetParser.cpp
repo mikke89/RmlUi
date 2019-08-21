@@ -594,7 +594,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule
 	StyleSheetNode* leaf_node = node;
 
 	StringList nodes;
-	StringUtilities::ExpandString(nodes, rule_name, ' ');
+	StringUtilities::ExpandString(nodes, rule_name, ' ', '(', ')');
 
 	// Create each node going down the tree
 	for (size_t i = 0; i < nodes.size(); i++)
