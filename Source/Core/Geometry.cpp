@@ -77,8 +77,6 @@ void Geometry::SetHostElement(Element* _host_element)
 
 void Geometry::Render(const Vector2f& translation)
 {
-	RMLUI_ZoneScoped;
-
 	RenderInterface* render_interface = GetRenderInterface();
 	if (render_interface == nullptr)
 		return;
@@ -86,6 +84,7 @@ void Geometry::Render(const Vector2f& translation)
 	// Render our compiled geometry if possible.
 	if (compiled_geometry)
 	{
+		RMLUI_ZoneScopedN("RenderCompiled");
 		render_interface->RenderCompiledGeometry(compiled_geometry, translation);
 	}
 	// Otherwise, if we actually have geometry, try to compile it if we haven't already done so, otherwise render it in
@@ -95,6 +94,8 @@ void Geometry::Render(const Vector2f& translation)
 		if (vertices.empty() ||
 			indices.empty())
 			return;
+
+		RMLUI_ZoneScopedN("RenderGeometry");
 
 		if (!compile_attempted)
 		{

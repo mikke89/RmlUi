@@ -50,7 +50,6 @@ ElementBackground::~ElementBackground()
 // Renders the element's background, if it has one.
 void ElementBackground::RenderBackground()
 {
-	RMLUI_ZoneScoped;
 	if (background_dirty)
 	{
 		background_dirty = false;
@@ -69,6 +68,8 @@ void ElementBackground::DirtyBackground()
 // Generates the background geometry for the element.
 void ElementBackground::GenerateBackground()
 {
+	RMLUI_ZoneScoped;
+
 	// Fetch the new colour for the background. If the colour is transparent, then we don't render any background.
 	auto& computed = element->GetComputedValues();
 	Colourb colour = computed.background_color;

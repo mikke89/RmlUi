@@ -110,6 +110,8 @@ bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset
 // Builds up a style sheet's index recursively.
 void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_node_index, const StyleSheet& style_sheet)
 {
+	RMLUI_ZoneScoped;
+
 	// If this has properties defined, then we insert it into the styled node index.
 	if(properties.GetNumProperties() > 0)
 	{

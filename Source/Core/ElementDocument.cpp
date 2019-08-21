@@ -64,7 +64,9 @@ ElementDocument::~ElementDocument()
 }
 
 void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
-{	
+{
+	RMLUI_ZoneScoped;
+
 	// Store the source address that we came from
 	source_url = document_header->source;
 
@@ -169,6 +171,8 @@ const String& ElementDocument::GetSourceURL() const
 // Sets the style sheet this document, and all of its children, uses.
 void ElementDocument::SetStyleSheet(SharedPtr<StyleSheet> _style_sheet)
 {
+	RMLUI_ZoneScoped;
+
 	if (style_sheet == _style_sheet)
 		return;
 

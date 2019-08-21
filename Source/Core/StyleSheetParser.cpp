@@ -321,6 +321,8 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 
 int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSheet& style_sheet, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpritesheetList& spritesheet_list, int begin_line_number)
 {
+	RMLUI_ZoneScoped;
+
 	int rule_count = 0;
 	line_number = begin_line_number;
 	stream = _stream;

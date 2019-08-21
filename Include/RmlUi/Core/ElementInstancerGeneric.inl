@@ -38,6 +38,7 @@ ElementInstancerGeneric<T>::~ElementInstancerGeneric()
 template <typename T>
 ElementPtr ElementInstancerGeneric<T>::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
 {
+	RMLUI_ZoneScopedN("ElementInstance");
 	return ElementPtr(new T(tag));
 }
 
@@ -47,6 +48,7 @@ ElementPtr ElementInstancerGeneric<T>::InstanceElement(Element* /*parent*/, cons
 template <typename T>
 void ElementInstancerGeneric<T>::ReleaseElement(Element* element)
 {
+	RMLUI_ZoneScopedN("ElementRelease");
 	delete element;
 }
 

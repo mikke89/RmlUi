@@ -310,6 +310,8 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 // Instances a element tree based on the stream
 ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* stream)
 {
+	RMLUI_ZoneScoped;
+
 	ElementPtr element = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
 	if (!element)
 	{

@@ -116,6 +116,8 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 // Returns the element's font face.
 SharedPtr<FontFaceHandle> ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
 {
+	RMLUI_ZoneScoped;
+
 	static const String default_charset = "U+0020-007E";
 
 	const String& charset = (computed_values.font_charset.empty() ? default_charset : computed_values.font_charset);
@@ -353,8 +355,6 @@ static void SetElementOffset(Element* element, const Vector2f& offset)
 // Applies an element's `perspective' and `transform' properties.
 bool ElementUtilities::ApplyTransform(Element &element, bool apply)
 {
-	RMLUI_ZoneScoped;
-
 	Context *context = element.GetContext();
 	if (!context)
 	{

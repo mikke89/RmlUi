@@ -68,6 +68,8 @@ bool StyleSheet::LoadStyleSheet(Stream* stream, int begin_line_number)
 /// Combines this style sheet with another one, producing a new sheet
 SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_sheet) const
 {
+	RMLUI_ZoneScoped;
+
 	SharedPtr<StyleSheet> new_sheet = std::make_shared<StyleSheet>();
 	if (!new_sheet->root->MergeHierarchy(root.get()) ||
 		!new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset))
@@ -105,6 +107,7 @@ SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 // Builds the node index for a combined style sheet.
 void StyleSheet::BuildNodeIndexAndOptimizeProperties()
 {
+	RMLUI_ZoneScoped;
 	styled_node_index.clear();
 	root->BuildIndexAndOptimizeProperties(styled_node_index, *this);
 	root->SetStructurallyVolatileRecursive(false);

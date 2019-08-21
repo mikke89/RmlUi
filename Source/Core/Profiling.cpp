@@ -32,4 +32,19 @@
 
 #ifdef RMLUI_ENABLE_PROFILING
 #include "../Dependencies/tracy/TracyClient.cpp"
+
+// Overload global new and delete for memory inspection
+void* operator new(std::size_t n)
+{
+	void* ptr = malloc(n);
+	TracyAlloc(ptr, n);
+	return ptr;
+}
+void operator delete(void* ptr) noexcept
+{
+	TracyFree(ptr);
+	free(ptr);
+}
+
+
 #endif

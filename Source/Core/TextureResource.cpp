@@ -116,6 +116,8 @@ void TextureResource::Release(RenderInterface* render_interface)
 // Attempts to load the texture from the source.
 bool TextureResource::Load(RenderInterface* render_interface)
 {
+	RMLUI_ZoneScoped;
+
 	// Check for special loader tokens.
 	if (!source.empty() && source[0] == '?')
 	{
