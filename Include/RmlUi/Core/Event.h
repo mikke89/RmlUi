@@ -111,8 +111,11 @@ public:
 	}
 	/// Access the dictionary of parameters
 	/// @return The dictionary of parameters
-	const Dictionary* GetParameters() const;
+	const Dictionary& GetParameters() const;
 
+	/// Return the unprojected mouse screen position.
+	/// Note: Only specified for events with 'mouse_x' and 'mouse_y' parameters.
+	const Vector2f& GetUnprojectedMouseScreenPos() const;
 
 private:
 	/// Release this event.

@@ -53,7 +53,7 @@ protected:
 	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
 	void ProcessDefaultAction(Event& event) override;
 
-	Vector2i drag_start;
+	Vector2f drag_start;
 	Vector2f move_original_position;
 	Vector2f size_original_size;
 

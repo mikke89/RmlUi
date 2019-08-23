@@ -56,8 +56,8 @@ int EventParametersProxy__index(lua_State* L)
         EventParametersProxy* obj = LuaType<EventParametersProxy>::check(L,1);
         LUACHECKOBJ(obj);
         const char* key = lua_tostring(L,2);
-		auto it = obj->owner->GetParameters()->find(key);
-		const Variant* param = (it == obj->owner->GetParameters()->end() ? nullptr : &it->second);
+		auto it = obj->owner->GetParameters().find(key);
+		const Variant* param = (it == obj->owner->GetParameters().end() ? nullptr : &it->second);
         PushVariant(L,param);
         return 1;
     }
@@ -74,7 +74,7 @@ int EventParametersProxy__pairs(lua_State* L)
     int& pindex = *(int*)lua_touserdata(L,3);
     if((pindex) == -1)
         pindex = 0;
-	const Dictionary& attributes = *obj->owner->GetParameters();
+	const Dictionary& attributes = obj->owner->GetParameters();
     if(pindex >= 0 && pindex < (int)attributes.size())
     {
 		auto it = attributes.begin();

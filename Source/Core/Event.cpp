@@ -127,9 +127,14 @@ void Event::StopPropagation()
 	}
 }
 
-const Dictionary* Event::GetParameters() const
+const Dictionary& Event::GetParameters() const
 {
-	return &parameters;
+	return parameters;
+}
+
+const Vector2f& Event::GetUnprojectedMouseScreenPos() const
+{
+	return mouse_screen_position;
 }
 
 void Event::Release()
