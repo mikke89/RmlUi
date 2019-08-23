@@ -195,8 +195,6 @@ void Element::Update(float dp_ratio)
 		OnResize();
 	}
 
-	UpdateTransformState();
-
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio);
 }
@@ -244,6 +242,8 @@ void Element::Render()
 	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
 		BuildLocalStackingContext();
+
+	UpdateTransformState();
 
 	// Apply our transform
 	ElementUtilities::ApplyTransform(*this);
