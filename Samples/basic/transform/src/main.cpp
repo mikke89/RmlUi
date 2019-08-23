@@ -36,7 +36,9 @@
 #include <cmath>
 #include <sstream>
 
-class DemoWindow
+static bool run_rotate = true;
+
+class DemoWindow : public Rml::Core::EventListener
 {
 public:
 	DemoWindow(const Rml::Core::String &title, const Rml::Core::Vector2f &position, Rml::Core::Context *context)
@@ -87,12 +89,29 @@ public:
 		}
 	}
 
+	void ProcessEvent(Rml::Core::Event& ev) override
+	{
+		if (ev == Rml::Core::EventId::Keydown)
+		{
+			Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) ev.GetParameter< int >("key_identifier", 0);
+
+			if (key_identifier == Rml::Core::Input::KI_SPACE)
+			{
+				run_rotate = !run_rotate;
+			}
+			else if (key_identifier == Rml::Core::Input::KI_ESCAPE)
+			{
+				Shell::RequestExit();
+			}
+		}
+	}
+
 private:
 	Rml::Core::ElementDocument *document;
 };
 
 Rml::Core::Context* context = nullptr;
-ShellRenderInterfaceExtensions *shell_renderer;
+ShellRenderInterfaceExtensions* shell_renderer;
 DemoWindow* window_1 = nullptr;
 DemoWindow* window_2 = nullptr;
 
@@ -104,16 +123,19 @@ void GameLoop()
 	context->Render();
 	shell_renderer->PresentRenderBuffer();
 
-	static float deg = 0;
-	Rml::Core::SystemInterface* system_interface = Rml::Core::GetSystemInterface();
-	deg = (float)std::fmod(system_interface->GetElapsedTime() * 30.0, 360.0);
-	if (window_1)
+	double t = Rml::Core::GetSystemInterface()->GetElapsedTime();
+	static double t_prev = t;
+	double dt = t - t_prev;
+	t_prev = t;
+
+	if(run_rotate)
 	{
-		window_1->SetRotation(deg);
-	}
-	if (window_2)
-	{
-		window_2->SetRotation(deg);
+		static float deg = 0;
+		deg = (float)std::fmod(deg + dt * 50.0, 360.0);
+		if (window_1)
+			window_1->SetRotation(deg);
+		if (window_2)
+			window_2->SetRotation(deg);
 	}
 }
 
@@ -134,12 +156,15 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	RMLUI_UNUSED(argv);
 #endif
 
+	constexpr int width = 1600;
+	constexpr int height = 1000;
+
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("Transform Sample", shell_renderer, 1024, 768, true))
+		!Shell::OpenWindow("Transform Sample", shell_renderer, width, height, true))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -147,7 +172,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// RmlUi initialisation.
 	Rml::Core::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(1024,768);
+	opengl_renderer.SetViewport(width, height);
 
 	ShellSystemInterface system_interface;
 	Rml::Core::SetSystemInterface(&system_interface);
@@ -155,7 +180,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Rml::Core::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(1024, 768));
+	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(width, height));
 	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
@@ -170,12 +195,12 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::LoadFonts("assets/");
 
-	window_1 = new DemoWindow("Orthographic transform", Rml::Core::Vector2f(81, 200), context);
+	window_1 = new DemoWindow("Orthographic transform", Rml::Core::Vector2f(120, 200), context);
 	if (window_1)
 	{
-		window_1->SetPerspective(100000);
+		context->GetRootElement()->AddEventListener(Rml::Core::EventId::Keydown, window_1);
 	}
-	window_2 = new DemoWindow("Perspective transform", Rml::Core::Vector2f(593, 200), context);
+	window_2 = new DemoWindow("Perspective transform", Rml::Core::Vector2f(900, 200), context);
 	if (window_2)
 	{
 		window_2->SetPerspective(800);
