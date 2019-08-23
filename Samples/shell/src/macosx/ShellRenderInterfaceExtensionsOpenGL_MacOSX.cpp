@@ -47,7 +47,7 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		m_height = height;
 
 		glViewport(0, 0, width, height);
-		projection = Rml::Core::Matrix4f::ProjectOrtho(0, width, height, 0, -1, 1);
+		projection = Rml::Core::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -10000, 10000);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(projection);
 		view = Rml::Core::Matrix4f::Identity();
