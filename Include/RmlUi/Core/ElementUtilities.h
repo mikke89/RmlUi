@@ -39,7 +39,6 @@ namespace Core {
 class Context;
 class FontFaceHandle;
 class RenderInterface;
-class ViewState;
 namespace Style { struct ComputedValues; }
 
 /**

@@ -92,13 +92,6 @@ void RenderInterfaceDirectX10::SetViewport(int width, int height)
 		if(m_rmlui_context != nullptr)
 		{
 			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
-			Rml::Core::Matrix4f mat;
-			mat = m_matProjection;
-			mat = mat.Transpose();
-			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(mat);
-			mat = m_matWorld;
-			mat = mat.Transpose();
-			((Rml::Core::Context*)m_rmlui_context)->ProcessViewChange(mat);
 		}
 	}
 }

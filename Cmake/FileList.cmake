@@ -195,7 +195,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vertex.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ViewState.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLNodeHandler.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLParser.h
 )
@@ -337,7 +336,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector3.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector4.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ViewState.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandler.cpp

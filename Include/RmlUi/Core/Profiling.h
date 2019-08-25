@@ -48,6 +48,8 @@
 #define RMLUI_ZoneText(x,y)        ZoneText(x,y)
 #define RMLUI_ZoneName(x,y)        ZoneName(x,y)
 
+#define RMLUI_TracyPlot(name,val)  TracyPlot(name,val)
+
 #define RMLUI_FrameMark            FrameMark
 #define RMLUI_FrameMarkNamed(x)    FrameMarkNamed(x)
 #define RMLUI_FrameMarkStart(x)    FrameMarkStart(x)
@@ -67,6 +69,8 @@
 
 #define RMLUI_ZoneText(x,y)
 #define RMLUI_ZoneName(x,y)
+
+#define RMLUI_TracyPlot(name,val)
 
 #define RMLUI_FrameMark
 #define RMLUI_FrameMarkNamed(x)

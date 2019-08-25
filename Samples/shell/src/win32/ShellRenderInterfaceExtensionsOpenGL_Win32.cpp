@@ -57,8 +57,6 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		if(m_rmlui_context != nullptr)
 		{
 			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
-			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(projection);
-			((Rml::Core::Context*)m_rmlui_context)->ProcessViewChange(view);
 		}
 	}
 }

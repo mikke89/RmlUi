@@ -207,5 +207,11 @@ Vector3< Type >::operator Type* ()
 	return &x;
 }
 
+template < typename Type >
+Vector3< Type >::operator Vector2< Type >() const
+{
+	return Vector2< Type >(x, y);
+}
+
 }
 }

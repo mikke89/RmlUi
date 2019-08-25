@@ -32,314 +32,65 @@
 namespace Rml {
 namespace Core {
 
-Matrix4f TransformState::Perspective::GetProjection() const noexcept
+bool TransformState::SetTransform(const Matrix4f* in_transform)
 {
-	float depth = (float)Math::Max(view_size.x, view_size.y);
-
-	if (distance == 0)
+	bool is_changed = (have_transform != (bool)in_transform);
+	if (in_transform)
 	{
-		return Matrix4f::ProjectOrtho(
-			-0.5f * view_size.x,
-			+0.5f * view_size.x,
-			+0.5f * view_size.y,
-			-0.5f * view_size.y,
-			-1.0f * depth,
-			+1.0f * depth
-		) * Matrix4f::Translate(
-			-0.5f * view_size.x,
-			-0.5f * view_size.y,
-			0
-		);
-	}
-	else if (distance > 0)
-	{
-		float far = distance + 1.0f * depth;
-		const float FAR_NEAR_RATIO = 256.0f;
-		float near = Math::Max(1.0f, far / FAR_NEAR_RATIO);
-		float scale = near / distance;
-		return Matrix4f::ProjectPerspective(
-			(-vanish.x) * scale,
-			(view_size.x - vanish.x) * scale,
-			(view_size.y - vanish.y) * scale,
-			(-vanish.y) * scale,
-			near,
-			far
-		) * Matrix4f::Translate(
-			-vanish.x,
-			-vanish.y,
-			-distance
-		);
-	}
-	else /* if (distance < 0) */
-	{
-		return Matrix4f::Identity();
-	}
-}
-
-Vector3f TransformState::Perspective::Project(const Vector3f &point) const noexcept
-{
-	if (distance < 0)
-	{
-		return point;
-	}
-	else /* if (distance >= 0) */
-	{
-		return GetProjection() * point;
-	}
-}
-
-Vector3f TransformState::Perspective::Unproject(const Vector3f &point) const noexcept
-{
-	if (distance < 0)
-	{
-		return point;
-	}
-	else /* if (distance >= 0) */
-	{
-		Matrix4f projection_inv = GetProjection();
-		projection_inv.Invert();
-		return projection_inv * point;
-	}
-}
-
-Matrix4f TransformState::LocalPerspective::GetProjection() const noexcept
-{
-	float depth = (float)Math::Max(view_size.x, view_size.y);
-
-	if (distance == 0)
-	{
-		return Matrix4f::ProjectOrtho(
-			-0.5f * view_size.x,
-			+0.5f * view_size.x,
-			+0.5f * view_size.y,
-			-0.5f * view_size.y,
-			-0.5f * depth,
-			+0.5f * depth
-		) * Matrix4f::Translate(
-			-0.5f * view_size.x,
-			-0.5f * view_size.y,
-			0
-		);
-	}
-	else if (distance > 0)
-	{
-		return Matrix4f::ProjectPerspective(
-			(0.f - 0.5f) * view_size.x,
-			(1.f - 0.5f) * view_size.x,
-			(1.f - 0.5f) * view_size.y,
-			(0.f - 0.5f) * view_size.y,
-			distance,
-			distance + depth
-		) * Matrix4f::Translate(
-			-0.5f * view_size.x,
-			-0.5f * view_size.y,
-			-distance - 0.5f * depth
-		);
-	}
-	else /* if (distance < 0) */
-	{
-		return Matrix4f::Identity();
-	}
-}
-
-Vector3f TransformState::LocalPerspective::Project(const Vector3f &point) const noexcept
-{
-	if (distance < 0)
-	{
-		return point;
-	}
-	else /* if (distance >= 0) */
-	{
-		return GetProjection() * point;
-	}
-}
-
-Vector3f TransformState::LocalPerspective::Unproject(const Vector3f &point) const noexcept
-{
-	if (distance < 0)
-	{
-		return point;
-	}
-	else /* if (distance >= 0) */
-	{
-		Matrix4f projection_inv = GetProjection();
-		projection_inv.Invert();
-		return projection_inv * point;
-	}
-}
-
-TransformState::TransformState()
-	: have_perspective(false), have_local_perspective(false),
-	  have_parent_recursive_transform(false), have_transform(false)
-{
-}
-
-void TransformState::SetPerspective(const Perspective *perspective) noexcept
-{
-	if (perspective)
-	{
-		this->perspective = perspective->distance;
-		this->view_size = perspective->view_size;
-		this->vanish = perspective->vanish;
-	}
-
-	have_perspective = perspective != 0;
-}
-
-bool TransformState::GetPerspective(Perspective *perspective) const noexcept
-{
-	if (have_perspective && perspective)
-	{
-		perspective->distance = this->perspective;
-		perspective->view_size = this->view_size;
-		perspective->vanish = this->vanish;
-	}
-
-	return have_perspective;
-}
-
-void TransformState::SetLocalPerspective(const LocalPerspective *local_perspective) noexcept
-{
-	if (local_perspective)
-	{
-		this->local_perspective = local_perspective->distance;
-		this->view_size = local_perspective->view_size;
-	}
-
-	have_local_perspective = local_perspective != 0;
-}
-
-bool TransformState::GetLocalPerspective(LocalPerspective *local_perspective) const noexcept
-{
-	if (have_local_perspective && local_perspective)
-	{
-		local_perspective->distance = this->local_perspective;
-		local_perspective->view_size = this->view_size;
-	}
-
-	return have_local_perspective;
-}
-
-void TransformState::SetTransform(const Matrix4f *transform) noexcept
-{
-	if (transform)
-	{
-		this->transform = *transform;
-	}
-
-	have_transform = transform != 0;
-}
-
-bool TransformState::GetTransform(Matrix4f *transform) const noexcept
-{
-	if (have_transform)
-	{
-		if (transform)
-		{
-			*transform = this->transform;
-		}
-
-		return true;
+		is_changed |= (have_transform && transform != *in_transform);
+		transform = *in_transform;
+		have_transform = true;
 	}
 	else
-	{
-		return false;
-	}
+		have_transform = false;
+	
+	if (is_changed)
+		dirty_inverse_transform = true;
+
+	return is_changed;
 }
-
-void TransformState::SetParentRecursiveTransform(const Matrix4f *parent_recursive_transform) noexcept
+bool TransformState::SetLocalPerspective(const Matrix4f* in_perspective)
 {
-	if (parent_recursive_transform)
+	bool is_changed = (have_perspective != (bool)in_perspective);
+
+	if (in_perspective)
 	{
-		this->parent_recursive_transform = *parent_recursive_transform;
-	}
-
-	have_parent_recursive_transform = parent_recursive_transform != 0;
-}
-
-bool TransformState::GetParentRecursiveTransform(Matrix4f *transform) const noexcept
-{
-	if (have_parent_recursive_transform)
-	{
-		if (transform)
-		{
-			*transform = this->parent_recursive_transform;
-		}
-
-		return true;
+		is_changed |= (have_perspective && local_perspective != *in_perspective);
+		local_perspective = *in_perspective;
+		have_perspective = true;
 	}
 	else
-	{
-		return false;
-	}
+		have_perspective = false;
+
+	return is_changed;
 }
 
-Vector3f TransformState::Transform(const Vector3f &point) const noexcept
+const Matrix4f* TransformState::GetTransform() const
 {
-	if (have_parent_recursive_transform && have_transform)
-	{
-		return parent_recursive_transform * (transform * point);
-	}
-	else if (have_parent_recursive_transform)
-	{
-		return parent_recursive_transform * point;
-	}
-	else if (have_transform)
-	{
-		return transform * point;
-	}
-	else
-	{
-		return point;
-	}
+	return have_transform ? &transform : nullptr;
 }
 
-Vector3f TransformState::Untransform(const Vector3f &point) const noexcept
+const Matrix4f* TransformState::GetLocalPerspective() const
 {
-	Matrix4f transform_inv;
-
-	if (have_parent_recursive_transform && have_transform)
-	{
-		transform_inv = parent_recursive_transform * transform;
-		transform_inv.Invert();
-	}
-	else if (have_parent_recursive_transform)
-	{
-		transform_inv = parent_recursive_transform;
-		transform_inv.Invert();
-	}
-	else if (have_transform)
-	{
-		transform_inv = transform;
-		transform_inv.Invert();
-	}
-	else
-	{
-		return point;
-	}
-
-	return transform_inv * point;
+	return have_perspective ? &local_perspective : nullptr;
 }
 
-bool TransformState::GetRecursiveTransform(Matrix4f *recursive_transform) const noexcept
+const Matrix4f* TransformState::GetInverseTransform() const
 {
-	if (recursive_transform)
+	if (!have_transform)
+		return nullptr;
+
+	if (dirty_inverse_transform)
 	{
-		if (have_parent_recursive_transform && have_transform)
-		{
-			*recursive_transform = parent_recursive_transform * transform;
-		}
-		else if (have_parent_recursive_transform)
-		{
-			*recursive_transform = parent_recursive_transform;
-		}
-		else if (have_transform)
-		{
-			*recursive_transform = transform;
-		}
+		inverse_transform = transform;
+		have_inverse_transform = inverse_transform.Invert();
+		dirty_inverse_transform = false;
 	}
 
-	return have_parent_recursive_transform || have_transform;
+	if (have_inverse_transform)
+		return &inverse_transform;
+
+	return nullptr;
 }
 
 }

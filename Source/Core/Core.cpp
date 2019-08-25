@@ -202,14 +202,6 @@ Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInt
 		new_context->render_interface = render_interface;
 
 	new_context->SetDimensions(dimensions);
-	if (dimensions.x > 0 && dimensions.y > 0)
-	{
-		// install an orthographic projection, by default
-		Matrix4f P = Matrix4f::ProjectOrtho(0, (float)dimensions.x, (float)dimensions.y, 0, -1, 1);
-		new_context->ProcessProjectionChange(P);
-		// install an identity view, by default
-		new_context->ProcessViewChange(Matrix4f::Identity());
-	}
 
 	Context* new_context_raw = new_context.get();
 	contexts[name] = std::move(new_context);

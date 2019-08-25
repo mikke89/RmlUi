@@ -518,6 +518,18 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectPerspective(
 	);
 }
 
+// Create a perspective projection matrix
+template< typename Component, class Storage>
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Perspective(Component d) noexcept
+{
+	return Matrix4< Component, Storage >::FromRows(
+		Matrix4< Component, Storage >::VectorType(1, 0, 0, 0),
+		Matrix4< Component, Storage >::VectorType(0, 1, 0, 0),
+		Matrix4< Component, Storage >::VectorType(0, 0, 1, 0),
+		Matrix4< Component, Storage >::VectorType(0, 0, -static_cast<Component>(1)/d, 1)
+	);
+}
+
 // Return a translation matrix.
 template< typename Component, class Storage>
 Matrix4< Component, Storage > Matrix4< Component, Storage >::Translate(const Vector3< Component >& v) noexcept

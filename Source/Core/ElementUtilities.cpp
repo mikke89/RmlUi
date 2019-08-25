@@ -27,22 +27,47 @@
  */
 
 #include "precompiled.h"
+#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/TransformState.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include <queue>
 #include <limits>
 #include "FontFaceHandle.h"
 #include "LayoutEngine.h"
-#include "../../Include/RmlUi/Core.h"
-#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ElementStyle.h"
 
 namespace Rml {
 namespace Core {
 
 // Builds and sets the box for an element.
-static void SetBox(Element* element);
+static void SetBox(Element* element)
+{
+	Element* parent = element->GetParentNode();
+	RMLUI_ASSERT(parent != nullptr);
+
+	Vector2f containing_block = parent->GetBox().GetSize();
+	containing_block.x -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
+	containing_block.y -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
+
+	Box box;
+	LayoutEngine::BuildBox(box, containing_block, element);
+
+	if (element->GetComputedValues().height.type != Style::Height::Auto)
+		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
+
+	element->SetBox(box);
+}
+
 // Positions an element relative to an offset parent.
-static void SetElementOffset(Element* element, const Vector2f& offset);
+static void SetElementOffset(Element* element, const Vector2f& offset)
+{
+	Vector2f relative_offset = element->GetParentNode()->GetBox().GetPosition(Box::CONTENT);
+	relative_offset += offset;
+	relative_offset.x += element->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
+	relative_offset.y += element->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+
+	element->SetOffset(relative_offset, element->GetParentNode());
+}
 
 Element* ElementUtilities::GetElementById(Element* root_element, const String& id)
 {
@@ -322,150 +347,25 @@ bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset,
 	return true;
 }
 
-// Builds and sets the box for an element.
-static void SetBox(Element* element)
-{
-	Element* parent = element->GetParentNode();
-	RMLUI_ASSERT(parent != nullptr);
-
-	Vector2f containing_block = parent->GetBox().GetSize();
-	containing_block.x -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
-	containing_block.y -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
-
-	Box box;
-	LayoutEngine::BuildBox(box, containing_block, element);
-
-	if (element->GetComputedValues().height.type != Style::Height::Auto)
-		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
-
-	element->SetBox(box);
-}
-
-// Positions an element relative to an offset parent.
-static void SetElementOffset(Element* element, const Vector2f& offset)
-{
-	Vector2f relative_offset = element->GetParentNode()->GetBox().GetPosition(Box::CONTENT);
-	relative_offset += offset;
-	relative_offset.x += element->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-	relative_offset.y += element->GetBox().GetEdge(Box::MARGIN, Box::TOP);
-
-	element->SetOffset(relative_offset, element->GetParentNode());
-}
-
 // Applies an element's `perspective' and `transform' properties.
 bool ElementUtilities::ApplyTransform(Element &element, bool apply)
 {
-	Context *context = element.GetContext();
-	if (!context)
-	{
-		return false;
-	}
-
 	RenderInterface *render_interface = element.GetRenderInterface();
 	if (!render_interface)
-	{
 		return false;
-	}
 
-	const TransformState *local_perspective, *perspective, *transform;
-	element.GetEffectiveTransformState(&local_perspective, &perspective, &transform);
-
-	bool have_perspective = false;
-	float perspective_distance = 0.0f;
-	Matrix4f the_projection;
-	if (local_perspective)
+	if(auto state = element.GetTransformState())
 	{
-		TransformState::LocalPerspective the_local_perspective;
-		local_perspective->GetLocalPerspective(&the_local_perspective);
-		have_perspective = true;
-		perspective_distance = the_local_perspective.distance;
-		the_projection = the_local_perspective.GetProjection();
-	}
-	else if (perspective)
-	{
-		TransformState::Perspective the_perspective;
-		perspective->GetPerspective(&the_perspective);
-		have_perspective = true;
-		perspective_distance = the_perspective.distance;
-		the_projection = the_perspective.GetProjection();
-	}
-
-	bool have_transform = false;
-	Matrix4f the_transform;
-	if (transform)
-	{
-		transform->GetRecursiveTransform(&the_transform);
-		have_transform = true;
-	}
-
-	if (have_perspective && perspective_distance >= 0)
-	{
-		// If we are to apply a custom projection, then we need to cancel the global one first.
-		Matrix4f global_pv_inv;
-		bool have_global_pv_inv = context->GetViewState().GetProjectionViewInv(global_pv_inv);
-
-		if (have_global_pv_inv && have_transform)
+		if(auto transform = state->GetTransform())
 		{
 			if (apply)
-			{
-				render_interface->PushTransform(global_pv_inv * the_projection * the_transform);
-			}
+				render_interface->PushTransform(*transform);
 			else
-			{
-				render_interface->PopTransform(global_pv_inv * the_projection * the_transform);
-			}
-			return true;
-		}
-		else if (have_global_pv_inv)
-		{
-			if (apply)
-			{
-				render_interface->PushTransform(global_pv_inv * the_projection);
-			}
-			else
-			{
-				render_interface->PopTransform(global_pv_inv * the_projection);
-			}
-			return true;
-		}
-		else if (have_transform)
-		{
-			// The context has not received Process(Projection|View)Change() calls.
-			// Assume we don't really need to cancel.
-			if (apply)
-			{
-				render_interface->PushTransform(the_transform);
-			}
-			else
-			{
-				render_interface->PopTransform(the_transform);
-			}
-			return true;
-		}
-		else
-		{
-			return false;
+				render_interface->PopTransform(*transform);
 		}
 	}
-	else
-	{
-		if (have_transform)
-		{
-			if (apply)
-			{
-				render_interface->PushTransform(the_transform);
-			}
-			else
-			{
-				render_interface->PopTransform(the_transform);
-			}
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
+
+	return true;
 }
 
 // Unapplies an element's `perspective' and `transform' properties.

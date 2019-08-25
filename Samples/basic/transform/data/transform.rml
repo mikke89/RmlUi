@@ -7,8 +7,7 @@ body
 {
 	width: 550px;
 	height: 500px;
-
-	/*transform: rotate3d(0, 1, 0, 30deg);*/
+	/*transform: rotate3d(0,1,0,15deg);*/
 }
 
 /* Hide the window icon. */
@@ -19,8 +18,8 @@ div#title_bar div#icon
 
 div#title_bar:hover
 {
-	transform: rotate3d(1, 0, 0, 25) scale(1.1);
-	transform-origin: center bottom;
+	transform: scale(1.2) skew(-30deg, 0deg) ;
+	transform-origin: left bottom;
 }
 
 spacer
@@ -28,13 +27,9 @@ spacer
 	display: inline-block;
 	width: 25px;
 }
-scrollbarvertical sliderbar,scrollbarvertical sliderbar
-{
-	/*transform: translateZ(0px);*/
-}
 scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 {
-	/*transform: translateZ(10px);*/
+	transform: scale(1.3, 1.0);
 }
 
 
@@ -68,11 +63,13 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 .cube {
 	width: 100%;
 	height: 100%;
-	backface-visibility: visible;
+	position: relative;
+	transform: translateZ(50px);
 	perspective-origin: 150% 150%;
 }
 
 .face {
+	left: 50px; top: 50px;
 	display: block;
 	position: absolute;
 	width: 100px;
@@ -88,6 +85,9 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 .front {
 	background: rgba(0, 0, 0, 160);
 	transform: translateZ(50px);
+}
+.front:hover {
+	background: rgba(255, 255, 0, 120);
 }
 .back {
 	background: rgba(0, 255, 0, 255);
@@ -113,7 +113,6 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 </style>
 </head>
 <body template="window">
-
 <div class="container">
 	<div class="cube pers650">
 		<div class="face back">6</div>
@@ -123,7 +122,7 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 		<div class="face right">2</div>
 		<div class="face front">1</div>
 	</div>
-	Perspective: 650px.
+	perspective: 650px;
 </div>
 
 <p>Press 'space' to toggle rotation.</p>
@@ -148,6 +147,8 @@ augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet,
 consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut
 laoreet dolore magna aliquam erat volutpat.</p>
 
+<button style="width: 220px;">A wild button appears!</button>
+
 <p>Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit
 lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure
 dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore
@@ -162,7 +163,7 @@ laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis
 nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea
 commodo consequat.</p>
 
-<div class="container">
+<div class="container" style="clip: none;">
 	<div class="cube pers250">
 		<div class="face back">6</div>
 		<div class="face top">5</div>
@@ -171,7 +172,7 @@ commodo consequat.</p>
 		<div class="face right">2</div>
 		<div class="face front">1</div>
 	</div>
-	Perspective: 250px.
+	perspective: 250px; clip: none;
 </div>
 
 <p>Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse

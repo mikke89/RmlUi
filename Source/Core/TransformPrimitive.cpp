@@ -300,7 +300,8 @@ struct ResolveTransformVisitor
 	}
 	bool operator()(const Perspective& p)
 	{
-		return false;
+		m = Matrix4f::Perspective(p.values[0].ResolveDepth(e));
+		return true;
 	}
 
 
@@ -350,21 +351,6 @@ bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const noexcept
 
 	return result;
 }
-
-bool Primitive::ResolvePerspective(float & p, Element & e) const noexcept
-{
-	bool result = false;
-
-	if (primitive.type == PrimitiveVariant::PERSPECTIVE)
-	{
-
-		p = primitive.perspective.values[0].ResolveDepth(e);
-		result = true;
-	}
-
-	return result;
-}
-
 
 struct SetIdentityVisitor
 {

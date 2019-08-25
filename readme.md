@@ -227,6 +227,17 @@ template<typename T> using UniquePtr = std::unique_ptr<T>;
 template<typename T> using SharedPtr = std::shared_ptr<T>;
 ```
 
+### Improved transforms
+
+The inner workings of transforms have been completely revised, resulting in increased performance, simplified API, closer compliance to the CSS specs, and reduced complexity of the relevant parts of the library.
+
+Some relevant changes for users:
+- Removed the need for users to set the view and projection matrices they use outside the library.
+- The `perspective` property now applies to the element's children, as in CSS.
+- The transform function `perspective()` behaves like in CSS. It applies a perspective projection to the current element.
+- Chaining transforms and perspectives now provides more expected results. As opposed to CSS, we don't flatten transforms.
+- Have a look at the updated transforms sample for some fun with 3d boxes.
+
 
 ### Other changes
 

@@ -37,7 +37,6 @@
 #include "Property.h"
 #include "Types.h"
 #include "Transform.h"
-#include "TransformState.h"
 #include "Tween.h"
 
 #include <memory>
@@ -61,6 +60,7 @@ class PropertiesIteratorView;
 class FontFaceHandle;
 class PropertyDictionary;
 class RenderInterface;
+class TransformState;
 class StyleSheet;
 struct ElementMeta;
 
@@ -222,6 +222,7 @@ public:
 	/// Returns the local style properties, excluding any properties from local class.
 	/// @return The local properties for this element, or nullptr if no properties defined
 	const PropertyMap& GetLocalStyleProperties();
+
 	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling the base value.
 	/// @param[in] name The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
@@ -241,12 +242,10 @@ public:
 
 	/// Returns this element's TransformState
 	const TransformState *GetTransformState() const noexcept;
-	/// Returns the TransformStates that are effective for this element.
-	void GetEffectiveTransformState(const TransformState **local_perspective, const TransformState **perspective, const TransformState **transform) const noexcept;
 	/// Project a 2D point in pixel coordinates onto the element's plane.
-	/// @param[in] point The point to project.
-	/// @return The projected coordinates.
-	Vector2f Project(const Vector2f& point) const noexcept;
+	/// @param[in-out] point The point to project in, and the resulting projected point out.
+	/// @return True on success, false if transformation matrix is singular.
+	bool Project(Vector2f& point) const noexcept;
 
 	/// Start an animation of the given property on this element.
 	/// If an animation of the same property name exists, it will be replaced.
@@ -628,7 +627,7 @@ private:
 	void DirtyStructure();
 	void UpdateStructure();
 
-	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed);
+	void DirtyTransformState(bool perspective_dirty, bool transform_dirty);
 	void UpdateTransformState();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
@@ -731,9 +730,8 @@ private:
 
 	// Transform state
 	UniquePtr< TransformState > transform_state;
-	bool transform_state_perspective_dirty;
-	bool transform_state_transform_dirty;
-	bool transform_state_parent_transform_dirty;
+	bool dirty_transform;
+	bool dirty_perspective;
 
 	ElementAnimationList animations;
 	bool dirty_animation;

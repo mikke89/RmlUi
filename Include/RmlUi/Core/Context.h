@@ -34,7 +34,6 @@
 #include "Traits.h"
 #include "Input.h"
 #include "ScriptInterface.h"
-#include "ViewState.h"
 
 namespace Rml {
 namespace Core {
@@ -72,9 +71,6 @@ public:
 	/// Returns the dimensions of the context.
 	/// @return The current dimensions of the context.
 	const Vector2i& GetDimensions() const;
-
-	/// Returns the current state of the view.
-	const ViewState& GetViewState() const noexcept;
 
 	/// Changes the size ratio of 'dp' unit to 'px' unit
 	/// @param[in] dp_ratio The new density-independent pixel ratio of the context.
@@ -197,13 +193,6 @@ public:
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
 	bool ProcessMouseWheel(float wheel_delta, int key_modifier_state);
 
-	/// Notifies RmlUi of a change in the projection matrix.
-	/// @param[in] projection The new projection matrix.
-	void ProcessProjectionChange(const Matrix4f &projection);
-	/// Notifies RmlUi of a change in the view matrix.
-	/// @param[in] projection The new view matrix.
-	void ProcessViewChange(const Matrix4f &view);
-
 	/// Gets the context's render interface.
 	/// @return The render interface the context renders through.
 	RenderInterface* GetRenderInterface() const;
@@ -286,9 +275,6 @@ private:
 	Vector2i clip_origin;
 	Vector2i clip_dimensions;
 
-	// The current view state
-	ViewState view_state;
-
 	// Internal callback for when an element is detached or removed from the hierarchy.
 	void OnElementDetach(Element* element);
 	// Internal callback for when a new element gains focus.
@@ -304,7 +290,7 @@ private:
 	// @param[in] ignore_element If set, this element and its descendents will be ignored.
 	// @param[in] element Used internally.
 	// @return The element under the point, or nullptr if nothing is.
-	Element* GetElementAtPoint(const Vector2f& point, const Element* ignore_element = nullptr, Element* element = nullptr);
+	Element* GetElementAtPoint(Vector2f point, const Element* ignore_element = nullptr, Element* element = nullptr);
 
 	// Creates the drag clone from the given element. The old drag clone will be released if
 	// necessary.

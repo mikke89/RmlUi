@@ -52,9 +52,9 @@ class Vector4
 		/// @param[in] y Initial y-value of the vector.
 		/// @param[in] z Initial z-value of the vector.
 		/// @param[in] w Initial omega-value of the vector.
-		inline Vector4(Type x, Type y, Type z, Type w = 1);
+		inline Vector4(Type x, Type y, Type z, Type w);
 		/// Implicit conversion from a 3D Vector.
-		inline Vector4(Vector3< Type > const &v, Type w = 1);
+		inline Vector4(Vector3< Type > const &v, Type w);
 
 		/// Returns the magnitude of the vector.
 		/// @return The computed magnitude.
@@ -125,9 +125,13 @@ class Vector4
 		/// @return A constant pointer to the first value.
 		inline operator Type*();
 
-		/// Auto-cast operator to 3D vector.
-		/// @return Equivalent 3D vector.
-		inline operator Vector3< Type >() const;
+		/// Return a Vector3 after perspective divide
+		inline Vector3< Type > PerspectiveDivide() const;
+
+		/// Cast to Vector3
+		explicit inline operator Vector3< Type >() const;
+		/// Cast to Vector2
+		explicit inline operator Vector2< Type >() const;
 
 		// The components of the vector.
 		Type x;

@@ -61,29 +61,16 @@ public:
 
 	void SetPerspective(float distance)
 	{
-		if (document)
-		{
-			std::stringstream s;
-			s << distance << "px";
-			document->SetProperty("perspective", s.str().c_str());
-		}
-	}
-
-	void SetPerspectiveOrigin(float x, float y)
-	{
-		if (document)
-		{
-			std::stringstream s;
-			s << x * 100 << "%" << " " << y * 100 << "%";
-			document->SetProperty("perspective-origin", s.str().c_str());
-		}
+		perspective = distance;
 	}
 
 	void SetRotation(float degrees)
 	{
-		if (document)
+		if(document)
 		{
 			std::stringstream s;
+			if (perspective > 0)
+				s << "perspective(" << perspective << "px) ";
 			s << "rotate3d(0.0, 1.0, 0.0, " << degrees << ")";
 			document->SetProperty("transform", s.str().c_str());
 		}
@@ -107,6 +94,7 @@ public:
 	}
 
 private:
+	float perspective = 0;
 	Rml::Core::ElementDocument *document;
 };
 
@@ -157,7 +145,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 #endif
 
 	constexpr int width = 1600;
-	constexpr int height = 1000;
+	constexpr int height = 950;
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
@@ -195,16 +183,15 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::LoadFonts("assets/");
 
-	window_1 = new DemoWindow("Orthographic transform", Rml::Core::Vector2f(120, 200), context);
+	window_1 = new DemoWindow("Orthographic transform", Rml::Core::Vector2f(120, 180), context);
 	if (window_1)
 	{
 		context->GetRootElement()->AddEventListener(Rml::Core::EventId::Keydown, window_1);
 	}
-	window_2 = new DemoWindow("Perspective transform", Rml::Core::Vector2f(900, 200), context);
+	window_2 = new DemoWindow("Perspective transform", Rml::Core::Vector2f(900, 180), context);
 	if (window_2)
 	{
 		window_2->SetPerspective(800);
-		window_2->SetPerspectiveOrigin(0.5, 0.75);
 	}
 
 	Shell::EventLoop(GameLoop);

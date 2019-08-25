@@ -126,6 +126,9 @@ class Vector3
 		/// @return A constant pointer to the first value.
 		inline operator Type*();
 
+		// Cast to Vector2
+		explicit inline operator Vector2< Type >() const;
+
 		// The components of the vector.
 		Type x;
 		Type y;
