@@ -39,6 +39,7 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 #include <math.h>
+#include <cstddef>
 
 namespace Rml {
 namespace Core {
@@ -261,10 +262,8 @@ float LayoutEngine::ClampHeight(float height, const ComputedValues& computed, fl
 
 void* LayoutEngine::AllocateLayoutChunk(size_t RMLUI_UNUSED_ASSERT_PARAMETER(size))
 {
-	RMLUI_UNUSED_ASSERT(size);
-
 	RMLUI_ASSERT(size <= LayoutChunk::size);
-
+	
 	return layout_chunk_pool.AllocateAndConstruct();
 }
 
