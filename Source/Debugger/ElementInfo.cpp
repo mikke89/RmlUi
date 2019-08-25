@@ -218,7 +218,6 @@ void ElementInfo::RenderHoverElement()
 				1
 			);
 		}
-		Core::ElementUtilities::UnapplyTransform(*hover_element);
 	}
 }
 
@@ -244,8 +243,6 @@ void ElementInfo::RenderSourceElement()
 			// Border area:
 			Geometry::RenderBox(source_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::MARGIN), element_box.GetSize(Core::Box::MARGIN), source_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::BORDER), element_box.GetSize(Core::Box::BORDER), Core::Colourb(240, 255, 131, 128));
 		}
-
-		Core::ElementUtilities::UnapplyTransform(*source_element);
 	}
 }
 
@@ -665,7 +662,7 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 		const Core::Property* prop = &it.GetProperty();
 
 		// Check that this property isn't overridden or just not inherited.
-		if (primary_element->GetLocalProperty(property_id) != prop)
+		if (primary_element->GetProperty(property_id) != prop)
 			continue;
 
 		property_list.push_back(NamedProperty{ property_name, prop });

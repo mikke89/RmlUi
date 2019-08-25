@@ -32,11 +32,25 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include <tuple>
 
 namespace Rml {
 namespace Core {
 
 class StyleSheetNodeSelector;
+
+struct StructuralSelector {
+	StructuralSelector(StyleSheetNodeSelector* selector, int a, int b) : selector(selector), a(a), b(b) {}
+	StyleSheetNodeSelector* selector;
+	int a;
+	int b;
+};
+inline bool operator==(const StructuralSelector& a, const StructuralSelector& b) { return a.selector == b.selector && a.a == b.a && a.b == b.b; }
+inline bool operator<(const StructuralSelector& a, const StructuralSelector& b) { return std::tie(a.selector, a.a, a.b) < std::tie(b.selector, b.a, b.b); }
+
+using StructuralSelectorList = std::vector< StructuralSelector >;
+using StyleSheetNodeList = std::vector< UniquePtr<StyleSheetNode> >;
+
 
 /**
 	A style sheet is composed of a tree of nodes.
@@ -47,37 +61,21 @@ class StyleSheetNodeSelector;
 class StyleSheetNode
 {
 public:
-	enum NodeType
-	{
-		TAG = 0,
-		CLASS,
-		ID,
-		PSEUDO_CLASS,
-		STRUCTURAL_PSEUDO_CLASS,
-		NUM_NODE_TYPES,	// only counts the listed node types
-		ROOT			// special node type we don't keep in a list
-	};
+	StyleSheetNode();
+	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, bool child_combinator);
+	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
 
-	/// Constructs a generic style-sheet node.
-	StyleSheetNode(const String& name, NodeType type, StyleSheetNode* parent = nullptr);
-	/// Constructs a structural style-sheet node.
-	StyleSheetNode(const String& name, StyleSheetNode* parent, StyleSheetNodeSelector* selector, int a, int b);
-	~StyleSheetNode();
-
-	/// Writes the style sheet node (and all ancestors) into the stream.
-	void Write(Stream* stream);
+	/// Retrieves a child node with the given requirements if they match an existing node, or else creates a new one.
+	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
+	/// Retrieves or creates a child node with requirements equivalent to the 'other' node.
+	StyleSheetNode* GetOrCreateChildNode(const StyleSheetNode& other);
 
 	/// Merges an entire tree hierarchy into our hierarchy.
 	bool MergeHierarchy(StyleSheetNode* node, int specificity_offset = 0);
-	/// Builds up a style sheet's index recursively and optimizes some properties for faster retrieval.
-	void BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_index, StyleSheet::NodeIndex& complete_index, const StyleSheet& style_sheet);
-	/// Recursively set structural volatility
+	/// Recursively set structural volatility.
 	bool SetStructurallyVolatileRecursive(bool ancestor_is_structurally_volatile);
-
-	/// Returns the name of this node.
-	const String& GetName() const;
-	/// Returns the specificity of this node.
-	int GetSpecificity() const;
+	/// Builds up a style sheet's index recursively and optimizes some properties for faster retrieval.
+	void BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_node_index, const StyleSheet& style_sheet);
 
 	/// Imports properties from a single rule definition into the node's properties and sets the
 	/// appropriate specificity on them. Any existing attributes sharing a key with a new attribute
@@ -85,55 +83,40 @@ public:
 	/// @param[in] properties The properties to import.
 	/// @param[in] rule_specificity The specificity of the importing rule.
 	void ImportProperties(const PropertyDictionary& properties, int rule_specificity);
-	/// Merges properties from another node (ie, with potentially differing specificities) into the
-	/// node's properties. Any existing properties sharing a key with a new attribute will be
-	/// overwritten if they are of a lower specificity.
-	/// @param[in] properties The properties to merge with this node's.
-	/// @param[in] rule_specificity_offset The offset of the importing properties' specificities.
-	void MergeProperties(const PropertyDictionary& properties, int rule_specificity_offset);
 	/// Returns the node's default properties.
 	const PropertyDictionary& GetProperties() const;
 
-	/// Adds to a list the names of this node's pseudo-classes which are deemed volatile; that is, which will
-	/// potentially affect child node's element definition if set or unset.
-	/// @param volatile_pseudo_classes[out] The list of volatile pseudo-classes.
-	bool GetVolatilePseudoClasses(PseudoClassList& volatile_pseudo_classes) const;
-
-	/// Returns a direct child node of this node of the requested type.
-	/// @param name The name of the child node to fetch.
-	/// @param type The type of node to fetch; this must be one of either TAG, CLASS, ID, PSEUDO_CLASS or PSEUDO_CLASS_STRUCTURAL.
-	/// @param create If set to true, the node will be created if it doesn't exist.
-	StyleSheetNode* GetChildNode(const String& name, NodeType type, bool create = true);
-
 	/// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
 	bool IsApplicable(const Element* element) const;
-	/// Appends all applicable non-tag descendants of this node into the given element list.
-	void GetApplicableDescendants(std::vector< const StyleSheetNode* >& applicable_nodes, const Element* element) const;
 
+	/// Returns the specificity of this node.
+	int GetSpecificity() const;
 	/// Returns true if this node employs a structural selector, and therefore generates element definitions that are
 	/// sensitive to sibling changes. 
 	/// @warning Result is only valid if structural volatility is set since any changes to the node tree.
-	/// @return True if this node uses a structural selector.
 	bool IsStructurallyVolatile() const;
 
-
 private:
-	// Constructs a structural pseudo-class child node.
-	StyleSheetNode* CreateStructuralChild(const String& child_name);
+	// Returns true if the requirements of this node equals the given arguments.
+	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_pseudo_classes, bool child_combinator) const;
 
 	int CalculateSpecificity();
+
+	// Match an element to the local node requirements.
+	inline bool Match(const Element* element) const;
+	inline bool MatchClassPseudoClass(const Element* element) const;
+	inline bool MatchStructuralSelector(const Element* element) const;
 
 	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent;
 
-	// The name and type.
-	String name;
-	NodeType type;
-
-	// The complex selector for this node; only used for structural nodes.
-	StyleSheetNodeSelector* selector;
-	int a;
-	int b;
+	// Node requirements
+	String tag;
+	String id;
+	StringList class_names;
+	StringList pseudo_class_names;
+	StructuralSelectorList structural_selectors; // Represents structural pseudo classes
+	bool child_combinator; // The '>' combinator: This node only matches if the element is a parent of the previous matching element.
 
 	// True if any ancestor, descendent, or self is a structural pseudo class.
 	bool is_structurally_volatile;
@@ -142,12 +125,9 @@ private:
 	// node with a lower value.
 	int specificity;
 
-	// The generic properties for this node.
 	PropertyDictionary properties;
 
-	// This node's child nodes, whether standard tagged children, or further derivations of this tag by ID or class.
-	typedef UnorderedMap< String, StyleSheetNode* > NodeMap;
-	NodeMap children[NUM_NODE_TYPES];
+	StyleSheetNodeList children;
 };
 
 }

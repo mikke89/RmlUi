@@ -27,7 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Controls/Controls.h"
-#include "../../Include/RmlUi/Core/ElementInstancerGeneric.h"
+#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"

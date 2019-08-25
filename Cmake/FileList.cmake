@@ -128,8 +128,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancerGeneric.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h
@@ -160,6 +158,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Plugin.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Profiling.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertiesIteratorView.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Property.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDefinition.h
@@ -196,7 +195,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vertex.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ViewState.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLNodeHandler.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLParser.h
 )
@@ -283,6 +281,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Profiling.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIteratorView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
@@ -337,7 +336,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector3.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector4.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ViewState.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandler.cpp

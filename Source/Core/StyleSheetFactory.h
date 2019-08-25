@@ -36,6 +36,7 @@ namespace Core {
 
 class StyleSheet;
 class StyleSheetNodeSelector;
+struct StructuralSelector;
 
 /**
 	Creates stylesheets on the fly as needed. The factory keeps a cache of built sheets for optimisation.
@@ -66,7 +67,7 @@ public:
 	/// Returns one of the available node selectors.
 	/// @param name[in] The name of the desired selector.
 	/// @return The selector registered with the given name, or nullptr if none exists.
-	static StyleSheetNodeSelector* GetSelector(const String& name);
+	static StructuralSelector GetSelector(const String& name);
 
 private:
 	StyleSheetFactory();

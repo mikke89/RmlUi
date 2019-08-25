@@ -83,9 +83,9 @@ struct DefaultInstancers {
 	Ptr<ContextInstancer> context_default;
 	Ptr<EventInstancer> event_default;
 
-	Ptr<ElementInstancer> element_default = std::make_unique<ElementInstancerGeneric<Element>>();
+	Ptr<ElementInstancer> element_default = std::make_unique<ElementInstancerElement>();
+	Ptr<ElementInstancer> element_text_default = std::make_unique<ElementInstancerTextDefault>();
 	Ptr<ElementInstancer> element_img = std::make_unique<ElementInstancerGeneric<ElementImage>>();
-	Ptr<ElementInstancer> element_text_default = std::make_unique<ElementInstancerGeneric<ElementTextDefault>>();
 	Ptr<ElementInstancer> element_handle = std::make_unique<ElementInstancerGeneric<ElementHandle>>();
 	Ptr<ElementInstancer> element_body = std::make_unique<ElementInstancerGeneric<ElementDocument>>();
 
@@ -247,6 +247,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		(system_interface->TranslateString(translated_data, text) > 0 ||
 		 translated_data.find("<") != String::npos))
 	{
+		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
 		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
 		stream->Write("<body>", 6);
 		stream->Write(translated_data);
@@ -257,6 +258,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	}
 	else
 	{
+		RMLUI_ZoneScopedNC("InstanceText", 0x8FBC8F);
 		// Check if this text node contains only white-space; if so, we don't want to construct it.
 		bool only_white_space = true;
 		for (size_t i = 0; i < translated_data.size(); ++i)
@@ -308,6 +310,8 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 // Instances a element tree based on the stream
 ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* stream)
 {
+	RMLUI_ZoneScoped;
+
 	ElementPtr element = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
 	if (!element)
 	{

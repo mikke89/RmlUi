@@ -334,7 +334,6 @@ struct RMLUICORE_API Primitive
 	void SetIdentity() noexcept;
 
 	bool ResolveTransform(Matrix4f& m, Element& e) const noexcept;
-	bool ResolvePerspective(float &p, Element& e) const noexcept;
 	
 	// Prepares this primitive for interpolation. This must be done before calling InterpolateWith().
 	// Promote units to basic types which can be interpolated, that is, convert 'length -> pixel' for unresolved primitives.

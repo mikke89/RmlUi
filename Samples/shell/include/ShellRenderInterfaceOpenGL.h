@@ -66,10 +66,7 @@ public:
 	void ReleaseTexture(Rml::Core::TextureHandle texture_handle) override;
 
 	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
-	void PushTransform(const Rml::Core::Matrix4f& transform) override;
-
-	/// Called by RmlUi when it wants to revert the latest transform change.
-	void PopTransform(const Rml::Core::Matrix4f& transform) override;
+	void SetTransform(const Rml::Core::Matrix4f* transform) override;
 
 	// ShellRenderInterfaceExtensions
 	void SetViewport(int width, int height) override;
@@ -82,7 +79,7 @@ public:
 protected:
 	int m_width;
 	int m_height;
-	int m_transforms;
+	bool m_transform_enabled;
 	void *m_rmlui_context;
 	
 #if defined(RMLUI_PLATFORM_MACOSX)

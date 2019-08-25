@@ -87,8 +87,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 		if (event == EventId::Dragstart)
 		{
 			// Store the drag starting position
-			drag_start.x = event.GetParameter< int >("mouse_x", 0);
-			drag_start.y = event.GetParameter< int >("mouse_y", 0);
+			drag_start = event.GetUnprojectedMouseScreenPos();
 
 			// Store current element position and size
 			if (move_target)
@@ -102,20 +101,19 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 		else if (event == EventId::Drag)
 		{
 			// Work out the delta
-			int x = event.GetParameter< int >("mouse_x", 0) - drag_start.x;
-			int y = event.GetParameter< int >("mouse_y", 0) - drag_start.y;
+			Vector2f delta = event.GetUnprojectedMouseScreenPos() - drag_start;
 
 			// Update the move and size objects
 			if (move_target)
 			{
-				move_target->SetProperty(PropertyId::Left, Property(Math::RealToInteger(move_original_position.x + x), Property::PX));
-				move_target->SetProperty(PropertyId::Top, Property(Math::RealToInteger(move_original_position.y + y), Property::PX));
+				move_target->SetProperty(PropertyId::Left, Property(Math::RoundFloat(move_original_position.x + delta.x), Property::PX));
+				move_target->SetProperty(PropertyId::Top, Property(Math::RoundFloat(move_original_position.y + delta.y), Property::PX));
 			}
 
 			if (size_target)
 			{
 				using namespace Style;
-				const auto& computed = GetComputedValues();
+				const auto& computed = size_target->GetComputedValues();
 
 				// Check if we have auto-margins; if so, they have to be set to the current margins.
 				if (computed.margin_top.type == Margin::Auto)
@@ -127,16 +125,16 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 				if (computed.margin_left.type == Margin::Auto)
 					size_target->SetProperty(PropertyId::MarginLeft, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
 
-				int new_x = Math::RealToInteger(size_original_size.x + x);
-				int new_y = Math::RealToInteger(size_original_size.y + y);
+				float new_x = Math::RoundFloat(size_original_size.x + delta.x);
+				float new_y = Math::RoundFloat(size_original_size.y + delta.y);
 
-				size_target->SetProperty(PropertyId::Width, Property(Math::Max< float >((float) new_x, 0), Property::PX));
-				size_target->SetProperty(PropertyId::Height, Property(Math::Max< float >((float) new_y, 0), Property::PX));
+				size_target->SetProperty(PropertyId::Width, Property(Math::Max< float >(new_x, 0.f), Property::PX));
+				size_target->SetProperty(PropertyId::Height, Property(Math::Max< float >(new_y, 0.f), Property::PX));
 			}
 
 			Dictionary parameters;
-			parameters["handle_x"] = x;
-			parameters["handle_y"] = y;
+			parameters["handle_x"] = delta.x;
+			parameters["handle_y"] = delta.y;
 			DispatchEvent(EventId::Handledrag, parameters);
 		}
 	}

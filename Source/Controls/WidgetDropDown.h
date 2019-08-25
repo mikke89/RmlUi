@@ -125,6 +125,7 @@ private:
 
 	bool box_layout_dirty;
 	bool value_layout_dirty;
+	bool box_visible;
 };
 
 }

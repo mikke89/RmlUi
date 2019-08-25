@@ -167,6 +167,8 @@ void ElementStyle::UpdateDefinition()
 {
 	if (definition_dirty)
 	{
+		RMLUI_ZoneScoped;
+
 		definition_dirty = false;
 
 		SharedPtr<ElementDefinition> new_definition;
@@ -493,6 +495,8 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 {
 	if (dirty_properties.Empty())
 		return PropertyIdSet();
+
+	RMLUI_ZoneScopedC(0xFF7F50);
 
 	// Generally, this is how it works:
 	//   1. Assign default values (clears any removed properties)

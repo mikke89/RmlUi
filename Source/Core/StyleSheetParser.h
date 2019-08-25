@@ -84,7 +84,7 @@ private:
 	// @param names The names of the nodes
 	// @param properties The dictionary of properties
 	// @param rule_specificity The specifity of the rule
-	bool ImportProperties(StyleSheetNode* node, const String& rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number);
+	bool ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number);
 
 	// Attempts to parse a @keyframes block
 	bool ParseKeyframeBlock(KeyframesMap & keyframes_map, const String & identifier, const String & rules, const PropertyDictionary & properties);

@@ -68,6 +68,8 @@ LayoutLineBox::~LayoutLineBox()
 // Closes the line box, positioning all inline elements within it.
 LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 {
+	RMLUI_ZoneScoped;
+
 	// If we haven't positioned this line yet, and it has elements in it, then this is a great opportunity to do so.
 	if (!position_set &&
 		!inline_boxes.empty())
@@ -195,6 +197,8 @@ void LayoutLineBox::CloseInlineBox(LayoutInlineBox* inline_box)
 // Attempts to add a new element to this line box.
 LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 {
+	RMLUI_ZoneScoped;
+
 	if (dynamic_cast< ElementText* >(element) != nullptr)
 		return AddBox(new LayoutInlineBoxText(element));
 	else
@@ -204,6 +208,8 @@ LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 // Attempts to add a new inline box to this line.
 LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 {
+	RMLUI_ZoneScoped;
+
 	// Set to true if we're flowing the first box (with content) on the line.
 	bool first_box = false;
 	// The spacing this element must leave on the right of the line, to account not only for its margins and padding,

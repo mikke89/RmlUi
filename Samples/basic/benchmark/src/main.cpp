@@ -55,6 +55,8 @@ public:
 
 	void performance_test()
 	{
+		RMLUI_ZoneScoped;
+
 		if (!document)
 			return;
 

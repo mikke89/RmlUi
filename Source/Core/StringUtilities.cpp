@@ -159,7 +159,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 		{
 			quote = 0;
 		}
-		// If we encouter a delimiter while not in quote mode, add the item to the list
+		// If we encounter a delimiter while not in quote mode, add the item to the list
 		else if (*ptr == delimiter && !quote)
 		{
 			if (start_ptr)
@@ -187,7 +187,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 }
 
 
-void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character)
+void StringUtilities::ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character, bool ignore_repeated_delimiters)
 {
 	int quote_mode_depth = 0;
 	const char* ptr = string.c_str();
@@ -207,12 +207,12 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 			--quote_mode_depth;
 		}
 
-		// If we encouter a delimiter while not in quote mode, add the item to the list
+		// If we encounter a delimiter while not in quote mode, add the item to the list
 		if (*ptr == delimiter && quote_mode_depth == 0)
 		{
 			if (start_ptr)
 				string_list.emplace_back(start_ptr, end_ptr + 1);
-			else
+			else if(!ignore_repeated_delimiters)
 				string_list.emplace_back();
 			start_ptr = nullptr;
 		}

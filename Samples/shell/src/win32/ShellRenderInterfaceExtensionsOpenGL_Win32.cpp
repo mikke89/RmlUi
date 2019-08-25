@@ -47,7 +47,7 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		m_height = height;
 		
 		glViewport(0, 0, width, height);
-		projection = Rml::Core::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -1, 1);
+		projection = Rml::Core::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -10000, 10000);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(projection.data());
 		view = Rml::Core::Matrix4f::Identity();
@@ -57,8 +57,6 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		if(m_rmlui_context != nullptr)
 		{
 			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
-			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(projection);
-			((Rml::Core::Context*)m_rmlui_context)->ProcessViewChange(view);
 		}
 	}
 }
@@ -161,4 +159,5 @@ void ShellRenderInterfaceOpenGL::PresentRenderBuffer()
 {
 	// Flips the OpenGL buffers.
 	SwapBuffers(this->device_context);
+	RMLUI_FrameMark;
 }

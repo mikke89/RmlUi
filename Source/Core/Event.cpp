@@ -127,9 +127,14 @@ void Event::StopPropagation()
 	}
 }
 
-const Dictionary* Event::GetParameters() const
+const Dictionary& Event::GetParameters() const
 {
-	return &parameters;
+	return parameters;
+}
+
+const Vector2f& Event::GetUnprojectedMouseScreenPos() const
+{
+	return mouse_screen_position;
 }
 
 void Event::Release()
@@ -163,9 +168,16 @@ void Event::ProjectMouse(Element* element)
 			return;
 		}
 
-		Vector2f new_pos = element->Project(mouse_screen_position);
-		*mouse_x = new_pos.x;
-		*mouse_y = new_pos.y;
+		Vector2f projected_position = mouse_screen_position;
+
+		// Not sure how best to handle the case where the projection fails.
+		if (element->Project(projected_position))
+		{
+			*mouse_x = projected_position.x;
+			*mouse_y = projected_position.y;
+		}
+		else
+			StopPropagation();
 	}
 }
 

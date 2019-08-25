@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
-#include "../../Include/RmlUi/Core/ViewState.h"
 #include "../../Include/RmlUi/Core/Property.h"
 
 namespace Rml {

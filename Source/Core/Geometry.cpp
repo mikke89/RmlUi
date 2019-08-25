@@ -33,9 +33,6 @@
 namespace Rml {
 namespace Core {
 
-static bool read_texel_offset = false;
-static Vector2f texel_offset;
-
 Geometry::Geometry(Element* _host_element)
 {
 	host_element = _host_element;
@@ -43,7 +40,6 @@ Geometry::Geometry(Element* _host_element)
 
 	texture = nullptr;
 
-	fixed_texcoords = false;
 	compile_attempted = false;
 	compiled_geometry = 0;
 }
@@ -55,7 +51,6 @@ Geometry::Geometry(Context* _host_context)
 
 	texture = nullptr;
 
-	fixed_texcoords = false;
 	compile_attempted = false;
 	compiled_geometry = 0;
 }
@@ -89,6 +84,7 @@ void Geometry::Render(const Vector2f& translation)
 	// Render our compiled geometry if possible.
 	if (compiled_geometry)
 	{
+		RMLUI_ZoneScopedN("RenderCompiled");
 		render_interface->RenderCompiledGeometry(compiled_geometry, translation);
 	}
 	// Otherwise, if we actually have geometry, try to compile it if we haven't already done so, otherwise render it in
@@ -99,28 +95,10 @@ void Geometry::Render(const Vector2f& translation)
 			indices.empty())
 			return;
 
+		RMLUI_ZoneScopedN("RenderGeometry");
+
 		if (!compile_attempted)
 		{
-			if (!fixed_texcoords)
-			{
-				fixed_texcoords = true;
-
-				if (!read_texel_offset)
-				{
-					read_texel_offset = true;
-					texel_offset.x = render_interface->GetHorizontalTexelOffset();
-					texel_offset.y = render_interface->GetVerticalTexelOffset();
-				}
-
-				// Add a half-texel offset if required.
-				if (texel_offset.x != 0 ||
-					texel_offset.y != 0)
-				{
-					for (size_t i = 0; i < vertices.size(); ++i)
-						vertices[i].position += texel_offset;
-				}
-			}
-
 			compile_attempted = true;
 			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int) vertices.size(), &indices[0], (int) indices.size(), texture != nullptr ? texture->GetHandle(GetRenderInterface()) : 0);
 
@@ -178,7 +156,6 @@ void Geometry::Release(bool clear_buffers)
 	{
 		vertices.clear();
 		indices.clear();
-		fixed_texcoords = false;
 	}
 }
 

@@ -41,7 +41,7 @@ namespace Core {
 
 const float DOUBLE_CLICK_TIME = 0.5f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), view_state()
+Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
 	instancer = nullptr;
 
@@ -121,10 +121,6 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 		}
 		
 		clip_dimensions = dimensions;
-
-
-		// TODO: Ensure the user calls ProcessProjectionChange() before
-		// the next rendering phase.
 	}
 }
 
@@ -132,13 +128,6 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 const Vector2i& Context::GetDimensions() const
 {
 	return dimensions;
-}
-
-
-// Returns the current state of the view.
-const ViewState& Context::GetViewState() const noexcept
-{
-	return view_state;
 }
 
 void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_ratio)
@@ -166,6 +155,8 @@ float Context::GetDensityIndependentPixelRatio() const
 // Updates all elements in the element tree.
 bool Context::Update()
 {
+	RMLUI_ZoneScoped;
+
 	root->Update(density_independent_pixel_ratio);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
@@ -184,6 +175,8 @@ bool Context::Update()
 // Renders all visible elements in the element tree.
 bool Context::Render()
 {
+	RMLUI_ZoneScoped;
+
 	RenderInterface* render_interface = GetRenderInterface();
 	if (render_interface == nullptr)
 		return false;
@@ -749,18 +742,6 @@ bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 	return true;
 }
 
-// Notifies RmlUi of a change in the projection matrix.
-void Context::ProcessProjectionChange(const Matrix4f &projection)
-{
-	view_state.SetProjection(&projection);
-}
-
-// Notifies RmlUi of a change in the view matrix.
-void Context::ProcessViewChange(const Matrix4f &view)
-{
-	view_state.SetView(&view);
-}
-
 // Gets the context's render interface.
 RenderInterface* Context::GetRenderInterface() const
 {
@@ -1008,7 +989,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 }
 
 // Returns the youngest descendent of the given element which is under the given point in screen coodinates.
-Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore_element, Element* element)
+Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_element, Element* element)
 {
 	if (element == nullptr)
 	{
@@ -1063,23 +1044,24 @@ Element* Context::GetElementAtPoint(const Vector2f& point, const Element* ignore
 		}
 	}
 
-	// Ignore elements whose pointer events are disabled
+	// Ignore elements whose pointer events are disabled.
 	if (element->GetComputedValues().pointer_events == Style::PointerEvents::None)
 		return nullptr;
 
-	Vector2f projected_point = element->Project(point);
+	// Projection may fail if we have a singular transformation matrix.
+	bool projection_result = element->Project(point);
 
 	// Check if the point is actually within this element.
-	bool within_element = element->IsPointWithinElement(projected_point);
+	bool within_element = (projection_result && element->IsPointWithinElement(point));
 	if (within_element)
 	{
 		Vector2i clip_origin, clip_dimensions;
 		if (ElementUtilities::GetClippingRegion(clip_origin, clip_dimensions, element))
 		{
-			within_element = projected_point.x >= clip_origin.x &&
-							 projected_point.y >= clip_origin.y &&
-							 projected_point.x <= (clip_origin.x + clip_dimensions.x) &&
-							 projected_point.y <= (clip_origin.y + clip_dimensions.y);
+			within_element = point.x >= clip_origin.x &&
+							 point.y >= clip_origin.y &&
+							 point.x <= (clip_origin.x + clip_dimensions.x) &&
+							 point.y <= (clip_origin.y + clip_dimensions.y);
 		}
 	}
 

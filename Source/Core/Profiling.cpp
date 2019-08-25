@@ -26,42 +26,25 @@
  *
  */
 
-#ifndef RMLUICOREELEMENTINSTANCERGENERIC_H
-#define RMLUICOREELEMENTINSTANCERGENERIC_H
+  
+#include "precompiled.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 
-#include "ElementInstancer.h"
+#ifdef RMLUI_ENABLE_PROFILING
+#include "../Dependencies/tracy/TracyClient.cpp"
 
-namespace Rml {
-namespace Core {
-
-/**
-	Generic Instancer that creates a plain old Element
-
-	This instancer is used for most elements and is by default
-	registered as the "*" fallback handler.
-
-	@author Lloyd Weehuizen
- */
-
-template <typename T>
-class ElementInstancerGeneric : public ElementInstancer
+// Overload global new and delete for memory inspection
+void* operator new(std::size_t n)
 {
-public:
-	virtual ~ElementInstancerGeneric();
-	
-	/// Instances an element given the tag name and attributes
-	/// @param tag Name of the element to instance
-	/// @param attributes vector of name value pairs
-	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
-
-	/// Releases the given element
-	/// @param element to release
-	void ReleaseElement(Element* element) override;
-};
-
+	void* ptr = malloc(n);
+	TracyAlloc(ptr, n);
+	return ptr;
 }
+void operator delete(void* ptr) noexcept
+{
+	TracyFree(ptr);
+	free(ptr);
 }
 
-#include "ElementInstancerGeneric.inl"
 
 #endif

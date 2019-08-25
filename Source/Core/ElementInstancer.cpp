@@ -29,12 +29,40 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "XMLParseTools.h"
+#include "Pool.h"
+#include "ElementTextDefault.h"
 
 namespace Rml {
 namespace Core {
 
 ElementInstancer::~ElementInstancer()
 {
+}
+
+static Pool< Element > pool_element(200, true);
+static Pool< ElementTextDefault > pool_text_default(200, true);
+
+
+ElementPtr ElementInstancerElement::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
+{
+	Element* ptr = pool_element.AllocateAndConstruct(tag);
+	return ElementPtr(ptr);
+}
+
+void ElementInstancerElement::ReleaseElement(Element* element)
+{
+	pool_element.DestroyAndDeallocate(element);
+}
+
+ElementPtr ElementInstancerTextDefault::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
+{
+	ElementTextDefault* ptr = pool_text_default.AllocateAndConstruct(tag);
+	return ElementPtr(static_cast<Element*>(ptr));
+}
+
+void ElementInstancerTextDefault::ReleaseElement(Element* element)
+{
+	pool_text_default.DestroyAndDeallocate(static_cast<ElementTextDefault*>(element));
 }
 
 }

@@ -423,8 +423,7 @@ class Matrix4
 			{ return MatrixMultiplier< Component, Storage, Storage2 >::Multiply(*this, other); }
 
 		/// Multiplies this matrix by another matrix in place.
-		/// @param[in] other The scalar value to multiply by.
-		/// @return The result of the scale.
+		/// @return The result of the multiplication.
 		inline const ThisType& operator*=(const ThisType& other) noexcept
 			{ *this = *this * other; return *this; }
 		inline const ThisType& operator*=(const TransposeType& other) noexcept
@@ -466,6 +465,9 @@ class Matrix4
 		/// @param f The depth coordinate of the far clipping plane
 		/// @return The specified perspective projection matrix.
 		static ThisType ProjectPerspective(Component l, Component r, Component b, Component t, Component n, Component f) noexcept;
+		/// Create a perspective projection matrix
+		/// @param d The distance to the z-plane
+		static ThisType Perspective(Component d) noexcept;
 
 		/// Return a translation matrix.
 		/// @return A translation matrix.

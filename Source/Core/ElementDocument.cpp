@@ -64,7 +64,9 @@ ElementDocument::~ElementDocument()
 }
 
 void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
-{	
+{
+	RMLUI_ZoneScoped;
+
 	// Store the source address that we came from
 	source_url = document_header->source;
 
@@ -169,6 +171,8 @@ const String& ElementDocument::GetSourceURL() const
 // Sets the style sheet this document, and all of its children, uses.
 void ElementDocument::SetStyleSheet(SharedPtr<StyleSheet> _style_sheet)
 {
+	RMLUI_ZoneScoped;
+
 	if (style_sheet == _style_sheet)
 		return;
 
@@ -304,6 +308,9 @@ void ElementDocument::UpdateLayout()
 	// Ideally, only called once per update loop.
 	if(layout_dirty)
 	{
+		RMLUI_ZoneScoped;
+		RMLUI_ZoneText(source_url.c_str(), source_url.size());
+
 		layout_dirty = false;
 
 		Vector2f containing_block(0, 0);
@@ -320,6 +327,8 @@ void ElementDocument::UpdatePosition()
 {
 	if(position_dirty)
 	{
+		RMLUI_ZoneScoped;
+
 		position_dirty = false;
 
 		// We are only positioned relative to our parent, so if we're not parented we may as well bail now.
