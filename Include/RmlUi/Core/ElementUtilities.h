@@ -132,15 +132,11 @@ public:
 	/// @param anchor[in] Defines which corner or edge the border is to be positioned relative to.
 	static bool PositionElement(Element* element, const Vector2f& offset, PositionAnchor anchor);
 
-	/// Applies an element's `perspective' and `transform' properties.
+	/// Applies an element's accumulated transform matrix, determined from its and ancestor's `perspective' and `transform' properties.
+	/// Note: All calls to RenderInterface::SetTransform must go through here.
 	/// @param[in] element		The element whose transform to apply.
-	/// @param[in] apply		Whether to apply (true) or unapply (false) the transform.
-	/// @return true if the element has a transform and it could be applied.
-	static bool ApplyTransform(Element &element, bool apply = true);
-	/// Unapplies an element's `perspective' and `transform' properties.
-	/// @param[in] element		The element whose transform to unapply.
-	/// @return true if the element has a transform and it could be unapplied.
-	static bool UnapplyTransform(Element &element);
+	/// @return true if a render interface is available to set the transform.
+	static bool ApplyTransform(Element &element);
 };
 
 }

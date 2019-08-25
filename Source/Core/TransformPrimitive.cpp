@@ -741,28 +741,38 @@ bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 
 
 template<size_t N>
-inline String ToString(const Transforms::ResolvedPrimitive<N>& p, String unit, bool rad_to_deg = false, bool only_unit_on_last_value = false) noexcept {
+static inline String ToString(const Transforms::ResolvedPrimitive<N>& p, String unit, bool rad_to_deg = false, bool only_unit_on_last_value = false) noexcept {
 	float multiplier = 1.0f;
-	if (rad_to_deg) multiplier = 180.f / Math::RMLUI_PI;
 	String tmp;
 	String result = "(";
-	for (size_t i = 0; i < N; i++) {
+	for (size_t i = 0; i < N; i++) 
+	{
+		if (only_unit_on_last_value && i < N - 1)
+			multiplier = 1.0f;
+		else if (rad_to_deg) 
+			multiplier = 180.f / Math::RMLUI_PI;
+
 		if (TypeConverter<float, String>::Convert(p.values[i] * multiplier, tmp))
 			result += tmp;
+
 		if (!unit.empty() && (!only_unit_on_last_value || (i == N - 1)))
 			result += unit;
-		if (i != N - 1) result += ", ";
+
+		if (i < N - 1)
+			result += ", ";
 	}
 	result += ")";
 	return result;
 }
 
 template<size_t N>
-inline String ToString(const Transforms::UnresolvedPrimitive<N> & p) noexcept {
+static inline String ToString(const Transforms::UnresolvedPrimitive<N> & p) noexcept {
 	String result = "(";
-	for (size_t i = 0; i < N; i++) {
+	for (size_t i = 0; i < N; i++) 
+	{
 		result += p.values[i].ToString();
-		if (i != N - 1) result += ", ";
+		if (i != N - 1) 
+			result += ", ";
 	}
 	result += ")";
 	return result;

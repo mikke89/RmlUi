@@ -233,9 +233,10 @@ The inner workings of transforms have been completely revised, resulting in incr
 
 Some relevant changes for users:
 - Removed the need for users to set the view and projection matrices they use outside the library.
+- Replaced the `PushTransform()` and `PopTransform()` render interface functions with `SetTransform()`, which is only called when the transform matrix needs to change and never called if there are no `transform` properties present.
 - The `perspective` property now applies to the element's children, as in CSS.
 - The transform function `perspective()` behaves like in CSS. It applies a perspective projection to the current element.
-- Chaining transforms and perspectives now provides more expected results. As opposed to CSS, we don't flatten transforms.
+- Chaining transforms and perspectives now provides more expected results. However, as opposed to CSS we don't flatten transforms.
 - Have a look at the updated transforms sample for some fun with 3d boxes.
 
 
@@ -256,6 +257,7 @@ Breaking changes since RmlUi v2.0.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
 - See changes to the declaration of decorators and font-effects above.
+- See changes to the render interface regarding transforms above.
 - Also, see removal of manual reference counting above.
 
 

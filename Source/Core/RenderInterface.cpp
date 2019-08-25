@@ -95,12 +95,7 @@ void RenderInterface::ReleaseTexture(TextureHandle RMLUI_UNUSED_PARAMETER(textur
 }
 
 // Called by RmlUi when it wants to change the current transform matrix to a new matrix.
-void RenderInterface::PushTransform(const Matrix4f& transform)
-{
-}
-
-// Called by RmlUi when it wants to revert the latest transform change.
-void RenderInterface::PopTransform(const Matrix4f& transform)
+void RenderInterface::SetTransform(const Matrix4f* transform)
 {
 }
 

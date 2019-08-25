@@ -271,9 +271,6 @@ void Element::Render()
 	// Render the rest of the elements in the stacking context.
 	for (; i < stacking_context.size(); ++i)
 		stacking_context[i]->Render();
-
-	// Unapply our transform
-	ElementUtilities::UnapplyTransform(*this);
 }
 
 // Clones this element, returning a new, unparented element.
@@ -2451,7 +2448,7 @@ void Element::UpdateTransformState()
 
 	if (dirty_transform)
 	{
-		// We want to find the combined transform of all our ancestors. It is assumed here that the parent transform is already updated,
+		// We want to find the accumulated transform given all our ancestors. It is assumed here that the parent transform is already updated,
 		// so that we only need to consider our local transform and combine it with our parent's transform and perspective matrices.
 		bool had_transform = (transform_state && transform_state->GetTransform());
 

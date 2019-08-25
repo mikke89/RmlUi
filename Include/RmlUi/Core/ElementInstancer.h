@@ -32,6 +32,7 @@
 #include "Traits.h"
 #include "XMLParser.h"
 #include "Header.h"
+#include "Element.h"
 
 namespace Rml {
 namespace Core {

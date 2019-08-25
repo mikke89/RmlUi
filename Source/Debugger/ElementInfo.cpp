@@ -218,7 +218,6 @@ void ElementInfo::RenderHoverElement()
 				1
 			);
 		}
-		Core::ElementUtilities::UnapplyTransform(*hover_element);
 	}
 }
 
@@ -244,8 +243,6 @@ void ElementInfo::RenderSourceElement()
 			// Border area:
 			Geometry::RenderBox(source_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::MARGIN), element_box.GetSize(Core::Box::MARGIN), source_element->GetAbsoluteOffset(Core::Box::BORDER) + element_box.GetPosition(Core::Box::BORDER), element_box.GetSize(Core::Box::BORDER), Core::Colourb(240, 255, 131, 128));
 		}
-
-		Core::ElementUtilities::UnapplyTransform(*source_element);
 	}
 }
 

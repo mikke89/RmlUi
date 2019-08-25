@@ -59,13 +59,13 @@ private:
 	mutable bool have_inverse_transform = false;
 	mutable bool dirty_inverse_transform = false;
 
-	// The transform combines all local transform and perspective properties of the owning element and all ancestors.
+	// The accumulated transform matrix combines all transform and perspective properties of the owning element and all ancestors.
 	Matrix4f transform;
 
 	// Local perspective which applies to children of the owning element.
 	Matrix4f local_perspective;
 
-	// The inverse of the transform mainly for projecting points from screen-space to 2d-space, such as used for picking elements.
+	// The inverse of the transform matrix for projecting points from screen space to the current element's space, such as used for picking elements.
 	mutable Matrix4f inverse_transform;
 };
 

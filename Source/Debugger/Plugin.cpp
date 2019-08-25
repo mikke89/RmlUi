@@ -192,8 +192,6 @@ void Plugin::Render()
 
 					for (int j = 0; j < element->GetNumChildren(); ++j)
 						element_stack.push(element->GetChild(j));
-					
-					Core::ElementUtilities::UnapplyTransform(*element);
 				}
 			}
 		}

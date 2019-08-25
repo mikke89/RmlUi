@@ -347,31 +347,28 @@ bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset,
 	return true;
 }
 
-// Applies an element's `perspective' and `transform' properties.
-bool ElementUtilities::ApplyTransform(Element &element, bool apply)
+bool ElementUtilities::ApplyTransform(Element &element)
 {
 	RenderInterface *render_interface = element.GetRenderInterface();
 	if (!render_interface)
 		return false;
 
-	if(auto state = element.GetTransformState())
+	static SmallUnorderedMap<RenderInterface*, const Matrix4f*> previous_matrix;
+
+	const Matrix4f*& old_transform = previous_matrix.emplace(render_interface, nullptr).first->second;
+	const Matrix4f* new_transform = nullptr;
+
+	if (auto state = element.GetTransformState())
+		new_transform = state->GetTransform();
+
+	// Only changed transforms are submitted.
+	if (old_transform != new_transform)
 	{
-		if(auto transform = state->GetTransform())
-		{
-			if (apply)
-				render_interface->PushTransform(*transform);
-			else
-				render_interface->PopTransform(*transform);
-		}
+		render_interface->SetTransform(new_transform);
+		old_transform = new_transform;
 	}
 
 	return true;
-}
-
-// Unapplies an element's `perspective' and `transform' properties.
-bool ElementUtilities::UnapplyTransform(Element &element)
-{
-	return ApplyTransform(element, false);
 }
 
 }

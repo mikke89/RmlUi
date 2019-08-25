@@ -107,13 +107,10 @@ public:
 	/// @param texture The texture handle to release.
 	virtual void ReleaseTexture(TextureHandle texture);
 
-	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
-	/// @param[in] transform The new transform to apply.
-	virtual void PushTransform(const Matrix4f& transform);
-	/// Called by RmlUi when it wants to revert the latest transform change.
-	/// @param[in] transform This is the transform to unapply.
-	///            It always equals the argument of the latest call to PushTransform().
-	virtual void PopTransform(const Matrix4f& transform);
+	/// Called by RmlUi when it wants the renderer to use a new transform matrix.
+	/// If no transform applies to the current element, nullptr is submitted. Then it expects the renderer to use an identity matrix or otherwise omit the multiplication with the transform.
+	/// @param[in] transform The new transform to apply, or nullptr if no transform applies to the current element.
+	virtual void SetTransform(const Matrix4f* transform);
 
 	/// Get the context currently being rendered. This is only valid during RenderGeometry,
 	/// CompileGeometry, RenderCompiledGeometry, EnableScissorRegion and SetScissorRegion.

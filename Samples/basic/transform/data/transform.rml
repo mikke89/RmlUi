@@ -56,7 +56,6 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 	width: 200px;
 	height: 200px;
 	margin: 75px auto;
-	border: none;
 	background-color: #a003;
 }
 
@@ -74,7 +73,6 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 	position: absolute;
 	width: 100px;
 	height: 100px;
-	border: none;
 	line-height: 100px;
 	font-size: 60px;
 	color: white;
@@ -147,7 +145,7 @@ augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet,
 consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut
 laoreet dolore magna aliquam erat volutpat.</p>
 
-<button style="width: 220px;">A wild button appears!</button>
+<button style="width: 220px; transform: translateZ(-30px);">A wild button appears!</button>
 
 <p>Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit
 lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure

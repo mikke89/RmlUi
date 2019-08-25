@@ -62,6 +62,13 @@ public:
 	void SetPerspective(float distance)
 	{
 		perspective = distance;
+
+		if (document && perspective > 0)
+		{
+			std::stringstream s;
+			s << "perspective(" << perspective << "px) ";
+			document->SetProperty("transform", s.str().c_str());
+		}
 	}
 
 	void SetRotation(float degrees)
