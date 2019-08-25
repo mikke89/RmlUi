@@ -665,7 +665,7 @@ void ElementInfo::BuildElementPropertiesRML(Core::String& property_rml, Core::El
 		const Core::Property* prop = &it.GetProperty();
 
 		// Check that this property isn't overridden or just not inherited.
-		if (primary_element->GetLocalProperty(property_id) != prop)
+		if (primary_element->GetProperty(property_id) != prop)
 			continue;
 
 		property_list.push_back(NamedProperty{ property_name, prop });
