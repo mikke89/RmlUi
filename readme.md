@@ -40,6 +40,7 @@ The main effort in RmlUi 3.0 has been on improving the performance of the librar
 - The update loop has been reworked to avoid doing unnecessary, repeated calculations whenever the document or style is changed. Instead of immediately updating properties on any affected elements, most of this work is done during the Context::Update call in a more carefully chosen order. Note that for this reason, when querying the Rocket API for properties such as size or position, this information may not be up-to-date with changes since the last Context::Update, such as newly added elements or classes. If this information is needed immediately, a call to ElementDocument::UpdateDocument can be made before such queries at a performance penalty.
 - Several containers have been replaced, such as std::map to [robin_hood::unordered_flat_map](https://github.com/martinus/robin-hood-hashing).
 - Reduced number of allocations and unnecessary recursive calls.
+- Internally, the concept of computed values has been introduced. Computed values take the properties of an element and computes them as far as possible without introducing the layouting.
 - And many more, smaller optimizations, resulting in about 10x performance increase for creation and destruction of a large number of elements. A benchmark is included with the samples.
 
 

@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Input.h"
 #include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
 
 namespace Rml {
@@ -59,7 +58,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	selection_element->SetProperty(Core::PropertyId::ZIndex, Core::Property(1.0f, Core::Property::NUMBER));
-	selection_element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::None));
+	selection_element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Type::None));
 
 	parent_element->AddEventListener(Core::EventId::Click, this, true);
 	parent_element->AddEventListener(Core::EventId::Blur, this);
@@ -233,7 +232,7 @@ int WidgetDropDown::AddOption(Rml::Core::ElementPtr element, const Rml::Core::St
 
 	// Force to block display. Register a click handler so we can be notified of selection.
 	element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
-	element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Auto));
+	element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Type::Auto));
 	element->AddEventListener(Core::EventId::Click, this);
 
 	int option_index;

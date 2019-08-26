@@ -124,11 +124,11 @@ private:
 	// The decoration geometry we've generated for this string.
 	Geometry decoration;
 	// What the decoration type is that we have generated.
-	int generated_decoration;
+	Style::TextDecoration generated_decoration;
 	// What the element's actual text-decoration property is; this may be different from the generated decoration
 	// if it is set to none; this means we can keep generated decoration and simply toggle it on or off as long as
 	// it isn't being changed.
-	int decoration_property;
+	Style::TextDecoration decoration_property;
 
 	int font_configuration;
 	bool font_dirty;

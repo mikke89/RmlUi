@@ -173,7 +173,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheet.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetKeywords.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetSpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h

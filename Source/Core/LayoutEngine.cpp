@@ -37,7 +37,6 @@
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 #include <math.h>
 #include <cstddef>
 

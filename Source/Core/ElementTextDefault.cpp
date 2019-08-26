@@ -36,7 +36,6 @@
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/FontDatabase.h"
 #include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -48,8 +47,8 @@ ElementTextDefault::ElementTextDefault(const String& tag) : ElementText(tag), co
 {
 	dirty_layout_on_change = true;
 
-	generated_decoration = TEXT_DECORATION_NONE;
-	decoration_property = TEXT_DECORATION_NONE;
+	generated_decoration = Style::TextDecoration::None;
+	decoration_property = Style::TextDecoration::None;
 
 	geometry_dirty = true;
 
@@ -140,7 +139,7 @@ void ElementTextDefault::OnRender()
 			geometry[i].Render(translation);
 	}
 
-	if (decoration_property != TEXT_DECORATION_NONE)
+	if (decoration_property != Style::TextDecoration::None)
 		decoration.Render(translation);
 }
 
@@ -283,7 +282,7 @@ void ElementTextDefault::AddLine(const Vector2f& line_position, const WString& l
 
 	geometry_dirty = true;
 
-	if (decoration_property != TEXT_DECORATION_NONE)
+	if (decoration_property != Style::TextDecoration::None)
 		GenerateDecoration(font_face_handle, lines.back());
 }
 
@@ -329,8 +328,8 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 
 	if (changed_properties.Contains(PropertyId::TextDecoration))
 	{
-		decoration_property = (int)computed.text_decoration;
-		if (decoration_property != TEXT_DECORATION_NONE)
+		decoration_property = computed.text_decoration;
+		if (decoration_property != Style::TextDecoration::None)
 		{
 			if (decoration_property != generated_decoration)
 			{
@@ -432,9 +431,9 @@ void ElementTextDefault::GenerateDecoration(const FontFaceHandle* font_face_hand
 	RMLUI_ZoneScopedC(0xA52A2A);
 	
 	Font::Line line_height;
-	if (decoration_property == TEXT_DECORATION_OVERLINE)
+	if (decoration_property == Style::TextDecoration::Overline)
 		line_height = Font::OVERLINE;
-	else if (decoration_property == TEXT_DECORATION_LINE_THROUGH)
+	else if (decoration_property == Style::TextDecoration::LineThrough)
 		line_height = Font::STRIKE_THROUGH;
 	else
 		line_height = Font::UNDERLINE;

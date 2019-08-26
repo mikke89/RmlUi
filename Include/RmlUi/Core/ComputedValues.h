@@ -100,11 +100,11 @@ struct VerticalAlign {
 
 enum class Overflow : uint8_t { Visible, Hidden, Auto, Scroll };
 struct Clip {
-	// Note, internally Auto is 0 and None is -1, however, the enum must correspond to the keywords in StyleSheetSpec
-	enum Type { Auto, None, Number };
+	enum class Type : uint8_t { Auto, None, Number };
+	// Note, internally 'number' is encoded with Auto as 0 and None as -1. However, the enum must correspond to the keywords in StyleSheetSpec.
 	int number = 0;
 	Clip() {}
-	Clip(Type type, int number = 0) : number(type == Auto ? 0 : (type == None ? -1 : number)) {}
+	Clip(Type type, int number = 0) : number(type == Type::Auto ? 0 : (type == Type::None ? -1 : number)) {}
 };
 
 enum class Visibility : uint8_t { Visible, Hidden };
@@ -113,7 +113,7 @@ enum class FontStyle : uint8_t { Normal, Italic };
 enum class FontWeight : uint8_t { Normal, Bold };
 
 enum class TextAlign : uint8_t { Left, Right, Center, Justify };
-enum class TextDecoration : uint8_t { None, Underline };
+enum class TextDecoration : uint8_t { None, Underline, Overline, LineThrough };
 enum class TextTransform : uint8_t { None, Capitalize, Uppercase, Lowercase };
 enum class WhiteSpace : uint8_t { Normal, Pre, Nowrap, Prewrap, Preline };
 

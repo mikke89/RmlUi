@@ -29,8 +29,6 @@
 #ifndef RMLUICORELAYOUTBLOCKBOXSPACE_H
 #define RMLUICORELAYOUTBLOCKBOXSPACE_H
 
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
-
 namespace Rml {
 namespace Core {
 
