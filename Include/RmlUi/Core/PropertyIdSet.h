@@ -35,8 +35,17 @@
 namespace Rml {
 namespace Core {
 
-
 class PropertyIdSetIterator;
+
+
+/*
+	PropertyIdSet is a 'set'-like container for PropertyIds. 
+	
+	It is quite cheap to construct and use, requiring no dynamic allocation for the library-defined IDs as they are based around a bitset.
+	Custom IDs on the other hand need to use a more trafitional set, and are thus more expensive to insert. 
+
+	Supports union and intersection operations between two sets, as well as iteration through the IDs that are inserted.
+*/
 
 
 class RMLUICORE_API PropertyIdSet {
@@ -129,7 +138,7 @@ public:
 		return result;
 	}
 
-	// Iterator support
+	// Iterator support. Iterates through all the PropertyIds that are set (contained).
 	// @note: Modifying the container invalidates the iterators. Only const_iterators are provided.
 	inline PropertyIdSetIterator begin() const;
 	inline PropertyIdSetIterator end() const;

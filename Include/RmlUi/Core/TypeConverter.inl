@@ -37,7 +37,7 @@ bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, Des
 }
 
 ///
-/// Partial specialisations at the top, as they full specialisations should be prefered.
+/// Partial specialisations at the top, as the full specialisations should be preferred.
 ///
 template< typename T >
 class TypeConverter< T, Stream >

@@ -88,8 +88,8 @@ public:
 			// Transform tests
 			{
 				auto el = document->GetElementById("generic");
-				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG}});
-				el->Animate("transform", p, 1.3f, Tween{Tween::Quadratic, Tween::InOut}, -1, true);
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::RotateZ{-90, Property::DEG}, Transforms::ScaleY{0.8} });
+				el->Animate("transform", p, 1.5f, Tween{Tween::Sine, Tween::InOut}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("combine");
@@ -98,8 +98,8 @@ public:
 			}
 			{
 				auto el = document->GetElementById("decomposition");
-				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
-				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG} });
+				el->Animate("transform", p, 1.3f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
 			}
 
 			// Mixed units tests

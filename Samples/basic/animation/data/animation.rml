@@ -74,15 +74,17 @@
 		
 		/* -- TRANSFORM TESTS */
 		#generic {
-			transform: translateX(100px) rotate3d(1.0, 0, 1.0, 0deg);
+			/* Note the translateX vs translateY in animation target, and scaleX vs scaleY. In 
+			   order to match, they are converted to their generic forms, translate3d and scale3d. */
+			transform: translateX(100px) rotateZ(70deg) scaleX(1.3);
 		}
 		#combine {
 			transform: rotate(45deg);
 		}
 		#decomposition {
-			/* The scale(1.0) should force a full matrix recomposition when interpolating,
-			   then, the information about multiple turns get lost and it only turns 45deg. */
-			transform: rotate(45deg) scale(1.0);
+			/* To interpolate the rotate3d transforms, we need to decompose the matrix, 
+			   see the element info in the debugger for the resulting matrix. */
+			transform: translateX(100px) rotate3d(1.0, 0, 1.0, 0deg);
 		}
 		
 		/* -- MIXED UNITS TESTS */

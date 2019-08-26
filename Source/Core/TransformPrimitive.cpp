@@ -611,14 +611,14 @@ struct ConvertToGenericTypeVisitor
 		PrimitiveVariant result = primitive;
 		switch (primitive.type)
 		{
-		case PrimitiveVariant::TRANSLATEX: result.translate_3d = this->operator()(primitive.translate_x); break;
-		case PrimitiveVariant::TRANSLATEY: result.translate_3d = this->operator()(primitive.translate_y); break;
-		case PrimitiveVariant::TRANSLATEZ: result.translate_3d = this->operator()(primitive.translate_z); break;
-		case PrimitiveVariant::TRANSLATE2D: result.translate_3d = this->operator()(primitive.translate_2d); break;
-		case PrimitiveVariant::SCALEX: result.scale_3d = this->operator()(primitive.scale_x); break;
-		case PrimitiveVariant::SCALEY: result.scale_3d = this->operator()(primitive.scale_y); break;
-		case PrimitiveVariant::SCALEZ: result.scale_3d = this->operator()(primitive.scale_z); break;
-		case PrimitiveVariant::SCALE2D: result.scale_3d = this->operator()(primitive.scale_2d); break;
+		case PrimitiveVariant::TRANSLATEX:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_x);  break;
+		case PrimitiveVariant::TRANSLATEY:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_y);  break;
+		case PrimitiveVariant::TRANSLATEZ:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_z);  break;
+		case PrimitiveVariant::TRANSLATE2D: result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_2d); break;
+		case PrimitiveVariant::SCALEX:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_x);      break;
+		case PrimitiveVariant::SCALEY:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_y);      break;
+		case PrimitiveVariant::SCALEZ:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_z);      break;
+		case PrimitiveVariant::SCALE2D:     result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_2d);     break;
 		default:
 			RMLUI_ASSERT(false);
 			break;
@@ -778,6 +778,35 @@ static inline String ToString(const Transforms::UnresolvedPrimitive<N> & p) noex
 	return result;
 }
 
+static inline String ToString(const Transforms::DecomposedMatrix4& p) noexcept {
+	static const DecomposedMatrix4 d{
+		Vector4f(0, 0, 0, 1),
+		Vector4f(0, 0, 0, 1),
+		Vector3f(0, 0, 0),
+		Vector3f(1, 1, 1),
+		Vector3f(0, 0, 0)
+	}; 
+	String tmp;
+	String result;
+	
+	if(p.perspective != d.perspective && TypeConverter< Vector4f, String >::Convert(p.perspective, tmp))
+		result += "perspective(" + tmp + "), ";
+	if (p.quaternion != d.quaternion && TypeConverter< Vector4f, String >::Convert(p.quaternion, tmp))
+		result += "quaternion(" + tmp + "), ";
+	if (p.translation != d.translation && TypeConverter< Vector3f, String >::Convert(p.translation, tmp))
+		result += "translation(" + tmp + "), ";
+	if (p.scale != d.scale && TypeConverter< Vector3f, String >::Convert(p.scale, tmp))
+		result += "scale(" + tmp + "), ";
+	if (p.skew != d.skew && TypeConverter< Vector3f, String >::Convert(p.skew, tmp))
+		result += "skew(" + tmp + "), ";
+
+	if (result.size() > 2)
+		result.resize(result.size() - 2);
+
+	result = "decomposedMatrix3d{ " + result + " }";
+
+	return result;
+}
 
 
 String ToString(const Transforms::Matrix2D & p) noexcept { return "matrix" + ToString(static_cast<const Transforms::ResolvedPrimitive< 6 >&>(p), ""); }
@@ -801,7 +830,6 @@ String ToString(const Transforms::SkewX & p) noexcept { return "skewX" + ToStrin
 String ToString(const Transforms::SkewY & p) noexcept { return "skewY" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
 String ToString(const Transforms::Skew2D & p) noexcept { return "skew" + ToString(static_cast<const Transforms::ResolvedPrimitive< 2 >&>(p), "deg", true); }
 String ToString(const Transforms::Perspective & p) noexcept { return "perspective" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
-String ToString(const Transforms::DecomposedMatrix4& p) noexcept { return "decomposedMatrix3d"; }
 
 
 struct ToStringVisitor
