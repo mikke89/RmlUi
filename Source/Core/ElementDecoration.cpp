@@ -52,11 +52,11 @@ bool ElementDecoration::ReloadDecorators()
 	RMLUI_ZoneScopedC(0xB22222);
 	ReleaseDecorators();
 
-	auto& decorator_list_ptr = element->GetComputedValues().decorator;
-	if (!decorator_list_ptr)
+	auto& decorators_ptr = element->GetComputedValues().decorator;
+	if (!decorators_ptr)
 		return true;
 
-	for (const auto& decorator : *decorator_list_ptr)
+	for (const auto& decorator : decorators_ptr->list)
 	{
 		if (decorator)
 		{

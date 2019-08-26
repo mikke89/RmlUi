@@ -387,9 +387,9 @@ bool ElementTextDefault::UpdateFontConfiguration()
 	static const FontEffectList empty_font_effects;
 
 	// Fetch the font-effect for this text element
-	const FontEffectList* font_effects = GetComputedValues().font_effect.get();
-	if (!font_effects)
-		font_effects = &empty_font_effects;
+	const FontEffectList* font_effects = &empty_font_effects;
+	if (const FontEffects* effects = GetComputedValues().font_effect.get())
+		font_effects = &effects->list;
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.

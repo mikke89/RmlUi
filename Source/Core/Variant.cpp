@@ -42,8 +42,8 @@ Variant::Variant() : type(NONE)
 	static_assert(sizeof(TransformPtr) <= LOCAL_DATA_SIZE, "Local data too small for TransformPtr");
 	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
-	static_assert(sizeof(DecoratorListPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorListPtr");
-	static_assert(sizeof(FontEffectListPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectListPtr");
+	static_assert(sizeof(DecoratorsPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorsPtr");
+	static_assert(sizeof(FontEffectsPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectsPtr");
 }
 
 Variant::Variant(const Variant& copy) : type(NONE)
@@ -96,13 +96,13 @@ void Variant::Clear()
 		break;
 		case DECORATORLIST:
 		{
-			DecoratorListPtr* decorator_list = (DecoratorListPtr*)data;
-			decorator_list->~DecoratorListPtr();
+			DecoratorsPtr* decorators = (DecoratorsPtr*)data;
+			decorators->~DecoratorsPtr();
 		}
 		break;
 		case FONTEFFECTLISTPTR:
 		{
-			FontEffectListPtr* font_effects = (FontEffectListPtr*)data;
+			FontEffectsPtr* font_effects = (FontEffectsPtr*)data;
 			font_effects->~shared_ptr();
 		}
 		break;
@@ -141,11 +141,11 @@ void Variant::Set(const Variant& copy)
 		break;
 
 	case DECORATORLIST:
-		Set(*(DecoratorListPtr*)copy.data);
+		Set(*(DecoratorsPtr*)copy.data);
 		break;
 
 	case FONTEFFECTLISTPTR:
-		Set(*(FontEffectListPtr*)copy.data);
+		Set(*(FontEffectsPtr*)copy.data);
 		break;
 
 	default:
@@ -177,11 +177,11 @@ void Variant::Set(Variant&& other)
 		break;
 
 	case DECORATORLIST:
-		Set(std::move(*(DecoratorListPtr*)other.data));
+		Set(std::move(*(DecoratorsPtr*)other.data));
 		break;
 
 	case FONTEFFECTLISTPTR:
-		Set(std::move(*(FontEffectListPtr*)other.data));
+		Set(std::move(*(FontEffectsPtr*)other.data));
 		break;
 
 
@@ -371,52 +371,52 @@ void Variant::Set(AnimationList&& value)
 	}
 }
 
-void Variant::Set(const DecoratorListPtr& value)
+void Variant::Set(const DecoratorsPtr& value)
 {
 	if (type == DECORATORLIST)
 	{
-		*(DecoratorListPtr*)data = value;
+		*(DecoratorsPtr*)data = value;
 	}
 	else
 	{
 		type = DECORATORLIST;
-		new(data) DecoratorListPtr(value);
+		new(data) DecoratorsPtr(value);
 	}
 }
-void Variant::Set(DecoratorListPtr&& value)
+void Variant::Set(DecoratorsPtr&& value)
 {
 	if (type == DECORATORLIST)
 	{
-		(*(DecoratorListPtr*)data) = std::move(value);
+		(*(DecoratorsPtr*)data) = std::move(value);
 	}
 	else
 	{
 		type = DECORATORLIST;
-		new(data) DecoratorListPtr(std::move(value));
+		new(data) DecoratorsPtr(std::move(value));
 	}
 }
-void Variant::Set(const FontEffectListPtr& value)
+void Variant::Set(const FontEffectsPtr& value)
 {
 	if (type == FONTEFFECTLISTPTR)
 	{
-		*(FontEffectListPtr*)data = value;
+		*(FontEffectsPtr*)data = value;
 	}
 	else
 	{
 		type = FONTEFFECTLISTPTR;
-		new(data) FontEffectListPtr(value);
+		new(data) FontEffectsPtr(value);
 	}
 }
-void Variant::Set(FontEffectListPtr&& value)
+void Variant::Set(FontEffectsPtr&& value)
 {
 	if (type == FONTEFFECTLISTPTR)
 	{
-		(*(FontEffectListPtr*)data) = std::move(value);
+		(*(FontEffectsPtr*)data) = std::move(value);
 	}
 	else
 	{
 		type = FONTEFFECTLISTPTR;
-		new(data) FontEffectListPtr(std::move(value));
+		new(data) FontEffectsPtr(std::move(value));
 	}
 }
 
@@ -478,9 +478,9 @@ bool Variant::operator==(const Variant & other) const
 	case ANIMATIONLIST:
 		return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case DECORATORLIST:
-		return DEFAULT_VARIANT_COMPARE(DecoratorListPtr);
+		return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
 	case FONTEFFECTLISTPTR:
-		return DEFAULT_VARIANT_COMPARE(FontEffectListPtr);
+		return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
 	case NONE:
 		return true;
 		break;

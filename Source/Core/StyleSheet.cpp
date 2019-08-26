@@ -135,7 +135,7 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-DecoratorListPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const
+DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const
 {
 	// Decorators are declared as
 	//   decorator: <decorator-value>[, <decorator-value> ...];
@@ -144,7 +144,7 @@ DecoratorListPtr StyleSheet::InstanceDecoratorsFromString(const String& decorato
 	// or is an anonymous decorator with inline properties
 	//   decorator: tiled-box( <shorthand properties> ), ...;
 	
-	DecoratorList decorator_list;
+	Decorators decorators;
 	if (decorator_string_value.empty() || decorator_string_value == NONE)
 		return nullptr;
 
@@ -155,7 +155,8 @@ DecoratorListPtr StyleSheet::InstanceDecoratorsFromString(const String& decorato
 	StringList decorator_string_list;
 	StringUtilities::ExpandString(decorator_string_list, decorator_string_value, ',', '(', ')');
 
-	decorator_list.reserve(decorator_string_list.size());
+	decorators.value = decorator_string_value;
+	decorators.list.reserve(decorator_string_list.size());
 
 	// Get or instance each decorator in the comma-separated string list
 	for (const String& decorator_string : decorator_string_list)
@@ -169,7 +170,7 @@ DecoratorListPtr StyleSheet::InstanceDecoratorsFromString(const String& decorato
 			// We found no parenthesis, that means the value must be a name of a @decorator rule, look it up
 			SharedPtr<Decorator> decorator = GetDecorator(decorator_string);
 			if (decorator)
-				decorator_list.emplace_back(std::move(decorator));
+				decorators.list.emplace_back(std::move(decorator));
 			else
 				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator_string.c_str(), source_path, source_line_number);
 		}
@@ -205,7 +206,7 @@ DecoratorListPtr StyleSheet::InstanceDecoratorsFromString(const String& decorato
 			SharedPtr<Decorator> decorator = instancer->InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
 
 			if (decorator)
-				decorator_list.emplace_back(std::move(decorator));
+				decorators.list.emplace_back(std::move(decorator));
 			else
 			{
 				Log::Message(Log::LT_WARNING, "Decorator '%s' could not be instanced, declared at %s:%d", decorator_string.c_str(), source_path, source_line_number);
@@ -214,10 +215,10 @@ DecoratorListPtr StyleSheet::InstanceDecoratorsFromString(const String& decorato
 		}
 	}
 
-	return std::make_shared<DecoratorList>(std::move(decorator_list));
+	return std::make_shared<Decorators>(std::move(decorators));
 }
 
-FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const
+FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const
 {	
 	// Font-effects are declared as
 	//   font-effect: <font-effect-value>[, <font-effect-value> ...];
@@ -230,13 +231,14 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 	const char* source_path = (source ? source->path.c_str() : "");
 	const int source_line_number = (source ? source->line_number : 0);
 
-	FontEffectList font_effect_list;
+	FontEffects font_effects;
 
 	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
 	StringList font_effect_string_list;
 	StringUtilities::ExpandString(font_effect_string_list, font_effect_string_value, ',', '(', ')');
 
-	font_effect_list.reserve(font_effect_string_list.size());
+	font_effects.value = font_effect_string_value;
+	font_effects.list.reserve(font_effect_string_list.size());
 
 	// Get or instance each decorator in the comma-separated string list
 	for (const String& font_effect_string : font_effect_string_list)
@@ -289,7 +291,7 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 
 				font_effect->SetFingerprint(fingerprint);
 
-				font_effect_list.emplace_back(std::move(font_effect));
+				font_effects.list.emplace_back(std::move(font_effect));
 			}
 			else
 			{
@@ -300,11 +302,11 @@ FontEffectListPtr StyleSheet::InstanceFontEffectsFromString(const String& font_e
 	}
 
 	// Partition the list such that the back layer effects appear before the front layer effects
-	std::stable_partition(font_effect_list.begin(), font_effect_list.end(), 
+	std::stable_partition(font_effects.list.begin(), font_effects.list.end(), 
 		[](const SharedPtr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
 	);
 
-	return std::make_shared<FontEffectList>(std::move(font_effect_list));
+	return std::make_shared<FontEffects>(std::move(font_effects));
 }
 
 size_t StyleSheet::NodeHash(const String& tag, const String& id)

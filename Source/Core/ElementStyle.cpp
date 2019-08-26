@@ -830,7 +830,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::Decorator:
 			if (p->unit == Property::DECORATOR)
 			{
-				values.decorator = p->Get<DecoratorListPtr>();
+				values.decorator = p->Get<DecoratorsPtr>();
 			}
 			else if (p->unit == Property::STRING)
 			{
@@ -850,7 +850,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::FontEffect:
 			if (p->unit == Property::FONTEFFECT)
 			{
-				values.font_effect = p->Get<FontEffectListPtr>();
+				values.font_effect = p->Get<FontEffectsPtr>();
 			}
 			else if (p->unit == Property::STRING)
 			{

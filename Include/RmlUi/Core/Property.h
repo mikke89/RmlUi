@@ -86,8 +86,8 @@ public:
 		TRANSFORM = 1 << 17,			// transform; fetch as < TransformPtr >, may be empty
 		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
 		ANIMATION = 1 << 19,            // animation; fetch as < AnimationList >
-		DECORATOR = 1 << 20,            // decorator; fetch as < DecoratorListPtr >
-		FONTEFFECT = 1 << 21,           // font-effect; fetch as < FontEffectListPtr >
+		DECORATOR = 1 << 20,            // decorator; fetch as < DecoratorsPtr >
+		FONTEFFECT = 1 << 21,           // font-effect; fetch as < FontEffectsPtr >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM,
 		LENGTH_PERCENT = LENGTH | PERCENT,

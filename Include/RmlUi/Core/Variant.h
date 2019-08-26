@@ -143,10 +143,10 @@ private:
 	void Set(TransitionList&& value);
 	void Set(const AnimationList& value);
 	void Set(AnimationList&& value);
-	void Set(const DecoratorListPtr& value);
-	void Set(DecoratorListPtr&& value);
-	void Set(const FontEffectListPtr& value);
-	void Set(FontEffectListPtr&& value);
+	void Set(const DecoratorsPtr& value);
+	void Set(DecoratorsPtr&& value);
+	void Set(const FontEffectsPtr& value);
+	void Set(FontEffectsPtr&& value);
 	
 	static constexpr size_t LOCAL_DATA_SIZE = sizeof(TransitionList);
 

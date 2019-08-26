@@ -102,9 +102,9 @@ class Event;
 class Property;
 class Variant;
 class Transform;
+class PropertyIdSet;
 class Decorator;
 class FontEffect;
-class PropertyIdSet;
 struct Animation;
 struct Transition;
 struct TransitionList;
@@ -168,14 +168,23 @@ using PropertyMap = UnorderedMap< PropertyId, Property >;
 using Dictionary = SmallUnorderedMap< String, Variant >;
 using ElementAttributes = Dictionary;
 
+using AnimationList = std::vector<Animation>;
 using DecoratorList = std::vector<SharedPtr<const Decorator>>;
 using FontEffectList = std::vector<SharedPtr<const FontEffect>>;
-using AnimationList = std::vector<Animation>;
+
+struct Decorators {
+	DecoratorList list;
+	String value;
+};
+struct FontEffects {
+	FontEffectList list;
+	String value;
+};
 
 // Additional smart pointers
 using TransformPtr = SharedPtr< Transform >;
-using FontEffectListPtr = SharedPtr<const FontEffectList>;
-using DecoratorListPtr = SharedPtr<const DecoratorList>;
+using DecoratorsPtr = SharedPtr<const Decorators>;
+using FontEffectsPtr = SharedPtr<const FontEffects>;
 
 }
 }

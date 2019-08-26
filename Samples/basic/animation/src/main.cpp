@@ -88,7 +88,7 @@ public:
 			// Transform tests
 			{
 				auto el = document->GetElementById("generic");
-				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::RotateZ{-90, Property::DEG}, Transforms::ScaleY{0.8} });
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::RotateZ{-90, Property::DEG}, Transforms::ScaleY{0.8f} });
 				el->Animate("transform", p, 1.5f, Tween{Tween::Sine, Tween::InOut}, -1, true);
 			}
 			{

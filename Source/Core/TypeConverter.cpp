@@ -113,42 +113,36 @@ bool TypeConverter<AnimationList, String>::Convert(const AnimationList& src, Str
 	return true;
 }
 
-bool TypeConverter<DecoratorListPtr, DecoratorListPtr>::Convert(const DecoratorListPtr& src, DecoratorListPtr& dest)
+bool TypeConverter<DecoratorsPtr, DecoratorsPtr>::Convert(const DecoratorsPtr& src, DecoratorsPtr& dest)
 {
 	dest = src;
 	return true;
 }
 
 
-bool TypeConverter<DecoratorListPtr, String>::Convert(const DecoratorListPtr& src, String& dest)
+bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, String& dest)
 {
-	// Todo. For now, we just count the number of decorators
-	if (!src || src->empty())
+	if (!src || src->list.empty())
 		dest = "none";
-	else if (TypeConverter<int, String>::Convert((int)src->size(), dest))
-		dest += " decorator(s)";
 	else
-		return false;
+		dest += src->value;
 	return true;
 }
 
 
-bool TypeConverter<FontEffectListPtr, FontEffectListPtr>::Convert(const FontEffectListPtr& src, FontEffectListPtr& dest)
+bool TypeConverter<FontEffectsPtr, FontEffectsPtr>::Convert(const FontEffectsPtr& src, FontEffectsPtr& dest)
 {
 	dest = src;
 	return true;
 }
 
 
-bool TypeConverter<FontEffectListPtr, String>::Convert(const FontEffectListPtr& src, String& dest)
+bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, String& dest)
 {
-	// Todo. For now, we just count the number of font-effects
-	if (!src || src->empty())
+	if (!src || src->list.empty())
 		dest = "none";
-	else if (TypeConverter<int, String>::Convert((int)src->size(), dest))
-		dest += " font-effect(s)";
-	else	
-		return false;
+	else
+		dest += src->value;
 	return true;
 }
 
