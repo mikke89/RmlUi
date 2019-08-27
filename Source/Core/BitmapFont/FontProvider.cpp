@@ -86,8 +86,8 @@ bool BitmapFont::FontProvider::LoadFontFace(const String& file_name)
 		return false;
 	}
 
-	Font::Style style = bm_font->Face.Style;
-	Font::Weight weight = bm_font->Face.Weight;
+	Style::FontStyle style = bm_font->Face.Style;
+	Style::FontWeight weight = bm_font->Face.Weight;
 
 	if (instance->AddFace(bm_font, bm_font->Face.FamilyName, style, weight, true))
 	{
@@ -104,7 +104,7 @@ bool BitmapFont::FontProvider::LoadFontFace(const String& file_name)
 }
 
 // Loads a new font face.
-bool BitmapFont::FontProvider::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
+bool BitmapFont::FontProvider::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
 	BitmapFont::BitmapFontDefinitions *bm_font = (BitmapFont::BitmapFontDefinitions*) instance->LoadFace(file_name);
 	if (bm_font == nullptr)
@@ -134,14 +134,14 @@ bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length)
 }
 
 // Adds a new font face to the database, loading from memory.
-bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
+bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
 	// TODO Loading from memory
 	return false;
 }
 
 // Adds a loaded face to the appropriate font family.
-bool BitmapFont::FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
+bool BitmapFont::FontProvider::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
 	String family_lower = StringUtilities::ToLower(family);
 	Rml::Core::FontFamily* font_family = nullptr;

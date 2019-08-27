@@ -29,7 +29,6 @@
 #ifndef RMLUICOREFREETYPEFONTFAMILY_H
 #define RMLUICOREFREETYPEFONTFAMILY_H
 
-#include <RmlUi/Core/Font.h>
 #include <RmlUi/Core/FontFamily.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -58,7 +57,7 @@ public:
 	/// @param[in] weight The weight of the new face.
 	/// @param[in] release_stream True if the application must free the face's memory stream.
 	/// @return True if the face was loaded successfully, false otherwise.
-	bool AddFace(void* ft_face, Font::Style style, Font::Weight weight, bool release_stream) override;
+	bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) override;
 };
 
 }

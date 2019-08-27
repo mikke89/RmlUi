@@ -430,15 +430,7 @@ void ElementTextDefault::GenerateDecoration(const FontFaceHandle* font_face_hand
 {
 	RMLUI_ZoneScopedC(0xA52A2A);
 	
-	Font::Line line_height;
-	if (decoration_property == Style::TextDecoration::Overline)
-		line_height = Font::OVERLINE;
-	else if (decoration_property == Style::TextDecoration::LineThrough)
-		line_height = Font::STRIKE_THROUGH;
-	else
-		line_height = Font::UNDERLINE;
-
-	font_face_handle->GenerateLine(&decoration, line.position, line.width, line_height, colour);
+	font_face_handle->GenerateLine(&decoration, line.position, line.width, decoration_property, colour);
 }
 
 static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation)

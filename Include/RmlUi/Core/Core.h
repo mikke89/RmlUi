@@ -51,7 +51,6 @@
 #include "EventListenerInstancer.h"
 #include "Factory.h"
 #include "FileInterface.h"
-#include "Font.h"
 #include "FontDatabase.h"
 #include "FontEffect.h"
 #include "FontGlyph.h"

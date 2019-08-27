@@ -42,7 +42,7 @@ BitmapFont::FontFamily::~FontFamily()
 }
 
 // Adds a new face to the family.
-bool BitmapFont::FontFamily::AddFace( void *bm_face, Font::Style style, Font::Weight weight, bool release_stream)
+bool BitmapFont::FontFamily::AddFace( void *bm_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
 	Rml::Core::FontFace* face = new BitmapFont::FontFace((BitmapFontDefinitions*)bm_face, style, weight, release_stream);
 	font_faces.push_back(face);

@@ -30,7 +30,6 @@
 #define RMLUICOREFONTFAMILY_H
 
 #include "StringUtilities.h"
-#include "Font.h"
 
 namespace Rml {
 namespace Core {
@@ -54,7 +53,7 @@ public:
 	/// @param[in] weight The weight of the new face.
 	/// @param[in] release_stream True if the application must free the face's memory stream.
 	/// @return True if the face was loaded successfully, false otherwise.
-    virtual bool AddFace(void* ft_face, Font::Style style, Font::Weight weight, bool release_stream) = 0;
+    virtual bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
 
 	/// Returns a handle to the most appropriate font in the family, at the correct size.
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
@@ -62,7 +61,7 @@ public:
 	/// @param[in] weight The weight of the desired handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandle> GetFaceHandle(const String& charset, Font::Style style, Font::Weight weight, int size);
+	SharedPtr<FontFaceHandle> GetFaceHandle(const String& charset, Style::FontStyle style, Style::FontWeight weight, int size);
 
 protected:
 	String name;

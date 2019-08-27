@@ -31,7 +31,6 @@
 
 #include "StringUtilities.h"
 #include "Header.h"
-#include "Font.h"
 #include "FontProvider.h"
 
 namespace Rml {
@@ -71,7 +70,7 @@ public:
 	/// @param[in] style The style of the face (normal or italic).
 	/// @param[in] weight The weight of the face (normal or bold).
 	/// @return True if the face was loaded successfully, false otherwise.
-	static bool LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight);
+	static bool LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight);
 	/// Adds a new font face to the database, loading from memory. The face's family, style and weight will be determined from the face itself.
 	/// @param[in] data The font data.
 	/// @param[in] data_length Length of the data.
@@ -84,7 +83,7 @@ public:
 	/// @param[in] style The style of the face (normal or italic).
 	/// @param[in] weight The weight of the face (normal or bold).
 	/// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight);
+    static bool LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight);
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
@@ -95,7 +94,7 @@ public:
 	/// @param[in] weight The weight of the desired font handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	static SharedPtr<FontFaceHandle> GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size);
+	static SharedPtr<FontFaceHandle> GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size);
 
     static void AddFontProvider(FontProvider * provider);
 

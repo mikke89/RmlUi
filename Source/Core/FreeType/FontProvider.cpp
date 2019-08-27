@@ -104,8 +104,8 @@ bool FontProvider::LoadFontFace(const String& file_name)
 		return false;
 	}
 
-	Font::Style style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
-	Font::Weight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
+	Style::FontStyle style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Style::FontStyle::Italic : Style::FontStyle::Normal;
+	Style::FontWeight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Style::FontWeight::Bold : Style::FontWeight::Normal;
 
 	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, true))
 	{
@@ -120,7 +120,7 @@ bool FontProvider::LoadFontFace(const String& file_name)
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-bool FontProvider::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
+bool FontProvider::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
 	if (ft_face == nullptr)
@@ -151,8 +151,8 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length)
 		return false;
 	}
 
-	Font::Style style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
-	Font::Weight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
+	Style::FontStyle style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Style::FontStyle::Italic : Style::FontStyle::Normal;
+	Style::FontWeight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Style::FontWeight::Bold : Style::FontWeight::Normal;
 
 	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, false))
 	{
@@ -167,7 +167,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length)
 }
 
 // Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
+bool FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
 	if (ft_face == nullptr)
@@ -189,7 +189,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length, const String&
 }
 
 // Adds a loaded face to the appropriate font family.
-bool FontProvider::AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream)
+bool FontProvider::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
 	String family_lower = StringUtilities::ToLower(family);
 	FontFamily* font_family = nullptr;

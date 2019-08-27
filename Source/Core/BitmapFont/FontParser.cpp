@@ -51,8 +51,8 @@ void BitmapFont::FontParser::HandleElementStart(const String& name, const XMLAtt
 	{
 		bm_face->Face.FamilyName = Get(attributes, "face", String());
 		bm_face->Face.Size = Get(attributes, "size", 0);
-		bm_face->Face.Weight = Get(attributes, "bold", false ) ? Font::WEIGHT_BOLD : Font::WEIGHT_NORMAL;
-		bm_face->Face.Style = Get(attributes, "italic", false ) ? Font::STYLE_ITALIC : Font::STYLE_NORMAL;
+		bm_face->Face.Weight = Get(attributes, "bold", false ) ? Style::FontWeight::Bold : Style::FontWeight::Normal;
+		bm_face->Face.Style = Get(attributes, "italic", false ) ? Style::FontStyle::Italic : Style::FontStyle::Normal;
 		bm_face->Face.BitmapSource = Get(attributes, "src", String());
 	}
 	else if ( name == "common" )

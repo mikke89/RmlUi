@@ -45,7 +45,7 @@ class FontFaceHandle;
 class FontFace : public Rml::Core::FontFace
 {
 public:
-	FontFace(FT_Face face, Font::Style style, Font::Weight weight, bool release_stream);
+	FontFace(FT_Face face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
 	~FontFace();
 
 	/// Returns a handle for positioning and rendering this face at the given size.

@@ -34,7 +34,7 @@
 namespace Rml {
 namespace Core {
 
-FontFace::FontFace(Font::Style _style, Font::Weight _weight, bool _release_stream)
+FontFace::FontFace(Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream)
 {
 	style = _style;
 	weight = _weight;
@@ -48,13 +48,13 @@ FontFace::~FontFace()
 }
 
 // Returns the style of the font face.
-Font::Style FontFace::GetStyle() const
+Style::FontStyle FontFace::GetStyle() const
 {
 	return style;
 }
 
 // Returns the weight of the font face.
-Font::Weight FontFace::GetWeight() const
+Style::FontWeight FontFace::GetWeight() const
 {
 	return weight;
 }

@@ -29,7 +29,6 @@
 #ifndef RMLUICOREBITMAPFONTFAMILY_H
 #define RMLUICOREBITMAPFONTFAMILY_H
 
-#include "../../../Include/RmlUi/Core/Font.h"
 #include "../../../Include/RmlUi/Core/FontFamily.h"
 #include "BitmapFontDefinitions.h"
 
@@ -57,7 +56,7 @@ public:
 	/// @param[in] weight The weight of the new face.
 	/// @param[in] release_stream True if the application must free the face's memory stream.
 	/// @return True if the face was loaded successfully, false otherwise.
-	bool AddFace( void *bm_face, Font::Style style, Font::Weight weight, bool release_stream) override;
+	bool AddFace( void *bm_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) override;
 };
 
 }

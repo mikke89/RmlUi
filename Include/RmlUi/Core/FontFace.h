@@ -29,7 +29,7 @@
 #ifndef RMLUICOREFONTFACE_H
 #define RMLUICOREFONTFACE_H
 
-#include "Font.h"
+#include "ComputedValues.h"
 
 namespace Rml {
 namespace Core {
@@ -43,15 +43,15 @@ class FontFaceHandle;
 class FontFace
 {
 public:
-    FontFace(Font::Style style, Font::Weight weight, bool release_stream);
+    FontFace(Style::FontStyle style, Style::FontWeight weight, bool release_stream);
     virtual ~FontFace();
 
 	/// Returns the style of the font face.
 	/// @return The font face's style.
-	Font::Style GetStyle() const;
+	Style::FontStyle GetStyle() const;
 	/// Returns the weight of the font face.
 	/// @return The font face's weight.
-	Font::Weight GetWeight() const;
+	Style::FontWeight GetWeight() const;
 
 	/// Returns a handle for positioning and rendering this face at the given size.
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
@@ -64,8 +64,8 @@ public:
     virtual void ReleaseFace() = 0;
 
 protected:
-	Font::Style style;
-	Font::Weight weight;
+	Style::FontStyle style;
+	Style::FontWeight weight;
 
 	bool release_stream;
 

@@ -97,7 +97,7 @@ bool FontDatabase::LoadFontFace(const String& file_name)
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight)
+bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
     FontProviderType font_provider_type = GetFontProviderType(file_name);
 
@@ -131,7 +131,7 @@ bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte*
 }
 
 // Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight)
+bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
     switch(font_provider_type)
     {
@@ -159,7 +159,7 @@ FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& f
 }
 
 // Returns a handle to a font face that can be used to position and render text.
-SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, const String& charset, Font::Style style, Font::Weight weight, int size)
+SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
 {
     size_t provider_count = font_provider_table.size();
 

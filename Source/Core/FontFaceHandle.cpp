@@ -256,7 +256,7 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 }
 
 // Generates the geometry required to render a line above, below or through a line of text.
-void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const
+void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration height, const Colourb& colour) const
 {
 	std::vector< Vertex >& line_vertices = geometry->GetVertices();
 	std::vector< int >& line_indices = geometry->GetIndices();
@@ -264,10 +264,10 @@ void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, 
 	float offset;
 	switch (height)
 	{
-		case Font::UNDERLINE:       offset = -underline_position; break;
-		case Font::OVERLINE:        offset = -underline_position - (float)size; break;
-		case Font::STRIKE_THROUGH:  offset = -0.65f * (float)x_height; break; // or maybe: -underline_position - (float)size * 0.5f
-		default: return;
+	case Style::TextDecoration::Underline:       offset = -underline_position; break;
+	case Style::TextDecoration::Overline:        offset = -underline_position - (float)size; break;
+	case Style::TextDecoration::LineThrough:     offset = -0.65f * (float)x_height; break; // or maybe: -underline_position - (float)size * 0.5f
+	default: return;
 	}
 
 	line_vertices.resize(line_vertices.size() + 4);

@@ -30,7 +30,6 @@
 #define RMLUICOREFREETYPEFONTPROVIDER_H
 
 #include "../StringUtilities.h"
-#include "../Font.h"
 #include "../FontProvider.h"
 
 namespace Rml {
@@ -66,7 +65,7 @@ public:
     /// @param[in] style The style of the face (normal or italic).
     /// @param[in] weight The weight of the face (normal or bold).
     /// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(const String& file_name, const String& family, Font::Style style, Font::Weight weight);
+    static bool LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight);
     /// Adds a new font face to the database, loading from memory. The face's family, style and weight will be determined from the face itself.
     /// @param[in] data The font data.
     /// @param[in] data_length Length of the data.
@@ -79,14 +78,14 @@ public:
     /// @param[in] style The style of the face (normal or italic).
     /// @param[in] weight The weight of the face (normal or bold).
     /// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(const byte* data, int data_length, const String& family, Font::Style style, Font::Weight weight);
+    static bool LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight);
 
 private:
     FontProvider(void);
     ~FontProvider(void);
 
     // Adds a loaded face to the appropriate font family.
-    bool AddFace(void* face, const String& family, Font::Style style, Font::Weight weight, bool release_stream);
+    bool AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
     // Loads a FreeType face.
     void* LoadFace(const String& file_name);
     // Loads a FreeType face from memory.

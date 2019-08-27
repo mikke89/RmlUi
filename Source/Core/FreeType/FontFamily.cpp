@@ -44,7 +44,7 @@ FreeType::FontFamily::~FontFamily()
 }
 
 // Adds a new face to the family.
-bool FreeType::FontFamily::AddFace(void* ft_face, Font::Style style, Font::Weight weight, bool release_stream)
+bool FreeType::FontFamily::AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
 	FontFace* face = new FreeType::FontFace((FT_Face)ft_face, style, weight, release_stream);
 	font_faces.push_back(face);

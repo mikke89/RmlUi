@@ -44,8 +44,8 @@ namespace BitmapFont {
 		String Source;
 		String BitmapSource;
 		int Size;
-		Font::Style Style;
-		Font::Weight Weight;
+		Style::FontStyle Style;
+		Style::FontWeight Weight;
 	};
 
 	struct CharacterCommonInfo

@@ -35,7 +35,7 @@ namespace Rml {
 namespace Core {
 namespace FreeType {
 
-FontFace::FontFace(FT_Face _face, Font::Style _style, Font::Weight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
+FontFace::FontFace(FT_Face _face, Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
 {
 	face = _face;
 }

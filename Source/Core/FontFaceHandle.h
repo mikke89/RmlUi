@@ -31,7 +31,6 @@
 
 #include "../../Include/RmlUi/Core/Traits.h"
 #include "UnicodeRange.h"
-#include "../../Include/RmlUi/Core/Font.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
@@ -102,9 +101,9 @@ public:
 	/// @param[out] geometry The geometry to append the newly created geometry into.
 	/// @param[in] position The position of the baseline of the lined text.
 	/// @param[in] width The width of the string to line.
-	/// @param[in] height The height to render the line at.
+	/// @param[in] decoration_type The type for vertical positioning of line.
 	/// @param[in] colour The colour to draw the line in.
-	void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const;
+	void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration decoration_type, const Colourb& colour) const;
 
 	/// Returns the font face's raw charset (the charset range as a string).
 	/// @return The font face's charset.

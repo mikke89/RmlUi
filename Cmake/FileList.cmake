@@ -137,7 +137,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListenerInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Factory.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Font.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontDatabase.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h

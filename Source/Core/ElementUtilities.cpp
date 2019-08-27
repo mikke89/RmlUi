@@ -148,8 +148,7 @@ SharedPtr<FontFaceHandle> ElementUtilities::GetFontFaceHandle(const Style::Compu
 	const String& charset = (computed_values.font_charset.empty() ? default_charset : computed_values.font_charset);
 	int font_size = (int)computed_values.font_size;
 
-	// TODO Synchronize enums
-	return FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, (Font::Style)computed_values.font_style, (Font::Weight)computed_values.font_weight, font_size);
+	return FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, computed_values.font_style, computed_values.font_weight, font_size);
 }
 
 float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
