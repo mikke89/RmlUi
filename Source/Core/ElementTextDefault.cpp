@@ -281,9 +281,6 @@ void ElementTextDefault::AddLine(const Vector2f& line_position, const WString& l
 	lines.push_back(Line(line, baseline_position));
 
 	geometry_dirty = true;
-
-	if (decoration_property != Style::TextDecoration::None)
-		GenerateDecoration(font_face_handle, lines.back());
 }
 
 // Prevents the element from dirtying its document's layout when its text is changed.
@@ -423,6 +420,9 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle
 	line.width = font_face_handle->GenerateString(geometry, line.text, line.position, colour, font_configuration);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
+
+	if (decoration_property != Style::TextDecoration::None)
+		GenerateDecoration(font_face_handle, line);
 }
 
 // Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).

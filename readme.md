@@ -253,6 +253,7 @@ Two new CMake options added.
 - `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
 - The system interface now has two new functions for setting and getting text to and from the clipboard: `virtual void SystemInterface::SetClipboardText(const Core::WString& text)` and `virtual void SystemInterface::GetClipboardText(Core::WString& text)`.
 - The debugger now has the ability to clear the log. Additionally, the displayed element information updates when the element changes.
+- The `text-decoration` property can now also be used with `overline` and `line-through`.
 
 
 ### Breaking changes

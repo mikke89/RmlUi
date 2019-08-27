@@ -340,7 +340,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterShorthand(ShorthandId::Font, FONT, "font-style, font-weight, font-size, font-family, font-charset", ShorthandType::FallThrough);
 
 	RegisterProperty(PropertyId::TextAlign, TEXT_ALIGN, LEFT, true, true).AddParser("keyword", "left, right, center, justify");
-	RegisterProperty(PropertyId::TextDecoration, TEXT_DECORATION, "none", true, false).AddParser("keyword", "none, underline"/*"none, underline, overline, line-through"*/);
+	RegisterProperty(PropertyId::TextDecoration, TEXT_DECORATION, "none", true, false).AddParser("keyword", "none, underline, overline, line-through");
 	RegisterProperty(PropertyId::TextTransform, TEXT_TRANSFORM, "none", true, true).AddParser("keyword", "none, capitalize, uppercase, lowercase");
 	RegisterProperty(PropertyId::WhiteSpace, WHITE_SPACE, "normal", true, true).AddParser("keyword", "normal, pre, nowrap, pre-wrap, pre-line");
 

@@ -264,10 +264,10 @@ void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, 
 	float offset;
 	switch (height)
 	{
-		case Font::UNDERLINE:			offset = -underline_position; break;
-		case Font::OVERLINE:			// where to place? offset = -line_height - underline_position; break;
-		case Font::STRIKE_THROUGH:		// where to place? offset = -line_height * 0.5f; break;
-		default:						return;
+		case Font::UNDERLINE:       offset = -underline_position; break;
+		case Font::OVERLINE:        offset = -underline_position - (float)size; break;
+		case Font::STRIKE_THROUGH:  offset = -0.65f * (float)x_height; break; // or maybe: -underline_position - (float)size * 0.5f
+		default: return;
 	}
 
 	line_vertices.resize(line_vertices.size() + 4);
