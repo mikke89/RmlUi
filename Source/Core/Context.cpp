@@ -989,7 +989,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 }
 
 // Returns the youngest descendent of the given element which is under the given point in screen coodinates.
-Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_element, Element* element)
+Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_element, Element* element) const
 {
 	if (element == nullptr)
 	{

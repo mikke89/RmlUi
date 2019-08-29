@@ -127,14 +127,19 @@ public:
 	/// Returns the hover element.
 	/// @return The element the mouse cursor is hovering over. The element is returned with a borrowed reference.
 	Element* GetHoverElement();
-
 	/// Returns the focus element.
 	/// @return The element with input focus. The element is returned with a borrowed reference.
 	Element* GetFocusElement();
-
 	/// Returns the root element that holds all the documents
 	/// @return The root element. The element is returned with a borrowed reference.
 	Element* GetRootElement();
+
+	// Returns the youngest descendent of the given element which is under the given point in screen coordinates.
+	// @param[in] point The point to test.
+	// @param[in] ignore_element If set, this element and its descendents will be ignored.
+	// @param[in] element Used internally.
+	// @return The element under the point, or nullptr if nothing is.
+	Element* GetElementAtPoint(Vector2f point, const Element* ignore_element = nullptr, Element* element = nullptr) const;
 
 	/// Brings the document to the front of the document stack.
 	/// @param[in] document The document to pull to the front of the stack.
@@ -285,12 +290,6 @@ private:
 
 	// Updates the current hover elements, sending required events.
 	void UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, const Vector2i& old_mouse_position);
-	// Returns the youngest descendent of the given element which is under the given point in screen coordinates.
-	// @param[in] point The point to test.
-	// @param[in] ignore_element If set, this element and its descendents will be ignored.
-	// @param[in] element Used internally.
-	// @return The element under the point, or nullptr if nothing is.
-	Element* GetElementAtPoint(Vector2f point, const Element* ignore_element = nullptr, Element* element = nullptr);
 
 	// Creates the drag clone from the given element. The old drag clone will be released if
 	// necessary.
