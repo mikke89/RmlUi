@@ -29,16 +29,18 @@
 #ifndef RMLUICOREFONTDATABASE_H
 #define RMLUICOREFONTDATABASE_H
 
-#include "StringUtilities.h"
-#include "Header.h"
+#include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/Header.h>
 #include "FontProvider.h"
 
 namespace Rml {
 namespace Core {
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 class FontEffect;
 class FontFamily;
-class FontFaceHandle;
+class FontFaceHandleDefault;
 class PropertyDictionary;
 
 /**
@@ -47,7 +49,7 @@ class PropertyDictionary;
 	@author Peter Curry
  */
 
-class RMLUICORE_API FontDatabase
+class RMLUICORE_API FontDatabaseDefault
 {
 public:
 
@@ -94,23 +96,25 @@ public:
 	/// @param[in] weight The weight of the desired font handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	static SharedPtr<FontFaceHandle> GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size);
+	static SharedPtr<FontFaceHandleDefault> GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size);
 
     static void AddFontProvider(FontProvider * provider);
 
     static void RemoveFontProvider(FontProvider * provider);
 
 private:
-	FontDatabase(void);
-	~FontDatabase(void);
+	FontDatabaseDefault(void);
+	~FontDatabaseDefault(void);
 
     static FontProviderType GetFontProviderType(const String& file_name);
 
     typedef std::vector< FontProvider *> FontProviderTable;
 
     static FontProviderTable font_provider_table;
-	static FontDatabase* instance;
+	static FontDatabaseDefault* instance;
 };
+
+#endif
 
 }
 }

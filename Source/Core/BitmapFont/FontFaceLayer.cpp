@@ -44,7 +44,7 @@ BitmapFont::FontFaceLayer::~FontFaceLayer()
 }
 
 // Generates the character and texture data for the layer.
-bool BitmapFont::FontFaceLayer::Initialise(const Rml::Core::FontFaceHandle* _handle, SharedPtr<const FontEffect> _effect, const Rml::Core::FontFaceLayer* clone, bool deep_clone)
+bool BitmapFont::FontFaceLayer::Initialise(const Rml::Core::FontFaceHandleDefault* _handle, SharedPtr<const FontEffect> _effect, const Rml::Core::FontFaceLayer* clone, bool deep_clone)
 {
 	(void)(_effect);
 

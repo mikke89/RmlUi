@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core.h"
 #include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
+#include "FontSubsystemInterfaceDefault.h"
 #include "PluginRegistry.h"
 #include "StyleSheetFactory.h"
 #include "TemplateCache.h"
@@ -45,9 +46,13 @@ static RenderInterface* render_interface = nullptr;
 static SystemInterface* system_interface = nullptr;
 // RmlUi's file I/O interface.
 static FileInterface* file_interface = nullptr;
+// RmlUi's font subsystem interface.
+static FontSubsystemInterface* font_interface = nullptr;
 
 // Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
 static UniquePtr<FileInterface> default_file_interface;
+
+static UniquePtr<FontSubsystemInterface> default_font_interface;
 
 static bool initialised = false;
 
@@ -85,7 +90,16 @@ bool Initialise()
 
 	TextureDatabase::Initialise();
 
-	FontDatabase::Initialise();
+	if (!font_interface)
+	{
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+		default_font_interface = std::make_unique<FontSubsystemInterfaceDefault>();
+		font_interface = default_font_interface.get();
+#else
+		Log::Message(Log::LT_ERROR, "No font interface set!");
+		return false;
+#endif
+	}
 
 	StyleSheetSpecification::Initialise();
 	StyleSheetFactory::Initialise();
@@ -113,7 +127,6 @@ void Shutdown()
 	TemplateCache::Shutdown();
 	StyleSheetFactory::Shutdown();
 	StyleSheetSpecification::Shutdown();
-	FontDatabase::Shutdown();
 	TextureDatabase::Shutdown();
 	Factory::Shutdown();
 
@@ -124,8 +137,10 @@ void Shutdown()
 	render_interface = nullptr;
 	file_interface = nullptr;
 	system_interface = nullptr;
+	font_interface = nullptr;
 
 	default_file_interface.reset();
+	default_font_interface.reset();
 }
 
 // Returns the version of this RmlUi library.
@@ -168,6 +183,18 @@ void SetFileInterface(FileInterface* _file_interface)
 FileInterface* GetFileInterface()
 {
 	return file_interface;
+}
+
+// Sets the interface through which all font requests are made.
+void SetFontSubsystemInterface(FontSubsystemInterface* _font_interface)
+{
+	font_interface = _font_interface;
+}
+	
+// Returns RmlUi's file interface.
+FontSubsystemInterface* GetFontSubsystemInterface()
+{
+	return font_interface;
 }
 
 // Creates a new element context.

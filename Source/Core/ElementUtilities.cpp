@@ -32,7 +32,7 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include <queue>
 #include <limits>
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include "LayoutEngine.h"
 #include "ElementStyle.h"
 
@@ -139,7 +139,7 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 }
 
 // Returns the element's font face.
-SharedPtr<FontFaceHandle> ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
+FontFaceHandle ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
 {
 	RMLUI_ZoneScoped;
 
@@ -148,7 +148,7 @@ SharedPtr<FontFaceHandle> ElementUtilities::GetFontFaceHandle(const Style::Compu
 	const String& charset = (computed_values.font_charset.empty() ? default_charset : computed_values.font_charset);
 	int font_size = (int)computed_values.font_size;
 
-	return FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, computed_values.font_style, computed_values.font_weight, font_size);
+	return GetFontSubsystemInterface()->GetFontFaceHandle(computed_values.font_family, charset, computed_values.font_style, computed_values.font_weight, font_size);
 }
 
 float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
@@ -163,11 +163,11 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 // Returns the width of a string rendered within the context of the given element.
 int ElementUtilities::GetStringWidth(Element* element, const WString& string)
 {
-	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
-	if (font_face_handle == nullptr)
+	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
+	if (font_face_handle == 0)
 		return 0;
 
-	return font_face_handle->GetStringWidth(string);
+	return GetFontSubsystemInterface()->GetStringWidth(font_face_handle, string);
 }
 
 void ElementUtilities::BindEventAttributes(Element* element)

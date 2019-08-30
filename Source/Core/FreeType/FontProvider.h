@@ -29,15 +29,15 @@
 #ifndef RMLUICOREFREETYPEFONTPROVIDER_H
 #define RMLUICOREFREETYPEFONTPROVIDER_H
 
-#include "../StringUtilities.h"
+#include <RmlUi/Core/StringUtilities.h>
 #include "../FontProvider.h"
 
 namespace Rml {
 namespace Core {
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 
 class FontEffect;
-class FontFaceHandle;
 class PropertyDictionary;
 
 namespace FreeType {
@@ -95,6 +95,9 @@ private:
 };
 
 }
+
+#endif
+
 }
 }
 

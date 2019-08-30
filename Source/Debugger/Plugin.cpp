@@ -277,8 +277,9 @@ Plugin* Plugin::GetInstance()
 
 bool Plugin::LoadFont()
 {
-	return (Core::FontDatabase::LoadFontFace(Core::FontDatabase::FreeType, lacuna_regular, sizeof(lacuna_regular) / sizeof(unsigned char), "Lacuna", Core::Style::FontStyle::Normal, Core::Style::FontWeight::Normal) &&
-			Core::FontDatabase::LoadFontFace(Core::FontDatabase::FreeType, lacuna_italic, sizeof(lacuna_italic) / sizeof(unsigned char), "Lacuna", Core::Style::FontStyle::Italic, Core::Style::FontWeight::Normal));
+	//return (Core::GetFontSubsystemInterface()->LoadFontFace(lacuna_regular, sizeof(lacuna_regular) / sizeof(unsigned char), "Lacuna", Core::Style::FontStyle::Normal, Core::Style::FontWeight::Normal) &&
+	//		Core::GetFontSubsystemInterface()->LoadFontFace(lacuna_italic, sizeof(lacuna_italic) / sizeof(unsigned char), "Lacuna", Core::Style::FontStyle::Italic, Core::Style::FontWeight::Normal));
+	return true;
 }
 
 bool Plugin::LoadMenuElement()

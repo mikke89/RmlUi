@@ -27,8 +27,8 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/RmlUi/Core/FontFamily.h"
-#include "../../Include/RmlUi/Core/FontFace.h"
+#include "FontFamily.h"
+#include "FontFace.h"
 
 namespace Rml {
 namespace Core {
@@ -44,7 +44,7 @@ FontFamily::~FontFamily()
 }
 
 // Returns a handle to the most appropriate font in the family, at the correct size.
-SharedPtr<FontFaceHandle> FontFamily::GetFaceHandle(const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
+SharedPtr<FontFaceHandleDefault> FontFamily::GetFaceHandle(const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	// Search for a face of the same style, and match the weight as closely as we can.
 	FontFace* matching_face = nullptr;

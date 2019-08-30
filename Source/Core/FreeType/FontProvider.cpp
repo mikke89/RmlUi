@@ -27,9 +27,9 @@
  */
 
 #include "precompiled.h"
-#include <RmlUi/Core/FreeType/FontProvider.h>
+#include "FontProvider.h"
 #include "FontFaceHandle.h"
-#include <RmlUi/Core/FontDatabase.h>
+#include "../FontDatabaseDefault.h"
 #include "FontFamily.h"
 #include <RmlUi/Core.h>
 #include <ft2build.h>
@@ -61,7 +61,7 @@ bool FontProvider::Initialise()
 	{
 		new FontProvider();
 
-		FontDatabase::AddFontProvider(instance);
+		FontDatabaseDefault::AddFontProvider(instance);
 
 		FT_Error result = FT_Init_FreeType(&ft_library);
 		if (result != 0)
@@ -88,7 +88,7 @@ void FontProvider::Shutdown()
 			ft_library = nullptr;
 		}
 
-		FontDatabase::RemoveFontProvider(instance);
+		FontDatabaseDefault::RemoveFontProvider(instance);
 		delete instance;
 		instance = nullptr;
 	}

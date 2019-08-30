@@ -33,7 +33,7 @@ namespace Rml {
 namespace Core {
 
 
-const Style::ComputedValues DefaultComputedValues;
+const Style::ComputedValues DefaultComputedValues = Style::ComputedValues{};
 
 static constexpr float PixelsPerInch = 96.0f;
 

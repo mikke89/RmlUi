@@ -27,7 +27,7 @@
  */
 
 #include "precompiled.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include <algorithm>
 #include "../../Include/RmlUi/Core.h"
 #include "FontFaceLayer.h"
@@ -36,7 +36,9 @@
 namespace Rml {
 namespace Core {
 
-FontFaceHandle::FontFaceHandle()
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+	
+FontFaceHandleDefault::FontFaceHandleDefault()
 {
 	size = 0;
 	average_advance = 0;
@@ -50,7 +52,7 @@ FontFaceHandle::FontFaceHandle()
 	base_layer = nullptr;
 }
 
-FontFaceHandle::~FontFaceHandle()
+FontFaceHandleDefault::~FontFaceHandleDefault()
 {
 	for (FontGlyphList::iterator i = glyphs.begin(); i != glyphs.end(); ++i)
 		delete[] i->bitmap_data;
@@ -60,43 +62,51 @@ FontFaceHandle::~FontFaceHandle()
 }
 
 // Returns the point size of this font face.
-int FontFaceHandle::GetSize() const
+int FontFaceHandleDefault::GetSize() const
 {
 	return size;
 }
 
 // Returns the average advance of all glyphs in this font face.
-int FontFaceHandle::GetCharacterWidth() const
+int FontFaceHandleDefault::GetCharacterWidth() const
 {
 	return average_advance;
 }
 
 // Returns the pixel height of a lower-case x in this font face.
-int FontFaceHandle::GetXHeight() const
+int FontFaceHandleDefault::GetXHeight() const
 {
 	return x_height;
 }
 
 // Returns the default height between this font face's baselines.
-int FontFaceHandle::GetLineHeight() const
+int FontFaceHandleDefault::GetLineHeight() const
 {
 	return line_height;
 }
 
 // Returns the font's baseline.
-int FontFaceHandle::GetBaseline() const
+int FontFaceHandleDefault::GetBaseline() const
 {
 	return baseline;
 }
 
 // Returns the font's glyphs.
-const FontGlyphList& FontFaceHandle::GetGlyphs() const
+const FontGlyphList& FontFaceHandleDefault::GetGlyphs() const
 {
 	return glyphs;
 }
 
+float FontFaceHandleDefault::GetUnderline(float *thickness) const
+{
+	if (thickness != nullptr) {
+		*thickness = underline_thickness;
+	}
+	return underline_position;
+}
+
 // Returns the width a string will take up if rendered with this handle.
-int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) const
+int FontFaceHandleDefault::GetStringWidth(const WString& string, word prior_character) const
 {
 	int width = 0;
 
@@ -121,7 +131,7 @@ int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) 
 }
 
 // Generates, if required, the layer configuration for a given array of font effects.
-int FontFaceHandle::GenerateLayerConfiguration(const FontEffectList& font_effects)
+int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font_effects)
 {
 	if (font_effects.empty())
 		return 0;
@@ -184,7 +194,7 @@ int FontFaceHandle::GenerateLayerConfiguration(const FontEffectList& font_effect
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id)
+bool FontFaceHandleDefault::GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id)
 {
 	FontLayerMap::iterator layer_iterator = layers.find(layer_id);
 	if (layer_iterator == layers.end())
@@ -194,7 +204,7 @@ bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& t
 }
 
 // Generates the geometry required to render a single line of text.
-int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index) const
+int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index) const
 {
 	int geometry_index = 0;
 	int line_width = 0;
@@ -255,52 +265,25 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 	return line_width;
 }
 
-// Generates the geometry required to render a line above, below or through a line of text.
-void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration height, const Colourb& colour) const
-{
-	std::vector< Vertex >& line_vertices = geometry->GetVertices();
-	std::vector< int >& line_indices = geometry->GetIndices();
-
-	float offset;
-	switch (height)
-	{
-	case Style::TextDecoration::Underline:       offset = -underline_position; break;
-	case Style::TextDecoration::Overline:        offset = -underline_position - (float)size; break;
-	case Style::TextDecoration::LineThrough:     offset = -0.65f * (float)x_height; break; // or maybe: -underline_position - (float)size * 0.5f
-	default: return;
-	}
-
-	line_vertices.resize(line_vertices.size() + 4);
-	line_indices.resize(line_indices.size() + 6);
-	GeometryUtilities::GenerateQuad(
-		&line_vertices[0] + ((int)line_vertices.size() - 4),
-		&line_indices[0] + ((int)line_indices.size() - 6),
-		Vector2f(position.x, position.y + offset).Round(),
-		Vector2f((float) width, underline_thickness),
-		colour, 
-		(int)line_vertices.size() - 4
-	);
-}
-
 // Returns the font face's raw charset (the charset range as a string).
-const String& FontFaceHandle::GetRawCharset() const
+const String& FontFaceHandleDefault::GetRawCharset() const
 {
 	return raw_charset;
 }
 
 // Returns the font face's charset.
-const UnicodeRangeList& FontFaceHandle::GetCharset() const
+const UnicodeRangeList& FontFaceHandleDefault::GetCharset() const
 {
 	return charset;
 }
 
-Rml::Core::FontFaceLayer* FontFaceHandle::CreateNewLayer()
+Rml::Core::FontFaceLayer* FontFaceHandleDefault::CreateNewLayer()
 {
 	return new Rml::Core::FontFaceLayer();
 }
 
 // Generates (or shares) a layer derived from a font effect.
-FontFaceLayer* FontFaceHandle::GenerateLayer(const SharedPtr<const FontEffect>& font_effect)
+FontFaceLayer* FontFaceHandleDefault::GenerateLayer(const SharedPtr<const FontEffect>& font_effect)
 {
 	// See if this effect has been instanced before, as part of a different configuration.
 	FontLayerMap::iterator i = layers.find(font_effect.get());
@@ -344,6 +327,8 @@ FontFaceLayer* FontFaceHandle::GenerateLayer(const SharedPtr<const FontEffect>& 
 
 	return layer;
 }
+
+#endif
 
 }
 }

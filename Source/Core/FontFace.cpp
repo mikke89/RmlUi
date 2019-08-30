@@ -27,8 +27,8 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/RmlUi/Core/FontFace.h"
-#include "FontFaceHandle.h"
+#include "FontFace.h"
+#include "FontFaceHandleDefault.h"
 #include "../../Include/RmlUi/Core/Log.h"
 
 namespace Rml {

@@ -28,7 +28,7 @@
 
 #include "precompiled.h"
 #include "LayoutInlineBoxText.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include "LayoutEngine.h"
 #include "LayoutLineBox.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
@@ -97,9 +97,9 @@ void LayoutInlineBoxText::OffsetBaseline(float ascender)
 	// Calculate the leading (the difference between font height and line height).
 	float leading = 0;
 
-	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
-	if (font_face_handle != nullptr)
-		leading = height - font_face_handle->GetLineHeight();
+	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
+	if (font_face_handle != 0)
+		leading = height - GetFontSubsystemInterface()->GetLineHeight(font_face_handle);
 
 	// Offset by the half-leading.
 	position.y += leading * 0.5f;
@@ -151,8 +151,8 @@ void LayoutInlineBoxText::BuildWordBox()
 	ElementText* text_element = GetTextElement();
 	RMLUI_ASSERT(text_element != nullptr);
 
-	FontFaceHandle* font_face_handle = text_element->GetFontFaceHandle();
-	if (font_face_handle == nullptr)
+	FontFaceHandle font_face_handle = text_element->GetFontFaceHandle();
+	if (font_face_handle == 0)
 	{
 		height = 0;
 		baseline = 0;

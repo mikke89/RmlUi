@@ -36,7 +36,7 @@ namespace Core {
 
 class Element;
 class ElementText;
-class FontFaceHandle;
+class FontFaceHandleDefault;
 class LayoutBlockBox;
 class LayoutLineBox;
 
@@ -138,7 +138,7 @@ public:
 protected:
 	/// Returns our parent box's font face handle.
 	/// @return The font face handle of our parent box.
-	FontFaceHandle* GetParentFont() const;
+	FontFaceHandle GetParentFont() const;
 
 	// The box's element.
 	Element* element;

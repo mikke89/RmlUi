@@ -30,7 +30,7 @@
 #define RMLUICOREFREETYPEFONTFACEHANDLE_H
 
 #include "../UnicodeRange.h"
-#include "../FontFaceHandle.h"
+#include "../FontFaceHandleDefault.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
@@ -47,7 +47,7 @@ namespace FreeType {
 	@author Peter Curry
  */
 
-class FontFaceHandle : public Rml::Core::FontFaceHandle
+class FontFaceHandle : public Rml::Core::FontFaceHandleDefault
 {
 public:
 	FontFaceHandle();

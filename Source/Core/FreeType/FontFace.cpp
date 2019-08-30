@@ -46,7 +46,7 @@ FontFace::~FontFace()
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-SharedPtr<Rml::Core::FontFaceHandle> FontFace::GetHandle(const String& _raw_charset, int size)
+SharedPtr<Rml::Core::FontFaceHandleDefault> FontFace::GetHandle(const String& _raw_charset, int size)
 {
 	UnicodeRangeList charset;
 

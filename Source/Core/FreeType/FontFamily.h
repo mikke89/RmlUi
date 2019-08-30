@@ -29,7 +29,7 @@
 #ifndef RMLUICOREFREETYPEFONTFAMILY_H
 #define RMLUICOREFREETYPEFONTFAMILY_H
 
-#include <RmlUi/Core/FontFamily.h>
+#include "../FontFamily.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -37,7 +37,6 @@ namespace Rml {
 namespace Core {
 
 class FontFace;
-class FontFaceHandle;
 
 /**
 	@author Peter Curry

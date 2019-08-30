@@ -28,7 +28,7 @@
 
 #include "precompiled.h"
 #include "LayoutInlineBox.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
@@ -57,11 +57,11 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 	}
 	else
 	{
-		FontFaceHandle* font_face = element->GetFontFaceHandle();
-		if (font_face != nullptr)
+		FontFaceHandle font_face = element->GetFontFaceHandle();
+		if (font_face != 0)
 		{
 			height = element->GetLineHeight();
-			baseline = (height - font_face->GetLineHeight()) * 0.5f + font_face->GetBaseline();
+			baseline = (height - GetFontSubsystemInterface()->GetLineHeight(font_face)) * 0.5f + GetFontSubsystemInterface()->GetBaseline(font_face);
 		}
 		else
 		{
@@ -179,10 +179,10 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		// The middle of this box is aligned with the baseline of its parent's plus half an ex.
 		case VerticalAlign::Middle:
 		{
-			FontFaceHandle* parent_font = GetParentFont();
+			FontFaceHandle parent_font = GetParentFont();
 			int x_height = 0;
-			if (parent_font != nullptr)
-				x_height = parent_font->GetXHeight() / -2;
+			if (parent_font != 0)
+				x_height = GetFontSubsystemInterface()->GetXHeight(parent_font) / -2;
 
 			SetVerticalPosition(x_height + (height / 2 - baseline));
 		}
@@ -191,44 +191,44 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 		// This box's baseline is offset from its parent's so it is appropriate for rendering subscript.
 		case VerticalAlign::Sub:
 		{
-			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == nullptr)
+			FontFaceHandle parent_font = GetParentFont();
+			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(float(parent_font->GetLineHeight()) * 0.2f);
+				SetVerticalPosition(float(GetFontSubsystemInterface()->GetLineHeight(parent_font)) * 0.2f);
 		}
 		break;
 
 		// This box's baseline is offset from its parent's so it is appropriate for rendering superscript.
 		case VerticalAlign::Super:
 		{
-			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == nullptr)
+			FontFaceHandle parent_font = GetParentFont();
+			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(float(-1 * parent_font->GetLineHeight()) * 0.4f);
+				SetVerticalPosition(float(-1 * GetFontSubsystemInterface()->GetLineHeight(parent_font)) * 0.4f);
 		}
 		break;
 
 		// The top of this box is aligned to the top of its parent's font.
 		case VerticalAlign::TextTop:
 		{
-			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == nullptr)
+			FontFaceHandle parent_font = GetParentFont();
+			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition((height - baseline) - (parent_font->GetLineHeight() - parent_font->GetBaseline()));
+				SetVerticalPosition((height - baseline) - (GetFontSubsystemInterface()->GetLineHeight(parent_font) - GetFontSubsystemInterface()->GetBaseline(parent_font)));
 		}
 		break;
 
 		// The bottom of this box is aligned to the bottom of its parent's font (not the baseline).
 		case VerticalAlign::TextBottom:
 		{
-			FontFaceHandle* parent_font = GetParentFont();
-			if (parent_font == nullptr)
+			FontFaceHandle parent_font = GetParentFont();
+			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(parent_font->GetBaseline() - baseline);
+				SetVerticalPosition(GetFontSubsystemInterface()->GetBaseline(parent_font) - baseline);
 		}
 		break;
 
@@ -407,7 +407,7 @@ void LayoutInlineBox::operator delete(void* chunk)
 }
 
 // Returns our parent box's font face handle.
-FontFaceHandle* LayoutInlineBox::GetParentFont() const
+FontFaceHandle LayoutInlineBox::GetParentFont() const
 {
 	if (parent == nullptr)
 		return line->GetBlockBox()->GetParent()->GetElement()->GetFontFaceHandle();

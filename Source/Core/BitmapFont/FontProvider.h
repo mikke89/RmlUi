@@ -29,7 +29,7 @@
 #ifndef RMLUICOREBITMAPFONTFONTPROVIDER_H
 #define RMLUICOREBITMAPFONTFONTPROVIDER_H
 
-#include "../StringUtilities.h"
+#include <RmlUi/Core/StringUtilities.h>
 #include "../FontProvider.h"
 
 namespace Rml {
@@ -37,7 +37,6 @@ namespace Core {
 
 
 class FontEffect;
-class FontFaceHandle;
 class PropertyDictionary;
 
 namespace BitmapFont {

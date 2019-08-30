@@ -29,14 +29,13 @@
 #ifndef RMLUICOREBITMAPFONTFAMILY_H
 #define RMLUICOREBITMAPFONTFAMILY_H
 
-#include "../../../Include/RmlUi/Core/FontFamily.h"
+#include "../FontFamily.h"
 #include "BitmapFontDefinitions.h"
 
 namespace Rml {
 namespace Core {
 
 class FontFace;
-class FontFaceHandle;
 
 namespace BitmapFont {
 

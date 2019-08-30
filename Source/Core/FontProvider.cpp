@@ -27,14 +27,16 @@
  */
 
 #include "precompiled.h"
-#include <RmlUi/Core/FontProvider.h>
-#include <RmlUi/Core/FontFamily.h>
+#include "FontProvider.h"
+#include "FontFamily.h"
 
 namespace Rml {
 namespace Core {
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 // Returns a handle to a font face that can be used to position and render text.
-SharedPtr<FontFaceHandle> FontProvider::GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
+SharedPtr<FontFaceHandleDefault> FontProvider::GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	RMLUI_ASSERTMSG(family == StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
 	FontFamilyMap::iterator iterator = font_families.find(family);
@@ -43,6 +45,8 @@ SharedPtr<FontFaceHandle> FontProvider::GetFontFaceHandle(const String& family, 
 
 	return (*iterator).second->GetFaceHandle(charset, style, weight, size);
 }
+
+#endif
 
 }
 }

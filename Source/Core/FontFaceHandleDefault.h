@@ -39,17 +39,19 @@
 namespace Rml {
 namespace Core {
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 class FontFaceLayer;
 
 /**
 	@author Peter Curry
  */
 
-class FontFaceHandle : public NonCopyMoveable
+class FontFaceHandleDefault : public NonCopyMoveable
 {
 public:
-	FontFaceHandle();
-	virtual ~FontFaceHandle();
+	FontFaceHandleDefault();
+	virtual ~FontFaceHandleDefault();
 
 	/// Returns the average advance of all glyphs in this font face.
 	/// @return An approximate width of the characters in this font face.
@@ -68,6 +70,10 @@ public:
 	/// Returns the font's baseline, as a pixel offset from the bottom of the font.
 	/// @return The font's baseline.
 	int GetBaseline() const;
+
+	/// Returns the font's underline, as a pixel offset from the bottom of the font.
+	/// @return The font's underline thickness.
+	float GetUnderline(float *thickness) const;
 
 	/// Returns the font's glyphs.
 	/// @return The font's glyphs.
@@ -156,6 +162,8 @@ protected:
 	UnicodeRangeList charset;
 	unsigned int max_codepoint;
 };
+
+#endif
 
 }
 }

@@ -63,6 +63,14 @@ public:
 	/// @param[in] bottom_right_texcoord The texture coordinates at the bottom-right of the quad.
 	/// @param[in] index_offset The offset to be added to the generated indices; this should be the number of vertices already in the array.
 	static void GenerateQuad(Vertex* vertices, int* indices, const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour, const Vector2f& top_left_texcoord, const Vector2f& bottom_right_texcoord, int index_offset = 0);
+	
+	/// Generates the geometry required to render a line above, below or through a line of text.
+	/// @param[out] geometry The geometry to append the newly created geometry into.
+	/// @param[in] position The position of the baseline of the lined text.
+	/// @param[in] width The width of the string to line.
+	/// @param[in] decoration_type The type for vertical positioning of line.
+	/// @param[in] colour The colour to draw the line in.
+	static void GenerateLine(FontFaceHandle font_face_handle, Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration decoration_type, const Colourb& colour);
 
 private:
 	GeometryUtilities();

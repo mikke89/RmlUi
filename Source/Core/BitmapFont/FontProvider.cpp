@@ -27,9 +27,9 @@
  */
 
 #include "precompiled.h"
-#include <RmlUi/Core/BitmapFont/FontProvider.h>
-#include "../FontFaceHandle.h"
-#include <RmlUi/Core/FontDatabase.h>
+#include "FontProvider.h"
+#include "FontFaceHandle.h"
+#include "../FontDatabaseDefault.h"
 #include <RmlUi/Core/StreamMemory.h>
 #include "FontFamily.h"
 #include <RmlUi/Core.h>
@@ -59,7 +59,7 @@ bool BitmapFont::FontProvider::Initialise()
 	{
 		new FontProvider();
 
-		FontDatabase::AddFontProvider(instance);
+		FontDatabaseDefault::AddFontProvider(instance);
 	}
 
 	return true;
@@ -69,7 +69,7 @@ void BitmapFont::FontProvider::Shutdown()
 {
 	if (instance != nullptr)
 	{
-		FontDatabase::RemoveFontProvider(instance);
+		FontDatabaseDefault::RemoveFontProvider(instance);
 		delete instance;
 		instance = nullptr;
 	}

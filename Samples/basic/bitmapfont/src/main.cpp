@@ -103,7 +103,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	shell_renderer->SetContext(context);
 
     // Load bitmap font
-    Rml::Core::FontDatabase::LoadFontFace("assets/Arial.fnt");
+    Rml::Core::GetFontSubsystemInterface()->LoadFontFace("assets/Arial.fnt");
 	
     // Load and show the demo document.
 	if(Rml::Core::ElementDocument* document = context->LoadDocument("assets/bitmapfont.rml"))
