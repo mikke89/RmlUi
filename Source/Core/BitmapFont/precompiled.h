@@ -29,6 +29,10 @@
 #ifndef RMLUICOREBITMAPFONTPRECOMPILED_H
 #define RMLUICOREBITMAPFONTPRECOMPILED_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../precompiled.h"
+
+#endif
 
 #endif

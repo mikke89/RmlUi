@@ -29,6 +29,8 @@
 #ifndef RMLUICOREBITMAPFONTFACE_H
 #define RMLUICOREBITMAPFONTFACE_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../FontFace.h"
 #include "BitmapFontDefinitions.h"
 
@@ -65,5 +67,7 @@ private:
 }
 }
 }
+
+#endif
 
 #endif

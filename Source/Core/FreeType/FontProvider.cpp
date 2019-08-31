@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontProvider.h"
 #include "FontFaceHandle.h"
 #include "../FontDatabaseDefault.h"
@@ -260,3 +263,5 @@ void* FontProvider::LoadFace(const byte* data, int data_length, const String& so
 }
 }
 }
+
+#endif

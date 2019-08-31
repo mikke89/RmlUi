@@ -29,6 +29,8 @@
 #ifndef RMLUICOREBITMAPFONTFAMILY_H
 #define RMLUICOREBITMAPFONTFAMILY_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../FontFamily.h"
 #include "BitmapFontDefinitions.h"
 
@@ -61,5 +63,7 @@ public:
 }
 }
 }
+
+#endif
 
 #endif

@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFamily.h"
 #include "FontFace.h"
 
@@ -52,3 +55,5 @@ bool BitmapFont::FontFamily::AddFace( void *bm_face, Style::FontStyle style, Sty
 
 }
 }
+
+#endif

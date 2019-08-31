@@ -29,6 +29,8 @@
 #ifndef RMLUICOREFREETYPEFONTFACE_H
 #define RMLUICOREFREETYPEFONTFACE_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../FontFace.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -65,5 +67,7 @@ private:
 }
 }
 }
+
+#endif
 
 #endif

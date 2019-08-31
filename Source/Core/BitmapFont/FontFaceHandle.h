@@ -29,6 +29,8 @@
 #ifndef RMLUICOREBITMAPFONTFONTFACEHANDLE_H
 #define RMLUICOREBITMAPFONTFONTFACEHANDLE_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../UnicodeRange.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
@@ -90,5 +92,7 @@ private:
 }
 }
 }
+
+#endif
 
 #endif

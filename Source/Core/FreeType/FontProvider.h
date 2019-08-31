@@ -29,6 +29,8 @@
 #ifndef RMLUICOREFREETYPEFONTPROVIDER_H
 #define RMLUICOREFREETYPEFONTPROVIDER_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include <RmlUi/Core/StringUtilities.h>
 #include "../FontProvider.h"
 
@@ -100,5 +102,7 @@ private:
 
 }
 }
+
+#endif
 
 #endif

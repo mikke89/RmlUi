@@ -29,6 +29,8 @@
 #ifndef RMLUICOREFREETYPEFONTFACEHANDLE_H
 #define RMLUICOREFREETYPEFONTFACEHANDLE_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../UnicodeRange.h"
 #include "../FontFaceHandleDefault.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"
@@ -75,5 +77,7 @@ private:
 }
 }
 }
+
+#endif
 
 #endif

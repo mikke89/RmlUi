@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFaceLayer.h"
 #include "FontFaceHandle.h"
 
@@ -124,3 +127,5 @@ bool BitmapFont::FontFaceLayer::GenerateTexture(const byte*& texture_data, Vecto
 
 }
 }
+
+#endif

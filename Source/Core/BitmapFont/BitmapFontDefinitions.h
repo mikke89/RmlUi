@@ -29,6 +29,8 @@
 #ifndef BITMAPFONTDEFINITIONS_H
 #define BITMAPFONTDEFINITIONS_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include <RmlUi/Core/Header.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Dictionary.h>
@@ -145,4 +147,7 @@ namespace BitmapFont {
 }
 }
 }
+
+#endif
+
 #endif

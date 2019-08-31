@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFace.h"
 #include "FontFaceHandle.h"
 #include "../../../Include/RmlUi/Core/Log.h"
@@ -133,3 +136,5 @@ void FontFace::ReleaseFace()
 }
 }
 }
+
+#endif

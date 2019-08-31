@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFace.h"
 #include "FontFaceHandle.h"
 #include <RmlUi/Core/Log.h>
@@ -122,3 +125,5 @@ void BitmapFont::FontFace::ReleaseFace()
 
 }
 }
+
+#endif

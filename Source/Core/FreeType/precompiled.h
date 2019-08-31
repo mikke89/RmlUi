@@ -29,6 +29,10 @@
 #ifndef RMLUICOREFREETYPEFONTPRECOMPILED_H
 #define RMLUICOREFREETYPEFONTPRECOMPILED_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../precompiled.h"
+
+#endif
 
 #endif

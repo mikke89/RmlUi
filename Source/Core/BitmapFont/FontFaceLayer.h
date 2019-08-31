@@ -29,6 +29,8 @@
 #ifndef RMLUICOREBITMAPFONTFACELAYER_H
 #define RMLUICOREBITMAPFONTFACELAYER_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include <RmlUi/Core/Header.h>
 #include <RmlUi/Core/FontGlyph.h>
 #include <RmlUi/Core/Geometry.h>
@@ -74,5 +76,7 @@ public:
 }
 }
 }
+
+#endif
 
 #endif
