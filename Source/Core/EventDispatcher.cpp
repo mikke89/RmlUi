@@ -208,9 +208,12 @@ void EventDispatcher::TriggerEvents(Event& event, DefaultActionPhase default_act
 	else if (phase == EventPhase::Bubble)
 		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, false), CompareIdPhase());
 
-	for (auto it = begin; it != end; ++it)
+	// Convert to indices. If any listeners are added or removed during ProcessEvent, this guards against iterator invalidation.
+	// Note: The result of listener add/remove may then instead be that a listener is skipped or repeated.
+	const size_t i_end = (size_t)(end - listeners.begin());
+	for (size_t i = (size_t)(begin - listeners.begin()); i < i_end && i < listeners.size(); ++i)
 	{
-		it->listener->ProcessEvent(event);
+		listeners[i].listener->ProcessEvent(event);
 	}
 
 	const bool do_default_action = ((unsigned int)phase & (unsigned int)default_action_phase);
