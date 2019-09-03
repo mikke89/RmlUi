@@ -189,4 +189,12 @@ using FontEffectsPtr = SharedPtr<const FontEffects>;
 }
 }
 
+namespace std {
+// Hash specialization for enum class types (required on some older compilers)
+template <> struct hash<::Rml::Core::PropertyId> {
+	using utype = typename ::std::underlying_type<::Rml::Core::PropertyId>::type;
+	size_t operator() (const ::Rml::Core::PropertyId& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
+};
+}
+
 #endif
