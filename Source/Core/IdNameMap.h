@@ -59,8 +59,8 @@ public:
 	}
 
 	void AssertAllInserted(ID number_of_defined_ids) const {
-		ptrdiff_t cnt = std::count_if(name_map.begin(), name_map.end(), [](const String& name) { return !name.empty(); });
-		RMLUI_ASSERT(cnt == (ptrdiff_t)number_of_defined_ids && reverse_map.size() == (size_t)number_of_defined_ids);
+		std::ptrdiff_t cnt = std::count_if(name_map.begin(), name_map.end(), [](const String& name) { return !name.empty(); });
+		RMLUI_ASSERT(cnt == (std::ptrdiff_t)number_of_defined_ids && reverse_map.size() == (size_t)number_of_defined_ids);
 		(void)cnt;
 	}
 
