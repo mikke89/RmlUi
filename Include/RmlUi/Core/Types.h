@@ -31,7 +31,9 @@
 
 #include <float.h>
 #include <limits.h>
+#include <cstring>
 #include <string>
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>
