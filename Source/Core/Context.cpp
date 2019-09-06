@@ -823,8 +823,19 @@ void Context::OnElementDetach(Element* element)
 		}
 	}
 
-	// Focus already cleared by Element::RemoveChild
-	RMLUI_ASSERT(element != focus); 
+	// Focus normally cleared and set by parent during Element::RemoveChild.
+	// However, there are some exceptions, such as when an there are multiple 
+	// ElementDocuments in the hierarchy above the current element.
+	if (element == focus)
+		focus = nullptr;
+
+	// If the element is a document lower down in the hierarchy, we may need to remove it from the focus history.
+	if (element->GetOwnerDocument() == element)
+	{
+		auto it = std::find(document_focus_history.begin(), document_focus_history.end(), element);
+		if (it != document_focus_history.end())
+			document_focus_history.erase(it);
+	}
 }
 
 // Internal callback for when a new element gains focus
