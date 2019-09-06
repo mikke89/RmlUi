@@ -103,7 +103,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 			tabset->SetPanel(-1, std::move(panel_element));
 		}
 
-		return panel_element.get();
+		return result;
 	}
 	else if (name == "tabs" || name == "panels")
 	{	
