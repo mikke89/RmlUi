@@ -499,11 +499,11 @@ public:
 	/// Replaces the second node with the first node.
 	/// @param[in] inserted_element The element that will be inserted and replace the other element.
 	/// @param[in] replaced_element The existing element that will be replaced. If this doesn't exist, inserted_element will be appended.
-	/// @return A unique pointer to the element if found, discard the result to immediately destroy;
+	/// @return A unique pointer to the replaced element if found, discard the result to immediately destroy.
 	ElementPtr ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
 	/// Remove a child element from this element.
 	/// @param[in] The element to remove.
-	/// @returns A unique pointer to the element if found, discard the result to immediately destroy;
+	/// @returns A unique pointer to the element if found, discard the result to immediately destroy.
 	ElementPtr RemoveChild(Element* element);
 	/// Returns whether or not this element has any DOM children.
 	/// @return True if the element has at least one DOM child, false otherwise.
@@ -560,7 +560,8 @@ public:
 	/// @param[in] instancer Instancer to set on this element.
 	void SetInstancer(ElementInstancer* instancer);
 
-	/// Called for every event sent to this element or one of its descendants.
+	/// Called when an emitted event propagates to this element, for event types with default actions.
+	/// Note: See 'EventSpecification' for the events that call this function and during which phase.
 	/// @param[in] event The event to process.
 	virtual void ProcessDefaultAction(Event& event);
 
