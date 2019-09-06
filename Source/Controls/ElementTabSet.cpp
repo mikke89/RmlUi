@@ -140,10 +140,11 @@ int ElementTabSet::GetActiveTab() const
 	return active_tab;
 }
 
-// Process the incoming event.
-void ElementTabSet::ProcessEvent(Core::Event& event)
+void ElementTabSet::ProcessDefaultAction(Core::Event& event)
 {
-	if (event.GetCurrentElement() == this && event == Core::EventId::Click)
+	Element::ProcessDefaultAction(event);
+
+	if (event == Core::EventId::Click)
 	{
 		// Find the tab that this click occured on
 		Core::Element* tabs = GetChildByTag("tabs");
@@ -178,7 +179,6 @@ void ElementTabSet::OnChildAdd(Core::Element* child)
 	{
 		// Set up the new button and append it
 		child->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
-		child->AddEventListener(Core::EventId::Click, this);
 
 		if (child->GetParentNode()->GetChild(active_tab) == child)
 			child->SetPseudoClass("selected", true);
@@ -192,17 +192,6 @@ void ElementTabSet::OnChildAdd(Core::Element* child)
 		// Make the new element visible if its the active tab
 		if (child->GetParentNode()->GetChild(active_tab) == child)
 			child->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
-	}
-}
-
-void ElementTabSet::OnChildRemove(Core::Element* child)
-{
-	Core::Element::OnChildRemove(child);
-
-	// If its a tab, remove its event listener
-	if (child->GetParentNode() == GetChildByTag("tabs"))
-	{
-		child->RemoveEventListener(Core::EventId::Click, this);
 	}
 }
 

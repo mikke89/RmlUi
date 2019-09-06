@@ -42,7 +42,7 @@ namespace Controls {
 	@author Lloyd Weehuizen
  */
 
-class RMLUICONTROLS_API ElementTabSet : public Core::Element, public Core::EventListener
+class RMLUICONTROLS_API ElementTabSet : public Core::Element
 {
 public:
 	ElementTabSet(const Rml::Core::String& tag);
@@ -82,13 +82,12 @@ public:
 	/// @return The index of the active tab.
 	int GetActiveTab() const;
 
-	/// Process the incoming event.
-	void ProcessEvent(Core::Event& event) override;
+	/// Capture clicks on our tabs.
+	void ProcessDefaultAction(Core::Event& event) override;
 
 protected:
-	// Catch child add/removes so we can correctly set up their events.
+	// Catch child add so we can correctly set up its properties.
 	void OnChildAdd(Core::Element* child) override;
-	void OnChildRemove(Core::Element* child) override;
 
 private:
 	Core::Element* GetChildByTag(const Rml::Core::String& tag);
