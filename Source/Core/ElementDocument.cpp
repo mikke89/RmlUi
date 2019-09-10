@@ -331,13 +331,15 @@ void ElementDocument::UpdatePosition()
 
 		position_dirty = false;
 
-		// We are only positioned relative to our parent, so if we're not parented we may as well bail now.
-		if (GetParentNode() == nullptr)
+		Element* root = GetParentNode();
+
+		// We only position ourselves if we are a child of our context's root element. That is, we don't want to proceed if we are unparented or an iframe document.
+		if (!root || !context || (root != context->GetRootElement()))
 			return;
 
 		Vector2f position;
 		// Work out our containing block; relative offsets are calculated against it.
-		Vector2f containing_block = GetParentNode()->GetBox().GetSize(Box::CONTENT);
+		Vector2f containing_block = root->GetBox().GetSize(Box::CONTENT);
 
 		auto& computed = GetComputedValues();
 
