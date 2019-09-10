@@ -49,8 +49,8 @@ namespace Core {
 class RMLUICORE_API Variant
 {
 public:
-	/// Type of data stored in the variant.
-	enum Type
+	/// Type of data stored in the variant. We use size_t as base to avoid 'padding due to alignment specifier' warning.
+	enum Type : size_t
 	{
 		NONE = '-',
 		BYTE = 'b',
@@ -65,11 +65,11 @@ public:
 		COLOURF = 'g',
 		COLOURB = 'h',
 		SCRIPTINTERFACE = 'p',
-		TRANSFORMREF = 't',
+		TRANSFORMPTR = 't',
 		TRANSITIONLIST = 'T',
 		ANIMATIONLIST = 'A',
-		DECORATORLIST = 'D',
-		FONTEFFECTLISTPTR = 'F',
+		DECORATORSPTR = 'D',
+		FONTEFFECTSPTR = 'F',
 		VOIDPTR = '*',
 	};
 

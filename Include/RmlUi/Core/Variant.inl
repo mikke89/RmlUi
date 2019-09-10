@@ -106,7 +106,7 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< void*, T >::Convert(*(void**)data, value);
 		break;
 
-	case TRANSFORMREF:
+	case TRANSFORMPTR:
 		return TypeConverter< TransformPtr, T >::Convert(*(TransformPtr*)data, value);
 		break;
 
@@ -118,11 +118,11 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< AnimationList, T >::Convert(*(AnimationList*)data, value);
 		break;
 
-	case DECORATORLIST:
+	case DECORATORSPTR:
 		return TypeConverter< DecoratorsPtr, T >::Convert(*(DecoratorsPtr*)data, value);
 		break;
 
-	case FONTEFFECTLISTPTR:
+	case FONTEFFECTSPTR:
 		return TypeConverter< FontEffectsPtr, T >::Convert(*(FontEffectsPtr*)data, value);
 		break;
 	case NONE:
