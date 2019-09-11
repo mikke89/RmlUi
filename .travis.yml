@@ -1,25 +1,18 @@
 sudo: false
-dist: trusty
+dist: bionic
 
 matrix:
   include:
     - os: osx
-      osx_image: xcode10.2
-      env: ARCH=OSX
+      osx_image: xcode10.3
       language: c++
       compiler: clang
     - os: linux
       language: c++
       compiler: clang
-      env: MATRIX_EVAL="CC=clang-6.0 CXX=clang++-6.0"
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-6.0
           packages:
-            - clang-6.0
-            - libstdc++-7-dev
             - cmake
             - build-essential
             - libsdl2-dev
@@ -31,13 +24,12 @@ matrix:
     - os: linux
       language: c++
       compiler: gcc
-      env: MATRIX_EVAL="CC=gcc-7 CXX=g++-7" VALGRIND_SAMPLES="1"
+      env: VALGRIND_SAMPLES="1"
+      services:
+        - xvfb
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
           packages:
-            - g++-7
             - cmake
             - build-essential
             - libsdl2-dev
@@ -49,20 +41,17 @@ matrix:
             - mesa-utils
             - valgrind
 
-before_install:
-  - if [[ -n "${MATRIX_EVAL}" ]]; then eval "${MATRIX_EVAL}" ; fi
-
 install:
   - cd "$TRAVIS_BUILD_DIR"
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON .; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -DNO_THIRDPARTY_CONTAINERS=ON -G Xcode .; fi
 
 before_script:
-  - if [[ "$VALGRIND_SAMPLES" == "1" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0 && sh -e /etc/init.d/xvfb start && sleep 3; fi
+  - if [[ "$VALGRIND_SAMPLES" == "1" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi
 
 script:
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -target ALL_BUILD; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -scheme ALL_BUILD | xcpretty; fi
   - if [[ "$VALGRIND_SAMPLES" == "1" ]]; then mkdir build && make DESTDIR=build install; fi
   - |
     if [[ "$VALGRIND_SAMPLES" == "1" ]]; then
