@@ -398,7 +398,7 @@ endmacro()
 if(BUILD_SAMPLES)
 	include(SampleFileList)
 
-	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark)
+	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo)
 	set(tutorials template datagrid datagrid_tree drag)
 	
 if(NOT BUILD_FRAMEWORK)
@@ -660,6 +660,9 @@ if(BUILD_SAMPLES)
 	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/data
 			DESTINATION ${SAMPLES_DIR}/basic/benchmark
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/demo/data
+			DESTINATION ${SAMPLES_DIR}/basic/demo
 	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/transform/data
 			DESTINATION ${SAMPLES_DIR}/basic/transform

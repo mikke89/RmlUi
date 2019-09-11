@@ -39,6 +39,10 @@
 	button-hover:  247px 45px 159px 45px;
 	button-active: 247px 90px 159px 45px;
 	
+	button-inner: 259px 19px 135px 1px;
+	button-inner-hover:  259px 64px 135px 1px;
+	button-inner-active: 259px 109px 135px 1px;
+	
 	text-l: 162px 192px 14px 31px;
 	text-c: 176px 192px 1px 31px;
 	

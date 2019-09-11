@@ -48,6 +48,13 @@ set(customlog_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/customlog/src/SystemInterface.cpp
 )
 
+set(demo_HDR_FILES
+)
+
+set(demo_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/demo/src/main.cpp
+)
+
 set(drag_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/DragListener.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/Inventory.h
