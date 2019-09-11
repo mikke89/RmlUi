@@ -41,9 +41,9 @@ enum class ShorthandItemType { Invalid, Property, Shorthand };
 
 // Each entry in a shorthand points either to another shorthand or a property
 struct ShorthandItem {
-	ShorthandItem() : type(ShorthandItemType::Invalid), property_id(PropertyId::Invalid), property_definition(nullptr) {}
-	ShorthandItem(PropertyId id, const PropertyDefinition* definition) : type(ShorthandItemType::Property), property_id(id), property_definition(definition) {}
-	ShorthandItem(ShorthandId id, const ShorthandDefinition* definition) : type(ShorthandItemType::Shorthand), shorthand_id(id), shorthand_definition(definition) {}
+	ShorthandItem() : type(ShorthandItemType::Invalid), property_id(PropertyId::Invalid), property_definition(nullptr), optional(false) {}
+	ShorthandItem(PropertyId id, const PropertyDefinition* definition, bool optional) : type(ShorthandItemType::Property), property_id(id), property_definition(definition), optional(optional) {}
+	ShorthandItem(ShorthandId id, const ShorthandDefinition* definition, bool optional) : type(ShorthandItemType::Shorthand), shorthand_id(id), shorthand_definition(definition), optional(optional) {}
 
 	ShorthandItemType type;
 	union {
@@ -54,6 +54,7 @@ struct ShorthandItem {
 		const PropertyDefinition* property_definition;
 		const ShorthandDefinition* shorthand_definition;
 	};
+	bool optional;
 };
 
 // A list of shorthands or properties

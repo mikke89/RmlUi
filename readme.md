@@ -147,6 +147,16 @@ decorator: ninepatch( button-outer, button-inner );
 ```
 The two sprites must be located in the same sprite sheet. Only sprites are supported by the ninepatch decorator, image urls cannot be used.
 
+Furthermore, the ninepatch decorator can have the rendered size of its edges specified manually.
+```CSS
+decorator: ninepatch( button-outer, button-inner, 19px 12px 25px 12px );
+```
+The edge sizes are specified in the common `top-right-bottom-left` box order. The box shorthands are also available, e.g. a single value will be replicated to all. Percent and numbers can also be used, they will scale relative to the native size of the given edge multiplied by the current dp ratio. Thus, setting
+```CSS
+decorator: ninepatch( button-outer, button-inner, 1.0 );
+```
+is a simple approach to scale the decorators with higher dp ratios. For crisper graphics, increase the sprite sheet's pixel size at the edges and lower the rendered edge size number correspondingly.
+
 
 ### Font-effects
 

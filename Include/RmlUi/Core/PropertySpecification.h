@@ -53,7 +53,7 @@ enum class ShorthandType
 	// For 'padding', 'margin', etc; up to four properties are expected.
 	Box,
 	// Repeatedly resolves the full value string on each property, whether it is a normal property or another shorthand.
-	Recursive,
+	RecursiveRepeat,
 	// Comma-separated list of properties or shorthands, the number of declared values must match the specified.
 	RecursiveCommaSeparated
 };

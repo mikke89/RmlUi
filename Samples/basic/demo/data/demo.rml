@@ -91,7 +91,8 @@ panel
 }
 #decorators button.ninepatch
 {
-	decorator: ninepatch(button, button-inner);
+	/* The edges will be scaled by the current dp-ratio. */
+	decorator: ninepatch(button, button-inner, 1.0);
 }
 #decorators button.ninepatch:hover
 {
@@ -118,12 +119,12 @@ panel
 		<button class="ninepatch">Ninepatch</button>
 	</div>
 	<div>	
-		<button class="big">Big</button>
-		<button class="big ninepatch">Big Ninepatch</button>
+		<button class="big">Image</button>
+		<button class="big ninepatch">Ninepatch</button>
 	</div>
 	<div>	
-		<button class="small">Small</button>
-		<button class="small ninepatch">Small N</button>
+		<button class="small">Image</button>
+		<button class="small ninepatch">Ninepatch</button>
 	</div>
 	<div>	
 		<button class="tiny"></button>
@@ -140,7 +141,7 @@ panel
 </panel>
 <tab>Controls</tab>
 <panel>
-	<div>Yype something here: <input style="vertical-align: -7px;" type="text" value="Sample text"/></div>
+	<div>Type something here: <input style="vertical-align: -7px;" type="text" value="Sample text"/></div>
 </panel>
 </tabset>
 

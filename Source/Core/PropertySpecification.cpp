@@ -131,16 +131,24 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 	// Construct the new shorthand definition and resolve its properties.
 	UniquePtr<ShorthandDefinition> property_shorthand(new ShorthandDefinition());
 
-	for (const String& name : property_list)
+	for (const String& raw_name : property_list)
 	{
 		ShorthandItem item;
+		bool optional = false;
+		String name = raw_name;
+
+		if (!raw_name.empty() && raw_name.back() == '?')
+		{
+			optional = true;
+			name.pop_back();
+		}
 
 		PropertyId property_id = property_map->GetId(name);
 		if (property_id != PropertyId::Invalid)
 		{
 			// We have a valid property
 			if (const PropertyDefinition* property = GetProperty(property_id))
-				item = ShorthandItem(property_id, property);
+				item = ShorthandItem(property_id, property, optional);
 		}
 		else
 		{
@@ -148,10 +156,10 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 			ShorthandId shorthand_id = shorthand_map->GetId(name);
 
 			// Test for valid shorthand id. The recursive types (and only those) can hold other shorthands.
-			if (shorthand_id != ShorthandId::Invalid && (type == ShorthandType::Recursive || type == ShorthandType::RecursiveCommaSeparated))
+			if (shorthand_id != ShorthandId::Invalid && (type == ShorthandType::RecursiveRepeat || type == ShorthandType::RecursiveCommaSeparated))
 			{
 				if (const ShorthandDefinition * shorthand = GetShorthand(shorthand_id))
-					item = ShorthandItem(shorthand_id, shorthand);
+					item = ShorthandItem(shorthand_id, shorthand, optional);
 			}
 		}
 
@@ -287,7 +295,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 			dictionary.SetProperty(shorthand_definition->items[i].property_definition->GetId(), new_property);
 		}
 	}
-	else if (shorthand_definition->type == ShorthandType::Recursive)
+	else if (shorthand_definition->type == ShorthandType::RecursiveRepeat)
 	{
 		bool result = true;
 
@@ -307,30 +315,36 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 	}
 	else if (shorthand_definition->type == ShorthandType::RecursiveCommaSeparated)
 	{
-		bool result = true;
-
 		StringList subvalues;
 		StringUtilities::ExpandString(subvalues, property_value);
 
-		if (shorthand_definition->items.size() != subvalues.size())
+		size_t num_optional = 0;
+		for (auto& item : shorthand_definition->items)
+			if (item.optional)
+				num_optional += 1;
+
+		if (subvalues.size() + num_optional < shorthand_definition->items.size())
 		{
-			// We must declare all subvalues
+			// Not enough subvalues declared.
 			return false;
 		}
 
-		for (size_t i = 0; i < shorthand_definition->items.size(); i++)
+		size_t subvalue_i = 0;
+		for (size_t i = 0; i < shorthand_definition->items.size() && subvalue_i < subvalues.size(); i++)
 		{
+			bool result = false;
+
 			const ShorthandItem& item = shorthand_definition->items[i];
 			if (item.type == ShorthandItemType::Property)
-				result &= ParsePropertyDeclaration(dictionary, item.property_id, subvalues[i]);
+				result = ParsePropertyDeclaration(dictionary, item.property_id, subvalues[subvalue_i]);
 			else if (item.type == ShorthandItemType::Shorthand)
-				result &= ParseShorthandDeclaration(dictionary, item.shorthand_id, subvalues[i]);
-			else
-				result = false;
-		}
+				result = ParseShorthandDeclaration(dictionary, item.shorthand_id, subvalues[subvalue_i]);
 
-		if (!result)
-			return false;
+			if (result)
+				subvalue_i += 1;
+			else if (!item.optional)
+				return false;
+		}
 	}
 	else
 	{

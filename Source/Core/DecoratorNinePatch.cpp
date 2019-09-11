@@ -30,6 +30,7 @@
 #include "DecoratorNinePatch.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 
 namespace Rml {
 namespace Core {
@@ -42,10 +43,14 @@ DecoratorNinePatch::~DecoratorNinePatch()
 {
 }
 
-bool DecoratorNinePatch::Initialise(const Rectangle& _rect_outer, const Rectangle& _rect_inner, const Texture& _texture)
+bool DecoratorNinePatch::Initialise(const Rectangle& _rect_outer, const Rectangle& _rect_inner, const std::array<Property, 4>* _edges, const Texture& _texture)
 {
 	rect_outer = _rect_outer;
 	rect_inner = _rect_inner;
+
+	if (_edges)
+		edges = std::make_unique< std::array<Property, 4> >(*_edges);
+
 	int texture_index = AddTexture(_texture);
 	return (texture_index >= 0);
 }
@@ -85,14 +90,30 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 		tex_coords[i] = tex_pos[i] / texture_dimensions;
 
 	// Surface position [0, surface_dimensions]
-	// Need to keep the four corner patches at their native pixel size, but stretch the inner patches.
+	// Need to keep the corner patches at their native pixel size, but stretch the inner patches.
 	Vector2f surface_pos[4];
 	surface_pos[0] = { 0, 0 };
 	surface_pos[1] = tex_pos[1] - tex_pos[0];
 	surface_pos[2] = surface_dimensions - (tex_pos[3] - tex_pos[2]);
 	surface_pos[3] = surface_dimensions;
 
-	// In case the surface dimensions are less than the size of the edges, we need to scale down the corner rectangles, one dimension at a time.
+	// Change the size of the edges if specified.
+	if (edges)
+	{
+		const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
+		float lengths[4]; // top, right, bottom, left
+		lengths[0] = element->ResolveLengthPercentage(&(*edges)[0], dp_ratio * (surface_pos[1].y - surface_pos[0].y));
+		lengths[1] = element->ResolveLengthPercentage(&(*edges)[1], dp_ratio * (surface_pos[3].x - surface_pos[2].x));
+		lengths[2] = element->ResolveLengthPercentage(&(*edges)[2], dp_ratio * (surface_pos[3].y - surface_pos[2].y));
+		lengths[3] = element->ResolveLengthPercentage(&(*edges)[3], dp_ratio * (surface_pos[1].x - surface_pos[0].x));
+
+		surface_pos[1].y = lengths[0];
+		surface_pos[2].x = surface_dimensions.x - lengths[1];
+		surface_pos[2].y = surface_dimensions.y - lengths[2];
+		surface_pos[1].x = lengths[3];
+	}
+
+	// In case the surface dimensions are less than the size of the corners, we need to scale down the corner rectangles, one dimension at a time.
 	const Vector2f surface_center_size = surface_pos[2] - surface_pos[1];
 	for (int i = 0; i < 2; i++)
 	{
@@ -156,32 +177,52 @@ void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle ele
 
 
 
-
 DecoratorNinePatchInstancer::DecoratorNinePatchInstancer()
 {
 	sprite_outer_id = RegisterProperty("outer", "").AddParser("string").GetId();
 	sprite_inner_id = RegisterProperty("inner", "").AddParser("string").GetId();
+	edge_ids[0] = RegisterProperty("edge-top", "0px").AddParser("number_length_percent").GetId();
+	edge_ids[1] = RegisterProperty("edge-right", "0px").AddParser("number_length_percent").GetId();
+	edge_ids[2] = RegisterProperty("edge-bottom", "0px").AddParser("number_length_percent").GetId();
+	edge_ids[3] = RegisterProperty("edge-left", "0px").AddParser("number_length_percent").GetId();
+
+	RegisterShorthand("edge", "edge-top, edge-right, edge-bottom, edge-left", ShorthandType::Box);
 	
 	RMLUI_ASSERT(sprite_outer_id != PropertyId::Invalid && sprite_inner_id != PropertyId::Invalid);
 
-	RegisterShorthand("decorator", "outer, inner", ShorthandType::RecursiveCommaSeparated);
+	RegisterShorthand("decorator", "outer, inner, edge?", ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorNinePatchInstancer::~DecoratorNinePatchInstancer()
 {
 }
 
-
 SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	RMLUI_UNUSED(name);
+
+	bool edges_set = false;
+	std::array<Property,4> edges;
+	for (int i = 0; i < 4; i++)
+	{
+		edges[i] = *properties.GetProperty(edge_ids[i]);
+		if (edges[i].value.Get(0.0f) != 0.0f)
+		{
+			edges_set = true;
+		}
+		// Change numbers to percent because we cannot resolve this later unless we make some changes to the resolve procedures.
+		if (edges[i].unit == Property::NUMBER)
+		{
+			edges[i].value = edges[i].value.Get(0.0f) * 100.f;
+			edges[i].unit = Property::PERCENT;
+		}
+	}
 
 	const Sprite* sprite_outer = nullptr;
 	const Sprite* sprite_inner = nullptr;
 
 	{
-		const Property* property = properties.GetProperty(sprite_outer_id);
-		const String sprite_name = property->Get< String >();
+		const String sprite_name = properties.GetProperty(sprite_outer_id)->Get< String >();
 		sprite_outer = interface.GetSprite(sprite_name);
 		if (!sprite_outer)
 		{
@@ -190,8 +231,7 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 		}
 	}
 	{
-		const Property* property = properties.GetProperty(sprite_inner_id);
-		const String sprite_name = property->Get< String >();
+		const String sprite_name = properties.GetProperty(sprite_inner_id)->Get< String >();
 		sprite_inner = interface.GetSprite(sprite_name);
 		if (!sprite_inner)
 		{
@@ -208,14 +248,11 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 
 	auto decorator = std::make_shared<DecoratorNinePatch>();
 
-	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, sprite_outer->sprite_sheet->texture))
+	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr), sprite_outer->sprite_sheet->texture))
 		return nullptr;
 
 	return decorator;
 }
-
-
-
 
 }
 }

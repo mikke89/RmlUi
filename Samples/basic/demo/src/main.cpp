@@ -234,6 +234,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
+	
+	context->SetDensityIndependentPixelRatio(1.0f);
 
 	EventInstancer event_listener_instancer;
 	Rml::Core::Factory::RegisterEventListenerInstancer(&event_listener_instancer);

@@ -272,7 +272,7 @@ FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 			PropertyDictionary properties;
 			if (!specification.ParsePropertyDeclaration(properties, "font-effect", shorthand))
 			{
-				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", font_effect_string.c_str(), source_path, source_line_number);
+				Log::Message(Log::LT_WARNING, "Could not parse font-effect value '%s' at %s:%d", font_effect_string.c_str(), source_path, source_line_number);
 				continue;
 			}
 

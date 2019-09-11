@@ -276,7 +276,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterShorthand(ShorthandId::BorderRight, BORDER_RIGHT, "border-right-width, border-right-color", ShorthandType::FallThrough);
 	RegisterShorthand(ShorthandId::BorderBottom, BORDER_BOTTOM, "border-bottom-width, border-bottom-color", ShorthandType::FallThrough);
 	RegisterShorthand(ShorthandId::BorderLeft, BORDER_LEFT, "border-left-width, border-left-color", ShorthandType::FallThrough);
-	RegisterShorthand(ShorthandId::Border, BORDER, "border-top, border-right, border-bottom, border-left", ShorthandType::Recursive);
+	RegisterShorthand(ShorthandId::Border, BORDER, "border-top, border-right, border-bottom, border-left", ShorthandType::RecursiveRepeat);
 
 	RegisterProperty(PropertyId::Display, DISPLAY, "inline", false, true).AddParser("keyword", "none, block, inline, inline-block");
 	RegisterProperty(PropertyId::Position, POSITION, "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");
