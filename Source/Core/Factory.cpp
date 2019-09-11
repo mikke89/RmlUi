@@ -34,6 +34,7 @@
 #include "DecoratorTiledHorizontalInstancer.h"
 #include "DecoratorTiledImageInstancer.h"
 #include "DecoratorTiledVerticalInstancer.h"
+#include "DecoratorNinePatch.h"
 #include "ElementHandle.h"
 #include "ElementImage.h"
 #include "ElementTextDefault.h"
@@ -93,6 +94,7 @@ struct DefaultInstancers {
 	Ptr<DecoratorInstancer> decorator_tiled_vertical = std::make_unique<DecoratorTiledVerticalInstancer>();
 	Ptr<DecoratorInstancer> decorator_tiled_box = std::make_unique<DecoratorTiledBoxInstancer>();
 	Ptr<DecoratorInstancer> decorator_image = std::make_unique<DecoratorTiledImageInstancer>();
+	Ptr<DecoratorInstancer> decorator_ninepatch = std::make_unique<DecoratorNinePatchInstancer>();
 
 	Ptr<FontEffectInstancer> font_effect_shadow = std::make_unique<FontEffectShadowInstancer>();
 	Ptr<FontEffectInstancer> font_effect_outline = std::make_unique<FontEffectOutlineInstancer>();
@@ -144,6 +146,7 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("tiled-vertical", default_instancers->decorator_tiled_vertical.get());
 	RegisterDecoratorInstancer("tiled-box", default_instancers->decorator_tiled_box.get());
 	RegisterDecoratorInstancer("image", default_instancers->decorator_image.get());
+	RegisterDecoratorInstancer("ninepatch", default_instancers->decorator_ninepatch.get());
 
 	RegisterFontEffectInstancer("shadow", default_instancers->font_effect_shadow.get());
 	RegisterFontEffectInstancer("outline", default_instancers->font_effect_outline.get());

@@ -126,6 +126,28 @@ decorator: stars;
 ```
 Note the lack of parenthesis which means it is a decorator name and not a type with shorthand properties declared.
 
+
+### Ninepatch decorator
+
+The new `ninepatch` decorator splits a sprite into a 3x3 grid of patches. The corners of the ninepatch are rendered at their native size, while the inner patches are stretched so that the whole element is filled. In a sense, it can be considered a simplified and more performant version of the `tiled-box` decorator.
+
+The decorator is specified by two sprites, defining an outer and inner rectangle:
+```CSS
+@spritesheet my-button {
+	src: button.png;
+	button-outer: 247px  0px 159px 45px;
+	button-inner: 259px 19px 135px  1px;
+}
+```
+The inner rectangle defines the parts of the sprite that will be stretched when the element is resized. 
+
+The `ninepatch` decorator is applied as follows:
+```CSS
+decorator: ninepatch( button-outer, button-inner );
+```
+The two sprites must be located in the same sprite sheet. Only sprites are supported by the ninepatch decorator, image urls cannot be used.
+
+
 ### Font-effects
 
 The new RCSS `font-effect` property replaces the old font-effect declarations in libRocket. A font-effect is declared similar to a decorator, by the name of the font-effect type and its properties in parenthesis. Some examples follow.

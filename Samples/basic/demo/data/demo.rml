@@ -70,15 +70,36 @@ panel
     height: 100%;
 }
 
-#decorators button
+#decorators button.big
 {
 	width: 250px;
 	height: 150px;
 	line-height: 150px;
 }
+#decorators button.small
+{
+	width: 90px;
+	height: 35px;
+	line-height: 20px;
+	font-size: 10px;
+}
+#decorators button.tiny
+{
+	width: 15px;
+	height: 10px;
+	line-height: 5px;
+}
 #decorators button.ninepatch
 {
 	decorator: ninepatch(button, button-inner);
+}
+#decorators button.ninepatch:hover
+{
+	decorator: ninepatch(button-hover, button-inner-hover);
+}
+#decorators button.ninepatch:active
+{
+	decorator: ninepatch(button-active, button-inner-active);
 }
 
 </style>
@@ -89,6 +110,26 @@ panel
 <div style="font-size: 0.85em; text-align: left;" id="fps"></div>
 
 <tabset id="menu">
+<tab>Decorators</tab>
+<panel id="decorators">
+	<p>Image vs ninepatch decorator:</p>
+	<div>	
+		<button>Image</button>
+		<button class="ninepatch">Ninepatch</button>
+	</div>
+	<div>	
+		<button class="big">Big</button>
+		<button class="big ninepatch">Big Ninepatch</button>
+	</div>
+	<div>	
+		<button class="small">Small</button>
+		<button class="small ninepatch">Small N</button>
+	</div>
+	<div>	
+		<button class="tiny"></button>
+		<button class="tiny ninepatch"></button>
+	</div>
+</panel>
 <tab>Buttons</tab>
 <panel>
 	<button id="start_game">Start Game</button><br />
@@ -100,11 +141,6 @@ panel
 <tab>Controls</tab>
 <panel>
 	<div>Yype something here: <input style="vertical-align: -7px;" type="text" value="Sample text"/></div>
-</panel>
-<tab>Decorators</tab>
-<panel id="decorators">
-	<button>Normal enlarged</button>
-	<button class="ninepatch">Ninepatch</button>
 </panel>
 </tabset>
 

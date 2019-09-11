@@ -12,6 +12,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DebugFont.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.h
@@ -215,6 +216,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Core.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Decorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.cpp
