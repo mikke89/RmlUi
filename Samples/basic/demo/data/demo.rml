@@ -137,7 +137,7 @@ panel
 	<button id="high_scores" onkeydown="hello">High Scores</button><br />
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
-	<button id="exit" onclick="exit">Exit</button>
+	<div><button id="exit" onclick="exit">Exit</button></div>
 </panel>
 <tab>Controls</tab>
 <panel>

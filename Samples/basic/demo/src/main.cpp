@@ -152,20 +152,28 @@ void GameLoop()
 class Event : public Rml::Core::EventListener
 {
 public:
-	Event(const Rml::Core::String& value) : value(value) {}
+	Event(const Rml::Core::String& value, Rml::Core::Element* element) : value(value), element(element) {}
 
 	void ProcessEvent(Rml::Core::Event& event) override
 	{
 		using namespace Rml::Core;
 
 		if (value == "exit")
+		{
+			element->GetParentNode()->SetInnerRML("<button onclick='confirm_exit'>Are you sure?</button>");
+			event.StopPropagation();
+		}
+		else if (value == "confirm_exit")
+		{
 			Shell::RequestExit();
+		}
 	}
 
 	void OnDetach(Rml::Core::Element* element) override { delete this; }
 
 private:
 	Rml::Core::String value;
+	Rml::Core::Element* element;
 };
 
 
@@ -175,7 +183,7 @@ class EventInstancer : public Rml::Core::EventListenerInstancer
 public:
 	Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element) override
 	{
-		return new Event(value);
+		return new Event(value, element);
 	}
 };
 

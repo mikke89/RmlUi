@@ -126,7 +126,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 	}
 
 	event->SetPhase(EventPhase::Capture);
-	// Capture phase - root, to target (only events that have registered as capture events)
+	// Capture phase - root to target (only triggers event listeners that are registered with capture phase)
 	// Note: We walk elements in REVERSE as they're placed in the list from the elements parent to the root
 	for (int i = (int)elements.size() - 1; i >= 0 && event->IsPropagating(); i--) 
 	{
@@ -208,12 +208,15 @@ void EventDispatcher::TriggerEvents(Event& event, DefaultActionPhase default_act
 	else if (phase == EventPhase::Bubble)
 		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, false), CompareIdPhase());
 
-	// Convert to indices. If any listeners are added or removed during ProcessEvent, this guards against iterator invalidation.
-	// Note: The result of listener add/remove may then instead be that a listener is skipped or repeated.
-	const size_t i_end = (size_t)(end - listeners.begin());
-	for (size_t i = (size_t)(begin - listeners.begin()); i < i_end && i < listeners.size(); ++i)
+	// Copy the range in case the original list of listeners get modified during ProcessEvent.
+	const Listeners listeners_range(begin, end);
+
+	for(const EventListenerEntry& entry : listeners_range)
 	{
-		listeners[i].listener->ProcessEvent(event);
+		entry.listener->ProcessEvent(event);
+		
+		if (!event.IsPropagating())
+			break;
 	}
 
 	const bool do_default_action = ((unsigned int)phase & (unsigned int)default_action_phase);
