@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 basedir=".."
-file=Cmake/FileList.cmake
+file=CMake/FileList.cmake
 src='set(lib_SRC_FILES'
 hdr='set(lib_HDR_FILES'
 masterpubhdr='set(MASTER_lib_PUB_HDR_FILES'

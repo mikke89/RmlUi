@@ -8,7 +8,7 @@ if(APPLE)
 	# This has to be before most other options so CMake properly handles the 
 	# compiler variables, it MUST bebefore the project() definition
 	if(IOS_PLATFORM)
-		set(CMAKE_TOOLCHAIN_FILE Cmake/Platform/iOS.cmake)
+		set(CMAKE_TOOLCHAIN_FILE CMake/Platform/iOS.cmake)
 	endif(IOS_PLATFORM)
 
 	option(BUILD_UNIVERSAL_BINARIES "Build universal binaries for all architectures supported" ON)
@@ -62,7 +62,7 @@ set(RMLUI_VERSION_TWEAK 0)
 set(PROJECT_VERSION ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK})
 
 # Search in the 'cmake' directory for additional CMake modules.
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Cmake;${PROJECT_SOURCE_DIR}/Cmake/Modules)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake;${PROJECT_SOURCE_DIR}/CMake/Modules)
 
 #===================================
 # Environment tests ================
@@ -701,7 +701,7 @@ if(PkgHelpers_AVAILABLE)
 	set (INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Include")
 
 	# generate configuration for install tree
-	configure_package_config_file(${PROJECT_SOURCE_DIR}/Cmake/RmlUiConfig.cmake.install.in
+	configure_package_config_file(${PROJECT_SOURCE_DIR}/CMake/RmlUiConfig.cmake.install.in
 		${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
 		INSTALL_DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake
 		PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
@@ -716,7 +716,7 @@ if(PkgHelpers_AVAILABLE)
 		DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake)
 
 	# generate configuration for build tree
-	configure_package_config_file(${PROJECT_SOURCE_DIR}/Cmake/RmlUiConfig.cmake.build.in
+	configure_package_config_file(${PROJECT_SOURCE_DIR}/CMake/RmlUiConfig.cmake.build.in
 		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfig.cmake
 		INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
 		PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)

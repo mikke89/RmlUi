@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 basedir=".."
-file=Cmake/SampleFileList.cmake
+file=CMake/SampleFileList.cmake
 src='set(sample_SRC_FILES'
 hdr='set(sample_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
