@@ -34,15 +34,8 @@
 namespace Rml {
 namespace Core {
 
-class Stream;
-
-}
-}
-
-namespace Rml {
-namespace Core {
-
 class Context;
+class Stream;
 class DocumentHeader;
 class ElementText;
 class StyleSheet;

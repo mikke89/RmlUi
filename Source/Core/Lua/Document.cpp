@@ -50,12 +50,20 @@ template<> void ExtraInit<Document>(lua_State* L, int metatable_index)
     {
         lua_pop(L,1); //pop unsucessful getglobal
         lua_newtable(L); //create a table for holding the enum
-        lua_pushinteger(L,ElementDocument::NONE);
-        lua_setfield(L,-2,"NONE");
-        lua_pushinteger(L,ElementDocument::FOCUS);
-        lua_setfield(L,-2,"FOCUS");
-        lua_pushinteger(L,ElementDocument::MODAL);
-        lua_setfield(L,-2,"MODAL");
+        lua_pushinteger(L,(int)FocusFlag::None);
+        lua_setfield(L,-2,"None");
+        lua_pushinteger(L,(int)FocusFlag::Focus);
+        lua_setfield(L,-2,"Focus");
+		lua_pushinteger(L, (int)FocusFlag::Modal);
+        lua_setfield(L,-2,"Modal");
+		lua_pushinteger(L, (int)FocusFlag::FocusPrevious);
+		lua_setfield(L, -2, "FocusPrevious");
+		lua_pushinteger(L, (int)FocusFlag::ModalPrevious);
+		lua_setfield(L, -2, "ModalPrevious");
+		lua_pushinteger(L, (int)FocusFlag::FocusDocument);
+		lua_setfield(L, -2, "FocusDocument");
+		lua_pushinteger(L, (int)FocusFlag::ModalDocument);
+		lua_setfield(L, -2, "ModalDocument");
         lua_setglobal(L,"DocumentFocus");
         
     }
@@ -81,7 +89,7 @@ int DocumentShow(lua_State* L, Document* obj)
         obj->Show();
     else
     {
-        int flag = (int)luaL_checkinteger(L,1);
+        FocusFlag flag = (FocusFlag)luaL_checkinteger(L,1);
         obj->Show(flag);
     }
     return 0;
