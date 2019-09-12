@@ -83,6 +83,7 @@ class RMLUICORE_API ElementInstancerElement : public ElementInstancer
 public:
 	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
 	void ReleaseElement(Element* element) override;
+	~ElementInstancerElement();
 };
 
 /**

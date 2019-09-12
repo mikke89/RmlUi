@@ -54,6 +54,20 @@ void ElementInstancerElement::ReleaseElement(Element* element)
 	pool_element.DestroyAndDeallocate(element);
 }
 
+ElementInstancerElement::~ElementInstancerElement()
+{
+	int num_elements = pool_element.GetNumAllocatedObjects();
+	if (num_elements > 0)
+	{
+		Log::Message(Log::LT_WARNING, "--- Found %d leaked element(s) ---", num_elements);
+
+		for (auto it = pool_element.Begin(); it; ++it)
+			Log::Message(Log::LT_WARNING, "    %s", it->GetAddress().c_str());
+
+		Log::Message(Log::LT_WARNING, "------");
+	}
+}
+
 ElementPtr ElementInstancerTextDefault::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
 {
 	ElementTextDefault* ptr = pool_text_default.AllocateAndConstruct(tag);

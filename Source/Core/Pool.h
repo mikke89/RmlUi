@@ -86,13 +86,13 @@ public:
 		/// node.
 		inline PoolType& operator*()
 		{
-			return node->object;
+			return *reinterpret_cast<PoolType*>(node->object);
 		}
 		/// Returns a pointer to the object referenced by the
 		/// iterator's current node.
 		inline PoolType* operator->()
 		{
-			return &node->object;
+			return reinterpret_cast<PoolType*>(node->object);
 		}
 
 	private:
