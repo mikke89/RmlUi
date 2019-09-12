@@ -204,10 +204,43 @@ void ElementDocument::PushToBack()
 		context->PushDocumentToBack(this);
 }
 
-void ElementDocument::Show(int focus_flags)
+void ElementDocument::Show(FocusFlag focus_flag)
 {
-	// Store the modal attribute
-	modal = (focus_flags & MODAL) > 0;
+	modal = false;
+	bool autofocus = false;
+	bool focus = false;
+	bool focus_previous = false;
+
+	switch (focus_flag)
+	{
+	case FocusFlag::None:
+		break;
+	case FocusFlag::Focus:
+		focus = true;
+		autofocus = true;
+		break;
+	case FocusFlag::Modal:
+		focus = true;
+		autofocus = true;
+		modal = true;
+		break;
+	case FocusFlag::FocusPrevious:
+		focus = true;
+		focus_previous = true;
+		break;
+	case FocusFlag::ModalPrevious:
+		focus = true;
+		focus_previous = true;
+		modal = true;
+		break;
+	case FocusFlag::FocusDocument:
+		focus = true;
+		break;
+	case FocusFlag::ModalDocument:
+		focus = true;
+		modal = true;
+		break;
+	}
 
 	// Set to visible and switch focus if necessary
 	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
@@ -216,10 +249,38 @@ void ElementDocument::Show(int focus_flags)
 	// If this turns out to be slow, the more performant approach is just to compute the new visibility property
 	UpdateDocument();
 
-	if (focus_flags & FOCUS || focus_flags & MODAL)
+	if (focus)
 	{
-		// Focus the window when shown
-		Focus();
+		Element* focus_element = this;
+
+		if (autofocus)
+		{
+			Element* first_element = nullptr;
+			Element* element = FindNextTabElement(this, true);
+
+			while (element && element != first_element)
+			{
+				if (!first_element)
+					first_element = element;
+
+				if (element->HasAttribute("autofocus"))
+				{
+					focus_element = element;
+					break;
+				}
+
+				element = FindNextTabElement(element, true);
+			}
+		}
+		else if (focus_previous)
+		{
+			focus_element = GetFocusLeafNode();
+		}
+
+		// Focus the window or element
+		bool focused = focus_element->Focus();
+		if (focused && focus_element != this)
+			focus_element->ScrollIntoView(false);
 	}
 
 	DispatchEvent(EventId::Show, Dictionary());
@@ -229,16 +290,14 @@ void ElementDocument::Hide()
 {
 	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 
-	// We should update the document now, so that the focusing below will get the correct visibility
+	// We should update the document now, so that the (un)focusing will get the correct visibility
 	UpdateDocument();
 
 	DispatchEvent(EventId::Hide, Dictionary());
 	
 	if (context)
 	{
-		auto focus = context->GetFocusElement();
-		if (focus && focus != this && focus->GetOwnerDocument() == this)
-			Focus();
+		context->UnfocusDocument(this);
 	}
 }
 
@@ -410,7 +469,11 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 		// Process TAB
 		if (key_identifier == Input::KI_TAB)
 		{
-			FocusNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false));
+			if (Element* element = FindNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false)))
+			{
+				element->Focus();
+				element->ScrollIntoView(false);
+			}
 		}
 		// Process ENTER being pressed on a focusable object (emulate click)
 		else if (key_identifier == Input::KI_RETURN ||
@@ -431,20 +494,21 @@ void ElementDocument::OnResize()
 	DirtyPosition();
 }
 
+
 // Find the next element to focus, starting at the current element
 //
 // This algorithm is quite sneaky, I originally thought a depth first search would
 // work, but it appears not. What is required is to cut the tree in half along the nodes
 // from current_element up the root and then either traverse the tree in a clockwise or
 // anticlock wise direction depending if you're searching forward or backward respectively
-bool ElementDocument::FocusNextTabElement(Element* current_element, bool forward)
+Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)
 {
 	// If we're searching forward, check the immediate children of this node first off
 	if (forward)
 	{
 		for (int i = 0; i < current_element->GetNumChildren(); i++)
-			if (SearchFocusSubtree(current_element->GetChild(i), forward))
-				return true;
+			if (Element* result = SearchFocusSubtree(current_element->GetChild(i), forward))
+				return result;
 	}
 
 	// Now walk up the tree, testing either the bottom or top
@@ -468,8 +532,9 @@ bool ElementDocument::FocusNextTabElement(Element* current_element, bool forward
 			Element* search_child = parent->GetChild(child_index);
 
 			// Do a search if its enabled
-			if (search_enabled && SearchFocusSubtree(search_child, forward))
-				return true;
+			if (search_enabled)
+				if(Element* result = SearchFocusSubtree(search_child, forward))
+					return result;
 
 			// If we find the child, enable searching
 			if (search_child == child)
@@ -487,27 +552,25 @@ bool ElementDocument::FocusNextTabElement(Element* current_element, bool forward
 			search_enabled = false;
 	}
 
-	return false;
+	return nullptr;
 }
 
-bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
+Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 {
 	// Skip disabled elements
 	if (element->IsPseudoClassSet("disabled"))
 	{
-		return false;
+		return nullptr;
 	}
 	if (!element->IsVisible())
 	{
-		return false;
+		return nullptr;
 	}
 
 	// Check if this is the node we're looking for
 	if (element->GetComputedValues().tab_index == Style::TabIndex::Auto)
 	{
-		element->Focus();
-		element->ScrollIntoView(false);
-		return true;
+		return element;
 	}
 
 	// Check all children
@@ -516,11 +579,11 @@ bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 		int child_index = i;
 		if (!forward)
 			child_index = element->GetNumChildren() - i - 1;
-		if (SearchFocusSubtree(element->GetChild(child_index), forward))
-			return true;
+		if (Element * result = SearchFocusSubtree(element->GetChild(child_index), forward))
+			return result;
 	}
 
-	return false;
+	return nullptr;
 }
 
 }

@@ -39,6 +39,9 @@
 bool run_loop = true;
 bool single_loop = false;
 
+class DemoWindow;
+DemoWindow* window = nullptr;
+DemoWindow* window2 = nullptr;
 
 class DemoWindow : public Rml::Core::EventListener
 {
@@ -54,19 +57,18 @@ public:
 				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
 				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
 			}
-
+			
 			document->Show();
 		}
 	}
 
-	~DemoWindow()
-	{
+	void Shutdown() {
 		if (document)
 		{
 			document->Close();
+			document = nullptr;
 		}
 	}
-
 
 	void ProcessEvent(Rml::Core::Event& event) override
 	{
@@ -95,6 +97,42 @@ public:
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 			}
+			else if (key_identifier == Rml::Core::Input::KI_H)
+			{
+				window2->GetDocument()->Hide();
+			}
+			else if (key_identifier == Rml::Core::Input::KI_Q)
+			{
+				window2->GetDocument()->Show(Rml::Core::FocusFlag::None);
+			}
+			else if (key_identifier == Rml::Core::Input::KI_W)
+			{
+				window2->GetDocument()->Show(Rml::Core::FocusFlag::Focus);
+			}
+			else if (key_identifier == Rml::Core::Input::KI_E)
+			{
+				window2->GetDocument()->Show(Rml::Core::FocusFlag::Modal);
+			}
+			else if (key_identifier == Rml::Core::Input::KI_R)
+			{
+				window2->GetDocument()->Show(Rml::Core::FocusFlag::FocusPrevious);
+			}
+			else if (key_identifier == Rml::Core::Input::KI_T)
+			{
+				window2->GetDocument()->Show(Rml::Core::FocusFlag::ModalPrevious);
+			}
+			else if (key_identifier == Rml::Core::Input::KI_Y)
+			{
+				window2->GetDocument()->Show(Rml::Core::FocusFlag::FocusDocument);
+			}
+			else if (key_identifier == Rml::Core::Input::KI_U)
+			{
+				window2->GetDocument()->Show(Rml::Core::FocusFlag::ModalDocument);
+			}
+			else if (key_identifier == Rml::Core::Input::KI_G)
+			{
+				window2->GetDocument()->GetContext()->UnfocusDocument(window2->GetDocument());
+			}
 		}
 		break;
 
@@ -114,7 +152,6 @@ private:
 
 Rml::Core::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
-DemoWindow* window = nullptr;
 
 
 void GameLoop()
@@ -205,7 +242,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	RMLUI_UNUSED(argv);
 #endif
 
-	const int width = 1800;
+	const int width = 2200;
 	const int height = 1000;
 
 
@@ -255,16 +292,22 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, window);
 	window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, window);
 
+	window2 = new DemoWindow("Demo sample 2", Rml::Core::Vector2f(1150, 100), context);
+	window2->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, window2);
 
 	Shell::EventLoop(GameLoop);
 
-	delete window;
+	window->Shutdown();
+	window2->Shutdown();
 
 	// Shutdown RmlUi.
 	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();
+
+	delete window;
+	delete window2;
 
 	return 0;
 }

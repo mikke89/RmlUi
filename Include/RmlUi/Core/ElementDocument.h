@@ -48,6 +48,19 @@ class ElementText;
 class StyleSheet;
 
 /**
+	Flags used for displaying the document.
+	   None: No focus.
+	   Focus: Focus the first tab element with the 'autofocus' attribute or else the document.
+	   Modal: Focus the first tab element with the 'autofocus' attribute or else the document, other documents cannot receive focus.
+	   FocusPrevious: Focus the previously focused element in the document.
+	   ModalPrevious: Focus the previously focused element in the document, other documents cannot receive focus.
+	   FocusDocument: Focus the document.
+	   ModalDocument: Focus the document, other documents cannot receive focus.
+ */
+enum class FocusFlag { None, Focus, Modal, FocusPrevious, ModalPrevious, FocusDocument, ModalDocument };
+
+
+/**
 	Represents a document in the dom tree.
 
 	@author Lloyd Weehuizen
@@ -83,19 +96,9 @@ public:
 	/// Sends the document to the back of the document stack.
 	void PushToBack();
 
-	/**
-		Flags used for displaying the document.
-	 */
-	enum FocusFlags
-	{
-		NONE = 0,
-		FOCUS = (1 << 1),
-		MODAL = (1 << 2)
-	};
-
 	/// Show the document.
-	/// @param[in] focus_flags Flags controlling the changing of focus. Leave as FOCUS to switch focus to the document.
-	void Show(int focus_flags = FOCUS);
+	/// @param[in] focus_flag  Flags controlling the focus, see the 'FocusFlag' description for details.
+	void Show(FocusFlag focus_flag = FocusFlag::Focus);
 	/// Hide the document.
 	void Hide();
 	/// Close the document.
@@ -135,13 +138,12 @@ protected:
 
 private:
 	/// Find the next element to focus, starting at the current element
-	bool FocusNextTabElement(Element* current_element, bool forward);
+	Element* FindNextTabElement(Element* current_element, bool forward);
 	/// Searches forwards or backwards for a focusable element in the given substree
-	bool SearchFocusSubtree(Element* element, bool forward);
+	Element* SearchFocusSubtree(Element* element, bool forward);
 
 	/// Sets the dirty flag on the layout so the document will format its children before the next render.
 	void DirtyLayout() override;
-
 	/// Returns true if the document has been marked as needing a re-layout.
 	bool IsLayoutDirty() override;
 
@@ -153,7 +155,6 @@ private:
 
 	/// Updates the position of the document based on the style properties.
 	void UpdatePosition();
-
 	/// Sets the dirty flag for document positioning
 	void DirtyPosition();
 

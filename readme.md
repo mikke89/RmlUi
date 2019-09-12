@@ -272,6 +272,24 @@ Some relevant changes for users:
 - Chaining transforms and perspectives now provides more expected results. However, as opposed to CSS we don't flatten transforms.
 - Have a look at the updated transforms sample for some fun with 3d boxes.
 
+
+### Focus flags, autofocus
+
+Elements with property `tab-index: auto;` and the `autofocus` attribute set on them can receive focus when showing a document, `ElementDocument::Show(FocusFlag focus_flag)`. This behavior can be controlled with the new document focus flags:
+
+```
+enum class FocusFlag { None, Focus, Modal, FocusPrevious, ModalPrevious, FocusDocument, ModalDocument };
+
+None: No focus.
+Focus: Focus the first tab element with the 'autofocus' attribute or else the document.
+Modal: Focus the first tab element with the 'autofocus' attribute or else the document, other documents cannot receive focus.
+FocusPrevious: Focus the previously focused element in the document.
+ModalPrevious: Focus the previously focused element in the document, other documents cannot receive focus.
+FocusDocument: Focus the document.
+ModalDocument: Focus the document, other documents cannot receive focus.
+```
+
+
 ### CMake options
 
 Two new CMake options added.
@@ -299,6 +317,7 @@ Breaking changes since RmlUi v2.0.
 - Removed 'top' and 'bottom' from z-index property.
 - See changes to the declaration of decorators and font-effects above.
 - See changes to the render interface regarding transforms above.
+- The focus flag in `ElementDocument::Show` has been changed, with a new enum name and new options.
 - Also, see removal of manual reference counting above.
 
 

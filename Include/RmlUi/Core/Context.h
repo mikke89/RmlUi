@@ -147,6 +147,9 @@ public:
 	/// Sends the document to the back of the document stack.
 	/// @param[in] document The document to push to the bottom of the stack.
 	void PushDocumentToBack(ElementDocument* document);
+	/// Remove the document from the focus history and focus the previous document.
+	/// @param[in] document The document to unfocus.
+	void UnfocusDocument(ElementDocument* document);
 
 	/// Adds an event listener to the context's root element.
 	/// @param[in] event The name of the event to attach to.

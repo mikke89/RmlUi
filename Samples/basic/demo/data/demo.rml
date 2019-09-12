@@ -5,10 +5,14 @@
 <style>
 body.window
 {
-	max-width: 2000px;
-	max-height: 2000px;
-	width: 1600px;
-	height: 750px;
+	max-width: 1000px;
+	max-height: 8000px;
+	width: 1000px;
+	height: 800px;
+	opacity: 0.8;
+}
+body.window:focus {
+	opacity: 1.0;
 }
 div#title_bar div#icon
 {
@@ -70,6 +74,9 @@ panel
     height: 100%;
 }
 
+button:focus {
+	image-color: #0ff;
+}
 #decorators button.big
 {
 	width: 250px;
@@ -124,7 +131,7 @@ panel
 	</div>
 	<div>	
 		<button class="small">Image</button>
-		<button class="small ninepatch">Ninepatch</button>
+		<button class="small ninepatch" autofocus>Ninepatch</button>
 	</div>
 	<div>	
 		<button class="tiny"></button>
@@ -134,14 +141,14 @@ panel
 <tab>Buttons</tab>
 <panel>
 	<button id="start_game">Start Game</button><br />
-	<button id="high_scores" onkeydown="hello">High Scores</button><br />
+	<button id="high_scores" onkeydown="hello" autofocus>High Scores</button><br />
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
 	<div><button id="exit" onclick="exit">Exit</button></div>
 </panel>
 <tab>Controls</tab>
 <panel>
-	<div>Type something here: <input style="vertical-align: -7px;" type="text" value="Sample text"/></div>
+	<div>Type something here: <input style="vertical-align: -7px;" type="text" value="Sample text" autofocus/></div>
 </panel>
 </tabset>
 

@@ -448,6 +448,16 @@ void Context::PushDocumentToBack(ElementDocument* document)
 	}
 }
 
+void Context::UnfocusDocument(ElementDocument* document)
+{
+	auto it = std::find(document_focus_history.begin(), document_focus_history.end(), document);
+	if (it != document_focus_history.end())
+		document_focus_history.erase(it);
+
+	if (!document_focus_history.empty())
+		document_focus_history.back()->GetFocusLeafNode()->Focus();
+}
+
 // Adds an event listener to the root element.
 void Context::AddEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
