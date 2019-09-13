@@ -157,7 +157,6 @@ Rml::Core::ElementDocument* EventManager::LoadWindow(const Rml::Core::String& wi
 	if (title != nullptr)
 		title->SetInnerRML(document->GetTitle());
 
-	document->Focus();
 	document->Show();
 
 	return document;

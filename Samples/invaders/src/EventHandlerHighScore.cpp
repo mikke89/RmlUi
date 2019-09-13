@@ -63,14 +63,6 @@ void EventHandlerHighScore::ProcessEvent(Rml::Core::Event& event, const Rml::Cor
 			HighScores::SubmitName(name);
 		}
 	}
-	else if (value == "check_input")
-	{
-		Rml::Core::Element* name_input_field = event.GetTargetElement()->GetElementById("player_input");
-		if (name_input_field)
-		{
-			name_input_field->Focus();
-		}
-	}
 	else if (value == "check_name")
 	{
 		/* TODO: Check if the player hasn't set their name first. */
