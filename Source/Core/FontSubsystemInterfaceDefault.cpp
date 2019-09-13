@@ -63,18 +63,10 @@ FontFaceHandle FontSubsystemInterfaceDefault::GetFontFaceHandle(const String& fa
 	return reinterpret_cast<FontFaceHandle>(handle.get());
 }
 	
-int FontSubsystemInterfaceDefault::GenerateLayerConfiguration(FontFaceHandle handle, const String &font_effects) const
+int FontSubsystemInterfaceDefault::GenerateLayerConfiguration(FontFaceHandle handle, const FontEffectList& font_effects) const
 {
-#if 0
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
-	
-	Variant<FontEffectsPtr> fontVar;
-	fontVar.Set(font_effects);
-
-	return handle_default->GenerateLayerConfiguration(fontVar.Get());
-#else
-	return 0;
-#endif
+	return handle_default->GenerateLayerConfiguration(font_effects);
 }
 
 int FontSubsystemInterfaceDefault::GetCharacterWidth(FontFaceHandle handle) const

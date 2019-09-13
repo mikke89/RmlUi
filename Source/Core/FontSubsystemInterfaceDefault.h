@@ -66,7 +66,7 @@ public:
     /// @param[in] FontHandle
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
 	/// @return The index to use when generating geometry using this configuration.
-	virtual int GenerateLayerConfiguration(FontFaceHandle, const String &font_effects) const override;
+	virtual int GenerateLayerConfiguration(FontFaceHandle, const FontEffectList& font_effects) const override;
 
 	/// Returns the average advance of all glyphs in this font face.
 	/// @param[in] FontHandle

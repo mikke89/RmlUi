@@ -384,8 +384,7 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.
-	//int new_configuration = GetFontSubsystemInterface()->GenerateLayerConfiguration(GetFontFaceHandle(), font_effects->);
-	int new_configuration = 0;
+	int new_configuration = GetFontSubsystemInterface()->GenerateLayerConfiguration(GetFontFaceHandle(), *font_effects);
 	if (new_configuration != font_configuration)
 	{
 		font_configuration = new_configuration;

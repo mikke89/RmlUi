@@ -61,7 +61,7 @@ FontFaceHandle FontSubsystemInterface::GetFontFaceHandle(const String& RMLUI_UNU
 	return 0;
 }
 	
-int FontSubsystemInterface::GenerateLayerConfiguration(FontFaceHandle, const String &font_effects) const
+int FontSubsystemInterface::GenerateLayerConfiguration(FontFaceHandle, const FontEffectList& font_effects) const
 {
 	return 0;
 }
