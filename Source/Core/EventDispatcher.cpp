@@ -215,7 +215,7 @@ void EventDispatcher::TriggerEvents(Event& event, DefaultActionPhase default_act
 	{
 		entry.listener->ProcessEvent(event);
 		
-		if (!event.IsPropagating())
+		if (!event.IsImmediatePropagating())
 			break;
 	}
 

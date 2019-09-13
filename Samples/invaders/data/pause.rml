@@ -20,7 +20,7 @@
 	<body template="window" onload="pause" onunload="unpause">
 		<br />
 		<p>Are you sure you want to end this game?</p>
-		<button onclick="goto high_score; close game_window">Yes</button>
+		<button onclick="goto high_score; close game_window" autofocus>Yes</button>
 		<button onclick="close">No!</button>
 	</body>
 </rml>

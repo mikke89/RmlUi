@@ -39,6 +39,7 @@ Event::Event() : id(EventId::Invalid)
 	phase = EventPhase::None;
 	interruptible = false;
 	interrupted = false;
+	interrupted_immediate = false;
 	current_element = nullptr;
 	target_element = nullptr;
 	has_mouse_position = false;
@@ -123,6 +124,20 @@ void Event::StopPropagation()
 	// Set interrupted to true if we can be interrupted
 	if (interruptible)
 	{
+		interrupted = true;
+	}
+}
+
+bool Event::IsImmediatePropagating() const
+{
+	return !interrupted_immediate;
+}
+
+void Event::StopImmediatePropagation()
+{
+	if(interruptible)
+	{
+		interrupted_immediate = true;
 		interrupted = true;
 	}
 }

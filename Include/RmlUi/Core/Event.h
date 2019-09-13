@@ -95,11 +95,15 @@ public:
 	/// Checks if the event is of a certain id.
 	bool operator==(EventId id) const;
 
-	/// Has the event been stopped?
-	/// @return True if the event is still propogating
+	/// Returns true if the event is still propagating.
 	bool IsPropagating() const;
-	/// Stops the propagation of the event wherever it is
+	/// Returns true if the event is still immediate propagating.
+	bool IsImmediatePropagating() const;
+
+	/// Stops propagation of the event, but finish all listeners on the current element.
 	void StopPropagation();
+	/// Stops propagation of the event, including to any other listeners on the current element.
+	void StopImmediatePropagation();
 
 	/// Returns the value of one of the event's parameters.
 	/// @param key[in] The name of the desired parameter.
@@ -137,6 +141,7 @@ private:
 	bool interruptible;
 	
 	bool interrupted;
+	bool interrupted_immediate;
 	EventPhase phase;
 
 	bool has_mouse_position;

@@ -198,7 +198,7 @@ public:
 		if (value == "exit")
 		{
 			element->GetParentNode()->SetInnerRML("<button onclick='confirm_exit'>Are you sure?</button>");
-			event.StopPropagation();
+			event.StopImmediatePropagation();
 		}
 		else if (value == "confirm_exit")
 		{
