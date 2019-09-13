@@ -103,29 +103,6 @@ public:
 		}
 	} simple_event_listener;
 
-	void click_test()
-	{
-		if (!document)
-			return;
-
-		Rml::Core::String rml;
-		
-		static int i = 0;
-		if(i++ % 2 == 0)
-			rml = Rml::Core::CreateString(1000, R"( <div style="width: 100px; height: 100px; background-color: #c33;"/> )");
-		else
-			rml = "<p>Wohooo!!!</p>";
-
-		if (auto el = document->GetElementById("click_test"))
-		{
-			el->SetInnerRML(rml);
-			if (auto child = el->GetChild(0))
-				child->AddEventListener(Rml::Core::EventId::Mouseup, &simple_event_listener);
-		}
-	}
-
-
-
 	~DemoWindow()
 	{
 		if (document)
@@ -150,27 +127,26 @@ DemoWindow* window = nullptr;
 bool run_loop = true;
 bool single_loop = true;
 bool run_update = true;
-bool single_loop_update = true;
+bool single_update = true;
 
 void GameLoop()
 {
-	if (run_update || single_loop_update)
+	if (run_update || single_update)
 	{
-		window->performance_test();
-		//window->click_test();
+		single_update = false;
 
-		single_loop_update = false;
+		window->performance_test();
 	}
 
 	if (run_loop || single_loop)
 	{
+		single_loop = false;
+	
 		context->Update();
 
 		shell_renderer->PrepareRenderBuffer();
 		context->Render();
 		shell_renderer->PresentRenderBuffer();
-
-		single_loop = false;
 	}
 
 	static constexpr int buffer_size = 200;
@@ -197,7 +173,7 @@ void GameLoop()
 
 		auto el = window->GetDocument()->GetElementById("fps");
 		count_frames = 0;
-		el->SetInnerRML(Rml::Core::CreateString( 20, "FPS: %f", fps_mean ));
+		el->SetInnerRML(Rml::Core::CreateString(20, "FPS: %f", fps_mean));
 	}
 }
 
@@ -231,7 +207,7 @@ public:
 			else if (key_identifier == Rml::Core::Input::KI_RIGHT)
 			{
 				run_update = false;
-				single_loop_update = true;
+				single_update = true;
 			}
 			else if (key_identifier == Rml::Core::Input::KI_RETURN)
 			{

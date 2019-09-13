@@ -18,7 +18,14 @@ div#title_bar div#icon
 {
 	display: none;
 }
-
+#fps 
+{
+	position: absolute;
+	top: 55px;
+	left: 20px;
+	font-size: 0.85em;
+	text-align: left;
+}
 
 tabset
 {
@@ -148,7 +155,8 @@ button:focus {
 </panel>
 <tab>Controls</tab>
 <panel>
-	<div>Type something here: <input style="vertical-align: -7px;" type="text" value="Sample text" autofocus/></div>
+	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" value="Sample text"/></div>
+	<textarea cols="30" rows="5" wrap="nowrap">Hello World!</textarea>
 </panel>
 </tabset>
 

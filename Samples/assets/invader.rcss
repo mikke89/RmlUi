@@ -45,6 +45,8 @@
 	
 	text-l: 162px 192px 14px 31px;
 	text-c: 176px 192px 1px 31px;
+	textarea: 162px 192px 145px 31px;
+	textarea-inner: 173px 206px 127px 10px;
 	
 	selectbox-tl: 281px 275px 11px 9px;
 	selectbox-t:  292px 275px 1px 9px;
@@ -271,29 +273,33 @@ input.submit:disabled
 	cursor: unavailable;
 }
 
-
-
 input.text
 {
 	height: 31px;
 	padding: 10px 10px 0px;
-
 	decorator: tiled-horizontal( text-l, text-c, auto ); /* Right becomes mirrored left */
+}
+
+textarea
+{
+	padding: 14px 12px 10px;
+	decorator: ninepatch( textarea, textarea-inner );
 }
 
 input.text,
 select,
-dataselect
+dataselect,
+textarea
 {
-	color: black;
+	color: #333;
 	font-size: 13px;
 }
 
 datagrid input.text
 {
 	width: 100%;
-	height: auto;
-	margin: 0px;
+	height: 18px;
+	margin: 0;
 	padding: 0 5px;
 
 	border-width: 1px;
@@ -548,12 +554,10 @@ scrollbarvertical sliderbar
 
 	decorator: tiled-vertical( sliderbar-t, sliderbar-c, sliderbar-b );
 }
-
 scrollbarvertical sliderbar:hover
 {
 	decorator: tiled-vertical( sliderbar-hover-t, sliderbar-hover-c, sliderbar-hover-b );
 }
-
 scrollbarvertical sliderbar:active
 {
 	decorator: tiled-vertical( sliderbar-active-t, sliderbar-active-c, sliderbar-active-b );
@@ -565,7 +569,6 @@ scrollbarvertical sliderarrowinc
 	width: 27px;
 	height: 24px;
 }
-
 scrollbarvertical sliderarrowdec
 {
 	decorator: image( sliderarrowdec );
@@ -593,6 +596,28 @@ scrollbarvertical sliderarrowinc:active
 }
 
 scrollbarhorizontal
+{
+	width: 0px;
+	height: 0px;
+}
+
+textarea scrollbarvertical
+{
+	margin: 10px 0px 4px 0;
+	width: 12px;
+}
+textarea scrollbarvertical slidertrack 
+{ 
+	decorator: none; 
+}
+textarea scrollbarvertical sliderbar
+{
+	margin-left: 2px;
+	width: 10px;
+	min-height: 16px;
+}
+textarea scrollbarvertical sliderarrowdec,
+textarea scrollbarvertical sliderarrowinc
 {
 	width: 0px;
 	height: 0px;
