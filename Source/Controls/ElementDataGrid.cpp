@@ -53,11 +53,9 @@ ElementDataGrid::ElementDataGrid(const Rml::Core::String& tag) : Core::Element(t
 
 	element = Core::Factory::InstanceElement(this, "*", "datagridbody", attributes);
 	body = element.get();
-	body->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
+	body->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
 	body->SetProperty(Core::PropertyId::Width, Core::Property(Core::Style::Width::Auto));
 	AppendChild(std::move(element));
-
-	body_visible = false;
 
 	element = Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridroot", attributes);
 	root = static_cast<ElementDataGridRow*>(element.get());
@@ -237,12 +235,6 @@ void ElementDataGrid::OnUpdate()
 	if (any_new_children)
 	{
 		DispatchEvent(Core::EventId::Rowupdate, Rml::Core::Dictionary());
-	}
-	
-	if (!body_visible && (!any_new_children || root->GetNumLoadedChildren() >= GetAttribute("min-rows", 0)))
-	{
-		body->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
-		body_visible = true;
 	}
 }
 

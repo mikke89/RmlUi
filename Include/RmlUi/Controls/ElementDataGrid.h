@@ -146,8 +146,6 @@ private:
 
 	// The block element that contains all our rows. Only used for applying styles.
 	Core::Element* body;
-	// Stores if the body has already been made visible by having enough rows added.
-	bool body_visible;
 };
 
 }
