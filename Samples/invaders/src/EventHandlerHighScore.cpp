@@ -65,7 +65,12 @@ void EventHandlerHighScore::ProcessEvent(Rml::Core::Event& event, const Rml::Cor
 	}
 	else if (value == "check_name")
 	{
-		/* TODO: Check if the player hasn't set their name first. */
-		HighScores::SubmitName("Anon.");
+		Rml::Core::String name = "Anon.";
+		
+		// Submit the name the user started typing
+		if(auto element = event.GetCurrentElement()->GetOwnerDocument()->GetElementById("player_input"))
+			name = element->GetAttribute<Rml::Core::String>("value", name);
+
+		HighScores::SubmitName(name);
 	}
 }
