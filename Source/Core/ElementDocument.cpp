@@ -492,6 +492,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 void ElementDocument::OnResize()
 {
 	DirtyPosition();
+	UpdatePosition();
 }
 
 

@@ -190,12 +190,6 @@ void Element::Update(float dp_ratio)
 
 	UpdateProperties();
 
-	if (box_dirty)
-	{
-		box_dirty = false;
-		OnResize();
-	}
-
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio);
 }
@@ -239,6 +233,14 @@ void Element::Render()
 	RMLUI_ZoneScoped;
 	RMLUI_ZoneText(name.c_str(), name.size());
 #endif
+
+	// Box is dirty if the layouting changed the size of the element.
+	// Note: If OnResize updates properties that require a layout change, the changes will not be visible until the next @frame.
+	if (box_dirty)
+	{
+		box_dirty = false;
+		OnResize();
+	}
 
 	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
