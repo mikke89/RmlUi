@@ -439,7 +439,6 @@ set(Debugger_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementContextHook.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementInfo.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementLog.h
-    ${PROJECT_SOURCE_DIR}/Source/Debugger/FontSource.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/Geometry.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/InfoSource.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/LogSource.h

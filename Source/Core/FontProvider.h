@@ -63,6 +63,8 @@ protected:
 
     typedef UnorderedMap< String, FontFamily*> FontFamilyMap;
     FontFamilyMap font_families;
+
+    static const String debugger_font_family_name;
 };
 
 }

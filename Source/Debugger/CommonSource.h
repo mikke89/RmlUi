@@ -29,7 +29,7 @@
 static const char* common_rcss = R"RCSS(
 body
 {
-	font-family: Lacuna;
+	font-family: rmlui-debugger-font;
 	z-index: 1000000;
 	font-size: 13dp;
 	line-height: 1.4;
