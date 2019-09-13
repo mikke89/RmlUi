@@ -141,6 +141,12 @@ void ElementFormControlTextArea::OnRender()
 }
 
 // Formats the element.
+void ElementFormControlTextArea::OnResize()
+{
+	widget->OnResize();
+}
+
+// Formats the element.
 void ElementFormControlTextArea::OnLayout()
 {
 	widget->OnLayout();

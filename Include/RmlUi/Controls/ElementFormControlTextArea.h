@@ -99,6 +99,8 @@ protected:
 	void OnUpdate() override;
 	/// Renders the control's widget.
 	void OnRender() override;
+	/// Resizes and positions the control's widget.
+	void OnResize() override;
 	/// Formats the element.
 	void OnLayout() override;
 
