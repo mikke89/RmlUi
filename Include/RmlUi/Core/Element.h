@@ -722,7 +722,6 @@ private:
 	bool structure_dirty;
 
 	bool computed_values_are_default_initialized;
-	bool box_dirty;
 
 	// Cached rendering information
 	int clipping_ignore_depth;

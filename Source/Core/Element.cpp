@@ -133,7 +133,6 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 	structure_dirty = false;
 
 	computed_values_are_default_initialized = true;
-	box_dirty = false;
 
 	clipping_ignore_depth = 0;
 	clipping_enabled = false;
@@ -234,13 +233,6 @@ void Element::Render()
 	RMLUI_ZoneText(name.c_str(), name.size());
 #endif
 
-	// Box is dirty if the layouting changed the size of the element.
-	// Note: If OnResize updates properties that require a layout change, the changes will not be visible until the next @frame.
-	if (box_dirty)
-	{
-		box_dirty = false;
-		OnResize();
-	}
 
 	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
@@ -487,7 +479,8 @@ void Element::SetBox(const Box& box)
 		main_box = box;
 		additional_boxes.clear();
 
-		box_dirty = true;
+		OnResize();
+
 		background->DirtyBackground();
 		border->DirtyBorder();
 		decoration->DirtyDecorators();
@@ -499,7 +492,8 @@ void Element::AddBox(const Box& box)
 {
 	additional_boxes.push_back(box);
 
-	box_dirty = true;
+	OnResize();
+
 	background->DirtyBackground();
 	border->DirtyBorder();
 	decoration->DirtyDecorators();

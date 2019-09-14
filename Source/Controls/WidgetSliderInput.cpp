@@ -83,6 +83,8 @@ void WidgetSliderInput::SetStep(float _step)
 // Formats the slider's elements.
 void WidgetSliderInput::FormatElements()
 {
+	RMLUI_ZoneScopedNC("RangeOnResize", 0x228044);
+
 	Rml::Core::Vector2f box = GetParent()->GetBox().GetSize();
 	WidgetSlider::FormatElements(box, GetOrientation() == VERTICAL ? box.y : box.x);
 }
