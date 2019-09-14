@@ -572,8 +572,10 @@ protected:
 	void Update(float dp_ratio);
 	void Render();
 
-	/// Forces the element to generate a local stacking context, regardless of the value of its z-index
-	/// property.
+	/// Updates definition, computed values, and runs OnPropertyChange on this element.
+	void UpdateProperties();
+
+	/// Forces the element to generate a local stacking context, regardless of the value of its z-index property.
 	void ForceLocalStackingContext();
 
 	/// Called during the update loop after children are updated.
@@ -615,8 +617,6 @@ protected:
 
 private:
 	void SetParent(Element* parent);
-
-	void UpdateProperties();
 
 	void DirtyOffset();
 	void UpdateOffset();

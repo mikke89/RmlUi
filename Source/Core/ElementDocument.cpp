@@ -144,6 +144,9 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 
 	// Hide this document.
 	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+
+	// Update properties so that e.g. visibility status can be queried properly immediately.
+	UpdateProperties();
 }
 
 // Returns the document's context.
@@ -204,41 +207,33 @@ void ElementDocument::PushToBack()
 		context->PushDocumentToBack(this);
 }
 
-void ElementDocument::Show(FocusFlag focus_flag)
+void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 {
-	bool autofocus = false;
+	switch (modal_flag)
+	{
+	case Rml::Core::ModalFlag::None:     modal = false; break;
+	case Rml::Core::ModalFlag::Modal:    modal = true;  break;
+	case Rml::Core::ModalFlag::Previous: break;
+	}
+
 	bool focus = false;
+	bool autofocus = false;
 	bool focus_previous = false;
 
 	switch (focus_flag)
 	{
 	case FocusFlag::None:
-		modal = false;
 		break;
-	case FocusFlag::Focus:
+	case FocusFlag::Document:
 		focus = true;
-		autofocus = true;
 		break;
-	case FocusFlag::Modal:
-		focus = true;
-		autofocus = true;
-		modal = true;
-		break;
-	case FocusFlag::FocusPrevious:
+	case FocusFlag::Previous:
 		focus = true;
 		focus_previous = true;
 		break;
-	case FocusFlag::ModalPrevious:
+	case FocusFlag::Auto:
 		focus = true;
-		focus_previous = true;
-		modal = true;
-		break;
-	case FocusFlag::FocusDocument:
-		focus = true;
-		break;
-	case FocusFlag::ModalDocument:
-		focus = true;
-		modal = true;
+		autofocus = true;
 		break;
 	}
 
@@ -341,7 +336,7 @@ ElementPtr ElementDocument::CreateTextNode(const String& text)
 // Is the current document modal
 bool ElementDocument::IsModal() const
 {
-	return modal;
+	return modal && IsVisible();
 }
 
 // Default load script implementation
@@ -445,13 +440,6 @@ void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
-	if (changed_properties.Contains(PropertyId::Visibility) ||
-		changed_properties.Contains(PropertyId::Display))
-	{
-		if (!IsVisible())
-			modal = false;
-	}
-
 	// If the document's font-size has been changed, we need to dirty all rem properties.
 	if (changed_properties.Contains(PropertyId::FontSize))
 		GetStyle()->DirtyPropertiesWithUnitRecursive(Property::REM);
@@ -478,8 +466,8 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 		{
 			if (Element* element = FindNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false)))
 			{
-				element->Focus();
-				element->ScrollIntoView(false);
+				if(element->Focus())
+					element->ScrollIntoView(false);
 			}
 		}
 		// Process ENTER being pressed on a focusable object (emulate click)

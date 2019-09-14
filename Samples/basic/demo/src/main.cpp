@@ -101,37 +101,31 @@ public:
 			{
 				window2->GetDocument()->Hide();
 			}
-			else if (key_identifier == Rml::Core::Input::KI_Q)
+
+			using Rml::Core::ModalFlag;
+			using Rml::Core::FocusFlag;
+
+			ModalFlag modal_flag = ModalFlag::None;
+			if (event.GetParameter("ctrl_key", 0))
+				modal_flag = ModalFlag::Modal;
+			else if (event.GetParameter("shift_key", 0))
+				modal_flag = ModalFlag::Previous;
+			
+			if (key_identifier == Rml::Core::Input::KI_Q)
 			{
-				window2->GetDocument()->Show(Rml::Core::FocusFlag::None);
+				window2->GetDocument()->Show(modal_flag, FocusFlag::None);
 			}
 			else if (key_identifier == Rml::Core::Input::KI_W)
 			{
-				window2->GetDocument()->Show(Rml::Core::FocusFlag::Focus);
+				window2->GetDocument()->Show(modal_flag, FocusFlag::Document);
 			}
 			else if (key_identifier == Rml::Core::Input::KI_E)
 			{
-				window2->GetDocument()->Show(Rml::Core::FocusFlag::Modal);
+				window2->GetDocument()->Show(modal_flag, FocusFlag::Previous);
 			}
 			else if (key_identifier == Rml::Core::Input::KI_R)
 			{
-				window2->GetDocument()->Show(Rml::Core::FocusFlag::FocusPrevious);
-			}
-			else if (key_identifier == Rml::Core::Input::KI_T)
-			{
-				window2->GetDocument()->Show(Rml::Core::FocusFlag::ModalPrevious);
-			}
-			else if (key_identifier == Rml::Core::Input::KI_Y)
-			{
-				window2->GetDocument()->Show(Rml::Core::FocusFlag::FocusDocument);
-			}
-			else if (key_identifier == Rml::Core::Input::KI_U)
-			{
-				window2->GetDocument()->Show(Rml::Core::FocusFlag::ModalDocument);
-			}
-			else if (key_identifier == Rml::Core::Input::KI_G)
-			{
-				window2->GetDocument()->GetContext()->UnfocusDocument(window2->GetDocument());
+				window2->GetDocument()->Show(modal_flag, FocusFlag::Auto);
 			}
 		}
 		break;

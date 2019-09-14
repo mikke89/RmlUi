@@ -275,18 +275,29 @@ Some relevant changes for users:
 
 ### Focus flags, autofocus
 
-Elements with property `tab-index: auto;` and the `autofocus` attribute set on them can receive focus when showing a document, `ElementDocument::Show(FocusFlag focus_flag)`. This behavior can be controlled with the new document focus flags:
+It is now possible to autofocus on elements when showing a document. By default, the first element with the property `tab-index: auto;` as well as the attribute `autofocus` set, will receive focus.
 
+The focus behavior as well as the modal state can be controlled with two new separate flags.
+```C++
+ElementDocument::Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto);
 ```
-enum class FocusFlag { None, Focus, Modal, FocusPrevious, ModalPrevious, FocusDocument, ModalDocument };
 
-None: No focus, remove modal state.
-Focus: Focus the first tab element with the 'autofocus' attribute or else the document.
-Modal: Focus the first tab element with the 'autofocus' attribute or else the document, other documents cannot receive focus.
-FocusPrevious: Focus the previously focused element in the document.
-ModalPrevious: Focus the previously focused element in the document, other documents cannot receive focus.
-FocusDocument: Focus the document.
-ModalDocument: Focus the document, other documents cannot receive focus.
+The flags are specified as follows:
+```C++
+/**
+	 ModalFlag used for controlling the modal state of the document.
+		None: Remove modal state.
+		Modal: Set modal state, other documents cannot receive focus.
+		Previous: Modal state unchanged.
+
+	FocusFlag used for displaying the document.
+	   None: No focus.
+	   Document: Focus the document.
+	   Previous: Focus the previously focused element in the document.
+	   Auto: Focus the first tab element with the 'autofocus' attribute or else the document.
+*/
+enum class ModalFlag { None, Modal, Previous };
+enum class FocusFlag { None, Document, Previous, Auto };
 ```
 
 
