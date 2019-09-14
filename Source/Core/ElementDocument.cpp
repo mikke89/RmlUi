@@ -206,7 +206,6 @@ void ElementDocument::PushToBack()
 
 void ElementDocument::Show(FocusFlag focus_flag)
 {
-	modal = false;
 	bool autofocus = false;
 	bool focus = false;
 	bool focus_previous = false;
@@ -214,6 +213,7 @@ void ElementDocument::Show(FocusFlag focus_flag)
 	switch (focus_flag)
 	{
 	case FocusFlag::None:
+		modal = false;
 		break;
 	case FocusFlag::Focus:
 		focus = true;
@@ -341,7 +341,7 @@ ElementPtr ElementDocument::CreateTextNode(const String& text)
 // Is the current document modal
 bool ElementDocument::IsModal() const
 {
-	return modal && IsVisible();
+	return modal;
 }
 
 // Default load script implementation
@@ -444,6 +444,13 @@ void ElementDocument::DirtyDpProperties()
 void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
+
+	if (changed_properties.Contains(PropertyId::Visibility) ||
+		changed_properties.Contains(PropertyId::Display))
+	{
+		if (!IsVisible())
+			modal = false;
+	}
 
 	// If the document's font-size has been changed, we need to dirty all rem properties.
 	if (changed_properties.Contains(PropertyId::FontSize))

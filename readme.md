@@ -280,7 +280,7 @@ Elements with property `tab-index: auto;` and the `autofocus` attribute set on t
 ```
 enum class FocusFlag { None, Focus, Modal, FocusPrevious, ModalPrevious, FocusDocument, ModalDocument };
 
-None: No focus.
+None: No focus, remove modal state.
 Focus: Focus the first tab element with the 'autofocus' attribute or else the document.
 Modal: Focus the first tab element with the 'autofocus' attribute or else the document, other documents cannot receive focus.
 FocusPrevious: Focus the previously focused element in the document.
