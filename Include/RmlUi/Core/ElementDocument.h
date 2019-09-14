@@ -42,18 +42,18 @@ class StyleSheet;
 
 /**
 	 ModalFlag used for controlling the modal state of the document.
-		None: Remove modal state.
+		None:  Remove modal state.
 		Modal: Set modal state, other documents cannot receive focus.
-		Previous: Modal state unchanged.
+		Keep:  Modal state unchanged.
 
 	FocusFlag used for displaying the document.
-	   None: No focus.
-	   Document: Focus the document.
-	   Previous: Focus the previously focused element in the document.
-	   Auto: Focus the first tab element with the 'autofocus' attribute or else the document.
+		None:     No focus.
+		Document: Focus the document.
+		Keep:     Focus the element in the document which last had focus.
+		Auto:     Focus the first tab element with the 'autofocus' attribute or else the document.
 */
-enum class ModalFlag { None, Modal, Previous };
-enum class FocusFlag { None, Document, Previous, Auto };
+enum class ModalFlag { None, Modal, Keep };
+enum class FocusFlag { None, Document, Keep, Auto };
 
 
 /**

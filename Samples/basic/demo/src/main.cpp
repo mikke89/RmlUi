@@ -109,7 +109,7 @@ public:
 			if (event.GetParameter("ctrl_key", 0))
 				modal_flag = ModalFlag::Modal;
 			else if (event.GetParameter("shift_key", 0))
-				modal_flag = ModalFlag::Previous;
+				modal_flag = ModalFlag::Keep;
 			
 			if (key_identifier == Rml::Core::Input::KI_Q)
 			{
@@ -121,7 +121,7 @@ public:
 			}
 			else if (key_identifier == Rml::Core::Input::KI_E)
 			{
-				window2->GetDocument()->Show(modal_flag, FocusFlag::Previous);
+				window2->GetDocument()->Show(modal_flag, FocusFlag::Keep);
 			}
 			else if (key_identifier == Rml::Core::Input::KI_R)
 			{

@@ -213,7 +213,7 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 	{
 	case Rml::Core::ModalFlag::None:     modal = false; break;
 	case Rml::Core::ModalFlag::Modal:    modal = true;  break;
-	case Rml::Core::ModalFlag::Previous: break;
+	case Rml::Core::ModalFlag::Keep: break;
 	}
 
 	bool focus = false;
@@ -227,7 +227,7 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 	case FocusFlag::Document:
 		focus = true;
 		break;
-	case FocusFlag::Previous:
+	case FocusFlag::Keep:
 		focus = true;
 		focus_previous = true;
 		break;

@@ -54,8 +54,8 @@ template<> void ExtraInit<Document>(lua_State* L, int metatable_index)
         lua_setfield(L,-2,"None");
         lua_pushinteger(L,(int)ModalFlag::Modal);
         lua_setfield(L,-2,"Modal");
-		lua_pushinteger(L, (int)ModalFlag::Previous);
-        lua_setfield(L,-2,"Previous");
+		lua_pushinteger(L, (int)ModalFlag::Keep);
+        lua_setfield(L,-2,"Keep");
         lua_setglobal(L,"DocumentModal");
     }
 
@@ -69,8 +69,8 @@ template<> void ExtraInit<Document>(lua_State* L, int metatable_index)
 		lua_setfield(L, -2, "None");
 		lua_pushinteger(L, (int)FocusFlag::Document);
 		lua_setfield(L, -2, "Document");
-		lua_pushinteger(L, (int)FocusFlag::Previous);
-		lua_setfield(L, -2, "Modal");
+		lua_pushinteger(L, (int)FocusFlag::Keep);
+		lua_setfield(L, -2, "Keep");
 		lua_pushinteger(L, (int)FocusFlag::Auto);
 		lua_setfield(L, -2, "Auto");
 		lua_setglobal(L, "DocumentFocus");
