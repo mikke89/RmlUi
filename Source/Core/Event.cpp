@@ -51,6 +51,7 @@ Event::Event(Element* _target_element, EventId id, const String& type, const Dic
 {
 	phase = EventPhase::None;
 	interrupted = false;
+	interrupted_immediate = false;
 	current_element = nullptr;
 
 	has_mouse_position = false;
