@@ -73,11 +73,11 @@ public:
 
 	/// Set clipboard text.
 	/// @param[in] text Text to apply to clipboard.
-	void SetClipboardText(const Core::WString& text) override;
+	void SetClipboardText(const Core::String& text) override;
 
 	/// Get clipboard text.
 	/// @param[out] text Retrieved text from clipboard.
-	void GetClipboardText(Core::WString& text) override;
+	void GetClipboardText(Core::String& text) override;
 
 	/// Activate keyboard (for touchscreen devices)
 	void ActivateKeyboard() override;

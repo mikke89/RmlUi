@@ -90,7 +90,7 @@ public:
 	/// @param[in] element The element to measure the string from.
 	/// @param[in] string The string to measure.
 	/// @return The string width, in pixels.
-	static int GetStringWidth(Element* element, const WString& string);
+	static int GetStringWidth(Element* element, const String& string);
 
 	/// Bind and instance all event attributes on the given element onto the element
 	/// @param element Element to bind events on

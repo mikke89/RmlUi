@@ -1,3 +1,5 @@
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
 /*
  * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
@@ -99,12 +101,24 @@ WString StringUtilities::ToUCS2(const String& str)
 	return result;
 }
 
+WString StringUtilities::ToUTF16(const String& str)
+{
+	// TODO: Convert to UTF16 instead of UCS2
+	return ToUCS2(str);
+}
+
 String StringUtilities::ToUTF8(const WString& wstr)
 {
 	String result;
 	if(!UCS2toUTF8(wstr, result))
 		Log::Message(Log::LT_WARNING, "Failed to convert UCS2 string to UTF8.");
 	return result;
+}
+
+int StringUtilities::LengthUTF8(const String& str)
+{
+	// TODO: Actually consider multibyte characters
+	return (int)str.size();
 }
 
 String StringUtilities::Replace(String subject, const String& search, const String& replace)

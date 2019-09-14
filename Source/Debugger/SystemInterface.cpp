@@ -70,12 +70,12 @@ void SystemInterface::SetMouseCursor(const Core::String& cursor_name)
 	application_interface->SetMouseCursor(cursor_name);
 }
 
-void SystemInterface::SetClipboardText(const Core::WString& text)
+void SystemInterface::SetClipboardText(const Core::String& text)
 {
 	application_interface->SetClipboardText(text);
 }
 
-void SystemInterface::GetClipboardText(Core::WString& text)
+void SystemInterface::GetClipboardText(Core::String& text)
 {
 	application_interface->GetClipboardText(text);
 }

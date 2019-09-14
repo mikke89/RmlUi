@@ -86,11 +86,11 @@ public:
 
 	/// Set clipboard text.
 	/// @param[in] text Text to apply to clipboard.
-	virtual void SetClipboardText(const WString& text);
+	virtual void SetClipboardText(const String& text);
 
 	/// Get clipboard text.
 	/// @param[out] text Retrieved text from clipboard.
-	virtual void GetClipboardText(WString& text);
+	virtual void GetClipboardText(String& text);
 
 	/// Activate keyboard (for touchscreen devices)
 	virtual void ActivateKeyboard();

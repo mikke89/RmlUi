@@ -40,8 +40,8 @@
 namespace Rml {
 namespace Core {
 
-static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation);
-static bool LastToken(const word* token_begin, const word* string_end, bool collapse_white_space, bool break_at_endline);
+static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation);
+static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline);
 
 ElementTextDefault::ElementTextDefault(const String& tag) : ElementText(tag), colour(255, 255, 255), decoration(this)
 {
@@ -60,7 +60,7 @@ ElementTextDefault::~ElementTextDefault()
 {
 }
 
-void ElementTextDefault::SetText(const WString& _text)
+void ElementTextDefault::SetText(const String& _text)
 {
 	if (text != _text)
 	{
@@ -71,7 +71,7 @@ void ElementTextDefault::SetText(const WString& _text)
 	}
 }
 
-const WString& ElementTextDefault::GetText() const
+const String& ElementTextDefault::GetText() const
 {
 	return text;
 }
@@ -165,8 +165,8 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 							white_space_property == WhiteSpace::Prewrap ||
 							white_space_property == WhiteSpace::Preline;
 
-	const word* token_begin = text.c_str() + line_begin;
-	WString token;
+	const char* token_begin = text.c_str() + line_begin;
+	String token;
 
 	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
 	token_width = (float) font_face_handle->GetStringWidth(token, 0);
@@ -175,7 +175,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 }
 
 // Generates a line of text rendered from this element
-bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix)
+bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix)
 {
 	RMLUI_ZoneScoped;
 
@@ -212,12 +212,12 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 	// white-space parsing parameters. Each section is then appended to the line if it can fit. If not, or if an
 	// endline is found (and we're processing them), then the line is ended. kthxbai!
 
-	const word* token_begin = text.c_str() + line_begin;
-	const word* string_end = text.c_str() + text.size();
+	const char* token_begin = text.c_str() + line_begin;
+	const char* string_end = text.c_str() + text.size();
 	while (token_begin != string_end)
 	{
-		WString token;
-		const word* next_token_begin = token_begin;
+		String token;
+		const char* next_token_begin = token_begin;
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
@@ -263,7 +263,7 @@ void ElementTextDefault::ClearLines()
 }
 
 // Adds a new line into the text element.
-void ElementTextDefault::AddLine(const Vector2f& line_position, const WString& line)
+void ElementTextDefault::AddLine(const Vector2f& line_position, const String& line)
 {
 	FontFaceHandle* font_face_handle = GetFontFaceHandle();
 
@@ -363,7 +363,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 // Returns the RML of this element
 void ElementTextDefault::GetRML(String& content)
 {
-	content += StringUtilities::ToUTF8(text);
+	content += text;
 }
 
 // Updates the configuration this element uses for its font.
@@ -429,7 +429,7 @@ void ElementTextDefault::GenerateDecoration(const FontFaceHandle* font_face_hand
 	font_face_handle->GenerateLine(&decoration, line.position, line.width, decoration_property, colour);
 }
 
-static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation)
+static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation)
 {
 	RMLUI_ASSERT(token_begin != string_end);
 
@@ -446,9 +446,9 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 	while (token_begin != string_end)
 	{
 		bool force_non_whitespace = false;
-		word character = *token_begin;
+		char character = *token_begin;
 
-		const word* escape_begin = token_begin;
+		const char* escape_begin = token_begin;
 
 		// Check for an ampersand; if we find one, we've got an HTML escaped character.
 		if (character == '&')
@@ -468,17 +468,17 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 			// is not recognised, print the token like normal text.
 			else
 			{
-				WString ucs2_escape_code(escape_begin + 1, token_begin);
+				String ucs2_escape_code(escape_begin + 1, token_begin);
 
-				if (ucs2_escape_code == L"lt")
+				if (ucs2_escape_code == "lt")
 					character = '<';
-				else if (ucs2_escape_code == L"gt")
+				else if (ucs2_escape_code == "gt")
 					character = '>';
-				else if (ucs2_escape_code == L"amp")
+				else if (ucs2_escape_code == "amp")
 					character = '&';
-				else if (ucs2_escape_code == L"quot")
+				else if (ucs2_escape_code == "quot")
 					character = '"';
-				else if (ucs2_escape_code == L"nbsp")
+				else if (ucs2_escape_code == "nbsp")
 				{
 					character = ' ';
 					force_non_whitespace = true;
@@ -544,12 +544,12 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 			if (text_transformation == Style::TextTransform::Uppercase)
 			{
 				if (character >= 'a' && character <= 'z')
-					character += (Rml::Core::word)('A' - 'a');
+					character += ('A' - 'a');
 			}
 			else if (text_transformation == Style::TextTransform::Lowercase)
 			{
 				if (character >= 'A' && character <= 'Z')
-					character -= (Rml::Core::word)('A' - 'a');
+					character -= ('A' - 'a');
 			}
 
 			token += character;
@@ -561,14 +561,14 @@ static bool BuildToken(WString& token, const word*& token_begin, const word* str
 	return false;
 }
 
-static bool LastToken(const word* token_begin, const word* string_end, bool collapse_white_space, bool break_at_endline)
+static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline)
 {
 	bool last_token = (token_begin == string_end);
 	if (collapse_white_space &&
 		!last_token)
 	{
 		last_token = true;
-		const word* character = token_begin;
+		const char* character = token_begin;
 
 		while (character != string_end)
 		{

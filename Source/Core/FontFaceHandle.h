@@ -77,7 +77,7 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	int GetStringWidth(const WString& string, word prior_character = 0) const;
+	int GetStringWidth(const String& string, word prior_character = 0) const;
 
 	/// Generates, if required, the layer configuration for a given array of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
@@ -96,7 +96,7 @@ public:
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0) const;
+	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0) const;
 	/// Generates the geometry required to render a line above, below or through a line of text.
 	/// @param[out] geometry The geometry to append the newly created geometry into.
 	/// @param[in] position The position of the baseline of the lined text.

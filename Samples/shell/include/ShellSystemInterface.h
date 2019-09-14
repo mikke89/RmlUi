@@ -49,11 +49,11 @@ public:
 
 	/// Set clipboard text.
 	/// @param[in] text Text to apply to clipboard.
-	void SetClipboardText(const Rml::Core::WString& text) override;
+	void SetClipboardText(const Rml::Core::String& text) override;
 
 	/// Get clipboard text.
 	/// @param[out] text Retrieved text from clipboard.
-	void GetClipboardText(Rml::Core::WString& text) override;
+	void GetClipboardText(Rml::Core::String& text) override;
 };
 
 #endif

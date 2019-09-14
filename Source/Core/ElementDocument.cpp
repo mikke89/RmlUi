@@ -328,7 +328,7 @@ ElementPtr ElementDocument::CreateTextNode(const String& text)
 	}
 	
 	// Set the text
-	element_text->SetText(StringUtilities::ToUCS2(text));
+	element_text->SetText(text);
 
 	return element;
 }

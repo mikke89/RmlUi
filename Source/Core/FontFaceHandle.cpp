@@ -96,7 +96,7 @@ const FontGlyphList& FontFaceHandle::GetGlyphs() const
 }
 
 // Returns the width a string will take up if rendered with this handle.
-int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) const
+int FontFaceHandle::GetStringWidth(const String& string, word prior_character) const
 {
 	int width = 0;
 
@@ -194,7 +194,7 @@ bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& t
 }
 
 // Generates the geometry required to render a single line of text.
-int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index) const
+int FontFaceHandle::GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index) const
 {
 	int geometry_index = 0;
 	int line_width = 0;

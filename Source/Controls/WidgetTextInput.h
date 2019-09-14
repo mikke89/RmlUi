@@ -170,12 +170,12 @@ private:
 	/// @param[out] post_selection The section of unselected text after any selected text on the line. If there is no selection on the line, then this will be empty.
 	/// @param[in] line The text making up the line.
 	/// @param[in] line_begin The absolute index at the beginning of the line.
-	void GetLineSelection(Core::WString& pre_selection, Core::WString& selection, Core::WString& post_selection, const Core::WString& line, int line_begin);
+	void GetLineSelection(Core::String& pre_selection, Core::String& selection, Core::String& post_selection, const Core::String& line, int line_begin);
 
 	struct Line
 	{
 		// The contents of the line (including the trailing endline, if that terminated the line).
-		Core::WString content;
+		Core::String content;
 		// The length of the editable characters on the line (excluding any trailing endline).
 		int content_length;
 

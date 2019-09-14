@@ -114,7 +114,7 @@ WidgetTextInput::~WidgetTextInput()
 // Sets the value of the text field.
 void WidgetTextInput::SetValue(const Core::String& value)
 {
-	text_element->SetText(Core::StringUtilities::ToUCS2(value));
+	text_element->SetText(value);
 	FormatElement();
 
 	UpdateRelativeCursor();
@@ -352,13 +352,12 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		{
 			if (ctrl)
 			{
-				Core::WString clipboard_text;
+				Core::String clipboard_text;
 				Core::GetSystemInterface()->GetClipboardText(clipboard_text);
 
 				for (size_t i = 0; i < clipboard_text.size(); ++i)
 				{
-					if (max_length > 0 &&
-						(int)Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", "")).size() > max_length)
+					if (max_length > 0 && Core::StringUtilities::LengthUTF8(GetElement()->GetAttribute< Rml::Core::String >("value", "")) > max_length)
 						break;
 
 					AddCharacter(clipboard_text[i]);
@@ -510,7 +509,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 void WidgetTextInput::CopySelection()
 {
 	const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-	const Core::WString snippet = Core::StringUtilities::ToUCS2(value.substr(selection_begin_index, selection_length));
+	const Core::String snippet = value.substr(selection_begin_index, selection_length);
 	Core::GetSystemInterface()->SetClipboardText(snippet);
 }
 
@@ -786,8 +785,8 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 		{
 			soft_return = true;
 
-			const Core::WString& text = text_element->GetText();
-			Core::WString orphan;
+			const Core::String& text = text_element->GetText();
+			Core::String orphan;
 			for (int i = 1; i >= 0; --i)
 			{
 				int index = line_begin + line.content_length + i;
@@ -819,7 +818,7 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 		// Now that we have the string of characters appearing on the new line, we split it into
 		// three parts; the unselected text appearing before any selected text on the line, the
 		// selected text on the line, and any unselected text after the selection.
-		Core::WString pre_selection, selection, post_selection;
+		Core::String pre_selection, selection, post_selection;
 		GetLineSelection(pre_selection, selection, post_selection, line.content, line_begin);
 
 		// The pre-selected text is placed, if there is any (if the selection starts on or before
@@ -958,9 +957,9 @@ void WidgetTextInput::DeleteSelection()
 {
 	if (selection_length > 0)
 	{
-		const Core::WString& value = Core::StringUtilities::ToUCS2( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
+		const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-		Rml::Core::String new_value = Core::StringUtilities::ToUTF8(Core::WString(value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length)));
+		Rml::Core::String new_value = value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length);
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
@@ -973,7 +972,7 @@ void WidgetTextInput::DeleteSelection()
 }
 
 // Split one line of text into three parts, based on the current selection.
-void WidgetTextInput::GetLineSelection(Core::WString& pre_selection, Core::WString& selection, Core::WString& post_selection, const Core::WString& line, int line_begin)
+void WidgetTextInput::GetLineSelection(Core::String& pre_selection, Core::String& selection, Core::String& post_selection, const Core::String& line, int line_begin)
 {
 	// Check if we have any selection at all, and if so if the selection is on this line.
 	if (selection_length <= 0 ||

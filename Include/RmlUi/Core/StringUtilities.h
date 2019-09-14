@@ -81,10 +81,17 @@ namespace StringUtilities
 	/// Reports a warning if the conversion fails.
 	RMLUICORE_API WString ToUCS2(const String& str);
 
+	/// Convert UTF8 string to UTF16.
+	RMLUICORE_API WString ToUTF16(const String& str);
+
 	/// Converts a wide string in UCS-2 encoding into a string in UTF-8 encoding. This
 	/// function assumes the endianness of the input words to be the same as the host processor.
 	/// Reports a warning if the conversion fails.
+	/// TODO: Convert from UTF-16 instead.
 	RMLUICORE_API String ToUTF8(const WString& wstr);
+
+	/// Returns number of characters in UTF8 string.
+	RMLUICORE_API int LengthUTF8(const String& str);
 
 	/// Converts upper-case characters in string to lower-case.
 	RMLUICORE_API String ToLower(const String& string);

@@ -294,7 +294,7 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 	}
 }
 
-void Shell::SetClipboardText(const Rml::Core::WString& text)
+void Shell::SetClipboardText(const Rml::Core::String& text_utf8)
 {
 	if (window_handle)
 	{
@@ -302,6 +302,8 @@ void Shell::SetClipboardText(const Rml::Core::WString& text)
 			return;
 
 		EmptyClipboard();
+
+		const Rml::Core::WString text = Rml::Core::StringUtilities::ToUTF16(text_utf8);
 
 		size_t size = sizeof(wchar_t) * (text.size() + 1);
 
@@ -318,7 +320,7 @@ void Shell::SetClipboardText(const Rml::Core::WString& text)
 	}
 }
 
-void Shell::GetClipboardText(Rml::Core::WString& text)
+void Shell::GetClipboardText(Rml::Core::String& text)
 {
 	if (window_handle)
 	{
@@ -334,7 +336,7 @@ void Shell::GetClipboardText(Rml::Core::WString& text)
 
 		const wchar_t* clipboard_text = (const wchar_t*)GlobalLock(clipboard_data);
 		if (clipboard_text)
-			text = clipboard_text;
+			text = Rml::Core::StringUtilities::ToUTF8(clipboard_text);
 		GlobalUnlock(clipboard_data);
 
 		CloseClipboard();

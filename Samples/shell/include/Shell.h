@@ -80,10 +80,10 @@ public:
 	static void SetMouseCursor(const Rml::Core::String& cursor_name);
 
 	/// Set clipboard text.
-	static void SetClipboardText(const Rml::Core::WString& text);
+	static void SetClipboardText(const Rml::Core::String& text);
 
 	/// Get clipboard text.
-	static void GetClipboardText(Rml::Core::WString& text);
+	static void GetClipboardText(Rml::Core::String& text);
 	
 	/// Sets the context to send window resized events to.
 	/// @param[in] context The context to send  events to.
