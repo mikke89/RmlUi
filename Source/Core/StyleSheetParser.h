@@ -36,6 +36,7 @@ class PropertyDictionary;
 class Stream;
 class StyleSheetNode;
 class AbstractPropertyParser;
+struct PropertySource;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -90,7 +91,7 @@ private:
 	bool ParseKeyframeBlock(KeyframesMap & keyframes_map, const String & identifier, const String & rules, const PropertyDictionary & properties);
 
 	// Attempts to parse a @decorator block
-	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet);
+	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet, const SharedPtr<const PropertySource>& source);
 
 	// Attempts to find one of the given character tokens in the active stream
 	// If it's found, buffer is filled with all content up until the token

@@ -253,7 +253,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	return true;
 }
 
-bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet)
+bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet, const SharedPtr<const PropertySource>& source)
 {
 	StringList name_type;
 	StringUtilities::ExpandString(name_type, at_name, ':');
@@ -306,6 +306,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 
 	// Set non-defined properties to their defaults
 	property_specification.SetPropertyDefaults(properties);
+	properties.SetSourceOfAllProperties(source);
 
 	SharedPtr<Decorator> decorator = decorator_instancer->InstanceDecorator(decorator_type, properties, DecoratorInstancerInterface(style_sheet));
 	if (!decorator)
@@ -392,7 +393,8 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					}
 					else if (at_rule_identifier == "decorator")
 					{
-						ParseDecoratorBlock(at_rule_name, decorator_map, style_sheet);
+						auto source = std::make_shared<PropertySource>(stream_file_name, line_number, pre_token_str);
+						ParseDecoratorBlock(at_rule_name, decorator_map, style_sheet, source);
 						
 						at_rule_name.clear();
 						state = State::Global;
