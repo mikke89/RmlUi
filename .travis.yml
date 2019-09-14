@@ -1,14 +1,13 @@
 sudo: false
 dist: bionic
+language: c++
 
 matrix:
   include:
     - os: osx
       osx_image: xcode10.3
-      language: c++
       compiler: clang
     - os: linux
-      language: c++
       compiler: clang
       addons:
         apt:
@@ -22,7 +21,6 @@ matrix:
             - liblua5.2-dev
             - libsfml-dev
     - os: linux
-      language: c++
       compiler: gcc
       env: VALGRIND_SAMPLES="1"
       services:
@@ -51,7 +49,7 @@ before_script:
 
 script:
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -scheme ALL_BUILD | xcpretty; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -scheme ALL_BUILD | xcpretty --color; test ${PIPESTATUS[0]} -eq 0; fi
   - if [[ "$VALGRIND_SAMPLES" == "1" ]]; then mkdir build && make DESTDIR=build install; fi
   - |
     if [[ "$VALGRIND_SAMPLES" == "1" ]]; then
