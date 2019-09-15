@@ -310,7 +310,6 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 	}
 
 	if (changed_properties.Contains(PropertyId::FontFamily) ||
-		changed_properties.Contains(PropertyId::FontCharset) ||
 		changed_properties.Contains(PropertyId::FontWeight) ||
 		changed_properties.Contains(PropertyId::FontStyle) ||
 		changed_properties.Contains(PropertyId::FontSize))

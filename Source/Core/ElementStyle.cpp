@@ -575,7 +575,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		values.opacity = parent_values->opacity;
 
 		values.font_family = parent_values->font_family;
-		values.font_charset = parent_values->font_charset;
 		values.font_style = parent_values->font_style;
 		values.font_weight = parent_values->font_weight;
 		values.font_face_handle = parent_values->font_face_handle;
@@ -745,10 +744,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		case PropertyId::FontFamily:
 			values.font_family = StringUtilities::ToLower(p->Get<String>());
-			values.font_face_handle.reset();
-			break;
-		case PropertyId::FontCharset:
-			values.font_charset = p->Get<String>();
 			values.font_face_handle.reset();
 			break;
 		case PropertyId::FontStyle:

@@ -54,7 +54,6 @@ public:
 	Style::FontWeight GetWeight() const;
 
 	/// Returns a handle for positioning and rendering this face at the given size.
-	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
     virtual SharedPtr<FontFaceHandle> GetHandle(int size) = 0;
@@ -69,7 +68,8 @@ protected:
 
 	bool release_stream;
 
-	typedef UnorderedMap< int, SharedPtr<FontFaceHandle> > HandleMap;
+	// Key is font size
+	using HandleMap = UnorderedMap< int, SharedPtr<FontFaceHandle> >;
 	HandleMap handles;
 };
 

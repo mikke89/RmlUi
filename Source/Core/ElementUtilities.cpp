@@ -142,13 +142,10 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 SharedPtr<FontFaceHandle> ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
 {
 	RMLUI_ZoneScoped;
-
-	static const String default_charset = "U+0020-007E";
-
-	const String& charset = (computed_values.font_charset.empty() ? default_charset : computed_values.font_charset);
+	
 	int font_size = (int)computed_values.font_size;
 
-	return FontDatabase::GetFontFaceHandle(computed_values.font_family, charset, computed_values.font_style, computed_values.font_weight, font_size);
+	return FontDatabase::GetFontFaceHandle(computed_values.font_family, computed_values.font_style, computed_values.font_weight, font_size);
 }
 
 float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)

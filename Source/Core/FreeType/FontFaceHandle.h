@@ -52,7 +52,6 @@ public:
 
 	/// Initialises the handle so it is able to render text.
 	/// @param[in] ft_face The FreeType face that this handle is rendering.
-	/// @param[in] charset The comma-separated list of unicode ranges this handle must support.
 	/// @param[in] size The size, in points, of the face this handle should render at.
 	/// @return True if the handle initialised successfully and is ready for rendering, false if an error occured.
 	bool Initialise(FT_Face ft_face, int size);

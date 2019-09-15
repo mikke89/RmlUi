@@ -113,7 +113,6 @@ enum class PropertyId : uint16_t
 	Color,
 	ImageColor,
 	FontFamily,
-	FontCharset,
 	FontStyle,
 	FontWeight,
 	FontSize,

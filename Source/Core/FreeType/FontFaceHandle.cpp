@@ -65,7 +65,7 @@ bool FontFaceHandle_FreeType::Initialise(FT_Face ft_face, int size)
 		return false;
 	}
 
-	// Construct the list of the characters specified by the charset.
+	// Construct the initial list of glyphs.
 	BuildGlyphMap(ft_face, GetGlyphs());
 
 	// Generate the metrics for the handle.

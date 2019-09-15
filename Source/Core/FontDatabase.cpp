@@ -98,13 +98,13 @@ bool FontDatabase::LoadFontFace(const byte* data, int data_length, const String&
 }
 
 // Returns a handle to a font face that can be used to position and render text.
-SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
+SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
     size_t provider_count = font_provider_table.size();
 
     for(size_t provider_index = 0; provider_index < provider_count; ++provider_index)
     {
-		SharedPtr<FontFaceHandle> face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
+		SharedPtr<FontFaceHandle> face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, style, weight, size);
 
         if(face_handle)
             return face_handle;

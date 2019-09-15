@@ -56,12 +56,11 @@ public:
     virtual bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
 
 	/// Returns a handle to the most appropriate font in the family, at the correct size.
-	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] style The style of the desired handle.
 	/// @param[in] weight The weight of the desired handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandle> GetFaceHandle(const String& charset, Style::FontStyle style, Style::FontWeight weight, int size);
+	SharedPtr<FontFaceHandle> GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size);
 
 protected:
 	String name;
