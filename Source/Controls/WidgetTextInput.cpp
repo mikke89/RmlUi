@@ -130,13 +130,25 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 		max_length = _max_length;
 		if (max_length >= 0)
 		{
-			Core::WString value = Core::StringUtilities::ToUCS2( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
-			if ((int) value.size() > max_length)
-			{
-				Rml::Core::String new_value;
-				new_value = Core::StringUtilities::ToUTF8(Core::WString(value.c_str(), value.c_str() + max_length));
+			Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-				GetElement()->SetAttribute("value", new_value);
+			int num_characters = 0;
+			size_t i_erase = value.size();
+
+			for (auto it = Core::StringIteratorU8(value); it; ++it)
+			{
+				num_characters += 1;
+				if (num_characters > max_length)
+				{
+					i_erase = size_t(it.Get() - value.data());
+					break;
+				}
+			}
+
+			if(i_erase < value.size())
+			{
+				value.erase(i_erase);
+				GetElement()->SetAttribute("value", value);
 			}
 		}
 	}
@@ -365,7 +377,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 				Core::GetSystemInterface()->GetClipboardText(clipboard_text);
 
 				// @performance: Can be made heaps faster.
-				for (auto it = Core::UTF8Iterator(clipboard_text); it; ++it)
+				for (auto it = Core::StringIteratorU8(clipboard_text); it; ++it)
 				{
 					Core::CodePoint code = *it;
 					AddCharacter(code);

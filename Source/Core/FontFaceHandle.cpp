@@ -99,7 +99,7 @@ const FontGlyphList& FontFaceHandle::GetGlyphs() const
 int FontFaceHandle::GetStringWidth(const String& string, CodePoint prior_character) const
 {
 	int width = 0;
-	for (auto it = UTF8Iterator(string); it; ++it)
+	for (auto it = StringIteratorU8(string); it; ++it)
 	{
 		CodePoint code_point = *it;
 
@@ -229,7 +229,7 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const String& string,
 		geometry[geometry_index].GetIndices().reserve(string.size() * 6);
 		geometry[geometry_index].GetVertices().reserve(string.size() * 4);
 
-		for (auto it = UTF8Iterator(string); it; ++it)
+		for (auto it = StringIteratorU8(string); it; ++it)
 		{
 			CodePoint code_point = *it;
 

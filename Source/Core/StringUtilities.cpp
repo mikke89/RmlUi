@@ -1,6 +1,16 @@
 #include "..\..\Include\RmlUi\Core\StringUtilities.h"
 #include "..\..\Include\RmlUi\Core\StringUtilities.h"
 #include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
 /*
  * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
@@ -94,18 +104,13 @@ String StringUtilities::ToLower(const String& string) {
 	return str_lower;
 }
 
-WString StringUtilities::ToUCS2(const String& str)
-{
-	WString result;
-	if (!UTF8toUCS2(str, result))
-		Log::Message(Log::LT_WARNING, "Failed to convert UTF8 string to UCS2.");
-	return result;
-}
-
 WString StringUtilities::ToUTF16(const String& str)
 {
 	// TODO: Convert to UTF16 instead of UCS2
-	return ToUCS2(str);
+	WString result;
+	if (!UTF8toUCS2(str, result))
+		Log::Message(Log::LT_WARNING, "Failed to convert UTF8 string to UTF16.");
+	return result;
 }
 
 String StringUtilities::ToUTF8(const WString& wstr)
@@ -117,10 +122,12 @@ String StringUtilities::ToUTF8(const WString& wstr)
 	return result;
 }
 
-size_t StringUtilities::LengthU8(const String& str)
+size_t StringUtilities::LengthU8(StringView string_view)
 {
-	const char* p = str.data();
-	const char* p_end = str.data() + str.size();
+	const char* const p_end = string_view.end();
+
+	// Skip any continuation bytes at the beginning
+	const char* p = string_view.begin();
 
 	size_t num_continuation_bytes = 0;
 
@@ -131,7 +138,7 @@ size_t StringUtilities::LengthU8(const String& str)
 		++p;
 	}
 
-	return str.size() - num_continuation_bytes;
+	return string_view.size() - num_continuation_bytes;
 }
 
 String StringUtilities::Replace(String subject, const String& search, const String& replace)
@@ -585,6 +592,57 @@ static bool UCS2toUTF8(const WString& input, String& output)
 	}
 	
 	return true;
+}
+
+StringView::StringView(const char* p_begin, const char* p_end) : p_begin(p_begin), p_end(p_end)
+{}
+StringView::StringView(const String& string) : p_begin(string.data()), p_end(string.data() + string.size())
+{}
+StringView::StringView(const String& string, size_t offset) : p_begin(string.data()), p_end(string.data() + string.size())
+{}
+StringView::StringView(const String& string, size_t offset, size_t count) : p_begin(string.data()), p_end(string.data() + std::min(offset + count, string.size()))
+{}
+
+bool StringView::operator==(const StringView& other) const { 
+	return (p_end - p_begin) == (other.p_end - other.p_begin) && strcmp(p_begin, other.p_begin) == 0; 
+}
+
+
+
+StringIteratorU8::StringIteratorU8(const char* p_begin, const char* p, const char* p_end) : view(p_begin, p_end), p(p) {
+	SeekForward();
+}
+StringIteratorU8::StringIteratorU8(const String& string) : view(string), p(string.data())
+{ 
+	SeekForward();
+}
+StringIteratorU8::StringIteratorU8(const String& string, size_t offset) : view(string), p(string.data() + offset)
+{ 
+	SeekForward();
+}
+StringIteratorU8::StringIteratorU8(const String& string, size_t offset, size_t count) : view(string, 0, offset + count), p(string.data() + offset)
+{
+	SeekForward();
+}
+StringIteratorU8& StringIteratorU8::operator++() {
+	RMLUI_ASSERT(p != view.end());
+	++p;
+	SeekForward();
+	return *this;
+}
+StringIteratorU8& StringIteratorU8::operator--() {
+	RMLUI_ASSERT(p - 1 != view.begin());
+	--p;
+	SeekBack();
+	return *this;
+}
+
+inline void StringIteratorU8::SeekBack() {
+	p = StringUtilities::SeekBackU8(p, view.end());
+}
+
+inline void StringIteratorU8::SeekForward() {
+	p = StringUtilities::SeekForwardU8(p, view.end());
 }
 
 }
