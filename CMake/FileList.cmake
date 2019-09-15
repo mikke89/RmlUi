@@ -1,13 +1,6 @@
 # This file was auto-generated with gen_filelists.sh
 
 set(Core_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BitmapFontDefinitions.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
@@ -109,7 +102,6 @@ set(MASTER_Core_PUB_HDR_FILES
 set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Animation.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BaseXMLParser.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BitmapFont/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Box.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.inl
@@ -200,12 +192,6 @@ set(Core_PUB_HDR_FILES
 
 set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/BaseXMLParser.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Box.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.cpp

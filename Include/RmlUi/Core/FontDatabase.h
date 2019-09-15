@@ -50,13 +50,6 @@ class PropertyDictionary;
 class RMLUICORE_API FontDatabase
 {
 public:
-
-    enum FontProviderType
-    {
-        FreeType = 0,
-        BitmapFont
-    };
-
 	static bool Initialise();
 	static void Shutdown();
 
@@ -75,7 +68,7 @@ public:
 	/// @param[in] data The font data.
 	/// @param[in] data_length Length of the data.
 	/// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length);
+    static bool LoadFontFace(const byte* data, int data_length);
 	/// Adds a new font face to the database, loading from memory.
 	/// @param[in] data The font data.
 	/// @param[in] data_length Length of the data.
@@ -83,7 +76,7 @@ public:
 	/// @param[in] style The style of the face (normal or italic).
 	/// @param[in] weight The weight of the face (normal or bold).
 	/// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight);
+    static bool LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight);
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
@@ -103,8 +96,6 @@ public:
 private:
 	FontDatabase(void);
 	~FontDatabase(void);
-
-    static FontProviderType GetFontProviderType(const String& file_name);
 
     typedef std::vector< FontProvider *> FontProviderTable;
 

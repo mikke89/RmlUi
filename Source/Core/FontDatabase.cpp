@@ -31,7 +31,6 @@
 #include <RmlUi/Core/FontFamily.h>
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/FreeType/FontProvider.h>
-#include <RmlUi/Core/BitmapFont/FontProvider.h>
 
 namespace Rml {
 namespace Core {
@@ -59,9 +58,6 @@ bool FontDatabase::Initialise()
 
         if(!FreeType::FontProvider::Initialise())
             return false;
-
-        if(!BitmapFont::FontProvider::Initialise())
-            return false;
 	}
 
 	return true;
@@ -72,7 +68,6 @@ void FontDatabase::Shutdown()
 	if (instance != nullptr)
 	{
         FreeType::FontProvider::Shutdown();
-        BitmapFont::FontProvider::Shutdown();
 
 		delete instance;
 	}
@@ -81,81 +76,25 @@ void FontDatabase::Shutdown()
 // Loads a new font face.
 bool FontDatabase::LoadFontFace(const String& file_name)
 {
-    FontProviderType font_provider_type = GetFontProviderType(file_name);
-
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(file_name);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(file_name);
-
-        default:
-            return false;
-    }
+	return FreeType::FontProvider::LoadFontFace(file_name);
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
-    FontProviderType font_provider_type = GetFontProviderType(file_name);
-
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(file_name, family, style, weight);
-
-        default:
-            return false;
-    }
+	return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
 }
 
 // Adds a new font face to the database, loading from memory.
-bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length)
+bool FontDatabase::LoadFontFace(const byte* data, int data_length)
 {
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(data, data_length);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(data, data_length);
-
-        default:
-            return false;
-    }
+	return FreeType::FontProvider::LoadFontFace(data, data_length);
 }
 
 // Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
+bool FontDatabase::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(data, data_length, family, style, weight);
-
-        default:
-            return false;
-    }
-}
-
-FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& file_name)
-{
-    if(file_name.find(".fnt") != String::npos)
-    {
-        return BitmapFont;
-    }
-    else
-    {
-        return FreeType;
-    }
+	return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
 }
 
 // Returns a handle to a font face that can be used to position and render text.
