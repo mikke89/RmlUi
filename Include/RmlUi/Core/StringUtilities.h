@@ -29,6 +29,8 @@
 #ifndef RMLUICORESTRINGUTILITIES_H
 #define RMLUICORESTRINGUTILITIES_H
 
+#include <algorithm>
+#include <stddef.h>
 #include "Header.h"
 #include "Types.h"
 
@@ -84,14 +86,13 @@ namespace StringUtilities
 	/// Convert UTF8 string to UTF16.
 	RMLUICORE_API WString ToUTF16(const String& str);
 
-	/// Converts a wide string in UCS-2 encoding into a string in UTF-8 encoding. This
+	/// Converts a wide string in UTF16 encoding into a string in UTF8 encoding. This
 	/// function assumes the endianness of the input words to be the same as the host processor.
 	/// Reports a warning if the conversion fails.
-	/// TODO: Convert from UTF-16 instead.
 	RMLUICORE_API String ToUTF8(const WString& wstr);
 
 	/// Returns number of characters in UTF8 string.
-	RMLUICORE_API int LengthUTF8(const String& str);
+	RMLUICORE_API size_t LengthU8(const String& str);
 
 	/// Converts upper-case characters in string to lower-case.
 	RMLUICORE_API String ToLower(const String& string);
@@ -120,7 +121,101 @@ namespace StringUtilities
 	{
 		bool operator()(const String& lhs, const String& rhs) const;
 	};
+
+	RMLUICORE_API CodePoint ToCodePoint(const char* p);
+	RMLUICORE_API String ToUTF8(CodePoint code_point);
+
+
+	//struct StringView {
+	//	const char* p_begin;
+	//	const char* p_end;
+
+	//	StringView(const String& string) : p_begin(string.data()), p_end(string.data() + string.size()) { }
+	//	StringView(const String& string, size_t offset) : p_begin(string.data() + offset), p_end(string.data() + string.size()) { }
+	//	StringView(const String& string, size_t offset, size_t count) : p_begin(string.data() + offset), p_end(string.data() + std::min(offset + count, string.size())) { }
+	//};
+
+	inline const char* SeekForwardU8(const char* p, const char* p_end)
+	{
+		while (p != p_end && (*p & 0b1100'0000) == 0b1000'0000)
+			++p;
+		return p;
+	}
+	inline const char* SeekBackU8(const char* p, const char* p_begin)
+	{
+		while ((p + 1) != p_begin && (*p & 0b1100'0000) == 0b1000'0000)
+			--p;
+		return p;
+	}
+
+
+
 }
+
+	class UTF8Iterator {
+		// p in [p_begin, p_end)
+		const char* p_begin;
+		const char* p;
+		const char* p_end;
+
+		inline void SeekBack() {
+			p = StringUtilities::SeekBackU8(p, p_end);
+		}
+
+		inline void SeekForward() {
+			p = StringUtilities::SeekForwardU8(p, p_end);
+		}
+		
+	public:
+		UTF8Iterator(const char* p_begin, const char* p, const char* p_end) : p_begin(p_begin), p(p), p_end(p_end) { SeekForward(); }
+		UTF8Iterator(const String& string) : p_begin(string.data()), p(string.data()), p_end(string.data() + string.size()) { SeekForward(); }
+		UTF8Iterator(const String& string, size_t offset) : p_begin(string.data()), p(string.data() + offset), p_end(string.data() + string.size()) { SeekForward(); }
+		//UTF8Iterator(const String& string, size_t offset, size_t count) : p_begin(string.data()), p(string.data() + offset), p_end(string.data() + std::min(offset + count, string.size())) { SeekForward(); }
+
+		UTF8Iterator& operator++() {
+			RMLUI_ASSERT(p != p_end);
+			++p;
+			SeekForward();
+			return *this;
+		}
+		UTF8Iterator& operator--() {
+			RMLUI_ASSERT(p - 1 != p_begin);
+			--p;
+			SeekBack();
+			return *this;
+		}
+
+		CodePoint operator*() const { return StringUtilities::ToCodePoint(p); }
+
+		operator bool() const { return (p != p_begin - 1) && (p != p_end); }
+
+		bool operator==(const UTF8Iterator& other) const { return p == other.p; }
+		bool operator!=(const UTF8Iterator& other) const { return !(*this == other); }
+	};
+
+
+
+	class UTF8Parser {
+		UTF8Iterator _begin;
+		UTF8Iterator _end;
+
+	public:
+
+		UTF8Parser(const String& string) : _begin(string.data()), _end(string.data() + string.size()) {}
+		UTF8Parser(const String& string, size_t offset) : _begin(string.data() + offset), _end(string.data() + string.size()) {}
+		//UTF8Parser(const String& string, size_t offset, size_t count) : _begin(string.data() + offset), _end(string.data() + std::min(offset + count, string.size())) {}
+
+		UTF8Iterator begin() const {
+			return _begin;
+		}
+
+		UTF8Iterator end() const {
+			return _end;
+		}
+	};
+
+
+
 
 }
 }

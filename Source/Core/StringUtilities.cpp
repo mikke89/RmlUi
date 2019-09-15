@@ -1,5 +1,6 @@
 #include "..\..\Include\RmlUi\Core\StringUtilities.h"
 #include "..\..\Include\RmlUi\Core\StringUtilities.h"
+#include "..\..\Include\RmlUi\Core\StringUtilities.h"
 /*
  * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
@@ -109,16 +110,28 @@ WString StringUtilities::ToUTF16(const String& str)
 
 String StringUtilities::ToUTF8(const WString& wstr)
 {
+	/// TODO: Convert from UTF-16 instead.
 	String result;
 	if(!UCS2toUTF8(wstr, result))
 		Log::Message(Log::LT_WARNING, "Failed to convert UCS2 string to UTF8.");
 	return result;
 }
 
-int StringUtilities::LengthUTF8(const String& str)
+size_t StringUtilities::LengthU8(const String& str)
 {
-	// TODO: Actually consider multibyte characters
-	return (int)str.size();
+	const char* p = str.data();
+	const char* p_end = str.data() + str.size();
+
+	size_t num_continuation_bytes = 0;
+
+	while (p != p_end)
+	{
+		if ((*p & 0b1100'0000) == 0b1000'0000)
+			++num_continuation_bytes;
+		++p;
+	}
+
+	return str.size() - num_continuation_bytes;
 }
 
 String StringUtilities::Replace(String subject, const String& search, const String& replace)
@@ -278,6 +291,77 @@ String StringUtilities::StripWhitespace(const String& string)
 	return String();
 }
 
+CodePoint StringUtilities::ToCodePoint(const char* p)
+{
+	if ((*p & (1 << 7)) == 0)
+		return static_cast<CodePoint>(*p);
+
+	int num_bytes = 0;
+	int code = 0;
+
+	if ((*p & 0b1110'0000) == 0b1100'0000)
+	{
+		num_bytes = 2;
+		code = (*p & 0b0001'1111);
+	}
+	else if ((*p & 0b1111'0000) == 0b1110'0000)
+	{
+		num_bytes = 3;
+		code = (*p & 0b0000'1111);
+	}
+	else if ((*p & 0b1111'1000) == 0b1111'0000)
+	{
+		num_bytes = 4;
+		code = (*p & 0b0000'0111);
+	}
+	else
+	{
+		// Invalid begin byte
+		return CodePoint::Null;
+	}
+
+	for (int i = 1; i < num_bytes; i++)
+	{
+		const char byte = *(p + i);
+		if ((byte & 0b1100'0000) != 0b1000'0000)
+		{
+			// Invalid continuation byte
+			++p;
+			return CodePoint::Null;
+		}
+
+		code |= ((byte & 0b0011'1111) << 8 * i);
+	}
+
+	return static_cast<CodePoint>(code);
+}
+
+String StringUtilities::ToUTF8(CodePoint code_point)
+{
+	unsigned int c = (unsigned int)code_point;
+
+	constexpr int l3 = 0b0000'0111;
+	constexpr int l4 = 0b0000'1111;
+	constexpr int l5 = 0b0001'1111;
+	constexpr int l6 = 0b0011'1111;
+	constexpr int h1 = 0b1000'0000;
+	constexpr int h2 = 0b1100'0000;
+	constexpr int h3 = 0b1110'0000;
+	constexpr int h4 = 0b1111'0000;
+
+	if (c < 0x80)
+		return String(1, (char)c);
+	else if(c < 0x800)
+		return { char(((c >> 6) & l5) | h2), char((c & l6) | h1) };
+	else if (c < 0x10000)
+		return { char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1) };
+	else if (c < 0x10000)
+		return { char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1) };
+
+	// Invalid code point
+	return String();
+}
+
 // Operators for STL containers using strings.
 bool StringUtilities::StringComparei::operator()(const String& lhs, const String& rhs) const
 {
@@ -286,14 +370,14 @@ bool StringUtilities::StringComparei::operator()(const String& lhs, const String
 
 
 // Defines, helper functions for the UTF8 / UCS2 conversion functions.
-#define _NXT	0x80
-#define _SEQ2	0xc0
-#define _SEQ3	0xe0
-#define _SEQ4	0xf0
-#define _SEQ5	0xf8
-#define _SEQ6	0xfc
-	
-#define _BOM	0xfeff
+constexpr int _NXT = 0x80;
+constexpr int _SEQ2 = 0xc0;
+constexpr int _SEQ3 = 0xe0;
+constexpr int _SEQ4 = 0xf0;
+constexpr int _SEQ5 = 0xf8;
+constexpr int _SEQ6 = 0xfc;
+
+constexpr int _BOM = 0xfeff;
 	
 static int __wchar_forbidden(unsigned int sym)
 {
@@ -330,20 +414,20 @@ static bool UTF8toUCS2(const String& input, WString& output)
 	output.reserve(input.size());
 	
 	unsigned char* p = (unsigned char*) input.c_str();
-	unsigned char* lim = p + input.size();
+	unsigned char* end = p + input.size();
 	
 	// Skip the UTF-8 byte order marker if it exists.
 	if (input.substr(0, 3) == "\xEF\xBB\xBF")
 		p += 3;
 	
 	int num_bytes;
-	for (; p < lim; p += num_bytes)
+	for (; p < end; p += num_bytes)
 	{
 		if (__utf8_forbidden(*p) != 0)
 			return false;
 		
 		// Get number of bytes for one wide character.
-		word high;
+		wchar_t high;
 		num_bytes = 1;
 		
 		if ((*p & 0x80) == 0)
@@ -381,7 +465,7 @@ static bool UTF8toUCS2(const String& input, WString& output)
 		}
 		
 		// Does the sequence header tell us the truth about length?
-		if (lim - p <= num_bytes - 1)
+		if (end - p <= num_bytes - 1)
 		{
 			return false;
 		}
@@ -392,7 +476,7 @@ static bool UTF8toUCS2(const String& input, WString& output)
 			int i;
 			for (i = 1; i < num_bytes; i++)
 			{
-				if ((p[i] & 0xc0) != _NXT)
+				if ((p[i] & 0b1100'0000) != _NXT)
 					break;
 			}
 			
@@ -409,7 +493,7 @@ static bool UTF8toUCS2(const String& input, WString& output)
 		int num_bits = 0;
 		for (int i = 1; i < num_bytes; i++)
 		{
-			ucs4_char |= (word)(p[num_bytes - i] & 0x3f) << num_bits;
+			ucs4_char |= (wchar_t)(p[num_bytes - i] & 0x3f) << num_bits;
 			num_bits += 6;
 		}
 		ucs4_char |= high << num_bits;
@@ -423,7 +507,7 @@ static bool UTF8toUCS2(const String& input, WString& output)
 		// Only add the character to the output if it exists in the Basic Multilingual Plane (ie, fits in a single
 		// word).
 		if (ucs4_char <= 0xffff)
-			output.push_back((word) ucs4_char);
+			output.push_back((wchar_t) ucs4_char);
 	}
 	
 	return true;
@@ -437,8 +521,8 @@ static bool UCS2toUTF8(const WString& input, String& output)
 
 	output.reserve(input.size());
 	
-	const word* w = input.data();
-	const word* wlim = w + input.size();
+	const wchar_t* w = input.data();
+	const wchar_t* wlim = w + input.size();
 	
 	//Log::Message(LC_CORE, Log::LT_ALWAYS, "UCS2TOUTF8 size: %d", input_size);
 	for (; w < wlim; w++)
@@ -465,7 +549,7 @@ static bool UCS2toUTF8(const WString& input, String& output)
 		 n = 6;*/
 		
 		// Convert to little endian.
-		word ch = (*w >> 8) & 0x00FF;
+		wchar_t ch = (*w >> 8) & 0x00FF;
 		ch |= (*w << 8) & 0xFF00;
 		//		word ch = EMPConvertEndian(*w, RMLUI_ENDIAN_BIG);
 		

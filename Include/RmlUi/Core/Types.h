@@ -58,9 +58,9 @@ namespace Core {
 
 // Commonly used basic types
 typedef unsigned char byte;
-typedef wchar_t word;
 typedef double Time;
 typedef void* ScriptObject;
+enum class CodePoint : unsigned int { Null };
 
 }
 }

@@ -53,7 +53,7 @@ public:
 	/// @param[in] key_identifier The key to generate a character code for.
 	/// @param[in] key_modifier_state The configuration of the key modifiers.
 	/// @return The character code.
-	static Rml::Core::word GetCharacterCode(Rml::Core::Input::KeyIdentifier key_identifier, int key_modifier_state);
+	static Rml::Core::CodePoint GetCharacterCode(Rml::Core::Input::KeyIdentifier key_identifier, int key_modifier_state);
 
 protected:
 	static Rml::Core::Context* context;

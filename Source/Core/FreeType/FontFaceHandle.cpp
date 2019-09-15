@@ -116,8 +116,7 @@ void FontFaceHandle::GenerateMetrics()
 		average_advance = Math::RealToInteger((float) average_advance / (num_visible_glyphs * 0.9f));
 
 	// Determine the x-height of this font face.
-	word x = (word) 'x';
-	int index = FT_Get_Char_Index(ft_face, x);
+	int index = FT_Get_Char_Index(ft_face, 'x');
 	if (FT_Load_Glyph(ft_face, index, 0) == 0)
 		x_height = ft_face->glyph->metrics.height >> 6;
 	else
@@ -126,7 +125,7 @@ void FontFaceHandle::GenerateMetrics()
 
 void FontFaceHandle::BuildGlyphMap(const UnicodeRange& unicode_range)
 {
-	for (word character_code = (word) (Math::Max< unsigned int >(unicode_range.min_codepoint, 32)); character_code <= unicode_range.max_codepoint; ++character_code)
+	for (FT_ULong character_code = (FT_ULong)(Math::Max< unsigned int >(unicode_range.min_codepoint, 32)); character_code <= unicode_range.max_codepoint; ++character_code)
 	{
 		int index = FT_Get_Char_Index(ft_face, character_code);
 		if (index != 0)
@@ -146,7 +145,7 @@ void FontFaceHandle::BuildGlyphMap(const UnicodeRange& unicode_range)
 			}
 
 			FontGlyph glyph;
-			glyph.character = character_code;
+			glyph.character = (CodePoint)character_code;
 			BuildGlyph(glyph, ft_face->glyph);
 			glyphs[character_code] = glyph;
 		}
@@ -236,16 +235,20 @@ void FontFaceHandle::BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 		glyph.bitmap_data = nullptr;
 }
 
-int FontFaceHandle::GetKerning(word lhs, word rhs) const
+int FontFaceHandle::GetKerning(CodePoint lhs, CodePoint rhs) const
 {
 	if (!FT_HAS_KERNING(ft_face))
 		return 0;
 
 	FT_Vector ft_kerning;
 
-	FT_Error ft_error = FT_Get_Kerning(ft_face,
-		FT_Get_Char_Index(ft_face, lhs), FT_Get_Char_Index(ft_face, rhs),
-		FT_KERNING_DEFAULT, &ft_kerning);
+	FT_Error ft_error = FT_Get_Kerning(
+		ft_face,
+		FT_Get_Char_Index(ft_face, (FT_ULong)lhs), 
+		FT_Get_Char_Index(ft_face, (FT_ULong)rhs), 
+		FT_KERNING_DEFAULT, 
+		&ft_kerning
+	);
 
 	if (ft_error != 0)
 		return 0;

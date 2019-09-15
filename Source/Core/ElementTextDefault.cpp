@@ -169,7 +169,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 	String token;
 
 	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
-	token_width = (float) font_face_handle->GetStringWidth(token, 0);
+	token_width = (float) font_face_handle->GetStringWidth(token);
 
 	return LastToken(token_begin, text.c_str() + text.size(), collapse_white_space, break_at_endline);
 }
@@ -211,17 +211,19 @@ bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& lin
 	// Starting at the line_begin character, we generate sections of the text (we'll call them tokens) depending on the
 	// white-space parsing parameters. Each section is then appended to the line if it can fit. If not, or if an
 	// endline is found (and we're processing them), then the line is ended. kthxbai!
-
 	const char* token_begin = text.c_str() + line_begin;
 	const char* string_end = text.c_str() + text.size();
 	while (token_begin != string_end)
 	{
 		String token;
 		const char* next_token_begin = token_begin;
+		CodePoint previous_codepoint = CodePoint::Null;
+		if (!line.empty())
+			previous_codepoint = StringUtilities::ToCodePoint(StringUtilities::SeekBackU8(&line.back(), line.data()));
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
-		int token_width = font_face_handle->GetStringWidth(token, line.empty() ? 0 : line[line.size() - 1]);
+		int token_width = font_face_handle->GetStringWidth(token, previous_codepoint);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
@@ -468,17 +470,17 @@ static bool BuildToken(String& token, const char*& token_begin, const char* stri
 			// is not recognised, print the token like normal text.
 			else
 			{
-				String ucs2_escape_code(escape_begin + 1, token_begin);
+				String escape_code(escape_begin + 1, token_begin);
 
-				if (ucs2_escape_code == "lt")
+				if (escape_code == "lt")
 					character = '<';
-				else if (ucs2_escape_code == "gt")
+				else if (escape_code == "gt")
 					character = '>';
-				else if (ucs2_escape_code == "amp")
+				else if (escape_code == "amp")
 					character = '&';
-				else if (ucs2_escape_code == "quot")
+				else if (escape_code == "quot")
 					character = '"';
-				else if (ucs2_escape_code == "nbsp")
+				else if (escape_code == "nbsp")
 				{
 					character = ' ';
 					force_non_whitespace = true;

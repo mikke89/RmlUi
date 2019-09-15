@@ -40,6 +40,8 @@ static const float CURSOR_BLINK_TIME = 0.7f;
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
 {
+	// TODO: Check all usage of .size(), they are not the same as characters anymore
+
 	keyboard_showed = false;
 	
 	parent = _parent;
@@ -146,6 +148,13 @@ int WidgetTextInput::GetMaxLength() const
 	return max_length;
 }
 
+int WidgetTextInput::GetLength() const
+{
+	Core::String value = GetElement()->GetAttribute< Core::String >("value", "");
+	size_t result = Core::StringUtilities::LengthU8(value);
+	return (int)result;
+}
+
 // Update the colours of the selected text.
 void WidgetTextInput::UpdateSelectionColours()
 {
@@ -247,7 +256,7 @@ const Rml::Core::Vector2f& WidgetTextInput::GetTextDimensions() const
 }
 
 // Gets the parent element containing the widget.
-Core::Element* WidgetTextInput::GetElement()
+Core::Element* WidgetTextInput::GetElement() const
 {
 	return parent;
 }
@@ -355,12 +364,11 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 				Core::String clipboard_text;
 				Core::GetSystemInterface()->GetClipboardText(clipboard_text);
 
-				for (size_t i = 0; i < clipboard_text.size(); ++i)
+				// @performance: Can be made heaps faster.
+				for (auto it = Core::UTF8Iterator(clipboard_text); it; ++it)
 				{
-					if (max_length > 0 && Core::StringUtilities::LengthUTF8(GetElement()->GetAttribute< Rml::Core::String >("value", "")) > max_length)
-						break;
-
-					AddCharacter(clipboard_text[i]);
+					Core::CodePoint code = *it;
+					AddCharacter(code);
 				}
 			}
 		}
@@ -385,9 +393,8 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("alt_key", 0) == 0 &&
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
-			Rml::Core::word character = event.GetParameter< Rml::Core::word >("data", 0);
-			if (max_length < 0 || (int)Core::String(GetElement()->GetAttribute< Rml::Core::String >("value", "")).size() < max_length)
-				AddCharacter(character);
+			Rml::Core::CodePoint character = event.GetParameter("data", Rml::Core::CodePoint::Null);
+			AddCharacter(character);
 		}
 
 		ShowCursor(true);
@@ -441,21 +448,25 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 }
 
 // Adds a new character to the string at the cursor position.
-bool WidgetTextInput::AddCharacter(Rml::Core::word character)
+bool WidgetTextInput::AddCharacter(Rml::Core::CodePoint character)
 {
-	if (!IsCharacterValid(character))
+	if (!IsCharacterValid(static_cast<char>(character)))
 		return false;
 
 	if (selection_length > 0)
 		DeleteSelection();
 
-	Core::WString value = Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
-	value.insert(GetCursorIndex(), 1, character);
+	if (max_length >= 0 && GetLength() >= max_length)
+		return false;
+
+	Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
+	
+	Core::String insert = Core::StringUtilities::ToUTF8(character);
+	value.insert(GetCursorIndex(), insert);
 
 	edit_index += 1;
 
-	Rml::Core::String utf8_value = Core::StringUtilities::ToUTF8(value);
-	GetElement()->SetAttribute("value", utf8_value);
+	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
 
 	UpdateSelection(false);
@@ -478,8 +489,8 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		return true;
 	}
 
-	Core::WString value = Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
-
+	Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
+	
 	if (back)
 	{
 		if (GetCursorIndex() == 0)
@@ -496,8 +507,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		value.erase(GetCursorIndex(), 1);
 	}
 
-	Rml::Core::String utf8_value = Core::StringUtilities::ToUTF8(value);
-	GetElement()->SetAttribute("value", utf8_value);
+	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
 
 	UpdateSelection(false);
@@ -516,12 +526,14 @@ void WidgetTextInput::CopySelection()
 // Returns the absolute index of the cursor.
 int WidgetTextInput::GetCursorIndex() const
 {
+	// TODO: Sanitize cursor index ?
 	return edit_index;
 }
 
 // Moves the cursor along the current line.
 void WidgetTextInput::MoveCursorHorizontal(int distance, bool select)
 {
+	// Todo, move properly across multibyte characters
 	absolute_cursor_index += distance;
 	absolute_cursor_index = Rml::Core::Math::Max(0, absolute_cursor_index);
 
@@ -625,6 +637,7 @@ int WidgetTextInput::CalculateLineIndex(float position)
 // Calculates the character index along a line under a specific horizontal position.
 int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 {
+	// Todo, move properly across multibyte characters
 	int character_index = 0;
 	float line_width = 0;
 

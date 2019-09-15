@@ -66,6 +66,8 @@ public:
 	/// Returns the maximum length (in characters) of this text field.
 	/// @return The maximum number of characters allowed in this text field.
 	int GetMaxLength() const;
+	/// Returns the current length (in characters) of this text field.
+	int GetLength() const;
 
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();
@@ -92,7 +94,7 @@ protected:
 	/// Adds a new character to the string at the cursor position.
 	/// @param[in] character The character to add to the string.
 	/// @return True if the character was successfully added, false otherwise.
-	bool AddCharacter(Rml::Core::word character);
+	bool AddCharacter(Rml::Core::CodePoint character);
 	/// Deletes a character from the string.
 	/// @param[in] backward True to delete a character behind the cursor, false for in front of the cursor.
 	/// @return True if a character was deleted, false otherwise.
@@ -100,7 +102,7 @@ protected:
 	/// Returns true if the given character is permitted in the input field, false if not.
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
-	virtual bool IsCharacterValid(Rml::Core::word character) = 0;
+	virtual bool IsCharacterValid(char character) = 0;
 	/// Called when the user pressed enter.
 	virtual void LineBreak() = 0;
 
@@ -108,7 +110,7 @@ protected:
 	int GetCursorIndex() const;
 
 	/// Gets the parent element containing the widget.
-	Core::Element* GetElement();
+	Core::Element* GetElement() const;
 
 	/// Dispatches a change event to the widget's element.
 	void DispatchChangeEvent(bool linebreak = false);

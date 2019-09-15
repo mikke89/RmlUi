@@ -61,7 +61,7 @@ public:
 	bool Initialise(FT_Face ft_face, const String& charset, int size);
 
 protected:
-	int GetKerning(word lhs, word rhs) const override;
+	int GetKerning(CodePoint lhs, CodePoint rhs) const override;
 
 private:
 	void GenerateMetrics(void);

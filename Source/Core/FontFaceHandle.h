@@ -77,7 +77,7 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	int GetStringWidth(const String& string, word prior_character = 0) const;
+	int GetStringWidth(const String& string, CodePoint prior_character = CodePoint::Null) const;
 
 	/// Generates, if required, the layer configuration for a given array of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
@@ -114,7 +114,7 @@ public:
 
 protected:
 
-	virtual int GetKerning(word lhs, word rhs) const = 0;
+	virtual int GetKerning(CodePoint lhs, CodePoint rhs) const = 0;
 	virtual FontFaceLayer* CreateNewLayer();
 
 	FontFaceLayer* GenerateLayer(const SharedPtr<const FontEffect>& font_effect);

@@ -43,13 +43,13 @@ namespace Core {
 class FontGlyph
 {
 public:
-	FontGlyph() : character(0), dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr),
+	FontGlyph() : character(CodePoint::Null), dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr),
 		bitmap_dimensions(0,0)
 	{
 	}
 
 	/// The unicode code point for this glyph.
-	word character;
+	CodePoint character;
 
 	/// The glyph's bounding box. Not to be confused with the dimensions of the glyph's bitmap!
 	Vector2i dimensions;

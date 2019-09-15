@@ -107,11 +107,12 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 		case WM_CHAR:
 		{
 			// Only send through printable characters.
+			// TODO: Convert utf16 character to codepoint
 			if (w_param >= 32)
-				context->ProcessTextInput((Rml::Core::word) w_param);
+				context->ProcessTextInput((Rml::Core::CodePoint) w_param);
 			// Or endlines - Windows sends them through as carriage returns.
 			else if (w_param == '\r')
-				context->ProcessTextInput((Rml::Core::word) '\n');
+				context->ProcessTextInput((Rml::Core::CodePoint)'\n');
 		}
 		break;
 

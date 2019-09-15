@@ -215,10 +215,10 @@ void Variant::Set(const int value)
 	type = INT;
 	SET_VARIANT(int);
 }
-void Variant::Set(const word value)
+void Variant::Set(const CodePoint value)
 {
 	type = WORD;
-	SET_VARIANT(word);  
+	SET_VARIANT(CodePoint);
 }
 
 void Variant::Set(const char* value) 
@@ -455,7 +455,7 @@ bool Variant::operator==(const Variant & other) const
 	case STRING:
 		return DEFAULT_VARIANT_COMPARE(String);
 	case WORD:
-		return DEFAULT_VARIANT_COMPARE(word);
+		return DEFAULT_VARIANT_COMPARE(CodePoint);
 	case VECTOR2:
 		return DEFAULT_VARIANT_COMPARE(Vector2f);
 	case VECTOR3:

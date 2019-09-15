@@ -73,12 +73,12 @@ public:
 	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	inline void GenerateGeometry(Geometry* geometry, const word character_code, const Vector2f& position, const Colourb& colour) const
+	inline void GenerateGeometry(Geometry* geometry, const CodePoint character_code, const Vector2f& position, const Colourb& colour) const
 	{
-		if (character_code >= characters.size())
+		if ((size_t)character_code >= characters.size())
 			return;
 
-		const Character& character = characters[character_code];
+		const Character& character = characters[(size_t)character_code];
 		if (character.texture_index < 0)
 			return;
 

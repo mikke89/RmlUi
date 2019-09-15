@@ -96,25 +96,24 @@ const FontGlyphList& FontFaceHandle::GetGlyphs() const
 }
 
 // Returns the width a string will take up if rendered with this handle.
-int FontFaceHandle::GetStringWidth(const String& string, word prior_character) const
+int FontFaceHandle::GetStringWidth(const String& string, CodePoint prior_character) const
 {
 	int width = 0;
-
-	for (size_t i = 0; i < string.size(); i++)
+	for (auto it = UTF8Iterator(string); it; ++it)
 	{
-		word character_code = string[i];
+		CodePoint code_point = *it;
 
-		if (character_code >= glyphs.size())
+		if ((size_t)code_point >= glyphs.size())
 			continue;
-		const FontGlyph &glyph = glyphs[character_code];
+		const FontGlyph &glyph = glyphs[(size_t)code_point];
 
 		// Adjust the cursor for the kerning between this character and the previous one.
-		if (prior_character != 0)
-			width += GetKerning(prior_character, string[i]);
+		if (prior_character != CodePoint::Null)
+			width += GetKerning(prior_character, code_point);
 		// Adjust the cursor for this character's advance.
 		width += glyph.advance;
 
-		prior_character = character_code;
+		prior_character = code_point;
 	}
 
 	return width;
@@ -225,25 +224,27 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const String& string,
 			geometry[geometry_index + i].SetTexture(layer->GetTexture(i));
 
 		line_width = 0;
-		word prior_character = 0;
+		CodePoint prior_character = CodePoint::Null;
 
 		geometry[geometry_index].GetIndices().reserve(string.size() * 6);
 		geometry[geometry_index].GetVertices().reserve(string.size() * 4);
 
-		for (const word character : string)
+		for (auto it = UTF8Iterator(string); it; ++it)
 		{
-			if (character >= glyphs.size())
+			CodePoint code_point = *it;
+
+			if ((size_t)code_point >= glyphs.size())
 				continue;
-			const FontGlyph &glyph = glyphs[character];
+			const FontGlyph &glyph = glyphs[(size_t)code_point];
 
 			// Adjust the cursor for the kerning between this character and the previous one.
-			if (prior_character != 0)
-				line_width += GetKerning(prior_character, character);
+			if (prior_character != CodePoint::Null)
+				line_width += GetKerning(prior_character, code_point);
 
-			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), layer_colour);
+			layer->GenerateGeometry(&geometry[geometry_index], code_point, Vector2f(position.x + line_width, position.y), layer_colour);
 
 			line_width += glyph.advance;
-			prior_character = character;
+			prior_character = code_point;
 		}
 
 		geometry_index += layer->GetNumTextures();

@@ -75,7 +75,7 @@ bool Variant::GetInto(T& value) const
 		break;
 
 	case WORD:
-		return TypeConverter< word, T >::Convert(*(word*)data, value);
+		return TypeConverter< CodePoint, T >::Convert(*(CodePoint*)data, value);
 		break;
 
 	case VECTOR2:

@@ -155,7 +155,7 @@ button:focus {
 </panel>
 <tab>Controls</tab>
 <panel>
-	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" value="Sample text"/></div>
+	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" maxlength="12" value="Sample text"/></div>
 	<textarea cols="30" rows="5" wrap="nowrap">Hello World!</textarea>
 </panel>
 </tabset>
