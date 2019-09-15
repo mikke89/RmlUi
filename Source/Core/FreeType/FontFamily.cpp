@@ -33,20 +33,20 @@
 namespace Rml {
 namespace Core {
 
-FreeType::FontFamily::FontFamily(const String& name) : Rml::Core::FontFamily(name)
+FontFamily_FreeType::FontFamily_FreeType(const String& name) : Rml::Core::FontFamily(name)
 {
 
 }
 
-FreeType::FontFamily::~FontFamily()
+FontFamily_FreeType::~FontFamily_FreeType()
 {
 
 }
 
 // Adds a new face to the family.
-bool FreeType::FontFamily::AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
+bool FontFamily_FreeType::AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
-	FontFace* face = new FreeType::FontFace((FT_Face)ft_face, style, weight, release_stream);
+	FontFace_FreeType* face = new FontFace_FreeType((FT_Face)ft_face, style, weight, release_stream);
 	font_faces.push_back(face);
 
 	return true;

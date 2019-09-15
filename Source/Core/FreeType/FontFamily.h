@@ -36,20 +36,15 @@
 namespace Rml {
 namespace Core {
 
-class FontFace;
-class FontFaceHandle;
-
 /**
 	@author Peter Curry
  */
 
-namespace FreeType {
-
-class FontFamily : public Rml::Core::FontFamily
+class FontFamily_FreeType : public Rml::Core::FontFamily
 {
 public:
-	FontFamily(const String& name);
-	~FontFamily();
+	FontFamily_FreeType(const String& name);
+	~FontFamily_FreeType();
 
 	/// Adds a new face to the family.
 	/// @param[in] ft_face The previously loaded FreeType face.
@@ -60,7 +55,6 @@ public:
 	bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) override;
 };
 
-}
 }
 }
 

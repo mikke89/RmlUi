@@ -45,6 +45,19 @@ class FontFaceLayer;
 	@author Peter Curry
  */
 
+struct FontMetrics {
+	// The average advance (in pixels) of all of this face's glyphs.
+	int average_advance;
+
+	int size;
+	int x_height;
+	int line_height;
+	int baseline;
+
+	float underline_position;
+	float underline_thickness;
+};
+
 class FontFaceHandle : public NonCopyMoveable
 {
 public:
@@ -71,7 +84,7 @@ public:
 
 	/// Returns the font's glyphs.
 	/// @return The font's glyphs.
-	const FontGlyphList& GetGlyphs() const;
+	const FontGlyphMap& GetGlyphs() const;
 
 	/// Returns the width a string will take up if rendered with this handle.
 	/// @param[in] string The string to measure.
@@ -105,14 +118,14 @@ public:
 	/// @param[in] colour The colour to draw the line in.
 	void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration decoration_type, const Colourb& colour) const;
 
-	/// Returns the font face's raw charset (the charset range as a string).
-	/// @return The font face's charset.
-	const String& GetRawCharset() const;
-	/// Returns the font face's charset.
-	/// @return The font face's charset.
-	const UnicodeRangeList& GetCharset() const;
-
 protected:
+
+	FontGlyphMap& GetGlyphs();
+	FontMetrics& GetMetrics();
+
+	void GenerateBaseLayer();
+
+private:
 
 	virtual int GetKerning(CodePoint lhs, CodePoint rhs) const = 0;
 	virtual FontFaceLayer* CreateNewLayer();
@@ -122,7 +135,7 @@ protected:
 	typedef std::vector< int > GlyphKerningList;
 	typedef std::vector< GlyphKerningList > FontKerningList;
 
-	FontGlyphList glyphs;
+	FontGlyphMap glyphs;
 	FontKerningList kerning;
 
 	typedef SmallUnorderedMap< const FontEffect*, FontFaceLayer* > FontLayerMap;
@@ -133,28 +146,13 @@ protected:
 	// The list of all font layers, index by the effect that instanced them.
 	FontFaceLayer* base_layer;
 	FontLayerMap layers;
-	// Each font layer that generated geometry or textures, indexed by the respective generation
-	// key.
+	// Each font layer that generated geometry or textures, indexed by the respective generation key.
 	FontLayerCache layer_cache;
 
-	// All configurations currently in use on this handle. New configurations will be generated as
-	// required.
+	// All configurations currently in use on this handle. New configurations will be generated as required.
 	LayerConfigurationList layer_configurations;
 
-	// The average advance (in pixels) of all of this face's glyphs.
-	int average_advance;
-
-	int size;
-	int x_height;
-	int line_height;
-	int baseline;
-
-	float underline_position;
-	float underline_thickness;
-
-	String raw_charset;
-	UnicodeRangeList charset;
-	unsigned int max_codepoint;
+	FontMetrics metrics;
 };
 
 }

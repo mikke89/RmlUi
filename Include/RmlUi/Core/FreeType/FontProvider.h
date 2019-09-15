@@ -35,21 +35,12 @@
 namespace Rml {
 namespace Core {
 
-
-class FontEffect;
-class FontFaceHandle;
-class PropertyDictionary;
-
-namespace FreeType {
-
-class FontFamily;
-
 /**
     The font database contains all font families currently in use by RmlUi.
     @author Peter Curry
  */
 
-class RMLUICORE_API FontProvider : public Rml::Core::FontProvider
+class RMLUICORE_API FontProvider_FreeType : public Rml::Core::FontProvider
 {
 public:
     static bool Initialise();
@@ -81,8 +72,8 @@ public:
     static bool LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight);
 
 private:
-    FontProvider(void);
-    ~FontProvider(void);
+    FontProvider_FreeType(void);
+    ~FontProvider_FreeType(void);
 
     // Adds a loaded face to the appropriate font family.
     bool AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
@@ -91,10 +82,9 @@ private:
     // Loads a FreeType face from memory.
     void* LoadFace(const byte* data, int data_length, const String& source, bool local_data);
 
-    static FontProvider* instance;
+    static FontProvider_FreeType* instance;
 };
 
-}
 }
 }
 

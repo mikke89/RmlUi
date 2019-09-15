@@ -56,7 +56,7 @@ bool FontDatabase::Initialise()
 	{
 		new FontDatabase();
 
-        if(!FreeType::FontProvider::Initialise())
+        if(!FontProvider_FreeType::Initialise())
             return false;
 	}
 
@@ -67,7 +67,7 @@ void FontDatabase::Shutdown()
 {
 	if (instance != nullptr)
 	{
-        FreeType::FontProvider::Shutdown();
+        FontProvider_FreeType::Shutdown();
 
 		delete instance;
 	}
@@ -76,25 +76,25 @@ void FontDatabase::Shutdown()
 // Loads a new font face.
 bool FontDatabase::LoadFontFace(const String& file_name)
 {
-	return FreeType::FontProvider::LoadFontFace(file_name);
+	return FontProvider_FreeType::LoadFontFace(file_name);
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
-	return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
+	return FontProvider_FreeType::LoadFontFace(file_name, family, style, weight);
 }
 
 // Adds a new font face to the database, loading from memory.
 bool FontDatabase::LoadFontFace(const byte* data, int data_length)
 {
-	return FreeType::FontProvider::LoadFontFace(data, data_length);
+	return FontProvider_FreeType::LoadFontFace(data, data_length);
 }
 
 // Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
 bool FontDatabase::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
-	return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
+	return FontProvider_FreeType::LoadFontFace(data, data_length, family, style, weight);
 }
 
 // Returns a handle to a font face that can be used to position and render text.

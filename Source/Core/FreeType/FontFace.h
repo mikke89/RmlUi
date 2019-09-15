@@ -35,24 +35,24 @@
 
 namespace Rml {
 namespace Core {
-namespace FreeType {
+
 /**
 	@author Peter Curry
  */
 
 class FontFaceHandle;
 
-class FontFace : public Rml::Core::FontFace
+class FontFace_FreeType : public Rml::Core::FontFace
 {
 public:
-	FontFace(FT_Face face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
-	~FontFace();
+	FontFace_FreeType(FT_Face face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+	~FontFace_FreeType();
 
 	/// Returns a handle for positioning and rendering this face at the given size.
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
-	SharedPtr<Rml::Core::FontFaceHandle> GetHandle(const String& charset, int size) override;
+	SharedPtr<Rml::Core::FontFaceHandle> GetHandle(int size) override;
 
 	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
 	/// but existing ones can still be fetched.
@@ -62,7 +62,6 @@ private:
 	FT_Face face;
 };
 
-}
 }
 }
 

@@ -43,13 +43,10 @@ namespace Core {
 class FontGlyph
 {
 public:
-	FontGlyph() : character(CodePoint::Null), dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr),
+	FontGlyph() : dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr),
 		bitmap_dimensions(0,0)
 	{
 	}
-
-	/// The unicode code point for this glyph.
-	CodePoint character;
 
 	/// The glyph's bounding box. Not to be confused with the dimensions of the glyph's bitmap!
 	Vector2i dimensions;
@@ -67,7 +64,7 @@ public:
 	Vector2i bitmap_dimensions;
 };
 
-typedef std::vector< FontGlyph > FontGlyphList;
+using FontGlyphMap = UnorderedMap<CodePoint, FontGlyph>;
 
 }
 }

@@ -41,38 +41,29 @@
 namespace Rml {
 namespace Core {
 
-namespace FreeType {
-
 /**
 	@author Peter Curry
  */
 
-class FontFaceHandle : public Rml::Core::FontFaceHandle
+class FontFaceHandle_FreeType : public Rml::Core::FontFaceHandle
 {
 public:
-	FontFaceHandle();
-	virtual ~FontFaceHandle();
+	FontFaceHandle_FreeType();
+	virtual ~FontFaceHandle_FreeType();
 
 	/// Initialises the handle so it is able to render text.
 	/// @param[in] ft_face The FreeType face that this handle is rendering.
 	/// @param[in] charset The comma-separated list of unicode ranges this handle must support.
 	/// @param[in] size The size, in points, of the face this handle should render at.
 	/// @return True if the handle initialised successfully and is ready for rendering, false if an error occured.
-	bool Initialise(FT_Face ft_face, const String& charset, int size);
-
-protected:
-	int GetKerning(CodePoint lhs, CodePoint rhs) const override;
+	bool Initialise(FT_Face ft_face, int size);
 
 private:
-	void GenerateMetrics(void);
-
-	void BuildGlyphMap(const UnicodeRange& unicode_range);
-	void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph);
+	int GetKerning(CodePoint lhs, CodePoint rhs) const override;
 
 	FT_Face ft_face;
 };
 
-}
 }
 }
 

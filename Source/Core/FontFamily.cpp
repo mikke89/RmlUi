@@ -64,7 +64,7 @@ SharedPtr<FontFaceHandle> FontFamily::GetFaceHandle(const String& charset, Style
 	if (matching_face == nullptr)
 		return nullptr;
 
-	return matching_face->GetHandle(charset, size);
+	return matching_face->GetHandle(size);
 }
 
 }

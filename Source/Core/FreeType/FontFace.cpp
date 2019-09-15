@@ -33,63 +33,25 @@
 
 namespace Rml {
 namespace Core {
-namespace FreeType {
 
-FontFace::FontFace(FT_Face _face, Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
+FontFace_FreeType::FontFace_FreeType(FT_Face _face, Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
 {
 	face = _face;
 }
 
-FontFace::~FontFace()
+FontFace_FreeType::~FontFace_FreeType()
 {
 	ReleaseFace();
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-SharedPtr<Rml::Core::FontFaceHandle> FontFace::GetHandle(const String& _raw_charset, int size)
+SharedPtr<Rml::Core::FontFaceHandle> FontFace_FreeType::GetHandle(int size)
 {
 	UnicodeRangeList charset;
 
-	HandleMap::iterator iterator = handles.find(size);
-	if (iterator != handles.end())
-	{
-		const HandleList& handles = (*iterator).second;
-
-		// Check all the handles if their charsets match the requested one exactly (ie, were specified by the same
-		// string).
-		String raw_charset(_raw_charset);
-		for (size_t i = 0; i < handles.size(); ++i)
-		{
-			if (handles[i]->GetRawCharset() == _raw_charset)
-			{
-				return handles[i];
-			}
-		}
-
-		// Check all the handles if their charsets contain the requested charset.
-		if (!UnicodeRange::BuildList(charset, raw_charset))
-		{
-			Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", _raw_charset.c_str());
-			return nullptr;
-		}
-
-		for (size_t i = 0; i < handles.size(); ++i)
-		{
-			bool range_contained = true;
-
-			const UnicodeRangeList& handle_charset = handles[i]->GetCharset();
-			for (size_t j = 0; j < charset.size() && range_contained; ++j)
-			{
-				if (!charset[j].IsContained(handle_charset))
-					range_contained = false;
-			}
-
-			if (range_contained)
-			{
-				return handles[i];
-			}
-		}
-	}
+	auto it = handles.find(size);
+	if (it != handles.end())
+		return it->second;
 
 	// See if this face has been released.
 	if (!face)
@@ -99,24 +61,20 @@ SharedPtr<Rml::Core::FontFaceHandle> FontFace::GetHandle(const String& _raw_char
 	}
 
 	// Construct and initialise the new handle.
-	auto handle = std::make_shared<FontFaceHandle>();
-	if (!handle->Initialise(face, _raw_charset, size))
+	auto handle = std::make_shared<FontFaceHandle_FreeType>();
+	if (!handle->Initialise(face, size))
 	{
 		return nullptr;
 	}
 
-	// Save the handle, and add a reference for the callee. The initial reference will be removed when the font face
-	// releases it.
-	if (iterator != handles.end())
-		(*iterator).second.push_back(handle);
-	else
-		handles[size] = HandleList(1, handle);
+	// Save the new handle to the font face
+	handles[size] = handle;
 
 	return handle;
 }
 
 // Releases the face's FreeType face structure.
-void FontFace::ReleaseFace()
+void FontFace_FreeType::ReleaseFace()
 {
 	if (face != nullptr)
 	{
@@ -130,6 +88,5 @@ void FontFace::ReleaseFace()
 	}
 }
 
-}
 }
 }

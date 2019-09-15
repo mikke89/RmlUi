@@ -35,29 +35,27 @@
 
 namespace Rml {
 namespace Core {
-namespace FreeType {
+
+static void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph);
+static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs);
+static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics);
 
 
-FontFaceHandle::FontFaceHandle()
+FontFaceHandle_FreeType::FontFaceHandle_FreeType()
 {
 	ft_face = nullptr;
 }
 
-FontFaceHandle::~FontFaceHandle()
+FontFaceHandle_FreeType::~FontFaceHandle_FreeType()
 {
 }
 
-// Initialises the handle so it is able to render text.
-bool FontFaceHandle::Initialise(FT_Face ft_face, const String& _charset, int _size)
-{
-	size = _size;
 
-	raw_charset = _charset;
-	if (!UnicodeRange::BuildList(charset, raw_charset))
-	{
-		Log::Message(Log::LT_ERROR, "Invalid font charset '%s'.", raw_charset.c_str());
-		return false;
-	}
+// Initialises the handle so it is able to render text.
+bool FontFaceHandle_FreeType::Initialise(FT_Face ft_face, int size)
+{
+	this->ft_face = ft_face;
+	GetMetrics().size = size;
 
 	// Set the character size on the font face.
 	FT_Error error = FT_Set_Char_Size(ft_face, 0, size << 6, 0, 0);
@@ -67,65 +65,25 @@ bool FontFaceHandle::Initialise(FT_Face ft_face, const String& _charset, int _si
 		return false;
 	}
 
-	this->ft_face = ft_face;
-
-	// find the maximum character we are interested in
-	max_codepoint = 0;
-	for (size_t i = 0; i < charset.size(); ++i)
-		max_codepoint = Math::Max(max_codepoint, charset[i].max_codepoint);
-
 	// Construct the list of the characters specified by the charset.
-	glyphs.resize(max_codepoint+1, FontGlyph());
-	for (size_t i = 0; i < charset.size(); ++i)
-		BuildGlyphMap(charset[i]);
+	BuildGlyphMap(ft_face, GetGlyphs());
 
 	// Generate the metrics for the handle.
-	GenerateMetrics();
+	GenerateMetrics(ft_face, GetGlyphs(), GetMetrics());
 
 	// Generate the default layer and layer configuration.
-	base_layer = GenerateLayer(nullptr);
-	layer_configurations.push_back(LayerConfiguration());
-	layer_configurations.back().push_back(base_layer);
-
+	GenerateBaseLayer();
 
 	return true;
 }
 
-void FontFaceHandle::GenerateMetrics()
+static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs)
 {
-	line_height = ft_face->size->metrics.height >> 6;
-	baseline = line_height - (ft_face->size->metrics.ascender >> 6);
+	// TODO: ASCII range for now
+	FT_ULong code_min = 32;
+	FT_ULong code_max = 126;
 
-	underline_position = FT_MulFix(ft_face->underline_position, ft_face->size->metrics.y_scale) / float(1 << 6);
-	underline_thickness = FT_MulFix(ft_face->underline_thickness, ft_face->size->metrics.y_scale) / float(1 << 6);
-	underline_thickness = Math::Max(underline_thickness, 1.0f);
-
-	average_advance = 0;
-	unsigned int num_visible_glyphs = 0;
-	for (FontGlyphList::iterator i = glyphs.begin(); i != glyphs.end(); ++i)
-	{
-		if (i->advance)
-		{
-			average_advance += i->advance;
-			num_visible_glyphs++;
-		}
-	}
-
-	// Bring the total advance down to the average advance, but scaled up 10%, just to be on the safe side.
-	if (num_visible_glyphs)
-		average_advance = Math::RealToInteger((float) average_advance / (num_visible_glyphs * 0.9f));
-
-	// Determine the x-height of this font face.
-	int index = FT_Get_Char_Index(ft_face, 'x');
-	if (FT_Load_Glyph(ft_face, index, 0) == 0)
-		x_height = ft_face->glyph->metrics.height >> 6;
-	else
-		x_height = 0;
-}
-
-void FontFaceHandle::BuildGlyphMap(const UnicodeRange& unicode_range)
-{
-	for (FT_ULong character_code = (FT_ULong)(Math::Max< unsigned int >(unicode_range.min_codepoint, 32)); character_code <= unicode_range.max_codepoint; ++character_code)
+	for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
 	{
 		int index = FT_Get_Char_Index(ft_face, character_code);
 		if (index != 0)
@@ -145,14 +103,13 @@ void FontFaceHandle::BuildGlyphMap(const UnicodeRange& unicode_range)
 			}
 
 			FontGlyph glyph;
-			glyph.character = (CodePoint)character_code;
 			BuildGlyph(glyph, ft_face->glyph);
-			glyphs[character_code] = glyph;
+			glyphs[(CodePoint)character_code] = glyph;
 		}
 	}
 }
 
-void FontFaceHandle::BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
+static void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 {
 	// Set the glyph's dimensions.
 	glyph.dimensions.x = ft_glyph->metrics.width >> 6;
@@ -190,44 +147,44 @@ void FontFaceHandle::BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 			switch (ft_glyph->bitmap.pixel_mode)
 			{
 				// Unpack 1-bit data into 8-bit.
-				case FT_PIXEL_MODE_MONO:
+			case FT_PIXEL_MODE_MONO:
+			{
+				for (int i = 0; i < glyph.bitmap_dimensions.y; ++i)
 				{
-					for (int i = 0; i < glyph.bitmap_dimensions.y; ++i)
+					int mask = 0x80;
+					byte* source_byte = source_bitmap;
+					for (int j = 0; j < glyph.bitmap_dimensions.x; ++j)
 					{
-						int mask = 0x80;
-						byte* source_byte = source_bitmap;
-						for (int j = 0; j < glyph.bitmap_dimensions.x; ++j)
+						if ((*source_byte & mask) == mask)
+							destination_bitmap[j] = 255;
+						else
+							destination_bitmap[j] = 0;
+
+						mask >>= 1;
+						if (mask <= 0)
 						{
-							if ((*source_byte & mask) == mask)
-								destination_bitmap[j] = 255;
-							else
-								destination_bitmap[j] = 0;
-
-							mask >>= 1;
-							if (mask <= 0)
-							{
-								mask = 0x80;
-								++source_byte;
-							}
+							mask = 0x80;
+							++source_byte;
 						}
-
-						destination_bitmap += glyph.bitmap_dimensions.x;
-						source_bitmap += ft_glyph->bitmap.pitch;
 					}
-				}
-				break;
 
-				// Directly copy 8-bit data.
-				case FT_PIXEL_MODE_GRAY:
+					destination_bitmap += glyph.bitmap_dimensions.x;
+					source_bitmap += ft_glyph->bitmap.pitch;
+				}
+			}
+			break;
+
+			// Directly copy 8-bit data.
+			case FT_PIXEL_MODE_GRAY:
+			{
+				for (int i = 0; i < glyph.bitmap_dimensions.y; ++i)
 				{
-					for (int i = 0; i < glyph.bitmap_dimensions.y; ++i)
-					{
-						memcpy(destination_bitmap, source_bitmap, glyph.bitmap_dimensions.x);
-						destination_bitmap += glyph.bitmap_dimensions.x;
-						source_bitmap += ft_glyph->bitmap.pitch;
-					}
+					memcpy(destination_bitmap, source_bitmap, glyph.bitmap_dimensions.x);
+					destination_bitmap += glyph.bitmap_dimensions.x;
+					source_bitmap += ft_glyph->bitmap.pitch;
 				}
-				break;
+			}
+			break;
 			}
 		}
 	}
@@ -235,7 +192,42 @@ void FontFaceHandle::BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 		glyph.bitmap_data = nullptr;
 }
 
-int FontFaceHandle::GetKerning(CodePoint lhs, CodePoint rhs) const
+
+static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics)
+{
+	metrics.line_height = ft_face->size->metrics.height >> 6;
+	metrics.baseline = metrics.line_height - (ft_face->size->metrics.ascender >> 6);
+
+	metrics.underline_position = FT_MulFix(ft_face->underline_position, ft_face->size->metrics.y_scale) / float(1 << 6);
+	metrics.underline_thickness = FT_MulFix(ft_face->underline_thickness, ft_face->size->metrics.y_scale) / float(1 << 6);
+	metrics.underline_thickness = Math::Max(metrics.underline_thickness, 1.0f);
+
+	metrics.average_advance = 0;
+	unsigned int num_visible_glyphs = 0;
+	for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
+	{
+		const FontGlyph& glyph = it->second;
+		if (glyph.advance)
+		{
+			metrics.average_advance += glyph.advance;
+			num_visible_glyphs++;
+		}
+	}
+
+	// Bring the total advance down to the average advance, but scaled up 10%, just to be on the safe side.
+	if (num_visible_glyphs)
+		metrics.average_advance = Math::RealToInteger((float)metrics.average_advance / (num_visible_glyphs * 0.9f));
+
+	// Determine the x-height of this font face.
+	int index = FT_Get_Char_Index(ft_face, 'x');
+	if (FT_Load_Glyph(ft_face, index, 0) == 0)
+		metrics.x_height = ft_face->glyph->metrics.height >> 6;
+	else
+		metrics.x_height = 0;
+}
+
+
+int FontFaceHandle_FreeType::GetKerning(CodePoint lhs, CodePoint rhs) const
 {
 	if (!FT_HAS_KERNING(ft_face))
 		return 0;
@@ -257,6 +249,6 @@ int FontFaceHandle::GetKerning(CodePoint lhs, CodePoint rhs) const
 	return kerning;
 }
 
-}
+
 }
 }

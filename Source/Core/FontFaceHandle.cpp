@@ -38,59 +38,51 @@ namespace Core {
 
 FontFaceHandle::FontFaceHandle()
 {
-	size = 0;
-	average_advance = 0;
-	x_height = 0;
-	line_height = 0;
-	baseline = 0;
-
-	underline_position = 0;
-	underline_thickness = 0;
-
+	metrics = {};
 	base_layer = nullptr;
 }
 
 FontFaceHandle::~FontFaceHandle()
 {
-	for (FontGlyphList::iterator i = glyphs.begin(); i != glyphs.end(); ++i)
-		delete[] i->bitmap_data;
+	for (auto& pair : glyphs)
+		delete[] pair.second.bitmap_data;
 
-	for (FontLayerMap::iterator i = layers.begin(); i != layers.end(); ++i)
-		delete i->second;
+	for (auto& pair : layers)
+		delete pair.second;
 }
 
 // Returns the point size of this font face.
 int FontFaceHandle::GetSize() const
 {
-	return size;
+	return metrics.size;
 }
 
 // Returns the average advance of all glyphs in this font face.
 int FontFaceHandle::GetCharacterWidth() const
 {
-	return average_advance;
+	return metrics.average_advance;
 }
 
 // Returns the pixel height of a lower-case x in this font face.
 int FontFaceHandle::GetXHeight() const
 {
-	return x_height;
+	return metrics.x_height;
 }
 
 // Returns the default height between this font face's baselines.
 int FontFaceHandle::GetLineHeight() const
 {
-	return line_height;
+	return metrics.line_height;
 }
 
 // Returns the font's baseline.
 int FontFaceHandle::GetBaseline() const
 {
-	return baseline;
+	return metrics.baseline;
 }
 
 // Returns the font's glyphs.
-const FontGlyphList& FontFaceHandle::GetGlyphs() const
+const FontGlyphMap& FontFaceHandle::GetGlyphs() const
 {
 	return glyphs;
 }
@@ -99,13 +91,15 @@ const FontGlyphList& FontFaceHandle::GetGlyphs() const
 int FontFaceHandle::GetStringWidth(const String& string, CodePoint prior_character) const
 {
 	int width = 0;
-	for (auto it = StringIteratorU8(string); it; ++it)
+	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 	{
-		CodePoint code_point = *it;
+		CodePoint code_point = *it_string;
 
-		if ((size_t)code_point >= glyphs.size())
+		auto it_glyph = glyphs.find(code_point);
+		if (it_glyph == glyphs.end())
 			continue;
-		const FontGlyph &glyph = glyphs[(size_t)code_point];
+
+		const FontGlyph& glyph = it_glyph->second;
 
 		// Adjust the cursor for the kerning between this character and the previous one.
 		if (prior_character != CodePoint::Null)
@@ -229,13 +223,15 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const String& string,
 		geometry[geometry_index].GetIndices().reserve(string.size() * 6);
 		geometry[geometry_index].GetVertices().reserve(string.size() * 4);
 
-		for (auto it = StringIteratorU8(string); it; ++it)
+		for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 		{
-			CodePoint code_point = *it;
+			CodePoint code_point = *it_string;
 
-			if ((size_t)code_point >= glyphs.size())
+			auto it_glyph = glyphs.find(code_point);
+			if (it_glyph == glyphs.end())
 				continue;
-			const FontGlyph &glyph = glyphs[(size_t)code_point];
+
+			const FontGlyph& glyph = it_glyph->second;
 
 			// Adjust the cursor for the kerning between this character and the previous one.
 			if (prior_character != CodePoint::Null)
@@ -265,9 +261,9 @@ void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, 
 	float offset;
 	switch (height)
 	{
-	case Style::TextDecoration::Underline:       offset = -underline_position; break;
-	case Style::TextDecoration::Overline:        offset = -underline_position - (float)size; break;
-	case Style::TextDecoration::LineThrough:     offset = -0.65f * (float)x_height; break; // or maybe: -underline_position - (float)size * 0.5f
+	case Style::TextDecoration::Underline:       offset = -metrics.underline_position; break;
+	case Style::TextDecoration::Overline:        offset = -metrics.underline_position - (float)metrics.size; break;
+	case Style::TextDecoration::LineThrough:     offset = -0.65f * (float)metrics.x_height; break; // or maybe: -underline_position - (float)size * 0.5f
 	default: return;
 	}
 
@@ -277,22 +273,25 @@ void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, 
 		&line_vertices[0] + ((int)line_vertices.size() - 4),
 		&line_indices[0] + ((int)line_indices.size() - 6),
 		Vector2f(position.x, position.y + offset).Round(),
-		Vector2f((float) width, underline_thickness),
+		Vector2f((float) width, metrics.underline_thickness),
 		colour, 
 		(int)line_vertices.size() - 4
 	);
 }
 
-// Returns the font face's raw charset (the charset range as a string).
-const String& FontFaceHandle::GetRawCharset() const
-{
-	return raw_charset;
+FontGlyphMap& FontFaceHandle::GetGlyphs() {
+	return glyphs;
 }
 
-// Returns the font face's charset.
-const UnicodeRangeList& FontFaceHandle::GetCharset() const
+FontMetrics& FontFaceHandle::GetMetrics() {
+	return metrics;
+}
+
+void FontFaceHandle::GenerateBaseLayer()
 {
-	return charset;
+	base_layer = GenerateLayer(nullptr);
+	layer_configurations.push_back(LayerConfiguration());
+	layer_configurations.back().push_back(base_layer);
 }
 
 Rml::Core::FontFaceLayer* FontFaceHandle::CreateNewLayer()

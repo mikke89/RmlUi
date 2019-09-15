@@ -37,29 +37,28 @@
 
 namespace Rml {
 namespace Core {
-namespace FreeType {
 
-FontProvider* FontProvider::instance = nullptr;
+FontProvider_FreeType* FontProvider_FreeType::instance = nullptr;
 
 static FT_Library ft_library = nullptr;
 
-FontProvider::FontProvider()
+FontProvider_FreeType::FontProvider_FreeType()
 {
 	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
-FontProvider::~FontProvider()
+FontProvider_FreeType::~FontProvider_FreeType()
 {
 	RMLUI_ASSERT(instance == this);
 	instance = nullptr;
 }
 
-bool FontProvider::Initialise()
+bool FontProvider_FreeType::Initialise()
 {
 	if (instance == nullptr)
 	{
-		new FontProvider();
+		new FontProvider_FreeType();
 
 		FontDatabase::AddFontProvider(instance);
 
@@ -75,7 +74,7 @@ bool FontProvider::Initialise()
 	return true;
 }
 
-void FontProvider::Shutdown()
+void FontProvider_FreeType::Shutdown()
 {
 	if (instance != nullptr)
 	{
@@ -95,7 +94,7 @@ void FontProvider::Shutdown()
 }
 
 // Loads a new font face.
-bool FontProvider::LoadFontFace(const String& file_name)
+bool FontProvider_FreeType::LoadFontFace(const String& file_name)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
 	if (ft_face == nullptr)
@@ -120,7 +119,7 @@ bool FontProvider::LoadFontFace(const String& file_name)
 }
 
 // Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-bool FontProvider::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
+bool FontProvider_FreeType::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
 	if (ft_face == nullptr)
@@ -142,7 +141,7 @@ bool FontProvider::LoadFontFace(const String& file_name, const String& family, S
 }
 
 // Adds a new font face to the database, loading from memory.
-bool FontProvider::LoadFontFace(const byte* data, int data_length)
+bool FontProvider_FreeType::LoadFontFace(const byte* data, int data_length)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
 	if (ft_face == nullptr)
@@ -167,7 +166,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length)
 }
 
 // Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
+bool FontProvider_FreeType::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
 	if (ft_face == nullptr)
@@ -189,16 +188,16 @@ bool FontProvider::LoadFontFace(const byte* data, int data_length, const String&
 }
 
 // Adds a loaded face to the appropriate font family.
-bool FontProvider::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
+bool FontProvider_FreeType::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
 	String family_lower = StringUtilities::ToLower(family);
-	FontFamily* font_family = nullptr;
+	FontFamily_FreeType* font_family = nullptr;
 	FontFamilyMap::iterator iterator = font_families.find(family_lower);
 	if (iterator != font_families.end())
-		font_family = (FontFamily*)(*iterator).second;
+		font_family = (FontFamily_FreeType*)(*iterator).second;
 	else
 	{
-		font_family = new FontFamily(family_lower);
+		font_family = new FontFamily_FreeType(family_lower);
 		font_families[family_lower] = font_family;
 	}
 
@@ -206,7 +205,7 @@ bool FontProvider::AddFace(void* face, const String& family, Style::FontStyle st
 }
 
 // Loads a FreeType face.
-void* FontProvider::LoadFace(const String& file_name)
+void* FontProvider_FreeType::LoadFace(const String& file_name)
 {
 	FileInterface* file_interface = GetFileInterface();
 	FileHandle handle = file_interface->Open(file_name);
@@ -226,7 +225,7 @@ void* FontProvider::LoadFace(const String& file_name)
 }
 
 // Loads a FreeType face from memory.
-void* FontProvider::LoadFace(const byte* data, int data_length, const String& source, bool local_data)
+void* FontProvider_FreeType::LoadFace(const byte* data, int data_length, const String& source, bool local_data)
 {
 	FT_Face face = nullptr;
 	int error = FT_New_Memory_Face(ft_library, (const FT_Byte*) data, data_length, 0, &face);
@@ -257,6 +256,5 @@ void* FontProvider::LoadFace(const byte* data, int data_length, const String& so
 	return face;
 }
 
-}
 }
 }

@@ -51,7 +51,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 	if (effect)
 		colour = effect->GetColour();
 
-	const FontGlyphList& glyphs = handle->GetGlyphs();
+	const FontGlyphMap& glyphs = handle->GetGlyphs();
 
 	// Clone the geometry and textures from the clone layer.
 	if (clone != nullptr)
@@ -67,15 +67,14 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 		if (!deep_clone &&
 			effect != nullptr)
 		{
-			for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
+			for (auto& pair : glyphs)
 			{
-				const FontGlyph& glyph = *i;
+				CodePoint code_point = pair.first;
+				const FontGlyph& glyph = pair.second;
 
-				if ((size_t)glyph.character >= characters.size())
-					continue;
+				RMLUI_ASSERT(characters.find(code_point) != characters.end());
 
-				// TODO: Use a look-up map instead (codepoints can get large!)
-				Character& character = characters[(size_t)glyph.character];
+				Character& character = characters[code_point];
 
 				Vector2i glyph_origin(Math::RealToInteger(character.origin.x), Math::RealToInteger(character.origin.y));
 				Vector2i glyph_dimensions(Math::RealToInteger(character.dimensions.x), Math::RealToInteger(character.dimensions.y));
@@ -93,10 +92,11 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 	else
 	{
 		// Initialise the texture layout for the glyphs.
-		characters.resize(glyphs.size(), Character());
-		for (FontGlyphList::const_iterator i = glyphs.begin(); i != glyphs.end(); ++i)
+		characters.reserve(glyphs.size());
+		for (auto& pair : glyphs)
 		{
-			const FontGlyph& glyph = *i;
+			CodePoint code_point = pair.first;
+			const FontGlyph& glyph = pair.second;
 
 			Vector2i glyph_origin(0, 0);
 			Vector2i glyph_dimensions = glyph.bitmap_dimensions;
@@ -111,10 +111,10 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 			Character character;
 			character.origin = Vector2f((float) (glyph_origin.x + glyph.bearing.x), (float) (glyph_origin.y - glyph.bearing.y));
 			character.dimensions = Vector2f((float) glyph_dimensions.x - glyph_origin.x, (float) glyph_dimensions.y - glyph_origin.y);
-			characters[(size_t)glyph.character] = character;
+			characters[code_point] = character;
 
 			// Add the character's dimensions into the texture layout engine.
-			texture_layout.AddRectangle((int)glyph.character, glyph_dimensions - glyph_origin);
+			texture_layout.AddRectangle((int)code_point, glyph_dimensions - glyph_origin);
 		}
 
 		// Generate the texture layout; this will position the glyph rectangles efficiently and
@@ -129,7 +129,9 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 		{
 			TextureLayoutRectangle& rectangle = texture_layout.GetRectangle(i);
 			const TextureLayoutTexture& texture = texture_layout.GetTexture(rectangle.GetTextureIndex());
-			Character& character = characters[rectangle.GetId()];
+			CodePoint code_point = (CodePoint)rectangle.GetId();
+			RMLUI_ASSERT(characters.find(code_point) != characters.end());
+			Character& character = characters[code_point];
 
 			// Set the character's texture index.
 			character.texture_index = rectangle.GetTextureIndex();
@@ -164,7 +166,7 @@ bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture
 		texture_id > texture_layout.GetNumTextures())
 		return false;
 
-	const FontGlyphList& glyphs = handle->GetGlyphs();
+	const FontGlyphMap& glyphs = handle->GetGlyphs();
 
 	// Generate the texture data.
 	texture_data = texture_layout.GetTexture(texture_id).AllocateTexture();
@@ -173,12 +175,19 @@ bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture
 	for (int i = 0; i < texture_layout.GetNumRectangles(); ++i)
 	{
 		TextureLayoutRectangle& rectangle = texture_layout.GetRectangle(i);
-		Character& character = characters[rectangle.GetId()];	
+		CodePoint code_point = (CodePoint)rectangle.GetId();
+		RMLUI_ASSERT(characters.find(code_point) != characters.end());
+		
+		Character& character = characters[code_point];
 
 		if (character.texture_index != texture_id)
 			continue;
 
-		const FontGlyph& glyph = glyphs[rectangle.GetId()];
+		auto it = glyphs.find((CodePoint)rectangle.GetId());
+		if (it == glyphs.end())
+			continue;
+
+		const FontGlyph& glyph = it->second;
 
 		if (effect == nullptr)
 		{

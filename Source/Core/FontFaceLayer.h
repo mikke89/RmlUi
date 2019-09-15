@@ -75,10 +75,12 @@ public:
 	/// @param[in] colour The colour of the string.
 	inline void GenerateGeometry(Geometry* geometry, const CodePoint character_code, const Vector2f& position, const Colourb& colour) const
 	{
-		if ((size_t)character_code >= characters.size())
+		auto it = characters.find(character_code);
+		if (it == characters.end())
 			return;
 
-		const Character& character = characters[(size_t)character_code];
+		const Character& character = it->second;
+
 		if (character.texture_index < 0)
 			return;
 
@@ -116,7 +118,7 @@ public:
 	/// @return The layer's colour.
 	const Colourb& GetColour() const;
 
-// protected:
+private:
 	struct Character
 	{
 		Character() : texture_index(-1) { }
@@ -132,15 +134,15 @@ public:
 		int texture_index;
 	};
 
-	typedef std::vector< Character > CharacterList;
-	typedef std::vector< Texture > TextureList;
+	using CharacterMap = UnorderedMap<CodePoint, Character>;
+	using TextureList = std::vector<Texture>;
 
 	const FontFaceHandle* handle;
 	SharedPtr<const FontEffect> effect;
 
 	TextureLayout texture_layout;
 
-	CharacterList characters;
+	CharacterMap characters;
 	TextureList textures;
 	Colourb colour;
 };
