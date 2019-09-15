@@ -62,7 +62,7 @@ protected:
 
 private:
 	struct TilePropertyIds {
-		PropertyId src, repeat, x, y, width, height;
+		PropertyId src, repeat, x, y, width, height, orientation;
 	};
 
 	std::vector<TilePropertyIds> tile_property_ids;

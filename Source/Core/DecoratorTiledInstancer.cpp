@@ -51,17 +51,21 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 	RegisterShorthand(CreateString(32, "%s-pos", name.c_str()), CreateString(64, "%s-x, %s-y", name.c_str(), name.c_str()), ShorthandType::FallThrough);
 	RegisterShorthand(CreateString(32, "%s-size", name.c_str()), CreateString(64, "%s-width, %s-height", name.c_str(), name.c_str()), ShorthandType::FallThrough);
 
+	ids.orientation = RegisterProperty(CreateString(32, "%s-orientation", name.c_str()), "none")
+		.AddParser("keyword", "none, rotate-90, rotate-180, rotate-270, flip-horizontal, flip-vertical")
+		.GetId();
+
 	if (register_repeat_modes)
 	{
 		ids.repeat = RegisterProperty(CreateString(32, "%s-repeat", name.c_str()), "stretch")
 			.AddParser("keyword", "stretch, clamp-stretch, clamp-truncate, repeat-stretch, repeat-truncate")
 			.GetId();
-		RegisterShorthand(name, CreateString(256, "%s-src, %s-repeat, %s-x, %s-y, %s-width, %s-height", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()), ShorthandType::FallThrough);
+		RegisterShorthand(name, CreateString(256, "%s-src, %s-repeat, %s-x, %s-y, %s-width, %s-height, %s-orientation", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()), ShorthandType::FallThrough);
 	}
 	else
 	{
 		ids.repeat = PropertyId::Invalid;
-		RegisterShorthand(name, CreateString(256, "%s-src, %s-x, %s-y, %s-width, %s-height", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()), ShorthandType::FallThrough);
+		RegisterShorthand(name, CreateString(256, "%s-src, %s-x, %s-y, %s-width, %s-height, %s-orientation", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()), ShorthandType::FallThrough);
 	}
 
 	tile_property_ids.push_back(ids);
@@ -156,6 +160,12 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		{
 			const Property& repeat_property = *properties.GetProperty(ids.repeat);
 			tile.repeat_mode = (DecoratorTiled::TileRepeatMode)repeat_property.value.Get< int >();
+		}
+
+		if (ids.orientation != PropertyId::Invalid)
+		{
+			const Property& repeat_property = *properties.GetProperty(ids.orientation);
+			tile.orientation = (DecoratorTiled::TileOrientation)repeat_property.value.Get< int >();
 		}
 	}
 
