@@ -84,7 +84,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutTexture.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/UnicodeRange.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Utilities.h
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.h
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.h
@@ -317,7 +316,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TypeConverter.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/UnicodeRange.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector3.cpp

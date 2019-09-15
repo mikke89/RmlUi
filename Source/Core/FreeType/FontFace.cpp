@@ -47,8 +47,6 @@ FontFace_FreeType::~FontFace_FreeType()
 // Returns a handle for positioning and rendering this face at the given size.
 SharedPtr<Rml::Core::FontFaceHandle> FontFace_FreeType::GetHandle(int size)
 {
-	UnicodeRangeList charset;
-
 	auto it = handles.find(size);
 	if (it != handles.end())
 		return it->second;

@@ -30,7 +30,6 @@
 #define RMLUICOREFONTFACEHANDLE_H
 
 #include "../../Include/RmlUi/Core/Traits.h"
-#include "UnicodeRange.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
