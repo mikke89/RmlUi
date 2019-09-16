@@ -37,7 +37,7 @@ namespace Rml {
 namespace Core {
 
 static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph);
-static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs);
+static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size);
 static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics);
 
 
@@ -66,7 +66,7 @@ bool FontFaceHandle_FreeType::Initialise(FT_Face ft_face, int size)
 	}
 
 	// Construct the initial list of glyphs.
-	BuildGlyphMap(ft_face, GetGlyphs());
+	BuildGlyphMap(ft_face, GetGlyphs(), size);
 
 	// Generate the metrics for the handle.
 	GenerateMetrics(ft_face, GetGlyphs(), GetMetrics());
@@ -77,14 +77,20 @@ bool FontFaceHandle_FreeType::Initialise(FT_Face ft_face, int size)
 	return true;
 }
 
-static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs)
+static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 {
 	// TODO: ASCII range for now
 	FT_ULong code_min = 32;
 	FT_ULong code_max = 126;
 
+	glyphs.reserve(code_max - code_min + 2);
+
 	for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
 	{
+		// Add 'ø' character for testing. TODO: Remove!
+		if (character_code == 126)
+			character_code = 0xf8;
+
 		int index = FT_Get_Char_Index(ft_face, character_code);
 		if (index != 0)
 		{
@@ -104,6 +110,33 @@ static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs)
 
 			glyphs[(CodePoint)character_code] = BuildGlyph(ft_face->glyph);
 		}
+	}
+
+	// Add a replacement character for rendering unknown characters.
+	CodePoint replacement_character = CodePoint::Replacement;
+	auto it = glyphs.find(replacement_character);
+	if(it == glyphs.end())
+	{
+		FontGlyph glyph;
+		glyph.dimensions = { size / 3, (size * 2) / 3 };
+		glyph.bitmap_dimensions = glyph.dimensions;
+		glyph.advance = glyph.dimensions.x + 2;
+		glyph.bearing = { 1, glyph.dimensions.y };
+
+		glyph.bitmap_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
+
+		for (int y = 0; y < glyph.bitmap_dimensions.y; y++)
+		{
+			for (int x = 0; x < glyph.bitmap_dimensions.x; x++)
+			{
+				constexpr int stroke = 1;
+				int i = y * glyph.bitmap_dimensions.x + x;
+				bool near_edge = (x < stroke || x >= glyph.bitmap_dimensions.x - stroke || y < stroke || y >= glyph.bitmap_dimensions.y - stroke);
+				glyph.bitmap_data[i] = (near_edge ? 0xdd : 0);
+			}
+		}
+
+		glyphs[replacement_character] = std::move(glyph);
 	}
 }
 
@@ -140,7 +173,7 @@ static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph)
 		{
 			glyph.bitmap_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
 
-			byte* source_bitmap = ft_glyph->bitmap.buffer;
+			const byte* source_bitmap = ft_glyph->bitmap.buffer;
 			byte* destination_bitmap = glyph.bitmap_data.get();
 
 			// Copy the bitmap data into the newly-allocated space on our glyph.
@@ -152,7 +185,7 @@ static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph)
 				for (int i = 0; i < glyph.bitmap_dimensions.y; ++i)
 				{
 					int mask = 0x80;
-					byte* source_byte = source_bitmap;
+					const byte* source_byte = source_bitmap;
 					for (int j = 0; j < glyph.bitmap_dimensions.x; ++j)
 					{
 						if ((*source_byte & mask) == mask)

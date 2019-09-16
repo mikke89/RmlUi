@@ -94,7 +94,12 @@ int FontFaceHandle::GetStringWidth(const String& string, CodePoint prior_charact
 
 		auto it_glyph = glyphs.find(code_point);
 		if (it_glyph == glyphs.end())
-			continue;
+		{
+			code_point = CodePoint::Replacement;
+			it_glyph = glyphs.find(code_point);
+			if (it_glyph == glyphs.end())
+				continue;
+		}
 
 		const FontGlyph& glyph = it_glyph->second;
 
@@ -226,7 +231,12 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const String& string,
 
 			auto it_glyph = glyphs.find(code_point);
 			if (it_glyph == glyphs.end())
-				continue;
+			{
+				code_point = CodePoint::Replacement;
+				it_glyph = glyphs.find(code_point);
+				if (it_glyph == glyphs.end())
+					continue;
+			}
 
 			const FontGlyph& glyph = it_glyph->second;
 

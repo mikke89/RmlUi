@@ -60,7 +60,7 @@ namespace Core {
 typedef unsigned char byte;
 typedef double Time;
 typedef void* ScriptObject;
-enum class CodePoint : unsigned int { Null };
+enum class CodePoint : unsigned int { Null, Replacement = 0xfffd };
 
 }
 }

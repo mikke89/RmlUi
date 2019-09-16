@@ -124,6 +124,8 @@ button:focus {
 
 <div style="font-size: 0.85em; text-align: left;" id="fps"></div>
 
+<p><br/><br/>Strings: abc (æøå) def</p>
+
 <tabset id="menu">
 <tab>Decorators</tab>
 <panel id="decorators">

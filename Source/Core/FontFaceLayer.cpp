@@ -117,9 +117,11 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 			texture_layout.AddRectangle((int)code_point, glyph_dimensions - glyph_origin);
 		}
 
+		constexpr int max_texture_dimensions = 1024;
+
 		// Generate the texture layout; this will position the glyph rectangles efficiently and
 		// allocate the texture data ready for writing.
-		if (!texture_layout.GenerateLayout(512))
+		if (!texture_layout.GenerateLayout(max_texture_dimensions))
 			return false;
 
 
