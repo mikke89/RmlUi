@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core.h"
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../Core/Clock.h"
 
 namespace Rml {
@@ -303,10 +304,10 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		switch (key_identifier)
 		{
 		case Core::Input::KI_NUMPAD4:	if (numlock) break;
-		case Core::Input::KI_LEFT:		MoveCursorHorizontal(-1, shift); break;
+		case Core::Input::KI_LEFT:		MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
 
 		case Core::Input::KI_NUMPAD6:	if (numlock) break;
-		case Core::Input::KI_RIGHT:		MoveCursorHorizontal(1, shift); break;
+		case Core::Input::KI_RIGHT:		MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
 
 		case Core::Input::KI_NUMPAD8:	if (numlock) break;
 		case Core::Input::KI_UP:		MoveCursorVertical(-1, shift); break;
@@ -315,10 +316,10 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
 
 		case Core::Input::KI_NUMPAD7:	if (numlock) break;
-		case Core::Input::KI_HOME:		MoveCursorHorizontal(-cursor_character_index, shift); break;
+		case Core::Input::KI_HOME:		MoveCursorHorizontal(CursorMovement::BeginLine, shift); break;
 
 		case Core::Input::KI_NUMPAD1:	if (numlock) break;
-		case Core::Input::KI_END:		MoveCursorHorizontal(lines[cursor_line_index].content_length - cursor_character_index, shift); break;
+		case Core::Input::KI_END:		MoveCursorHorizontal(CursorMovement::EndLine, shift); break;
 
 		case Core::Input::KI_BACK:
 		{
@@ -443,6 +444,8 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
 
 			UpdateAbsoluteCursor();
+			MoveCursorToCharacterBoundaries(false);
+
 			UpdateCursorPosition();
 			ideal_cursor_position = cursor_position.x;
 
@@ -476,7 +479,7 @@ bool WidgetTextInput::AddCharacter(Rml::Core::CodePoint character)
 	Core::String insert = Core::StringUtilities::ToUTF8(character);
 	value.insert(GetCursorIndex(), insert);
 
-	edit_index += insert.size();
+	edit_index += (int)insert.size();
 
 	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
@@ -489,8 +492,11 @@ bool WidgetTextInput::AddCharacter(Rml::Core::CodePoint character)
 // Deletes a character from the string.
 bool WidgetTextInput::DeleteCharacter(bool back)
 {
-	// First, check if we have anything selected; if so, delete that first before we start delete
-	// individual characters.
+	// We set a selection of the next or previous character, and then delete it.
+	// If we already have a selection, we delete that first.
+	if (selection_length <= 0)
+		MoveCursorHorizontal(back ? CursorMovement::Left : CursorMovement::Right, true);
+
 	if (selection_length > 0)
 	{
 		DeleteSelection();
@@ -501,30 +507,7 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		return true;
 	}
 
-	Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-	
-	if (back)
-	{
-		if (GetCursorIndex() == 0)
-			return false;
-
-		value.erase(GetCursorIndex() - 1, 1);
-		edit_index -= 1;
-	}
-	else
-	{
-		if (GetCursorIndex() == (int) value.size())
-			return false;
-
-		value.erase(GetCursorIndex(), 1);
-	}
-
-	GetElement()->SetAttribute("value", value);
-	DispatchChangeEvent();
-
-	UpdateSelection(false);
-
-	return true;
+	return false;
 }
 
 // Copies the selection (if any) to the clipboard.
@@ -543,17 +526,86 @@ int WidgetTextInput::GetCursorIndex() const
 }
 
 // Moves the cursor along the current line.
-void WidgetTextInput::MoveCursorHorizontal(int distance, bool select)
+void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 {
-	// Todo, move properly across multibyte characters
-	absolute_cursor_index += distance;
+	const auto is_nonword_character = [](char c) -> bool {
+		return Core::StringUtilities::IsWhitespace(c) || (c >= '!' && c <= '@');
+	};
+
+	// Whether to seek forward or back to align to utf8 boundaries later.
+	bool seek_forward = false;
+
+	switch (movement)
+	{
+	case CursorMovement::BeginLine:
+		absolute_cursor_index -= cursor_character_index;
+		break;
+	case CursorMovement::PreviousWord:
+		if (cursor_character_index <= 1)
+		{
+			absolute_cursor_index -= 1;
+		}
+		else
+		{
+			bool whitespace_found = false;
+			const char* p_rend = lines[cursor_line_index].content.data();
+			const char* p_rbegin = p_rend + cursor_character_index;
+			const char* p = p_rbegin - 1;
+			for (; p > p_rend; --p)
+			{
+				bool is_whitespace = is_nonword_character(*p);
+				if(whitespace_found && !is_whitespace)
+					break;
+				else if(!whitespace_found && is_whitespace)
+					whitespace_found = true;
+			}
+			if (p != p_rend) ++p;
+			absolute_cursor_index += int(p - p_rbegin);
+		}
+		break;
+	case CursorMovement::Left:
+		absolute_cursor_index -= 1;
+		break;
+	case CursorMovement::Right:
+		seek_forward = true;
+		absolute_cursor_index += 1;
+		break;
+	case CursorMovement::NextWord:
+		if (cursor_character_index >= lines[cursor_line_index].content_length)
+		{
+			absolute_cursor_index += 1;
+		}
+		else
+		{
+			bool whitespace_found = false;
+			const char* p_begin = lines[cursor_line_index].content.data() + cursor_character_index;
+			const char* p_end = lines[cursor_line_index].content.data() + lines[cursor_line_index].content_length;
+			const char* p = p_begin;
+			for (; p < p_end; ++p)
+			{
+				bool is_whitespace = is_nonword_character(*p);
+				if (whitespace_found && !is_whitespace)
+					break;
+				else if (!whitespace_found && is_whitespace)
+					whitespace_found = true;
+			}
+			absolute_cursor_index += int(p - p_begin);
+		}
+		break;
+	case CursorMovement::EndLine:
+		absolute_cursor_index += lines[cursor_line_index].content_length - cursor_character_index;
+		break;
+	default:
+		break;
+	}
+	
 	absolute_cursor_index = Rml::Core::Math::Max(0, absolute_cursor_index);
 
 	UpdateRelativeCursor();
+	MoveCursorToCharacterBoundaries(seek_forward);
+
 	ideal_cursor_position = cursor_position.x;
-
 	UpdateSelection(select);
-
 	ShowCursor(true);
 }
 
@@ -581,6 +633,9 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 		cursor_character_index = CalculateCharacterIndex(cursor_line_index, ideal_cursor_position);
 
 	UpdateAbsoluteCursor();
+
+	MoveCursorToCharacterBoundaries(false);
+
 	UpdateCursorPosition();
 
 	if (update_ideal_cursor_position)
@@ -589,6 +644,25 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 	UpdateSelection(select);
 
 	ShowCursor(true);
+}
+
+void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
+{
+	const char* p_line_begin = lines[cursor_line_index].content.data();
+	const char* p_line_end = p_line_begin + lines[cursor_line_index].content_length;
+	const char* p_cursor = p_line_begin + cursor_character_index;
+	const char* p = p_cursor;
+
+	if (forward)
+		p = Core::StringUtilities::SeekForwardU8(p_cursor, p_line_end);
+	else
+		p = Core::StringUtilities::SeekBackU8(p_cursor, p_line_begin);
+
+	if (p != p_cursor)
+	{
+		absolute_cursor_index += int(p - p_cursor);
+		UpdateRelativeCursor();
+	}
 }
 
 // Updates the absolute cursor index from the relative cursor indices.

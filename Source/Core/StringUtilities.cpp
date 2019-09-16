@@ -609,7 +609,8 @@ bool StringView::operator==(const StringView& other) const {
 
 
 
-StringIteratorU8::StringIteratorU8(const char* p_begin, const char* p, const char* p_end) : view(p_begin, p_end), p(p) {
+StringIteratorU8::StringIteratorU8(const char* p_begin, const char* p, const char* p_end) : view(p_begin, p_end), p(p) 
+{
 	SeekForward();
 }
 StringIteratorU8::StringIteratorU8(const String& string) : view(string), p(string.data())
@@ -636,7 +637,6 @@ StringIteratorU8& StringIteratorU8::operator--() {
 	SeekBack();
 	return *this;
 }
-
 inline void StringIteratorU8::SeekBack() {
 	p = StringUtilities::SeekBackU8(p, view.end());
 }

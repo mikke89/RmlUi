@@ -116,14 +116,19 @@ protected:
 	void DispatchChangeEvent(bool linebreak = false);
 
 private:
+	enum class CursorMovement { BeginLine = -3, PreviousWord = -2, Left = -1, Right = 1, NextWord = 2, EndLine = 3 };
+	
 	/// Moves the cursor along the current line.
-	/// @param[in] x How far to move the cursor.
+	/// @param[in] movement Cursor movement operation.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
-	void MoveCursorHorizontal(int distance, bool select);
+	void MoveCursorHorizontal(CursorMovement movement, bool select);
 	/// Moves the cursor up and down the text field.
 	/// @param[in] x How far to move the cursor.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
 	void MoveCursorVertical(int distance, bool select);
+	// Move the cursor to utf-8 boundaries, in case it was moved into the middle of a multibyte character.
+	/// @param[in] forward True to seek forward, else back.
+	void MoveCursorToCharacterBoundaries(bool forward);
 
 	/// Updates the absolute cursor index from the relative cursor indices.
 	void UpdateAbsoluteCursor();
@@ -196,10 +201,12 @@ private:
 	typedef std::vector< Line > LineList;
 	LineList lines;
 
+	// Length in number of characters.
 	int max_length;
 
+	// Indices in bytes: Should always be moved along UTF-8 start bytes.
 	int edit_index;
-
+	
 	int absolute_cursor_index;
 	int cursor_line_index;
 	int cursor_character_index;

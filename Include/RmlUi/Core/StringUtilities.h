@@ -198,6 +198,9 @@ public:
 	// Return a pointer to the current position.
 	inline const char* Get() const { return p; }
 
+	// Return offset from the beginning of string. Note: Can return negative if decremented.
+	std::ptrdiff_t Offset() const { return p - view.begin(); }
+
 private:
 	StringView view;
 	// 'p' can be dereferenced if and only if inside [view.begin, view.end)
