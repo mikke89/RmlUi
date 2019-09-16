@@ -337,7 +337,7 @@ CodePoint StringUtilities::ToCodePoint(const char* p)
 			return CodePoint::Null;
 		}
 
-		code |= ((byte & 0b0011'1111) << 8 * i);
+		code = ((code << 6) | (byte & 0b0011'1111));
 	}
 
 	return static_cast<CodePoint>(code);

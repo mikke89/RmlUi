@@ -32,11 +32,12 @@
 /// Loads the default fonts from the given path.
 void Shell::LoadFonts(const char* directory)
 {
-	Rml::Core::String font_names[4];
+	Rml::Core::String font_names[5];
 	font_names[0] = "Delicious-Roman.otf";
 	font_names[1] = "Delicious-Italic.otf";
 	font_names[2] = "Delicious-Bold.otf";
 	font_names[3] = "Delicious-BoldItalic.otf";
+	font_names[4] = "NotoEmoji-Regular.ttf";
 
 	for (int i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
 	{

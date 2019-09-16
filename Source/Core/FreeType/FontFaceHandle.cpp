@@ -36,7 +36,7 @@
 namespace Rml {
 namespace Core {
 
-static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph);
+static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyphs);
 static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size);
 static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics);
 
@@ -77,40 +77,25 @@ bool FontFaceHandle_FreeType::Initialise(FT_Face ft_face, int size)
 	return true;
 }
 
+
 static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 {
-	// TODO: ASCII range for now
+	glyphs.reserve(128);
+
+	// Add the ASCII character set
+	// TODO: only ASCII range for now
 	FT_ULong code_min = 32;
 	FT_ULong code_max = 126;
 
-	glyphs.reserve(code_max - code_min + 2);
-
 	for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
-	{
-		// Add 'ø' character for testing. TODO: Remove!
-		if (character_code == 126)
-			character_code = 0xf8;
+		BuildGlyph(ft_face, (CodePoint)character_code, glyphs);
 
-		int index = FT_Get_Char_Index(ft_face, character_code);
-		if (index != 0)
-		{
-			FT_Error error = FT_Load_Glyph(ft_face, index, 0);
-			if (error != 0)
-			{
-				Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", character_code, ft_face->family_name, ft_face->style_name, error);
-				continue;
-			}
-
-			error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);
-			if (error != 0)
-			{
-				Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", character_code, ft_face->family_name, ft_face->style_name, error);
-				continue;
-			}
-
-			glyphs[(CodePoint)character_code] = BuildGlyph(ft_face->glyph);
-		}
-	}
+	// Add some widebyte characters (in UTF-8) for testing. TODO: Remove!
+	BuildGlyph(ft_face, (CodePoint)0xe5, glyphs); // 'å'
+	BuildGlyph(ft_face, (CodePoint)0xe6, glyphs); // 'æ'
+	BuildGlyph(ft_face, (CodePoint)0xf8, glyphs); // 'ø'
+	BuildGlyph(ft_face, (CodePoint)0x221e, glyphs); // '∞'
+	BuildGlyph(ft_face, (CodePoint)0x1f60d, glyphs); // '😍'
 
 	// Add a replacement character for rendering unknown characters.
 	CodePoint replacement_character = CodePoint::Replacement;
@@ -140,9 +125,36 @@ static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 	}
 }
 
-static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph)
+static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyphs)
 {
-	FontGlyph glyph;
+	int index = FT_Get_Char_Index(ft_face, (FT_ULong)code_point);
+	if (index == 0)
+		return false;
+	
+	FT_Error error = FT_Load_Glyph(ft_face, index, 0);
+	if (error != 0)
+	{
+		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", code_point, ft_face->family_name, ft_face->style_name, error);
+		return false;
+	}
+
+	error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);
+	if (error != 0)
+	{
+		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", code_point, ft_face->family_name, ft_face->style_name, error);
+		return false;
+	}
+
+	auto result = glyphs.emplace(code_point, FontGlyph{});
+	if (!result.second)
+	{
+		Log::Message(Log::LT_WARNING, "Glyph character '%u' is already loaded in the font face '%s %s'.", code_point, ft_face->family_name, ft_face->style_name);
+		return false;
+	}
+
+	FontGlyph& glyph = result.first->second;
+
+	FT_GlyphSlot ft_glyph = ft_face->glyph;
 
 	// Set the glyph's dimensions.
 	glyph.dimensions.x = ft_glyph->metrics.width >> 6;
@@ -226,7 +238,7 @@ static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph)
 		glyph.bitmap_data = nullptr;
 	}
 
-	return glyph;
+	return true;
 }
 
 

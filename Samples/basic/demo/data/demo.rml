@@ -116,6 +116,11 @@ button:focus {
 {
 	decorator: ninepatch(button-active, button-inner-active);
 }
+.emoji-test
+{
+	font-family: Noto Emoji;
+	font-size: 35px;
+}
 
 </style>
 </head>
@@ -124,7 +129,8 @@ button:focus {
 
 <div style="font-size: 0.85em; text-align: left;" id="fps"></div>
 
-<p><br/><br/>Strings: abc (æøå) def</p>
+<p class="font-test"><br/><br/>abc Å (æø 😍 å∞) Å def</p>
+<p class="emoji-test">abc 😍 def</p>
 
 <tabset id="menu">
 <tab>Decorators</tab>

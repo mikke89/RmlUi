@@ -476,7 +476,7 @@ bool WidgetTextInput::AddCharacter(Rml::Core::CodePoint character)
 	Core::String insert = Core::StringUtilities::ToUTF8(character);
 	value.insert(GetCursorIndex(), insert);
 
-	edit_index += 1;
+	edit_index += insert.size();
 
 	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
