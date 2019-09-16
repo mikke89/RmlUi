@@ -29,89 +29,89 @@
 #include "precompiled.h"
 #include "FontDatabaseDefault.h"
 #include "FontFaceHandleDefault.h"
-#include "FontSubsystemInterfaceDefault.h"
+#include "FontEngineInterfaceDefault.h"
 
 namespace Rml {
 namespace Core {
 
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 
-FontSubsystemInterfaceDefault::FontSubsystemInterfaceDefault()
+FontEngineInterfaceDefault::FontEngineInterfaceDefault()
 {
 	FontDatabaseDefault::Initialise();
 }
 
-FontSubsystemInterfaceDefault::~FontSubsystemInterfaceDefault()
+FontEngineInterfaceDefault::~FontEngineInterfaceDefault()
 {
 	FontDatabaseDefault::Shutdown();
 }
 
-bool FontSubsystemInterfaceDefault::LoadFontFace(const String& file_name)
+bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name)
 {
 	return FontDatabaseDefault::LoadFontFace(file_name);
 }
 
-bool FontSubsystemInterfaceDefault::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
+bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
 {
 	return FontDatabaseDefault::LoadFontFace(file_name, family, style, weight);
 }
 
-FontFaceHandle FontSubsystemInterfaceDefault::GetFontFaceHandle(const String& family,
+FontFaceHandle FontEngineInterfaceDefault::GetFontFaceHandle(const String& family,
 	const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	auto handle = FontDatabaseDefault::GetFontFaceHandle(family, charset, style, weight, size);
 	return reinterpret_cast<FontFaceHandle>(handle.get());
 }
 	
-int FontSubsystemInterfaceDefault::GenerateLayerConfiguration(FontFaceHandle handle, const FontEffectList& font_effects) const
+int FontEngineInterfaceDefault::GenerateLayerConfiguration(FontFaceHandle handle, const FontEffectList& font_effects) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GenerateLayerConfiguration(font_effects);
 }
 
-int FontSubsystemInterfaceDefault::GetCharacterWidth(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetCharacterWidth(FontFaceHandle handle) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetCharacterWidth();
 }
 
-int FontSubsystemInterfaceDefault::GetSize(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetSize(FontFaceHandle handle) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetSize();
 }
 
-int FontSubsystemInterfaceDefault::GetXHeight(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetXHeight(FontFaceHandle handle) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetXHeight();
 }
 
-int FontSubsystemInterfaceDefault::GetLineHeight(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetLineHeight(FontFaceHandle handle) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetLineHeight();
 }
 
-int FontSubsystemInterfaceDefault::GetBaseline(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetBaseline(FontFaceHandle handle) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetBaseline();
 }
 
-float FontSubsystemInterfaceDefault::GetUnderline(FontFaceHandle handle, float *thickness) const
+float FontEngineInterfaceDefault::GetUnderline(FontFaceHandle handle, float *thickness) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetUnderline(thickness);
 }
 
-int FontSubsystemInterfaceDefault::GetStringWidth(FontFaceHandle handle, const WString& string, word prior_character)
+int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const WString& string, word prior_character)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetStringWidth(string, prior_character);
 }
 
-int FontSubsystemInterfaceDefault::GenerateString(FontFaceHandle handle, GeometryList& geometry, const WString& string,
+int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, GeometryList& geometry, const WString& string,
 	const Vector2f& position, const Colourb& colour, int layer_configuration) const
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);

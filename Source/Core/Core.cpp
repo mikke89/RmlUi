@@ -30,7 +30,7 @@
 #include "../../Include/RmlUi/Core.h"
 #include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
-#include "FontSubsystemInterfaceDefault.h"
+#include "FontEngineInterfaceDefault.h"
 #include "PluginRegistry.h"
 #include "StyleSheetFactory.h"
 #include "TemplateCache.h"
@@ -46,13 +46,13 @@ static RenderInterface* render_interface = nullptr;
 static SystemInterface* system_interface = nullptr;
 // RmlUi's file I/O interface.
 static FileInterface* file_interface = nullptr;
-// RmlUi's font subsystem interface.
-static FontSubsystemInterface* font_interface = nullptr;
+// RmlUi's font engine interface.
+static FontEngineInterface* font_interface = nullptr;
 
 // Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
 static UniquePtr<FileInterface> default_file_interface;
 
-static UniquePtr<FontSubsystemInterface> default_font_interface;
+static UniquePtr<FontEngineInterface> default_font_interface;
 
 static bool initialised = false;
 
@@ -93,7 +93,7 @@ bool Initialise()
 	if (!font_interface)
 	{
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-		default_font_interface = std::make_unique<FontSubsystemInterfaceDefault>();
+		default_font_interface = std::make_unique<FontEngineInterfaceDefault>();
 		font_interface = default_font_interface.get();
 #else
 		Log::Message(Log::LT_ERROR, "No font interface set!");
@@ -186,13 +186,13 @@ FileInterface* GetFileInterface()
 }
 
 // Sets the interface through which all font requests are made.
-void SetFontSubsystemInterface(FontSubsystemInterface* _font_interface)
+void SetFontEngineInterface(FontEngineInterface* _font_interface)
 {
 	font_interface = _font_interface;
 }
 	
 // Returns RmlUi's file interface.
-FontSubsystemInterface* GetFontSubsystemInterface()
+FontEngineInterface* GetFontEngineInterface()
 {
 	return font_interface;
 }

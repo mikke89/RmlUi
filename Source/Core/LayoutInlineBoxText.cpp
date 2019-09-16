@@ -99,7 +99,7 @@ void LayoutInlineBoxText::OffsetBaseline(float ascender)
 
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle != 0)
-		leading = height - GetFontSubsystemInterface()->GetLineHeight(font_face_handle);
+		leading = height - GetFontEngineInterface()->GetLineHeight(font_face_handle);
 
 	// Offset by the half-leading.
 	position.y += leading * 0.5f;

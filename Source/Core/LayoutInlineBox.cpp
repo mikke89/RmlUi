@@ -61,7 +61,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 		if (font_face != 0)
 		{
 			height = element->GetLineHeight();
-			baseline = (height - GetFontSubsystemInterface()->GetLineHeight(font_face)) * 0.5f + GetFontSubsystemInterface()->GetBaseline(font_face);
+			baseline = (height - GetFontEngineInterface()->GetLineHeight(font_face)) * 0.5f + GetFontEngineInterface()->GetBaseline(font_face);
 		}
 		else
 		{
@@ -182,7 +182,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 			FontFaceHandle parent_font = GetParentFont();
 			int x_height = 0;
 			if (parent_font != 0)
-				x_height = GetFontSubsystemInterface()->GetXHeight(parent_font) / -2;
+				x_height = GetFontEngineInterface()->GetXHeight(parent_font) / -2;
 
 			SetVerticalPosition(x_height + (height / 2 - baseline));
 		}
@@ -195,7 +195,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(float(GetFontSubsystemInterface()->GetLineHeight(parent_font)) * 0.2f);
+				SetVerticalPosition(float(GetFontEngineInterface()->GetLineHeight(parent_font)) * 0.2f);
 		}
 		break;
 
@@ -206,7 +206,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(float(-1 * GetFontSubsystemInterface()->GetLineHeight(parent_font)) * 0.4f);
+				SetVerticalPosition(float(-1 * GetFontEngineInterface()->GetLineHeight(parent_font)) * 0.4f);
 		}
 		break;
 
@@ -217,7 +217,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition((height - baseline) - (GetFontSubsystemInterface()->GetLineHeight(parent_font) - GetFontSubsystemInterface()->GetBaseline(parent_font)));
+				SetVerticalPosition((height - baseline) - (GetFontEngineInterface()->GetLineHeight(parent_font) - GetFontEngineInterface()->GetBaseline(parent_font)));
 		}
 		break;
 
@@ -228,7 +228,7 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 			if (parent_font == 0)
 				SetVerticalPosition(0);
 			else
-				SetVerticalPosition(GetFontSubsystemInterface()->GetBaseline(parent_font) - baseline);
+				SetVerticalPosition(GetFontEngineInterface()->GetBaseline(parent_font) - baseline);
 		}
 		break;
 

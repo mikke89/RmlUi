@@ -31,25 +31,25 @@
 namespace Rml {
 namespace Core {
 
-FontSubsystemInterface::FontSubsystemInterface()
+FontEngineInterface::FontEngineInterface()
 {
 }
 
-FontSubsystemInterface::~FontSubsystemInterface()
+FontEngineInterface::~FontEngineInterface()
 {
 }
 
-bool FontSubsystemInterface::LoadFontFace(const String& file_name)
-{
-	return false;
-}
-
-bool FontSubsystemInterface::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
+bool FontEngineInterface::LoadFontFace(const String& file_name)
 {
 	return false;
 }
 
-FontFaceHandle FontSubsystemInterface::GetFontFaceHandle(const String& RMLUI_UNUSED_PARAMETER(family),
+bool FontEngineInterface::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
+{
+	return false;
+}
+
+FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& RMLUI_UNUSED_PARAMETER(family),
 	const String& RMLUI_UNUSED_PARAMETER(charset), Style::FontStyle RMLUI_UNUSED_PARAMETER(style),
 	Style::FontWeight RMLUI_UNUSED_PARAMETER(weight), int RMLUI_UNUSED_PARAMETER(size))
 {
@@ -61,49 +61,49 @@ FontFaceHandle FontSubsystemInterface::GetFontFaceHandle(const String& RMLUI_UNU
 	return 0;
 }
 	
-int FontSubsystemInterface::GenerateLayerConfiguration(FontFaceHandle, const FontEffectList& font_effects) const
+int FontEngineInterface::GenerateLayerConfiguration(FontFaceHandle, const FontEffectList& font_effects) const
 {
 	return 0;
 }
 
-int FontSubsystemInterface::GetCharacterWidth(FontFaceHandle) const
+int FontEngineInterface::GetCharacterWidth(FontFaceHandle) const
 {
 	return 0;
 }
 
-int FontSubsystemInterface::GetSize(FontFaceHandle) const
+int FontEngineInterface::GetSize(FontFaceHandle) const
 {
 	return 0;
 }
 
-int FontSubsystemInterface::GetXHeight(FontFaceHandle) const
+int FontEngineInterface::GetXHeight(FontFaceHandle) const
 {
 	return 0;
 }
 
-int FontSubsystemInterface::GetLineHeight(FontFaceHandle) const
+int FontEngineInterface::GetLineHeight(FontFaceHandle) const
 {
 	return 0;
 }
 
-int FontSubsystemInterface::GetBaseline(FontFaceHandle) const
+int FontEngineInterface::GetBaseline(FontFaceHandle) const
 {
 	return 0;
 }
 
-float FontSubsystemInterface::GetUnderline(FontFaceHandle, float *) const
+float FontEngineInterface::GetUnderline(FontFaceHandle, float *) const
 {
 	return 0;
 }
 
-int FontSubsystemInterface::GetStringWidth(FontFaceHandle, const WString& RMLUI_UNUSED_PARAMETER(string), word RMLUI_UNUSED_PARAMETER(prior_character))
+int FontEngineInterface::GetStringWidth(FontFaceHandle, const WString& RMLUI_UNUSED_PARAMETER(string), word RMLUI_UNUSED_PARAMETER(prior_character))
 {
 	RMLUI_UNUSED(string);
 	RMLUI_UNUSED(prior_character);
 	return 0;
 }
 
-int FontSubsystemInterface::GenerateString(FontFaceHandle, GeometryList& RMLUI_UNUSED_PARAMETER(geometry), const WString& RMLUI_UNUSED_PARAMETER(string), 
+int FontEngineInterface::GenerateString(FontFaceHandle, GeometryList& RMLUI_UNUSED_PARAMETER(geometry), const WString& RMLUI_UNUSED_PARAMETER(string), 
 	const Vector2f& RMLUI_UNUSED_PARAMETER(position), const Colourb& RMLUI_UNUSED_PARAMETER(colour), int RMLUI_UNUSED_PARAMETER(layer_configuration)) const
 {
 	RMLUI_UNUSED(geometry);

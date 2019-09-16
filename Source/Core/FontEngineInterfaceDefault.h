@@ -25,19 +25,19 @@
  *
  */
 
-#ifndef RMLUICOREFONTSUBSYSTEMINTERFACEDEFAULT_H
-#define RMLUICOREFONTSUBSYSTEMINTERFACEDEFAULT_H
+#ifndef RMLUICOREFONTENGINEINTERFACEDEFAULT_H
+#define RMLUICOREFONTENGINEINTERFACEDEFAULT_H
 
-#include "../../Include/RmlUi/Core/FontSubsystemInterface.h"
+#include "../../Include/RmlUi/Core/FontEngineInterface.h"
 
 namespace Rml {
 namespace Core {
 
-class RMLUICORE_API FontSubsystemInterfaceDefault: public FontSubsystemInterface
+class RMLUICORE_API FontEngineInterfaceDefault: public FontEngineInterface
 {
 public:
-	FontSubsystemInterfaceDefault();
-	virtual ~FontSubsystemInterfaceDefault();
+	FontEngineInterfaceDefault();
+	virtual ~FontEngineInterfaceDefault();
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	/// @param[in] file_name The file to load the face from.

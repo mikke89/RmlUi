@@ -53,7 +53,7 @@
 #include "FileInterface.h"
 #include "FontEffect.h"
 #include "FontGlyph.h"
-#include "FontSubsystemInterface.h"
+#include "FontEngineInterface.h"
 #include "Geometry.h"
 #include "GeometryUtilities.h"
 #include "ID.h"
@@ -124,9 +124,9 @@ RMLUICORE_API void SetFileInterface(FileInterface* file_interface);
 RMLUICORE_API FileInterface* GetFileInterface();
 
 // Sets the interface through which all font requests are made.
-RMLUICORE_API void SetFontSubsystemInterface(FontSubsystemInterface* _font_interface);
+RMLUICORE_API void SetFontEngineInterface(FontEngineInterface* _font_interface);
 // Returns RmlUi's file interface.
-RMLUICORE_API FontSubsystemInterface* GetFontSubsystemInterface();
+RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
 	
 /// Creates a new element context.
 /// @param[in] name The new name of the context. This must be unique.

@@ -107,7 +107,7 @@ void ElementTextDefault::OnRender()
 		float clip_left = (float)clip_origin.x;
 		float clip_right = (float)(clip_origin.x + clip_dimensions.x);
 		float clip_bottom = (float)(clip_origin.y + clip_dimensions.y);
-		float line_height = (float)GetFontSubsystemInterface()->GetLineHeight(GetFontFaceHandle());
+		float line_height = (float)GetFontEngineInterface()->GetLineHeight(GetFontFaceHandle());
 		
 		render = false;
 		for (size_t i = 0; i < lines.size(); ++i)
@@ -168,7 +168,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 	WString token;
 
 	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
-	token_width = (float) GetFontSubsystemInterface()->GetStringWidth(font_face_handle, token, 0);
+	token_width = (float) GetFontEngineInterface()->GetStringWidth(font_face_handle, token, 0);
 
 	return LastToken(token_begin, text.c_str() + text.size(), collapse_white_space, break_at_endline);
 }
@@ -220,7 +220,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
-		int token_width = GetFontSubsystemInterface()->GetStringWidth(font_face_handle, token, line.empty() ? 0 : line[line.size() - 1]);
+		int token_width = GetFontEngineInterface()->GetStringWidth(font_face_handle, token, line.empty() ? 0 : line[line.size() - 1]);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
@@ -272,7 +272,7 @@ void ElementTextDefault::AddLine(const Vector2f& line_position, const WString& l
 	if (font_dirty)
 		UpdateFontConfiguration();
 
-	Vector2f baseline_position = line_position + Vector2f(0.0f, (float)GetFontSubsystemInterface()->GetLineHeight(font_face_handle) - GetFontSubsystemInterface()->GetBaseline(font_face_handle));
+	Vector2f baseline_position = line_position + Vector2f(0.0f, (float)GetFontEngineInterface()->GetLineHeight(font_face_handle) - GetFontEngineInterface()->GetBaseline(font_face_handle));
 	lines.push_back(Line(line, baseline_position));
 
 	geometry_dirty = true;
@@ -384,7 +384,7 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.
-	int new_configuration = GetFontSubsystemInterface()->GenerateLayerConfiguration(GetFontFaceHandle(), *font_effects);
+	int new_configuration = GetFontEngineInterface()->GenerateLayerConfiguration(GetFontFaceHandle(), *font_effects);
 	if (new_configuration != font_configuration)
 	{
 		font_configuration = new_configuration;
@@ -412,7 +412,7 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	line.width = GetFontSubsystemInterface()->GenerateString(font_face_handle, geometry, line.text, line.position, colour, font_configuration);
+	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, geometry, line.text, line.position, colour, font_configuration);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
 

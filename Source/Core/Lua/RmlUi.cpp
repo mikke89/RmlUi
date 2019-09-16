@@ -75,7 +75,7 @@ int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* obj)
 int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* obj)
 {
     const char* file = luaL_checkstring(L,1);
-    lua_pushboolean(L,GetFontSubsystemInterface()->LoadFontFace(file));
+    lua_pushboolean(L,GetFontEngineInterface()->LoadFontFace(file));
     return 1;
 }
 

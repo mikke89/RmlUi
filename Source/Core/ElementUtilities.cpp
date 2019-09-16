@@ -148,7 +148,7 @@ FontFaceHandle ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& 
 	const String& charset = (computed_values.font_charset.empty() ? default_charset : computed_values.font_charset);
 	int font_size = (int)computed_values.font_size;
 
-	return GetFontSubsystemInterface()->GetFontFaceHandle(computed_values.font_family, charset, computed_values.font_style, computed_values.font_weight, font_size);
+	return GetFontEngineInterface()->GetFontFaceHandle(computed_values.font_family, charset, computed_values.font_style, computed_values.font_weight, font_size);
 }
 
 float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
@@ -167,7 +167,7 @@ int ElementUtilities::GetStringWidth(Element* element, const WString& string)
 	if (font_face_handle == 0)
 		return 0;
 
-	return GetFontSubsystemInterface()->GetStringWidth(font_face_handle, string);
+	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string);
 }
 
 void ElementUtilities::BindEventAttributes(Element* element)

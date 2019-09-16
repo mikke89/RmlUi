@@ -263,8 +263,8 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandleDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFamily.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontSubsystemInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontSubsystemInterfaceDefault.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterfaceDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.cpp
