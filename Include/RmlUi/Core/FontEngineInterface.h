@@ -28,7 +28,6 @@
 #ifndef RMLUICOREFONTENGINEINTERFACE_H
 #define RMLUICOREFONTENGINEINTERFACE_H
 
-#include "Traits.h"
 #include "Header.h"
 #include "Types.h"
 #include "Geometry.h"
@@ -42,14 +41,13 @@ public:
 	FontEngineInterface();
 	virtual ~FontEngineInterface();
 
-	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
+	/// Called by the RmlUi when it wants to load a font face from file.
 	/// @param[in] file_name The file to load the face from.
 	/// @return True if the face was loaded successfully, false otherwise.
 	virtual bool LoadFontFace(const String& file_name);
 
-	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
-	/// it can find, but in the event a font family is requested that does not exist, NULL will be returned instead of a
-	/// valid handle.
+	/// Called by the RmlUi when a font configuration is resolved for an element. Should return a handle that 
+	/// can later be used to resolve properties of the face, and generate strings which can later be rendered.
 	/// @param[in] family The family of the desired font handle.
 	/// @param[in] style The style of the desired font handle.
 	/// @param[in] weight The weight of the desired font handle.
@@ -57,55 +55,58 @@ public:
 	/// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
 	virtual FontFaceHandle GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
-	/// Generates, if required, the layer configuration for a given array of font effects.
-	/// @param[in] FontHandle
+	/// Called by RmlUi when it wants to configure the layers such that font effects can be applied.
+	/// If font effects are not needed, it should return zero.
+	/// @param[in] handle The font handle.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
 	/// @return The index to use when generating geometry using this configuration.
-	virtual int GenerateLayerConfiguration(FontFaceHandle, const FontEffectList &font_effects) const;
+	virtual int GenerateLayerConfiguration(FontFaceHandle handle, const FontEffectList &font_effects);
 
-	/// Returns the average advance of all glyphs in this font face.
-	/// @param[in] FontHandle
+	/// Should return the average advance of all glyphs in this font face.
+	/// @param[in] handle The font handle.
 	/// @return An approximate width of the characters in this font face.
-	virtual int GetCharacterWidth(FontFaceHandle) const;
+	virtual int GetCharacterWidth(FontFaceHandle handle);
 
-	/// Returns the point size of this font face.
-	/// @param[in] FontHandle
+	/// Should returns the point size of this font face.
+	/// @param[in] handle The font handle.
 	/// @return The face's point size.
-	virtual int GetSize(FontFaceHandle) const;
-	/// Returns the pixel height of a lower-case x in this font face.
-	/// @param[in] FontHandle
+	virtual int GetSize(FontFaceHandle handle);
+	/// Should return the pixel height of a lower-case x in this font face.
+	/// @param[in] handle The font handle.
 	/// @return The height of a lower-case x.
-	virtual int GetXHeight(FontFaceHandle) const;
-	/// Returns the default height between this font face's baselines.
-	/// @param[in] FontHandle
+	virtual int GetXHeight(FontFaceHandle handle);
+	/// Should return the default height between this font face's baselines.
+	/// @param[in] handle The font handle.
 	/// @return The default line height.
-	virtual int GetLineHeight(FontFaceHandle) const;
+	virtual int GetLineHeight(FontFaceHandle handle);
 
-	/// Returns the font's baseline, as a pixel offset from the bottom of the font.
-	/// @param[in] FontHandle
+	/// Should return the font's baseline, as a pixel offset from the bottom of the font.
+	/// @param[in] handle The font handle.
 	/// @return The font's baseline.
-	virtual int GetBaseline(FontFaceHandle) const;
+	virtual int GetBaseline(FontFaceHandle handle);
 
-	/// Returns the font's underline, as a pixel offset from the bottom of the font.
-	/// @param[in] FontHandle
+	/// Should return the font's underline, as a pixel offset from the bottom of the font.
+	/// @param[in] handle The font handle.
 	/// @return The font's underline thickness.
-	virtual float GetUnderline(FontFaceHandle, float *thickness) const;
+	virtual float GetUnderline(FontFaceHandle handle, float *thickness);
 
-	/// Returns the width a string will take up if rendered with this handle.
-	/// @param[in] FontHandle
+	/// Should return the width of a string when rendered with this handle.
+	/// @param[in] handle The font handle.
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	virtual int GetStringWidth(FontFaceHandle, const String& string, CodePoint prior_character = CodePoint::Null);
+	virtual int GetStringWidth(FontFaceHandle handle, const String& string, CodePoint prior_character = CodePoint::Null);
 
-	/// Generates the geometry required to render a single line of text.
+	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
+	/// @param[in] handle The font handle.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
-	/// @param[in] FontHandle
+	/// @param[in] handle The font handle.
 	/// @param[in] string The string to render.
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
+	/// @param[in] layer_configuration The layer for which the geometry should be generated.
 	/// @return The width, in pixels, of the string geometry.
-	virtual int GenerateString(FontFaceHandle, GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration) const;
+	virtual int GenerateString(FontFaceHandle handle, GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration);
 };
 
 }

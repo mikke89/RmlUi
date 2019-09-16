@@ -57,43 +57,43 @@ FontFaceHandle FontEngineInterfaceDefault::GetFontFaceHandle(const String& famil
 	return reinterpret_cast<FontFaceHandle>(handle.get());
 }
 	
-int FontEngineInterfaceDefault::GenerateLayerConfiguration(FontFaceHandle handle, const FontEffectList& font_effects) const
+int FontEngineInterfaceDefault::GenerateLayerConfiguration(FontFaceHandle handle, const FontEffectList& font_effects)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GenerateLayerConfiguration(font_effects);
 }
 
-int FontEngineInterfaceDefault::GetCharacterWidth(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetCharacterWidth(FontFaceHandle handle)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetCharacterWidth();
 }
 
-int FontEngineInterfaceDefault::GetSize(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetSize(FontFaceHandle handle)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetSize();
 }
 
-int FontEngineInterfaceDefault::GetXHeight(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetXHeight(FontFaceHandle handle)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetXHeight();
 }
 
-int FontEngineInterfaceDefault::GetLineHeight(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetLineHeight(FontFaceHandle handle)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetLineHeight();
 }
 
-int FontEngineInterfaceDefault::GetBaseline(FontFaceHandle handle) const
+int FontEngineInterfaceDefault::GetBaseline(FontFaceHandle handle)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetBaseline();
 }
 
-float FontEngineInterfaceDefault::GetUnderline(FontFaceHandle handle, float *thickness) const
+float FontEngineInterfaceDefault::GetUnderline(FontFaceHandle handle, float *thickness)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetUnderline(thickness);
@@ -106,7 +106,7 @@ int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const Stri
 }
 
 int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, GeometryList& geometry, const String& string,
-	const Vector2f& position, const Colourb& colour, int layer_configuration) const
+	const Vector2f& position, const Colourb& colour, int layer_configuration)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GenerateString(geometry, string, position, colour, layer_configuration);
