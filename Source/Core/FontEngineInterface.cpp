@@ -44,11 +44,6 @@ bool FontEngineInterface::LoadFontFace(const String& file_name)
 	return false;
 }
 
-bool FontEngineInterface::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	return false;
-}
-
 FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& RMLUI_UNUSED_PARAMETER(family),
 	const String& RMLUI_UNUSED_PARAMETER(charset), Style::FontStyle RMLUI_UNUSED_PARAMETER(style),
 	Style::FontWeight RMLUI_UNUSED_PARAMETER(weight), int RMLUI_UNUSED_PARAMETER(size))

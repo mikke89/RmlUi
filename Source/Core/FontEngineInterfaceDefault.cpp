@@ -51,11 +51,6 @@ bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name)
 	return FontDatabaseDefault::LoadFontFace(file_name);
 }
 
-bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	return FontDatabaseDefault::LoadFontFace(file_name, family, style, weight);
-}
-
 FontFaceHandle FontEngineInterfaceDefault::GetFontFaceHandle(const String& family,
 	const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
 {

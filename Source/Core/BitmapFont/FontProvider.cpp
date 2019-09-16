@@ -106,43 +106,6 @@ bool BitmapFont::FontProvider::LoadFontFace(const String& file_name)
 	return true;
 }
 
-// Loads a new font face.
-bool BitmapFont::FontProvider::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	BitmapFont::BitmapFontDefinitions *bm_font = (BitmapFont::BitmapFontDefinitions*) instance->LoadFace(file_name);
-	if (bm_font == nullptr)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
-		return false;
-	}
-
-	if (instance->AddFace(bm_font, family, style, weight, true))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
-		return false;
-	}
-
-	return true;
-}
-
-bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length)
-{
-	// TODO: Loading from memory
-	return false;
-}
-
-// Adds a new font face to the database, loading from memory.
-bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	// TODO Loading from memory
-	return false;
-}
-
 // Adds a loaded face to the appropriate font family.
 bool BitmapFont::FontProvider::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {

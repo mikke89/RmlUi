@@ -46,13 +46,6 @@ public:
 	/// @param[in] file_name The file to load the face from.
 	/// @return True if the face was loaded successfully, false otherwise.
 	virtual bool LoadFontFace(const String& file_name);
-	/// Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-	/// @param[in] file_name The file to load the face from.
-	/// @param[in] family The family to add the face to.
-	/// @param[in] style The style of the face (normal or italic).
-	/// @param[in] weight The weight of the face (normal or bold).
-	/// @return True if the face was loaded successfully, false otherwise.
-	virtual bool LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight);
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, NULL will be returned instead of a

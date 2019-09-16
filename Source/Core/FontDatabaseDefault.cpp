@@ -98,56 +98,6 @@ bool FontDatabaseDefault::LoadFontFace(const String& file_name)
     }
 }
 
-// Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabaseDefault::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-    FontProviderType font_provider_type = GetFontProviderType(file_name);
-
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(file_name, family, style, weight);
-
-        default:
-            return false;
-    }
-}
-
-// Adds a new font face to the database, loading from memory.
-bool FontDatabaseDefault::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length)
-{
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(data, data_length);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(data, data_length);
-
-        default:
-            return false;
-    }
-}
-
-// Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabaseDefault::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(data, data_length, family, style, weight);
-
-        default:
-            return false;
-    }
-}
-
 FontDatabaseDefault::FontProviderType FontDatabaseDefault::GetFontProviderType(const String& file_name)
 {
     if(file_name.find(".fnt") != String::npos)
