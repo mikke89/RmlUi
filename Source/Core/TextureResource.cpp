@@ -123,16 +123,13 @@ bool TextureResource::Load(RenderInterface* render_interface)
 	{
 		Vector2i dimensions;
 
-		bool delete_data = false;
-		const byte* data = nullptr;
+		UniquePtr<const byte[]> data = nullptr;
 
 		// Find the generation protocol and generate the data accordingly.
 		String protocol = source.substr(1, source.find("::") - 1);
 		if (protocol == "font")
 		{
 			// The requested texture is a font layer.
-			delete_data = true;
-			
 			FontFaceHandle* handle;
 			FontEffect* layer_id;
 			int texture_id;
@@ -151,10 +148,7 @@ bool TextureResource::Load(RenderInterface* render_interface)
 		if (data)
 		{
 			TextureHandle handle;
-			bool success = render_interface->GenerateTexture(handle, data, dimensions);
-
-			if (delete_data)
-				delete[] data;
+			bool success = render_interface->GenerateTexture(handle, data.get(), dimensions);
 
 			if (success)
 			{

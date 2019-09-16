@@ -64,15 +64,13 @@ public:
 
 	/// Allocates the texture.
 	/// @return The allocated texture data.
-	byte* AllocateTexture();
+	UniquePtr<byte[]> AllocateTexture();
 
 private:
 	typedef std::vector< TextureLayoutRow > RowList;
 
 	Vector2i dimensions;
 	RowList rows;
-
-	byte* texture_data;
 };
 
 }

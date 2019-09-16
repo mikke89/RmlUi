@@ -36,7 +36,7 @@
 namespace Rml {
 namespace Core {
 
-static void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph);
+static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph);
 static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs);
 static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics);
 
@@ -102,15 +102,15 @@ static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs)
 				continue;
 			}
 
-			FontGlyph glyph;
-			BuildGlyph(glyph, ft_face->glyph);
-			glyphs[(CodePoint)character_code] = glyph;
+			glyphs[(CodePoint)character_code] = BuildGlyph(ft_face->glyph);
 		}
 	}
 }
 
-static void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
+static FontGlyph BuildGlyph(FT_GlyphSlot ft_glyph)
 {
+	FontGlyph glyph;
+
 	// Set the glyph's dimensions.
 	glyph.dimensions.x = ft_glyph->metrics.width >> 6;
 	glyph.dimensions.y = ft_glyph->metrics.height >> 6;
@@ -138,10 +138,10 @@ static void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 		}
 		else
 		{
-			glyph.bitmap_data = new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y];
+			glyph.bitmap_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
 
 			byte* source_bitmap = ft_glyph->bitmap.buffer;
-			byte* destination_bitmap = glyph.bitmap_data;
+			byte* destination_bitmap = glyph.bitmap_data.get();
 
 			// Copy the bitmap data into the newly-allocated space on our glyph.
 			switch (ft_glyph->bitmap.pixel_mode)
@@ -189,7 +189,11 @@ static void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph)
 		}
 	}
 	else
+	{
 		glyph.bitmap_data = nullptr;
+	}
+
+	return glyph;
 }
 
 

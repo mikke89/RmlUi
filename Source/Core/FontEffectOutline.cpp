@@ -99,7 +99,7 @@ bool FontEffectOutline::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, 
 // Expands the original glyph texture for the outline.
 void FontEffectOutline::GenerateGlyphTexture(byte* destination_data, const Vector2i& destination_dimensions, int destination_stride, const FontGlyph& glyph) const
 {
-	filter.Run(destination_data, destination_dimensions, destination_stride, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(width, width));
+	filter.Run(destination_data, destination_dimensions, destination_stride, glyph.bitmap_data.get(), glyph.bitmap_dimensions, Vector2i(width, width));
 }
 
 }

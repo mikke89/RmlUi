@@ -160,7 +160,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const Fo
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture_dimensions, int texture_id)
+bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id)
 {
 	if (texture_id < 0 ||
 		texture_id > texture_layout.GetNumTextures())
@@ -195,7 +195,7 @@ bool FontFaceLayer::GenerateTexture(const byte*& texture_data, Vector2i& texture
 			if (glyph.bitmap_data != nullptr)
 			{
 				byte* destination = rectangle.GetTextureData();
-				byte* source = glyph.bitmap_data;
+				const byte* source = glyph.bitmap_data.get();
 
 				for (int j = 0; j < glyph.bitmap_dimensions.y; ++j)
 				{

@@ -44,11 +44,8 @@ FontFaceHandle::FontFaceHandle()
 
 FontFaceHandle::~FontFaceHandle()
 {
-	for (auto& pair : glyphs)
-		delete[] pair.second.bitmap_data;
-
-	for (auto& pair : layers)
-		delete pair.second;
+	glyphs.clear();
+	layers.clear();
 }
 
 // Returns the point size of this font face.
@@ -177,7 +174,7 @@ int FontFaceHandle::GenerateLayerConfiguration(const FontEffectList& font_effect
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id)
+bool FontFaceHandle::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id)
 {
 	FontLayerMap::iterator layer_iterator = layers.find(layer_id);
 	if (layer_iterator == layers.end())
@@ -294,21 +291,17 @@ void FontFaceHandle::GenerateBaseLayer()
 	layer_configurations.back().push_back(base_layer);
 }
 
-Rml::Core::FontFaceLayer* FontFaceHandle::CreateNewLayer()
-{
-	return new Rml::Core::FontFaceLayer();
-}
-
 // Generates (or shares) a layer derived from a font effect.
 FontFaceLayer* FontFaceHandle::GenerateLayer(const SharedPtr<const FontEffect>& font_effect)
 {
 	// See if this effect has been instanced before, as part of a different configuration.
 	FontLayerMap::iterator i = layers.find(font_effect.get());
 	if (i != layers.end())
-		return i->second;
+		return i->second.get();
 
-	FontFaceLayer* layer = CreateNewLayer();
-	layers[font_effect.get()] = layer;
+	UniquePtr<FontFaceLayer> layer_ptr = std::make_unique<FontFaceLayer>();
+	FontFaceLayer* layer = layer_ptr.get();
+	layers[font_effect.get()] = std::move(layer_ptr);
 
 	if (!font_effect)
 	{

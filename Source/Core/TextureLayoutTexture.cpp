@@ -36,9 +36,7 @@ namespace Rml {
 namespace Core {
 
 TextureLayoutTexture::TextureLayoutTexture() : dimensions(0, 0)
-{
-	texture_data = nullptr;
-}
+{}
 
 TextureLayoutTexture::~TextureLayoutTexture()
 {
@@ -140,21 +138,22 @@ int TextureLayoutTexture::Generate(TextureLayout& layout, int maximum_dimensions
 }
 
 // Allocates the texture.
-byte* TextureLayoutTexture::AllocateTexture()
+UniquePtr<byte[]> TextureLayoutTexture::AllocateTexture()
 {
 	// Note: this object does not free this texture data. It is freed in the font texture loader.
+	UniquePtr<byte[]> texture_data;
 
 	if (dimensions.x > 0 &&
 		dimensions.y > 0)
 	{
-		texture_data = new byte[dimensions.x * dimensions.y * 4];
+		texture_data.reset(new byte[dimensions.x * dimensions.y * 4]);
 
 		// Set the texture to transparent white.
 		for (int i = 0; i < dimensions.x * dimensions.y; i++)
-			((unsigned int*)(texture_data))[i] = 0x00ffffff;
+			((unsigned int*)(texture_data.get()))[i] = 0x00ffffff;
 
 		for (size_t i = 0; i < rows.size(); ++i)
-			rows[i].Allocate(texture_data, dimensions.x * 4);
+			rows[i].Allocate(texture_data.get(), dimensions.x * 4);
 	}
 
 	return texture_data;
