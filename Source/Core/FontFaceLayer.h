@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -97,7 +97,7 @@ public:
 			&character_indices[0] + (character_indices.size() - 6),
 			Vector2f(position.x + character.origin.x, position.y + character.origin.y).Round(),
 			character.dimensions,
-			colour, 
+			colour,
 			character.texcoords[0],
 			character.texcoords[1],
 			(int)character_vertices.size() - 4

@@ -103,7 +103,7 @@ static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 	// Add a replacement character for rendering unknown characters.
 	CodePoint replacement_character = CodePoint::Replacement;
 	auto it = glyphs.find(replacement_character);
-	if(it == glyphs.end())
+	if (it == glyphs.end())
 	{
 		FontGlyph glyph;
 		glyph.dimensions = { size / 3, (size * 2) / 3 };
@@ -133,7 +133,7 @@ static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyp
 	int index = FT_Get_Char_Index(ft_face, (FT_ULong)code_point);
 	if (index == 0)
 		return false;
-	
+
 	FT_Error error = FT_Load_Glyph(ft_face, index, 0);
 	if (error != 0)
 	{
@@ -288,9 +288,9 @@ int FontFaceHandle_FreeType::GetKerning(CodePoint lhs, CodePoint rhs) const
 
 	FT_Error ft_error = FT_Get_Kerning(
 		ft_face,
-		FT_Get_Char_Index(ft_face, (FT_ULong)lhs), 
-		FT_Get_Char_Index(ft_face, (FT_ULong)rhs), 
-		FT_KERNING_DEFAULT, 
+		FT_Get_Char_Index(ft_face, (FT_ULong)lhs),
+		FT_Get_Char_Index(ft_face, (FT_ULong)rhs),
+		FT_KERNING_DEFAULT,
 		&ft_kerning
 	);
 

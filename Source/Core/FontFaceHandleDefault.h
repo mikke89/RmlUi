@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -85,7 +85,7 @@ public:
 
 	/// Returns the font's underline, as a pixel offset from the bottom of the font.
 	/// @return The font's underline thickness.
-	float GetUnderline(float *thickness) const;
+	float GetUnderline(float* thickness) const;
 
 	/// Returns the font's glyphs.
 	/// @return The font's glyphs.
@@ -115,13 +115,6 @@ public:
 	/// @param[in] colour The colour to render the text.
 	/// @return The width, in pixels, of the string geometry.
 	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0) const;
-	/// Generates the geometry required to render a line above, below or through a line of text.
-	/// @param[out] geometry The geometry to append the newly created geometry into.
-	/// @param[in] position The position of the baseline of the lined text.
-	/// @param[in] width The width of the string to line.
-	/// @param[in] decoration_type The type for vertical positioning of line.
-	/// @param[in] colour The colour to draw the line in.
-	void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration decoration_type, const Colourb& colour) const;
 
 protected:
 
@@ -129,7 +122,7 @@ protected:
 	FontMetrics& GetMetrics();
 
 	void GenerateBaseLayer();
-	
+
 	virtual int GetKerning(CodePoint lhs, CodePoint rhs) const = 0;
 
 private:

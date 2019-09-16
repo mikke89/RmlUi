@@ -83,14 +83,10 @@ void ElementTextDefault::OnRender()
 	if (font_face_handle == 0)
 		return;
 	
-	
 	// If our font configuration has potentially changed, update it and force a geometry
 	// generation if necessary.
-	if (font_dirty &&
-		UpdateFontConfiguration())
-	{
+	if (font_dirty && UpdateFontConfiguration())
 		geometry_dirty = true;
-	}
 
 	// Regenerate the geometry if the colour or font configuration has altered.
 	if (geometry_dirty)

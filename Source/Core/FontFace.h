@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,8 +43,8 @@ class FontFaceHandleDefault;
 class FontFace
 {
 public:
-    FontFace(Style::FontStyle style, Style::FontWeight weight, bool release_stream);
-    virtual ~FontFace();
+	FontFace(Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+	virtual ~FontFace();
 
 	/// Returns the style of the font face.
 	/// @return The font face's style.
@@ -56,11 +56,11 @@ public:
 	/// Returns a handle for positioning and rendering this face at the given size.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
-    virtual SharedPtr<FontFaceHandleDefault> GetHandle(int size) = 0;
+	virtual SharedPtr<FontFaceHandleDefault> GetHandle(int size) = 0;
 
 	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
 	/// but existing ones can still be fetched.
-    virtual void ReleaseFace() = 0;
+	virtual void ReleaseFace() = 0;
 
 protected:
 	Style::FontStyle style;

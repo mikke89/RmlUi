@@ -40,30 +40,30 @@ class FontFamily;
 class FontFaceHandleDefault;
 
 /**
-    The font database contains all font families currently in use by RmlUi.
-    @author Peter Curry
+	The font database contains all font families currently in use by RmlUi.
+	@author Peter Curry
  */
 
 class RMLUICORE_API FontProvider
 {
 public:
 
-    /// Returns a handle to a font face that can be used to position and render text. This will return the closest match
-    /// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
-    /// valid handle.
-    /// @param[in] family The family of the desired font handle.
-    /// @param[in] style The style of the desired font handle.
-    /// @param[in] weight The weight of the desired font handle.
-    /// @param[in] size The size of desired handle, in points.
-    /// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
+	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
+	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
+	/// valid handle.
+	/// @param[in] family The family of the desired font handle.
+	/// @param[in] style The style of the desired font handle.
+	/// @param[in] weight The weight of the desired font handle.
+	/// @param[in] size The size of desired handle, in points.
+	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
 	SharedPtr<FontFaceHandleDefault> GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
 protected:
 
-    typedef UnorderedMap< String, FontFamily*> FontFamilyMap;
-    FontFamilyMap font_families;
+	typedef UnorderedMap< String, FontFamily*> FontFamilyMap;
+	FontFamilyMap font_families;
 
-    static const String debugger_font_family_name;
+	static const String debugger_font_family_name;
 };
 
 }

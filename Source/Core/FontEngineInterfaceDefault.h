@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@
 namespace Rml {
 namespace Core {
 
-class RMLUICORE_API FontEngineInterfaceDefault: public FontEngineInterface
+class RMLUICORE_API FontEngineInterfaceDefault : public FontEngineInterface
 {
 public:
 	FontEngineInterfaceDefault();
@@ -64,7 +64,7 @@ public:
 	int GetBaseline(FontFaceHandle) override;
 
 	/// Returns the font's underline, as a pixel offset from the bottom of the font.
-	float GetUnderline(FontFaceHandle, float *thickness) override;
+	float GetUnderline(FontFaceHandle, float* thickness) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
 	int GetStringWidth(FontFaceHandle, const String& string, CodePoint prior_character) override;

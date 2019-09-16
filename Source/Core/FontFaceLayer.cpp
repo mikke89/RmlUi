@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ namespace Rml {
 namespace Core {
 
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-	
+
 FontFaceLayer::FontFaceLayer() : colour(255, 255, 255)
 {
 	handle = nullptr;
@@ -83,8 +83,8 @@ bool FontFaceLayer::Initialise(const FontFaceHandleDefault* _handle, SharedPtr<c
 
 				if (effect->GetGlyphMetrics(glyph_origin, glyph_dimensions, glyph))
 				{
-					character.origin.x = (float) glyph_origin.x;
-					character.origin.y = (float) glyph_origin.y;
+					character.origin.x = (float)glyph_origin.x;
+					character.origin.y = (float)glyph_origin.y;
 				}
 				else
 					character.texture_index = -1;
@@ -111,8 +111,8 @@ bool FontFaceLayer::Initialise(const FontFaceHandleDefault* _handle, SharedPtr<c
 			}
 
 			Character character;
-			character.origin = Vector2f((float) (glyph_origin.x + glyph.bearing.x), (float) (glyph_origin.y - glyph.bearing.y));
-			character.dimensions = Vector2f((float) glyph_dimensions.x - glyph_origin.x, (float) glyph_dimensions.y - glyph_origin.y);
+			character.origin = Vector2f((float)(glyph_origin.x + glyph.bearing.x), (float)(glyph_origin.y - glyph.bearing.y));
+			character.dimensions = Vector2f((float)glyph_dimensions.x - glyph_origin.x, (float)glyph_dimensions.y - glyph_origin.y);
 			characters[code_point] = character;
 
 			// Add the character's dimensions into the texture layout engine.
@@ -181,7 +181,7 @@ bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vecto
 		TextureLayoutRectangle& rectangle = texture_layout.GetRectangle(i);
 		CodePoint code_point = (CodePoint)rectangle.GetId();
 		RMLUI_ASSERT(characters.find(code_point) != characters.end());
-		
+
 		Character& character = characters[code_point];
 
 		if (character.texture_index != texture_id)
@@ -238,7 +238,7 @@ const Texture* FontFaceLayer::GetTexture(int index)
 // Returns the number of textures employed by this layer.
 int FontFaceLayer::GetNumTextures() const
 {
-	return (int) textures.size();
+	return (int)textures.size();
 }
 
 // Returns the layer's colour.

@@ -45,26 +45,26 @@ namespace Core {
 class RMLUICORE_API FontProvider_FreeType : public Rml::Core::FontProvider
 {
 public:
-    static bool Initialise();
-    static void Shutdown();
+	static bool Initialise();
+	static void Shutdown();
 
-    /// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
-    /// @param[in] file_name The file to load the face from.
-    /// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(const String& file_name);
+	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
+	/// @param[in] file_name The file to load the face from.
+	/// @return True if the face was loaded successfully, false otherwise.
+	static bool LoadFontFace(const String& file_name);
 
 private:
-    FontProvider_FreeType(void);
-    ~FontProvider_FreeType(void);
+	FontProvider_FreeType(void);
+	~FontProvider_FreeType(void);
 
-    // Adds a loaded face to the appropriate font family.
-    bool AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
-    // Loads a FreeType face.
-    void* LoadFace(const String& file_name);
-    // Loads a FreeType face from memory.
-    void* LoadFace(const byte* data, int data_length, const String& source, bool local_data);
+	// Adds a loaded face to the appropriate font family.
+	bool AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+	// Loads a FreeType face.
+	void* LoadFace(const String& file_name);
+	// Loads a FreeType face from memory.
+	void* LoadFace(const byte* data, int data_length, const String& source, bool local_data);
 
-    static FontProvider_FreeType* instance;
+	static FontProvider_FreeType* instance;
 };
 
 }
