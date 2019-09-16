@@ -29,7 +29,9 @@
 #ifndef RMLUICOREFREETYPEFONTFACEHANDLE_H
 #define RMLUICOREFREETYPEFONTFACEHANDLE_H
 
-#include "../FontFaceHandle.h"
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
+#include "../FontFaceHandleDefault.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
@@ -44,7 +46,7 @@ namespace Core {
 	@author Peter Curry
  */
 
-class FontFaceHandle_FreeType : public Rml::Core::FontFaceHandle
+class FontFaceHandle_FreeType : public Rml::Core::FontFaceHandleDefault
 {
 public:
 	FontFaceHandle_FreeType();
@@ -64,5 +66,7 @@ private:
 
 }
 }
+
+#endif
 
 #endif

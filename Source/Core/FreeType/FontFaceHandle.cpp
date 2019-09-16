@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFaceHandle.h"
 #include <algorithm>
 #include "../../../Include/RmlUi/Core.h"
@@ -301,3 +304,6 @@ int FontFaceHandle_FreeType::GetKerning(CodePoint lhs, CodePoint rhs) const
 
 }
 }
+
+#endif
+

@@ -26,48 +26,65 @@
  *
  */
 
-#ifndef RMLUICOREFONTFAMILY_H
-#define RMLUICOREFONTFAMILY_H
+#ifndef RMLUICOREFONTDATABASE_H
+#define RMLUICOREFONTDATABASE_H
 
-#include "StringUtilities.h"
+#include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/Header.h>
+#include "FontProvider.h"
 
 namespace Rml {
 namespace Core {
 
-class FontFace;
-class FontFaceHandle;
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
+class FontEffect;
+class FontFamily;
+class FontFaceHandleDefault;
+class PropertyDictionary;
 
 /**
+	The font database contains all font families currently in use by RmlUi.
+
 	@author Peter Curry
  */
 
-class FontFamily
+class RMLUICORE_API FontDatabaseDefault
 {
 public:
-	FontFamily(const String& name);
-    virtual ~FontFamily();
+	static bool Initialise();
+	static void Shutdown();
 
-	/// Adds a new face to the family.
-	/// @param[in] ft_face The previously loaded FreeType face.
-	/// @param[in] style The style of the new face.
-	/// @param[in] weight The weight of the new face.
-	/// @param[in] release_stream True if the application must free the face's memory stream.
+	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
+	/// @param[in] file_name The file to load the face from.
 	/// @return True if the face was loaded successfully, false otherwise.
-    virtual bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
+	static bool LoadFontFace(const String& file_name);
 
-	/// Returns a handle to the most appropriate font in the family, at the correct size.
-	/// @param[in] style The style of the desired handle.
-	/// @param[in] weight The weight of the desired handle.
+	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
+	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
+	/// valid handle.
+	/// @param[in] family The family of the desired font handle.
+	/// @param[in] style The style of the desired font handle.
+	/// @param[in] weight The weight of the desired font handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandle> GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size);
+	static SharedPtr<FontFaceHandleDefault> GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
-protected:
-	String name;
+    static void AddFontProvider(FontProvider * provider);
 
-	typedef std::vector< FontFace* > FontFaceList;
-	FontFaceList font_faces;
+    static void RemoveFontProvider(FontProvider * provider);
+
+private:
+	FontDatabaseDefault(void);
+	~FontDatabaseDefault(void);
+
+    typedef std::vector< FontProvider *> FontProviderTable;
+
+    static FontProviderTable font_provider_table;
+	static FontDatabaseDefault* instance;
 };
+
+#endif
 
 }
 }

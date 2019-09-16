@@ -31,15 +31,21 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/EventIterators.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontDatabaseDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandle.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterfaceDefault.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontFace.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandleDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
@@ -129,14 +135,10 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListenerInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Factory.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontDatabase.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEngineInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontGlyph.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FreeType/FontProvider.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Geometry.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/GeometryUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Header.h
@@ -237,15 +239,17 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Factory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontDatabase.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontDatabaseDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterfaceDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFace.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandle.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandleDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontFamily.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontProvider.cpp

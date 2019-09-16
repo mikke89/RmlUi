@@ -27,9 +27,12 @@
  */
 
 #include "precompiled.h"
-#include <RmlUi/Core/FreeType/FontProvider.h>
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
+#include "FontProvider.h"
 #include "FontFaceHandle.h"
-#include <RmlUi/Core/FontDatabase.h>
+#include "../FontDatabaseDefault.h"
 #include "FontFamily.h"
 #include <RmlUi/Core.h>
 #include <ft2build.h>
@@ -60,7 +63,7 @@ bool FontProvider_FreeType::Initialise()
 	{
 		new FontProvider_FreeType();
 
-		FontDatabase::AddFontProvider(instance);
+		FontDatabaseDefault::AddFontProvider(instance);
 
 		FT_Error result = FT_Init_FreeType(&ft_library);
 		if (result != 0)
@@ -87,7 +90,7 @@ void FontProvider_FreeType::Shutdown()
 			ft_library = nullptr;
 		}
 
-		FontDatabase::RemoveFontProvider(instance);
+		FontDatabaseDefault::RemoveFontProvider(instance);
 		delete instance;
 		instance = nullptr;
 	}
@@ -114,75 +117,6 @@ bool FontProvider_FreeType::LoadFontFace(const String& file_name)
 	else
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
-		return false;
-	}
-}
-
-// Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-bool FontProvider_FreeType::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
-	if (ft_face == nullptr)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
-		return false;
-	}
-
-	if (instance->AddFace(ft_face, family, style, weight, true))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
-		return false;
-	}
-}
-
-// Adds a new font face to the database, loading from memory.
-bool FontProvider_FreeType::LoadFontFace(const byte* data, int data_length)
-{
-	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
-	if (ft_face == nullptr)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
-		return false;
-	}
-
-	Style::FontStyle style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Style::FontStyle::Italic : Style::FontStyle::Normal;
-	Style::FontWeight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Style::FontWeight::Bold : Style::FontWeight::Normal;
-
-	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, false))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
-		return false;
-	}
-}
-
-// Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontProvider_FreeType::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	FT_Face ft_face = (FT_Face) instance->LoadFace(data, data_length, "memory", false);
-	if (ft_face == nullptr)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from byte stream.");
-		return false;
-	}
-
-	if (instance->AddFace(ft_face, family, style, weight, false))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from byte stream).", ft_face->family_name, ft_face->style_name);
 		return false;
 	}
 }
@@ -258,3 +192,5 @@ void* FontProvider_FreeType::LoadFace(const byte* data, int data_length, const S
 
 }
 }
+
+#endif

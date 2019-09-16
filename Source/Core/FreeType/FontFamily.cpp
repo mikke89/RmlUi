@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFamily.h"
 #include "FontFace.h"
 
@@ -54,3 +57,5 @@ bool FontFamily_FreeType::AddFace(void* ft_face, Style::FontStyle style, Style::
 
 }
 }
+
+#endif

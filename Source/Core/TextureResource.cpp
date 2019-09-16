@@ -28,7 +28,7 @@
 
 #include "precompiled.h"
 #include "TextureResource.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include "TextureDatabase.h"
 #include "../../Include/RmlUi/Core.h"
 
@@ -127,10 +127,12 @@ bool TextureResource::Load(RenderInterface* render_interface)
 
 		// Find the generation protocol and generate the data accordingly.
 		String protocol = source.substr(1, source.find("::") - 1);
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 		if (protocol == "font")
 		{
 			// The requested texture is a font layer.
-			FontFaceHandle* handle;
+			FontFaceHandleDefault* handle;
 			FontEffect* layer_id;
 			int texture_id;
 			
@@ -142,6 +144,7 @@ bool TextureResource::Load(RenderInterface* render_interface)
 											 texture_id);
 			}
 		}
+#endif
 
 		// If texture data was generated, great! Otherwise, fallback to the LoadTexture() code and
 		// hope the client knows what the hell to do with the question mark in their file name.

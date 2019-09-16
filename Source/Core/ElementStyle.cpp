@@ -43,7 +43,7 @@
 #include "ElementBorder.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include "ComputeProperty.h"
 #include "PropertiesIterator.h"
 
@@ -744,19 +744,19 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		case PropertyId::FontFamily:
 			values.font_family = StringUtilities::ToLower(p->Get<String>());
-			values.font_face_handle.reset();
+			values.font_face_handle = 0;
 			break;
 		case PropertyId::FontStyle:
 			values.font_style = (FontStyle)p->Get< int >();
-			values.font_face_handle.reset();
+			values.font_face_handle = 0;
 			break;
 		case PropertyId::FontWeight:
 			values.font_weight = (FontWeight)p->Get< int >();
-			values.font_face_handle.reset();
+			values.font_face_handle = 0;
 			break;
 		case PropertyId::FontSize:
 			// (font-size computed above)
-			values.font_face_handle.reset();
+			values.font_face_handle = 0;
 			break;
 
 		case PropertyId::TextAlign:

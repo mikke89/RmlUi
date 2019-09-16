@@ -34,7 +34,7 @@ body
 	position: absolute;
 	z-index: 1000000;
 	background: #888;
-	font-family: Lacuna;
+	font-family: rmlui-debugger-font;
 	font-size: 14dp;
 	color: black;
 }

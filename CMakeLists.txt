@@ -155,6 +155,11 @@ else(APPLE)
 	endif()
 endif(APPLE)
 
+option(NO_FONT_INTERFACE_DEFAULT "Do not build the font providers that come with the library" OFF)
+if(NO_FONT_INTERFACE_DEFAULT)
+	add_definitions(-DRMLUI_NO_FONT_INTERFACE_DEFAULT)
+endif()
+
 if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DRMLUI_STATIC_LIB)
 endif()
@@ -175,12 +180,14 @@ endif()
 #===================================
 
 # FreeType
-find_package(Freetype REQUIRED)	
+if(NOT NO_FONT_INTERFACE_DEFAULT)
+	find_package(Freetype REQUIRED)	
 
-if(FREETYPE_FOUND)
-	include_directories(${FREETYPE_INCLUDE_DIRS})
-	link_directories(${FREETYPE_LINK_DIRS})
-	list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
+	if(FREETYPE_FOUND)
+		include_directories(${FREETYPE_INCLUDE_DIRS})
+		link_directories(${FREETYPE_LINK_DIRS})
+		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
+	endif()
 endif()
 
 #Lua

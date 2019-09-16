@@ -999,7 +999,7 @@ void WidgetTextInput::GenerateCursor()
 
 void WidgetTextInput::UpdateCursorPosition()
 {
-	if (text_element->GetFontFaceHandle() == nullptr)
+	if (text_element->GetFontFaceHandle() == 0)
 		return;
 
 	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.substr(0, cursor_character_index));

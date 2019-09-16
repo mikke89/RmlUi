@@ -122,6 +122,19 @@ button:focus {
 	font-size: 35px;
 }
 
+@decorator left-arrow : tiled-box {
+	top-image-src: ../../../assets/present.tga;
+	center-image-src: ../../../assets/present.tga;
+	left-image-src: ../../../assets/present.tga;
+}
+
+.left-arrow {
+	width: 32dp;
+	height: 32dp;
+	decorator: left-arrow;
+}
+
+
 </style>
 </head>
 
@@ -167,6 +180,6 @@ button:focus {
 	<textarea cols="30" rows="5" wrap="nowrap">Hello World!</textarea>
 </panel>
 </tabset>
-
+<div class="left-arrow"/>
 </body>
 </rml>

@@ -70,6 +70,16 @@ bool DecoratorTiledBox::Initialise(const Tile* _tiles, const Texture* _textures)
 		tiles[i].texture_index = AddTexture(_textures[i]);
 	}
 
+	// All corners must have a valid texture.
+	for (int i = TOP_LEFT_CORNER; i <= BOTTOM_RIGHT_CORNER; i++)
+	{
+		if (tiles[i].texture_index == -1)
+			return false;
+	}
+	// Check that the centre tile has been specified.
+	if (tiles[CENTRE].texture_index < 0)
+		return false;
+
 	// If only one side of the left / right edges have been configured, then mirror the tile for the other side.
 	if (tiles[LEFT_EDGE].texture_index == -1 && tiles[RIGHT_EDGE].texture_index > -1)
 	{
@@ -96,10 +106,6 @@ bool DecoratorTiledBox::Initialise(const Tile* _tiles, const Texture* _textures)
 		tiles[BOTTOM_EDGE].orientation = FLIP_VERTICAL;
 	}
 	else if (tiles[TOP_EDGE].texture_index == -1 && tiles[BOTTOM_EDGE].texture_index == -1)
-		return false;
-
-	// Check that the centre tile has been specified.
-	if (tiles[CENTRE].texture_index < 0)
 		return false;
 
 	return true;
@@ -255,19 +261,16 @@ DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element) con
 												bottom_right_dimensions);
 
 	// Generate the centre geometry.
-	if (tiles[CENTRE].texture_index >= 0)
-	{
-		Vector2f centre_dimensions = tiles[CENTRE].GetDimensions(element);
-		Vector2f centre_surface_dimensions(padded_size.x - (left_dimensions.x + right_dimensions.x),
-											  padded_size.y - (top_dimensions.y + bottom_dimensions.y));
+	Vector2f centre_dimensions = tiles[CENTRE].GetDimensions(element);
+	Vector2f centre_surface_dimensions(padded_size.x - (left_dimensions.x + right_dimensions.x),
+											padded_size.y - (top_dimensions.y + bottom_dimensions.y));
 
-		tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
-									   data->geometry[tiles[CENTRE].texture_index].GetIndices(),
-									   element,
-									   Vector2f(left_dimensions.x, top_dimensions.y),
-									   centre_surface_dimensions,
-									   centre_dimensions);
-	}
+	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
+									data->geometry[tiles[CENTRE].texture_index].GetIndices(),
+									element,
+									Vector2f(left_dimensions.x, top_dimensions.y),
+									centre_surface_dimensions,
+									centre_dimensions);
 
 	// Set the textures on the geometry.
 	const Texture* texture = nullptr;

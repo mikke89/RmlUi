@@ -38,8 +38,10 @@
 namespace Rml {
 namespace Core {
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 class FontEffect;
-class FontFaceHandle;
+class FontFaceHandleDefault;
 
 /**
 	A textured layer stored as part of a font face handle. Each handle will have at least a base
@@ -60,7 +62,7 @@ public:
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
 	/// @param[in] deep_clone If true, the clones geometry will be completely cloned and the effect will have no option to affect even the glyph origins.
 	/// @return True if the layer was generated successfully, false if not.
-	bool Initialise(const FontFaceHandle* handle, SharedPtr<const FontEffect> effect = {}, const FontFaceLayer* clone = nullptr, bool deep_clone = false);
+	bool Initialise(const FontFaceHandleDefault* handle, SharedPtr<const FontEffect> effect = {}, const FontFaceLayer* clone = nullptr, bool deep_clone = false);
 
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.
@@ -137,7 +139,7 @@ private:
 	using CharacterMap = UnorderedMap<CodePoint, Character>;
 	using TextureList = std::vector<Texture>;
 
-	const FontFaceHandle* handle;
+	const FontFaceHandleDefault* handle;
 	SharedPtr<const FontEffect> effect;
 
 	TextureLayout texture_layout;
@@ -146,6 +148,8 @@ private:
 	TextureList textures;
 	Colourb colour;
 };
+
+#endif
 
 }
 }

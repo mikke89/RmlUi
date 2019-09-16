@@ -26,22 +26,54 @@
  *
  */
 
-#include "Shell.h"
-#include <RmlUi/Core/Core.h>
+#ifndef RMLUICOREFONTFACE_H
+#define RMLUICOREFONTFACE_H
 
-/// Loads the default fonts from the given path.
-void Shell::LoadFonts(const char* directory)
+#include <RmlUi/Core/ComputedValues.h>
+
+namespace Rml {
+namespace Core {
+
+class FontFaceHandleDefault;
+
+/**
+	@author Peter Curry
+ */
+
+class FontFace
 {
-	Rml::Core::String font_names[5];
-	font_names[0] = "Delicious-Roman.otf";
-	font_names[1] = "Delicious-Italic.otf";
-	font_names[2] = "Delicious-Bold.otf";
-	font_names[3] = "Delicious-BoldItalic.otf";
-	font_names[4] = "NotoEmoji-Regular.ttf";
+public:
+    FontFace(Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+    virtual ~FontFace();
 
-	for (int i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
-	{
-		Rml::Core::GetFontEngineInterface()->LoadFontFace(Rml::Core::String(directory) + font_names[i]);
-	}
+	/// Returns the style of the font face.
+	/// @return The font face's style.
+	Style::FontStyle GetStyle() const;
+	/// Returns the weight of the font face.
+	/// @return The font face's weight.
+	Style::FontWeight GetWeight() const;
+
+	/// Returns a handle for positioning and rendering this face at the given size.
+	/// @param[in] size The size of the desired handle, in points.
+	/// @return The shared font handle.
+    virtual SharedPtr<FontFaceHandleDefault> GetHandle(int size) = 0;
+
+	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
+	/// but existing ones can still be fetched.
+    virtual void ReleaseFace() = 0;
+
+protected:
+	Style::FontStyle style;
+	Style::FontWeight weight;
+
+	bool release_stream;
+
+	// Key is font size
+	using HandleMap = UnorderedMap< int, SharedPtr<FontFaceHandleDefault> >;
+	HandleMap handles;
+};
+
+}
 }
 
+#endif

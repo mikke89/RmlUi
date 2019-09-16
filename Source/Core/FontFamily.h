@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,68 +26,48 @@
  *
  */
 
-#include "precompiled.h"
+#ifndef RMLUICOREFONTFAMILY_H
+#define RMLUICOREFONTFAMILY_H
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
-#include "FontFace.h"
-#include "FontFaceHandle.h"
-#include "../../../Include/RmlUi/Core/Log.h"
+#include <RmlUi/Core/StringUtilities.h>
 
 namespace Rml {
 namespace Core {
 
-FontFace_FreeType::FontFace_FreeType(FT_Face _face, Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
+class FontFace;
+class FontFaceHandleDefault;
+
+/**
+	@author Peter Curry
+ */
+
+class FontFamily
 {
-	face = _face;
-}
+public:
+	FontFamily(const String& name);
+    virtual ~FontFamily();
 
-FontFace_FreeType::~FontFace_FreeType()
-{
-	ReleaseFace();
-}
+	/// Adds a new face to the family.
+	/// @param[in] ft_face The previously loaded FreeType face.
+	/// @param[in] style The style of the new face.
+	/// @param[in] weight The weight of the new face.
+	/// @param[in] release_stream True if the application must free the face's memory stream.
+	/// @return True if the face was loaded successfully, false otherwise.
+    virtual bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
 
-// Returns a handle for positioning and rendering this face at the given size.
-SharedPtr<Rml::Core::FontFaceHandleDefault> FontFace_FreeType::GetHandle(int size)
-{
-	auto it = handles.find(size);
-	if (it != handles.end())
-		return it->second;
+	/// Returns a handle to the most appropriate font in the family, at the correct size.
+	/// @param[in] style The style of the desired handle.
+	/// @param[in] weight The weight of the desired handle.
+	/// @param[in] size The size of desired handle, in points.
+	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
+	SharedPtr<FontFaceHandleDefault> GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size);
 
-	// See if this face has been released.
-	if (!face)
-	{
-		Log::Message(Log::LT_WARNING, "Font face has been released, unable to generate new handle.");
-		return nullptr;
-	}
+protected:
+	String name;
 
-	// Construct and initialise the new handle.
-	auto handle = std::make_shared<FontFaceHandle_FreeType>();
-	if (!handle->Initialise(face, size))
-	{
-		return nullptr;
-	}
-
-	// Save the new handle to the font face
-	handles[size] = handle;
-
-	return handle;
-}
-
-// Releases the face's FreeType face structure.
-void FontFace_FreeType::ReleaseFace()
-{
-	if (face != nullptr)
-	{
-		FT_Byte* face_memory = face->stream->base;
-		FT_Done_Face(face);
-
-		if (release_stream)
-			delete[] face_memory;
-
-		face = nullptr;
-	}
-}
+	typedef std::vector< FontFace* > FontFaceList;
+	FontFaceList font_faces;
+};
 
 }
 }

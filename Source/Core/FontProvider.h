@@ -29,15 +29,15 @@
 #ifndef RMLUICOREFONTPROVIDER_H
 #define RMLUICOREFONTPROVIDER_H
 
-#include "Header.h"
-#include "StringUtilities.h"
-#include "ComputedValues.h"
+#include <RmlUi/Core/Header.h>
+#include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/ComputedValues.h>
 
 namespace Rml {
 namespace Core {
 
-class FontFaceHandle;
 class FontFamily;
+class FontFaceHandleDefault;
 
 /**
     The font database contains all font families currently in use by RmlUi.
@@ -56,12 +56,14 @@ public:
     /// @param[in] weight The weight of the desired font handle.
     /// @param[in] size The size of desired handle, in points.
     /// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandle> GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
+	SharedPtr<FontFaceHandleDefault> GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
 protected:
 
     typedef UnorderedMap< String, FontFamily*> FontFamilyMap;
     FontFamilyMap font_families;
+
+    static const String debugger_font_family_name;
 };
 
 }
