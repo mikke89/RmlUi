@@ -29,7 +29,9 @@
 #ifndef RMLUICOREFREETYPEFONTFACE_H
 #define RMLUICOREFREETYPEFONTFACE_H
 
-#include "../../../Include/RmlUi/Core/FontFace.h"
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
+#include "../FontFace.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -40,7 +42,7 @@ namespace FreeType {
 	@author Peter Curry
  */
 
-class FontFaceHandle;
+class FontFaceHandleDefault;
 
 class FontFace : public Rml::Core::FontFace
 {
@@ -52,7 +54,7 @@ public:
 	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
 	/// @param[in] size The size of the desired handle, in points.
 	/// @return The shared font handle.
-	SharedPtr<Rml::Core::FontFaceHandle> GetHandle(const String& charset, int size) override;
+	SharedPtr<Rml::Core::FontFaceHandleDefault> GetHandle(const String& charset, int size) override;
 
 	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
 	/// but existing ones can still be fetched.
@@ -65,5 +67,7 @@ private:
 }
 }
 }
+
+#endif
 
 #endif

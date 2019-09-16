@@ -29,7 +29,9 @@
 #ifndef RMLUICOREBITMAPFONTFONTPROVIDER_H
 #define RMLUICOREBITMAPFONTFONTPROVIDER_H
 
-#include "../StringUtilities.h"
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
+#include <RmlUi/Core/StringUtilities.h>
 #include "../FontProvider.h"
 
 namespace Rml {
@@ -37,7 +39,6 @@ namespace Core {
 
 
 class FontEffect;
-class FontFaceHandle;
 class PropertyDictionary;
 
 namespace BitmapFont {
@@ -59,26 +60,6 @@ public:
     /// @param[in] file_name The file to load the face from.
     /// @return True if the face was loaded successfully, false otherwise.
     static bool LoadFontFace(const String& file_name);
-    /// Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-    /// @param[in] file_name The file to load the face from.
-    /// @param[in] family The family to add the face to.
-    /// @param[in] style The style of the face (normal or italic).
-    /// @param[in] weight The weight of the face (normal or bold).
-    /// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight);
-    /// Adds a new font face to the database, loading from memory. The face's family, style and weight will be determined from the face itself.
-    /// @param[in] data The font data.
-    /// @param[in] data_length Length of the data.
-    /// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(const byte* data, int data_length);
-    /// Adds a new font face to the database, loading from memory.
-    /// @param[in] data The font data.
-    /// @param[in] data_length Length of the data.
-    /// @param[in] family The family to add the face to.
-    /// @param[in] style The style of the face (normal or italic).
-    /// @param[in] weight The weight of the face (normal or bold).
-    /// @return True if the face was loaded successfully, false otherwise.
-    static bool LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight);
 
 private:
     FontProvider(void);
@@ -99,3 +80,6 @@ private:
 }
 
 #endif
+
+#endif
+

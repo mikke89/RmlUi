@@ -27,35 +27,37 @@
  */
 
 #include "precompiled.h"
-#include <RmlUi/Core/FontDatabase.h>
-#include <RmlUi/Core/FontFamily.h>
 #include <RmlUi/Core.h>
-#include <RmlUi/Core/FreeType/FontProvider.h>
-#include <RmlUi/Core/BitmapFont/FontProvider.h>
+#include "FontFamily.h"
+#include "FreeType/FontProvider.h"
+#include "BitmapFont/FontProvider.h"
+#include "FontDatabaseDefault.h"
 
 namespace Rml {
 namespace Core {
 
-FontDatabase* FontDatabase::instance = nullptr;
-FontDatabase::FontProviderTable FontDatabase::font_provider_table;
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 
-FontDatabase::FontDatabase()
+FontDatabaseDefault* FontDatabaseDefault::instance = nullptr;
+FontDatabaseDefault::FontProviderTable FontDatabaseDefault::font_provider_table;
+
+FontDatabaseDefault::FontDatabaseDefault()
 {
 	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
-FontDatabase::~FontDatabase()
+FontDatabaseDefault::~FontDatabaseDefault()
 {
 	RMLUI_ASSERT(instance == this);
 	instance = nullptr;
 }
 
-bool FontDatabase::Initialise()
+bool FontDatabaseDefault::Initialise()
 {
 	if (instance == nullptr)
 	{
-		new FontDatabase();
+		new FontDatabaseDefault();
 
         if(!FreeType::FontProvider::Initialise())
             return false;
@@ -67,7 +69,7 @@ bool FontDatabase::Initialise()
 	return true;
 }
 
-void FontDatabase::Shutdown()
+void FontDatabaseDefault::Shutdown()
 {
 	if (instance != nullptr)
 	{
@@ -79,7 +81,7 @@ void FontDatabase::Shutdown()
 }
 
 // Loads a new font face.
-bool FontDatabase::LoadFontFace(const String& file_name)
+bool FontDatabaseDefault::LoadFontFace(const String& file_name)
 {
     FontProviderType font_provider_type = GetFontProviderType(file_name);
 
@@ -96,57 +98,7 @@ bool FontDatabase::LoadFontFace(const String& file_name)
     }
 }
 
-// Adds a new font face to the database, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabase::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-    FontProviderType font_provider_type = GetFontProviderType(file_name);
-
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(file_name, family, style, weight);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(file_name, family, style, weight);
-
-        default:
-            return false;
-    }
-}
-
-// Adds a new font face to the database, loading from memory.
-bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length)
-{
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(data, data_length);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(data, data_length);
-
-        default:
-            return false;
-    }
-}
-
-// Adds a new font face to the database, loading from memory, ignoring any family, style and weight information stored in the face itself.
-bool FontDatabase::LoadFontFace(FontProviderType font_provider_type, const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-    switch(font_provider_type)
-    {
-        case FreeType:
-            return FreeType::FontProvider::LoadFontFace(data, data_length, family, style, weight);
-
-        case BitmapFont:
-            return BitmapFont::FontProvider::LoadFontFace(data, data_length, family, style, weight);
-
-        default:
-            return false;
-    }
-}
-
-FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& file_name)
+FontDatabaseDefault::FontProviderType FontDatabaseDefault::GetFontProviderType(const String& file_name)
 {
     if(file_name.find(".fnt") != String::npos)
     {
@@ -159,13 +111,13 @@ FontDatabase::FontProviderType FontDatabase::GetFontProviderType(const String& f
 }
 
 // Returns a handle to a font face that can be used to position and render text.
-SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
+SharedPtr<FontFaceHandleDefault> FontDatabaseDefault::GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size)
 {
     size_t provider_count = font_provider_table.size();
 
     for(size_t provider_index = 0; provider_index < provider_count; ++provider_index)
     {
-		SharedPtr<FontFaceHandle> face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
+		SharedPtr<FontFaceHandleDefault> face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, charset, style, weight, size);
 
         if(face_handle)
             return face_handle;
@@ -174,12 +126,12 @@ SharedPtr<FontFaceHandle> FontDatabase::GetFontFaceHandle(const String& family, 
     return nullptr;
 }
 
-void FontDatabase::AddFontProvider(FontProvider * provider)
+void FontDatabaseDefault::AddFontProvider(FontProvider * provider)
 {
     instance->font_provider_table.push_back(provider);
 }
 
-void FontDatabase::RemoveFontProvider(FontProvider * provider)
+void FontDatabaseDefault::RemoveFontProvider(FontProvider * provider)
 {
     for(FontProviderTable::iterator i = instance->font_provider_table.begin(); i != instance->font_provider_table.end(); ++i)
     {
@@ -190,6 +142,8 @@ void FontDatabase::RemoveFontProvider(FontProvider * provider)
         }
     }
 }
+
+#endif
 
 }
 }

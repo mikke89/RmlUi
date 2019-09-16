@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFaceHandle.h"
 #include "FontFaceLayer.h"
 #include <algorithm>
@@ -177,3 +180,6 @@ Rml::Core::FontFaceLayer* BitmapFont::FontFaceHandle::CreateNewLayer()
 
 }
 }
+
+#endif
+

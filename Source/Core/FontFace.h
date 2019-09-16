@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,43 +26,52 @@
  *
  */
 
-#ifndef RMLUICOREFONTPROVIDER_H
-#define RMLUICOREFONTPROVIDER_H
+#ifndef RMLUICOREFONTFACE_H
+#define RMLUICOREFONTFACE_H
 
-#include "Header.h"
-#include "StringUtilities.h"
-#include "ComputedValues.h"
+#include <RmlUi/Core/ComputedValues.h>
 
 namespace Rml {
 namespace Core {
 
-class FontFaceHandle;
-class FontFamily;
+class FontFaceHandleDefault;
 
 /**
-    The font database contains all font families currently in use by RmlUi.
-    @author Peter Curry
+	@author Peter Curry
  */
 
-class RMLUICORE_API FontProvider
+class FontFace
 {
 public:
+    FontFace(Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+    virtual ~FontFace();
 
-    /// Returns a handle to a font face that can be used to position and render text. This will return the closest match
-    /// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
-    /// valid handle.
-    /// @param[in] family The family of the desired font handle.
-    /// @param[in] charset The set of characters required in the font face, as a comma-separated list of unicode ranges.
-    /// @param[in] style The style of the desired font handle.
-    /// @param[in] weight The weight of the desired font handle.
-    /// @param[in] size The size of desired handle, in points.
-    /// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandle> GetFontFaceHandle(const String& family, const String& charset, Style::FontStyle style, Style::FontWeight weight, int size);
+	/// Returns the style of the font face.
+	/// @return The font face's style.
+	Style::FontStyle GetStyle() const;
+	/// Returns the weight of the font face.
+	/// @return The font face's weight.
+	Style::FontWeight GetWeight() const;
+
+	/// Returns a handle for positioning and rendering this face at the given size.
+	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
+	/// @param[in] size The size of the desired handle, in points.
+	/// @return The shared font handle.
+    virtual SharedPtr<FontFaceHandleDefault> GetHandle(const String& charset, int size) = 0;
+
+	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
+	/// but existing ones can still be fetched.
+    virtual void ReleaseFace() = 0;
 
 protected:
+	Style::FontStyle style;
+	Style::FontWeight weight;
 
-    typedef UnorderedMap< String, FontFamily*> FontFamilyMap;
-    FontFamilyMap font_families;
+	bool release_stream;
+
+	typedef std::vector< SharedPtr<FontFaceHandleDefault> > HandleList;
+	typedef UnorderedMap< int, HandleList > HandleMap;
+	HandleMap handles;
 };
 
 }

@@ -28,7 +28,6 @@
 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
-#include "../../Include/RmlUi/Core/FontDatabase.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {

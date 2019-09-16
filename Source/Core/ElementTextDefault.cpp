@@ -30,11 +30,10 @@
 #include "ElementTextDefault.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
-#include "../../Include/RmlUi/Core/FontDatabase.h"
 #include "../../Include/RmlUi/Core/Property.h"
 
 namespace Rml {
@@ -80,8 +79,8 @@ void ElementTextDefault::OnRender()
 {
 	RMLUI_ZoneScoped;
 
-	FontFaceHandle* font_face_handle = GetFontFaceHandle();
-	if (!font_face_handle)
+	FontFaceHandle font_face_handle = GetFontFaceHandle();
+	if (font_face_handle == 0)
 		return;
 	
 	
@@ -108,7 +107,7 @@ void ElementTextDefault::OnRender()
 		float clip_left = (float)clip_origin.x;
 		float clip_right = (float)(clip_origin.x + clip_dimensions.x);
 		float clip_bottom = (float)(clip_origin.y + clip_dimensions.y);
-		float line_height = (float)GetFontFaceHandle()->GetLineHeight();
+		float line_height = (float)GetFontEngineInterface()->GetLineHeight(GetFontFaceHandle());
 		
 		render = false;
 		for (size_t i = 0; i < lines.size(); ++i)
@@ -149,8 +148,8 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 	RMLUI_ZoneScoped;
 
 	// Bail if we don't have a valid font face.
-	FontFaceHandle* font_face_handle = GetFontFaceHandle();
-	if (font_face_handle == nullptr ||
+	FontFaceHandle font_face_handle = GetFontFaceHandle();
+	if (font_face_handle == 0 ||
 		line_begin >= (int) text.size())
 		return 0;
 
@@ -169,7 +168,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 	WString token;
 
 	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
-	token_width = (float) font_face_handle->GetStringWidth(token, 0);
+	token_width = (float) GetFontEngineInterface()->GetStringWidth(font_face_handle, token, 0);
 
 	return LastToken(token_begin, text.c_str() + text.size(), collapse_white_space, break_at_endline);
 }
@@ -179,7 +178,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 {
 	RMLUI_ZoneScoped;
 
-	FontFaceHandle* font_face_handle = GetFontFaceHandle();
+	FontFaceHandle font_face_handle = GetFontFaceHandle();
 
 	// Initialise the output variables.
 	line.clear();
@@ -187,7 +186,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 	line_width = 0;
 
 	// Bail if we don't have a valid font face.
-	if (font_face_handle == nullptr)
+	if (font_face_handle == 0)
 		return true;
 
 	// Determine how we are processing white-space while formatting the text.
@@ -221,7 +220,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
-		int token_width = font_face_handle->GetStringWidth(token, line.empty() ? 0 : line[line.size() - 1]);
+		int token_width = GetFontEngineInterface()->GetStringWidth(font_face_handle, token, line.empty() ? 0 : line[line.size() - 1]);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
@@ -265,15 +264,15 @@ void ElementTextDefault::ClearLines()
 // Adds a new line into the text element.
 void ElementTextDefault::AddLine(const Vector2f& line_position, const WString& line)
 {
-	FontFaceHandle* font_face_handle = GetFontFaceHandle();
+	FontFaceHandle font_face_handle = GetFontFaceHandle();
 
-	if (font_face_handle == nullptr)
+	if (font_face_handle == 0)
 		return;
 
 	if (font_dirty)
 		UpdateFontConfiguration();
 
-	Vector2f baseline_position = line_position + Vector2f(0.0f, (float) font_face_handle->GetLineHeight() - font_face_handle->GetBaseline());
+	Vector2f baseline_position = line_position + Vector2f(0.0f, (float)GetFontEngineInterface()->GetLineHeight(font_face_handle) - GetFontEngineInterface()->GetBaseline(font_face_handle));
 	lines.push_back(Line(line, baseline_position));
 
 	geometry_dirty = true;
@@ -328,8 +327,8 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 			{
 				decoration.Release(true);
 
-				FontFaceHandle* font_face_handle = GetFontFaceHandle();
-				if (font_face_handle != nullptr)
+				FontFaceHandle font_face_handle = GetFontFaceHandle();
+				if (font_face_handle != 0)
 				{
 					for (size_t i = 0; i < lines.size(); ++i)
 						GenerateDecoration(font_face_handle, lines[i]);
@@ -371,7 +370,7 @@ bool ElementTextDefault::UpdateFontConfiguration()
 {
 	RMLUI_ZoneScoped;
 
-	if (GetFontFaceHandle() == nullptr)
+	if (GetFontFaceHandle() == 0)
 		return false;
 
 	font_dirty = false;
@@ -385,7 +384,7 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.
-	int new_configuration = GetFontFaceHandle()->GenerateLayerConfiguration(*font_effects);
+	int new_configuration = GetFontEngineInterface()->GenerateLayerConfiguration(GetFontFaceHandle(), *font_effects);
 	if (new_configuration != font_configuration)
 	{
 		font_configuration = new_configuration;
@@ -396,7 +395,7 @@ bool ElementTextDefault::UpdateFontConfiguration()
 }
 
 // Clears and regenerates all of the text's geometry.
-void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle)
+void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle)
 {
 	RMLUI_ZoneScopedC(0xD2691E);
 
@@ -411,9 +410,9 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle
 	geometry_dirty = false;
 }
 
-void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle, Line& line)
+void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	line.width = font_face_handle->GenerateString(geometry, line.text, line.position, colour, font_configuration);
+	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, geometry, line.text, line.position, colour, font_configuration);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
 
@@ -422,11 +421,11 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle* font_face_handle
 }
 
 // Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-void ElementTextDefault::GenerateDecoration(const FontFaceHandle* font_face_handle, const Line& line)
+void ElementTextDefault::GenerateDecoration(const FontFaceHandle font_face_handle, const Line& line)
 {
 	RMLUI_ZoneScopedC(0xA52A2A);
 	
-	font_face_handle->GenerateLine(&decoration, line.position, line.width, decoration_property, colour);
+	GeometryUtilities::GenerateLine(font_face_handle, &decoration, line.position, line.width, decoration_property, colour);
 }
 
 static bool BuildToken(WString& token, const word*& token_begin, const word* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation)

@@ -27,9 +27,12 @@
  */
 
 #include "precompiled.h"
-#include <RmlUi/Core/BitmapFont/FontProvider.h>
-#include "../FontFaceHandle.h"
-#include <RmlUi/Core/FontDatabase.h>
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
+#include "FontProvider.h"
+#include "FontFaceHandle.h"
+#include "../FontDatabaseDefault.h"
 #include <RmlUi/Core/StreamMemory.h>
 #include "FontFamily.h"
 #include <RmlUi/Core.h>
@@ -59,7 +62,7 @@ bool BitmapFont::FontProvider::Initialise()
 	{
 		new FontProvider();
 
-		FontDatabase::AddFontProvider(instance);
+		FontDatabaseDefault::AddFontProvider(instance);
 	}
 
 	return true;
@@ -69,7 +72,7 @@ void BitmapFont::FontProvider::Shutdown()
 {
 	if (instance != nullptr)
 	{
-		FontDatabase::RemoveFontProvider(instance);
+		FontDatabaseDefault::RemoveFontProvider(instance);
 		delete instance;
 		instance = nullptr;
 	}
@@ -101,43 +104,6 @@ bool BitmapFont::FontProvider::LoadFontFace(const String& file_name)
 	}
 
 	return true;
-}
-
-// Loads a new font face.
-bool BitmapFont::FontProvider::LoadFontFace(const String& file_name, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	BitmapFont::BitmapFontDefinitions *bm_font = (BitmapFont::BitmapFontDefinitions*) instance->LoadFace(file_name);
-	if (bm_font == nullptr)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face from %s.", file_name.c_str());
-		return false;
-	}
-
-	if (instance->AddFace(bm_font, family, style, weight, true))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
-		return true;
-	}
-	else
-	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", bm_font->Face.FamilyName.c_str(), file_name.c_str());
-		return false;
-	}
-
-	return true;
-}
-
-bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length)
-{
-	// TODO: Loading from memory
-	return false;
-}
-
-// Adds a new font face to the database, loading from memory.
-bool BitmapFont::FontProvider::LoadFontFace(const byte* data, int data_length, const String& family, Style::FontStyle style, Style::FontWeight weight)
-{
-	// TODO Loading from memory
-	return false;
 }
 
 // Adds a loaded face to the appropriate font family.
@@ -204,3 +170,5 @@ void* BitmapFont::FontProvider::LoadFace(const byte* data, int data_length, cons
 
 }
 }
+
+#endif

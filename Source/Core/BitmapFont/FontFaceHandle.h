@@ -29,12 +29,14 @@
 #ifndef RMLUICOREBITMAPFONTFONTFACEHANDLE_H
 #define RMLUICOREBITMAPFONTFONTFACEHANDLE_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "../UnicodeRange.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
 #include "../../../Include/RmlUi/Core/Texture.h"
-#include "../FontFaceHandle.h"
+#include "../FontFaceHandleDefault.h"
 #include "BitmapFontDefinitions.h"
 
 namespace Rml {
@@ -45,7 +47,7 @@ namespace BitmapFont {
 	@author Peter Curry
  */
 
-class FontFaceHandle : public Rml::Core::FontFaceHandle
+class FontFaceHandle : public Rml::Core::FontFaceHandleDefault
 {
 public:
 	FontFaceHandle();
@@ -90,5 +92,7 @@ private:
 }
 }
 }
+
+#endif
 
 #endif

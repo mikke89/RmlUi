@@ -45,7 +45,7 @@
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
 #include "ElementDecoration.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 #include "LayoutEngine.h"
 #include "PluginRegistry.h"
 #include "PropertiesIterator.h"
@@ -574,9 +574,9 @@ float Element::GetZIndex() const
 }
 
 // Returns the element's font face handle.
-FontFaceHandle* Element::GetFontFaceHandle() const
+FontFaceHandle Element::GetFontFaceHandle() const
 {
-	return element_meta->computed_values.font_face_handle.get();
+	return element_meta->computed_values.font_face_handle;
 }
 
 // Sets a local property override on the element.

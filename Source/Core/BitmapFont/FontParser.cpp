@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontParser.h"
 
 namespace Rml {
@@ -113,3 +116,6 @@ void BitmapFont::FontParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(dat
 
 }
 }
+
+#endif
+

@@ -57,7 +57,7 @@ class ElementDocument;
 class ElementScroll;
 class ElementStyle;
 class PropertiesIteratorView;
-class FontFaceHandle;
+class FontFaceHandleDefault;
 class PropertyDictionary;
 class RenderInterface;
 class TransformState;
@@ -182,7 +182,7 @@ public:
 
 	/// Returns the element's font face handle.
 	/// @return The element's font face handle.
-	FontFaceHandle* GetFontFaceHandle() const;
+	FontFaceHandle GetFontFaceHandle() const;
 
 	/** @name Properties
 	 */

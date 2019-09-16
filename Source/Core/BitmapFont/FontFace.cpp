@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFace.h"
 #include "FontFaceHandle.h"
 #include <RmlUi/Core/Log.h>
@@ -45,7 +48,7 @@ BitmapFont::FontFace::~FontFace()
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-SharedPtr<Rml::Core::FontFaceHandle> BitmapFont::FontFace::GetHandle(const String& _raw_charset, int size)
+SharedPtr<Rml::Core::FontFaceHandleDefault> BitmapFont::FontFace::GetHandle(const String& _raw_charset, int size)
 {
 	UnicodeRangeList charset;
 
@@ -122,3 +125,5 @@ void BitmapFont::FontFace::ReleaseFace()
 
 }
 }
+
+#endif

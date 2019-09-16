@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,58 +26,51 @@
  *
  */
 
-#ifndef RMLUICOREFREETYPEFONTFACEHANDLE_H
-#define RMLUICOREFREETYPEFONTFACEHANDLE_H
+#ifndef RMLUICOREFONTFAMILY_H
+#define RMLUICOREFONTFAMILY_H
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
-#include "../UnicodeRange.h"
-#include "../FontFaceHandleDefault.h"
-#include "../../../Include/RmlUi/Core/FontEffect.h"
-#include "../../../Include/RmlUi/Core/FontGlyph.h"
-#include "../../../Include/RmlUi/Core/Geometry.h"
-#include "../../../Include/RmlUi/Core/Texture.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <RmlUi/Core/StringUtilities.h>
 
 namespace Rml {
 namespace Core {
 
-namespace FreeType {
+class FontFace;
+class FontFaceHandleDefault;
 
 /**
 	@author Peter Curry
  */
 
-class FontFaceHandle : public Rml::Core::FontFaceHandleDefault
+class FontFamily
 {
 public:
-	FontFaceHandle();
-	virtual ~FontFaceHandle();
+	FontFamily(const String& name);
+    virtual ~FontFamily();
 
-	/// Initialises the handle so it is able to render text.
-	/// @param[in] ft_face The FreeType face that this handle is rendering.
-	/// @param[in] charset The comma-separated list of unicode ranges this handle must support.
-	/// @param[in] size The size, in points, of the face this handle should render at.
-	/// @return True if the handle initialised successfully and is ready for rendering, false if an error occured.
-	bool Initialise(FT_Face ft_face, const String& charset, int size);
+	/// Adds a new face to the family.
+	/// @param[in] ft_face The previously loaded FreeType face.
+	/// @param[in] style The style of the new face.
+	/// @param[in] weight The weight of the new face.
+	/// @param[in] release_stream True if the application must free the face's memory stream.
+	/// @return True if the face was loaded successfully, false otherwise.
+    virtual bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
+
+	/// Returns a handle to the most appropriate font in the family, at the correct size.
+	/// @param[in] charset The set of characters in the handle, as a comma-separated list of unicode ranges.
+	/// @param[in] style The style of the desired handle.
+	/// @param[in] weight The weight of the desired handle.
+	/// @param[in] size The size of desired handle, in points.
+	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
+	SharedPtr<FontFaceHandleDefault> GetFaceHandle(const String& charset, Style::FontStyle style, Style::FontWeight weight, int size);
 
 protected:
-	int GetKerning(word lhs, word rhs) const override;
+	String name;
 
-private:
-	void GenerateMetrics(void);
-
-	void BuildGlyphMap(const UnicodeRange& unicode_range);
-	void BuildGlyph(FontGlyph& glyph, FT_GlyphSlot ft_glyph);
-
-	FT_Face ft_face;
+	typedef std::vector< FontFace* > FontFaceList;
+	FontFaceList font_faces;
 };
 
 }
 }
-}
-
-#endif
 
 #endif

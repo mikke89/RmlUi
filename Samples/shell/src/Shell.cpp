@@ -27,7 +27,7 @@
  */
 
 #include "Shell.h"
-#include <RmlUi/Core/FontDatabase.h>
+#include <RmlUi/Core/Core.h>
 
 /// Loads the default fonts from the given path.
 void Shell::LoadFonts(const char* directory)
@@ -40,7 +40,7 @@ void Shell::LoadFonts(const char* directory)
 
 	for (int i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
 	{
-		Rml::Core::FontDatabase::LoadFontFace(Rml::Core::String(directory) + font_names[i]);
+		Rml::Core::GetFontEngineInterface()->LoadFontFace(Rml::Core::String(directory) + font_names[i]);
 	}
 }
 

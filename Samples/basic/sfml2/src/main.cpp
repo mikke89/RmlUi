@@ -89,10 +89,10 @@ int main(int argc, char **argv)
 	if(!Rml::Core::Initialise())
 		return 1;
 
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Bold.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-BoldItalic.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Italic.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Roman.otf");
+	Rml::Core::GetFontEngineInterface()->LoadFontFace("assets/Delicious-Bold.otf");
+	Rml::Core::GetFontEngineInterface()->LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rml::Core::GetFontEngineInterface()->LoadFontFace("assets/Delicious-Italic.otf");
+	Rml::Core::GetFontEngineInterface()->LoadFontFace("assets/Delicious-Roman.otf");
 
 	Rml::Core::Context *Context = Rml::Core::CreateContext("default",
 		Rml::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));

@@ -29,6 +29,8 @@
 #ifndef RMLUICOREBITMAPFONTFACELAYER_H
 #define RMLUICOREBITMAPFONTFACELAYER_H
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include <RmlUi/Core/Header.h>
 #include <RmlUi/Core/FontGlyph.h>
 #include <RmlUi/Core/Geometry.h>
@@ -60,7 +62,7 @@ public:
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
 	/// @param[in] deep_clone If true, the clones geometry will be completely cloned and the effect will have no option to affect even the glyph origins.
 	/// @return True if the layer was generated successfully, false if not.
-	bool Initialise(const Rml::Core::FontFaceHandle* handle, SharedPtr<const FontEffect> effect, const Rml::Core::FontFaceLayer* clone = nullptr, bool deep_clone = false) override;
+	bool Initialise(const Rml::Core::FontFaceHandleDefault* handle, SharedPtr<const FontEffect> effect, const Rml::Core::FontFaceLayer* clone = nullptr, bool deep_clone = false) override;
 
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.
@@ -74,5 +76,7 @@ public:
 }
 }
 }
+
+#endif
 
 #endif

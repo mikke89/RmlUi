@@ -27,6 +27,9 @@
  */
 
 #include "precompiled.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
 #include "FontFace.h"
 #include "FontFaceHandle.h"
 #include "../../../Include/RmlUi/Core/Log.h"
@@ -46,7 +49,7 @@ FontFace::~FontFace()
 }
 
 // Returns a handle for positioning and rendering this face at the given size.
-SharedPtr<Rml::Core::FontFaceHandle> FontFace::GetHandle(const String& _raw_charset, int size)
+SharedPtr<Rml::Core::FontFaceHandleDefault> FontFace::GetHandle(const String& _raw_charset, int size)
 {
 	UnicodeRangeList charset;
 
@@ -133,3 +136,5 @@ void FontFace::ReleaseFace()
 }
 }
 }
+
+#endif

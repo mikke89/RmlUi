@@ -29,11 +29,13 @@
 #include "precompiled.h"
 #include "FontFaceLayer.h"
 #include "../../Include/RmlUi/Core/Core.h"
-#include "FontFaceHandle.h"
+#include "FontFaceHandleDefault.h"
 
 namespace Rml {
 namespace Core {
 
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+	
 FontFaceLayer::FontFaceLayer() : colour(255, 255, 255)
 {
 	handle = nullptr;
@@ -44,7 +46,7 @@ FontFaceLayer::~FontFaceLayer()
 }
 
 // Generates the character and texture data for the layer.
-bool FontFaceLayer::Initialise(const FontFaceHandle* _handle, SharedPtr<const FontEffect> _effect, const FontFaceLayer* clone, bool deep_clone)
+bool FontFaceLayer::Initialise(const FontFaceHandleDefault* _handle, SharedPtr<const FontEffect> _effect, const FontFaceLayer* clone, bool deep_clone)
 {
 	handle = _handle;
 	effect = _effect;
@@ -232,6 +234,8 @@ const Colourb& FontFaceLayer::GetColour() const
 {
 	return colour;
 }
+
+#endif
 
 }
 }

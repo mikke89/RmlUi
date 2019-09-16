@@ -34,7 +34,7 @@ body
 	right: 33dp;
 	z-index: 1000000;
 	width: 20px;
-	font-family: Lacuna;
+	font-family: rmlui-debugger-font;
 	font-size: 12dp;
 	color: black;
 	visibility: hidden;
