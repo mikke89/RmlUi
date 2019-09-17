@@ -102,6 +102,10 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, CodePoint prior_
 	{
 		CodePoint code_point = *it_string;
 
+		// Don't try to render control characters
+		if ((unsigned int)code_point < (unsigned int)' ')
+			continue;
+
 		auto it_glyph = glyphs.find(code_point);
 		if (it_glyph == glyphs.end())
 		{
@@ -238,6 +242,10 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 		for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 		{
 			CodePoint code_point = *it_string;
+
+			// Don't try to render control characters
+			if ((unsigned int)code_point < (unsigned int)' ')
+				continue;
 
 			auto it_glyph = glyphs.find(code_point);
 			if (it_glyph == glyphs.end())
