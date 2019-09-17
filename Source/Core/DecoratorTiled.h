@@ -67,10 +67,10 @@ public:
 	 */
 	enum TileOrientation
 	{
-		ROTATE_0_CW = 0,		// Rotated zero degrees clockwise.
-		ROTATE_90_CW = 1,		// Rotated 90 degrees clockwise.
-		ROTATE_180_CW = 2,		// Rotated 180 degrees clockwise.
-		ROTATE_270_CW = 3,		// Rotated 270 degrees clockwise.
+		ROTATE_0 = 0,			// Rotated zero degrees clockwise.
+		ROTATE_90 = 1,			// Rotated 90 degrees clockwise.
+		ROTATE_18 = 2,			// Rotated 180 degrees clockwise.
+		ROTATE_270 = 3,			// Rotated 270 degrees clockwise.
 		FLIP_HORIZONTAL = 4,	// Flipped horizontally.
 		FLIP_VERTICAL = 5		// Flipped vertically.
 	};

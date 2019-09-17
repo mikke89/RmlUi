@@ -53,7 +53,7 @@ DecoratorTiled::Tile::Tile() : position(0, 0), size(1, 1)
 {
 	texture_index = -1;
 	repeat_mode = STRETCH;
-	orientation = ROTATE_0_CW;
+	orientation = ROTATE_0;
 
 	position_absolute[0] = false;
 	position_absolute[1] = false;
