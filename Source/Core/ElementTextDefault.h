@@ -131,6 +131,7 @@ private:
 	Style::TextDecoration decoration_property;
 
 	int font_configuration;
+	int font_handle_version;
 	bool font_dirty;
 };
 

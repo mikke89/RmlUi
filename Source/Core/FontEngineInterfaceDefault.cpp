@@ -112,6 +112,12 @@ int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, GeometryLi
 	return handle_default->GenerateString(geometry, string, position, colour, layer_configuration);
 }
 
+int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)
+{
+	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
+	return handle_default->UpdateOnDirty();
+}
+
 #endif
 
 }

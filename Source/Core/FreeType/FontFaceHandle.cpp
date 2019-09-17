@@ -80,6 +80,26 @@ bool FontFaceHandle_FreeType::Initialise(FT_Face ft_face, int size)
 	return true;
 }
 
+bool FontFaceHandle_FreeType::AppendGlyph(CodePoint code_point)
+{
+	FontGlyphMap& glyphs = GetGlyphs();
+	RMLUI_ASSERT(glyphs.find(code_point) == glyphs.end());
+	RMLUI_ASSERT(ft_face);
+
+	// TODO: Why is this needed ??
+	FT_Error error = FT_Set_Char_Size(ft_face, 0, GetMetrics().size << 6, 0, 0);
+	if (error != 0)
+	{
+		Log::Message(Log::LT_ERROR, "Unable to set the character size '%d' on the font face '%s %s'.", GetMetrics().size, ft_face->family_name, ft_face->style_name);
+		return false;
+	}
+
+	if (!BuildGlyph(ft_face, code_point, glyphs))
+		return false;
+
+	return true;
+}
+
 
 static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 {

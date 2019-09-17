@@ -71,6 +71,8 @@ public:
 
 	/// Generates the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle, GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration) override;
+
+	int GetVersion(FontFaceHandle handle) override;
 };
 
 }

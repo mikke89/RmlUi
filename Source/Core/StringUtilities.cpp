@@ -608,7 +608,7 @@ bool StringView::operator==(const StringView& other) const {
 }
 
 
-
+// TODO: Remove seek on construction
 StringIteratorU8::StringIteratorU8(const char* p_begin, const char* p, const char* p_end) : view(p_begin, p_end), p(p) 
 {
 	SeekForward();

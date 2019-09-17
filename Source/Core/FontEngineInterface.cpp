@@ -107,5 +107,10 @@ int FontEngineInterface::GenerateString(FontFaceHandle, GeometryList& RMLUI_UNUS
 	return 0;
 }
 
+int FontEngineInterface::GetVersion(FontFaceHandle handle)
+{
+	return 0;
+}
+
 }
 }

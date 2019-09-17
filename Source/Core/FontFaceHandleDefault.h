@@ -95,7 +95,7 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	int GetStringWidth(const String& string, CodePoint prior_character = CodePoint::Null) const;
+	int GetStringWidth(const String& string, CodePoint prior_character = CodePoint::Null);
 
 	/// Generates, if required, the layer configuration for a given array of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
@@ -114,7 +114,12 @@ public:
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0) const;
+	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0);
+
+	// Returns version
+	int UpdateOnDirty();
+
+	int GetVersion() const;
 
 protected:
 
@@ -123,24 +128,33 @@ protected:
 
 	void GenerateBaseLayer();
 
+	// Build and append glyph to 'glyphs'
+	virtual bool AppendGlyph(CodePoint code_point) = 0;
+
 	virtual int GetKerning(CodePoint lhs, CodePoint rhs) const = 0;
 
 private:
+
+	// Note: can modify code_point to change character to e.g. replacement character.
+	const FontGlyph* GetOrAppendGlyph(CodePoint& code_point);
 
 	FontFaceLayer* GenerateLayer(const SharedPtr<const FontEffect>& font_effect);
 
 	FontGlyphMap glyphs;
 
-	typedef SmallUnorderedMap< const FontEffect*, UniquePtr<FontFaceLayer> > FontLayerMap;
-	typedef SmallUnorderedMap< size_t, FontFaceLayer* > FontLayerCache;
-	typedef std::vector< FontFaceLayer* > LayerConfiguration;
-	typedef std::vector< LayerConfiguration > LayerConfigurationList;
+	using FontLayerMap = SmallUnorderedMap< const FontEffect*, UniquePtr<FontFaceLayer> >;
+	using FontLayerCache = SmallUnorderedMap< size_t, FontFaceLayer* >;
+	using LayerConfiguration = std::vector< FontFaceLayer* >;
+	using LayerConfigurationList = std::vector< LayerConfiguration >;
 
 	// The list of all font layers, index by the effect that instanced them.
 	FontFaceLayer* base_layer;
 	FontLayerMap layers;
 	// Each font layer that generated geometry or textures, indexed by the respective generation key.
 	FontLayerCache layer_cache;
+
+	int version = 0;
+	bool is_dirty = false;
 
 	// All configurations currently in use on this handle. New configurations will be generated as required.
 	LayerConfigurationList layer_configurations;

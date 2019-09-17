@@ -59,6 +59,9 @@ public:
 	bool Initialise(FT_Face ft_face, int size);
 
 private:
+	bool AppendGlyph(CodePoint code_point) override;
+
+
 	int GetKerning(CodePoint lhs, CodePoint rhs) const override;
 
 	FT_Face ft_face;

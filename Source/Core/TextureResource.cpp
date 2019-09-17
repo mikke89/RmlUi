@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -135,13 +135,16 @@ bool TextureResource::Load(RenderInterface* render_interface)
 			FontFaceHandleDefault* handle;
 			FontEffect* layer_id;
 			int texture_id;
-			
-			if (sscanf(source.c_str(), "?font::%p/%p/%d", &handle, &layer_id, &texture_id) == 3)
+			int handle_version;
+
+			if (sscanf(source.c_str(), "?font::%p/%p/%d/%d", &handle, &layer_id, &texture_id, &handle_version) == 4)
 			{
-				handle->GenerateLayerTexture(data,
-											 dimensions,
-											 layer_id,
-											 texture_id);
+				handle->GenerateLayerTexture(
+					data,
+					dimensions,
+					layer_id,
+					texture_id
+				);
 			}
 		}
 #endif

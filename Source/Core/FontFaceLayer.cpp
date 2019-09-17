@@ -152,7 +152,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandleDefault* _handle, SharedPtr<c
 		for (int i = 0; i < texture_layout.GetNumTextures(); ++i)
 		{
 			Texture texture;
-			if (!texture.Load(CreateString(64, "?font::%p/%p/%d", handle, effect.get(), i)))
+			if (!texture.Load(CreateString(64, "?font::%p/%p/%d/%d", handle, effect.get(), i, handle->GetVersion())))
 				return false;
 
 			textures.push_back(texture);

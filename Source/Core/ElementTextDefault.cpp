@@ -53,6 +53,7 @@ ElementTextDefault::ElementTextDefault(const String& tag) : ElementText(tag), co
 
 	font_configuration = -1;
 	font_dirty = true;
+	font_handle_version = 0;
 }
 
 ElementTextDefault::~ElementTextDefault()
@@ -87,6 +88,14 @@ void ElementTextDefault::OnRender()
 	// generation if necessary.
 	if (font_dirty && UpdateFontConfiguration())
 		geometry_dirty = true;
+
+	// Dirty geometry if font version has changed
+	int new_version = GetFontEngineInterface()->GetVersion(font_face_handle);
+	if (new_version != font_handle_version)
+	{
+		font_handle_version = new_version;
+		geometry_dirty = true;
+	}
 
 	// Regenerate the geometry if the colour or font configuration has altered.
 	if (geometry_dirty)

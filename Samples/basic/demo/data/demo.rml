@@ -177,7 +177,12 @@ button:focus {
 <tab>Controls</tab>
 <panel>
 	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" maxlength="12" value="Sample text"/></div>
-	<textarea cols="30" rows="5" wrap="nowrap">Hello World!</textarea>
+	<textarea cols="30" rows="5" wrap="nowrap">Hello World! dfd dsfds fdsfdf 
+sdfdfds d,. sfdsf. Heøøllo! Who are you? (I don't know),
+maybe there is åsomething å here??? dsfsdfsdf dfsd
+sd sad sads
+
+as</textarea>
 </panel>
 </tabset>
 <div class="left-arrow"/>

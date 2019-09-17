@@ -95,33 +95,22 @@ float FontFaceHandleDefault::GetUnderline(float *thickness) const
 }
 
 // Returns the width a string will take up if rendered with this handle.
-int FontFaceHandleDefault::GetStringWidth(const String& string, CodePoint prior_character) const
+int FontFaceHandleDefault::GetStringWidth(const String& string, CodePoint prior_character)
 {
 	int width = 0;
 	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 	{
 		CodePoint code_point = *it_string;
 
-		// Don't try to render control characters
-		if ((unsigned int)code_point < (unsigned int)' ')
+		const FontGlyph* glyph = GetOrAppendGlyph(code_point);
+		if (!glyph)
 			continue;
-
-		auto it_glyph = glyphs.find(code_point);
-		if (it_glyph == glyphs.end())
-		{
-			code_point = CodePoint::Replacement;
-			it_glyph = glyphs.find(code_point);
-			if (it_glyph == glyphs.end())
-				continue;
-		}
-
-		const FontGlyph& glyph = it_glyph->second;
 
 		// Adjust the cursor for the kerning between this character and the previous one.
 		if (prior_character != CodePoint::Null)
 			width += GetKerning(prior_character, code_point);
 		// Adjust the cursor for this character's advance.
-		width += glyph.advance;
+		width += glyph->advance;
 
 		prior_character = code_point;
 	}
@@ -203,7 +192,7 @@ bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& textur
 }
 
 // Generates the geometry required to render a single line of text.
-int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index) const
+int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index)
 {
 	int geometry_index = 0;
 	int line_width = 0;
@@ -243,20 +232,9 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 		{
 			CodePoint code_point = *it_string;
 
-			// Don't try to render control characters
-			if ((unsigned int)code_point < (unsigned int)' ')
+			const FontGlyph* glyph = GetOrAppendGlyph(code_point);
+			if (!glyph)
 				continue;
-
-			auto it_glyph = glyphs.find(code_point);
-			if (it_glyph == glyphs.end())
-			{
-				code_point = CodePoint::Replacement;
-				it_glyph = glyphs.find(code_point);
-				if (it_glyph == glyphs.end())
-					continue;
-			}
-
-			const FontGlyph& glyph = it_glyph->second;
 
 			// Adjust the cursor for the kerning between this character and the previous one.
 			if (prior_character != CodePoint::Null)
@@ -264,7 +242,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 
 			layer->GenerateGeometry(&geometry[geometry_index], code_point, Vector2f(position.x + line_width, position.y), layer_colour);
 
-			line_width += glyph.advance;
+			line_width += glyph->advance;
 			prior_character = code_point;
 		}
 
@@ -277,6 +255,32 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 	return line_width;
 }
 
+int FontFaceHandleDefault::UpdateOnDirty()
+{
+	if(is_dirty)
+	{
+		is_dirty = false;
+		++version;
+
+		// If we are dirty, regenerate the base layer and increment the version
+		// TODO: Regenerate font effects as well.
+		if (base_layer)
+		{
+			// Regenerate the base layer
+			layers.erase(nullptr);
+			base_layer = GenerateLayer(nullptr);
+			layer_configurations[0][0] = base_layer;
+		}
+	}
+
+	return version;
+}
+
+int FontFaceHandleDefault::GetVersion() const 
+{
+	return version;
+}
+
 FontGlyphMap& FontFaceHandleDefault::GetGlyphs() {
 	return glyphs;
 }
@@ -287,9 +291,44 @@ FontMetrics& FontFaceHandleDefault::GetMetrics() {
 
 void FontFaceHandleDefault::GenerateBaseLayer()
 {
+	RMLUI_ASSERTMSG(layer_configurations.empty(), "This should only be called before any layers are generated.");
 	base_layer = GenerateLayer(nullptr);
-	layer_configurations.push_back(LayerConfiguration());
-	layer_configurations.back().push_back(base_layer);
+	layer_configurations.push_back(LayerConfiguration{ base_layer });
+}
+
+const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point)
+{
+	// Don't try to render control characters
+	if ((unsigned int)code_point < (unsigned int)' ')
+		return nullptr;
+
+	auto it_glyph = glyphs.find(code_point);
+	if (it_glyph == glyphs.end())
+	{
+		bool result = AppendGlyph(code_point);
+
+		if (result)
+		{
+			it_glyph = glyphs.find(code_point);
+			if (it_glyph == glyphs.end())
+			{
+				RMLUI_ERROR;
+				return nullptr;
+			}
+
+			is_dirty = true;
+		}
+		else
+		{
+			code_point = CodePoint::Replacement;
+			it_glyph = glyphs.find(code_point);
+			if (it_glyph == glyphs.end())
+				return nullptr;
+		}
+	}
+
+	const FontGlyph* glyph = &it_glyph->second;
+	return glyph;
 }
 
 // Generates (or shares) a layer derived from a font effect.

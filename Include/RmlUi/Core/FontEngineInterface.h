@@ -51,7 +51,7 @@ public:
 	/// @param[in] family The family of the desired font handle.
 	/// @param[in] style The style of the desired font handle.
 	/// @param[in] weight The weight of the desired font handle.
-	/// @param[in] size The size of desired handle, in points.
+	/// @param[in] size The size of desired handle, in points. // TODO: Pixels?
 	/// @return A valid handle if a matching (or closely matching) font face was found, NULL otherwise.
 	virtual FontFaceHandle GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
@@ -60,11 +60,13 @@ public:
 	/// @param[in] handle The font handle.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
 	/// @return The index to use when generating geometry using this configuration.
+	// TODO: Should return a handle.
 	virtual int GenerateLayerConfiguration(FontFaceHandle handle, const FontEffectList &font_effects);
 
 	/// Should return the average advance of all glyphs in this font face.
 	/// @param[in] handle The font handle.
 	/// @return An approximate width of the characters in this font face.
+	// TODO: Not used, remove?
 	virtual int GetCharacterWidth(FontFaceHandle handle);
 
 	/// Should returns the point size of this font face.
@@ -88,9 +90,10 @@ public:
 	/// Should return the font's underline, as a pixel offset from the bottom of the font.
 	/// @param[in] handle The font handle.
 	/// @return The font's underline thickness.
+	// TODO: Thickness vs Return value? Pointer?
 	virtual float GetUnderline(FontFaceHandle handle, float *thickness);
 
-	/// Should return the width of a string when rendered with this handle.
+	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
 	/// @param[in] handle The font handle.
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
@@ -106,7 +109,12 @@ public:
 	/// @param[in] colour The colour to render the text.
 	/// @param[in] layer_configuration The layer for which the geometry should be generated.
 	/// @return The width, in pixels, of the string geometry.
+	// TODO: Layer configuration should be a handle. Reorder arguments to take the handles first, geometry last/first.
 	virtual int GenerateString(FontFaceHandle handle, GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration);
+
+	/// Should return a new value whenever the geometry need to be re-generated.
+	virtual int GetVersion(FontFaceHandle handle);
+
 };
 
 }
