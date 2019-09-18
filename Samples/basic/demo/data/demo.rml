@@ -118,23 +118,16 @@ button:focus {
 }
 .emoji-test
 {
-	font-family: Noto Emoji;
+	/*font-family: Noto Emoji;*/
 	font-size: 35px;
 }
 
-@decorator left-arrow : tiled-box {
-	top-image-src: ../../../assets/present.tga;
-	center-image-src: ../../../assets/present.tga;
-	left-image-src: ../../../assets/present.tga;
+textarea {
+	font-size: 18px;
+	font-effect: outline(2px #006600);
+	color: #ccc;
+	
 }
-
-.left-arrow {
-	width: 32dp;
-	height: 32dp;
-	decorator: left-arrow;
-}
-
-
 </style>
 </head>
 
@@ -185,6 +178,5 @@ sd sad sads
 as</textarea>
 </panel>
 </tabset>
-<div class="left-arrow"/>
 </body>
 </rml>

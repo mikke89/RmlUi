@@ -47,12 +47,14 @@ FontFamily_FreeType::~FontFamily_FreeType()
 }
 
 // Adds a new face to the family.
-bool FontFamily_FreeType::AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
+FontFace* FontFamily_FreeType::AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
-	FontFace_FreeType* face = new FontFace_FreeType((FT_Face)ft_face, style, weight, release_stream);
-	font_faces.push_back(face);
+	auto face = std::make_unique<FontFace_FreeType>((FT_Face)ft_face, style, weight, release_stream);
+	FontFace* result = face.get();
 
-	return true;
+	font_faces.push_back(std::move(face));
+
+	return result;
 }
 
 }

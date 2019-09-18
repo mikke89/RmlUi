@@ -139,12 +139,13 @@ bool TextureResource::Load(RenderInterface* render_interface)
 
 			if (sscanf(source.c_str(), "?font::%p/%p/%d/%d", &handle, &layer_id, &texture_id, &handle_version) == 4)
 			{
-				handle->GenerateLayerTexture(
-					data,
-					dimensions,
-					layer_id,
-					texture_id
-				);
+				if (!handle->GenerateLayerTexture(data, dimensions, layer_id, texture_id, handle_version))
+				{
+					Log::Message(Log::LT_WARNING, "Failed to generate font layer texture %s.", source.c_str());
+					texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
+
+					return false;
+				}
 			}
 		}
 #endif

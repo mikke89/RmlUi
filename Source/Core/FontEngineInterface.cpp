@@ -39,7 +39,7 @@ FontEngineInterface::~FontEngineInterface()
 {
 }
 
-bool FontEngineInterface::LoadFontFace(const String& file_name)
+bool FontEngineInterface::LoadFontFace(const String& file_name, bool fallback_face)
 {
 	return false;
 }

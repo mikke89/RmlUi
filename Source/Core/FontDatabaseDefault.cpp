@@ -29,6 +29,7 @@
 #include "precompiled.h"
 #include <RmlUi/Core.h>
 #include "FontFamily.h"
+#include "FontFace.h"
 #include "FreeType/FontProvider.h"
 #include "FontDatabaseDefault.h"
 
@@ -76,9 +77,9 @@ void FontDatabaseDefault::Shutdown()
 }
 
 // Loads a new font face.
-bool FontDatabaseDefault::LoadFontFace(const String& file_name)
+bool FontDatabaseDefault::LoadFontFace(const String& file_name, bool fallback_face)
 {
-	return FontProvider_FreeType::LoadFontFace(file_name);
+	return FontProvider_FreeType::LoadFontFace(file_name, fallback_face);
 }
 
 // Returns a handle to a font face that can be used to position and render text.
@@ -112,6 +113,32 @@ void FontDatabaseDefault::RemoveFontProvider(FontProvider * provider)
             return;
         }
     }
+}
+
+int FontDatabaseDefault::CountFallbackFontFaces()
+{
+	int count = 0;
+	for (const FontProvider* provider : instance->font_provider_table)
+		count += (int)provider->GetFallbackFontFaces().size();
+
+	return count;
+}
+
+SharedPtr<FontFaceHandleDefault> FontDatabaseDefault::GetFallbackFontFace(int index, int font_size)
+{
+	int iterate_index = 0;
+	for (const FontProvider* provider : instance->font_provider_table)
+	{
+		const FontFaceList& faces = provider->GetFallbackFontFaces();
+		int faces_index = index - iterate_index;
+		int faces_count = (int)faces.size();
+		if (faces_index >= 0 && faces_index < faces_count)
+			return faces[faces_index]->GetHandle(font_size);
+
+		iterate_index += faces_count;
+	}
+
+	return nullptr;
 }
 
 #endif

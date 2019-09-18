@@ -57,8 +57,9 @@ public:
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	/// @param[in] file_name The file to load the face from.
+	/// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 	/// @return True if the face was loaded successfully, false otherwise.
-	static bool LoadFontFace(const String& file_name);
+	static bool LoadFontFace(const String& file_name, bool fallback_face);
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
@@ -73,6 +74,10 @@ public:
     static void AddFontProvider(FontProvider * provider);
 
     static void RemoveFontProvider(FontProvider * provider);
+
+	static int CountFallbackFontFaces();
+
+	static SharedPtr<FontFaceHandleDefault> GetFallbackFontFace(int index, int font_size);
 
 private:
 	FontDatabaseDefault(void);

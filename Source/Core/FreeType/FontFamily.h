@@ -54,7 +54,7 @@ public:
 	/// @param[in] weight The weight of the new face.
 	/// @param[in] release_stream True if the application must free the face's memory stream.
 	/// @return True if the face was loaded successfully, false otherwise.
-	bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) override;
+	FontFace* AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) override;
 };
 
 }

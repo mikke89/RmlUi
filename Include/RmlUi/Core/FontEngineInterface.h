@@ -43,8 +43,9 @@ public:
 
 	/// Called by the RmlUi when it wants to load a font face from file.
 	/// @param[in] file_name The file to load the face from.
+	/// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 	/// @return True if the face was loaded successfully, false otherwise.
-	virtual bool LoadFontFace(const String& file_name);
+	virtual bool LoadFontFace(const String& file_name, bool fallback_face = false);
 
 	/// Called by the RmlUi when a font configuration is resolved for an element. Should return a handle that 
 	/// can later be used to resolve properties of the face, and generate strings which can later be rendered.

@@ -46,9 +46,9 @@ FontEngineInterfaceDefault::~FontEngineInterfaceDefault()
 	FontDatabaseDefault::Shutdown();
 }
 
-bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name)
+bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, bool fallback_face)
 {
-	return FontDatabaseDefault::LoadFontFace(file_name);
+	return FontDatabaseDefault::LoadFontFace(file_name, fallback_face);
 }
 
 FontFaceHandle FontEngineInterfaceDefault::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
@@ -115,7 +115,8 @@ int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, GeometryLi
 int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	return handle_default->UpdateOnDirty();
+	handle_default->UpdateLayersOnDirty();
+	return handle_default->GetVersion();
 }
 
 #endif

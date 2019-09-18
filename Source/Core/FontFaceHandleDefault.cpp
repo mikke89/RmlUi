@@ -28,6 +28,7 @@
 
 #include "precompiled.h"
 #include "FontFaceHandleDefault.h"
+#include "FontDatabaseDefault.h"
 #include <algorithm>
 #include "../../Include/RmlUi/Core.h"
 #include "FontFaceLayer.h"
@@ -42,6 +43,7 @@ FontFaceHandleDefault::FontFaceHandleDefault()
 {
 	metrics = {};
 	base_layer = nullptr;
+	fallback_face = nullptr;
 }
 
 FontFaceHandleDefault::~FontFaceHandleDefault()
@@ -102,7 +104,7 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, CodePoint prior_
 	{
 		CodePoint code_point = *it_string;
 
-		const FontGlyph* glyph = GetOrAppendGlyph(code_point);
+		const FontGlyph* glyph = GetOrAppendGlyph(code_point, nullptr);
 		if (!glyph)
 			continue;
 
@@ -182,8 +184,11 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id)
+bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id, int handle_version)
 {
+	if (handle_version != version)
+		return false;
+
 	FontLayerMap::iterator layer_iterator = layers.find(layer_id);
 	if (layer_iterator == layers.end())
 		return false;
@@ -202,9 +207,21 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 
 	// Fetch the requested configuration and generate the geometry for each one.
 	const LayerConfiguration& layer_configuration = layer_configurations[layer_configuration_index];
-	for (size_t i = 0; i < layer_configuration.size(); ++i)
+	for (size_t i = 0; i <= layer_configuration.size(); ++i)
 	{
-		FontFaceLayer* layer = layer_configuration[i];
+		FontFaceLayer* layer = nullptr;
+		if (i < layer_configuration.size())
+		{
+			layer = layer_configuration[i];
+		}
+		else if (fallback_face)
+		{
+			fallback_face->UpdateLayersOnDirty();
+			layer = fallback_face->base_layer;
+		}
+
+		if (!layer)
+			continue;
 
 		Colourb layer_colour;
 		if (layer == base_layer)
@@ -231,8 +248,9 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 		for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 		{
 			CodePoint code_point = *it_string;
+			bool located_in_fallback_font = false;
 
-			const FontGlyph* glyph = GetOrAppendGlyph(code_point);
+			const FontGlyph* glyph = GetOrAppendGlyph(code_point, &located_in_fallback_font);
 			if (!glyph)
 				continue;
 
@@ -240,7 +258,10 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			if (prior_character != CodePoint::Null)
 				line_width += GetKerning(prior_character, code_point);
 
-			layer->GenerateGeometry(&geometry[geometry_index], code_point, Vector2f(position.x + line_width, position.y), layer_colour);
+			if(!fallback_face || (located_in_fallback_font == (layer == fallback_face->base_layer)))
+			{
+				layer->GenerateGeometry(&geometry[geometry_index], code_point, Vector2f(position.x + line_width, position.y), layer_colour);
+			}
 
 			line_width += glyph->advance;
 			prior_character = code_point;
@@ -255,11 +276,13 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 	return line_width;
 }
 
-int FontFaceHandleDefault::UpdateOnDirty()
+bool FontFaceHandleDefault::UpdateLayersOnDirty()
 {
-	if(is_dirty)
+	bool result = is_layers_dirty;
+
+	if(is_layers_dirty)
 	{
-		is_dirty = false;
+		is_layers_dirty = false;
 		++version;
 
 		// If we are dirty, regenerate the base layer and increment the version
@@ -267,13 +290,25 @@ int FontFaceHandleDefault::UpdateOnDirty()
 		if (base_layer)
 		{
 			// Regenerate the base layer
+			// TODO: This may break some pointers to the base layer.
+
+			FontFaceLayer* old_base = base_layer;
+
 			layers.erase(nullptr);
 			base_layer = GenerateLayer(nullptr);
-			layer_configurations[0][0] = base_layer;
+
+			for (auto& configuration : layer_configurations)
+				for (FontFaceLayer*& layer : configuration)
+					if (layer == old_base)
+						layer = base_layer;
+
+			for (auto& pair : layer_cache)
+				if (pair.second == old_base)
+					pair.second = base_layer;
 		}
 	}
 
-	return version;
+	return result;
 }
 
 int FontFaceHandleDefault::GetVersion() const 
@@ -296,8 +331,11 @@ void FontFaceHandleDefault::GenerateBaseLayer()
 	layer_configurations.push_back(LayerConfiguration{ base_layer });
 }
 
-const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point)
+const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, bool* located_in_fallback_font, bool look_in_fallback_fonts)
 {
+	if (located_in_fallback_font)
+		*located_in_fallback_font = false;
+
 	// Don't try to render control characters
 	if ((unsigned int)code_point < (unsigned int)' ')
 		return nullptr;
@@ -316,14 +354,41 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point)
 				return nullptr;
 			}
 
-			is_dirty = true;
+			is_layers_dirty = true;
 		}
-		else
+		else if (look_in_fallback_fonts)
 		{
+			if (!fallback_face)
+			{
+				// TODO: Only support for single fallback face
+				fallback_face = FontDatabaseDefault::GetFallbackFontFace(0, metrics.size).get();
+				if (fallback_face == this)
+					fallback_face = nullptr;
+			}
+
+			if (fallback_face)
+			{
+				const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(code_point, nullptr, false);
+				if (glyph)
+				{
+					//is_layers_dirty = true;
+					//++version;
+
+					if (located_in_fallback_font)
+						*located_in_fallback_font = true;
+
+					return glyph;
+				}
+			}
+
 			code_point = CodePoint::Replacement;
 			it_glyph = glyphs.find(code_point);
 			if (it_glyph == glyphs.end())
 				return nullptr;
+		}
+		else
+		{
+			return nullptr;
 		}
 	}
 

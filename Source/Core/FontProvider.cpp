@@ -55,6 +55,11 @@ SharedPtr<FontFaceHandleDefault> FontProvider::GetFontFaceHandle(const String& f
 	return (*iterator).second->GetFaceHandle(style, weight, size);
 }
 
+const FontFaceList& FontProvider::GetFallbackFontFaces() const
+{
+	return fallback_font_faces;
+}
+
 #endif
 
 }

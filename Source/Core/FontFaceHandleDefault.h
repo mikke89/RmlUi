@@ -106,7 +106,8 @@ public:
 	/// @param[out] texture_dimensions The dimensions of the texture.
 	/// @param[in] layer_id The id of the layer to request the texture data from.
 	/// @param[in] texture_id The index of the texture within the layer to generate.
-	bool GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id);
+	/// @param[in] handle_version The version of the handle data. Function returns false if out of date.
+	bool GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id, int handle_version);
 
 	/// Generates the geometry required to render a single line of text.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
@@ -116,8 +117,7 @@ public:
 	/// @return The width, in pixels, of the string geometry.
 	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0);
 
-	// Returns version
-	int UpdateOnDirty();
+	bool UpdateLayersOnDirty();
 
 	int GetVersion() const;
 
@@ -136,7 +136,7 @@ protected:
 private:
 
 	// Note: can modify code_point to change character to e.g. replacement character.
-	const FontGlyph* GetOrAppendGlyph(CodePoint& code_point);
+	const FontGlyph* GetOrAppendGlyph(CodePoint& code_point, bool* located_in_fallback_font, bool look_in_fallback_fonts = true);
 
 	FontFaceLayer* GenerateLayer(const SharedPtr<const FontEffect>& font_effect);
 
@@ -152,9 +152,10 @@ private:
 	FontLayerMap layers;
 	// Each font layer that generated geometry or textures, indexed by the respective generation key.
 	FontLayerCache layer_cache;
+	FontFaceHandleDefault* fallback_face;
 
 	int version = 0;
-	bool is_dirty = false;
+	bool is_layers_dirty = false;
 
 	// All configurations currently in use on this handle. New configurations will be generated as required.
 	LayerConfigurationList layer_configurations;

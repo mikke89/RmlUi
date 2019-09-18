@@ -53,7 +53,7 @@ public:
 	/// @param[in] weight The weight of the new face.
 	/// @param[in] release_stream True if the application must free the face's memory stream.
 	/// @return True if the face was loaded successfully, false otherwise.
-	virtual bool AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
+	virtual FontFace* AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
 
 	/// Returns a handle to the most appropriate font in the family, at the correct size.
 	/// @param[in] style The style of the desired handle.
@@ -65,7 +65,7 @@ public:
 protected:
 	String name;
 
-	typedef std::vector< FontFace* > FontFaceList;
+	typedef std::vector< UniquePtr<FontFace> > FontFaceList;
 	FontFaceList font_faces;
 };
 

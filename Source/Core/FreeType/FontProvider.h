@@ -51,14 +51,14 @@ public:
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	/// @param[in] file_name The file to load the face from.
 	/// @return True if the face was loaded successfully, false otherwise.
-	static bool LoadFontFace(const String& file_name);
+	static bool LoadFontFace(const String& file_name, bool fallback_face);
 
 private:
 	FontProvider_FreeType(void);
 	~FontProvider_FreeType(void);
 
 	// Adds a loaded face to the appropriate font family.
-	bool AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+	bool AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream);
 	// Loads a FreeType face.
 	void* LoadFace(const String& file_name);
 	// Loads a FreeType face from memory.

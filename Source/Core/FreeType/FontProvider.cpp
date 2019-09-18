@@ -81,8 +81,7 @@ void FontProvider_FreeType::Shutdown()
 {
 	if (instance != nullptr)
 	{
-		for (FontFamilyMap::iterator i = instance->font_families.begin(); i != instance->font_families.end(); ++i)
-			delete (*i).second;
+		instance->font_families.clear();
 
 		if (ft_library != nullptr)
 		{
@@ -97,7 +96,7 @@ void FontProvider_FreeType::Shutdown()
 }
 
 // Loads a new font face.
-bool FontProvider_FreeType::LoadFontFace(const String& file_name)
+bool FontProvider_FreeType::LoadFontFace(const String& file_name, bool fallback_face)
 {
 	FT_Face ft_face = (FT_Face) instance->LoadFace(file_name);
 	if (ft_face == nullptr)
@@ -109,33 +108,45 @@ bool FontProvider_FreeType::LoadFontFace(const String& file_name)
 	Style::FontStyle style = ft_face->style_flags & FT_STYLE_FLAG_ITALIC ? Style::FontStyle::Italic : Style::FontStyle::Normal;
 	Style::FontWeight weight = ft_face->style_flags & FT_STYLE_FLAG_BOLD ? Style::FontWeight::Bold : Style::FontWeight::Normal;
 
-	if (instance->AddFace(ft_face, ft_face->family_name, style, weight, true))
-	{
-		Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
-		return true;
-	}
-	else
+	if (!instance->AddFace(ft_face, ft_face->family_name, style, weight, fallback_face, true))
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
 		return false;
 	}
+
+	Log::Message(Log::LT_INFO, "Loaded font face %s %s (from %s).", ft_face->family_name, ft_face->style_name, file_name.c_str());
+	return true;
 }
 
 // Adds a loaded face to the appropriate font family.
-bool FontProvider_FreeType::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
+bool FontProvider_FreeType::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream)
 {
 	String family_lower = StringUtilities::ToLower(family);
 	FontFamily_FreeType* font_family = nullptr;
-	FontFamilyMap::iterator iterator = font_families.find(family_lower);
-	if (iterator != font_families.end())
-		font_family = (FontFamily_FreeType*)(*iterator).second;
+	auto it = font_families.find(family_lower);
+	if (it != font_families.end())
+	{
+		font_family = (FontFamily_FreeType*)it->second.get();
+	}
 	else
 	{
-		font_family = new FontFamily_FreeType(family_lower);
-		font_families[family_lower] = font_family;
+		auto font_family_ptr = std::make_unique< FontFamily_FreeType>(family_lower);
+		font_family = font_family_ptr.get();
+		font_families[family_lower] = std::move(font_family_ptr);
 	}
 
-	return font_family->AddFace((FT_Face) face, style, weight, release_stream);
+	FontFace* font_face_result = font_family->AddFace((FT_Face)face, style, weight, release_stream);
+
+	if (font_face_result && fallback_face)
+	{
+		auto it_fallback_face = std::find(fallback_font_faces.begin(), fallback_font_faces.end(), font_face_result);
+		if (it_fallback_face == fallback_font_faces.end())
+		{
+			fallback_font_faces.push_back(font_face_result);
+		}
+	}
+
+	return static_cast<bool>(font_face_result);
 }
 
 // Loads a FreeType face.

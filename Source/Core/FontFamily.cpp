@@ -39,8 +39,6 @@ FontFamily::FontFamily(const String& name) : name(name)
 
 FontFamily::~FontFamily()
 {
-	for (size_t i = 0; i < font_faces.size(); ++i)
-		delete font_faces[i];
 }
 
 // Returns a handle to the most appropriate font in the family, at the correct size.
@@ -54,7 +52,7 @@ SharedPtr<FontFaceHandleDefault> FontFamily::GetFaceHandle(Style::FontStyle styl
 		// if it's a perfect match, then we'll stop looking altogether.
 		if (font_faces[i]->GetStyle() == style)
 		{
-			matching_face = font_faces[i];
+			matching_face = font_faces[i].get();
 
 			if (font_faces[i]->GetWeight() == weight)
 				break;

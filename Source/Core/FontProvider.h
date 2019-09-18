@@ -36,8 +36,11 @@
 namespace Rml {
 namespace Core {
 
+class FontFace;
 class FontFamily;
 class FontFaceHandleDefault;
+
+using FontFaceList = std::vector<FontFace*>;
 
 /**
 	The font database contains all font families currently in use by RmlUi.
@@ -47,7 +50,6 @@ class FontFaceHandleDefault;
 class RMLUICORE_API FontProvider
 {
 public:
-
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
 	/// valid handle.
@@ -58,10 +60,13 @@ public:
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
 	SharedPtr<FontFaceHandleDefault> GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
+	const FontFaceList& GetFallbackFontFaces() const;
+
 protected:
 
-	typedef UnorderedMap< String, FontFamily*> FontFamilyMap;
+	using FontFamilyMap = UnorderedMap< String, UniquePtr<FontFamily>>;
 	FontFamilyMap font_families;
+	FontFaceList fallback_font_faces;
 
 	static const String debugger_font_family_name;
 };

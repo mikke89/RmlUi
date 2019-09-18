@@ -39,9 +39,11 @@ void Shell::LoadFonts(const char* directory)
 	font_names[3] = "Delicious-BoldItalic.otf";
 	font_names[4] = "NotoEmoji-Regular.ttf";
 
+	const int fallback_face = 4;
+
 	for (int i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
 	{
-		Rml::Core::GetFontEngineInterface()->LoadFontFace(Rml::Core::String(directory) + font_names[i]);
+		Rml::Core::GetFontEngineInterface()->LoadFontFace(Rml::Core::String(directory) + font_names[i], i == fallback_face);
 	}
 }
 
