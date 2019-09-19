@@ -111,8 +111,10 @@ class ElementInstancerGeneric : public ElementInstancer
 public:
 	virtual ~ElementInstancerGeneric() {}
 
-	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override 
+	ElementPtr InstanceElement(Element* RMLUI_UNUSED_PARAMETER(parent), const String& tag, const XMLAttributes& RMLUI_UNUSED_PARAMETER(attributes)) override
 	{
+		RMLUI_UNUSED(parent);
+		RMLUI_UNUSED(attributes);
 		RMLUI_ZoneScopedN("ElementGenericInstance");
 		return ElementPtr(new T(tag));
 	}
