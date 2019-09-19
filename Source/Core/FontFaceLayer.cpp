@@ -30,6 +30,7 @@
 #include "FontFaceLayer.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "FontFaceHandleDefault.h"
+#include "FontDatabaseDefault.h"
 
 namespace Rml {
 namespace Core {
@@ -37,37 +38,57 @@ namespace Core {
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 
 FontFaceLayer::FontFaceLayer() : colour(255, 255, 255)
-{
-	handle = nullptr;
-}
+{}
 
 FontFaceLayer::~FontFaceLayer()
 {
 }
 
 // Generates the character and texture data for the layer.
-bool FontFaceLayer::Initialise(const FontFaceHandleDefault* _handle, SharedPtr<const FontEffect> _effect, const FontFaceLayer* clone, bool deep_clone)
+bool FontFaceLayer::Initialise(const FontFaceHandleDefault* handle, SharedPtr<const FontEffect> _effect, const FontFaceLayer* clone, bool clone_glyph_origins)
 {
-	handle = _handle;
 	effect = _effect;
 	if (effect)
 		colour = effect->GetColour();
 
+	bool result = GenerateLayout(handle, clone, clone_glyph_origins);
+
+	return result;
+}
+
+bool FontFaceLayer::Regenerate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
+{
+	// @performance: We could be much smarter about this, e.g. such as adding new glyphs to the existing texture layout and textures.
+	// Right now we re-generate the whole thing, including textures.
+
+	for (auto& texture : textures)
+		texture.RemoveDatabaseCache();
+
+	texture_layout = TextureLayout{};
+	characters.clear();
+	textures.clear();
+
+	bool result = GenerateLayout(handle, clone, clone_glyph_origins);
+
+	return result;
+}
+
+bool FontFaceLayer::GenerateLayout(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
+{
 	const FontGlyphMap& glyphs = handle->GetGlyphs();
 
 	// Clone the geometry and textures from the clone layer.
-	if (clone != nullptr)
+	if (clone)
 	{
 		// Copy the cloned layer's characters.
 		characters = clone->characters;
 
-		// Copy (and reference) the cloned layer's textures.
+		// Copy the cloned layer's textures.
 		for (size_t i = 0; i < clone->textures.size(); ++i)
 			textures.push_back(clone->textures[i]);
 
-		// Request the effect (if we have one) adjust the origins as appropriate.
-		if (!deep_clone &&
-			effect != nullptr)
+		// Request the effect (if we have one) and adjust the origins as appropriate.
+		if (effect && !clone_glyph_origins)
 		{
 			for (auto& pair : glyphs)
 			{
@@ -104,7 +125,7 @@ bool FontFaceLayer::Initialise(const FontFaceHandleDefault* _handle, SharedPtr<c
 			Vector2i glyph_dimensions = glyph.bitmap_dimensions;
 
 			// Adjust glyph origin / dimensions for the font effect.
-			if (effect != nullptr)
+			if (effect)
 			{
 				if (!effect->GetGlyphMetrics(glyph_origin, glyph_dimensions, glyph))
 					continue;
@@ -161,16 +182,15 @@ bool FontFaceLayer::Initialise(const FontFaceHandleDefault* _handle, SharedPtr<c
 
 
 	return true;
+	return false;
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id)
+bool FontFaceLayer::GenerateTexture(const FontGlyphMap& glyphs, UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id)
 {
 	if (texture_id < 0 ||
 		texture_id > texture_layout.GetNumTextures())
 		return false;
-
-	const FontGlyphMap& glyphs = handle->GetGlyphs();
 
 	// Generate the texture data.
 	texture_data = texture_layout.GetTexture(texture_id).AllocateTexture();

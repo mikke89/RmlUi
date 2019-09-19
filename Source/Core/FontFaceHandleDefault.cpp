@@ -173,7 +173,8 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 			added_base_layer = true;
 		}
 
-		layer_configuration.push_back(GenerateLayer(font_effects[i]));
+		FontFaceLayer* new_layer = GenerateLayer(font_effects[i]);
+		layer_configuration.push_back(new_layer);
 	}
 
 	// Add the base layer now if we still haven't added it.
@@ -193,7 +194,7 @@ bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& textur
 	if (layer_iterator == layers.end())
 		return false;
 
-	return layer_iterator->second->GenerateTexture(texture_data, texture_dimensions, texture_id);
+	return layer_iterator->second->GenerateTexture(glyphs, texture_data, texture_dimensions, texture_id);
 }
 
 // Generates the geometry required to render a single line of text.
@@ -286,25 +287,48 @@ bool FontFaceHandleDefault::UpdateLayersOnDirty()
 		++version;
 
 		// If we are dirty, regenerate the base layer and increment the version
-		// TODO: Regenerate font effects as well.
 		if (base_layer)
 		{
-			// Regenerate the base layer
-			// TODO: This may break some pointers to the base layer.
+			// Regenerate all the layers
+			// TODO: The following is almost a copy-paste of GenerateLayer.
 
-			FontFaceLayer* old_base = base_layer;
+			for (auto& pair : layers)
+			{
+				const FontEffect* font_effect = pair.first;
+				FontFaceLayer* layer = pair.second.get();
 
-			layers.erase(nullptr);
-			base_layer = GenerateLayer(nullptr);
+				if (!font_effect)
+				{
+					layer->Regenerate(this);
+				}
+				else
+				{
+					// Determine which, if any, layer the new layer should copy its geometry and textures from.
+					FontFaceLayer* clone = nullptr;
+					bool clone_glyph_origins = true;
+					String generation_key;
+					size_t fingerprint = font_effect->GetFingerprint();
 
-			for (auto& configuration : layer_configurations)
-				for (FontFaceLayer*& layer : configuration)
-					if (layer == old_base)
-						layer = base_layer;
+					if (!font_effect->HasUniqueTexture())
+					{
+						clone = base_layer;
+						clone_glyph_origins = false;
+					}
+					else
+					{
+						auto cache_iterator = layer_cache.find(fingerprint);
+						if (cache_iterator != layer_cache.end() && cache_iterator->second != layer)
+							clone = cache_iterator->second;
+					}
 
-			for (auto& pair : layer_cache)
-				if (pair.second == old_base)
-					pair.second = base_layer;
+					// Create a new layer.
+					layer->Regenerate(this, clone, clone_glyph_origins);
+
+					// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
+					if (!clone)
+						layer_cache[fingerprint] = layer;
+				}
+			}
 		}
 	}
 
@@ -404,9 +428,8 @@ FontFaceLayer* FontFaceHandleDefault::GenerateLayer(const SharedPtr<const FontEf
 	if (i != layers.end())
 		return i->second.get();
 
-	UniquePtr<FontFaceLayer> layer_ptr = std::make_unique<FontFaceLayer>();
-	FontFaceLayer* layer = layer_ptr.get();
-	layers[font_effect.get()] = std::move(layer_ptr);
+	auto& layer = layers[font_effect.get()];
+	layer = std::make_unique<FontFaceLayer>();
 
 	if (!font_effect)
 	{
@@ -416,31 +439,31 @@ FontFaceLayer* FontFaceHandleDefault::GenerateLayer(const SharedPtr<const FontEf
 	{
 		// Determine which, if any, layer the new layer should copy its geometry and textures from.
 		FontFaceLayer* clone = nullptr;
-		bool deep_clone = true;
+		bool clone_glyph_origins = true;
 		String generation_key;
 		size_t fingerprint = font_effect->GetFingerprint();
 
 		if (!font_effect->HasUniqueTexture())
 		{
 			clone = base_layer;
-			deep_clone = false;
+			clone_glyph_origins = false;
 		}
 		else
 		{
-			FontLayerCache::iterator cache_iterator = layer_cache.find(fingerprint);
+			auto cache_iterator = layer_cache.find(fingerprint);
 			if (cache_iterator != layer_cache.end())
 				clone = cache_iterator->second;
 		}
 
 		// Create a new layer.
-		layer->Initialise(this, font_effect, clone, deep_clone);
+		layer->Initialise(this, font_effect, clone, clone_glyph_origins);
 
 		// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
 		if (!clone)
-			layer_cache[fingerprint] = layer;
+			layer_cache[fingerprint] = layer.get();
 	}
 
-	return layer;
+	return layer.get();
 }
 
 #endif

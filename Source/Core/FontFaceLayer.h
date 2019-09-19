@@ -60,16 +60,18 @@ public:
 	/// @param[in] handle The handle generating this layer.
 	/// @param[in] effect The effect to initialise the layer with.
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
-	/// @param[in] deep_clone If true, the clones geometry will be completely cloned and the effect will have no option to affect even the glyph origins.
 	/// @return True if the layer was generated successfully, false if not.
-	bool Initialise(const FontFaceHandleDefault* handle, SharedPtr<const FontEffect> effect = {}, const FontFaceLayer* clone = nullptr, bool deep_clone = false);
+	bool Initialise(const FontFaceHandleDefault* handle, SharedPtr<const FontEffect> effect = {}, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
+
+	/// Clears and re-initalize the font face layer, using the font effect it was first initialized with, such as to add new glyphs to the layer.
+	bool Regenerate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
 
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.
 	/// @param[out] texture_dimensions The dimensions of the texture.
 	/// @param[in] glyphs The glyphs required by the font face handle.
 	/// @param[in] texture_id The index of the texture within the layer to generate.
-	bool GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id);
+	bool GenerateTexture(const FontGlyphMap& glyphs, UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id);
 	/// Generates the geometry required to render a single character.
 	/// @param[out] geometry An array of geometries this layer will write to. It must be at least as big as the number of textures in this layer.
 	/// @param[in] character_code The character to generate geometry for.
@@ -105,22 +107,21 @@ public:
 	}
 
 	/// Returns the effect used to generate the layer.
-	/// @return The layer's effect.
 	const FontEffect* GetFontEffect() const;
 
-	/// Returns on the layer's textures.
-	/// @param[in] index The index of the desired texture.
-	/// @return The requested texture.
+	/// Returns one of the layer's textures.
 	const Texture* GetTexture(int index);
 	/// Returns the number of textures employed by this layer.
-	/// @return The number of used textures.
 	int GetNumTextures() const;
 
 	/// Returns the layer's colour.
-	/// @return The layer's colour.
 	const Colourb& GetColour() const;
 
 private:
+
+	bool GenerateLayout(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins);
+
+
 	struct Character
 	{
 		Character() : texture_index(-1) { }
@@ -139,7 +140,6 @@ private:
 	using CharacterMap = UnorderedMap<CodePoint, Character>;
 	using TextureList = std::vector<Texture>;
 
-	const FontFaceHandleDefault* handle;
 	SharedPtr<const FontEffect> effect;
 
 	TextureLayout texture_layout;
