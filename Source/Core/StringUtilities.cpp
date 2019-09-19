@@ -49,7 +49,7 @@ namespace Rml {
 namespace Core {
 
 static bool UTF8toUCS2(const String& input, WString& output);
-static bool UCS2toUTF8(const WString& input, String& output);
+static bool UTF16toUTF8(const WString& input, String& output);
 
 
 static int FormatString(String& string, size_t max_size, const char* format, va_list argument_list)
@@ -117,7 +117,7 @@ String StringUtilities::ToUTF8(const WString& wstr)
 {
 	/// TODO: Convert from UTF-16 instead.
 	String result;
-	if(!UCS2toUTF8(wstr, result))
+	if(!UTF16toUTF8(wstr, result))
 		Log::Message(Log::LT_WARNING, "Failed to convert UCS2 string to UTF8.");
 	return result;
 }
@@ -345,28 +345,44 @@ CodePoint StringUtilities::ToCodePoint(const char* p)
 
 String StringUtilities::ToUTF8(CodePoint code_point)
 {
-	unsigned int c = (unsigned int)code_point;
+	return ToUTF8(&code_point, 1);
+}
 
-	constexpr int l3 = 0b0000'0111;
-	constexpr int l4 = 0b0000'1111;
-	constexpr int l5 = 0b0001'1111;
-	constexpr int l6 = 0b0011'1111;
-	constexpr int h1 = 0b1000'0000;
-	constexpr int h2 = 0b1100'0000;
-	constexpr int h3 = 0b1110'0000;
-	constexpr int h4 = 0b1111'0000;
+String StringUtilities::ToUTF8(const CodePoint* code_points, int num_code_points)
+{
+	String result;
 
-	if (c < 0x80)
-		return String(1, (char)c);
-	else if(c < 0x800)
-		return { char(((c >> 6) & l5) | h2), char((c & l6) | h1) };
-	else if (c < 0x10000)
-		return { char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1) };
-	else if (c < 0x10000)
-		return { char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1) };
+	bool invalid_code_point = false;
 
-	// Invalid code point
-	return String();
+	for (int i = 0; i < num_code_points; i++)
+	{
+		unsigned int c = (unsigned int)code_points[i];
+
+		constexpr int l3 = 0b0000'0111;
+		constexpr int l4 = 0b0000'1111;
+		constexpr int l5 = 0b0001'1111;
+		constexpr int l6 = 0b0011'1111;
+		constexpr int h1 = 0b1000'0000;
+		constexpr int h2 = 0b1100'0000;
+		constexpr int h3 = 0b1110'0000;
+		constexpr int h4 = 0b1111'0000;
+
+		if (c < 0x80)
+			result += (char)c;
+		else if (c < 0x800)
+			result += { char(((c >> 6)& l5) | h2), char((c& l6) | h1) };
+		else if (c < 0x10000)
+			result += { char(((c >> 12)& l4) | h3), char(((c >> 6)& l6) | h1), char((c& l6) | h1) };
+		else if (c <= 0x10FFFF)
+			result += { char(((c >> 18)& l3) | h4), char(((c >> 12)& l6) | h1), char(((c >> 6)& l6) | h1), char((c& l6) | h1) };
+		else
+			invalid_code_point = true;
+	}
+
+	if (invalid_code_point)
+		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
+
+	return result;
 }
 
 // Operators for STL containers using strings.
@@ -521,77 +537,46 @@ static bool UTF8toUCS2(const String& input, WString& output)
 }
 
 // Converts an array of words in UCS-2 encoding into a character array in UTF-8 encoding.
-static bool UCS2toUTF8(const WString& input, String& output)
+static bool UTF16toUTF8(const WString& input, String& output)
 {
-	unsigned char *oc;
-	size_t n;
+	std::vector<CodePoint> code_points;
+	code_points.reserve(input.size());
 
-	output.reserve(input.size());
-	
+	bool valid_input = true;
+	wchar_t w1 = 0;
+
 	const wchar_t* w = input.data();
 	const wchar_t* wlim = w + input.size();
-	
-	//Log::Message(LC_CORE, Log::LT_ALWAYS, "UCS2TOUTF8 size: %d", input_size);
 	for (; w < wlim; w++)
 	{
-		if (__wchar_forbidden(*w) != 0)
-			return false;
-		
-		if (*w == _BOM)
-			continue;
-		
-		//if (*w < 0)
-		//	return false;
-		if (*w <= 0x007f)
-			n = 1;
-		else if (*w <= 0x07ff)
-			n = 2;
-		else //if (*w <= 0x0000ffff)
-			n = 3;
-		/*else if (*w <= 0x001fffff)
-		 n = 4;
-		 else if (*w <= 0x03ffffff)
-		 n = 5;
-		 else // if (*w <= 0x7fffffff)
-		 n = 6;*/
-		
-		// Convert to little endian.
-		wchar_t ch = (*w >> 8) & 0x00FF;
-		ch |= (*w << 8) & 0xFF00;
-		//		word ch = EMPConvertEndian(*w, RMLUI_ENDIAN_BIG);
-		
-		oc = (unsigned char *)&ch;
-		switch (n)
+		if (*w <= 0xD7FF || *w >= 0xE000)
 		{
-			case 1:
-				output += oc[1];
-				break;
-				
-			case 2:
-				output += (_SEQ2 | (oc[1] >> 6) | ((oc[0] & 0x07) << 2));
-				output += (_NXT | (oc[1] & 0x3f));
-				break;
-				
-			case 3:
-				output += (_SEQ3 | ((oc[0] & 0xf0) >> 4));
-				output += (_NXT | (oc[1] >> 6) | ((oc[0] & 0x0f) << 2));
-				output += (_NXT | (oc[1] & 0x3f));
-				break;
-				
-			case 4:
-				break;
-				
-			case 5:
-				break;
-				
-			case 6:
-				break;
+			// Single 16-bit code unit.
+			code_points.push_back((CodePoint)(*w));
 		}
-		
-		//Log::Message(LC_CORE, Log::LT_ALWAYS, "Converting...%c(%d) %d -> %d", *w, *w, w - input, output.size());
+		else 
+		{
+			// Two 16-bit code units.
+			if (!w1 && *w < 0xDC00)
+			{
+				w1 = *w;
+			}
+			else if (w1 && *w >= 0xDC00)
+			{
+				code_points.push_back((CodePoint)(((((unsigned int)w1 & 0x3FF) << 10) | ((unsigned int)(*w) & 0x3FF)) + 0x10000u));
+				w1 = 0;
+			}
+			else
+			{
+				valid_input = false;
+			}
+		}
 	}
-	
-	return true;
+
+	if(code_points.size() > 0)
+		output = StringUtilities::ToUTF8(code_points.data(), (int)code_points.size());
+
+	return valid_input;
 }
 
 StringView::StringView(const char* p_begin, const char* p_end) : p_begin(p_begin), p_end(p_end)

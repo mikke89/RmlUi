@@ -122,6 +122,7 @@ namespace StringUtilities
 
 	RMLUICORE_API CodePoint ToCodePoint(const char* p);
 	RMLUICORE_API String ToUTF8(CodePoint code_point);
+	RMLUICORE_API String ToUTF8(const CodePoint* code_points, int num_code_points);
 
 	inline const char* SeekForwardU8(const char* p, const char* p_end)
 	{
