@@ -30,10 +30,12 @@
 #define RMLUIINPUTWIN32_H
 
 #include <Input.h>
-#if !defined _WIN32_WINNT || _WIN32_WINNT < 0x0500
+#if !defined _WIN32_WINNT || _WIN32_WINNT < 0x0501
 #undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINNT 0x0501
 #endif
+#define UNICODE
+#define _UNICODE
 #include <windows.h>
 
 /**
@@ -50,7 +52,6 @@ public:
 
 	/// Process the Windows message.
 	static void ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_param);
-private:
 };
 
 #endif

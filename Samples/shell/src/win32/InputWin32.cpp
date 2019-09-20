@@ -29,6 +29,7 @@
 #include <win32/InputWin32.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
 
@@ -52,7 +53,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 {
 	if (context == nullptr)
 		return;
-
+	
 	// Process all mouse and keyboard events
 	switch (message)
 	{
@@ -104,15 +105,40 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 		}
 		break;
 
+
 		case WM_CHAR:
 		{
-			// Only send through printable characters.
-			// TODO: Convert utf16 character to codepoint
-			if (w_param >= 32)
-				context->ProcessTextInput((Rml::Core::CodePoint) w_param);
-			// Or endlines - Windows sends them through as carriage returns.
-			else if (w_param == '\r')
-				context->ProcessTextInput((Rml::Core::CodePoint)'\n');
+			static wchar_t two_wide_char_first = 0;
+
+			wchar_t w = (wchar_t)w_param;
+			Rml::Core::CodePoint code_point = (Rml::Core::CodePoint)w;
+
+			// Windows sends two-wide characters as two messages.
+			if (w >= 0xD800 && w < 0xDC00)
+			{
+				// First 16-bit code unit of a two-wide character.
+				two_wide_char_first = w;
+			}
+			else
+			{
+				if (w >= 0xDC00 && w < 0xE000 && two_wide_char_first != 0)
+				{
+					// Second 16-bit code unit of a two-wide character.
+					Rml::Core::String utf8 = Rml::Core::StringUtilities::ToUTF8({ two_wide_char_first, w });
+					code_point = Rml::Core::StringUtilities::ToCodePoint(utf8.data());
+				}
+				else if (w == '\r')
+				{
+					// Windows sends new-lines as carriage returns, convert to endlines.
+					code_point = (Rml::Core::CodePoint)'\n';
+				}
+
+				two_wide_char_first = 0;
+
+				// Only send through printable characters.
+				if ((unsigned int)code_point >= 32 || code_point == (Rml::Core::CodePoint)'\n')
+					context->ProcessTextInput(code_point);
+			}
 		}
 		break;
 

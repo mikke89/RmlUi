@@ -125,7 +125,7 @@ button:focus {
 textarea {
 	font-size: 18px;
 	font-effect: outline(2px #006600);
-	color: #ccc;
+	color: #333;
 	
 }
 </style>

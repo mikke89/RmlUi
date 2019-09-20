@@ -79,19 +79,6 @@ namespace StringUtilities
 	/// @param[in] delimiter Delimiter to insert between the individual values.
 	RMLUICORE_API void JoinString(String& string, const StringList& string_list, const char delimiter = ',');
 
-	/// Converts a string in UTF-8 encoding to a wide string in UTF-16 encoding. The UTF-16 words will
-	/// be encoded as either big- or little-endian, depending on the host processor.
-	/// Reports a warning if the conversion fails.
-	RMLUICORE_API WString ToUTF16(const String& str);
-
-	/// Converts a wide string in UTF-16 encoding into a string in UTF-8 encoding. This
-	/// function assumes the endianness of the input words to be the same as the host processor.
-	/// Reports a warning if the conversion fails.
-	RMLUICORE_API String ToUTF8(const WString& wstr);
-
-	/// Returns number of characters in UTF8 string.
-	RMLUICORE_API size_t LengthU8(StringView string_view);
-
 	/// Converts upper-case characters in string to lower-case.
 	RMLUICORE_API String ToLower(const String& string);
 
@@ -120,22 +107,43 @@ namespace StringUtilities
 		bool operator()(const String& lhs, const String& rhs) const;
 	};
 
+	// Decode the first code point in a zero-terminated UTF-8 string.
 	RMLUICORE_API CodePoint ToCodePoint(const char* p);
+
+	// Encode a single code point as a UTF-8 string.
 	RMLUICORE_API String ToUTF8(CodePoint code_point);
+
+	// Encode an array of code points as a UTF-8 string.
 	RMLUICORE_API String ToUTF8(const CodePoint* code_points, int num_code_points);
 
+	/// Returns number of characters in a UTF-8 string.
+	RMLUICORE_API size_t LengthUTF8(StringView string_view);
+
+	// Seek forward in a UTF-8 string, skipping continuation bytes.
 	inline const char* SeekForwardU8(const char* p, const char* p_end)
 	{
 		while (p != p_end && (*p & 0b1100'0000) == 0b1000'0000)
 			++p;
 		return p;
 	}
+	// Seek backward in a UTF-8 string, skipping continuation bytes.
 	inline const char* SeekBackU8(const char* p, const char* p_begin)
 	{
 		while ((p + 1) != p_begin && (*p & 0b1100'0000) == 0b1000'0000)
 			--p;
 		return p;
 	}
+
+
+	/// Converts a string in UTF-8 encoding to a wide string in UTF-16 encoding. The UTF-16 words will
+	/// be encoded as either big- or little-endian, depending on the host processor.
+	/// Reports a warning if the conversion fails.
+	RMLUICORE_API WString ToUTF16(const String& str);
+
+	/// Converts a wide string in UTF-16 encoding into a string in UTF-8 encoding. This
+	/// function assumes the endianness of the input words to be the same as the host processor.
+	/// Reports a warning if the conversion fails.
+	RMLUICORE_API String ToUTF8(const WString& wstr);
 }
 
 
@@ -182,9 +190,9 @@ public:
 	StringIteratorU8(const String& string, size_t offset);
 	StringIteratorU8(const String& string, size_t offset, size_t count);
 
-	// Seeks forward to the next UTF8 character. Iterator must be valid.
+	// Seeks forward to the next UTF-8 character. Iterator must be valid.
 	StringIteratorU8& operator++();
-	// Seeks back to the previous UTF8 character. Iterator must be valid.
+	// Seeks back to the previous UTF-8 character. Iterator must be valid.
 	StringIteratorU8& operator--();
 
 	// Returns the codepoint at the current position. The iterator must be dereferencable.

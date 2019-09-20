@@ -48,7 +48,7 @@
 namespace Rml {
 namespace Core {
 
-static bool UTF8toUCS2(const String& input, WString& output);
+static bool UTF8toUTF16(const String& input, WString& output);
 static bool UTF16toUTF8(const WString& input, String& output);
 
 
@@ -106,23 +106,21 @@ String StringUtilities::ToLower(const String& string) {
 
 WString StringUtilities::ToUTF16(const String& str)
 {
-	// TODO: Convert to UTF16 instead of UCS2
 	WString result;
-	if (!UTF8toUCS2(str, result))
-		Log::Message(Log::LT_WARNING, "Failed to convert UTF8 string to UTF16.");
+	if (!UTF8toUTF16(str, result))
+		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-8 string to UTF-16.");
 	return result;
 }
 
 String StringUtilities::ToUTF8(const WString& wstr)
 {
-	/// TODO: Convert from UTF-16 instead.
 	String result;
 	if(!UTF16toUTF8(wstr, result))
-		Log::Message(Log::LT_WARNING, "Failed to convert UCS2 string to UTF8.");
+		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-16 string to UTF-8.");
 	return result;
 }
 
-size_t StringUtilities::LengthU8(StringView string_view)
+size_t StringUtilities::LengthUTF8(StringView string_view)
 {
 	const char* const p_end = string_view.end();
 
@@ -392,151 +390,50 @@ bool StringUtilities::StringComparei::operator()(const String& lhs, const String
 }
 
 
-// Defines, helper functions for the UTF8 / UCS2 conversion functions.
-constexpr int _NXT = 0x80;
-constexpr int _SEQ2 = 0xc0;
-constexpr int _SEQ3 = 0xe0;
-constexpr int _SEQ4 = 0xf0;
-constexpr int _SEQ5 = 0xf8;
-constexpr int _SEQ6 = 0xfc;
 
-constexpr int _BOM = 0xfeff;
-	
-static int __wchar_forbidden(unsigned int sym)
-{
-	// Surrogate pairs
-	if (sym >= 0xd800 && sym <= 0xdfff)
-		return -1;
-	
-	return 0;
-}
-
-static int __utf8_forbidden(unsigned char octet)
-{
-	switch (octet)
-	{
-		case 0xc0:
-		case 0xc1:
-		case 0xf5:
-		case 0xff:
-			return -1;
-			
-		default:
-			return 0;
-	}
-}
-
-
-
-// Converts a character array in UTF-8 encoding to a vector of words.
-static bool UTF8toUCS2(const String& input, WString& output)
+// Converts a character array in UTF-8 encoding to a wide string in UTF-16 encoding.
+static bool UTF8toUTF16(const String& input, WString& output)
 {
 	if (input.empty())
 		return true;
 
+	std::vector<CodePoint> code_points;
+	code_points.reserve(input.size());
+
+	for (auto it = StringIteratorU8(input); it; ++it)
+		code_points.push_back(*it);
+
 	output.reserve(input.size());
-	
-	unsigned char* p = (unsigned char*) input.c_str();
-	unsigned char* end = p + input.size();
-	
-	// Skip the UTF-8 byte order marker if it exists.
-	if (input.substr(0, 3) == "\xEF\xBB\xBF")
-		p += 3;
-	
-	int num_bytes;
-	for (; p < end; p += num_bytes)
+
+	bool valid_characters = true;
+
+	for (CodePoint code_point : code_points)
 	{
-		if (__utf8_forbidden(*p) != 0)
-			return false;
-		
-		// Get number of bytes for one wide character.
-		wchar_t high;
-		num_bytes = 1;
-		
-		if ((*p & 0x80) == 0)
+		unsigned int c = (unsigned int)code_point;
+
+		if (c <= 0xD7FF || (c >= 0xE000 && c <= 0xFFFF))
 		{
-			high = (wchar_t)*p;
+			// Single 16-bit code unit.
+			output += (wchar_t)c;
 		}
-		else if ((*p & 0xe0) == _SEQ2)
+		else if (c >= 0x10000 && c <= 0x10FFFF)
 		{
-			num_bytes = 2;
-			high = (wchar_t)(*p & 0x1f);
-		}
-		else if ((*p & 0xf0) == _SEQ3)
-		{
-			num_bytes = 3;
-			high = (wchar_t)(*p & 0x0f);
-		}
-		else if ((*p & 0xf8) == _SEQ4)
-		{
-			num_bytes = 4;
-			high = (wchar_t)(*p & 0x07);
-		}
-		else if ((*p & 0xfc) == _SEQ5)
-		{
-			num_bytes = 5;
-			high = (wchar_t)(*p & 0x03);
-		}
-		else if ((*p & 0xfe) == _SEQ6)
-		{
-			num_bytes = 6;
-			high = (wchar_t)(*p & 0x01);
+			// Encode as two 16-bit code units.
+			unsigned int c_shift = c - 0x10000;
+			wchar_t w1 = (0xD800 | ((c_shift >> 10) & 0x3FF));
+			wchar_t w2 = (0xDC00 | (c_shift & 0x3FF));
+			output += {w1, w2};
 		}
 		else
 		{
-			return false;
+			valid_characters = false;
 		}
-		
-		// Does the sequence header tell us the truth about length?
-		if (end - p <= num_bytes - 1)
-		{
-			return false;
-		}
-		
-		// Validate the sequence. All symbols must have higher bits set to 10xxxxxx.
-		if (num_bytes > 1)
-		{
-			int i;
-			for (i = 1; i < num_bytes; i++)
-			{
-				if ((p[i] & 0b1100'0000) != _NXT)
-					break;
-			}
-			
-			if (i != num_bytes)
-			{
-				return false;
-			}
-		}
-		
-		// Make up a single UCS-4 (32-bit) character from the required number of UTF-8 tokens. The first byte has
-		// been determined earlier, the second and subsequent bytes contribute the first six of their bits into the
-		// final character code.
-		unsigned int ucs4_char = 0;
-		int num_bits = 0;
-		for (int i = 1; i < num_bytes; i++)
-		{
-			ucs4_char |= (wchar_t)(p[num_bytes - i] & 0x3f) << num_bits;
-			num_bits += 6;
-		}
-		ucs4_char |= high << num_bits;
-		
-		// Check for surrogate pairs.
-		if (__wchar_forbidden(ucs4_char) != 0)
-		{
-			return false;
-		}
-		
-		// Only add the character to the output if it exists in the Basic Multilingual Plane (ie, fits in a single
-		// word).
-		if (ucs4_char <= 0xffff)
-			output.push_back((wchar_t) ucs4_char);
 	}
-	
-	return true;
+
+	return valid_characters;
 }
 
-// Converts an array of words in UCS-2 encoding into a character array in UTF-8 encoding.
+// Converts a wide string in UTF-16 encoding into a string in UTF-8 encoding.
 static bool UTF16toUTF8(const WString& input, String& output)
 {
 	std::vector<CodePoint> code_points;
@@ -545,25 +442,23 @@ static bool UTF16toUTF8(const WString& input, String& output)
 	bool valid_input = true;
 	wchar_t w1 = 0;
 
-	const wchar_t* w = input.data();
-	const wchar_t* wlim = w + input.size();
-	for (; w < wlim; w++)
+	for (wchar_t w : input)
 	{
-		if (*w <= 0xD7FF || *w >= 0xE000)
+		if (w <= 0xD7FF || w >= 0xE000)
 		{
 			// Single 16-bit code unit.
-			code_points.push_back((CodePoint)(*w));
+			code_points.push_back((CodePoint)(w));
 		}
 		else 
 		{
 			// Two 16-bit code units.
-			if (!w1 && *w < 0xDC00)
+			if (!w1 && w < 0xDC00)
 			{
-				w1 = *w;
+				w1 = w;
 			}
-			else if (w1 && *w >= 0xDC00)
+			else if (w1 && w >= 0xDC00)
 			{
-				code_points.push_back((CodePoint)(((((unsigned int)w1 & 0x3FF) << 10) | ((unsigned int)(*w) & 0x3FF)) + 0x10000u));
+				code_points.push_back((CodePoint)(((((unsigned int)w1 & 0x3FF) << 10) | ((unsigned int)(w) & 0x3FF)) + 0x10000u));
 				w1 = 0;
 			}
 			else
@@ -580,7 +475,9 @@ static bool UTF16toUTF8(const WString& input, String& output)
 }
 
 StringView::StringView(const char* p_begin, const char* p_end) : p_begin(p_begin), p_end(p_end)
-{}
+{
+	RMLUI_ASSERT(p_end >= p_begin);
+}
 StringView::StringView(const String& string) : p_begin(string.data()), p_end(string.data() + string.size())
 {}
 StringView::StringView(const String& string, size_t offset) : p_begin(string.data()), p_end(string.data() + string.size())

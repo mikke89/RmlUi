@@ -164,7 +164,7 @@ int WidgetTextInput::GetMaxLength() const
 int WidgetTextInput::GetLength() const
 {
 	Core::String value = GetElement()->GetAttribute< Core::String >("value", "");
-	size_t result = Core::StringUtilities::LengthU8(value);
+	size_t result = Core::StringUtilities::LengthUTF8(value);
 	return (int)result;
 }
 
