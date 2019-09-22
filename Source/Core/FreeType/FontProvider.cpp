@@ -118,6 +118,27 @@ bool FontProvider_FreeType::LoadFontFace(const String& file_name, bool fallback_
 	return true;
 }
 
+bool FontProvider_FreeType::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+{
+	const String source = "memory";
+
+	FT_Face ft_face = (FT_Face)instance->LoadFace(data, data_size, source, false);
+	if (ft_face == nullptr)
+	{
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s from memory.", font_family.c_str());
+		return false;
+	}
+
+	if (!instance->AddFace(ft_face, font_family, style, weight, fallback_face, false))
+	{
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s %s (from memory).", ft_face->family_name, ft_face->style_name);
+		return false;
+	}
+
+	Log::Message(Log::LT_INFO, "Loaded font face %s %s (from memory).", ft_face->family_name, ft_face->style_name);
+	return true;
+}
+
 // Adds a loaded face to the appropriate font family.
 bool FontProvider_FreeType::AddFace(void* face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream)
 {

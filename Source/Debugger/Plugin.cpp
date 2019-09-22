@@ -72,6 +72,12 @@ bool Plugin::Initialise(Core::Context* context)
 	host_context = context;
 	Geometry::SetContext(context);
 
+	if (!LoadFont())
+	{
+		Core::Log::Message(Core::Log::LT_ERROR, "Failed to initialise debugger, unable to load font.");
+		return false;
+	}
+
 	if (!LoadMenuElement() ||
 		!LoadInfoElement() ||
 		!LoadLogElement())
@@ -267,6 +273,14 @@ void Plugin::ProcessEvent(Core::Event& event)
 Plugin* Plugin::GetInstance()
 {
 	return instance;
+}
+
+bool Plugin::LoadFont()
+{
+	const Core::String font_family_name = "rmlui-debugger-font";
+
+	return (Core::GetFontEngineInterface()->LoadFontFace(lacuna_regular, sizeof(lacuna_regular) / sizeof(unsigned char), font_family_name, Core::Style::FontStyle::Normal, Core::Style::FontWeight::Normal) &&
+	        Core::GetFontEngineInterface()->LoadFontFace(lacuna_italic, sizeof(lacuna_italic) / sizeof(unsigned char), font_family_name, Core::Style::FontStyle::Italic, Core::Style::FontWeight::Normal));
 }
 
 bool Plugin::LoadMenuElement()

@@ -123,9 +123,12 @@ RMLUICORE_API void SetFileInterface(FileInterface* file_interface);
 /// Returns RmlUi's file interface.
 RMLUICORE_API FileInterface* GetFileInterface();
 
-// Sets the interface through which all font requests are made.
-RMLUICORE_API void SetFontEngineInterface(FontEngineInterface* _font_interface);
-// Returns RmlUi's file interface.
+/// Sets the interface through which all font requests are made. This is not required to be called, but if it is
+/// it must be called before Initialise().
+/// @param[in] font_interface A non-owning pointer to the application-specified font engine interface.
+/// @lifetime The interface must be kept alive until after the call to Core::Shutdown.
+RMLUICORE_API void SetFontEngineInterface(FontEngineInterface* font_interface);
+/// Returns RmlUi's font interface.
 RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
 	
 /// Creates a new element context.

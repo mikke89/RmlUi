@@ -42,6 +42,9 @@ public:
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	bool LoadFontFace(const String& file_name, bool fallback_face) override;
 
+	/// Adds a new font face to the database using the provided family, style and weight.
+	bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face) override;
+
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, NULL will be returned instead of a
 	/// valid handle.

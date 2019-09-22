@@ -53,6 +53,9 @@ public:
 	/// @return True if the face was loaded successfully, false otherwise.
 	static bool LoadFontFace(const String& file_name, bool fallback_face);
 
+	/// Adds a new font face from memory.
+	static bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+
 private:
 	FontProvider_FreeType(void);
 	~FontProvider_FreeType(void);

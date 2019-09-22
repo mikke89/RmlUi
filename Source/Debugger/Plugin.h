@@ -100,6 +100,7 @@ public:
 	static Plugin* GetInstance();
 
 private:
+	bool LoadFont();
 	bool LoadMenuElement();
 	bool LoadInfoElement();
 	bool LoadLogElement();

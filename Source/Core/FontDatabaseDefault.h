@@ -61,6 +61,9 @@ public:
 	/// @return True if the face was loaded successfully, false otherwise.
 	static bool LoadFontFace(const String& file_name, bool fallback_face);
 
+	/// Adds a new font face from memory.
+	static bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
 	/// valid handle.

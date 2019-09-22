@@ -82,6 +82,11 @@ bool FontDatabaseDefault::LoadFontFace(const String& file_name, bool fallback_fa
 	return FontProvider_FreeType::LoadFontFace(file_name, fallback_face);
 }
 
+bool FontDatabaseDefault::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+{
+	return FontProvider_FreeType::LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
+}
+
 // Returns a handle to a font face that can be used to position and render text.
 SharedPtr<FontFaceHandleDefault> FontDatabaseDefault::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {

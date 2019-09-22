@@ -35,24 +35,16 @@ namespace Core {
 
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 
-const String FontProvider::debugger_font_family_name = "rmlui-debugger-font";
-
 // Returns a handle to a font face that can be used to position and render text.
 SharedPtr<FontFaceHandleDefault> FontProvider::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	RMLUI_ASSERTMSG(family == StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
 
-	FontFamilyMap::iterator iterator;
-
-	if (family == debugger_font_family_name)
-		iterator = font_families.begin();
-	else
-		iterator = font_families.find(family);
-
-	if (iterator == font_families.end())
+	auto it = font_families.find(family);
+	if (it == font_families.end())
 		return nullptr;
 
-	return (*iterator).second->GetFaceHandle(style, weight, size);
+	return it->second->GetFaceHandle(style, weight, size);
 }
 
 const FontFaceList& FontProvider::GetFallbackFontFaces() const
