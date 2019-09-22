@@ -120,12 +120,13 @@ button:focus {
 {
 	/*font-family: Noto Emoji;*/
 	font-size: 35px;
+	color: #b33;
 }
 
 textarea {
 	font-size: 18px;
 	font-effect: outline(2px #006600);
-	color: #333;
+	color: #ddd;
 	
 }
 </style>

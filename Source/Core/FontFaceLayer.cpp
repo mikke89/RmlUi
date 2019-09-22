@@ -37,50 +37,36 @@ namespace Core {
 
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 
-FontFaceLayer::FontFaceLayer() : colour(255, 255, 255)
-{}
-
-FontFaceLayer::~FontFaceLayer()
-{
-}
-
-// Generates the character and texture data for the layer.
-bool FontFaceLayer::Initialise(const FontFaceHandleDefault* handle, SharedPtr<const FontEffect> _effect, const FontFaceLayer* clone, bool clone_glyph_origins)
+FontFaceLayer::FontFaceLayer(const SharedPtr<const FontEffect>& _effect) : colour(255, 255, 255)
 {
 	effect = _effect;
 	if (effect)
 		colour = effect->GetColour();
-
-	bool result = GenerateLayout(handle, clone, clone_glyph_origins);
-
-	return result;
 }
 
-bool FontFaceLayer::Regenerate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
+FontFaceLayer::~FontFaceLayer()
+{}
+
+bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
 {
-	// @performance: We could be much smarter about this, e.g. such as adding new glyphs to the existing texture layout and textures.
-	// Right now we re-generate the whole thing, including textures.
+	// Clear the old layout if it exists.
+	{
+		// @performance: We could be much smarter about this, e.g. such as adding new glyphs to the existing texture layout and textures.
+		// Right now we re-generate the whole thing, including textures.
+		for (auto& texture : textures)
+			texture.RemoveDatabaseCache();
 
-	for (auto& texture : textures)
-		texture.RemoveDatabaseCache();
+		texture_layout = TextureLayout{};
+		characters.clear();
+		textures.clear();
+	}
 
-	texture_layout = TextureLayout{};
-	characters.clear();
-	textures.clear();
-
-	bool result = GenerateLayout(handle, clone, clone_glyph_origins);
-
-	return result;
-}
-
-bool FontFaceLayer::GenerateLayout(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
-{
 	const FontGlyphMap& glyphs = handle->GetGlyphs();
 
-	// Clone the geometry and textures from the clone layer.
+	// Generate the new layout.
 	if (clone)
 	{
-		// Copy the cloned layer's characters.
+		// Clone the geometry and textures from the clone layer.
 		characters = clone->characters;
 
 		// Copy the cloned layer's textures.
@@ -182,7 +168,6 @@ bool FontFaceLayer::GenerateLayout(const FontFaceHandleDefault* handle, const Fo
 
 
 	return true;
-	return false;
 }
 
 // Generates the texture data for a layer (for the texture database).
@@ -216,10 +201,10 @@ bool FontFaceLayer::GenerateTexture(const FontGlyphMap& glyphs, UniquePtr<const 
 		if (effect == nullptr)
 		{
 			// Copy the glyph's bitmap data into its allocated texture.
-			if (glyph.bitmap_data != nullptr)
+			if (glyph.bitmap_data)
 			{
 				byte* destination = rectangle.GetTextureData();
-				const byte* source = glyph.bitmap_data.get();
+				const byte* source = glyph.bitmap_data;
 
 				for (int j = 0; j < glyph.bitmap_dimensions.y; ++j)
 				{

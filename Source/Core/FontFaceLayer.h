@@ -53,18 +53,15 @@ class FontFaceHandleDefault;
 class FontFaceLayer
 {
 public:
-	FontFaceLayer();
+	FontFaceLayer(const SharedPtr<const FontEffect>& _effect);
 	~FontFaceLayer();
 
-	/// Generates the character and texture data for the layer.
+	/// Generates or re-generates the character and texture data for the layer.
 	/// @param[in] handle The handle generating this layer.
 	/// @param[in] effect The effect to initialise the layer with.
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
 	/// @return True if the layer was generated successfully, false if not.
-	bool Initialise(const FontFaceHandleDefault* handle, SharedPtr<const FontEffect> effect = {}, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
-
-	/// Clears and re-initalize the font face layer, using the font effect it was first initialized with, such as to add new glyphs to the layer.
-	bool Regenerate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
+	bool Generate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
 
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.
@@ -118,8 +115,6 @@ public:
 	const Colourb& GetColour() const;
 
 private:
-
-	bool GenerateLayout(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins);
 
 
 	struct Character

@@ -115,7 +115,6 @@ int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, GeometryLi
 int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	handle_default->UpdateLayersOnDirty();
 	return handle_default->GetVersion();
 }
 

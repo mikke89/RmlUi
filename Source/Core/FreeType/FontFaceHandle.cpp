@@ -86,7 +86,7 @@ bool FontFaceHandle_FreeType::AppendGlyph(CodePoint code_point)
 	RMLUI_ASSERT(glyphs.find(code_point) == glyphs.end());
 	RMLUI_ASSERT(ft_face);
 
-	// TODO: Why is this needed ??
+	// Set face size again in case it was used at another size in another font face handle.
 	FT_Error error = FT_Set_Char_Size(ft_face, 0, GetMetrics().size << 6, 0, 0);
 	if (error != 0)
 	{
@@ -131,7 +131,8 @@ static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 		glyph.advance = glyph.dimensions.x + 2;
 		glyph.bearing = { 1, glyph.dimensions.y };
 
-		glyph.bitmap_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
+		glyph.bitmap_owned_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
+		glyph.bitmap_data = glyph.bitmap_owned_data.get();
 
 		for (int y = 0; y < glyph.bitmap_dimensions.y; y++)
 		{
@@ -140,7 +141,7 @@ static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 				constexpr int stroke = 1;
 				int i = y * glyph.bitmap_dimensions.x + x;
 				bool near_edge = (x < stroke || x >= glyph.bitmap_dimensions.x - stroke || y < stroke || y >= glyph.bitmap_dimensions.y - stroke);
-				glyph.bitmap_data[i] = (near_edge ? 0xdd : 0);
+				glyph.bitmap_owned_data[i] = (near_edge ? 0xdd : 0);
 			}
 		}
 
@@ -201,15 +202,17 @@ static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyp
 		if (ft_glyph->bitmap.pixel_mode != FT_PIXEL_MODE_MONO &&
 			ft_glyph->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY)
 		{
+			glyph.bitmap_owned_data.reset();
 			glyph.bitmap_data = nullptr;
 			Log::Message(Log::LT_WARNING, "Unable to render glyph on the font face '%s %s'; unsupported pixel mode (%d).", ft_glyph->face->family_name, ft_glyph->face->style_name, ft_glyph->bitmap.pixel_mode);
 		}
 		else
 		{
-			glyph.bitmap_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
+			glyph.bitmap_owned_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
+			glyph.bitmap_data = glyph.bitmap_owned_data.get();
 
 			const byte* source_bitmap = ft_glyph->bitmap.buffer;
-			byte* destination_bitmap = glyph.bitmap_data.get();
+			byte* destination_bitmap = glyph.bitmap_owned_data.get();
 
 			// Copy the bitmap data into the newly-allocated space on our glyph.
 			switch (ft_glyph->bitmap.pixel_mode)
@@ -258,6 +261,7 @@ static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyp
 	}
 	else
 	{
+		glyph.bitmap_owned_data.reset();
 		glyph.bitmap_data = nullptr;
 	}
 

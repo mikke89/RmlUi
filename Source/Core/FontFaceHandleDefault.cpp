@@ -43,7 +43,6 @@ FontFaceHandleDefault::FontFaceHandleDefault()
 {
 	metrics = {};
 	base_layer = nullptr;
-	fallback_face = nullptr;
 }
 
 FontFaceHandleDefault::~FontFaceHandleDefault()
@@ -104,7 +103,7 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, CodePoint prior_
 	{
 		CodePoint code_point = *it_string;
 
-		const FontGlyph* glyph = GetOrAppendGlyph(code_point, nullptr);
+		const FontGlyph* glyph = GetOrAppendGlyph(code_point);
 		if (!glyph)
 			continue;
 
@@ -173,7 +172,7 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 			added_base_layer = true;
 		}
 
-		FontFaceLayer* new_layer = GenerateLayer(font_effects[i]);
+		FontFaceLayer* new_layer = GetOrCreateLayer(font_effects[i]);
 		layer_configuration.push_back(new_layer);
 	}
 
@@ -206,23 +205,13 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 	RMLUI_ASSERT(layer_configuration_index >= 0);
 	RMLUI_ASSERT(layer_configuration_index < (int) layer_configurations.size());
 
+	UpdateLayersOnDirty();
+
 	// Fetch the requested configuration and generate the geometry for each one.
 	const LayerConfiguration& layer_configuration = layer_configurations[layer_configuration_index];
-	for (size_t i = 0; i <= layer_configuration.size(); ++i)
+	for (size_t i = 0; i < layer_configuration.size(); ++i)
 	{
-		FontFaceLayer* layer = nullptr;
-		if (i < layer_configuration.size())
-		{
-			layer = layer_configuration[i];
-		}
-		else if (fallback_face)
-		{
-			fallback_face->UpdateLayersOnDirty();
-			layer = fallback_face->base_layer;
-		}
-
-		if (!layer)
-			continue;
+		FontFaceLayer* layer = layer_configuration[i];
 
 		Colourb layer_colour;
 		if (layer == base_layer)
@@ -249,7 +238,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 		for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 		{
 			CodePoint code_point = *it_string;
-			bool located_in_fallback_font = false;
+			bool located_in_fallback_font = false; // TODO
 
 			const FontGlyph* glyph = GetOrAppendGlyph(code_point, &located_in_fallback_font);
 			if (!glyph)
@@ -259,10 +248,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			if (prior_character != CodePoint::Null)
 				line_width += GetKerning(prior_character, code_point);
 
-			if(!fallback_face || (located_in_fallback_font == (layer == fallback_face->base_layer)))
-			{
-				layer->GenerateGeometry(&geometry[geometry_index], code_point, Vector2f(position.x + line_width, position.y), layer_colour);
-			}
+			layer->GenerateGeometry(&geometry[geometry_index], code_point, Vector2f(position.x + line_width, position.y), layer_colour);
 
 			line_width += glyph->advance;
 			prior_character = code_point;
@@ -279,57 +265,22 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 
 bool FontFaceHandleDefault::UpdateLayersOnDirty()
 {
-	bool result = is_layers_dirty;
+	bool result = false;
 
-	if(is_layers_dirty)
+	// If we are dirty, regenerate all the layers and increment the version
+	if(is_layers_dirty && base_layer)
 	{
 		is_layers_dirty = false;
 		++version;
 
-		// If we are dirty, regenerate the base layer and increment the version
-		if (base_layer)
+		// Regenerate all the layers
+		for (auto& pair : layers)
 		{
-			// Regenerate all the layers
-			// TODO: The following is almost a copy-paste of GenerateLayer.
-
-			for (auto& pair : layers)
-			{
-				const FontEffect* font_effect = pair.first;
-				FontFaceLayer* layer = pair.second.get();
-
-				if (!font_effect)
-				{
-					layer->Regenerate(this);
-				}
-				else
-				{
-					// Determine which, if any, layer the new layer should copy its geometry and textures from.
-					FontFaceLayer* clone = nullptr;
-					bool clone_glyph_origins = true;
-					String generation_key;
-					size_t fingerprint = font_effect->GetFingerprint();
-
-					if (!font_effect->HasUniqueTexture())
-					{
-						clone = base_layer;
-						clone_glyph_origins = false;
-					}
-					else
-					{
-						auto cache_iterator = layer_cache.find(fingerprint);
-						if (cache_iterator != layer_cache.end() && cache_iterator->second != layer)
-							clone = cache_iterator->second;
-					}
-
-					// Create a new layer.
-					layer->Regenerate(this, clone, clone_glyph_origins);
-
-					// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
-					if (!clone)
-						layer_cache[fingerprint] = layer;
-				}
-			}
+			FontFaceLayer* layer = pair.second.get();
+			GenerateLayer(layer);
 		}
+
+		result = true;
 	}
 
 	return result;
@@ -350,16 +301,13 @@ FontMetrics& FontFaceHandleDefault::GetMetrics() {
 
 void FontFaceHandleDefault::GenerateBaseLayer()
 {
-	RMLUI_ASSERTMSG(layer_configurations.empty(), "This should only be called before any layers are generated.");
-	base_layer = GenerateLayer(nullptr);
+	RMLUI_ASSERTMSG(layer_configurations.empty(), "GenerateBaseLayer should only be called before any layers are generated.");
+	base_layer = GetOrCreateLayer(nullptr);
 	layer_configurations.push_back(LayerConfiguration{ base_layer });
 }
 
-const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, bool* located_in_fallback_font, bool look_in_fallback_fonts)
+const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, bool look_in_fallback_fonts)
 {
-	if (located_in_fallback_font)
-		*located_in_fallback_font = false;
-
 	// Don't try to render control characters
 	if ((unsigned int)code_point < (unsigned int)' ')
 		return nullptr;
@@ -382,33 +330,33 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, 
 		}
 		else if (look_in_fallback_fonts)
 		{
-			if (!fallback_face)
+			const int num_fallback_faces = FontDatabaseDefault::CountFallbackFontFaces();
+			for (int i = 0; i < num_fallback_faces; i++)
 			{
-				// TODO: Only support for single fallback face
-				fallback_face = FontDatabaseDefault::GetFallbackFontFace(0, metrics.size).get();
+				FontFaceHandleDefault* fallback_face = FontDatabaseDefault::GetFallbackFontFace(i, metrics.size).get();
 				if (fallback_face == this)
-					fallback_face = nullptr;
-			}
+					continue;
 
-			if (fallback_face)
-			{
-				const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(code_point, nullptr, false);
+				const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(code_point, false);
 				if (glyph)
 				{
-					//is_layers_dirty = true;
-					//++version;
-
-					if (located_in_fallback_font)
-						*located_in_fallback_font = true;
-
-					return glyph;
+					// Insert the new glyph into our own set of glyphs
+					auto pair = glyphs.emplace(code_point, glyph->WeakCopy());
+					it_glyph = pair.first;
+					if(pair.second)
+						is_layers_dirty = true;
+					break;
 				}
 			}
 
-			code_point = CodePoint::Replacement;
-			it_glyph = glyphs.find(code_point);
-			if (it_glyph == glyphs.end())
-				return nullptr;
+			// If we still have not found a glyph, use the replacement character.
+			if(it_glyph == glyphs.end())
+			{
+				code_point = CodePoint::Replacement;
+				it_glyph = glyphs.find(code_point);
+				if (it_glyph == glyphs.end())
+					return nullptr;
+			}
 		}
 		else
 		{
@@ -421,19 +369,33 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, 
 }
 
 // Generates (or shares) a layer derived from a font effect.
-FontFaceLayer* FontFaceHandleDefault::GenerateLayer(const SharedPtr<const FontEffect>& font_effect)
+FontFaceLayer* FontFaceHandleDefault::GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect)
 {
-	// See if this effect has been instanced before, as part of a different configuration.
-	FontLayerMap::iterator i = layers.find(font_effect.get());
-	if (i != layers.end())
-		return i->second.get();
+	// Try inserting the font effect, it may have been instanced before as part of a different configuration.
+	auto pair = layers.emplace(font_effect.get(), nullptr);
 
-	auto& layer = layers[font_effect.get()];
-	layer = std::make_unique<FontFaceLayer>();
+	bool inserted = pair.second;
+	auto& layer = pair.first->second;
+
+	if (!inserted)
+		return layer.get();
+
+	// The new effect was inserted, generate a new layer.
+	layer = std::make_unique<FontFaceLayer>(font_effect);
+	GenerateLayer(layer.get());
+
+	return layer.get();
+}
+
+bool FontFaceHandleDefault::GenerateLayer(FontFaceLayer* layer)
+{
+	RMLUI_ASSERT(layer);
+	const FontEffect* font_effect = layer->GetFontEffect();
+	bool result = false;
 
 	if (!font_effect)
 	{
-		layer->Initialise(this);
+		result = layer->Generate(this, nullptr, false);
 	}
 	else
 	{
@@ -451,19 +413,19 @@ FontFaceLayer* FontFaceHandleDefault::GenerateLayer(const SharedPtr<const FontEf
 		else
 		{
 			auto cache_iterator = layer_cache.find(fingerprint);
-			if (cache_iterator != layer_cache.end())
+			if (cache_iterator != layer_cache.end() && cache_iterator->second != layer)
 				clone = cache_iterator->second;
 		}
 
 		// Create a new layer.
-		layer->Initialise(this, font_effect, clone, clone_glyph_origins);
+		result = layer->Generate(this, clone, clone_glyph_origins);
 
 		// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
 		if (!clone)
-			layer_cache[fingerprint] = layer.get();
+			layer_cache[fingerprint] = layer;
 	}
 
-	return layer.get();
+	return result;
 }
 
 #endif

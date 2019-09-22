@@ -117,7 +117,6 @@ public:
 	/// @return The width, in pixels, of the string geometry.
 	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0);
 
-	bool UpdateLayersOnDirty();
 
 	int GetVersion() const;
 
@@ -135,10 +134,16 @@ protected:
 
 private:
 
-	// Note: can modify code_point to change character to e.g. replacement character.
-	const FontGlyph* GetOrAppendGlyph(CodePoint& code_point, bool* located_in_fallback_font, bool look_in_fallback_fonts = true);
+	bool UpdateLayersOnDirty();
 
-	FontFaceLayer* GenerateLayer(const SharedPtr<const FontEffect>& font_effect);
+	// Note: can modify code_point to change character to e.g. replacement character.
+	const FontGlyph* GetOrAppendGlyph(CodePoint& code_point, bool look_in_fallback_fonts = true);
+
+	// Create a new layer from the given font effect if it does not already exist.
+	FontFaceLayer* GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect);
+
+	// (Re-)generate a layer in this font face handle.
+	bool GenerateLayer(FontFaceLayer* layer);
 
 	FontGlyphMap glyphs;
 
@@ -152,7 +157,6 @@ private:
 	FontLayerMap layers;
 	// Each font layer that generated geometry or textures, indexed by the respective generation key.
 	FontLayerCache layer_cache;
-	FontFaceHandleDefault* fallback_face;
 
 	int version = 0;
 	bool is_layers_dirty = false;
