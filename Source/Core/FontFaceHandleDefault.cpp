@@ -238,9 +238,8 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 		for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 		{
 			CodePoint code_point = *it_string;
-			bool located_in_fallback_font = false; // TODO
 
-			const FontGlyph* glyph = GetOrAppendGlyph(code_point, &located_in_fallback_font);
+			const FontGlyph* glyph = GetOrAppendGlyph(code_point);
 			if (!glyph)
 				continue;
 
@@ -334,7 +333,7 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, 
 			for (int i = 0; i < num_fallback_faces; i++)
 			{
 				FontFaceHandleDefault* fallback_face = FontDatabaseDefault::GetFallbackFontFace(i, metrics.size).get();
-				if (fallback_face == this)
+				if (!fallback_face || fallback_face == this)
 					continue;
 
 				const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(code_point, false);
@@ -395,7 +394,7 @@ bool FontFaceHandleDefault::GenerateLayer(FontFaceLayer* layer)
 
 	if (!font_effect)
 	{
-		result = layer->Generate(this, nullptr, false);
+		result = layer->Generate(this);
 	}
 	else
 	{

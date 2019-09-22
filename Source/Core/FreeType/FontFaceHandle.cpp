@@ -105,20 +105,12 @@ static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
 {
 	glyphs.reserve(128);
 
-	// Add the ASCII character set
-	// TODO: only ASCII range for now
+	// Add the ASCII character set now. Other characters are added later as needed.
 	FT_ULong code_min = 32;
 	FT_ULong code_max = 126;
 
 	for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
 		BuildGlyph(ft_face, (CodePoint)character_code, glyphs);
-
-	// Add some widebyte characters (in UTF-8) for testing. TODO: Remove!
-	BuildGlyph(ft_face, (CodePoint)0xe5, glyphs); // 'å'
-	BuildGlyph(ft_face, (CodePoint)0xe6, glyphs); // 'æ'
-	BuildGlyph(ft_face, (CodePoint)0xf8, glyphs); // 'ø'
-	BuildGlyph(ft_face, (CodePoint)0x221e, glyphs); // '∞'
-	BuildGlyph(ft_face, (CodePoint)0x1f60d, glyphs); // '😍'
 
 	// Add a replacement character for rendering unknown characters.
 	CodePoint replacement_character = CodePoint::Replacement;

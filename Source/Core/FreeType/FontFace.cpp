@@ -65,6 +65,7 @@ SharedPtr<Rml::Core::FontFaceHandleDefault> FontFace_FreeType::GetHandle(int siz
 	auto handle = std::make_shared<FontFaceHandle_FreeType>();
 	if (!handle->Initialise(face, size))
 	{
+		handles[size] = nullptr;
 		return nullptr;
 	}
 

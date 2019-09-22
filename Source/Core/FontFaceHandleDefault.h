@@ -117,7 +117,7 @@ public:
 	/// @return The width, in pixels, of the string geometry.
 	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0);
 
-
+	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;
 
 protected:
@@ -134,10 +134,14 @@ protected:
 
 private:
 
-	bool UpdateLayersOnDirty();
-
-	// Note: can modify code_point to change character to e.g. replacement character.
+	/// Retrieve a glyph from the given code point, building and appending a new glyph if not already built.
+	/// @param[in-out] code_point  The code point, can be changed e.g. to the replacement character if no glyph is found.
+	/// @param[in] look_in_fallback_fonts  Look for the glyph in fallback fonts if not found locally, adding it to our glyphs.
+	/// @return The font glyph for the returned code point.
 	const FontGlyph* GetOrAppendGlyph(CodePoint& code_point, bool look_in_fallback_fonts = true);
+
+	// Regenerate layers if dirty, such as after adding new glyphs.
+	bool UpdateLayersOnDirty();
 
 	// Create a new layer from the given font effect if it does not already exist.
 	FontFaceLayer* GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect);

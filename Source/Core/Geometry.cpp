@@ -84,7 +84,6 @@ void Geometry::Render(const Vector2f& translation)
 	// Render our compiled geometry if possible.
 	if (compiled_geometry)
 	{
-		// TODO: We may need to update the compiled geometry somehow when we update our texture.
 		RMLUI_ZoneScopedN("RenderCompiled");
 		render_interface->RenderCompiledGeometry(compiled_geometry, translation);
 	}

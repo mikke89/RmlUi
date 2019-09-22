@@ -41,9 +41,6 @@ class TextureResource;
 	@author Peter Curry
  */
 
-
- // TODO: Make us release internal textures when no longer in use: especially w.r.t. font textures.
-
 class TextureDatabase
 {
 public:
