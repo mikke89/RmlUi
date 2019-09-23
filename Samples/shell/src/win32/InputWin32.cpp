@@ -108,32 +108,32 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 
 		case WM_CHAR:
 		{
-			static wchar_t two_wide_char_first = 0;
+			static char16_t first_u16_code_unit = 0;
 
-			wchar_t w = (wchar_t)w_param;
-			Rml::Core::CodePoint code_point = (Rml::Core::CodePoint)w;
+			char16_t c = (char16_t)w_param;
+			Rml::Core::CodePoint code_point = (Rml::Core::CodePoint)c;
 
 			// Windows sends two-wide characters as two messages.
-			if (w >= 0xD800 && w < 0xDC00)
+			if (c >= 0xD800 && c < 0xDC00)
 			{
 				// First 16-bit code unit of a two-wide character.
-				two_wide_char_first = w;
+				first_u16_code_unit = c;
 			}
 			else
 			{
-				if (w >= 0xDC00 && w < 0xE000 && two_wide_char_first != 0)
+				if (c >= 0xDC00 && c < 0xE000 && first_u16_code_unit != 0)
 				{
 					// Second 16-bit code unit of a two-wide character.
-					Rml::Core::String utf8 = Rml::Core::StringUtilities::ToUTF8({ two_wide_char_first, w });
+					Rml::Core::String utf8 = Rml::Core::StringUtilities::ToUTF8({ first_u16_code_unit, c });
 					code_point = Rml::Core::StringUtilities::ToCodePoint(utf8.data());
 				}
-				else if (w == '\r')
+				else if (c == '\r')
 				{
 					// Windows sends new-lines as carriage returns, convert to endlines.
 					code_point = (Rml::Core::CodePoint)'\n';
 				}
 
-				two_wide_char_first = 0;
+				first_u16_code_unit = 0;
 
 				// Only send through printable characters.
 				if ((unsigned int)code_point >= 32 || code_point == (Rml::Core::CodePoint)'\n')

@@ -88,8 +88,6 @@ namespace StringUtilities
 	RMLUICORE_API String Replace(String subject, char search, char replace);
 
 	/// Checks if a given value is a whitespace character.
-	/// @param[in] x The character to evaluate.
-	/// @return True if the character is whitespace, false otherwise.
 	template < typename CharacterType >
 	inline bool IsWhitespace(CharacterType x)
 	{
@@ -97,8 +95,6 @@ namespace StringUtilities
 	}
 
 	/// Strip whitespace characters from the beginning and end of a string.
-	/// @param[in] string The string to trim.
-	/// @return The stripped string.
 	RMLUICORE_API String StripWhitespace(const String& string);
 
 	/// Operator for STL containers using strings.
@@ -120,14 +116,14 @@ namespace StringUtilities
 	RMLUICORE_API size_t LengthUTF8(StringView string_view);
 
 	// Seek forward in a UTF-8 string, skipping continuation bytes.
-	inline const char* SeekForwardU8(const char* p, const char* p_end)
+	inline const char* SeekForwardUTF8(const char* p, const char* p_end)
 	{
 		while (p != p_end && (*p & 0b1100'0000) == 0b1000'0000)
 			++p;
 		return p;
 	}
 	// Seek backward in a UTF-8 string, skipping continuation bytes.
-	inline const char* SeekBackU8(const char* p, const char* p_begin)
+	inline const char* SeekBackwardUTF8(const char* p, const char* p_begin)
 	{
 		while ((p + 1) != p_begin && (*p & 0b1100'0000) == 0b1000'0000)
 			--p;
@@ -135,15 +131,13 @@ namespace StringUtilities
 	}
 
 
-	/// Converts a string in UTF-8 encoding to a wide string in UTF-16 encoding. The UTF-16 words will
-	/// be encoded as either big- or little-endian, depending on the host processor.
-	/// Reports a warning if the conversion fails.
-	RMLUICORE_API WString ToUTF16(const String& str);
+	/// Converts a string in UTF-8 encoding to a u16string in UTF-16 encoding.
+	/// Reports a warning if some or all characters could not be converted.
+	RMLUICORE_API U16String ToUTF16(const String& str);
 
-	/// Converts a wide string in UTF-16 encoding into a string in UTF-8 encoding. This
-	/// function assumes the endianness of the input words to be the same as the host processor.
-	/// Reports a warning if the conversion fails.
-	RMLUICORE_API String ToUTF8(const WString& wstr);
+	/// Converts a u16string in UTF-16 encoding into a string in UTF-8 encoding.
+	/// Reports a warning if some or all characters could not be converted.
+	RMLUICORE_API String ToUTF8(const U16String& u16str);
 }
 
 

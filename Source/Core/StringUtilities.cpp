@@ -48,9 +48,6 @@
 namespace Rml {
 namespace Core {
 
-static bool UTF8toUTF16(const String& input, WString& output);
-static bool UTF16toUTF8(const WString& input, String& output);
-
 
 static int FormatString(String& string, size_t max_size, const char* format, va_list argument_list)
 {
@@ -102,41 +99,6 @@ String StringUtilities::ToLower(const String& string) {
 	String str_lower = string;
 	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), ::tolower);
 	return str_lower;
-}
-
-WString StringUtilities::ToUTF16(const String& str)
-{
-	WString result;
-	if (!UTF8toUTF16(str, result))
-		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-8 string to UTF-16.");
-	return result;
-}
-
-String StringUtilities::ToUTF8(const WString& wstr)
-{
-	String result;
-	if(!UTF16toUTF8(wstr, result))
-		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-16 string to UTF-8.");
-	return result;
-}
-
-size_t StringUtilities::LengthUTF8(StringView string_view)
-{
-	const char* const p_end = string_view.end();
-
-	// Skip any continuation bytes at the beginning
-	const char* p = string_view.begin();
-
-	size_t num_continuation_bytes = 0;
-
-	while (p != p_end)
-	{
-		if ((*p & 0b1100'0000) == 0b1000'0000)
-			++num_continuation_bytes;
-		++p;
-	}
-
-	return string_view.size() - num_continuation_bytes;
 }
 
 String StringUtilities::Replace(String subject, const String& search, const String& replace)
@@ -264,7 +226,6 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 		string_list.emplace_back(start_ptr, end_ptr + 1);
 }
 
-
 // Joins a list of string values into a single string separated by a character delimiter.
 void StringUtilities::JoinString(String& string, const StringList& string_list, const char delimiter)
 {
@@ -275,8 +236,6 @@ void StringUtilities::JoinString(String& string, const StringList& string_list, 
 			string += delimiter;
 	}
 }
-
-
 
 // Strip whitespace characters from the beginning and end of a string.
 String StringUtilities::StripWhitespace(const String& string)
@@ -295,6 +254,13 @@ String StringUtilities::StripWhitespace(const String& string)
 
 	return String();
 }
+
+// Operators for STL containers using strings.
+bool StringUtilities::StringComparei::operator()(const String& lhs, const String& rhs) const
+{
+	return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+}
+
 
 CodePoint StringUtilities::ToCodePoint(const char* p)
 {
@@ -349,12 +315,13 @@ String StringUtilities::ToUTF8(CodePoint code_point)
 String StringUtilities::ToUTF8(const CodePoint* code_points, int num_code_points)
 {
 	String result;
+	result.reserve(num_code_points);
 
 	bool invalid_code_point = false;
 
 	for (int i = 0; i < num_code_points; i++)
 	{
-		unsigned int c = (unsigned int)code_points[i];
+		char32_t c = (char32_t)code_points[i];
 
 		constexpr int l3 = 0b0000'0111;
 		constexpr int l4 = 0b0000'1111;
@@ -368,11 +335,11 @@ String StringUtilities::ToUTF8(const CodePoint* code_points, int num_code_points
 		if (c < 0x80)
 			result += (char)c;
 		else if (c < 0x800)
-			result += { char(((c >> 6)& l5) | h2), char((c& l6) | h1) };
+			result += { char(((c >> 6) & l5) | h2), char((c & l6) | h1) };
 		else if (c < 0x10000)
-			result += { char(((c >> 12)& l4) | h3), char(((c >> 6)& l6) | h1), char((c& l6) | h1) };
+			result += { char(((c >> 12) & l4) | h3), char(((c >> 6) & l6) | h1), char((c & l6) | h1) };
 		else if (c <= 0x10FFFF)
-			result += { char(((c >> 18)& l3) | h4), char(((c >> 12)& l6) | h1), char(((c >> 6)& l6) | h1), char((c& l6) | h1) };
+			result += { char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1) };
 		else
 			invalid_code_point = true;
 	}
@@ -383,19 +350,32 @@ String StringUtilities::ToUTF8(const CodePoint* code_points, int num_code_points
 	return result;
 }
 
-// Operators for STL containers using strings.
-bool StringUtilities::StringComparei::operator()(const String& lhs, const String& rhs) const
+
+size_t StringUtilities::LengthUTF8(StringView string_view)
 {
-	return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+	const char* const p_end = string_view.end();
+
+	// Skip any continuation bytes at the beginning
+	const char* p = string_view.begin();
+
+	size_t num_continuation_bytes = 0;
+
+	while (p != p_end)
+	{
+		if ((*p & 0b1100'0000) == 0b1000'0000)
+			++num_continuation_bytes;
+		++p;
+	}
+
+	return string_view.size() - num_continuation_bytes;
 }
 
-
-
-// Converts a character array in UTF-8 encoding to a wide string in UTF-16 encoding.
-static bool UTF8toUTF16(const String& input, WString& output)
+U16String StringUtilities::ToUTF16(const String& input)
 {
+	U16String result;
+
 	if (input.empty())
-		return true;
+		return result;
 
 	std::vector<CodePoint> code_points;
 	code_points.reserve(input.size());
@@ -403,26 +383,26 @@ static bool UTF8toUTF16(const String& input, WString& output)
 	for (auto it = StringIteratorU8(input); it; ++it)
 		code_points.push_back(*it);
 
-	output.reserve(input.size());
+	result.reserve(input.size());
 
 	bool valid_characters = true;
 
 	for (CodePoint code_point : code_points)
 	{
-		unsigned int c = (unsigned int)code_point;
+		char32_t c = (char32_t)code_point;
 
 		if (c <= 0xD7FF || (c >= 0xE000 && c <= 0xFFFF))
 		{
 			// Single 16-bit code unit.
-			output += (wchar_t)c;
+			result += (char16_t)c;
 		}
 		else if (c >= 0x10000 && c <= 0x10FFFF)
 		{
 			// Encode as two 16-bit code units.
-			unsigned int c_shift = c - 0x10000;
-			wchar_t w1 = (0xD800 | ((c_shift >> 10) & 0x3FF));
-			wchar_t w2 = (0xDC00 | (c_shift & 0x3FF));
-			output += {w1, w2};
+			char32_t c_shift = c - 0x10000;
+			char16_t w1 = (0xD800 | ((c_shift >> 10) & 0x3FF));
+			char16_t w2 = (0xDC00 | (c_shift & 0x3FF));
+			result += {w1, w2};
 		}
 		else
 		{
@@ -430,26 +410,28 @@ static bool UTF8toUTF16(const String& input, WString& output)
 		}
 	}
 
-	return valid_characters;
+	if (!valid_characters)
+		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-8 string to UTF-16.");
+
+	return result;
 }
 
-// Converts a wide string in UTF-16 encoding into a string in UTF-8 encoding.
-static bool UTF16toUTF8(const WString& input, String& output)
+String StringUtilities::ToUTF8(const U16String& input)
 {
 	std::vector<CodePoint> code_points;
 	code_points.reserve(input.size());
 
 	bool valid_input = true;
-	wchar_t w1 = 0;
+	char16_t w1 = 0;
 
-	for (wchar_t w : input)
+	for (char16_t w : input)
 	{
 		if (w <= 0xD7FF || w >= 0xE000)
 		{
 			// Single 16-bit code unit.
 			code_points.push_back((CodePoint)(w));
 		}
-		else 
+		else
 		{
 			// Two 16-bit code units.
 			if (!w1 && w < 0xDC00)
@@ -458,7 +440,7 @@ static bool UTF16toUTF8(const WString& input, String& output)
 			}
 			else if (w1 && w >= 0xDC00)
 			{
-				code_points.push_back((CodePoint)(((((unsigned int)w1 & 0x3FF) << 10) | ((unsigned int)(w) & 0x3FF)) + 0x10000u));
+				code_points.push_back((CodePoint)(((((char32_t)w1 & 0x3FF) << 10) | ((char32_t)(w) & 0x3FF)) + 0x10000u));
 				w1 = 0;
 			}
 			else
@@ -468,11 +450,17 @@ static bool UTF16toUTF8(const WString& input, String& output)
 		}
 	}
 
-	if(code_points.size() > 0)
-		output = StringUtilities::ToUTF8(code_points.data(), (int)code_points.size());
+	String result;
 
-	return valid_input;
+	if (code_points.size() > 0)
+		result = StringUtilities::ToUTF8(code_points.data(), (int)code_points.size());
+
+	if (!valid_input)
+		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-16 string to UTF-8.");
+
+	return result;
 }
+
 
 StringView::StringView(const char* p_begin, const char* p_end) : p_begin(p_begin), p_end(p_end)
 {
@@ -520,11 +508,11 @@ StringIteratorU8& StringIteratorU8::operator--() {
 	return *this;
 }
 inline void StringIteratorU8::SeekBack() {
-	p = StringUtilities::SeekBackU8(p, view.end());
+	p = StringUtilities::SeekBackwardUTF8(p, view.end());
 }
 
 inline void StringIteratorU8::SeekForward() {
-	p = StringUtilities::SeekForwardU8(p, view.end());
+	p = StringUtilities::SeekForwardUTF8(p, view.end());
 }
 
 }

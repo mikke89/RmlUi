@@ -37,7 +37,7 @@ static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM
 
 static bool activated = true;
 static bool running = false;
-static Rml::Core::WString instance_name;
+static Rml::Core::U16String instance_name;
 static HWND window_handle = nullptr;
 static HINSTANCE instance_handle = nullptr;
 
@@ -107,7 +107,7 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 {
 	WNDCLASSW window_class;
 
-	Rml::Core::WString name = Rml::Core::StringUtilities::ToUTF16(Rml::Core::String(in_name));
+	Rml::Core::U16String name = Rml::Core::StringUtilities::ToUTF16(Rml::Core::String(in_name));
 
 	// Fill out the window class struct.
 	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -119,7 +119,7 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 	window_class.hCursor = cursor_default;
 	window_class.hbrBackground = nullptr;
 	window_class.lpszMenuName = nullptr;
-	window_class.lpszClassName = name.data();
+	window_class.lpszClassName = (LPCWSTR)name.data();
 
 	if (!RegisterClassW(&window_class))
 	{
@@ -130,8 +130,8 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 	}
 
 	window_handle = CreateWindowExW(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-								   name.data(),	// Window class name.
-								   name.data(),
+								   (LPCWSTR)name.data(),	// Window class name.
+								   (LPCWSTR)name.data(),
 								   WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW,
 								   0, 0,	// Window position.
 								   width, height,// Window size.
@@ -191,7 +191,7 @@ void Shell::CloseWindow()
 	}
 
 	DestroyWindow(window_handle);  
-	UnregisterClassW(instance_name.data(), instance_handle);
+	UnregisterClassW((LPCWSTR)instance_name.data(), instance_handle);
 }
 
 // Returns a platform-dependent handle to the window.
@@ -242,7 +242,7 @@ void Shell::DisplayError(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	MessageBox(window_handle, Rml::Core::StringUtilities::ToUTF16(buffer).c_str(), L"Shell Error", MB_OK);
+	MessageBox(window_handle, (LPCWSTR)Rml::Core::StringUtilities::ToUTF16(buffer).c_str(), L"Shell Error", MB_OK);
 }
 
 void Shell::Log(const char* fmt, ...)
@@ -262,7 +262,7 @@ void Shell::Log(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	OutputDebugString(Rml::Core::StringUtilities::ToUTF16(buffer).c_str());
+	OutputDebugString((LPCWSTR)Rml::Core::StringUtilities::ToUTF16(buffer).c_str());
 }
 
 double Shell::GetElapsedTime() 
@@ -304,9 +304,9 @@ void Shell::SetClipboardText(const Rml::Core::String& text_utf8)
 
 		EmptyClipboard();
 
-		const Rml::Core::WString text = Rml::Core::StringUtilities::ToUTF16(text_utf8);
+		const Rml::Core::U16String text = Rml::Core::StringUtilities::ToUTF16(text_utf8);
 
-		size_t size = sizeof(wchar_t) * (text.size() + 1);
+		size_t size = sizeof(char16_t) * (text.size() + 1);
 
 		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, size);
 		memcpy(clipboard_data, text.data(), size);
@@ -335,7 +335,7 @@ void Shell::GetClipboardText(Rml::Core::String& text)
 			return;
 		}
 
-		const wchar_t* clipboard_text = (const wchar_t*)GlobalLock(clipboard_data);
+		const char16_t* clipboard_text = (const char16_t*)GlobalLock(clipboard_data);
 		if (clipboard_text)
 			text = Rml::Core::StringUtilities::ToUTF8(clipboard_text);
 		GlobalUnlock(clipboard_data);

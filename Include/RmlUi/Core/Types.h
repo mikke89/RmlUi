@@ -60,16 +60,10 @@ namespace Core {
 typedef unsigned char byte;
 typedef double Time;
 typedef void* ScriptObject;
-enum class CodePoint : unsigned int { Null, Replacement = 0xfffd };
+enum class CodePoint : char32_t { Null, Replacement = 0xfffd };
 
 }
 }
-
-#ifdef RMLUI_PLATFORM_WIN32
-typedef unsigned __int64 uint64_t;
-#else
-#include <inttypes.h>
-#endif
 
 #include "Colour.h"
 #include "Vector2.h"
@@ -122,8 +116,8 @@ using FontFaceHandle = uintptr_t;
 
 // Strings
 using String = std::string;
-using WString = std::wstring;
 using StringList = std::vector< String >;
+using U16String = std::u16string;
 
 // Smart pointer types
 template<typename T>

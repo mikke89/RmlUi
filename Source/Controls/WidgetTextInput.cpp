@@ -654,9 +654,9 @@ void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
 	const char* p = p_cursor;
 
 	if (forward)
-		p = Core::StringUtilities::SeekForwardU8(p_cursor, p_line_end);
+		p = Core::StringUtilities::SeekForwardUTF8(p_cursor, p_line_end);
 	else
-		p = Core::StringUtilities::SeekBackU8(p_cursor, p_line_begin);
+		p = Core::StringUtilities::SeekBackwardUTF8(p_cursor, p_line_begin);
 
 	if (p != p_cursor)
 	{

@@ -223,7 +223,7 @@ bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& lin
 		const char* next_token_begin = token_begin;
 		CodePoint previous_codepoint = CodePoint::Null;
 		if (!line.empty())
-			previous_codepoint = StringUtilities::ToCodePoint(StringUtilities::SeekBackU8(&line.back(), line.data()));
+			previous_codepoint = StringUtilities::ToCodePoint(StringUtilities::SeekBackwardUTF8(&line.back(), line.data()));
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
