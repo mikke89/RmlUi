@@ -154,6 +154,21 @@ RMLUICORE_API Context* GetContext(int index);
 /// @return The total number of active RmlUi contexts.
 RMLUICORE_API int GetNumContexts();
 
+/// Adds a new font face to the font engine. The face's family, style and weight will be determined from the face itself.
+/// @param[in] file_name The file to load the face from.
+/// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
+/// @return True if the face was loaded successfully, false otherwise.
+RMLUICORE_API bool LoadFontFace(const String& file_name, bool fallback_face = false);
+/// Adds a new font face from memory to the font engine. The face's family, style and weight is given by the parameters.
+/// @param[in] data A pointer to the data.
+/// @param[in] data_size Size of the data in bytes.
+/// @param[in] family The family to register the font as.
+/// @param[in] style The style to register the font as.
+/// @param[in] weight The weight to register the font as.
+/// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
+/// @return True if the face was loaded successfully, false otherwise.
+RMLUICORE_API bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face = false);
+
 /// Registers a generic RmlUi plugin.
 RMLUICORE_API void RegisterPlugin(Plugin* plugin);
 

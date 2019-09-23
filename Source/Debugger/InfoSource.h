@@ -116,6 +116,12 @@ div.header_button:active
 {
 	background-color: #444;
 }
+div#title-content {
+	width: 220dp;
+}
+div#title-content em {
+	font-size: 14dp;
+}
 )RCSS";
 
 static const char* info_rml = R"RML(
@@ -124,7 +130,7 @@ static const char* info_rml = R"RML(
 	<div id="close_button">X</div>
 	<div id="update_source" class="header_button active">U</div>
 	<div id="show_source" class="header_button active">D</div>
-	<div id="title-content" style="width: 200dp;">Element Information</div>
+	<div id="title-content">Element Information</div>
 </h1>
 <div id="content">
 	<div id="pseudo">

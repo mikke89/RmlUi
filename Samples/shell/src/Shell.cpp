@@ -43,7 +43,7 @@ void Shell::LoadFonts(const char* directory)
 
 	for (int i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
 	{
-		Rml::Core::GetFontEngineInterface()->LoadFontFace(Rml::Core::String(directory) + font_names[i], i == fallback_face);
+		Rml::Core::LoadFontFace(Rml::Core::String(directory) + font_names[i], i == fallback_face);
 	}
 }
 

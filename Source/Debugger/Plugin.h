@@ -31,7 +31,6 @@
 
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
-#include <set>
 
 namespace Rml {
 namespace Core {

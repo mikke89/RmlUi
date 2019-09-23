@@ -279,8 +279,8 @@ bool Plugin::LoadFont()
 {
 	const Core::String font_family_name = "rmlui-debugger-font";
 
-	return (Core::GetFontEngineInterface()->LoadFontFace(lacuna_regular, sizeof(lacuna_regular) / sizeof(unsigned char), font_family_name, Core::Style::FontStyle::Normal, Core::Style::FontWeight::Normal) &&
-	        Core::GetFontEngineInterface()->LoadFontFace(lacuna_italic, sizeof(lacuna_italic) / sizeof(unsigned char), font_family_name, Core::Style::FontStyle::Italic, Core::Style::FontWeight::Normal));
+	return (Core::LoadFontFace(courier_prime_code, sizeof(courier_prime_code)/sizeof(courier_prime_code[0]), font_family_name, Core::Style::FontStyle::Normal, Core::Style::FontWeight::Normal) &&
+	        Core::LoadFontFace(courier_prime_code_italic, sizeof(courier_prime_code_italic)/sizeof(courier_prime_code_italic[0]), font_family_name, Core::Style::FontStyle::Italic, Core::Style::FontWeight::Normal));
 }
 
 bool Plugin::LoadMenuElement()

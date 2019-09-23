@@ -44,7 +44,7 @@ div
 }
 div#button-group
 {
-	margin-top: 4dp;
+	margin-top: 3dp;
 }
 button
 {
@@ -53,8 +53,8 @@ button
 	background: #ddd;
 	margin-left: 6dp;
 	display: inline-block;
-	width: 100dp;
-	line-height: 22dp;
+	width: 130dp;
+	line-height: 24dp;
 	text-align: center;
 }
 button:hover
@@ -85,9 +85,9 @@ span#version-number
 
 static const char* menu_rml = R"RML(
 <div id="version-info">RmlUi <span id="version-number"></span></div>
-<div id ="button-group">
-	<button id ="event-log-button">Event Log</button>
-	<button id ="debug-info-button">Element Info</button>
-	<button id ="outlines-button">Outlines</button>
+<div id="button-group">
+	<button id="event-log-button">Event Log</button>
+	<button id="debug-info-button">Element Info</button>
+	<button id="outlines-button">Outlines</button>
 </div>;
 )RML";
