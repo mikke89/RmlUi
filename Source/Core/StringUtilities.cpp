@@ -478,23 +478,14 @@ bool StringView::operator==(const StringView& other) const {
 }
 
 
-// TODO: Remove seek on construction
 StringIteratorU8::StringIteratorU8(const char* p_begin, const char* p, const char* p_end) : view(p_begin, p_end), p(p) 
-{
-	SeekForward();
-}
+{}
 StringIteratorU8::StringIteratorU8(const String& string) : view(string), p(string.data())
-{ 
-	SeekForward();
-}
+{}
 StringIteratorU8::StringIteratorU8(const String& string, size_t offset) : view(string), p(string.data() + offset)
-{ 
-	SeekForward();
-}
+{}
 StringIteratorU8::StringIteratorU8(const String& string, size_t offset, size_t count) : view(string, 0, offset + count), p(string.data() + offset)
-{
-	SeekForward();
-}
+{}
 StringIteratorU8& StringIteratorU8::operator++() {
 	RMLUI_ASSERT(p != view.end());
 	++p;

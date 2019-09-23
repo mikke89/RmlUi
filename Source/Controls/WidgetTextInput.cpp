@@ -41,8 +41,6 @@ static const float CURSOR_BLINK_TIME = 0.7f;
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
 {
-	// TODO: Check all usage of .size(), they are not the same as characters anymore
-
 	keyboard_showed = false;
 	
 	parent = _parent;
@@ -141,7 +139,7 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 				num_characters += 1;
 				if (num_characters > max_length)
 				{
-					i_erase = size_t(it.Get() - value.data());
+					i_erase = size_t(it.Offset());
 					break;
 				}
 			}
@@ -465,7 +463,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 // Adds a new character to the string at the cursor position.
 bool WidgetTextInput::AddCharacter(Rml::Core::CodePoint character)
 {
-	if (!IsCharacterValid(static_cast<char>(character)))
+	if ((char32_t)character <= 127 && !IsCharacterValid(static_cast<char>(character)))
 		return false;
 
 	if (selection_length > 0)
@@ -521,7 +519,6 @@ void WidgetTextInput::CopySelection()
 // Returns the absolute index of the cursor.
 int WidgetTextInput::GetCursorIndex() const
 {
-	// TODO: Sanitize cursor index ?
 	return edit_index;
 }
 
@@ -723,26 +720,28 @@ int WidgetTextInput::CalculateLineIndex(float position)
 // Calculates the character index along a line under a specific horizontal position.
 int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 {
-	// Todo, move properly across multibyte characters
-	int character_index = 0;
-	float line_width = 0;
-
-	while (character_index < lines[line_index].content_length)
+	int prev_offset = 0;
+	float prev_line_width = 0;
+	
+	for(auto it = Core::StringIteratorU8(lines[line_index].content, 0, lines[line_index].content_length); it; )
 	{
-		float next_line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.substr(0, character_index));
-		if (next_line_width > position)
+		++it;
+		int offset = (int)it.Offset();
+
+		float line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.substr(0, offset));
+		if (line_width > position)
 		{
-			if (position - line_width < next_line_width - position)
-				return Rml::Core::Math::Max(0, character_index - 1);
+			if (position - prev_line_width < line_width - position)
+				return prev_offset;
 			else
-				return character_index;
+				return offset;
 		}
 
-		line_width = next_line_width;
-		character_index++;
+		prev_line_width = line_width;
+		prev_offset = offset;
 	}
 
-	return character_index;
+	return prev_offset;
 }
 
 // Shows or hides the cursor.
