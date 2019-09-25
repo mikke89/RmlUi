@@ -26,44 +26,37 @@
  *
  */
 
-#include "precompiled.h"
-#include "FontFamily.h"
-#include "FontFace.h"
+#ifndef RMLUICOREFREETYPEINTERFACE_H
+#define RMLUICOREFREETYPEINTERFACE_H
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+
+#include "FontTypes.h"
 
 namespace Rml {
 namespace Core {
+namespace FreeType {
 
-FontFamily::FontFamily(const String& name) : name(name)
-{
-}
+bool Initialise();
+void Shutdown();
 
-FontFamily::~FontFamily()
-{
-}
+// Loads a FreeType face from memory.
+FontFaceHandleFreetype LoadFace(const byte* data, int data_length, const String& source);
+bool ReleaseFace(FontFaceHandleFreetype face, bool release_stream);
 
-// Returns a handle to the most appropriate font in the family, at the correct size.
-SharedPtr<FontFaceHandleDefault> FontFamily::GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size)
-{
-	// Search for a face of the same style, and match the weight as closely as we can.
-	FontFace* matching_face = nullptr;
-	for (size_t i = 0; i < font_faces.size(); i++)
-	{
-		// If we've found a face matching the style, then ... great! We'll match it regardless of the weight. However,
-		// if it's a perfect match, then we'll stop looking altogether.
-		if (font_faces[i]->GetStyle() == style)
-		{
-			matching_face = font_faces[i].get();
+// Retrieves the font family, style and weight of the given font face.
+void GetFontFaceStyle(FontFaceHandleFreetype face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight);
 
-			if (font_faces[i]->GetWeight() == weight)
-				break;
-		}
-	}
+bool InitialiseFaceHandle(FontFaceHandleFreetype face, FontGlyphMap& glyphs, FontMetrics& metrics, int font_size);
 
-	if (matching_face == nullptr)
-		return nullptr;
+bool AppendGlyph(FontFaceHandleFreetype face, CodePoint code_point, int font_size, FontGlyphMap& glyphs);
 
-	return matching_face->GetHandle(size);
-}
+int GetKerning(FontFaceHandleFreetype face, CodePoint lhs, CodePoint rhs);
 
 }
 }
+}
+
+#endif
+
+#endif

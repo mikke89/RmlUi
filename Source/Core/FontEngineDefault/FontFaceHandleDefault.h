@@ -29,11 +29,12 @@
 #ifndef RMLUICOREFONTFACEHANDLE_H
 #define RMLUICOREFONTFACEHANDLE_H
 
-#include "../../Include/RmlUi/Core/Traits.h"
-#include "../../Include/RmlUi/Core/FontEffect.h"
-#include "../../Include/RmlUi/Core/FontGlyph.h"
-#include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/Texture.h"
+#include "../../../Include/RmlUi/Core/Traits.h"
+#include "../../../Include/RmlUi/Core/FontEffect.h"
+#include "../../../Include/RmlUi/Core/FontGlyph.h"
+#include "../../../Include/RmlUi/Core/Geometry.h"
+#include "../../../Include/RmlUi/Core/Texture.h"
+#include "FontTypes.h"
 
 namespace Rml {
 namespace Core {
@@ -42,25 +43,18 @@ namespace Core {
 
 class FontFaceLayer;
 
-struct FontMetrics {
-	int size;
-	int x_height;
-	int line_height;
-	int baseline;
-
-	float underline_position;
-	float underline_thickness;
-};
 
 /**
 	@author Peter Curry
  */
 
-class FontFaceHandleDefault : public NonCopyMoveable
+class FontFaceHandleDefault final : public NonCopyMoveable
 {
 public:
 	FontFaceHandleDefault();
-	virtual ~FontFaceHandleDefault();
+	~FontFaceHandleDefault();
+
+	bool Initialize(FontFaceHandleFreetype face, int font_size);
 
 	/// Returns the point size of this font face.
 	int GetSize() const;
@@ -107,19 +101,12 @@ public:
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;
 
-protected:
-
-	FontGlyphMap& GetGlyphs();
-	FontMetrics& GetMetrics();
-
-	void GenerateBaseLayer();
-
-	// Build and append glyph to 'glyphs'
-	virtual bool AppendGlyph(CodePoint code_point) = 0;
-
-	virtual int GetKerning(CodePoint lhs, CodePoint rhs) const = 0;
 
 private:
+	// Build and append glyph to 'glyphs'
+	bool AppendGlyph(CodePoint code_point);
+
+	int GetKerning(CodePoint lhs, CodePoint rhs) const;
 
 	/// Retrieve a glyph from the given code point, building and appending a new glyph if not already built.
 	/// @param[in-out] code_point  The code point, can be changed e.g. to the replacement character if no glyph is found.
@@ -156,6 +143,8 @@ private:
 	LayerConfigurationList layer_configurations;
 
 	FontMetrics metrics;
+
+	FontFaceHandleFreetype ft_face;
 };
 
 #endif

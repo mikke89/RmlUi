@@ -26,47 +26,54 @@
  *
  */
 
-#ifndef RMLUICOREFONTFAMILY_H
-#define RMLUICOREFONTFAMILY_H
+#ifndef RMLUICOREFONTFACE_H
+#define RMLUICOREFONTFACE_H
 
-#include <RmlUi/Core/StringUtilities.h>
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
+#include "FontTypes.h"
 
 namespace Rml {
 namespace Core {
 
-class FontFace;
 class FontFaceHandleDefault;
 
 /**
 	@author Peter Curry
  */
 
-class FontFamily
+class FontFace final
 {
 public:
-	FontFamily(const String& name);
-	virtual ~FontFamily();
+	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+	~FontFace();
 
-	/// Adds a new face to the family.
-	/// @param[in] ft_face The previously loaded FreeType face.
-	/// @param[in] style The style of the new face.
-	/// @param[in] weight The weight of the new face.
-	/// @param[in] release_stream True if the application must free the face's memory stream.
-	/// @return True if the face was loaded successfully, false otherwise.
-	virtual FontFace* AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) = 0;
+	/// Returns the style of the font face.
+	/// @return The font face's style.
+	Style::FontStyle GetStyle() const;
+	/// Returns the weight of the font face.
+	/// @return The font face's weight.
+	Style::FontWeight GetWeight() const;
 
-	/// Returns a handle to the most appropriate font in the family, at the correct size.
-	/// @param[in] style The style of the desired handle.
-	/// @param[in] weight The weight of the desired handle.
-	/// @param[in] size The size of desired handle, in points.
-	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandleDefault> GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size);
+	/// Returns a handle for positioning and rendering this face at the given size.
+	/// @param[in] size The size of the desired handle, in points.
+	/// @return The shared font handle.
+	SharedPtr<FontFaceHandleDefault> GetHandle(int size);
 
-protected:
-	String name;
+	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
+	/// but existing ones can still be fetched.
+	void ReleaseFace();
 
-	typedef std::vector< UniquePtr<FontFace> > FontFaceList;
-	FontFaceList font_faces;
+private:
+	Style::FontStyle style;
+	Style::FontWeight weight;
+
+	bool release_stream;
+
+	// Key is font size
+	using HandleMap = UnorderedMap< int, SharedPtr<FontFaceHandleDefault> >;
+	HandleMap handles;
+
+	FontFaceHandleFreetype face;
 };
 
 }

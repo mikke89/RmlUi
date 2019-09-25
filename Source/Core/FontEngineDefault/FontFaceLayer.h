@@ -29,11 +29,11 @@
 #ifndef RMLUICOREFONTFACELAYER_H
 #define RMLUICOREFONTFACELAYER_H
 
-#include "../../Include/RmlUi/Core/FontGlyph.h"
-#include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
-#include "../../Include/RmlUi/Core/Texture.h"
-#include "TextureLayout.h"
+#include "../../../Include/RmlUi/Core/FontGlyph.h"
+#include "../../../Include/RmlUi/Core/Geometry.h"
+#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../../Include/RmlUi/Core/Texture.h"
+#include "../TextureLayout.h"
 
 namespace Rml {
 namespace Core {

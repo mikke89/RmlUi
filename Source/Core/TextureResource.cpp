@@ -28,8 +28,8 @@
 
 #include "precompiled.h"
 #include "TextureResource.h"
-#include "FontFaceHandleDefault.h"
 #include "TextureDatabase.h"
+#include "FontEngineDefault/FontFaceHandleDefault.h"
 #include "../../Include/RmlUi/Core.h"
 
 namespace Rml {

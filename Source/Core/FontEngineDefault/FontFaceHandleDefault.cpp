@@ -27,12 +27,12 @@
  */
 
 #include "precompiled.h"
+#include "../TextureLayout.h"
 #include "FontFaceHandleDefault.h"
 #include "FontDatabaseDefault.h"
-#include <algorithm>
-#include "../../Include/RmlUi/Core.h"
 #include "FontFaceLayer.h"
-#include "TextureLayout.h"
+#include "FreeTypeInterface.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {
@@ -41,14 +41,33 @@ namespace Core {
 	
 FontFaceHandleDefault::FontFaceHandleDefault()
 {
-	metrics = {};
 	base_layer = nullptr;
+	metrics = {};
+	ft_face = 0;
 }
 
 FontFaceHandleDefault::~FontFaceHandleDefault()
 {
 	glyphs.clear();
 	layers.clear();
+}
+
+bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size)
+{
+	ft_face = face;
+
+	RMLUI_ASSERTMSG(layer_configurations.empty(), "Initialize must only be called once.");
+
+	if (!FreeType::InitialiseFaceHandle(ft_face, glyphs, metrics, font_size))
+	{
+		return false;
+	}
+
+	// Generate the default layer and layer configuration.
+	base_layer = GetOrCreateLayer(nullptr);
+	layer_configurations.push_back(LayerConfiguration{ base_layer });
+
+	return true;
 }
 
 // Returns the point size of this font face.
@@ -282,19 +301,16 @@ int FontFaceHandleDefault::GetVersion() const
 	return version;
 }
 
-FontGlyphMap& FontFaceHandleDefault::GetGlyphs() {
-	return glyphs;
-}
-
-FontMetrics& FontFaceHandleDefault::GetMetrics() {
-	return metrics;
-}
-
-void FontFaceHandleDefault::GenerateBaseLayer()
+bool FontFaceHandleDefault::AppendGlyph(CodePoint code_point) 
 {
-	RMLUI_ASSERTMSG(layer_configurations.empty(), "GenerateBaseLayer should only be called before any layers are generated.");
-	base_layer = GetOrCreateLayer(nullptr);
-	layer_configurations.push_back(LayerConfiguration{ base_layer });
+	bool result = FreeType::AppendGlyph(ft_face, code_point, metrics.size, glyphs);
+	return result;
+}
+
+int FontFaceHandleDefault::GetKerning(CodePoint lhs, CodePoint rhs) const
+{
+	int result = FreeType::GetKerning(ft_face, lhs, rhs);
+	return result;
 }
 
 const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, bool look_in_fallback_fonts)

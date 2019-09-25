@@ -31,7 +31,6 @@
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
 #include "LayoutInlineBoxText.h"
-#include "FontFaceHandleDefault.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementText.h"

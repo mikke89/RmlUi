@@ -32,7 +32,6 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include <queue>
 #include <limits>
-#include "FontFaceHandleDefault.h"
 #include "LayoutEngine.h"
 #include "ElementStyle.h"
 

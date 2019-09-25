@@ -28,7 +28,6 @@
 
 #include "precompiled.h"
 #include "FontFaceLayer.h"
-#include "../../Include/RmlUi/Core/Core.h"
 #include "FontFaceHandleDefault.h"
 #include "FontDatabaseDefault.h"
 

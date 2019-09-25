@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,40 +26,29 @@
  *
  */
 
-#ifndef RMLUICOREFREETYPEFONTFAMILY_H
-#define RMLUICOREFREETYPEFONTFAMILY_H
+#ifndef RMLUICOREFONTTYPES_H
+#define RMLUICOREFONTTYPES_H
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
-#include "../FontFamily.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include "../../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {
 
-/**
-	@author Peter Curry
- */
 
-class FontFamily_FreeType : public Rml::Core::FontFamily
+using FontFaceHandleFreetype = uintptr_t;
+
+struct FontMetrics 
 {
-public:
-	FontFamily_FreeType(const String& name);
-	~FontFamily_FreeType();
+	int size;
+	int x_height;
+	int line_height;
+	int baseline;
 
-	/// Adds a new face to the family.
-	/// @param[in] ft_face The previously loaded FreeType face.
-	/// @param[in] style The style of the new face.
-	/// @param[in] weight The weight of the new face.
-	/// @param[in] release_stream True if the application must free the face's memory stream.
-	/// @return True if the face was loaded successfully, false otherwise.
-	FontFace* AddFace(void* ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream) override;
+	float underline_position;
+	float underline_thickness;
 };
 
 }
 }
-
-#endif
 
 #endif

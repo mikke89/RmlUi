@@ -30,7 +30,6 @@
 #include <RmlUi/Core.h>
 #include "FontFamily.h"
 #include "FontFace.h"
-#include "FreeType/FontProvider.h"
 #include "FontDatabaseDefault.h"
 
 namespace Rml {
@@ -59,7 +58,7 @@ bool FontDatabaseDefault::Initialise()
 	{
 		new FontDatabaseDefault();
 
-        if(!FontProvider_FreeType::Initialise())
+        if(!FontProvider::Initialise())
             return false;
 	}
 
@@ -70,7 +69,7 @@ void FontDatabaseDefault::Shutdown()
 {
 	if (instance != nullptr)
 	{
-        FontProvider_FreeType::Shutdown();
+		FontProvider::Shutdown();
 
 		delete instance;
 	}
@@ -79,28 +78,18 @@ void FontDatabaseDefault::Shutdown()
 // Loads a new font face.
 bool FontDatabaseDefault::LoadFontFace(const String& file_name, bool fallback_face)
 {
-	return FontProvider_FreeType::LoadFontFace(file_name, fallback_face);
+	return FontProvider::Get().LoadFontFace(file_name, fallback_face);
 }
 
 bool FontDatabaseDefault::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
 {
-	return FontProvider_FreeType::LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
+	return FontProvider::Get().LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
 }
 
 // Returns a handle to a font face that can be used to position and render text.
 SharedPtr<FontFaceHandleDefault> FontDatabaseDefault::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
-    size_t provider_count = font_provider_table.size();
-
-    for(size_t provider_index = 0; provider_index < provider_count; ++provider_index)
-    {
-		SharedPtr<FontFaceHandleDefault> face_handle = font_provider_table[ provider_index ]->GetFontFaceHandle(family, style, weight, size);
-
-        if(face_handle)
-            return face_handle;
-    }
-
-    return nullptr;
+	return FontProvider::Get().GetFontFaceHandle(family, style, weight, size);
 }
 
 void FontDatabaseDefault::AddFontProvider(FontProvider * provider)
@@ -122,25 +111,16 @@ void FontDatabaseDefault::RemoveFontProvider(FontProvider * provider)
 
 int FontDatabaseDefault::CountFallbackFontFaces()
 {
-	int count = 0;
-	for (const FontProvider* provider : instance->font_provider_table)
-		count += (int)provider->GetFallbackFontFaces().size();
-
-	return count;
+	return (int)FontProvider::Get().GetFallbackFontFaces().size();
 }
 
 SharedPtr<FontFaceHandleDefault> FontDatabaseDefault::GetFallbackFontFace(int index, int font_size)
 {
-	int iterate_index = 0;
-	for (const FontProvider* provider : instance->font_provider_table)
-	{
-		const FontFaceList& faces = provider->GetFallbackFontFaces();
-		int faces_index = index - iterate_index;
-		int faces_count = (int)faces.size();
-		if (faces_index >= 0 && faces_index < faces_count)
-			return faces[faces_index]->GetHandle(font_size);
+	auto& faces = FontProvider::Get().GetFallbackFontFaces();
 
-		iterate_index += faces_count;
+	if (index >= 0 && index < (int)faces.size())
+	{
+		return faces[index]->GetHandle(font_size);
 	}
 
 	return nullptr;

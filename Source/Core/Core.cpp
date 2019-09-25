@@ -30,12 +30,16 @@
 #include "../../Include/RmlUi/Core.h"
 #include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
-#include "FontEngineInterfaceDefault.h"
 #include "PluginRegistry.h"
 #include "StyleSheetFactory.h"
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
 #include "EventSpecification.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+#include "FontEngineDefault/FontEngineInterfaceDefault.h"
+#endif
+
 
 namespace Rml {
 namespace Core {

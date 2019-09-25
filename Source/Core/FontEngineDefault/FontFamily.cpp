@@ -26,46 +26,56 @@
  *
  */
 
-#ifndef RMLUICOREFREETYPEFONTFACE_H
-#define RMLUICOREFREETYPEFONTFACE_H
-
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
-#include "../FontFace.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include "precompiled.h"
+#include "FontFamily.h"
+#include "FontFace.h"
 
 namespace Rml {
 namespace Core {
 
-/**
-	@author Peter Curry
- */
-
-class FontFaceHandleDefault;
-
-class FontFace_FreeType : public Rml::Core::FontFace
+FontFamily::FontFamily(const String& name) : name(name)
 {
-public:
-	FontFace_FreeType(FT_Face face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
-	~FontFace_FreeType();
+}
 
-	/// Returns a handle for positioning and rendering this face at the given size.
-	/// @param[in] size The size of the desired handle, in points.
-	/// @return The shared font handle.
-	SharedPtr<Rml::Core::FontFaceHandleDefault> GetHandle(int size) override;
+FontFamily::~FontFamily()
+{
+}
 
-	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
-	/// but existing ones can still be fetched.
-	void ReleaseFace() override;
+// Returns a handle to the most appropriate font in the family, at the correct size.
+SharedPtr<FontFaceHandleDefault> FontFamily::GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size)
+{
+	// Search for a face of the same style, and match the weight as closely as we can.
+	FontFace* matching_face = nullptr;
+	for (size_t i = 0; i < font_faces.size(); i++)
+	{
+		// If we've found a face matching the style, then ... great! We'll match it regardless of the weight. However,
+		// if it's a perfect match, then we'll stop looking altogether.
+		if (font_faces[i]->GetStyle() == style)
+		{
+			matching_face = font_faces[i].get();
 
-private:
-	FT_Face face;
-};
+			if (font_faces[i]->GetWeight() == weight)
+				break;
+		}
+	}
+
+	if (matching_face == nullptr)
+		return nullptr;
+
+	return matching_face->GetHandle(size);
+}
+
+
+// Adds a new face to the family.
+FontFace* FontFamily::AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
+{
+	auto face = std::make_unique<FontFace>(ft_face, style, weight, release_stream);
+	FontFace* result = face.get();
+
+	font_faces.push_back(std::move(face));
+
+	return result;
+}
 
 }
 }
-
-#endif
-
-#endif

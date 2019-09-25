@@ -43,7 +43,6 @@
 #include "ElementBorder.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
-#include "FontFaceHandleDefault.h"
 #include "ComputeProperty.h"
 #include "PropertiesIterator.h"
 

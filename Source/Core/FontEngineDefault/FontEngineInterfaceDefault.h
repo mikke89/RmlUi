@@ -28,7 +28,7 @@
 #ifndef RMLUICOREFONTENGINEINTERFACEDEFAULT_H
 #define RMLUICOREFONTENGINEINTERFACEDEFAULT_H
 
-#include "../../Include/RmlUi/Core/FontEngineInterface.h"
+#include "../../../Include/RmlUi/Core/FontEngineInterface.h"
 
 namespace Rml {
 namespace Core {

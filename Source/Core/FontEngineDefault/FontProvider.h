@@ -29,9 +29,9 @@
 #ifndef RMLUICOREFONTPROVIDER_H
 #define RMLUICOREFONTPROVIDER_H
 
-#include <RmlUi/Core/Header.h>
-#include <RmlUi/Core/StringUtilities.h>
-#include <RmlUi/Core/ComputedValues.h>
+#include "../../../Include/RmlUi/Core/Types.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
+#include "FontTypes.h"
 
 namespace Rml {
 namespace Core {
@@ -47,9 +47,14 @@ using FontFaceList = std::vector<FontFace*>;
 	@author Peter Curry
  */
 
-class RMLUICORE_API FontProvider
+class FontProvider
 {
 public:
+	static bool Initialise();
+	static void Shutdown();
+
+	static FontProvider& Get();
+
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
 	/// valid handle.
@@ -62,13 +67,28 @@ public:
 
 	const FontFaceList& GetFallbackFontFaces() const;
 
-protected:
+	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
+	bool LoadFontFace(const String& file_name, bool fallback_face);
+
+	/// Adds a new font face from memory.
+	bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+
+
+private:
+	FontProvider();
+	~FontProvider();
+
+	bool LoadFontFace(const byte* data, int data_size, bool fallback_face, bool local_data, const String& source,
+		String font_family = {}, Style::FontStyle style = Style::FontStyle::Normal, Style::FontWeight weight = Style::FontWeight::Normal);
+
+	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream);
 
 	using FontFamilyMap = UnorderedMap< String, UniquePtr<FontFamily>>;
 	FontFamilyMap font_families;
 	FontFaceList fallback_font_faces;
 
 	static const String debugger_font_family_name;
+	
 };
 
 }

@@ -30,67 +30,130 @@
 
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
 
-#include "FontFaceHandle.h"
-#include <algorithm>
-#include "../../../Include/RmlUi/Core.h"
-#include "../FontFaceLayer.h"
-#include "../TextureLayout.h"
+#include "FreeTypeInterface.h"
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 namespace Rml {
 namespace Core {
+
+static FT_Library ft_library = nullptr;
+
 
 static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyphs);
 static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size);
 static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics);
 
 
-FontFaceHandle_FreeType::FontFaceHandle_FreeType()
+bool FreeType::Initialise()
 {
-	ft_face = nullptr;
-}
-
-FontFaceHandle_FreeType::~FontFaceHandle_FreeType()
-{
-}
-
-
-// Initialises the handle so it is able to render text.
-bool FontFaceHandle_FreeType::Initialise(FT_Face ft_face, int size)
-{
-	this->ft_face = ft_face;
-	GetMetrics().size = size;
-
-	// Set the character size on the font face.
-	FT_Error error = FT_Set_Char_Size(ft_face, 0, size << 6, 0, 0);
-	if (error != 0)
+	FT_Error result = FT_Init_FreeType(&ft_library);
+	if (result != 0)
 	{
-		Log::Message(Log::LT_ERROR, "Unable to set the character size '%d' on the font face '%s %s'.", size, ft_face->family_name, ft_face->style_name);
+		Log::Message(Log::LT_ERROR, "Failed to initialise FreeType, error %d.", result);
+		Shutdown();
 		return false;
 	}
-
-	// Construct the initial list of glyphs.
-	BuildGlyphMap(ft_face, GetGlyphs(), size);
-
-	// Generate the metrics for the handle.
-	GenerateMetrics(ft_face, GetGlyphs(), GetMetrics());
-
-	// Generate the default layer and layer configuration.
-	GenerateBaseLayer();
 
 	return true;
 }
 
-bool FontFaceHandle_FreeType::AppendGlyph(CodePoint code_point)
+void FreeType::Shutdown()
 {
-	FontGlyphMap& glyphs = GetGlyphs();
+	if (ft_library != nullptr)
+	{
+		FT_Done_FreeType(ft_library);
+		ft_library = nullptr;
+	}
+}
+
+// Loads a FreeType face from memory.
+FontFaceHandleFreetype FreeType::LoadFace(const byte* data, int data_length, const String& source)
+{
+	FT_Face face = nullptr;
+	int error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, 0, &face);
+	if (error != 0)
+	{
+		Log::Message(Log::LT_ERROR, "FreeType error %d while loading face from %s.", error, source.c_str());
+		return 0;
+	}
+
+	// Initialise the character mapping on the face.
+	if (face->charmap == nullptr)
+	{
+		FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
+		if (face->charmap == nullptr)
+		{
+			Log::Message(Log::LT_ERROR, "Font face (from %s) does not contain a Unicode or Apple Roman character map.", source.c_str());
+			FT_Done_Face(face);
+			return 0;
+		}
+	}
+
+	return (FontFaceHandleFreetype)face;
+}
+
+bool FreeType::ReleaseFace(FontFaceHandleFreetype in_face, bool release_stream)
+{
+	FT_Face face = (FT_Face)in_face;
+
+	FT_Byte* face_memory = face->stream->base;
+	FT_Error error = FT_Done_Face(face);
+
+	if (release_stream)
+		delete[] face_memory;
+
+	return (error == 0);
+}
+
+void FreeType::GetFontFaceStyle(FontFaceHandleFreetype in_face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight)
+{
+	FT_Face face = (FT_Face)in_face;
+
+	font_family = face->family_name;
+	style = face->style_flags & FT_STYLE_FLAG_ITALIC ? Style::FontStyle::Italic : Style::FontStyle::Normal;
+	weight = face->style_flags & FT_STYLE_FLAG_BOLD ? Style::FontWeight::Bold : Style::FontWeight::Normal;
+}
+
+
+
+// Initialises the handle so it is able to render text.
+bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, FontGlyphMap& glyphs, FontMetrics& metrics, int font_size)
+{
+	FT_Face ft_face = (FT_Face)face;
+
+	metrics.size = font_size;
+
+	// Set the character size on the font face.
+	FT_Error error = FT_Set_Char_Size(ft_face, 0, font_size << 6, 0, 0);
+	if (error != 0)
+	{
+		Log::Message(Log::LT_ERROR, "Unable to set the character size '%d' on the font face '%s %s'.", font_size, ft_face->family_name, ft_face->style_name);
+		return false;
+	}
+
+	// Construct the initial list of glyphs.
+	BuildGlyphMap(ft_face, glyphs, font_size);
+
+	// Generate the metrics for the handle.
+	GenerateMetrics(ft_face, glyphs, metrics);
+
+	return true;
+}
+
+bool FreeType::AppendGlyph(FontFaceHandleFreetype face, CodePoint code_point, int font_size, FontGlyphMap& glyphs)
+{
+	FT_Face ft_face = (FT_Face)face;
+
 	RMLUI_ASSERT(glyphs.find(code_point) == glyphs.end());
 	RMLUI_ASSERT(ft_face);
 
 	// Set face size again in case it was used at another size in another font face handle.
-	FT_Error error = FT_Set_Char_Size(ft_face, 0, GetMetrics().size << 6, 0, 0);
+	FT_Error error = FT_Set_Char_Size(ft_face, 0, font_size << 6, 0, 0);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_ERROR, "Unable to set the character size '%d' on the font face '%s %s'.", GetMetrics().size, ft_face->family_name, ft_face->style_name);
+		Log::Message(Log::LT_ERROR, "Unable to set the character size '%d' on the font face '%s %s'.", font_size, ft_face->family_name, ft_face->style_name);
 		return false;
 	}
 
@@ -99,6 +162,32 @@ bool FontFaceHandle_FreeType::AppendGlyph(CodePoint code_point)
 
 	return true;
 }
+
+
+int FreeType::GetKerning(FontFaceHandleFreetype face, CodePoint lhs, CodePoint rhs)
+{
+	FT_Face ft_face = (FT_Face)face;
+
+	if (!FT_HAS_KERNING(ft_face))
+		return 0;
+
+	FT_Vector ft_kerning;
+
+	FT_Error ft_error = FT_Get_Kerning(
+		ft_face,
+		FT_Get_Char_Index(ft_face, (FT_ULong)lhs),
+		FT_Get_Char_Index(ft_face, (FT_ULong)rhs),
+		FT_KERNING_DEFAULT,
+		&ft_kerning
+	);
+
+	if (ft_error != 0)
+		return 0;
+
+	int kerning = ft_kerning.x >> 6;
+	return kerning;
+}
+
 
 
 static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
@@ -276,29 +365,6 @@ static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMet
 		metrics.x_height = ft_face->glyph->metrics.height >> 6;
 	else
 		metrics.x_height = 0;
-}
-
-
-int FontFaceHandle_FreeType::GetKerning(CodePoint lhs, CodePoint rhs) const
-{
-	if (!FT_HAS_KERNING(ft_face))
-		return 0;
-
-	FT_Vector ft_kerning;
-
-	FT_Error ft_error = FT_Get_Kerning(
-		ft_face,
-		FT_Get_Char_Index(ft_face, (FT_ULong)lhs),
-		FT_Get_Char_Index(ft_face, (FT_ULong)rhs),
-		FT_KERNING_DEFAULT,
-		&ft_kerning
-	);
-
-	if (ft_error != 0)
-		return 0;
-
-	int kerning = ft_kerning.x >> 6;
-	return kerning;
 }
 
 

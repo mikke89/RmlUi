@@ -27,29 +27,46 @@
  */
 
 #include "precompiled.h"
-
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
-#include "FontFace.h"
-#include "FontFaceHandle.h"
 #include "../../../Include/RmlUi/Core/Log.h"
+#include "FontFace.h"
+#include "FontFaceHandleDefault.h"
+#include "FreeTypeInterface.h"
 
 namespace Rml {
 namespace Core {
 
-FontFace_FreeType::FontFace_FreeType(FT_Face _face, Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream) : Rml::Core::FontFace(_style, _weight, _release_stream)
+FontFace::FontFace(FontFaceHandleFreetype _face, Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream)
 {
+	style = _style;
+	weight = _weight;
 	face = _face;
+
+	release_stream = _release_stream;
 }
 
-FontFace_FreeType::~FontFace_FreeType()
+FontFace::~FontFace()
 {
 	ReleaseFace();
+	handles.clear();
 }
 
-// Returns a handle for positioning and rendering this face at the given size.
-SharedPtr<Rml::Core::FontFaceHandleDefault> FontFace_FreeType::GetHandle(int size)
+// Returns the style of the font face.
+Style::FontStyle FontFace::GetStyle() const
 {
+	return style;
+}
+
+// Returns the weight of the font face.
+Style::FontWeight FontFace::GetWeight() const
+{
+	return weight;
+}
+
+/// Returns a handle for positioning and rendering this face at the given size.
+/// @param[in] size The size of the desired handle, in points.
+/// @return The shared font handle.
+
+SharedPtr<FontFaceHandleDefault> FontFace::GetHandle(int size) {
 	auto it = handles.find(size);
 	if (it != handles.end())
 		return it->second;
@@ -62,8 +79,8 @@ SharedPtr<Rml::Core::FontFaceHandleDefault> FontFace_FreeType::GetHandle(int siz
 	}
 
 	// Construct and initialise the new handle.
-	auto handle = std::make_shared<FontFaceHandle_FreeType>();
-	if (!handle->Initialise(face, size))
+	auto handle = std::make_shared<FontFaceHandleDefault>();
+	if (!handle->Initialize(face, size))
 	{
 		handles[size] = nullptr;
 		return nullptr;
@@ -75,22 +92,16 @@ SharedPtr<Rml::Core::FontFaceHandleDefault> FontFace_FreeType::GetHandle(int siz
 	return handle;
 }
 
-// Releases the face's FreeType face structure.
-void FontFace_FreeType::ReleaseFace()
-{
-	if (face != nullptr)
+/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
+/// but existing ones can still be fetched.
+
+void FontFace::ReleaseFace() {
+	if (face)
 	{
-		FT_Byte* face_memory = face->stream->base;
-		FT_Done_Face(face);
-
-		if (release_stream)
-			delete[] face_memory;
-
-		face = nullptr;
+		FreeType::ReleaseFace(face, release_stream);
+		face = 0;
 	}
 }
 
 }
 }
-
-#endif
