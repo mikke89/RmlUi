@@ -868,7 +868,10 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 	// The font-face handle is nulled when local font properties are set. In that case we need to retrieve a new handle.
 	if (!values.font_face_handle)
-		values.font_face_handle = ElementUtilities::GetFontFaceHandle(values);
+	{
+		RMLUI_ZoneScopedN("FontFaceHandle");
+		values.font_face_handle = GetFontEngineInterface()->GetFontFaceHandle(values.font_family, values.font_style, values.font_weight, (int)values.font_size);
+	}
 
 	// Next, pass inheritable dirty properties onto our children
 	PropertyIdSet dirty_inherited_properties = (dirty_properties & StyleSheetSpecification::GetRegisteredInheritedProperties());

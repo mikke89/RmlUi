@@ -59,12 +59,7 @@ FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& RMLUI_UNUSED
 	return 0;
 }
 	
-int FontEngineInterface::GenerateLayerConfiguration(FontFaceHandle, const FontEffectList& font_effects)
-{
-	return 0;
-}
-
-int FontEngineInterface::GetCharacterWidth(FontFaceHandle)
+FontEffectsHandle FontEngineInterface::PrepareFontEffects(FontFaceHandle, const FontEffectList& font_effects)
 {
 	return 0;
 }
@@ -89,7 +84,7 @@ int FontEngineInterface::GetBaseline(FontFaceHandle)
 	return 0;
 }
 
-float FontEngineInterface::GetUnderline(FontFaceHandle, float *)
+float FontEngineInterface::GetUnderline(FontFaceHandle, float &)
 {
 	return 0;
 }
@@ -101,14 +96,13 @@ int FontEngineInterface::GetStringWidth(FontFaceHandle, const String& RMLUI_UNUS
 	return 0;
 }
 
-int FontEngineInterface::GenerateString(FontFaceHandle, GeometryList& RMLUI_UNUSED_PARAMETER(geometry), const String& RMLUI_UNUSED_PARAMETER(string), 
-	const Vector2f& RMLUI_UNUSED_PARAMETER(position), const Colourb& RMLUI_UNUSED_PARAMETER(colour), int RMLUI_UNUSED_PARAMETER(layer_configuration))
+int FontEngineInterface::GenerateString(FontFaceHandle, FontEffectsHandle, const String& RMLUI_UNUSED_PARAMETER(string),
+	const Vector2f& RMLUI_UNUSED_PARAMETER(position), const Colourb& RMLUI_UNUSED_PARAMETER(colour), GeometryList& RMLUI_UNUSED_PARAMETER(geometry))
 {
-	RMLUI_UNUSED(geometry);
 	RMLUI_UNUSED(string);
 	RMLUI_UNUSED(position);
 	RMLUI_UNUSED(colour);
-	RMLUI_UNUSED(layer_configuration);
+	RMLUI_UNUSED(geometry);
 	return 0;
 }
 

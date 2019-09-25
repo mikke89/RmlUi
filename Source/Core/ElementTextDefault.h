@@ -85,18 +85,13 @@ protected:
 	void GetRML(String& content) override;
 
 private:
-	// Updates the configuration this element uses for its font, depending on which font effects
-	// are active.
-	bool UpdateFontConfiguration();
+	// Prepares the font effects this element uses for its font.
+	bool UpdateFontEffects();
 
 	// Used to store the position and length of each line we have geometry for.
 	struct Line
 	{
-		Line(const String& text, const Vector2f& position) : text(text), position(position)
-		{
-			width = 0;
-		}
-
+		Line(const String& text, const Vector2f& position) : text(text), position(position), width(0) {}
 		String text;
 		Vector2f position;
 		int width;
@@ -107,7 +102,7 @@ private:
 	// Generates the geometry for a single line of text.
 	void GenerateGeometry(const FontFaceHandle font_face_handle, Line& line);
 	// Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-	void GenerateDecoration(const FontFaceHandle font_face_handle, const Line& line);
+	void GenerateLineDecoration(const FontFaceHandle font_face_handle, const Line& line);
 
 	String text;
 
@@ -130,9 +125,10 @@ private:
 	// it isn't being changed.
 	Style::TextDecoration decoration_property;
 
-	int font_configuration;
+	FontEffectsHandle font_effects_handle;
+	bool font_effects_dirty;
+
 	int font_handle_version;
-	bool font_dirty;
 };
 
 }

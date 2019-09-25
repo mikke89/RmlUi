@@ -116,9 +116,9 @@ button:focus {
 {
 	decorator: ninepatch(button-active, button-inner-active);
 }
-.emoji-test
+p.emojis
 {
-	/*font-family: Noto Emoji;*/
+	text-align: left;
 	font-size: 35px;
 	color: #b33;
 }
@@ -136,10 +136,14 @@ textarea {
 
 <div style="font-size: 0.85em; text-align: left;" id="fps"></div>
 
-<p class="font-test"><br/><br/>abc Å (æø 😍 å∞) Å def</p>
-<p class="emoji-test">abc 😍 def</p>
-
 <tabset id="menu">
+<tab>Welcome</tab>
+<panel id="welcome">
+	<p class="emojis">RmlUi 😍</p>
+	<p>Have fun fiddling about in this (incomplete) demo.</p>
+	<p>Press 'F8' to open up the debugger.</p>
+	<p class="emojis" style="margin-top: 1em;">🎉</p>
+</panel>
 <tab>Decorators</tab>
 <panel id="decorators">
 	<p>Image vs ninepatch decorator:</p>
@@ -171,12 +175,7 @@ textarea {
 <tab>Controls</tab>
 <panel>
 	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" maxlength="12" value="Sample text"/></div>
-	<textarea cols="30" rows="5" wrap="nowrap">Hello World! dfd dsfds fdsfdf 
-sdfdfds d,. sfdsf. Heøøllo! Who are you? (I don't know),
-maybe there is åsomething å here??? dsfsdfsdf dfsd
-sd sad sads
-
-as</textarea>
+	<textarea cols="30" rows="5" wrap="nowrap">😍 Hello 🌐 World! 😎</textarea>
 </panel>
 </tabset>
 </body>

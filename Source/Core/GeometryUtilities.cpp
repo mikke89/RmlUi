@@ -80,7 +80,7 @@ void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* 
 	std::vector< Vertex >& line_vertices = geometry->GetVertices();
 	std::vector< int >& line_indices = geometry->GetIndices();
 	float underline_thickness = 0;
-	float underline_position = GetFontEngineInterface()->GetUnderline(font_face_handle, &underline_thickness);
+	float underline_position = GetFontEngineInterface()->GetUnderline(font_face_handle, underline_thickness);
 	int size = GetFontEngineInterface()->GetSize(font_face_handle);
 	int x_height = GetFontEngineInterface()->GetXHeight(font_face_handle);
 
@@ -89,7 +89,7 @@ void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* 
 	{
 		case Style::TextDecoration::Underline:       offset = -underline_position; break;
 		case Style::TextDecoration::Overline:        offset = -underline_position - (float)size; break;
-		case Style::TextDecoration::LineThrough:     offset = -0.65f * (float)x_height; break; // or maybe: -underline_position - (float)size * 0.5f
+		case Style::TextDecoration::LineThrough:     offset = -0.65f * (float)x_height; break;
 		default: return;
 	}
 

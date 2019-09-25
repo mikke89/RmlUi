@@ -42,14 +42,7 @@ namespace Core {
 
 class FontFaceLayer;
 
-/**
-	@author Peter Curry
- */
-
 struct FontMetrics {
-	// The average advance (in pixels) of all of this face's glyphs.
-	int average_advance;
-
 	int size;
 	int x_height;
 	int line_height;
@@ -59,36 +52,30 @@ struct FontMetrics {
 	float underline_thickness;
 };
 
+/**
+	@author Peter Curry
+ */
+
 class FontFaceHandleDefault : public NonCopyMoveable
 {
 public:
 	FontFaceHandleDefault();
 	virtual ~FontFaceHandleDefault();
 
-	/// Returns the average advance of all glyphs in this font face.
-	/// @return An approximate width of the characters in this font face.
-	int GetCharacterWidth() const;
-
 	/// Returns the point size of this font face.
-	/// @return The face's point size.
 	int GetSize() const;
 	/// Returns the pixel height of a lower-case x in this font face.
-	/// @return The height of a lower-case x.
 	int GetXHeight() const;
 	/// Returns the default height between this font face's baselines.
-	/// @return The default line height.
 	int GetLineHeight() const;
 
 	/// Returns the font's baseline, as a pixel offset from the bottom of the font.
-	/// @return The font's baseline.
 	int GetBaseline() const;
 
 	/// Returns the font's underline, as a pixel offset from the bottom of the font.
-	/// @return The font's underline thickness.
-	float GetUnderline(float* thickness) const;
+	float GetUnderline(float& thickness) const;
 
 	/// Returns the font's glyphs.
-	/// @return The font's glyphs.
 	const FontGlyphMap& GetGlyphs() const;
 
 	/// Returns the width a string will take up if rendered with this handle.
@@ -97,7 +84,7 @@ public:
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
 	int GetStringWidth(const String& string, CodePoint prior_character = CodePoint::Null);
 
-	/// Generates, if required, the layer configuration for a given array of font effects.
+	/// Generates, if required, the layer configuration for a given list of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
 	/// @return The index to use when generating geometry using this configuration.
 	int GenerateLayerConfiguration(const FontEffectList& font_effects);

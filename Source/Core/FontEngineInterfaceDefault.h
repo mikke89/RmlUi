@@ -50,11 +50,8 @@ public:
 	/// valid handle.
 	FontFaceHandle GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size) override;
 
-	/// Generates, if required, the layer configuration for a given array of font effects.
-	int GenerateLayerConfiguration(FontFaceHandle, const FontEffectList& font_effects) override;
-
-	/// Returns the average advance of all glyphs in this font face.
-	int GetCharacterWidth(FontFaceHandle) override;
+	/// Prepares for font effects by configuring a new, or returning an existing, layer configuration.
+	FontEffectsHandle PrepareFontEffects(FontFaceHandle, const FontEffectList& font_effects) override;
 
 	/// Returns the point size of this font face.
 	int GetSize(FontFaceHandle) override;
@@ -67,14 +64,15 @@ public:
 	int GetBaseline(FontFaceHandle) override;
 
 	/// Returns the font's underline, as a pixel offset from the bottom of the font.
-	float GetUnderline(FontFaceHandle, float* thickness) override;
+	float GetUnderline(FontFaceHandle, float& thickness) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
 	int GetStringWidth(FontFaceHandle, const String& string, CodePoint prior_character) override;
 
 	/// Generates the geometry required to render a single line of text.
-	int GenerateString(FontFaceHandle, GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration) override;
+	int GenerateString(FontFaceHandle, FontEffectsHandle, const String& string, const Vector2f& position, const Colourb& colour, GeometryList& geometry) override;
 
+	/// Returns the current version of the font face.
 	int GetVersion(FontFaceHandle handle) override;
 };
 

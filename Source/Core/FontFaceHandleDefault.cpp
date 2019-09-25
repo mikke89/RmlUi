@@ -57,12 +57,6 @@ int FontFaceHandleDefault::GetSize() const
 	return metrics.size;
 }
 
-// Returns the average advance of all glyphs in this font face.
-int FontFaceHandleDefault::GetCharacterWidth() const
-{
-	return metrics.average_advance;
-}
-
 // Returns the pixel height of a lower-case x in this font face.
 int FontFaceHandleDefault::GetXHeight() const
 {
@@ -87,11 +81,9 @@ const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 	return glyphs;
 }
 
-float FontFaceHandleDefault::GetUnderline(float *thickness) const
+float FontFaceHandleDefault::GetUnderline(float& thickness) const
 {
-	if (thickness != nullptr) {
-		*thickness = metrics.underline_thickness;
-	}
+	thickness = metrics.underline_thickness;
 	return metrics.underline_position;
 }
 

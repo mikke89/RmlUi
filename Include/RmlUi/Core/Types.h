@@ -113,6 +113,7 @@ using TextureHandle = uintptr_t;
 using CompiledGeometryHandle = uintptr_t;
 using DecoratorDataHandle = uintptr_t;
 using FontFaceHandle = uintptr_t;
+using FontEffectsHandle = uintptr_t;
 
 // Strings
 using String = std::string;

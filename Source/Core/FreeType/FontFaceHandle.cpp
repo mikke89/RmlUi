@@ -270,22 +270,6 @@ static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMet
 	metrics.underline_thickness = FT_MulFix(ft_face->underline_thickness, ft_face->size->metrics.y_scale) / float(1 << 6);
 	metrics.underline_thickness = Math::Max(metrics.underline_thickness, 1.0f);
 
-	metrics.average_advance = 0;
-	unsigned int num_visible_glyphs = 0;
-	for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
-	{
-		const FontGlyph& glyph = it->second;
-		if (glyph.advance)
-		{
-			metrics.average_advance += glyph.advance;
-			num_visible_glyphs++;
-		}
-	}
-
-	// Bring the total advance down to the average advance, but scaled up 10%, just to be on the safe side.
-	if (num_visible_glyphs)
-		metrics.average_advance = Math::RealToInteger((float)metrics.average_advance / (num_visible_glyphs * 0.9f));
-
 	// Determine the x-height of this font face.
 	int index = FT_Get_Char_Index(ft_face, 'x');
 	if (FT_Load_Glyph(ft_face, index, 0) == 0)

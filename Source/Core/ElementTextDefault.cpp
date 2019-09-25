@@ -51,8 +51,8 @@ ElementTextDefault::ElementTextDefault(const String& tag) : ElementText(tag), co
 
 	geometry_dirty = true;
 
-	font_configuration = -1;
-	font_dirty = true;
+	font_effects_handle = 0;
+	font_effects_dirty = true;
 	font_handle_version = 0;
 }
 
@@ -84,12 +84,11 @@ void ElementTextDefault::OnRender()
 	if (font_face_handle == 0)
 		return;
 	
-	// If our font configuration has potentially changed, update it and force a geometry
-	// generation if necessary.
-	if (font_dirty && UpdateFontConfiguration())
+	// If our font effects have potentially changed, update it and force a geometry generation if necessary.
+	if (font_effects_dirty && UpdateFontEffects())
 		geometry_dirty = true;
 
-	// Dirty geometry if font version has changed
+	// Dirty geometry if font version has changed.
 	int new_version = GetFontEngineInterface()->GetVersion(font_face_handle);
 	if (new_version != font_handle_version)
 	{
@@ -276,8 +275,8 @@ void ElementTextDefault::AddLine(const Vector2f& line_position, const String& li
 	if (font_face_handle == 0)
 		return;
 
-	if (font_dirty)
-		UpdateFontConfiguration();
+	if (font_effects_dirty)
+		UpdateFontEffects();
 
 	Vector2f baseline_position = line_position + Vector2f(0.0f, (float)GetFontEngineInterface()->GetLineHeight(font_face_handle) - GetFontEngineInterface()->GetBaseline(font_face_handle));
 	lines.push_back(Line(line, baseline_position));
@@ -321,7 +320,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 		font_face_changed = true;
 
 		geometry.clear();
-		font_dirty = true;
+		font_effects_dirty = true;
 	}
 
 	if (changed_properties.Contains(PropertyId::TextDecoration))
@@ -337,7 +336,7 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 				if (font_face_handle != 0)
 				{
 					for (size_t i = 0; i < lines.size(); ++i)
-						GenerateDecoration(font_face_handle, lines[i]);
+						GenerateLineDecoration(font_face_handle, lines[i]);
 				}
 
 				generated_decoration = decoration_property;
@@ -372,14 +371,14 @@ void ElementTextDefault::GetRML(String& content)
 }
 
 // Updates the configuration this element uses for its font.
-bool ElementTextDefault::UpdateFontConfiguration()
+bool ElementTextDefault::UpdateFontEffects()
 {
 	RMLUI_ZoneScoped;
 
 	if (GetFontFaceHandle() == 0)
 		return false;
 
-	font_dirty = false;
+	font_effects_dirty = false;
 
 	static const FontEffectList empty_font_effects;
 
@@ -390,10 +389,10 @@ bool ElementTextDefault::UpdateFontConfiguration()
 
 	// Request a font layer configuration to match this set of effects. If this is different from
 	// our old configuration, then return true to indicate we'll need to regenerate geometry.
-	int new_configuration = GetFontEngineInterface()->GenerateLayerConfiguration(GetFontFaceHandle(), *font_effects);
-	if (new_configuration != font_configuration)
+	FontEffectsHandle new_font_effects_handle = GetFontEngineInterface()->PrepareFontEffects(GetFontFaceHandle(), *font_effects);
+	if (new_font_effects_handle != font_effects_handle)
 	{
-		font_configuration = new_configuration;
+		font_effects_handle = new_font_effects_handle;
 		return true;
 	}
 
@@ -418,16 +417,16 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, geometry, line.text, line.position, colour, font_configuration);
+	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, geometry);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
 
 	if (decoration_property != Style::TextDecoration::None)
-		GenerateDecoration(font_face_handle, line);
+		GenerateLineDecoration(font_face_handle, line);
 }
 
 // Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-void ElementTextDefault::GenerateDecoration(const FontFaceHandle font_face_handle, const Line& line)
+void ElementTextDefault::GenerateLineDecoration(const FontFaceHandle font_face_handle, const Line& line)
 {
 	RMLUI_ZoneScopedC(0xA52A2A);
 	

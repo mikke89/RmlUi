@@ -138,16 +138,6 @@ void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* ro
 	}
 }
 
-// Returns the element's font face.
-FontFaceHandle ElementUtilities::GetFontFaceHandle(const Style::ComputedValues& computed_values)
-{
-	RMLUI_ZoneScoped;
-	
-	int font_size = (int)computed_values.font_size;
-
-	return GetFontEngineInterface()->GetFontFaceHandle(computed_values.font_family, computed_values.font_style, computed_values.font_weight, font_size);
-}
-
 float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 {
 	Context* context = element->GetContext();
