@@ -29,7 +29,7 @@
 #include "precompiled.h"
 #include "../TextureLayout.h"
 #include "FontFaceHandleDefault.h"
-#include "FontDatabaseDefault.h"
+#include "FontProvider.h"
 #include "FontFaceLayer.h"
 #include "FreeTypeInterface.h"
 #include <algorithm>
@@ -58,7 +58,7 @@ bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_siz
 
 	RMLUI_ASSERTMSG(layer_configurations.empty(), "Initialize must only be called once.");
 
-	if (!FreeType::InitialiseFaceHandle(ft_face, glyphs, metrics, font_size))
+	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics))
 	{
 		return false;
 	}
@@ -195,16 +195,16 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, FontEffect* layer_id, int texture_id, int handle_version)
+bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* layer_id, int texture_id, int handle_version) const
 {
 	if (handle_version != version)
 		return false;
 
-	FontLayerMap::iterator layer_iterator = layers.find(layer_id);
+	auto layer_iterator = layers.find(layer_id);
 	if (layer_iterator == layers.end())
 		return false;
 
-	return layer_iterator->second->GenerateTexture(glyphs, texture_data, texture_dimensions, texture_id);
+	return layer_iterator->second->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
 }
 
 // Generates the geometry required to render a single line of text.
@@ -220,6 +220,10 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 
 	// Fetch the requested configuration and generate the geometry for each one.
 	const LayerConfiguration& layer_configuration = layer_configurations[layer_configuration_index];
+
+	// Reserve for the common case of one texture per layer.
+	geometry.reserve(layer_configuration.size());
+
 	for (size_t i = 0; i < layer_configuration.size(); ++i)
 	{
 		FontFaceLayer* layer = layer_configuration[i];
@@ -303,20 +307,20 @@ int FontFaceHandleDefault::GetVersion() const
 
 bool FontFaceHandleDefault::AppendGlyph(CodePoint code_point) 
 {
-	bool result = FreeType::AppendGlyph(ft_face, code_point, metrics.size, glyphs);
+	bool result = FreeType::AppendGlyph(ft_face, metrics.size, code_point, glyphs);
 	return result;
 }
 
 int FontFaceHandleDefault::GetKerning(CodePoint lhs, CodePoint rhs) const
 {
-	int result = FreeType::GetKerning(ft_face, lhs, rhs);
+	int result = FreeType::GetKerning(ft_face, metrics.size, lhs, rhs);
 	return result;
 }
 
 const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, bool look_in_fallback_fonts)
 {
 	// Don't try to render control characters
-	if ((unsigned int)code_point < (unsigned int)' ')
+	if ((char32_t)code_point < (char32_t)' ')
 		return nullptr;
 
 	auto it_glyph = glyphs.find(code_point);
@@ -337,10 +341,10 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, 
 		}
 		else if (look_in_fallback_fonts)
 		{
-			const int num_fallback_faces = FontDatabaseDefault::CountFallbackFontFaces();
+			const int num_fallback_faces = FontProvider::CountFallbackFontFaces();
 			for (int i = 0; i < num_fallback_faces; i++)
 			{
-				FontFaceHandleDefault* fallback_face = FontDatabaseDefault::GetFallbackFontFace(i, metrics.size).get();
+				FontFaceHandleDefault* fallback_face = FontProvider::GetFallbackFontFace(i, metrics.size);
 				if (!fallback_face || fallback_face == this)
 					continue;
 

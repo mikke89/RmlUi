@@ -232,11 +232,7 @@ bool ElementImage::LoadTexture()
 	Rml::Core::ElementDocument* document = GetOwnerDocument();
 	URL source_url(document == nullptr ? "" : document->GetSourceURL());
 
-	if (!texture.Load(image_source, source_url.GetPath()))
-	{
-		geometry.SetTexture(nullptr);
-		return false;
-	}
+	texture.Set(image_source, source_url.GetPath());
 
 	// Set the texture onto our geometry object.
 	geometry.SetTexture(&texture);

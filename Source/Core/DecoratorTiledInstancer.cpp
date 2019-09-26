@@ -139,8 +139,9 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			{
 				texture = previous_texture;
 			}
-			else if (src_property->source && texture.Load(texture_name, src_property->source->path))
+			else if (src_property->source)
 			{
+				texture.Set(texture_name, src_property->source->path);
 				previous_texture_name = texture_name;
 				previous_texture = texture;
 			}

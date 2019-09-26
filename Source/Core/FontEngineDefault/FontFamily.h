@@ -45,14 +45,13 @@ class FontFamily
 {
 public:
 	FontFamily(const String& name);
-	virtual ~FontFamily();
 
 	/// Returns a handle to the most appropriate font in the family, at the correct size.
 	/// @param[in] style The style of the desired handle.
 	/// @param[in] weight The weight of the desired handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandleDefault> GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size);
+	FontFaceHandleDefault* GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size);
 
 
 	/// Adds a new face to the family.
@@ -66,7 +65,7 @@ public:
 protected:
 	String name;
 
-	typedef std::vector< UniquePtr<FontFace> > FontFaceList;
+	using FontFaceList = std::vector< UniquePtr<FontFace> >;
 	FontFaceList font_faces;
 };
 

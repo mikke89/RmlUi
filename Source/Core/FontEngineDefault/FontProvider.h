@@ -40,10 +40,8 @@ class FontFace;
 class FontFamily;
 class FontFaceHandleDefault;
 
-using FontFaceList = std::vector<FontFace*>;
-
 /**
-	The font database contains all font families currently in use by RmlUi.
+	The font provider contains all font families currently in use by RmlUi.
 	@author Peter Curry
  */
 
@@ -53,8 +51,6 @@ public:
 	static bool Initialise();
 	static void Shutdown();
 
-	static FontProvider& Get();
-
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
 	/// valid handle.
@@ -63,27 +59,34 @@ public:
 	/// @param[in] weight The weight of the desired font handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	SharedPtr<FontFaceHandleDefault> GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
-
-	const FontFaceList& GetFallbackFontFaces() const;
+	static FontFaceHandleDefault* GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
-	bool LoadFontFace(const String& file_name, bool fallback_face);
+	static bool LoadFontFace(const String& file_name, bool fallback_face);
 
 	/// Adds a new font face from memory.
-	bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+	static bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
 
+	/// Return the number of fallback font faces.
+	static int CountFallbackFontFaces();
+
+	/// Return a font face handle with the given index, at the given font size.
+	static FontFaceHandleDefault* GetFallbackFontFace(int index, int font_size);
 
 private:
 	FontProvider();
 	~FontProvider();
+
+	static FontProvider& Get();
 
 	bool LoadFontFace(const byte* data, int data_size, bool fallback_face, bool local_data, const String& source,
 		String font_family = {}, Style::FontStyle style = Style::FontStyle::Normal, Style::FontWeight weight = Style::FontWeight::Normal);
 
 	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream);
 
+	using FontFaceList = std::vector<FontFace*>;
 	using FontFamilyMap = UnorderedMap< String, UniquePtr<FontFamily>>;
+
 	FontFamilyMap font_families;
 	FontFaceList fallback_font_faces;
 

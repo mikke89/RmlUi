@@ -38,11 +38,7 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 {
 	// Load the texture
 	Texture texture;
-	if (!texture.Load(image_source, definition_source))
-	{
-		Log::Message(Log::LT_WARNING, "Could not load image '%s' specified in spritesheet '%s' at %s:%d", image_source.c_str(), name.c_str(), definition_source.c_str(), definition_line_number);
-		return false;
-	}
+	texture.Set(image_source, definition_source);
 
 	auto sprite_sheet = std::make_shared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture);
 	auto result = spritesheet_map.emplace(name, sprite_sheet);

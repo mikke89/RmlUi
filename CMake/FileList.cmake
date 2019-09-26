@@ -35,7 +35,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontDatabaseDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontEngineInterfaceDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFace.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFaceHandleDefault.h
@@ -243,7 +242,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontDatabaseDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontEngineInterfaceDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFace.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFaceHandleDefault.cpp

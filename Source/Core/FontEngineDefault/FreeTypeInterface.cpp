@@ -42,12 +42,14 @@ static FT_Library ft_library = nullptr;
 
 
 static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyphs);
-static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size);
+static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs);
 static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics);
 
 
 bool FreeType::Initialise()
 {
+	RMLUI_ASSERT(!ft_library);
+
 	FT_Error result = FT_Init_FreeType(&ft_library);
 	if (result != 0)
 	{
@@ -71,6 +73,8 @@ void FreeType::Shutdown()
 // Loads a FreeType face from memory.
 FontFaceHandleFreetype FreeType::LoadFace(const byte* data, int data_length, const String& source)
 {
+	RMLUI_ASSERT(ft_library);
+
 	FT_Face face = nullptr;
 	int error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, 0, &face);
 	if (error != 0)
@@ -107,7 +111,7 @@ bool FreeType::ReleaseFace(FontFaceHandleFreetype in_face, bool release_stream)
 	return (error == 0);
 }
 
-void FreeType::GetFontFaceStyle(FontFaceHandleFreetype in_face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight)
+void FreeType::GetFaceStyle(FontFaceHandleFreetype in_face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight)
 {
 	FT_Face face = (FT_Face)in_face;
 
@@ -119,7 +123,7 @@ void FreeType::GetFontFaceStyle(FontFaceHandleFreetype in_face, String& font_fam
 
 
 // Initialises the handle so it is able to render text.
-bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, FontGlyphMap& glyphs, FontMetrics& metrics, int font_size)
+bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics)
 {
 	FT_Face ft_face = (FT_Face)face;
 
@@ -134,7 +138,7 @@ bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, FontGlyphMap& g
 	}
 
 	// Construct the initial list of glyphs.
-	BuildGlyphMap(ft_face, glyphs, font_size);
+	BuildGlyphMap(ft_face, font_size, glyphs);
 
 	// Generate the metrics for the handle.
 	GenerateMetrics(ft_face, glyphs, metrics);
@@ -142,7 +146,7 @@ bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, FontGlyphMap& g
 	return true;
 }
 
-bool FreeType::AppendGlyph(FontFaceHandleFreetype face, CodePoint code_point, int font_size, FontGlyphMap& glyphs)
+bool FreeType::AppendGlyph(FontFaceHandleFreetype face, int font_size, CodePoint code_point, FontGlyphMap& glyphs)
 {
 	FT_Face ft_face = (FT_Face)face;
 
@@ -164,16 +168,21 @@ bool FreeType::AppendGlyph(FontFaceHandleFreetype face, CodePoint code_point, in
 }
 
 
-int FreeType::GetKerning(FontFaceHandleFreetype face, CodePoint lhs, CodePoint rhs)
+int FreeType::GetKerning(FontFaceHandleFreetype face, int font_size, CodePoint lhs, CodePoint rhs)
 {
 	FT_Face ft_face = (FT_Face)face;
 
 	if (!FT_HAS_KERNING(ft_face))
 		return 0;
 
+	// Set face size again in case it was used at another size in another font face handle.
+	FT_Error ft_error = FT_Set_Char_Size(ft_face, 0, font_size << 6, 0, 0);
+	if (ft_error)
+		return 0;
+
 	FT_Vector ft_kerning;
 
-	FT_Error ft_error = FT_Get_Kerning(
+	ft_error = FT_Get_Kerning(
 		ft_face,
 		FT_Get_Char_Index(ft_face, (FT_ULong)lhs),
 		FT_Get_Char_Index(ft_face, (FT_ULong)rhs),
@@ -181,7 +190,7 @@ int FreeType::GetKerning(FontFaceHandleFreetype face, CodePoint lhs, CodePoint r
 		&ft_kerning
 	);
 
-	if (ft_error != 0)
+	if (ft_error)
 		return 0;
 
 	int kerning = ft_kerning.x >> 6;
@@ -190,11 +199,11 @@ int FreeType::GetKerning(FontFaceHandleFreetype face, CodePoint lhs, CodePoint r
 
 
 
-static void BuildGlyphMap(FT_Face ft_face, FontGlyphMap& glyphs, int size)
+static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs)
 {
 	glyphs.reserve(128);
 
-	// Add the ASCII character set now. Other characters are added later as needed.
+	// Add the ASCII characters now. Other characters are added later as needed.
 	FT_ULong code_min = 32;
 	FT_ULong code_max = 126;
 

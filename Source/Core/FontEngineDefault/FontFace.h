@@ -41,27 +41,19 @@ class FontFaceHandleDefault;
 	@author Peter Curry
  */
 
-class FontFace final
+class FontFace
 {
 public:
 	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
 	~FontFace();
 
-	/// Returns the style of the font face.
-	/// @return The font face's style.
 	Style::FontStyle GetStyle() const;
-	/// Returns the weight of the font face.
-	/// @return The font face's weight.
 	Style::FontWeight GetWeight() const;
 
 	/// Returns a handle for positioning and rendering this face at the given size.
 	/// @param[in] size The size of the desired handle, in points.
-	/// @return The shared font handle.
-	SharedPtr<FontFaceHandleDefault> GetHandle(int size);
-
-	/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
-	/// but existing ones can still be fetched.
-	void ReleaseFace();
+	/// @return The font handle.
+	FontFaceHandleDefault* GetHandle(int size);
 
 private:
 	Style::FontStyle style;
@@ -70,7 +62,7 @@ private:
 	bool release_stream;
 
 	// Key is font size
-	using HandleMap = UnorderedMap< int, SharedPtr<FontFaceHandleDefault> >;
+	using HandleMap = UnorderedMap< int, UniquePtr<FontFaceHandleDefault> >;
 	HandleMap handles;
 
 	FontFaceHandleFreetype face;

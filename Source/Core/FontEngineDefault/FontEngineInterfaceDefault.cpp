@@ -27,7 +27,7 @@
  */
 
 #include "precompiled.h"
-#include "FontDatabaseDefault.h"
+#include "FontProvider.h"
 #include "FontFaceHandleDefault.h"
 #include "FontEngineInterfaceDefault.h"
 
@@ -38,28 +38,28 @@ namespace Core {
 
 FontEngineInterfaceDefault::FontEngineInterfaceDefault()
 {
-	FontDatabaseDefault::Initialise();
+	FontProvider::Initialise();
 }
 
 FontEngineInterfaceDefault::~FontEngineInterfaceDefault()
 {
-	FontDatabaseDefault::Shutdown();
+	FontProvider::Shutdown();
 }
 
 bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, bool fallback_face)
 {
-	return FontDatabaseDefault::LoadFontFace(file_name, fallback_face);
+	return FontProvider::LoadFontFace(file_name, fallback_face);
 }
 
 bool FontEngineInterfaceDefault::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
 {
-	return FontDatabaseDefault::LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
+	return FontProvider::LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
 }
 
 FontFaceHandle FontEngineInterfaceDefault::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
-	auto handle = FontDatabaseDefault::GetFontFaceHandle(family, style, weight, size);
-	return reinterpret_cast<FontFaceHandle>(handle.get());
+	auto handle = FontProvider::GetFontFaceHandle(family, style, weight, size);
+	return reinterpret_cast<FontFaceHandle>(handle);
 }
 	
 FontEffectsHandle FontEngineInterfaceDefault::PrepareFontEffects(FontFaceHandle handle, const FontEffectList& font_effects)

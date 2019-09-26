@@ -29,8 +29,6 @@
 #include "precompiled.h"
 #include "TextureResource.h"
 #include "TextureDatabase.h"
-#include "FontEngineDefault/FontFaceHandleDefault.h"
-#include "../../Include/RmlUi/Core.h"
 
 namespace Rml {
 namespace Core {
@@ -45,12 +43,18 @@ TextureResource::~TextureResource()
 }
 
 // Attempts to load a texture from the application into the resource.
-bool TextureResource::Load(const String& _source)
+void TextureResource::Set(const String& _source)
 {
 	Release();
+	texture_callback.reset();
 	source = _source;
+}
 
-	return true;
+void TextureResource::Set(const String& name, const TextureCallback& callback)
+{
+	Release();
+	source = name;
+	texture_callback = std::make_unique<TextureCallback>(callback);
 }
 
 // Returns the resource's underlying texture.
@@ -113,65 +117,43 @@ void TextureResource::Release(RenderInterface* render_interface)
 	}
 }
 
-// Attempts to load the texture from the source.
 bool TextureResource::Load(RenderInterface* render_interface)
 {
 	RMLUI_ZoneScoped;
 
-	// Check for special loader tokens.
-	if (!source.empty() && source[0] == '?')
+	// Generate the texture from the callback function if we have one.
+	if (texture_callback)
 	{
 		Vector2i dimensions;
-
 		UniquePtr<const byte[]> data = nullptr;
 
-		// Find the generation protocol and generate the data accordingly.
-		String protocol = source.substr(1, source.find("::") - 1);
+		TextureCallback& callback_fnc = *texture_callback;
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-		if (protocol == "font")
+		if (!callback_fnc(source, data, dimensions) || !data)
 		{
-			// The requested texture is a font layer.
-			FontFaceHandleDefault* handle;
-			FontEffect* layer_id;
-			int texture_id;
-			int handle_version;
+			Log::Message(Log::LT_WARNING, "Failed to generate texture from callback function %s.", source.c_str());
+			texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
 
-			if (sscanf(source.c_str(), "?font::%p/%p/%d/%d", &handle, &layer_id, &texture_id, &handle_version) == 4)
-			{
-				if (!handle->GenerateLayerTexture(data, dimensions, layer_id, texture_id, handle_version))
-				{
-					Log::Message(Log::LT_WARNING, "Failed to generate font layer texture %s.", source.c_str());
-					texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
-
-					return false;
-				}
-			}
+			return false;
 		}
-#endif
 
-		// If texture data was generated, great! Otherwise, fallback to the LoadTexture() code and
-		// hope the client knows what the hell to do with the question mark in their file name.
-		if (data)
+		TextureHandle handle;
+		bool success = render_interface->GenerateTexture(handle, data.get(), dimensions);
+
+		if (success)
 		{
-			TextureHandle handle;
-			bool success = render_interface->GenerateTexture(handle, data.get(), dimensions);
-
-			if (success)
-			{
-				texture_data[render_interface] = TextureData(handle, dimensions);
-				return true;
-			}
-			else
-			{
-				Log::Message(Log::LT_WARNING, "Failed to generate internal texture %s.", source.c_str());
-				texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
-
-				return false;
-			}
+			texture_data[render_interface] = TextureData(handle, dimensions);
 		}
+		else
+		{
+			Log::Message(Log::LT_WARNING, "Failed to generate internal texture %s.", source.c_str());
+			texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
+		}
+
+		return success;
 	}
 
+	// No callback function, load the texture through the render interface.
 	TextureHandle handle;
 	Vector2i dimensions;
 	if (!render_interface->LoadTexture(handle, dimensions, source))

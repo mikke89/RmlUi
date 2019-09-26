@@ -46,7 +46,11 @@ FontFace::FontFace(FontFaceHandleFreetype _face, Style::FontStyle _style, Style:
 
 FontFace::~FontFace()
 {
-	ReleaseFace();
+	if (face) 
+	{
+		FreeType::ReleaseFace(face, release_stream);
+		face = 0;
+	}
 	handles.clear();
 }
 
@@ -62,14 +66,10 @@ Style::FontWeight FontFace::GetWeight() const
 	return weight;
 }
 
-/// Returns a handle for positioning and rendering this face at the given size.
-/// @param[in] size The size of the desired handle, in points.
-/// @return The shared font handle.
-
-SharedPtr<FontFaceHandleDefault> FontFace::GetHandle(int size) {
+FontFaceHandleDefault* FontFace::GetHandle(int size) {
 	auto it = handles.find(size);
 	if (it != handles.end())
-		return it->second;
+		return it->second.get();
 
 	// See if this face has been released.
 	if (!face)
@@ -79,29 +79,21 @@ SharedPtr<FontFaceHandleDefault> FontFace::GetHandle(int size) {
 	}
 
 	// Construct and initialise the new handle.
-	auto handle = std::make_shared<FontFaceHandleDefault>();
+	auto handle = std::make_unique<FontFaceHandleDefault>();
 	if (!handle->Initialize(face, size))
 	{
 		handles[size] = nullptr;
 		return nullptr;
 	}
 
+	FontFaceHandleDefault* result = handle.get();
+
 	// Save the new handle to the font face
-	handles[size] = handle;
+	handles[size] = std::move(handle);
 
-	return handle;
+	return result;
 }
 
-/// Releases the face's FreeType face structure. This will mean handles for new sizes cannot be constructed,
-/// but existing ones can still be fetched.
-
-void FontFace::ReleaseFace() {
-	if (face)
-	{
-		FreeType::ReleaseFace(face, release_stream);
-		face = 0;
-	}
-}
 
 }
 }

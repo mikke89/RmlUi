@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "FontFaceLayer.h"
 #include "FontFaceHandleDefault.h"
-#include "FontDatabaseDefault.h"
 
 namespace Rml {
 namespace Core {
@@ -153,24 +152,30 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 			character.texcoords[1].y = float(rectangle.GetPosition().y + rectangle.GetDimensions().y) / float(texture.GetDimensions().y);
 		}
 
+		const FontEffect* effect_ptr = effect.get();
+		const int handle_version = handle->GetVersion();
 
 		// Generate the textures.
 		for (int i = 0; i < texture_layout.GetNumTextures(); ++i)
 		{
-			Texture texture;
-			if (!texture.Load(CreateString(64, "?font::%p/%p/%d/%d", handle, effect.get(), i, handle->GetVersion())))
-				return false;
+			int texture_id = i;
 
+			TextureCallback texture_callback = [handle, effect_ptr, texture_id, handle_version](const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
+				bool result = handle->GenerateLayerTexture(data, dimensions, effect_ptr, texture_id, handle_version);
+				return result;
+			};
+
+			Texture texture;
+			texture.Set("font-face-layer", texture_callback);
 			textures.push_back(texture);
 		}
 	}
-
 
 	return true;
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceLayer::GenerateTexture(const FontGlyphMap& glyphs, UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id)
+bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs)
 {
 	if (texture_id < 0 ||
 		texture_id > texture_layout.GetNumTextures())

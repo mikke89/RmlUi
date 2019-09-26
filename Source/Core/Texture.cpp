@@ -35,10 +35,15 @@ namespace Rml {
 namespace Core {
 
 // Attempts to load a texture.
-bool Texture::Load(const String& source, const String& source_path)
+void Texture::Set(const String& source, const String& source_path)
 {
 	resource = TextureDatabase::Fetch(source, source_path);
-	return resource != nullptr;
+}
+
+void Texture::Set(const String& name, const TextureCallback& callback)
+{
+	resource = std::make_shared<TextureResource>();
+	resource->Set(name, callback);
 }
 
 // Returns the texture's source name. This is usually the name of the file the texture was loaded from.

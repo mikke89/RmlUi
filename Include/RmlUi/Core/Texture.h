@@ -31,12 +31,23 @@
 
 #include "Header.h"
 #include "Types.h"
+#include <functional>
 
 namespace Rml {
 namespace Core {
 
 class TextureResource;
 class RenderInterface;
+
+/*
+	Callback function for generating textures.
+	/// @param[in] name The name used to set the texture.
+	/// @param[out] data The raw data of the texture, each pixel has four 8-bit channels: red-green-blue-alpha.
+	/// @param[out] dimensions The width and height of the generated texture.
+	/// @return True on success.
+*/
+using TextureCallback = std::function<bool(const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions)>;
+
 
 /**
 	Abstraction of a two-dimensional texture image, with an application-specific texture handle.
@@ -47,11 +58,15 @@ class RenderInterface;
 struct RMLUICORE_API Texture
 {
 public:
-	/// Attempts to load a texture.
-	/// @param[in] source The name of the texture.
+	/// Set the texture source and path. The texture is added to the global cache and only loaded on first use.
+	/// @param[in] source The source of the texture.
 	/// @param[in] source_path The path of the resource that is requesting the texture (ie, the RCSS file in which it was specified, etc).
-	/// @return True if the texture loaded successfully, false if not.
-	bool Load(const String& source, const String& source_path = "");
+	void Set(const String& source, const String& source_path = "");
+
+	/// Set a callback function for generating the texture on first use. The texture is never added to the global cache.
+	/// @param[in] name The name of the texture.
+	/// @param[in] callback The callback function which generates the data of the texture, see TextureCallback.
+	void Set(const String& name, const TextureCallback& callback);
 
 	/// Returns the texture's source name. This is usually the name of the file the texture was loaded from.
 	/// @return The name of the this texture's source. This will be the empty string if this texture is not loaded.

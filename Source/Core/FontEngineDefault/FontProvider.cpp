@@ -28,6 +28,7 @@
 
 #include "precompiled.h"
 #include "FontProvider.h"
+#include "FontFace.h"
 #include "FontFamily.h"
 #include "FreeTypeInterface.h"
 
@@ -72,22 +73,33 @@ FontProvider& FontProvider::Get()
 }
 
 // Returns a handle to a font face that can be used to position and render text.
-SharedPtr<FontFaceHandleDefault> FontProvider::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
+FontFaceHandleDefault* FontProvider::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	RMLUI_ASSERTMSG(family == StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
 
-	auto it = font_families.find(family);
-	if (it == font_families.end())
+	FontFamilyMap& families = Get().font_families;
+
+	auto it = families.find(family);
+	if (it == families.end())
 		return nullptr;
 
 	return it->second->GetFaceHandle(style, weight, size);
 }
 
-const FontFaceList& FontProvider::GetFallbackFontFaces() const
+int FontProvider::CountFallbackFontFaces()
 {
-	return fallback_font_faces;
+	return (int)Get().fallback_font_faces.size();
 }
 
+FontFaceHandleDefault* FontProvider::GetFallbackFontFace(int index, int font_size)
+{
+	auto& faces = FontProvider::Get().fallback_font_faces;
+
+	if (index >= 0 && index < (int)faces.size())
+		return faces[index]->GetHandle(font_size);
+
+	return nullptr;
+}
 
 
 
@@ -109,7 +121,7 @@ bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face)
 	file_interface->Read(buffer, length, handle);
 	file_interface->Close(handle);
 
-	bool result = LoadFontFace(buffer, (int)length, fallback_face, true, file_name);
+	bool result = Get().LoadFontFace(buffer, (int)length, fallback_face, true, file_name);
 
 	return result;
 }
@@ -119,7 +131,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, const String& f
 {
 	const String source = "memory";
 	
-	bool result = LoadFontFace(data, data_size, fallback_face, false, source, font_family, style, weight);
+	bool result = Get().LoadFontFace(data, data_size, fallback_face, false, source, font_family, style, weight);
 	
 	return result;
 }
@@ -140,7 +152,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 
 	if (font_family.empty())
 	{
-		FreeType::GetFontFaceStyle(ft_face, font_family, style, weight);
+		FreeType::GetFaceStyle(ft_face, font_family, style, weight);
 	}
 
 	if (!AddFace(ft_face, font_family, style, weight, fallback_face, local_data))

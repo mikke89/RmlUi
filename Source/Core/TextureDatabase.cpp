@@ -75,10 +75,7 @@ SharedPtr<TextureResource> TextureDatabase::Fetch(const String& source, const St
 	}
 
 	auto resource = std::make_shared<TextureResource>();
-	if (!resource->Load(path))
-	{
-		return nullptr;
-	}
+	resource->Set(path);
 
 	instance->textures[resource->GetSource()] = resource;
 	return resource;

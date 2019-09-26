@@ -37,21 +37,28 @@ namespace Rml {
 namespace Core {
 namespace FreeType {
 
+// Initialize FreeType library.
 bool Initialise();
+// Shutdown FreeType library.
 void Shutdown();
 
-// Loads a FreeType face from memory.
+// Loads a FreeType face from memory, 'source' is only used for logging.
 FontFaceHandleFreetype LoadFace(const byte* data, int data_length, const String& source);
+
+// Releases the FreeType face.
 bool ReleaseFace(FontFaceHandleFreetype face, bool release_stream);
 
 // Retrieves the font family, style and weight of the given font face.
-void GetFontFaceStyle(FontFaceHandleFreetype face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight);
+void GetFaceStyle(FontFaceHandleFreetype face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight);
 
-bool InitialiseFaceHandle(FontFaceHandleFreetype face, FontGlyphMap& glyphs, FontMetrics& metrics, int font_size);
+// Initializes a face for a given font size. Glyphs are filled with the ASCII subset, and the font face metrics are set.
+bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics);
 
-bool AppendGlyph(FontFaceHandleFreetype face, CodePoint code_point, int font_size, FontGlyphMap& glyphs);
+// Build a new glyph representing the given code point and append to 'glyphs'.
+bool AppendGlyph(FontFaceHandleFreetype face, int font_size, CodePoint code_point, FontGlyphMap& glyphs);
 
-int GetKerning(FontFaceHandleFreetype face, CodePoint lhs, CodePoint rhs);
+// Returns the kerning between two characters.
+int GetKerning(FontFaceHandleFreetype face, int font_size, CodePoint lhs, CodePoint rhs);
 
 }
 }
