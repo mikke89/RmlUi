@@ -29,8 +29,6 @@
 #ifndef RMLUICOREFREETYPEINTERFACE_H
 #define RMLUICOREFREETYPEINTERFACE_H
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
 #include "FontTypes.h"
 
 namespace Rml {
@@ -63,7 +61,5 @@ int GetKerning(FontFaceHandleFreetype face, int font_size, CodePoint lhs, CodePo
 }
 }
 }
-
-#endif
 
 #endif

@@ -33,8 +33,6 @@
 namespace Rml {
 namespace Core {
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
 FontFaceLayer::FontFaceLayer(const SharedPtr<const FontEffect>& _effect) : colour(255, 255, 255)
 {
 	effect = _effect;
@@ -255,8 +253,6 @@ const Colourb& FontFaceLayer::GetColour() const
 {
 	return colour;
 }
-
-#endif
 
 }
 }

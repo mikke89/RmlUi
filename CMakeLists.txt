@@ -155,7 +155,7 @@ else(APPLE)
 	endif()
 endif(APPLE)
 
-option(NO_FONT_INTERFACE_DEFAULT "Do not build the font providers that come with the library" OFF)
+option(NO_FONT_INTERFACE_DEFAULT "Do not include the default font engine in the build. Allows building without the FreeType dependency, but a custom font engine must be created and set." OFF)
 if(NO_FONT_INTERFACE_DEFAULT)
 	add_definitions(-DRMLUI_NO_FONT_INTERFACE_DEFAULT)
 endif()

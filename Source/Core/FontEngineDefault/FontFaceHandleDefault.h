@@ -39,8 +39,6 @@
 namespace Rml {
 namespace Core {
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
 class FontFaceLayer;
 
 
@@ -146,8 +144,6 @@ private:
 
 	FontFaceHandleFreetype ft_face;
 };
-
-#endif
 
 }
 }

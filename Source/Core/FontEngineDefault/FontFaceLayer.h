@@ -38,8 +38,6 @@
 namespace Rml {
 namespace Core {
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
 class FontEffect;
 class FontFaceHandleDefault;
 
@@ -144,8 +142,6 @@ private:
 	TextureList textures;
 	Colourb colour;
 };
-
-#endif
 
 }
 }

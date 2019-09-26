@@ -37,8 +37,6 @@
 namespace Rml {
 namespace Core {
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-	
 FontFaceHandleDefault::FontFaceHandleDefault()
 {
 	base_layer = nullptr;
@@ -438,8 +436,6 @@ bool FontFaceHandleDefault::GenerateLayer(FontFaceLayer* layer)
 
 	return result;
 }
-
-#endif
 
 }
 }

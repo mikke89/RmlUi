@@ -35,8 +35,6 @@
 namespace Rml {
 namespace Core {
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
 static FontProvider* g_font_provider = nullptr;
 
 FontProvider::FontProvider()
@@ -72,7 +70,6 @@ FontProvider& FontProvider::Get()
 	return *g_font_provider;
 }
 
-// Returns a handle to a font face that can be used to position and render text.
 FontFaceHandleDefault* FontProvider::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	RMLUI_ASSERTMSG(family == StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
@@ -102,8 +99,6 @@ FontFaceHandleDefault* FontProvider::GetFallbackFontFace(int index, int font_siz
 }
 
 
-
-// Loads a new font face.
 bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face)
 {
 	FileInterface* file_interface = GetFileInterface();
@@ -165,10 +160,6 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 	return true;
 }
 
-
-
-
-// Adds a loaded face to the appropriate font family.
 bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream)
 {
 	String family_lower = StringUtilities::ToLower(family);
@@ -199,10 +190,6 @@ bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, St
 	return static_cast<bool>(font_face_result);
 }
 
-
-
-
-#endif
 
 }
 }

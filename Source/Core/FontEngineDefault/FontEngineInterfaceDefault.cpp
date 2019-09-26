@@ -34,8 +34,6 @@
 namespace Rml {
 namespace Core {
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
 FontEngineInterfaceDefault::FontEngineInterfaceDefault()
 {
 	FontProvider::Initialise();
@@ -116,8 +114,6 @@ int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
 	return handle_default->GetVersion();
 }
-
-#endif
 
 }
 }

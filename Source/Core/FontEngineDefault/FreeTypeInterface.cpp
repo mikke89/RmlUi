@@ -28,8 +28,6 @@
 
 #include "precompiled.h"
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-
 #include "FreeTypeInterface.h"
 
 #include <ft2build.h>
@@ -358,7 +356,6 @@ static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyp
 	return true;
 }
 
-
 static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics)
 {
 	metrics.line_height = ft_face->size->metrics.height >> 6;
@@ -379,6 +376,3 @@ static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMet
 
 }
 }
-
-#endif
-

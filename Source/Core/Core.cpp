@@ -55,7 +55,6 @@ static FontEngineInterface* font_interface = nullptr;
 
 // Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
 static UniquePtr<FileInterface> default_file_interface;
-
 static UniquePtr<FontEngineInterface> default_font_interface;
 
 static bool initialised = false;
