@@ -67,7 +67,7 @@ public:
 	float GetUnderline(FontFaceHandle, float& thickness) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
-	int GetStringWidth(FontFaceHandle, const String& string, CodePoint prior_character) override;
+	int GetStringWidth(FontFaceHandle, const String& string, Character prior_character) override;
 
 	/// Generates the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle, FontEffectsHandle, const String& string, const Vector2f& position, const Colourb& colour, GeometryList& geometry) override;

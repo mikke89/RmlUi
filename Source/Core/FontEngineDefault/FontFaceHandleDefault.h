@@ -74,7 +74,7 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	int GetStringWidth(const String& string, CodePoint prior_character = CodePoint::Null);
+	int GetStringWidth(const String& string, Character prior_character = Character::Null);
 
 	/// Generates, if required, the layer configuration for a given list of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
@@ -102,15 +102,15 @@ public:
 
 private:
 	// Build and append glyph to 'glyphs'
-	bool AppendGlyph(CodePoint code_point);
+	bool AppendGlyph(Character character);
 
-	int GetKerning(CodePoint lhs, CodePoint rhs) const;
+	int GetKerning(Character lhs, Character rhs) const;
 
 	/// Retrieve a glyph from the given code point, building and appending a new glyph if not already built.
-	/// @param[in-out] code_point  The code point, can be changed e.g. to the replacement character if no glyph is found.
+	/// @param[in-out] character  The character, can be changed e.g. to the replacement character if no glyph is found.
 	/// @param[in] look_in_fallback_fonts  Look for the glyph in fallback fonts if not found locally, adding it to our glyphs.
 	/// @return The font glyph for the returned code point.
-	const FontGlyph* GetOrAppendGlyph(CodePoint& code_point, bool look_in_fallback_fonts = true);
+	const FontGlyph* GetOrAppendGlyph(Character& character, bool look_in_fallback_fonts = true);
 
 	// Regenerate layers if dirty, such as after adding new glyphs.
 	bool UpdateLayersOnDirty();

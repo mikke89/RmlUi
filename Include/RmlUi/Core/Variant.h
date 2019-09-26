@@ -125,7 +125,7 @@ private:
 	void Set(const char value);
 	void Set(const float value);
 	void Set(const int value);
-	void Set(const CodePoint value);
+	void Set(const Character value);
 	void Set(const char* value);
 	void Set(void* value);
 	void Set(const Vector2f& value);

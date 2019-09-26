@@ -105,24 +105,24 @@ float FontFaceHandleDefault::GetUnderline(float& thickness) const
 }
 
 // Returns the width a string will take up if rendered with this handle.
-int FontFaceHandleDefault::GetStringWidth(const String& string, CodePoint prior_character)
+int FontFaceHandleDefault::GetStringWidth(const String& string, Character prior_character)
 {
 	int width = 0;
 	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 	{
-		CodePoint code_point = *it_string;
+		Character character = *it_string;
 
-		const FontGlyph* glyph = GetOrAppendGlyph(code_point);
+		const FontGlyph* glyph = GetOrAppendGlyph(character);
 		if (!glyph)
 			continue;
 
 		// Adjust the cursor for the kerning between this character and the previous one.
-		if (prior_character != CodePoint::Null)
-			width += GetKerning(prior_character, code_point);
+		if (prior_character != Character::Null)
+			width += GetKerning(prior_character, character);
 		// Adjust the cursor for this character's advance.
 		width += glyph->advance;
 
-		prior_character = code_point;
+		prior_character = character;
 	}
 
 	return width;
@@ -243,27 +243,27 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			geometry[geometry_index + i].SetTexture(layer->GetTexture(i));
 
 		line_width = 0;
-		CodePoint prior_character = CodePoint::Null;
+		Character prior_character = Character::Null;
 
 		geometry[geometry_index].GetIndices().reserve(string.size() * 6);
 		geometry[geometry_index].GetVertices().reserve(string.size() * 4);
 
 		for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 		{
-			CodePoint code_point = *it_string;
+			Character character = *it_string;
 
-			const FontGlyph* glyph = GetOrAppendGlyph(code_point);
+			const FontGlyph* glyph = GetOrAppendGlyph(character);
 			if (!glyph)
 				continue;
 
 			// Adjust the cursor for the kerning between this character and the previous one.
-			if (prior_character != CodePoint::Null)
-				line_width += GetKerning(prior_character, code_point);
+			if (prior_character != Character::Null)
+				line_width += GetKerning(prior_character, character);
 
-			layer->GenerateGeometry(&geometry[geometry_index], code_point, Vector2f(position.x + line_width, position.y), layer_colour);
+			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), layer_colour);
 
 			line_width += glyph->advance;
-			prior_character = code_point;
+			prior_character = character;
 		}
 
 		geometry_index += layer->GetNumTextures();
@@ -303,32 +303,32 @@ int FontFaceHandleDefault::GetVersion() const
 	return version;
 }
 
-bool FontFaceHandleDefault::AppendGlyph(CodePoint code_point) 
+bool FontFaceHandleDefault::AppendGlyph(Character character)
 {
-	bool result = FreeType::AppendGlyph(ft_face, metrics.size, code_point, glyphs);
+	bool result = FreeType::AppendGlyph(ft_face, metrics.size, character, glyphs);
 	return result;
 }
 
-int FontFaceHandleDefault::GetKerning(CodePoint lhs, CodePoint rhs) const
+int FontFaceHandleDefault::GetKerning(Character lhs, Character rhs) const
 {
 	int result = FreeType::GetKerning(ft_face, metrics.size, lhs, rhs);
 	return result;
 }
 
-const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, bool look_in_fallback_fonts)
+const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, bool look_in_fallback_fonts)
 {
 	// Don't try to render control characters
-	if ((char32_t)code_point < (char32_t)' ')
+	if ((char32_t)character < (char32_t)' ')
 		return nullptr;
 
-	auto it_glyph = glyphs.find(code_point);
+	auto it_glyph = glyphs.find(character);
 	if (it_glyph == glyphs.end())
 	{
-		bool result = AppendGlyph(code_point);
+		bool result = AppendGlyph(character);
 
 		if (result)
 		{
-			it_glyph = glyphs.find(code_point);
+			it_glyph = glyphs.find(character);
 			if (it_glyph == glyphs.end())
 			{
 				RMLUI_ERROR;
@@ -346,11 +346,11 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, 
 				if (!fallback_face || fallback_face == this)
 					continue;
 
-				const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(code_point, false);
+				const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(character, false);
 				if (glyph)
 				{
 					// Insert the new glyph into our own set of glyphs
-					auto pair = glyphs.emplace(code_point, glyph->WeakCopy());
+					auto pair = glyphs.emplace(character, glyph->WeakCopy());
 					it_glyph = pair.first;
 					if(pair.second)
 						is_layers_dirty = true;
@@ -361,8 +361,8 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(CodePoint& code_point, 
 			// If we still have not found a glyph, use the replacement character.
 			if(it_glyph == glyphs.end())
 			{
-				code_point = CodePoint::Replacement;
-				it_glyph = glyphs.find(code_point);
+				character = Character::Replacement;
+				it_glyph = glyphs.find(character);
 				if (it_glyph == glyphs.end())
 					return nullptr;
 			}

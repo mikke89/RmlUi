@@ -102,7 +102,7 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	virtual int GetStringWidth(FontFaceHandle handle, const String& string, CodePoint prior_character = CodePoint::Null);
+	virtual int GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character = Character::Null);
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
 	/// @param[in] face_handle The font handle.

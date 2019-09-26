@@ -77,7 +77,7 @@ public:
 	}
 };
 
-using FontGlyphMap = UnorderedMap<CodePoint, FontGlyph>;
+using FontGlyphMap = UnorderedMap<Character, FontGlyph>;
 
 }
 }

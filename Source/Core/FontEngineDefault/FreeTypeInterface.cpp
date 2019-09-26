@@ -39,7 +39,7 @@ namespace Core {
 static FT_Library ft_library = nullptr;
 
 
-static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyphs);
+static bool BuildGlyph(FT_Face ft_face, Character character, FontGlyphMap& glyphs);
 static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs);
 static void GenerateMetrics(FT_Face ft_face, const FontGlyphMap& glyphs, FontMetrics& metrics);
 
@@ -144,11 +144,11 @@ bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, 
 	return true;
 }
 
-bool FreeType::AppendGlyph(FontFaceHandleFreetype face, int font_size, CodePoint code_point, FontGlyphMap& glyphs)
+bool FreeType::AppendGlyph(FontFaceHandleFreetype face, int font_size, Character character, FontGlyphMap& glyphs)
 {
 	FT_Face ft_face = (FT_Face)face;
 
-	RMLUI_ASSERT(glyphs.find(code_point) == glyphs.end());
+	RMLUI_ASSERT(glyphs.find(character) == glyphs.end());
 	RMLUI_ASSERT(ft_face);
 
 	// Set face size again in case it was used at another size in another font face handle.
@@ -159,14 +159,14 @@ bool FreeType::AppendGlyph(FontFaceHandleFreetype face, int font_size, CodePoint
 		return false;
 	}
 
-	if (!BuildGlyph(ft_face, code_point, glyphs))
+	if (!BuildGlyph(ft_face, character, glyphs))
 		return false;
 
 	return true;
 }
 
 
-int FreeType::GetKerning(FontFaceHandleFreetype face, int font_size, CodePoint lhs, CodePoint rhs)
+int FreeType::GetKerning(FontFaceHandleFreetype face, int font_size, Character lhs, Character rhs)
 {
 	FT_Face ft_face = (FT_Face)face;
 
@@ -206,10 +206,10 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs)
 	FT_ULong code_max = 126;
 
 	for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
-		BuildGlyph(ft_face, (CodePoint)character_code, glyphs);
+		BuildGlyph(ft_face, (Character)character_code, glyphs);
 
 	// Add a replacement character for rendering unknown characters.
-	CodePoint replacement_character = CodePoint::Replacement;
+	Character replacement_character = Character::Replacement;
 	auto it = glyphs.find(replacement_character);
 	if (it == glyphs.end())
 	{
@@ -237,30 +237,30 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs)
 	}
 }
 
-static bool BuildGlyph(FT_Face ft_face, CodePoint code_point, FontGlyphMap& glyphs)
+static bool BuildGlyph(FT_Face ft_face, Character character, FontGlyphMap& glyphs)
 {
-	int index = FT_Get_Char_Index(ft_face, (FT_ULong)code_point);
+	int index = FT_Get_Char_Index(ft_face, (FT_ULong)character);
 	if (index == 0)
 		return false;
 
 	FT_Error error = FT_Load_Glyph(ft_face, index, 0);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", code_point, ft_face->family_name, ft_face->style_name, error);
+		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", character, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
 	error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", code_point, ft_face->family_name, ft_face->style_name, error);
+		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", character, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
-	auto result = glyphs.emplace(code_point, FontGlyph{});
+	auto result = glyphs.emplace(character, FontGlyph{});
 	if (!result.second)
 	{
-		Log::Message(Log::LT_WARNING, "Glyph character '%u' is already loaded in the font face '%s %s'.", code_point, ft_face->family_name, ft_face->style_name);
+		Log::Message(Log::LT_WARNING, "Glyph character '%u' is already loaded in the font face '%s %s'.", character, ft_face->family_name, ft_face->style_name);
 		return false;
 	}
 

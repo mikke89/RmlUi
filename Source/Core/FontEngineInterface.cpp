@@ -89,7 +89,7 @@ float FontEngineInterface::GetUnderline(FontFaceHandle, float &)
 	return 0;
 }
 
-int FontEngineInterface::GetStringWidth(FontFaceHandle, const String& RMLUI_UNUSED_PARAMETER(string), CodePoint RMLUI_UNUSED_PARAMETER(prior_character))
+int FontEngineInterface::GetStringWidth(FontFaceHandle, const String& RMLUI_UNUSED_PARAMETER(string), Character RMLUI_UNUSED_PARAMETER(prior_character))
 {
 	RMLUI_UNUSED(string);
 	RMLUI_UNUSED(prior_character);

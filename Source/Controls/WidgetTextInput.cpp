@@ -378,7 +378,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 				// @performance: Can be made heaps faster.
 				for (auto it = Core::StringIteratorU8(clipboard_text); it; ++it)
 				{
-					Core::CodePoint code = *it;
+					Core::Character code = *it;
 					AddCharacter(code);
 				}
 			}
@@ -404,7 +404,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("alt_key", 0) == 0 &&
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
-			Rml::Core::CodePoint character = event.GetParameter("data", Rml::Core::CodePoint::Null);
+			Rml::Core::Character character = event.GetParameter("data", Rml::Core::Character::Null);
 			AddCharacter(character);
 		}
 
@@ -461,7 +461,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 }
 
 // Adds a new character to the string at the cursor position.
-bool WidgetTextInput::AddCharacter(Rml::Core::CodePoint character)
+bool WidgetTextInput::AddCharacter(Rml::Core::Character character)
 {
 	if ((char32_t)character <= 127 && !IsCharacterValid(static_cast<char>(character)))
 		return false;

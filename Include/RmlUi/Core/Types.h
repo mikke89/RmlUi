@@ -57,10 +57,12 @@ namespace Rml {
 namespace Core {
 
 // Commonly used basic types
-typedef unsigned char byte;
-typedef double Time;
-typedef void* ScriptObject;
-enum class CodePoint : char32_t { Null, Replacement = 0xfffd };
+using byte = unsigned char;
+using Time = double;
+using ScriptObject = void*;
+
+// Unicode code point
+enum class Character : char32_t { Null, Replacement = 0xfffd };
 
 }
 }

@@ -316,9 +316,9 @@ void Input::SetContext(Rml::Core::Context* _context)
 
 
 // Returns the character code for a key identifer / key modifier combination.
-Rml::Core::CodePoint Input::GetCharacterCode(Rml::Core::Input::KeyIdentifier key_identifier, int key_modifier_state)
+Rml::Core::Character Input::GetCharacterCode(Rml::Core::Input::KeyIdentifier key_identifier, int key_modifier_state)
 {
-	using Rml::Core::CodePoint;
+	using Rml::Core::Character;
 
 	// Check if we have a keycode capable of generating characters on the main keyboard (ie, not on the numeric
 	// keypad; that is dealt with below).
@@ -330,28 +330,28 @@ Rml::Core::CodePoint Input::GetCharacterCode(Rml::Core::Input::KeyIdentifier key
 
 		// Return character code based on identifier and modifiers
 		if (shift && !capslock)
-			return (CodePoint)ascii_map[1][key_identifier];
+			return (Character)ascii_map[1][key_identifier];
 
 		if (shift && capslock)
-			return (CodePoint)ascii_map[2][key_identifier];
+			return (Character)ascii_map[2][key_identifier];
 
 		if (!shift && capslock)
-			return (CodePoint)ascii_map[3][key_identifier];
+			return (Character)ascii_map[3][key_identifier];
 
-		return (CodePoint)ascii_map[0][key_identifier];
+		return (Character)ascii_map[0][key_identifier];
 	}
 
 	// Check if we have a keycode from the numeric keypad.
 	else if (key_identifier <= Rml::Core::Input::KI_OEM_NEC_EQUAL)
 	{
 		if (key_modifier_state & Rml::Core::Input::KM_NUMLOCK)
-			return (CodePoint)keypad_map[0][key_identifier - Rml::Core::Input::KI_NUMPAD0];
+			return (Character)keypad_map[0][key_identifier - Rml::Core::Input::KI_NUMPAD0];
 		else
-			return (CodePoint)keypad_map[1][key_identifier - Rml::Core::Input::KI_NUMPAD0];
+			return (Character)keypad_map[1][key_identifier - Rml::Core::Input::KI_NUMPAD0];
 	}
 
 	else if (key_identifier == Rml::Core::Input::KI_RETURN)
-		return (CodePoint)'\n';
+		return (Character)'\n';
 
-	return CodePoint::Null;
+	return Character::Null;
 }

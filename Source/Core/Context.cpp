@@ -500,11 +500,11 @@ bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier
 
 bool Context::ProcessTextInput(char character)
 {
-	return ProcessTextInput(static_cast<CodePoint>(character));
+	return ProcessTextInput(static_cast<Character>(character));
 }
 
 // Sends a single character of text as text input into RmlUi.
-bool Context::ProcessTextInput(CodePoint character)
+bool Context::ProcessTextInput(Character character)
 {
 	// Generate the parameters for the key event.
 	Dictionary parameters;

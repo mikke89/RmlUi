@@ -94,7 +94,7 @@ protected:
 	/// Adds a new character to the string at the cursor position.
 	/// @param[in] character The character to add to the string.
 	/// @return True if the character was successfully added, false otherwise.
-	bool AddCharacter(Rml::Core::CodePoint character);
+	bool AddCharacter(Rml::Core::Character character);
 	/// Deletes a character from the string.
 	/// @param[in] backward True to delete a character behind the cursor, false for in front of the cursor.
 	/// @return True if a character was deleted, false otherwise.

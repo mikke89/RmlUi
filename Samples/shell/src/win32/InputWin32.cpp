@@ -111,7 +111,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 			static char16_t first_u16_code_unit = 0;
 
 			char16_t c = (char16_t)w_param;
-			Rml::Core::CodePoint code_point = (Rml::Core::CodePoint)c;
+			Rml::Core::Character character = (Rml::Core::Character)c;
 
 			// Windows sends two-wide characters as two messages.
 			if (c >= 0xD800 && c < 0xDC00)
@@ -125,19 +125,19 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 				{
 					// Second 16-bit code unit of a two-wide character.
 					Rml::Core::String utf8 = Rml::Core::StringUtilities::ToUTF8({ first_u16_code_unit, c });
-					code_point = Rml::Core::StringUtilities::ToCodePoint(utf8.data());
+					character = Rml::Core::StringUtilities::ToCharacter(utf8.data());
 				}
 				else if (c == '\r')
 				{
 					// Windows sends new-lines as carriage returns, convert to endlines.
-					code_point = (Rml::Core::CodePoint)'\n';
+					character = (Rml::Core::Character)'\n';
 				}
 
 				first_u16_code_unit = 0;
 
 				// Only send through printable characters.
-				if ((char32_t)code_point >= 32 || code_point == (Rml::Core::CodePoint)'\n')
-					context->ProcessTextInput(code_point);
+				if ((char32_t)character >= 32 || character == (Rml::Core::Character)'\n')
+					context->ProcessTextInput(character);
 			}
 		}
 		break;

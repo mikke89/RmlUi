@@ -96,7 +96,7 @@ float FontEngineInterfaceDefault::GetUnderline(FontFaceHandle handle, float& thi
 	return handle_default->GetUnderline(thickness);
 }
 
-int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const String& string, CodePoint prior_character)
+int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
 	return handle_default->GetStringWidth(string, prior_character);

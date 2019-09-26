@@ -105,7 +105,7 @@ PASS_THROUGH(unsigned int);
 PASS_THROUGH(float);
 PASS_THROUGH(bool);
 PASS_THROUGH(char);
-PASS_THROUGH(CodePoint);
+PASS_THROUGH(Character);
 PASS_THROUGH(Vector2i);
 PASS_THROUGH(Vector2f);
 PASS_THROUGH(Vector3i);
@@ -148,7 +148,7 @@ BASIC_CONVERTER_BOOL(float, bool);
 BASIC_CONVERTER(float, int);
 BASIC_CONVERTER(float, unsigned int);
 
-BASIC_CONVERTER(char, CodePoint);
+BASIC_CONVERTER(char, Character);
 
 /////////////////////////////////////////////////
 // From string converters

@@ -73,31 +73,31 @@ public:
 	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	inline void GenerateGeometry(Geometry* geometry, const CodePoint character_code, const Vector2f& position, const Colourb& colour) const
+	inline void GenerateGeometry(Geometry* geometry, const Character character_code, const Vector2f& position, const Colourb& colour) const
 	{
-		auto it = characters.find(character_code);
-		if (it == characters.end())
+		auto it = character_boxes.find(character_code);
+		if (it == character_boxes.end())
 			return;
 
-		const Character& character = it->second;
+		const TextureBox& box = it->second;
 
-		if (character.texture_index < 0)
+		if (box.texture_index < 0)
 			return;
 
 		// Generate the geometry for the character.
-		std::vector< Vertex >& character_vertices = geometry[character.texture_index].GetVertices();
-		std::vector< int >& character_indices = geometry[character.texture_index].GetIndices();
+		std::vector< Vertex >& character_vertices = geometry[box.texture_index].GetVertices();
+		std::vector< int >& character_indices = geometry[box.texture_index].GetIndices();
 
 		character_vertices.resize(character_vertices.size() + 4);
 		character_indices.resize(character_indices.size() + 6);
 		GeometryUtilities::GenerateQuad(
 			&character_vertices[0] + (character_vertices.size() - 4),
 			&character_indices[0] + (character_indices.size() - 6),
-			Vector2f(position.x + character.origin.x, position.y + character.origin.y).Round(),
-			character.dimensions,
+			Vector2f(position.x + box.origin.x, position.y + box.origin.y).Round(),
+			box.dimensions,
 			colour,
-			character.texcoords[0],
-			character.texcoords[1],
+			box.texcoords[0],
+			box.texcoords[1],
 			(int)character_vertices.size() - 4
 		);
 	}
@@ -116,9 +116,9 @@ public:
 private:
 
 
-	struct Character
+	struct TextureBox
 	{
-		Character() : texture_index(-1) { }
+		TextureBox() : texture_index(-1) { }
 
 		// The offset, in pixels, of the baseline from the start of this character's geometry.
 		Vector2f origin;
@@ -131,14 +131,14 @@ private:
 		int texture_index;
 	};
 
-	using CharacterMap = UnorderedMap<CodePoint, Character>;
+	using CharacterMap = UnorderedMap<Character, TextureBox>;
 	using TextureList = std::vector<Texture>;
 
 	SharedPtr<const FontEffect> effect;
 
 	TextureLayout texture_layout;
 
-	CharacterMap characters;
+	CharacterMap character_boxes;
 	TextureList textures;
 	Colourb colour;
 };

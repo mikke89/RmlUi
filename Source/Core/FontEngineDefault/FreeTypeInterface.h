@@ -53,10 +53,10 @@ void GetFaceStyle(FontFaceHandleFreetype face, String& font_family, Style::FontS
 bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics);
 
 // Build a new glyph representing the given code point and append to 'glyphs'.
-bool AppendGlyph(FontFaceHandleFreetype face, int font_size, CodePoint code_point, FontGlyphMap& glyphs);
+bool AppendGlyph(FontFaceHandleFreetype face, int font_size, Character character, FontGlyphMap& glyphs);
 
 // Returns the kerning between two characters.
-int GetKerning(FontFaceHandleFreetype face, int font_size, CodePoint lhs, CodePoint rhs);
+int GetKerning(FontFaceHandleFreetype face, int font_size, Character lhs, Character rhs);
 
 }
 }

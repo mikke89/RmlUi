@@ -176,7 +176,7 @@ public:
 	/// Sends a single unicode character as text input into this context.
 	/// @param[in] character The unicode code point to send into this context.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool ProcessTextInput(CodePoint character);
+	bool ProcessTextInput(Character character);
 	/// Sends a single ascii character as text input into this context.
 	bool ProcessTextInput(char character);
 	/// Sends a string of text as text input into this context.

@@ -104,13 +104,13 @@ namespace StringUtilities
 	};
 
 	// Decode the first code point in a zero-terminated UTF-8 string.
-	RMLUICORE_API CodePoint ToCodePoint(const char* p);
+	RMLUICORE_API Character ToCharacter(const char* p);
 
 	// Encode a single code point as a UTF-8 string.
-	RMLUICORE_API String ToUTF8(CodePoint code_point);
+	RMLUICORE_API String ToUTF8(Character character);
 
 	// Encode an array of code points as a UTF-8 string.
-	RMLUICORE_API String ToUTF8(const CodePoint* code_points, int num_code_points);
+	RMLUICORE_API String ToUTF8(const Character* characters, int num_characters);
 
 	/// Returns number of characters in a UTF-8 string.
 	RMLUICORE_API size_t LengthUTF8(StringView string_view);
@@ -190,7 +190,7 @@ public:
 	StringIteratorU8& operator--();
 
 	// Returns the codepoint at the current position. The iterator must be dereferencable.
-	inline CodePoint operator*() const { return StringUtilities::ToCodePoint(p); }
+	inline Character operator*() const { return StringUtilities::ToCharacter(p); }
 
 	// Returns false when the iterator is located just outside the valid part of the string.
 	inline operator bool() const { return (p != view.begin() - 1) && (p != view.end()); }

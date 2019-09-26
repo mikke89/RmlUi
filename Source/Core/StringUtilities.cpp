@@ -262,10 +262,10 @@ bool StringUtilities::StringComparei::operator()(const String& lhs, const String
 }
 
 
-CodePoint StringUtilities::ToCodePoint(const char* p)
+Character StringUtilities::ToCharacter(const char* p)
 {
 	if ((*p & (1 << 7)) == 0)
-		return static_cast<CodePoint>(*p);
+		return static_cast<Character>(*p);
 
 	int num_bytes = 0;
 	int code = 0;
@@ -288,7 +288,7 @@ CodePoint StringUtilities::ToCodePoint(const char* p)
 	else
 	{
 		// Invalid begin byte
-		return CodePoint::Null;
+		return Character::Null;
 	}
 
 	for (int i = 1; i < num_bytes; i++)
@@ -298,30 +298,30 @@ CodePoint StringUtilities::ToCodePoint(const char* p)
 		{
 			// Invalid continuation byte
 			++p;
-			return CodePoint::Null;
+			return Character::Null;
 		}
 
 		code = ((code << 6) | (byte & 0b0011'1111));
 	}
 
-	return static_cast<CodePoint>(code);
+	return static_cast<Character>(code);
 }
 
-String StringUtilities::ToUTF8(CodePoint code_point)
+String StringUtilities::ToUTF8(Character character)
 {
-	return ToUTF8(&code_point, 1);
+	return ToUTF8(&character, 1);
 }
 
-String StringUtilities::ToUTF8(const CodePoint* code_points, int num_code_points)
+String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 {
 	String result;
-	result.reserve(num_code_points);
+	result.reserve(num_characters);
 
-	bool invalid_code_point = false;
+	bool invalid_character = false;
 
-	for (int i = 0; i < num_code_points; i++)
+	for (int i = 0; i < num_characters; i++)
 	{
-		char32_t c = (char32_t)code_points[i];
+		char32_t c = (char32_t)characters[i];
 
 		constexpr int l3 = 0b0000'0111;
 		constexpr int l4 = 0b0000'1111;
@@ -341,10 +341,10 @@ String StringUtilities::ToUTF8(const CodePoint* code_points, int num_code_points
 		else if (c <= 0x10FFFF)
 			result += { char(((c >> 18) & l3) | h4), char(((c >> 12) & l6) | h1), char(((c >> 6) & l6) | h1), char((c & l6) | h1) };
 		else
-			invalid_code_point = true;
+			invalid_character = true;
 	}
 
-	if (invalid_code_point)
+	if (invalid_character)
 		Log::Message(Log::LT_WARNING, "One or more invalid code points encountered while encoding to UTF-8.");
 
 	return result;
@@ -377,19 +377,19 @@ U16String StringUtilities::ToUTF16(const String& input)
 	if (input.empty())
 		return result;
 
-	std::vector<CodePoint> code_points;
-	code_points.reserve(input.size());
+	std::vector<Character> characters;
+	characters.reserve(input.size());
 
 	for (auto it = StringIteratorU8(input); it; ++it)
-		code_points.push_back(*it);
+		characters.push_back(*it);
 
 	result.reserve(input.size());
 
 	bool valid_characters = true;
 
-	for (CodePoint code_point : code_points)
+	for (Character character : characters)
 	{
-		char32_t c = (char32_t)code_point;
+		char32_t c = (char32_t)character;
 
 		if (c <= 0xD7FF || (c >= 0xE000 && c <= 0xFFFF))
 		{
@@ -418,8 +418,8 @@ U16String StringUtilities::ToUTF16(const String& input)
 
 String StringUtilities::ToUTF8(const U16String& input)
 {
-	std::vector<CodePoint> code_points;
-	code_points.reserve(input.size());
+	std::vector<Character> characters;
+	characters.reserve(input.size());
 
 	bool valid_input = true;
 	char16_t w1 = 0;
@@ -429,7 +429,7 @@ String StringUtilities::ToUTF8(const U16String& input)
 		if (w <= 0xD7FF || w >= 0xE000)
 		{
 			// Single 16-bit code unit.
-			code_points.push_back((CodePoint)(w));
+			characters.push_back((Character)(w));
 		}
 		else
 		{
@@ -440,7 +440,7 @@ String StringUtilities::ToUTF8(const U16String& input)
 			}
 			else if (w1 && w >= 0xDC00)
 			{
-				code_points.push_back((CodePoint)(((((char32_t)w1 & 0x3FF) << 10) | ((char32_t)(w) & 0x3FF)) + 0x10000u));
+				characters.push_back((Character)(((((char32_t)w1 & 0x3FF) << 10) | ((char32_t)(w) & 0x3FF)) + 0x10000u));
 				w1 = 0;
 			}
 			else
@@ -452,8 +452,8 @@ String StringUtilities::ToUTF8(const U16String& input)
 
 	String result;
 
-	if (code_points.size() > 0)
-		result = StringUtilities::ToUTF8(code_points.data(), (int)code_points.size());
+	if (characters.size() > 0)
+		result = StringUtilities::ToUTF8(characters.data(), (int)characters.size());
 
 	if (!valid_input)
 		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-16 string to UTF-8.");
