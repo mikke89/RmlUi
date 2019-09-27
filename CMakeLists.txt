@@ -668,6 +668,9 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/data
 			DESTINATION ${SAMPLES_DIR}/basic/benchmark
 	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/data
+			DESTINATION ${SAMPLES_DIR}/basic/bitmapfont
+	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/demo/data
 			DESTINATION ${SAMPLES_DIR}/basic/demo
 	)

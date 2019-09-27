@@ -33,9 +33,13 @@ set(benchmark_SRC_FILES
 )
 
 set(bitmapfont_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/FontEngineBitmap.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/FontEngineInterfaceBitmap.h
 )
 
 set(bitmapfont_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/FontEngineBitmap.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/FontEngineInterfaceBitmap.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/src/main.cpp
 )
 
