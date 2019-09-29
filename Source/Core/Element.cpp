@@ -45,7 +45,6 @@
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
 #include "ElementDecoration.h"
-#include "FontFaceHandleDefault.h"
 #include "LayoutEngine.h"
 #include "PluginRegistry.h"
 #include "PropertiesIterator.h"

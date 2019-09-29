@@ -116,20 +116,19 @@ button:focus {
 {
 	decorator: ninepatch(button-active, button-inner-active);
 }
-
-@decorator left-arrow : tiled-box {
-	top-image-src: ../../../assets/present.tga;
-	center-image-src: ../../../assets/present.tga;
-	left-image-src: ../../../assets/present.tga;
+p.emojis
+{
+	text-align: left;
+	font-size: 35px;
+	color: #b33;
 }
 
-.left-arrow {
-	width: 32dp;
-	height: 32dp;
-	decorator: left-arrow;
+textarea {
+	font-size: 18px;
+	font-effect: outline(2px #006600);
+	color: #ddd;
+	
 }
-
-
 </style>
 </head>
 
@@ -138,6 +137,13 @@ button:focus {
 <div style="font-size: 0.85em; text-align: left;" id="fps"></div>
 
 <tabset id="menu">
+<tab>Welcome</tab>
+<panel id="welcome">
+	<p class="emojis">RmlUi 😍</p>
+	<p>Have fun fiddling about in this (incomplete) demo.</p>
+	<p>Press 'F8' to open up the debugger.</p>
+	<p class="emojis" style="margin-top: 1em;">🎉</p>
+</panel>
 <tab>Decorators</tab>
 <panel id="decorators">
 	<p>Image vs ninepatch decorator:</p>
@@ -168,10 +174,9 @@ button:focus {
 </panel>
 <tab>Controls</tab>
 <panel>
-	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" value="Sample text"/></div>
-	<textarea cols="30" rows="5" wrap="nowrap">Hello World!</textarea>
+	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" maxlength="12" value="Sample text"/></div>
+	<textarea cols="30" rows="5" wrap="nowrap">😍 Hello 🌐 World! 😎</textarea>
 </panel>
 </tabset>
-<div class="left-arrow"/>
 </body>
 </rml>

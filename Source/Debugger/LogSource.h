@@ -38,7 +38,7 @@ static const char* log_rcss = R"RCSS(body
 div#tools
 {
 	float: right;
-	width: 182dp;
+	width: 200dp;
 }
 div.log-entry
 {
@@ -53,15 +53,15 @@ div.log-entry div.icon
 	text-align: center;
 	border-width: 1px;
 	margin-right: 5dp;
-	font-weight: bold;
 }
 div.button
 {
 	display: inline-block;
-	width: 28dp;
+	width: 32dp;
+	font-size: 13dp;
+	line-height: 20dp;
 	text-align: center;
 	border-width: 1px;
-	font-weight: bold;
 	margin-right: 3dp;
 }
 div.button.clear

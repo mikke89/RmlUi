@@ -55,8 +55,7 @@ int Decorator::LoadTexture(const String& texture_name, const String& rcss_path)
 	}
 
 	Texture texture;
-	if (!texture.Load(texture_name, rcss_path))
-		return -1;
+	texture.Set(texture_name, rcss_path);
 
 	additional_textures.push_back(texture);
 	return (int)additional_textures.size();

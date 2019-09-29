@@ -114,7 +114,7 @@ void InputTypeText::ProcessDefaultAction(Core::Event& RMLUI_UNUSED_PARAMETER(eve
 // Sizes the dimensions to the element's inherent size.
 bool InputTypeText::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 {
-	dimensions.x = (float) (size * Core::ElementUtilities::GetStringWidth(element, L"m"));
+	dimensions.x = (float) (size * Core::ElementUtilities::GetStringWidth(element, "m"));
 	dimensions.y = element->GetLineHeight() + 2.0f;
 
 	return true;

@@ -46,8 +46,8 @@ public:
 	ElementTextDefault(const String& tag);
 	virtual ~ElementTextDefault();
 
-	void SetText(const WString& text) override;
-	const WString& GetText() const override;
+	void SetText(const String& text) override;
+	const String& GetText() const override;
 
 	void OnRender() override;
 
@@ -65,14 +65,14 @@ public:
 	/// @param[in] right_spacing_width The width (in pixels) of the spacing (consisting of margins, padding, etc) that must be remaining on the right of the line if the last of the text is rendered onto this line.
 	/// @param[in] trim_whitespace_prefix If we're collapsing whitespace, whether or remove all prefixing whitespace or collapse it down to a single space.
 	/// @return True if the line reached the end of the element's text, false if not.
-	bool GenerateLine(WString& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix) override;
+	bool GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix) override;
 
 	/// Clears all lines of generated text and prepares the element for generating new lines.
 	void ClearLines() override;
 	/// Adds a new line into the text element.
 	/// @param[in] line_position The position of this line, as an offset from the first line.
 	/// @param[in] line The contents of the line..
-	void AddLine(const Vector2f& line_position, const WString& line) override;
+	void AddLine(const Vector2f& line_position, const String& line) override;
 
 	/// Prevents the element from dirtying its document's layout when its text is changed.
 	void SuppressAutoLayout() override;
@@ -85,19 +85,14 @@ protected:
 	void GetRML(String& content) override;
 
 private:
-	// Updates the configuration this element uses for its font, depending on which font effects
-	// are active.
-	bool UpdateFontConfiguration();
+	// Prepares the font effects this element uses for its font.
+	bool UpdateFontEffects();
 
 	// Used to store the position and length of each line we have geometry for.
 	struct Line
 	{
-		Line(const WString& text, const Vector2f& position) : text(text), position(position)
-		{
-			width = 0;
-		}
-
-		WString text;
+		Line(const String& text, const Vector2f& position) : text(text), position(position), width(0) {}
+		String text;
 		Vector2f position;
 		int width;
 	};
@@ -107,9 +102,9 @@ private:
 	// Generates the geometry for a single line of text.
 	void GenerateGeometry(const FontFaceHandle font_face_handle, Line& line);
 	// Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-	void GenerateDecoration(const FontFaceHandle font_face_handle, const Line& line);
+	void GenerateLineDecoration(const FontFaceHandle font_face_handle, const Line& line);
 
-	WString text;
+	String text;
 
 	typedef std::vector< Line > LineList;
 	LineList lines;
@@ -130,8 +125,10 @@ private:
 	// it isn't being changed.
 	Style::TextDecoration decoration_property;
 
-	int font_configuration;
-	bool font_dirty;
+	FontEffectsHandle font_effects_handle;
+	bool font_effects_dirty;
+
+	int font_handle_version;
 };
 
 }

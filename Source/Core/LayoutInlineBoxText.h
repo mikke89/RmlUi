@@ -86,7 +86,7 @@ private:
 	// The index of the first character of this line.
 	int line_begin;
 	// The contents on this line.
-	WString line_contents;
+	String line_contents;
 
 	// True if this line can be segmented into parts, false if it consists of only a single word.
 	bool line_segmented;

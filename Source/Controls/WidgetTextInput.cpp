@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core.h"
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../Core/Clock.h"
 
 namespace Rml {
@@ -114,7 +115,7 @@ WidgetTextInput::~WidgetTextInput()
 // Sets the value of the text field.
 void WidgetTextInput::SetValue(const Core::String& value)
 {
-	text_element->SetText(Core::StringUtilities::ToUCS2(value));
+	text_element->SetText(value);
 	FormatElement();
 
 	UpdateRelativeCursor();
@@ -128,13 +129,25 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 		max_length = _max_length;
 		if (max_length >= 0)
 		{
-			Core::WString value = Core::StringUtilities::ToUCS2( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
-			if ((int) value.size() > max_length)
-			{
-				Rml::Core::String new_value;
-				new_value = Core::StringUtilities::ToUTF8(Core::WString(value.c_str(), value.c_str() + max_length));
+			Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-				GetElement()->SetAttribute("value", new_value);
+			int num_characters = 0;
+			size_t i_erase = value.size();
+
+			for (auto it = Core::StringIteratorU8(value); it; ++it)
+			{
+				num_characters += 1;
+				if (num_characters > max_length)
+				{
+					i_erase = size_t(it.Offset());
+					break;
+				}
+			}
+
+			if(i_erase < value.size())
+			{
+				value.erase(i_erase);
+				GetElement()->SetAttribute("value", value);
 			}
 		}
 	}
@@ -144,6 +157,13 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 int WidgetTextInput::GetMaxLength() const
 {
 	return max_length;
+}
+
+int WidgetTextInput::GetLength() const
+{
+	Core::String value = GetElement()->GetAttribute< Core::String >("value", "");
+	size_t result = Core::StringUtilities::LengthUTF8(value);
+	return (int)result;
 }
 
 // Update the colours of the selected text.
@@ -247,7 +267,7 @@ const Rml::Core::Vector2f& WidgetTextInput::GetTextDimensions() const
 }
 
 // Gets the parent element containing the widget.
-Core::Element* WidgetTextInput::GetElement()
+Core::Element* WidgetTextInput::GetElement() const
 {
 	return parent;
 }
@@ -282,10 +302,10 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		switch (key_identifier)
 		{
 		case Core::Input::KI_NUMPAD4:	if (numlock) break;
-		case Core::Input::KI_LEFT:		MoveCursorHorizontal(-1, shift); break;
+		case Core::Input::KI_LEFT:		MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
 
 		case Core::Input::KI_NUMPAD6:	if (numlock) break;
-		case Core::Input::KI_RIGHT:		MoveCursorHorizontal(1, shift); break;
+		case Core::Input::KI_RIGHT:		MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
 
 		case Core::Input::KI_NUMPAD8:	if (numlock) break;
 		case Core::Input::KI_UP:		MoveCursorVertical(-1, shift); break;
@@ -294,10 +314,10 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
 
 		case Core::Input::KI_NUMPAD7:	if (numlock) break;
-		case Core::Input::KI_HOME:		MoveCursorHorizontal(-cursor_character_index, shift); break;
+		case Core::Input::KI_HOME:		MoveCursorHorizontal(CursorMovement::BeginLine, shift); break;
 
 		case Core::Input::KI_NUMPAD1:	if (numlock) break;
-		case Core::Input::KI_END:		MoveCursorHorizontal(lines[cursor_line_index].content_length - cursor_character_index, shift); break;
+		case Core::Input::KI_END:		MoveCursorHorizontal(CursorMovement::EndLine, shift); break;
 
 		case Core::Input::KI_BACK:
 		{
@@ -352,16 +372,14 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		{
 			if (ctrl)
 			{
-				Core::WString clipboard_text;
+				Core::String clipboard_text;
 				Core::GetSystemInterface()->GetClipboardText(clipboard_text);
 
-				for (size_t i = 0; i < clipboard_text.size(); ++i)
+				// @performance: Can be made heaps faster.
+				for (auto it = Core::StringIteratorU8(clipboard_text); it; ++it)
 				{
-					if (max_length > 0 &&
-						(int)Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", "")).size() > max_length)
-						break;
-
-					AddCharacter(clipboard_text[i]);
+					Core::Character code = *it;
+					AddCharacter(code);
 				}
 			}
 		}
@@ -386,9 +404,8 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("alt_key", 0) == 0 &&
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
-			Rml::Core::word character = event.GetParameter< Rml::Core::word >("data", 0);
-			if (max_length < 0 || (int)Core::String(GetElement()->GetAttribute< Rml::Core::String >("value", "")).size() < max_length)
-				AddCharacter(character);
+			Rml::Core::Character character = event.GetParameter("data", Rml::Core::Character::Null);
+			AddCharacter(character);
 		}
 
 		ShowCursor(true);
@@ -425,6 +442,8 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
 
 			UpdateAbsoluteCursor();
+			MoveCursorToCharacterBoundaries(false);
+
 			UpdateCursorPosition();
 			ideal_cursor_position = cursor_position.x;
 
@@ -442,21 +461,25 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 }
 
 // Adds a new character to the string at the cursor position.
-bool WidgetTextInput::AddCharacter(Rml::Core::word character)
+bool WidgetTextInput::AddCharacter(Rml::Core::Character character)
 {
-	if (!IsCharacterValid(character))
+	if ((char32_t)character <= 127 && !IsCharacterValid(static_cast<char>(character)))
 		return false;
 
 	if (selection_length > 0)
 		DeleteSelection();
 
-	Core::WString value = Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
-	value.insert(GetCursorIndex(), 1, character);
+	if (max_length >= 0 && GetLength() >= max_length)
+		return false;
 
-	edit_index += 1;
+	Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
+	
+	Core::String insert = Core::StringUtilities::ToUTF8(character);
+	value.insert(GetCursorIndex(), insert);
 
-	Rml::Core::String utf8_value = Core::StringUtilities::ToUTF8(value);
-	GetElement()->SetAttribute("value", utf8_value);
+	edit_index += (int)insert.size();
+
+	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
 
 	UpdateSelection(false);
@@ -467,8 +490,11 @@ bool WidgetTextInput::AddCharacter(Rml::Core::word character)
 // Deletes a character from the string.
 bool WidgetTextInput::DeleteCharacter(bool back)
 {
-	// First, check if we have anything selected; if so, delete that first before we start delete
-	// individual characters.
+	// We set a selection of the next or previous character, and then delete it.
+	// If we already have a selection, we delete that first.
+	if (selection_length <= 0)
+		MoveCursorHorizontal(back ? CursorMovement::Left : CursorMovement::Right, true);
+
 	if (selection_length > 0)
 	{
 		DeleteSelection();
@@ -479,38 +505,14 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		return true;
 	}
 
-	Core::WString value = Core::StringUtilities::ToUCS2(GetElement()->GetAttribute< Rml::Core::String >("value", ""));
-
-	if (back)
-	{
-		if (GetCursorIndex() == 0)
-			return false;
-
-		value.erase(GetCursorIndex() - 1, 1);
-		edit_index -= 1;
-	}
-	else
-	{
-		if (GetCursorIndex() == (int) value.size())
-			return false;
-
-		value.erase(GetCursorIndex(), 1);
-	}
-
-	Rml::Core::String utf8_value = Core::StringUtilities::ToUTF8(value);
-	GetElement()->SetAttribute("value", utf8_value);
-	DispatchChangeEvent();
-
-	UpdateSelection(false);
-
-	return true;
+	return false;
 }
 
 // Copies the selection (if any) to the clipboard.
 void WidgetTextInput::CopySelection()
 {
 	const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-	const Core::WString snippet = Core::StringUtilities::ToUCS2(value.substr(selection_begin_index, selection_length));
+	const Core::String snippet = value.substr(selection_begin_index, selection_length);
 	Core::GetSystemInterface()->SetClipboardText(snippet);
 }
 
@@ -521,16 +523,86 @@ int WidgetTextInput::GetCursorIndex() const
 }
 
 // Moves the cursor along the current line.
-void WidgetTextInput::MoveCursorHorizontal(int distance, bool select)
+void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 {
-	absolute_cursor_index += distance;
+	const auto is_nonword_character = [](char c) -> bool {
+		return Core::StringUtilities::IsWhitespace(c) || (c >= '!' && c <= '@');
+	};
+
+	// Whether to seek forward or back to align to utf8 boundaries later.
+	bool seek_forward = false;
+
+	switch (movement)
+	{
+	case CursorMovement::BeginLine:
+		absolute_cursor_index -= cursor_character_index;
+		break;
+	case CursorMovement::PreviousWord:
+		if (cursor_character_index <= 1)
+		{
+			absolute_cursor_index -= 1;
+		}
+		else
+		{
+			bool whitespace_found = false;
+			const char* p_rend = lines[cursor_line_index].content.data();
+			const char* p_rbegin = p_rend + cursor_character_index;
+			const char* p = p_rbegin - 1;
+			for (; p > p_rend; --p)
+			{
+				bool is_whitespace = is_nonword_character(*p);
+				if(whitespace_found && !is_whitespace)
+					break;
+				else if(!whitespace_found && is_whitespace)
+					whitespace_found = true;
+			}
+			if (p != p_rend) ++p;
+			absolute_cursor_index += int(p - p_rbegin);
+		}
+		break;
+	case CursorMovement::Left:
+		absolute_cursor_index -= 1;
+		break;
+	case CursorMovement::Right:
+		seek_forward = true;
+		absolute_cursor_index += 1;
+		break;
+	case CursorMovement::NextWord:
+		if (cursor_character_index >= lines[cursor_line_index].content_length)
+		{
+			absolute_cursor_index += 1;
+		}
+		else
+		{
+			bool whitespace_found = false;
+			const char* p_begin = lines[cursor_line_index].content.data() + cursor_character_index;
+			const char* p_end = lines[cursor_line_index].content.data() + lines[cursor_line_index].content_length;
+			const char* p = p_begin;
+			for (; p < p_end; ++p)
+			{
+				bool is_whitespace = is_nonword_character(*p);
+				if (whitespace_found && !is_whitespace)
+					break;
+				else if (!whitespace_found && is_whitespace)
+					whitespace_found = true;
+			}
+			absolute_cursor_index += int(p - p_begin);
+		}
+		break;
+	case CursorMovement::EndLine:
+		absolute_cursor_index += lines[cursor_line_index].content_length - cursor_character_index;
+		break;
+	default:
+		break;
+	}
+	
 	absolute_cursor_index = Rml::Core::Math::Max(0, absolute_cursor_index);
 
 	UpdateRelativeCursor();
+	MoveCursorToCharacterBoundaries(seek_forward);
+
 	ideal_cursor_position = cursor_position.x;
-
 	UpdateSelection(select);
-
 	ShowCursor(true);
 }
 
@@ -558,6 +630,9 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 		cursor_character_index = CalculateCharacterIndex(cursor_line_index, ideal_cursor_position);
 
 	UpdateAbsoluteCursor();
+
+	MoveCursorToCharacterBoundaries(false);
+
 	UpdateCursorPosition();
 
 	if (update_ideal_cursor_position)
@@ -566,6 +641,25 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 	UpdateSelection(select);
 
 	ShowCursor(true);
+}
+
+void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
+{
+	const char* p_line_begin = lines[cursor_line_index].content.data();
+	const char* p_line_end = p_line_begin + lines[cursor_line_index].content_length;
+	const char* p_cursor = p_line_begin + cursor_character_index;
+	const char* p = p_cursor;
+
+	if (forward)
+		p = Core::StringUtilities::SeekForwardUTF8(p_cursor, p_line_end);
+	else
+		p = Core::StringUtilities::SeekBackwardUTF8(p_cursor, p_line_begin);
+
+	if (p != p_cursor)
+	{
+		absolute_cursor_index += int(p - p_cursor);
+		UpdateRelativeCursor();
+	}
 }
 
 // Updates the absolute cursor index from the relative cursor indices.
@@ -626,25 +720,28 @@ int WidgetTextInput::CalculateLineIndex(float position)
 // Calculates the character index along a line under a specific horizontal position.
 int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 {
-	int character_index = 0;
-	float line_width = 0;
-
-	while (character_index < lines[line_index].content_length)
+	int prev_offset = 0;
+	float prev_line_width = 0;
+	
+	for(auto it = Core::StringIteratorU8(lines[line_index].content, 0, lines[line_index].content_length); it; )
 	{
-		float next_line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.substr(0, character_index));
-		if (next_line_width > position)
+		++it;
+		int offset = (int)it.Offset();
+
+		float line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.substr(0, offset));
+		if (line_width > position)
 		{
-			if (position - line_width < next_line_width - position)
-				return Rml::Core::Math::Max(0, character_index - 1);
+			if (position - prev_line_width < line_width - position)
+				return prev_offset;
 			else
-				return character_index;
+				return offset;
 		}
 
-		line_width = next_line_width;
-		character_index++;
+		prev_line_width = line_width;
+		prev_offset = offset;
 	}
 
-	return character_index;
+	return prev_offset;
 }
 
 // Shows or hides the cursor.
@@ -786,8 +883,8 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 		{
 			soft_return = true;
 
-			const Core::WString& text = text_element->GetText();
-			Core::WString orphan;
+			const Core::String& text = text_element->GetText();
+			Core::String orphan;
 			for (int i = 1; i >= 0; --i)
 			{
 				int index = line_begin + line.content_length + i;
@@ -819,7 +916,7 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 		// Now that we have the string of characters appearing on the new line, we split it into
 		// three parts; the unselected text appearing before any selected text on the line, the
 		// selected text on the line, and any unselected text after the selection.
-		Core::WString pre_selection, selection, post_selection;
+		Core::String pre_selection, selection, post_selection;
 		GetLineSelection(pre_selection, selection, post_selection, line.content, line_begin);
 
 		// The pre-selected text is placed, if there is any (if the selection starts on or before
@@ -958,9 +1055,9 @@ void WidgetTextInput::DeleteSelection()
 {
 	if (selection_length > 0)
 	{
-		const Core::WString& value = Core::StringUtilities::ToUCS2( GetElement()->GetAttribute< Rml::Core::String >("value", "") );
+		const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-		Rml::Core::String new_value = Core::StringUtilities::ToUTF8(Core::WString(value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length)));
+		Rml::Core::String new_value = value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length);
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
@@ -973,7 +1070,7 @@ void WidgetTextInput::DeleteSelection()
 }
 
 // Split one line of text into three parts, based on the current selection.
-void WidgetTextInput::GetLineSelection(Core::WString& pre_selection, Core::WString& selection, Core::WString& post_selection, const Core::WString& line, int line_begin)
+void WidgetTextInput::GetLineSelection(Core::String& pre_selection, Core::String& selection, Core::String& post_selection, const Core::String& line, int line_begin)
 {
 	// Check if we have any selection at all, and if so if the selection is on this line.
 	if (selection_length <= 0 ||

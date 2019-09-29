@@ -28,7 +28,6 @@
 
 #include "precompiled.h"
 #include "LayoutInlineBox.h"
-#include "FontFaceHandleDefault.h"
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
 #include "../../Include/RmlUi/Core/ElementText.h"

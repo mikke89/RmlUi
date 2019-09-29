@@ -51,10 +51,10 @@ public:
 	/// Sets the raw string this text element contains. The actual rendered text may be different due to whitespace
 	/// formatting.
 	/// @param[in] text The new string to set on this element.
-	virtual void SetText(const WString& text) = 0;
+	virtual void SetText(const String& text) = 0;
 	/// Returns the raw string this text element contains.
 	/// @return This element's raw text.
-	virtual const WString& GetText() const = 0;
+	virtual const String& GetText() const = 0;
 
 	/// Generates a token of text from this element, returning only the width.
 	/// @param[out] token_width The window (in pixels) of the token.
@@ -70,14 +70,14 @@ public:
 	/// @param[in] right_spacing_width The width (in pixels) of the spacing (consisting of margins, padding, etc) that must be remaining on the right of the line if the last of the text is rendered onto this line.
 	/// @param[in] trim_whitespace_prefix If we're collapsing whitespace, whether or not to remove all prefixing whitespace or collapse it down to a single space.
 	/// @return True if the line reached the end of the element's text, false if not.
-	virtual bool GenerateLine(WString& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix) = 0;
+	virtual bool GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix) = 0;
 
 	/// Clears all lines of generated text and prepares the element for generating new lines.
 	virtual void ClearLines() = 0;
 	/// Adds a new line into the text element.
 	/// @param[in] line_position The position of this line, as an offset from the first line.
 	/// @param[in] line The contents of the line.
-	virtual void AddLine(const Vector2f& line_position, const WString& line) = 0;
+	virtual void AddLine(const Vector2f& line_position, const String& line) = 0;
 
 	/// Prevents the element from dirtying its document's layout when its text is changed.
 	virtual void SuppressAutoLayout() = 0;

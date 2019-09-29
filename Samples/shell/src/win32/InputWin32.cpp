@@ -29,6 +29,7 @@
 #include <win32/InputWin32.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
 
@@ -52,7 +53,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 {
 	if (context == nullptr)
 		return;
-
+	
 	// Process all mouse and keyboard events
 	switch (message)
 	{
@@ -104,14 +105,40 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 		}
 		break;
 
+
 		case WM_CHAR:
 		{
-			// Only send through printable characters.
-			if (w_param >= 32)
-				context->ProcessTextInput((Rml::Core::word) w_param);
-			// Or endlines - Windows sends them through as carriage returns.
-			else if (w_param == '\r')
-				context->ProcessTextInput((Rml::Core::word) '\n');
+			static char16_t first_u16_code_unit = 0;
+
+			char16_t c = (char16_t)w_param;
+			Rml::Core::Character character = (Rml::Core::Character)c;
+
+			// Windows sends two-wide characters as two messages.
+			if (c >= 0xD800 && c < 0xDC00)
+			{
+				// First 16-bit code unit of a two-wide character.
+				first_u16_code_unit = c;
+			}
+			else
+			{
+				if (c >= 0xDC00 && c < 0xE000 && first_u16_code_unit != 0)
+				{
+					// Second 16-bit code unit of a two-wide character.
+					Rml::Core::String utf8 = Rml::Core::StringUtilities::ToUTF8({ first_u16_code_unit, c });
+					character = Rml::Core::StringUtilities::ToCharacter(utf8.data());
+				}
+				else if (c == '\r')
+				{
+					// Windows sends new-lines as carriage returns, convert to endlines.
+					character = (Rml::Core::Character)'\n';
+				}
+
+				first_u16_code_unit = 0;
+
+				// Only send through printable characters.
+				if ((char32_t)character >= 32 || character == (Rml::Core::Character)'\n')
+					context->ProcessTextInput(character);
+			}
 		}
 		break;
 

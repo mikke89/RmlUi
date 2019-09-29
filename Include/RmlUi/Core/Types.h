@@ -57,19 +57,15 @@ namespace Rml {
 namespace Core {
 
 // Commonly used basic types
-typedef unsigned char byte;
-typedef wchar_t word;
-typedef double Time;
-typedef void* ScriptObject;
+using byte = unsigned char;
+using Time = double;
+using ScriptObject = void*;
+
+// Unicode code point
+enum class Character : char32_t { Null, Replacement = 0xfffd };
 
 }
 }
-
-#ifdef RMLUI_PLATFORM_WIN32
-typedef unsigned __int64 uint64_t;
-#else
-#include <inttypes.h>
-#endif
 
 #include "Colour.h"
 #include "Vector2.h"
@@ -119,11 +115,12 @@ using TextureHandle = uintptr_t;
 using CompiledGeometryHandle = uintptr_t;
 using DecoratorDataHandle = uintptr_t;
 using FontFaceHandle = uintptr_t;
+using FontEffectsHandle = uintptr_t;
 
 // Strings
 using String = std::string;
-using WString = std::wstring;
 using StringList = std::vector< String >;
+using U16String = std::u16string;
 
 // Smart pointer types
 template<typename T>

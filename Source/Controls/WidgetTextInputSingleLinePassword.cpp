@@ -45,7 +45,7 @@ void WidgetTextInputSingleLinePassword::SetValue(const Core::String& value)
 {
 	Core::String sanitised_value(value);
 	SanitiseValue(sanitised_value);
-	WidgetTextInput::SetValue(Core::String(sanitised_value.size(), (Rml::Core::word) '*'));
+	WidgetTextInput::SetValue(Core::String(sanitised_value.size(), '*'));
 }
 
 }

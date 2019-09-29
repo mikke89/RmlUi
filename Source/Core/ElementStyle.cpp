@@ -43,7 +43,6 @@
 #include "ElementBorder.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
-#include "FontFaceHandleDefault.h"
 #include "ComputeProperty.h"
 #include "PropertiesIterator.h"
 
@@ -575,7 +574,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		values.opacity = parent_values->opacity;
 
 		values.font_family = parent_values->font_family;
-		values.font_charset = parent_values->font_charset;
 		values.font_style = parent_values->font_style;
 		values.font_weight = parent_values->font_weight;
 		values.font_face_handle = parent_values->font_face_handle;
@@ -747,10 +745,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.font_family = StringUtilities::ToLower(p->Get<String>());
 			values.font_face_handle = 0;
 			break;
-		case PropertyId::FontCharset:
-			values.font_charset = p->Get<String>();
-			values.font_face_handle = 0;
-			break;
 		case PropertyId::FontStyle:
 			values.font_style = (FontStyle)p->Get< int >();
 			values.font_face_handle = 0;
@@ -873,7 +867,10 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 	// The font-face handle is nulled when local font properties are set. In that case we need to retrieve a new handle.
 	if (!values.font_face_handle)
-		values.font_face_handle = ElementUtilities::GetFontFaceHandle(values);
+	{
+		RMLUI_ZoneScopedN("FontFaceHandle");
+		values.font_face_handle = GetFontEngineInterface()->GetFontFaceHandle(values.font_family, values.font_style, values.font_weight, (int)values.font_size);
+	}
 
 	// Next, pass inheritable dirty properties onto our children
 	PropertyIdSet dirty_inherited_properties = (dirty_properties & StyleSheetSpecification::GetRegisteredInheritedProperties());

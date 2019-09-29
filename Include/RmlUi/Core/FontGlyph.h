@@ -29,7 +29,7 @@
 #ifndef RMLUICOREFONTGLYPH_H
 #define RMLUICOREFONTGLYPH_H
 
-#include <vector>
+#include "Types.h"
 
 namespace Rml {
 namespace Core {
@@ -43,13 +43,8 @@ namespace Core {
 class FontGlyph
 {
 public:
-	FontGlyph() : character(0), dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr),
-		bitmap_dimensions(0,0)
-	{
-	}
-
-	/// The unicode code point for this glyph.
-	word character;
+	FontGlyph() : dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr), bitmap_dimensions(0,0)
+	{}
 
 	/// The glyph's bounding box. Not to be confused with the dimensions of the glyph's bitmap!
 	Vector2i dimensions;
@@ -62,12 +57,27 @@ public:
 
 	/// 8-bit opacity information for the glyph's bitmap. The size of the data is given by the
 	/// dimensions, below. This will be nullptr if the glyph has no bitmap data.
-	byte* bitmap_data;
+	const byte* bitmap_data;
 	/// The dimensions of the glyph's bitmap.
 	Vector2i bitmap_dimensions;
+
+	// Bitmap_data may point to this member or another font glyph data.
+	UniquePtr<byte[]> bitmap_owned_data;
+
+	// Create a copy with its bitmap data owned by another glyph.
+	FontGlyph WeakCopy() const 
+	{
+		FontGlyph glyph;
+		glyph.dimensions = dimensions;
+		glyph.bearing = bearing;
+		glyph.advance = advance;
+		glyph.bitmap_data = bitmap_data;
+		glyph.bitmap_dimensions = bitmap_dimensions;
+		return glyph;
+	}
 };
 
-typedef std::vector< FontGlyph > FontGlyphList;
+using FontGlyphMap = UnorderedMap<Character, FontGlyph>;
 
 }
 }

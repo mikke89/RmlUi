@@ -37,7 +37,7 @@
 namespace Rml {
 namespace Core {
 
-static WString clipboard_text;
+static String clipboard_text;
 
 SystemInterface::SystemInterface()
 {
@@ -79,13 +79,13 @@ void SystemInterface::SetMouseCursor(const String& cursor_name)
 {
 }
 
-void SystemInterface::SetClipboardText(const WString& text)
+void SystemInterface::SetClipboardText(const String& text)
 {
 	// The default implementation will only copy and paste within the application
 	clipboard_text = text;
 }
 
-void SystemInterface::GetClipboardText(WString& text)
+void SystemInterface::GetClipboardText(String& text)
 {
 	text = clipboard_text;
 }

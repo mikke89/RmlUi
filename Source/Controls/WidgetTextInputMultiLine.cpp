@@ -42,7 +42,7 @@ WidgetTextInputMultiLine::~WidgetTextInputMultiLine()
 }
 
 // Returns true if the given character is permitted in the input field, false if not.
-bool WidgetTextInputMultiLine::IsCharacterValid(Rml::Core::word character)
+bool WidgetTextInputMultiLine::IsCharacterValid(char character)
 {
 	return character != '\t';
 }

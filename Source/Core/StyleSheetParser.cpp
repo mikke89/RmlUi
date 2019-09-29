@@ -393,7 +393,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					}
 					else if (at_rule_identifier == "decorator")
 					{
-						auto source = std::make_shared<PropertySource>(stream_file_name, line_number, pre_token_str);
+						auto source = std::make_shared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
 						ParseDecoratorBlock(at_rule_name, decorator_map, style_sheet, source);
 						
 						at_rule_name.clear();

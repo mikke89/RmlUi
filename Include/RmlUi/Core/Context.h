@@ -173,12 +173,14 @@ public:
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
 	bool ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier_state);
 
-	/// Sends a single character of text as text input into this context.
-	/// @param[in] character The UCS-2 character to send into this context.
+	/// Sends a single unicode character as text input into this context.
+	/// @param[in] character The unicode code point to send into this context.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool ProcessTextInput(word character);
+	bool ProcessTextInput(Character character);
+	/// Sends a single ascii character as text input into this context.
+	bool ProcessTextInput(char character);
 	/// Sends a string of text as text input into this context.
-	/// @param[in] string The UCS-2 string to send into this context.
+	/// @param[in] string The UTF8 string to send into this context.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
 	bool ProcessTextInput(const String& string);
 

@@ -48,10 +48,13 @@ public:
 	TextureResource();
 	~TextureResource();
 
-	/// Attempts to load a texture from the application into the resource. Note that this always
-	/// succeeds now; as texture loading is now delayed until the texture is accessed by a specific
-	/// render interface, all this does is store the source.
-	bool Load(const String& source);
+	/// Clear any existing data and set the source path. Texture loading is delayed until the texture is
+	/// accessed by a specific render interface.
+	void Set(const String& source);
+
+	/// Clear any existing data and set a callback function for loading the data. Texture loading is
+	/// delayed until the texture is accessed by a specific render interface.
+	void Set(const String& name, const TextureCallback& callback);
 
 	/// Returns the resource's underlying texture handle.
 	TextureHandle GetHandle(RenderInterface* render_interface);
@@ -65,7 +68,7 @@ public:
 	void Release(RenderInterface* render_interface = nullptr);
 
 protected:
-	/// Attempts to load the texture from the source.
+	/// Attempts to load the texture from the source, or the callback function if set.
 	bool Load(RenderInterface* render_interface);
 
 private:
@@ -74,6 +77,8 @@ private:
 	typedef std::pair< TextureHandle, Vector2i > TextureData;
 	typedef SmallUnorderedMap< RenderInterface*, TextureData > TextureDataMap;
 	TextureDataMap texture_data;
+
+	UniquePtr<TextureCallback> texture_callback;
 };
 
 }

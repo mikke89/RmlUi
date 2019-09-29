@@ -66,6 +66,8 @@ public:
 	/// Returns the maximum length (in characters) of this text field.
 	/// @return The maximum number of characters allowed in this text field.
 	int GetMaxLength() const;
+	/// Returns the current length (in characters) of this text field.
+	int GetLength() const;
 
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();
@@ -92,7 +94,7 @@ protected:
 	/// Adds a new character to the string at the cursor position.
 	/// @param[in] character The character to add to the string.
 	/// @return True if the character was successfully added, false otherwise.
-	bool AddCharacter(Rml::Core::word character);
+	bool AddCharacter(Rml::Core::Character character);
 	/// Deletes a character from the string.
 	/// @param[in] backward True to delete a character behind the cursor, false for in front of the cursor.
 	/// @return True if a character was deleted, false otherwise.
@@ -100,7 +102,7 @@ protected:
 	/// Returns true if the given character is permitted in the input field, false if not.
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
-	virtual bool IsCharacterValid(Rml::Core::word character) = 0;
+	virtual bool IsCharacterValid(char character) = 0;
 	/// Called when the user pressed enter.
 	virtual void LineBreak() = 0;
 
@@ -108,20 +110,25 @@ protected:
 	int GetCursorIndex() const;
 
 	/// Gets the parent element containing the widget.
-	Core::Element* GetElement();
+	Core::Element* GetElement() const;
 
 	/// Dispatches a change event to the widget's element.
 	void DispatchChangeEvent(bool linebreak = false);
 
 private:
+	enum class CursorMovement { BeginLine = -3, PreviousWord = -2, Left = -1, Right = 1, NextWord = 2, EndLine = 3 };
+	
 	/// Moves the cursor along the current line.
-	/// @param[in] x How far to move the cursor.
+	/// @param[in] movement Cursor movement operation.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
-	void MoveCursorHorizontal(int distance, bool select);
+	void MoveCursorHorizontal(CursorMovement movement, bool select);
 	/// Moves the cursor up and down the text field.
 	/// @param[in] x How far to move the cursor.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
 	void MoveCursorVertical(int distance, bool select);
+	// Move the cursor to utf-8 boundaries, in case it was moved into the middle of a multibyte character.
+	/// @param[in] forward True to seek forward, else back.
+	void MoveCursorToCharacterBoundaries(bool forward);
 
 	/// Updates the absolute cursor index from the relative cursor indices.
 	void UpdateAbsoluteCursor();
@@ -170,12 +177,12 @@ private:
 	/// @param[out] post_selection The section of unselected text after any selected text on the line. If there is no selection on the line, then this will be empty.
 	/// @param[in] line The text making up the line.
 	/// @param[in] line_begin The absolute index at the beginning of the line.
-	void GetLineSelection(Core::WString& pre_selection, Core::WString& selection, Core::WString& post_selection, const Core::WString& line, int line_begin);
+	void GetLineSelection(Core::String& pre_selection, Core::String& selection, Core::String& post_selection, const Core::String& line, int line_begin);
 
 	struct Line
 	{
 		// The contents of the line (including the trailing endline, if that terminated the line).
-		Core::WString content;
+		Core::String content;
 		// The length of the editable characters on the line (excluding any trailing endline).
 		int content_length;
 
@@ -194,10 +201,12 @@ private:
 	typedef std::vector< Line > LineList;
 	LineList lines;
 
+	// Length in number of characters.
 	int max_length;
 
+	// Indices in bytes: Should always be moved along UTF-8 start bytes.
 	int edit_index;
-
+	
 	int absolute_cursor_index;
 	int cursor_line_index;
 	int cursor_character_index;

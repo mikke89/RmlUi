@@ -1,14 +1,6 @@
 # This file was auto-generated with gen_filelists.sh
 
 set(Core_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/BitmapFontDefinitions.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
@@ -44,17 +36,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontDatabaseDefault.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandleDefault.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
@@ -98,7 +79,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutTexture.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/UnicodeRange.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Utilities.h
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.h
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.h
@@ -146,6 +126,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEngineInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontGlyph.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Geometry.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/GeometryUtilities.h
@@ -201,12 +182,6 @@ set(Core_PUB_HDR_FILES
 
 set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/BaseXMLParser.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFace.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceHandle.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFaceLayer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontFamily.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontParser.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/BitmapFont/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Box.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.cpp
@@ -254,24 +229,13 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Factory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontDatabaseDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFace.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceHandleDefault.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFaceLayer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontFamily.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterfaceDefault.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontProvider.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFace.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFaceHandle.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontFamily.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FreeType/FontProvider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.cpp
@@ -335,7 +299,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TypeConverter.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/UnicodeRange.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector3.cpp
@@ -441,6 +404,7 @@ set(Debugger_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementContextHook.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementInfo.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementLog.h
+    ${PROJECT_SOURCE_DIR}/Source/Debugger/FontSource.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/Geometry.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/InfoSource.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/LogSource.h
@@ -467,6 +431,32 @@ set(Debugger_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Debugger/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Debugger/SystemInterface.cpp
 )
+
+if(NOT NO_FONT_INTERFACE_DEFAULT)
+    set(Core_HDR_FILES
+        ${Core_HDR_FILES}
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontEngineInterfaceDefault.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFace.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFaceHandleDefault.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFaceLayer.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFamily.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontProvider.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontTypes.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FreeTypeInterface.h
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/precompiled.h
+    )
+
+    set(Core_SRC_FILES
+        ${Core_SRC_FILES}
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontEngineInterfaceDefault.cpp
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFace.cpp
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFaceHandleDefault.cpp
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFaceLayer.cpp
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontFamily.cpp
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontProvider.cpp
+        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FreeTypeInterface.cpp
+    )
+endif()
 
 set(LuaCore_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourb.h

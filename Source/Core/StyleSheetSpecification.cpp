@@ -333,11 +333,10 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Opacity, OPACITY, "1", true, false).AddParser("number");
 
 	RegisterProperty(PropertyId::FontFamily, FONT_FAMILY, "", true, true).AddParser("string");
-	RegisterProperty(PropertyId::FontCharset, FONT_CHARSET, "U+0020-007E", true, false).AddParser("string");
 	RegisterProperty(PropertyId::FontStyle, FONT_STYLE, "normal", true, true).AddParser("keyword", "normal, italic");
 	RegisterProperty(PropertyId::FontWeight, FONT_WEIGHT, "normal", true, true).AddParser("keyword", "normal, bold");
 	RegisterProperty(PropertyId::FontSize, FONT_SIZE, "12px", true, true).AddParser("length").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ParentFontSize);
-	RegisterShorthand(ShorthandId::Font, FONT, "font-style, font-weight, font-size, font-family, font-charset", ShorthandType::FallThrough);
+	RegisterShorthand(ShorthandId::Font, FONT, "font-style, font-weight, font-size, font-family", ShorthandType::FallThrough);
 
 	RegisterProperty(PropertyId::TextAlign, TEXT_ALIGN, LEFT, true, true).AddParser("keyword", "left, right, center, justify");
 	RegisterProperty(PropertyId::TextDecoration, TEXT_DECORATION, "none", true, false).AddParser("keyword", "none, underline, overline, line-through");

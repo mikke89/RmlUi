@@ -30,12 +30,16 @@
 #include "../../Include/RmlUi/Core.h"
 #include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
-#include "FontEngineInterfaceDefault.h"
 #include "PluginRegistry.h"
 #include "StyleSheetFactory.h"
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
 #include "EventSpecification.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+#include "FontEngineDefault/FontEngineInterfaceDefault.h"
+#endif
+
 
 namespace Rml {
 namespace Core {
@@ -51,7 +55,6 @@ static FontEngineInterface* font_interface = nullptr;
 
 // Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
 static UniquePtr<FileInterface> default_file_interface;
-
 static UniquePtr<FontEngineInterface> default_font_interface;
 
 static bool initialised = false;
@@ -284,6 +287,16 @@ Context* GetContext(int index)
 int GetNumContexts()
 {
 	return (int) contexts.size();
+}
+
+bool LoadFontFace(const String& file_name, bool fallback_face)
+{
+	return font_interface->LoadFontFace(file_name, fallback_face);
+}
+
+bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+{
+	return font_interface->LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
 }
 
 // Registers a generic rmlui plugin

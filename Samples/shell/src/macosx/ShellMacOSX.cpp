@@ -55,7 +55,7 @@ static const EventTypeSpec WINDOW_EVENTS[] = {
 
 static WindowRef window;
 static timeval start_time;
-static Rml::Core::WString clipboard_text;
+static Rml::Core::String clipboard_text;
 
 static std::unique_ptr<ShellFileInterface> file_interface;
 
@@ -258,13 +258,13 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 }
 
 
-void Shell::SetClipboardText(const Rml::Core::WString& text)
+void Shell::SetClipboardText(const Rml::Core::String& text)
 {
 	// Todo: interface with system clipboard
 	clipboard_text = text;
 }
 
-void Shell::GetClipboardText(Rml::Core::WString& text)
+void Shell::GetClipboardText(Rml::Core::String& text)
 {
 	// Todo: interface with system clipboard
 	text = clipboard_text;

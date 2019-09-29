@@ -32,6 +32,17 @@
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
 
+#include "FontEngineInterfaceBitmap.h"
+
+/*
+
+	This demo shows how to create a custom bitmap font engine implementation. 
+	
+	It should work even when RmlUi is compiled without the default font engine (see CMake flag 'NO_FONT_INTERFACE_DEFAULT').
+	See the interface in 'FontEngineInterfaceBitmap.h' and the implementation in 'FontEngineBitmap.h'.
+
+*/
+
 Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
@@ -87,6 +98,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	ShellSystemInterface system_interface;
 	Rml::Core::SetSystemInterface(&system_interface);
 
+	// Construct and load the font interface.
+	FontEngineInterfaceBitmap font_interface;
+	Rml::Core::SetFontEngineInterface(&font_interface);
+
 	Rml::Core::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
@@ -103,11 +118,21 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	shell_renderer->SetContext(context);
 
     // Load bitmap font
-    Rml::Core::GetFontEngineInterface()->LoadFontFace("assets/Arial.fnt");
-	
-    // Load and show the demo document.
-	if(Rml::Core::ElementDocument* document = context->LoadDocument("assets/bitmapfont.rml"))
+	if (!Rml::Core::LoadFontFace("basic/bitmapfont/data/Comfortaa_Regular_22.fnt"))
+	{
+		Rml::Core::Shutdown();
+		Shell::Shutdown();
+		return -1;
+	}
+
+	// Load and show the demo document.
+	if (Rml::Core::ElementDocument * document = context->LoadDocument("basic/bitmapfont/data/bitmapfont.rml"))
+	{
+		if (auto el = document->GetElementById("title"))
+			el->SetInnerRML("Bitmap font");
+
 		document->Show();
+	}
 
 	Shell::EventLoop(GameLoop);
 

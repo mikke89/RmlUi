@@ -83,7 +83,6 @@ const String BACKGROUND = "background";
 const String COLOR = "color";
 const String IMAGE_COLOR = "image-color";
 const String FONT_FAMILY = "font-family";
-const String FONT_CHARSET = "font-charset";
 const String FONT_STYLE = "font-style";
 const String FONT_WEIGHT = "font-weight";
 const String FONT_SIZE = "font-size";

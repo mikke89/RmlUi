@@ -30,7 +30,6 @@
 #include <RmlUi/Core.h>
 #include <win32/InputWin32.h>
 #include "ShellFileInterface.h"
-#include <windows.h>
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -38,7 +37,7 @@ static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM
 
 static bool activated = true;
 static bool running = false;
-static const char* instance_name = nullptr;
+static Rml::Core::U16String instance_name;
 static HWND window_handle = nullptr;
 static HINSTANCE instance_handle = nullptr;
 
@@ -65,10 +64,10 @@ bool Shell::Initialise()
 	time_frequency = 1.0 / (double) time_ticks_per_second.QuadPart;
 
 	// Load cursors
-	cursor_default = LoadCursorA(nullptr, IDC_ARROW);
-	cursor_move = LoadCursorA(nullptr, IDC_SIZEALL);
-	cursor_cross = LoadCursorA(nullptr, IDC_CROSS);
-	cursor_unavailable = LoadCursorA(nullptr, IDC_NO);
+	cursor_default = LoadCursor(nullptr, IDC_ARROW);
+	cursor_move = LoadCursor(nullptr, IDC_SIZEALL);
+	cursor_cross = LoadCursor(nullptr, IDC_CROSS);
+	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
 
 	Rml::Core::String root = FindSamplesRoot();
 	
@@ -104,9 +103,11 @@ Rml::Core::String Shell::FindSamplesRoot()
 }
 
 static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
-bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
+bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
-	WNDCLASS window_class;
+	WNDCLASSW window_class;
+
+	Rml::Core::U16String name = Rml::Core::StringUtilities::ToUTF16(Rml::Core::String(in_name));
 
 	// Fill out the window class struct.
 	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -118,9 +119,9 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	window_class.hCursor = cursor_default;
 	window_class.hbrBackground = nullptr;
 	window_class.lpszMenuName = nullptr;
-	window_class.lpszClassName = name;
+	window_class.lpszClassName = (LPCWSTR)name.data();
 
-	if (!RegisterClass(&window_class))
+	if (!RegisterClassW(&window_class))
 	{
 		DisplayError("Could not register window class.");
 
@@ -128,9 +129,9 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 		return false;
 	}
 
-	window_handle = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-								   name,	// Window class name.
-								   name,
+	window_handle = CreateWindowExW(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
+								   (LPCWSTR)name.data(),	// Window class name.
+								   (LPCWSTR)name.data(),
 								   WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW,
 								   0, 0,	// Window position.
 								   width, height,// Window size.
@@ -190,7 +191,7 @@ void Shell::CloseWindow()
 	}
 
 	DestroyWindow(window_handle);  
-	UnregisterClass(instance_name, instance_handle);
+	UnregisterClassW((LPCWSTR)instance_name.data(), instance_handle);
 }
 
 // Returns a platform-dependent handle to the window.
@@ -241,7 +242,7 @@ void Shell::DisplayError(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	MessageBox(window_handle, buffer, "Shell Error", MB_OK);
+	MessageBox(window_handle, (LPCWSTR)Rml::Core::StringUtilities::ToUTF16(buffer).c_str(), L"Shell Error", MB_OK);
 }
 
 void Shell::Log(const char* fmt, ...)
@@ -261,7 +262,7 @@ void Shell::Log(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	OutputDebugString(buffer);
+	OutputDebugString((LPCWSTR)Rml::Core::StringUtilities::ToUTF16(buffer).c_str());
 }
 
 double Shell::GetElapsedTime() 
@@ -294,7 +295,7 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 	}
 }
 
-void Shell::SetClipboardText(const Rml::Core::WString& text)
+void Shell::SetClipboardText(const Rml::Core::String& text_utf8)
 {
 	if (window_handle)
 	{
@@ -303,7 +304,9 @@ void Shell::SetClipboardText(const Rml::Core::WString& text)
 
 		EmptyClipboard();
 
-		size_t size = sizeof(wchar_t) * (text.size() + 1);
+		const Rml::Core::U16String text = Rml::Core::StringUtilities::ToUTF16(text_utf8);
+
+		size_t size = sizeof(char16_t) * (text.size() + 1);
 
 		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, size);
 		memcpy(clipboard_data, text.data(), size);
@@ -318,7 +321,7 @@ void Shell::SetClipboardText(const Rml::Core::WString& text)
 	}
 }
 
-void Shell::GetClipboardText(Rml::Core::WString& text)
+void Shell::GetClipboardText(Rml::Core::String& text)
 {
 	if (window_handle)
 	{
@@ -332,9 +335,9 @@ void Shell::GetClipboardText(Rml::Core::WString& text)
 			return;
 		}
 
-		const wchar_t* clipboard_text = (const wchar_t*)GlobalLock(clipboard_data);
+		const char16_t* clipboard_text = (const char16_t*)GlobalLock(clipboard_data);
 		if (clipboard_text)
-			text = clipboard_text;
+			text = Rml::Core::StringUtilities::ToUTF8(clipboard_text);
 		GlobalUnlock(clipboard_data);
 
 		CloseClipboard();
@@ -369,8 +372,8 @@ static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM
 
 		case WM_SIZE:
 		{
-			int width = LOWORD(l_param);;
-			int height = HIWORD(l_param);;
+			int width = LOWORD(l_param);
+			int height = HIWORD(l_param);
 			shell_renderer->SetViewport(width, height);
 		}
 		break;

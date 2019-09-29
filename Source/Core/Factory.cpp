@@ -296,7 +296,7 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 			return false;
 		}
 
-		text_element->SetText(StringUtilities::ToUCS2(translated_data));
+		text_element->SetText(translated_data);
 
 		// Add to active node.
 		parent->AppendChild(std::move(element));
