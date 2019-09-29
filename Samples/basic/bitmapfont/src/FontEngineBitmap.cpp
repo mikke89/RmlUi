@@ -151,6 +151,7 @@ int FontFaceBitmap::GetStringWidth(const String& string, Character previous_char
 		int kerning = GetKerning(previous_character, character);
 
 		width += glyph.advance + kerning;
+		previous_character = character;
 	}
 
 	return width;
