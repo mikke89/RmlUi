@@ -168,7 +168,7 @@ void InputX11::ProcessXEvent(Display* display, const XEvent& event)
 			if (key_identifier != Rml::Core::Input::KI_UNKNOWN)
 				context->ProcessKeyDown(key_identifier, key_modifier_state);
 
-			Rml::Core::word character = GetCharacterCode(key_identifier, key_modifier_state);
+			Rml::Core::Character character = GetCharacterCode(key_identifier, key_modifier_state);
 			if (character > 0)
 				context->ProcessTextInput(character);
 		}

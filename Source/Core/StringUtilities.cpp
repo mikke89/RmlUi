@@ -1,16 +1,3 @@
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
-#include "..\..\Include\RmlUi\Core\StringUtilities.h"
 /*
  * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *

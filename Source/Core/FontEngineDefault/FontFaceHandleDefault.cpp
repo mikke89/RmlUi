@@ -32,7 +32,6 @@
 #include "FontProvider.h"
 #include "FontFaceLayer.h"
 #include "FreeTypeInterface.h"
-#include <algorithm>
 
 namespace Rml {
 namespace Core {
