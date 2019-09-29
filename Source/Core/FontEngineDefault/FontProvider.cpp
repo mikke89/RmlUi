@@ -107,7 +107,7 @@ bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face)
 	if (!handle)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face from %s, could not open file.", file_name.c_str());
-		return nullptr;
+		return false;
 	}
 
 	size_t length = file_interface->Length(handle);
