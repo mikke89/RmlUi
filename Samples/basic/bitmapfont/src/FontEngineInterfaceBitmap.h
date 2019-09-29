@@ -32,7 +32,7 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/FontEngineInterface.h>
-#include <RmlUi/Core/SpriteSheet.h>
+#include <RmlUi/Core/Spritesheet.h>
 
 using Rml::Core::FontFaceHandle;
 using Rml::Core::FontEffectsHandle;
