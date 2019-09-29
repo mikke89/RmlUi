@@ -41,7 +41,6 @@ bool single_loop = false;
 
 class DemoWindow;
 DemoWindow* window = nullptr;
-DemoWindow* window2 = nullptr;
 
 class DemoWindow : public Rml::Core::EventListener
 {
@@ -97,36 +96,6 @@ public:
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 			}
-			else if (key_identifier == Rml::Core::Input::KI_H)
-			{
-				window2->GetDocument()->Hide();
-			}
-
-			using Rml::Core::ModalFlag;
-			using Rml::Core::FocusFlag;
-
-			ModalFlag modal_flag = ModalFlag::None;
-			if (event.GetParameter("ctrl_key", 0))
-				modal_flag = ModalFlag::Modal;
-			else if (event.GetParameter("shift_key", 0))
-				modal_flag = ModalFlag::Keep;
-			
-			if (key_identifier == Rml::Core::Input::KI_Q)
-			{
-				window2->GetDocument()->Show(modal_flag, FocusFlag::None);
-			}
-			else if (key_identifier == Rml::Core::Input::KI_W)
-			{
-				window2->GetDocument()->Show(modal_flag, FocusFlag::Document);
-			}
-			else if (key_identifier == Rml::Core::Input::KI_E)
-			{
-				window2->GetDocument()->Show(modal_flag, FocusFlag::Keep);
-			}
-			else if (key_identifier == Rml::Core::Input::KI_R)
-			{
-				window2->GetDocument()->Show(modal_flag, FocusFlag::Auto);
-			}
 		}
 		break;
 
@@ -159,21 +128,6 @@ void GameLoop()
 		shell_renderer->PresentRenderBuffer();
 
 		single_loop = false;
-	}
-
-	static double t_prev = 0.0f;
-	double t = Shell::GetElapsedTime();
-	float dt = float(t - t_prev);
-	static int count_frames = 0;
-	count_frames += 1;
-
-	if (window && dt > 0.2f)
-	{
-		t_prev = t;
-		auto el = window->GetDocument()->GetElementById("fps");
-		float fps = float(count_frames) / dt;
-		count_frames = 0;
-		el->SetInnerRML(Rml::Core::CreateString( 20, "FPS: %f", fps ));
 	}
 }
 
@@ -236,9 +190,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	RMLUI_UNUSED(argv);
 #endif
 
-	const int width = 2200;
+	const int width = 1600;
 	const int height = 1000;
-
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
@@ -281,18 +234,14 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::LoadFonts("assets/");
 
-	window = new DemoWindow("Demo sample", Rml::Core::Vector2f(81, 100), context);
+	window = new DemoWindow("Demo sample", Rml::Core::Vector2f(150, 80), context);
 	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, window);
 	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, window);
 	window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, window);
 
-	window2 = new DemoWindow("Demo sample 2", Rml::Core::Vector2f(1150, 100), context);
-	window2->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, window2);
-
 	Shell::EventLoop(GameLoop);
 
 	window->Shutdown();
-	window2->Shutdown();
 
 	// Shutdown RmlUi.
 	Rml::Core::Shutdown();
@@ -301,7 +250,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::Shutdown();
 
 	delete window;
-	delete window2;
 
 	return 0;
 }
