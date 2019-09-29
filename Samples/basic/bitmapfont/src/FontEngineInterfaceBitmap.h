@@ -51,7 +51,7 @@ using Rml::Core::FontEffectList;
 using Rml::Core::GeometryList;
 
 
-class RMLUICORE_API FontEngineInterfaceBitmap : public Rml::Core::FontEngineInterface
+class FontEngineInterfaceBitmap : public Rml::Core::FontEngineInterface
 {
 public:
 	FontEngineInterfaceBitmap();
