@@ -127,7 +127,12 @@ enum class OriginX : uint8_t { Left, Center, Right };
 enum class OriginY : uint8_t { Top, Center, Bottom };
 
 
-// A computed value is a value resolved as far as possible :before: updating layout. See CSS specs for details of each property.
+/* 
+	A computed value is a value resolved as far as possible :before: introducing layouting. See CSS specs for details of each property.
+
+	Note: Enums and default values must correspond to the keywords and defaults in `StyleSheetSpecification.cpp`.
+*/
+
 struct ComputedValues
 {
 	Margin margin_top, margin_right, margin_bottom, margin_left;

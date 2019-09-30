@@ -158,6 +158,33 @@ decorator: ninepatch( button-outer, button-inner, 1.0 );
 is a simple approach to scale the decorators with higher dp ratios. For crisper graphics, increase the sprite sheet's pixel size at the edges and lower the rendered edge size number correspondingly.
 
 
+### Gradient decorator
+
+A `gradient` decorator has been implemented with support for horizontal and vertical color gradients (thanks to @viciious). Example usage:
+
+```CSS
+decorator: gradient( direction start-color stop-color );
+
+direction: horizontal|vertical;
+start-color: #ff00ff;
+stop-color: #00ff00;
+```
+
+
+### Tiled decorators orientation
+
+The orientation of each tile in the tiled decorators, `image`, `tiled-horizontal`, `tiled-vertical`, and `tiled-box`, can be rotated and flipped (thanks to @viciious). The new keywords are:
+```
+none, rotate-90, rotate-180, rotate-270, flip-horizontal, flip-vertical
+```
+
+Example usage:
+
+```CSS
+decorator: tiled-horizontal( header-l, header-c, header-l flip-horizontal );
+```
+
+
 ### Font-effects
 
 The new RCSS `font-effect` property replaces the old font-effect declarations in libRocket. A font-effect is declared similar to a decorator, by the name of the font-effect type and its properties in parenthesis. Some examples follow.
@@ -301,10 +328,23 @@ enum class FocusFlag { None, Document, Keep, Auto };
 ```
 
 
+### Font engine and interface
+
+The RmlUi font engine has seen a major overhaul.
+
+- The default font engine has been abstracted away, thereby allowing users to implement their own font engine (thanks to @viciious). See `FontEngineInterface.h` and the CMake flag `NO_FONT_INTERFACE_DEFAULT` for details.
+- `font-charset` RCSS property is gone: The font interface now loads new characters as needed. Fallback fonts can be set so that unknown characters are loaded from them.
+- The API and internals are now using UTF-8 strings directly, the old UCS-2 strings are ditched completely. All `String`s in RmlUi should be considered as encoded in UTF-8.
+- Text string are no longer limited to 16 bit code points, thus grayscale emojis are supported, have a look at the `demo` sample for some examples.
+- The internals of the default font engine has had a major overhaul, simplifying a lot of code, and removing the BitmapFont provider.
+- Instead, a custom font engine interface has been implemented for bitmap fonts in the `bitmapfont` sample, serving as a quick example of how to create your own font interface. The sample should work even without the FreeType dependency.
+
+
 ### CMake options
 
-Two new CMake options added.
+Three new CMake options added.
 
+- `NO_FONT_INTERFACE_DEFAULT` removes the default font engine, thereby allowing users to completely remove the FreeType dependency. If set, a custom font engine must be created and set through `Rml::Core::SetFontEngineInterface` before initialization. See the `bitmapfont` sample for an example implementation of a custom font engine.
 - `NO_THIRDPARTY_CONTAINERS`: RmlUi now comes bundled with some third-party container libraries for improved performance. For users that would rather use the `std` counter-parts, this option is available. The option replaces the containers via a preprocessor definition. If the library is compiled with this option, then users of the library *must* specify `#define RMLUI_NO_THIRDPARTY_CONTAINERS` before including the library.
 - `ENABLE_TRACY_PROFILING`: RmlUi has parts of the library tagged with markers for profiling with [Tracy Profiler](https://bitbucket.org/wolfpld/tracy/src/master/). This enables a visual inspection of bottlenecks and slowdowns on individual frames. To compile the library with profiling support, add the Tracy Profiler library to `/Dependencies/tracy/`, enable this option, and compile.  Follow the Tracy Profiler instructions to build and connect the separate viewer. As users may want to only use profiling for specific compilation targets, then instead one can `#define RMLUI_ENABLE_PROFILING` for the given target.
 
@@ -322,7 +362,7 @@ Two new CMake options added.
 
 Breaking changes since RmlUi v2.0.
 
-- Rml::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase. Similarly, Rml::Core::WString is now an alias for std::wstring.
+- Rml::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase. Furthermore, strings should be considered as encoded in UTF-8.
 - To load fonts, use `Rml::Core::LoadFontFace` instead of `Rml::Core::FontDatabase::LoadFontFace`.
 - Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the description under *performance* for reasoning and a workaround.
 - The Controls::DataGrid "min-rows" property has been removed.

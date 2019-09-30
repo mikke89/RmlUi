@@ -238,7 +238,16 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 // Registers RmlUi's default style properties.
 void StyleSheetSpecification::RegisterDefaultProperties()
 {
-	// Style property specifications (ala RCSS).
+	/* 
+		Style property specifications (ala RCSS).
+
+		Note: Whenever keywords or default values are changed, make sure its computed value is
+		changed correspondingly, see `ComputedValues.h`.
+
+		When adding new properties, it may be desirable to add it to the computed values as well.
+		Then, make sure to resolve it as appropriate in `ElementStyle.cpp`.
+
+	*/
 
 	RegisterProperty(PropertyId::MarginTop, MARGIN_TOP, "0px", false, true)
 		.AddParser("keyword", "auto")

@@ -122,7 +122,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 			texture_layout.AddRectangle((int)character, glyph_dimensions - glyph_origin);
 		}
 
-		constexpr int max_texture_dimensions = 2048;
+		constexpr int max_texture_dimensions = 1024;
 
 		// Generate the texture layout; this will position the glyph rectangles efficiently and
 		// allocate the texture data ready for writing.

@@ -30,10 +30,20 @@
 
 #include "Header.h"
 #include "Types.h"
+#include "ComputedValues.h"
 #include "Geometry.h"
 
 namespace Rml {
 namespace Core {
+
+
+/**
+	The abstract base class for an application-specific font engine implementation.
+	
+	By default, RmlUi will use its own font engine with characters rendered through FreeType. To use your own engine,
+	provide a concrete implementation of this class and install it through Core::SetFontEngineInterface().
+ */
+
 
 class RMLUICORE_API FontEngineInterface
 {
@@ -117,7 +127,7 @@ public:
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated. Whenever the returned version
 	/// is changed, all geometry belonging to the given face handle will be re-generated.
 	/// @param[in] face_handle The font handle.
-	/// @return The version required for using the geometry.
+	/// @return The version required for using any geometry generated with the face handle.
 	virtual int GetVersion(FontFaceHandle handle);
 };
 
