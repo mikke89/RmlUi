@@ -42,7 +42,7 @@ DecoratorTiled::~DecoratorTiled()
 {
 }
 
-static Vector2f oriented_texcoords[6][2] = {{Vector2f(0, 0), Vector2f(1, 1)},
+static const Vector2f oriented_texcoords[6][2] = {{Vector2f(0, 0), Vector2f(1, 1)},
 													   {Vector2f(0, 1), Vector2f(1, 0)},
 													   {Vector2f(1, 1), Vector2f(0, 0)},
 													   {Vector2f(1, 0), Vector2f(0, 1)},
@@ -53,6 +53,7 @@ DecoratorTiled::Tile::Tile() : position(0, 0), size(1, 1)
 {
 	texture_index = -1;
 	repeat_mode = STRETCH;
+	fit_mode = FILL;
 	orientation = ROTATE_0;
 
 	position_absolute[0] = false;
@@ -118,6 +119,9 @@ Vector2f DecoratorTiled::Tile::GetDimensions(Element* element) const
 // Generates geometry to render this tile across a surface.
 void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std::vector< int >& indices, Element* element, const Vector2f& surface_origin, const Vector2f& surface_dimensions, const Vector2f& tile_dimensions) const
 {
+	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
+		return;
+
 	RenderInterface* render_interface = element->GetRenderInterface();
 	const auto& computed = element->GetComputedValues();
 
@@ -133,68 +137,140 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 
 	const TileData& data = data_iterator->second;
 
-	int num_tiles[2];
-	Vector2f final_tile_dimensions;
+	int num_tiles[2] = { 0, 0 };
+	Vector2f final_tile_dimensions( 0, 0 );
 
 	// Generate the oriented texture coordinates for the tiles.
 	Vector2f scaled_texcoords[3];
 	for (int i = 0; i < 2; i++)
 	{
-		scaled_texcoords[i].x = data.texcoords[0].x + oriented_texcoords[orientation][i].x * (data.texcoords[1].x - data.texcoords[0].x);
-		scaled_texcoords[i].y = data.texcoords[0].y + oriented_texcoords[orientation][i].y * (data.texcoords[1].y - data.texcoords[0].y);
+		scaled_texcoords[i] = data.texcoords[0] + oriented_texcoords[orientation][i] * (data.texcoords[1] - data.texcoords[0]);
 	}
 	scaled_texcoords[2] = scaled_texcoords[1];
 
 	// Resize the dimensions (if necessary) to fit this tile's repeat mode.
 	for (int i = 0; i < 2; i++)
 	{
-		if (surface_dimensions[i] <= 0)
-			num_tiles[i] = 0;
-		else
+		switch (repeat_mode)
 		{
-			switch (repeat_mode)
+		case STRETCH:
+		{
+			// If the tile is stretched, we only need one quad.
+			num_tiles[i] = 1;
+			final_tile_dimensions[i] = surface_dimensions[i];
+		}
+		break;
+
+		case CLAMP_STRETCH:
+		case CLAMP_TRUNCATE:
+		{
+			// If the tile is clamped, we only need one quad if the surface is smaller than the tile, or two if it's larger (to take the last stretched pixel).
+			num_tiles[i] = surface_dimensions[i] > tile_dimensions[i] ? 2 : 1;
+			if (num_tiles[i] == 1)
 			{
-				// If the tile is stretched, we only need one quad.
-				case STRETCH:
-				{
-					num_tiles[i] = 1;
-					final_tile_dimensions[i] = surface_dimensions[i];
-				}
-				break;
+				final_tile_dimensions[i] = surface_dimensions[i];
+				if (repeat_mode == CLAMP_TRUNCATE)
+					scaled_texcoords[1][i] -= (scaled_texcoords[1][i] - scaled_texcoords[0][i]) * (1.0f - (final_tile_dimensions[i] / tile_dimensions[i]));
+			}
+			else
+				final_tile_dimensions[i] = surface_dimensions[i] - tile_dimensions[i];
+		}
+		break;
 
-				// If the tile is clamped, we only need one quad if the surface is smaller than the tile, or two if it's
-				// larger (to take the last stretched pixel).
-				case CLAMP_STRETCH:
-				case CLAMP_TRUNCATE:
-				{
-					num_tiles[i] = surface_dimensions[i] > tile_dimensions[i] ? 2 : 1;
-					if (num_tiles[i] == 1)
-					{
-						final_tile_dimensions[i] = surface_dimensions[i];
-						if (repeat_mode == CLAMP_TRUNCATE)
-							scaled_texcoords[1][i] -= (scaled_texcoords[1][i] - scaled_texcoords[0][i]) * (1.0f - (final_tile_dimensions[i] / tile_dimensions[i]));
-					}
-					else
-						final_tile_dimensions[i] = surface_dimensions[i] - tile_dimensions[i];
-				}
-				break;
+		case REPEAT_STRETCH:
+		case REPEAT_TRUNCATE:
+		{
+			num_tiles[i] = Math::RealToInteger((surface_dimensions[i] + (tile_dimensions[i] - 1)) / tile_dimensions[i]);
+			num_tiles[i] = Math::Max(0, num_tiles[i]);
 
-				case REPEAT_STRETCH:
-				case REPEAT_TRUNCATE:
-				{
-					num_tiles[i] = Math::RealToInteger((surface_dimensions[i] + (tile_dimensions[i] - 1)) / tile_dimensions[i]);
-					num_tiles[i] = Math::Max(0, num_tiles[i]);
+			final_tile_dimensions[i] = surface_dimensions[i] - (num_tiles[i] - 1) * tile_dimensions[i];
+			if (final_tile_dimensions[i] <= 0)
+				final_tile_dimensions[i] = tile_dimensions[i];
 
-					final_tile_dimensions[i] = surface_dimensions[i] - (num_tiles[i] - 1) * tile_dimensions[i];
-					if (final_tile_dimensions[i] <= 0)
-						final_tile_dimensions[i] = tile_dimensions[i];
+			if (repeat_mode == REPEAT_TRUNCATE)
+				scaled_texcoords[2][i] -= (scaled_texcoords[1][i] - scaled_texcoords[0][i]) * (1.0f - (final_tile_dimensions[i] / tile_dimensions[i]));
+		}
+		break;
+		}
+	}
 
-					if (repeat_mode == REPEAT_TRUNCATE)
-						scaled_texcoords[2][i] -= (scaled_texcoords[1][i] - scaled_texcoords[0][i]) * (1.0f - (final_tile_dimensions[i] / tile_dimensions[i]));
-				}
-				break;
+
+	Vector2f tile_offset(0, 0);
+	bool clamp_tile = false;
+	
+	// For now, we assume that fit mode and repeat mode cannot both be set on a single tile. The two code paths won't work well together.
+	RMLUI_ASSERT(repeat_mode == STRETCH || fit_mode == FILL);
+
+	switch (fit_mode)
+	{
+	case FILL:
+		// Do nothing, use results from above.
+	break;
+	case CONTAIN:
+	{
+		Vector2f scale_factor = surface_dimensions / tile_dimensions;
+		float min_factor = std::min(scale_factor.x, scale_factor.y);
+		final_tile_dimensions = tile_dimensions * min_factor;
+
+		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
+	}
+	break;
+	case COVER:
+	{
+		Vector2f scale_factor = surface_dimensions / tile_dimensions;
+		float max_factor = std::max(scale_factor.x, scale_factor.y);
+		final_tile_dimensions = tile_dimensions * max_factor;
+
+		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
+		clamp_tile = true;
+	}
+	break;
+	case CENTER:
+	{
+		final_tile_dimensions = tile_dimensions;
+		
+		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
+		clamp_tile = true;
+	}
+	break;
+	case SCALE_DOWN:
+	{
+		Vector2f scale_factor = surface_dimensions / tile_dimensions;
+		float min_factor = std::min(scale_factor.x, scale_factor.y);
+		if (min_factor < 1.0f)
+			final_tile_dimensions = tile_dimensions * min_factor;
+		else
+			final_tile_dimensions = tile_dimensions;
+
+		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
+	}
+	break;
+	}
+
+	if (clamp_tile)
+	{
+		// Along each dimension, see if our tile extends outside the boundary at either side.
+		for(int i = 0; i < 2; i++)
+		{
+			// Left/right acts as top/bottom during the second iteration.
+			float overshoot_left = std::max(-tile_offset[i], 0.0f);
+			float overshoot_right = std::max(tile_offset[i] + final_tile_dimensions[i] - surface_dimensions[i], 0.0f);
+
+			if(overshoot_left > 0.f || overshoot_right > 0.f)
+			{
+				float& left = scaled_texcoords[0][i];
+				float& right = scaled_texcoords[1][i];
+				float width = right - left;
+
+				left += overshoot_left / final_tile_dimensions[i] * width;
+				right -= overshoot_right / final_tile_dimensions[i] * width;
+
+				final_tile_dimensions[i] -= overshoot_left + overshoot_right;
+				tile_offset[i] += overshoot_left;
 			}
 		}
+
+		scaled_texcoords[2] = scaled_texcoords[1];
 	}
 
 	// If any of the axes are zero or below, then we have a zero surface area and nothing to render.
@@ -263,7 +339,7 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 			tile_position.x = surface_origin.x + (float) tile_dimensions.x * x;
 			tile_size.x = (float) (x < num_tiles[0] - 1 ? tile_dimensions.x : final_tile_dimensions.x);
 
-			tile_position = tile_position.Round();
+			tile_position = (tile_position + tile_offset).Round();
 			tile_size = tile_size.Round();
 
 			GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, tile_size, quad_colour, tile_texcoords[0], tile_texcoords[1], index_offset);

@@ -69,7 +69,7 @@ panel
 button:focus {
 	image-color: #0ff;
 }
-#decorators div {
+#decorators > div {
 	margin-bottom: 14px;
 }
 #decorators p {
@@ -109,6 +109,36 @@ button:focus {
 {
 	border-color: #F9EFA3;
 }
+.image-fit { text-align: center; }
+.image-fit > div
+{
+	display: inline-block;
+	width: 120px;
+	height: 50px;
+	padding: 5px 10px;
+	margin-right: 20px;
+	background-color: #c665;
+	border: 1px #666;
+	text-align: left;
+}
+.image-fit.small > div
+{
+	width: 40px;
+	height: 20px;
+	padding: 0;
+	margin-left: 40px;
+	margin-right: 80px;
+}
+.fit-fill       { decorator: image( icon-invader fill ); }
+.fit-contain    { decorator: image( icon-invader contain ); }
+.fit-cover      { decorator: image( icon-invader cover ); }
+.fit-center     { decorator: image( icon-invader center ); }
+.fit-scale-down { decorator: image( icon-invader scale-down ); }
+.transform.fit-fill       { decorator: image( icon-invader fill        flip-horizontal ); }
+.transform.fit-contain    { decorator: image( icon-invader contain     flip-horizontal ); }
+.transform.fit-cover      { decorator: image( icon-invader cover       flip-horizontal ); }
+.transform.fit-center     { decorator: image( icon-invader center      flip-horizontal ); }
+.transform.fit-scale-down { decorator: image( icon-invader scale-down  flip-horizontal ); }
 p.emojis
 {
 	text-align: left;
@@ -141,7 +171,7 @@ textarea {
 		<button>Image</button>
 		<button class="ninepatch">Ninepatch</button>
 	</div>
-	<div>	
+	<div>
 		<button class="big">Image</button>
 		<button class="big ninepatch">Ninepatch</button>
 		<p>The ninepatch decorator scales the background without blurring the texture, keeping the corners fixed.</p>
@@ -149,6 +179,28 @@ textarea {
 	<div>	
 		<button class="gradient">Gradient</button>
 		<button class="gradient horizontal">Gradient</button>
+	</div>
+	<h1>Image decorator fit modes</h1>
+	<div class="image-fit">
+		<div class="fit-fill">fill</div>
+		<div class="fit-contain">contain</div>
+		<div class="fit-cover">cover</div>
+		<div class="fit-center">center</div>
+		<div class="fit-scale-down">scale-down</div>
+	</div>
+	<div class="image-fit small">
+		<div class="fit-fill"></div>
+		<div class="fit-contain"></div>
+		<div class="fit-cover"></div>
+		<div class="fit-center"></div>
+		<div class="fit-scale-down"></div>
+	</div>
+	<div class="image-fit small">
+		<div class="transform fit-fill"></div>
+		<div class="transform fit-contain"></div>
+		<div class="transform fit-cover"></div>
+		<div class="transform fit-center"></div>
+		<div class="transform fit-scale-down"></div>
 	</div>
 </panel>
 <tab>Buttons</tab>

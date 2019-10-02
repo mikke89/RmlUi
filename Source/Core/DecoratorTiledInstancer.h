@@ -51,7 +51,8 @@ protected:
 	/// Adds the property declarations for a tile.
 	/// @param[in] name The name of the tile property.
 	/// @param[in] register_repeat_modes If true, the tile will have the repeat modes registered.
-	void RegisterTileProperty(const String& name, bool register_repeat_modes);
+	/// @param[in] register_fit_modes If true, the tile will have the fit modes registered.
+	void RegisterTileProperty(const String& name, bool register_repeat_modes, bool register_fit_modes = false);
 
 	/// Retrieves all the properties for a tile from the property dictionary.
 	/// @param[out] tile The tile structure for storing the tile properties.
@@ -62,7 +63,7 @@ protected:
 
 private:
 	struct TilePropertyIds {
-		PropertyId src, repeat, x, y, width, height, orientation;
+		PropertyId src, repeat, x, y, width, height, orientation, fit;
 	};
 
 	std::vector<TilePropertyIds> tile_property_ids;

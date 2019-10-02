@@ -69,10 +69,21 @@ public:
 	{
 		ROTATE_0 = 0,			// Rotated zero degrees clockwise.
 		ROTATE_90 = 1,			// Rotated 90 degrees clockwise.
-		ROTATE_18 = 2,			// Rotated 180 degrees clockwise.
+		ROTATE_180 = 2,			// Rotated 180 degrees clockwise.
 		ROTATE_270 = 3,			// Rotated 270 degrees clockwise.
 		FLIP_HORIZONTAL = 4,	// Flipped horizontally.
 		FLIP_VERTICAL = 5		// Flipped vertically.
+	};
+	/**
+		Stores the fit mode of a tile.
+	 */
+	enum TileFitMode
+	{
+		FILL,       // Tile is stretched to boundaries.
+		CONTAIN,    // Tile is stretched to boundaries, keeping aspect ratio fixed, 'letter-boxed'.
+		COVER,      // Tile is stretched to cover the boundaries, keeping aspect ratio fixed, and clipped.
+		CENTER,     // Tile is centered and never stretched, clipped if too large.
+		SCALE_DOWN, // Tile acts like 'center' if smaller than boundaries, or like 'contain' otherwise.
 	};
 
 	/**
@@ -119,6 +130,7 @@ public:
 		mutable TileDataMap data;
 
 		TileRepeatMode repeat_mode;
+		TileFitMode fit_mode;
 		TileOrientation orientation;
 	};
 

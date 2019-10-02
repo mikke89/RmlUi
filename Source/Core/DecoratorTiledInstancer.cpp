@@ -39,7 +39,7 @@ DecoratorTiledInstancer::DecoratorTiledInstancer(size_t num_tiles)
 }
 
 // Adds the property declarations for a tile.
-void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool register_repeat_modes)
+void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool register_repeat_modes, bool register_fit_modes)
 {
 	TilePropertyIds ids = {};
 
@@ -55,18 +55,29 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 		.AddParser("keyword", "none, rotate-90, rotate-180, rotate-270, flip-horizontal, flip-vertical")
 		.GetId();
 
+	String additional_modes;
+
 	if (register_repeat_modes)
 	{
-		ids.repeat = RegisterProperty(CreateString(32, "%s-repeat", name.c_str()), "stretch")
+		String repeat_name = CreateString(32, "%s-repeat", name.c_str());
+		ids.repeat = RegisterProperty(repeat_name, "stretch")
 			.AddParser("keyword", "stretch, clamp-stretch, clamp-truncate, repeat-stretch, repeat-truncate")
 			.GetId();
-		RegisterShorthand(name, CreateString(256, "%s-src, %s-repeat, %s-x, %s-y, %s-width, %s-height, %s-orientation", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()), ShorthandType::FallThrough);
+		additional_modes += repeat_name + ", ";
 	}
-	else
+
+	if (register_fit_modes)
 	{
-		ids.repeat = PropertyId::Invalid;
-		RegisterShorthand(name, CreateString(256, "%s-src, %s-x, %s-y, %s-width, %s-height, %s-orientation", name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()), ShorthandType::FallThrough);
+		String fit_name = CreateString(32, "%s-fit", name.c_str());
+		ids.fit = RegisterProperty(fit_name, "fill")
+			.AddParser("keyword", "fill, contain, cover, center, scale-down")
+			.GetId();
+		additional_modes += fit_name + ", ";
 	}
+
+	RegisterShorthand(name, CreateString(256, ("%s-src, " + additional_modes + "%s-orientation, %s-x, %s-y, %s-width, %s-height").c_str(),
+		name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()),
+		ShorthandType::FallThrough);
 
 	tile_property_ids.push_back(ids);
 }
@@ -161,6 +172,12 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		{
 			const Property& repeat_property = *properties.GetProperty(ids.repeat);
 			tile.repeat_mode = (DecoratorTiled::TileRepeatMode)repeat_property.value.Get< int >();
+		}
+
+		if (ids.fit != PropertyId::Invalid)
+		{
+			const Property& fit_property = *properties.GetProperty(ids.fit);
+			tile.fit_mode = (DecoratorTiled::TileFitMode)fit_property.value.Get< int >();
 		}
 
 		if (ids.orientation != PropertyId::Invalid)
