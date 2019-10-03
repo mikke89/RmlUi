@@ -35,9 +35,9 @@ namespace Core {
 
 DecoratorTiledVerticalInstancer::DecoratorTiledVerticalInstancer() : DecoratorTiledInstancer(3)
 {
-	RegisterTileProperty("top-image", false);
-	RegisterTileProperty("bottom-image", false);
-	RegisterTileProperty("center-image", true);
+	RegisterTileProperty("top-image");
+	RegisterTileProperty("bottom-image");
+	RegisterTileProperty("center-image");
 	RegisterShorthand("decorator", "top-image, center-image, bottom-image", ShorthandType::RecursiveCommaSeparated);
 }
 

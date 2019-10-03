@@ -35,17 +35,17 @@ namespace Core {
 
 DecoratorTiledBoxInstancer::DecoratorTiledBoxInstancer() : DecoratorTiledInstancer(9)
 {
-	RegisterTileProperty("top-left-image", false);
-	RegisterTileProperty("top-right-image", false);
-	RegisterTileProperty("bottom-left-image", false);
-	RegisterTileProperty("bottom-right-image", false);
+	RegisterTileProperty("top-left-image");
+	RegisterTileProperty("top-right-image");
+	RegisterTileProperty("bottom-left-image");
+	RegisterTileProperty("bottom-right-image");
 
-	RegisterTileProperty("left-image", true);
-	RegisterTileProperty("right-image", true);
-	RegisterTileProperty("top-image", true);
-	RegisterTileProperty("bottom-image", true);
+	RegisterTileProperty("left-image");
+	RegisterTileProperty("right-image");
+	RegisterTileProperty("top-image");
+	RegisterTileProperty("bottom-image");
 
-	RegisterTileProperty("center-image", true);
+	RegisterTileProperty("center-image");
 
 	RegisterShorthand("decorator", "top-left-image, top-image, top-right-image, left-image, center-image, right-image, bottom-left-image, bottom-image, bottom-right-image", ShorthandType::RecursiveCommaSeparated);
 }

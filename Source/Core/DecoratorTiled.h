@@ -50,19 +50,6 @@ public:
 	virtual ~DecoratorTiled();
 
 	/**
-		Stores the repetition mode for a tile, for when it is rendered on a surface that is a
-		different size than itself.
-	 */
-	enum TileRepeatMode
-	{
-		STRETCH = 0,			// Stretches a single tile across the required surface.
-		CLAMP_STRETCH = 1,		// Clamps the tile to the upper left, stretching the tile inwards to fit into the element if it is too small.
-		CLAMP_TRUNCATE = 2,		// Clamps the tile to the upper left, truncating the tile to fit into the element if it is too small.
-		REPEAT_STRETCH = 3,		// Repeats the tile, stretching the final tile inwards.
-		REPEAT_TRUNCATE = 4,	// Repeats the tile, truncating the final tile.
-	};
-
-	/**
 		Stores the orientation of a tile.
 	 */
 	enum TileOrientation
@@ -121,15 +108,11 @@ public:
 
 		int texture_index;
 
-		// Position and size within the texture, absolute or relative units
+		// Position and size within the texture, absolute units (px)
 		Vector2f position, size;
-
-		// Absolute is 'px' units, otherwise relative to the dimensions of the texture
-		bool position_absolute[2], size_absolute[2];
 
 		mutable TileDataMap data;
 
-		TileRepeatMode repeat_mode;
 		TileOrientation orientation;
 
 		TileFitMode fit_mode;

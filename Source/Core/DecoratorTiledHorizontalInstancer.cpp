@@ -35,9 +35,9 @@ namespace Core {
 
 DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer() : DecoratorTiledInstancer(3)
 {
-	RegisterTileProperty("left-image", false);
-	RegisterTileProperty("right-image", false);
-	RegisterTileProperty("center-image", true);
+	RegisterTileProperty("left-image");
+	RegisterTileProperty("right-image");
+	RegisterTileProperty("center-image");
 	RegisterShorthand("decorator", "left-image, center-image, right-image", ShorthandType::RecursiveCommaSeparated);
 }
 

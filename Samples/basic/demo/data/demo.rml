@@ -139,11 +139,11 @@ button:focus {
 .fit-cover      { decorator: image( icon-invader cover      ); }
 .fit-scale-none { decorator: image( icon-invader scale-none ); }
 .fit-scale-down { decorator: image( icon-invader scale-down ); }
-.transform.fit-fill       { decorator: image( icon-invader fill       rotate-90 ); }
-.transform.fit-contain    { decorator: image( icon-invader contain    rotate-90 ); }
-.transform.fit-cover      { decorator: image( icon-invader cover      rotate-90 ); }
-.transform.fit-scale-none { decorator: image( icon-invader scale-none rotate-90 ); }
-.transform.fit-scale-down { decorator: image( icon-invader scale-down rotate-90 ); }
+.transform.fit-fill       { decorator: image( icon-invader rotate-90 fill       ); }
+.transform.fit-contain    { decorator: image( icon-invader rotate-90 contain    ); }
+.transform.fit-cover      { decorator: image( icon-invader rotate-90 cover      ); }
+.transform.fit-scale-none { decorator: image( icon-invader rotate-90 scale-none ); }
+.transform.fit-scale-down { decorator: image( icon-invader rotate-90 scale-down ); }
 p.emojis
 {
 	text-align: left;
