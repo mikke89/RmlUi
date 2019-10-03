@@ -195,11 +195,10 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 	}
 
 
-	Vector2f tile_offset(0, 0);
-	bool clamp_tile = false;
-	
 	// For now, we assume that fit mode and repeat mode cannot both be set on a single tile. The two code paths won't work well together.
 	RMLUI_ASSERT(repeat_mode == STRETCH || fit_mode == FILL);
+
+	bool offset_and_clip_tile = false;
 
 	switch (fit_mode)
 	{
@@ -212,7 +211,7 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 		float min_factor = std::min(scale_factor.x, scale_factor.y);
 		final_tile_dimensions = tile_dimensions * min_factor;
 
-		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
+		offset_and_clip_tile = true;
 	}
 	break;
 	case COVER:
@@ -221,16 +220,14 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 		float max_factor = std::max(scale_factor.x, scale_factor.y);
 		final_tile_dimensions = tile_dimensions * max_factor;
 
-		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
-		clamp_tile = true;
+		offset_and_clip_tile = true;
 	}
 	break;
-	case CENTER:
+	case SCALE_NONE:
 	{
 		final_tile_dimensions = tile_dimensions;
 		
-		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
-		clamp_tile = true;
+		offset_and_clip_tile = true;
 	}
 	break;
 	case SCALE_DOWN:
@@ -242,14 +239,27 @@ void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std
 		else
 			final_tile_dimensions = tile_dimensions;
 
-		tile_offset = ((surface_dimensions - final_tile_dimensions) * 0.5f).Round();
+		offset_and_clip_tile = true;
 	}
 	break;
 	}
 
-	if (clamp_tile)
+
+	Vector2f tile_offset(0, 0);
+
+	if (offset_and_clip_tile)
 	{
-		// Along each dimension, see if our tile extends outside the boundary at either side.
+		// Offset tile along each dimension.
+		for(int i = 0; i < 2; i++)
+		{
+			switch (align[i].type) {
+			case Style::LengthPercentage::Length:      tile_offset[i] = align[i].value;  break;
+			case Style::LengthPercentage::Percentage:  tile_offset[i] = (surface_dimensions[i] - final_tile_dimensions[i]) * align[i].value * 0.01f;  break;
+			}
+		}
+		tile_offset = tile_offset.Round();
+
+		// Clip tile. See if our tile extends outside the boundary at either side, along each dimension.
 		for(int i = 0; i < 2; i++)
 		{
 			// Left/right acts as top/bottom during the second iteration.

@@ -81,8 +81,8 @@ public:
 	{
 		FILL,       // Tile is stretched to boundaries.
 		CONTAIN,    // Tile is stretched to boundaries, keeping aspect ratio fixed, 'letter-boxed'.
-		COVER,      // Tile is stretched to cover the boundaries, keeping aspect ratio fixed, and clipped.
-		CENTER,     // Tile is centered and never stretched, clipped if too large.
+		COVER,      // Tile is stretched to cover the boundaries, keeping aspect ratio fixed.
+		SCALE_NONE, // Tile is never scaled.
 		SCALE_DOWN, // Tile acts like 'center' if smaller than boundaries, or like 'contain' otherwise.
 	};
 
@@ -130,8 +130,11 @@ public:
 		mutable TileDataMap data;
 
 		TileRepeatMode repeat_mode;
-		TileFitMode fit_mode;
 		TileOrientation orientation;
+
+		TileFitMode fit_mode;
+		Style::LengthPercentage align[2]; 
+
 	};
 
 protected:

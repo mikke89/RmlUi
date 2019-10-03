@@ -191,7 +191,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 #endif
 
 	const int width = 1600;
-	const int height = 1000;
+	const int height = 950;
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;

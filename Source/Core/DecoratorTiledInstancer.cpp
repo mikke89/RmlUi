@@ -70,11 +70,24 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 	{
 		String fit_name = CreateString(32, "%s-fit", name.c_str());
 		ids.fit = RegisterProperty(fit_name, "fill")
-			.AddParser("keyword", "fill, contain, cover, center, scale-down")
+			.AddParser("keyword", "fill, contain, cover, scale-none, scale-down")
 			.GetId();
-		additional_modes += fit_name + ", ";
-	}
 
+		String align_x_name = CreateString(32, "%s-align-x", name.c_str());
+		ids.align_x = RegisterProperty(align_x_name, "center")
+			.AddParser("keyword", "left, center, right")
+			.AddParser("length_percent")
+			.GetId();
+
+		String align_y_name = CreateString(32, "%s-align-y", name.c_str());
+		ids.align_y = RegisterProperty(align_y_name, "center")
+			.AddParser("keyword", "top, center, bottom")
+			.AddParser("length_percent")
+			.GetId();
+
+		additional_modes += fit_name + ", " + align_x_name + ", " + align_y_name + ", ";
+	}
+	
 	RegisterShorthand(name, CreateString(256, ("%s-src, " + additional_modes + "%s-orientation, %s-x, %s-y, %s-width, %s-height").c_str(),
 		name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str()),
 		ShorthandType::FallThrough);
@@ -176,8 +189,44 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 
 		if (ids.fit != PropertyId::Invalid)
 		{
+			RMLUI_ASSERT(ids.align_x != PropertyId::Invalid && ids.align_y != PropertyId::Invalid);
 			const Property& fit_property = *properties.GetProperty(ids.fit);
 			tile.fit_mode = (DecoratorTiled::TileFitMode)fit_property.value.Get< int >();
+
+			const Property* align_properties[2] = {
+				properties.GetProperty(ids.align_x),
+				properties.GetProperty(ids.align_y)
+			};
+
+			for (int i = 0; i < 2; i++)
+			{
+				using Style::LengthPercentage;
+
+				auto& align = tile.align[i];
+				auto& property = *align_properties[i];
+				if (property.unit == Property::KEYWORD)
+				{
+					enum { TOP_LEFT, CENTER, BOTTOM_RIGHT };
+					switch (property.Get<int>())
+					{
+					case TOP_LEFT:     align = LengthPercentage(LengthPercentage::Percentage, 0.0f); break;
+					case CENTER:       align = LengthPercentage(LengthPercentage::Percentage, 50.0f); break;
+					case BOTTOM_RIGHT: align = LengthPercentage(LengthPercentage::Percentage, 100.0f); break;
+					}
+				}
+				else if (property.unit == Property::PERCENT)
+				{
+					align = LengthPercentage(LengthPercentage::Percentage, property.Get<float>());
+				}
+				else if(property.unit == Property::PX) 
+				{
+					align = LengthPercentage(LengthPercentage::Length, property.Get<float>());
+				}
+				else
+				{
+					Log::Message(Log::LT_WARNING, "Decorator alignment value is '%s' which uses an unsupported unit (use px, %%, or keyword)", property.ToString().c_str());
+				}
+			}
 		}
 
 		if (ids.orientation != PropertyId::Invalid)

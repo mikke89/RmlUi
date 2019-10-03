@@ -8,7 +8,7 @@ body.window
 	max-width: 1400px;
 	max-height: 850px;
 	width: 1300px;
-	height: 800px;
+	height: 750px;
 }
 div#title_bar div#icon
 {
@@ -54,7 +54,7 @@ tab:active, tab:selected
 panels
 {
     display: block;
-    height: 460px;
+    height: 580px;
 	padding: 20px 20px;
 	border: 1px #ddd;
     background-color: #ccc3;
@@ -129,16 +129,21 @@ button:focus {
 	margin-left: 40px;
 	margin-right: 80px;
 }
-.fit-fill       { decorator: image( icon-invader fill ); }
-.fit-contain    { decorator: image( icon-invader contain ); }
-.fit-cover      { decorator: image( icon-invader cover ); }
-.fit-center     { decorator: image( icon-invader center ); }
+.align-default     { decorator: image( icon-invader scale-none             ); }
+.align-right       { decorator: image( icon-invader scale-none right       ); }
+.align-left-bottom { decorator: image( icon-invader scale-none left bottom ); }
+.align-percent     { decorator: image( icon-invader scale-none 70% 30%     ); }
+.align-pixel       { decorator: image( icon-invader scale-none 100px -15px ); }
+.fit-fill       { decorator: image( icon-invader fill       ); }
+.fit-contain    { decorator: image( icon-invader contain    ); }
+.fit-cover      { decorator: image( icon-invader cover      ); }
+.fit-scale-none { decorator: image( icon-invader scale-none ); }
 .fit-scale-down { decorator: image( icon-invader scale-down ); }
-.transform.fit-fill       { decorator: image( icon-invader fill        flip-horizontal ); }
-.transform.fit-contain    { decorator: image( icon-invader contain     flip-horizontal ); }
-.transform.fit-cover      { decorator: image( icon-invader cover       flip-horizontal ); }
-.transform.fit-center     { decorator: image( icon-invader center      flip-horizontal ); }
-.transform.fit-scale-down { decorator: image( icon-invader scale-down  flip-horizontal ); }
+.transform.fit-fill       { decorator: image( icon-invader fill       rotate-90 ); }
+.transform.fit-contain    { decorator: image( icon-invader contain    rotate-90 ); }
+.transform.fit-cover      { decorator: image( icon-invader cover      rotate-90 ); }
+.transform.fit-scale-none { decorator: image( icon-invader scale-none rotate-90 ); }
+.transform.fit-scale-down { decorator: image( icon-invader scale-down rotate-90 ); }
 p.emojis
 {
 	text-align: left;
@@ -180,26 +185,36 @@ textarea {
 		<button class="gradient">Gradient</button>
 		<button class="gradient horizontal">Gradient</button>
 	</div>
+	<h1>Image decorator alignment modes</h1>
+	<div class="image-fit">
+		<div class="align-default" style="font-style: italic;">default</div>
+		<div class="align-right">right</div>
+		<div class="align-left-bottom">left bottom</div>
+		<div class="align-percent">70% 30%</div>
+		<div class="align-pixel">100px -15px</div>
+		<p style="margin: 0.3em 0 0 0;">Using fit mode 'scale-none'.</p>
+	</div>
+
 	<h1>Image decorator fit modes</h1>
 	<div class="image-fit">
 		<div class="fit-fill">fill</div>
 		<div class="fit-contain">contain</div>
 		<div class="fit-cover">cover</div>
-		<div class="fit-center">center</div>
+		<div class="fit-scale-none">scale-none</div>
 		<div class="fit-scale-down">scale-down</div>
 	</div>
 	<div class="image-fit small">
 		<div class="fit-fill"></div>
 		<div class="fit-contain"></div>
 		<div class="fit-cover"></div>
-		<div class="fit-center"></div>
+		<div class="fit-scale-none"></div>
 		<div class="fit-scale-down"></div>
 	</div>
 	<div class="image-fit small">
 		<div class="transform fit-fill"></div>
 		<div class="transform fit-contain"></div>
 		<div class="transform fit-cover"></div>
-		<div class="transform fit-center"></div>
+		<div class="transform fit-scale-none"></div>
 		<div class="transform fit-scale-down"></div>
 	</div>
 </panel>
