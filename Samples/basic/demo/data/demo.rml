@@ -120,6 +120,7 @@ button:focus {
 	background-color: #c665;
 	border: 1px #666;
 	text-align: left;
+	font-effect: shadow( 1px 1px #333 );
 }
 .image-fit.small > div
 {

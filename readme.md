@@ -88,8 +88,8 @@ decorator: tiled-box(
 	window-bl, window-b, window-br
 );
 
- /* declares an image decorator by the url of an image, and a rectangle inside it */
-decorator: image( invader.tga 5px 10px 30px 30px );
+ /* declares an image decorator by the url of an image */
+decorator: image( invader.tga );
 ```
 
 The `decorator` property follows the normal cascading rules, is non-inherited, and has the default value `none` which specifies no decorator on the element. The decorator looks for a sprite with the same name first. If none exists, then it treats it as a file name for an image. Decorators can now be set on the element's style, although we recommend declaring them in style sheets for performance reasons.
@@ -183,6 +183,26 @@ Example usage:
 ```CSS
 decorator: tiled-horizontal( header-l, header-c, header-l flip-horizontal );
 ```
+
+
+### Image decorator fit modes and alignment
+
+The image decorator now supports fit modes and alignment for scaling and positioning the image within its current element.
+
+The full RCSS specification for the `image` decorator is now
+```CSS
+decorator: image( <src> <orientation> <fit> <align-x> <align-y> );
+```
+where
+```
+  <src>: image source url or sprite name
+  <orientation>: none (default) | rotate-90 | rotate-180 | rotate-270 | flip-horizontal | flip-vertical
+  <fit>: fill (default) | contain | cover | scale-none | scale-down
+  <align-x>: left | center (default) | right | <length-percentage>
+  <align-y>: top | center (default) | bottom | <length-percentage>
+```
+
+Values must be specified in the given order, any unspecified properties will be left at their default values. See the 'demo' sample for usage examples.
 
 
 ### Font-effects
@@ -371,6 +391,7 @@ Breaking changes since RmlUi v2.0.
 - See changes to the declaration of decorators and font-effects above.
 - See changes to the render interface regarding transforms above.
 - The focus flag in `ElementDocument::Show` has been changed, with a new enum name and new options, see above.
+- The tiled decorators (`image`, `tiled-horizontal`, `tiled-vertical`, and `tiled-box`) no longer support the old repeat modes.
 - Also, see removal of manual reference counting above.
 
 
