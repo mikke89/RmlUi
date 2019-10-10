@@ -342,12 +342,39 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 	return inline_properties.GetProperties();
 }
 
-float ElementStyle::ResolveNumberLengthPercentage(const Property * property, RelativeTarget relative_target) const
+float ElementStyle::ResolveLength(const Property* property, float base_value) const
 {
+	if (!property || !(property->unit & Property::NUMBER_LENGTH_PERCENT))
+		return 0.0f;
+
+	if (property->unit & Property::NUMBER)
+		return property->Get<float>() * base_value;
+	else if (property->unit & Property::PERCENT)
+		return property->Get<float>() * base_value * 0.01f;
+
+	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
+	const float font_size = element->GetComputedValues().font_size;
+
+	auto doc = element->GetOwnerDocument();
+	const float doc_font_size = (doc ? doc->GetComputedValues().font_size : DefaultComputedValues.font_size);
+
+	float result = ComputeLength(property, font_size, doc_font_size, dp_ratio);
+
+	return result;
+}
+
+float ElementStyle::ResolveLength(const Property* property, RelativeTarget relative_target) const
+{
+	RMLUI_ASSERT(property);
+
 	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
 	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
 	{
-		float result = ComputeLength(property, element->GetComputedValues().font_size, element->GetOwnerDocument()->GetComputedValues().font_size, ElementUtilities::GetDensityIndependentPixelRatio(element));
+		auto doc = element->GetOwnerDocument();
+		const float doc_font_size = (doc ? doc->GetComputedValues().font_size : DefaultComputedValues.font_size);
+
+		float result = ComputeLength(property, element->GetComputedValues().font_size, doc_font_size, ElementUtilities::GetDensityIndependentPixelRatio(element));
+
 		return result;
 	}
 
@@ -356,7 +383,7 @@ float ElementStyle::ResolveNumberLengthPercentage(const Property * property, Rel
 	switch (relative_target)
 	{
 	case RelativeTarget::None:
-		base_value = 1.0f;
+		base_value = 0.0f;
 		break;
 	case RelativeTarget::ContainingBlockWidth:
 		base_value = element->GetContainingBlock().x;
@@ -368,7 +395,10 @@ float ElementStyle::ResolveNumberLengthPercentage(const Property * property, Rel
 		base_value = element->GetComputedValues().font_size;
 		break;
 	case RelativeTarget::ParentFontSize:
-		base_value = element->GetParentNode()->GetComputedValues().font_size;
+	{
+		auto p = element->GetParentNode();
+		base_value = (p ? p->GetComputedValues().font_size : DefaultComputedValues.font_size);
+	}
 		break;
 	case RelativeTarget::LineHeight:
 		base_value = element->GetLineHeight();
@@ -393,27 +423,6 @@ float ElementStyle::ResolveNumberLengthPercentage(const Property * property, Rel
 	}
 
 	return base_value * scale_value;
-}
-
-// Resolves one of this element's properties.
-float ElementStyle::ResolveLengthPercentage(const Property* property, float base_value) const
-{
-	if (!property)
-	{
-		RMLUI_ERROR;
-		return 0.0f;
-	}
-	RMLUI_ASSERT(property->unit & Property::LENGTH_PERCENT);
-
-	const float font_size = element->GetComputedValues().font_size;
-	const float doc_font_size = element->GetOwnerDocument()->GetComputedValues().font_size;
-	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
-
-	Style::LengthPercentage computed = ComputeLengthPercentage(property, font_size, doc_font_size, dp_ratio);
-
-	float result = ResolveValue(computed, base_value);
-
-	return result;
 }
 
 void ElementStyle::DirtyDefinition()

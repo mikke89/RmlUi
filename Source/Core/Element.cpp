@@ -642,10 +642,24 @@ const PropertyMap& Element::GetLocalStyleProperties()
 	return style->GetLocalStyleProperties();
 }
 
-// Resolves one of this element's style.
-float Element::ResolveLengthPercentage(const Property *property, float base_value)
+float Element::ResolveLength(const Property *property, float base_value)
 {
-	return style->ResolveLengthPercentage(property, base_value);
+	return style->ResolveLength(property, base_value);
+}
+
+float Element::ResolveLength(const String& property_name)
+{
+	auto property = style->GetProperty(StyleSheetSpecification::GetPropertyId(property_name));
+	if (!property)
+		return 0.0f;
+
+	RelativeTarget relative_target = RelativeTarget::None;
+	if (property->definition)
+		relative_target = property->definition->GetRelativeTarget();
+
+	float result = style->ResolveLength(property, relative_target);
+	
+	return result;
 }
 
 Vector2f Element::GetContainingBlock()

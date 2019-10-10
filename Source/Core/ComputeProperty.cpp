@@ -110,9 +110,6 @@ float ComputeLength(const Property* property, float font_size, float document_fo
 	return 0.0f;
 }
 
-
-
-
 float ComputeAbsoluteLength(const Property& property, float dp_ratio)
 {
 	RMLUI_ASSERT(property.unit & Property::ABSOLUTE_LENGTH);
@@ -151,9 +148,6 @@ float ComputeAbsoluteLength(const Property& property, float dp_ratio)
 	return 0.0f;
 }
 
-
-
-// Resolves one of this element's properties.
 float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio)
 {
 	// The calculated value of the font-size property is inherited, so we need to check if this
@@ -187,7 +181,6 @@ float ComputeFontsize(const Property& property, const Style::ComputedValues& val
 
 	return ComputeAbsoluteLength(property, dp_ratio);
 }
-
 
 Style::Clip ComputeClip(const Property* property)
 {
@@ -225,7 +218,6 @@ Style::LineHeight ComputeLineHeight(const Property* property, float font_size, f
 	float value = font_size * scale_factor;
 	return Style::LineHeight(value, Style::LineHeight::Number, scale_factor);
 }
-
 
 Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_height, float font_size, float document_font_size, float dp_ratio)
 {
@@ -287,11 +279,6 @@ Style::LengthPercentage ComputeOrigin(const Property* property, float font_size,
 
 	return LengthPercentage(LengthPercentage::Length, ComputeLength(property, font_size, document_font_size, dp_ratio));
 }
-
-
-
-
-
 
 
 }

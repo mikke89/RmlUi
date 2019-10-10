@@ -103,14 +103,14 @@ public:
 	/// Returns the local style properties, excluding any properties from local class.
 	const PropertyMap& GetLocalStyleProperties() const;
 
-	/// Resolves a property with units of length or percentage to 'px'. Percentages are resolved by scaling the base value.
-	/// @param[in] name The property to resolve the value for.
-	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
-	/// @return The resolved value in 'px' unit.
-	float ResolveLengthPercentage(const Property *property, float base_value) const;
-	/// Resolves a property with units of number, length or percentage. Lengths are resolved to 'px'. 
-	/// Number and percentages are resolved by scaling the size of the specified target.
-	float ResolveNumberLengthPercentage(const Property* property, RelativeTarget relative_target) const;
+	/// Resolves a property with units of number, length, or percentage to a length in 'px' units.
+	/// @param[in] property The property to resolve the value for.
+	/// @param[in] base_value The value that is scaled by the number or percentage value, if applicable.
+	/// @return The resolved value in 'px' unit, or zero if it could not be resolved.
+	float ResolveLength(const Property* property, float base_value) const;
+	/// Resolves a property with units of number, length, or percentage to a length in 'px' units.
+	/// Numbers and percentages are resolved by scaling the size of the specified target.
+	float ResolveLength(const Property* property, RelativeTarget relative_target) const;
 
 	/// Mark definition and all children dirty.
 	void DirtyDefinition();
