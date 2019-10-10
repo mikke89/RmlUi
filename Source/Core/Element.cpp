@@ -596,6 +596,12 @@ bool Element::SetProperty(const String& name, const String& value)
 	return true;
 }
 
+// Sets a local property override on the element to a pre-parsed value.
+bool Element::SetProperty(PropertyId id, const Property& property)
+{
+	return style->SetProperty(id, property);
+}
+
 // Removes a local property override on the element.
 void Element::RemoveProperty(const String& name)
 {
@@ -606,12 +612,6 @@ void Element::RemoveProperty(const String& name)
 void Element::RemoveProperty(PropertyId id)
 {
 	style->RemoveProperty(id);
-}
-
-// Sets a local property override on the element to a pre-parsed value.
-bool Element::SetProperty(PropertyId id, const Property& property)
-{
-	return style->SetProperty(id, property);
 }
 
 // Returns one of this element's properties.

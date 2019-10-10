@@ -30,12 +30,15 @@ namespace Rml {
 namespace Core {
 
 // Returns the values of one of this element's properties.
-// We can assume the property will exist based on the RCSS inheritance.
 template < typename T >
 T Element::GetProperty(const String& name)
 {
 	const Property* property = GetProperty(name);
-	RMLUI_ASSERTMSG(property, "Invalid property name.");
+	if (!property)
+	{
+		Log::Message(Log::LT_WARNING, "Invalid property name %s.", name.c_str());
+		return T{};
+	}
 	return property->Get< T >();
 }
 

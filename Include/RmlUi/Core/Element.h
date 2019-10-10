@@ -197,13 +197,12 @@ public:
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
 	bool SetProperty(PropertyId id, const Property& property);
-	/// Removes a local property override on the element; its value will revert to that defined in
-	/// the style sheet.
+	/// Removes a local property override on the element; its value will revert to that defined in the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
 	void RemoveProperty(const String& name);
 	void RemoveProperty(PropertyId id);
-	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
-	/// be found that we can inherit the property from, the default value will be returned.
+	/// Returns one of this element's properties. If the property is not defined for this element and not inherited 
+	/// from an ancestor, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
 	const Property* GetProperty(const String& name);		
