@@ -93,7 +93,8 @@ public:
 	void PushToBack();
 
 	/// Show the document.
-	/// @param[in] focus_flag  Flags controlling the focus, see the 'FocusFlag' description for details.
+	/// @param[in] modal_flag Flags controlling the modal state of the document, see the 'ModalFlag' description for details.
+	/// @param[in] focus_flag Flags controlling the focus, see the 'FocusFlag' description for details.
 	void Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto);
 	/// Hide the document.
 	void Hide();
@@ -119,7 +120,7 @@ public:
 
 	/// Updates the document, including its layout. Users must call this manually before requesting information such as 
 	/// size or position of an element if any element in the document was recently changed, unless Context::Update has
-	/// already been called after the change. This has a perfomance penalty, only call when strictly necessary.
+	/// already been called after the change. This has a perfomance penalty, only call when necessary.
 	void UpdateDocument();
 	
 protected:

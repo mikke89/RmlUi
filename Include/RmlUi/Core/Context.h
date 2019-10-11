@@ -87,19 +87,19 @@ public:
 
 	/// Creates a new, empty document and places it into this context.
 	/// @param[in] tag The document type to create.
-	/// @return The new document, or nullptr if no document could be created. The document is returned with a reference owned by the caller.
+	/// @return The new document, or nullptr if no document could be created.
 	ElementDocument* CreateDocument(const String& tag = "body");
 	/// Load a document into the context.
 	/// @param[in] document_path The path to the document to load.
-	/// @return The loaded document, or nullptr if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded.
 	ElementDocument* LoadDocument(const String& document_path);
 	/// Load a document into the context.
 	/// @param[in] document_stream The opened stream, ready to read.
-	/// @return The loaded document, or nullptr if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded.
 	ElementDocument* LoadDocument(Stream* document_stream);
 	/// Load a document into the context.
 	/// @param[in] string The string containing the document RML.
-	/// @return The loaded document, or nullptr if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded.
 	ElementDocument* LoadDocumentFromMemory(const String& string);
 	/// Unload the given document.
 	/// @param[in] document The document to unload.
@@ -114,24 +114,23 @@ public:
 
 	/// Returns the first document in the context with the given id.
 	/// @param[in] id The id of the desired document.
-	/// @return The document (if it was found), or nullptr if no document exists with the ID. The document is returned with a borrowed reference.
+	/// @return The document (if it was found), or nullptr if no document exists with the ID.
 	ElementDocument* GetDocument(const String& id);
 	/// Returns a document in the context by index.
 	/// @param[in] index The index of the desired document.
-	/// @return The document (if one exists with this index), or nullptr if the index was invalid. The document is returned with a borrowed reference.
+	/// @return The document (if one exists with this index), or nullptr if the index was invalid.
 	ElementDocument* GetDocument(int index);
 	/// Returns the number of documents in the context.
-	/// @return The number of documents in the context.
 	int GetNumDocuments() const;
 
 	/// Returns the hover element.
-	/// @return The element the mouse cursor is hovering over. The element is returned with a borrowed reference.
+	/// @return The element the mouse cursor is hovering over.
 	Element* GetHoverElement();
 	/// Returns the focus element.
-	/// @return The element with input focus. The element is returned with a borrowed reference.
+	/// @return The element with input focus.
 	Element* GetFocusElement();
 	/// Returns the root element that holds all the documents
-	/// @return The root element. The element is returned with a borrowed reference.
+	/// @return The root element.
 	Element* GetRootElement();
 
 	// Returns the youngest descendent of the given element which is under the given point in screen coordinates.

@@ -51,6 +51,7 @@ public:
 
 	/// Instance an event object.
 	/// @param[in] target Target element of this event.
+	/// @param[in] id EventId of this event.
 	/// @param[in] name Name of this event.
 	/// @param[in] parameters Additional parameters for this event.
 	/// @param[in] interruptible If the event propagation can be stopped.
