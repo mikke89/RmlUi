@@ -182,12 +182,6 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 	return true;
 }
 
-// Destroys the parser.
-void PropertyParserTransform::Release()
-{
-	delete this;
-}
-
 // Scan a string for a parameterized keyword with a certain number of numeric arguments.
 int PropertyParserTransform::Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const
 {

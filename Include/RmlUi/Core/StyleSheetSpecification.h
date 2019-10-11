@@ -37,6 +37,7 @@ namespace Rml {
 namespace Core {
 
 class PropertyParser;
+struct DefaultStyleSheetParsers;
 
 /**
 	@author Peter Curry
@@ -53,8 +54,9 @@ public:
 
 	/// Registers a parser for use in property definitions.
 	/// @param[in] parser_name The name to register the new parser under.
-	/// @param[in] parser The parser to register. This parser will be released by the specification.
+	/// @param[in] parser A non-owning pointer to the parser to register.
 	/// @return True if the parser was registered successfully, false otherwise.
+	/// @lifetime The parser must be kept alive until after the call to Core::Shutdown.
 	static bool RegisterParser(const String& parser_name, PropertyParser* parser);
 	/// Returns the parser registered with a specific name.
 	/// @param[in] parser_name The name of the desired parser.
@@ -130,6 +132,8 @@ private:
 
 	// The properties defined in the style sheet specification.
 	PropertySpecification properties;
+
+	UniquePtr<DefaultStyleSheetParsers> default_parsers;
 };
 
 }

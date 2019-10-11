@@ -133,7 +133,7 @@ private:
 	// Map of all styled nodes, that is, they have one or more properties.
 	NodeIndex styled_node_index;
 
-	typedef UnorderedMap< size_t, SharedPtr<ElementDefinition> > ElementDefinitionCache;
+	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
 };

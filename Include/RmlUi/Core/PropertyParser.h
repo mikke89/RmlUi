@@ -47,9 +47,7 @@ typedef UnorderedMap< String, int > ParameterMap;
 class RMLUICORE_API PropertyParser
 {
 public:
-	virtual ~PropertyParser()
-	{
-	}
+	virtual ~PropertyParser() {}
 
 	/// Called to parse a RCSS declaration.
 	/// @param[out] property The property to set the parsed value on.
@@ -57,9 +55,6 @@ public:
 	/// @param[in] parameters The list of parameters defined for this property.
 	/// @return True if the value was parsed successfully, false otherwise.
 	virtual bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const = 0;
-
-	/// Called when the parser is released. This should free all dynamic memory used by the parser.
-	virtual void Release() = 0;
 };
 
 }

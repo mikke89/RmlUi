@@ -44,12 +44,29 @@ namespace Core {
 
 static StyleSheetSpecification* instance = nullptr;
 
+
+struct DefaultStyleSheetParsers {
+	PropertyParserNumber number = PropertyParserNumber(Property::NUMBER);
+	PropertyParserNumber length = PropertyParserNumber(Property::LENGTH, Property::PX);
+	PropertyParserNumber length_percent = PropertyParserNumber(Property::LENGTH_PERCENT, Property::PX);
+	PropertyParserNumber number_length_percent = PropertyParserNumber(Property::NUMBER_LENGTH_PERCENT, Property::PX);
+	PropertyParserNumber angle = PropertyParserNumber(Property::ANGLE, Property::RAD);
+	PropertyParserKeyword keyword = PropertyParserKeyword();
+	PropertyParserString string = PropertyParserString();
+	PropertyParserAnimation animation = PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER);
+	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
+	PropertyParserColour color = PropertyParserColour();
+	PropertyParserTransform transform = PropertyParserTransform();
+};
+
 StyleSheetSpecification::StyleSheetSpecification() : 
 	// Reserve space for all defined ids and some more for custom properties
 	properties(2 * (size_t)PropertyId::NumDefinedIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
 	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
+
+	default_parsers.reset(new DefaultStyleSheetParsers);
 }
 
 StyleSheetSpecification::~StyleSheetSpecification()
@@ -85,9 +102,6 @@ void StyleSheetSpecification::Shutdown()
 {
 	if (instance != nullptr)
 	{
-		for (ParserMap::iterator iterator = instance->parsers.begin(); iterator != instance->parsers.end(); ++iterator)
-			(*iterator).second->Release();
-
 		delete instance;
 	}
 }
@@ -97,7 +111,10 @@ bool StyleSheetSpecification::RegisterParser(const String& parser_name, Property
 {
 	ParserMap::iterator iterator = instance->parsers.find(parser_name);
 	if (iterator != instance->parsers.end())
-		(*iterator).second->Release();
+	{
+		Log::Message(Log::LT_WARNING, "Parser with name %s already exists!", parser_name.c_str());
+		return false;
+	}
 
 	instance->parsers[parser_name] = parser;
 	return true;
@@ -221,17 +238,17 @@ const PropertySpecification& StyleSheetSpecification::GetPropertySpecification()
 // Registers RmlUi's default parsers.
 void StyleSheetSpecification::RegisterDefaultParsers()
 {
-	RegisterParser("number", new PropertyParserNumber(Property::NUMBER));
-	RegisterParser("length", new PropertyParserNumber(Property::LENGTH, Property::PX));
-	RegisterParser("length_percent", new PropertyParserNumber(Property::LENGTH_PERCENT, Property::PX));
-	RegisterParser("number_length_percent", new PropertyParserNumber(Property::NUMBER_LENGTH_PERCENT, Property::PX));
-	RegisterParser("angle", new PropertyParserNumber(Property::ANGLE, Property::RAD));
-	RegisterParser("keyword", new PropertyParserKeyword());
-	RegisterParser("string", new PropertyParserString());
-	RegisterParser(ANIMATION, new PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER));
-	RegisterParser(TRANSITION, new PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER));
-	RegisterParser(COLOR, new PropertyParserColour());
-	RegisterParser(TRANSFORM, new PropertyParserTransform());
+	RegisterParser("number", &default_parsers->number);
+	RegisterParser("length", &default_parsers->length);
+	RegisterParser("length_percent", &default_parsers->length_percent);
+	RegisterParser("number_length_percent", &default_parsers->number_length_percent);
+	RegisterParser("angle", &default_parsers->angle);
+	RegisterParser("keyword", &default_parsers->keyword);
+	RegisterParser("string", &default_parsers->string);
+	RegisterParser("animation", &default_parsers->animation);
+	RegisterParser("transition", &default_parsers->transition);
+	RegisterParser("color", &default_parsers->color);
+	RegisterParser("transform", &default_parsers->transform);
 }
 
 

@@ -53,11 +53,5 @@ bool PropertyParserKeyword::ParseValue(Property& property, const String& value, 
 	return true;
 }
 
-// Destroys the parser.
-void PropertyParserKeyword::Release()
-{
-	delete this;
-}
-
 }
 }

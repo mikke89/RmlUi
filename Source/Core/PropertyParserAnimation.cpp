@@ -373,10 +373,5 @@ bool PropertyParserAnimation::ParseValue(Property & property, const String & val
 	return result;
 }
 
-void PropertyParserAnimation::Release()
-{
-	delete this;
-}
-
 }
 }

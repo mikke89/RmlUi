@@ -56,9 +56,6 @@ public:
 	/// @return True if the value was validated successfully, false otherwise.
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 
-	// Destroys the parser.
-	void Release() override;
-
 private:
 	/// Scan a string for a parameterized keyword with a certain number of numeric arguments.
 	/// @param[in] str The string to search for the parameterized keyword

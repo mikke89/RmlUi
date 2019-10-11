@@ -140,11 +140,5 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 	return false;
 }
 
-// Destroys the parser.
-void PropertyParserNumber::Release()
-{
-	delete this;
-}
-
 }
 }

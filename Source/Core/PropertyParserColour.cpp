@@ -170,11 +170,5 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 	return true;
 }
 
-// Destroys the parser.
-void PropertyParserColour::Release()
-{
-	delete this;
-}
-
 }
 }

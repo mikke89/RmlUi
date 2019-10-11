@@ -54,9 +54,6 @@ public:
 	/// @return True if the value was parsed successfully, false otherwise.
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 
-	/// Destroys the parser.
-	void Release() override;
-
 private:
 	typedef UnorderedMap< String, Colourb> ColourMap;
 	ColourMap html_colours;
