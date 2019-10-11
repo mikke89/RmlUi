@@ -10,7 +10,7 @@ icon
     padding: 60px 10px 0px 10px;
     margin: 10px;
     
-    decorator: image( ../../../assets/present.tga 0px 0px 100px 100px );
+    decorator: image( ../../../assets/present.tga );
     
     font-size: 12px;
     text-align: center;
