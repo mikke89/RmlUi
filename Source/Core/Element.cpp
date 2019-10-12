@@ -1636,6 +1636,9 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 			if (parent != nullptr)
 				parent->DirtyStackingContext();
+
+			if (!visible)
+				Blur();
 		}
 
 		if (changed_properties.Contains(PropertyId::Display))

@@ -41,7 +41,7 @@ The main effort in RmlUi 3.0 has been on improving the performance of the librar
 - Several containers have been replaced, such as std::map to [robin_hood::unordered_flat_map](https://github.com/martinus/robin-hood-hashing).
 - Reduced number of allocations and unnecessary recursive calls.
 - Internally, the concept of computed values has been introduced. Computed values take the properties of an element and computes them as far as possible without introducing the layouting.
-- And many more, smaller optimizations, resulting in about 10x performance increase for creation and destruction of a large number of elements. A benchmark is included with the samples.
+- And many more, smaller optimizations, resulting in a more than **25x** measured performance increase for creation and destruction of a large number of elements. A benchmark is included with the samples.
 
 
 ### Sprite sheets
