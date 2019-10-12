@@ -226,6 +226,11 @@ textarea {
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
 	<div><button id="exit" onclick="exit">Exit</button></div>
+	<img src="../../../assets/high_scores_defender.tga"/>
+	<img src="icon-game" style="vertical-align: 10px;"/>
+	<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" coords="0 0 64 64"/>
+	<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" coords="64 0 64 64"/>
+	<p>Img elements can take both sprites and images. For images it also supports a 'coords' attribute for specifying a sub-rectangle.</p>
 </panel>
 <tab>Controls</tab>
 <panel>

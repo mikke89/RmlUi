@@ -106,10 +106,10 @@ private:
 	// that dimension has not been computed yet.
 	Vector2f dimensions;
 
-	// The integer coords extracted from the 'coords' attribute. using_coords will be false if
+	// The coords extracted from the sprite or 'coords' attribute. The coords_source will be None if
 	// these have not been specified or are invalid.
-	int coords[4];
-	bool using_coords;
+	Rectangle coords;
+	enum class CoordsSource { None, Attribute, Sprite } coords_source;
 
 	// The geometry used to render this element.
 	Geometry geometry;

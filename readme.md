@@ -369,13 +369,14 @@ Three new CMake options added.
 - `ENABLE_TRACY_PROFILING`: RmlUi has parts of the library tagged with markers for profiling with [Tracy Profiler](https://bitbucket.org/wolfpld/tracy/src/master/). This enables a visual inspection of bottlenecks and slowdowns on individual frames. To compile the library with profiling support, add the Tracy Profiler library to `/Dependencies/tracy/`, enable this option, and compile.  Follow the Tracy Profiler instructions to build and connect the separate viewer. As users may want to only use profiling for specific compilation targets, then instead one can `#define RMLUI_ENABLE_PROFILING` for the given target.
 
 
-### Other changes
+### Other features
 
 - `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
 - The system interface now has two new functions for setting and getting text to and from the clipboard: `virtual void SystemInterface::SetClipboardText(const Core::String& text)` and `virtual void SystemInterface::GetClipboardText(Core::String& text)`.
 - The debugger now has the ability to clear the log. Additionally, the displayed element information updates when the element changes.
 - The `text-decoration` property can now also be used with `overline` and `line-through`.
 - The text input and text area elements can be navigated word for word by holding the 'ctrl' key.
+- The `\<img\>` element can now take sprite names in its `src` attribute.
 
 
 ### Breaking changes
@@ -388,7 +389,7 @@ Breaking changes since RmlUi v2.0.
 - The Controls::DataGrid "min-rows" property has been removed.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
-- Anglees need to be declared in either 'deg' or 'rad', unit-less numbers do not work.
+- Angles need to be declared in either 'deg' or 'rad', unit-less numbers do not work.
 - See changes to the declaration of decorators and font-effects above.
 - See changes to the render interface regarding transforms above.
 - The focus flag in `ElementDocument::Show` has been changed, with a new enum name and new options, see above.
