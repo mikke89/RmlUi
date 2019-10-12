@@ -376,7 +376,7 @@ Three new CMake options added.
 - The debugger now has the ability to clear the log. Additionally, the displayed element information updates when the element changes.
 - The `text-decoration` property can now also be used with `overline` and `line-through`.
 - The text input and text area elements can be navigated word for word by holding the 'ctrl' key.
-- The `\<img\>` element can now take sprite names in its `src` attribute.
+- The `<img>` element can now take sprite names in its `src` attribute.
 
 
 ### Breaking changes
