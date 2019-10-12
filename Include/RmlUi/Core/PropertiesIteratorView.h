@@ -52,8 +52,8 @@ class PropertiesIterator;
 class RMLUICORE_API PropertiesIteratorView {
 public:
 	PropertiesIteratorView(UniquePtr<PropertiesIterator> ptr);
-	PropertiesIteratorView(PropertiesIteratorView&& other);
-	PropertiesIteratorView& operator=(PropertiesIteratorView&& other);
+	PropertiesIteratorView(PropertiesIteratorView&& other) noexcept;
+	PropertiesIteratorView& operator=(PropertiesIteratorView&& other) noexcept;
 	PropertiesIteratorView(const PropertiesIteratorView& other) = delete;
 	PropertiesIteratorView& operator=(const PropertiesIteratorView&) = delete;
 	~PropertiesIteratorView();

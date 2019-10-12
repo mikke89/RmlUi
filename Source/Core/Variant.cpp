@@ -51,7 +51,7 @@ Variant::Variant(const Variant& copy) : type(NONE)
 	Set(copy);
 }
 
-Variant::Variant(Variant&& other) : type(NONE)
+Variant::Variant(Variant&& other) noexcept : type(NONE)
 {
 	Set(std::move(other));
 }
@@ -427,7 +427,7 @@ Variant& Variant::operator=(const Variant& copy)
 	return *this;
 }
 
-Variant& Variant::operator=(Variant&& other)
+Variant& Variant::operator=(Variant&& other) noexcept
 {
 	if (other.type != type)
 		Clear();

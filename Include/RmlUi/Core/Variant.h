@@ -75,9 +75,9 @@ public:
 
 	Variant();
 	Variant(const Variant&);
-	Variant(Variant&&);
+	Variant(Variant&&) noexcept;
 	Variant& operator=(const Variant& copy);
-	Variant& operator=(Variant&& other);
+	Variant& operator=(Variant&& other) noexcept;
 	~Variant();
 
 	// Construct by variant type

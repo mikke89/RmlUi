@@ -236,11 +236,10 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 			right_spacing = GetSpacing(box->GetBox(), Box::RIGHT);
 			// Add the right spacing for any ancestor elements that must close immediately after it.
 			LayoutInlineBox* closing_box = box;
-			while (closing_box != nullptr &&
-				   closing_box->IsLastChild())
+			while (closing_box && closing_box->IsLastChild())
 			{
 				closing_box = closing_box->GetParent();
-				if (closing_box != nullptr)
+				if (closing_box)
 					right_spacing += GetSpacing(closing_box->GetBox(), Box::RIGHT);
 			}
 

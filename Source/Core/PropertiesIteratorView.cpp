@@ -37,9 +37,9 @@ namespace Core {
 
 PropertiesIteratorView::PropertiesIteratorView(UniquePtr<PropertiesIterator> ptr) : ptr(std::move(ptr)) {}
 
-PropertiesIteratorView::PropertiesIteratorView(PropertiesIteratorView&& other) : ptr(std::move(other.ptr)) {}
+PropertiesIteratorView::PropertiesIteratorView(PropertiesIteratorView&& other) noexcept : ptr(std::move(other.ptr)) {}
 
-PropertiesIteratorView& PropertiesIteratorView::operator=(PropertiesIteratorView&& other) 
+PropertiesIteratorView& PropertiesIteratorView::operator=(PropertiesIteratorView&& other) noexcept
 {
 	ptr = std::move(other.ptr);
 	return *this;
