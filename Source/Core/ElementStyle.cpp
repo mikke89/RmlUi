@@ -342,15 +342,17 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 	return inline_properties.GetProperties();
 }
 
-float ElementStyle::ResolveLength(const Property* property, float base_value) const
+float ElementStyle::ResolveNumericProperty(const Property* property, float base_value) const
 {
-	if (!property || !(property->unit & Property::NUMBER_LENGTH_PERCENT))
+	if (!property || !(property->unit & (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE)))
 		return 0.0f;
 
 	if (property->unit & Property::NUMBER)
 		return property->Get<float>() * base_value;
 	else if (property->unit & Property::PERCENT)
 		return property->Get<float>() * base_value * 0.01f;
+	else if (property->unit & Property::ANGLE)
+		return ComputeAngle(*property);
 
 	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
 	const float font_size = element->GetComputedValues().font_size;
@@ -383,7 +385,7 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 	switch (relative_target)
 	{
 	case RelativeTarget::None:
-		base_value = 0.0f;
+		base_value = 1.0f;
 		break;
 	case RelativeTarget::ContainingBlockWidth:
 		base_value = element->GetContainingBlock().x;

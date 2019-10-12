@@ -388,6 +388,7 @@ Breaking changes since RmlUi v2.0.
 - The Controls::DataGrid "min-rows" property has been removed.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
+- Anglees need to be declared in either 'deg' or 'rad', unit-less numbers do not work.
 - See changes to the declaration of decorators and font-effects above.
 - See changes to the render interface regarding transforms above.
 - The focus flag in `ElementDocument::Show` has been changed, with a new enum name and new options, see above.
@@ -448,7 +449,7 @@ Use `perspective`, `perspective-origin`, `transform` and `transform-origin` in R
 ```CSS
 perspective: 1000px;
 perspective-origin: 20px 50%;
-transform: rotateX(10) skew(-10, 15) translateZ(100px);
+transform: rotateX(10deg) skew(-10deg, 15deg) translateZ(100px);
 transform-origin: left top 0;
 ```
 
@@ -478,7 +479,7 @@ skewY,        angle1
 skew,         angle2
 ```
 
-Angles are in degrees by default.
+Angles take units of 'deg' or 'rad'.
 
 
 

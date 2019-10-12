@@ -148,6 +148,25 @@ float ComputeAbsoluteLength(const Property& property, float dp_ratio)
 	return 0.0f;
 }
 
+float ComputeAngle(const Property& property)
+{
+	float value = property.value.Get<float>();
+
+	switch (property.unit)
+	{
+	case Property::NUMBER:
+	case Property::RAD:
+		return value;
+
+	case Property::DEG:
+		return Math::DegreesToRadians(value);
+	default:
+		break;
+	}
+
+	return 0.0f;
+}
+
 float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio)
 {
 	// The calculated value of the font-size property is inherited, so we need to check if this

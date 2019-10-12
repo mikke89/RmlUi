@@ -642,16 +642,19 @@ const PropertyMap& Element::GetLocalStyleProperties()
 	return style->GetLocalStyleProperties();
 }
 
-float Element::ResolveLength(const Property *property, float base_value)
+float Element::ResolveNumericProperty(const Property *property, float base_value)
 {
-	return style->ResolveLength(property, base_value);
+	return style->ResolveNumericProperty(property, base_value);
 }
 
-float Element::ResolveLength(const String& property_name)
+float Element::ResolveNumericProperty(const String& property_name)
 {
 	auto property = style->GetProperty(StyleSheetSpecification::GetPropertyId(property_name));
 	if (!property)
 		return 0.0f;
+
+	if (property->unit & Property::ANGLE)
+		return ComputeAngle(*property);
 
 	RelativeTarget relative_target = RelativeTarget::None;
 	if (property->definition)

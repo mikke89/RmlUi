@@ -91,7 +91,7 @@ float NumericValue::ResolveLengthPercentage(Element& e, float base) const noexce
 	Property prop;
 	prop.value = Variant(number);
 	prop.unit = unit;
-	return e.ResolveLength(&prop, base);
+	return e.ResolveNumericProperty(&prop, base);
 }
 
 float NumericValue::ResolveWidth(Element& e) const noexcept

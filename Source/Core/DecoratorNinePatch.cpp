@@ -102,10 +102,10 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	{
 		const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
 		float lengths[4]; // top, right, bottom, left
-		lengths[0] = element->ResolveLength(&(*edges)[0], dp_ratio * (surface_pos[1].y - surface_pos[0].y));
-		lengths[1] = element->ResolveLength(&(*edges)[1], dp_ratio * (surface_pos[3].x - surface_pos[2].x));
-		lengths[2] = element->ResolveLength(&(*edges)[2], dp_ratio * (surface_pos[3].y - surface_pos[2].y));
-		lengths[3] = element->ResolveLength(&(*edges)[3], dp_ratio * (surface_pos[1].x - surface_pos[0].x));
+		lengths[0] = element->ResolveNumericProperty(&(*edges)[0], dp_ratio * (surface_pos[1].y - surface_pos[0].y));
+		lengths[1] = element->ResolveNumericProperty(&(*edges)[1], dp_ratio * (surface_pos[3].x - surface_pos[2].x));
+		lengths[2] = element->ResolveNumericProperty(&(*edges)[2], dp_ratio * (surface_pos[3].y - surface_pos[2].y));
+		lengths[3] = element->ResolveNumericProperty(&(*edges)[3], dp_ratio * (surface_pos[1].x - surface_pos[0].x));
 
 		surface_pos[1].y = lengths[0];
 		surface_pos[2].x = surface_dimensions.x - lengths[1];
@@ -209,12 +209,6 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 		if (edges[i].value.Get(0.0f) != 0.0f)
 		{
 			edges_set = true;
-		}
-		// Change numbers to percent because we cannot resolve this later unless we make some changes to the resolve procedures.
-		if (edges[i].unit == Property::NUMBER)
-		{
-			edges[i].value = edges[i].value.Get(0.0f) * 100.f;
-			edges[i].unit = Property::PERCENT;
 		}
 	}
 

@@ -222,15 +222,17 @@ public:
 	/// @return The local properties for this element, or nullptr if no properties defined
 	const PropertyMap& GetLocalStyleProperties();
 
-	/// Resolves a property with units of number, length, or percentage to a length in 'px' units.
-	/// @param[in] name The property to resolve the value for.
+	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
+	/// Numbers and percentages are scaled by the base value and returned.
+	/// @param[in] property The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the number or percentage value, if applicable.
-	/// @return The resolved value in 'px' unit, or zero if it could not be resolved.
-	float ResolveLength(const Property *property, float base_value);
-	/// Resolve a property by its name to length in 'px' units. The specified property should be a number, length or percentage.
+	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
+	float ResolveNumericProperty(const Property *property, float base_value);
+	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
+	/// Numbers and percentages are scaled according to the relative target of the property definition.
 	/// @param[in] name The property to resolve the value for.
-	/// @return The resolved value in 'px' unit, or zero if it could not be resolved.
-	float ResolveLength(const String& property_name);
+	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
+	float ResolveNumericProperty(const String& property_name);
 
 	/// Returns the size of the containing block. Often percentages are scaled relative to this.
 	Vector2f GetContainingBlock();

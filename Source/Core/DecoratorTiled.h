@@ -70,7 +70,7 @@ public:
 		CONTAIN,    // Tile is stretched to boundaries, keeping aspect ratio fixed, 'letter-boxed'.
 		COVER,      // Tile is stretched to cover the boundaries, keeping aspect ratio fixed.
 		SCALE_NONE, // Tile is never scaled.
-		SCALE_DOWN, // Tile acts like 'center' if smaller than boundaries, or like 'contain' otherwise.
+		SCALE_DOWN, // Tile acts like 'scale-none' if smaller than boundaries, or like 'contain' otherwise.
 	};
 
 	/**
