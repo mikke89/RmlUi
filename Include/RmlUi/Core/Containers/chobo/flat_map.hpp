@@ -74,7 +74,7 @@
 // 1. Throw
 // Whether to throw exceptions: when `at` is called with a non-existent key.
 // By default, like std::map, it throws an std::out_of_range exception. If you define
-// RMLUI_CHOBO_FLAT_MAP_NO_THROW before including this header, the exception will
+// CHOBO_FLAT_MAP_NO_THROW before including this header, the exception will
 // be substituted by an assertion.
 //
 // 2. const char* overloads
@@ -85,21 +85,21 @@
 // However if const char* or any other class with implicit conversion from
 // const char* is the key, they won't compile.
 // If you plan on using flat_map with such keys, you'll need to define
-// RMLUI_CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS before including the header
+// CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS before including the header
 //
 //
 //                  TESTS
 //
 // The tests are included in the header file and use doctest (https://github.com/onqtam/doctest).
-// To run them, define RMLUI_CHOBO_FLAT_MAP_TEST_WITH_DOCTEST before including
+// To run them, define CHOBO_FLAT_MAP_TEST_WITH_DOCTEST before including
 // the header in a file which has doctest.h already included.
 //
 // Additionally if chobo::static_vector is also available you may define
-// RMLUI_CHOBO_FLAT_MAP_TEST_STATIC_VECTOR_WITH_DOCTEST to test flat_map with an
+// CHOBO_FLAT_MAP_TEST_STATIC_VECTOR_WITH_DOCTEST to test flat_map with an
 // unrelying static_vector
 //
 // Additionally if chobo::vector_ptr is also available you may define
-// RMLUI_CHOBO_FLAT_MAP_TEST_VECTOR_PTR_WITH_DOCTEST to test flat_map with an
+// CHOBO_FLAT_MAP_TEST_VECTOR_PTR_WITH_DOCTEST to test flat_map with an
 // unrelying vector_ptr
 //
 #pragma once
@@ -108,20 +108,18 @@
 #include <algorithm>
 #include <type_traits>
 
-#if !defined(RMLUI_CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS)
+#if !defined(CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS)
 #include <cstring>
 #endif
 
-#if !defined(RMLUI_CHOBO_FLAT_MAP_NO_THROW)
+#if !defined(CHOBO_FLAT_MAP_NO_THROW)
 #   include <stdexcept>
-#   define _RMLUI_CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE() throw std::out_of_range("chobo::flat_map out of range")
+#   define _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE() throw std::out_of_range("chobo::flat_map out of range")
 #else
 #   include <cassert>
-#   define _RMLUI_CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE() assert(false && "chobo::flat_map out of range")
+#   define _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE() assert(false && "chobo::flat_map out of range")
 #endif
 
-namespace Rml {
-namespace Core {
 namespace chobo
 {
 
@@ -157,13 +155,12 @@ public:
     flat_map(const flat_map& x) = default;
     flat_map(flat_map&& x) = default;
 
-
-	flat_map(std::initializer_list<value_type> ilist) : m_cmp(Compare())
-	{
-		m_container.reserve(ilist.size());
-		for (auto&& il : ilist)
-			emplace(il);
-	}
+    flat_map(std::initializer_list<value_type> ilist) : m_cmp(Compare())
+    {
+        m_container.reserve(ilist.size());
+        for (auto&& il : ilist)
+            emplace(il);
+    }
 
     flat_map& operator=(const flat_map& x)
     {
@@ -261,7 +258,7 @@ public:
         return insert(std::move(val));
     }
 
-    iterator erase(iterator pos)
+    iterator erase(const_iterator pos)
     {
         return m_container.erase(pos);
     }
@@ -307,7 +304,7 @@ public:
         auto i = lower_bound(k);
         if (i == end() || m_cmp(*i, k))
         {
-            _RMLUI_CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
+            _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
 
         return i->second;
@@ -318,7 +315,7 @@ public:
         auto i = lower_bound(k);
         if (i == end() || m_cmp(*i, k))
         {
-            _RMLUI_CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
+            _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
 
         return i->second;
@@ -341,7 +338,7 @@ public:
         return m_container;
     }
 
-#if !defined(RMLUI_CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS)
+#if !defined(CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS)
     ///////////////////////////////////////////////////////////////////////////////////
     // const char* overloads for maps with an std::string key to avoid allocs
     iterator lower_bound(const char* k)
@@ -381,7 +378,7 @@ public:
         auto i = lower_bound(k);
         if (i == end() || i->first != k)
         {
-            _RMLUI_CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
+            _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
 
         return i->second;
@@ -392,7 +389,7 @@ public:
         auto i = lower_bound(k);
         if (i == end() || i->first != k)
         {
-            _RMLUI_CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
+            _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
 
         return i->second;
@@ -421,7 +418,7 @@ public:
         return find(k) == end() ? 0 : 1;
     }
 
-#endif // !defined(RMLUI_CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS)
+#endif // !defined(CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS)
 
 private:
     struct pair_compare
@@ -455,7 +452,6 @@ bool operator!=(const flat_map<Key, T, Compare, Container>& a, const flat_map<Ke
 {
     return a.container() != b.container();
 }
-
 template <typename Key, typename T, typename Compare, typename Container>
 bool operator<(const flat_map<Key, T, Compare, Container>& a, const flat_map<Key, T, Compare, Container>& b)
 {
@@ -463,10 +459,8 @@ bool operator<(const flat_map<Key, T, Compare, Container>& a, const flat_map<Key
 }
 
 }
-}
-}
 
-#if defined(RMLUI_CHOBO_FLAT_MAP_TEST_WITH_DOCTEST)
+#if defined(CHOBO_FLAT_MAP_TEST_WITH_DOCTEST)
 
 #include <string>
 
@@ -493,7 +487,7 @@ struct int_wrap
 
 TEST_CASE("[flat_map] test")
 {
-    using namespace Rml::Core::chobo;
+    using namespace chobo;
     using namespace chobo_flat_map_test;
 
     flat_map<int, float> ifmap;
@@ -654,7 +648,7 @@ TEST_CASE("[flat_map] test")
     CHECK(m2.capacity() == m1c);
 }
 
-#if defined(RMLUI_CHOBO_FLAT_MAP_TEST_STATIC_VECTOR_WITH_DOCTEST)
+#if defined(CHOBO_FLAT_MAP_TEST_STATIC_VECTOR_WITH_DOCTEST)
 
 TEST_CASE("[flat_map] static_vector test")
 {
@@ -724,7 +718,7 @@ TEST_CASE("[flat_map] static_vector test")
 
 #endif
 
-#if defined(RMLUI_CHOBO_FLAT_MAP_TEST_VECTOR_PTR_WITH_DOCTEST)
+#if defined(CHOBO_FLAT_MAP_TEST_VECTOR_PTR_WITH_DOCTEST)
 
 TEST_CASE("[flat_map] vector_ptr test")
 {

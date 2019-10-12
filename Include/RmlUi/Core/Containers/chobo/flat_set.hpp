@@ -79,21 +79,21 @@
 // However if const char* or any other class with implicit conversion from
 // const char* is the key, they won't compile.
 // If you plan on using flat_set with such keys, you'll need to define
-// RMLUI_CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS before including the header
+// CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS before including the header
 //
 //
 //                  TESTS
 //
 // The tests are included in the header file and use doctest (https://github.com/onqtam/doctest).
-// To run them, define RMLUI_CHOBO_FLAT_SET_TEST_WITH_DOCTEST before including
+// To run them, define CHOBO_FLAT_SET_TEST_WITH_DOCTEST before including
 // the header in a file which has doctest.h already included.
 //
 // Additionally if chobo::static_vector is also available you may define
-// RMLUI_CHOBO_FLAT_SET_TEST_STATIC_VECTOR_WITH_DOCTEST to test flat_set with an
+// CHOBO_FLAT_SET_TEST_STATIC_VECTOR_WITH_DOCTEST to test flat_set with an
 // unrelying static_vector
 //
 // Additionally if chobo::vector_ptr is also available you may define
-// RMLUI_CHOBO_FLAT_SET_TEST_VECTOR_PTR_WITH_DOCTEST to test flat_set with an
+// CHOBO_FLAT_SET_TEST_VECTOR_PTR_WITH_DOCTEST to test flat_set with an
 // unrelying vector_ptr
 //
 #pragma once
@@ -102,13 +102,12 @@
 #include <algorithm>
 #include <type_traits>
 
-#if !defined(RMLUI_CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS)
+#if !defined(CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS)
 #include <cstring>
 #endif
 
-namespace Rml {
-namespace Core {
-namespace chobo {
+namespace chobo
+{
 
 template <typename T, typename Compare = std::less<T>, typename Container = std::vector<T>>
 class flat_set
@@ -142,12 +141,12 @@ public:
     flat_set(flat_set&& x) = default;
 
 
-	flat_set(std::initializer_list<value_type> ilist)
-	{
-		m_container.reserve(ilist.size());
-		for (auto&& il : ilist)
-			emplace(il);
-	}
+    flat_set(std::initializer_list<value_type> ilist)
+    {
+        m_container.reserve(ilist.size());
+        for (auto&& il : ilist)
+            emplace(il);
+    }
 
     flat_set& operator=(const flat_set& x)
     {
@@ -277,7 +276,7 @@ public:
         return m_container;
     }
 
-#if !defined(RMLUI_CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS)
+#if !defined(CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS)
     ///////////////////////////////////////////////////////////////////////////////////
     // const char* overloads for sets with an std::string key to avoid allocs
     iterator lower_bound(const char* k)
@@ -323,7 +322,7 @@ public:
         return find(k) == end() ? 0 : 1;
     }
 
-#endif // !defined(RMLUI_CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS)
+#endif // !defined(CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS)
 
 private:
 	key_compare m_cmp;
@@ -335,13 +334,11 @@ bool operator==(const flat_set<T, Compare, Container>& a, const flat_set<T, Comp
 {
     return a.container() == b.container();
 }
-
 template <typename T, typename Compare, typename Container>
 bool operator!=(const flat_set<T, Compare, Container>& a, const flat_set<T, Compare, Container>& b)
 {
     return a.container() != b.container();
 }
-
 template <typename T, typename Compare, typename Container>
 bool operator<(const flat_set<T, Compare, Container>& a, const flat_set<T, Compare, Container>& b)
 {
@@ -349,10 +346,8 @@ bool operator<(const flat_set<T, Compare, Container>& a, const flat_set<T, Compa
 }
 
 }
-}
-}
 
-#if defined(RMLUI_CHOBO_FLAT_SET_TEST_WITH_DOCTEST)
+#if defined(CHOBO_FLAT_SET_TEST_WITH_DOCTEST)
 
 #include <string>
 
@@ -379,7 +374,7 @@ struct int_wrap
 
 TEST_CASE("[flat_set] test")
 {
-    using namespace Rml::Core::chobo;
+    using namespace chobo;
     using namespace chobo_flat_set_test;
 
     flat_set<int> iset;
@@ -539,22 +534,22 @@ TEST_CASE("[flat_set] test")
 	CHECK(std::is_sorted(ilset.begin(), ilset.end()));
 }
 
-#if defined(RMLUI_CHOBO_FLAT_SET_TEST_STATIC_VECTOR_WITH_DOCTEST)
+#if defined(CHOBO_FLAT_SET_TEST_STATIC_VECTOR_WITH_DOCTEST)
 
 TEST_CASE("[flat_set] static_vector test")
 {
-    using namespace Rml::Core::chobo;
+    using namespace chobo;
 	
 	// Not implemented
 }
 
 #endif
 
-#if defined(RMLUI_CHOBO_FLAT_SET_TEST_VECTOR_PTR_WITH_DOCTEST)
+#if defined(CHOBO_FLAT_SET_TEST_VECTOR_PTR_WITH_DOCTEST)
 
 TEST_CASE("[flat_set] vector_ptr test")
 {
-    using namespace Rml::Core::chobo;
+    using namespace chobo;
 
 	// Not implemented
 }
