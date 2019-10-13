@@ -70,7 +70,7 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 	}
 
 	ids.orientation = RegisterProperty(CreateString(32, "%s-orientation", name.c_str()), "none")
-		.AddParser("keyword", "none, rotate-90, rotate-180, rotate-270, flip-horizontal, flip-vertical")
+		.AddParser("keyword", "none, flip-horizontal, flip-vertical, rotate-180")
 		.GetId();
 
 	RegisterShorthand(name, CreateString(256, ("%s-src, %s-orientation" + additional_modes).c_str(),
@@ -185,8 +185,8 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 
 		if (ids.orientation != PropertyId::Invalid)
 		{
-			const Property& repeat_property = *properties.GetProperty(ids.orientation);
-			tile.orientation = (DecoratorTiled::TileOrientation)repeat_property.value.Get< int >();
+			const Property& orientation_property = *properties.GetProperty(ids.orientation);
+			tile.orientation = (DecoratorTiled::TileOrientation)orientation_property.value.Get< int >();
 		}
 	}
 

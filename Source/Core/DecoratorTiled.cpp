@@ -42,18 +42,18 @@ DecoratorTiled::~DecoratorTiled()
 {
 }
 
-static const Vector2f oriented_texcoords[6][2] = {{Vector2f(0, 0), Vector2f(1, 1)},
-													   {Vector2f(0, 1), Vector2f(1, 0)},
-													   {Vector2f(1, 1), Vector2f(0, 0)},
-													   {Vector2f(1, 0), Vector2f(0, 1)},
-													   {Vector2f(1, 0), Vector2f(0, 1)},
-													   {Vector2f(0, 1), Vector2f(1, 0)}};
+static const Vector2f oriented_texcoords[4][2] = {
+	{Vector2f(0, 0), Vector2f(1, 1)},   // ORIENTATION_NONE
+	{Vector2f(1, 0), Vector2f(0, 1)},   // FLIP_HORIZONTAL
+	{Vector2f(0, 1), Vector2f(1, 0)},   // FLIP_VERTICAL
+	{Vector2f(1, 1), Vector2f(0, 0)}    // ROTATE_180
+};
 
 DecoratorTiled::Tile::Tile() : position(0, 0), size(0, 0)
 {
 	texture_index = -1;
 	fit_mode = FILL;
-	orientation = ROTATE_0;
+	orientation = ORIENTATION_NONE;
 }
 
 

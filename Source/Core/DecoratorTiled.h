@@ -54,12 +54,10 @@ public:
 	 */
 	enum TileOrientation
 	{
-		ROTATE_0 = 0,			// Rotated zero degrees clockwise.
-		ROTATE_90 = 1,			// Rotated 90 degrees clockwise.
-		ROTATE_180 = 2,			// Rotated 180 degrees clockwise.
-		ROTATE_270 = 3,			// Rotated 270 degrees clockwise.
-		FLIP_HORIZONTAL = 4,	// Flipped horizontally.
-		FLIP_VERTICAL = 5		// Flipped vertically.
+		ORIENTATION_NONE,       // No orientation.
+		FLIP_HORIZONTAL,        // Flipped horizontally.
+		FLIP_VERTICAL,          // Flipped vertically.
+		ROTATE_180,             // Rotated 180 degrees clockwise.
 	};
 	/**
 		Stores the fit mode of a tile.

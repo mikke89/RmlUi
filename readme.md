@@ -175,7 +175,7 @@ stop-color: #00ff00;
 
 The orientation of each tile in the tiled decorators, `image`, `tiled-horizontal`, `tiled-vertical`, and `tiled-box`, can be rotated and flipped (thanks to @viciious). The new keywords are:
 ```
-none, rotate-90, rotate-180, rotate-270, flip-horizontal, flip-vertical
+none, flip-horizontal, flip-vertical, rotate-180
 ```
 
 Example usage:
@@ -196,7 +196,7 @@ decorator: image( <src> <orientation> <fit> <align-x> <align-y> );
 where
 ```
   <src>: image source url or sprite name
-  <orientation>: none (default) | rotate-90 | rotate-180 | rotate-270 | flip-horizontal | flip-vertical
+  <orientation>: none (default) | flip-horizontal | flip-vertical | rotate-180
   <fit>: fill (default) | contain | cover | scale-none | scale-down
   <align-x>: left | center (default) | right | <length-percentage>
   <align-y>: top | center (default) | bottom | <length-percentage>
