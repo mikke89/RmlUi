@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "StyleSheetNodeSelectorEmpty.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -50,7 +49,7 @@ bool StyleSheetNodeSelectorEmpty::IsApplicable(const Element* element, int RMLUI
 
 	for (int i = 0; i < element->GetNumChildren(); ++i)
 	{
-		if (element->GetChild(i)->GetDisplay() != DISPLAY_NONE)
+		if (element->GetChild(i)->GetDisplay() != Style::Display::None)
 			return false;
 	}
 

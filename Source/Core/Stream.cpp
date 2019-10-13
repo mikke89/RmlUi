@@ -36,13 +36,14 @@ namespace Core {
 
 const size_t READ_BLOCK_SIZE = 1024;
 
-Stream::Stream() : ReferenceCountable(1)
+Stream::Stream()
 {
 	stream_mode = 0;
 }
 
 Stream::~Stream()
 {
+	Close();
 }
 
 void Stream::Close()
@@ -94,11 +95,11 @@ size_t Stream::Read(Stream* stream, size_t bytes) const
 // Read from one stream into another
 size_t Stream::Read(String& string, size_t bytes) const
 {
-	size_t string_size = string.Length();
-	string.Resize(string_size + bytes + 1);
+	size_t string_size = string.size();
+	string.resize(string_size + bytes + 1);
 	size_t read = Read(&string[string_size], bytes);
 	string[string_size + read] = '\0';
-	string.Resize(string_size + read);
+	string.resize(string_size + read);
 	return read;
 }
 
@@ -115,7 +116,7 @@ size_t Stream::Write(const char* string)
 
 size_t Stream::Write(const String& string)
 {
-	return Write(string.CString(), string.Length());
+	return Write(string.c_str(), string.size());
 }
 
 // Push onto the front of the stream
@@ -158,13 +159,6 @@ void Stream::SetStreamDetails(const URL& _url, int _stream_mode)
 {
 	url = _url;
 	stream_mode = _stream_mode;
-}
-
-// Deletes the stream.
-void Stream::OnReferenceDeactivate()
-{
-	Close();
-	delete this;
 }
 
 }

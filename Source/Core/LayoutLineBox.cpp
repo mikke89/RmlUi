@@ -31,11 +31,9 @@
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
 #include "LayoutInlineBoxText.h"
-#include "FontFaceHandle.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 #include <stack>
 
 namespace Rml {
@@ -53,7 +51,7 @@ LayoutLineBox::LayoutLineBox(LayoutBlockBox* _parent) : position(-1, -1), dimens
 	parent = _parent;
 
 	box_cursor = 0;
-	open_inline_box = NULL;
+	open_inline_box = nullptr;
 
 	position_set = false;
 	wrap_content = false;
@@ -68,6 +66,8 @@ LayoutLineBox::~LayoutLineBox()
 // Closes the line box, positioning all inline elements within it.
 LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 {
+	RMLUI_ZoneScoped;
+
 	// If we haven't positioned this line yet, and it has elements in it, then this is a great opportunity to do so.
 	if (!position_set &&
 		!inline_boxes.empty())
@@ -94,8 +94,8 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 		LayoutInlineBox* inline_box = inline_boxes[i];
 
 		// Check if we've got an element aligned to the line box rather than a baseline.
-		if (inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_TOP ||
-			inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_BOTTOM)
+		if (inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Top ||
+			inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Bottom)
 		{
 			// Get this element to calculate the baseline offsets of its children; it can't calculate its own baseline
 			// because we don't know the height of the line box yet. We don't actually care about its ascender or
@@ -107,7 +107,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 		}
 		// Otherwise, we have an element anchored to a baseline, so we can fetch its ascender and descender relative
 		// to our baseline.
-		else if (inline_box->GetParent() == NULL)
+		else if (inline_box->GetParent() == nullptr)
 		{
 			float box_ascender, box_descender;
 			inline_box->CalculateBaseline(box_ascender, box_descender);
@@ -126,30 +126,31 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 
 		// Check again if this element is aligned to the line box. We don't need to worry about offsetting an element
 		// tied to the top of the line box, as its position will always stay at exactly 0.
-		if (inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_TOP ||
-			inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_BOTTOM)
+		if (inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Top||
+			inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Bottom)
 		{
-			if (inline_box->GetVerticalAlignProperty() == VERTICAL_ALIGN_TOP)
+			if (inline_box->GetVerticalAlignProperty().type == Style::VerticalAlign::Top)
 				inline_box->OffsetBaseline(inline_box->GetHeight() - inline_box->GetBaseline());
 			else
 				inline_box->OffsetBaseline(dimensions.y - inline_box->GetBaseline());
 		}
 		// Otherwise, this element is tied to a baseline.
-		else if (inline_box->GetParent() == NULL)
+		else if (inline_box->GetParent() == nullptr)
 			inline_box->OffsetBaseline(ascender);
 	}
 
 	// Position all the boxes horizontally in the line. We only need to reposition the elements if they're set to
 	// centre or right; the element are already placed left-aligned, and justification occurs at the text level.
-	int text_align_property = parent->GetParent()->GetElement()->GetTextAlign();
-	if (text_align_property == TEXT_ALIGN_CENTER ||
-		text_align_property == TEXT_ALIGN_RIGHT)
+	Style::TextAlign text_align_property = parent->GetParent()->GetElement()->GetComputedValues().text_align;
+	if (text_align_property == Style::TextAlign::Center ||
+		text_align_property == Style::TextAlign::Right)
 	{
 		float element_offset = 0;
 		switch (text_align_property)
 		{
-			case TEXT_ALIGN_CENTER:		element_offset = (dimensions.x - box_cursor) * 0.5f; break;
-			case TEXT_ALIGN_RIGHT:		element_offset = (dimensions.x - box_cursor); break;
+			case Style::TextAlign::Center:  element_offset = (dimensions.x - box_cursor) * 0.5f; break;
+			case Style::TextAlign::Right:   element_offset = (dimensions.x - box_cursor); break;
+			default: break;
 		}
 
 		if (element_offset != 0)
@@ -167,7 +168,7 @@ LayoutInlineBox* LayoutLineBox::Close(LayoutInlineBox* overflow)
 		// Check if this inline box is part of the open box chain.
 		bool inline_box_open = false;
 		LayoutInlineBox* open_box = open_inline_box;
-		while (open_box != NULL &&
+		while (open_box != nullptr &&
 			   !inline_box_open)
 		{
 			if (inline_boxes[i] == open_box)
@@ -194,7 +195,9 @@ void LayoutLineBox::CloseInlineBox(LayoutInlineBox* inline_box)
 // Attempts to add a new element to this line box.
 LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 {
-	if (dynamic_cast< ElementText* >(element) != NULL)
+	RMLUI_ZoneScoped;
+
+	if (dynamic_cast< ElementText* >(element) != nullptr)
 		return AddBox(new LayoutInlineBoxText(element));
 	else
 		return AddBox(new LayoutInlineBox(element, box));
@@ -203,6 +206,8 @@ LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 // Attempts to add a new inline box to this line.
 LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 {
+	RMLUI_ZoneScoped;
+
 	// Set to true if we're flowing the first box (with content) on the line.
 	bool first_box = false;
 	// The spacing this element must leave on the right of the line, to account not only for its margins and padding,
@@ -231,11 +236,10 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 			right_spacing = GetSpacing(box->GetBox(), Box::RIGHT);
 			// Add the right spacing for any ancestor elements that must close immediately after it.
 			LayoutInlineBox* closing_box = box;
-			while (closing_box != NULL &&
-				   closing_box->IsLastChild())
+			while (closing_box && closing_box->IsLastChild())
 			{
 				closing_box = closing_box->GetParent();
-				if (closing_box != NULL)
+				if (closing_box)
 					right_spacing += GetSpacing(closing_box->GetBox(), Box::RIGHT);
 			}
 
@@ -258,15 +262,15 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 		// Build up the spacing required on the right side of this element. This consists of the right spacing on the
 		// new element, and the right spacing on all parent element that will close next.
 		right_spacing = GetSpacing(box->GetBox(), Box::RIGHT);
-		if (open_inline_box != NULL &&
+		if (open_inline_box != nullptr &&
 			box->IsLastChild())
 		{
 			LayoutInlineBox* closing_box = open_inline_box;
-			while (closing_box != NULL &&
+			while (closing_box != nullptr &&
 				   closing_box->IsLastChild())
 			{
 				closing_box = closing_box->GetParent();
-				if (closing_box != NULL)
+				if (closing_box != nullptr)
 					right_spacing += GetSpacing(closing_box->GetBox(), Box::RIGHT);
 			}
 		}
@@ -300,7 +304,7 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 
 	// If our box overflowed, then we'll close this line (as no more content will fit onto it) and tell our block box
 	// to make a new line.
-	if (overflow_box != NULL)
+	if (overflow_box != nullptr)
 	{
 		open_inline_box = open_inline_box->GetParent();
 		return Close(overflow_box);
@@ -314,7 +318,7 @@ void LayoutLineBox::AddChainedBox(LayoutInlineBox* chained_box)
 {
 	std::stack< LayoutInlineBox* > hierarchy;
 	LayoutInlineBox* chain = chained_box;
-	while (chain != NULL)
+	while (chain != nullptr)
 	{
 		hierarchy.push(chain);
 		chain = chain->GetParent();

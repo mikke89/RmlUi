@@ -34,7 +34,8 @@
 namespace Rml {
 namespace Core {
 
-PropertyDefinition::PropertyDefinition(const String& _default_value, bool _inherited, bool _forces_layout) : default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None)
+PropertyDefinition::PropertyDefinition(PropertyId id, const String& _default_value, bool _inherited, bool _forces_layout) 
+	: id(id), default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None)
 {
 	inherited = _inherited;
 	forces_layout = _forces_layout;
@@ -52,14 +53,14 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 
 	// Fetch the parser.
 	new_parser.parser = StyleSheetSpecification::GetParser(parser_name);
-	if (new_parser.parser == NULL)
+	if (new_parser.parser == nullptr)
 	{
-		Log::Message(Log::LT_ERROR, "Property was registered with invalid parser '%s'.", parser_name.CString());
+		Log::Message(Log::LT_ERROR, "Property was registered with invalid parser '%s'.", parser_name.c_str());
 		return *this;
 	}
 
 	// Split the parameter list, and set up the map.
-	if (!parser_parameters.Empty())
+	if (!parser_parameters.empty())
 	{
 		StringList parameter_list;
 		StringUtilities::ExpandString(parameter_list, parser_parameters);
@@ -67,15 +68,20 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 			new_parser.parameters[parameter_list[i]] = (int) i;
 	}
 
+	const int parser_index = (int)parsers.size();
 	parsers.push_back(new_parser);
 
 	// If the default value has not been parsed successfully yet, run it through the new parser.
 	if (default_value.unit == Property::UNKNOWN)
 	{
 		String unparsed_value = default_value.value.Get< String >();
-		if (!new_parser.parser->ParseValue(default_value, unparsed_value, new_parser.parameters))
+		if (new_parser.parser->ParseValue(default_value, unparsed_value, new_parser.parameters))
 		{
-			default_value.value.Reset(unparsed_value);
+			default_value.parser_index = parser_index;
+		}
+		else
+		{
+			default_value.value = unparsed_value;
 			default_value.unit = Property::UNKNOWN;
 		}
 	}
@@ -109,11 +115,26 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 	{
 		case Property::KEYWORD:
 		{
-			if (property.parser_index < 0 || property.parser_index >= (int) parsers.size())
-				return false;
+			int parser_index = property.parser_index;
+			if (parser_index < 0 || parser_index >= (int)parsers.size())
+			{
+				// Look for the keyword parser in the property's list of parsers
+				const auto* keyword_parser = StyleSheetSpecification::GetParser("keyword");
+				for(int i = 0; i < (int)parsers.size(); i++)
+				{
+					if (parsers[i].parser == keyword_parser)
+					{
+						parser_index = i;
+						break;
+					}
+				}
+				// If we couldn't find it, exit now
+				if (parser_index < 0 || parser_index >= (int)parsers.size())
+					return false;
+			}
 
 			int keyword = property.value.Get< int >();
-			for (ParameterMap::const_iterator i = parsers[property.parser_index].parameters.begin(); i != parsers[property.parser_index].parameters.end(); ++i)
+			for (ParameterMap::const_iterator i = parsers[parser_index].parameters.begin(); i != parsers[parser_index].parameters.end(); ++i)
 			{
 				if ((*i).second == keyword)
 				{
@@ -129,22 +150,22 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 		case Property::COLOUR:
 		{
 			Colourb colour = property.value.Get< Colourb >();
-			value.FormatString(32, "rgb(%d,%d,%d,%d)", colour.red, colour.green, colour.blue, colour.alpha);
+			value = CreateString(32, "rgba(%d,%d,%d,%d)", colour.red, colour.green, colour.blue, colour.alpha);
 		}
 		break;
 
-		case Property::PX:		value.Append("px"); break;
-		case Property::DEG:		value.Append("deg"); break;
-		case Property::RAD:		value.Append("rad"); break;
-		case Property::DP:		value.Append("dp"); break;
-		case Property::EM:		value.Append("em"); break;
-		case Property::REM:		value.Append("rem"); break;
-		case Property::PERCENT:	value.Append("%"); break;
-		case Property::INCH:	value.Append("in"); break;
-		case Property::CM:		value.Append("cm"); break;
-		case Property::MM:		value.Append("mm"); break;
-		case Property::PT:		value.Append("pt"); break;
-		case Property::PC:		value.Append("pc"); break;
+		case Property::PX:		value += "px"; break;
+		case Property::DEG:		value += "deg"; break;
+		case Property::RAD:		value += "rad"; break;
+		case Property::DP:		value += "dp"; break;
+		case Property::EM:		value += "em"; break;
+		case Property::REM:		value += "rem"; break;
+		case Property::PERCENT:	value += "%"; break;
+		case Property::INCH:	value += "in"; break;
+		case Property::CM:		value += "cm"; break;
+		case Property::MM:		value += "mm"; break;
+		case Property::PT:		value += "pt"; break;
+		case Property::PC:		value += "pc"; break;
 		default:					break;
 	}
 
@@ -174,6 +195,11 @@ const Property* PropertyDefinition::GetDefaultValue() const
 RelativeTarget PropertyDefinition::GetRelativeTarget() const
 {
 	return relative_target;
+}
+
+PropertyId PropertyDefinition::GetId() const
+{
+	return id;
 }
 
 /// Set target for units with scaling percentages

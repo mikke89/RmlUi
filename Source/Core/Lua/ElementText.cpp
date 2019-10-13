@@ -46,8 +46,7 @@ int ElementTextGetAttrtext(lua_State* L)
 {
     ElementText* obj = LuaType<ElementText>::check(L, 1);
     LUACHECKOBJ(obj);
-    String temp;
-    lua_pushstring(L,obj->GetText().ToUTF8(temp).CString());
+    lua_pushstring(L, obj->GetText().c_str());
     return 1;
 }
 
@@ -62,22 +61,22 @@ int ElementTextSetAttrtext(lua_State* L)
 
 RegType<ElementText> ElementTextMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTextGetters[] =
 {
     LUAGETTER(ElementText,text)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTextSetters[] =
 {
     LUASETTER(ElementText,text)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ElementText,true)
+LUACORETYPEDEFINE(ElementText)
 }
 }
 }

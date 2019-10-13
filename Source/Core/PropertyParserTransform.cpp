@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,14 +49,14 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 {
 	if(value == NONE)
 	{
-		property.value = Variant(TransformRef());
+		property.value = Variant(TransformPtr());
 		property.unit = Property::TRANSFORM;
 		return true;
 	}
 
-	std::unique_ptr<Transform> transform(new Transform);
+	UniquePtr<Transform> transform(new Transform);
 
-	char const* next = value.CString();
+	char const* next = value.c_str();
 
 	Transforms::NumericValue args[16];
 
@@ -175,16 +176,10 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		}
 	}
 	
-	property.value = Variant(TransformRef(std::move(transform)));
+	property.value = Variant(TransformPtr(std::move(transform)));
 	property.unit = Property::TRANSFORM;
 
 	return true;
-}
-
-// Destroys the parser.
-void PropertyParserTransform::Release()
-{
-	delete this;
 }
 
 // Scan a string for a parameterized keyword with a certain number of numeric arguments.

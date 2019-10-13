@@ -35,11 +35,11 @@
 namespace Rml {
 namespace Core {
 
-static TemplateCache* instance = NULL;
+static TemplateCache* instance = nullptr;
 
 TemplateCache::TemplateCache()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
@@ -50,7 +50,7 @@ TemplateCache::~TemplateCache()
 		delete (*itr).second;
 	}
 
-	instance = NULL;
+	instance = nullptr;
 }
 
 bool TemplateCache::Initialise()
@@ -73,22 +73,22 @@ Template* TemplateCache::LoadTemplate(const String& name)
 		return (*itr).second;
 
 	// Nope, we better load it
-	Template* new_template = NULL;
-	StreamFile* stream = new StreamFile();
+	Template* new_template = nullptr;
+	auto stream = std::make_unique<StreamFile>();
 	if (stream->Open(name))
 	{
 		new_template = new Template();
-		if (!new_template->Load(stream))
+		if (!new_template->Load(stream.get()))
 		{
-			Log::Message(Log::LT_ERROR, "Failed to load template %s.", name.CString());
+			Log::Message(Log::LT_ERROR, "Failed to load template %s.", name.c_str());
 			delete new_template;
-			new_template = NULL;
+			new_template = nullptr;
 		}
-		else if (new_template->GetName().Empty())
+		else if (new_template->GetName().empty())
 		{
-			Log::Message(Log::LT_ERROR, "Failed to load template %s, template is missing its name.", name.CString());
+			Log::Message(Log::LT_ERROR, "Failed to load template %s, template is missing its name.", name.c_str());
 			delete new_template;
-			new_template = NULL;
+			new_template = nullptr;
 		}
 		else
 		{
@@ -98,9 +98,8 @@ Template* TemplateCache::LoadTemplate(const String& name)
 	}
 	else
 	{
-		Log::Message(Log::LT_ERROR, "Failed to open template file %s.", name.CString());		
+		Log::Message(Log::LT_ERROR, "Failed to open template file %s.", name.c_str());		
 	}
-	stream->RemoveReference();
 
 	return new_template;
 }
@@ -112,7 +111,7 @@ Template* TemplateCache::GetTemplate(const String& name)
 	if (itr != instance->template_ids.end())
 		return (*itr).second;
 
-	return NULL;
+	return nullptr;
 }
 
 void TemplateCache::Clear()

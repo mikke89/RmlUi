@@ -47,7 +47,7 @@ bool InputTypeCheckbox::IsSubmitted()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputTypeCheckbox::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+bool InputTypeCheckbox::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	// Check if maxlength has been defined.
 	if (changed_attributes.find("checked") != changed_attributes.end())
@@ -56,17 +56,17 @@ bool InputTypeCheckbox::OnAttributeChange(const Core::AttributeNameList& changed
 		element->SetPseudoClass("checked", checked);
 
 		Rml::Core::Dictionary parameters;
-		parameters.Set("value", Rml::Core::String(checked ? GetValue() : ""));
-		element->DispatchEvent("change", parameters);
+		parameters["value"] = Rml::Core::String(checked ? GetValue() : "");
+		element->DispatchEvent(Core::EventId::Change, parameters);
 	}
 
 	return true;
 }
 
 // Checks for necessary functional changes in the control as a result of the event.
-void InputTypeCheckbox::ProcessEvent(Core::Event& event)
+void InputTypeCheckbox::ProcessDefaultAction(Core::Event& event)
 {
-	if (event == "click" &&
+	if (event == Core::EventId::Click &&
 		!element->IsDisabled())
 	{
 		if (element->HasAttribute("checked"))

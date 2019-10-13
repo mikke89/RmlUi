@@ -31,7 +31,6 @@
 
 #include "XMLParser.h"
 #include "Header.h"
-#include <map>
 
 namespace Rml {
 namespace Core {
@@ -51,6 +50,9 @@ class FontEffect;
 class FontEffectInstancer;
 class StyleSheet;
 class PropertyDictionary;
+class PropertySpecification;
+class DecoratorInstancerInterface;
+enum class EventId : uint16_t;
 
 /**
 	The Factory contains a registry of instancers for different types.
@@ -69,30 +71,31 @@ public:
 	/// Cleanup and shutdown the factory
 	static void Shutdown();
 
-	/// Registers the instancer to use when instancing contexts.
+	/// Registers a non-owning pointer to the instancer used to instance contexts.
 	/// @param[in] instancer The new context instancer.
-	static ContextInstancer* RegisterContextInstancer(ContextInstancer* instancer);
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterContextInstancer(ContextInstancer* instancer);
 	/// Instances a new context.
 	/// @param[in] name The name of the new context.
-	/// @return The new context, or NULL if no context could be created.
-	static Context* InstanceContext(const String& name);
+	/// @return The new context, or nullptr if no context could be created.
+	static ContextPtr InstanceContext(const String& name);
 
-	/// Registers an element instancer that will be used to instance an element when the specified tag is encountered.
+	/// Registers a non-owning pointer to the element instancer that will be used to instance an element when the specified tag is encountered.
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.
 	/// @param[in] instancer The instancer to call when the tag is encountered.
-	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static ElementInstancer* RegisterElementInstancer(const String& name, ElementInstancer* instancer);
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterElementInstancer(const String& name, ElementInstancer* instancer);
 	/// Returns the element instancer for the specified tag.
 	/// @param[in] tag Name of the tag to get the instancer for.
-	/// @return The requested element instancer, or NULL if no such instancer is registered.
+	/// @return The requested element instancer, or nullptr if no such instancer is registered.
 	static ElementInstancer* GetElementInstancer(const String& tag);
 	/// Instances a single element.
-	/// @param[in] parent The parent of the new element, or NULL for a root tag.
+	/// @param[in] parent The parent of the new element, or nullptr for a root tag.
 	/// @param[in] instancer The name of the instancer to create the element with.
 	/// @param[in] tag The tag of the element to be instanced.
 	/// @param[in] attributes The attributes to instance the element with.
-	/// @return The instanced element, or NULL if the instancing failed.
-	static Element* InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
+	/// @return The instanced element, or nullptr if the instancing failed.
+	static ElementPtr InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
 
 	/// Instances a single text element containing a string. The string is assumed to contain no RML markup, but will
 	/// be translated and therefore may have some introduced. In this case more than one element may be instanced.
@@ -108,43 +111,43 @@ public:
 	/// Instances a document from a stream.
 	/// @param[in] context The context that is creating the document.
 	/// @param[in] stream The stream to instance from.
-	/// @return The instanced document, or NULL if an error occurred.
-	static ElementDocument* InstanceDocumentStream(Rml::Core::Context* context, Stream* stream);
+	/// @return The instanced document, or nullptr if an error occurred.
+	static ElementPtr InstanceDocumentStream(Rml::Core::Context* context, Stream* stream);
 
-	/// Registers an instancer that will be used to instance decorators.
+	/// Registers a non-owning pointer to an instancer that will be used to instance decorators.
 	/// @param[in] name The name of the decorator the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the decorator name is encountered.
-	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static DecoratorInstancer* RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer);
-	/// Attempts to instance a decorator from an instancer registered with the factory.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	/// @return The added instancer if the registration was successful, nullptr otherwise.
+	static void RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer);
+	/// Retrieves a decorator instancer registered with the factory.
 	/// @param[in] name The name of the desired decorator type.
-	/// @param[in] properties The properties associated with the decorator.
-	/// @return The newly instanced decorator, or NULL if the decorator could not be instanced.
-	static Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties);
+	/// @return The decorator instancer it it exists, nullptr otherwise.
+	static DecoratorInstancer* GetDecoratorInstancer(const String& name);
 
-	/// Registers an instancer that will be used to instance font effects.
+	/// Registers a non-owning pointer to an instancer that will be used to instance font effects.
 	/// @param[in] name The name of the font effect the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the font effect name is encountered.
-	/// @return The added instancer if the registration was successful, NULL otherwise.
-	static FontEffectInstancer* RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer);
-	/// Attempts to instance a font effect from an instancer registered with the factory.
-	/// @param[in] name The name of the desired font effect type.
-	/// @param[in] properties The properties associated with the font effect.
-	/// @return The newly instanced font effect, or NULL if the font effect could not be instanced.
-	static FontEffect* InstanceFontEffect(const String& name, const PropertyDictionary& properties);
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	/// @return The added instancer if the registration was successful, nullptr otherwise.
+	static void RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer);
+	/// Retrieves a font-effect instancer registered with the factory.
+	/// @param[in] name The name of the desired font-effect type.
+	/// @return The font-effect instancer it it exists, nullptr otherwise.
+	static FontEffectInstancer* GetFontEffectInstancer(const String& name);
 
 	/// Creates a style sheet from a user-generated string.
 	/// @param[in] string The contents of the style sheet.
 	/// @return A pointer to the newly created style sheet.
-	static StyleSheet* InstanceStyleSheetString(const String& string);
+	static SharedPtr<StyleSheet> InstanceStyleSheetString(const String& string);
 	/// Creates a style sheet from a file.
 	/// @param[in] file_name The location of the style sheet file.
 	/// @return A pointer to the newly created style sheet.
-	static StyleSheet* InstanceStyleSheetFile(const String& file_name);
+	static SharedPtr<StyleSheet> InstanceStyleSheetFile(const String& file_name);
 	/// Creates a style sheet from an Stream.
 	/// @param[in] stream A pointer to the stream containing the style sheet's contents.
 	/// @return A pointer to the newly created style sheet.
-	static StyleSheet* InstanceStyleSheetStream(Stream* stream);
+	static SharedPtr<StyleSheet> InstanceStyleSheetStream(Stream* stream);
 	/// Clears the style sheet cache. This will force style sheets to be reloaded.
 	static void ClearStyleSheetCache();
 	/// Clears the template cache. This will force template to be reloaded.
@@ -152,21 +155,20 @@ public:
 
 	/// Registers an instancer for all events.
 	/// @param[in] instancer The instancer to be called.
-	/// @return The registered instanced on success, NULL on failure.
-	static EventInstancer* RegisterEventInstancer(EventInstancer* instancer);
-	/// Instance and event object
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterEventInstancer(EventInstancer* instancer);
+	/// Instance an event object
 	/// @param[in] target Target element of this event.
 	/// @param[in] name Name of this event.
 	/// @param[in] parameters Additional parameters for this event.
 	/// @param[in] interruptible If the event propagation can be stopped.
 	/// @return The instanced event.
-	static Event* InstanceEvent(Element* target, const String& name, const Dictionary& parameters, bool interruptible);
+	static EventPtr InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 
 	/// Register the instancer to be used for all event listeners.
-	/// @return The registered instancer on success, NULL on failure.
-	static EventListenerInstancer* RegisterEventListenerInstancer(EventListenerInstancer* instancer);
-	/// Instance an event listener with the given string. This is used for instancing listeners for the on* events from
-	/// RML.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown, or until a new instancer is set.
+	static void RegisterEventListenerInstancer(EventListenerInstancer* instancer);
+	/// Instance an event listener with the given string. This is used for instancing listeners for the on* events from RML.
 	/// @param[in] value The parameters to the event listener.
 	/// @return The instanced event listener.
 	static EventListener* InstanceEventListener(const String& value, Element* element);

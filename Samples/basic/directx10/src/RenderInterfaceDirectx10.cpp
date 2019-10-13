@@ -46,29 +46,29 @@ const D3D10_INPUT_ELEMENT_DESC layout[] =
 //The constructor of the render
 RenderInterfaceDirectX10::RenderInterfaceDirectX10(void)
 {
-	m_rmlui_context = NULL;
-	m_pD3D10Device = NULL;
+	m_rmlui_context = nullptr;
+	m_pD3D10Device = nullptr;
 
-	m_pEffect = NULL;
-	m_pTechnique = NULL;
-	m_pVertexLayout = NULL;
+	m_pEffect = nullptr;
+	m_pTechnique = nullptr;
+	m_pVertexLayout = nullptr;
 
-	m_pSwapChain = NULL;
-	m_pRenderTargetView = NULL;
+	m_pSwapChain = nullptr;
+	m_pRenderTargetView = nullptr;
 
-	m_pProjectionMatrixVariable = NULL;
-	m_pWorldMatrixVariable = NULL;
-	m_pDiffuseTextureVariable = NULL;
+	m_pProjectionMatrixVariable = nullptr;
+	m_pWorldMatrixVariable = nullptr;
+	m_pDiffuseTextureVariable = nullptr;
 
-	m_pScissorTestDisable = NULL;
-	m_pScissorTestEnable = NULL;
+	m_pScissorTestDisable = nullptr;
+	m_pScissorTestEnable = nullptr;
 }
 
 //Loads the effect from memory and retrieves initial variables from the effect
 void RenderInterfaceDirectX10::setupEffect()
 {
 	//The pass we are going to use
-	ID3D10EffectPass *pass=NULL;
+	ID3D10EffectPass *pass=nullptr;
 	DWORD dwShaderFlags = 0;
 	#if defined( DEBUG ) || defined( _DEBUG )
 		// Set the D3D10_SHADER_DEBUG flag to embed debug information in the shaders.
@@ -79,7 +79,7 @@ void RenderInterfaceDirectX10::setupEffect()
 
 	#endif
 	//Create our effect from Memory
-	if (FAILED(D3DX10CreateEffectFromMemory((void*)pEffectData,strlen(pEffectData),"DefaultEffect",NULL,NULL,"fx_4_0",dwShaderFlags,0,m_pD3D10Device,NULL,NULL,&m_pEffect,NULL,NULL)))
+	if (FAILED(D3DX10CreateEffectFromMemory((void*)pEffectData,strlen(pEffectData),"DefaultEffect",nullptr,nullptr,"fx_4_0",dwShaderFlags,0,m_pD3D10Device,nullptr,nullptr,&m_pEffect,nullptr,nullptr)))
 	{
 		//Log error
 		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Can't create default effect for rendering, graphics card may not support Shader Model 4");
@@ -111,20 +111,20 @@ RenderInterfaceDirectX10::~RenderInterfaceDirectX10()
 	if (m_pVertexLayout)
 	{
 		m_pVertexLayout->Release();
-		m_pVertexLayout = NULL;
+		m_pVertexLayout = nullptr;
 	}
 	if (m_pEffect)
 	{
 		m_pEffect->Release();
-		m_pEffect = NULL;
+		m_pEffect = nullptr;
 	}
 	if (m_pScissorTestDisable){
 		m_pScissorTestDisable->Release();
-		m_pScissorTestDisable = NULL;
+		m_pScissorTestDisable = nullptr;
 	}
 	if (m_pScissorTestEnable){
 		m_pScissorTestEnable->Release();
-		m_pScissorTestEnable = NULL;
+		m_pScissorTestEnable = nullptr;
 	}
 }
 
@@ -208,7 +208,7 @@ Rml::Core::CompiledGeometryHandle RenderInterfaceDirectX10::CompileGeometry(Rml:
 	geometry->num_vertices = (DWORD) num_vertices;
 	geometry->num_primitives = (DWORD) num_indices / 3;
 
-	geometry->texture = texture == NULL ? NULL : (RmlUiD3D10Texture *) texture;
+	geometry->texture = texture == nullptr ? nullptr : (RmlUiD3D10Texture *) texture;
 
 	return (Rml::Core::CompiledGeometryHandle)geometry;
 }
@@ -224,7 +224,7 @@ void RenderInterfaceDirectX10::RenderCompiledGeometry(Rml::Core::CompiledGeometr
 	if (d3d10_geometry->texture)
 		m_pDiffuseTextureVariable->SetResource(d3d10_geometry->texture->textureView);
 	else
-		m_pDiffuseTextureVariable->SetResource(NULL);
+		m_pDiffuseTextureVariable->SetResource(nullptr);
 	
 	//build and send the world matrix
 	D3DXMatrixTranslation(&m_matWorld, translation.x, translation.y, 0);
@@ -269,11 +269,11 @@ void RenderInterfaceDirectX10::ReleaseCompiledGeometry(Rml::Core::CompiledGeomet
 
 	if (d3d10_geometry->vertices){
 		d3d10_geometry->vertices->Release();
-		d3d10_geometry->vertices = NULL;
+		d3d10_geometry->vertices = nullptr;
 	}
 	if (d3d10_geometry->indices){
 		d3d10_geometry->indices->Release();
-		d3d10_geometry->indices = NULL;
+		d3d10_geometry->indices = nullptr;
 	}
 
 	delete d3d10_geometry;
@@ -414,7 +414,7 @@ bool RenderInterfaceDirectX10::GenerateTexture(Rml::Core::TextureHandle& texture
 	textureDesc.SampleDesc.Quality=0;
 	
 	//create our texture
-	if (FAILED(m_pD3D10Device->CreateTexture2D(&textureDesc,NULL,&pTexture->texture2D))){
+	if (FAILED(m_pD3D10Device->CreateTexture2D(&textureDesc,nullptr,&pTexture->texture2D))){
 		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Unable to create texture");
 		return false;
 	}
@@ -459,11 +459,11 @@ void RenderInterfaceDirectX10::ReleaseTexture(Rml::Core::TextureHandle texture_h
 	RmlUiD3D10Texture * pTexture = (RmlUiD3D10Texture*)texture_handle;
 	if (pTexture->texture2D){
 		pTexture->texture2D->Release();
-		pTexture->texture2D = NULL;
+		pTexture->texture2D = nullptr;
 	}
 	if (pTexture->textureView){
 		pTexture->textureView->Release();
-		pTexture->textureView = NULL;
+		pTexture->textureView = nullptr;
 	}
 	delete pTexture;
 }

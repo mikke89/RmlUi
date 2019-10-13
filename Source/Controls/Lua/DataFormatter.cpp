@@ -37,7 +37,7 @@ namespace Lua {
 //method
 int DataFormatternew(lua_State* L)
 {
-    DataFormatter* df;
+    DataFormatter* df = nullptr;
     int ref = LUA_NOREF;
     int top = lua_gettop(L);
     if(top == 0)
@@ -88,18 +88,18 @@ int DataFormatterSetAttrFormatData(lua_State* L)
 
 Rml::Core::Lua::RegType<DataFormatter> DataFormatterMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataFormatterGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataFormatterSetters[] =
 {
     LUASETTER(DataFormatter,FormatData)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }
@@ -116,7 +116,7 @@ template<> void ExtraInit<DataFormatter>(lua_State* L, int metatable_index)
     lua_setfield(L,metatable_index-1,"new");
     return;
 }
-LUACONTROLSTYPEDEFINE(DataFormatter,false)
+LUACONTROLSTYPEDEFINE(DataFormatter)
 }
 }
 }

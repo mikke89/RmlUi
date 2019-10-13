@@ -30,7 +30,6 @@
 #define RMLUICOREELEMENTSCROLL_H
 
 #include "Header.h"
-#include "EventListener.h"
 
 namespace Rml {
 namespace Core {
@@ -44,7 +43,7 @@ class WidgetSliderScroll;
 	@author Peter Curry
  */
 
-class RMLUICORE_API ElementScroll : public EventListener
+class RMLUICORE_API ElementScroll
 {
 public:
 	enum Orientation
@@ -54,7 +53,7 @@ public:
 	};
 
 	ElementScroll(Element* element);
-	virtual ~ElementScroll();
+	~ElementScroll();
 
 	/// Updates the increment / decrement arrows.
 	void Update();
@@ -73,7 +72,7 @@ public:
 
 	/// Returns one of the scrollbar elements.
 	/// @param[in] orientation Which scrollbar to return.
-	/// @return The requested scrollbar, or NULL if it does not exist.
+	/// @return The requested scrollbar, or nullptr if it does not exist.
 	Element* GetScrollbar(Orientation orientation);
 	/// Returns the size, in pixels, of one of the scrollbars; for a vertical scrollbar, this is width, for a horizontal scrollbar, this is height.
 	/// @param[in] orientation Which scrollbar (vertical or horizontal) to query.
@@ -83,9 +82,8 @@ public:
 	/// Formats the enabled scrollbars based on the current size of the host element.
 	void FormatScrollbars();
 
-protected:
-	/// Handles the 'onchange' events for the scrollbars.
-	void ProcessEvent(Event& event);
+	/// Clears the scrollbars, resetting it to initial conditions.
+	void ClearScrollbars();
 
 private:
 	struct Scrollbar

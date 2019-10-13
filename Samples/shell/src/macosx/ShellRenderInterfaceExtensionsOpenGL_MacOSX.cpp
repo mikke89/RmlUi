@@ -47,7 +47,7 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		m_height = height;
 
 		glViewport(0, 0, width, height);
-		projection = Rml::Core::Matrix4f::ProjectOrtho(0, width, height, 0, -1, 1);
+		projection = Rml::Core::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -10000, 10000);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(projection);
 		view = Rml::Core::Matrix4f::Identity();
@@ -56,11 +56,9 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 
 		aglUpdateContext(gl_context);
 
-		if(m_rmlui_context != NULL)
+		if(m_rmlui_context != nullptr)
 		{
 			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
-			((Rml::Core::Context*)m_rmlui_context)->ProcessProjectionChange(projection);
-			((Rml::Core::Context*)m_rmlui_context)->ProcessViewChange(view);
 		}
 	}
 }
@@ -79,16 +77,16 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 		AGL_NONE
 	};
 	
-	AGLPixelFormat pixel_format = aglChoosePixelFormat(NULL, 0, attributes);
-	if (pixel_format == NULL)
+	AGLPixelFormat pixel_format = aglChoosePixelFormat(nullptr, 0, attributes);
+	if (pixel_format == nullptr)
 		return false;
 	
 	CGrafPtr window_port = GetWindowPort(window);
-	if (window_port == NULL)
+	if (window_port == nullptr)
 		return false;
 	
-	this->gl_context = aglCreateContext(pixel_format, NULL);
-	if (this->gl_context == NULL)
+	this->gl_context = aglCreateContext(pixel_format, nullptr);
+	if (this->gl_context == nullptr)
 		return false;
 	
 	aglSetDrawable(this->gl_context, window_port);
@@ -117,8 +115,8 @@ bool ShellRenderInterfaceOpenGL::AttachToNative(void *nativeWindow)
 void ShellRenderInterfaceOpenGL::DetachFromNative()
 {
 	// Shutdown OpenGL if necessary.
-	aglSetCurrentContext(NULL);
-	aglSetDrawable(this->gl_context, NULL);
+	aglSetCurrentContext(nullptr);
+	aglSetDrawable(this->gl_context, nullptr);
 	aglDestroyContext(this->gl_context);
 }
 

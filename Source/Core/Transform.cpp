@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,6 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
-#include "../../Include/RmlUi/Core/ViewState.h"
 #include "../../Include/RmlUi/Core/Property.h"
 
 namespace Rml {
@@ -47,7 +47,7 @@ Transform::Transform(std::vector<Transforms::Primitive> primitives)
 
 Property Transform::MakeProperty(std::vector<Transforms::Primitive> primitives)
 {
-	Property p{ TransformRef{new Transform{primitives}}, Property::TRANSFORM };
+	Property p{ TransformPtr{new Transform{primitives}}, Property::TRANSFORM };
 	p.definition = StyleSheetSpecification::GetProperty(TRANSFORM);
 	return p;
 }
@@ -70,18 +70,6 @@ int Transform::GetNumPrimitives() const noexcept
 const Transforms::Primitive & Transform::GetPrimitive(int i) const noexcept 
 {
 	return primitives[i];
-}
-
-RMLUICORE_API String ToString(const Transform& transform)
-{
-	String result;
-	auto& primitives = transform.GetPrimitives();
-	for (size_t i = 0; i < primitives.size(); i++)
-	{
-		result += primitives[i].ToString();
-		if (i != primitives.size() - 1) result += " ";
-	}
-	return result;
 }
 
 }

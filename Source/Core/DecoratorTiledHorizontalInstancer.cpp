@@ -33,50 +33,37 @@
 namespace Rml {
 namespace Core {
 
-DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer()
+DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer() : DecoratorTiledInstancer(3)
 {
-	RegisterTileProperty("left-image", false);
-	RegisterTileProperty("right-image", false);
-	RegisterTileProperty("center-image", true);
+	RegisterTileProperty("left-image");
+	RegisterTileProperty("right-image");
+	RegisterTileProperty("center-image");
+	RegisterShorthand("decorator", "left-image, center-image, right-image", ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorTiledHorizontalInstancer::~DecoratorTiledHorizontalInstancer()
 {
 }
 
-// Instances a box decorator.
-Decorator* DecoratorTiledHorizontalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+SharedPtr<Decorator> DecoratorTiledHorizontalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	RMLUI_UNUSED(name);
 
-	DecoratorTiled::Tile tiles[3];
-	String texture_names[3];
-	String rcss_paths[3];
+	constexpr size_t num_tiles = 3;
 
-	GetTileProperties(tiles[0], texture_names[0], rcss_paths[0], properties, "left-image");
-	GetTileProperties(tiles[1], texture_names[1], rcss_paths[1], properties, "right-image");
-	GetTileProperties(tiles[2], texture_names[2], rcss_paths[2], properties, "center-image");
+	DecoratorTiled::Tile tiles[num_tiles];
+	Texture textures[num_tiles];
 
-	DecoratorTiledHorizontal* decorator = new DecoratorTiledHorizontal();
-	if (decorator->Initialise(tiles, texture_names, rcss_paths))
-		return decorator;
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, interface))
+		return nullptr;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
+	auto decorator = std::make_shared<DecoratorTiledHorizontal>();
+	if (!decorator->Initialise(tiles, textures))
+		return nullptr;
+
+	return decorator;
 }
 
-// Releases the given decorator.
-void DecoratorTiledHorizontalInstancer::ReleaseDecorator(Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorTiledHorizontalInstancer::Release()
-{
-	delete this;
-}
 
 }
 }

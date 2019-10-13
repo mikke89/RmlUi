@@ -30,8 +30,7 @@
 #define RMLUICOREURL_H
 
 #include "Header.h"
-#include "String.h"
-#include <map>
+#include "Types.h"
 
 namespace Rml {
 namespace Core {
@@ -102,7 +101,7 @@ public:
 	const String& GetExtension() const;
 	
 	/// Access the url parameters
-	typedef std::unordered_map< String, String > Parameters;
+	typedef UnorderedMap< String, String > Parameters;
 	const Parameters& GetParameters() const;
 	void SetParameter(const String& name, const String& value);
 	void SetParameters( const Parameters& parameters );

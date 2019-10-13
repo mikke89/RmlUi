@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +48,7 @@ struct RMLUICORE_API NumericValue
 	NumericValue(float number, Property::Unit unit) noexcept;
 
 	/// Resolve a numeric property value for an element.
-	float Resolve(Element& e, float base) const noexcept;
+	float ResolveLengthPercentage(Element& e, float base) const noexcept;
 	/// Resolve a numeric property value with the element's width as relative base value.
 	float ResolveWidth(Element& e) const noexcept;
 	/// Resolve a numeric property value with the element's height as relative base value.
@@ -333,7 +334,6 @@ struct RMLUICORE_API Primitive
 	void SetIdentity() noexcept;
 
 	bool ResolveTransform(Matrix4f& m, Element& e) const noexcept;
-	bool ResolvePerspective(float &p, Element& e) const noexcept;
 	
 	// Prepares this primitive for interpolation. This must be done before calling InterpolateWith().
 	// Promote units to basic types which can be interpolated, that is, convert 'length -> pixel' for unresolved primitives.

@@ -28,67 +28,59 @@
 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core.h"
-#include <algorithm>
+#include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
-#include "GeometryDatabase.h"
 #include "PluginRegistry.h"
 #include "StyleSheetFactory.h"
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
+#include "EventSpecification.h"
+
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+#include "FontEngineDefault/FontEngineInterfaceDefault.h"
+#endif
+
 
 namespace Rml {
 namespace Core {
 
 // RmlUi's renderer interface.
-static RenderInterface* render_interface = NULL;
+static RenderInterface* render_interface = nullptr;
 /// RmlUi's system interface.
-static SystemInterface* system_interface = NULL;
+static SystemInterface* system_interface = nullptr;
 // RmlUi's file I/O interface.
-FileInterface* file_interface =  NULL;
-#ifndef RMLUI_NO_FILE_INTERFACE_DEFAULT
-static FileInterfaceDefault file_interface_default;
-#endif
+static FileInterface* file_interface = nullptr;
+// RmlUi's font engine interface.
+static FontEngineInterface* font_interface = nullptr;
+
+// Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
+static UniquePtr<FileInterface> default_file_interface;
+static UniquePtr<FontEngineInterface> default_font_interface;
+
 static bool initialised = false;
 
-typedef std::unordered_map< String, Context* > ContextMap;
+using ContextMap = UnorderedMap< String, ContextPtr >;
 static ContextMap contexts;
 
 #ifndef RMLUI_VERSION
 	#define RMLUI_VERSION "custom"
 #endif
 
-/**
-	A 'plugin' for unobtrusively intercepting the destruction of contexts.
- */
-
-class PluginContextRelease : public Plugin
-{
-	public:
-		virtual void OnShutdown()
-		{
-			delete this;
-		}
-
-		virtual void OnContextDestroy(Context* context)
-		{
-			contexts.erase(context->GetName());
-		}
-};
 
 bool Initialise()
 {
 	// Check for valid interfaces, or install default interfaces as appropriate.
-	if (system_interface == NULL)
+	if (!system_interface)
 	{	
 		Log::Message(Log::LT_ERROR, "No system interface set!");
 		return false;
 	}
 
-	if (file_interface == NULL)
+	if (!file_interface)
 	{		
 #ifndef RMLUI_NO_FILE_INTERFACE_DEFAULT
-		file_interface = &file_interface_default;
-		file_interface->AddReference();
+		default_file_interface = std::make_unique<FileInterfaceDefault>();
+		file_interface = default_file_interface.get();
 #else
 		Log::Message(Log::LT_ERROR, "No file interface set!");
 		return false;
@@ -97,9 +89,20 @@ bool Initialise()
 
 	Log::Initialise();
 
+	EventSpecificationInterface::Initialize();
+
 	TextureDatabase::Initialise();
 
-	FontDatabase::Initialise();
+	if (!font_interface)
+	{
+#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+		default_font_interface = std::make_unique<FontEngineInterfaceDefault>();
+		font_interface = default_font_interface.get();
+#else
+		Log::Message(Log::LT_ERROR, "No font interface set!");
+		return false;
+#endif
+	}
 
 	StyleSheetSpecification::Initialise();
 	StyleSheetFactory::Initialise();
@@ -109,7 +112,6 @@ bool Initialise()
 	Factory::Initialise();
 
 	// Notify all plugins we're starting up.
-	PluginRegistry::RegisterPlugin(new PluginContextRelease());
 	PluginRegistry::NotifyInitialise();
 
 	initialised = true;
@@ -119,18 +121,15 @@ bool Initialise()
 
 void Shutdown()
 {
+	// Clear out all contexts, which should also clean up all attached elements.
+	contexts.clear();
+
 	// Notify all plugins we're being shutdown.
 	PluginRegistry::NotifyShutdown();
-
-	// Release all remaining contexts.
-	for (ContextMap::iterator itr = contexts.begin(); itr != contexts.end(); ++itr)
-		Core::Log::Message(Log::LT_WARNING, "Context '%s' still active on shutdown.", (*itr).first.CString());
-	contexts.clear();
 
 	TemplateCache::Shutdown();
 	StyleSheetFactory::Shutdown();
 	StyleSheetSpecification::Shutdown();
-	FontDatabase::Shutdown();
 	TextureDatabase::Shutdown();
 	Factory::Shutdown();
 
@@ -138,18 +137,13 @@ void Shutdown()
 
 	initialised = false;
 
-	if (render_interface != NULL)
-		render_interface->RemoveReference();
+	render_interface = nullptr;
+	file_interface = nullptr;
+	system_interface = nullptr;
+	font_interface = nullptr;
 
-	if (file_interface != NULL)
-		file_interface->RemoveReference();
-
-	if (system_interface != NULL)
-		system_interface->RemoveReference();
-	
-	render_interface = NULL;
-	file_interface = NULL;
-	system_interface = NULL;
+	default_file_interface.reset();
+	default_font_interface.reset();
 }
 
 // Returns the version of this RmlUi library.
@@ -161,15 +155,7 @@ String GetVersion()
 // Sets the interface through which all RmlUi messages will be routed.
 void SetSystemInterface(SystemInterface* _system_interface)
 {
-	if (system_interface == _system_interface)
-		return;
-
-	if (system_interface != NULL)
-		system_interface->RemoveReference();
-
 	system_interface = _system_interface;
-	if (system_interface != NULL)
-		system_interface->AddReference();
 }
 
 // Returns RmlUi's system interface.
@@ -181,15 +167,7 @@ SystemInterface* GetSystemInterface()
 // Sets the interface through which all rendering requests are made.
 void SetRenderInterface(RenderInterface* _render_interface)
 {
-	if (render_interface == _render_interface)
-		return;
-
-	if (render_interface != NULL)
-		render_interface->RemoveReference();
-
 	render_interface = _render_interface;
-	if (render_interface != NULL)
-		render_interface->AddReference();
 }
 
 // Returns RmlUi's render interface.
@@ -201,15 +179,7 @@ RenderInterface* GetRenderInterface()
 // Sets the interface through which all file I/O requests are made.
 void SetFileInterface(FileInterface* _file_interface)
 {
-	if (file_interface == _file_interface)
-		return;
-
-	if (file_interface != NULL)
-		file_interface->RemoveReference();
-
 	file_interface = _file_interface;
-	if (file_interface != NULL)
-		file_interface->AddReference();
 }
 
 // Returns RmlUi's file interface.
@@ -218,30 +188,41 @@ FileInterface* GetFileInterface()
 	return file_interface;
 }
 
+// Sets the interface through which all font requests are made.
+void SetFontEngineInterface(FontEngineInterface* _font_interface)
+{
+	font_interface = _font_interface;
+}
+	
+// Returns RmlUi's file interface.
+FontEngineInterface* GetFontEngineInterface()
+{
+	return font_interface;
+}
+
 // Creates a new element context.
 Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* custom_render_interface)
 {
 	if (!initialised)
-		return NULL;
+		return nullptr;
 
-	if (custom_render_interface == NULL &&
-		render_interface == NULL)
+	if (!custom_render_interface && !render_interface)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to create context '%s', no render interface specified and no default render interface exists.", name.CString());
-		return NULL;
+		Log::Message(Log::LT_WARNING, "Failed to create context '%s', no render interface specified and no default render interface exists.", name.c_str());
+		return nullptr;
 	}
 
-	if (GetContext(name) != NULL)
+	if (GetContext(name))
 	{
-		Log::Message(Log::LT_WARNING, "Failed to create context '%s', context already exists.", name.CString());
-		return NULL;
+		Log::Message(Log::LT_WARNING, "Failed to create context '%s', context already exists.", name.c_str());
+		return nullptr;
 	}
 
-	Context* new_context = Factory::InstanceContext(name);
-	if (new_context == NULL)
+	ContextPtr new_context = Factory::InstanceContext(name);
+	if (!new_context)
 	{
-		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned NULL.", name.CString());
-		return NULL;
+		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned nullptr.", name.c_str());
+		return nullptr;
 	}
 
 	// Set the render interface on the context, and add a reference onto it.
@@ -249,22 +230,26 @@ Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInt
 		new_context->render_interface = custom_render_interface;
 	else
 		new_context->render_interface = render_interface;
-	new_context->render_interface->AddReference();
 
 	new_context->SetDimensions(dimensions);
-	if (dimensions.x > 0 && dimensions.y > 0)
+
+	Context* new_context_raw = new_context.get();
+	contexts[name] = std::move(new_context);
+
+	PluginRegistry::NotifyContextCreate(new_context_raw);
+
+	return new_context_raw;
+}
+
+bool RemoveContext(const String& name)
+{
+	auto it = contexts.find(name);
+	if (it != contexts.end())
 	{
-		// install an orthographic projection, by default
-		Matrix4f P = Matrix4f::ProjectOrtho(0, (float)dimensions.x, (float)dimensions.y, 0, -1, 1);
-		new_context->ProcessProjectionChange(P);
-		// install an identity view, by default
-		new_context->ProcessViewChange(Matrix4f::Identity());
+		contexts.erase(it);
+		return true;
 	}
-	contexts[name] = new_context;
-
-	PluginRegistry::NotifyContextCreate(new_context);
-
-	return new_context;
+	return false;
 }
 
 // Fetches a previously constructed context by name.
@@ -272,9 +257,9 @@ Context* GetContext(const String& name)
 {
 	ContextMap::iterator i = contexts.find(name);
 	if (i == contexts.end())
-		return NULL;
+		return nullptr;
 
-	return (*i).second;
+	return i->second.get();
 }
 
 // Fetches a context by index.
@@ -293,15 +278,25 @@ Context* GetContext(int index)
 	}
 
 	if (i == contexts.end())
-		return NULL;
+		return nullptr;
 
-	return (*i).second;
+	return i->second.get();
 }
 
 // Returns the number of active contexts.
 int GetNumContexts()
 {
 	return (int) contexts.size();
+}
+
+bool LoadFontFace(const String& file_name, bool fallback_face)
+{
+	return font_interface->LoadFontFace(file_name, fallback_face);
+}
+
+bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+{
+	return font_interface->LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
 }
 
 // Registers a generic rmlui plugin
@@ -313,10 +308,9 @@ void RegisterPlugin(Plugin* plugin)
 	PluginRegistry::RegisterPlugin(plugin);
 }
 
-// Forces all compiled geometry handles generated by RmlUi to be released.
-void ReleaseCompiledGeometries()
+EventId RegisterEventType(const String& type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
-	GeometryDatabase::ReleaseGeometries();
+	return EventSpecificationInterface::InsertOrReplaceCustom(type, interruptible, bubbles, default_action_phase);
 }
 
 // Forces all texture handles loaded and generated by RmlUi to be released.

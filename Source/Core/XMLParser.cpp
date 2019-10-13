@@ -35,9 +35,9 @@
 namespace Rml {
 namespace Core {
 
-typedef std::unordered_map< String, XMLNodeHandler* > NodeHandlers;
+typedef UnorderedMap< String, SharedPtr<XMLNodeHandler> > NodeHandlers;
 static NodeHandlers node_handlers;
-static XMLNodeHandler* default_node_handler = NULL;
+static SharedPtr<XMLNodeHandler> default_node_handler;
 
 XMLParser::XMLParser(Element* root)
 {
@@ -45,13 +45,13 @@ XMLParser::XMLParser(Element* root)
 
 	// Add the first frame.
 	ParseFrame frame;
-	frame.node_handler = NULL;
-	frame.child_handler = NULL;
+	frame.node_handler = nullptr;
+	frame.child_handler = nullptr;
 	frame.element = root;
 	frame.tag = "";
 	stack.push(frame);
 
-	active_handler = NULL;
+	active_handler = nullptr;
 
 	header = new DocumentHeader();
 }
@@ -62,43 +62,26 @@ XMLParser::~XMLParser()
 }
 
 // Registers a custom node handler to be used to a given tag.
-XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, XMLNodeHandler* handler)
+XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
 {
-	String tag = _tag.ToLower();
+	String tag = StringUtilities::ToLower(_tag);
 
 	// Check for a default node registration.
-	if (tag.Empty())
+	if (tag.empty())
 	{
-		if (default_node_handler != NULL)
-			default_node_handler->RemoveReference();
-
-		default_node_handler = handler;
-		default_node_handler->AddReference();
-		return default_node_handler;
+		default_node_handler = std::move(handler);
+		return default_node_handler.get();
 	}
 
-	NodeHandlers::iterator i = node_handlers.find(tag);
-	if (i != node_handlers.end())
-		(*i).second->RemoveReference();
-
-	node_handlers[tag] = handler;
-	handler->AddReference();
-
-	return handler;
+	XMLNodeHandler* result = handler.get();
+	node_handlers[tag] = std::move(handler);
+	return result;
 }
 
 // Releases all registered node handlers. This is called internally.
 void XMLParser::ReleaseHandlers()
 {
-	if (default_node_handler != NULL)
-	{
-		default_node_handler->RemoveReference();
-		default_node_handler = NULL;
-	}
-
-	for (NodeHandlers::iterator i = node_handlers.begin(); i != node_handlers.end(); ++i)
-		(*i).second->RemoveReference();
-
+	default_node_handler.reset();
 	node_handlers.clear();
 }
 
@@ -115,16 +98,16 @@ const URL& XMLParser::GetSourceURL() const
 // Pushes the default element handler onto the parse stack.
 void XMLParser::PushDefaultHandler()
 {
-	active_handler = default_node_handler;
+	active_handler = default_node_handler.get();
 }
 
 bool XMLParser::PushHandler(const String& tag)
 {
-	NodeHandlers::iterator i = node_handlers.find(tag.ToLower());
+	NodeHandlers::iterator i = node_handlers.find(StringUtilities::ToLower(tag));
 	if (i == node_handlers.end())
 		return false;
 
-	active_handler = (*i).second;
+	active_handler = i->second.get();
 	return true;
 }
 
@@ -135,28 +118,20 @@ const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 }
 
 /// Called when the parser finds the beginning of an element tag.
-void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _attributes)
+void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& attributes)
 {
-	String name = _name.ToLower();
-	XMLAttributes attributes;
-	
-	String key;
-	Variant* value;
-	int pos = 0;
-	while (_attributes.Iterate(pos, key, value))
-	{
-		attributes.Set(key.ToLower(), *value);
-	}
+	RMLUI_ZoneScoped;
+	const String name = StringUtilities::ToLower(_name);
 
 	// Check for a specific handler that will override the child handler.
 	NodeHandlers::iterator itr = node_handlers.find(name);
 	if (itr != node_handlers.end())
-		active_handler = (*itr).second;
+		active_handler = itr->second.get();
 
 	// Store the current active handler, so we can use it through this function (as active handler may change)
 	XMLNodeHandler* node_handler = active_handler;
 
-	Element* element = NULL;
+	Element* element = nullptr;
 
 	// Get the handler to handle the open tag
 	if (node_handler)
@@ -168,7 +143,7 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _at
 	ParseFrame frame;
 	frame.node_handler = node_handler;
 	frame.child_handler = active_handler;
-	frame.element = element != NULL ? element : stack.top().element;
+	frame.element = (element ? element : stack.top().element);
 	frame.tag = name;
 	stack.push(frame);
 }
@@ -176,7 +151,8 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& _at
 /// Called when the parser finds the end of an element tag.
 void XMLParser::HandleElementEnd(const String& _name)
 {
-	String name = _name.ToLower();
+	RMLUI_ZoneScoped;
+	String name = StringUtilities::ToLower(_name);
 
 	// Copy the top of the stack
 	ParseFrame frame = stack.top();
@@ -188,7 +164,7 @@ void XMLParser::HandleElementEnd(const String& _name)
 	// Check frame names
 	if (name != frame.tag)
 	{
-		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.CString(), GetSourceURL().GetURL().CString(), GetLineNumber(), frame.tag.CString());
+		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.c_str(), GetSourceURL().GetURL().c_str(), GetLineNumber(), frame.tag.c_str());
 	}
 
 	// Call element end handler
@@ -201,6 +177,7 @@ void XMLParser::HandleElementEnd(const String& _name)
 /// Called when the parser encounters data.
 void XMLParser::HandleData(const String& data)
 {
+	RMLUI_ZoneScoped;
 	if (stack.top().node_handler)
 		stack.top().node_handler->ElementData(this, data);
 }

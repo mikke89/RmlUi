@@ -41,7 +41,7 @@ public:
 	EventHandlerOptions();
 	virtual ~EventHandlerOptions();
 
-	virtual void ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value);
+	void ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value) override;
 };
 
 #endif

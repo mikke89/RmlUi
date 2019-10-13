@@ -112,7 +112,7 @@ RMLUICORE_API float DegreesToRadians(float angle)
 	return angle * (RMLUI_PI / 180.0f);
 }
 
-// Normalises and angle in radians
+// Normalises an angle in radians
 RMLUICORE_API float NormaliseAngle(float angle)
 {
 	return fmodf(angle, RMLUI_PI * 2.0f);

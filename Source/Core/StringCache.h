@@ -30,7 +30,7 @@
 #ifndef RMLUICORESTRINGCACHE_H
 #define RMLUICORESTRINGCACHE_H
 
-#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {
@@ -115,7 +115,6 @@ extern const String TRANSITION;
 extern const String ANIMATION;
 extern const String KEYFRAMES;
 
-extern const String SCROLL_DEFAULT_STEP_SIZE;
 extern const String OPACITY;
 extern const String POINTER_EVENTS;
 

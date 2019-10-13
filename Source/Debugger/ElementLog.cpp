@@ -40,10 +40,10 @@ const int MAX_LOG_MESSAGES = 50;
 ElementLog::ElementLog(const Core::String& tag) : Core::ElementDocument(tag)
 {
 	dirty_logs = false;
-	beacon = NULL;
+	beacon = nullptr;
 	current_beacon_level = Core::Log::LT_MAX;
 	auto_scroll = true;
-	message_content = NULL;
+	message_content = nullptr;
 	current_index = 0;
 
 	// Set up the log type buttons.
@@ -89,43 +89,39 @@ bool ElementLog::Initialise()
 	message_content = GetElementById("content");
 	if (message_content)
 	{
-		message_content->AddEventListener("resize", this);
+		message_content->AddEventListener(Core::EventId::Resize, this);
 	}
 
-	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(log_rcss));
-	if (style_sheet == NULL)
+	Core::SharedPtr<Core::StyleSheet> style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(log_rcss));
+	if (!style_sheet)
 		return false;
 
-	SetStyleSheet(style_sheet);
-	style_sheet->RemoveReference();
+	SetStyleSheet(std::move(style_sheet));
+
+	AddEventListener(Core::EventId::Click, this);
 
 	// Create the log beacon.
 	beacon = GetContext()->CreateDocument();
-	if (beacon == NULL)
+	if (!beacon)
 		return false;
 
 	beacon->SetId("rmlui-debug-log-beacon");
-	beacon->SetProperty("visibility", "hidden");
+	beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	beacon->SetInnerRML(beacon_rml);
 
-	// Remove the initial reference on the beacon.
-	beacon->RemoveReference();
-
 	Core::Element* button = beacon->GetFirstChild();
-	if (button != NULL)
-		beacon->GetFirstChild()->AddEventListener("click", this);
+	if (button)
+		beacon->GetFirstChild()->AddEventListener(Core::EventId::Click, this);
 
 	style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(beacon_rcss));
-	if (style_sheet == NULL)
+	if (!style_sheet)
 	{
 		GetContext()->UnloadDocument(beacon);
-		beacon = NULL;
-
+		beacon = nullptr;
 		return false;
 	}
 
 	beacon->SetStyleSheet(style_sheet);
-	style_sheet->RemoveReference();
 
 	return true;
 }
@@ -133,10 +129,12 @@ bool ElementLog::Initialise()
 // Adds a log message to the debug log.
 void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message)
 {
+	using Core::StringUtilities::Replace;
+
 	// Add the message to the list of messages for the specified log type.
 	LogMessage log_message;
 	log_message.index = current_index++;
-	log_message.message = Core::String(message).Replace("<", "&lt;").Replace(">", "&gt;");
+	log_message.message = Replace(Replace(Core::String(message), "<", "&lt;"), ">", "&gt;");
 	log_types[type].log_messages.push_back(log_message);
 	if (log_types[type].log_messages.size() >= MAX_LOG_MESSAGES)
 	{
@@ -147,7 +145,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	// "Off" to "Off*" to signal that there are unread logs.
 	if (!log_types[type].visible)
 	{
-		if (!log_types[type].button_name.Empty())
+		if (!log_types[type].button_name.empty())
 		{
 			Rml::Core::Element* button = GetElementById(log_types[type].button_name);
 			if (button)
@@ -161,11 +159,11 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	{
 		if (!IsVisible())
 		{
-			if (beacon != NULL)
+			if (beacon != nullptr)
 			{
 				if (type < current_beacon_level)
 				{
-					beacon->SetProperty("visibility", "visible");
+					beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 
 					current_beacon_level = type;
 					Rml::Core::Element* beacon_button = beacon->GetFirstChild();
@@ -183,9 +181,9 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	dirty_logs = true;
 }
 
-void ElementLog::OnRender()
+void ElementLog::OnUpdate()
 {
-	Core::ElementDocument::OnRender();
+	Core::ElementDocument::OnUpdate();
 
 	if (dirty_logs)
 	{
@@ -200,9 +198,9 @@ void ElementLog::OnRender()
 			int num_messages = 0;
 			while (next_type != -1 && num_messages < MAX_LOG_MESSAGES)
 			{
-				messages.Append(Core::String(128, "<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">", log_types[next_type].class_name.CString(), log_types[next_type].alert_contents.CString()));
-				messages.Append(log_types[next_type].log_messages[log_pointers[next_type]].message);
-				messages.Append("</p></div>");
+				messages += Core::CreateString(128, "<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">", log_types[next_type].class_name.c_str(), log_types[next_type].alert_contents.c_str());
+				messages += log_types[next_type].log_messages[log_pointers[next_type]].message;
+				messages += "</p></div>";
 				
 				log_pointers[next_type]++;
 				next_type = FindNextEarliestLogType(log_pointers);
@@ -226,31 +224,41 @@ void ElementLog::OnRender()
 
 void ElementLog::ProcessEvent(Core::Event& event)
 {
-	Core::Element::ProcessEvent(event);
-
 	// Only process events if we're visible
-	if (beacon != NULL)
+	if (beacon != nullptr)
 	{
-		if (event == "click")
+		if (event == Core::EventId::Click)
 		{
 			if (event.GetTargetElement() == beacon->GetFirstChild())
 			{
 				if (!IsVisible())
-					SetProperty("visibility", "visible");
+					SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 
-				beacon->SetProperty("visibility", "hidden");
+				beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 				current_beacon_level = Core::Log::LT_MAX;
 			}
 			else if (event.GetTargetElement()->GetId() == "close_button")
 			{
-				if (IsVisible())
-					SetProperty("visibility", "hidden");
+				SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+			}
+			else if (event.GetTargetElement()->GetId() == "clear_button")
+			{
+				for (int i = 0; i < Core::Log::LT_MAX; i++)
+				{
+					log_types[i].log_messages.clear();
+					if (!log_types[i].visible)
+					{
+						if (Element * button = GetElementById(log_types[i].button_name))
+							button->SetInnerRML("Off");
+					}
+				}
+				dirty_logs = true;
 			}
 			else
 			{
 				for (int i = 0; i < Core::Log::LT_MAX; i++)
 				{
-					if (!log_types[i].button_name.Empty() && event.GetTargetElement()->GetId() == log_types[i].button_name)
+					if (!log_types[i].button_name.empty() && event.GetTargetElement()->GetId() == log_types[i].button_name)
 					{
 						log_types[i].visible = !log_types[i].visible;
 						if (log_types[i].visible)
@@ -264,9 +272,9 @@ void ElementLog::ProcessEvent(Core::Event& event)
 		}
 	}
 
-	if (event == "resize" && auto_scroll)
+	if (event == Core::EventId::Resize && auto_scroll)
 	{
-		if (message_content != NULL &&
+		if (message_content != nullptr &&
 			message_content->HasChildNodes())
 			message_content->GetLastChild()->ScrollIntoView();
 	}

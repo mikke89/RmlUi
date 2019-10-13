@@ -75,6 +75,15 @@ public:
 
 	/// Get the number of seconds that have passed since shell startup.
 	static double GetElapsedTime();
+
+	/// Set mouse cursor.
+	static void SetMouseCursor(const Rml::Core::String& cursor_name);
+
+	/// Set clipboard text.
+	static void SetClipboardText(const Rml::Core::String& text);
+
+	/// Get clipboard text.
+	static void GetClipboardText(Rml::Core::String& text);
 	
 	/// Sets the context to send window resized events to.
 	/// @param[in] context The context to send  events to.

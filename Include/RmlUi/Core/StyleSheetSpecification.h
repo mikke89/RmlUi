@@ -37,6 +37,7 @@ namespace Rml {
 namespace Core {
 
 class PropertyParser;
+struct DefaultStyleSheetParsers;
 
 /**
 	@author Peter Curry
@@ -53,15 +54,16 @@ public:
 
 	/// Registers a parser for use in property definitions.
 	/// @param[in] parser_name The name to register the new parser under.
-	/// @param[in] parser The parser to register. This parser will be released by the specification.
+	/// @param[in] parser A non-owning pointer to the parser to register.
 	/// @return True if the parser was registered successfully, false otherwise.
+	/// @lifetime The parser must be kept alive until after the call to Core::Shutdown.
 	static bool RegisterParser(const String& parser_name, PropertyParser* parser);
 	/// Returns the parser registered with a specific name.
 	/// @param[in] parser_name The name of the desired parser.
-	/// @return The parser registered under the given name, or NULL if no such parser exists.
+	/// @return The parser registered under the given name, or nullptr if no such parser exists.
 	static PropertyParser* GetParser(const String& parser_name);
 
-	/// Registers a property with a new definition.
+	/// Registers a custom property with a new definition.
 	/// @param[in] property_name The name to register the new property under.
 	/// @param[in] default_value The default value to be used for an element if it has no other definition provided.
 	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
@@ -70,27 +72,28 @@ public:
 	static PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
 	/// Returns a property definition.
 	/// @param[in] property_name The name of the desired property.
-	/// @return The appropriate property definition if it could be found, NULL otherwise.
+	/// @return The appropriate property definition if it could be found, nullptr otherwise.
 	static const PropertyDefinition* GetProperty(const String& property_name);
+	static const PropertyDefinition* GetProperty(PropertyId id);
 
-	/// Returns the list of the names of all registered property definitions.
-	/// @return The list with stored property names.
-	static const PropertyNameList & GetRegisteredProperties();
+	/// Returns the id set of all registered property definitions.
+	static const PropertyIdSet& GetRegisteredProperties();
+	/// Returns the id set of all registered inherited property definitions.
+	static const PropertyIdSet& GetRegisteredInheritedProperties();
+	/// Returns the id set of all registered property definitions that may dirty the layout.
+	static const PropertyIdSet& GetRegisteredPropertiesForcingLayout();
 
-	/// Returns the list of the names of all registered inherited property definitions.
-	/// @return The list with stored property names.
-	static const PropertyNameList & GetRegisteredInheritedProperties();
-
-	/// Registers a shorthand property definition.
+	/// Registers a custom shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	static bool RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
+	static ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
-	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
-	static const PropertyShorthandDefinition* GetShorthand(const String& shorthand_name);
+	/// @return The appropriate shorthand definition if it could be found, nullptr otherwise.
+	static const ShorthandDefinition* GetShorthand(const String& shorthand_name);
+	static const ShorthandDefinition* GetShorthand(ShorthandId id);
 
 	/// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 	/// @param[in] dictionary The property dictionary which will hold all declared properties.
@@ -99,11 +102,24 @@ public:
 	/// @param[in] source_file The file where this property was declared. Used for error reporting, debugging and relative paths for referenced assets.
 	/// @param[in] line_number The location of the source file where this property was declared. Used for error reporting and debugging.
 	/// @return True if all properties were parsed successfully, false otherwise.
-	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0);
+	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value);
+
+	static PropertyId GetPropertyId(const String& property_name);
+	static ShorthandId GetShorthandId(const String& shorthand_name);
+	static const String& GetPropertyName(PropertyId id);
+	static const String& GetShorthandName(ShorthandId id);
+
+	// Get the underlying property ids associated by a shorthand.
+	static PropertyIdSet GetShorthandUnderlyingProperties(ShorthandId id);
+
+	static const PropertySpecification& GetPropertySpecification();
 
 private:
 	StyleSheetSpecification();
 	~StyleSheetSpecification();
+
+	PropertyDefinition& RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
+	ShorthandId RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type);
 
 	// Registers RmlUi's default parsers.
 	void RegisterDefaultParsers();
@@ -111,11 +127,13 @@ private:
 	void RegisterDefaultProperties();
 
 	// Parsers used by all property definitions.
-	typedef std::unordered_map< String, PropertyParser* > ParserMap;
+	typedef UnorderedMap< String, PropertyParser* > ParserMap;
 	ParserMap parsers;
 
 	// The properties defined in the style sheet specification.
 	PropertySpecification properties;
+
+	UniquePtr<DefaultStyleSheetParsers> default_parsers;
 };
 
 }

@@ -30,7 +30,6 @@
 #define RMLUICORETYPECONVERTER_H
 
 #include "Types.h"
-#include "Animation.h"
 #include "Log.h"
 #include "Stream.h"
 #include "StringUtilities.h"
@@ -56,6 +55,57 @@ class TypeConverter
 public:	
 	static bool Convert(const SourceType& src, DestType& dest);
 };
+
+
+// Some more complex types are defined in cpp-file
+
+template<> class TypeConverter< TransformPtr, TransformPtr > {
+public:
+	RMLUICORE_API static bool Convert(const TransformPtr& src, TransformPtr& dest);
+};
+
+template<> class TypeConverter< TransformPtr, String > {
+public:
+	RMLUICORE_API static bool Convert(const TransformPtr& src, String& dest);
+};
+
+template<> class TypeConverter< TransitionList, TransitionList > {
+public:
+	RMLUICORE_API static bool Convert(const TransitionList& src, TransitionList& dest);
+};
+template<> class TypeConverter< TransitionList, String > {
+public:
+	RMLUICORE_API static bool Convert(const TransitionList& src, String& dest);
+};
+
+template<> class TypeConverter< AnimationList, AnimationList > {
+public:
+	RMLUICORE_API static bool Convert(const AnimationList& src, AnimationList& dest);
+};
+template<> class TypeConverter< AnimationList, String > {
+public:
+	RMLUICORE_API static bool Convert(const AnimationList& src, String& dest);
+};
+
+template<> class TypeConverter< DecoratorsPtr, DecoratorsPtr > {
+public:
+	RMLUICORE_API static bool Convert(const DecoratorsPtr& src, DecoratorsPtr& dest);
+};
+template<> class TypeConverter< DecoratorsPtr, String > {
+public:
+	RMLUICORE_API static bool Convert(const DecoratorsPtr& src, String& dest);
+};
+
+template<> class TypeConverter< FontEffectsPtr, FontEffectsPtr> {
+public:
+	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, FontEffectsPtr& dest);
+};
+template<> class TypeConverter< FontEffectsPtr, String > {
+public:
+	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, String& dest);
+};
+
+
 
 }
 }

@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "StyleSheetNodeSelectorLastChild.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -49,7 +48,7 @@ bool StyleSheetNodeSelectorLastChild::IsApplicable(const Element* element, int R
 	RMLUI_UNUSED(b);
 
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	int child_index = parent->GetNumChildren() - 1;
@@ -61,8 +60,8 @@ bool StyleSheetNodeSelectorLastChild::IsApplicable(const Element* element, int R
 			return true;
 
 		// If this child is not a text element, then the selector fails; this element is non-trivial.
-		if (dynamic_cast< ElementText* >(child) == NULL &&
-			child->GetDisplay() != DISPLAY_NONE)
+		if (dynamic_cast< ElementText* >(child) == nullptr &&
+			child->GetDisplay() != Style::Display::None)
 			return false;
 
 		// Otherwise, skip over the text element to find the last non-trivial element.

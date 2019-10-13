@@ -32,7 +32,6 @@
 #include "LayoutEngine.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -67,7 +66,7 @@ void LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float& box_width, 
 float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 {
 	Vector2f element_size = element->GetBox().GetSize(Box::MARGIN);
-	int float_property = element->GetFloat();
+	Style::Float float_property = element->GetComputedValues().float_;
 
 	// Shift the cursor down (if necessary) so it isn't placed any higher than a previously-floated box.
 	for (int i = 0; i < NUM_ANCHOR_EDGES; ++i)
@@ -77,14 +76,14 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 	}
 
 	// Shift the cursor down past to clear boxes, if necessary.
-	cursor = ClearBoxes(cursor, element->GetProperty< int >(CLEAR));
+	cursor = ClearBoxes(cursor, element->GetComputedValues().clear);
 
 	// Find a place to put this box.
 	Vector2f element_offset;
 	PositionBox(element_offset, cursor, element_size, float_property);
 
 	// It's been placed, so we can now add it to our list of floating boxes.
-	boxes[float_property == FLOAT_LEFT ? LEFT : RIGHT].push_back(SpaceBox(element_offset, element_size));
+	boxes[float_property == Style::Float::Left ? LEFT : RIGHT].push_back(SpaceBox(element_offset, element_size));
 
 	// Set our offset and dimensions (if necessary) so they enclose the new box.
 	Vector2f normalised_offset = element_offset - (parent->GetPosition() + parent->GetBox().GetPosition());
@@ -102,19 +101,20 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 
 // Determines the appropriate vertical position for an object that is choosing to clear floating elements to the left
 // or right (or both).
-float LayoutBlockBoxSpace::ClearBoxes(float cursor, int clear_property)
+float LayoutBlockBoxSpace::ClearBoxes(float cursor, Style::Clear clear_property)
 {
+	using namespace Style;
 	// Clear left boxes.
-	if (clear_property == CLEAR_LEFT ||
-		clear_property == CLEAR_BOTH)
+	if (clear_property == Clear::Left ||
+		clear_property == Clear::Both)
 	{
 		for (size_t i = 0; i < boxes[LEFT].size(); ++i)
 			cursor = Math::Max(cursor, boxes[LEFT][i].offset.y + boxes[LEFT][i].dimensions.y);
 	}
 
 	// Clear right boxes.
-	if (clear_property == CLEAR_RIGHT ||
-		clear_property == CLEAR_BOTH)
+	if (clear_property == Clear::Right ||
+		clear_property == Clear::Both)
 	{
 		for (size_t i = 0; i < boxes[RIGHT].size(); ++i)
 			cursor = Math::Max(cursor, boxes[RIGHT][i].offset.y + boxes[RIGHT][i].dimensions.y);
@@ -124,13 +124,13 @@ float LayoutBlockBoxSpace::ClearBoxes(float cursor, int clear_property)
 }
 
 // Generates the position for an arbitrary box within our space layout, floated against either the left or right edge.
-float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, int float_property) const
+float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, Style::Float float_property) const
 {
 	float parent_scrollbar_width = parent->GetElement()->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
 	float parent_origin = parent->GetPosition().x + parent->GetBox().GetPosition(Box::CONTENT).x;
 	float parent_edge = parent->GetBox().GetSize().x + parent_origin - parent_scrollbar_width;
 
-	AnchorEdge box_edge = float_property == FLOAT_RIGHT ? RIGHT : LEFT;
+	AnchorEdge box_edge = float_property == Style::Float::Right ? RIGHT : LEFT;
 
 	box_position.y = cursor;
 	box_position.x = box_edge == LEFT ? 0 : (parent->GetBox().GetSize().x - dimensions.x) - parent_scrollbar_width;

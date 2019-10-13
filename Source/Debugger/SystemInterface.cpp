@@ -33,18 +33,15 @@
 namespace Rml {
 namespace Debugger {
 
-SystemInterface::SystemInterface(ElementLog* _log)
+SystemInterface::SystemInterface(Core::SystemInterface* _application_interface, ElementLog* _log)
 {
+	application_interface = _application_interface;
 	log = _log;
-	application_interface = Core::GetSystemInterface();
-	application_interface->AddReference();
-	Core::SetSystemInterface(this);
 }
 
 SystemInterface::~SystemInterface()
 {
-	Core::SetSystemInterface(application_interface);
-	application_interface->RemoveReference();
+	application_interface = nullptr;
 }
 
 // Get the number of seconds elapsed since the start of the application.
@@ -71,6 +68,16 @@ bool SystemInterface::LogMessage(Core::Log::Type type, const Core::String& messa
 void SystemInterface::SetMouseCursor(const Core::String& cursor_name)
 {
 	application_interface->SetMouseCursor(cursor_name);
+}
+
+void SystemInterface::SetClipboardText(const Core::String& text)
+{
+	application_interface->SetClipboardText(text);
+}
+
+void SystemInterface::GetClipboardText(Core::String& text)
+{
+	application_interface->GetClipboardText(text);
 }
 
 // Activate keyboard (for touchscreen devices)

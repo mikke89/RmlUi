@@ -34,40 +34,24 @@
 namespace Rml {
 namespace Core {
 
-// Constructs an unloaded texture with no resource.
-Texture::Texture()
-{
-	resource = NULL;
-}
-
-// Constructs a texture sharing the resource of another.
-Texture::Texture(const Texture& copy)
-{
-	resource = NULL;
-	*this = copy;
-}
-
-Texture::~Texture()
-{
-	if (resource)
-		resource->RemoveReference();
-}
-
 // Attempts to load a texture.
-bool Texture::Load(const String& source, const String& source_path)
+void Texture::Set(const String& source, const String& source_path)
 {
-	if (resource != NULL)
-		resource->RemoveReference();
-
 	resource = TextureDatabase::Fetch(source, source_path);
-	return resource != NULL;
+}
+
+void Texture::Set(const String& name, const TextureCallback& callback)
+{
+	resource = std::make_shared<TextureResource>();
+	resource->Set(name, callback);
 }
 
 // Returns the texture's source name. This is usually the name of the file the texture was loaded from.
-String Texture::GetSource() const
+const String& Texture::GetSource() const
 {
-	if (resource == NULL)
-		return NULL;
+	static String empty_string;
+	if (!resource)
+		return empty_string;
 
 	return resource->GetSource();
 }
@@ -75,7 +59,7 @@ String Texture::GetSource() const
 // Returns the texture's handle. 
 TextureHandle Texture::GetHandle(RenderInterface* render_interface) const
 {
-	if (resource == NULL)
+	if (!resource)
 		return 0;
 
 	return resource->GetHandle(render_interface);
@@ -84,23 +68,25 @@ TextureHandle Texture::GetHandle(RenderInterface* render_interface) const
 // Returns the texture's dimensions.
 Vector2i Texture::GetDimensions(RenderInterface* render_interface) const
 {
-	if (resource == NULL)
+	if (!resource)
 		return Vector2i(0, 0);
 
 	return resource->GetDimensions(render_interface);
 }
 
-// Releases this texture's resource (if any), and sets it to another texture's resource.
-const Texture& Texture::operator=(const Texture& copy)
+void Texture::RemoveDatabaseCache() const
 {
-	if (resource != NULL)
-		resource->RemoveReference();
+	TextureDatabase::RemoveTexture(resource.get());
+}
 
-	resource = copy.resource;
-	if (resource != NULL)
-		resource->AddReference();
+bool Texture::operator==(const Texture& other) const
+{
+	return resource == other.resource;
+}
 
-	return *this;
+Texture::operator bool() const
+{
+	return static_cast<bool>(resource);
 }
 
 }

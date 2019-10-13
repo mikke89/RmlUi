@@ -34,6 +34,7 @@
 #include <AGL/agl.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 static const EventTypeSpec INPUT_EVENTS[] = {
 	{ kEventClassKeyboard, kEventRawKeyDown },
@@ -54,30 +55,30 @@ static const EventTypeSpec WINDOW_EVENTS[] = {
 
 static WindowRef window;
 static timeval start_time;
+static Rml::Core::String clipboard_text;
 
-ShellFileInterface* file_interface = NULL;
+static std::unique_ptr<ShellFileInterface> file_interface;
 
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p);
 static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, void* p);
 
 bool Shell::Initialise()
 {
-	gettimeofday(&start_time, NULL);
+	gettimeofday(&start_time, nullptr);
 
 	InputMacOSX::Initialise();
 
 	Rml::Core::String root = FindSamplesRoot();
 
-	file_interface = new ShellFileInterface(root);
-	Rml::Core::SetFileInterface(file_interface);
+	file_interface = std::make_unique<ShellFileInterface>(root);
+	Rml::Core::SetFileInterface(file_interface.get());
 
 	return true;
 }
 
 void Shell::Shutdown()
 {
-	delete file_interface;
-	file_interface = NULL;
+	file_interface.reset();
 }
 
 Rml::Core::String Shell::FindSamplesRoot()
@@ -94,7 +95,7 @@ Rml::Core::String Shell::FindSamplesRoot()
 		executable_file_name[0] = 0;
 
 	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
+	executable_path = executable_path.substr(0, executable_path.rfind("/") + 1);
 
 	delete[] executable_file_name;
 	CFRelease(executable_posix_file_name);
@@ -118,7 +119,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	if (result != noErr)
 		return false;
 
-	CFStringRef window_title = CFStringCreateWithCString(NULL, name, kCFStringEncodingUTF8);
+	CFStringRef window_title = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
 	if (result != noErr)
 		return false;
 
@@ -133,7 +134,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 
 	ShowWindow(window);
     
-	if(shell_renderer != NULL) {
+	if(shell_renderer != nullptr) {
 		shell_renderer->AttachToNative(window);
 	}
     return true;
@@ -156,8 +157,8 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 	error = InstallApplicationEventHandler(NewEventHandlerUPP(InputMacOSX::EventHandler),
 										   GetEventTypeCount(INPUT_EVENTS),
 										   INPUT_EVENTS,
-										   NULL,
-										   NULL);
+										   nullptr,
+										   nullptr);
 	if (error != noErr)
 		DisplayError("Unable to install handler for input events, error: %d.", error);
 
@@ -165,8 +166,8 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 									  NewEventHandlerUPP(EventHandler),
 									  GetEventTypeCount(WINDOW_EVENTS),
 									  WINDOW_EVENTS,
-									  NULL,
-									  NULL);
+									  nullptr,
+									  nullptr);
 	if (error != noErr)
 		DisplayError("Unable to install handler for window events, error: %d.", error);
 
@@ -187,7 +188,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 void Shell::RequestExit()
 {
 	EventRef event;
-	OSStatus result = CreateEvent(NULL, // default allocator
+	OSStatus result = CreateEvent(nullptr, // default allocator
 								  kEventClassApplication, 
 								  kEventAppQuit, 
 								  0,						  
@@ -242,13 +243,31 @@ double Shell::GetElapsedTime()
 {
 	struct timeval now;
 
-	gettimeofday(&now, NULL);
+	gettimeofday(&now, nullptr);
 
 	double sec = now.tv_sec - start_time.tv_sec;
 	double usec = now.tv_usec;
 	double result = sec + (usec / 1000000.0);
 
 	return result;
+}
+
+void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
+{
+	// Not implemented
+}
+
+
+void Shell::SetClipboardText(const Rml::Core::String& text)
+{
+	// Todo: interface with system clipboard
+	clipboard_text = text;
+}
+
+void Shell::GetClipboardText(Rml::Core::String& text)
+{
+	// Todo: interface with system clipboard
+	text = clipboard_text;
 }
 
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p)
@@ -271,12 +290,12 @@ static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, v
 				case kEventWindowBoundsChanged:
 					// Window resized, update the rmlui context
 					UInt32 attributes;
-					GetEventParameter(event, kEventParamAttributes, typeUInt32, NULL, sizeof(UInt32), NULL, &attributes);
+					GetEventParameter(event, kEventParamAttributes, typeUInt32, nullptr, sizeof(UInt32), nullptr, &attributes);
 
 					if(attributes & kWindowBoundsChangeSizeChanged)
 					{
 						Rect bounds;
-						GetEventParameter(event, kEventParamCurrentBounds, typeQDRectangle, NULL, sizeof(Rect), NULL, &bounds);
+						GetEventParameter(event, kEventParamCurrentBounds, typeQDRectangle, nullptr, sizeof(Rect), nullptr, &bounds);
 
 						UInt32 width = bounds.right - bounds.left;
 						UInt32 height = bounds.bottom - bounds.top;

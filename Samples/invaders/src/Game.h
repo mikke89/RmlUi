@@ -93,6 +93,7 @@ public:
 
 private:
 
+	bool initialized;
 	// The current invaders
 	Invader** invaders;
 	// The direction they're moving

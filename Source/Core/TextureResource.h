@@ -29,7 +29,7 @@
 #ifndef RMLUICORETEXTURERESOURCE_H
 #define RMLUICORETEXTURERESOURCE_H
 
-#include "../../Include/RmlUi/Core/ReferenceCountable.h"
+#include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/Texture.h"
 
 namespace Rml {
@@ -42,44 +42,43 @@ namespace Core {
 	@author Peter Curry
  */
 
-class TextureResource : public ReferenceCountable
+class TextureResource : public NonCopyMoveable
 {
-friend class TextureDatabase;
-
 public:
-	virtual ~TextureResource();
+	TextureResource();
+	~TextureResource();
 
-	/// Attempts to load a texture from the application into the resource. Note that this always
-	/// succeeds now; as texture loading is now delayed until the texture is accessed by a specific
-	/// render interface, all this does is store the source.
-	bool Load(const String& source);
+	/// Clear any existing data and set the source path. Texture loading is delayed until the texture is
+	/// accessed by a specific render interface.
+	void Set(const String& source);
+
+	/// Clear any existing data and set a callback function for loading the data. Texture loading is
+	/// delayed until the texture is accessed by a specific render interface.
+	void Set(const String& name, const TextureCallback& callback);
 
 	/// Returns the resource's underlying texture handle.
-	TextureHandle GetHandle(RenderInterface* render_interface) const;
+	TextureHandle GetHandle(RenderInterface* render_interface);
 	/// Returns the dimensions of the resource's texture.
-	const Vector2i& GetDimensions(RenderInterface* render_interface) const;
+	const Vector2i& GetDimensions(RenderInterface* render_interface);
 
 	/// Returns the resource's source.
 	const String& GetSource() const;
 
 	/// Releases the texture's handle.
-	void Release(RenderInterface* render_interface = NULL);
+	void Release(RenderInterface* render_interface = nullptr);
 
 protected:
-	/// Attempts to load the texture from the source.
-	bool Load(RenderInterface* render_interface) const;
-
-	/// Releases the texture and destroys the resource.
-	virtual void OnReferenceDeactivate();
+	/// Attempts to load the texture from the source, or the callback function if set.
+	bool Load(RenderInterface* render_interface);
 
 private:
-	TextureResource();
-
 	String source;
 
 	typedef std::pair< TextureHandle, Vector2i > TextureData;
-	typedef std::unordered_map< RenderInterface*, TextureData > TextureDataMap;
-	mutable TextureDataMap texture_data;
+	typedef SmallUnorderedMap< RenderInterface*, TextureData > TextureDataMap;
+	TextureDataMap texture_data;
+
+	UniquePtr<TextureCallback> texture_callback;
 };
 
 }

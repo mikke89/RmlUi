@@ -37,14 +37,13 @@ namespace Rml {
 namespace Controls {
 
 /**
-	A button input type handler. The only functionality a button provides over a normal element is
-	the ability to be disabled to prevent 'click' events from being propagated any further than the
-	element's document.
+	A button input type handler. The only functionality a button provides over a normal element is the ability
+	to be disabled. This prevents 'click' events on this element and the ability to receive focus.
 
 	@author Peter Curry
  */
 
-class InputTypeButton : public InputType, public Core::EventListener
+class InputTypeButton : public InputType
 {
 public:
 	InputTypeButton(ElementFormControlInput* element);
@@ -52,23 +51,15 @@ public:
 
 	/// Returns if this value should be submitted with the form.
 	/// @return True if the form control is to be submitted, false otherwise.
-	virtual bool IsSubmitted();
+	bool IsSubmitted() override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Core::Event& event);
+	void ProcessDefaultAction(Core::Event& event) override;
 
 	/// Sizes the dimensions to the element's inherent size.
-	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions);
-
-	// Called when the element is added into a hierarchy.
-	virtual void OnChildAdd();
-	/// Called when the element is removed from a hierarchy.
-	virtual void OnChildRemove();
-
-private:
-	Core::ElementDocument* document;
+	/// @return False.
+	bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions) override;
 };
 
 }

@@ -32,12 +32,32 @@
 #include "Header.h"
 #include "Element.h"
 #include "PropertyDefinition.h"
+#include "PropertyIdSet.h"
 
 namespace Rml {
 namespace Core {
 
+class StyleSheetSpecification;
 class PropertyDictionary;
-struct PropertyShorthandDefinition;
+class PropertyIdNameMap;
+class ShorthandIdNameMap;
+struct ShorthandDefinition;
+
+enum class ShorthandType
+{
+	// Normal; properties that fail to parse fall-through to the next until they parse correctly, and any
+	// undeclared are not set.
+	FallThrough,
+	// A single failed parse will abort, and any undeclared are replicated from the last declared property.
+	Replicate,
+	// For 'padding', 'margin', etc; up to four properties are expected.
+	Box,
+	// Repeatedly resolves the full value string on each property, whether it is a normal property or another shorthand.
+	RecursiveRepeat,
+	// Comma-separated list of properties or shorthands, the number of declared values must match the specified.
+	RecursiveCommaSeparated
+};
+
 
 /**
 	A property specification stores a group of property definitions.
@@ -48,22 +68,7 @@ struct PropertyShorthandDefinition;
 class RMLUICORE_API PropertySpecification
 {
 public:
-	enum ShorthandType
-	{
-		// Normal; properties that fail to parse fall-through to the next until they parse correctly, and any
-		// undeclared are not set.
-		FALL_THROUGH,
-		// A single failed parse will abort, and any undeclared are replicated from the last declared property.
-		REPLICATE,
-		// For 'padding', 'margin', etc; up four properties are expected.
-		BOX,
-		// Recursively resolves the full value string on each property, whether it is a normal property or another shorthand.
-		RECURSIVE,
-		// BOX if four properties are shorthanded and they end in '-top', '-right', etc, otherwise FALL_THROUGH.
-		AUTO
-	};
-
-	PropertySpecification();
+	PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands);
 	~PropertySpecification();
 
 	/// Registers a property with a new definition.
@@ -71,52 +76,67 @@ public:
 	/// @param[in] default_value The default value to be used for an element if it has no other definition provided.
 	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
 	/// @param[in] forces_layout True if this property requires its parent to be reformatted if changed.
+	/// @param[in] id If 'Invalid' then automatically assigns a new id, otherwise assigns the given id.
 	/// @return The new property definition, ready to have parsers attached.
-	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout);
+	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id = PropertyId::Invalid);
 	/// Returns a property definition.
-	/// @param[in] property_name The name of the desired property.
-	/// @return The appropriate property definition if it could be found, NULL otherwise.
+	/// @param[in] id The id of the desired property.
+	/// @return The appropriate property definition if it could be found, nullptr otherwise.
+	const PropertyDefinition* GetProperty(PropertyId id) const;
 	const PropertyDefinition* GetProperty(const String& property_name) const;
 
-	/// Returns the list of the names of all registered property definitions.
-	/// @return The list with stored property names.
-	const PropertyNameList& GetRegisteredProperties() const;
-
-	/// Returns the list of the names of all registered inherited property definitions.
-	/// @return The list with stored property names.
-	const PropertyNameList& GetRegisteredInheritedProperties() const;
+	/// Returns the id set of all registered property definitions.
+	const PropertyIdSet& GetRegisteredProperties() const;
+	/// Returns the id set of all registered inherited property definitions.
+	const PropertyIdSet& GetRegisteredInheritedProperties() const;
+	/// Returns the id set of all registered property definitions that may dirty the layout.
+	const PropertyIdSet& GetRegisteredPropertiesForcingLayout() const;
 
 	/// Registers a shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
+	/// @param[in] id If 'Invalid' then automatically assigns a new id, otherwise assigns the given id.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type = AUTO);
+	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type, ShorthandId id = ShorthandId::Invalid);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
-	/// @return The appropriate shorthand definition if it could be found, NULL otherwise.
-	const PropertyShorthandDefinition* GetShorthand(const String& shorthand_name) const;
+	/// @return The appropriate shorthand definition if it could be found, nullptr otherwise.
+	const ShorthandDefinition* GetShorthand(ShorthandId id) const;
+	const ShorthandDefinition* GetShorthand(const String& shorthand_name) const;
 
-	/// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
-	/// @param dictionary The property dictionary which will hold all declared properties.
-	/// @param property_name The name of the declared property.
-	/// @param property_value The values the property is being set to.
+	/// Parse declaration by name, whether its a property or shorthand.
+	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const;
+	/// Parse property declaration by ID
+	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value) const;
+	/// Parses a shorthand declaration, setting any parsed and validated properties on the given dictionary.
 	/// @return True if all properties were parsed successfully, false otherwise.
-	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file = "", int source_line_number = 0) const;
+	bool ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value) const;
+
 	/// Sets all undefined properties in the dictionary to their defaults.
-	/// @param dictionary[in] The dictionary to set the default values on.
+	/// @param dictionary[in-out] The dictionary to set the default values on.
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;
 
-private:
-	typedef std::unordered_map< String, PropertyDefinition* > PropertyMap;
-	typedef std::unordered_map< String, PropertyShorthandDefinition* > ShorthandMap;
+	/// Returns the properties of dictionary converted to a string.
+	String PropertiesToString(const PropertyDictionary& dictionary) const;
 
-	PropertyMap properties;
-	ShorthandMap shorthands;
-	PropertyNameList property_names;
-	PropertyNameList inherited_property_names;
+private:
+	using Properties = std::vector< UniquePtr<PropertyDefinition> >;
+	using Shorthands = std::vector< UniquePtr<ShorthandDefinition> >;
+
+	Properties properties;
+	Shorthands shorthands;
+
+	UniquePtr<PropertyIdNameMap> property_map;
+	UniquePtr<ShorthandIdNameMap> shorthand_map;
+
+	PropertyIdSet property_names;
+	PropertyIdSet inherited_property_names;
+	PropertyIdSet properties_forcing_layout;
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
+
+	friend class StyleSheetSpecification;
 };
 
 }

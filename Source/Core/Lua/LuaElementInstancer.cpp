@@ -50,21 +50,21 @@ LuaElementInstancer::LuaElementInstancer(lua_State* L) : ElementInstancer(), ref
     lua_pop(L,1); //pop the ELEMENTINSTANCERFUNCTIONS table
 }
 
-Element* LuaElementInstancer::InstanceElement(Element* RMLUI_UNUSED_PARAMETER(parent), const String& tag, const XMLAttributes& RMLUI_UNUSED_PARAMETER(attributes))
+ElementPtr LuaElementInstancer::InstanceElement(Element* RMLUI_UNUSED_PARAMETER(parent), const String& tag, const XMLAttributes& RMLUI_UNUSED_PARAMETER(attributes))
 {
     RMLUI_UNUSED(parent);
     RMLUI_UNUSED(attributes);
 
     lua_State* L = Interpreter::GetLuaState();
     int top = lua_gettop(L);
-    Element* ret = NULL;
+    ElementPtr ret = nullptr;
     if(ref_InstanceElement != LUA_REFNIL && ref_InstanceElement != LUA_NOREF)
     {
         PushFunctionsTable(L);
         lua_rawgeti(L,-1,ref_InstanceElement); //push the function
-        lua_pushstring(L,tag.CString()); //push the tag
+        lua_pushstring(L,tag.c_str()); //push the tag
         Interpreter::ExecuteCall(1,1); //we pass in a string, and we want to get an Element back
-        ret = LuaType<Element>::check(L,-1);
+        ret = std::move(*LuaType<ElementPtr>::check(L,-1));
     }
     else
     {
@@ -77,11 +77,6 @@ Element* LuaElementInstancer::InstanceElement(Element* RMLUI_UNUSED_PARAMETER(pa
 void LuaElementInstancer::ReleaseElement(Element* element)
 {
     delete element;
-}
-
-void LuaElementInstancer::Release()
-{
-    delete this;
 }
 
 void LuaElementInstancer::PushFunctionsTable(lua_State* L)

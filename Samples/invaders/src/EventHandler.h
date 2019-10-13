@@ -29,7 +29,7 @@
 #ifndef RMLUIINVADERSEVENTHANDLER_H
 #define RMLUIINVADERSEVENTHANDLER_H
 
-#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/Types.h>
 
 namespace Rml {
 namespace Core {

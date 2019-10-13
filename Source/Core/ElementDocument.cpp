@@ -45,26 +45,28 @@ namespace Core {
 
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
 {
-	style_sheet = NULL;
-	context = NULL;
+	style_sheet = nullptr;
+	context = nullptr;
 
 	modal = false;
 	layout_dirty = true;
-	lock_layout = 0;
+
+	position_dirty = false;
 
 	ForceLocalStackingContext();
+	SetOwnerDocument(this);
 
-	SetProperty(POSITION, "absolute");
+	SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
 }
 
 ElementDocument::~ElementDocument()
 {
-	if (style_sheet != NULL)
-		style_sheet->RemoveReference();
 }
 
 void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
-{	
+{
+	RMLUI_ZoneScoped;
+
 	// Store the source address that we came from
 	source_url = document_header->source;
 
@@ -80,7 +82,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		if (merge_template)
 			header.MergeHeader(*merge_template->GetHeader());
 		else
-			Log::Message(Log::LT_WARNING, "Template %s not found", header.template_resources[i].CString());
+			Log::Message(Log::LT_WARNING, "Template %s not found", header.template_resources[i].c_str());
 	}
 
 	// Merge the document's header last, as it is the most overriding.
@@ -91,70 +93,60 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 
 	// If a style-sheet (or sheets) has been specified for this element, then we load them and set the combined sheet
 	// on the element; all of its children will inherit it by default.
-	StyleSheet* style_sheet = NULL;
+	SharedPtr<StyleSheet> new_style_sheet;
 	if (header.rcss_external.size() > 0)
-		style_sheet = StyleSheetFactory::GetStyleSheet(header.rcss_external);
+		new_style_sheet = StyleSheetFactory::GetStyleSheet(header.rcss_external);
 
 	// Combine any inline sheets.
 	if (header.rcss_inline.size() > 0)
 	{			
 		for (size_t i = 0;i < header.rcss_inline.size(); i++)
 		{			
-			StyleSheet* new_sheet = new StyleSheet();
-			StreamMemory* stream = new StreamMemory((const byte*) header.rcss_inline[i].CString(), header.rcss_inline[i].Length());
+			UniquePtr<StyleSheet> inline_sheet = std::make_unique<StyleSheet>();
+			auto stream = std::make_unique<StreamMemory>((const byte*) header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
 			stream->SetSourceURL(document_header->source);
 
-			if (new_sheet->LoadStyleSheet(stream))
+			if (inline_sheet->LoadStyleSheet(stream.get(), header.rcss_inline_line_numbers[i]))
 			{
-				if (style_sheet)
+				if (new_style_sheet)
 				{
-					StyleSheet* combined_sheet = style_sheet->CombineStyleSheet(new_sheet);
-					style_sheet->RemoveReference();
-					new_sheet->RemoveReference();
-					style_sheet = combined_sheet;
+					SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*inline_sheet);
+					new_style_sheet = combined_sheet;
 				}
 				else
-					style_sheet = new_sheet;
+					new_style_sheet = std::move(inline_sheet);
 			}
-			else
-				new_sheet->RemoveReference();
 
-			stream->RemoveReference();
+			stream.reset();
 		}		
 	}
 
 	// If a style sheet is available, set it on the document and release it.
-	if (style_sheet)
+	if (new_style_sheet)
 	{
-		SetStyleSheet(style_sheet);
-		style_sheet->RemoveReference();
+		SetStyleSheet(std::move(new_style_sheet));
 	}
 
 	// Load external scripts.
 	for (size_t i = 0; i < header.scripts_external.size(); i++)
 	{
-		StreamFile* stream = new StreamFile();
+		auto stream = std::make_unique<StreamFile>();
 		if (stream->Open(header.scripts_external[i]))
-			LoadScript(stream, header.scripts_external[i]);
-
-		stream->RemoveReference();
+			LoadScript(stream.get(), header.scripts_external[i]);
 	}
 
 	// Load internal scripts.
 	for (size_t i = 0; i < header.scripts_inline.size(); i++)
 	{
-		StreamMemory* stream = new StreamMemory((const byte*) header.scripts_inline[i].CString(), header.scripts_inline[i].Length());
-		LoadScript(stream, "");
-		stream->RemoveReference();
+		auto stream = std::make_unique<StreamMemory>((const byte*) header.scripts_inline[i].c_str(), header.scripts_inline[i].size());
+		LoadScript(stream.get(), "");
 	}
 
 	// Hide this document.
-	SetProperty(VISIBILITY, "hidden");
-}
+	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 
-ElementDocument* ElementDocument::GetOwnerDocument()
-{
-	return this;
+	// Update properties so that e.g. visibility status can be queried properly immediately.
+	UpdateProperties();
 }
 
 // Returns the document's context.
@@ -180,26 +172,23 @@ const String& ElementDocument::GetSourceURL() const
 }
 
 // Sets the style sheet this document, and all of its children, uses.
-void ElementDocument::SetStyleSheet(StyleSheet* _style_sheet)
+void ElementDocument::SetStyleSheet(SharedPtr<StyleSheet> _style_sheet)
 {
+	RMLUI_ZoneScoped;
+
 	if (style_sheet == _style_sheet)
 		return;
 
-	if (style_sheet != NULL)
-		style_sheet->RemoveReference();
-
 	style_sheet = _style_sheet;
-	if (style_sheet != NULL)
-	{
-		style_sheet->AddReference();
-		style_sheet->BuildNodeIndex();
-	}
+	
+	if (style_sheet)
+		style_sheet->BuildNodeIndexAndOptimizeProperties();
 
 	GetStyle()->DirtyDefinition();
 }
 
 // Returns the document's style sheet.
-StyleSheet* ElementDocument::GetStyleSheet() const
+const SharedPtr<StyleSheet>& ElementDocument::GetStyleSheet() const
 {
 	return style_sheet;
 }
@@ -207,85 +196,141 @@ StyleSheet* ElementDocument::GetStyleSheet() const
 // Brings the document to the front of the document stack.
 void ElementDocument::PullToFront()
 {
-	if (context != NULL)
+	if (context != nullptr)
 		context->PullDocumentToFront(this);
 }
 
 // Sends the document to the back of the document stack.
 void ElementDocument::PushToBack()
 {
-	if (context != NULL)
+	if (context != nullptr)
 		context->PushDocumentToBack(this);
 }
 
-void ElementDocument::Show(int focus_flags)
+void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 {
-	// Store the modal attribute
-	modal = (focus_flags & MODAL) > 0;
-
-	// Set to visible and switch focus if necessary
-	SetProperty(VISIBILITY, "visible");
-	if (focus_flags & FOCUS || focus_flags & MODAL)
+	switch (modal_flag)
 	{
-		// If no element could be focused, focus the window
-		if (!FocusNextTabElement(this, true))
-		{
-			Focus();
-		}
+	case Rml::Core::ModalFlag::None:     modal = false; break;
+	case Rml::Core::ModalFlag::Modal:    modal = true;  break;
+	case Rml::Core::ModalFlag::Keep: break;
 	}
 
-	DispatchEvent("show", Dictionary(), false);
+	bool focus = false;
+	bool autofocus = false;
+	bool focus_previous = false;
+
+	switch (focus_flag)
+	{
+	case FocusFlag::None:
+		break;
+	case FocusFlag::Document:
+		focus = true;
+		break;
+	case FocusFlag::Keep:
+		focus = true;
+		focus_previous = true;
+		break;
+	case FocusFlag::Auto:
+		focus = true;
+		autofocus = true;
+		break;
+	}
+
+	// Set to visible and switch focus if necessary
+	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+	
+	// We should update the document now, otherwise the focusing methods below do not think we are visible
+	// If this turns out to be slow, the more performant approach is just to compute the new visibility property
+	UpdateDocument();
+
+	if (focus)
+	{
+		Element* focus_element = this;
+
+		if (autofocus)
+		{
+			Element* first_element = nullptr;
+			Element* element = FindNextTabElement(this, true);
+
+			while (element && element != first_element)
+			{
+				if (!first_element)
+					first_element = element;
+
+				if (element->HasAttribute("autofocus"))
+				{
+					focus_element = element;
+					break;
+				}
+
+				element = FindNextTabElement(element, true);
+			}
+		}
+		else if (focus_previous)
+		{
+			focus_element = GetFocusLeafNode();
+		}
+
+		// Focus the window or element
+		bool focused = focus_element->Focus();
+		if (focused && focus_element != this)
+			focus_element->ScrollIntoView(false);
+	}
+
+	DispatchEvent(EventId::Show, Dictionary());
 }
 
 void ElementDocument::Hide()
 {
-	SetProperty(VISIBILITY, "hidden");
-	DispatchEvent("hide", Dictionary(), false);
+	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+
+	// We should update the document now, so that the (un)focusing will get the correct visibility
+	UpdateDocument();
+
+	DispatchEvent(EventId::Hide, Dictionary());
 	
 	if (context)
 	{
-		auto focus = context->GetFocusElement();
-		if (focus && focus != this && focus->GetOwnerDocument() == this)
-			Focus();
+		context->UnfocusDocument(this);
 	}
 }
 
 // Close this document
 void ElementDocument::Close()
 {
-	if (context != NULL)
+	if (context != nullptr)
 		context->UnloadDocument(this);
 }
 
-Element* ElementDocument::CreateElement(const String& name)
+ElementPtr ElementDocument::CreateElement(const String& name)
 {
-	return Factory::InstanceElement(NULL, name, name, XMLAttributes());
+	return Factory::InstanceElement(nullptr, name, name, XMLAttributes());
 }
 
 // Create a text element.
-ElementText* ElementDocument::CreateTextNode(const String& text)
+ElementPtr ElementDocument::CreateTextNode(const String& text)
 {
 	// Create the element.
-	Element* element = CreateElement("#text");
+	ElementPtr element = CreateElement("#text");
 	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer returned NULL.");
-		return NULL;
+		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer returned nullptr.");
+		return nullptr;
 	}
 
 	// Cast up
-	ElementText* element_text = dynamic_cast< ElementText* >(element);
+	ElementText* element_text = dynamic_cast< ElementText* >(element.get());
 	if (!element_text)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer didn't return a derivative of ElementText.");
-		element->RemoveReference();
-		return NULL;
+		return nullptr;
 	}
 	
 	// Set the text
 	element_text->SetText(text);
 
-	return element_text;
+	return element;
 }
 
 // Is the current document modal
@@ -301,66 +346,78 @@ void ElementDocument::LoadScript(Stream* RMLUI_UNUSED_PARAMETER(stream), const S
 	RMLUI_UNUSED(source_name);
 }
 
-// Updates the layout if necessary.
-void ElementDocument::_UpdateLayout()
+// Updates the document, including its layout
+void ElementDocument::UpdateDocument()
 {
-	const int max_updates = 3;
+	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
+	Update(dp_ratio);
+	UpdateLayout();
+	UpdatePosition();
+}
 
-	lock_layout++;
-	for(int i = 0; layout_dirty && i < max_updates; i++)
+// Updates the layout if necessary.
+void ElementDocument::UpdateLayout()
+{
+	// Note: Carefully consider when to call this function for performance reasons.
+	// Ideally, only called once per update loop.
+	if(layout_dirty)
 	{
+		RMLUI_ZoneScoped;
+		RMLUI_ZoneText(source_url.c_str(), source_url.size());
+
 		layout_dirty = false;
 
 		Vector2f containing_block(0, 0);
-		if (GetParentNode() != NULL)
+		if (GetParentNode() != nullptr)
 			containing_block = GetParentNode()->GetBox().GetSize();
 
 		LayoutEngine layout_engine;
 		layout_engine.FormatElement(this, containing_block);
 	}
-	lock_layout--;
 }
 
 // Updates the position of the document based on the style properties.
 void ElementDocument::UpdatePosition()
 {
-	// We are only positioned relative to our parent, so if we're not parented we may as well bail now.
-	if (GetParentNode() == NULL)
-		return;
+	if(position_dirty)
+	{
+		RMLUI_ZoneScoped;
 
-	Vector2f position;
-	// Work out our containing block; relative offsets are calculated against it.
-	Vector2f containing_block = GetParentNode()->GetBox().GetSize(Box::CONTENT);
+		position_dirty = false;
 
-	const Property *left = GetLocalProperty(LEFT);
-	const Property *right = GetLocalProperty(RIGHT);
-	if (left != NULL && left->unit != Property::KEYWORD)
-		position.x = ResolveProperty(LEFT, containing_block.x);
-	else if (right != NULL && right->unit != Property::KEYWORD)
-		position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveProperty(RIGHT, containing_block.x);
-	else
-		position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
+		Element* root = GetParentNode();
 
-	const Property *top = GetLocalProperty(TOP);
-	const Property *bottom = GetLocalProperty(BOTTOM);
-	if (top != NULL && top->unit != Property::KEYWORD)
-		position.y = ResolveProperty(TOP, containing_block.y);
-	else if (bottom != NULL && bottom->unit != Property::KEYWORD)
-		position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveProperty(BOTTOM, containing_block.y);
-	else
-		position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		// We only position ourselves if we are a child of our context's root element. That is, we don't want to proceed if we are unparented or an iframe document.
+		if (!root || !context || (root != context->GetRootElement()))
+			return;
 
-	SetOffset(position, NULL);
+		Vector2f position;
+		// Work out our containing block; relative offsets are calculated against it.
+		Vector2f containing_block = root->GetBox().GetSize(Box::CONTENT);
+
+		auto& computed = GetComputedValues();
+
+		if (computed.left.type != Style::Left::Auto)
+			position.x = ResolveValue(computed.left, containing_block.x);
+		else if (computed.right.type != Style::Right::Auto)
+			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveValue(computed.right, containing_block.x);
+		else
+			position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
+
+		if (computed.top.type != Style::Top::Auto)
+			position.y = ResolveValue(computed.top, containing_block.y);
+		else if (computed.bottom.type != Style::Bottom::Auto)
+			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveValue(computed.bottom, containing_block.y);
+		else
+			position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
+
+		SetOffset(position, nullptr);
+	}
 }
-	
-void ElementDocument::LockLayout(bool lock)
+
+void ElementDocument::DirtyPosition()
 {
-	if (lock)
-		lock_layout++;
-	else
-		lock_layout--;
-	
-	RMLUI_ASSERT(lock_layout >= 0);
+	position_dirty = true;
 }
 
 void ElementDocument::DirtyLayout()
@@ -375,45 +432,43 @@ bool ElementDocument::IsLayoutDirty()
 
 void ElementDocument::DirtyDpProperties()
 {
-	GetStyle()->DirtyDpProperties();
-}
-
-// Refreshes the document layout if required.
-void ElementDocument::OnUpdate()
-{
-	UpdateLayout();
+	GetStyle()->DirtyPropertiesWithUnitRecursive(Property::DP);
 }
 
 // Repositions the document if necessary.
-void ElementDocument::OnPropertyChange(const PropertyNameList& changed_properties)
+void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
 	// If the document's font-size has been changed, we need to dirty all rem properties.
-	if (changed_properties.find(FONT_SIZE) != changed_properties.end())
-		GetStyle()->DirtyRemProperties();
+	if (changed_properties.Contains(PropertyId::FontSize))
+		GetStyle()->DirtyPropertiesWithUnitRecursive(Property::REM);
 
-	if (changed_properties.find(TOP) != changed_properties.end() ||
-		changed_properties.find(RIGHT) != changed_properties.end() ||
-		changed_properties.find(BOTTOM) != changed_properties.end() ||
-		changed_properties.find(LEFT) != changed_properties.end())
-		UpdatePosition();
+	if (changed_properties.Contains(PropertyId::Top) ||
+		changed_properties.Contains(PropertyId::Right) ||
+		changed_properties.Contains(PropertyId::Bottom) ||
+		changed_properties.Contains(PropertyId::Left))
+		DirtyPosition();
 }
 
 // Processes the 'onpropertychange' event, checking for a change in position or size.
-void ElementDocument::ProcessEvent(Event& event)
+void ElementDocument::ProcessDefaultAction(Event& event)
 {
-	Element::ProcessEvent(event);
+	Element::ProcessDefaultAction(event);
 
-	// Process generic keyboard events for this window in capture phase
-	if (event.GetPhase() == Event::PHASE_BUBBLE && event == KEYDOWN)
+	// Process generic keyboard events for this window in bubble phase
+	if (event == EventId::Keydown)
 	{
 		int key_identifier = event.GetParameter<int>("key_identifier", Input::KI_UNKNOWN);
 
 		// Process TAB
 		if (key_identifier == Input::KI_TAB)
 		{
-			FocusNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false));
+			if (Element* element = FindNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false)))
+			{
+				if(element->Focus())
+					element->ScrollIntoView(false);
+			}
 		}
 		// Process ENTER being pressed on a focusable object (emulate click)
 		else if (key_identifier == Input::KI_RETURN ||
@@ -421,18 +476,19 @@ void ElementDocument::ProcessEvent(Event& event)
 		{
 			Element* focus_node = GetFocusLeafNode();
 
-			if (focus_node && focus_node->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
+			if (focus_node && focus_node->GetComputedValues().tab_index == Style::TabIndex::Auto)
 			{
 				focus_node->Click();
 			}
 		}
 	}
-	else if (event.GetTargetElement() == this)
-	{
-		if (event == RESIZE)
-			UpdatePosition();
-	}
 }
+
+void ElementDocument::OnResize()
+{
+	DirtyPosition();
+}
+
 
 // Find the next element to focus, starting at the current element
 //
@@ -440,14 +496,14 @@ void ElementDocument::ProcessEvent(Event& event)
 // work, but it appears not. What is required is to cut the tree in half along the nodes
 // from current_element up the root and then either traverse the tree in a clockwise or
 // anticlock wise direction depending if you're searching forward or backward respectively
-bool ElementDocument::FocusNextTabElement(Element* current_element, bool forward)
+Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)
 {
 	// If we're searching forward, check the immediate children of this node first off
 	if (forward)
 	{
 		for (int i = 0; i < current_element->GetNumChildren(); i++)
-			if (SearchFocusSubtree(current_element->GetChild(i), forward))
-				return true;
+			if (Element* result = SearchFocusSubtree(current_element->GetChild(i), forward))
+				return result;
 	}
 
 	// Now walk up the tree, testing either the bottom or top
@@ -471,8 +527,9 @@ bool ElementDocument::FocusNextTabElement(Element* current_element, bool forward
 			Element* search_child = parent->GetChild(child_index);
 
 			// Do a search if its enabled
-			if (search_enabled && SearchFocusSubtree(search_child, forward))
-				return true;
+			if (search_enabled)
+				if(Element* result = SearchFocusSubtree(search_child, forward))
+					return result;
 
 			// If we find the child, enable searching
 			if (search_child == child)
@@ -490,27 +547,25 @@ bool ElementDocument::FocusNextTabElement(Element* current_element, bool forward
 			search_enabled = false;
 	}
 
-	return false;
+	return nullptr;
 }
 
-bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
+Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 {
 	// Skip disabled elements
 	if (element->IsPseudoClassSet("disabled"))
 	{
-		return false;
+		return nullptr;
 	}
 	if (!element->IsVisible())
 	{
-		return false;
+		return nullptr;
 	}
 
 	// Check if this is the node we're looking for
-	if (element->GetProperty<int>(TAB_INDEX) == TAB_INDEX_AUTO)
+	if (element->GetComputedValues().tab_index == Style::TabIndex::Auto)
 	{
-		element->Focus();
-		element->ScrollIntoView(false);
-		return true;
+		return element;
 	}
 
 	// Check all children
@@ -519,11 +574,11 @@ bool ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 		int child_index = i;
 		if (!forward)
 			child_index = element->GetNumChildren() - i - 1;
-		if (SearchFocusSubtree(element->GetChild(child_index), forward))
-			return true;
+		if (Element * result = SearchFocusSubtree(element->GetChild(child_index), forward))
+			return result;
 	}
 
-	return false;
+	return nullptr;
 }
 
 }

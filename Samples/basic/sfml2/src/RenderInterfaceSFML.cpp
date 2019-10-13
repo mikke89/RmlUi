@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -176,7 +177,7 @@ Rml::Core::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Core::
 
 	return (Rml::Core::CompiledGeometryHandle)Geometry;
 #else
-	return (Rml::Core::CompiledGeometryHandle)NULL;
+	return (Rml::Core::CompiledGeometryHandle)nullptr;
 #endif
 }
 

@@ -31,29 +31,19 @@
 
 #include "Header.h"
 #include "Types.h"
-#include "ReferenceCountable.h"
-#include "ElementReference.h"
+#include "Traits.h"
 #include "Input.h"
-#include "String.h"
 #include "ScriptInterface.h"
-#include "ViewState.h"
 
 namespace Rml {
 namespace Core {
 
 class Stream;
-class Dictionary;
-
-}
-}
-
-namespace Rml {
-namespace Core {
-
 class ContextInstancer;
 class ElementDocument;
 class EventListener;
 class RenderInterface;
+enum class EventId : uint16_t;
 
 /**
 	A context for storing, rendering and processing RML documents. Multiple contexts can exist simultaneously.
@@ -82,10 +72,6 @@ public:
 	/// @return The current dimensions of the context.
 	const Vector2i& GetDimensions() const;
 
-
-	/// Returns the current state of the view.
-	const ViewState& GetViewState() const noexcept;
-
 	/// Changes the size ratio of 'dp' unit to 'px' unit
 	/// @param[in] dp_ratio The new density-independent pixel ratio of the context.
 	void SetDensityIndependentPixelRatio(float density_independent_pixel_ratio);
@@ -93,27 +79,27 @@ public:
 	/// @return The current density-independent pixel ratio of the context.
 	float GetDensityIndependentPixelRatio() const;
 
-
-	/// Updates all elements in the context's documents.
+	/// Updates all elements in the context's documents. 
+	/// This must be called before Context::Render, but after any elements have been changed, added or removed.
 	bool Update();
 	/// Renders all visible elements in the context's documents.
 	bool Render();
 
 	/// Creates a new, empty document and places it into this context.
 	/// @param[in] tag The document type to create.
-	/// @return The new document, or NULL if no document could be created. The document is returned with a reference owned by the caller.
+	/// @return The new document, or nullptr if no document could be created.
 	ElementDocument* CreateDocument(const String& tag = "body");
 	/// Load a document into the context.
 	/// @param[in] document_path The path to the document to load.
-	/// @return The loaded document, or NULL if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded.
 	ElementDocument* LoadDocument(const String& document_path);
 	/// Load a document into the context.
 	/// @param[in] document_stream The opened stream, ready to read.
-	/// @return The loaded document, or NULL if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded.
 	ElementDocument* LoadDocument(Stream* document_stream);
 	/// Load a document into the context.
 	/// @param[in] string The string containing the document RML.
-	/// @return The loaded document, or NULL if no document was loaded. The document is returned with a reference owned by the caller.
+	/// @return The loaded document, or nullptr if no document was loaded.
 	ElementDocument* LoadDocumentFromMemory(const String& string);
 	/// Unload the given document.
 	/// @param[in] document The document to unload.
@@ -128,27 +114,31 @@ public:
 
 	/// Returns the first document in the context with the given id.
 	/// @param[in] id The id of the desired document.
-	/// @return The document (if it was found), or NULL if no document exists with the ID. The document is returned with a borrowed reference.
+	/// @return The document (if it was found), or nullptr if no document exists with the ID.
 	ElementDocument* GetDocument(const String& id);
 	/// Returns a document in the context by index.
 	/// @param[in] index The index of the desired document.
-	/// @return The document (if one exists with this index), or NULL if the index was invalid. The document is returned with a borrowed reference.
+	/// @return The document (if one exists with this index), or nullptr if the index was invalid.
 	ElementDocument* GetDocument(int index);
 	/// Returns the number of documents in the context.
-	/// @return The number of documents in the context.
 	int GetNumDocuments() const;
 
 	/// Returns the hover element.
-	/// @return The element the mouse cursor is hovering over. The element is returned with a borrowed reference.
+	/// @return The element the mouse cursor is hovering over.
 	Element* GetHoverElement();
-
 	/// Returns the focus element.
-	/// @return The element with input focus. The element is returned with a borrowed reference.
+	/// @return The element with input focus.
 	Element* GetFocusElement();
-
 	/// Returns the root element that holds all the documents
-	/// @return The root element. The element is returned with a borrowed reference.
+	/// @return The root element.
 	Element* GetRootElement();
+
+	// Returns the youngest descendent of the given element which is under the given point in screen coordinates.
+	// @param[in] point The point to test.
+	// @param[in] ignore_element If set, this element and its descendents will be ignored.
+	// @param[in] element Used internally.
+	// @return The element under the point, or nullptr if nothing is.
+	Element* GetElementAtPoint(Vector2f point, const Element* ignore_element = nullptr, Element* element = nullptr) const;
 
 	/// Brings the document to the front of the document stack.
 	/// @param[in] document The document to pull to the front of the stack.
@@ -156,6 +146,9 @@ public:
 	/// Sends the document to the back of the document stack.
 	/// @param[in] document The document to push to the bottom of the stack.
 	void PushDocumentToBack(ElementDocument* document);
+	/// Remove the document from the focus history and focus the previous document.
+	/// @param[in] document The document to unfocus.
+	void UnfocusDocument(ElementDocument* document);
 
 	/// Adds an event listener to the context's root element.
 	/// @param[in] event The name of the event to attach to.
@@ -179,12 +172,14 @@ public:
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
 	bool ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier_state);
 
-	/// Sends a single character of text as text input into this context.
-	/// @param[in] character The UCS-2 character to send into this context.
+	/// Sends a single unicode character as text input into this context.
+	/// @param[in] character The unicode code point to send into this context.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool ProcessTextInput(word character);
+	bool ProcessTextInput(Character character);
+	/// Sends a single ascii character as text input into this context.
+	bool ProcessTextInput(char character);
 	/// Sends a string of text as text input into this context.
-	/// @param[in] string The UCS-2 string to send into this context.
+	/// @param[in] string The UTF8 string to send into this context.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
 	bool ProcessTextInput(const String& string);
 
@@ -205,14 +200,7 @@ public:
 	/// @param[in] wheel_delta The mouse-wheel movement this frame. RmlUi treats a negative delta as up movement (away from the user), positive as down.
 	/// @param[in] key_modifier_state The state of key modifiers (shift, control, caps-lock, etc) keys; this should be generated by ORing together members of the Input::KeyModifier enumeration.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool ProcessMouseWheel(int wheel_delta, int key_modifier_state);
-
-	/// Notifies RmlUi of a change in the projection matrix.
-	/// @param[in] projection The new projection matrix.
-	void ProcessProjectionChange(const Matrix4f &projection);
-	/// Notifies RmlUi of a change in the view matrix.
-	/// @param[in] projection The new view matrix.
-	void ProcessViewChange(const Matrix4f &view);
+	bool ProcessMouseWheel(float wheel_delta, int key_modifier_state);
 
 	/// Gets the context's render interface.
 	/// @return The render interface the context renders through.
@@ -231,7 +219,7 @@ public:
 	void SetInstancer(ContextInstancer* instancer);
 
 protected:
-	virtual void OnReferenceDeactivate();
+	void Release() override;
 
 private:
 	String name;
@@ -240,8 +228,8 @@ private:
 
 	ContextInstancer* instancer;
 
-	typedef std::set< ElementReference > ElementSet;
-	typedef std::vector< ElementReference > ElementList;
+	using ElementSet = SmallOrderedSet< Element* > ;
+	using ElementList = std::vector< Element* >;
 	// Set of elements that are currently in hover state.
 	ElementSet hover_chain;
 	// List of elements that are currently in active state.
@@ -250,16 +238,16 @@ private:
 	ElementList document_focus_history;
 
 	// Documents that have been unloaded from the context but not yet released.
-	ElementList unloaded_documents;
+	OwnedElementList unloaded_documents;
 
 	// Root of the element tree.
-	Element* root;
+	ElementPtr root;
 	// The element that current has input focus.
-	ElementReference focus;
+	Element* focus;
 	// The top-most element being hovered over.
-	ElementReference hover;
+	Element* hover;
 	// The element that was being hovered over when the primary mouse button was pressed most recently.
-	ElementReference active;
+	Element* active;
 
 	// The element that was clicked on last.
 	Element* last_click_element;
@@ -270,10 +258,10 @@ private:
 	bool enable_cursor;
 	String cursor_name;
 	// Document attached to cursor (e.g. while dragging).
-	ElementDocument* cursor_proxy;
+	ElementPtr cursor_proxy;
 
 	// The element that is currently being dragged (or about to be dragged).
-	ElementReference drag;
+	Element* drag;
 	// True if a drag has begun (ie, the ondragstart event has been fired for the drag element), false otherwise.
 	bool drag_started;
 	// True if the current drag is a verbose drag (ie, sends ondragover, ondragout, ondragdrop, etc, events).
@@ -283,7 +271,7 @@ private:
 
 	// The element currently being dragged over; this is equivalent to hover, but only set while an element is being
 	// dragged, and excludes the dragged element.
-	ElementReference drag_hover;
+	Element* drag_hover;
 	// Set of elements that are currently being dragged over; this differs from the hover state as the dragged element
 	// itself can't be part of it.
 	ElementSet drag_hover_chain;
@@ -296,11 +284,8 @@ private:
 	Vector2i clip_origin;
 	Vector2i clip_dimensions;
 
-	// The current view state
-	ViewState view_state;
-
-	// Internal callback for when an element is removed from the hierarchy.
-	void OnElementRemove(Element* element);
+	// Internal callback for when an element is detached or removed from the hierarchy.
+	void OnElementDetach(Element* element);
 	// Internal callback for when a new element gains focus.
 	bool OnFocusChange(Element* element);
 
@@ -309,12 +294,6 @@ private:
 
 	// Updates the current hover elements, sending required events.
 	void UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, const Vector2i& old_mouse_position);
-	// Returns the youngest descendent of the given element which is under the given point in screen coordinates.
-	// @param[in] point The point to test.
-	// @param[in] ignore_element If set, this element and its descendents will be ignored.
-	// @param[in] element Used internally.
-	// @return The element under the point, or NULL if nothing is.
-	Element* GetElementAtPoint(const Vector2f& point, const Element* ignore_element = NULL, Element* element = NULL);
 
 	// Creates the drag clone from the given element. The old drag clone will be released if
 	// necessary.
@@ -336,7 +315,7 @@ private:
 	void ReleaseUnloadedDocuments();
 
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
-	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, const String& event, const Dictionary& parameters, bool interruptible);
+	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
 	friend class Element;
 	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);

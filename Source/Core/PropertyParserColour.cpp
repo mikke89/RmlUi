@@ -64,7 +64,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 {
 	RMLUI_UNUSED(parameters);
 
-	if (value.Empty())
+	if (value.empty())
 		return false;
 
 	Colourb colour;
@@ -77,7 +77,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 								  {'f', 'f'},
 								  {'f', 'f'} };
 
-		switch (value.Length())
+		switch (value.size())
 		{
 			// Single hex digit per channel, RGB and alpha.
 			case 5:		hex_values[3][0] = hex_values[3][1] = value[4];
@@ -93,7 +93,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 						hex_values[3][1] = value[8];
 
 			// Two hex digits per channel, RGB only.
-			case 7:		memcpy(hex_values, &value.CString()[1], sizeof(char) * 6);
+			case 7:		memcpy(hex_values, &value.c_str()[1], sizeof(char) * 6);
 						break;
 
 			default:
@@ -112,15 +112,21 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 			colour[i] = (byte) (tens * 16 + ones);
 		}
 	}
-	else if (value.Substring(0, 3) == "rgb")
+	else if (value.substr(0, 3) == "rgb")
 	{
 		StringList values;
+		values.reserve(4);
 
-		int find = (int)value.Find("(") + 1;
-		StringUtilities::ExpandString(values, value.Substring(find, value.RFind(")") - find), ',');
+		size_t find = value.find('(');
+		if (find == String::npos)
+			return false;
+
+		size_t begin_values = find + 1;
+
+		StringUtilities::ExpandString(values, value.substr(begin_values, value.rfind(')') - begin_values), ',');
 
 		// Check if we're parsing an 'rgba' or 'rgb' colour declaration.
-		if (value.Length() > 3 && value[3] == 'a')
+		if (value.size() > 3 && value[3] == 'a')
 		{
 			if (values.size() != 4)
 				return false;
@@ -139,11 +145,11 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 			int component;
 
 			// We're parsing a percentage value.
-			if (values[i].Length() > 0 && values[i][values[i].Length() - 1] == '%')
-				component = Math::RealToInteger((float) (atof(values[i].Substring(0, values[i].Length() - 1).CString()) / 100.0f) * 255.0f);
+			if (values[i].size() > 0 && values[i][values[i].size() - 1] == '%')
+				component = Math::RealToInteger((float) (atof(values[i].substr(0, values[i].size() - 1).c_str()) / 100.0f) * 255.0f);
 			// We're parsing a 0 -> 255 integer value.
 			else
-				component = atoi(values[i].CString());
+				component = atoi(values[i].c_str());
 
 			colour[i] = (byte) (Math::Clamp(component, 0, 255));
 		}
@@ -151,7 +157,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 	else
 	{
 		// Check for the specification of an HTML colour.
-		ColourMap::const_iterator iterator = html_colours.find(value);
+		ColourMap::const_iterator iterator = html_colours.find(StringUtilities::ToLower(value));
 		if (iterator == html_colours.end())
 			return false;
 		else
@@ -162,12 +168,6 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 	property.unit = Property::COLOUR;
 
 	return true;
-}
-
-// Destroys the parser.
-void PropertyParserColour::Release()
-{
-	delete this;
 }
 
 }

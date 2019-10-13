@@ -59,7 +59,7 @@ int ElementStyleProxy__index(lua_State* L)
         LUACHECKOBJ(es);
         const Property* prop = es->owner->GetProperty(lua_tostring(L,2));
         LUACHECKOBJ(prop)
-        lua_pushstring(L,prop->ToString().CString());
+        lua_pushstring(L,prop->ToString().c_str());
         return 1;
     }
     else //if it wasn't trying to get a string
@@ -107,15 +107,23 @@ int ElementStyleProxy__pairs(lua_State* L)
     int* pindex = (int*)lua_touserdata(L,3);
     if((*pindex) == -1)
         *pindex = 0;
-    //iterate variables
-    String key,val;
-    const Property* prop;
-    PseudoClassList pseudo;
-    if(obj->owner->IterateProperties((*pindex),pseudo,key,prop))
+
+	int i = 0;
+	auto it = obj->owner->IterateLocalProperties();
+	while (i < (*pindex) && !it.AtEnd())
+	{
+		++it;
+		++i;
+	}
+
+    if(!it.AtEnd())
     {
-        prop->definition->GetValue(val,*prop);
-        lua_pushstring(L,key.CString());
-        lua_pushstring(L,val.CString());
+		const String& key = it.GetName();
+		const Property& property = it.GetProperty();
+		String val;
+        property.definition->GetValue(val, property);
+        lua_pushstring(L,key.c_str());
+        lua_pushstring(L,val.c_str());
     }
     else
     {
@@ -135,20 +143,20 @@ int ElementStyleProxy__ipairs(lua_State* L)
 
 RegType<ElementStyleProxy> ElementStyleProxyMethods[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementStyleProxyGetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementStyleProxySetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ElementStyleProxy,false)
+LUACORETYPEDEFINE(ElementStyleProxy)
 }
 }
 }

@@ -29,7 +29,6 @@
 #ifndef RMLUICONTROLSWIDGETDROPDOWN_H
 #define RMLUICONTROLSWIDGETDROPDOWN_H
 
-#include "../../Include/RmlUi/Core/String.h"
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Controls/SelectOption.h"
 #include <vector>
@@ -78,6 +77,14 @@ public:
 	/// @param[in] selectable If true this option can be selected. If false, this option is not selectable.
 	/// @return The index of the new option.
 	int AddOption(const Rml::Core::String& rml, const Rml::Core::String& value, int before, bool select, bool selectable = true);
+	/// Moves an option element to the select control.
+	/// @param[in] element Element to move.
+	/// @param[in] value The value of the option.
+	/// @param[in] before The index of the element to insert the new option before.
+	/// @param[in] select True to select the new option.
+	/// @param[in] selectable If true this option can be selected. If false, this option is not selectable.
+	/// @return The index of the new option, or -1 if invalid.
+	int AddOption(Rml::Core::ElementPtr element, const Rml::Core::String& value, int before, bool select, bool selectable);
 	/// Removes an option from the select control.
 	/// @param[in] index The index of the option to remove.
 	void RemoveOption(int index);
@@ -86,14 +93,14 @@ public:
 
 	/// Returns on of the widget's options.
 	/// @param[in] The index of the desired option.
-	/// @return The option. This may be NULL if the index was out of bounds.
+	/// @return The option. This may be nullptr if the index was out of bounds.
 	SelectOption* GetOption(int index);
 	/// Returns the number of options in the widget.
 	/// @return The number of options.
 	int GetNumOptions() const;
 
 	/// Processes the incoming event.
-	virtual void ProcessEvent(Core::Event& event);
+	void ProcessEvent(Core::Event& event) override;
 
 private:
 	typedef std::vector< SelectOption > OptionList;
@@ -118,6 +125,7 @@ private:
 
 	bool box_layout_dirty;
 	bool value_layout_dirty;
+	bool box_visible;
 };
 
 }

@@ -40,7 +40,7 @@ namespace Lua {
 int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj)
 {
     LUACHECKOBJ(obj);
-    int index = luaL_checkinteger(L,1);
+    int index = (int)luaL_checkinteger(L,1);
     const char* rml = luaL_checkstring(L,2);
 
     obj->SetPanel(index,rml);
@@ -50,7 +50,7 @@ int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj)
 int ElementTabSetSetTab(lua_State* L, ElementTabSet* obj)
 {
     LUACHECKOBJ(obj);
-    int index = luaL_checkinteger(L,1);
+    int index = (int)luaL_checkinteger(L,1);
     const char* rml = luaL_checkstring(L,2);
 
     obj->SetTab(index,rml);
@@ -83,7 +83,7 @@ int ElementTabSetSetAttractive_tab(lua_State* L)
 {
     ElementTabSet* obj = LuaType<ElementTabSet>::check(L,1);
     LUACHECKOBJ(obj);
-    int tab = luaL_checkinteger(L,2);
+    int tab = (int)luaL_checkinteger(L,2);
     obj->SetActiveTab(tab);
     return 0;
 }
@@ -93,20 +93,20 @@ Rml::Core::Lua::RegType<ElementTabSet> ElementTabSetMethods[] =
 {
     LUAMETHOD(ElementTabSet,SetPanel)
     LUAMETHOD(ElementTabSet,SetTab)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTabSetGetters[] =
 {
     LUAGETTER(ElementTabSet,active_tab)
     LUAGETTER(ElementTabSet,num_tabs)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementTabSetSetters[] =
 {
     LUASETTER(ElementTabSet,active_tab)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 
@@ -126,7 +126,7 @@ template<> void ExtraInit<Rml::Controls::ElementTabSet>(lua_State* L, int metata
 }
 
 using Rml::Controls::ElementTabSet;
-LUACONTROLSTYPEDEFINE(ElementTabSet,true)
+LUACONTROLSTYPEDEFINE(ElementTabSet)
 }
 }
 }

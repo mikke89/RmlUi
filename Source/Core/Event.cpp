@@ -33,20 +33,38 @@
 namespace Rml {
 namespace Core {
 
-Event::Event()
+Event::Event() : id(EventId::Invalid)
 {
-	phase = PHASE_UNKNOWN;
-	interruped = false;
+	id = EventId::Invalid;
+	phase = EventPhase::None;
 	interruptible = false;
-	current_element = NULL;
-	target_element = NULL;
+	interrupted = false;
+	interrupted_immediate = false;
+	current_element = nullptr;
+	target_element = nullptr;
+	has_mouse_position = false;
+	mouse_screen_position = Vector2f(0, 0);
 }
 
-Event::Event(Element* _target_element, const String& _type, const Dictionary& _parameters, bool _interruptible) : type(_type), parameters(_parameters), target_element(_target_element), parameters_backup(_parameters), interruptible(_interruptible)
+Event::Event(Element* _target_element, EventId id, const String& type, const Dictionary& _parameters, bool interruptible)
+	: parameters(_parameters), target_element(_target_element), type(type), id(id), interruptible(interruptible)
 {
-	phase = PHASE_UNKNOWN;
-	interruped = false;
-	current_element = NULL;
+	phase = EventPhase::None;
+	interrupted = false;
+	interrupted_immediate = false;
+	current_element = nullptr;
+
+	has_mouse_position = false;
+	mouse_screen_position = Vector2f(0, 0);
+
+	const Variant* mouse_x = GetIf(parameters, "mouse_x");
+	const Variant* mouse_y = GetIf(parameters, "mouse_y");
+	if (mouse_x && mouse_y)
+	{
+		has_mouse_position = true;
+		mouse_x->GetInto(mouse_screen_position.x);
+		mouse_y->GetInto(mouse_screen_position.y);
+	}
 }
 
 Event::~Event()
@@ -55,8 +73,11 @@ Event::~Event()
 
 void Event::SetCurrentElement(Element* element)
 {
-	ProjectMouse(element);
 	current_element = element;
+	if(has_mouse_position)
+	{
+		ProjectMouse(element);
+	}
 }
 
 Element* Event::GetCurrentElement() const
@@ -79,72 +100,100 @@ bool Event::operator==(const String& _type) const
 	return type == _type;
 }
 
+bool Event::operator==(EventId _id) const
+{
+	return id == _id;
+}
+
 void Event::SetPhase(EventPhase _phase)
 {
 	phase = _phase;
 }
 
-Event::EventPhase Event::GetPhase() const
+EventPhase Event::GetPhase() const
 {
 	return phase;
 }
 
 bool Event::IsPropagating() const
 {
-	return !interruped;
+	return !interrupted;
 }
 
 void Event::StopPropagation()
 {
-	// Set interruped to true if we can be interruped
-	if (interruptible) 
+	// Set interrupted to true if we can be interrupted
+	if (interruptible)
 	{
-		interruped = true;
+		interrupted = true;
 	}
 }
 
-const Dictionary* Event::GetParameters() const
+bool Event::IsImmediatePropagating() const
 {
-	return &parameters;
+	return !interrupted_immediate;
 }
 
-void Event::OnReferenceDeactivate()
+void Event::StopImmediatePropagation()
+{
+	if(interruptible)
+	{
+		interrupted_immediate = true;
+		interrupted = true;
+	}
+}
+
+const Dictionary& Event::GetParameters() const
+{
+	return parameters;
+}
+
+const Vector2f& Event::GetUnprojectedMouseScreenPos() const
+{
+	return mouse_screen_position;
+}
+
+void Event::Release()
 {
 	instancer->ReleaseEvent(this);
 }
 
+EventId Event::GetId() const
+{
+	return id;
+}
+
 void Event::ProjectMouse(Element* element)
 {
-	if (element)
+	if(!element)
 	{
-		Variant *old_mouse_x = parameters_backup.Get("mouse_x");
-		Variant *old_mouse_y = parameters_backup.Get("mouse_y");
-		if (!old_mouse_x || !old_mouse_y)
-		{
-			// This is not a mouse event.
-			return;
-		}
+		parameters["mouse_x"] = mouse_screen_position.x;
+		parameters["mouse_y"] = mouse_screen_position.y;
+		return;
+	}
 
-		Variant *mouse_x = parameters.Get("mouse_x");
-		Variant *mouse_y = parameters.Get("mouse_y");
+	// Only need to project mouse position if element has a transform state
+	if (element->GetTransformState())
+	{
+		// Project mouse from parent (previous 'mouse_x/y' property) to child (element)
+		Variant *mouse_x = GetIf(parameters, "mouse_x");
+		Variant *mouse_y = GetIf(parameters, "mouse_y");
 		if (!mouse_x || !mouse_y)
 		{
-			// This should not happen.
+			RMLUI_ERROR;
 			return;
 		}
 
-		Vector2f old_mouse(
-			old_mouse_x->Get< float >(),
-			old_mouse_y->Get< float >()
-		);
-		Vector2f mouse = element->Project(old_mouse);
+		Vector2f projected_position = mouse_screen_position;
 
-		mouse_x->Reset(mouse.x);
-		mouse_y->Reset(mouse.y);
-	}
-	else
-	{
-		parameters = parameters_backup;
+		// Not sure how best to handle the case where the projection fails.
+		if (element->Project(projected_position))
+		{
+			*mouse_x = projected_position.x;
+			*mouse_y = projected_position.y;
+		}
+		else
+			StopPropagation();
 	}
 }
 

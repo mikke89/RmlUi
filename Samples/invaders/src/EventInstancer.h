@@ -42,10 +42,8 @@ public:
 	virtual ~EventInstancer();
 
 	/// Instances a new event handle for Invaders.
-	virtual Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element);
+	Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element) override;
 
-	/// Destroys the instancer.
-	virtual void Release();
 };
 
 #endif

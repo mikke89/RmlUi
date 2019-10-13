@@ -39,18 +39,18 @@ const Rml::Core::String DataSource::CHILD_SOURCE("#child_data_source");
 const Rml::Core::String DataSource::DEPTH("#depth");
 const Rml::Core::String DataSource::NUM_CHILDREN("#num_children");
 
-typedef std::map< Rml::Core::String, DataSource* > DataSourceMap;
+typedef Core::UnorderedMap< Rml::Core::String, DataSource* > DataSourceMap;
 static DataSourceMap data_sources;
 
 DataSource::DataSource(const Rml::Core::String& _name)
 {
-	if (!_name.Empty())
+	if (!_name.empty())
 	{
 		name = _name;
 	}
 	else
 	{
-		name.FormatString(64, "%x", this);
+		name = Core::CreateString(64, "%x", this);
 	}
 	data_sources[name] = this;
 }
@@ -81,7 +81,7 @@ DataSource* DataSource::GetDataSource(const Rml::Core::String& data_source_name)
 	DataSourceMap::iterator i = data_sources.find(data_source_name);
 	if (i == data_sources.end())
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	return (*i).second;
@@ -109,7 +109,7 @@ void DataSource::DetachListener(DataSourceListener* listener)
 
 void* DataSource::GetScriptObject() const
 {
-	return NULL;
+	return nullptr;
 }
 
 void DataSource::NotifyRowAdd(const Rml::Core::String& table, int first_row_added, int num_rows_added)
@@ -163,7 +163,7 @@ void DataSource::BuildRowEntries(Rml::Core::StringList& row, const RowMap& row_m
 		else
 		{
 			row[i] = "";
-			Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Failed to find required data source column %s", columns[i].CString());
+			Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Failed to find required data source column %s", columns[i].c_str());
 		}
 	}
 }

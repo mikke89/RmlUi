@@ -15,11 +15,11 @@
 #include <RmlUi/Core.h>
 #include <stdio.h>
 
-HighScores* HighScores::instance = NULL;
+HighScores* HighScores::instance = nullptr;
 
 HighScores::HighScores()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -33,7 +33,7 @@ HighScores::HighScores()
 HighScores::~HighScores()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
 }
 
 void HighScores::Initialise()

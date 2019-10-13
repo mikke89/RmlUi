@@ -45,18 +45,18 @@ public:
 	virtual ~ElementGame();
 
 	/// Intercepts and handles key events.
-	void ProcessEvent(Rml::Core::Event& event);
+	void ProcessEvent(Rml::Core::Event& event) override;
 
 	/// Receive notifications when child elements are added
 	/// This will only get called when we're added to the tree,
 	/// which allows us to bind to onload
-	void OnChildAdd(Rml::Core::Element* element);
+	void OnChildAdd(Rml::Core::Element* element) override;
 
 protected:
 	/// Updates the game.
-	virtual void OnUpdate();
+	void OnUpdate() override;
 	/// Renders the game.
-	virtual void OnRender();
+	void OnRender() override;
 
 private:
 	Game* game;

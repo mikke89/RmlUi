@@ -28,7 +28,6 @@
 
 #include "precompiled.h"
 #include "LayoutInlineBoxText.h"
-#include "FontFaceHandle.h"
 #include "LayoutEngine.h"
 #include "LayoutLineBox.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
@@ -61,7 +60,7 @@ bool LayoutInlineBoxText::CanOverflow() const
 LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
 {
 	ElementText* text_element = GetTextElement();
-	RMLUI_ASSERT(text_element != NULL);
+	RMLUI_ASSERT(text_element != nullptr);
 
 	int line_length;
 	float line_width;
@@ -78,7 +77,7 @@ LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float availabl
 	if (overflow)
 		return new LayoutInlineBoxText(element, line_begin + line_length);
 
-	return NULL;
+	return nullptr;
 }
 
 // Computes and sets the vertical position of this element, relative to its parent inline box (or block box, for an un-nested inline box).
@@ -97,9 +96,9 @@ void LayoutInlineBoxText::OffsetBaseline(float ascender)
 	// Calculate the leading (the difference between font height and line height).
 	float leading = 0;
 
-	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
-	if (font_face_handle != NULL)
-		leading = height - font_face_handle->GetLineHeight();
+	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
+	if (font_face_handle != 0)
+		leading = height - GetFontEngineInterface()->GetLineHeight(font_face_handle);
 
 	// Offset by the half-leading.
 	position.y += leading * 0.5f;
@@ -146,23 +145,23 @@ ElementText* LayoutInlineBoxText::GetTextElement()
 // Builds a box for the first word of the element.
 void LayoutInlineBoxText::BuildWordBox()
 {
-	ElementText* text_element = GetTextElement();
-	RMLUI_ASSERT(text_element != NULL);
+	RMLUI_ZoneScoped;
 
-	FontFaceHandle* font_face_handle = text_element->GetFontFaceHandle();
-	if (font_face_handle == NULL)
+	ElementText* text_element = GetTextElement();
+	RMLUI_ASSERT(text_element != nullptr);
+
+	FontFaceHandle font_face_handle = text_element->GetFontFaceHandle();
+	if (font_face_handle == 0)
 	{
 		height = 0;
 		baseline = 0;
-
-		// For unknown reasons, this gets triggered during document load. Seems to cause no trouble, remove warning.
-		Log::Message(Log::LT_WARNING, "No font face defined on element %s. Please specify a font-family in your RCSS.", text_element->GetAddress().CString());
+		Log::Message(Log::LT_WARNING, "No font face defined on element %s. Please specify a font-family in your RCSS, otherwise make sure Context::Update is run after new elements are constructed, before Context::Render.", text_element->GetAddress().c_str());
 		return;
 	}
 
 	Vector2f content_area;
 	line_segmented = !text_element->GenerateToken(content_area.x, line_begin);
-	content_area.y = (float) ElementUtilities::GetLineHeight(element);
+	content_area.y = element->GetLineHeight();
 	box.SetContent(content_area);
 }
 

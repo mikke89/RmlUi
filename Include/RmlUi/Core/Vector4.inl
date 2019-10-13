@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +73,7 @@ Type Vector4< Type >::SquaredMagnitude() const
 template < typename Type >
 Vector4< Type > Vector4< Type >::Normalise() const
 {
-	RMLUI_STATIC_ASSERT(std::is_floating_point< Type >::value, Invalid_Operation);
+	static_assert(std::is_floating_point< Type >::value, "Invalid operation");
 	return *this;
 }
 
@@ -197,12 +198,22 @@ Vector4< Type >::operator Type* ()
 	return &x;
 }
 
-// Auto-cast operator to 3D vector.
-// @return Equivalent 3D vector.
+template < typename Type >
+Vector3< Type > Vector4< Type >::PerspectiveDivide() const
+{
+	return Vector3< Type >(x / w, y / w, z / w);
+}
+
 template < typename Type >
 Vector4< Type >::operator Vector3< Type >() const
 {
-	return Vector3< Type >(x / w, y / w, z / w);
+	return Vector3< Type >(x, y, z);
+}
+
+template < typename Type >
+Vector4< Type >::operator Vector2< Type >() const
+{
+	return Vector2< Type >(x, y);
 }
 
 }

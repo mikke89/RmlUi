@@ -37,8 +37,8 @@ const int DEFAULT_BUFFER_SIZE = 4096;
 
 BaseXMLParser::BaseXMLParser()
 {
-	read = NULL;
-	buffer = NULL;
+	read = nullptr;
+	buffer = nullptr;
 	buffer_used = 0;
 	buffer_size = 0;
 	open_tag_depth = 0;
@@ -51,8 +51,8 @@ BaseXMLParser::~BaseXMLParser()
 // Registers a tag as containing general character data.
 void BaseXMLParser::RegisterCDATATag(const String& tag)
 {
-	if (!tag.Empty())
-		cdata_tags.insert(tag.ToLower());
+	if (!tag.empty())
+		cdata_tags.insert(StringUtilities::ToLower(tag));
 }
 
 // Parses the given stream as an XML file, and calls the handlers when
@@ -76,9 +76,14 @@ void BaseXMLParser::Parse(Stream* stream)
 }
 
 // Get the current file line number
-int BaseXMLParser::GetLineNumber()
+int BaseXMLParser::GetLineNumber() const
 {
 	return line_number;
+}
+
+int BaseXMLParser::GetLineNumberOpenTag() const
+{
+	return line_number_open_tag;
 }
 
 // Called when the parser finds the beginning of an element tag.
@@ -111,7 +116,10 @@ void BaseXMLParser::ReadHeader()
 
 void BaseXMLParser::ReadBody()
 {
+	RMLUI_ZoneScoped;
+
 	open_tag_depth = 0;
+	line_number_open_tag = 0;
 
 	for(;;)
 	{
@@ -148,7 +156,9 @@ void BaseXMLParser::ReadBody()
 		}
 		else
 		{
-			if (!ReadOpenTag())
+			if (ReadOpenTag())
+				line_number_open_tag = line_number;
+			else
 				break;
 		}
 	}
@@ -156,7 +166,7 @@ void BaseXMLParser::ReadBody()
 	// Check for error conditions
 	if (open_tag_depth > 0)
 	{
-		Log::Message(Log::LT_WARNING, "XML parse error on line %d of %s.", GetLineNumber(), xml_source->GetSourceURL().GetURL().CString());
+		Log::Message(Log::LT_WARNING, "XML parse error on line %d of %s.", GetLineNumber(), xml_source->GetSourceURL().GetURL().c_str());
 	}
 }
 
@@ -166,10 +176,10 @@ bool BaseXMLParser::ReadOpenTag()
 	open_tag_depth++;
 
 	// Opening tag; send data immediately and open the tag.
-	if (!data.Empty())
+	if (!data.empty())
 	{
 		HandleData(data);
-		data.Clear();
+		data.clear();
 	}
 
 	String tag_name;
@@ -224,16 +234,16 @@ bool BaseXMLParser::ReadOpenTag()
 	// Check if this tag needs to processed as CDATA.
 	if (section_opened)
 	{
-		String lcase_tag_name = tag_name.ToLower();
+		String lcase_tag_name = StringUtilities::ToLower(tag_name);
 		if (cdata_tags.find(lcase_tag_name) != cdata_tags.end())
 		{
-			if (ReadCDATA(lcase_tag_name.CString()))
+			if (ReadCDATA(lcase_tag_name.c_str()))
 			{
 				open_tag_depth--;
-				if (!data.Empty())
+				if (!data.empty())
 				{
 					HandleData(data);
-					data.Clear();
+					data.clear();
 				}
 				HandleElementEnd(tag_name);
 
@@ -250,10 +260,10 @@ bool BaseXMLParser::ReadOpenTag()
 bool BaseXMLParser::ReadCloseTag()
 {
 	// Closing tag; send data immediately and close the tag.
-	if (!data.Empty())
+	if (!data.empty())
 	{
 		HandleData(data);
-		data.Clear();
+		data.clear();
 	}
 
 	String tag_name;
@@ -300,7 +310,7 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 			}
 		}
 
- 		attributes.Set(attribute.CString(), value);
+ 		attributes[attribute] = value;
 
 		// Check for the end of the tag.
 		if (PeekString((const unsigned char*) "/", false) ||
@@ -312,7 +322,7 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 bool BaseXMLParser::ReadCDATA(const char* terminator)
 {
 	String cdata;
-	if (terminator == NULL)
+	if (terminator == nullptr)
 	{
 		FindString((const unsigned char*) "]]>", cdata);
 		data += cdata;
@@ -331,8 +341,9 @@ bool BaseXMLParser::ReadCDATA(const char* terminator)
 				String tag;
 				if (FindString((const unsigned char*) ">", tag))
 				{
-					String tag_name = StringUtilities::StripWhitespace(tag.Substring(tag.Find("/") + 1));
-					if (tag_name.ToLower() == terminator)
+					size_t slash_pos = tag.find('/');
+					String tag_name = StringUtilities::StripWhitespace(slash_pos == String::npos ? tag : tag.substr(slash_pos + 1));
+					if (StringUtilities::ToLower(tag_name) == terminator)
 					{
 						data += cdata;
 						return true;
@@ -367,7 +378,7 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 		// Ignore white space
 		if (StringUtilities::IsWhitespace(*read))
 		{
-			if (word.Empty())
+			if (word.empty())
 			{
 				read++;
 				continue;
@@ -379,7 +390,7 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 		// Check for termination condition
 		if (terminators && strchr(terminators, *read))
 		{
-			return !word.Empty();
+			return !word.empty();
 		}
 
 		word += *read;
@@ -413,7 +424,7 @@ bool BaseXMLParser::FindString(const unsigned char* string, String& data)
 		{
 			if (index > 0)
 			{
-				data.Append((const char*) string, index);
+				data += String((const char*)string, index);
 				index = 0;
 			}
 
@@ -449,8 +460,8 @@ bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
 				buffer_size *= 2;
 				int read_offset = (int)(read - buffer);
 				unsigned char* new_buffer = (unsigned char*) realloc(buffer, buffer_size);
-				RMLUI_ASSERTMSG(new_buffer != NULL, "Unable to allocate larger buffer for Peek() call");
-				if(new_buffer == NULL)
+				RMLUI_ASSERTMSG(new_buffer != nullptr, "Unable to allocate larger buffer for Peek() call");
+				if(new_buffer == nullptr)
 				{
 					return false;
 				}

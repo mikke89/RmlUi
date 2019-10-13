@@ -51,7 +51,7 @@ int ElementFormControlGetAttrname(lua_State* L)
 {
     ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
     LUACHECKOBJ(efc);
-    lua_pushstring(L,efc->GetName().CString());
+    lua_pushstring(L,efc->GetName().c_str());
     return 1;
 }
 
@@ -59,7 +59,7 @@ int ElementFormControlGetAttrvalue(lua_State* L)
 {
     ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
     LUACHECKOBJ(efc);
-    lua_pushstring(L,efc->GetValue().CString());
+    lua_pushstring(L,efc->GetValue().c_str());
     return 1;
 }
 
@@ -94,7 +94,7 @@ int ElementFormControlSetAttrvalue(lua_State* L)
 
 Rml::Core::Lua::RegType<ElementFormControl> ElementFormControlMethods[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlGetters[] = 
@@ -102,7 +102,7 @@ luaL_Reg ElementFormControlGetters[] =
     LUAGETTER(ElementFormControl,disabled)
     LUAGETTER(ElementFormControl,name)
     LUAGETTER(ElementFormControl,value)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlSetters[] = 
@@ -110,7 +110,7 @@ luaL_Reg ElementFormControlSetters[] =
     LUASETTER(ElementFormControl,disabled)
     LUASETTER(ElementFormControl,name)
     LUASETTER(ElementFormControl,value)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }
@@ -126,7 +126,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControl>(lua_State* L, int m
     AddTypeToElementAsTable<Rml::Controls::ElementFormControl>(L);
 }
 using Rml::Controls::ElementFormControl;
-LUACONTROLSTYPEDEFINE(ElementFormControl,true)
+LUACONTROLSTYPEDEFINE(ElementFormControl)
 }
 }
 }

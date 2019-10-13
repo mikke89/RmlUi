@@ -32,7 +32,6 @@
 #include <RmlUi/Core/Lua/LuaType.h>
 #include <RmlUi/Core/Lua/lua.hpp>
 #include <RmlUi/Controls/DataSource.h>
-#include <RmlUi/Core/String.h>
 
 namespace Rml {
 namespace Controls {
@@ -49,11 +48,11 @@ public:
 	/// @param[in] table The name of the table to query.
 	/// @param[in] row_index The index of the desired row.
 	/// @param[in] columns The list of desired columns within the row.
-	virtual void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns);
+	void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns) override;
 	/// Fetches the number of rows within one of this data source's tables.
 	/// @param[in] table The name of the table to query.
 	/// @return The number of rows within the specified table. Returns -1 in case of an incorrect Lua function.
-	virtual int GetNumRows(const Rml::Core::String& table);
+	int GetNumRows(const Rml::Core::String& table) override;
 
     //make the protected members of DataSource public
     using DataSource::NotifyRowAdd;

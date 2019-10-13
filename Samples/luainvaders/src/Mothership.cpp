@@ -32,17 +32,18 @@
 #include "Game.h"
 #include "Sprite.h"
 
-const int SPRITE_WIDTH = 64;
+static const int SPRITE_WIDTH = 64;
 
-const float APPEARANCE_PROBABILITY = 0.001f;
-const float UPDATE_FREQ = 0.025f;
-const float MOVEMENT_SPEED = 5;
+static const float APPEARANCE_PROBABILITY = 0.001f;
+static const double UPDATE_FREQ = 0.025;
+static const float MOVEMENT_SPEED = 5;
 
 Mothership::Mothership(Game* game, int index) : Invader(game, Invader::MOTHERSHIP, index)
 {
 	// Start off dead, and set up our position
 	state = DEAD;
 	update_frame_start = 0;
+	direction = 0;
 	position = Rml::Core::Vector2f(-SPRITE_WIDTH, 64.0f);
 }
 

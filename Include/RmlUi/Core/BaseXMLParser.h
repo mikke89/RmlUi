@@ -62,7 +62,9 @@ class RMLUICORE_API BaseXMLParser
 
 		/// Get the line number in the stream.
 		/// @return The line currently being processed in the XML stream.
-		int GetLineNumber();
+		int GetLineNumber() const;
+		/// Get the line number of the last open tag in the stream.
+		int GetLineNumberOpenTag() const;
 
 		/// Called when the parser finds the beginning of an element tag.
 		virtual void HandleElementStart(const String& name, const XMLAttributes& attributes);
@@ -82,12 +84,12 @@ class RMLUICORE_API BaseXMLParser
 		bool ReadOpenTag();
 		bool ReadCloseTag();
 		bool ReadAttributes(XMLAttributes& attributes);
-		bool ReadCDATA(const char* terminator = NULL);
+		bool ReadCDATA(const char* terminator = nullptr);
 
 		// Reads from the stream until a complete word is found.
 		// @param[out] word Word thats been found
 		// @param[in] terminators List of characters that terminate the search
-		bool FindWord(String& word, const char* terminators = NULL);
+		bool FindWord(String& word, const char* terminators = nullptr);
 		// Reads from the stream until the given character set is found. All
 		// intervening characters will be returned in data.
 		bool FindString(const unsigned char* string, String& data);
@@ -104,6 +106,7 @@ class RMLUICORE_API BaseXMLParser
 		int buffer_size;
 		int buffer_used;
 		int line_number;
+		int line_number_open_tag;
 		int open_tag_depth;
 
 		// The element attributes being read.
@@ -111,7 +114,7 @@ class RMLUICORE_API BaseXMLParser
 		// The loose data being read.
 		String data;
 
-		std::unordered_set< String > cdata_tags;
+		SmallUnorderedSet< String > cdata_tags;
 };
 
 }

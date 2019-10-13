@@ -29,18 +29,23 @@
 #ifndef RMLUICOREEVENTDISPATCHER_H
 #define RMLUICOREEVENTDISPATCHER_H
 
-#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Event.h"
-#include <map>
 
 namespace Rml {
 namespace Core {
 
 class Element;
 class EventListener;
+struct EventListenerEntry {
+	EventListenerEntry(EventId id, EventListener* listener, bool in_capture_phase) : id(id), in_capture_phase(in_capture_phase), listener(listener) {}
+	EventId id;
+	bool in_capture_phase;
+	EventListener* listener;
+};
 
 /**
-	The Event Dispatcher manages a list of event listeners (based on URL) and triggers the events via EventHandlers
+	The Event Dispatcher manages a list of event listeners and triggers the events via EventHandlers
 	whenever requested.
 
 	@author Lloyd Weehuizen
@@ -53,20 +58,20 @@ public:
 	/// @param element Element this dispatcher acts on
 	EventDispatcher(Element* element);
 
-	// Destructor
+	/// Destructor
 	~EventDispatcher();
 
 	/// Attaches a new listener to the specified event name
 	/// @param[in] type Type of the event to attach to
 	/// @param[in] event_listener The event listener to be notified when the event fires
 	/// @param[in] in_capture_phase Should the listener be notified in the capture phase
-	void AttachEvent(const String& type, EventListener* event_listener, bool in_capture_phase);
+	void AttachEvent(EventId id, EventListener* event_listener, bool in_capture_phase);
 
 	/// Detaches a listener from the specified event name
 	/// @param[in] type Type of the event to attach to
 	/// @para[in]m event_listener The event listener to be notified when the event fires
 	/// @param[in] in_capture_phase Should the listener be notified in the capture phase
-	void DetachEvent(const String& type, EventListener* listener, bool in_capture_phase);
+	void DetachEvent(EventId id, EventListener* listener, bool in_capture_phase);
 
 	/// Detaches all events from this dispatcher and all child dispatchers.
 	void DetachAllEvents();
@@ -77,7 +82,7 @@ public:
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can the event propagation be stopped
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(Element* element, const String& name, const Dictionary& parameters, bool interruptible);
+	bool DispatchEvent(Element* element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 
 	/// Returns event types with number of listeners for debugging.
 	/// @return Summary of attached listeners.
@@ -86,17 +91,12 @@ public:
 private:
 	Element* element;
 
-	struct Listener
-	{
-		Listener(EventListener* _listener, bool _in_capture_phase) : listener(_listener), in_capture_phase(_in_capture_phase) {}
-		EventListener* listener;
-		bool in_capture_phase;
-	};
-	typedef std::vector< Listener > Listeners;
-	typedef std::unordered_map< String, Listeners > Events;
-	Events events;
+	// Listeners are sorted first by (id, phase) and then by the order in which the listener was inserted.
+	// All listeners added are unique.
+	typedef std::vector< EventListenerEntry > Listeners;
+	Listeners listeners;
 
-	void TriggerEvents(Event* event);
+	void TriggerEvents(Event& event, DefaultActionPhase default_action_phase);
 };
 
 }

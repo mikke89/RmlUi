@@ -46,7 +46,7 @@ public:
 	virtual ~ElementDataGridExpandButton();
 
 protected:
-	void ProcessEvent(Core::Event& event);
+	void ProcessDefaultAction(Core::Event& event) override;
 };
 
 }

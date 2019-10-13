@@ -8,7 +8,7 @@ if(APPLE)
 	# This has to be before most other options so CMake properly handles the 
 	# compiler variables, it MUST bebefore the project() definition
 	if(IOS_PLATFORM)
-		set(CMAKE_TOOLCHAIN_FILE Cmake/Platform/iOS.cmake)
+		set(CMAKE_TOOLCHAIN_FILE CMake/Platform/iOS.cmake)
 	endif(IOS_PLATFORM)
 
 	option(BUILD_UNIVERSAL_BINARIES "Build universal binaries for all architectures supported" ON)
@@ -55,14 +55,14 @@ project(RmlUi C CXX)
 # paths
 include(GNUInstallDirs)
 
-set(RMLUI_VERSION_MAJOR 2)
+set(RMLUI_VERSION_MAJOR 3)
 set(RMLUI_VERSION_MINOR 0)
 set(RMLUI_VERSION_PATCH 0)
 set(RMLUI_VERSION_TWEAK 0)
 set(PROJECT_VERSION ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK})
 
 # Search in the 'cmake' directory for additional CMake modules.
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Cmake;${PROJECT_SOURCE_DIR}/Cmake/Modules)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake;${PROJECT_SOURCE_DIR}/CMake/Modules)
 
 #===================================
 # Environment tests ================
@@ -155,8 +155,24 @@ else(APPLE)
 	endif()
 endif(APPLE)
 
+option(NO_FONT_INTERFACE_DEFAULT "Do not include the default font engine in the build. Allows building without the FreeType dependency, but a custom font engine must be created and set." OFF)
+if(NO_FONT_INTERFACE_DEFAULT)
+	add_definitions(-DRMLUI_NO_FONT_INTERFACE_DEFAULT)
+endif()
+
 if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DRMLUI_STATIC_LIB)
+endif()
+
+option(NO_THIRDPARTY_CONTAINERS "Only use standard library containers." OFF)
+if( NO_THIRDPARTY_CONTAINERS )
+	add_definitions(-DRMLUI_NO_THIRDPARTY_CONTAINERS)
+	message("-- No third-party containers will be used: Make sure to #define RMLUI_NO_THIRDPARTY_CONTAINERS before including RmlUi in your project.")
+endif()
+
+option(ENABLE_TRACY_PROFILING "Enable tracy profiling, requires that Tracy is placed in Dependencies/tracy." OFF)
+if( ENABLE_TRACY_PROFILING )
+	add_definitions(-DRMLUI_ENABLE_PROFILING)
 endif()
 
 #===================================
@@ -164,12 +180,14 @@ endif()
 #===================================
 
 # FreeType
-find_package(Freetype REQUIRED)	
+if(NOT NO_FONT_INTERFACE_DEFAULT)
+	find_package(Freetype REQUIRED)	
 
-if(FREETYPE_FOUND)
-	include_directories(${FREETYPE_INCLUDE_DIRS})
-	link_directories(${FREETYPE_LINK_DIRS})
-	list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
+	if(FREETYPE_FOUND)
+		include_directories(${FREETYPE_INCLUDE_DIRS})
+		link_directories(${FREETYPE_LINK_DIRS})
+		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARY})
+	endif()
 endif()
 
 #Lua
@@ -219,7 +237,7 @@ foreach(library ${LIBRARIES})
 		target_compile_options(${NAME} PUBLIC "/MP")
 	endif(MSVC)
 	
-	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
+	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 14)
 	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 	
 	install(TARGETS ${NAME}
@@ -321,7 +339,7 @@ if(BUILD_LUA_BINDINGS)
 		   SOVERSION ${RMLUI_VERSION_MAJOR}
 		)
 
-		set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
+		set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 14)
 		set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 		install(TARGETS ${NAME}
@@ -387,7 +405,7 @@ endmacro()
 if(BUILD_SAMPLES)
 	include(SampleFileList)
 
-	set(samples treeview customlog drag loaddocument transform bitmapfont animation)
+	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo)
 	set(tutorials template datagrid datagrid_tree drag)
 	
 if(NOT BUILD_FRAMEWORK)
@@ -484,14 +502,14 @@ endif(NOT BUILD_FRAMEWORK)
 
 	# Build and install sample shell library
 	add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
-	set_property(TARGET shell PROPERTY CXX_STANDARD 11)
+	set_property(TARGET shell PROPERTY CXX_STANDARD 14)
 	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
 		bl_sample(${sample} ${sample_LIBRARIES})
 		
-		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 11)
+		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 14)
 		set_property(TARGET ${sample} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 		# The samples always set this as their current working directory
@@ -526,7 +544,7 @@ endif(NOT BUILD_FRAMEWORK)
 			include_directories(${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
 			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARY})
-			set_property(TARGET sdl2 PROPERTY CXX_STANDARD 11)
+			set_property(TARGET sdl2 PROPERTY CXX_STANDARD 14)
 			set_property(TARGET sdl2 PROPERTY CXX_STANDARD_REQUIRED ON)
 		
 			# The samples always set this as their current working directory
@@ -566,7 +584,7 @@ endif(NOT BUILD_FRAMEWORK)
 			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
 		endif()
 		
-			set_property(TARGET sfml2 PROPERTY CXX_STANDARD 11)
+			set_property(TARGET sfml2 PROPERTY CXX_STANDARD 14)
 			set_property(TARGET sfml2 PROPERTY CXX_STANDARD_REQUIRED ON)
 			
 			# The samples always set this as their current working directory
@@ -581,7 +599,7 @@ endif(NOT BUILD_FRAMEWORK)
 		set(tutorial_fullname tutorial_${tutorial})
 		bl_sample(${tutorial_fullname} ${sample_LIBRARIES})
 
-		set_property(TARGET ${tutorial_fullname} PROPERTY CXX_STANDARD 11)
+		set_property(TARGET ${tutorial_fullname} PROPERTY CXX_STANDARD 14)
 		set_property(TARGET ${tutorial_fullname} PROPERTY CXX_STANDARD_REQUIRED ON)
 		
 		# The tutorials always set this as their current working directory
@@ -593,7 +611,7 @@ endif(NOT BUILD_FRAMEWORK)
 
 	# Build and install invaders sample
 	bl_sample(invaders ${sample_LIBRARIES})
-	set_property(TARGET invaders PROPERTY CXX_STANDARD 11)
+	set_property(TARGET invaders PROPERTY CXX_STANDARD 14)
 	set_property(TARGET invaders PROPERTY CXX_STANDARD_REQUIRED ON)
 	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
 	install(TARGETS invaders 
@@ -602,7 +620,7 @@ endif(NOT BUILD_FRAMEWORK)
 
 	if(BUILD_LUA_BINDINGS)
 		bl_sample(luainvaders RmlCoreLua RmlControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
-		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 11)
+		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 14)
 		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
 		install(TARGETS luainvaders 
@@ -647,6 +665,15 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/animation/data
 			DESTINATION ${SAMPLES_DIR}/basic/animation
 	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/data
+			DESTINATION ${SAMPLES_DIR}/basic/benchmark
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/bitmapfont/data
+			DESTINATION ${SAMPLES_DIR}/basic/bitmapfont
+	)
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/demo/data
+			DESTINATION ${SAMPLES_DIR}/basic/demo
+	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/transform/data
 			DESTINATION ${SAMPLES_DIR}/basic/transform
 	)
@@ -684,7 +711,7 @@ if(PkgHelpers_AVAILABLE)
 	set (INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Include")
 
 	# generate configuration for install tree
-	configure_package_config_file(${PROJECT_SOURCE_DIR}/Cmake/RmlUiConfig.cmake.install.in
+	configure_package_config_file(${PROJECT_SOURCE_DIR}/CMake/RmlUiConfig.cmake.install.in
 		${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake
 		INSTALL_DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake
 		PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
@@ -699,7 +726,7 @@ if(PkgHelpers_AVAILABLE)
 		DESTINATION ${LIB_INSTALL_DIR}/RmlUi/cmake)
 
 	# generate configuration for build tree
-	configure_package_config_file(${PROJECT_SOURCE_DIR}/Cmake/RmlUiConfig.cmake.build.in
+	configure_package_config_file(${PROJECT_SOURCE_DIR}/CMake/RmlUiConfig.cmake.build.in
 		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfig.cmake
 		INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
 		PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)

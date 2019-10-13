@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,99 +35,38 @@
 namespace Rml {
 namespace Core {
 
-/**
-	A TransformState captures an element's current perspective and transform settings.
-
-	@author Markus Schöngart
- */
 
 class RMLUICORE_API TransformState
 {
 public:
-	struct Perspective
-	{
-		/// Calculates the projection matrix.
-		Matrix4f GetProjection() const noexcept;
 
-		/// Calculates the clip space coordinates ([-1; 1]³) of a 3D vertex in world space.
-		/// @param[in] point The point in world space coordinates.
-		/// @return The clip space coordinates of the point.
-		Vector3f Project(const Vector3f &point) const noexcept;
-		/// Calculates the world space coordinates of a 3D vertex in clip space ([-1; 1]³).
-		/// @param[in] point The point in clip space coordinates.
-		/// @return The world space coordinates of the point.
-		Vector3f Unproject(const Vector3f &point) const noexcept;
-	
-		float		distance;	// The CSS `perspective:' value
-		Vector2i	view_size;
-		Vector2f	vanish;		// The vanishing point, in [0; 1]²; Only relevant if distance > 0
-	};
+	// Returns true if transform was changed.
+	bool SetTransform(const Matrix4f* in_transform);
 
-	struct LocalPerspective
-	{
-		/// Calculates the projection matrix.
-		Matrix4f GetProjection() const noexcept;
+	// Returns true if local perspecitve was changed.
+	bool SetLocalPerspective(const Matrix4f* in_perspective);
 
-		/// Calculates the clip space coordinates ([-1; 1]³) of a 3D vertex in world space.
-		/// @param[in] point The point in world space coordinates.
-		/// @return The clip space coordinates of the point.
-		Vector3f Project(const Vector3f &point) const noexcept;
-		/// Calculates the world space coordinates of a 3D vertex in clip space ([-1; 1]³).
-		/// @param[in] point The point in clip space coordinates.
-		/// @return The world space coordinates of the point.
-		Vector3f Unproject(const Vector3f &point) const noexcept;
+	const Matrix4f* GetTransform() const;
+	const Matrix4f* GetLocalPerspective() const;
 
-		float		distance;	// The CSS `perspective:' value
-		Vector2i	view_size;
-	};
+	// Returns a nullptr if there is no transform set, or the transform is singular.
+	const Matrix4f* GetInverseTransform() const;
 
-	TransformState();
-
-	/// Stores a new perspective value
-	void SetPerspective(const Perspective *perspective) noexcept;
-	/// Returns the perspective value
-	bool GetPerspective(Perspective *perspective) const noexcept;
-
-	/// Stores a new local perspective value
-	void SetLocalPerspective(const LocalPerspective *local_perspective) noexcept;
-	/// Returns the local perspective value
-	bool GetLocalPerspective(LocalPerspective *local_perspective) const noexcept;
-
-	/// Stores a new transform matrix
-	void SetTransform(const Matrix4f *transform) noexcept;
-	/// Returns the stored transform matrix
-	bool GetTransform(Matrix4f *transform) const noexcept;
-
-	/// Stores a new recursive parent transform.
-	void SetParentRecursiveTransform(const Matrix4f *parent_recursive_transform) noexcept;
-	/// Returns the stored recursive parent transform matrix
-	bool GetParentRecursiveTransform(Matrix4f *transform) const noexcept;
-
-	/// Transforms a 3D point by the `parent transform' and `transform' matrices stored in this TransformState.
-	/// @param[in] point The point in world space coordinates.
-	/// @return The transformed point in world space coordinates.
-	Vector3f Transform(const Vector3f &point) const noexcept;
-	/// Transforms a 3D point by the inverse `parent transform' and `transform' matrices stored in this TransformState.
-	/// @param[in] point The point in world space coordinates.
-	/// @return The transformed point in world space coordinates.
-	Vector3f Untransform(const Vector3f &point) const noexcept;
-
-	/// Returns the parent's recursive transform multiplied by this transform.
-	bool GetRecursiveTransform(Matrix4f *recursive_transform) const noexcept;
 
 private:
-	// Flags for stored values
-	bool have_perspective;
-	bool have_local_perspective;
-	bool have_parent_recursive_transform;
-	bool have_transform;
+	bool have_transform = false;
+	bool have_perspective = false;
+	mutable bool have_inverse_transform = false;
+	mutable bool dirty_inverse_transform = false;
 
-	// Stored values
-	float perspective, local_perspective;
-	Vector2i view_size;
-	Vector2f vanish;
-	Matrix4f parent_recursive_transform;
+	// The accumulated transform matrix combines all transform and perspective properties of the owning element and all ancestors.
 	Matrix4f transform;
+
+	// Local perspective which applies to children of the owning element.
+	Matrix4f local_perspective;
+
+	// The inverse of the transform matrix for projecting points from screen space to the current element's space, such as used for picking elements.
+	mutable Matrix4f inverse_transform;
 };
 
 }

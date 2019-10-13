@@ -41,11 +41,11 @@ public:
 	~Mothership();
 
 	/// Update the mothership
-	virtual void Update();	
+	void Update() override;
 
 private:
 	// Time of the last update
-	float update_frame_start;
+	double update_frame_start;
 
 	// Direction mothership is flying in
 	float direction;

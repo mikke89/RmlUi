@@ -29,15 +29,20 @@
 #ifndef RMLUICOREEVENT_H
 #define RMLUICOREEVENT_H
 
+#include "Header.h"
 #include "Dictionary.h"
 #include "ScriptInterface.h"
-#include "Header.h"
+#include "ID.h"
 
 namespace Rml {
 namespace Core {
 
 class Element;
 class EventInstancer;
+struct EventSpecification;
+
+enum class EventPhase { None, Capture = 1, Target = 2, Bubble = 4 };
+enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, Bubble = (int)EventPhase::Bubble, TargetAndBubble = ((int)Target | (int)Bubble) };
 
 /**
 	An event that propogates through the element hierarchy. Events follow the DOM3 event specification. See
@@ -56,11 +61,10 @@ public:
 	/// @param[in] type The event type
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can this event have is propagation stopped?
-	Event(Element* target, const String& type, const Dictionary& parameters, bool interruptible = false);
+	Event(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 	/// Destructor
 	virtual ~Event();
 
-	enum EventPhase { PHASE_UNKNOWN, PHASE_CAPTURE, PHASE_TARGET, PHASE_BUBBLE };
 
 	/// Get the current propagation phase.
 	/// @return Current phase the event is in.
@@ -81,58 +85,73 @@ public:
 	Element* GetTargetElement() const;
 
 	/// Get the event type.
-	/// @return The event type.
 	const String& GetType() const;
+	/// Get the event id.
+	EventId GetId() const;
 	/// Checks if the event is of a certain type.
 	/// @param type The name of the type to check for.
 	/// @return True if the event is of the requested type, false otherwise.
 	bool operator==(const String& type) const;
+	/// Checks if the event is of a certain id.
+	bool operator==(EventId id) const;
 
-	/// Has the event been stopped?
-	/// @return True if the event is still propogating
+	/// Returns true if the event is still propagating.
 	bool IsPropagating() const;
-	/// Stops the propagation of the event wherever it is
+	/// Returns true if the event is still immediate propagating.
+	bool IsImmediatePropagating() const;
+
+	/// Stops propagation of the event, but finish all listeners on the current element.
 	void StopPropagation();
+	/// Stops propagation of the event, including to any other listeners on the current element.
+	void StopImmediatePropagation();
 
 	/// Returns the value of one of the event's parameters.
 	/// @param key[in] The name of the desired parameter.
 	/// @return The value of the requested parameter.
 	template < typename T >
-	T GetParameter(const String& key, const T& default_value)
+	T GetParameter(const String& key, const T& default_value) const
 	{
-		return parameters.Get(key, default_value);
+		return Get(parameters, key, default_value);
 	}
 	/// Access the dictionary of parameters
 	/// @return The dictionary of parameters
-	const Dictionary* GetParameters() const;
+	const Dictionary& GetParameters() const;
 
-	/// Release this event.
-	virtual void OnReferenceDeactivate();
+	/// Return the unprojected mouse screen position.
+	/// Note: Only specified for events with 'mouse_x' and 'mouse_y' parameters.
+	const Vector2f& GetUnprojectedMouseScreenPos() const;
 
 private:
+	/// Release this event.
+	void Release() override;
+
 	/// Project the mouse coordinates to the current element to enable
 	/// interacting with transformed elements.
 	void ProjectMouse(Element* element);
 
 protected:
-	String type;
 	Dictionary parameters;
 
 	Element* target_element;
 	Element* current_element;
 
 private:
-	Dictionary parameters_backup;
-
+	String type;
+	EventId id;
 	bool interruptible;
-	bool interruped;
-
+	
+	bool interrupted;
+	bool interrupted_immediate;
 	EventPhase phase;
+
+	bool has_mouse_position;
+	Vector2f mouse_screen_position;
 
 	EventInstancer* instancer;
 
 	friend class Factory;
 };
+
 
 }
 }

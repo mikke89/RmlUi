@@ -18,7 +18,7 @@
 #include "DecoratorInstancerDefender.h"
 #include "HighScores.h"
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -75,7 +75,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(1024, 768));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -89,20 +89,18 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Load the defender decorator.
-	Rml::Core::DecoratorInstancer* decorator_instancer = Rml::Core::Factory::RegisterDecoratorInstancer("defender", new DecoratorInstancerDefender());
-	if (decorator_instancer != NULL)
-		decorator_instancer->RemoveReference();
+	DecoratorInstancerDefender decorator_instancer_defender;
+	Rml::Core::Factory::RegisterDecoratorInstancer("defender", &decorator_instancer_defender);
 
 	// Construct the high scores.
 	HighScores::Initialise();
 
 	// Load and show the tutorial document.
 	Rml::Core::ElementDocument* document = context->LoadDocument("tutorial/datagrid/data/tutorial.rml");
-	document->GetElementById("title")->SetInnerRML(document->GetTitle());
-	if (document != NULL)
+	if (document)
 	{
+		document->GetElementById("title")->SetInnerRML(document->GetTitle());
 		document->Show();
-		document->RemoveReference();
 	}
 
 	Shell::EventLoop(GameLoop);
@@ -111,7 +109,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	HighScores::Shutdown();
 
 	// Shutdown RmlUi.
-	context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();

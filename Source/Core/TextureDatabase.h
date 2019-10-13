@@ -29,8 +29,7 @@
 #ifndef RMLUICORETEXTUREDATABASE_H
 #define RMLUICORETEXTUREDATABASE_H
 
-#include "../../Include/RmlUi/Core/String.h"
-#include <map>
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {
@@ -50,7 +49,7 @@ public:
 
 	/// If the requested texture is already in the database, it will be returned with an extra
 	/// reference count. If not, it will be loaded through the application's render interface.
-	static TextureResource* Fetch(const String& source, const String& source_directory);
+	static SharedPtr<TextureResource> Fetch(const String& source, const String& source_directory);
 
 	/// Releases all textures in the database.
 	static void ReleaseTextures();
@@ -65,7 +64,7 @@ private:
 	TextureDatabase();
 	~TextureDatabase();
 
-	typedef std::unordered_map< String, TextureResource* > TextureMap;
+	typedef UnorderedMap< String, SharedPtr<TextureResource> > TextureMap;
 	TextureMap textures;
 };
 

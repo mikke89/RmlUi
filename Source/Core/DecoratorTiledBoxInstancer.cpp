@@ -33,19 +33,21 @@
 namespace Rml {
 namespace Core {
 
-DecoratorTiledBoxInstancer::DecoratorTiledBoxInstancer()
+DecoratorTiledBoxInstancer::DecoratorTiledBoxInstancer() : DecoratorTiledInstancer(9)
 {
-	RegisterTileProperty("top-left-image", false);
-	RegisterTileProperty("top-right-image", false);
-	RegisterTileProperty("bottom-left-image", false);
-	RegisterTileProperty("bottom-right-image", false);
+	RegisterTileProperty("top-left-image");
+	RegisterTileProperty("top-right-image");
+	RegisterTileProperty("bottom-left-image");
+	RegisterTileProperty("bottom-right-image");
 
-	RegisterTileProperty("left-image", true);
-	RegisterTileProperty("right-image", true);
-	RegisterTileProperty("top-image", true);
-	RegisterTileProperty("bottom-image", true);
+	RegisterTileProperty("left-image");
+	RegisterTileProperty("right-image");
+	RegisterTileProperty("top-image");
+	RegisterTileProperty("bottom-image");
 
-	RegisterTileProperty("center-image", true);
+	RegisterTileProperty("center-image");
+
+	RegisterShorthand("decorator", "top-left-image, top-image, top-right-image, left-image, center-image, right-image, bottom-left-image, bottom-image, bottom-right-image", ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorTiledBoxInstancer::~DecoratorTiledBoxInstancer()
@@ -53,43 +55,23 @@ DecoratorTiledBoxInstancer::~DecoratorTiledBoxInstancer()
 }
 
 // Instances a box decorator.
-Decorator* DecoratorTiledBoxInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+SharedPtr<Decorator>DecoratorTiledBoxInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
 {
 	RMLUI_UNUSED(name);
 
-	DecoratorTiled::Tile tiles[9];
-	String texture_names[9];
-	String rcss_paths[9];
+	constexpr size_t num_tiles = 9;
 
-	GetTileProperties(tiles[0], texture_names[0], rcss_paths[0], properties, "top-left-image");
-	GetTileProperties(tiles[1], texture_names[1], rcss_paths[1], properties, "top-right-image");
-	GetTileProperties(tiles[2], texture_names[2], rcss_paths[2], properties, "bottom-left-image");
-	GetTileProperties(tiles[3], texture_names[3], rcss_paths[3], properties, "bottom-right-image");
-	GetTileProperties(tiles[4], texture_names[4], rcss_paths[4], properties, "left-image");
-	GetTileProperties(tiles[5], texture_names[5], rcss_paths[5], properties, "right-image");
-	GetTileProperties(tiles[6], texture_names[6], rcss_paths[6], properties, "top-image");
-	GetTileProperties(tiles[7], texture_names[7], rcss_paths[7], properties, "bottom-image");
-	GetTileProperties(tiles[8], texture_names[8], rcss_paths[8], properties, "center-image");
+	DecoratorTiled::Tile tiles[num_tiles];
+	Texture textures[num_tiles];
 
-	DecoratorTiledBox* decorator = new DecoratorTiledBox();
-	if (decorator->Initialise(tiles, texture_names, rcss_paths))
-		return decorator;
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, interface))
+		return nullptr;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
-}
+	auto decorator = std::make_shared<DecoratorTiledBox>();
+	if (!decorator->Initialise(tiles, textures))
+		return nullptr;
 
-// Releases the given decorator.
-void DecoratorTiledBoxInstancer::ReleaseDecorator(Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorTiledBoxInstancer::Release()
-{
-	delete this;
+	return decorator;
 }
 
 }

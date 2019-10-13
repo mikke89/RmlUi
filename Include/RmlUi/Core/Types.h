@@ -29,96 +29,172 @@
 #ifndef RMLUICORETYPES_H
 #define RMLUICORETYPES_H
 
-// Define NULL as zero.
-#if !defined NULL
-#define NULL 0
-#endif
-
 #include <float.h>
 #include <limits.h>
+#include <cstring>
 #include <string>
+#include <algorithm>
 #include <map>
 #include <memory>
-#include <unordered_map>
 #include <set>
 #include <unordered_set>
 #include <vector>
 
 #include "Platform.h"
+#include "Profiling.h"
 #include "Debug.h"
+#include "Traits.h"
+
+#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
+#include <unordered_map>
+#else
+#include "Containers/chobo/flat_map.hpp"
+#include "Containers/chobo/flat_set.hpp"
+#include "Containers/robin_hood.h"
+#endif
 
 namespace Rml {
 namespace Core {
 
-// Define commonly used basic types.
-typedef unsigned char byte;
-typedef unsigned short word;
-typedef double Time;
-typedef float TimeDelta;
-typedef unsigned int Hash;
-typedef void* ScriptObject;
+// Commonly used basic types
+using byte = unsigned char;
+using Time = double;
+using ScriptObject = void*;
+
+// Unicode code point
+enum class Character : char32_t { Null, Replacement = 0xfffd };
 
 }
 }
-
-#ifdef RMLUI_PLATFORM_WIN32
-typedef unsigned __int64 uint64_t;
-#else
-#include <inttypes.h>
-#endif
 
 #include "Colour.h"
 #include "Vector2.h"
 #include "Vector3.h"
 #include "Vector4.h"
 #include "Matrix4.h"
-#include "String.h"
 
 namespace Rml {
 namespace Core {
 
-// Default colour types.
-typedef Colour< float, 1 > Colourf;
-typedef Colour< byte, 255 > Colourb;
-typedef Vector2< int > Vector2i;
-typedef Vector2< float > Vector2f;
-typedef Vector3< int > Vector3i;
-typedef Vector3< float > Vector3f;
-typedef Vector4< int > Vector4i;
-typedef Vector4< float > Vector4f;
 
-typedef Matrix4< float, ColumnMajorStorage< float > > ColumnMajorMatrix4f;
-typedef Matrix4< float, RowMajorStorage< float > > RowMajorMatrix4f;
-typedef ColumnMajorMatrix4f Matrix4f;
+// Color and linear algebra
+using Colourf = Colour< float, 1 >;
+using Colourb = Colour< byte, 255 >;
+using Vector2i = Vector2< int >;
+using Vector2f = Vector2< float >;
+using Vector3i = Vector3< int >;
+using Vector3f = Vector3< float >;
+using Vector4i = Vector4< int >;
+using Vector4f = Vector4< float >;
+using ColumnMajorMatrix4f = Matrix4< float, ColumnMajorStorage< float > >;
+using RowMajorMatrix4f = Matrix4< float, RowMajorStorage< float > >;
+using Matrix4f = ColumnMajorMatrix4f;
 
+
+// Common classes
 class Element;
-class Dictionary;
+class ElementInstancer;
 class ElementAnimation;
+class Context;
+class Event;
 class Property;
+class Variant;
 class Transform;
-
-// Types for external interfaces.
-typedef uintptr_t FileHandle;
-typedef uintptr_t TextureHandle;
-typedef uintptr_t CompiledGeometryHandle;
-typedef uintptr_t DecoratorDataHandle;
-
-// List of elements.
-typedef std::vector< Element* > ElementList;
-typedef std::set< String > PseudoClassList;
-typedef std::unordered_set< String > PropertyNameList;
-typedef std::unordered_set< String > AttributeNameList;
-typedef Dictionary ElementAttributes;
-typedef std::vector< ElementAnimation > ElementAnimationList;
-typedef std::map< String, Property > PropertyMap;
-
-// Reference types
-typedef std::shared_ptr< Transform > TransformRef;
-
+class PropertyIdSet;
+class Decorator;
+class FontEffect;
+struct Animation;
 struct Transition;
 struct TransitionList;
+struct Rectangle;
+enum class PropertyId : uint16_t;
+
+// Types for external interfaces.
+using FileHandle = uintptr_t;
+using TextureHandle = uintptr_t;
+using CompiledGeometryHandle = uintptr_t;
+using DecoratorDataHandle = uintptr_t;
+using FontFaceHandle = uintptr_t;
+using FontEffectsHandle = uintptr_t;
+
+// Strings
+using String = std::string;
+using StringList = std::vector< String >;
+using U16String = std::u16string;
+
+// Smart pointer types
+template<typename T>
+using UniquePtr = std::unique_ptr<T>;
+template<typename T>
+using UniqueReleaserPtr = std::unique_ptr<T, Releaser<T>>;
+template<typename T>
+using SharedPtr = std::shared_ptr<T>;
+
+using ElementPtr = UniqueReleaserPtr<Element>;
+using ContextPtr = UniqueReleaserPtr<Context>;
+using EventPtr = UniqueReleaserPtr<Event>;
+
+// Containers
+#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
+template <typename Key, typename Value>
+using UnorderedMap = std::unordered_map< Key, Value >;
+template <typename Key, typename Value>
+using SmallUnorderedMap = UnorderedMap< Key, Value >;
+template <typename T>
+using SmallOrderedSet = std::set< T >;
+template <typename T>
+using SmallUnorderedSet = std::unordered_set< T >;
+#else
+template < typename Key, typename Value>
+using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
+template <typename Key, typename Value>
+using SmallUnorderedMap = chobo::flat_map< Key, Value >;
+template <typename T>
+using SmallOrderedSet = chobo::flat_set< T >;
+template <typename T>
+using SmallUnorderedSet = chobo::flat_set< T >;
+#endif
+
+
+// Container types for common classes
+using ElementList = std::vector< Element* >;
+using OwnedElementList = std::vector< ElementPtr >;
+using ElementAnimationList = std::vector< ElementAnimation >;
+
+using PseudoClassList = SmallUnorderedSet< String >;
+using AttributeNameList = SmallUnorderedSet< String >;
+using PropertyMap = UnorderedMap< PropertyId, Property >;
+
+using Dictionary = SmallUnorderedMap< String, Variant >;
+using ElementAttributes = Dictionary;
+
+using AnimationList = std::vector<Animation>;
+using DecoratorList = std::vector<SharedPtr<const Decorator>>;
+using FontEffectList = std::vector<SharedPtr<const FontEffect>>;
+
+struct Decorators {
+	DecoratorList list;
+	String value;
+};
+struct FontEffects {
+	FontEffectList list;
+	String value;
+};
+
+// Additional smart pointers
+using TransformPtr = SharedPtr< Transform >;
+using DecoratorsPtr = SharedPtr<const Decorators>;
+using FontEffectsPtr = SharedPtr<const FontEffects>;
 
 }
+}
+
+namespace std {
+// Hash specialization for enum class types (required on some older compilers)
+template <> struct hash<::Rml::Core::PropertyId> {
+	using utype = typename ::std::underlying_type<::Rml::Core::PropertyId>::type;
+	size_t operator() (const ::Rml::Core::PropertyId& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
+};
 }
 
 #endif

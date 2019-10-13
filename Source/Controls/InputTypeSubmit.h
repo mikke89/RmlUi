@@ -48,15 +48,15 @@ public:
 
 	/// Returns if this value should be submitted with the form.
 	/// @return True if the form control is to be submitted, false otherwise.
-	virtual bool IsSubmitted();
+	bool IsSubmitted() override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Core::Event& event);
+	void ProcessDefaultAction(Core::Event& event) override;
 
 	/// Sizes the dimensions to the element's inherent size.
-	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions);
+	/// @return False.
+	bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions) override;
 };
 
 }

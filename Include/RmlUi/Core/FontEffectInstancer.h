@@ -29,7 +29,7 @@
 #ifndef RMLUICOREFONTEFFECTINSTANCER_H
 #define RMLUICOREFONTEFFECTINSTANCER_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Header.h"
 #include "PropertyDictionary.h"
 #include "PropertySpecification.h"
@@ -48,23 +48,18 @@ class FontEffect;
 	@author Peter Curry
  */
 
-class RMLUICORE_API FontEffectInstancer : public ReferenceCountable
+class RMLUICORE_API FontEffectInstancer
 {
 public:
 	FontEffectInstancer();
 	virtual ~FontEffectInstancer();
 
 	/// Instances a font effect given the property tag and attributes from the RCSS file.
-	/// @param[in] name The type of font effect desired. For example, "title-font-effect: outline;" is declared as type "outline".
+	/// @param[in] name The type of font effect desired. For example, "font-effect: outline(1px black);" is declared as type "outline".
 	/// @param[in] properties All RCSS properties associated with the font effect.
-	/// @return The font effect if it was instanced successfully, NULL if an error occured.
-	virtual FontEffect* InstanceFontEffect(const String& name, const PropertyDictionary& properties) = 0;
-	/// Releases the given font effect.
-	/// @param[in] font_effect Font effect to release. This is guaranteed to have been constructed by this instancer.
-	virtual void ReleaseFontEffect(FontEffect* font_effect) = 0;
-
-	/// Releases the instancer.
-	virtual void Release() = 0;
+	/// @param[in] interface An interface for querying the active style sheet.
+	/// @return A shared_ptr to the font-effect if it was instanced successfully.
+	virtual SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) = 0;
 
 	/// Returns the property specification associated with the instancer.
 	const PropertySpecification& GetPropertySpecification() const;
@@ -81,16 +76,13 @@ protected:
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
-
-	// Releases the instancer.
-	virtual void OnReferenceDeactivate();
+	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 
 private:
 	PropertySpecification properties;
 
 	// Properties that define the geometry.
-	std::unordered_set< String > volatile_properties;
+	SmallUnorderedSet< PropertyId > volatile_properties;
 
 	friend class Factory;
 };

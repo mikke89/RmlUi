@@ -29,7 +29,7 @@
 #ifndef RMLUICOREXMLNODEHANDLER_H
 #define RMLUICOREXMLNODEHANDLER_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "XMLParser.h"
 #include "Header.h"
 
@@ -45,7 +45,7 @@ class XMLParser;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API XMLNodeHandler : public ReferenceCountable
+class RMLUICORE_API XMLNodeHandler : public NonCopyMoveable
 {
 public:
 	virtual ~XMLNodeHandler();
@@ -54,7 +54,7 @@ public:
 	/// @param parser The parser executing the parse.
 	/// @param name The XML tag name.
 	/// @param attributes The tag attributes.
-	/// @return The new element, may be NULL if no element was created.
+	/// @return The new element, may be nullptr if no element was created.
 	virtual Element* ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes) = 0;
 
 	/// Called when an element is closed.
@@ -66,12 +66,6 @@ public:
 	/// @param parser The parser executing the parse.
 	/// @param data The element data.
 	virtual bool ElementData(XMLParser* parser, const String& data) = 0;
-
-	/// Called to release the node handler.
-	virtual void Release() = 0;
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

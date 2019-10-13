@@ -28,7 +28,6 @@
 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
-#include "../../Include/RmlUi/Core/FontDatabase.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
@@ -36,19 +35,11 @@ namespace Core {
 
 FontEffect::FontEffect() : colour(255, 255, 255)
 {
-	instancer = NULL;
-	z_index = 0;
-	specificity = -1;
+	layer = Layer::Back;
 }
 
 FontEffect::~FontEffect()
 {
-}
-
-// Returns the name of the effect; this is the type that instanced the effect.
-const String& FontEffect::GetName() const
-{
-	return name;
 }
 
 // Asks the font effect if it requires, and will generate, its own unique texture.
@@ -88,43 +79,24 @@ const Colourb& FontEffect::GetColour() const
 	return colour;
 }
 
-// Sets the z-index of the font effect.
-void FontEffect::SetZIndex(float _z_index)
+FontEffect::Layer FontEffect::GetLayer() const
 {
-	z_index = _z_index;
+	return layer;
 }
 
-// Returns the font effect's z-index.
-float FontEffect::GetZIndex() const
+void FontEffect::SetLayer(Layer _layer)
 {
-	return z_index;
+	layer = _layer;
 }
 
-// Sets the specificity of the font effect.
-void FontEffect::SetSpecificity(int _specificity)
+size_t FontEffect::GetFingerprint() const
 {
-	specificity = _specificity;
+	return fingerprint;
 }
 
-// Returns the specificity of the font effect.
-int FontEffect::GetSpecificity() const
+void FontEffect::SetFingerprint(size_t _fingerprint)
 {
-	return specificity;
-}
-
-// Returns the font effect's geometry / texture generation key.
-const String& FontEffect::GetGenerationKey() const
-{
-	return generation_key;
-}
-
-// Releases the decorator through its instancer.
-void FontEffect::OnReferenceDeactivate()
-{
-	FontDatabase::ReleaseFontEffect(this);
-
-	if (instancer != NULL)
-		instancer->ReleaseFontEffect(this);
+	fingerprint = _fingerprint;
 }
 
 }

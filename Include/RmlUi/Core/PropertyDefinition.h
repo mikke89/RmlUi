@@ -42,13 +42,13 @@ namespace Core {
 
 enum class RelativeTarget { None, ContainingBlockWidth, ContainingBlockHeight, FontSize, ParentFontSize, LineHeight };
 
-class RMLUICORE_API PropertyDefinition
+class RMLUICORE_API PropertyDefinition final
 {
 public:
-	PropertyDefinition(const String& default_value, bool inherited, bool forces_layout);
+	PropertyDefinition(PropertyId id, const String& default_value, bool inherited, bool forces_layout);
 	PropertyDefinition(const PropertyDefinition &) = delete; 
 	PropertyDefinition& operator=(const PropertyDefinition &) = delete;
-	virtual ~PropertyDefinition();
+	~PropertyDefinition();
 
 	/// Registers a parser to parse values for this definition.
 	/// @param[in] parser_name The name of the parser (default parsers are 'string', 'keyword', 'number' and 'colour').
@@ -82,7 +82,12 @@ public:
 	/// Returns the target for resolving values with percent and possibly number units.
 	RelativeTarget GetRelativeTarget() const;
 
+	/// Return the property id
+	PropertyId GetId() const;
+
 private:
+	PropertyId id;
+
 	Property default_value;
 	bool inherited;
 	bool forces_layout;

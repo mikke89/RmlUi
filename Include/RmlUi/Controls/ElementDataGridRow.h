@@ -54,7 +54,7 @@ public:
 	ElementDataGridRow(const Rml::Core::String& tag);
 	virtual ~ElementDataGridRow();
 
-	void Initialise(ElementDataGrid* parent_grid, ElementDataGridRow* parent_row = NULL, int child_index = -1, ElementDataGridRow* header_row = NULL, int depth = -1);
+	void Initialise(ElementDataGrid* parent_grid, ElementDataGridRow* parent_row = nullptr, int child_index = -1, ElementDataGridRow* header_row = nullptr, int depth = -1);
 	void SetChildIndex(int child_index);
 	int GetDepth();
 
@@ -67,8 +67,7 @@ public:
 	/// Returns the number of children that aren't dirty (have been loaded)
 	int GetNumLoadedChildren();
 
-	// Removes all the child cells and fetches them again from the data
-	// source.
+	/// Removes all the child cells and fetches them again from the data source.
 	void RefreshRows();
 
 	/// Returns whether this row is expanded or not.
@@ -90,11 +89,11 @@ public:
 	ElementDataGrid* GetParentGrid();
 
 protected:
-	virtual void OnDataSourceDestroy(DataSource* data_source);
-	virtual void OnRowAdd(DataSource* data_source, const Rml::Core::String& table, int first_row_added, int num_rows_added);
-	virtual void OnRowRemove(DataSource* data_source, const Rml::Core::String& table, int first_row_removed, int num_rows_removed);
-	virtual void OnRowChange(DataSource* data_source, const Rml::Core::String& table, int first_row_changed, int num_rows_changed);
-	virtual void OnRowChange(DataSource* data_source, const Rml::Core::String& table);
+	void OnDataSourceDestroy(DataSource* data_source) override;
+	void OnRowAdd(DataSource* data_source, const Rml::Core::String& table, int first_row_added, int num_rows_added) override;
+	void OnRowRemove(DataSource* data_source, const Rml::Core::String& table, int first_row_removed, int num_rows_removed) override;
+	void OnRowChange(DataSource* data_source, const Rml::Core::String& table, int first_row_changed, int num_rows_changed) override;
+	void OnRowChange(DataSource* data_source, const Rml::Core::String& table) override;
 
 private:
 	typedef std::queue< ElementDataGridRow* > RowQueue;
@@ -134,10 +133,6 @@ private:
 	void LoadChildren(float time_slice);
 	// Loads a specific set of children. Called by the above function.
 	void LoadChildren(int first_row_to_load, int num_rows_to_load, Rml::Core::Time time_slice);
-
-	// If the cells need reloading, this takes care of it. If any children
-	// need updating, they are added to the queue.
-	void UpdateCellsAndChildren(RowQueue& dirty_rows);
 
 	// Sets the dirty_cells flag on this row, and lets our ancestors know.
 	void DirtyCells();

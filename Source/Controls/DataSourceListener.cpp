@@ -85,9 +85,9 @@ void DataSourceListener::OnRowChange(DataSource* RMLUI_UNUSED_PARAMETER(data_sou
 // Sets up data source and table from a given string.
 bool DataSourceListener::ParseDataSource(DataSource*& data_source, Rml::Core::String& table_name, const Rml::Core::String& data_source_name)
 {
-	if (data_source_name.Length() == 0)
+	if (data_source_name.size() == 0)
 	{
-		data_source = NULL;
+		data_source = nullptr;
 		table_name = "";
 		return false;
 	}
@@ -95,12 +95,12 @@ bool DataSourceListener::ParseDataSource(DataSource*& data_source, Rml::Core::St
 	Rml::Core::StringList data_source_parts;
 	Rml::Core::StringUtilities::ExpandString(data_source_parts, data_source_name, '.');
 
-	DataSource* new_data_source = DataSource::GetDataSource(data_source_parts[0].CString());
+	DataSource* new_data_source = DataSource::GetDataSource(data_source_parts[0].c_str());
 
 	if (data_source_parts.size() != 2 || !new_data_source)
 	{
-		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Bad data source name %s", data_source_name.CString());
-		data_source = NULL;
+		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Bad data source name %s", data_source_name.c_str());
+		data_source = nullptr;
 		table_name = "";
 		return false;
 	}

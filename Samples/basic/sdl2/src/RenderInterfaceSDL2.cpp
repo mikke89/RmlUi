@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +54,7 @@ void RmlUiSDL2Renderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vert
     std::vector<Rml::Core::Vector2f> TexCoords(num_vertices);
     float texw, texh;
  
-    SDL_Texture* sdl_texture = NULL;
+    SDL_Texture* sdl_texture = nullptr;
     if(texture)
     {
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -133,15 +134,15 @@ bool RmlUiSDL2Renderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rm
     file_interface->Close(file_handle);
 
     size_t i;
-    for(i = source.Length() - 1; i > 0; i--)
+    for(i = source.length() - 1; i > 0; i--)
     {
         if(source[i] == '.')
             break;
     }
 
-    Rml::Core::String extension = source.Substring(i+1, source.Length()-i);
+    Rml::Core::String extension = source.substr(i+1, source.length()-i);
 
-    SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, buffer_size), 1, extension.CString());
+    SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, buffer_size), 1, extension.c_str());
 
     if (surface) {
         SDL_Texture *texture = SDL_CreateTextureFromSurface(mRenderer, surface);

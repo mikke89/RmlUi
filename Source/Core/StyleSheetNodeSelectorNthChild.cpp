@@ -30,7 +30,6 @@
 #include "StyleSheetNodeSelectorNthChild.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -47,7 +46,7 @@ StyleSheetNodeSelectorNthChild::~StyleSheetNodeSelectorNthChild()
 bool StyleSheetNodeSelectorNthChild::IsApplicable(const Element* element, int a, int b)
 {
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	// Start counting elements until we find this one.
@@ -57,7 +56,7 @@ bool StyleSheetNodeSelectorNthChild::IsApplicable(const Element* element, int a,
 		Element* child = parent->GetChild(i);
 
 		// Skip text nodes.
-		if (dynamic_cast< ElementText* >(child) != NULL)
+		if (dynamic_cast< ElementText* >(child) != nullptr)
 			continue;
 
 		// If we've found our element, then break; the current index is our element's index.
@@ -65,7 +64,7 @@ bool StyleSheetNodeSelectorNthChild::IsApplicable(const Element* element, int a,
 			break;
 
 		// Skip nodes without a display type.
-		if (child->GetDisplay() == DISPLAY_NONE)
+		if (child->GetDisplay() == Style::Display::None)
 			continue;
 
 		element_index++;

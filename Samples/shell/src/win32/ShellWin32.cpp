@@ -30,25 +30,31 @@
 #include <RmlUi/Core.h>
 #include <win32/InputWin32.h>
 #include "ShellFileInterface.h"
-#include <windows.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param);
 
 static bool activated = true;
 static bool running = false;
-static const char* instance_name = NULL;
-static HWND window_handle = NULL;
-static HINSTANCE instance_handle = NULL;
+static Rml::Core::U16String instance_name;
+static HWND window_handle = nullptr;
+static HINSTANCE instance_handle = nullptr;
 
 static double time_frequency;
 static LARGE_INTEGER time_startup;
 
-static ShellFileInterface* file_interface = NULL;
+static std::unique_ptr<ShellFileInterface> file_interface;
+
+static HCURSOR cursor_default = nullptr;
+static HCURSOR cursor_move = nullptr;
+static HCURSOR cursor_cross = nullptr;
+static HCURSOR cursor_unavailable = nullptr;
+
 
 bool Shell::Initialise()
 {
-	instance_handle = GetModuleHandle(NULL);
+	instance_handle = GetModuleHandle(nullptr);
 	InputWin32::Initialise();
 
 	LARGE_INTEGER time_ticks_per_second;
@@ -57,10 +63,16 @@ bool Shell::Initialise()
 
 	time_frequency = 1.0 / (double) time_ticks_per_second.QuadPart;
 
+	// Load cursors
+	cursor_default = LoadCursor(nullptr, IDC_ARROW);
+	cursor_move = LoadCursor(nullptr, IDC_SIZEALL);
+	cursor_cross = LoadCursor(nullptr, IDC_CROSS);
+	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
+
 	Rml::Core::String root = FindSamplesRoot();
 	
-	file_interface = new ShellFileInterface(root);
-	Rml::Core::SetFileInterface(file_interface);
+	file_interface = std::make_unique<ShellFileInterface>(root);
+	Rml::Core::SetFileInterface(file_interface.get());
 
 	return true;
 }
@@ -69,8 +81,7 @@ void Shell::Shutdown()
 {
 	InputWin32::Shutdown();
 
-	delete file_interface;
-	file_interface = NULL;
+	file_interface.reset();
 }
 
 Rml::Core::String Shell::FindSamplesRoot()
@@ -86,15 +97,17 @@ Rml::Core::String Shell::FindSamplesRoot()
 	}
 
 	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("\\") + 1);
+	executable_path = executable_path.substr(0, executable_path.rfind("\\") + 1);
 	
 	return executable_path + path;
 }
 
-static ShellRenderInterfaceExtensions *shell_renderer = NULL;
-bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
+static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
+bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
-	WNDCLASS window_class;
+	WNDCLASSW window_class;
+
+	Rml::Core::U16String name = Rml::Core::StringUtilities::ToUTF16(Rml::Core::String(in_name));
 
 	// Fill out the window class struct.
 	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -102,13 +115,13 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	window_class.cbClsExtra = 0;
 	window_class.cbWndExtra = 0;
 	window_class.hInstance = instance_handle;
-	window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-	window_class.hbrBackground = NULL;
-	window_class.lpszMenuName = NULL;
-	window_class.lpszClassName = name;
+	window_class.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
+	window_class.hCursor = cursor_default;
+	window_class.hbrBackground = nullptr;
+	window_class.lpszMenuName = nullptr;
+	window_class.lpszClassName = (LPCWSTR)name.data();
 
-	if (!RegisterClass(&window_class))
+	if (!RegisterClassW(&window_class))
 	{
 		DisplayError("Could not register window class.");
 
@@ -116,16 +129,16 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 		return false;
 	}
 
-	window_handle = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-								   name,	// Window class name.
-								   name,
+	window_handle = CreateWindowExW(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
+								   (LPCWSTR)name.data(),	// Window class name.
+								   (LPCWSTR)name.data(),
 								   WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW,
 								   0, 0,	// Window position.
 								   width, height,// Window size.
-								   NULL,
-								   NULL,
+								   nullptr,
+								   nullptr,
 								   instance_handle,
-								   NULL);
+								   nullptr);
 	if (!window_handle)
 	{
 		DisplayError("Could not create window.");
@@ -150,7 +163,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	SetWindowLong(window_handle, GWL_EXSTYLE, extended_style);
 	SetWindowLong(window_handle, GWL_STYLE, style);
 
-	if (_shell_renderer != NULL)
+	if (_shell_renderer != nullptr)
 	{
 		shell_renderer = _shell_renderer;
 		if(!shell_renderer->AttachToNative(window_handle))
@@ -178,7 +191,7 @@ void Shell::CloseWindow()
 	}
 
 	DestroyWindow(window_handle);  
-	UnregisterClass(instance_name, instance_handle);
+	UnregisterClassW((LPCWSTR)instance_name.data(), instance_handle);
 }
 
 // Returns a platform-dependent handle to the window.
@@ -195,18 +208,15 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 	// Loop on PeekMessage() / GetMessage() until exit has been requested.
 	while (running)
 	{
-		if (PeekMessage(&message, NULL, 0, 0, PM_NOREMOVE))
+		if (PeekMessage(&message, nullptr, 0, 0, PM_NOREMOVE))
 		{
-			GetMessage(&message, NULL, 0, 0);
+			GetMessage(&message, nullptr, 0, 0);
 
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 		}
 
 		idle_function();
-
-		if (!activated)
-			Sleep(10);
 	}
 }
 
@@ -232,7 +242,7 @@ void Shell::DisplayError(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	MessageBox(window_handle, buffer, "Shell Error", MB_OK);
+	MessageBox(window_handle, (LPCWSTR)Rml::Core::StringUtilities::ToUTF16(buffer).c_str(), L"Shell Error", MB_OK);
 }
 
 void Shell::Log(const char* fmt, ...)
@@ -252,7 +262,7 @@ void Shell::Log(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	OutputDebugString(buffer);
+	OutputDebugString((LPCWSTR)Rml::Core::StringUtilities::ToUTF16(buffer).c_str());
 }
 
 double Shell::GetElapsedTime() 
@@ -261,6 +271,77 @@ double Shell::GetElapsedTime()
 	QueryPerformanceCounter(&counter);
 
 	return double(counter.QuadPart - time_startup.QuadPart) * time_frequency;
+}
+
+void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
+{
+	if (window_handle)
+	{
+		HCURSOR cursor_handle = nullptr;
+		if (cursor_name.empty())
+			cursor_handle = cursor_default;
+		else if(cursor_name == "move")
+			cursor_handle = cursor_move;
+		else if (cursor_name == "cross")
+			cursor_handle = cursor_cross;
+		else if (cursor_name == "unavailable")
+			cursor_handle = cursor_unavailable;
+
+		if (cursor_handle)
+		{
+			SetCursor(cursor_handle);
+			SetClassLongPtrA(window_handle, GCLP_HCURSOR, (LONG_PTR)cursor_handle);
+		}
+	}
+}
+
+void Shell::SetClipboardText(const Rml::Core::String& text_utf8)
+{
+	if (window_handle)
+	{
+		if (!OpenClipboard(window_handle))
+			return;
+
+		EmptyClipboard();
+
+		const Rml::Core::U16String text = Rml::Core::StringUtilities::ToUTF16(text_utf8);
+
+		size_t size = sizeof(char16_t) * (text.size() + 1);
+
+		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, size);
+		memcpy(clipboard_data, text.data(), size);
+
+		if (SetClipboardData(CF_UNICODETEXT, clipboard_data) == nullptr)
+		{
+			CloseClipboard();
+			GlobalFree(clipboard_data);
+		}
+		else
+			CloseClipboard();
+	}
+}
+
+void Shell::GetClipboardText(Rml::Core::String& text)
+{
+	if (window_handle)
+	{
+		if (!OpenClipboard(window_handle))
+			return;
+
+		HANDLE clipboard_data = GetClipboardData(CF_UNICODETEXT);
+		if (clipboard_data == nullptr)
+		{
+			CloseClipboard();
+			return;
+		}
+
+		const char16_t* clipboard_text = (const char16_t*)GlobalLock(clipboard_data);
+		if (clipboard_text)
+			text = Rml::Core::StringUtilities::ToUTF8(clipboard_text);
+		GlobalUnlock(clipboard_data);
+
+		CloseClipboard();
+	}
 }
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)
@@ -291,8 +372,8 @@ static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM
 
 		case WM_SIZE:
 		{
-			int width = LOWORD(l_param);;
-			int height = HIWORD(l_param);;
+			int width = LOWORD(l_param);
+			int height = HIWORD(l_param);
 			shell_renderer->SetViewport(width, height);
 		}
 		break;

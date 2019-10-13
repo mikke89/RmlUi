@@ -62,7 +62,7 @@ int EventGetAttrtype(lua_State* L)
     Event* evt = LuaType<Event>::check(L,1);
     LUACHECKOBJ(evt);
     String type = evt->GetType();
-    lua_pushstring(L,type.CString());
+    lua_pushstring(L,type.c_str());
     return 1;
 }
 
@@ -88,7 +88,7 @@ int EventGetAttrparameters(lua_State* L)
 RegType<Event> EventMethods[] =
 {
     LUAMETHOD(Event,StopPropagation)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg EventGetters[] =
@@ -97,15 +97,15 @@ luaL_Reg EventGetters[] =
     LUAGETTER(Event,type)
     LUAGETTER(Event,target_element)
     LUAGETTER(Event,parameters)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg EventSetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Event,true)
+LUACORETYPEDEFINE(Event)
 }
 }
 }

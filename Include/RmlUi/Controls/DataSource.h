@@ -30,9 +30,8 @@
 #define RMLUICONTROLSDATASOURCE_H
 
 #include "Header.h"
-#include "../Core/String.h"
+#include "../Core/Types.h"
 #include <list>
-#include <map>
 
 namespace Rml {
 namespace Controls {
@@ -97,7 +96,7 @@ class RMLUICONTROLS_API DataSource
 		void NotifyRowChange(const Rml::Core::String& table);
 
 		/// Helper function for building a result set.
-		typedef std::map< Rml::Core::String, Rml::Core::String > RowMap;
+		typedef Core::UnorderedMap< Rml::Core::String, Rml::Core::String > RowMap;
 		void BuildRowEntries(Rml::Core::StringList& row, const RowMap& row_map, const Rml::Core::StringList& columns);
 
 	private:

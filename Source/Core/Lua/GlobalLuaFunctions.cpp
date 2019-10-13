@@ -73,7 +73,7 @@ int rmlui_pairs(lua_State* L)
 
 //copy + pasted from Lua's lbaselib.c
 int ipairsaux (lua_State *L) {
-    int i = luaL_checkinteger(L, 2);
+    lua_Integer i = luaL_checkinteger(L, 2);
     luaL_checktype(L, 1, LUA_TTABLE);
     i++;  /* next value */
     lua_pushinteger(L, i);
@@ -130,7 +130,7 @@ int LuaPrint(lua_State* L)
         lua_pushvalue(L, i);   /* value to print */
         lua_call(L, 1, 1);
         s = lua_tostring(L, -1);  /* get result */
-        if (s == NULL)
+        if (s == nullptr)
             return luaL_error(L, LUA_QL("tostring") " must return a string to "
                                  LUA_QL("print"));
         if (i>1) 
@@ -139,7 +139,7 @@ int LuaPrint(lua_State* L)
         lua_pop(L, 1);  /* pop result */
     }
     output += "\n";
-    Log::Message(Log::LT_INFO, output.CString());
+    Log::Message(Log::LT_INFO, output.c_str());
     return 0;
 }
 

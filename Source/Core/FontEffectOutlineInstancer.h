@@ -46,17 +46,10 @@ public:
 	FontEffectOutlineInstancer();
 	virtual ~FontEffectOutlineInstancer();
 
-	/// Instances an outline font effect.
-	/// @param[in] name The type of font effect desired.
-	/// @param[in] properties All RCSS properties associated with the outline effect.
-	/// @return The font effect if it was instanced successfully, NULL if an error occured.
-	virtual FontEffect* InstanceFontEffect(const String& name, const PropertyDictionary& properties);
-	/// Releases the outline effect.
-	/// @param[in] font_effect Font effect to release.
-	virtual void ReleaseFontEffect(FontEffect* font_effect);
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
 
-	/// Releases the instancer.
-	virtual void Release();
+private:
+	PropertyId id_width, id_color;
 };
 
 }

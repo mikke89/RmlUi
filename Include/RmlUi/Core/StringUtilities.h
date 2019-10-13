@@ -29,9 +29,10 @@
 #ifndef RMLUICORESTRINGUTILITIES_H
 #define RMLUICORESTRINGUTILITIES_H
 
+#include <algorithm>
+#include <stddef.h>
 #include "Header.h"
 #include "Types.h"
-#include "String.h"
 
 namespace Rml {
 namespace Core {
@@ -41,67 +42,179 @@ namespace Core {
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StringUtilities
+// Redefine Windows APIs as their STDC counterparts.
+#ifdef RMLUI_PLATFORM_WIN32
+	#define strcasecmp stricmp
+	#define strncasecmp strnicmp
+#endif
+
+class StringView;
+
+/// Construct a string using sprintf-style syntax.
+RMLUICORE_API String CreateString(size_t max_size, const char* format, ...);
+
+/// Format to a string using sprintf-style syntax.
+RMLUICORE_API int FormatString(String& string, size_t max_size, const char* format, ...);
+
+
+namespace StringUtilities
 {
-public:
 	/// Expands character-delimited list of values in a single string to a whitespace-trimmed list
 	/// of values.
 	/// @param[out] string_list Resulting list of values.
 	/// @param[in] string String to expand.
 	/// @param[in] delimiter Delimiter found between entries in the string list.
-	static void ExpandString(StringList& string_list, const String& string, const char delimiter = ',');
+	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter = ',');
+	/// Expands character-delimited list of values with custom quote characters.
+	/// @param[out] string_list Resulting list of values.
+	/// @param[in] string String to expand.
+	/// @param[in] delimiter Delimiter found between entries in the string list.
+	/// @param[in] quote_character Begin quote
+	/// @param[in] unquote_character End quote
+	/// @param[in] ignore_repeated_delimiters If true, repeated values of the delimiter will not add additional entries to the list.
+	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character, bool ignore_repeated_delimiters = false);
 	/// Joins a list of string values into a single string separated by a character delimiter.
 	/// @param[out] string Resulting concatenated string.
 	/// @param[in] string_list Input list of string values.
 	/// @param[in] delimiter Delimiter to insert between the individual values.
-	static void JoinString(String& string, const StringList& string_list, const char delimiter = ',');
+	RMLUICORE_API void JoinString(String& string, const StringList& string_list, const char delimiter = ',');
 
-	/// Hashes a string of data to an integer value using the FNV algorithm.
-	/// @param[in] data Data to hash.
-	/// @param[in] length Length of the string to hash. If this is -1, the data will be interpreted as a C string.
-	/// @return Integer hash of the data.
-	static Hash FNVHash(const char* data, int length = -1);
+	/// Converts upper-case characters in string to lower-case.
+	RMLUICORE_API String ToLower(const String& string);
 
-	/// Converts a character array in UTF-8 encoding to a vector of words. The UCS-2 words will be encoded as
-	/// either big- or little-endian, depending on the host processor.
-	/// @param[in] input Input string in UTF-8 encoding.
-	/// @param[out] output Output vector of UCS-2 characters.
-	/// @return True if the conversion went successfully, false if any characters had to be skipped (this will occur if they can't fit into UCS-2).
-	static bool UTF8toUCS2(const String& input, std::vector< word >& output);
-	/// Converts a vector of words in UCS-2 encoding into a character array in UTF-8 encoding. This
-	/// function assumes the endianness of the input words to be the same as the host processor.
-	/// @param[in] input Input vector in UCS-2 encoding.
-	/// @param[out] output Output string in UTF-8 encoding.
-	/// @return True if the conversion went successfully, false if not.
-	static bool UCS2toUTF8(const std::vector< word >& input, String& output);
-	/// Converts an array of words in UCS-2 encoding into a character array in UTF-8 encoding. This
-	/// function assumes the endianness of the input words to be the same as the host processor.
-	/// @param[in] input Input array of words in UCS-2 encoding.
-	/// @param[in] input_size Length of the input array.
-	/// @param[out] output Output string in UTF-8 encoding.
-	/// @return True if the conversion went successfully, false if not.
-	static bool UCS2toUTF8(const word* input, size_t input_size, String& output);
+	// Replaces all occurences of 'search' in 'subject' with 'replace'.
+	RMLUICORE_API String Replace(String subject, const String& search, const String& replace);
+	// Replaces all occurences of 'search' in 'subject' with 'replace'.
+	RMLUICORE_API String Replace(String subject, char search, char replace);
 
 	/// Checks if a given value is a whitespace character.
-	/// @param[in] x The character to evaluate.
-	/// @return True if the character is whitespace, false otherwise.
 	template < typename CharacterType >
-	static bool IsWhitespace(CharacterType x)
+	inline bool IsWhitespace(CharacterType x)
 	{
 		return (x == '\r' || x == '\n' || x == ' ' || x == '\t');
 	}
 
 	/// Strip whitespace characters from the beginning and end of a string.
-	/// @param[in] string The string to trim.
-	/// @return The stripped string.
-	static String StripWhitespace(const String& string);
+	RMLUICORE_API String StripWhitespace(const String& string);
 
 	/// Operator for STL containers using strings.
 	struct RMLUICORE_API StringComparei
 	{
 		bool operator()(const String& lhs, const String& rhs) const;
 	};
+
+	// Decode the first code point in a zero-terminated UTF-8 string.
+	RMLUICORE_API Character ToCharacter(const char* p);
+
+	// Encode a single code point as a UTF-8 string.
+	RMLUICORE_API String ToUTF8(Character character);
+
+	// Encode an array of code points as a UTF-8 string.
+	RMLUICORE_API String ToUTF8(const Character* characters, int num_characters);
+
+	/// Returns number of characters in a UTF-8 string.
+	RMLUICORE_API size_t LengthUTF8(StringView string_view);
+
+	// Seek forward in a UTF-8 string, skipping continuation bytes.
+	inline const char* SeekForwardUTF8(const char* p, const char* p_end)
+	{
+		while (p != p_end && (*p & 0b1100'0000) == 0b1000'0000)
+			++p;
+		return p;
+	}
+	// Seek backward in a UTF-8 string, skipping continuation bytes.
+	inline const char* SeekBackwardUTF8(const char* p, const char* p_begin)
+	{
+		while ((p + 1) != p_begin && (*p & 0b1100'0000) == 0b1000'0000)
+			--p;
+		return p;
+	}
+
+
+	/// Converts a string in UTF-8 encoding to a u16string in UTF-16 encoding.
+	/// Reports a warning if some or all characters could not be converted.
+	RMLUICORE_API U16String ToUTF16(const String& str);
+
+	/// Converts a u16string in UTF-16 encoding into a string in UTF-8 encoding.
+	/// Reports a warning if some or all characters could not be converted.
+	RMLUICORE_API String ToUTF8(const U16String& u16str);
+}
+
+
+/*
+	A poor man's string view. 
+	
+	The string view is agnostic to the underlying encoding, any operation will strictly operate on bytes.
+*/
+
+class RMLUICORE_API StringView {
+public:
+	StringView(const char* p_begin, const char* p_end);
+	StringView(const String& string);
+	StringView(const String& string, size_t offset);
+	StringView(const String& string, size_t offset, size_t count);
+
+	// String comparison to another view
+	bool operator==(const StringView& other) const;
+	inline bool operator!=(const StringView& other) const { return !(*this == other); }
+
+	inline const char* begin() const { return p_begin; }
+	inline const char* end() const { return p_end; }
+
+	inline size_t size() const { return p_end - p_begin; }
+
+private:
+	const char* p_begin;
+	const char* p_end;
 };
+
+
+/*
+	An iterator for UTF-8 strings. 
+
+	The increment and decrement operations will move to the beginning of the next or the previous
+	UTF-8 character, respectively. The dereference operator will resolve the current code point.
+
+*/
+
+class RMLUICORE_API StringIteratorU8 {
+public:
+	StringIteratorU8(const char* p_begin, const char* p, const char* p_end);
+	StringIteratorU8(const String& string);
+	StringIteratorU8(const String& string, size_t offset);
+	StringIteratorU8(const String& string, size_t offset, size_t count);
+
+	// Seeks forward to the next UTF-8 character. Iterator must be valid.
+	StringIteratorU8& operator++();
+	// Seeks back to the previous UTF-8 character. Iterator must be valid.
+	StringIteratorU8& operator--();
+
+	// Returns the codepoint at the current position. The iterator must be dereferencable.
+	inline Character operator*() const { return StringUtilities::ToCharacter(p); }
+
+	// Returns false when the iterator is located just outside the valid part of the string.
+	inline operator bool() const { return (p != view.begin() - 1) && (p != view.end()); }
+
+	bool operator==(const StringIteratorU8& other) const { return p == other.p; }
+	bool operator!=(const StringIteratorU8& other) const { return !(*this == other); }
+
+	// Return a pointer to the current position.
+	inline const char* Get() const { return p; }
+
+	// Return offset from the beginning of string. Note: Can return negative if decremented.
+	std::ptrdiff_t Offset() const { return p - view.begin(); }
+
+private:
+	StringView view;
+	// 'p' can be dereferenced if and only if inside [view.begin, view.end)
+	const char* p;
+
+	inline void SeekForward();
+	inline void SeekBack();
+};
+
+
+
 
 }
 }

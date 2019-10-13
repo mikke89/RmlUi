@@ -35,6 +35,8 @@ namespace Core {
 class PropertyDictionary;
 class Stream;
 class StyleSheetNode;
+class AbstractPropertyParser;
+struct PropertySource;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -52,7 +54,7 @@ public:
 	/// @param node The root node the stream will be parsed into
 	/// @param stream The stream to read
 	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(StyleSheetNode* node, KeyframesMap& keyframes, Stream* stream);	
+	int Parse(StyleSheetNode* node, Stream* stream, const StyleSheet& style_sheet, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpritesheetList& spritesheet_list, int begin_line_number);
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into
@@ -68,24 +70,28 @@ private:
 	// How far we've read through the buffer.
 	size_t parse_buffer_pos;
 
-	// The name of the file we'r parsing.
+	// The name of the file we're parsing.
 	String stream_file_name;
 	// Current line number we're parsing.
 	size_t line_number;
 
 	// Parses properties from the parse buffer into the dictionary
 	// @param properties The dictionary to store the properties in
-	bool ReadProperties(PropertyDictionary& properties);
+	// @param property_specification The specification used to parse the values. Normally the default stylesheet specification, but not for e.g. all at-rules such as decorators.
+	bool ReadProperties(AbstractPropertyParser& property_parser);
 
 	// Import properties into the stylesheet node
 	// @param node Node to import into
 	// @param names The names of the nodes
 	// @param properties The dictionary of properties
 	// @param rule_specificity The specifity of the rule
-	bool ImportProperties(StyleSheetNode* node, const String& names, const PropertyDictionary& properties, int rule_specificity);
+	bool ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number);
 
 	// Attempts to parse a @keyframes block
 	bool ParseKeyframeBlock(KeyframesMap & keyframes_map, const String & identifier, const String & rules, const PropertyDictionary & properties);
+
+	// Attempts to parse a @decorator block
+	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet, const SharedPtr<const PropertySource>& source);
 
 	// Attempts to find one of the given character tokens in the active stream
 	// If it's found, buffer is filled with all content up until the token

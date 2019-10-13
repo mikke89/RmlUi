@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "Log.h"
 #include <RmlUi/Core/Log.h>
-#include <RmlUi/Core/String.h>
 #include <RmlUi/Core/StringUtilities.h>
 
 
@@ -82,20 +81,20 @@ int LogMessage(lua_State* L)
 
 RegType<Log> LogMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg LogGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg LogSetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Log,false)
+LUACORETYPEDEFINE(Log)
 }
 }
 }

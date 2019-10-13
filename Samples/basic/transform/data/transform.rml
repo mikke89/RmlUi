@@ -1,46 +1,130 @@
 <rml>
 <head>
-	<link type="text/template" href="../../../assets/window.rml"/>
-	<title>Transform Sample</title>
-	<style>
-		body
-		{
-			width: 350px;
-			height: 300px;
+<link type="text/template" href="../../../assets/window.rml"/>
+<title>Transform Sample</title>
+<style>
+body
+{
+	width: 550px;
+	height: 500px;
+	/*transform: rotate3d(0,1,0,15deg);*/
+}
 
-			perspective: 0;
-		}
-		
-		/* Hide the window icon. */
-		div#title_bar div#icon
-		{
-			display: none;
-		}
+/* Hide the window icon. */
+div#title_bar div#icon
+{
+	display: none;
+}
 
-		div#title_bar:hover
-		{
-			transform: rotate3d(1, 0, 0, 25) scale(0.5);
-			transform-origin: center bottom;
-		}
+div#title_bar:hover
+{
+	transform: scale(1.2) skew(-30deg, 0deg) ;
+	transform-origin: left bottom;
+}
 
-		spacer
-		{
-			display: inline-block;
-			width: 25px;
-		}
+spacer
+{
+	display: inline-block;
+	width: 25px;
+}
+scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
+{
+	transform: scale(1.3, 1.0);
+}
 
-		scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
-		{
-			transform: translateZ(10px);
-		}
 
-		p
-		{
-			transform: translateZ(10px);
-		}
-	</style>
+/* Perspective cubes based on:
+   https://developer.mozilla.org/en-US/docs/Web/CSS/perspective */
+
+.pers250 {
+	perspective: 250px;
+}
+
+.pers350 {
+	perspective: 350px;
+}
+
+.pers500 {
+	perspective: 500px;
+}
+
+.pers650 {
+	perspective: 650px;
+}
+
+.container {
+	width: 200px;
+	height: 200px;
+	margin: 75px auto;
+	background-color: #a003;
+}
+
+.cube {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	transform: translateZ(50px);
+	perspective-origin: 150% 150%;
+}
+
+.face {
+	left: 50px; top: 50px;
+	display: block;
+	position: absolute;
+	width: 100px;
+	height: 100px;
+	line-height: 100px;
+	font-size: 60px;
+	color: white;
+	text-align: center;
+}
+
+/* Define each face based on direction */
+.front {
+	background: rgba(0, 0, 0, 160);
+	transform: translateZ(50px);
+}
+.front:hover {
+	background: rgba(255, 255, 0, 120);
+}
+.back {
+	background: rgba(0, 255, 0, 255);
+	color: black;
+	transform: rotateY(180deg) translateZ(50px);
+}
+.right {
+	background: rgba(196, 0, 0, 200);
+	transform: rotateY(90deg) translateZ(50px);
+}
+.left {
+	background: rgba(0, 0, 196, 200);
+	transform: rotateY(-90deg) translateZ(50px);
+}
+.top {
+	background: rgba(196, 196, 0, 200);
+	transform: rotateX(90deg) translateZ(50px);
+}
+.bottom {
+	background: rgba(196, 0, 196, 200);
+	transform: rotateX(-90deg) translateZ(50px);
+}
+</style>
 </head>
 <body template="window">
+<div class="container">
+	<div class="cube pers650">
+		<div class="face back">6</div>
+		<div class="face top">5</div>
+		<div class="face left">4</div>
+		<div class="face bottom">3</div>
+		<div class="face right">2</div>
+		<div class="face front">1</div>
+	</div>
+	perspective: 650px;
+</div>
+
+<p>Press 'space' to toggle rotation.</p>
+
 <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
 tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
 vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
@@ -61,6 +145,8 @@ augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet,
 consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut
 laoreet dolore magna aliquam erat volutpat.</p>
 
+<button style="width: 220px; transform: translateZ(-30px);">A wild button appears!</button>
+
 <p>Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit
 lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure
 dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore
@@ -74,6 +160,18 @@ consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut
 laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis
 nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea
 commodo consequat.</p>
+
+<div class="container" style="clip: none;">
+	<div class="cube pers250">
+		<div class="face back">6</div>
+		<div class="face top">5</div>
+		<div class="face left">4</div>
+		<div class="face bottom">3</div>
+		<div class="face right">2</div>
+		<div class="face front">1</div>
+	</div>
+	perspective: 250px; clip: none;
+</div>
 
 <p>Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse
 molestie consequat, vel illum dolore eu feugiat nulla facilisis.</p>

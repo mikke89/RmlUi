@@ -49,7 +49,7 @@ Element* XMLNodeHandlerTemplate::ElementStart(XMLParser* parser, const String& R
 	RMLUI_UNUSED_ASSERT(name);
 	RMLUI_ASSERT(name == "template");
 
-	String template_name = attributes.Get<String>("src", "");
+	String template_name = Get<String>(attributes, "src", "");
 
 	// Tell the parser to use the element handler for all child nodes
 	parser->PushDefaultHandler();
@@ -68,11 +68,6 @@ bool XMLNodeHandlerTemplate::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser
 bool XMLNodeHandlerTemplate::ElementData(XMLParser* parser, const String& data)
 {	
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
-}
-
-void XMLNodeHandlerTemplate::Release()
-{
-	delete this;
 }
 
 }

@@ -29,8 +29,8 @@
 #ifndef RMLUICOREEVENTLISTENERINSTANCER_H
 #define RMLUICOREEVENTLISTENERINSTANCER_H
 
-#include "ReferenceCountable.h"
-#include "String.h"
+#include "Traits.h"
+#include "Types.h"
 #include "Header.h"
 #include "Element.h"
 
@@ -46,7 +46,7 @@ class EventListener;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API EventListenerInstancer : public ReferenceCountable
+class RMLUICORE_API EventListenerInstancer
 {
 public:
 	virtual ~EventListenerInstancer();
@@ -55,12 +55,6 @@ public:
 	/// @param value Value of the event.
 	/// @param element Element that triggers the events.
 	virtual EventListener* InstanceEventListener(const String& value, Element* element) = 0;
-
-	/// Releases this event listener instancer.
-	virtual void Release() = 0;
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

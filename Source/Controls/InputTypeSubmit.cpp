@@ -48,16 +48,16 @@ bool InputTypeSubmit::IsSubmitted()
 }
 
 // Checks for necessary functional changes in the control as a result of the event.
-void InputTypeSubmit::ProcessEvent(Core::Event& event)
+void InputTypeSubmit::ProcessDefaultAction(Core::Event& event)
 {
-	if (event == "click" &&
+	if (event == Core::EventId::Click &&
 		!element->IsDisabled())
 	{
 		Core::Element* parent = element->GetParentNode();
 		while (parent)
 		{
 			ElementForm* form = dynamic_cast< ElementForm* >(parent);
-			if (form != NULL)
+			if (form != nullptr)
 			{
 				form->Submit(element->GetAttribute< Rml::Core::String >("name", ""), element->GetAttribute< Rml::Core::String >("value", ""));
 				return;

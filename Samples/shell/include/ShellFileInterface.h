@@ -29,7 +29,7 @@
 #ifndef SHELLFILEINTERFACE_H
 #define SHELLFILEINTERFACE_H
 
-#include <RmlUi/Core/String.h>
+#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/FileInterface.h>
 
 /**
@@ -44,19 +44,19 @@ public:
 	virtual ~ShellFileInterface();
 
 	/// Opens a file.		
-	virtual Rml::Core::FileHandle Open(const Rml::Core::String& path);
+	Rml::Core::FileHandle Open(const Rml::Core::String& path) override;
 
 	/// Closes a previously opened file.		
-	virtual void Close(Rml::Core::FileHandle file);
+	void Close(Rml::Core::FileHandle file) override;
 
 	/// Reads data from a previously opened file.		
-	virtual size_t Read(void* buffer, size_t size, Rml::Core::FileHandle file);
+	size_t Read(void* buffer, size_t size, Rml::Core::FileHandle file) override;
 
 	/// Seeks to a point in a previously opened file.		
-	virtual bool Seek(Rml::Core::FileHandle file, long offset, int origin);
+	bool Seek(Rml::Core::FileHandle file, long offset, int origin) override;
 
 	/// Returns the current position of the file pointer.		
-	virtual size_t Tell(Rml::Core::FileHandle file);
+	size_t Tell(Rml::Core::FileHandle file) override;
 
 private:
 	Rml::Core::String root;

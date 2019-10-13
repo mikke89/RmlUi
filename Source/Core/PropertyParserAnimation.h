@@ -3,7 +3,8 @@
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2018 Michael Ragazzon
+ * Copyright (c) 2018 Michael R. P. Ragazzon
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,9 +58,6 @@ public:
 	/// @param[in] parameters The parameters defined for this property.
 	/// @return True if the value was validated successfully, false otherwise.
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
-
-	// Destroys the parser.
-	void Release() override;
 };
 
 

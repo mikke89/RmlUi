@@ -32,13 +32,13 @@
 
 DecoratorInstancerStarfield::DecoratorInstancerStarfield()
 {
-	RegisterProperty("num-layers", "3").AddParser("number");
-	RegisterProperty("top-colour", "#dddc").AddParser("color");
-	RegisterProperty("bottom-colour", "#333c").AddParser("color");
-	RegisterProperty("top-speed", "10.0").AddParser("number");
-	RegisterProperty("bottom-speed", "2.0").AddParser("number");
-	RegisterProperty("top-density", "15").AddParser("number");
-	RegisterProperty("bottom-density", "10").AddParser("number");
+	id_num_layers = RegisterProperty("num-layers", "3").AddParser("number").GetId();
+	id_top_colour = RegisterProperty("top-colour", "#dddc").AddParser("color").GetId();
+	id_bottom_colour = RegisterProperty("bottom-colour", "#333c").AddParser("color").GetId();
+	id_top_speed = RegisterProperty("top-speed", "10.0").AddParser("number").GetId();
+	id_bottom_speed = RegisterProperty("bottom-speed", "2.0").AddParser("number").GetId();
+	id_top_density = RegisterProperty("top-density", "15").AddParser("number").GetId();
+	id_bottom_density = RegisterProperty("bottom-density", "10").AddParser("number").GetId();
 }
 
 DecoratorInstancerStarfield::~DecoratorInstancerStarfield()
@@ -46,35 +46,21 @@ DecoratorInstancerStarfield::~DecoratorInstancerStarfield()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-Rml::Core::Decorator* DecoratorInstancerStarfield::InstanceDecorator(const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name), const Rml::Core::PropertyDictionary& properties)
+std::shared_ptr<Rml::Core::Decorator> DecoratorInstancerStarfield::InstanceDecorator(const Rml::Core::String& RMLUI_UNUSED_PARAMETER(name), const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface)
 {
 	RMLUI_UNUSED(name);
 
-	int num_layers = Rml::Core::Math::RealToInteger(properties.GetProperty("num-layers")->Get< float >());
-	Rml::Core::Colourb top_colour = properties.GetProperty("top-colour")->Get< Rml::Core::Colourb >();
-	Rml::Core::Colourb bottom_colour = properties.GetProperty("bottom-colour")->Get< Rml::Core::Colourb >();
-	float top_speed = properties.GetProperty("top-speed")->Get< float >();
-	float bottom_speed = properties.GetProperty("bottom-speed")->Get< float >();
-	int top_density = Rml::Core::Math::RealToInteger(properties.GetProperty("top-density")->Get< float >());
-	int bottom_density = Rml::Core::Math::RealToInteger(properties.GetProperty("bottom-density")->Get< float >());
+	int num_layers = Rml::Core::Math::RealToInteger(properties.GetProperty(id_num_layers)->Get< float >());
+	Rml::Core::Colourb top_colour = properties.GetProperty(id_top_colour)->Get< Rml::Core::Colourb >();
+	Rml::Core::Colourb bottom_colour = properties.GetProperty(id_bottom_colour)->Get< Rml::Core::Colourb >();
+	float top_speed = properties.GetProperty(id_top_speed)->Get< float >();
+	float bottom_speed = properties.GetProperty(id_bottom_speed)->Get< float >();
+	int top_density = Rml::Core::Math::RealToInteger(properties.GetProperty(id_top_density)->Get< float >());
+	int bottom_density = Rml::Core::Math::RealToInteger(properties.GetProperty(id_bottom_density)->Get< float >());
 
-	DecoratorStarfield* decorator = new DecoratorStarfield();
+	auto decorator = std::make_shared<DecoratorStarfield>();
 	if (decorator->Initialise(num_layers, top_colour, bottom_colour, top_speed, bottom_speed, top_density, bottom_density))
 		return decorator;
 
-	decorator->RemoveReference();
-	ReleaseDecorator(decorator);
-	return NULL;
-}
-
-// Releases the given decorator.
-void DecoratorInstancerStarfield::ReleaseDecorator(Rml::Core::Decorator* decorator)
-{
-	delete decorator;
-}
-
-// Releases the instancer.
-void DecoratorInstancerStarfield::Release()
-{
-	delete this;
+	return nullptr;
 }

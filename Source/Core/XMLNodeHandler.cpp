@@ -36,10 +36,5 @@ XMLNodeHandler::~XMLNodeHandler()
 {
 }
 
-void XMLNodeHandler::OnReferenceDeactivate()
-{
-	Release();
-}
-
 }
 }

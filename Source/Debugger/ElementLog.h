@@ -46,7 +46,7 @@ class ElementLog : public Core::ElementDocument, public Core::EventListener
 {
 public:
 	ElementLog(const Core::String& tag);
-	virtual ~ElementLog();
+	~ElementLog();
 
 	/// Initialises the log element.
 	/// @return True if the element initialised successfully, false otherwise.
@@ -56,8 +56,8 @@ public:
 	void AddLogMessage(Core::Log::Type type, const Core::String& message);
 
 protected:
-	virtual void OnRender();
-	virtual void ProcessEvent(Core::Event& event);
+	void OnUpdate() override;
+	void ProcessEvent(Core::Event& event) override;
 
 private:
 	struct LogMessage

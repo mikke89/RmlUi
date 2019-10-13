@@ -47,10 +47,10 @@ WidgetSlider::WidgetSlider(Element* _parent)
 
 	orientation = UNKNOWN;
 
-	track = NULL;
-	bar = NULL;
-	arrows[0] = NULL;
-	arrows[1] = NULL;
+	track = nullptr;
+	bar = nullptr;
+	arrows[0] = nullptr;
+	arrows[1] = nullptr;
 
 	bar_position = 0;
 	bar_drag_anchor = 0;
@@ -62,22 +62,22 @@ WidgetSlider::WidgetSlider(Element* _parent)
 
 WidgetSlider::~WidgetSlider()
 {
-	if (bar != NULL)
+	if (bar != nullptr)
 	{
-		bar->RemoveEventListener(DRAG, this);
-		bar->RemoveEventListener(DRAGSTART, this);
+		bar->RemoveEventListener(Core::EventId::Drag, this);
+		bar->RemoveEventListener(Core::EventId::Dragstart, this);
 	}
 
-	if (track != NULL)
-		track->RemoveEventListener(CLICK, this);
+	if (track != nullptr)
+		track->RemoveEventListener(Core::EventId::Click, this);
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (arrows[i] != NULL)
+		if (arrows[i] != nullptr)
 		{
-			arrows[i]->RemoveEventListener(MOUSEDOWN, this);
-			arrows[i]->RemoveEventListener(MOUSEUP, this);
-			arrows[i]->RemoveEventListener(MOUSEOUT, this);
+			arrows[i]->RemoveEventListener(Core::EventId::Mousedown, this);
+			arrows[i]->RemoveEventListener(Core::EventId::Mouseup, this);
+			arrows[i]->RemoveEventListener(Core::EventId::Mouseout, this);
 		}
 	}
 }
@@ -103,57 +103,35 @@ bool WidgetSlider::Initialise(Orientation _orientation)
 	orientation = _orientation;
 
 	// Create all of our child elements as standard elements, and abort if we can't create them.
-	track = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
+	ElementPtr track_element = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
+	ElementPtr bar_element = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
+	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
+	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
 
-	bar = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
-	bar->SetProperty(DRAG, DRAG);
-
-	arrows[0] = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
-	arrows[1] = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
-
-	if (track == NULL ||
-		bar == NULL ||
-		arrows[0] == NULL ||
-		arrows[1] == NULL)
+	if (!track_element || !bar_element || !arrow0_element || !arrow1_element)
 	{
-		if (track != NULL)
-			track->RemoveReference();
-
-		if (bar != NULL)
-			bar->RemoveReference();
-
-		if (arrows[0] != NULL)
-			arrows[0]->RemoveReference();
-
-		if (arrows[1] != NULL)
-			arrows[1]->RemoveReference();
-
 		return false;
 	}
 
 	// Add them as non-DOM elements.
-	parent->AppendChild(track, false);
-	parent->AppendChild(bar, false);
-	parent->AppendChild(arrows[0], false);
-	parent->AppendChild(arrows[1], false);
+	track = parent->AppendChild(std::move(track_element), false);
+	bar = parent->AppendChild(std::move(bar_element), false);
+	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
+	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
 
-	// Remove the initial references on the elements.
-	track->RemoveReference();
-	bar->RemoveReference();
-	arrows[0]->RemoveReference();
-	arrows[1]->RemoveReference();
+	bar->SetProperty(Core::PropertyId::Drag, Core::Property(Core::Style::Drag::Drag));
 
 	// Attach the listeners as appropriate.
-	bar->AddEventListener(DRAG, this);
-	bar->AddEventListener(DRAGSTART, this);
+	bar->AddEventListener(EventId::Drag, this);
+	bar->AddEventListener(EventId::Dragstart, this);
 
-	track->AddEventListener(CLICK, this);
+	track->AddEventListener(EventId::Click, this);
 
 	for (int i = 0; i < 2; i++)
 	{
-		arrows[i]->AddEventListener(MOUSEDOWN, this);
-		arrows[i]->AddEventListener(MOUSEUP, this);
-		arrows[i]->AddEventListener(MOUSEOUT, this);
+		arrows[i]->AddEventListener(EventId::Mousedown, this);
+		arrows[i]->AddEventListener(EventId::Mouseup, this);
+		arrows[i]->AddEventListener(EventId::Mouseout, this);
 	}
 
 	return true;
@@ -191,10 +169,19 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 {
 	bar_position = Math::Clamp(_bar_position, 0.0f, 1.0f);
 	PositionBar();
-
-	Dictionary parameters;
-	parameters.Set("value", bar_position);
-	parent->DispatchEvent("scrollchange", parameters);
+	
+	// 'parent' is the scrollbar element, its parent again is the actual element we want to scroll
+	Element* element_scroll = parent->GetParentNode();
+	if (!element_scroll)
+	{
+		RMLUI_ERROR;
+		return;
+	}
+	
+	if (orientation == VERTICAL)
+		element_scroll->SetScrollTop(bar_position * (element_scroll->GetScrollHeight() - element_scroll->GetClientHeight()));
+	else if (orientation == HORIZONTAL)
+		element_scroll->SetScrollLeft(bar_position * (element_scroll->GetScrollWidth() - element_scroll->GetClientWidth()));
 }
 
 // Returns the current position of the bar.
@@ -310,13 +297,15 @@ void WidgetSlider::FormatBar(float bar_length)
 	Box bar_box;
 	LayoutEngine::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
 
-	const Property *local_width, *local_height;
-	bar->GetLocalDimensionProperties(&local_width, &local_height);
+	const auto& computed = bar->GetComputedValues();
+
+	const Style::Width width = computed.width;
+	const Style::Height height = computed.height;
 
 	Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
 	{
-		if (local_height == NULL)
+		if (height.type == height.Auto)
 			bar_box_content.y = parent->GetBox().GetSize().y;
 	}
 
@@ -328,16 +317,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM));
 
-			if (local_height == NULL)
+			if (height.type == height.Auto)
 			{
 				bar_box_content.y = track_length * bar_length;
 
 				// Check for 'min-height' restrictions.
-				float min_track_length = bar->ResolveProperty(MIN_HEIGHT, track_length);
+				float min_track_length = ResolveValue(computed.min_height, track_length);
 				bar_box_content.y = Math::Max(min_track_length, bar_box_content.y);
 
 				// Check for 'max-height' restrictions.
-				float max_track_length = bar->ResolveProperty(MAX_HEIGHT, track_length);
+				float max_track_length = ResolveValue(computed.max_height, track_length);
 				if (max_track_length > 0)
 					bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
 			}
@@ -349,16 +338,16 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 
-			if (local_width == NULL)
+			if (width.type == width.Auto)
 			{
 				bar_box_content.x = track_length * bar_length;
 
 				// Check for 'min-width' restrictions.
-				float min_track_length = bar->ResolveProperty(MIN_WIDTH, track_length);
+				float min_track_length = ResolveValue(computed.min_width, track_length);
 				bar_box_content.x = Math::Max(min_track_length, bar_box_content.x);
 
 				// Check for 'max-width' restrictions.
-				float max_track_length = bar->ResolveProperty(MAX_WIDTH, track_length);
+				float max_track_length = ResolveValue(computed.max_width, track_length);
 				if (max_track_length > 0)
 					bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
 			}
@@ -387,7 +376,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 {
 	if (event.GetTargetElement() == bar)
 	{
-		if (event == DRAG)
+		if (event == EventId::Drag)
 		{
 			if (orientation == HORIZONTAL)
 			{
@@ -414,7 +403,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 				}
 			}
 		}
-		else if (event == DRAGSTART)
+		else if (event == EventId::Dragstart)
 		{
 			if (orientation == HORIZONTAL)
 				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Math::RealToInteger(bar->GetAbsoluteOffset().x);
@@ -424,7 +413,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 	}
 	else if (event.GetTargetElement() == track)
 	{
-		if (event == CLICK)
+		if (event == EventId::Click)
 		{
 			if (orientation == HORIZONTAL)
 			{
@@ -443,7 +432,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 		}
 	}
 
-	if (event == MOUSEDOWN)
+	if (event == EventId::Mousedown)
 	{
 		if (event.GetTargetElement() == arrows[0])
 		{
@@ -458,8 +447,8 @@ void WidgetSlider::ProcessEvent(Event& event)
 			SetBarPosition(OnLineIncrement());
 		}
 	}
-	else if (event == MOUSEUP ||
-			 event == MOUSEOUT)
+	else if (event == EventId::Mouseup ||
+			 event == EventId::Mouseout)
 	{
 		if (event.GetTargetElement() == arrows[0])
 			arrow_timers[0] = -1;

@@ -49,7 +49,7 @@ static bool has_xkblib = false;
 #endif // HAS_X11XKBLIB
 
 static int min_keycode, max_keycode, keysyms_per_keycode;
-static KeySym *x11_key_mapping = NULL;
+static KeySym *x11_key_mapping = nullptr;
 
 bool InputX11::Initialise()
 {
@@ -63,7 +63,7 @@ void InputX11::Shutdown()
 
 void InputX11::InitialiseX11Keymap(Display *display)
 {
-	RMLUI_ASSERT(display != NULL);
+	RMLUI_ASSERT(display != nullptr);
 
 #ifdef HAS_X11XKBLIB
 	int opcode_rtrn = -1;
@@ -85,7 +85,7 @@ void InputX11::InitialiseX11Keymap(Display *display)
 	{
 		XDisplayKeycodes(display, &min_keycode, &max_keycode);
 
-		RMLUI_ASSERT(x11_key_mapping != NULL);
+		RMLUI_ASSERT(x11_key_mapping != nullptr);
 		x11_key_mapping = XGetKeyboardMapping(display, min_keycode, max_keycode + 1 - min_keycode, &keysyms_per_keycode);
 	}
 }
@@ -168,8 +168,8 @@ void InputX11::ProcessXEvent(Display* display, const XEvent& event)
 			if (key_identifier != Rml::Core::Input::KI_UNKNOWN)
 				context->ProcessKeyDown(key_identifier, key_modifier_state);
 
-			Rml::Core::word character = GetCharacterCode(key_identifier, key_modifier_state);
-			if (character > 0)
+			Rml::Core::Character character = GetCharacterCode(key_identifier, key_modifier_state);
+			if (character != Rml::Core::Character::Null)
 				context->ProcessTextInput(character);
 		}
 		break;

@@ -29,10 +29,10 @@
 #ifndef RMLUICORESTYLESHEET_H
 #define RMLUICORESTYLESHEET_H
 
-#include "Dictionary.h"
-#include "ReferenceCountable.h"
-#include <set>
+#include "Traits.h"
 #include "PropertyDictionary.h"
+#include "Spritesheet.h"
+#include <set>
 
 namespace Rml {
 namespace Core {
@@ -40,16 +40,28 @@ namespace Core {
 class Element;
 class ElementDefinition;
 class StyleSheetNode;
+class Decorator;
+class FontEffect;
+class SpritesheetList;
+struct Sprite;
+struct Spritesheet;
 
 struct KeyframeBlock {
 	float normalized_time;  // [0, 1]
 	PropertyDictionary properties;
 };
 struct Keyframes {
-	std::vector<String> property_names;
+	std::vector<PropertyId> property_ids;
 	std::vector<KeyframeBlock> blocks;
 };
-typedef std::unordered_map<String, Keyframes> KeyframesMap;
+using KeyframesMap = UnorderedMap<String, Keyframes>;
+
+struct DecoratorSpecification {
+	String decorator_type;
+	PropertyDictionary properties;
+	SharedPtr<Decorator> decorator;
+};
+using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
@@ -58,37 +70,49 @@ typedef std::unordered_map<String, Keyframes> KeyframesMap;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StyleSheet : public ReferenceCountable
+class RMLUICORE_API StyleSheet : public NonCopyMoveable
 {
 public:
-	typedef std::unordered_set< StyleSheetNode* > NodeList;
-	typedef std::unordered_map< String, NodeList > NodeIndex;
+	typedef std::vector< StyleSheetNode* > NodeList;
+	typedef UnorderedMap< size_t, NodeList > NodeIndex;
 
 	StyleSheet();
 	virtual ~StyleSheet();
 
 	/// Loads a style from a CSS definition.
-	bool LoadStyleSheet(Stream* stream);
+	bool LoadStyleSheet(Stream* stream, int begin_line_number = 1);
 
 	/// Combines this style sheet with another one, producing a new sheet.
-	StyleSheet* CombineStyleSheet(const StyleSheet* sheet) const;
-	/// Builds the node index for a combined style sheet.
-	void BuildNodeIndex();
+	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
+	/// Builds the node index for a combined style sheet, and optimizes some properties for faster retrieval.
+	/// Specifically, converts all decorator properties from strings to instanced decorator lists.
+	void BuildNodeIndexAndOptimizeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	Keyframes* GetKeyframes(const String& name);
 
+	/// Returns the Decorator of the given name, or null if it does not exist.
+	SharedPtr<Decorator> GetDecorator(const String& name) const;
+
+	/// Parses the decorator property from a string and returns a list of instanced decorators.
+	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
+
+	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
+	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
+
+	/// Get sprite located in any spritesheet within this stylesheet.
+	const Sprite* GetSprite(const String& name) const;
+
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
-	ElementDefinition* GetElementDefinition(const Element* element) const;
+	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element) const;
 
-protected:
-	/// Destroys the style sheet.
-	virtual void OnReferenceDeactivate();
+	/// Retrieve the hash key used to look-up applicable nodes in the node index.
+	static size_t NodeHash(const String& tag, const String& id);
 
 private:
 	// Root level node, attributes from special nodes like "body" get added to this node
-	StyleSheetNode* root;
+	UniquePtr<StyleSheetNode> root;
 
 	// The maximum specificity offset used in this style sheet to distinguish between properties in
 	// similarly-specific rules, but declared on different lines. When style sheets are merged, the
@@ -100,14 +124,16 @@ private:
 	// Name of every @keyframes mapped to their keys
 	KeyframesMap keyframes;
 
-	// Map of only nodes with actual style information.
-	NodeIndex styled_node_index;
-	// Map of every node, even empty, un-styled, nodes.
-	NodeIndex complete_node_index;
+	// Name of every @decorator mapped to their specification
+	DecoratorSpecificationMap decorator_map;
 
-	typedef std::unordered_map< String, ElementDefinition* > ElementDefinitionCache;
-	// Index of element addresses to element definitions.
-	mutable ElementDefinitionCache address_cache;
+	// Name of every @spritesheet and underlying sprites mapped to their values
+	SpritesheetList spritesheet_list;
+
+	// Map of all styled nodes, that is, they have one or more properties.
+	NodeIndex styled_node_index;
+
+	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
 };

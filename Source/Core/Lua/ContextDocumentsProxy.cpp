@@ -51,11 +51,11 @@ int ContextDocumentsProxy__index(lua_State* L)
     if(type == LUA_TNUMBER || type == LUA_TSTRING) //only valid key types
     {
         ContextDocumentsProxy* proxy = LuaType<ContextDocumentsProxy>::check(L,1);
-        Document* ret = NULL;
+        Document* ret = nullptr;
         if(type == LUA_TSTRING)
             ret = proxy->owner->GetDocument(luaL_checkstring(L,2));
         else
-            ret = proxy->owner->GetDocument(luaL_checkinteger(L,2));
+            ret = proxy->owner->GetDocument((int)luaL_checkinteger(L,2));
         LuaType<Document>::push(L,ret,false);
         return 1;
     }
@@ -67,7 +67,7 @@ int ContextDocumentsProxy__index(lua_State* L)
 //[1] is the object, [2] is the last used key, [3] is the userdata
 int ContextDocumentsProxy__pairs(lua_State* L)
 {
-    Document* doc = NULL;
+    Document* doc = nullptr;
     ContextDocumentsProxy* obj = LuaType<ContextDocumentsProxy>::check(L,1);
     LUACHECKOBJ(obj);
     int* pindex = (int*)lua_touserdata(L,3);
@@ -80,14 +80,14 @@ int ContextDocumentsProxy__pairs(lua_State* L)
     while((*pindex) < num_docs)
     {
         doc = obj->owner->GetDocument((*pindex)++);
-        if(doc != NULL)
+        if(doc != nullptr)
             break;
     }
 
     //If we found a document 
-    if(doc != NULL)
+    if(doc != nullptr)
     {
-        lua_pushstring(L,doc->GetId().CString());
+        lua_pushstring(L,doc->GetId().c_str());
         LuaType<Document>::push(L,doc);
     }
     else //if we were at the end and didn't find a document
@@ -101,7 +101,7 @@ int ContextDocumentsProxy__pairs(lua_State* L)
 //same as __pairs, but putting an integer key instead of a string key
 int ContextDocumentsProxy__ipairs(lua_State* L)
 {
-    Document* doc = NULL;
+    Document* doc = nullptr;
     ContextDocumentsProxy* obj = LuaType<ContextDocumentsProxy>::check(L,1);
     LUACHECKOBJ(obj);
     int* pindex = (int*)lua_touserdata(L,3);
@@ -114,12 +114,12 @@ int ContextDocumentsProxy__ipairs(lua_State* L)
     while((*pindex) < num_docs)
     {
         doc = obj->owner->GetDocument((*pindex)++);
-        if(doc != NULL)
+        if(doc != nullptr)
             break;
     }
 
     //we found a document
-    if(doc != NULL)
+    if(doc != nullptr)
     {
         lua_pushinteger(L,(*pindex)-1);
         LuaType<Document>::push(L,doc);
@@ -135,20 +135,20 @@ int ContextDocumentsProxy__ipairs(lua_State* L)
 
 RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ContextDocumentsProxyGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ContextDocumentsProxySetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ContextDocumentsProxy,false)
+LUACORETYPEDEFINE(ContextDocumentsProxy)
 
 }
 }

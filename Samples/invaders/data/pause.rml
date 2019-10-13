@@ -13,15 +13,14 @@
 			
 			div#title_bar div#icon
 			{
-				icon-image-s: 332px 383px;
-				icon-image-t: 191px 231px;
+				decorator: image( icon-flag );
 			}
 		</style>
 	</head>
 	<body template="window" onload="pause" onunload="unpause">
 		<br />
 		<p>Are you sure you want to end this game?</p>
-		<button onclick="goto high_score; close game_window">Yes</button>
+		<button onclick="goto high_score; close game_window" autofocus>Yes</button>
 		<button onclick="close">No!</button>
 	</body>
 </rml>

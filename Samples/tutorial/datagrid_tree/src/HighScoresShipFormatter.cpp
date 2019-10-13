@@ -28,7 +28,7 @@ void HighScoresShipFormatter::FormatData(Rml::Core::String& formatted_data, cons
 	Rml::Core::Colourb ship_colour;
 	Rml::Core::TypeConverter< Rml::Core::String, Rml::Core::Colourb >::Convert(raw_data[0], ship_colour);
 
-	Rml::Core::String colour_string(32, "%d,%d,%d", ship_colour.red, ship_colour.green, ship_colour.blue);
+	Rml::Core::String colour_string = Rml::Core::CreateString(32, "%d,%d,%d", ship_colour.red, ship_colour.green, ship_colour.blue);
 
 	formatted_data = "<defender style=\"color: rgb(" + colour_string + ");\" />";
 }

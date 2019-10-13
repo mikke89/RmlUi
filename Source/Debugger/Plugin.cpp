@@ -41,26 +41,29 @@
 namespace Rml {
 namespace Debugger {
 
-Plugin* Plugin::instance = NULL;
+Plugin* Plugin::instance = nullptr;
 
 Plugin::Plugin()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
-	host_context = NULL;
-	debug_context = NULL;
-	log_hook = NULL;
+	host_context = nullptr;
+	debug_context = nullptr;
+	log_interface = nullptr;
 
-	menu_element = NULL;
-	info_element = NULL;
-	log_element = NULL;
+	menu_element = nullptr;
+	info_element = nullptr;
+	log_element = nullptr;
+	hook_element = nullptr;
 
 	render_outlines = false;
+
+	application_interface = nullptr;
 }
 
 Plugin::~Plugin()
 {
-	instance = NULL;
+	instance = nullptr;
 }
 
 // Initialises the debugging tools into the given context.
@@ -83,7 +86,8 @@ bool Plugin::Initialise(Core::Context* context)
 		return false;
 	}
 
-	Core::Factory::RegisterElementInstancer("debug-hook", new Core::ElementInstancerGeneric< ElementContextHook >())->RemoveReference();
+	hook_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementContextHook> >();
+	Core::Factory::RegisterElementInstancer("debug-hook", hook_element_instancer.get());
 
 	return true;
 }
@@ -92,25 +96,23 @@ bool Plugin::Initialise(Core::Context* context)
 bool Plugin::SetContext(Core::Context* context)
 {
 	// Remove the debug hook from the old context.
-	if (debug_context != NULL &&
-		hook_element != NULL)
+	if (debug_context && hook_element)
 	{
 		debug_context->UnloadDocument(hook_element);
-		hook_element->RemoveReference();
-		hook_element = NULL;
+		hook_element = nullptr;
 	}
 
 	// Add the debug hook into the new context.
-	if (context != NULL)
+	if (context)
 	{
 		Core::ElementDocument* element = context->CreateDocument("debug-hook");
-		if (element == NULL)
+		if (!element)
 			return false;
 
+		RMLUI_ASSERT(!hook_element);
 		hook_element = dynamic_cast< ElementContextHook* >(element);
-		if (hook_element == NULL)
+		if (!hook_element)
 		{
-			element->RemoveReference();
 			context->UnloadDocument(element);
 			return false;
 		}
@@ -119,15 +121,15 @@ bool Plugin::SetContext(Core::Context* context)
 	}
 
 	// Attach the info element to the new context.
-	if (info_element != NULL)
+	if (info_element)
 	{
-		if (debug_context != NULL)
+		if (debug_context)
 		{
 			debug_context->RemoveEventListener("click", info_element, true);
 			debug_context->RemoveEventListener("mouseover", info_element, true);
 		}
 
-		if (context != NULL)
+		if (context)
 		{
 			context->AddEventListener("click", info_element, true);
 			context->AddEventListener("mouseover", info_element, true);
@@ -144,9 +146,9 @@ bool Plugin::SetContext(Core::Context* context)
 void Plugin::SetVisible(bool visibility)
 {
 	if (visibility)
-		menu_element->SetProperty("visibility", "visible");
+		menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 	else
-		menu_element->SetProperty("visibility", "hidden");
+		menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 }
 
 // Returns the visibility of the debugger.
@@ -159,13 +161,12 @@ bool Plugin::IsVisible()
 void Plugin::Render()
 {
 	// Render the outlines of the debug context's elements.
-	if (render_outlines &&
-		debug_context != NULL)
+	if (render_outlines && debug_context)
 	{
 		for (int i = 0; i < debug_context->GetNumDocuments(); ++i)
 		{
 			Core::ElementDocument* document = debug_context->GetDocument(i);
-			if (document->GetId().Find("rmlui-debug-") == 0)
+			if (document->GetId().find("rmlui-debug-") == 0)
 				continue;
 
 			std::stack< Core::Element* > element_stack;
@@ -177,10 +178,16 @@ void Plugin::Render()
 				element_stack.pop();
 				if (element->IsVisible())
 				{
+					Core::ElementUtilities::ApplyTransform(*element);
 					for (int j = 0; j < element->GetNumBoxes(); ++j)
 					{
 						const Core::Box& box = element->GetBox(j);
-						Geometry::RenderOutline(element->GetAbsoluteOffset(Core::Box::BORDER) + box.GetPosition(Core::Box::BORDER), box.GetSize(Core::Box::BORDER), Core::Colourb(255, 0, 0, 128), 1);
+						Geometry::RenderOutline(
+							element->GetAbsoluteOffset(Core::Box::BORDER) + box.GetPosition(Core::Box::BORDER), 
+							box.GetSize(Core::Box::BORDER), 
+							Core::Colourb(255, 0, 0, 128), 
+							1
+						);
 					}
 
 					for (int j = 0; j < element->GetNumChildren(); ++j)
@@ -191,8 +198,7 @@ void Plugin::Render()
 	}
 
 	// Render the info element's boxes.
-	if (info_element != NULL &&
-		info_element->IsVisible())
+	if (info_element && info_element->IsVisible())
 	{
 		info_element->RenderHoverElement();
 		info_element->RenderSourceElement();
@@ -206,14 +212,7 @@ void Plugin::OnShutdown()
 	// and that we don't try send the messages to the debug log window
 	ReleaseElements();
 
-	if (!elements.empty())
-	{
-		Core::Log::Message(Core::Log::LT_WARNING, "%u leaked elements detected.", elements.size());
-
-		int count = 0;
-		for (ElementInstanceMap::iterator i = elements.begin(); i != elements.end(); ++i)
-			Core::Log::Message(Core::Log::LT_WARNING, "\t(%d) %s -> %s", count++, (*i)->GetTagName().CString(), (*i)->GetAddress().CString());
-	}
+	hook_element_instancer.reset();
 
 	delete this;
 }
@@ -224,7 +223,7 @@ void Plugin::OnContextDestroy(Core::Context* context)
 	if (context == debug_context)
 	{
 		// The context we're debugging is being destroyed, so we need to remove our debug hook elements.
-		SetContext(NULL);
+		SetContext(nullptr);
 	}
 
 	if (context == host_context)
@@ -233,45 +232,36 @@ void Plugin::OnContextDestroy(Core::Context* context)
 
 		ReleaseElements();
 
-		Geometry::SetContext(NULL);
-		context = NULL;
+		Geometry::SetContext(nullptr);
+		host_context = nullptr;
 	}
-}
-
-// Called whenever an element is created.
-void Plugin::OnElementCreate(Core::Element* element)
-{
-	// Store the stack addresses for this frame.
-	elements.insert(element);
 }
 
 // Called whenever an element is destroyed.
 void Plugin::OnElementDestroy(Core::Element* element)
 {
-	elements.erase(element);
-
-	if (info_element != NULL)
+	if (info_element)
 		info_element->OnElementDestroy(element);
 }
 
 // Event handler for events from the debugger elements.
 void Plugin::ProcessEvent(Core::Event& event)
 {
-	if (event == "click")
+	if (event == Core::EventId::Click)
 	{
 		if (event.GetTargetElement()->GetId() == "event-log-button")
 		{
 			if (log_element->IsVisible())
-				log_element->SetProperty("visibility", "hidden");
+				log_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 			else
-				log_element->SetProperty("visibility", "visible");
+				log_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		}
 		else if (event.GetTargetElement()->GetId() == "debug-info-button")
 		{
 			if (info_element->IsVisible())
-				info_element->SetProperty("visibility", "hidden");
+				info_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 			else
-				info_element->SetProperty("visibility", "visible");
+				info_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		}
 		else if (event.GetTargetElement()->GetId() == "outlines-button")
 		{
@@ -287,66 +277,62 @@ Plugin* Plugin::GetInstance()
 
 bool Plugin::LoadFont()
 {
-	return (Core::FontDatabase::LoadFontFace(Core::FontDatabase::FreeType, lacuna_regular, sizeof(lacuna_regular) / sizeof(unsigned char), "Lacuna", Core::Font::STYLE_NORMAL, Core::Font::WEIGHT_NORMAL) &&
-			Core::FontDatabase::LoadFontFace(Core::FontDatabase::FreeType, lacuna_italic, sizeof(lacuna_italic) / sizeof(unsigned char), "Lacuna", Core::Font::STYLE_ITALIC, Core::Font::WEIGHT_NORMAL));
+	const Core::String font_family_name = "rmlui-debugger-font";
+
+	return (Core::LoadFontFace(courier_prime_code, sizeof(courier_prime_code)/sizeof(courier_prime_code[0]), font_family_name, Core::Style::FontStyle::Normal, Core::Style::FontWeight::Normal) &&
+	        Core::LoadFontFace(courier_prime_code_italic, sizeof(courier_prime_code_italic)/sizeof(courier_prime_code_italic[0]), font_family_name, Core::Style::FontStyle::Italic, Core::Style::FontWeight::Normal));
 }
 
 bool Plugin::LoadMenuElement()
 {
 	menu_element = host_context->CreateDocument();
-	if (menu_element == NULL)
+	if (!menu_element)
 		return false;
 
 	menu_element->SetId("rmlui-debug-menu");
-	menu_element->SetProperty("visibility", "hidden");
+	menu_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	menu_element->SetInnerRML(menu_rml);
 
-	// Remove our reference on the document.
-	menu_element->RemoveReference();
-
-	Core::StyleSheet* style_sheet = Core::Factory::InstanceStyleSheetString(menu_rcss);
-	if (style_sheet == NULL)
+	Core::SharedPtr<Core::StyleSheet> style_sheet = Core::Factory::InstanceStyleSheetString(menu_rcss);
+	if (!style_sheet)
 	{
 		host_context->UnloadDocument(menu_element);
-		menu_element = NULL;
-
+		menu_element = nullptr;
 		return false;
 	}
 
-	menu_element->SetStyleSheet(style_sheet);
-	style_sheet->RemoveReference();
-	menu_element->AddReference();
+	menu_element->SetStyleSheet(std::move(style_sheet));
 
 	// Set the version info in the menu.
 	menu_element->GetElementById("version-number")->SetInnerRML("v" + Rml::Core::GetVersion());
 
 	// Attach to the buttons.
 	Core::Element* event_log_button = menu_element->GetElementById("event-log-button");
-	event_log_button->AddEventListener("click", this);
+	event_log_button->AddEventListener(Rml::Core::EventId::Click, this);
 
 	Core::Element* element_info_button = menu_element->GetElementById("debug-info-button");
-	element_info_button->AddEventListener("click", this);
+	element_info_button->AddEventListener(Rml::Core::EventId::Click, this);
 
 	Core::Element* outlines_button = menu_element->GetElementById("outlines-button");
-	outlines_button->AddEventListener("click", this);
+	outlines_button->AddEventListener(Rml::Core::EventId::Click, this);
 
 	return true;
 }
 
 bool Plugin::LoadInfoElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-info", new Core::ElementInstancerGeneric< ElementInfo >())->RemoveReference();
+	info_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementInfo> >();
+	Core::Factory::RegisterElementInstancer("debug-info", info_element_instancer.get());
 	info_element = dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
-	if (info_element == NULL)
+	if (!info_element)
 		return false;
 
-	info_element->SetProperty("visibility", "hidden");
+	info_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 
 	if (!info_element->Initialise())
 	{
-		info_element->RemoveReference();
 		host_context->UnloadDocument(info_element);
-		info_element = NULL;
+		info_element = nullptr;
 
 		return false;
 	}
@@ -356,53 +342,63 @@ bool Plugin::LoadInfoElement()
 
 bool Plugin::LoadLogElement()
 {
-	Core::Factory::RegisterElementInstancer("debug-log", new Core::ElementInstancerGeneric< ElementLog >())->RemoveReference();
+	log_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementLog> >();
+	Core::Factory::RegisterElementInstancer("debug-log", log_element_instancer.get());
 	log_element = dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
-	if (log_element == NULL)
+	if (!log_element)
 		return false;
 
-	log_element->SetProperty("visibility", "hidden");
+	log_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 
 	if (!log_element->Initialise())
 	{
-		log_element->RemoveReference();
 		host_context->UnloadDocument(log_element);
-		log_element = NULL;
+		log_element = nullptr;
 
 		return false;
 	}
 
 	// Make the system interface; this will trap the log messages for us.
-	log_hook = new SystemInterface(log_element);
+	application_interface = Core::GetSystemInterface();
+	log_interface = std::make_unique<SystemInterface>(application_interface, log_element);
+	Core::SetSystemInterface(log_interface.get());
 
 	return true;
 }
 
 void Plugin::ReleaseElements()
 {
-	if (menu_element)
+	if (host_context)
 	{
-		menu_element->RemoveReference();
-		menu_element = NULL;
+		if (menu_element)
+		{
+			host_context->UnloadDocument(menu_element);
+			menu_element = nullptr;
+		}
+
+		if (info_element)
+		{
+			host_context->UnloadDocument(info_element);
+			info_element = nullptr;
+		}
+
+		if (log_element)
+		{
+			host_context->UnloadDocument(log_element);
+			log_element = nullptr;
+			Core::SetSystemInterface(application_interface);
+			application_interface = nullptr;
+			log_interface.reset();
+		}
 	}
 
-	if (info_element)
+	if (debug_context)
 	{
-		info_element->RemoveReference();
-		info_element = NULL;
-	}
-
-	if (log_element)
-	{
-		log_element->RemoveReference();
-		log_element = NULL;
-		delete log_hook;
-	}
-
-	if (hook_element)
-	{
-		hook_element->RemoveReference();
-		hook_element = NULL;
+		if (hook_element)
+		{
+			debug_context->UnloadDocument(hook_element);
+			hook_element = nullptr;
+		}
 	}
 }
 

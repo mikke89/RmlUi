@@ -51,7 +51,7 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 		// Fetch the document from the target of the 'onload' event. From here we can fetch the options elements by ID
 		// to manipulate them directly.
 		Rml::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
-		if (options_body == NULL)
+		if (options_body == nullptr)
 			return;
 
 		// Get the current graphics setting, and translate that into the ID of the radio button we need to set.
@@ -68,12 +68,12 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 		// This will automatically pop the other radio buttons in the set. Note that we could have not cast and called
 		// the 'Click()' function instead, but this method will avoid event overhead.
 		Rml::Controls::ElementFormControlInput* graphics_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById(graphics_option_id));
-		if (graphics_option != NULL)
+		if (graphics_option != nullptr)
 			graphics_option->SetAttribute("checked", "");
 
 		// Fetch the reverb option by ID and set its checked status from the game options.
 		Rml::Controls::ElementFormControlInput* reverb_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("reverb"));
-		if (reverb_option != NULL)
+		if (reverb_option != nullptr)
 		{
 			if (GameDetails::GetReverb())
 				reverb_option->SetAttribute("checked", "");
@@ -83,12 +83,19 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 
 		// Similarly, fetch the 3D spatialisation option by ID and set its checked status.
 		Rml::Controls::ElementFormControlInput* spatialisation_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("3d"));
-		if (spatialisation_option != NULL)
+		if (spatialisation_option != nullptr)
 		{
 			if (GameDetails::Get3DSpatialisation())
 				spatialisation_option->SetAttribute("checked", "");
 			else
 				spatialisation_option->RemoveAttribute("checked");
+		}
+
+		// Disable the accept button when default values are given
+		Rml::Controls::ElementFormControlInput* accept = dynamic_cast<Rml::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
+		if (accept != nullptr)
+		{
+			accept->SetDisabled(true);
 		}
 	}
 
@@ -124,19 +131,33 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 	// warning message.
 	else if (value == "bad_graphics")
 	{
-		Rml::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
-		if (options_body == NULL)
+		using namespace Rml::Core;
+		ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
+		if (options_body == nullptr)
 			return;
 
-		Rml::Core::Element* bad_warning = options_body->GetElementById("bad_warning");
+		Element* bad_warning = options_body->GetElementById("bad_warning");
 		if (bad_warning)
 		{
 			// The 'value' parameter of an onchange event is set to the value the control would send if it was
 			// submitted; so, the empty string if it is clear or to the 'value' attribute of the control if it is set.
-			if (event.GetParameter< Rml::Core::String >("value", "").Empty())
-				bad_warning->SetProperty("display", "none");
+			if (event.GetParameter< String >("value", "").empty())
+				bad_warning->SetProperty(PropertyId::Display, Property(Style::Display::None));
 			else
-				bad_warning->SetProperty("display", "block");
+				bad_warning->SetProperty(PropertyId::Display, Property(Style::Display::Block));
+		}
+	}
+	else if (value == "enable_accept")
+	{
+		Rml::Core::ElementDocument* options_body = event.GetTargetElement()->GetOwnerDocument();
+		if (options_body == nullptr)
+			return;
+
+		// Enable the accept button when values are changed
+		Rml::Controls::ElementFormControlInput* accept = dynamic_cast<Rml::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
+		if (accept != nullptr)
+		{
+			accept->SetDisabled(false);
 		}
 	}
 }

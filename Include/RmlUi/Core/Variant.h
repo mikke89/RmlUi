@@ -32,7 +32,7 @@
 #include "Header.h"
 #include "Types.h"
 #include "TypeConverter.h"
-#include <list>
+#include "Animation.h"
 
 namespace Rml {
 namespace Core {
@@ -49,25 +49,14 @@ namespace Core {
 class RMLUICORE_API Variant
 {
 public:
-	Variant();
-	/// Templatised constructors don't work for the copy constructor, so we have to define it
-	/// explicitly.
-	Variant(const Variant&);
-	/// Constructs a variant with internal data.
-	/// @param[in] t Data of a supported type to set on the variant.
-	template< typename T >
-	Variant(const T& t);
-
-	~Variant();
-
-	/// Type of data stored in the variant.
-	enum Type
+	/// Type of data stored in the variant. We use size_t as base to avoid 'padding due to alignment specifier' warning.
+	enum Type : size_t
 	{
 		NONE = '-',
 		BYTE = 'b',
 		CHAR = 'c',
 		FLOAT = 'f',
-		INT = 'i', 
+		INT = 'i',
 		STRING = 's',
 		WORD = 'w',
 		VECTOR2 = '2',
@@ -76,33 +65,39 @@ public:
 		COLOURF = 'g',
 		COLOURB = 'h',
 		SCRIPTINTERFACE = 'p',
-		TRANSFORMREF = 't',
+		TRANSFORMPTR = 't',
 		TRANSITIONLIST = 'T',
 		ANIMATIONLIST = 'A',
-		VOIDPTR = '*',			
+		DECORATORSPTR = 'D',
+		FONTEFFECTSPTR = 'F',
+		VOIDPTR = '*',
 	};
 
-	/// Clears the data structure stored by the variant.
+	Variant();
+	Variant(const Variant&);
+	Variant(Variant&&) noexcept;
+	Variant& operator=(const Variant& copy);
+	Variant& operator=(Variant&& other) noexcept;
+	~Variant();
+
+	// Construct by variant type
+	template< typename T >
+	Variant(T&& t);
+
+	// Assign by variant type
+	template<typename T>
+	Variant& operator=(T&& t);
+
 	void Clear();
 
-	/// Gets the current internal representation type.
-	/// @return The type of data stored in the variant internally.
 	inline Type GetType() const;
-
-	/// Shares another variant's data with this variant.
-	/// @param[in] copy Variant to share data.
-	void Set(const Variant& copy);
-
-	/// Clear and set a new value to this variant.
-	/// @param[in] t New value to set.
-	template<typename T>
-	void Reset(const T& t);
 
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.
+	/// @param[in] default_value The value returned if the conversion failed.
 	/// @return Data in the requested type.
 	template< typename T >
-	T Get() const;
+	T Get(T default_value = T()) const;
 
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.
@@ -111,40 +106,52 @@ public:
 	template< typename T >
 	bool GetInto(T& value) const;
 
-	/// Assigns another variant's internal data to this variant.
-	/// @param[in] copy Variant to share data.
-	Variant& operator=(const Variant& copy);
+	/// Returns a reference to the variants underlying type.
+	/// @warning: Undefined behavior if T does not represent the underlying type of the variant.
+	template< typename T>
+	const T& GetReference() const;
 
 	bool operator==(const Variant& other) const;
 	bool operator!=(const Variant& other) const { return !(*this == other); }
 
 private:
 
+	/// Copy another variant's data to this variant.
+	/// @warning Does not clear existing data.
+	void Set(const Variant& copy);
+	void Set(Variant&& other);
+
 	void Set(const byte value);
 	void Set(const char value);
 	void Set(const float value);
 	void Set(const int value);
-	void Set(const word value);
+	void Set(const Character value);
 	void Set(const char* value);
 	void Set(void* value);
-	void Set(const String& value);
 	void Set(const Vector2f& value);
 	void Set(const Vector3f& value);
 	void Set(const Vector4f& value);
-	void Set(const TransformRef& value);
-	void Set(const TransitionList& value);
-	void Set(const AnimationList& value);
 	void Set(const Colourf& value);
 	void Set(const Colourb& value);
 	void Set(ScriptInterface* value);
+
+	void Set(const String& value);
+	void Set(String&& value);
+	void Set(const TransformPtr& value);
+	void Set(TransformPtr&& value);
+	void Set(const TransitionList& value);
+	void Set(TransitionList&& value);
+	void Set(const AnimationList& value);
+	void Set(AnimationList&& value);
+	void Set(const DecoratorsPtr& value);
+	void Set(DecoratorsPtr&& value);
+	void Set(const FontEffectsPtr& value);
+	void Set(FontEffectsPtr&& value);
 	
-#ifdef RMLUI_ARCH_64
-		static const int LOCAL_DATA_SIZE = 40; // Required for Strings
-#else
-		static const int LOCAL_DATA_SIZE = 24;
-#endif
+	static constexpr size_t LOCAL_DATA_SIZE = sizeof(TransitionList);
+
 	Type type;
-	char data[LOCAL_DATA_SIZE];
+	alignas(TransitionList) char data[LOCAL_DATA_SIZE];
 };
 
 }

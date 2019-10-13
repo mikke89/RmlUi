@@ -34,3 +34,18 @@ double ShellSystemInterface::GetElapsedTime()
 {
 	return Shell::GetElapsedTime();
 }
+
+void ShellSystemInterface::SetMouseCursor(const Rml::Core::String& cursor_name)
+{
+	Shell::SetMouseCursor(cursor_name);
+}
+
+void ShellSystemInterface::SetClipboardText(const Rml::Core::String& text)
+{
+	Shell::SetClipboardText(text);
+}
+
+void ShellSystemInterface::GetClipboardText(Rml::Core::String& text)
+{
+	Shell::GetClipboardText(text);
+}

@@ -47,22 +47,23 @@ XMLNodeHandlerDefault::~XMLNodeHandlerDefault()
 
 Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
 {	
+	RMLUI_ZoneScopedC(0x556B2F);
+
 	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
 
 	// Attempt to instance the element with the instancer
-	Element* element = Factory::InstanceElement(parent, name, name, attributes);
+	ElementPtr element = Factory::InstanceElement(parent, name, name, attributes);
 	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned NULL.", name.CString());
-		return NULL;
+		Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned nullptr.", name.c_str());
+		return nullptr;
 	}
 
 	// Add the element to its parent and remove the reference
-	parent->AppendChild(element);
-	element->RemoveReference();
+	Element* result = parent->AppendChild(std::move(element));
 
-	return element;
+	return result;
 }
 
 bool XMLNodeHandlerDefault::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))
@@ -75,6 +76,8 @@ bool XMLNodeHandlerDefault::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser)
 
 bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 {
+	RMLUI_ZoneScopedC(0x006400);
+
 	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
 
@@ -82,10 +85,6 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 	return Factory::InstanceElementText(parent, data);
 }
 
-void XMLNodeHandlerDefault::Release()
-{
-	delete this;
-}
 
 }
 }

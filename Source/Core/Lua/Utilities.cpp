@@ -33,9 +33,9 @@ namespace Rml {
 namespace Core {
 namespace Lua {
 
-void PushVariant(lua_State* L, Variant* var)
+void PushVariant(lua_State* L, const Variant* var)
 {
-    if(var == NULL)
+    if(var == nullptr)
     {
         lua_pushnil(L);
         return;
@@ -58,7 +58,7 @@ void PushVariant(lua_State* L, Variant* var)
         LuaType<Colourf>::push(L,new Colourf(var->Get<Colourf>()),true);
         break;
     case Variant::STRING:
-        lua_pushstring(L,var->Get<String>().CString());
+        lua_pushstring(L,var->Get<String>().c_str());
         break;
     case Variant::VECTOR2:
         //according to Variant.inl, it is going to be a Vector2f
@@ -84,8 +84,8 @@ void Report(lua_State* L, const Rml::Core::String& place)
         if(place == "")
             strmsg = msg;
         else
-            strmsg = String(place).Append(" ").Append(msg);
-        Log::Message(Log::LT_WARNING, strmsg.CString());
+            strmsg = String(place).append(" ").append(msg);
+        Log::Message(Log::LT_WARNING, strmsg.c_str());
         msg=lua_tostring(L,-1);
     }
 }

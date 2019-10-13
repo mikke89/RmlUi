@@ -33,7 +33,7 @@
 #include <ShellRenderInterfaceOpenGL.h>
 #include "SystemInterface.h"
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -85,16 +85,15 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Rml::Core::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
-
 	// Initialise our system interface to write the log messages to file.
-	SystemInterface system_interface;
+	ShellSystemInterface system_interface;
 	Rml::Core::SetSystemInterface(&system_interface);
 
 	Rml::Core::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -109,25 +108,22 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Load a non-existent document to spawn an error message.
 	Rml::Core::ElementDocument* invalid_document = context->LoadDocument("assets/invalid.rml");
-	RMLUI_ASSERTMSG(invalid_document != NULL, "Testing ASSERT logging.");
-	if (invalid_document != NULL)
+	RMLUI_ASSERTMSG(invalid_document != nullptr, "Testing ASSERT logging.");
+	if (invalid_document != nullptr)
 	{
-		invalid_document->RemoveReference();
 		invalid_document->Close();
 	}
 
 	// Load and show the demo document.
 	Rml::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
-	if (document != NULL)
+	if (document != nullptr)
 	{
 		document->Show();
-		document->RemoveReference();
 	}
 
 	Shell::EventLoop(GameLoop);
 
 	// Shutdown RmlUi.
-	context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();

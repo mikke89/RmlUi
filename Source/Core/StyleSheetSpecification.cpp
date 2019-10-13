@@ -26,36 +26,68 @@
  *
  */
 
- 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "PropertyParserNumber.h"
 #include "PropertyParserAnimation.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
+#include "PropertyShorthandDefinition.h"
+#include "IdNameMap.h"
 
 namespace Rml {
 namespace Core {
 
-static StyleSheetSpecification* instance = NULL;
 
-StyleSheetSpecification::StyleSheetSpecification()
+static StyleSheetSpecification* instance = nullptr;
+
+
+struct DefaultStyleSheetParsers {
+	PropertyParserNumber number = PropertyParserNumber(Property::NUMBER);
+	PropertyParserNumber length = PropertyParserNumber(Property::LENGTH, Property::PX);
+	PropertyParserNumber length_percent = PropertyParserNumber(Property::LENGTH_PERCENT, Property::PX);
+	PropertyParserNumber number_length_percent = PropertyParserNumber(Property::NUMBER_LENGTH_PERCENT, Property::PX);
+	PropertyParserNumber angle = PropertyParserNumber(Property::ANGLE, Property::RAD);
+	PropertyParserKeyword keyword = PropertyParserKeyword();
+	PropertyParserString string = PropertyParserString();
+	PropertyParserAnimation animation = PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER);
+	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
+	PropertyParserColour color = PropertyParserColour();
+	PropertyParserTransform transform = PropertyParserTransform();
+};
+
+StyleSheetSpecification::StyleSheetSpecification() : 
+	// Reserve space for all defined ids and some more for custom properties
+	properties(2 * (size_t)PropertyId::NumDefinedIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
+
+	default_parsers.reset(new DefaultStyleSheetParsers);
 }
 
 StyleSheetSpecification::~StyleSheetSpecification()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
+}
+
+PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout)
+{
+	return properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
+}
+
+ShorthandId StyleSheetSpecification::RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type)
+{
+	return properties.RegisterShorthand(shorthand_name, property_names, type, id);
 }
 
 bool StyleSheetSpecification::Initialise()
 {
-	if (instance == NULL)
+	if (instance == nullptr)
 	{
 		new StyleSheetSpecification();
 
@@ -68,11 +100,8 @@ bool StyleSheetSpecification::Initialise()
 
 void StyleSheetSpecification::Shutdown()
 {
-	if (instance != NULL)
+	if (instance != nullptr)
 	{
-		for (ParserMap::iterator iterator = instance->parsers.begin(); iterator != instance->parsers.end(); iterator++)
-			(*iterator).second->Release();
-
 		delete instance;
 	}
 }
@@ -82,7 +111,10 @@ bool StyleSheetSpecification::RegisterParser(const String& parser_name, Property
 {
 	ParserMap::iterator iterator = instance->parsers.find(parser_name);
 	if (iterator != instance->parsers.end())
-		(*iterator).second->Release();
+	{
+		Log::Message(Log::LT_WARNING, "Parser with name %s already exists!", parser_name.c_str());
+		return false;
+	}
 
 	instance->parsers[parser_name] = parser;
 	return true;
@@ -93,7 +125,7 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 {
 	ParserMap::iterator iterator = instance->parsers.find(parser_name);
 	if (iterator == instance->parsers.end())
-		return NULL;
+		return nullptr;
 
 	return (*iterator).second;
 }
@@ -101,7 +133,8 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 // Registers a property with a new definition.
 PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
 {
-	return instance->properties.RegisterProperty(property_name, default_value, inherited, forces_layout);
+	RMLUI_ASSERTMSG((size_t)instance->properties.property_map->GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
+	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, inherited, forces_layout); 
 }
 
 // Returns a property definition.
@@ -110,182 +143,260 @@ const PropertyDefinition* StyleSheetSpecification::GetProperty(const String& pro
 	return instance->properties.GetProperty(property_name);
 }
 
-// Fetches a list of the names of all registered property definitions.
-const PropertyNameList& StyleSheetSpecification::GetRegisteredProperties()
+const PropertyDefinition* StyleSheetSpecification::GetProperty(PropertyId id)
+{
+	return instance->properties.GetProperty(id);
+}
+
+const PropertyIdSet& StyleSheetSpecification::GetRegisteredProperties()
 {
 	return instance->properties.GetRegisteredProperties();
 }
 
-const PropertyNameList & StyleSheetSpecification::GetRegisteredInheritedProperties()
+const PropertyIdSet & StyleSheetSpecification::GetRegisteredInheritedProperties()
 {
 	return instance->properties.GetRegisteredInheritedProperties();
 }
 
-// Registers a shorthand property definition.
-bool StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type)
+const PropertyIdSet& StyleSheetSpecification::GetRegisteredPropertiesForcingLayout()
 {
+	return instance->properties.GetRegisteredPropertiesForcingLayout();
+}
+
+// Registers a shorthand property definition.
+ShorthandId StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
+{
+	RMLUI_ASSERTMSG(instance->properties.property_map->GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
+	RMLUI_ASSERTMSG((size_t)instance->properties.shorthand_map->GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
 	return instance->properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
 // Returns a shorthand definition.
-const PropertyShorthandDefinition* StyleSheetSpecification::GetShorthand(const String& shorthand_name)
+const ShorthandDefinition* StyleSheetSpecification::GetShorthand(const String& shorthand_name)
 {
 	return instance->properties.GetShorthand(shorthand_name);
 }
 
-// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
-bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value, const String& source_file, int source_line_number)
+const ShorthandDefinition* StyleSheetSpecification::GetShorthand(ShorthandId id)
 {
-	return instance->properties.ParsePropertyDeclaration(dictionary, property_name, property_value, source_file, source_line_number);
+	return instance->properties.GetShorthand(id);
+}
+
+// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
+bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value)
+{
+	return instance->properties.ParsePropertyDeclaration(dictionary, property_name, property_value);
+}
+
+PropertyId StyleSheetSpecification::GetPropertyId(const String& property_name)
+{
+	return instance->properties.property_map->GetId(property_name);
+}
+
+ShorthandId StyleSheetSpecification::GetShorthandId(const String& shorthand_name)
+{
+	return instance->properties.shorthand_map->GetId(shorthand_name);
+}
+
+const String& StyleSheetSpecification::GetPropertyName(PropertyId id)
+{
+	return instance->properties.property_map->GetName(id);
+}
+
+const String& StyleSheetSpecification::GetShorthandName(ShorthandId id)
+{
+	return instance->properties.shorthand_map->GetName(id);
+}
+
+PropertyIdSet StyleSheetSpecification::GetShorthandUnderlyingProperties(ShorthandId id)
+{
+	PropertyIdSet result;
+	const ShorthandDefinition* shorthand = instance->properties.GetShorthand(id);
+	if (!shorthand)
+		return result;
+
+	for (auto& item : shorthand->items)
+	{
+		if (item.type == ShorthandItemType::Property)
+		{
+			result.Insert(item.property_id);
+		}
+		else if (item.type == ShorthandItemType::Shorthand)
+		{
+			// When we have a shorthand pointing to another shorthands, call us recursively. Add the union of the previous result and new properties.
+			result |= GetShorthandUnderlyingProperties(item.shorthand_id);
+		}
+	}
+	return result;
+}
+
+const PropertySpecification& StyleSheetSpecification::GetPropertySpecification()
+{
+	return instance->properties;
 }
 
 // Registers RmlUi's default parsers.
 void StyleSheetSpecification::RegisterDefaultParsers()
 {
-	RegisterParser("number", new PropertyParserNumber(Property::NUMBER));
-	RegisterParser("length", new PropertyParserNumber(Property::LENGTH, Property::PX));
-	RegisterParser("length_percent", new PropertyParserNumber(Property::LENGTH_PERCENT, Property::PX));
-	RegisterParser("number_length_percent", new PropertyParserNumber(Property::NUMBER_LENGTH_PERCENT, Property::PX));
-	RegisterParser("angle", new PropertyParserNumber(Property::ANGLE, Property::RAD));
-	RegisterParser("keyword", new PropertyParserKeyword());
-	RegisterParser("string", new PropertyParserString());
-	RegisterParser(ANIMATION, new PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER));
-	RegisterParser(TRANSITION, new PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER));
-	RegisterParser(COLOR, new PropertyParserColour());
-	RegisterParser(TRANSFORM, new PropertyParserTransform());
+	RegisterParser("number", &default_parsers->number);
+	RegisterParser("length", &default_parsers->length);
+	RegisterParser("length_percent", &default_parsers->length_percent);
+	RegisterParser("number_length_percent", &default_parsers->number_length_percent);
+	RegisterParser("angle", &default_parsers->angle);
+	RegisterParser("keyword", &default_parsers->keyword);
+	RegisterParser("string", &default_parsers->string);
+	RegisterParser("animation", &default_parsers->animation);
+	RegisterParser("transition", &default_parsers->transition);
+	RegisterParser("color", &default_parsers->color);
+	RegisterParser("transform", &default_parsers->transform);
 }
+
 
 // Registers RmlUi's default style properties.
 void StyleSheetSpecification::RegisterDefaultProperties()
 {
-	// Style property specifications (ala RCSS).
+	/* 
+		Style property specifications (ala RCSS).
 
-	RegisterProperty(MARGIN_TOP, "0px", false, true)
+		Note: Whenever keywords or default values are changed, make sure its computed value is
+		changed correspondingly, see `ComputedValues.h`.
+
+		When adding new properties, it may be desirable to add it to the computed values as well.
+		Then, make sure to resolve it as appropriate in `ElementStyle.cpp`.
+
+	*/
+
+	RegisterProperty(PropertyId::MarginTop, MARGIN_TOP, "0px", false, true)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(MARGIN_RIGHT, "0px", false, true)
+	RegisterProperty(PropertyId::MarginRight, MARGIN_RIGHT, "0px", false, true)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(MARGIN_BOTTOM, "0px", false, true)
+	RegisterProperty(PropertyId::MarginBottom, MARGIN_BOTTOM, "0px", false, true)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(MARGIN_LEFT, "0px", false, true)
+	RegisterProperty(PropertyId::MarginLeft, MARGIN_LEFT, "0px", false, true)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterShorthand(MARGIN, "margin-top, margin-right, margin-bottom, margin-left");
+	RegisterShorthand(ShorthandId::Margin, MARGIN, "margin-top, margin-right, margin-bottom, margin-left", ShorthandType::Box);
 
-	RegisterProperty(PADDING_TOP, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PADDING_RIGHT, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PADDING_BOTTOM, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PADDING_LEFT, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterShorthand(PADDING, "padding-top, padding-right, padding-bottom, padding-left");
+	RegisterProperty(PropertyId::PaddingTop, PADDING_TOP, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::PaddingRight, PADDING_RIGHT, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::PaddingBottom, PADDING_BOTTOM, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::PaddingLeft, PADDING_LEFT, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterShorthand(ShorthandId::Padding, PADDING, "padding-top, padding-right, padding-bottom, padding-left", ShorthandType::Box);
 
-	RegisterProperty(BORDER_TOP_WIDTH, "0px", false, true).AddParser("length");
-	RegisterProperty(BORDER_RIGHT_WIDTH, "0px", false, true).AddParser("length");
-	RegisterProperty(BORDER_BOTTOM_WIDTH, "0px", false, true).AddParser("length");
-	RegisterProperty(BORDER_LEFT_WIDTH, "0px", false, true).AddParser("length");
-	RegisterShorthand(BORDER_WIDTH, "border-top-width, border-right-width, border-bottom-width, border-left-width");
+	RegisterProperty(PropertyId::BorderTopWidth, BORDER_TOP_WIDTH, "0px", false, true).AddParser("length");
+	RegisterProperty(PropertyId::BorderRightWidth, BORDER_RIGHT_WIDTH, "0px", false, true).AddParser("length");
+	RegisterProperty(PropertyId::BorderBottomWidth, BORDER_BOTTOM_WIDTH, "0px", false, true).AddParser("length");
+	RegisterProperty(PropertyId::BorderLeftWidth, BORDER_LEFT_WIDTH, "0px", false, true).AddParser("length");
+	RegisterShorthand(ShorthandId::BorderWidth, BORDER_WIDTH, "border-top-width, border-right-width, border-bottom-width, border-left-width", ShorthandType::Box);
 
-	RegisterProperty(BORDER_TOP_COLOR, "black", false, false).AddParser(COLOR);
-	RegisterProperty(BORDER_RIGHT_COLOR, "black", false, false).AddParser(COLOR);
-	RegisterProperty(BORDER_BOTTOM_COLOR, "black", false, false).AddParser(COLOR);
-	RegisterProperty(BORDER_LEFT_COLOR, "black", false, false).AddParser(COLOR);
-	RegisterShorthand(BORDER_COLOR, "border-top-color, border-right-color, border-bottom-color, border-left-color");
+	RegisterProperty(PropertyId::BorderTopColor, BORDER_TOP_COLOR, "black", false, false).AddParser(COLOR);
+	RegisterProperty(PropertyId::BorderRightColor, BORDER_RIGHT_COLOR, "black", false, false).AddParser(COLOR);
+	RegisterProperty(PropertyId::BorderBottomColor, BORDER_BOTTOM_COLOR, "black", false, false).AddParser(COLOR);
+	RegisterProperty(PropertyId::BorderLeftColor, BORDER_LEFT_COLOR, "black", false, false).AddParser(COLOR);
+	RegisterShorthand(ShorthandId::BorderColor, BORDER_COLOR, "border-top-color, border-right-color, border-bottom-color, border-left-color", ShorthandType::Box);
 
-	RegisterShorthand(BORDER_TOP, "border-top-width, border-top-color");
-	RegisterShorthand(BORDER_RIGHT, "border-right-width, border-right-color");
-	RegisterShorthand(BORDER_BOTTOM, "border-bottom-width, border-bottom-color");
-	RegisterShorthand(BORDER_LEFT, "border-left-width, border-left-color");
-	RegisterShorthand(BORDER, "border-top, border-right, border-bottom, border-left", PropertySpecification::RECURSIVE);
+	RegisterShorthand(ShorthandId::BorderTop, BORDER_TOP, "border-top-width, border-top-color", ShorthandType::FallThrough);
+	RegisterShorthand(ShorthandId::BorderRight, BORDER_RIGHT, "border-right-width, border-right-color", ShorthandType::FallThrough);
+	RegisterShorthand(ShorthandId::BorderBottom, BORDER_BOTTOM, "border-bottom-width, border-bottom-color", ShorthandType::FallThrough);
+	RegisterShorthand(ShorthandId::BorderLeft, BORDER_LEFT, "border-left-width, border-left-color", ShorthandType::FallThrough);
+	RegisterShorthand(ShorthandId::Border, BORDER, "border-top, border-right, border-bottom, border-left", ShorthandType::RecursiveRepeat);
 
-	RegisterProperty(DISPLAY, "inline", false, true).AddParser("keyword", "none, block, inline, inline-block");
-	RegisterProperty(POSITION, "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");
-	RegisterProperty(TOP, "auto", false, false)
+	RegisterProperty(PropertyId::Display, DISPLAY, "inline", false, true).AddParser("keyword", "none, block, inline, inline-block");
+	RegisterProperty(PropertyId::Position, POSITION, "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");
+	RegisterProperty(PropertyId::Top, TOP, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(RIGHT, "auto", false, false)
+	RegisterProperty(PropertyId::Right, RIGHT, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(BOTTOM, "auto", false, false)
+	RegisterProperty(PropertyId::Bottom, BOTTOM, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(LEFT, "auto", false, false)
+	RegisterProperty(PropertyId::Left, LEFT, "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 
-	RegisterProperty(FLOAT, "none", false, true).AddParser("keyword", "none, left, right");
-	RegisterProperty(CLEAR, "none", false, true).AddParser("keyword", "none, left, right, both");
+	RegisterProperty(PropertyId::Float, FLOAT, "none", false, true).AddParser("keyword", "none, left, right");
+	RegisterProperty(PropertyId::Clear, CLEAR, "none", false, true).AddParser("keyword", "none, left, right, both");
 
-	RegisterProperty(Z_INDEX, "auto", false, false)
-		.AddParser("keyword", "auto, top, bottom")
+	RegisterProperty(PropertyId::ZIndex, Z_INDEX, "auto", false, false)
+		.AddParser("keyword", "auto")
 		.AddParser("number");
 
-	RegisterProperty(WIDTH, "auto", false, true)
+	RegisterProperty(PropertyId::Width, WIDTH, "auto", false, true)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(MIN_WIDTH, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(MAX_WIDTH, "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::MinWidth, MIN_WIDTH, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::MaxWidth, MAX_WIDTH, "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 
-	RegisterProperty(HEIGHT, "auto", false, true)
+	RegisterProperty(PropertyId::Height, HEIGHT, "auto", false, true)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(MIN_HEIGHT, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(MAX_HEIGHT, "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::MinHeight, MIN_HEIGHT, "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::MaxHeight, MAX_HEIGHT, "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
 
-	RegisterProperty(LINE_HEIGHT, "1.2", true, true).AddParser("number_length_percent").SetRelativeTarget(RelativeTarget::FontSize);
-	RegisterProperty(VERTICAL_ALIGN, "baseline", false, true)
+	RegisterProperty(PropertyId::LineHeight, LINE_HEIGHT, "1.2", true, true).AddParser("number_length_percent").SetRelativeTarget(RelativeTarget::FontSize);
+	RegisterProperty(PropertyId::VerticalAlign, VERTICAL_ALIGN, "baseline", false, true)
 		.AddParser("keyword", "baseline, middle, sub, super, text-top, text-bottom, top, bottom")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::LineHeight);
 
-	RegisterProperty(OVERFLOW_X, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
-	RegisterProperty(OVERFLOW_Y, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
-	RegisterShorthand("overflow", "overflow-x, overflow-y", PropertySpecification::REPLICATE);
-	RegisterProperty(CLIP, "auto", true, false).AddParser("keyword", "auto, none").AddParser("number");
-	RegisterProperty(VISIBILITY, "visible", false, false).AddParser("keyword", "visible, hidden");
+	RegisterProperty(PropertyId::OverflowX, OVERFLOW_X, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
+	RegisterProperty(PropertyId::OverflowY, OVERFLOW_Y, "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
+	RegisterShorthand(ShorthandId::Overflow, "overflow", "overflow-x, overflow-y", ShorthandType::Replicate);
+	RegisterProperty(PropertyId::Clip, CLIP, "auto", true, false).AddParser("keyword", "auto, none").AddParser("number");
+	RegisterProperty(PropertyId::Visibility, VISIBILITY, "visible", false, false).AddParser("keyword", "visible, hidden");
 
 	// Need some work on this if we are to include images.
-	RegisterProperty(BACKGROUND_COLOR, "transparent", false, false).AddParser(COLOR);
-	RegisterShorthand(BACKGROUND, BACKGROUND_COLOR);
+	RegisterProperty(PropertyId::BackgroundColor, BACKGROUND_COLOR, "transparent", false, false).AddParser(COLOR);
+	RegisterShorthand(ShorthandId::Background, BACKGROUND, BACKGROUND_COLOR, ShorthandType::FallThrough);
 
-	RegisterProperty(COLOR, "white", true, false).AddParser(COLOR);
+	RegisterProperty(PropertyId::Color, COLOR, "white", true, false).AddParser(COLOR);
 
-	RegisterProperty(IMAGE_COLOR, "white", false, false).AddParser(COLOR);
-	RegisterProperty(OPACITY, "1", true, false).AddParser("number");
+	RegisterProperty(PropertyId::ImageColor, IMAGE_COLOR, "white", false, false).AddParser(COLOR);
+	RegisterProperty(PropertyId::Opacity, OPACITY, "1", true, false).AddParser("number");
 
-	RegisterProperty(FONT_FAMILY, "", true, true).AddParser("string");
-	RegisterProperty(FONT_CHARSET, "U+0020-007E", true, false).AddParser("string");
-	RegisterProperty(FONT_STYLE, "normal", true, true).AddParser("keyword", "normal, italic");
-	RegisterProperty(FONT_WEIGHT, "normal", true, true).AddParser("keyword", "normal, bold");
-	RegisterProperty(FONT_SIZE, "12px", true, true).AddParser("length").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ParentFontSize);
-	RegisterShorthand(FONT, "font-style, font-weight, font-size, font-family, font-charset");
+	RegisterProperty(PropertyId::FontFamily, FONT_FAMILY, "", true, true).AddParser("string");
+	RegisterProperty(PropertyId::FontStyle, FONT_STYLE, "normal", true, true).AddParser("keyword", "normal, italic");
+	RegisterProperty(PropertyId::FontWeight, FONT_WEIGHT, "normal", true, true).AddParser("keyword", "normal, bold");
+	RegisterProperty(PropertyId::FontSize, FONT_SIZE, "12px", true, true).AddParser("length").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ParentFontSize);
+	RegisterShorthand(ShorthandId::Font, FONT, "font-style, font-weight, font-size, font-family", ShorthandType::FallThrough);
 
-	RegisterProperty(TEXT_ALIGN, LEFT, true, true).AddParser("keyword", "left, right, center, justify");
-	RegisterProperty(TEXT_DECORATION, "none", true, false).AddParser("keyword", "none, underline"/*"none, underline, overline, line-through"*/);
-	RegisterProperty(TEXT_TRANSFORM, "none", true, true).AddParser("keyword", "none, capitalize, uppercase, lowercase");
-	RegisterProperty(WHITE_SPACE, "normal", true, true).AddParser("keyword", "normal, pre, nowrap, pre-wrap, pre-line");
+	RegisterProperty(PropertyId::TextAlign, TEXT_ALIGN, LEFT, true, true).AddParser("keyword", "left, right, center, justify");
+	RegisterProperty(PropertyId::TextDecoration, TEXT_DECORATION, "none", true, false).AddParser("keyword", "none, underline, overline, line-through");
+	RegisterProperty(PropertyId::TextTransform, TEXT_TRANSFORM, "none", true, true).AddParser("keyword", "none, capitalize, uppercase, lowercase");
+	RegisterProperty(PropertyId::WhiteSpace, WHITE_SPACE, "normal", true, true).AddParser("keyword", "normal, pre, nowrap, pre-wrap, pre-line");
 
-	RegisterProperty(CURSOR, "", true, false).AddParser("string");
+	RegisterProperty(PropertyId::Cursor, CURSOR, "", true, false).AddParser("string");
 
 	// Functional property specifications.
-	RegisterProperty(DRAG, "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
-	RegisterProperty(TAB_INDEX, "none", false, false).AddParser("keyword", "none, auto");
-	RegisterProperty(FOCUS, "auto", true, false).AddParser("keyword", "none, auto");
-	RegisterProperty(SCROLLBAR_MARGIN, "0", false, false).AddParser("length");
-	RegisterProperty(POINTER_EVENTS, "auto", true, false).AddParser("keyword", "auto, none");
+	RegisterProperty(PropertyId::Drag, DRAG, "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
+	RegisterProperty(PropertyId::TabIndex, TAB_INDEX, "none", false, false).AddParser("keyword", "none, auto");
+	RegisterProperty(PropertyId::Focus, FOCUS, "auto", true, false).AddParser("keyword", "none, auto");
+	RegisterProperty(PropertyId::ScrollbarMargin, SCROLLBAR_MARGIN, "0", false, false).AddParser("length");
+	RegisterProperty(PropertyId::PointerEvents, POINTER_EVENTS, "auto", true, false).AddParser("keyword", "none, auto");
 
 	// Perspective and Transform specifications
-	RegisterProperty(PERSPECTIVE, "none", false, false).AddParser("keyword", "none").AddParser("length");
-	RegisterProperty(PERSPECTIVE_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
-	RegisterProperty(PERSPECTIVE_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
-	RegisterShorthand(PERSPECTIVE_ORIGIN, "perspective-origin-x, perspective-origin-y");
-	RegisterProperty(TRANSFORM, "none", false, false).AddParser(TRANSFORM);
-	RegisterProperty(TRANSFORM_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
-	RegisterProperty(TRANSFORM_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
-	RegisterProperty(TRANSFORM_ORIGIN_Z, "0", false, false).AddParser("length");
-	RegisterShorthand(TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z");
+	RegisterProperty(PropertyId::Perspective, PERSPECTIVE, "none", false, false).AddParser("keyword", "none").AddParser("length");
+	RegisterProperty(PropertyId::PerspectiveOriginX, PERSPECTIVE_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
+	RegisterProperty(PropertyId::PerspectiveOriginY, PERSPECTIVE_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
+	RegisterShorthand(ShorthandId::PerspectiveOrigin, PERSPECTIVE_ORIGIN, "perspective-origin-x, perspective-origin-y", ShorthandType::FallThrough);
+	RegisterProperty(PropertyId::Transform, TRANSFORM, "none", false, false).AddParser(TRANSFORM);
+	RegisterProperty(PropertyId::TransformOriginX, TRANSFORM_ORIGIN_X, "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
+	RegisterProperty(PropertyId::TransformOriginY, TRANSFORM_ORIGIN_Y, "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
+	RegisterProperty(PropertyId::TransformOriginZ, TRANSFORM_ORIGIN_Z, "0", false, false).AddParser("length");
+	RegisterShorthand(ShorthandId::TransformOrigin, TRANSFORM_ORIGIN, "transform-origin-x, transform-origin-y, transform-origin-z", ShorthandType::FallThrough);
 
-	RegisterProperty(TRANSITION, "none", false, false).AddParser(TRANSITION);
-	RegisterProperty(ANIMATION, "none", false, false).AddParser(ANIMATION);
+	RegisterProperty(PropertyId::Transition, TRANSITION, "none", false, false).AddParser(TRANSITION);
+	RegisterProperty(PropertyId::Animation, ANIMATION, "none", false, false).AddParser(ANIMATION);
+
+	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("string");
+	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("string");
+
+	instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds);
+	instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds);
 }
 
 }

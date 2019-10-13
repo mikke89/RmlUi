@@ -62,8 +62,12 @@ void InputType::OnRender()
 {
 }
 
+void InputType::OnResize()
+{
+}
+
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputType::OnAttributeChange(const Core::AttributeNameList& RMLUI_UNUSED_PARAMETER(changed_attributes))
+bool InputType::OnAttributeChange(const Core::ElementAttributes& RMLUI_UNUSED_PARAMETER(changed_attributes))
 {
 	RMLUI_UNUSED(changed_attributes);
 
@@ -71,7 +75,7 @@ bool InputType::OnAttributeChange(const Core::AttributeNameList& RMLUI_UNUSED_PA
 }
 
 // Called when properties on the control are changed.
-void InputType::OnPropertyChange(const Core::PropertyNameList& RMLUI_UNUSED_PARAMETER(changed_properties))
+void InputType::OnPropertyChange(const Core::PropertyIdSet& RMLUI_UNUSED_PARAMETER(changed_properties))
 {
 	RMLUI_UNUSED(changed_properties);
 }

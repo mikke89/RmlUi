@@ -47,28 +47,21 @@ class RMLUICORE_API PropertyDictionary
 {
 public:
 	PropertyDictionary();
-	~PropertyDictionary();
 
-	/// Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
-	/// @param[in] name The name of the property to add.
-	/// @param[in] property The value of the new property.
-	void SetProperty(const String& name, const Property& property);
+	/// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
+	void SetProperty(PropertyId id, const Property& property);
 	/// Removes a property from the dictionary, if it exists.
-	/// @param[in] name The name of the property to remove.
-	void RemoveProperty(const String& name);
-	/// Returns the value of the property with the requested name, if one exists.
-	/// @param[in] name The name of the desired property.
-	const Property* GetProperty(const String& name) const;
+	void RemoveProperty(PropertyId id);
+	/// Returns the value of the property with the requested id, if one exists.
+	const Property* GetProperty(PropertyId id) const;
 
 	/// Returns the number of properties in the dictionary.
-	/// @return The number of properties in the dictionary.
 	int GetNumProperties() const;
 	/// Returns the map of properties in the dictionary.
-	/// @return The property map.
 	const PropertyMap& GetProperties() const;
 
 	/// Imports into the dictionary, and optionally defines the specificity of, potentially
-	/// un-specified properties. In the case of name conflicts, the incoming properties will
+	/// un-specified properties. In the case of id conflicts, the incoming properties will
 	/// overwrite the existing properties if their specificity (or their forced specificity)
 	/// are at least equal.
 	/// @param[in] property_dictionary The properties to import.
@@ -76,17 +69,20 @@ public:
 	void Import(const PropertyDictionary& property_dictionary, int specificity = -1);
 
 	/// Merges the contents of another fully-specified property dictionary with this one.
-	/// Properties defined in the new dictionary will overwrite those with the same name as
+	/// Properties defined in the new dictionary will overwrite those with the same id as
 	/// appropriate.
 	/// @param[in] property_dictionary The dictionary to merge.
 	/// @param[in] specificity_offset The specificities of all incoming properties will be offset by this value.
 	void Merge(const PropertyDictionary& property_dictionary, int specificity_offset = 0);
 
+	/// Set the source of all properties in the dictionary to the given one.
+	void SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source);
+
 private:
 	// Sets a property on the dictionary and its specificity if there is no name conflict, or its
 	// specificity (given by the parameter, not read from the property itself) is at least equal to
 	// the specificity of the conflicting property.
-	void SetProperty(const String& name, const Rml::Core::Property& property, int specificity);
+	void SetProperty(PropertyId id, const Rml::Core::Property& property, int specificity);
 
 	PropertyMap properties;
 };

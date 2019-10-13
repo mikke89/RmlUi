@@ -49,8 +49,8 @@ int DataSourceNotifyRowAdd(lua_State* L, DataSource* obj)
 {
     LUACHECKOBJ(obj);
     const char* table_name = luaL_checkstring(L,1);
-    int first_row_added = luaL_checkinteger(L,2);
-    int num_rows_added = luaL_checkinteger(L,3);
+    int first_row_added = (int)luaL_checkinteger(L,2);
+    int num_rows_added = (int)luaL_checkinteger(L,3);
     obj->NotifyRowAdd(table_name,first_row_added,num_rows_added);
     return 0;
 }
@@ -59,8 +59,8 @@ int DataSourceNotifyRowRemove(lua_State* L, DataSource* obj)
 {
     LUACHECKOBJ(obj);
     const char* table_name = luaL_checkstring(L,1);
-    int first_row_removed = luaL_checkinteger(L,2);
-    int num_rows_removed = luaL_checkinteger(L,3);
+    int first_row_removed = (int)luaL_checkinteger(L,2);
+    int num_rows_removed = (int)luaL_checkinteger(L,3);
     obj->NotifyRowRemove(table_name,first_row_removed,num_rows_removed);
     return 0;
 }
@@ -75,8 +75,8 @@ int DataSourceNotifyRowChange(lua_State* L, DataSource* obj)
     }
     else
     {
-        int first_row_changed = luaL_checkinteger(L,2);
-        int num_rows_changed = luaL_checkinteger(L,3);
+        int first_row_changed = (int)luaL_checkinteger(L,2);
+        int num_rows_changed = (int)luaL_checkinteger(L,3);
         obj->NotifyRowChange(table_name,first_row_changed,num_rows_changed);
     }
     return 0;
@@ -116,19 +116,19 @@ Rml::Core::Lua::RegType<DataSource> DataSourceMethods[] =
     LUAMETHOD(DataSource,NotifyRowAdd)
     LUAMETHOD(DataSource,NotifyRowRemove)
     LUAMETHOD(DataSource,NotifyRowChange)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataSourceGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg DataSourceSetters[] =
 {
     LUASETTER(DataSource,GetNumRows)
     LUASETTER(DataSource,GetRow)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 
@@ -146,7 +146,7 @@ template<> void ExtraInit<Rml::Controls::Lua::LuaDataSource>(lua_State* L, int m
     return;
 }
 using Rml::Controls::Lua::DataSource;
-LUACONTROLSTYPEDEFINE(DataSource,false)
+LUACONTROLSTYPEDEFINE(DataSource)
 }
 }
 }

@@ -30,7 +30,7 @@
 #define RMLUICORESCRIPTINTERFACE_H
 
 #include "Header.h"
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Types.h"
 
 namespace Rml {
@@ -41,17 +41,14 @@ namespace Core {
 	@author Peter Curry
  */
 
-class RMLUICORE_API ScriptInterface : public ReferenceCountable
-{
-	public:
-		virtual ~ScriptInterface()
-		{
-		}
+class RMLUICORE_API ScriptInterface : public Releasable {
+public:
+	virtual ~ScriptInterface() { }
 
-		virtual ScriptObject GetScriptObject() const
-		{
-			return NULL;
-		}
+	virtual ScriptObject GetScriptObject() const
+	{
+		return nullptr;
+	}
 };
 
 }

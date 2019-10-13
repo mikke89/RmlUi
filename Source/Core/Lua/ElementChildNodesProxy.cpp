@@ -52,7 +52,7 @@ int ElementChildNodesProxy__index(lua_State* L)
     {
         ElementChildNodesProxy* obj = LuaType<ElementChildNodesProxy>::check(L,1);
         LUACHECKOBJ(obj);
-        int key = luaL_checkinteger(L,2);
+        int key = (int)luaL_checkinteger(L,2);
         Element* child = obj->owner->GetChild(key);
         LuaType<Element>::push(L,child,false);
         return 1;
@@ -93,18 +93,18 @@ int ElementChildNodesProxy__ipairs(lua_State* L)
 
 RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg ElementChildNodesProxyGetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 luaL_Reg ElementChildNodesProxySetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ElementChildNodesProxy,false)
+LUACORETYPEDEFINE(ElementChildNodesProxy)
 }
 }
 }

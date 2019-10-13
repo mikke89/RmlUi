@@ -35,7 +35,7 @@
 #include "FileFormatter.h"
 #include "FileSystem.h"
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -69,8 +69,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
         AllocConsole();
 #endif
 
-        int window_width = 1024;
-        int window_height = 768;
+	int window_width = 1024;
+	int window_height = 768;
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
@@ -84,8 +84,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	opengl_renderer.SetViewport(window_width, window_height);
 	Rml::Core::SetRenderInterface(&opengl_renderer);
+	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
 	Rml::Core::SetSystemInterface(&system_interface);
@@ -94,7 +94,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -115,17 +115,15 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Load and show the demo document.
 	Rml::Core::ElementDocument* document = context->LoadDocument("basic/treeview/data/treeview.rml");
-	if (document != NULL)
+	if (document)
 	{
 		document->GetElementById("title")->SetInnerRML(document->GetTitle());
 		document->Show();
-		document->RemoveReference();
 	}
 
 	Shell::EventLoop(GameLoop);
 
 	// Shutdown RmlUi.
-	context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();

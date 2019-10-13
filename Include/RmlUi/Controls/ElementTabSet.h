@@ -42,7 +42,7 @@ namespace Controls {
 	@author Lloyd Weehuizen
  */
 
-class RMLUICONTROLS_API ElementTabSet : public Core::Element, public Core::EventListener
+class RMLUICONTROLS_API ElementTabSet : public Core::Element
 {
 public:
 	ElementTabSet(const Rml::Core::String& tag);
@@ -60,11 +60,11 @@ public:
 	/// Set the specifed tab index's title element.
 	/// @param[in] tab_index The tab index to set. If it doesn't already exist, it will be created.
 	/// @param[in] element The root of the element tree to set as the tab title.
-	void SetTab(int tab_index, Core::Element* element);
+	void SetTab(int tab_index, Core::ElementPtr element);
 	/// Set the specified tab index's body element.
 	/// @param[in] tab_index The tab index to set. If it doesn't already exist, it will be created.
 	/// @param[in] element The root of the element tree to set as the window.
-	void SetPanel(int tab_index, Core::Element* element);
+	void SetPanel(int tab_index, Core::ElementPtr element);
 
 	/// Remove one of the tab set's panels and its corresponding tab.
 	/// @param[in] tab_index The tab index to remove. If no tab matches this index, nothing will be removed.
@@ -82,19 +82,12 @@ public:
 	/// @return The index of the active tab.
 	int GetActiveTab() const;
 
-	/// Process the incoming event.
-	void ProcessEvent(Core::Event& event);
-
-	/// Called when the listener has been attached to a new Element
-	void OnAttach(Element* element);
-
-	/// Called when the listener has been detached from a Element
-	void OnDetach(Element* element);
+	/// Capture clicks on our tabs.
+	void ProcessDefaultAction(Core::Event& event) override;
 
 protected:
-	// Catch child add/removes so we can correctly set up their events.
-	virtual void OnChildAdd(Core::Element* child);
-	virtual void OnChildRemove(Core::Element* child);
+	// Catch child add so we can correctly set up its properties.
+	void OnChildAdd(Core::Element* child) override;
 
 private:
 	Core::Element* GetChildByTag(const Rml::Core::String& tag);

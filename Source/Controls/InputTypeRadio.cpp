@@ -51,7 +51,7 @@ bool InputTypeRadio::IsSubmitted()
 }
 
 // Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputTypeRadio::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+bool InputTypeRadio::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	// Check if maxlength has been defined.
 	if (changed_attributes.find("checked") != changed_attributes.end())
@@ -63,8 +63,8 @@ bool InputTypeRadio::OnAttributeChange(const Core::AttributeNameList& changed_at
 			PopRadioSet();
 
 		Rml::Core::Dictionary parameters;
-		parameters.Set("value", Rml::Core::String(checked ? GetValue() : ""));
-		element->DispatchEvent("change", parameters);
+		parameters["value"] = Rml::Core::String(checked ? GetValue() : "");
+		element->DispatchEvent(Core::EventId::Change, parameters);
 	}
 
 	return true;
@@ -78,9 +78,9 @@ void InputTypeRadio::OnChildAdd()
 }
 
 // Checks for necessary functional changes in the control as a result of the event.
-void InputTypeRadio::ProcessEvent(Core::Event& event)
+void InputTypeRadio::ProcessDefaultAction(Core::Event& event)
 {
-	if (event == "click" &&
+	if (event == Core::EventId::Click &&
 		!element->IsDisabled())
 		element->SetAttribute("checked", "");
 }
@@ -98,13 +98,13 @@ bool InputTypeRadio::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 void InputTypeRadio::PopRadioSet()
 {
 	// Uncheck all other radio buttons with our name in the form.
-	ElementForm* form = NULL;
+	ElementForm* form = nullptr;
 	Core::Element* parent = element->GetParentNode();
-	while (parent != NULL &&
-		   (form = dynamic_cast< ElementForm* >(parent)) == NULL)
+	while (parent != nullptr &&
+		   (form = dynamic_cast< ElementForm* >(parent)) == nullptr)
 	   parent = parent->GetParentNode();
 
-	if (form != NULL)
+	if (form != nullptr)
 	{
 		Core::ElementList form_controls;
 		Core::ElementUtilities::GetElementsByTagName(form_controls, form, "input");
@@ -112,7 +112,7 @@ void InputTypeRadio::PopRadioSet()
 		for (size_t i = 0; i < form_controls.size(); ++i)
 		{
 			ElementFormControlInput* radio_control = dynamic_cast< ElementFormControlInput* >(form_controls[i]);
-			if (radio_control != NULL &&
+			if (radio_control != nullptr &&
 				element != radio_control &&
 				radio_control->GetAttribute< Rml::Core::String >("type", "text") == "radio" &&
 				radio_control->GetName() == element->GetName())

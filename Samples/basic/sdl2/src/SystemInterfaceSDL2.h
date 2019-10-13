@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +39,8 @@ public:
     Rml::Core::Input::KeyIdentifier TranslateKey(SDL_Keycode sdlkey);
     int TranslateMouseButton(Uint8 button);
 	int GetKeyModifiers();
-	double GetElapsedTime();
-    bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message);
+	
+	double GetElapsedTime() override;
+    bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message) override;
 };
 #endif

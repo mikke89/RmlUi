@@ -45,7 +45,7 @@ int ContextAddEventListener(lua_State* L, Context* obj)
 {
    //need to make an EventListener for Lua before I can do anything else
 	const char* evt = luaL_checkstring(L,1); //event
-	Element* element = NULL;
+	Element* element = nullptr;
 	bool capturephase = false;
 	//get the rest of the stuff needed to construct the listener
 	if(lua_gettop(L) > 2)
@@ -62,14 +62,14 @@ int ContextAddEventListener(lua_State* L, Context* obj)
 		if(element)
 			element->AddEventListener(evt, new LuaEventListener(L,2,element), capturephase);
 		else
-			obj->AddEventListener(evt, new LuaEventListener(L,2,NULL), capturephase);
+			obj->AddEventListener(evt, new LuaEventListener(L,2,nullptr), capturephase);
 	}
 	else if(type == LUA_TSTRING)
 	{
 		if(element)
 			element->AddEventListener(evt, new LuaEventListener(luaL_checkstring(L,2),element), capturephase);
 		else
-			obj->AddEventListener(evt, new LuaEventListener(luaL_checkstring(L,2),NULL), capturephase);
+			obj->AddEventListener(evt, new LuaEventListener(luaL_checkstring(L,2),nullptr), capturephase);
 	}
 	else
 	{
@@ -86,7 +86,7 @@ int ContextCreateDocument(lua_State* L, Context* obj)
     else
         tag = luaL_checkstring(L,1);
     Document* doc = obj->CreateDocument(tag);
-    LuaType<Document>::push(L,doc,true);
+    LuaType<Document>::push(L,doc,false);
     return 1;
 }
 
@@ -95,7 +95,6 @@ int ContextLoadDocument(lua_State* L, Context* obj)
     const char* path = luaL_checkstring(L,1);
     Document* doc = obj->LoadDocument(path);
     LuaType<Document>::push(L,doc,false);
-	doc->RemoveReference();
     return 1;
 }
 
@@ -167,7 +166,7 @@ int ContextGetAttrname(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
     LUACHECKOBJ(cont);
-    lua_pushstring(L,cont->GetName().CString());
+    lua_pushstring(L,cont->GetName().c_str());
     return 1;
 }
 
@@ -201,7 +200,7 @@ RegType<Context> ContextMethods[] =
     LUAMETHOD(Context,UnloadAllDocuments)
     LUAMETHOD(Context,UnloadDocument)
     LUAMETHOD(Context,Update)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ContextGetters[] =
@@ -212,16 +211,16 @@ luaL_Reg ContextGetters[] =
     LUAGETTER(Context,hover_element)
     LUAGETTER(Context,name)
     LUAGETTER(Context,root_element)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ContextSetters[] =
 {
     LUASETTER(Context,dimensions)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Context,true)
+LUACORETYPEDEFINE(Context)
 }
 }
 }

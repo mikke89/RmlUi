@@ -42,7 +42,7 @@ namespace Controls {
 	@author Robert Curry
  */
 
-class RMLUICONTROLS_API ElementDataGridCell : public Core::Element, public Core::EventListener
+class RMLUICONTROLS_API ElementDataGridCell : public Core::Element
 {
 public:
 	ElementDataGridCell(const Rml::Core::String& tag);
@@ -50,10 +50,7 @@ public:
 
 	void Initialise(int column, Core::Element* header);
 	int GetColumn();
-
-protected:
-	virtual void ProcessEvent(Core::Event& event);
-
+	
 private:
 	int column;
 	Core::Element* header;

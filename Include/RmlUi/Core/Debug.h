@@ -59,6 +59,7 @@
 #define RMLUI_ERROR
 #define RMLUI_ERRORMSG(m)
 #define RMLUI_VERIFY(x) x
+#define RMLUI_ASSERT_NONRECURSIVE
 #else
 namespace Rml {
 namespace Core {
@@ -92,18 +93,24 @@ if (!Rml::Core::Assert(m, __FILE__, __LINE__)) \
 }
 #define RMLUI_VERIFY(x) RMLUI_ASSERT(x)
 
+struct RmlUiAssertNonrecursive {
+	bool& entered;
+	RmlUiAssertNonrecursive(bool& entered) : entered(entered) {
+		RMLUI_ASSERTMSG(!entered, "A method defined as non-recursive was entered twice!");
+		entered = true;
+	}
+	~RmlUiAssertNonrecursive() {
+		entered = false;
+	}
+};
+
+#define RMLUI_ASSERT_NONRECURSIVE \
+static bool rmlui_nonrecursive_entered = false; \
+RmlUiAssertNonrecursive rmlui_nonrecursive(rmlui_nonrecursive_entered)
+
 }
 }
 #endif
 
-namespace Rml {
-namespace Core {
-
-template <bool> struct STATIC_ASSERTION_FAILURE;
-template <> struct STATIC_ASSERTION_FAILURE<true>{};	
-	
-}
-}
-#define RMLUI_STATIC_ASSERT(cond, msg) Rml::Core::STATIC_ASSERTION_FAILURE<cond> msg; (void)&msg;
 
 #endif

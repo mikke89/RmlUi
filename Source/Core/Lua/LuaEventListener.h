@@ -30,7 +30,6 @@
 #define RMLUICORELUALUAEVENTLISTENER_H
 
 #include <RmlUi/Core/EventListener.h>
-#include <RmlUi/Core/String.h>
 #include <RmlUi/Core/Lua/lua.hpp>
 
 namespace Rml {
@@ -52,13 +51,18 @@ public:
 
     virtual ~LuaEventListener();
 
-    /// Process the incoming Event
-	virtual void ProcessEvent(Event& event);
+	// Deletes itself, which also unreferences the Lua function.
+	void OnDetach(Element* element) override;
+
+	// Calls the associated Lua function.
+	void ProcessEvent(Event& event) override;
+
 private:
     //the lua-side function to call when ProcessEvent is called
-    int luaFuncRef;
-    Element* attached;
-    ElementDocument* parent;
+    int luaFuncRef = -1;
+
+    Element* attached = nullptr;
+    ElementDocument* owner_document = nullptr;
     String strFunc; //for debugging purposes
 };
 

@@ -34,22 +34,22 @@ static DragListener drag_listener;
 // Registers an element as being a container of draggable elements.
 void DragListener::RegisterDraggableContainer(Rml::Core::Element* element)
 {
-	element->AddEventListener("dragdrop", &drag_listener);
+	element->AddEventListener(Rml::Core::EventId::Dragdrop, &drag_listener);
 }
 
 void DragListener::ProcessEvent(Rml::Core::Event& event)
 {
-	if (event == "dragdrop")
+	if (event == Rml::Core::EventId::Dragdrop)
 	{
 		Rml::Core::Element* dest_container = event.GetCurrentElement();
 		Rml::Core::Element* dest_element = event.GetTargetElement();
-		Rml::Core::Element* drag_element = static_cast< Rml::Core::Element* >(event.GetParameter< void* >("drag_element", NULL));
+		Rml::Core::Element* drag_element = static_cast< Rml::Core::Element* >(event.GetParameter< void* >("drag_element", nullptr));
 
 		if (dest_container == dest_element)
 		{
 			// The dragged element was dragged directly onto a container.
-			drag_element->GetParentNode()->RemoveChild(drag_element);
-			dest_container->AppendChild(drag_element);
+			Rml::Core::ElementPtr element = drag_element->GetParentNode()->RemoveChild(drag_element);
+			dest_container->AppendChild(std::move(element));
 		}
 		else
 		{
@@ -65,7 +65,7 @@ void DragListener::ProcessEvent(Rml::Core::Event& event)
 				// Check whether we're moving this icon from the left or the right.
 
 				Rml::Core::Element* previous_icon = insert_before->GetPreviousSibling();
-				while (previous_icon != NULL)
+				while (previous_icon != nullptr)
 				{
 					if (previous_icon == drag_element)
 					{
@@ -77,8 +77,8 @@ void DragListener::ProcessEvent(Rml::Core::Event& event)
 				}
 			}
 
-			drag_element->GetParentNode()->RemoveChild(drag_element);
-			dest_container->InsertBefore(drag_element, insert_before);
+			Rml::Core::ElementPtr element = drag_element->GetParentNode()->RemoveChild(drag_element);
+			dest_container->InsertBefore(std::move(element), insert_before);
 		}
 	}
 }

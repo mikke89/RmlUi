@@ -15,7 +15,7 @@ formatter.FormatData = function(raw_data)
     
     if (raw_data[1] == "1") then
         --because we know that it is only used in the high_score.rml file, use that namespace for the OnKeyDown function
-        formatted_data = "<input id=\"player_input\" type=\"text\" name=\"name\" onkeydown=\"HighScore.OnKeyDown(event)\" />"
+        formatted_data = "<input id=\"player_input\" type=\"text\" name=\"name\" onkeydown=\"HighScore.OnKeyDown(event)\" autofocus/>"
     else
         formatted_data = raw_data[0]
     end

@@ -47,10 +47,10 @@ ElementForm::~ElementForm()
 void ElementForm::Submit(const Rml::Core::String& name, const Rml::Core::String& submit_value)
 {
 	Rml::Core::Dictionary values;
-	if (name.Empty())
-		values.Set("submit", submit_value);
+	if (name.empty())
+		values["submit"] = submit_value;
 	else
-		values.Set(name, submit_value);
+		values[name] = submit_value;
 
 	Core::ElementList form_controls;
 	Core::ElementUtilities::GetElementsByTagName(form_controls, this, "input");
@@ -76,18 +76,18 @@ void ElementForm::Submit(const Rml::Core::String& name, const Rml::Core::String&
 		Rml::Core::String control_value = control->GetValue();
 
 		// Skip over unnamed form controls.
-		if (control_name.Empty())
+		if (control_name.empty())
 			continue;
 
 		// If the item already exists, append to it.
-		Rml::Core::Variant* value = values.Get(control_name);
-		if (value != NULL)
-			value->Reset(value->Get< Rml::Core::String >() + ", " + control_value);
+		Rml::Core::Variant* value = GetIf(values, control_name);
+		if (value != nullptr)
+			*value = value->Get< Rml::Core::String >() + ", " + control_value;
 		else
-			values.Set< Rml::Core::String >(control_name, control_value);					
+			values[control_name] = control_value;
 	}
 
-	DispatchEvent("submit", values);
+	DispatchEvent(Core::EventId::Submit, values);
 }
 
 }

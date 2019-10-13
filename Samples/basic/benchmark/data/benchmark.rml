@@ -1,0 +1,72 @@
+<rml>
+<head>
+	<link type="text/template" href="../../../assets/window.rml"/>
+	<title>Benchmark Sample</title>
+	<style>
+		body.window
+		{
+			max-width: 2000px;
+			max-height: 2000px;
+			width: 1600px;
+			height: 750px;
+		}
+		div#title_bar div#icon
+		{
+			display: none;
+		}
+		input.range {
+			width: 280dp;
+			height: 20dp;
+		}
+		input.range slidertrack {
+			margin-top: 6dp;
+			background-color: #fff5;
+			height: 8dp;
+		}
+		input.range sliderbar {
+			background-color: #333;
+			width: 12dp;
+			height: 20dp;
+		}
+		input.range:hover sliderbar, body.window input.range:hover sliderbar {
+			background-color: #f3d255;
+		}
+		input.range sliderbar:active, body.window input.range sliderbar:active {
+			background-color: #faebb4;
+		}
+		input.range sliderarrowdec, input.range sliderarrowinc {
+			background-color: #3f2e1c;
+			width: 10dp;
+			height: 12dp;
+			margin-top: 4dp;
+		}
+		input.range sliderarrowdec:hover, input.range sliderarrowinc:hover {
+			background-color: #f3d255;
+		}
+		input.range sliderarrowdec:active, input.range sliderarrowinc:active {
+			background-color: #faebb4;
+		}
+
+		#fps 
+		{
+			position: absolute;
+			top: 55px;
+			left: 20px;
+			font-size: 0.85em;
+			text-align: left;
+		}
+		#performance 
+		{
+			width: 800px;
+			height: 300px;
+			/*transform: scale(0.6) rotate(-60deg);*/
+		}
+	</style>
+</head>
+
+<body template="window">
+<div id="fps"/>
+<div id="click_test"/>
+<div id="performance"/>
+</body>
+</rml>

@@ -50,29 +50,25 @@ public:
 	virtual ~DecoratorTiled();
 
 	/**
-		Stores the repetition mode for a tile, for when it is rendered on a surface that is a
-		different size than itself.
-	 */
-	enum TileRepeatMode
-	{
-		STRETCH = 0,			// Stretches a single tile across the required surface.
-		CLAMP_STRETCH = 1,		// Clamps the tile to the upper left, stretching the tile inwards to fit into the element if it is too small.
-		CLAMP_TRUNCATE = 2,		// Clamps the tile to the upper left, truncating the tile to fit into the element if it is too small.
-		REPEAT_STRETCH = 3,		// Repeats the tile, stretching the final tile inwards.
-		REPEAT_TRUNCATE = 4,	// Repeats the tile, truncating the final tile.
-	};
-
-	/**
 		Stores the orientation of a tile.
 	 */
 	enum TileOrientation
 	{
-		ROTATE_0_CW = 0,		// Rotated zero degrees clockwise.
-		ROTATE_90_CW = 1,		// Rotated 90 degrees clockwise.
-		ROTATE_180_CW = 2,		// Rotated 180 degrees clockwise.
-		ROTATE_270_CW = 3,		// Rotated 270 degrees clockwise.
-		FLIP_HORIZONTAL = 4,	// Flipped horizontally.
-		FLIP_VERTICAL = 5		// Flipped vertically.
+		ORIENTATION_NONE,       // No orientation.
+		FLIP_HORIZONTAL,        // Flipped horizontally.
+		FLIP_VERTICAL,          // Flipped vertically.
+		ROTATE_180,             // Rotated 180 degrees clockwise.
+	};
+	/**
+		Stores the fit mode of a tile.
+	 */
+	enum TileFitMode
+	{
+		FILL,       // Tile is stretched to boundaries.
+		CONTAIN,    // Tile is stretched to boundaries, keeping aspect ratio fixed, 'letter-boxed'.
+		COVER,      // Tile is stretched to cover the boundaries, keeping aspect ratio fixed.
+		SCALE_NONE, // Tile is never scaled.
+		SCALE_DOWN, // Tile acts like 'scale-none' if smaller than boundaries, or like 'contain' otherwise.
 	};
 
 	/**
@@ -87,9 +83,9 @@ public:
 		Tile();
 
 		/// Calculates the tile's dimensions from the texture and texture coordinates.
-		void CalculateDimensions(Element* element, const Texture& texture);
+		void CalculateDimensions(Element* element, const Texture& texture) const;
 		/// Get this tile's dimensions.
-		Vector2f GetDimensions(Element* element);
+		Vector2f GetDimensions(Element* element) const;
 
 		/// Generates geometry to render this tile across a surface.
 		/// @param[out] vertices The array to store the generated vertex data.
@@ -102,20 +98,24 @@ public:
 
 		struct TileData
 		{
-			Vector2f dimensions;
-			Vector2f texcoords[2];
+			Vector2f size; // 'px' units
+			Vector2f texcoords[2]; // relative units
 		};
 
-		typedef std::map< RenderInterface*, TileData > TileDataMap;
+		using TileDataMap = SmallUnorderedMap< RenderInterface*, TileData >;
 
 		int texture_index;
-		Vector2f texcoords[2];
-		bool texcoords_absolute[2][2];
+
+		// Position and size within the texture, absolute units (px)
+		Vector2f position, size;
 
 		mutable TileDataMap data;
 
-		TileRepeatMode repeat_mode;
 		TileOrientation orientation;
+
+		TileFitMode fit_mode;
+		Style::LengthPercentage align[2]; 
+
 	};
 
 protected:
@@ -123,7 +123,7 @@ protected:
 	/// @param tile_dimensions[in, out] The tile dimensions to scale.
 	/// @param axis_value[in] The fixed value to scale against.
 	/// @param axis[in] The axis to scale against; either 0 (for x) or 1 (for y).
-	void ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, int axis);
+	void ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, int axis) const;
 };
 
 }

@@ -33,6 +33,7 @@
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Property.h"
 
+
 namespace Rml {
 namespace Core {
 
@@ -67,9 +68,12 @@ void ElementBackground::DirtyBackground()
 // Generates the background geometry for the element.
 void ElementBackground::GenerateBackground()
 {
+	RMLUI_ZoneScoped;
+
 	// Fetch the new colour for the background. If the colour is transparent, then we don't render any background.
-	Colourb colour = element->GetProperty(BACKGROUND_COLOR)->value.Get< Colourb >();
-	float opacity = element->GetProperty<float>(OPACITY);
+	auto& computed = element->GetComputedValues();
+	Colourb colour = computed.background_color;
+	float opacity = computed.opacity;
 
 	// Apply opacity
 	colour.alpha = (byte)(opacity * (float)colour.alpha);

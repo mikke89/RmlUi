@@ -50,23 +50,26 @@ public:
 
 	/// Returns a string representation of the current value of the form control.
 	/// @return The value of the form control.
-	virtual Rml::Core::String GetValue() const;
+	Rml::Core::String GetValue() const override;
 
 	/// Called every update from the host element.
-	virtual void OnUpdate();
+	void OnUpdate() override;
+
+	/// Called every time the host element's size changes.
+	void OnResize() override;
 
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.
-	virtual bool OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	bool OnAttributeChange(const Core::ElementAttributes& changed_attributes) override;
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Core::Event& event);
+	void ProcessDefaultAction(Core::Event& event) override;
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.
-	virtual bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions);
+	bool GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions) override;
 
 private:
 	WidgetSliderInput* widget;

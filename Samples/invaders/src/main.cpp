@@ -44,7 +44,7 @@
 #include "HighScoresNameFormatter.h"
 #include "HighScoresShipFormatter.h"
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -105,7 +105,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -121,17 +121,13 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Register Invader's custom element and decorator instancers.
-	Rml::Core::ElementInstancer* element_instancer = new Rml::Core::ElementInstancerGeneric< ElementGame >();
-	Rml::Core::Factory::RegisterElementInstancer("game", element_instancer);
-	element_instancer->RemoveReference();
+	Rml::Core::ElementInstancerGeneric< ElementGame > element_instancer_game;
+	Rml::Core::Factory::RegisterElementInstancer("game", &element_instancer_game);
 
-	Rml::Core::DecoratorInstancer* decorator_instancer = new DecoratorInstancerStarfield();
-	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", decorator_instancer);
-	decorator_instancer->RemoveReference();
-
-	decorator_instancer = new DecoratorInstancerDefender();
-	Rml::Core::Factory::RegisterDecoratorInstancer("defender", decorator_instancer);
-	decorator_instancer->RemoveReference();
+	DecoratorInstancerStarfield decorator_instancer_starfield;
+	DecoratorInstancerDefender decorator_instancer_defender;
+	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", &decorator_instancer_starfield);
+	Rml::Core::Factory::RegisterDecoratorInstancer("defender", &decorator_instancer_defender);
 
 	// Register Invader's data formatters
 	HighScoresNameFormatter name_formatter;
@@ -141,9 +137,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	HighScores::Initialise();
 
 	// Initialise the event instancer and handlers.
-	EventInstancer* event_instancer = new EventInstancer();
-	Rml::Core::Factory::RegisterEventListenerInstancer(event_instancer);
-	event_instancer->RemoveReference();
+	EventInstancer event_listener_instancer;
+	Rml::Core::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
 	EventManager::RegisterEventHandler("start_game", new EventHandlerStartGame());
 	EventManager::RegisterEventHandler("high_score", new EventHandlerHighScore());
@@ -161,7 +156,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	EventManager::Shutdown();
 
 	// Shutdown RmlUi.
-	context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();

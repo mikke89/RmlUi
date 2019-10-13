@@ -75,7 +75,7 @@ int ElementFormControlTextAreaSetAttrcols(lua_State* L)
 {
     ElementFormControlTextArea* obj = LuaType<ElementFormControlTextArea>::check(L,1);
     LUACHECKOBJ(obj);
-    int cols = luaL_checkinteger(L,2);
+    int cols = (int)luaL_checkinteger(L,2);
     obj->SetNumColumns(cols);
     return 0;
 }
@@ -84,7 +84,7 @@ int ElementFormControlTextAreaSetAttrmaxlength(lua_State* L)
 {
     ElementFormControlTextArea* obj = LuaType<ElementFormControlTextArea>::check(L,1);
     LUACHECKOBJ(obj);
-    int ml = luaL_checkinteger(L,2);
+    int ml = (int)luaL_checkinteger(L,2);
     obj->SetMaxLength(ml);
     return 0;
 }
@@ -93,7 +93,7 @@ int ElementFormControlTextAreaSetAttrrows(lua_State* L)
 {
     ElementFormControlTextArea* obj = LuaType<ElementFormControlTextArea>::check(L,1);
     LUACHECKOBJ(obj);
-    int rows = luaL_checkinteger(L,2);
+    int rows = (int)luaL_checkinteger(L,2);
     obj->SetNumRows(rows);
     return 0;
 }
@@ -110,7 +110,7 @@ int ElementFormControlTextAreaSetAttrwordwrap(lua_State* L)
 
 Rml::Core::Lua::RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlTextAreaGetters[] =
@@ -119,7 +119,7 @@ luaL_Reg ElementFormControlTextAreaGetters[] =
     LUAGETTER(ElementFormControlTextArea,maxlength)
     LUAGETTER(ElementFormControlTextArea,rows)
     LUAGETTER(ElementFormControlTextArea,wordwrap)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlTextAreaSetters[] =
@@ -128,7 +128,7 @@ luaL_Reg ElementFormControlTextAreaSetters[] =
     LUASETTER(ElementFormControlTextArea,maxlength)
     LUASETTER(ElementFormControlTextArea,rows)
     LUASETTER(ElementFormControlTextArea,wordwrap)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }
@@ -145,7 +145,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControlTextArea>(lua_State* 
 }
 
 using Rml::Controls::ElementFormControlTextArea;
-LUACONTROLSTYPEDEFINE(ElementFormControlTextArea,true)
+LUACONTROLSTYPEDEFINE(ElementFormControlTextArea)
 }
 }
 }

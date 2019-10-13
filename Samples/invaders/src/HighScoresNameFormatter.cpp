@@ -44,7 +44,7 @@ void HighScoresNameFormatter::FormatData(Rml::Core::String& formatted_data, cons
 
 	if (raw_data[1] == "1")
 	{
-		formatted_data = "<input id=\"player_input\" type=\"text\" name=\"name\" onkeydown=\"enter_name\" />";
+		formatted_data = "<input id=\"player_input\" type=\"text\" name=\"name\" onkeydown=\"enter_name\" autofocus/>";
 	}
 	else
 	{

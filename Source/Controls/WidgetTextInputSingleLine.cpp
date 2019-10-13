@@ -51,7 +51,7 @@ void WidgetTextInputSingleLine::SetValue(const Core::String& value)
 }
 
 // Returns true if the given character is permitted in the input field, false if not.
-bool WidgetTextInputSingleLine::IsCharacterValid(Rml::Core::word character)
+bool WidgetTextInputSingleLine::IsCharacterValid(char character)
 {
 	return character != '\t' && character != '\n' && character != '\r';
 }
@@ -66,7 +66,7 @@ void WidgetTextInputSingleLine::LineBreak()
 void WidgetTextInputSingleLine::SanitiseValue(Core::String& value)
 {
 	Core::String new_value;
-	for (Core::String::size_type i = 0; i < value.Length(); ++i)
+	for (Core::String::size_type i = 0; i < value.size(); ++i)
 	{
 		switch (value[i])
 		{

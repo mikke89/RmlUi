@@ -42,12 +42,6 @@ EventListener* LuaEventListenerInstancer::InstanceEventListener(const String& va
     return new LuaEventListener(value,element);
 }
 
-/// Releases this event listener instancer.
-void LuaEventListenerInstancer::Release()
-{
-    delete this;
-}
-
 }
 }
 }

@@ -41,10 +41,9 @@ ContextInstancerDefault::~ContextInstancerDefault()
 {
 }
 
-Context* ContextInstancerDefault::InstanceContext(const String& name)
+ContextPtr ContextInstancerDefault::InstanceContext(const String& name)
 {
-	Context* new_context = new Context(name);
-	return new_context;
+	return ContextPtr(new Context(name));
 }
 
 // Releases a context previously created by this context.

@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "WidgetTextInputMultiLine.h"
 
 namespace Rml {
@@ -40,8 +41,9 @@ ElementFormControlTextArea::ElementFormControlTextArea(const Rml::Core::String& 
 {
 	widget = new WidgetTextInputMultiLine(this);
 
-	SetProperty("overflow", "auto");
-	SetProperty("white-space", "pre-wrap");
+	SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Auto));
+	SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Auto));
+	SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Prewrap));
 }
 
 ElementFormControlTextArea::~ElementFormControlTextArea()
@@ -121,7 +123,7 @@ bool ElementFormControlTextArea::GetWordWrap()
 bool ElementFormControlTextArea::GetIntrinsicDimensions(Rml::Core::Vector2f& dimensions)
 {
 	dimensions.x = (float) (GetNumColumns() * Core::ElementUtilities::GetStringWidth(this, "m"));
-	dimensions.y = (float) (GetNumRows() * Core::ElementUtilities::GetLineHeight(this));
+	dimensions.y = (float)GetNumRows() * GetLineHeight();
 
 	return true;
 }
@@ -139,22 +141,28 @@ void ElementFormControlTextArea::OnRender()
 }
 
 // Formats the element.
+void ElementFormControlTextArea::OnResize()
+{
+	widget->OnResize();
+}
+
+// Formats the element.
 void ElementFormControlTextArea::OnLayout()
 {
 	widget->OnLayout();
 }
 
 // Called when attributes on the element are changed.
-void ElementFormControlTextArea::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+void ElementFormControlTextArea::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	ElementFormControl::OnAttributeChange(changed_attributes);
 
 	if (changed_attributes.find("wrap") != changed_attributes.end())
 	{
 		if (GetWordWrap())
-			SetProperty("white-space", "pre-wrap");
+			SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Prewrap));
 		else
-			SetProperty("white-space", "pre");
+			SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Pre));
 	}
 
 	if (changed_attributes.find("rows") != changed_attributes.end() ||
@@ -169,12 +177,12 @@ void ElementFormControlTextArea::OnAttributeChange(const Core::AttributeNameList
 }
 
 // Called when properties on the control are changed.
-void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyNameList& changed_properties)
+void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyIdSet& changed_properties)
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 
-	if (changed_properties.find("color") != changed_properties.end() ||
-		changed_properties.find("background-color") != changed_properties.end())
+	if (changed_properties.Contains(Core::PropertyId::Color) ||
+		changed_properties.Contains(Core::PropertyId::BackgroundColor))
 		widget->UpdateSelectionColours();
 }
 

@@ -67,10 +67,7 @@ private:
 	String name;
 	String content;
 	DocumentHeader header;
-	StreamMemory* body;
-
-	String ReadAttribute(const String& string);
-	const String& FindTag(const String& tag, const String& string, bool closing_tag = false);
+	UniquePtr<StreamMemory> body;
 };
 
 }

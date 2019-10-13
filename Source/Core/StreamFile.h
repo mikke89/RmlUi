@@ -48,31 +48,31 @@ public:
 	/// Attempts to open the stream pointing at a given location.
 	bool Open(const String& path);
 	/// Closes the stream.
-	virtual void Close();
+	void Close() override;
 
 	/// Returns the size of this stream (in bytes).
-	virtual size_t Length() const;
+	size_t Length() const override;
 
 	/// Returns the position of the stream pointer (in bytes).
-	virtual size_t Tell() const;
+	size_t Tell() const override;
 	/// Sets the stream position (in bytes).
-	virtual bool Seek(long offset, int origin) const;
+	bool Seek(long offset, int origin) const override;
 
 	/// Read from the stream.
-	virtual size_t Read(void* buffer, size_t bytes) const;
+	size_t Read(void* buffer, size_t bytes) const override;
 	using Stream::Read;
 
 	/// Write to the stream at the current position.
-	virtual size_t Write(const void* buffer, size_t bytes);
+	size_t Write(const void* buffer, size_t bytes) override;
 	using Stream::Write;
 
 	/// Truncate the stream to the specified length.
-	virtual size_t Truncate(size_t bytes);
+	size_t Truncate(size_t bytes) override;
 
 	/// Returns true if the stream is ready for reading, false otherwise.
-	virtual bool IsReadReady();
+	bool IsReadReady() override;
 	/// Returns false.
-	virtual bool IsWriteReady();
+	bool IsWriteReady() override;
 
 private:
 	// Determines the length of the stream.

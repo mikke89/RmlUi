@@ -50,8 +50,8 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 	Element* element = parser->GetParseFrame()->element;
 
 	// Check for and apply any template
-	String template_name = attributes.Get<String>("template", "");
-	if (!template_name.Empty())
+	String template_name = Get<String>(attributes, "template", "");
+	if (!template_name.empty())
 	{
 		element = XMLParseTools::ParseTemplate(element, template_name);
 	}
@@ -59,7 +59,7 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 	// Apply any attributes to the document
 	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
 	if (document)
-		document->SetAttributes(&attributes);
+		document->SetAttributes(attributes);
 
 	// Tell the parser to use the element handler for all children
 	parser->PushDefaultHandler();
@@ -78,11 +78,6 @@ bool XMLNodeHandlerBody::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), c
 bool XMLNodeHandlerBody::ElementData(XMLParser* parser, const String& data)
 {
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
-}
-
-void XMLNodeHandlerBody::Release()
-{
-	delete this;
 }
 
 }

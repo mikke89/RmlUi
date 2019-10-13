@@ -3,7 +3,8 @@
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2018 Michael Ragazzon
+ * Copyright (c) 2018 Michael R. P. Ragazzon
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +52,7 @@ struct Keyword {
 };
 
 
-static const std::unordered_map<String, Keyword> keywords = {
+static const UnorderedMap<String, Keyword> keywords = {
 		{"none", {Keyword::NONE} },
 		{"all", {Keyword::ALL}},
 		{"alternate", {Keyword::ALTERNATE}},
@@ -128,7 +129,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 
 		for (auto& argument : arguments)
 		{
-			if (argument.Empty())
+			if (argument.empty())
 				continue;
 
 			// See if we have a <keyword> or <tween> specifier as defined in keywords
@@ -170,7 +171,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 				float number = 0.0f;
 				int count = 0;
 
-				if (sscanf(argument.CString(), "%fs%n", &number, &count) == 1)
+				if (sscanf(argument.c_str(), "%fs%n", &number, &count) == 1)
 				{
 					// Found a number, if there was an 's' unit, count will be positive
 					if (count > 0)
@@ -210,7 +211,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 		}
 
 		// Validate the parsed transition
-		if (animation.name.Empty() || animation.duration <= 0.0f || (animation.num_iterations < -1 || animation.num_iterations == 0))
+		if (animation.name.empty() || animation.duration <= 0.0f || (animation.num_iterations < -1 || animation.num_iterations == 0))
 		{
 			return false;
 		}
@@ -218,7 +219,8 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 		animation_list.push_back(std::move(animation));
 	}
 
-	property = Property{ animation_list, Property::ANIMATION };
+	property.value = std::move(animation_list);
+	property.unit = Property::ANIMATION;
 
 	return true;
 }
@@ -232,7 +234,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 	{
 
 		Transition transition;
-		StringList target_property_names;
+		PropertyIdSet target_property_names;
 
 		StringList arguments;
 		StringUtilities::ExpandString(arguments, single_transition_value, ' ');
@@ -244,7 +246,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 
 		for (auto& argument : arguments)
 		{
-			if (argument.Empty())
+			if (argument.empty())
 				continue;
 
 			// See if we have a <keyword> or <tween> specifier as defined in keywords
@@ -263,7 +265,6 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 					if (transition_list.transitions.size() > 0) // The all keyword can not be part of multiple definitions
 						return false;
 					transition_list.all = true;
-					target_property_names.push_back("all");
 				}
 				else if (it->second.type == Keyword::TWEEN)
 				{
@@ -276,7 +277,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 				float number = 0.0f;
 				int count = 0;
 
-				if (sscanf(argument.CString(), "%fs%n", &number, &count) == 1)
+				if (sscanf(argument.c_str(), "%fs%n", &number, &count) == 1)
 				{
 					// Found a number, if there was an 's' unit, count will be positive
 					if (count > 0)
@@ -312,14 +313,13 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 					// Must be a property name or shorthand, expand now
 					if (auto shorthand = StyleSheetSpecification::GetShorthand(argument))
 					{
-						// For shorthands, add each underlying property separately
-						for (const auto& property : shorthand->properties)
-							target_property_names.push_back(property.first);
+						PropertyIdSet underlying_properties = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand->id);
+						target_property_names |= underlying_properties;
 					}
 					else if (auto definition = StyleSheetSpecification::GetProperty(argument))
 					{
 						// Single property
-						target_property_names.push_back(argument);
+						target_property_names.Insert(definition->GetId());
 					}
 					else
 					{
@@ -331,20 +331,21 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 		}
 
 		// Validate the parsed transition
-		if (target_property_names.empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
-			|| (transition_list.all && target_property_names.size() != 1))
+		if (target_property_names.Empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
+			|| (transition_list.all && target_property_names.Size() != 1))
 		{
 			return false;
 		}
 
 		for (const auto& property_name : target_property_names)
 		{
-			transition.name = property_name;
+			transition.id = property_name;
 			transition_list.transitions.push_back(transition);
 		}
 	}
 
-	property = Property{ transition_list, Property::TRANSITION };
+	property.value = std::move(transition_list);
+	property.unit = Property::TRANSITION;
 
 	return true;
 }
@@ -354,7 +355,7 @@ bool PropertyParserAnimation::ParseValue(Property & property, const String & val
 {
 	StringList list_of_values;
 	{
-		auto lowercase_value = value.ToLower();
+		auto lowercase_value = StringUtilities::ToLower(value);
 		StringUtilities::ExpandString(list_of_values, lowercase_value, ',');
 	}
 
@@ -370,11 +371,6 @@ bool PropertyParserAnimation::ParseValue(Property & property, const String & val
 	}
 
 	return result;
-}
-
-void PropertyParserAnimation::Release()
-{
-	delete this;
 }
 
 }

@@ -30,8 +30,8 @@
 #include "ElementTextSelection.h"
 #include "../../Include/RmlUi/Core.h"
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
-#include "../../Include/RmlUi/Controls/Clipboard.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../Core/Clock.h"
 
 namespace Rml {
@@ -44,40 +44,39 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	keyboard_showed = false;
 	
 	parent = _parent;
-	parent->SetProperty("white-space", "pre");
-	parent->SetProperty("overflow", "hidden");
-	parent->SetProperty("drag", "drag");
+	parent->SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Pre));
+	parent->SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Hidden));
+	parent->SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Hidden));
+	parent->SetProperty(Core::PropertyId::Drag, Core::Property(Core::Style::Drag::Drag));
 	parent->SetClientArea(Rml::Core::Box::CONTENT);
 
-	parent->AddEventListener("resize", this, true);
-	parent->AddEventListener("keydown", this, true);
-	parent->AddEventListener("textinput", this, true);
-	parent->AddEventListener("focus", this, true);
-	parent->AddEventListener("blur", this, true);
-	parent->AddEventListener("mousedown", this, true);
-	parent->AddEventListener("drag", this, true);
+	parent->AddEventListener(Core::EventId::Keydown, this, true);
+	parent->AddEventListener(Core::EventId::Textinput, this, true);
+	parent->AddEventListener(Core::EventId::Focus, this, true);
+	parent->AddEventListener(Core::EventId::Blur, this, true);
+	parent->AddEventListener(Core::EventId::Mousedown, this, true);
+	parent->AddEventListener(Core::EventId::Drag, this, true);
 
-	text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes()));
-	selected_text_element = dynamic_cast< Core::ElementText* >(Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes()));
-	if (text_element != NULL)
+	Core::ElementPtr unique_text = Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes());
+	text_element = dynamic_cast< Core::ElementText* >(unique_text.get());
+	Core::ElementPtr unique_selected_text = Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes());
+	selected_text_element = dynamic_cast< Core::ElementText* >(unique_selected_text.get());
+	if (text_element)
 	{
 		text_element->SuppressAutoLayout();
-		parent->AppendChild(text_element, false);
-		text_element->RemoveReference();
+		parent->AppendChild(std::move(unique_text), false);
 
 		selected_text_element->SuppressAutoLayout();
-		parent->AppendChild(selected_text_element, false);
-		selected_text_element->RemoveReference();
+		parent->AppendChild(std::move(unique_selected_text), false);
 	}
 
 	// Create the dummy selection element.
-	selection_element = Core::Factory::InstanceElement(parent, "#selection", "selection", Rml::Core::XMLAttributes());
-	ElementTextSelection* text_selection_element = dynamic_cast< ElementTextSelection* >(selection_element);
-	if (text_selection_element != NULL)
+	Core::ElementPtr unique_selection = Core::Factory::InstanceElement(parent, "#selection", "selection", Rml::Core::XMLAttributes());
+	if (ElementTextSelection* text_selection_element = dynamic_cast<ElementTextSelection*>(unique_selection.get()))
 	{
+		selection_element = text_selection_element;
 		text_selection_element->SetWidget(this);
-		parent->AppendChild(text_selection_element, false);
-		text_selection_element->RemoveReference();
+		parent->AppendChild(std::move(unique_selection), false);
 	}
 
 	edit_index = 0;
@@ -100,13 +99,12 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 
 WidgetTextInput::~WidgetTextInput()
 {
-	parent->RemoveEventListener("resize", this, true);
-	parent->RemoveEventListener("keydown", this, true);
-	parent->RemoveEventListener("textinput", this, true);
-	parent->RemoveEventListener("focus", this, true);
-	parent->RemoveEventListener("blur", this, true);
-	parent->RemoveEventListener("mousedown", this, true);
-	parent->RemoveEventListener("drag", this, true);
+	parent->RemoveEventListener(Core::EventId::Keydown, this, true);
+	parent->RemoveEventListener(Core::EventId::Textinput, this, true);
+	parent->RemoveEventListener(Core::EventId::Focus, this, true);
+	parent->RemoveEventListener(Core::EventId::Blur, this, true);
+	parent->RemoveEventListener(Core::EventId::Mousedown, this, true);
+	parent->RemoveEventListener(Core::EventId::Drag, this, true);
 
 	// Remove all the children added by the text widget.
 	parent->RemoveChild(text_element);
@@ -131,13 +129,25 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 		max_length = _max_length;
 		if (max_length >= 0)
 		{
-			const Core::WString& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-			if ((int) value.Length() > max_length)
-			{
-				Rml::Core::String new_value;
-				Core::WString(value.CString(), value.CString() + max_length).ToUTF8(new_value);
+			Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-				GetElement()->SetAttribute("value", new_value);
+			int num_characters = 0;
+			size_t i_erase = value.size();
+
+			for (auto it = Core::StringIteratorU8(value); it; ++it)
+			{
+				num_characters += 1;
+				if (num_characters > max_length)
+				{
+					i_erase = size_t(it.Offset());
+					break;
+				}
+			}
+
+			if(i_erase < value.size())
+			{
+				value.erase(i_erase);
+				GetElement()->SetAttribute("value", value);
 			}
 		}
 	}
@@ -149,6 +159,13 @@ int WidgetTextInput::GetMaxLength() const
 	return max_length;
 }
 
+int WidgetTextInput::GetLength() const
+{
+	Core::String value = GetElement()->GetAttribute< Core::String >("value", "");
+	size_t result = Core::StringUtilities::LengthUTF8(value);
+	return (int)result;
+}
+
 // Update the colours of the selected text.
 void WidgetTextInput::UpdateSelectionColours()
 {
@@ -156,24 +173,24 @@ void WidgetTextInput::UpdateSelectionColours()
 	// attribute set, then use that. Otherwise, use the inverse of our own text colour.
 	Rml::Core::Colourb colour;
 	const Rml::Core::Property* colour_property = selection_element->GetLocalProperty("color");
-	if (colour_property != NULL)
+	if (colour_property != nullptr)
 		colour = colour_property->Get< Rml::Core::Colourb >();
 	else
 	{
-		colour = parent->GetProperty< Rml::Core::Colourb >("color");
+		colour = parent->GetComputedValues().color;
 		colour.red = 255 - colour.red;
 		colour.green = 255 - colour.green;
 		colour.blue = 255 - colour.blue;
 	}
 
 	// Set the computed text colour on the element holding the selected text.
-	selected_text_element->SetProperty("color", Rml::Core::Property(colour, Rml::Core::Property::COLOUR));
+	selected_text_element->SetProperty(Core::PropertyId::Color, Rml::Core::Property(colour, Rml::Core::Property::COLOUR));
 
 	// If the 'background-color' property has been set on the 'selection' element, use that as the
 	// background colour for the selected text. Otherwise, use the inverse of the selected text
 	// colour.
 	colour_property = selection_element->GetLocalProperty("background-color");
-	if (colour_property != NULL)
+	if (colour_property != nullptr)
 		selection_colour = colour_property->Get< Rml::Core::Colourb >();
 	else
 		selection_colour = Rml::Core::Colourb(255 - colour.red, 255 - colour.green, 255 - colour.blue, colour.alpha);
@@ -193,6 +210,24 @@ void WidgetTextInput::OnUpdate()
 			cursor_timer += CURSOR_BLINK_TIME;
 			cursor_visible = !cursor_visible;
 		}
+	}
+}
+
+void WidgetTextInput::OnResize()
+{
+	GenerateCursor();
+
+	Rml::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
+	text_element->SetOffset(text_position, parent);
+	selected_text_element->SetOffset(text_position, parent);
+
+	Rml::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
+	if (new_internal_dimensions != internal_dimensions)
+	{
+		internal_dimensions = new_internal_dimensions;
+
+		FormatElement();
+		UpdateCursorPosition();
 	}
 }
 
@@ -232,7 +267,7 @@ const Rml::Core::Vector2f& WidgetTextInput::GetTextDimensions() const
 }
 
 // Gets the parent element containing the widget.
-Core::Element* WidgetTextInput::GetElement()
+Core::Element* WidgetTextInput::GetElement() const
 {
 	return parent;
 }
@@ -241,206 +276,210 @@ Core::Element* WidgetTextInput::GetElement()
 void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 {
 	Rml::Core::Dictionary parameters;
-	parameters.Set("value", GetElement()->GetAttribute< Rml::Core::String >("value", ""));
-	parameters.Set("linebreak", linebreak);
-	GetElement()->DispatchEvent("change", parameters);
+	parameters["value"] = GetElement()->GetAttribute< Rml::Core::String >("value", "");
+	parameters["linebreak"] = Core::Variant(linebreak);
+	GetElement()->DispatchEvent(Core::EventId::Change, parameters);
 }
 
 // Processes the "keydown" and "textinput" event to write to the input field, and the "focus" and "blur" to set
 // the state of the cursor.
 void WidgetTextInput::ProcessEvent(Core::Event& event)
 {
-	if (event == "resize")
-	{
-		GenerateCursor();
-
-		Rml::Core::Vector2f text_position = parent->GetBox().GetPosition(Core::Box::CONTENT);
-		text_element->SetOffset(text_position, parent);
-		selected_text_element->SetOffset(text_position, parent);
-
-		Rml::Core::Vector2f new_internal_dimensions = parent->GetBox().GetSize(Core::Box::CONTENT);
-		if (new_internal_dimensions != internal_dimensions)
-		{
-			internal_dimensions = new_internal_dimensions;
-
-			FormatElement();
-			UpdateCursorPosition();
-		}
-	}
-	else if (parent->IsDisabled())
-	{
+	if (parent->IsDisabled())
 		return;
-	}
-	else if (event == "keydown")
+
+	using Rml::Core::EventId;
+
+	switch (event.GetId())
+	{
+	case EventId::Keydown:
 	{
 		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 		bool numlock = event.GetParameter< int >("num_lock_key", 0) > 0;
 		bool shift = event.GetParameter< int >("shift_key", 0) > 0;
-        bool ctrl = event.GetParameter< int >("ctrl_key", 0) > 0;
+		bool ctrl = event.GetParameter< int >("ctrl_key", 0) > 0;
 
 		switch (key_identifier)
 		{
-			case Core::Input::KI_NUMPAD4:	if (numlock) break;
-			case Core::Input::KI_LEFT:		MoveCursorHorizontal(-1, shift); break;
+		case Core::Input::KI_NUMPAD4:	if (numlock) break;
+		case Core::Input::KI_LEFT:		MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
 
-			case Core::Input::KI_NUMPAD6:	if (numlock) break;
-			case Core::Input::KI_RIGHT:		MoveCursorHorizontal(1, shift); break;
+		case Core::Input::KI_NUMPAD6:	if (numlock) break;
+		case Core::Input::KI_RIGHT:		MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
 
-			case Core::Input::KI_NUMPAD8:	if (numlock) break;
-			case Core::Input::KI_UP:		MoveCursorVertical(-1, shift); break;
+		case Core::Input::KI_NUMPAD8:	if (numlock) break;
+		case Core::Input::KI_UP:		MoveCursorVertical(-1, shift); break;
 
-			case Core::Input::KI_NUMPAD2:	if (numlock) break;
-			case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
+		case Core::Input::KI_NUMPAD2:	if (numlock) break;
+		case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
 
-			case Core::Input::KI_NUMPAD7:	if (numlock) break;
-			case Core::Input::KI_HOME:		MoveCursorHorizontal(-cursor_character_index, shift); break;
+		case Core::Input::KI_NUMPAD7:	if (numlock) break;
+		case Core::Input::KI_HOME:		MoveCursorHorizontal(CursorMovement::BeginLine, shift); break;
 
-			case Core::Input::KI_NUMPAD1:	if (numlock) break;
-			case Core::Input::KI_END:		MoveCursorHorizontal(lines[cursor_line_index].content_length - cursor_character_index, shift); break;
+		case Core::Input::KI_NUMPAD1:	if (numlock) break;
+		case Core::Input::KI_END:		MoveCursorHorizontal(CursorMovement::EndLine, shift); break;
 
-			case Core::Input::KI_BACK:
+		case Core::Input::KI_BACK:
+		{
+			if (DeleteCharacter(true))
 			{
-				if (DeleteCharacter(true))
+				FormatElement();
+				UpdateRelativeCursor();
+			}
+
+			ShowCursor(true);
+		}
+		break;
+
+		case Core::Input::KI_DECIMAL:	if (numlock) break;
+		case Core::Input::KI_DELETE:
+		{
+			if (DeleteCharacter(false))
+			{
+				FormatElement();
+				UpdateRelativeCursor();
+			}
+
+			ShowCursor(true);
+		}
+		break;
+
+		case Core::Input::KI_NUMPADENTER:
+		case Core::Input::KI_RETURN:
+		{
+			LineBreak();
+		}
+		break;
+
+		case Core::Input::KI_C:
+		{
+			if (ctrl)
+				CopySelection();
+		}
+		break;
+
+		case Core::Input::KI_X:
+		{
+			if (ctrl)
+			{
+				CopySelection();
+				DeleteSelection();
+			}
+		}
+		break;
+
+		case Core::Input::KI_V:
+		{
+			if (ctrl)
+			{
+				Core::String clipboard_text;
+				Core::GetSystemInterface()->GetClipboardText(clipboard_text);
+
+				// @performance: Can be made heaps faster.
+				for (auto it = Core::StringIteratorU8(clipboard_text); it; ++it)
 				{
-					FormatElement();
-					UpdateRelativeCursor();
+					Core::Character code = *it;
+					AddCharacter(code);
 				}
-
-				ShowCursor(true);
 			}
-			break;
+		}
+		break;
 
-			case Core::Input::KI_DECIMAL:	if (numlock) break;
-			case Core::Input::KI_DELETE:
-			{
-				if (DeleteCharacter(false))
-				{
-					FormatElement();
-					UpdateRelativeCursor();
-				}
+		// Ignore tabs so input fields can be navigated through with keys.
+		case Core::Input::KI_TAB:
+			return;
 
-				ShowCursor(true);
-			}
-			break;
-
-			case Core::Input::KI_NUMPADENTER:
-			case Core::Input::KI_RETURN:
-			{
-				LineBreak();
-			}
-			break;
-
-			case Core::Input::KI_C:
-			{
-                if (ctrl)
-                    CopySelection();
-			}
-			break;
-
-			case Core::Input::KI_X:
-			{
-                if (ctrl)
-                {
-                    CopySelection();
-                    DeleteSelection();
-                }
-			}
-			break;
-
-			case Core::Input::KI_V:
-			{
-                if (ctrl)
-                {
-    				const Core::WString clipboard_content = Clipboard::Get();
-    				for (size_t i = 0; i < clipboard_content.Length(); ++i)
-    				{
-    					if (max_length > 0 &&
-    						(int) Core::WString(GetElement()->GetAttribute< Rml::Core::String >("value", "")).Length() > max_length)
-    						break;
-
-    					AddCharacter(clipboard_content[i]);
-    				}
-                }
-			}
-			break;
-
-			// Ignore tabs so input fields can be navigated through with keys.
-			case Core::Input::KI_TAB:
-				return;
-
-			default:
-			{
-			}
-			break;
+		default:
+		break;
 		}
 
 		event.StopPropagation();
 	}
-	else if (event == "textinput")
+	break;
+
+	case EventId::Textinput:
 	{
 		// Only process the text if no modifier keys are pressed.
 		if (event.GetParameter< int >("ctrl_key", 0) == 0 &&
 			event.GetParameter< int >("alt_key", 0) == 0 &&
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
-			Rml::Core::word character = event.GetParameter< Rml::Core::word >("data", 0);
-			if (max_length < 0 || (int) Core::String(GetElement()->GetAttribute< Rml::Core::String >("value", "")).Length() < max_length)
-				AddCharacter(character);
+			Rml::Core::Character character = event.GetParameter("data", Rml::Core::Character::Null);
+			AddCharacter(character);
 		}
 
 		ShowCursor(true);
 		event.StopPropagation();
 	}
-	else if (event == "focus" &&
-			 event.GetTargetElement() == parent)
+	break;
+	case EventId::Focus:
 	{
-		UpdateSelection(false);
-		ShowCursor(true, false);
+		if (event.GetTargetElement() == parent)
+		{
+			UpdateSelection(false);
+			ShowCursor(true, false);
+		}
 	}
-	else if (event == "blur" &&
-		     event.GetTargetElement() == parent)
+	break;
+	case EventId::Blur:
 	{
-		ClearSelection();
-		ShowCursor(false, false);
-	}	
-	else if ((event == "mousedown" ||
-			  event == "drag") &&
-			 event.GetTargetElement() == parent)
-	{
-		Rml::Core::Vector2f mouse_position = Rml::Core::Vector2f((float) event.GetParameter< int >("mouse_x", 0),
-																 (float) event.GetParameter< int >("mouse_y", 0));
-		mouse_position -= text_element->GetAbsoluteOffset();
-
-		cursor_line_index = CalculateLineIndex(mouse_position.y);
-		cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
-
-		UpdateAbsoluteCursor();
-		UpdateCursorPosition();
-		ideal_cursor_position = cursor_position.x;
-
-		UpdateSelection(event == "drag" || event.GetParameter< int >("shift_key", 0) > 0);
-
-		ShowCursor(true);
+		if (event.GetTargetElement() == parent)
+		{
+			ClearSelection();
+			ShowCursor(false, false);
+		}
 	}
+	break;
+	case EventId::Mousedown:
+	case EventId::Drag:
+	{
+		if (event.GetTargetElement() == parent)
+		{
+			Core::Vector2f mouse_position = Core::Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0));
+			mouse_position -= text_element->GetAbsoluteOffset();
+
+			cursor_line_index = CalculateLineIndex(mouse_position.y);
+			cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
+
+			UpdateAbsoluteCursor();
+			MoveCursorToCharacterBoundaries(false);
+
+			UpdateCursorPosition();
+			ideal_cursor_position = cursor_position.x;
+
+			UpdateSelection(event == Core::EventId::Drag || event.GetParameter< int >("shift_key", 0) > 0);
+
+			ShowCursor(true);
+		}
+	}
+	break;
+
+	default:
+		break;
+	}
+
 }
 
 // Adds a new character to the string at the cursor position.
-bool WidgetTextInput::AddCharacter(Rml::Core::word character)
+bool WidgetTextInput::AddCharacter(Rml::Core::Character character)
 {
-	if (!IsCharacterValid(character))
+	if ((char32_t)character <= 127 && !IsCharacterValid(static_cast<char>(character)))
 		return false;
 
 	if (selection_length > 0)
 		DeleteSelection();
 
-	Core::WString value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-	value.Insert(GetCursorIndex(), Core::WString(1, character), 1);
+	if (max_length >= 0 && GetLength() >= max_length)
+		return false;
 
-	edit_index += 1;
+	Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
+	
+	Core::String insert = Core::StringUtilities::ToUTF8(character);
+	value.insert(GetCursorIndex(), insert);
 
-	Rml::Core::String utf8_value;
-	value.ToUTF8(utf8_value);
-	GetElement()->SetAttribute("value", utf8_value);
+	edit_index += (int)insert.size();
+
+	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
 
 	UpdateSelection(false);
@@ -451,8 +490,11 @@ bool WidgetTextInput::AddCharacter(Rml::Core::word character)
 // Deletes a character from the string.
 bool WidgetTextInput::DeleteCharacter(bool back)
 {
-	// First, check if we have anything selected; if so, delete that first before we start delete
-	// individual characters.
+	// We set a selection of the next or previous character, and then delete it.
+	// If we already have a selection, we delete that first.
+	if (selection_length <= 0)
+		MoveCursorHorizontal(back ? CursorMovement::Left : CursorMovement::Right, true);
+
 	if (selection_length > 0)
 	{
 		DeleteSelection();
@@ -463,39 +505,15 @@ bool WidgetTextInput::DeleteCharacter(bool back)
 		return true;
 	}
 
-	Core::WString value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-
-	if (back)
-	{
-		if (GetCursorIndex() == 0)
-			return false;
-
-		value.Erase(GetCursorIndex() - 1, 1);
-		edit_index -= 1;
-	}
-	else
-	{
-		if (GetCursorIndex() == (int) value.Length())
-			return false;
-
-		value.Erase(GetCursorIndex(), 1);
-	}
-
-	Rml::Core::String utf8_value;
-	value.ToUTF8(utf8_value);
-	GetElement()->SetAttribute("value", utf8_value);
-	DispatchChangeEvent();
-
-	UpdateSelection(false);
-
-	return true;
+	return false;
 }
 
 // Copies the selection (if any) to the clipboard.
 void WidgetTextInput::CopySelection()
 {
 	const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-	Clipboard::Set(Core::String(value.Substring(selection_begin_index, selection_length)));
+	const Core::String snippet = value.substr(selection_begin_index, selection_length);
+	Core::GetSystemInterface()->SetClipboardText(snippet);
 }
 
 // Returns the absolute index of the cursor.
@@ -505,16 +523,86 @@ int WidgetTextInput::GetCursorIndex() const
 }
 
 // Moves the cursor along the current line.
-void WidgetTextInput::MoveCursorHorizontal(int distance, bool select)
+void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 {
-	absolute_cursor_index += distance;
+	const auto is_nonword_character = [](char c) -> bool {
+		return Core::StringUtilities::IsWhitespace(c) || (c >= '!' && c <= '@');
+	};
+
+	// Whether to seek forward or back to align to utf8 boundaries later.
+	bool seek_forward = false;
+
+	switch (movement)
+	{
+	case CursorMovement::BeginLine:
+		absolute_cursor_index -= cursor_character_index;
+		break;
+	case CursorMovement::PreviousWord:
+		if (cursor_character_index <= 1)
+		{
+			absolute_cursor_index -= 1;
+		}
+		else
+		{
+			bool whitespace_found = false;
+			const char* p_rend = lines[cursor_line_index].content.data();
+			const char* p_rbegin = p_rend + cursor_character_index;
+			const char* p = p_rbegin - 1;
+			for (; p > p_rend; --p)
+			{
+				bool is_whitespace = is_nonword_character(*p);
+				if(whitespace_found && !is_whitespace)
+					break;
+				else if(!whitespace_found && is_whitespace)
+					whitespace_found = true;
+			}
+			if (p != p_rend) ++p;
+			absolute_cursor_index += int(p - p_rbegin);
+		}
+		break;
+	case CursorMovement::Left:
+		absolute_cursor_index -= 1;
+		break;
+	case CursorMovement::Right:
+		seek_forward = true;
+		absolute_cursor_index += 1;
+		break;
+	case CursorMovement::NextWord:
+		if (cursor_character_index >= lines[cursor_line_index].content_length)
+		{
+			absolute_cursor_index += 1;
+		}
+		else
+		{
+			bool whitespace_found = false;
+			const char* p_begin = lines[cursor_line_index].content.data() + cursor_character_index;
+			const char* p_end = lines[cursor_line_index].content.data() + lines[cursor_line_index].content_length;
+			const char* p = p_begin;
+			for (; p < p_end; ++p)
+			{
+				bool is_whitespace = is_nonword_character(*p);
+				if (whitespace_found && !is_whitespace)
+					break;
+				else if (!whitespace_found && is_whitespace)
+					whitespace_found = true;
+			}
+			absolute_cursor_index += int(p - p_begin);
+		}
+		break;
+	case CursorMovement::EndLine:
+		absolute_cursor_index += lines[cursor_line_index].content_length - cursor_character_index;
+		break;
+	default:
+		break;
+	}
+	
 	absolute_cursor_index = Rml::Core::Math::Max(0, absolute_cursor_index);
 
 	UpdateRelativeCursor();
+	MoveCursorToCharacterBoundaries(seek_forward);
+
 	ideal_cursor_position = cursor_position.x;
-
 	UpdateSelection(select);
-
 	ShowCursor(true);
 }
 
@@ -542,6 +630,9 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 		cursor_character_index = CalculateCharacterIndex(cursor_line_index, ideal_cursor_position);
 
 	UpdateAbsoluteCursor();
+
+	MoveCursorToCharacterBoundaries(false);
+
 	UpdateCursorPosition();
 
 	if (update_ideal_cursor_position)
@@ -550,6 +641,25 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 	UpdateSelection(select);
 
 	ShowCursor(true);
+}
+
+void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
+{
+	const char* p_line_begin = lines[cursor_line_index].content.data();
+	const char* p_line_end = p_line_begin + lines[cursor_line_index].content_length;
+	const char* p_cursor = p_line_begin + cursor_character_index;
+	const char* p = p_cursor;
+
+	if (forward)
+		p = Core::StringUtilities::SeekForwardUTF8(p_cursor, p_line_end);
+	else
+		p = Core::StringUtilities::SeekBackwardUTF8(p_cursor, p_line_begin);
+
+	if (p != p_cursor)
+	{
+		absolute_cursor_index += int(p - p_cursor);
+		UpdateRelativeCursor();
+	}
 }
 
 // Updates the absolute cursor index from the relative cursor indices.
@@ -562,8 +672,8 @@ void WidgetTextInput::UpdateAbsoluteCursor()
 
 	for (int i = 0; i < cursor_line_index; i++)
 	{
-		absolute_cursor_index += (int)lines[i].content.Length();
-		edit_index += (int)lines[i].content.Length() + lines[i].extra_characters;
+		absolute_cursor_index += (int)lines[i].content.size();
+		edit_index += (int)lines[i].content.size() + lines[i].extra_characters;
 	}
 }
 
@@ -585,7 +695,7 @@ void WidgetTextInput::UpdateRelativeCursor()
 			return;
 		}
 
-		num_characters += (int) lines[i].content.Length();
+		num_characters += (int) lines[i].content.size();
 		edit_index += lines[i].extra_characters;
 	}
 
@@ -602,7 +712,7 @@ void WidgetTextInput::UpdateRelativeCursor()
 // Calculates the line index under a specific vertical position.
 int WidgetTextInput::CalculateLineIndex(float position)
 {
-	float line_height = (float) Core::ElementUtilities::GetLineHeight(parent);
+	float line_height = parent->GetLineHeight();
 	int line_index = Rml::Core::Math::RealToInteger(position / line_height);
 	return Rml::Core::Math::Clamp(line_index, 0, (int) (lines.size() - 1));
 }
@@ -610,25 +720,28 @@ int WidgetTextInput::CalculateLineIndex(float position)
 // Calculates the character index along a line under a specific horizontal position.
 int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 {
-	int character_index = 0;
-	float line_width = 0;
-
-	while (character_index < lines[line_index].content_length)
+	int prev_offset = 0;
+	float prev_line_width = 0;
+	
+	for(auto it = Core::StringIteratorU8(lines[line_index].content, 0, lines[line_index].content_length); it; )
 	{
-		float next_line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.Substring(0, character_index));
-		if (next_line_width > position)
+		++it;
+		int offset = (int)it.Offset();
+
+		float line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.substr(0, offset));
+		if (line_width > position)
 		{
-			if (position - line_width < next_line_width - position)
-				return Rml::Core::Math::Max(0, character_index - 1);
+			if (position - prev_line_width < line_width - position)
+				return prev_offset;
 			else
-				return character_index;
+				return offset;
 		}
 
-		line_width = next_line_width;
-		character_index++;
+		prev_line_width = line_width;
+		prev_offset = offset;
 	}
 
-	return character_index;
+	return prev_offset;
 }
 
 // Shows or hides the cursor.
@@ -678,18 +791,19 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 // Formats the element, laying out the text and inserting scrollbars as appropriate.
 void WidgetTextInput::FormatElement()
 {
+	using namespace Core::Style;
 	Core::ElementScroll* scroll = parent->GetElementScroll();
 	float width = parent->GetBox().GetSize(Core::Box::PADDING).x;
 
-	int x_overflow_property = parent->GetProperty< int >("overflow-x");
-	int y_overflow_property = parent->GetProperty< int >("overflow-y");
+	Overflow x_overflow_property = parent->GetComputedValues().overflow_x;
+	Overflow y_overflow_property = parent->GetComputedValues().overflow_y;
 
-	if (x_overflow_property == Core::OVERFLOW_SCROLL)
+	if (x_overflow_property == Overflow::Scroll)
 		scroll->EnableScrollbar(Core::ElementScroll::HORIZONTAL, width);
 	else
 		scroll->DisableScrollbar(Core::ElementScroll::HORIZONTAL);
 
-	if (y_overflow_property == Core::OVERFLOW_SCROLL)
+	if (y_overflow_property == Overflow::Scroll)
 		scroll->EnableScrollbar(Core::ElementScroll::VERTICAL, width);
 	else
 		scroll->DisableScrollbar(Core::ElementScroll::VERTICAL);
@@ -698,21 +812,21 @@ void WidgetTextInput::FormatElement()
 	Rml::Core::Vector2f content_area = FormatText();
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (x_overflow_property == Core::OVERFLOW_AUTO)
+	if (x_overflow_property == Overflow::Auto)
 	{
 		if (parent->GetClientWidth() < content_area.x)
 			scroll->EnableScrollbar(Core::ElementScroll::HORIZONTAL, width);
 	}
 
 	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
-	if (y_overflow_property == Core::OVERFLOW_AUTO)
+	if (y_overflow_property == Overflow::Auto)
 	{
 		if (parent->GetClientHeight() < content_area.y)
 		{
 			scroll->EnableScrollbar(Core::ElementScroll::VERTICAL, width);
 			content_area = FormatText();
 
-			if (x_overflow_property == Core::OVERFLOW_AUTO &&
+			if (x_overflow_property == Overflow::Auto &&
 				parent->GetClientWidth() < content_area.y)
 			{
 				scroll->EnableScrollbar(Core::ElementScroll::HORIZONTAL, width);
@@ -743,7 +857,7 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 	std::vector< int >& selection_indices = selection_geometry.GetIndices();
 
 	// Determine the line-height of the text element.
-	int line_height = Rml::Core::ElementUtilities::GetLineHeight(parent);
+	float line_height = parent->GetLineHeight();
 
 	int line_begin = 0;
 	Rml::Core::Vector2f line_position(0, 0);
@@ -764,36 +878,36 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 		// field's bounds.
 		bool soft_return = false;
 		if (!last_line &&
-			(line.content.Empty() ||
-			 line.content[line.content.Length() - 1] != '\n'))
+			(line.content.empty() ||
+			 line.content[line.content.size() - 1] != '\n'))
 		{
 			soft_return = true;
 
-			const Core::WString& text = text_element->GetText();
-			Core::WString orphan;
+			const Core::String& text = text_element->GetText();
+			Core::String orphan;
 			for (int i = 1; i >= 0; --i)
 			{
 				int index = line_begin + line.content_length + i;
-				if (index >= (int) text.Length())
+				if (index >= (int) text.size())
 					continue;
 
 				if (text[index] != ' ')
 				{
-					orphan = "";
+					orphan.clear();
 					continue;
 				}
 
 				int next_index = index + 1;
-				if (!orphan.Empty() ||
-					next_index >= (int) text.Length() ||
+				if (!orphan.empty() ||
+					next_index >= (int) text.size() ||
 					text[next_index] != ' ')
 					orphan += ' ';
 			}
 
-			if (!orphan.Empty())
+			if (!orphan.empty())
 			{
 				line.content += orphan;
-				line.content_length += (int) orphan.Length();
+				line.content_length += (int) orphan.size();
 				line_width += Core::ElementUtilities::GetStringWidth(text_element, orphan);
 			}
 		}
@@ -802,12 +916,12 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 		// Now that we have the string of characters appearing on the new line, we split it into
 		// three parts; the unselected text appearing before any selected text on the line, the
 		// selected text on the line, and any unselected text after the selection.
-		Core::WString pre_selection, selection, post_selection;
+		Core::String pre_selection, selection, post_selection;
 		GetLineSelection(pre_selection, selection, post_selection, line.content, line_begin);
 
 		// The pre-selected text is placed, if there is any (if the selection starts on or before
 		// the beginning of this line, then this will be empty).
-		if (!pre_selection.Empty())
+		if (!pre_selection.empty())
 		{
 			text_element->AddLine(line_position, pre_selection);
 			line_position.x += Core::ElementUtilities::GetStringWidth(text_element, pre_selection);
@@ -815,21 +929,21 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 
 		// If there is any selected text on this line, place it in the selected text element and
 		// generate the geometry for its background.
-		if (!selection.Empty())
+		if (!selection.empty())
 		{
 			selected_text_element->AddLine(line_position, selection);
 			int selection_width = Core::ElementUtilities::GetStringWidth(selected_text_element, selection);
 
 			selection_vertices.resize(selection_vertices.size() + 4);
 			selection_indices.resize(selection_indices.size() + 6);
-			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rml::Core::Vector2f((float)selection_width, (float)line_height), selection_colour, (int)selection_vertices.size() - 4);
+			Core::GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Rml::Core::Vector2f((float)selection_width, line_height), selection_colour, (int)selection_vertices.size() - 4);
 
 			line_position.x += selection_width;
 		}
 
 		// If there is any unselected text after the selection on this line, place it in the
 		// standard text element after the selected text.
-		if (!post_selection.Empty())
+		if (!post_selection.empty())
 			text_element->AddLine(line_position, post_selection);
 
 
@@ -855,8 +969,8 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 
 		// Push the new line into our array of lines, but first check if its content length needs to be truncated to
 		// dodge a trailing endline.
-		if (!line.content.Empty() &&
-			line.content[line.content.Length() - 1] == '\n')
+		if (!line.content.empty() &&
+			line.content[line.content.size() - 1] == '\n')
 			line.content_length -= 1;
 		lines.push_back(line);
 	}
@@ -877,18 +991,18 @@ void WidgetTextInput::GenerateCursor()
 	std::vector< int >& indices = cursor_geometry.GetIndices();
 	indices.resize(6);
 
-	cursor_size.x = 1;
-	cursor_size.y = (float) Core::ElementUtilities::GetLineHeight(text_element) + 2;
+	cursor_size.x = Core::ElementUtilities::GetDensityIndependentPixelRatio(text_element);
+	cursor_size.y = text_element->GetLineHeight() + 2.0f;
 	Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Rml::Core::Vector2f(0, 0), cursor_size, parent->GetProperty< Rml::Core::Colourb >("color"));
 }
 
 void WidgetTextInput::UpdateCursorPosition()
 {
-	if (text_element->GetFontFaceHandle() == NULL)
+	if (text_element->GetFontFaceHandle() == 0)
 		return;
 
-	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.Substring(0, cursor_character_index));
-	cursor_position.y = -1 + cursor_line_index * (float) Core::ElementUtilities::GetLineHeight(text_element);
+	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.substr(0, cursor_character_index));
+	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
 }
 
 // Expand the text selection to the position of the cursor.
@@ -941,10 +1055,9 @@ void WidgetTextInput::DeleteSelection()
 {
 	if (selection_length > 0)
 	{
-		const Core::WString& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
+		const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-		Rml::Core::String new_value;
-		Core::WString(value.Substring(0, selection_begin_index) + value.Substring(selection_begin_index + selection_length)).ToUTF8(new_value);
+		Rml::Core::String new_value = value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length);
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
@@ -957,21 +1070,24 @@ void WidgetTextInput::DeleteSelection()
 }
 
 // Split one line of text into three parts, based on the current selection.
-void WidgetTextInput::GetLineSelection(Core::WString& pre_selection, Core::WString& selection, Core::WString& post_selection, const Core::WString& line, int line_begin)
+void WidgetTextInput::GetLineSelection(Core::String& pre_selection, Core::String& selection, Core::String& post_selection, const Core::String& line, int line_begin)
 {
 	// Check if we have any selection at all, and if so if the selection is on this line.
 	if (selection_length <= 0 ||
 		selection_begin_index + selection_length < line_begin ||
-		selection_begin_index > line_begin + (int) line.Length())
+		selection_begin_index > line_begin + (int) line.size())
 	{
 		pre_selection = line;
 		return;
 	}
 
+	int line_length = (int)line.size();
+	using namespace Rml::Core::Math;
+
 	// Split the line up into its three parts, depending on the size and placement of the selection.
-	pre_selection = line.Substring(0, Rml::Core::Math::Max(0, selection_begin_index - line_begin));
-	selection = line.Substring(Rml::Core::Math::Max(0, selection_begin_index - line_begin), Rml::Core::Math::Max(0, selection_length + Rml::Core::Math::Min(0, selection_begin_index - line_begin)));
-	post_selection = line.Substring(selection_begin_index + selection_length - line_begin);
+	pre_selection = line.substr(0, Max(0, selection_begin_index - line_begin));
+	selection = line.substr(Clamp(selection_begin_index - line_begin, 0, line_length), Max(0, selection_length + Min(0, selection_begin_index - line_begin)));
+	post_selection = line.substr(Clamp(selection_begin_index + selection_length - line_begin, 0, line_length));
 }
 
 void WidgetTextInput::SetKeyboardActive(bool active)

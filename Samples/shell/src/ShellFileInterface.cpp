@@ -41,12 +41,12 @@ ShellFileInterface::~ShellFileInterface()
 Rml::Core::FileHandle ShellFileInterface::Open(const Rml::Core::String& path)
 {
 	// Attempt to open the file relative to the application's root.
-	FILE* fp = fopen((root + path).CString(), "rb");
-	if (fp != NULL)
+	FILE* fp = fopen((root + path).c_str(), "rb");
+	if (fp != nullptr)
 		return (Rml::Core::FileHandle) fp;
 
 	// Attempt to open the file relative to the current working directory.
-	fp = fopen(path.CString(), "rb");
+	fp = fopen(path.c_str(), "rb");
 	return (Rml::Core::FileHandle) fp;
 }
 

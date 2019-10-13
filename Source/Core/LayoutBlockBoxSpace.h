@@ -29,8 +29,6 @@
 #ifndef RMLUICORELAYOUTBLOCKBOXSPACE_H
 #define RMLUICORELAYOUTBLOCKBOXSPACE_H
 
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
-
 namespace Rml {
 namespace Core {
 
@@ -73,7 +71,7 @@ public:
 	/// @param[in] cursor The ideal vertical position.
 	/// @param[in] clear_property The value of the clear property of the clearing object.
 	/// @return The appropriate vertical position for the clearing object.
-	float ClearBoxes(float cursor, int clear_property);
+	float ClearBoxes(float cursor, Style::Clear clear_property);
 
 	/// Returns the top-left corner of the boxes within the space.
 	/// @return The space's offset.
@@ -99,7 +97,7 @@ private:
 	/// @param cursor[in] The ideal vertical position for the box.
 	/// @param dimensions[in] The size of the box to place.
 	/// @return The maximum width at the box position.
-	float PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, int float_property = FLOAT_NONE) const;
+	float PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, Style::Float float_property = Style::Float::None) const;
 
 	struct SpaceBox
 	{

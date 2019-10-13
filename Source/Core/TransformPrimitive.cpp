@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,38 +86,36 @@ NumericValue::NumericValue(float number, Property::Unit unit) noexcept
 {
 }
 
-float NumericValue::Resolve(Element& e, float base) const noexcept
+float NumericValue::ResolveLengthPercentage(Element& e, float base) const noexcept
 {
 	Property prop;
 	prop.value = Variant(number);
 	prop.unit = unit;
-	return e.ResolveProperty(&prop, base);
+	return e.ResolveNumericProperty(&prop, base);
 }
 
 float NumericValue::ResolveWidth(Element& e) const noexcept
 {
 	if(unit & (Property::PX | Property::NUMBER)) return number;
-	return Resolve(e, e.GetBox().GetSize(Box::BORDER).x);
+	return ResolveLengthPercentage(e, e.GetBox().GetSize(Box::BORDER).x);
 }
 
 float NumericValue::ResolveHeight(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
-	return Resolve(e, e.GetBox().GetSize(Box::BORDER).y);
+	return ResolveLengthPercentage(e, e.GetBox().GetSize(Box::BORDER).y);
 }
 
 float NumericValue::ResolveDepth(Element& e) const noexcept
 {
 	if (unit & (Property::PX | Property::NUMBER)) return number;
 	Vector2f size = e.GetBox().GetSize(Box::BORDER);
-	return Resolve(e, Math::Max(size.x, size.y));
+	return ResolveLengthPercentage(e, Math::Max(size.x, size.y));
 }
 
 float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept
 {
-	switch (base_unit)
-	{
-	case Property::RAD:
+	if(base_unit == Property::RAD)
 	{
 		switch (unit)
 		{
@@ -127,9 +126,9 @@ float NumericValue::ResolveAbsoluteUnit(Property::Unit base_unit) const noexcept
 			return number;
 		case Property::PERCENT:
 			return number * 0.01f * 2.0f * Math::RMLUI_PI;
+		default:
 			break;
 		}
-	}
 	}
 	return number;
 }
@@ -301,7 +300,8 @@ struct ResolveTransformVisitor
 	}
 	bool operator()(const Perspective& p)
 	{
-		return false;
+		m = Matrix4f::Perspective(p.values[0].ResolveDepth(e));
+		return true;
 	}
 
 
@@ -351,21 +351,6 @@ bool Primitive::ResolveTransform(Matrix4f & m, Element & e) const noexcept
 
 	return result;
 }
-
-bool Primitive::ResolvePerspective(float & p, Element & e) const noexcept
-{
-	bool result = false;
-
-	if (primitive.type == PrimitiveVariant::PERSPECTIVE)
-	{
-
-		p = primitive.perspective.values[0].ResolveDepth(e);
-		result = true;
-	}
-
-	return result;
-}
-
 
 struct SetIdentityVisitor
 {
@@ -511,7 +496,7 @@ struct PrepareVisitor
 	}
 	bool operator()(Matrix3D& p)
 	{
-		// Matrices must be decomposed for interpolatino
+		// Matrices must be decomposed for interpolation
 		return false;
 	}
 	bool operator()(Matrix2D& p)
@@ -587,7 +572,6 @@ struct GetGenericTypeVisitor
 
 	GenericType run(const PrimitiveVariant& primitive)
 	{
-		PrimitiveVariant result = primitive;
 		switch (primitive.type)
 		{
 		case PrimitiveVariant::TRANSLATEX:  return this->operator()(primitive.translate_x); break;
@@ -627,14 +611,14 @@ struct ConvertToGenericTypeVisitor
 		PrimitiveVariant result = primitive;
 		switch (primitive.type)
 		{
-		case PrimitiveVariant::TRANSLATEX: result.translate_3d = this->operator()(primitive.translate_x); break;
-		case PrimitiveVariant::TRANSLATEY: result.translate_3d = this->operator()(primitive.translate_y); break;
-		case PrimitiveVariant::TRANSLATEZ: result.translate_3d = this->operator()(primitive.translate_z); break;
-		case PrimitiveVariant::TRANSLATE2D: result.translate_3d = this->operator()(primitive.translate_2d); break;
-		case PrimitiveVariant::SCALEX: result.scale_3d = this->operator()(primitive.scale_x); break;
-		case PrimitiveVariant::SCALEY: result.scale_3d = this->operator()(primitive.scale_y); break;
-		case PrimitiveVariant::SCALEZ: result.scale_3d = this->operator()(primitive.scale_z); break;
-		case PrimitiveVariant::SCALE2D: result.scale_3d = this->operator()(primitive.scale_2d); break;
+		case PrimitiveVariant::TRANSLATEX:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_x);  break;
+		case PrimitiveVariant::TRANSLATEY:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_y);  break;
+		case PrimitiveVariant::TRANSLATEZ:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_z);  break;
+		case PrimitiveVariant::TRANSLATE2D: result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_2d); break;
+		case PrimitiveVariant::SCALEX:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_x);      break;
+		case PrimitiveVariant::SCALEY:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_y);      break;
+		case PrimitiveVariant::SCALEZ:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_z);      break;
+		case PrimitiveVariant::SCALE2D:     result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_2d);     break;
 		default:
 			RMLUI_ASSERT(false);
 			break;
@@ -757,33 +741,72 @@ bool Primitive::InterpolateWith(const Primitive & other, float alpha) noexcept
 
 
 template<size_t N>
-inline String ToString(const Transforms::ResolvedPrimitive<N>& p, String unit, bool rad_to_deg = false, bool only_unit_on_last_value = false) noexcept {
+static inline String ToString(const Transforms::ResolvedPrimitive<N>& p, String unit, bool rad_to_deg = false, bool only_unit_on_last_value = false) noexcept {
 	float multiplier = 1.0f;
-	if (rad_to_deg) multiplier = 180.f / Math::RMLUI_PI;
 	String tmp;
 	String result = "(";
-	for (size_t i = 0; i < N; i++) {
+	for (size_t i = 0; i < N; i++) 
+	{
+		if (only_unit_on_last_value && i < N - 1)
+			multiplier = 1.0f;
+		else if (rad_to_deg) 
+			multiplier = 180.f / Math::RMLUI_PI;
+
 		if (TypeConverter<float, String>::Convert(p.values[i] * multiplier, tmp))
 			result += tmp;
-		if (!unit.Empty() && (!only_unit_on_last_value || (i == N - 1)))
+
+		if (!unit.empty() && (!only_unit_on_last_value || (i == N - 1)))
 			result += unit;
-		if (i != N - 1) result += ", ";
+
+		if (i < N - 1)
+			result += ", ";
 	}
 	result += ")";
 	return result;
 }
 
 template<size_t N>
-inline String ToString(const Transforms::UnresolvedPrimitive<N> & p) noexcept {
+static inline String ToString(const Transforms::UnresolvedPrimitive<N> & p) noexcept {
 	String result = "(";
-	for (size_t i = 0; i < N; i++) {
+	for (size_t i = 0; i < N; i++) 
+	{
 		result += p.values[i].ToString();
-		if (i != N - 1) result += ", ";
+		if (i != N - 1) 
+			result += ", ";
 	}
 	result += ")";
 	return result;
 }
 
+static inline String ToString(const Transforms::DecomposedMatrix4& p) noexcept {
+	static const DecomposedMatrix4 d{
+		Vector4f(0, 0, 0, 1),
+		Vector4f(0, 0, 0, 1),
+		Vector3f(0, 0, 0),
+		Vector3f(1, 1, 1),
+		Vector3f(0, 0, 0)
+	}; 
+	String tmp;
+	String result;
+	
+	if(p.perspective != d.perspective && TypeConverter< Vector4f, String >::Convert(p.perspective, tmp))
+		result += "perspective(" + tmp + "), ";
+	if (p.quaternion != d.quaternion && TypeConverter< Vector4f, String >::Convert(p.quaternion, tmp))
+		result += "quaternion(" + tmp + "), ";
+	if (p.translation != d.translation && TypeConverter< Vector3f, String >::Convert(p.translation, tmp))
+		result += "translation(" + tmp + "), ";
+	if (p.scale != d.scale && TypeConverter< Vector3f, String >::Convert(p.scale, tmp))
+		result += "scale(" + tmp + "), ";
+	if (p.skew != d.skew && TypeConverter< Vector3f, String >::Convert(p.skew, tmp))
+		result += "skew(" + tmp + "), ";
+
+	if (result.size() > 2)
+		result.resize(result.size() - 2);
+
+	result = "decomposedMatrix3d{ " + result + " }";
+
+	return result;
+}
 
 
 String ToString(const Transforms::Matrix2D & p) noexcept { return "matrix" + ToString(static_cast<const Transforms::ResolvedPrimitive< 6 >&>(p), ""); }
@@ -807,7 +830,6 @@ String ToString(const Transforms::SkewX & p) noexcept { return "skewX" + ToStrin
 String ToString(const Transforms::SkewY & p) noexcept { return "skewY" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
 String ToString(const Transforms::Skew2D & p) noexcept { return "skew" + ToString(static_cast<const Transforms::ResolvedPrimitive< 2 >&>(p), "deg", true); }
 String ToString(const Transforms::Perspective & p) noexcept { return "perspective" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
-String ToString(const Transforms::DecomposedMatrix4& p) noexcept { return "decomposedMatrix3d"; }
 
 
 struct ToStringVisitor

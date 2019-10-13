@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "StyleSheetNodeSelectorNthLastChild.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -46,7 +45,7 @@ StyleSheetNodeSelectorNthLastChild::~StyleSheetNodeSelectorNthLastChild()
 bool StyleSheetNodeSelectorNthLastChild::IsApplicable(const Element* element, int a, int b)
 {
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	// Start counting elements until we find this one.
@@ -56,14 +55,14 @@ bool StyleSheetNodeSelectorNthLastChild::IsApplicable(const Element* element, in
 		Element* child = parent->GetChild(i);
 
 		// Skip text nodes.
-		if (dynamic_cast< ElementText* >(child) != NULL)
+		if (dynamic_cast< ElementText* >(child) != nullptr)
 			continue;
 
 		// If we've found our element, then break; the current index is our element's index.
 		if (child == element)
 			break;
 
-		if (child->GetDisplay() == DISPLAY_NONE)
+		if (child->GetDisplay() == Style::Display::None)
 			continue;
 
 		element_index++;

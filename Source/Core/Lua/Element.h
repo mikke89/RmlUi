@@ -102,6 +102,17 @@ extern luaL_Reg ElementGetters[];
 extern luaL_Reg ElementSetters[];
 
 LUACORETYPEDECLARE(Element)
+
+
+template<> void ExtraInit<ElementPtr>(lua_State* L, int metatable_index);
+int LogMessage(lua_State* L);
+
+extern RegType<ElementPtr> ElementPtrMethods[];
+extern luaL_Reg ElementPtrGetters[];
+extern luaL_Reg ElementPtrSetters[];
+
+LUACORETYPEDECLARE(ElementPtr)
+
 }
 }
 }

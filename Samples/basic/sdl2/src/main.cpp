@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -88,10 +89,10 @@ int main(int argc, char **argv)
 	if(!Rml::Core::Initialise())
 		return 1;
 
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Bold.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-BoldItalic.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Italic.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Roman.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-Bold.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-Italic.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-Roman.otf");
 
 	Rml::Core::Context *Context = Rml::Core::CreateContext("default",
 		Rml::Core::Vector2i(window_width, window_height));
@@ -103,12 +104,11 @@ int main(int argc, char **argv)
 	if(Document)
 	{
 		Document->Show();
-		Document->RemoveReference();
 		fprintf(stdout, "\nDocument loaded");
 	}
 	else
 	{
-		fprintf(stdout, "\nDocument is NULL");
+		fprintf(stdout, "\nDocument is nullptr");
 	}
 
     bool done = false;
@@ -148,10 +148,8 @@ int main(int argc, char **argv)
 
                 case SDL_KEYDOWN:
                 {
-                    // Intercept SHIFT + ~ key stroke to toggle RmlUi's 
-                    // visual debugger tool
-                    if( event.key.keysym.sym == SDLK_BACKQUOTE && 
-                        event.key.keysym.mod == KMOD_LSHIFT )
+                    // Intercept F8 key stroke to toggle RmlUi's visual debugger tool
+                    if( event.key.keysym.sym == SDLK_F8 )
                     {
                         Rml::Debugger::SetVisible( ! Rml::Debugger::IsVisible() );
                         break;
@@ -168,7 +166,6 @@ int main(int argc, char **argv)
 		Context->Update();
 	}
 
-    Context->RemoveReference();
     Rml::Core::Shutdown();
 
     SDL_DestroyRenderer(renderer);

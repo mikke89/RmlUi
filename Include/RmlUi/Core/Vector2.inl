@@ -137,11 +137,23 @@ Vector2< Type > Vector2< Type >::operator*(Type rhs) const
 	return Vector2(x * rhs, y * rhs);
 }
 
+template<typename Type>
+Vector2< Type > Vector2<Type>::operator*(const Vector2& rhs) const
+{
+	return Vector2(x * rhs.x, y * rhs.y);
+}
+
 // Returns the result of dividing this vector by a scalar.
 template < typename Type >
 Vector2< Type > Vector2< Type >::operator/(Type rhs) const
 {
 	return Vector2(x / rhs, y / rhs);
+}
+
+template<typename Type>
+Vector2< Type > Vector2<Type>::operator/(const Vector2& rhs) const
+{
+	return Vector2(x / rhs.x, y / rhs.y);
 }
 
 // Adds another vector to this in-place.
@@ -174,6 +186,15 @@ Vector2< Type >& Vector2< Type >::operator*=(const Type & rhs)
 	return *this;
 }
 
+template<typename Type>
+Vector2< Type >& Vector2<Type>::operator*=(const Vector2& rhs)
+{
+	x *= rhs.x;
+	y *= rhs.y;
+
+	return *this;
+}
+
 // Scales this vector in-place by the inverse of a value.
 template < typename Type >
 Vector2< Type >& Vector2< Type >::operator/=(const Type & rhs)
@@ -181,6 +202,14 @@ Vector2< Type >& Vector2< Type >::operator/=(const Type & rhs)
 	x /= rhs;
 	y /= rhs;
 
+	return *this;
+}
+
+template<typename Type>
+Vector2< Type >& Vector2<Type>::operator/=(const Vector2& rhs)
+{
+	x /= rhs.x;
+	y /= rhs.y;
 	return *this;
 }
 

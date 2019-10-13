@@ -45,7 +45,6 @@ int ElementInstancernew(lua_State* L)
 {
     LuaElementInstancer* lei = new LuaElementInstancer(L);
     LuaType<ElementInstancer>::push(L,lei,true);
-    lei->RemoveReference();
     return 1;
 }
 
@@ -69,21 +68,21 @@ int ElementInstancerSetAttrInstanceElement(lua_State* L)
 
 RegType<ElementInstancer> ElementInstancerMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementInstancerGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementInstancerSetters[] =
 {
     LUASETTER(ElementInstancer,InstanceElement)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(ElementInstancer,true)
+LUACORETYPEDEFINE(ElementInstancer)
 }
 }
 }

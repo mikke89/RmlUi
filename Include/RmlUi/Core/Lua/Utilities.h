@@ -42,14 +42,14 @@ namespace Lua {
 
 /** casts the variant to its specific type before pushing it to the stack 
 @relates Rml::Core::Lua::LuaType */
-void RMLUILUA_API PushVariant(lua_State* L, Variant* var);
+void RMLUILUA_API PushVariant(lua_State* L, const Variant* var);
 
 /** If there are errors on the top of the stack, this will print those out to the log.
 @param L A Lua state, and if not passed in, will use the Interpreter's state
 @param place A string that will be printed to the log right before the error message, seperated by a space. Set
 this when you would get no information about where the error happens.
 @relates Rml::Core::Lua::Interpreter   */
-void RMLUILUA_API Report(lua_State* L = NULL, const Rml::Core::String& place = "");
+void RMLUILUA_API Report(lua_State* L = nullptr, const Rml::Core::String& place = "");
 
 //Helper function, so that the types don't have to define individual functions themselves
 // to fill the Elements.As table

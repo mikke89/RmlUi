@@ -42,7 +42,7 @@ void FileFormatter::FormatData(Rml::Core::String& formatted_data, const Rml::Cor
 	if (raw_data.size() == 3)
 	{
 		// Add spacers for the depth.
-		int depth = atoi(raw_data[1].CString());
+		int depth = atoi(raw_data[1].c_str());
 		for (int i = 0; i < depth; ++i)
 			formatted_data += "<spacer />";
 

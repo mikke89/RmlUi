@@ -29,15 +29,14 @@
 #ifndef RMLUICOREELEMENT_H
 #define RMLUICOREELEMENT_H
 
-#include "ReferenceCountable.h"
 #include "ScriptInterface.h"
 #include "Header.h"
 #include "Box.h"
+#include "ComputedValues.h"
 #include "Event.h"
 #include "Property.h"
 #include "Types.h"
 #include "Transform.h"
-#include "TransformState.h"
 #include "Tween.h"
 
 #include <memory>
@@ -47,7 +46,6 @@ namespace Core {
 
 class Context;
 class Decorator;
-class Dictionary;
 class ElementInstancer;
 class EventDispatcher;
 class EventListener;
@@ -58,10 +56,13 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
-class FontFaceHandle;
+class PropertiesIteratorView;
+class FontFaceHandleDefault;
 class PropertyDictionary;
 class RenderInterface;
+class TransformState;
 class StyleSheet;
+struct ElementMeta;
 
 /**
 	A generic element in the DOM tree.
@@ -78,11 +79,8 @@ public:
 	Element(const String& tag);
 	virtual ~Element();
 
-	void Update();
-	void Render();
-
 	/// Clones this element, returning a new, unparented element.
-	Element* Clone() const;
+	ElementPtr Clone() const;
 
 	/** @name Classes
 	 */
@@ -103,18 +101,18 @@ public:
 	String GetClassNames() const;
 	//@}
 
-	/// Returns the active style sheet for this element. This may be NULL.
+	/// Returns the active style sheet for this element. This may be nullptr.
 	/// @return The element's style sheet.
-	virtual StyleSheet* GetStyleSheet() const;
+	virtual const SharedPtr<StyleSheet>& GetStyleSheet() const;
 
-	/// Returns the element's definition, updating if necessary.
+	/// Returns the element's definition.
 	/// @return The element's definition.
 	const ElementDefinition* GetDefinition();
 
 	/// Fills a string with the full address of this element.
 	/// @param[in] include_pseudo_classes True if the address is to include the pseudo-classes of the leaf element.
 	/// @return The address of the element, including its full parentage.
-	String GetAddress(bool include_pseudo_classes = false) const;
+	String GetAddress(bool include_pseudo_classes = false, bool include_parents = true) const;
 
 	/// Sets the position of this element, as a two-dimensional offset from another element.
 	/// @param[in] offset The offset (in pixels) of our primary box's top-left border corner from our offset parent's top-left border corner.
@@ -150,10 +148,13 @@ public:
 	/// Adds a box to the end of the list describing this element's geometry.
 	/// @param[in] box The auxiliary box for the element.
 	void AddBox(const Box& box);
+	/// Returns the main box describing the size of the element.
+	/// @return The box.
+	const Box& GetBox();
 	/// Returns one of the boxes describing the size of the element.
-	/// @param[in] index The index of the desired box. If this is outside of the bounds of the element's list of boxes, it will be clamped.
+	/// @param[in] index The index of the desired box, with 0 being the main box. If outside of bounds, the main box will be returned.
 	/// @return The requested box.
-	const Box& GetBox(int index = 0);
+	const Box& GetBox(int index);
 	/// Returns the number of boxes making up this element's geometry.
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
@@ -181,7 +182,7 @@ public:
 
 	/// Returns the element's font face handle.
 	/// @return The element's font face handle.
-	FontFaceHandle* GetFontFaceHandle() const;
+	FontFaceHandle GetFontFaceHandle() const;
 
 	/** @name Properties
 	 */
@@ -195,105 +196,61 @@ public:
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
-	bool SetProperty(const String& name, const Property& property);
-	/// Removes a local property override on the element; its value will revert to that defined in
-	/// the style sheet.
+	bool SetProperty(PropertyId id, const Property& property);
+	/// Removes a local property override on the element; its value will revert to that defined in the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
 	void RemoveProperty(const String& name);
-	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
-	/// be found that we can inherit the property from, the default value will be returned.
+	void RemoveProperty(PropertyId id);
+	/// Returns one of this element's properties. If the property is not defined for this element and not inherited 
+	/// from an ancestor, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
-	/// @return The value of this property for this element, or NULL if no property exists with the given name.
+	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
 	const Property* GetProperty(const String& name);		
+	const Property* GetProperty(PropertyId id);		
 	/// Returns the values of one of this element's properties.		
 	/// @param[in] name The name of the property to get.
 	/// @return The value of this property.
 	template < typename T >
 	T GetProperty(const String& name);
-	/// Returns one of this element's properties. If this element is not defined this property, NULL will be
+	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
-	/// @return The value of this property for this element, or NULL if this property has not been explicitly defined for this element.
+	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);
-	/// Returns the local properties, excluding any properties from local class.
-	/// @return The local properties for this element, or NULL if no properties defined
-	const PropertyMap* GetLocalProperties();
-	/// Resolves one of this element's properties. If the value is a number or px, this is returned. Angles are returned as radians.
-	/// Precentages are resolved based on the second argument (the base value).
-	/// @param[in] name The name of the property to resolve the value for.
-	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
-	/// @return The value of this property for this element.
-	float ResolveProperty(const String& name, float base_value);
-	/// Resolves one of this element's non-inherited properties. If the value is a number or px, this is returned. Angles are returned as radians.
-	/// Precentages are resolved based on the second argument (the base value).
-	/// @param[in] name The property to resolve the value for.
-	/// @param[in] base_value The value that is scaled by the percentage value, if it is a percentage.
-	/// @return The value of this property for this element.
-	float ResolveProperty(const Property *property, float base_value);
+	const Property* GetLocalProperty(PropertyId id);
+	/// Returns the local style properties, excluding any properties from local class.
+	/// @return The local properties for this element, or nullptr if no properties defined
+	const PropertyMap& GetLocalStyleProperties();
 
-	/// Returns 'top', 'bottom', 'left' and 'right' properties from element's style or local cache.
-	void GetOffsetProperties(const Property **top, const Property **bottom, const Property **left, const Property **right );
-	/// Returns 'border-width' properties from element's style or local cache.
-	void GetBorderWidthProperties(const Property **border_top_width, const Property **border_bottom_width, const Property **border_left_width, const Property **border_right_width);
-	/// Returns 'margin' properties from element's style or local cache.
-	void GetMarginProperties(const Property **margin_top, const Property **margin_bottom, const Property **margin_left, const Property **margin_right);
-	/// Returns 'padding' properties from element's style or local cache.
-	void GetPaddingProperties(const Property **padding_top, const Property **padding_bottom, const Property **padding_left, const Property **padding_right);
-	/// Returns 'width' and 'height' properties from element's style or local cache.
-	void GetDimensionProperties(const Property **width, const Property **height);
-	/// Returns local 'width' and 'height' properties from element's style or local cache,
-	/// ignoring default values.
-	void GetLocalDimensionProperties(const Property **width, const Property **height);
+	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
+	/// Numbers and percentages are scaled by the base value and returned.
+	/// @param[in] property The property to resolve the value for.
+	/// @param[in] base_value The value that is scaled by the number or percentage value, if applicable.
+	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
+	float ResolveNumericProperty(const Property *property, float base_value);
+	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
+	/// Numbers and percentages are scaled according to the relative target of the property definition.
+	/// @param[in] name The property to resolve the value for.
+	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
+	float ResolveNumericProperty(const String& property_name);
+
 	/// Returns the size of the containing block. Often percentages are scaled relative to this.
 	Vector2f GetContainingBlock();
-	/// Returns 'overflow' properties' values from element's style or local cache.
-	void GetOverflow(int *overflow_x, int *overflow_y);
 	/// Returns 'position' property value from element's style or local cache.
-	int GetPosition();
+	Style::Position GetPosition();
 	/// Returns 'float' property value from element's style or local cache.
-	int GetFloat();
+	Style::Float GetFloat();
 	/// Returns 'display' property value from element's style or local cache.
-	int GetDisplay();
-	/// Returns 'white-space' property value from element's style or local cache.
-	int GetWhitespace();
-	/// Returns 'pointer-events' property value from element's style or local cache.
-	int GetPointerEvents();
-
+	Style::Display GetDisplay();
 	/// Returns 'line-height' property value from element's style or local cache.
-	const Property *GetLineHeightProperty();
-	/// Returns 'text-align' property value from element's style or local cache.
-	int GetTextAlign();
-	/// Returns 'text-transform' property value from element's style or local cache.
-	int GetTextTransform();
-	/// Returns 'vertical-align' property value from element's style or local cache.
-	const Property *GetVerticalAlignProperty();
+	float GetLineHeight();
 
-	/// Returns 'perspective' property value from element's style or local cache.
-	const Property *GetPerspective();
-	/// Returns 'perspective-origin-x' property value from element's style or local cache.
-	const Property *GetPerspectiveOriginX();
-	/// Returns 'perspective-origin-y' property value from element's style or local cache.
-	const Property *GetPerspectiveOriginY();
-	/// Returns 'transform' property value from element's style or local cache.
-	const Property *GetTransform();
-	/// Returns 'transform-origin-x' property value from element's style or local cache.
-	const Property *GetTransformOriginX();
-	/// Returns 'transform-origin-y' property value from element's style or local cache.
-	const Property *GetTransformOriginY();
-	/// Returns 'transform-origin-z' property value from element's style or local cache.
-	const Property *GetTransformOriginZ();
 	/// Returns this element's TransformState
 	const TransformState *GetTransformState() const noexcept;
-	/// Returns the TransformStates that are effective for this element.
-	void GetEffectiveTransformState(
-		const TransformState **local_perspective,
-		const TransformState **perspective,
-		const TransformState **transform
-	) noexcept;
 	/// Project a 2D point in pixel coordinates onto the element's plane.
-	/// @param[in] point The point to project.
-	/// @return The projected coordinates.
-	const Vector2f Project(const Vector2f& point) noexcept;
+	/// @param[in-out] point The point to project in, and the resulting projected point out.
+	/// @return True on success, false if transformation matrix is singular.
+	bool Project(Vector2f& point) const noexcept;
 
 	/// Start an animation of the given property on this element.
 	/// If an animation of the same property name exists, it will be replaced.
@@ -306,13 +263,10 @@ public:
 	/// @return True if a new animation key was added.
 	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
 	
-	/// Iterates over the properties defined on this element.
-	/// @param[inout] index Index of the property to fetch. This is incremented to the next valid index after the fetch. Indices are not necessarily incremental.
-	/// @param[out] pseudo_classes The pseudo-classes the property is defined by.
-	/// @param[out] name The name of the property at the specified index.
-	/// @param[out] property The property at the specified index.
-	/// @return True if a property was successfully fetched.
-	bool IterateProperties(int& index, PseudoClassList& pseudo_classes, String& name, const Property*& property) const;
+	/// Iterator for the local (non-inherited) properties defined on this element.
+	/// @warning Modifying the element's properties or classes invalidates the iterator.
+	/// @return Iterator to the first property defined on this element.
+	PropertiesIteratorView IterateLocalProperties() const;
 	///@}
 
 	/** @name Pseudo-classes
@@ -345,8 +299,8 @@ public:
 	void SetAttribute(const String& name, const T& value);
 	/// Gets the specified attribute.
 	/// @param[in] name Name of the attribute to retrieve.
-	/// @return A variant representing the attribute, or NULL if the attribute doesn't exist.
-	Variant* GetAttribute(const String& name) const;
+	/// @return A variant representing the attribute, or nullptr if the attribute doesn't exist.
+	Variant* GetAttribute(const String& name);
 	/// Gets the specified attribute, with default value.
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @param[in] default_value Value to return if the attribute doesn't exist.
@@ -355,37 +309,19 @@ public:
 	/// Checks if the element has a certain attribute.
 	/// @param[in] name The name of the attribute to check for.
 	/// @return True if the element has the given attribute, false if not.
-	bool HasAttribute(const String& name);
+	bool HasAttribute(const String& name) const;
 	/// Removes the attribute from the element.
 	/// @param[in] name Name of the attribute.
 	void RemoveAttribute(const String& name);
 	/// Set a group of attributes.
 	/// @param[in] attributes Attributes to set.
-	void SetAttributes(const ElementAttributes* attributes);
-	/// Iterates over the attributes.
-	/// @param[inout] index Index to fetch. This is incremented after the fetch.
-	/// @param[out] name Name of the attribute at the specified index
-	/// @param[out] value Value of the attribute at the specified index.
-	/// @return True if an attribute was successfully fetched.
-	template< typename T >
-	bool IterateAttributes(int& index, String& name, T& value) const;
+	void SetAttributes(const ElementAttributes& attributes);
+	/// Get the attributes of the element.
+	/// @return The attributes
+	const ElementAttributes& GetAttributes() const { return attributes; }
 	/// Returns the number of attributes on the element.
 	/// @return The number of attributes on the element.
 	int GetNumAttributes() const;
-	//@}
-
-	/** @name Decorators
-	 */
-	//@{
-	/// Iterates over all decorators attached to the element. Note that all decorators are iterated
-	/// over, not just active ones.
-	/// @param[inout] index Index to fetch. This is incremented after the fetch.
-	/// @param[out] pseudo_classes The pseudo-classes the decorator required to be active before it renders.
-	/// @param[out] name The name of the decorator at the specified index.
-	/// @param[out] decorator The decorator at the specified index.
-	/// @param[out] decorator_data This element's handle to any data is has stored against the decorator.
-	/// @return True if a decorator was successfully fetched, false if not.
-	bool IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data);
 	//@}
 
 	/// Gets the outer-most focus element down the tree from this node.
@@ -394,7 +330,7 @@ public:
 
 	/// Returns the element's context.
 	/// @return The context this element's document exists within.
-	Context* GetContext();
+	Context* GetContext() const;
 
 	/** @name DOM Properties
 	 */
@@ -472,28 +408,28 @@ public:
 
 	/// Gets the object representing the declarations of an element's style attributes.
 	/// @return The element's style.
-	ElementStyle* GetStyle();
+	ElementStyle* GetStyle() const;
 
 	/// Gets the document this element belongs to.
 	/// @return This element's document.
-	virtual ElementDocument* GetOwnerDocument();
+	ElementDocument* GetOwnerDocument() const;
 
 	/// Gets this element's parent node.
 	/// @return This element's parent.
 	Element* GetParentNode() const;
 
 	/// Gets the element immediately following this one in the tree.
-	/// @return This element's next sibling element, or NULL if there is no sibling element.
+	/// @return This element's next sibling element, or nullptr if there is no sibling element.
 	Element* GetNextSibling() const;
 	/// Gets the element immediately preceding this one in the tree.
-	/// @return This element's previous sibling element, or NULL if there is no sibling element.
+	/// @return This element's previous sibling element, or nullptr if there is no sibling element.
 	Element* GetPreviousSibling() const;
 
 	/// Returns the first child of this element.
-	/// @return This element's first child, or NULL if it contains no children.
+	/// @return This element's first child, or nullptr if it contains no children.
 	Element* GetFirstChild() const;
 	/// Gets the last child of this element.
-	/// @return This element's last child, or NULL if it contains no children.
+	/// @return This element's last child, or nullptr if it contains no children.
 	Element* GetLastChild() const;
 	/// Get the child element at the given index.
 	/// @param[in] index Index of child to get.
@@ -533,17 +469,24 @@ public:
 	/// @param[in] listener The listener object to be attached.
 	/// @param[in] in_capture_phase True to attach in the capture phase, false in bubble phase.
 	void AddEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
+	/// Adds an event listener to this element by id.
+	void AddEventListener(EventId id, EventListener* listener, bool in_capture_phase = false);
 	/// Removes an event listener from this element.
 	/// @param[in] event Event to detach from.
 	/// @param[in] listener The listener object to be detached.
 	/// @param[in] in_capture_phase True to detach from the capture phase, false from the bubble phase.
 	void RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
+	/// Removes an event listener from this element by id.
+	void RemoveEventListener(EventId id, EventListener* listener, bool in_capture_phase = false);
 	/// Sends an event to this element.
-	/// @param[in] event Name of the event in string form.
+	/// @param[in] type Event type in string form.
 	/// @param[in] parameters The event parameters.
-	/// @param[in] interruptible True if the propagation of the event be stopped.
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(const String& event, const Dictionary& parameters, bool interruptible = false);
+	bool DispatchEvent(const String& type, const Dictionary& parameters);
+	/// Sends an event to this element, overriding the default behavior for the given event type.
+	bool DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles = true);
+	/// Sends an event to this element by event id.
+	bool DispatchEvent(EventId id, const Dictionary& parameters);
 
 	/// Scrolls the parent element's contents so that this element is visible.
 	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.
@@ -552,28 +495,28 @@ public:
 	/// Append a child to this element.
 	/// @param[in] element The element to append as a child.
 	/// @param[in] dom_element True if the element is to be part of the DOM, false otherwise. Only set this to false if you know what you're doing!
-	void AppendChild(Element* element, bool dom_element = true);
+	Element* AppendChild(ElementPtr element, bool dom_element = true);
 	/// Adds a child to this element, directly after the adjacent element. The new element inherits the DOM/non-DOM
 	/// status from the adjacent element.
 	/// @param[in] element Element to insert into the this element.
 	/// @param[in] adjacent_element The element to insert directly before.
-	void InsertBefore(Element* element, Element* adjacent_element);
+	Element* InsertBefore(ElementPtr element, Element* adjacent_element);
 	/// Replaces the second node with the first node.
 	/// @param[in] inserted_element The element that will be inserted and replace the other element.
 	/// @param[in] replaced_element The existing element that will be replaced. If this doesn't exist, inserted_element will be appended.
-	/// @return True if the replaced_element was found, false otherwise.
-	bool ReplaceChild(Element* inserted_element, Element* replaced_element);
+	/// @return A unique pointer to the replaced element if found, discard the result to immediately destroy.
+	ElementPtr ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
 	/// Remove a child element from this element.
 	/// @param[in] The element to remove.
-	/// @returns True if the element was found and removed.
-	bool RemoveChild(Element* element);
+	/// @returns A unique pointer to the element if found, discard the result to immediately destroy.
+	ElementPtr RemoveChild(Element* element);
 	/// Returns whether or not this element has any DOM children.
 	/// @return True if the element has at least one DOM child, false otherwise.
 	bool HasChildNodes() const;
 
 	/// Get a child element by its ID.
 	/// @param[in] id Id of the the child element
-	/// @return The child of this element with the given ID, or NULL if no such child exists.
+	/// @return The child of this element with the given ID, or nullptr if no such child exists.
 	Element* GetElementById(const String& id);
 	/// Get all descendant elements with the given tag.
 	/// @param[out] elements Resulting elements.
@@ -622,38 +565,45 @@ public:
 	/// @param[in] instancer Instancer to set on this element.
 	void SetInstancer(ElementInstancer* instancer);
 
-	/// Called for every event sent to this element or one of its descendants.
+	/// Called when an emitted event propagates to this element, for event types with default actions.
+	/// Note: See 'EventSpecification' for the events that call this function and during which phase.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Event& event);
-	
-	/// Update the element's layout if required.
-	void UpdateLayout();
+	virtual void ProcessDefaultAction(Event& event);
+
+	/// Return the computed values of the element's properties. These values are updated as appropriate on every Context::Update.
+	const ComputedValues& GetComputedValues() const;
 
 protected:
-	/// Forces the element to generate a local stacking context, regardless of the value of its z-index
-	/// property.
+	void Update(float dp_ratio);
+	void Render();
+
+	/// Updates definition, computed values, and runs OnPropertyChange on this element.
+	void UpdateProperties();
+
+	/// Forces the element to generate a local stacking context, regardless of the value of its z-index property.
 	void ForceLocalStackingContext();
 
 	/// Called during the update loop after children are updated.
 	virtual void OnUpdate();
 	/// Called during render after backgrounds, borders, decorators, but before children, are rendered.
 	virtual void OnRender();
-
+	/// Called during update if the element size has been changed.
+	virtual void OnResize();
 	/// Called during a layout operation, when the element is being positioned and sized.
 	virtual void OnLayout();
 
 	/// Called when attributes on the element are changed.
-	/// @param[in] changed_attributes The attributes changed on the element.
-	virtual void OnAttributeChange(const AttributeNameList& changed_attributes);
+	/// @param[in] changed_attributes Dictionary of attributes changed on the element. Attribute value will be empty if it was unset.
+	virtual void OnAttributeChange(const ElementAttributes& changed_attributes);
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const PropertyIdSet& changed_properties);
 
-	/// Called when a child node has been added somewhere in the hierarchy.
-	// @param[in] child The element that has been added. This may be this element.
+	/// Called when a child node has been added up to two levels below us in the hierarchy.
+	/// @param[in] child The element that has been added. This may be this element.
 	virtual void OnChildAdd(Element* child);
-	/// Called when a child node has been removed somewhere in the hierarchy.
-	// @param[in] child The element that has been removed. This may be this element.
+	/// Called when a child node has been removed up to two levels below us in the hierarchy.
+	/// @param[in] child The element that has been removed. This may be this element.
 	virtual void OnChildRemove(Element* child);
 
 	/// Forces a re-layout of this element, and any other elements required.
@@ -662,23 +612,16 @@ protected:
 	/// Returns true if the element has been marked as needing a re-layout.
 	virtual bool IsLayoutDirty();
 
-	/// Increment/Decrement the layout lock
-	virtual void LockLayout(bool lock);
-
-	/// Forces a reevaluation of applicable font effects.
-	virtual void DirtyFont();
-
 	/// Returns the RML of this element and all children.
 	/// @param[out] content The content of this element and those under it, in XML form.
 	virtual void GetRML(String& content);
 
-	virtual void OnReferenceDeactivate();
+	void SetOwnerDocument(ElementDocument* document);
+
+	void Release() override;
 
 private:
 	void SetParent(Element* parent);
-
-	void ReleaseDeletedElements();
-	void ReleaseElements(ElementList& elements);
 
 	void DirtyOffset();
 	void UpdateOffset();
@@ -688,23 +631,29 @@ private:
 	void DirtyStackingContext();
 
 	void DirtyStructure();
+	void UpdateStructure();
 
-	void DirtyTransformState(bool perspective_changed, bool transform_changed, bool parent_transform_changed);
+	void DirtyTransformState(bool perspective_dirty, bool transform_dirty);
 	void UpdateTransformState();
 
-	// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(const String & property_name, const Property * start_value, int num_iterations, bool alternate_direction, float delay);
+	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
+	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property);
 
-	// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
-	bool AddAnimationKeyTime(const String & property_name, const Property * target_value, float time, Tween tween);
+	/// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
+	bool AddAnimationKeyTime(PropertyId property_id, const Property * target_value, float time, Tween tween);
 
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
-	/// @return True if the transition was added.
+	/// @return True if the transition was added or replaced.
 	bool StartTransition(const Transition& transition, const Property& start_value, const Property& target_value);
 
-	void DirtyAnimation();
+	/// Removes all transitions that are no longer part of the element's 'transition' property.
+	void UpdateTransition();
+
+	/// Starts new animations and removes animations no longer part of the element's 'animation' property.
 	void UpdateAnimation();
+
+	/// Advances the animations (including transitions) forward in time.
 	void AdvanceAnimations();
 
 	// Original tag this element came from.
@@ -752,7 +701,9 @@ private:
 
 	// The size of the element.
 	typedef std::vector< Box > BoxList;
-	BoxList boxes;
+	Box main_box;
+	BoxList additional_boxes;
+
 	// And of the element's internal content.
 	Vector2f content_offset;
 	Vector2f content_box;
@@ -763,11 +714,8 @@ private:
 	// True if the element is visible and active.
 	bool visible;
 
-	ElementList children;
+	OwnedElementList children;
 	int num_non_dom_children;
-
-	ElementList active_children;
-	ElementList deleted_children;
 
 	float z_index;
 	bool local_stacking_context;
@@ -776,27 +724,32 @@ private:
 	ElementList stacking_context;
 	bool stacking_context_dirty;
 
-	// The element's font face; used to render text and resolve em / ex properties.
-	FontFaceHandle* font_face_handle;
-	
+	bool structure_dirty;
+
+	bool computed_values_are_default_initialized;
+
 	// Cached rendering information
 	int clipping_ignore_depth;
 	bool clipping_enabled;
 	bool clipping_state_dirty;
 
 	// Transform state
-	std::unique_ptr< TransformState > transform_state;
-	bool transform_state_perspective_dirty;
-	bool transform_state_transform_dirty;
-	bool transform_state_parent_transform_dirty;
+	UniquePtr< TransformState > transform_state;
+	bool dirty_transform;
+	bool dirty_perspective;
 
 	ElementAnimationList animations;
 	bool dirty_animation;
+	bool dirty_transition;
+
+	ElementMeta* element_meta;
 
 	friend class Context;
 	friend class ElementStyle;
 	friend class LayoutEngine;
 	friend class LayoutInlineBox;
+	friend struct ElementDeleter;
+	friend class ElementScroll;
 };
 
 }

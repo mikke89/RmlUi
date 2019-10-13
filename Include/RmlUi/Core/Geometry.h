@@ -49,7 +49,7 @@ struct Texture;
 class RMLUICORE_API Geometry
 {
 public:
-	Geometry(Element* host_element = NULL);
+	Geometry(Element* host_element = nullptr);
 	Geometry(Context* host_context);
 	~Geometry();
 
@@ -91,7 +91,6 @@ private:
 
 	CompiledGeometryHandle compiled_geometry;
 	bool compile_attempted;
-	bool fixed_texcoords;
 };
 
 typedef std::vector< Geometry > GeometryList;

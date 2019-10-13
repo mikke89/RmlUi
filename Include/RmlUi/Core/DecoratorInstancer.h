@@ -29,7 +29,6 @@
 #ifndef RMLUICOREDECORATORINSTANCER_H
 #define RMLUICOREDECORATORINSTANCER_H
 
-#include "ReferenceCountable.h"
 #include "Header.h"
 #include "PropertyDictionary.h"
 #include "PropertySpecification.h"
@@ -37,7 +36,11 @@
 namespace Rml {
 namespace Core {
 
+struct Sprite;
+class StyleSheet;
 class Decorator;
+class DecoratorInstancerInterface;
+
 
 /**
 	An element instancer provides a method for allocating and deallocating decorators.
@@ -48,23 +51,18 @@ class Decorator;
 	@author Peter Curry
  */
 
-class RMLUICORE_API DecoratorInstancer : public ReferenceCountable
+class RMLUICORE_API DecoratorInstancer
 {
 public:
 	DecoratorInstancer();
 	virtual ~DecoratorInstancer();
 
 	/// Instances a decorator given the property tag and attributes from the RCSS file.
-	/// @param[in] name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
+	/// @param[in] name The type of decorator desired. For example, "decorator: simple(...);" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
-	/// @return The decorator if it was instanced successfully, NULL if an error occured.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties) = 0;
-	/// Releases the given decorator.
-	/// @param[in] decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	virtual void ReleaseDecorator(Decorator* decorator) = 0;
-
-	/// Releases the instancer.
-	virtual void Release() = 0;
+	/// @param[in] interface An interface for querying the active style sheet.
+	/// @return A shared_ptr to the decorator if it was instanced successfully.
+	virtual SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) = 0;
 
 	/// Returns the property specification associated with the instancer.
 	const PropertySpecification& GetPropertySpecification() const;
@@ -75,18 +73,27 @@ protected:
 	/// @param[in] default_value The default value to be used.
 	/// @return The new property definition, ready to have parsers attached.
 	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value);
-	/// Registers a shorthand property definition.
+	/// Registers a shorthand property definition. Specify a shorthand name of 'decorator' to parse anonymous decorators.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
 	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
-	bool RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type = PropertySpecification::AUTO);
-
-	// Releases the instancer.
-	virtual void OnReferenceDeactivate();
+	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 
 private:
 	PropertySpecification properties;
+};
+
+
+class RMLUICORE_API DecoratorInstancerInterface {
+public:
+	DecoratorInstancerInterface(const StyleSheet& style_sheet) : style_sheet(style_sheet) {}
+
+	/// Get a sprite from any @spritesheet in the style sheet the decorator is being instanced on.
+	const Sprite* GetSprite(const String& name) const;
+
+private:
+	const StyleSheet& style_sheet;
 };
 
 }

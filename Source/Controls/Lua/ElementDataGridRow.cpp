@@ -96,7 +96,7 @@ int ElementDataGridRowSetAttrrow_expanded(lua_State* L)
 
 Rml::Core::Lua::RegType<ElementDataGridRow> ElementDataGridRowMethods[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementDataGridRowGetters[] =
@@ -106,13 +106,13 @@ luaL_Reg ElementDataGridRowGetters[] =
     LUAGETTER(ElementDataGridRow,table_relative_index)
     LUAGETTER(ElementDataGridRow,parent_row)
     LUAGETTER(ElementDataGridRow,parent_grid)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementDataGridRowSetters[] =
 {
     LUASETTER(ElementDataGridRow,row_expanded)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }
@@ -128,7 +128,7 @@ template<> void ExtraInit<Rml::Controls::ElementDataGridRow>(lua_State* L, int m
     AddTypeToElementAsTable<Rml::Controls::ElementDataGridRow>(L);
 }
 using Rml::Controls::ElementDataGridRow;
-LUACONTROLSTYPEDEFINE(ElementDataGridRow,true)
+LUACONTROLSTYPEDEFINE(ElementDataGridRow)
 }
 }
 }

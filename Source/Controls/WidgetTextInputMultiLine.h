@@ -50,9 +50,9 @@ protected:
 	/// Returns true if the given character is permitted in the input field, false if not.
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
-	virtual bool IsCharacterValid(Rml::Core::word character);
+	bool IsCharacterValid(char character) override;
 	/// Called when the user pressed enter.
-	virtual void LineBreak();		
+	void LineBreak() override;		
 };
 
 }

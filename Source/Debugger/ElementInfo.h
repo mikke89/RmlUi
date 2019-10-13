@@ -37,7 +37,6 @@ namespace Debugger {
 
 typedef std::pair< Core::String, const Core::Property* > NamedProperty;
 typedef std::vector< NamedProperty > NamedPropertyList;
-typedef std::map< Core::PseudoClassList, NamedPropertyList > NamedPropertyMap;
 
 /**
 	@author Robert Curry
@@ -47,7 +46,7 @@ class ElementInfo : public Core::ElementDocument, public Core::EventListener
 {
 public:
 	ElementInfo(const Core::String& tag);
-	virtual ~ElementInfo();
+	~ElementInfo();
 
 	/// Initialises the info element.
 	/// @return True if the element initialised successfully, false otherwise.
@@ -62,19 +61,31 @@ public:
 	void RenderSourceElement();
 
 protected:
-	virtual void ProcessEvent(Core::Event& event);
+	void ProcessEvent(Core::Event& event) override;
+	/// Updates the element info if changed
+	void OnUpdate() override;
 
 private:
 	void SetSourceElement(Core::Element* new_source_element);
 	void UpdateSourceElement();
 
 	void BuildElementPropertiesRML(Core::String& property_rml, Core::Element* element, Core::Element* primary_element);
-	void BuildPropertiesRML(Core::String& property_rml, const NamedPropertyList& properties);
 	void BuildPropertyRML(Core::String& property_rml, const Core::String& name, const Core::Property* property);
 
-	void RemoveTrailingZeroes(Core::String& string);
+	void UpdateTitle();
 
 	bool IsDebuggerElement(Core::Element* element);
+
+	double previous_update_time;
+
+	Core::String attributes_rml, properties_rml, events_rml, ancestors_rml, children_rml;
+
+	// Draws the dimensions of the source element.
+	bool show_source_element;
+	// Updates the source element information at regular intervals.
+	bool update_source_element;
+	// Forces an update to the source element during the next update loop.
+	bool force_update_once;
 
 	Core::Element* hover_element;
 	Core::Element* source_element;

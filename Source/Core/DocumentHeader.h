@@ -29,10 +29,12 @@
 #ifndef RMLUICOREDOCUMENTHEADER_H
 #define RMLUICOREDOCUMENTHEADER_H
 
-#include "../../Include/RmlUi/Core/String.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {
+
+using LineNumberList = std::vector<int>;
 
 /**
 	The document header struct contains the
@@ -53,6 +55,7 @@ public:
 
 	/// Inline RCSS definitions
 	StringList rcss_inline;
+	LineNumberList rcss_inline_line_numbers;
 	/// External RCSS definitions that should be loaded
 	StringList rcss_external;
 

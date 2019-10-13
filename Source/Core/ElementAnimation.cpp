@@ -3,7 +3,8 @@
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2018 Michael Ragazzon
+ * Copyright (c) 2018 Michael R. P. Ragazzon
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,8 +97,8 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		else
 		{
 			// Otherwise, convert units to pixels.
-			float f0 = element.GetStyle()->ResolveNumericProperty(&p0, definition->GetRelativeTarget());
-			float f1 = element.GetStyle()->ResolveNumericProperty(&p1, definition->GetRelativeTarget());
+			float f0 = element.GetStyle()->ResolveLength(&p0, definition->GetRelativeTarget());
+			float f1 = element.GetStyle()->ResolveLength(&p1, definition->GetRelativeTarget());
 			float f = (1.0f - alpha) * f0 + alpha * f1;
 			return Property{ f, Property::PX };
 		}
@@ -117,11 +118,8 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 	{
 		using namespace Rml::Core::Transforms;
 
-		// Build the new, interpolating transform
-		std::unique_ptr<Transform> t(new Transform);
-
-		auto t0 = p0.value.Get<TransformRef>();
-		auto t1 = p1.value.Get<TransformRef>();
+		auto& t0 = p0.value.GetReference<TransformPtr>();
+		auto& t1 = p1.value.GetReference<TransformPtr>();
 
 		const auto& prim0 = t0->GetPrimitives();
 		const auto& prim1 = t1->GetPrimitives();
@@ -131,6 +129,10 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 			RMLUI_ERRORMSG("Transform primitives not of same size during interpolation. Were the transforms properly prepared for interpolation?");
 			return Property{ t0, Property::TRANSFORM };
 		}
+
+		// Build the new, interpolating transform
+		UniquePtr<Transform> t(new Transform);
+		t->GetPrimitives().reserve(t0->GetPrimitives().size());
 
 		for (size_t i = 0; i < prim0.size(); i++)
 		{
@@ -143,7 +145,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 			t->AddPrimitive(p);
 		}
 
-		return Property{ TransformRef(std::move(t)), Property::TRANSFORM };
+		return Property{ TransformPtr(std::move(t)), Property::TRANSFORM };
 	}
 
 	return alpha < 0.5f ? p0 : p1;
@@ -195,7 +197,7 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 	{
 		// Try to match the smallest set of primitives to the larger set, set missing keys in the small set to identity.
 		// Requirement: The small set must match types in the same order they appear in the big set.
-		// Example: (letter indicates type, number represent values)
+		// Example: (letter indicates type, number represents values)
 		// big:       a0 b0 c0 b1
 		//               ^     ^ 
 		// small:     b2 b3   
@@ -300,7 +302,6 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 
 	int count_iterations = -1;
 	const int max_iterations = 3 * N;
-	if (start_index < 1) start_index = 1;
 
 	std::vector<bool> dirty_list(N + 1, false);
 	dirty_list[start_index] = true;
@@ -320,8 +321,8 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 		if(prop0.unit != Property::TRANSFORM || prop1.unit != Property::TRANSFORM)
 			return false;
 
-		auto t0 = prop0.value.Get<TransformRef>();
-		auto t1 = prop1.value.Get<TransformRef>();
+		auto& t0 = prop0.value.GetReference<TransformPtr>();
+		auto& t1 = prop1.value.GetReference<TransformPtr>();
 
 		auto result = PrepareTransformPair(*t0, *t1, element);
 
@@ -346,34 +347,35 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 }
 
 
-ElementAnimation::ElementAnimation(const String& property_name, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction, bool is_transition)
-	: property_name(property_name), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction),
-	last_update_world_time(start_world_time), time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), is_transition(is_transition)
+ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction)
+	: property_id(property_id), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction), last_update_world_time(start_world_time),
+	time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), origin(origin)
 {
 	if (!current_value.definition)
 	{
-		Log::Message(Log::LT_WARNING, "Property in animation key did not have a definition (while adding key '%s').", current_value.ToString().CString());
+		Log::Message(Log::LT_WARNING, "Property in animation key did not have a definition (while adding key '%s').", current_value.ToString().c_str());
 	}
-	InternalAddKey(AnimationKey{ 0.0f, current_value, Tween{} });
+	InternalAddKey(0.0f, current_value, Tween{});
 }
 
-bool ElementAnimation::InternalAddKey(AnimationKey key)
+bool ElementAnimation::InternalAddKey(float time, const Property& property, Tween tween)
 {
 	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
 
-	if (!(key.property.unit & valid_properties))
+	if (!(property.unit & valid_properties))
 	{
-		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", key.property.ToString().CString());
+		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", property.ToString().c_str());
 		return false;
 	}
 
+	keys.emplace_back(time, property, tween);
+	AnimationKey& key = keys.back();
+
 	if (key.property.unit == Property::TRANSFORM)
 	{
-		if (!key.property.value.Get<TransformRef>())
-			key.property.value.Reset(TransformRef(new Transform));
+		if (!key.property.value.GetReference<TransformPtr>())
+			key.property.value = std::make_shared<Transform>();
 	}
-
-	keys.push_back(key);
 
 	return true;
 }
@@ -386,7 +388,7 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 		Log::Message(Log::LT_WARNING, "Element animation was not initialized properly, can't add key.");
 		return false;
 	}
-	if (!InternalAddKey(AnimationKey{ target_time, in_property, tween }))
+	if (!InternalAddKey(target_time, in_property, tween))
 	{
 		return false;
 	}
@@ -397,7 +399,7 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 	if (property.unit == Property::TRANSFORM)
 	{
 		bool must_decompose = false;
-		auto& transform = *property.value.Get<TransformRef>();
+		Transform& transform = *property.value.GetReference<TransformPtr>();
 
 		for (auto& primitive : transform.GetPrimitives())
 		{

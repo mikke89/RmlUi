@@ -37,8 +37,6 @@
 namespace Rml {
 namespace Core {
 
-class TextureResource;
-
 /**
 	The 'img' element. The image element can have a rectangular sub-region of its source texture
 	specified with the 'coords' attribute; the element will render this region rather than the
@@ -75,23 +73,22 @@ public:
 	/// Returns the element's inherent size.
 	/// @param[out] The element's intrinsic dimensions.
 	/// @return True.
-	bool GetIntrinsicDimensions(Vector2f& dimensions);
+	bool GetIntrinsicDimensions(Vector2f& dimensions) override;
 
 protected:
 	/// Renders the image.
-	virtual void OnRender();
+	void OnRender() override;
+
+	/// Regenerates the element's geometry.
+	void OnResize() override;
 
 	/// Checks for changes to the image's source or dimensions.
 	/// @param[in] changed_attributes A list of attributes changed on the element.
-	virtual void OnAttributeChange(const AttributeNameList& changed_attributes);
+	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
 
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
-
-	/// Regenerates the element's geometry on a resize event.
-	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Event& event);
+	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 private:
 	// Generates the element's geometry.
@@ -109,10 +106,10 @@ private:
 	// that dimension has not been computed yet.
 	Vector2f dimensions;
 
-	// The integer coords extracted from the 'coords' attribute. using_coords will be false if
+	// The coords extracted from the sprite or 'coords' attribute. The coords_source will be None if
 	// these have not been specified or are invalid.
-	int coords[4];
-	bool using_coords;
+	Rectangle coords;
+	enum class CoordsSource { None, Attribute, Sprite } coords_source;
 
 	// The geometry used to render this element.
 	Geometry geometry;

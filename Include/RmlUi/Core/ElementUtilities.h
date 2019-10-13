@@ -31,16 +31,14 @@
 
 #include "Header.h"
 #include "Box.h"
-#include "WString.h"
 #include "Types.h"
 
 namespace Rml {
 namespace Core {
 
 class Context;
-class FontFaceHandle;
 class RenderInterface;
-class ViewState;
+namespace Style { struct ComputedValues; }
 
 /**
 	Utility functions for dealing with elements.
@@ -79,27 +77,15 @@ public:
 	/// @param[in] tag Class name to search for.
 	static void GetElementsByClassName(ElementList& elements, Element* root_element, const String& class_name);
 
-	/// Returns an element's font face.
-	/// @param[in] element The element to determine the font face for.
-	/// @return The element's font face. This will be NULL if no valid RCSS font styles have been set up for this element.
-	static FontFaceHandle* GetFontFaceHandle(Element* element);
 	/// Returns an element's density-independent pixel ratio, defined by it's context
 	/// @param[in] element The element to determine the density-independent pixel ratio for.
 	/// @return The density-independent pixel ratio of the context, or 1.0 if no context assigned.
 	static float GetDensityIndependentPixelRatio(Element* element);
-	/// Returns an element's font size, if it has a font defined.
-	/// @param[in] element The element to determine the font size for.
-	/// @return The font size as determined by the element's font, or 0 if it has no font specified.
-	static int GetFontSize(Element* element);
-	/// Returns an element's line height, if it has a font defined.
-	/// @param[in] element The element to determine the line height for.
-	/// @return The line height as specified by the element's font and line height styles.
-	static int GetLineHeight(Element* element);
 	/// Returns the width of a string rendered within the context of the given element.
 	/// @param[in] element The element to measure the string from.
 	/// @param[in] string The string to measure.
 	/// @return The string width, in pixels.
-	static int GetStringWidth(Element* element, const WString& string);
+	static int GetStringWidth(Element* element, const String& string);
 
 	/// Bind and instance all event attributes on the given element onto the element
 	/// @param element Element to bind events on
@@ -115,7 +101,7 @@ public:
 	/// @param[in] element The element to generate the clipping region from.
 	/// @param[in] context The context of the element; if this is not supplied, it will be derived from the element.
 	/// @return The visibility of the given element within its clipping region.
-	static bool SetClippingRegion(Element* element, Context* context = NULL);
+	static bool SetClippingRegion(Element* element, Context* context = nullptr);
 	/// Applies the clip region from the render interface to the renderer
 	/// @param[in] context The context to read the clip region from
 	/// @param[in] render_interface The render interface to update.
@@ -134,11 +120,6 @@ public:
 	/// @param[in] inline_element True if the element is placed in an inline context, false if not.
 	static void BuildBox(Box& box, const Vector2f& containing_block, Element* element, bool inline_element = false);
 
-	/// Sizes and positions an element within its parent. Any relative values will be evaluated against the size of the
-	/// element parent's content area.
-	/// @param element[in] The element to size and position.
-	/// @param offset[in] The offset of the element inside its parent's content area.
-	static bool PositionElement(Element* element, const Vector2f& offset);
 	/// Sizes an element, and positions it within its parent offset from the borders of its content area. Any relative
 	/// values will be evaluated against the size of the element parent's content area.
 	/// @param element[in] The element to size and position.
@@ -146,23 +127,11 @@ public:
 	/// @param anchor[in] Defines which corner or edge the border is to be positioned relative to.
 	static bool PositionElement(Element* element, const Vector2f& offset, PositionAnchor anchor);
 
-	/// Applies an element's `perspective' and `transform' properties.
+	/// Applies an element's accumulated transform matrix, determined from its and ancestor's `perspective' and `transform' properties.
+	/// Note: All calls to RenderInterface::SetTransform must go through here.
 	/// @param[in] element		The element whose transform to apply.
-	/// @param[in] apply		Whether to apply (true) or unapply (false) the transform.
-	/// @return true if the element has a transform and it could be applied.
-	static bool ApplyTransform(Element &element, bool apply = true);
-	/// Unapplies an element's `perspective' and `transform' properties.
-	/// @param[in] element		The element whose transform to unapply.
-	/// @return true if the element has a transform and it could be unapplied.
-	static bool UnapplyTransform(Element &element);
-
-	/// Projects the mouse cursor coordinates into a transformed element's plane.
-	/// @param[in/out] dict		The dictionary with the projected mouse coordinates.
-	/// @param[in] old_dict		The dictionary with the original mouse coordinates.
-	/// @param[in] element		The element to project the mouse coordinates into.
-	/// @param[in] view		The current global projection and view matrices.
-	/// @return true, if the mouse coordinates could be updated.
-	static bool ProjectMouse(Dictionary &dict, const Dictionary &old_dict, Element &element, const ViewState *view = 0);
+	/// @return true if a render interface is available to set the transform.
+	static bool ApplyTransform(Element &element);
 };
 
 }

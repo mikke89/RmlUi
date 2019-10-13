@@ -39,19 +39,16 @@ class DecoratorInstancerDefender : public Rml::Core::DecoratorInstancer
 {
 public:
 	DecoratorInstancerDefender();
-	virtual ~DecoratorInstancerDefender();
+	~DecoratorInstancerDefender();
 
 	/// Instances a decorator given the property tag and attributes from the RCSS file.
 	/// @param[in] name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
-	/// @return The decorator if it was instanced successful, NULL if an error occured.
-	Rml::Core::Decorator* InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties);
-	/// Releases the given decorator.
-	/// @param[in] decorator Decorator to release. This is guaranteed to have been constructed by this instancer.
-	void ReleaseDecorator(Rml::Core::Decorator* decorator);
+	/// @return The decorator if it was instanced successful, nullptr if an error occured.
+	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
 
-	/// Releases the instancer.
-	void Release();
+private:
+	Rml::Core::PropertyId id_image_src;
 };
 
 #endif

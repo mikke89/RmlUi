@@ -29,8 +29,6 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "TextureDatabase.h"
-#include "TextureResource.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
@@ -38,70 +36,68 @@ namespace Core {
 
 Decorator::Decorator()
 {
-	instancer = NULL;
-	z_index = 0;
-	specificity = -1;
 }
 
 Decorator::~Decorator()
 {
 }
 
-// Sets the z-index of the decorator.
-void Decorator::SetZIndex(float _z_index)
-{
-	z_index = _z_index;
-}
-
-// Returns the decorator's z-index.
-float Decorator::GetZIndex() const
-{
-	return z_index;
-}
-
-// Sets the specificity of the decorator.
-void Decorator::SetSpecificity(int _specificity)
-{
-	specificity = _specificity;
-}
-
-// Returns the specificity of the decorator.
-int Decorator::GetSpecificity() const
-{
-	return specificity;
-}
-
-// Releases the decorator through its instancer.
-void Decorator::OnReferenceDeactivate()
-{
-	if (instancer != NULL)
-		instancer->ReleaseDecorator(this);
-}
-
 // Attempts to load a texture into the list of textures in use by the decorator.
 int Decorator::LoadTexture(const String& texture_name, const String& rcss_path)
 {
-	for (size_t i = 0; i < textures.size(); i++)
+	if (texture_name == first_texture.GetSource())
+		return 0;
+
+	for (size_t i = 0; i < additional_textures.size(); i++)
 	{
-		if (texture_name == textures[i].GetSource())
-			return (int) i;
+		if (texture_name == additional_textures[i].GetSource())
+			return (int)i + 1;
 	}
 
 	Texture texture;
-	if (!texture.Load(texture_name, rcss_path))
+	texture.Set(texture_name, rcss_path);
+
+	additional_textures.push_back(texture);
+	return (int)additional_textures.size();
+}
+
+int Decorator::AddTexture(const Texture& texture)
+{
+	if (!texture)
 		return -1;
 
-	textures.push_back(texture);
-	return (int) textures.size() - 1;
+	if (!first_texture)
+		first_texture = texture;
+
+	if (first_texture == texture)
+		return 0;
+
+	auto it = std::find(additional_textures.begin(), additional_textures.end(), texture);
+	if (it != additional_textures.end())
+		return (int)(it - additional_textures.begin()) + 1;
+
+	additional_textures.push_back(texture);
+	return (int)additional_textures.size();
+}
+
+int Decorator::GetNumTextures() const
+{
+	int result = (first_texture ? 1 : 0);
+	result += (int)additional_textures.size();
+	return result;
 }
 
 // Returns one of the decorator's previously loaded textures.
 const Texture* Decorator::GetTexture(int index) const
 {
-	if (index < 0 || index >= (int) textures.size())
-		return NULL;
+	if (index == 0)
+		return &first_texture;
+	
+	index -= 1;
+	if (index < 0 || index >= (int)additional_textures.size())
+		return nullptr;
 
-	return &(textures[index]);
+	return &(additional_textures[index]);
 }
 
 

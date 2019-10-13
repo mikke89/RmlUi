@@ -64,7 +64,7 @@ public:
 		FieldIndices::const_iterator itr = field_indices.find(field_name);
 		if (itr == field_indices.end())
 		{
-			Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Field %s not found in query", field_name.CString());
+			Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Field %s not found in query", field_name.c_str());
 			return default_value;
 		}		
 		
@@ -81,7 +81,7 @@ public:
 		FieldIndices::const_iterator itr = field_indices.find(field_name);
 		if (itr == field_indices.end())
 		{
-			Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Field %s not found in query", field_name.CString());
+			Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Field %s not found in query", field_name.c_str());
 			return false;
 		}		
 
@@ -124,8 +124,8 @@ private:
 	int limit;
 
 	typedef std::vector< Rml::Core::StringList > Rows;
-	Rows rows;
-	typedef std::map< Rml::Core::String, size_t > FieldIndices;
+	Rows rows;    
+	typedef Core::UnorderedMap< Rml::Core::String, size_t > FieldIndices;
 	FieldIndices field_indices;
 	
 	void LoadRow();

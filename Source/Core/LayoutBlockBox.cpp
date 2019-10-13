@@ -34,7 +34,6 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -42,6 +41,8 @@ namespace Core {
 // Creates a new block box for rendering a block element.
 LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _parent, Element* _element) : position(0, 0)
 {
+	RMLUI_ZoneScoped;
+
 	space = new LayoutBlockBoxSpace(this);
 
 	layout_engine = _layout_engine;
@@ -49,36 +50,36 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 
 	context = BLOCK;
 	element = _element;
-	interrupted_chain = NULL;
+	interrupted_chain = nullptr;
 
 	box_cursor = 0;
 	vertical_overflow = false;
 
 	// Get our offset root from our parent, if it has one; otherwise, our element is the offset parent.
-	if (parent != NULL &&
-		parent->offset_root->GetElement() != NULL)
+	if (parent != nullptr &&
+		parent->offset_root->GetElement() != nullptr)
 		offset_root = parent->offset_root;
 	else
 		offset_root = this;
 
 	// Determine the offset parent for this element.
 	LayoutBlockBox* self_offset_parent;
-	if (parent != NULL &&
-		parent->offset_parent->GetElement() != NULL)
+	if (parent != nullptr &&
+		parent->offset_parent->GetElement() != nullptr)
 		self_offset_parent = parent->offset_parent;
 	else
 		self_offset_parent = this;
 
 	// Determine the offset parent for our children.
-	if (parent != NULL &&
-		parent->offset_parent->GetElement() != NULL &&
-		(element == NULL || element->GetPosition() == POSITION_STATIC))
+	if (parent != nullptr &&
+		parent->offset_parent->GetElement() != nullptr &&
+		(element == nullptr || element->GetPosition() == Style::Position::Static))
 		offset_parent = parent->offset_parent;
 	else
 		offset_parent = this;
 
 	// Build the box for our element, and position it if we can.
-	if (parent != NULL)
+	if (parent != nullptr)
 	{
 		space->ImportSpace(*parent->space);
 
@@ -86,32 +87,34 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 		layout_engine->BuildBox(box, min_height, max_height, parent, element);
 
 		// Position ourselves within our containing block (if we have a valid offset parent).
-		if (parent->GetElement() != NULL)
+		if (parent->GetElement() != nullptr)
 		{
 			if (self_offset_parent != this)
 			{
 				// Get the next position within our offset parent's containing block.
-				parent->PositionBlockBox(position, box, element->GetProperty< int >(CLEAR));
+				parent->PositionBlockBox(position, box, element ? element->GetComputedValues().clear : Style::Clear::None);
 				element->SetOffset(position - (self_offset_parent->GetPosition() - offset_root->GetPosition()), self_offset_parent->GetElement());
 			}
 			else
-				element->SetOffset(position, NULL);
+				element->SetOffset(position, nullptr);
 		}
 	}
 
-	if (element != NULL)
+	if (element != nullptr)
 	{
-		wrap_content = element->GetWhitespace() != WHITE_SPACE_NOWRAP;
+		const auto& computed = element->GetComputedValues();
+		wrap_content = computed.white_space != Style::WhiteSpace::Nowrap;
 
 		// Determine if this element should have scrollbars or not, and create them if so.
-		element->GetOverflow(&overflow_x_property, &overflow_y_property);
+		overflow_x_property = computed.overflow_x;
+		overflow_y_property = computed.overflow_y;
 
-		if (overflow_x_property == OVERFLOW_SCROLL)
+		if (overflow_x_property == Style::Overflow::Scroll)
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
 		else
 			element->GetElementScroll()->DisableScrollbar(ElementScroll::HORIZONTAL);
 
-		if (overflow_y_property == OVERFLOW_SCROLL)
+		if (overflow_y_property == Style::Overflow::Scroll)
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSize(Box::PADDING).x);
 		else
 			element->GetElementScroll()->DisableScrollbar(ElementScroll::VERTICAL);
@@ -119,8 +122,8 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	else
 	{
 		wrap_content = true;
-		overflow_x_property = OVERFLOW_VISIBLE;
-		overflow_y_property = OVERFLOW_VISIBLE;
+		overflow_x_property = Style::Overflow::Visible;
+		overflow_y_property = Style::Overflow::Visible;
 	}
 }
 
@@ -138,14 +141,14 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	line_boxes.push_back(new LayoutLineBox(this));
 	wrap_content = parent->wrap_content;
 
-	element = NULL;
-	interrupted_chain = NULL;
+	element = nullptr;
+	interrupted_chain = nullptr;
 
 	box_cursor = 0;
 	vertical_overflow = false;
 
-	layout_engine->BuildBox(box, min_height, max_height, parent, NULL);
-	parent->PositionBlockBox(position, box, 0);
+	layout_engine->BuildBox(box, min_height, max_height, parent, nullptr);
+	parent->PositionBlockBox(position, box, Style::Clear::None);
 	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
 	// Reset the min and max heights; they're not valid for inline block boxes.
@@ -195,14 +198,14 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		Vector2f content_area = box.GetSize();
 		content_area.y = Math::Clamp(box_cursor, min_height, max_height);
 
-		if (element != NULL)
+		if (element != nullptr)
 			content_area.y = Math::Max(content_area.y, space->GetDimensions().y);
 
 		box.SetContent(content_area);
 	}
 
 	// Set the computed box on the element.
-	if (element != NULL)
+	if (element != nullptr)
 	{
 		if (context == BLOCK)
 		{
@@ -224,7 +227,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 			{
 				if (!wrap_content)
 					box.SetContent(Vector2f(content_box.x, box.GetSize().y));
-				else if (overflow_x_property == OVERFLOW_AUTO)
+				else if (overflow_x_property == Style::Overflow::Auto)
 				{
 					element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
 
@@ -253,7 +256,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 	}
 
 	// Increment the parent's cursor.
-	if (parent != NULL)
+	if (parent != nullptr)
 	{
 		// If this close fails, it means this block box has caused our parent block box to generate an automatic
 		// vertical scrollbar.
@@ -264,9 +267,9 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 	// If we represent a positioned element, then we can now (as we've been sized) act as the containing block for all
 	// the absolutely-positioned elements of our descendants.
 	if (context == BLOCK &&
-		element != NULL)
+		element != nullptr)
 	{
-		if (element->GetPosition() != POSITION_STATIC)
+		if (element->GetPosition() != Style::Position::Static)
 			CloseAbsoluteElements();
 	}
 
@@ -285,6 +288,8 @@ bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 // Called by a closing line box child.
 LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain)
 {
+	RMLUI_ZoneScoped;
+
 	RMLUI_ASSERT(context == INLINE);
 	if (child->GetDimensions().x > 0)
 		box_cursor = (child->GetPosition().y - (box.GetPosition().y + position.y)) + child->GetDimensions().y;
@@ -301,18 +306,20 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInline
 	// Add a new line box.
 	line_boxes.push_back(new LayoutLineBox(this));
 
-	if (overflow_chain != NULL)
+	if (overflow_chain != nullptr)
 		line_boxes.back()->AddChainedBox(overflow_chain);
 
-	if (overflow != NULL)
+	if (overflow != nullptr)
 		return line_boxes.back()->AddBox(overflow);
 
-	return NULL;
+	return nullptr;
 }
 
 // Adds a new block element to this block box.
 LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 {
+	RMLUI_ZoneScoped;
+
 	RMLUI_ASSERT(context == BLOCK);
 
 	// Check if our most previous block box is rendering in an inline context.
@@ -321,7 +328,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 	{
 		LayoutBlockBox* inline_block_box = block_boxes.back();
 		LayoutInlineBox* open_inline_box = inline_block_box->line_boxes.back()->GetOpenInlineBox();
-		if (open_inline_box != NULL)
+		if (open_inline_box != nullptr)
 		{
 			// There's an open inline box chain, which means this block element is parented to it. The chain needs to
 			// be positioned (if it hasn't already), closed and duplicated after this block box closes. Also, this
@@ -330,7 +337,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 			// create a new line in the inline block box; we want this line to be in an inline box after our block
 			// element.
 			if (inline_block_box->Close() != OK)
-				return NULL;
+				return nullptr;
 
 			interrupted_chain = open_inline_box;
 		}
@@ -338,7 +345,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 		{
 			// There are no open inline boxes, so this inline box just needs to be closed.
 			if (CloseInlineBlockBox() != OK)
-				return NULL;
+				return nullptr;
 		}
 	}
 
@@ -349,6 +356,8 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 // Adds a new inline element to this inline box.
 LayoutInlineBox* LayoutBlockBox::AddInlineElement(Element* element, const Box& box)
 {
+	RMLUI_ZoneScoped;
+
 	if (context == BLOCK)
 	{
 		LayoutInlineBox* inline_box;
@@ -363,10 +372,10 @@ LayoutInlineBox* LayoutBlockBox::AddInlineElement(Element* element, const Box& b
 		{
 			block_boxes.push_back(new LayoutBlockBox(layout_engine, this));
 
-			if (interrupted_chain != NULL)
+			if (interrupted_chain != nullptr)
 			{
 				block_boxes.back()->line_boxes.back()->AddChainedBox(interrupted_chain);
-				interrupted_chain = NULL;
+				interrupted_chain = nullptr;
 			}
 
 			inline_box = block_boxes.back()->AddInlineElement(element, box);
@@ -384,7 +393,7 @@ LayoutInlineBox* LayoutBlockBox::AddInlineElement(Element* element, const Box& b
 // Adds a line-break to this block box.
 void LayoutBlockBox::AddBreak()
 {
-	int line_height = ElementUtilities::GetLineHeight(element);
+	float line_height = element->GetLineHeight();
 
 	// Check for an inline box as our last child; if so, we can simply end its line and bail.
 	if (!block_boxes.empty())
@@ -483,7 +492,7 @@ void LayoutBlockBox::CloseAbsoluteElements()
 }
 
 // Returns the offset from the top-left corner of this box that the next child box will be positioned at.
-void LayoutBlockBox::PositionBox(Vector2f& box_position, float top_margin, int clear_property) const
+void LayoutBlockBox::PositionBox(Vector2f& box_position, float top_margin, Style::Clear clear_property) const
 {
 	// If our element is establishing a new offset hierarchy, then any children of ours don't inherit our offset.
 	box_position = GetPosition();
@@ -507,7 +516,7 @@ void LayoutBlockBox::PositionBox(Vector2f& box_position, float top_margin, int c
 
 // Returns the offset from the top-left corner of this box's offset element the next child block box, of the given
 // dimensions, will be positioned at. This will include the margins on the new block box.
-void LayoutBlockBox::PositionBlockBox(Vector2f& box_position, const Box& box, int clear_property) const
+void LayoutBlockBox::PositionBlockBox(Vector2f& box_position, const Box& box, Style::Clear clear_property) const
 {
 	PositionBox(box_position, box.GetEdge(Box::MARGIN, Box::TOP), clear_property);
 	box_position.x += box.GetEdge(Box::MARGIN, Box::LEFT);
@@ -544,24 +553,21 @@ float LayoutBlockBox::InternalContentWidth() const
 		//  Alternative solution: Add some 'intrinsic_width' property to  every 'LayoutBlockBox' and have that propagate up to the nearest 'inline-block'.
 		if (element)
 		{
-			const Property* width = nullptr;
-			const Property* min_width = element->GetLocalProperty("min-width");
-			const Property* max_width = element->GetLocalProperty("max-width");
-			element->GetLocalDimensionProperties(&width, nullptr);
-			if(width)
+			auto& computed = element->GetComputedValues();
+			const float block_width = box.GetSize(Box::CONTENT).x;
+
+			if(computed.width.type != Style::Width::Auto)
 			{
-				float w_value = element->ResolveProperty(width, box.GetSize(Box::CONTENT).x);
+				float w_value = ResolveValue(computed.width, block_width);
 				content_width = Math::Max(content_width, w_value);
 			}
-			float block_width = box.GetSize(Box::CONTENT).x;
-			if (min_width)
+
+			float min_width = ResolveValue(computed.min_width, block_width);
+			content_width = Math::Max(content_width, min_width);
+			
+			if (computed.max_width.value >= 0.f)
 			{
-				float value = element->ResolveProperty(min_width, block_width);
-				content_width = Math::Max(content_width, value);
-			}
-			if (max_width)
-			{
-				float value = element->ResolveProperty(max_width, block_width);
+				float value = ResolveValue(computed.max_width, block_width);
 				content_width = Math::Min(content_width, value);
 			}
 		}
@@ -671,10 +677,11 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 	// If we're auto-scrolling and our height is fixed, we have to check if this box has exceeded our client height.
 	if (!vertical_overflow &&
 		box_height >= 0 &&
-		overflow_y_property == OVERFLOW_AUTO)
+		overflow_y_property == Style::Overflow::Auto)
 	{
 		if (cursor > box_height - element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL))
 		{
+			RMLUI_ZoneScopedC(0xDD3322);
 			vertical_overflow = true;
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSize(Box::PADDING).x);
 
@@ -686,7 +693,7 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 			space = new LayoutBlockBoxSpace(this);
 
 			box_cursor = 0;
-			interrupted_chain = NULL;
+			interrupted_chain = nullptr;
 
 			return false;
 		}

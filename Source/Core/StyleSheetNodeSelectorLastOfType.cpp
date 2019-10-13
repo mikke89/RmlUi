@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "StyleSheetNodeSelectorLastOfType.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -49,7 +48,7 @@ bool StyleSheetNodeSelectorLastOfType::IsApplicable(const Element* element, int 
 	RMLUI_UNUSED(b);
 
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	int child_index = parent->GetNumChildren() - 1;
@@ -63,7 +62,7 @@ bool StyleSheetNodeSelectorLastOfType::IsApplicable(const Element* element, int 
 		// Otherwise, if this child shares our element's tag, then our element is not the first tagged child; the
 		// selector fails.
 		if (child->GetTagName() == element->GetTagName() &&
-			child->GetDisplay() != DISPLAY_NONE)
+			child->GetDisplay() != Style::Display::None)
 			return false;
 
 		child_index--;

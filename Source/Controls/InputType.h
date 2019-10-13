@@ -29,7 +29,6 @@
 #ifndef RMLUICONTROLSINPUTTYPE_H
 #define RMLUICONTROLSINPUTTYPE_H
 
-#include "../../Include/RmlUi/Core/String.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -64,13 +63,16 @@ public:
 	/// Called every render from the host element.
 	virtual void OnRender();
 
+	/// Called every time the host element's size changes.
+	virtual void OnResize();
+
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.
-	virtual bool OnAttributeChange(const Core::AttributeNameList& changed_attributes);
+	virtual bool OnAttributeChange(const Core::ElementAttributes& changed_attributes);
 	/// Called when properties on the control are changed.
 	/// @param[in] changed_properties The properties changed on the element.
-	virtual void OnPropertyChange(const Core::PropertyNameList& changed_properties);
+	virtual void OnPropertyChange(const Core::PropertyIdSet& changed_properties);
 
 	/// Called when the element is added into a hierarchy.
 	virtual void OnChildAdd();
@@ -79,7 +81,7 @@ public:
 
 	/// Checks for necessary functional changes in the control as a result of the event.
 	/// @param[in] event The event to process.
-	virtual void ProcessEvent(Core::Event& event) = 0;
+	virtual void ProcessDefaultAction(Core::Event& event) = 0;
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.

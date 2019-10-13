@@ -49,7 +49,7 @@
 	#define RMLUI_DEBUG
 #endif
 
-#if defined __LP64__ || defined _M_X64 || defined __MINGW64__ || defined _LP64
+#if defined __LP64__ || defined _M_X64 || defined _WIN64 || defined __MINGW64__ || defined _LP64
     #define RMLUI_ARCH_64
 #else
     #define RMLUI_ARCH_32

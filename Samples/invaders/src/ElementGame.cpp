@@ -46,12 +46,10 @@ ElementGame::~ElementGame()
 // Intercepts and handles key events.
 void ElementGame::ProcessEvent(Rml::Core::Event& event)
 {
-	Rml::Core::Element::ProcessEvent(event);
-
-	if (event == "keydown" ||
-		event == "keyup")
+	if (event == Rml::Core::EventId::Keydown ||
+		event == Rml::Core::EventId::Keyup)
 	{
-		bool key_down = event == "keydown";
+		bool key_down = (event == Rml::Core::EventId::Keydown);
 		Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
 		if (key_identifier == Rml::Core::Input::KI_ESCAPE &&
@@ -79,7 +77,7 @@ void ElementGame::ProcessEvent(Rml::Core::Event& event)
 		}
 	}
 
-	if (event == "load")
+	if (event == Rml::Core::EventId::Load)
 	{
 		game->Initialise();
 	}
@@ -102,5 +100,9 @@ void ElementGame::OnChildAdd(Rml::Core::Element* element)
 	Rml::Core::Element::OnChildAdd(element);
 
 	if (element == this)
-		GetOwnerDocument()->AddEventListener("load", this);
+	{
+		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Load, this);
+		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Keydown, this);
+		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Keyup, this);
+	}
 }

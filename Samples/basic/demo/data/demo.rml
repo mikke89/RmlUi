@@ -1,0 +1,240 @@
+<rml>
+<head>
+<link type="text/template" href="../../../assets/window.rml"/>
+<title>Demo Sample</title>
+<style>
+body.window
+{
+	max-width: 1400px;
+	max-height: 850px;
+	width: 1300px;
+	height: 750px;
+}
+div#title_bar div#icon
+{
+	display: none;
+}
+
+tabset
+{
+	display: block;
+	margin: 30px auto 0 auto;
+	width: 900px;
+}
+tabs
+{
+    display: block;
+    height: 40px;
+	text-align: left;
+	padding-left: 10px;
+}
+tab
+{
+    width: 100px;
+	padding: 0px 20px;
+	line-height: 40px;
+	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
+	image-color: #cff9;
+	
+	font-size: 16px;
+	color: #ddd;
+	text-align: center;
+}
+tab:hover
+{
+	image-color: #fffc;
+	color: #fff;
+}
+tab:active, tab:selected
+{
+	image-color: #fff;
+	color: #fff;
+}
+panels
+{
+    display: block;
+	padding: 20px 20px;
+	border: 1px #ddd;
+    background-color: #ccc3;
+}
+panel
+{
+    display: block;
+    width: 100%;
+	min-height: 600px;
+}
+
+button:focus {
+	image-color: #0ff;
+}
+#decorators > div {
+	margin-bottom: 14px;
+}
+#decorators p {
+	text-align: center;
+}
+#decorators button.big
+{
+	width: 220px;
+	height: 120px;
+	line-height: 120px;
+}
+#decorators button.ninepatch
+{
+	/* The edges will be scaled by the current dp-ratio. */
+	decorator: ninepatch(button, button-inner, 1.0);
+}
+#decorators button.ninepatch:hover
+{
+	decorator: ninepatch(button-hover, button-inner-hover);
+}
+#decorators button.ninepatch:active
+{
+	decorator: ninepatch(button-active, button-inner-active);
+}
+#decorators button.gradient
+{
+	decorator: gradient( vertical #415857 #5990A3 );
+	border: 2px #415857;
+	margin-right: 12px;
+}
+#decorators button.gradient.horizontal
+{
+	decorator: gradient( horizontal #DB6565 #F1B58A );
+	border: 2px #DB6565;
+}
+#decorators button.gradient:hover
+{
+	border-color: #F9EFA3;
+}
+.image-fit { text-align: center; }
+.image-fit > div
+{
+	display: inline-block;
+	width: 120px;
+	height: 50px;
+	padding: 5px 10px;
+	margin-right: 20px;
+	background-color: #c665;
+	border: 1px #666;
+	text-align: left;
+	font-effect: shadow( 1px 1px #333 );
+}
+.image-fit.small > div
+{
+	width: 40px;
+	height: 20px;
+	padding: 0;
+	margin-left: 40px;
+	margin-right: 80px;
+}
+.align-default     { decorator: image( icon-invader scale-none             ); }
+.align-right       { decorator: image( icon-invader scale-none right       ); }
+.align-left-bottom { decorator: image( icon-invader scale-none left bottom ); }
+.align-percent     { decorator: image( icon-invader scale-none 70% 30%     ); }
+.align-pixel       { decorator: image( icon-invader scale-none 100px -15px ); }
+.fit-fill       { decorator: image( icon-invader fill       ); }
+.fit-contain    { decorator: image( icon-invader contain    ); }
+.fit-cover      { decorator: image( icon-invader cover      ); }
+.fit-scale-none { decorator: image( icon-invader scale-none ); }
+.fit-scale-down { decorator: image( icon-invader scale-down ); }
+.transform.fit-fill       { decorator: image( icon-invader rotate-180 fill       ); }
+.transform.fit-contain    { decorator: image( icon-invader rotate-180 contain    ); }
+.transform.fit-cover      { decorator: image( icon-invader rotate-180 cover      ); }
+.transform.fit-scale-none { decorator: image( icon-invader rotate-180 scale-none ); }
+.transform.fit-scale-down { decorator: image( icon-invader rotate-180 scale-down ); }
+p.emojis
+{
+	text-align: left;
+	font-size: 35px;
+	color: #b33;
+}
+
+textarea {
+	font-size: 18px;
+	font-effect: outline(2px #006600);
+	color: #ddd;
+	
+}
+</style>
+</head>
+
+<body template="window">
+
+<tabset id="menu">
+<tab>Welcome</tab>
+<panel id="welcome">
+	<p class="emojis">RmlUi 😍</p>
+	<p>Have fun fiddling about in this (incomplete) demo.</p>
+	<p>Press 'F8' to open up the debugger.</p>
+	<p class="emojis" style="margin-top: 1em;">🎉</p>
+</panel>
+<tab>Decorators</tab>
+<panel id="decorators">
+	<div>	
+		<button>Image</button>
+		<button class="ninepatch">Ninepatch</button>
+	</div>
+	<div>
+		<button class="big">Image</button>
+		<button class="big ninepatch">Ninepatch</button>
+		<p>The ninepatch decorator scales the background without blurring the texture, keeping the corners fixed.</p>
+	</div>
+	<div>	
+		<button class="gradient">Gradient</button>
+		<button class="gradient horizontal">Gradient</button>
+	</div>
+	<h1>Image decorator alignment modes</h1>
+	<div class="image-fit">
+		<div class="align-default" style="font-style: italic;">default</div>
+		<div class="align-right">right</div>
+		<div class="align-left-bottom">left bottom</div>
+		<div class="align-percent">70% 30%</div>
+		<div class="align-pixel">100px -15px</div>
+		<p style="margin: 0.3em 0 0 0;">Using fit mode 'scale-none'.</p>
+	</div>
+
+	<h1>Image decorator fit modes</h1>
+	<div class="image-fit">
+		<div class="fit-fill">fill</div>
+		<div class="fit-contain">contain</div>
+		<div class="fit-cover">cover</div>
+		<div class="fit-scale-none">scale-none</div>
+		<div class="fit-scale-down">scale-down</div>
+	</div>
+	<div class="image-fit small">
+		<div class="fit-fill"></div>
+		<div class="fit-contain"></div>
+		<div class="fit-cover"></div>
+		<div class="fit-scale-none"></div>
+		<div class="fit-scale-down"></div>
+	</div>
+	<div class="image-fit small">
+		<div class="transform fit-fill"></div>
+		<div class="transform fit-contain"></div>
+		<div class="transform fit-cover"></div>
+		<div class="transform fit-scale-none"></div>
+		<div class="transform fit-scale-down"></div>
+	</div>
+</panel>
+<tab>Buttons</tab>
+<panel>
+	<button id="start_game">Start Game</button><br />
+	<button id="high_scores" onkeydown="hello" autofocus>High Scores</button><br />
+	<button id="options">Options</button><br />
+	<button id="help">Help</button><br />
+	<div><button id="exit" onclick="exit">Exit</button></div>
+	<img src="../../../assets/high_scores_defender.tga"/>
+	<img src="icon-game" style="vertical-align: 10px;"/>
+	<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" coords="0 0 64 64"/>
+	<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" coords="64 0 64 64"/>
+	<p>Img elements can take both sprites and images. For images it also supports a 'coords' attribute for specifying a sub-rectangle.</p>
+</panel>
+<tab>Controls</tab>
+<panel>
+	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" maxlength="12" value="Sample text"/></div>
+	<textarea cols="30" rows="5" wrap="nowrap">😍 Hello 🌐 World! 😎</textarea>
+</panel>
+</tabset>
+</body>
+</rml>

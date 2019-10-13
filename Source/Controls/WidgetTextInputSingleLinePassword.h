@@ -46,7 +46,7 @@ public:
 
 	/// Sets the value of the password field.
 	/// @param value[in] The new password to set on the field.
-	virtual void SetValue(const Core::String& value);
+	void SetValue(const Core::String& value) override;
 };
 
 }

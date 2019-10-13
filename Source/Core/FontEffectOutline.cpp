@@ -35,9 +35,7 @@ namespace Core {
 FontEffectOutline::FontEffectOutline()
 {
 	width = 0;
-
-	// Default the z-index of an outline effect to be behind the main layer.
-	SetZIndex(-1);
+	SetLayer(Layer::Back);
 }
 
 FontEffectOutline::~FontEffectOutline()

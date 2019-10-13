@@ -32,7 +32,7 @@
 namespace Rml {
 namespace Core {
 
-DecoratorInstancer::DecoratorInstancer()
+DecoratorInstancer::DecoratorInstancer() : properties(10, 10)
 {
 }
 
@@ -53,15 +53,14 @@ PropertyDefinition& DecoratorInstancer::RegisterProperty(const String& property_
 }
 
 // Registers a shorthand property definition.
-bool DecoratorInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, PropertySpecification::ShorthandType type)
+ShorthandId DecoratorInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
 	return properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
-// Releases the instancer.
-void DecoratorInstancer::OnReferenceDeactivate()
-{
-	Release();
+
+const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const {
+	return style_sheet.GetSprite(name);
 }
 
 }

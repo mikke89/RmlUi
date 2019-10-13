@@ -61,7 +61,7 @@ int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* obj)
     const char* name = luaL_checkstring(L,1);
     Vector2i* dimensions = LuaType<Vector2i>::check(L,2);
     Context* new_context = CreateContext(name, *dimensions);
-    if(new_context == NULL || dimensions == NULL)
+    if(new_context == nullptr || dimensions == nullptr)
     {
         lua_pushnil(L);
     }
@@ -75,7 +75,7 @@ int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* obj)
 int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* obj)
 {
     const char* file = luaL_checkstring(L,1);
-    lua_pushboolean(L,FontDatabase::LoadFontFace(file));
+    lua_pushboolean(L,LoadFontFace(file));
     return 1;
 }
 
@@ -309,7 +309,7 @@ RegType<LuaRmlUi> LuaRmlUiMethods[] =
     LUAMETHOD(LuaRmlUi,CreateContext)
     LUAMETHOD(LuaRmlUi,LoadFontFace)
     LUAMETHOD(LuaRmlUi,RegisterTag)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg LuaRmlUiGetters[] = 
@@ -317,15 +317,15 @@ luaL_Reg LuaRmlUiGetters[] =
     LUAGETTER(LuaRmlUi,contexts)
     LUAGETTER(LuaRmlUi,key_identifier)
     LUAGETTER(LuaRmlUi,key_modifier)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg LuaRmlUiSetters[] = 
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(LuaRmlUi,false)
+LUACORETYPEDEFINE(LuaRmlUi)
 }
 }
 }

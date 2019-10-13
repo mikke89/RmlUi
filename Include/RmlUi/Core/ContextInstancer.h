@@ -29,8 +29,8 @@
 #ifndef RMLUICORECONTEXTINSTANCER_H
 #define RMLUICORECONTEXTINSTANCER_H
 
-#include "ReferenceCountable.h"
 #include "Header.h"
+#include "Traits.h"
 
 namespace Rml {
 namespace Core {
@@ -44,7 +44,7 @@ class Event;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API ContextInstancer : public ReferenceCountable
+class RMLUICORE_API ContextInstancer : public Releasable
 {
 public:
 	virtual ~ContextInstancer();
@@ -52,17 +52,15 @@ public:
 	/// Instances a context.
 	/// @param[in] name Name of this context.
 	/// @return The instanced context.
-	virtual Context* InstanceContext(const String& name) = 0;
+	virtual ContextPtr InstanceContext(const String& name) = 0;
 
 	/// Releases a context previously created by this context.
 	/// @param[in] context The context to release.
 	virtual void ReleaseContext(Context* context) = 0;
 
+protected:
 	/// Releases this context instancer
 	virtual void Release() = 0;
-
-private:
-	virtual void OnReferenceDeactivate();
 };
 
 }

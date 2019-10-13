@@ -69,15 +69,16 @@ Game::Game()
 {
 	invader_frame_start = 0;
 	defender_lives = 3;	
+	invader_move_freq = 0;
 	game_over = false;
 	current_invader_direction = 1.0f;	
 	invaders = new Invader*[NUM_INVADERS + 1];
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
-		invaders[i] = NULL;	
+		invaders[i] = nullptr;	
 
 	shields = new Shield*[NUM_SHIELDS];
 	for (int i = 0; i < NUM_SHIELDS; i++)
-		shields[i] = NULL;
+		shields[i] = nullptr;
 
 	// Use the OpenGL render interface to load our texture.
 	Rml::Core::Vector2i texture_dimensions;
@@ -225,8 +226,8 @@ void Game::SetScore(int score)
 	GameDetails::SetScore(score);
 
 	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
-	if (score_element != NULL)
-		score_element->SetInnerRML(Rml::Core::String(128, "%d", score).CString());
+	if (score_element != nullptr)
+		score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", score).c_str());
 
 	// Update the high score if we've beaten it.
 	if (score > HighScores::GetHighScore())
@@ -237,8 +238,8 @@ void Game::SetScore(int score)
 void Game::SetHighScore(int score)
 {
 	Rml::Core::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
-	if (high_score_element != NULL)
-		high_score_element->SetInnerRML(Rml::Core::String(128, "%d", score).CString());
+	if (high_score_element != nullptr)
+		high_score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", score).c_str());
 }
 
 void Game::SetLives(int lives)
@@ -246,8 +247,8 @@ void Game::SetLives(int lives)
 	defender_lives = lives;
 
 	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
-	if (score_element != NULL)
-		score_element->SetInnerRML(Rml::Core::String(128, "%d", defender_lives).CString());
+	if (score_element != nullptr)
+		score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", defender_lives).c_str());
 }
 
 void Game::SetWave(int wave)
@@ -255,8 +256,8 @@ void Game::SetWave(int wave)
 	GameDetails::SetWave(wave);
 
 	Rml::Core::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
-	if (waves_element != NULL)
-		waves_element->SetInnerRML(Rml::Core::String(128, "%d", wave).CString());
+	if (waves_element != nullptr)
+		waves_element->SetInnerRML(Rml::Core::CreateString(128, "%d", wave).c_str());
 }
 
 void Game::RemoveLife()
@@ -440,6 +441,6 @@ void Game::InitialiseWave()
 	invaders[MOTHERSHIP] = new Mothership(this, MOTHERSHIP);
 
 	// Update the move frequency	
-	invader_move_freq = ((((float)GameDetails::GetWave())-100.0f)/140.0f);
+	invader_move_freq = ((float)GameDetails::GetWave()-100.0f)/140.0f;
 	invader_move_freq *= invader_move_freq;
 }

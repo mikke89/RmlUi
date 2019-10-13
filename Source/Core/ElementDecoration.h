@@ -51,55 +51,36 @@ public:
 	ElementDecoration(Element* element);
 	~ElementDecoration();
 
-	// Releases existing decorators and loads all decorators required by the element's definition.
-	bool ReloadDecorators();	
-
 	/// Renders all appropriate decorators.
 	void RenderDecorators();
 
-	/// Mark decorators as dirty and force them to reset themselves
+	/// Mark decorators as dirty and force them to reset themselves.
 	void DirtyDecorators();
-
-	/// Iterates over all active decorators attached to the decoration's element.
-	/// @param[inout] index Index to fetch. This is incremented after the fetch.
-	/// @param[out] pseudo_classes The pseudo-classes the decorator required to be active before it renders.
-	/// @param[out] name The name of the decorator at the specified index.
-	/// @param[out] decorator The decorator at the specified index.
-	/// @param[out] decorator_data This element's handle to any data is has stored against the decorator.
-	/// @return True if a decorator was successfully fetched, false if not.
-	bool IterateDecorators(int& index, PseudoClassList& pseudo_classes, String& name, Decorator*& decorator, DecoratorDataHandle& decorator_data) const;
 
 private:
 	// Loads a single decorator and adds it to the list of loaded decorators for this element.
-	int LoadDecorator(Decorator* decorator);
+	int LoadDecorator(SharedPtr<const Decorator> decorator);
+	// Releases existing decorators and loads all decorators required by the element's definition.
+	bool ReloadDecorators();
 	// Releases all existing decorators and frees their data.
 	void ReleaseDecorators();
-	// Updates the list of active decorators (if necessary)
-	void UpdateActiveDecorators();
 
 	struct DecoratorHandle
 	{
-		Decorator* decorator;
+		SharedPtr<const Decorator> decorator;
 		DecoratorDataHandle decorator_data;
 	};
 
-	typedef std::vector< DecoratorHandle > DecoratorList;
-	typedef std::pair< PseudoClassList, int > PseudoClassDecoratorIndex;
-	typedef std::vector< PseudoClassDecoratorIndex > PseudoClassDecoratorIndexList;
-	typedef std::map< String, PseudoClassDecoratorIndexList > DecoratorIndex;
+	typedef std::vector< DecoratorHandle > DecoratorHandleList;
 
 	// The element this decorator belongs to
 	Element* element;
 
 	// The list of every decorator used by this element in every class.
-	DecoratorList decorators;
-	// The list of currently active decorators.
-	std::vector< int > active_decorators;
-	bool active_decorators_dirty;
+	DecoratorHandleList decorators;
 
-	// For each unique decorator name, this stores (in order of specificity) the name of the pseudo-class that has
-	// a definition for it, and the index into the list of decorators.
-	DecoratorIndex decorator_index;
+	// If set, a full reload is necessary
+	bool decorators_dirty;
 };
 
 }

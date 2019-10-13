@@ -1,9 +1,10 @@
-/*
+﻿/*
  * This source file is part of RmlUi, the HTML/CSS Interface Middleware
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2018 Michael Ragazzon
+ * Copyright (c) 2018 Michael R. P. Ragazzon
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,13 +37,6 @@
 #include <sstream>
 
 
-// Animations TODO:
-//  - Update transform animations / resolve keys again when parent box size changes.
-//  - RCSS support? Both @keyframes and transition, maybe.
-//  - Profiling
-//  - [offtopic] Improve performance of transform parser (hashtable)
-//  - [offtopic] Use double for absolute time, get and cache time for each render/update loop
-
 class DemoWindow
 {
 public:
@@ -50,13 +44,13 @@ public:
 	{
 		using namespace Rml::Core;
 		document = context->LoadDocument("basic/animation/data/animation.rml");
-		if (document != NULL)
+		if (document != nullptr)
 		{
 			{
 				document->GetElementById("title")->SetInnerRML(title);
-				document->SetProperty("left", Property(position.x, Property::PX));
-				document->SetProperty("top", Property(position.y, Property::PX));
-				//document->Animate("opacity", Property(1.0f, Property::NUMBER), 1.5f, Tween{Tween::Quadratic, Tween::Out}, 1, true, 0.0f);
+				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
+				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
+				//document->Animate("opacity", Property(0.0f, Property::NUMBER), 2.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true, 1.0f);
 			}
 
 			// Button fun
@@ -88,14 +82,14 @@ public:
 				auto el = document->GetElementById("exit");
 				PropertyDictionary pd;
 				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "translate(200px, 200px) rotate(1215deg)");
-				el->Animate("transform", *pd.GetProperty("transform"), 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
+				el->Animate("transform", *pd.GetProperty(PropertyId::Transform), 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
 			}
 
 			// Transform tests
 			{
 				auto el = document->GetElementById("generic");
-				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG}});
-				el->Animate("transform", p, 1.3f, Tween{Tween::Quadratic, Tween::InOut}, -1, true);
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::RotateZ{-90, Property::DEG}, Transforms::ScaleY{0.8f} });
+				el->Animate("transform", p, 1.5f, Tween{Tween::Sine, Tween::InOut}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("combine");
@@ -104,8 +98,8 @@ public:
 			}
 			{
 				auto el = document->GetElementById("decomposition");
-				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
-				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
+				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG} });
+				el->Animate("transform", p, 1.3f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
 			}
 
 			// Mixed units tests
@@ -132,7 +126,6 @@ public:
 	{
 		if (document)
 		{
-			document->RemoveReference();
 			document->Close();
 		}
 	}
@@ -146,17 +139,17 @@ private:
 };
 
 
-Rml::Core::Context* context = NULL;
+Rml::Core::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
-DemoWindow* window = NULL;
+DemoWindow* window = nullptr;
 
-bool pause_loop = false;
+bool run_loop = true;
 bool single_loop = false;
 int nudge = 0;
 
 void GameLoop()
 {
-	if(!pause_loop || single_loop)
+	if(run_loop || single_loop)
 	{
 		context->Update();
 
@@ -172,8 +165,7 @@ void GameLoop()
 	float dt = float(t - t_prev);
 	static int count_frames = 0;
 	count_frames += 1;
-	//t_prev = t;
-	//if(dt > 1.0f)
+
 	if(nudge)
 	{
 		t_prev = t;
@@ -181,7 +173,7 @@ void GameLoop()
 		ff += float(nudge)*0.3f;
 		auto el = window->GetDocument()->GetElementById("exit");
 		auto f = el->GetProperty<float>("margin-left");
-		el->SetProperty("margin-left", Rml::Core::Property(ff, Rml::Core::Property::PX));
+		el->SetProperty(Rml::Core::PropertyId::MarginLeft, Rml::Core::Property(ff, Rml::Core::Property::PX));
 		float f_left = el->GetAbsoluteLeft();
 		Rml::Core::Log::Message(Rml::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);
 		nudge = 0;
@@ -193,13 +185,8 @@ void GameLoop()
 		auto el = window->GetDocument()->GetElementById("fps");
 		float fps = float(count_frames) / dt;
 		count_frames = 0;
-		el->SetInnerRML(Rml::Core::String{ 20, "FPS: %f", fps });
+		el->SetInnerRML(Rml::Core::CreateString( 20, "FPS: %f", fps ));
 	}
-	//static int f_prev = 0.0f;
-	//int df = f - f_prev;
-	//f_prev = f;
-	//if(df != 0)
-	//	Rml::Core::Log::Message(Rml::Core::Log::LT_INFO, "Animation f = %d,  df = %d", f, df);
 }
 
 
@@ -216,18 +203,19 @@ public:
 		if(value == "exit")
 			Shell::RequestExit();
 
-		if (event == "keydown")
+		switch (event.GetId())
 		{
-			bool key_down = event == "keydown";
+		case EventId::Keydown:
+		{
 			Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
 			if (key_identifier == Rml::Core::Input::KI_SPACE)
 			{
-				pause_loop = !pause_loop;
+				run_loop = !run_loop;
 			}
 			else if (key_identifier == Rml::Core::Input::KI_RETURN)
 			{
-				pause_loop = true;
+				run_loop = false;
 				single_loop = true;
 			}
 			else if (key_identifier == Rml::Core::Input::KI_OEM_PLUS)
@@ -268,7 +256,9 @@ public:
 				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
 			}
 		}
-		if (event == "click")
+		break;
+
+		case EventId::Click:
 		{
 			auto el = event.GetTargetElement();
 			if (el->GetId() == "transition_class")
@@ -276,7 +266,9 @@ public:
 				el->SetClass("move_me", !el->IsClassSet("move_me"));
 			}
 		}
-		if (event == "animationend")
+		break;
+
+		case EventId::Animationend:
 		{
 			auto el = event.GetTargetElement();
 			if (el->GetId() == "animation_event")
@@ -284,6 +276,11 @@ public:
 				el->Animate("top", Property(Math::RandomReal(200.f), Property::PX), 1.2f, Tween{ Tween::Cubic, Tween::InOut });
 				el->Animate("left", Property(Math::RandomReal(100.f), Property::PERCENT), 0.8f, Tween{ Tween::Cubic, Tween::InOut });
 			}
+		}
+		break;
+
+		default:
+			break;
 		}
 	}
 
@@ -303,9 +300,6 @@ public:
 	{
 		return new Event(value);
 	}
-
-	/// Destroys the instancer.
-	void Release() override { delete this; }
 };
 
 
@@ -329,6 +323,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	const int width = 1800;
 	const int height = 1000;
 
+
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
 
@@ -351,7 +346,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(width, height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -363,16 +358,15 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
-	EventInstancer* event_instancer = new EventInstancer();
-	Rml::Core::Factory::RegisterEventListenerInstancer(event_instancer);
-	event_instancer->RemoveReference();
+	EventInstancer event_listener_instancer;
+	Rml::Core::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
 	Shell::LoadFonts("assets/");
 
 	window = new DemoWindow("Animation sample", Rml::Core::Vector2f(81, 100), context);
-	window->GetDocument()->AddEventListener("keydown", new Event("hello"));
-	window->GetDocument()->AddEventListener("keyup", new Event("hello"));
-	window->GetDocument()->AddEventListener("animationend", new Event("hello"));
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, new Event("hello"));
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, new Event("hello"));
 
 
 	Shell::EventLoop(GameLoop);
@@ -380,7 +374,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	delete window;
 
 	// Shutdown RmlUi.
-	context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();

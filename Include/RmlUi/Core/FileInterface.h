@@ -31,7 +31,7 @@
 
 #include "Header.h"
 #include "Types.h"
-#include "ReferenceCountable.h"
+#include "Traits.h"
 
 namespace Rml {
 namespace Core {
@@ -46,7 +46,7 @@ namespace Core {
 	@author Peter Curry
  */
 
-class RMLUICORE_API FileInterface : public ReferenceCountable
+class RMLUICORE_API FileInterface : public NonCopyMoveable
 {
 public:
 	FileInterface();
@@ -54,7 +54,7 @@ public:
 
 	/// Opens a file.
 	/// @param file The file handle to write to.
-	/// @return A valid file handle, or NULL on failure
+	/// @return A valid file handle, or nullptr on failure
 	virtual FileHandle Open(const String& path) = 0;
 	/// Closes a previously opened file.
 	/// @param file The file handle previously opened through Open().
@@ -82,12 +82,6 @@ public:
 	/// @param file The handle of the file to be queried.
 	/// @return The length of the file in bytes.
 	virtual size_t Length(FileHandle file);
-
-	/// Called when this file interface is released.
-	virtual void Release();
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

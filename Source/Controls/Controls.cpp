@@ -27,7 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Controls/Controls.h"
-#include "../../Include/RmlUi/Core/ElementInstancerGeneric.h"
+#include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
@@ -42,67 +42,53 @@
 namespace Rml {
 namespace Controls {
 
+struct ElementInstancers {
+	using Ptr = std::unique_ptr<Core::ElementInstancer>;
+	template<typename T> using ElementInstancerGeneric = Core::ElementInstancerGeneric<T>;
+
+	Ptr form = std::make_unique<ElementInstancerGeneric<ElementForm>>();
+	Ptr input = std::make_unique<ElementInstancerGeneric<ElementFormControlInput>>();
+	Ptr dataselect = std::make_unique<ElementInstancerGeneric<ElementFormControlDataSelect>>();
+	Ptr select = std::make_unique<ElementInstancerGeneric<ElementFormControlSelect>>();
+	
+	Ptr textarea = std::make_unique<ElementInstancerGeneric<ElementFormControlTextArea>>();
+	Ptr selection = std::make_unique<ElementInstancerGeneric<ElementTextSelection>>();
+	Ptr tabset  = std::make_unique<ElementInstancerGeneric<ElementTabSet>>();
+	
+	Ptr datagrid = std::make_unique<ElementInstancerGeneric<ElementDataGrid>>();
+	Ptr datagrid_expand = std::make_unique<ElementInstancerGeneric<ElementDataGridExpandButton>>();
+	Ptr datagrid_cell = std::make_unique<ElementInstancerGeneric<ElementDataGridCell>>();
+	Ptr datagrid_row = std::make_unique<ElementInstancerGeneric<ElementDataGridRow>>();
+};
+
+static std::unique_ptr<ElementInstancers> element_instancers;
+
+
 // Registers the custom element instancers.
 void RegisterElementInstancers()
 {
-	Core::ElementInstancer* instancer = new Core::ElementInstancerGeneric< ElementForm >();
-	Core::Factory::RegisterElementInstancer("form", instancer);
-	instancer->RemoveReference();
+	element_instancers = std::make_unique<ElementInstancers>();
 
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlInput >();
-	Core::Factory::RegisterElementInstancer("input", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("form", element_instancers->form.get());
+	Core::Factory::RegisterElementInstancer("input", element_instancers->input.get());
+	Core::Factory::RegisterElementInstancer("dataselect", element_instancers->dataselect.get());
+	Core::Factory::RegisterElementInstancer("select", element_instancers->select.get());
 
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlDataSelect >();
-	instancer = Core::Factory::RegisterElementInstancer("dataselect", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("textarea", element_instancers->textarea.get());
+	Core::Factory::RegisterElementInstancer("#selection", element_instancers->selection.get());
+	Core::Factory::RegisterElementInstancer("tabset", element_instancers->tabset.get());
 
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlSelect >();
-	Core::Factory::RegisterElementInstancer("select", instancer);
-	instancer->RemoveReference();
-
-	instancer = new Core::ElementInstancerGeneric< ElementFormControlTextArea >();
-	Core::Factory::RegisterElementInstancer("textarea", instancer);
-	instancer->RemoveReference();
-
-	instancer = new Core::ElementInstancerGeneric< ElementTextSelection >();
-	Core::Factory::RegisterElementInstancer("#selection", instancer);
-	instancer->RemoveReference();
-
-	instancer = new Core::ElementInstancerGeneric< ElementTabSet >();
-	Core::Factory::RegisterElementInstancer("tabset", instancer);
-	instancer->RemoveReference();
-
-	instancer = new Core::ElementInstancerGeneric< ElementDataGrid >();
-	Core::Factory::RegisterElementInstancer("datagrid", instancer);
-	instancer->RemoveReference();
-
-	instancer = new Core::ElementInstancerGeneric< ElementDataGridExpandButton >();
-	Core::Factory::RegisterElementInstancer("datagridexpand", instancer);
-	instancer->RemoveReference();
-
-	instancer = new Core::ElementInstancerGeneric< ElementDataGridCell >();
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", instancer);
-	instancer->RemoveReference();
-
-	instancer = new Core::ElementInstancerGeneric< ElementDataGridRow >();
-	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", instancer);
-	instancer->RemoveReference();
+	Core::Factory::RegisterElementInstancer("datagrid", element_instancers->datagrid.get());
+	Core::Factory::RegisterElementInstancer("datagridexpand", element_instancers->datagrid_expand.get());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridcell", element_instancers->datagrid_cell.get());
+	Core::Factory::RegisterElementInstancer("#rmlctl_datagridrow", element_instancers->datagrid_row.get());
 }
 
 void RegisterXMLNodeHandlers()
 {
-	Core::XMLNodeHandler* node_handler = new XMLNodeHandlerDataGrid();
-	Core::XMLParser::RegisterNodeHandler("datagrid", node_handler);
-	node_handler->RemoveReference();
-
-	node_handler = new XMLNodeHandlerTabSet();
-	Core::XMLParser::RegisterNodeHandler("tabset", node_handler);
-	node_handler->RemoveReference();
-
-	node_handler = new XMLNodeHandlerTextArea();
-	Core::XMLParser::RegisterNodeHandler("textarea", node_handler);
-	node_handler->RemoveReference();
+	Core::XMLParser::RegisterNodeHandler("datagrid", std::make_shared<XMLNodeHandlerDataGrid>());
+	Core::XMLParser::RegisterNodeHandler("tabset", std::make_shared<XMLNodeHandlerTabSet>());
+	Core::XMLParser::RegisterNodeHandler("textarea", std::make_shared<XMLNodeHandlerTextArea>());
 }
 
 static bool initialised = false;
@@ -112,6 +98,7 @@ class ControlsPlugin : public Rml::Core::Plugin
 public:
 	void OnShutdown()
 	{
+		element_instancers.reset();
 		initialised = false;
 		delete this;
 	}
@@ -127,8 +114,6 @@ void Initialise()
 	// Prevent double initialisation
 	if (!initialised)
 	{
-		Core::StyleSheetSpecification::RegisterProperty("min-rows", "0", false, false).AddParser("number");
-
 		// Register the element instancers for our custom elements.
 		RegisterElementInstancers();
 

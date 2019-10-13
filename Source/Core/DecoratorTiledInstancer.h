@@ -35,31 +35,37 @@
 namespace Rml {
 namespace Core {
 
+class StyleSheet;
+
 /**
 	@author Peter Curry
  */
 
+
 class DecoratorTiledInstancer : public DecoratorInstancer
 {
 public:
-	virtual ~DecoratorTiledInstancer();
+	DecoratorTiledInstancer(size_t num_tiles);
 
 protected:
 	/// Adds the property declarations for a tile.
 	/// @param[in] name The name of the tile property.
-	/// @param[in] register_repeat_modes If true, the tile will have the repeat modes registered.
-	void RegisterTileProperty(const String& name, bool register_repeat_modes);
+	/// @param[in] register_fit_modes If true, the tile will have the fit modes registered.
+	void RegisterTileProperty(const String& name, bool register_fit_modes = false);
+
 	/// Retrieves all the properties for a tile from the property dictionary.
 	/// @param[out] tile The tile structure for storing the tile properties.
-	/// @param[out] texture_name Holds the name of the texture declared for the tile (if one exists).
-	/// @param[out] rcss_path The path of the RCSS file that generated the texture path.
+	/// @param[out] textures Holds the textures declared for the tile.
 	/// @param[in] properties The user-defined list of parameters for the decorator.
-	/// @param[in] name The name of the tile to fetch the properties for.
-	void GetTileProperties(DecoratorTiled::Tile& tile, String& texture_name, String& rcss_path, const PropertyDictionary& properties, const String& name);
+	/// @param[in] interface An interface for querying the active style sheet.
+	bool GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) const;
 
 private:
-	// Loads a single texture coordinate value from the properties.
-	void LoadTexCoord(const PropertyDictionary& properties, const String& name, float& tex_coord, bool& tex_coord_absolute);
+	struct TilePropertyIds {
+		PropertyId src, fit, align_x, align_y, orientation;
+	};
+
+	std::vector<TilePropertyIds> tile_property_ids;
 };
 
 }

@@ -35,18 +35,10 @@ namespace Controls {
 
 InputTypeButton::InputTypeButton(ElementFormControlInput* element) : InputType(element)
 {
-	document = NULL;
-
-	// Call OnChildAdd() immediately; if the input element is already part of a document, this will
-	// attach our listeners to the document so the events can be intercepted.
-	OnChildAdd();
 }
 
 InputTypeButton::~InputTypeButton()
 {
-	// Call OnChildRemove(); in case our element is still attached to a document, this will detach
-	// our listeners.
-	OnChildRemove();
 }
 
 // Buttons are never submitted.
@@ -55,16 +47,8 @@ bool InputTypeButton::IsSubmitted()
 	return false;
 }
 
-// Checks for necessary functional changes in the control as a result of the event.
-void InputTypeButton::ProcessEvent(Core::Event& event)
+void InputTypeButton::ProcessDefaultAction(Core::Event& event)
 {
-	// Stop a click event from proceeding any further if this button is disabled.
-	if (event.GetTargetElement() == element &&
-		element->IsDisabled() &&
-		(event == "click" || event == "dblclick"))
-	{
-		event.StopPropagation();
-	}
 }
 
 // Sizes the dimensions to the element's inherent size.
@@ -73,28 +57,6 @@ bool InputTypeButton::GetIntrinsicDimensions(Rml::Core::Vector2f& RMLUI_UNUSED_P
 	RMLUI_UNUSED(dimensions);
 
 	return false;
-}
-
-// Called when the element is added into a hierarchy.
-void InputTypeButton::OnChildAdd()
-{
-	document = element->GetOwnerDocument();
-	if (document == NULL)
-		return;
-
-	document->AddEventListener("click", this, true);
-	document->AddEventListener("dblclick", this, true);
-}
-
-// Called when the element is removed from a hierarchy.
-void InputTypeButton::OnChildRemove()
-{
-	if (document != NULL)
-	{
-		document->RemoveEventListener("click", this, true);
-		document->RemoveEventListener("dblclick", this, true);
-		document = NULL;
-	}
 }
 
 }

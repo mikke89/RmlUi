@@ -49,7 +49,7 @@ ElementFormControlSelect::~ElementFormControlSelect()
 // Returns a string representation of the current value of the form control.
 Rml::Core::String ElementFormControlSelect::GetValue() const
 {
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	return widget->GetValue();
 }
 
@@ -58,7 +58,7 @@ void ElementFormControlSelect::SetValue(const Rml::Core::String& value)
 {
 	OnUpdate();
 
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	widget->SetValue(value);
 }
 
@@ -67,14 +67,14 @@ void ElementFormControlSelect::SetSelection(int selection)
 {
 	OnUpdate();
 
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	widget->SetSelection(selection);
 }
 
 // Returns the index of the currently selected item.
 int ElementFormControlSelect::GetSelection() const
 {
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	return widget->GetSelection();
 }
 
@@ -83,7 +83,7 @@ SelectOption* ElementFormControlSelect::GetOption(int index)
 {
 	OnUpdate();
 
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	return widget->GetOption(index);
 }
 
@@ -92,7 +92,7 @@ int ElementFormControlSelect::GetNumOptions()
 {
 	OnUpdate();
 
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	return widget->GetNumOptions();
 }
 
@@ -101,7 +101,7 @@ int ElementFormControlSelect::Add(const Rml::Core::String& rml, const Rml::Core:
 {
 	OnUpdate();
 
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	return widget->AddOption(rml, value, before, false, selectable);
 }
 
@@ -110,7 +110,7 @@ void ElementFormControlSelect::Remove(int index)
 {
 	OnUpdate();
 
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	widget->RemoveOption(index);
 }
 
@@ -119,7 +119,7 @@ void ElementFormControlSelect::RemoveAll()
 {
 	OnUpdate();
 
-	RMLUI_ASSERT(widget != NULL);
+	RMLUI_ASSERT(widget != nullptr);
 	widget->ClearOptions();
 }
 
@@ -129,19 +129,19 @@ void ElementFormControlSelect::OnUpdate()
 	ElementFormControl::OnUpdate();
 
 	// Move any child elements into the widget (except for the three functional elements).
-	while (HasChildNodes())
+	while (Core::Element * raw_child = GetFirstChild())
 	{
-		Core::Element* child = GetFirstChild();
+		Core::ElementPtr child = RemoveChild(raw_child);
 
-		// Check for a value attribute.
-		Rml::Core::String attribute_value = child->GetAttribute<Rml::Core::String>("value", "");
+		bool select = child->GetAttribute("selected");
+		bool selectable = !child->GetAttribute("disabled");
+		Core::String option_value = child->GetAttribute("value", Core::String());
 
-		// Pull the inner RML and add the option.
-		Rml::Core::String rml;
-		child->GetInnerRML(rml);
-		widget->AddOption(rml, attribute_value, -1, child->GetAttribute("selected") != NULL, child->GetAttribute("unselectable") == NULL);
+		child->RemoveAttribute("selected");
+		child->RemoveAttribute("disabled");
+		child->RemoveAttribute("value");
 
-		RemoveChild(child);
+		widget->AddOption(std::move(child), option_value, -1, select, selectable);
 	}
 }
 

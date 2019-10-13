@@ -61,7 +61,7 @@ private:
 	TemplateCache();
 	~TemplateCache();
 
-	typedef std::unordered_map<String, Template*> Templates;
+	typedef UnorderedMap<String, Template*> Templates;
 	Templates templates;
 	Templates template_ids;
 };

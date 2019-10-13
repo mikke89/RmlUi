@@ -29,7 +29,6 @@
 #ifndef RMLUICOREEVENTITERATORS_H
 #define RMLUICOREEVENTITERATORS_H
 
-#include "../../Include/RmlUi/Core/ElementReference.h"
 #include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
@@ -44,22 +43,16 @@ namespace Core {
 class RmlEventFunctor
 {
 public:
-	RmlEventFunctor(const String& event, const Dictionary& parameters, bool interruptible)
-	{
-		this->event = event;
-		this->parameters = &parameters;
-		this->interruptible = interruptible;
-	}
+	RmlEventFunctor(EventId id, const Dictionary& parameters) : id(id), parameters(&parameters) {}
 
-	void operator()(ElementReference& element)
+	void operator()(Element* element)
 	{
-		element->DispatchEvent(event, *parameters, interruptible);
+		element->DispatchEvent(id, *parameters);
 	}
 
 private:
-	String event;
+	EventId id;
 	const Dictionary* parameters;
-	bool interruptible;
 };
 
 /**
@@ -76,7 +69,7 @@ class PseudoClassFunctor
 			this->set = set;
 		}
 
-		void operator()(ElementReference& element)
+		void operator()(Element* element)
 		{
 			element->SetPseudoClass(pseudo_class, set);
 		}

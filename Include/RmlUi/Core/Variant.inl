@@ -34,19 +34,18 @@ inline Variant::Type Variant::GetType() const
 	return type;
 }
 
-// Constructs a variant with internal data.
 template< typename T >
-Variant::Variant(const T& t) : type(NONE)
+Variant::Variant(T&& t) : type(NONE)
 {
-	Set(t);
+	Set(std::forward<T>(t));
 }
 
-// Clear and set new value
 template< typename T >
-void Variant::Reset(const T& t)
+Variant& Variant::operator=(T&& t)
 {
 	Clear();
-	Set(t);
+	Set(std::forward<T>(t));
+	return *this;
 }
 
 // Templatised data accessor.
@@ -76,7 +75,7 @@ bool Variant::GetInto(T& value) const
 		break;
 
 	case WORD:
-		return TypeConverter< word, T >::Convert(*(word*)data, value);
+		return TypeConverter< Character, T >::Convert(*(Character*)data, value);
 		break;
 
 	case VECTOR2:
@@ -89,18 +88,6 @@ bool Variant::GetInto(T& value) const
 
 	case VECTOR4:
 		return TypeConverter< Vector4f, T >::Convert(*(Vector4f*)data, value);
-		break;
-
-	case TRANSFORMREF:
-		return TypeConverter< TransformRef, T >::Convert(*(TransformRef*)data, value);
-		break;
-
-	case TRANSITIONLIST:
-		return TypeConverter< TransitionList, T >::Convert(*(TransitionList*)data, value);
-		break;
-
-	case ANIMATIONLIST:
-		return TypeConverter< AnimationList, T >::Convert(*(AnimationList*)data, value);
 		break;
 
 	case COLOURF:
@@ -119,6 +106,25 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< void*, T >::Convert(*(void**)data, value);
 		break;
 
+	case TRANSFORMPTR:
+		return TypeConverter< TransformPtr, T >::Convert(*(TransformPtr*)data, value);
+		break;
+
+	case TRANSITIONLIST:
+		return TypeConverter< TransitionList, T >::Convert(*(TransitionList*)data, value);
+		break;
+
+	case ANIMATIONLIST:
+		return TypeConverter< AnimationList, T >::Convert(*(AnimationList*)data, value);
+		break;
+
+	case DECORATORSPTR:
+		return TypeConverter< DecoratorsPtr, T >::Convert(*(DecoratorsPtr*)data, value);
+		break;
+
+	case FONTEFFECTSPTR:
+		return TypeConverter< FontEffectsPtr, T >::Convert(*(FontEffectsPtr*)data, value);
+		break;
 	case NONE:
 		break;
 	}
@@ -128,11 +134,16 @@ bool Variant::GetInto(T& value) const
 
 // Templatised data accessor.
 template< typename T >
-T Variant::Get() const
+T Variant::Get(T default_value) const
 {
-	T value;
-	GetInto(value);
-	return value;
+	GetInto(default_value);
+	return default_value;
+}
+
+template<typename T>
+inline const T& Variant::GetReference() const
+{
+	return *(T*)data;
 }
 
 }

@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Input.h"
 #include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
 
 namespace Rml {
@@ -45,53 +44,45 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	box_layout_dirty = false;
 	value_layout_dirty = false;
+	box_visible = false;
 
 	selected_option = -1;
 
 	// Create the button and selection elements.
-	button_element = Core::Factory::InstanceElement(parent_element, "*", "selectarrow", Rml::Core::XMLAttributes());
-	value_element = Core::Factory::InstanceElement(element, "*", "selectvalue", Rml::Core::XMLAttributes());
-	selection_element = Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rml::Core::XMLAttributes());
+	button_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectarrow", Rml::Core::XMLAttributes()), false);
+	value_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectvalue", Rml::Core::XMLAttributes()), false);
+	selection_element = parent_element->AppendChild(Core::Factory::InstanceElement(parent_element, "*", "selectbox", Rml::Core::XMLAttributes()), false);
 
-	value_element->SetProperty("overflow", "hidden");
+	value_element->SetProperty(Core::PropertyId::OverflowX, Core::Property(Core::Style::Overflow::Hidden));
+	value_element->SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Hidden));
 
-	selection_element->SetProperty("visibility", "hidden");
-	selection_element->SetProperty("z-index", Core::Property(1.0f, Core::Property::NUMBER));
-	selection_element->SetProperty("clip", "none");
+	selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+	selection_element->SetProperty(Core::PropertyId::ZIndex, Core::Property(1.0f, Core::Property::NUMBER));
+	selection_element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Type::None));
 
-	parent_element->AddEventListener("click", this, true);
-	parent_element->AddEventListener("blur", this);
-	parent_element->AddEventListener("focus", this);
-	parent_element->AddEventListener("keydown", this, true);
-
-	// Add the elements to our parent element.
-	parent_element->AppendChild(button_element, false);
-	parent_element->AppendChild(selection_element, false);
-	parent_element->AppendChild(value_element, false);
+	parent_element->AddEventListener(Core::EventId::Click, this, true);
+	parent_element->AddEventListener(Core::EventId::Blur, this);
+	parent_element->AddEventListener(Core::EventId::Focus, this);
+	parent_element->AddEventListener(Core::EventId::Keydown, this, true);
 }
 
 WidgetDropDown::~WidgetDropDown()
 {
 	// We shouldn't clear the options ourselves, as removing the element will automatically clear children.
-	//   Not always a problem, but sometimes it invalidates the layout lock in Element::RemoveChild, which results in a permanently corrupted document.
 	//   However, we do need to remove events of children.
 	for(auto& option : options)
-		option.GetElement()->RemoveEventListener("click", this);
+		option.GetElement()->RemoveEventListener(Core::EventId::Click, this);
 
-	parent_element->RemoveEventListener("click", this, true);
-	parent_element->RemoveEventListener("blur", this);
-	parent_element->RemoveEventListener("focus", this);
-	parent_element->RemoveEventListener("keydown", this, true);
-
-	button_element->RemoveReference();
-	selection_element->RemoveReference();
-	value_element->RemoveReference();
+	parent_element->RemoveEventListener(Core::EventId::Click, this, true);
+	parent_element->RemoveEventListener(Core::EventId::Blur, this);
+	parent_element->RemoveEventListener(Core::EventId::Focus, this);
+	parent_element->RemoveEventListener(Core::EventId::Keydown, this, true);
 }
 
 // Updates the selection box layout if necessary.
 void WidgetDropDown::OnRender()
 {
-	if (box_layout_dirty)
+	if (box_visible && box_layout_dirty)
 	{
 		Core::Box box;
 		Core::ElementUtilities::BuildBox(box, parent_element->GetBox().GetSize(), selection_element);
@@ -114,6 +105,8 @@ void WidgetDropDown::OnRender()
 
 void WidgetDropDown::OnLayout()
 {
+	RMLUI_ZoneScopedNC("DropDownLayout", 0x7FFF00);
+
 	if(parent_element->IsDisabled())
 	{
 		// Propagate disabled state to selectvalue and selectarrow
@@ -205,8 +198,8 @@ void WidgetDropDown::SetSelection(int selection, bool force)
 		value_layout_dirty = true;
 
 		Rml::Core::Dictionary parameters;
-		parameters.Set("value", value);
-		parent_element->DispatchEvent("change", parameters);
+		parameters["value"] = value;
+		parent_element->DispatchEvent(Core::EventId::Change, parameters);
 	}
 }
 
@@ -217,33 +210,44 @@ int WidgetDropDown::GetSelection() const
 }
 
 // Adds a new option to the select control.
-int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::String& value, int before, bool select, bool selectable)
+int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::String& new_value, int before, bool select, bool selectable)
 {
-	// Instance a new element for the option.
-	Core::Element* element = Core::Factory::InstanceElement(selection_element, "*", "option", Rml::Core::XMLAttributes());
-
-	// Force to block display and inject the RML. Register a click handler so we can be notified of selection.
-	element->SetProperty("display", "block");
-	element->SetProperty("clip", "auto");
+	Core::ElementPtr element = Core::Factory::InstanceElement(selection_element, "*", "option", Rml::Core::XMLAttributes());
 	element->SetInnerRML(rml);
-	element->AddEventListener("click", this);
+
+	bool result = AddOption(std::move(element), new_value, before, select, selectable);
+
+	return result;
+}
+
+int WidgetDropDown::AddOption(Rml::Core::ElementPtr element, const Rml::Core::String& new_value, int before, bool select, bool selectable)
+{
+	static const Core::String str_option = "option";
+
+	if (element->GetTagName() != str_option)
+	{
+		Core::Log::Message(Core::Log::LT_WARNING, "A child of '%s' must be of type 'option' but '%s' was given. See element '%s'.", parent_element->GetTagName().c_str(), element->GetTagName().c_str(), parent_element->GetAddress().c_str());
+		return -1;
+	}
+
+	// Force to block display. Register a click handler so we can be notified of selection.
+	element->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::Block));
+	element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Type::Auto));
+	element->AddEventListener(Core::EventId::Click, this);
 
 	int option_index;
-	if (before < 0 ||
-		before >= (int) options.size())
+	if (before < 0 || before >= (int)options.size())
 	{
-		selection_element->AppendChild(element);
-		options.push_back(SelectOption(element, value, selectable));
-		option_index = (int) options.size() - 1;
+		Core::Element* ptr = selection_element->AppendChild(std::move(element));
+		options.push_back(SelectOption(ptr, new_value, selectable));
+		option_index = (int)options.size() - 1;
 	}
 	else
 	{
-		selection_element->InsertBefore(element, selection_element->GetChild(before));
-		options.insert(options.begin() + before, SelectOption(element, value, selectable));
+		Core::Element* ptr = selection_element->InsertBefore(std::move(element), selection_element->GetChild(before));
+		options.insert(options.begin() + before, SelectOption(ptr, new_value, selectable));
 		option_index = before;
 	}
-
-	element->RemoveReference();
 
 	// Select the option if appropriate.
 	if (select)
@@ -261,7 +265,7 @@ void WidgetDropDown::RemoveOption(int index)
 		return;
 
 	// Remove the listener and delete the option element.
-	options[index].GetElement()->RemoveEventListener("click", this);
+	options[index].GetElement()->RemoveEventListener(Core::EventId::Click, this);
 	selection_element->RemoveChild(options[index].GetElement());
 	options.erase(options.begin() + index);
 
@@ -280,7 +284,7 @@ SelectOption* WidgetDropDown::GetOption(int index)
 {
 	if (index < 0 ||
 		index >= GetNumOptions())
-		return NULL;
+		return nullptr;
 
 	return &options[index];
 }
@@ -297,7 +301,9 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 		return;
 
 	// Process the button onclick
-	if (event == "click")
+	switch (event.GetId())
+	{
+	case Core::EventId::Click:
 	{
 
 		if (event.GetCurrentElement()->GetParentNode() == selection_element)
@@ -332,47 +338,51 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 				element = element->GetParentNode();
 			}
 
-			if (selection_element->GetProperty< int >("visibility") == Core::VISIBILITY_HIDDEN)
+			if (selection_element->GetComputedValues().visibility == Core::Style::Visibility::Hidden)
 				ShowSelectBox(true);
 			else
 				ShowSelectBox(false);
-		}		
+		}
 	}
-	else if (event == "blur" && event.GetTargetElement() == parent_element)
+	break;
+	case Core::EventId::Focus:
 	{
-		ShowSelectBox(false);
+		if (event.GetTargetElement() == parent_element)
+		{
+			value_element->SetPseudoClass("focus", true);
+			button_element->SetPseudoClass("focus", true);
+		}
 	}
-	else if (event == "keydown")
+	case Core::EventId::Blur:
+	{
+		if (event.GetTargetElement() == parent_element)
+		{
+			ShowSelectBox(false);
+			value_element->SetPseudoClass("focus", false);
+			button_element->SetPseudoClass("focus", false);
+		}
+	}
+	break;
+	case Core::EventId::Keydown:
 	{
 		Core::Input::KeyIdentifier key_identifier = (Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
 		switch (key_identifier)
 		{
-			case Core::Input::KI_UP:
-				SetSelection((selected_option - 1 + (int)options.size()) % (int)options.size());
-				break;
-			case Core::Input::KI_DOWN:		
-				SetSelection((selected_option + 1) % (int)options.size());
-				break;
-			default:
-				break;
+		case Core::Input::KI_UP:
+			SetSelection((selected_option - 1 + (int)options.size()) % (int)options.size());
+			break;
+		case Core::Input::KI_DOWN:
+			SetSelection((selected_option + 1) % (int)options.size());
+			break;
+		default:
+			break;
 		}
 	}
-
-	if (event.GetTargetElement() == parent_element)
-	{
-		if (event == "focus")
-		{
-			value_element->SetPseudoClass("focus", true);
-			button_element->SetPseudoClass("focus", true);
-		}
-		else if (event == "blur")
-		{
-			value_element->SetPseudoClass("focus", false);
-			button_element->SetPseudoClass("focus", false);
-		}
+	break;
+	default:
+		break;
 	}
-
 }
 
 // Shows or hides the selection box.
@@ -380,16 +390,17 @@ void WidgetDropDown::ShowSelectBox(bool show)
 {
 	if (show)
 	{
-		selection_element->SetProperty("visibility", "visible");
+		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
 	}
 	else
 	{
-		selection_element->SetProperty("visibility", "hidden");
+		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
 	}
+	box_visible = show;
 }
 
 }

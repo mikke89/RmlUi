@@ -49,28 +49,28 @@ public:
 
 	/// Opens a file.		
 	/// @param path The path of the file to open.		
-	/// @return A valid file handle, or NULL on failure
-	virtual FileHandle Open(const String& path);
+	/// @return A valid file handle, or nullptr on failure
+	FileHandle Open(const String& path) override;
 	/// Closes a previously opened file.
 	/// @param file The file handle previously opened through Open().
-	virtual void Close(FileHandle file);
+	void Close(FileHandle file) override;
 
 	/// Reads data from a previously opened file.
 	/// @param buffer The buffer to be read into.
 	/// @param size The number of bytes to read into the buffer.
 	/// @param file The handle of the file.
 	/// @return The total number of bytes read into the buffer.
-	virtual size_t Read(void* buffer, size_t size, FileHandle file);
+	size_t Read(void* buffer, size_t size, FileHandle file) override;
 	/// Seeks to a point in a previously opened file.
 	/// @param file The handle of the file to seek.
 	/// @param offset The number of bytes to seek.
 	/// @param origin One of either SEEK_SET (seek from the beginning of the file), SEEK_END (seek from the end of the file) or SEEK_CUR (seek from the current file position).
 	/// @return True if the operation completed successfully, false otherwise.
-	virtual bool Seek(FileHandle file, long offset, int origin);
+	bool Seek(FileHandle file, long offset, int origin) override;
 	/// Returns the current position of the file pointer.
 	/// @param file The handle of the file to be queried.
 	/// @return The number of bytes from the origin of the file.
-	virtual size_t Tell(FileHandle file);
+	size_t Tell(FileHandle file) override;
 };
 
 }

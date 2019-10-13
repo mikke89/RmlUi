@@ -68,31 +68,31 @@ bool URL::SetURL(const String& _url)
 	url = _url;
 
 	// Make sure an Empty URL is completely Empty.
-	if (url.Empty())
+	if (url.empty())
 	{
-		protocol.Clear();
-		login.Clear();
-		password.Clear();
-		host.Clear();
+		protocol.clear();
+		login.clear();
+		password.clear();
+		host.clear();
 		port = 0;
-		path.Clear();
-		file_name.Clear();
-		extension.Clear();
+		path.clear();
+		file_name.clear();
+		extension.clear();
 
 		return true;
 	}
 
 	// Find the protocol. This consists of the string appearing before the
 	// '://' token (ie, file://, http://).
-	const char* host_begin = strchr(_url.CString(), ':');
-	if (NULL != host_begin)
+	const char* host_begin = strchr(_url.c_str(), ':');
+	if (nullptr != host_begin)
 	{
-		protocol.Assign(_url.CString(), host_begin);
+		protocol = String(_url.c_str(), host_begin);
 		if (0 != strncmp(host_begin, "://", 3))
 		{
 			char malformed_terminator[4] = {0, 0, 0, 0};
 			strncpy(malformed_terminator, host_begin, 3);
-			Log::Message(Log::LT_ERROR, "Malformed protocol identifier found in URL %s; expected %s://, found %s%s.\n", _url.CString(), protocol.CString(), protocol.CString(), malformed_terminator);
+			Log::Message(Log::LT_ERROR, "Malformed protocol identifier found in URL %s; expected %s://, found %s%s.\n", _url.c_str(), protocol.c_str(), protocol.c_str(), malformed_terminator);
 
 			return false;
 		}
@@ -101,13 +101,13 @@ bool URL::SetURL(const String& _url)
 	else
 	{
 		protocol = DEFAULT_PROTOCOL;
-		host_begin = _url.CString();
+		host_begin = _url.c_str();
 	}
 
 
 	// We only want to look for a host if a protocol was specified.
 	const char* path_begin;
-	if (host_begin != _url.CString())
+	if (host_begin != _url.c_str())
 	{
 		// Find the host. This is the string appearing after the protocol or after
 		// the username:password combination, and terminated either with a colon, 
@@ -118,14 +118,14 @@ bool URL::SetURL(const String& _url)
 		if ( at_symbol )
 		{
 			String login_password;
-			login_password.Assign( host_begin, at_symbol );			
+			login_password = String( host_begin, at_symbol );			
 			host_begin = at_symbol + 1;
 
-			const char* password_ptr = strchr( login_password.CString(), ':' );
+			const char* password_ptr = strchr( login_password.c_str(), ':' );
 			if ( password_ptr )
 			{
-				login.Assign( login_password.CString(), password_ptr );
-				password.Assign( password_ptr + 1 );
+				login = String( login_password.c_str(), password_ptr );
+				password = String( password_ptr + 1 );
 			}
 			else
 			{
@@ -137,18 +137,18 @@ bool URL::SetURL(const String& _url)
 		path_begin = strchr(host_begin, '/');
 		// Search for the colon in the host name, which will indicate a port.
 		const char* port_begin = strchr(host_begin, ':');
-		if (NULL != port_begin && (NULL == path_begin || port_begin < path_begin))
+		if (nullptr != port_begin && (nullptr == path_begin || port_begin < path_begin))
 		{
 			if (1 != sscanf(port_begin, ":%d", &port))
 			{
-				Log::Message(Log::LT_ERROR, "Malformed port number found in URL %s.\n", _url.CString());
+				Log::Message(Log::LT_ERROR, "Malformed port number found in URL %s.\n", _url.c_str());
 				return false;
 			}
 
-			host.Assign(host_begin, port_begin);
+			host = String(host_begin, port_begin);
 
 			// Don't continue if there is no path.
-			if (NULL == path_begin)
+			if (nullptr == path_begin)
 			{
 				return true;
 			}
@@ -160,7 +160,7 @@ bool URL::SetURL(const String& _url)
 		{
 			port = -1;
 
-			if (NULL == path_begin)
+			if (nullptr == path_begin)
 			{
 				host = host_begin;
 				return true;
@@ -169,14 +169,14 @@ bool URL::SetURL(const String& _url)
 			{
 				// Assign the host name, then increment the path string past the
 				// trailing slash.
-				host.Assign(host_begin, path_begin);
+				host = String(host_begin, path_begin);
 				++path_begin;
 			}
 		}
 	}
 	else
 	{
-		path_begin = _url.CString();
+		path_begin = _url.c_str();
 	}
 	
 	// Check for parameters
@@ -185,8 +185,8 @@ bool URL::SetURL(const String& _url)
 	if ( parameters )
 	{
 		// Pull the path segment out, so further processing doesn't read the parameters
-		path_segment.Assign(path_begin, parameters);
-		path_begin = path_segment.CString();
+		path_segment = String(path_begin, parameters);
+		path_begin = path_segment.c_str();
 		
 		// Loop through all parameters, loading them
 		StringList parameter_list;
@@ -209,7 +209,7 @@ bool URL::SetURL(const String& _url)
 	// Find the path. This is the string appearing after the host, terminated
 	// by the last forward slash.
 	const char* file_name_begin = strrchr(path_begin, '/');
-	if (NULL == file_name_begin)
+	if (nullptr == file_name_begin)
 	{
 		// No path!
 		file_name_begin = path_begin;
@@ -218,20 +218,20 @@ bool URL::SetURL(const String& _url)
 	else
 	{
 		// Copy the path including the trailing slash.
-		path.Assign(path_begin, ++file_name_begin);
+		path = String(path_begin, ++file_name_begin);
 
 		// Normalise the path, stripping any ../'s from it
 		size_t parent_dir_pos = String::npos;
-		while ((parent_dir_pos = path.Find("/..")) != String::npos)
+		while ((parent_dir_pos = path.find("/..")) != String::npos)
 		{
 			// If we found a /.. we should be able to find the start of the parent
 			// directory, if we can't something wierd has happend, bail
-			size_t parent_dir_start_pos = path.RFind("/", parent_dir_pos);
+			size_t parent_dir_start_pos = path.rfind("/", parent_dir_pos - 1);
 			if (parent_dir_start_pos == String::npos)
 				break;
 
 			// Strip out the parent dir and the /..
-			path.Erase(parent_dir_start_pos, parent_dir_pos - parent_dir_start_pos + 3);
+			path.erase(parent_dir_start_pos, parent_dir_pos - parent_dir_start_pos + 3);
 
 			// We've altered the URL, mark it dirty
 			url_dirty = true;
@@ -242,14 +242,14 @@ bool URL::SetURL(const String& _url)
 	// Find the file name. This is the string after the trailing slash of the
 	// path, and just before the extension.
 	const char* extension_begin = strrchr(file_name_begin, '.');
-	if (NULL == extension_begin)
+	if (nullptr == extension_begin)
 	{
 		file_name = file_name_begin;
 		extension = "";
 	}
 	else
 	{
-		file_name.Assign(file_name_begin, extension_begin);
+		file_name = String(file_name_begin, extension_begin);
 		extension = extension_begin + 1;
 	}
 	
@@ -351,8 +351,8 @@ bool URL::SetPath(const String& _path)
 bool URL::PrefixPath(const String& prefix)
 {
 	// If there's no trailing slash on the end of the prefix, add one.
-	if (!prefix.Empty() &&
-		prefix[prefix.Length() - 1] != '/')
+	if (!prefix.empty() &&
+		prefix[prefix.size() - 1] != '/')
 		path = prefix + "/" + path;
 	else
 		path = prefix + path;
@@ -433,9 +433,9 @@ String URL::GetPathedFileName() const
 	pathed_file_name += file_name;
 	
 	// Append the extension.
-	if (!extension.Empty())
+	if (!extension.empty())
 	{
-		pathed_file_name.Append(".");
+		pathed_file_name += ".";
 		pathed_file_name += extension;
 	}
 	
@@ -477,46 +477,46 @@ void URL::ConstructURL() const
 	url = "";
 
 	// Append the protocol.
-	if (!protocol.Empty() && !host.Empty())	
+	if (!protocol.empty() && !host.empty())	
 	{
 		url = protocol;
-		url.Append("://");
+		url += "://";
 	}
 
 	// Append login and password
-	if (!login.Empty())
+	if (!login.empty())
 	{
-		url.Append( login );
-		if (!password.Empty())
+		url +=  login ;
+		if (!password.empty())
 		{		
-			url.Append( ":" );
-			url.Append( password );
+			url +=  ":" ;
+			url +=  password ;
 		}
-		url.Append( "@" );
+		url +=  "@" ;
 	}
-	RMLUI_ASSERTMSG( password.Empty() || ( !password.Empty() && !login.Empty() ), "Can't have a password without a login!" );
+	RMLUI_ASSERTMSG( password.empty() || ( !password.empty() && !login.empty() ), "Can't have a password without a login!" );
 
 	// Append the host.
 	url += host;
 	
 	// Only check ports if there is some host/protocol part
-	if ( !url.Empty() )
+	if ( !url.empty() )
 	{		
 		if (port > 0)
 		{
-			RMLUI_ASSERTMSG( !host.Empty(), "Can't have a port without a host!" );
+			RMLUI_ASSERTMSG( !host.empty(), "Can't have a port without a host!" );
 			char port_string[16];
 			sprintf(port_string, ":%d/", port);
-			url.Append(port_string);
+			url += port_string;
 		}
 		else
 		{
-			url.Append("/");
+			url += "/";
 		}
 	}
 
 	// Append the path.
-	if (!path.Empty())
+	if (!path.empty())
 	{
 		url += path;
 	}
@@ -525,9 +525,9 @@ void URL::ConstructURL() const
 	url += file_name;
 
 	// Append the extension.
-	if (!extension.Empty())
+	if (!extension.empty())
 	{
-		url.Append(".");
+		url += ".";
 		url += extension;
 	}
 	
@@ -546,18 +546,18 @@ String URL::UrlEncode(const String &value)
 	String encoded;
 	char hex[4] = {0,0,0,0};
 
-	encoded.Clear();
+	encoded.clear();
 
-	const char *value_c = value.CString();
+	const char *value_c = value.c_str();
 	for (String::size_type i = 0; value_c[i]; i++) 
 	{
 		char c = value_c[i];
 		if (IsUnreservedChar(c))
-			encoded.Append(c);
+			encoded += c;
 		else
 		{
 			sprintf(hex, "%%%02X", c);
-			encoded.Append(hex);
+			encoded += hex;
 		}
 	}
 
@@ -568,31 +568,31 @@ String URL::UrlDecode(const String &value)
 {
 	String decoded;
 
-	decoded.Clear();
+	decoded.clear();
 
-	const char *value_c = value.CString();
-	String::size_type value_len = value.Length();
+	const char *value_c = value.c_str();
+	String::size_type value_len = value.size();
 	for (String::size_type i = 0; i < value_len; i++) 
 	{
 		char c = value_c[i];
 		if (c == '+')
 		{
-			decoded.Append(' ' );
+			decoded += ' ';
 		}
 		else if (c == '%')
 		{
 			char *endp;
-			String t = value.Substring(i+1, 2);
-			int ch = strtol(t.CString(), &endp, 16);
+			String t = value.substr(i+1, 2);
+			int ch = strtol(t.c_str(), &endp, 16);
 			if (*endp == '\0')
-				decoded.Append(char(ch));
+				decoded += char(ch);
 			else
-				decoded.Append(t);
+				decoded += t;
 			i += 2;
 		}
 		else
 		{
-			decoded.Append(c);
+			decoded += c;
 		}
 	}
 

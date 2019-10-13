@@ -34,18 +34,27 @@
 namespace Rml {
 namespace Core {
 
-class Stream;
-
-}
-}
-
-namespace Rml {
-namespace Core {
-
 class Context;
+class Stream;
 class DocumentHeader;
 class ElementText;
 class StyleSheet;
+
+/**
+	 ModalFlag used for controlling the modal state of the document.
+		None:  Remove modal state.
+		Modal: Set modal state, other documents cannot receive focus.
+		Keep:  Modal state unchanged.
+
+	FocusFlag used for displaying the document.
+		None:     No focus.
+		Document: Focus the document.
+		Keep:     Focus the element in the document which last had focus.
+		Auto:     Focus the first tab element with the 'autofocus' attribute or else the document.
+*/
+enum class ModalFlag { None, Modal, Keep };
+enum class FocusFlag { None, Document, Keep, Auto };
+
 
 /**
 	Represents a document in the dom tree.
@@ -62,49 +71,31 @@ public:
 	/// Process given document header
 	void ProcessHeader(const DocumentHeader* header);
 
-	/// Returns itself as the current document
-	virtual ElementDocument* GetOwnerDocument();
-
 	/// Returns the document's context.
-	/// @return The context this document exists within.
 	Context* GetContext();
 
 	/// Sets the document's title.
-	/// @param[in] title The new title of the document.
 	void SetTitle(const String& title);
 	/// Returns the title of this document.
-	/// @return The document's title.
 	const String& GetTitle() const;
 
 	/// Returns the source address of this document.
-	/// @return The source of this document, usually a file name.
 	const String& GetSourceURL() const;
 
 	/// Sets the style sheet this document, and all of its children, uses.
-	/// @param[in] style_sheet The style sheet to set on the document.
-	void SetStyleSheet(StyleSheet* style_sheet);
+	void SetStyleSheet(SharedPtr<StyleSheet> style_sheet);
 	/// Returns the document's style sheet.
-	/// @return The document's style sheet.
-	virtual StyleSheet* GetStyleSheet() const;
+	const SharedPtr<StyleSheet>& GetStyleSheet() const override;
 
 	/// Brings the document to the front of the document stack.
 	void PullToFront();
 	/// Sends the document to the back of the document stack.
 	void PushToBack();
 
-	/**
-		Flags used for displaying the document.
-	 */
-	enum FocusFlags
-	{
-		NONE = 0,
-		FOCUS = (1 << 1),
-		MODAL = (1 << 2)
-	};
-
 	/// Show the document.
-	/// @param[in] focus_flags Flags controlling the changing of focus. Leave as FOCUS to switch focus to the document.
-	void Show(int focus_flags = FOCUS);
+	/// @param[in] modal_flag Flags controlling the modal state of the document, see the 'ModalFlag' description for details.
+	/// @param[in] focus_flag Flags controlling the focus, see the 'FocusFlag' description for details.
+	void Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto);
 	/// Hide the document.
 	void Hide();
 	/// Close the document.
@@ -112,10 +103,10 @@ public:
 
 	/// Creates the named element.
 	/// @param[in] name The tag name of the element.
-	Element* CreateElement(const String& name);
+	ElementPtr CreateElement(const String& name);
 	/// Create a text element with the given text content.
 	/// @param[in] text The text content of the text element.
-	ElementText* CreateTextNode(const String& text);
+	ElementPtr CreateTextNode(const String& text);
 
 	/// Does the document have modal display set.
 	/// @return True if the document is hogging focus.
@@ -127,40 +118,42 @@ public:
 	/// @param[in] source_name Name of the the script the source comes from, useful for debug information.
 	virtual void LoadScript(Stream* stream, const String& source_name);
 
+	/// Updates the document, including its layout. Users must call this manually before requesting information such as 
+	/// size or position of an element if any element in the document was recently changed, unless Context::Update has
+	/// already been called after the change. This has a perfomance penalty, only call when necessary.
+	void UpdateDocument();
+	
+protected:
+	/// Repositions the document if necessary.
+	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
+
+	/// Processes the 'onpropertychange' event, checking for a change in position or size.
+	void ProcessDefaultAction(Event& event) override;
+
+	/// Called during update if the element size has been changed.
+	void OnResize() override;
+
+private:
+	/// Find the next element to focus, starting at the current element
+	Element* FindNextTabElement(Element* current_element, bool forward);
+	/// Searches forwards or backwards for a focusable element in the given substree
+	Element* SearchFocusSubtree(Element* element, bool forward);
+
+	/// Sets the dirty flag on the layout so the document will format its children before the next render.
+	void DirtyLayout() override;
+	/// Returns true if the document has been marked as needing a re-layout.
+	bool IsLayoutDirty() override;
+
+	/// Updates all sizes defined by the 'lp' unit.
+	void DirtyDpProperties();
+
 	/// Updates the layout if necessary.
-	/// The extra argument was added such that layout updates can be done only once per frame
-	inline void UpdateLayout(bool i_really_mean_it = false) { if (i_really_mean_it && layout_dirty && lock_layout == 0) _UpdateLayout(); }
+	void UpdateLayout();
 
 	/// Updates the position of the document based on the style properties.
 	void UpdatePosition();
-	
-	/// Increment/Decrement the layout lock
-	void LockLayout(bool lock);
-	
-protected:
-	/// Refreshes the document layout if required.
-	virtual void OnUpdate();
-
-	/// Repositions the document if necessary.
-	virtual void OnPropertyChange(const PropertyNameList& changed_properties);
-
-	/// Sets the dirty flag on the layout so the document will format its children before the next render.
-	virtual void DirtyLayout();
-
-	/// Returns true if the document has been marked as needing a re-layout.
-	virtual bool IsLayoutDirty();
-
-	/// Updates all sizes defined by the 'lp' unit.
-	virtual void DirtyDpProperties();
-
-	/// Processes the 'onpropertychange' event, checking for a change in position or size.
-	virtual void ProcessEvent(Event& event);
-
-private:
-	// Find the next element to focus, starting at the current element
-	bool FocusNextTabElement(Element* current_element, bool forward);
-	/// Searches forwards or backwards for a focusable element in the given substree
-	bool SearchFocusSubtree(Element* element, bool forward);
+	/// Sets the dirty flag for document positioning
+	void DirtyPosition();
 
 	// Title of the document
 	String title;
@@ -169,7 +162,7 @@ private:
 	String source_url;
 
 	// The document's style sheet.
-	StyleSheet* style_sheet;
+	SharedPtr<StyleSheet> style_sheet;
 
 	Context* context;
 
@@ -178,12 +171,12 @@ private:
 
 	// Is the layout dirty?
 	bool layout_dirty;
-	int lock_layout;
+
+	bool position_dirty;
 
 	friend class Context;
 	friend class Factory;
-	
-	void _UpdateLayout();
+
 };
 
 }

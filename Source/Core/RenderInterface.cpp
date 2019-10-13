@@ -33,13 +33,14 @@
 namespace Rml {
 namespace Core {
 
-RenderInterface::RenderInterface() : ReferenceCountable(0)
+RenderInterface::RenderInterface()
 {
-	context = NULL;
+	context = nullptr;
 }
 
 RenderInterface::~RenderInterface()
 {
+	TextureDatabase::ReleaseTextures(this);
 }
 
 // Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
@@ -93,43 +94,9 @@ void RenderInterface::ReleaseTexture(TextureHandle RMLUI_UNUSED_PARAMETER(textur
 	RMLUI_UNUSED(texture);
 }
 
-// Returns the native horizontal texel offset for the renderer.
-float RenderInterface::GetHorizontalTexelOffset()
-{
-	return 0;
-}
-
-// Returns the native vertical texel offset for the renderer.
-float RenderInterface::GetVerticalTexelOffset()
-{
-	return 0;
-}
-
-// Returns the number of pixels per inch.
-float RenderInterface::GetPixelsPerInch()
-{
-	return 100;
-}
-
 // Called by RmlUi when it wants to change the current transform matrix to a new matrix.
-void RenderInterface::PushTransform(const Matrix4f& transform)
+void RenderInterface::SetTransform(const Matrix4f* transform)
 {
-}
-
-// Called by RmlUi when it wants to revert the latest transform change.
-void RenderInterface::PopTransform(const Matrix4f& transform)
-{
-}
-
-// Called when this render interface is released.
-void RenderInterface::Release()
-{
-}
-
-void RenderInterface::OnReferenceDeactivate()
-{
-	TextureDatabase::ReleaseTextures(this);
-	Release();
 }
 
 // Get the context currently being rendered.

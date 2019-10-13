@@ -29,7 +29,7 @@
 #ifndef RMLUICORERENDERINTERFACE_H
 #define RMLUICORERENDERINTERFACE_H
 
-#include "ReferenceCountable.h"
+#include "Traits.h"
 #include "Header.h"
 #include "Texture.h"
 #include "Vertex.h"
@@ -47,7 +47,7 @@ class Context;
 	@author Peter Curry
  */
 
-class RMLUICORE_API RenderInterface : public ReferenceCountable
+class RMLUICORE_API RenderInterface : public NonCopyMoveable
 {
 public:
 	RenderInterface();
@@ -59,18 +59,18 @@ public:
 	/// @param[in] num_vertices The number of vertices passed to the function.
 	/// @param[in] indices The geometry's index data.
 	/// @param[in] num_indices The number of indices passed to the function. This will always be a multiple of three.
-	/// @param[in] texture The texture to be applied to the geometry. This may be NULL, in which case the geometry is untextured.
+	/// @param[in] texture The texture to be applied to the geometry. This may be nullptr, in which case the geometry is untextured.
 	/// @param[in] translation The translation to apply to the geometry.
 	virtual void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation) = 0;
 
 	/// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
 	/// If supported, this should be return a pointer to an optimised, application-specific version of the data. If
-	/// not, do not override the function or return NULL; the simpler RenderGeometry() will be called instead.
+	/// not, do not override the function or return nullptr; the simpler RenderGeometry() will be called instead.
 	/// @param[in] vertices The geometry's vertex data.
 	/// @param[in] num_vertices The number of vertices passed to the function.
 	/// @param[in] indices The geometry's index data.
 	/// @param[in] num_indices The number of indices passed to the function. This will always be a multiple of three.
-	/// @param[in] texture The texture to be applied to the geometry. This may be NULL, in which case the geometry is untextured.
+	/// @param[in] texture The texture to be applied to the geometry. This may be nullptr, in which case the geometry is untextured.
 	/// @return The application-specific compiled geometry. Compiled geometry will be stored and rendered using RenderCompiledGeometry() in future calls, and released with ReleaseCompiledGeometry() when it is no longer needed.
 	virtual CompiledGeometryHandle CompileGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture);
 	/// Called by RmlUi when it wants to render application-compiled geometry.
@@ -107,34 +107,14 @@ public:
 	/// @param texture The texture handle to release.
 	virtual void ReleaseTexture(TextureHandle texture);
 
-	/// Returns the native horizontal texel offset for the renderer.
-	/// @return The renderer's horizontal texel offset. The default implementation returns 0.
-	virtual float GetHorizontalTexelOffset();
-	/// Returns the native vertical texel offset for the renderer.
-	/// @return The renderer's vertical texel offset. The default implementation returns 0.
-	virtual float GetVerticalTexelOffset();
-
-	/// Returns the number of pixels per inch.
-	/// @returns The number of pixels per inch. The default implementation returns 100.
-	virtual float GetPixelsPerInch();
-
-	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
-	/// @param[in] transform The new transform to apply.
-	virtual void PushTransform(const Matrix4f& transform);
-	/// Called by RmlUi when it wants to revert the latest transform change.
-	/// @param[in] transform This is the transform to unapply.
-	///            It always equals the argument of the latest call to PushTransform().
-	virtual void PopTransform(const Matrix4f& transform);
-
-	/// Called when this render interface is released.
-	virtual void Release();
+	/// Called by RmlUi when it wants the renderer to use a new transform matrix.
+	/// If no transform applies to the current element, nullptr is submitted. Then it expects the renderer to use an identity matrix or otherwise omit the multiplication with the transform.
+	/// @param[in] transform The new transform to apply, or nullptr if no transform applies to the current element.
+	virtual void SetTransform(const Matrix4f* transform);
 
 	/// Get the context currently being rendered. This is only valid during RenderGeometry,
 	/// CompileGeometry, RenderCompiledGeometry, EnableScissorRegion and SetScissorRegion.
 	Context* GetContext() const;
-
-protected:
-	virtual void OnReferenceDeactivate();
 
 private:
 	Context* context;

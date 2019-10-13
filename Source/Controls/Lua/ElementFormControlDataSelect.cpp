@@ -47,17 +47,17 @@ int ElementFormControlDataSelectSetDataSource(lua_State* L, ElementFormControlDa
 Rml::Core::Lua::RegType<ElementFormControlDataSelect> ElementFormControlDataSelectMethods[] =
 {
     LUAMETHOD(ElementFormControlDataSelect,SetDataSource)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlDataSelectGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormControlDataSelectSetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 }
@@ -77,7 +77,7 @@ template<> void ExtraInit<Rml::Controls::ElementFormControlDataSelect>(lua_State
 }
 
 using Rml::Controls::ElementFormControlDataSelect;
-LUACONTROLSTYPEDEFINE(ElementFormControlDataSelect,true)
+LUACONTROLSTYPEDEFINE(ElementFormControlDataSelect)
 }
 }
 }

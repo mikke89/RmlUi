@@ -61,7 +61,6 @@ int Elementnew(lua_State* L)
     const char* tag = luaL_checkstring(L,1);
     Element* ele = new Element(tag);
     LuaType<Element>::push(L,ele,true);
-    ele->RemoveReference();
     return 1;
 }
 
@@ -76,7 +75,7 @@ int ElementAddEventListener(lua_State* L, Element* obj)
 
     const char* event = luaL_checkstring(L,1);
 
-    LuaEventListener* listener = NULL;
+    LuaEventListener* listener = nullptr;
     int type = lua_type(L,2);
     if(type == LUA_TFUNCTION)
     {
@@ -92,7 +91,7 @@ int ElementAddEventListener(lua_State* L, Element* obj)
 		Log::Message(Log::LT_WARNING, "Lua Context:AddEventLisener's 2nd argument can only be a Lua function or a string, you passed in a %s", lua_typename(L,type));
 	}
 
-    if(listener != NULL)
+    if(listener != nullptr)
     {
         obj->AddEventListener(event,listener,capture);
     }
@@ -101,8 +100,11 @@ int ElementAddEventListener(lua_State* L, Element* obj)
 
 int ElementAppendChild(lua_State* L, Element* obj)
 {
-    Element* ele = LuaType<Element>::check(L,1);
-    obj->AppendChild(ele);
+	ElementPtr* element = LuaType<ElementPtr>::check(L, 1);
+	if (*element)
+		obj->AppendChild(std::move(*element));
+	else
+		Log::Message(Log::LT_WARNING, "Could not append child to element '%s', as the child was null. Was it already moved from?", obj->GetAddress().c_str());
     return 0;
 }
 
@@ -131,23 +133,23 @@ int ElementDispatchEvent(lua_State* L, Element* obj)
         switch(type)
         {
 		case LUA_TNUMBER:
-            params.Set(key,(float)lua_tonumber(L,-1));
+            params[key] = (float)lua_tonumber(L,-1);
             break;
 		case LUA_TBOOLEAN: 
-            params.Set(key,CHECK_BOOL(L,-1));
+            params[key] = CHECK_BOOL(L,-1);
             break;
 		case LUA_TSTRING:
-            params.Set(key,luaL_checkstring(L,-1));
+            params[key] = luaL_checkstring(L,-1);
             break;
         case LUA_TUSERDATA:
         case LUA_TLIGHTUSERDATA:
-            params.Set(key,lua_touserdata(L,-1));
+            params[key] = lua_touserdata(L,-1);
             break;
         default:
             break;
         }
     }
-    obj->DispatchEvent(event,params,false);
+    obj->DispatchEvent(event, params);
     return 0;
 }
 
@@ -203,9 +205,12 @@ int ElementHasChildNodes(lua_State* L, Element* obj)
 
 int ElementInsertBefore(lua_State* L, Element* obj)
 {
-    Element* element = LuaType<Element>::check(L,1);
+    ElementPtr* element = LuaType<ElementPtr>::check(L,1);
     Element* adjacent = LuaType<Element>::check(L,2);
-    obj->InsertBefore(element,adjacent);
+	if(*element)
+		obj->InsertBefore(std::move(*element), adjacent);
+	else
+		Log::Message(Log::LT_WARNING, "Could not insert child to element '%s', as the child was null. Was it already moved from?", obj->GetAddress().c_str());
     return 0;
 }
 
@@ -226,15 +231,18 @@ int ElementRemoveAttribute(lua_State* L, Element* obj)
 int ElementRemoveChild(lua_State* L, Element* obj)
 {
     Element* element = LuaType<Element>::check(L,1);
-    lua_pushboolean(L,obj->RemoveChild(element));
+    lua_pushboolean(L,static_cast<bool>(obj->RemoveChild(element)));
     return 1;
 }
 
 int ElementReplaceChild(lua_State* L, Element* obj)
 {
-    Element* inserted = LuaType<Element>::check(L,1);
+    ElementPtr* inserted = LuaType<ElementPtr>::check(L,1);
     Element* replaced = LuaType<Element>::check(L,2);
-    lua_pushboolean(L,obj->ReplaceChild(inserted,replaced));
+	if(*inserted)
+		lua_pushboolean(L, static_cast<bool>(obj->ReplaceChild(std::move(*inserted),replaced)));
+	else
+		Log::Message(Log::LT_WARNING, "Could not replace child in element '%s', as the child was null. Was it already moved from?", obj->GetAddress().c_str());
     return 1;
 }
 
@@ -286,7 +294,7 @@ int ElementGetAttrclass_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    const char* classnames = ele->GetClassNames().CString();
+    const char* classnames = ele->GetClassNames().c_str();
     lua_pushstring(L,classnames);
     return 1;
 }
@@ -328,7 +336,7 @@ int ElementGetAttrfirst_child(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* child = ele->GetFirstChild();
-    if(child == NULL)
+    if(child == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,child,false);
@@ -339,7 +347,7 @@ int ElementGetAttrid(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    lua_pushstring(L,ele->GetId().CString());
+    lua_pushstring(L,ele->GetId().c_str());
     return 1;
 }
 
@@ -347,7 +355,7 @@ int ElementGetAttrinner_rml(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    lua_pushstring(L,ele->GetInnerRML().CString());
+    lua_pushstring(L,ele->GetInnerRML().c_str());
     return 1;
 }
 
@@ -356,7 +364,7 @@ int ElementGetAttrlast_child(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* child = ele->GetLastChild();
-    if(child == NULL)
+    if(child == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,child,false);
@@ -368,7 +376,7 @@ int ElementGetAttrnext_sibling(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* sibling = ele->GetNextSibling();
-    if(sibling == NULL)
+    if(sibling == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,sibling,false);
@@ -430,7 +438,7 @@ int ElementGetAttrparent_node(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* parent = ele->GetParentNode();
-    if(parent == NULL)
+    if(parent == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,parent,false);
@@ -442,7 +450,7 @@ int ElementGetAttrprevious_sibling(lua_State* L)
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
     Element* sibling = ele->GetPreviousSibling();
-    if(sibling == NULL)
+    if(sibling == nullptr)
         lua_pushnil(L);
     else
         LuaType<Element>::push(L,sibling,false);
@@ -495,7 +503,7 @@ int ElementGetAttrtag_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    lua_pushstring(L,ele->GetTagName().CString());
+    lua_pushstring(L,ele->GetTagName().c_str());
     return 1;
 }
 
@@ -570,7 +578,7 @@ RegType<Element> ElementMethods[] =
     LUAMETHOD(Element,ScrollIntoView)
     LUAMETHOD(Element,SetAttribute)
     LUAMETHOD(Element,SetClass)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementGetters[] =
@@ -601,7 +609,7 @@ luaL_Reg ElementGetters[] =
     LUAGETTER(Element,scroll_width)
     LUAGETTER(Element,style)
     LUAGETTER(Element,tag_name)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementSetters[] =
@@ -611,10 +619,45 @@ luaL_Reg ElementSetters[] =
     LUASETTER(Element,inner_rml)
     LUASETTER(Element,scroll_left)
     LUASETTER(Element,scroll_top)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
-LUACORETYPEDEFINE(Element,true)
+LUACORETYPEDEFINE(Element)
+
+
+
+
+
+
+
+
+
+
+
+template<> void ExtraInit<ElementPtr>(lua_State* L, int metatable_index)
+{
+	return;
+}
+
+RegType<ElementPtr> ElementPtrMethods[] =
+{
+	{ nullptr, nullptr },
+};
+
+luaL_Reg ElementPtrGetters[] =
+{
+	{ nullptr, nullptr },
+};
+
+luaL_Reg ElementPtrSetters[] =
+{
+	{ nullptr, nullptr },
+};
+
+LUACORETYPEDEFINE(ElementPtr)
+
+
+
 }
 }
 }

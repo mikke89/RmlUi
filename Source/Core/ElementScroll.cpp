@@ -41,15 +41,28 @@ namespace Core {
 ElementScroll::ElementScroll(Element* _element)
 {
 	element = _element;
-	corner = NULL;
+	corner = nullptr;
 }
 
 ElementScroll::~ElementScroll()
 {
+	ClearScrollbars();
+}
+
+void ElementScroll::ClearScrollbars()
+{
 	for (int i = 0; i < 2; i++)
 	{
-		if (scrollbars[i].element != NULL)
-			scrollbars[i].element->RemoveEventListener("scrollchange", this);
+		if (scrollbars[i].element != nullptr)
+		{
+			scrollbars[i] = Scrollbar();
+		}
+	}
+
+	if (corner != nullptr)
+	{
+		corner->GetParentNode()->RemoveChild(element);
+		corner = nullptr;
 	}
 }
 
@@ -58,7 +71,7 @@ void ElementScroll::Update()
 {
 	for (int i = 0; i < 2; i++)
 	{
-		if (scrollbars[i].widget != NULL)
+		if (scrollbars[i].widget != nullptr)
 			scrollbars[i].widget->Update();
 	}
 }
@@ -69,7 +82,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 	if (!scrollbars[orientation].enabled)
 	{
 		CreateScrollbar(orientation);
-		scrollbars[orientation].element->SetProperty(VISIBILITY, "visible");
+		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 		scrollbars[orientation].enabled = true;
 	}
 
@@ -84,7 +97,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 		if (box.GetSize().y < 0)
 			scrollbars[orientation].size = box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
 										   box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) +
-										   scrollbars[orientation].element->ResolveProperty(HEIGHT, element_width);
+										   ResolveValue(scrollbars[orientation].element->GetComputedValues().height, element_width);
 		else
 			scrollbars[orientation].size = box.GetSize(Box::MARGIN).y;
 	}
@@ -95,7 +108,7 @@ void ElementScroll::DisableScrollbar(Orientation orientation)
 {
 	if (scrollbars[orientation].enabled)
 	{
-		scrollbars[orientation].element->SetProperty(VISIBILITY, "hidden");
+		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 		scrollbars[orientation].enabled = false;
 	}
 }
@@ -121,7 +134,7 @@ void ElementScroll::UpdateScrollbar(Orientation orientation)
 	else
 		bar_position /= traversable_track;
 
-	if (scrollbars[orientation].widget != NULL)
+	if (scrollbars[orientation].widget != nullptr)
 	{
 		bar_position = Math::Clamp(bar_position, 0.0f, 1.0f);
 
@@ -179,12 +192,12 @@ void ElementScroll::FormatScrollbars()
 		}
 
 		float slider_length = containing_block[1 - i];
-		float user_scrollbar_margin = scrollbars[i].element->ResolveProperty(SCROLLBAR_MARGIN, slider_length);
+		float user_scrollbar_margin = scrollbars[i].element->GetComputedValues().scrollbar_margin;
 		float min_scrollbar_margin = GetScrollbarSize(i == VERTICAL ? HORIZONTAL : VERTICAL);
 		slider_length -= Math::Max(user_scrollbar_margin, min_scrollbar_margin);
 
 		scrollbars[i].widget->FormatElements(containing_block, slider_length);
-		scrollbars[i].widget->SetLineHeight((float) ElementUtilities::GetLineHeight(element));
+		scrollbars[i].widget->SetLineHeight(element->GetLineHeight());
 
 		int variable_axis = i == VERTICAL ? 0 : 1;
 		Vector2f offset = element->GetBox().GetPosition(Box::PADDING);
@@ -205,45 +218,34 @@ void ElementScroll::FormatScrollbars()
 		corner->SetBox(corner_box);
 		corner->SetOffset(containing_block - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
 
-		corner->SetProperty(VISIBILITY, "visible");
+		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 	}
 	else
 	{
-		if (corner != NULL)
-			corner->SetProperty(VISIBILITY, "hidden");
+		if (corner != nullptr)
+			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
 
-// Handles the 'onchange' events for the scrollbars.
-void ElementScroll::ProcessEvent(Event& event)
-{
-	if (event == "scrollchange")
-	{
-		float value = event.GetParameter< float >("value", 0);
-
-		if (event.GetTargetElement() == scrollbars[VERTICAL].element)
-			element->SetScrollTop(value * (element->GetScrollHeight() - element->GetClientHeight()));
-		else
-			element->SetScrollLeft(value * (element->GetScrollWidth() - element->GetClientWidth()));
-	}
-}
 
 // Creates one of the scroll component's scrollbar.
 bool ElementScroll::CreateScrollbar(Orientation orientation)
 {
-	if (scrollbars[orientation].element != NULL &&
-		scrollbars[orientation].widget != NULL)
+	if (scrollbars[orientation].element &&
+		scrollbars[orientation].widget)
 		return true;
 
-	scrollbars[orientation].element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
-	scrollbars[orientation].element->AddEventListener("scrollchange", this);
-	scrollbars[orientation].element->SetProperty(CLIP, "1");
+	ElementPtr scrollbar_element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
+	scrollbars[orientation].element = scrollbar_element.get();
+	scrollbars[orientation].element->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
 	scrollbars[orientation].widget = new WidgetSliderScroll(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetSlider::VERTICAL : WidgetSlider::HORIZONTAL);
 
-	element->AppendChild(scrollbars[orientation].element, false);
-	scrollbars[orientation].element->RemoveReference();
+	Element* child = element->AppendChild(std::move(scrollbar_element), false);
+
+	// The construction of scrollbars can occur during layouting, then we need some properties and computed values straight away.
+	child->UpdateProperties();
 
 	return true;
 }
@@ -251,32 +253,32 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 // Creates the scrollbar corner.
 bool ElementScroll::CreateCorner()
 {
-	if (corner != NULL)
+	if (corner != nullptr)
 		return true;
 
-	corner = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
-	element->AppendChild(corner, false);
-	corner->RemoveReference();
+	ElementPtr corner_element = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
+	corner = corner_element.get();
+	element->AppendChild(std::move(corner_element), false);
 
 	return true;
 }
 
 ElementScroll::Scrollbar::Scrollbar()
 {
-	element = NULL;
-	widget = NULL;
+	element = nullptr;
+	widget = nullptr;
 	enabled = false;
 	size = 0;
 }
 
 ElementScroll::Scrollbar::~Scrollbar()
 {
-	if (widget != NULL)
+	if (widget != nullptr)
 		delete widget;
 
-	if (element != NULL)
+	if (element != nullptr)
 	{
-		if (element->GetParentNode() != NULL)
+		if (element->GetParentNode() != nullptr)
 			element->GetParentNode()->RemoveChild(element);
 	}
 }

@@ -37,16 +37,16 @@
 namespace Rml {
 namespace Controls {
 
-static const float MAX_UPDATE_TIME = 0.01f;
+static const float MAX_UPDATE_TIME = 0.001f;
 
 ElementDataGridRow::ElementDataGridRow(const Rml::Core::String& tag) : Core::Element(tag)
 {
-	parent_grid = NULL;
-	parent_row = NULL;
+	parent_grid = nullptr;
+	parent_row = nullptr;
 	child_index = -1;
 	depth = -1;
 
-	data_source = NULL;
+	data_source = nullptr;
 
 	table_relative_index = -1;
 	table_relative_index_dirty = true;
@@ -54,8 +54,8 @@ ElementDataGridRow::ElementDataGridRow(const Rml::Core::String& tag) : Core::Ele
 	dirty_children = false;
 	row_expanded = true;
 
-	SetProperty("white-space", "nowrap");
-	SetProperty("display", Rml::Core::Property(Rml::Core::DISPLAY_INLINE_BLOCK, Rml::Core::Property::KEYWORD));
+	SetProperty(Core::PropertyId::WhiteSpace, Core::Property(Core::Style::WhiteSpace::Nowrap));
+	SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 }
 
 ElementDataGridRow::~ElementDataGridRow()
@@ -63,7 +63,7 @@ ElementDataGridRow::~ElementDataGridRow()
 	if (data_source)
 	{
 		data_source->DetachListener(this);
-		data_source = NULL;
+		data_source = nullptr;
 	}
 }
 
@@ -84,11 +84,11 @@ void ElementDataGridRow::Initialise(ElementDataGrid* _parent_grid, ElementDataGr
 	Rml::Core::XMLAttributes cell_attributes;
 	for (int i = 0; i < num_columns; i++)
 	{
-		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(Core::Factory::InstanceElement(this, "#rmlctl_datagridcell", "datagridcell", cell_attributes));
+		Core::ElementPtr element = Core::Factory::InstanceElement(this, "#rmlctl_datagridcell", "datagridcell", cell_attributes);
+		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(element.get());
 		cell->Initialise(i, header_row->GetChild(i));
-		cell->SetProperty("display", Rml::Core::Property(Rml::Core::DISPLAY_INLINE_BLOCK, Rml::Core::Property::KEYWORD));
-		AppendChild(cell);
-		cell->RemoveReference();
+		cell->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
+		AppendChild(std::move(element));
 	}
 }
 
@@ -112,10 +112,10 @@ int ElementDataGridRow::GetDepth()
 
 void ElementDataGridRow::SetDataSource(const Rml::Core::String& data_source_name)
 {
-	if (data_source != NULL)
+	if (data_source != nullptr)
 	{
 		data_source->DetachListener(this);
-		data_source = NULL;
+		data_source = nullptr;
 	}
 
 	if (ParseDataSource(data_source, data_table, data_source_name))
@@ -253,10 +253,10 @@ ElementDataGrid* ElementDataGridRow::GetParentGrid()
 
 void ElementDataGridRow::OnDataSourceDestroy(DataSource* RMLUI_UNUSED_PARAMETER(_data_source))
 {
-	if(data_source != NULL)
+	if(data_source != nullptr)
 	{
 		data_source->DetachListener(this);
-		data_source = NULL;
+		data_source = nullptr;
 	}
 	RemoveChildren();
 }
@@ -292,7 +292,7 @@ void ElementDataGridRow::RefreshRows()
 	RemoveChildren();
 
 	// Load the children from the data source.
-	if (data_source != NULL)
+	if (data_source != nullptr)
 	{
 		int num_rows = data_source->GetNumRows(data_table);
 		if (num_rows > 0)
@@ -337,6 +337,9 @@ void ElementDataGridRow::RefreshChildDependentCells()
 // Called whenever a row is added or removed above ours.
 void ElementDataGridRow::DirtyTableRelativeIndex()
 {
+	if (table_relative_index_dirty)
+		return;
+
 	for (size_t i = 0; i < children.size(); i++)
 	{
 		children[i]->DirtyTableRelativeIndex();
@@ -370,13 +373,9 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 		first_row_added = (int)children.size();
 	}
 
-	// prevent relayout of the document while adding rows
-	Core::ElementDocument* document = parent_grid->GetOwnerDocument();
-	document->LockLayout(true);
-
 	// We need to make a row for each new child, then pass through the cell
 	// information and the child's data source (if one exists.)
-	if (data_source != NULL)
+	if (data_source != nullptr)
 	{
 		for (int i = 0; i < num_rows_added; i++)
 		{
@@ -388,7 +387,7 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 
 			if (!row_expanded)
 			{
-				new_row->SetProperty("display", "none");
+				new_row->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 			}
 		}
 
@@ -404,27 +403,20 @@ void ElementDataGridRow::AddChildren(int first_row_added, int num_rows_added)
 		}
 	}
 
-	document->LockLayout(false);
-
 	RefreshChildDependentCells();
 	DirtyRow();
 
 	Rml::Core::Dictionary parameters;
-	parameters.Set("first_row_added", GetChildTableRelativeIndex(first_row_added));
-	parameters.Set("num_rows_added", num_rows_added);
-	parent_grid->DispatchEvent("rowadd", parameters);
+	parameters["first_row_added"] = GetChildTableRelativeIndex(first_row_added);
+	parameters["num_rows_added"] = num_rows_added;
+	
+	parent_grid->DispatchEvent(Core::EventId::Rowadd, parameters);
 }
 
 void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_removed)
 {
 	if (num_rows_removed == -1)
-	{
 		num_rows_removed = (int)children.size() - first_row_removed;
-	}
-
-	// prevent relayout of the document while removing rows
-	Core::ElementDocument* document = parent_grid->GetOwnerDocument();
-	document->LockLayout(true);
 
 	for (int i = num_rows_removed - 1; i >= 0; i--)
 	{
@@ -439,12 +431,11 @@ void ElementDataGridRow::RemoveChildren(int first_row_removed, int num_rows_remo
 		children[i]->DirtyTableRelativeIndex();
 	}
 
-	document->LockLayout(false);
-
 	Rml::Core::Dictionary parameters;
-	parameters.Set("first_row_removed", GetChildTableRelativeIndex(first_row_removed));
-	parameters.Set("num_rows_removed", num_rows_removed);
-	parent_grid->DispatchEvent("rowremove", parameters);
+	parameters["first_row_removed"] = GetChildTableRelativeIndex(first_row_removed);
+	parameters["num_rows_removed"] = num_rows_removed;
+	
+	parent_grid->DispatchEvent(Core::EventId::Rowremove, parameters);
 }
 
 void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_changed)
@@ -453,9 +444,10 @@ void ElementDataGridRow::ChangeChildren(int first_row_changed, int num_rows_chan
 		children[i]->DirtyCells();
 
 	Rml::Core::Dictionary parameters;
-	parameters.Set("first_row_changed", GetChildTableRelativeIndex(first_row_changed));
-	parameters.Set("num_rows_changed", num_rows_changed);
-	parent_grid->DispatchEvent("rowchange", parameters);
+	parameters["first_row_changed"] = GetChildTableRelativeIndex(first_row_changed);
+	parameters["num_rows_changed"] = num_rows_changed;
+	
+	parent_grid->DispatchEvent(Core::EventId::Rowchange, parameters);
 }
 
 // Returns the number of rows under this row (children, grandchildren, etc)
@@ -477,7 +469,7 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 	if (row_information.IsFieldSet(DataSource::CHILD_SOURCE))
 	{
 		Rml::Core::String data_source = row_information.Get< Rml::Core::String >(DataSource::CHILD_SOURCE, "");
-		if (!data_source.Empty())
+		if (!data_source.empty())
 		{
 			SetDataSource(data_source);
 		}
@@ -502,19 +494,24 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 			// XML string, and parse that into the actual Core::Elements. If there is
 			// no formatter, then we just send through the raw text, in CVS form.
 			Rml::Core::StringList raw_data;
+			raw_data.reserve(column->fields.size());
+			size_t raw_data_total_len = 0;
 			for (size_t i = 0; i < column->fields.size(); i++)
 			{
 				if (column->fields[i] == DataSource::DEPTH)
 				{
-					raw_data.push_back(Rml::Core::String(8, "%d", depth));
+					raw_data.push_back(Rml::Core::CreateString(8, "%d", depth));
+					raw_data_total_len += raw_data.back().length();
 				}
 				else if (column->fields[i] == DataSource::NUM_CHILDREN)
 				{
-					raw_data.push_back(Rml::Core::String(8, "%d", children.size()));
+					raw_data.push_back(Rml::Core::CreateString(8, "%d", children.size()));
+					raw_data_total_len += raw_data.back().length();
 				}
 				else
 				{
 					raw_data.push_back(row_information.Get< Rml::Core::String >(column->fields[i], ""));
+					raw_data_total_len += raw_data.back().length();
 				}
 			}
 
@@ -525,13 +522,14 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 			}
 			else
 			{
+				cell_string.reserve(raw_data_total_len + raw_data.size() + 1);
 				for (size_t i = 0; i < raw_data.size(); i++)
 				{
 					if (i > 0)
 					{
-						cell_string.Append(",");
+						cell_string += ",";
 					}
-					cell_string.Append(raw_data[i]);
+					cell_string += raw_data[i];
 				}
 			}
 
@@ -638,7 +636,7 @@ void ElementDataGridRow::LoadChildren(int first_row_to_load, int num_rows_to_loa
 
 		if (!query.NextRow())
 		{
-			Core::Log::Message(Rml::Core::Log::LT_WARNING, "Failed to load row %d from data source %s", i, data_table.CString());
+			Core::Log::Message(Rml::Core::Log::LT_WARNING, "Failed to load row %d from data source %s", i, data_table.c_str());
 		}
 
 		// Now load the child with the row in the query.
@@ -672,7 +670,7 @@ void ElementDataGridRow::DirtyRow()
 // Sets this row's child rows to be visible.
 void ElementDataGridRow::Show()
 {
-	SetProperty("display", "inline-block");
+	SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 
 	if (row_expanded)
 	{
@@ -686,7 +684,7 @@ void ElementDataGridRow::Show()
 // Sets this row's children to be invisible.
 void ElementDataGridRow::Hide()
 {
-	SetProperty("display", "none");
+	SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::None));
 
 	for (size_t i = 0; i < children.size(); i++)
 	{

@@ -40,28 +40,31 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <limits.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 static bool running = false;
 static int screen = -1;
 static timeval start_time;
+static Rml::Core::String clipboard_text;
 
-static ShellFileInterface* file_interface = NULL;
+static std::unique_ptr<ShellFileInterface> file_interface;
 
 static bool isDirectory(const Rml::Core::String &path)
 {
 	struct stat sb;
-	return (stat(path.CString(), &sb)==0 && S_ISDIR(sb.st_mode));
+	return (stat(path.c_str(), &sb)==0 && S_ISDIR(sb.st_mode));
 }
 
 bool Shell::Initialise()
 {
-	gettimeofday(&start_time, NULL);
+	gettimeofday(&start_time, nullptr);
 	InputX11::Initialise();
 
 	Rml::Core::String root = FindSamplesRoot();
 
-	file_interface = new ShellFileInterface(root);
-	Rml::Core::SetFileInterface(file_interface);
+	file_interface = std::make_unique<ShellFileInterface>(root);
+	Rml::Core::SetFileInterface(file_interface.get());
 
 	return true;
 }
@@ -70,8 +73,7 @@ void Shell::Shutdown()
 {
 	InputX11::Shutdown();
 
-	delete file_interface;
-	file_interface = NULL;
+	file_interface.reset();
 }
 
 Rml::Core::String Shell::FindSamplesRoot()
@@ -86,7 +88,7 @@ Rml::Core::String Shell::FindSamplesRoot()
 		executable_file_name[len] = 0;
 	}
 	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
-	executable_path = executable_path.Substring(0, executable_path.RFind("/") + 1);
+	executable_path = executable_path.substr(0, executable_path.rfind("/") + 1);
 	
 	// for "../Samples/" to be valid we must be in the Build directory.
 	// NOTE: we can't use "../../Samples/" because it is valid only if:
@@ -102,16 +104,16 @@ Rml::Core::String Shell::FindSamplesRoot()
 	return (executable_path + path);
 }
 
-static Display* display = NULL;
-static XVisualInfo* visual_info = NULL;
+static Display* display = nullptr;
+static XVisualInfo* visual_info = nullptr;
 static Window window = 0;
 
-static ShellRenderInterfaceExtensions *shell_renderer = NULL;
+static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
 
 bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
 	display = XOpenDisplay(0);
-	if (display == NULL)
+	if (display == nullptr)
 		return false;
 
 	// This initialise they keyboard to keycode mapping system of X11
@@ -132,7 +134,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 							0L};
 
 	visual_info = glXChooseVisual(display, screen, attribute_list);
-	if (visual_info == NULL)
+	if (visual_info == nullptr)
 	{
 		return false;
   	}
@@ -172,7 +174,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	{
 		// Force the window to remain at the fixed size by asking the window manager nicely, it may choose to ignore us
 		XSizeHints* win_size_hints = XAllocSizeHints();		// Allocate a size hint structure
-		if (win_size_hints == NULL)
+		if (win_size_hints == nullptr)
 		{
 			fprintf(stderr, "XAllocSizeHints - out of memory\n");
 		}
@@ -198,11 +200,11 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 	}
 
 	// Set the window title and show the window.
-	XSetStandardProperties(display, window, name, "", 0L, NULL, 0, NULL);
+	XSetStandardProperties(display, window, name, "", 0L, nullptr, 0, nullptr);
 	XMapRaised(display, window);
 
 	shell_renderer = _shell_renderer;
-	if(shell_renderer != NULL)
+	if(shell_renderer != nullptr)
 	{
 		struct __X11NativeWindowData nwData;
 		nwData.display = display;
@@ -215,22 +217,22 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 
 void Shell::CloseWindow()
 {
-	if(shell_renderer != NULL)
+	if(shell_renderer != nullptr)
 	{
 		shell_renderer->DetachFromNative();
 	}
 
-	if (display != NULL)
+	if (display != nullptr)
 	{
 		XCloseDisplay(display);
-		display = NULL;
+		display = nullptr;
 	}
 }
 
 // Returns a platform-dependent handle to the window.
 void* Shell::GetWindowHandle()
 {
-	return NULL;
+	return nullptr;
 }
 
 void Shell::EventLoop(ShellIdleFunction idle_function)
@@ -243,7 +245,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 		while (XPending(display) > 0)
 		{
 			XEvent event;
-			char *event_type = NULL;
+			char *event_type = nullptr;
 			XNextEvent(display, &event);
 
 			switch (event.type)
@@ -256,7 +258,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 					if (strcmp(event_type, "WM_PROTOCOLS") == 0)
 						running = false;
 					XFree(event_type);
-					event_type = NULL;
+					event_type = nullptr;
 				}
 				break;
 
@@ -330,11 +332,28 @@ double Shell::GetElapsedTime()
 {
 	struct timeval now;
 
-	gettimeofday(&now, NULL);
+	gettimeofday(&now, nullptr);
 
 	double sec = now.tv_sec - start_time.tv_sec;
 	double usec = now.tv_usec - start_time.tv_usec;
 	double result = sec + (usec / 1000000.0);
 
 	return result;
+}
+
+void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
+{
+	// Not implemented
+}
+
+void Shell::SetClipboardText(const Rml::Core::String& text)
+{
+	// Todo: interface with system clipboard
+	clipboard_text = text;
+}
+
+void Shell::GetClipboardText(Rml::Core::String& text)
+{
+	// Todo: interface with system clipboard
+	text = clipboard_text;
 }

@@ -94,7 +94,7 @@ public:
 	/// @param[in] formatter The name of the data formatter to be used to format the raw column data into RML.
 	/// @param[in] initial_width The initial width, in pixels, of the column.
 	/// @param[in] header_element The element hierarchy to use as the column header.
-	void AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, Core::Element* header_element);
+	void AddColumn(const Rml::Core::String& fields, const Rml::Core::String& formatter, float initial_width, Core::ElementPtr header_element);
 	/// Returns the number of columns in this table
 	int GetNumColumns();
 	/// Returns the column at the specified index.
@@ -119,13 +119,13 @@ public:
 	ElementDataGridRow* GetRow(int index) const;
 
 protected:
-	virtual void OnUpdate();
+	void OnUpdate() override;
 
-	virtual void ProcessEvent(Core::Event& event);
+	void OnResize() override;
 
 	/// Gets the markup and content of the element.
 	/// @param content[out] The content of the element.
-	virtual void GetInnerRML(Rml::Core::String& content) const;
+	void GetInnerRML(Rml::Core::String& content) const override;
 
 private:
 	typedef std::vector< Column > ColumnList;
@@ -146,8 +146,6 @@ private:
 
 	// The block element that contains all our rows. Only used for applying styles.
 	Core::Element* body;
-	// Stores if the body has already been made visible by having enough rows added.
-	bool body_visible;
 };
 
 }

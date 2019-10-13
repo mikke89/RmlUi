@@ -34,16 +34,12 @@
 namespace Rml {
 namespace Controls {
 
-ElementDataGridCell::ElementDataGridCell(const Rml::Core::String& tag) : Core::Element(tag)
+ElementDataGridCell::ElementDataGridCell(const Rml::Core::String& tag) : Core::Element(tag), column(0), header(nullptr)
 {
 }
 
 ElementDataGridCell::~ElementDataGridCell()
 {
-	if (header) {
-		header->RemoveEventListener("resize", this);
-		header->RemoveReference();
-	}
 }
 
 void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
@@ -52,28 +48,14 @@ void ElementDataGridCell::Initialise(int _column, Core::Element* _header)
 	header = _header;
 	if (header)
 	{
-		header->AddReference();
-		header->AddEventListener("resize", this);
-		SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
+		if(auto p = header->GetLocalProperty("width"))
+			SetProperty(Core::PropertyId::Width, *p);
 	}
 }
 
 int ElementDataGridCell::GetColumn()
 {
 	return column;
-}
-
-void ElementDataGridCell::ProcessEvent(Core::Event& event)
-{
-	Core::Element::ProcessEvent(event);
-
-	if (event == "resize")
-	{
-		if (event.GetTargetElement() == header)
-		{
-			SetProperty("width", Core::Property(header->GetBox().GetSize(Core::Box::MARGIN).x, Core::Property::PX));
-		}
-	}
 }
 
 }

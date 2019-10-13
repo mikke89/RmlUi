@@ -29,9 +29,9 @@
 #ifndef RMLUICORESYSTEMINTERFACE_H
 #define RMLUICORESYSTEMINTERFACE_H
 
+#include "Types.h"
 #include "Log.h"
-#include "ReferenceCountable.h"
-#include "String.h"
+#include "Traits.h"
 #include "Header.h"
 
 namespace Rml {
@@ -52,7 +52,7 @@ namespace Core {
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API SystemInterface : public ReferenceCountable
+class RMLUICORE_API SystemInterface : public NonCopyMoveable
 {
 public:
 	SystemInterface();
@@ -84,17 +84,19 @@ public:
 	/// @param[in] cursor_name Cursor name to activate.
 	virtual void SetMouseCursor(const String& cursor_name);
 
+	/// Set clipboard text.
+	/// @param[in] text Text to apply to clipboard.
+	virtual void SetClipboardText(const String& text);
+
+	/// Get clipboard text.
+	/// @param[out] text Retrieved text from clipboard.
+	virtual void GetClipboardText(String& text);
+
 	/// Activate keyboard (for touchscreen devices)
 	virtual void ActivateKeyboard();
 	
 	/// Deactivate keyboard (for touchscreen devices)
 	virtual void DeactivateKeyboard();
-	
-	/// Called when this system interface is no longer required.
-	virtual void Release();
-
-protected:
-	virtual void OnReferenceDeactivate();
 };
 
 }

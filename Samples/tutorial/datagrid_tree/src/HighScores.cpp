@@ -15,11 +15,11 @@
 #include <RmlUi/Core.h>
 #include <stdio.h>
 
-HighScores* HighScores::instance = NULL;
+HighScores* HighScores::instance = nullptr;
 
 HighScores::HighScores() : Rml::Controls::DataSource("high_scores")
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -33,7 +33,7 @@ HighScores::HighScores() : Rml::Controls::DataSource("high_scores")
 HighScores::~HighScores()
 {
 	RMLUI_ASSERT(instance == this);
-	instance = NULL;
+	instance = nullptr;
 }
 
 void HighScores::Initialise()
@@ -58,7 +58,7 @@ void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& tab
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(Rml::Core::String(32, "%d", scores[row_index].score));
+				row.push_back(Rml::Core::CreateString(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
@@ -68,7 +68,7 @@ void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& tab
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(Rml::Core::String(8, "%d", scores[row_index].wave));
+				row.push_back(Rml::Core::CreateString(8, "%d", scores[row_index].wave));
 			}
 		}
 	}

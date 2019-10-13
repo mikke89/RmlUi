@@ -30,7 +30,7 @@
 #define RMLUICONTROLSSELECTOPTION_H
 
 #include "Header.h"
-#include "../Core/String.h"
+#include "../Core/Types.h"
 
 namespace Rml {
 namespace Core {

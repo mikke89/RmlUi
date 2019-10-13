@@ -36,6 +36,7 @@ namespace Core {
 
 class StyleSheet;
 class StyleSheetNodeSelector;
+struct StructuralSelector;
 
 /**
 	Creates stylesheets on the fly as needed. The factory keeps a cache of built sheets for optimisation.
@@ -53,37 +54,37 @@ public:
 
 	/// Gets the named sheet, retrieving it from the cache if its already been loaded
 	/// @param sheet name of sheet to load
-	static StyleSheet* GetStyleSheet(const String& sheet);
+	static SharedPtr<StyleSheet> GetStyleSheet(const String& sheet);
 
 	/// Builds and returns a stylesheet based on the list of input sheets
 	/// Generated sheets will be cached for later use
 	/// @param sheets List of sheets to combine into one	
-	static StyleSheet* GetStyleSheet(const StringList& sheets);
+	static SharedPtr<StyleSheet> GetStyleSheet(const StringList& sheets);
 
 	/// Clear the style sheet cache.
 	static void ClearStyleSheetCache();
 
 	/// Returns one of the available node selectors.
 	/// @param name[in] The name of the desired selector.
-	/// @return The selector registered with the given name, or NULL if none exists.
-	static StyleSheetNodeSelector* GetSelector(const String& name);
+	/// @return The selector registered with the given name, or nullptr if none exists.
+	static StructuralSelector GetSelector(const String& name);
 
 private:
 	StyleSheetFactory();
 	~StyleSheetFactory();
 
 	// Loads an individual style sheet
-	StyleSheet* LoadStyleSheet(const String& sheet);
+	SharedPtr<StyleSheet> LoadStyleSheet(const String& sheet);
 
 	// Individual loaded stylesheets
-	typedef std::unordered_map<String, StyleSheet*> StyleSheets;
+	typedef UnorderedMap<String, SharedPtr<StyleSheet>> StyleSheets;
 	StyleSheets stylesheets;
 
 	// Cache of combined style sheets
 	StyleSheets stylesheet_cache;
 
 	// Custom complex selectors available for style sheets.
-	typedef std::unordered_map< String, StyleSheetNodeSelector* > SelectorMap;
+	typedef UnorderedMap< String, StyleSheetNodeSelector* > SelectorMap;
 	SelectorMap selectors;
 };
 

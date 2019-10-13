@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -299,6 +300,8 @@ Rml::Core::Input::KeyIdentifier RmlUiSFMLSystemInterface::TranslateKey(sf::Keybo
 	case sf::Keyboard::Tab:
 		return Rml::Core::Input::KI_TAB;
 		break;
+	default:
+		break;
 	};
 
 	return Rml::Core::Input::KI_UNKNOWN;
@@ -333,9 +336,11 @@ bool RmlUiSFMLSystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::
 	case Rml::Core::Log::LT_DEBUG:
 		Type = "[Debug]";
 		break;
+	default:
+		break;
 	};
 
-	printf("%s - %s\n", Type.c_str(), message.CString());
+	printf("%s - %s\n", Type.c_str(), message.c_str());
 
 	return true;
 };

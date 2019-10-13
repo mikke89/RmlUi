@@ -27,13 +27,14 @@
  */
 
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 
 namespace Rml {
 namespace Controls {
 
 ElementFormControl::ElementFormControl(const Rml::Core::String& tag) : Core::Element(tag)
 {
-	SetProperty("tab-index", "auto");
+	SetProperty(Core::PropertyId::TabIndex, Core::Property(Core::Style::TabIndex::Auto));
 }
 
 ElementFormControl::~ElementFormControl()
@@ -61,28 +62,38 @@ bool ElementFormControl::IsSubmitted()
 // Returns the disabled status of the form control.
 bool ElementFormControl::IsDisabled() const
 {
-	return GetAttribute("disabled") != NULL;
+	return HasAttribute("disabled");
 }
 
 // Sets the disabled status of the form control.
 void ElementFormControl::SetDisabled(bool disable)
 {
 	if (disable)
-	{
 		SetAttribute("disabled", "");
-		Blur();
-	}
 	else
 		RemoveAttribute("disabled");
 }
 
 // Checks for changes to the 'disabled' attribute.
-void ElementFormControl::OnAttributeChange(const Core::AttributeNameList& changed_attributes)
+void ElementFormControl::OnAttributeChange(const Core::ElementAttributes& changed_attributes)
 {
 	Core::Element::OnAttributeChange(changed_attributes);
 
 	if (changed_attributes.find("disabled") != changed_attributes.end())
-		SetPseudoClass("disabled", IsDisabled());
+	{
+		bool is_disabled = IsDisabled();
+		SetPseudoClass("disabled", is_disabled);
+
+		// Disable focus when element is disabled. This will also prevent click
+		// events (when originating from user inputs, see Context) to reach the element.
+		if (is_disabled)
+		{
+			SetProperty(Core::PropertyId::Focus, Core::Property(Core::Style::Focus::None));
+			Blur();
+		}
+		else
+			RemoveProperty("focus");
+	}
 }
 
 }

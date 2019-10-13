@@ -90,10 +90,18 @@ class Vector2
 		/// @param[in] rhs The scalar value to multiply by.
 		/// @return The result of the scale.
 		inline Vector2 operator*(Type rhs) const;
+		/// Returns the result of element-wise multiplication.
+		/// @param[in] rhs The vector to multiply by.
+		/// @return The result of the multiplication.
+		inline Vector2 operator*(const Vector2& rhs) const;
 		/// Returns the result of dividing this vector by a scalar.
 		/// @param[in] rhs The scalar value to divide by.
 		/// @return The result of the scale.
 		inline Vector2 operator/(Type rhs) const;
+		/// Returns the result of element-wise division.
+		/// @param[in] rhs The vector to divide by.
+		/// @return The result of the division.
+		inline Vector2 operator/(const Vector2& rhs) const;
 
 		/// Adds another vector to this in-place.
 		/// @param[in] rhs The vector to add.
@@ -107,10 +115,18 @@ class Vector2
 		/// @param[in] rhs The value to scale this vector's components by.
 		/// @return This vector, post-operation.
 		inline Vector2& operator*=(const Type& rhs);
+		/// Element-wise multiplication in-place.
+		/// @param[in] rhs The vector to multiply.
+		/// @return This vector, post-operation.
+		inline Vector2& operator*=(const Vector2& rhs);
 		/// Scales this vector in-place by the inverse of a value.
 		/// @param[in] rhs The value to divide this vector's components by.
 		/// @return This vector, post-operation.
 		inline Vector2& operator/=(const Type& rhs);
+		/// Element-wise division in-place.
+		/// @param[in] rhs The vector to divide by.
+		/// @return This vector, post-operation.
+		inline Vector2& operator/=(const Vector2& rhs);
 
 		/// Equality operator.
 		/// @param[in] rhs The vector to compare this against.

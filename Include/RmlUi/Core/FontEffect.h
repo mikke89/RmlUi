@@ -34,21 +34,18 @@
 namespace Rml {
 namespace Core {
 
-class FontEffectInstancer;
-
 /**
 	@author Peter Curry
  */
 
-class FontEffect : public ReferenceCountable
+class FontEffect
 {
 public:
+	// Behind or in front of main text
+	enum class Layer { Back, Front };
+
 	FontEffect();
 	virtual ~FontEffect();
-
-	/// Returns the name of the effect; this is the type that instanced the effect.
-	/// @return The effect's name.
-	const String& GetName() const;
 
 	/// Asks the font effect if it requires, and will generate, its own unique texture. If it does
 	/// not, it will share the font's base layer's textures instead.
@@ -77,52 +74,23 @@ public:
 	/// @return The colour of the effect.
 	const Colourb& GetColour() const;
 
-	/// Sets the z-index of the font effect. An effect with a higher z-index will be rendered after
-	/// an effect with a lower z-index. By default, all effects have a z-index of 0.
-	/// @param[in] z-index The new z-index of the effect.
-	void SetZIndex(float z_index);
-	/// Returns the font effect's z-index.
-	/// @return The z-index of the effect.
-	float GetZIndex() const;
+	Layer GetLayer() const;
+	void SetLayer(Layer layer);
 
-	/// Sets the specificity of the font effect.
-	/// @param[in] specificity The specificity of the effect.
-	void SetSpecificity(int specificity);
-	/// Returns the specificity of the font effect. This is used when multiple pseudo-classes are
-	/// active on an element, each with similarly-named font effects.
-	/// @return The specificity of the effect.
-	int GetSpecificity() const;
-
-	/// Returns the font effect's generation key.
-	/// @return A hash of the effect's properties used to generate the geometry and texture data.
-	const String& GetGenerationKey() const;
-
-protected:
-	/// Releases the effect through its instancer.
-	virtual void OnReferenceDeactivate();
+	/// Returns the font effect's fingerprint.
+	/// @return A hash of the effect's type and properties used to generate the geometry and texture data.
+	size_t GetFingerprint() const;
+	void SetFingerprint(size_t fingerprint);
 
 private:
-	FontEffectInstancer* instancer;
-
-	// The name of the effect.
-	String name;
+	Layer layer;
 
 	// The colour of the effect's geometry.
 	Colourb colour;
 
-	// The z-index of this font effect, used to resolve render order when multiple font effects are rendered.
-	float z_index;
-	// The maximum specificity of the properties used to define the font effect.
-	int specificity;
-
-	// A string identifying the properties that affected the generation of the effect's geometry and texture data.
-	String generation_key;
-
-	friend class Factory;
+	// A hash value identifying the properties that affected the generation of the effect's geometry and texture data.
+	size_t fingerprint;
 };
-
-typedef std::vector< FontEffect* > FontEffectList;
-typedef std::unordered_map< String, FontEffect* > FontEffectMap;
 
 }
 }

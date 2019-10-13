@@ -34,7 +34,7 @@ namespace Debugger {
 
 ElementContextHook::ElementContextHook(const Core::String& tag) : Core::ElementDocument(tag)
 {
-	debugger = NULL;
+	debugger = nullptr;
 }
 
 ElementContextHook::~ElementContextHook()

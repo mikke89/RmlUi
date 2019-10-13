@@ -88,13 +88,13 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
     int mt = lua_gettop(L); //mt = 1
     T** ptrHold = (T**)lua_newuserdata(L,sizeof(T**)); //->[2] = empty userdata
     int ud = lua_gettop(L); //ud = 2
-    if(ptrHold != NULL)
+    if(ptrHold != nullptr)
     {
         *ptrHold = obj; 
         lua_pushvalue(L, mt); // ->[3] = copy of [1]
         lua_setmetatable(L, -2); //[-2 = 2] -> [2]'s metatable = [3]; pop [3]
-        char name[32];
-        tostring(name,obj);
+        char name[max_pointer_string_size];
+        tostring(name, max_pointer_string_size, obj);
         lua_getfield(L,LUA_REGISTRYINDEX,"DO NOT TRASH"); //->[3] = value returned from function
         if(lua_isnil(L,-1) ) //if [3] hasn't been created yet, then create it
         {
@@ -116,13 +116,6 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
             lua_setfield(L,-2,name); //represents t[k] = v, [-2 = 3] = t -> v = [4], k = <ClassName>; pop [4]
         }
 
-        if(IsReferenceCounted<T>())
-        {
-            //If you look at the gc_T function, reference countables do not
-            //care about the "DO NOT TRASH" table
-            ((Rml::Core::ReferenceCountable*)obj)->AddReference();
-        }
-
         lua_pop(L,1); // -> pop [3]
     }
     lua_settop(L,ud); //[ud = 2] -> remove everything that is above 2, top = [2]
@@ -136,8 +129,8 @@ template<typename T>
 T* LuaType<T>::check(lua_State* L, int narg)
 {
     T** ptrHold = static_cast<T**>(lua_touserdata(L,narg));
-    if(ptrHold == NULL)
-        return NULL;
+    if(ptrHold == nullptr)
+        return nullptr;
     return (*ptrHold);
 }
 
@@ -152,9 +145,9 @@ int LuaType<T>::thunk(lua_State* L)
     lua_remove(L, 1);  // remove self so member function args start at index 1
     // get member function from upvalue
     RegType *l = static_cast<RegType*>(lua_touserdata(L, lua_upvalueindex(1)));
-    //at the moment, there isn't a case where NULL is acceptable to be used in the function, so check
+    //at the moment, there isn't a case where nullptr is acceptable to be used in the function, so check
     //for it here, rather than individually for each function
-    if(obj == NULL)
+    if(obj == nullptr)
     {
         lua_pushnil(L);
         return 1;
@@ -166,9 +159,9 @@ int LuaType<T>::thunk(lua_State* L)
 
 
 template<typename T>
-void LuaType<T>::tostring(char* buff, void* obj)
+void LuaType<T>::tostring(char* buff, size_t buff_size, void* obj)
 {
-    sprintf(buff,"%p",obj);
+    snprintf(buff, buff_size, "%p", obj);
 }
 
 
@@ -176,30 +169,20 @@ template<typename T>
 int LuaType<T>::gc_T(lua_State* L)
 {
     T * obj = check(L,1); //[1] = this userdata
-    if(obj == NULL)
+    if(obj == nullptr)
         return 0;
-    if(IsReferenceCounted<T>())
-    {
-        // ReferenceCountables do not care about the "DO NOT TRASH" table.
-        // Because userdata is pushed which contains a pointer to the pointer
-        // of 'obj', 'obj' will be garbage collected for every time 'obj' was pushed.
-        ((Rml::Core::ReferenceCountable*)obj)->RemoveReference();
-        return 0;
-    }
+
     lua_getfield(L,LUA_REGISTRYINDEX,"DO NOT TRASH"); //->[2] = return value from this
     if(lua_istable(L,-1) ) //[-1 = 2], if it is a table
     {
-        char name[32];
-        tostring(name,obj);
-        lua_getfield(L,-1, std::string(name).c_str()); //[-1 = 2] -> [3] = the value returned from if <ClassName> exists in the table to not gc
+        char name[max_pointer_string_size];
+        tostring(name, max_pointer_string_size, obj);
+        lua_getfield(L,-1,name); //[-1 = 2] -> [3] = the value returned from if <ClassName> exists in the table to not gc
         if(lua_isnoneornil(L,-1) ) //[-1 = 3] if it doesn't exist, then we are free to garbage collect c++ side
-        {
-            if(!IsReferenceCounted<T>())
-            {
-                delete obj;
-                obj = NULL;
-            }
-        }
+		{
+			delete obj;
+			obj = nullptr;
+		}
     }
     lua_pop(L,3); //balance function
     return 0;
@@ -209,10 +192,10 @@ int LuaType<T>::gc_T(lua_State* L)
 template<typename T>
 int LuaType<T>::tostring_T(lua_State* L)
 {
-    char buff[32];
+    char buff[max_pointer_string_size];
     T** ptrHold = (T**)lua_touserdata(L,1);
     T *obj = *ptrHold;
-    sprintf(buff, "%p", obj);
+    snprintf(buff, max_pointer_string_size, "%p", obj);
     lua_pushfstring(L, "%s (%s)", GetTClassName<T>(), buff);
     return 1;
 }
@@ -243,7 +226,7 @@ int LuaType<T>::index(lua_State* L)
             {
                 lua_pushvalue(L,1); //push the userdata to the stack [6]
                 if(lua_pcall(L,1,1,0) != 0) //remove one, result is at [6]
-                    Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
+                    Report(L, String(GetTClassName<T>()).append(".__index for ").append(lua_tostring(L,2)).append(": "));
             }
             else
             {
@@ -257,7 +240,7 @@ int LuaType<T>::index(lua_State* L)
                         lua_pushvalue(L,1); //[1] = object -> [7] = object
                         lua_pushvalue(L,2); //[2] = key -> [8] = key
                         if(lua_pcall(L,2,1,0) != 0) //call function at top of stack (__index) -> pop top 2 as args; [7] = return value
-                            Report(L, String(GetTClassName<T>()).Append(".__index for ").Append(lua_tostring(L,2)).Append(": "));
+                            Report(L, String(GetTClassName<T>()).append(".__index for ").append(lua_tostring(L,2)).append(": "));
                     }
                     else if(lua_istable(L,-1) )
                         lua_getfield(L,-1,key); //shorthand version of above -> [7] = return value
@@ -299,7 +282,7 @@ int LuaType<T>::newindex(lua_State* L)
         lua_pushvalue(L,1); //userdata at [7]
         lua_pushvalue(L,3); //[8] = copy of [3]
         if(lua_pcall(L,2,0,0) != 0) //call function, pop 2 off push 0 on
-            Report(L, String(GetTClassName<T>()).Append(".__newindex for ").Append(lua_tostring(L,2)).Append(": ")); 
+            Report(L, String(GetTClassName<T>()).append(".__newindex for ").append(lua_tostring(L,2)).append(": ")); 
     }
     else
         lua_pop(L,1); //not a setter function.

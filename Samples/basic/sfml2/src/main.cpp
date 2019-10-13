@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 Nuno Silva
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -88,10 +89,10 @@ int main(int argc, char **argv)
 	if(!Rml::Core::Initialise())
 		return 1;
 
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Bold.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-BoldItalic.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Italic.otf");
-	Rml::Core::FontDatabase::LoadFontFace("assets/Delicious-Roman.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-Bold.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-Italic.otf");
+	Rml::Core::LoadFontFace("assets/Delicious-Roman.otf");
 
 	Rml::Core::Context *Context = Rml::Core::CreateContext("default",
 		Rml::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
@@ -103,12 +104,11 @@ int main(int argc, char **argv)
 	if(Document)
 	{
 		Document->Show();
-		Document->RemoveReference();
 		fprintf(stdout, "\nDocument loaded");
 	}
 	else
 	{
-		fprintf(stdout, "\nDocument is NULL");
+		fprintf(stdout, "\nDocument is nullptr");
 	}
 
 	while(MyWindow.isOpen())
@@ -166,13 +166,14 @@ int main(int argc, char **argv)
 			case sf::Event::Closed:
 				MyWindow.close();
 				break;
+			default:
+				break;
 			};
 		};
 
 		Context->Update();
 	};
 
-	Context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	return 0;

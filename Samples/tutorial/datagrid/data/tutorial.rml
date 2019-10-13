@@ -10,16 +10,15 @@
 
 			margin: auto;
 		}
-        
-        defender
-        {
-            display: block;
-            width: 64px;
-            height: 16px;
+    
+		defender
+		{
+				display: block;
+				width: 64px;
+				height: 16px;
 
-            defender-decorator: defender;
-            defender-image-src: ../../../assets/high_scores_defender.tga;
-        }
+				decorator: defender( ../../../assets/high_scores_defender.tga );
+		}
 	</style>
 </head>
 <body template="window">

@@ -42,15 +42,10 @@ class DecoratorTiledVerticalInstancer : public DecoratorTiledInstancer
 {
 public:
 	DecoratorTiledVerticalInstancer();
-	virtual ~DecoratorTiledVerticalInstancer();
+	~DecoratorTiledVerticalInstancer();
 
 	/// Instances a vertical decorator.
-	virtual Decorator* InstanceDecorator(const String& name, const PropertyDictionary& properties);
-	/// Releases the given decorator.
-	virtual void ReleaseDecorator(Decorator* decorator);
-
-	/// Releases the instancer.
-	virtual void Release();
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) override;
 };
 
 }

@@ -29,6 +29,7 @@
 #include "precompiled.h"
 #include "StyleSheetFactory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "StyleSheetNode.h"
 #include "StreamFile.h"
 #include "StyleSheetNodeSelectorNthChild.h"
 #include "StyleSheetNodeSelectorNthLastChild.h"
@@ -46,17 +47,17 @@
 namespace Rml {
 namespace Core {
 
-static StyleSheetFactory* instance = NULL;
+static StyleSheetFactory* instance = nullptr;
 
 StyleSheetFactory::StyleSheetFactory()
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 }
 
 StyleSheetFactory::~StyleSheetFactory()
 {
-	instance = NULL;
+	instance = nullptr;
 }
 
 bool StyleSheetFactory::Initialise()
@@ -80,7 +81,7 @@ bool StyleSheetFactory::Initialise()
 
 void StyleSheetFactory::Shutdown()
 {
-	if (instance != NULL)
+	if (instance != nullptr)
 	{
 		ClearStyleSheetCache();
 
@@ -91,29 +92,27 @@ void StyleSheetFactory::Shutdown()
 	}
 }
 
-StyleSheet* StyleSheetFactory::GetStyleSheet(const String& sheet_name)
+SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const String& sheet_name)
 {
 	// Look up the sheet definition in the cache
 	StyleSheets::iterator itr = instance->stylesheets.find(sheet_name);
 	if (itr != instance->stylesheets.end())
 	{
-		(*itr).second->AddReference();
 		return (*itr).second;
 	}
 
 	// Don't currently have the sheet, attempt to load it
-	StyleSheet* sheet = instance->LoadStyleSheet(sheet_name);
-	if (sheet == NULL)
-		return NULL;
+	SharedPtr<StyleSheet> sheet = instance->LoadStyleSheet(sheet_name);
+	if (!sheet)
+		return nullptr;
 
 	// Add it to the cache, and add a reference count so the cache will keep hold of it.
 	instance->stylesheets[sheet_name] = sheet;
-	sheet->AddReference();
 
 	return sheet;
 }
 
-StyleSheet* StyleSheetFactory::GetStyleSheet(const StringList& sheets)
+SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 {
 	// Generate a unique key for these sheets
 	String combined_key;
@@ -127,82 +126,134 @@ StyleSheet* StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 	StyleSheets::iterator itr = instance->stylesheet_cache.find(combined_key);
 	if (itr != instance->stylesheet_cache.end())
 	{
-		(*itr).second->AddReference();
 		return (*itr).second;
 	}
 
 	// Load and combine the sheets.
-	StyleSheet* sheet = NULL;
+	SharedPtr<StyleSheet> sheet;
 	for (size_t i = 0; i < sheets.size(); i++)
 	{
-		StyleSheet* sub_sheet = GetStyleSheet(sheets[i]);
+		SharedPtr<StyleSheet> sub_sheet = GetStyleSheet(sheets[i]);
 		if (sub_sheet)
 		{
 			if (sheet)
 			{
-				StyleSheet* new_sheet = sheet->CombineStyleSheet(sub_sheet);
-				sheet->RemoveReference();
-				sub_sheet->RemoveReference();
-
+				SharedPtr<StyleSheet> new_sheet = sheet->CombineStyleSheet(*sub_sheet);
 				sheet = new_sheet;
 			}
 			else
 				sheet = sub_sheet;
 		}
 		else
-			Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", sheets[i].CString());
+			Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", sheets[i].c_str());
 	}
 
-	if (sheet == NULL)
-		return NULL;
+	if (!sheet)
+		return nullptr;
 
 	// Add to cache, and a reference to the sheet to hold it in the cache.
 	instance->stylesheet_cache[combined_key] = sheet;
-	sheet->AddReference();
 	return sheet;
 }
 
 // Clear the style sheet cache.
 void StyleSheetFactory::ClearStyleSheetCache()
 {
-	for (StyleSheets::iterator i = instance->stylesheets.begin(); i != instance->stylesheets.end(); ++i)
-		(*i).second->RemoveReference();
-
-	for (StyleSheets::iterator i = instance->stylesheet_cache.begin(); i != instance->stylesheet_cache.end(); ++i)
-		(*i).second->RemoveReference();
-
 	instance->stylesheets.clear();
 	instance->stylesheet_cache.clear();
 }
 
 // Returns one of the available node selectors.
-StyleSheetNodeSelector* StyleSheetFactory::GetSelector(const String& name)
+StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 {
-	size_t index = name.Find("(");
-	SelectorMap::iterator i = instance->selectors.find(name.Substring(0, index));
-	if (i == instance->selectors.end())
-		return NULL;
-	return (*i).second;
-}
+	size_t index = name.find('(');
+	if(index == String::npos)
+		return StructuralSelector(nullptr, 0, 0);
+	auto it = instance->selectors.find(name.substr(0, index));
+	if (it == instance->selectors.end())
+		return StructuralSelector(nullptr, 0, 0);
 
-StyleSheet* StyleSheetFactory::LoadStyleSheet(const String& sheet)
-{
-	StyleSheet* new_style_sheet = NULL;
+	// Parse the 'a' and 'b' values.
+	int a = 1;
+	int b = 0;
 
-	// Open stream, construct new sheet and pass the stream into the sheet
-	// TODO: Make this support ASYNC
-	StreamFile* stream = new StreamFile();
-	if (stream->Open(sheet))
+	size_t parameter_start = name.find('(');
+	size_t parameter_end = name.find(')');
+	if (parameter_start != String::npos &&
+		parameter_end != String::npos)
 	{
-		new_style_sheet = new StyleSheet();
-		if (!new_style_sheet->LoadStyleSheet(stream))
+		String parameters = StringUtilities::StripWhitespace(name.substr(parameter_start + 1, parameter_end - (parameter_start + 1)));
+
+		// Check for 'even' or 'odd' first.
+		if (parameters == "even")
 		{
-			new_style_sheet->RemoveReference();
-			new_style_sheet = NULL;
+			a = 2;
+			b = 0;
+		}
+		else if (parameters == "odd")
+		{
+			a = 2;
+			b = 1;
+		}
+		else
+		{
+			// Alrighty; we've got an equation in the form of [[+/-]an][(+/-)b]. So, foist up, we split on 'n'.
+			size_t n_index = parameters.find('n');
+			if (n_index == String::npos)
+			{
+				// The equation is 0n + b. So a = 0, and we only have to parse b.
+				a = 0;
+				b = atoi(parameters.c_str());
+			}
+			else
+			{
+				if (n_index == 0)
+					a = 1;
+				else
+				{
+					String a_parameter = parameters.substr(0, n_index);
+					if (StringUtilities::StripWhitespace(a_parameter) == "-")
+						a = -1;
+					else
+						a = atoi(a_parameter.c_str());
+				}
+
+				size_t pm_index = parameters.find('+', n_index + 1);
+				if (pm_index != String::npos)
+					b = 1;
+				else
+				{
+					pm_index = parameters.find('-', n_index + 1);
+					if (pm_index != String::npos)
+						b = -1;
+				}
+
+				if (n_index == parameters.size() - 1 || pm_index == String::npos)
+					b = 0;
+				else
+					b = b * atoi(parameters.data() + pm_index + 1);
+			}
 		}
 	}
 
-	stream->RemoveReference();
+	return StructuralSelector(it->second, a, b);
+}
+
+SharedPtr<StyleSheet> StyleSheetFactory::LoadStyleSheet(const String& sheet)
+{
+	SharedPtr<StyleSheet> new_style_sheet;
+
+	// Open stream, construct new sheet and pass the stream into the sheet
+	// TODO: Make this support ASYNC
+	auto stream = std::make_unique<StreamFile>();
+	if (stream->Open(sheet))
+	{
+		new_style_sheet = std::make_shared<StyleSheet>();
+		if (!new_style_sheet->LoadStyleSheet(stream.get()))
+		{
+			new_style_sheet = nullptr;
+		}
+	}
 	return new_style_sheet;
 }
 

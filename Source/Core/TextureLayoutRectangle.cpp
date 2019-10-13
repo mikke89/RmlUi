@@ -37,7 +37,7 @@ TextureLayoutRectangle::TextureLayoutRectangle(int _id, const Vector2i& dimensio
 	id = _id;
 	texture_index = -1;
 
-	texture_data = NULL;
+	texture_data = nullptr;
 	texture_stride = 0;
 }
 

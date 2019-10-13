@@ -37,6 +37,14 @@ namespace Core {
 
 class PropertyDefinition;
 
+struct RMLUICORE_API PropertySource {
+	PropertySource(String path, int line_number, String rule_name) : path(path), line_number(line_number), rule_name(rule_name) {}
+	String path;
+	int line_number;
+	String rule_name;
+};
+
+
 /**
 	@author Peter Curry
  */
@@ -75,27 +83,28 @@ public:
 		PC = 1 << 16,				// number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
-		TRANSFORM = 1 << 17,			// transform; fetch as < TransformRef >, may be empty
+		TRANSFORM = 1 << 17,			// transform; fetch as < TransformPtr >, may be empty
 		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
 		ANIMATION = 1 << 19,            // animation; fetch as < AnimationList >
+		DECORATOR = 1 << 20,            // decorator; fetch as < DecoratorsPtr >
+		FONTEFFECT = 1 << 21,           // font-effect; fetch as < FontEffectsPtr >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM,
 		LENGTH_PERCENT = LENGTH | PERCENT,
 		NUMBER_LENGTH_PERCENT = NUMBER | LENGTH | PERCENT,
-		ANGLE = NUMBER | DEG | RAD
+		ABSOLUTE_LENGTH = PX | DP | PPI_UNIT,
+		ANGLE = DEG | RAD
 	};
 
 	Property();
 	template < typename PropertyType >
-	Property(PropertyType value, Unit unit, int specificity = -1) : value(Variant(value)), unit(unit), specificity(specificity)
+	Property(PropertyType value, Unit unit, int specificity = -1) : value(value), unit(unit), specificity(specificity)
 	{
-		definition = NULL;
+		definition = nullptr;
 		parser_index = -1;
-
-		source_line_number = 0;
 	}
-
-	~Property();	
+	template<typename EnumType, typename = typename std::enable_if< std::is_enum<EnumType>::value, EnumType >::type>
+	Property(EnumType value) : value(static_cast<int>(value)), unit(KEYWORD), specificity(-1) {}
 
 	/// Get the value of the property as a string.
 	String ToString() const;
@@ -114,11 +123,10 @@ public:
 	Unit unit;
 	int specificity;
 
-	const PropertyDefinition* definition;
-	int parser_index;
+	const PropertyDefinition* definition = nullptr;
+	int parser_index = -1;
 
-	String source;
-	int source_line_number;
+	SharedPtr<const PropertySource> source;
 };
 
 }

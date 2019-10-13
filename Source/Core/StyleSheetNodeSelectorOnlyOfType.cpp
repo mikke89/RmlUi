@@ -29,7 +29,6 @@
 #include "precompiled.h"
 #include "StyleSheetNodeSelectorOnlyOfType.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
-#include "../../Include/RmlUi/Core/StyleSheetKeywords.h"
 
 namespace Rml {
 namespace Core {
@@ -49,7 +48,7 @@ bool StyleSheetNodeSelectorOnlyOfType::IsApplicable(const Element* element, int 
 	RMLUI_UNUSED(b);
 
 	Element* parent = element->GetParentNode();
-	if (parent == NULL)
+	if (parent == nullptr)
 		return false;
 
 	for (int i = 0; i < parent->GetNumChildren(); ++i)
@@ -62,7 +61,7 @@ bool StyleSheetNodeSelectorOnlyOfType::IsApplicable(const Element* element, int 
 
 		// Skip the child if it does not share our tag.
 		if (child->GetTagName() != element->GetTagName() ||
-			child->GetDisplay() == DISPLAY_NONE)
+			child->GetDisplay() == Style::Display::None)
 			continue;
 
 		// We've found a similarly-tagged child to our element; selector fails.

@@ -74,7 +74,7 @@ const char* XMLParseTools::FindTag(const char* tag, const char* string, bool clo
 		ptr++;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool XMLParseTools::ReadAttribute(const char* &string, String& name, String& value)
@@ -145,7 +145,7 @@ Element* XMLParseTools::ParseTemplate(Element* element, const String& template_n
 	Template* parse_template = TemplateCache::GetTemplate(template_name);
 	if (!parse_template)
 	{
-		Log::ParseError(element->GetOwnerDocument()->GetSourceURL(), -1, "Failed to find template '%s'.", template_name.CString());
+		Log::ParseError(element->GetOwnerDocument()->GetSourceURL(), -1, "Failed to find template '%s'.", template_name.c_str());
 		return element;
 	}
 

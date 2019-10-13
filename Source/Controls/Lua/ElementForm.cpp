@@ -55,17 +55,17 @@ int ElementFormSubmit(lua_State* L, ElementForm* obj)
 Rml::Core::Lua::RegType<ElementForm> ElementFormMethods[] =
 {
     LUAMETHOD(ElementForm,Submit)
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormGetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 luaL_Reg ElementFormSetters[] =
 {
-    { NULL, NULL },
+    { nullptr, nullptr },
 };
 
 
@@ -83,7 +83,7 @@ template<> void ExtraInit<Rml::Controls::ElementForm>(lua_State* L, int metatabl
     AddTypeToElementAsTable<Rml::Controls::ElementForm>(L);
 }
 using Rml::Controls::ElementForm;
-LUACONTROLSTYPEDEFINE(ElementForm,true)
+LUACONTROLSTYPEDEFINE(ElementForm)
 }
 }
 }

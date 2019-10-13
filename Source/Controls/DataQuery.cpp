@@ -64,7 +64,7 @@ DataQuery::DataQuery(DataSource* data_source, const Rml::Core::String& table, co
 
 DataQuery::DataQuery()
 {
-	data_source = NULL;
+	data_source = nullptr;
 	table = "";
 	offset = -1;
 	limit = -1;
@@ -101,7 +101,7 @@ void DataQuery::ExecuteQuery(DataSource* _data_source, const Rml::Core::String& 
 		limit = data_source->GetNumRows(table) - offset;
 	}
 
-	if (!order.Empty())
+	if (!order.empty())
 	{
 		// Fetch the rows from offset to limit.
 		rows.resize(limit);

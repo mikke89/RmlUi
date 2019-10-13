@@ -47,7 +47,7 @@ public:
 	virtual ~StyleSheetNodeSelectorOnlyOfType();
 
 	// Returns true if the element is the only DOM child of its parent of its type.
-	virtual bool IsApplicable(const Element* element, int a, int b);
+	bool IsApplicable(const Element* element, int a, int b) override;
 };
 
 }

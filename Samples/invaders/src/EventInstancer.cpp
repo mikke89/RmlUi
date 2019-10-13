@@ -42,9 +42,3 @@ Rml::Core::EventListener* EventInstancer::InstanceEventListener(const Rml::Core:
 {
 	return new Event(value);
 }
-
-// Destroys the instancer.
-void EventInstancer::Release()
-{
-	delete this;
-}

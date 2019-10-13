@@ -29,14 +29,12 @@
 #ifndef RMLUICONTROLSDATAFORMATTER_H
 #define RMLUICONTROLSDATAFORMATTER_H
 
+#include "../Core/Types.h"
 #include "../Core/ScriptInterface.h"
-#include "../Core/String.h"
 #include "Header.h"
 
 namespace Rml {
 namespace Controls {
-
-class Element;
 
 /**
 	Abstract base class for a data formatter. A data formatter takes raw data
@@ -59,7 +57,7 @@ public:
 	/// @parameter [in] data_formatter_name The name of the data formatter to
 	/// be returned.
 	/// @return If the data formatter with the specified name has been
-	/// constructed, a pointer to it will be returned. Otherwise, NULL.
+	/// constructed, a pointer to it will be returned. Otherwise, nullptr.
 	static DataFormatter* GetDataFormatter(const Rml::Core::String& data_formatter_name);
 
 	/// Formats the raw results of a data source request into RML.

@@ -32,7 +32,18 @@
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
 
-Rml::Core::Context* context = NULL;
+#include "FontEngineInterfaceBitmap.h"
+
+/*
+
+	This demo shows how to create a custom bitmap font engine implementation. 
+	
+	It should work even when RmlUi is compiled without the default font engine (see CMake flag 'NO_FONT_INTERFACE_DEFAULT').
+	See the interface in 'FontEngineInterfaceBitmap.h' and the implementation in 'FontEngineBitmap.h'.
+
+*/
+
+Rml::Core::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -66,8 +77,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
         AllocConsole();
 #endif
 
-        int window_width = 1024;
-        int window_height = 768;
+    int window_width = 1024;
+    int window_height = 768;
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
@@ -87,11 +98,15 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	ShellSystemInterface system_interface;
 	Rml::Core::SetSystemInterface(&system_interface);
 
+	// Construct and load the font interface.
+	FontEngineInterfaceBitmap font_interface;
+	Rml::Core::SetFontEngineInterface(&font_interface);
+
 	Rml::Core::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
 	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
-	if (context == NULL)
+	if (context == nullptr)
 	{
 		Rml::Core::Shutdown();
 		Shell::Shutdown();
@@ -103,20 +118,25 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	shell_renderer->SetContext(context);
 
     // Load bitmap font
-    Rml::Core::FontDatabase::LoadFontFace("assets/Arial.fnt");
-	
-    // Load and show the demo document.
-	Rml::Core::ElementDocument* document = context->LoadDocument("assets/bitmapfont.rml");
-	if (document != NULL)
+	if (!Rml::Core::LoadFontFace("basic/bitmapfont/data/Comfortaa_Regular_22.fnt"))
 	{
+		Rml::Core::Shutdown();
+		Shell::Shutdown();
+		return -1;
+	}
+
+	// Load and show the demo document.
+	if (Rml::Core::ElementDocument * document = context->LoadDocument("basic/bitmapfont/data/bitmapfont.rml"))
+	{
+		if (auto el = document->GetElementById("title"))
+			el->SetInnerRML("Bitmap font");
+
 		document->Show();
-		document->RemoveReference();
 	}
 
 	Shell::EventLoop(GameLoop);
 
 	// Shutdown RmlUi.
-	context->RemoveReference();
 	Rml::Core::Shutdown();
 
 	Shell::CloseWindow();

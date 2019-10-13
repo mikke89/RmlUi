@@ -39,10 +39,10 @@ namespace Core {
 ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 {
 	// Make sure we can be dragged!
-	SetProperty(DRAG, DRAG);
+	SetProperty(PropertyId::Drag, Property(Style::Drag::Drag));
 
-	move_target = NULL;
-	size_target = NULL;
+	move_target = nullptr;
+	size_target = nullptr;
 	initialised = false;
 }
 
@@ -50,7 +50,7 @@ ElementHandle::~ElementHandle()
 {
 }
 
-void ElementHandle::OnAttributeChange(const AttributeNameList& changed_attributes)
+void ElementHandle::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);
 
@@ -59,14 +59,14 @@ void ElementHandle::OnAttributeChange(const AttributeNameList& changed_attribute
 		changed_attributes.find("size_target") != changed_attributes.end())
 	{
 		initialised = false;
-		move_target = NULL;
-		size_target = NULL;
+		move_target = nullptr;
+		size_target = nullptr;
 	}
 }
 
-void ElementHandle::ProcessEvent(Event& event)
+void ElementHandle::ProcessDefaultAction(Event& event)
 {
-	Element::ProcessEvent(event);
+	Element::ProcessDefaultAction(event);
 
 	if (event.GetTargetElement() == this)
 	{
@@ -74,21 +74,20 @@ void ElementHandle::ProcessEvent(Event& event)
 		if (!initialised && GetOwnerDocument())
 		{
 			String move_target_name = GetAttribute<String>("move_target", "");
-			if (!move_target_name.Empty())
+			if (!move_target_name.empty())
 				move_target = GetElementById(move_target_name);
 
 			String size_target_name = GetAttribute<String>("size_target", "");
-			if (!size_target_name.Empty())
+			if (!size_target_name.empty())
 				size_target = GetElementById(size_target_name);
 
 			initialised = true;
 		}
 
-		if (event == DRAGSTART)
+		if (event == EventId::Dragstart)
 		{
 			// Store the drag starting position
-			drag_start.x = event.GetParameter< int >("mouse_x", 0);
-			drag_start.y = event.GetParameter< int >("mouse_y", 0);
+			drag_start = event.GetUnprojectedMouseScreenPos();
 
 			// Store current element position and size
 			if (move_target)
@@ -99,45 +98,44 @@ void ElementHandle::ProcessEvent(Event& event)
 			if (size_target)
 				size_original_size = size_target->GetBox().GetSize(Box::CONTENT);
 		}
-		else if (event == DRAG)
+		else if (event == EventId::Drag)
 		{
 			// Work out the delta
-			int x = event.GetParameter< int >("mouse_x", 0) - drag_start.x;
-			int y = event.GetParameter< int >("mouse_y", 0) - drag_start.y;
+			Vector2f delta = event.GetUnprojectedMouseScreenPos() - drag_start;
 
 			// Update the move and size objects
 			if (move_target)
 			{
-				move_target->SetProperty(LEFT, Property(Math::RealToInteger(move_original_position.x + x), Property::PX));
-				move_target->SetProperty(TOP, Property(Math::RealToInteger(move_original_position.y + y), Property::PX));
+				move_target->SetProperty(PropertyId::Left, Property(Math::RoundFloat(move_original_position.x + delta.x), Property::PX));
+				move_target->SetProperty(PropertyId::Top, Property(Math::RoundFloat(move_original_position.y + delta.y), Property::PX));
 			}
 
 			if (size_target)
 			{
-				const Property *margin_top, *margin_bottom, *margin_left, *margin_right;
-				size_target->GetMarginProperties(&margin_top, &margin_bottom, &margin_left, &margin_right);
+				using namespace Style;
+				const auto& computed = size_target->GetComputedValues();
 
 				// Check if we have auto-margins; if so, they have to be set to the current margins.
-				if (margin_top->unit == Property::KEYWORD)
-					size_target->SetProperty(MARGIN_TOP, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
-				if (margin_right->unit == Property::KEYWORD)
-					size_target->SetProperty(MARGIN_RIGHT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
-				if (margin_bottom->unit == Property::KEYWORD)
-					size_target->SetProperty(MARGIN_BOTTOM, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
-				if (margin_left->unit == Property::KEYWORD)
-					size_target->SetProperty(MARGIN_LEFT, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
+				if (computed.margin_top.type == Margin::Auto)
+					size_target->SetProperty(PropertyId::MarginTop, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
+				if (computed.margin_right.type == Margin::Auto)
+					size_target->SetProperty(PropertyId::MarginRight, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
+				if (computed.margin_bottom.type == Margin::Auto)
+					size_target->SetProperty(PropertyId::MarginBottom, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
+				if (computed.margin_left.type == Margin::Auto)
+					size_target->SetProperty(PropertyId::MarginLeft, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
 
-				int new_x = Math::RealToInteger(size_original_size.x + x);
-				int new_y = Math::RealToInteger(size_original_size.y + y);
+				float new_x = Math::RoundFloat(size_original_size.x + delta.x);
+				float new_y = Math::RoundFloat(size_original_size.y + delta.y);
 
-				size_target->SetProperty(WIDTH, Property(Math::Max< float >((float) new_x, 0), Property::PX));
-				size_target->SetProperty(HEIGHT, Property(Math::Max< float >((float) new_y, 0), Property::PX));
+				size_target->SetProperty(PropertyId::Width, Property(Math::Max< float >(new_x, 0.f), Property::PX));
+				size_target->SetProperty(PropertyId::Height, Property(Math::Max< float >(new_y, 0.f), Property::PX));
 			}
 
 			Dictionary parameters;
-			parameters.Set("handle_x", x);
-			parameters.Set("handle_y", y);
-			DispatchEvent("handledrag", parameters);
+			parameters["handle_x"] = delta.x;
+			parameters["handle_y"] = delta.y;
+			DispatchEvent(EventId::Handledrag, parameters);
 		}
 	}
 }

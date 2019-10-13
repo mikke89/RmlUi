@@ -36,7 +36,7 @@ namespace Core {
 RMLUICORE_API double Clock::GetElapsedTime()
 {
 	SystemInterface* system_interface = GetSystemInterface();
-	if (system_interface != NULL)
+	if (system_interface != nullptr)
 		return system_interface->GetElapsedTime();
 	else
 		return 0;

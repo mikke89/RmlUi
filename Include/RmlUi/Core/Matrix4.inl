@@ -4,6 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -514,6 +515,18 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::ProjectPerspective(
 		Matrix4< Component, Storage >::VectorType(0, 2 * n / (t - b), (t + b)/(t - b), 0),
 		Matrix4< Component, Storage >::VectorType(0, 0, -(f + n)/(f - n), -(2 * f * n)/(f - n)),
 		Matrix4< Component, Storage >::VectorType(0, 0, -1, 0)
+	);
+}
+
+// Create a perspective projection matrix
+template< typename Component, class Storage>
+Matrix4< Component, Storage > Matrix4< Component, Storage >::Perspective(Component d) noexcept
+{
+	return Matrix4< Component, Storage >::FromRows(
+		Matrix4< Component, Storage >::VectorType(1, 0, 0, 0),
+		Matrix4< Component, Storage >::VectorType(0, 1, 0, 0),
+		Matrix4< Component, Storage >::VectorType(0, 0, 1, 0),
+		Matrix4< Component, Storage >::VectorType(0, 0, -static_cast<Component>(1)/d, 1)
 	);
 }
 

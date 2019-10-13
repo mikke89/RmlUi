@@ -29,10 +29,11 @@
 #include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <RmlUi/Core.h>
+#include <type_traits>
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
-ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(0), m_transforms(0), m_rmlui_context(NULL)
+ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(0), m_transform_enabled(false), m_rmlui_context(nullptr)
 {
 
 }
@@ -76,7 +77,7 @@ Rml::Core::CompiledGeometryHandle ShellRenderInterfaceOpenGL::CompileGeometry(Rm
 	RMLUI_UNUSED(num_indices);
 	RMLUI_UNUSED(texture);
 
-	return (Rml::Core::CompiledGeometryHandle) NULL;
+	return (Rml::Core::CompiledGeometryHandle) nullptr;
 }
 
 // Called by RmlUi when it wants to render application-compiled geometry.		
@@ -96,7 +97,7 @@ void ShellRenderInterfaceOpenGL::ReleaseCompiledGeometry(Rml::Core::CompiledGeom
 void ShellRenderInterfaceOpenGL::EnableScissorRegion(bool enable)
 {
 	if (enable) {
-		if (m_transforms <= 0) {
+		if (!m_transform_enabled) {
 			glEnable(GL_SCISSOR_TEST);
 			glDisable(GL_STENCIL_TEST);
 		} else {
@@ -112,7 +113,7 @@ void ShellRenderInterfaceOpenGL::EnableScissorRegion(bool enable)
 // Called by RmlUi when it wants to change the scissor region.		
 void ShellRenderInterfaceOpenGL::SetScissorRegion(int x, int y, int width, int height)
 {
-	if (m_transforms <= 0) {
+	if (!m_transform_enabled) {
 		glScissor(x, m_height - (y + height), width, height);
 	} else {
 		// clear the stencil buffer
@@ -281,22 +282,18 @@ void ShellRenderInterfaceOpenGL::ReleaseTexture(Rml::Core::TextureHandle texture
 }
 
 // Called by RmlUi when it wants to set the current transform matrix to a new matrix.
-void ShellRenderInterfaceOpenGL::PushTransform(const Rml::Core::RowMajorMatrix4f& transform)
+void ShellRenderInterfaceOpenGL::SetTransform(const Rml::Core::Matrix4f* transform)
 {
-	glPushMatrix();
-	glLoadMatrixf(transform.Transpose().data());
-	++m_transforms;
-}
-void ShellRenderInterfaceOpenGL::PushTransform(const Rml::Core::ColumnMajorMatrix4f& transform)
-{
-	glPushMatrix();
-	glLoadMatrixf(transform.data());
-	++m_transforms;
+	m_transform_enabled = (bool)transform;
+
+	if (transform)
+	{
+		if (std::is_same<Rml::Core::Matrix4f, Rml::Core::ColumnMajorMatrix4f>::value)
+			glLoadMatrixf(transform->data());
+		else if (std::is_same<Rml::Core::Matrix4f, Rml::Core::RowMajorMatrix4f>::value)
+			glLoadMatrixf(transform->Transpose().data());
+	}
+	else
+		glLoadIdentity();
 }
 
-// Called by RmlUi when it wants to revert the latest transform change.
-void ShellRenderInterfaceOpenGL::PopTransform(const Rml::Core::Matrix4f& transform)
-{
-	glPopMatrix();
-	--m_transforms;
-}

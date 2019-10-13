@@ -27,22 +27,23 @@
  */
 
 #include "../../Include/RmlUi/Controls/DataFormatter.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
 namespace Controls {
 
-typedef std::map< Rml::Core::String, DataFormatter* > DataFormatterMap;
+typedef Core::UnorderedMap< Rml::Core::String, DataFormatter* > DataFormatterMap;
 static DataFormatterMap data_formatters;
 
 DataFormatter::DataFormatter(const Rml::Core::String& _name)
 {
-	if (!_name.Empty())
+	if (!_name.empty())
 	{
 		name = _name;
 	}
 	else
 	{
-		name.FormatString(64, "%x", this);
+		name = Core::CreateString(64, "%x", this);
 	}
 	data_formatters[name] = this;
 }
@@ -61,7 +62,7 @@ DataFormatter* DataFormatter::GetDataFormatter(const Rml::Core::String& data_for
 	DataFormatterMap::iterator i = data_formatters.find(data_formatter_name);
 	if (i == data_formatters.end())
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	return (*i).second;
@@ -69,7 +70,7 @@ DataFormatter* DataFormatter::GetDataFormatter(const Rml::Core::String& data_for
 
 void* DataFormatter::GetScriptObject() const
 {
-	return NULL;
+	return nullptr;
 }
 
 }

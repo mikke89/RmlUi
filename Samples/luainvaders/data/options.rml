@@ -13,9 +13,7 @@
 
 			div#title_bar div#icon
 			{
-				icon-image-s: 230px 281px;
-				icon-image-t: 152px 191px;
-
+				decorator: image( icon-game );
 				display: none;
 			}
 
@@ -91,7 +89,7 @@ function Options.DisplayBadGraphics(document, display)
 		document:GetElementById('bad_warning').style.display = 'block'
 	else
 		document:GetElementById('bad_warning').style.display = 'none'
-    end
+	end
 end
 
 	</script>
@@ -101,8 +99,8 @@ end
 			<div>
 				<p>
 					Graphics:<br />
-					<input id="good" type="radio" name="graphics" value="good"/> Good<br />
-					<input id="ok" type="radio" name="graphics" value="ok" checked="true"/> OK<br />
+					<input id="good" type="radio" name="graphics" value="good" onchange="Options.DisplayBadGraphics(document, false)"/> Good<br />
+					<input id="ok" type="radio" name="graphics" value="ok" checked="true" onchange="Options.DisplayBadGraphics(document, false)"/> OK<br />
 					<input id="bad" type="radio" name="graphics" value="bad" onchange="Options.DisplayBadGraphics(document, true)" /> Bad<br />
 				</p>
 				<p id="bad_warning" style="display: none;">Are you sure about this? Bad graphics are just plain <em>bad.</em></p>

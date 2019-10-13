@@ -47,7 +47,7 @@ public:
 	virtual ~StyleSheetNodeSelectorFirstChild();
 
 	// Returns true if the element is the first DOM child in its parent.
-	virtual bool IsApplicable(const Element* element, int a, int b);
+	bool IsApplicable(const Element* element, int a, int b) override;
 };
 
 }

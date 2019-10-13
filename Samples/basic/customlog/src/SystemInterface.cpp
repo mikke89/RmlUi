@@ -28,6 +28,7 @@
 
 #include "SystemInterface.h"
 #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/StringUtilities.h>
 #include <Shell.h>
 #include <stdio.h>
 #ifdef RMLUI_PLATFORM_WIN32
@@ -41,7 +42,7 @@ SystemInterface::SystemInterface()
 
 SystemInterface::~SystemInterface()
 {
-	if (fp != NULL)
+	if (fp != nullptr)
 		fclose(fp);
 }
 
@@ -53,7 +54,7 @@ double SystemInterface::GetElapsedTime()
 
 bool SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message)
 {
-	if (fp != NULL)
+	if (fp != nullptr)
 	{
 		// Select a prefix appropriate for the severity of the message.
 		const char* prefix;
@@ -74,16 +75,16 @@ bool SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::Str
 		}
 
 		// Print the message and timestamp to file, and force a write in case of a crash.
-		fprintf(fp, "%s (%.2f): %s", prefix, GetElapsedTime(), message.CString());
+		fprintf(fp, "%s (%.2f): %s", prefix, GetElapsedTime(), message.c_str());
 		fflush(fp);
 
 #ifdef RMLUI_PLATFORM_WIN32
 		if (type == Rml::Core::Log::LT_ASSERT)
 		{
-			Rml::Core::String assert_message(1024, "%s\nWould you like to interrupt execution?", message.CString());
+			Rml::Core::String assert_message = Rml::Core::CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());
 
 			// Return TRUE if the user presses NO (continue execution)
-			return MessageBox(NULL, assert_message.CString(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
+			return MessageBox(nullptr, assert_message.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
 		}
 #endif
 	}

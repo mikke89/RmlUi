@@ -36,7 +36,7 @@ namespace Core {
 
 class Element;
 class ElementText;
-class FontFaceHandle;
+class FontFaceHandleDefault;
 class LayoutBlockBox;
 class LayoutLineBox;
 
@@ -46,8 +46,6 @@ class LayoutLineBox;
 
 class LayoutInlineBox
 {
-friend class LayoutInlineBoxText;
-
 public:
 	/// Constructs a new inline box for an element.
 	/// @param element[in] The element this inline box is flowing.
@@ -72,7 +70,7 @@ public:
 	/// @param[in] first_box True if this box is the first box containing content to be flowed into this line.
 	/// @param[in] available_width The width available for flowing this box's content. This is measured from the left side of this box's content area.
 	/// @param[in] right_spacing_width The width of the spacing that must be left on the right of the element if no overflow occurs. If overflow occurs, then the entire width can be used.
-	/// @return The overflow box containing any content that spilled over from the flow. This must be NULL if no overflow occured.
+	/// @return The overflow box containing any content that spilled over from the flow. This must be nullptr if no overflow occured.
 	virtual LayoutInlineBox* FlowContent(bool first_box, float available_width, float right_spacing_width);
 
 	/// Computes and sets the vertical position of this element, relative to its parent inline box (or block box,
@@ -110,14 +108,14 @@ public:
 
 	/// Returns the vertical align property of the box's element.
 	/// @return the vertical align property, or -1 if it is set to a numerical value.
-	int GetVerticalAlignProperty() const;
+	Style::VerticalAlign GetVerticalAlignProperty() const;
 
 	/// Returns the inline box's element.
 	/// @return The inline box's element.
 	Element* GetElement();
 
 	/// Returns the inline box's parent.
-	/// @param The parent of this inline box. This will be NULL for a root-level inline box (ie, one that has a block element has a parent in the true hierarchy).
+	/// @param The parent of this inline box. This will be nullptr for a root-level inline box (ie, one that has a block element has a parent in the true hierarchy).
 	LayoutInlineBox* GetParent();
 
 	/// Returns the inline box's dimension box.
@@ -140,10 +138,7 @@ public:
 protected:
 	/// Returns our parent box's font face handle.
 	/// @return The font face handle of our parent box.
-	FontFaceHandle* GetParentFont() const;
-	/// Returns our parent box's line height.
-	/// @return The line height of our parent box.
-	float GetParentLineHeight() const;
+	FontFaceHandle GetParentFont() const;
 
 	// The box's element.
 	Element* element;
@@ -160,11 +155,11 @@ protected:
 	float height;
 
 	// The value of this box's element's vertical-align property.
-	int vertical_align_property;
+	Style::VerticalAlign vertical_align_property;
 	// The baseline of the inline element.
 	float baseline;
 
-	// The inline box's parent; this will be NULL if we're not a nested inline element.
+	// The inline box's parent; this will be nullptr if we're not a nested inline element.
 	LayoutInlineBox* parent;
 	// This inline box's line.
 	LayoutLineBox* line;

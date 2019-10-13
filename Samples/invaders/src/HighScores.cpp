@@ -30,11 +30,11 @@
 #include <RmlUi/Core/TypeConverter.h>
 #include <stdio.h>
 
-HighScores* HighScores::instance = NULL;
+HighScores* HighScores::instance = nullptr;
 
 HighScores::HighScores() : Rml::Controls::DataSource("high_scores")
 {
-	RMLUI_ASSERT(instance == NULL);
+	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
 
 	for (int i = 0; i < NUM_SCORES; i++)
@@ -51,7 +51,7 @@ HighScores::~HighScores()
 
 	SaveScores();
 
-	instance = NULL;
+	instance = nullptr;
 }
 
 void HighScores::Initialise()
@@ -76,11 +76,11 @@ void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& tab
 			}
 			else if (columns[i] == "name_required")
 			{
-				row.push_back(Rml::Core::String(4, "%d", scores[row_index].name_required));
+				row.push_back(Rml::Core::CreateString(4, "%d", scores[row_index].name_required));
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(Rml::Core::String(32, "%d", scores[row_index].score));
+				row.push_back(Rml::Core::CreateString(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
@@ -90,7 +90,7 @@ void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& tab
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(Rml::Core::String(8, "%d", scores[row_index].wave));
+				row.push_back(Rml::Core::CreateString(8, "%d", scores[row_index].wave));
 			}
 		}
 	}
@@ -228,8 +228,8 @@ void HighScores::SaveScores()
 			Rml::Core::String colour_string;
 			Rml::Core::TypeConverter< Rml::Core::Colourb, Rml::Core::String >::Convert(scores[i].colour, colour_string);
 
-			Rml::Core::String score(1024, "%s\t%s\t%d\t%d\n", scores[i].name.CString(), colour_string.CString(), scores[i].wave, scores[i].score);
-			fputs(score.CString(), scores_file);		
+			Rml::Core::String score = Rml::Core::CreateString(1024, "%s\t%s\t%d\t%d\n", scores[i].name.c_str(), colour_string.c_str(), scores[i].wave, scores[i].score);
+			fputs(score.c_str(), scores_file);
 		}
 
 		fclose(scores_file);

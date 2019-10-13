@@ -36,7 +36,7 @@ namespace Debugger {
 // Initialises the debug plugin. The debugger will be loaded into the given context.
 bool Initialise(Core::Context* context)
 {
-	if (Plugin::GetInstance() != NULL)
+	if (Plugin::GetInstance() != nullptr)
 	{
 		Core::Log::Message(Core::Log::LT_WARNING, "Unable to initialise debugger plugin, already initialised!");
 		return false;
@@ -61,7 +61,7 @@ bool Initialise(Core::Context* context)
 bool SetContext(Core::Context* context)
 {
 	Plugin* plugin = Plugin::GetInstance();
-	if (plugin == NULL)
+	if (plugin == nullptr)
 		return false;
 
 	plugin->SetContext(context);
@@ -73,7 +73,7 @@ bool SetContext(Core::Context* context)
 void SetVisible(bool visibility)
 {
 	Plugin* plugin = Plugin::GetInstance();
-	if (plugin != NULL)
+	if (plugin != nullptr)
 		plugin->SetVisible(visibility);
 }
 
@@ -81,7 +81,7 @@ void SetVisible(bool visibility)
 bool IsVisible()
 {
 	Plugin* plugin = Plugin::GetInstance();
-	if (plugin == NULL)
+	if (plugin == nullptr)
 		return false;
 
 	return plugin->IsVisible();

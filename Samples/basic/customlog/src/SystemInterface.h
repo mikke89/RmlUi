@@ -44,13 +44,13 @@ public:
 
 	/// Get the number of seconds elapsed since the start of the application.
 	/// @return Elapsed time, in seconds.
-	virtual double GetElapsedTime();
+	double GetElapsedTime() override;
 
 	/// Log the specified message.
 	/// @param[in] type Type of log message, ERROR, WARNING, etc.
 	/// @param[in] message Message to log.
 	/// @return True to continue execution, false to break into the debugger.
-	virtual bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message);
+	bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message) override;
 
 private:
 	FILE* fp;
