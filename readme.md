@@ -49,7 +49,7 @@ The main effort in RmlUi 3.0 has been on improving the performance of the librar
 The RCSS at-rule `@spritesheet` can be used to declare a sprite sheet. A sprite sheet consists of a single image and multiple sprites each specifying a region of the image. Sprites can in turn be used in decorators.
 
 A sprite sheet can be declared in RCSS as in the following example.
-```CSS
+```css
 @spritesheet theme 
 {
 	src: invader.tga;
@@ -67,7 +67,7 @@ A sprite sheet can be declared in RCSS as in the following example.
 The first property `src` provides the filename of the image for the sprite sheet. Every other property specifies a sprite as `<name>: <rectangle>`. A sprite's name applies globally to all included style sheets in a given document, and must be unique. A rectangle is declared as `x y width height`, each of which must be in `px` units. Here, `x` and `y` refers to the position in the image with the origin placed at the top-left corner, and `width` and `height` extends the rectangle right and down.
 
 The sprite name can be used in decorators, such as:
-```CSS
+```css
 decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 ```
 This creates a tiled decorator where the `title-bar-l` and `title-bar-r` sprites occupies the left and right parts of the element at their native size, while `title-bar-c` occupies the center and is stretched horizontally as the element is stretched.
@@ -77,7 +77,7 @@ This creates a tiled decorator where the `title-bar-l` and `title-bar-r` sprites
 
 The new RCSS `decorator` property replaces the old decorator declarations in libRocket. A decorator is declared by the name of the decorator type and its properties in parenthesis. Some examples follow.
 
-```CSS
+```css
 /* declares an image decorater by a sprite name */
 decorator: image( icon-invader );
 
@@ -95,7 +95,7 @@ decorator: image( invader.tga );
 The `decorator` property follows the normal cascading rules, is non-inherited, and has the default value `none` which specifies no decorator on the element. The decorator looks for a sprite with the same name first. If none exists, then it treats it as a file name for an image. Decorators can now be set on the element's style, although we recommend declaring them in style sheets for performance reasons.
 
 Furthermore, multiple decorators can be specified on any element by a comma-separated list of decorators.
-```CSS
+```css
 /* declares two decorators on the same element, the first will be rendered on top of the latter */
 decorator: image( icon-invader ), tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 ```
@@ -109,7 +109,7 @@ Note: This part is experimental. If it turns out there are very few use-cases fo
 
 The `@decorator` at-rule in RCSS can be used to declare a decorator when the shorthand syntax given above is not sufficient. It is best served with an example, we use the custom `starfield` decorator type from the invaders sample. In the style sheet, we can populate it with properties as follows.
 
-```CSS
+```css
 @decorator stars : starfield {
 	num-layers: 5;
 	top-colour: #fffc;
@@ -121,7 +121,7 @@ The `@decorator` at-rule in RCSS can be used to declare a decorator when the sho
 }
 ```
 And then use it in a decorator.
-```CSS
+```css
 decorator: stars;
 ```
 Note the lack of parenthesis which means it is a decorator name and not a type with shorthand properties declared.
@@ -132,7 +132,7 @@ Note the lack of parenthesis which means it is a decorator name and not a type w
 The new `ninepatch` decorator splits a sprite into a 3x3 grid of patches. The corners of the ninepatch are rendered at their native size, while the inner patches are stretched so that the whole element is filled. In a sense, it can be considered a simplified and more performant version of the `tiled-box` decorator.
 
 The decorator is specified by two sprites, defining an outer and inner rectangle:
-```CSS
+```css
 @spritesheet my-button {
 	src: button.png;
 	button-outer: 247px  0px 159px 45px;
@@ -142,17 +142,17 @@ The decorator is specified by two sprites, defining an outer and inner rectangle
 The inner rectangle defines the parts of the sprite that will be stretched when the element is resized. 
 
 The `ninepatch` decorator is applied as follows:
-```CSS
+```css
 decorator: ninepatch( button-outer, button-inner );
 ```
 The two sprites must be located in the same sprite sheet. Only sprites are supported by the ninepatch decorator, image urls cannot be used.
 
 Furthermore, the ninepatch decorator can have the rendered size of its edges specified manually.
-```CSS
+```css
 decorator: ninepatch( button-outer, button-inner, 19px 12px 25px 12px );
 ```
 The edge sizes are specified in the common `top-right-bottom-left` box order. The box shorthands are also available, e.g. a single value will be replicated to all. Percent and numbers can also be used, they will scale relative to the native size of the given edge multiplied by the current dp ratio. Thus, setting
-```CSS
+```css
 decorator: ninepatch( button-outer, button-inner, 1.0 );
 ```
 is a simple approach to scale the decorators with higher dp ratios. For crisper graphics, increase the sprite sheet's pixel size at the edges and lower the rendered edge size number correspondingly.
@@ -162,7 +162,7 @@ is a simple approach to scale the decorators with higher dp ratios. For crisper 
 
 A `gradient` decorator has been implemented with support for horizontal and vertical color gradients (thanks to @viciious). Example usage:
 
-```CSS
+```css
 decorator: gradient( direction start-color stop-color );
 
 direction: horizontal|vertical;
@@ -180,7 +180,7 @@ none, flip-horizontal, flip-vertical, rotate-180
 
 Example usage:
 
-```CSS
+```css
 decorator: tiled-horizontal( header-l, header-c, header-l flip-horizontal );
 ```
 
@@ -190,7 +190,7 @@ decorator: tiled-horizontal( header-l, header-c, header-l flip-horizontal );
 The image decorator now supports fit modes and alignment for scaling and positioning the image within its current element.
 
 The full RCSS specification for the `image` decorator is now
-```CSS
+```css
 decorator: image( <src> <orientation> <fit> <align-x> <align-y> );
 ```
 where
@@ -209,7 +209,7 @@ Values must be specified in the given order, any unspecified properties will be 
 
 The new RCSS `font-effect` property replaces the old font-effect declarations in libRocket. A font-effect is declared similar to a decorator, by the name of the font-effect type and its properties in parenthesis. Some examples follow.
 
-```CSS
+```css
 /* declares an outline font-effect with width 5px and color #f66 */
 font-effect: outline( 5px #f66 );
 
@@ -220,7 +220,7 @@ font-effect: shadow( 2px 2px #333 );
 The `font-effect` property follows the normal cascading rules, is inherited, and has the default value `none` which specifies no font-effect on the element. Unlike in libRocket, font-effects can now be set on the element's style, although we recommend declaring them in style sheets for performance reasons.
 
 Furthermore, multiple font-effects can be specified on any element by a comma-separated list of font-effects.
-```CSS
+```css
 /* declares two font-effects on the same element */
 font-effect: shadow(3px 3px green), outline(2px black);
 ```
@@ -232,13 +232,13 @@ There is currently no equivalent of the `@decorator` at-rule for font-effects. I
 ### RCSS Selectors
 
 The child combinator `>` is now introduced in RCSS, which can be used as in CSS to select a child of another element.
-```RCSS
+```css
 p.green_theme > button { image-color: #0f0; }
 ```
 Here, any `button` elements which have a parent `p.green_theme` will have their image color set to green. 
 
 Furthermore, the universal selector `*` can now be used in RCSS. This selector matches any element.
-```RCSS
+```css
 div.red_theme > * > p { color: #f00; }
 ```
 Here, `p` grandchildren of `div.red_theme` will have their color set to red. The universal selector can also be used in combination with other selectors, such as `*.great#content:hover`.
@@ -250,6 +250,7 @@ The debugger has been improved in several aspects:
 - Live updating of values. Can now see the effect of animations and other property changes.
 - Can now toggle drawing of element dimension box, and live update of values.
 - Can toggle pseudo classes on the selected element.
+- Added the ability to clear the log.
 - Support for transforms. The element's dimension box is drawn with the transform applied.
 
 ### Removal of manual reference counting
@@ -261,7 +262,7 @@ All manual reference counting has been removed in favor of smart pointers. There
 The Core API takes raw pointers as before such as for its interfaces. With the new semantics, this means the library retains a non-owning reference. Thus, all construction and destruction of such objects is the responsibility of the user. Typically, the objects must stay alive until after `Core::Shutdown` is called. Each relevant function is commented with its lifetime requirements.
 
 As an example, the system interface can be constructed into a unique pointer.
-```C++
+```cpp
 auto system_interface = std::make_unique<MySystemInterface>();
 Rml::Core::SetSystemInterface(system_interface.get());
 Rml::Core::Initialise();
@@ -270,7 +271,7 @@ Rml::Core::Shutdown();
 system_interface.reset();
 ```
 Or simply from a stack object.
-```C++
+```cpp
 MySystemInterface system_interface;
 Rml::Core::SetSystemInterface(&system_interface);
 Rml::Core::Initialise();
@@ -281,28 +282,28 @@ Rml::Core::Shutdown();
 #### Element API
 
 When constructing new elements, there is again no longer a need to decrement the reference count as before. Instead, the element is returned with a unique ownership
-```C++
+```cpp
 ElementPtr ElementDocument::CreateElement(const String& name);
 ```
 where `ElementPtr` is a unique pointer and an alias as follows.
-```C++
+```cpp
 using ElementPtr = std::unique_ptr<Element, Releaser<Element>>;
 ```
 Note that, the custom deleter `Releaser` is there to ensure the element is released from the `ElementInstancer` in which it was created.
 
 After having called `ElementDocument::CreateElement`, the element can be moved into the list of children of another element.
-```C++
+```cpp
 ElementPtr new_child = document->CreateElement("div");
 element->AppendChild( std::move(new_child) );
 ```
 Since we moved `new_child`, we cannot use the pointer anymore. Instead, `Element::AppendChild` returns a non-owning raw pointer to the appended child which can be used. Furthermore, the new element can be constructed in-place, e.g.
-```C++
+```cpp
 Element* new_child = element->AppendChild( document->CreateElement("div") );
 ```
 and now `new_child` can safely be used until the element is destroyed.
 
 There are aliases to the smart pointers which are used internally for consistency with the library's naming scheme.
-```C++
+```cpp
 template<typename T> using UniquePtr = std::unique_ptr<T>;
 template<typename T> using SharedPtr = std::shared_ptr<T>;
 ```
@@ -325,12 +326,12 @@ Some relevant changes for users:
 It is now possible to autofocus on elements when showing a document. By default, the first element with the property `tab-index: auto;` as well as the attribute `autofocus` set, will receive focus.
 
 The focus behavior as well as the modal state can be controlled with two new separate flags.
-```C++
+```cpp
 ElementDocument::Show(ModalFlag modal_flag = ModalFlag::None, FocusFlag focus_flag = FocusFlag::Auto);
 ```
 
 The flags are specified as follows:
-```C++
+```cpp
 /**
 	 ModalFlag used for controlling the modal state of the document.
 		None:  Remove modal state.
@@ -373,7 +374,6 @@ Three new CMake options added.
 
 - `Context::ProcessMouseWheel` now takes a float value for the `wheel_delta` property, thereby enabling continuous/smooth scrolling for input devices with such support. The default scroll length for unity value of `wheel_delta` is now three times the default line-height multiplied by the current dp-ratio.
 - The system interface now has two new functions for setting and getting text to and from the clipboard: `virtual void SystemInterface::SetClipboardText(const Core::String& text)` and `virtual void SystemInterface::GetClipboardText(Core::String& text)`.
-- The debugger now has the ability to clear the log. Additionally, the displayed element information updates when the element changes.
 - The `text-decoration` property can now also be used with `overline` and `line-through`.
 - The text input and text area elements can be navigated word for word by holding the 'ctrl' key.
 - The `<img>` element can now take sprite names in its `src` attribute.
@@ -383,13 +383,14 @@ Three new CMake options added.
 
 Breaking changes since RmlUi v2.0.
 
+- RmlUi now requires a C++14-compatible compiler (previously C++11).
 - Rml::Core::String has been replaced by std::string, thus, interfacing with the library now requires you to change your string types. This change was motivated by a small performance gain, additionally, it should make it easier to interface with the library especially for users already using std::string in their codebase. Furthermore, strings should be considered as encoded in UTF-8.
 - To load fonts, use `Rml::Core::LoadFontFace` instead of `Rml::Core::FontDatabase::LoadFontFace`.
 - Querying the property of an element for size, position and similar may not work as expected right after changes to the document or style. This change is made for performance reasons, see the description under *performance* for reasoning and a workaround.
 - The Controls::DataGrid "min-rows" property has been removed.
 - Removed RenderInterface::GetPixelsPerInch, instead the pixels per inch value has been fixed to 96 PPI, as per CSS specs. To achieve a scalable user interface, instead use the 'dp' unit.
 - Removed 'top' and 'bottom' from z-index property.
-- Angles need to be declared in either 'deg' or 'rad', unit-less numbers do not work.
+- Angles need to be declared in either 'deg' or 'rad'. Unit-less numbers do not work.
 - See changes to the declaration of decorators and font-effects above.
 - See changes to the render interface regarding transforms above.
 - The focus flag in `ElementDocument::Show` has been changed, with a new enum name and new options, see above.
@@ -447,7 +448,7 @@ Based on the work of @shoemark, with additional fixes.
 
 Use `perspective`, `perspective-origin`, `transform` and `transform-origin` in RCSS, roughly equivalent to their respective CSS properties.
 
-```CSS
+```css
 perspective: 1000px;
 perspective-origin: 20px 50%;
 transform: rotateX(10deg) skew(-10deg, 15deg) translateZ(100px);
@@ -474,7 +475,7 @@ rotateX,      angle1
 rotateY,      angle1
 rotateZ,      angle1
 rotate,       angle1
-rotate3d,     length3angle1
+rotate3d,     number3angle1
 skewX,        angle1
 skewY,        angle1
 skew,         angle2
@@ -491,19 +492,19 @@ Angles take units of 'deg' or 'rad'.
 
 Most RCSS properties can be animated, this includes properties representing lengths, colors, or transforms. From C++, an animation can be started on an Element by calling
 
-```C++
+```cpp
 bool Element::Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
 ```
 
 Additional animation keys can be added, extending the duration of the animation, by calling
 
-```C++
+```cpp
 bool Element::AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
 ```
 
 C++ example usage:
 
-```C++
+```cpp
 auto p1 = Transform::MakeProperty({ Transforms::Rotate2D{10.f}, Transforms::TranslateX{100.f} });
 auto p2 = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
 el->Animate("transform", p1, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
@@ -512,7 +513,7 @@ el->AddAnimationKey("transform", p2, 1.3f, Tween{ Tween::Elastic, Tween::InOut }
 
 
 Animations can also be specified entirely in RCSS, with keyframes.
-```CSS
+```css
 animation: <duration> <delay> <tweening-function> <num_iterations|infinite> <alternate> <paused> <keyframes-name>;
 ```
 All values, except `<duration>` and `<kyframes-name>`, are optional. Delay must be specified after duration, otherwise values can be given in any order. Keyframes are specified as in CSS, see example below. Multiple animations can be specified on the same element by using a comma-separated list.
@@ -534,7 +535,7 @@ sine
 
 RCSS example usage:
 
-```CSS
+```css
 @keyframes my-progress-bar
 {
 	0%, 30% {
@@ -566,7 +567,7 @@ Animations are very powerful coupled with transforms. See the animation sample p
 
 Transitions apply an animation between two property values on an element when its property changes. Transitions are implemented in RCSS similar to how they operate in CSS. However, in RCSS, they only apply when a class or pseudo-class is added to or removed from an element.
 
-```CSS
+```css
 transition: <space-separated-list-of-properties|all|none> <duration> <delay> <tweening-function>;
 ```
 The property list specifies the properties to be animated. Delay and tweening-function are optional. Delay must be specified after duration, otherwise values can be given in any order. Multiple transitions can be specified on the same element by using a comma-separated list. The tweening function is specified as in the `animation` RCSS property.
@@ -574,7 +575,7 @@ The property list specifies the properties to be animated. Delay and tweening-fu
 
 Example usage:
 
-```CSS
+```css
 #transition_test {
 	transition: padding-left background-color transform 1.6s elastic-out;
 	transform: scale(1.0);
@@ -594,13 +595,13 @@ See the animation sample project for more examples and details.
 
 The `dp` unit behaves like `px` except that its size can be set globally to scale relative to pixels. This makes it easy to achieve a scalable user interface. Set the ratio globally on the context by calling:
 
-```C++
+```cpp
 float dp_ratio = 1.5f;
 context->SetDensityIndependentPixelRatio(dp_ratio);
 ```
 
 Usage example in RCSS:
-```CSS
+```css
 div#header 
 {
 	width: 800dp;
@@ -613,7 +614,7 @@ div#header
 ### Pointer events
 
 Set the element property to disregard mouse input events on this and descending elements.
-```CSS
+```css
 pointer-events: none;
 ```
 Default is `auto`.
@@ -622,7 +623,7 @@ Default is `auto`.
 ### Image-color property
 
 Non-standard RCSS property which multiplies a color with images in `<img>` tags and image decorators. Useful for `:hover`-events and for applying transparency.
-```CSS
+```css
 image-color: rgba(255, 160, 160, 200);
 icon-decorator: image;
 icon-image: background.png 34px 0px 66px 28px;
@@ -632,7 +633,7 @@ icon-image: background.png 34px 0px 66px 28px;
 ### Inline-block
 
 Unlike the original branch, elements with
-```CSS
+```css
 display: inline-block;
 ```
 will shrink to the width of their content, like in CSS.
@@ -642,7 +643,7 @@ will shrink to the width of their content, like in CSS.
 ### Border shorthand
 
 Enables the `border` property shorthand.
-```CSS
+```css
 border: 4px #e99;
 ```
 
