@@ -29,59 +29,144 @@
 #ifndef RMLUIOBSERVERPTR_H
 #define RMLUIOBSERVERPTR_H
 
+#include <utility>
+#include <type_traits>
 #include "Types.h"
 
 namespace Rml {
 namespace Core {
 
+struct RMLUICORE_API ObserverPtrBlock {
+	int num_observers = 0;
+	void* pointed_to_object;
+};
+RMLUICORE_API ObserverPtrBlock* AllocateObserverPtrBlock();
+RMLUICORE_API void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block);
+
+template<typename T>
+class EnableObserverPtr;
+
+
 /**
 	Observer pointer.
 
-	Holds a weak reference to something owned by someone else. Will return false if the pointed to object was destroyed.
+	Holds a weak reference to an object owned by someone else. Can tell whether or not the pointed to object has been destroyed.
+
+	Usage: Given a class T, derive from EnableObserverPtr<T>. Then, we can use the observer pointer as follows:
+
+		auto object = std::make_unique<T>();
+		ObserverPtr<T> observer_ptr = object->GetObserverPtr();
+		// ...
+		if(obserer_ptr) { 
+			// Will only enter if object is still alive.
+			observer_ptr->do_a_thing(); 
+		} 
 
 	Note: Not thread safe.
  */
 
 template<typename T>
-class ObserverPtr {
+class RMLUICORE_API ObserverPtr {
 public:
-	ObserverPtr(std::weak_ptr<uintptr_t> ptr) : ptr(ptr) {}
-
-	explicit operator bool() const { return !ptr.expired(); }
-
-	T* get() {
-		// TODO: Locking it here here does nothing really, but required because we are basing this on a std::shared_ptr for now.
-		auto lock = ptr.lock();
-		if (!lock)
-			return nullptr;
-		return reinterpret_cast<T*>(*lock);
+	ObserverPtr() noexcept : block(nullptr) {}
+	~ObserverPtr() noexcept {
+		reset(); 
 	}
 
-	T* operator->() { return get(); }
+	// Copy
+	ObserverPtr<T>(const ObserverPtr<T>& other) noexcept : block(other.block) {
+		if (block)
+			block->num_observers += 1;
+	}
+	ObserverPtr<T>& operator=(const ObserverPtr<T>& other) noexcept {
+		reset();
+		block = other.block;
+		if (block)
+			block->num_observers += 1;
+		return *this;
+	}
+
+	// Move
+	ObserverPtr<T>(ObserverPtr<T>&& other) noexcept : block(std::exchange(other.block, nullptr)) {}
+	ObserverPtr<T>& operator=(ObserverPtr<T>&& other) noexcept
+	{
+		reset();
+		block = std::exchange(other.block, nullptr);
+		return *this;
+	}
+
+	// Returns true if we can dereference the pointer.
+	explicit operator bool() const noexcept { return block && block->pointed_to_object; }
+
+	// Retrieve the pointer to the observed object if we have one and it's still alive.
+	T* get() noexcept {
+		return block ? static_cast<T*>(block->pointed_to_object) : nullptr;
+	}
+	// Dereference the pointed to object.
+	T* operator->() noexcept { return static_cast<T*>(block->pointed_to_object); }
+
+	// Reset the pointer so that it does not point to anything.
+	// When the pointed to object and all observer pointers to it have been destroyed, it will deallocate the block.
+	void reset() noexcept
+	{
+		if (block)
+		{
+			block->num_observers -= 1;
+			DeallocateObserverPtrBlockIfEmpty(block);
+			block = nullptr;
+		}
+	}
 
 private:
-	WeakPtr<uintptr_t> ptr;
+
+	friend class EnableObserverPtr<T>;
+
+	explicit ObserverPtr(ObserverPtrBlock* block) noexcept : block(block)
+	{
+		if (block)
+			block->num_observers += 1;
+	}
+
+	ObserverPtrBlock* block;
 };
+
+
 
 
 template<typename T>
-class EnableObserverPtr {
+class RMLUICORE_API EnableObserverPtr {
 public:
-	ObserverPtr<T> GetObserverPtr() const { return ObserverPtr<T>(self_reference); }
+
+	ObserverPtr<T> GetObserverPtr() const noexcept { return ObserverPtr<T>(block); }
 
 protected:
-	EnableObserverPtr() : self_reference(std::make_shared<uintptr_t>(reinterpret_cast<uintptr_t>(static_cast<T*>(this))))
-	{}
+
+	EnableObserverPtr() noexcept
+	{
+		static_assert(std::is_base_of<EnableObserverPtr<T>, T>::value, "T must derive from EnableObserverPtr<T>.");
+		block = AllocateObserverPtrBlock();
+		block->pointed_to_object = static_cast<void*>(static_cast<T*>(this));
+	}
+
+	~EnableObserverPtr() noexcept 
+	{
+		block->pointed_to_object = nullptr;
+		DeallocateObserverPtrBlockIfEmpty(block);
+	}
 
 private:
-	SharedPtr<uintptr_t> self_reference;
+
+	// The observer ptr block is assumed to be uniquely owned by us, copy operations must never be implemented.
+	EnableObserverPtr<T>(const EnableObserverPtr<T>&) = delete;
+	EnableObserverPtr<T>& operator=(const EnableObserverPtr<T>&) = delete;
+
+	// It's not clear what should happen to the block if we perform move operations. Probably a no-op? For now we don't need them.
+	EnableObserverPtr<T>(EnableObserverPtr<T>&& other) = delete;
+	EnableObserverPtr<T>& operator=(EnableObserverPtr<T>&&) = delete;
+
+	ObserverPtrBlock* block;
 };
 
-
-struct ObserverPtrBlock {
-	int num_observer_pointers = 0;
-	uintptr_t pointed_to_object = 0;
-};
 
 
 }

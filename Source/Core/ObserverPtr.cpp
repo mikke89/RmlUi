@@ -28,9 +28,28 @@
 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/ObserverPtr.h"
+#include "Pool.h"
 
 namespace Rml {
 namespace Core {
+
+
+static Pool< ObserverPtrBlock > observer_ptr_block_pool(400, true);
+
+
+void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block) {
+	RMLUI_ASSERT(block->num_observers >= 0);
+	if (block->num_observers == 0 && block->pointed_to_object == nullptr)
+	{
+		observer_ptr_block_pool.DestroyAndDeallocate(block);
+	}
+}
+
+ObserverPtrBlock* AllocateObserverPtrBlock()
+{
+	return observer_ptr_block_pool.AllocateAndConstruct();
+}
+
 
 
 }
