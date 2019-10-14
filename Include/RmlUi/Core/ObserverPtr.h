@@ -69,6 +69,7 @@ template<typename T>
 class RMLUICORE_API ObserverPtr {
 public:
 	ObserverPtr() noexcept : block(nullptr) {}
+	ObserverPtr(std::nullptr_t) noexcept : block(nullptr) {}
 	~ObserverPtr() noexcept {
 		reset(); 
 	}

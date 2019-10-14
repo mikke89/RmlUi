@@ -34,20 +34,25 @@ namespace Rml {
 namespace Core {
 
 
-static Pool< ObserverPtrBlock > observer_ptr_block_pool(400, true);
+static Pool< ObserverPtrBlock >& GetPool()
+{
+	// Wrap pool in a function to ensure it is initialized before use.
+	static Pool< ObserverPtrBlock > pool(400, true);
+	return pool;
+}
 
 
 void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block) {
 	RMLUI_ASSERT(block->num_observers >= 0);
 	if (block->num_observers == 0 && block->pointed_to_object == nullptr)
 	{
-		observer_ptr_block_pool.DestroyAndDeallocate(block);
+		GetPool().DestroyAndDeallocate(block);
 	}
 }
 
 ObserverPtrBlock* AllocateObserverPtrBlock()
 {
-	return observer_ptr_block_pool.AllocateAndConstruct();
+	return GetPool().AllocateAndConstruct();
 }
 
 
