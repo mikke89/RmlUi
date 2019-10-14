@@ -26,45 +26,63 @@
  *
  */
 
-#ifndef RMLUICOREEVENTLISTENER_H
-#define RMLUICOREEVENTLISTENER_H
+#ifndef RMLUIOBSERVERPTR_H
+#define RMLUIOBSERVERPTR_H
 
-#include "Header.h"
-#include "Event.h"
-#include "ObserverPtr.h"
+#include "Types.h"
 
 namespace Rml {
 namespace Core {
 
-class Event;
-class Element;
-
 /**
-	Abstract interface class for handling events.
+	Observer pointer.
 
-	@author Lloyd Weehuizen
+	Holds a weak reference to something owned by someone else. Will return false if the pointed to object was destroyed.
+
+	Note: Not thread safe.
  */
 
-class RMLUICORE_API EventListener : public EnableObserverPtr<EventListener>
-{
+template<typename T>
+class ObserverPtr {
 public:
-	virtual ~EventListener() {}
+	ObserverPtr(std::weak_ptr<uintptr_t> ptr) : ptr(ptr) {}
 
-	/// Process the incoming Event
-	virtual void ProcessEvent(Event& event) = 0;
+	explicit operator bool() const { return !ptr.expired(); }
 
-	/// Called when the listener has been attached to a new Element
-	virtual void OnAttach(Element* RMLUI_UNUSED_PARAMETER(element))
-	{
-		RMLUI_UNUSED(element);
+	T* get() {
+		// TODO: Locking it here here does nothing really, but required because we are basing this on a std::shared_ptr for now.
+		auto lock = ptr.lock();
+		if (!lock)
+			return nullptr;
+		return reinterpret_cast<T*>(*lock);
 	}
 
-	/// Called when the listener has been detached from a Element
-	virtual void OnDetach(Element* RMLUI_UNUSED_PARAMETER(element))
-	{
-		RMLUI_UNUSED(element);
-	}
+	T* operator->() { return get(); }
+
+private:
+	WeakPtr<uintptr_t> ptr;
 };
+
+
+template<typename T>
+class EnableObserverPtr {
+public:
+	ObserverPtr<T> GetObserverPtr() const { return ObserverPtr<T>(self_reference); }
+
+protected:
+	EnableObserverPtr() : self_reference(std::make_shared<uintptr_t>(reinterpret_cast<uintptr_t>(static_cast<T*>(this))))
+	{}
+
+private:
+	SharedPtr<uintptr_t> self_reference;
+};
+
+
+struct ObserverPtrBlock {
+	int num_observer_pointers = 0;
+	uintptr_t pointed_to_object = 0;
+};
+
 
 }
 }

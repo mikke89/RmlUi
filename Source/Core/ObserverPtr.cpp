@@ -26,47 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREEVENTLISTENER_H
-#define RMLUICOREEVENTLISTENER_H
-
-#include "Header.h"
-#include "Event.h"
-#include "ObserverPtr.h"
+#include "precompiled.h"
+#include "../../Include/RmlUi/Core/ObserverPtr.h"
 
 namespace Rml {
 namespace Core {
 
-class Event;
-class Element;
-
-/**
-	Abstract interface class for handling events.
-
-	@author Lloyd Weehuizen
- */
-
-class RMLUICORE_API EventListener : public EnableObserverPtr<EventListener>
-{
-public:
-	virtual ~EventListener() {}
-
-	/// Process the incoming Event
-	virtual void ProcessEvent(Event& event) = 0;
-
-	/// Called when the listener has been attached to a new Element
-	virtual void OnAttach(Element* RMLUI_UNUSED_PARAMETER(element))
-	{
-		RMLUI_UNUSED(element);
-	}
-
-	/// Called when the listener has been detached from a Element
-	virtual void OnDetach(Element* RMLUI_UNUSED_PARAMETER(element))
-	{
-		RMLUI_UNUSED(element);
-	}
-};
 
 }
 }
-
-#endif

@@ -140,7 +140,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const S
 	{
 		event->SetPhase(EventPhase::Target);
 		event->SetCurrentElement(target_element);
-		TriggerEvents(*event, default_action_phase);
+		target_element->GetEventDispatcher()->TriggerEvents(*event, default_action_phase);
 	}
 
 	// Bubble phase - target to root (normal event bindings)
@@ -226,6 +226,129 @@ void EventDispatcher::TriggerEvents(Event& event, DefaultActionPhase default_act
 	{
 		element->ProcessDefaultAction(event);
 	}
+}
+
+
+void EventDispatcher::AddEvents(std::vector<ListenerDesc>& add_listeners, std::vector<ObserverPtr<Element>>& default_action_elements, const EventId event_id, const EventPhase phase, DefaultActionPhase default_action_phase)
+{
+	// Find the range of entries with matching id and phase, given that listeners are sorted by (id,phase).
+	// In the case of target phase we will match any listener phase.
+	Listeners::iterator begin, end;
+	if (phase == EventPhase::Capture)
+		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event_id, nullptr, true), CompareIdPhase());
+	else if (phase == EventPhase::Target)
+		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event_id, nullptr, false), CompareId());
+	else if (phase == EventPhase::Bubble)
+		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event_id, nullptr, false), CompareIdPhase());
+
+	// Copy the range in case the original list of listeners get modified during ProcessEvent.
+	const Listeners listeners_range(begin, end);
+
+	for (auto it = begin; it != end; ++it)
+	{
+		add_listeners.push_back({ element->GetObserverPtr(), it->listener->GetObserverPtr(), phase });
+	}
+
+	const bool do_default_action = ((unsigned int)phase & (unsigned int)default_action_phase);
+
+	// Do the default action unless we have been cancelled.
+	if (do_default_action)
+	{
+		default_action_elements.push_back(element->GetObserverPtr());
+	}
+}
+
+bool EventDispatcher::TrueDispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
+{
+	std::vector<ListenerDesc> listeners;
+	std::vector<ObserverPtr<Element>> default_action_elements;
+
+
+
+	// Build the element traversal from the tree
+	typedef std::vector<Element*> Elements;
+	Elements elements;
+
+	Element* walk_element = target_element->GetParentNode();
+	while (walk_element)
+	{
+		elements.push_back(walk_element);
+		walk_element = walk_element->GetParentNode();
+	}
+
+	// Capture phase - root to target (only triggers event listeners that are registered with capture phase)
+	// Note: We walk elements in REVERSE as they're placed in the list from the elements parent to the root
+	for (int i = (int)elements.size() - 1; i >= 0; i--)
+	{
+		EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
+		dispatcher->AddEvents(listeners, default_action_elements, id, EventPhase::Capture, default_action_phase);
+	}
+
+	target_element->GetEventDispatcher()->AddEvents(listeners, default_action_elements, id, EventPhase::Target, default_action_phase);
+
+	// Bubble phase - target to root (normal event bindings)
+	if (bubbles)
+	{
+		for (Element* el : elements)
+		{
+			EventDispatcher* dispatcher = el->GetEventDispatcher();
+			dispatcher->AddEvents(listeners, default_action_elements, id, EventPhase::Bubble, default_action_phase);
+		}
+	}
+
+	if (listeners.empty() && default_action_elements.empty())
+		return true;
+
+	// Instance event
+	EventPtr event = Factory::InstanceEvent(target_element, id, type, parameters, interruptible);
+	if (!event)
+		return false;
+
+	Element* previous_element = nullptr;
+
+	// Process event in each listener
+	for (auto& listener_desc : listeners)
+	{
+		auto element = listener_desc.element.get();
+		auto listener = listener_desc.listener.get();
+
+		if (previous_element != element)
+		{
+			event->SetCurrentElement(element);
+			if (!event->IsPropagating())
+				break;
+			previous_element = element;
+		}
+
+		if (element && listener)
+		{
+			event->SetPhase(listener_desc.phase);
+			listener->ProcessEvent(*event);
+		}
+
+		if (!event->IsImmediatePropagating())
+			break;
+	}
+
+	// Process default actions
+	for (auto& element_observer : default_action_elements)
+	{
+		if (!event->IsPropagating())
+			break;
+
+		auto element = element_observer.get();
+
+		if (element)
+		{
+			event->SetPhase(element == target_element ? EventPhase::Target : EventPhase::Bubble);
+			event->SetCurrentElement(element);
+			element->ProcessDefaultAction(*event);
+		}
+	}
+
+	bool propagating = event->IsPropagating();
+
+	return propagating;
 }
 
 }

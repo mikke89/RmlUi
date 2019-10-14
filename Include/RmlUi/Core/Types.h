@@ -129,6 +129,8 @@ template<typename T>
 using UniqueReleaserPtr = std::unique_ptr<T, Releaser<T>>;
 template<typename T>
 using SharedPtr = std::shared_ptr<T>;
+template<typename T>
+using WeakPtr = std::weak_ptr<T>;
 
 using ElementPtr = UniqueReleaserPtr<Element>;
 using ContextPtr = UniqueReleaserPtr<Context>;

@@ -34,6 +34,7 @@
 #include "Box.h"
 #include "ComputedValues.h"
 #include "Event.h"
+#include "ObserverPtr.h"
 #include "Property.h"
 #include "Types.h"
 #include "Transform.h"
@@ -70,7 +71,7 @@ struct ElementMeta;
 	@author Peter Curry
  */
 
-class RMLUICORE_API Element : public ScriptInterface
+class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element>
 {
 public:
 	/// Constructs a new RmlUi element. This should not be called directly; use the Factory

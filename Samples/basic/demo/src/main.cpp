@@ -143,14 +143,25 @@ public:
 	{
 		using namespace Rml::Core;
 
-		if (value == "exit")
+		Rml::Core::Log::Message(Rml::Core::Log::LT_WARNING, "%s", value.c_str());
+		if (value == "destroyed")
 		{
-			element->GetParentNode()->SetInnerRML("<button onclick='confirm_exit'>Are you sure?</button>");
-			event.StopImmediatePropagation();
+			element->GetParentNode()->GetParentNode()->SetInnerRML("");// "<button onclick='confirm_exit'>Are you sure?</button>");
+			//if (auto child = element->GetChild(0))
+			//	child->Focus();
+			//event.StopImmediatePropagation();
 		}
 		else if (value == "confirm_exit")
 		{
 			Shell::RequestExit();
+		}
+		else if (value == "destroyed")
+		{
+
+		}
+		else if (value == "parent")
+		{
+
 		}
 	}
 

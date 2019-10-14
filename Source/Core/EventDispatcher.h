@@ -44,6 +44,13 @@ struct EventListenerEntry {
 	EventListener* listener;
 };
 
+
+struct ListenerDesc {
+	ObserverPtr<Element> element;
+	ObserverPtr<EventListener> listener;
+	EventPhase phase;
+};
+
 /**
 	The Event Dispatcher manages a list of event listeners and triggers the events via EventHandlers
 	whenever requested.
@@ -76,17 +83,23 @@ public:
 	/// Detaches all events from this dispatcher and all child dispatchers.
 	void DetachAllEvents();
 
-	/// Dispatches the specified event with element as the target
-	/// @param[in] target_element The target element of the event
+	/// Dispatches the specified event, targeting the element associated with this dispatcher.
 	/// @param[in] name The name of the event
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can the event propagation be stopped
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(Element* element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
+	static bool DispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 
 	/// Returns event types with number of listeners for debugging.
 	/// @return Summary of attached listeners.
 	String ToString() const;
+
+
+	static bool TrueDispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
+
+
+	void EventDispatcher::AddEvents(std::vector<ListenerDesc>& add_listeners, std::vector<ObserverPtr<Element>>& default_action_elements, const EventId event_id, const EventPhase phase, DefaultActionPhase default_action_phase);
+
 
 private:
 	Element* element;
@@ -98,6 +111,8 @@ private:
 
 	void TriggerEvents(Event& event, DefaultActionPhase default_action_phase);
 };
+
+
 
 }
 }

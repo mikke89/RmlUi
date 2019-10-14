@@ -105,7 +105,8 @@ static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 
 /// Constructs a new RmlUi element.
 Element::Element(const String& tag) : tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
-transform_state(), dirty_transform(false), dirty_perspective(false), dirty_animation(false), dirty_transition(false)
+transform_state(), dirty_transform(false), dirty_perspective(false), dirty_animation(false), dirty_transition(false),
+EnableObserverPtr<Element>()
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
@@ -1207,21 +1208,21 @@ void Element::RemoveEventListener(EventId id, EventListener* listener, bool in_c
 bool Element::DispatchEvent(const String& type, const Dictionary& parameters)
 {
 	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
-	return event_dispatcher->DispatchEvent(this, specification.id, type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
+	return event_dispatcher->TrueDispatchEvent(this, specification.id, type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
 }
 
 // Dispatches the specified event
 bool Element::DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles)
 {
 	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
-	return event_dispatcher->DispatchEvent(this, specification.id, type, parameters, interruptible, bubbles, specification.default_action_phase);
+	return event_dispatcher->TrueDispatchEvent(this, specification.id, type, parameters, interruptible, bubbles, specification.default_action_phase);
 }
 
 // Dispatches the specified event
 bool Element::DispatchEvent(EventId id, const Dictionary& parameters)
 {
 	const EventSpecification& specification = EventSpecificationInterface::Get(id);
-	return event_dispatcher->DispatchEvent(this, specification.id, specification.type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
+	return event_dispatcher->TrueDispatchEvent(this, specification.id, specification.type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
 }
 
 // Scrolls the parent element's contents so that this element is visible.
