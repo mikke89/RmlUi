@@ -1,7 +1,7 @@
 <rml>
 <head>
 <title>Demo</title>
-<link type="text/template" href="../../../Assets/window.rml" />
+<link type="text/template" href="../../../assets/window.rml" />
 <style>
 body
 {
