@@ -220,10 +220,10 @@ textarea {
 <tab>Buttons</tab>
 <panel>
 	<button id="start_game">Start Game</button><br />
-	<button id="high_scores" onkeydown="hello" autofocus>High Scores</button><br />
+	<button id="high_scores" autofocus>High Scores</button><br />
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
-	<div onclick="parent"><button id="exit" onclick="exit">Exit<span onclick="destroyed">?</span></button></div>
+	<div><button id="exit" onclick="exit">Exit</button></div>
 	<img src="../../../assets/high_scores_defender.tga"/>
 	<img src="icon-game" style="vertical-align: 10px;"/>
 	<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" coords="0 0 64 64"/>

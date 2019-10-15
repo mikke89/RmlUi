@@ -36,12 +36,6 @@
 
 #include <sstream>
 
-bool run_loop = true;
-bool single_loop = false;
-
-class DemoWindow;
-DemoWindow* window = nullptr;
-
 class DemoWindow : public Rml::Core::EventListener
 {
 public:
@@ -78,17 +72,9 @@ public:
 		case EventId::Keydown:
 		{
 			Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+			bool ctrl_key = event.GetParameter< bool >("ctrl_key", false);
 
-			if (key_identifier == Rml::Core::Input::KI_SPACE)
-			{
-				run_loop = !run_loop;
-			}
-			else if (key_identifier == Rml::Core::Input::KI_RETURN)
-			{
-				run_loop = false;
-				single_loop = true;
-			}
-			else if (key_identifier == Rml::Core::Input::KI_ESCAPE)
+			if (key_identifier == Rml::Core::Input::KI_ESCAPE)
 			{
 				Shell::RequestExit();
 			}
@@ -119,49 +105,43 @@ ShellRenderInterfaceExtensions *shell_renderer;
 
 void GameLoop()
 {
-	if(run_loop || single_loop)
-	{
-		context->Update();
+	context->Update();
 
-		shell_renderer->PrepareRenderBuffer();
-		context->Render();
-		shell_renderer->PresentRenderBuffer();
-
-		single_loop = false;
-	}
+	shell_renderer->PrepareRenderBuffer();
+	context->Render();
+	shell_renderer->PresentRenderBuffer();
 }
 
 
 
 
-class Event : public Rml::Core::EventListener
+class DemoEventListener : public Rml::Core::EventListener
 {
 public:
-	Event(const Rml::Core::String& value, Rml::Core::Element* element) : value(value), element(element) {}
+	DemoEventListener(const Rml::Core::String& value, Rml::Core::Element* element) : value(value), element(element) {}
 
 	void ProcessEvent(Rml::Core::Event& event) override
 	{
 		using namespace Rml::Core;
 
-		Rml::Core::Log::Message(Rml::Core::Log::LT_WARNING, "%s", value.c_str());
-		if (value == "destroyed")
+		if (value == "exit")
 		{
-			element->GetParentNode()->GetParentNode()->SetInnerRML("");// "<button onclick='confirm_exit'>Are you sure?</button>");
-			//if (auto child = element->GetChild(0))
-			//	child->Focus();
-			//event.StopImmediatePropagation();
+			// Test replacing the current element.
+			// Need to be careful with regard to lifetime issues. The event's current element will be destroyed, so we cannot
+			// use it after SetInnerRml(). The library should handle this case safely internally when propagating the event further.
+			auto parent = element->GetParentNode();
+			parent->SetInnerRML("<button onclick='confirm_exit' onblur='cancel_exit' onmouseout='cancel_exit'>Are you sure?</button>");
+			if (auto child = parent->GetChild(0))
+				child->Focus();
 		}
 		else if (value == "confirm_exit")
 		{
 			Shell::RequestExit();
 		}
-		else if (value == "destroyed")
+		else if (value == "cancel_exit")
 		{
-
-		}
-		else if (value == "parent")
-		{
-
+			if(auto parent = element->GetParentNode())
+				parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
 		}
 	}
 
@@ -174,12 +154,12 @@ private:
 
 
 
-class EventInstancer : public Rml::Core::EventListenerInstancer
+class DemoEventListenerInstancer : public Rml::Core::EventListenerInstancer
 {
 public:
 	Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element) override
 	{
-		return new Event(value, element);
+		return new DemoEventListener(value, element);
 	}
 };
 
@@ -240,15 +220,15 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	
 	context->SetDensityIndependentPixelRatio(1.0f);
 
-	EventInstancer event_listener_instancer;
+	DemoEventListenerInstancer event_listener_instancer;
 	Rml::Core::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
 	Shell::LoadFonts("assets/");
 
-	window = new DemoWindow("Demo sample", Rml::Core::Vector2f(150, 80), context);
-	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, window);
-	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, window);
-	window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, window);
+	auto window = std::make_unique<DemoWindow>("Demo sample", Rml::Core::Vector2f(150, 80), context);
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, window.get());
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, window.get());
+	window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, window.get());
 
 	Shell::EventLoop(GameLoop);
 
@@ -260,7 +240,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::CloseWindow();
 	Shell::Shutdown();
 
-	delete window;
+	window.reset();
 
 	return 0;
 }
