@@ -111,6 +111,7 @@ ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
 	show_source_element = true;
 	update_source_element = true;
 	force_update_once = false;
+	title_dirty = true;
 	previous_update_time = 0.0;
 
 	RMLUI_ASSERT(TestPrettyFormat("0.15", "0.15"));
@@ -187,6 +188,12 @@ void ElementInfo::OnUpdate()
 
 			UpdateSourceElement();
 		}
+	}
+
+	if (title_dirty)
+	{
+		UpdateTitle();
+		title_dirty = false;
 	}
 }
 
@@ -363,18 +370,15 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 					hover_element = nullptr;
 				}
 
-				if(event.GetPhase() == Core::EventPhase::Bubble)
+				if (id == "show_source" && !show_source_element)
 				{
-					if (id == "show_source" && !show_source_element)
-					{
-						// Preview the source element view while hovering
-						show_source_element = true;
-					}
+					// Preview the source element view while hovering
+					show_source_element = true;
+				}
 
-					if (id == "show_source" || id == "update_source")
-					{
-						UpdateTitle();
-					}
+				if (id == "show_source" || id == "update_source")
+				{
+					title_dirty = true;
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
@@ -383,7 +387,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				hover_element = target_element;
 			}
 		}
-		else if (event == Core::EventId::Mouseout && event.GetPhase() == Core::EventPhase::Bubble)
+		else if (event == Core::EventId::Mouseout)
 		{
 			Core::Element* target_element = event.GetTargetElement();
 			Core::ElementDocument* owner_document = target_element->GetOwnerDocument();
@@ -399,8 +403,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 
 				if (id == "show_source" || id == "update_source")
 				{
-					UpdateTitle();
-					event.StopPropagation();
+					title_dirty = true;
 				}
 			}
 		}
@@ -416,9 +419,7 @@ void ElementInfo::SetSourceElement(Core::Element* new_source_element)
 void ElementInfo::UpdateSourceElement()
 {
 	previous_update_time = Core::GetSystemInterface()->GetElapsedTime();
-
-	// Set the title
-	UpdateTitle();
+	title_dirty = true;
 
 	// Set the pseudo classes
 	if (Core::Element* pseudo = GetElementById("pseudo"))
