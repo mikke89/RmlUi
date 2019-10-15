@@ -37,7 +37,7 @@ namespace Rml {
 namespace Core {
 
 struct RMLUICORE_API ObserverPtrBlock {
-	int num_observers = 0;
+	int num_observers;
 	void* pointed_to_object;
 };
 RMLUICORE_API ObserverPtrBlock* AllocateObserverPtrBlock();
@@ -89,8 +89,7 @@ public:
 
 	// Move
 	ObserverPtr<T>(ObserverPtr<T>&& other) noexcept : block(std::exchange(other.block, nullptr)) {}
-	ObserverPtr<T>& operator=(ObserverPtr<T>&& other) noexcept
-	{
+	ObserverPtr<T>& operator=(ObserverPtr<T>&& other) noexcept {
 		reset();
 		block = std::exchange(other.block, nullptr);
 		return *this;
@@ -145,8 +144,7 @@ protected:
 	EnableObserverPtr() noexcept
 	{
 		static_assert(std::is_base_of<EnableObserverPtr<T>, T>::value, "T must derive from EnableObserverPtr<T>.");
-		block = AllocateObserverPtrBlock();
-		block->pointed_to_object = static_cast<void*>(static_cast<T*>(this));
+		InitializeBlock();
 	}
 
 	~EnableObserverPtr() noexcept 
@@ -155,15 +153,32 @@ protected:
 		DeallocateObserverPtrBlockIfEmpty(block);
 	}
 
+	EnableObserverPtr<T>(const EnableObserverPtr<T>&) noexcept {
+		// We do not copy or modify the block, it should always point to the same object.
+		InitializeBlock();
+	}
+	EnableObserverPtr<T>& operator=(const EnableObserverPtr<T>&) noexcept { 
+		// Assignment should not do anything, the block must point to the initially constructed object.
+		return *this; 
+	}
+
+	EnableObserverPtr<T>(EnableObserverPtr<T>&&) noexcept {
+		// We do not move or modify the block, it should always point to the same object.
+		InitializeBlock();
+	}
+	EnableObserverPtr<T>& operator=(EnableObserverPtr<T>&&) noexcept {
+		// Assignment should not do anything, the block must point to the initially constructed object.
+		return *this;
+	}
+
 private:
 
-	// The observer ptr block is assumed to be uniquely owned by us, copy operations should not be implemented.
-	EnableObserverPtr<T>(const EnableObserverPtr<T>&) = delete;
-	EnableObserverPtr<T>& operator=(const EnableObserverPtr<T>&) = delete;
-
-	// It's not clear what should happen to the block if we perform move operations. Probably a no-op? For now we don't need them.
-	EnableObserverPtr<T>(EnableObserverPtr<T>&& other) = delete;
-	EnableObserverPtr<T>& operator=(EnableObserverPtr<T>&&) = delete;
+	inline void InitializeBlock() noexcept
+	{
+		block = AllocateObserverPtrBlock();
+		block->num_observers = 0;
+		block->pointed_to_object = static_cast<void*>(static_cast<T*>(this));
+	}
 
 	ObserverPtrBlock* block;
 };
