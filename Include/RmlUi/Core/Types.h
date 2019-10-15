@@ -72,6 +72,7 @@ enum class Character : char32_t { Null, Replacement = 0xfffd };
 #include "Vector3.h"
 #include "Vector4.h"
 #include "Matrix4.h"
+#include "ObserverPtr.h"
 
 namespace Rml {
 namespace Core {

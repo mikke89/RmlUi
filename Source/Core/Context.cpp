@@ -615,13 +615,13 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		// Save the just-pressed-on element as the pressed element.
 		active = new_focus;
 
-		bool propogate = true;
+		bool propagate = true;
 		
 		// Call 'onmousedown' on every item in the hover chain, and copy the hover chain to the active chain.
 		if (hover)
-			propogate = hover->DispatchEvent(EventId::Mousedown, parameters);
+			propagate = hover->DispatchEvent(EventId::Mousedown, parameters);
 
-		if (propogate)
+		if (propagate)
 		{
 			// Check for a double-click on an element; if one has occured, we send the 'dblclick' event to the hover
 			// element. If not, we'll start a timer to catch the next one.
@@ -630,7 +630,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 				float(click_time - last_click_time) < DOUBLE_CLICK_TIME)
 			{
 				if (hover)
-					propogate = hover->DispatchEvent(EventId::Dblclick, parameters);
+					propagate = hover->DispatchEvent(EventId::Dblclick, parameters);
 
 				last_click_element = nullptr;
 				last_click_time = 0;
@@ -646,7 +646,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		for (ElementSet::iterator itr = hover_chain.begin(); itr != hover_chain.end(); ++itr)
 			active_chain.push_back((*itr));
 
-		if (propogate)
+		if (propagate)
 		{
 			// Traverse down the hierarchy of the newly focussed element (if any), and see if we can begin dragging it.
 			drag_started = false;
@@ -797,8 +797,7 @@ void Context::OnElementDetach(Element* element)
 	{
 		Dictionary parameters;
 		GenerateMouseEventParameters(parameters, -1);
-		RmlEventFunctor send_event(EventId::Mouseout, parameters);
-		send_event(element);
+		element->DispatchEvent(EventId::Mouseout, parameters);
 
 		hover_chain.erase(it_hover);
 
@@ -1160,7 +1159,7 @@ void Context::GenerateMouseEventParameters(Dictionary& parameters, int button_in
 // Builds the parameters for the key modifier state.
 void Context::GenerateKeyModifierEventParameters(Dictionary& parameters, int key_modifier_state)
 {
-	static String property_names[] = {
+	static const String property_names[] = {
 		"ctrl_key",
 		"shift_key",
 		"alt_key",
@@ -1195,13 +1194,41 @@ void Context::ReleaseUnloadedDocuments()
 	}
 }
 
+using ElementObserverList = std::vector< ObserverPtr<Element> >;
+
+class ElementObserverListBackInserter {
+public:
+	using iterator_category = std::output_iterator_tag;
+	using value_type = void;
+	using difference_type = void;
+	using pointer = void;
+	using reference = void;
+	using container_type = ElementObserverList;
+
+	ElementObserverListBackInserter(ElementObserverList& elements) : elements(&elements) {}
+	ElementObserverListBackInserter& operator=(const Element* element) {
+		elements->push_back(element->GetObserverPtr());
+		return *this;
+	}
+	ElementObserverListBackInserter& operator*() { return *this; }
+	ElementObserverListBackInserter& operator++() { return *this; }
+	ElementObserverListBackInserter& operator++(int) { return *this; }
+
+private:
+	ElementObserverList* elements;
+};
+
 // Sends the specified event to all elements in new_items that don't appear in old_items.
 void Context::SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters)
 {
-	ElementList elements;
-	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), std::back_inserter(elements));
-	RmlEventFunctor func(id, parameters);
-	std::for_each(elements.begin(), elements.end(), func);
+	// We put our elements in observer pointers in case some of them are deleted during dispatch.
+	ElementObserverList elements;
+	std::set_difference(old_items.begin(), old_items.end(), new_items.begin(), new_items.end(), ElementObserverListBackInserter(elements));
+	for (auto& element : elements)
+	{
+		if (element)
+			element->DispatchEvent(id, parameters);
+	}
 }
 
 void Context::Release()
