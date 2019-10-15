@@ -33,6 +33,7 @@
 #include <limits.h>
 #include <cstring>
 #include <string>
+#include <cstdlib>
 #include <algorithm>
 #include <map>
 #include <memory>
