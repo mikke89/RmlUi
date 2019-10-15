@@ -73,6 +73,7 @@ enum class Character : char32_t { Null, Replacement = 0xfffd };
 #include "Vector3.h"
 #include "Vector4.h"
 #include "Matrix4.h"
+#include "ObserverPtr.h"
 
 namespace Rml {
 namespace Core {
@@ -130,6 +131,8 @@ template<typename T>
 using UniqueReleaserPtr = std::unique_ptr<T, Releaser<T>>;
 template<typename T>
 using SharedPtr = std::shared_ptr<T>;
+template<typename T>
+using WeakPtr = std::weak_ptr<T>;
 
 using ElementPtr = UniqueReleaserPtr<Element>;
 using ContextPtr = UniqueReleaserPtr<Context>;

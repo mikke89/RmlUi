@@ -86,6 +86,8 @@ private:
 	bool update_source_element;
 	// Forces an update to the source element during the next update loop.
 	bool force_update_once;
+	
+	bool title_dirty;
 
 	Core::Element* hover_element;
 	Core::Element* source_element;

@@ -108,57 +108,149 @@ void EventDispatcher::DetachAllEvents()
 		element->GetChild(i)->GetEventDispatcher()->DetachAllEvents();
 }
 
+/*
+	EventListenersToExecute
+
+	When dispatching an event we collect all possible event listeners and default actions to execute.
+	They are stored in observer pointers, so that we can safely check if they have been destroyed since the previous listener execution.
+*/
+
+struct EventListenersToExecute {
+
+	EventListenersToExecute(Element* _element, EventListener* _listener, int dom_distance_from_target, bool in_capture_phase) : element(_element->GetObserverPtr()), listener(_listener ? _listener->GetObserverPtr() : nullptr)
+	{
+		sort = dom_distance_from_target * (in_capture_phase ? -1 : 1);
+		if (!_listener)
+		{
+			// No listener means default action
+			sort += DefaultActionAdd;
+		}
+	}
+
+	static constexpr int DefaultActionMin = 50'000;
+	static constexpr int DefaultActionAdd = 100'000;
+
+	// The sort value is determined by the distance of the element to the target element in the DOM.
+	// Capture phase is given negative values. Default actions add the large number DefaultActionAdd so they are sorted last.
+	int sort = 0;
+
+	ObserverPtr<Element> element;
+	ObserverPtr<EventListener> listener;
+
+	// Default actions are returned by EventPhase::None.
+	EventPhase GetPhase() const { return sort < 0 ? EventPhase::Capture : (sort == 0 ? EventPhase::Target : (sort >= DefaultActionMin ? EventPhase::None : EventPhase::Bubble)); }
+
+	bool operator<(const EventListenersToExecute& other) const {
+		return sort < other.sort;
+	}
+};
+
+
 bool EventDispatcher::DispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
+	std::vector<EventListenersToExecute> listeners;
+
+	const EventPhase phases_to_execute = EventPhase((int)EventPhase::Capture | (int)EventPhase::Target | (bubbles ? (int)EventPhase::Bubble : 0));
+	
+	// Walk the DOM tree from target to root, collecting all possible listeners and elements with default actions in the process.
+	int dom_distance_from_target = 0;
+	Element* walk_element = target_element;
+	while (walk_element)
+	{
+		EventDispatcher* dispatcher = walk_element->GetEventDispatcher();
+		dispatcher->CollectListeners(dom_distance_from_target, id, phases_to_execute, default_action_phase, listeners);
+
+		walk_element = walk_element->GetParentNode();
+		dom_distance_from_target += 1;
+	}
+
+	// Use stable_sort so that the order of the listeners in a given element is maintained.
+	std::stable_sort(listeners.begin(), listeners.end());
+
+	if (listeners.empty())
+		return true;
+
+	// Instance event
 	EventPtr event = Factory::InstanceEvent(target_element, id, type, parameters, interruptible);
 	if (!event)
 		return false;
 
-	// Build the element traversal from the tree
-	typedef std::vector<Element*> Elements;
-	Elements elements;
+	int previous_sort_value = INT_MAX;
+	EventPhase current_phase = EventPhase::None;
 
-	Element* walk_element = target_element->GetParentNode();
-	while (walk_element) 
+	// Process the event in each listener.
+	for (auto& listener_desc : listeners)
 	{
-		elements.push_back(walk_element);
-		walk_element = walk_element->GetParentNode();
-	}
+		Element* element = listener_desc.element.get();
+		EventListener* listener = listener_desc.listener.get();
 
-	event->SetPhase(EventPhase::Capture);
-	// Capture phase - root to target (only triggers event listeners that are registered with capture phase)
-	// Note: We walk elements in REVERSE as they're placed in the list from the elements parent to the root
-	for (int i = (int)elements.size() - 1; i >= 0 && event->IsPropagating(); i--) 
-	{
-		EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
-		event->SetCurrentElement(elements[i]);
-		dispatcher->TriggerEvents(*event, default_action_phase);
-	}
-
-	// Target phase - direct at the target
-	if (event->IsPropagating()) 
-	{
-		event->SetPhase(EventPhase::Target);
-		event->SetCurrentElement(target_element);
-		TriggerEvents(*event, default_action_phase);
-	}
-
-	// Bubble phase - target to root (normal event bindings)
-	if (bubbles && event->IsPropagating())
-	{
-		event->SetPhase(EventPhase::Bubble);
-		for (size_t i = 0; i < elements.size() && event->IsPropagating(); i++) 
+		if (listener_desc.sort != previous_sort_value)
 		{
-			EventDispatcher* dispatcher = elements[i]->GetEventDispatcher();
-			event->SetCurrentElement(elements[i]);
-			dispatcher->TriggerEvents(*event, default_action_phase);
+			// New sort values represent a new level in the DOM, thus, set the new element and possibly new phase.
+			if (!event->IsPropagating())
+				break;
+			event->SetCurrentElement(element);
+			current_phase = listener_desc.GetPhase();
+			event->SetPhase(current_phase);
+			previous_sort_value = listener_desc.sort;
 		}
+
+		if (element && listener)
+		{
+			// We have a valid event listener
+			listener->ProcessEvent(*event);
+		}
+		else if (element && current_phase == EventPhase::None)
+		{
+			// EventPhase::None means default actions. We assume default actions only execute in either target or bubble phase.
+			event->SetPhase(element == target_element ? EventPhase::Target : EventPhase::Bubble);
+			element->ProcessDefaultAction(*event);
+		}
+
+		if (!event->IsImmediatePropagating())
+			break;
 	}
 
 	bool propagating = event->IsPropagating();
 
 	return propagating;
 }
+
+
+void EventDispatcher::CollectListeners(int dom_distance_from_target, const EventId event_id, const EventPhase event_executes_in_phases, const DefaultActionPhase default_action_phase, std::vector<EventListenersToExecute>& collect_listeners)
+{
+	const bool in_target_phase = (dom_distance_from_target == 0);
+
+	// Find all the entries with a matching id, given that listeners are sorted by id first.
+	Listeners::iterator begin, end;
+	std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event_id, nullptr, false), CompareId());
+
+	for (auto it = begin; it != end; ++it)
+	{
+		if (in_target_phase)
+		{
+			// Listeners always attach to target phase, but make sure event can actually execute in target phase.
+			if ((int)event_executes_in_phases & (int)EventPhase::Target)
+				collect_listeners.emplace_back(element, it->listener, dom_distance_from_target, it->in_capture_phase);
+		}
+		else
+		{
+			// Listeners will either attach to capture or bubble phase, make sure event can execute in the same phase.
+			const EventPhase listener_executes_in_phase = (it->in_capture_phase ? EventPhase::Capture : EventPhase::Bubble);
+			if ((int)event_executes_in_phases & (int)listener_executes_in_phase)
+				collect_listeners.emplace_back(element, it->listener, dom_distance_from_target, it->in_capture_phase);
+		}
+	}
+
+	RMLUI_ASSERTMSG(!((int)default_action_phase & (int)EventPhase::Capture), "We assume here that the default action phases cannot include capture phase.");
+
+	// Add the default action
+	EventPhase phase_for_default_action = (in_target_phase ? EventPhase::Target : EventPhase::Bubble);
+
+	if ((int)phase_for_default_action & (int)default_action_phase)
+		collect_listeners.emplace_back(element, nullptr, dom_distance_from_target, false);
+}
+
 
 String EventDispatcher::ToString() const
 {
@@ -188,45 +280,12 @@ String EventDispatcher::ToString() const
 	if (count > 0)
 		add_to_result(previous_id, count);
 
-	if (result.size() > 2) 
+	if (result.size() > 2)
 		result.resize(result.size() - 2);
 
 	return result;
 }
 
-void EventDispatcher::TriggerEvents(Event& event, DefaultActionPhase default_action_phase)
-{
-	const EventPhase phase = event.GetPhase();
-
-	// Find the range of entries with matching id and phase, given that listeners are sorted by (id,phase).
-	// In the case of target phase we will match any listener phase.
-	Listeners::iterator begin, end;
-	if (phase == EventPhase::Capture)
-		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, true), CompareIdPhase());
-	else if (phase == EventPhase::Target)
-		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, false), CompareId());
-	else if (phase == EventPhase::Bubble)
-		std::tie(begin, end) = std::equal_range(listeners.begin(), listeners.end(), EventListenerEntry(event.GetId(), nullptr, false), CompareIdPhase());
-
-	// Copy the range in case the original list of listeners get modified during ProcessEvent.
-	const Listeners listeners_range(begin, end);
-
-	for(const EventListenerEntry& entry : listeners_range)
-	{
-		entry.listener->ProcessEvent(event);
-		
-		if (!event.IsImmediatePropagating())
-			break;
-	}
-
-	const bool do_default_action = ((unsigned int)phase & (unsigned int)default_action_phase);
-
-	// Do the default action unless we have been cancelled.
-	if (do_default_action && event.IsPropagating())
-	{
-		element->ProcessDefaultAction(event);
-	}
-}
 
 }
 }

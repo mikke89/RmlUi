@@ -171,7 +171,7 @@ textarea {
 </panel>
 <tab>Decorators</tab>
 <panel id="decorators">
-	<div>	
+	<div>
 		<button>Image</button>
 		<button class="ninepatch">Ninepatch</button>
 	</div>
@@ -220,7 +220,7 @@ textarea {
 <tab>Buttons</tab>
 <panel>
 	<button id="start_game">Start Game</button><br />
-	<button id="high_scores" onkeydown="hello" autofocus>High Scores</button><br />
+	<button id="high_scores" autofocus>High Scores</button><br />
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
 	<div><button id="exit" onclick="exit">Exit</button></div>

@@ -37,12 +37,15 @@ namespace Core {
 
 class Element;
 class EventListener;
+struct EventListenersToExecute;
+
 struct EventListenerEntry {
 	EventListenerEntry(EventId id, EventListener* listener, bool in_capture_phase) : id(id), in_capture_phase(in_capture_phase), listener(listener) {}
 	EventId id;
 	bool in_capture_phase;
 	EventListener* listener;
 };
+
 
 /**
 	The Event Dispatcher manages a list of event listeners and triggers the events via EventHandlers
@@ -76,13 +79,16 @@ public:
 	/// Detaches all events from this dispatcher and all child dispatchers.
 	void DetachAllEvents();
 
-	/// Dispatches the specified event with element as the target
-	/// @param[in] target_element The target element of the event
-	/// @param[in] name The name of the event
+	/// Dispatches the specified event.
+	/// @param[in] target_element The element to target
+	/// @param[in] id The id of the event
+	/// @param[in] type The type of the event
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can the event propagation be stopped
+	/// @param[in] bubbles True if the event should execute the bubble phase
+	/// @param[in] default_action_phase The phases to execute default actions in
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	bool DispatchEvent(Element* element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
+	static bool DispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 
 	/// Returns event types with number of listeners for debugging.
 	/// @return Summary of attached listeners.
@@ -96,8 +102,11 @@ private:
 	typedef std::vector< EventListenerEntry > Listeners;
 	Listeners listeners;
 
-	void TriggerEvents(Event& event, DefaultActionPhase default_action_phase);
+	// Collect all the listeners from this dispatcher that are allowed to execute given the input arguments.
+	void CollectListeners(int dom_distance_from_target, EventId event_id, EventPhase phases_to_execute, DefaultActionPhase default_action_phase, std::vector<EventListenersToExecute>& collect_listeners);
 };
+
+
 
 }
 }

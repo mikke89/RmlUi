@@ -26,47 +26,36 @@
  *
  */
 
-#ifndef RMLUICOREEVENTLISTENER_H
-#define RMLUICOREEVENTLISTENER_H
-
-#include "Header.h"
-#include "Event.h"
-#include "ObserverPtr.h"
+#include "precompiled.h"
+#include "../../Include/RmlUi/Core/ObserverPtr.h"
+#include "Pool.h"
 
 namespace Rml {
 namespace Core {
 
-class Event;
-class Element;
 
-/**
-	Abstract interface class for handling events.
-
-	@author Lloyd Weehuizen
- */
-
-class RMLUICORE_API EventListener : public EnableObserverPtr<EventListener>
+static Pool< ObserverPtrBlock >& GetPool()
 {
-public:
-	virtual ~EventListener() {}
+	// Wrap pool in a function to ensure it is initialized before use.
+	static Pool< ObserverPtrBlock > pool(400, true);
+	return pool;
+}
 
-	/// Process the incoming Event
-	virtual void ProcessEvent(Event& event) = 0;
 
-	/// Called when the listener has been attached to a new Element
-	virtual void OnAttach(Element* RMLUI_UNUSED_PARAMETER(element))
+void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block) {
+	RMLUI_ASSERT(block->num_observers >= 0);
+	if (block->num_observers == 0 && block->pointed_to_object == nullptr)
 	{
-		RMLUI_UNUSED(element);
+		GetPool().DestroyAndDeallocate(block);
 	}
+}
 
-	/// Called when the listener has been detached from a Element
-	virtual void OnDetach(Element* RMLUI_UNUSED_PARAMETER(element))
-	{
-		RMLUI_UNUSED(element);
-	}
-};
+ObserverPtrBlock* AllocateObserverPtrBlock()
+{
+	return GetPool().AllocateAndConstruct();
+}
+
+
 
 }
 }
-
-#endif

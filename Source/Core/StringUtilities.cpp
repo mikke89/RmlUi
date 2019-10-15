@@ -28,7 +28,6 @@
 
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
-#include <ctype.h>
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -84,7 +83,12 @@ String CreateString(size_t max_size, const char* format, ...)
 
 String StringUtilities::ToLower(const String& string) {
 	String str_lower = string;
-	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), ::tolower);
+	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), [](char c) {
+		if (c >= 'A' && c <= 'Z')
+			c += char( 'a' - 'A' );
+		return c;
+		}
+	);
 	return str_lower;
 }
 
@@ -151,7 +155,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 			start_ptr = nullptr;
 		}
 		// Otherwise if its not white space or we're in quote mode, advance the pointers
-		else if (!isspace(*ptr) || quote)
+		else if (!IsWhitespace(*ptr) || quote)
 		{
 			if (!start_ptr)
 				start_ptr = ptr;
@@ -198,7 +202,7 @@ void StringUtilities::ExpandString(StringList& string_list, const String& string
 			start_ptr = nullptr;
 		}
 		// Otherwise if its not white space or we're in quote mode, advance the pointers
-		else if (!isspace(*ptr) || quote_mode_depth > 0)
+		else if (!IsWhitespace(*ptr) || quote_mode_depth > 0)
 		{
 			if (!start_ptr)
 				start_ptr = ptr;

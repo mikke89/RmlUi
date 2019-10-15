@@ -70,20 +70,12 @@ h3.strong
 	color: #900;
 	background-color: #eee;
 }
-#pseudo
-{
-	line-height: 1.4em;
-	padding: 2px 0;
-}
 #pseudo pseudo
 {
-	padding: 0 3dp;
+	padding: 0 8dp 0 3dp;
 	background-color: #ddd;
 	border: 2px #aaa;
-}
-#pseudo span
-{
-	padding-left: 3dp;
+	display: inline-block;
 }
 #pseudo pseudo.active
 {
