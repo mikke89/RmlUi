@@ -66,8 +66,8 @@ void DecoratorDefender::RenderElement(Rml::Core::Element* element, Rml::Core::De
 {
 	RMLUI_UNUSED(element_data);
 
-	Rml::Core::Vector2f position = element->GetAbsoluteOffset(Rml::Core::Box::PADDING);
-	Rml::Core::Vector2f size = element->GetBox().GetSize(Rml::Core::Box::PADDING);
+	Rml::Core::Vector2f position = element->GetAbsoluteOffset(Rml::Core::Box::PADDING).Round();
+	Rml::Core::Vector2f size = element->GetBox().GetSize(Rml::Core::Box::PADDING).Round();
 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, (GLuint) GetTexture(image_index)->GetHandle(element->GetRenderInterface()));
