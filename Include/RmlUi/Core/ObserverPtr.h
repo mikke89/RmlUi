@@ -157,7 +157,7 @@ protected:
 
 private:
 
-	// The observer ptr block is assumed to be uniquely owned by us, copy operations must never be implemented.
+	// The observer ptr block is assumed to be uniquely owned by us, copy operations should not be implemented.
 	EnableObserverPtr<T>(const EnableObserverPtr<T>&) = delete;
 	EnableObserverPtr<T>& operator=(const EnableObserverPtr<T>&) = delete;
 

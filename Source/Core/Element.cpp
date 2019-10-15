@@ -1208,21 +1208,21 @@ void Element::RemoveEventListener(EventId id, EventListener* listener, bool in_c
 bool Element::DispatchEvent(const String& type, const Dictionary& parameters)
 {
 	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
-	return event_dispatcher->TrueDispatchEvent(this, specification.id, type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
+	return EventDispatcher::DispatchEvent(this, specification.id, type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
 }
 
 // Dispatches the specified event
 bool Element::DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles)
 {
 	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
-	return event_dispatcher->TrueDispatchEvent(this, specification.id, type, parameters, interruptible, bubbles, specification.default_action_phase);
+	return EventDispatcher::DispatchEvent(this, specification.id, type, parameters, interruptible, bubbles, specification.default_action_phase);
 }
 
 // Dispatches the specified event
 bool Element::DispatchEvent(EventId id, const Dictionary& parameters)
 {
 	const EventSpecification& specification = EventSpecificationInterface::Get(id);
-	return event_dispatcher->TrueDispatchEvent(this, specification.id, specification.type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
+	return EventDispatcher::DispatchEvent(this, specification.id, specification.type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
 }
 
 // Scrolls the parent element's contents so that this element is visible.
