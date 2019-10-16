@@ -500,6 +500,9 @@ bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier
 
 bool Context::ProcessTextInput(char character)
 {
+	// Only the standard ASCII character set is a valid subset of UTF-8.
+	if (character < 0 || character > 127)
+		return false;
 	return ProcessTextInput(static_cast<Character>(character));
 }
 
@@ -507,31 +510,19 @@ bool Context::ProcessTextInput(char character)
 bool Context::ProcessTextInput(Character character)
 {
 	// Generate the parameters for the key event.
-	Dictionary parameters;
-	parameters["data"] = character;
-
-	if (focus)
-		return focus->DispatchEvent(EventId::Textinput, parameters);
-	else
-		return root->DispatchEvent(EventId::Textinput, parameters);
+	String text = StringUtilities::ToUTF8(character);
+	return ProcessTextInput(text);
 }
 
 // Sends a string of text as text input into RmlUi.
 bool Context::ProcessTextInput(const String& string)
 {
-	bool consumed = true;
+	Element* target = (focus ? focus : root.get());
 
-	for (size_t i = 0; i < string.size(); ++i)
-	{
-		// Generate the parameters for the key event.
-		Dictionary parameters;
-		parameters["data"] = string[i];
+	Dictionary parameters;
+	parameters["text"] = string;
 
-		if (focus)
-			consumed = focus->DispatchEvent(EventId::Textinput, parameters) && consumed;
-		else
-			consumed = root->DispatchEvent(EventId::Textinput, parameters) && consumed;
-	}
+	bool consumed = target->DispatchEvent(EventId::Textinput, parameters);
 
 	return consumed;
 }

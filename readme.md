@@ -435,7 +435,7 @@ Various changes:
 - `Element::DispatchEvent` can now optionally take an `EventId` instead of a `String`.
 - The `resize` event now only applies to the document size, not individual elements.
 - The `scrollchange` event has been replaced by a function call. To capture scroll changes, instead use the `scroll` event.
-
+- The `textinput` event now sends a `String` in UTF-8 instead of a UCS-2 character, possibly with multiple characters. The parameter key name is changed from "data" to "text".
 
 
 ## RmlUi 2.0 features

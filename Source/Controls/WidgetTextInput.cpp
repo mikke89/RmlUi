@@ -378,8 +378,8 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 				// @performance: Can be made heaps faster.
 				for (auto it = Core::StringIteratorU8(clipboard_text); it; ++it)
 				{
-					Core::Character code = *it;
-					AddCharacter(code);
+					Core::Character character = *it;
+					AddCharacter(character);
 				}
 			}
 		}
@@ -404,8 +404,14 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("alt_key", 0) == 0 &&
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
-			Rml::Core::Character character = event.GetParameter("data", Rml::Core::Character::Null);
-			AddCharacter(character);
+			Core::String text = event.GetParameter("text", Core::String{});
+
+			// @performance: Can be made heaps faster.
+			for (auto it = Core::StringIteratorU8(text); it; ++it)
+			{
+				Core::Character character = *it;
+				AddCharacter(character);
+			}
 		}
 
 		ShowCursor(true);
