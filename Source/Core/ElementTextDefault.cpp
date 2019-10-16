@@ -38,7 +38,7 @@
 namespace Rml {
 namespace Core {
 
-static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation);
+static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters);
 static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline);
 
 ElementTextDefault::ElementTextDefault(const String& tag) : ElementText(tag), colour(255, 255, 255), decoration(this)
@@ -170,14 +170,14 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 	const char* token_begin = text.c_str() + line_begin;
 	String token;
 
-	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform);
+	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform, true);
 	token_width = (float) GetFontEngineInterface()->GetStringWidth(font_face_handle, token);
 
 	return LastToken(token_begin, text.c_str() + text.size(), collapse_white_space, break_at_endline);
 }
 
 // Generates a line of text rendered from this element
-bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix)
+bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix, bool decode_escape_characters)
 {
 	RMLUI_ZoneScoped;
 
@@ -224,7 +224,7 @@ bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& lin
 			previous_codepoint = StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&line.back(), line.data()));
 
 		// Generate the next token and determine its pixel-length.
-		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
+		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
 		int token_width = GetFontEngineInterface()->GetStringWidth(font_face_handle, token, previous_codepoint);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
@@ -432,7 +432,7 @@ void ElementTextDefault::GenerateLineDecoration(const FontFaceHandle font_face_h
 	GeometryUtilities::GenerateLine(font_face_handle, &decoration, line.position, line.width, decoration_property, colour);
 }
 
-static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation)
+static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters)
 {
 	RMLUI_ASSERT(token_begin != string_end);
 
@@ -454,7 +454,7 @@ static bool BuildToken(String& token, const char*& token_begin, const char* stri
 		const char* escape_begin = token_begin;
 
 		// Check for an ampersand; if we find one, we've got an HTML escaped character.
-		if (character == '&')
+		if (decode_escape_characters && character == '&')
 		{
 			// Find the terminating ';'.
 			while (token_begin != string_end &&

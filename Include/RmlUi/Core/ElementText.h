@@ -69,8 +69,9 @@ public:
 	/// @param[in] maximum_line_width The width (in pixels) of space allowed for the line, or -1 for unlimited space.
 	/// @param[in] right_spacing_width The width (in pixels) of the spacing (consisting of margins, padding, etc) that must be remaining on the right of the line if the last of the text is rendered onto this line.
 	/// @param[in] trim_whitespace_prefix If we're collapsing whitespace, whether or not to remove all prefixing whitespace or collapse it down to a single space.
+	/// @param[in] decode_escape_characters Decode escaped characters such as &amp; into &.
 	/// @return True if the line reached the end of the element's text, false if not.
-	virtual bool GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix) = 0;
+	virtual bool GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix, bool decode_escape_characters) = 0;
 
 	/// Clears all lines of generated text and prepares the element for generating new lines.
 	virtual void ClearLines() = 0;

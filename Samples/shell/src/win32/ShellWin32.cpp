@@ -49,6 +49,7 @@ static std::unique_ptr<ShellFileInterface> file_interface;
 static HCURSOR cursor_default = nullptr;
 static HCURSOR cursor_move = nullptr;
 static HCURSOR cursor_cross = nullptr;
+static HCURSOR cursor_text = nullptr;
 static HCURSOR cursor_unavailable = nullptr;
 
 
@@ -67,6 +68,7 @@ bool Shell::Initialise()
 	cursor_default = LoadCursor(nullptr, IDC_ARROW);
 	cursor_move = LoadCursor(nullptr, IDC_SIZEALL);
 	cursor_cross = LoadCursor(nullptr, IDC_CROSS);
+	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
 	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
 
 	Rml::Core::String root = FindSamplesRoot();
@@ -284,6 +286,8 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 			cursor_handle = cursor_move;
 		else if (cursor_name == "cross")
 			cursor_handle = cursor_cross;
+		else if (cursor_name == "text")
+			cursor_handle = cursor_text;
 		else if (cursor_name == "unavailable")
 			cursor_handle = cursor_unavailable;
 

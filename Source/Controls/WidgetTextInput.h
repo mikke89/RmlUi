@@ -87,18 +87,20 @@ public:
 	const Rml::Core::Vector2f& GetTextDimensions() const;
 
 protected:
+	enum class CursorMovement { Begin = -4, BeginLine = -3, PreviousWord = -2, Left = -1, Right = 1, NextWord = 2, EndLine = 3, End = 4 };
+
 	/// Processes the "keydown" and "textinput" event to write to the input field, and the "focus" and
 	/// "blur" to set the state of the cursor.
 	void ProcessEvent(Core::Event& event) override;
 
-	/// Adds a new character to the string at the cursor position.
-	/// @param[in] character The character to add to the string.
-	/// @return True if the character was successfully added, false otherwise.
-	bool AddCharacter(Rml::Core::Character character);
-	/// Deletes a character from the string.
-	/// @param[in] backward True to delete a character behind the cursor, false for in front of the cursor.
+	/// Adds new characters to the string at the cursor position.
+	/// @param[in] string The characters to add.
+	/// @return True if at least one character was successfully added, false otherwise.
+	bool AddCharacters(Core::String string);
+	/// Deletes characters from the string.
+	/// @param[in] direction Movement of cursor for deletion.
 	/// @return True if a character was deleted, false otherwise.
-	bool DeleteCharacter(bool back);
+	bool DeleteCharacters(CursorMovement direction);
 	/// Returns true if the given character is permitted in the input field, false if not.
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
@@ -116,7 +118,6 @@ protected:
 	void DispatchChangeEvent(bool linebreak = false);
 
 private:
-	enum class CursorMovement { BeginLine = -3, PreviousWord = -2, Left = -1, Right = 1, NextWord = 2, EndLine = 3 };
 	
 	/// Moves the cursor along the current line.
 	/// @param[in] movement Cursor movement operation.

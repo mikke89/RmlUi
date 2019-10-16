@@ -64,7 +64,7 @@ LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float availabl
 
 	int line_length;
 	float line_width;
-	bool overflow = !text_element->GenerateLine(line_contents, line_length, line_width, line_begin, available_width, right_spacing_width, first_box);
+	bool overflow = !text_element->GenerateLine(line_contents, line_length, line_width, line_begin, available_width, right_spacing_width, first_box, true);
 
 	Vector2f content_area;
 	content_area.x = line_width;

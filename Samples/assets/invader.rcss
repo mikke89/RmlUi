@@ -278,12 +278,14 @@ input.text
 	height: 31px;
 	padding: 10px 10px 0px;
 	decorator: tiled-horizontal( text-l, text-c, auto ); /* Right becomes mirrored left */
+	cursor: text;
 }
 
 textarea
 {
 	padding: 14px 12px 10px;
 	decorator: ninepatch( textarea, textarea-inner );
+	cursor: text;
 }
 
 input.text,

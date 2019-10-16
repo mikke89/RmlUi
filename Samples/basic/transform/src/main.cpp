@@ -203,6 +203,11 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::EventLoop(GameLoop);
 
+	if (window_1)
+	{
+		context->GetRootElement()->RemoveEventListener(Rml::Core::EventId::Keydown, window_1);
+	}
+
 	delete window_1;
 	delete window_2;
 

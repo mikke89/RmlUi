@@ -314,14 +314,15 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
 
 		case Core::Input::KI_NUMPAD7:	if (numlock) break;
-		case Core::Input::KI_HOME:		MoveCursorHorizontal(CursorMovement::BeginLine, shift); break;
+		case Core::Input::KI_HOME:		MoveCursorHorizontal(ctrl ? CursorMovement::Begin : CursorMovement::BeginLine, shift); break;
 
 		case Core::Input::KI_NUMPAD1:	if (numlock) break;
-		case Core::Input::KI_END:		MoveCursorHorizontal(CursorMovement::EndLine, shift); break;
+		case Core::Input::KI_END:		MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
 
 		case Core::Input::KI_BACK:
 		{
-			if (DeleteCharacter(true))
+			CursorMovement direction = (ctrl ? CursorMovement::PreviousWord : CursorMovement::Left);
+			if (DeleteCharacters(direction))
 			{
 				FormatElement();
 				UpdateRelativeCursor();
@@ -334,7 +335,8 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		case Core::Input::KI_DECIMAL:	if (numlock) break;
 		case Core::Input::KI_DELETE:
 		{
-			if (DeleteCharacter(false))
+			CursorMovement direction = (ctrl ? CursorMovement::NextWord : CursorMovement::Right);
+			if (DeleteCharacters(direction))
 			{
 				FormatElement();
 				UpdateRelativeCursor();
@@ -348,6 +350,16 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		case Core::Input::KI_RETURN:
 		{
 			LineBreak();
+		}
+		break;
+
+		case Core::Input::KI_A:
+		{
+			if (ctrl)
+			{
+				MoveCursorHorizontal(CursorMovement::Begin, false);
+				MoveCursorHorizontal(CursorMovement::End, true);
+			}
 		}
 		break;
 
@@ -375,12 +387,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 				Core::String clipboard_text;
 				Core::GetSystemInterface()->GetClipboardText(clipboard_text);
 
-				// @performance: Can be made heaps faster.
-				for (auto it = Core::StringIteratorU8(clipboard_text); it; ++it)
-				{
-					Core::Character character = *it;
-					AddCharacter(character);
-				}
+				AddCharacters(clipboard_text);
 			}
 		}
 		break;
@@ -405,13 +412,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			event.GetParameter< int >("meta_key", 0) == 0)
 		{
 			Core::String text = event.GetParameter("text", Core::String{});
-
-			// @performance: Can be made heaps faster.
-			for (auto it = Core::StringIteratorU8(text); it; ++it)
-			{
-				Core::Character character = *it;
-				AddCharacter(character);
-			}
+			AddCharacters(text);
 		}
 
 		ShowCursor(true);
@@ -467,9 +468,18 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 }
 
 // Adds a new character to the string at the cursor position.
-bool WidgetTextInput::AddCharacter(Rml::Core::Character character)
+bool WidgetTextInput::AddCharacters(Rml::Core::String string)
 {
-	if ((char32_t)character <= 127 && !IsCharacterValid(static_cast<char>(character)))
+	// Erase invalid characters from string
+	auto invalid_character = [this](char c) {
+		return ((unsigned char)c <= 127 && !IsCharacterValid(c));
+	};
+	string.erase(
+		std::remove_if(string.begin(), string.end(), invalid_character),
+		string.end()
+	);
+
+	if (string.empty())
 		return false;
 
 	if (selection_length > 0)
@@ -480,10 +490,9 @@ bool WidgetTextInput::AddCharacter(Rml::Core::Character character)
 
 	Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 	
-	Core::String insert = Core::StringUtilities::ToUTF8(character);
-	value.insert(GetCursorIndex(), insert);
+	value.insert(GetCursorIndex(), string);
 
-	edit_index += (int)insert.size();
+	edit_index += (int)string.size();
 
 	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
@@ -494,12 +503,12 @@ bool WidgetTextInput::AddCharacter(Rml::Core::Character character)
 }
 
 // Deletes a character from the string.
-bool WidgetTextInput::DeleteCharacter(bool back)
+bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 {
-	// We set a selection of the next or previous character, and then delete it.
+	// We set a selection of characters according to direction, and then delete it.
 	// If we already have a selection, we delete that first.
 	if (selection_length <= 0)
-		MoveCursorHorizontal(back ? CursorMovement::Left : CursorMovement::Right, true);
+		MoveCursorHorizontal(direction, true);
 
 	if (selection_length > 0)
 	{
@@ -540,6 +549,9 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 
 	switch (movement)
 	{
+	case CursorMovement::Begin:
+		absolute_cursor_index = 0;
+		break;
 	case CursorMovement::BeginLine:
 		absolute_cursor_index -= cursor_character_index;
 		break;
@@ -550,17 +562,17 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 		}
 		else
 		{
-			bool whitespace_found = false;
+			bool word_character_found = false;
 			const char* p_rend = lines[cursor_line_index].content.data();
 			const char* p_rbegin = p_rend + cursor_character_index;
 			const char* p = p_rbegin - 1;
 			for (; p > p_rend; --p)
 			{
-				bool is_whitespace = is_nonword_character(*p);
-				if(whitespace_found && !is_whitespace)
+				bool is_word_character = !is_nonword_character(*p);
+				if(word_character_found && !is_word_character)
 					break;
-				else if(!whitespace_found && is_whitespace)
-					whitespace_found = true;
+				else if(is_word_character)
+					word_character_found = true;
 			}
 			if (p != p_rend) ++p;
 			absolute_cursor_index += int(p - p_rbegin);
@@ -589,7 +601,7 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 				bool is_whitespace = is_nonword_character(*p);
 				if (whitespace_found && !is_whitespace)
 					break;
-				else if (!whitespace_found && is_whitespace)
+				else if (is_whitespace)
 					whitespace_found = true;
 			}
 			absolute_cursor_index += int(p - p_begin);
@@ -597,6 +609,9 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 		break;
 	case CursorMovement::EndLine:
 		absolute_cursor_index += lines[cursor_line_index].content_length - cursor_character_index;
+		break;
+	case CursorMovement::End:
+		absolute_cursor_index = INT_MAX;
 		break;
 	default:
 		break;
@@ -877,7 +892,7 @@ Rml::Core::Vector2f WidgetTextInput::FormatText()
 		float line_width;
 
 		// Generate the next line.
-		last_line = text_element->GenerateLine(line.content, line.content_length, line_width, line_begin, parent->GetClientWidth() - cursor_size.x, 0, false);
+		last_line = text_element->GenerateLine(line.content, line.content_length, line_width, line_begin, parent->GetClientWidth() - cursor_size.x, 0, false, false);
 
 		// If this line terminates in a soft-return, then the line may be leaving a space or two behind as an orphan.
 		// If so, we must append the orphan onto the line even though it will push the line outside of the input

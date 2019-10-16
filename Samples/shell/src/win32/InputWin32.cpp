@@ -136,7 +136,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 				first_u16_code_unit = 0;
 
 				// Only send through printable characters.
-				if ((char32_t)character >= 32 || character == (Rml::Core::Character)'\n')
+				if (((char32_t)character >= 32 || character == (Rml::Core::Character)'\n') && character != (Rml::Core::Character)127)
 					context->ProcessTextInput(character);
 			}
 		}
