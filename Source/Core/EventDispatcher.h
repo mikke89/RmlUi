@@ -37,7 +37,7 @@ namespace Core {
 
 class Element;
 class EventListener;
-struct EventListenersToExecute;
+struct CollectedListener;
 
 struct EventListenerEntry {
 	EventListenerEntry(EventId id, EventListener* listener, bool in_capture_phase) : id(id), in_capture_phase(in_capture_phase), listener(listener) {}
@@ -103,7 +103,7 @@ private:
 	Listeners listeners;
 
 	// Collect all the listeners from this dispatcher that are allowed to execute given the input arguments.
-	void CollectListeners(int dom_distance_from_target, EventId event_id, EventPhase phases_to_execute, DefaultActionPhase default_action_phase, std::vector<EventListenersToExecute>& collect_listeners);
+	void CollectListeners(int dom_distance_from_target, EventId event_id, EventPhase phases_to_execute, std::vector<CollectedListener>& collect_listeners);
 };
 
 

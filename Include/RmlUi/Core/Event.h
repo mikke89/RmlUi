@@ -42,7 +42,7 @@ class EventInstancer;
 struct EventSpecification;
 
 enum class EventPhase { None, Capture = 1, Target = 2, Bubble = 4 };
-enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, Bubble = (int)EventPhase::Bubble, TargetAndBubble = ((int)Target | (int)Bubble) };
+enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, TargetAndBubble = ((int)Target | (int)EventPhase::Bubble) };
 
 /**
 	An event that propogates through the element hierarchy. Events follow the DOM3 event specification. See
@@ -65,45 +65,45 @@ public:
 	/// Destructor
 	virtual ~Event();
 
-
 	/// Get the current propagation phase.
-	/// @return Current phase the event is in.
 	EventPhase GetPhase() const;
 	/// Set the current propagation phase
-	/// @param phase Switch the phase the event is in
 	void SetPhase(EventPhase phase);
 
 	/// Set the current element in the propagation.
-	/// @param[in] element The current element.
 	void SetCurrentElement(Element* element);
 	/// Get the current element in the propagation.
-	/// @return The current element in propagation.
 	Element* GetCurrentElement() const;
-
-	/// Get the target element
-	/// @return The target element of this event
+	/// Get the target element of this event.
 	Element* GetTargetElement() const;
 
 	/// Get the event type.
 	const String& GetType() const;
 	/// Get the event id.
 	EventId GetId() const;
+
+	/// Stops propagation of the event if it is interruptible, but finish all listeners on the current element.
+	void StopPropagation();
+	/// Stops propagation of the event if it is interruptible, including to any other listeners on the current element.
+	void StopImmediatePropagation();
+	/// Prevents the default actions from being performed.
+	void PreventDefault();
+
+	/// Returns true if the event can be interrupted, that is, stopped from propagating.
+	bool IsInterruptible() const;
+	/// Returns true if the event is still propagating.
+	bool IsPropagating() const;
+	/// Returns true if the event is still immediate propagating.
+	bool IsImmediatePropagating() const;
+	/// Returns true if the default actions to be executed by this event has been prevented.
+	bool IsDefaultPrevented() const;
+
 	/// Checks if the event is of a certain type.
 	/// @param type The name of the type to check for.
 	/// @return True if the event is of the requested type, false otherwise.
 	bool operator==(const String& type) const;
 	/// Checks if the event is of a certain id.
 	bool operator==(EventId id) const;
-
-	/// Returns true if the event is still propagating.
-	bool IsPropagating() const;
-	/// Returns true if the event is still immediate propagating.
-	bool IsImmediatePropagating() const;
-
-	/// Stops propagation of the event, but finish all listeners on the current element.
-	void StopPropagation();
-	/// Stops propagation of the event, including to any other listeners on the current element.
-	void StopImmediatePropagation();
 
 	/// Returns the value of one of the event's parameters.
 	/// @param key[in] The name of the desired parameter.
@@ -121,14 +121,6 @@ public:
 	/// Note: Only specified for events with 'mouse_x' and 'mouse_y' parameters.
 	const Vector2f& GetUnprojectedMouseScreenPos() const;
 
-private:
-	/// Release this event.
-	void Release() override;
-
-	/// Project the mouse coordinates to the current element to enable
-	/// interacting with transformed elements.
-	void ProjectMouse(Element* element);
-
 protected:
 	Dictionary parameters;
 
@@ -136,16 +128,25 @@ protected:
 	Element* current_element;
 
 private:
+	/// Project the mouse coordinates to the current element to enable
+	/// interacting with transformed elements.
+	void ProjectMouse(Element* element);
+
+	/// Release this event.
+	void Release() override;
+
 	String type;
 	EventId id;
 	bool interruptible;
 	
 	bool interrupted;
 	bool interrupted_immediate;
-	EventPhase phase;
+	bool default_prevented;
 
 	bool has_mouse_position;
 	Vector2f mouse_screen_position;
+
+	EventPhase phase;
 
 	EventInstancer* instancer;
 

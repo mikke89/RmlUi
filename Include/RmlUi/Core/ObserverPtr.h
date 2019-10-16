@@ -99,11 +99,11 @@ public:
 	explicit operator bool() const noexcept { return block && block->pointed_to_object; }
 
 	// Retrieve the pointer to the observed object if we have one and it's still alive.
-	T* get() noexcept {
+	T* get() const noexcept {
 		return block ? static_cast<T*>(block->pointed_to_object) : nullptr;
 	}
 	// Dereference the pointed to object.
-	T* operator->() noexcept { return static_cast<T*>(block->pointed_to_object); }
+	T* operator->() const noexcept { return static_cast<T*>(block->pointed_to_object); }
 
 	// Reset the pointer so that it does not point to anything.
 	// When the pointed to object and all observer pointers to it have been destroyed, it will deallocate the block.
