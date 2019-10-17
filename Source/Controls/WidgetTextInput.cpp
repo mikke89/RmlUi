@@ -37,7 +37,11 @@
 namespace Rml {
 namespace Controls {
 
-static const float CURSOR_BLINK_TIME = 0.7f;
+static constexpr float CURSOR_BLINK_TIME = 0.7f;
+
+static bool IsWordCharacter(char c) {
+	return !Core::StringUtilities::IsWhitespace(c) && !(c >= '!' && c <= '@');
+}
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
 {
@@ -55,6 +59,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->AddEventListener(Core::EventId::Focus, this, true);
 	parent->AddEventListener(Core::EventId::Blur, this, true);
 	parent->AddEventListener(Core::EventId::Mousedown, this, true);
+	parent->AddEventListener(Core::EventId::Dblclick, this, true);
 	parent->AddEventListener(Core::EventId::Drag, this, true);
 
 	Core::ElementPtr unique_text = Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes());
@@ -83,6 +88,8 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	absolute_cursor_index = 0;
 	cursor_line_index = 0;
 	cursor_character_index = 0;
+	cursor_on_right_side_of_character = true;
+	cancel_next_drag = false;
 
 	ideal_cursor_position = 0;
 
@@ -104,6 +111,7 @@ WidgetTextInput::~WidgetTextInput()
 	parent->RemoveEventListener(Core::EventId::Focus, this, true);
 	parent->RemoveEventListener(Core::EventId::Blur, this, true);
 	parent->RemoveEventListener(Core::EventId::Mousedown, this, true);
+	parent->RemoveEventListener(Core::EventId::Dblclick, this, true);
 	parent->RemoveEventListener(Core::EventId::Drag, this, true);
 
 	// Remove all the children added by the text widget.
@@ -319,6 +327,12 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		case Core::Input::KI_NUMPAD1:	if (numlock) break;
 		case Core::Input::KI_END:		MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
 
+		case Core::Input::KI_NUMPAD3:	if (numlock) break;
+		case Core::Input::KI_PRIOR:		MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift); break;
+
+		case Core::Input::KI_NUMPAD9:	if (numlock) break;
+		case Core::Input::KI_NEXT:		MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift); break;
+
 		case Core::Input::KI_BACK:
 		{
 			CursorMovement direction = (ctrl ? CursorMovement::PreviousWord : CursorMovement::Left);
@@ -437,8 +451,15 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		}
 	}
 	break;
-	case EventId::Mousedown:
 	case EventId::Drag:
+		if (cancel_next_drag)
+		{
+			// We currently ignore drag events right after a double click. They would need to be handled
+			// specially by selecting whole words at a time, which is not yet implemented.
+			break;
+		}
+		// Else, fall through:
+	case EventId::Mousedown:
 	{
 		if (event.GetTargetElement() == parent)
 		{
@@ -456,7 +477,17 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 
 			UpdateSelection(event == Core::EventId::Drag || event.GetParameter< int >("shift_key", 0) > 0);
 
-			ShowCursor(true);
+			ShowCursor(true); 
+			cancel_next_drag = false;
+		}
+	}
+	break;
+	case EventId::Dblclick:
+	{
+		if (event.GetTargetElement() == parent)
+		{
+			ExpandSelection();
+			cancel_next_drag = true;
 		}
 	}
 	break;
@@ -568,7 +599,7 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 			const char* p = p_rbegin - 1;
 			for (; p > p_rend; --p)
 			{
-				bool is_word_character = !is_nonword_character(*p);
+				bool is_word_character = IsWordCharacter(*p);
 				if(word_character_found && !is_word_character)
 					break;
 				else if(is_word_character)
@@ -579,11 +610,17 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 		}
 		break;
 	case CursorMovement::Left:
-		absolute_cursor_index -= 1;
+		if (!select && selection_length > 0)
+			absolute_cursor_index = selection_begin_index;
+		else
+			absolute_cursor_index -= 1;
 		break;
 	case CursorMovement::Right:
 		seek_forward = true;
-		absolute_cursor_index += 1;
+		if (!select && selection_length > 0)
+			absolute_cursor_index = selection_begin_index + selection_length;
+		else
+			absolute_cursor_index += 1;
 		break;
 	case CursorMovement::NextWord:
 		if (cursor_character_index >= lines[cursor_line_index].content_length)
@@ -598,7 +635,7 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 			const char* p = p_begin;
 			for (; p < p_end; ++p)
 			{
-				bool is_whitespace = is_nonword_character(*p);
+				bool is_whitespace = !IsWordCharacter(*p);
 				if (whitespace_found && !is_whitespace)
 					break;
 				else if (is_whitespace)
@@ -683,6 +720,69 @@ void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
 	}
 }
 
+void WidgetTextInput::ExpandSelection()
+{
+	const char* const p_begin = lines[cursor_line_index].content.data();
+	const char* const p_end = p_begin + lines[cursor_line_index].content_length;
+	const char* const p_index = p_begin + cursor_character_index;
+
+	// If true, we are expanding word characters, if false, whitespace characters.
+	// The first character encountered defines the bool.
+	bool expanding_word = false;
+	bool expanding_word_set = false;
+
+	auto character_is_wrong_type = [&expanding_word_set, &expanding_word](const char* p) -> bool {
+		bool is_word_character = IsWordCharacter(*p);
+		if (expanding_word_set && (expanding_word != is_word_character))
+			return true;
+		if (!expanding_word_set)
+		{
+			expanding_word = is_word_character;
+			expanding_word_set = true;
+		}
+		return false;
+	};
+
+	auto search_left = [&]() -> const char* {
+		const char* p = p_index;
+		for (; p > p_begin; p--)
+			if (character_is_wrong_type(p - 1))
+				break;
+		return p;
+	};
+	auto search_right = [&]() -> const char* {
+		const char* p = p_index;
+		for (; p < p_end; p++)
+			if (character_is_wrong_type(p))
+				break;
+		return p;
+	};
+
+	const char* p_left = p_index;
+	const char* p_right = p_index;
+
+	if (cursor_on_right_side_of_character)
+	{
+		p_right = search_right();
+		p_left = search_left();
+	}
+	else
+	{
+		p_left = search_left();
+		p_right = search_right();
+	}
+
+	absolute_cursor_index -= (p_index - p_left);
+	UpdateRelativeCursor();
+	MoveCursorToCharacterBoundaries(false);
+	UpdateSelection(false);
+
+	absolute_cursor_index += (p_right - p_left);
+	UpdateRelativeCursor();
+	MoveCursorToCharacterBoundaries(true);
+	UpdateSelection(true);
+}
+
 // Updates the absolute cursor index from the relative cursor indices.
 void WidgetTextInput::UpdateAbsoluteCursor()
 {
@@ -743,7 +843,9 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 {
 	int prev_offset = 0;
 	float prev_line_width = 0;
-	
+
+	cursor_on_right_side_of_character = true;
+
 	for(auto it = Core::StringIteratorU8(lines[line_index].content, 0, lines[line_index].content_length); it; )
 	{
 		++it;
@@ -753,9 +855,14 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 		if (line_width > position)
 		{
 			if (position - prev_line_width < line_width - position)
+			{
 				return prev_offset;
+			}
 			else
+			{
+				cursor_on_right_side_of_character = false;
 				return offset;
+			}
 		}
 
 		prev_line_width = line_width;

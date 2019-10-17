@@ -130,6 +130,8 @@ private:
 	// Move the cursor to utf-8 boundaries, in case it was moved into the middle of a multibyte character.
 	/// @param[in] forward True to seek forward, else back.
 	void MoveCursorToCharacterBoundaries(bool forward);
+	// Expands the cursor, selecting the current word or nearby whitespace.
+	void ExpandSelection();
 
 	/// Updates the absolute cursor index from the relative cursor indices.
 	void UpdateAbsoluteCursor();
@@ -143,6 +145,7 @@ private:
 	/// Calculates the character index along a line under a specific horizontal position.
 	/// @param[in] line_index The line to query.
 	/// @param[in] position The position to query.
+	/// @param[out] on_right_side True if position is on the right side of the returned character, else left side.
 	/// @return The index of the character under the mouse cursor.
 	int CalculateCharacterIndex(int line_index, float position);
 
@@ -211,6 +214,9 @@ private:
 	int absolute_cursor_index;
 	int cursor_line_index;
 	int cursor_character_index;
+
+	bool cursor_on_right_side_of_character;
+	bool cancel_next_drag;
 
 	// Selection. The start and end indices of the selection are in absolute coordinates.
 	Core::Element* selection_element;

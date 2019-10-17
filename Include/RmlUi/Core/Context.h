@@ -253,6 +253,8 @@ private:
 	Element* last_click_element;
 	// The time the last click occured.
 	double last_click_time;
+	// Mouse position during the last mouse_down event.
+	Vector2i last_click_mouse_position;
 
 	// Enables cursor handling.
 	bool enable_cursor;
