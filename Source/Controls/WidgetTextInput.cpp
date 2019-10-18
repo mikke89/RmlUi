@@ -40,7 +40,7 @@ namespace Controls {
 static constexpr float CURSOR_BLINK_TIME = 0.7f;
 
 static bool IsWordCharacter(char c) {
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || (c < 0 || c >= 128);
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || ((unsigned char)c >= 128);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
@@ -571,10 +571,6 @@ int WidgetTextInput::GetCursorIndex() const
 // Moves the cursor along the current line.
 void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 {
-	const auto is_nonword_character = [](char c) -> bool {
-		return Core::StringUtilities::IsWhitespace(c) || (c >= '!' && c <= '@');
-	};
-
 	// Whether to seek forward or back to align to utf8 boundaries later.
 	bool seek_forward = false;
 
@@ -772,12 +768,12 @@ void WidgetTextInput::ExpandSelection()
 		p_right = search_right();
 	}
 
-	absolute_cursor_index -= (p_index - p_left);
+	absolute_cursor_index -= int(p_index - p_left);
 	UpdateRelativeCursor();
 	MoveCursorToCharacterBoundaries(false);
 	UpdateSelection(false);
 
-	absolute_cursor_index += (p_right - p_left);
+	absolute_cursor_index += int(p_right - p_left);
 	UpdateRelativeCursor();
 	MoveCursorToCharacterBoundaries(true);
 	UpdateSelection(true);

@@ -231,14 +231,19 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 		else
 			layer_colour = layer->GetColour();
 
+		const int num_textures = layer->GetNumTextures();
+
+		if (num_textures == 0)
+			continue;
+
 		// Resize the geometry list if required.
-		if ((int) geometry.size() < geometry_index + layer->GetNumTextures())
-			geometry.resize(geometry_index + layer->GetNumTextures());
-		
-		RMLUI_ASSERT(!geometry.empty());
+		if ((int)geometry.size() < geometry_index + num_textures)
+			geometry.resize(geometry_index + num_textures);
+
+		RMLUI_ASSERT(geometry_index < (int)geometry.size());
 
 		// Bind the textures to the geometries.
-		for (int i = 0; i < layer->GetNumTextures(); ++i)
+		for (int i = 0; i < num_textures; ++i)
 			geometry[geometry_index + i].SetTexture(layer->GetTexture(i));
 
 		line_width = 0;
@@ -265,7 +270,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			prior_character = character;
 		}
 
-		geometry_index += layer->GetNumTextures();
+		geometry_index += num_textures;
 	}
 
 	// Cull any excess geometry from a previous generation.
