@@ -104,13 +104,8 @@ void ElementFormControlInput::OnAttributeChange(const Core::ElementAttributes& c
 	{
 		new_type_name = it_type->second.Get<Core::String>("text");
 	}
-	else if (!type)
-	{
-		// Ref. comment in constructor.
-		new_type_name = "text";
-	}
 
-	if (!new_type_name.empty() && new_type_name != type_name)
+	if (!type || (!new_type_name.empty() && new_type_name != type_name))
 	{
 		InputType* new_type = nullptr;
 
@@ -126,8 +121,11 @@ void ElementFormControlInput::OnAttributeChange(const Core::ElementAttributes& c
 			new_type = new InputTypeSubmit(this);
 		else if (new_type_name == "button")
 			new_type = new InputTypeButton(this);
-		else if (new_type_name == "text")
+		else
+		{
+			new_type_name = "text";
 			new_type = new InputTypeText(this);
+		}
 
 		if (new_type)
 		{
@@ -142,6 +140,8 @@ void ElementFormControlInput::OnAttributeChange(const Core::ElementAttributes& c
 			DirtyLayout();
 		}
 	}
+
+	RMLUI_ASSERT(type);
 
 	if (!type->OnAttributeChange(changed_attributes))
 		DirtyLayout();
