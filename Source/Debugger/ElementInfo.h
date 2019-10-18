@@ -80,6 +80,8 @@ private:
 
 	Core::String attributes_rml, properties_rml, events_rml, ancestors_rml, children_rml;
 
+	// Enables or disables the selection of elements in user context.
+	bool enable_element_select;
 	// Draws the dimensions of the source element.
 	bool show_source_element;
 	// Updates the source element information at regular intervals.

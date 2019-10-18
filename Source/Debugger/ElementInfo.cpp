@@ -108,6 +108,7 @@ ElementInfo::ElementInfo(const Core::String& tag) : Core::ElementDocument(tag)
 {
 	hover_element = nullptr;
 	source_element = nullptr;
+	enable_element_select = true;
 	show_source_element = true;
 	update_source_element = true;
 	force_update_once = false;
@@ -282,10 +283,10 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 					show_source_element = !target_element->IsClassSet("active");;
 					target_element->SetClass("active", show_source_element);
 				}
-				else if (event.GetTargetElement()->GetId() == "update_source")
+				else if (id == "enable_element_select")
 				{
-					if (IsVisible())
-						SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+					enable_element_select = !target_element->IsClassSet("active");;
+					target_element->SetClass("active", enable_element_select);
 				}
 				else if (target_element->GetTagName() == "pseudo" && source_element)
 				{
@@ -332,7 +333,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				event.StopPropagation();
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
-			else if (target_element->GetOwnerDocument() != nullptr && !IsDebuggerElement(target_element))
+			else if (enable_element_select && target_element->GetOwnerDocument() != nullptr && !IsDebuggerElement(target_element))
 			{
 				Core::Element* new_source_element = target_element;
 				if (new_source_element != source_element)
@@ -376,13 +377,13 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 					show_source_element = true;
 				}
 
-				if (id == "show_source" || id == "update_source")
+				if (id == "show_source" || id == "update_source" || id == "enable_element_select")
 				{
 					title_dirty = true;
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
-			else if (owner_document != nullptr && owner_document->GetId().find("rmlui-debug-") != 0)
+			else if (enable_element_select && owner_document != nullptr && owner_document->GetId().find("rmlui-debug-") != 0)
 			{
 				hover_element = target_element;
 			}
@@ -401,7 +402,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 						show_source_element = false;
 				}
 
-				if (id == "show_source" || id == "update_source")
+				if (id == "show_source" || id == "update_source" || id == "enable_element_select")
 				{
 					title_dirty = true;
 				}
@@ -728,12 +729,15 @@ void ElementInfo::BuildPropertyRML(Core::String& property_rml, const Core::Strin
 void ElementInfo::UpdateTitle()
 {
 	auto title_content = GetElementById("title-content");
+	auto enable_select = GetElementById("enable_element_select");
 	auto show_source = GetElementById("show_source");
 	auto update_source = GetElementById("update_source");
 
-	if (title_content && show_source && update_source)
+	if (title_content && enable_select && show_source && update_source)
 	{
-		if (show_source->IsPseudoClassSet("hover"))
+		if (enable_select->IsPseudoClassSet("hover"))
+			title_content->SetInnerRML("<em>(select elements)</em>");
+		else if (show_source->IsPseudoClassSet("hover"))
 			title_content->SetInnerRML("<em>(draw element dimensions)</em>");
 		else if (update_source->IsPseudoClassSet("hover"))
 			title_content->SetInnerRML("<em>(update info continuously)</em>");

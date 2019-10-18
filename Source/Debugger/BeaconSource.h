@@ -51,5 +51,5 @@ button
 )RCSS";
 
 static const char* beacon_rml = R"RML(
-<button class="error">!</button>;
+<button class="error">!</button>
 )RML";

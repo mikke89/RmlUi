@@ -122,6 +122,7 @@ static const char* info_rml = R"RML(
 	<div id="close_button">X</div>
 	<div id="update_source" class="header_button active">U</div>
 	<div id="show_source" class="header_button active">D</div>
+	<div id="enable_element_select" class="header_button active">*</div>
 	<div id="title-content">Element Information</div>
 </h1>
 <div id="content">
