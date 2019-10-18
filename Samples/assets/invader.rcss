@@ -605,6 +605,7 @@ scrollbarhorizontal
 
 textarea scrollbarvertical
 {
+	cursor: arrow;
 	margin: 10px 0px 4px 0;
 	width: 12px;
 }
@@ -623,4 +624,25 @@ textarea scrollbarvertical sliderarrowinc
 {
 	width: 0px;
 	height: 0px;
+}
+
+textarea scrollbarhorizontal
+{
+	cursor: arrow;
+	margin-left: 7px;
+	height: 12px;
+}
+textarea scrollbarhorizontal sliderbar
+{
+	background-color: #BC0000CC;
+	height: 8px;
+	min-width: 10px;
+}
+textarea scrollbarhorizontal sliderbar:hover
+{
+	background-color: #B82500CC;
+}
+textarea scrollbarhorizontal sliderbar:active
+{
+	background-color: #770000CC;
 }

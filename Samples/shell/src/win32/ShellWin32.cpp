@@ -280,7 +280,7 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 	if (window_handle)
 	{
 		HCURSOR cursor_handle = nullptr;
-		if (cursor_name.empty())
+		if (cursor_name.empty() || cursor_name == "arrow")
 			cursor_handle = cursor_default;
 		else if(cursor_name == "move")
 			cursor_handle = cursor_move;

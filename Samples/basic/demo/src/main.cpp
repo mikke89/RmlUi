@@ -33,8 +33,18 @@
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <RmlUi/Core/TransformPrimitive.h>
+#include <RmlUi/Core/StreamMemory.h>
 
-#include <sstream>
+static const Rml::Core::String sandbox_default_rcss = R"(
+body { width: 100%; height: 100%; overflow: hidden auto; }
+scrollbarvertical { width: 15px; }
+scrollbarvertical slidertrack { background: #eee; }
+scrollbarvertical slidertrack:active { background: #ddd; }
+scrollbarvertical sliderbar { width: 15px; min-height: 30px; background: #aaa; }
+scrollbarvertical sliderbar:hover { background: #888; }
+scrollbarvertical sliderbar:active { background: #666; }
+)";
+
 
 class DemoWindow : public Rml::Core::EventListener
 {
@@ -50,8 +60,63 @@ public:
 				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
 				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
 			}
+
+			// Add sandbox default text.
+			if (auto source = static_cast<Rml::Controls::ElementFormControl*>(document->GetElementById("sandbox_rml_source")))
+			{
+				auto value = source->GetValue();
+				value += "<p>Write your RML here</p>\n\n<!-- <img src=\"assets/high_scores_alien_1.tga\"/> -->";
+				source->SetValue(value);
+			}
+
+			// Prepare sandbox document.
+			if (auto target = document->GetElementById("sandbox_target"))
+			{
+				iframe = context->CreateDocument();
+				auto iframe_ptr = iframe->GetParentNode()->RemoveChild(iframe);
+				target->AppendChild(std::move(iframe_ptr));
+				iframe->SetProperty(PropertyId::Position, Property(Style::Position::Relative));
+				iframe->SetProperty(PropertyId::Display, Property(Style::Display::Block));
+				iframe->SetInnerRML("<p>Rendered output goes here.</p>");
+
+				// Load basic RML style sheet
+				Rml::Core::String style_sheet_content;
+				{
+					// Load file into string
+					auto file_interface = Rml::Core::GetFileInterface();
+					Rml::Core::FileHandle handle = file_interface->Open("assets/rml.rcss");
+					
+					size_t length = file_interface->Length(handle);
+					style_sheet_content.resize(length);
+					file_interface->Read((void*)style_sheet_content.data(), length, handle);
+					file_interface->Close(handle);
+
+					style_sheet_content += sandbox_default_rcss;
+				}
+
+				Rml::Core::StreamMemory stream((Rml::Core::byte*)style_sheet_content.data(), style_sheet_content.size());
+				stream.SetSourceURL("sandbox://default_rcss");
+
+				rml_basic_style_sheet = std::make_shared<Rml::Core::StyleSheet>();
+				rml_basic_style_sheet->LoadStyleSheet(&stream);
+			}
+
+			// Add sandbox style sheet text.
+			if (auto source = static_cast<Rml::Controls::ElementFormControl*>(document->GetElementById("sandbox_rcss_source")))
+			{
+				Rml::Core::String value = "/* Write your RCSS here */\n\n/* body { color: #fea; background: #224; } */";
+				source->SetValue(value);
+				SetSandboxStylesheet(value);
+			}
 			
 			document->Show();
+		}
+	}
+
+	void Update() {
+		if (iframe)
+		{
+			iframe->UpdateDocument();
 		}
 	}
 
@@ -94,18 +159,43 @@ public:
 		return document;
 	}
 
+	void SetSandboxStylesheet(const Rml::Core::String& string)
+	{
+		if (iframe && rml_basic_style_sheet)
+		{
+			auto style = std::make_shared<Rml::Core::StyleSheet>();
+			Rml::Core::StreamMemory stream((const Rml::Core::byte*)string.data(), string.size());
+			stream.SetSourceURL("sandbox://rcss");
+
+			style->LoadStyleSheet(&stream);
+			style = rml_basic_style_sheet->CombineStyleSheet(*style);
+			iframe->SetStyleSheet(style);
+		}
+	}
+
+	void SetSandboxBody(const Rml::Core::String& string)
+	{
+		if (iframe)
+		{
+			iframe->SetInnerRML(string);
+		}
+	}
+
 private:
-	Rml::Core::ElementDocument *document;
+	Rml::Core::ElementDocument *document = nullptr;
+	Rml::Core::ElementDocument *iframe = nullptr;
+	Rml::Core::SharedPtr<Rml::Core::StyleSheet> rml_basic_style_sheet;
 };
 
 
 Rml::Core::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
-
+std::unique_ptr<DemoWindow> demo_window;
 
 void GameLoop()
 {
 	context->Update();
+	demo_window->Update();
 
 	shell_renderer->PrepareRenderBuffer();
 	context->Render();
@@ -142,6 +232,22 @@ public:
 		{
 			if(auto parent = element->GetParentNode())
 				parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
+		}
+		else if (value == "set_sandbox_body")
+		{
+			if (auto source = static_cast<Rml::Controls::ElementFormControl*>(element->GetElementById("sandbox_rml_source")))
+			{
+				auto value = source->GetValue();
+				demo_window->SetSandboxBody(value);
+			}
+		}
+		else if (value == "set_sandbox_style")
+		{
+			if (auto source = static_cast<Rml::Controls::ElementFormControl*>(element->GetElementById("sandbox_rcss_source")))
+			{
+				auto value = source->GetValue();
+				demo_window->SetSandboxStylesheet(value);
+			}
 		}
 	}
 
@@ -225,14 +331,14 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::LoadFonts("assets/");
 
-	auto window = std::make_unique<DemoWindow>("Demo sample", Rml::Core::Vector2f(150, 80), context);
-	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, window.get());
-	window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, window.get());
-	window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, window.get());
+	demo_window = std::make_unique<DemoWindow>("Demo sample", Rml::Core::Vector2f(150, 80), context);
+	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, demo_window.get());
+	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, demo_window.get());
+	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, demo_window.get());
 
 	Shell::EventLoop(GameLoop);
 
-	window->Shutdown();
+	demo_window->Shutdown();
 
 	// Shutdown RmlUi.
 	Rml::Core::Shutdown();
@@ -240,7 +346,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::CloseWindow();
 	Shell::Shutdown();
 
-	window.reset();
+	demo_window.reset();
 
 	return 0;
 }

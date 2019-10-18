@@ -150,11 +150,25 @@ p.emojis
 	color: #b33;
 }
 
-textarea {
+#controls textarea {
 	font-size: 18px;
 	font-effect: outline(2px #006600);
 	color: #ddd;
-	
+}
+#sandbox textarea {
+	font-size: 16px;
+	color: #222;
+}
+#sandbox_rml_source { margin-left: -5px; }
+#sandbox_rcss_source { margin-left: 5px; }
+#sandbox_target {
+	background-color: #fff;
+	border: 1px #000;
+	height: 400px;
+	margin: 30px 15px 0;
+	color: #000;
+	text-align: left;
+	position: relative;
 }
 </style>
 </head>
@@ -231,9 +245,15 @@ textarea {
 	<p>Img elements can take both sprites and images. For images it also supports a 'coords' attribute for specifying a sub-rectangle.</p>
 </panel>
 <tab>Controls</tab>
-<panel>
+<panel id="controls">
 	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" maxlength="12" value="Sample text"/></div>
 	<textarea cols="30" rows="5" wrap="nowrap">😍 Hello 🌐 World! 😎</textarea>
+</panel>
+<tab>Sandbox</tab>
+<panel id="sandbox">
+	<textarea id="sandbox_rml_source" cols="35" rows="8" wrap="nowrap" onchange="set_sandbox_body"></textarea>
+	<textarea id="sandbox_rcss_source" cols="35" rows="8" wrap="nowrap" onchange="set_sandbox_style"></textarea>
+	<div id="sandbox_target"></div>
 </panel>
 </tabset>
 </body>

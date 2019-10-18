@@ -40,7 +40,7 @@ namespace Controls {
 static constexpr float CURSOR_BLINK_TIME = 0.7f;
 
 static bool IsWordCharacter(char c) {
-	return !Core::StringUtilities::IsWhitespace(c) && !(c >= '!' && c <= '@');
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || (c < 0 || c >= 128);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
@@ -521,7 +521,7 @@ bool WidgetTextInput::AddCharacters(Rml::Core::String string)
 
 	Core::String value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 	
-	value.insert(GetCursorIndex(), string);
+	value.insert(std::min(size_t(GetCursorIndex()), value.size()), string);
 
 	edit_index += (int)string.size();
 
@@ -558,7 +558,7 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 void WidgetTextInput::CopySelection()
 {
 	const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
-	const Core::String snippet = value.substr(selection_begin_index, selection_length);
+	const Core::String snippet = value.substr(std::min(size_t(selection_begin_index), value.size()), selection_length);
 	Core::GetSystemInterface()->SetClipboardText(snippet);
 }
 
@@ -1185,7 +1185,7 @@ void WidgetTextInput::DeleteSelection()
 	{
 		const Core::String& value = GetElement()->GetAttribute< Rml::Core::String >("value", "");
 
-		Rml::Core::String new_value = value.substr(0, selection_begin_index) + value.substr(selection_begin_index + selection_length);
+		Rml::Core::String new_value = value.substr(0, selection_begin_index) + value.substr(std::min(size_t(selection_begin_index + selection_length), value.size()));
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
