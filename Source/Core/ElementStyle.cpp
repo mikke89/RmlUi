@@ -538,7 +538,10 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.font_size = parent_values->font_size;
 		
 		if (font_size_before != values.font_size)
+		{
 			dirty_em_properties = true;
+			dirty_properties.Insert(PropertyId::LineHeight);
+		}
 	}
 	else
 	{
