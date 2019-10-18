@@ -36,7 +36,7 @@
 #include <RmlUi/Core/StreamMemory.h>
 
 static const Rml::Core::String sandbox_default_rcss = R"(
-body { width: 100%; height: 100%; overflow: hidden auto; }
+body { top: 0; left: 0; right: 0; bottom: 0; overflow: hidden auto; }
 scrollbarvertical { width: 15px; }
 scrollbarvertical slidertrack { background: #eee; }
 scrollbarvertical slidertrack:active { background: #ddd; }
@@ -75,7 +75,7 @@ public:
 				iframe = context->CreateDocument();
 				auto iframe_ptr = iframe->GetParentNode()->RemoveChild(iframe);
 				target->AppendChild(std::move(iframe_ptr));
-				iframe->SetProperty(PropertyId::Position, Property(Style::Position::Relative));
+				iframe->SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
 				iframe->SetProperty(PropertyId::Display, Property(Style::Display::Block));
 				iframe->SetInnerRML("<p>Rendered output goes here.</p>");
 
@@ -104,7 +104,7 @@ public:
 			// Add sandbox style sheet text.
 			if (auto source = static_cast<Rml::Controls::ElementFormControl*>(document->GetElementById("sandbox_rcss_source")))
 			{
-				Rml::Core::String value = "/* Write your RCSS here */\n\n/* body { color: #fea; background: #224; } */";
+				Rml::Core::String value = "/* Write your RCSS here */\n\n/* body { color: #fea; background: #224; }\nimg { image-color: red; } */";
 				source->SetValue(value);
 				SetSandboxStylesheet(value);
 			}
@@ -232,6 +232,24 @@ public:
 		{
 			if(auto parent = element->GetParentNode())
 				parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
+		}
+		else if (value == "submit_form")
+		{
+			if (auto el_output = element->GetElementById("form_output"))
+			{
+				const auto& p = event.GetParameters();
+				Rml::Core::String output = "<p>";
+				for (auto& entry : p)
+				{
+					auto value = Rml::Core::StringUtilities::EncodeRml(entry.second.Get<Rml::Core::String>());
+					if (entry.first == "message")
+						value = "<br/>" + value;
+					output += "<strong>" + entry.first + "</strong>: " + value + "<br/>";
+				}
+				output += "</p>";
+
+				el_output->SetInnerRML(output);
+			}
 		}
 		else if (value == "set_sandbox_body")
 		{

@@ -273,7 +273,7 @@ input.submit:disabled
 	cursor: unavailable;
 }
 
-input.text
+input.text, input.password
 {
 	height: 31px;
 	padding: 10px 10px 0px;
@@ -289,6 +289,7 @@ textarea
 }
 
 input.text,
+input.password,
 select,
 dataselect,
 textarea
@@ -328,8 +329,8 @@ dataselect selectvalue
 	width: auto;
 	margin-right: 30px;
 	
-	height: 28px;
-	padding: 9px 10px 0px 10px;
+	height: 27px;
+	padding: 10px 10px 0px 10px;
 
 	decorator: image( selectvalue  );
 }
@@ -387,7 +388,8 @@ select selectbox option,
 dataselect selectbox option
 {
 	width: auto;
-	padding-left: 3px;
+	padding: 3px 0 3px 6px;
+	background: #DDDD;
 }
 
 select selectbox option:nth-child(even),
@@ -396,7 +398,11 @@ datagrid datagridrow:nth-child(even)
 {
 	background: #FFFFFFA0;
 }
-
+select selectbox option:checked,
+dataselect selectbox option:checked
+{
+	font-weight: bold;
+}
 select selectbox option:hover,
 dataselect selectbox option:hover
 {

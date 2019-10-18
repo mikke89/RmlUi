@@ -1869,7 +1869,7 @@ void Element::GetRML(String& content)
 	content += "<";
 	content += tag;
 
-	for( auto& pair : attributes)
+	for (auto& pair : attributes)
 	{
 		auto& name = pair.first;
 		auto& variant = pair.second;

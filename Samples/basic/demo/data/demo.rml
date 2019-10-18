@@ -5,44 +5,55 @@
 <style>
 body.window
 {
-	max-width: 1400px;
-	max-height: 850px;
 	width: 1300px;
 	height: 750px;
+	min-width: 950px;
+	min-height: 300px;
+	max-width: -1px;
+	max-height: -1px;
 }
 div#title_bar div#icon
 {
 	display: none;
 }
-
+div#content
+{ 
+	position: relative; 
+}
 tabset
 {
 	display: block;
-	margin: 30px auto 0 auto;
-	width: 900px;
 }
 tabs
 {
     display: block;
-    height: 40px;
-	text-align: left;
-	padding-left: 10px;
+	position: fixed;
+	width: 100%;
+	clip: none;
+	pointer-events: none;
+	text-align: right;
+	padding-right: 10px;
 }
 tab
 {
+	position: relative;
     width: 100px;
+	pointer-events: auto;
 	padding: 0px 20px;
 	line-height: 40px;
-	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
-	image-color: #cff9;
+	top: -47px;
+	z-index: 2;
 	
 	font-size: 16px;
 	color: #ddd;
 	text-align: center;
+	
+	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
+	image-color: #cffc;
 }
 tab:hover
 {
-	image-color: #fffc;
+	image-color: #fffe;
 	color: #fff;
 }
 tab:active, tab:selected
@@ -53,15 +64,22 @@ tab:active, tab:selected
 panels
 {
     display: block;
-	padding: 20px 20px;
-	border: 1px #ddd;
-    background-color: #ccc3;
 }
 panel
 {
     display: block;
-    width: 100%;
-	min-height: 600px;
+	padding: 30px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.minipanel
+{
+	max-width: 500px;
+}
+p.emojis
+{
+	font-size: 35px;
+	color: #b33;
 }
 
 button:focus {
@@ -143,33 +161,69 @@ button:focus {
 .transform.fit-cover      { decorator: image( icon-invader rotate-180 cover      ); }
 .transform.fit-scale-none { decorator: image( icon-invader rotate-180 scale-none ); }
 .transform.fit-scale-down { decorator: image( icon-invader rotate-180 scale-down ); }
-p.emojis
+
+form
 {
+	display: block;
 	text-align: left;
-	font-size: 35px;
-	color: #b33;
+}
+form input, form select { margin-left: 0; }
+form h2 
+{
+	display: block;
+	font-size: 16px;
+	font-weight: bold;
+	margin-top: 8px;
+}
+#form_output 
+{
+	border: 1px #666;
+	font-size: 0.9em;
+	background-color: #ddd;
+	min-height: 30px;
+	margin-top: 10px;
+	padding: 5px 8px;
+	color: #222;
+	white-space: pre-wrap;
+	overflow: hidden auto;
 }
 
-#controls textarea {
+#controls textarea 
+{
 	font-size: 18px;
 	font-effect: outline(2px #006600);
 	color: #ddd;
 }
-#sandbox textarea {
-	font-size: 16px;
-	color: #222;
+
+#sandbox
+{
+	position: absolute;
+	top: 20px;
+	right: 30px;
+	bottom: 20px;
+	left: 30px;
+	padding: 0;
 }
-#sandbox_rml_source { margin-left: -5px; }
-#sandbox_rcss_source { margin-left: 5px; }
-#sandbox_target {
+#sandbox textarea
+{
+	font-size: 13px;
+	color: #222;
+	font-family: rmlui-debugger-font;
+	width: 50%;
+	height: 40%;
+}
+#sandbox_target 
+{
 	background-color: #fff;
 	border: 1px #000;
-	height: 400px;
-	margin: 30px 15px 0;
+	height: 55%;
+	margin-top: 15px;
 	color: #000;
 	text-align: left;
 	position: relative;
 }
+#sandbox_rml_source { margin-left: -5px; }
+#sandbox_rcss_source { margin-left: 5px; }
 </style>
 </head>
 
@@ -177,14 +231,14 @@ p.emojis
 
 <tabset id="menu">
 <tab>Welcome</tab>
-<panel id="welcome">
-	<p class="emojis">RmlUi 😍</p>
+<panel id="welcome" class="minipanel">
+	<p class="emojis" style="margin-top: 1.8em;">RmlUi 😍</p>
 	<p>Have fun fiddling about in this (incomplete) demo.</p>
 	<p>Press 'F8' to open up the debugger.</p>
-	<p class="emojis" style="margin-top: 1em;">🎉</p>
+	<p class="emojis" style="margin-top: 1em; ">🎉</p>
 </panel>
 <tab>Decorators</tab>
-<panel id="decorators">
+<panel id="decorators" style="max-width: 850px;">
 	<div>
 		<button>Image</button>
 		<button class="ninepatch">Ninepatch</button>
@@ -232,7 +286,7 @@ p.emojis
 	</div>
 </panel>
 <tab>Buttons</tab>
-<panel>
+<panel class="minipanel">
 	<button id="start_game">Start Game</button><br />
 	<button id="high_scores" autofocus>High Scores</button><br />
 	<button id="options">Options</button><br />
@@ -245,14 +299,55 @@ p.emojis
 	<p>Img elements can take both sprites and images. For images it also supports a 'coords' attribute for specifying a sub-rectangle.</p>
 </panel>
 <tab>Controls</tab>
-<panel id="controls">
-	<div>Type something here: <input style="vertical-align: -7px;" size="10" type="text" maxlength="12" value="Sample text"/></div>
-	<textarea cols="30" rows="5" wrap="nowrap">😍 Hello 🌐 World! 😎</textarea>
+<panel id="controls" class="minipanel">
+	<form onsubmit="submit_form">
+		<h2>Full name</h2>
+		<div>
+			<input type="text" size="20" name="name"/>
+		</div>
+		<h2>Email and password</h2>
+		<div>
+			<input type="text" size="10" name="email"/>
+			<input type="password" size="10" name="password"/>
+		</div>
+		<h2>Favorite animal</h2>
+		<div>
+			<input type="radio" name="animal" value="dog" checked/> Dog
+			<input type="radio" name="animal" value="cat"/> Cat
+			<input type="radio" name="animal" value="narwhal"/> Narwhal
+			<input type="radio" name="animal" value="no"/> I don't like animals
+		</div>
+		<h2>Favorite meals</h2>
+		<div>
+			<input type="checkbox" name="meals" value="pizza" checked/> Pizza
+			<input type="checkbox" name="meals" value="pasta" checked/> Pasta
+			<input type="checkbox" name="meals" value="lasagne" checked/> Lasagne
+		</div>
+		<h2>Subject</h2>
+		<div>
+			<select name="subject">
+				<option value="none" selected>Choose your subject</option>
+				<option value="feature">Feature request</option>
+				<option value="bug">Bug report</option>
+				<option value="praise">Praise</option>
+				<option value="criticism">Criticism</option>
+			</select>
+		</div>
+		<h2>Message</h2>
+		<div>
+			<textarea cols="30" rows="5" wrap="nowrap" name="message">😍 Hello 🌐 World! 😎</textarea>
+		</div>
+		<div style="margin-bottom: 15px;">
+			<input type="submit">Submit</input>
+		</div>
+		<h2>Form output</h2>
+		<div id="form_output"></div>
+	</form>
 </panel>
 <tab>Sandbox</tab>
 <panel id="sandbox">
-	<textarea id="sandbox_rml_source" cols="35" rows="8" wrap="nowrap" onchange="set_sandbox_body"></textarea>
-	<textarea id="sandbox_rcss_source" cols="35" rows="8" wrap="nowrap" onchange="set_sandbox_style"></textarea>
+	<textarea id="sandbox_rml_source" wrap="nowrap" onchange="set_sandbox_body"></textarea>
+	<textarea id="sandbox_rcss_source" wrap="nowrap" onchange="set_sandbox_style"></textarea>
 	<div id="sandbox_target"></div>
 </panel>
 </tabset>
