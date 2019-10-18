@@ -495,7 +495,7 @@ void ElementInfo::UpdateSourceElement()
 			{
 				auto& name = pair.first;
 				auto& variant = pair.second;
-				Core::String value = variant.Get<Core::String>();
+				Core::String value = Core::StringUtilities::EncodeRml(variant.Get<Core::String>());
 				if(name != "class" && name != "style" && name != "id") 
 					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
@@ -619,7 +619,7 @@ void ElementInfo::UpdateSourceElement()
 		Core::String children;
 		if (source_element != nullptr)
 		{
-			for (int i = 0; i < source_element->GetNumChildren(); i++)
+			for (int i = 0; i < source_element->GetNumChildren(true); i++)
 			{
 				Core::Element* child = source_element->GetChild(i);
 

@@ -92,6 +92,24 @@ String StringUtilities::ToLower(const String& string) {
 	return str_lower;
 }
 
+RMLUICORE_API String StringUtilities::EncodeRml(const String& string)
+{
+	String result;
+	result.reserve(string.size());
+	for (char c : string)
+	{
+		switch (c)
+		{
+		case '<': result += "&lt;"; break;
+		case '>': result += "&gt;"; break;
+		case '&': result += "&amp;"; break;
+		case '"': result += "&quot;"; break;
+		default: result += c; break;
+		}
+	}
+	return result;
+}
+
 String StringUtilities::Replace(String subject, const String& search, const String& replace)
 {
 	size_t pos = 0;

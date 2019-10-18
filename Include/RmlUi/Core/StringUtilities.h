@@ -82,6 +82,9 @@ namespace StringUtilities
 	/// Converts upper-case characters in string to lower-case.
 	RMLUICORE_API String ToLower(const String& string);
 
+	/// Encode RML characters, eg. '<' to '&lt;'
+	RMLUICORE_API String EncodeRml(const String& string);
+
 	// Replaces all occurences of 'search' in 'subject' with 'replace'.
 	RMLUICORE_API String Replace(String subject, const String& search, const String& replace);
 	// Replaces all occurences of 'search' in 'subject' with 'replace'.
