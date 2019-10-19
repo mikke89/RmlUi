@@ -35,7 +35,7 @@ namespace Rml {
 namespace Core {
 
 // Constructs a new ElementImage.
-ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), coords_source(CoordsSource::None), geometry(this)
+ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), rect_source(RectSource::None), geometry(this)
 {
 	geometry_dirty = false;
 	texture_dirty = true;
@@ -55,18 +55,18 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions)
 	// Calculate the x dimension.
 	if (HasAttribute("width"))
 		dimensions.x = GetAttribute< float >("width", -1);
-	else if (coords_source != CoordsSource::None)
-		dimensions.x = coords.width;
+	else if (rect_source != RectSource::None)
+		dimensions.x = rect.width;
 	else
-		dimensions.x = (float) texture.GetDimensions(GetRenderInterface()).x;
+		dimensions.x = (float)texture.GetDimensions(GetRenderInterface()).x;
 
 	// Calculate the y dimension.
 	if (HasAttribute("height"))
 		dimensions.y = GetAttribute< float >("height", -1);
-	else if (coords_source != CoordsSource::None)
-		dimensions.y = coords.height;
+	else if (rect_source != RectSource::None)
+		dimensions.y = rect.height;
 	else
-		dimensions.y = (float) texture.GetDimensions(GetRenderInterface()).y;
+		dimensions.y = (float)texture.GetDimensions(GetRenderInterface()).y;
 
 	// Return the calculated dimensions. If this changes the size of the element, it will result in
 	// a 'resize' event which is caught below and will regenerate the geometry.
@@ -77,8 +77,7 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions)
 // Renders the element.
 void ElementImage::OnRender()
 {
-	// Regenerate the geometry if required (this will be set if 'coords' changes but does not
-	// result in a resize).
+	// Regenerate the geometry if required (this will be set if 'rect' changes but does not result in a resize).
 	if (geometry_dirty)
 		GenerateGeometry();
 
@@ -96,7 +95,8 @@ void ElementImage::OnAttributeChange(const Rml::Core::ElementAttributes& changed
 
 	// Check for a changed 'src' attribute. If this changes, the old texture handle is released,
 	// forcing a reload when the layout is regenerated.
-	if (changed_attributes.find("src") != changed_attributes.end())
+	if (changed_attributes.find("src") != changed_attributes.end() ||
+		changed_attributes.find("sprite") != changed_attributes.end())
 	{
 		texture_dirty = true;
 		dirty_layout = true;
@@ -110,37 +110,13 @@ void ElementImage::OnAttributeChange(const Rml::Core::ElementAttributes& changed
 		dirty_layout = true;
 	}
 
-	// Check for a change to the 'coords' attribute. If this changes, the coordinates are
+	// Check for a change to the 'rect' attribute. If this changes, the coordinates are
 	// recomputed and a layout forced. If a sprite is set to source, then that will override any attribute.
-	if (changed_attributes.find("coords") != changed_attributes.end() && coords_source != CoordsSource::Sprite)
+	if (changed_attributes.find("rect") != changed_attributes.end())
 	{
-		if (HasAttribute("coords"))
-		{
-			StringList coords_list;
-			StringUtilities::ExpandString(coords_list, GetAttribute< String >("coords", ""), ' ');
+		UpdateRect();
 
-			if (coords_list.size() != 4)
-			{
-				Rml::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'coords' attribute; coords requires 4 values, found %d.", GetAddress().c_str(), coords_list.size());
-				ResetCoords();
-			}
-			else
-			{
-				coords.x = (float)std::atof(coords_list[0].c_str());
-				coords.y = (float)std::atof(coords_list[1].c_str());
-				coords.width = (float)std::atof(coords_list[2].c_str());
-				coords.height = (float)std::atof(coords_list[3].c_str());
-
-				// We have new, valid coordinates; force the geometry to be regenerated.
-				geometry_dirty = true;
-				coords_source = CoordsSource::Attribute;
-
-			}
-		}
-		else
-			ResetCoords();
-
-		// Coordinates have changes; this will most likely result in a size change, so we need to force a layout.
+		// Rectangle has changed; this will most likely result in a size change, so we need to force a layout.
 		dirty_layout = true;
 	}
 
@@ -177,7 +153,7 @@ void ElementImage::GenerateGeometry()
 
 	// Generate the texture coordinates.
 	Vector2f texcoords[2];
-	if (coords_source != CoordsSource::None)
+	if (rect_source != RectSource::None)
 	{
 		Vector2f texture_dimensions((float) texture.GetDimensions(GetRenderInterface()).x, (float) texture.GetDimensions(GetRenderInterface()).y);
 		if (texture_dimensions.x == 0)
@@ -185,11 +161,11 @@ void ElementImage::GenerateGeometry()
 		if (texture_dimensions.y == 0)
 			texture_dimensions.y = 1;
 
-		texcoords[0].x = coords.x / texture_dimensions.x;
-		texcoords[0].y = coords.y / texture_dimensions.y;
+		texcoords[0].x = rect.x / texture_dimensions.x;
+		texcoords[0].y = rect.y / texture_dimensions.y;
 
-		texcoords[1].x = (coords.x + coords.width) / texture_dimensions.x;
-		texcoords[1].y = (coords.y + coords.height) / texture_dimensions.y;
+		texcoords[1].x = (rect.x + rect.width) / texture_dimensions.x;
+		texcoords[1].y = (rect.y + rect.height) / texture_dimensions.y;
 	}
 	else
 	{
@@ -213,49 +189,99 @@ void ElementImage::GenerateGeometry()
 bool ElementImage::LoadTexture()
 {
 	texture_dirty = false;
-
-	// Get the sprite name or image source URL.
-	const String source_name = GetAttribute< String >("src", "");
-	if (source_name.empty())
-		return false;
-
 	geometry_dirty = true;
 
-	bool valid_sprite = false;
-	URL source_url;
-
-	Rml::Core::ElementDocument* document = GetOwnerDocument();
-
-	// Check if the name is a sprite first, otherwise treat it as an image url.
-	if (document) 
+	// Check for a sprite first, this takes precedence.
+	const String sprite_name = GetAttribute< String >("sprite", "");
+	if (!sprite_name.empty())
 	{
-		if (auto& style_sheet = document->GetStyleSheet())
+		// Load sprite.
+		bool valid_sprite = false;
+
+		if (ElementDocument* document = GetOwnerDocument())
 		{
-			if (const Sprite* sprite = style_sheet->GetSprite(source_name))
+			if (auto& style_sheet = document->GetStyleSheet())
 			{
-				coords = sprite->rectangle;
-				coords_source = CoordsSource::Sprite;
-				texture = sprite->sprite_sheet->texture;
-				valid_sprite = true;
+				if (const Sprite* sprite = style_sheet->GetSprite(sprite_name))
+				{
+					rect = sprite->rectangle;
+					rect_source = RectSource::Sprite;
+					texture = sprite->sprite_sheet->texture;
+					valid_sprite = true;
+				}
 			}
 		}
 
-		if(!valid_sprite)
-			source_url.SetURL(document->GetSourceURL());
+		if (!valid_sprite)
+		{
+			texture = Texture();
+			rect_source = RectSource::None;
+			UpdateRect();
+			Log::Message(Log::LT_WARNING, "Could not find sprite '%s' specified in img element.", sprite_name.c_str());
+			return false;
+		}
 	}
+	else
+	{
+		// Load image from source URL.
+		const String source_name = GetAttribute< String >("src", "");
+		if (source_name.empty())
+		{
+			texture = Texture();
+			rect_source = RectSource::None;
+			return false;
+		}
 
-	if(!valid_sprite)
+		URL source_url;
+
+		if (ElementDocument* document = GetOwnerDocument())
+			source_url.SetURL(document->GetSourceURL());
+
 		texture.Set(source_name, source_url.GetPath());
+	}
 
 	// Set the texture onto our geometry object.
 	geometry.SetTexture(&texture);
+
 	return true;
 }
 
-void ElementImage::ResetCoords()
+void ElementImage::UpdateRect()
 {
-	coords = {};
-	coords_source = CoordsSource::None;
+	if(rect_source != RectSource::Sprite)
+	{
+		bool valid_rect = false;
+
+		String rect_string = GetAttribute< String >("rect", "");
+		if (!rect_string.empty())
+		{
+			StringList coords_list;
+			StringUtilities::ExpandString(coords_list, rect_string, ' ');
+
+			if (coords_list.size() != 4)
+			{
+				Rml::Core::Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'rect' attribute; rect requires 4 space-separated values, found %d.", GetAddress().c_str(), coords_list.size());
+			}
+			else
+			{
+				rect.x = (float)std::atof(coords_list[0].c_str());
+				rect.y = (float)std::atof(coords_list[1].c_str());
+				rect.width = (float)std::atof(coords_list[2].c_str());
+				rect.height = (float)std::atof(coords_list[3].c_str());
+
+				// We have new, valid coordinates; force the geometry to be regenerated.
+				valid_rect = true;
+				geometry_dirty = true;
+				rect_source = RectSource::Attribute;
+			}
+		}
+
+		if (!valid_rect)
+		{
+			rect = {};
+			rect_source = RectSource::None;
+		}
+	}
 }
 
 }

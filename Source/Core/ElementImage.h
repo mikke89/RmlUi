@@ -38,23 +38,23 @@ namespace Rml {
 namespace Core {
 
 /**
-	The 'img' element. The image element can have a rectangular sub-region of its source texture
-	specified with the 'coords' attribute; the element will render this region rather than the
-	entire image.
+	The 'img' element can render images and sprites. 
 
-	The 'coords' attribute is similar to that of the HTML imagemap. It takes four comma-separated
-	integer values, specifying the top-left and the bottom right of the region in
-	pixel-coordinates, in that order. So for example, the attribute "coords" = "0, 10, 100, 210"
-	will render a 100 x 200 region, beginning at (0, 10) and rendering through to (100, 210). No
-	clamping to the dimensions of the source image will occur; rendered results in this case will
-	depend on the texture addressing mode.
+	The 'src' attribute is used to specify an image url. If instead the `sprite` attribute is set,
+	it will load a sprite and ignore the `src` and `rect` attributes.
+
+	The 'rect' attribute takes four space-separated	integer values, specifying a rectangle
+	using 'x y width height' in pixel coordinates inside the image. No clamping to the
+	dimensions of the source image will occur; rendered results in this case will
+	depend on the user's texture addressing mode.
 
 	The intrinsic dimensions of the image can now come from three different sources. They are
 	used in the following order:
 
 	1) 'width' / 'height' attributes if present
-	2) pixel width / height given by the 'coords' attribute
-	3) width / height of the source texture
+	2) pixel width / height of the sprite 
+	3) pixel width / height given by the 'rect' attribute
+	4) width / height of the image texture
 
 	This has the result of sizing the element to the pixel-size of the rendered image, unless
 	overridden by the 'width' or 'height' attributes.
@@ -95,8 +95,8 @@ private:
 	void GenerateGeometry();
 	// Loads the element's texture, as specified by the 'src' attribute.
 	bool LoadTexture();
-	// Resets the values of the 'coords' attribute to mark them as unused.
-	void ResetCoords();
+	// Loads the rect value from the element's attribute, but only if we're not a sprite.
+	void UpdateRect();
 
 	// The texture this element is rendering from.
 	Texture texture;
@@ -106,10 +106,10 @@ private:
 	// that dimension has not been computed yet.
 	Vector2f dimensions;
 
-	// The coords extracted from the sprite or 'coords' attribute. The coords_source will be None if
+	// The rectangle extracted from the sprite or 'rect' attribute. The rect_source will be None if
 	// these have not been specified or are invalid.
-	Rectangle coords;
-	enum class CoordsSource { None, Attribute, Sprite } coords_source;
+	Rectangle rect;
+	enum class RectSource { None, Attribute, Sprite } rect_source;
 
 	// The geometry used to render this element.
 	Geometry geometry;

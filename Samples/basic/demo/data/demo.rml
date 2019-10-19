@@ -235,7 +235,7 @@ form h2
 	<p class="emojis" style="margin-top: 1.8em;">RmlUi 😍</p>
 	<p>Have fun fiddling about in this (incomplete) demo.</p>
 	<p>Press 'F8' to open up the debugger.</p>
-	<p class="emojis" style="margin-top: 1em; ">🎉</p>
+	<p class="emojis" style="margin-top: 1em;">🎉</p>
 </panel>
 <tab>Decorators</tab>
 <panel id="decorators" style="max-width: 850px;">
@@ -293,10 +293,10 @@ form h2
 	<button id="help">Help</button><br />
 	<div><button id="exit" onclick="exit">Exit</button></div>
 	<img src="../../../assets/high_scores_defender.tga"/>
-	<img src="icon-game" style="vertical-align: 10px;"/>
-	<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" coords="0 0 64 64"/>
-	<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" coords="64 0 64 64"/>
-	<p>Img elements can take both sprites and images. For images it also supports a 'coords' attribute for specifying a sub-rectangle.</p>
+	<img sprite="icon-game" style="vertical-align: 10px;"/>
+	<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" rect="0 0 64 64"/>
+	<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" rect="64 0 64 64"/>
+	<p>Img elements can take both images and sprites. For images it also supports a 'rect' attribute for specifying a sub-rectangle.</p>
 </panel>
 <tab>Controls</tab>
 <panel id="controls" class="minipanel">
