@@ -327,7 +327,7 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::LEFT) + bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::RIGHT));
 
-			if (computed.width.value == Core::Style::Height::Auto)
+			if (computed.width.value == Core::Style::Width::Auto)
 			{
 				bar_box_content.x = track_length * bar_length;
 
@@ -374,20 +374,21 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 	{
 		if (event.GetTargetElement() == parent || event.GetTargetElement() == track)
 		{
+			float mouse_position, bar_halfsize;
+
 			if (orientation == HORIZONTAL)
 			{
-				float mouse_position = event.GetParameter< float >("mouse_x", 0);
-				float click_position = (mouse_position - track->GetAbsoluteOffset().x) / track->GetBox().GetSize().x;
-
-				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
+				mouse_position = event.GetParameter< float >("mouse_x", 0);
+				bar_halfsize = 0.5f * bar->GetBox().GetSize(Core::Box::BORDER).x;
 			}
 			else
 			{
-				float mouse_position = event.GetParameter< float >("mouse_y", 0);
-				float click_position = (mouse_position - track->GetAbsoluteOffset().y) / track->GetBox().GetSize().y;
-
-				SetBarPosition(click_position <= bar_position ? OnPageDecrement(click_position) : OnPageIncrement(click_position));
+				mouse_position = event.GetParameter< float >("mouse_y", 0);
+				bar_halfsize = 0.5f * bar->GetBox().GetSize(Core::Box::BORDER).y;
 			}
+
+			float new_bar_position = AbsolutePositionToBarPosition(mouse_position - bar_halfsize);
+			SetBarPosition(OnBarChange(new_bar_position));
 		}
 		else if (event.GetTargetElement() == arrows[0])
 		{
@@ -421,9 +422,9 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 			bar->SetPseudoClass("active", true);
 
 			if (orientation == HORIZONTAL)
-				bar_drag_anchor = event.GetParameter< int >("mouse_x", 0) - Rml::Core::Math::RealToInteger(bar->GetAbsoluteOffset().x);
+				bar_drag_anchor = event.GetParameter< float >("mouse_x", 0) - bar->GetAbsoluteOffset().x;
 			else
-				bar_drag_anchor = event.GetParameter< int >("mouse_y", 0) - Rml::Core::Math::RealToInteger(bar->GetAbsoluteOffset().y);
+				bar_drag_anchor = event.GetParameter< float >("mouse_y", 0) - bar->GetAbsoluteOffset().y;
 		}
 	}
 	break;
@@ -431,30 +432,10 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
-			if (orientation == HORIZONTAL)
-			{
-				float traversable_track_length = track->GetBox().GetSize(Core::Box::CONTENT).x - bar->GetBox().GetSize(Core::Box::CONTENT).x;
-				if (traversable_track_length > 0)
-				{
-					float traversable_track_origin = track->GetAbsoluteOffset().x + bar_drag_anchor;
-					float new_bar_position = (event.GetParameter< float >("mouse_x", 0) - traversable_track_origin) / traversable_track_length;
-					new_bar_position = Rml::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
+			float new_bar_offset = event.GetParameter< float >((orientation == HORIZONTAL ? "mouse_x" : "mouse_y"), 0) - bar_drag_anchor;
+			float new_bar_position = AbsolutePositionToBarPosition(new_bar_offset);
 
-					SetBarPosition(OnBarChange(new_bar_position));
-				}
-			}
-			else
-			{
-				float traversable_track_length = track->GetBox().GetSize(Core::Box::CONTENT).y - bar->GetBox().GetSize(Core::Box::CONTENT).y;
-				if (traversable_track_length > 0)
-				{
-					float traversable_track_origin = track->GetAbsoluteOffset().y + bar_drag_anchor;
-					float new_bar_position = (event.GetParameter< float >("mouse_y", 0) - traversable_track_origin) / traversable_track_length;
-					new_bar_position = Rml::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
-
-					SetBarPosition(OnBarChange(new_bar_position));
-				}
-			}
+			SetBarPosition(OnBarChange(new_bar_position));
 		}
 	}
 	break;
@@ -510,20 +491,74 @@ void WidgetSlider::ProcessEvent(Core::Event& event)
 	}
 }
 
-void WidgetSlider::PositionBar()
-{
-	const Rml::Core::Vector2f& track_dimensions = track->GetBox().GetSize();
-	const Rml::Core::Vector2f& bar_dimensions = bar->GetBox().GetSize(Core::Box::BORDER);
 
-	if (orientation == VERTICAL)
+float WidgetSlider::AbsolutePositionToBarPosition(float absolute_position) const
+{
+	float new_bar_position = bar_position;
+
+	if (orientation == HORIZONTAL)
 	{
-		float traversable_track_length = track_dimensions.y - bar_dimensions.y;
-		bar->SetOffset(Rml::Core::Vector2f(bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT), track->GetRelativeOffset().y + traversable_track_length * bar_position), parent);
+		const float edge_left = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT);
+		const float edge_right = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::RIGHT);
+
+		float traversable_track_length = track->GetBox().GetSize(Core::Box::CONTENT).x - bar->GetBox().GetSize(Core::Box::BORDER).x - edge_left - edge_right;
+		if (traversable_track_length > 0)
+		{
+			float traversable_track_origin = track->GetAbsoluteOffset().x + edge_left;
+			new_bar_position = (absolute_position - traversable_track_origin) / traversable_track_length;
+			new_bar_position = Rml::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
+		}
 	}
 	else
 	{
-		float traversable_track_length = track_dimensions.x - bar_dimensions.x;
-		bar->SetOffset(Rml::Core::Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP)), parent);
+		const float edge_top = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP);
+		const float edge_bottom = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::BOTTOM);
+
+		float traversable_track_length = track->GetBox().GetSize(Core::Box::CONTENT).y - bar->GetBox().GetSize(Core::Box::BORDER).y - edge_top - edge_bottom;
+		if (traversable_track_length > 0)
+		{
+			float traversable_track_origin = track->GetAbsoluteOffset().y + edge_top;
+			new_bar_position = (absolute_position - traversable_track_origin) / traversable_track_length;
+			new_bar_position = Rml::Core::Math::Clamp(new_bar_position, 0.0f, 1.0f);
+		}
+	}
+
+	return new_bar_position;
+}
+
+
+void WidgetSlider::PositionBar()
+{
+	const Rml::Core::Vector2f track_dimensions = track->GetBox().GetSize();
+	const Rml::Core::Vector2f bar_dimensions = bar->GetBox().GetSize(Core::Box::BORDER);
+
+	if (orientation == VERTICAL)
+	{
+		const float edge_top = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP);
+		const float edge_bottom = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::BOTTOM);
+
+		float traversable_track_length = track_dimensions.y - bar_dimensions.y - edge_top - edge_bottom;
+		bar->SetOffset(
+			Core::Vector2f(
+				bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT),
+				track->GetRelativeOffset().y + edge_top + traversable_track_length * bar_position
+			),
+			parent
+		);
+	}
+	else
+	{
+		const float edge_left = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::LEFT);
+		const float edge_right = bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::RIGHT);
+
+		float traversable_track_length = track_dimensions.x - bar_dimensions.x - edge_left - edge_right;
+		bar->SetOffset(
+			Core::Vector2f(
+				track->GetRelativeOffset().x + edge_left + traversable_track_length * bar_position,
+				bar->GetBox().GetEdge(Core::Box::MARGIN, Core::Box::TOP)
+			), 
+			parent
+		);
 	}
 }
 

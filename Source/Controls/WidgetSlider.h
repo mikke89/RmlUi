@@ -118,6 +118,11 @@ protected:
 	virtual float OnPageDecrement(float click_position) = 0;
 
 private:
+	/// Determine the normalized bar position given an absolute position coordinate.
+	/// @param[in] absolute_position Absolute position along the axis determined by 'orientation'.
+	/// @return The normalized bar position [0, 1]
+	float AbsolutePositionToBarPosition(float absolute_position) const;
+
 	void PositionBar();
 
 	ElementFormControl* parent;
@@ -134,7 +139,7 @@ private:
 	// A number from 0 to 1, indicating how far along the track the bar is.
 	float bar_position;
 	// If the bar is being dragged, this is the pixel offset from the start of the bar to where it was picked up.
-	int bar_drag_anchor;
+	float bar_drag_anchor;
 
 	// Set to the auto-repeat timer if either of the arrow buttons have been pressed, -1 if they haven't.
 	float arrow_timers[2];
