@@ -109,6 +109,16 @@
 	sliderarrowinc: 28px 152px 27px 24px;
 	sliderarrowinc-hover: 28px 177px 27px 24px;
 	sliderarrowinc-active: 28px 202px 27px 24px;
+	
+	range-track:       219px 194px  3px 32px;
+	range-track-inner: 220px 204px  1px 14px;
+	range-bar:         127px 191px 34px 32px;
+	range-dec:           3px 232px 17px 17px;
+	range-dec-hover:    21px 232px 17px 17px;
+	range-dec-active:   39px 232px 17px 17px;
+	range-inc:           3px 250px 17px 17px;
+	range-inc-hover:    21px 250px 17px 17px;
+	range-inc-active:   39px 250px 17px 17px;
 }
 
 body
@@ -479,6 +489,43 @@ input.checkbox:checked:active
 {
 	decorator: image(checkbox-checked-active);
 }
+
+input.range {
+	width: 200px;
+	height: 32px;
+	vertical-align: -12px;
+}
+input.range slidertrack {
+	margin-top: 3px;
+	height: 22px;
+	image-color: #ecc;
+	decorator: ninepatch( range-track, range-track-inner );
+}
+input.range sliderbar {
+	margin-left: -8px;
+	margin-right: -7px;
+	margin-top: -3px;
+	width: 34px;
+	height: 23px;
+	decorator: image( range-bar );
+}
+input.range:hover sliderbar {
+	image-color: #cc0;
+}
+input.range sliderbar:active {
+	image-color: #c80;
+}
+input.range sliderarrowdec, input.range sliderarrowinc {
+	width: 17px;
+	height: 17px;
+	margin-top: 6px;
+}
+input.range sliderarrowdec        { decorator: image( range-dec        ); }
+input.range sliderarrowinc        { decorator: image( range-inc        ); }
+input.range sliderarrowdec:hover  { decorator: image( range-dec-hover  ); }
+input.range sliderarrowinc:hover  { decorator: image( range-inc-hover  ); }
+input.range sliderarrowdec:active { decorator: image( range-dec-active ); }
+input.range sliderarrowinc:active { decorator: image( range-inc-active ); }
 
 datagrid datagridheader
 {

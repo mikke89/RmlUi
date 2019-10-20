@@ -233,6 +233,32 @@ public:
 			if(auto parent = element->GetParentNode())
 				parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
 		}
+		else if (value == "rating")
+		{
+			auto el_rating = element->GetElementById("rating");
+			auto el_rating_emoji = element->GetElementById("rating_emoji");
+			if (el_rating && el_rating_emoji)
+			{
+				enum { Sad, Mediocre, Exciting, Celebrate, Champion, CountBonus };
+				static const Rml::Core::String emojis[CountBonus] = { u8"😢", u8"😐", u8"😮", u8"😎", u8"🏆" };
+				int value = std::atoi(static_cast<Rml::Controls::ElementFormControl*>(element)->GetValue().c_str());
+				
+				Rml::Core::String emoji;
+				if (value <= 0)
+					emoji = emojis[Sad];
+				else if(value < 50)
+					emoji = emojis[Mediocre];
+				else if (value < 75)
+					emoji = emojis[Exciting];
+				else if (value < 100)
+					emoji = emojis[Celebrate];
+				else
+					emoji = emojis[Champion];
+
+				el_rating->SetInnerRML(Rml::Core::CreateString(30, "%d%%", value));
+				el_rating_emoji->SetInnerRML(emoji);
+			}
+		}
 		else if (value == "submit_form")
 		{
 			if (auto el_output = element->GetElementById("form_output"))

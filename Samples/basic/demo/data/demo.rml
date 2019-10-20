@@ -175,6 +175,15 @@ form h2
 	font-weight: bold;
 	margin-top: 8px;
 }
+#rating {
+	display: inline-block;
+	width: 40px;
+	padding-left: 1em;
+}
+#rating_emoji { 
+	color: #ffd40f;
+	font-size: 1.7em;
+}
 #form_output 
 {
 	border: 1px #666;
@@ -322,6 +331,10 @@ form h2
 			<input type="checkbox" name="meals" value="pizza" checked/> Pizza
 			<input type="checkbox" name="meals" value="pasta" checked/> Pasta
 			<input type="checkbox" name="meals" value="lasagne" checked/> Lasagne
+		</div>
+		<h2>Rating</h2>
+		<div>
+			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating" onshow="rating"/> <span id="rating"/><span id="rating_emoji">&nbsp;</span>
 		</div>
 		<h2>Subject</h2>
 		<div>
