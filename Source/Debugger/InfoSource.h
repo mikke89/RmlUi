@@ -114,6 +114,9 @@ div#title-content {
 div#title-content em {
 	font-size: 14dp;
 }
+p.non_dom {
+	font-style: italic;
+}
 )RCSS";
 
 static const char* info_rml = R"RML(

@@ -339,6 +339,7 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				if (new_source_element != source_element)
 				{
 					SetSourceElement(new_source_element);
+					event.StopPropagation();
 				}
 			}
 		}
@@ -618,6 +619,8 @@ void ElementInfo::UpdateSourceElement()
 		Core::String children;
 		if (source_element != nullptr)
 		{
+			const int num_dom_children = (source_element->GetNumChildren(false));
+
 			for (int i = 0; i < source_element->GetNumChildren(true); i++)
 			{
 				Core::Element* child = source_element->GetChild(i);
@@ -633,8 +636,9 @@ void ElementInfo::UpdateSourceElement()
 					child_name += "#";
 					child_name += child_id;
 				}
+				const char* non_dom_string = (i >= num_dom_children ? " class=\"non_dom\"" : "");
 
-				children += Core::CreateString(child_name.size() + 32, "<p id=\"c %d\">%s</p>", i, child_name.c_str());
+				children += Core::CreateString(child_name.size() + 40, "<p id=\"c %d\"%s>%s</p>", i, non_dom_string, child_name.c_str());
 			}
 		}
 
