@@ -1815,7 +1815,6 @@ void Element::ProcessDefaultAction(Event& event)
 				// This prevents scrolling in parent elements, which is often unintended. If instead desired behavior is
 				// to scroll in parent elements when reaching top/bottom, move StopPropagation inside the next if statement.
 				event.StopPropagation();
-				event.PreventDefault();
 
 				const float wheel_delta = event.GetParameter< float >("wheel_delta", 0.f);
 

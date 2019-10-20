@@ -40,7 +40,6 @@ Event::Event() : id(EventId::Invalid)
 	interruptible = false;
 	interrupted = false;
 	interrupted_immediate = false;
-	default_prevented = false;
 	current_element = nullptr;
 	target_element = nullptr;
 	has_mouse_position = false;
@@ -53,7 +52,6 @@ Event::Event(Element* _target_element, EventId id, const String& type, const Dic
 	phase = EventPhase::None;
 	interrupted = false;
 	interrupted_immediate = false;
-	default_prevented = false;
 	current_element = nullptr;
 
 	has_mouse_position = false;
@@ -136,11 +134,6 @@ bool Event::IsImmediatePropagating() const
 	return !interrupted_immediate;
 }
 
-bool Event::IsDefaultPrevented() const
-{
-	return default_prevented;
-}
-
 bool Event::IsInterruptible() const
 {
 	return interruptible;
@@ -153,11 +146,6 @@ void Event::StopImmediatePropagation()
 		interrupted_immediate = true;
 		interrupted = true;
 	}
-}
-
-void Event::PreventDefault()
-{
-	default_prevented = true;
 }
 
 const Dictionary& Event::GetParameters() const

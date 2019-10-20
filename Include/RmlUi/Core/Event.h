@@ -86,8 +86,6 @@ public:
 	void StopPropagation();
 	/// Stops propagation of the event if it is interruptible, including to any other listeners on the current element.
 	void StopImmediatePropagation();
-	/// Prevents the default actions from being performed.
-	void PreventDefault();
 
 	/// Returns true if the event can be interrupted, that is, stopped from propagating.
 	bool IsInterruptible() const;
@@ -95,8 +93,6 @@ public:
 	bool IsPropagating() const;
 	/// Returns true if the event is still immediate propagating.
 	bool IsImmediatePropagating() const;
-	/// Returns true if the default actions to be executed by this event has been prevented.
-	bool IsDefaultPrevented() const;
 
 	/// Checks if the event is of a certain type.
 	/// @param type The name of the type to check for.
@@ -141,7 +137,6 @@ private:
 	
 	bool interrupted;
 	bool interrupted_immediate;
-	bool default_prevented;
 
 	bool has_mouse_position;
 	Vector2f mouse_screen_position;

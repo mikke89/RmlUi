@@ -210,7 +210,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const EventId id, c
 	// Process the default actions.
 	for (auto& element_ptr : default_action_elements)
 	{
-		if (event->IsDefaultPrevented())
+		if (!event->IsPropagating())
 			break;
 
 		if (Element* element = element_ptr.get())

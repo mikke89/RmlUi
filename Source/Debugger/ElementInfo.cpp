@@ -339,7 +339,6 @@ void ElementInfo::ProcessEvent(Core::Event& event)
 				if (new_source_element != source_element)
 				{
 					SetSourceElement(new_source_element);
-					event.StopPropagation();
 				}
 			}
 		}
