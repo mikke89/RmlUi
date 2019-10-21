@@ -171,22 +171,24 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 	{
 		PrepareTransformResult result = PrepareTransformResult::Unchanged;
 		bool same_primitives = true;
+
 		for (size_t i = 0; i < prims0.size(); i++)
 		{
 			auto p0_type = prims0[i].primitive.type;
 			auto p1_type = prims1[i].primitive.type;
-			if (p0_type != p1_type)
+
+			// See if they are the same or can be converted to a matching generic type.
+			if (Primitive::TryConvertToMatchingGenericType(prims0[i], prims1[i]))
 			{
-				// They are not the same, but see if we can convert them to their more generic form
-				if (!Primitive::TryConvertToMatchingGenericType(prims0[i], prims1[i]))
-				{
-					same_primitives = false;
-					break;
-				}
 				if (prims0[i].primitive.type != p0_type)
 					(int&)result |= (int)PrepareTransformResult::ChangedT0;
 				if (prims1[i].primitive.type != p1_type)
 					(int&)result |= (int)PrepareTransformResult::ChangedT1;
+			}
+			else
+			{
+				same_primitives = false;
+				break;
 			}
 		}
 		if (same_primitives)
@@ -225,14 +227,9 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 			{
 				auto big_type = big[i_big].primitive.type;
 
-				if (small_type == big_type)
+				if (Primitive::TryConvertToMatchingGenericType(small[i_small], big[i_big]))
 				{
-					// Exact match
-					match_success = true;
-				}
-				else if (Primitive::TryConvertToMatchingGenericType(small[i_small], big[i_big]))
-				{
-					// They matched in their more generic form, one or both primitives converted
+					// They matched exactly or in their more generic form. One or both primitives may have been converted.
 					match_success = true;
 					if (big[i_big].primitive.type != big_type)
 						changed_big = true;
@@ -295,9 +292,41 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 
 static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element, int start_index)
 {
-	if (keys.size() < 2 || start_index < 1)
+	bool result = true;
+
+	// Prepare each transform individually.
+	for (int i = start_index; i < (int)keys.size(); i++)
+	{
+		AnimationKey& key = keys[i];
+		Property& property = keys[i].property;
+
+		if (!property.value.GetReference<TransformPtr>())
+			property.value = std::make_shared<Transform>();
+
+		bool must_decompose = false;
+		Transform& transform = *property.value.GetReference<TransformPtr>();
+
+		for (auto& primitive : transform.GetPrimitives())
+		{
+			if (!primitive.PrepareForInterpolation(element))
+			{
+				must_decompose = true;
+				break;
+			}
+		}
+
+		if (must_decompose)
+			result = CombineAndDecompose(transform, element);
+	}
+
+	if (!result)
 		return false;
 
+	// We don't need to prepare the transforms pairwise if we only have a single key added so far.
+	if (keys.size() < 2 || start_index < 1)
+		return true;
+
+	// Now, prepare the transforms pair-wise so they can be interpolated.
 	const int N = (int)keys.size();
 
 	int count_iterations = -1;
@@ -347,7 +376,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 }
 
 
-ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, double start_world_time, float duration, int num_iterations, bool alternate_direction)
+ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element, double start_world_time, float duration, int num_iterations, bool alternate_direction)
 	: property_id(property_id), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction), last_update_world_time(start_world_time),
 	time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), origin(origin)
 {
@@ -355,29 +384,35 @@ ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigi
 	{
 		Log::Message(Log::LT_WARNING, "Property in animation key did not have a definition (while adding key '%s').", current_value.ToString().c_str());
 	}
-	InternalAddKey(0.0f, current_value, Tween{});
+	InternalAddKey(0.0f, current_value, element, Tween{});
 }
 
-bool ElementAnimation::InternalAddKey(float time, const Property& property, Tween tween)
+
+bool ElementAnimation::InternalAddKey(float time, const Property& in_property, Element& element, Tween tween)
 {
 	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
 
-	if (!(property.unit & valid_properties))
+	if (!(in_property.unit & valid_properties))
 	{
-		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", property.ToString().c_str());
+		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", in_property.ToString().c_str());
 		return false;
 	}
 
-	keys.emplace_back(time, property, tween);
-	AnimationKey& key = keys.back();
+	keys.emplace_back(time, in_property, tween);
+	bool result = true;
 
-	if (key.property.unit == Property::TRANSFORM)
+	if (keys.back().property.unit == Property::TRANSFORM)
 	{
-		if (!key.property.value.GetReference<TransformPtr>())
-			key.property.value = std::make_shared<Transform>();
+		result = PrepareTransforms(keys, element, (int)keys.size() - 1);
 	}
 
-	return true;
+	if (!result)
+	{
+		Log::Message(Log::LT_WARNING, "Could not add animation key with property '%s'.", in_property.ToString().c_str());
+		keys.pop_back();
+	}
+
+	return result;
 }
 
 
@@ -388,46 +423,15 @@ bool ElementAnimation::AddKey(float target_time, const Property & in_property, E
 		Log::Message(Log::LT_WARNING, "Element animation was not initialized properly, can't add key.");
 		return false;
 	}
-	if (!InternalAddKey(target_time, in_property, tween))
+	if (!InternalAddKey(target_time, in_property, element, tween))
 	{
 		return false;
 	}
 
-	bool result = true;
-	auto& property = keys.back().property;
+	if (extend_duration)
+		duration = target_time;
 
-	if (property.unit == Property::TRANSFORM)
-	{
-		bool must_decompose = false;
-		Transform& transform = *property.value.GetReference<TransformPtr>();
-
-		for (auto& primitive : transform.GetPrimitives())
-		{
-			if (!primitive.PrepareForInterpolation(element))
-			{
-				must_decompose = true;
-				break;
-			}
-		}
-
-		if(must_decompose)
-			result = CombineAndDecompose(transform, element);
-
-		if (result)
-			result = PrepareTransforms(keys, element, (int)keys.size() - 1);
-	}
-
-	if(result)
-	{
-		if(extend_duration) 
-			duration = target_time;
-	}
-	else
-	{
-		keys.pop_back();
-	}
-
-	return result;
+	return true;
 }
 
 float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const

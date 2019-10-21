@@ -106,7 +106,7 @@ public:
 	template< typename T >
 	bool GetInto(T& value) const;
 
-	/// Returns a reference to the variants underlying type.
+	/// Returns a reference to the variant's underlying type.
 	/// @warning: Undefined behavior if T does not represent the underlying type of the variant.
 	template< typename T>
 	const T& GetReference() const;

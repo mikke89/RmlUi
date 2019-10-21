@@ -2170,7 +2170,7 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 	{
 		ElementAnimationOrigin origin = (origin_is_animation_property ? ElementAnimationOrigin::Animation : ElementAnimationOrigin::User);
 		double start_time = Clock::GetElapsedTime() + (double)delay;
-		*it = ElementAnimation{ property_id, origin, value, start_time, 0.0f, num_iterations, alternate_direction };
+		*it = ElementAnimation{ property_id, origin, value, *this, start_time, 0.0f, num_iterations, alternate_direction };
 	}
 	else
 	{
@@ -2219,7 +2219,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	{
 		// Add transition as new animation
 		animations.push_back(
-			ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false }
+			ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false }
 		);
 		it = (animations.end() - 1);
 	}
@@ -2230,7 +2230,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
 		duration = duration * f;
 		// Replace old transition
-		*it = ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, start_time, 0.0f, 1, false };
+		*it = ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false };
 	}
 
 	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);

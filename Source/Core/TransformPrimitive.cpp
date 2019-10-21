@@ -490,9 +490,14 @@ struct PrepareVisitor
 	}
 	bool operator()(Rotate3D& p)
 	{
-		// Rotate3D must be resolved to a full matrix for interpolation. 
-		// There is an exception in CSS specs when the two interpolating rotation vectors are in the same direction, but for simplicity we ignore this optimization.
-		return false;
+		// Rotate3D can be interpolated if and only if their rotation axes point in the same direction.
+		// We normalize the rotation vector here for easy comparison, and return true here. Later on we make the
+		// pair-wise check in 'TryConvertToMatchingGenericType' to see if we need to decompose.
+		Vector3f vec = Vector3f(p.values[0], p.values[1], p.values[2]).Normalise();
+		p.values[0] = vec.x;
+		p.values[1] = vec.y;
+		p.values[2] = vec.z;
+		return true;
 	}
 	bool operator()(Matrix3D& p)
 	{
@@ -552,36 +557,29 @@ bool Primitive::PrepareForInterpolation(Element & e) noexcept
 
 
 
-enum class GenericType { None, Scale3D, Translate3D };
+enum class GenericType { None, Scale3D, Translate3D, Rotate3D };
 
 struct GetGenericTypeVisitor
 {
-	GenericType common_type = GenericType::None;
-
-	GenericType operator()(const TranslateX& p) { return GenericType::Translate3D; }
-	GenericType operator()(const TranslateY& p) { return GenericType::Translate3D; }
-	GenericType operator()(const TranslateZ& p) { return GenericType::Translate3D; }
-	GenericType operator()(const Translate2D& p) { return GenericType::Translate3D; }
-	GenericType operator()(const ScaleX& p) { return GenericType::Scale3D; }
-	GenericType operator()(const ScaleY& p) { return GenericType::Scale3D; }
-	GenericType operator()(const ScaleZ& p) { return GenericType::Scale3D; }
-	GenericType operator()(const Scale2D& p) { return GenericType::Scale3D; }
-
-	template <typename T>
-	GenericType operator()(const T& p) { return GenericType::None; }
-
 	GenericType run(const PrimitiveVariant& primitive)
 	{
 		switch (primitive.type)
 		{
-		case PrimitiveVariant::TRANSLATEX:  return this->operator()(primitive.translate_x); break;
-		case PrimitiveVariant::TRANSLATEY:  return this->operator()(primitive.translate_y); break;
-		case PrimitiveVariant::TRANSLATEZ:  return this->operator()(primitive.translate_z); break;
-		case PrimitiveVariant::TRANSLATE2D: return this->operator()(primitive.translate_2d); break;
-		case PrimitiveVariant::SCALEX:      return this->operator()(primitive.scale_x); break;
-		case PrimitiveVariant::SCALEY:      return this->operator()(primitive.scale_y); break;
-		case PrimitiveVariant::SCALEZ:      return this->operator()(primitive.scale_z); break;
-		case PrimitiveVariant::SCALE2D:     return this->operator()(primitive.scale_2d); break;
+		case PrimitiveVariant::TRANSLATEX:  return GenericType::Translate3D;
+		case PrimitiveVariant::TRANSLATEY:  return GenericType::Translate3D;
+		case PrimitiveVariant::TRANSLATEZ:  return GenericType::Translate3D;
+		case PrimitiveVariant::TRANSLATE2D: return GenericType::Translate3D;
+		case PrimitiveVariant::TRANSLATE3D: return GenericType::Translate3D;
+		case PrimitiveVariant::SCALEX:      return GenericType::Scale3D;
+		case PrimitiveVariant::SCALEY:      return GenericType::Scale3D;
+		case PrimitiveVariant::SCALEZ:      return GenericType::Scale3D;
+		case PrimitiveVariant::SCALE2D:     return GenericType::Scale3D;
+		case PrimitiveVariant::SCALE3D:     return GenericType::Scale3D;
+		case PrimitiveVariant::ROTATEX:     return GenericType::Rotate3D;
+		case PrimitiveVariant::ROTATEY:     return GenericType::Rotate3D;
+		case PrimitiveVariant::ROTATEZ:     return GenericType::Rotate3D;
+		case PrimitiveVariant::ROTATE2D:    return GenericType::Rotate3D;
+		case PrimitiveVariant::ROTATE3D:    return GenericType::Rotate3D;
 		default:
 			break;
 		}
@@ -600,11 +598,13 @@ struct ConvertToGenericTypeVisitor
 	Scale3D operator()(const ScaleY& p) { return Scale3D{  1.0f, p.values[0], 1.0f }; }
 	Scale3D operator()(const ScaleZ& p) { return Scale3D{  1.0f, 1.0f, p.values[0] }; }
 	Scale3D operator()(const Scale2D& p) { return Scale3D{ p.values[0], p.values[1], 1.0f }; }
+	Rotate3D operator()(const RotateX& p)  { return Rotate3D{ 1, 0, 0, p.values[0], Property::RAD }; }
+	Rotate3D operator()(const RotateY& p)  { return Rotate3D{ 0, 1, 0, p.values[0], Property::RAD }; }
+	Rotate3D operator()(const RotateZ& p)  { return Rotate3D{ 0, 0, 1, p.values[0], Property::RAD }; }
+	Rotate3D operator()(const Rotate2D& p) { return Rotate3D{ 0, 0, 1, p.values[0], Property::RAD }; }
 
 	template <typename T>
 	PrimitiveVariant operator()(const T& p) { RMLUI_ERROR; return p; }
-
-
 
 	PrimitiveVariant run(const PrimitiveVariant& primitive)
 	{
@@ -615,10 +615,17 @@ struct ConvertToGenericTypeVisitor
 		case PrimitiveVariant::TRANSLATEY:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_y);  break;
 		case PrimitiveVariant::TRANSLATEZ:  result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_z);  break;
 		case PrimitiveVariant::TRANSLATE2D: result.type = PrimitiveVariant::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_2d); break;
+		case PrimitiveVariant::TRANSLATE3D: break;
 		case PrimitiveVariant::SCALEX:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_x);      break;
 		case PrimitiveVariant::SCALEY:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_y);      break;
 		case PrimitiveVariant::SCALEZ:      result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_z);      break;
 		case PrimitiveVariant::SCALE2D:     result.type = PrimitiveVariant::SCALE3D;     result.scale_3d     = this->operator()(primitive.scale_2d);     break;
+		case PrimitiveVariant::SCALE3D:     break;
+		case PrimitiveVariant::ROTATEX:     result.type = PrimitiveVariant::ROTATE3D;    result.rotate_3d    = this->operator()(primitive.rotate_x);     break;
+		case PrimitiveVariant::ROTATEY:     result.type = PrimitiveVariant::ROTATE3D;    result.rotate_3d    = this->operator()(primitive.rotate_y);     break;
+		case PrimitiveVariant::ROTATEZ:     result.type = PrimitiveVariant::ROTATE3D;    result.rotate_3d    = this->operator()(primitive.rotate_z);     break;
+		case PrimitiveVariant::ROTATE2D:    result.type = PrimitiveVariant::ROTATE3D;    result.rotate_3d    = this->operator()(primitive.rotate_2d);    break;
+		case PrimitiveVariant::ROTATE3D:    break;
 		default:
 			RMLUI_ASSERT(false);
 			break;
@@ -627,20 +634,42 @@ struct ConvertToGenericTypeVisitor
 	}
 };
 
+static bool CanInterpolateRotate3D(const Rotate3D& p0, const Rotate3D& p1)
+{
+	// Rotate3D can only be interpolated if and only if their rotation axes point in the same direction.
+	// Assumes each rotation axis has already been normalized.
+	auto& v0 = p0.values;
+	auto& v1 = p1.values;
+	return v0[0] == v1[0] && v0[1] == v1[1] && v0[2] == v1[2];
+}
 
 
 bool Primitive::TryConvertToMatchingGenericType(Primitive & p0, Primitive & p1) noexcept
 {
 	if (p0.primitive.type == p1.primitive.type)
+	{
+		if(p0.primitive.type == PrimitiveVariant::ROTATE3D && !CanInterpolateRotate3D(p0.primitive.rotate_3d, p1.primitive.rotate_3d))
+			return false;
+
 		return true;
+	}
 
 	GenericType c0 = GetGenericTypeVisitor{}.run(p0.primitive);
 	GenericType c1 = GetGenericTypeVisitor{}.run(p1.primitive);
 
 	if (c0 == c1 && c0 != GenericType::None)
 	{
-		p0.primitive = ConvertToGenericTypeVisitor{}.run(p0.primitive);
-		p1.primitive = ConvertToGenericTypeVisitor{}.run(p1.primitive);
+		PrimitiveVariant new_p0 = ConvertToGenericTypeVisitor{}.run(p0.primitive);
+		PrimitiveVariant new_p1 = ConvertToGenericTypeVisitor{}.run(p1.primitive);
+		
+		RMLUI_ASSERT(new_p0.type == new_p1.type);
+		
+		if (new_p0.type == PrimitiveVariant::ROTATE3D && !CanInterpolateRotate3D(new_p0.rotate_3d, new_p1.rotate_3d))
+			return false;
+
+		p0.primitive = new_p0;
+		p1.primitive = new_p1;
+
 		return true;
 	}
 
@@ -671,10 +700,12 @@ struct InterpolateVisitor
 	}
 	bool Interpolate(Rotate3D& p0, const Rotate3D& p1)
 	{
-		// Currently, we promote Rotate3D to decomposed matrices in PrepareForInterpolation(), thus, it is an error if we get here. Make sure primitives are prepared and decomposed as necessary.
-		// We may change this later by assuming that the underlying direction vectors are equivalent (else, need to do full matrix interpolation)
-		// If we change this later: p0.values[3] = p0.values[3] * (1.0f - alpha) + p1.values[3] * alpha;
-		return false;
+		RMLUI_ASSERT(CanInterpolateRotate3D(p0, p1));
+		// We can only interpolate rotate3d if their rotation axes align. That should be the case if we get here, 
+		// otherwise the generic type matching should decompose them. Thus, we only need to interpolate
+		// the angle value here.
+		p0.values[3] = p0.values[3] * (1.0f - alpha) + p1.values[3] * alpha;
+		return true;
 	}
 	bool Interpolate(Matrix2D& p0, const Matrix2D& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
 	bool Interpolate(Matrix3D& p0, const Matrix3D& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
