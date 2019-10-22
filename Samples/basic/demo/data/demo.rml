@@ -72,6 +72,10 @@ panel
 	margin-left: auto;
 	margin-right: auto;
 }
+h1
+{
+	margin: 1.4em 0 0.7em;
+}
 .minipanel
 {
 	max-width: 500px;
@@ -81,10 +85,17 @@ p.emojis
 	font-size: 35px;
 	color: #b33;
 }
-
+.clickable
+{ 
+	cursor: pointer;
+}
 button:focus {
 	image-color: #0ff;
 }
+
+
+/***  Decorators  ***/
+
 #decorators > div {
 	margin-bottom: 14px;
 }
@@ -162,6 +173,140 @@ button:focus {
 .transform.fit-scale-none { decorator: image( icon-invader rotate-180 scale-none ); }
 .transform.fit-scale-down { decorator: image( icon-invader rotate-180 scale-down ); }
 
+
+/***  Animations  ***/
+
+#tweening_area
+{
+	position: relative;
+	margin: 30px auto;
+	width: 400px;
+	height: 250px;
+	border: 1px #777;
+	background-color: #ccc2;
+	cursor: cross;
+}
+#tweening_area img
+{
+	position: absolute;
+	cursor: pointer;
+	transform: translate(190px, 100px);
+}
+
+#transition
+{
+	margin: 20px auto 30px;
+	width: 400px;
+	height: 250px;
+	border: 1px #777;
+	background-color: #ccc2;
+	position: relative;
+	overflow: hidden;
+}
+#transition > img
+{
+	position: absolute;
+	top: -50px;
+	left: 50%;
+	margin-left: -32px;
+	transition: top left 0.6s back-out, opacity 0.4s, image-color 0.4s 0.3s quadratic-out;
+	opacity: 0;
+	image-color: #fff;
+}
+#transition:hover > img
+{
+	top: 50px;
+	opacity: 1;
+	image-color: #f61;
+}
+#transition:hover .alien1 { left: 30%; top: 75px; }
+#transition:hover .alien3 { left: 70%; top: 75px; }
+#transition .defender
+{ 
+	transition: image-color 0.3s 0.0s quadratic-out;
+	position: absolute;
+	left: -44px;
+	top: 150px; opacity: 1; 
+}
+#transition:hover .defender { image-color: #acf;  }
+#transition .ray { 
+	transition: top 0.4s back-out, opacity 0.4s cubic-in;
+	position: absolute;
+	top: -130px;
+	left: 50%;
+	opacity: 0;
+	margin-left: -20px;
+	width: 40px;
+	height: 200px;
+	decorator: gradient( vertical #daf0 #fef6 );
+}
+#transition:hover .ray
+{
+	opacity: 1;
+	top: 0px;
+}
+
+@keyframes cube-rotate {
+	from { transform: rotate3d(1, -1, 0.3, 0deg);	}
+	to { transform: rotate3d(1, -1, 0.3, 360deg);	}
+}
+
+.cube_container {
+	width: 200px;
+	height: 200px;
+	margin: 20px auto;
+	perspective: 500px;
+}
+.cube {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	animation: 3s cube-rotate infinite back-in-out;
+}
+.face {
+	left: 50px; top: 50px;
+	display: block;
+	position: absolute;
+	width: 100px;
+	height: 100px;
+	line-height: 100px;
+	font-size: 60px;
+	color: white;
+	text-align: center;
+}
+/* Define each face based on direction */
+.face.front {
+	background: rgba(0, 0, 0, 160);
+	transform: translateZ(50px);
+}
+.face.front:hover {
+	background: rgba(255, 255, 0, 120);
+}
+.face.back {
+	background: rgba(0, 255, 0, 255);
+	color: black;
+	transform: rotateY(180deg) translateZ(50px);
+}
+.face.right {
+	background: rgba(196, 0, 0, 200);
+	transform: rotateY(90deg) translateZ(50px);
+}
+.face.left {
+	background: rgba(0, 0, 196, 200);
+	transform: rotateY(-90deg) translateZ(50px);
+}
+.face.top {
+	background: rgba(196, 196, 0, 200);
+	transform: rotateX(90deg) translateZ(50px);
+}
+.face.bottom {
+	background: rgba(196, 0, 196, 200);
+	transform: rotateX(-90deg) translateZ(50px);
+}
+
+
+/***  Forms  ***/
+
 form
 {
 	display: block;
@@ -203,6 +348,9 @@ form h2
 	font-effect: outline(2px #006600);
 	color: #ddd;
 }
+
+
+/***  Sandbox  ***/
 
 #sandbox
 {
@@ -293,21 +441,71 @@ form h2
 		<div class="transform fit-scale-none"></div>
 		<div class="transform fit-scale-down"></div>
 	</div>
-</panel>
-<tab>Buttons</tab>
-<panel class="minipanel">
-	<button id="start_game">Start Game</button><br />
-	<button id="high_scores" autofocus>High Scores</button><br />
-	<button id="options">Options</button><br />
-	<button id="help">Help</button><br />
-	<div><button id="exit" onclick="exit">Exit</button></div>
-	<img src="../../../assets/high_scores_defender.tga"/>
+	
+	<h1>Image elements</h1>
+	<img src="../../../assets/high_scores_defender.tga" class="clickable" onclick="change_color"/>
 	<img sprite="icon-game" style="vertical-align: 10px;"/>
 	<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" rect="0 0 64 64"/>
 	<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" rect="64 0 64 64"/>
-	<p>Img elements can take both images and sprites. For images it also supports a 'rect' attribute for specifying a sub-rectangle.</p>
+	<p style="text-align: left;">While they are described here, `img` elements are separate from decorators. They can be declared as in html. Additionally, a 'rect' attribute can be used to crop the image. In addition to images, the element can also display sprites declared in a sprite sheet.</p>
 </panel>
-<tab>Controls</tab>
+<tab>Animations</tab>
+<panel id="animations" class="minipanel">
+	
+	<h1>Transitions</h1>
+	<p>Hover over the following to see an animation performed by the transition property in RCSS.</p>
+	<div id="transition">
+		<img class="alien alien1" src="../../../assets/high_scores_alien_1.tga"/>
+		<img class="alien alien2" src="../../../assets/high_scores_alien_2.tga"/>
+		<img class="alien alien3" src="../../../assets/high_scores_alien_3.tga"/>
+		<div class="ray"><img class="defender" src="../../../assets/high_scores_defender.tga"/></div>
+		<div style="height: 110%;"/>
+	</div>
+	
+	<h1>Tweening functions</h1>
+	<p>Set animation parameters below and click on the background or the flag.</p>
+	<div id="tweening_area" onclick="move_child">
+		<img sprite="icon-flag" onclick="change_color"/>
+	</div>
+	<select name="tween_function" onchange="tween_function">
+		<option value="linear" selected>Tweening function</option>
+		<option value="back">Back</option>
+		<option value="bounce">Bounce</option>
+		<option value="circular">Circular</option>
+		<option value="cubic">Cubic</option>
+		<option value="elastic">Elastic</option>
+		<option value="exponential">Exponential</option>
+		<option value="linear">Linear</option>
+		<option value="quadratic">Quadratic</option>
+		<option value="quartic">Quartic</option>
+		<option value="quintic">Quintic</option>
+		<option value="sine">Sine</option>
+	</select>
+	<select name="tween_direction" onchange="tween_direction">
+		<option value="out" selected>Direction</option>
+		<option value="in">In</option>
+		<option value="out">Out</option>
+		<option value="in-out">In-Out</option>
+	</select>
+	<div>
+		<input type="range" style="width: 150px; margin-right: 1em;" min="0" max="2" step="0.05" value="0.5" onchange="tween_duration"/> 
+		Duration <span id="duration">0.50</span> s
+	</div>
+	
+	<h1>Cube</h1>
+	<p>The cube is transformed and animated entirely in RCSS using the @keyframes at-rule.</p>
+	<div class="cube_container">
+		<div class="cube">
+			<div class="face back">6</div>
+			<div class="face top">5</div>
+			<div class="face left">4</div>
+			<div class="face bottom">3</div>
+			<div class="face right">2</div>
+			<div class="face front">1</div>
+		</div>
+	</div>
+</panel>
+<tab>Forms</tab>
 <panel id="controls" class="minipanel">
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
@@ -334,7 +532,7 @@ form h2
 		</div>
 		<h2>Rating</h2>
 		<div>
-			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating" onshow="rating"/> <span id="rating"/><span id="rating_emoji">&nbsp;</span>
+			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating"/> <span id="rating"/><span id="rating_emoji">&nbsp;</span>
 		</div>
 		<h2>Subject</h2>
 		<div>

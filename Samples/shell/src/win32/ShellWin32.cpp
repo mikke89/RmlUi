@@ -48,6 +48,7 @@ static std::unique_ptr<ShellFileInterface> file_interface;
 
 static HCURSOR cursor_default = nullptr;
 static HCURSOR cursor_move = nullptr;
+static HCURSOR cursor_pointer = nullptr;
 static HCURSOR cursor_resize= nullptr;
 static HCURSOR cursor_cross = nullptr;
 static HCURSOR cursor_text = nullptr;
@@ -68,6 +69,7 @@ bool Shell::Initialise()
 	// Load cursors
 	cursor_default = LoadCursor(nullptr, IDC_ARROW);
 	cursor_move = LoadCursor(nullptr, IDC_SIZEALL);
+	cursor_pointer = LoadCursor(nullptr, IDC_HAND);
 	cursor_resize = LoadCursor(nullptr, IDC_SIZENWSE);
 	cursor_cross = LoadCursor(nullptr, IDC_CROSS);
 	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
@@ -286,6 +288,8 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 			cursor_handle = cursor_default;
 		else if(cursor_name == "move")
 			cursor_handle = cursor_move;
+		else if (cursor_name == "pointer")
+			cursor_handle = cursor_pointer;
 		else if (cursor_name == "resize")
 			cursor_handle = cursor_resize;
 		else if (cursor_name == "cross")

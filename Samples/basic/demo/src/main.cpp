@@ -192,6 +192,13 @@ Rml::Core::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
 std::unique_ptr<DemoWindow> demo_window;
 
+struct TweeningParameters {
+	Rml::Core::Tween::Type type = Rml::Core::Tween::Linear;
+	Rml::Core::Tween::Direction direction = Rml::Core::Tween::Out;
+	float duration = 0.5f;
+} tweening_parameters;
+
+
 void GameLoop()
 {
 	context->Update();
@@ -219,9 +226,9 @@ public:
 			// Test replacing the current element.
 			// Need to be careful with regard to lifetime issues. The event's current element will be destroyed, so we cannot
 			// use it after SetInnerRml(). The library should handle this case safely internally when propagating the event further.
-			auto parent = element->GetParentNode();
+			Element* parent = element->GetParentNode();
 			parent->SetInnerRML("<button onclick='confirm_exit' onblur='cancel_exit' onmouseout='cancel_exit'>Are you sure?</button>");
-			if (auto child = parent->GetChild(0))
+			if (Element* child = parent->GetChild(0))
 				child->Focus();
 		}
 		else if (value == "confirm_exit")
@@ -230,8 +237,64 @@ public:
 		}
 		else if (value == "cancel_exit")
 		{
-			if(auto parent = element->GetParentNode())
+			if(Element* parent = element->GetParentNode())
 				parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
+		}
+		else if (value == "change_color")
+		{
+			Colourb color(Math::RandomInteger(255), Math::RandomInteger(255), Math::RandomInteger(255));
+			element->Animate("image-color", Property(color, Property::COLOUR), tweening_parameters.duration, Tween(tweening_parameters.type, tweening_parameters.direction));
+			event.StopPropagation();
+		}
+		else if (value == "move_child")
+		{
+			Vector2f mouse_pos( event.GetParameter("mouse_x", 0.0f), event.GetParameter("mouse_y", 0.0f) );
+			if (Element* child = element->GetFirstChild())
+			{
+				Vector2f new_pos = mouse_pos - element->GetAbsoluteOffset() - Vector2f(0.35f * child->GetClientWidth(), 0.9f * child->GetClientHeight());
+				Property destination = Transform::MakeProperty({ Transforms::Translate2D(new_pos.x, new_pos.y) });
+				if(tweening_parameters.duration <= 0)
+					child->SetProperty(PropertyId::Transform, destination);
+				else
+					child->Animate("transform", destination, tweening_parameters.duration, Tween(tweening_parameters.type, tweening_parameters.direction));
+			}
+		}
+		else if (value == "tween_function")
+		{
+			static const SmallUnorderedMap<String, Tween::Type> tweening_functions = {
+				{"back", Tween::Back}, {"bounce", Tween::Bounce},
+				{"circular", Tween::Circular}, {"cubic", Tween::Cubic},
+				{"elastic", Tween::Elastic}, {"exponential", Tween::Exponential},
+				{"linear", Tween::Linear}, {"quadratic", Tween::Quadratic},
+				{"quartic", Tween::Quartic}, {"quintic", Tween::Quintic},
+				{"sine", Tween::Sine}
+			};
+
+			String value = event.GetParameter("value", String());
+			auto it = tweening_functions.find(value);
+			if (it != tweening_functions.end())
+				tweening_parameters.type = it->second;
+			else
+				RMLUI_ERROR;
+		}
+		else if (value == "tween_direction")
+		{
+			String value = event.GetParameter("value", String());
+			if (value == "in")
+				tweening_parameters.direction = Tween::In;
+			else if(value == "out")
+				tweening_parameters.direction = Tween::Out;
+			else if(value == "in-out")
+				tweening_parameters.direction = Tween::InOut;
+			else
+				RMLUI_ERROR;
+		}
+		else if (value == "tween_duration")
+		{
+			float value = std::atof(static_cast<Rml::Controls::ElementFormControl*>(element)->GetValue().c_str());
+			tweening_parameters.duration = value;
+			if (auto el_duration = element->GetElementById("duration"))
+				el_duration->SetInnerRML(CreateString(20, "%2.2f", value));
 		}
 		else if (value == "rating")
 		{
@@ -261,7 +324,7 @@ public:
 		}
 		else if (value == "submit_form")
 		{
-			if (auto el_output = element->GetElementById("form_output"))
+			if (Element* el_output = element->GetElementById("form_output"))
 			{
 				const auto& p = event.GetParameters();
 				Rml::Core::String output = "<p>";

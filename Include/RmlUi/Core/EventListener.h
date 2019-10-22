@@ -59,7 +59,7 @@ public:
 		RMLUI_UNUSED(element);
 	}
 
-	/// Called when the listener has been detached from a Element
+	/// Called when the listener has been detached from an Element
 	virtual void OnDetach(Element* RMLUI_UNUSED_PARAMETER(element))
 	{
 		RMLUI_UNUSED(element);
