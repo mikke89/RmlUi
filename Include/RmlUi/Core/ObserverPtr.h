@@ -141,7 +141,7 @@ public:
 
 protected:
 
-	EnableObserverPtr() noexcept
+	EnableObserverPtr()
 	{
 		static_assert(std::is_base_of<EnableObserverPtr<T>, T>::value, "T must derive from EnableObserverPtr<T>.");
 		InitializeBlock();
@@ -153,7 +153,7 @@ protected:
 		DeallocateObserverPtrBlockIfEmpty(block);
 	}
 
-	EnableObserverPtr<T>(const EnableObserverPtr<T>&) noexcept {
+	EnableObserverPtr<T>(const EnableObserverPtr<T>&) {
 		// We do not copy or modify the block, it should always point to the same object.
 		InitializeBlock();
 	}
@@ -162,7 +162,7 @@ protected:
 		return *this; 
 	}
 
-	EnableObserverPtr<T>(EnableObserverPtr<T>&&) noexcept {
+	EnableObserverPtr<T>(EnableObserverPtr<T>&&) {
 		// We do not move or modify the block, it should always point to the same object.
 		InitializeBlock();
 	}
@@ -173,7 +173,7 @@ protected:
 
 private:
 
-	inline void InitializeBlock() noexcept
+	inline void InitializeBlock()
 	{
 		block = AllocateObserverPtrBlock();
 		block->num_observers = 0;
