@@ -71,7 +71,8 @@ bool InputTypeRange::OnAttributeChange(const Core::ElementAttributes& changed_at
 	auto it_orientation = changed_attributes.find(str_orientation);
 	if (it_orientation != changed_attributes.end())
 	{
-		widget->SetOrientation(it_orientation->second.Get<Rml::Core::String>(str_orientation) == str_orientation ? WidgetSliderInput::HORIZONTAL : WidgetSliderInput::VERTICAL);
+		bool is_vertical = (it_orientation->second.Get<Rml::Core::String>(str_orientation) == "vertical");
+		widget->SetOrientation(is_vertical ? WidgetSliderInput::VERTICAL : WidgetSliderInput::HORIZONTAL);
 		dirty_layout = true;
 	}
 
