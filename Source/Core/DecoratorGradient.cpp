@@ -65,8 +65,16 @@ bool DecoratorGradient::Initialise(const Direction &dir_, const Colourb &start_,
 
 DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) const
 {
-	auto *data = new Rml::Core::Geometry(element);
-	Vector2f padded_size = element->GetBox().GetSize(Rml::Core::Box::PADDING);
+	auto *data = new Geometry(element);
+	Vector2f padded_size = element->GetBox().GetSize(Box::PADDING);
+
+	const float opacity = element->GetComputedValues().opacity;
+
+	// Apply opacity
+	Colourb colour_start = start;
+	colour_start.alpha = (byte)(opacity * (float)colour_start.alpha);
+	Colourb colour_stop = stop;
+	colour_stop.alpha = (byte)(opacity * (float)colour_stop.alpha);
 
 	auto &vertices = data->GetVertices();
 	vertices.resize(4);
@@ -74,12 +82,12 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	auto &indices = data->GetIndices();
 	indices.resize(6);
 
-	Rml::Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), padded_size, start, 0);
+	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), padded_size, colour_start, 0);
 
 	if (dir == Direction::Horizontal) {
-		vertices[1].colour = vertices[2].colour = stop;
+		vertices[1].colour = vertices[2].colour = colour_stop;
 	} else if (dir == Direction::Vertical) {
-		vertices[2].colour = vertices[3].colour = stop;
+		vertices[2].colour = vertices[3].colour = colour_stop;
 	}
 
 	data->SetHostElement(element);
@@ -88,13 +96,13 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 
 void DecoratorGradient::ReleaseElementData(DecoratorDataHandle element_data) const
 {
-	delete reinterpret_cast<Rml::Core::Geometry*>(element_data);
+	delete reinterpret_cast<Geometry*>(element_data);
 }
 
 void DecoratorGradient::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
-	auto* data = reinterpret_cast<Rml::Core::Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(Rml::Core::Box::PADDING).Round());
+	auto* data = reinterpret_cast<Geometry*>(element_data);
+	data->Render(element->GetAbsoluteOffset(Box::PADDING).Round());
 }
 
 //=======================================================
@@ -105,15 +113,15 @@ DecoratorGradientInstancer::DecoratorGradientInstancer()
 	ids.direction = RegisterProperty("direction", "horizontal").AddParser("keyword", "horizontal, vertical").GetId();
 	ids.start = RegisterProperty("start-color", "#ffffff").AddParser("color").GetId();
 	ids.stop = RegisterProperty("stop-color", "#ffffff").AddParser("color").GetId();
-	RegisterShorthand("decorator", "direction, start-color, stop-color", Rml::Core::ShorthandType::FallThrough);
+	RegisterShorthand("decorator", "direction, start-color, stop-color", ShorthandType::FallThrough);
 }
 
 DecoratorGradientInstancer::~DecoratorGradientInstancer()
 {
 }
 
-std::shared_ptr<Rml::Core::Decorator> DecoratorGradientInstancer::InstanceDecorator(const String & RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties_,
-	const Rml::Core::DecoratorInstancerInterface& RMLUI_UNUSED_PARAMETER(interface_))
+SharedPtr<Decorator> DecoratorGradientInstancer::InstanceDecorator(const String & RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties_,
+	const DecoratorInstancerInterface& RMLUI_UNUSED_PARAMETER(interface_))
 {
 	RMLUI_UNUSED(name);
 	RMLUI_UNUSED(interface_);
