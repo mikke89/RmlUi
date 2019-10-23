@@ -3,11 +3,44 @@
 <link type="text/template" href="../../../assets/window.rml"/>
 <title>Demo Sample</title>
 <style>
+@spritesheet demo-sheet
+{
+	src: ../../../assets/invader.tga;
+	
+	window-outer: 0px 0px 144px 151px;
+	
+	demo-radio-t: 407px  0px 30px 14px;
+	demo-radio-c: 407px 14px 30px  2px;
+	demo-radio-b: 407px 16px 30px 14px;
+	
+	demo-radio-l: 407px 0px 14px 30px;
+	demo-radio-m: 421px 0px  2px 30px;
+	demo-radio-r: 423px 0px 14px 30px;
+	
+	demo-checkbox-t: 407px 60px 30px 14px;
+	demo-checkbox-c: 407px 74px 30px  2px;
+	demo-checkbox-b: 407px 76px 30px 14px;
+	
+	demo-checkbox-l: 407px 60px 14px 30px;
+	demo-checkbox-m: 421px 60px  2px 30px;
+	demo-checkbox-r: 423px 60px 14px 30px;
+	
+	demo-checked-t: 407px  90px 30px  8px;
+	demo-checked-c: 407px  98px 30px 14px;
+	demo-checked-b: 407px 112px 30px  8px;
+	
+	demo-help-t:    128px 152px 51px  6px;
+	demo-help-c:    128px 158px 51px 21px;
+	demo-help-b:    128px 179px 51px 12px;
+	
+	demo-title-bar: 147px 0px 96px 85px;
+}
+
 body.window
 {
 	width: 1300px;
 	height: 750px;
-	min-width: 950px;
+	min-width: 940px;
 	min-height: 300px;
 	max-width: -1px;
 	max-height: -1px;
@@ -71,55 +104,34 @@ panel
 	padding: 30px;
 	margin-left: auto;
 	margin-right: auto;
+	max-width: 500px;
 }
 h1
 {
 	margin: 1.4em 0 0.7em;
-}
-.minipanel
-{
-	max-width: 500px;
+	font-size: 18px;
 }
 p.emojis
 {
 	font-size: 35px;
 	color: #b33;
 }
+.center {
+	text-align: center;
+}
 .clickable
 { 
 	cursor: pointer;
 }
-button:focus {
-	image-color: #0ff;
-}
 
 
 /***  Decorators  ***/
-
-#decorators > div {
-	margin-bottom: 14px;
+#decorators {
+	text-align: left;
 }
-#decorators p {
-	text-align: center;
-}
-#decorators button.big
+#decorators p
 {
-	width: 220px;
-	height: 120px;
-	line-height: 120px;
-}
-#decorators button.ninepatch
-{
-	/* The edges will be scaled by the current dp-ratio. */
-	decorator: ninepatch(button, button-inner, 1.0);
-}
-#decorators button.ninepatch:hover
-{
-	decorator: ninepatch(button-hover, button-inner-hover);
-}
-#decorators button.ninepatch:active
-{
-	decorator: ninepatch(button-active, button-inner-active);
+	margin: 0.5em 0;
 }
 #decorators button.gradient
 {
@@ -136,26 +148,64 @@ button:focus {
 {
 	border-color: #F9EFA3;
 }
-.image-fit { text-align: center; }
-.image-fit > div
+
+#decorators .image-alien
+{
+	width: 64px;
+	height: 64px;
+	decorator: image( /assets/high_scores_alien_1.tga );
+}
+#decorators .image-invader
+{
+	width: 51px;
+	height: 39px;
+	decorator: image( icon-invader );
+}
+.side-by-side
+{
+	display: inline-block;
+	width: 120px;
+	vertical-align: middle;
+	text-align: center;
+}
+.tiled-box
+{
+	height: 200px;
+	decorator: tiled-box(
+		window-tl, window-t, window-tr, 
+		window-l, window-c, window-r,
+		window-bl, window-b, window-br
+	);
+}
+.image-mode
+{
+	text-align: center;
+	margin-top: 30px;
+}
+.image-mode > div
 {
 	display: inline-block;
 	width: 120px;
 	height: 50px;
 	padding: 5px 10px;
-	margin-right: 20px;
-	background-color: #c665;
-	border: 1px #666;
-	text-align: left;
+	margin: 10px 10px;
+	background-color: #c662;
+	border: 1px #777;
 	font-effect: shadow( 1px 1px #333 );
 }
-.image-fit.small > div
+#decorators .image-mode > div > p
+{
+	margin: -2em 0 0 0;
+	text-align: center;
+}
+.image-mode.small { margin-top: -20px; }
+.image-mode.small > div
 {
 	width: 40px;
 	height: 20px;
 	padding: 0;
-	margin-left: 40px;
-	margin-right: 80px;
+	margin-left: 60px;
+	margin-right: 60px;
 }
 .align-default     { decorator: image( icon-invader scale-none             ); }
 .align-right       { decorator: image( icon-invader scale-none right       ); }
@@ -167,11 +217,9 @@ button:focus {
 .fit-cover      { decorator: image( icon-invader cover      ); }
 .fit-scale-none { decorator: image( icon-invader scale-none ); }
 .fit-scale-down { decorator: image( icon-invader scale-down ); }
-.transform.fit-fill       { decorator: image( icon-invader rotate-180 fill       ); }
-.transform.fit-contain    { decorator: image( icon-invader rotate-180 contain    ); }
-.transform.fit-cover      { decorator: image( icon-invader rotate-180 cover      ); }
-.transform.fit-scale-none { decorator: image( icon-invader rotate-180 scale-none ); }
-.transform.fit-scale-down { decorator: image( icon-invader rotate-180 scale-down ); }
+.orientation-vertical   { decorator: image( icon-invader flip-vertical   scale-none bottom ); }
+.orientation-horizontal { decorator: image( icon-invader flip-horizontal scale-none bottom ); }
+.orientation-rotate     { decorator: image( icon-invader rotate-180      scale-none bottom ); }
 
 
 /***  Animations  ***/
@@ -388,69 +436,146 @@ form h2
 
 <tabset id="menu">
 <tab>Welcome</tab>
-<panel id="welcome" class="minipanel">
+<panel id="welcome">
 	<p class="emojis" style="margin-top: 1.8em;">RmlUi 😍</p>
 	<p>Have fun fiddling about in this (incomplete) demo.</p>
 	<p>Press 'F8' to open up the debugger.</p>
 	<p class="emojis" style="margin-top: 1em;">🎉</p>
 </panel>
 <tab>Decorators</tab>
-<panel id="decorators" style="max-width: 850px;">
-	<div>
-		<button>Image</button>
-		<button class="ninepatch">Ninepatch</button>
-	</div>
-	<div>
-		<button class="big">Image</button>
-		<button class="big ninepatch">Ninepatch</button>
-		<p>The ninepatch decorator scales the background without blurring the texture, keeping the corners fixed.</p>
-	</div>
-	<div>	
+<panel id="decorators">
+	<h1>Gradient decorator</h1>
+	<p>The 'gradient' decorator renders a color gradient in the vertical or horizontal direction.</p>
+	<div class="center">
 		<button class="gradient">Gradient</button>
 		<button class="gradient horizontal">Gradient</button>
 	</div>
-	<h1>Image decorator alignment modes</h1>
-	<div class="image-fit">
-		<div class="align-default" style="font-style: italic;">default</div>
-		<div class="align-right">right</div>
-		<div class="align-left-bottom">left bottom</div>
-		<div class="align-percent">70% 30%</div>
-		<div class="align-pixel">100px -15px</div>
-		<p style="margin: 0.3em 0 0 0;">Using fit mode 'scale-none'.</p>
-	</div>
-
-	<h1>Image decorator fit modes</h1>
-	<div class="image-fit">
-		<div class="fit-fill">fill</div>
-		<div class="fit-contain">contain</div>
-		<div class="fit-cover">cover</div>
-		<div class="fit-scale-none">scale-none</div>
-		<div class="fit-scale-down">scale-down</div>
-	</div>
-	<div class="image-fit small">
-		<div class="fit-fill"></div>
-		<div class="fit-contain"></div>
-		<div class="fit-cover"></div>
-		<div class="fit-scale-none"></div>
-		<div class="fit-scale-down"></div>
-	</div>
-	<div class="image-fit small">
-		<div class="transform fit-fill"></div>
-		<div class="transform fit-contain"></div>
-		<div class="transform fit-cover"></div>
-		<div class="transform fit-scale-none"></div>
-		<div class="transform fit-scale-down"></div>
+	
+	<h1>Image decorator</h1>
+	<p>The 'image' decorator applies and image to the background of an element. By default it stretches the image to the size of the element, but this behavior can be controlled as seen later on.</p>
+	<div class="center">
+		<div class="side-by-side">
+			<div class="image-alien clickable" onclick="change_color"/>
+		</div>
+		<div class="side-by-side">
+			<div class="image-invader"/>
+		</div>
+		<div class="side-by-side">
+			<button>Button</button>
+		</div>
 	</div>
 	
+	<h1>Tiled-horizontal decorator</h1>
+	<p>The 'tiled-horizontal' decorator separates an image into three parts, with the edges displayed at their native size while the middle part is stretched to cover the remaining width of the element. In each of the following examples an image is displayed at its native size first, and then the decorator is applied to it with its element stretched horizontally.</p>
+	<div class="side-by-side">
+		<div style="width: 30px; height: 30px; decorator: image( radio );"/>
+		<div style="width: 120px; height: 30px; decorator: tiled-horizontal( demo-radio-l, demo-radio-m, demo-radio-r );"/>
+	</div>
+	<div class="side-by-side">
+		<div style="width: 30px; height: 30px; decorator: image( checkbox );"/>
+		<div style="width: 120px; height: 30px; decorator: tiled-horizontal( demo-checkbox-l, demo-checkbox-m, demo-checkbox-r );"/>
+	</div>
+	<div class="side-by-side" width="250px;">
+		<div style="width: 96px; height: 85px; decorator: image( demo-title-bar );"/>
+		<div style="width: 250px; height: 85px; decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );"/>
+	</div>
+	<p>In the third example we show the same title bar that is used to style the sample windows.</p>
+	
+
+	<h1>Tiled-vertical decorator</h1>
+	<p>The 'tiled-vertical' decorator behaves like tiled-horizontal, but this time it is stretched vertically.</p>
+	<div class="side-by-side">
+		<div style="width: 30px; height: 30px; decorator: image( radio );"/>
+		<div style="width: 30px; height: 80px; decorator: tiled-vertical( demo-radio-t, demo-radio-c, demo-radio-b );"/>
+	</div>
+	<div class="side-by-side">
+		<div style="width: 30px; height: 30px; decorator: image( checkbox );"/>
+		<div style="width: 30px; height: 80px; decorator: tiled-vertical( demo-checkbox-t, demo-checkbox-c, demo-checkbox-b );"/>
+	</div>
+	<div class="side-by-side">
+		<div style="width: 30px; height: 30px; decorator: image( checkbox-checked );"/>
+		<div style="width: 30px; height: 80px; decorator: tiled-vertical( demo-checked-t, demo-checked-c, demo-checked-b );"/>
+	</div>
+	<div class="side-by-side">
+		<div style="width: 51px; height: 39px; decorator: image( icon-help );"/>
+		<div style="width: 51px; height: 80px; decorator: tiled-vertical( demo-help-t, demo-help-c, demo-help-b );"/>
+	</div>
+	<p>Clearly, not all images are designed to stretch like this. However, one can certainly envision a usage for the first two examples.</p>
+	
+	<h1>Tiled-box decorator</h1>
+	<p>The 'tiled-box' decorator lays out a 3x3 grid within the element, each of the nine parts being filled with a separate sprite or image. The corners stay fixed in size, while the center and edges are stretched to fill the remaining size of the element.</p>
+	<p>The following image displays the region used to define the background of the window in this sample.</p>
+	<img sprite="window-outer"/>
+	<p>The decorator's element can then gracefully be sized in any direction, keeping the corners and edges at a proper size.</p>
+	<div class="tiled-box"/>
+	
+	<h1>Ninepatch decorator</h1>
+	<p>The 'ninepatch' decorator is similar to the tiled-box decorator in that it splits the image into nine parts. However, only two sprites are used to define all nine tiles, an outer sprite and an inner sprite.</p>
+	
+	<p>Let us define the outer sprite by the following image, and the inner sprite as the part within the displayed border.</p>
+	<div style="position: relative; text-align: left; width: 145px;">
+		<img sprite="textarea"/><img sprite="textarea-inner" style="position: absolute; left: 10px; top: 13px; border: 1px #f0f;"/>
+	</div>
+	
+	<p>When the ninepatch decorator is applied and the element is stretched, the following is rendered.</p>
+	<div style="width: 240px; height: 50px; decorator: ninepatch(textarea, textarea-inner);"/>
+	<p>Notice that the corners stay fixed, and the inner sprite is stretched. We can also control the rendered size of the edges, here the left edge is displayed at its native size and the others at half their size.</p>
+	<div style="width: 240px; height: 50px; decorator: ninepatch(textarea, textarea-inner, .5 .5 .5 1);"/>
+	
+	<p>If we instead compare this to the image decorator, we see the following.</p>
+	<div style="width: 240px; height: 50px; decorator: image(textarea);"/>
+	<p>With the image decorator it looks blurry and its borders are stretched.</p>
+	
+	<div style="width: 850px; margin-left: -175px;">
+		<h1>Image decorator fit modes</h1>
+		<div class="image-mode">
+			<div class="fit-fill"><p>fill</p></div>
+			<div class="fit-contain"><p>contain</p></div>
+			<div class="fit-cover"><p>cover</p></div>
+			<div class="fit-scale-none"><p>scale-none</p></div>
+			<div class="fit-scale-down"><p>scale-down</p></div>
+		</div>
+		<div class="image-mode small">
+			<div class="fit-fill"></div>
+			<div class="fit-contain"></div>
+			<div class="fit-cover"></div>
+			<div class="fit-scale-none"></div>
+			<div class="fit-scale-down"></div>
+		</div>
+		<h1>Image decorator alignment modes</h1>
+		<div class="image-mode">
+			<div class="align-default"><p style="font-style: italic;">default</p></div>
+			<div class="align-right"><p>right</p></div>
+			<div class="align-left-bottom"><p>left bottom</p></div>
+			<div class="align-percent"><p>70% 30%</p></div>
+			<div class="align-pixel"><p>100px -15px</p></div>
+			<p class="center" style="margin: 0.3em 0 0 0;">Using fit mode 'scale-none'.</p>
+		</div>
+		<h1>Tiled decorators orientation</h1>
+		<p>Orientation can be applied to every tile individually in the 'image', 'tiled-horizontal', 'tiled-vertical', and 'tiled-box' decorators.</p>
+		<div class="image-mode">
+			<div class="orientation-vertical"><p>flip-vertical</p></div>
+			<div class="orientation-horizontal"><p>flip-horizontal</p></div>
+			<div class="orientation-rotate"><p>rotate-180</p></div>
+		</div>
+	</div>
+
 	<h1>Image elements</h1>
-	<img src="../../../assets/high_scores_defender.tga" class="clickable" onclick="change_color"/>
-	<img sprite="icon-game" style="vertical-align: 10px;"/>
-	<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" rect="0 0 64 64"/>
-	<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" rect="64 0 64 64"/>
-	<p style="text-align: left;">While they are described here, `img` elements are separate from decorators. They can be declared as in html. Additionally, a 'rect' attribute can be used to crop the image. In addition to images, the element can also display sprites declared in a sprite sheet.</p>
+	<div class="center">
+		<img src="../../../assets/high_scores_defender.tga" class="clickable" onclick="change_color"/>
+		<img sprite="icon-game" style="vertical-align: 10px;"/>
+		<img src="../../../assets/high_scores_defender.tga" style="image-color: #fc5;" rect="0 0 64 64"/>
+		<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" rect="64 0 64 64"/>
+	</div>
+	<p>The 'img' elements are separate from decorators, but we describe them here for completeness. They can be declared as in html. Additionally, a 'rect' attribute can be used to crop the image. The element can also display sprites declared in a sprite sheet.</p>
+	
+	<h1>Sprite sheets</h1>
+	<p>Sprite sheets are defined by an image source and a collection of sprites, and can be declared in RCSS. Sprites are essentially rectangles into the given image. For example, the following image</p>
+	<img src="../../../assets/invader.tga" rect="0 0 500 300" style="margin-top: 10px; margin-bottom: 10px;"/>
+	<p>is used to render most sprites in this demo. Sprites can be used in decorators and image elements as if they were separate images.</p>
 </panel>
 <tab>Animations</tab>
-<panel id="animations" class="minipanel">
+<panel id="animations">
 	
 	<h1>Transitions</h1>
 	<p>Hover over the following to see an animation performed by the transition property in RCSS.</p>
@@ -506,7 +631,7 @@ form h2
 	</div>
 </panel>
 <tab>Forms</tab>
-<panel id="controls" class="minipanel">
+<panel id="controls">
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
 		<div>
@@ -556,7 +681,7 @@ form h2
 	</form>
 </panel>
 <tab>Sandbox</tab>
-<panel id="sandbox">
+<panel id="sandbox" style="max-width: -1px;">
 	<textarea id="sandbox_rml_source" wrap="nowrap" onchange="set_sandbox_body"></textarea>
 	<textarea id="sandbox_rcss_source" wrap="nowrap" onchange="set_sandbox_style"></textarea>
 	<div id="sandbox_target"></div>
