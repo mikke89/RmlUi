@@ -955,7 +955,7 @@ float Element::GetScrollLeft()
 // Sets the left scroll offset of the element.
 void Element::SetScrollLeft(float scroll_left)
 {
-	const float new_offset = Math::Clamp(scroll_left, 0.0f, GetScrollWidth() - GetClientWidth());
+	const float new_offset = Math::Clamp(Math::RoundFloat(scroll_left), 0.0f, GetScrollWidth() - GetClientWidth());
 	if (new_offset != scroll_offset.x)
 	{
 		scroll_offset.x = new_offset;
@@ -975,7 +975,7 @@ float Element::GetScrollTop()
 // Sets the top scroll offset of the element.
 void Element::SetScrollTop(float scroll_top)
 {
-	const float new_offset = Math::Clamp(scroll_top, 0.0f, GetScrollHeight() - GetClientHeight());
+	const float new_offset = Math::Clamp(Math::RoundFloat(scroll_top), 0.0f, GetScrollHeight() - GetClientHeight());
 	if(new_offset != scroll_offset.y)
 	{
 		scroll_offset.y = new_offset;
@@ -1826,7 +1826,7 @@ void Element::ProcessDefaultAction(Event& event)
 					if (const Context* context = GetContext())
 						default_scroll_length *= context->GetDensityIndependentPixelRatio();
 
-					SetScrollTop(GetScrollTop() + Math::RoundFloat(wheel_delta * default_scroll_length));
+					SetScrollTop(GetScrollTop() + wheel_delta * default_scroll_length);
 				}
 			}
 		}

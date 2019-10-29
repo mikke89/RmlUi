@@ -291,7 +291,7 @@ public:
 		}
 		else if (value == "tween_duration")
 		{
-			float value = std::atof(static_cast<Rml::Controls::ElementFormControl*>(element)->GetValue().c_str());
+			float value = (float)std::atof(static_cast<Rml::Controls::ElementFormControl*>(element)->GetValue().c_str());
 			tweening_parameters.duration = value;
 			if (auto el_duration = element->GetElementById("duration"))
 				el_duration->SetInnerRML(CreateString(20, "%2.2f", value));
