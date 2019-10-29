@@ -109,7 +109,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		DecoratorTiled::Tile& tile = tiles[i];
 		Texture& texture = textures[i];
 
-		// A tile is always either a sprite or a texture with position and dimensions specified.
+		// A tile is always either a sprite or an image.
 		if (const Sprite * sprite = interface.GetSprite(texture_name))
 		{
 			tile.position.x = sprite->rectangle.x;
@@ -121,6 +121,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		}
 		else
 		{
+			// No sprite found, we assume then that the name is an image source.
 			// Since the common use case is to specify the same texture for all tiles, we
 			// check the previous texture first before fetching from the global database.
 			if (texture_name == previous_texture_name)
