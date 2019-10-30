@@ -215,7 +215,7 @@ int WidgetDropDown::AddOption(const Rml::Core::String& rml, const Rml::Core::Str
 	Core::ElementPtr element = Core::Factory::InstanceElement(selection_element, "*", "option", Rml::Core::XMLAttributes());
 	element->SetInnerRML(rml);
 
-	bool result = AddOption(std::move(element), new_value, before, select, selectable);
+	int result = AddOption(std::move(element), new_value, before, select, selectable);
 
 	return result;
 }
