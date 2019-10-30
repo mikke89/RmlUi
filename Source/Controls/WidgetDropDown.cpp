@@ -353,6 +353,7 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 			button_element->SetPseudoClass("focus", true);
 		}
 	}
+	break;
 	case Core::EventId::Blur:
 	{
 		if (event.GetTargetElement() == parent_element)
