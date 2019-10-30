@@ -33,30 +33,13 @@
 namespace Rml {
 namespace Core {
 
-Event::Event() : id(EventId::Invalid)
+Event::Event()
 {
-	id = EventId::Invalid;
-	phase = EventPhase::None;
-	interruptible = false;
-	interrupted = false;
-	interrupted_immediate = false;
-	current_element = nullptr;
-	target_element = nullptr;
-	has_mouse_position = false;
-	mouse_screen_position = Vector2f(0, 0);
 }
 
 Event::Event(Element* _target_element, EventId id, const String& type, const Dictionary& _parameters, bool interruptible)
 	: parameters(_parameters), target_element(_target_element), type(type), id(id), interruptible(interruptible)
 {
-	phase = EventPhase::None;
-	interrupted = false;
-	interrupted_immediate = false;
-	current_element = nullptr;
-
-	has_mouse_position = false;
-	mouse_screen_position = Vector2f(0, 0);
-
 	const Variant* mouse_x = GetIf(parameters, "mouse_x");
 	const Variant* mouse_y = GetIf(parameters, "mouse_y");
 	if (mouse_x && mouse_y)
@@ -122,7 +105,6 @@ bool Event::IsPropagating() const
 
 void Event::StopPropagation()
 {
-	// Set interrupted to true if we can be interrupted
 	if (interruptible)
 	{
 		interrupted = true;
@@ -160,7 +142,10 @@ const Vector2f& Event::GetUnprojectedMouseScreenPos() const
 
 void Event::Release()
 {
-	instancer->ReleaseEvent(this);
+	if (instancer)
+		instancer->ReleaseEvent(this);
+	else
+		Log::Message(Log::LT_WARNING, "Leak detected: Event %s not instanced via RmlUi Factory. Unable to release.", type.c_str());
 }
 
 EventId Event::GetId() const

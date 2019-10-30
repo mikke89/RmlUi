@@ -120,30 +120,30 @@ public:
 protected:
 	Dictionary parameters;
 
-	Element* target_element;
-	Element* current_element;
+	Element* target_element = nullptr;
+	Element* current_element = nullptr;
 
 private:
 	/// Project the mouse coordinates to the current element to enable
 	/// interacting with transformed elements.
 	void ProjectMouse(Element* element);
 
-	/// Release this event.
+	/// Release this event through its instancer.
 	void Release() override;
 
 	String type;
-	EventId id;
-	bool interruptible;
+	EventId id = EventId::Invalid;
+	bool interruptible = false;
 	
-	bool interrupted;
-	bool interrupted_immediate;
+	bool interrupted = false;
+	bool interrupted_immediate = false;
 
-	bool has_mouse_position;
-	Vector2f mouse_screen_position;
+	bool has_mouse_position = false;
+	Vector2f mouse_screen_position = Vector2f(0, 0);
 
-	EventPhase phase;
+	EventPhase phase = EventPhase::None;
 
-	EventInstancer* instancer;
+	EventInstancer* instancer = nullptr;
 
 	friend class Factory;
 };
