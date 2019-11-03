@@ -31,16 +31,17 @@
 namespace Rml {
 namespace Core {
 
-// Default constructor.
+// Initialising constructor.
 template < typename Type >
-Vector4< Type >::Vector4()
+Vector4< Type >::Vector4(Type v) 
+	: x(v), y(v), z(v), w(v)
 {
 }
 
 // Initialising constructor.
 template < typename Type >
-Vector4< Type >::Vector4(Type _x, Type _y, Type _z, Type _w)
-	: x(_x), y(_y), z(_z), w(_w)
+Vector4< Type >::Vector4(Type x, Type y, Type z, Type w)
+	: x(x), y(y), z(z), w(w)
 {
 }
 

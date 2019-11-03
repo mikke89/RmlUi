@@ -44,14 +44,16 @@ template < typename ColourType, int AlphaDefault >
 class Colour
 {
 public:
-	/// Lightweight, non-initialising constructor.
-	inline Colour();
+	/// Initialising constructor.
+	/// @param[in] rgb Initial red, green and blue value of the colour.
+	/// @param[in] alpha Initial alpha value of the colour.
+	inline Colour(ColourType rgb = ColourType{ 0 }, ColourType alpha = ColourType{ AlphaDefault });
 	/// Initialising constructor.
 	/// @param[in] red Initial red value of the colour.
 	/// @param[in] green Initial green value of the colour.
 	/// @param[in] blue Initial blue value of the colour.
 	/// @param[in] alpha Initial alpha value of the colour.
-	inline Colour(ColourType red, ColourType green, ColourType blue, ColourType alpha = AlphaDefault);
+	inline Colour(ColourType red, ColourType green, ColourType blue, ColourType alpha = ColourType{ AlphaDefault });
 
 	/// Returns the sum of this colour and another. This does not saturate the channels.
 	/// @param[in] rhs The colour to add this to.

@@ -29,18 +29,16 @@
 namespace Rml {
 namespace Core {
 
-// Default constructor.
+// Initialising constructor.
 template < typename Type >
-Vector2< Type >::Vector2()
+Vector2< Type >::Vector2(Type v) : x(v), y(v)
 {
 }
 
 // Initialising constructor.
 template < typename Type >
-Vector2< Type >::Vector2(Type _x, Type _y)
+Vector2< Type >::Vector2(Type x, Type y) : x(x), y(y)
 {
-	x = _x;
-	y = _y;
 }
 
 // Returns the magnitude of the vector.

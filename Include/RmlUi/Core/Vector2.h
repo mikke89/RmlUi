@@ -44,8 +44,9 @@ template < typename Type >
 class Vector2
 {
 	public:
-		/// Lightweight, non-initialising constructor.
-		inline Vector2();
+		/// Initialising constructor.
+		/// @param[in] v Initial value of each element in the vector.
+		inline Vector2(Type v = Type{ 0 });
 		/// Initialising constructor.
 		/// @param[in] x Initial x-value of the vector.
 		/// @param[in] y Initial y-value of the vector.

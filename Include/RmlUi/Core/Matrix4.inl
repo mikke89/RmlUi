@@ -47,6 +47,7 @@ Matrix4< Component, Storage >::Matrix4(
 // Default constructor.
 template< typename Component, class Storage >
 Matrix4< Component, Storage >::Matrix4() noexcept
+	: vectors{ VectorType{0}, VectorType{0}, VectorType{0}, VectorType{0} }
 {
 }
 

@@ -294,10 +294,10 @@ class Matrix4
 		};
 
 	public:
-		/// Lightweight, non-initialising constructor.
+		/// Zero-initialising default constructor.
 		inline Matrix4() noexcept;
 
-		/// Initialising, copy constructor.
+		/// Copy constructor.
 		inline Matrix4(const ThisType& other) noexcept;
 		Matrix4(const TransposeType& other) noexcept;
 

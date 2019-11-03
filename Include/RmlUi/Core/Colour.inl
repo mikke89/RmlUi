@@ -31,18 +31,16 @@ namespace Core {
 
 // Lightweight, non-initialising constructor.
 template < typename ColourType, int AlphaDefault >
-Colour< ColourType, AlphaDefault >::Colour()
+Colour< ColourType, AlphaDefault >::Colour(ColourType rgb, ColourType alpha) 
+	: red(rgb), green(rgb), blue(rgb), alpha(alpha)
 {
 }
 
 // Initialising constructor.
 template < typename ColourType, int AlphaDefault >
-Colour< ColourType, AlphaDefault >::Colour(ColourType _red, ColourType _green, ColourType _blue, ColourType _alpha)
+Colour< ColourType, AlphaDefault >::Colour(ColourType red, ColourType green, ColourType blue, ColourType alpha)
+	: red(red), green(green), blue(blue), alpha(alpha)
 {
-	red = _red;
-	green = _green;
-	blue = _blue;
-	alpha = _alpha;
 }
 
 // Returns the sum of this colour and another. This does not saturate the channels.
