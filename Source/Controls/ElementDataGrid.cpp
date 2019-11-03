@@ -175,7 +175,7 @@ ElementDataGridRow* ElementDataGrid::AddRow(ElementDataGridRow* parent, int inde
 	// Now we make a new row at the right place then return it.
 	Rml::Core::XMLAttributes attributes;
 	Core::ElementPtr element = Core::Factory::InstanceElement(this, "#rmlctl_datagridrow", "datagridrow", attributes);
-	ElementDataGridRow* new_row = dynamic_cast< ElementDataGridRow* >(element.get());
+	ElementDataGridRow* new_row = rmlui_dynamic_cast< ElementDataGridRow* >(element.get());
 
 	new_row->Initialise(this, parent, index, header, parent->GetDepth() + 1);
 
@@ -219,7 +219,7 @@ int ElementDataGrid::GetNumRows() const
 ElementDataGridRow* ElementDataGrid::GetRow(int index) const
 {
 	// We need to add two to the index, to skip the header row.
-	ElementDataGridRow* row = dynamic_cast< ElementDataGridRow* >(body->GetChild(index));
+	ElementDataGridRow* row = rmlui_dynamic_cast< ElementDataGridRow* >(body->GetChild(index));
 	return row;
 }
 

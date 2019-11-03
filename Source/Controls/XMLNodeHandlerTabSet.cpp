@@ -58,7 +58,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 
 		// Attempt to instance the tabset
 		Core::ElementPtr element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);		
-		ElementTabSet* tabset = dynamic_cast< ElementTabSet* >(element.get());
+		ElementTabSet* tabset = rmlui_dynamic_cast< ElementTabSet* >(element.get());
 		if (!tabset)
 		{
 			Core::Log::Message(Rml::Core::Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
@@ -78,7 +78,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		Core::ElementPtr tab_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, "*", "tab", attributes);
 		Core::Element* result = nullptr;
 
-		ElementTabSet* tabset = dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
+		ElementTabSet* tabset = rmlui_dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
 		if (tabset)
 		{
 			result = tab_element.get();
@@ -96,7 +96,7 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 		Core::ElementPtr panel_element = Core::Factory::InstanceElement(parser->GetParseFrame()->element, "*", "panel", attributes);
 		Core::Element* result = nullptr;
 
-		ElementTabSet* tabset = dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
+		ElementTabSet* tabset = rmlui_dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
 		if (tabset)
 		{
 			result = panel_element.get();

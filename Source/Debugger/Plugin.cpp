@@ -110,7 +110,7 @@ bool Plugin::SetContext(Core::Context* context)
 			return false;
 
 		RMLUI_ASSERT(!hook_element);
-		hook_element = dynamic_cast< ElementContextHook* >(element);
+		hook_element = rmlui_dynamic_cast< ElementContextHook* >(element);
 		if (!hook_element)
 		{
 			context->UnloadDocument(element);
@@ -323,7 +323,7 @@ bool Plugin::LoadInfoElement()
 {
 	info_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementInfo> >();
 	Core::Factory::RegisterElementInstancer("debug-info", info_element_instancer.get());
-	info_element = dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
+	info_element = rmlui_dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
 	if (!info_element)
 		return false;
 
@@ -344,7 +344,7 @@ bool Plugin::LoadLogElement()
 {
 	log_element_instancer = std::make_unique< Core::ElementInstancerGeneric<ElementLog> >();
 	Core::Factory::RegisterElementInstancer("debug-log", log_element_instancer.get());
-	log_element = dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
+	log_element = rmlui_dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
 	if (!log_element)
 		return false;
 

@@ -45,6 +45,8 @@ namespace Controls {
 class RMLUICONTROLS_API ElementTabSet : public Core::Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementTabSet, Core::Element)
+
 	ElementTabSet(const Rml::Core::String& tag);
 	~ElementTabSet();
 

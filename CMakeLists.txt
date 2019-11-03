@@ -177,6 +177,12 @@ if( ENABLE_TRACY_PROFILING )
 	add_definitions(-DRMLUI_ENABLE_PROFILING)
 endif()
 
+option(DISABLE_RTTI_AND_EXCEPTIONS "Build with rtti and exceptions disabled." OFF)
+if(DISABLE_RTTI_AND_EXCEPTIONS)
+	add_definitions(-DRMLUI_USE_CUSTOM_RTTI)
+	message("-- C++ RTTI and exceptions will be disabled: Make sure to #define RMLUI_USE_CUSTOM_RTTI before including RmlUi in your project.")
+endif()
+
 #===================================
 # Find dependencies ================
 #===================================
@@ -353,6 +359,26 @@ if(BUILD_LUA_BINDINGS)
 		
 		set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 	endforeach(library)
+endif()
+
+
+if(DISABLE_RTTI_AND_EXCEPTIONS)
+    if( CMAKE_COMPILER_IS_GNUCXX )
+		add_definitions( -fno-rtti -fno-exceptions )
+    elseif( MSVC )
+		add_definitions( -D_HAS_EXCEPTIONS=0 /GR- )
+		if(CMAKE_CXX_FLAGS MATCHES "/EHsc ")
+			string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+			message(STATUS "CMAKE_CXX_FLAGS matches /EHsc before end of string replaced...")
+		endif()
+
+		if(CMAKE_CXX_FLAGS MATCHES "/EHsc$")
+			string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+			message(STATUS "CMAKE_CXX_FLAGS matches /EHsc at end of string replaced...")
+		endif()
+	else()
+		message(STATUS "Could not create build configuration without rtti and exceptions...")
+    endif()
 endif()
 
 

@@ -51,6 +51,8 @@ class RMLUICONTROLS_API ElementDataGridRow : public Core::Element, public DataSo
 friend class ElementDataGrid;
 
 public:
+	RMLUI_RTTI_DefineWithParent(ElementDataGridRow, Core::Element)
+
 	ElementDataGridRow(const Rml::Core::String& tag);
 	virtual ~ElementDataGridRow();
 

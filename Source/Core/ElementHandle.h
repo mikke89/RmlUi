@@ -46,6 +46,8 @@ namespace Core {
 class RMLUICORE_API ElementHandle : public Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementHandle, Element)
+
 	ElementHandle(const String& tag);
 	virtual ~ElementHandle();
 

@@ -65,6 +65,8 @@ enum class FocusFlag { None, Document, Keep, Auto };
 class RMLUICORE_API ElementDocument : public Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementDocument, Element)
+
 	ElementDocument(const String& tag);
 	virtual ~ElementDocument();
 

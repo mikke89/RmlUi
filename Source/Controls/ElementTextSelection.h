@@ -46,6 +46,8 @@ class WidgetTextInput;
 class ElementTextSelection : public Core::Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementTextSelection, Core::Element)
+
 	ElementTextSelection(const Rml::Core::String& tag);
 	virtual ~ElementTextSelection();
 

@@ -45,6 +45,8 @@ class SystemInterface;
 class ElementLog : public Core::ElementDocument, public Core::EventListener
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementLog, Core::ElementDocument)
+
 	ElementLog(const Core::String& tag);
 	~ElementLog();
 

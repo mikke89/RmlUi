@@ -55,7 +55,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	root->SetProperty(PropertyId::ZIndex, Property(0, Property::NUMBER));
 
 	cursor_proxy = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
-	ElementDocument* cursor_proxy_document = dynamic_cast< ElementDocument* >(cursor_proxy.get());
+	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast< ElementDocument* >(cursor_proxy.get());
 	if (cursor_proxy_document)
 		cursor_proxy_document->context = this;
 	else
@@ -215,10 +215,10 @@ ElementDocument* Context::CreateDocument(const String& tag)
 		return nullptr;
 	}
 
-	ElementDocument* document = dynamic_cast< ElementDocument* >(element.get());
+	ElementDocument* document = rmlui_dynamic_cast< ElementDocument* >(element.get());
 	if (!document)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', Found type '%s', was expecting derivative of ElementDocument.", tag.c_str(), typeid(element).name());
+		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', Found type '%s', was expecting derivative of ElementDocument.", tag.c_str(), rmlui_type_name(*element));
 		return nullptr;
 	}
 

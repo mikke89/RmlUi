@@ -45,6 +45,8 @@ namespace Controls {
 class RMLUICONTROLS_API ElementDataGridCell : public Core::Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementDataGridCell, Core::Element)
+
 	ElementDataGridCell(const Rml::Core::String& tag);
 	virtual ~ElementDataGridCell();
 

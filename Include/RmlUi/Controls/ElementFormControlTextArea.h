@@ -46,6 +46,8 @@ class WidgetTextInput;
 class RMLUICONTROLS_API ElementFormControlTextArea : public ElementFormControl
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementFormControlTextArea, ElementFormControl)
+
 	/// Constructs a new ElementFormControlTextArea. This should not be called directly; use the
 	/// Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.

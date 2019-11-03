@@ -101,7 +101,7 @@ void InputTypeRadio::PopRadioSet()
 	ElementForm* form = nullptr;
 	Core::Element* parent = element->GetParentNode();
 	while (parent != nullptr &&
-		   (form = dynamic_cast< ElementForm* >(parent)) == nullptr)
+		   (form = rmlui_dynamic_cast< ElementForm* >(parent)) == nullptr)
 	   parent = parent->GetParentNode();
 
 	if (form != nullptr)
@@ -111,7 +111,7 @@ void InputTypeRadio::PopRadioSet()
 
 		for (size_t i = 0; i < form_controls.size(); ++i)
 		{
-			ElementFormControlInput* radio_control = dynamic_cast< ElementFormControlInput* >(form_controls[i]);
+			ElementFormControlInput* radio_control = rmlui_dynamic_cast< ElementFormControlInput* >(form_controls[i]);
 			if (radio_control != nullptr &&
 				element != radio_control &&
 				radio_control->GetAttribute< Rml::Core::String >("type", "text") == "radio" &&

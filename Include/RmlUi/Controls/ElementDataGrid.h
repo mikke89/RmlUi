@@ -48,6 +48,8 @@ class ElementDataGridRow;
 class RMLUICONTROLS_API ElementDataGrid : public Core::Element, public DataSourceListener
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementDataGrid, Core::Element)
+
 	ElementDataGrid(const Rml::Core::String& tag);
 	virtual ~ElementDataGrid();
 

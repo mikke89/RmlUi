@@ -139,7 +139,7 @@ void LayoutInlineBoxText::operator delete(void* chunk)
 // Returns the box's element as a text element.
 ElementText* LayoutInlineBoxText::GetTextElement()
 {
-	return dynamic_cast< ElementText* >(element);
+	return rmlui_dynamic_cast< ElementText* >(element);
 }
 
 // Builds a box for the first word of the element.

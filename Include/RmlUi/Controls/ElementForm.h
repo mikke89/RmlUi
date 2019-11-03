@@ -44,6 +44,8 @@ namespace Controls {
 class RMLUICONTROLS_API ElementForm : public Core::Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementForm, Core::Element)
+
 	/// Constructs a new ElementForm. This should not be called directly; use the Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.
 	ElementForm(const Rml::Core::String& tag);

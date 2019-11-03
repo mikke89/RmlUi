@@ -60,7 +60,7 @@ void ElementForm::Submit(const Rml::Core::String& name, const Rml::Core::String&
 
 	for (size_t i = 0; i < form_controls.size(); i++)
 	{
-		ElementFormControl* control = dynamic_cast< ElementFormControl* >(form_controls[i]);
+		ElementFormControl* control = rmlui_dynamic_cast< ElementFormControl* >(form_controls[i]);
 		if (!control)
 			continue;
 

@@ -36,6 +36,20 @@ matrix:
             - libsfml-dev
     - os: linux
       compiler: gcc
+      env: DISABLE_RTTI_AND_EXCEPTIONS="ON"
+      addons:
+        apt:
+          packages:
+            - cmake
+            - build-essential
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libfreetype6-dev
+            - libglew-dev
+            - liblua5.2-dev
+            - libsfml-dev
+    - os: linux
+      compiler: gcc
       env: VALGRIND_SAMPLES="1"
       services:
         - xvfb
@@ -55,15 +69,15 @@ matrix:
 
 install:
   - cd "$TRAVIS_BUILD_DIR"
-  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DNO_FONT_INTERFACE_DEFAULT=${NO_FONT_INTERFACE_DEFAULT:-OFF} .; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -DNO_THIRDPARTY_CONTAINERS=ON -G Xcode .; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON  -DDISABLE_RTTI_AND_EXCEPTIONS=${DISABLE_RTTI_AND_EXCEPTIONS:-OFF} -DNO_FONT_INTERFACE_DEFAULT=${NO_FONT_INTERFACE_DEFAULT:-OFF} .; fi
 
 before_script:
   - if [[ "$VALGRIND_SAMPLES" == "1" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi
 
 script:
-  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcodebuild -project rmlui.xcodeproj/ -jobs 4 -configuration Release -scheme ALL_BUILD | xcpretty --color; test ${PIPESTATUS[0]} -eq 0; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then make -j4; fi
   - if [[ "$VALGRIND_SAMPLES" == "1" ]]; then mkdir build && make DESTDIR=build install; fi
   - |
     if [[ "$VALGRIND_SAMPLES" == "1" ]]; then

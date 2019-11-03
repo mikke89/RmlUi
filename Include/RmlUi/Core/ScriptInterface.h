@@ -43,6 +43,8 @@ namespace Core {
 
 class RMLUICORE_API ScriptInterface : public Releasable {
 public:
+	RMLUI_RTTI_Define(ScriptInterface)
+
 	virtual ~ScriptInterface() { }
 
 	virtual ScriptObject GetScriptObject() const

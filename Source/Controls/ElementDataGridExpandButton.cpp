@@ -53,7 +53,7 @@ void ElementDataGridExpandButton::ProcessDefaultAction(Core::Event& event)
 		ElementDataGridRow* parent_row;
 		do
 		{
-			parent_row = dynamic_cast< ElementDataGridRow* >(parent);
+			parent_row = rmlui_dynamic_cast< ElementDataGridRow* >(parent);
 			parent = parent->GetParentNode();
 		}
 		while (parent && !parent_row);

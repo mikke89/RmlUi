@@ -65,6 +65,8 @@ namespace Core {
 class RMLUICORE_API ElementImage : public Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementImage, Element)
+
 	/// Constructs a new ElementImage. This should not be called directly; use the Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.
 	ElementImage(const String& tag);

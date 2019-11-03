@@ -320,7 +320,7 @@ ElementPtr ElementDocument::CreateTextNode(const String& text)
 	}
 
 	// Cast up
-	ElementText* element_text = dynamic_cast< ElementText* >(element.get());
+	ElementText* element_text = rmlui_dynamic_cast< ElementText* >(element.get());
 	if (!element_text)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer didn't return a derivative of ElementText.");

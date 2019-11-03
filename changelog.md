@@ -2,6 +2,15 @@
 * [RmlUi 2.0](#rmlui-20)
 
 
+## RmlUi WIP
+
+### CMake options
+
+New CMake option added.
+
+- `DISABLE_RTTI_AND_EXCEPTIONS` will try to configure the compiler to disable RTTI language support and exceptions. All internal use of RTTI (eg. dynamic_cast) will then be replaced by a custom solution. If set, users of the library should then `#define RMLUI_USE_CUSTOM_RTTI` before including the library.
+
+
 
 ## RmlUi 3.0
 

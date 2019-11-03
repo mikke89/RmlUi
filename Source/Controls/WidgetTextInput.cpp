@@ -63,9 +63,9 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->AddEventListener(Core::EventId::Drag, this, true);
 
 	Core::ElementPtr unique_text = Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes());
-	text_element = dynamic_cast< Core::ElementText* >(unique_text.get());
+	text_element = rmlui_dynamic_cast< Core::ElementText* >(unique_text.get());
 	Core::ElementPtr unique_selected_text = Core::Factory::InstanceElement(parent, "#text", "#text", Rml::Core::XMLAttributes());
-	selected_text_element = dynamic_cast< Core::ElementText* >(unique_selected_text.get());
+	selected_text_element = rmlui_dynamic_cast< Core::ElementText* >(unique_selected_text.get());
 	if (text_element)
 	{
 		text_element->SuppressAutoLayout();
@@ -77,7 +77,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 
 	// Create the dummy selection element.
 	Core::ElementPtr unique_selection = Core::Factory::InstanceElement(parent, "#selection", "selection", Rml::Core::XMLAttributes());
-	if (ElementTextSelection* text_selection_element = dynamic_cast<ElementTextSelection*>(unique_selection.get()))
+	if (ElementTextSelection* text_selection_element = rmlui_dynamic_cast<ElementTextSelection*>(unique_selection.get()))
 	{
 		selection_element = text_selection_element;
 		text_selection_element->SetWidget(this);

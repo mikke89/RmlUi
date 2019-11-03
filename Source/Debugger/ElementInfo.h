@@ -45,6 +45,8 @@ typedef std::vector< NamedProperty > NamedPropertyList;
 class ElementInfo : public Core::ElementDocument, public Core::EventListener
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementInfo, Core::ElementDocument)
+
 	ElementInfo(const Core::String& tag);
 	~ElementInfo();
 

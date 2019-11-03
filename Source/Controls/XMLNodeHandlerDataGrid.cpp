@@ -55,7 +55,7 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 	{
 		// Attempt to instance the grid.
 		Core::ElementPtr element = Core::Factory::InstanceElement(parent, name, name, attributes);
-		ElementDataGrid* grid = dynamic_cast< ElementDataGrid* >(element.get());
+		ElementDataGrid* grid = rmlui_dynamic_cast< ElementDataGrid* >(element.get());
 		if (!grid)
 		{
 			element.reset();
@@ -81,7 +81,7 @@ Core::Element* XMLNodeHandlerDataGrid::ElementStart(Core::XMLParser* parser, con
 
 		result = element.get();
 
-		ElementDataGrid* grid = dynamic_cast< ElementDataGrid* >(parent);
+		ElementDataGrid* grid = rmlui_dynamic_cast< ElementDataGrid* >(parent);
 		if (grid)
 			grid->AddColumn(Core::Get<Core::String>(attributes, "fields", ""), Core::Get<Core::String>(attributes, "formatter", ""), Core::Get(attributes, "width", 0.0f), std::move(element));
 

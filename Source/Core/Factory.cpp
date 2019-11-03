@@ -289,10 +289,10 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		}
 
 		// Assign the element its text value.
-		ElementText* text_element = dynamic_cast< ElementText* >(element.get());
+		ElementText* text_element = rmlui_dynamic_cast< ElementText* >(element.get());
 		if (!text_element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), typeid(element).name());
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), rmlui_type_name(*element));
 			return false;
 		}
 
@@ -325,10 +325,10 @@ ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* 
 		return nullptr;
 	}
 
-	ElementDocument* document = dynamic_cast< ElementDocument* >(element.get());
+	ElementDocument* document = rmlui_dynamic_cast< ElementDocument* >(element.get());
 	if (!document)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document element. Found type '%s', was expecting derivative of ElementDocument.", typeid(element).name());
+		Log::Message(Log::LT_ERROR, "Failed to instance document element. Found type '%s', was expecting derivative of ElementDocument.", rmlui_type_name(*element));
 		return nullptr;
 	}
 

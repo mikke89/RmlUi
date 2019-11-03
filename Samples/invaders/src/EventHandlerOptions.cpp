@@ -67,12 +67,12 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 		// Fetch the radio button from the document by ID, cast it to a radio button interface and set it as checked.
 		// This will automatically pop the other radio buttons in the set. Note that we could have not cast and called
 		// the 'Click()' function instead, but this method will avoid event overhead.
-		Rml::Controls::ElementFormControlInput* graphics_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById(graphics_option_id));
+		Rml::Controls::ElementFormControlInput* graphics_option = rmlui_dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById(graphics_option_id));
 		if (graphics_option != nullptr)
 			graphics_option->SetAttribute("checked", "");
 
 		// Fetch the reverb option by ID and set its checked status from the game options.
-		Rml::Controls::ElementFormControlInput* reverb_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("reverb"));
+		Rml::Controls::ElementFormControlInput* reverb_option = rmlui_dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("reverb"));
 		if (reverb_option != nullptr)
 		{
 			if (GameDetails::GetReverb())
@@ -82,7 +82,7 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 		}
 
 		// Similarly, fetch the 3D spatialisation option by ID and set its checked status.
-		Rml::Controls::ElementFormControlInput* spatialisation_option = dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("3d"));
+		Rml::Controls::ElementFormControlInput* spatialisation_option = rmlui_dynamic_cast< Rml::Controls::ElementFormControlInput* >(options_body->GetElementById("3d"));
 		if (spatialisation_option != nullptr)
 		{
 			if (GameDetails::Get3DSpatialisation())
@@ -92,7 +92,7 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 		}
 
 		// Disable the accept button when default values are given
-		Rml::Controls::ElementFormControlInput* accept = dynamic_cast<Rml::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
+		Rml::Controls::ElementFormControlInput* accept = rmlui_dynamic_cast<Rml::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
 		if (accept != nullptr)
 		{
 			accept->SetDisabled(true);
@@ -154,7 +154,7 @@ void EventHandlerOptions::ProcessEvent(Rml::Core::Event& event, const Rml::Core:
 			return;
 
 		// Enable the accept button when values are changed
-		Rml::Controls::ElementFormControlInput* accept = dynamic_cast<Rml::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
+		Rml::Controls::ElementFormControlInput* accept = rmlui_dynamic_cast<Rml::Controls::ElementFormControlInput*>(options_body->GetElementById("accept"));
 		if (accept != nullptr)
 		{
 			accept->SetDisabled(false);

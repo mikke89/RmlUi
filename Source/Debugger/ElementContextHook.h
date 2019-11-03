@@ -45,6 +45,8 @@ class Plugin;
 class ElementContextHook : public Core::ElementDocument
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementContextHook, Core::ElementDocument)
+
 	ElementContextHook(const Core::String& tag);
 	virtual ~ElementContextHook();
 

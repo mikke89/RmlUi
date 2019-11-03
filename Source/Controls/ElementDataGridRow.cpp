@@ -85,7 +85,7 @@ void ElementDataGridRow::Initialise(ElementDataGrid* _parent_grid, ElementDataGr
 	for (int i = 0; i < num_columns; i++)
 	{
 		Core::ElementPtr element = Core::Factory::InstanceElement(this, "#rmlctl_datagridcell", "datagridcell", cell_attributes);
-		ElementDataGridCell* cell = dynamic_cast< ElementDataGridCell* >(element.get());
+		ElementDataGridCell* cell = rmlui_dynamic_cast< ElementDataGridCell* >(element.get());
 		cell->Initialise(i, header_row->GetChild(i));
 		cell->SetProperty(Core::PropertyId::Display, Core::Property(Core::Style::Display::InlineBlock));
 		AppendChild(std::move(element));

@@ -197,7 +197,7 @@ LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 {
 	RMLUI_ZoneScoped;
 
-	if (dynamic_cast< ElementText* >(element) != nullptr)
+	if (rmlui_dynamic_cast< ElementText* >(element) != nullptr)
 		return AddBox(new LayoutInlineBoxText(element));
 	else
 		return AddBox(new LayoutInlineBox(element, box));

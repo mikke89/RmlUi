@@ -45,6 +45,8 @@ namespace Core {
 class RMLUICORE_API ElementText : public Element
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementText, Element)
+
 	ElementText(const String& tag);
 	virtual ~ElementText();
 
