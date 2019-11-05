@@ -36,24 +36,21 @@
 namespace Rml {
 namespace Core {
 
-StyleSheetNode::StyleSheetNode() : parent(nullptr), child_combinator(false)
+StyleSheetNode::StyleSheetNode()
 {
-	specificity = CalculateSpecificity();
-	is_structurally_volatile = true;
+	CalculateAndSetSpecificity();
 }
 
 StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, bool child_combinator)
 	: parent(parent), tag(tag), id(id), class_names(classes), pseudo_class_names(pseudo_classes), structural_selectors(structural_selectors), child_combinator(child_combinator)
 {
-	specificity = CalculateSpecificity();
-	is_structurally_volatile = true;
+	CalculateAndSetSpecificity();
 }
 
 StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator)
 	: parent(parent), tag(std::move(tag)), id(std::move(id)), class_names(std::move(classes)), pseudo_class_names(std::move(pseudo_classes)), structural_selectors(std::move(structural_selectors)), child_combinator(child_combinator)
 {
-	specificity = CalculateSpecificity();
-	is_structurally_volatile = true;
+	CalculateAndSetSpecificity();
 }
 
 StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const StyleSheetNode& other)
@@ -312,28 +309,25 @@ bool StyleSheetNode::IsStructurallyVolatile() const
 }
 
 
-int StyleSheetNode::CalculateSpecificity()
+void StyleSheetNode::CalculateAndSetSpecificity()
 {
 	// Calculate the specificity of just this node; tags are worth 10,000, IDs 1,000,000 and other specifiers (classes
 	// and pseudo-classes) 100,000.
-
-	int specificity = 0;
+	specificity = 0;
 
 	if (!tag.empty())
-		specificity += 10000;
+		specificity += 10'000;
 
 	if (!id.empty())
-		specificity += 1000000;
+		specificity += 1'000'000;
 
-	specificity += 100000*(int)class_names.size();
-	specificity += 100000*(int)pseudo_class_names.size();
-	specificity += 100000*(int)structural_selectors.size();
+	specificity += 100'000*(int)class_names.size();
+	specificity += 100'000*(int)pseudo_class_names.size();
+	specificity += 100'000*(int)structural_selectors.size();
 
 	// Add our parent's specificity onto ours.
 	if (parent)
 		specificity += parent->specificity;
-
-	return specificity;
 }
 
 }

@@ -100,7 +100,7 @@ private:
 	// Returns true if the requirements of this node equals the given arguments.
 	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_pseudo_classes, bool child_combinator) const;
 
-	int CalculateSpecificity();
+	void CalculateAndSetSpecificity();
 
 	// Match an element to the local node requirements.
 	inline bool Match(const Element* element) const;
@@ -108,7 +108,7 @@ private:
 	inline bool MatchStructuralSelector(const Element* element) const;
 
 	// The parent of this node; is nullptr for the root node.
-	StyleSheetNode* parent;
+	StyleSheetNode* parent = nullptr;
 
 	// Node requirements
 	String tag;
@@ -116,14 +116,14 @@ private:
 	StringList class_names;
 	StringList pseudo_class_names;
 	StructuralSelectorList structural_selectors; // Represents structural pseudo classes
-	bool child_combinator; // The '>' combinator: This node only matches if the element is a parent of the previous matching element.
+	bool child_combinator = false; // The '>' combinator: This node only matches if the element is a parent of the previous matching element.
 
 	// True if any ancestor, descendent, or self is a structural pseudo class.
-	bool is_structurally_volatile;
+	bool is_structurally_volatile = true;
 
 	// A measure of specificity of this node; the attribute in a node with a higher value will override those of a
 	// node with a lower value.
-	int specificity;
+	int specificity = 0;
 
 	PropertyDictionary properties;
 

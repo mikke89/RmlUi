@@ -105,8 +105,7 @@ static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 
 /// Constructs a new RmlUi element.
 Element::Element(const String& tag) : tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
-transform_state(), dirty_transform(false), dirty_perspective(false), dirty_animation(false), dirty_transition(false),
-EnableObserverPtr<Element>()
+transform_state(), dirty_transform(false), dirty_perspective(false), dirty_animation(false), dirty_transition(false)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;

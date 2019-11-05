@@ -217,9 +217,9 @@ p.emojis
 .fit-cover      { decorator: image( icon-invader cover      ); }
 .fit-scale-none { decorator: image( icon-invader scale-none ); }
 .fit-scale-down { decorator: image( icon-invader scale-down ); }
-.orientation-vertical   { decorator: image( icon-invader flip-vertical   scale-none bottom ); }
-.orientation-horizontal { decorator: image( icon-invader flip-horizontal scale-none bottom ); }
-.orientation-rotate     { decorator: image( icon-invader rotate-180      scale-none bottom ); }
+.orientation-vertical   { decorator: image( icon-invader flip-vertical   scale-none ); }
+.orientation-horizontal { decorator: image( icon-invader flip-horizontal scale-none ); }
+.orientation-rotate     { decorator: image( icon-invader rotate-180      scale-none ); }
 
 
 /***  Animations  ***/
@@ -452,7 +452,7 @@ form h2
 	</div>
 	
 	<h1>Image decorator</h1>
-	<p>The 'image' decorator applies and image to the background of an element. By default it stretches the image to the size of the element, but this behavior can be controlled as seen later on.</p>
+	<p>The 'image' decorator applies an image to the background of an element. By default it stretches the image to the size of the element, but this behavior can be controlled as seen later on.</p>
 	<div class="center">
 		<div class="side-by-side">
 			<div class="image-alien clickable" onclick="change_color"/>

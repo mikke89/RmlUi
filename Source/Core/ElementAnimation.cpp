@@ -221,7 +221,6 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 		for (size_t i_small = 0; i_small < small.size(); i_small++)
 		{
 			match_success = false;
-			auto small_type = small[i_small].primitive.type;
 
 			for (; i_big < big.size(); i_big++)
 			{
@@ -297,7 +296,6 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 	// Prepare each transform individually.
 	for (int i = start_index; i < (int)keys.size(); i++)
 	{
-		AnimationKey& key = keys[i];
 		Property& property = keys[i].property;
 
 		if (!property.value.GetReference<TransformPtr>())
