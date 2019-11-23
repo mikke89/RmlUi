@@ -32,6 +32,8 @@
 #include "ShellFileInterface.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <shlwapi.h>
+#pragma comment( lib  , "Shlwapi.lib"  )
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param);
 
@@ -76,11 +78,12 @@ bool Shell::Initialise()
 	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
 
 	Rml::Core::String root = FindSamplesRoot();
+	bool result = !root.empty();
 	
 	file_interface = std::make_unique<ShellFileInterface>(root);
 	Rml::Core::SetFileInterface(file_interface.get());
 
-	return true;
+	return result;
 }
 
 void Shell::Shutdown()
@@ -92,9 +95,9 @@ void Shell::Shutdown()
 
 Rml::Core::String Shell::FindSamplesRoot()
 {
-	Rml::Core::String path = "../../Samples/";
+	const char* candidate_paths[] = { "", "..\\..\\Samples\\", "..\\Samples\\"  };
 	
-	// Fetch the path of the executable, append the path onto that.
+	// Fetch the path of the executable, test the candidate paths appended to that.
 	char executable_file_name[MAX_PATH];
 	if (GetModuleFileNameA(instance_handle, executable_file_name, MAX_PATH) >= MAX_PATH &&
 		GetLastError() == ERROR_INSUFFICIENT_BUFFER)
@@ -102,10 +105,27 @@ Rml::Core::String Shell::FindSamplesRoot()
 		executable_file_name[0] = 0;
 	}
 
-	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
-	executable_path = executable_path.substr(0, executable_path.rfind("\\") + 1);
-	
-	return executable_path + path;
+	Rml::Core::String executable_path(executable_file_name);
+	executable_path = executable_path.substr(0, executable_path.rfind('\\') + 1);
+
+	// We assume we have found the correct path if we can find the lookup file from it
+	const char* lookup_file = "assets\\rml.rcss";
+
+	for(const char* relative_path : candidate_paths)
+	{
+		Rml::Core::String absolute_path = executable_path + relative_path;
+
+		if (PathFileExistsA(Rml::Core::String(absolute_path + lookup_file).c_str()))
+		{
+			char canonical_path[MAX_PATH];
+			if (!PathCanonicalizeA(canonical_path, absolute_path.c_str()))
+				canonical_path[0] = 0;
+
+			return Rml::Core::String(canonical_path);
+		}
+	}
+
+	return Rml::Core::String();
 }
 
 static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
