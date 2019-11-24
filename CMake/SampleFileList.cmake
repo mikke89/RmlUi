@@ -117,17 +117,6 @@ set(sfml2_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/SystemInterfaceSFML.cpp
 )
 
-set(directx10_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/D3D10Effect.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/RenderInterfaceDirectx10.h
-)
-
-set(directx10_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/RenderInterfaceDirectx10.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/directx10/src/ShellRenderInterfaceExtensionsDirectX10_Win32.cpp
-)
-
 set(tutorial_template_HDR_FILES
 )
 

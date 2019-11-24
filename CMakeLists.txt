@@ -129,10 +129,6 @@ if(APPLE)
 endif()
 
 option(BUILD_SAMPLES "Build samples" OFF)
-if(WIN32)
-	option(SKIP_DIRECTX_SAMPLES "Skip build of all DirectX related samples. Only applies if BUILD_SAMPLES is ON" ON)
-	option(SKIP_DIRECTX10_SAMPLE "Skip build of DirectX 10 related sample. Only applies if BUILD_SAMPLES is ON and SKIP_DIRECTX_SAMPLES is OFF" ON)
-endif()
 
 if(APPLE)
 	if(IOS)
@@ -431,46 +427,7 @@ endif(NOT BUILD_FRAMEWORK)
 	endif()
 	
 	# Set up required system libraries
-	if(WIN32)
-		if(SKIP_DIRECTX_SAMPLES)
-			message("-- Skipping all DirectX samples")
-			set(SKIP_DIRECTX10_SAMPLE ON)
-		else()
-			message("-- Determing if DirectX samples can be built")
-			include(FindDirectX)
-			find_package(DirectX)
-			if(DirectX_FOUND)
-				set(DIRECTX_SAMPLE_LIST)
-				set(DIRECTX_SKIPPED_SAMPLE_LIST)
-
-				message("-- Determing if DirectX samples can be built - Yes")
-
-				if(SKIP_DIRECTX10_SAMPLE)
-					message("-- Skipping build of DirectX 10 sample: User disabled")
-					list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX10 ")
-				else()
-					if(DirectX_D3D10_FOUND)
-						list(APPEND DIRECTX_SAMPLE_LIST "DirectX10 ")
-					else()
-						set(SKIP_DIRECTX10_SAMPLE ON)
-						message("-- Skipping build of DirectX 10 sample: Missing DirectX_D3D10_INCLUDE_DIR, DirectX_D3D10_LIBRARY or DirectX_D3DX10_LIBRARY")
-						list(APPEND DIRECTX_SKIPPED_SAMPLE_LIST "DirectX10 ")
-					endif()
-				endif()
-
-
-				if(DIRECTX_SAMPLE_LIST)
-					message("-- Enabled DirectX samples: " ${DIRECTX_SAMPLE_LIST})
-				endif()
-				if(DIRECTX_SKIPPED_SAMPLE_LIST)
-					message("-- Disabled DirectX samples: " ${DIRECTX_SKIPPED_SAMPLE_LIST})
-				endif()
-			else()
-				message("-- Determing if DirectX samples can be built - No")
-				set(SKIP_DIRECTX10_SAMPLE ON)
-			endif()
-		endif()
-	elseif(APPLE)
+	if(APPLE)
 		include(FindCarbon)
 		find_package(Carbon REQUIRED)
 		
@@ -518,21 +475,7 @@ endif(NOT BUILD_FRAMEWORK)
 			RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()
-
-	if(WIN32)
-		if(NOT SKIP_DIRECTX10_SAMPLE)
-			include_directories(${DirectX_INCLUDE_DIR} ${DirectX_D3D10_INCLUDE_DIRS})
-
-			bl_sample(directx10 ${sample_LIBRARIES}  ${DirectX_D3D10_LIBRARIES})
-
-			# The samples always set this as their current working directory
-			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/directx10)
-			install(TARGETS directx10 
-				RUNTIME DESTINATION ${SAMPLES_DIR}/directx10
-				BUNDLE DESTINATION ${SAMPLES_DIR})
-		endif()
-	endif()
-
+	
 	message("-- Can SDL2 sample be built")
 	find_package(SDL2)
 	if(SDL2_FOUND)

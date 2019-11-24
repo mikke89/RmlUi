@@ -22,7 +22,6 @@ Directory Overview:
                  * customlog    - setting up custom logging
                  * demo         - demonstrates a variety of features in RmlUi and
                                   includes a sandbox for playing with RML/RCSS
-                 * directx10    - using DirectX 10 as a renderer (deprecated)
                  * drag         - dragging elements between containers
                  * loaddocument - loading your first document
                  * sdl2         - integrating with SDL2

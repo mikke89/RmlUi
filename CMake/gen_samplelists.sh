@@ -9,7 +9,6 @@ srcpath=Samples
 samples=( 'shell'
 	'basic/animation' 'basic/benchmark' 'basic/bitmapfont' 'basic/customlog' 'basic/demo' 'basic/drag' 'basic/loaddocument' 'basic/treeview' 'basic/transform'
 	'basic/sdl2' 'basic/sfml2'
-	'basic/directx10'
 	'tutorial/template' 'tutorial/datagrid' 'tutorial/datagrid_tree' 'tutorial/drag'
 	'invaders' 'luainvaders'
 )
