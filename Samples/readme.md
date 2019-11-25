@@ -1,15 +1,11 @@
-=================================================================================
- RmlUi Sample Applications
-=================================================================================
+## RmlUi Sample Applications
 
 This directory contains a collection of sample applications that demonstrate the 
 use of RmlUi in small, easy to understand applications.
 
-Follow the documentation in order to build the samples:
-https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html
+### Directory Overview
 
-Directory Overview:
-
+```
  * assets      - This directory contains the assets shared by
                  all the sample applications.
  * basic       - This directory contains basic applications
@@ -43,5 +39,4 @@ Directory Overview:
  * tutorial    - Tutorial code that should be used in conjunction
                  with the tutorials on the RmlUi website.
                  https://mikke89.github.io/RmlUiDoc/
-
-=================================================================================
+```
