@@ -58,8 +58,9 @@ include(GNUInstallDirs)
 set(RMLUI_VERSION_MAJOR 3)
 set(RMLUI_VERSION_MINOR 0)
 set(RMLUI_VERSION_PATCH 0)
-set(RMLUI_VERSION_TWEAK 0)
-set(PROJECT_VERSION ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}.${RMLUI_VERSION_TWEAK})
+set(RMLUI_VERSION_TWEAK "-dev")
+set(PROJECT_VERSION ${RMLUI_VERSION_MAJOR}.${RMLUI_VERSION_MINOR}.${RMLUI_VERSION_PATCH}${RMLUI_VERSION_TWEAK})
+add_compile_definitions(RMLUI_VERSION="${PROJECT_VERSION}")
 
 # Search in the 'cmake' directory for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake;${PROJECT_SOURCE_DIR}/CMake/Modules)
@@ -119,7 +120,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(NOT IOS)
-	option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+	option(BUILD_SHARED_LIBS "Build shared (dynamic) libraries" ON)
 endif(NOT IOS)
 
 option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
@@ -158,6 +159,7 @@ endif()
 
 if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DRMLUI_STATIC_LIB)
+	message("-- Building static libraries. Make sure to #define RMLUI_STATIC_LIB before including RmlUi in your project.")
 endif()
 
 option(NO_THIRDPARTY_CONTAINERS "Only use standard library containers." OFF)
