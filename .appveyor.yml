@@ -62,7 +62,7 @@ after_build:
     echo Built using %VS_GENERATOR% on %APPVEYOR_REPO_COMMIT_TIMESTAMP:~0,10% (build %APPVEYOR_BUILD_NUMBER%).>> Readme.txt
     echo Commit id: %APPVEYOR_REPO_COMMIT%.>> Readme.txt
     
-    7z a RmlUi-%PLATFORM_NAME%.zip Bin/ Include/ Readme.txt LICENSE Dependencies/freetype-%FREETYPE_VER%/ Samples/
+    7z a RmlUi-%PLATFORM_NAME%.zip Bin/ Include/ Readme.txt changelog.md LICENSE Dependencies/freetype-%FREETYPE_VER%/ Samples/
     
     mkdir Samples\Dependencies\freetype-%FREETYPE_VER%
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
