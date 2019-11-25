@@ -1,41 +1,85 @@
-version: 2.0.{build}
+version: build.{build}
 image: Visual Studio 2017
 environment:
+  FREETYPE_VER: 2.10.1
   matrix:
-  - FREETYPE_VER: 2.10.0
-    VS_GENERATOR: Visual Studio 15 2017 Win64
-    BUILD_SHARED_LIBS: ON
-    BUILD_SAMPLES: ON
-  - FREETYPE_VER: 2.10.0
-    VS_GENERATOR: Visual Studio 15 2017 Win64
-    BUILD_SHARED_LIBS: OFF
-    BUILD_SAMPLES: OFF
+    - VS_GENERATOR: Visual Studio 15 2017 Win64
+      PLATFORM_NAME: win64
+    - VS_GENERATOR: Visual Studio 15 2017
+      PLATFORM_NAME: win32
 install:
-- cmd: >-
+- cmd: |-
     cd Dependencies
 
-    appveyor DownloadFile https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v%FREETYPE_VER%/freetype-%FREETYPE_VER%.zip
-
-    unzip -o freetype-%FREETYPE_VER%.zip -d freetype-%FREETYPE_VER%
-
-    mv freetype-%FREETYPE_VER%/include include
-
-    mv freetype-%FREETYPE_VER%/win64 lib
-
+    appveyor DownloadFile https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v%FREETYPE_VER%/freetype.zip
+    unzip -o freetype.zip -d freetype_tmp
+    mv freetype_tmp/include include
+    mv freetype_tmp/%PLATFORM_NAME% lib
+    
     cd ..
+    mkdir Build-Dynamic, Build-Static
+    
+    cd Build-Dynamic
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON ..
 
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DBUILD_SAMPLES=%BUILD_SAMPLES% .
-build:
-  project: RmlUi.sln
-  parallel: true
-  verbosity: minimal
+    cd ../Build-Static
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DBUILD_SAMPLES=OFF ..
+    
+    cd ..
+    
+build_script:
+- cmd: |-
+    msbuild Build-Dynamic/RmlUi.sln /p:configuration=debug   /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    
+    msbuild Build-Dynamic/RmlUi.sln /p:configuration=release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    
+    msbuild Build-Static/RmlUi.sln  /p:configuration=debug   /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    
+    msbuild Build-Static/RmlUi.sln  /p:configuration=release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    
 after_build:
-- cmd: >-
-    IF "%BUILD_SHARED_LIBS%"=="ON" 7z a RmlUi-Debug-win64.zip ./Debug/* -r -x!*.exp -x!*.lib -x!*.ilk -x!*.pdb -x!src/*
+- cmd: |-
+    mkdir Bin
+    cd Bin
+    mkdir Dynamic-Debug, Dynamic-Release, Static-Debug, Static-Release
+    cp ../Build-Dynamic/Debug/Rml*.{lib,dll,pdb} Dynamic-Debug
+    cp ../Build-Dynamic/Release/Rml*.{lib,dll} Dynamic-Release
+    cp ../Build-Static/Debug/Rml*.{lib,pdb} Static-Debug
+    cp ../Build-Static/Release/Rml*.lib Static-Release
+    cd ..
+    
+    cp Build-Dynamic/Release/*.exe Samples
+    cp Bin/Dynamic-Release/*.dll Samples
+    cp Dependencies/lib/*.dll Samples
 
-    IF "%BUILD_SHARED_LIBS%"=="ON" IF "%BUILD_SAMPLES%"=="ON" 7z a RmlUi-Debug-win64.zip Dependencies/freetype-%FREETYPE_VER%/*.txt ./Dependencies/lib/freetype.dll ./Samples/* -r -x!*.exp -x!*.lib -x!*.ilk -x!*.pdb -x!src/*
-
-    IF "%BUILD_SHARED_LIBS%"=="OFF" mkdir Lib && cp ./Debug/*.lib Lib && 7z a RmlUi-static-Debug-win64.zip Lib Include
+    mv Dependencies/lib/ Dependencies/freetype-%FREETYPE_VER%
+    cp Dependencies/freetype_tmp/*.TXT Dependencies/freetype-%FREETYPE_VER%
+    
+    IF NOT "%APPVEYOR_REPO_TAG_NAME%"=="" SET RMLUI_VERSION= %APPVEYOR_REPO_TAG_NAME%
+    
+    echo RmlUi%RMLUI_VERSION% library and sample binaries for %PLATFORM_NAME%.> Readme.txt& echo.>>Readme.txt
+    echo https://github.com/mikke89/RmlUi>> Readme.txt& echo.>>Readme.txt
+    echo Built using %VS_GENERATOR% on %APPVEYOR_REPO_COMMIT_TIMESTAMP:~0,10% (build %APPVEYOR_BUILD_NUMBER%).>> Readme.txt
+    echo Commit id: %APPVEYOR_REPO_COMMIT%.>> Readme.txt
+    
+    7z a RmlUi-%PLATFORM_NAME%.zip Bin/ Include/ Readme.txt changelog.md LICENSE Dependencies/freetype-%FREETYPE_VER%/ Samples/
+    
+    mkdir Samples\Dependencies\freetype-%FREETYPE_VER%
+    cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
+    IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
+    
 artifacts:
-- path: RmlUi-Debug-win64.zip
-- path: RmlUi-static-Debug-win64.zip
+- path: RmlUi-win64.zip
+- path: RmlUi-win64-samples-only.zip
+- path: RmlUi-win32.zip
+deploy:
+  release: RmlUi $(APPVEYOR_REPO_TAG_NAME)
+  description: 'Release description'
+  provider: GitHub
+  auth_token:
+    secure: g/WlXrOszpqKYC++IvUvNOPhuEeHbMm+2/TWzcgQko+nIGKmjvfAWUxouNhgsUy9
+  artifact: /.*\.zip/
+  draft: true
+  prerelease: false
+  on:
+    APPVEYOR_REPO_TAG: true

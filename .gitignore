@@ -1,5 +1,15 @@
-# Primary cmake build target
+# Primary CMake build target
 /Build/
+
+# Other common build targets
+/build/
+/Bin/
+/bin/
+/Lib/
+/lib/
+
+# Distribution target
+/Distribution/
 
 # Ignore MacOSX directory info
 .DS_Store
@@ -12,5 +22,3 @@
 *.dir/
 Win32/
 x64/
-
-/Distribution/
