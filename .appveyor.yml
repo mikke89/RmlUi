@@ -66,7 +66,7 @@ after_build:
     
     mkdir Samples\Dependencies\freetype-%FREETYPE_VER%
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
-    IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE .\Samples\* -r -xr!src\ -x!luainvaders\
+    IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
     
 artifacts:
 - path: RmlUi-win64.zip
