@@ -148,7 +148,7 @@ private:
 	void Set(const FontEffectsPtr& value);
 	void Set(FontEffectsPtr&& value);
 	
-	static constexpr size_t LOCAL_DATA_SIZE = sizeof(TransitionList);
+	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));
 
 	Type type;
 	alignas(TransitionList) char data[LOCAL_DATA_SIZE];

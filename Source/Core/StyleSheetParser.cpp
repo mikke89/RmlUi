@@ -150,7 +150,7 @@ static bool IsValidIdentifier(const String& str)
 	if (str.empty())
 		return false;
 
-	for (int i = 0; i < str.size(); i++)
+	for (size_t i = 0; i < str.size(); i++)
 	{
 		char c = str[i];
 		bool valid = (
