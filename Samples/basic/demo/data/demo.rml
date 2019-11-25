@@ -111,7 +111,7 @@ h1
 	margin: 1.4em 0 0.7em;
 	font-size: 18px;
 }
-p.emojis
+p.title
 {
 	font-size: 35px;
 	color: #b33;
@@ -437,10 +437,10 @@ form h2
 <tabset id="menu">
 <tab>Welcome</tab>
 <panel id="welcome">
-	<p class="emojis" style="margin-top: 1.8em;">RmlUi 😍</p>
-	<p>Have fun fiddling about in this (incomplete) demo.</p>
+	<p class="title" style="margin-top: 1.8em;">RmlUi 😍</p>
+	<p>Have fun fiddling about in this demo.</p>
 	<p>Press 'F8' to open up the debugger.</p>
-	<p class="emojis" style="margin-top: 1em;">🎉</p>
+	<p class="title" style="margin-top: 1em;">🎉</p>
 </panel>
 <tab>Decorators</tab>
 <panel id="decorators">
