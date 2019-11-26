@@ -243,7 +243,6 @@ void FontParserBitmap::HandleElementStart(const String& name, const Rml::Core::X
 	{
 		family = Rml::Core::StringUtilities::ToLower( Get(attributes, "face", String()) );
 		metrics.size = Get(attributes, "size", 0);
-		metrics.line_height = Get(attributes, "height", 0);
 
 		style = Get(attributes, "italic", 0) == 1 ? FontStyle::Italic : FontStyle::Normal;
 		weight = Get(attributes, "bold", 0) == 1 ? FontWeight::Bold : FontWeight::Normal;
@@ -251,7 +250,7 @@ void FontParserBitmap::HandleElementStart(const String& name, const Rml::Core::X
 	else if (name == "common")
 	{
 		metrics.line_height = Get(attributes, "lineHeight", 0);
-		metrics.baseline = Get(attributes, "base", 0);
+		metrics.baseline = metrics.line_height - Get(attributes, "base", 0);
 
 		texture_dimensions.x = Get(attributes, "scaleW", 0.f);
 		texture_dimensions.y = Get(attributes, "scaleH", 0.f);
@@ -276,8 +275,11 @@ void FontParserBitmap::HandleElementStart(const String& name, const Rml::Core::X
 
 		glyph.advance = Get(attributes, "xadvance", 0);
 
+		// Shift y-origin from top to baseline
+		float origin_shift_y = float(metrics.baseline - metrics.line_height);
+
 		glyph.offset.x = Get(attributes, "xoffset", 0.f);
-		glyph.offset.y = Get(attributes, "yoffset", 0.f);
+		glyph.offset.y = Get(attributes, "yoffset", 0.f) + origin_shift_y;
 		
 		glyph.position.x = Get(attributes, "x", 0.f);
 		glyph.position.y = Get(attributes, "y", 0.f);
