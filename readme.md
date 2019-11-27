@@ -10,7 +10,7 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
-RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space. Please have a look at the [element index](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html) and the supported [properties](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html).
+RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space. Please have a look at the supported [RCSS properties](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) and [RML elements](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html).
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
@@ -22,13 +22,13 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Efficient application-wide styling, with a custom-built templating engine.
 - Fully featured control set: buttons, sliders, drop-downs, etc.
 - Runtime visual debugging suite.
-- Easily integrated and extensible with Lua scripting.
 
 ## Extensible
 
 - Abstracted interfaces for plugging in to any game engine.
 - Decorator engine allowing custom application-specific effects that can be applied to any element.
 - Generic event system that binds seamlessly into existing projects.
+- Easily integrated and extensible with Lua scripting.
 
 ## Controllable
 

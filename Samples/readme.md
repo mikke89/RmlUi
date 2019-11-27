@@ -34,7 +34,7 @@ use of RmlUi in small, easy to understand applications.
  * shell       - Common platform specific code used by all the 
                  samples for open windows, processing input and 
                  access files.
-                 Supports Windows, MacOS and Linux
+                 Supports Windows, macOS and Linux
                
  * tutorial    - Tutorial code that should be used in conjunction
                  with the tutorials on the RmlUi website.
