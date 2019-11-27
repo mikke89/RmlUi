@@ -172,13 +172,11 @@ decorator: image( <src> <orientation> <fit> <align-x> <align-y> );
 ```
 where
 
-```
-`<src>`: image source url or sprite name
-`<orientation>`: none (default) \| flip-horizontal \| flip-vertical \| rotate-180
-`<fit>`: fill (default) \| contain \| cover \| scale-none \| scale-down
-`<align-x>`: left \| center (default) \| right \| \<length-percentage\>
-`<align-y>`: top \| center (default) \| bottom \| \<length-percentage\>
-```
+- `<src>`: image source url or sprite name
+- `<orientation>`: none (default) \| flip-horizontal \| flip-vertical \| rotate-180
+- `<fit>`: fill (default) \| contain \| cover \| scale-none \| scale-down
+- `<align-x>`: left \| center (default) \| right \| \<length-percentage\>
+- `<align-y>`: top \| center (default) \| bottom \| \<length-percentage\>
 
 Values must be specified in the given order, any unspecified properties will be left at their default values. See the 'demo' sample for usage examples.
 
