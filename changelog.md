@@ -4,6 +4,62 @@
 
 ## RmlUi WIP
 
+### Progress bar
+
+A new `progressbar` element is introduced for visually displaying progress or relative values. The element can take the following attributes.
+
+- `value`. Number `[0, 1]`. The fraction of the progress bar that is filled where 1 means completely filled.
+- `direction`. Determines the direction in which the filled part expands. One of:
+   - `top | right (default) | bottom | left | clockwise | counter-clockwise`
+- `start-edge`. Only applies to 'clockwise' or 'counter-clockwise' directions. Defines which edge the
+circle should start expanding from. Possible values:
+   - `top (default) | right | bottom | left`
+
+The element is only available with the `RmlControls` library.
+
+**Styling**
+
+The progressbar generates a non-dom `fill` element beneath it which can be used to style the filled part of the bar. The `fill` element can use normal properties such as `background-color`, `border`, and `decorator` to style it, or use the new `fill-image`-property to set an image which will be clipped according to the progress bar's `value`. 
+
+The `fill-image` property is the only way to style circular progress bars (`clockwise` and `counter-clockwise` directions). The `fill` element is still available but it will always be fixed in size independent of the `value` attribute.
+
+**New RCSS property**
+
+- `fill-image`. String, non-inherited. Must be the name of a sprite or the path to an image.
+
+**Examples**
+
+The following RCSS styles three different progress bars.
+```css
+@spritesheet progress_bars
+{
+	src: my_progress_bars.tga;
+	progress:        103px 267px 80px 34px;
+	progress-fill-l: 110px 302px  6px 34px;
+	progress-fill-c: 140px 302px  6px 34px;
+	progress-fill-r: 170px 302px  6px 34px;
+	gauge:      0px 271px 100px 86px;
+	gauge-fill: 0px 356px 100px 86px;
+}
+.progress_horizontal { 
+	decorator: image( progress );
+	width: 80px;
+	height: 34px;
+}
+.progress_horizontal fill {
+	decorator: tiled-horizontal( progress-fill-l, progress-fill-c, progress-fill-r );
+	margin: 0 7px;
+	/* padding ensures that the decorator has a minimum width when the value is zero */
+	padding-left: 14px;
+}
+```
+Now, they can be used in RML as follows.
+```html
+<progressbar class="progress_horizontal" value="0.75"/>
+<progressbar class="progress_vertical" direction="top" value="0.6"/>
+<progressbar class="gauge" direction="clockwise" start-edge="bottom" value="0.3"/>
+```
+
 
 ### New font effects
 

@@ -69,7 +69,7 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions)
 		dimensions.y = (float)texture.GetDimensions(GetRenderInterface()).y;
 
 	// Return the calculated dimensions. If this changes the size of the element, it will result in
-	// a 'resize' event which is caught below and will regenerate the geometry.
+	// a call to 'onresize' below which will regenerate the geometry.
 	_dimensions = dimensions;
 	return true;
 }
@@ -181,7 +181,7 @@ void ElementImage::GenerateGeometry()
 	
 	Vector2f quad_size = GetBox().GetSize(Rml::Core::Box::CONTENT).Round();
 
-	Rml::Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour,  texcoords[0], texcoords[1]);
+	Rml::Core::GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour, texcoords[0], texcoords[1]);
 
 	geometry_dirty = false;
 }

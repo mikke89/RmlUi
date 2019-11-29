@@ -108,6 +108,10 @@ public:
 				source->SetValue(value);
 				SetSandboxStylesheet(value);
 			}
+
+			gauge = document->GetElementById("gauge");
+			progress_horizontal = document->GetElementById("progress_horizontal");
+			progress_vertical = document->GetElementById("progress_vertical");
 			
 			document->Show();
 		}
@@ -117,6 +121,26 @@ public:
 		if (iframe)
 		{
 			iframe->UpdateDocument();
+		}
+		if (gauge && progress_horizontal && progress_vertical)
+		{
+			constexpr double omega0 = 0.2 * 2.0 * 3.14;
+			const float value = 0.5f + 0.5f * Rml::Core::Math::Sin(float(omega0 * Rml::Core::GetSystemInterface()->GetElapsedTime()));
+
+			progress_horizontal->SetAttribute("value", value);
+			progress_vertical->SetAttribute("value", value);
+
+			const float value_begin = 0.09f;
+			const float value_end = 1.f - value_begin;
+			float value_mapped = value_begin + value * (value_end - value_begin);
+			gauge->SetAttribute("value", value_mapped);
+
+			auto value_string = Rml::Core::CreateString(10, "%d %%", Rml::Core::Math::RoundToInteger(value * 100.f));
+
+			if (auto el_value = document->GetElementById("gauge_value"))
+				el_value->SetInnerRML(value_string);
+			if (auto el_value = document->GetElementById("progress_value"))
+				el_value->SetInnerRML(value_string);
 		}
 	}
 
@@ -184,6 +208,7 @@ public:
 private:
 	Rml::Core::ElementDocument *document = nullptr;
 	Rml::Core::ElementDocument *iframe = nullptr;
+	Rml::Core::Element *gauge = nullptr, *progress_horizontal = nullptr, *progress_vertical = nullptr;
 	Rml::Core::SharedPtr<Rml::Core::StyleSheet> rml_basic_style_sheet;
 };
 
@@ -201,8 +226,8 @@ struct TweeningParameters {
 
 void GameLoop()
 {
-	context->Update();
 	demo_window->Update();
+	context->Update();
 
 	shell_renderer->PrepareRenderBuffer();
 	context->Render();

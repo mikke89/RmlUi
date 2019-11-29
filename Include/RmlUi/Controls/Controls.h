@@ -40,6 +40,7 @@
 #include "ElementFormControlInput.h"
 #include "ElementFormControlSelect.h"
 #include "ElementFormControlTextArea.h"
+#include "ElementProgressBar.h"
 #include "ElementTabSet.h"
 #include "SelectOption.h"
 

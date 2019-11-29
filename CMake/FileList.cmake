@@ -359,6 +359,7 @@ set(Controls_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlInput.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlSelect.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlTextArea.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementProgressBar.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementTabSet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Header.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/SelectOption.h
@@ -380,6 +381,7 @@ set(Controls_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlInput.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlSelect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlTextArea.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementProgressBar.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementTabSet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/ElementTextSelection.cpp
     ${PROJECT_SOURCE_DIR}/Source/Controls/InputType.cpp

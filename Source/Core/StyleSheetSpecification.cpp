@@ -395,6 +395,9 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("string");
 	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("string");
 
+	// Rare properties (not added to computed values)
+	RegisterProperty(PropertyId::FillImage, FILL_IMAGE, "", false, false).AddParser("string");
+
 	instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds);
 	instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds);
 }

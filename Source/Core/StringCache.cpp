@@ -110,6 +110,7 @@ const String ANIMATION = "animation";
 const String KEYFRAMES = "keyframes";
 const String OPACITY = "opacity";
 const String POINTER_EVENTS = "pointer-events";
+const String FILL_IMAGE = "fill-image";
 const String MOUSEDOWN = "mousedown";
 const String MOUSESCROLL = "mousescroll";
 const String MOUSEOVER = "mouseover";
