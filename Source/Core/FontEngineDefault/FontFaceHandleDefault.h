@@ -83,10 +83,10 @@ public:
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.
 	/// @param[out] texture_dimensions The dimensions of the texture.
-	/// @param[in] layer_id The id of the layer to request the texture data from.
+	/// @param[in] font_effect The font effect used for the layer.
 	/// @param[in] texture_id The index of the texture within the layer to generate.
 	/// @param[in] handle_version The version of the handle data. Function returns false if out of date.
-	bool GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* layer_id, int texture_id, int handle_version) const;
+	bool GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect, int texture_id, int handle_version) const;
 
 	/// Generates the geometry required to render a single line of text.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
@@ -123,7 +123,11 @@ private:
 
 	FontGlyphMap glyphs;
 
-	using FontLayerMap = SmallUnorderedMap< const FontEffect*, UniquePtr<FontFaceLayer> >;
+	struct EffectLayerPair {
+		const FontEffect* font_effect;
+		UniquePtr<FontFaceLayer> layer; 
+	};
+	using FontLayerMap = std::vector< EffectLayerPair >;
 	using FontLayerCache = SmallUnorderedMap< size_t, FontFaceLayer* >;
 	using LayerConfiguration = std::vector< FontFaceLayer* >;
 	using LayerConfigurationList = std::vector< LayerConfiguration >;
@@ -131,7 +135,7 @@ private:
 	// The list of all font layers, index by the effect that instanced them.
 	FontFaceLayer* base_layer;
 	FontLayerMap layers;
-	// Each font layer that generated geometry or textures, indexed by the respective generation key.
+	// Each font layer that generated geometry or textures, indexed by the font-effect's fingerprint key.
 	FontLayerCache layer_cache;
 
 	int version = 0;

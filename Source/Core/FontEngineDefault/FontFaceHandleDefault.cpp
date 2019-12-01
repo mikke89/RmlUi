@@ -192,16 +192,23 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 }
 
 // Generates the texture data for a layer (for the texture database).
-bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* layer_id, int texture_id, int handle_version) const
+bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect, int texture_id, int handle_version) const
 {
 	if (handle_version != version)
+	{
+		RMLUI_ERRORMSG("While generating font layer texture: Handle version mismatch in texture vs font-face.");
 		return false;
+	}
 
-	auto layer_iterator = layers.find(layer_id);
-	if (layer_iterator == layers.end())
+	auto it = std::find_if(layers.begin(), layers.end(), [font_effect](const EffectLayerPair& pair) { return pair.font_effect == font_effect; });
+
+	if (it == layers.end())
+	{
+		RMLUI_ERRORMSG("While generating font layer texture: Layer id not found.");
 		return false;
+	}
 
-	return layer_iterator->second->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
+	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
 }
 
 // Generates the geometry required to render a single line of text.
@@ -289,11 +296,12 @@ bool FontFaceHandleDefault::UpdateLayersOnDirty()
 		is_layers_dirty = false;
 		++version;
 
-		// Regenerate all the layers
+		// Regenerate all the layers.
+		// Note: The layer regeneration needs to happen in the order in which the layers were created,
+		// otherwise we may end up cloning a layer which has not yet been regenerated. This means trouble!
 		for (auto& pair : layers)
 		{
-			FontFaceLayer* layer = pair.second.get();
-			GenerateLayer(layer);
+			GenerateLayer(pair.layer.get());
 		}
 
 		result = true;
@@ -384,16 +392,17 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 // Generates (or shares) a layer derived from a font effect.
 FontFaceLayer* FontFaceHandleDefault::GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect)
 {
-	// Try inserting the font effect, it may have been instanced before as part of a different configuration.
-	auto pair = layers.emplace(font_effect.get(), nullptr);
+	// Search for the font effect layer first, it may have been instanced before as part of a different configuration.
+	const FontEffect* font_effect_ptr = font_effect.get();
+	auto it = std::find_if(layers.begin(), layers.end(), [font_effect_ptr](const EffectLayerPair& pair) { return pair.font_effect == font_effect_ptr; });
 
-	bool inserted = pair.second;
-	auto& layer = pair.first->second;
+	if (it != layers.end())
+		return it->layer.get();
 
-	if (!inserted)
-		return layer.get();
-
-	// The new effect was inserted, generate a new layer.
+	// No existing effect matches, generate a new layer for the effect.
+	layers.push_back(EffectLayerPair{ font_effect_ptr, nullptr });
+	auto& layer = layers.back().layer;
+	
 	layer = std::make_unique<FontFaceLayer>(font_effect);
 	GenerateLayer(layer.get());
 
