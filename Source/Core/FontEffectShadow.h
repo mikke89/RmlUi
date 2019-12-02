@@ -30,6 +30,7 @@
 #define RMLUICOREFONTEFFECTSHADOW_H
 
 #include "../../Include/RmlUi/Core/FontEffect.h"
+#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
 namespace Core {
@@ -65,6 +66,27 @@ public:
 private:
 	Vector2i offset;
 };
+
+
+
+/**
+	A concrete font effect instancer for the shadow effect.
+
+	@author Peter Curry
+ */
+
+class FontEffectShadowInstancer : public FontEffectInstancer
+{
+public:
+	FontEffectShadowInstancer();
+	virtual ~FontEffectShadowInstancer();
+
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
+
+private:
+	PropertyId id_offset_x, id_offset_y, id_color;
+};
+
 
 }
 }

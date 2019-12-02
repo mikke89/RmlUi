@@ -31,11 +31,10 @@
 
 #include "../../Include/RmlUi/Core/ConvolutionFilter.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
+#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
 namespace Core {
-
-class ConvolutionFilter;
 
 /**
 	A concrete font effect for rendering outlines around text.
@@ -76,6 +75,27 @@ private:
 	int width;
 	ConvolutionFilter filter;
 };
+
+
+
+/**
+	A concrete font effect instancer for the outline effect.
+
+	@author Peter Curry
+ */
+
+class FontEffectOutlineInstancer : public FontEffectInstancer
+{
+public:
+	FontEffectOutlineInstancer();
+	virtual ~FontEffectOutlineInstancer();
+
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
+
+private:
+	PropertyId id_width, id_color;
+};
+
 
 }
 }

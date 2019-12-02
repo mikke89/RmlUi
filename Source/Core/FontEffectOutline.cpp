@@ -102,5 +102,41 @@ void FontEffectOutline::GenerateGlyphTexture(byte* destination_data, const Vecto
 	filter.Run(destination_data, destination_dimensions, destination_stride, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(width, width));
 }
 
+
+
+
+
+FontEffectOutlineInstancer::FontEffectOutlineInstancer() : id_width(PropertyId::Invalid), id_color(PropertyId::Invalid)
+{
+	id_width = RegisterProperty("width", "1px", true).AddParser("length").GetId();
+	id_color = RegisterProperty("color", "white", false).AddParser("color").GetId();
+	RegisterShorthand("font-effect", "width, color", ShorthandType::FallThrough);
+}
+
+FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
+{
+}
+
+// Instances an outline font effect.
+SharedPtr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+{
+	RMLUI_UNUSED(name);
+
+	float width = properties.GetProperty(id_width)->Get< float >();
+	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
+
+	auto font_effect = std::make_shared<FontEffectOutline>();
+	if (font_effect->Initialise(Math::RealToInteger(width)))
+	{
+		font_effect->SetColour(color);
+		return font_effect;
+	}
+
+	return nullptr;
+}
+
+
+
+
 }
 }

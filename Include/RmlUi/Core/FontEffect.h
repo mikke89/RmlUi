@@ -38,7 +38,7 @@ namespace Core {
 	@author Peter Curry
  */
 
-class FontEffect
+class RMLUICORE_API FontEffect
 {
 public:
 	// Behind or in front of main text

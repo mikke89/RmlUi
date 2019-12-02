@@ -37,7 +37,7 @@ ConvolutionFilter::ConvolutionFilter()
 	kernel_size = 0;
 	kernel = nullptr;
 
-	operation = MEDIAN;
+	operation = MEAN;
 }
 
 ConvolutionFilter::~ConvolutionFilter()
@@ -73,7 +73,7 @@ float* ConvolutionFilter::operator[](int index)
 }
 
 // Runs the convolution filter.
-void ConvolutionFilter::Run(byte* destination, const Vector2i& destination_dimensions, int destination_stride, const byte* source, const Vector2i& source_dimensions, const Vector2i& source_offset) const
+void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimensions, int destination_stride, const byte* source, const Vector2i source_dimensions, const Vector2i source_offset) const
 {
 	for (int y = 0; y < destination_dimensions.y; ++y)
 	{
@@ -103,16 +103,16 @@ void ConvolutionFilter::Run(byte* destination, const Vector2i& destination_dimen
 
 					switch (operation)
 					{
-						case MEDIAN:	opacity += pixel_opacity; break;
-						case DILATION:	opacity = Math::Max(opacity, pixel_opacity); break;
-						case EROSION:	opacity = num_pixels == 0 ? pixel_opacity : Math::Min(opacity, pixel_opacity); break;
+						case MEAN:      opacity += pixel_opacity; break;
+						case DILATION:  opacity = Math::Max(opacity, pixel_opacity); break;
+						case EROSION:   opacity = num_pixels == 0 ? pixel_opacity : Math::Min(opacity, pixel_opacity); break;
 					}
 
 					++num_pixels;
 				}
 			}
 
-			if (operation == MEDIAN)
+			if (operation == MEAN)
 				opacity /= num_pixels;
 
 			opacity = Math::Min(255, opacity);

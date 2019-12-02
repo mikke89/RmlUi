@@ -33,9 +33,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
@@ -233,9 +231,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutlineInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadowInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp

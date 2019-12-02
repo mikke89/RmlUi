@@ -44,8 +44,8 @@ class ConvolutionFilter
 public:
 	enum FilterOperation
 	{
-		// The result is the median value of all the filtered pixels.
-		MEDIAN,
+		// The result is the mean value of all the filtered pixels.
+		MEAN,
 		// The result is the smallest value of all filtered pixels.
 		DILATION,
 		// The result is the largest value of all the filtered pixels.
@@ -58,7 +58,7 @@ public:
 	/// Initialises the filter. A filter must be initialised and populated with values before use.
 	/// @param[in] kernel_size The size of the filter's kernel each side of the origin. So, for example, a filter initialised with a size of 1 will store 9 values.
 	/// @param[in] operation The operation the filter conducts to determine the result.
-	bool Initialise(int kernel_size, FilterOperation operation = MEDIAN);
+	bool Initialise(int kernel_size, FilterOperation operation = MEAN);
 
 	/// Returns a reference to one of the rows of the filter kernel.
 	/// @param[in] index The index of the desired row.
@@ -74,7 +74,7 @@ public:
 	/// @param[in] source The opacity information for the source buffer.
 	/// @param[in] source_dimensions The size of the source region (in pixels). The stride is assumed to be equivalent to the horizontal width.
 	/// @param[in] source_offset The offset of the source region from the destination region. This is usually the same as the kernel size.
-	void Run(byte* destination, const Vector2i& destination_dimensions, int destination_stride, const byte* source, const Vector2i& source_dimensions, const Vector2i& source_offset) const;
+	void Run(byte* destination, Vector2i destination_dimensions, int destination_stride, const byte* source, Vector2i source_dimensions, Vector2i source_offset) const;
 
 private:
 	int kernel_size;
