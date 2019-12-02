@@ -40,6 +40,8 @@
 #include "ElementImage.h"
 #include "ElementTextDefault.h"
 #include "EventInstancerDefault.h"
+#include "FontEffectBlur.h"
+#include "FontEffectGlow.h"
 #include "FontEffectOutline.h"
 #include "FontEffectShadow.h"
 #include "PluginRegistry.h"
@@ -98,8 +100,10 @@ struct DefaultInstancers {
 	Ptr<DecoratorInstancer> decorator_ninepatch = std::make_unique<DecoratorNinePatchInstancer>();
 	Ptr<DecoratorInstancer> decorator_gradient = std::make_unique<DecoratorGradientInstancer>();
 
-	Ptr<FontEffectInstancer> font_effect_shadow = std::make_unique<FontEffectShadowInstancer>();
+	Ptr<FontEffectInstancer> font_effect_blur = std::make_unique<FontEffectBlurInstancer>();
+	Ptr<FontEffectInstancer> font_effect_glow = std::make_unique<FontEffectGlowInstancer>();
 	Ptr<FontEffectInstancer> font_effect_outline = std::make_unique<FontEffectOutlineInstancer>();
+	Ptr<FontEffectInstancer> font_effect_shadow = std::make_unique<FontEffectShadowInstancer>();
 };
 
 static UniquePtr<DefaultInstancers> default_instancers;
@@ -151,8 +155,10 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("ninepatch", default_instancers->decorator_ninepatch.get());
 	RegisterDecoratorInstancer("gradient", default_instancers->decorator_gradient.get());
 
-	RegisterFontEffectInstancer("shadow", default_instancers->font_effect_shadow.get());
+	RegisterFontEffectInstancer("blur", default_instancers->font_effect_blur.get());
+	RegisterFontEffectInstancer("glow", default_instancers->font_effect_glow.get());
 	RegisterFontEffectInstancer("outline", default_instancers->font_effect_outline.get());
+	RegisterFontEffectInstancer("shadow", default_instancers->font_effect_shadow.get());
 
 	// Register the core XML node handlers.
 	XMLParser::RegisterNodeHandler("", std::make_shared<XMLNodeHandlerDefault>());

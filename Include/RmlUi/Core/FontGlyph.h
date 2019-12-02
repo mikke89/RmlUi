@@ -40,7 +40,7 @@ namespace Core {
 	@author Peter Curry
  */
 
-class FontGlyph
+class RMLUICORE_API FontGlyph
 {
 public:
 	FontGlyph() : dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr), bitmap_dimensions(0,0)

@@ -26,73 +26,59 @@
  *
  */
 
-#include "precompiled.h"
+#ifndef RMLUICOREFONTEFFECTBLUR_H
+#define RMLUICOREFONTEFFECTBLUR_H
+
+#include "../../Include/RmlUi/Core/ConvolutionFilter.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
 namespace Core {
 
-FontEffect::FontEffect() : colour(255, 255, 255)
+/**
+	A concrete font effect for rendering Gaussian blurred text.
+ */
+
+class FontEffectBlur : public FontEffect
 {
-	layer = Layer::Back;
-}
+public:
+	FontEffectBlur();
+	virtual ~FontEffectBlur();
 
-FontEffect::~FontEffect()
+	bool Initialise(int width);
+
+	bool HasUniqueTexture() const override;
+
+	bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const override;
+
+	void GenerateGlyphTexture(byte* destination_data, const Vector2i& destination_dimensions, int destination_stride, const FontGlyph& glyph) const override;
+
+private:
+	int width;
+	ConvolutionFilter filter;
+};
+
+
+
+/**
+	A concrete font effect instancer for the blur effect.
+ */
+
+class FontEffectBlurInstancer : public FontEffectInstancer
 {
-}
+public:
+	FontEffectBlurInstancer();
+	virtual ~FontEffectBlurInstancer();
 
-bool FontEffect::HasUniqueTexture() const
-{
-	return false;
-}
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
 
-bool FontEffect::GetGlyphMetrics(Vector2i& RMLUI_UNUSED_PARAMETER(origin), Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
-{
-	RMLUI_UNUSED(origin);
-	RMLUI_UNUSED(dimensions);
-	RMLUI_UNUSED(glyph);
+private:
+	PropertyId id_width, id_color;
+};
 
-	return false;
-}
-
-void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), const Vector2i& RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
-{
-	RMLUI_UNUSED(destination_data);
-	RMLUI_UNUSED(destination_dimensions);
-	RMLUI_UNUSED(destination_stride);
-	RMLUI_UNUSED(glyph);
-}
-
-void FontEffect::SetColour(const Colourb& _colour)
-{
-	colour = _colour;
-}
-
-const Colourb& FontEffect::GetColour() const
-{
-	return colour;
-}
-
-FontEffect::Layer FontEffect::GetLayer() const
-{
-	return layer;
-}
-
-void FontEffect::SetLayer(Layer _layer)
-{
-	layer = _layer;
-}
-
-size_t FontEffect::GetFingerprint() const
-{
-	return fingerprint;
-}
-
-void FontEffect::SetFingerprint(size_t _fingerprint)
-{
-	fingerprint = _fingerprint;
-}
 
 }
 }
+
+#endif

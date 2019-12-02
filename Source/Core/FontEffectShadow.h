@@ -47,20 +47,10 @@ public:
 	FontEffectShadow();
 	virtual ~FontEffectShadow();
 
-	/// Initialise the shadow effect.
-	/// @param[in] offset The offset, in pixels, of the shadow from the original text.
-	/// @return True if the effect initialised successfully, false if not.
 	bool Initialise(const Vector2i& offset);
 
-	/// Returns false.
-	/// @return False.
 	bool HasUniqueTexture() const override;
 
-	/// Repositions the glyph by the offset.
-	/// @param[out] origin The desired origin of the effect's glyph bitmap, as a pixel offset from its original origin. This defaults to (0, 0).
-	/// @param[out] dimensions The desired dimensions of the effect's glyph bitmap, in pixels. This defaults to the dimensions of the glyph's original bitmap.
-	/// @param[in] glyph The glyph the effect is being asked to size.
-	/// @return False if the effect is not providing support for the glyph, true otherwise.
 	bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const override;
 
 private:

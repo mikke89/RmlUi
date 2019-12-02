@@ -41,7 +41,7 @@ namespace Core {
 class RMLUICORE_API FontEffect
 {
 public:
-	// Behind or in front of main text
+	// Behind or in front of the main text.
 	enum class Layer { Back, Front };
 
 	FontEffect();
@@ -59,19 +59,16 @@ public:
 	/// @return False if the effect is not providing support for the glyph, true otherwise.
 	virtual bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const;
 
-	/// Requests the effect to generate the texture data for a single glyph's bitmap. The default implementation does
-	/// nothing.
-	/// @param[out] destination_data The top-left corner of the glyph's 32-bit, RGBA-ordered, destination texture. Note that they glyph shares its texture with other glyphs.
+	/// Requests the effect to generate the texture data for a single glyph's bitmap. The default implementation does nothing.
+	/// @param[out] destination_data The top-left corner of the glyph's 32-bit, RGBA-ordered, destination texture. Note that the glyph shares its texture with other glyphs.
 	/// @param[in] destination_dimensions The dimensions of the glyph's area on its texture.
 	/// @param[in] destination_stride The stride of the glyph's texture.
 	/// @param[in] glyph The glyph the effect is being asked to generate an effect texture for.
 	virtual void GenerateGlyphTexture(byte* destination_data, const Vector2i& destination_dimensions, int destination_stride, const FontGlyph& glyph) const;
 
 	/// Sets the colour of the effect's geometry.
-	/// @param[in] colour The effect's colour.
 	void SetColour(const Colourb& colour);
 	/// Returns the effect's colour.
-	/// @return The colour of the effect.
 	const Colourb& GetColour() const;
 
 	Layer GetLayer() const;

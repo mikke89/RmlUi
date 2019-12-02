@@ -41,20 +41,17 @@ FontEffectShadow::~FontEffectShadow()
 {
 }
 
-// Initialise the shadow effect.
 bool FontEffectShadow::Initialise(const Vector2i& _offset)
 {
 	offset = _offset;
 	return true;
 }
 
-// Returns true.
 bool FontEffectShadow::HasUniqueTexture() const
 {
 	return false;
 }
 
-// Resizes and repositions the glyph to fit the outline.
 bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
 	RMLUI_UNUSED(dimensions);
@@ -97,8 +94,6 @@ SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String
 
 	return nullptr;
 }
-
-
 
 }
 }

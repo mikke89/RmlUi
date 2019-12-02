@@ -37,7 +37,7 @@ ConvolutionFilter::ConvolutionFilter()
 	kernel_size = 0;
 	kernel = nullptr;
 
-	operation = MEAN;
+	operation = SUM;
 }
 
 ConvolutionFilter::~ConvolutionFilter()
@@ -45,13 +45,12 @@ ConvolutionFilter::~ConvolutionFilter()
 	delete[] kernel;
 }
 
-// Initialises the filter. A filter must be initialised and populated with values before use.
-bool ConvolutionFilter::Initialise(int _kernel_size, FilterOperation _operation)
+bool ConvolutionFilter::Initialise(int _kernel_radius, FilterOperation _operation)
 {
-	if (_kernel_size <= 0)
+	if (_kernel_radius <= 0)
 		return false;
 
-	kernel_size = Math::Max(_kernel_size, 1);
+	kernel_size = Math::Max(_kernel_radius, 1);
 	kernel_size = kernel_size * 2 + 1;
 
 	kernel = new float[kernel_size * kernel_size];
@@ -61,7 +60,6 @@ bool ConvolutionFilter::Initialise(int _kernel_size, FilterOperation _operation)
 	return true;
 }
 
-// Returns a reference to one of the rows of the filter kernel.
 float* ConvolutionFilter::operator[](int index)
 {
 	RMLUI_ASSERT(kernel != nullptr);
@@ -72,51 +70,48 @@ float* ConvolutionFilter::operator[](int index)
 	return kernel + kernel_size * index;
 }
 
-// Runs the convolution filter.
 void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimensions, int destination_stride, const byte* source, const Vector2i source_dimensions, const Vector2i source_offset) const
 {
+	const float initial_opacity = (operation == EROSION ? FLT_MAX : 0.f);
+
+	const int kernel_radius = (kernel_size - 1) / 2;
+
 	for (int y = 0; y < destination_dimensions.y; ++y)
 	{
 		for (int x = 0; x < destination_dimensions.x; ++x)
 		{
-			int num_pixels = 0;
-			int opacity = 0;
+			float opacity = initial_opacity;
 
 			for (int kernel_y = 0; kernel_y < kernel_size; ++kernel_y)
 			{
-				int source_y = y - source_offset.y - ((kernel_size - 1) / 2) + kernel_y;
+				int source_y = y - source_offset.y - kernel_radius + kernel_y;
 
 				for (int kernel_x = 0; kernel_x < kernel_size; ++kernel_x)
 				{
-					int pixel_opacity;
+					float pixel_opacity;
 
-					int source_x = x - source_offset.x - ((kernel_size - 1) / 2) + kernel_x;
+					int source_x = x - source_offset.x - kernel_radius + kernel_x;
 					if (source_y >= 0 &&
 						source_y < source_dimensions.y &&
 						source_x >= 0 &&
 						source_x < source_dimensions.x)
 					{
-						pixel_opacity = Math::RealToInteger(source[source_y * source_dimensions.x + source_x] * kernel[kernel_y * kernel_size + kernel_x]);
+						pixel_opacity = float(source[source_y * source_dimensions.x + source_x]) * kernel[kernel_y * kernel_size + kernel_x];
 					}
 					else
 						pixel_opacity = 0;
 
 					switch (operation)
 					{
-						case MEAN:      opacity += pixel_opacity; break;
+						case SUM:       opacity += pixel_opacity; break;
 						case DILATION:  opacity = Math::Max(opacity, pixel_opacity); break;
-						case EROSION:   opacity = num_pixels == 0 ? pixel_opacity : Math::Min(opacity, pixel_opacity); break;
+						case EROSION:   opacity = Math::Min(opacity, pixel_opacity); break;
 					}
-
-					++num_pixels;
 				}
 			}
 
-			if (operation == MEAN)
-				opacity /= num_pixels;
-
-			opacity = Math::Min(255, opacity);
-			destination[x * 4 + 3] = (byte) opacity;
+			opacity = Math::Min(255.f, opacity);
+			destination[x * 4 + 3] = byte(opacity);
 		}
 
 		destination += destination_stride;

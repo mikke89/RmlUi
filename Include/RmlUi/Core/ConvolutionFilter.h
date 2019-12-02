@@ -39,13 +39,13 @@ namespace Core {
 	@author Peter Curry
  */
 
-class ConvolutionFilter
+class RMLUICORE_API ConvolutionFilter
 {
 public:
 	enum FilterOperation
 	{
-		// The result is the mean value of all the filtered pixels.
-		MEAN,
+		// The result is the sum of all the filtered pixels.
+		SUM,
 		// The result is the smallest value of all filtered pixels.
 		DILATION,
 		// The result is the largest value of all the filtered pixels.
@@ -56,9 +56,9 @@ public:
 	~ConvolutionFilter();
 
 	/// Initialises the filter. A filter must be initialised and populated with values before use.
-	/// @param[in] kernel_size The size of the filter's kernel each side of the origin. So, for example, a filter initialised with a size of 1 will store 9 values.
+	/// @param[in] kernel_radius The size of the filter's kernel on each side of the origin. So, for example, a filter initialised with a radius of 1 will store 9 values.
 	/// @param[in] operation The operation the filter conducts to determine the result.
-	bool Initialise(int kernel_size, FilterOperation operation = MEAN);
+	bool Initialise(int kernel_radius, FilterOperation operation = SUM);
 
 	/// Returns a reference to one of the rows of the filter kernel.
 	/// @param[in] index The index of the desired row.
