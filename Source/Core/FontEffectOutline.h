@@ -52,11 +52,9 @@ public:
 
 	bool HasUniqueTexture() const override;
 
-	/// Resizes and repositions the glyph to fit the outline.
 	bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const override;
 
-	/// Expands the original glyph texture for the outline.
-	void GenerateGlyphTexture(byte* destination_data, const Vector2i& destination_dimensions, int destination_stride, const FontGlyph& glyph) const override;
+	void GenerateGlyphTexture(byte* destination_data, Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const override;
 
 private:
 	int width;

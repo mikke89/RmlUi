@@ -115,6 +115,19 @@ p.title
 {
 	font-size: 35px;
 	color: #b33;
+	font-effect: glow(3px #ed5);
+}
+p.title1
+{
+	font-size: 35px;
+	color: #b33;
+	font-effect: outline(3px #ed5);
+}
+p.title2
+{
+	font-size: 35px;
+	color: transparent;
+	font-effect: blur(10px #ed5);
 }
 .center {
 	text-align: center;
@@ -438,6 +451,8 @@ form h2
 <tab>Welcome</tab>
 <panel id="welcome">
 	<p class="title" style="margin-top: 1.8em;">RmlUi 😍</p>
+	<p class="title1" style="margin-top: 1.8em;">RmlUi 😍</p>
+	<p class="title2" style="margin-top: 1.8em;">RmlUi 😍</p>
 	<p>Have fun fiddling about in this demo.</p>
 	<p>Press 'F8' to open up the debugger.</p>
 	<p class="title" style="margin-top: 1em;">🎉</p>

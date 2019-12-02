@@ -43,6 +43,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBoxText.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutLineBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Memory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
@@ -247,6 +248,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutLineBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Log.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Math.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Memory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ObserverPtr.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.cpp

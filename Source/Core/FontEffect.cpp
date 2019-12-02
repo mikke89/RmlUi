@@ -56,7 +56,7 @@ bool FontEffect::GetGlyphMetrics(Vector2i& RMLUI_UNUSED_PARAMETER(origin), Vecto
 	return false;
 }
 
-void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), const Vector2i& RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
+void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), Vector2i RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
 	RMLUI_UNUSED(destination_data);
 	RMLUI_UNUSED(destination_dimensions);

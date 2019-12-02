@@ -28,6 +28,7 @@
 
 #include "precompiled.h"
 #include "FontEffectGlow.h"
+#include "Memory.h"
 
 namespace Rml {
 namespace Core {
@@ -58,9 +59,8 @@ bool FontEffectGlow::Initialise(int _width_outline, int _width_blur)
 	width_blur = _width_blur;
 	combined_width = width_blur + width_outline;
 
-	// Outline filter
-	// @performance: I think we can separate into horizontal and vertical pass?
-	filter_outline.Initialise(width_outline, ConvolutionFilter::DILATION);
+	// Outline filter.
+	filter_outline.Initialise(width_outline, FilterOperation::Dilation);
 	for (int x = -width_outline; x <= width_outline; ++x)
 	{
 		for (int y = -width_outline; y <= width_outline; ++y)
@@ -78,31 +78,33 @@ bool FontEffectGlow::Initialise(int _width_outline, int _width_blur)
 		}
 	}
 
+
 	// Gaussian blur filter
-	const float std_dev = .5f * float(width_blur);
+	const float std_dev = .4f * float(width_blur);
 	const float two_variance = 2.f * std_dev * std_dev;
-	const float gain = 1.f / (Math::RMLUI_PI * two_variance);
+	const float gain = 1.f / Math::SquareRoot(Math::RMLUI_PI * two_variance);
 
 	float sum_weight = 0.f;
 
-	// @performance: Can separate into horizontal and vertical pass
-	filter_blur.Initialise(width_blur, ConvolutionFilter::SUM);
+	// We separate the blur filter into two passes, horizontal and vertical, for performance reasons.
+	filter_blur_x.Initialise(Vector2i(width_blur, 0), FilterOperation::Sum);
+	filter_blur_y.Initialise(Vector2i(0, width_blur), FilterOperation::Sum);
+
 	for (int x = -width_blur; x <= width_blur; ++x)
 	{
-		for (int y = -width_blur; y <= width_blur; ++y)
-		{
-			float weight = gain * Math::Exp(-Math::SquareRoot(float(x * x + y * y) / two_variance));
+		float weight = gain * Math::Exp(-Math::SquareRoot(float(x * x) / two_variance));
 
-			filter_blur[x + width_blur][y + width_blur] = weight;
-			sum_weight += weight;
-		}
+		filter_blur_x[0][x + width_blur] = weight;
+		filter_blur_y[x + width_blur][0] = weight;
+		sum_weight += weight;
 	}
 
-	// Normalize the blur kernel
+	// Normalize the kernels
 	for (int x = -width_blur; x <= width_blur; ++x)
-		for (int y = -width_blur; y <= width_blur; ++y)
-			filter_blur[x + width_blur][y + width_blur] /= sum_weight;
-
+	{
+		filter_blur_x[0][x + width_blur] /= sum_weight;
+		filter_blur_y[x + width_blur][0] /= sum_weight;
+	}
 
 	return true;
 }
@@ -125,28 +127,28 @@ bool FontEffectGlow::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, con
 	return false;
 }
 
-void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i& destination_dimensions, int destination_stride, const FontGlyph& glyph) const
+void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const
 {
-	const int buf_size = destination_dimensions.x * destination_dimensions.y * 4;
-	byte* outline_output = new byte[buf_size];
-	memset(outline_output, 0, buf_size);
+	const Vector2i buf_dimensions = destination_dimensions;
+	const int buf_stride = buf_dimensions.x;
+	const int buf_size = buf_dimensions.x * buf_dimensions.y;
 
-	filter_outline.Run(outline_output, destination_dimensions, destination_dimensions.x * 4, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(combined_width));
+	DynamicArray<byte, GlobalStackAllocator<byte>> outline_output(buf_size);
+	DynamicArray<byte, GlobalStackAllocator<byte>> blur_x_output(buf_size);
 
-	for (int i = 0; i < buf_size / 4; i++)
-		outline_output[i] = outline_output[i * 4 + 3];
+	filter_outline.Run(outline_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(combined_width));
+	
+	filter_blur_x.Run(blur_x_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, outline_output.data(), buf_dimensions, Vector2i(0));
 
-	filter_blur.Run(destination_data, destination_dimensions, destination_stride, outline_output, destination_dimensions, Vector2i(0));
-
-	delete[] outline_output;
+	filter_blur_y.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, blur_x_output.data(), buf_dimensions, Vector2i(0));
 }
 
 
 
 FontEffectGlowInstancer::FontEffectGlowInstancer() : id_width_outline(PropertyId::Invalid), id_width_blur(PropertyId::Invalid),id_color(PropertyId::Invalid)
 {
-	id_width_outline = RegisterProperty("width-outline", "-1px", true).AddParser("length").GetId();
-	id_width_blur = RegisterProperty("width-blur", "1px", true).AddParser("length").GetId();
+	id_width_outline = RegisterProperty("width-outline", "1px", true).AddParser("length").GetId();
+	id_width_blur = RegisterProperty("width-blur", "-1px", true).AddParser("length").GetId();
 	id_color = RegisterProperty("color", "white", false).AddParser("color").GetId();
 	RegisterShorthand("font-effect", "width-outline, width-blur, color", ShorthandType::FallThrough);
 }
@@ -167,7 +169,7 @@ SharedPtr<FontEffect> FontEffectGlowInstancer::InstanceFontEffect(const String& 
 		width_blur = width_outline;
 
 	auto font_effect = std::make_shared<FontEffectGlow>();
-	if (font_effect->Initialise(width_blur, width_outline))
+	if (font_effect->Initialise(width_outline, width_blur))
 	{
 		font_effect->SetColour(color);
 		return font_effect;

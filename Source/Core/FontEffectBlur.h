@@ -52,11 +52,11 @@ public:
 
 	bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const override;
 
-	void GenerateGlyphTexture(byte* destination_data, const Vector2i& destination_dimensions, int destination_stride, const FontGlyph& glyph) const override;
+	void GenerateGlyphTexture(byte* destination_data, Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const override;
 
 private:
 	int width;
-	ConvolutionFilter filter;
+	ConvolutionFilter filter_x, filter_y;
 };
 
 

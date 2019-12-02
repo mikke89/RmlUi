@@ -26,62 +26,21 @@
  *
  */
 
-#ifndef RMLUICOREFONTEFFECTGLOW_H
-#define RMLUICOREFONTEFFECTGLOW_H
-
-#include "../../Include/RmlUi/Core/ConvolutionFilter.h"
-#include "../../Include/RmlUi/Core/FontEffect.h"
-#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
+#include "precompiled.h"
+#include "Memory.h"
 
 namespace Rml {
 namespace Core {
 
-/**
-	A font effect for rendering glow around text.
+namespace Detail {
 
-	Glow consists of an outline pass followed by a Gaussian blur pass.
-
- */
-
-class FontEffectGlow : public FontEffect
+BasicStackAllocator& GetGlobalBasicStackAllocator()
 {
-public:
-	FontEffectGlow();
-	virtual ~FontEffectGlow();
+	static BasicStackAllocator stack_allocator(10 * 1024);
+	return stack_allocator;
+}
 
-	bool Initialise(int width_outline, int width_blur);
-
-	bool HasUniqueTexture() const override;
-
-	bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const override;
-
-	void GenerateGlyphTexture(byte* destination_data, Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const override;
-
-private:
-	int width_outline, width_blur, combined_width;
-	ConvolutionFilter filter_outline, filter_blur_x, filter_blur_y;
-};
-
-
-
-/**
-	A concrete font effect instancer for the glow effect.
- */
-
-class FontEffectGlowInstancer : public FontEffectInstancer
-{
-public:
-	FontEffectGlowInstancer();
-	virtual ~FontEffectGlowInstancer();
-
-	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
-
-private:
-	PropertyId id_width_outline, id_width_blur, id_color;
-};
-
+}
 
 }
 }
-
-#endif

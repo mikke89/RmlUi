@@ -64,7 +64,7 @@ public:
 	/// @param[in] destination_dimensions The dimensions of the glyph's area on its texture.
 	/// @param[in] destination_stride The stride of the glyph's texture.
 	/// @param[in] glyph The glyph the effect is being asked to generate an effect texture for.
-	virtual void GenerateGlyphTexture(byte* destination_data, const Vector2i& destination_dimensions, int destination_stride, const FontGlyph& glyph) const;
+	virtual void GenerateGlyphTexture(byte* destination_data, Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const;
 
 	/// Sets the colour of the effect's geometry.
 	void SetColour(const Colourb& colour);
