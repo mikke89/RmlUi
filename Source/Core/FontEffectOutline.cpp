@@ -84,8 +84,8 @@ bool FontEffectOutline::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, 
 		origin.x -= width;
 		origin.y -= width;
 
-		dimensions.x += width;
-		dimensions.y += width;
+		dimensions.x += 2 * width;
+		dimensions.y += 2 * width;
 
 		return true;
 	}

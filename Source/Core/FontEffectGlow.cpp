@@ -119,8 +119,8 @@ bool FontEffectGlow::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, con
 		origin.x += offset.x - combined_width;
 		origin.y += offset.y - combined_width;
 
-		dimensions.x += combined_width;
-		dimensions.y += combined_width;
+		dimensions.x += 2 * combined_width;
+		dimensions.y += 2 * combined_width;
 
 		return true;
 	}

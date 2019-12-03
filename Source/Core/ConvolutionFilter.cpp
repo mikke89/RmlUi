@@ -115,9 +115,8 @@ void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimens
 			case ColorFormat::RGBA8: destination_index = x * 4 + 3; break;
 			case ColorFormat::A8:    destination_index = x; break;
 			}
-				
-			destination[destination_index] = byte(opacity);
 
+			destination[destination_index] = byte(opacity);
 		}
 
 		destination += destination_stride;

@@ -115,7 +115,7 @@ p.title
 {
 	font-size: 35px;
 	color: #b33;
-	font-effect: glow(3px 3px 2px 2px #733); /* 15px 5px  */
+	font-effect: glow(2px 4px 2px 2px #733);
 }
 p.title1
 {

@@ -93,8 +93,8 @@ bool FontEffectBlur::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, con
 		origin.x -= width;
 		origin.y -= width;
 
-		dimensions.y += width;
-		dimensions.x += width;
+		dimensions.y += 2 * width;
+		dimensions.x += 2 * width;
 
 		return true;
 	}
