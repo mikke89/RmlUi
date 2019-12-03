@@ -4,11 +4,70 @@
 
 ## RmlUi WIP
 
+
+### New font effects
+
+Two new font effects have been added.
+
+**Glow effect**
+
+Renders a blurred outline around the text. 
+
+The `glow` effect is declared as:
+```css
+font-effect: glow( <width-outline> <width-blur> <offset-x> <offset-y> <color> );
+```
+Both the outline pass and the subsequent blur pass can be controlled independently. Additionally, an offset can be applied which makes the effect suitable for generating drop shadows as well.
+
+**Blur effect**
+
+Renders a Gaussian blurred copy of the text.
+
+The `blur` effect is declared as:
+```css
+font-effect: blur( <width> <color> );
+```
+Note that, the blur effect will not replace the original text. To only show the blurred version of the text, set the `color` property of the original text to `transparent`.
+
+**Example usage**
+
+```css
+/* Declares a glow effect. */
+h1
+{
+	font-effect: glow( 3px #ee9 );
+}
+
+/* The glow effect can also create nice looking shadows. */
+p.glow_shadow
+{
+	color: #ed5;
+	font-effect: glow(2px 4px 2px 3px #644);
+}
+
+/* Renders a blurred version of the text, hides the original text. */
+h1
+{
+	color: transparent;
+	font-effect: blur(3px #ed5);
+}
+```
+
+See the `demo` sample for additional usage examples and results.
+
+
+
 ### CMake options
 
 New CMake option added.
 
 - `DISABLE_RTTI_AND_EXCEPTIONS` will try to configure the compiler to disable RTTI language support and exceptions. All internal use of RTTI (eg. dynamic_cast) will then be replaced by a custom solution. If set, users of the library should then `#define RMLUI_USE_CUSTOM_RTTI` before including the library.
+
+
+
+### Breaking changes
+
+- For users that implement custom font effects, there are some minor changes to the font effect interface and the convolution filter.
 
 
 

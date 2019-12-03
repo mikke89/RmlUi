@@ -40,7 +40,7 @@ body.window
 {
 	width: 1300px;
 	height: 750px;
-	min-width: 940px;
+	min-width: 1090px;
 	min-height: 300px;
 	max-width: -1px;
 	max-height: -1px;
@@ -52,6 +52,7 @@ div#title_bar div#icon
 div#content
 { 
 	position: relative; 
+	/* background-color: #bbb; */
 }
 tabset
 {
@@ -61,21 +62,17 @@ tabs
 {
     display: block;
 	position: fixed;
-	width: 100%;
 	clip: none;
-	pointer-events: none;
 	text-align: right;
+	padding-left: 200px;
 	padding-right: 10px;
+	top: -47px;
 }
 tab
 {
-	position: relative;
     width: 100px;
-	pointer-events: auto;
 	padding: 0px 20px;
 	line-height: 40px;
-	top: -47px;
-	z-index: 2;
 	
 	font-size: 16px;
 	color: #ddd;
@@ -115,25 +112,7 @@ p.title
 {
 	font-size: 35px;
 	color: #b33;
-	font-effect: glow(2px 4px 2px 2px #733);
-}
-p.title1
-{
-	font-size: 35px;
-	color: #b33;
-	font-effect: outline(3px #ed5);
-}
-p.title2
-{
-	font-size: 35px;
-	color: transparent;
-	font-effect: blur(10px #ed5);
-}
-p.title3
-{
-	font-size: 35px;
-	color: #b33;
-	font-effect: shadow(2px 2px #ed5);
+	font-effect: glow(2px #ed5);
 }
 .center {
 	text-align: center;
@@ -239,6 +218,68 @@ p.title3
 .orientation-vertical   { decorator: image( icon-invader flip-vertical   scale-none ); }
 .orientation-horizontal { decorator: image( icon-invader flip-horizontal scale-none ); }
 .orientation-rotate     { decorator: image( icon-invader rotate-180      scale-none ); }
+
+
+/***  Font effects  ***/
+
+#font_effects div 
+{
+	display: inline-block;
+	width: 150px;
+	margin: 0px 30px 30px;
+	text-align: center;
+	font-size: 35px;
+	color: #b33;
+}
+#font_effects h1 
+{
+	margin: 15px 0 10px 0;
+}
+#font_effects .glow
+{
+	font-effect: glow(3px #ed5);
+}
+#font_effects .glow_sharper
+{
+	font-effect: glow(3px 1px #ed5);
+}
+#font_effects .glow_blurry
+{
+	font-effect: glow(2px 7px #ed5);
+}
+#font_effects .glow_shadow
+{
+	color: #ed5;
+	font-effect: glow(2px 4px 2px 3px #644);
+}
+#font_effects .outline_small
+{
+	font-effect: outline(2px #ed5);
+}
+#font_effects .outline_big
+{
+	font-effect: outline(4px #ed5);
+}
+#font_effects .blur_small
+{
+	color: transparent;
+	font-effect: blur(3px #ed5);
+}
+#font_effects .blur_big
+{
+	color: transparent;
+	font-effect: blur(10px #ed5);
+}
+#font_effects .shadow_up
+{
+	font-weight: bold;
+	font-effect: shadow(3px -3px #ed5);
+}
+#font_effects .shadow_down
+{
+	font-weight: bold;
+	font-effect: shadow(0px 2px #333);
+}
 
 
 /***  Animations  ***/
@@ -457,9 +498,6 @@ form h2
 <tab>Welcome</tab>
 <panel id="welcome">
 	<p class="title" style="margin-top: 1.8em;">RmlUi 😍</p>
-	<p class="title1" style="margin-top: 1.8em;">RmlUi 😍</p>
-	<p class="title2" style="margin-top: 1.8em;">RmlUi 😍</p>
-	<p class="title3" style="margin-top: 1.8em;">RmlUi 😍</p>
 	<p>Have fun fiddling about in this demo.</p>
 	<p>Press 'F8' to open up the debugger.</p>
 	<p class="title" style="margin-top: 1em;">🎉</p>
@@ -595,6 +633,25 @@ form h2
 	<p>Sprite sheets are defined by an image source and a collection of sprites, and can be declared in RCSS. Sprites are essentially rectangles into the given image. For example, the following image</p>
 	<img src="../../../assets/invader.tga" rect="0 0 500 300" style="margin-top: 10px; margin-bottom: 10px;"/>
 	<p>is used to render most sprites in this demo. Sprites can be used in decorators and image elements as if they were separate images.</p>
+</panel>
+<tab>Font effects</tab>
+<panel id="font_effects">
+	<h1>None</h1>
+	<div class="original">RmlUi 😍</div>
+	<h1>Glow</h1>
+	<div class="glow">RmlUi 😍</div>
+	<div class="glow_sharper">RmlUi 😍</div>
+	<div class="glow_blurry">RmlUi 😍</div>
+	<div class="glow_shadow">RmlUi 😍</div>
+	<h1>Outline</h1>
+	<div class="outline_small">RmlUi 😍</div>
+	<div class="outline_big">RmlUi 😍</div>
+	<h1>Shadow</h1>
+	<div class="shadow_up">RmlUi 😍</div>
+	<div class="shadow_down">RmlUi 😍</div>
+	<h1>Blur</h1>
+	<div class="blur_small">RmlUi 😍</div>
+	<div class="blur_big">RmlUi 😍</div>
 </panel>
 <tab>Animations</tab>
 <panel id="animations">
