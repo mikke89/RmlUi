@@ -49,7 +49,7 @@ public:
 	FontEffectGlow();
 	virtual ~FontEffectGlow();
 
-	bool Initialise(int width_outline, int width_blur);
+	bool Initialise(int width_outline, int width_blur, Vector2i offset);
 
 	bool HasUniqueTexture() const override;
 
@@ -59,6 +59,7 @@ public:
 
 private:
 	int width_outline, width_blur, combined_width;
+	Vector2i offset;
 	ConvolutionFilter filter_outline, filter_blur_x, filter_blur_y;
 };
 
@@ -77,7 +78,7 @@ public:
 	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
 
 private:
-	PropertyId id_width_outline, id_width_blur, id_color;
+	PropertyId id_width_outline, id_width_blur, id_offset_x, id_offset_y, id_color;
 };
 
 

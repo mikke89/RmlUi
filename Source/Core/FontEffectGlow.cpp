@@ -50,14 +50,15 @@ bool FontEffectGlow::HasUniqueTexture() const
 	return true;
 }
 
-bool FontEffectGlow::Initialise(int _width_outline, int _width_blur)
+bool FontEffectGlow::Initialise(int _width_outline, int _width_blur, Vector2i _offset)
 {
-	if (_width_outline <= 0 || _width_blur <= 0)
+	if (_width_outline < 0 || _width_blur < 0)
 		return false;
 
 	width_outline = _width_outline;
 	width_blur = _width_blur;
 	combined_width = width_blur + width_outline;
+	offset = _offset;
 
 	// Outline filter.
 	filter_outline.Initialise(width_outline, FilterOperation::Dilation);
@@ -80,7 +81,7 @@ bool FontEffectGlow::Initialise(int _width_outline, int _width_blur)
 
 
 	// Gaussian blur filter
-	const float std_dev = .4f * float(width_blur);
+	const float std_dev = (width_blur == 0 ? 1.f : .4f * float(width_blur));
 	const float two_variance = 2.f * std_dev * std_dev;
 	const float gain = 1.f / Math::SquareRoot(Math::RMLUI_PI * two_variance);
 
@@ -115,8 +116,8 @@ bool FontEffectGlow::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, con
 
 	if (dimensions.x * dimensions.y > 0)
 	{
-		origin.x -= combined_width;
-		origin.y -= combined_width;
+		origin.x += offset.x - combined_width;
+		origin.y += offset.y - combined_width;
 
 		dimensions.x += combined_width;
 		dimensions.y += combined_width;
@@ -149,8 +150,10 @@ FontEffectGlowInstancer::FontEffectGlowInstancer() : id_width_outline(PropertyId
 {
 	id_width_outline = RegisterProperty("width-outline", "1px", true).AddParser("length").GetId();
 	id_width_blur = RegisterProperty("width-blur", "-1px", true).AddParser("length").GetId();
+	id_offset_x = RegisterProperty("offset-x", "0px", true).AddParser("length").GetId();
+	id_offset_y = RegisterProperty("offset-y", "0px", true).AddParser("length").GetId();
 	id_color = RegisterProperty("color", "white", false).AddParser("color").GetId();
-	RegisterShorthand("font-effect", "width-outline, width-blur, color", ShorthandType::FallThrough);
+	RegisterShorthand("font-effect", "width-outline, width-blur, offset-x, offset-y, color", ShorthandType::FallThrough);
 }
 
 FontEffectGlowInstancer::~FontEffectGlowInstancer()
@@ -161,15 +164,18 @@ SharedPtr<FontEffect> FontEffectGlowInstancer::InstanceFontEffect(const String& 
 {
 	RMLUI_UNUSED(name);
 
+	Vector2i offset;
 	int width_outline = properties.GetProperty(id_width_outline)->Get< int >();
 	int width_blur = properties.GetProperty(id_width_blur)->Get< int >();
+	offset.x = properties.GetProperty(id_offset_x)->Get< int >();
+	offset.y = properties.GetProperty(id_offset_y)->Get< int >();
 	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
 
 	if (width_blur < 0)
 		width_blur = width_outline;
 
 	auto font_effect = std::make_shared<FontEffectGlow>();
-	if (font_effect->Initialise(width_outline, width_blur))
+	if (font_effect->Initialise(width_outline, width_blur, offset))
 	{
 		font_effect->SetColour(color);
 		return font_effect;
