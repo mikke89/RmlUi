@@ -77,9 +77,15 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 				Character character = pair.first;
 				const FontGlyph& glyph = pair.second;
 
-				RMLUI_ASSERT(character_boxes.find(character) != character_boxes.end());
+				auto it = character_boxes.find(character);
+				if (it == character_boxes.end())
+				{
+					// This can happen if the layers have been dirtied in FontHandleDefault. We will
+					// probably be regenerated soon, just skip the character for now.
+					continue;
+				}
 
-				TextureBox& box = character_boxes[character];
+				TextureBox& box = it->second;
 
 				Vector2i glyph_origin(Math::RealToInteger(box.origin.x), Math::RealToInteger(box.origin.y));
 				Vector2i glyph_dimensions(Math::RealToInteger(box.dimensions.x), Math::RealToInteger(box.dimensions.y));
@@ -114,12 +120,15 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 			}
 
 			TextureBox box;
-			box.origin = Vector2f((float)(glyph_origin.x + glyph.bearing.x), (float)(glyph_origin.y - glyph.bearing.y));
-			box.dimensions = Vector2f((float)glyph_dimensions.x - glyph_origin.x, (float)glyph_dimensions.y - glyph_origin.y);
+			box.origin = Vector2f(float(glyph_origin.x + glyph.bearing.x), float(glyph_origin.y - glyph.bearing.y));
+			box.dimensions = Vector2f(float(glyph_dimensions.x), float(glyph_dimensions.y));
+			
+			RMLUI_ASSERT(box.dimensions.x >= 0 && box.dimensions.y >= 0);
+
 			character_boxes[character] = box;
 
 			// Add the character's dimensions into the texture layout engine.
-			texture_layout.AddRectangle((int)character, glyph_dimensions - glyph_origin);
+			texture_layout.AddRectangle((int)character, glyph_dimensions);
 		}
 
 		constexpr int max_texture_dimensions = 1024;

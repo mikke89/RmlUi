@@ -27,39 +27,19 @@
  */
 
 #include "precompiled.h"
-#include "FontEffectOutlineInstancer.h"
-#include "FontEffectOutline.h"
+#include "Memory.h"
 
 namespace Rml {
 namespace Core {
 
-FontEffectOutlineInstancer::FontEffectOutlineInstancer() : id_width(PropertyId::Invalid), id_color(PropertyId::Invalid)
+namespace Detail {
+
+BasicStackAllocator& GetGlobalBasicStackAllocator()
 {
-	id_width = RegisterProperty("width", "1px", true).AddParser("length").GetId();
-	id_color = RegisterProperty("color", "white", false).AddParser("color").GetId();
-	RegisterShorthand("font-effect", "width, color", ShorthandType::FallThrough);
+	static BasicStackAllocator stack_allocator(10 * 1024);
+	return stack_allocator;
 }
 
-FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
-{
-}
-
-// Instances an outline font effect.
-SharedPtr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
-{
-	RMLUI_UNUSED(name);
-
-	float width = properties.GetProperty(id_width)->Get< float >();
-	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
-
-	auto font_effect = std::make_shared<FontEffectOutline>();
-	if (font_effect->Initialise(Math::RealToInteger(width)))
-	{
-		font_effect->SetColour(color);
-		return font_effect;
-	}
-
-	return nullptr;
 }
 
 }

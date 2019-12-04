@@ -26,44 +26,63 @@
  *
  */
 
-#include "precompiled.h"
-#include "FontEffectShadowInstancer.h"
-#include "FontEffectShadow.h"
+#ifndef RMLUICOREFONTEFFECTGLOW_H
+#define RMLUICOREFONTEFFECTGLOW_H
+
+#include "../../Include/RmlUi/Core/ConvolutionFilter.h"
+#include "../../Include/RmlUi/Core/FontEffect.h"
+#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
 namespace Core {
 
-FontEffectShadowInstancer::FontEffectShadowInstancer() : id_offset_x(PropertyId::Invalid), id_offset_y(PropertyId::Invalid), id_color(PropertyId::Invalid)
-{
-	id_offset_x = RegisterProperty("offset-x", "0px", true).AddParser("length").GetId();
-	id_offset_y = RegisterProperty("offset-y", "0px", true).AddParser("length").GetId();
-	id_color = RegisterProperty("color", "white", false).AddParser("color").GetId();
-	RegisterShorthand("offset", "offset-x, offset-y", ShorthandType::FallThrough);
-	RegisterShorthand("font-effect", "offset-x, offset-y, color", ShorthandType::FallThrough);
-}
+/**
+	A font effect for rendering glow around text.
 
-FontEffectShadowInstancer::~FontEffectShadowInstancer()
-{
-}
+	Glow consists of an outline pass followed by a Gaussian blur pass.
 
-SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
-{
-	RMLUI_UNUSED(name);
+ */
 
+class FontEffectGlow : public FontEffect
+{
+public:
+	FontEffectGlow();
+	virtual ~FontEffectGlow();
+
+	bool Initialise(int width_outline, int width_blur, Vector2i offset);
+
+	bool HasUniqueTexture() const override;
+
+	bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const override;
+
+	void GenerateGlyphTexture(byte* destination_data, Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const override;
+
+private:
+	int width_outline, width_blur, combined_width;
 	Vector2i offset;
-	offset.x = Math::RealToInteger(properties.GetProperty(id_offset_x)->Get< float >());
-	offset.y = Math::RealToInteger(properties.GetProperty(id_offset_y)->Get< float >());
-	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
+	ConvolutionFilter filter_outline, filter_blur_x, filter_blur_y;
+};
 
-	auto font_effect = std::make_shared<FontEffectShadow>();
-	if (font_effect->Initialise(offset))
-	{
-		font_effect->SetColour(color);
-		return font_effect;
-	}
 
-	return nullptr;
+
+/**
+	A concrete font effect instancer for the glow effect.
+ */
+
+class FontEffectGlowInstancer : public FontEffectInstancer
+{
+public:
+	FontEffectGlowInstancer();
+	virtual ~FontEffectGlowInstancer();
+
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
+
+private:
+	PropertyId id_width_outline, id_width_blur, id_offset_x, id_offset_y, id_color;
+};
+
+
+}
 }
 
-}
-}
+#endif

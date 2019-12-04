@@ -33,90 +33,90 @@ namespace Rml {
 namespace Core {
 
 ConvolutionFilter::ConvolutionFilter()
-{
-	kernel_size = 0;
-	kernel = nullptr;
-
-	operation = MEDIAN;
-}
+{}
 
 ConvolutionFilter::~ConvolutionFilter()
+{}
+
+bool ConvolutionFilter::Initialise(int _kernel_radius, FilterOperation _operation)
 {
-	delete[] kernel;
+	return Initialise(Vector2i(_kernel_radius), _operation);
 }
 
-// Initialises the filter. A filter must be initialised and populated with values before use.
-bool ConvolutionFilter::Initialise(int _kernel_size, FilterOperation _operation)
+bool ConvolutionFilter::Initialise(Vector2i _kernel_radii, FilterOperation _operation)
 {
-	if (_kernel_size <= 0)
+	if (_kernel_radii.x < 0 || _kernel_radii.y < 0)
+	{
+		RMLUI_ERRORMSG("Invalid input parameters to convolution filter.");
 		return false;
+	}
 
-	kernel_size = Math::Max(_kernel_size, 1);
-	kernel_size = kernel_size * 2 + 1;
+	kernel_size = _kernel_radii * 2 + Vector2i(1);
 
-	kernel = new float[kernel_size * kernel_size];
-	memset(kernel, 0, kernel_size * kernel_size * sizeof(float));
+	kernel = UniquePtr<float[]>(new float[kernel_size.x * kernel_size.y]);
+	memset(kernel.get(), 0, kernel_size.x * kernel_size.y * sizeof(float));
 
 	operation = _operation;
 	return true;
 }
 
-// Returns a reference to one of the rows of the filter kernel.
-float* ConvolutionFilter::operator[](int index)
+float* ConvolutionFilter::operator[](int kernel_y_index)
 {
-	RMLUI_ASSERT(kernel != nullptr);
+	RMLUI_ASSERT(kernel != nullptr && kernel_y_index >= 0 && kernel_y_index < kernel_size.y);
 
-	index = Math::Max(index, 0);
-	index = Math::Min(index, kernel_size - 1);
+	kernel_y_index = Math::Clamp(kernel_y_index, 0, kernel_size.y - 1);
 
-	return kernel + kernel_size * index;
+	return kernel.get() + kernel_size.x * kernel_y_index;
 }
 
-// Runs the convolution filter.
-void ConvolutionFilter::Run(byte* destination, const Vector2i& destination_dimensions, int destination_stride, const byte* source, const Vector2i& source_dimensions, const Vector2i& source_offset) const
+void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimensions, const int destination_stride, const ColorFormat destination_color_format, const byte* source, const Vector2i source_dimensions, const Vector2i source_offset) const
 {
+	const float initial_opacity = (operation == FilterOperation::Erosion ? FLT_MAX : 0.f);
+
+	const Vector2i kernel_radius = (kernel_size - Vector2i(1)) / 2;
+
 	for (int y = 0; y < destination_dimensions.y; ++y)
 	{
 		for (int x = 0; x < destination_dimensions.x; ++x)
 		{
-			int num_pixels = 0;
-			int opacity = 0;
+			float opacity = initial_opacity;
 
-			for (int kernel_y = 0; kernel_y < kernel_size; ++kernel_y)
+			for (int kernel_y = 0; kernel_y < kernel_size.y; ++kernel_y)
 			{
-				int source_y = y - source_offset.y - ((kernel_size - 1) / 2) + kernel_y;
+				int source_y = y - source_offset.y - kernel_radius.y + kernel_y;
 
-				for (int kernel_x = 0; kernel_x < kernel_size; ++kernel_x)
+				for (int kernel_x = 0; kernel_x < kernel_size.x; ++kernel_x)
 				{
-					int pixel_opacity;
+					float pixel_opacity;
 
-					int source_x = x - source_offset.x - ((kernel_size - 1) / 2) + kernel_x;
-					if (source_y >= 0 &&
-						source_y < source_dimensions.y &&
-						source_x >= 0 &&
-						source_x < source_dimensions.x)
+					int source_x = x - source_offset.x - kernel_radius.x + kernel_x;
+					if (source_y >= 0 && source_y < source_dimensions.y &&
+						source_x >= 0 && source_x < source_dimensions.x)
 					{
-						pixel_opacity = Math::RealToInteger(source[source_y * source_dimensions.x + source_x] * kernel[kernel_y * kernel_size + kernel_x]);
+						pixel_opacity = float(source[source_y * source_dimensions.x + source_x]) * kernel[kernel_y * kernel_size.x + kernel_x];
 					}
 					else
 						pixel_opacity = 0;
 
 					switch (operation)
 					{
-						case MEDIAN:	opacity += pixel_opacity; break;
-						case DILATION:	opacity = Math::Max(opacity, pixel_opacity); break;
-						case EROSION:	opacity = num_pixels == 0 ? pixel_opacity : Math::Min(opacity, pixel_opacity); break;
+					case FilterOperation::Sum:      opacity += pixel_opacity; break;
+					case FilterOperation::Dilation: opacity = Math::Max(opacity, pixel_opacity); break;
+					case FilterOperation::Erosion:  opacity = Math::Min(opacity, pixel_opacity); break;
 					}
-
-					++num_pixels;
 				}
 			}
 
-			if (operation == MEDIAN)
-				opacity /= num_pixels;
+			opacity = Math::Min(255.f, opacity);
 
-			opacity = Math::Min(255, opacity);
-			destination[x * 4 + 3] = (byte) opacity;
+			int destination_index = 0;
+			switch (destination_color_format)
+			{
+			case ColorFormat::RGBA8: destination_index = x * 4 + 3; break;
+			case ColorFormat::A8:    destination_index = x; break;
+			}
+
+			destination[destination_index] = byte(opacity);
 		}
 
 		destination += destination_stride;

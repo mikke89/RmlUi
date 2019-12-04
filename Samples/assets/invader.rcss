@@ -174,7 +174,7 @@ div#title_bar span
 	font-size: 22px;
 	font-weight: bold;
 	
-	font-effect: outline(1px black);
+	font-effect: glow(1px black);
 
 	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 }

@@ -42,7 +42,7 @@ class FontEffect;
 /**
 	A font effect instancer provides a method for allocating and deallocating font effects.
 
-	It is important at the same instancer that allocated a font effect releases it. This ensures there are no issues
+	It is important that the same instancer that allocated a font effect releases it. This ensures there are no issues
 	with memory from different DLLs getting mixed up.
 
 	@author Peter Curry

@@ -42,13 +42,11 @@ FontEffect::~FontEffect()
 {
 }
 
-// Asks the font effect if it requires, and will generate, its own unique texture.
 bool FontEffect::HasUniqueTexture() const
 {
 	return false;
 }
 
-// Gets the effect to resize and reposition a glyph's bitmap.
 bool FontEffect::GetGlyphMetrics(Vector2i& RMLUI_UNUSED_PARAMETER(origin), Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
 	RMLUI_UNUSED(origin);
@@ -58,8 +56,7 @@ bool FontEffect::GetGlyphMetrics(Vector2i& RMLUI_UNUSED_PARAMETER(origin), Vecto
 	return false;
 }
 
-// Requests the effect to generate the texture data for a single glyph's bitmap.
-void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), const Vector2i& RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
+void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), Vector2i RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
 	RMLUI_UNUSED(destination_data);
 	RMLUI_UNUSED(destination_dimensions);
@@ -67,13 +64,11 @@ void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_d
 	RMLUI_UNUSED(glyph);
 }
 
-// Sets the colour of the effect's geometry.
 void FontEffect::SetColour(const Colourb& _colour)
 {
 	colour = _colour;
 }
 
-// Returns the effect's colour.
 const Colourb& FontEffect::GetColour() const
 {
 	return colour;

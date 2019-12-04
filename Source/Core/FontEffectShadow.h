@@ -30,6 +30,7 @@
 #define RMLUICOREFONTEFFECTSHADOW_H
 
 #include "../../Include/RmlUi/Core/FontEffect.h"
+#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
 namespace Core {
@@ -46,25 +47,36 @@ public:
 	FontEffectShadow();
 	virtual ~FontEffectShadow();
 
-	/// Initialise the shadow effect.
-	/// @param[in] offset The offset, in pixels, of the shadow from the original text.
-	/// @return True if the effect initialised successfully, false if not.
 	bool Initialise(const Vector2i& offset);
 
-	/// Returns false.
-	/// @return False.
 	bool HasUniqueTexture() const override;
 
-	/// Repositions the glyph by the offset.
-	/// @param[out] origin The desired origin of the effect's glyph bitmap, as a pixel offset from its original origin. This defaults to (0, 0).
-	/// @param[out] dimensions The desired dimensions of the effect's glyph bitmap, in pixels. This defaults to the dimensions of the glyph's original bitmap.
-	/// @param[in] glyph The glyph the effect is being asked to size.
-	/// @return False if the effect is not providing support for the glyph, true otherwise.
 	bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const override;
 
 private:
 	Vector2i offset;
 };
+
+
+
+/**
+	A concrete font effect instancer for the shadow effect.
+
+	@author Peter Curry
+ */
+
+class FontEffectShadowInstancer : public FontEffectInstancer
+{
+public:
+	FontEffectShadowInstancer();
+	virtual ~FontEffectShadowInstancer();
+
+	SharedPtr<FontEffect> InstanceFontEffect(const String& name, const PropertyDictionary& properties) override;
+
+private:
+	PropertyId id_offset_x, id_offset_y, id_color;
+};
+
 
 }
 }

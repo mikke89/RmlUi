@@ -27,55 +27,64 @@
  */
 
 #include "precompiled.h"
-#include "FontEffectOutline.h"
+#include "FontEffectBlur.h"
+#include "Memory.h"
 
 namespace Rml {
 namespace Core {
 
-FontEffectOutline::FontEffectOutline()
+FontEffectBlur::FontEffectBlur()
 {
 	width = 0;
 	SetLayer(Layer::Back);
 }
 
-FontEffectOutline::~FontEffectOutline()
+FontEffectBlur::~FontEffectBlur()
 {
 }
 
-bool FontEffectOutline::HasUniqueTexture() const
+bool FontEffectBlur::HasUniqueTexture() const
 {
 	return true;
 }
 
-bool FontEffectOutline::Initialise(int _width)
+bool FontEffectBlur::Initialise(int _width)
 {
 	if (_width <= 0)
 		return false;
 
 	width = _width;
 
-	filter.Initialise(width, FilterOperation::Dilation);
+	const float std_dev = .4f * float(width);
+	const float two_variance = 2.f * std_dev * std_dev;
+	const float gain = 1.f / Math::SquareRoot(Math::RMLUI_PI * two_variance);
+
+	float sum_weight = 0.f;
+
+	// We separate the blur filter into two passes, horizontal and vertical, for performance reasons.
+	filter_x.Initialise(Vector2i(width, 0), FilterOperation::Sum);
+	filter_y.Initialise(Vector2i(0, width), FilterOperation::Sum);
+
 	for (int x = -width; x <= width; ++x)
 	{
-		for (int y = -width; y <= width; ++y)
-		{
-			float weight = 1;
+		float weight = gain * Math::Exp(-Math::SquareRoot(float(x * x) / two_variance));
 
-			float distance = Math::SquareRoot(float(x * x + y * y));
-			if (distance > width)
-			{
-				weight = (width + 1) - distance;
-				weight = Math::Max(weight, 0.0f);
-			}
+		filter_x[0][x + width] = weight;
+		filter_y[x + width][0] = weight;
+		sum_weight += weight;
+	}
 
-			filter[x + width][y + width] = weight;
-		}
+	// Normalize the kernels
+	for (int x = -width; x <= width; ++x)
+	{
+		filter_x[0][x + width] /= sum_weight;
+		filter_y[x + width][0] /= sum_weight;
 	}
 
 	return true;
 }
 
-bool FontEffectOutline::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
+bool FontEffectBlur::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
 {
 	RMLUI_UNUSED(glyph);
 
@@ -84,8 +93,8 @@ bool FontEffectOutline::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, 
 		origin.x -= width;
 		origin.y -= width;
 
-		dimensions.x += 2 * width;
 		dimensions.y += 2 * width;
+		dimensions.x += 2 * width;
 
 		return true;
 	}
@@ -93,32 +102,41 @@ bool FontEffectOutline::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, 
 	return false;
 }
 
-void FontEffectOutline::GenerateGlyphTexture(byte* destination_data, const Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const
+void FontEffectBlur::GenerateGlyphTexture(byte* destination_data, const Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const
 {
-	filter.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(width));
+	const Vector2i buf_dimensions = destination_dimensions;
+	const int buf_stride = buf_dimensions.x;
+	const int buf_size = buf_dimensions.x * buf_dimensions.y;
+	DynamicArray<byte, GlobalStackAllocator<byte>> x_output(buf_size);
+
+	filter_x.Run(x_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(width));
+
+	filter_y.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, x_output.data(), buf_dimensions, Vector2i(0));
 }
 
 
 
-FontEffectOutlineInstancer::FontEffectOutlineInstancer() : id_width(PropertyId::Invalid), id_color(PropertyId::Invalid)
+
+
+FontEffectBlurInstancer::FontEffectBlurInstancer() : id_width(PropertyId::Invalid), id_color(PropertyId::Invalid)
 {
 	id_width = RegisterProperty("width", "1px", true).AddParser("length").GetId();
 	id_color = RegisterProperty("color", "white", false).AddParser("color").GetId();
 	RegisterShorthand("font-effect", "width, color", ShorthandType::FallThrough);
 }
 
-FontEffectOutlineInstancer::~FontEffectOutlineInstancer()
+FontEffectBlurInstancer::~FontEffectBlurInstancer()
 {
 }
 
-SharedPtr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+SharedPtr<FontEffect> FontEffectBlurInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
 {
 	RMLUI_UNUSED(name);
 
 	float width = properties.GetProperty(id_width)->Get< float >();
 	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
 
-	auto font_effect = std::make_shared<FontEffectOutline>();
+	auto font_effect = std::make_shared<FontEffectBlur>();
 	if (font_effect->Initialise(Math::RealToInteger(width)))
 	{
 		font_effect->SetColour(color);
