@@ -120,7 +120,9 @@
 	range-inc-hover:    21px 250px 17px 17px;
 	range-inc-active:   39px 250px 17px 17px;
 	
-	progress:        103px 267px 80px 34px;
+	progress-l:      103px 267px 13px 34px;
+	progress-c:      116px 267px 54px 34px;
+	progress-r:      170px 267px 13px 34px;
 	progress-fill-l: 110px 302px  6px 34px;
 	progress-fill-c: 140px 302px  6px 34px;
 	progress-fill-r: 170px 302px  6px 34px;

@@ -451,8 +451,8 @@ progressbar {
 	fill-image: gauge-fill;
 }
 #progress_horizontal { 
-	decorator: image( progress );
-	width: 80px;
+	decorator: tiled-horizontal( progress-l, progress-c, progress-r );
+	width: 150px;
 	height: 34px;
 }
 #progress_horizontal fill {
@@ -460,21 +460,17 @@ progressbar {
 	margin: 0 7px;
 	padding-left: 14px;
 }
-#progress_vertical {
-	width: 30px;
-	height: 80px;
-	background-color: #E3E4E1;
-	border: 4px #A90909;
-}
-#progress_vertical fill {
-	border: 3px #4D9137;
-	background-color: #7AE857;
+#progress_label {
+	font-size: 18px;
+	color: #ceb;
+	margin-left: 1em;
+	margin-bottom: 0;
 }
 #gauge_value, #progress_value {
-	width: 50px;
-	text-align: right;
 	font-size: 18px;
 	color: #4ADB2D;
+	text-align: right;
+	width: 50px;
 	font-effect: outline( 2px #555 );
 }
 #gauge_value {
@@ -487,13 +483,12 @@ progressbar {
 }
 
 
-
 #form_output 
 {
 	border: 1px #666;
 	font-size: 0.9em;
 	background-color: #ddd;
-	min-height: 30px;
+	min-height: 180px;
 	margin-top: 10px;
 	padding: 5px 8px;
 	color: #222;
@@ -806,16 +801,16 @@ progressbar {
 		<div style="margin-bottom: 15px;">
 			<input type="submit">Submit</input>
 		</div>
-		<div>
-			<progressbar id="gauge" direction="clockwise" start-edge="bottom" value="0.6">
+		<div id="submit_progress" style="display: none;">
+			<p id="progress_label">&nbsp;</p>
+			<progressbar id="gauge" direction="clockwise" start-edge="bottom" value="0.0">
 				<div id="gauge_value">50%</div>
 			</progressbar>
-			<progressbar id="progress_horizontal" direction="right" value="0.6"/>
+			<progressbar id="progress_horizontal" direction="right" value="0.0"/>
 			<div id="progress_value">50%</div>
-			<progressbar id="progress_vertical" direction="top" value="0.6"/>
+			<h2>Form output</h2>
+			<div id="form_output"></div>
 		</div>
-		<h2>Form output</h2>
-		<div id="form_output"></div>
 	</form>
 </panel>
 <tab>Sandbox</tab>
