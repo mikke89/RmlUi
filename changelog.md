@@ -52,6 +52,24 @@ The following RCSS styles three different progress bars.
 	/* padding ensures that the decorator has a minimum width when the value is zero */
 	padding-left: 14px;
 }
+.progress_vertical {
+	width: 30px;
+	height: 80px;
+	background-color: #E3E4E1;
+	border: 4px #A90909;
+}
+.progress_vertical fill {
+	border: 3px #4D9137;
+	background-color: #7AE857;
+}
+.gauge { 
+	decorator: image( gauge );
+	width: 100px;
+	height: 86px;
+}
+.gauge fill { 
+	fill-image: gauge-fill;
+}
 ```
 Now, they can be used in RML as follows.
 ```html
