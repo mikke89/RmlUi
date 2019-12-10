@@ -108,7 +108,7 @@ float Box::GetEdge(Area area, Edge edge) const
 float Box::GetCumulativeEdge(Area area, Edge edge) const
 {
 	float size = 0;
-	int max_area = Math::Min((int) area, 2);
+	int max_area = Math::Min((int)area, (int)PADDING);
 	for (int i = 0; i <= max_area; i++)
 		size += area_edges[i][edge];
 

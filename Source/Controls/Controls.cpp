@@ -54,6 +54,8 @@ struct ElementInstancers {
 	Ptr textarea = std::make_unique<ElementInstancerGeneric<ElementFormControlTextArea>>();
 	Ptr selection = std::make_unique<ElementInstancerGeneric<ElementTextSelection>>();
 	Ptr tabset  = std::make_unique<ElementInstancerGeneric<ElementTabSet>>();
+
+	Ptr progressbar  = std::make_unique<ElementInstancerGeneric<ElementProgressBar>>();
 	
 	Ptr datagrid = std::make_unique<ElementInstancerGeneric<ElementDataGrid>>();
 	Ptr datagrid_expand = std::make_unique<ElementInstancerGeneric<ElementDataGridExpandButton>>();
@@ -77,6 +79,8 @@ void RegisterElementInstancers()
 	Core::Factory::RegisterElementInstancer("textarea", element_instancers->textarea.get());
 	Core::Factory::RegisterElementInstancer("#selection", element_instancers->selection.get());
 	Core::Factory::RegisterElementInstancer("tabset", element_instancers->tabset.get());
+
+	Core::Factory::RegisterElementInstancer("progressbar", element_instancers->progressbar.get());
 
 	Core::Factory::RegisterElementInstancer("datagrid", element_instancers->datagrid.get());
 	Core::Factory::RegisterElementInstancer("datagridexpand", element_instancers->datagrid_expand.get());

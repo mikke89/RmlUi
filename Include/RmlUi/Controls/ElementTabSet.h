@@ -30,7 +30,6 @@
 #define RMLUICONTROLSELEMENTTABSET_H
 
 #include "../Core/Element.h"
-#include "../Core/EventListener.h"
 #include "Header.h"
 
 namespace Rml {

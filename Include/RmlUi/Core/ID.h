@@ -143,6 +143,8 @@ enum class PropertyId : uint16_t
 	Decorator,
 	FontEffect,
 
+	FillImage,
+
 	NumDefinedIds,
 	FirstCustomId = NumDefinedIds
 };

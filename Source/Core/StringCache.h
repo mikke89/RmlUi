@@ -117,6 +117,7 @@ extern const String KEYFRAMES;
 
 extern const String OPACITY;
 extern const String POINTER_EVENTS;
+extern const String FILL_IMAGE;
 
 extern const String MOUSEDOWN;
 extern const String MOUSESCROLL;

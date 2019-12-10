@@ -437,12 +437,58 @@ form h2
 	color: #ffd40f;
 	font-size: 1.7em;
 }
+progressbar {
+	margin: 10px 20px;
+	display: inline-block;
+	vertical-align: middle;
+}
+#gauge { 
+	decorator: image( gauge );
+	width: 100px;
+	height: 86px;
+}
+#gauge fill { 
+	fill-image: gauge-fill;
+}
+#progress_horizontal { 
+	decorator: tiled-horizontal( progress-l, progress-c, progress-r );
+	width: 150px;
+	height: 34px;
+}
+#progress_horizontal fill {
+	decorator: tiled-horizontal( progress-fill-l, progress-fill-c, progress-fill-r );
+	margin: 0 7px;
+	padding-left: 14px;
+}
+#progress_label {
+	font-size: 18px;
+	color: #ceb;
+	margin-left: 1em;
+	margin-bottom: 0;
+}
+#gauge_value, #progress_value {
+	font-size: 18px;
+	color: #4ADB2D;
+	text-align: right;
+	width: 50px;
+	font-effect: outline( 2px #555 );
+}
+#gauge_value {
+	margin: 30px 0 0 18px;
+}
+#progress_value { 
+	margin-left: -20px;
+	display: inline-block;
+	vertical-align: -3px;
+}
+
+
 #form_output 
 {
 	border: 1px #666;
 	font-size: 0.9em;
 	background-color: #ddd;
-	min-height: 30px;
+	min-height: 180px;
 	margin-top: 10px;
 	padding: 5px 8px;
 	color: #222;
@@ -755,8 +801,16 @@ form h2
 		<div style="margin-bottom: 15px;">
 			<input type="submit">Submit</input>
 		</div>
-		<h2>Form output</h2>
-		<div id="form_output"></div>
+		<div id="submit_progress" style="display: none;">
+			<p id="progress_label">&nbsp;</p>
+			<progressbar id="gauge" direction="clockwise" start-edge="bottom" value="0.0">
+				<div id="gauge_value">50%</div>
+			</progressbar>
+			<progressbar id="progress_horizontal" direction="right" value="0.0"/>
+			<div id="progress_value">50%</div>
+			<h2>Form output</h2>
+			<div id="form_output"></div>
+		</div>
 	</form>
 </panel>
 <tab>Sandbox</tab>

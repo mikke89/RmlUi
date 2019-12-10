@@ -108,6 +108,9 @@ public:
 				source->SetValue(value);
 				SetSandboxStylesheet(value);
 			}
+
+			gauge = document->GetElementById("gauge");
+			progress_horizontal = document->GetElementById("progress_horizontal");
 			
 			document->Show();
 		}
@@ -117,6 +120,53 @@ public:
 		if (iframe)
 		{
 			iframe->UpdateDocument();
+		}
+		if (submitting && gauge && progress_horizontal)
+		{
+			using namespace Rml::Core;
+			constexpr float progressbars_time = 2.f;
+			const float progress = Math::Min(float(GetSystemInterface()->GetElapsedTime() - submitting_start_time) / progressbars_time, 2.f);
+
+			float value_gauge = 1.0f;
+			float value_horizontal = 0.0f;
+			if (progress < 1.0f)
+				value_gauge = 0.5f - 0.5f * Math::Cos(Math::RMLUI_PI * progress);
+			else
+				value_horizontal = 0.5f - 0.5f * Math::Cos(Math::RMLUI_PI * (progress - 1.0f));
+
+			progress_horizontal->SetAttribute("value", value_horizontal);
+
+			const float value_begin = 0.09f;
+			const float value_end = 1.f - value_begin;
+			float value_mapped = value_begin + value_gauge * (value_end - value_begin);
+			gauge->SetAttribute("value", value_mapped);
+
+			auto value_gauge_str = CreateString(10, "%d %%", Math::RoundToInteger(value_gauge * 100.f));
+			auto value_horizontal_str = CreateString(10, "%d %%", Math::RoundToInteger(value_horizontal * 100.f));
+
+			if (auto el_value = document->GetElementById("gauge_value"))
+				el_value->SetInnerRML(value_gauge_str);
+			if (auto el_value = document->GetElementById("progress_value"))
+				el_value->SetInnerRML(value_horizontal_str);
+
+			String label = "Placing tubes";
+			size_t num_dots = (size_t(progress * 10.f) % 4);
+			if (progress > 1.0f)
+				label += "... Placed! Assembling message";
+			if (progress < 2.0f)
+				label += String(num_dots, '.');
+			else
+				label += "... Done!";
+
+			if (auto el_label = document->GetElementById("progress_label"))
+				el_label->SetInnerRML(label);
+
+			if (progress >= 2.0f)
+			{
+				submitting = false;
+				if (auto el_output = document->GetElementById("form_output"))
+					el_output->SetInnerRML(submit_message);
+			}
 		}
 	}
 
@@ -159,6 +209,17 @@ public:
 		return document;
 	}
 
+	void SubmitForm(Rml::Core::String in_submit_message) 
+	{
+		submitting = true;
+		submitting_start_time = Rml::Core::GetSystemInterface()->GetElapsedTime();
+		submit_message = in_submit_message;
+		if (auto el_output = document->GetElementById("form_output"))
+			el_output->SetInnerRML("");
+		if (auto el_progress = document->GetElementById("submit_progress"))
+			el_progress->SetProperty("display", "block");
+	}
+
 	void SetSandboxStylesheet(const Rml::Core::String& string)
 	{
 		if (iframe && rml_basic_style_sheet)
@@ -184,7 +245,12 @@ public:
 private:
 	Rml::Core::ElementDocument *document = nullptr;
 	Rml::Core::ElementDocument *iframe = nullptr;
+	Rml::Core::Element *gauge = nullptr, *progress_horizontal = nullptr;
 	Rml::Core::SharedPtr<Rml::Core::StyleSheet> rml_basic_style_sheet;
+
+	bool submitting = false;
+	double submitting_start_time = 0;
+	Rml::Core::String submit_message;
 };
 
 
@@ -201,8 +267,8 @@ struct TweeningParameters {
 
 void GameLoop()
 {
-	context->Update();
 	demo_window->Update();
+	context->Update();
 
 	shell_renderer->PrepareRenderBuffer();
 	context->Render();
@@ -324,21 +390,18 @@ public:
 		}
 		else if (value == "submit_form")
 		{
-			if (Element* el_output = element->GetElementById("form_output"))
+			const auto& p = event.GetParameters();
+			Rml::Core::String output = "<p>";
+			for (auto& entry : p)
 			{
-				const auto& p = event.GetParameters();
-				Rml::Core::String output = "<p>";
-				for (auto& entry : p)
-				{
-					auto value = Rml::Core::StringUtilities::EncodeRml(entry.second.Get<Rml::Core::String>());
-					if (entry.first == "message")
-						value = "<br/>" + value;
-					output += "<strong>" + entry.first + "</strong>: " + value + "<br/>";
-				}
-				output += "</p>";
-
-				el_output->SetInnerRML(output);
+				auto value = Rml::Core::StringUtilities::EncodeRml(entry.second.Get<Rml::Core::String>());
+				if (entry.first == "message")
+					value = "<br/>" + value;
+				output += "<strong>" + entry.first + "</strong>: " + value + "<br/>";
 			}
+			output += "</p>";
+
+			demo_window->SubmitForm(output);
 		}
 		else if (value == "set_sandbox_body")
 		{
@@ -395,7 +458,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 #endif
 
 	const int width = 1600;
-	const int height = 950;
+	const int height = 900;
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
 	shell_renderer = &opengl_renderer;
@@ -438,7 +501,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::LoadFonts("assets/");
 
-	demo_window = std::make_unique<DemoWindow>("Demo sample", Rml::Core::Vector2f(150, 80), context);
+	demo_window = std::make_unique<DemoWindow>("Demo sample", Rml::Core::Vector2f(150, 50), context);
 	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Animationend, demo_window.get());
