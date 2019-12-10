@@ -4,7 +4,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DebugFont.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.h
