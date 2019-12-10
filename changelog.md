@@ -1,8 +1,9 @@
+* [RmlUi 3.1](#rmlui-31)
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
 
-## RmlUi WIP
+## RmlUi 3.1
 
 ### Progress bar
 
