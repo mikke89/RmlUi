@@ -100,6 +100,9 @@ namespace StringUtilities
 	/// Strip whitespace characters from the beginning and end of a string.
 	RMLUICORE_API String StripWhitespace(const String& string);
 
+	/// Strip whitespace characters from the beginning and end of a string.
+	RMLUICORE_API String StripWhitespace(StringView string);
+
 	/// Operator for STL containers using strings.
 	struct RMLUICORE_API StringComparei
 	{
@@ -166,6 +169,10 @@ public:
 	inline const char* end() const { return p_end; }
 
 	inline size_t size() const { return p_end - p_begin; }
+
+	explicit inline operator String() const {
+		return String(p_begin, p_end);
+	}
 
 private:
 	const char* p_begin;

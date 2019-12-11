@@ -246,16 +246,20 @@ void StringUtilities::JoinString(String& string, const StringList& string_list, 
 	}
 }
 
-// Strip whitespace characters from the beginning and end of a string.
 String StringUtilities::StripWhitespace(const String& string)
 {
-	const char* start = string.c_str();
-	const char* end = start + string.size();
+	return StripWhitespace(StringView(string));
+}
+
+RMLUICORE_API String StringUtilities::StripWhitespace(StringView string)
+{
+	const char* start = string.begin();
+	const char* end = string.end();
 
 	while (start < end && IsWhitespace(*start))
 		start++;
 
-	while (end > start && IsWhitespace(*(end - 1)))
+	while (end > start&& IsWhitespace(*(end - 1)))
 		end--;
 
 	if (start < end)
