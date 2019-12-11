@@ -152,6 +152,7 @@ namespace StringUtilities
 
 class RMLUICORE_API StringView {
 public:
+	StringView();
 	StringView(const char* p_begin, const char* p_end);
 	StringView(const String& string);
 	StringView(const String& string, size_t offset);

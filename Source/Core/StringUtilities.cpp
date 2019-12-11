@@ -471,19 +471,26 @@ String StringUtilities::ToUTF8(const U16String& input)
 }
 
 
+StringView::StringView()
+{
+	const char* empty_string = "";
+	p_begin = empty_string;
+	p_end = empty_string;
+}
+
 StringView::StringView(const char* p_begin, const char* p_end) : p_begin(p_begin), p_end(p_end)
 {
 	RMLUI_ASSERT(p_end >= p_begin);
 }
 StringView::StringView(const String& string) : p_begin(string.data()), p_end(string.data() + string.size())
 {}
-StringView::StringView(const String& string, size_t offset) : p_begin(string.data()), p_end(string.data() + string.size())
+StringView::StringView(const String& string, size_t offset) : p_begin(string.data() + offset), p_end(string.data() + string.size())
 {}
-StringView::StringView(const String& string, size_t offset, size_t count) : p_begin(string.data()), p_end(string.data() + std::min(offset + count, string.size()))
+StringView::StringView(const String& string, size_t offset, size_t count) : p_begin(string.data() + offset), p_end(string.data() + std::min(offset + count, string.size()))
 {}
 
 bool StringView::operator==(const StringView& other) const { 
-	return (p_end - p_begin) == (other.p_end - other.p_begin) && strcmp(p_begin, other.p_begin) == 0; 
+	return size() == other.size() && strncmp(p_begin, other.p_begin, size()) == 0; 
 }
 
 
