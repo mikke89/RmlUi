@@ -163,7 +163,7 @@ form h2
 <tabset id="menu">
 <tab>Welcome</tab>
 <panel id="welcome" data-model="my_model">
-	<p class="title" style="margin-top: 1.8em;">{{hello_world}}</p>
+	<p class="title" style="margin-top: 1.8em;">{{hello_world}}<span style="color: blue;"> Rated: {{rating}}</span></p>
 	<p>Data binding demo. We rate this a good old {{rating}}!</p>
 </panel>
 <tab>Decorators</tab>

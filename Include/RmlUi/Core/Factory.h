@@ -42,6 +42,7 @@ class DecoratorInstancer;
 class Element;
 class ElementDocument;
 class ElementInstancer;
+class ElementText;
 class Event;
 class EventInstancer;
 class EventListener;
@@ -103,6 +104,10 @@ public:
 	/// @param[in] text The text to instance the element (or elements) from.
 	/// @return True if the string was parsed without error, false otherwise.
 	static bool InstanceElementText(Element* parent, const String& text);
+	/// Instances a single text element with no text contents.
+	/// @param[in] parent The element any instanced elements will be parented to.
+	/// @return The instanced text element if successful, nullptr otherwise.
+	static ElementText* InstanceElementText(Element* parent);
 	/// Instances an element tree based on the stream.
 	/// @param[in] parent The element the stream elements will be added to.
 	/// @param[in] stream The stream to read the element RML from.

@@ -34,7 +34,7 @@ namespace Rml {
 namespace Core {
 
 
-DataViewText::DataViewText(Element* in_parent_element, const String& in_text, const size_t index_begin_search) : parent_element(in_parent_element->GetObserverPtr())
+DataViewText::DataViewText(ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : element(in_parent_element->GetObserverPtr())
 {
 	text.reserve(in_text.size());
 
@@ -101,10 +101,15 @@ bool DataViewText::Update(const DataModel& model)
 
 	if (entries_modified)
 	{
-		if (parent_element)
+		if (element)
 		{
-			String rml = CreateText();
-			parent_element->SetInnerRML(rml);
+			RMLUI_ASSERTMSG(rmlui_dynamic_cast<ElementText*>(element.get()), "Somehow the element type was changed from ElementText since construction of the view. Should not be possible?");
+
+			if(auto text_element = static_cast<ElementText*>(element.get()))
+			{
+				String new_text = BuildText();
+				text_element->SetText(new_text);
+			}
 		}
 		else
 		{
@@ -117,7 +122,7 @@ bool DataViewText::Update(const DataModel& model)
 	return entries_modified;
 }
 
-String DataViewText::CreateText() const
+String DataViewText::BuildText() const
 {
 	size_t reserve_size = text.size();
 

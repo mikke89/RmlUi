@@ -39,14 +39,15 @@ namespace Core {
 
 class Element;
 class DataModel;
+class ElementText;
 
 
 class DataViewText {
 public:
-	DataViewText(Element* in_parent_element, const String& in_text, size_t index_begin_search = 0);
+	DataViewText(ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
 
 	inline operator bool() const {
-		return !data_entries.empty() && parent_element;
+		return !data_entries.empty() && element;
 	}
 
 	inline bool IsDirty() const {
@@ -56,7 +57,7 @@ public:
 	bool Update(const DataModel& model);
 
 private:
-	String CreateText() const;
+	String BuildText() const;
 
 	struct DataEntry {
 		size_t index = 0; // Index into 'text'
@@ -64,7 +65,7 @@ private:
 		String value;
 	};
 
-	ObserverPtr<Element> parent_element;
+	ObserverPtr<Element> element;
 	String text;
 	std::vector<DataEntry> data_entries;
 	bool is_dirty = false;

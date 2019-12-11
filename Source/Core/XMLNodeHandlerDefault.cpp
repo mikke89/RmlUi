@@ -81,24 +81,29 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 
 	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
+	
+	RMLUI_ASSERT(parent);
 
 	if (DataModel* data_model = parser->GetDataModel())
 	{
-		size_t i_open = data.find("{{", 0);
-
-		if (parent && i_open != String::npos)
+		const size_t i_brackets = data.find("{{", 0);
+		if (i_brackets != String::npos)
 		{
-			DataViewText data_view(parent, data, i_open);
-			if (data_view)
+			ElementText* text_element = Factory::InstanceElementText(parent);
+
+			if(text_element)
 			{
-				data_model->views.AddTextView(std::move(data_view));
-				return true;
+				DataViewText data_view(text_element, data, i_brackets);
+				if (data_view)
+				{
+					data_model->views.AddTextView(std::move(data_view));
+					return true;
+				}
 			}
 
 			Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", parent->GetAddress().c_str());
 		}
 	}
-
 
 	// Parse the text into the element
 	return Factory::InstanceElementText(parent, data);

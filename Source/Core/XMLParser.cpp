@@ -48,12 +48,10 @@ XMLParser::XMLParser(Element* root)
 
 	// Add the first frame.
 	ParseFrame frame;
-	frame.node_handler = nullptr;
-	frame.child_handler = nullptr;
 	frame.element = root;
-	frame.tag = "";
 	stack.push(frame);
 
+	root_context = (root ? root->GetContext() : nullptr);
 	active_handler = nullptr;
 	active_data_model = nullptr;
 
@@ -140,26 +138,28 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 	// Store the current active handler, so we can use it through this function (as active handler may change)
 	XMLNodeHandler* node_handler = active_handler;
 
+	// Look for the data model attribute
+	if (root_context)
+	{
+		static const String data_model = "data-model";
+		auto it = attributes.find(data_model);
+		if (it != attributes.end())
+		{
+			String data_model = it->second.Get<String>();
+
+			active_data_model = root_context->GetDataModel(data_model);
+
+			if (!active_data_model)
+				Log::Message(Log::LT_WARNING, "Could not locate data model '%s'.", data_model.c_str());
+		}
+	}
+
 	Element* element = nullptr;
 
 	// Get the handler to handle the open tag
 	if (node_handler)
 	{
 		element = node_handler->ElementStart(this, name, attributes);
-	}
-
-	static const String data_model = "data-model";
-	auto it = attributes.find(data_model);
-	if (element && it != attributes.end())
-	{
-		String data_model = it->second.Get<String>();
-
-		active_data_model = nullptr;
-		if (auto context = element->GetContext())
-			active_data_model = context->GetDataModel( data_model );
-
-		if(!active_data_model)
-			Log::Message(Log::LT_WARNING, "Could not locate data model '%s'.", data_model.c_str());
 	}
 
 	// Push onto the stack
