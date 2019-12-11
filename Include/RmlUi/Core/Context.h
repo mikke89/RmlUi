@@ -34,6 +34,7 @@
 #include "Traits.h"
 #include "Input.h"
 #include "ScriptInterface.h"
+#include "DataBinding.h"
 
 namespace Rml {
 namespace Core {
@@ -218,6 +219,24 @@ public:
 	/// @param[in] instancer The context's instancer.
 	void SetInstancer(ContextInstancer* instancer);
 
+
+	DataModelHandle CreateDataModel(String name) 
+	{
+		auto result = data_models.emplace(name, std::make_unique<DataModel>());
+		if (result.second)
+			return DataModelHandle(result.first->second.get());
+
+		return DataModelHandle(nullptr);
+	}
+
+	DataModel* GetDataModel(const String& name)
+	{
+		auto it = data_models.find(name);
+		if (it != data_models.end())
+			return it->second.get();
+		return nullptr;
+	}
+
 protected:
 	void Release() override;
 
@@ -285,6 +304,9 @@ private:
 	RenderInterface* render_interface;
 	Vector2i clip_origin;
 	Vector2i clip_dimensions;
+
+	using DataModels = UnorderedMap<String, UniquePtr<DataModel>>;
+	DataModels data_models;
 
 	// Internal callback for when an element is detached or removed from the hierarchy.
 	void OnElementDetach(Element* element);

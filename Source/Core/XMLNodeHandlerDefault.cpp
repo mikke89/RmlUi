@@ -61,7 +61,7 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 		return nullptr;
 	}
 
-	// Add the element to its parent and remove the reference
+	// Move and append the element to the parent
 	Element* result = parent->AppendChild(std::move(element));
 
 	return result;
@@ -81,6 +81,24 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 
 	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
+
+	if (DataModel* data_model = parser->GetDataModel())
+	{
+		size_t i_open = data.find("{{", 0);
+
+		if (parent && i_open != String::npos)
+		{
+			DataViewText data_view(parent, data, i_open);
+			if (data_view)
+			{
+				data_model->views.AddTextView(std::move(data_view));
+				return true;
+			}
+
+			Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", parent->GetAddress().c_str());
+		}
+	}
+
 
 	// Parse the text into the element
 	return Factory::InstanceElementText(parent, data);

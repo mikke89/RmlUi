@@ -162,9 +162,9 @@ form h2
 <body template="window">
 <tabset id="menu">
 <tab>Welcome</tab>
-<panel id="welcome">
+<panel id="welcome" data-model="my_model">
 	<p class="title" style="margin-top: 1.8em;">{{hello_world}}</p>
-	<p>Data binding demo.</p>
+	<p>Data binding demo. We rate this a good old {{rating}}!</p>
 </panel>
 <tab>Decorators</tab>
 <panel id="decorators">
