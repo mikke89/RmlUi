@@ -29,6 +29,7 @@
 #include "ElementInfo.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
@@ -501,6 +502,13 @@ void ElementInfo::UpdateSourceElement()
 				Core::String value = Core::StringUtilities::EncodeRml(variant.Get<Core::String>());
 				if(name != "class" && name != "style" && name != "id") 
 					attributes += Core::CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+			}
+
+			// Text is not an attribute but useful nonetheless
+			if (auto text_element = rmlui_dynamic_cast<Core::ElementText*>(source_element))
+			{
+				const Core::String& text_content = text_element->GetText();
+				attributes += Core::CreateString(text_content.size() + 32, "Text: <em>%s</em><br />", text_content.c_str());
 			}
 		}
 
