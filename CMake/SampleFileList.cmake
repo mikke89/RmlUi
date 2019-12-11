@@ -53,6 +53,13 @@ set(customlog_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/customlog/src/SystemInterface.cpp
 )
 
+set(databinding_HDR_FILES
+)
+
+set(databinding_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/databinding/src/main.cpp
+)
+
 set(demo_HDR_FILES
 )
 
