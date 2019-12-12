@@ -51,9 +51,7 @@ XMLParser::XMLParser(Element* root)
 	frame.element = root;
 	stack.push(frame);
 
-	root_context = (root ? root->GetContext() : nullptr);
 	active_handler = nullptr;
-	active_data_model = nullptr;
 
 	header = new DocumentHeader();
 }
@@ -119,11 +117,6 @@ const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 	return &stack.top();
 }
 
-DataModel* XMLParser::GetDataModel() const
-{
-	return active_data_model;
-}
-
 /// Called when the parser finds the beginning of an element tag.
 void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& attributes)
 {
@@ -137,22 +130,6 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 
 	// Store the current active handler, so we can use it through this function (as active handler may change)
 	XMLNodeHandler* node_handler = active_handler;
-
-	// Look for the data model attribute
-	if (root_context)
-	{
-		static const String data_model = "data-model";
-		auto it = attributes.find(data_model);
-		if (it != attributes.end())
-		{
-			String data_model = it->second.Get<String>();
-
-			active_data_model = root_context->GetDataModel(data_model);
-
-			if (!active_data_model)
-				Log::Message(Log::LT_WARNING, "Could not locate data model '%s'.", data_model.c_str());
-		}
-	}
 
 	Element* element = nullptr;
 
@@ -168,7 +145,6 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 	frame.child_handler = active_handler;
 	frame.element = (element ? element : stack.top().element);
 	frame.tag = name;
-	frame.data_model = active_data_model;
 	stack.push(frame);
 }
 
@@ -184,8 +160,6 @@ void XMLParser::HandleElementEnd(const String& _name)
 	stack.pop();
 	// Restore active handler to the previous frame's child handler
 	active_handler = stack.top().child_handler;	
-	// Restore the active data model to the current frame's model
-	active_data_model = stack.top().data_model;
 
 	// Check frame names
 	if (name != frame.tag)

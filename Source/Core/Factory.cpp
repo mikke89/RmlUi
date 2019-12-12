@@ -395,28 +395,6 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	return true;
 }
 
-ElementText* Factory::InstanceElementText(Element* parent)
-{
-	XMLAttributes attributes;
-	ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
-	if (!element)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to instance text element, instancer returned nullptr.");
-		return nullptr;
-	}
-
-	ElementText* text_element = rmlui_dynamic_cast<ElementText*>(element.get());
-	if (!text_element)
-	{
-		Log::Message(Log::LT_ERROR, "Failed to instance text element. Found type '%s', was expecting a derivative of ElementText.", rmlui_type_name(*element));
-		return nullptr;
-	}
-
-	parent->AppendChild(std::move(element));
-
-	return text_element;
-}
-
 // Instances a element tree based on the stream
 bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 {
