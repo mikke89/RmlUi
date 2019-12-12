@@ -44,14 +44,10 @@ class ElementText;
 
 class DataViewText {
 public:
-	DataViewText(ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
+	DataViewText(const DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
 
 	inline operator bool() const {
 		return !data_entries.empty() && element;
-	}
-
-	inline bool IsDirty() const {
-		return is_dirty;
 	}
 
 	bool Update(const DataModel& model);
@@ -68,15 +64,35 @@ private:
 	ObserverPtr<Element> element;
 	String text;
 	std::vector<DataEntry> data_entries;
-	bool is_dirty = false;
+};
+
+
+
+class DataViewAttribute {
+public:
+	DataViewAttribute(const DataModel& model, Element* element, const String& attribute_name, const String& value_name);
+
+	inline operator bool() const {
+		return !attribute_name.empty() && element;
+	}
+	bool Update(const DataModel& model);
+
+private:
+	ObserverPtr<Element> element;
+	String attribute_name;
+	String value_name;
 };
 
 
 class DataViews {
 public:
 
-	void AddTextView(DataViewText&& text_view) {
-		text_views.push_back(std::move(text_view));
+	void AddView(DataViewText&& view) {
+		text_views.push_back(std::move(view));
+	}
+
+	void AddView(DataViewAttribute&& view) {
+		attribute_views.push_back(std::move(view));
 	}
 
 	bool Update(const DataModel& model)
@@ -84,11 +100,14 @@ public:
 		bool result = false;
 		for (auto& view : text_views)
 			result |= view.Update(model);
+		for (auto& view : attribute_views)
+			result |= view.Update(model);
 		return result;
 	}
 
 private:
 	std::vector<DataViewText> text_views;
+	std::vector<DataViewAttribute> attribute_views;
 };
 
 

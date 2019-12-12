@@ -147,6 +147,7 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 	clipping_state_dirty = true;
 
 	meta = element_meta_chunk_pool.AllocateAndConstruct(this);
+	data_model = nullptr;
 }
 
 Element::~Element()

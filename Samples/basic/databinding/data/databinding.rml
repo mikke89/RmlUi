@@ -165,6 +165,7 @@ form h2
 <panel id="welcome" data-model="my_model">
 	<p class="title" style="margin-top: 1.8em;">{{hello_world}}<span style="color: blue;"> Rated: {{rating}}</span></p>
 	<p>Data binding demo. We rate this a good old {{rating}}!</p>
+	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-attr-value="rating"/> 
 </panel>
 <tab>Decorators</tab>
 <panel id="decorators">

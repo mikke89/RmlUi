@@ -44,6 +44,7 @@ namespace Rml {
 namespace Core {
 
 class Context;
+class DataModel;
 class Decorator;
 class ElementInstancer;
 class EventDispatcher;
@@ -55,6 +56,7 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
+class Factory;
 class PropertiesIteratorView;
 class FontFaceHandleDefault;
 class PropertyDictionary;
@@ -672,6 +674,8 @@ private:
 	// The owning document
 	ElementDocument* owner_document;
 
+	// Active data model for this element.
+	DataModel* data_model;
 	// Attributes on this element.
 	ElementAttributes attributes;
 
@@ -738,6 +742,7 @@ private:
 	friend class LayoutInlineBox;
 	friend struct ElementDeleter;
 	friend class ElementScroll;
+	friend class Factory;
 };
 
 }

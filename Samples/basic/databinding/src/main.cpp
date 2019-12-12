@@ -241,8 +241,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, demo_window.get());
 
-	my_model.UpdateViews();
-
 	Shell::EventLoop(GameLoop);
 
 	demo_window->Shutdown();

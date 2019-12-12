@@ -34,7 +34,7 @@ namespace Rml {
 namespace Core {
 
 
-DataViewText::DataViewText(ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : element(in_parent_element->GetObserverPtr())
+DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : element(in_parent_element->GetObserverPtr())
 {
 	text.reserve(in_text.size());
 
@@ -72,20 +72,18 @@ DataViewText::DataViewText(ElementText* in_parent_element, const String& in_text
 
 	if (success)
 	{
-		is_dirty = true;
+		Update(model);
 	}
 	else
 	{
 		text.clear();
 		data_entries.clear();
 	}
-
-
 }
 
 bool DataViewText::Update(const DataModel& model)
 {
-	bool entries_modified = is_dirty;
+	bool entries_modified = false;
 
 	for (DataEntry& entry : data_entries)
 	{
@@ -117,8 +115,6 @@ bool DataViewText::Update(const DataModel& model)
 		}
 	}
 
-	is_dirty = false;
-
 	return entries_modified;
 }
 
@@ -143,6 +139,30 @@ String DataViewText::BuildText() const
 	if (previous_index < text.size())
 		result += text.substr(previous_index);
 
+	return result;
+}
+
+
+DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, const String& attribute_name, const String& value_name)
+	: element(element->GetObserverPtr()), attribute_name(attribute_name), value_name(value_name)
+{
+	Update(model);
+}
+
+bool DataViewAttribute::Update(const DataModel& model)
+{
+	bool result = false;
+	String value;
+	if (model.GetValue(value_name, value))
+	{
+		Variant* variant = element->GetAttribute(attribute_name);
+
+		if (!variant || (variant && *variant != value))
+		{
+			element->SetAttribute(attribute_name, value);
+			result = true;
+		}
+	}
 	return result;
 }
 
