@@ -155,7 +155,7 @@ public:
 	inline const char* begin() const { return p_begin; }
 	inline const char* end() const { return p_end; }
 
-	inline size_t size() const { return p_end - p_begin; }
+	inline size_t size() const { return size_t(p_end - p_begin); }
 
 	explicit inline operator String() const {
 		return String(p_begin, p_end);
@@ -197,10 +197,10 @@ public:
 	bool operator!=(const StringIteratorU8& other) const { return !(*this == other); }
 
 	// Return a pointer to the current position.
-	inline const char* Get() const { return p; }
+	inline const char* get() const { return p; }
 
 	// Return offset from the beginning of string. Note: Can return negative if decremented.
-	std::ptrdiff_t Offset() const { return p - view.begin(); }
+	std::ptrdiff_t offset() const { return p - view.begin(); }
 
 private:
 	StringView view;

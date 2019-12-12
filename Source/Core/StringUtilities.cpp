@@ -520,19 +520,19 @@ StringIteratorU8::StringIteratorU8(const String& string, size_t offset) : view(s
 StringIteratorU8::StringIteratorU8(const String& string, size_t offset, size_t count) : view(string, 0, offset + count), p(string.data() + offset)
 {}
 StringIteratorU8& StringIteratorU8::operator++() {
-	RMLUI_ASSERT(p != view.end());
+	RMLUI_ASSERT(p < view.end());
 	++p;
 	SeekForward();
 	return *this;
 }
 StringIteratorU8& StringIteratorU8::operator--() {
-	RMLUI_ASSERT(p - 1 != view.begin());
+	RMLUI_ASSERT(p >= view.begin());
 	--p;
 	SeekBack();
 	return *this;
 }
 inline void StringIteratorU8::SeekBack() {
-	p = StringUtilities::SeekBackwardUTF8(p, view.end());
+	p = StringUtilities::SeekBackwardUTF8(p, view.begin());
 }
 
 inline void StringIteratorU8::SeekForward() {
