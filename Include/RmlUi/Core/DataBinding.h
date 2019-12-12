@@ -84,15 +84,32 @@ private:
 };
 
 
+class DataViewIf {
+public:
+	DataViewIf(const DataModel& model, Element* element, const String& binding_name);
+
+	inline operator bool() const {
+		return !binding_name.empty() && element;
+	}
+	bool Update(const DataModel& model);
+
+private:
+	ObserverPtr<Element> element;
+	String binding_name;
+};
+
+
 class DataViews {
 public:
 
 	void AddView(DataViewText&& view) {
 		text_views.push_back(std::move(view));
 	}
-
 	void AddView(DataViewAttribute&& view) {
 		attribute_views.push_back(std::move(view));
+	}
+	void AddView(DataViewIf&& view) {
+		if_views.push_back(std::move(view));
 	}
 
 	bool Update(const DataModel& model)
@@ -102,12 +119,15 @@ public:
 			result |= view.Update(model);
 		for (auto& view : attribute_views)
 			result |= view.Update(model);
+		for (auto& view : if_views)
+			result |= view.Update(model);
 		return result;
 	}
 
 private:
 	std::vector<DataViewText> text_views;
 	std::vector<DataViewAttribute> attribute_views;
+	std::vector<DataViewIf> if_views;
 };
 
 
@@ -183,6 +203,7 @@ public:
 	};
 
 	bool GetValue(const String& name, String& out_value) const;
+	bool GetValue(const String& name, bool& out_value) const;
 	bool SetValue(const String& name, const String& value) const;
 	bool IsWritable(const String& name) const;
 

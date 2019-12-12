@@ -167,6 +167,32 @@ bool DataViewAttribute::Update(const DataModel& model)
 }
 
 
+
+DataViewIf::DataViewIf(const DataModel& model, Element* element, const String& binding_name) : element(element->GetObserverPtr()), binding_name(binding_name)
+{
+	Update(model);
+}
+
+
+bool DataViewIf::Update(const DataModel& model)
+{
+	bool result = false;
+	bool value = false;
+	if (model.GetValue(binding_name, value))
+	{
+		bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
+		if(is_visible != value)
+		{
+			if (value)
+				element->RemoveProperty(PropertyId::Display);
+			else
+				element->SetProperty(PropertyId::Display, Property(Style::Display::None));
+			result = true;
+		}
+	}
+	return result;
+}
+
 DataControllerAttribute::DataControllerAttribute(const DataModel& model, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name), value_name(in_value_name)
 {
 	String value;
@@ -192,7 +218,7 @@ bool DataControllerAttribute::Update(Element* element, const DataModel& model)
 
 bool DataModel::GetValue(const String& name, String& out_value) const
 {
-	bool result = true;
+	bool success = true;
 
 	auto it = bindings.find(name);
 	if (it != bindings.end())
@@ -202,21 +228,50 @@ bool DataModel::GetValue(const String& name, String& out_value) const
 		if (binding.type == Type::STRING)
 			out_value = *static_cast<const String*>(binding.ptr);
 		else if (binding.type == Type::INT)
-			result = TypeConverter<int, String>::Convert(*static_cast<const int*>(binding.ptr), out_value);
+			success = TypeConverter<int, String>::Convert(*static_cast<const int*>(binding.ptr), out_value);
 		else
 		{
 			RMLUI_ERRORMSG("TODO: Implementation for the provided binding type has not been made yet.");
-			result = false;
+			success = false;
 		}
 	}
 	else
 	{
 		Log::Message(Log::LT_WARNING, "Could not find value named '%s' in data model.", name.c_str());
-		result = false;
+		success = false;
 	}
 
-	return result;
+	return success;
 }
+
+bool DataModel::GetValue(const String& name, bool& out_value) const
+{
+	bool success = true;
+
+	auto it = bindings.find(name);
+	if (it != bindings.end())
+	{
+		const Binding& binding = it->second;
+
+		if (binding.type == Type::STRING)
+			success = TypeConverter<String, bool>::Convert(*static_cast<const String*>(binding.ptr), out_value);
+		else if (binding.type == Type::INT)
+			success = TypeConverter<int, bool>::Convert(*static_cast<const int*>(binding.ptr), out_value);
+		else
+		{
+			RMLUI_ERRORMSG("TODO: Implementation for the provided binding type has not been made yet.");
+			success = false;
+		}
+	}
+	else
+	{
+		Log::Message(Log::LT_WARNING, "Could not find value named '%s' in data model.", name.c_str());
+		success = false;
+	}
+
+	return success;
+}
+
 
 bool DataModel::SetValue(const String& name, const String& value) const
 {

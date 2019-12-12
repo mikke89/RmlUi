@@ -106,6 +106,7 @@ private:
 struct MyData {
 	Rml::Core::String hello_world = "Hello World!";
 	int rating = 99;
+	int good_rating = 1;
 } my_data;
 
 Rml::Core::DataModelHandle my_model;
@@ -120,6 +121,7 @@ bool SetupDataBinding(Rml::Core::Context* context)
 
 	my_model.BindData("hello_world", Type::STRING, &my_data.hello_world);
 	my_model.BindData("rating", Type::INT, &my_data.rating, true);
+	my_model.BindData("good_rating", Type::INT, &my_data.good_rating);
 
 	return true;
 }
@@ -133,6 +135,7 @@ std::unique_ptr<DemoWindow> demo_window;
 void GameLoop()
 {
 	my_model.UpdateControllers();
+	my_data.good_rating = int(my_data.rating > 50);
 	my_model.UpdateViews();
 
 	demo_window->Update();

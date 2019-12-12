@@ -275,27 +275,33 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 						if (name.size() > 5 && name[0] == 'd' && name[1] == 'a' && name[2] == 't' && name[3] == 'a' && name[4] == '-')
 						{
 							const size_t data_type_end = name.find('-', 5);
-							if (data_type_end != String::npos)
+							const size_t count = (data_type_end == String::npos ? String::npos : data_type_end - 5);
+							const String data_type = name.substr(5, count);
+							const String value_bind_name = attribute.second.Get<String>();
+
+							if (data_type == "attr")
 							{
-								const String data_type = name.substr(5, data_type_end - 5);
+								const String attr_bind_name = name.substr(5 + data_type.size() + 1);
 
-								if (data_type == "attr")
-								{
-									const String attr_bind_name = name.substr(5 + data_type.size() + 1);
-									const String value_bind_name = attribute.second.Get<String>();
+								DataViewAttribute data_view(*data_model, element.get(), attr_bind_name, value_bind_name);
+								if (data_view)
+									data_model->views.AddView(std::move(data_view));
+								else
+									Log::Message(Log::LT_WARNING, "Could not add data-attr view to element '%s'.", parent->GetAddress().c_str());
 
-									DataViewAttribute data_view(*data_model, element.get(), attr_bind_name, value_bind_name);
-									if (data_view)
-										data_model->views.AddView(std::move(data_view));
-									else
-										Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", parent->GetAddress().c_str());
-
-									DataControllerAttribute data_controller(*data_model, attr_bind_name, value_bind_name);
-									if (data_controller)
-										data_model->controllers.AddController(element.get(), std::move(data_controller));
-									else
-										Log::Message(Log::LT_WARNING, "Could not add data binding controller to element '%s'.", parent->GetAddress().c_str());
-								}
+								DataControllerAttribute data_controller(*data_model, attr_bind_name, value_bind_name);
+								if (data_controller)
+									data_model->controllers.AddController(element.get(), std::move(data_controller));
+								else
+									Log::Message(Log::LT_WARNING, "Could not add data-attr controller to element '%s'.", parent->GetAddress().c_str());
+							}
+							else if (data_type == "if")
+							{
+								DataViewIf view(*data_model, element.get(), value_bind_name);
+								if (view)
+									data_model->views.AddView(std::move(view));
+								else
+									Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", parent->GetAddress().c_str());
 							}
 						}
 					}
