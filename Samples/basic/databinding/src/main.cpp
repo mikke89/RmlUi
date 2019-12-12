@@ -119,7 +119,7 @@ bool SetupDataBinding(Rml::Core::Context* context)
 		return false;
 
 	my_model.BindData("hello_world", Type::STRING, &my_data.hello_world);
-	my_model.BindData("rating", Type::INT, &my_data.rating);
+	my_model.BindData("rating", Type::INT, &my_data.rating, true);
 
 	return true;
 }
@@ -132,6 +132,9 @@ std::unique_ptr<DemoWindow> demo_window;
 
 void GameLoop()
 {
+	my_model.UpdateControllers();
+	my_model.UpdateViews();
+
 	demo_window->Update();
 	context->Update();
 

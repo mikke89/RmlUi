@@ -167,33 +167,99 @@ bool DataViewAttribute::Update(const DataModel& model)
 }
 
 
+DataControllerAttribute::DataControllerAttribute(const DataModel& model, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name), value_name(in_value_name)
+{
+	String value;
+	bool result = model.GetValue(value_name, value);
+	if (!model.IsWritable(value_name))
+	{
+		attribute_name.clear();
+		value_name.clear();
+	}
+}
+
+bool DataControllerAttribute::Update(Element* element, const DataModel& model) 
+{
+	bool result = false;
+	if (dirty)
+	{
+		result = model.SetValue(value_name, element->GetAttribute<String>(attribute_name, ""));
+		dirty = false;
+	}
+	return result;
+}
+
+
 bool DataModel::GetValue(const String& name, String& out_value) const
 {
+	bool result = true;
+
 	auto it = bindings.find(name);
 	if (it != bindings.end())
 	{
 		const Binding& binding = it->second;
 
-		bool result = true;
-
 		if (binding.type == Type::STRING)
 			out_value = *static_cast<const String*>(binding.ptr);
 		else if (binding.type == Type::INT)
-			TypeConverter<int, String>::Convert(*static_cast<const int*>(binding.ptr), out_value);
+			result = TypeConverter<int, String>::Convert(*static_cast<const int*>(binding.ptr), out_value);
 		else
 		{
 			RMLUI_ERRORMSG("TODO: Implementation for the provided binding type has not been made yet.");
 			result = false;
 		}
-
-		return result;
 	}
 	else
 	{
 		Log::Message(Log::LT_WARNING, "Could not find value named '%s' in data model.", name.c_str());
+		result = false;
 	}
 
+	return result;
+}
+
+bool DataModel::SetValue(const String& name, const String& value) const
+{
+	bool result = true;
+
+	auto it = bindings.find(name);
+	if (it != bindings.end())
+	{
+		const Binding& binding = it->second;
+
+		if (binding.writable)
+		{
+			if (binding.type == Type::STRING)
+				*static_cast<String*>(binding.ptr) = value;
+			else if (binding.type == Type::INT)
+				result = TypeConverter<String, int>::Convert(value, *static_cast<int*>(binding.ptr));
+			else
+			{
+				RMLUI_ERRORMSG("TODO: Implementation for the provided binding type has not been made yet.");
+				result = false;
+			}
+		}
+		else
+		{
+			RMLUI_ERRORMSG("Controller attempted to write to a non-writable binding.");
+			result = false;
+		}
+	}
+	else
+	{
+		Log::Message(Log::LT_WARNING, "Could not find value named '%s' in data model.", name.c_str());
+		result = false;
+	}
 	return false;
+}
+
+bool DataModel::IsWritable(const String& name) const
+{
+	bool result = false;
+	auto it = bindings.find(name);
+	if (it != bindings.end())
+		result = it->second.writable;
+	return result;
 }
 
 }

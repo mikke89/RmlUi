@@ -286,14 +286,15 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 
 									DataViewAttribute data_view(*data_model, element.get(), attr_bind_name, value_bind_name);
 									if (data_view)
-									{
 										data_model->views.AddView(std::move(data_view));
-									}
 									else
-									{
 										Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", parent->GetAddress().c_str());
-									}
-									
+
+									DataControllerAttribute data_controller(*data_model, attr_bind_name, value_bind_name);
+									if (data_controller)
+										data_model->controllers.AddController(element.get(), std::move(data_controller));
+									else
+										Log::Message(Log::LT_WARNING, "Could not add data binding controller to element '%s'.", parent->GetAddress().c_str());
 								}
 							}
 						}
