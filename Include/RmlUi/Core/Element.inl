@@ -48,7 +48,8 @@ void Element::SetAttribute(const String& name, const T& value)
 {
 	Variant variant(value);
 	attributes[name] = variant;
-	ElementAttributes changed_attributes = { {name, variant} };
+    ElementAttributes changed_attributes;
+    changed_attributes.emplace(name, std::move(variant));
 	OnAttributeChange(changed_attributes);
 }
 
