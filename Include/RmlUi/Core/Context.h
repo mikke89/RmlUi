@@ -34,7 +34,7 @@
 #include "Traits.h"
 #include "Input.h"
 #include "ScriptInterface.h"
-#include "DataBinding.h"
+#include "DataModel.h"
 
 namespace Rml {
 namespace Core {

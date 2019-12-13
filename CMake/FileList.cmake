@@ -108,7 +108,9 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ContextInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ConvolutionFilter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Core.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataBinding.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataController.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataModel.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataView.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecoratorInstancer.h
@@ -193,7 +195,9 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ConvolutionFilter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Core.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DataBinding.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataController.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataModel.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Decorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorInstancer.cpp
