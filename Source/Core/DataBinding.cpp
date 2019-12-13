@@ -155,9 +155,9 @@ bool DataViewAttribute::Update(const DataModel& model)
 	String value;
 	if (model.GetValue(value_name, value))
 	{
-		Variant* variant = element->GetAttribute(attribute_name);
+		Variant* attribute = element->GetAttribute(attribute_name);
 
-		if (!variant || (variant && variant->Get<String>() != value))
+		if (!attribute || (attribute && attribute->Get<String>() != value))
 		{
 			element->SetAttribute(attribute_name, value);
 			result = true;
@@ -177,9 +177,12 @@ DataViewIf::DataViewIf(const DataModel& model, Element* element, const String& b
 bool DataViewIf::Update(const DataModel& model)
 {
 	bool result = false;
-	bool value = false;
-	if (model.GetValue(binding_name, value))
+	Variant variant;
+	int int_value = 0;
+
+	if (model.GetValue(binding_name, variant) && variant.GetInto(int_value))
 	{
+		bool value = (int_value != 0);
 		bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
 		if(is_visible != value)
 		{
@@ -195,8 +198,6 @@ bool DataViewIf::Update(const DataModel& model)
 
 DataControllerAttribute::DataControllerAttribute(const DataModel& model, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name), value_name(in_value_name)
 {
-	String value;
-	bool result = model.GetValue(value_name, value);
 	if (!model.IsWritable(value_name))
 	{
 		attribute_name.clear();
@@ -209,26 +210,55 @@ bool DataControllerAttribute::Update(Element* element, const DataModel& model)
 	bool result = false;
 	if (dirty)
 	{
-		result = model.SetValue(value_name, element->GetAttribute<String>(attribute_name, ""));
+		if(Variant* value = element->GetAttribute(attribute_name))
+			result = model.SetValue(value_name, *value);
 		dirty = false;
 	}
 	return result;
 }
 
 
-bool DataModel::GetValue(const String& name, String& out_value) const
+bool DataModel::GetValue(const String& in_name, Variant& out_value) const
 {
 	bool success = true;
+
+	String name = in_name;
+	String member;
+
+	size_t i_dot = name.find('.');
+	if (i_dot != String::npos)
+	{
+		name = in_name.substr(0, i_dot);
+		member = in_name.substr(i_dot + 1);
+	}
 
 	auto it = bindings.find(name);
 	if (it != bindings.end())
 	{
 		const Binding& binding = it->second;
 
-		if (binding.type == Type::STRING)
+		if (binding.type == ValueType::String)
 			out_value = *static_cast<const String*>(binding.ptr);
-		else if (binding.type == Type::INT)
-			success = TypeConverter<int, String>::Convert(*static_cast<const int*>(binding.ptr), out_value);
+		else if (binding.type == ValueType::Int)
+			out_value = *static_cast<const int*>(binding.ptr);
+		else if (binding.type == ValueType::Type)
+		{
+			success = false;
+			auto it_type = data_types.find(binding.data_type_name);
+			if(it_type != data_types.end())
+			{
+				const auto& members = it_type->second;
+				auto it_member = members.find(member);
+				if (it_member != members.end())
+				{
+					auto member_getset_ptr = it_member->second.get();
+					RMLUI_ASSERT(member_getset_ptr);
+					success = member_getset_ptr->Get(binding.ptr, out_value);
+				}
+			}
+			if(!success)
+				Log::Message(Log::LT_WARNING, "Could not get value from member '%s' in value named '%s' in data model.", member.c_str(), name.c_str());
+		}
 		else
 		{
 			RMLUI_ERRORMSG("TODO: Implementation for the provided binding type has not been made yet.");
@@ -244,36 +274,8 @@ bool DataModel::GetValue(const String& name, String& out_value) const
 	return success;
 }
 
-bool DataModel::GetValue(const String& name, bool& out_value) const
-{
-	bool success = true;
 
-	auto it = bindings.find(name);
-	if (it != bindings.end())
-	{
-		const Binding& binding = it->second;
-
-		if (binding.type == Type::STRING)
-			success = TypeConverter<String, bool>::Convert(*static_cast<const String*>(binding.ptr), out_value);
-		else if (binding.type == Type::INT)
-			success = TypeConverter<int, bool>::Convert(*static_cast<const int*>(binding.ptr), out_value);
-		else
-		{
-			RMLUI_ERRORMSG("TODO: Implementation for the provided binding type has not been made yet.");
-			success = false;
-		}
-	}
-	else
-	{
-		Log::Message(Log::LT_WARNING, "Could not find value named '%s' in data model.", name.c_str());
-		success = false;
-	}
-
-	return success;
-}
-
-
-bool DataModel::SetValue(const String& name, const String& value) const
+bool DataModel::SetValue(const String& name, const Variant& value) const
 {
 	bool result = true;
 
@@ -284,10 +286,10 @@ bool DataModel::SetValue(const String& name, const String& value) const
 
 		if (binding.writable)
 		{
-			if (binding.type == Type::STRING)
-				*static_cast<String*>(binding.ptr) = value;
-			else if (binding.type == Type::INT)
-				result = TypeConverter<String, int>::Convert(value, *static_cast<int*>(binding.ptr));
+			if (binding.type == ValueType::String)
+				result = value.GetInto(*static_cast<String*>(binding.ptr));
+			else if (binding.type == ValueType::Int)
+				result = value.GetInto(*static_cast<int*>(binding.ptr));
 			else
 			{
 				RMLUI_ERRORMSG("TODO: Implementation for the provided binding type has not been made yet.");

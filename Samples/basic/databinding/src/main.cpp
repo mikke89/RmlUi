@@ -103,25 +103,112 @@ private:
 
 
 
+
+
+struct Invader {
+	Rml::Core::String name;
+	Rml::Core::String sprite;
+	Rml::Core::Colourf color;
+};
+
+
+/*
+
+// -- Data members using std::function --
+
+using GetterFnc = std::function<void(const void*, Rml::Core::Variant&)>;
+using SetterFnc = std::function<void(void*, const Rml::Core::Variant&)>;
+
+struct DataBinding {
+	void* ptr;
+	GetterFnc getter;
+	SetterFnc setter;
+};
+
+template <typename Object, typename MemberType>
+SetterFnc CreateMemberSetter(MemberType Object::* member_ptr)
+{
+	return [member_ptr](void* object, const Rml::Core::Variant& input) {
+		MemberType& target = static_cast<Object*>(object)->*member_ptr;
+		input.GetInto<MemberType>(target);
+	};
+}
+
+void TestDataType()
+{
+	std::vector<SetterFnc> setter;
+	auto fnc = CreateMemberSetter(&Invader::name);
+
+	setter.push_back(fnc);
+
+	Invader invader;
+	Rml::Core::String new_name = "Hello there!";
+	fnc(&invader, Rml::Core::Variant(new_name));
+
+	return;
+}
+*/
+
+
+template <typename Object, typename MemberType>
+auto MakeMemberDefault(MemberType Object::* member_ptr) {
+	return std::make_unique<Rml::Core::DataMemberGetSetDefault<Object, MemberType>>(member_ptr);
+}
+
+void TestDataType()
+{
+	Rml::Core::DataModel::DataTypeMembers members;
+
+	auto fnc = MakeMemberDefault(&Invader::name);
+	members.emplace("name", std::move(fnc));
+
+	Invader invader{ "Delightful invader" };
+	Rml::Core::Variant old_value;
+	members["name"]->Get(&invader, old_value);
+	auto old_name = old_value.Get<Rml::Core::String>();
+	RMLUI_ASSERT(old_name == invader.name);
+
+	const Rml::Core::String new_name = "Evil invader";
+	members["name"]->Set(&invader, Rml::Core::Variant(new_name));
+	RMLUI_ASSERT(new_name == invader.name);
+
+	return;
+}
+
+
+
 struct MyData {
 	Rml::Core::String hello_world = "Hello World!";
 	int rating = 99;
 	int good_rating = 1;
+
+	Invader invader{ "Delightful invader", "icon-invader", Rml::Core::Colourf{} };
+
+	std::vector<Invader> invaders;
 } my_data;
 
 Rml::Core::DataModelHandle my_model;
 
 bool SetupDataBinding(Rml::Core::Context* context)
 {
-	using Type = Rml::Core::Variant::Type;
+	using Rml::Core::ValueType;
 
 	my_model = context->CreateDataModel("my_model");
 	if (!my_model)
 		return false;
 
-	my_model.BindData("hello_world", Type::STRING, &my_data.hello_world);
-	my_model.BindData("rating", Type::INT, &my_data.rating, true);
-	my_model.BindData("good_rating", Type::INT, &my_data.good_rating);
+	my_model.BindValue("hello_world", ValueType::String, &my_data.hello_world);
+	my_model.BindValue("rating", ValueType::Int, &my_data.rating, true);
+	my_model.BindValue("good_rating", ValueType::Int, &my_data.good_rating);
+
+	TestDataType();
+
+	auto invader_type = my_model.RegisterType("Invader");
+	invader_type.BindMember("name", &Invader::name);
+	invader_type.BindMember("sprite", &Invader::sprite);
+	invader_type.BindMember("color", &Invader::color);
+
+	my_model.BindDataTypeValue("invader", "Invader", &my_data.invader);
 
 	return true;
 }
