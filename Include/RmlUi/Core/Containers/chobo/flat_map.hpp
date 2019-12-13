@@ -254,7 +254,7 @@ public:
     template <class... Args>
     std::pair<iterator, bool> emplace(Args&&... args)
     {
-        value_type val(args...);
+        value_type val(std::forward<Args>(args)...);
         return insert(std::move(val));
     }
 
