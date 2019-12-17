@@ -57,7 +57,7 @@ private:
 
 	struct DataEntry {
 		size_t index = 0; // Index into 'text'
-		String name;
+		String binding_name;
 		String value;
 	};
 
@@ -70,7 +70,7 @@ private:
 
 class DataViewAttribute {
 public:
-	DataViewAttribute(const DataModel& model, Element* element, const String& attribute_name, const String& value_name);
+	DataViewAttribute(const DataModel& model, Element* element, const String& binding_name, const String& attribute_name);
 
 	inline operator bool() const {
 		return !attribute_name.empty() && element;
@@ -79,8 +79,24 @@ public:
 
 private:
 	ObserverPtr<Element> element;
+	String binding_name;
 	String attribute_name;
-	String value_name;
+};
+
+
+class DataViewStyle {
+public:
+	DataViewStyle(const DataModel& model, Element* element, const String& binding_name, const String& property_name);
+
+	inline operator bool() const {
+		return !binding_name.empty() && !property_name.empty() && element;
+	}
+	bool Update(const DataModel& model);
+
+private:
+	ObserverPtr<Element> element;
+	String binding_name;
+	String property_name;
 };
 
 
@@ -111,6 +127,9 @@ public:
 	void AddView(DataViewIf&& view) {
 		if_views.push_back(std::move(view));
 	}
+	void AddView(DataViewStyle&& view) {
+		style_views.push_back(std::move(view));
+	}
 
 	bool Update(const DataModel& model)
 	{
@@ -121,6 +140,8 @@ public:
 			result |= view.Update(model);
 		for (auto& view : if_views)
 			result |= view.Update(model);
+		for (auto& view : style_views)
+			result |= view.Update(model);
 		return result;
 	}
 
@@ -128,6 +149,7 @@ private:
 	std::vector<DataViewText> text_views;
 	std::vector<DataViewAttribute> attribute_views;
 	std::vector<DataViewIf> if_views;
+	std::vector<DataViewStyle> style_views;
 };
 
 }

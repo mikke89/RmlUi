@@ -106,16 +106,16 @@ private:
 struct Invader {
 	Rml::Core::String name;
 	Rml::Core::String sprite;
-	Rml::Core::Colourf color;
+	Rml::Core::String color;
 };
 
 
 struct MyData {
 	Rml::Core::String hello_world = "Hello World!";
 	int rating = 99;
-	bool good_rating = 1;
+	bool good_rating = true;
 
-	Invader invader{ "Delightful invader", "icon-invader", Rml::Core::Colourf{} };
+	Invader invader{ "Delightful invader", "icon-invader", "red" };
 
 	std::vector<Invader> invaders;
 } my_data;

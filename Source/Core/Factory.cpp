@@ -283,7 +283,7 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 							{
 								const String attr_bind_name = name.substr(5 + data_type.size() + 1);
 
-								DataViewAttribute data_view(*data_model, element.get(), attr_bind_name, value_bind_name);
+								DataViewAttribute data_view(*data_model, element.get(), value_bind_name, attr_bind_name);
 								if (data_view)
 									data_model->views.AddView(std::move(data_view));
 								else
@@ -302,6 +302,16 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 									data_model->views.AddView(std::move(view));
 								else
 									Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", parent->GetAddress().c_str());
+							}
+							else if (data_type == "style")
+							{
+								const String property_name = name.substr(5 + data_type.size() + 1);
+
+								DataViewStyle view(*data_model, element.get(), value_bind_name, property_name);
+								if (view)
+									data_model->views.AddView(std::move(view));
+								else
+									Log::Message(Log::LT_WARNING, "Could not add data-style view to element '%s'.", parent->GetAddress().c_str());
 							}
 						}
 					}

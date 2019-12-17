@@ -58,7 +58,7 @@ DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_elemen
 
 		DataEntry entry;
 		entry.index = text.size();
-		entry.name = (String)StringUtilities::StripWhitespace(StringView(in_text.data() + begin_name, in_text.data() + end_name));
+		entry.binding_name = (String)StringUtilities::StripWhitespace(StringView(in_text.data() + begin_name, in_text.data() + end_name));
 		data_entries.push_back(std::move(entry));
 
 		previous_close_brackets = end_name + 2;
@@ -89,7 +89,7 @@ bool DataViewText::Update(const DataModel& model)
 	for (DataEntry& entry : data_entries)
 	{
 		String value;
-		bool result = model.GetValue(entry.name, value);
+		bool result = model.GetValue(entry.binding_name, value);
 
 		if (result && entry.value != value)
 		{
@@ -144,8 +144,8 @@ String DataViewText::BuildText() const
 }
 
 
-DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, const String& attribute_name, const String& value_name)
-	: element(element->GetObserverPtr()), attribute_name(attribute_name), value_name(value_name)
+DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, const String& binding_name, const String& attribute_name)
+	: element(element->GetObserverPtr()), binding_name(binding_name), attribute_name(attribute_name)
 {
 	Update(model);
 }
@@ -154,7 +154,7 @@ bool DataViewAttribute::Update(const DataModel& model)
 {
 	bool result = false;
 	String value;
-	if (model.GetValue(value_name, value))
+	if (model.GetValue(binding_name, value))
 	{
 		Variant* attribute = element->GetAttribute(attribute_name);
 
@@ -166,6 +166,32 @@ bool DataViewAttribute::Update(const DataModel& model)
 	}
 	return result;
 }
+
+
+
+DataViewStyle::DataViewStyle(const DataModel& model, Element* element, const String& binding_name, const String& property_name)
+	: element(element->GetObserverPtr()), binding_name(binding_name), property_name(property_name)
+{
+	Update(model);
+}
+
+
+bool DataViewStyle::Update(const DataModel& model)
+{
+	bool result = false;
+	String value;
+	if (model.GetValue(binding_name, value))
+	{
+		const Property* p = element->GetLocalProperty(property_name);
+		if (!p || p->Get<String>() != value)
+		{
+			element->SetProperty(property_name, value);
+			result = true;
+		}
+	}
+	return result;
+}
+
 
 
 
