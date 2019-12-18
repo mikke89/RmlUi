@@ -113,7 +113,6 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 
 		Core::Element* parent = parser->GetParseFrame()->element;
 
-		// Attempt to instance the element with the instancer.
 		Core::ElementPtr element = Core::Factory::InstanceElement(parent, name, name, attributes);
 		if (!element)
 		{
@@ -121,9 +120,9 @@ Core::Element* XMLNodeHandlerTabSet::ElementStart(Core::XMLParser* parser, const
 			return nullptr;
 		}
 
-		// Add the element to its parent and remove the initial reference.
-		Core::Element* result = parent->AppendChild(std::move(element));
-		return result;
+		parent->AppendChild(std::move(element));
+
+		return nullptr;
 	}
 
 	return nullptr;
