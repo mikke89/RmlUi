@@ -575,6 +575,12 @@ public:
 	/// Return the computed values of the element's properties. These values are updated as appropriate on every Context::Update.
 	const ComputedValues& GetComputedValues() const;
 
+
+
+	// TODO: Temporary, make private / remove.
+	DataModel* GetDataModel() { return data_model; }
+	void SetDataModel(DataModel* new_data_model) { data_model = new_data_model; }
+
 protected:
 	void Update(float dp_ratio);
 	void Render();

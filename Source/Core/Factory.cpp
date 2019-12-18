@@ -240,6 +240,8 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 			ElementUtilities::BindEventAttributes(element.get());
 
 
+			// TODO: Relies on parent, a bit hacky.
+			if (parent && !parent->HasAttribute("data-for"))
 			{
 				// Look for the data-model attribute or otherwise copy it from the parent element
 				auto it = attributes.find("data-model");
@@ -295,14 +297,6 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 								else
 									Log::Message(Log::LT_WARNING, "Could not add data-attr controller to element '%s'.", parent->GetAddress().c_str());
 							}
-							else if (data_type == "if")
-							{
-								DataViewIf view(*data_model, element.get(), value_bind_name);
-								if (view)
-									data_model->views.AddView(std::move(view));
-								else
-									Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", parent->GetAddress().c_str());
-							}
 							else if (data_type == "style")
 							{
 								const String property_name = name.substr(5 + data_type.size() + 1);
@@ -312,6 +306,14 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 									data_model->views.AddView(std::move(view));
 								else
 									Log::Message(Log::LT_WARNING, "Could not add data-style view to element '%s'.", parent->GetAddress().c_str());
+							}
+							else if (data_type == "if")
+							{
+								DataViewIf view(*data_model, element.get(), value_bind_name);
+								if (view)
+									data_model->views.AddView(std::move(view));
+								else
+									Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", parent->GetAddress().c_str());
 							}
 						}
 					}
@@ -367,20 +369,23 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 
 		// Attempt to instance the element.
 		XMLAttributes attributes;
-		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
-		if (!element)
+		ElementPtr element_ptr = Factory::InstanceElement(parent, "#text", "#text", attributes);
+		if (!element_ptr)
 		{
 			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", translated_data.c_str());
 			return false;
 		}
 
 		// Assign the element its text value.
-		ElementText* text_element = rmlui_dynamic_cast< ElementText* >(element.get());
+		ElementText* text_element = rmlui_dynamic_cast< ElementText* >(element_ptr.get());
 		if (!text_element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), rmlui_type_name(*element));
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), rmlui_type_name(*element_ptr));
 			return false;
 		}
+
+		// Add to active node.
+		Element* element = parent->AppendChild(std::move(element_ptr));
 
 		// See if this text element uses data bindings.
 		bool data_view_added = false;
@@ -404,9 +409,6 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 
 		if(!data_view_added)
 			text_element->SetText(translated_data);
-
-		// Add to active node.
-		parent->AppendChild(std::move(element));
 	}
 
 	return true;

@@ -118,6 +118,8 @@ struct MyData {
 	Invader invader{ "Delightful invader", "icon-invader", "red" };
 
 	std::vector<Invader> invaders;
+
+	std::vector<int> indices = { 1, 2, 3, 4, 5 };
 } my_data;
 
 Rml::Core::DataModelHandle my_model;
@@ -132,12 +134,14 @@ bool SetupDataBinding(Rml::Core::Context* context)
 	my_model.BindValue("rating", &my_data.rating);
 	my_model.BindValue("good_rating", &my_data.good_rating);
 
-	auto invader_type = my_model.RegisterType("Invader");
+	auto invader_type = my_model.RegisterType<Invader>();
 	invader_type.RegisterMember("name", &Invader::name);
 	invader_type.RegisterMember("sprite", &Invader::sprite);
 	invader_type.RegisterMember("color", &Invader::color);
 
-	my_model.BindTypeValue("invader", "Invader", &my_data.invader);
+	my_model.BindTypeValue("invader", &my_data.invader);
+
+	my_model.BindContainer("indices", &my_data.indices);
 
 	return true;
 }
@@ -151,7 +155,7 @@ std::unique_ptr<DemoWindow> demo_window;
 void GameLoop()
 {
 	my_model.UpdateControllers();
-	my_data.good_rating = int(my_data.rating > 50);
+	my_data.good_rating = (my_data.rating > 50);
 	my_model.UpdateViews();
 
 	demo_window->Update();

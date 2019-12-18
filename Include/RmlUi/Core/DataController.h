@@ -40,8 +40,12 @@ namespace Core {
 class Element;
 class DataModel;
 
+class RMLUICORE_API DataController {
 
-class DataControllerAttribute {
+};
+
+
+class DataControllerAttribute : public DataController {
 public:
 	DataControllerAttribute(const DataModel& model, const String& in_attribute_name, const String& in_value_name);
 
@@ -69,7 +73,7 @@ private:
 };
 
 
-class DataControllers {
+class RMLUICORE_API DataControllers {
 public:
 
 	void AddController(Element* element, DataControllerAttribute&& controller) {

@@ -41,8 +41,11 @@ class Element;
 class ElementText;
 class DataModel;
 
+class RMLUICORE_API DataView {
 
-class DataViewText {
+};
+
+class DataViewText : public DataView {
 public:
 	DataViewText(const DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
 
@@ -68,7 +71,7 @@ private:
 
 
 
-class DataViewAttribute {
+class DataViewAttribute : public DataView {
 public:
 	DataViewAttribute(const DataModel& model, Element* element, const String& binding_name, const String& attribute_name);
 
@@ -84,7 +87,7 @@ private:
 };
 
 
-class DataViewStyle {
+class DataViewStyle : public DataView {
 public:
 	DataViewStyle(const DataModel& model, Element* element, const String& binding_name, const String& property_name);
 
@@ -100,7 +103,7 @@ private:
 };
 
 
-class DataViewIf {
+class DataViewIf : public DataView {
 public:
 	DataViewIf(const DataModel& model, Element* element, const String& binding_name);
 
@@ -115,7 +118,26 @@ private:
 };
 
 
-class DataViews {
+class DataViewFor : public DataView {
+public:
+	DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& rml_contents);
+
+	inline operator bool() const {
+		return !binding_name.empty() && element;
+	}
+	bool Update(const DataModel& model);
+
+private:
+	ObserverPtr<Element> element;
+	String binding_name;
+	String rml_contents;
+	ElementAttributes attributes;
+
+	std::vector<Element*> elements;
+};
+
+
+class RMLUICORE_API DataViews {
 public:
 
 	void AddView(DataViewText&& view) {
@@ -124,11 +146,14 @@ public:
 	void AddView(DataViewAttribute&& view) {
 		attribute_views.push_back(std::move(view));
 	}
+	void AddView(DataViewStyle&& view) {
+		style_views.push_back(std::move(view));
+	}
 	void AddView(DataViewIf&& view) {
 		if_views.push_back(std::move(view));
 	}
-	void AddView(DataViewStyle&& view) {
-		style_views.push_back(std::move(view));
+	void AddView(DataViewFor&& view) {
+		for_views.push_back(std::move(view));
 	}
 
 	bool Update(const DataModel& model)
@@ -138,9 +163,11 @@ public:
 			result |= view.Update(model);
 		for (auto& view : attribute_views)
 			result |= view.Update(model);
+		for (auto& view : style_views)
+			result |= view.Update(model);
 		for (auto& view : if_views)
 			result |= view.Update(model);
-		for (auto& view : style_views)
+		for (auto& view : for_views)
 			result |= view.Update(model);
 		return result;
 	}
@@ -148,8 +175,9 @@ public:
 private:
 	std::vector<DataViewText> text_views;
 	std::vector<DataViewAttribute> attribute_views;
-	std::vector<DataViewIf> if_views;
 	std::vector<DataViewStyle> style_views;
+	std::vector<DataViewIf> if_views;
+	std::vector<DataViewFor> for_views;
 };
 
 }

@@ -64,6 +64,11 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 	// Move and append the element to the parent
 	Element* result = parent->AppendChild(std::move(element));
 
+	if (result->GetDataModel() && attributes.count("data-for") == 1)
+	{
+		parser->TreatElementContentAsCDATA();
+	}
+
 	return result;
 }
 
@@ -83,6 +88,23 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 	Element* parent = parser->GetParseFrame()->element;
 	
 	RMLUI_ASSERT(parent);
+
+	if (auto data_model = parent->GetDataModel())
+	{
+		if(auto attribute = parent->GetAttribute("data-for"))
+		{
+			String value_bind_name = attribute->Get<String>();
+
+			DataViewFor view(*data_model, parent, value_bind_name, data);
+			if (view)
+				data_model->views.AddView(std::move(view));
+			else
+				Log::Message(Log::LT_WARNING, "Could not add data-for view to element '%s'.", parent->GetAddress().c_str());
+
+			return true;
+		}
+	}
+
 
 	// Parse the text into the element
 	return Factory::InstanceElementText(parent, data);

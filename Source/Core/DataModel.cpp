@@ -37,6 +37,29 @@ bool DataModel::GetValue(const String& name, Variant& out_value) const
 {
 	bool success = true;
 
+	auto pos = name.find('[');
+	if (pos != String::npos)
+	{
+		auto pos_end = name.find(']', pos + 2);
+		if(pos_end != String::npos)
+		{
+			const String container_name = name.substr(0, pos);
+			const int index = FromString(name.substr(pos + 1, pos_end - pos + 1), -1);
+			if (index >= 0)
+			{
+				auto it_container = containers.find(container_name);
+				if (it_container != containers.end())
+				{
+					DataBindingContext context({ DataBindingContext::Item{ "", index} });
+
+					if (it_container->second->Get(out_value, context))
+						return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	auto it = bindings.find(name);
 	if (it != bindings.end())
 	{
@@ -76,6 +99,34 @@ bool DataModel::SetValue(const String& name, const Variant& value) const
 	}
 
 	return success;
+}
+
+String DataModel::ResolveVariableName(const String& raw_name, Element* parent) const
+{
+	auto it = bindings.find(raw_name);
+	if (it != bindings.end())
+		return raw_name;
+
+	Element* ancestor = parent;
+	while (ancestor && ancestor->GetDataModel() == this)
+	{
+		auto it_element = aliases.find(ancestor);
+		if (it_element != aliases.end())
+		{
+			auto& alias_names = it_element->second;
+			auto it_alias_name = alias_names.find(raw_name);
+			if (it_alias_name != alias_names.end())
+			{
+				return it_alias_name->second;
+			}
+		}
+
+		ancestor = ancestor->GetParentNode();
+	}
+
+	Log::Message(Log::LT_WARNING, "Could not find variable name '%s' in data model.", raw_name.c_str());
+
+	return String();
 }
 
 }

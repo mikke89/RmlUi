@@ -59,6 +59,8 @@ DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_elemen
 		DataEntry entry;
 		entry.index = text.size();
 		entry.binding_name = (String)StringUtilities::StripWhitespace(StringView(in_text.data() + begin_name, in_text.data() + end_name));
+		entry.binding_name = model.ResolveVariableName(entry.binding_name, in_parent_element);
+
 		data_entries.push_back(std::move(entry));
 
 		previous_close_brackets = end_name + 2;
@@ -217,6 +219,57 @@ bool DataViewIf::Update(const DataModel& model)
 			result = true;
 		}
 	}
+	return result;
+}
+
+
+
+DataViewFor::DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& in_rml_content) 
+	: element(element->GetObserverPtr()), binding_name(binding_name), rml_contents(in_rml_content)
+{
+	attributes = element->GetAttributes();
+	attributes.erase("data-for");
+	element->SetProperty(PropertyId::Display, Property(Style::Display::None));
+	Update(model);
+}
+
+
+
+bool DataViewFor::Update(const DataModel& model)
+{
+	bool result = false;
+	bool value = false;
+
+	const int size = model.containers.find(binding_name)->second->Size();
+	const int num_elements = (int)elements.size();
+
+	for (int i = 0; i < Math::Max(size, num_elements); i++)
+	{
+		if (i >= num_elements)
+		{
+			ElementPtr new_element_ptr = Factory::InstanceElement(nullptr, element->GetTagName(), element->GetTagName(), attributes);
+			new_element_ptr->SetDataModel((DataModel*)(&model));
+			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element.get());
+			elements.push_back(new_element);
+
+			auto& alias_map = model.aliases.emplace(new_element, SmallUnorderedMap<String, String>()).first->second;
+			alias_map["it"] = binding_name + "[" + ToString(i) + "]";
+
+			elements[i]->SetInnerRML(rml_contents);
+
+			RMLUI_ASSERT(i < (int)elements.size());
+		}
+		if (i >= size)
+		{
+			elements[i]->GetParentNode()->RemoveChild(elements[i]).reset();
+			model.aliases.erase(elements[i]);
+			elements[i] = nullptr;
+		}
+	}
+
+	if (num_elements > size)
+		elements.resize(size);
+
 	return result;
 }
 

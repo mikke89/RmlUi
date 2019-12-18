@@ -31,6 +31,7 @@
 
 #include "Header.h"
 #include "Types.h"
+#include "Traits.h"
 #include "Variant.h"
 #include "StringUtilities.h"
 #include "DataView.h"
@@ -41,6 +42,8 @@ namespace Core {
 
 class DataBinding;
 class DataMember;
+class DataContainer;
+class Element;
 
 
 class DataModel {
@@ -54,6 +57,9 @@ public:
 		return GetValue(name, variant) && variant.GetInto<T>(out_value);
 	}
 
+	String ResolveVariableName(const String& raw_name, Element* parent) const;
+
+
 	using Bindings = UnorderedMap<String, UniquePtr<DataBinding>>;
 	Bindings bindings;
 
@@ -61,12 +67,15 @@ public:
 	DataViews views;
 
 	using DataMembers = SmallUnorderedMap<String, UniquePtr<DataMember>>;
-	using DataTypes = UnorderedMap<String, DataMembers>;
-
+	using DataTypes = UnorderedMap<int, DataMembers>;
 	DataTypes data_types;
+
+	using DataContainers = UnorderedMap<String, UniquePtr<DataContainer>>;
+	DataContainers containers;
+
+	using ScopedAliases = UnorderedMap< Element*, SmallUnorderedMap<String, String> >;
+	mutable ScopedAliases aliases;
 };
-
-
 
 class DataBinding {
 public:
@@ -87,7 +96,6 @@ protected:
 private:
 	void* ptr;
 };
-
 
 class DataMember {
 public:
@@ -113,6 +121,100 @@ private:
 		return in_value.GetInto<T>(target);
 	}
 };
+
+
+
+
+class DataBindingContext {
+public:
+	struct Item {
+		String name;
+		int index = -1;
+	};
+	DataBindingContext(std::vector<Item>&& in_items) : items(std::move(in_items)), it(items.begin()) {}
+
+	operator bool() const { return it != items.end(); }
+
+	const Item& Next() {
+		RMLUI_ASSERT(it != items.end());
+		return *(it++);
+	}
+private:
+	std::vector<Item> items;
+	std::vector<Item>::iterator it;
+};
+
+
+class DataContainer {
+public:
+	DataContainer(void* ptr) : ptr(ptr) {}
+	virtual ~DataContainer() = default;
+
+	inline bool Get(Variant& out_value, DataBindingContext& context) {
+		return Get(ptr, out_value, context);
+	}
+	inline bool Set(const Variant& in_value, DataBindingContext& context) {
+		return Set(ptr, in_value, context);
+	}
+	inline int Size() {
+		return Size(ptr);
+	}
+
+protected:
+	virtual bool Get(const void* container_ptr, Variant& out_value, DataBindingContext& context) = 0;
+	virtual bool Set(void* container_ptr, const Variant& in_value, DataBindingContext& context) = 0;
+	virtual int Size(void* container_ptr) = 0;
+
+private:
+	void* ptr;
+};
+
+
+template<typename T>
+class DataContainerDefault : public DataContainer {
+public:
+	DataContainerDefault(void* ptr) : DataContainer(ptr) {}
+
+private:
+	bool Get(const void* container_ptr, Variant& out_value, DataBindingContext& context) override {
+		if (!context)
+		{
+			RMLUI_ERROR;
+			return false;
+		}
+		auto& item = context.Next();
+		auto& container = *static_cast<const T*>(container_ptr);
+		if (item.index < 0 || item.index >= (int)container.size())
+		{
+			Log::Message(Log::LT_WARNING, "Data container index out of bounds.");
+			return false;
+		}
+		out_value = container[item.index];
+		return true;
+	}
+	bool Set(void* container_ptr, const Variant& in_value, DataBindingContext& context) override {
+		if (!context)
+		{
+			RMLUI_ERROR;
+			return false;
+		}
+		auto& item = context.Next();
+		auto& container = *static_cast<T*>(container_ptr);
+		if (item.index < (int)container.size() || item.index >= (int)container.size())
+		{
+			Log::Message(Log::LT_WARNING, "Data container index out of bounds.");
+			return false;
+		}
+		container[item.index] = in_value.Get< typename T::value_type >();
+		return true;
+	}
+	int Size(void* container_ptr) override {
+		return (int)static_cast<T*>(container_ptr)->size();
+	}
+};
+
+
+
 
 class DataBindingMember : public DataBinding {
 public:
@@ -149,11 +251,13 @@ private:
 };
 
 
+
+template <typename Object>
 class DataTypeHandle {
 public:
 	DataTypeHandle(DataModel::DataMembers* members) : members(members) {}
 
-	template <typename Object, typename MemberType>
+	template <typename MemberType>
 	DataTypeHandle& RegisterMember(String name, MemberType Object::* member_ptr)
 	{
 		RMLUI_ASSERT(members);
@@ -179,15 +283,24 @@ public:
 		return *this;
 	}
 
-	DataModelHandle& BindTypeValue(String name, String type_name, void* object)
+	template <typename Container>
+	DataModelHandle& BindContainer(String name, Container* object)
 	{
 		RMLUI_ASSERT(model);
-		// Todo: We can make this type safe, removing the need for type_name.
-		//   Make this a templated function, create another templated "family" class which assigns
-		//   a unique id for each new type encountered, look up the type name there. Or use the ID as
-		//   the look-up key.
+		//using T = Container::value_type;
 
-		auto it = model->data_types.find(type_name);
+		model->containers.emplace(name, std::make_unique<DataContainerDefault<Container>>(object));
+		return *this;
+	}
+
+	template <typename T>
+	DataModelHandle& BindTypeValue(String name, T* object)
+	{
+		RMLUI_ASSERT(model);
+
+		int id = Family< typename std::remove_pointer< T >::type >::Id();
+
+		auto it = model->data_types.find(id);
 		if (it != model->data_types.end())
 		{
 			auto& members = it->second;
@@ -203,11 +316,17 @@ public:
 		return *this;
 	}
 
-	DataTypeHandle RegisterType(String name)
+	template <typename T>
+	DataTypeHandle<T> RegisterType()
 	{
 		RMLUI_ASSERT(model);
-		auto result = model->data_types.emplace(name, DataModel::DataMembers() );
-		return DataTypeHandle(&result.first->second);
+		int id = Family< T >::Id();
+		auto result = model->data_types.emplace(id, DataModel::DataMembers() );
+		if (!result.second) {
+			RMLUI_ERRORMSG("Type already registered.");
+			return DataTypeHandle<T>(nullptr);
+		}
+		return DataTypeHandle<T>(&result.first->second);
 	}
 
 	void UpdateControllers() {

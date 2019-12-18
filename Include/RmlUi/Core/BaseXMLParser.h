@@ -63,6 +63,9 @@ class RMLUICORE_API BaseXMLParser
 		/// Get the line number of the last open tag in the stream.
 		int GetLineNumberOpenTag() const;
 
+		// Treats all the inner contents of the currently parsing element as CData, including children nodes.
+		void TreatElementContentAsCDATA();
+
 		/// Called when the parser finds the beginning of an element tag.
 		virtual void HandleElementStart(const String& name, const XMLAttributes& attributes);
 		/// Called when the parser finds the end of an element tag.
@@ -105,6 +108,7 @@ class RMLUICORE_API BaseXMLParser
 		int line_number;
 		int line_number_open_tag;
 		int open_tag_depth;
+		bool treat_content_as_cdata;
 
 		// The element attributes being read.
 		XMLAttributes attributes;

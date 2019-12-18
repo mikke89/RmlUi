@@ -44,6 +44,7 @@ BaseXMLParser::BaseXMLParser()
 	buffer_used = 0;
 	buffer_size = 0;
 	open_tag_depth = 0;
+	treat_content_as_cdata = false;
 }
 
 BaseXMLParser::~BaseXMLParser()
@@ -63,6 +64,7 @@ void BaseXMLParser::Parse(Stream* stream)
 {
 	xml_source = stream;
 	buffer_size = DEFAULT_BUFFER_SIZE;
+	treat_content_as_cdata = false;
 
 	buffer = (unsigned char*) malloc(buffer_size);
 	read = buffer;
@@ -105,6 +107,11 @@ void BaseXMLParser::HandleElementEnd(const String& RMLUI_UNUSED_PARAMETER(name))
 void BaseXMLParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data))
 {
 	RMLUI_UNUSED(data);
+}
+
+void BaseXMLParser::TreatElementContentAsCDATA()
+{
+	treat_content_as_cdata = true;
 }
 
 void BaseXMLParser::ReadHeader()
@@ -177,6 +184,8 @@ bool BaseXMLParser::ReadOpenTag()
 	// Increase the open depth
 	open_tag_depth++;
 
+	treat_content_as_cdata = false;
+
 	// Opening tag; send data immediately and open the tag.
 	if (!data.empty())
 	{
@@ -233,11 +242,11 @@ bool BaseXMLParser::ReadOpenTag()
 		}
 	}
 
-	// Check if this tag needs to processed as CDATA.
+	// Check if this tag needs to be processed as CDATA.
 	if (section_opened)
 	{
 		String lcase_tag_name = StringUtilities::ToLower(tag_name);
-		if (cdata_tags.find(lcase_tag_name) != cdata_tags.end())
+		if (treat_content_as_cdata || cdata_tags.find(lcase_tag_name) != cdata_tags.end())
 		{
 			if (ReadCDATA(lcase_tag_name.c_str()))
 			{

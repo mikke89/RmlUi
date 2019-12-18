@@ -71,6 +71,29 @@ public:
 	}
 };
 
+class RMLUICORE_API FamilyBase {
+protected:
+	static int GetNewId() {
+		static int id = 0;
+		return id++;
+	}
+	template<typename T>
+	static int GetId() {
+		static int id = GetNewId();
+		return id;
+	}
+};
+
+template<typename T>
+class Family : FamilyBase {
+public:
+	// Get a unique ID for a given type.
+	// Note: IDs will be unique across DLL-boundaries even for the same type.
+	static int Id() {
+		return GetId< typename std::remove_cv< typename std::remove_reference< T >::type >::type >();
+	}
+};
+
 }
 }
 
