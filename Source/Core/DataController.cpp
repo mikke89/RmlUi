@@ -36,7 +36,7 @@ namespace Core {
 
 DataControllerAttribute::DataControllerAttribute(const DataModel& model, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name), value_name(in_value_name)
 {
-	if (model.bindings.count(value_name) == 0)
+	if (model.variables.count(value_name) == 0)
 	{
 		attribute_name.clear();
 		value_name.clear();

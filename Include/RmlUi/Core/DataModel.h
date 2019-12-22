@@ -40,10 +40,24 @@
 namespace Rml {
 namespace Core {
 
-class DataBinding;
+class DataVariable;
 class DataMember;
 class DataContainer;
 class Element;
+
+
+class DataAddress {
+
+	struct Entry {
+		enum Type { Array, Struct, Variable };
+		int index;
+		String name;
+	};
+
+	std::vector<Entry> address;
+
+};
+
 
 
 class DataModel {
@@ -60,8 +74,8 @@ public:
 	String ResolveVariableName(const String& raw_name, Element* parent) const;
 
 
-	using Bindings = UnorderedMap<String, UniquePtr<DataBinding>>;
-	Bindings bindings;
+	using Variables = UnorderedMap<String, UniquePtr<DataVariable>>;
+	Variables variables;
 
 	DataControllers controllers;
 	DataViews views;
@@ -77,10 +91,11 @@ public:
 	mutable ScopedAliases aliases;
 };
 
-class DataBinding {
+
+class DataVariable {
 public:
-	DataBinding(void* ptr) : ptr(ptr) {}
-	virtual ~DataBinding() = default;
+	DataVariable(void* ptr) : ptr(ptr) {}
+	virtual ~DataVariable() = default;
 
 	inline bool Get(Variant& out_value) {
 		return Get(ptr, out_value);
@@ -107,9 +122,9 @@ public:
 
 
 template<typename T>
-class DataBindingDefault : public DataBinding {
+class DataBindingDefault : public DataVariable {
 public:
-	DataBindingDefault(void* ptr) : DataBinding(ptr) {}
+	DataBindingDefault(void* ptr) : DataVariable(ptr) {}
 
 private:
 	bool Get(const void* object, Variant& out_value) override {
@@ -216,9 +231,9 @@ private:
 
 
 
-class DataBindingMember : public DataBinding {
+class DataBindingMember : public DataVariable {
 public:
-	DataBindingMember(void* object, DataMember* member) : DataBinding(object), member(member) {}
+	DataBindingMember(void* object, DataMember* member) : DataVariable(object), member(member) {}
 
 private:
 	bool Get(const void* object, Variant& out_value) override {
@@ -279,7 +294,7 @@ public:
 	DataModelHandle& BindValue(String name, T* object)
 	{
 		RMLUI_ASSERT(model);
-		model->bindings.emplace(name, std::make_unique<DataBindingDefault<T>>( object ));
+		model->variables.emplace(name, std::make_unique<DataBindingDefault<T>>( object ));
 		return *this;
 	}
 
@@ -308,7 +323,7 @@ public:
 			{
 				const String full_name = name + '.' + pair.first;
 				DataMember* member = pair.second.get();
-				bool inserted = model->bindings.emplace(full_name, std::make_unique<DataBindingMember>(object, member)).second;
+				bool inserted = model->variables.emplace(full_name, std::make_unique<DataBindingMember>(object, member)).second;
 				RMLUI_ASSERT(inserted);
 			}
 		}

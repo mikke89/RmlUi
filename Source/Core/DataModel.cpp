@@ -60,10 +60,10 @@ bool DataModel::GetValue(const String& name, Variant& out_value) const
 		return false;
 	}
 
-	auto it = bindings.find(name);
-	if (it != bindings.end())
+	auto it = variables.find(name);
+	if (it != variables.end())
 	{
-		DataBinding& binding = *it->second;
+		DataVariable& binding = *it->second;
 
 		success = binding.Get(out_value);
 		if (!success)
@@ -83,10 +83,10 @@ bool DataModel::SetValue(const String& name, const Variant& value) const
 {
 	bool success = true;
 
-	auto it = bindings.find(name);
-	if (it != bindings.end())
+	auto it = variables.find(name);
+	if (it != variables.end())
 	{
-		DataBinding& binding = *it->second;
+		DataVariable& binding = *it->second;
 
 		success = binding.Set(value);
 		if (!success)
@@ -103,8 +103,8 @@ bool DataModel::SetValue(const String& name, const Variant& value) const
 
 String DataModel::ResolveVariableName(const String& raw_name, Element* parent) const
 {
-	auto it = bindings.find(raw_name);
-	if (it != bindings.end())
+	auto it = variables.find(raw_name);
+	if (it != variables.end())
 		return raw_name;
 
 	Element* ancestor = parent;
