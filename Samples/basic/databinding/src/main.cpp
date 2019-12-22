@@ -330,35 +330,35 @@ namespace Data {
 	};
 
 
-	class Instancers;
+	class TypeRegister;
 
 	class InstancerBuilderBase {
 	public:
-		operator bool() const { return instancers && GetInstancer(); }
+		operator bool() const { return type_register && GetInstancer(); }
 
 		virtual VariableInstancer* GetInstancer() const = 0;
 
 	protected:
-		InstancerBuilderBase(Instancers* instancers) : instancers(instancers) {}
-		Instancers* instancers;
+		InstancerBuilderBase(TypeRegister* type_register) : type_register(type_register) {}
+		TypeRegister* type_register;
 	};
 
 	template<typename Object>
 	class InstancerBuilderStruct final : public InstancerBuilderBase {
 	public:
-		InstancerBuilderStruct(Instancers* instancers, StructInstancer* instancer) : InstancerBuilderBase(instancers), instancer(instancer) {}
+		InstancerBuilderStruct(TypeRegister* type_register, StructInstancer* instancer) : InstancerBuilderBase(type_register), instancer(instancer) {}
 
 		template <typename MemberType>
 		InstancerBuilderStruct<Object>& AddMember(const String& name, MemberType Object::* member_ptr) {
 			static_assert(typename is_valid_scalar<MemberType>::value, "Not a valid scalar member type. Did you mean to add a struct member?");
-			VariableInstancer* member_instancer = instancers->GetOrAddScalar<MemberType>();
+			VariableInstancer* member_instancer = type_register->GetOrAddScalar<MemberType>();
 			instancer->AddMember(name, member_ptr, member_instancer);
 			return *this;
 		}
 
 		template <typename MemberType>
 		InstancerBuilderStruct<Object>& AddMember(const String& name, MemberType Object::* member_ptr, const InstancerBuilderBase& member_instancer) {
-			RMLUI_ASSERTMSG(instancers->Get<MemberType>() == member_instancer.GetInstancer(), "Mismatch between member type and provided struct instancer.");
+			RMLUI_ASSERTMSG(type_register->Get<MemberType>() == member_instancer.GetInstancer(), "Mismatch between member type and provided struct instancer.");
 			instancer->AddMember(name, member_ptr, member_instancer.GetInstancer());
 			return *this;
 		}
@@ -373,7 +373,7 @@ namespace Data {
 	template<typename Container>
 	class InstancerBuilderArray final : public InstancerBuilderBase {
 	public:
-		InstancerBuilderArray(Instancers* instancers, ArrayInstancer<Container>* instancer) : InstancerBuilderBase(instancers), instancer(instancer) {}
+		InstancerBuilderArray(TypeRegister* type_register, ArrayInstancer<Container>* instancer) : InstancerBuilderBase(type_register), instancer(instancer) {}
 
 		VariableInstancer* GetInstancer() const override {
 			return instancer;
@@ -385,21 +385,20 @@ namespace Data {
 
 
 
-	class Instancers {
+	class TypeRegister {
 	public:
-
 		template<typename T>
 		InstancerBuilderStruct<T> RegisterStruct() 
 		{
 			int family_id = Family<T>::Id();
 
-			auto result = instancers.emplace(family_id, std::make_unique<StructInstancer>());
+			auto result = type_register.emplace(family_id, std::make_unique<StructInstancer>());
 			auto& it = result.first;
 			bool inserted = result.second;
 			if (!inserted)
 			{
 				RMLUI_ERRORMSG("Type already declared");
-				return  InstancerBuilderStruct<T>(nullptr, nullptr);
+				return InstancerBuilderStruct<T>(nullptr, nullptr);
 			}
 			
 			return InstancerBuilderStruct<T>(this, static_cast<StructInstancer*>(it->second.get()));
@@ -425,7 +424,7 @@ namespace Data {
 			if (!value_instancer)
 			{
 				RMLUI_ERRORMSG("Underlying value type of array has not been registered.");
-				return  InstancerBuilderArray<Container>(nullptr, nullptr);
+				return InstancerBuilderArray<Container>(nullptr, nullptr);
 			}
 
 			return RegisterArray<Container>(value_instancer);
@@ -436,7 +435,7 @@ namespace Data {
 		{
 			int id = Family<T>::Id();
 
-			auto result = instancers.emplace(id, nullptr);
+			auto result = type_register.emplace(id, nullptr);
 			auto& it = result.first;
 			bool inserted = result.second;
 
@@ -452,8 +451,8 @@ namespace Data {
 		VariableInstancer* Get() const
 		{
 			int id = Family<T>::Id();
-			auto it = instancers.find(id);
-			if (it == instancers.end())
+			auto it = type_register.find(id);
+			if (it == type_register.end())
 				return nullptr;
 
 			return it->second.get();
@@ -473,22 +472,224 @@ namespace Data {
 		{
 			int container_id = Family<Container>::Id();
 
-			auto result = instancers.emplace(container_id, std::make_unique<ArrayInstancer<Container>>(value_instancer));
+			auto result = type_register.emplace(container_id, std::make_unique<ArrayInstancer<Container>>(value_instancer));
 			auto& it = result.first;
 			bool inserted = result.second;
 			if (!inserted)
 			{
 				RMLUI_ERRORMSG("Type already declared");
-				return  InstancerBuilderArray<Container>(nullptr, nullptr);
+				return InstancerBuilderArray<Container>(nullptr, nullptr);
 			}
 
 			return InstancerBuilderArray<Container>(this, static_cast<ArrayInstancer<Container>*>(it->second.get()));
 		}
 
-		UnorderedMap<int, UniquePtr<VariableInstancer>> instancers;
+		UnorderedMap<int, UniquePtr<VariableInstancer>> type_register;
 	};
 
 
+
+	class Model {
+	public:
+		Model(TypeRegister* type_register) : type_register(type_register) {}
+
+		template<typename T>
+		bool BindScalar(String name, T* ptr)
+		{
+			return Bind(name, ptr, type_register->GetOrAddScalar<T>());
+		}
+
+		template<typename T>
+		bool BindStruct(String name, T* ptr)
+		{
+			return Bind(name, ptr, type_register->Get<T>());
+		}
+
+		template<typename T>
+		bool BindArray(String name, T* ptr)
+		{
+			return Bind(name, ptr, type_register->Get<T>());
+		}
+
+		Variant GetValue(const String& address_str) const;
+		bool SetValue(const String& address_str, const Variant& variant) const;
+
+	private:
+		bool Bind(String name, void* ptr, VariableInstancer* instancer);
+
+		Variable* GetVariable(const String& address_str) const;
+
+		TypeRegister* type_register;
+		UnorderedMap<String, UniquePtr<Variable>> variables;
+	};
+
+
+	struct AddressEntry {
+		AddressEntry(String name) : name(name), index(-1) { }
+		AddressEntry(int index) : index(index) { }
+		String name;
+		int index;
+	};
+	using Address = std::vector<AddressEntry>;
+
+
+
+	Address ParseAddress(const String& address_str)
+	{
+		StringList list;
+		StringUtilities::ExpandString(list, address_str, '.');
+
+		Address address;
+		address.reserve(list.size() * 2);
+
+		for (const auto& item : list)
+		{
+			if (item.empty())
+				return Address();
+
+			size_t i_open = item.find('[', 0);
+			if (i_open == 0)
+				return Address();
+
+			address.emplace_back(item.substr(0, i_open));
+
+			while (i_open != String::npos)
+			{
+				size_t i_close = item.find(']', i_open + 1);
+				if (i_close == String::npos)
+					return Address();
+
+				int index = FromString<int>(item.substr(i_open + 1, i_close - i_open), -1);
+				if (index < 0)
+					return Address();
+
+				address.emplace_back(index);
+
+				i_open = item.find('[', i_close + 1);
+			}
+			// TODO: Abort on invalid characters among [ ] and after the last found bracket?
+		}
+
+		return address;
+	};
+
+	Variant Model::GetValue(const Rml::Core::String& address_str) const
+	{
+		Variable* var = GetVariable(address_str);
+		Variant result;
+
+		if (var && var->Type() == VariableType::Scalar)
+		{
+			if (!static_cast<Scalar*>(var)->Get(result))
+				Log::Message(Log::LT_WARNING, "Could not parse data value '%s'", address_str.c_str());
+		}
+
+		return result;
+	}
+
+
+	bool Model::SetValue(const String& address_str, const Variant& variant) const
+	{
+		Variable* var = GetVariable(address_str);
+		bool result;
+
+		if (var && var->Type() == VariableType::Scalar)
+		{
+			if (static_cast<Scalar*>(var)->Set(variant))
+				result = true;
+			else
+				Log::Message(Log::LT_WARNING, "Could not assign data value '%s'", address_str.c_str());
+		}
+
+		return result;
+	}
+
+	bool Model::Bind(String name, void* ptr, VariableInstancer* instancer)
+	{
+		RMLUI_ASSERT(ptr);
+		if (!instancer)
+		{
+			Log::Message(Log::LT_WARNING, "No instancer could be found for the data variable '%s'.", name.c_str());
+			return false;
+		}
+
+		UniquePtr<Variable> variable = instancer->Instance(ptr);
+		if (!variable)
+		{
+			Log::Message(Log::LT_WARNING, "Could not instance data variable '%s'.", name.c_str());
+			return false;
+		}
+
+		bool inserted = variables.emplace(name, std::move(variable)).second;
+		if (!inserted)
+		{
+			Log::Message(Log::LT_WARNING, "Data model variable with name '%s' already exists.", name.c_str());
+			return false;
+		}
+
+		return true;
+	}
+
+	Variable* Model::GetVariable(const String& address_str) const
+	{
+		Address address = ParseAddress(address_str);
+
+		if (address.empty() || address.front().name.empty())
+		{
+			Log::Message(Log::LT_WARNING, "Invalid data address '%s'.", address_str.c_str());
+			return nullptr;
+		}
+
+		auto it = variables.find(address.front().name);
+		if (it == variables.end())
+		{
+			Log::Message(Log::LT_WARNING, "Could not find the data variable '%s'.", address_str.c_str());
+			return nullptr;
+		}
+
+		Variable* var = it->second.get();
+		for (int i = 1; i < (int)address.size(); i++)
+		{
+			if (!var)
+				break;
+
+			const AddressEntry& entry = address[i];
+
+			switch (var->Type()) {
+			case VariableType::Struct:
+			{
+				Struct& the_struct = static_cast<Struct&>(*var);
+				var = the_struct[entry.name];
+				break;
+			}
+			case VariableType::Array:
+			{
+				Array& the_array = static_cast<Array&>(*var);
+				var = the_array[entry.index];
+				break;
+			}
+			case VariableType::Scalar:
+			{
+				Log::Message(Log::LT_WARNING, "Invalid data variable address '%s'. The scalar variable '%s' was encountered before the end of the address.", address_str.c_str(), (i > 0 ? address[i - 1].name.c_str() : ""));
+				var = nullptr;
+				return nullptr;
+				break;
+			}
+			default:
+				RMLUI_ERROR;
+				var = nullptr;
+				return nullptr;
+			}
+		}
+
+		if (!var)
+		{
+			Log::Message(Log::LT_WARNING, "Could not find the data variable '%s'.", address_str.c_str());
+			return nullptr;
+		}
+
+		return var;
+	}
 
 
 }
@@ -516,97 +717,58 @@ void TestDataVariable()
 		FunArray more_fun;
 	};
 
-	Instancers instancers;
+	TypeRegister types;
 
-	auto int_vector_instancer = instancers.RegisterArray<IntVector>();
-
-	auto fun_instancer = instancers.RegisterStruct<FunData>();
-	if (fun_instancer)
 	{
-		fun_instancer.AddMember("i", &FunData::i);
-		fun_instancer.AddMember("x", &FunData::x);
-		fun_instancer.AddMember("magic", &FunData::magic, int_vector_instancer);
+		auto int_vector_instancer = types.RegisterArray<IntVector>();
+
+		auto fun_instancer = types.RegisterStruct<FunData>();
+		if (fun_instancer)
+		{
+			fun_instancer.AddMember("i", &FunData::i);
+			fun_instancer.AddMember("x", &FunData::x);
+			fun_instancer.AddMember("magic", &FunData::magic, int_vector_instancer);
+		}
+
+		auto fun_array_instancer = types.RegisterArray<FunArray>(fun_instancer);
+
+		auto smart_instancer = types.RegisterStruct<SmartData>();
+		if (smart_instancer)
+		{
+			smart_instancer.AddMember("valid", &SmartData::valid);
+			smart_instancer.AddMember("fun", &SmartData::fun, fun_instancer);
+			smart_instancer.AddMember("more_fun", &SmartData::more_fun, fun_array_instancer);
+		}
 	}
 
-	auto fun_array_instancer = instancers.RegisterArray<FunArray>(fun_instancer);
+	Model model(&types);
 
-	auto smart_instancer = instancers.RegisterStruct<SmartData>();
-	if (smart_instancer)
-	{
-		smart_instancer.AddMember("valid", &SmartData::valid);
-		smart_instancer.AddMember("fun", &SmartData::fun, fun_instancer);
-		smart_instancer.AddMember("more_fun", &SmartData::more_fun, fun_array_instancer);
-	}
+	SmartData data;
+	data.fun.x = "Hello, we're in SmartData!";
+
+	model.BindStruct("data", &data);
 
 	{
-		SmartData data;
-		data.fun.x = "Hello, we're in SmartData!";
-		UniquePtr<Variable> variable_struct = instancers.Instance(&data);
+		std::vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.fun.x", "data.valid" };
+		std::vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(data.fun.x), ToString(data.valid) };
 
-		struct AddressEntry {
-			AddressEntry(String name) : name(name), index(-1) { }
-			AddressEntry(int index) : index(index) { }
-			String name;
-			int index;
-		};
-		std::vector<AddressEntry> address = { AddressEntry("more_fun"), AddressEntry(1), AddressEntry("magic"), AddressEntry(3) };
+		std::vector<String> results;
 
-
-		Variable* var = variable_struct.get();
-		for (int i = 0; i < (int)address.size(); i++)
+		for(auto& address : test_addresses)
 		{
-			if (!var)
-			{
-				RMLUI_ERROR;
-				break;
-			}
-			const AddressEntry& entry = address[i];
+			auto the_address = ParseAddress(address);
 
-			switch (var->Type()) {
-			case VariableType::Struct:
-			{
-				Struct& the_struct = static_cast<Struct&>(*var);
-				var = the_struct[entry.name];
-				break;
-			}
-			case VariableType::Array:
-			{
-				Array& the_array = static_cast<Array&>(*var);
-				var = the_array[entry.index];
-				break;
-			}
-			case VariableType::Scalar:
-			{
-				Log::Message(Log::LT_WARNING, "Invalid data variable address. The scalar variable '%s' was encountered, but it needs to be the final entry of an address.", (i > 0 ? address[i - 1].name.c_str() : ""));
-				var = nullptr;
-				break;
-			}
-			default:
-				RMLUI_ERROR;
-				var = nullptr;
-			}
+			Variant variant = model.GetValue(address);
+			results.push_back(variant.Get<String>());
 		}
 
-		bool success = false;
+		RMLUI_ASSERT(results == expected_results);
 
-		if (var && var->Type() == VariableType::Scalar)
-		{
-			Variant variant;
-			if (static_cast<Scalar*>(var)->Get(variant))
-			{
-				String result = variant.Get<String>();
-				success = true;
-			}
-		}
-
-		if (!success)
-		{
-			RMLUI_ERRORMSG("Could not get value");
-		}
+		bool success = model.SetValue("data.more_fun[1].magic[1]", Variant(String("199")));
+		RMLUI_ASSERT(success && data.more_fun[1].magic[1] == 199);
 	}
 
 }
-
 
 
 
