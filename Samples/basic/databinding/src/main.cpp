@@ -204,42 +204,64 @@ namespace Data {
 
 	class Array : public Variable {
 	public:
-		Variable* operator[](const int index) const 
+		Variable* operator[](const int index)
 		{
-			if (index < 0 || index >= (int)variables.size())
+			void* ptr = GetAddress(index);
+			if (!ptr)
 			{
-				Log::Message(Log::LT_WARNING, "Data array index out of bounds.");
+				if (index >= 0)
+					items.clear();
 				return nullptr;
 			}
-			return variables[index].get();
+
+			if (index >= (int)items.size())
+				items.resize(Size());
+
+			PtrVariable& item = items[index];
+			if (item.ptr != ptr)
+			{
+				item.ptr = ptr;
+				item.variable = item_instancer->Instance(ptr);
+			}
+
+			return item.variable.get();
 		}
 
-		int Size() const {
-			return (int)variables.size();
-		}
-
-		virtual void Update() = 0;
+		virtual int Size() const = 0;
 
 	protected:
-		Array() : Variable(VariableType::Array) {}
-		std::vector<UniquePtr<Variable>> variables;
+		Array(VariableInstancer* item_instancer) : Variable(VariableType::Array), item_instancer(item_instancer) {}
+		
+		virtual void* GetAddress(int index) const = 0;
+
+	private:
+		struct PtrVariable{ void* ptr = nullptr; UniquePtr<Variable> variable; };
+		VariableInstancer* item_instancer;
+		std::vector<PtrVariable> items;
 	};
 
 	template<typename Container>
 	class ArrayDefault final : public Array {
 	public:
-		ArrayDefault(Container* ptr, VariableInstancer* item_instancer) : ptr(ptr), item_instancer(item_instancer) { Update(); }
+		ArrayDefault(Container* ptr, VariableInstancer* item_instancer) : Array(item_instancer), ptr(ptr) {  }
 
-		void Update() override
-		{
-			variables.resize(ptr->size());
-
-			for (size_t i = 0; i < variables.size(); i++)
-				variables[i] = item_instancer->Instance(&((*ptr)[i]));
+		int Size() const override {
+			return (int)ptr->size();
 		}
+
+	protected:
+		void* GetAddress(int index) const override
+		{
+			if (index < 0 || index >= (int)ptr->size())
+			{
+				Log::Message(Log::LT_WARNING, "Data array index out of bounds.");
+				return nullptr;
+			}
+			return &((*ptr)[index]);
+		}
+
 	private:
 		Container* ptr;
-		VariableInstancer* item_instancer;
 	};
 
 
@@ -284,11 +306,12 @@ namespace Data {
 	};
 
 
+	template <typename Object>
 	class StructInstancer final : public VariableInstancer {
 	public:
 		StructInstancer() {}
 
-		template <typename Object, typename MemberType>
+		template <typename MemberType>
 		void AddMember(const String& name, MemberType Object::* member_ptr, VariableInstancer* instancer) {
 			RMLUI_ASSERT(instancer && instancer != this);
 			members.emplace(name, std::make_unique< MemberInstancer<Object, MemberType> >(member_ptr, instancer));
@@ -332,34 +355,51 @@ namespace Data {
 
 	class TypeRegister;
 
-	class InstancerBuilderBase {
+	class TypeHandleBase {
 	public:
 		operator bool() const { return type_register && GetInstancer(); }
 
 		virtual VariableInstancer* GetInstancer() const = 0;
 
 	protected:
-		InstancerBuilderBase(TypeRegister* type_register) : type_register(type_register) {}
+		TypeHandleBase(TypeRegister* type_register) : type_register(type_register) {}
 		TypeRegister* type_register;
 	};
 
+	class StructTypeHandleBase : public TypeHandleBase {
+	protected:
+		StructTypeHandleBase(TypeRegister* type_register) : TypeHandleBase(type_register) {}
+	};
+
+	class ArrayTypeHandleBase : public TypeHandleBase {
+	protected:
+		ArrayTypeHandleBase(TypeRegister* type_register) : TypeHandleBase(type_register) {}
+	};
+
 	template<typename Object>
-	class InstancerBuilderStruct final : public InstancerBuilderBase {
+	class StructTypeHandle final : public StructTypeHandleBase {
 	public:
-		InstancerBuilderStruct(TypeRegister* type_register, StructInstancer* instancer) : InstancerBuilderBase(type_register), instancer(instancer) {}
+		StructTypeHandle(TypeRegister* type_register, StructInstancer<Object>* instancer) : StructTypeHandleBase(type_register), instancer(instancer) {}
 
 		template <typename MemberType>
-		InstancerBuilderStruct<Object>& AddMember(const String& name, MemberType Object::* member_ptr) {
-			static_assert(typename is_valid_scalar<MemberType>::value, "Not a valid scalar member type. Did you mean to add a struct member?");
+		StructTypeHandle<Object>& AddScalar(const String& name, MemberType Object::* member_ptr) {
+			static_assert(is_valid_scalar<MemberType>::value, "Not a valid scalar member type. Did you mean to add a struct member?");
 			VariableInstancer* member_instancer = type_register->GetOrAddScalar<MemberType>();
 			instancer->AddMember(name, member_ptr, member_instancer);
 			return *this;
 		}
 
 		template <typename MemberType>
-		InstancerBuilderStruct<Object>& AddMember(const String& name, MemberType Object::* member_ptr, const InstancerBuilderBase& member_instancer) {
-			RMLUI_ASSERTMSG(type_register->Get<MemberType>() == member_instancer.GetInstancer(), "Mismatch between member type and provided struct instancer.");
-			instancer->AddMember(name, member_ptr, member_instancer.GetInstancer());
+		StructTypeHandle<Object>& AddStruct(const String& name, MemberType Object::* member_ptr, const StructTypeHandleBase& struct_handle) {
+			RMLUI_ASSERTMSG(type_register->Get<MemberType>() == struct_handle.GetInstancer(), "Mismatch between member type and provided struct instancer.");
+			instancer->AddMember(name, member_ptr, struct_handle.GetInstancer());
+			return *this;
+		}
+
+		template <typename MemberType>
+		StructTypeHandle<Object>& AddArray(const String& name, MemberType Object::* member_ptr, const ArrayTypeHandleBase& array_handle) {
+			RMLUI_ASSERTMSG(type_register->Get<MemberType>() == array_handle.GetInstancer(), "Mismatch between member type and provided struct instancer.");
+			instancer->AddMember(name, member_ptr, array_handle.GetInstancer());
 			return *this;
 		}
 
@@ -367,13 +407,13 @@ namespace Data {
 			return instancer;
 		}
 	private:
-		StructInstancer* instancer;
+		StructInstancer<Object>* instancer;
 	};
 
 	template<typename Container>
-	class InstancerBuilderArray final : public InstancerBuilderBase {
+	class ArrayTypeHandle final : public ArrayTypeHandleBase {
 	public:
-		InstancerBuilderArray(TypeRegister* type_register, ArrayInstancer<Container>* instancer) : InstancerBuilderBase(type_register), instancer(instancer) {}
+		ArrayTypeHandle(TypeRegister* type_register, ArrayInstancer<Container>* instancer) : ArrayTypeHandleBase(type_register), instancer(instancer) {}
 
 		VariableInstancer* GetInstancer() const override {
 			return instancer;
@@ -385,30 +425,36 @@ namespace Data {
 
 
 
+
+
 	class TypeRegister {
 	public:
 		template<typename T>
-		InstancerBuilderStruct<T> RegisterStruct() 
+		StructTypeHandle<T> RegisterStruct()
 		{
+			static_assert(std::is_class<T>::value, "Type must be a struct or class type.");
 			int family_id = Family<T>::Id();
 
-			auto result = type_register.emplace(family_id, std::make_unique<StructInstancer>());
+			auto struct_instancer = std::make_unique<StructInstancer<T>>();
+			StructInstancer<T>* struct_instancer_raw = struct_instancer.get();
+
+			auto result = type_register.emplace(family_id, std::move(struct_instancer));
 			auto& it = result.first;
 			bool inserted = result.second;
 			if (!inserted)
 			{
 				RMLUI_ERRORMSG("Type already declared");
-				return InstancerBuilderStruct<T>(nullptr, nullptr);
+				return StructTypeHandle<T>(nullptr, nullptr);
 			}
 			
-			return InstancerBuilderStruct<T>(this, static_cast<StructInstancer*>(it->second.get()));
+			return StructTypeHandle<T>(this, struct_instancer_raw);
 		}
 
 		template<typename Container>
-		InstancerBuilderArray<Container> RegisterArray()
+		ArrayTypeHandle<Container> RegisterArrayOfScalar()
 		{
 			using value_type = typename Container::value_type;
-			static_assert(typename is_valid_scalar<value_type>::value, "Underlying value type of array is not a valid scalar type. Did you mean to add a struct or array?");
+			static_assert(is_valid_scalar<value_type>::value, "Underlying value type of array is not a valid scalar type. Did you mean to add a struct or array?");
 
 			VariableInstancer* value_instancer = GetOrAddScalar<value_type>();
 
@@ -416,17 +462,40 @@ namespace Data {
 		}
 
 		template<typename Container>
-		InstancerBuilderArray<Container> RegisterArray(const InstancerBuilderBase& member_instancer)
+		ArrayTypeHandle<Container> RegisterArrayOfStruct(const StructTypeHandleBase& struct_handle)
 		{
 			using value_type = typename Container::value_type;
+			VariableInstancer* value_instancer = Get<value_type>();
+			bool correct_handle = (struct_handle.GetInstancer() == value_instancer);
+			
+			RMLUI_ASSERTMSG(value_instancer, "Underlying value type of array has not been registered.");
+			RMLUI_ASSERTMSG(correct_handle, "Improper struct handle provided.");
+			if (!value_instancer || !correct_handle)
+				return ArrayTypeHandle<Container>(nullptr, nullptr);
 
+			return RegisterArray<Container>(value_instancer);
+		}
+
+		template<typename Container>
+		ArrayTypeHandle<Container> RegisterArrayOfArray(const ArrayTypeHandleBase& array_handle)
+		{
+			using value_type = typename Container::value_type;
+			VariableInstancer* value_instancer = Get<value_type>();
+			bool correct_handle = (array_handle.GetInstancer() == value_instancer);
+
+			RMLUI_ASSERTMSG(value_instancer, "Underlying value type of array has not been registered.");
+			RMLUI_ASSERTMSG(correct_handle, "Improper struct handle provided.");
+			if (!value_instancer || !correct_handle)
+				return ArrayTypeHandle<Container>(nullptr, nullptr);
+
+			return RegisterArray<Container>(value_instancer);
+			using value_type = typename Container::value_type;
 			VariableInstancer* value_instancer = Get<value_type>();
 			if (!value_instancer)
 			{
 				RMLUI_ERRORMSG("Underlying value type of array has not been registered.");
-				return InstancerBuilderArray<Container>(nullptr, nullptr);
+				return ArrayTypeHandle<Container>(nullptr, nullptr);
 			}
-
 			return RegisterArray<Container>(value_instancer);
 		}
 
@@ -468,7 +537,7 @@ namespace Data {
 
 	private:
 		template<typename Container>
-		InstancerBuilderArray<Container> RegisterArray(VariableInstancer* value_instancer)
+		ArrayTypeHandle<Container> RegisterArray(VariableInstancer* value_instancer)
 		{
 			int container_id = Family<Container>::Id();
 
@@ -477,11 +546,11 @@ namespace Data {
 			bool inserted = result.second;
 			if (!inserted)
 			{
-				RMLUI_ERRORMSG("Type already declared");
-				return InstancerBuilderArray<Container>(nullptr, nullptr);
+				RMLUI_ERRORMSG("Array type already declared.");
+				return ArrayTypeHandle<Container>(nullptr, nullptr);
 			}
 
-			return InstancerBuilderArray<Container>(this, static_cast<ArrayInstancer<Container>*>(it->second.get()));
+			return ArrayTypeHandle<Container>(this, static_cast<ArrayInstancer<Container>*>(it->second.get()));
 		}
 
 		UnorderedMap<int, UniquePtr<VariableInstancer>> type_register;
@@ -493,21 +562,13 @@ namespace Data {
 	public:
 		Model(TypeRegister* type_register) : type_register(type_register) {}
 
-		template<typename T>
-		bool BindScalar(String name, T* ptr)
-		{
+		template<typename T> bool BindScalar(String name, T* ptr) {
 			return Bind(name, ptr, type_register->GetOrAddScalar<T>());
 		}
-
-		template<typename T>
-		bool BindStruct(String name, T* ptr)
-		{
+		template<typename T> bool BindStruct(String name, T* ptr) {
 			return Bind(name, ptr, type_register->Get<T>());
 		}
-
-		template<typename T>
-		bool BindArray(String name, T* ptr)
-		{
+		template<typename T> bool BindArray(String name, T* ptr) {
 			return Bind(name, ptr, type_register->Get<T>());
 		}
 
@@ -720,24 +781,24 @@ void TestDataVariable()
 	TypeRegister types;
 
 	{
-		auto int_vector_instancer = types.RegisterArray<IntVector>();
+		auto int_vector_handle = types.RegisterArrayOfScalar<IntVector>();
 
-		auto fun_instancer = types.RegisterStruct<FunData>();
-		if (fun_instancer)
+		auto fun_handle = types.RegisterStruct<FunData>();
+		if (fun_handle)
 		{
-			fun_instancer.AddMember("i", &FunData::i);
-			fun_instancer.AddMember("x", &FunData::x);
-			fun_instancer.AddMember("magic", &FunData::magic, int_vector_instancer);
+			fun_handle.AddScalar("i", &FunData::i);
+			fun_handle.AddScalar("x", &FunData::x);
+			fun_handle.AddArray("magic", &FunData::magic, int_vector_handle);
 		}
 
-		auto fun_array_instancer = types.RegisterArray<FunArray>(fun_instancer);
+		auto fun_array_handle = types.RegisterArrayOfStruct<FunArray>(fun_handle);
 
-		auto smart_instancer = types.RegisterStruct<SmartData>();
-		if (smart_instancer)
+		auto smart_handle = types.RegisterStruct<SmartData>();
+		if (smart_handle)
 		{
-			smart_instancer.AddMember("valid", &SmartData::valid);
-			smart_instancer.AddMember("fun", &SmartData::fun, fun_instancer);
-			smart_instancer.AddMember("more_fun", &SmartData::more_fun, fun_array_instancer);
+			smart_handle.AddScalar("valid", &SmartData::valid);
+			smart_handle.AddStruct("fun", &SmartData::fun, fun_handle);
+			smart_handle.AddArray("more_fun", &SmartData::more_fun, fun_array_handle);
 		}
 	}
 
@@ -766,6 +827,11 @@ void TestDataVariable()
 
 		bool success = model.SetValue("data.more_fun[1].magic[1]", Variant(String("199")));
 		RMLUI_ASSERT(success && data.more_fun[1].magic[1] == 199);
+
+		data.fun.magic = { 99, 190, 55, 2000, 50, 60, 70, 80, 90 };
+
+		String result = model.GetValue("data.fun.magic[8]").Get<String>();
+		RMLUI_ASSERT(result == "90");
 	}
 
 }
