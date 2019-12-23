@@ -110,6 +110,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Core.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataController.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataModel.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataView.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
@@ -197,6 +198,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Core.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataController.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataModel.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataVariable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Decorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.cpp

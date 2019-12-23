@@ -27,39 +27,27 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/RmlUi/Core/DataController.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
+#include "../../Include/RmlUi/Core/DataVariable.h"
 
 namespace Rml {
 namespace Core {
 
-
-DataControllerAttribute::DataControllerAttribute(const DataModel& model, Element* parent, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name)
-{
-    variable_address = model.ResolveAddress(in_value_name, parent);
-    if (!model.GetVariable(variable_address))
-	{
-		attribute_name.clear();
-        variable_address.clear();
-	}
+bool VariableDefinition::Get(void* ptr, Variant& variant) {
+    Log::Message(Log::LT_WARNING, "Values can only be retrieved from scalar data types.");
+    return false;
 }
-
-bool DataControllerAttribute::Update(Element* element, const DataModel& model) 
-{
-	bool result = false;
-	if (dirty)
-	{
-		if(Variant* value = element->GetAttribute(attribute_name))
-        {
-            if (Variable variable = model.GetVariable(variable_address))
-                result = variable.Set(*value);
-        }
-		dirty = false;
-	}
-	return result;
+bool VariableDefinition::Set(void* ptr, const Variant& variant) {
+    Log::Message(Log::LT_WARNING, "Values can only be assigned to scalar data types.");
+    return false;
 }
-
-
+int VariableDefinition::Size(void* ptr) {
+    Log::Message(Log::LT_WARNING, "Tried to get the size from a non-array data type.");
+    return 0;
+}
+Variable VariableDefinition::GetChild(void* ptr, const AddressEntry& address) {
+    Log::Message(Log::LT_WARNING, "Tried to get the child of a scalar type.");
+    return Variable();
+}
 
 }
 }

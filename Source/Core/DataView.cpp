@@ -35,6 +35,9 @@ namespace Rml {
 namespace Core {
 
 
+DataView::~DataView() {}
+
+
 DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : element(in_parent_element->GetObserverPtr())
 {
 	text.reserve(in_text.size());
@@ -58,8 +61,8 @@ DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_elemen
 
 		DataEntry entry;
 		entry.index = text.size();
-		entry.binding_name = (String)StringUtilities::StripWhitespace(StringView(in_text.data() + begin_name, in_text.data() + end_name));
-		entry.binding_name = model.ResolveVariableName(entry.binding_name, in_parent_element);
+		String address_str = StringUtilities::StripWhitespace(StringView(in_text.data() + begin_name, in_text.data() + end_name));
+		entry.variable_address = model.ResolveAddress(address_str, in_parent_element);
 
 		data_entries.push_back(std::move(entry));
 
@@ -91,8 +94,7 @@ bool DataViewText::Update(const DataModel& model)
 	for (DataEntry& entry : data_entries)
 	{
 		String value;
-		bool result = model.GetValue(entry.binding_name, value);
-
+		bool result = model.GetValue(entry.variable_address, value);
 		if (result && entry.value != value)
 		{
 			entry.value = value;
@@ -146,9 +148,10 @@ String DataViewText::BuildText() const
 }
 
 
-DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, const String& binding_name, const String& attribute_name)
-	: element(element->GetObserverPtr()), binding_name(binding_name), attribute_name(attribute_name)
+DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name)
+	: element(element->GetObserverPtr()), attribute_name(attribute_name)
 {
+	variable_address = model.ResolveAddress(binding_name, parent);
 	Update(model);
 }
 
@@ -156,7 +159,7 @@ bool DataViewAttribute::Update(const DataModel& model)
 {
 	bool result = false;
 	String value;
-	if (model.GetValue(binding_name, value))
+	if (model.GetValue(variable_address, value))
 	{
 		Variant* attribute = element->GetAttribute(attribute_name);
 
@@ -171,9 +174,10 @@ bool DataViewAttribute::Update(const DataModel& model)
 
 
 
-DataViewStyle::DataViewStyle(const DataModel& model, Element* element, const String& binding_name, const String& property_name)
-	: element(element->GetObserverPtr()), binding_name(binding_name), property_name(property_name)
+DataViewStyle::DataViewStyle(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name)
+	: element(element->GetObserverPtr()), property_name(property_name)
 {
+	variable_address = model.ResolveAddress(binding_name, parent);
 	Update(model);
 }
 
@@ -182,7 +186,7 @@ bool DataViewStyle::Update(const DataModel& model)
 {
 	bool result = false;
 	String value;
-	if (model.GetValue(binding_name, value))
+	if (model.GetValue(variable_address, value))
 	{
 		const Property* p = element->GetLocalProperty(property_name);
 		if (!p || p->Get<String>() != value)
@@ -197,8 +201,9 @@ bool DataViewStyle::Update(const DataModel& model)
 
 
 
-DataViewIf::DataViewIf(const DataModel& model, Element* element, const String& binding_name) : element(element->GetObserverPtr()), binding_name(binding_name)
+DataViewIf::DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name) : element(element->GetObserverPtr())
 {
+	variable_address = model.ResolveAddress(binding_name, element);
 	Update(model);
 }
 
@@ -207,7 +212,7 @@ bool DataViewIf::Update(const DataModel& model)
 {
 	bool result = false;
 	bool value = false;
-	if (model.GetValue(binding_name, value))
+	if (model.GetValue(variable_address, value))
 	{
 		bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
 		if(is_visible != value)
@@ -224,9 +229,10 @@ bool DataViewIf::Update(const DataModel& model)
 
 
 
-DataViewFor::DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& in_rml_content) 
-	: element(element->GetObserverPtr()), binding_name(binding_name), rml_contents(in_rml_content)
+DataViewFor::DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& in_rml_content)
+	: element(element->GetObserverPtr()), rml_contents(in_rml_content)
 {
+	variable_address = model.ResolveAddress(binding_name, element);
 	attributes = element->GetAttributes();
 	attributes.erase("data-for");
 	element->SetProperty(PropertyId::Display, Property(Style::Display::None));
@@ -237,10 +243,12 @@ DataViewFor::DataViewFor(const DataModel& model, Element* element, const String&
 
 bool DataViewFor::Update(const DataModel& model)
 {
-	bool result = false;
-	bool value = false;
+	Variable variable = model.GetVariable(variable_address);
+	if (!variable)
+		return false;
 
-	const int size = model.containers.find(binding_name)->second->Size();
+	bool result = false;
+	const int size = variable.Size();
 	const int num_elements = (int)elements.size();
 
 	for (int i = 0; i < Math::Max(size, num_elements); i++)
@@ -252,8 +260,12 @@ bool DataViewFor::Update(const DataModel& model)
 			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element.get());
 			elements.push_back(new_element);
 
-			auto& alias_map = model.aliases.emplace(new_element, SmallUnorderedMap<String, String>()).first->second;
-			alias_map["it"] = binding_name + "[" + ToString(i) + "]";
+			Address replacement_address;
+			replacement_address.reserve(variable_address.size() + 1);
+			replacement_address = variable_address;
+			replacement_address.push_back(AddressEntry(i));
+
+			model.InsertAlias(new_element, "it", replacement_address);
 
 			elements[i]->SetInnerRML(rml_contents);
 
@@ -262,7 +274,7 @@ bool DataViewFor::Update(const DataModel& model)
 		if (i >= size)
 		{
 			elements[i]->GetParentNode()->RemoveChild(elements[i]).reset();
-			model.aliases.erase(elements[i]);
+			model.EraseAliases(elements[i]);
 			elements[i] = nullptr;
 		}
 	}
@@ -272,6 +284,12 @@ bool DataViewFor::Update(const DataModel& model)
 
 	return result;
 }
+
+DataViews::DataViews()
+{}
+
+DataViews::~DataViews()
+{}
 
 }
 }

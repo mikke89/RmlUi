@@ -285,13 +285,13 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 							{
 								const String attr_bind_name = name.substr(5 + data_type.size() + 1);
 
-								DataViewAttribute data_view(*data_model, element.get(), value_bind_name, attr_bind_name);
-								if (data_view)
-									data_model->views.AddView(std::move(data_view));
+								auto view = std::make_unique<DataViewAttribute>(*data_model, element.get(), parent, value_bind_name, attr_bind_name);
+								if (*view)
+									data_model->AddView(std::move(view));
 								else
 									Log::Message(Log::LT_WARNING, "Could not add data-attr view to element '%s'.", parent->GetAddress().c_str());
 
-								DataControllerAttribute data_controller(*data_model, attr_bind_name, value_bind_name);
+								DataControllerAttribute data_controller(*data_model, parent, attr_bind_name, value_bind_name);
 								if (data_controller)
 									data_model->controllers.AddController(element.get(), std::move(data_controller));
 								else
@@ -301,17 +301,17 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 							{
 								const String property_name = name.substr(5 + data_type.size() + 1);
 
-								DataViewStyle view(*data_model, element.get(), value_bind_name, property_name);
-								if (view)
-									data_model->views.AddView(std::move(view));
+								auto view = std::make_unique<DataViewStyle>(*data_model, element.get(), parent, value_bind_name, property_name);
+								if (*view)
+									data_model->AddView(std::move(view));
 								else
 									Log::Message(Log::LT_WARNING, "Could not add data-style view to element '%s'.", parent->GetAddress().c_str());
 							}
 							else if (data_type == "if")
 							{
-								DataViewIf view(*data_model, element.get(), value_bind_name);
-								if (view)
-									data_model->views.AddView(std::move(view));
+								auto view = std::make_unique<DataViewIf>(*data_model, element.get(), parent, value_bind_name);
+								if (*view)
+									data_model->AddView(std::move(view));
 								else
 									Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", parent->GetAddress().c_str());
 							}
@@ -394,10 +394,10 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 			const size_t i_brackets = translated_data.find("{{", 0);
 			if (i_brackets != String::npos)
 			{
-				DataViewText data_view(*data_model, text_element, translated_data, i_brackets);
-				if (data_view)
+				auto view = std::make_unique<DataViewText>(*data_model, text_element, translated_data, i_brackets);
+				if (*view)
 				{
-					data_model->views.AddView(std::move(data_view));
+					data_model->AddView(std::move(view));
 					data_view_added = true;
 				}
 				else

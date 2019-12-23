@@ -34,7 +34,6 @@
 #include "Traits.h"
 #include "Input.h"
 #include "ScriptInterface.h"
-#include "DataModel.h"
 
 namespace Rml {
 namespace Core {
@@ -44,6 +43,8 @@ class ContextInstancer;
 class ElementDocument;
 class EventListener;
 class RenderInterface;
+class DataModel;
+class DataModelHandle;
 enum class EventId : uint16_t;
 
 /**
@@ -220,15 +221,9 @@ public:
 	void SetInstancer(ContextInstancer* instancer);
 
 
-	DataModelHandle CreateDataModel(String name) 
-	{
-		auto result = data_models.emplace(name, std::make_unique<DataModel>());
-		if (result.second)
-			return DataModelHandle(result.first->second.get());
+	DataModelHandle CreateDataModel(String name);
 
-		return DataModelHandle(nullptr);
-	}
-
+	// Todo: Remove
 	DataModel* GetDataModel(const String& name)
 	{
 		auto it = data_models.find(name);

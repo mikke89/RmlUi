@@ -33,6 +33,8 @@
 #include "Types.h"
 #include "Variant.h"
 #include "StringUtilities.h"
+#include "Traits.h"
+#include "DataVariable.h"
 
 namespace Rml {
 namespace Core {
@@ -41,8 +43,13 @@ class Element;
 class ElementText;
 class DataModel;
 
-class RMLUICORE_API DataView {
+class RMLUICORE_API DataView : NonCopyMoveable {
+public:
+	virtual ~DataView();
+	virtual bool Update(const DataModel& model) = 0;
 
+protected:
+	DataView() {}
 };
 
 class DataViewText : public DataView {
@@ -53,14 +60,14 @@ public:
 		return !data_entries.empty() && element;
 	}
 
-	bool Update(const DataModel& model);
+	bool Update(const DataModel& model) override;
 
 private:
 	String BuildText() const;
 
 	struct DataEntry {
 		size_t index = 0; // Index into 'text'
-		String binding_name;
+		Address variable_address;
 		String value;
 	};
 
@@ -73,48 +80,48 @@ private:
 
 class DataViewAttribute : public DataView {
 public:
-	DataViewAttribute(const DataModel& model, Element* element, const String& binding_name, const String& attribute_name);
+	DataViewAttribute(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name);
 
 	inline operator bool() const {
 		return !attribute_name.empty() && element;
 	}
-	bool Update(const DataModel& model);
+	bool Update(const DataModel& model) override;
 
 private:
 	ObserverPtr<Element> element;
-	String binding_name;
+	Address variable_address;
 	String attribute_name;
 };
 
 
 class DataViewStyle : public DataView {
 public:
-	DataViewStyle(const DataModel& model, Element* element, const String& binding_name, const String& property_name);
+	DataViewStyle(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name);
 
 	inline operator bool() const {
-		return !binding_name.empty() && !property_name.empty() && element;
+		return !variable_address.empty() && !property_name.empty() && element;
 	}
-	bool Update(const DataModel& model);
+	bool Update(const DataModel& model) override;
 
 private:
 	ObserverPtr<Element> element;
-	String binding_name;
+	Address variable_address;
 	String property_name;
 };
 
 
 class DataViewIf : public DataView {
 public:
-	DataViewIf(const DataModel& model, Element* element, const String& binding_name);
+	DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name);
 
 	inline operator bool() const {
-		return !binding_name.empty() && element;
+		return !variable_address.empty() && element;
 	}
-	bool Update(const DataModel& model);
+	bool Update(const DataModel& model) override;
 
 private:
 	ObserverPtr<Element> element;
-	String binding_name;
+	Address variable_address;
 };
 
 
@@ -123,13 +130,13 @@ public:
 	DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& rml_contents);
 
 	inline operator bool() const {
-		return !binding_name.empty() && element;
+		return !variable_address.empty() && element;
 	}
-	bool Update(const DataModel& model);
+	bool Update(const DataModel& model) override;
 
 private:
 	ObserverPtr<Element> element;
-	String binding_name;
+	Address variable_address;
 	String rml_contents;
 	ElementAttributes attributes;
 
@@ -137,47 +144,25 @@ private:
 };
 
 
-class RMLUICORE_API DataViews {
+class RMLUICORE_API DataViews : NonCopyMoveable {
 public:
+	DataViews();
+	~DataViews();
 
-	void AddView(DataViewText&& view) {
-		text_views.push_back(std::move(view));
-	}
-	void AddView(DataViewAttribute&& view) {
-		attribute_views.push_back(std::move(view));
-	}
-	void AddView(DataViewStyle&& view) {
-		style_views.push_back(std::move(view));
-	}
-	void AddView(DataViewIf&& view) {
-		if_views.push_back(std::move(view));
-	}
-	void AddView(DataViewFor&& view) {
-		for_views.push_back(std::move(view));
+	void Add(UniquePtr<DataView> view) {
+		views.push_back(std::move(view));
 	}
 
 	bool Update(const DataModel& model)
 	{
 		bool result = false;
-		for (auto& view : text_views)
-			result |= view.Update(model);
-		for (auto& view : attribute_views)
-			result |= view.Update(model);
-		for (auto& view : style_views)
-			result |= view.Update(model);
-		for (auto& view : if_views)
-			result |= view.Update(model);
-		for (auto& view : for_views)
-			result |= view.Update(model);
+		for (auto& view : views)
+			result |= view->Update(model);
 		return result;
 	}
 
 private:
-	std::vector<DataViewText> text_views;
-	std::vector<DataViewAttribute> attribute_views;
-	std::vector<DataViewStyle> style_views;
-	std::vector<DataViewIf> if_views;
-	std::vector<DataViewFor> for_views;
+	std::vector<UniquePtr<DataView>> views;
 };
 
 }

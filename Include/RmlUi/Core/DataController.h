@@ -33,6 +33,7 @@
 #include "Types.h"
 #include "Variant.h"
 #include "StringUtilities.h"
+#include "DataVariable.h"
 
 namespace Rml {
 namespace Core {
@@ -40,14 +41,12 @@ namespace Core {
 class Element;
 class DataModel;
 
-class RMLUICORE_API DataController {
-
-};
+class RMLUICORE_API DataController {};
 
 
 class DataControllerAttribute : public DataController {
 public:
-	DataControllerAttribute(const DataModel& model, const String& in_attribute_name, const String& in_value_name);
+	DataControllerAttribute(const DataModel& model, Element* parent, const String& in_attribute_name, const String& in_value_name);
 
 	inline operator bool() const {
 		return !attribute_name.empty();
@@ -69,11 +68,11 @@ public:
 private:
 	bool dirty = false;
 	String attribute_name;
-	String value_name;
+	Address variable_address;
 };
 
 
-class RMLUICORE_API DataControllers {
+class RMLUICORE_API DataControllers : NonCopyMoveable {
 public:
 
 	void AddController(Element* element, DataControllerAttribute&& controller) {
