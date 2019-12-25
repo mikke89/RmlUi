@@ -82,7 +82,7 @@ public:
 
 	// Construct by variant type
 	template< typename T >
-	Variant(T&& t);
+	explicit Variant(T&& t);
 
 	// Assign by variant type
 	template<typename T>
