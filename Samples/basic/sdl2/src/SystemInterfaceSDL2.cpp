@@ -405,7 +405,7 @@ int RmlUiSDL2SystemInterface::GetKeyModifiers()
 
 double RmlUiSDL2SystemInterface::GetElapsedTime()
 {
-	return SDL_GetTicks() / 1000;
+	return double(SDL_GetTicks()) / 1000.0;
 }
 
 bool RmlUiSDL2SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message)
