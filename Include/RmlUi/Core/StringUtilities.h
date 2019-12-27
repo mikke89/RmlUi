@@ -196,7 +196,7 @@ public:
 	inline Character operator*() const { return StringUtilities::ToCharacter(p); }
 
 	// Returns false when the iterator is located just outside the valid part of the string.
-	inline operator bool() const { return (p != view.begin() - 1) && (p != view.end()); }
+	explicit inline operator bool() const { return (p != view.begin() - 1) && (p != view.end()); }
 
 	bool operator==(const StringIteratorU8& other) const { return p == other.p; }
 	bool operator!=(const StringIteratorU8& other) const { return !(*this == other); }

@@ -77,7 +77,7 @@ public:
 		}
 		/// Returns true if it is OK to deference or increment this
 		/// iterator.
-		inline operator bool()
+		explicit inline operator bool()
 		{
 			return (node != nullptr);
 		}

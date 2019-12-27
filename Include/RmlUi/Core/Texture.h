@@ -87,7 +87,7 @@ public:
 	bool operator==(const Texture&) const;
 
 	/// Returns true if the underlying resource is set.
-	operator bool() const;
+	explicit operator bool() const;
 
 private:
 	SharedPtr<TextureResource> resource;
