@@ -75,7 +75,7 @@ public:
 	}
 
 	// Copy
-	ObserverPtr<T>(const ObserverPtr<T>& other) noexcept : block(other.block) {
+	ObserverPtr(const ObserverPtr<T>& other) noexcept : block(other.block) {
 		if (block)
 			block->num_observers += 1;
 	}
@@ -88,7 +88,7 @@ public:
 	}
 
 	// Move
-	ObserverPtr<T>(ObserverPtr<T>&& other) noexcept : block(std::exchange(other.block, nullptr)) {}
+	ObserverPtr(ObserverPtr<T>&& other) noexcept : block(std::exchange(other.block, nullptr)) {}
 	ObserverPtr<T>& operator=(ObserverPtr<T>&& other) noexcept {
 		reset();
 		block = std::exchange(other.block, nullptr);
@@ -153,7 +153,7 @@ protected:
 		DeallocateObserverPtrBlockIfEmpty(block);
 	}
 
-	EnableObserverPtr<T>(const EnableObserverPtr<T>&) {
+	EnableObserverPtr(const EnableObserverPtr<T>&) {
 		// We do not copy or modify the block, it should always point to the same object.
 		InitializeBlock();
 	}
@@ -162,7 +162,7 @@ protected:
 		return *this; 
 	}
 
-	EnableObserverPtr<T>(EnableObserverPtr<T>&&) {
+	EnableObserverPtr(EnableObserverPtr<T>&&) {
 		// We do not move or modify the block, it should always point to the same object.
 		InitializeBlock();
 	}
