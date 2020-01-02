@@ -3,6 +3,17 @@
 * [RmlUi 2.0](#rmlui-20)
 
 
+## RmlUi WIP
+
+
+### Bug fixes
+
+- Range input element: Change event reports the correct value instead of normalized (thanks @andreasschultes). #72 #73.
+- Fix wrong cast in elapsed time in SDL2 sample. #71.
+- Avoid infinite recursion on Variant construction/assignment with unsupported types. #70.
+
+
+
 ## RmlUi 3.1
 
 ### Progress bar
