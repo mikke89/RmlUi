@@ -117,6 +117,8 @@ protected:
 	/// @return The new position of the bar.
 	virtual float OnPageDecrement(float click_position) = 0;
 
+protected:
+    ElementFormControl* parent;
 private:
 	/// Determine the normalized bar position given an absolute position coordinate.
 	/// @param[in] absolute_position Absolute position along the axis determined by 'orientation'.
@@ -124,8 +126,6 @@ private:
 	float AbsolutePositionToBarPosition(float absolute_position) const;
 
 	void PositionBar();
-
-	ElementFormControl* parent;
 
 	Orientation orientation;
 

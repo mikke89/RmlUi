@@ -162,10 +162,6 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 {
 	bar_position = Rml::Core::Math::Clamp(_bar_position, 0.0f, 1.0f);
 	PositionBar();
-
-	Rml::Core::Dictionary parameters;
-	parameters["value"] = bar_position;
-	parent->DispatchEvent(Core::EventId::Change, parameters);
 }
 
 // Returns the current position of the bar.
