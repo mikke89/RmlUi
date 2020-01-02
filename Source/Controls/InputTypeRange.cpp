@@ -66,7 +66,6 @@ bool InputTypeRange::OnAttributeChange(const Core::ElementAttributes& changed_at
 {
 	bool dirty_layout = false;
 
-	// Check if maxlength has been defined.
 	auto it_orientation = changed_attributes.find("orientation");
 	if (it_orientation != changed_attributes.end())
 	{
@@ -75,22 +74,18 @@ bool InputTypeRange::OnAttributeChange(const Core::ElementAttributes& changed_at
 		dirty_layout = true;
 	}
 
-	// Check if size has been defined.
 	auto it_step = changed_attributes.find("step");
 	if (it_step != changed_attributes.end())
 		widget->SetStep(it_step->second.Get(1.0f));
 
-	// Check if min has been defined.
 	auto it_min = changed_attributes.find("min");
 	if (it_min != changed_attributes.end())
 		widget->SetMinValue(it_min->second.Get(0.0f));
 
-	// Check if max has been defined.
 	auto it_max = changed_attributes.find("max");
 	if (it_max != changed_attributes.end())
 		widget->SetMaxValue(it_max->second.Get(100.f));
 
-	// Check if the value has been changed.
 	auto it_value = changed_attributes.find("value");
 	if (it_value != changed_attributes.end())
 		widget->SetValue(it_value->second.Get(0.0f));

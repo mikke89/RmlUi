@@ -79,14 +79,6 @@ protected:
 	/// decrement arrow.
 	/// @return The new position of the bar.
 	float OnLineDecrement() override;
-	/// Called when the slider is incremented by one 'page', either by the page-up key or a mouse-click on the
-	/// track below / right of the bar.
-	/// @return The new position of the bar.
-	float OnPageIncrement(float click_position) override;
-	/// Called when the slider is incremented by one 'page', either by the page-down key or a mouse-click on the
-	/// track above / left of the bar.
-	/// @return The new position of the bar.
-	float OnPageDecrement(float click_position) override;
 
 private:
 	/// Clamps the new value, sets it on the slider and returns it as a number from 0 to 1, 0 being the minimum

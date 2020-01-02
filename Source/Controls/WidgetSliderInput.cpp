@@ -29,7 +29,6 @@
 #include "WidgetSliderInput.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Controls/ElementFormControl.h"
 
 namespace Rml {
 namespace Controls {
@@ -111,18 +110,6 @@ float WidgetSliderInput::OnLineDecrement()
 	return SetValueInternal(value - step);
 }
 
-// Called when the slider is incremented by one 'page'.
-float WidgetSliderInput::OnPageIncrement(float click_position)
-{
-	return OnBarChange(click_position);
-}
-
-// Called when the slider is incremented by one 'page'.
-float WidgetSliderInput::OnPageDecrement(float click_position)
-{
-	return OnBarChange(click_position);
-}
-
 // Clamps the new value, sets it on the slider.
 float WidgetSliderInput::SetValueInternal(float new_value)
 {
@@ -142,7 +129,7 @@ float WidgetSliderInput::SetValueInternal(float new_value)
 
     Rml::Core::Dictionary parameters;
     parameters["value"] = value;
-    parent->DispatchEvent(Core::EventId::Change, parameters);
+    GetParent()->DispatchEvent(Core::EventId::Change, parameters);
 
 	return (value - min_value) / (max_value - min_value);
 }

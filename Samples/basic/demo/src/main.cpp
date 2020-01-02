@@ -368,9 +368,9 @@ public:
 			auto el_rating_emoji = element->GetElementById("rating_emoji");
 			if (el_rating && el_rating_emoji)
 			{
-				enum { Sad, Mediocre, Exciting, Celebrate, Champion, CountBonus };
-				static const Rml::Core::String emojis[CountBonus] = { u8"😢", u8"😐", u8"😮", u8"😎", u8"🏆" };
-				int value = std::atoi(static_cast<Rml::Controls::ElementFormControl*>(element)->GetValue().c_str());
+				enum { Sad, Mediocre, Exciting, Celebrate, Champion, CountEmojis };
+				static const Rml::Core::String emojis[CountEmojis] = { u8"😢", u8"😐", u8"😮", u8"😎", u8"🏆" };
+				int value = event.GetParameter("value", 50);
 				
 				Rml::Core::String emoji;
 				if (value <= 0)
