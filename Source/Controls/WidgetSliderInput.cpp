@@ -29,6 +29,7 @@
 #include "WidgetSliderInput.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Controls/ElementFormControl.h"
 
 namespace Rml {
 namespace Controls {
@@ -138,6 +139,10 @@ float WidgetSliderInput::SetValueInternal(float new_value)
 		value = min_value;
 		return 0;
 	}
+
+    Rml::Core::Dictionary parameters;
+    parameters["value"] = value;
+    parent->DispatchEvent(Core::EventId::Change, parameters);
 
 	return (value - min_value) / (max_value - min_value);
 }
