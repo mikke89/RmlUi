@@ -5,6 +5,25 @@
 
 ## RmlUi WIP
 
+### Animating keyword properties
+
+Keyword properties can now be animated. Keywords are always interpolated in discrete steps, and normally applied half-way to the next keyframe. The single exception to this rule is for the `visibility` property. As in the CSS specifications, this property always applies the `visible` keyword during transition when present either in the previous or next keyframe.
+
+Thus, the following can produce a fade-out animation, removing visibility of the element at animation end (thanks to @uniquejack for the example).
+```css
+@keyframes fadeout {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+		visibility: hidden;
+	}
+}
+.fadeout {
+	animation: 1.2s cubic-in fadeout;
+}
+```
 
 ### Bug fixes
 

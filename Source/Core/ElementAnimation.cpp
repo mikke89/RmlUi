@@ -104,6 +104,22 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		}
 	}
 
+	if (p0.unit == Property::KEYWORD && p1.unit == Property::KEYWORD)
+	{
+		// Discrete interpolation, swap at alpha = 0.5.
+		// Special case for the 'visibility' property as in the CSS specs: 
+		//   Apply the visible property if present during the entire transition period, ie. alpha (0,1).
+		if (definition && definition->GetId() == PropertyId::Visibility)
+		{
+			if (p0.Get<int>() == (int)Style::Visibility::Visible)
+				return alpha < 1.f ? p0 : p1;
+			else if (p1.Get<int>() == (int)Style::Visibility::Visible)
+				return alpha <= 0.f ? p0 : p1;
+		}
+
+		return alpha < 0.5f ? p0 : p1;
+	}
+
 	if (p0.unit == Property::COLOUR && p1.unit == Property::COLOUR)
 	{
 		Colourf c0 = ColourToLinearSpace(p0.value.Get<Colourb>());
@@ -148,6 +164,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		return Property{ TransformPtr(std::move(t)), Property::TRANSFORM };
 	}
 
+	// Fall back to discrete interpolation for incompatible units.
 	return alpha < 0.5f ? p0 : p1;
 }
 
@@ -388,7 +405,7 @@ ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigi
 
 bool ElementAnimation::InternalAddKey(float time, const Property& in_property, Element& element, Tween tween)
 {
-	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM);
+	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM | Property::KEYWORD);
 
 	if (!(in_property.unit & valid_properties))
 	{

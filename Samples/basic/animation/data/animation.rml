@@ -48,6 +48,40 @@
 		#high_scores {
 			margin-left: -100px;
 		}
+		
+		@keyframes fadeout {
+			from {
+				opacity: 1;
+			}
+			to {
+				opacity: 0;
+				visibility: hidden;
+			}
+		}
+		@keyframes fadein {
+			from {
+				opacity: 0;
+			}
+			to {
+				opacity: 1;
+				visibility: visible;
+			}
+		}
+		@keyframes textalign {
+			20% { text-align: left; }
+			50% { text-align: center; }
+			80% { text-align: right; }
+		}
+		.fadein {
+			animation: 1.2s cubic-out fadein;
+		}
+		.fadeout {
+			animation: 1.2s cubic-in fadeout;
+		}
+		.textalign {
+			animation: 1.5s textalign;
+		}
+		
 		#exit {
 			transform: rotate(45deg);
 			transform-origin: 50% 50% 0;
@@ -184,7 +218,6 @@
 			left: -100px;
 			transform: scale(0.5) rotate(-90deg);
 		}
-		
 	</style>
 </head>
 

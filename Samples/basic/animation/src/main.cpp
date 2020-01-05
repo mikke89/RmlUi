@@ -75,10 +75,6 @@ public:
 				el->AddAnimationKey("image-color", Property(Colourb(255, 255, 255, 255), Property::COLOUR), 0.3f);
 			}
 			{
-				auto el = document->GetElementById("help");
-				el->Animate("margin-left", Property(100.f, Property::PX), 1.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
-			}
-			{
 				auto el = document->GetElementById("exit");
 				PropertyDictionary pd;
 				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "translate(200px, 200px) rotate(1215deg)");
@@ -122,6 +118,34 @@ public:
 		}
 	}
 
+	void Update(double t)
+	{
+		if (document)
+		{
+			if (t - t_prev_fade >= 1.5)
+			{
+				auto el = document->GetElementById("help");
+				if (el->IsClassSet("fadeout"))
+				{
+					el->SetClass("fadeout", false);
+					el->SetClass("fadein", true);
+				}
+				else if (el->IsClassSet("fadein"))
+				{
+					el->SetClass("fadein", false);
+					el->SetClass("textalign", true);
+				}
+				else
+				{
+					el->SetClass("textalign", false);
+					el->SetClass("fadeout", true);
+				}
+
+				t_prev_fade = t;
+			}
+		}
+	}
+
 	~DemoWindow()
 	{
 		if (document)
@@ -136,6 +160,7 @@ public:
 
 private:
 	Rml::Core::ElementDocument *document;
+	double t_prev_fade = 0;
 };
 
 
@@ -149,8 +174,13 @@ int nudge = 0;
 
 void GameLoop()
 {
+	double t = Shell::GetElapsedTime();
+
 	if(run_loop || single_loop)
 	{
+		if (window)
+			window->Update(t);
+
 		context->Update();
 
 		shell_renderer->PrepareRenderBuffer();
@@ -161,7 +191,6 @@ void GameLoop()
 	}
 
 	static double t_prev = 0.0f;
-	double t = Shell::GetElapsedTime();
 	float dt = float(t - t_prev);
 	static int count_frames = 0;
 	count_frames += 1;
