@@ -72,9 +72,11 @@ private:
 	bool InternalAddKey(float time, const Property& property, Element& element, Tween tween);
 
 	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
+
 public:
 	ElementAnimation() {}
-	ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element, double start_world_time, float duration, int num_iterations, bool alternate_direction);
+	ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element,
+		double start_world_time, float duration, int num_iterations, bool alternate_direction);
 
 	bool AddKey(float target_time, const Property & property, Element & element, Tween tween, bool extend_duration);
 
@@ -84,12 +86,10 @@ public:
 	float GetDuration() const { return duration; }
 	bool IsComplete() const { return animation_complete; }
 	bool IsTransition() const { return origin == ElementAnimationOrigin::Transition; }
+	bool IsInitalized() const { return !keys.empty(); }
 	float GetInterpolationFactor() const { return GetInterpolationFactorAndKeys(nullptr, nullptr); }
 	ElementAnimationOrigin GetOrigin() const { return origin; }
 };
-
-
-
 
 
 }

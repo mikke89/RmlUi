@@ -433,7 +433,7 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 
 bool ElementAnimation::AddKey(float target_time, const Property & in_property, Element& element, Tween tween, bool extend_duration)
 {
-	if (keys.empty())
+	if (!IsInitalized())
 	{
 		Log::Message(Log::LT_WARNING, "Element animation was not initialized properly, can't add key.");
 		return false;
@@ -501,9 +501,8 @@ float ElementAnimation::GetInterpolationFactorAndKeys(int* out_key0, int* out_ke
 
 Property ElementAnimation::UpdateAndGetProperty(double world_time, Element& element)
 {
-	RMLUI_ASSERT(keys.size() >= 2);
 	float dt = float(world_time - last_update_world_time);
-	if (animation_complete || dt <= 0.0f)
+	if (keys.size() < 2 || animation_complete || dt <= 0.0f)
 		return Property{};
 
 	dt = Math::Min(dt, 0.1f);

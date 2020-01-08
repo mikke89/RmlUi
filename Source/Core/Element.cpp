@@ -2145,7 +2145,11 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 {
 	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == property_id; });
 
-	if (it == animations.end())
+	if (it != animations.end())
+	{
+		*it = ElementAnimation{};
+	}
+	else
 	{
 		animations.emplace_back();
 		it = animations.end() - 1;
@@ -2171,7 +2175,8 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 		double start_time = Clock::GetElapsedTime() + (double)delay;
 		*it = ElementAnimation{ property_id, origin, value, *this, start_time, 0.0f, num_iterations, alternate_direction };
 	}
-	else
+	
+	if(!it->IsInitalized())
 	{
 		animations.erase(it);
 		it = animations.end();
