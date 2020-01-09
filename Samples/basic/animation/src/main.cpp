@@ -122,7 +122,7 @@ public:
 	{
 		if (document)
 		{
-			if (t - t_prev_fade >= 1.5)
+			if (t - t_prev_fade >= 1.4)
 			{
 				auto el = document->GetElementById("help");
 				if (el->IsClassSet("fadeout"))

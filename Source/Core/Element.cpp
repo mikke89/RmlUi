@@ -188,6 +188,14 @@ void Element::Update(float dp_ratio)
 
 	UpdateProperties();
 
+	// Do en extra pass over the animations and properties if the 'animation' property was just changed.
+	if (dirty_animation)
+	{
+		UpdateAnimation();
+		AdvanceAnimations();
+		UpdateProperties();
+	}
+
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio);
 }
@@ -2297,6 +2305,8 @@ void Element::UpdateTransition()
 
 void Element::UpdateAnimation()
 {
+	// Note: We are effectively restarting all animations whenever 'dirty_animation' is set. Use the dirty flag with care,
+	// or find another approach which only updates actual "dirty" animations.
 	if (dirty_animation)
 	{
 		dirty_animation = false;
@@ -2308,8 +2318,6 @@ void Element::UpdateAnimation()
 		if (element_has_animations && (stylesheet = GetStyleSheet().get()))
 		{
 			// Remove existing animations
-			// Note: We are effectively restarting all animations whenever 'drty_animation' is set. Use the dirty flag with care,
-			// or find another approach which only updates actual "dirty" animations.
 			{
 				// We only touch the animations that originate from the 'animation' property.
 				auto it_remove = std::partition(animations.begin(), animations.end(), 
@@ -2339,7 +2347,7 @@ void Element::UpdateAnimation()
 					for (PropertyId id : property_ids)
 						StartAnimation(id, (has_from_key ? blocks[0].properties.GetProperty(id) : nullptr), animation.num_iterations, animation.alternate, animation.delay, true);
 
-					// Need to skip the first and last keys if they set the initial and end conditions, respectively.
+					// Add middle keys: Need to skip the first and last keys if they set the initial and end conditions, respectively.
 					for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
 					{
 						// Add properties of current key to animation
@@ -2384,6 +2392,8 @@ void Element::AdvanceAnimations()
 			dictionary_list.emplace_back();
 			dictionary_list.back().emplace("property", StyleSheetSpecification::GetPropertyName(it->GetPropertyId()));
 			is_transition.push_back(it->IsTransition());
+			// Remove the property on ended animation (should do the same as in UpdateAnimation)
+			RemoveProperty(it->GetPropertyId());
 		}
 
 		// Need to erase elements before submitting event, as iterators might be invalidated when calling external code.

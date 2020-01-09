@@ -25,6 +25,10 @@ Thus, the following can produce a fade-out animation, removing visibility of the
 }
 ```
 
+### Changes
+
+- Animated properties are now removed when an animation completes.
+
 ### Bug fixes
 
 - Range input element: Change event reports the correct value instead of normalized (thanks @andreasschultes). #72 #73.
