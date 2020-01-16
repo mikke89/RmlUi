@@ -237,7 +237,7 @@ DataViewFor::DataViewFor(const DataModel& model, Element* element, const String&
 
 	if (binding_list.empty() || binding_list.size() > 2 || binding_list.front().empty() || binding_list.back().empty())
 	{
-		Log::Message(Log::LT_WARNING, "Invalid syntax for data-for '%s'", in_binding_name.c_str());
+		Log::Message(Log::LT_WARNING, "Invalid syntax in data-for '%s'", in_binding_name.c_str());
 		return;
 	}
 

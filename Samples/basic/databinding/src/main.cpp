@@ -107,6 +107,7 @@ struct Invader {
 	Rml::Core::String name;
 	Rml::Core::String sprite;
 	Rml::Core::String color;
+	std::vector<int> numbers = { 1, 2, 3, 4, 5 };
 };
 
 
@@ -118,9 +119,9 @@ struct MyData {
 	Invader delightful_invader{ "Delightful invader", "icon-invader", "white" };
 
 	std::vector<Invader> invaders = {
-		Invader{"Angry invader", "icon-invader", "red"},
-		Invader{"Harmless invader", "icon-flag", "blue"},
-		Invader{"Hero", "icon-game", "yellow"},
+		Invader{"Angry invader", "icon-invader", "red", {3, 6, 7}},
+		Invader{"Harmless invader", "icon-flag", "blue", {5, 0}},
+		Invader{"Hero", "icon-game", "yellow", {10, 11, 12, 13, 14}},
 	};
 
 	std::vector<int> indices = { 1, 2, 3, 4, 5 };
@@ -146,15 +147,17 @@ bool SetupDataBinding(Rml::Core::Context* context)
 
 	Rml::Core::DataTypeRegister& types = Rml::Core::GetDataTypeRegister();
 
+	auto vector_int_handle = types.RegisterArray<std::vector<int>>();
+
 	auto invader_handle = types.RegisterStruct<Invader>();
 	invader_handle.RegisterMember("name", &Invader::name);
 	invader_handle.RegisterMember("sprite", &Invader::sprite);
 	invader_handle.RegisterMember("color", &Invader::color);
+	invader_handle.RegisterMember("numbers", &Invader::numbers, vector_int_handle);
 
 	my_model.BindStruct("delightful_invader", &my_data.delightful_invader);
 
-	types.RegisterArray<std::vector<int>>();
-	types.RegisterArray<std::vector<Invader>>(invader_handle);
+	auto vector_invader_handle = types.RegisterArray<std::vector<Invader>>(invader_handle);
 
 	my_model.BindArray("indices", &my_data.indices);
 	my_model.BindArray("invaders", &my_data.invaders);

@@ -84,7 +84,7 @@ class RMLUICORE_API BaseXMLParser
 		bool ReadOpenTag();
 		bool ReadCloseTag();
 		bool ReadAttributes(XMLAttributes& attributes);
-		bool ReadCDATA(const char* terminator = nullptr);
+		bool ReadCDATA(const char* tag_terminator = nullptr, bool only_terminate_at_same_xml_depth = false);
 
 		// Reads from the stream until a complete word is found.
 		// @param[out] word Word thats been found

@@ -246,9 +246,11 @@ bool BaseXMLParser::ReadOpenTag()
 	if (section_opened)
 	{
 		String lcase_tag_name = StringUtilities::ToLower(tag_name);
-		if (treat_content_as_cdata || cdata_tags.find(lcase_tag_name) != cdata_tags.end())
+		bool is_cdata_tag = (cdata_tags.find(lcase_tag_name) != cdata_tags.end());
+
+		if (treat_content_as_cdata || is_cdata_tag)
 		{
-			if (ReadCDATA(lcase_tag_name.c_str()))
+			if (ReadCDATA(lcase_tag_name.c_str(), !is_cdata_tag))
 			{
 				open_tag_depth--;
 				if (!data.empty())
@@ -330,10 +332,10 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 	}
 }
 
-bool BaseXMLParser::ReadCDATA(const char* terminator)
+bool BaseXMLParser::ReadCDATA(const char* tag_terminator, bool only_terminate_at_same_xml_depth)
 {
 	String cdata;
-	if (terminator == nullptr)
+	if (tag_terminator == nullptr)
 	{
 		FindString((const unsigned char*) "]]>", cdata);
 		data += cdata;
@@ -341,36 +343,52 @@ bool BaseXMLParser::ReadCDATA(const char* terminator)
 	}
 	else
 	{
+		int tag_depth = 1;
+
 		for (;;)
 		{
 			// Search for the next tag opening.
-			if (!FindString((const unsigned char*) "<", cdata))
+			if (!FindString((const unsigned char*)"<", cdata))
 				return false;
 
-			if (PeekString((const unsigned char*) "/", false))
+			String node_raw;
+			if (!FindString((const unsigned char*)">", node_raw))
+				return false;
+
+			String node_stripped = StringUtilities::StripWhitespace(node_raw);
+			bool close_begin = false;
+			bool close_end = false;
+
+			if (!node_stripped.empty())
 			{
-				String tag;
-				if (FindString((const unsigned char*) ">", tag))
-				{
-					size_t slash_pos = tag.find('/');
-					String tag_name = StringUtilities::StripWhitespace(slash_pos == String::npos ? tag : tag.substr(slash_pos + 1));
-					if (StringUtilities::ToLower(tag_name) == terminator)
-					{
-						data += cdata;
-						return true;
-					}
-					else
-					{
-						cdata += "<";
-						cdata += tag;
-						cdata += ">";
-					}
-				}
-				else
-					cdata += "<";
+				if (node_stripped.front() == '/')
+					close_begin = true;
+				else if (node_stripped.back() == '/')
+					close_end = true;
 			}
-			else
-				cdata += "<";
+
+			if (!close_begin && !close_end)
+				tag_depth += 1;
+			else if (close_begin && !close_end)
+				tag_depth -= 1;
+
+			if (close_begin && !close_end && (!only_terminate_at_same_xml_depth || tag_depth == 0))
+			{
+				String tag_name = StringUtilities::StripWhitespace(node_stripped.substr(1));
+
+				if (StringUtilities::ToLower(tag_name) == tag_terminator)
+				{
+					data += cdata;
+					return true;
+				}
+			}
+
+			if (only_terminate_at_same_xml_depth && tag_depth <= 0)
+			{
+				return false;
+			}
+
+			cdata += '<' + node_raw + '>';
 		}
 	}
 }
@@ -467,7 +485,7 @@ bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
 
 			if (peek_read - buffer + i >= buffer_used)
 			{
-				// Wierd, seems our buffer is too small, realloc it bigger.
+				// Weird, seems our buffer is too small, realloc it bigger.
 				buffer_size *= 2;
 				int read_offset = (int)(read - buffer);
 				unsigned char* new_buffer = (unsigned char*) realloc(buffer, buffer_size);

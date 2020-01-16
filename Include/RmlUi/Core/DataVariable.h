@@ -147,7 +147,7 @@ protected:
 		Container* ptr = static_cast<Container*>(void_ptr);
 		const int index = address.index;
 
-		if (index < 0 && index >= int(ptr->size()))
+		if (index < 0 || index >= int(ptr->size()))
 		{
 			Log::Message(Log::LT_WARNING, "Data array index out of bounds.");
 			return Variable();

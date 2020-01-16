@@ -169,12 +169,15 @@ form h2
 	<div data-if="good_rating">Thanks for the awesome rating!</div>
 	<h1>{{delightful_invader.name}}</h1>
 	<img data-attr-sprite="delightful_invader.sprite" data-style-image-color="delightful_invader.color"/>
+	<p>
+		<span data-for="i : indices"> {{i}} </span>
+	</p>
 	<div data-for="invader : invaders">
 		<h1>{{invader.name}}</h1>
 		<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color"/>
-	</div>
-	<div data-for="indices">
-		<h1>{{it}}</h1>
+		<p>
+			Numbers: <span data-for="invader.numbers"> {{it}} </span>
+		</p>
 	</div>
 </panel>
 <tab>Decorators</tab>
