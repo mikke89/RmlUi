@@ -115,7 +115,7 @@ struct MyData {
 	int rating = 99;
 	bool good_rating = true;
 
-	Invader invader{ "Delightful invader", "icon-invader", "white" };
+	Invader delightful_invader{ "Delightful invader", "icon-invader", "white" };
 
 	std::vector<Invader> invaders = {
 		Invader{"Angry invader", "icon-invader", "red"},
@@ -151,7 +151,7 @@ bool SetupDataBinding(Rml::Core::Context* context)
 	invader_handle.RegisterMember("sprite", &Invader::sprite);
 	invader_handle.RegisterMember("color", &Invader::color);
 
-	my_model.BindStruct("invader", &my_data.invader);
+	my_model.BindStruct("delightful_invader", &my_data.delightful_invader);
 
 	types.RegisterArray<std::vector<int>>();
 	types.RegisterArray<std::vector<Invader>>(invader_handle);

@@ -135,7 +135,7 @@ public:
 template<typename Container>
 class ArrayDefinition final : public VariableDefinition {
 public:
-	ArrayDefinition(VariableDefinition* underlying_variable) : VariableDefinition(VariableType::Array), underlying_variable(underlying_variable) {}
+	ArrayDefinition(VariableDefinition* underlying_definition) : VariableDefinition(VariableType::Array), underlying_definition(underlying_definition) {}
 
 	int Size(void* ptr) override {
 		return int(static_cast<Container*>(ptr)->size());
@@ -147,32 +147,32 @@ protected:
 		Container* ptr = static_cast<Container*>(void_ptr);
 		const int index = address.index;
 
-		if (index < 0 && index >= (int)ptr->size())
+		if (index < 0 && index >= int(ptr->size()))
 		{
 			Log::Message(Log::LT_WARNING, "Data array index out of bounds.");
 			return Variable();
 		}
 
 		void* next_ptr = &((*ptr)[index]);
-		return Variable(underlying_variable, next_ptr);
+		return Variable(underlying_definition, next_ptr);
 	}
 
 private:
-	VariableDefinition* underlying_variable;
+	VariableDefinition* underlying_definition;
 };
 
 
 class StructMember {
 public:
-	StructMember(VariableDefinition* variable) : variable(variable) {}
+	StructMember(VariableDefinition* definition) : definition(definition) {}
 	virtual ~StructMember() = default;
 
-	VariableDefinition* GetVariable() const { return variable; }
+	VariableDefinition* GetVariable() const { return definition; }
 
 	virtual void* GetPointer(void* base_ptr) = 0;
 
 private:
-	VariableDefinition* variable;
+	VariableDefinition* definition;
 };
 
 template <typename Object, typename MemberType>

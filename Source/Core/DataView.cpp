@@ -229,9 +229,25 @@ bool DataViewIf::Update(const DataModel& model)
 
 
 
-DataViewFor::DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& in_rml_content)
+DataViewFor::DataViewFor(const DataModel& model, Element* element, const String& in_binding_name, const String& in_rml_content)
 	: element(element->GetObserverPtr()), rml_contents(in_rml_content)
 {
+	StringList binding_list;
+	StringUtilities::ExpandString(binding_list, in_binding_name, ':');
+
+	if (binding_list.empty() || binding_list.size() > 2 || binding_list.front().empty() || binding_list.back().empty())
+	{
+		Log::Message(Log::LT_WARNING, "Invalid syntax for data-for '%s'", in_binding_name.c_str());
+		return;
+	}
+
+	if (binding_list.size() == 2)
+		alias_name = binding_list.front();
+	else
+		alias_name = "it";
+
+	const String& binding_name = binding_list.back();
+
 	variable_address = model.ResolveAddress(binding_name, element);
 	attributes = element->GetAttributes();
 	attributes.erase("data-for");
@@ -265,7 +281,7 @@ bool DataViewFor::Update(const DataModel& model)
 			replacement_address = variable_address;
 			replacement_address.push_back(AddressEntry(i));
 
-			model.InsertAlias(new_element, "it", replacement_address);
+			model.InsertAlias(new_element, alias_name, replacement_address);
 
 			elements[i]->SetInnerRML(rml_contents);
 

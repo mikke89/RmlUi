@@ -137,6 +137,7 @@ public:
 private:
 	ObserverPtr<Element> element;
 	Address variable_address;
+	String alias_name;
 	String rml_contents;
 	ElementAttributes attributes;
 
