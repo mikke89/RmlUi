@@ -43,13 +43,9 @@ namespace Core {
  */
 
 // Redefine Windows APIs as their STDC counterparts.
-#ifdef RMLUI_PLATFORM_WIN32
-	#ifndef strcasecmp
-		#define strcasecmp stricmp
-	#endif
-	#ifndef strncasecmp
-		#define strcasecmp strnicmp
-	#endif
+#ifdef _MSC_VER
+	#define strcasecmp stricmp
+	#define strcasecmp strnicmp
 #endif
 
 class StringView;
