@@ -45,7 +45,7 @@ namespace Core {
 // Redefine Windows APIs as their STDC counterparts.
 #ifdef _MSC_VER
 	#define strcasecmp stricmp
-	#define strcasecmp strnicmp
+	#define strncasecmp strnicmp
 #endif
 
 class StringView;
