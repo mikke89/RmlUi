@@ -170,7 +170,7 @@ form h2
 	<h1>{{delightful_invader.name}}</h1>
 	<img data-attr-sprite="delightful_invader.sprite" data-style-image-color="delightful_invader.color"/>
 	<p>
-		<span data-for="i : indices"> {{i}} </span>
+		Indices: <span data-for="i : indices"> {{i}} </span>
 	</p>
 	<div data-for="invader : invaders">
 		<h1>{{invader.name}}</h1>

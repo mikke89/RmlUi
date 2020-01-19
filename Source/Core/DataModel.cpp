@@ -252,6 +252,12 @@ bool DataModel::EraseAliases(Element* element) const
 	return aliases.erase(element) == 1;
 }
 
+void DataModel::OnElementRemove(Element* element)
+{
+	EraseAliases(element);
+	views.OnElementRemove(element);
+}
+
 
 
 #ifdef RMLUI_DEBUG

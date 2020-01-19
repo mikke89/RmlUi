@@ -37,8 +37,24 @@ namespace Core {
 
 DataView::~DataView() {}
 
+Element* DataView::GetElement() const
+{
+	Element* result = attached_element.get();
+	if (!result)
+		Log::Message(Log::LT_WARNING, "Could not retrieve element in view, was it destroyed?");
+	return result;
+}
 
-DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : element(in_parent_element->GetObserverPtr())
+DataView::DataView(Element* element) : attached_element(element->GetObserverPtr()), element_depth(0) {
+	if (element)
+	{
+		for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
+			element_depth += 1;
+	}
+}
+
+
+DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : DataView(in_parent_element)
 {
 	text.reserve(in_text.size());
 
@@ -84,6 +100,7 @@ DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_elemen
 	{
 		text.clear();
 		data_entries.clear();
+		InvalidateView();
 	}
 }
 
@@ -104,11 +121,11 @@ bool DataViewText::Update(const DataModel& model)
 
 	if (entries_modified)
 	{
-		if (element)
+		if (Element* element = GetElement())
 		{
-			RMLUI_ASSERTMSG(rmlui_dynamic_cast<ElementText*>(element.get()), "Somehow the element type was changed from ElementText since construction of the view. Should not be possible?");
+			RMLUI_ASSERTMSG(rmlui_dynamic_cast<ElementText*>(element), "Somehow the element type was changed from ElementText since construction of the view. Should not be possible?");
 
-			if(auto text_element = static_cast<ElementText*>(element.get()))
+			if(auto text_element = static_cast<ElementText*>(element))
 			{
 				String new_text = BuildText();
 				text_element->SetText(new_text);
@@ -149,17 +166,23 @@ String DataViewText::BuildText() const
 
 
 DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name)
-	: element(element->GetObserverPtr()), attribute_name(attribute_name)
+	: DataView(element), attribute_name(attribute_name)
 {
 	variable_address = model.ResolveAddress(binding_name, parent);
-	Update(model);
+
+	if (attribute_name.empty())
+		InvalidateView();
+	else
+		Update(model);
 }
 
 bool DataViewAttribute::Update(const DataModel& model)
 {
 	bool result = false;
 	String value;
-	if (model.GetValue(variable_address, value))
+	Element* element = GetElement();
+
+	if (model.GetValue(variable_address, value) && element)
 	{
 		Variant* attribute = element->GetAttribute(attribute_name);
 
@@ -175,10 +198,14 @@ bool DataViewAttribute::Update(const DataModel& model)
 
 
 DataViewStyle::DataViewStyle(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name)
-	: element(element->GetObserverPtr()), property_name(property_name)
+	: DataView(element), property_name(property_name)
 {
 	variable_address = model.ResolveAddress(binding_name, parent);
-	Update(model);
+	
+	if (variable_address.empty() || property_name.empty())
+		InvalidateView();
+	else
+		Update(model);
 }
 
 
@@ -186,7 +213,9 @@ bool DataViewStyle::Update(const DataModel& model)
 {
 	bool result = false;
 	String value;
-	if (model.GetValue(variable_address, value))
+	Element* element = GetElement();
+
+	if (model.GetValue(variable_address, value) && element)
 	{
 		const Property* p = element->GetLocalProperty(property_name);
 		if (!p || p->Get<String>() != value)
@@ -201,10 +230,13 @@ bool DataViewStyle::Update(const DataModel& model)
 
 
 
-DataViewIf::DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name) : element(element->GetObserverPtr())
+DataViewIf::DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name) : DataView(element)
 {
 	variable_address = model.ResolveAddress(binding_name, element);
-	Update(model);
+	if (variable_address.empty())
+		InvalidateView();
+	else
+		Update(model);
 }
 
 
@@ -212,7 +244,9 @@ bool DataViewIf::Update(const DataModel& model)
 {
 	bool result = false;
 	bool value = false;
-	if (model.GetValue(variable_address, value))
+	Element* element = GetElement();
+
+	if (model.GetValue(variable_address, value) && element)
 	{
 		bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
 		if(is_visible != value)
@@ -230,7 +264,7 @@ bool DataViewIf::Update(const DataModel& model)
 
 
 DataViewFor::DataViewFor(const DataModel& model, Element* element, const String& in_binding_name, const String& in_rml_content)
-	: element(element->GetObserverPtr()), rml_contents(in_rml_content)
+	: DataView(element), rml_contents(in_rml_content)
 {
 	StringList binding_list;
 	StringUtilities::ExpandString(binding_list, in_binding_name, ':');
@@ -238,6 +272,7 @@ DataViewFor::DataViewFor(const DataModel& model, Element* element, const String&
 	if (binding_list.empty() || binding_list.size() > 2 || binding_list.front().empty() || binding_list.back().empty())
 	{
 		Log::Message(Log::LT_WARNING, "Invalid syntax in data-for '%s'", in_binding_name.c_str());
+		InvalidateView();
 		return;
 	}
 
@@ -249,6 +284,12 @@ DataViewFor::DataViewFor(const DataModel& model, Element* element, const String&
 	const String& binding_name = binding_list.back();
 
 	variable_address = model.ResolveAddress(binding_name, element);
+	if (variable_address.empty())
+	{
+		InvalidateView();
+		return;
+	}
+
 	attributes = element->GetAttributes();
 	attributes.erase("data-for");
 	element->SetProperty(PropertyId::Display, Property(Style::Display::None));
@@ -266,6 +307,7 @@ bool DataViewFor::Update(const DataModel& model)
 	bool result = false;
 	const int size = variable.Size();
 	const int num_elements = (int)elements.size();
+	Element* element = GetElement();
 
 	for (int i = 0; i < Math::Max(size, num_elements); i++)
 	{
@@ -273,7 +315,7 @@ bool DataViewFor::Update(const DataModel& model)
 		{
 			ElementPtr new_element_ptr = Factory::InstanceElement(nullptr, element->GetTagName(), element->GetTagName(), attributes);
 			new_element_ptr->SetDataModel((DataModel*)(&model));
-			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element.get());
+			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element);
 			elements.push_back(new_element);
 
 			Address replacement_address;
@@ -289,8 +331,8 @@ bool DataViewFor::Update(const DataModel& model)
 		}
 		if (i >= size)
 		{
-			elements[i]->GetParentNode()->RemoveChild(elements[i]).reset();
 			model.EraseAliases(elements[i]);
+			elements[i]->GetParentNode()->RemoveChild(elements[i]).reset();
 			elements[i] = nullptr;
 		}
 	}
@@ -306,6 +348,58 @@ DataViews::DataViews()
 
 DataViews::~DataViews()
 {}
+
+void DataViews::Add(UniquePtr<DataView> view) {
+	views_to_add.push_back(std::move(view));
+}
+
+void DataViews::OnElementRemove(Element* element) 
+{
+	for (auto&& view : views)
+	{
+		if (view && view->GetElement() == element)
+			views_to_remove.push_back(std::move(view));
+	}
+}
+
+bool DataViews::Update(const DataModel & model)
+{
+	bool result = false;
+
+	if(!views_to_add.empty())
+	{
+		views.reserve(views.size() + views_to_add.size());
+		for (auto&& view : views_to_add)
+			views.push_back(std::move(view));
+		views_to_add.clear();
+
+		// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's children.
+		// Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
+		std::sort(views.begin(), views.end(), [](auto&& left, auto&& right) { return left->GetElementDepth() < right->GetElementDepth(); });
+	}
+
+	if(!views_to_remove.empty())
+	{
+		views_to_remove.clear();
+		views.erase(
+			std::remove_if(views.begin(), views.end(), [](auto&& view) { return !view; }),
+			views.end()
+		);
+	}
+	
+	for (auto& view : views)
+	{
+		if (!view)
+			continue;
+
+		if (view->IsValid())
+			result |= view->Update(model);
+		else
+			Log::Message(Log::LT_WARNING, "Invalid view");
+	}
+
+	return result;
+}
 
 }
 }

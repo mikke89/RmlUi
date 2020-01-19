@@ -82,6 +82,8 @@ public:
 
 	bool UpdateViews() { return views.Update(*this); }
 
+	void OnElementRemove(Element* element);
+
 	// Todo: Make private
 	DataControllers controllers;
 private:

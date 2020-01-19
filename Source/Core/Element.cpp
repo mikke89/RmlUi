@@ -1919,6 +1919,12 @@ void Element::SetOwnerDocument(ElementDocument* document)
 			// We are detaching from the document and thereby also the context.
 			if (Context * context = owner_document->GetContext())
 				context->OnElementDetach(this);
+
+			if (data_model)
+			{
+				data_model->OnElementRemove(this);
+				data_model = nullptr;
+			}
 		}
 
 		if (owner_document != document)

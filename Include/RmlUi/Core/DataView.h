@@ -48,17 +48,25 @@ public:
 	virtual ~DataView();
 	virtual bool Update(const DataModel& model) = 0;
 
+	bool IsValid() const { return (bool)attached_element; }
+	explicit operator bool() const { return IsValid(); }
+
+	Element* GetElement() const;
+	int GetElementDepth() const { return element_depth; }
+
 protected:
-	DataView() {}
+	DataView(Element* element);
+
+	void InvalidateView() { attached_element.reset(); }
+
+private:
+	ObserverPtr<Element> attached_element;
+	int element_depth;
 };
 
 class DataViewText : public DataView {
 public:
 	DataViewText(const DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
-
-	inline operator bool() const {
-		return !data_entries.empty() && element;
-	}
 
 	bool Update(const DataModel& model) override;
 
@@ -71,7 +79,6 @@ private:
 		String value;
 	};
 
-	ObserverPtr<Element> element;
 	String text;
 	std::vector<DataEntry> data_entries;
 };
@@ -82,13 +89,9 @@ class DataViewAttribute : public DataView {
 public:
 	DataViewAttribute(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name);
 
-	inline operator bool() const {
-		return !attribute_name.empty() && element;
-	}
 	bool Update(const DataModel& model) override;
 
 private:
-	ObserverPtr<Element> element;
 	Address variable_address;
 	String attribute_name;
 };
@@ -98,13 +101,9 @@ class DataViewStyle : public DataView {
 public:
 	DataViewStyle(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name);
 
-	inline operator bool() const {
-		return !variable_address.empty() && !property_name.empty() && element;
-	}
 	bool Update(const DataModel& model) override;
 
 private:
-	ObserverPtr<Element> element;
 	Address variable_address;
 	String property_name;
 };
@@ -114,13 +113,9 @@ class DataViewIf : public DataView {
 public:
 	DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name);
 
-	inline operator bool() const {
-		return !variable_address.empty() && element;
-	}
 	bool Update(const DataModel& model) override;
 
 private:
-	ObserverPtr<Element> element;
 	Address variable_address;
 };
 
@@ -129,19 +124,15 @@ class DataViewFor : public DataView {
 public:
 	DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& rml_contents);
 
-	inline operator bool() const {
-		return !variable_address.empty() && element;
-	}
 	bool Update(const DataModel& model) override;
 
 private:
-	ObserverPtr<Element> element;
 	Address variable_address;
 	String alias_name;
 	String rml_contents;
 	ElementAttributes attributes;
 
-	std::vector<Element*> elements;
+	ElementList elements;
 };
 
 
@@ -150,20 +141,19 @@ public:
 	DataViews();
 	~DataViews();
 
-	void Add(UniquePtr<DataView> view) {
-		views.push_back(std::move(view));
-	}
+	void Add(UniquePtr<DataView> view);
 
-	bool Update(const DataModel& model)
-	{
-		bool result = false;
-		for (auto& view : views)
-			result |= view->Update(model);
-		return result;
-	}
+	void OnElementRemove(Element* element);
+
+	bool Update(const DataModel& model);
 
 private:
-	std::vector<UniquePtr<DataView>> views;
+	using DataViewList = std::vector<UniquePtr<DataView>>;
+
+	DataViewList views;
+	
+	DataViewList views_to_add;
+	DataViewList views_to_remove;
 };
 
 }
