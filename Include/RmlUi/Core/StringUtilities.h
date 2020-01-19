@@ -43,7 +43,7 @@ namespace Core {
  */
 
 // Redefine Windows APIs as their STDC counterparts.
-#ifdef RMLUI_PLATFORM_WIN32
+#ifdef _MSC_VER
 	#define strcasecmp stricmp
 	#define strncasecmp strnicmp
 #endif
