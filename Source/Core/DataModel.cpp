@@ -72,49 +72,6 @@ static Address ParseAddress(const String& address_str)
 	return address;
 };
 
-
-Variant DataModel::GetValue(const Rml::Core::String& address_str) const
-{
-	Variable variable = GetVariable(address_str);
-
-	Variant result;
-	if (!variable)
-		return result;
-
-	if (variable.Type() != VariableType::Scalar)
-	{
-		Log::Message(Log::LT_WARNING, "Error retrieving data variable '%s': Only the values of scalar variables can be parsed.", address_str.c_str());
-		return result;
-	}
-	if (!variable.Get(result))
-		Log::Message(Log::LT_WARNING, "Could not parse data value '%s'", address_str.c_str());
-
-	return result;
-}
-
-
-bool DataModel::SetValue(const String& address_str, const Variant& variant) const
-{
-	Variable variable = GetVariable(address_str);
-
-	if (!variable)
-		return false;
-
-	if (variable.Type() != VariableType::Scalar)
-	{
-		Log::Message(Log::LT_WARNING, "Could not assign data value '%s', variable is not a scalar type.", address_str.c_str());
-		return false;
-	}
-
-	if (!variable.Set(variant))
-	{
-		Log::Message(Log::LT_WARNING, "Could not assign data value '%s'", address_str.c_str());
-		return false;
-	}
-
-	return true;
-}
-
 bool DataModel::Bind(String name, void* ptr, VariableDefinition* variable, VariableType type)
 {
 	RMLUI_ASSERT(ptr);
@@ -180,6 +137,26 @@ Variable DataModel::GetVariable(const Address& address) const
 
 	return variable;
 }
+
+void DataModel::DirtyVariable(const String& variable_name)
+{
+	RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "Variable name not found among added variables.");
+	dirty_variables.insert(variable_name);
+}
+
+bool DataModel::UpdateVariable(const String& variable_name)
+{
+	auto it = dirty_variables.find(variable_name);
+	if (it == dirty_variables.end())
+		return false;
+
+	SmallUnorderedSet< String > dirty_variable{ *it };
+	dirty_variables.erase(it);
+	bool result = views.Update(*this, dirty_variable);
+
+	return result;
+}
+
 
 Address DataModel::ResolveAddress(const String& address_str, Element* parent) const
 {
@@ -252,6 +229,13 @@ bool DataModel::EraseAliases(Element* element) const
 	return aliases.erase(element) == 1;
 }
 
+bool DataModel::UpdateViews() 
+{
+	bool result = views.Update(*this, dirty_variables);
+	dirty_variables.clear();
+	return result;
+}
+
 void DataModel::OnElementRemove(Element* element)
 {
 	EraseAliases(element);
@@ -318,23 +302,25 @@ static struct TestDataVariables {
 
 			std::vector<String> results;
 
-			for (auto& address : test_addresses)
+			for (auto& str_address : test_addresses)
 			{
-				auto the_address = ParseAddress(address);
+				Address address = ParseAddress(str_address);
 
-				Variant variant = model.GetValue(address);
-				results.push_back(variant.Get<String>());
+				String result;
+				if(model.GetValue<String>(address, result))
+					results.push_back(result);
 			}
 
 			RMLUI_ASSERT(results == expected_results);
 
-			bool success = model.SetValue("data.more_fun[1].magic[1]", Variant(String("199")));
+			bool success = model.GetVariable("data.more_fun[1].magic[1]").Set(Variant(String("199")));
 			RMLUI_ASSERT(success && data.more_fun[1].magic[1] == 199);
 
 			data.fun.magic = { 99, 190, 55, 2000, 50, 60, 70, 80, 90 };
 
-			String result = model.GetValue("data.fun.magic[8]").Get<String>();
-			RMLUI_ASSERT(result == "90");
+			Variant test_get_result;
+			bool test_get_success = model.GetVariable("data.fun.magic[8]").Get(test_get_result);
+			RMLUI_ASSERT(test_get_success && test_get_result.Get<String>() == "90");
 		}
 	}
 } test_data_variables;

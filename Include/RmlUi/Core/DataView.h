@@ -47,6 +47,7 @@ class RMLUICORE_API DataView : NonCopyMoveable {
 public:
 	virtual ~DataView();
 	virtual bool Update(const DataModel& model) = 0;
+	virtual StringList GetVariableNameList() const = 0;
 
 	bool IsValid() const { return (bool)attached_element; }
 	explicit operator bool() const { return IsValid(); }
@@ -64,12 +65,21 @@ private:
 	int element_depth;
 };
 
-class DataViewText : public DataView {
+class DataViewText final : public DataView {
 public:
 	DataViewText(const DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
 
 	bool Update(const DataModel& model) override;
 
+	StringList GetVariableNameList() const override {
+		StringList list;
+		for (auto& entry : data_entries)
+		{
+			if (!entry.variable_address.empty())
+				list.push_back(entry.variable_address.front().name);
+		}
+		return list;
+	}
 private:
 	String BuildText() const;
 
@@ -85,46 +95,59 @@ private:
 
 
 
-class DataViewAttribute : public DataView {
+class DataViewAttribute final : public DataView {
 public:
 	DataViewAttribute(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name);
 
 	bool Update(const DataModel& model) override;
 
+	StringList GetVariableNameList() const override {
+		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
+	}
 private:
 	Address variable_address;
 	String attribute_name;
 };
 
 
-class DataViewStyle : public DataView {
+class DataViewStyle final : public DataView {
 public:
 	DataViewStyle(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name);
 
 	bool Update(const DataModel& model) override;
 
+	StringList GetVariableNameList() const override {
+		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
+	}
 private:
 	Address variable_address;
 	String property_name;
 };
 
 
-class DataViewIf : public DataView {
+class DataViewIf final : public DataView {
 public:
 	DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name);
 
 	bool Update(const DataModel& model) override;
 
+	StringList GetVariableNameList() const override {
+		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
+	}
 private:
 	Address variable_address;
 };
 
 
-class DataViewFor : public DataView {
+class DataViewFor final : public DataView {
 public:
 	DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& rml_contents);
 
 	bool Update(const DataModel& model) override;
+
+	StringList GetVariableNameList() const override {
+		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
+	}
 
 private:
 	Address variable_address;
@@ -145,7 +168,7 @@ public:
 
 	void OnElementRemove(Element* element);
 
-	bool Update(const DataModel& model);
+	bool Update(const DataModel& model, const SmallUnorderedSet< String >& dirty_variables);
 
 private:
 	using DataViewList = std::vector<UniquePtr<DataView>>;
@@ -154,6 +177,9 @@ private:
 	
 	DataViewList views_to_add;
 	DataViewList views_to_remove;
+
+	using NameViewMap = std::unordered_multimap<String, DataView*>;
+	NameViewMap name_view_map;
 };
 
 }

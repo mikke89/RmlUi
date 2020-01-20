@@ -59,9 +59,6 @@ public:
 		return Bind(name, ptr, type_register->Get<T>(), VariableType::Array);
 	}
 
-	Variant GetValue(const String& address_str) const;
-	bool SetValue(const String& address_str, const Variant& variant) const;
-
 	template<typename T>
 	bool GetValue(const Address& address, T& out_value) const {
 		Variant variant;
@@ -72,6 +69,9 @@ public:
 	Variable GetVariable(const String& address_str) const;
 	Variable GetVariable(const Address& address) const;
 
+	void DirtyVariable(const String& variable_name);
+	bool UpdateVariable(const String& variable_name);
+
 	Address ResolveAddress(const String& address_str, Element* parent) const;
 
 	void AddView(UniquePtr<DataView> view) { views.Add(std::move(view)); }
@@ -80,7 +80,7 @@ public:
 	bool InsertAlias(Element* element, const String& alias_name, Address replace_with_address) const;
 	bool EraseAliases(Element* element) const;
 
-	bool UpdateViews() { return views.Update(*this); }
+	bool UpdateViews();
 
 	void OnElementRemove(Element* element);
 
@@ -97,6 +97,8 @@ private:
 	mutable ScopedAliases aliases;
 
 	DataViews views;
+
+	SmallUnorderedSet< String > dirty_variables;
 };
 
 
@@ -114,9 +116,19 @@ public:
 		model->UpdateViews();
 	}
 
+	bool UpdateVariable(const String& variable_name)
+	{
+		RMLUI_ASSERT(model);
+		return model->UpdateVariable(variable_name);
+	}
+	void DirtyVariable(const String& variable_name)
+	{
+		RMLUI_ASSERT(model);
+		model->DirtyVariable(variable_name);
+	}
 	DataModel* GetModel() { return model; }
 
-	operator bool() { return model != nullptr; }
+	explicit operator bool() { return model != nullptr; }
 
 private:
 	DataModel* model;

@@ -355,48 +355,87 @@ void DataViews::Add(UniquePtr<DataView> view) {
 
 void DataViews::OnElementRemove(Element* element) 
 {
-	for (auto&& view : views)
+	for (auto it = views.begin(); it != views.end();)
 	{
+		auto& view = *it;
 		if (view && view->GetElement() == element)
+		{
 			views_to_remove.push_back(std::move(view));
+			it = views.erase(it);
+		}
+		else
+			++it;
 	}
 }
 
-bool DataViews::Update(const DataModel & model)
+bool DataViews::Update(const DataModel & model, const SmallUnorderedSet< String >& dirty_variables)
 {
 	bool result = false;
+
+	std::vector<DataView*> dirty_views;
 
 	if(!views_to_add.empty())
 	{
 		views.reserve(views.size() + views_to_add.size());
 		for (auto&& view : views_to_add)
+		{
+			dirty_views.push_back(view.get());
+			for(const String& variable_name : view->GetVariableNameList())
+				name_view_map.emplace(variable_name, view.get());
+
 			views.push_back(std::move(view));
+		}
 		views_to_add.clear();
-
-		// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's children.
-		// Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
-		std::sort(views.begin(), views.end(), [](auto&& left, auto&& right) { return left->GetElementDepth() < right->GetElementDepth(); });
 	}
 
-	if(!views_to_remove.empty())
+	for(const String& variable_name : dirty_variables)
 	{
-		views_to_remove.clear();
-		views.erase(
-			std::remove_if(views.begin(), views.end(), [](auto&& view) { return !view; }),
-			views.end()
-		);
+		auto pair = name_view_map.equal_range(variable_name);
+		for (auto it = pair.first; it != pair.second; ++it)
+			dirty_views.push_back(it->second);
 	}
+
+	// Remove duplicate entries
+	std::sort(dirty_views.begin(), dirty_views.end());
+	auto it_remove = std::unique(dirty_views.begin(), dirty_views.end());
+	dirty_views.erase(it_remove, dirty_views.end());
+
+	// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's children.
+	// Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
+	std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetElementDepth() < right->GetElementDepth(); });
+
 	
-	for (auto& view : views)
+	// Todo: Newly created views won't actually be updated until next Update loop.
+	for (DataView* view : dirty_views)
 	{
+		RMLUI_ASSERT(view);
 		if (!view)
 			continue;
 
 		if (view->IsValid())
 			result |= view->Update(model);
 		else
-			Log::Message(Log::LT_WARNING, "Invalid view");
+			Log::Message(Log::LT_DEBUG, "Invalid view");
 	}
+
+	// Destroy views marked for destruction
+	// @performance: Horrible...
+	if (!views_to_remove.empty())
+	{
+		for (const auto& view : views_to_remove)
+		{
+			for (auto it = name_view_map.begin(); it != name_view_map.end(); )
+			{
+				if (it->second == view.get())
+					it = name_view_map.erase(it);
+				else
+					++it;
+			}
+		}
+
+		views_to_remove.clear();
+	}
+
 
 	return result;
 }

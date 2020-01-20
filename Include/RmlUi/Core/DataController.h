@@ -46,13 +46,12 @@ class RMLUICORE_API DataController {};
 
 class DataControllerAttribute : public DataController {
 public:
-	DataControllerAttribute(const DataModel& model, Element* parent, const String& in_attribute_name, const String& in_value_name);
+	DataControllerAttribute(DataModel& model, Element* parent, const String& in_attribute_name, const String& in_value_name);
 
-	inline operator bool() const {
-		return !attribute_name.empty();
+	explicit operator bool() const {
+		return !attribute_name.empty() && !variable_address.empty();
 	}
-	bool Update(Element* element, const DataModel& model);
-
+	bool Update(Element* element, DataModel& model);
 
 	bool OnAttributeChange( const ElementAttributes& changed_attributes)
 	{
@@ -81,7 +80,7 @@ public:
 		RMLUI_ASSERT(inserted);
 	}
 
-	bool Update(const DataModel& model)
+	bool Update(DataModel& model)
 	{
 		bool result = false;
 		for (auto& controller : attribute_controllers)

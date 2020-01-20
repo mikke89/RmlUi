@@ -34,7 +34,7 @@ namespace Rml {
 namespace Core {
 
 
-DataControllerAttribute::DataControllerAttribute(const DataModel& model, Element* parent, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name)
+DataControllerAttribute::DataControllerAttribute(DataModel& model, Element* parent, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name)
 {
     variable_address = model.ResolveAddress(in_value_name, parent);
     if (!model.GetVariable(variable_address))
@@ -44,7 +44,7 @@ DataControllerAttribute::DataControllerAttribute(const DataModel& model, Element
 	}
 }
 
-bool DataControllerAttribute::Update(Element* element, const DataModel& model) 
+bool DataControllerAttribute::Update(Element* element, DataModel& model) 
 {
 	bool result = false;
 	if (dirty)
@@ -52,7 +52,10 @@ bool DataControllerAttribute::Update(Element* element, const DataModel& model)
 		if(Variant* value = element->GetAttribute(attribute_name))
         {
             if (Variable variable = model.GetVariable(variable_address))
+            {
                 result = variable.Set(*value);
+                model.DirtyVariable(variable_address.front().name);
+            }
         }
 		dirty = false;
 	}
