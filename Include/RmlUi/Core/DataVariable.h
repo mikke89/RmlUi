@@ -40,22 +40,15 @@ namespace Core {
 class Variable;
 
 template<typename T>
-struct is_valid_scalar_base {
-	static constexpr bool value = std::is_arithmetic<T>::value
-		|| std::is_same<T, String>::value
-		|| std::is_same<T, Vector2f>::value
-		|| std::is_same<T, Vector3f>::value
-		|| std::is_same<T, Vector4f>::value
-		|| std::is_same<T, Colourb>::value
-		|| std::is_same<T, Colourf>::value
-		|| std::is_same<T, char*>::value
-		|| std::is_same<T, void*>::value;
+struct is_valid_scalar {
+	static constexpr bool value = std::is_arithmetic<T>::value 
+		|| std::is_same<typename std::remove_cv<T>::type, String>::value;
 };
 
-template<typename T>
-struct is_valid_scalar : is_valid_scalar_base<typename std::remove_cv<T>::type> {};
-
 enum class VariableType { Scalar, Array, Struct };
+
+template<typename T> using MemberGetFunc = void(T::*)(Variant&);
+template<typename T> using MemberSetFunc = void(T::*)(const Variant&);
 
 struct AddressEntry {
 	AddressEntry(String name) : name(name), index(-1) { }
@@ -178,7 +171,7 @@ private:
 template <typename Object, typename MemberType>
 class StructMemberDefault final : public StructMember {
 public:
-	StructMemberDefault(VariableDefinition* variable, MemberType Object::* member_ptr) : StructMember(variable), member_ptr(member_ptr) {}
+	StructMemberDefault(VariableDefinition* definition, MemberType Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
 
 	void* GetPointer(void* base_ptr) override {
 		return &(static_cast<Object*>(base_ptr)->*member_ptr);
@@ -186,6 +179,14 @@ public:
 
 private:
 	MemberType Object::* member_ptr;
+};
+
+class StructMemberFunc final : public StructMember {
+public:
+	StructMemberFunc(VariableDefinition* definition) : StructMember(definition) {}
+	void* GetPointer(void* base_ptr) override {
+		return base_ptr;
+	}
 };
 
 
@@ -228,12 +229,36 @@ private:
 };
 
 
+template<typename T>
+class MemberFuncDefinition final : public VariableDefinition {
+public:
+	MemberFuncDefinition(MemberGetFunc<T> get, MemberSetFunc<T> set) : VariableDefinition(VariableType::Scalar), get(get), set(set) {}
+
+	bool Get(void* ptr, Variant& variant) override
+	{
+		if (!get)
+			return false;
+		(static_cast<T*>(ptr)->*get)(variant);
+		return true;
+	}
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		if (!set)
+			return false;
+		(static_cast<T*>(ptr)->*set)(variant);
+		return true;
+	}
+private:
+	MemberGetFunc<T> get;
+	MemberSetFunc<T> set;
+};
+
 
 class DataTypeRegister;
 
 class DefinitionHandle {
 public:
-	operator bool() const { return type_register && GetDefinition(); }
+	explicit operator bool() const { return type_register && GetDefinition(); }
 	virtual VariableDefinition* GetDefinition() const = 0;
 protected:
 	DefinitionHandle(DataTypeRegister* type_register) : type_register(type_register) {}
@@ -262,6 +287,9 @@ public:
 	// Register struct or array member type
 	template <typename MemberType>
 	StructHandle<Object>& RegisterMember(const String& name, MemberType Object::* member_ptr, const DefinitionHandle& member_handle);
+
+	// Register member function
+	StructHandle<Object>& RegisterMember(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
 
 	VariableDefinition* GetDefinition() const override {
 		return struct_definition;
@@ -334,6 +362,21 @@ public:
 	}
 
 	template<typename T>
+	VariableDefinition* RegisterMemberFunc(MemberGetFunc<T> get_func, MemberSetFunc<T> set_func)
+	{
+		FamilyId id = Family<MemberGetFunc<T>>::Id();
+
+		auto result = type_register.emplace(id, nullptr);
+		auto& it = result.first;
+		bool inserted = result.second;
+
+		if (inserted)
+			it->second = std::make_unique<MemberFuncDefinition<T>>(get_func, set_func);
+
+		return it->second.get();
+	}
+
+	template<typename T>
 	VariableDefinition* GetOrAddScalar()
 	{
 		FamilyId id = Family<T>::Id();
@@ -396,6 +439,12 @@ template<typename MemberType>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr, const DefinitionHandle& member_handle) {
 	RMLUI_ASSERTMSG(member_handle.GetDefinition() == type_register->Get<MemberType>(), "Mismatch between member type and provided type handle.");
 	struct_definition->AddMember(name, std::make_unique<StructMemberDefault<Object, MemberType>>(member_handle.GetDefinition(), member_ptr));
+	return *this;
+}
+template<typename Object>
+inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
+	VariableDefinition* definition = type_register->RegisterMemberFunc<Object>(get_func, set_func);
+	struct_definition->AddMember(name, std::make_unique<StructMemberFunc>(definition));
 	return *this;
 }
 

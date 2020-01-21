@@ -111,6 +111,10 @@ public:
 	template<typename T> bool BindScalar(String name, T* ptr) {
 		return model->Bind(name, ptr, type_register->GetOrAddScalar<T>(), VariableType::Scalar);
 	}
+	template<typename T> bool BindScalar(String name, T* ptr, MemberGetFunc<T> get_func, MemberSetFunc<T> set_func) {
+		RMLUI_ASSERT(get_func || set_func);
+		return model->Bind(name, ptr, type_register->RegisterMemberFunc<T>(get_func, set_func), VariableType::Scalar);
+	}
 	template<typename T> bool BindStruct(String name, T* ptr) {
 		return model->Bind(name, ptr, type_register->Get<T>(), VariableType::Struct);
 	}

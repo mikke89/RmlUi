@@ -107,8 +107,12 @@ private:
 struct Invader {
 	Rml::Core::String name;
 	Rml::Core::String sprite;
-	Rml::Core::String color;
+	Rml::Core::Colourb color{ 255, 255, 255 };
 	std::vector<int> numbers = { 1, 2, 3, 4, 5 };
+
+	void GetColor(Rml::Core::Variant& variant) {
+		variant = "rgba(" + Rml::Core::ToString(color) + ')';
+	}
 };
 
 
@@ -117,12 +121,16 @@ struct MyData {
 	int rating = 99;
 	bool good_rating = true;
 
-	Invader delightful_invader{ "Delightful invader", "icon-invader", "white" };
+	void HasGoodRating(Rml::Core::Variant& variant) {
+		variant = int(rating > 50);
+	}
+
+	Invader delightful_invader{ "Delightful invader", "icon-invader" };
 
 	std::vector<Invader> invaders = {
-		Invader{"Angry invader", "icon-invader", "red", {3, 6, 7}},
-		Invader{"Harmless invader", "icon-flag", "blue", {5, 0}},
-		Invader{"Hero", "icon-game", "yellow", {10, 11, 12, 13, 14}},
+		Invader{"Angry invader", "icon-invader", {255, 40, 30}, {3, 6, 7}},
+		Invader{"Harmless invader", "icon-flag", {20, 40, 255}, {5, 0}},
+		Invader{"Hero", "icon-game", {255, 255, 30}, {10, 11, 12, 13, 14}},
 	};
 
 	std::vector<int> indices = { 1, 2, 3, 4, 5 };
@@ -145,13 +153,13 @@ bool SetupDataBinding(Rml::Core::Context* context)
 	my_model.BindScalar("good_rating", &my_data.good_rating);
 
 	Rml::Core::DataTypeRegister& types = Rml::Core::GetDataTypeRegister();
-	
+
 	auto vector_int_handle = types.RegisterArray<std::vector<int>>();
 
 	auto invader_handle = types.RegisterStruct<Invader>();
 	invader_handle.RegisterMember("name", &Invader::name);
 	invader_handle.RegisterMember("sprite", &Invader::sprite);
-	invader_handle.RegisterMember("color", &Invader::color);
+	invader_handle.RegisterMember("color", &Invader::GetColor);
 	invader_handle.RegisterMember("numbers", &Invader::numbers, vector_int_handle);
 
 	my_model.BindStruct("delightful_invader", &my_data.delightful_invader);
