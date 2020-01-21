@@ -790,11 +790,11 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 
 DataModelHandle Context::CreateDataModel(String name)
 {
-	auto result = data_models.emplace(name, std::make_unique<DataModel>( &GetDataTypeRegister() ));
+	auto result = data_models.emplace(name, std::make_unique<DataModel>());
 	if (result.second)
-		return DataModelHandle(result.first->second.get());
+		return DataModelHandle(result.first->second.get(), &GetDataTypeRegister());
 
-	return DataModelHandle(nullptr);
+	return DataModelHandle();
 }
 
 // Internal callback for when an element is removed from the hierarchy.

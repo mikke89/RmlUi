@@ -40,20 +40,20 @@ namespace Core {
 class Variable;
 
 template<typename T>
-struct is_valid_scalar {
-	static constexpr bool value = std::is_convertible<T, byte>::value
-		|| std::is_convertible<T, char>::value
-		|| std::is_convertible<T, float>::value
-		|| std::is_convertible<T, int>::value
-		|| std::is_convertible<T, String>::value
-		|| std::is_convertible<T, Vector2f>::value
-		|| std::is_convertible<T, Vector3f>::value
-		|| std::is_convertible<T, Vector4f>::value
-		|| std::is_convertible<T, Colourb>::value
-		|| std::is_convertible<T, Colourf>::value
-		|| std::is_convertible<T, char*>::value
-		|| std::is_convertible<T, void*>::value;
+struct is_valid_scalar_base {
+	static constexpr bool value = std::is_arithmetic<T>::value
+		|| std::is_same<T, String>::value
+		|| std::is_same<T, Vector2f>::value
+		|| std::is_same<T, Vector3f>::value
+		|| std::is_same<T, Vector4f>::value
+		|| std::is_same<T, Colourb>::value
+		|| std::is_same<T, Colourf>::value
+		|| std::is_same<T, char*>::value
+		|| std::is_same<T, void*>::value;
 };
+
+template<typename T>
+struct is_valid_scalar : is_valid_scalar_base<typename std::remove_cv<T>::type> {};
 
 enum class VariableType { Scalar, Array, Struct };
 

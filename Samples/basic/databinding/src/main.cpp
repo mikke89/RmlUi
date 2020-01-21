@@ -128,7 +128,7 @@ struct MyData {
 	std::vector<int> indices = { 1, 2, 3, 4, 5 };
 } my_data;
 
-Rml::Core::DataModelHandle my_model_handle(nullptr);
+Rml::Core::DataModelHandle my_model;
 
 
 
@@ -136,11 +136,9 @@ Rml::Core::DataModelHandle my_model_handle(nullptr);
 
 bool SetupDataBinding(Rml::Core::Context* context)
 {
-	my_model_handle = context->CreateDataModel("my_model");
-	if (!my_model_handle)
+	my_model = context->CreateDataModel("my_model");
+	if (!my_model)
 		return false;
-
-	Rml::Core::DataModel& my_model = *my_model_handle.GetModel();
 
 	my_model.BindScalar("hello_world", &my_data.hello_world);
 	my_model.BindScalar("rating", &my_data.rating);
@@ -174,23 +172,23 @@ std::unique_ptr<DemoWindow> demo_window;
 
 void GameLoop()
 {
-	my_model_handle.UpdateControllers();
+	my_model.UpdateControllers();
 
-	if(my_model_handle.UpdateVariable("rating"))
+	if(my_model.UpdateVariable("rating"))
 	{
 		my_data.good_rating = (my_data.rating > 50);
-		my_model_handle.DirtyVariable("good_rating");
+		my_model.DirtyVariable("good_rating");
 
 		size_t new_size = my_data.rating / 10 + 1;
 		if(new_size != my_data.indices.size())
 		{
 			my_data.indices.resize(new_size);
 			std::iota(my_data.indices.begin(), my_data.indices.end(), int(new_size));
-			my_model_handle.DirtyVariable("indices");
+			my_model.DirtyVariable("indices");
 		}
 	}
 
-	my_model_handle.UpdateViews();
+	my_model.UpdateViews();
 
 	demo_window->Update();
 	context->Update();

@@ -45,19 +45,10 @@ class Element;
 
 class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
-	DataModel(DataTypeRegister* type_register) : type_register(type_register) {}
+	bool Bind(String name, void* ptr, VariableDefinition* variable, VariableType type);
 
-	DataTypeRegister& GetTypeRegister() { return *type_register; }
-
-	template<typename T> bool BindScalar(String name, T* ptr) {
-		return Bind(name, ptr, type_register->GetOrAddScalar<T>(), VariableType::Scalar);
-	}
-	template<typename T> bool BindStruct(String name, T* ptr) {
-		return Bind(name, ptr, type_register->Get<T>(), VariableType::Struct);
-	}
-	template<typename T> bool BindArray(String name, T* ptr) {
-		return Bind(name, ptr, type_register->Get<T>(), VariableType::Array);
-	}
+	Variable GetVariable(const String& address_str) const;
+	Variable GetVariable(const Address& address) const;
 
 	template<typename T>
 	bool GetValue(const Address& address, T& out_value) const {
@@ -65,9 +56,6 @@ public:
 		Variable variable = GetVariable(address);
 		return variable && variable.Get(variant) && variant.GetInto<T>(out_value);
 	}
-
-	Variable GetVariable(const String& address_str) const;
-	Variable GetVariable(const Address& address) const;
 
 	void DirtyVariable(const String& variable_name);
 	bool UpdateVariable(const String& variable_name);
@@ -86,11 +74,8 @@ public:
 
 	// Todo: Make private
 	DataControllers controllers;
+
 private:
-	bool Bind(String name, void* ptr, VariableDefinition* variable, VariableType type);
-
-	DataTypeRegister* type_register;
-
 	UnorderedMap<String, Variable> variables;
 
 	using ScopedAliases = UnorderedMap< Element*, SmallUnorderedMap<String, Address> >;
@@ -104,34 +89,41 @@ private:
 
 class RMLUICORE_API DataModelHandle {
 public:
-	DataModelHandle(DataModel* model) : model(model) {}
-
-	void UpdateControllers() {
-		RMLUI_ASSERT(model);
-		model->controllers.Update(*model);
+	DataModelHandle() : model(nullptr), type_register(nullptr) {}
+	DataModelHandle(DataModel* model, DataTypeRegister* type_register) : model(model), type_register(type_register) {
+		RMLUI_ASSERT(model && type_register);
 	}
 
+	void UpdateControllers() {
+		model->controllers.Update(*model);
+	}
 	void UpdateViews() {
-		RMLUI_ASSERT(model);
 		model->UpdateViews();
 	}
 
-	bool UpdateVariable(const String& variable_name)
-	{
-		RMLUI_ASSERT(model);
+	bool UpdateVariable(const String& variable_name) {
 		return model->UpdateVariable(variable_name);
 	}
-	void DirtyVariable(const String& variable_name)
-	{
-		RMLUI_ASSERT(model);
+	void DirtyVariable(const String& variable_name) {
 		model->DirtyVariable(variable_name);
 	}
-	DataModel* GetModel() { return model; }
 
-	explicit operator bool() { return model != nullptr; }
+	template<typename T> bool BindScalar(String name, T* ptr) {
+		return model->Bind(name, ptr, type_register->GetOrAddScalar<T>(), VariableType::Scalar);
+	}
+	template<typename T> bool BindStruct(String name, T* ptr) {
+		return model->Bind(name, ptr, type_register->Get<T>(), VariableType::Struct);
+	}
+	template<typename T> bool BindArray(String name, T* ptr) {
+		return model->Bind(name, ptr, type_register->Get<T>(), VariableType::Array);
+	}
+
+	explicit operator bool() { return model && type_register; }
 
 private:
 	DataModel* model;
+	DataTypeRegister* type_register;
+
 };
 
 }

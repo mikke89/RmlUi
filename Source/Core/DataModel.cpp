@@ -289,12 +289,13 @@ static struct TestDataVariables {
 			}
 		}
 
-		DataModel model(&types);
+		DataModel model;
+		DataModelHandle handle(&model, &types);
 
 		SmartData data;
 		data.fun.x = "Hello, we're in SmartData!";
 
-		model.BindStruct("data", &data);
+		handle.BindStruct("data", &data);
 
 		{
 			std::vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.fun.x", "data.valid" };
