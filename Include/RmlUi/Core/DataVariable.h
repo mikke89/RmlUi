@@ -33,6 +33,7 @@
 #include "Types.h"
 #include "Traits.h"
 #include "Variant.h"
+#include <functional>
 
 namespace Rml {
 namespace Core {
@@ -45,10 +46,16 @@ struct is_valid_scalar {
 		|| std::is_same<typename std::remove_cv<T>::type, String>::value;
 };
 
-enum class VariableType { Scalar, Array, Struct };
+enum class VariableType { Scalar, Array, Struct, Function, MemberFunction };
+
+enum class DataFunctionHandle : int {};
+
+using DataGetFunc = std::function<void(Variant&)>;
+using DataSetFunc = std::function<void(const Variant&)>;
 
 template<typename T> using MemberGetFunc = void(T::*)(Variant&);
 template<typename T> using MemberSetFunc = void(T::*)(const Variant&);
+
 
 struct AddressEntry {
 	AddressEntry(String name) : name(name), index(-1) { }
@@ -83,7 +90,7 @@ public:
 	Variable() {}
 	Variable(VariableDefinition* definition, void* ptr) : definition(definition), ptr(ptr) {}
 
-	operator bool() const { return definition && ptr; }
+	explicit operator bool() const { return definition && (ptr || Type() == VariableType::Function); }
 
 	inline bool Get(Variant& variant) {
 		return definition->Get(ptr, variant);
@@ -123,6 +130,32 @@ public:
 		return variant.GetInto<T>(*static_cast<T*>(ptr));
 	}
 };
+
+
+class FuncDefinition final : public VariableDefinition {
+public:
+
+	FuncDefinition(DataGetFunc get, DataSetFunc set) : VariableDefinition(VariableType::Function), get(std::move(get)), set(std::move(set)) {}
+
+	bool Get(void* ptr, Variant& variant) override
+	{
+		if (!get)
+			return false;
+		get(variant);
+		return true;
+	}
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		if (!set)
+			return false;
+		set(variant);
+		return true;
+	}
+private:
+	DataGetFunc get;
+	DataSetFunc set;
+};
+
 
 
 template<typename Container>
@@ -232,7 +265,7 @@ private:
 template<typename T>
 class MemberFuncDefinition final : public VariableDefinition {
 public:
-	MemberFuncDefinition(MemberGetFunc<T> get, MemberSetFunc<T> set) : VariableDefinition(VariableType::Scalar), get(get), set(set) {}
+	MemberFuncDefinition(MemberGetFunc<T> get, MemberSetFunc<T> set) : VariableDefinition(VariableType::MemberFunction), get(get), set(set) {}
 
 	bool Get(void* ptr, Variant& variant) override
 	{
@@ -270,6 +303,17 @@ class ScalarHandle : public DefinitionHandle {
 public:
 	ScalarHandle(DataTypeRegister* type_register) : DefinitionHandle(type_register) {}
 	VariableDefinition* GetDefinition() const override;
+};
+
+class FuncHandle : public DefinitionHandle {
+public:
+	FuncHandle() : DefinitionHandle(nullptr), definition(nullptr), handle(DataFunctionHandle(0)) {}
+	FuncHandle(DataTypeRegister* type_register, FuncDefinition* definition, DataFunctionHandle handle) : DefinitionHandle(type_register), definition(definition), handle(handle) {}
+	VariableDefinition* GetDefinition() const override { return definition; }
+	DataFunctionHandle GetHandle() const { return handle; }
+private:
+	FuncDefinition* definition;
+	DataFunctionHandle handle;
 };
 
 template<typename Object>
@@ -361,6 +405,21 @@ public:
 		return RegisterArray<Container>(value_variable);
 	}
 
+	FuncHandle RegisterFunc(DataGetFunc get_func, DataSetFunc set_func)
+	{
+		static DataFunctionHandle current_handle = DataFunctionHandle(0);
+		current_handle = DataFunctionHandle(int(current_handle) + 1);
+
+		auto result = functions.emplace(current_handle, nullptr);
+		auto& it = result.first;
+		bool inserted = result.second;
+		RMLUI_ASSERT(inserted);
+
+		it->second = std::make_unique<FuncDefinition>(std::move(get_func), std::move(set_func));
+
+		return FuncHandle(this, it->second.get(), current_handle);
+	}
+
 	template<typename T>
 	VariableDefinition* RegisterMemberFunc(MemberGetFunc<T> get_func, MemberSetFunc<T> set_func)
 	{
@@ -399,7 +458,10 @@ public:
 		FamilyId id = Family<T>::Id();
 		auto it = type_register.find(id);
 		if (it == type_register.end())
+		{
+			RMLUI_ERRORMSG("Desired data type not registered with the type register.")
 			return nullptr;
+		}
 
 		return it->second.get();
 	}
@@ -422,6 +484,8 @@ private:
 
 		return ArrayHandle<Container>(this, array_variable_raw);
 	}
+
+	UnorderedMap<DataFunctionHandle, UniquePtr<FuncDefinition>> functions;
 
 	UnorderedMap<FamilyId, UniquePtr<VariableDefinition>> type_register;
 };

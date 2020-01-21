@@ -109,6 +109,7 @@ public:
 	}
 
 	template<typename T> bool BindScalar(String name, T* ptr) {
+		static_assert(is_valid_scalar<T>::value, "Provided type is not a valid scalar type.");
 		return model->Bind(name, ptr, type_register->GetOrAddScalar<T>(), VariableType::Scalar);
 	}
 	template<typename T> bool BindScalar(String name, T* ptr, MemberGetFunc<T> get_func, MemberSetFunc<T> set_func) {
@@ -121,6 +122,12 @@ public:
 	template<typename T> bool BindArray(String name, T* ptr) {
 		return model->Bind(name, ptr, type_register->Get<T>(), VariableType::Array);
 	}
+	bool BindFunction(String name, DataGetFunc get_func, DataSetFunc set_func = {}) {
+		FuncHandle func_handle = type_register->RegisterFunc(std::move(get_func), std::move(set_func));
+		bool result = model->Bind(name, nullptr, func_handle.GetDefinition(), VariableType::Function);
+		return result;
+	}
+
 
 	explicit operator bool() { return model && type_register; }
 

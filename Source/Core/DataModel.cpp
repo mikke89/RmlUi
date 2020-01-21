@@ -74,12 +74,12 @@ static Address ParseAddress(const String& address_str)
 
 bool DataModel::Bind(String name, void* ptr, VariableDefinition* variable, VariableType type)
 {
-	RMLUI_ASSERT(ptr);
 	if (!variable)
 	{
 		Log::Message(Log::LT_WARNING, "No registered type could be found for the data variable '%s'.", name.c_str());
 		return false;
 	}
+	RMLUI_ASSERT(ptr || variable->Type() == VariableType::Function);
 
 	if (variable->Type() != type)
 	{

@@ -119,11 +119,7 @@ struct Invader {
 struct MyData {
 	Rml::Core::String hello_world = "Hello World!";
 	int rating = 99;
-	bool good_rating = true;
 
-	void HasGoodRating(Rml::Core::Variant& variant) {
-		variant = int(rating > 50);
-	}
 
 	Invader delightful_invader{ "Delightful invader", "icon-invader" };
 
@@ -139,8 +135,9 @@ struct MyData {
 Rml::Core::DataModelHandle my_model;
 
 
-
-
+void HasGoodRating(Rml::Core::Variant& variant) {
+	variant = int(my_data.rating > 50);
+}
 
 bool SetupDataBinding(Rml::Core::Context* context)
 {
@@ -150,7 +147,10 @@ bool SetupDataBinding(Rml::Core::Context* context)
 
 	my_model.BindScalar("hello_world", &my_data.hello_world);
 	my_model.BindScalar("rating", &my_data.rating);
-	my_model.BindScalar("good_rating", &my_data.good_rating);
+	my_model.BindFunction("good_rating", &HasGoodRating);
+	my_model.BindFunction("great_rating", [](Rml::Core::Variant& variant) {
+		variant = int(my_data.rating > 80);
+	});
 
 	Rml::Core::DataTypeRegister& types = Rml::Core::GetDataTypeRegister();
 
@@ -184,8 +184,8 @@ void GameLoop()
 
 	if(my_model.UpdateVariable("rating"))
 	{
-		my_data.good_rating = (my_data.rating > 50);
 		my_model.DirtyVariable("good_rating");
+		my_model.DirtyVariable("great_rating");
 
 		size_t new_size = my_data.rating / 10 + 1;
 		if(new_size != my_data.indices.size())
