@@ -72,7 +72,7 @@ static Address ParseAddress(const String& address_str)
 	return address;
 };
 
-bool DataModel::Bind(String name, void* ptr, VariableDefinition* variable, VariableType type)
+bool DataModel::Bind(const String& name, void* ptr, VariableDefinition* variable)
 {
 	if (!variable)
 	{
@@ -80,12 +80,6 @@ bool DataModel::Bind(String name, void* ptr, VariableDefinition* variable, Varia
 		return false;
 	}
 	RMLUI_ASSERT(ptr || variable->Type() == VariableType::Function);
-
-	if (variable->Type() != type)
-	{
-		Log::Message(Log::LT_WARNING, "The registered type does not match the given type for the data variable '%s'.", name.c_str());
-		return false;
-	}
 
 	bool inserted = variables.emplace(name, Variable(variable, ptr)).second;
 	if (!inserted)
@@ -216,7 +210,7 @@ bool DataModel::InsertAlias(Element* element, const String& alias_name, Address 
 	auto& map = aliases.emplace(element, SmallUnorderedMap<String, Address>()).first->second;
 	
 	auto it = map.find(alias_name);
-	if(it != map.end())
+	if (it != map.end())
 		Log::Message(Log::LT_WARNING, "Alias name '%s' in data model already exists, replaced.", alias_name.c_str());
 
 	map[alias_name] = std::move(replace_with_address);
@@ -265,37 +259,35 @@ static struct TestDataVariables {
 			FunArray more_fun;
 		};
 
+		DataModel model;
 		DataTypeRegister types;
 
-		{
-			auto int_vector_handle = types.RegisterArray<IntVector>();
+		DataModelHandle handle(&model, &types);
 
-			auto fun_handle = types.RegisterStruct<FunData>();
-			if (fun_handle)
+		{
+			handle.RegisterArray<IntVector>();
+
+			if (auto fun_handle = handle.RegisterStruct<FunData>())
 			{
-				fun_handle.RegisterMember("i", &FunData::i);
-				fun_handle.RegisterMember("x", &FunData::x);
-				fun_handle.RegisterMember("magic", &FunData::magic, int_vector_handle);
+				fun_handle.AddMember("i", &FunData::i);
+				fun_handle.AddMember("x", &FunData::x);
+				fun_handle.AddMember("magic", &FunData::magic);
 			}
 
-			auto fun_array_handle = types.RegisterArray<FunArray>(fun_handle);
+			handle.RegisterArray<FunArray>();
 
-			auto smart_handle = types.RegisterStruct<SmartData>();
-			if (smart_handle)
+			if (auto smart_handle = handle.RegisterStruct<SmartData>())
 			{
-				smart_handle.RegisterMember("valid", &SmartData::valid);
-				smart_handle.RegisterMember("fun", &SmartData::fun, fun_handle);
-				smart_handle.RegisterMember("more_fun", &SmartData::more_fun, fun_array_handle);
+				smart_handle.AddMember("valid", &SmartData::valid);
+				smart_handle.AddMember("fun", &SmartData::fun);
+				smart_handle.AddMember("more_fun", &SmartData::more_fun);
 			}
 		}
 
-		DataModel model;
-		DataModelHandle handle(&model, &types);
-
 		SmartData data;
 		data.fun.x = "Hello, we're in SmartData!";
-
-		handle.BindStruct("data", &data);
+		
+		handle.Bind("data", &data);
 
 		{
 			std::vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.fun.x", "data.valid" };

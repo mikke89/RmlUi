@@ -36,6 +36,7 @@
 #include "DataView.h"
 #include "DataController.h"
 #include "DataVariable.h"
+#include <unordered_map>
 
 namespace Rml {
 namespace Core {
@@ -45,7 +46,7 @@ class Element;
 
 class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
-	bool Bind(String name, void* ptr, VariableDefinition* variable, VariableType type);
+	bool Bind(const String& name, void* ptr, VariableDefinition* variable);
 
 	Variable GetVariable(const String& address_str) const;
 	Variable GetVariable(const Address& address) const;
@@ -108,24 +109,26 @@ public:
 		model->DirtyVariable(variable_name);
 	}
 
-	template<typename T> bool BindScalar(String name, T* ptr) {
-		static_assert(is_valid_scalar<T>::value, "Provided type is not a valid scalar type.");
-		return model->Bind(name, ptr, type_register->GetOrAddScalar<T>(), VariableType::Scalar);
+	// Bind a data variable.
+	// Note: For non-scalar types make sure they first have been registered with the appropriate 'Register...()' functions.
+	template<typename T> bool Bind(const String& name, T* ptr) {
+		return model->Bind(name, ptr, type_register->GetOrAddScalar<T>());
 	}
-	template<typename T> bool BindScalar(String name, T* ptr, MemberGetFunc<T> get_func, MemberSetFunc<T> set_func) {
-		RMLUI_ASSERT(get_func || set_func);
-		return model->Bind(name, ptr, type_register->RegisterMemberFunc<T>(get_func, set_func), VariableType::Scalar);
-	}
-	template<typename T> bool BindStruct(String name, T* ptr) {
-		return model->Bind(name, ptr, type_register->Get<T>(), VariableType::Struct);
-	}
-	template<typename T> bool BindArray(String name, T* ptr) {
-		return model->Bind(name, ptr, type_register->Get<T>(), VariableType::Array);
-	}
-	bool BindFunction(String name, DataGetFunc get_func, DataSetFunc set_func = {}) {
-		FuncHandle func_handle = type_register->RegisterFunc(std::move(get_func), std::move(set_func));
-		bool result = model->Bind(name, nullptr, func_handle.GetDefinition(), VariableType::Function);
+	// Bind a get/set function pair.
+	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func = {}) {
+		VariableDefinition* func_definition = type_register->RegisterFunc(std::move(get_func), std::move(set_func));
+		bool result = model->Bind(name, nullptr, func_definition);
 		return result;
+	}
+
+	template<typename T>
+	StructHandle<T> RegisterStruct() {
+		return type_register->RegisterStruct<T>();
+	}
+
+	template<typename Container>
+	bool RegisterArray() {
+		return type_register->RegisterArray<Container>();
 	}
 
 

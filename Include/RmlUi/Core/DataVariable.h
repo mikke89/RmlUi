@@ -289,71 +289,23 @@ private:
 
 class DataTypeRegister;
 
-class DefinitionHandle {
-public:
-	explicit operator bool() const { return type_register && GetDefinition(); }
-	virtual VariableDefinition* GetDefinition() const = 0;
-protected:
-	DefinitionHandle(DataTypeRegister* type_register) : type_register(type_register) {}
-	DataTypeRegister* type_register;
-};
-
-template <typename T>
-class ScalarHandle : public DefinitionHandle {
-public:
-	ScalarHandle(DataTypeRegister* type_register) : DefinitionHandle(type_register) {}
-	VariableDefinition* GetDefinition() const override;
-};
-
-class FuncHandle : public DefinitionHandle {
-public:
-	FuncHandle() : DefinitionHandle(nullptr), definition(nullptr), handle(DataFunctionHandle(0)) {}
-	FuncHandle(DataTypeRegister* type_register, FuncDefinition* definition, DataFunctionHandle handle) : DefinitionHandle(type_register), definition(definition), handle(handle) {}
-	VariableDefinition* GetDefinition() const override { return definition; }
-	DataFunctionHandle GetHandle() const { return handle; }
-private:
-	FuncDefinition* definition;
-	DataFunctionHandle handle;
-};
-
 template<typename Object>
-class StructHandle final : public DefinitionHandle {
+class StructHandle {
 public:
-	StructHandle(DataTypeRegister* type_register, StructDefinition* struct_definition) : DefinitionHandle(type_register), struct_definition(struct_definition) {}
-
-	// Register scalar member type 
+	StructHandle(DataTypeRegister* type_register, StructDefinition* struct_definition) : type_register(type_register), struct_definition(struct_definition) {}
+	
 	template <typename MemberType>
-	StructHandle<Object>& RegisterMember(const String& name, MemberType Object::* member_ptr) {
-		static_assert(is_valid_scalar<MemberType>::value, "Not a valid scalar member type. Did you mean to add a struct or array member? If so, provide its handle.");
-		return RegisterMember(name, member_ptr, ScalarHandle<MemberType>(type_register));
-	}
+	StructHandle<Object>& AddMember(const String& name, MemberType Object::* member_ptr);
 
-	// Register struct or array member type
-	template <typename MemberType>
-	StructHandle<Object>& RegisterMember(const String& name, MemberType Object::* member_ptr, const DefinitionHandle& member_handle);
+	StructHandle<Object>& AddMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
 
-	// Register member function
-	StructHandle<Object>& RegisterMember(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
-
-	VariableDefinition* GetDefinition() const override {
-		return struct_definition;
+	explicit operator bool() const {
+		return type_register && struct_definition;
 	}
 
 private:
+	DataTypeRegister* type_register;
 	StructDefinition* struct_definition;
-};
-
-template<typename Container>
-class ArrayHandle final : public DefinitionHandle {
-public:
-	ArrayHandle(DataTypeRegister* type_register, ArrayDefinition<Container>* array_definition) : DefinitionHandle(type_register), array_definition(array_definition) {}
-
-	VariableDefinition* GetDefinition() const override {
-		return array_definition;
-	}
-
-private:
-	ArrayDefinition<Container>* array_definition;
 };
 
 
@@ -379,33 +331,32 @@ public:
 		return StructHandle<T>(this, struct_variable_raw);
 	}
 
-	// Register array of scalars
 	template<typename Container>
-	ArrayHandle<Container> RegisterArray()
+	bool RegisterArray()
 	{
 		using value_type = typename Container::value_type;
-		static_assert(is_valid_scalar<value_type>::value, "Underlying value type of array is not a valid scalar type. Provide the type handle if adding an array of structs or arrays.");
 		VariableDefinition* value_variable = GetOrAddScalar<value_type>();
-		return RegisterArray<Container>(value_variable);
-	}
-
-	// Register array of structs or arrays
-	template<typename Container>
-	ArrayHandle<Container> RegisterArray(const DefinitionHandle& type_handle)
-	{
-		using value_type = typename Container::value_type;
-		VariableDefinition* value_variable = Get<value_type>();
-		bool correct_handle = (type_handle.GetDefinition() == value_variable);
-
 		RMLUI_ASSERTMSG(value_variable, "Underlying value type of array has not been registered.");
-		RMLUI_ASSERTMSG(correct_handle, "Improper type handle provided.");
-		if (!value_variable || !correct_handle)
-			return ArrayHandle<Container>(nullptr, nullptr);
+		if (!value_variable)
+			return false;
 
-		return RegisterArray<Container>(value_variable);
+		FamilyId container_id = Family<Container>::Id();
+
+		auto array_variable = std::make_unique<ArrayDefinition<Container>>(value_variable);
+		ArrayDefinition<Container>* array_variable_raw = array_variable.get();
+
+		bool inserted = type_register.emplace(container_id, std::move(array_variable)).second;
+		if (!inserted)
+		{
+			RMLUI_ERRORMSG("Array type already declared.");
+			return false;
+		}
+
+		return true;
 	}
 
-	FuncHandle RegisterFunc(DataGetFunc get_func, DataSetFunc set_func)
+
+	VariableDefinition* RegisterFunc(DataGetFunc get_func, DataSetFunc set_func)
 	{
 		static DataFunctionHandle current_handle = DataFunctionHandle(0);
 		current_handle = DataFunctionHandle(int(current_handle) + 1);
@@ -417,7 +368,7 @@ public:
 
 		it->second = std::make_unique<FuncDefinition>(std::move(get_func), std::move(set_func));
 
-		return FuncHandle(this, it->second.get(), current_handle);
+		return it->second.get();
 	}
 
 	template<typename T>
@@ -435,31 +386,35 @@ public:
 		return it->second.get();
 	}
 
-	template<typename T>
+	template<typename T, typename std::enable_if<is_valid_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetOrAddScalar()
 	{
 		FamilyId id = Family<T>::Id();
 
 		auto result = type_register.emplace(id, nullptr);
-		auto& it = result.first;
 		bool inserted = result.second;
+		UniquePtr<VariableDefinition>& definition = result.first->second;
 
 		if (inserted)
-		{
-			it->second = std::make_unique<ScalarDefinition<T>>();
-		}
+			definition = std::make_unique<ScalarDefinition<T>>();
 
-		return it->second.get();
+		return definition.get();
+	}
+
+	template<typename T, typename std::enable_if<!is_valid_scalar<T>::value, int>::type = 0>
+	VariableDefinition* GetOrAddScalar()
+	{
+		return Get<T>();
 	}
 
 	template<typename T>
-	VariableDefinition* Get() const
+	VariableDefinition* Get()
 	{
 		FamilyId id = Family<T>::Id();
 		auto it = type_register.find(id);
 		if (it == type_register.end())
 		{
-			RMLUI_ERRORMSG("Desired data type not registered with the type register.")
+			RMLUI_ERRORMSG("Desired data type T not registered with the type register, please use the 'Register...()' functions before binding values, adding members, or registering arrays of non-scalar types.")
 			return nullptr;
 		}
 
@@ -467,24 +422,6 @@ public:
 	}
 
 private:
-	template<typename Container>
-	ArrayHandle<Container> RegisterArray(VariableDefinition* value_variable)
-	{
-		FamilyId container_id = Family<Container>::Id();
-
-		auto array_variable = std::make_unique<ArrayDefinition<Container>>(value_variable);
-		ArrayDefinition<Container>* array_variable_raw = array_variable.get();
-
-		bool inserted = type_register.emplace(container_id, std::move(array_variable)).second;
-		if (!inserted)
-		{
-			RMLUI_ERRORMSG("Array type already declared.");
-			return ArrayHandle<Container>(nullptr, nullptr);
-		}
-
-		return ArrayHandle<Container>(this, array_variable_raw);
-	}
-
 	UnorderedMap<DataFunctionHandle, UniquePtr<FuncDefinition>> functions;
 
 	UnorderedMap<FamilyId, UniquePtr<VariableDefinition>> type_register;
@@ -492,21 +429,15 @@ private:
 
 
 
-
-template<typename T>
-inline VariableDefinition* ScalarHandle<T>::GetDefinition() const {
-	return type_register->GetOrAddScalar<T>();
-}
-
 template<typename Object>
 template<typename MemberType>
-inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr, const DefinitionHandle& member_handle) {
-	RMLUI_ASSERTMSG(member_handle.GetDefinition() == type_register->Get<MemberType>(), "Mismatch between member type and provided type handle.");
-	struct_definition->AddMember(name, std::make_unique<StructMemberDefault<Object, MemberType>>(member_handle.GetDefinition(), member_ptr));
+inline StructHandle<Object>& StructHandle<Object>::AddMember(const String& name, MemberType Object::* member_ptr) {
+	VariableDefinition* member_type = type_register->GetOrAddScalar<MemberType>();
+	struct_definition->AddMember(name, std::make_unique<StructMemberDefault<Object, MemberType>>(member_type, member_ptr));
 	return *this;
 }
 template<typename Object>
-inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
+inline StructHandle<Object>& StructHandle<Object>::AddMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
 	VariableDefinition* definition = type_register->RegisterMemberFunc<Object>(get_func, set_func);
 	struct_definition->AddMember(name, std::make_unique<StructMemberFunc>(definition));
 	return *this;

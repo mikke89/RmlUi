@@ -145,29 +145,29 @@ bool SetupDataBinding(Rml::Core::Context* context)
 	if (!my_model)
 		return false;
 
-	my_model.BindScalar("hello_world", &my_data.hello_world);
-	my_model.BindScalar("rating", &my_data.rating);
-	my_model.BindFunction("good_rating", &HasGoodRating);
-	my_model.BindFunction("great_rating", [](Rml::Core::Variant& variant) {
+	my_model.Bind("hello_world", &my_data.hello_world);
+	my_model.Bind("rating", &my_data.rating);
+	my_model.BindFunc("good_rating", &HasGoodRating);
+	my_model.BindFunc("great_rating", [](Rml::Core::Variant& variant) {
 		variant = int(my_data.rating > 80);
 	});
 
-	Rml::Core::DataTypeRegister& types = Rml::Core::GetDataTypeRegister();
+	my_model.RegisterArray<std::vector<int>>();
 
-	auto vector_int_handle = types.RegisterArray<std::vector<int>>();
+	if(auto invader_handle = my_model.RegisterStruct<Invader>())
+	{
+		invader_handle.AddMember("name", &Invader::name);
+		invader_handle.AddMember("sprite", &Invader::sprite);
+		invader_handle.AddMember("numbers", &Invader::numbers);
+		invader_handle.AddMemberFunc("color", &Invader::GetColor);
+	}
 
-	auto invader_handle = types.RegisterStruct<Invader>();
-	invader_handle.RegisterMember("name", &Invader::name);
-	invader_handle.RegisterMember("sprite", &Invader::sprite);
-	invader_handle.RegisterMember("color", &Invader::GetColor);
-	invader_handle.RegisterMember("numbers", &Invader::numbers, vector_int_handle);
+	my_model.Bind("delightful_invader", &my_data.delightful_invader);
 
-	my_model.BindStruct("delightful_invader", &my_data.delightful_invader);
+	my_model.RegisterArray<std::vector<Invader>>();
 
-	auto vector_invader_handle = types.RegisterArray<std::vector<Invader>>(invader_handle);
-
-	my_model.BindArray("indices", &my_data.indices);
-	my_model.BindArray("invaders", &my_data.invaders);
+	my_model.Bind("indices", &my_data.indices);
+	my_model.Bind("invaders", &my_data.invaders);
 
 	return true;
 }
