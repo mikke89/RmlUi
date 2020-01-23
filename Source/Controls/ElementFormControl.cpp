@@ -28,6 +28,7 @@
 
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 
 namespace Rml {
 namespace Controls {
@@ -93,6 +94,12 @@ void ElementFormControl::OnAttributeChange(const Core::ElementAttributes& change
 		}
 		else
 			RemoveProperty("focus");
+	}
+
+	if (Core::DataModel* data_model = GetDataModel())
+	{
+		if (changed_attributes.find("value") != changed_attributes.end())
+			data_model->DirtyController(this);
 	}
 }
 

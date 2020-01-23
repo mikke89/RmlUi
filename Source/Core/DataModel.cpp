@@ -138,17 +138,8 @@ void DataModel::DirtyVariable(const String& variable_name)
 	dirty_variables.insert(variable_name);
 }
 
-bool DataModel::UpdateVariable(const String& variable_name)
-{
-	auto it = dirty_variables.find(variable_name);
-	if (it == dirty_variables.end())
-		return false;
-
-	SmallUnorderedSet< String > dirty_variable{ *it };
-	dirty_variables.erase(it);
-	bool result = views.Update(*this, dirty_variable);
-
-	return result;
+bool DataModel::IsVariableDirty(const String& variable_name) const {
+	return (dirty_variables.count(variable_name) == 1);
 }
 
 
@@ -223,7 +214,7 @@ bool DataModel::EraseAliases(Element* element) const
 	return aliases.erase(element) == 1;
 }
 
-bool DataModel::UpdateViews() 
+bool DataModel::Update() 
 {
 	bool result = views.Update(*this, dirty_variables);
 	dirty_variables.clear();

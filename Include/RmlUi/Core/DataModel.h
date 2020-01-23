@@ -36,7 +36,6 @@
 #include "DataView.h"
 #include "DataController.h"
 #include "DataVariable.h"
-#include <unordered_map>
 
 namespace Rml {
 namespace Core {
@@ -59,22 +58,23 @@ public:
 	}
 
 	void DirtyVariable(const String& variable_name);
-	bool UpdateVariable(const String& variable_name);
+	bool IsVariableDirty(const String& variable_name) const;
 
 	Address ResolveAddress(const String& address_str, Element* parent) const;
 
 	void AddView(UniquePtr<DataView> view) { views.Add(std::move(view)); }
+	void AddController(UniquePtr<DataController> controller) { controllers.Add(std::move(controller)); }
 
 	// Todo: remove const / mutable. 
 	bool InsertAlias(Element* element, const String& alias_name, Address replace_with_address) const;
 	bool EraseAliases(Element* element) const;
 
-	bool UpdateViews();
+	bool Update();
 
+	void DirtyController(Element* element) { controllers.DirtyElement(*this, element); }
 	void OnElementRemove(Element* element);
 
-	// Todo: Make private
-	DataControllers controllers;
+
 
 private:
 	UnorderedMap<String, Variable> variables;
@@ -85,6 +85,8 @@ private:
 	DataViews views;
 
 	SmallUnorderedSet< String > dirty_variables;
+
+	DataControllers controllers;
 };
 
 
@@ -95,15 +97,12 @@ public:
 		RMLUI_ASSERT(model && type_register);
 	}
 
-	void UpdateControllers() {
-		model->controllers.Update(*model);
-	}
-	void UpdateViews() {
-		model->UpdateViews();
+	void Update() {
+		model->Update();
 	}
 
-	bool UpdateVariable(const String& variable_name) {
-		return model->UpdateVariable(variable_name);
+	bool IsVariableDirty(const String& variable_name) {
+		return model->IsVariableDirty(variable_name);
 	}
 	void DirtyVariable(const String& variable_name) {
 		model->DirtyVariable(variable_name);

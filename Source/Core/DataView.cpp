@@ -414,8 +414,6 @@ bool DataViews::Update(const DataModel & model, const SmallUnorderedSet< String 
 
 		if (view->IsValid())
 			result |= view->Update(model);
-		else
-			Log::Message(Log::LT_DEBUG, "Invalid view");
 	}
 
 	// Destroy views marked for destruction

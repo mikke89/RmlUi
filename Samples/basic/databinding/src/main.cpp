@@ -180,15 +180,13 @@ std::unique_ptr<DemoWindow> demo_window;
 
 void GameLoop()
 {
-	my_model.UpdateControllers();
-
-	if(my_model.UpdateVariable("rating"))
+	if (my_model.IsVariableDirty("rating"))
 	{
 		my_model.DirtyVariable("good_rating");
 		my_model.DirtyVariable("great_rating");
 
 		size_t new_size = my_data.rating / 10 + 1;
-		if(new_size != my_data.indices.size())
+		if (new_size != my_data.indices.size())
 		{
 			my_data.indices.resize(new_size);
 			std::iota(my_data.indices.begin(), my_data.indices.end(), int(new_size));
@@ -196,7 +194,7 @@ void GameLoop()
 		}
 	}
 
-	my_model.UpdateViews();
+	my_model.Update();
 
 	demo_window->Update();
 	context->Update();

@@ -35,6 +35,7 @@
 #include "StringUtilities.h"
 #include "Traits.h"
 #include "DataVariable.h"
+#include <unordered_map>
 
 namespace Rml {
 namespace Core {

@@ -290,12 +290,21 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 									data_model->AddView(std::move(view));
 								else
 									Log::Message(Log::LT_WARNING, "Could not add data-attr view to element '%s'.", parent->GetAddress().c_str());
-
-								DataControllerAttribute data_controller(*data_model, parent, attr_bind_name, value_bind_name);
-								if (data_controller)
-									data_model->controllers.AddController(element.get(), std::move(data_controller));
+							}
+							else if (data_type == "value")
+							{
+								const String attr_bind_name = "value";
+								auto view = std::make_unique<DataViewAttribute>(*data_model, element.get(), parent, value_bind_name, attr_bind_name);
+								if (*view)
+									data_model->AddView(std::move(view));
 								else
-									Log::Message(Log::LT_WARNING, "Could not add data-attr controller to element '%s'.", parent->GetAddress().c_str());
+									Log::Message(Log::LT_WARNING, "Could not add data-value view to element '%s'.", parent->GetAddress().c_str());
+
+								auto controller = std::make_unique<DataControllerValue>(*data_model, element.get(), value_bind_name);
+								if (controller)
+									data_model->AddController(std::move(controller));
+								else
+									Log::Message(Log::LT_WARNING, "Could not add data-value controller to element '%s'.", parent->GetAddress().c_str());
 							}
 							else if (data_type == "style")
 							{

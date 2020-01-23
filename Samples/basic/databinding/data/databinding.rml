@@ -165,7 +165,7 @@ form h2
 <panel id="welcome" data-model="my_model">
 	<p class="title" style="margin-top: 1.8em;">{{hello_world}}<span style="color: blue;"> Rated: {{rating}}</span></p>
 	<p>Data binding demo. We rate this a good old {{rating}}!</p>
-	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-attr-value="rating"/>
+	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-value="rating"/>
 	<div data-if="good_rating">Thanks for the <span data-if="good_rating">good</span><span data-if="great_rating"> and awesome</span> rating!</div>
 	<h1>{{delightful_invader.name}}</h1>
 	<img data-attr-sprite="delightful_invader.sprite" data-style-image-color="delightful_invader.color"/>

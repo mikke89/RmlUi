@@ -33,36 +33,85 @@
 namespace Rml {
 namespace Core {
 
+DataController::DataController(Element* element) : attached_element(element->GetObserverPtr())
+{}
 
-DataControllerAttribute::DataControllerAttribute(DataModel& model, Element* parent, const String& in_attribute_name, const String& in_value_name) : attribute_name(in_attribute_name)
+bool DataController::UpdateVariable(DataModel& model)
 {
-    variable_address = model.ResolveAddress(in_value_name, parent);
-    if (!model.GetVariable(variable_address))
-	{
-		attribute_name.clear();
-        variable_address.clear();
-	}
+    Element* element = attached_element.get();
+    if (!element)
+        return false;
+
+    if (!UpdateValue(element, value))
+        return false;
+
+    bool variable_changed = false;
+    if (Variable variable = model.GetVariable(address))
+        variable_changed = variable.Set(value);
+
+    return variable_changed;
 }
 
-bool DataControllerAttribute::Update(Element* element, DataModel& model) 
+const String& DataController::GetVariableName() const {
+    static const String empty_string;
+    return address.empty() ? empty_string : address.front().name;
+}
+
+
+DataControllerValue::DataControllerValue(DataModel& model, Element* element, const String& in_value_name) : DataController(element)
 {
-	bool result = false;
-	if (dirty)
-	{
-		if(Variant* value = element->GetAttribute(attribute_name))
+    Address variable_address = model.ResolveAddress(in_value_name, element);
+
+    if (model.GetVariable(variable_address) && !variable_address.empty())
+    {
+        SetAddress(std::move(variable_address));
+    }
+}
+
+bool DataControllerValue::UpdateValue(Element* element, Variant& value_inout)
+{
+    bool value_changed = false;
+
+    if (Variant* new_value = element->GetAttribute("value"))
+    {
+        if (*new_value != value_inout)
         {
-            if (Variable variable = model.GetVariable(variable_address))
-            {
-                result = variable.Set(*value);
-                model.DirtyVariable(variable_address.front().name);
-            }
+            value_inout = *new_value;
+            value_changed = true;
         }
-		dirty = false;
-	}
-	return result;
+    }
+    
+    return value_changed;
 }
 
 
+
+
+void DataControllers::Add(UniquePtr<DataController> controller) {
+    RMLUI_ASSERT(controller);
+
+    Element* element = controller->GetElement();
+    RMLUI_ASSERTMSG(element, "Invalid controller, make sure it is valid before adding");
+
+    bool inserted = controllers.emplace(element, std::move(controller)).second;
+    if (!inserted)
+    {
+        RMLUI_ERRORMSG("Cannot add multiple controllers to the same element.");
+    }
+}
+
+void DataControllers::DirtyElement(DataModel& model, Element* element)
+{
+    auto it = controllers.find(element);
+    if (it != controllers.end())
+    {
+        DataController& controller = *it->second;
+        if (controller.UpdateVariable(model))
+        {
+            model.DirtyVariable(controller.GetVariableName());
+        }
+    }
+}
 
 }
 }

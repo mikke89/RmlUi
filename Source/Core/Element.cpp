@@ -1617,12 +1617,6 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 			meta->style.SetProperty((*i).first, (*i).second);
 		}
 	}
-
-	if (data_model)
-	{
-		// @todo @performance: Add a volatility flag so we don't have to do this all the time.
-		data_model->controllers.OnAttributeChange(*data_model, this, changed_attributes);
-	}
 }
 
 // Called when properties on the element are changed.
