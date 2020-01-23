@@ -36,6 +36,9 @@ namespace Core {
 DataController::DataController(Element* element) : attached_element(element->GetObserverPtr())
 {}
 
+DataController::~DataController()
+{}
+
 bool DataController::UpdateVariable(DataModel& model)
 {
     Element* element = attached_element.get();
@@ -51,12 +54,6 @@ bool DataController::UpdateVariable(DataModel& model)
 
     return variable_changed;
 }
-
-const String& DataController::GetVariableName() const {
-    static const String empty_string;
-    return address.empty() ? empty_string : address.front().name;
-}
-
 
 DataControllerValue::DataControllerValue(DataModel& model, Element* element, const String& in_value_name) : DataController(element)
 {

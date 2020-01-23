@@ -45,6 +45,7 @@ class EventListener;
 class RenderInterface;
 class DataModel;
 class DataModelHandle;
+class DataTypeRegister;
 enum class EventId : uint16_t;
 
 /**
@@ -221,7 +222,7 @@ public:
 	void SetInstancer(ContextInstancer* instancer);
 
 
-	DataModelHandle CreateDataModel(String name);
+	DataModelHandle CreateDataModel(const String& name);
 
 	// Todo: Remove
 	DataModel* GetDataModel(const String& name)
@@ -302,6 +303,8 @@ private:
 
 	using DataModels = UnorderedMap<String, UniquePtr<DataModel>>;
 	DataModels data_models;
+
+	UniquePtr<DataTypeRegister> data_type_register;
 
 	// Internal callback for when an element is detached or removed from the hierarchy.
 	void OnElementDetach(Element* element);

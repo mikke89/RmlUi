@@ -255,6 +255,7 @@ public:
 		RMLUI_ASSERT(member);
 		bool inserted = members.emplace(name, std::move(member)).second;
 		RMLUI_ASSERTMSG(inserted, "Member name already exists.");
+		(void)inserted;
 	}
 
 private:
@@ -365,6 +366,7 @@ public:
 		auto& it = result.first;
 		bool inserted = result.second;
 		RMLUI_ASSERT(inserted);
+		(void)inserted;
 
 		it->second = std::make_unique<FuncDefinition>(std::move(get_func), std::move(set_func));
 

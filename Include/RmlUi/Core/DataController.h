@@ -44,15 +44,19 @@ class RMLUICORE_API DataController {
 public:
 	bool UpdateVariable(DataModel& model);
 
-	const String& GetVariableName() const;
+    String GetVariableName() const {
+        return address.empty() ? String() : address.front().name;
+    }
+
+    Element* GetElement() const {
+        return attached_element.get();
+    }
 
 	explicit operator bool() const {
 		return !address.empty() && attached_element;
 	}
 
-    Element* GetElement() const {
-        return attached_element.get();
-    }
+    virtual ~DataController();
 
 protected:
 	DataController(Element* element);

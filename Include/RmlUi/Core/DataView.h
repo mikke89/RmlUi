@@ -47,7 +47,7 @@ class DataModel;
 class RMLUICORE_API DataView : NonCopyMoveable {
 public:
 	virtual ~DataView();
-	virtual bool Update(const DataModel& model) = 0;
+	virtual bool Update(DataModel& model) = 0;
 	virtual StringList GetVariableNameList() const = 0;
 
 	bool IsValid() const { return (bool)attached_element; }
@@ -68,9 +68,9 @@ private:
 
 class DataViewText final : public DataView {
 public:
-	DataViewText(const DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
+	DataViewText(DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
 
-	bool Update(const DataModel& model) override;
+	bool Update(DataModel& model) override;
 
 	StringList GetVariableNameList() const override {
 		StringList list;
@@ -98,9 +98,9 @@ private:
 
 class DataViewAttribute final : public DataView {
 public:
-	DataViewAttribute(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name);
+	DataViewAttribute(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name);
 
-	bool Update(const DataModel& model) override;
+	bool Update(DataModel& model) override;
 
 	StringList GetVariableNameList() const override {
 		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
@@ -113,9 +113,9 @@ private:
 
 class DataViewStyle final : public DataView {
 public:
-	DataViewStyle(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name);
+	DataViewStyle(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name);
 
-	bool Update(const DataModel& model) override;
+	bool Update(DataModel& model) override;
 
 	StringList GetVariableNameList() const override {
 		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
@@ -128,9 +128,9 @@ private:
 
 class DataViewIf final : public DataView {
 public:
-	DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name);
+	DataViewIf(DataModel& model, Element* element, Element* parent, const String& binding_name);
 
-	bool Update(const DataModel& model) override;
+	bool Update(DataModel& model) override;
 
 	StringList GetVariableNameList() const override {
 		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
@@ -142,9 +142,9 @@ private:
 
 class DataViewFor final : public DataView {
 public:
-	DataViewFor(const DataModel& model, Element* element, const String& binding_name, const String& rml_contents);
+	DataViewFor(DataModel& model, Element* element, const String& binding_name, const String& rml_contents);
 
-	bool Update(const DataModel& model) override;
+	bool Update(DataModel& model) override;
 
 	StringList GetVariableNameList() const override {
 		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
@@ -169,7 +169,7 @@ public:
 
 	void OnElementRemove(Element* element);
 
-	bool Update(const DataModel& model, const SmallUnorderedSet< String >& dirty_variables);
+	bool Update(DataModel& model, const SmallUnorderedSet< String >& dirty_variables);
 
 private:
 	using DataViewList = std::vector<UniquePtr<DataView>>;

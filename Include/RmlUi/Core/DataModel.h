@@ -45,9 +45,16 @@ class Element;
 
 class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
-	bool Bind(const String& name, void* ptr, VariableDefinition* variable);
+	void AddView(UniquePtr<DataView> view) { views.Add(std::move(view)); }
+	void AddController(UniquePtr<DataController> controller) { controllers.Add(std::move(controller)); }
 
-	Variable GetVariable(const String& address_str) const;
+	bool BindVariable(const String& name, Variable variable);
+
+	bool InsertAlias(Element* element, const String& alias_name, Address replace_with_address);
+	bool EraseAliases(Element* element);
+
+	Address ResolveAddress(const String& address_str, Element* parent) const;
+
 	Variable GetVariable(const Address& address) const;
 
 	template<typename T>
@@ -60,33 +67,20 @@ public:
 	void DirtyVariable(const String& variable_name);
 	bool IsVariableDirty(const String& variable_name) const;
 
-	Address ResolveAddress(const String& address_str, Element* parent) const;
-
-	void AddView(UniquePtr<DataView> view) { views.Add(std::move(view)); }
-	void AddController(UniquePtr<DataController> controller) { controllers.Add(std::move(controller)); }
-
-	// Todo: remove const / mutable. 
-	bool InsertAlias(Element* element, const String& alias_name, Address replace_with_address) const;
-	bool EraseAliases(Element* element) const;
+	void OnElementRemove(Element* element);
+	void DirtyController(Element* element);
 
 	bool Update();
 
-	void DirtyController(Element* element) { controllers.DirtyElement(*this, element); }
-	void OnElementRemove(Element* element);
-
-
-
 private:
-	UnorderedMap<String, Variable> variables;
-
-	using ScopedAliases = UnorderedMap< Element*, SmallUnorderedMap<String, Address> >;
-	mutable ScopedAliases aliases;
-
 	DataViews views;
-
-	SmallUnorderedSet< String > dirty_variables;
-
 	DataControllers controllers;
+
+	UnorderedMap<String, Variable> variables;
+	SmallUnorderedSet<String> dirty_variables;
+
+	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, Address>>;
+	ScopedAliases aliases;
 };
 
 
@@ -109,27 +103,34 @@ public:
 	}
 
 	// Bind a data variable.
-	// Note: For non-scalar types make sure they first have been registered with the appropriate 'Register...()' functions.
+	// @note For non-scalar types make sure they first have been registered with the appropriate 'Register...()' functions.
 	template<typename T> bool Bind(const String& name, T* ptr) {
-		return model->Bind(name, ptr, type_register->GetOrAddScalar<T>());
+		RMLUI_ASSERTMSG(ptr, "Invalid pointer to data variable");
+		return model->BindVariable(name, Variable(type_register->GetOrAddScalar<T>(), ptr));
 	}
 	// Bind a get/set function pair.
 	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func = {}) {
 		VariableDefinition* func_definition = type_register->RegisterFunc(std::move(get_func), std::move(set_func));
-		bool result = model->Bind(name, nullptr, func_definition);
+		bool result = model->BindVariable(name, Variable(func_definition, nullptr));
 		return result;
 	}
 
+	// Register a struct type.
+	// @note The type applies to every data model associated with the current Context.
+	// @return A handle which can be used to register struct members.
 	template<typename T>
 	StructHandle<T> RegisterStruct() {
 		return type_register->RegisterStruct<T>();
 	}
 
+	// Register an array type.
+	// @note The type applies to every data model associated with the current Context.
+	// @note If 'Container::value_type' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()' functions.
+	// @note Container requires the following functions implemented: size() and operator[]. This includes std::vector and std::array.
 	template<typename Container>
 	bool RegisterArray() {
 		return type_register->RegisterArray<Container>();
 	}
-
 
 	explicit operator bool() { return model && type_register; }
 

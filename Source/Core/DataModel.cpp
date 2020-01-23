@@ -72,16 +72,15 @@ static Address ParseAddress(const String& address_str)
 	return address;
 };
 
-bool DataModel::Bind(const String& name, void* ptr, VariableDefinition* variable)
+bool DataModel::BindVariable(const String& name, Variable variable)
 {
 	if (!variable)
 	{
-		Log::Message(Log::LT_WARNING, "No registered type could be found for the data variable '%s'.", name.c_str());
+		Log::Message(Log::LT_WARNING, "Could not bind variable '%s' to data model, data type not registered.", name.c_str());
 		return false;
 	}
-	RMLUI_ASSERT(ptr || variable->Type() == VariableType::Function);
 
-	bool inserted = variables.emplace(name, Variable(variable, ptr)).second;
+	bool inserted = variables.emplace(name, variable).second;
 	if (!inserted)
 	{
 		Log::Message(Log::LT_WARNING, "Data model variable with name '%s' already exists.", name.c_str());
@@ -91,57 +90,32 @@ bool DataModel::Bind(const String& name, void* ptr, VariableDefinition* variable
 	return true;
 }
 
-Variable DataModel::GetVariable(const String& address_str) const
+bool DataModel::InsertAlias(Element* element, const String& alias_name, Address replace_with_address)
 {
-	Address address = ParseAddress(address_str);
-
-	if (address.empty() || address.front().name.empty())
+	if (replace_with_address.empty() || replace_with_address.front().name.empty())
 	{
-		Log::Message(Log::LT_WARNING, "Invalid data address '%s'.", address_str.c_str());
-		return Variable();
+		Log::Message(Log::LT_WARNING, "Could not add alias variable '%s' to data model, replacement address invalid.", alias_name.c_str());
+		return false;
 	}
 
-	Variable instance = GetVariable(address);
-	if (!instance)
-	{
-		Log::Message(Log::LT_WARNING, "Could not find the data variable '%s'.", address_str.c_str());
-		return Variable();
-	}
+	if (variables.count(alias_name) == 1)
+		Log::Message(Log::LT_WARNING, "Alias variable '%s' is shadowed by a global variable.", alias_name.c_str());
 
-	return instance;
+	auto& map = aliases.emplace(element, SmallUnorderedMap<String, Address>()).first->second;
+	
+	auto it = map.find(alias_name);
+	if (it != map.end())
+		Log::Message(Log::LT_WARNING, "Alias name '%s' in data model already exists, replaced.", alias_name.c_str());
+
+	map[alias_name] = std::move(replace_with_address);
+
+	return true;
 }
 
-Variable DataModel::GetVariable(const Address& address) const
+bool DataModel::EraseAliases(Element* element)
 {
-	if (address.empty() || address.front().name.empty())
-		return Variable();
-
-	auto it = variables.find(address.front().name);
-	if (it == variables.end())
-		return Variable();
-
-	Variable variable = it->second;
-
-	for (int i = 1; i < (int)address.size() && variable; i++)
-	{
-		variable = variable.GetChild(address[i]);
-		if (!variable)
-			return Variable();
-	}
-
-	return variable;
+	return aliases.erase(element) == 1;
 }
-
-void DataModel::DirtyVariable(const String& variable_name)
-{
-	RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "Variable name not found among added variables.");
-	dirty_variables.insert(variable_name);
-}
-
-bool DataModel::IsVariableDirty(const String& variable_name) const {
-	return (dirty_variables.count(variable_name) == 1);
-}
-
 
 Address DataModel::ResolveAddress(const String& address_str, Element* parent) const
 {
@@ -190,28 +164,46 @@ Address DataModel::ResolveAddress(const String& address_str, Element* parent) co
 	return Address();
 }
 
-bool DataModel::InsertAlias(Element* element, const String& alias_name, Address replace_with_address) const
+Variable DataModel::GetVariable(const Address& address) const
 {
-	if (replace_with_address.empty() || replace_with_address.front().name.empty())
+	if (address.empty() || address.front().name.empty())
+		return Variable();
+
+	auto it = variables.find(address.front().name);
+	if (it == variables.end())
+		return Variable();
+
+	Variable variable = it->second;
+
+	for (int i = 1; i < (int)address.size() && variable; i++)
 	{
-		Log::Message(Log::LT_WARNING, "Could not add alias variable '%s' to data model, replacement address invalid.", alias_name.c_str());
-		return false;
+		variable = variable.GetChild(address[i]);
+		if (!variable)
+			return Variable();
 	}
 
-	auto& map = aliases.emplace(element, SmallUnorderedMap<String, Address>()).first->second;
-	
-	auto it = map.find(alias_name);
-	if (it != map.end())
-		Log::Message(Log::LT_WARNING, "Alias name '%s' in data model already exists, replaced.", alias_name.c_str());
-
-	map[alias_name] = std::move(replace_with_address);
-
-	return true;
+	return variable;
 }
 
-bool DataModel::EraseAliases(Element* element) const
+void DataModel::DirtyVariable(const String& variable_name)
 {
-	return aliases.erase(element) == 1;
+	RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "Variable name not found among added variables.");
+	dirty_variables.insert(variable_name);
+}
+
+bool DataModel::IsVariableDirty(const String& variable_name) const {
+	return (dirty_variables.count(variable_name) == 1);
+}
+
+void DataModel::OnElementRemove(Element* element)
+{
+	EraseAliases(element);
+	views.OnElementRemove(element);
+}
+
+void DataModel::DirtyController(Element* element) 
+{
+	controllers.DirtyElement(*this, element);
 }
 
 bool DataModel::Update() 
@@ -219,12 +211,6 @@ bool DataModel::Update()
 	bool result = views.Update(*this, dirty_variables);
 	dirty_variables.clear();
 	return result;
-}
-
-void DataModel::OnElementRemove(Element* element)
-{
-	EraseAliases(element);
-	views.OnElementRemove(element);
 }
 
 
@@ -297,13 +283,13 @@ static struct TestDataVariables {
 
 			RMLUI_ASSERT(results == expected_results);
 
-			bool success = model.GetVariable("data.more_fun[1].magic[1]").Set(Variant(String("199")));
+			bool success = model.GetVariable(ParseAddress("data.more_fun[1].magic[1]")).Set(Variant(String("199")));
 			RMLUI_ASSERT(success && data.more_fun[1].magic[1] == 199);
 
 			data.fun.magic = { 99, 190, 55, 2000, 50, 60, 70, 80, 90 };
 
 			Variant test_get_result;
-			bool test_get_success = model.GetVariable("data.fun.magic[8]").Get(test_get_result);
+			bool test_get_success = model.GetVariable(ParseAddress("data.fun.magic[8]")).Get(test_get_result);
 			RMLUI_ASSERT(test_get_success && test_get_result.Get<String>() == "90");
 		}
 	}

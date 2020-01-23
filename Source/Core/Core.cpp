@@ -309,12 +309,6 @@ bool LoadFontFace(const byte* data, int data_size, const String& font_family, St
 	return font_interface->LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
 }
 
-DataTypeRegister& GetDataTypeRegister()
-{
-	static DataTypeRegister data_types;
-	return data_types;
-}
-
 // Registers a generic rmlui plugin
 void RegisterPlugin(Plugin* plugin)
 {

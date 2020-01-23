@@ -54,7 +54,7 @@ DataView::DataView(Element* element) : attached_element(element->GetObserverPtr(
 }
 
 
-DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : DataView(in_parent_element)
+DataViewText::DataViewText(DataModel& model, ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : DataView(in_parent_element)
 {
 	text.reserve(in_text.size());
 
@@ -104,7 +104,7 @@ DataViewText::DataViewText(const DataModel& model, ElementText* in_parent_elemen
 	}
 }
 
-bool DataViewText::Update(const DataModel& model)
+bool DataViewText::Update(DataModel& model)
 {
 	bool entries_modified = false;
 
@@ -165,7 +165,7 @@ String DataViewText::BuildText() const
 }
 
 
-DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name)
+DataViewAttribute::DataViewAttribute(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name)
 	: DataView(element), attribute_name(attribute_name)
 {
 	variable_address = model.ResolveAddress(binding_name, parent);
@@ -176,7 +176,7 @@ DataViewAttribute::DataViewAttribute(const DataModel& model, Element* element, E
 		Update(model);
 }
 
-bool DataViewAttribute::Update(const DataModel& model)
+bool DataViewAttribute::Update(DataModel& model)
 {
 	bool result = false;
 	String value;
@@ -197,7 +197,7 @@ bool DataViewAttribute::Update(const DataModel& model)
 
 
 
-DataViewStyle::DataViewStyle(const DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name)
+DataViewStyle::DataViewStyle(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name)
 	: DataView(element), property_name(property_name)
 {
 	variable_address = model.ResolveAddress(binding_name, parent);
@@ -209,7 +209,7 @@ DataViewStyle::DataViewStyle(const DataModel& model, Element* element, Element* 
 }
 
 
-bool DataViewStyle::Update(const DataModel& model)
+bool DataViewStyle::Update(DataModel& model)
 {
 	bool result = false;
 	String value;
@@ -230,7 +230,7 @@ bool DataViewStyle::Update(const DataModel& model)
 
 
 
-DataViewIf::DataViewIf(const DataModel& model, Element* element, Element* parent, const String& binding_name) : DataView(element)
+DataViewIf::DataViewIf(DataModel& model, Element* element, Element* parent, const String& binding_name) : DataView(element)
 {
 	variable_address = model.ResolveAddress(binding_name, element);
 	if (variable_address.empty())
@@ -240,7 +240,7 @@ DataViewIf::DataViewIf(const DataModel& model, Element* element, Element* parent
 }
 
 
-bool DataViewIf::Update(const DataModel& model)
+bool DataViewIf::Update(DataModel& model)
 {
 	bool result = false;
 	bool value = false;
@@ -263,7 +263,7 @@ bool DataViewIf::Update(const DataModel& model)
 
 
 
-DataViewFor::DataViewFor(const DataModel& model, Element* element, const String& in_binding_name, const String& in_rml_content)
+DataViewFor::DataViewFor(DataModel& model, Element* element, const String& in_binding_name, const String& in_rml_content)
 	: DataView(element), rml_contents(in_rml_content)
 {
 	StringList binding_list;
@@ -298,7 +298,7 @@ DataViewFor::DataViewFor(const DataModel& model, Element* element, const String&
 
 
 
-bool DataViewFor::Update(const DataModel& model)
+bool DataViewFor::Update(DataModel& model)
 {
 	Variable variable = model.GetVariable(variable_address);
 	if (!variable)
@@ -368,7 +368,7 @@ void DataViews::OnElementRemove(Element* element)
 	}
 }
 
-bool DataViews::Update(const DataModel & model, const SmallUnorderedSet< String >& dirty_variables)
+bool DataViews::Update(DataModel & model, const SmallUnorderedSet< String >& dirty_variables)
 {
 	bool result = false;
 
