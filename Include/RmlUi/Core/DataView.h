@@ -98,7 +98,7 @@ private:
 
 class DataViewAttribute final : public DataView {
 public:
-	DataViewAttribute(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name);
+	DataViewAttribute(DataModel& model, Element* element, const String& binding_name, const String& attribute_name);
 
 	bool Update(DataModel& model) override;
 
@@ -113,7 +113,7 @@ private:
 
 class DataViewStyle final : public DataView {
 public:
-	DataViewStyle(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name);
+	DataViewStyle(DataModel& model, Element* element, const String& binding_name, const String& property_name);
 
 	bool Update(DataModel& model) override;
 
@@ -128,7 +128,7 @@ private:
 
 class DataViewIf final : public DataView {
 public:
-	DataViewIf(DataModel& model, Element* element, Element* parent, const String& binding_name);
+	DataViewIf(DataModel& model, Element* element, const String& binding_name);
 
 	bool Update(DataModel& model) override;
 

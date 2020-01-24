@@ -1510,6 +1510,11 @@ ElementScroll* Element::GetElementScroll() const
 {
 	return &meta->scroll;
 }
+
+DataModel* Element::GetDataModel() const
+{
+	return data_model;
+}
 	
 int Element::GetClippingIgnoreDepth()
 {
@@ -1603,7 +1608,6 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		meta->style.SetClassNames(it->second.Get<String>());
 	}
 
-	// Add any inline style declarations.
 	it = changed_attributes.find("style");
 	if (it != changed_attributes.end())
 	{
@@ -1611,11 +1615,8 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		StyleSheetParser parser;
 		parser.ParseProperties(properties, it->second.Get<String>());
 
-		Rml::Core::PropertyMap property_map = properties.GetProperties();
-		for (Rml::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
-		{
-			meta->style.SetProperty((*i).first, (*i).second);
-		}
+		for (auto& id_property_pair : properties.GetProperties())
+			meta->style.SetProperty(id_property_pair.first, id_property_pair.second);
 	}
 }
 
@@ -1913,12 +1914,6 @@ void Element::SetOwnerDocument(ElementDocument* document)
 			// We are detaching from the document and thereby also the context.
 			if (Context * context = owner_document->GetContext())
 				context->OnElementDetach(this);
-
-			if (data_model)
-			{
-				data_model->OnElementRemove(this);
-				data_model = nullptr;
-			}
 		}
 
 		if (owner_document != document)
@@ -1928,6 +1923,25 @@ void Element::SetOwnerDocument(ElementDocument* document)
 				child->SetOwnerDocument(document);
 		}
 	}
+}
+
+void Element::SetDataModel(DataModel* new_data_model) 
+{
+	RMLUI_ASSERTMSG(!data_model || !new_data_model, "We must either attach a new data model, or detach the old one.");
+
+	if (data_model == new_data_model)
+		return;
+
+	if (data_model)
+		data_model->OnElementRemove(this);
+
+	data_model = new_data_model;
+
+	if (data_model)
+		ElementUtilities::ApplyDataViewsControllers(this);
+
+	for (ElementPtr& child : children)
+		child->SetDataModel(new_data_model);
 }
 
 void Element::Release()
@@ -1957,6 +1971,28 @@ void Element::SetParent(Element* _parent)
 		DirtyTransformState(true, true);
 
 	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
+
+	if (!parent)
+	{
+		if (data_model)
+			SetDataModel(nullptr);
+	}
+	else 
+	{
+		auto it = attributes.find("data-model");
+		if (it == attributes.end())
+		{
+			SetDataModel(parent->data_model);
+		}
+		else if (Context* context = GetContext())
+		{
+			String name = it->second.Get<String>();
+			if (DataModel* model = context->GetDataModel(name))
+				SetDataModel(model);
+			else
+				Log::Message(Log::LT_WARNING, "Could not locate data model '%s'.", name.c_str());
+		}
+	}
 }
 
 void Element::DirtyOffset()

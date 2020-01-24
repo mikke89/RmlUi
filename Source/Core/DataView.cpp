@@ -165,10 +165,10 @@ String DataViewText::BuildText() const
 }
 
 
-DataViewAttribute::DataViewAttribute(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& attribute_name)
+DataViewAttribute::DataViewAttribute(DataModel& model, Element* element, const String& binding_name, const String& attribute_name)
 	: DataView(element), attribute_name(attribute_name)
 {
-	variable_address = model.ResolveAddress(binding_name, parent);
+	variable_address = model.ResolveAddress(binding_name, element);
 
 	if (attribute_name.empty())
 		InvalidateView();
@@ -197,10 +197,10 @@ bool DataViewAttribute::Update(DataModel& model)
 
 
 
-DataViewStyle::DataViewStyle(DataModel& model, Element* element, Element* parent, const String& binding_name, const String& property_name)
+DataViewStyle::DataViewStyle(DataModel& model, Element* element, const String& binding_name, const String& property_name)
 	: DataView(element), property_name(property_name)
 {
-	variable_address = model.ResolveAddress(binding_name, parent);
+	variable_address = model.ResolveAddress(binding_name, element);
 	
 	if (variable_address.empty() || property_name.empty())
 		InvalidateView();
@@ -230,7 +230,7 @@ bool DataViewStyle::Update(DataModel& model)
 
 
 
-DataViewIf::DataViewIf(DataModel& model, Element* element, Element* parent, const String& binding_name) : DataView(element)
+DataViewIf::DataViewIf(DataModel& model, Element* element, const String& binding_name) : DataView(element)
 {
 	variable_address = model.ResolveAddress(binding_name, element);
 	if (variable_address.empty())
@@ -314,16 +314,16 @@ bool DataViewFor::Update(DataModel& model)
 		if (i >= num_elements)
 		{
 			ElementPtr new_element_ptr = Factory::InstanceElement(nullptr, element->GetTagName(), element->GetTagName(), attributes);
-			new_element_ptr->SetDataModel((DataModel*)(&model));
-			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element);
-			elements.push_back(new_element);
 
 			Address replacement_address;
 			replacement_address.reserve(variable_address.size() + 1);
 			replacement_address = variable_address;
 			replacement_address.push_back(AddressEntry(i));
 
-			model.InsertAlias(new_element, alias_name, replacement_address);
+			model.InsertAlias(new_element_ptr.get(), alias_name, replacement_address);
+
+			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element);
+			elements.push_back(new_element);
 
 			elements[i]->SetInnerRML(rml_contents);
 

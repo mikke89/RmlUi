@@ -56,7 +56,6 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
-class Factory;
 class PropertiesIteratorView;
 class FontFaceHandleDefault;
 class PropertyDictionary;
@@ -535,23 +534,19 @@ public:
 	 */
 	//@{
 	/// Access the event dispatcher for this element.
-	/// @return The element's dispatcher.
 	EventDispatcher* GetEventDispatcher() const;
 	/// Returns event types with number of listeners for debugging.
-	/// @return Summary of attached listeners.
 	String GetEventDispatcherSummary() const;
 	/// Access the element background.
-	/// @return The element's background.
 	ElementBackground* GetElementBackground() const;
 	/// Access the element border.
-	/// @return The element's boder.
 	ElementBorder* GetElementBorder() const;
 	/// Access the element decorators.
-	/// @return The element decoration.
 	ElementDecoration* GetElementDecoration() const;
 	/// Returns the element's scrollbar functionality.
-	/// @return The element's scrolling functionality.
 	ElementScroll* GetElementScroll() const;
+	/// Returns the data model of this element.
+	DataModel* GetDataModel() const;
 	//@}
 	
 	/// Returns true if this element requires clipping
@@ -574,12 +569,6 @@ public:
 
 	/// Return the computed values of the element's properties. These values are updated as appropriate on every Context::Update.
 	const ComputedValues& GetComputedValues() const;
-
-
-
-	// TODO: Temporary, make private / remove.
-	DataModel* GetDataModel() { return data_model; }
-	void SetDataModel(DataModel* new_data_model) { data_model = new_data_model; }
 
 protected:
 	void Update(float dp_ratio);
@@ -630,6 +619,8 @@ protected:
 
 private:
 	void SetParent(Element* parent);
+	
+	void SetDataModel(DataModel* new_data_model);
 
 	void DirtyOffset();
 	void UpdateOffset();
@@ -748,7 +739,6 @@ private:
 	friend class LayoutInlineBox;
 	friend struct ElementDeleter;
 	friend class ElementScroll;
-	friend class Factory;
 };
 
 }

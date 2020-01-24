@@ -131,7 +131,11 @@ public:
 	/// Note: All calls to RenderInterface::SetTransform must go through here.
 	/// @param[in] element		The element whose transform to apply.
 	/// @return true if a render interface is available to set the transform.
-	static bool ApplyTransform(Element &element);
+	static bool ApplyTransform(Element& element);
+
+	/// Creates data views and data controllers if a data model applies to the element.
+	/// Attributes such as 'data-' are used to create the views and controllers.
+	static void ApplyDataViewsControllers(Element* element);
 };
 
 }

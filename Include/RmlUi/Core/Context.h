@@ -221,17 +221,11 @@ public:
 	/// @param[in] instancer The context's instancer.
 	void SetInstancer(ContextInstancer* instancer);
 
-
+	/// Creates a data model.
+	/// Elements can bind to the model using the attribute 'data-model="name"'.
+	/// @param[in] name The name of the data model.
+	/// @return A handle to the data model which can be used to bind data variables.
 	DataModelHandle CreateDataModel(const String& name);
-
-	// Todo: Remove
-	DataModel* GetDataModel(const String& name)
-	{
-		auto it = data_models.find(name);
-		if (it != data_models.end())
-			return it->second.get();
-		return nullptr;
-	}
 
 protected:
 	void Release() override;
@@ -317,12 +311,13 @@ private:
 	// Updates the current hover elements, sending required events.
 	void UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, const Vector2i& old_mouse_position);
 
-	// Creates the drag clone from the given element. The old drag clone will be released if
-	// necessary.
-	// @param[in] element The element to clone.
+	// Creates the drag clone from the given element. The old drag clone will be released if necessary.
 	void CreateDragClone(Element* element);
 	// Releases the drag clone, if one exists.
 	void ReleaseDragClone();
+
+	// Returns the data model with the provided name, or nullptr if it does not exist.
+	DataModel* GetDataModel(const String& name) const;
 
 	// Builds the parameters for a generic key event.
 	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);

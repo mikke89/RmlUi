@@ -1156,6 +1156,16 @@ void Context::ReleaseDragClone()
 	}
 }
 
+// Returns the data model with the provided name, or nullptr if it does not exist.
+
+DataModel* Context::GetDataModel(const String& name) const
+{
+	auto it = data_models.find(name);
+	if (it != data_models.end())
+		return it->second.get();
+	return nullptr;
+}
+
 // Builds the parameters for a generic key event.
 void Context::GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier)
 {

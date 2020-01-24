@@ -239,96 +239,6 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 			element->SetAttributes(attributes);
 			ElementUtilities::BindEventAttributes(element.get());
 
-
-			// TODO: Relies on parent, a bit hacky.
-			if (parent && !parent->HasAttribute("data-for"))
-			{
-				// Look for the data-model attribute or otherwise copy it from the parent element
-				auto it = attributes.find("data-model");
-				if (it != attributes.end())
-				{
-					String error_msg;
-
-					if (auto context = parent->GetContext())
-					{
-						String name = it->second.Get<String>();
-						if (auto model = context->GetDataModel(name))
-							element->data_model = model;
-						else
-							Log::Message(Log::LT_WARNING, "Could not locate data model '%s'.", name.c_str());
-					}
-					else
-					{
-						Log::Message(Log::LT_WARNING, "Could not add data model to element '%s' because the context is not available.", element->GetAddress().c_str());
-					}
-				}
-				else if (parent && parent->data_model)
-				{
-					element->data_model = parent->data_model;
-				}
-
-				// If we have an active data model, check the attributes for any data bindings
-				if (DataModel* data_model = element->data_model)
-				{
-					for (auto& attribute : attributes)
-					{
-						auto& name = attribute.first;
-
-						if (name.size() > 5 && name[0] == 'd' && name[1] == 'a' && name[2] == 't' && name[3] == 'a' && name[4] == '-')
-						{
-							const size_t data_type_end = name.find('-', 5);
-							const size_t count = (data_type_end == String::npos ? String::npos : data_type_end - 5);
-							const String data_type = name.substr(5, count);
-							const String value_bind_name = attribute.second.Get<String>();
-
-							if (data_type == "attr")
-							{
-								const String attr_bind_name = name.substr(5 + data_type.size() + 1);
-
-								auto view = std::make_unique<DataViewAttribute>(*data_model, element.get(), parent, value_bind_name, attr_bind_name);
-								if (*view)
-									data_model->AddView(std::move(view));
-								else
-									Log::Message(Log::LT_WARNING, "Could not add data-attr view to element '%s'.", parent->GetAddress().c_str());
-							}
-							else if (data_type == "value")
-							{
-								const String attr_bind_name = "value";
-								auto view = std::make_unique<DataViewAttribute>(*data_model, element.get(), parent, value_bind_name, attr_bind_name);
-								if (*view)
-									data_model->AddView(std::move(view));
-								else
-									Log::Message(Log::LT_WARNING, "Could not add data-value view to element '%s'.", parent->GetAddress().c_str());
-
-								auto controller = std::make_unique<DataControllerValue>(*data_model, element.get(), value_bind_name);
-								if (controller)
-									data_model->AddController(std::move(controller));
-								else
-									Log::Message(Log::LT_WARNING, "Could not add data-value controller to element '%s'.", parent->GetAddress().c_str());
-							}
-							else if (data_type == "style")
-							{
-								const String property_name = name.substr(5 + data_type.size() + 1);
-
-								auto view = std::make_unique<DataViewStyle>(*data_model, element.get(), parent, value_bind_name, property_name);
-								if (*view)
-									data_model->AddView(std::move(view));
-								else
-									Log::Message(Log::LT_WARNING, "Could not add data-style view to element '%s'.", parent->GetAddress().c_str());
-							}
-							else if (data_type == "if")
-							{
-								auto view = std::make_unique<DataViewIf>(*data_model, element.get(), parent, value_bind_name);
-								if (*view)
-									data_model->AddView(std::move(view));
-								else
-									Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", parent->GetAddress().c_str());
-							}
-						}
-					}
-				}
-			}
-
 			PluginRegistry::NotifyElementCreate(element.get());
 		}
 
@@ -378,46 +288,25 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 
 		// Attempt to instance the element.
 		XMLAttributes attributes;
-		ElementPtr element_ptr = Factory::InstanceElement(parent, "#text", "#text", attributes);
-		if (!element_ptr)
+		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
+		if (!element)
 		{
 			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", translated_data.c_str());
 			return false;
 		}
 
 		// Assign the element its text value.
-		ElementText* text_element = rmlui_dynamic_cast< ElementText* >(element_ptr.get());
+		ElementText* text_element = rmlui_dynamic_cast< ElementText* >(element.get());
 		if (!text_element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), rmlui_type_name(*element_ptr));
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), rmlui_type_name(*element));
 			return false;
 		}
 
+		text_element->SetText(translated_data);
+
 		// Add to active node.
-		Element* element = parent->AppendChild(std::move(element_ptr));
-
-		// See if this text element uses data bindings.
-		bool data_view_added = false;
-		if (DataModel* data_model = element->data_model)
-		{
-			const size_t i_brackets = translated_data.find("{{", 0);
-			if (i_brackets != String::npos)
-			{
-				auto view = std::make_unique<DataViewText>(*data_model, text_element, translated_data, i_brackets);
-				if (*view)
-				{
-					data_model->AddView(std::move(view));
-					data_view_added = true;
-				}
-				else
-				{
-					Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", parent->GetAddress().c_str());
-				}
-			}
-		}
-
-		if(!data_view_added)
-			text_element->SetText(translated_data);
+		parent->AppendChild(std::move(element));
 	}
 
 	return true;

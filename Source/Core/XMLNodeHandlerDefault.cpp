@@ -89,6 +89,7 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
 	
 	RMLUI_ASSERT(parent);
 
+	// TODO: Move somewhere else. Perhaps spawn a sub-element, or set an attribute with the rml contents.
 	if (auto data_model = parent->GetDataModel())
 	{
 		if(auto attribute = parent->GetAttribute("data-for"))

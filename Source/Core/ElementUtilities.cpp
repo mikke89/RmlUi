@@ -381,5 +381,87 @@ bool ElementUtilities::ApplyTransform(Element &element)
 	return true;
 }
 
+void ElementUtilities::ApplyDataViewsControllers(Element* element)
+{
+	RMLUI_ASSERT(element);
+
+	// If we have an active data model, check the attributes for any data bindings
+	if (DataModel* data_model = element->GetDataModel())
+	{
+		for (auto& attribute : element->GetAttributes())
+		{
+			auto& name = attribute.first;
+
+			if (name.size() > 5 && name[0] == 'd' && name[1] == 'a' && name[2] == 't' && name[3] == 'a' && name[4] == '-')
+			{
+				const size_t data_type_end = name.find('-', 5);
+				const size_t count = (data_type_end == String::npos ? String::npos : data_type_end - 5);
+				const String data_type = name.substr(5, count);
+				const String value_bind_name = attribute.second.Get<String>();
+
+				if (data_type == "attr")
+				{
+					const String attr_bind_name = name.substr(5 + data_type.size() + 1);
+
+					auto view = std::make_unique<DataViewAttribute>(*data_model, element, value_bind_name, attr_bind_name);
+					if (*view)
+						data_model->AddView(std::move(view));
+					else
+						Log::Message(Log::LT_WARNING, "Could not add data-attr view to element '%s'.", element->GetAddress().c_str());
+				}
+				else if (data_type == "value")
+				{
+					const String attr_bind_name = "value";
+					auto view = std::make_unique<DataViewAttribute>(*data_model, element, value_bind_name, attr_bind_name);
+					if (*view)
+						data_model->AddView(std::move(view));
+					else
+						Log::Message(Log::LT_WARNING, "Could not add data-value view to element '%s'.", element->GetAddress().c_str());
+
+					auto controller = std::make_unique<DataControllerValue>(*data_model, element, value_bind_name);
+					if (controller)
+						data_model->AddController(std::move(controller));
+					else
+						Log::Message(Log::LT_WARNING, "Could not add data-value controller to element '%s'.", element->GetAddress().c_str());
+				}
+				else if (data_type == "style")
+				{
+					const String property_name = name.substr(5 + data_type.size() + 1);
+
+					auto view = std::make_unique<DataViewStyle>(*data_model, element, value_bind_name, property_name);
+					if (*view)
+						data_model->AddView(std::move(view));
+					else
+						Log::Message(Log::LT_WARNING, "Could not add data-style view to element '%s'.", element->GetAddress().c_str());
+				}
+				else if (data_type == "if")
+				{
+					auto view = std::make_unique<DataViewIf>(*data_model, element, value_bind_name);
+					if (*view)
+						data_model->AddView(std::move(view));
+					else
+						Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", element->GetAddress().c_str());
+				}
+			}
+		}
+
+		if (ElementText* element_text = rmlui_dynamic_cast<ElementText*>(element))
+		{
+			const String& text = element_text->GetText();
+
+			// Scan text for {{ data bindings }}
+			const size_t i_brackets = text.find("{{", 0);
+			if (i_brackets != String::npos)
+			{
+				auto view = std::make_unique<DataViewText>(*data_model, element_text, text, i_brackets);
+				if (*view)
+					data_model->AddView(std::move(view));
+				else
+					Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", element->GetAddress().c_str());
+			}
+		}
+	}
+}
+
 }
 }
