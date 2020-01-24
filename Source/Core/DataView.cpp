@@ -92,11 +92,7 @@ DataViewText::DataViewText(DataModel& model, ElementText* in_parent_element, con
 	if (success && previous_close_brackets < in_text.size())
 		text.insert(text.end(), in_text.begin() + previous_close_brackets, in_text.end());
 
-	if (success)
-	{
-		Update(model);
-	}
-	else
+	if (!success)
 	{
 		text.clear();
 		data_entries.clear();
@@ -172,8 +168,6 @@ DataViewAttribute::DataViewAttribute(DataModel& model, Element* element, const S
 
 	if (attribute_name.empty())
 		InvalidateView();
-	else
-		Update(model);
 }
 
 bool DataViewAttribute::Update(DataModel& model)
@@ -204,8 +198,6 @@ DataViewStyle::DataViewStyle(DataModel& model, Element* element, const String& b
 	
 	if (variable_address.empty() || property_name.empty())
 		InvalidateView();
-	else
-		Update(model);
 }
 
 
@@ -235,8 +227,6 @@ DataViewIf::DataViewIf(DataModel& model, Element* element, const String& binding
 	variable_address = model.ResolveAddress(binding_name, element);
 	if (variable_address.empty())
 		InvalidateView();
-	else
-		Update(model);
 }
 
 
@@ -293,7 +283,6 @@ DataViewFor::DataViewFor(DataModel& model, Element* element, const String& in_bi
 	attributes = element->GetAttributes();
 	attributes.erase("data-for");
 	element->SetProperty(PropertyId::Display, Property(Style::Display::None));
-	Update(model);
 }
 
 
@@ -372,68 +361,70 @@ bool DataViews::Update(DataModel & model, const SmallUnorderedSet< String >& dir
 {
 	bool result = false;
 
-	std::vector<DataView*> dirty_views;
-
-	if(!views_to_add.empty())
+	// View updates may result in newly added views, thus we do it recursively but with an upper limit.
+	//   Without the loop, newly added views won't be updated until the next Update() call.
+	for(int i = 0; i == 0 || (!views_to_add.empty() && i < 10); i++)
 	{
-		views.reserve(views.size() + views_to_add.size());
-		for (auto&& view : views_to_add)
+		std::vector<DataView*> dirty_views;
+
+		if (!views_to_add.empty())
 		{
-			dirty_views.push_back(view.get());
-			for(const String& variable_name : view->GetVariableNameList())
-				name_view_map.emplace(variable_name, view.get());
-
-			views.push_back(std::move(view));
-		}
-		views_to_add.clear();
-	}
-
-	for(const String& variable_name : dirty_variables)
-	{
-		auto pair = name_view_map.equal_range(variable_name);
-		for (auto it = pair.first; it != pair.second; ++it)
-			dirty_views.push_back(it->second);
-	}
-
-	// Remove duplicate entries
-	std::sort(dirty_views.begin(), dirty_views.end());
-	auto it_remove = std::unique(dirty_views.begin(), dirty_views.end());
-	dirty_views.erase(it_remove, dirty_views.end());
-
-	// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's children.
-	// Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
-	std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetElementDepth() < right->GetElementDepth(); });
-
-	
-	// Todo: Newly created views won't actually be updated until next Update loop.
-	for (DataView* view : dirty_views)
-	{
-		RMLUI_ASSERT(view);
-		if (!view)
-			continue;
-
-		if (view->IsValid())
-			result |= view->Update(model);
-	}
-
-	// Destroy views marked for destruction
-	// @performance: Horrible...
-	if (!views_to_remove.empty())
-	{
-		for (const auto& view : views_to_remove)
-		{
-			for (auto it = name_view_map.begin(); it != name_view_map.end(); )
+			views.reserve(views.size() + views_to_add.size());
+			for (auto&& view : views_to_add)
 			{
-				if (it->second == view.get())
-					it = name_view_map.erase(it);
-				else
-					++it;
+				dirty_views.push_back(view.get());
+				for (const String& variable_name : view->GetVariableNameList())
+					name_view_map.emplace(variable_name, view.get());
+
+				views.push_back(std::move(view));
 			}
+			views_to_add.clear();
 		}
 
-		views_to_remove.clear();
-	}
+		for (const String& variable_name : dirty_variables)
+		{
+			auto pair = name_view_map.equal_range(variable_name);
+			for (auto it = pair.first; it != pair.second; ++it)
+				dirty_views.push_back(it->second);
+		}
 
+		// Remove duplicate entries
+		std::sort(dirty_views.begin(), dirty_views.end());
+		auto it_remove = std::unique(dirty_views.begin(), dirty_views.end());
+		dirty_views.erase(it_remove, dirty_views.end());
+
+		// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's children.
+		// Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
+		std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetElementDepth() < right->GetElementDepth(); });
+
+		for (DataView* view : dirty_views)
+		{
+			RMLUI_ASSERT(view);
+			if (!view)
+				continue;
+
+			if (view->IsValid())
+				result |= view->Update(model);
+		}
+
+		// Destroy views marked for destruction
+		// @performance: Horrible...
+		if (!views_to_remove.empty())
+		{
+			for (const auto& view : views_to_remove)
+			{
+				for (auto it = name_view_map.begin(); it != name_view_map.end(); )
+				{
+					if (it->second == view.get())
+						it = name_view_map.erase(it);
+					else
+						++it;
+				}
+			}
+
+			views_to_remove.clear();
+		}
+	}
 
 	return result;
 }

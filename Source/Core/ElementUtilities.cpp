@@ -388,9 +388,12 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 	// If we have an active data model, check the attributes for any data bindings
 	if (DataModel* data_model = element->GetDataModel())
 	{
+		// TODO: Iterate over the attributes BEFORE we create our views, as they may possibly change
+		//   the element's attributes, thereby invalidating the iterators -> undefined behavior.
+		
 		for (auto& attribute : element->GetAttributes())
 		{
-			auto& name = attribute.first;
+			const String& name = attribute.first;
 
 			if (name.size() > 5 && name[0] == 'd' && name[1] == 'a' && name[2] == 't' && name[3] == 'a' && name[4] == '-')
 			{
