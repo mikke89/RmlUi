@@ -43,6 +43,8 @@ namespace Core {
 class Element;
 class ElementText;
 class DataModel;
+class DataExpression;
+using DataExpressionPtr = UniquePtr<DataExpression>;
 
 class RMLUICORE_API DataView : NonCopyMoveable {
 public:
@@ -55,7 +57,7 @@ public:
 
 	Element* GetElement() const;
 	int GetElementDepth() const { return element_depth; }
-
+	
 protected:
 	DataView(Element* element);
 
@@ -69,24 +71,17 @@ private:
 class DataViewText final : public DataView {
 public:
 	DataViewText(DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
+	~DataViewText();
 
 	bool Update(DataModel& model) override;
+	StringList GetVariableNameList() const override;
 
-	StringList GetVariableNameList() const override {
-		StringList list;
-		for (auto& entry : data_entries)
-		{
-			if (!entry.variable_address.empty())
-				list.push_back(entry.variable_address.front().name);
-		}
-		return list;
-	}
 private:
 	String BuildText() const;
 
 	struct DataEntry {
 		size_t index = 0; // Index into 'text'
-		Address variable_address;
+		DataExpressionPtr data_expression;
 		String value;
 	};
 
@@ -99,44 +94,41 @@ private:
 class DataViewAttribute final : public DataView {
 public:
 	DataViewAttribute(DataModel& model, Element* element, const String& binding_name, const String& attribute_name);
+	~DataViewAttribute();
 
 	bool Update(DataModel& model) override;
 
-	StringList GetVariableNameList() const override {
-		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
-	}
+	StringList GetVariableNameList() const override;
 private:
-	Address variable_address;
 	String attribute_name;
+	DataExpressionPtr data_expression;
 };
 
 
 class DataViewStyle final : public DataView {
 public:
 	DataViewStyle(DataModel& model, Element* element, const String& binding_name, const String& property_name);
+	~DataViewStyle();
 
 	bool Update(DataModel& model) override;
 
-	StringList GetVariableNameList() const override {
-		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
-	}
+	StringList GetVariableNameList() const override;
 private:
-	Address variable_address;
 	String property_name;
+	DataExpressionPtr data_expression;
 };
 
 
 class DataViewIf final : public DataView {
 public:
 	DataViewIf(DataModel& model, Element* element, const String& binding_name);
+	~DataViewIf();
 
 	bool Update(DataModel& model) override;
 
-	StringList GetVariableNameList() const override {
-		return variable_address.empty() ? StringList() : StringList{ variable_address.front().name };
-	}
+	StringList GetVariableNameList() const override;
 private:
-	Address variable_address;
+	DataExpressionPtr data_expression;
 };
 
 

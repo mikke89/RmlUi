@@ -27,13 +27,12 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/DataModel.h"
-
+#include "../../Include/RmlUi/Core/DataView.h"
+#include "DataParser.h"
 
 namespace Rml {
 namespace Core {
-
 
 DataView::~DataView() {}
 
@@ -54,10 +53,11 @@ DataView::DataView(Element* element) : attached_element(element->GetObserverPtr(
 }
 
 
-DataViewText::DataViewText(DataModel& model, ElementText* in_parent_element, const String& in_text, const size_t index_begin_search) : DataView(in_parent_element)
+DataViewText::DataViewText(DataModel& model, ElementText* parent_element, const String& in_text, const size_t index_begin_search) : DataView(parent_element)
 {
 	text.reserve(in_text.size());
 
+	DataVariableInterface variable_interface(&model, parent_element);
 	bool success = true;
 
 	size_t previous_close_brackets = 0;
@@ -77,10 +77,10 @@ DataViewText::DataViewText(DataModel& model, ElementText* in_parent_element, con
 
 		DataEntry entry;
 		entry.index = text.size();
-		String address_str = StringUtilities::StripWhitespace(StringView(in_text.data() + begin_name, in_text.data() + end_name));
-		entry.variable_address = model.ResolveAddress(address_str, in_parent_element);
+		entry.data_expression = std::make_unique<DataExpression>(String(in_text.begin() + begin_name, in_text.begin() + end_name));
 
-		data_entries.push_back(std::move(entry));
+		if (entry.data_expression->Parse(variable_interface))
+			data_entries.push_back(std::move(entry));
 
 		previous_close_brackets = end_name + 2;
 		begin_brackets = previous_close_brackets;
@@ -100,14 +100,21 @@ DataViewText::DataViewText(DataModel& model, ElementText* in_parent_element, con
 	}
 }
 
+DataViewText::~DataViewText()
+{}
+
 bool DataViewText::Update(DataModel& model)
 {
 	bool entries_modified = false;
+	Element* element = GetElement();
+	DataVariableInterface variable_interface(&model, element);
 
 	for (DataEntry& entry : data_entries)
 	{
-		String value;
-		bool result = model.GetValue(entry.variable_address, value);
+		RMLUI_ASSERT(entry.data_expression);
+		Variant variant;
+		bool result = entry.data_expression->Run(variable_interface, variant);
+		const String value = variant.Get<String>();
 		if (result && entry.value != value)
 		{
 			entry.value = value;
@@ -134,6 +141,25 @@ bool DataViewText::Update(DataModel& model)
 	}
 
 	return entries_modified;
+}
+
+StringList DataViewText::GetVariableNameList() const
+{
+	StringList full_list;
+	full_list.reserve(data_entries.size());
+	
+	for (const DataEntry& entry : data_entries)
+	{
+		RMLUI_ASSERT(entry.data_expression);
+
+		StringList entry_list = entry.data_expression->GetVariableNameList();
+		full_list.insert(full_list.end(),
+			std::make_move_iterator(entry_list.begin()),
+			std::make_move_iterator(entry_list.end())
+		);
+	}
+
+	return full_list;
 }
 
 String DataViewText::BuildText() const
@@ -164,22 +190,27 @@ String DataViewText::BuildText() const
 DataViewAttribute::DataViewAttribute(DataModel& model, Element* element, const String& binding_name, const String& attribute_name)
 	: DataView(element), attribute_name(attribute_name)
 {
-	variable_address = model.ResolveAddress(binding_name, element);
+	data_expression = std::make_unique<DataExpression>(binding_name);
+	DataVariableInterface interface(&model, element);
 
-	if (attribute_name.empty())
+	if (!data_expression->Parse(interface))
 		InvalidateView();
 }
+DataViewAttribute::~DataViewAttribute()
+{}
 
 bool DataViewAttribute::Update(DataModel& model)
 {
 	bool result = false;
-	String value;
+	Variant variant;
 	Element* element = GetElement();
+	DataVariableInterface interface(&model, element);
 
-	if (model.GetValue(variable_address, value) && element)
+	if (element && data_expression->Run(interface, variant))
 	{
-		Variant* attribute = element->GetAttribute(attribute_name);
-
+		const String value = variant.Get<String>();
+		const Variant* attribute = element->GetAttribute(attribute_name);
+		
 		if (!attribute || (attribute && attribute->Get<String>() != value))
 		{
 			element->SetAttribute(attribute_name, value);
@@ -189,26 +220,36 @@ bool DataViewAttribute::Update(DataModel& model)
 	return result;
 }
 
+StringList DataViewAttribute::GetVariableNameList() const {
+	return data_expression ? data_expression->GetVariableNameList() : StringList();
+}
 
 
 DataViewStyle::DataViewStyle(DataModel& model, Element* element, const String& binding_name, const String& property_name)
 	: DataView(element), property_name(property_name)
 {
-	variable_address = model.ResolveAddress(binding_name, element);
-	
-	if (variable_address.empty() || property_name.empty())
+	data_expression = std::make_unique<DataExpression>(binding_name);
+	DataVariableInterface interface(&model, element);
+
+	if(!data_expression->Parse(interface))
 		InvalidateView();
+}
+
+DataViewStyle::~DataViewStyle()
+{
 }
 
 
 bool DataViewStyle::Update(DataModel& model)
 {
 	bool result = false;
-	String value;
+	Variant variant;
 	Element* element = GetElement();
-
-	if (model.GetValue(variable_address, value) && element)
+	DataVariableInterface interface(&model, element);
+	
+	if (element && data_expression->Run(interface, variant))
 	{
+		const String value = variant.Get<String>();
 		const Property* p = element->GetLocalProperty(property_name);
 		if (!p || p->Get<String>() != value)
 		{
@@ -219,26 +260,37 @@ bool DataViewStyle::Update(DataModel& model)
 	return result;
 }
 
+StringList DataViewStyle::GetVariableNameList() const {
+	return data_expression ? data_expression->GetVariableNameList() : StringList();
+}
+
 
 
 
 DataViewIf::DataViewIf(DataModel& model, Element* element, const String& binding_name) : DataView(element)
 {
-	variable_address = model.ResolveAddress(binding_name, element);
-	if (variable_address.empty())
+	data_expression = std::make_unique<DataExpression>(binding_name);
+	DataVariableInterface interface(&model, element);
+
+	if (!data_expression->Parse(interface))
 		InvalidateView();
 }
+
+DataViewIf::~DataViewIf()
+{}
 
 
 bool DataViewIf::Update(DataModel& model)
 {
 	bool result = false;
-	bool value = false;
+	Variant variant;
 	Element* element = GetElement();
+	DataVariableInterface interface(&model, element);
 
-	if (model.GetValue(variable_address, value) && element)
+	if (element && data_expression->Run(interface, variant))
 	{
-		bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
+		const bool value = variant.Get<bool>();
+		const bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
 		if(is_visible != value)
 		{
 			if (value)
@@ -249,6 +301,9 @@ bool DataViewIf::Update(DataModel& model)
 		}
 	}
 	return result;
+}
+StringList DataViewIf::GetVariableNameList() const {
+	return data_expression ? data_expression->GetVariableNameList() : StringList();
 }
 
 

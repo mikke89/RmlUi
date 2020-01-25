@@ -53,7 +53,7 @@ public:
 	bool InsertAlias(Element* element, const String& alias_name, Address replace_with_address);
 	bool EraseAliases(Element* element);
 
-	Address ResolveAddress(const String& address_str, Element* parent) const;
+	Address ResolveAddress(const String& address_str, Element* element) const;
 
 	Variable GetVariable(const Address& address) const;
 
@@ -62,6 +62,10 @@ public:
 		Variant variant;
 		Variable variable = GetVariable(address);
 		return variable && variable.Get(variant) && variant.GetInto<T>(out_value);
+	}
+	bool GetValue(const Address& address, Variant& out_value) const {
+		Variable variable = GetVariable(address);
+		return variable && variable.Get(out_value);
 	}
 
 	void DirtyVariable(const String& variable_name);

@@ -4,6 +4,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataParser.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.h
@@ -198,6 +199,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Core.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataController.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataModel.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataParser.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataVariable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Decorator.cpp

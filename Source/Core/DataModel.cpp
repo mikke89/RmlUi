@@ -69,6 +69,8 @@ static Address ParseAddress(const String& address_str)
 		// TODO: Abort on invalid characters among [ ] and after the last found bracket?
 	}
 
+	RMLUI_ASSERT(!address.empty() && !address[0].name.empty());
+
 	return address;
 };
 
@@ -117,12 +119,12 @@ bool DataModel::EraseAliases(Element* element)
 	return aliases.erase(element) == 1;
 }
 
-Address DataModel::ResolveAddress(const String& address_str, Element* parent) const
+Address DataModel::ResolveAddress(const String& address_str, Element* element) const
 {
 	Address address = ParseAddress(address_str);
 
-	if (address.empty() || address.front().name.empty())
-		return Address();
+	if (address.empty())
+		return address;
 
 	const String& first_name = address.front().name;
 
@@ -132,13 +134,13 @@ Address DataModel::ResolveAddress(const String& address_str, Element* parent) co
 
 	// Look for a variable alias for the first name.
 	
-	Element* ancestor = parent;
+	Element* ancestor = element;
 	while (ancestor && ancestor->GetDataModel() == this)
 	{
 		auto it_element = aliases.find(ancestor);
 		if (it_element != aliases.end())
 		{
-			auto& alias_names = it_element->second;
+			const auto& alias_names = it_element->second;
 			auto it_alias_name = alias_names.find(first_name);
 			if (it_alias_name != alias_names.end())
 			{
@@ -150,7 +152,7 @@ Address DataModel::ResolveAddress(const String& address_str, Element* parent) co
 				}
 
 				// Insert the full alias address, replacing the first element.
-				address[0] = std::move(replace_address[0]);
+				address[0] = replace_address[0];
 				address.insert(address.begin() + 1, replace_address.begin() + 1, replace_address.end());
 				return address;
 			}
