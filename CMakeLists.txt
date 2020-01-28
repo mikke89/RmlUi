@@ -64,7 +64,7 @@ else()
 endif()
 
 set(RMLUI_VERSION_SHORT ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}${RMLUI_VERSION_SUFFIX})
-add_compile_definitions(RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
+add_definitions(-DRMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 
 # paths
 include(GNUInstallDirs)
