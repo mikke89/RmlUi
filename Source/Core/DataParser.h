@@ -40,15 +40,16 @@ class Element;
 class DataModel;
 struct InstructionData;
 using Program = std::vector<InstructionData>;
-using AddressList = std::vector<Address>;
+using AddressList = std::vector<DataAddress>;
 
 class DataVariableInterface {
 public:
     DataVariableInterface() = default;
     DataVariableInterface(DataModel* data_model, Element* element);
 
-    Address ParseAddress(const String& address_str) const;
-    Variant GetValue(const Address& address) const;
+    DataAddress ParseAddress(const String& address_str) const;
+    Variant GetValue(const DataAddress& address) const;
+    bool CallTransform(const String& name, Variant& inout_result, const VariantList& arguments);
 
 private:
     DataModel* data_model = nullptr;

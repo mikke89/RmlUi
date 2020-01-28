@@ -52,6 +52,7 @@ enum class DataFunctionHandle : int {};
 
 using DataGetFunc = std::function<void(Variant&)>;
 using DataSetFunc = std::function<void(const Variant&)>;
+using DataTransformFunc = std::function<bool(Variant&, const VariantList&)>;
 
 template<typename T> using MemberGetFunc = void(T::*)(Variant&);
 template<typename T> using MemberSetFunc = void(T::*)(const Variant&);
@@ -63,7 +64,7 @@ struct AddressEntry {
 	String name;
 	int index;
 };
-using Address = std::vector<AddressEntry>;
+using DataAddress = std::vector<AddressEntry>;
 
 
 class RMLUICORE_API VariableDefinition {
@@ -311,8 +312,44 @@ private:
 
 
 
+
+
+class TransformFuncRegister {
+public:
+	void Register(const String& name, DataTransformFunc transform_func)
+	{
+		RMLUI_ASSERT(transform_func);
+		bool inserted = transform_functions.emplace(name, std::move(transform_func)).second;
+		if (!inserted)
+		{
+			Log::Message(Log::LT_ERROR, "Transform function '%s' already exists.", name.c_str());
+			RMLUI_ERROR;
+		}
+	}
+
+	bool Call(const String& name, Variant& inout_result, const VariantList& arguments) const
+	{
+		auto it = transform_functions.find(name);
+		if (it == transform_functions.end())
+			return false;
+
+		const DataTransformFunc& transform_func = it->second;
+		RMLUI_ASSERT(transform_func);
+
+		return transform_func(inout_result, arguments);
+	}
+
+private:
+	UnorderedMap<String, DataTransformFunc> transform_functions;
+};
+
+
+
 class DataTypeRegister : NonCopyMoveable {
 public:
+	DataTypeRegister();
+	~DataTypeRegister();
+
 	template<typename T>
 	StructHandle<T> RegisterStruct()
 	{
@@ -423,10 +460,18 @@ public:
 		return it->second.get();
 	}
 
+	TransformFuncRegister* GetTransformFuncRegister() {
+		return &transform_register;
+	}
+
+
 private:
 	UnorderedMap<DataFunctionHandle, UniquePtr<FuncDefinition>> functions;
 
 	UnorderedMap<FamilyId, UniquePtr<VariableDefinition>> type_register;
+
+	TransformFuncRegister transform_register;
+
 };
 
 

@@ -33,22 +33,22 @@ namespace Rml {
 namespace Core {
 
 
-static Address ParseAddress(const String& address_str)
+static DataAddress ParseAddress(const String& address_str)
 {
 	StringList list;
 	StringUtilities::ExpandString(list, address_str, '.');
 
-	Address address;
+	DataAddress address;
 	address.reserve(list.size() * 2);
 
 	for (const auto& item : list)
 	{
 		if (item.empty())
-			return Address();
+			return DataAddress();
 
 		size_t i_open = item.find('[', 0);
 		if (i_open == 0)
-			return Address();
+			return DataAddress();
 
 		address.emplace_back(item.substr(0, i_open));
 
@@ -56,11 +56,11 @@ static Address ParseAddress(const String& address_str)
 		{
 			size_t i_close = item.find(']', i_open + 1);
 			if (i_close == String::npos)
-				return Address();
+				return DataAddress();
 
 			int index = FromString<int>(item.substr(i_open + 1, i_close - i_open), -1);
 			if (index < 0)
-				return Address();
+				return DataAddress();
 
 			address.emplace_back(index);
 
@@ -92,7 +92,7 @@ bool DataModel::BindVariable(const String& name, Variable variable)
 	return true;
 }
 
-bool DataModel::InsertAlias(Element* element, const String& alias_name, Address replace_with_address)
+bool DataModel::InsertAlias(Element* element, const String& alias_name, DataAddress replace_with_address)
 {
 	if (replace_with_address.empty() || replace_with_address.front().name.empty())
 	{
@@ -103,7 +103,7 @@ bool DataModel::InsertAlias(Element* element, const String& alias_name, Address 
 	if (variables.count(alias_name) == 1)
 		Log::Message(Log::LT_WARNING, "Alias variable '%s' is shadowed by a global variable.", alias_name.c_str());
 
-	auto& map = aliases.emplace(element, SmallUnorderedMap<String, Address>()).first->second;
+	auto& map = aliases.emplace(element, SmallUnorderedMap<String, DataAddress>()).first->second;
 	
 	auto it = map.find(alias_name);
 	if (it != map.end())
@@ -119,9 +119,9 @@ bool DataModel::EraseAliases(Element* element)
 	return aliases.erase(element) == 1;
 }
 
-Address DataModel::ResolveAddress(const String& address_str, Element* element) const
+DataAddress DataModel::ResolveAddress(const String& address_str, Element* element) const
 {
-	Address address = ParseAddress(address_str);
+	DataAddress address = ParseAddress(address_str);
 
 	if (address.empty())
 		return address;
@@ -144,11 +144,11 @@ Address DataModel::ResolveAddress(const String& address_str, Element* element) c
 			auto it_alias_name = alias_names.find(first_name);
 			if (it_alias_name != alias_names.end())
 			{
-				const Address& replace_address = it_alias_name->second;
+				const DataAddress& replace_address = it_alias_name->second;
 				if (replace_address.empty() || replace_address.front().name.empty())
 				{
 					// Variable alias is invalid
-					return Address();
+					return DataAddress();
 				}
 
 				// Insert the full alias address, replacing the first element.
@@ -163,10 +163,10 @@ Address DataModel::ResolveAddress(const String& address_str, Element* element) c
 
 	Log::Message(Log::LT_WARNING, "Could not find variable name '%s' in data model.", address_str.c_str());
 
-	return Address();
+	return DataAddress();
 }
 
-Variable DataModel::GetVariable(const Address& address) const
+Variable DataModel::GetVariable(const DataAddress& address) const
 {
 	if (address.empty() || address.front().name.empty())
 		return Variable();
@@ -195,6 +195,13 @@ void DataModel::DirtyVariable(const String& variable_name)
 
 bool DataModel::IsVariableDirty(const String& variable_name) const {
 	return (dirty_variables.count(variable_name) == 1);
+}
+
+bool DataModel::CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const
+{
+	if (transform_register)
+		return transform_register->Call(name, inout_result, arguments);
+	return false;
 }
 
 void DataModel::OnElementRemove(Element* element)
@@ -276,7 +283,7 @@ static struct TestDataVariables {
 
 			for (auto& str_address : test_addresses)
 			{
-				Address address = ParseAddress(str_address);
+				DataAddress address = ParseAddress(str_address);
 
 				String result;
 				if(model.GetValue<String>(address, result))

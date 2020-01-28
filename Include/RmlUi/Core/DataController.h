@@ -61,7 +61,7 @@ public:
 protected:
 	DataController(Element* element);
 
-	void SetAddress(Address new_address) {
+	void SetAddress(DataAddress new_address) {
 		address = std::move(new_address);
 	}
 
@@ -70,7 +70,7 @@ protected:
 
 private:
 	ObserverPtr<Element> attached_element;
-	Address address;
+	DataAddress address;
 	Variant value;
 };
 

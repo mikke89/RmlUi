@@ -49,5 +49,31 @@ Variable VariableDefinition::GetChild(void* ptr, const AddressEntry& address) {
     return Variable();
 }
 
+
+
+DataTypeRegister::DataTypeRegister()
+{
+    // Add default transform functions.
+
+	transform_register.Register("to_lower", [](Variant& variant, const VariantList& arguments) -> bool {
+		String value;
+		if (!variant.GetInto(value))
+			return false;
+		variant = StringUtilities::ToLower(value);
+		return true;
+	});
+
+	transform_register.Register("to_upper", [](Variant& variant, const VariantList& arguments) -> bool {
+		String value;
+		if (!variant.GetInto(value))
+			return false;
+		variant = StringUtilities::ToUpper(value);
+		return true;
+	});
+}
+
+DataTypeRegister::~DataTypeRegister()
+{}
+
 }
 }

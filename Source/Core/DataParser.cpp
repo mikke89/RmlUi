@@ -103,7 +103,7 @@ namespace Parse {
 
 class DataParser {
 public:
-	DataParser(String expression, DataVariableInterface variable_interface = {}) : expression(std::move(expression)), variable_interface(variable_interface) {}
+	DataParser(String expression, DataVariableInterface variable_interface) : expression(std::move(expression)), variable_interface(variable_interface) {}
 
 	char Look() {
 		if (reached_end)
@@ -135,35 +135,36 @@ public:
 			c = Next();
 	}
 
-	void Error(String message)
+	void Error(const String message)
 	{
 		parse_error = true;
-		message = CreateString(message.size() + expression.size() + 50, "Error in expression '%s' at %d. %s", expression.c_str(), index, message.c_str());
-		Log::Message(Log::LT_WARNING, message.c_str());
+		Log::Message(Log::LT_WARNING, "Error in data expression at %d. %s", index, message.c_str());
+		Log::Message(Log::LT_WARNING, "  \"%s\"", expression.c_str());
 		
-		const size_t cursor_offset = size_t(index) + sizeof("Error in expression ");
+		const size_t cursor_offset = size_t(index) + 3;
 		const String cursor_string = String(cursor_offset, ' ') + '^';
 		Log::Message(Log::LT_WARNING, cursor_string.c_str());
 	}
-	void Expected(char expected) {
-		char c = Look();
-		if (c == '\0')
-			Error(CreateString(50, "Expected '%c' but found end of string.", expected));
-		else
-			Error(CreateString(50, "Expected '%c' but found '%c'.", expected, c));
-	}
 	void Expected(String expected_symbols) {
-		Error(CreateString(expected_symbols.size() + 50, "Expected %s but found character '%c'.", expected_symbols.c_str(), Look()));
+		const char c = Look();
+		if (c == '\0')
+			Error(CreateString(expected_symbols.size() + 50, "Expected %s but found end of string.", expected_symbols.c_str()));
+		else
+			Error(CreateString(expected_symbols.size() + 50, "Expected %s but found character '%c'.", expected_symbols.c_str(), c));
+	}
+	void Expected(char expected) {
+		Expected(String(1, '\'') + expected + '\'');
 	}
 
 	bool Parse() 
 	{
-		Log::Message(Log::LT_DEBUG, "Parsing expression: %s", expression.c_str());
 		program.clear();
 		variable_addresses.clear();
 		index = 0;
 		reached_end = false;
 		parse_error = false;
+		if (expression.empty())
+			reached_end = true;
 
 		SkipWhitespace();
 		Parse::Expression(*this);
@@ -172,8 +173,10 @@ public:
 			parse_error = true;
 			Error(CreateString(50, "Unexpected character '%c' encountered.", Look()));
 		}
-		if (!parse_error)
-			Log::Message(Log::LT_DEBUG, "Finished parsing expression! Instructions: %d   Stack depth: %d", program.size(), program_stack_size);
+		if (!parse_error && program_stack_size != 0) {
+			parse_error = true;
+			Error(CreateString(120, "Internal parser error, inconsistent stack operations. Stack size is %d at parse end.", program_stack_size));
+		}
 
 		return !parse_error;
 	}
@@ -215,9 +218,9 @@ public:
 		program.push_back(InstructionData{ Instruction::Arguments, Variant(int(num_arguments)) });
 	}
 	void Variable(const String& name) {
-		Address address = variable_interface.ParseAddress(name);
+		DataAddress address = variable_interface.ParseAddress(name);
 		if (address.empty()) {
-			Error(CreateString(name.size() + 50, "Invalid variable name '%s'.", name.c_str()));
+			Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
 			return;
 		}
 		int index = int(variable_addresses.size());
@@ -652,6 +655,16 @@ namespace Parse {
 
 
 
+static String DumpProgram(const Program& program)
+{
+	String str;
+	for (size_t i = 0; i < program.size(); i++)
+	{
+		String instruction_str = program[i].data.Get<String>();
+		str += CreateString(instruction_str.size(), "  %4d  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
+	}
+	return str;
+}
 
 
 class DataInterpreter {
@@ -668,8 +681,6 @@ public:
 
 	bool Run()
 	{
-		Log::Message(Log::LT_DEBUG, "Executing program");
-		DumpProgram();
 		bool success = true;
 		for (size_t i = 0; i < program.size(); i++)
 		{
@@ -680,15 +691,15 @@ public:
 			}
 		}
 
-		if (success)
-			Log::Message(Log::LT_DEBUG, "Successfully finished execution of program with %d instructions.", program.size());
-		else
-			Log::Message(Log::LT_WARNING, "Failed executing program with %d instructions.", program.size());
+		if(success && !stack.empty())
+			Log::Message(Log::LT_WARNING, "Possible data interpreter stack corruption. Stack size is %d at end of execution (should be zero).", stack.size());
 
-		Log::Message(Log::LT_DEBUG, "R: %s", R.Get<String>().c_str());
-		Log::Message(Log::LT_DEBUG, "L: %s", L.Get<String>().c_str());
-		Log::Message(Log::LT_DEBUG, "C: %s", C.Get<String>().c_str());
-		Log::Message(Log::LT_DEBUG, "Stack #: %d", stack.size());
+		if(!success)
+		{
+			String program_str = DumpProgram(program);
+			Log::Message(Log::LT_WARNING, "Failed to execute program with %d instructions:", program.size());
+			Log::Message(Log::LT_WARNING, program_str.c_str());
+		}
 
 		return success;
 	}
@@ -697,15 +708,6 @@ public:
 		return R;
 	}
 
-	void DumpProgram()
-	{
-		int i = 0;
-		for (auto& instruction : program)
-		{
-			Log::Message(Log::LT_DEBUG, "  %4d  '%c'  %s", i, char(instruction.instruction), instruction.data.Get<String>().c_str());
-			i++;
-		}
-	}
 
 private:
 	Variant R, L, C;
@@ -741,7 +743,7 @@ private:
 			case Register::L:  L = stack.top(); stack.pop(); break;
 			case Register::C:  C = stack.top(); stack.pop(); break;
 			default:
-				return Error(CreateString(50, "Invalid register %d", int(reg)));
+				return Error(CreateString(50, "Invalid register %d.", int(reg)));
 			}
 		}
 		break;
@@ -767,16 +769,16 @@ private:
 				R = Variant(L.Get<double>() + R.Get<double>());
 		}
 		break;
-		case Instruction::Subtract: R = Variant(L.Get<double>() - R.Get<double>()); break;
-		case Instruction::Multiply: R = Variant(L.Get<double>() * R.Get<double>()); break;
-		case Instruction::Divide:   R = Variant(L.Get<double>() / R.Get<double>()); break;
-		case Instruction::Not:      R = Variant(!R.Get<bool>()); break;
-		case Instruction::And:      R = Variant(L.Get<bool>() && R.Get<bool>());  break;
-		case Instruction::Or:       R = Variant(L.Get<bool>() || R.Get<bool>());  break;
-		case Instruction::Less:       R = Variant(L.Get<double>() < R.Get<double>());  break;
-		case Instruction::LessEq:     R = Variant(L.Get<double>() <= R.Get<double>()); break;
-		case Instruction::Greater:    R = Variant(L.Get<double>() > R.Get<double>());  break;
-		case Instruction::GreaterEq:  R = Variant(L.Get<double>() >= R.Get<double>()); break;
+		case Instruction::Subtract:  R = Variant(L.Get<double>() - R.Get<double>());  break;
+		case Instruction::Multiply:  R = Variant(L.Get<double>() * R.Get<double>());  break;
+		case Instruction::Divide:    R = Variant(L.Get<double>() / R.Get<double>());  break;
+		case Instruction::Not:       R = Variant(!R.Get<bool>());                     break;
+		case Instruction::And:       R = Variant(L.Get<bool>() && R.Get<bool>());     break;
+		case Instruction::Or:        R = Variant(L.Get<bool>() || R.Get<bool>());     break;
+		case Instruction::Less:      R = Variant(L.Get<double>() < R.Get<double>());  break;
+		case Instruction::LessEq:    R = Variant(L.Get<double>() <= R.Get<double>()); break;
+		case Instruction::Greater:   R = Variant(L.Get<double>() > R.Get<double>());  break;
+		case Instruction::GreaterEq: R = Variant(L.Get<double>() >= R.Get<double>()); break;
 		case Instruction::Equal:
 		{
 			if (AnyString(L, R))
@@ -802,7 +804,7 @@ private:
 		case Instruction::Arguments:
 		{
 			if (!arguments.empty())
-				return Error("Invalid program: Argument stack is not empty.");
+				return Error("Argument stack is not empty.");
 
 			int num_arguments = data.Get<int>(-1);
 			if (num_arguments < 0)
@@ -821,16 +823,19 @@ private:
 		case Instruction::Function:
 		{
 			const String function_name = data.Get<String>();
-
-			String arguments_str;
-			for (size_t i = 0; i < arguments.size(); i++)
+			
+			if (!variable_interface.CallTransform(function_name, R, arguments))
 			{
-				arguments_str += arguments[i].Get<String>();
-				if (i < arguments.size() - 1)
-					arguments_str += ", ";
+				String arguments_str;
+				for (size_t i = 0; i < arguments.size(); i++)
+				{
+					arguments_str += arguments[i].Get<String>();
+					if (i < arguments.size() - 1)
+						arguments_str += ", ";
+				}
+				Error(CreateString(50 + function_name.size() + arguments_str.size(), "Failed to execute data function: %s(%s)", function_name.c_str(), arguments_str.c_str()));
 			}
-			// TODO: execute function
-			Log::Message(Log::LT_DEBUG, "Executing '%s' with %d argument(s): %s(%s)", function_name.c_str(), arguments.size(), function_name.c_str(), arguments_str.c_str());
+
 			arguments.clear();
 		}
 		break;
@@ -846,29 +851,36 @@ private:
 
 
 struct TestParser {
-	TestParser() {
+	TestParser() : model(type_register.GetTransformFuncRegister())
+	{
+		DataModelHandle handle(&model, &type_register);
+		handle.Bind("color_name", &color_name);
+		handle.BindFunc("color_value", [this](Rml::Core::Variant& variant) {
+			variant = ToString(color_value);
+		});
 
-		//DataParser("'hello' + ' ' + 'world'").Parse();
-		//DataParser("5+(1+2)").Parse();
-		//DataParser("5.2 + 19 + 'test'").Parse();
-		//DataParser("(color_name) + (': rgba(' + color_value + ')')").Parse();
-		//DataParser("!!10 - 1 ? 'hello' : 'world'").Parse();
-		//int test = 1 + (true ? 0-5 : 10 + 5);
-		//DataParser("1 + (true ? 0-5 : 10 + 5)").Parse();
 		String result;
-		result = TestExpression("'hello world' | uppercase(5 + 12 == 17 ? 'yes' : 'no', 9*2)");
-		result = TestExpression(R"('hello wor\'ld')");
-
-		String alt = "hello wor\ld";
-
+		result = TestExpression("!!10 - 1 ? 'hello' : 'world' | to_upper");
+		result = TestExpression("(color_name) + (': rgba(' + color_value + ')')");
+		result = TestExpression("'hello world' | to_upper(5 + 12 == 17 ? 'yes' : 'no', 9*2)");
+		result = TestExpression("true == false");
+		result = TestExpression("true != false");
+		result = TestExpression("true");
+		result = TestExpression(R"(true || false ? (true && true ? 'Absolutely!' : 'well..') : 'no')");
+		result = TestExpression("2 * 2");
+		result = TestExpression("50000 / 1500");
+		result = TestExpression("5*1+2");
+		result = TestExpression("5*(1+2)");
+		result = TestExpression("5.2 + 19 + 'px'");
 	}
 
 	String TestExpression(String expression)
 	{
-		DataParser parser(expression);
+		DataVariableInterface interface(&model, nullptr);
+
+		DataParser parser(expression, interface);
 		if (parser.Parse())
 		{
-			DataVariableInterface interface;
 			Program program = parser.ReleaseProgram();
 			AddressList addresses = parser.ReleaseAddresses();
 
@@ -878,6 +890,12 @@ struct TestParser {
 		}
 		return "<invalid expression>";
 	};
+
+	DataTypeRegister type_register;
+	DataModel model;
+
+	String color_name = "color";
+	Colourb color_value = Colourb(180, 100, 255);
 };
 
 
@@ -897,7 +915,6 @@ bool DataExpression::Parse(const DataVariableInterface& variable_interface)
 	// TODO:
 	//  3. Create a plug-in wrapper for use by scripting languages to replace this parser. Design wrapper as for events.
 	//  5. Add tests
-	//  6. Function callback
 
 	DataParser parser(expression, variable_interface);
 	if (!parser.Parse())
@@ -924,7 +941,7 @@ StringList DataExpression::GetVariableNameList() const
 {
 	StringList list;
 	list.reserve(addresses.size());
-	for (const Address& address : addresses)
+	for (const DataAddress& address : addresses)
 	{
 		if (!address.empty())
 			list.push_back(address[0].name);
@@ -935,14 +952,19 @@ StringList DataExpression::GetVariableNameList() const
 DataVariableInterface::DataVariableInterface(DataModel* data_model, Element* element) : data_model(data_model), element(element)
 {}
 
-Address DataVariableInterface::ParseAddress(const String& address_str) const {
-	return data_model ? data_model->ResolveAddress(address_str, element) : Address();
+DataAddress DataVariableInterface::ParseAddress(const String& address_str) const {
+	return data_model ? data_model->ResolveAddress(address_str, element) : DataAddress();
 }
-Variant DataVariableInterface::GetValue(const Address& address) const {
+Variant DataVariableInterface::GetValue(const DataAddress& address) const {
 	Variant result;
 	if (data_model)
 		data_model->GetValue(address, result);
 	return result;
+}
+
+bool DataVariableInterface::CallTransform(const String& name, Variant& inout_variant, const VariantList& arguments)
+{
+	return data_model ? data_model->CallTransform(name, inout_variant, arguments) : false;
 }
 
 }

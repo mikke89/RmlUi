@@ -143,7 +143,7 @@ public:
 	}
 
 private:
-	Address variable_address;
+	DataAddress variable_address;
 	String alias_name;
 	String rml_contents;
 	ElementAttributes attributes;

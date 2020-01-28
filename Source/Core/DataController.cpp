@@ -57,7 +57,7 @@ bool DataController::UpdateVariable(DataModel& model)
 
 DataControllerValue::DataControllerValue(DataModel& model, Element* element, const String& in_value_name) : DataController(element)
 {
-    Address variable_address = model.ResolveAddress(in_value_name, element);
+    DataAddress variable_address = model.ResolveAddress(in_value_name, element);
 
     if (model.GetVariable(variable_address) && !variable_address.empty())
     {

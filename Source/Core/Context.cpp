@@ -790,18 +790,15 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 
 DataModelHandle Context::CreateDataModel(const String& name)
 {
-	auto result = data_models.emplace(name, std::make_unique<DataModel>());
+	if (!data_type_register)
+		data_type_register = std::make_unique<DataTypeRegister>();
+
+	auto result = data_models.emplace(name, std::make_unique<DataModel>(data_type_register->GetTransformFuncRegister()));
 	bool inserted = result.second;
 	if (inserted)
-	{
-		if (!data_type_register)
-			data_type_register = std::make_unique<DataTypeRegister>();
-
 		return DataModelHandle(result.first->second.get(), data_type_register.get());
-	}
 
 	RMLUI_ERRORMSG("Data model name already exists.")
-
 	return DataModelHandle();
 }
 

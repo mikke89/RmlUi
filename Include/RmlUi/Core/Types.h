@@ -157,6 +157,7 @@ using SmallUnorderedSet = chobo::flat_set< T >;
 // Container types for common classes
 using ElementList = std::vector< Element* >;
 using OwnedElementList = std::vector< ElementPtr >;
+using VariantList = std::vector< Variant >;
 using ElementAnimationList = std::vector< ElementAnimation >;
 
 using PseudoClassList = SmallUnorderedSet< String >;

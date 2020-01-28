@@ -94,6 +94,18 @@ String StringUtilities::ToLower(const String& string) {
 	return str_lower;
 }
 
+String StringUtilities::ToUpper(const String& string)
+{
+	String str_upper = string;
+	std::transform(str_upper.begin(), str_upper.end(), str_upper.begin(), [](char c) {
+		if (c >= 'a' && c <= 'z')
+			c -= char('a' - 'A');
+		return c;
+		}
+	);
+	return str_upper;
+}
+
 RMLUICORE_API String StringUtilities::EncodeRml(const String& string)
 {
 	String result;

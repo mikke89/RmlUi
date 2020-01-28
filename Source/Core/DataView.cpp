@@ -359,7 +359,7 @@ bool DataViewFor::Update(DataModel& model)
 		{
 			ElementPtr new_element_ptr = Factory::InstanceElement(nullptr, element->GetTagName(), element->GetTagName(), attributes);
 
-			Address replacement_address;
+			DataAddress replacement_address;
 			replacement_address.reserve(variable_address.size() + 1);
 			replacement_address = variable_address;
 			replacement_address.push_back(AddressEntry(i));

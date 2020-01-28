@@ -45,31 +45,35 @@ class Element;
 
 class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
+	DataModel(const TransformFuncRegister* transform_register = nullptr) : transform_register(transform_register) {}
+
 	void AddView(UniquePtr<DataView> view) { views.Add(std::move(view)); }
 	void AddController(UniquePtr<DataController> controller) { controllers.Add(std::move(controller)); }
 
 	bool BindVariable(const String& name, Variable variable);
 
-	bool InsertAlias(Element* element, const String& alias_name, Address replace_with_address);
+	bool InsertAlias(Element* element, const String& alias_name, DataAddress replace_with_address);
 	bool EraseAliases(Element* element);
 
-	Address ResolveAddress(const String& address_str, Element* element) const;
+	DataAddress ResolveAddress(const String& address_str, Element* element) const;
 
-	Variable GetVariable(const Address& address) const;
+	Variable GetVariable(const DataAddress& address) const;
 
 	template<typename T>
-	bool GetValue(const Address& address, T& out_value) const {
+	bool GetValue(const DataAddress& address, T& out_value) const {
 		Variant variant;
 		Variable variable = GetVariable(address);
 		return variable && variable.Get(variant) && variant.GetInto<T>(out_value);
 	}
-	bool GetValue(const Address& address, Variant& out_value) const {
+	bool GetValue(const DataAddress& address, Variant& out_value) const {
 		Variable variable = GetVariable(address);
 		return variable && variable.Get(out_value);
 	}
 
 	void DirtyVariable(const String& variable_name);
 	bool IsVariableDirty(const String& variable_name) const;
+
+	bool CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const;
 
 	void OnElementRemove(Element* element);
 	void DirtyController(Element* element);
@@ -83,8 +87,10 @@ private:
 	UnorderedMap<String, Variable> variables;
 	SmallUnorderedSet<String> dirty_variables;
 
-	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, Address>>;
+	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, DataAddress>>;
 	ScopedAliases aliases;
+
+	const TransformFuncRegister* transform_register;
 };
 
 
@@ -134,6 +140,11 @@ public:
 	template<typename Container>
 	bool RegisterArray() {
 		return type_register->RegisterArray<Container>();
+	}
+
+
+	void RegisterTransformFunc(const String& name, DataTransformFunc transform_func) {
+		type_register->GetTransformFuncRegister()->Register(name, std::move(transform_func));
 	}
 
 	explicit operator bool() { return model && type_register; }
