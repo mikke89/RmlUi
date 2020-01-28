@@ -137,7 +137,7 @@ bool DataQuery::NextRow()
 bool DataQuery::IsFieldSet(const Rml::Core::String& field) const
 {
 	FieldIndices::const_iterator itr = field_indices.find(field);
-	if (itr == field_indices.end() || (*itr).second >= (int)rows[current_row].size())
+	if (itr == field_indices.end() || (*itr).second >= rows[current_row].size())
 	{
 		return false;
 	}
