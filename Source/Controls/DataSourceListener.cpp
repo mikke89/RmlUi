@@ -95,7 +95,7 @@ bool DataSourceListener::ParseDataSource(DataSource*& data_source, Rml::Core::St
 	Rml::Core::StringList data_source_parts;
 	Rml::Core::StringUtilities::ExpandString(data_source_parts, data_source_name, '.');
 
-	DataSource* new_data_source = DataSource::GetDataSource(data_source_parts[0].c_str());
+	DataSource* new_data_source = DataSource::GetDataSource(data_source_parts[0]);
 
 	if (data_source_parts.size() != 2 || !new_data_source)
 	{
