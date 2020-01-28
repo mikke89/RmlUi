@@ -270,6 +270,61 @@ RMLUICORE_API String StringUtilities::StripWhitespace(StringView string)
 	return String();
 }
 
+void StringUtilities::TrimTrailingDotZeros(String& string)
+{
+	RMLUI_ASSERTMSG(string.find('.') != String::npos, "This function probably does not do what you want if the string is not a number with a decimal point.")
+
+	size_t new_size = string.size();
+	for (size_t i = string.size() - 1; i < string.size(); i--)
+	{
+		if (string[i] == '.')
+		{
+			new_size = i;
+			break;
+		}
+		else if (string[i] == '0')
+			new_size = i;
+		else
+			break;
+	}
+
+	if (new_size < string.size())
+		string.resize(new_size);
+}
+
+#ifdef RMLUI_DEBUG
+static struct TestTrimTrailingDotZeros {
+	TestTrimTrailingDotZeros() {
+		auto test = [](const String test_string, const String expected) {
+			String result = test_string;
+			StringUtilities::TrimTrailingDotZeros(result);
+			RMLUI_ASSERT(result == expected);
+		};
+		
+		test("0.1", "0.1");
+		test("0.10", "0.1");
+		test("0.1000", "0.1");
+		test("0.01", "0.01");
+		test("0.", "0");
+		test("5.", "5");
+		test("5.5", "5.5");
+		test("5.50", "5.5");
+		test("5.501", "5.501");
+		test("10.0", "10");
+		test("11.0", "11");
+
+		// Some test cases for behavior that are probably not what you want.
+		//test("test0", "test");
+		//test("1000", "1");
+		//test(".", "");
+		//test("0", "");
+		//test(".0", "");
+		//test(" 11 2121 3.00", " 11 2121 3");
+		//test("11", "11");
+	}
+} test_trim_trailing_dot_zeros;
+#endif
+
 bool StringUtilities::StringCompareCaseInsensitive(const StringView lhs, const StringView rhs)
 {
 	if (lhs.size() != rhs.size())

@@ -259,7 +259,10 @@ class TypeConverter< type, String > \
 public: \
 	static bool Convert(const type& src, String& dest) \
 	{ \
-		return FormatString(dest, 32, "%.4f", src) > 0; \
+		if(FormatString(dest, 32, "%.3f", src) == 0) \
+			return false; \
+		StringUtilities::TrimTrailingDotZeros(dest); \
+		return true; \
 	} \
 };
 FLOAT_STRING_CONVERTER(float);

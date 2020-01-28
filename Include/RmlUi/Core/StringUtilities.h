@@ -94,6 +94,10 @@ namespace StringUtilities
 	/// Strip whitespace characters from the beginning and end of a string.
 	RMLUICORE_API String StripWhitespace(StringView string);
 
+	/// Trim trailing zeros and the dot from a string-representation of a number with a decimal point.
+	/// @warning If the string does not represent a number _with_ a decimal point, the result will probably not be as desired.
+	RMLUICORE_API void TrimTrailingDotZeros(String& string);
+
 	/// Case insensitive string comparison. Returns true if they compare equal.
 	RMLUICORE_API bool StringCompareCaseInsensitive(StringView lhs, StringView rhs);
 
