@@ -37,6 +37,7 @@ namespace Rml {
 namespace Core {
 
 class Stream;
+using XMLAttributes = Dictionary;
 
 /**
 	@author Peter Curry
@@ -92,11 +93,11 @@ class RMLUICORE_API BaseXMLParser
 		bool FindWord(String& word, const char* terminators = nullptr);
 		// Reads from the stream until the given character set is found. All
 		// intervening characters will be returned in data.
-		bool FindString(const unsigned char* string, String& data);
+		bool FindString(const char* string, String& data, bool escape_brackets = false);
 		// Returns true if the next sequence of characters in the stream
 		// matches the given string. If consume is set and this returns true,
 		// the characters will be consumed.
-		bool PeekString(const unsigned char* string, bool consume = true);
+		bool PeekString(const char* string, bool consume = true);
 
 		// Fill the buffer as much as possible, without removing any content that is still pending
 		bool FillBuffer();

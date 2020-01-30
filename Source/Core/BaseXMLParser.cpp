@@ -116,10 +116,10 @@ void BaseXMLParser::TreatElementContentAsCDATA()
 
 void BaseXMLParser::ReadHeader()
 {
-	if (PeekString((unsigned char*) "<?"))
+	if (PeekString("<?"))
 	{
 		String temp;
-		FindString((unsigned char*) ">", temp);
+		FindString(">", temp);
 	}
 }
 
@@ -133,25 +133,25 @@ void BaseXMLParser::ReadBody()
 	for(;;)
 	{
 		// Find the next open tag.
-		if (!FindString((unsigned char*) "<", data))
+		if (!FindString("<", data, true))
 			break;
 
 		// Check what kind of tag this is.
-		if (PeekString((const unsigned char*) "!--"))
+		if (PeekString("!--"))
 		{
 			// Comment.
 			String temp;
-			if (!FindString((const unsigned char*) "-->", temp))
+			if (!FindString("-->", temp))
 				break;
 		}
-		else if (PeekString((const unsigned char*) "![CDATA["))
+		else if (PeekString("![CDATA["))
 		{
 			// CDATA tag; read everything (including markup) until the ending
 			// CDATA tag.
 			if (!ReadCDATA())
 				break;
 		}
-		else if (PeekString((const unsigned char*) "/"))
+		else if (PeekString("/"))
 		{
 			if (!ReadCloseTag())
 				break;
@@ -199,14 +199,14 @@ bool BaseXMLParser::ReadOpenTag()
 
 	bool section_opened = false;
 
-	if (PeekString((const unsigned char*) ">"))
+	if (PeekString(">"))
 	{
 		// Simple open tag.
 		HandleElementStart(tag_name, XMLAttributes());
 		section_opened = true;
 	}
-	else if (PeekString((const unsigned char*) "/") &&
-			 PeekString((const unsigned char*) ">"))
+	else if (PeekString("/") &&
+			 PeekString(">"))
 	{
 		// Empty open tag.
 		HandleElementStart(tag_name, XMLAttributes());
@@ -222,13 +222,13 @@ bool BaseXMLParser::ReadOpenTag()
 		if (!ReadAttributes(attributes))
 			return false;
 
-		if (PeekString((const unsigned char*) ">"))
+		if (PeekString(">"))
 		{
 			HandleElementStart(tag_name, attributes);
 			section_opened = true;
 		}
-		else if (PeekString((const unsigned char*) "/") &&
-				 PeekString((const unsigned char*) ">"))
+		else if (PeekString("/") &&
+				 PeekString(">"))
 		{
 			HandleElementStart(tag_name, attributes);
 			HandleElementEnd(tag_name);
@@ -280,7 +280,7 @@ bool BaseXMLParser::ReadCloseTag()
 	}
 
 	String tag_name;
-	if (!FindString((const unsigned char*) ">", tag_name))
+	if (!FindString(">", tag_name))
 		return false;
 
 	HandleElementEnd(StringUtilities::StripWhitespace(tag_name));
@@ -305,16 +305,16 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 		}
 		
 		// Check if theres an assigned value
-		if (PeekString((const unsigned char*)"="))
+		if (PeekString("="))
 		{
-			if (PeekString((const unsigned char*) "\""))
+			if (PeekString("\""))
 			{
-				if (!FindString((const unsigned char*) "\"", value))
+				if (!FindString("\"", value))
 					return false;
 			}
-			else if (PeekString((const unsigned char*) "'"))
+			else if (PeekString("'"))
 			{
-				if (!FindString((const unsigned char*) "'", value))
+				if (!FindString("'", value))
 					return false;
 			}
 			else if (!FindWord(value, "/>"))
@@ -326,8 +326,8 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
  		attributes[attribute] = value;
 
 		// Check for the end of the tag.
-		if (PeekString((const unsigned char*) "/", false) ||
-			PeekString((const unsigned char*) ">", false))
+		if (PeekString("/", false) ||
+			PeekString(">", false))
 			return true;
 	}
 }
@@ -337,7 +337,7 @@ bool BaseXMLParser::ReadCDATA(const char* tag_terminator, bool only_terminate_at
 	String cdata;
 	if (tag_terminator == nullptr)
 	{
-		FindString((const unsigned char*) "]]>", cdata);
+		FindString("]]>", cdata);
 		data += cdata;
 		return true;
 	}
@@ -345,14 +345,17 @@ bool BaseXMLParser::ReadCDATA(const char* tag_terminator, bool only_terminate_at
 	{
 		int tag_depth = 1;
 
+		// TODO: This doesn't properly handle comments and double brackets,
+		// should probably find a way to use the normal parsing flow instead.
+
 		for (;;)
 		{
 			// Search for the next tag opening.
-			if (!FindString((const unsigned char*)"<", cdata))
+			if (!FindString("<", cdata))
 				return false;
 
 			String node_raw;
-			if (!FindString((const unsigned char*)">", node_raw))
+			if (!FindString(">", node_raw))
 				return false;
 
 			String node_stripped = StringUtilities::StripWhitespace(node_raw);
@@ -428,9 +431,12 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 }
 
 // Reads from the stream until the given character set is found.
-bool BaseXMLParser::FindString(const unsigned char* string, String& data)
+bool BaseXMLParser::FindString(const char* string, String& data, bool escape_brackets)
 {
 	int index = 0;
+	bool in_brackets = false;
+	char previous = 0;
+
 	while (string[index])
 	{
 		if (read >= buffer + buffer_used)
@@ -439,13 +445,23 @@ bool BaseXMLParser::FindString(const unsigned char* string, String& data)
 				return false;
 		}
 
+		const char c = char(*read);
+
 		// Count line numbers
-		if (*read == '\n')
+		if (c == '\n')
 		{
 			line_number++;
 		}
 
-		if (*read == string[index])
+		if(escape_brackets)
+		{
+			if (c == '{' && previous == '{')
+				in_brackets = true;
+			else if (c == '}' && previous == '}')
+				in_brackets = false;
+		}
+
+		if (c == string[index] && !in_brackets)
 		{
 			index += 1;
 		}
@@ -453,13 +469,14 @@ bool BaseXMLParser::FindString(const unsigned char* string, String& data)
 		{
 			if (index > 0)
 			{
-				data += String((const char*)string, index);
+				data += String(string, index);
 				index = 0;
 			}
 
-			data += *read;
+			data += c;
 		}
 
+		previous = c;
 		read++;
 	}
 
@@ -468,7 +485,7 @@ bool BaseXMLParser::FindString(const unsigned char* string, String& data)
 
 // Returns true if the next sequence of characters in the stream matches the
 // given string.
-bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
+bool BaseXMLParser::PeekString(const char* string, bool consume)
 {
 	unsigned char* peek_read = read;
 
@@ -512,7 +529,7 @@ bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
 		}
 		else
 		{
-			if (*peek_read != string[i])
+			if (char(*peek_read) != string[i])
 				return false;
 
 			i++;

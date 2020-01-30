@@ -251,14 +251,55 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 // Instances a single text element containing a string.
 bool Factory::InstanceElementText(Element* parent, const String& text)
 {
-	SystemInterface* system_interface = GetSystemInterface();
+	RMLUI_ASSERT(parent);
 
-	// Do any necessary translation. If any substitutions were made then new XML may have been introduced, so we'll
-	// have to run the data through the XML parser again.
 	String translated_data;
-	if (system_interface != nullptr &&
-		(system_interface->TranslateString(translated_data, text) > 0 ||
-		 translated_data.find("<") != String::npos))
+	if (SystemInterface* system_interface = GetSystemInterface())
+		system_interface->TranslateString(translated_data, text);
+
+	// Look for XML tags and detect double brackets for data bindings. If the text contains XML elements then run it through the XML parser again.
+	bool xml_introduced = false;
+	bool has_brackets = false;
+	bool only_white_space = true;
+	{
+		bool in_brackets = false;
+		char previous = 0;
+		for (const char c : translated_data)
+		{
+			if (!StringUtilities::IsWhitespace(c))
+				only_white_space = false;
+
+			if (c == '{' && previous == '{')
+			{
+				if (in_brackets)
+					Log::Message(Log::LT_WARNING, "Nested double brackets are illegal. %s", parent->GetAddress().c_str());
+
+				in_brackets = true;
+				has_brackets = true;
+			}
+			else if (c == '}' && previous == '}')
+			{
+				if (!in_brackets)
+					Log::Message(Log::LT_WARNING, "Closing double brackets mismatched an earlier open bracket. %s", parent->GetAddress().c_str());
+
+				in_brackets = false;
+			}
+			else if (c == '<' && !in_brackets)
+			{
+				xml_introduced = true;
+				break;
+			}
+
+			previous = c;
+		}
+	}
+
+	// If this text node only contains white-space we don't want to construct it.
+	if (only_white_space)
+		return true;
+
+
+	if (xml_introduced)
 	{
 		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
 		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
@@ -272,22 +313,11 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	else
 	{
 		RMLUI_ZoneScopedNC("InstanceText", 0x8FBC8F);
-		// Check if this text node contains only white-space; if so, we don't want to construct it.
-		bool only_white_space = true;
-		for (size_t i = 0; i < translated_data.size(); ++i)
-		{
-			if (!StringUtilities::IsWhitespace(translated_data[i]))
-			{
-				only_white_space = false;
-				break;
-			}
-		}
-
-		if (only_white_space)
-			return true;
-
 		// Attempt to instance the element.
 		XMLAttributes attributes;
+		if(has_brackets)
+			attributes.emplace("data-text", Variant());
+
 		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
 		if (!element)
 		{

@@ -464,24 +464,21 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 					else
 						Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", element->GetAddress().c_str());
 				}
+				else if (data_type == "text")
+				{
+					// This attribute is automatically added by the Factory when double brackets '{{' are encountered in the text.
+					if (ElementText* element_text = rmlui_dynamic_cast<ElementText*>(element))
+					{
+						auto view = std::make_unique<DataViewText>(*data_model, element_text, element_text->GetText());
+						if (*view)
+							data_model->AddView(std::move(view));
+						else
+							Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", element->GetAddress().c_str());
+					}
+				}
 			}
 		}
 
-		if (ElementText* element_text = rmlui_dynamic_cast<ElementText*>(element))
-		{
-			const String& text = element_text->GetText();
-
-			// Scan text for {{ data bindings }}
-			const size_t i_brackets = text.find("{{", 0);
-			if (i_brackets != String::npos)
-			{
-				auto view = std::make_unique<DataViewText>(*data_model, element_text, text, i_brackets);
-				if (*view)
-					data_model->AddView(std::move(view));
-				else
-					Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", element->GetAddress().c_str());
-			}
-		}
 	}
 }
 

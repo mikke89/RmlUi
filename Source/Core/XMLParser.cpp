@@ -38,7 +38,7 @@
 namespace Rml {
 namespace Core {
 
-using NodeHandlers = UnorderedMap< String, SharedPtr<XMLNodeHandler> > ;
+using NodeHandlers = UnorderedMap< String, SharedPtr<XMLNodeHandler> >;
 static NodeHandlers node_handlers;
 static SharedPtr<XMLNodeHandler> default_node_handler;
 
@@ -53,13 +53,11 @@ XMLParser::XMLParser(Element* root)
 
 	active_handler = nullptr;
 
-	header = new DocumentHeader();
+	header = std::make_unique<DocumentHeader>();
 }
 
 XMLParser::~XMLParser()
-{
-	delete header;
-}
+{}
 
 // Registers a custom node handler to be used to a given tag.
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
@@ -87,7 +85,7 @@ void XMLParser::ReleaseHandlers()
 
 DocumentHeader* XMLParser::GetDocumentHeader()
 {
-	return header;
+	return header.get();
 }
 
 const URL& XMLParser::GetSourceURL() const

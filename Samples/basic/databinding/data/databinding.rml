@@ -90,6 +90,9 @@ p.title
 .red {
 	color: #e44;
 }
+.big {
+	font-size: 1.8em;
+}
 
 
 /***  Decorators  ***/
@@ -177,7 +180,7 @@ form h2
 		Indices: <span style="padding-left: 1em;" data-for="i : indices"> {{ i * 2 + (i > 10 ? ' wow!' | to_upper : '') }}</span>
 	</p>
 	<div data-for="invader : invaders">
-		<h1 data-class-red="rating < 20">{{invader.name}}</h1>
+		<h1 data-class-red="rating < 30" data-class-big="rating == 0">{{invader.name}}</h1>
 		<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color"/>
 		<p>
 			Numbers: <span data-for="invader.numbers"> {{it}} </span>

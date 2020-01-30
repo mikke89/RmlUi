@@ -53,7 +53,7 @@ DataView::DataView(Element* element) : attached_element(element->GetObserverPtr(
 }
 
 
-DataViewText::DataViewText(DataModel& model, ElementText* parent_element, const String& in_text, const size_t index_begin_search) : DataView(parent_element)
+DataViewText::DataViewText(DataModel& model, ElementText* parent_element, const String& in_text) : DataView(parent_element)
 {
 	text.reserve(in_text.size());
 
@@ -61,7 +61,7 @@ DataViewText::DataViewText(DataModel& model, ElementText* parent_element, const 
 	bool success = true;
 
 	size_t previous_close_brackets = 0;
-	size_t begin_brackets = index_begin_search;
+	size_t begin_brackets = 0;
 	while ((begin_brackets = in_text.find("{{", begin_brackets)) != String::npos)
 	{
 		text.insert(text.end(), in_text.begin() + previous_close_brackets, in_text.begin() + begin_brackets);

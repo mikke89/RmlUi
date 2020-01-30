@@ -70,7 +70,7 @@ private:
 
 class DataViewText final : public DataView {
 public:
-	DataViewText(DataModel& model, ElementText* in_element, const String& in_text, size_t index_begin_search = 0);
+	DataViewText(DataModel& model, ElementText* in_element, const String& in_text);
 	~DataViewText();
 
 	bool Update(DataModel& model) override;

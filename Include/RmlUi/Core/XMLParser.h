@@ -92,7 +92,6 @@ public:
 	void PushDefaultHandler();
 
 	/// Access the current parse frame.
-	/// @return The parser's current parse frame.
 	const ParseFrame* GetParseFrame() const;
 
 protected:
@@ -105,7 +104,7 @@ protected:
 
 private:
 	// The header of the document being parsed.
-	DocumentHeader* header;
+	UniquePtr<DocumentHeader> header;
 
 	// The active node handler.
 	XMLNodeHandler* active_handler;
