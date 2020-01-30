@@ -118,6 +118,34 @@ private:
 	DataExpressionPtr data_expression;
 };
 
+class DataViewClass final : public DataView {
+public:
+	DataViewClass(DataModel& model, Element* element, const String& binding_name, const String& class_name);
+	~DataViewClass();
+
+	bool Update(DataModel& model) override;
+
+	StringList GetVariableNameList() const override;
+
+private:
+	String class_name;
+	DataExpressionPtr data_expression;
+};
+
+class DataViewRml final : public DataView {
+public:
+	DataViewRml(DataModel& model, Element* element, const String& binding_name, const String& rml_contents);
+	~DataViewRml();
+
+	bool Update(DataModel& model) override;
+
+	StringList GetVariableNameList() const override;
+
+private:
+	String previous_rml;
+	DataExpressionPtr data_expression;
+};
+
 
 class DataViewIf final : public DataView {
 public:

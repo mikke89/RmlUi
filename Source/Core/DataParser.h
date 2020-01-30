@@ -42,10 +42,10 @@ struct InstructionData;
 using Program = std::vector<InstructionData>;
 using AddressList = std::vector<DataAddress>;
 
-class DataVariableInterface {
+class DataExpressionInterface {
 public:
-    DataVariableInterface() = default;
-    DataVariableInterface(DataModel* data_model, Element* element);
+    DataExpressionInterface() = default;
+    DataExpressionInterface(DataModel* data_model, Element* element);
 
     DataAddress ParseAddress(const String& address_str) const;
     Variant GetValue(const DataAddress& address) const;
@@ -61,9 +61,9 @@ public:
     DataExpression(String expression);
     ~DataExpression();
 
-    bool Parse(const DataVariableInterface& variable_interface);
+    bool Parse(const DataExpressionInterface& expression_interface);
 
-    bool Run(const DataVariableInterface& variable_interface, Variant& out_value);
+    bool Run(const DataExpressionInterface& expression_interface, Variant& out_value);
 
     // Must be available after Parse()
     StringList GetVariableNameList() const;

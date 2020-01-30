@@ -136,13 +136,15 @@ public:
 	// Register an array type.
 	// @note The type applies to every data model associated with the current Context.
 	// @note If 'Container::value_type' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()' functions.
-	// @note Container requires the following functions implemented: size() and operator[]. This includes std::vector and std::array.
+	// @note Container requires the following functions implemented: size() and operator[]. This is satisfied by std::vector and std::array.
 	template<typename Container>
 	bool RegisterArray() {
 		return type_register->RegisterArray<Container>();
 	}
 
-
+	// Register a transform function.
+	// A transform function modifies a variant with optional arguments. It can be called in data expressions using the pipe '|' operator.
+	// @note The transform function applies to every data model associated with the current Context.
 	void RegisterTransformFunc(const String& name, DataTransformFunc transform_func) {
 		type_register->GetTransformFuncRegister()->Register(name, std::move(transform_func));
 	}

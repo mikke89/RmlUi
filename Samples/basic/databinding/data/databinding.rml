@@ -87,6 +87,9 @@ p.title
 { 
 	cursor: pointer;
 }
+.red {
+	color: #e44;
+}
 
 
 /***  Decorators  ***/
@@ -167,13 +170,14 @@ form h2
 	<p>Data binding demo. We rate this a good old {{rating}}!</p>
 	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-value="rating"/>
 	<div data-if="rating > 50">Thanks for the <span data-if="rating < 80">good</span><span data-if="rating >= 80">awesome</span> rating!</div>
+	<div data-rml="'Rml from the attribute? <strong>Yup!</strong>'"></div>
 	<h1>{{delightful_invader.name}}</h1>
-	<img data-attr-sprite="delightful_invader.sprite" data-style-image-color="delightful_invader.sprite == 'icon-invader' ? 'black' : 'green'"/>
+	<img data-attr-sprite="delightful_invader.sprite" data-style-image-color="rating < 80 ? 'black' : 'green'"/>
 	<p>
 		Indices: <span style="padding-left: 1em;" data-for="i : indices"> {{ i * 2 + (i > 10 ? ' wow!' | to_upper : '') }}</span>
 	</p>
 	<div data-for="invader : invaders">
-		<h1>{{invader.name}}</h1>
+		<h1 data-class-red="rating < 20">{{invader.name}}</h1>
 		<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color"/>
 		<p>
 			Numbers: <span data-for="invader.numbers"> {{it}} </span>

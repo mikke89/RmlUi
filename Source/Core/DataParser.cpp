@@ -103,7 +103,7 @@ namespace Parse {
 
 class DataParser {
 public:
-	DataParser(String expression, DataVariableInterface variable_interface) : expression(std::move(expression)), variable_interface(variable_interface) {}
+	DataParser(String expression, DataExpressionInterface expression_interface) : expression(std::move(expression)), expression_interface(expression_interface) {}
 
 	char Look() {
 		if (reached_end)
@@ -218,7 +218,7 @@ public:
 		program.push_back(InstructionData{ Instruction::Arguments, Variant(int(num_arguments)) });
 	}
 	void Variable(const String& name) {
-		DataAddress address = variable_interface.ParseAddress(name);
+		DataAddress address = expression_interface.ParseAddress(name);
 		if (address.empty()) {
 			Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
 			return;
@@ -230,7 +230,7 @@ public:
 
 private:
 	const String expression;
-	DataVariableInterface variable_interface;
+	DataExpressionInterface expression_interface;
 
 	size_t index = 0;
 	bool reached_end = false;
@@ -669,7 +669,7 @@ static String DumpProgram(const Program& program)
 
 class DataInterpreter {
 public:
-	DataInterpreter(const Program& program, const AddressList& addresses, DataVariableInterface variable_interface) : program(program), addresses(addresses), variable_interface(variable_interface) {}
+	DataInterpreter(const Program& program, const AddressList& addresses, DataExpressionInterface expression_interface) : program(program), addresses(addresses), expression_interface(expression_interface) {}
 
 	bool Error(String message) const
 	{
@@ -716,7 +716,7 @@ private:
 
 	const Program& program;
 	const AddressList& addresses;
-	DataVariableInterface variable_interface;
+	DataExpressionInterface expression_interface;
 
 	bool Execute(const Instruction instruction, const Variant& data)
 	{
@@ -756,7 +756,7 @@ private:
 		{
 			size_t variable_index = size_t(data.Get<int>(-1));
 			if (variable_index < addresses.size())
-				R = variable_interface.GetValue(addresses[variable_index]);
+				R = expression_interface.GetValue(addresses[variable_index]);
 			else
 				return Error("Variable address not found.");
 		}
@@ -824,7 +824,7 @@ private:
 		{
 			const String function_name = data.Get<String>();
 			
-			if (!variable_interface.CallTransform(function_name, R, arguments))
+			if (!expression_interface.CallTransform(function_name, R, arguments))
 			{
 				String arguments_str;
 				for (size_t i = 0; i < arguments.size(); i++)
@@ -876,7 +876,7 @@ struct TestParser {
 
 	String TestExpression(String expression)
 	{
-		DataVariableInterface interface(&model, nullptr);
+		DataExpressionInterface interface(&model, nullptr);
 
 		DataParser parser(expression, interface);
 		if (parser.Parse())
@@ -907,7 +907,7 @@ DataExpression::~DataExpression()
 {
 }
 
-bool DataExpression::Parse(const DataVariableInterface& variable_interface)
+bool DataExpression::Parse(const DataExpressionInterface& expression_interface)
 {
 	// @todo: Remove, debugging only
 	static TestParser test_parser;
@@ -916,7 +916,7 @@ bool DataExpression::Parse(const DataVariableInterface& variable_interface)
 	//  3. Create a plug-in wrapper for use by scripting languages to replace this parser. Design wrapper as for events.
 	//  5. Add tests
 
-	DataParser parser(expression, variable_interface);
+	DataParser parser(expression, expression_interface);
 	if (!parser.Parse())
 		return false;
 
@@ -926,9 +926,9 @@ bool DataExpression::Parse(const DataVariableInterface& variable_interface)
 	return true;
 }
 
-bool DataExpression::Run(const DataVariableInterface& variable_interface, Variant& out_value)
+bool DataExpression::Run(const DataExpressionInterface& expression_interface, Variant& out_value)
 {
-	DataInterpreter interpreter(program, addresses, variable_interface);
+	DataInterpreter interpreter(program, addresses, expression_interface);
 	
 	if (!interpreter.Run())
 		return false;
@@ -949,20 +949,20 @@ StringList DataExpression::GetVariableNameList() const
 	return list;
 }
 
-DataVariableInterface::DataVariableInterface(DataModel* data_model, Element* element) : data_model(data_model), element(element)
+DataExpressionInterface::DataExpressionInterface(DataModel* data_model, Element* element) : data_model(data_model), element(element)
 {}
 
-DataAddress DataVariableInterface::ParseAddress(const String& address_str) const {
+DataAddress DataExpressionInterface::ParseAddress(const String& address_str) const {
 	return data_model ? data_model->ResolveAddress(address_str, element) : DataAddress();
 }
-Variant DataVariableInterface::GetValue(const DataAddress& address) const {
+Variant DataExpressionInterface::GetValue(const DataAddress& address) const {
 	Variant result;
 	if (data_model)
 		data_model->GetValue(address, result);
 	return result;
 }
 
-bool DataVariableInterface::CallTransform(const String& name, Variant& inout_variant, const VariantList& arguments)
+bool DataExpressionInterface::CallTransform(const String& name, Variant& inout_variant, const VariantList& arguments)
 {
 	return data_model ? data_model->CallTransform(name, inout_variant, arguments) : false;
 }

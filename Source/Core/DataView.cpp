@@ -57,7 +57,7 @@ DataViewText::DataViewText(DataModel& model, ElementText* parent_element, const 
 {
 	text.reserve(in_text.size());
 
-	DataVariableInterface variable_interface(&model, parent_element);
+	DataExpressionInterface expression_interface(&model, parent_element);
 	bool success = true;
 
 	size_t previous_close_brackets = 0;
@@ -79,7 +79,7 @@ DataViewText::DataViewText(DataModel& model, ElementText* parent_element, const 
 		entry.index = text.size();
 		entry.data_expression = std::make_unique<DataExpression>(String(in_text.begin() + begin_name, in_text.begin() + end_name));
 
-		if (entry.data_expression->Parse(variable_interface))
+		if (entry.data_expression->Parse(expression_interface))
 			data_entries.push_back(std::move(entry));
 
 		previous_close_brackets = end_name + 2;
@@ -107,13 +107,13 @@ bool DataViewText::Update(DataModel& model)
 {
 	bool entries_modified = false;
 	Element* element = GetElement();
-	DataVariableInterface variable_interface(&model, element);
+	DataExpressionInterface expression_interface(&model, element);
 
 	for (DataEntry& entry : data_entries)
 	{
 		RMLUI_ASSERT(entry.data_expression);
 		Variant variant;
-		bool result = entry.data_expression->Run(variable_interface, variant);
+		bool result = entry.data_expression->Run(expression_interface, variant);
 		const String value = variant.Get<String>();
 		if (result && entry.value != value)
 		{
@@ -191,7 +191,7 @@ DataViewAttribute::DataViewAttribute(DataModel& model, Element* element, const S
 	: DataView(element), attribute_name(attribute_name)
 {
 	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataVariableInterface interface(&model, element);
+	DataExpressionInterface interface(&model, element);
 
 	if (!data_expression->Parse(interface))
 		InvalidateView();
@@ -204,7 +204,7 @@ bool DataViewAttribute::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataVariableInterface interface(&model, element);
+	DataExpressionInterface interface(&model, element);
 
 	if (element && data_expression->Run(interface, variant))
 	{
@@ -229,7 +229,7 @@ DataViewStyle::DataViewStyle(DataModel& model, Element* element, const String& b
 	: DataView(element), property_name(property_name)
 {
 	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataVariableInterface interface(&model, element);
+	DataExpressionInterface interface(&model, element);
 
 	if(!data_expression->Parse(interface))
 		InvalidateView();
@@ -245,7 +245,7 @@ bool DataViewStyle::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataVariableInterface interface(&model, element);
+	DataExpressionInterface interface(&model, element);
 	
 	if (element && data_expression->Run(interface, variant))
 	{
@@ -265,12 +265,89 @@ StringList DataViewStyle::GetVariableNameList() const {
 }
 
 
+DataViewClass::DataViewClass(DataModel& model, Element* element, const String& binding_name, const String& class_name) 
+	: DataView(element), class_name(class_name)
+{
+	data_expression = std::make_unique<DataExpression>(binding_name);
+	DataExpressionInterface interface(&model, element);
+
+	if (!data_expression->Parse(interface))
+		InvalidateView();
+}
+
+DataViewClass::~DataViewClass() = default;
+
+bool DataViewClass::Update(DataModel& model)
+{
+	bool result = false;
+	Variant variant;
+	Element* element = GetElement();
+	DataExpressionInterface interface(&model, element);
+
+	if (element && data_expression->Run(interface, variant))
+	{
+		const bool activate = variant.Get<bool>();
+		const bool is_set = element->IsClassSet(class_name);
+		if (activate != is_set)
+		{
+			element->SetClass(class_name, activate);
+			result = true;
+		}
+	}
+	return result;
+}
+
+StringList DataViewClass::GetVariableNameList() const
+{
+	return data_expression ? data_expression->GetVariableNameList() : StringList();
+}
+
+
+
+DataViewRml::DataViewRml(DataModel& model, Element* element, const String& binding_name, const String& /*unused*/)
+	: DataView(element)
+{
+	data_expression = std::make_unique<DataExpression>(binding_name);
+	DataExpressionInterface interface(&model, element);
+
+	if (!data_expression->Parse(interface))
+		InvalidateView();
+}
+
+DataViewRml::~DataViewRml() = default;
+
+bool DataViewRml::Update(DataModel & model)
+{
+	bool result = false;
+	Variant variant;
+	Element* element = GetElement();
+	DataExpressionInterface interface(&model, element);
+
+	if (element && data_expression->Run(interface, variant))
+	{
+		String new_rml = variant.Get<String>();
+		if (new_rml != previous_rml)
+		{
+			element->SetInnerRML(new_rml);
+			previous_rml = std::move(new_rml);
+			result = true;
+		}
+	}
+	return result;
+}
+
+StringList DataViewRml::GetVariableNameList() const
+{
+	return data_expression ? data_expression->GetVariableNameList() : StringList();
+}
+
+
 
 
 DataViewIf::DataViewIf(DataModel& model, Element* element, const String& binding_name) : DataView(element)
 {
 	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataVariableInterface interface(&model, element);
+	DataExpressionInterface interface(&model, element);
 
 	if (!data_expression->Parse(interface))
 		InvalidateView();
@@ -285,7 +362,7 @@ bool DataViewIf::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataVariableInterface interface(&model, element);
+	DataExpressionInterface interface(&model, element);
 
 	if (element && data_expression->Run(interface, variant))
 	{

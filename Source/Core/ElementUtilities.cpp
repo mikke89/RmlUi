@@ -397,16 +397,17 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 
 			if (name.size() > 5 && name[0] == 'd' && name[1] == 'a' && name[2] == 't' && name[3] == 'a' && name[4] == '-')
 			{
+				constexpr size_t data_str_size = sizeof("data");
 				const size_t data_type_end = name.find('-', 5);
 				const size_t count = (data_type_end == String::npos ? String::npos : data_type_end - 5);
 				const String data_type = name.substr(5, count);
-				const String value_bind_name = attribute.second.Get<String>();
+				const String data_expression = attribute.second.Get<String>();
 
 				if (data_type == "attr")
 				{
-					const String attr_bind_name = name.substr(5 + data_type.size() + 1);
+					const String attr_bind_name = name.substr(data_str_size + data_type.size() + 1);
 
-					auto view = std::make_unique<DataViewAttribute>(*data_model, element, value_bind_name, attr_bind_name);
+					auto view = std::make_unique<DataViewAttribute>(*data_model, element, data_expression, attr_bind_name);
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
@@ -415,13 +416,13 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 				else if (data_type == "value")
 				{
 					const String attr_bind_name = "value";
-					auto view = std::make_unique<DataViewAttribute>(*data_model, element, value_bind_name, attr_bind_name);
+					auto view = std::make_unique<DataViewAttribute>(*data_model, element, data_expression, attr_bind_name);
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
 						Log::Message(Log::LT_WARNING, "Could not add data-value view to element '%s'.", element->GetAddress().c_str());
 
-					auto controller = std::make_unique<DataControllerValue>(*data_model, element, value_bind_name);
+					auto controller = std::make_unique<DataControllerValue>(*data_model, element, data_expression);
 					if (controller)
 						data_model->AddController(std::move(controller));
 					else
@@ -429,17 +430,35 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 				}
 				else if (data_type == "style")
 				{
-					const String property_name = name.substr(5 + data_type.size() + 1);
+					const String property_name = name.substr(data_str_size + data_type.size() + 1);
 
-					auto view = std::make_unique<DataViewStyle>(*data_model, element, value_bind_name, property_name);
+					auto view = std::make_unique<DataViewStyle>(*data_model, element, data_expression, property_name);
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
 						Log::Message(Log::LT_WARNING, "Could not add data-style view to element '%s'.", element->GetAddress().c_str());
 				}
+				else if (data_type == "class")
+				{
+					const String class_name = name.substr(data_str_size + data_type.size() + 1);
+
+					auto view = std::make_unique<DataViewClass>(*data_model, element, data_expression, class_name);
+					if (*view)
+						data_model->AddView(std::move(view));
+					else
+						Log::Message(Log::LT_WARNING, "Could not add data-class view to element '%s'.", element->GetAddress().c_str());
+				}
+				else if (data_type == "rml")
+				{
+					auto view = std::make_unique<DataViewRml>(*data_model, element, data_expression, String());
+					if (*view)
+						data_model->AddView(std::move(view));
+					else
+						Log::Message(Log::LT_WARNING, "Could not add data-rml view to element '%s'.", element->GetAddress().c_str());
+				}
 				else if (data_type == "if")
 				{
-					auto view = std::make_unique<DataViewIf>(*data_model, element, value_bind_name);
+					auto view = std::make_unique<DataViewIf>(*data_model, element, data_expression);
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
