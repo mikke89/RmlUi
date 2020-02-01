@@ -637,7 +637,7 @@ private:
 	void UpdateTransformState();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property);
+	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool initiated_by_animation_property);
 
 	/// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
 	bool AddAnimationKeyTime(PropertyId property_id, const Property * target_value, float time, Tween tween);
@@ -648,10 +648,10 @@ private:
 	bool StartTransition(const Transition& transition, const Property& start_value, const Property& target_value);
 
 	/// Removes all transitions that are no longer part of the element's 'transition' property.
-	void UpdateTransition();
+	void HandleTransitionProperty();
 
 	/// Starts new animations and removes animations no longer part of the element's 'animation' property.
-	void UpdateAnimation();
+	void HandleAnimationProperty();
 
 	/// Advances the animations (including transitions) forward in time.
 	void AdvanceAnimations();

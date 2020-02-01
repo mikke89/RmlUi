@@ -180,8 +180,8 @@ void Element::Update(float dp_ratio)
 
 	UpdateStructure();
 
-	UpdateTransition();
-	UpdateAnimation();
+	HandleTransitionProperty();
+	HandleAnimationProperty();
 	AdvanceAnimations();
 
 	scroll->Update();
@@ -191,7 +191,7 @@ void Element::Update(float dp_ratio)
 	// Do en extra pass over the animations and properties if the 'animation' property was just changed.
 	if (dirty_animation)
 	{
-		UpdateAnimation();
+		HandleAnimationProperty();
 		AdvanceAnimations();
 		UpdateProperties();
 	}
@@ -2149,7 +2149,7 @@ bool Element::AddAnimationKey(const String & property_name, const Property & tar
 }
 
 
-ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction, float delay, bool origin_is_animation_property)
+ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction, float delay, bool initiated_by_animation_property)
 {
 	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == property_id; });
 
@@ -2179,7 +2179,7 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 
 	if (value.definition)
 	{
-		ElementAnimationOrigin origin = (origin_is_animation_property ? ElementAnimationOrigin::Animation : ElementAnimationOrigin::User);
+		ElementAnimationOrigin origin = (initiated_by_animation_property ? ElementAnimationOrigin::Animation : ElementAnimationOrigin::User);
 		double start_time = Clock::GetElapsedTime() + (double)delay;
 		*it = ElementAnimation{ property_id, origin, value, *this, start_time, 0.0f, num_iterations, alternate_direction };
 	}
@@ -2255,7 +2255,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	return result;
 }
 
-void Element::UpdateTransition()
+void Element::HandleTransitionProperty()
 {
 	if(dirty_transition)
 	{
@@ -2295,7 +2295,7 @@ void Element::UpdateTransition()
 			);
 		}
 
-		// We can decide what to do with ended animations here, just removing them seems to be the CSS approach.
+		// We can decide what to do with cancelled transitions here.
 		for (auto it = it_remove; it != animations.end(); ++it)
 			RemoveProperty(it->GetPropertyId());
 
@@ -2303,7 +2303,7 @@ void Element::UpdateTransition()
 	}
 }
 
-void Element::UpdateAnimation()
+void Element::HandleAnimationProperty()
 {
 	// Note: We are effectively restarting all animations whenever 'dirty_animation' is set. Use the dirty flag with care,
 	// or find another approach which only updates actual "dirty" animations.
@@ -2324,7 +2324,7 @@ void Element::UpdateAnimation()
 					[](const ElementAnimation & animation) { return animation.GetOrigin() != ElementAnimationOrigin::Animation; }
 				);
 
-				// We can decide what to do with ended animations here, should be consistent with removal of transitions.
+				// We can decide what to do with cancelled animations here.
 				for (auto it = it_remove; it != animations.end(); ++it)
 					RemoveProperty(it->GetPropertyId());
 
@@ -2392,8 +2392,11 @@ void Element::AdvanceAnimations()
 			dictionary_list.emplace_back();
 			dictionary_list.back().emplace("property", StyleSheetSpecification::GetPropertyName(it->GetPropertyId()));
 			is_transition.push_back(it->IsTransition());
-			// Remove the property on ended animation (should do the same as in UpdateAnimation)
-			RemoveProperty(it->GetPropertyId());
+
+			// Remove completed transition- and animation-initiated properties.
+			// Should behave like in HandleTransitionProperty() and HandleAnimationProperty() respectively.
+			if (it->GetOrigin() != ElementAnimationOrigin::User)
+				RemoveProperty(it->GetPropertyId());
 		}
 
 		// Need to erase elements before submitting event, as iterators might be invalidated when calling external code.

@@ -677,7 +677,7 @@ progressbar {
 	
 	<h1>Sprite sheets</h1>
 	<p>Sprite sheets are defined by an image source and a collection of sprites, and can be declared in RCSS. Sprites are essentially rectangles into the given image. For example, the following image</p>
-	<img src="../../../assets/invader.tga" rect="0 0 500 300" style="margin-top: 10px; margin-bottom: 10px;"/>
+	<img src="../../../assets/invader.tga" rect="0 0 500 435" style="margin-top: 10px; margin-bottom: 10px;"/>
 	<p>is used to render most sprites in this demo. Sprites can be used in decorators and image elements as if they were separate images.</p>
 </panel>
 <tab>Font effects</tab>
