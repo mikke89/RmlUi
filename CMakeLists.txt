@@ -261,11 +261,12 @@ foreach(library ${LIBRARIES})
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
 
-if (MSVC)
-	target_compile_options(RmlCore PRIVATE "/Yuprecompiled.h")
-	set_source_files_properties(${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp PROPERTIES COMPILE_FLAGS "/Ycprecompiled.h")
-endif(MSVC)
 target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
+
+if (CMAKE_VERSION VERSION_GREATER 3.16.0)
+	target_precompile_headers(RmlCore PRIVATE ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h)
+endif()
+
 
 else(NOT BUILD_FRAMEWORK)
 	#===================================
