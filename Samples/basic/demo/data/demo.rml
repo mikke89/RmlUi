@@ -64,9 +64,9 @@ tabs
 	position: fixed;
 	clip: none;
 	text-align: right;
-	padding-left: 200px;
-	padding-right: 10px;
 	top: -47px;
+	left: 205px;
+	right: 10px;
 }
 tab
 {
