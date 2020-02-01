@@ -64,7 +64,6 @@ else()
 endif()
 
 set(RMLUI_VERSION_SHORT ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}${RMLUI_VERSION_SUFFIX})
-add_definitions(-DRMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 
 # paths
 include(GNUInstallDirs)
@@ -266,6 +265,7 @@ if (MSVC)
 	target_compile_options(RmlCore PRIVATE "/Yuprecompiled.h")
 	set_source_files_properties(${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp PROPERTIES COMPILE_FLAGS "/Ycprecompiled.h")
 endif(MSVC)
+target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 
 else(NOT BUILD_FRAMEWORK)
 	#===================================
