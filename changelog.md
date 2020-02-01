@@ -28,13 +28,14 @@ Thus, the following can produce a fade-out animation, removing visibility of the
 ### Changes
 
 - Animated properties are now removed when an animation completes.
+- Update robin_hood unordered_map to 3.5.0 (thanks @jhasse). [#75](https://github.com/mikke89/RmlUi/issues/75)
 
 ### Bug fixes
 
-- Range input element: Change event reports the correct value instead of normalized (thanks @andreasschultes). #72 #73.
-- Fix wrong cast in elapsed time in SDL2 sample. #71.
-- Avoid infinite recursion on Variant construction/assignment with unsupported types. #70.
-
+- Range input element: Change event reports the correct value instead of normalized (thanks @andreasschultes). [#72](https://github.com/mikke89/RmlUi/issues/72) [#73](https://github.com/mikke89/RmlUi/issues/73).
+- Fix wrong cast in elapsed time in SDL2 sample. [#71](https://github.com/mikke89/RmlUi/issues/71).
+- Avoid infinite recursion on Variant construction/assignment with unsupported types. [#70](https://github.com/mikke89/RmlUi/issues/70).
+- Fix warnings issued by the MinGW compiler (thanks @jhasse).
 
 
 ## RmlUi 3.1
