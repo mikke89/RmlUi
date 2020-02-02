@@ -74,13 +74,21 @@ class RMLUICORE_API BaseXMLParser
 		/// Called when the parser encounters data.
 		virtual void HandleData(const String& data);
 
-	protected:
-		// The stream we're reading the XML from.
-		Stream* xml_source;
+		/// Returns the source URL of this parse. Only valid during parsing.
+		const URL& GetSourceURL() const;
 
 	private:
+		const URL* source_url = nullptr;
+		String xml_source;
+		size_t xml_index = 0;
+
+		void Next();
+		bool AtEnd() const;
+		char Look() const;
+
 		void ReadHeader();
 		void ReadBody();
+
 
 		bool ReadOpenTag();
 		bool ReadCloseTag();
@@ -99,13 +107,6 @@ class RMLUICORE_API BaseXMLParser
 		// the characters will be consumed.
 		bool PeekString(const char* string, bool consume = true);
 
-		// Fill the buffer as much as possible, without removing any content that is still pending
-		bool FillBuffer();
-
-		unsigned char* read;
-		unsigned char* buffer;
-		int buffer_size;
-		int buffer_used;
 		int line_number;
 		int line_number_open_tag;
 		int open_tag_depth;

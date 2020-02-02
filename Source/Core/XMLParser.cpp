@@ -88,11 +88,6 @@ DocumentHeader* XMLParser::GetDocumentHeader()
 	return header.get();
 }
 
-const URL& XMLParser::GetSourceURL() const
-{
-	return xml_source->GetSourceURL();
-}
-
 // Pushes the default element handler onto the parse stack.
 void XMLParser::PushDefaultHandler()
 {

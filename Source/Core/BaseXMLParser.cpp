@@ -34,15 +34,8 @@
 namespace Rml {
 namespace Core {
 
-// Most file layers cache 4k.
-const int DEFAULT_BUFFER_SIZE = 4096;
-
 BaseXMLParser::BaseXMLParser()
 {
-	read = nullptr;
-	buffer = nullptr;
-	buffer_used = 0;
-	buffer_size = 0;
 	open_tag_depth = 0;
 	treat_content_as_cdata = false;
 }
@@ -62,21 +55,25 @@ void BaseXMLParser::RegisterCDATATag(const String& tag)
 // interesting phenomenon are encountered.
 void BaseXMLParser::Parse(Stream* stream)
 {
-	xml_source = stream;
-	buffer_size = DEFAULT_BUFFER_SIZE;
-	treat_content_as_cdata = false;
+	source_url = &stream->GetSourceURL();
 
-	buffer = (unsigned char*) malloc(buffer_size);
-	read = buffer;
+	xml_source.clear();
+	const size_t source_size = stream->Length();
+	const size_t read_size = stream->Read(xml_source, source_size);
+
+	RMLUI_ASSERT(source_size == read_size);
+
+	xml_index = 0;
 	line_number = 1;
-	FillBuffer();
+	treat_content_as_cdata = false;
 
 	// Read (er ... skip) the header, if one exists.
 	ReadHeader();
 	// Read the XML body.
 	ReadBody();
 
-	free(buffer);
+	xml_source.clear();
+	source_url = nullptr;
 }
 
 // Get the current file line number
@@ -109,9 +106,30 @@ void BaseXMLParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data))
 	RMLUI_UNUSED(data);
 }
 
+/// Returns the source URL of this parse. Only valid during parsing.
+
+const URL& BaseXMLParser::GetSourceURL() const
+{
+	RMLUI_ASSERT(source_url);
+	return *source_url;
+}
+
 void BaseXMLParser::TreatElementContentAsCDATA()
 {
 	treat_content_as_cdata = true;
+}
+
+void BaseXMLParser::Next() {
+	xml_index += 1;
+}
+
+bool BaseXMLParser::AtEnd() const {
+	return xml_index >= xml_source.size();
+}
+
+char BaseXMLParser::Look() const {
+	RMLUI_ASSERT(!AtEnd());
+	return xml_source[xml_index];
 }
 
 void BaseXMLParser::ReadHeader()
@@ -158,10 +176,7 @@ void BaseXMLParser::ReadBody()
 
 			// Bail if we've hit the end of the XML data.
 			if (open_tag_depth == 0)
-			{
-				xml_source->Seek((long)((read - buffer) - buffer_used), SEEK_CUR);
 				break;
-			}
 		}
 		else
 		{
@@ -175,7 +190,7 @@ void BaseXMLParser::ReadBody()
 	// Check for error conditions
 	if (open_tag_depth > 0)
 	{
-		Log::Message(Log::LT_WARNING, "XML parse error on line %d of %s.", GetLineNumber(), xml_source->GetSourceURL().GetURL().c_str());
+		Log::Message(Log::LT_WARNING, "XML parse error on line %d of %s.", GetLineNumber(), source_url->GetURL().c_str());
 	}
 }
 
@@ -399,20 +414,16 @@ bool BaseXMLParser::ReadCDATA(const char* tag_terminator, bool only_terminate_at
 // Reads from the stream until a complete word is found.
 bool BaseXMLParser::FindWord(String& word, const char* terminators)
 {
-	for (;;)
+	while (!AtEnd())
 	{
-		if (read >= buffer + buffer_used)
-		{
-			if (!FillBuffer())			
-				return false;
-		}
+		char c = Look();
 
 		// Ignore white space
-		if (StringUtilities::IsWhitespace(*read))
+		if (StringUtilities::IsWhitespace(c))
 		{
 			if (word.empty())
 			{
-				read++;
+				Next();
 				continue;
 			}
 			else
@@ -420,14 +431,16 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 		}
 
 		// Check for termination condition
-		if (terminators && strchr(terminators, *read))
+		if (terminators && strchr(terminators, c))
 		{
 			return !word.empty();
 		}
 
-		word += *read;
-		read++;
+		word += c;
+		Next();
 	}
+
+	return false;
 }
 
 // Reads from the stream until the given character set is found.
@@ -439,13 +452,10 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 
 	while (string[index])
 	{
-		if (read >= buffer + buffer_used)
-		{
-			if (!FillBuffer())
-				return false;
-		}
+		if (AtEnd())
+			return false;
 
-		const char c = char(*read);
+		const char c = Look();
 
 		// Count line numbers
 		if (c == '\n')
@@ -477,7 +487,7 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 		}
 
 		previous = c;
-		read++;
+		Next();
 	}
 
 	return true;
@@ -487,83 +497,42 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 // given string.
 bool BaseXMLParser::PeekString(const char* string, bool consume)
 {
-	unsigned char* peek_read = read;
-
+	const size_t start_index = xml_index;
+	bool success = true;
 	int i = 0;
 	while (string[i])
 	{
-		// If we're about to read past the end of the buffer, read into the
-		// overflow buffer.
-		if ((peek_read - buffer) + i >= buffer_used)
+		if (AtEnd())
 		{
-			int peek_offset = (int)(peek_read - read);
-			FillBuffer();
-			peek_read = read + peek_offset;
-
-			if (peek_read - buffer + i >= buffer_used)
-			{
-				// Weird, seems our buffer is too small, realloc it bigger.
-				buffer_size *= 2;
-				int read_offset = (int)(read - buffer);
-				unsigned char* new_buffer = (unsigned char*) realloc(buffer, buffer_size);
-				RMLUI_ASSERTMSG(new_buffer != nullptr, "Unable to allocate larger buffer for Peek() call");
-				if(new_buffer == nullptr)
-				{
-					return false;
-				}
-				buffer = new_buffer;
-				// Restore the read pointers.
-				read = buffer + read_offset;
-				peek_read = read + peek_offset;
-				
-				// Attempt to fill our new buffer size.
-				if (!FillBuffer())
-					return false;
-			}
+			success = false;
+			break;
 		}
 
+		const char c = Look();
+
 		// Seek past all the whitespace if we haven't hit the initial character yet.
-		if (i == 0 && StringUtilities::IsWhitespace(*peek_read))
+		if (i == 0 && StringUtilities::IsWhitespace(c))
 		{
-			peek_read++;
+			Next();
 		}
 		else
 		{
-			if (char(*peek_read) != string[i])
-				return false;
+			if (c != string[i])
+			{
+				success = false;
+				break;
+			}
 
 			i++;
-			peek_read++;
+			Next();
 		}
 	}
 
-	// Set the read pointer to the end of the peek.
-	if (consume)
-	{		
-		read = peek_read;
-	}
+	// Set the index to the start index unless we are consuming.
+	if (!consume || !success)
+		xml_index = start_index;
 
-	return true;
-}
-
-// Fill the buffer as much as possible, without removing any content that is still pending
-bool BaseXMLParser::FillBuffer()
-{
-	int bytes_free = buffer_size;
-	int bytes_remaining = Math::Max((int)(buffer_used - (read - buffer)), 0);
-
-	// If theres any data still in the buffer, shift it down, and fill it again
-	if (bytes_remaining > 0)
-	{
-		memmove(buffer, read, bytes_remaining);
-		bytes_free = buffer_size - bytes_remaining;
-	}
-	
-	read = buffer;
-	size_t bytes_read = xml_source->Read(&buffer[bytes_remaining], bytes_free);
-	buffer_used = (int)(bytes_read + bytes_remaining);
-
-	return bytes_read > 0;
+	return success;
 }
 
 }

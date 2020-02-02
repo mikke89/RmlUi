@@ -64,9 +64,6 @@ public:
 	/// Returns the XML document's header.
 	/// @return The document header.
 	DocumentHeader* GetDocumentHeader();
-	/// Returns the source URL of this parse.
-	/// @return The URL of the parsing stream.
-	const URL& GetSourceURL() const;
 
 	// The parse stack.
 	struct ParseFrame
