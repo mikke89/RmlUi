@@ -33,6 +33,7 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 
 
 namespace Rml {
@@ -64,11 +65,6 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 	// Move and append the element to the parent
 	Element* result = parent->AppendChild(std::move(element));
 
-	if (result->GetDataModel() && attributes.count("data-for") == 1)
-	{
-		parser->TreatElementContentAsCDATA();
-	}
-
 	return result;
 }
 
@@ -80,32 +76,20 @@ bool XMLNodeHandlerDefault::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser)
 	return true;
 }
 
-bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data)
+bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data, XMLDataType type)
 {
 	RMLUI_ZoneScopedC(0x006400);
 
 	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
-	
 	RMLUI_ASSERT(parent);
 
-	// TODO: Move somewhere else. Perhaps spawn a sub-element, or set an attribute with the rml contents.
-	if (auto data_model = parent->GetDataModel())
+	if (type == XMLDataType::InnerXML)
 	{
-		if(auto attribute = parent->GetAttribute("data-for"))
-		{
-			String value_bind_name = attribute->Get<String>();
-
-			auto view = std::make_unique<DataViewFor>(*data_model, parent, value_bind_name, data);
-			if (*view)
-				data_model->AddView(std::move(view));
-			else
-				Log::Message(Log::LT_WARNING, "Could not add data-for view to element '%s'.", parent->GetAddress().c_str());
-
+		// Structural data views use the raw inner xml contents of the node, submit them now.
+		if (ElementUtilities::ApplyStructuralDataViews(parent, data))
 			return true;
-		}
 	}
-
 
 	// Parse the text into the element
 	return Factory::InstanceElementText(parent, data);

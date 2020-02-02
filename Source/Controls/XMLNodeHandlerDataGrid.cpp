@@ -104,8 +104,9 @@ bool XMLNodeHandlerDataGrid::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(
 	return true;
 }
 
-bool XMLNodeHandlerDataGrid::ElementData(Core::XMLParser* parser, const Rml::Core::String& data)
+bool XMLNodeHandlerDataGrid::ElementData(Core::XMLParser* parser, const Rml::Core::String& data, Core::XMLDataType RMLUI_UNUSED_PARAMETER(type))
 {
+	RMLUI_UNUSED(type);
 	Core::Element* parent = parser->GetParseFrame()->element;
 
 	// Parse the text into the parent element.

@@ -411,7 +411,7 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
-						Log::Message(Log::LT_WARNING, "Could not add data-attr view to element '%s'.", element->GetAddress().c_str());
+						Log::Message(Log::LT_WARNING, "Could not add data-attr view to element: %s", element->GetAddress().c_str());
 				}
 				else if (data_type == "value")
 				{
@@ -420,13 +420,13 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
-						Log::Message(Log::LT_WARNING, "Could not add data-value view to element '%s'.", element->GetAddress().c_str());
+						Log::Message(Log::LT_WARNING, "Could not add data-value view to element: %s", element->GetAddress().c_str());
 
 					auto controller = std::make_unique<DataControllerValue>(*data_model, element, data_expression);
 					if (controller)
 						data_model->AddController(std::move(controller));
 					else
-						Log::Message(Log::LT_WARNING, "Could not add data-value controller to element '%s'.", element->GetAddress().c_str());
+						Log::Message(Log::LT_WARNING, "Could not add data-value controller to element: %s", element->GetAddress().c_str());
 				}
 				else if (data_type == "style")
 				{
@@ -436,7 +436,7 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
-						Log::Message(Log::LT_WARNING, "Could not add data-style view to element '%s'.", element->GetAddress().c_str());
+						Log::Message(Log::LT_WARNING, "Could not add data-style view to element: %s", element->GetAddress().c_str());
 				}
 				else if (data_type == "class")
 				{
@@ -446,7 +446,7 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
-						Log::Message(Log::LT_WARNING, "Could not add data-class view to element '%s'.", element->GetAddress().c_str());
+						Log::Message(Log::LT_WARNING, "Could not add data-class view to element: %s", element->GetAddress().c_str());
 				}
 				else if (data_type == "rml")
 				{
@@ -454,7 +454,7 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
-						Log::Message(Log::LT_WARNING, "Could not add data-rml view to element '%s'.", element->GetAddress().c_str());
+						Log::Message(Log::LT_WARNING, "Could not add data-rml view to element: %s", element->GetAddress().c_str());
 				}
 				else if (data_type == "if")
 				{
@@ -462,7 +462,7 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 					if (*view)
 						data_model->AddView(std::move(view));
 					else
-						Log::Message(Log::LT_WARNING, "Could not add data-if view to element '%s'.", element->GetAddress().c_str());
+						Log::Message(Log::LT_WARNING, "Could not add data-if view to element: %s", element->GetAddress().c_str());
 				}
 				else if (data_type == "text")
 				{
@@ -473,13 +473,38 @@ void ElementUtilities::ApplyDataViewsControllers(Element* element)
 						if (*view)
 							data_model->AddView(std::move(view));
 						else
-							Log::Message(Log::LT_WARNING, "Could not add data binding view to element '%s'.", element->GetAddress().c_str());
+							Log::Message(Log::LT_WARNING, "Could not add data binding view to element: %s", element->GetAddress().c_str());
 					}
 				}
 			}
 		}
 
 	}
+}
+
+bool ElementUtilities::ApplyStructuralDataViews(Element* element, const String& inner_xml)
+{
+	RMLUI_ASSERT(element);
+	bool result = false;
+
+	if (DataModel* data_model = element->GetDataModel())
+	{
+		if (const Variant* attribute = element->GetAttribute("data-for"))
+		{
+			String value_bind_name = attribute->Get<String>();
+
+			auto view = std::make_unique<DataViewFor>(*data_model, element, value_bind_name, inner_xml);
+			if (*view)
+			{
+				data_model->AddView(std::move(view));
+				result = true;
+			}
+			else
+				Log::Message(Log::LT_WARNING, "Could not add data-for view to element: %s", element->GetAddress().c_str());
+		}
+	}
+
+	return result;
 }
 
 }

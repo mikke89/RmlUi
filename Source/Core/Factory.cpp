@@ -248,6 +248,49 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 	return nullptr;
 }
 
+struct ElementTextTraits {
+	bool only_white_space = true;
+	bool has_xml = false;
+	bool has_curly_brackets = false;
+};
+static ElementTextTraits ParseElementTextTraits(Element* parent, const String& text)
+{
+	ElementTextTraits result;
+
+	bool in_brackets = false;
+	char previous = 0;
+	for (const char c : text)
+	{
+		if (!StringUtilities::IsWhitespace(c))
+			result.only_white_space = false;
+
+		if (c == '{' && previous == '{')
+		{
+			if (in_brackets)
+				Log::Message(Log::LT_WARNING, "Nested double curly brackets are illegal. %s", parent->GetAddress().c_str());
+
+			in_brackets = true;
+			result.has_curly_brackets = true;
+		}
+		else if (c == '}' && previous == '}')
+		{
+			if (!in_brackets)
+				Log::Message(Log::LT_WARNING, "Closing double curly brackets mismatched an earlier open bracket. %s", parent->GetAddress().c_str());
+
+			in_brackets = false;
+		}
+		else if (c == '<' && !in_brackets)
+		{
+			result.has_xml = true;
+			break;
+		}
+
+		previous = c;
+	}
+
+	return result;
+}
+
 // Instances a single text element containing a string.
 bool Factory::InstanceElementText(Element* parent, const String& text)
 {
@@ -257,49 +300,15 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	if (SystemInterface* system_interface = GetSystemInterface())
 		system_interface->TranslateString(translated_data, text);
 
-	// Look for XML tags and detect double brackets for data bindings. If the text contains XML elements then run it through the XML parser again.
-	bool xml_introduced = false;
-	bool has_brackets = false;
-	bool only_white_space = true;
-	{
-		bool in_brackets = false;
-		char previous = 0;
-		for (const char c : translated_data)
-		{
-			if (!StringUtilities::IsWhitespace(c))
-				only_white_space = false;
-
-			if (c == '{' && previous == '{')
-			{
-				if (in_brackets)
-					Log::Message(Log::LT_WARNING, "Nested double brackets are illegal. %s", parent->GetAddress().c_str());
-
-				in_brackets = true;
-				has_brackets = true;
-			}
-			else if (c == '}' && previous == '}')
-			{
-				if (!in_brackets)
-					Log::Message(Log::LT_WARNING, "Closing double brackets mismatched an earlier open bracket. %s", parent->GetAddress().c_str());
-
-				in_brackets = false;
-			}
-			else if (c == '<' && !in_brackets)
-			{
-				xml_introduced = true;
-				break;
-			}
-
-			previous = c;
-		}
-	}
+	// Look for XML tags and detect double curly brackets for data bindings.
+	ElementTextTraits traits = ParseElementTextTraits(parent, text);
 
 	// If this text node only contains white-space we don't want to construct it.
-	if (only_white_space)
+	if (traits.only_white_space)
 		return true;
 
-
-	if (xml_introduced)
+	// If the text contains XML elements then run it through the XML parser again.
+	if (traits.has_xml)
 	{
 		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
 		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
@@ -314,8 +323,11 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	{
 		RMLUI_ZoneScopedNC("InstanceText", 0x8FBC8F);
 		// Attempt to instance the element.
+
 		XMLAttributes attributes;
-		if(has_brackets)
+
+		// If we have curly brackets in the text, we tag the element so that the appropriate data view (DataViewText) is constructed.
+		if(traits.has_curly_brackets)
 			attributes.emplace("data-text", Variant());
 
 		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);

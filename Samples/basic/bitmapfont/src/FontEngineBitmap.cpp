@@ -310,7 +310,8 @@ void FontParserBitmap::HandleElementEnd(const String& RMLUI_UNUSED_PARAMETER(nam
 }
 
 // Called when the parser encounters data.
-void FontParserBitmap::HandleData(const String& RMLUI_UNUSED_PARAMETER(data))
+void FontParserBitmap::HandleData(const String& RMLUI_UNUSED_PARAMETER(data), Rml::Core::XMLDataType RMLUI_UNUSED_PARAMETER(type))
 {
 	RMLUI_UNUSED(data);
+	RMLUI_UNUSED(type);
 }

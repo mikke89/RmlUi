@@ -91,13 +91,16 @@ public:
 	/// Access the current parse frame.
 	const ParseFrame* GetParseFrame() const;
 
+	/// Returns the source URL of this parse.
+	const URL& GetSourceURL() const;
+
 protected:
 	/// Called when the parser finds the beginning of an element tag.
 	void HandleElementStart(const String& name, const XMLAttributes& attributes) override;
 	/// Called when the parser finds the end of an element tag.
 	void HandleElementEnd(const String& name) override;
 	/// Called when the parser encounters data.
-	void HandleData(const String& data) override;
+	void HandleData(const String& data, XMLDataType type) override;
 
 private:
 	// The header of the document being parsed.

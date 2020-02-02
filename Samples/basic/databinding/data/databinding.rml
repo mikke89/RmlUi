@@ -185,7 +185,7 @@ form h2
 		<p>
 			Numbers: <span data-for="invader.numbers"> {{it}} </span>
 		</p>
-	</div>
+	</div> 
 </panel>
 <tab>Decorators</tab>
 <panel id="decorators">

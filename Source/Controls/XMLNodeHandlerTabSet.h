@@ -51,7 +51,7 @@ public:
 	/// Called when an element is closed
 	bool ElementEnd(Core::XMLParser* parser, const Rml::Core::String& name) override;
 	/// Called for element data
-	bool ElementData(Core::XMLParser* parser, const Rml::Core::String& data) override;
+	bool ElementData(Core::XMLParser* parser, const Rml::Core::String& data, Core::XMLDataType type) override;
 };
 
 }

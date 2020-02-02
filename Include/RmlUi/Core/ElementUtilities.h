@@ -136,6 +136,11 @@ public:
 	/// Creates data views and data controllers if a data model applies to the element.
 	/// Attributes such as 'data-' are used to create the views and controllers.
 	static void ApplyDataViewsControllers(Element* element);
+
+	/// Creates data views that use a raw inner xml content string to construct child elements.
+	/// Right now, this only applies to the 'data-for' view.
+	/// @return true if a data view was constructed.
+	static bool ApplyStructuralDataViews(Element* element, const String& inner_xml);
 };
 
 }

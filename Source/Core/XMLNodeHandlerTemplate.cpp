@@ -66,8 +66,9 @@ bool XMLNodeHandlerTemplate::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser
 	return true;
 }
 
-bool XMLNodeHandlerTemplate::ElementData(XMLParser* parser, const String& data)
+bool XMLNodeHandlerTemplate::ElementData(XMLParser* parser, const String& data, XMLDataType RMLUI_UNUSED_PARAMETER(type))
 {	
+	RMLUI_UNUSED(type);
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 

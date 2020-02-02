@@ -136,8 +136,9 @@ bool XMLNodeHandlerTabSet::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(pa
 	return true;
 }
 
-bool XMLNodeHandlerTabSet::ElementData(Core::XMLParser* parser, const Rml::Core::String& data)
+bool XMLNodeHandlerTabSet::ElementData(Core::XMLParser* parser, const Rml::Core::String& data, Core::XMLDataType RMLUI_UNUSED_PARAMETER(type))
 {	
+	RMLUI_UNUSED(type);
 	return Core::Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 
