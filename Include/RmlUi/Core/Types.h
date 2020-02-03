@@ -186,6 +186,10 @@ using TransformPtr = SharedPtr< Transform >;
 using DecoratorsPtr = SharedPtr<const Decorators>;
 using FontEffectsPtr = SharedPtr<const FontEffects>;
 
+// Data binding types
+class DataView;
+using DataViewPtr = UniqueReleaserPtr<DataView>;
+
 }
 }
 

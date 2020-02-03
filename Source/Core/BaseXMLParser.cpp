@@ -59,10 +59,13 @@ void BaseXMLParser::Parse(Stream* stream)
 	source_url = &stream->GetSourceURL();
 
 	xml_source.clear();
-	const size_t source_size = stream->Length();
-	const size_t read_size = stream->Read(xml_source, source_size);
 
-	RMLUI_ASSERT(source_size == read_size);
+	// We read in the whole XML file here.
+	// TODO: It doesn't look like the Stream interface is used for anything useful. We
+	//   might as well just use a span or StringView, and get completely rid of it.
+	// @performance Otherwise, use the temporary allocator.
+	const size_t source_size = stream->Length();
+	stream->Read(xml_source, source_size);
 
 	xml_index = 0;
 	line_number = 1;

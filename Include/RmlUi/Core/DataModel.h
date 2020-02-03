@@ -47,7 +47,7 @@ class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
 	DataModel(const TransformFuncRegister* transform_register = nullptr) : transform_register(transform_register) {}
 
-	void AddView(UniquePtr<DataView> view) { views.Add(std::move(view)); }
+	void AddView(DataViewPtr view) { views.Add(std::move(view)); }
 	void AddController(UniquePtr<DataController> controller) { controllers.Add(std::move(controller)); }
 
 	bool BindVariable(const String& name, Variable variable);

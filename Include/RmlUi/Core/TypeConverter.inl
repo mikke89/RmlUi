@@ -174,7 +174,7 @@ class TypeConverter< String, int64_t >
 public:
 	static bool Convert(const String& src, int64_t& dest)
 	{
-		return sscanf(src.c_str(), "%lld", &dest) == 1;
+		return sscanf(src.c_str(), "%" SCNd64, &dest) == 1;
 	}
 };
 
@@ -294,7 +294,7 @@ class TypeConverter< int64_t, String >
 public:
 	static bool Convert(const int64_t& src, String& dest)
 	{
-		return FormatString(dest, 32, "%lld", src) > 0;
+		return FormatString(dest, 32, "%" PRId64, src) > 0;
 	}
 };
 

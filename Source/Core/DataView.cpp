@@ -27,9 +27,8 @@
  */
 
 #include "precompiled.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
 #include "../../Include/RmlUi/Core/DataView.h"
-#include "DataParser.h"
+#include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
 namespace Core {
@@ -44,6 +43,14 @@ Element* DataView::GetElement() const
 	return result;
 }
 
+int DataView::GetElementDepth() const {
+	return element_depth;
+}
+
+bool DataView::IsValid() const {
+	return (bool)attached_element;
+}
+
 DataView::DataView(Element* element) : attached_element(element->GetObserverPtr()), element_depth(0) {
 	if (element)
 	{
@@ -52,417 +59,11 @@ DataView::DataView(Element* element) : attached_element(element->GetObserverPtr(
 	}
 }
 
-
-DataViewText::DataViewText(DataModel& model, ElementText* parent_element, const String& in_text) : DataView(parent_element)
+void DataView::Release()
 {
-	text.reserve(in_text.size());
-
-	DataExpressionInterface expression_interface(&model, parent_element);
-	bool success = true;
-
-	size_t previous_close_brackets = 0;
-	size_t begin_brackets = 0;
-	while ((begin_brackets = in_text.find("{{", begin_brackets)) != String::npos)
-	{
-		text.insert(text.end(), in_text.begin() + previous_close_brackets, in_text.begin() + begin_brackets);
-
-		const size_t begin_name = begin_brackets + 2;
-		const size_t end_name = in_text.find("}}", begin_name);
-
-		if (end_name == String::npos)
-		{
-			success = false;
-			break;
-		}
-
-		DataEntry entry;
-		entry.index = text.size();
-		entry.data_expression = std::make_unique<DataExpression>(String(in_text.begin() + begin_name, in_text.begin() + end_name));
-
-		if (entry.data_expression->Parse(expression_interface))
-			data_entries.push_back(std::move(entry));
-
-		previous_close_brackets = end_name + 2;
-		begin_brackets = previous_close_brackets;
-	}
-
-	if (data_entries.empty())
-		success = false;
-
-	if (success && previous_close_brackets < in_text.size())
-		text.insert(text.end(), in_text.begin() + previous_close_brackets, in_text.end());
-
-	if (!success)
-	{
-		text.clear();
-		data_entries.clear();
-		InvalidateView();
-	}
+	delete this;
 }
 
-DataViewText::~DataViewText()
-{}
-
-bool DataViewText::Update(DataModel& model)
-{
-	bool entries_modified = false;
-	Element* element = GetElement();
-	DataExpressionInterface expression_interface(&model, element);
-
-	for (DataEntry& entry : data_entries)
-	{
-		RMLUI_ASSERT(entry.data_expression);
-		Variant variant;
-		bool result = entry.data_expression->Run(expression_interface, variant);
-		const String value = variant.Get<String>();
-		if (result && entry.value != value)
-		{
-			entry.value = value;
-			entries_modified = true;
-		}
-	}
-
-	if (entries_modified)
-	{
-		if (Element* element = GetElement())
-		{
-			RMLUI_ASSERTMSG(rmlui_dynamic_cast<ElementText*>(element), "Somehow the element type was changed from ElementText since construction of the view. Should not be possible?");
-
-			if(auto text_element = static_cast<ElementText*>(element))
-			{
-				String new_text = BuildText();
-				text_element->SetText(new_text);
-			}
-		}
-		else
-		{
-			Log::Message(Log::LT_WARNING, "Could not update data view text, element no longer valid. Was it destroyed?");
-		}
-	}
-
-	return entries_modified;
-}
-
-StringList DataViewText::GetVariableNameList() const
-{
-	StringList full_list;
-	full_list.reserve(data_entries.size());
-	
-	for (const DataEntry& entry : data_entries)
-	{
-		RMLUI_ASSERT(entry.data_expression);
-
-		StringList entry_list = entry.data_expression->GetVariableNameList();
-		full_list.insert(full_list.end(),
-			std::make_move_iterator(entry_list.begin()),
-			std::make_move_iterator(entry_list.end())
-		);
-	}
-
-	return full_list;
-}
-
-String DataViewText::BuildText() const
-{
-	size_t reserve_size = text.size();
-
-	for (const DataEntry& entry : data_entries)
-		reserve_size += entry.value.size();
-
-	String result;
-	result.reserve(reserve_size);
-
-	size_t previous_index = 0;
-	for (const DataEntry& entry : data_entries)
-	{
-		result += text.substr(previous_index, entry.index - previous_index);
-		result += entry.value;
-		previous_index = entry.index;
-	}
-
-	if (previous_index < text.size())
-		result += text.substr(previous_index);
-
-	return result;
-}
-
-
-DataViewAttribute::DataViewAttribute(DataModel& model, Element* element, const String& binding_name, const String& attribute_name)
-	: DataView(element), attribute_name(attribute_name)
-{
-	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataExpressionInterface interface(&model, element);
-
-	if (!data_expression->Parse(interface))
-		InvalidateView();
-}
-DataViewAttribute::~DataViewAttribute()
-{}
-
-bool DataViewAttribute::Update(DataModel& model)
-{
-	bool result = false;
-	Variant variant;
-	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
-
-	if (element && data_expression->Run(interface, variant))
-	{
-		const String value = variant.Get<String>();
-		const Variant* attribute = element->GetAttribute(attribute_name);
-		
-		if (!attribute || (attribute && attribute->Get<String>() != value))
-		{
-			element->SetAttribute(attribute_name, value);
-			result = true;
-		}
-	}
-	return result;
-}
-
-StringList DataViewAttribute::GetVariableNameList() const {
-	return data_expression ? data_expression->GetVariableNameList() : StringList();
-}
-
-
-DataViewStyle::DataViewStyle(DataModel& model, Element* element, const String& binding_name, const String& property_name)
-	: DataView(element), property_name(property_name)
-{
-	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataExpressionInterface interface(&model, element);
-
-	if(!data_expression->Parse(interface))
-		InvalidateView();
-}
-
-DataViewStyle::~DataViewStyle()
-{
-}
-
-
-bool DataViewStyle::Update(DataModel& model)
-{
-	bool result = false;
-	Variant variant;
-	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
-	
-	if (element && data_expression->Run(interface, variant))
-	{
-		const String value = variant.Get<String>();
-		const Property* p = element->GetLocalProperty(property_name);
-		if (!p || p->Get<String>() != value)
-		{
-			element->SetProperty(property_name, value);
-			result = true;
-		}
-	}
-	return result;
-}
-
-StringList DataViewStyle::GetVariableNameList() const {
-	return data_expression ? data_expression->GetVariableNameList() : StringList();
-}
-
-
-DataViewClass::DataViewClass(DataModel& model, Element* element, const String& binding_name, const String& class_name) 
-	: DataView(element), class_name(class_name)
-{
-	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataExpressionInterface interface(&model, element);
-
-	if (!data_expression->Parse(interface))
-		InvalidateView();
-}
-
-DataViewClass::~DataViewClass() = default;
-
-bool DataViewClass::Update(DataModel& model)
-{
-	bool result = false;
-	Variant variant;
-	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
-
-	if (element && data_expression->Run(interface, variant))
-	{
-		const bool activate = variant.Get<bool>();
-		const bool is_set = element->IsClassSet(class_name);
-		if (activate != is_set)
-		{
-			element->SetClass(class_name, activate);
-			result = true;
-		}
-	}
-	return result;
-}
-
-StringList DataViewClass::GetVariableNameList() const
-{
-	return data_expression ? data_expression->GetVariableNameList() : StringList();
-}
-
-
-
-DataViewRml::DataViewRml(DataModel& model, Element* element, const String& binding_name, const String& /*unused*/)
-	: DataView(element)
-{
-	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataExpressionInterface interface(&model, element);
-
-	if (!data_expression->Parse(interface))
-		InvalidateView();
-}
-
-DataViewRml::~DataViewRml() = default;
-
-bool DataViewRml::Update(DataModel & model)
-{
-	bool result = false;
-	Variant variant;
-	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
-
-	if (element && data_expression->Run(interface, variant))
-	{
-		String new_rml = variant.Get<String>();
-		if (new_rml != previous_rml)
-		{
-			element->SetInnerRML(new_rml);
-			previous_rml = std::move(new_rml);
-			result = true;
-		}
-	}
-	return result;
-}
-
-StringList DataViewRml::GetVariableNameList() const
-{
-	return data_expression ? data_expression->GetVariableNameList() : StringList();
-}
-
-
-
-
-DataViewIf::DataViewIf(DataModel& model, Element* element, const String& binding_name) : DataView(element)
-{
-	data_expression = std::make_unique<DataExpression>(binding_name);
-	DataExpressionInterface interface(&model, element);
-
-	if (!data_expression->Parse(interface))
-		InvalidateView();
-}
-
-DataViewIf::~DataViewIf()
-{}
-
-
-bool DataViewIf::Update(DataModel& model)
-{
-	bool result = false;
-	Variant variant;
-	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
-
-	if (element && data_expression->Run(interface, variant))
-	{
-		const bool value = variant.Get<bool>();
-		const bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
-		if(is_visible != value)
-		{
-			if (value)
-				element->RemoveProperty(PropertyId::Display);
-			else
-				element->SetProperty(PropertyId::Display, Property(Style::Display::None));
-			result = true;
-		}
-	}
-	return result;
-}
-StringList DataViewIf::GetVariableNameList() const {
-	return data_expression ? data_expression->GetVariableNameList() : StringList();
-}
-
-
-
-DataViewFor::DataViewFor(DataModel& model, Element* element, const String& in_binding_name, const String& in_rml_content)
-	: DataView(element), rml_contents(in_rml_content)
-{
-	StringList binding_list;
-	StringUtilities::ExpandString(binding_list, in_binding_name, ':');
-
-	if (binding_list.empty() || binding_list.size() > 2 || binding_list.front().empty() || binding_list.back().empty())
-	{
-		Log::Message(Log::LT_WARNING, "Invalid syntax in data-for '%s'", in_binding_name.c_str());
-		InvalidateView();
-		return;
-	}
-
-	if (binding_list.size() == 2)
-		alias_name = binding_list.front();
-	else
-		alias_name = "it";
-
-	const String& binding_name = binding_list.back();
-
-	variable_address = model.ResolveAddress(binding_name, element);
-	if (variable_address.empty())
-	{
-		InvalidateView();
-		return;
-	}
-
-	attributes = element->GetAttributes();
-	attributes.erase("data-for");
-	element->SetProperty(PropertyId::Display, Property(Style::Display::None));
-}
-
-
-
-bool DataViewFor::Update(DataModel& model)
-{
-	Variable variable = model.GetVariable(variable_address);
-	if (!variable)
-		return false;
-
-	bool result = false;
-	const int size = variable.Size();
-	const int num_elements = (int)elements.size();
-	Element* element = GetElement();
-
-	for (int i = 0; i < Math::Max(size, num_elements); i++)
-	{
-		if (i >= num_elements)
-		{
-			ElementPtr new_element_ptr = Factory::InstanceElement(nullptr, element->GetTagName(), element->GetTagName(), attributes);
-
-			DataAddress replacement_address;
-			replacement_address.reserve(variable_address.size() + 1);
-			replacement_address = variable_address;
-			replacement_address.push_back(AddressEntry(i));
-
-			model.InsertAlias(new_element_ptr.get(), alias_name, replacement_address);
-
-			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element);
-			elements.push_back(new_element);
-
-			elements[i]->SetInnerRML(rml_contents);
-
-			RMLUI_ASSERT(i < (int)elements.size());
-		}
-		if (i >= size)
-		{
-			model.EraseAliases(elements[i]);
-			elements[i]->GetParentNode()->RemoveChild(elements[i]).reset();
-			elements[i] = nullptr;
-		}
-	}
-
-	if (num_elements > size)
-		elements.resize(size);
-
-	return result;
-}
 
 DataViews::DataViews()
 {}
@@ -470,7 +71,7 @@ DataViews::DataViews()
 DataViews::~DataViews()
 {}
 
-void DataViews::Add(UniquePtr<DataView> view) {
+void DataViews::Add(DataViewPtr view) {
 	views_to_add.push_back(std::move(view));
 }
 
@@ -489,7 +90,7 @@ void DataViews::OnElementRemove(Element* element)
 	}
 }
 
-bool DataViews::Update(DataModel & model, const SmallUnorderedSet< String >& dirty_variables)
+bool DataViews::Update(DataModel& model, const SmallUnorderedSet< String >& dirty_variables)
 {
 	bool result = false;
 

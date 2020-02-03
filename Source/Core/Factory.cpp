@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core.h"
 
 #include "ContextInstancerDefault.h"
+#include "DataViewDefault.h"
 #include "DecoratorTiledBoxInstancer.h"
 #include "DecoratorTiledHorizontalInstancer.h"
 #include "DecoratorTiledImageInstancer.h"
@@ -60,16 +61,27 @@ namespace Rml {
 namespace Core {
 
 // Element instancers.
-typedef UnorderedMap< String, ElementInstancer* > ElementInstancerMap;
+using ElementInstancerMap = UnorderedMap< String, ElementInstancer* >;
 static ElementInstancerMap element_instancers;
 
 // Decorator instancers.
-typedef UnorderedMap< String, DecoratorInstancer* > DecoratorInstancerMap;
+using DecoratorInstancerMap = UnorderedMap< String, DecoratorInstancer* >;
 static DecoratorInstancerMap decorator_instancers;
 
 // Font effect instancers.
-typedef UnorderedMap< String, FontEffectInstancer* > FontEffectInstancerMap;
+using FontEffectInstancerMap = UnorderedMap< String, FontEffectInstancer* >;
 static FontEffectInstancerMap font_effect_instancers;
+
+// Data view instancers.
+using DataViewInstancerMap = UnorderedMap< String, DataViewInstancer* >;
+static DataViewInstancerMap data_view_instancers;
+
+// Structural data view instancers.
+using StructuralDataViewInstancerMap = SmallUnorderedMap< String, DataViewInstancer* >;
+static StructuralDataViewInstancerMap structural_data_view_instancers;
+
+// Structural data view names.
+static StringList structural_data_view_names;
 
 // The context instancer.
 static ContextInstancer* context_instancer = nullptr;;
@@ -105,6 +117,15 @@ struct DefaultInstancers {
 	Ptr<FontEffectInstancer> font_effect_glow = std::make_unique<FontEffectGlowInstancer>();
 	Ptr<FontEffectInstancer> font_effect_outline = std::make_unique<FontEffectOutlineInstancer>();
 	Ptr<FontEffectInstancer> font_effect_shadow = std::make_unique<FontEffectShadowInstancer>();
+
+	Ptr<DataViewInstancer> data_view_attribute = std::make_unique<DataViewInstancerDefault< DataViewAttribute >>();
+	Ptr<DataViewInstancer> data_view_class     = std::make_unique<DataViewInstancerDefault< DataViewClass >>();
+	Ptr<DataViewInstancer> data_view_if        = std::make_unique<DataViewInstancerDefault< DataViewIf >>();
+	Ptr<DataViewInstancer> data_view_rml       = std::make_unique<DataViewInstancerDefault< DataViewRml >>();
+	Ptr<DataViewInstancer> data_view_style     = std::make_unique<DataViewInstancerDefault< DataViewStyle >>();
+	Ptr<DataViewInstancer> data_view_text      = std::make_unique<DataViewInstancerDefault< DataViewText >>();
+
+	Ptr<DataViewInstancer> structural_data_view_for = std::make_unique<DataViewInstancerDefault< DataViewFor >>();
 };
 
 static UniquePtr<DefaultInstancers> default_instancers;
@@ -167,6 +188,16 @@ bool Factory::Initialise()
 	XMLParser::RegisterNodeHandler("head", std::make_shared<XMLNodeHandlerHead>());
 	XMLParser::RegisterNodeHandler("template", std::make_shared<XMLNodeHandlerTemplate>());
 
+	// Register the default data views
+	RegisterDataViewInstancer(default_instancers->data_view_attribute.get(), "attr", false);
+	RegisterDataViewInstancer(default_instancers->data_view_class.get(),     "class", false);
+	RegisterDataViewInstancer(default_instancers->data_view_if.get(),        "if", false);
+	RegisterDataViewInstancer(default_instancers->data_view_rml.get(),       "rml", false);
+	RegisterDataViewInstancer(default_instancers->data_view_style.get(),     "style", false);
+	RegisterDataViewInstancer(default_instancers->data_view_text.get(),      "text", false);
+
+	RegisterDataViewInstancer(default_instancers->structural_data_view_for.get(), "for", true);
+
 	return true;
 }
 
@@ -177,6 +208,10 @@ void Factory::Shutdown()
 	decorator_instancers.clear();
 
 	font_effect_instancers.clear();
+
+	data_view_instancers.clear();
+	structural_data_view_instancers.clear();
+	structural_data_view_names.clear();
 
 	context_instancer = nullptr;
 
@@ -490,6 +525,43 @@ EventListener* Factory::InstanceEventListener(const String& value, Element* elem
 	if (event_listener_instancer)
 		return event_listener_instancer->InstanceEventListener(value, element);
 
+	return nullptr;
+}
+
+void Factory::RegisterDataViewInstancer(DataViewInstancer* instancer, const String& name, bool is_structural_view)
+{
+	bool inserted = false;
+	if (is_structural_view)
+	{
+		inserted = structural_data_view_instancers.emplace(name, instancer).second;
+		if (inserted)
+			structural_data_view_names.push_back(name);
+	}
+	else
+	{
+		inserted = data_view_instancers.emplace(name, instancer).second;
+	}
+	
+	if (!inserted)
+		Log::Message(Log::LT_WARNING, "Could not register data view instancer '%s'. The given name is already registered.", name.c_str());
+}
+
+DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element, bool is_structural_view)
+{
+	RMLUI_ASSERT(element);
+
+	if (is_structural_view)
+	{
+		auto it = structural_data_view_instancers.find(type_name);
+		if (it != structural_data_view_instancers.end())
+			return it->second->InstanceView(element);
+	}
+	else
+	{
+		auto it = data_view_instancers.find(type_name);
+		if (it != data_view_instancers.end())
+			return it->second->InstanceView(element);
+	}
 	return nullptr;
 }
 
