@@ -26,60 +26,63 @@
  *
  */
 
-#ifndef RMLUICOREDATAPARSER_H
-#define RMLUICOREDATAPARSER_H
+#ifndef RMLUICOREDATACONTROLLERDEFAULT_H
+#define RMLUICOREDATACONTROLLERDEFAULT_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/DataVariable.h"
+#include "../../Include/RmlUi/Core/DataController.h"
 
 namespace Rml {
 namespace Core {
 
 class Element;
 class DataModel;
-struct InstructionData;
-using Program = std::vector<InstructionData>;
-using AddressList = std::vector<DataAddress>;
+class DataExpression;
+using DataExpressionPtr = UniquePtr<DataExpression>;
 
-class DataExpressionInterface {
+
+class DataControllerValue final : public DataController, private EventListener {
 public:
-    DataExpressionInterface() = default;
-    DataExpressionInterface(DataModel* data_model, Element* element, Event* event = nullptr);
+    DataControllerValue(Element* element);
+    ~DataControllerValue();
 
-    DataAddress ParseAddress(const String& address_str) const;
-    Variant GetValue(const DataAddress& address) const;
-    bool SetValue(const DataAddress& address, const Variant& value) const;
-    bool CallTransform(const String& name, Variant& inout_result, const VariantList& arguments);
-    bool EventCallback(const String& name, const VariantList& arguments);
+    bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
-private:
-    DataModel* data_model = nullptr;
-    Element* element = nullptr;
-    Event* event = nullptr;
-};
-
-class DataExpression {
-public:
-    DataExpression(String expression);
-    ~DataExpression();
-
-    bool Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression);
-
-    bool Run(const DataExpressionInterface& expression_interface, Variant& out_value);
-
-    // Must be available after Parse()
-    StringList GetVariableNameList() const;
-
-private:
-    String expression;
+protected:
+    // Responds to 'Change' events.
+    void ProcessEvent(Event& event) override;
     
-    Program program;
-    AddressList addresses;
+    // Delete this.
+    void Release() override;
+
+private:
+    void SetValue(const Variant& new_value);
+
+    DataAddress address;
 };
 
 
+class DataControllerEvent final : public DataController, private EventListener {
+public:
+    DataControllerEvent(Element* element);
+    ~DataControllerEvent();
 
+    bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
+
+protected:
+    // Responds to the event type specified in the attribute modifier.
+    void ProcessEvent(Event& event) override;
+
+    // Delete this.
+    void Release() override;
+
+private:
+    EventId id = EventId::Invalid;
+    DataExpressionPtr expression;
+};
 
 }
 }

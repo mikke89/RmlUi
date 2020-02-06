@@ -118,8 +118,9 @@ struct Invader {
 
 struct MyData {
 	Rml::Core::String hello_world = "Hello World!";
-	int rating = 99;
+	Rml::Core::String mouse_detector = "Mouse-move <em>Detector</em>.";
 
+	int rating = 99;
 
 	Invader delightful_invader{ "Delightful invader", "icon-invader" };
 
@@ -130,31 +131,49 @@ struct MyData {
 	};
 
 	std::vector<int> indices = { 1, 2, 3, 4, 5 };
+
+	std::vector<Rml::Core::Vector2f> positions;
+
+	void AddMousePos(Rml::Core::DataModelHandle model_handle, Rml::Core::Event& ev, const Rml::Core::VariantList& arguments)
+	{
+		positions.emplace_back(ev.GetParameter("mouse_x", 0.f), ev.GetParameter("mouse_y", 0.f));
+		model_handle.DirtyVariable("positions");
+	}
+
 } my_data;
 
-Rml::Core::DataModelHandle my_model;
 
+void ClearPositions(Rml::Core::DataModelHandle model_handle, Rml::Core::Event& ev, const Rml::Core::VariantList& arguments)
+{
+	my_data.positions.clear();
+	model_handle.DirtyVariable("positions");
+}
 
 void HasGoodRating(Rml::Core::Variant& variant) {
 	variant = int(my_data.rating > 50);
 }
 
+
+Rml::Core::DataModelHandle my_model;
+
+
 bool SetupDataBinding(Rml::Core::Context* context)
 {
-	my_model = context->CreateDataModel("my_model");
-	if (!my_model)
+	Rml::Core::DataModelConstructor constructor = context->CreateDataModel("my_model");
+	if (!constructor)
 		return false;
 
-	my_model.Bind("hello_world", &my_data.hello_world);
-	my_model.Bind("rating", &my_data.rating);
-	my_model.BindFunc("good_rating", &HasGoodRating);
-	my_model.BindFunc("great_rating", [](Rml::Core::Variant& variant) {
+	constructor.Bind("hello_world", &my_data.hello_world);
+	constructor.Bind("mouse_detector", &my_data.mouse_detector);
+	constructor.Bind("rating", &my_data.rating);
+	constructor.BindFunc("good_rating", &HasGoodRating);
+	constructor.BindFunc("great_rating", [](Rml::Core::Variant& variant) {
 		variant = int(my_data.rating > 80);
 	});
 
-	my_model.RegisterArray<std::vector<int>>();
+	constructor.RegisterArray<std::vector<int>>();
 
-	if(auto invader_handle = my_model.RegisterStruct<Invader>())
+	if(auto invader_handle = constructor.RegisterStruct<Invader>())
 	{
 		invader_handle.AddMember("name", &Invader::name);
 		invader_handle.AddMember("sprite", &Invader::sprite);
@@ -162,12 +181,26 @@ bool SetupDataBinding(Rml::Core::Context* context)
 		invader_handle.AddMemberFunc("color", &Invader::GetColor);
 	}
 
-	my_model.Bind("delightful_invader", &my_data.delightful_invader);
+	constructor.Bind("delightful_invader", &my_data.delightful_invader);
 
-	my_model.RegisterArray<std::vector<Invader>>();
+	constructor.RegisterArray<std::vector<Invader>>();
 
-	my_model.Bind("indices", &my_data.indices);
-	my_model.Bind("invaders", &my_data.invaders);
+	constructor.Bind("indices", &my_data.indices);
+	constructor.Bind("invaders", &my_data.invaders);
+
+	if (auto vec2_handle = constructor.RegisterStruct<Rml::Core::Vector2f>())
+	{
+		vec2_handle.AddMember("x", &Rml::Core::Vector2f::x);
+		vec2_handle.AddMember("y", &Rml::Core::Vector2f::y);
+	}
+
+	constructor.RegisterArray<std::vector<Rml::Core::Vector2f>>();
+	constructor.Bind("positions", &my_data.positions);
+
+	constructor.BindEventCallback("clear_positions", &ClearPositions);
+	constructor.BindEventCallback("add_mouse_pos", &MyData::AddMousePos, &my_data);
+
+	my_model = constructor.GetModelHandle();
 
 	return true;
 }

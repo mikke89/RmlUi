@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core.h"
 
 #include "ContextInstancerDefault.h"
+#include "DataControllerDefault.h"
 #include "DataViewDefault.h"
 #include "DecoratorTiledBoxInstancer.h"
 #include "DecoratorTiledHorizontalInstancer.h"
@@ -75,6 +76,10 @@ static FontEffectInstancerMap font_effect_instancers;
 // Data view instancers.
 using DataViewInstancerMap = UnorderedMap< String, DataViewInstancer* >;
 static DataViewInstancerMap data_view_instancers;
+
+// Data controller instancers.
+using DataControllerInstancerMap = UnorderedMap< String, DataControllerInstancer* >;
+static DataControllerInstancerMap data_controller_instancers;
 
 // Structural data view instancers.
 using StructuralDataViewInstancerMap = SmallUnorderedMap< String, DataViewInstancer* >;
@@ -124,6 +129,10 @@ struct DefaultInstancers {
 	Ptr<DataViewInstancer> data_view_rml       = std::make_unique<DataViewInstancerDefault< DataViewRml >>();
 	Ptr<DataViewInstancer> data_view_style     = std::make_unique<DataViewInstancerDefault< DataViewStyle >>();
 	Ptr<DataViewInstancer> data_view_text      = std::make_unique<DataViewInstancerDefault< DataViewText >>();
+	Ptr<DataViewInstancer> data_view_value     = std::make_unique<DataViewInstancerDefault< DataViewValue >>();
+
+	Ptr<DataControllerInstancer> data_controller_value = std::make_unique<DataControllerInstancerDefault< DataControllerValue >>();
+	Ptr<DataControllerInstancer> data_controller_event = std::make_unique<DataControllerInstancerDefault< DataControllerEvent >>();
 
 	Ptr<DataViewInstancer> structural_data_view_for = std::make_unique<DataViewInstancerDefault< DataViewFor >>();
 };
@@ -195,6 +204,10 @@ bool Factory::Initialise()
 	RegisterDataViewInstancer(default_instancers->data_view_rml.get(),       "rml", false);
 	RegisterDataViewInstancer(default_instancers->data_view_style.get(),     "style", false);
 	RegisterDataViewInstancer(default_instancers->data_view_text.get(),      "text", false);
+	RegisterDataViewInstancer(default_instancers->data_view_value.get(),     "value", false);
+
+	RegisterDataControllerInstancer(default_instancers->data_controller_value.get(), "value");
+	RegisterDataControllerInstancer(default_instancers->data_controller_event.get(), "event");
 
 	RegisterDataViewInstancer(default_instancers->structural_data_view_for.get(), "for", true);
 
@@ -546,6 +559,13 @@ void Factory::RegisterDataViewInstancer(DataViewInstancer* instancer, const Stri
 		Log::Message(Log::LT_WARNING, "Could not register data view instancer '%s'. The given name is already registered.", name.c_str());
 }
 
+void Factory::RegisterDataControllerInstancer(DataControllerInstancer* instancer, const String& name)
+{
+	bool inserted = data_controller_instancers.emplace(name, instancer).second;
+	if (!inserted)
+		Log::Message(Log::LT_WARNING, "Could not register data controller instancer '%s'. The given name is already registered.", name.c_str());
+}
+
 DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element, bool is_structural_view)
 {
 	RMLUI_ASSERT(element);
@@ -563,6 +583,14 @@ DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element,
 			return it->second->InstanceView(element);
 	}
 	return nullptr;
+}
+
+DataControllerPtr Factory::InstanceDataController(const String& type_name, Element* element)
+{
+	auto it = data_controller_instancers.find(type_name);
+	if (it != data_controller_instancers.end())
+		return it->second->InstanceController(element);
+	return DataControllerPtr();
 }
 
 }

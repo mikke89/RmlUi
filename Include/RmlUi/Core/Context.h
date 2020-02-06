@@ -44,7 +44,7 @@ class ElementDocument;
 class EventListener;
 class RenderInterface;
 class DataModel;
-class DataModelHandle;
+class DataModelConstructor;
 class DataTypeRegister;
 enum class EventId : uint16_t;
 
@@ -225,7 +225,7 @@ public:
 	/// Elements can bind to the model using the attribute 'data-model="name"'.
 	/// @param[in] name The name of the data model.
 	/// @return A handle to the data model which can be used to bind data variables.
-	DataModelHandle CreateDataModel(const String& name);
+	DataModelConstructor CreateDataModel(const String& name);
 
 protected:
 	void Release() override;

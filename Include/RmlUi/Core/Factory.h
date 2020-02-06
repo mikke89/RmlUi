@@ -37,6 +37,7 @@ namespace Core {
 
 class Context;
 class ContextInstancer;
+class DataControllerInstancer;
 class DataViewInstancer;
 class Decorator;
 class DecoratorInstancer;
@@ -176,8 +177,10 @@ public:
 
 	// TODO documentation
 	static void RegisterDataViewInstancer(DataViewInstancer* instancer, const String& name, bool is_structural_view = false);
+	static void RegisterDataControllerInstancer(DataControllerInstancer* instancer, const String& name);
 
 	static DataViewPtr InstanceDataView(const String& type_name, Element* element, bool is_structural_view);
+	static DataControllerPtr InstanceDataController(const String& type_name, Element* element);
 
 private:
 	Factory();

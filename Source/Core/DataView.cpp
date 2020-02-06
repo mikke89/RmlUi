@@ -33,7 +33,8 @@
 namespace Rml {
 namespace Core {
 
-DataView::~DataView() {}
+DataView::~DataView()
+{}
 
 Element* DataView::GetElement() const
 {
@@ -48,7 +49,7 @@ int DataView::GetElementDepth() const {
 }
 
 bool DataView::IsValid() const {
-	return (bool)attached_element;
+	return static_cast<bool>(attached_element);
 }
 
 DataView::DataView(Element* element) : attached_element(element->GetObserverPtr()), element_depth(0) {
@@ -57,11 +58,6 @@ DataView::DataView(Element* element) : attached_element(element->GetObserverPtr(
 		for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
 			element_depth += 1;
 	}
-}
-
-void DataView::Release()
-{
-	delete this;
 }
 
 
@@ -90,7 +86,7 @@ void DataViews::OnElementRemove(Element* element)
 	}
 }
 
-bool DataViews::Update(DataModel& model, const SmallUnorderedSet< String >& dirty_variables)
+bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 {
 	bool result = false;
 

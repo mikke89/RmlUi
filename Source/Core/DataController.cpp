@@ -29,86 +29,50 @@
 #include "precompiled.h"
 #include "../../Include/RmlUi/Core/DataController.h"
 #include "../../Include/RmlUi/Core/DataModel.h"
+#include "DataParser.h"
+#include "EventSpecification.h"
 
 namespace Rml {
 namespace Core {
+
 
 DataController::DataController(Element* element) : attached_element(element->GetObserverPtr())
 {}
 
 DataController::~DataController()
 {}
+Element* DataController::GetElement() const {
+	return attached_element.get();
+}
 
-bool DataController::UpdateVariable(DataModel& model)
+bool DataController::IsValid() const {
+	return static_cast<bool>(attached_element);
+}
+
+
+
+DataControllers::DataControllers()
+{}
+
+DataControllers::~DataControllers()
+{}
+
+void DataControllers::Add(DataControllerPtr controller) {
+	RMLUI_ASSERT(controller);
+
+	Element* element = controller->GetElement();
+	RMLUI_ASSERTMSG(element, "Invalid controller, make sure it is valid before adding");
+	if (!element)
+		return;
+
+	controllers.emplace(element, std::move(controller));
+}
+
+void DataControllers::OnElementRemove(Element* element)
 {
-    Element* element = attached_element.get();
-    if (!element)
-        return false;
-
-    if (!UpdateValue(element, value))
-        return false;
-
-    bool variable_changed = false;
-    if (Variable variable = model.GetVariable(address))
-        variable_changed = variable.Set(value);
-
-    return variable_changed;
+	controllers.erase(element);
 }
 
-DataControllerValue::DataControllerValue(DataModel& model, Element* element, const String& in_value_name) : DataController(element)
-{
-    DataAddress variable_address = model.ResolveAddress(in_value_name, element);
-
-    if (model.GetVariable(variable_address) && !variable_address.empty())
-    {
-        SetAddress(std::move(variable_address));
-    }
-}
-
-bool DataControllerValue::UpdateValue(Element* element, Variant& value_inout)
-{
-    bool value_changed = false;
-
-    if (Variant* new_value = element->GetAttribute("value"))
-    {
-        if (*new_value != value_inout)
-        {
-            value_inout = *new_value;
-            value_changed = true;
-        }
-    }
-    
-    return value_changed;
-}
-
-
-
-
-void DataControllers::Add(UniquePtr<DataController> controller) {
-    RMLUI_ASSERT(controller);
-
-    Element* element = controller->GetElement();
-    RMLUI_ASSERTMSG(element, "Invalid controller, make sure it is valid before adding");
-
-    bool inserted = controllers.emplace(element, std::move(controller)).second;
-    if (!inserted)
-    {
-        RMLUI_ERRORMSG("Cannot add multiple controllers to the same element.");
-    }
-}
-
-void DataControllers::DirtyElement(DataModel& model, Element* element)
-{
-    auto it = controllers.find(element);
-    if (it != controllers.end())
-    {
-        DataController& controller = *it->second;
-        if (controller.UpdateVariable(model))
-        {
-            model.DirtyVariable(controller.GetVariableName());
-        }
-    }
-}
 
 }
 }

@@ -80,7 +80,7 @@ public:
 	virtual bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier_or_inner_rml) = 0;
 
 	// Update the data view.
-	// Returns true if the update resulted in a change.
+	// Returns true if the update resulted in a document change.
 	virtual bool Update(DataModel& model) = 0;
 
 	// Returns the list of data variable name(s) which can modify this view.
@@ -92,14 +92,11 @@ public:
 	// Returns the depth of the attached element in the document tree.
 	int GetElementDepth() const;
 	
-	// Returns true if the element still exists
+	// Returns true if the element still exists.
 	bool IsValid() const;
 	
 protected:
 	DataView(Element* element);
-
-	// Delete this
-	void Release() override;
 
 private:
 	ObserverPtr<Element> attached_element;
@@ -117,7 +114,7 @@ public:
 
 	void OnElementRemove(Element* element);
 
-	bool Update(DataModel& model, const SmallUnorderedSet< String >& dirty_variables);
+	bool Update(DataModel& model, const DirtyVariables& dirty_variables);
 
 private:
 	using DataViewList = std::vector<DataViewPtr>;

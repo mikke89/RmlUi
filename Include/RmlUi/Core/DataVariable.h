@@ -39,6 +39,9 @@ namespace Rml {
 namespace Core {
 
 class Variable;
+class DataTypeRegister;
+class DataModelHandle;
+class Event;
 
 template<typename T>
 struct is_valid_scalar {
@@ -53,6 +56,7 @@ enum class DataFunctionHandle : int {};
 using DataGetFunc = std::function<void(Variant&)>;
 using DataSetFunc = std::function<void(const Variant&)>;
 using DataTransformFunc = std::function<bool(Variant&, const VariantList&)>;
+using DataEventFunc = std::function<void(DataModelHandle, Event&, const VariantList&)>;
 
 template<typename T> using MemberGetFunc = void(T::*)(Variant&);
 template<typename T> using MemberSetFunc = void(T::*)(const Variant&);
@@ -158,7 +162,6 @@ private:
 };
 
 
-
 template<typename Container>
 class ArrayDefinition final : public VariableDefinition {
 public:
@@ -174,8 +177,12 @@ protected:
 		Container* ptr = static_cast<Container*>(void_ptr);
 		const int index = address.index;
 
-		if (index < 0 || index >= int(ptr->size()))
+		const int container_size = int(ptr->size());
+		if (index < 0 || index >= container_size)
 		{
+			if (address.name == "size")
+				return Variable(DataTypeRegister::GetArraySizeDefinition(), reinterpret_cast<void*>(static_cast<intptr_t>(container_size)));
+
 			Log::Message(Log::LT_WARNING, "Data array index out of bounds.");
 			return Variable();
 		}
@@ -464,6 +471,7 @@ public:
 		return &transform_register;
 	}
 
+	static VariableDefinition* GetArraySizeDefinition();
 
 private:
 	UnorderedMap<DataFunctionHandle, UniquePtr<FuncDefinition>> functions;

@@ -74,8 +74,41 @@ static DataAddress ParseAddress(const String& address_str)
 	return address;
 };
 
+// Returns an error string on error, or nullptr on success.
+static const char* LegalVariableName(const String& name)
+{
+	static SmallUnorderedSet<String> reserved_names{ "it", "ev", "true", "false", "size" };
+	
+	if (name.empty())
+		return "Name cannot be empty.";
+	
+	const String name_lower = StringUtilities::ToLower(name);
+
+	const char first = name_lower.front();
+	if (!(first >= 'a' && first <= 'z'))
+		return "First character must be 'a-z' or 'A-Z'.";
+
+	for (const char c : name_lower)
+	{
+		if (!(c == '_' || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')))
+			return "Name must strictly contain characters a-z, A-Z, 0-9 and under_score.";
+	}
+
+	if (reserved_names.count(name_lower) == 1)
+		return "Name is reserved.";
+
+	return nullptr;
+}
+
 bool DataModel::BindVariable(const String& name, Variable variable)
 {
+	const char* name_error_str = LegalVariableName(name);
+	if (name_error_str)
+	{
+		Log::Message(Log::LT_WARNING, "Could not bind data variable '%s'. %s", name.c_str(), name_error_str);
+		return false;
+	}
+
 	if (!variable)
 	{
 		Log::Message(Log::LT_WARNING, "Could not bind variable '%s' to data model, data type not registered.", name.c_str());
@@ -86,6 +119,31 @@ bool DataModel::BindVariable(const String& name, Variable variable)
 	if (!inserted)
 	{
 		Log::Message(Log::LT_WARNING, "Data model variable with name '%s' already exists.", name.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+bool DataModel::BindEventCallback(const String& name, DataEventFunc event_func)
+{
+	const char* name_error_str = LegalVariableName(name);
+	if (name_error_str)
+	{
+		Log::Message(Log::LT_WARNING, "Could not bind data event callback '%s'. %s", name.c_str(), name_error_str);
+		return false;
+	}
+
+	if (!event_func)
+	{
+		Log::Message(Log::LT_WARNING, "Could not bind data event callback '%s' to data model, empty function provided.", name.c_str());
+		return false;
+	}
+
+	bool inserted = event_callbacks.emplace(name, std::move(event_func)).second;
+	if (!inserted)
+	{
+		Log::Message(Log::LT_WARNING, "Data event callback with name '%s' already exists.", name.c_str());
 		return false;
 	}
 
@@ -187,14 +245,27 @@ Variable DataModel::GetVariable(const DataAddress& address) const
 	return variable;
 }
 
+const DataEventFunc* DataModel::GetEventCallback(const String& name)
+{
+	auto it = event_callbacks.find(name);
+	if (it == event_callbacks.end())
+	{
+		Log::Message(Log::LT_WARNING, "Could not find data event callback '%s' in data model.", name.c_str());
+		return nullptr;
+	}
+
+	return &it->second;
+}
+
 void DataModel::DirtyVariable(const String& variable_name)
 {
 	RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "Variable name not found among added variables.");
-	dirty_variables.insert(variable_name);
+	dirty_variables.emplace(variable_name);
 }
 
-bool DataModel::IsVariableDirty(const String& variable_name) const {
-	return (dirty_variables.count(variable_name) == 1);
+bool DataModel::IsVariableDirty(const String& variable_name) const
+{
+	return dirty_variables.count(variable_name) == 1;
 }
 
 bool DataModel::CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const
@@ -208,11 +279,7 @@ void DataModel::OnElementRemove(Element* element)
 {
 	EraseAliases(element);
 	views.OnElementRemove(element);
-}
-
-void DataModel::DirtyController(Element* element) 
-{
-	controllers.DirtyElement(*this, element);
+	controllers.OnElementRemove(element);
 }
 
 bool DataModel::Update() 
@@ -248,7 +315,7 @@ static struct TestDataVariables {
 		DataModel model;
 		DataTypeRegister types;
 
-		DataModelHandle handle(&model, &types);
+		DataModelConstructor handle(&model, &types);
 
 		{
 			handle.RegisterArray<IntVector>();

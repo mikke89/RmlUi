@@ -36,19 +36,19 @@ namespace Rml {
 namespace Core {
 
 
-DataViewCommon::DataViewCommon(Element* element) : DataView(element)
-{}
-
-DataViewCommon::~DataViewCommon()
+DataViewCommon::DataViewCommon(Element* element, String override_modifier) : DataView(element), modifier(override_modifier)
 {}
 
 bool DataViewCommon::Initialize(DataModel& model, Element* element, const String& expression_str, const String& in_modifier)
 {
-	modifier = in_modifier;
+	// The modifier can be overriden in the constructor
+	if (modifier.empty())
+		modifier = in_modifier;
+
 	expression = std::make_unique<DataExpression>(expression_str);
 	DataExpressionInterface interface(&model, element);
 
-	bool result = expression->Parse(interface);
+	bool result = expression->Parse(interface, false);
 	return result;
 }
 
@@ -66,12 +66,16 @@ DataExpression& DataViewCommon::GetExpression() {
 	return *expression;
 }
 
+void DataViewCommon::Release()
+{
+	delete this;
+}
 
 
 DataViewAttribute::DataViewAttribute(Element* element) : DataViewCommon(element)
 {}
 
-DataViewAttribute::~DataViewAttribute()
+DataViewAttribute::DataViewAttribute(Element * element, String override_attribute) : DataViewCommon(element, std::move(override_attribute))
 {}
 
 bool DataViewAttribute::Update(DataModel& model)
@@ -97,13 +101,12 @@ bool DataViewAttribute::Update(DataModel& model)
 }
 
 
-DataViewStyle::DataViewStyle(Element* element) : DataViewCommon(element)
+DataViewValue::DataViewValue(Element* element) : DataViewAttribute(element, "value")
 {}
 
-DataViewStyle::~DataViewStyle()
-{
-}
 
+DataViewStyle::DataViewStyle(Element* element) : DataViewCommon(element)
+{}
 
 bool DataViewStyle::Update(DataModel& model)
 {
@@ -128,9 +131,6 @@ bool DataViewStyle::Update(DataModel& model)
 
 
 DataViewClass::DataViewClass(Element* element) : DataViewCommon(element)
-{}
-
-DataViewClass::~DataViewClass()
 {}
 
 bool DataViewClass::Update(DataModel& model)
@@ -158,9 +158,6 @@ bool DataViewClass::Update(DataModel& model)
 DataViewRml::DataViewRml(Element* element) : DataViewCommon(element)
 {}
 
-DataViewRml::~DataViewRml()
-{}
-
 bool DataViewRml::Update(DataModel & model)
 {
 	bool result = false;
@@ -184,10 +181,6 @@ bool DataViewRml::Update(DataModel & model)
 
 DataViewIf::DataViewIf(Element* element) : DataViewCommon(element)
 {}
-
-DataViewIf::~DataViewIf()
-{}
-
 
 bool DataViewIf::Update(DataModel& model)
 {
@@ -217,11 +210,6 @@ bool DataViewIf::Update(DataModel& model)
 
 
 DataViewText::DataViewText(Element* element) : DataView(element)
-{
-
-}
-
-DataViewText::~DataViewText()
 {}
 
 bool DataViewText::Initialize(DataModel& model, Element* element, const String& RMLUI_UNUSED_PARAMETER(expression), const String& RMLUI_UNUSED_PARAMETER(modifier))
@@ -255,7 +243,7 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 		entry.index = text.size();
 		entry.data_expression = std::make_unique<DataExpression>(String(in_text.begin() + begin_name, in_text.begin() + end_name));
 
-		if (entry.data_expression->Parse(expression_interface))
+		if (entry.data_expression->Parse(expression_interface, false))
 			data_entries.push_back(std::move(entry));
 
 		previous_close_brackets = end_name + 2;
@@ -330,6 +318,11 @@ StringList DataViewText::GetVariableNameList() const
 	return full_list;
 }
 
+void DataViewText::Release()
+{
+	delete this;
+}
+
 String DataViewText::BuildText() const
 {
 	size_t reserve_size = text.size();
@@ -357,9 +350,6 @@ String DataViewText::BuildText() const
 
 
 DataViewFor::DataViewFor(Element* element) : DataView(element)
-{}
-
-DataViewFor::~DataViewFor()
 {}
 
 bool DataViewFor::Initialize(DataModel& model, Element* element, const String& in_expression, const String& in_rml_content)
@@ -442,6 +432,10 @@ StringList DataViewFor::GetVariableNameList() const {
 	return StringList{ container_address.front().name };
 }
 
+void DataViewFor::Release()
+{
+	delete this;
+}
 
 }
 }

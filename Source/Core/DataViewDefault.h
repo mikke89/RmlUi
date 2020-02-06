@@ -43,8 +43,7 @@ using DataExpressionPtr = UniquePtr<DataExpression>;
 
 class DataViewCommon : public DataView {
 public:
-	DataViewCommon(Element* element);
-	~DataViewCommon();
+	DataViewCommon(Element* element, String override_modifier = String());
 
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
@@ -54,25 +53,33 @@ protected:
 	const String& GetModifier() const;
 	DataExpression& GetExpression();
 
+	// Delete this
+	void Release() override;
+
 private:
 	String modifier;
 	DataExpressionPtr expression;
 };
 
 
-class DataViewAttribute final : public DataViewCommon {
+class DataViewAttribute : public DataViewCommon {
 public:
 	DataViewAttribute(Element* element);
-	~DataViewAttribute();
+	DataViewAttribute(Element* element, String override_attribute);
 
 	bool Update(DataModel& model) override;
+};
+
+
+class DataViewValue final : public DataViewAttribute {
+public:
+	DataViewValue(Element* element);
 };
 
 
 class DataViewStyle final : public DataViewCommon {
 public:
 	DataViewStyle(Element* element);
-	~DataViewStyle();
 
 	bool Update(DataModel& model) override;
 };
@@ -81,7 +88,6 @@ public:
 class DataViewClass final : public DataViewCommon {
 public:
 	DataViewClass(Element* element);
-	~DataViewClass();
 
 	bool Update(DataModel& model) override;
 };
@@ -90,7 +96,6 @@ public:
 class DataViewRml final : public DataViewCommon {
 public:
 	DataViewRml(Element* element);
-	~DataViewRml();
 
 	bool Update(DataModel& model) override;
 
@@ -102,7 +107,6 @@ private:
 class DataViewIf final : public DataViewCommon {
 public:
 	DataViewIf(Element* element);
-	~DataViewIf();
 
 	bool Update(DataModel& model) override;
 };
@@ -111,12 +115,14 @@ public:
 class DataViewText final : public DataView {
 public:
 	DataViewText(Element* in_element);
-	~DataViewText();
 
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
 	bool Update(DataModel& model) override;
 	StringList GetVariableNameList() const override;
+
+protected:
+	void Release() override;
 
 private:
 	String BuildText() const;
@@ -135,13 +141,15 @@ private:
 class DataViewFor final : public DataView {
 public:
 	DataViewFor(Element* element);
-	~DataViewFor();
 
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& inner_rml) override;
 
 	bool Update(DataModel& model) override;
 
 	StringList GetVariableNameList() const override;
+
+protected:
+	void Release() override;
 
 private:
 	DataAddress container_address;

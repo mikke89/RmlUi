@@ -37,6 +37,7 @@ namespace Rml {
 namespace Core {
 
 class Stream;
+class URL;
 using XMLAttributes = Dictionary;
 
 enum class XMLDataType { Text, CData, InnerXML };

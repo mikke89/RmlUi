@@ -93,6 +93,15 @@ p.title
 .big {
 	font-size: 1.8em;
 }
+.mouse_detector {
+	width: 300px;
+	min-height: 2em;
+	line-height: 30px;
+	background-color: #909090;
+	border: 1px #666;
+	margin: 2em auto;
+	cursor: pointer;
+}
 
 
 /***  Decorators  ***/
@@ -171,9 +180,17 @@ form h2
 <panel id="welcome" data-model="my_model">
 	<p class="title" style="margin-top: 1.8em;">{{hello_world}}<span style="color: blue;"> Rated: {{rating}}</span></p>
 	<p>Data binding demo. We rate this a good old {{rating}}!</p>
-	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-value="rating"/>
+	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-value="rating" data-attribute="rating"/>
 	<div data-if="rating > 50">Thanks for the <span data-if="rating < 80">good</span><span data-if="rating >= 80">awesome</span> rating!</div>
-	<div data-rml="'Rml from the attribute? <strong>Yup!</strong>'"></div>
+	<div class="mouse_detector" style="height: 70px;"
+		data-event-mousemove="mouse_detector = 'x: ' + ev.mouse_x + '<br/>y: ' + ev.mouse_y"
+		data-event-click="add_mouse_pos(); hello_world = 'Hello click!'"
+		data-rml="mouse_detector">
+	</div>
+	<div class="mouse_detector" data-if="positions.size > 0" data-event-click="clear_positionsÅ">
+		Recorded mouse positions.<br/>
+		<span data-for="pos : positions"> x: {{ pos.x }}, y: {{ pos.y }}<br/></span>
+	</div>
 	<h1>{{delightful_invader.name}}</h1>
 	<img data-attr-sprite="delightful_invader.sprite" data-style-image-color="rating < 80 ? 'black' : 'green'"/>
 	<p>

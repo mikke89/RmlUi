@@ -38,6 +38,7 @@ namespace Core {
 
 class Element;
 class XMLParser;
+enum class XMLDataType;
 
 /**
 	A handler gets ElementStart, ElementEnd and ElementData called by the XMLParser.

@@ -75,5 +75,23 @@ DataTypeRegister::DataTypeRegister()
 DataTypeRegister::~DataTypeRegister()
 {}
 
+
+class ArraySizeDefinition final : public VariableDefinition {
+public:
+    ArraySizeDefinition() : VariableDefinition(VariableType::Scalar) {}
+
+    bool Get(void* ptr, Variant& variant) override
+    {
+        variant = static_cast<int>(reinterpret_cast<intptr_t>(ptr));
+        return true;
+    }
+};
+
+VariableDefinition* DataTypeRegister::GetArraySizeDefinition()
+{
+	static ArraySizeDefinition size_definition;
+	return &size_definition;
+}
+
 }
 }

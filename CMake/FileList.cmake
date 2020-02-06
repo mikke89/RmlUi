@@ -4,6 +4,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataControllerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DataParser.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DataViewDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.h
@@ -199,6 +200,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ConvolutionFilter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Core.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataController.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataControllerDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataModel.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataParser.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataVariable.cpp

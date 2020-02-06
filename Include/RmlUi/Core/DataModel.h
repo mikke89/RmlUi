@@ -42,15 +42,16 @@ namespace Core {
 
 class Element;
 
-
 class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
 	DataModel(const TransformFuncRegister* transform_register = nullptr) : transform_register(transform_register) {}
 
 	void AddView(DataViewPtr view) { views.Add(std::move(view)); }
-	void AddController(UniquePtr<DataController> controller) { controllers.Add(std::move(controller)); }
+	void AddController(DataControllerPtr controller) { controllers.Add(std::move(controller)); }
 
 	bool BindVariable(const String& name, Variable variable);
+
+	bool BindEventCallback(const String& name, DataEventFunc event_func);
 
 	bool InsertAlias(Element* element, const String& alias_name, DataAddress replace_with_address);
 	bool EraseAliases(Element* element);
@@ -58,6 +59,8 @@ public:
 	DataAddress ResolveAddress(const String& address_str, Element* element) const;
 
 	Variable GetVariable(const DataAddress& address) const;
+
+	const DataEventFunc* GetEventCallback(const String& name);
 
 	template<typename T>
 	bool GetValue(const DataAddress& address, T& out_value) const {
@@ -76,7 +79,6 @@ public:
 	bool CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const;
 
 	void OnElementRemove(Element* element);
-	void DirtyController(Element* element);
 
 	bool Update();
 
@@ -85,7 +87,9 @@ private:
 	DataControllers controllers;
 
 	UnorderedMap<String, Variable> variables;
-	SmallUnorderedSet<String> dirty_variables;
+	DirtyVariables dirty_variables;
+
+	UnorderedMap<String, DataEventFunc> event_callbacks;
 
 	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, DataAddress>>;
 	ScopedAliases aliases;
@@ -94,12 +98,11 @@ private:
 };
 
 
+
 class RMLUICORE_API DataModelHandle {
 public:
-	DataModelHandle() : model(nullptr), type_register(nullptr) {}
-	DataModelHandle(DataModel* model, DataTypeRegister* type_register) : model(model), type_register(type_register) {
-		RMLUI_ASSERT(model && type_register);
-	}
+	DataModelHandle(DataModel* model = nullptr) : model(model)
+	{}
 
 	void Update() {
 		model->Update();
@@ -112,17 +115,48 @@ public:
 		model->DirtyVariable(variable_name);
 	}
 
+	explicit operator bool() { return model; }
+
+private:
+	DataModel* model;
+};
+
+class RMLUICORE_API DataModelConstructor {
+public:
+	template<typename T>
+	using DataEventMemberFunc = void(T::*)(DataModelHandle, Event&, const VariantList&);
+
+	DataModelConstructor() : model(nullptr), type_register(nullptr) {}
+	DataModelConstructor(DataModel* model, DataTypeRegister* type_register) : model(model), type_register(type_register) {
+		RMLUI_ASSERT(model && type_register);
+	}
+
+	// Return a handle to the data model being constructed, which can later be used to synchronize variables and update the model.
+	DataModelHandle GetModelHandle() const {
+		return DataModelHandle(model);
+	}
+
 	// Bind a data variable.
 	// @note For non-scalar types make sure they first have been registered with the appropriate 'Register...()' functions.
 	template<typename T> bool Bind(const String& name, T* ptr) {
 		RMLUI_ASSERTMSG(ptr, "Invalid pointer to data variable");
 		return model->BindVariable(name, Variable(type_register->GetOrAddScalar<T>(), ptr));
 	}
+
 	// Bind a get/set function pair.
 	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func = {}) {
 		VariableDefinition* func_definition = type_register->RegisterFunc(std::move(get_func), std::move(set_func));
-		bool result = model->BindVariable(name, Variable(func_definition, nullptr));
-		return result;
+		return model->BindVariable(name, Variable(func_definition, nullptr));
+	}
+
+	// Bind an event callback.
+	bool BindEventCallback(const String& name, DataEventFunc event_func) {
+		return model->BindEventCallback(name, std::move(event_func));
+	}
+	// Convenience wrapper around BindEventCallback for member functions.
+	template<typename T>
+	bool BindEventCallback(const String& name, DataEventMemberFunc<T> member_func, T* object_pointer) {
+		return BindEventCallback(name, std::bind(member_func, object_pointer, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 	}
 
 	// Register a struct type.
@@ -154,7 +188,6 @@ public:
 private:
 	DataModel* model;
 	DataTypeRegister* type_register;
-
 };
 
 }

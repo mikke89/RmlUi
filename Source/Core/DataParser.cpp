@@ -64,26 +64,28 @@ class DataParser;
 		S-  Pop stack S (returns the popped value).
 */
 enum class Instruction { // Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
-	Push      = 'P',     //      S+ = R
-	Pop       = 'o',     // <R/L/C> = S-  (D determines R/L/C)
-	Literal   = 'D',     //       R = D
-	Variable  = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
-	Add       = '+',     //       R = L + R
-	Subtract  = '-',     //       R = L - R
-	Multiply  = '*',     //       R = L * R
-	Divide    = '/',     //       R = L / R
-	Not       = '!',     //       R = !R
-	And       = '&',     //       R = L && R
-	Or        = '|',     //       R = L || R
-	Less      = '<',     //       R = L < R
-	LessEq    = 'L',     //       R = L <= R
-	Greater   = '>',     //       R = L > R
-	GreaterEq = 'G',     //       R = L >= R
-	Equal     = '=',     //       R = L == R
-	NotEqual  = 'N',     //       R = L != R
-	Ternary   = '?',     //       R = L ? C : R
-	Arguments = 'a',     //      A+ = S-  (Repeated D times, where D gives the num. arguments)
-	Function  = 'F',     //       R = DataModel.Execute( D, R, A ); A.Clear();  (D determines function name, R the input value, A the arguments)
+	Push         = 'P',     //      S+ = R
+	Pop          = 'o',     // <R/L/C> = S-  (D determines R/L/C)
+	Literal      = 'D',     //       R = D
+	Variable     = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
+	Add          = '+',     //       R = L + R
+	Subtract     = '-',     //       R = L - R
+	Multiply     = '*',     //       R = L * R
+	Divide       = '/',     //       R = L / R
+	Not          = '!',     //       R = !R
+	And          = '&',     //       R = L && R
+	Or           = '|',     //       R = L || R
+	Less         = '<',     //       R = L < R
+	LessEq       = 'L',     //       R = L <= R
+	Greater      = '>',     //       R = L > R
+	GreaterEq    = 'G',     //       R = L >= R
+	Equal        = '=',     //       R = L == R
+	NotEqual     = 'N',     //       R = L != R
+	Ternary      = '?',     //       R = L ? C : R
+	Arguments    = 'a',     //      A+ = S-  (Repeated D times, where D gives the num. arguments)
+	TransformFnc = 'T',     //       R = DataModel.Execute( D, R, A ); A.Clear();  (D determines function name, R the input value, A the arguments)
+	EventFnc     = 'E',     //       DataModel.EventCallback(D, A); A.Clear();
+	Assign       = 'A',     //       DataModel.SetVariable(D, R)
 };
 enum class Register {
 	R,
@@ -97,6 +99,7 @@ struct InstructionData {
 };
 
 namespace Parse {
+	static void Assignment(DataParser& parser);
 	static void Expression(DataParser& parser);
 };
 
@@ -156,7 +159,7 @@ public:
 		Expected(String(1, '\'') + expected + '\'');
 	}
 
-	bool Parse() 
+	bool Parse(bool is_assignment_expression)
 	{
 		program.clear();
 		variable_addresses.clear();
@@ -167,7 +170,11 @@ public:
 			reached_end = true;
 
 		SkipWhitespace();
-		Parse::Expression(*this);
+
+		if (is_assignment_expression)
+			Parse::Assignment(*this);
+		else
+			Parse::Expression(*this);
 		
 		if (!reached_end) {
 			parse_error = true;
@@ -193,8 +200,8 @@ public:
 	void Emit(Instruction instruction, Variant data = Variant())
 	{
 		RMLUI_ASSERTMSG(instruction != Instruction::Push && instruction != Instruction::Pop &&
-			instruction != Instruction::Arguments && instruction != Instruction::Variable,
-			"Use the Push(), Pop(), Arguments(), and Variable() procedures for stack manipulation and variable instructions.");
+			instruction != Instruction::Arguments && instruction != Instruction::Variable && instruction != Instruction::Assign,
+			"Use the Push(), Pop(), Arguments(), Variable(), and Assign() procedures for stack manipulation and variable instructions.");
 		program.push_back(InstructionData{ instruction, std::move(data) });
 	}
 	void Push() {
@@ -218,6 +225,15 @@ public:
 		program.push_back(InstructionData{ Instruction::Arguments, Variant(int(num_arguments)) });
 	}
 	void Variable(const String& name) {
+		VariableGetSet(name, false);
+	}
+	void Assign(const String& name) {
+		VariableGetSet(name, true);
+	}
+
+private:
+	void VariableGetSet(const String& name, bool is_assignment)
+	{
 		DataAddress address = expression_interface.ParseAddress(name);
 		if (address.empty()) {
 			Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
@@ -225,10 +241,9 @@ public:
 		}
 		int index = int(variable_addresses.size());
 		variable_addresses.push_back(std::move(address));
-		program.push_back(InstructionData{ Instruction::Variable, Variant(int(index)) });
+		program.push_back(InstructionData{ is_assignment ? Instruction::Assign : Instruction::Variable, Variant(int(index)) });
 	}
 
-private:
 	const String expression;
 	DataExpressionInterface expression_interface;
 
@@ -246,6 +261,8 @@ private:
 namespace Parse {
 
 	// Forward declare all parse functions.
+	static void Assignment(DataParser& parser);
+
 	static void Expression(DataParser& parser);
 	static void Factor(DataParser& parser);
 	static void Term(DataParser& parser);
@@ -268,7 +285,7 @@ namespace Parse {
 	static void NotEqual(DataParser& parser);
 
 	static void Ternary(DataParser& parser);
-	static void Function(DataParser& parser);
+	static void Function(DataParser& parser, Instruction function_type, const String& name);
 
 	// Helper functions
 	static bool IsVariableCharacter(char c, bool is_first_character)
@@ -319,6 +336,49 @@ namespace Parse {
 	}
 
 	// Parser functions
+	static void Assignment(DataParser& parser)
+	{
+		bool looping = true;
+		while (looping)
+		{
+			if (parser.Look() != '\0')
+			{
+				const String variable_name = VariableName(parser);
+				if (variable_name.empty()) {
+					parser.Error("Expected a variable for assignment but got an empty name.");
+					return;
+				}
+
+				const char c = parser.Look();
+				if (c == '=')
+				{
+					parser.Match('=');
+					Expression(parser);
+					parser.Assign(variable_name);
+				}
+				else if (c == '(' || c == ';' || c == '\0')
+				{
+					Function(parser, Instruction::EventFnc, variable_name);
+				}
+				else
+				{
+					parser.Expected("one of  = ; (  or end of string");
+					return;
+				}
+			}
+
+			const char c = parser.Look();
+			if (c == ';')
+				parser.Match(';');
+			else if (c == '\0')
+				looping = false;
+			else
+			{
+				parser.Expected("';' or end of string");
+				looping = false;
+			}
+		}
+	}
 	static void Expression(DataParser& parser)
 	{
 		Term(parser);
@@ -339,7 +399,13 @@ namespace Parse {
 				else
 				{
 					parser.SkipWhitespace();
-					Function(parser);
+					const String fnc_name = VariableName(parser);
+					if (fnc_name.empty()) {
+						parser.Error("Expected a transform function name but got an empty name.");
+						return;
+					}
+
+					Function(parser, Instruction::TransformFnc, fnc_name);
 				}
 			}
 			break;
@@ -601,15 +667,11 @@ namespace Parse {
 		parser.Pop(Register::L);
 		parser.Emit(Instruction::Ternary);
 	}
-	static void Function(DataParser& parser)
+	static void Function(DataParser& parser, Instruction function_type, const String& func_name)
 	{
-		// We already matched '|' during expression
-		String name = VariableName(parser);
-		if (name.empty()) {
-			parser.Error("Expected a transform name but got an empty name.");
-			return;
-		}
+		RMLUI_ASSERT(function_type == Instruction::TransformFnc || function_type == Instruction::EventFnc);
 
+		// We already matched the variable name (and '|' for transform functions)
 		if (parser.Look() == '(')
 		{
 			int num_arguments = 0;
@@ -647,7 +709,7 @@ namespace Parse {
 			parser.SkipWhitespace();
 		}
 
-		parser.Emit(Instruction::Function, Variant(name));
+		parser.Emit(function_type, Variant(func_name));
 	}
 
 
@@ -820,7 +882,7 @@ private:
 			}
 		}
 		break;
-		case Instruction::Function:
+		case Instruction::TransformFnc:
 		{
 			const String function_name = data.Get<String>();
 			
@@ -839,6 +901,37 @@ private:
 			arguments.clear();
 		}
 		break;
+		case Instruction::EventFnc:
+		{
+			const String function_name = data.Get<String>();
+
+			if (!expression_interface.EventCallback(function_name, arguments))
+			{
+				String arguments_str;
+				for (size_t i = 0; i < arguments.size(); i++)
+				{
+					arguments_str += arguments[i].Get<String>();
+					if (i < arguments.size() - 1)
+						arguments_str += ", ";
+				}
+				Error(CreateString(50 + function_name.size() + arguments_str.size(), "Failed to execute event callback: %s(%s)", function_name.c_str(), arguments_str.c_str()));
+			}
+
+			arguments.clear();
+		}
+		break;
+		case Instruction::Assign:
+		{
+			size_t variable_index = size_t(data.Get<int>(-1));
+			if (variable_index < addresses.size())
+			{
+				if (!expression_interface.SetValue(addresses[variable_index], R))
+					return Error("Could not assign to variable.");
+			}
+			else
+				return Error("Variable address not found.");
+		}
+		break;
 		default:
 			RMLUI_ERRORMSG("Instruction not implemented."); break;
 		}
@@ -853,7 +946,7 @@ private:
 struct TestParser {
 	TestParser() : model(type_register.GetTransformFuncRegister())
 	{
-		DataModelHandle handle(&model, &type_register);
+		DataModelConstructor handle(&model, &type_register);
 		handle.Bind("color_name", &color_name);
 		handle.BindFunc("color_value", [this](Rml::Core::Variant& variant) {
 			variant = ToString(color_value);
@@ -879,7 +972,7 @@ struct TestParser {
 		DataExpressionInterface interface(&model, nullptr);
 
 		DataParser parser(expression, interface);
-		if (parser.Parse())
+		if (parser.Parse(false))
 		{
 			Program program = parser.ReleaseProgram();
 			AddressList addresses = parser.ReleaseAddresses();
@@ -907,7 +1000,7 @@ DataExpression::~DataExpression()
 {
 }
 
-bool DataExpression::Parse(const DataExpressionInterface& expression_interface)
+bool DataExpression::Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression)
 {
 	// @todo: Remove, debugging only
 	static TestParser test_parser;
@@ -917,7 +1010,7 @@ bool DataExpression::Parse(const DataExpressionInterface& expression_interface)
 	//  5. Add tests
 
 	DataParser parser(expression, expression_interface);
-	if (!parser.Parse())
+	if (!parser.Parse(is_assignment_expression))
 		return false;
 
 	program = parser.ReleaseProgram();
@@ -949,22 +1042,64 @@ StringList DataExpression::GetVariableNameList() const
 	return list;
 }
 
-DataExpressionInterface::DataExpressionInterface(DataModel* data_model, Element* element) : data_model(data_model), element(element)
+DataExpressionInterface::DataExpressionInterface(DataModel* data_model, Element* element, Event* event) : data_model(data_model), element(element), event(event)
 {}
 
-DataAddress DataExpressionInterface::ParseAddress(const String& address_str) const {
+DataAddress DataExpressionInterface::ParseAddress(const String& address_str) const
+{
+	if (address_str.size() >= 4 && address_str[0] == 'e' && address_str[1] == 'v' && address_str[2] == '.')
+		return DataAddress{ AddressEntry("ev"), AddressEntry(address_str.substr(3)) };
+
 	return data_model ? data_model->ResolveAddress(address_str, element) : DataAddress();
 }
-Variant DataExpressionInterface::GetValue(const DataAddress& address) const {
+Variant DataExpressionInterface::GetValue(const DataAddress& address) const
+{
 	Variant result;
-	if (data_model)
+	if(event && address.size() == 2 && address.front().name == "ev")
+	{
+		auto& parameters = event->GetParameters();
+		auto it = parameters.find(address.back().name);
+		if (it != parameters.end())
+			result = it->second;
+	}
+	else if (data_model)
+	{
 		data_model->GetValue(address, result);
+	}
+	return result;
+}
+
+bool DataExpressionInterface::SetValue(const DataAddress& address, const Variant& value) const
+{
+	bool result = false;
+	if (data_model && !address.empty())
+	{
+		if (Variable variable = data_model->GetVariable(address))
+			result = variable.Set(value);
+
+		if (result)
+			data_model->DirtyVariable(address.front().name);
+	}
 	return result;
 }
 
 bool DataExpressionInterface::CallTransform(const String& name, Variant& inout_variant, const VariantList& arguments)
 {
 	return data_model ? data_model->CallTransform(name, inout_variant, arguments) : false;
+}
+
+bool DataExpressionInterface::EventCallback(const String& name, const VariantList& arguments)
+{
+	if (!data_model || !event)
+		return false;
+
+	const DataEventFunc* func = data_model->GetEventCallback(name);
+	if (!func || !*func)
+		return false;
+
+	DataModelHandle handle(data_model);
+	func->operator()(handle, *event, arguments);
+	return true;
 }
 
 }
