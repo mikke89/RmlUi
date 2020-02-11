@@ -86,7 +86,7 @@ using StructuralDataViewInstancerMap = SmallUnorderedMap< String, DataViewInstan
 static StructuralDataViewInstancerMap structural_data_view_instancers;
 
 // Structural data view names.
-static StringList structural_data_view_names;
+static StringList structural_data_view_attribute_names;
 
 // The context instancer.
 static ContextInstancer* context_instancer = nullptr;;
@@ -224,7 +224,7 @@ void Factory::Shutdown()
 
 	data_view_instancers.clear();
 	structural_data_view_instancers.clear();
-	structural_data_view_names.clear();
+	structural_data_view_attribute_names.clear();
 
 	context_instancer = nullptr;
 
@@ -554,7 +554,7 @@ void Factory::RegisterDataViewInstancer(DataViewInstancer* instancer, const Stri
 	{
 		inserted = structural_data_view_instancers.emplace(name, instancer).second;
 		if (inserted)
-			structural_data_view_names.push_back(name);
+			structural_data_view_attribute_names.push_back(String("data-") + name);
 	}
 	else
 	{
@@ -597,6 +597,11 @@ DataControllerPtr Factory::InstanceDataController(const String& type_name, Eleme
 	if (it != data_controller_instancers.end())
 		return it->second->InstanceController(element);
 	return DataControllerPtr();
+}
+
+const StringList& Factory::GetStructuralDataViewAttributeNames()
+{
+	return structural_data_view_attribute_names;
 }
 
 }

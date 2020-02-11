@@ -96,7 +96,7 @@ void DataControllerValue::SetValue(const Variant& value)
 	if (!model)
 		return;
 
-	if (Variable variable = model->GetVariable(address))
+	if (DataVariable variable = model->GetVariable(address))
 	{
 		variable.Set(value);
 		model->DirtyVariable(address.front().name);

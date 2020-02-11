@@ -32,6 +32,27 @@
 namespace Rml {
 namespace Core {
 
+bool DataVariable::Get(Variant& variant) {
+    return definition->Get(ptr, variant);
+}
+
+bool DataVariable::Set(const Variant& variant) {
+    return definition->Set(ptr, variant);
+}
+
+int DataVariable::Size() {
+    return definition->Size(ptr);
+}
+
+DataVariable DataVariable::Child(const DataAddressEntry& address) {
+    return definition->Child(ptr, address);
+}
+
+DataVariableType DataVariable::Type() {
+    return definition->Type();
+}
+
+
 bool VariableDefinition::Get(void* ptr, Variant& variant) {
     Log::Message(Log::LT_WARNING, "Values can only be retrieved from scalar data types.");
     return false;
@@ -44,41 +65,14 @@ int VariableDefinition::Size(void* ptr) {
     Log::Message(Log::LT_WARNING, "Tried to get the size from a non-array data type.");
     return 0;
 }
-Variable VariableDefinition::GetChild(void* ptr, const AddressEntry& address) {
+DataVariable VariableDefinition::Child(void* ptr, const DataAddressEntry& address) {
     Log::Message(Log::LT_WARNING, "Tried to get the child of a scalar type.");
-    return Variable();
+    return DataVariable();
 }
-
-
-
-DataTypeRegister::DataTypeRegister()
-{
-    // Add default transform functions.
-
-	transform_register.Register("to_lower", [](Variant& variant, const VariantList& arguments) -> bool {
-		String value;
-		if (!variant.GetInto(value))
-			return false;
-		variant = StringUtilities::ToLower(value);
-		return true;
-	});
-
-	transform_register.Register("to_upper", [](Variant& variant, const VariantList& arguments) -> bool {
-		String value;
-		if (!variant.GetInto(value))
-			return false;
-		variant = StringUtilities::ToUpper(value);
-		return true;
-	});
-}
-
-DataTypeRegister::~DataTypeRegister()
-{}
-
 
 class ArraySizeDefinition final : public VariableDefinition {
 public:
-    ArraySizeDefinition() : VariableDefinition(VariableType::Scalar) {}
+    ArraySizeDefinition() : VariableDefinition(DataVariableType::Scalar) {}
 
     bool Get(void* ptr, Variant& variant) override
     {
@@ -87,10 +81,10 @@ public:
     }
 };
 
-VariableDefinition* DataTypeRegister::GetArraySizeDefinition()
+VariableDefinition* GetArraySizeDefinition()
 {
-	static ArraySizeDefinition size_definition;
-	return &size_definition;
+    static ArraySizeDefinition size_definition;
+    return &size_definition;
 }
 
 }

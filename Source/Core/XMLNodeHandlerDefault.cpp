@@ -73,8 +73,6 @@ bool XMLNodeHandlerDefault::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser)
 	RMLUI_UNUSED(parser);
 	RMLUI_UNUSED(name);
 
-	// TODO: Perhaps it's better to submit views from here...
-
 	return true;
 }
 

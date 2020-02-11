@@ -42,7 +42,7 @@ struct InstructionData;
 using Program = std::vector<InstructionData>;
 using AddressList = std::vector<DataAddress>;
 
-class DataExpressionInterface {
+class RMLUICORE_API DataExpressionInterface {
 public:
     DataExpressionInterface() = default;
     DataExpressionInterface(DataModel* data_model, Element* element, Event* event = nullptr);

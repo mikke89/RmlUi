@@ -32,24 +32,24 @@
 #include "Header.h"
 #include "Types.h"
 #include "Traits.h"
-#include "Variant.h"
-#include "DataView.h"
+#include "DataTypes.h"
+#include "DataTypeRegister.h"
 #include "DataController.h"
-#include "DataVariable.h"
+#include "DataView.h"
 
 namespace Rml {
 namespace Core {
 
-class Element;
 
 class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
 	DataModel(const TransformFuncRegister* transform_register = nullptr) : transform_register(transform_register) {}
 
-	void AddView(DataViewPtr view) { views.Add(std::move(view)); }
-	void AddController(DataControllerPtr controller) { controllers.Add(std::move(controller)); }
+	void AddView(DataViewPtr view);
+	void AddController(DataControllerPtr controller);
 
-	bool BindVariable(const String& name, Variable variable);
+	bool BindVariable(const String& name, DataVariable variable);
+	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func);
 
 	bool BindEventCallback(const String& name, DataEventFunc event_func);
 
@@ -57,21 +57,10 @@ public:
 	bool EraseAliases(Element* element);
 
 	DataAddress ResolveAddress(const String& address_str, Element* element) const;
-
-	Variable GetVariable(const DataAddress& address) const;
-
 	const DataEventFunc* GetEventCallback(const String& name);
 
-	template<typename T>
-	bool GetValue(const DataAddress& address, T& out_value) const {
-		Variant variant;
-		Variable variable = GetVariable(address);
-		return variable && variable.Get(variant) && variant.GetInto<T>(out_value);
-	}
-	bool GetValue(const DataAddress& address, Variant& out_value) const {
-		Variable variable = GetVariable(address);
-		return variable && variable.Get(out_value);
-	}
+	DataVariable GetVariable(const DataAddress& address) const;
+	bool GetVariableInto(const DataAddress& address, Variant& out_value) const;
 
 	void DirtyVariable(const String& variable_name);
 	bool IsVariableDirty(const String& variable_name) const;
@@ -86,9 +75,10 @@ private:
 	DataViews views;
 	DataControllers controllers;
 
-	UnorderedMap<String, Variable> variables;
+	UnorderedMap<String, DataVariable> variables;
 	DirtyVariables dirty_variables;
 
+	UnorderedMap<String, UniquePtr<FuncDefinition>> functions;
 	UnorderedMap<String, DataEventFunc> event_callbacks;
 
 	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, DataAddress>>;
@@ -140,13 +130,12 @@ public:
 	// @note For non-scalar types make sure they first have been registered with the appropriate 'Register...()' functions.
 	template<typename T> bool Bind(const String& name, T* ptr) {
 		RMLUI_ASSERTMSG(ptr, "Invalid pointer to data variable");
-		return model->BindVariable(name, Variable(type_register->GetOrAddScalar<T>(), ptr));
+		return model->BindVariable(name, DataVariable(type_register->GetOrAddScalar<T>(), ptr));
 	}
 
 	// Bind a get/set function pair.
 	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func = {}) {
-		VariableDefinition* func_definition = type_register->RegisterFunc(std::move(get_func), std::move(set_func));
-		return model->BindVariable(name, Variable(func_definition, nullptr));
+		return model->BindFunc(name, std::move(get_func), std::move(set_func));
 	}
 
 	// Bind an event callback.
@@ -170,7 +159,7 @@ public:
 	// Register an array type.
 	// @note The type applies to every data model associated with the current Context.
 	// @note If 'Container::value_type' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()' functions.
-	// @note Container requires the following functions implemented: size() and operator[]. This is satisfied by std::vector and std::array.
+	// @note Container requires the following functions to be implemented: size() and begin(). This is satisfied by several containers such as std::vector and std::array.
 	template<typename Container>
 	bool RegisterArray() {
 		return type_register->RegisterArray<Container>();

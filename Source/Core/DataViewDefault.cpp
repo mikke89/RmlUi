@@ -384,7 +384,7 @@ bool DataViewFor::Initialize(DataModel& model, Element* element, const String& i
 
 bool DataViewFor::Update(DataModel& model)
 {
-	Variable variable = model.GetVariable(container_address);
+	DataVariable variable = model.GetVariable(container_address);
 	if (!variable)
 		return false;
 
@@ -402,7 +402,7 @@ bool DataViewFor::Update(DataModel& model)
 			DataAddress iterator_address;
 			iterator_address.reserve(container_address.size() + 1);
 			iterator_address = container_address;
-			iterator_address.push_back(AddressEntry(i));
+			iterator_address.push_back(DataAddressEntry(i));
 
 			model.InsertAlias(new_element_ptr.get(), iterator_name, std::move(iterator_address));
 

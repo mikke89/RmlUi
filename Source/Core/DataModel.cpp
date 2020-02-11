@@ -100,7 +100,15 @@ static const char* LegalVariableName(const String& name)
 	return nullptr;
 }
 
-bool DataModel::BindVariable(const String& name, Variable variable)
+void DataModel::AddView(DataViewPtr view) {
+	views.Add(std::move(view));
+}
+
+void DataModel::AddController(DataControllerPtr controller) {
+	controllers.Add(std::move(controller));
+}
+
+bool DataModel::BindVariable(const String& name, DataVariable variable)
 {
 	const char* name_error_str = LegalVariableName(name);
 	if (name_error_str)
@@ -123,6 +131,22 @@ bool DataModel::BindVariable(const String& name, Variable variable)
 	}
 
 	return true;
+}
+
+bool DataModel::BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func)
+{
+	auto result = functions.emplace(name, nullptr);
+	auto& it = result.first;
+	bool inserted = result.second;
+	if (!inserted)
+	{
+		Log::Message(Log::LT_ERROR, "Data get/set function with name %s already exists in model", name.c_str());
+		return false;
+	}
+	auto& func_definition_ptr = it->second;
+	func_definition_ptr = std::make_unique<FuncDefinition>(std::move(get_func), std::move(set_func));
+
+	return BindVariable(name, DataVariable(func_definition_ptr.get(), nullptr));
 }
 
 bool DataModel::BindEventCallback(const String& name, DataEventFunc event_func)
@@ -224,22 +248,22 @@ DataAddress DataModel::ResolveAddress(const String& address_str, Element* elemen
 	return DataAddress();
 }
 
-Variable DataModel::GetVariable(const DataAddress& address) const
+DataVariable DataModel::GetVariable(const DataAddress& address) const
 {
 	if (address.empty() || address.front().name.empty())
-		return Variable();
+		return DataVariable();
 
 	auto it = variables.find(address.front().name);
 	if (it == variables.end())
-		return Variable();
+		return DataVariable();
 
-	Variable variable = it->second;
+	DataVariable variable = it->second;
 
 	for (int i = 1; i < (int)address.size() && variable; i++)
 	{
-		variable = variable.GetChild(address[i]);
+		variable = variable.Child(address[i]);
 		if (!variable)
-			return Variable();
+			return DataVariable();
 	}
 
 	return variable;
@@ -257,14 +281,21 @@ const DataEventFunc* DataModel::GetEventCallback(const String& name)
 	return &it->second;
 }
 
+bool DataModel::GetVariableInto(const DataAddress& address, Variant& out_value) const {
+	DataVariable variable = GetVariable(address);
+	return variable && variable.Get(out_value);
+}
+
 void DataModel::DirtyVariable(const String& variable_name)
 {
+	RMLUI_ASSERTMSG(LegalVariableName(variable_name) == nullptr, "Illegal variable name provided. Only top-level variables can be dirtied.");
 	RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "Variable name not found among added variables.");
 	dirty_variables.emplace(variable_name);
 }
 
 bool DataModel::IsVariableDirty(const String& variable_name) const
 {
+	RMLUI_ASSERTMSG(LegalVariableName(variable_name) == nullptr, "Illegal variable name provided. Only top-level variables can be dirtied.");
 	return dirty_variables.count(variable_name) == 1;
 }
 
@@ -352,9 +383,9 @@ static struct TestDataVariables {
 			{
 				DataAddress address = ParseAddress(str_address);
 
-				String result;
-				if(model.GetValue<String>(address, result))
-					results.push_back(result);
+				Variant result;
+				if(model.GetVariableInto(address, result))
+					results.push_back(result.Get<String>());
 			}
 
 			RMLUI_ASSERT(results == expected_results);

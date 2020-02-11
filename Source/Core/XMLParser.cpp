@@ -34,6 +34,7 @@
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
 #include "../../Include/RmlUi/Core/URL.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 
 namespace Rml {
 namespace Core {
@@ -45,7 +46,9 @@ static SharedPtr<XMLNodeHandler> default_node_handler;
 XMLParser::XMLParser(Element* root)
 {
 	RegisterCDATATag("script");
-	RegisterInnerXMLAttribute("data-for");
+
+	for (const String& name : Factory::GetStructuralDataViewAttributeNames())
+		RegisterInnerXMLAttribute(name);
 
 	// Add the first frame.
 	ParseFrame frame;

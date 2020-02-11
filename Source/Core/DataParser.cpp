@@ -1048,7 +1048,7 @@ DataExpressionInterface::DataExpressionInterface(DataModel* data_model, Element*
 DataAddress DataExpressionInterface::ParseAddress(const String& address_str) const
 {
 	if (address_str.size() >= 4 && address_str[0] == 'e' && address_str[1] == 'v' && address_str[2] == '.')
-		return DataAddress{ AddressEntry("ev"), AddressEntry(address_str.substr(3)) };
+		return DataAddress{ DataAddressEntry("ev"), DataAddressEntry(address_str.substr(3)) };
 
 	return data_model ? data_model->ResolveAddress(address_str, element) : DataAddress();
 }
@@ -1064,7 +1064,7 @@ Variant DataExpressionInterface::GetValue(const DataAddress& address) const
 	}
 	else if (data_model)
 	{
-		data_model->GetValue(address, result);
+		data_model->GetVariableInto(address, result);
 	}
 	return result;
 }
@@ -1074,7 +1074,7 @@ bool DataExpressionInterface::SetValue(const DataAddress& address, const Variant
 	bool result = false;
 	if (data_model && !address.empty())
 	{
-		if (Variable variable = data_model->GetVariable(address))
+		if (DataVariable variable = data_model->GetVariable(address))
 			result = variable.Set(value);
 
 		if (result)

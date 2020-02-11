@@ -32,6 +32,7 @@
 #include "Header.h"
 #include "Types.h"
 #include "Traits.h"
+#include "DataTypes.h"
 #include <unordered_map>
 
 namespace Rml {
