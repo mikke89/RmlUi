@@ -187,7 +187,7 @@ form h2
 		data-event-click="add_mouse_pos(); hello_world = 'Hello click!'"
 		data-rml="mouse_detector">
 	</div>
-	<div class="mouse_detector" data-if="positions.size > 0" data-event-click="clear_positionsÅ">
+	<div class="mouse_detector" data-if="positions.size > 0" data-event-click="clear_positions">
 		Recorded mouse positions.<br/>
 		<span data-for="pos : positions"> x: {{ pos.x }}, y: {{ pos.y }}<br/></span>
 	</div>

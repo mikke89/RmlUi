@@ -305,6 +305,8 @@ static ElementTextTraits ParseElementTextTraits(Element* parent, const String& t
 {
 	ElementTextTraits result;
 
+	const bool has_data_model = (parent->GetDataModel() != nullptr);
+
 	bool in_brackets = false;
 	char previous = 0;
 	for (const char c : text)
@@ -312,22 +314,26 @@ static ElementTextTraits ParseElementTextTraits(Element* parent, const String& t
 		if (!StringUtilities::IsWhitespace(c))
 			result.only_white_space = false;
 
-		if (c == '{' && previous == '{')
+		if (has_data_model)
 		{
-			if (in_brackets)
-				Log::Message(Log::LT_WARNING, "Nested double curly brackets are illegal. %s", parent->GetAddress().c_str());
+			if (c == '{' && previous == '{')
+			{
+				if (in_brackets)
+					Log::Message(Log::LT_WARNING, "Nested double curly brackets are illegal. %s", parent->GetAddress().c_str());
 
-			in_brackets = true;
-			result.has_curly_brackets = true;
-		}
-		else if (c == '}' && previous == '}')
-		{
-			if (!in_brackets)
-				Log::Message(Log::LT_WARNING, "Closing double curly brackets mismatched an earlier open bracket. %s", parent->GetAddress().c_str());
+				in_brackets = true;
+				result.has_curly_brackets = true;
+			}
+			else if (c == '}' && previous == '}')
+			{
+				if (!in_brackets)
+					Log::Message(Log::LT_WARNING, "Closing double curly brackets mismatched an earlier open bracket. %s", parent->GetAddress().c_str());
 
-			in_brackets = false;
+				in_brackets = false;
+			}
 		}
-		else if (c == '<' && !in_brackets)
+
+		if (c == '<' && !in_brackets)
 		{
 			result.has_xml = true;
 			break;
@@ -370,8 +376,8 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	else
 	{
 		RMLUI_ZoneScopedNC("InstanceText", 0x8FBC8F);
+		
 		// Attempt to instance the element.
-
 		XMLAttributes attributes;
 
 		// If we have curly brackets in the text, we tag the element so that the appropriate data view (DataViewText) is constructed.

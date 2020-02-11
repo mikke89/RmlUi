@@ -737,7 +737,6 @@ private:
 	friend class ElementStyle;
 	friend class LayoutEngine;
 	friend class LayoutInlineBox;
-	friend struct ElementDeleter;
 	friend class ElementScroll;
 };
 
