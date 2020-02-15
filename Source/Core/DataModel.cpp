@@ -374,8 +374,8 @@ static struct TestDataVariables {
 		handle.Bind("data", &data);
 
 		{
-			std::vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.fun.x", "data.valid" };
-			std::vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(data.fun.x), ToString(data.valid) };
+			std::vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.more_fun[1].magic.size", "data.fun.x", "data.valid" };
+			std::vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(int(data.more_fun[1].magic.size())), ToString(data.fun.x), ToString(data.valid) };
 
 			std::vector<String> results;
 
@@ -390,14 +390,21 @@ static struct TestDataVariables {
 
 			RMLUI_ASSERT(results == expected_results);
 
-			bool success = model.GetVariable(ParseAddress("data.more_fun[1].magic[1]")).Set(Variant(String("199")));
+			bool success = true;
+			success &= model.GetVariable(ParseAddress("data.more_fun[1].magic[1]")).Set(Variant(String("199")));
 			RMLUI_ASSERT(success && data.more_fun[1].magic[1] == 199);
 
 			data.fun.magic = { 99, 190, 55, 2000, 50, 60, 70, 80, 90 };
 
-			Variant test_get_result;
-			bool test_get_success = model.GetVariable(ParseAddress("data.fun.magic[8]")).Get(test_get_result);
-			RMLUI_ASSERT(test_get_success && test_get_result.Get<String>() == "90");
+			Variant get_result;
+
+			const int magic_size = int(data.fun.magic.size());
+			success &= model.GetVariable(ParseAddress("data.fun.magic.size")).Get(get_result);
+			RMLUI_ASSERT(success && get_result.Get<String>() == ToString(magic_size));
+			RMLUI_ASSERT(model.GetVariable(ParseAddress("data.fun.magic")).Size() == magic_size);
+
+			success &= model.GetVariable(ParseAddress("data.fun.magic[8]")).Get(get_result);
+			RMLUI_ASSERT(success && get_result.Get<String>() == "90");
 		}
 	}
 } test_data_variables;

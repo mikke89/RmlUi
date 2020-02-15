@@ -52,6 +52,49 @@ DataTypeRegister::DataTypeRegister()
 		variant = StringUtilities::ToUpper(value);
 		return true;
 	});
+
+	transform_register.Register("format", [](Variant& variant, const VariantList& arguments) -> bool {
+        // Arguments in:
+        //   0 : int[0,32]  Precision. Number of digits after the decimal point.
+        //  [1]: bool       True to remove trailing zeros (default = false).
+        if (arguments.size() < 1 || arguments.size() > 2) {
+            Log::Message(Log::LT_WARNING, "Transform function 'format' requires at least one argument, at most two arguments.");
+            return false;
+        }
+        int precision = 0;
+        if (!arguments[0].GetInto(precision) || precision < 0 || precision > 32) {
+            Log::Message(Log::LT_WARNING, "Transform function 'format': First argument must be an integer in [0, 32].");
+            return false;
+        }
+        bool remove_trailing_zeros = false;
+        if (arguments.size() >= 2) {
+            if (!arguments[1].GetInto(remove_trailing_zeros))
+                return false;
+        }
+
+		double value = 0;
+		if (!variant.GetInto(value))
+			return false;
+
+        String format_specifier = String(remove_trailing_zeros ? "%#." : "%.") + ToString(precision) + 'f';
+        String result;
+        if (FormatString(result, 64, format_specifier.c_str(), value) == 0)
+            return false;
+
+        if (remove_trailing_zeros)
+            StringUtilities::TrimTrailingDotZeros(result);
+
+        variant = result;
+		return true;
+	});
+
+	transform_register.Register("round", [](Variant& variant, const VariantList& arguments) -> bool {
+		double value = 0;
+		if (!variant.GetInto(value))
+			return false;
+        variant = Math::RoundFloat(value);
+		return true;
+	});
 }
 
 DataTypeRegister::~DataTypeRegister()

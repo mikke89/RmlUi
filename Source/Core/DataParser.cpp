@@ -39,7 +39,6 @@
 namespace Rml {
 namespace Core {
 
-class Interpreter;
 class DataParser;
 
 /*
@@ -263,9 +262,12 @@ namespace Parse {
 	// Forward declare all parse functions.
 	static void Assignment(DataParser& parser);
 
+	// The following in order of precedence.
 	static void Expression(DataParser& parser);
-	static void Factor(DataParser& parser);
+	static void Relational(DataParser& parser);
+	static void Additive(DataParser& parser);
 	static void Term(DataParser& parser);
+	static void Factor(DataParser& parser);
 
 	static void NumberLiteral(DataParser& parser);
 	static void StringLiteral(DataParser& parser);
@@ -381,16 +383,14 @@ namespace Parse {
 	}
 	static void Expression(DataParser& parser)
 	{
-		Term(parser);
+		Relational(parser);
 
 		bool looping = true;
 		while (looping)
 		{
 			switch (char c = parser.Look())
 			{
-			case '+': Add(parser); break;
-			case '-': Subtract(parser); break;
-			case '?': Ternary(parser); break;
+			case '&': And(parser); break;
 			case '|':
 			{
 				parser.Match('|', false);
@@ -409,19 +409,50 @@ namespace Parse {
 				}
 			}
 			break;
-			case '&': And(parser); break;
-			case '=': Equal(parser); break;
-			case '!': NotEqual(parser); break;
-			case '<': Less(parser); break;
-			case '>': Greater(parser); break;
-			case '\0':
-				looping = false;
-				break;
+			case '?': Ternary(parser); break;
 			default:
 				looping = false;
 			}
 		}
 	}
+
+	static void Relational(DataParser& parser)
+	{
+		Additive(parser);
+
+		bool looping = true;
+		while (looping)
+		{
+			switch (const char c = parser.Look())
+			{
+			case '=': Equal(parser); break;
+			case '!': NotEqual(parser); break;
+			case '<': Less(parser); break;
+			case '>': Greater(parser); break;
+			default:
+				looping = false;
+			}
+		}
+	}
+	
+	static void Additive(DataParser& parser)
+	{
+		Term(parser);
+
+		bool looping = true;
+		while (looping)
+		{
+			switch (const char c = parser.Look())
+			{
+			case '+': Add(parser); break;
+			case '-': Subtract(parser); break;
+			default:
+				looping = false;
+			}
+		}
+	}
+
+
 	static void Term(DataParser& parser)
 	{
 		Factor(parser);
@@ -433,7 +464,6 @@ namespace Parse {
 			{
 			case '*': Multiply(parser); break;
 			case '/': Divide(parser); break;
-			case '\0': looping = false; break;
 			default:
 				looping = false;
 			}
@@ -591,7 +621,7 @@ namespace Parse {
 		// We already skipped the first '|' during expression
 		parser.Match('|');
 		parser.Push();
-		Term(parser);
+		Relational(parser);
 		parser.Pop(Register::L);
 		parser.Emit(Instruction::Or);
 	}
@@ -600,7 +630,7 @@ namespace Parse {
 		parser.Match('&', false);
 		parser.Match('&');
 		parser.Push();
-		Term(parser);
+		Relational(parser);
 		parser.Pop(Register::L);
 		parser.Emit(Instruction::And);
 	}
@@ -616,7 +646,7 @@ namespace Parse {
 			parser.SkipWhitespace();
 		}
 		parser.Push();
-		Term(parser);
+		Additive(parser);
 		parser.Pop(Register::L);
 		parser.Emit(instruction);
 	}
@@ -632,7 +662,7 @@ namespace Parse {
 			parser.SkipWhitespace();
 		}
 		parser.Push();
-		Term(parser);
+		Additive(parser);
 		parser.Pop(Register::L);
 		parser.Emit(instruction);
 	}
@@ -641,7 +671,7 @@ namespace Parse {
 		parser.Match('=', false);
 		parser.Match('=');
 		parser.Push();
-		Term(parser);
+		Additive(parser);
 		parser.Pop(Register::L);
 		parser.Emit(Instruction::Equal);
 	}
@@ -650,7 +680,7 @@ namespace Parse {
 		parser.Match('!', false);
 		parser.Match('=');
 		parser.Push();
-		Term(parser);
+		Additive(parser);
 		parser.Pop(Register::L);
 		parser.Emit(Instruction::NotEqual);
 	}
@@ -717,18 +747,6 @@ namespace Parse {
 
 
 
-static String DumpProgram(const Program& program)
-{
-	String str;
-	for (size_t i = 0; i < program.size(); i++)
-	{
-		String instruction_str = program[i].data.Get<String>();
-		str += CreateString(instruction_str.size(), "  %4d  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
-	}
-	return str;
-}
-
-
 class DataInterpreter {
 public:
 	DataInterpreter(const Program& program, const AddressList& addresses, DataExpressionInterface expression_interface) : program(program), addresses(addresses), expression_interface(expression_interface) {}
@@ -758,12 +776,23 @@ public:
 
 		if(!success)
 		{
-			String program_str = DumpProgram(program);
+			String program_str = DumpProgram();
 			Log::Message(Log::LT_WARNING, "Failed to execute program with %d instructions:", program.size());
 			Log::Message(Log::LT_WARNING, program_str.c_str());
 		}
 
 		return success;
+	}
+
+	String DumpProgram() const
+	{
+		String str;
+		for (size_t i = 0; i < program.size(); i++)
+		{
+			String instruction_str = program[i].data.Get<String>();
+			str += CreateString(50 + instruction_str.size(), "  %4d  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
+		}
+		return str;
 	}
 
 	Variant Result() const {
@@ -947,30 +976,59 @@ struct TestParser {
 	TestParser() : model(type_register.GetTransformFuncRegister())
 	{
 		DataModelConstructor handle(&model, &type_register);
+		handle.Bind("radius", &radius);
 		handle.Bind("color_name", &color_name);
 		handle.BindFunc("color_value", [this](Rml::Core::Variant& variant) {
 			variant = ToString(color_value);
 		});
 
 		String result;
-		result = TestExpression("!!10 - 1 ? 'hello' : 'world' | to_upper");
-		result = TestExpression("(color_name) + (': rgba(' + color_value + ')')");
-		result = TestExpression("'hello world' | to_upper(5 + 12 == 17 ? 'yes' : 'no', 9*2)");
-		result = TestExpression("true == false");
-		result = TestExpression("true != false");
-		result = TestExpression("true");
-		result = TestExpression(R"(true || false ? (true && true ? 'Absolutely!' : 'well..') : 'no')");
-		result = TestExpression("2 * 2");
-		result = TestExpression("50000 / 1500");
-		result = TestExpression("5*1+2");
-		result = TestExpression("5*(1+2)");
-		result = TestExpression("5.2 + 19 + 'px'");
+		result = TestExpression("!!10 - 1 ? 'hello' : 'world' | to_upper",         "WORLD");
+		result = TestExpression("(color_name) + (': rgba(' + color_value + ')')",  "color: rgba(180, 100, 255, 255)");
+		result = TestExpression("'hello world' | to_upper(5 + 12 == 17 ? 'yes' : 'no', 9*2)",  "HELLO WORLD");
+		result = TestExpression("true == false",  "0");
+		result = TestExpression("true != false",  "1");
+		result = TestExpression("true",           "1");
+
+		result = TestExpression("true || false ? (true && 3==1+2 ? 'Absolutely!' : 'well..') : 'no'",  "Absolutely!");
+		result = TestExpression(R"('It\'s a fit')",  R"(It's a fit)");
+		result = TestExpression("2 * 2",           "4");
+		result = TestExpression("50000 / 1500",    "33.333");
+		result = TestExpression("5*1+2",           "7");
+		result = TestExpression("5*(1+2)",         "15");
+		result = TestExpression("2*(-2)/4",        "-1");
+		result = TestExpression("5.2 + 19 + 'px'", "24.2px");
+
+		result = TestExpression("radius + 'm'",    "8.7m");
+		result = TestExpression("radius < 10.5 ? 'smaller' : 'larger'",  "smaller");
+		TestAssignment("radius = 15");
+		result = TestExpression("radius < 10.5 ? 'smaller' : 'larger'",  "larger");
+		TestAssignment("radius = 4; color_name = 'image-color'");
+		result = TestExpression("radius == 4 && color_name == 'image-color'",  "1");
+
+		result = TestExpression("5 == 1 + 2*2 || 8 == 1 + 4  ? 'yes' : 'no'",  "yes");
+		result = TestExpression("!!('fa' + 'lse')", "0");
+		result = TestExpression("!!('tr' + 'ue')", "1");
+		result = TestExpression("'fox' + 'dog' ? 'FoxyDog' : 'hot' + 'dog' | to_upper", "HOTDOG");
+
+		result = TestExpression("3.62345 | round", "4");
+		result = TestExpression("3.62345 | format(0)", "4");
+		result = TestExpression("3.62345 | format(2)", "3.62");
+		result = TestExpression("3.62345 | format(10)", "3.6234500000");
+		result = TestExpression("3.62345 | format(10, true)", "3.62345");
+		result = TestExpression("3.62345 | round | format(2)", "4.00");
+		result = TestExpression("3.0001 | format(2, false)", "3.00");
+		result = TestExpression("3.0001 | format(2, true)"), "3";
+
+		result = TestExpression("0.2 + 3.42345 | round", "4");
+		result = TestExpression("(3.42345 | round) + 0.2", "3.2");
+		result = TestExpression("(3.42345 | format(0)) + 0.2", "30.2"); // Here, format(0) returns a string, so the + means string concatenation.
 	}
 
-	String TestExpression(String expression)
+	String TestExpression(String expression, String expected = String())
 	{
+		String result;
 		DataExpressionInterface interface(&model, nullptr);
-
 		DataParser parser(expression, interface);
 		if (parser.Parse(false))
 		{
@@ -979,14 +1037,44 @@ struct TestParser {
 
 			DataInterpreter interpreter(program, addresses, interface);
 			if (interpreter.Run())
-				return interpreter.Result().Get<String>();
+				result = interpreter.Result().Get<String>();
+
+			if (!expected.empty() && result != expected)
+			{
+				String program_str = interpreter.DumpProgram();
+				Log::Message(Log::LT_WARNING, "%s", program_str.c_str());
+				RMLUI_ERRORMSG("Got unexpected data parser result.");
+			}
 		}
-		return "<invalid expression>";
+		else
+		{
+			RMLUI_ERRORMSG("Could not parse expression.");
+		}
+
+		return result;
+	};
+
+	bool TestAssignment(String expression)
+	{
+		bool result = false;
+		DataExpressionInterface interface(&model, nullptr);
+		DataParser parser(expression, interface);
+		if (parser.Parse(true))
+		{
+			Program program = parser.ReleaseProgram();
+			AddressList addresses = parser.ReleaseAddresses();
+
+			DataInterpreter interpreter(program, addresses, interface);
+			result = interpreter.Run();
+		}
+		RMLUI_ASSERT(result);
+		return result;
 	};
 
 	DataTypeRegister type_register;
 	DataModel model;
 
+	float radius = 8.7f;
 	String color_name = "color";
 	Colourb color_value = Colourb(180, 100, 255);
 };
@@ -1004,10 +1092,6 @@ bool DataExpression::Parse(const DataExpressionInterface& expression_interface, 
 {
 	// @todo: Remove, debugging only
 	static TestParser test_parser;
-
-	// TODO:
-	//  3. Create a plug-in wrapper for use by scripting languages to replace this parser. Design wrapper as for events.
-	//  5. Add tests
 
 	DataParser parser(expression, expression_interface);
 	if (!parser.Parse(is_assignment_expression))

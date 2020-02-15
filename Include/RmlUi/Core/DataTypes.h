@@ -31,8 +31,6 @@
 
 #include "Header.h"
 #include "Types.h"
-#include "Traits.h"
-#include "Variant.h"
 #include <functional>
 
 namespace Rml {
