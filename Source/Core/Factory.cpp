@@ -300,12 +300,11 @@ struct ElementTextTraits {
 	bool only_white_space = true;
 	bool has_xml = false;
 	bool has_curly_brackets = false;
+	const char* error_str = nullptr; // Is set if and only if a parse error occurred.
 };
-static ElementTextTraits ParseElementTextTraits(Element* parent, const String& text)
+static ElementTextTraits ParseElementTextTraits(const String& text)
 {
 	ElementTextTraits result;
-
-	const bool has_data_model = (parent->GetDataModel() != nullptr);
 
 	bool in_brackets = false;
 	char previous = 0;
@@ -314,30 +313,42 @@ static ElementTextTraits ParseElementTextTraits(Element* parent, const String& t
 		if (!StringUtilities::IsWhitespace(c))
 			result.only_white_space = false;
 
-		if (has_data_model)
+		if (in_brackets)
 		{
-			if (c == '{' && previous == '{')
-			{
-				if (in_brackets)
-					Log::Message(Log::LT_WARNING, "Nested double curly brackets are illegal. %s", parent->GetAddress().c_str());
+			if (c == '}' && previous == '}')
+				in_brackets = false;
+			
+			else if (c == '{' && previous == '{')
+				result.error_str = "Nested double curly brackets are illegal.";
 
+			else if (previous == '}' && c != '}')
+				result.error_str = "Single closing curly bracket encountered, use double curly brackets to close data expression.";
+
+			else if (previous == '/' && c == '>')
+				result.error_str = "Xml end node encountered inside double curly brackets.";
+
+			else if (previous == '<' && c == '/')
+				result.error_str = "Xml end node encountered inside double curly brackets.";
+		}
+		else
+		{
+			if(c == '<')
+			{
+				result.has_xml = true;
+			}
+			else if (c == '{' && previous == '{')
+			{
 				in_brackets = true;
 				result.has_curly_brackets = true;
 			}
 			else if (c == '}' && previous == '}')
 			{
-				if (!in_brackets)
-					Log::Message(Log::LT_WARNING, "Closing double curly brackets mismatched an earlier open bracket. %s", parent->GetAddress().c_str());
-
-				in_brackets = false;
+				result.error_str = "Closing double curly brackets encountered outside data expression.";
 			}
 		}
 
-		if (c == '<' && !in_brackets)
-		{
-			result.has_xml = true;
+		if (result.error_str)
 			break;
-		}
 
 		previous = c;
 	}
@@ -355,7 +366,13 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		system_interface->TranslateString(translated_data, text);
 
 	// Look for XML tags and detect double curly brackets for data bindings.
-	ElementTextTraits traits = ParseElementTextTraits(parent, text);
+	ElementTextTraits traits = ParseElementTextTraits(text);
+
+	if (traits.error_str)
+	{
+		Log::Message(Log::LT_ERROR, "Parse error in text: %s  In element: %s", traits.error_str, parent->GetAddress().c_str());
+		return false;
+	}
 
 	// If this text node only contains white-space we don't want to construct it.
 	if (traits.only_white_space)
