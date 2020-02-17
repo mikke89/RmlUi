@@ -108,7 +108,8 @@ struct Invader {
 	Rml::Core::String name;
 	Rml::Core::String sprite;
 	Rml::Core::Colourb color{ 255, 255, 255 };
-	std::vector<int> numbers = { 1, 2, 3, 4, 5 };
+	std::vector<int> damage;
+	float danger_rating = 50;
 
 	void GetColor(Rml::Core::Variant& variant) {
 		variant = "rgba(" + Rml::Core::ToString(color) + ')';
@@ -153,58 +154,98 @@ void HasGoodRating(Rml::Core::Variant& variant) {
 	variant = int(my_data.rating > 50);
 }
 
+struct InvaderModelData {
+	double time_last_invader_spawn = 0;
+	double time_last_invader_shot = 0;
 
-Rml::Core::DataModelHandle my_model;
+	float incoming_invaders_rate = 10; // Per minute
+
+	std::vector<Invader> invaders = {
+		Invader{"Angry invader", "icon-invader", {255, 40, 30}, {3, 6, 7}, 80}
+	};
+
+	void LaunchWeapons(Rml::Core::DataModelHandle model_handle, Rml::Core::Event& /*ev*/, const Rml::Core::VariantList& /*arguments*/)
+	{
+		invaders.clear();
+		model_handle.DirtyVariable("invaders");
+	}
+
+} invaders_data;
+
+
+Rml::Core::DataModelHandle invaders_model, my_model;
 
 
 bool SetupDataBinding(Rml::Core::Context* context)
 {
-	Rml::Core::DataModelConstructor constructor = context->CreateDataModel("my_model");
-	if (!constructor)
-		return false;
 
-	constructor.Bind("hello_world", &my_data.hello_world);
-	constructor.Bind("mouse_detector", &my_data.mouse_detector);
-	constructor.Bind("rating", &my_data.rating);
-	constructor.BindFunc("good_rating", &HasGoodRating);
-	constructor.BindFunc("great_rating", [](Rml::Core::Variant& variant) {
-		variant = int(my_data.rating > 80);
-	});
-
-	constructor.RegisterArray<std::vector<int>>();
-
-	if(auto invader_handle = constructor.RegisterStruct<Invader>())
+	// The invaders model
 	{
-		invader_handle.AddMember("name", &Invader::name);
-		invader_handle.AddMember("sprite", &Invader::sprite);
-		invader_handle.AddMember("numbers", &Invader::numbers);
-		invader_handle.AddMemberFunc("color", &Invader::GetColor);
+		Rml::Core::DataModelConstructor constructor = context->CreateDataModel("invaders");
+		if (!constructor)
+			return false;
+
+		constructor.Bind("incoming_invaders_rate", &invaders_data.incoming_invaders_rate);
+
+		constructor.RegisterArray<std::vector<int>>();
+
+		if (auto invader_handle = constructor.RegisterStruct<Invader>())
+		{
+			invader_handle.AddMember("name", &Invader::name);
+			invader_handle.AddMember("sprite", &Invader::sprite);
+			invader_handle.AddMember("damage", &Invader::damage);
+			invader_handle.AddMember("danger_rating", &Invader::danger_rating);
+			invader_handle.AddMemberFunc("color", &Invader::GetColor);
+		}
+
+		constructor.RegisterArray<std::vector<Invader>>();
+		constructor.Bind("invaders", &invaders_data.invaders);
+
+		constructor.BindEventCallback("launch_weapons", &InvaderModelData::LaunchWeapons, &invaders_data);
+
+		invaders_model = constructor.GetModelHandle();
 	}
 
-	constructor.Bind("delightful_invader", &my_data.delightful_invader);
 
-	constructor.RegisterArray<std::vector<Invader>>();
-
-	constructor.Bind("indices", &my_data.indices);
-	constructor.Bind("invaders", &my_data.invaders);
-
-	if (auto vec2_handle = constructor.RegisterStruct<Rml::Core::Vector2f>())
+	// The main model
 	{
-		vec2_handle.AddMember("x", &Rml::Core::Vector2f::x);
-		vec2_handle.AddMember("y", &Rml::Core::Vector2f::y);
+		Rml::Core::DataModelConstructor constructor = context->CreateDataModel("my_model");
+		if (!constructor)
+			return false;
+
+		constructor.Bind("hello_world", &my_data.hello_world);
+		constructor.Bind("mouse_detector", &my_data.mouse_detector);
+		constructor.Bind("rating", &my_data.rating);
+		constructor.BindFunc("good_rating", &HasGoodRating);
+		constructor.BindFunc("great_rating", [](Rml::Core::Variant& variant) {
+			variant = int(my_data.rating > 80);
+			});
+
+		constructor.Bind("delightful_invader", &my_data.delightful_invader);
+
+		//constructor.RegisterArray<std::vector<Invader>>();
+
+		constructor.Bind("indices", &my_data.indices);
+		constructor.Bind("invaders", &my_data.invaders);
+
+		if (auto vec2_handle = constructor.RegisterStruct<Rml::Core::Vector2f>())
+		{
+			vec2_handle.AddMember("x", &Rml::Core::Vector2f::x);
+			vec2_handle.AddMember("y", &Rml::Core::Vector2f::y);
+		}
+
+		constructor.RegisterArray<std::vector<Rml::Core::Vector2f>>();
+		constructor.Bind("positions", &my_data.positions);
+
+		constructor.BindEventCallback("clear_positions", &ClearPositions);
+		constructor.BindEventCallback("add_mouse_pos", &MyData::AddMousePos, &my_data);
+
+		my_model = constructor.GetModelHandle();
 	}
 
-	constructor.RegisterArray<std::vector<Rml::Core::Vector2f>>();
-	constructor.Bind("positions", &my_data.positions);
-
-	constructor.BindEventCallback("clear_positions", &ClearPositions);
-	constructor.BindEventCallback("add_mouse_pos", &MyData::AddMousePos, &my_data);
-
-	my_model = constructor.GetModelHandle();
 
 	return true;
 }
-
 
 
 Rml::Core::Context* context = nullptr;
@@ -227,7 +268,45 @@ void GameLoop()
 		}
 	}
 
+	const double t = Rml::Core::GetSystemInterface()->GetElapsedTime();
+
+	const double t_next_spawn = invaders_data.time_last_invader_spawn + 60.0 / double(invaders_data.incoming_invaders_rate);
+	if (t >= t_next_spawn)
+	{
+		using namespace Rml::Core;
+		const int num_items = 4;
+		static std::array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
+		static std::array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
+		static std::array<Colourb, num_items> colors = {{ { 255, 40, 30 }, {20, 40, 255}, {255, 255, 30}, {230, 230, 230} }};
+
+		Invader new_invader;
+		new_invader.name = names[rand() % num_items];
+		new_invader.sprite = sprites[rand() % num_items];
+		new_invader.color = colors[rand() % num_items];
+		new_invader.danger_rating = float((rand() % 100) + 1);
+		invaders_data.invaders.push_back(new_invader);
+
+		invaders_model.DirtyVariable("invaders");
+		invaders_data.time_last_invader_spawn = t;
+	}
+
+	if (t >= invaders_data.time_last_invader_shot + 1.0)
+	{
+		if (!invaders_data.invaders.empty())
+		{
+			const size_t index = size_t(rand() % int(invaders_data.invaders.size()));
+
+			Invader& invader = invaders_data.invaders[index];
+			invader.damage.push_back(rand() % int(invader.danger_rating));
+
+			invaders_model.DirtyVariable("invaders");
+		}
+		invaders_data.time_last_invader_shot = t;
+	}
+
 	my_model.Update();
+
+	invaders_model.Update();
 
 	demo_window->Update();
 	context->Update();
