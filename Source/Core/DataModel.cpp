@@ -100,6 +100,25 @@ static const char* LegalVariableName(const String& name)
 	return nullptr;
 }
 
+static String DataAddressToString(const DataAddress& address)
+{
+	String result;
+	bool is_first = true;
+	for (auto& entry : address)
+	{
+		if (entry.index >= 0)
+			result += '[' + ToString(entry.index) + ']';
+		else
+		{
+			if (!is_first)
+				result += ".";
+			result += entry.name;
+		}
+		is_first = false;
+	}
+	return result;
+}
+
 void DataModel::AddView(DataViewPtr view) {
 	views.Add(std::move(view));
 }
@@ -283,7 +302,10 @@ const DataEventFunc* DataModel::GetEventCallback(const String& name)
 
 bool DataModel::GetVariableInto(const DataAddress& address, Variant& out_value) const {
 	DataVariable variable = GetVariable(address);
-	return variable && variable.Get(out_value);
+	bool result = (variable && variable.Get(out_value));
+	if (!result)
+		Log::Message(Log::LT_WARNING, "Could not get value from data variable '%s'.", DataAddressToString(address).c_str());
+	return result;
 }
 
 void DataModel::DirtyVariable(const String& variable_name)
