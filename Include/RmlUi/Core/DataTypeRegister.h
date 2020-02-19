@@ -54,9 +54,9 @@ public:
 	StructHandle(DataTypeRegister* type_register, StructDefinition* struct_definition) : type_register(type_register), struct_definition(struct_definition) {}
 	
 	template <typename MemberType>
-	StructHandle<Object>& AddMember(const String& name, MemberType Object::* member_ptr);
+	StructHandle<Object>& RegisterMember(const String& name, MemberType Object::* member_ptr);
 
-	StructHandle<Object>& AddMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
+	StructHandle<Object>& RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
 
 	explicit operator bool() const {
 		return type_register && struct_definition;
@@ -191,13 +191,13 @@ private:
 
 template<typename Object>
 template<typename MemberType>
-inline StructHandle<Object>& StructHandle<Object>::AddMember(const String& name, MemberType Object::* member_ptr) {
+inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr) {
 	VariableDefinition* member_type = type_register->GetOrAddScalar<MemberType>();
-	struct_definition->AddMember(name, std::make_unique<StructMemberDefault<Object, MemberType>>(member_type, member_ptr));
+	struct_definition->AddMember(name, std::make_unique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
 	return *this;
 }
 template<typename Object>
-inline StructHandle<Object>& StructHandle<Object>::AddMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
+inline StructHandle<Object>& StructHandle<Object>::RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
 	VariableDefinition* definition = type_register->RegisterMemberFunc<Object>(get_func, set_func);
 	struct_definition->AddMember(name, std::make_unique<StructMemberFunc>(definition));
 	return *this;

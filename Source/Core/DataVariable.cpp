@@ -70,9 +70,9 @@ DataVariable VariableDefinition::Child(void* ptr, const DataAddressEntry& addres
     return DataVariable();
 }
 
-class ArraySizeDefinition final : public VariableDefinition {
+class LiteralIntDefinition final : public VariableDefinition {
 public:
-    ArraySizeDefinition() : VariableDefinition(DataVariableType::Scalar) {}
+    LiteralIntDefinition() : VariableDefinition(DataVariableType::Scalar) {}
 
     bool Get(void* ptr, Variant& variant) override
     {
@@ -81,10 +81,10 @@ public:
     }
 };
 
-VariableDefinition* GetArraySizeDefinition()
+DataVariable MakeLiteralIntVariable(int value)
 {
-    static ArraySizeDefinition size_definition;
-    return &size_definition;
+    static LiteralIntDefinition literal_int_definition;
+    return DataVariable(&literal_int_definition, reinterpret_cast<void*>(static_cast<intptr_t>(value)));
 }
 
 }

@@ -114,6 +114,13 @@ struct Invader {
 	void GetColor(Rml::Core::Variant& variant) {
 		variant = "rgba(" + Rml::Core::ToString(color) + ')';
 	}
+	void SetColor(const Rml::Core::Variant& variant) {
+		using namespace Rml::Core;
+		String str = variant.Get<String>();
+		if (str.size() > 6)
+			str = str.substr(5, str.size() - 6);
+		color = Rml::Core::FromString<Colourb>(variant.Get<String>());
+	}
 };
 
 
@@ -156,7 +163,7 @@ void HasGoodRating(Rml::Core::Variant& variant) {
 
 struct InvaderModelData {
 	double time_last_invader_spawn = 0;
-	double time_last_invader_shot = 0;
+	double time_last_weapons_launched = 0;
 
 	float incoming_invaders_rate = 10; // Per minute
 
@@ -178,7 +185,6 @@ Rml::Core::DataModelHandle invaders_model, my_model;
 
 bool SetupDataBinding(Rml::Core::Context* context)
 {
-
 	// The invaders model
 	{
 		Rml::Core::DataModelConstructor constructor = context->CreateDataModel("invaders");
@@ -191,11 +197,11 @@ bool SetupDataBinding(Rml::Core::Context* context)
 
 		if (auto invader_handle = constructor.RegisterStruct<Invader>())
 		{
-			invader_handle.AddMember("name", &Invader::name);
-			invader_handle.AddMember("sprite", &Invader::sprite);
-			invader_handle.AddMember("damage", &Invader::damage);
-			invader_handle.AddMember("danger_rating", &Invader::danger_rating);
-			invader_handle.AddMemberFunc("color", &Invader::GetColor);
+			invader_handle.RegisterMember("name", &Invader::name);
+			invader_handle.RegisterMember("sprite", &Invader::sprite);
+			invader_handle.RegisterMember("damage", &Invader::damage);
+			invader_handle.RegisterMember("danger_rating", &Invader::danger_rating);
+			invader_handle.RegisterMemberFunc("color", &Invader::GetColor, &Invader::SetColor);
 		}
 
 		constructor.RegisterArray<std::vector<Invader>>();
@@ -230,8 +236,8 @@ bool SetupDataBinding(Rml::Core::Context* context)
 
 		if (auto vec2_handle = constructor.RegisterStruct<Rml::Core::Vector2f>())
 		{
-			vec2_handle.AddMember("x", &Rml::Core::Vector2f::x);
-			vec2_handle.AddMember("y", &Rml::Core::Vector2f::y);
+			vec2_handle.RegisterMember("x", &Rml::Core::Vector2f::x);
+			vec2_handle.RegisterMember("y", &Rml::Core::Vector2f::y);
 		}
 
 		constructor.RegisterArray<std::vector<Rml::Core::Vector2f>>();
@@ -290,7 +296,7 @@ void GameLoop()
 		invaders_data.time_last_invader_spawn = t;
 	}
 
-	if (t >= invaders_data.time_last_invader_shot + 1.0)
+	if (t >= invaders_data.time_last_weapons_launched + 1.0)
 	{
 		if (!invaders_data.invaders.empty())
 		{
@@ -301,7 +307,7 @@ void GameLoop()
 
 			invaders_model.DirtyVariable("invaders");
 		}
-		invaders_data.time_last_invader_shot = t;
+		invaders_data.time_last_weapons_launched = t;
 	}
 
 	my_model.Update();

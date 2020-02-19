@@ -82,6 +82,8 @@ private:
 };
 
 
+RMLUICORE_API DataVariable MakeLiteralIntVariable(int value);
+
 
 template<typename T>
 class ScalarDefinition final : public VariableDefinition {
@@ -134,8 +136,6 @@ public:
 		return int(static_cast<Container*>(ptr)->size());
 	}
 
-	DataVariable MakeSizeVariable(int container_size);
-
 protected:
 	DataVariable Child(void* void_ptr, const DataAddressEntry& address) override
 	{
@@ -146,7 +146,7 @@ protected:
 		if (index < 0 || index >= container_size)
 		{
 			if (address.name == "size")
-				return MakeSizeVariable(container_size);
+				return MakeLiteralIntVariable(container_size);
 
 			Log::Message(Log::LT_WARNING, "Data array index out of bounds.");
 			return DataVariable();
@@ -178,9 +178,9 @@ private:
 };
 
 template <typename Object, typename MemberType>
-class StructMemberDefault final : public StructMember {
+class StructMemberObject final : public StructMember {
 public:
-	StructMemberDefault(VariableDefinition* definition, MemberType Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+	StructMemberObject(VariableDefinition* definition, MemberType Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
 
 	void* GetPointer(void* base_ptr) override {
 		return &(static_cast<Object*>(base_ptr)->*member_ptr);
@@ -262,14 +262,6 @@ private:
 	MemberGetFunc<T> get;
 	MemberSetFunc<T> set;
 };
-
-
-RMLUICORE_API VariableDefinition* GetArraySizeDefinition();
-
-template<typename Container>
-inline DataVariable ArrayDefinition<Container>::MakeSizeVariable(int container_size) {
-	return DataVariable(GetArraySizeDefinition(), reinterpret_cast<void*>(static_cast<intptr_t>(container_size)));
-}
 
 }
 }

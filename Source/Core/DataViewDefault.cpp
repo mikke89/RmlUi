@@ -366,9 +366,31 @@ bool DataViewFor::Initialize(DataModel& model, Element* element, const String& i
 	}
 
 	if (iterator_container_pair.size() == 2)
-		iterator_name = iterator_container_pair.front();
-	else
+	{
+		StringList iterator_index_pair;
+		StringUtilities::ExpandString(iterator_index_pair, iterator_container_pair.front(), ',');
+
+		if (iterator_index_pair.empty())
+		{
+			Log::Message(Log::LT_WARNING, "Invalid syntax in data-for '%s'", in_expression.c_str());
+			return false;
+		}
+		else if (iterator_index_pair.size() == 1)
+		{
+			iterator_name = iterator_index_pair.front();
+		}
+		else if (iterator_index_pair.size() == 2)
+		{
+			iterator_name = iterator_index_pair.front();
+			iterator_index_name = iterator_index_pair.back();
+		}
+	}
+
+	if (iterator_name.empty())
 		iterator_name = "it";
+
+	if (iterator_index_name.empty())
+		iterator_index_name = "it_index";
 
 	const String& container_name = iterator_container_pair.back();
 
@@ -404,7 +426,12 @@ bool DataViewFor::Update(DataModel& model)
 			iterator_address = container_address;
 			iterator_address.push_back(DataAddressEntry(i));
 
+			DataAddress iterator_index_address = {
+				{"literal"}, {"int"}, {i}
+			};
+
 			model.InsertAlias(new_element_ptr.get(), iterator_name, std::move(iterator_address));
+			model.InsertAlias(new_element_ptr.get(), iterator_index_name, std::move(iterator_index_address));
 
 			Element* new_element = element->GetParentNode()->InsertBefore(std::move(new_element_ptr), element);
 			elements.push_back(new_element);

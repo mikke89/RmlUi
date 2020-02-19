@@ -154,6 +154,7 @@ protected:
 private:
 	DataAddress container_address;
 	String iterator_name;
+	String iterator_index_name;
 	String rml_contents;
 	ElementAttributes attributes;
 
