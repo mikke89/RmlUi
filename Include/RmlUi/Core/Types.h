@@ -61,6 +61,7 @@ namespace Core {
 using byte = unsigned char;
 using Time = double;
 using ScriptObject = void*;
+using std::size_t;
 
 // Unicode code point
 enum class Character : char32_t { Null, Replacement = 0xfffd };
