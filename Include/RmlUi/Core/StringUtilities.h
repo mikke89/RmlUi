@@ -29,8 +29,6 @@
 #ifndef RMLUICORESTRINGUTILITIES_H
 #define RMLUICORESTRINGUTILITIES_H
 
-#include <algorithm>
-#include <stddef.h>
 #include "Header.h"
 #include "Types.h"
 
@@ -41,12 +39,6 @@ namespace Core {
 	Helper functions for string manipulation.
 	@author Lloyd Weehuizen
  */
-
-// Redefine Windows APIs as their STDC counterparts.
-#ifdef _MSC_VER
-	#define strcasecmp stricmp
-	#define strncasecmp strnicmp
-#endif
 
 class StringView;
 
@@ -91,8 +83,7 @@ namespace StringUtilities
 	RMLUICORE_API String Replace(String subject, char search, char replace);
 
 	/// Checks if a given value is a whitespace character.
-	template < typename CharacterType >
-	inline bool IsWhitespace(CharacterType x)
+	inline bool IsWhitespace(const char x)
 	{
 		return (x == '\r' || x == '\n' || x == ' ' || x == '\t');
 	}
@@ -103,11 +94,8 @@ namespace StringUtilities
 	/// Strip whitespace characters from the beginning and end of a string.
 	RMLUICORE_API String StripWhitespace(StringView string);
 
-	/// Operator for STL containers using strings.
-	struct RMLUICORE_API StringComparei
-	{
-		bool operator()(const String& lhs, const String& rhs) const;
-	};
+	/// Case insensitive string comparison. Returns true if they compare equal.
+	RMLUICORE_API bool StringCompareCaseInsensitive(StringView lhs, StringView rhs);
 
 	// Decode the first code point in a zero-terminated UTF-8 string.
 	RMLUICORE_API Character ToCharacter(const char* p);
@@ -135,7 +123,6 @@ namespace StringUtilities
 			--p;
 		return p;
 	}
-
 
 	/// Converts a string in UTF-8 encoding to a u16string in UTF-16 encoding.
 	/// Reports a warning if some or all characters could not be converted.

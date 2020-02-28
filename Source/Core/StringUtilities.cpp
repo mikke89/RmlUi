@@ -28,8 +28,10 @@
 
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include <algorithm>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 namespace Rml {
 namespace Core {
@@ -80,15 +82,15 @@ String CreateString(size_t max_size, const char* format, ...)
 	return result;
 }
 
+static inline char CharToLower(char c) {
+	if (c >= 'A' && c <= 'Z')
+		c += char('a' - 'A');
+	return c;
+}
 
 String StringUtilities::ToLower(const String& string) {
 	String str_lower = string;
-	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), [](char c) {
-		if (c >= 'A' && c <= 'Z')
-			c += char( 'a' - 'A' );
-		return c;
-		}
-	);
+	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), &CharToLower);
 	return str_lower;
 }
 
@@ -268,12 +270,23 @@ RMLUICORE_API String StringUtilities::StripWhitespace(StringView string)
 	return String();
 }
 
-// Operators for STL containers using strings.
-bool StringUtilities::StringComparei::operator()(const String& lhs, const String& rhs) const
+bool StringUtilities::StringCompareCaseInsensitive(const StringView lhs, const StringView rhs)
 {
-	return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
-}
+	if (lhs.size() != rhs.size())
+		return false;
 
+	const char* left = lhs.begin();
+	const char* right = rhs.begin();
+	const char* const left_end = lhs.end();
+
+	for (; left != left_end; ++left, ++right)
+	{
+		if (CharToLower(*left) != CharToLower(*right))
+			return false;
+	}
+
+	return true;
+}
 
 Character StringUtilities::ToCharacter(const char* p)
 {

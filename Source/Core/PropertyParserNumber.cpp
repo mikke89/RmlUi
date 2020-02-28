@@ -106,8 +106,8 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 		if (value.size() < unit_suffix.second.size())
 			continue;
 
-		size_t test_unit_pos = value.size() - unit_suffix.second.size();
-		if (strcasecmp(value.c_str() + test_unit_pos, unit_suffix.second.c_str()) == 0)
+		const size_t test_unit_pos = value.size() - unit_suffix.second.size();
+		if (StringUtilities::StringCompareCaseInsensitive(StringView(value, test_unit_pos), StringView(unit_suffix.second)))
 		{
 			unit_pos = test_unit_pos;
 			property.unit = unit_suffix.first;

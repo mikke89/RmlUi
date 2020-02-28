@@ -28,10 +28,13 @@
 
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
-#include "Template.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "TemplateCache.h"
-#include "../../Include/RmlUi/Core.h"
+#include "Template.h"
 #include <ctype.h>
+#include <string.h>
 
 namespace Rml {
 namespace Core {
@@ -40,7 +43,7 @@ namespace Core {
 // NOTE: tag *MUST* be in lowercase
 const char* XMLParseTools::FindTag(const char* tag, const char* string, bool closing_tag)
 {
-	int length = (int)strlen(tag);
+	const size_t length = strlen(tag);
 	const char* ptr = string;
 	bool found_closing = false;
 
@@ -50,7 +53,7 @@ const char* XMLParseTools::FindTag(const char* tag, const char* string, bool clo
 		if (tolower((*ptr)) == tag[0])
 		{
 			// If it does, check the whole word
-			if (strncasecmp(ptr,tag,length) == 0)
+			if (StringUtilities::StringCompareCaseInsensitive(StringView(ptr, ptr + length), StringView(tag, tag + length)))
 			{
 				// Check for opening <, loop back in the string skipping white space and forward slashes if
 				// we're looking for the closing tag
