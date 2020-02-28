@@ -2389,8 +2389,10 @@ void Element::AdvanceAnimations()
 
 		for (auto it = it_completed; it != animations.end(); ++it)
 		{
+			const String& property_name = StyleSheetSpecification::GetPropertyName(it->GetPropertyId());
+
 			dictionary_list.emplace_back();
-			dictionary_list.back().emplace("property", StyleSheetSpecification::GetPropertyName(it->GetPropertyId()));
+			dictionary_list.back().emplace("property", Variant(property_name));
 			is_transition.push_back(it->IsTransition());
 
 			// Remove completed transition- and animation-initiated properties.
