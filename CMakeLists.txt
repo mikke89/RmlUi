@@ -185,6 +185,14 @@ if(DISABLE_RTTI_AND_EXCEPTIONS)
 	message("-- C++ RTTI and exceptions will be disabled: Make sure to #define RMLUI_USE_CUSTOM_RTTI before including RmlUi in your project.")
 endif()
 
+option(ENABLE_PRECOMPILED_HEADERS "Enable precompiled headers" ON)
+set(PRECOMPILED_HEADERS_ENABLED OFF)
+if (ENABLE_PRECOMPILED_HEADERS AND (CMAKE_VERSION VERSION_LESS 3.16.0))
+	message("-- Could not enable precompiled headers. Need CMake version 3.16.0 or greater.")
+elseif (ENABLE_PRECOMPILED_HEADERS)
+	set(PRECOMPILED_HEADERS_ENABLED ON)
+endif()
+
 #===================================
 # Find dependencies ================
 #===================================
@@ -263,7 +271,7 @@ endforeach(library)
 
 target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 
-if (CMAKE_VERSION VERSION_GREATER 3.16.0)
+if (PRECOMPILED_HEADERS_ENABLED)
 	target_precompile_headers(RmlCore PRIVATE ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h)
 	target_precompile_headers(RmlControls PRIVATE ${PROJECT_SOURCE_DIR}/Source/Controls/precompiled.h)
 endif()
@@ -499,7 +507,7 @@ endif(NOT BUILD_FRAMEWORK)
 	set_property(TARGET shell PROPERTY CXX_STANDARD 14)
 	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
 	
-	if (CMAKE_VERSION VERSION_GREATER 3.16.0)
+	if (PRECOMPILED_HEADERS_ENABLED)
 		target_precompile_headers(shell PRIVATE ${PROJECT_SOURCE_DIR}/Samples/shell/src/precompiled.h)
 	endif()
 
