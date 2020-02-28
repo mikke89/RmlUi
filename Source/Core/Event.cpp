@@ -26,9 +26,9 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/EventInstancer.h"
+#include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
 namespace Core {

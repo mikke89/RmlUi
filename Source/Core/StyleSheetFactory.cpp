@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "StyleSheetFactory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "StyleSheetNode.h"

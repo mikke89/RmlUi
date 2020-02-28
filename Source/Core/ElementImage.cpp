@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "ElementImage.h"
 #include "../../Include/RmlUi/Core.h"
 #include "TextureDatabase.h"

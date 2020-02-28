@@ -29,6 +29,8 @@
 #ifndef TEXTURELAYOUTRECTANGLE_H
 #define TEXTURELAYOUTRECTANGLE_H
 
+#include "../../Include/RmlUi/Core/Types.h"
+
 namespace Rml {
 namespace Core {
 

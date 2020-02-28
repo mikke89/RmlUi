@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"

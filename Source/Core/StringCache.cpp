@@ -26,8 +26,8 @@
  *
  */
 
- 
-#include "precompiled.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "StringCache.h"
 
 namespace Rml {
 namespace Core {

@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "ContextInstancerDefault.h"
 #include "../../Include/RmlUi/Core/Context.h"
 

@@ -26,7 +26,7 @@
  *
  */
 
-#include "precompiled.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 
 namespace Rml {

@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "ElementHandle.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"

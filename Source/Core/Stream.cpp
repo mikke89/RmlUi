@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/Stream.h"
 #include <algorithm>
 #include <stdio.h>

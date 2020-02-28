@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "StyleSheetNodeSelector.h"
 
 namespace Rml {

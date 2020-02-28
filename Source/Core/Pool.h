@@ -31,6 +31,7 @@
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Debug.h"
+#include "../../Include/RmlUi/Core/Traits.h"
 
 namespace Rml {
 namespace Core {

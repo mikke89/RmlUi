@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "StyleSheetNode.h"
 #include <algorithm>
 #include "../../Include/RmlUi/Core/Element.h"

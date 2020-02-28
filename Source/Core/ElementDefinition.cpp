@@ -26,9 +26,9 @@
  *
  */
 
-#include "precompiled.h"
 #include "ElementDefinition.h"
 #include "StyleSheetNode.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 
 namespace Rml {
 namespace Core {

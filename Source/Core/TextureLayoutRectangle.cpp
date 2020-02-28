@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "TextureLayoutRectangle.h"
 
 namespace Rml {

@@ -31,6 +31,8 @@
 
 #include "Traits.h"
 #include "Header.h"
+#include "Types.h"
+#include "ID.h"
 
 namespace Rml {
 namespace Core {

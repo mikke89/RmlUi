@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "DecoratorTiledBox.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Geometry.h"

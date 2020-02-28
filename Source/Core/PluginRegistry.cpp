@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "PluginRegistry.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
 

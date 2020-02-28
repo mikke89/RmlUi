@@ -29,6 +29,9 @@
 #ifndef RMLUICORELAYOUTBLOCKBOXSPACE_H
 #define RMLUICORELAYOUTBLOCKBOXSPACE_H
 
+#include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/Types.h"
+
 namespace Rml {
 namespace Core {
 

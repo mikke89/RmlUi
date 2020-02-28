@@ -29,9 +29,12 @@
 #ifndef RMLUICORECOMPUTEPROPERTY_H
 #define RMLUICORECOMPUTEPROPERTY_H
 
+#include "../../Include/RmlUi/Core/ComputedValues.h"
+
 namespace Rml {
 namespace Core {
 
+class Property;
 
 // Note that percentages are not lengths! They have to be resolved elsewhere.
 float ComputeLength(const Property* property, float font_size, float document_font_size, float dp_ratio);

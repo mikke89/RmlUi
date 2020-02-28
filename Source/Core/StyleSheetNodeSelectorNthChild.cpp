@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "StyleSheetNodeSelectorNthChild.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Log.h"

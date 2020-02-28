@@ -26,7 +26,7 @@
  *
  */
 
-#include "precompiled.h"
+#include "../../Include/RmlUi/Core/FontEngineInterface.h"
 
 namespace Rml {
 namespace Core {

@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "XMLNodeHandlerBody.h"
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core.h"

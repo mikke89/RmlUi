@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "EventSpecification.h"
 #include "../../Include/RmlUi/Core/ID.h"
 

@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "Template.h"

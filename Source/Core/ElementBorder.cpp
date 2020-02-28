@@ -27,7 +27,6 @@
  */
 
  
-#include "precompiled.h"
 #include "ElementBorder.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Property.h"

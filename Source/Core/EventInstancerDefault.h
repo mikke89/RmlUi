@@ -30,6 +30,7 @@
 #define RMLUICOREEVENTINSTANCERDEFAULT_H
 
 #include "../../Include/RmlUi/Core/EventInstancer.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {

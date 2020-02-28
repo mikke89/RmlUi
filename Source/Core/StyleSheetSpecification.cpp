@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "PropertyParserNumber.h"
@@ -37,6 +36,7 @@
 #include "PropertyParserTransform.h"
 #include "PropertyShorthandDefinition.h"
 #include "IdNameMap.h"
+#include "StringCache.h"
 
 namespace Rml {
 namespace Core {

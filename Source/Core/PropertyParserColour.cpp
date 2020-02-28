@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "PropertyParserColour.h"
 
 namespace Rml {

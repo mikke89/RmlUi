@@ -29,6 +29,8 @@
 #ifndef RMLUICORECLOCK_H
 #define RMLUICORECLOCK_H
 
+#include "../../Include/RmlUi/Core/Header.h"
+
 namespace Rml {
 namespace Core {
 

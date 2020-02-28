@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "WidgetSlider.h"
 #include "Clock.h"
 #include "LayoutEngine.h"

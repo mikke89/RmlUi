@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "FontEffectBlur.h"
 #include "Memory.h"
 

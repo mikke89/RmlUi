@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "StyleSheetNodeSelectorLastOfType.h"
 #include "../../Include/RmlUi/Core/Element.h"
 

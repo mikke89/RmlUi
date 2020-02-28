@@ -36,6 +36,7 @@ namespace Core {
 
 enum class ShorthandType;
 class PropertyDefinition;
+struct ShorthandDefinition;
 
 enum class ShorthandItemType { Invalid, Property, Shorthand };
 

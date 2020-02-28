@@ -26,9 +26,9 @@
  *
  */
 
-#include "precompiled.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/URL.h"
-#include <stdio.h>
 
 namespace Rml {
 namespace Core {

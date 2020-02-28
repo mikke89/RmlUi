@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core.h"
 #include "../../Include/RmlUi/Core/TransformState.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"

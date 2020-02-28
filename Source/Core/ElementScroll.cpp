@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "LayoutEngine.h"
 #include "WidgetSliderScroll.h"

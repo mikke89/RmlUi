@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "ElementTextDefault.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
@@ -34,6 +33,7 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Core.h"
 
 namespace Rml {
 namespace Core {

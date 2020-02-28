@@ -29,6 +29,8 @@
 #ifndef RMLUICOREPLUGINREGISTRY_H
 #define RMLUICOREPLUGINREGISTRY_H
 
+#include "../../Include/RmlUi/Core/Types.h"
+
 namespace Rml {
 namespace Core {
 

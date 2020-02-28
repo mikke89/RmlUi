@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "ElementAnimation.h"
 #include "ElementStyle.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"

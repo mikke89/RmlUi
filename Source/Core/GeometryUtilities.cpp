@@ -26,8 +26,10 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core/Core.h"
 
 namespace Rml {
 namespace Core {

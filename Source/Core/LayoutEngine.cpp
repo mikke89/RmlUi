@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "LayoutEngine.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include "Pool.h"

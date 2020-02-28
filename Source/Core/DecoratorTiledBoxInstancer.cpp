@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "DecoratorTiledBoxInstancer.h"
 #include "DecoratorTiledBox.h"
 

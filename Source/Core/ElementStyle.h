@@ -29,14 +29,17 @@
 #ifndef RMLUICOREELEMENTSTYLE_H
 #define RMLUICOREELEMENTSTYLE_H
 
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/PropertyDictionary.h"
 
 namespace Rml {
 namespace Core {
 
 class ElementDefinition;
 class PropertiesIterator;
+enum class RelativeTarget;
 
 /**
 	Manages an element's style and property information.

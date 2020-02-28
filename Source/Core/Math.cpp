@@ -26,10 +26,10 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include <time.h>
 #include <math.h>
+#include <stdlib.h>
 
 namespace Rml {
 namespace Core {
@@ -67,13 +67,13 @@ RMLUICORE_API float Cos(float angle)
 // Calculates the arc-cosine of an value.
 RMLUICORE_API float ACos(float value)
 {
-	return acos(value);
+	return acosf(value);
 }
 
 // Calculates the sine of an angle.
 RMLUICORE_API float Sin(float angle)
 {
-	return sin(angle);
+	return sinf(angle);
 }
 
 // Calculates the arc-sine of an value.
@@ -97,7 +97,7 @@ RMLUICORE_API float ATan2(float y, float x)
 // Evaluates the natural exponential function on a value.
 RMLUICORE_API float Exp(float value)
 {
-	return exp(value);
+	return expf(value);
 }
 
 // Converts an angle from radians to degrees.

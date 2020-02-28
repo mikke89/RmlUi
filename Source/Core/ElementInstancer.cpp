@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "XMLParseTools.h"
 #include "Pool.h"

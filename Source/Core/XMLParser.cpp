@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
 #include "DocumentHeader.h"
 #include "../../Include/RmlUi/Core/Log.h"

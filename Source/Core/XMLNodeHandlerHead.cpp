@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "XMLNodeHandlerHead.h"
 #include "DocumentHeader.h"
 #include "TemplateCache.h"

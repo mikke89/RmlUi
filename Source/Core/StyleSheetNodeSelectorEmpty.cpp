@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "StyleSheetNodeSelectorEmpty.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 

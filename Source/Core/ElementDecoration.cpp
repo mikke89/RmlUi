@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "../../Include/RmlUi/Core/Decorator.h"

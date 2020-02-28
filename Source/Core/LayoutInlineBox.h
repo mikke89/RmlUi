@@ -30,6 +30,7 @@
 #define RMLUICORELAYOUTINLINEBOX_H
 
 #include "../../Include/RmlUi/Core/Box.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 
 namespace Rml {
 namespace Core {

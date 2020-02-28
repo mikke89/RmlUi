@@ -26,8 +26,8 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/Log.h"
 #include <stdio.h>
 #include <stdarg.h>
 

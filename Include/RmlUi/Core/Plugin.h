@@ -30,6 +30,7 @@
 #define RMLUICOREPLUGIN_H
 
 #include "Header.h"
+#include "Types.h"
 
 namespace Rml {
 namespace Core {

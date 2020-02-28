@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "EventDispatcher.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Event.h"

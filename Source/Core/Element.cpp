@@ -27,7 +27,6 @@
  */
 
   
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Dictionary.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
@@ -50,6 +49,7 @@
 #include "PropertiesIterator.h"
 #include "Pool.h"
 #include "StyleSheetParser.h"
+#include "StringCache.h"
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/Core.h"
 

@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "Template.h"
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"

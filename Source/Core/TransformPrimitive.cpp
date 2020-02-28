@@ -26,17 +26,13 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/TypeConverter.h"
-#include <iostream>
-#include <unordered_map>
 
 namespace Rml {
 namespace Core {
 namespace Transforms {
-
-
 
 static Vector3f Combine(const Vector3f& a, const Vector3f& b, float a_scale, float b_scale)
 {

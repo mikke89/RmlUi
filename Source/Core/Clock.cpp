@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "Clock.h"
 #include "../../Include/RmlUi/Core.h"
 

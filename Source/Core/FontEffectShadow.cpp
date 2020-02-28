@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "FontEffectShadow.h"
 
 namespace Rml {

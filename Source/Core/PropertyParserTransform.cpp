@@ -26,9 +26,10 @@
  *
  */
 
-#include "precompiled.h"
 #include "PropertyParserTransform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "../../Include/RmlUi/Core/Transform.h"
+#include "StringCache.h"
 
 namespace Rml {
 namespace Core {

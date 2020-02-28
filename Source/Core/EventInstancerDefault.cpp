@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "EventInstancerDefault.h"
 #include "../../Include/RmlUi/Core/Event.h"
 

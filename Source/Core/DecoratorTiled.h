@@ -29,6 +29,7 @@
 #ifndef RMLUICOREDECORATORTILED_H
 #define RMLUICOREDECORATORTILED_H
 
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Vertex.h"
 

@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "StreamFile.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core.h"

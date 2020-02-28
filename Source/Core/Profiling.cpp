@@ -27,7 +27,6 @@
  */
 
   
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 
 #ifdef RMLUI_ENABLE_PROFILING

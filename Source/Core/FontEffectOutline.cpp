@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "FontEffectOutline.h"
 
 namespace Rml {

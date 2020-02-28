@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "PropertyParserKeyword.h"
 
 namespace Rml {

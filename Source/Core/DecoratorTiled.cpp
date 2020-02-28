@@ -27,7 +27,6 @@
  */
 
 
-#include "precompiled.h"
 #include "DecoratorTiled.h"
 #include "../../Include/RmlUi/Core.h"
 

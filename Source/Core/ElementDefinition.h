@@ -29,7 +29,8 @@
 #ifndef RMLUICOREELEMENTDEFINITION_H
 #define RMLUICOREELEMENTDEFINITION_H
 
-#include "../../Include/RmlUi/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/Traits.h"
 
 namespace Rml {

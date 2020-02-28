@@ -32,9 +32,12 @@
 #include "Header.h"
 #include "Types.h"
 #include "Vertex.h"
+#include "ComputedValues.h"
 
 namespace Rml {
 namespace Core {
+
+class Geometry;
 
 /**
 	A class containing helper functions for rendering geometry.

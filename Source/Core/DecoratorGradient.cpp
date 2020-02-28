@@ -26,10 +26,10 @@
  *
  */
 
-#include "precompiled.h"
 #include "DecoratorGradient.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 
 /*

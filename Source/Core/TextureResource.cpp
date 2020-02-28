@@ -26,9 +26,10 @@
  *
  */
 
-#include "precompiled.h"
 #include "TextureResource.h"
 #include "TextureDatabase.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
 
 namespace Rml {
 namespace Core {

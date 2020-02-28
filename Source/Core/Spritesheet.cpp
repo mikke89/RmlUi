@@ -26,13 +26,12 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/Spritesheet.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/Log.h"
 
 namespace Rml {
 namespace Core {
-
-
 
 bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, const SpriteDefinitionList& sprite_definitions)
 {

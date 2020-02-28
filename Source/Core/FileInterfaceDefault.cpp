@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "FileInterfaceDefault.h"
 
 #ifndef RMLUI_NO_FILE_INTERFACE_DEFAULT

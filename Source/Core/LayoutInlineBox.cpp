@@ -26,13 +26,13 @@
  *
  */
 
-#include "precompiled.h"
 #include "LayoutInlineBox.h"
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Core.h"
 
 namespace Rml {
 namespace Core {

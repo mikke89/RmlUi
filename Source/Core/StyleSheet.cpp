@@ -26,15 +26,18 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include <algorithm>
 #include "ElementDefinition.h"
+#include "StringCache.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
 #include "StyleSheetParser.h"
 #include "Utilities.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"

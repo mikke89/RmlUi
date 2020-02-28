@@ -29,6 +29,9 @@
 #ifndef RMLUICORECONVOLUTIONFILTER_H
 #define RMLUICORECONVOLUTIONFILTER_H
 
+#include "Header.h"
+#include "Types.h"
+
 namespace Rml {
 namespace Core {
 

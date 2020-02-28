@@ -26,9 +26,9 @@
  *
  */
 
-#include "precompiled.h"
 #include "DecoratorTiledInstancer.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/Spritesheet.h"
 
 namespace Rml {
 namespace Core {

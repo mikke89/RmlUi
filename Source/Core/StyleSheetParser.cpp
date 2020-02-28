@@ -26,12 +26,14 @@
  *
  */
 
-#include "precompiled.h"
 #include "StyleSheetParser.h"
 #include <algorithm>
+#include "ComputeProperty.h"
+#include "StringCache.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
-#include "ComputeProperty.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"

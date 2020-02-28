@@ -27,7 +27,6 @@
  */
 
 
-#include "precompiled.h"
 #include "ElementBackground.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"

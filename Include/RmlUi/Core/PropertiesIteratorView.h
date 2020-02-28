@@ -29,6 +29,7 @@
 #define RMLUICOREPROPERTIESITERATORVIEW_H
 
 #include "Types.h"
+#include "Property.h"
 
 namespace Rml {
 namespace Core {

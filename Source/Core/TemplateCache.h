@@ -29,7 +29,7 @@
 #ifndef RMLUICORETEMPLATECACHE_H
 #define RMLUICORETEMPLATECACHE_H
 
-#include <map>
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {

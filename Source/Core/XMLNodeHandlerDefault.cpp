@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "XMLNodeHandlerDefault.h"
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/Log.h"

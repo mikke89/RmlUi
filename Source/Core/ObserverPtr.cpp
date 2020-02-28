@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/ObserverPtr.h"
 #include "Pool.h"
 

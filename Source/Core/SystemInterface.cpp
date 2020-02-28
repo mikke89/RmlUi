@@ -26,9 +26,10 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/URL.h"
 
 #ifdef RMLUI_PLATFORM_WIN32
 #include <windows.h>

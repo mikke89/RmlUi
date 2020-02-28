@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "WidgetSliderScroll.h"
 
 namespace Rml {
