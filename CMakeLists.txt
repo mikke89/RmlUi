@@ -265,6 +265,7 @@ target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}
 
 if (CMAKE_VERSION VERSION_GREATER 3.16.0)
 	target_precompile_headers(RmlCore PRIVATE ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h)
+	target_precompile_headers(RmlControls PRIVATE ${PROJECT_SOURCE_DIR}/Source/Controls/precompiled.h)
 endif()
 
 

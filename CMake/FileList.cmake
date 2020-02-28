@@ -326,6 +326,7 @@ set(Controls_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeRange.h
     ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeSubmit.h
     ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeText.h
+    ${PROJECT_SOURCE_DIR}/Source/Controls/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetDropDown.h
     ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetSlider.h
     ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetSliderInput.h
