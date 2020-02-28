@@ -1,6 +1,7 @@
 # This file was auto-generated with gen_samplelists.sh
 
 set(shell_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/shell/src/precompiled.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/Input.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/Shell.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellFileInterface.h
@@ -258,6 +259,7 @@ if(WIN32)
        )
        list(APPEND shell_HDR_FILES
                ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/InputWin32.h
+               ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/IncludeWindows.h
        )
 elseif(APPLE)
        list(APPEND shell_SRC_FILES

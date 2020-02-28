@@ -42,6 +42,7 @@ echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellRenderIn
 echo '       )' >> $file
 echo '       list(APPEND shell_HDR_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/InputWin32.h' >> $file
+echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/IncludeWindows.h' >> $file
 echo '       )' >> $file
 echo 'elseif(APPLE)' >> $file
 echo '       list(APPEND shell_SRC_FILES' >> $file

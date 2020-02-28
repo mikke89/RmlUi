@@ -28,7 +28,7 @@
 
 #include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
-#include <windows.h>
+#include <win32/IncludeWindows.h>
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/Platform.h>
 #include <Shell.h>

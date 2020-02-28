@@ -30,13 +30,7 @@
 #define RMLUIINPUTWIN32_H
 
 #include <Input.h>
-#if !defined _WIN32_WINNT || _WIN32_WINNT < 0x0501
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#endif
-#define UNICODE
-#define _UNICODE
-#include <windows.h>
+#include <win32/IncludeWindows.h>
 
 /**
 	Processes Windows input events and passes them through to RmlUi. Feel free to take this class and integrate it

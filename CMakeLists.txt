@@ -498,6 +498,10 @@ endif(NOT BUILD_FRAMEWORK)
 	add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
 	set_property(TARGET shell PROPERTY CXX_STANDARD 14)
 	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
+	
+	if (CMAKE_VERSION VERSION_GREATER 3.16.0)
+		target_precompile_headers(shell PRIVATE ${PROJECT_SOURCE_DIR}/Samples/shell/src/precompiled.h)
+	endif()
 
 	# Build and install the basic samples
 	foreach(sample ${samples})

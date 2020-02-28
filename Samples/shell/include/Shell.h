@@ -64,7 +64,7 @@ public:
 	static void* GetWindowHandle();
 
 	/// Run the event loop, calling the idle function every frame.
-	typedef void (*ShellIdleFunction)();
+	using ShellIdleFunction = void(*)();
 	static void EventLoop(ShellIdleFunction idle_function);
 	static void RequestExit();
 

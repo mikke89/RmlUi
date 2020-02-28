@@ -26,37 +26,17 @@
  *
  */
 
-#ifndef RMLUISHELLOPENGL_H
-#define RMLUISHELLOPENGL_H
+#ifndef RMLUIINCLUDEWINDOWS_H
+#define RMLUIINCLUDEWINDOWS_H
 
-#include <RmlUi/Core/Platform.h>
-
-#if defined RMLUI_PLATFORM_WIN32
-#include <win32/IncludeWindows.h>
-#include <gl/Gl.h>
-#include <gl/Glu.h>
-#elif defined RMLUI_PLATFORM_MACOSX
-#include <AGL/agl.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <OpenGL/glext.h>
-#elif defined RMLUI_PLATFORM_UNIX
-#include <GL/glx.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glu.h>
-// The None define from X.h conflicts with RmlUi code base,
-// use the constant 0L instead where necessary
-#ifdef None
-  #undef None
+#if !defined _WIN32_WINNT || _WIN32_WINNT < 0x0501
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
 #endif
+#define UNICODE
+#define _UNICODE
+#define WIN32_LEAN_AND_MEAN
 
-struct __X11NativeWindowData
-{
-	Window window;
-	Display *display;
-	XVisualInfo *visual_info;
-};
-#endif
+#include <windows.h>
 
 #endif
