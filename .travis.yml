@@ -69,6 +69,14 @@ matrix:
 
 install:
   - cd "$TRAVIS_BUILD_DIR"
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="https://cmake.org/files/v3.16/cmake-3.16.3-Linux-x86_64.tar.gz"
+      mkdir -p cmake && travis_retry wget --no-clobber --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${TRAVIS_BUILD_DIR}/cmake/bin:${PATH}
+      echo ${PATH}
+    fi
+  - cmake --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -DNO_THIRDPARTY_CONTAINERS=ON -G Xcode .; fi
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DDISABLE_RTTI_AND_EXCEPTIONS=${DISABLE_RTTI_AND_EXCEPTIONS:-OFF} -DNO_THIRDPARTY_CONTAINERS=${NO_THIRDPARTY_CONTAINERS:-OFF} -DNO_FONT_INTERFACE_DEFAULT=${NO_FONT_INTERFACE_DEFAULT:-OFF} -G Ninja .; fi
 
