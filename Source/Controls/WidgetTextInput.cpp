@@ -39,6 +39,7 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../Core/Clock.h"
+#include <algorithm>
 #include <limits.h>
 
 namespace Rml {
