@@ -30,6 +30,7 @@
 #include <RmlUi/Core/StringUtilities.h>
 #include <cstdlib>
 #include <cstdio>
+#include <string.h>
 
 #ifdef WIN32
 #include <io.h>

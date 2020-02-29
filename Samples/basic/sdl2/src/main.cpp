@@ -31,6 +31,7 @@
 #include <RmlUi/Debugger/Debugger.h>
 #include <Shell.h>
 #include <ShellFileInterface.h>
+#include <string.h>
 
 #include "SystemInterfaceSDL2.h"
 #include "RenderInterfaceSDL2.h"

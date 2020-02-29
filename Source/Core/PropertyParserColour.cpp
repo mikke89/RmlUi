@@ -27,6 +27,7 @@
  */
 
 #include "PropertyParserColour.h"
+#include <string.h>
 
 namespace Rml {
 namespace Core {

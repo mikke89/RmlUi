@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/Box.h"
+#include <string.h>
 
 namespace Rml {
 namespace Core {

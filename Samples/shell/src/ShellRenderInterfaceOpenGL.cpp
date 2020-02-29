@@ -30,6 +30,7 @@
 #include <ShellRenderInterfaceOpenGL.h>
 #include <RmlUi/Core.h>
 #include <type_traits>
+#include <string.h>
 
 #define GL_CLAMP_TO_EDGE 0x812F
 

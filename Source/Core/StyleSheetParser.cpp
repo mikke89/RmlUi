@@ -41,6 +41,7 @@
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include <algorithm>
+#include <string.h>
 
 namespace Rml {
 namespace Core {

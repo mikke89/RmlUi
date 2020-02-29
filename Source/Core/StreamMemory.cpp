@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/StreamMemory.h"
+#include <string.h>
 #include <stdio.h>
 
 namespace Rml {

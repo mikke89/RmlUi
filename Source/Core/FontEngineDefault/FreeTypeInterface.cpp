@@ -30,6 +30,7 @@
 
 #include "FreeTypeInterface.h"
 
+#include <string.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

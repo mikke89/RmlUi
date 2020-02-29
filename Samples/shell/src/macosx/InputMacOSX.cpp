@@ -31,6 +31,7 @@
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
+#include <string.h>
 
 // Defines for Carbon key modifiers.
 #define KEY_ALT 256

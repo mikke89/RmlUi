@@ -30,6 +30,7 @@
 #include <RmlUi/Core.h>
 #include <win32/InputWin32.h>
 #include "ShellFileInterface.h"
+#include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <shlwapi.h>

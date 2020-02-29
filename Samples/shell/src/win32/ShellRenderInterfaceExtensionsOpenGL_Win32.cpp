@@ -32,6 +32,7 @@
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/Platform.h>
 #include <Shell.h>
+#include <string.h>
 
 void ShellRenderInterfaceOpenGL::SetContext(void *context)
 {

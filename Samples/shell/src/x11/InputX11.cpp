@@ -37,6 +37,7 @@
 #endif // HAS_X11XKBLIB
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
+#include <string.h>
 
 static void InitialiseKeymap();
 static int GetKeyModifierState(int x_state);

@@ -32,6 +32,7 @@
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
+#include <string.h>
 
 static int GetKeyModifierState();
 static void InitialiseKeymap();

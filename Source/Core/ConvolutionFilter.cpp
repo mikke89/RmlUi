@@ -28,6 +28,7 @@
 
 #include "../../Include/RmlUi/Core/ConvolutionFilter.h"
 #include <float.h>
+#include <string.h>
 
 namespace Rml {
 namespace Core {

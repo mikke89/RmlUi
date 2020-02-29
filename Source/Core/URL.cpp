@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/URL.h"
+#include <string.h>
 
 namespace Rml {
 namespace Core {

@@ -42,6 +42,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 static bool running = false;
 static int screen = -1;
