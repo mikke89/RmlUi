@@ -26,7 +26,7 @@
  *
  */
 
-#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core.h>
 #include "RenderInterfaceSFML.h"
 
 #ifndef GL_CLAMP_TO_EDGE

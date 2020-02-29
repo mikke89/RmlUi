@@ -29,7 +29,7 @@
 #include "XMLNodeHandlerHead.h"
 #include "DocumentHeader.h"
 #include "TemplateCache.h"
-#include "../../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"

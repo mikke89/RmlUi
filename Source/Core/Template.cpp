@@ -30,6 +30,7 @@
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
+#include <string.h>
 
 namespace Rml {
 namespace Core {

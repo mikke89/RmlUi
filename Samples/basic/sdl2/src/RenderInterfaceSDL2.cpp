@@ -26,7 +26,7 @@
  *
  */
 
-#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core.h>
 #include <SDL_image.h>
 
 #include "RenderInterfaceSDL2.h"
