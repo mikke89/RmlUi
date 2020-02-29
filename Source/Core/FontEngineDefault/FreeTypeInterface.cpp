@@ -26,9 +26,8 @@
  *
  */
 
-#include "precompiled.h"
-
 #include "FreeTypeInterface.h"
+#include "../../../Include/RmlUi/Core/Log.h"
 
 #include <string.h>
 #include <ft2build.h>

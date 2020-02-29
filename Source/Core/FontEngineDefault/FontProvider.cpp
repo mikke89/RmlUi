@@ -26,11 +26,14 @@
  *
  */
 
-#include "precompiled.h"
 #include "FontProvider.h"
 #include "FontFace.h"
 #include "FontFamily.h"
 #include "FreeTypeInterface.h"
+#include "../../../Include/RmlUi/Core/FileInterface.h"
+#include "../../../Include/RmlUi/Core/Log.h"
+#include "../../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../../Include/RmlUi/Core/Core.h"
 
 namespace Rml {
 namespace Core {

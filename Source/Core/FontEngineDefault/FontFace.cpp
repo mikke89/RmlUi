@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../../Include/RmlUi/Core/Log.h"
 #include "FontFace.h"
 #include "FontFaceHandleDefault.h"

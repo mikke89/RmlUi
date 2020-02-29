@@ -450,7 +450,6 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
         ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontProvider.h
         ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FontTypes.h
         ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/FreeTypeInterface.h
-        ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineDefault/precompiled.h
     )
 
     set(Core_SRC_FILES

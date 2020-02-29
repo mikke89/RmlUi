@@ -30,6 +30,8 @@
 #define RMLUICOREFONTTYPES_H
 
 #include "../../../Include/RmlUi/Core/Types.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../../Include/RmlUi/Core/FontGlyph.h"
 
 namespace Rml {
 namespace Core {

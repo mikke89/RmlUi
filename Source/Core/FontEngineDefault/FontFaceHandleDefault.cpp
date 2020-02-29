@@ -26,9 +26,9 @@
  *
  */
 
-#include "precompiled.h"
-#include "../TextureLayout.h"
 #include "FontFaceHandleDefault.h"
+#include "../../../Include/RmlUi/Core/StringUtilities.h"
+#include "../TextureLayout.h"
 #include "FontProvider.h"
 #include "FontFaceLayer.h"
 #include "FreeTypeInterface.h"

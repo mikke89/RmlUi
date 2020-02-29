@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "FontFaceLayer.h"
 #include "FontFaceHandleDefault.h"
 
