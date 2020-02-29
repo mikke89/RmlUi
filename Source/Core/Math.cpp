@@ -37,7 +37,7 @@ namespace Math {
 
 const float RMLUI_PI = 3.141592653f;
 
-static const float FZERO = 0.0001f;
+static constexpr float FZERO = 0.0001f;
 
 // Evaluates if a number is, or close to, zero.
 RMLUICORE_API bool IsZero(float value)
@@ -154,51 +154,7 @@ RMLUICORE_API int RoundDownToInteger(float value)
 // Efficiently truncates a floating-point value into an integer.
 RMLUICORE_API int RealToInteger(float value)
 {
-#if defined(RMLUI_PLATFORM_WIN32) && !defined(_M_X64) && !defined(__amd64__) && !defined(__MINGW32__)
-	int i;
-	_asm
-	{
-		mov  eax, value;		// loaded mem to acc
-		rcl  eax, 1;			// left shift acc to remove the sign
-		mov  ebx, eax;			// save the acc
-		mov  edx, 4278190080;	// clear reg edx;
-		and  eax, edx;			// and acc to retrieve the exponent
-		shr  eax, 24;
-		sub  eax, 7fh;			// subtract 7fh(127) to get the actual power 
-		mov  edx, eax;			// save acc val power
-		mov  eax, ebx;			// retrieve from ebx
-		rcl  eax, 8;			// trim the left 8 bits that contain the power
-		mov  ebx, eax;			// store
-		mov  ecx, 1fh;			// subtract 17 h
-		sub  ecx, edx;
-		mov  edx, 00000000h;
-		cmp  ecx, 0;
-		je   loop2;
-		shr  eax, 1;
-		or   eax, 80000000h;        
-	loop1:
-		shr  eax, 1;			// shift (total bits - power bits);
-		sub  ecx, 1;
-		add  edx, 1;
-		cmp  ecx, 0;
-		ja   loop1;
-	loop2:
-		mov  i, eax;
-
-		// check sign +/- 
-		mov  eax, value;
-		and  eax, 80000000h;
-		cmp  eax, 80000000h;
-		je   putsign;
-	}
-
-	return i;
-
-putsign:
-	return -i;
-#else
-	return (int) value;
-#endif
+	return int(value);
 }
 
 // Converts the given number to a power of two, rounding up if necessary.
