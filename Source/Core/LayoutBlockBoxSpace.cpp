@@ -31,6 +31,7 @@
 #include "LayoutEngine.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
+#include <float.h>
 
 namespace Rml {
 namespace Core {

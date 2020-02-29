@@ -32,6 +32,7 @@
 #include "Traits.h"
 #include "Types.h"
 #include "Header.h"
+#include "Element.h"
 #include "Profiling.h"
 
 namespace Rml {

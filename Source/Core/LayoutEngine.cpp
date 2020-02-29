@@ -37,6 +37,7 @@
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include <float.h>
 
 namespace Rml {
 namespace Core {
