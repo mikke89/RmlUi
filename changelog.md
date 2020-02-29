@@ -4,6 +4,19 @@
 * [RmlUi 2.0](#rmlui-20)
 
 
+## RmlUi 3.3 (WIP)
+
+### Cleaning up header files
+
+An effort has been made for header files to include what they use, and nothing else. This effort has measurably improved compile times, especially when not using precompiled headers.
+
+This change also makes it easier to include only parts of the library headers in the user application for improved compile times. That is, instead of including the whole core library using `#include <RmlUi/Core.h>`, one can specify which ones are needed such as `#include <RmlUi/Core/Element.h>`.
+
+### CMake precompiled header support
+
+The library now makes use of CMake's precompiled header support (requires CMake 3.16 or higher), which can optionally be disabled. In Visual Studio, compilation times are improved by almost 50% when enabled.
+
+
 ## RmlUi 3.2
 
 ### Animating keyword properties
