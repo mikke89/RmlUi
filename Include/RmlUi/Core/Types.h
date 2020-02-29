@@ -32,13 +32,13 @@
 #include <string>
 #include <cstdlib>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "Traits.h"
 
 #ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 #include <set>
-#include <map>
 #include <unordered_set>
 #include <unordered_map>
 #else
