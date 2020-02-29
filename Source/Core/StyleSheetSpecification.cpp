@@ -62,7 +62,7 @@ struct DefaultStyleSheetParsers {
 
 StyleSheetSpecification::StyleSheetSpecification() : 
 	// Reserve space for all defined ids and some more for custom properties
-	properties(2 * (size_t)PropertyId::NumDefinedIds, 2 * (size_t)ShorthandId::NumDefinedIds)
+	properties((size_t)PropertyId::MaxNumIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
 	RMLUI_ASSERT(instance == nullptr);
 	instance = this;

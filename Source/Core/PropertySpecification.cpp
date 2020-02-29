@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
+#include "../../Include/RmlUi/Core/Debug.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
@@ -60,14 +61,20 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 		property_map->AddPair(id, property_name);
 
 	size_t index = (size_t)id;
-	RMLUI_ASSERT(index < (size_t)INT16_MAX);
+
+	if (index >= size_t(PropertyId::MaxNumIds))
+	{
+		Log::Message(Log::LT_ERROR, "Fatal error while registering property '%s': Maximum number of allowed properties exceeded. Continuing execution may lead to crash.", property_name.c_str());
+		RMLUI_ERROR;
+		return *properties[0];
+	}
 
 	if (index < properties.size())
 	{
 		// We don't want to owerwrite an existing entry.
 		if (properties[index])
 		{
-			Log::Message(Log::LT_ERROR, "While registering property '%s': The property is already registered, ignoring.", property_name.c_str());
+			Log::Message(Log::LT_ERROR, "While registering property '%s': The property is already registered.", property_name.c_str());
 			return *properties[index];
 		}
 	}
@@ -79,11 +86,11 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 
 	// Create and insert the new property
 	properties[index] = std::make_unique<PropertyDefinition>(id, default_value, inherited, forces_layout);
-	property_names.Insert(id);
+	property_ids.Insert(id);
 	if (inherited)
-		inherited_property_names.Insert(id);
+		property_ids_inherited.Insert(id);
 	if (forces_layout)
-		properties_forcing_layout.Insert(id);
+		property_ids_forcing_layout.Insert(id);
 
 	return *properties[index];
 }
@@ -105,18 +112,18 @@ const PropertyDefinition* PropertySpecification::GetProperty(const String& prope
 // Fetches a list of the names of all registered property definitions.
 const PropertyIdSet& PropertySpecification::GetRegisteredProperties(void) const
 {
-	return property_names;
+	return property_ids;
 }
 
 // Fetches a list of the names of all registered property definitions.
 const PropertyIdSet& PropertySpecification::GetRegisteredInheritedProperties(void) const
 {
-	return inherited_property_names;
+	return property_ids_inherited;
 }
 
 const PropertyIdSet& PropertySpecification::GetRegisteredPropertiesForcingLayout() const
 {
-	return properties_forcing_layout;
+	return property_ids_forcing_layout;
 }
 
 // Registers a shorthand property definition.
@@ -177,7 +184,12 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 	property_shorthand->type = type;
 
 	const size_t index = (size_t)id;
-	RMLUI_ASSERT(index < (size_t)INT16_MAX);
+
+	if (index >= size_t(ShorthandId::MaxNumIds))
+	{
+		Log::Message(Log::LT_ERROR, "Error while registering shorthand '%s': Maximum number of allowed shorthands exceeded.", shorthand_name.c_str());
+		return ShorthandId::Invalid;
+	}
 
 	if (index < shorthands.size())
 	{

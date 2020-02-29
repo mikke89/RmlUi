@@ -103,7 +103,7 @@ struct Transition;
 struct TransitionList;
 struct Rectangle;
 enum class EventId : uint16_t;
-enum class PropertyId : uint16_t;
+enum class PropertyId : uint8_t;
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;

@@ -30,11 +30,13 @@
 #ifndef RMLUICOREID_H
 #define RMLUICOREID_H
 
+#include <stdint.h>
+
 namespace Rml {
 namespace Core {
 
 
-enum class ShorthandId : uint16_t
+enum class ShorthandId : uint8_t
 {
 	Invalid,
 
@@ -59,11 +61,14 @@ enum class ShorthandId : uint16_t
 	TransformOrigin,
 
 	NumDefinedIds,
-	FirstCustomId = NumDefinedIds
+	FirstCustomId = NumDefinedIds,
+
+	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
+	MaxNumIds = UINT8_MAX
 };
 
 
-enum class PropertyId : uint16_t
+enum class PropertyId : uint8_t
 {
 	Invalid,
 
@@ -146,9 +151,11 @@ enum class PropertyId : uint16_t
 	FillImage,
 
 	NumDefinedIds,
-	FirstCustomId = NumDefinedIds
-};
+	FirstCustomId = NumDefinedIds,
 
+	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
+	MaxNumIds = 128
+};
 
 
 enum class EventId : uint16_t 
@@ -199,7 +206,10 @@ enum class EventId : uint16_t
 	NumDefinedIds,
 
 	// Custom IDs start here
-	FirstCustomId = NumDefinedIds
+	FirstCustomId = NumDefinedIds,
+
+	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
+	MaxNumIds = UINT16_MAX
 };
 
 }

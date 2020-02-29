@@ -122,8 +122,16 @@ static EventSpecification& GetOrInsert(const String& event_type, bool interrupti
 	if (it != type_lookup.end())
 		return GetMutable(it->second);
 
+	const size_t new_id_num = specifications.size();
+	if (new_id_num >= size_t(EventId::MaxNumIds))
+	{
+		Log::Message(Log::LT_ERROR, "Error while registering event type '%s': Maximum number of allowed events exceeded.", event_type.c_str());
+		RMLUI_ERROR;
+		return specifications.front();
+	}
+
 	// No specification found for this name, insert a new entry with default values
-	EventId new_id = static_cast<EventId>(specifications.size());
+	EventId new_id = static_cast<EventId>(new_id_num);
 	specifications.push_back(EventSpecification{ new_id, event_type, interruptible, bubbles, default_action_phase });
 	type_lookup.emplace(event_type, new_id);
 	return specifications.back();

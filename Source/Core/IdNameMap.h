@@ -30,6 +30,7 @@
 #define RMLUICOREIDNAMEMAP_H
 
 #include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include <algorithm>
 
 namespace Rml {
@@ -49,7 +50,8 @@ protected:
 	}
 
 public:
-	void AddPair(ID id, const String& name) {
+	void AddPair(ID id, const String& name)
+	{
 		// Should only be used for defined IDs
 		if ((size_t)id >= name_map.size())
 			name_map.resize(1 + (size_t)id);
@@ -59,7 +61,8 @@ public:
 		(void)inserted;
 	}
 
-	void AssertAllInserted(ID number_of_defined_ids) const {
+	void AssertAllInserted(ID number_of_defined_ids) const
+	{
 		std::ptrdiff_t cnt = std::count_if(name_map.begin(), name_map.end(), [](const String& name) { return !name.empty(); });
 		RMLUI_ASSERT(cnt == (std::ptrdiff_t)number_of_defined_ids && reverse_map.size() == (size_t)number_of_defined_ids);
 		(void)cnt;

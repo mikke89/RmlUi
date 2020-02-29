@@ -30,7 +30,9 @@
 #define RMLUICOREPROPERTYSPECIFICATION_H
 
 #include "Header.h"
+#include "Types.h"
 #include "PropertyIdSet.h"
+#include "ID.h"
 
 namespace Rml {
 namespace Core {
@@ -104,9 +106,9 @@ public:
 	const ShorthandDefinition* GetShorthand(ShorthandId id) const;
 	const ShorthandDefinition* GetShorthand(const String& shorthand_name) const;
 
-	/// Parse declaration by name, whether its a property or shorthand.
+	/// Parse declaration by name, whether it's a property or shorthand.
 	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const;
-	/// Parse property declaration by ID
+	/// Parse property declaration by ID.
 	bool ParsePropertyDeclaration(PropertyDictionary& dictionary, PropertyId property_id, const String& property_value) const;
 	/// Parses a shorthand declaration, setting any parsed and validated properties on the given dictionary.
 	/// @return True if all properties were parsed successfully, false otherwise.
@@ -129,9 +131,9 @@ private:
 	UniquePtr<PropertyIdNameMap> property_map;
 	UniquePtr<ShorthandIdNameMap> shorthand_map;
 
-	PropertyIdSet property_names;
-	PropertyIdSet inherited_property_names;
-	PropertyIdSet properties_forcing_layout;
+	PropertyIdSet property_ids;
+	PropertyIdSet property_ids_inherited;
+	PropertyIdSet property_ids_forcing_layout;
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 
