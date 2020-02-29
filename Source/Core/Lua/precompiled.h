@@ -29,7 +29,7 @@
 #ifndef RMLUICORELUAPRECOMPILED_H
 #define RMLUICORELUAPRECOMPILED_H
 
-#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core.h>
 #include <RmlUi/Core/Debug.h>
 #include <RmlUi/Controls/Controls.h>
 #include <RmlUi/Core/Lua/LuaType.h>

@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNodeSelector.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

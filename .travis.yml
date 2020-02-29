@@ -36,7 +36,7 @@ matrix:
             - libsfml-dev
     - os: linux
       compiler: gcc
-      env: DISABLE_RTTI_AND_EXCEPTIONS="ON"
+      env: DISABLE_RTTI_AND_EXCEPTIONS="ON" NO_THIRDPARTY_CONTAINERS="ON"
       addons:
         apt:
           packages:
@@ -70,7 +70,7 @@ matrix:
 install:
   - cd "$TRAVIS_BUILD_DIR"
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cmake -DNO_THIRDPARTY_CONTAINERS=ON -G Xcode .; fi
-  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON  -DDISABLE_RTTI_AND_EXCEPTIONS=${DISABLE_RTTI_AND_EXCEPTIONS:-OFF} -DNO_FONT_INTERFACE_DEFAULT=${NO_FONT_INTERFACE_DEFAULT:-OFF} -G Ninja .; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cmake -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DDISABLE_RTTI_AND_EXCEPTIONS=${DISABLE_RTTI_AND_EXCEPTIONS:-OFF} -DNO_THIRDPARTY_CONTAINERS=${NO_THIRDPARTY_CONTAINERS:-OFF} -DNO_FONT_INTERFACE_DEFAULT=${NO_FONT_INTERFACE_DEFAULT:-OFF} -G Ninja .; fi
 
 before_script:
   - if [[ "$VALGRIND_SAMPLES" == "1" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi

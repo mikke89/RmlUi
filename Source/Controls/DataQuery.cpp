@@ -113,7 +113,7 @@ void DataQuery::ExecuteQuery(DataSource* _data_source, const Rml::Core::String& 
 		// Now sort the rows, based on the ordering requirements.
 		Rml::Core::StringList order_parameters;
 		Rml::Core::StringUtilities::ExpandString(order_parameters, order);
-		sort(rows.begin(), rows.end(), DataQuerySort(order_parameters));
+		std::sort(rows.begin(), rows.end(), DataQuerySort(order_parameters));
 	}
 }
 

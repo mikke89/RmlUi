@@ -29,20 +29,7 @@
 #ifndef RMLUICONTROLSCONTROLS_H
 #define RMLUICONTROLSCONTROLS_H
 
-#include "DataFormatter.h"
-#include "ElementDataGrid.h"
-#include "ElementDataGridCell.h"
-#include "ElementDataGridExpandButton.h"
-#include "ElementDataGridRow.h"
-#include "ElementForm.h"
-#include "ElementFormControl.h"
-#include "ElementFormControlDataSelect.h"
-#include "ElementFormControlInput.h"
-#include "ElementFormControlSelect.h"
-#include "ElementFormControlTextArea.h"
-#include "ElementProgressBar.h"
-#include "ElementTabSet.h"
-#include "SelectOption.h"
+#include "Header.h"
 
 namespace Rml {
 namespace Controls {

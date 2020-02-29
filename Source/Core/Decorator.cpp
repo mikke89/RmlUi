@@ -29,6 +29,8 @@
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "TextureDatabase.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/Texture.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

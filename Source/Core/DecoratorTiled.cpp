@@ -26,9 +26,11 @@
  *
  */
 
-
 #include "DecoratorTiled.h"
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

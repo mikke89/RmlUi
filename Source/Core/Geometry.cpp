@@ -27,7 +27,11 @@
  */
 
 #include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
 
 namespace Rml {
 namespace Core {

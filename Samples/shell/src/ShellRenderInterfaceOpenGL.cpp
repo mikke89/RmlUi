@@ -28,7 +28,8 @@
 
 #include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
-#include <RmlUi/Core.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/FileInterface.h>
 #include <type_traits>
 #include <string.h>
 

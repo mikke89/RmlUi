@@ -39,7 +39,6 @@ namespace Rml {
 namespace Core {
 
 class Element;
-using XMLAttributes = Dictionary;
 
 /**
 	An element instancer provides a method for allocating

@@ -27,7 +27,6 @@
  */
 
 #include "SystemInterface.h"
-#include "../../Include/RmlUi/Core.h"
 #include "ElementLog.h"
 
 namespace Rml {

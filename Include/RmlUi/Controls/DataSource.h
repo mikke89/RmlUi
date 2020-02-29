@@ -102,7 +102,7 @@ class RMLUICONTROLS_API DataSource
 	private:
 		Core::String name;
 
-		typedef std::list< DataSourceListener* > ListenerList;
+		using ListenerList = std::list< DataSourceListener* >;
 		ListenerList listeners;
 };
 

@@ -41,6 +41,7 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

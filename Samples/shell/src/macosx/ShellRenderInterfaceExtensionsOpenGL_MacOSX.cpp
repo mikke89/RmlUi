@@ -30,8 +30,8 @@
 #include <ShellRenderInterfaceOpenGL.h>
 #include <Carbon/Carbon.h>
 #include <RmlUi/Core/Context.h>
-#include <RmlUi/Core.h>
 #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/Types.h>
 
 void ShellRenderInterfaceOpenGL::SetContext(void *context)
 {

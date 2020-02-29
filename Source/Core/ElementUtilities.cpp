@@ -26,9 +26,15 @@
  *
  */
 
-#include "../../Include/RmlUi/Core.h"
-#include "../../Include/RmlUi/Core/TransformState.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/TransformState.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementScroll.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/FontEngineInterface.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include <queue>
 #include <limits>
 #include "LayoutEngine.h"

@@ -29,8 +29,10 @@
 #include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <win32/IncludeWindows.h>
-#include <RmlUi/Core.h>
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/Profiling.h>
+#include <RmlUi/Core/Types.h>
 #include <Shell.h>
 #include <string.h>
 

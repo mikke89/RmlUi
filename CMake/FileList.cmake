@@ -251,7 +251,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ObserverPtr.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Profiling.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIteratorView.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Property.cpp

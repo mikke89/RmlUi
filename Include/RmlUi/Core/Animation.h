@@ -25,14 +25,12 @@
  *
  */
 
-
-
 #ifndef RMLUICOREANIMATION_H
 #define RMLUICOREANIMATION_H
 
-
 #include "Types.h"
 #include "Tween.h"
+#include "ID.h"
 
 namespace Rml {
 namespace Core {
@@ -50,7 +48,7 @@ struct Animation {
 
 /* Data parsed from the 'transition' property. */
 struct Transition {
-	PropertyId id;
+	PropertyId id = PropertyId::Invalid;
 	Tween tween;
 	float duration = 0.0f;
 	float delay = 0.0f;

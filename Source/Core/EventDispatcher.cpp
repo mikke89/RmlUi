@@ -32,6 +32,7 @@
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "EventSpecification.h"
+#include <algorithm>
 #include <limits.h>
 
 namespace Rml {

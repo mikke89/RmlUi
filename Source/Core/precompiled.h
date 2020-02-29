@@ -29,7 +29,7 @@
 #ifndef RMLUICOREPRECOMPILED_H
 #define RMLUICOREPRECOMPILED_H
 
-#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core.h"
 #include "StringCache.h"
 
 #endif

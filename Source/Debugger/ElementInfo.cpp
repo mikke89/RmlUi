@@ -27,15 +27,18 @@
  */
 
 #include "ElementInfo.h"
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
-#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "Geometry.h"
 #include "CommonSource.h"
 #include "InfoSource.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Debugger {

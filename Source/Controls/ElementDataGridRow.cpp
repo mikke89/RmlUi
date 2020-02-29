@@ -27,11 +27,12 @@
  */
 
 #include "../../Include/RmlUi/Controls/ElementDataGridRow.h"
-#include "../../Include/RmlUi/Core.h"
 #include "../../Include/RmlUi/Controls/DataSource.h"
 #include "../../Include/RmlUi/Controls/DataFormatter.h"
 #include "../../Include/RmlUi/Controls/ElementDataGrid.h"
 #include "../../Include/RmlUi/Controls/ElementDataGridCell.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "../Core/Clock.h"
 
 namespace Rml {

@@ -31,4 +31,19 @@
 
 #include "Controls/Controls.h"
 
+#include "Controls/DataFormatter.h"
+#include "Controls/ElementDataGrid.h"
+#include "Controls/ElementDataGridCell.h"
+#include "Controls/ElementDataGridExpandButton.h"
+#include "Controls/ElementDataGridRow.h"
+#include "Controls/ElementForm.h"
+#include "Controls/ElementFormControl.h"
+#include "Controls/ElementFormControlDataSelect.h"
+#include "Controls/ElementFormControlInput.h"
+#include "Controls/ElementFormControlSelect.h"
+#include "Controls/ElementFormControlTextArea.h"
+#include "Controls/ElementProgressBar.h"
+#include "Controls/ElementTabSet.h"
+#include "Controls/SelectOption.h"
+
 #endif

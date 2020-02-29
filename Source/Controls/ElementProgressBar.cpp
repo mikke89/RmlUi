@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/URL.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Controls {

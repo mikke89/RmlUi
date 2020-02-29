@@ -28,8 +28,19 @@
 
   
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/ElementInstancer.h"
+#include "../../Include/RmlUi/Core/ElementScroll.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "../../Include/RmlUi/Core/TransformState.h"
 #include "Clock.h"
@@ -49,7 +60,7 @@
 #include "StyleSheetParser.h"
 #include "StringCache.h"
 #include "XMLParseTools.h"
-#include "../../Include/RmlUi/Core/Core.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

@@ -165,6 +165,7 @@ using PropertyMap = UnorderedMap< PropertyId, Property >;
 
 using Dictionary = SmallUnorderedMap< String, Variant >;
 using ElementAttributes = Dictionary;
+using XMLAttributes = Dictionary;
 
 using AnimationList = std::vector<Animation>;
 using DecoratorList = std::vector<SharedPtr<const Decorator>>;

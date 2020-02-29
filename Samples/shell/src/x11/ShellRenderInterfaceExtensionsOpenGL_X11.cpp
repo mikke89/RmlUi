@@ -30,8 +30,9 @@
 #include <ShellRenderInterfaceOpenGL.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/xf86vmode.h>
-#include <RmlUi/Core.h>
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/Types.h>
 #include "../../include/Shell.h"
 
 void ShellRenderInterfaceOpenGL::SetContext(void *context)
@@ -117,7 +118,6 @@ void ShellRenderInterfaceOpenGL::PrepareRenderBuffer()
 
 void ShellRenderInterfaceOpenGL::PresentRenderBuffer()
 {
-
 	// Flips the OpenGL buffers.
 	glXSwapBuffers(this->nwData.display, this->nwData.window);
 }

@@ -29,6 +29,6 @@
 #ifndef RMLUICONTROLSPRECOMPILED_H
 #define RMLUICONTROLSPRECOMPILED_H
 
-#include "../../Include/RmlUi/Controls/Controls.h"
+#include "../../Include/RmlUi/Controls.h"
 
 #endif

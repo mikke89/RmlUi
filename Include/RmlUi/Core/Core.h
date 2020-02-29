@@ -29,60 +29,22 @@
 #ifndef RMLUICORECORE_H
 #define RMLUICORECORE_H
 
-#include "Types.h"
-#include "Math.h"
 #include "Header.h"
-#include "Animation.h"
-#include "Box.h"
-#include "ComputedValues.h"
-#include "Context.h"
-#include "ContextInstancer.h"
-#include "Decorator.h"
-#include "DecoratorInstancer.h"
-#include "Element.h"
-#include "ElementDocument.h"
-#include "ElementInstancer.h"
-#include "ElementScroll.h"
-#include "ElementText.h"
-#include "ElementUtilities.h"
+#include "Types.h"
 #include "Event.h"
-#include "EventInstancer.h"
-#include "EventListener.h"
-#include "EventListenerInstancer.h"
-#include "Factory.h"
-#include "FileInterface.h"
-#include "FontEffect.h"
-#include "FontGlyph.h"
-#include "FontEngineInterface.h"
-#include "Geometry.h"
-#include "GeometryUtilities.h"
-#include "ID.h"
-#include "Input.h"
-#include "Log.h"
-#include "Plugin.h"
-#include "PropertiesIteratorView.h"
-#include "Property.h"
-#include "PropertyDefinition.h"
-#include "PropertyDictionary.h"
-#include "PropertyIdSet.h"
-#include "PropertyParser.h"
-#include "PropertySpecification.h"
-#include "RenderInterface.h"
-#include "Spritesheet.h"
-#include "StringUtilities.h"
-#include "StyleSheet.h"
-#include "StyleSheetSpecification.h"
-#include "SystemInterface.h"
-#include "Texture.h"
-#include "Tween.h"
-#include "Vertex.h"
-#include "XMLNodeHandler.h"
-#include "XMLParser.h"
+#include "ComputedValues.h"
 
 namespace Rml {
 namespace Core {
 
 class Plugin;
+class Context;
+class FileInterface;
+class FontEngineInterface;
+class RenderInterface;
+class SystemInterface;
+enum class DefaultActionPhase;
+
 
 /**
 	RmlUi library core API.

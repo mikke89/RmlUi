@@ -33,11 +33,23 @@
 #include "../../Include/RmlUi/Core/XMLParser.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "ElementTextSelection.h"
 #include "XMLNodeHandlerDataGrid.h"
 #include "XMLNodeHandlerTabSet.h"
 #include "XMLNodeHandlerTextArea.h"
+#include "../../Include/RmlUi/Controls/ElementForm.h"
 #include "../../Include/RmlUi/Controls/ElementFormControlInput.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlDataSelect.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlSelect.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlSelect.h"
+#include "../../Include/RmlUi/Controls/ElementFormControlTextArea.h"
+#include "../../Include/RmlUi/Controls/ElementTabSet.h"
+#include "../../Include/RmlUi/Controls/ElementProgressBar.h"
+#include "../../Include/RmlUi/Controls/ElementDataGrid.h"
+#include "../../Include/RmlUi/Controls/ElementDataGridExpandButton.h"
+#include "../../Include/RmlUi/Controls/ElementDataGridCell.h"
+#include "../../Include/RmlUi/Controls/ElementDataGridRow.h"
 
 namespace Rml {
 namespace Controls {
@@ -100,14 +112,14 @@ static bool initialised = false;
 class ControlsPlugin : public Rml::Core::Plugin
 {
 public:
-	void OnShutdown()
+	void OnShutdown() override
 	{
 		element_instancers.reset();
 		initialised = false;
 		delete this;
 	}
 
-	int GetEventClasses()
+	int GetEventClasses() override
 	{
 		return Rml::Core::Plugin::EVT_BASIC;
 	}

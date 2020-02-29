@@ -27,7 +27,9 @@
  */
 
 #include "Geometry.h"
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
 
 namespace Rml {
 namespace Debugger {

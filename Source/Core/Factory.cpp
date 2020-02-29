@@ -26,8 +26,10 @@
  *
  */
 
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
+#include "../../Include/RmlUi/Core.h"
+
 #include "ContextInstancerDefault.h"
 #include "DecoratorTiledBoxInstancer.h"
 #include "DecoratorTiledHorizontalInstancer.h"

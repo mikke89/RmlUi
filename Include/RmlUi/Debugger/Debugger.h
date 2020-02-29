@@ -29,7 +29,6 @@
 #ifndef RMLUIDEBUGGERDEBUGGER_H
 #define RMLUIDEBUGGERDEBUGGER_H
 
-#include "../Core/Types.h"
 #include "Header.h"
 
 namespace Rml {

@@ -38,7 +38,6 @@ namespace Core {
 
 class Element;
 class XMLParser;
-using XMLAttributes = Dictionary;
 
 /**
 	A handler gets ElementStart, ElementEnd and ElementData called by the XMLParser.

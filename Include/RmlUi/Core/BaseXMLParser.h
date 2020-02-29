@@ -37,7 +37,6 @@ namespace Rml {
 namespace Core {
 
 class Stream;
-using XMLAttributes = Dictionary;
 
 /**
 	@author Peter Curry

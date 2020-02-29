@@ -28,7 +28,9 @@
 
 #include "DocumentHeader.h"
 #include "XMLParseTools.h"
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
 namespace Core {
