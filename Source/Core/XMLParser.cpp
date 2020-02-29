@@ -26,15 +26,19 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/XMLParser.h"
 #include "DocumentHeader.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/Stream.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
+#include "../../Include/RmlUi/Core/URL.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
 
 namespace Rml {
 namespace Core {
 
-typedef UnorderedMap< String, SharedPtr<XMLNodeHandler> > NodeHandlers;
+using NodeHandlers = UnorderedMap< String, SharedPtr<XMLNodeHandler> > ;
 static NodeHandlers node_handlers;
 static SharedPtr<XMLNodeHandler> default_node_handler;
 

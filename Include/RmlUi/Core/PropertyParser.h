@@ -31,12 +31,11 @@
 
 #include "Header.h"
 #include "Property.h"
-#include <map>
 
 namespace Rml {
 namespace Core {
 
-typedef UnorderedMap< String, int > ParameterMap;
+using ParameterMap = UnorderedMap< String, int >;
 
 /**
 	A property parser takes a property declaration in string form, validates it, and converts it to a Property.

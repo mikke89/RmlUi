@@ -32,8 +32,6 @@
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "../../Include/RmlUi/Core/TransformState.h"
-#include <algorithm>
-#include <limits>
 #include "Clock.h"
 #include "ComputeProperty.h"
 #include "ElementAnimation.h"

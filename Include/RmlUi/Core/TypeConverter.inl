@@ -37,36 +37,6 @@ bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, Des
 }
 
 ///
-/// Partial specialisations at the top, as the full specialisations should be preferred.
-///
-template< typename T >
-class TypeConverter< T, Stream >
-{
-public:
-	static bool Convert(const T& src, Stream* dest)
-	{
-		String string_dest;
-		bool result = TypeConverter< T, String >::Convert(src, string_dest);
-		if (result)
-			dest->Write(string_dest);
-
-		return result;
-	}
-};
-
-template< typename T >
-class TypeConverter< Stream, T >
-{
-public:
-	static bool Convert(Stream* src, T& dest, size_t length = String::npos)
-	{
-		String string_src;
-		src->Read(string_src, src->Length() < length ? src->Length() : length);
-		return TypeConverter< String, T >::Convert(string_src, dest);
-	}
-};
-
-///
 /// Full Specialisations
 ///
 
@@ -122,16 +92,6 @@ typedef ScriptInterface* ScriptInterfacePtr;
 PASS_THROUGH(ScriptInterfacePtr);
 typedef void* voidPtr;
 PASS_THROUGH(voidPtr);
-
-template<>
-class TypeConverter< Stream, Stream >
-{
-public:
-	static bool Convert(Stream* src, Stream* dest)
-	{
-		return src->Write(dest, src->Length()) == src->Length();
-	}
-};
 
 /////////////////////////////////////////////////
 // Simple Types
@@ -219,16 +179,6 @@ public:
 			return true;
 		}
 		return false;
-	}
-};
-
-template<>
-class TypeConverter< String, URL >
-{
-public:
-	static bool Convert(const String& src, URL& dest)
-	{
-		return dest.SetURL(src);		
 	}
 };
 
@@ -339,19 +289,6 @@ public:
 		return true;
 	}
 };
-
-template<>
-class TypeConverter< URL, String >
-{
-public:
-	static bool Convert(const URL& src, String& dest)
-	{
-		dest = src.GetURL();
-		return true;
-	}
-};
-
-
 
 template< typename SourceType, typename InternalType, int count >
 class TypeConverterVectorString

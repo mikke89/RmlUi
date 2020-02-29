@@ -29,6 +29,7 @@
 #include "WidgetSliderInput.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 
 namespace Rml {
 namespace Controls {

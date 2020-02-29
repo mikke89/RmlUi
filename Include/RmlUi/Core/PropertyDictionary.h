@@ -35,8 +35,6 @@
 namespace Rml {
 namespace Core {
 
-
-
 /**
 	A dictionary to property names to values.
 

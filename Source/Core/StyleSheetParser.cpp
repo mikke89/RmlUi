@@ -27,7 +27,6 @@
  */
 
 #include "StyleSheetParser.h"
-#include <algorithm>
 #include "ComputeProperty.h"
 #include "StringCache.h"
 #include "StyleSheetFactory.h"
@@ -35,9 +34,13 @@
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

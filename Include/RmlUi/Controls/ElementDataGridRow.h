@@ -134,7 +134,7 @@ private:
 	// refreshed or not being loaded yet) and reloads them.
 	void LoadChildren(float time_slice);
 	// Loads a specific set of children. Called by the above function.
-	void LoadChildren(int first_row_to_load, int num_rows_to_load, Rml::Core::Time time_slice);
+	void LoadChildren(int first_row_to_load, int num_rows_to_load, double time_slice);
 
 	// Sets the dirty_cells flag on this row, and lets our ancestors know.
 	void DirtyCells();

@@ -27,6 +27,7 @@
  */
 
 #include "FontEffectOutline.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
 namespace Core {

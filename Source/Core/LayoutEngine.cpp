@@ -35,9 +35,8 @@
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include <math.h>
-#include <cstddef>
 
 namespace Rml {
 namespace Core {

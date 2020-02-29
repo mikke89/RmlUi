@@ -30,14 +30,13 @@
 #define RMLUICOREPROPERTYSPECIFICATION_H
 
 #include "Header.h"
-#include "Element.h"
-#include "PropertyDefinition.h"
 #include "PropertyIdSet.h"
 
 namespace Rml {
 namespace Core {
 
 class StyleSheetSpecification;
+class PropertyDefinition;
 class PropertyDictionary;
 class PropertyIdNameMap;
 class ShorthandIdNameMap;

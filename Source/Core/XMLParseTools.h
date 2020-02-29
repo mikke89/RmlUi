@@ -29,7 +29,7 @@
 #ifndef RMLUICOREXMLPARSETOOLS_H
 #define RMLUICOREXMLPARSETOOLS_H
 
-#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Core {

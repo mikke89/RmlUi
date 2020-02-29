@@ -40,7 +40,7 @@ struct Sprite;
 class StyleSheet;
 class Decorator;
 class DecoratorInstancerInterface;
-
+class PropertyDefinition;
 
 /**
 	An element instancer provides a method for allocating and deallocating decorators.

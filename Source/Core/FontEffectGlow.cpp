@@ -28,6 +28,7 @@
 
 #include "FontEffectGlow.h"
 #include "Memory.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
 namespace Core {

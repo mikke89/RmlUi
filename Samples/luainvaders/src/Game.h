@@ -100,9 +100,9 @@ private:
 	// The direction they're moving
 	float current_invader_direction;
 	// Time of the last invader update
-	Rml::Core::Time invader_frame_start;
+	double invader_frame_start;
 	// How often the invaders move
-	Rml::Core::Time invader_move_freq;
+	double invader_move_freq;
 	// Is the game over
 	bool game_over;
 

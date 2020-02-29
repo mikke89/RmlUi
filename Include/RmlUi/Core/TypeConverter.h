@@ -31,7 +31,6 @@
 
 #include "Types.h"
 #include "Log.h"
-#include "Stream.h"
 #include "StringUtilities.h"
 #include <stdlib.h>
 #include <stdio.h>

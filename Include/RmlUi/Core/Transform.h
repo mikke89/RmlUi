@@ -51,7 +51,7 @@ class Property;
 class RMLUICORE_API Transform
 {
 public:
-	typedef std::vector< Transforms::Primitive > Primitives;
+	using Primitives = std::vector< Transforms::Primitive >;
 
 	/// Default constructor, initializes an identity transform
 	Transform();

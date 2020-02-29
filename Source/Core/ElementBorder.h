@@ -29,12 +29,12 @@
 #ifndef RMLUICOREELEMENTBORDER_H
 #define RMLUICOREELEMENTBORDER_H
 
-#include "../../Include/RmlUi/Core/Box.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 
 namespace Rml {
 namespace Core {
 
+class Box;
 class Element;
 
 /**

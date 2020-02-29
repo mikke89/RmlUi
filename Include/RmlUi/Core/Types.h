@@ -29,24 +29,17 @@
 #ifndef RMLUICORETYPES_H
 #define RMLUICORETYPES_H
 
-#include <float.h>
-#include <limits.h>
-#include <cstring>
 #include <string>
 #include <cstdlib>
-#include <algorithm>
-#include <map>
 #include <memory>
-#include <set>
-#include <unordered_set>
 #include <vector>
 
-#include "Platform.h"
-#include "Profiling.h"
-#include "Debug.h"
 #include "Traits.h"
 
 #ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
+#include <set>
+#include <map>
+#include <unordered_set>
 #include <unordered_map>
 #else
 #include "Containers/chobo/flat_map.hpp"
@@ -59,7 +52,6 @@ namespace Core {
 
 // Commonly used basic types
 using byte = unsigned char;
-using Time = double;
 using ScriptObject = void*;
 using std::size_t;
 
@@ -110,6 +102,7 @@ struct Animation;
 struct Transition;
 struct TransitionList;
 struct Rectangle;
+enum class EventId : uint16_t;
 enum class PropertyId : uint16_t;
 
 // Types for external interfaces.

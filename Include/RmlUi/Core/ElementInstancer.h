@@ -30,14 +30,15 @@
 #define RMLUICOREELEMENTINSTANCER_H
 
 #include "Traits.h"
-#include "XMLParser.h"
+#include "Types.h"
 #include "Header.h"
-#include "Element.h"
+#include "Profiling.h"
 
 namespace Rml {
 namespace Core {
 
 class Element;
+using XMLAttributes = Dictionary;
 
 /**
 	An element instancer provides a method for allocating

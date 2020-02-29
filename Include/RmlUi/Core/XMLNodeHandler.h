@@ -29,15 +29,16 @@
 #ifndef RMLUICOREXMLNODEHANDLER_H
 #define RMLUICOREXMLNODEHANDLER_H
 
-#include "Traits.h"
-#include "XMLParser.h"
 #include "Header.h"
+#include "Traits.h"
+#include "Types.h"
 
 namespace Rml {
 namespace Core {
 
 class Element;
 class XMLParser;
+using XMLAttributes = Dictionary;
 
 /**
 	A handler gets ElementStart, ElementEnd and ElementData called by the XMLParser.

@@ -301,6 +301,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Transform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Tween.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TypeConverter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp

@@ -28,6 +28,7 @@
  
 #include "precompiled.h"
 #include "LuaDocument.h"
+#include <RmlUi/Core/Stream.h>
 #include <RmlUi/Core/Lua/lua.hpp>
 #include <RmlUi/Core/Lua/Interpreter.h>
 

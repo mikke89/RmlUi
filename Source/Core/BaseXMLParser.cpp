@@ -27,6 +27,8 @@
  */
 
 #include "../../Include/RmlUi/Core/BaseXMLParser.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/Stream.h"
 
 namespace Rml {
 namespace Core {

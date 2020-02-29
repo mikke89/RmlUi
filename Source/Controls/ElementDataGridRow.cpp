@@ -620,7 +620,7 @@ void ElementDataGridRow::LoadChildren(float time_slice)
 	}
 }
 
-void ElementDataGridRow::LoadChildren(int first_row_to_load, int num_rows_to_load, Rml::Core::Time time_slice)
+void ElementDataGridRow::LoadChildren(int first_row_to_load, int num_rows_to_load, double time_slice)
 {
 	double start_time = Core::Clock::GetElapsedTime();
 

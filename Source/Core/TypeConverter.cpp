@@ -26,10 +26,10 @@
  *
  */
 
+#include "../../Include/RmlUi/Core/TypeConverter.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/Animation.h"
 #include "../../Include/RmlUi/Core/Transform.h"
-#include "../../Include/RmlUi/Core/TypeConverter.h"
 
 namespace Rml {
 namespace Core {

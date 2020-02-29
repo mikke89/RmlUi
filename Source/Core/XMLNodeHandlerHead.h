@@ -30,7 +30,6 @@
 #define RMLUICOREXMLNODEHANDLERHEAD_H
 
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
-#include <stack>
 
 namespace Rml {
 namespace Core {

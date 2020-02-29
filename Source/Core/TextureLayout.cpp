@@ -27,9 +27,9 @@
  */
 
 #include "TextureLayout.h"
-#include <algorithm>
 #include "TextureLayoutRectangle.h"
 #include "TextureLayoutTexture.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

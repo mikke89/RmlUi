@@ -64,7 +64,7 @@ private:
 	TextureDatabase();
 	~TextureDatabase();
 
-	typedef UnorderedMap< String, SharedPtr<TextureResource> > TextureMap;
+	using TextureMap = UnorderedMap< String, SharedPtr<TextureResource> >;
 	TextureMap textures;
 };
 

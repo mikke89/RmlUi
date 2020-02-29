@@ -32,6 +32,7 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "PropertyShorthandDefinition.h"
 #include "IdNameMap.h"
+#include <array>
 
 namespace Rml {
 namespace Core {

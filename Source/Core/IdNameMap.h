@@ -30,6 +30,7 @@
 #define RMLUICOREIDNAMEMAP_H
 
 #include "../../Include/RmlUi/Core/Header.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

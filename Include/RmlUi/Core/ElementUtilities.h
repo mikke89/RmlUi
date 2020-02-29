@@ -30,12 +30,12 @@
 #define RMLUICOREELEMENTUTILITIES_H
 
 #include "Header.h"
-#include "Box.h"
 #include "Types.h"
 
 namespace Rml {
 namespace Core {
 
+class Box;
 class Context;
 class RenderInterface;
 namespace Style { struct ComputedValues; }

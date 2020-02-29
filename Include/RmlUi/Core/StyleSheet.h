@@ -32,7 +32,6 @@
 #include "Traits.h"
 #include "PropertyDictionary.h"
 #include "Spritesheet.h"
-#include <set>
 
 namespace Rml {
 namespace Core {
@@ -43,6 +42,7 @@ class StyleSheetNode;
 class Decorator;
 class FontEffect;
 class SpritesheetList;
+class Stream;
 struct Sprite;
 struct Spritesheet;
 

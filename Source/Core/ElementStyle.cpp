@@ -27,7 +27,6 @@
  */
 
 #include "ElementStyle.h"
-#include <algorithm>
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"

@@ -74,8 +74,8 @@ protected:
 private:
 	String source;
 
-	typedef std::pair< TextureHandle, Vector2i > TextureData;
-	typedef SmallUnorderedMap< RenderInterface*, TextureData > TextureDataMap;
+	using TextureData = std::pair< TextureHandle, Vector2i >;
+	using TextureDataMap = SmallUnorderedMap< RenderInterface*, TextureData >;
 	TextureDataMap texture_data;
 
 	UniquePtr<TextureCallback> texture_callback;

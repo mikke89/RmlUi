@@ -32,14 +32,12 @@
 #include "Header.h"
 #include "Types.h"
 #include "Dictionary.h"
-#include <set>
 
 namespace Rml {
 namespace Core {
 
 class Stream;
-
-typedef Dictionary XMLAttributes;
+using XMLAttributes = Dictionary;
 
 /**
 	@author Peter Curry

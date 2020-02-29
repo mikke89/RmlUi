@@ -39,6 +39,7 @@ namespace Core {
 class DocumentHeader;
 class Element;
 class XMLNodeHandler;
+class URL;
 
 /**
 	RmlUi's XML parsing engine. The factory creates an instance of this class for each RML parse.
@@ -110,7 +111,7 @@ private:
 	XMLNodeHandler* active_handler;
 
 	// The parser stack.
-	typedef std::stack< ParseFrame > ParserStack;
+	using ParserStack = std::stack< ParseFrame >;
 	ParserStack stack;
 };
 

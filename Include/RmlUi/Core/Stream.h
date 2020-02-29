@@ -33,7 +33,6 @@
 #include "Traits.h"
 #include "Types.h"
 #include "URL.h"
-#include <list>
 
 namespace Rml {
 namespace Core {

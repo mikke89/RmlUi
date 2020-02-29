@@ -30,6 +30,7 @@
 #include "ElementBorder.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 
 namespace Rml {
 namespace Core {

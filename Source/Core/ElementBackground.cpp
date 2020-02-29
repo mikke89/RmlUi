@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 
 
 namespace Rml {

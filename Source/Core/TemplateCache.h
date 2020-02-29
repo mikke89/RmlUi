@@ -61,7 +61,7 @@ private:
 	TemplateCache();
 	~TemplateCache();
 
-	typedef UnorderedMap<String, Template*> Templates;
+	using Templates = UnorderedMap<String, Template*>;
 	Templates templates;
 	Templates template_ids;
 };

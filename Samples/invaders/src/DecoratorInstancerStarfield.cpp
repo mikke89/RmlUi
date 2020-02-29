@@ -28,6 +28,7 @@
 
 #include "DecoratorStarfield.h"
 #include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/PropertyDefinition.h>
 #include "DecoratorInstancerStarfield.h"
 
 DecoratorInstancerStarfield::DecoratorInstancerStarfield()

@@ -33,6 +33,7 @@
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Input.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Controls/ElementFormControl.h"
 
 namespace Rml {

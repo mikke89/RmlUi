@@ -27,8 +27,8 @@
  */
 
 #include "../../Include/RmlUi/Core/Stream.h"
-#include <algorithm>
 #include <stdio.h>
+#include <string.h>
 
 namespace Rml {
 namespace Core {

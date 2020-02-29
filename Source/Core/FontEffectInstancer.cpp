@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
 namespace Core {
