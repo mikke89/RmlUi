@@ -112,6 +112,14 @@ public:
 };
 
 
+class DataViewVisible final : public DataViewCommon {
+public:
+	DataViewVisible(Element* element);
+
+	bool Update(DataModel& model) override;
+};
+
+
 class DataViewText final : public DataView {
 public:
 	DataViewText(Element* in_element);

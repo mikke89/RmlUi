@@ -206,7 +206,31 @@ bool DataViewIf::Update(DataModel& model)
 }
 
 
+DataViewVisible::DataViewVisible(Element* element) : DataViewCommon(element)
+{}
 
+bool DataViewVisible::Update(DataModel& model)
+{
+	bool result = false;
+	Variant variant;
+	Element* element = GetElement();
+	DataExpressionInterface interface(&model, element);
+
+	if (element && GetExpression().Run(interface, variant))
+	{
+		const bool value = variant.Get<bool>();
+		const bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Visibility) == 0);
+		if (is_visible != value)
+		{
+			if (value)
+				element->RemoveProperty(PropertyId::Visibility);
+			else
+				element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+			result = true;
+		}
+	}
+	return result;
+}
 
 
 DataViewText::DataViewText(Element* element) : DataView(element)
