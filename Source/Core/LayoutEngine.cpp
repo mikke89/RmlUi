@@ -38,6 +38,7 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include <float.h>
+#include <cstddef>
 
 namespace Rml {
 namespace Core {
