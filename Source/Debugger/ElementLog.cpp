@@ -31,6 +31,7 @@
 #include "CommonSource.h"
 #include "BeaconSource.h"
 #include "LogSource.h"
+#include <limits.h>
 
 namespace Rml {
 namespace Debugger {

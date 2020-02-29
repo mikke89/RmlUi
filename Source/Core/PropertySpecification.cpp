@@ -33,6 +33,8 @@
 #include "PropertyShorthandDefinition.h"
 #include "IdNameMap.h"
 #include <array>
+#include <limits.h>
+#include <stdint.h>
 
 namespace Rml {
 namespace Core {
