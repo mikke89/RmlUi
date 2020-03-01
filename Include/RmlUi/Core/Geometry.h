@@ -93,7 +93,7 @@ private:
 	bool compile_attempted;
 };
 
-typedef std::vector< Geometry > GeometryList;
+using GeometryList = std::vector< Geometry >;
 
 }
 }

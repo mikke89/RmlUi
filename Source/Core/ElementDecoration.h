@@ -71,7 +71,7 @@ private:
 		DecoratorDataHandle decorator_data;
 	};
 
-	typedef std::vector< DecoratorHandle > DecoratorHandleList;
+	using DecoratorHandleList = std::vector< DecoratorHandle >;
 
 	// The element this decorator belongs to
 	Element* element;

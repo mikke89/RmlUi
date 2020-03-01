@@ -236,13 +236,13 @@ public:
 
 	/// Returns the size of the containing block. Often percentages are scaled relative to this.
 	Vector2f GetContainingBlock();
-	/// Returns 'position' property value from element's style or local cache.
+	/// Returns 'position' property value from element's computed values.
 	Style::Position GetPosition();
-	/// Returns 'float' property value from element's style or local cache.
+	/// Returns 'float' property value from element's computed values.
 	Style::Float GetFloat();
-	/// Returns 'display' property value from element's style or local cache.
+	/// Returns 'display' property value from element's computed values.
 	Style::Display GetDisplay();
-	/// Returns 'line-height' property value from element's style or local cache.
+	/// Returns 'line-height' property value from element's computed values.
 	float GetLineHeight();
 
 	/// Returns this element's TransformState
@@ -672,18 +672,6 @@ private:
 	// The owning document
 	ElementDocument* owner_document;
 
-	// The event dispatcher for this element.
-	EventDispatcher* event_dispatcher;
-	// Style information for this element.
-	ElementStyle* style;
-	// Background functionality for this element.
-	ElementBackground* background;
-	// Border functionality for this element.
-	ElementBorder* border;
-	// Decorator information for this element.
-	ElementDecoration* decoration;
-	// Scrollbar information for this element.
-	ElementScroll* scroll;
 	// Attributes on this element.
 	ElementAttributes attributes;
 
@@ -700,7 +688,7 @@ private:
 	Vector2f scroll_offset;
 
 	// The size of the element.
-	typedef std::vector< Box > BoxList;
+	using BoxList = std::vector< Box >;
 	Box main_box;
 	BoxList additional_boxes;
 
@@ -742,7 +730,7 @@ private:
 	bool dirty_animation;
 	bool dirty_transition;
 
-	ElementMeta* element_meta;
+	ElementMeta* meta;
 
 	friend class Context;
 	friend class ElementStyle;
