@@ -30,9 +30,9 @@ tabs
 	position: fixed;
 	clip: none;
 	text-align: right;
-	padding-left: 200px;
-	padding-right: 10px;
 	top: -47px;
+	left: 205px;
+	right: 10px;
 }
 tab
 {
@@ -104,43 +104,6 @@ p.title
 }
 
 
-/***  Decorators  ***/
-#decorators {
-	text-align: left;
-}
-#decorators p
-{
-	margin: 0.5em 0;
-}
-#decorators button.gradient
-{
-	decorator: gradient( vertical #415857 #5990A3 );
-	border: 2px #415857;
-	margin-right: 12px;
-}
-#decorators button.gradient.horizontal
-{
-	decorator: gradient( horizontal #DB6565 #F1B58A );
-	border: 2px #DB6565;
-}
-#decorators button.gradient:hover
-{
-	border-color: #F9EFA3;
-}
-
-/***  Font effects  ***/
-
-#font_effects div 
-{
-	display: inline-block;
-	width: 150px;
-	margin: 0px 30px 30px;
-	text-align: center;
-	font-size: 35px;
-	color: #b33;
-}
-
-
 /***  Forms  ***/
 
 form
@@ -176,8 +139,14 @@ form h2
 
 <body template="window">
 <tabset id="menu">
-<tab>Welcome</tab>
-<panel id="welcome" data-model="my_model">
+<tab>Basics</tab>
+<panel data-model="basics">
+	<h1>{{title}}</h1>
+	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
+	<input type="text" data-value="animal"/>
+</panel>
+<tab>Events</tab>
+<panel id="welcome" data-model="events">
 	<p class="title" style="margin-top: 1.8em;">{{hello_world}}<span style="color: blue;"> Rated: {{rating}}</span></p>
 	<p>Data binding demo. We rate this a good old {{rating}}!</p>
 	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-value="rating"/>
@@ -191,19 +160,11 @@ form h2
 		Recorded mouse positions.<br/>
 		<span data-for="pos : positions"> x: {{ pos.x }}, y: {{ pos.y }}<br/></span>
 	</div>
-	<h1>{{delightful_invader.name}}</h1>
-	<img data-attr-sprite="delightful_invader.sprite" data-style-image-color="rating < 80 ? 'black' : 'green'"/>
+	<img sprite="icon-invader" data-style-image-color="rating < 80 ? 'black' : 'green'"/>
 	<p>
-		Indices: <span style="padding-left: 1em;" data-for="i : indices"> {{ i * 2 + (i > 10 ? ' wow!' | to_upper : '') }}</span>
+		For loop with data expressions:<br/>
+		<span style="padding-left: 1em;" data-for="i : list"> {{ i * 2 + (i > 10 ? ' wow!' | to_upper : '') }}</span>
 	</p>
-	<div data-for="invader : invaders">
-		<h1 data-class-red="rating < 30" data-class-big="rating == 0">{{invader.name}}</h1>
-		<p>Invader {{it_index + 1}} of {{ invaders.size }}.</p>
-		<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color"/>
-		<p>
-			Damage: <span data-for="invader.damage"> {{it}} </span>
-		</p>
-	</div> 
 </panel>
 <tab>Invaders</tab>
 <panel id="invaders" data-model="invaders">
