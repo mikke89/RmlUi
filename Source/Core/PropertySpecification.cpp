@@ -60,7 +60,7 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 		property_map->AddPair(id, property_name);
 
 	size_t index = (size_t)id;
-	RMLUI_ASSERT(index < (size_t)INT16_MAX);
+	RMLUI_ASSERT(index < (size_t)std::numeric_limits<std::int16_t>::max());
 
 	if (index < properties.size())
 	{
@@ -177,7 +177,7 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 	property_shorthand->type = type;
 
 	const size_t index = (size_t)id;
-	RMLUI_ASSERT(index < (size_t)INT16_MAX);
+	RMLUI_ASSERT(index < (size_t)std::numeric_limits<std::int16_t>::max());
 
 	if (index < shorthands.size())
 	{
