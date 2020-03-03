@@ -64,7 +64,7 @@ enum class ShorthandId : uint8_t
 	FirstCustomId = NumDefinedIds,
 
 	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
-	MaxNumIds = UINT8_MAX
+	MaxNumIds = 0xff
 };
 
 
@@ -209,7 +209,7 @@ enum class EventId : uint16_t
 	FirstCustomId = NumDefinedIds,
 
 	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
-	MaxNumIds = UINT16_MAX
+	MaxNumIds = 0xffff
 };
 
 }
