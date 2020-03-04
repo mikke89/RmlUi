@@ -32,34 +32,54 @@
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "GeometryDatabase.h"
+#include <utility>
+
 
 namespace Rml {
 namespace Core {
 
 Geometry::Geometry(Element* _host_element)
 {
-	host_element = _host_element;
-	host_context = nullptr;
-
-	texture = nullptr;
-
-	compile_attempted = false;
-	compiled_geometry = 0;
+	database_handle = GeometryDatabase::Insert(this);
 }
 
 Geometry::Geometry(Context* _host_context)
 {
-	host_element = nullptr;
-	host_context = _host_context;
+	database_handle = GeometryDatabase::Insert(this);
+}
 
-	texture = nullptr;
+Geometry::Geometry(Geometry&& other)
+{
+	MoveFrom(other);
+	database_handle = GeometryDatabase::Insert(this);
+}
 
-	compile_attempted = false;
-	compiled_geometry = 0;
+Geometry& Geometry::operator=(Geometry&& other)
+{
+	MoveFrom(other);
+	// Keep the database handles from construction unchanged, they are tied to the *this* pointer and should not change.
+	return *this;
+}
+
+void Geometry::MoveFrom(Geometry& other)
+{
+	host_context = std::exchange(other.host_context, nullptr);
+	host_element = std::exchange(other.host_element, nullptr);
+
+	vertices = std::move(other.vertices);
+	indices = std::move(other.indices);
+
+	texture = std::exchange(other.texture, nullptr);
+
+	compiled_geometry = std::exchange(other.compiled_geometry, 0);
+	compile_attempted = std::exchange(other.compile_attempted, false);
 }
 
 Geometry::~Geometry()
 {
+	GeometryDatabase::Erase(database_handle);
+
 	Release();
 }
 
