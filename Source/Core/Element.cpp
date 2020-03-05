@@ -1280,7 +1280,6 @@ Element* Element::AppendChild(ElementPtr child, bool dom_element)
 {
 	RMLUI_ASSERT(child);
 	Element* child_ptr = child.get();
-	child_ptr->SetParent(this);
 	if (dom_element)
 		children.insert(children.end() - num_non_dom_children, std::move(child));
 	else
@@ -1288,6 +1287,8 @@ Element* Element::AppendChild(ElementPtr child, bool dom_element)
 		children.push_back(std::move(child));
 		num_non_dom_children++;
 	}
+	// Set parent just after inserting into children. This allows us to eg. get our previous sibling in SetParent.
+	child_ptr->SetParent(this);
 
 	Element* ancestor = child_ptr;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -1329,7 +1330,6 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 	if (found_child)
 	{
 		child_ptr = child.get();
-		child_ptr->SetParent(this);
 
 		if ((int) child_index >= GetNumChildren())
 			num_non_dom_children++;
@@ -1337,6 +1337,7 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 			DirtyLayout();
 
 		children.insert(children.begin() + child_index, std::move(child));
+		child_ptr->SetParent(this);
 
 		Element* ancestor = child_ptr;
 		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -1371,9 +1372,9 @@ ElementPtr Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_
 		return nullptr;
 	}
 
+	children.insert(insertion_point, std::move(inserted_element));
 	inserted_element_ptr->SetParent(this);
 
-	children.insert(insertion_point, std::move(inserted_element));
 	ElementPtr result = RemoveChild(replaced_element);
 
 	Element* ancestor = inserted_element_ptr;
