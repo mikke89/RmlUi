@@ -26,9 +26,9 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {

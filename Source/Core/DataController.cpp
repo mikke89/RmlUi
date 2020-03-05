@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "../../Include/RmlUi/Core/DataController.h"
 #include "../../Include/RmlUi/Core/DataModel.h"
 #include "DataParser.h"

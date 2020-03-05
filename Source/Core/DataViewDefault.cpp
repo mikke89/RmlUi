@@ -26,7 +26,6 @@
  *
  */
 
-#include "precompiled.h"
 #include "DataViewDefault.h"
 #include "DataParser.h"
 #include "../../Include/RmlUi/Core/Variant.h"
