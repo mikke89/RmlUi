@@ -28,8 +28,11 @@
 
 #include "DataViewDefault.h"
 #include "DataParser.h"
-#include "../../Include/RmlUi/Core/Variant.h"
 #include "../../Include/RmlUi/Core/DataModel.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Variant.h"
 
 namespace Rml {
 namespace Core {
