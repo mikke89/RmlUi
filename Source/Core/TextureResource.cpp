@@ -41,22 +41,34 @@ TextureResource::TextureResource()
 
 TextureResource::~TextureResource()
 {
-	Release();
+	Reset();
 }
 
-// Attempts to load a texture from the application into the resource.
 void TextureResource::Set(const String& _source)
 {
-	Release();
-	texture_callback.reset();
+	Reset();
 	source = _source;
 }
 
 void TextureResource::Set(const String& name, const TextureCallback& callback)
 {
-	Release();
+	Reset();
 	source = name;
 	texture_callback = std::make_unique<TextureCallback>(callback);
+	TextureDatabase::AddCallbackTexture(this);
+}
+
+void TextureResource::Reset()
+{
+	Release();
+
+	if (texture_callback)
+	{
+		TextureDatabase::RemoveCallbackTexture(this);
+		texture_callback.reset();
+	}
+
+	source.clear();
 }
 
 // Returns the resource's underlying texture.

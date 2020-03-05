@@ -48,12 +48,12 @@ public:
 	TextureResource();
 	~TextureResource();
 
-	/// Clear any existing data and set the source path. Texture loading is delayed until the texture is
-	/// accessed by a specific render interface.
+	/// Clear any existing data and set the source path.
+	/// Texture loading is delayed until the texture is accessed by a specific render interface.
 	void Set(const String& source);
 
-	/// Clear any existing data and set a callback function for loading the data. Texture loading is
-	/// delayed until the texture is accessed by a specific render interface.
+	/// Clear any existing data and set a callback function for loading the data.
+	/// Texture loading is delayed until the texture is accessed by a specific render interface.
 	void Set(const String& name, const TextureCallback& callback);
 
 	/// Returns the resource's underlying texture handle.
@@ -67,11 +67,12 @@ public:
 	/// Releases the texture's handle.
 	void Release(RenderInterface* render_interface = nullptr);
 
-protected:
+private:
+	void Reset();
+
 	/// Attempts to load the texture from the source, or the callback function if set.
 	bool Load(RenderInterface* render_interface);
 
-private:
 	String source;
 
 	using TextureData = std::pair< TextureHandle, Vector2i >;

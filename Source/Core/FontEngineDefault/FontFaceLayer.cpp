@@ -48,9 +48,6 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 	{
 		// @performance: We could be much smarter about this, e.g. such as adding new glyphs to the existing texture layout and textures.
 		// Right now we re-generate the whole thing, including textures.
-		for (auto& texture : textures)
-			texture.RemoveDatabaseCache();
-
 		texture_layout = TextureLayout{};
 		character_boxes.clear();
 		textures.clear();

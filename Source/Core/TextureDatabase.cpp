@@ -35,18 +35,18 @@
 namespace Rml {
 namespace Core {
 
-static TextureDatabase* instance = nullptr;
+static TextureDatabase* texture_database = nullptr;
 
 TextureDatabase::TextureDatabase()
 {
-	RMLUI_ASSERT(instance == nullptr);
-	instance = this;
+	RMLUI_ASSERT(texture_database == nullptr);
+	texture_database = this;
 }
 
 TextureDatabase::~TextureDatabase()
 {
-	RMLUI_ASSERT(instance == this);
-	instance = nullptr;
+	RMLUI_ASSERT(texture_database == this);
+	texture_database = nullptr;
 }
 
 void TextureDatabase::Initialise()
@@ -56,7 +56,7 @@ void TextureDatabase::Initialise()
 
 void TextureDatabase::Shutdown()
 {
-	delete instance;
+	delete texture_database;
 }
 
 // If the requested texture is already in the database, it will be returned with an extra reference count. If not, it
@@ -69,8 +69,8 @@ SharedPtr<TextureResource> TextureDatabase::Fetch(const String& source, const St
 	else
 		GetSystemInterface()->JoinPath(path, StringUtilities::Replace(source_directory, '|', ':'), source);
 
-	TextureMap::iterator iterator = instance->textures.find(path);
-	if (iterator != instance->textures.end())
+	TextureMap::iterator iterator = texture_database->textures.find(path);
+	if (iterator != texture_database->textures.end())
 	{
 		return iterator->second;
 	}
@@ -78,35 +78,31 @@ SharedPtr<TextureResource> TextureDatabase::Fetch(const String& source, const St
 	auto resource = std::make_shared<TextureResource>();
 	resource->Set(path);
 
-	instance->textures[resource->GetSource()] = resource;
+	texture_database->textures[resource->GetSource()] = resource;
 	return resource;
 }
 
-// Releases all textures in the database.
-void TextureDatabase::ReleaseTextures()
+void TextureDatabase::AddCallbackTexture(TextureResource* texture)
 {
-	for (TextureMap::iterator i = instance->textures.begin(); i != instance->textures.end(); ++i)
-		i->second->Release();
+	if (texture_database)
+		texture_database->callback_textures.insert(texture);
 }
 
-// Removes a texture from the database.
-void TextureDatabase::RemoveTexture(TextureResource* texture)
+void TextureDatabase::RemoveCallbackTexture(TextureResource* texture)
 {
-	if (instance)
-	{
-		TextureMap::iterator iterator = instance->textures.find(texture->GetSource());
-		if (iterator != instance->textures.end())
-			instance->textures.erase(iterator);
-	}
+	if (texture_database)
+		texture_database->callback_textures.erase(texture);
 }
 
-// Release all textures bound through a render interface.
 void TextureDatabase::ReleaseTextures(RenderInterface* render_interface)
 {
-	if (instance)
+	if (texture_database)
 	{
-		for (TextureMap::iterator i = instance->textures.begin(); i != instance->textures.end(); ++i)
-			i->second->Release(render_interface);
+		for (const auto& texture : texture_database->textures)
+			texture.second->Release(render_interface);
+
+		for (const auto& texture : texture_database->callback_textures)
+			texture->Release(render_interface);
 	}
 }
 

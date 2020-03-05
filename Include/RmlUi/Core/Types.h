@@ -139,18 +139,22 @@ using UnorderedMap = std::unordered_map< Key, Value >;
 template <typename Key, typename Value>
 using SmallUnorderedMap = UnorderedMap< Key, Value >;
 template <typename T>
-using SmallOrderedSet = std::set< T >;
+using UnorderedSet = std::unordered_set< T >;
 template <typename T>
 using SmallUnorderedSet = std::unordered_set< T >;
+template <typename T>
+using SmallOrderedSet = std::set< T >;
 #else
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
 template <typename Key, typename Value>
 using SmallUnorderedMap = chobo::flat_map< Key, Value >;
 template <typename T>
-using SmallOrderedSet = chobo::flat_set< T >;
+using UnorderedSet = robin_hood::unordered_flat_set< T >;
 template <typename T>
 using SmallUnorderedSet = chobo::flat_set< T >;
+template <typename T>
+using SmallOrderedSet = chobo::flat_set< T >;
 #endif
 
 

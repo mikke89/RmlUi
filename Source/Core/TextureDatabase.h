@@ -47,18 +47,20 @@ public:
 	static void Initialise();
 	static void Shutdown();
 
+    /// Fetch a texture resource from file.
 	/// If the requested texture is already in the database, it will be returned with an extra
 	/// reference count. If not, it will be loaded through the application's render interface.
 	static SharedPtr<TextureResource> Fetch(const String& source, const String& source_directory);
 
-	/// Releases all textures in the database.
-	static void ReleaseTextures();
-
-	/// Removes a texture from the database.
-	static void RemoveTexture(TextureResource* texture);
-
 	/// Release all textures bound through a render interface.
-	static void ReleaseTextures(RenderInterface* render_interface);
+    /// Pass nullptr to release all textures in the database.
+	static void ReleaseTextures(RenderInterface* render_interface = nullptr);
+
+    /// Adds a texture resource with a callback function and stores it as a weak (raw) pointer in the database.
+    static void AddCallbackTexture(TextureResource* texture);
+
+    /// Removes a callback texture from the database.
+    static void RemoveCallbackTexture(TextureResource* texture);
 
 private:
 	TextureDatabase();
@@ -66,6 +68,9 @@ private:
 
 	using TextureMap = UnorderedMap< String, SharedPtr<TextureResource> >;
 	TextureMap textures;
+
+    using CallbackTextureMap = UnorderedSet< TextureResource* >;
+    CallbackTextureMap callback_textures;
 };
 
 }

@@ -73,11 +73,6 @@ Vector2i Texture::GetDimensions(RenderInterface* render_interface) const
 	return resource->GetDimensions(render_interface);
 }
 
-void Texture::RemoveDatabaseCache() const
-{
-	TextureDatabase::RemoveTexture(resource.get());
-}
-
 bool Texture::operator==(const Texture& other) const
 {
 	return resource == other.resource;

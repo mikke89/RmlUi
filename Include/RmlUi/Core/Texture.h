@@ -80,9 +80,6 @@ public:
 	/// @return The texture's dimensions. This will be (0, 0) if the texture isn't loaded.
 	Vector2i GetDimensions(RenderInterface* render_interface) const;
 
-	/// Removes the underlying texture resource from the texture database, thereby releasing the texture once all references to it are removed.
-	void RemoveDatabaseCache() const;
-
 	/// Returns true if the texture points to the same underlying resource.
 	bool operator==(const Texture&) const;
 
