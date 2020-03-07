@@ -61,6 +61,12 @@ int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj)
     return 0;
 }
 
+int ElementFormControlSelectRemoveAll(lua_State* L, ElementFormControlSelect* obj)
+{
+    obj->RemoveAll();
+    return 0;
+}
+
 //getters
 int ElementFormControlSelectGetAttroptions(lua_State* L)
 {
@@ -97,6 +103,7 @@ Rml::Core::Lua::RegType<ElementFormControlSelect> ElementFormControlSelectMethod
 {
     LUAMETHOD(ElementFormControlSelect,Add)
     LUAMETHOD(ElementFormControlSelect,Remove)
+    LUAMETHOD(ElementFormControlSelect,RemoveAll)
     { nullptr, nullptr },
 };
 
