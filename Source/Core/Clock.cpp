@@ -27,7 +27,8 @@
  */
 
 #include "Clock.h"
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 
 namespace Rml {
 namespace Core {

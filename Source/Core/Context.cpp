@@ -26,14 +26,23 @@
  *
  */
 
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/ContextInstancer.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/StreamMemory.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "EventDispatcher.h"
 #include "EventIterators.h"
 #include "PluginRegistry.h"
 #include "StreamFile.h"
-#include "../../Include/RmlUi/Core/StreamMemory.h"
 #include <algorithm>
 #include <iterator>
+
 
 namespace Rml {
 namespace Core {

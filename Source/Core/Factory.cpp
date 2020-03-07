@@ -27,8 +27,16 @@
  */
 
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/ContextInstancer.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/ElementInstancer.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/EventListenerInstancer.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
-#include "../../Include/RmlUi/Core.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 
 #include "ContextInstancerDefault.h"
 #include "DecoratorTiledBoxInstancer.h"
