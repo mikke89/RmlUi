@@ -198,6 +198,10 @@ template <> struct hash<::Rml::Core::PropertyId> {
 	using utype = typename ::std::underlying_type<::Rml::Core::PropertyId>::type;
 	size_t operator() (const ::Rml::Core::PropertyId& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
 };
+template <> struct hash<::Rml::Core::Character> {
+    using utype = typename ::std::underlying_type<::Rml::Core::Character>::type;
+    size_t operator() (const ::Rml::Core::Character& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
+};
 }
 
 #endif
