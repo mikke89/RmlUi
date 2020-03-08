@@ -814,6 +814,23 @@ DataModelConstructor Context::GetDataModel(const String& name)
 	return DataModelConstructor();
 }
 
+bool Context::RemoveDataModel(const String& name)
+{
+	auto it = data_models.find(name);
+	if (it == data_models.end())
+		return false;
+
+	DataModel* model = it->second.get();
+	ElementList elements = model->GetAttachedModelRootElements();
+
+	for (Element* element : elements)
+		element->SetDataModel(nullptr);
+
+	data_models.erase(it);
+
+	return true;
+}
+
 // Internal callback for when an element is removed from the hierarchy.
 void Context::OnElementDetach(Element* element)
 {
@@ -1164,8 +1181,6 @@ void Context::ReleaseDragClone()
 		drag_clone = nullptr;
 	}
 }
-
-// Returns the data model with the provided name, or nullptr if it does not exist.
 
 DataModel* Context::GetDataModelPtr(const String& name) const
 {

@@ -128,7 +128,9 @@ DataModel::DataModel(const TransformFuncRegister* transform_register) : transfor
 }
 
 DataModel::~DataModel()
-{}
+{
+	RMLUI_ASSERT(attached_elements.empty());
+}
 
 void DataModel::AddView(DataViewPtr view) {
 	views->Add(std::move(view));
@@ -347,11 +349,22 @@ bool DataModel::CallTransform(const String& name, Variant& inout_result, const V
 	return false;
 }
 
+void DataModel::AttachModelRootElement(Element* element)
+{
+	attached_elements.insert(element);
+}
+
+ElementList DataModel::GetAttachedModelRootElements() const
+{
+	return ElementList(attached_elements.begin(), attached_elements.end());
+}
+
 void DataModel::OnElementRemove(Element* element)
 {
 	EraseAliases(element);
 	views->OnElementRemove(element);
 	controllers->OnElementRemove(element);
+	attached_elements.erase(element);
 }
 
 bool DataModel::Update() 

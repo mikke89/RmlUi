@@ -233,6 +233,13 @@ public:
 	/// @return A constructor for the data model, or empty if it could not be found.
 	DataModelConstructor GetDataModel(const String& name);
 
+	/// Removes the given data model.
+	/// This also removes all data views, controllers and bindings contained by the data model.
+	/// @warning Invalidates all handles and constructors pointing to the data model.
+	/// @param[in] name The name of the data model.
+	/// @return True if succesfully removed, false if no data model was found.
+	bool RemoveDataModel(const String& name);
+
 protected:
 	void Release() override;
 

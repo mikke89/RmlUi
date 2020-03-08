@@ -40,6 +40,7 @@ namespace Core {
 
 class DataViews;
 class DataControllers;
+class Element;
 
 
 class RMLUICORE_API DataModel : NonCopyMoveable {
@@ -69,6 +70,10 @@ public:
 
 	bool CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const;
 
+	// Elements declaring 'data-model' need to be attached.
+	void AttachModelRootElement(Element* element);
+	ElementList GetAttachedModelRootElements() const;
+
 	void OnElementRemove(Element* element);
 
 	bool Update();
@@ -87,6 +92,8 @@ private:
 	ScopedAliases aliases;
 
 	const TransformFuncRegister* transform_register;
+
+	SmallUnorderedSet<Element*> attached_elements;
 };
 
 
