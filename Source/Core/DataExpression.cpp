@@ -26,9 +26,10 @@
  *
  */
 
+#include "DataExpression.h"
 #include "../../Include/RmlUi/Core/DataModel.h"
 #include "../../Include/RmlUi/Core/Event.h"
-#include "DataParser.h"
+#include "../../Include/RmlUi/Core/Variant.h"
 #include <stack>
 
 #ifdef _MSC_VER
@@ -749,7 +750,8 @@ namespace Parse {
 
 class DataInterpreter {
 public:
-	DataInterpreter(const Program& program, const AddressList& addresses, DataExpressionInterface expression_interface) : program(program), addresses(addresses), expression_interface(expression_interface) {}
+	DataInterpreter(const Program& program, const AddressList& addresses, DataExpressionInterface expression_interface)
+		: program(program), addresses(addresses), expression_interface(expression_interface) {}
 
 	bool Error(String message) const
 	{
@@ -970,7 +972,7 @@ private:
 
 
 
-
+#ifdef RMLUI_TESTS_ENABLED
 
 struct TestParser {
 	TestParser() : model(type_register.GetTransformFuncRegister())
@@ -1079,7 +1081,9 @@ struct TestParser {
 	Colourb color_value = Colourb(180, 100, 255);
 };
 
+static TestParser test_parser;
 
+#endif
 
 
 DataExpression::DataExpression(String expression) : expression(expression) {}
@@ -1090,9 +1094,6 @@ DataExpression::~DataExpression()
 
 bool DataExpression::Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression)
 {
-	// @todo: Remove, debugging only
-	static TestParser test_parser;
-
 	DataParser parser(expression, expression_interface);
 	if (!parser.Parse(is_assignment_expression))
 		return false;

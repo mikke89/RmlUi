@@ -26,12 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREDATAPARSER_H
-#define RMLUICOREDATAPARSER_H
+#ifndef RMLUICOREDATAEXPRESSION_H
+#define RMLUICOREDATAEXPRESSION_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/DataVariable.h"
+#include "../../Include/RmlUi/Core/DataTypes.h"
 
 namespace Rml {
 namespace Core {
@@ -42,7 +42,7 @@ struct InstructionData;
 using Program = std::vector<InstructionData>;
 using AddressList = std::vector<DataAddress>;
 
-class RMLUICORE_API DataExpressionInterface {
+class DataExpressionInterface {
 public:
     DataExpressionInterface() = default;
     DataExpressionInterface(DataModel* data_model, Element* element, Event* event = nullptr);
@@ -59,6 +59,7 @@ private:
     Event* event = nullptr;
 };
 
+
 class DataExpression {
 public:
     DataExpression(String expression);
@@ -68,7 +69,7 @@ public:
 
     bool Run(const DataExpressionInterface& expression_interface, Variant& out_value);
 
-    // Must be available after Parse()
+    // Available after Parse()
     StringList GetVariableNameList() const;
 
 private:
@@ -77,9 +78,6 @@ private:
     Program program;
     AddressList addresses;
 };
-
-
-
 
 }
 }
