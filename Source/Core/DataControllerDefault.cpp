@@ -112,7 +112,7 @@ DataControllerEvent::~DataControllerEvent()
 	if (Element* element = GetElement())
 	{
 		if (id != EventId::Invalid)
-			element->RemoveEventListener(EventId::Mousemove, this);
+			element->RemoveEventListener(id, this);
 	}
 }
 
