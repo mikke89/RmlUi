@@ -27,6 +27,8 @@
  */
 
 #include "../../Include/RmlUi/Core/DataModel.h"
+#include "../../Include/RmlUi/Core/DataController.h"
+#include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
@@ -119,12 +121,21 @@ static String DataAddressToString(const DataAddress& address)
 	return result;
 }
 
+DataModel::DataModel(const TransformFuncRegister* transform_register) : transform_register(transform_register)
+{
+	views = std::make_unique<DataViews>();
+	controllers = std::make_unique<DataControllers>();
+}
+
+DataModel::~DataModel()
+{}
+
 void DataModel::AddView(DataViewPtr view) {
-	views.Add(std::move(view));
+	views->Add(std::move(view));
 }
 
 void DataModel::AddController(DataControllerPtr controller) {
-	controllers.Add(std::move(controller));
+	controllers->Add(std::move(controller));
 }
 
 bool DataModel::BindVariable(const String& name, DataVariable variable)
@@ -154,7 +165,7 @@ bool DataModel::BindVariable(const String& name, DataVariable variable)
 
 bool DataModel::BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func)
 {
-	auto result = functions.emplace(name, nullptr);
+	auto result = function_variable_definitions.emplace(name, nullptr);
 	auto& it = result.first;
 	bool inserted = result.second;
 	if (!inserted)
@@ -339,13 +350,13 @@ bool DataModel::CallTransform(const String& name, Variant& inout_result, const V
 void DataModel::OnElementRemove(Element* element)
 {
 	EraseAliases(element);
-	views.OnElementRemove(element);
-	controllers.OnElementRemove(element);
+	views->OnElementRemove(element);
+	controllers->OnElementRemove(element);
 }
 
 bool DataModel::Update() 
 {
-	bool result = views.Update(*this, dirty_variables);
+	bool result = views->Update(*this, dirty_variables);
 	dirty_variables.clear();
 	return result;
 }

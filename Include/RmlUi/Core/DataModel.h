@@ -34,16 +34,18 @@
 #include "Traits.h"
 #include "DataTypes.h"
 #include "DataTypeRegister.h"
-#include "DataController.h"
-#include "DataView.h"
 
 namespace Rml {
 namespace Core {
 
+class DataViews;
+class DataControllers;
+
 
 class RMLUICORE_API DataModel : NonCopyMoveable {
 public:
-	DataModel(const TransformFuncRegister* transform_register = nullptr) : transform_register(transform_register) {}
+	DataModel(const TransformFuncRegister* transform_register = nullptr);
+	~DataModel();
 
 	void AddView(DataViewPtr view);
 	void AddController(DataControllerPtr controller);
@@ -72,13 +74,13 @@ public:
 	bool Update();
 
 private:
-	DataViews views;
-	DataControllers controllers;
+	UniquePtr<DataViews> views;
+	UniquePtr<DataControllers> controllers;
 
 	UnorderedMap<String, DataVariable> variables;
 	DirtyVariables dirty_variables;
 
-	UnorderedMap<String, UniquePtr<FuncDefinition>> functions;
+	UnorderedMap<String, UniquePtr<FuncDefinition>> function_variable_definitions;
 	UnorderedMap<String, DataEventFunc> event_callbacks;
 
 	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, DataAddress>>;
@@ -110,6 +112,7 @@ public:
 private:
 	DataModel* model;
 };
+
 
 class RMLUICORE_API DataModelConstructor {
 public:
