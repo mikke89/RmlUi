@@ -798,7 +798,19 @@ DataModelConstructor Context::CreateDataModel(const String& name)
 	if (inserted)
 		return DataModelConstructor(result.first->second.get(), data_type_register.get());
 
-	RMLUI_ERRORMSG("Data model name already exists.")
+	Log::Message(Log::LT_ERROR, "Data model name '%s' already exists.", name.c_str());
+	return DataModelConstructor();
+}
+
+DataModelConstructor Context::GetDataModel(const String& name)
+{
+	if (data_type_register)
+	{
+		if (DataModel* model = GetDataModelPtr(name))
+			return DataModelConstructor(model, data_type_register.get());
+	}
+
+	Log::Message(Log::LT_ERROR, "Data model name '%s' could not be found.", name.c_str());
 	return DataModelConstructor();
 }
 
@@ -1155,7 +1167,7 @@ void Context::ReleaseDragClone()
 
 // Returns the data model with the provided name, or nullptr if it does not exist.
 
-DataModel* Context::GetDataModel(const String& name) const
+DataModel* Context::GetDataModelPtr(const String& name) const
 {
 	auto it = data_models.find(name);
 	if (it != data_models.end())

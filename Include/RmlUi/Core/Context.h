@@ -222,10 +222,16 @@ public:
 	void SetInstancer(ContextInstancer* instancer);
 
 	/// Creates a data model.
-	/// Elements can bind to the model using the attribute 'data-model="name"'.
+	/// The returned constructor can be used to bind data variables. Elements can bind to the model using the attribute 'data-model="name"'.
 	/// @param[in] name The name of the data model.
-	/// @return A handle to the data model which can be used to bind data variables.
+	/// @return A constructor for the data model, or empty if it could not be created.
 	DataModelConstructor CreateDataModel(const String& name);
+
+	/// Retrieves the constructor for an existing data model.
+	/// The returned constructor can be used to add additional bindings to an existing model.
+	/// @param[in] name The name of the data model.
+	/// @return A constructor for the data model, or empty if it could not be found.
+	DataModelConstructor GetDataModel(const String& name);
 
 protected:
 	void Release() override;
@@ -317,7 +323,7 @@ private:
 	void ReleaseDragClone();
 
 	// Returns the data model with the provided name, or nullptr if it does not exist.
-	DataModel* GetDataModel(const String& name) const;
+	DataModel* GetDataModelPtr(const String& name) const;
 
 	// Builds the parameters for a generic key event.
 	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);

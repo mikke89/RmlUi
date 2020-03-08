@@ -1989,7 +1989,7 @@ void Element::SetParent(Element* _parent)
 		else if (Context* context = GetContext())
 		{
 			String name = it->second.Get<String>();
-			if (DataModel* model = context->GetDataModel(name))
+			if (DataModel* model = context->GetDataModelPtr(name))
 				SetDataModel(model);
 			else
 				Log::Message(Log::LT_WARNING, "Could not locate data model '%s'.", name.c_str());
