@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/BaseXMLParser.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Stream.h"
+#include "XMLParseTools.h"
 #include <string.h>
 
 namespace Rml {
@@ -488,10 +489,12 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 
 		if(escape_brackets)
 		{
-			if (c == '{' && previous == '{')
-				in_brackets = true;
-			else if (c == '}' && previous == '}')
-				in_brackets = false;
+			const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, c, previous);
+			if (error_str)
+			{
+				Log::Message(Log::LT_WARNING, "XML parse error. %s", error_str);
+				return false;
+			}
 		}
 
 		if (c == string[index] && !in_brackets)

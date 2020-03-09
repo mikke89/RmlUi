@@ -154,5 +154,39 @@ Element* XMLParseTools::ParseTemplate(Element* element, const String& template_n
 	return parse_template->ParseTemplate(element);
 }
 
+const char* XMLParseTools::ParseDataBrackets(bool& inside_brackets, char c, char previous)
+{
+	if (inside_brackets)
+	{
+		if (c == '}' && previous == '}')
+			inside_brackets = false;
+
+		else if (c == '{' && previous == '{')
+			return "Nested double curly brackets are illegal.";
+
+		else if (previous == '}' && c != '}')
+			return "Single closing curly bracket encountered, use double curly brackets to close an expression.";
+
+		else if (previous == '/' && c == '>')
+			return "Closing double curly brackets not found, XML end node encountered first.";
+
+		else if (previous == '<' && c == '/')
+			return "Closing double curly brackets not found, XML end node encountered first.";
+	}
+	else
+	{
+		if (c == '{' && previous == '{')
+		{
+			inside_brackets = true;
+		}
+		else if (c == '}' && previous == '}')
+		{
+			return "Closing double curly brackets encountered outside an expression.";
+		}
+	}
+
+	return nullptr;
+}
+
 }
 }

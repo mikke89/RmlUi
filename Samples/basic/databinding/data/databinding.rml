@@ -163,7 +163,7 @@ form h2
 	<img sprite="icon-invader" data-style-image-color="rating < 80 ? 'black' : 'green'"/>
 	<p>
 		For loop with data expressions:<br/>
-		<span style="padding-left: 1em;" data-for="i : list"> {{ i * 2 + (i > 10 ? ' wow!' | to_upper : '') }}</span>
+		<span style="padding-left: 1em;" data-for="i : list"> {{ i * 2 + (!(i < 10) ? ' wow!' | to_upper : '') }}</span>
 	</p>
 </panel>
 <tab>Invaders</tab>

@@ -99,8 +99,8 @@ public:
 	/// @return The instanced element, or nullptr if the instancing failed.
 	static ElementPtr InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
 
-	/// Instances a single text element containing a string. The string is assumed to contain no RML markup, but will
-	/// be translated and therefore may have some introduced. In this case more than one element may be instanced.
+	/// Instances a text element containing a string.
+	/// More than one element may be instanced if the string contains RML or RML is introduced during translation.
 	/// @param[in] parent The element any instanced elements will be parented to.
 	/// @param[in] text The text to instance the element (or elements) from.
 	/// @return True if the string was parsed without error, false otherwise.

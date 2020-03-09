@@ -28,6 +28,7 @@
 
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core.h"
 
 #include "ContextInstancerDefault.h"
@@ -57,6 +58,7 @@
 #include "XMLNodeHandlerHead.h"
 #include "XMLNodeHandlerTemplate.h"
 #include "XMLParseTools.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {
@@ -299,95 +301,50 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 	return nullptr;
 }
 
-struct ElementTextTraits {
-	bool only_white_space = true;
-	bool has_xml = false;
-	bool has_curly_brackets = false;
-	const char* error_str = nullptr; // Is set if and only if a parse error occurred.
-};
-static ElementTextTraits ParseElementTextTraits(const String& text)
+// Instances a single text element containing a string.
+bool Factory::InstanceElementText(Element* parent, const String& in_text)
 {
-	ElementTextTraits result;
+	RMLUI_ASSERT(parent);
 
-	bool in_brackets = false;
+	String text;
+	if (SystemInterface* system_interface = GetSystemInterface())
+		system_interface->TranslateString(text, in_text);
+
+	// If this text node only contains white-space we don't want to construct it.
+	const bool only_white_space = std::all_of(text.begin(), text.end(), &StringUtilities::IsWhitespace);
+	if (only_white_space)
+		return true;
+
+	// See if we need to parse it as RML, and whether the text contains data expressions (curly brackets).
+	bool parse_as_rml = false;
+	bool has_data_expression = false;
+
+	bool inside_brackets = false;
 	char previous = 0;
 	for (const char c : text)
 	{
-		if (!StringUtilities::IsWhitespace(c))
-			result.only_white_space = false;
-
-		if (in_brackets)
+		const char* error_str = XMLParseTools::ParseDataBrackets(inside_brackets, c, previous);
+		if (error_str)
 		{
-			if (c == '}' && previous == '}')
-				in_brackets = false;
-			
-			else if (c == '{' && previous == '{')
-				result.error_str = "Nested double curly brackets are illegal.";
-
-			else if (previous == '}' && c != '}')
-				result.error_str = "Single closing curly bracket encountered, use double curly brackets to close data expression.";
-
-			else if (previous == '/' && c == '>')
-				result.error_str = "Xml end node encountered inside double curly brackets.";
-
-			else if (previous == '<' && c == '/')
-				result.error_str = "Xml end node encountered inside double curly brackets.";
-		}
-		else
-		{
-			if(c == '<')
-			{
-				result.has_xml = true;
-			}
-			else if (c == '{' && previous == '{')
-			{
-				in_brackets = true;
-				result.has_curly_brackets = true;
-			}
-			else if (c == '}' && previous == '}')
-			{
-				result.error_str = "Closing double curly brackets encountered outside data expression.";
-			}
+			Log::Message(Log::LT_WARNING, "Failed to instance text element '%s'. %s", text.c_str(), error_str);
+			return false;
 		}
 
-		if (result.error_str)
-			break;
+		if (inside_brackets)
+			has_data_expression = true;
+		else if (c == '<')
+			parse_as_rml = true;
 
 		previous = c;
 	}
 
-	return result;
-}
-
-// Instances a single text element containing a string.
-bool Factory::InstanceElementText(Element* parent, const String& text)
-{
-	RMLUI_ASSERT(parent);
-
-	String translated_data;
-	if (SystemInterface* system_interface = GetSystemInterface())
-		system_interface->TranslateString(translated_data, text);
-
-	// Look for XML tags and detect double curly brackets for data bindings.
-	ElementTextTraits traits = ParseElementTextTraits(text);
-
-	if (traits.error_str)
-	{
-		Log::Message(Log::LT_ERROR, "Parse error in text: %s  In element: %s", traits.error_str, parent->GetAddress().c_str());
-		return false;
-	}
-
-	// If this text node only contains white-space we don't want to construct it.
-	if (traits.only_white_space)
-		return true;
-
-	// If the text contains XML elements then run it through the XML parser again.
-	if (traits.has_xml)
+	// If the text contains RML elements then run it through the XML parser again.
+	if (parse_as_rml)
 	{
 		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
-		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
+		auto stream = std::make_unique<StreamMemory>(text.size() + 32);
 		stream->Write("<body>", 6);
-		stream->Write(translated_data);
+		stream->Write(text);
 		stream->Write("</body>", 7);
 		stream->Seek(0, SEEK_SET);
 
@@ -401,13 +358,13 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		XMLAttributes attributes;
 
 		// If we have curly brackets in the text, we tag the element so that the appropriate data view (DataViewText) is constructed.
-		if(traits.has_curly_brackets)
+		if (has_data_expression)
 			attributes.emplace("data-text", Variant());
 
 		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
 		if (!element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", translated_data.c_str());
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", text.c_str());
 			return false;
 		}
 
@@ -415,11 +372,11 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		ElementText* text_element = rmlui_dynamic_cast< ElementText* >(element.get());
 		if (!text_element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), rmlui_type_name(*element));
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", text.c_str(), rmlui_type_name(*element));
 			return false;
 		}
 
-		text_element->SetText(translated_data);
+		text_element->SetText(text);
 
 		// Add to active node.
 		parent->AppendChild(std::move(element));
