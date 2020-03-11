@@ -61,6 +61,7 @@
 #include "StringCache.h"
 #include "XMLParseTools.h"
 #include <algorithm>
+#include <cmath>
 
 namespace Rml {
 namespace Core {
@@ -751,7 +752,7 @@ bool Element::Project(Vector2f& point) const noexcept
 		Vector3f ray = local_points[1] - local_points[0];
 
 		// Only continue if we are not close to parallel with the plane.
-		if(std::abs(ray.z) > 1.0f)
+		if(std::fabs(ray.z) > 1.0f)
 		{
 			// Solving the line equation p = p0 + t*ray for t, knowing that p.z = 0, produces the following.
 			float t = -local_points[0].z / ray.z;
