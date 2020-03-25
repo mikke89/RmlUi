@@ -80,12 +80,12 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 
 			else
 			{
-				//Log::ParseError(parser->GetSourceURL().GetURL(), parser->GetLineNumber(), "Invalid link type '%s'", type.c_str());
+				Log::ParseError(parser->GetSourceURL().GetURL(), parser->GetLineNumber(), "Invalid link type '%s'", type.c_str());
 			}
 		}
 		else
 		{
-			//Log::ParseError(parser->GetSourceURL().GetURL(), parser->GetLineNumber(), "Link tag requires type and href attributes");
+			Log::ParseError(parser->GetSourceURL().GetURL(), parser->GetLineNumber(), "Link tag requires type and href attributes");
 		}
 	}
 
@@ -100,19 +100,21 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 		}
 	}
 
-	//////////////// Added by Digitalknob ////////////////////////////////
+	// Determine the parent
 	Element* parent = parser->GetParseFrame()->element;
+
+	// Attempt to instance the element with the instancer
 	ElementPtr element = Factory::InstanceElement(parent, name, name, attributes);
-	if (!element){
-		Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned NULL.", name.c_str());
-		return NULL;
+	if (!element)
+	{
+		Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned nullptr.", name.c_str());
+		return nullptr;
 	}
+
+	// Add the element to its parent and remove the reference
 	Element* result = parent->AppendChild(std::move(element));
+
 	return result;
-	//////////////////////////////////////////////////////////////////////
-	
-	// No elements constructed
-	//return nullptr;
 }
 
 bool XMLNodeHandlerHead::ElementEnd(XMLParser* parser, const String& name)
@@ -154,12 +156,7 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data)
 		parser->GetDocumentHeader()->rcss_inline_line_numbers.push_back(parser->GetLineNumberOpenTag());
 	}
 
-	//////////////// Added by Digitalknob ////////////////////////////////
-	Element* parent = parser->GetParseFrame()->element;
-	return Factory::InstanceElementText(parent, data);
-	//////////////////////////////////////////////////////////////////////
-	
-	//return true;
+	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 
 }
