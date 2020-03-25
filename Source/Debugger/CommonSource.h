@@ -27,7 +27,7 @@
  */
 
 static const char* common_rcss = R"RCSS(
-body
+html
 {
 	font-family: rmlui-debugger-font;
 	z-index: 1000000;

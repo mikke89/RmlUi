@@ -26,7 +26,7 @@
  *
  */
 
-static const char* log_rcss = R"RCSS(body
+static const char* log_rcss = R"RCSS(html
 {
 	width: 400dp;
 	height: 300dp;

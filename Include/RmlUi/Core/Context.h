@@ -88,7 +88,7 @@ public:
 	/// Creates a new, empty document and places it into this context.
 	/// @param[in] tag The document type to create.
 	/// @return The new document, or nullptr if no document could be created.
-	ElementDocument* CreateDocument(const String& tag = "body");
+	ElementDocument* CreateDocument(const String& tag = "html");
 	/// Load a document into the context.
 	/// @param[in] document_path The path to the document to load.
 	/// @return The loaded document, or nullptr if no document was loaded.

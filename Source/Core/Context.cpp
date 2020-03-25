@@ -62,7 +62,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	root->SetOffset(Vector2f(0, 0), nullptr);
 	root->SetProperty(PropertyId::ZIndex, Property(0, Property::NUMBER));
 
-	cursor_proxy = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
+	cursor_proxy = Factory::InstanceElement(nullptr, "html", "html", XMLAttributes());
 	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast< ElementDocument* >(cursor_proxy.get());
 	if (cursor_proxy_document)
 		cursor_proxy_document->context = this;
@@ -216,7 +216,7 @@ bool Context::Render()
 // Creates a new, empty document and places it into this context.
 ElementDocument* Context::CreateDocument(const String& tag)
 {
-	ElementPtr element = Factory::InstanceElement(nullptr, tag, "body", XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, tag, "html", XMLAttributes());
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned nullptr.", tag.c_str());

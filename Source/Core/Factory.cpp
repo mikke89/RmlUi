@@ -61,6 +61,7 @@
 #include "XMLNodeHandlerBody.h"
 #include "XMLNodeHandlerDefault.h"
 #include "XMLNodeHandlerHead.h"
+#include "XMLNodeHandlerHtml.h"
 #include "XMLNodeHandlerTemplate.h"
 #include "XMLParseTools.h"
 
@@ -100,7 +101,7 @@ struct DefaultInstancers {
 	Ptr<ElementInstancer> element_text_default = std::make_unique<ElementInstancerTextDefault>();
 	Ptr<ElementInstancer> element_img = std::make_unique<ElementInstancerGeneric<ElementImage>>();
 	Ptr<ElementInstancer> element_handle = std::make_unique<ElementInstancerGeneric<ElementHandle>>();
-	Ptr<ElementInstancer> element_body = std::make_unique<ElementInstancerGeneric<ElementDocument>>();
+	Ptr<ElementInstancer> element_html = std::make_unique<ElementInstancerGeneric<ElementDocument>>();
 
 	Ptr<DecoratorInstancer> decorator_tiled_horizontal = std::make_unique<DecoratorTiledHorizontalInstancer>();
 	Ptr<DecoratorInstancer> decorator_tiled_vertical = std::make_unique<DecoratorTiledVerticalInstancer>();
@@ -154,7 +155,7 @@ bool Factory::Initialise()
 	RegisterElementInstancer("img", default_instancers->element_img.get());
 	RegisterElementInstancer("#text", default_instancers->element_text_default.get());
 	RegisterElementInstancer("handle", default_instancers->element_handle.get());
-	RegisterElementInstancer("body", default_instancers->element_body.get());
+	RegisterElementInstancer("html", default_instancers->element_html.get());
 
 	// Bind the default decorator instancers
 	RegisterDecoratorInstancer("tiled-horizontal", default_instancers->decorator_tiled_horizontal.get());
@@ -171,7 +172,7 @@ bool Factory::Initialise()
 
 	// Register the core XML node handlers.
 	XMLParser::RegisterNodeHandler("", std::make_shared<XMLNodeHandlerDefault>());
-	XMLParser::RegisterNodeHandler("body", std::make_shared<XMLNodeHandlerBody>());
+	XMLParser::RegisterNodeHandler("html", std::make_shared<XMLNodeHandlerHtml>());
 	XMLParser::RegisterNodeHandler("head", std::make_shared<XMLNodeHandlerHead>());
 	XMLParser::RegisterNodeHandler("template", std::make_shared<XMLNodeHandlerTemplate>());
 
@@ -270,9 +271,9 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	{
 		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
 		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
-		stream->Write("<body>", 6);
+		stream->Write("<html>", 6);
 		stream->Write(translated_data);
-		stream->Write("</body>", 7);
+		stream->Write("</html>", 7);
 		stream->Seek(0, SEEK_SET);
 
 		InstanceElementStream(parent, stream.get());
@@ -333,7 +334,7 @@ ElementPtr Factory::InstanceDocumentStream(Rml::Core::Context* context, Stream* 
 {
 	RMLUI_ZoneScoped;
 
-	ElementPtr element = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, "html", "html", XMLAttributes());
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned nullptr.");

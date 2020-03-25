@@ -27,7 +27,7 @@
  */
 
 static const char* beacon_rcss = R"RCSS(
-body
+html
 {
 	position: absolute;
 	top: 5px;

@@ -27,7 +27,7 @@
  */
 
 static const char* menu_rcss = R"RCSS(
-body
+html
 {
 	width: 100%;
 	height: 32dp;

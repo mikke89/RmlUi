@@ -86,6 +86,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerHead.h
+	${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerHtml.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerTemplate.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLParseTools.h
 )
@@ -314,6 +315,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerHead.cpp
+	${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerHtml.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerTemplate.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLParser.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLParseTools.cpp

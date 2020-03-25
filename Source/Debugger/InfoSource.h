@@ -27,7 +27,7 @@
  */
 
 static const char* info_rcss = R"RCSS(
-body
+html
 {
 	width: 320dp;
 	min-width: 320dp;
