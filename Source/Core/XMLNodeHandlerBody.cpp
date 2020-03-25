@@ -48,24 +48,28 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 	RMLUI_UNUSED_ASSERT(name);
 	RMLUI_ASSERT(name == "body");
 
-	Element* element = parser->GetParseFrame()->element;
+    // Determine the parent
+    Element* parent = parser->GetParseFrame()->element;
 
 	// Check for and apply any template
 	String template_name = Get<String>(attributes, "template", "");
 	if (!template_name.empty())
 	{
-		element = XMLParseTools::ParseTemplate(element, template_name);
+		parent = XMLParseTools::ParseTemplate(parent, template_name);
 	}
 
-	// Apply any attributes to the document
-	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
-	if (document)
-		document->SetAttributes(attributes);
+    // Attempt to instance the element with the instancer
+    ElementPtr element = Factory::InstanceElement(parent, name, name, attributes);
+    if (!element)
+    {
+        Log::Message(Log::LT_ERROR, "Failed to create element for tag %s, instancer returned nullptr.", name.c_str());
+        return nullptr;
+    }
 
-	// Tell the parser to use the element handler for all children
-	parser->PushDefaultHandler();
-	
-	return element;
+    // Add the element to its parent and remove the reference
+    Element* result = parent->AppendChild(std::move(element));
+
+    return result;
 }
 
 bool XMLNodeHandlerBody::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))

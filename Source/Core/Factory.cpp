@@ -101,6 +101,7 @@ struct DefaultInstancers {
 	Ptr<ElementInstancer> element_text_default = std::make_unique<ElementInstancerTextDefault>();
 	Ptr<ElementInstancer> element_img = std::make_unique<ElementInstancerGeneric<ElementImage>>();
 	Ptr<ElementInstancer> element_handle = std::make_unique<ElementInstancerGeneric<ElementHandle>>();
+	Ptr<ElementInstancer> element_body = std::make_unique<ElementInstancerElement>();
 	Ptr<ElementInstancer> element_html = std::make_unique<ElementInstancerGeneric<ElementDocument>>();
 
 	Ptr<DecoratorInstancer> decorator_tiled_horizontal = std::make_unique<DecoratorTiledHorizontalInstancer>();
@@ -155,6 +156,7 @@ bool Factory::Initialise()
 	RegisterElementInstancer("img", default_instancers->element_img.get());
 	RegisterElementInstancer("#text", default_instancers->element_text_default.get());
 	RegisterElementInstancer("handle", default_instancers->element_handle.get());
+	RegisterElementInstancer("body", default_instancers->element_body.get());
 	RegisterElementInstancer("html", default_instancers->element_html.get());
 
 	// Bind the default decorator instancers
@@ -172,6 +174,7 @@ bool Factory::Initialise()
 
 	// Register the core XML node handlers.
 	XMLParser::RegisterNodeHandler("", std::make_shared<XMLNodeHandlerDefault>());
+	XMLParser::RegisterNodeHandler("body", std::make_shared<XMLNodeHandlerBody>());
 	XMLParser::RegisterNodeHandler("html", std::make_shared<XMLNodeHandlerHtml>());
 	XMLParser::RegisterNodeHandler("head", std::make_shared<XMLNodeHandlerHead>());
 	XMLParser::RegisterNodeHandler("template", std::make_shared<XMLNodeHandlerTemplate>());
