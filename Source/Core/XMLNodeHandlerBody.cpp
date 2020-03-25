@@ -45,8 +45,6 @@ XMLNodeHandlerBody::~XMLNodeHandlerBody()
 
 Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
 {
-	RMLUI_ASSERT(name == "body");
-
     // Determine the parent
     Element* parent = parser->GetParseFrame()->element;
 
