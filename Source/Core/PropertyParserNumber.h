@@ -57,12 +57,8 @@ private:
 	// Stores a bit mask of allowed units.
 	int units;
 
-	// If zero unit is set and pure numbers are not allowed, parsing of "0" is still allowed and assigned the given unit
+	// If zero unit is set and pure numbers are not allowed, parsing of "0" is still allowed and assigned the given unit.
 	Property::Unit zero_unit;
-
-	// Stores a list of the numerical units and their suffixes.
-	typedef std::pair< Property::Unit, String > UnitSuffix;
-	std::vector< UnitSuffix > unit_suffixes;
 };
 
 }

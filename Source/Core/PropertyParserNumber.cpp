@@ -27,113 +27,89 @@
  */
 
 #include "PropertyParserNumber.h"
+#include <stdlib.h>
 
 namespace Rml {
 namespace Core {
 
+static const UnorderedMap<String, Property::Unit> g_property_unit_string_map =
+{
+	{"", Property::NUMBER},
+	{"%", Property::PERCENT},
+	{"px", Property::PX},
+	{"dp", Property::DP},
+	{"em", Property::EM},
+	{"rem", Property::REM},
+	{"in", Property::INCH},
+	{"cm", Property::CM},
+	{"mm", Property::MM},
+	{"pt", Property::PT},
+	{"pc", Property::PC},
+	{"deg", Property::DEG},
+	{"rad", Property::RAD},
+};
+
 PropertyParserNumber::PropertyParserNumber(int units, Property::Unit zero_unit)
 	: units(units), zero_unit(zero_unit)
-{
-
-	if (units & Property::PERCENT)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::PERCENT, "%"));
-	}
-	if (units & Property::PX)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::PX, "px"));
-	}
-	if (units & Property::DP)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::DP, "dp"));
-	}
-	if (units & Property::EM)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::EM, "em"));
-	}
-	if (units & Property::REM)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::REM, "rem"));
-	}
-	if (units & Property::INCH)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::INCH, "in"));
-	}
-	if (units & Property::CM)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::CM, "cm"));
-	}
-	if (units & Property::MM)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::MM, "mm"));
-	}
-	if (units & Property::PT)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::PT, "pt"));
-	}
-	if (units & Property::PC)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::PC, "pc"));
-	}
-	if (units & Property::DEG)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::DEG, "deg"));
-	}
-	if (units & Property::RAD)
-	{
-		unit_suffixes.push_back(UnitSuffix(Property::RAD, "rad"));
-	}
-}
+{}
 
 PropertyParserNumber::~PropertyParserNumber()
-{
-}
+{}
 
 // Called to parse a RCSS number declaration.
 bool PropertyParserNumber::ParseValue(Property& property, const String& value, const ParameterMap& RMLUI_UNUSED_PARAMETER(parameters)) const
 {
 	RMLUI_UNUSED(parameters);
 
-	// Default to a simple number.
-	property.unit = Property::NUMBER;
-
-	// Check for a unit declaration at the end of the number.
-	size_t unit_pos =  value.size();
-	for (size_t i = 0; i < unit_suffixes.size(); i++)
+	// Find the beginning of the unit string in 'value'.
+	size_t unit_pos = 0;
+	for (size_t i = value.size(); i--;)
 	{
-		const UnitSuffix& unit_suffix = unit_suffixes[i];
-
-		if (value.size() < unit_suffix.second.size())
-			continue;
-
-		const size_t test_unit_pos = value.size() - unit_suffix.second.size();
-		if (StringUtilities::StringCompareCaseInsensitive(StringView(value, test_unit_pos), StringView(unit_suffix.second)))
+		const char c = value[i];
+		if ((c >= '0' && c <= '9') || StringUtilities::IsWhitespace(value[i]))
 		{
-			unit_pos = test_unit_pos;
-			property.unit = unit_suffix.first;
+			unit_pos = i + 1;
 			break;
 		}
 	}
 
-	if ((units & property.unit) == 0)
+	String str_number = value.substr(0, unit_pos);
+	String str_unit = StringUtilities::ToLower(value.substr(unit_pos));
+
+	char* str_end = nullptr;
+	float float_value = strtof(str_number.c_str(), &str_end);
+	if (str_number.c_str() == str_end)
 	{
-		// Detected unit not allowed (this can only apply to NUMBER, i.e., when no unit was found but one is required).
-		// However, we allow values of "0" if zero_unit is set.
-		bool result = (zero_unit != Property::UNKNOWN && (value.size() == 1 && value[0] == '0'));
-		if(result)
+		// Number conversion failed
+		return false;
+	}
+
+	const auto it = g_property_unit_string_map.find(str_unit);
+	if (it == g_property_unit_string_map.end())
+	{
+		// Invalid unit name
+		return false;
+	}
+
+	const Property::Unit unit = it->second;
+
+	if (unit & units)
+	{
+		property.value = float_value;
+		property.unit = unit;
+		return true;
+	}
+
+	// Detected unit not allowed.
+	// However, we allow a value of "0" if zero_unit is set and no unit specified (that is, unit is a pure NUMBER).
+	if (unit == Property::NUMBER)
+	{
+		if (zero_unit != Property::UNKNOWN && float_value == 0.0f)
 		{
 			property.unit = zero_unit;
 			property.value = Variant(0.0f);
+			return true;
 		}
-		return result;
-	}
-
-	float float_value;
-	String str_value( value.c_str(), value.c_str() + unit_pos );
-	if (sscanf(str_value.c_str(), "%f", &float_value) == 1)
-	{
-		property.value = Variant(float_value);
-		return true;
 	}
 
 	return false;
