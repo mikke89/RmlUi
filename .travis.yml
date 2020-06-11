@@ -1,6 +1,10 @@
 sudo: false
 dist: bionic
 language: c++
+env:
+  global:
+    - CXXFLAGS="-pedantic -Wall"
+
 cache: 
   apt: true
   directories:
