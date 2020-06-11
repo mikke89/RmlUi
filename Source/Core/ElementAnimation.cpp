@@ -200,9 +200,9 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 			if (Primitive::TryConvertToMatchingGenericType(prims0[i], prims1[i]))
 			{
 				if (prims0[i].primitive.type != p0_type)
-					(int&)result |= (int)PrepareTransformResult::ChangedT0;
+					result = PrepareTransformResult((int)result | (int)PrepareTransformResult::ChangedT0);
 				if (prims1[i].primitive.type != p1_type)
-					(int&)result |= (int)PrepareTransformResult::ChangedT1;
+					result = PrepareTransformResult((int)result | (int)PrepareTransformResult::ChangedT1);
 			}
 			else
 			{

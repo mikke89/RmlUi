@@ -53,21 +53,21 @@ enum class ElementAnimationOrigin : uint8_t { User, Animation, Transition };
 class ElementAnimation
 {
 private:
-	PropertyId property_id;
+	PropertyId property_id = PropertyId::Invalid;
 
-	float duration;           // for a single iteration
-	int num_iterations;       // -1 for infinity
-	bool alternate_direction; // between iterations
+	float duration = 0;           // for a single iteration
+	int num_iterations = 0;       // -1 for infinity
+	bool alternate_direction = 0; // between iterations
 
 	std::vector<AnimationKey> keys;
 
-	double last_update_world_time;
-	float time_since_iteration_start;
-	int current_iteration;
-	bool reverse_direction;
+	double last_update_world_time = 0;
+	float time_since_iteration_start = 0;
+	int current_iteration = 0;
+	bool reverse_direction = false;
 
-	bool animation_complete;
-	ElementAnimationOrigin origin;
+	bool animation_complete = true;
+	ElementAnimationOrigin origin = ElementAnimationOrigin::User;
 
 	bool InternalAddKey(float time, const Property& property, Element& element, Tween tween);
 

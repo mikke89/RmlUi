@@ -151,10 +151,10 @@ Rml::Core::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Core::
 #ifdef ENABLE_GLEW
 	std::vector<RmlUiSFMLRendererVertex> Data(num_vertices);
 
-	for(unsigned long i = 0; i < Data.size(); i++)
+	for(std::size_t i = 0; i < Data.size(); i++)
 	{
-		Data[i].Position = *(sf::Vector2f*)&vertices[i].position;
-		Data[i].TexCoord = *(sf::Vector2f*)&vertices[i].tex_coord;
+		Data[i].Position = sf::Vector2f(vertices[i].position.x, vertices[i].position.y);
+		Data[i].TexCoord = sf::Vector2f(vertices[i].tex_coord.x, vertices[i].tex_coord.y);
 		Data[i].Color = sf::Color(vertices[i].colour.red, vertices[i].colour.green,
 			vertices[i].colour.blue, vertices[i].colour.alpha);
 	};
