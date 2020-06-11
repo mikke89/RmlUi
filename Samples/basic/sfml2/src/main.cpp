@@ -177,4 +177,4 @@ int main(int argc, char **argv)
 	Rml::Core::Shutdown();
 
 	return 0;
-};
+}

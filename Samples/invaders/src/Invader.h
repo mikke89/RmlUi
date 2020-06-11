@@ -41,13 +41,13 @@ class Game;
 
 class Invader
 {
-public:	
+public:
 	enum InvaderType { UNKNOWN, RANK1, RANK2, RANK3, MOTHERSHIP };
 	enum BombType { NONE, RAY, MISSILE };
 
 	/// Construct the invader
 	Invader(Game* game, InvaderType type, int index);
-	~Invader();	
+	virtual ~Invader();
 
 	/// Set the invaders screen position
 	/// @param position Position in screen space
@@ -57,7 +57,7 @@ public:
 	const Rml::Core::Vector2f& GetPosition() const;
 
 	/// Update the invader
-	virtual void Update();	
+	virtual void Update();
 
 	/// Render the invader
 	void Render();
@@ -107,7 +107,7 @@ protected:
 	float bomb_probability;
 
 	// Time when we should die - 0, until we're hit
-	double death_time;	
+	double death_time;
 
 	int GetSpriteIndex() const;
 };

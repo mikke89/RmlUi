@@ -439,4 +439,4 @@ bool RmlUiSDL2SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::
 	printf("%s - %s\n", Type.c_str(), message.c_str());
 
 	return true;
-};
+}

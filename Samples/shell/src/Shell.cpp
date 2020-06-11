@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,7 +41,7 @@ void Shell::LoadFonts(const char* directory)
 
 	const int fallback_face = 4;
 
-	for (int i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
+	for (size_t i = 0; i < sizeof(font_names) / sizeof(Rml::Core::String); i++)
 	{
 		Rml::Core::LoadFontFace(Rml::Core::String(directory) + font_names[i], i == fallback_face);
 	}

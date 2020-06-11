@@ -105,8 +105,8 @@ int ElementStyleProxy__pairs(lua_State* L)
     ElementStyleProxy* obj = LuaType<ElementStyleProxy>::check(L,1);
     LUACHECKOBJ(obj);
     int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1)
-        *pindex = 0;
+	if ((*pindex) == -1)
+		*pindex = 0;
 
 	int i = 0;
 	auto it = obj->owner->IterateLocalProperties();

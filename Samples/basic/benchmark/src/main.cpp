@@ -162,7 +162,7 @@ void GameLoop()
 
 	float fps = 1.0f / dt;
 	fps_buffer[buffer_index] = fps;
-	buffer_index = (++buffer_index % buffer_size);
+	buffer_index = ((buffer_index + 1) % buffer_size);
 
 	if (window && count_frames > buffer_size / 8)
 	{

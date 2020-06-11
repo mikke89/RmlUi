@@ -47,7 +47,7 @@ public:
 
 	/// Construct the invader
 	Invader(Game* game, InvaderType type, int index);
-	~Invader();	
+	virtual ~Invader();	
 
 	/// Set the invaders screen position
 	/// @param position Position in screen space

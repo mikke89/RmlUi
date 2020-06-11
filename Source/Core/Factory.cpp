@@ -80,10 +80,10 @@ typedef UnorderedMap< String, FontEffectInstancer* > FontEffectInstancerMap;
 static FontEffectInstancerMap font_effect_instancers;
 
 // The context instancer.
-static ContextInstancer* context_instancer = nullptr;;
+static ContextInstancer* context_instancer = nullptr;
 
 // The event instancer
-static EventInstancer* event_instancer = nullptr;;
+static EventInstancer* event_instancer = nullptr;
 
 // Event listener instancer.
 static EventListenerInstancer* event_listener_instancer = nullptr;

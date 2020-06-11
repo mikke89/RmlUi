@@ -131,7 +131,7 @@ template<> void ExtraInit<Rml::Controls::Lua::SelectOptionsProxy>(lua_State* L, 
 }
 
 using Rml::Controls::Lua::SelectOptionsProxy;
-LUACONTROLSTYPEDEFINE(SelectOptionsProxy);
+LUACONTROLSTYPEDEFINE(SelectOptionsProxy)
 }
 }
 }

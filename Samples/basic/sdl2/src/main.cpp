@@ -170,8 +170,9 @@ int main(int argc, char **argv)
     Rml::Core::Shutdown();
 
     SDL_DestroyRenderer(renderer);
+    SDL_GL_DeleteContext(glcontext);
     SDL_DestroyWindow(screen);
     SDL_Quit();
 
 	return 0;
-};
+}

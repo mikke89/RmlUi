@@ -187,7 +187,6 @@ public:
 		case EventId::Keydown:
 		{
 			Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
-			bool ctrl_key = event.GetParameter< bool >("ctrl_key", false);
 
 			if (key_identifier == Rml::Core::Input::KI_ESCAPE)
 			{

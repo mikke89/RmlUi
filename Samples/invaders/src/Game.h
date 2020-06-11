@@ -89,7 +89,7 @@ public:
 	void RemoveLife();
 
 	/// Get the dimensions of the game window.
-	const Rml::Core::Vector2f GetWindowDimensions();	
+	const Rml::Core::Vector2f GetWindowDimensions();
 
 private:
 

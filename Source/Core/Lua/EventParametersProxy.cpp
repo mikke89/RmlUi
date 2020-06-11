@@ -72,8 +72,8 @@ int EventParametersProxy__pairs(lua_State* L)
     EventParametersProxy* obj = LuaType<EventParametersProxy>::check(L,1);
     LUACHECKOBJ(obj);
     int& pindex = *(int*)lua_touserdata(L,3);
-    if((pindex) == -1)
-        pindex = 0;
+	if ((pindex) == -1)
+		pindex = 0;
 	const Dictionary& attributes = obj->owner->GetParameters();
     if(pindex >= 0 && pindex < (int)attributes.size())
     {

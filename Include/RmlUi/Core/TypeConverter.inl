@@ -124,7 +124,7 @@ public: \
 		dest = (type) atof(src.c_str()); \
 		return true; \
 	} \
-};
+}
 STRING_FLOAT_CONVERTER(float);
 STRING_FLOAT_CONVERTER(double);
 
@@ -234,7 +234,7 @@ public: \
 	{ \
 		return FormatString(dest, 32, "%.4f", src) > 0; \
 	} \
-};
+}
 FLOAT_STRING_CONVERTER(float);
 FLOAT_STRING_CONVERTER(double);
 

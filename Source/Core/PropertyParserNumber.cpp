@@ -66,7 +66,7 @@ bool PropertyParserNumber::ParseValue(Property& property, const String& value, c
 	for (size_t i = value.size(); i--;)
 	{
 		const char c = value[i];
-		if ((c >= '0' && c <= '9') || StringUtilities::IsWhitespace(value[i]))
+		if ((c >= '0' && c <= '9') || StringUtilities::IsWhitespace(c))
 		{
 			unit_pos = i + 1;
 			break;

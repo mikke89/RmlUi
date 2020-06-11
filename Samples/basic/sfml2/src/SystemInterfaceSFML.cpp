@@ -45,7 +45,7 @@ int RmlUiSFMLSystemInterface::GetKeyModifiers(sf::Window *Window)
 		Modifiers |= Rml::Core::Input::KM_ALT;
 
 	return Modifiers;
-};
+}
 
 Rml::Core::Input::KeyIdentifier RmlUiSFMLSystemInterface::TranslateKey(sf::Keyboard::Key Key)
 {
@@ -305,12 +305,12 @@ Rml::Core::Input::KeyIdentifier RmlUiSFMLSystemInterface::TranslateKey(sf::Keybo
 	};
 
 	return Rml::Core::Input::KI_UNKNOWN;
-};
+}
 
 double RmlUiSFMLSystemInterface::GetElapsedTime()
 {
 	return timer.getElapsedTime().asSeconds();
-};
+}
 
 bool RmlUiSFMLSystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message)
 {
@@ -343,4 +343,4 @@ bool RmlUiSFMLSystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::
 	printf("%s - %s\n", Type.c_str(), message.c_str());
 
 	return true;
-};
+}

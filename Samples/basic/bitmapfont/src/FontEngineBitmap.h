@@ -41,7 +41,7 @@ namespace FontProviderBitmap
 	void Shutdown();
 	bool LoadFontFace(const String& file_name, bool fallback_face);
 	FontFaceBitmap* GetFontFaceHandle(const String& family, FontStyle style, FontWeight weight, int size);
-};
+}
 
 
 struct BitmapGlyph {

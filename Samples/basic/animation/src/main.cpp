@@ -201,7 +201,6 @@ void GameLoop()
 		static float ff = 0.0f;
 		ff += float(nudge)*0.3f;
 		auto el = window->GetDocument()->GetElementById("exit");
-		auto f = el->GetProperty<float>("margin-left");
 		el->SetProperty(Rml::Core::PropertyId::MarginLeft, Rml::Core::Property(ff, Rml::Core::Property::PX));
 		float f_left = el->GetAbsoluteLeft();
 		Rml::Core::Log::Message(Rml::Core::Log::LT_INFO, "margin-left: '%f'   abs: %f.", ff, f_left);

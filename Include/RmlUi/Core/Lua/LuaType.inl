@@ -194,7 +194,7 @@ int LuaType<T>::tostring_T(lua_State* L)
 {
     char buff[max_pointer_string_size];
     T** ptrHold = (T**)lua_touserdata(L,1);
-    T *obj = *ptrHold;
+    void* obj = static_cast<void*>(*ptrHold);
     snprintf(buff, max_pointer_string_size, "%p", obj);
     lua_pushfstring(L, "%s (%s)", GetTClassName<T>(), buff);
     return 1;

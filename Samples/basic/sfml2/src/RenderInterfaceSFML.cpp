@@ -41,7 +41,7 @@ public:
 	int NumVertices;
 	Rml::Core::TextureHandle Texture;
 
-	RmlUiSFMLRendererGeometryHandler() : VertexID(0), IndexID(0), Texture(0), NumVertices(0)
+	RmlUiSFMLRendererGeometryHandler() : VertexID(0), IndexID(0), NumVertices(0), Texture(0)
 	{
 	};
 
@@ -73,12 +73,12 @@ void RmlUiSFMLRenderer::SetWindow(sf::RenderWindow *Window)
 	MyWindow = Window;
 
 	Resize();
-};
+}
 
 sf::RenderWindow *RmlUiSFMLRenderer::GetWindow()
 {
 	return MyWindow;
-};
+}
 
 void RmlUiSFMLRenderer::Resize()
 {
@@ -92,7 +92,7 @@ void RmlUiSFMLRenderer::Resize()
 	glMatrixMode(GL_MODELVIEW);
 
 	glViewport(0, 0, MyWindow->getSize().x, MyWindow->getSize().y);
-};
+}
 
 // Called by RmlUi when it wants to render geometry that it does not wish to optimise.
 void RmlUiSFMLRenderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation)

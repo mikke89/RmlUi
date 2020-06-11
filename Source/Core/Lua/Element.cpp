@@ -294,8 +294,8 @@ int ElementGetAttrclass_name(lua_State* L)
 {
     Element* ele = LuaType<Element>::check(L,1);
     LUACHECKOBJ(ele);
-    const char* classnames = ele->GetClassNames().c_str();
-    lua_pushstring(L,classnames);
+    Rml::Core::String classnames = ele->GetClassNames();
+    lua_pushstring(L,classnames.c_str());
     return 1;
 }
 
