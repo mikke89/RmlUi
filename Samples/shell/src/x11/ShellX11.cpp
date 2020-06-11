@@ -51,10 +51,10 @@ static Rml::Core::String clipboard_text;
 
 static std::unique_ptr<ShellFileInterface> file_interface;
 
-static bool isDirectory(const Rml::Core::String &path)
+static bool isRegularFile(const Rml::Core::String& path)
 {
 	struct stat sb;
-	return (stat(path.c_str(), &sb)==0 && S_ISDIR(sb.st_mode));
+	return (stat(path.c_str(), &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
 bool Shell::Initialise()
@@ -63,11 +63,12 @@ bool Shell::Initialise()
 	InputX11::Initialise();
 
 	Rml::Core::String root = FindSamplesRoot();
+	bool result = !root.empty();
 
 	file_interface = std::make_unique<ShellFileInterface>(root);
 	Rml::Core::SetFileInterface(file_interface.get());
 
-	return true;
+	return result;
 }
 
 void Shell::Shutdown()
@@ -91,18 +92,26 @@ Rml::Core::String Shell::FindSamplesRoot()
 	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
 	executable_path = executable_path.substr(0, executable_path.rfind("/") + 1);
 	
-	// for "../Samples/" to be valid we must be in the Build directory.
-	// NOTE: we can't use "../../Samples/" because it is valid only if:
-	//  1. we are in the installation directory and
-	//  2. the installation directory is exactly "Samples" (case sensitive).
-	Rml::Core::String path = "../Samples/";
-	
-	if(!isDirectory(executable_path + path)) {
-		// we probably are in the installation directory, up by 1 should do.
-		path = "../";
+	// We assume we have found the correct path if we can find the lookup file from it.
+	const char* lookup_file = "assets/rml.rcss";
+
+	// For "../Samples/" to be valid we must be in the Build directory.
+	// If "../" is valid we are probably in the installation directory.
+	// Some build setups may nest the executables deeper in a build directory, try them last.
+	const char* candidate_paths[] = { "../Samples/", "../", "", "../../Samples/", "../../../Samples/"};
+
+	for (const char* relative_path : candidate_paths)
+	{
+		Rml::Core::String absolute_path = executable_path + relative_path;
+		Rml::Core::String absolute_lookup_file = absolute_path + lookup_file;
+
+		if (isRegularFile(absolute_lookup_file))
+		{
+			return absolute_path;
+		}
 	}
-	
-	return (executable_path + path);
+
+	return Rml::Core::String();
 }
 
 static Display* display = nullptr;
