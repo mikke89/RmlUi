@@ -158,9 +158,8 @@ void InputX11::ProcessXEvent(Display* display, const XEvent& event)
 
 			int key_modifier_state = GetKeyModifierState(event.xkey.state);
 
-			// Check for a shift-~ to toggle the debugger.
-			if (key_identifier == Rml::Core::Input::KI_OEM_3 &&
-				key_modifier_state & Rml::Core::Input::KM_SHIFT)
+			// Check for F8 to toggle the debugger.
+			if (key_identifier == Rml::Core::Input::KI_F8)
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 				break;

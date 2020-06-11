@@ -119,9 +119,8 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 						Rml::Core::Input::KeyIdentifier key_identifier = key_identifier_map[key_code & 0xFF];
 						int key_modifier_state = GetKeyModifierState(event);
 
-						// Check for a shift-~ to toggle the debugger.
-						if (key_identifier == Rml::Core::Input::KI_OEM_3 &&
-							key_modifier_state & Rml::Core::Input::KM_SHIFT)
+						// Check for F8 to toggle the debugger.
+						if (key_identifier == Rml::Core::Input::KI_F8)
 						{
 							Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 							break;

@@ -217,10 +217,6 @@ public:
 			{
 				Shell::RequestExit();
 			}
-			else if (key_identifier == Rml::Core::Input::KI_F8)
-			{
-				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
-			}
 		}
 	}
 
