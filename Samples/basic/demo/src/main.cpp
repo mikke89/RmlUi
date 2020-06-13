@@ -43,6 +43,12 @@ scrollbarvertical slidertrack:active { background: #ddd; }
 scrollbarvertical sliderbar { width: 15px; min-height: 30px; background: #aaa; }
 scrollbarvertical sliderbar:hover { background: #888; }
 scrollbarvertical sliderbar:active { background: #666; }
+scrollbarhorizontal { height: 15px; }
+scrollbarhorizontal slidertrack { background: #eee; }
+scrollbarhorizontal slidertrack:active { background: #ddd; }
+scrollbarhorizontal sliderbar { height: 15px; min-width: 30px; background: #aaa; }
+scrollbarhorizontal sliderbar:hover { background: #888; }
+scrollbarhorizontal sliderbar:active { background: #666; }
 )";
 
 

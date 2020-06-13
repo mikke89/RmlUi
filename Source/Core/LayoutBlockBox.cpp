@@ -221,14 +221,12 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 			Vector2f space_box = space->GetDimensions();
 			content_box.x = Math::Max(content_box.x, space_box.x);
 
-			// If our content is larger than our window, then we can either extend our box, if we're set to not wrap
-			// our inline content, or enable the horizontal scrollbar, if we're set to auto-scrollbars. If we're set to
-			// always use scrollbars, then the horiontal scrollbar will already have been enabled in the constructor.
+			// If our content is larger than our window, we can enable the horizontal scrollbar if
+			// we're set to auto-scrollbars. If we're set to always use scrollbars, then the horiontal
+			// scrollbar will already have been enabled in the constructor.
 			if (content_box.x > box.GetSize().x)
 			{
-				if (!wrap_content)
-					box.SetContent(Vector2f(content_box.x, box.GetSize().y));
-				else if (overflow_x_property == Style::Overflow::Auto)
+				if (overflow_x_property == Style::Overflow::Auto)
 				{
 					element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
 
