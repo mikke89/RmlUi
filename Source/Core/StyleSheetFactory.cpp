@@ -165,10 +165,14 @@ void StyleSheetFactory::ClearStyleSheetCache()
 // Returns one of the available node selectors.
 StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 {
-	size_t index = name.find('(');
-	if(index == String::npos)
-		return StructuralSelector(nullptr, 0, 0);
-	auto it = instance->selectors.find(name.substr(0, index));
+	SelectorMap::const_iterator it;
+	const size_t parameter_start = name.find('(');
+
+	if (parameter_start == String::npos)
+		it = instance->selectors.find(name);
+	else
+		it = instance->selectors.find(name.substr(0, parameter_start));
+
 	if (it == instance->selectors.end())
 		return StructuralSelector(nullptr, 0, 0);
 
@@ -176,8 +180,7 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 	int a = 1;
 	int b = 0;
 
-	size_t parameter_start = name.find('(');
-	size_t parameter_end = name.find(')');
+	const size_t parameter_end = name.find(')', parameter_start + 1);
 	if (parameter_start != String::npos &&
 		parameter_end != String::npos)
 	{
@@ -197,7 +200,7 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 		else
 		{
 			// Alrighty; we've got an equation in the form of [[+/-]an][(+/-)b]. So, foist up, we split on 'n'.
-			size_t n_index = parameters.find('n');
+			const size_t n_index = parameters.find('n');
 			if (n_index == String::npos)
 			{
 				// The equation is 0n + b. So a = 0, and we only have to parse b.
@@ -210,7 +213,7 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 					a = 1;
 				else
 				{
-					String a_parameter = parameters.substr(0, n_index);
+					const String a_parameter = parameters.substr(0, n_index);
 					if (StringUtilities::StripWhitespace(a_parameter) == "-")
 						a = -1;
 					else
