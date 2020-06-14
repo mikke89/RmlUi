@@ -326,6 +326,11 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 		font_effects_dirty = true;
 	}
 
+	if (changed_properties.Contains(PropertyId::FontEffect))
+	{
+		font_effects_dirty = true;
+	}
+
 	if (changed_properties.Contains(PropertyId::TextDecoration))
 	{
 		decoration_property = computed.text_decoration;
