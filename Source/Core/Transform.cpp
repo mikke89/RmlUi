@@ -26,7 +26,6 @@
  *
  */
 
-#include "StringCache.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "../../Include/RmlUi/Core/Property.h"
@@ -49,7 +48,7 @@ Transform::Transform(std::vector<Transforms::Primitive> primitives)
 Property Transform::MakeProperty(std::vector<Transforms::Primitive> primitives)
 {
 	Property p{ TransformPtr{new Transform{primitives}}, Property::TRANSFORM };
-	p.definition = StyleSheetSpecification::GetProperty(TRANSFORM);
+	p.definition = StyleSheetSpecification::GetProperty(PropertyId::Transform);
 	return p;
 }
 

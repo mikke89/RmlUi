@@ -58,7 +58,6 @@
 #include "PropertiesIterator.h"
 #include "Pool.h"
 #include "StyleSheetParser.h"
-#include "StringCache.h"
 #include "XMLParseTools.h"
 #include <algorithm>
 #include <cmath>
@@ -1855,10 +1854,10 @@ void Element::ProcessDefaultAction(Event& event)
 			SetPseudoClass("hover", false);
 			break;
 		case EventId::Focus:
-			SetPseudoClass(FOCUS, true);
+			SetPseudoClass("focus", true);
 			break;
 		case EventId::Blur:
-			SetPseudoClass(FOCUS, false);
+			SetPseudoClass("focus", false);
 			break;
 		default:
 			break;

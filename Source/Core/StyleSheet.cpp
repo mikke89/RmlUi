@@ -28,7 +28,6 @@
 
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "ElementDefinition.h"
-#include "StringCache.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
 #include "StyleSheetParser.h"
@@ -149,7 +148,7 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	//   decorator: tiled-box( <shorthand properties> ), ...;
 	
 	Decorators decorators;
-	if (decorator_string_value.empty() || decorator_string_value == NONE)
+	if (decorator_string_value.empty() || decorator_string_value == "none")
 		return nullptr;
 
 	const char* source_path = (source ? source->path.c_str() : "");
@@ -229,7 +228,7 @@ FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 	// Where <font-effect-value> is declared with inline properties, e.g.
 	//   font-effect: outline( 1px black ), ...;
 
-	if (font_effect_string_value.empty() || font_effect_string_value == NONE)
+	if (font_effect_string_value.empty() || font_effect_string_value == "none")
 		return nullptr;
 
 	const char* source_path = (source ? source->path.c_str() : "");

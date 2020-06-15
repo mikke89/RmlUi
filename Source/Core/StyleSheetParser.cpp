@@ -28,7 +28,6 @@
 
 #include "StyleSheetParser.h"
 #include "ComputeProperty.h"
-#include "StringCache.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
@@ -393,7 +392,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					String at_rule_identifier = pre_token_str.substr(0, pre_token_str.find(' '));
 					at_rule_name = StringUtilities::StripWhitespace(pre_token_str.substr(at_rule_identifier.size()));
 
-					if (at_rule_identifier == KEYFRAMES)
+					if (at_rule_identifier == "keyframes")
 					{
 						state = State::KeyframeBlock;
 					}
