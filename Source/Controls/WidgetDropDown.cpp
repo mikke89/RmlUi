@@ -65,6 +65,8 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	parent_element->AddEventListener(Core::EventId::Blur, this);
 	parent_element->AddEventListener(Core::EventId::Focus, this);
 	parent_element->AddEventListener(Core::EventId::Keydown, this, true);
+
+	selection_element->AddEventListener(Core::EventId::Mousescroll, this);
 }
 
 WidgetDropDown::~WidgetDropDown()
@@ -78,6 +80,8 @@ WidgetDropDown::~WidgetDropDown()
 	parent_element->RemoveEventListener(Core::EventId::Blur, this);
 	parent_element->RemoveEventListener(Core::EventId::Focus, this);
 	parent_element->RemoveEventListener(Core::EventId::Keydown, this, true);
+	
+	selection_element->RemoveEventListener(Core::EventId::Mousescroll, this);
 }
 
 // Updates the selection box layout if necessary.
@@ -379,6 +383,18 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 			break;
 		default:
 			break;
+		}
+	}
+	break;
+	case Core::EventId::Mousescroll:
+	{
+		if (event.GetCurrentElement() == selection_element)
+		{
+			// Prevent scrolling in the parent window when mouse is inside the selection box.
+			event.StopPropagation();
+			// Stopping propagation also stops all default scrolling actions. However, we still want to be able
+			// to scroll in the selection box, so call the default action manually.
+			selection_element->ProcessDefaultAction(event);
 		}
 	}
 	break;
