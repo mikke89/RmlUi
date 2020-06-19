@@ -108,6 +108,9 @@ private:
 	// Shows or hides the selection box.
 	void ShowSelectBox(bool show);
 
+	void AttachScrollEvent();
+	void DetachScrollEvent();
+
 	// Parent element that holds this widget
 	ElementFormControl* parent_element;
 

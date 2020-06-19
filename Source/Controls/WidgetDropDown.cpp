@@ -82,6 +82,8 @@ WidgetDropDown::~WidgetDropDown()
 	parent_element->RemoveEventListener(Core::EventId::Keydown, this, true);
 	
 	selection_element->RemoveEventListener(Core::EventId::Mousescroll, this);
+
+	DetachScrollEvent();
 }
 
 // Updates the selection box layout if necessary.
@@ -300,6 +302,18 @@ int WidgetDropDown::GetNumOptions() const
 	return (int) options.size();
 }
 
+void WidgetDropDown::AttachScrollEvent()
+{
+	if (Core::ElementDocument* document = parent_element->GetOwnerDocument())
+		document->AddEventListener(Core::EventId::Scroll, this, true);
+}
+
+void WidgetDropDown::DetachScrollEvent()
+{
+	if (Core::ElementDocument* document = parent_element->GetOwnerDocument())
+		document->RemoveEventListener(Core::EventId::Scroll, this, true);
+}
+
 void WidgetDropDown::ProcessEvent(Core::Event& event)
 {
 	if (parent_element->IsDisabled()) 
@@ -398,6 +412,27 @@ void WidgetDropDown::ProcessEvent(Core::Event& event)
 		}
 	}
 	break;
+	case Core::EventId::Scroll:
+	{
+		if (box_visible)
+		{
+			// Close the select box if we scroll outside the select box.
+			bool scrolls_selection_box = false;
+
+			for (Core::Element* element = event.GetTargetElement(); element; element = element->GetParentNode())
+			{
+				if (element == selection_element)
+				{
+					scrolls_selection_box = true;
+					break;
+				}
+			}
+
+			if (!scrolls_selection_box)
+				ShowSelectBox(false);
+		}
+	}
+	break;
 	default:
 		break;
 	}
@@ -411,12 +446,14 @@ void WidgetDropDown::ShowSelectBox(bool show)
 		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
+		AttachScrollEvent();
 	}
 	else
 	{
 		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
+		DetachScrollEvent();
 	}
 	box_visible = show;
 }
