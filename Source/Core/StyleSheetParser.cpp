@@ -502,13 +502,13 @@ bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, co
 	StreamMemory stream_owner((const byte*)properties.c_str(), properties.size());
 	stream = &stream_owner;
 	PropertySpecificationParser parser(parsed_properties, StyleSheetSpecification::GetPropertySpecification());
-	bool success = ReadProperties(parser);
+	bool success = ReadProperties(parser, false);
 	stream = nullptr;
 	return success;
 }
 
 
-bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
+bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, bool require_end_semicolon)
 {
 	String name;
 	String value;
@@ -591,8 +591,17 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 		previous_character = character;
 	}
 
-	if (!name.empty() || !value.empty())
+	if (!require_end_semicolon && !name.empty() && !value.empty())
+	{
+		value = StringUtilities::StripWhitespace(value);
+
+		if (!property_parser.Parse(name, value))
+			Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
+	}
+	else if (!name.empty() || !value.empty())
+	{
 		Log::Message(Log::LT_WARNING, "Invalid property declaration '%s':'%s' at %s:%d", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
+	}
 	
 	return true;
 }

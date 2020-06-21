@@ -81,7 +81,8 @@ private:
 	// Parses properties from the parse buffer into the dictionary
 	// @param properties The dictionary to store the properties in
 	// @param property_specification The specification used to parse the values. Normally the default stylesheet specification, but not for e.g. all at-rules such as decorators.
-	bool ReadProperties(AbstractPropertyParser& property_parser);
+	// @param require_end_semicolon True to require a ';' character after the final property.
+	bool ReadProperties(AbstractPropertyParser& property_parser, bool require_end_semicolon = true);
 
 	// Import properties into the stylesheet node
 	// @param node Node to import into
