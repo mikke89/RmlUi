@@ -1606,14 +1606,20 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 	it = changed_attributes.find("style");
 	if (it != changed_attributes.end())
 	{
-		PropertyDictionary properties;
-		StyleSheetParser parser;
-		parser.ParseProperties(properties, it->second.Get<String>());
-
-		Rml::Core::PropertyMap property_map = properties.GetProperties();
-		for (Rml::Core::PropertyMap::iterator i = property_map.begin(); i != property_map.end(); ++i)
+		if (it->second.GetType() == Variant::STRING)
 		{
-			meta->style.SetProperty((*i).first, (*i).second);
+			PropertyDictionary properties;
+			StyleSheetParser parser;
+			parser.ParseProperties(properties, it->second.GetReference<String>());
+
+			for (const auto& name_value : properties.GetProperties())
+			{
+				meta->style.SetProperty(name_value.first, name_value.second);
+			}
+		}
+		else if (it->second.GetType() != Variant::NONE)
+		{
+			Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
 		}
 	}
 }
