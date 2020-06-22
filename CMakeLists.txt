@@ -55,6 +55,10 @@ endif(POLICY CMP0074)
 
 project(RmlUi LANGUAGES C CXX VERSION 3.3)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(RMLUI_VERSION_RELEASE false)
 
 if(RMLUI_VERSION_RELEASE)
@@ -255,9 +259,6 @@ foreach(library ${LIBRARIES})
 		target_compile_options(${NAME} PUBLIC "/MP")
 	endif(MSVC)
 	
-	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 14)
-	set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-	
 	install(TARGETS ${NAME}
 		EXPORT RmlUiTargets
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -359,9 +360,6 @@ if(BUILD_LUA_BINDINGS)
 		   VERSION ${PROJECT_VERSION}
 		   SOVERSION ${PROJECT_VERSION_MAJOR}
 		)
-
-		set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 14)
-		set_property(TARGET ${NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 		install(TARGETS ${NAME}
 			EXPORT RmlUiTargets
@@ -504,8 +502,6 @@ endif(NOT BUILD_FRAMEWORK)
 
 	# Build and install sample shell library
 	add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
-	set_property(TARGET shell PROPERTY CXX_STANDARD 14)
-	set_property(TARGET shell PROPERTY CXX_STANDARD_REQUIRED ON)
 	
 	if (PRECOMPILED_HEADERS_ENABLED)
 		target_precompile_headers(shell PRIVATE ${PROJECT_SOURCE_DIR}/Samples/shell/src/precompiled.h)
@@ -514,9 +510,6 @@ endif(NOT BUILD_FRAMEWORK)
 	# Build and install the basic samples
 	foreach(sample ${samples})
 		bl_sample(${sample} ${sample_LIBRARIES})
-		
-		set_property(TARGET ${sample} PROPERTY CXX_STANDARD 14)
-		set_property(TARGET ${sample} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 		# The samples always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
@@ -536,8 +529,6 @@ endif(NOT BUILD_FRAMEWORK)
 			include_directories(${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
 			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
-			set_property(TARGET sdl2 PROPERTY CXX_STANDARD 14)
-			set_property(TARGET sdl2 PROPERTY CXX_STANDARD_REQUIRED ON)
 		
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
@@ -575,9 +566,6 @@ endif(NOT BUILD_FRAMEWORK)
 			include_directories(${SFML_INCLUDE_DIR})
 			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
 		endif()
-		
-			set_property(TARGET sfml2 PROPERTY CXX_STANDARD 14)
-			set_property(TARGET sfml2 PROPERTY CXX_STANDARD_REQUIRED ON)
 			
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
@@ -590,9 +578,6 @@ endif(NOT BUILD_FRAMEWORK)
 	foreach(tutorial ${tutorials})
 		set(tutorial_fullname tutorial_${tutorial})
 		bl_sample(${tutorial_fullname} ${sample_LIBRARIES})
-
-		set_property(TARGET ${tutorial_fullname} PROPERTY CXX_STANDARD 14)
-		set_property(TARGET ${tutorial_fullname} PROPERTY CXX_STANDARD_REQUIRED ON)
 		
 		# The tutorials always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
@@ -603,8 +588,6 @@ endif(NOT BUILD_FRAMEWORK)
 
 	# Build and install invaders sample
 	bl_sample(invaders ${sample_LIBRARIES})
-	set_property(TARGET invaders PROPERTY CXX_STANDARD 14)
-	set_property(TARGET invaders PROPERTY CXX_STANDARD_REQUIRED ON)
 	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
 	install(TARGETS invaders 
 		RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
@@ -612,8 +595,6 @@ endif(NOT BUILD_FRAMEWORK)
 
 	if(BUILD_LUA_BINDINGS)
 		bl_sample(luainvaders RmlCoreLua RmlControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
-		set_property(TARGET luainvaders PROPERTY CXX_STANDARD 14)
-		set_property(TARGET luainvaders PROPERTY CXX_STANDARD_REQUIRED ON)
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
 		install(TARGETS luainvaders 
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
