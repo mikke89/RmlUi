@@ -292,7 +292,7 @@ void WidgetSlider::FormatBar(float bar_length)
 	Rml::Core::Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
 	{
-		if (computed.height.value == Core::Style::Height::Auto)
+		if (computed.height.type == Core::Style::Height::Auto)
 			bar_box_content.y = parent->GetBox().GetSize().y;
 	}
 
@@ -304,7 +304,7 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::TOP) + bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::BOTTOM));
 
-			if (computed.height.value == Core::Style::Height::Auto)
+			if (computed.height.type == Core::Style::Height::Auto)
 			{
 				bar_box_content.y = track_length * bar_length;
 
@@ -325,7 +325,7 @@ void WidgetSlider::FormatBar(float bar_length)
 		{
 			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::LEFT) + bar_box.GetCumulativeEdge(Core::Box::CONTENT, Core::Box::RIGHT));
 
-			if (computed.width.value == Core::Style::Width::Auto)
+			if (computed.width.type == Core::Style::Width::Auto)
 			{
 				bar_box_content.x = track_length * bar_length;
 
