@@ -33,6 +33,7 @@
 #include <x11/InputX11.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/xf86vmode.h>
+#include <X11/cursorfont.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
@@ -50,6 +51,14 @@ static timeval start_time;
 static Rml::Core::String clipboard_text;
 
 static std::unique_ptr<ShellFileInterface> file_interface;
+
+static Cursor cursor_default = 0;
+static Cursor cursor_move = 0;
+static Cursor cursor_pointer = 0;
+static Cursor cursor_resize = 0;
+static Cursor cursor_cross = 0;
+static Cursor cursor_text = 0;
+static Cursor cursor_unavailable = 0;
 
 static bool isRegularFile(const Rml::Core::String& path)
 {
@@ -209,6 +218,17 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 		}
 	}
 
+	{
+		// Create cursors
+		cursor_default = XCreateFontCursor(display, XC_left_ptr);;
+		cursor_move = XCreateFontCursor(display, XC_fleur);
+		cursor_pointer = XCreateFontCursor(display, XC_hand1);
+		cursor_resize = XCreateFontCursor(display, XC_sizing);
+		cursor_cross = XCreateFontCursor(display, XC_crosshair);
+		cursor_text = XCreateFontCursor(display, XC_xterm);
+		cursor_unavailable = XCreateFontCursor(display, XC_X_cursor);
+	}
+
 	// Set the window title and show the window.
 	XSetStandardProperties(display, window, name, "", 0L, nullptr, 0, nullptr);
 	XMapRaised(display, window);
@@ -353,7 +373,29 @@ double Shell::GetElapsedTime()
 
 void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 {
-	// Not implemented
+	if (display && window)
+	{
+		Cursor cursor_handle = 0;
+		if (cursor_name.empty() || cursor_name == "arrow")
+			cursor_handle = cursor_default;
+		else if (cursor_name == "move")
+			cursor_handle = cursor_move;
+		else if (cursor_name == "pointer")
+			cursor_handle = cursor_pointer;
+		else if (cursor_name == "resize")
+			cursor_handle = cursor_resize;
+		else if (cursor_name == "cross")
+			cursor_handle = cursor_cross;
+		else if (cursor_name == "text")
+			cursor_handle = cursor_text;
+		else if (cursor_name == "unavailable")
+			cursor_handle = cursor_unavailable;
+
+		if (cursor_handle)
+		{
+			XDefineCursor(display, window, cursor_handle);
+		}
+	}
 }
 
 void Shell::SetClipboardText(const Rml::Core::String& text)
