@@ -6,6 +6,12 @@
 
 ## RmlUi 3.3 (WIP)
 
+###  Rml `select` element improvements
+
+- Prevent scrolling in the parent window when scrolling inside the selection box.
+- Close the selection box when scrolling in the parent document.
+- The selection box will now limit it's height to the available space within the context's window dimensions, and position itself either below or above the `select` element as appropriate. [#91](https://github.com/mikke89/RmlUi/issues/91)
+
 ### Cleaning up header files
 
 An effort has been made for header files to include what they use, and nothing else. This effort has measurably improved compile times, especially when not using precompiled headers.
@@ -15,6 +21,24 @@ This change also makes it easier to include only parts of the library headers in
 ### CMake precompiled header support
 
 The library now makes use of CMake's precompiled header support (requires CMake 3.16 or higher), which can optionally be disabled. In Visual Studio, compilation times are improved by almost 50% when enabled.
+
+### Changes
+
+- The `style` attribute no longer requires a semi-colon `;` after the final property.
+- The sample projects now universally use the `F8` key to toggle the RmlUi debugger on all platforms.
+- Add an upper limit to the number of possible custom properties and events. This change will reduce the number of dynamic allocations in some cases.
+- Build improvements and several warnings fixed. Compiles cleanly with `-Wall`.
+- The sample projects now find their assets when building and running the sample with Visual Studio's native CMake support and default settings. This also applies when targeting Windows Subsystem for Linux (WSL).
+- The mouse cursor API is now implemented on the X11 shell.
+- RmlUi is now C++20 compatible (C++14 is still the minimum requirement).
+
+### Bug fixes
+
+- Fix font textures not released when calling Core::ReleaseTextures [#84](https://github.com/mikke89/RmlUi/issues/84).
+- Re-implement `Rml::Core::ReleaseCompiledGeometries()` [#84](https://github.com/mikke89/RmlUi/issues/84).
+- Property `white-space: nowrap` no longer disables horizontal scrollbars on overflow [#94](https://github.com/mikke89/RmlUi/issues/94).
+- Changes to font effects are now properly applied whenever the `font-effect` property is changed [#98](https://github.com/mikke89/RmlUi/issues/98).
+- Fix structural pseudo-selectors only being applied if written with parenthesis [#30](https://github.com/mikke89/RmlUi/issues/30).
 
 
 ## RmlUi 3.2
