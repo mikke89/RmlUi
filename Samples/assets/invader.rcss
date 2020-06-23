@@ -388,6 +388,7 @@ dataselect selectbox
 {
 	margin-left: 1px;
 	margin-top: -7px;
+	margin-bottom: -10px;
 	width: 162px;
 	padding: 1px 4px 4px 4px;
 }

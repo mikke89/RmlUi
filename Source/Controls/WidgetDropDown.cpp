@@ -27,6 +27,8 @@
  */
 
 #include "WidgetDropDown.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
@@ -60,6 +62,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
 	selection_element->SetProperty(Core::PropertyId::ZIndex, Core::Property(1.0f, Core::Property::NUMBER));
 	selection_element->SetProperty(Core::PropertyId::Clip, Core::Property(Core::Style::Clip::Type::None));
+	selection_element->SetProperty(Core::PropertyId::OverflowY, Core::Property(Core::Style::Overflow::Auto));
 
 	parent_element->AddEventListener(Core::EventId::Click, this, true);
 	parent_element->AddEventListener(Core::EventId::Blur, this);
@@ -91,12 +94,83 @@ void WidgetDropDown::OnRender()
 {
 	if (box_visible && box_layout_dirty)
 	{
+		// Layout the selection box. 
+		// The following procedure should ensure that the selection box is never (partly) outside of the context's window.
+		// This is achieved by positioning the box either above or below the 'select' element, and possibly shrinking
+		// the element's height.
+		using Rml::Core::Vector2f;
+
+		// The procedure below assumes that the 'height' property is set to 'auto'.
+		// Note that we do respect the 'max-height' if set by the user.
+		if(selection_element->GetComputedValues().height.type != Core::Style::Height::Auto)
+		{
+			selection_element->SetProperty(Core::PropertyId::Height, Core::Property(Core::Style::Height::Auto));
+			selection_element->GetOwnerDocument()->UpdateDocument();
+		}
+
 		Core::Box box;
 		Core::ElementUtilities::BuildBox(box, parent_element->GetBox().GetSize(), selection_element);
 
-		// Layout the selection box.
+		// The user can use 'margin-left/top/bottom' to offset the box away from the 'select' element, respectively
+		// horizontally, vertically when box below, and vertically when box above.
+		const float offset_x = box.GetEdge(Core::Box::MARGIN, Core::Box::LEFT);
+		const float offset_y_below = parent_element->GetBox().GetSize(Core::Box::BORDER).y + box.GetEdge(Core::Box::MARGIN, Core::Box::TOP);
+		const float offset_y_above = -box.GetEdge(Core::Box::MARGIN, Core::Box::BOTTOM);
+
+		float window_height = 100'000.f;
+		if (Core::Context* context = parent_element->GetContext())
+			window_height = float(context->GetDimensions().y);
+
+		const float absolute_y = parent_element->GetAbsoluteOffset(Rml::Core::Box::BORDER).y;
+
+		const float height_below = window_height - absolute_y - offset_y_below;
+		const float height_above = absolute_y + offset_y_above;
+
+		// Format the selection box and retrieve the 'native' height occupied by all the options, but limited
+		// by 'max-height' if set by the user.
 		Core::ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(Core::Box::BORDER));
-		selection_element->SetOffset(Rml::Core::Vector2f(box.GetEdge(Core::Box::MARGIN, Core::Box::LEFT), parent_element->GetBox().GetSize(Core::Box::BORDER).y + box.GetEdge(Core::Box::MARGIN, Core::Box::TOP)), parent_element);
+		const float content_height = selection_element->GetOffsetHeight();
+
+		if (content_height < height_below)
+		{
+			// Position box below
+			selection_element->SetOffset(Vector2f(offset_x, offset_y_below), parent_element);
+		}
+		else if (content_height < height_above)
+		{
+			// Position box above
+			selection_element->SetOffset(Vector2f(offset_x, -content_height + offset_y_above), parent_element);
+		}
+		else 
+		{
+			// Shrink box and position either below or above
+			const float padding_border_size =
+				box.GetEdge(Core::Box::BORDER, Core::Box::TOP) + box.GetEdge(Core::Box::BORDER, Core::Box::BOTTOM) +
+				box.GetEdge(Core::Box::PADDING, Core::Box::TOP) + box.GetEdge(Core::Box::PADDING, Core::Box::BOTTOM);
+
+			float height = 0.f;
+			float offset_y = 0.f;
+
+			if (height_below > height_above)
+			{
+				// Position below
+				height = height_below - padding_border_size;
+				offset_y = offset_y_below;
+			}
+			else
+			{
+				// Position above
+				height = height_above - padding_border_size;
+				offset_y = offset_y_above - height_above;
+			}
+
+			// Set the height and re-format the selection box.
+			selection_element->SetProperty(Core::PropertyId::Height, Core::Property(height, Core::Property::PX));
+			selection_element->GetOwnerDocument()->UpdateDocument();
+			Core::ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(Core::Box::BORDER));
+
+			selection_element->SetOffset(Vector2f(offset_x, offset_y), parent_element);
+		}
 
 		box_layout_dirty = false;
 	}
@@ -446,6 +520,7 @@ void WidgetDropDown::ShowSelectBox(bool show)
 		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
+		box_layout_dirty = true;
 		AttachScrollEvent();
 	}
 	else
