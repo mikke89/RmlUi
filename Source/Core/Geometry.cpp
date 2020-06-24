@@ -39,12 +39,12 @@
 namespace Rml {
 namespace Core {
 
-Geometry::Geometry(Element* _host_element)
+Geometry::Geometry(Element* host_element) : host_element(host_element)
 {
 	database_handle = GeometryDatabase::Insert(this);
 }
 
-Geometry::Geometry(Context* _host_context)
+Geometry::Geometry(Context* host_context) : host_context(host_context)
 {
 	database_handle = GeometryDatabase::Insert(this);
 }
@@ -100,8 +100,8 @@ void Geometry::SetHostElement(Element* _host_element)
 
 void Geometry::Render(const Vector2f& translation)
 {
-	RenderInterface* render_interface = GetRenderInterface();
-	if (render_interface == nullptr)
+	RenderInterface* const render_interface = GetRenderInterface();
+	if (!render_interface)
 		return;
 
 	// Render our compiled geometry if possible.
@@ -123,7 +123,7 @@ void Geometry::Render(const Vector2f& translation)
 		if (!compile_attempted)
 		{
 			compile_attempted = true;
-			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int) vertices.size(), &indices[0], (int) indices.size(), texture != nullptr ? texture->GetHandle(GetRenderInterface()) : 0);
+			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(), texture ? texture->GetHandle(render_interface) : 0);
 
 			// If we managed to compile the geometry, we can clear the local copy of vertices and indices and
 			// immediately render the compiled version.
@@ -136,7 +136,7 @@ void Geometry::Render(const Vector2f& translation)
 
 		// Either we've attempted to compile before (and failed), or the compile we just attempted failed; either way,
 		// render the uncompiled version.
-		render_interface->RenderGeometry(&vertices[0], (int) vertices.size(), &indices[0], (int) indices.size(), texture != nullptr ? texture->GetHandle(GetRenderInterface()) : 0, translation);
+		render_interface->RenderGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(), texture ? texture->GetHandle(GetRenderInterface()) : 0, translation);
 	}
 }
 
@@ -185,16 +185,16 @@ void Geometry::Release(bool clear_buffers)
 // Returns the host context's render interface.
 RenderInterface* Geometry::GetRenderInterface()
 {
-	if (host_context == nullptr)
+	if (!host_context)
 	{
-		if (host_element != nullptr)
+		if (host_element)
 			host_context = host_element->GetContext();
 	}
 
-	if (host_context == nullptr)
-		return Rml::Core::GetRenderInterface();
-	else
+	if (host_context)
 		return host_context->GetRenderInterface();
+	else
+		return Rml::Core::GetRenderInterface();
 }
 
 }
