@@ -45,7 +45,7 @@ namespace FontProviderBitmap
 		fonts.clear();
 	}
 
-	bool LoadFontFace(const String& file_name, bool fallback_face)
+	bool LoadFontFace(const String& file_name)
 	{
 		// Load the xml meta file into memory
 		std::unique_ptr<byte[]> data;

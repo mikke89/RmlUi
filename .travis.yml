@@ -3,7 +3,7 @@ dist: bionic
 language: c++
 env:
   global:
-    - CXXFLAGS="-pedantic -Wall"
+    - CXXFLAGS="-pedantic -Wall -Wextra"
 
 cache: 
   apt: true

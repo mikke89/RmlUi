@@ -207,15 +207,13 @@ void RmlUiSFMLRenderer::RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle
 	glEnable(GL_TEXTURE_COORD_ARRAY);
 	glEnable(GL_COLOR_ARRAY);
 
-	#define BUFFER_OFFSET(x) ((char*)0 + x)
-
 	glBindBuffer(GL_ARRAY_BUFFER, RealGeometry->VertexID);
-	glVertexPointer(2, GL_FLOAT, sizeof(RmlUiSFMLRendererVertex), BUFFER_OFFSET(0));
-	glTexCoordPointer(2, GL_FLOAT, sizeof(RmlUiSFMLRendererVertex), BUFFER_OFFSET(sizeof(sf::Vector2f)));
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(RmlUiSFMLRendererVertex), BUFFER_OFFSET(sizeof(sf::Vector2f[2])));
+	glVertexPointer(2, GL_FLOAT, sizeof(RmlUiSFMLRendererVertex), (const void*)0);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(RmlUiSFMLRendererVertex), (const void*)sizeof(sf::Vector2f));
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(RmlUiSFMLRendererVertex), (const void*)sizeof(sf::Vector2f[2]));
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, RealGeometry->IndexID);
-	glDrawElements(GL_TRIANGLES, RealGeometry->NumVertices, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+	glDrawElements(GL_TRIANGLES, RealGeometry->NumVertices, GL_UNSIGNED_INT, (const void*)0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 

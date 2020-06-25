@@ -2,6 +2,7 @@ version: build.{build}
 image: Visual Studio 2017
 environment:
   FREETYPE_VER: 2.10.1
+  CXXFLAGS: /DWIN32 /D_WINDOWS /W4 /GR /EHsc /permissive- /w44062
   matrix:
     - VS_GENERATOR: Visual Studio 15 2017 Win64
       PLATFORM_NAME: win64
@@ -20,7 +21,7 @@ install:
     mkdir Build-Dynamic, Build-Static
     
     cd Build-Dynamic
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON ..
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON -DCMAKE_CXX_FLAGS="%CXXFLAGS%" ..
 
     cd ../Build-Static
     cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DBUILD_SAMPLES=OFF ..

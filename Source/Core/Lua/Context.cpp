@@ -38,7 +38,7 @@ namespace Rml {
 namespace Core {
 namespace Lua {
 typedef Rml::Core::ElementDocument Document;
-template<> void ExtraInit<Context>(lua_State* L, int metatable_index) { return; }
+template<> void ExtraInit<Context>(lua_State* /*L*/, int /*metatable_index*/) { return; }
 
 //methods
 int ContextAddEventListener(lua_State* L, Context* obj)
@@ -104,7 +104,7 @@ int ContextRender(lua_State* L, Context* obj)
     return 1;
 }
 
-int ContextUnloadAllDocuments(lua_State* L, Context* obj)
+int ContextUnloadAllDocuments(lua_State* /*L*/, Context* obj)
 {
     obj->UnloadAllDocuments();
     return 0;

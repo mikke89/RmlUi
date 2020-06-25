@@ -108,13 +108,13 @@ int ElementAppendChild(lua_State* L, Element* obj)
     return 0;
 }
 
-int ElementBlur(lua_State* L, Element* obj)
+int ElementBlur(lua_State* /*L*/, Element* obj)
 {
     obj->Blur();
     return 0;
 }
 
-int ElementClick(lua_State* L, Element* obj)
+int ElementClick(lua_State* /*L*/, Element* obj)
 {
     obj->Click();
     return 0;
@@ -153,7 +153,7 @@ int ElementDispatchEvent(lua_State* L, Element* obj)
     return 0;
 }
 
-int ElementFocus(lua_State* L, Element* obj)
+int ElementFocus(lua_State* /*L*/, Element* obj)
 {
     obj->Focus();
     return 0;
@@ -634,7 +634,7 @@ LUACORETYPEDEFINE(Element)
 
 
 
-template<> void ExtraInit<ElementPtr>(lua_State* L, int metatable_index)
+template<> void ExtraInit<ElementPtr>(lua_State* /*L*/, int /*metatable_index*/)
 {
 	return;
 }

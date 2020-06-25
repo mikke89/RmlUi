@@ -10,7 +10,7 @@
 
 - Prevent scrolling in the parent window when scrolling inside the selection box.
 - Close the selection box when scrolling in the parent document.
-- The selection box will now limit it's height to the available space within the context's window dimensions, and position itself either below or above the `select` element as appropriate. [#91](https://github.com/mikke89/RmlUi/issues/91)
+- The selection box will now limit its height to the available space within the context's window dimensions, and position itself either below or above the `select` element as appropriate. [#91](https://github.com/mikke89/RmlUi/issues/91)
 
 ### Cleaning up header files
 
@@ -27,7 +27,7 @@ The library now makes use of CMake's precompiled header support (requires CMake 
 - The `style` attribute no longer requires a semi-colon `;` after the final property.
 - The sample projects now universally use the `F8` key to toggle the RmlUi debugger on all platforms.
 - Add an upper limit to the number of possible custom properties and events. This change will reduce the number of dynamic allocations in some cases.
-- Build improvements and several warnings fixed. Compiles cleanly with `-Wall`.
+- Build improvements and several warnings fixed. Compiles cleanly with `-Wall -Wextra` and on MSVC with `/W4`.
 - The sample projects now find their assets when building and running the sample with Visual Studio's native CMake support and default settings. This also applies when targeting Windows Subsystem for Linux (WSL).
 - The mouse cursor API is now implemented on the X11 shell.
 - RmlUi is now C++20 compatible (C++14 is still the minimum requirement).
@@ -38,7 +38,11 @@ The library now makes use of CMake's precompiled header support (requires CMake 
 - Re-implement `Rml::Core::ReleaseCompiledGeometries()` [#84](https://github.com/mikke89/RmlUi/issues/84).
 - Property `white-space: nowrap` no longer disables horizontal scrollbars on overflow [#94](https://github.com/mikke89/RmlUi/issues/94).
 - Changes to font effects are now properly applied whenever the `font-effect` property is changed [#98](https://github.com/mikke89/RmlUi/issues/98).
-- Fix structural pseudo-selectors only being applied if written with parenthesis [#30](https://github.com/mikke89/RmlUi/issues/30).
+- Fix structural pseudo-selectors only being applied if written with parenthesis [#30](https://github.com/mikke89/RmlUi/issues/30#issuecomment-597648310).
+
+### Breaking changes
+
+- The `height` property of `selectbox` will no longer take any effect. Note that `max-height` can still be used.
 
 
 ## RmlUi 3.2

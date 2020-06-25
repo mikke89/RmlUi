@@ -292,7 +292,7 @@ int LuaType<T>::newindex(lua_State* L)
 
 
 template<typename T>
-void LuaType<T>::_regfunctions(lua_State* L, int meta, int methods)
+void LuaType<T>::_regfunctions(lua_State* L, int /*meta*/, int methods)
 {
     //fill method table with methods.
     for(RegType* m = (RegType*)GetMethodTable<T>(); m->name; m++)

@@ -39,7 +39,7 @@ namespace FontProviderBitmap
 {
 	void Initialise();
 	void Shutdown();
-	bool LoadFontFace(const String& file_name, bool fallback_face);
+	bool LoadFontFace(const String& file_name);
 	FontFaceBitmap* GetFontFaceHandle(const String& family, FontStyle style, FontWeight weight, int size);
 }
 

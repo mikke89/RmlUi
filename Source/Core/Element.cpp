@@ -1786,12 +1786,12 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 }
 
 // Called when a child node has been added somewhere in the hierarchy
-void Element::OnChildAdd(Element* child)
+void Element::OnChildAdd(Element* /*child*/)
 {
 }
 
 // Called when a child node has been removed somewhere in the hierarchy
-void Element::OnChildRemove(Element* child)
+void Element::OnChildRemove(Element* /*child*/)
 {
 }
 
@@ -2323,7 +2323,10 @@ void Element::HandleAnimationProperty()
 		bool element_has_animations = (!animation_list.empty() || !animations.empty());
 		StyleSheet* stylesheet = nullptr;
 
-		if (element_has_animations && (stylesheet = GetStyleSheet().get()))
+		if (element_has_animations)
+			stylesheet = GetStyleSheet().get();
+
+		if (stylesheet)
 		{
 			// Remove existing animations
 			{

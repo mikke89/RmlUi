@@ -243,7 +243,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 		auto it = std::find_if(keyframes.blocks.begin(), keyframes.blocks.end(), [selector](const KeyframeBlock& keyframe_block) { return Math::AbsoluteValue(keyframe_block.normalized_time - selector) < 0.0001f; });
 		if (it == keyframes.blocks.end())
 		{
-			keyframes.blocks.push_back(KeyframeBlock{ selector });
+			keyframes.blocks.emplace_back(selector);
 			it = (keyframes.blocks.end() - 1);
 		}
 		else
@@ -370,7 +370,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					{
 						auto source = std::make_shared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
 						properties.SetSourceOfAllProperties(source);
-						ImportProperties(node, rule_name_list[i], properties, rule_count, rule_line_number);
+						ImportProperties(node, rule_name_list[i], properties, rule_count);
 					}
 
 					rule_count++;
@@ -607,7 +607,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, b
 }
 
 // Updates the StyleNode tree, creating new nodes as necessary, setting the definition index
-bool StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity, int rule_line_number)
+bool StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity)
 {
 	StyleSheetNode* leaf_node = node;
 

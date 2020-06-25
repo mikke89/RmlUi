@@ -54,8 +54,8 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 	{
 		const String& sprite_name = sprite_definition.first;
 		const Rectangle& sprite_rectangle = sprite_definition.second;
-		auto result = sprite_map.emplace(sprite_name, Sprite{ sprite_rectangle, sprite_sheet.get() });
-		if (result.second)
+		auto sprite_result = sprite_map.emplace(sprite_name, Sprite{ sprite_rectangle, sprite_sheet.get() });
+		if (sprite_result.second)
 		{
 			sprite_names.push_back(sprite_name);
 		}

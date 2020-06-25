@@ -377,7 +377,7 @@ void Shell::GetClipboardText(Rml::Core::String& text)
 	}
 }
 
-static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)
+static LRESULT CALLBACK WindowProcedure(HWND local_window_handle, UINT message, WPARAM w_param, LPARAM l_param)
 {
 	// See what kind of message we've got.
 	switch (message)
@@ -419,5 +419,5 @@ static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM
 	}
 
 	// All unhandled messages go to DefWindowProc.
-	return DefWindowProc(window_handle, message, w_param, l_param);
+	return DefWindowProc(local_window_handle, message, w_param, l_param);
 }

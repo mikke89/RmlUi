@@ -58,13 +58,14 @@ public:
 
 private:
 	/// Scan a string for a parameterized keyword with a certain number of numeric arguments.
+	/// @param[out] out_bytes_read The number of bytes read if the keyword occurs at the beginning of str, 0 otherwise.
 	/// @param[in] str The string to search for the parameterized keyword
 	/// @param[in] keyword The name of the keyword to search for
 	/// @param[in] parsers The numeric argument parsers
 	/// @param[out] args The numeric arguments encountered
 	/// @param[in] nargs The number of numeric arguments expected
-	/// @returns The number of bytes read, if the function call occurs at the beginning of str, 0 otherwise.
-	int Scan(const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const;
+	/// @return True if parsed successfully, false otherwise.
+	bool Scan(int& out_bytes_read, const char* str, const char* keyword, const PropertyParser** parsers, Transforms::NumericValue* args, int nargs) const;
 
 	PropertyParserNumber number, length, angle;
 };

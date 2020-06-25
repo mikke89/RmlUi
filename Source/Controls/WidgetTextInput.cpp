@@ -317,28 +317,28 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 
 		switch (key_identifier)
 		{
-		case Core::Input::KI_NUMPAD4:	if (numlock) break;
+		case Core::Input::KI_NUMPAD4:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_LEFT:		MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
 
-		case Core::Input::KI_NUMPAD6:	if (numlock) break;
+		case Core::Input::KI_NUMPAD6:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_RIGHT:		MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
 
-		case Core::Input::KI_NUMPAD8:	if (numlock) break;
+		case Core::Input::KI_NUMPAD8:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_UP:		MoveCursorVertical(-1, shift); break;
 
-		case Core::Input::KI_NUMPAD2:	if (numlock) break;
+		case Core::Input::KI_NUMPAD2:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
 
-		case Core::Input::KI_NUMPAD7:	if (numlock) break;
+		case Core::Input::KI_NUMPAD7:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_HOME:		MoveCursorHorizontal(ctrl ? CursorMovement::Begin : CursorMovement::BeginLine, shift); break;
 
-		case Core::Input::KI_NUMPAD1:	if (numlock) break;
+		case Core::Input::KI_NUMPAD1:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_END:		MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
 
-		case Core::Input::KI_NUMPAD3:	if (numlock) break;
+		case Core::Input::KI_NUMPAD3:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_PRIOR:		MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift); break;
 
-		case Core::Input::KI_NUMPAD9:	if (numlock) break;
+		case Core::Input::KI_NUMPAD9:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_NEXT:		MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift); break;
 
 		case Core::Input::KI_BACK:
@@ -354,7 +354,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 		}
 		break;
 
-		case Core::Input::KI_DECIMAL:	if (numlock) break;
+		case Core::Input::KI_DECIMAL:	if (numlock) break; //-fallthrough
 		case Core::Input::KI_DELETE:
 		{
 			CursorMovement direction = (ctrl ? CursorMovement::NextWord : CursorMovement::Right);
@@ -466,7 +466,7 @@ void WidgetTextInput::ProcessEvent(Core::Event& event)
 			// specially by selecting whole words at a time, which is not yet implemented.
 			break;
 		}
-		// Else, fall through:
+		//-fallthrough
 	case EventId::Mousedown:
 	{
 		if (event.GetTargetElement() == parent)

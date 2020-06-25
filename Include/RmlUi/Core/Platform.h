@@ -57,21 +57,14 @@
 
 
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
-	// alignment of a member was sensitive to packing
-	#pragma warning(disable : 4121)
+	// declaration of 'identifier' hides class member
+	#pragma warning(disable : 4458)
 
 	// <type> needs to have dll-interface to be used by clients
 	#pragma warning(disable : 4251)
 
-	// assignment operator could not be generated
-	#pragma warning(disable : 4512)
-
 	// <function> was declared deprecated
 	#pragma warning(disable : 4996)
-
-	#if !defined _CRT_SECURE_NO_DEPRECATE
-		#define _CRT_SECURE_NO_DEPRECATE
-	#endif
 #endif
 
 // Wraps unused variables in methods or functions to avoid compiler warnings.  This should

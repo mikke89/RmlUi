@@ -54,9 +54,9 @@ void LuaRmlUiPushrmluiGlobal(lua_State* L)
     lua_setglobal(L,"rmlui");
 }
 
-template<> void ExtraInit<LuaRmlUi>(lua_State* L, int metatable_index) { return; }
+template<> void ExtraInit<LuaRmlUi>(lua_State* /*L*/, int /*metatable_index*/) { return; }
 
-int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* obj)
+int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* /*obj*/)
 {
     const char* name = luaL_checkstring(L,1);
     Vector2i* dimensions = LuaType<Vector2i>::check(L,2);
@@ -72,14 +72,14 @@ int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* obj)
     return 1;
 }
 
-int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* obj)
+int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* /*obj*/)
 {
     const char* file = luaL_checkstring(L,1);
     lua_pushboolean(L,LoadFontFace(file));
     return 1;
 }
 
-int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* obj)
+int LuaRmlUiRegisterTag(lua_State* L, LuaRmlUi* /*obj*/)
 {
     const char* tag = luaL_checkstring(L,1);
     LuaElementInstancer* lei = (LuaElementInstancer*)LuaType<ElementInstancer>::check(L,2);

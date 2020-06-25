@@ -40,54 +40,54 @@
 
 #include <GL/glew.h>
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char** /*argv*/)
 {
 #ifdef RMLUI_PLATFORM_WIN32
-        DoAllocConsole();
+	DoAllocConsole();
 #endif
 
-        int window_width = 1024;
-        int window_height = 768;
+	int window_width = 1024;
+	int window_height = 768;
 
-    SDL_Init( SDL_INIT_VIDEO );
-    SDL_Window * screen = SDL_CreateWindow("LibRmlUi SDL2 test", 20, 20, window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-    SDL_GLContext glcontext = SDL_GL_CreateContext(screen);
-    int oglIdx = -1;
-    int nRD = SDL_GetNumRenderDrivers();
-    for(int i=0; i<nRD; i++)
-    {
-        SDL_RendererInfo info;
-        if(!SDL_GetRenderDriverInfo(i, &info))
-        {
-            if(!strcmp(info.name, "opengl"))
-            {
-                oglIdx = i;
-            }
-        }
-    }
-    SDL_Renderer * renderer = SDL_CreateRenderer(screen, oglIdx, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Window* screen = SDL_CreateWindow("LibRmlUi SDL2 test", 20, 20, window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	SDL_GLContext glcontext = SDL_GL_CreateContext(screen);
+	int oglIdx = -1;
+	int nRD = SDL_GetNumRenderDrivers();
+	for (int i = 0; i < nRD; i++)
+	{
+		SDL_RendererInfo info;
+		if (!SDL_GetRenderDriverInfo(i, &info))
+		{
+			if (!strcmp(info.name, "opengl"))
+			{
+				oglIdx = i;
+			}
+		}
+	}
+	SDL_Renderer* renderer = SDL_CreateRenderer(screen, oglIdx, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    GLenum err = glewInit();
+	GLenum err = glewInit();
 
-    if(err != GLEW_OK)
-        fprintf(stderr, "GLEW ERROR: %s\n", glewGetErrorString(err));
+	if (err != GLEW_OK)
+		fprintf(stderr, "GLEW ERROR: %s\n", glewGetErrorString(err));
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    glMatrixMode(GL_PROJECTION|GL_MODELVIEW);
-    glLoadIdentity();
-    glOrtho(0, window_width, window_height, 0, 0, 1);
- 
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
+	glLoadIdentity();
+	glOrtho(0, window_width, window_height, 0, 0, 1);
+
 	RmlUiSDL2Renderer Renderer(renderer, screen);
 	RmlUiSDL2SystemInterface SystemInterface;
-	
+
 	Rml::Core::String root = Shell::FindSamplesRoot();
 	ShellFileInterface FileInterface(root);
 
 	Rml::Core::SetFileInterface(&FileInterface);
 	Rml::Core::SetRenderInterface(&Renderer);
-    Rml::Core::SetSystemInterface(&SystemInterface);
+	Rml::Core::SetSystemInterface(&SystemInterface);
 
-	if(!Rml::Core::Initialise())
+	if (!Rml::Core::Initialise())
 		return 1;
 
 	Rml::Core::LoadFontFace("assets/Delicious-Bold.otf");
@@ -95,14 +95,14 @@ int main(int argc, char **argv)
 	Rml::Core::LoadFontFace("assets/Delicious-Italic.otf");
 	Rml::Core::LoadFontFace("assets/Delicious-Roman.otf");
 
-	Rml::Core::Context *Context = Rml::Core::CreateContext("default",
+	Rml::Core::Context* Context = Rml::Core::CreateContext("default",
 		Rml::Core::Vector2i(window_width, window_height));
 
 	Rml::Debugger::Initialise(Context);
 
-	Rml::Core::ElementDocument *Document = Context->LoadDocument("assets/demo.rml");
+	Rml::Core::ElementDocument* Document = Context->LoadDocument("assets/demo.rml");
 
-	if(Document)
+	if (Document)
 	{
 		Document->Show();
 		fprintf(stdout, "\nDocument loaded");
@@ -112,67 +112,67 @@ int main(int argc, char **argv)
 		fprintf(stdout, "\nDocument is nullptr");
 	}
 
-    bool done = false;
+	bool done = false;
 
-	while(!done)
+	while (!done)
 	{
-        SDL_Event event;
+		SDL_Event event;
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-        SDL_RenderClear(renderer);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+		SDL_RenderClear(renderer);
 
 		Context->Render();
-        SDL_RenderPresent(renderer);
+		SDL_RenderPresent(renderer);
 
-        while(SDL_PollEvent(&event))
-        {
-            switch(event.type)
-            {
-                case SDL_QUIT:
-                    done = true;
-                    break;
+		while (SDL_PollEvent(&event))
+		{
+			switch (event.type)
+			{
+			case SDL_QUIT:
+				done = true;
+				break;
 
-                case SDL_MOUSEMOTION:
-                    Context->ProcessMouseMove(event.motion.x, event.motion.y, SystemInterface.GetKeyModifiers());
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    Context->ProcessMouseButtonDown(SystemInterface.TranslateMouseButton(event.button.button), SystemInterface.GetKeyModifiers());
-                    break;
+			case SDL_MOUSEMOTION:
+				Context->ProcessMouseMove(event.motion.x, event.motion.y, SystemInterface.GetKeyModifiers());
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				Context->ProcessMouseButtonDown(SystemInterface.TranslateMouseButton(event.button.button), SystemInterface.GetKeyModifiers());
+				break;
 
-                case SDL_MOUSEBUTTONUP:
-                    Context->ProcessMouseButtonUp(SystemInterface.TranslateMouseButton(event.button.button), SystemInterface.GetKeyModifiers());
-                    break;
+			case SDL_MOUSEBUTTONUP:
+				Context->ProcessMouseButtonUp(SystemInterface.TranslateMouseButton(event.button.button), SystemInterface.GetKeyModifiers());
+				break;
 
-                case SDL_MOUSEWHEEL:
-                    Context->ProcessMouseWheel(event.wheel.y, SystemInterface.GetKeyModifiers());
-                    break;
+			case SDL_MOUSEWHEEL:
+				Context->ProcessMouseWheel(event.wheel.y, SystemInterface.GetKeyModifiers());
+				break;
 
-                case SDL_KEYDOWN:
-                {
-                    // Intercept F8 key stroke to toggle RmlUi's visual debugger tool
-                    if( event.key.keysym.sym == SDLK_F8 )
-                    {
-                        Rml::Debugger::SetVisible( ! Rml::Debugger::IsVisible() );
-                        break;
-                    }
-                    
-                    Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.keysym.sym), SystemInterface.GetKeyModifiers());
-                    break;
-                }
-                
-                default:
-                    break;
-            }
-        }
+			case SDL_KEYDOWN:
+			{
+				// Intercept F8 key stroke to toggle RmlUi's visual debugger tool
+				if (event.key.keysym.sym == SDLK_F8)
+				{
+					Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
+					break;
+				}
+
+				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.keysym.sym), SystemInterface.GetKeyModifiers());
+				break;
+			}
+
+			default:
+				break;
+			}
+		}
 		Context->Update();
 	}
 
-    Rml::Core::Shutdown();
+	Rml::Core::Shutdown();
 
-    SDL_DestroyRenderer(renderer);
-    SDL_GL_DeleteContext(glcontext);
-    SDL_DestroyWindow(screen);
-    SDL_Quit();
+	SDL_DestroyRenderer(renderer);
+	SDL_GL_DeleteContext(glcontext);
+	SDL_DestroyWindow(screen);
+	SDL_Quit();
 
 	return 0;
 }

@@ -47,15 +47,13 @@ bool InputTypeButton::IsSubmitted()
 	return false;
 }
 
-void InputTypeButton::ProcessDefaultAction(Core::Event& event)
+void InputTypeButton::ProcessDefaultAction(Core::Event& /*event*/)
 {
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeButton::GetIntrinsicDimensions(Rml::Core::Vector2f& RMLUI_UNUSED_PARAMETER(dimensions))
+bool InputTypeButton::GetIntrinsicDimensions(Rml::Core::Vector2f& /*dimensions*/)
 {
-	RMLUI_UNUSED(dimensions);
-
 	return false;
 }
 

@@ -43,58 +43,40 @@ RenderInterface::~RenderInterface()
 }
 
 // Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
-CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* RMLUI_UNUSED_PARAMETER(vertices), int RMLUI_UNUSED_PARAMETER(num_vertices), int* RMLUI_UNUSED_PARAMETER(indices), int RMLUI_UNUSED_PARAMETER(num_indices), TextureHandle RMLUI_UNUSED_PARAMETER(texture))
+CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/, TextureHandle /*texture*/)
 {
-	RMLUI_UNUSED(vertices);
-	RMLUI_UNUSED(num_vertices);
-	RMLUI_UNUSED(indices);
-	RMLUI_UNUSED(num_indices);
-	RMLUI_UNUSED(texture);
-
 	return 0;
 }
 
 // Called by RmlUi when it wants to render application-compiled geometry.
-void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry), const Vector2f& RMLUI_UNUSED_PARAMETER(translation))
+void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle /*geometry*/, const Vector2f& /*translation*/)
 {
-	RMLUI_UNUSED(geometry);
-	RMLUI_UNUSED(translation);
 }
 
 // Called by RmlUi when it wants to release application-compiled geometry.
-void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry))
+void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle /*geometry*/)
 {
-	RMLUI_UNUSED(geometry);
 }
 
 // Called by RmlUi when a texture is required by the library.
-bool RenderInterface::LoadTexture(TextureHandle& RMLUI_UNUSED_PARAMETER(texture_handle), Vector2i& RMLUI_UNUSED_PARAMETER(texture_dimensions), const String& RMLUI_UNUSED_PARAMETER(source))
+bool RenderInterface::LoadTexture(TextureHandle& /*texture_handle*/, Vector2i& /*texture_dimensions*/, const String& /*source*/)
 {
-	RMLUI_UNUSED(texture_handle);
-	RMLUI_UNUSED(texture_dimensions);
-	RMLUI_UNUSED(source);
-
 	return false;
 }
 
 // Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
-bool RenderInterface::GenerateTexture(TextureHandle& RMLUI_UNUSED_PARAMETER(texture_handle), const byte* RMLUI_UNUSED_PARAMETER(source), const Vector2i& RMLUI_UNUSED_PARAMETER(source_dimensions))
+bool RenderInterface::GenerateTexture(TextureHandle& /*texture_handle*/, const byte* /*source*/, const Vector2i& /*source_dimensions*/)
 {
-	RMLUI_UNUSED(texture_handle);
-	RMLUI_UNUSED(source);
-	RMLUI_UNUSED(source_dimensions);
-	
 	return false;
 }
 
 // Called by RmlUi when a loaded texture is no longer required.
-void RenderInterface::ReleaseTexture(TextureHandle RMLUI_UNUSED_PARAMETER(texture))
+void RenderInterface::ReleaseTexture(TextureHandle /*texture*/)
 {
-	RMLUI_UNUSED(texture);
 }
 
 // Called by RmlUi when it wants to change the current transform matrix to a new matrix.
-void RenderInterface::SetTransform(const Matrix4f* transform)
+void RenderInterface::SetTransform(const Matrix4f* /*transform*/)
 {
 }
 

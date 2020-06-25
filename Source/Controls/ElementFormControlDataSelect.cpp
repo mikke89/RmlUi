@@ -194,18 +194,18 @@ void ElementFormControlDataSelect::BuildOptions()
 	DataQuery query(data_source, data_table, fields);
 	while (query.NextRow())
 	{
-		Rml::Core::StringList fields;
+		Rml::Core::StringList fields_list;
 		Rml::Core::String value = query.Get<Rml::Core::String>(0, "");
 
 		for (size_t i = 1; i < query.GetNumFields(); ++i)
-			fields.push_back(query.Get< Rml::Core::String>(i, ""));
+			fields_list.push_back(query.Get< Rml::Core::String>(i, ""));
 
-		Rml::Core::String formatted("");
-		if (fields.size() > 0)
-			formatted = fields[0];
+		Rml::Core::String formatted;
+		if (fields_list.size() > 0)
+			formatted = fields_list[0];
 
 		if (data_formatter)
-			data_formatter->FormatData(formatted, fields);
+			data_formatter->FormatData(formatted, fields_list);
 
 		// Add the data as an option.
 		widget->AddOption(formatted, value, -1, false);

@@ -116,7 +116,7 @@ LuaEventListener::~LuaEventListener()
 	lua_pop(L, 1); // pop table
 }
 
-void LuaEventListener::OnDetach(Element* element)
+void LuaEventListener::OnDetach(Element* /*element*/)
 {
 	// We consider this listener owned by its element, so we must delete ourselves when
 	// we detach (probably because element was removed).

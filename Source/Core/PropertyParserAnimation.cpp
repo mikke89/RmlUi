@@ -353,7 +353,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 }
 
 
-bool PropertyParserAnimation::ParseValue(Property & property, const String & value, const ParameterMap & parameters) const
+bool PropertyParserAnimation::ParseValue(Property & property, const String & value, const ParameterMap & /*parameters*/) const
 {
 	StringList list_of_values;
 	{

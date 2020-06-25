@@ -65,6 +65,7 @@ public:
 	{
 		std::ptrdiff_t cnt = std::count_if(name_map.begin(), name_map.end(), [](const String& name) { return !name.empty(); });
 		RMLUI_ASSERT(cnt == (std::ptrdiff_t)number_of_defined_ids && reverse_map.size() == (size_t)number_of_defined_ids);
+		(void)number_of_defined_ids;
 		(void)cnt;
 	}
 

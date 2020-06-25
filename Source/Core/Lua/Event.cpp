@@ -38,10 +38,10 @@
 namespace Rml {
 namespace Core {
 namespace Lua {
-template<> void ExtraInit<Event>(lua_State* L, int metatable_index) { return; }
+template<> void ExtraInit<Event>(lua_State* /*L*/, int /*metatable_index*/) { return; }
 
 //method
-int EventStopPropagation(lua_State* L, Event* obj)
+int EventStopPropagation(lua_State* /*L*/, Event* obj)
 {
     obj->StopPropagation();
     return 0;

@@ -28,7 +28,7 @@
 #include <RmlUi/Core.h>
 #include "SystemInterfaceSFML.h"
 
-int RmlUiSFMLSystemInterface::GetKeyModifiers(sf::Window *Window)
+int RmlUiSFMLSystemInterface::GetKeyModifiers()
 {
 	int Modifiers = 0;
 

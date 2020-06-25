@@ -475,12 +475,12 @@ struct PrepareVisitor
 		return true;
 	}
 	template <size_t N>
-	bool operator()(ResolvedPrimitive<N>& p)
+	bool operator()(ResolvedPrimitive<N>& /*p*/)
 	{
 		// No conversion needed for resolved transforms (with some exceptions below)
 		return true;
 	}
-	bool operator()(DecomposedMatrix4& p)
+	bool operator()(DecomposedMatrix4& /*p*/)
 	{
 		return true;
 	}
@@ -495,17 +495,17 @@ struct PrepareVisitor
 		p.values[2] = vec.z;
 		return true;
 	}
-	bool operator()(Matrix3D& p)
+	bool operator()(Matrix3D& /*p*/)
 	{
 		// Matrices must be decomposed for interpolation
 		return false;
 	}
-	bool operator()(Matrix2D& p)
+	bool operator()(Matrix2D& /*p*/)
 	{
 		// Matrix2D can also be optimized for interpolation, but for now we decompose it to a full DecomposedMatrix4
 		return false;
 	}
-	bool operator()(Perspective& p)
+	bool operator()(Perspective& /*p*/)
 	{
 		// Perspective must be decomposed
 		return false;
@@ -703,9 +703,9 @@ struct InterpolateVisitor
 		p0.values[3] = p0.values[3] * (1.0f - alpha) + p1.values[3] * alpha;
 		return true;
 	}
-	bool Interpolate(Matrix2D& p0, const Matrix2D& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
-	bool Interpolate(Matrix3D& p0, const Matrix3D& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
-	bool Interpolate(Perspective& p0, const Perspective& p1) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
+	bool Interpolate(Matrix2D& /*p0*/, const Matrix2D& /*p1*/) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
+	bool Interpolate(Matrix3D& /*p0*/, const Matrix3D& /*p1*/) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
+	bool Interpolate(Perspective& /*p0*/, const Perspective& /*p1*/) { return false; /* Error if we get here, see PrepareForInterpolation() */ }
 
 	bool Interpolate(DecomposedMatrix4& p0, const DecomposedMatrix4& p1)
 	{

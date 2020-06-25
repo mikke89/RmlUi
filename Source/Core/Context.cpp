@@ -511,7 +511,7 @@ bool Context::ProcessKeyUp(Input::KeyIdentifier key_identifier, int key_modifier
 bool Context::ProcessTextInput(char character)
 {
 	// Only the standard ASCII character set is a valid subset of UTF-8.
-	if (character < 0 || character > 127)
+	if (static_cast<unsigned char>(character) > 127)
 		return false;
 	return ProcessTextInput(static_cast<Character>(character));
 }

@@ -71,7 +71,7 @@ void LuaInterface::InitGame(lua_State *L)
     lua_pop(L,1); //pop Game
 }
 
-int GameShutdown(lua_State* L)
+int GameShutdown(lua_State* /*L*/)
 {
     Shell::RequestExit();
     return 0;
@@ -98,7 +98,7 @@ int GameSetDefenderColour(lua_State* L)
     return 0;
 }
 
-int GameSubmitHighScore(lua_State* L)
+int GameSubmitHighScore(lua_State* /*L*/)
 {
     int score = GameDetails::GetScore();
     if(score > 0)

@@ -40,12 +40,12 @@ FontEngineInterfaceBitmap::~FontEngineInterfaceBitmap()
 	FontProviderBitmap::Shutdown();
 }
 
-bool FontEngineInterfaceBitmap::LoadFontFace(const String& file_name, bool fallback_face)
+bool FontEngineInterfaceBitmap::LoadFontFace(const String& file_name, bool /*fallback_face*/)
 {
-	return FontProviderBitmap::LoadFontFace(file_name, fallback_face);
+	return FontProviderBitmap::LoadFontFace(file_name);
 }
 
-bool FontEngineInterfaceBitmap::LoadFontFace(const byte* data, int data_size, const String& font_family, FontStyle style, FontWeight weight, bool fallback_face)
+bool FontEngineInterfaceBitmap::LoadFontFace(const byte* /*data*/, int /*data_size*/, const String& font_family, FontStyle /*style*/, FontWeight /*weight*/, bool /*fallback_face*/)
 {
 	// We return 'true' here to allow the debugger to continue loading, but we will use our own fonts when it asks for a handle.
 	// The debugger might look a bit off with our own fonts, but hey it works.
@@ -61,7 +61,7 @@ FontFaceHandle FontEngineInterfaceBitmap::GetFontFaceHandle(const String& family
 	return reinterpret_cast<FontFaceHandle>(handle);
 }
 
-FontEffectsHandle FontEngineInterfaceBitmap::PrepareFontEffects(FontFaceHandle handle, const FontEffectList& font_effects)
+FontEffectsHandle FontEngineInterfaceBitmap::PrepareFontEffects(FontFaceHandle /*handle*/, const FontEffectList& /*font_effects*/)
 {
 	// Font effects are not rendered in this implementation.
 	return 0;
@@ -104,14 +104,14 @@ int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const Strin
 	return handle_bitmap->GetStringWidth(string, prior_character);
 }
 
-int FontEngineInterfaceBitmap::GenerateString(FontFaceHandle handle, FontEffectsHandle font_effects_handle, const String& string,
+int FontEngineInterfaceBitmap::GenerateString(FontFaceHandle handle, FontEffectsHandle /*font_effects_handle*/, const String& string,
 	const Vector2f& position, const Colourb& colour, GeometryList& geometry)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
 	return handle_bitmap->GenerateString(string, position, colour, geometry);
 }
 
-int FontEngineInterfaceBitmap::GetVersion(FontFaceHandle handle)
+int FontEngineInterfaceBitmap::GetVersion(FontFaceHandle /*handle*/)
 {
 	return 0;
 }

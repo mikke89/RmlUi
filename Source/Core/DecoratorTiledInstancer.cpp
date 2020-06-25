@@ -153,12 +153,12 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 				properties.GetProperty(ids.align_y)
 			};
 
-			for (int i = 0; i < 2; i++)
+			for (int dimension = 0; dimension < 2; dimension++)
 			{
 				using Style::LengthPercentage;
 
-				auto& align = tile.align[i];
-				auto& property = *align_properties[i];
+				LengthPercentage align = tile.align[dimension];
+				const Property& property = *align_properties[dimension];
 				if (property.unit == Property::KEYWORD)
 				{
 					enum { TOP_LEFT, CENTER, BOTTOM_RIGHT };

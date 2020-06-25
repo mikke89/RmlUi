@@ -308,7 +308,7 @@ public:
 		}
 	}
 
-	void OnDetach(Rml::Core::Element* element) override { delete this; }
+	void OnDetach(Rml::Core::Element* /*element*/) override { delete this; }
 
 private:
 	Rml::Core::String value;
@@ -320,7 +320,7 @@ class EventInstancer : public Rml::Core::EventListenerInstancer
 public:
 
 	/// Instances a new event handle for Invaders.
-	Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* element) override
+	Rml::Core::EventListener* InstanceEventListener(const Rml::Core::String& value, Rml::Core::Element* /*element*/) override
 	{
 		return new Event(value);
 	}

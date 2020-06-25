@@ -45,14 +45,14 @@
 #include <Shell.h>
 #include <ShellFileInterface.h>
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char** /*argv*/)
 {
 #ifdef RMLUI_PLATFORM_WIN32
-        AllocConsole();
+	AllocConsole();
 #endif
 
-        int window_width = 1024;
-        int window_height = 768;
+	int window_width = 1024;
+	int window_height = 768;
 
 	sf::RenderWindow MyWindow(sf::VideoMode(window_width, window_height), "RmlUi with SFML2", sf::Style::Close);
 	MyWindow.setVerticalSyncEnabled(true);
@@ -61,9 +61,9 @@ int main(int argc, char **argv)
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
-	  /* Problem: glewInit failed, something is seriously wrong. */
-	  fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-	  //...
+		/* Problem: glewInit failed, something is seriously wrong. */
+		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+		//...
 	}
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 #endif
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	Rml::Core::String root = Shell::FindSamplesRoot();
 	ShellFileInterface FileInterface(root);
 
-	if(!MyWindow.isOpen())
+	if (!MyWindow.isOpen())
 		return 1;
 
 	Renderer.SetWindow(&MyWindow);
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	Rml::Core::SetSystemInterface(&SystemInterface);
 
 
-	if(!Rml::Core::Initialise())
+	if (!Rml::Core::Initialise())
 		return 1;
 
 	Rml::Core::LoadFontFace("assets/Delicious-Bold.otf");
@@ -94,14 +94,14 @@ int main(int argc, char **argv)
 	Rml::Core::LoadFontFace("assets/Delicious-Italic.otf");
 	Rml::Core::LoadFontFace("assets/Delicious-Roman.otf");
 
-	Rml::Core::Context *Context = Rml::Core::CreateContext("default",
+	Rml::Core::Context* Context = Rml::Core::CreateContext("default",
 		Rml::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
 
 	Rml::Debugger::Initialise(Context);
 
-	Rml::Core::ElementDocument *Document = Context->LoadDocument("assets/demo.rml");
+	Rml::Core::ElementDocument* Document = Context->LoadDocument("assets/demo.rml");
 
-	if(Document)
+	if (Document)
 	{
 		Document->Show();
 		fprintf(stdout, "\nDocument loaded");
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 		fprintf(stdout, "\nDocument is nullptr");
 	}
 
-	while(MyWindow.isOpen())
+	while (MyWindow.isOpen())
 	{
 		static sf::Event event;
 
@@ -119,28 +119,28 @@ int main(int argc, char **argv)
 		Context->Render();
 		MyWindow.display();
 
-		while(MyWindow.pollEvent(event))
+		while (MyWindow.pollEvent(event))
 		{
-			switch(event.type)
+			switch (event.type)
 			{
 			case sf::Event::Resized:
 				Renderer.Resize();
 				break;
 			case sf::Event::MouseMoved:
 				Context->ProcessMouseMove(event.mouseMove.x, event.mouseMove.y,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::MouseButtonPressed:
 				Context->ProcessMouseButtonDown(event.mouseButton.button,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::MouseButtonReleased:
 				Context->ProcessMouseButtonUp(event.mouseButton.button,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::MouseWheelMoved:
 				Context->ProcessMouseWheel(-event.mouseWheel.delta,
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::TextEntered:
 				if (event.text.unicode > 32)
@@ -148,20 +148,20 @@ int main(int argc, char **argv)
 				break;
 			case sf::Event::KeyPressed:
 				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.code),
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::KeyReleased:
-				if(event.key.code == sf::Keyboard::F8)
+				if (event.key.code == sf::Keyboard::F8)
 				{
 					Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 				};
 
-				if(event.key.code == sf::Keyboard::Escape) {
+				if (event.key.code == sf::Keyboard::Escape) {
 					MyWindow.close();
 				}
 
 				Context->ProcessKeyUp(SystemInterface.TranslateKey(event.key.code),
-					SystemInterface.GetKeyModifiers(&MyWindow));
+					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::Closed:
 				MyWindow.close();

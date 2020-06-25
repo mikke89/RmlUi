@@ -81,7 +81,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 		{
 			// Single hex digit per channel, RGB and alpha.
 			case 5:		hex_values[3][0] = hex_values[3][1] = value[4];
-
+						//-fallthrough
 			// Single hex digit per channel, RGB only.
 			case 4:		hex_values[0][0] = hex_values[0][1] = value[1];
 						hex_values[1][0] = hex_values[1][1] = value[2];
@@ -91,7 +91,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 			// Two hex digits per channel, RGB and alpha.
 			case 9:		hex_values[3][0] = value[7];
 						hex_values[3][1] = value[8];
-
+						//-fallthrough
 			// Two hex digits per channel, RGB only.
 			case 7:		memcpy(hex_values, &value.c_str()[1], sizeof(char) * 6);
 						break;

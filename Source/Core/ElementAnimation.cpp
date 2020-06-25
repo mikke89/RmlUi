@@ -316,6 +316,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 	for (int i = start_index; i < (int)keys.size(); i++)
 	{
 		Property& property = keys[i].property;
+		RMLUI_ASSERT(property.value.GetType() == Variant::TRANSFORMPTR);
 
 		if (!property.value.GetReference<TransformPtr>())
 			property.value = std::make_shared<Transform>();
@@ -333,7 +334,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 		}
 
 		if (must_decompose)
-			result = CombineAndDecompose(transform, element);
+			result &= CombineAndDecompose(transform, element);
 	}
 
 	if (!result)
@@ -370,13 +371,13 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 		auto& t0 = prop0.value.GetReference<TransformPtr>();
 		auto& t1 = prop1.value.GetReference<TransformPtr>();
 
-		auto result = PrepareTransformPair(*t0, *t1, element);
+		auto prepare_result = PrepareTransformPair(*t0, *t1, element);
 
-		if (result == PrepareTransformResult::Invalid)
+		if (prepare_result == PrepareTransformResult::Invalid)
 			return false;
 
-		bool changed_t0 = ((int)result & (int)PrepareTransformResult::ChangedT0);
-		bool changed_t1 = ((int)result & (int)PrepareTransformResult::ChangedT1);
+		bool changed_t0 = ((int)prepare_result & (int)PrepareTransformResult::ChangedT0);
+		bool changed_t1 = ((int)prepare_result & (int)PrepareTransformResult::ChangedT1);
 
 		dirty_list[i] = false;
 		dirty_list[i - 1] = dirty_list[i - 1] || changed_t0;

@@ -119,13 +119,13 @@ void ShellRenderInterfaceOpenGL::SetScissorRegion(int x, int y, int width, int h
 		glScissor(x, m_height - (y + height), width, height);
 	} else {
 		// clear the stencil buffer
-		glStencilMask(-1);
+		glStencilMask(GLuint(-1));
 		glClear(GL_STENCIL_BUFFER_BIT);
 
 		// fill the stencil buffer
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 		glDepthMask(GL_FALSE);
-		glStencilFunc(GL_NEVER, 1, -1);
+		glStencilFunc(GL_NEVER, 1, GLuint(-1));
 		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
 
 		float fx = (float)x;
@@ -150,7 +150,7 @@ void ShellRenderInterfaceOpenGL::SetScissorRegion(int x, int y, int width, int h
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glDepthMask(GL_TRUE);
 		glStencilMask(0);
-		glStencilFunc(GL_EQUAL, 1, -1);
+		glStencilFunc(GL_EQUAL, 1, GLuint(-1));
 	}
 }
 

@@ -61,7 +61,7 @@ int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj)
     return 0;
 }
 
-int ElementFormControlSelectRemoveAll(lua_State* L, ElementFormControlSelect* obj)
+int ElementFormControlSelectRemoveAll(lua_State* /*L*/, ElementFormControlSelect* obj)
 {
     obj->RemoveAll();
     return 0;

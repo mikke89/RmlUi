@@ -259,9 +259,10 @@ float LayoutEngine::ClampHeight(float height, const ComputedValues& computed, fl
 	return Math::Clamp(height, min_height, max_height);
 }
 
-void* LayoutEngine::AllocateLayoutChunk(size_t RMLUI_UNUSED_ASSERT_PARAMETER(size))
+void* LayoutEngine::AllocateLayoutChunk(size_t size)
 {
 	RMLUI_ASSERT(size <= LayoutChunk::size);
+	(void)size;
 	
 	return layout_chunk_pool.AllocateAndConstruct();
 }
@@ -357,7 +358,7 @@ bool LayoutEngine::FormatElementBlock(Element* element)
 				break;
 			}
 		}
-
+		//-fallthrough
 		// We caused our parent to add a vertical scrollbar; bail out!
 		case LayoutBlockBox::LAYOUT_PARENT:
 		{

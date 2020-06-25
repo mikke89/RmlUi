@@ -309,7 +309,7 @@ public:
 		}
 		else if (value == "change_color")
 		{
-			Colourb color(Math::RandomInteger(255), Math::RandomInteger(255), Math::RandomInteger(255));
+			Colourb color((byte)Math::RandomInteger(255), (byte)Math::RandomInteger(255), (byte)Math::RandomInteger(255));
 			element->Animate("image-color", Property(color, Property::COLOUR), tweening_parameters.duration, Tween(tweening_parameters.type, tweening_parameters.direction));
 			event.StopPropagation();
 		}
@@ -342,7 +342,9 @@ public:
 			if (it != tweening_functions.end())
 				tweening_parameters.type = it->second;
 			else
+			{
 				RMLUI_ERROR;
+			}
 		}
 		else if (value == "tween_direction")
 		{
@@ -354,7 +356,9 @@ public:
 			else if(value == "in-out")
 				tweening_parameters.direction = Tween::InOut;
 			else
+			{
 				RMLUI_ERROR;
+			}
 		}
 		else if (value == "tween_duration")
 		{
@@ -425,7 +429,7 @@ public:
 		}
 	}
 
-	void OnDetach(Rml::Core::Element* element) override { delete this; }
+	void OnDetach(Rml::Core::Element* /*element*/) override { delete this; }
 
 private:
 	Rml::Core::String value;

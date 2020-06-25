@@ -179,7 +179,7 @@ float ComputeFontsize(const Property& property, const Style::ComputedValues& val
 		{
 		case Property::PERCENT:
 			multiplier = 0.01f;
-			//[[fallthrough]];
+			//-fallthrough
 		case Property::EM:
 			if (!parent_values)
 				return 0;

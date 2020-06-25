@@ -39,74 +39,65 @@ FontEngineInterface::~FontEngineInterface()
 {
 }
 
-bool FontEngineInterface::LoadFontFace(const String& file_name, bool fallback_face)
+bool FontEngineInterface::LoadFontFace(const String& /*file_name*/, bool /*fallback_face*/)
 {
 	return false;
 }
 
-bool FontEngineInterface::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+bool FontEngineInterface::LoadFontFace(const byte* /*data*/, int /*data_size*/, const String& /*font_family*/,
+	Style::FontStyle /*style*/, Style::FontWeight /*weight*/, bool /*fallback_face*/)
 {
 	return false;
 }
 
-FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& RMLUI_UNUSED_PARAMETER(family), Style::FontStyle RMLUI_UNUSED_PARAMETER(style),
-	Style::FontWeight RMLUI_UNUSED_PARAMETER(weight), int RMLUI_UNUSED_PARAMETER(size))
+FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& /*family*/, Style::FontStyle /*style*/,
+	Style::FontWeight /*weight*/, int /*size*/)
 {
-	RMLUI_UNUSED(family);
-	RMLUI_UNUSED(style);
-	RMLUI_UNUSED(weight);
-	RMLUI_UNUSED(size);
 	return 0;
 }
 	
-FontEffectsHandle FontEngineInterface::PrepareFontEffects(FontFaceHandle, const FontEffectList& font_effects)
+FontEffectsHandle FontEngineInterface::PrepareFontEffects(FontFaceHandle /*handle*/, const FontEffectList& /*font_effects*/)
 {
 	return 0;
 }
 
-int FontEngineInterface::GetSize(FontFaceHandle)
+int FontEngineInterface::GetSize(FontFaceHandle /*handle*/)
 {
 	return 0;
 }
 
-int FontEngineInterface::GetXHeight(FontFaceHandle)
+int FontEngineInterface::GetXHeight(FontFaceHandle /*handle*/)
 {
 	return 0;
 }
 
-int FontEngineInterface::GetLineHeight(FontFaceHandle)
+int FontEngineInterface::GetLineHeight(FontFaceHandle /*handle*/)
 {
 	return 0;
 }
 
-int FontEngineInterface::GetBaseline(FontFaceHandle)
+int FontEngineInterface::GetBaseline(FontFaceHandle /*handle*/)
 {
 	return 0;
 }
 
-float FontEngineInterface::GetUnderline(FontFaceHandle, float &)
+float FontEngineInterface::GetUnderline(FontFaceHandle /*handle*/, float& /*thickness*/)
 {
 	return 0;
 }
 
-int FontEngineInterface::GetStringWidth(FontFaceHandle, const String& RMLUI_UNUSED_PARAMETER(string), Character RMLUI_UNUSED_PARAMETER(prior_character))
+int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String& /*string*/, Character /*prior_character*/)
 {
-	RMLUI_UNUSED(string);
-	RMLUI_UNUSED(prior_character);
 	return 0;
 }
 
-int FontEngineInterface::GenerateString(FontFaceHandle, FontEffectsHandle, const String& RMLUI_UNUSED_PARAMETER(string),
-	const Vector2f& RMLUI_UNUSED_PARAMETER(position), const Colourb& RMLUI_UNUSED_PARAMETER(colour), GeometryList& RMLUI_UNUSED_PARAMETER(geometry))
+int FontEngineInterface::GenerateString(FontFaceHandle /*face_handle*/, FontEffectsHandle /*font_effects_handle*/, const String& /*string*/,
+	const Vector2f& /*position*/, const Colourb& /*colour*/, GeometryList& /*geometry*/)
 {
-	RMLUI_UNUSED(string);
-	RMLUI_UNUSED(position);
-	RMLUI_UNUSED(colour);
-	RMLUI_UNUSED(geometry);
 	return 0;
 }
 
-int FontEngineInterface::GetVersion(FontFaceHandle handle)
+int FontEngineInterface::GetVersion(FontFaceHandle /*handle*/)
 {
 	return 0;
 }

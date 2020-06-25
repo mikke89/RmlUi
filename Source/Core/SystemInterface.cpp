@@ -67,16 +67,14 @@ bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 	return true;
 }
 #else
-bool SystemInterface::LogMessage(Log::Type RMLUI_UNUSED_PARAMETER(logtype), const String& message)
+bool SystemInterface::LogMessage(Log::Type /*logtype*/, const String& message)
 {
-	RMLUI_UNUSED(logtype);
-
 	fprintf(stderr,"%s\n", message.c_str());
 	return true;
 }
 #endif	
 
-void SystemInterface::SetMouseCursor(const String& cursor_name)
+void SystemInterface::SetMouseCursor(const String& /*cursor_name*/)
 {
 }
 

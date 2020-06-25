@@ -78,13 +78,13 @@ template<> void ExtraInit<Document>(lua_State* L, int metatable_index)
 }
 
 //methods
-int DocumentPullToFront(lua_State* L, Document* obj)
+int DocumentPullToFront(lua_State* /*L*/, Document* obj)
 {
     obj->PullToFront();
     return 0;
 }
 
-int DocumentPushToBack(lua_State* L, Document* obj)
+int DocumentPushToBack(lua_State* /*L*/, Document* obj)
 {
     obj->PushToBack();
     return 0;
@@ -109,13 +109,13 @@ int DocumentShow(lua_State* L, Document* obj)
     return 0;
 }
 
-int DocumentHide(lua_State* L, Document* obj)
+int DocumentHide(lua_State* /*L*/, Document* obj)
 {
     obj->Hide();
     return 0;
 }
 
-int DocumentClose(lua_State* L, Document* obj)
+int DocumentClose(lua_State* /*L*/, Document* obj)
 {
     obj->Close();
     return 0;

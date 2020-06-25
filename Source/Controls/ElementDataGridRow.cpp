@@ -252,7 +252,7 @@ ElementDataGrid* ElementDataGridRow::GetParentGrid()
 	return parent_grid;
 }
 
-void ElementDataGridRow::OnDataSourceDestroy(DataSource* RMLUI_UNUSED_PARAMETER(_data_source))
+void ElementDataGridRow::OnDataSourceDestroy(DataSource* /*data_source*/)
 {
 	if(data_source != nullptr)
 	{
@@ -497,21 +497,21 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 			Rml::Core::StringList raw_data;
 			raw_data.reserve(column->fields.size());
 			size_t raw_data_total_len = 0;
-			for (size_t i = 0; i < column->fields.size(); i++)
+			for (size_t j = 0; j < column->fields.size(); j++)
 			{
-				if (column->fields[i] == DataSource::DEPTH)
+				if (column->fields[j] == DataSource::DEPTH)
 				{
 					raw_data.push_back(Rml::Core::CreateString(8, "%d", depth));
 					raw_data_total_len += raw_data.back().length();
 				}
-				else if (column->fields[i] == DataSource::NUM_CHILDREN)
+				else if (column->fields[j] == DataSource::NUM_CHILDREN)
 				{
 					raw_data.push_back(Rml::Core::CreateString(8, "%d", children.size()));
 					raw_data_total_len += raw_data.back().length();
 				}
 				else
 				{
-					raw_data.push_back(row_information.Get< Rml::Core::String >(column->fields[i], ""));
+					raw_data.push_back(row_information.Get< Rml::Core::String >(column->fields[j], ""));
 					raw_data_total_len += raw_data.back().length();
 				}
 			}
@@ -524,13 +524,13 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 			else
 			{
 				cell_string.reserve(raw_data_total_len + raw_data.size() + 1);
-				for (size_t i = 0; i < raw_data.size(); i++)
+				for (size_t j = 0; j < raw_data.size(); j++)
 				{
-					if (i > 0)
+					if (j > 0)
 					{
 						cell_string += ",";
 					}
-					cell_string += raw_data[i];
+					cell_string += raw_data[j];
 				}
 			}
 
