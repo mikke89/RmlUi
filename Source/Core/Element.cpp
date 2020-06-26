@@ -176,7 +176,11 @@ Element::~Element()
 
 void Element::Update(float dp_ratio)
 {
+#ifdef RMLUI_ENABLE_PROFILING
+	auto name = GetAddress(false, false);
 	RMLUI_ZoneScoped;
+	RMLUI_ZoneText(name.c_str(), name.size());
+#endif
 
 	OnUpdate();
 

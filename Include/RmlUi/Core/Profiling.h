@@ -33,49 +33,49 @@
 #ifdef RMLUI_ENABLE_PROFILING
 
 #define TRACY_ENABLE
-#include "../../../Dependencies/tracy/Tracy.hpp"
+#include <Tracy.hpp>
 
-#define RMLUI_ZoneNamed(x,y)       ZoneNamed(x,y)
-#define RMLUI_ZoneNamedN(x,y,z)    ZoneNamedN(x,y,z)
-#define RMLUI_ZoneNamedC(x,y,z)    ZoneNamedC(x,y,z)
-#define RMLUI_ZoneNamedNC(x,y,z,w) ZoneNamedNC(x,y,z,w)
+#define RMLUI_ZoneNamed(varname, active)                 ZoneNamed(varname, active)
+#define RMLUI_ZoneNamedN(varname, name, active)          ZoneNamedN(varname, name, active)
+#define RMLUI_ZoneNamedC(varname, color, active)         ZoneNamedC(varname, color, active)
+#define RMLUI_ZoneNamedNC(varname, name, color, active)  ZoneNamedNC(varname, name, color, active)
 
-#define RMLUI_ZoneScoped           ZoneScoped
-#define RMLUI_ZoneScopedN(x)       ZoneScopedN(x)
-#define RMLUI_ZoneScopedC(x)       ZoneScopedC(x)
-#define RMLUI_ZoneScopedNC(x,y)    ZoneScopedNC(x,y)
+#define RMLUI_ZoneScoped                 ZoneScoped
+#define RMLUI_ZoneScopedN(name)          ZoneScopedN(name)
+#define RMLUI_ZoneScopedC(color)         ZoneScopedC(color)
+#define RMLUI_ZoneScopedNC(name, color)  ZoneScopedNC(name, color)
 
-#define RMLUI_ZoneText(x,y)        ZoneText(x,y)
-#define RMLUI_ZoneName(x,y)        ZoneName(x,y)
+#define RMLUI_ZoneText(txt, size)        ZoneText(txt, size)
+#define RMLUI_ZoneName(txt, size)        ZoneName(txt, size)
 
-#define RMLUI_TracyPlot(name,val)  TracyPlot(name,val)
+#define RMLUI_TracyPlot(name,val)        TracyPlot(name, val)
 
-#define RMLUI_FrameMark            FrameMark
-#define RMLUI_FrameMarkNamed(x)    FrameMarkNamed(x)
-#define RMLUI_FrameMarkStart(x)    FrameMarkStart(x)
-#define RMLUI_FrameMarkEnd(x)      FrameMarkEnd(x)
+#define RMLUI_FrameMark                  FrameMark
+#define RMLUI_FrameMarkNamed(name)       FrameMarkNamed(name)
+#define RMLUI_FrameMarkStart(name)       FrameMarkStart(name)
+#define RMLUI_FrameMarkEnd(name)         FrameMarkEnd(name)
 
 #else
 
-#define RMLUI_ZoneNamed(x,y)
-#define RMLUI_ZoneNamedN(x,y,z)
-#define RMLUI_ZoneNamedC(x,y,z)
-#define RMLUI_ZoneNamedNC(x,y,z,w)
+#define RMLUI_ZoneNamed(varname, active)
+#define RMLUI_ZoneNamedN(varname, name, active)
+#define RMLUI_ZoneNamedC(varname, color, active)
+#define RMLUI_ZoneNamedNC(varname, name, color, active)
 
 #define RMLUI_ZoneScoped
-#define RMLUI_ZoneScopedN(x)
-#define RMLUI_ZoneScopedC(x)
-#define RMLUI_ZoneScopedNC(x,y)
+#define RMLUI_ZoneScopedN(name)
+#define RMLUI_ZoneScopedC(color)
+#define RMLUI_ZoneScopedNC(name, color)
 
-#define RMLUI_ZoneText(x,y)
-#define RMLUI_ZoneName(x,y)
+#define RMLUI_ZoneText(txt, size)
+#define RMLUI_ZoneName(txt, size)
 
 #define RMLUI_TracyPlot(name,val)
 
 #define RMLUI_FrameMark
-#define RMLUI_FrameMarkNamed(x)
-#define RMLUI_FrameMarkStart(x)
-#define RMLUI_FrameMarkEnd(x)
+#define RMLUI_FrameMarkNamed(name)
+#define RMLUI_FrameMarkStart(name)
+#define RMLUI_FrameMarkEnd(name)
 
 #endif
 

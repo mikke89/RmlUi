@@ -30,7 +30,8 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 
 #ifdef RMLUI_ENABLE_PROFILING
-#include "../Dependencies/tracy/TracyClient.cpp"
+#include <TracyClient.cpp>
+#include <memory>
 
 // Overload global new and delete for memory inspection
 void* operator new(std::size_t n)

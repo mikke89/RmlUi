@@ -72,6 +72,8 @@ float* ConvolutionFilter::operator[](int kernel_y_index)
 
 void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimensions, const int destination_stride, const ColorFormat destination_color_format, const byte* source, const Vector2i source_dimensions, const Vector2i source_offset) const
 {
+	RMLUI_ZoneScopedNC("ConvFilter::Run", 0xd6bf49);
+
 	const float initial_opacity = (operation == FilterOperation::Erosion ? FLT_MAX : 0.f);
 
 	const Vector2i kernel_radius = (kernel_size - Vector2i(1)) / 2;

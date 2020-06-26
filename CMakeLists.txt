@@ -108,6 +108,10 @@ if(NOT DEFINED ENV{SFML_ROOT})
 	set(ENV{SFML_ROOT} "${PROJECT_SOURCE_DIR}/Dependencies")
 endif()
 
+if(NOT DEFINED ENV{TRACY_DIR})
+	set(ENV{TRACY_DIR} "${PROJECT_SOURCE_DIR}/Dependencies")
+endif()
+
 #===================================
 # Plaform specific global hacks ====
 #===================================
@@ -178,9 +182,29 @@ if( NO_THIRDPARTY_CONTAINERS )
 	message("-- No third-party containers will be used: Make sure to #define RMLUI_NO_THIRDPARTY_CONTAINERS before including RmlUi in your project.")
 endif()
 
-option(ENABLE_TRACY_PROFILING "Enable tracy profiling, requires that Tracy is placed in Dependencies/tracy." OFF)
+option(ENABLE_TRACY_PROFILING "Enable profiling with Tracy. It is recommended to place source files in Dependencies/tracy." OFF)
 if( ENABLE_TRACY_PROFILING )
-	add_definitions(-DRMLUI_ENABLE_PROFILING)
+	find_package(Tracy REQUIRED)
+
+	include_directories(${TRACY_INCLUDE_DIR})
+
+	if( CMAKE_CONFIGURATION_TYPES )
+		list(APPEND CMAKE_CONFIGURATION_TYPES Tracy)
+		list(REMOVE_DUPLICATES CMAKE_CONFIGURATION_TYPES)
+		set(CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES}" CACHE STRING
+			"Add the configurations that we need"
+			FORCE)
+		set(CMAKE_C_FLAGS_TRACY "${CMAKE_CXX_FLAGS_RELEASE} -DRMLUI_ENABLE_PROFILING")
+		set(CMAKE_CXX_FLAGS_TRACY "${CMAKE_CXX_FLAGS_RELEASE} -DRMLUI_ENABLE_PROFILING")
+		set(CMAKE_EXE_LINKER_FLAGS_TRACY "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
+		set(CMAKE_SHARED_LINKER_FLAGS_TRACY "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
+		message("-- Tracy profiling enabled in configuration 'Tracy'.")
+	else()
+		message("-- Tracy profiling enabled.")
+		add_definitions(-DRMLUI_ENABLE_PROFILING)
+	endif()
+elseif( CMAKE_CONFIGURATION_TYPES )
+	list(REMOVE_ITEM CMAKE_CONFIGURATION_TYPES Tracy)
 endif()
 
 option(DISABLE_RTTI_AND_EXCEPTIONS "Build with rtti and exceptions disabled." OFF)
