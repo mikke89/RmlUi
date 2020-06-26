@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/ConvolutionFilter.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include <float.h>
 #include <string.h>
 
