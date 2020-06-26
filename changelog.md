@@ -40,10 +40,6 @@ The library now makes use of CMake's precompiled header support (requires CMake 
 - Changes to font effects are now properly applied whenever the `font-effect` property is changed [#98](https://github.com/mikke89/RmlUi/issues/98).
 - Fix structural pseudo-selectors only being applied if written with parenthesis [#30](https://github.com/mikke89/RmlUi/issues/30#issuecomment-597648310).
 
-### Breaking changes
-
-- The `height` property of `selectbox` will no longer take any effect. Note that `max-height` can still be used.
-
 
 ## RmlUi 3.2
 

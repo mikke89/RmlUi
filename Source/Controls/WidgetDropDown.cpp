@@ -98,13 +98,14 @@ void WidgetDropDown::OnRender()
 		// The following procedure should ensure that the selection box is never (partly) outside of the context's window.
 		// This is achieved by positioning the box either above or below the 'select' element, and possibly shrinking
 		// the element's height.
+		// We try to respect user values of 'height', 'min-height', and 'max-height'. However, when we need to shrink the box
+		// we will override the 'height' property.
 		using Rml::Core::Vector2f;
 
-		// The procedure below assumes that the 'height' property is set to 'auto'.
-		// Note that we do respect the 'max-height' if set by the user.
-		if(selection_element->GetComputedValues().height.type != Core::Style::Height::Auto)
+		// Previously set 'height' property from this procedure must be removed for the calculations below to work as intended.
+		if(selection_element->GetLocalStyleProperties().count(Core::PropertyId::Height) == 1)
 		{
-			selection_element->SetProperty(Core::PropertyId::Height, Core::Property(Core::Style::Height::Auto));
+			selection_element->RemoveProperty(Core::PropertyId::Height);
 			selection_element->GetOwnerDocument()->UpdateDocument();
 		}
 
@@ -126,8 +127,8 @@ void WidgetDropDown::OnRender()
 		const float height_below = window_height - absolute_y - offset_y_below;
 		const float height_above = absolute_y + offset_y_above;
 
-		// Format the selection box and retrieve the 'native' height occupied by all the options, but limited
-		// by 'max-height' if set by the user.
+		// Format the selection box and retrieve the 'native' height occupied by all the options, while respecting
+		// the 'min/max-height' properties.
 		Core::ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(Core::Box::BORDER));
 		const float content_height = selection_element->GetOffsetHeight();
 
@@ -526,6 +527,7 @@ void WidgetDropDown::ShowSelectBox(bool show)
 	else
 	{
 		selection_element->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+		selection_element->RemoveProperty(Core::PropertyId::Height);
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
 		DetachScrollEvent();
