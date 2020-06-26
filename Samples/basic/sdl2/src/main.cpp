@@ -36,6 +36,10 @@
 #include "SystemInterfaceSDL2.h"
 #include "RenderInterfaceSDL2.h"
 
+#ifdef RMLUI_PLATFORM_WIN32
+#include <windows.h>
+#endif
+
 #include <SDL.h>
 
 #include <GL/glew.h>
@@ -43,7 +47,7 @@
 int main(int /*argc*/, char** /*argv*/)
 {
 #ifdef RMLUI_PLATFORM_WIN32
-	DoAllocConsole();
+	AllocConsole();
 #endif
 
 	int window_width = 1024;
@@ -144,7 +148,7 @@ int main(int /*argc*/, char** /*argv*/)
 				break;
 
 			case SDL_MOUSEWHEEL:
-				Context->ProcessMouseWheel(event.wheel.y, SystemInterface.GetKeyModifiers());
+				Context->ProcessMouseWheel(float(event.wheel.y), SystemInterface.GetKeyModifiers());
 				break;
 
 			case SDL_KEYDOWN:

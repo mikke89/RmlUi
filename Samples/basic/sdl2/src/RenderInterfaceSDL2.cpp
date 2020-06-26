@@ -52,7 +52,8 @@ void RmlUiSDL2Renderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vert
     std::vector<Rml::Core::Vector2f> Positions(num_vertices);
     std::vector<Rml::Core::Colourb> Colors(num_vertices);
     std::vector<Rml::Core::Vector2f> TexCoords(num_vertices);
-    float texw, texh;
+    float texw = 0.0f;
+    float texh = 0.0f;
  
     SDL_Texture* sdl_texture = nullptr;
     if(texture)
@@ -142,7 +143,7 @@ bool RmlUiSDL2Renderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rm
 
     Rml::Core::String extension = source.substr(i+1, source.length()-i);
 
-    SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, buffer_size), 1, extension.c_str());
+    SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, int(buffer_size)), 1, extension.c_str());
 
     if (surface) {
         SDL_Texture *texture = SDL_CreateTextureFromSurface(mRenderer, surface);

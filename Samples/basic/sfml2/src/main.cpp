@@ -45,6 +45,10 @@
 #include <Shell.h>
 #include <ShellFileInterface.h>
 
+#ifdef RMLUI_PLATFORM_WIN32
+#include <windows.h>
+#endif
+
 int main(int /*argc*/, char** /*argv*/)
 {
 #ifdef RMLUI_PLATFORM_WIN32
@@ -139,12 +143,12 @@ int main(int /*argc*/, char** /*argv*/)
 					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::MouseWheelMoved:
-				Context->ProcessMouseWheel(-event.mouseWheel.delta,
+				Context->ProcessMouseWheel(float(-event.mouseWheel.delta),
 					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::TextEntered:
 				if (event.text.unicode > 32)
-					Context->ProcessTextInput(event.text.unicode);
+					Context->ProcessTextInput(Rml::Core::Character(event.text.unicode));
 				break;
 			case sf::Event::KeyPressed:
 				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.code),
