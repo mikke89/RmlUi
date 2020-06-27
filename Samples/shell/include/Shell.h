@@ -92,6 +92,9 @@ public:
 	
 	/// Sets the RmlUi context to send window resized events to.
 	static void SetContext(Rml::Context* context);
+
+	/// Sets the RmlUi context to send window resized events to.
+	static float GetDensityIndependentPixelRatio();
 };
 
 #include "ShellSystemInterface.h"

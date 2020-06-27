@@ -29,6 +29,7 @@
 #include <win32/InputWin32.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
@@ -97,14 +98,29 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 			Rml::Input::KeyIdentifier key_identifier = key_identifier_map[w_param];
 			int key_modifier_state = GetKeyModifierState();
 
-			// Check for F8 to toggle the debugger.
+			// Toggle debugger and set 'dp'-ratio ctrl +/-/0 keys
 			if (key_identifier == Rml::Input::KI_F8)
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
-				break;
 			}
-
-			context->ProcessKeyDown(key_identifier, key_modifier_state);
+			else if (key_identifier == Rml::Input::KI_0 && key_modifier_state & Rml::Input::KM_CTRL)
+			{
+				context->SetDensityIndependentPixelRatio(key_modifier_state == Rml::Input::KM_SHIFT ? 1.f : Shell::GetDensityIndependentPixelRatio());
+			}
+			else if (key_identifier == Rml::Input::KI_OEM_MINUS && key_modifier_state & Rml::Input::KM_CTRL)
+			{
+				const float new_dp_ratio = Rml::Math::Max(context->GetDensityIndependentPixelRatio() / 1.2f, 0.5f);
+				context->SetDensityIndependentPixelRatio(new_dp_ratio);
+			}
+			else if (key_identifier == Rml::Input::KI_OEM_PLUS && key_modifier_state & Rml::Input::KM_CTRL)
+			{
+				const float new_dp_ratio = Rml::Math::Min(context->GetDensityIndependentPixelRatio() * 1.2f, 2.5f);
+				context->SetDensityIndependentPixelRatio(new_dp_ratio);
+			}
+			else
+			{
+				context->ProcessKeyDown(key_identifier, key_modifier_state);
+			}
 		}
 		break;
 
