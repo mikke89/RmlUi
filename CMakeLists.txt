@@ -550,7 +550,7 @@ endif(NOT BUILD_FRAMEWORK)
 		find_package(GLEW)
 		if(GLEW_FOUND)
 			message("-- Can SDL2 sample be built - yes")
-			include_directories(${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+			include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
 			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
 		
