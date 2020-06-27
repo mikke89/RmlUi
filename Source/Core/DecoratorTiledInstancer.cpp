@@ -157,7 +157,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			{
 				using Style::LengthPercentage;
 
-				LengthPercentage align = tile.align[dimension];
+				LengthPercentage& align = tile.align[dimension];
 				const Property& property = *align_properties[dimension];
 				if (property.unit == Property::KEYWORD)
 				{
