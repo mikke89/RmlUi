@@ -138,6 +138,10 @@ RMLUICORE_API float SquareRoot(float value);
 RMLUICORE_API float RoundFloat(float value);
 /// Rounds a floating-point value to the nearest integer.
 /// @param[in] value The value to round.
+/// @return The rounded integer as double.
+RMLUICORE_API double RoundFloat(double value);
+/// Rounds a floating-point value to the nearest integer.
+/// @param[in] value The value to round.
 /// @return The rounded integer.
 RMLUICORE_API int RoundToInteger(float value);
 /// Rounds a floating-point value up to the nearest integer.

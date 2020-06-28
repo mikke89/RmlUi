@@ -34,11 +34,12 @@
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
 #include "../../Include/RmlUi/Core/URL.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 
 namespace Rml {
 namespace Core {
 
-using NodeHandlers = UnorderedMap< String, SharedPtr<XMLNodeHandler> > ;
+using NodeHandlers = UnorderedMap< String, SharedPtr<XMLNodeHandler> >;
 static NodeHandlers node_handlers;
 static SharedPtr<XMLNodeHandler> default_node_handler;
 
@@ -46,23 +47,21 @@ XMLParser::XMLParser(Element* root)
 {
 	RegisterCDATATag("script");
 
+	for (const String& name : Factory::GetStructuralDataViewAttributeNames())
+		RegisterInnerXMLAttribute(name);
+
 	// Add the first frame.
 	ParseFrame frame;
-	frame.node_handler = nullptr;
-	frame.child_handler = nullptr;
 	frame.element = root;
-	frame.tag = "";
 	stack.push(frame);
 
 	active_handler = nullptr;
 
-	header = new DocumentHeader();
+	header = std::make_unique<DocumentHeader>();
 }
 
 XMLParser::~XMLParser()
-{
-	delete header;
-}
+{}
 
 // Registers a custom node handler to be used to a given tag.
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
@@ -90,12 +89,7 @@ void XMLParser::ReleaseHandlers()
 
 DocumentHeader* XMLParser::GetDocumentHeader()
 {
-	return header;
-}
-
-const URL& XMLParser::GetSourceURL() const
-{
-	return xml_source->GetSourceURL();
+	return header.get();
 }
 
 // Pushes the default element handler onto the parse stack.
@@ -118,6 +112,12 @@ bool XMLParser::PushHandler(const String& tag)
 const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 {
 	return &stack.top();
+}
+
+const URL& XMLParser::GetSourceURL() const
+{
+	RMLUI_ASSERT(GetSourceURLPtr());
+	return *GetSourceURLPtr();
 }
 
 /// Called when the parser finds the beginning of an element tag.
@@ -178,11 +178,11 @@ void XMLParser::HandleElementEnd(const String& _name)
 }
 
 /// Called when the parser encounters data.
-void XMLParser::HandleData(const String& data)
+void XMLParser::HandleData(const String& data, XMLDataType type)
 {
 	RMLUI_ZoneScoped;
 	if (stack.top().node_handler)
-		stack.top().node_handler->ElementData(this, data);
+		stack.top().node_handler->ElementData(this, data, type);
 }
 
 }

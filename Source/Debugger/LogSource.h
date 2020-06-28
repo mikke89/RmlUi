@@ -85,6 +85,7 @@ div.button.last
 div.log-entry p.message
 {
 	display: block;
+	white-space: pre-wrap;
 	margin-left: 20dp;
 }
 )RCSS";

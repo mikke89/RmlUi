@@ -69,8 +69,10 @@ bool XMLNodeHandlerTextArea::ElementEnd(Core::XMLParser* RMLUI_UNUSED_PARAMETER(
 	return true;
 }
 
-bool XMLNodeHandlerTextArea::ElementData(Core::XMLParser* parser, const Rml::Core::String& data)
+bool XMLNodeHandlerTextArea::ElementData(Core::XMLParser* parser, const Rml::Core::String& data, Core::XMLDataType RMLUI_UNUSED_PARAMETER(type))
 {
+	RMLUI_UNUSED(type);
+
 	ElementFormControlTextArea* text_area = rmlui_dynamic_cast< ElementFormControlTextArea* >(parser->GetParseFrame()->element);
 	if (text_area != nullptr)
 	{

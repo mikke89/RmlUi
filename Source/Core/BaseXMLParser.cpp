@@ -29,26 +29,17 @@
 #include "../../Include/RmlUi/Core/BaseXMLParser.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Stream.h"
+#include "XMLParseTools.h"
 #include <string.h>
 
 namespace Rml {
 namespace Core {
 
-// Most file layers cache 4k.
-const int DEFAULT_BUFFER_SIZE = 4096;
-
 BaseXMLParser::BaseXMLParser()
-{
-	read = nullptr;
-	buffer = nullptr;
-	buffer_used = 0;
-	buffer_size = 0;
-	open_tag_depth = 0;
-}
+{}
 
 BaseXMLParser::~BaseXMLParser()
-{
-}
+{}
 
 // Registers a tag as containing general character data.
 void BaseXMLParser::RegisterCDATATag(const String& tag)
@@ -57,24 +48,41 @@ void BaseXMLParser::RegisterCDATATag(const String& tag)
 		cdata_tags.insert(StringUtilities::ToLower(tag));
 }
 
+void BaseXMLParser::RegisterInnerXMLAttribute(const String& attribute_name)
+{
+	attributes_for_inner_xml_data.insert(attribute_name);
+}
+
 // Parses the given stream as an XML file, and calls the handlers when
 // interesting phenomenon are encountered.
 void BaseXMLParser::Parse(Stream* stream)
 {
-	xml_source = stream;
-	buffer_size = DEFAULT_BUFFER_SIZE;
+	source_url = &stream->GetSourceURL();
 
-	buffer = (unsigned char*) malloc(buffer_size);
-	read = buffer;
+	xml_source.clear();
+
+	// We read in the whole XML file here.
+	// TODO: It doesn't look like the Stream interface is used for anything useful. We
+	//   might as well just use a span or StringView, and get completely rid of it.
+	// @performance Otherwise, use the temporary allocator.
+	const size_t source_size = stream->Length();
+	stream->Read(xml_source, source_size);
+
+	xml_index = 0;
 	line_number = 1;
-	FillBuffer();
+	line_number_open_tag = 1;
+
+	inner_xml_data = false;
+	inner_xml_data_terminate_depth = 0;
+	inner_xml_data_index_begin = 0;
 
 	// Read (er ... skip) the header, if one exists.
 	ReadHeader();
 	// Read the XML body.
 	ReadBody();
 
-	free(buffer);
+	xml_source.clear();
+	source_url = nullptr;
 }
 
 // Get the current file line number
@@ -102,17 +110,56 @@ void BaseXMLParser::HandleElementEnd(const String& RMLUI_UNUSED_PARAMETER(name))
 }
 
 // Called when the parser encounters data.
-void BaseXMLParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data))
+void BaseXMLParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data), XMLDataType RMLUI_UNUSED_PARAMETER(type))
 {
 	RMLUI_UNUSED(data);
+	RMLUI_UNUSED(type);
+}
+
+/// Returns the source URL of this parse. Only valid during parsing.
+
+const URL* BaseXMLParser::GetSourceURLPtr() const
+{
+	return source_url;
+}
+
+void BaseXMLParser::Next() {
+	xml_index += 1;
+}
+
+bool BaseXMLParser::AtEnd() const {
+	return xml_index >= xml_source.size();
+}
+
+char BaseXMLParser::Look() const {
+	RMLUI_ASSERT(!AtEnd());
+	return xml_source[xml_index];
+}
+
+void BaseXMLParser::HandleElementStartInternal(const String& name, const XMLAttributes& attributes)
+{
+	if (!inner_xml_data)
+		HandleElementStart(name, attributes);
+}
+
+void BaseXMLParser::HandleElementEndInternal(const String& name)
+{
+	if (!inner_xml_data)
+		HandleElementEnd(name);
+}
+
+void BaseXMLParser::HandleDataInternal(const String& data, XMLDataType type)
+{
+	if (!inner_xml_data)
+		HandleData(data, type);
 }
 
 void BaseXMLParser::ReadHeader()
 {
-	if (PeekString((unsigned char*) "<?"))
+	if (PeekString("<?"))
 	{
 		String temp;
-		FindString((unsigned char*) ">", temp);
+		FindString(">", temp);
 	}
 }
 
@@ -126,35 +173,34 @@ void BaseXMLParser::ReadBody()
 	for(;;)
 	{
 		// Find the next open tag.
-		if (!FindString((unsigned char*) "<", data))
+		if (!FindString("<", data, true))
 			break;
 
+		const size_t xml_index_tag = xml_index - 1;
+
 		// Check what kind of tag this is.
-		if (PeekString((const unsigned char*) "!--"))
+		if (PeekString("!--"))
 		{
 			// Comment.
 			String temp;
-			if (!FindString((const unsigned char*) "-->", temp))
+			if (!FindString("-->", temp))
 				break;
 		}
-		else if (PeekString((const unsigned char*) "![CDATA["))
+		else if (PeekString("![CDATA["))
 		{
 			// CDATA tag; read everything (including markup) until the ending
 			// CDATA tag.
 			if (!ReadCDATA())
 				break;
 		}
-		else if (PeekString((const unsigned char*) "/"))
+		else if (PeekString("/"))
 		{
-			if (!ReadCloseTag())
+			if (!ReadCloseTag(xml_index_tag))
 				break;
 
 			// Bail if we've hit the end of the XML data.
 			if (open_tag_depth == 0)
-			{
-				xml_source->Seek((long)((read - buffer) - buffer_used), SEEK_CUR);
 				break;
-			}
 		}
 		else
 		{
@@ -168,7 +214,7 @@ void BaseXMLParser::ReadBody()
 	// Check for error conditions
 	if (open_tag_depth > 0)
 	{
-		Log::Message(Log::LT_WARNING, "XML parse error on line %d of %s.", GetLineNumber(), xml_source->GetSourceURL().GetURL().c_str());
+		Log::Message(Log::LT_WARNING, "XML parse error on line %d of %s.", GetLineNumber(), source_url->GetURL().c_str());
 	}
 }
 
@@ -180,7 +226,7 @@ bool BaseXMLParser::ReadOpenTag()
 	// Opening tag; send data immediately and open the tag.
 	if (!data.empty())
 	{
-		HandleData(data);
+		HandleDataInternal(data, XMLDataType::Text);
 		data.clear();
 	}
 
@@ -190,18 +236,18 @@ bool BaseXMLParser::ReadOpenTag()
 
 	bool section_opened = false;
 
-	if (PeekString((const unsigned char*) ">"))
+	if (PeekString(">"))
 	{
 		// Simple open tag.
-		HandleElementStart(tag_name, XMLAttributes());
+		HandleElementStartInternal(tag_name, XMLAttributes());
 		section_opened = true;
 	}
-	else if (PeekString((const unsigned char*) "/") &&
-			 PeekString((const unsigned char*) ">"))
+	else if (PeekString("/") &&
+			 PeekString(">"))
 	{
 		// Empty open tag.
-		HandleElementStart(tag_name, XMLAttributes());
-		HandleElementEnd(tag_name);
+		HandleElementStartInternal(tag_name, XMLAttributes());
+		HandleElementEndInternal(tag_name);
 
 		// Tag immediately closed, reduce count
 		open_tag_depth--;
@@ -209,20 +255,21 @@ bool BaseXMLParser::ReadOpenTag()
 	else
 	{
 		// It appears we have some attributes. Let's parse them.
+		bool parse_inner_xml_as_data = false;
 		XMLAttributes attributes;
-		if (!ReadAttributes(attributes))
+		if (!ReadAttributes(attributes, parse_inner_xml_as_data))
 			return false;
 
-		if (PeekString((const unsigned char*) ">"))
+		if (PeekString(">"))
 		{
-			HandleElementStart(tag_name, attributes);
+			HandleElementStartInternal(tag_name, attributes);
 			section_opened = true;
 		}
-		else if (PeekString((const unsigned char*) "/") &&
-				 PeekString((const unsigned char*) ">"))
+		else if (PeekString("/") &&
+				 PeekString(">"))
 		{
-			HandleElementStart(tag_name, attributes);
-			HandleElementEnd(tag_name);
+			HandleElementStartInternal(tag_name, attributes);
+			HandleElementEndInternal(tag_name);
 
 			// Tag immediately closed, reduce count
 			open_tag_depth--;
@@ -231,23 +278,32 @@ bool BaseXMLParser::ReadOpenTag()
 		{
 			return false;
 		}
+
+		if (section_opened && parse_inner_xml_as_data && !inner_xml_data)
+		{
+			inner_xml_data = true;
+			inner_xml_data_terminate_depth = open_tag_depth;
+			inner_xml_data_index_begin = xml_index;
+		}
 	}
 
-	// Check if this tag needs to processed as CDATA.
+	// Check if this tag needs to be processed as CDATA.
 	if (section_opened)
 	{
-		String lcase_tag_name = StringUtilities::ToLower(tag_name);
-		if (cdata_tags.find(lcase_tag_name) != cdata_tags.end())
+		const String lcase_tag_name = StringUtilities::ToLower(tag_name);
+		bool is_cdata_tag = (cdata_tags.find(lcase_tag_name) != cdata_tags.end());
+
+		if (is_cdata_tag)
 		{
 			if (ReadCDATA(lcase_tag_name.c_str()))
 			{
 				open_tag_depth--;
 				if (!data.empty())
 				{
-					HandleData(data);
+					HandleDataInternal(data, XMLDataType::CData);
 					data.clear();
 				}
-				HandleElementEnd(tag_name);
+				HandleElementEndInternal(tag_name);
 
 				return true;
 			}
@@ -259,28 +315,41 @@ bool BaseXMLParser::ReadOpenTag()
 	return true;
 }
 
-bool BaseXMLParser::ReadCloseTag()
+bool BaseXMLParser::ReadCloseTag(const size_t xml_index_tag)
 {
+	if (inner_xml_data && open_tag_depth == inner_xml_data_terminate_depth)
+	{
+		// Closing the tag that initiated the inner xml data parsing. Set all its contents as Data to be
+		// submitted next, and disable the mode to resume normal parsing behavior.
+		RMLUI_ASSERT(inner_xml_data_index_begin <= xml_index_tag);
+		inner_xml_data = false;
+		data = xml_source.substr(inner_xml_data_index_begin, xml_index_tag - inner_xml_data_index_begin);
+		HandleDataInternal(data, XMLDataType::InnerXML);
+		data.clear();
+	}
+
 	// Closing tag; send data immediately and close the tag.
 	if (!data.empty())
 	{
-		HandleData(data);
+		HandleDataInternal(data, XMLDataType::Text);
 		data.clear();
 	}
 
 	String tag_name;
-	if (!FindString((const unsigned char*) ">", tag_name))
+	if (!FindString(">", tag_name))
 		return false;
 
-	HandleElementEnd(StringUtilities::StripWhitespace(tag_name));
+	HandleElementEndInternal(StringUtilities::StripWhitespace(tag_name));
+
 
 	// Tag closed, reduce count
 	open_tag_depth--;
 
+
 	return true;
 }
 
-bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
+bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes, bool& parse_raw_xml_content)
 {
 	for (;;)
 	{
@@ -294,16 +363,16 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 		}
 		
 		// Check if theres an assigned value
-		if (PeekString((const unsigned char*)"="))
+		if (PeekString("="))
 		{
-			if (PeekString((const unsigned char*) "\""))
+			if (PeekString("\""))
 			{
-				if (!FindString((const unsigned char*) "\"", value))
+				if (!FindString("\"", value))
 					return false;
 			}
-			else if (PeekString((const unsigned char*) "'"))
+			else if (PeekString("'"))
 			{
-				if (!FindString((const unsigned char*) "'", value))
+				if (!FindString("'", value))
 					return false;
 			}
 			else if (!FindWord(value, "/>"))
@@ -312,21 +381,23 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes)
 			}
 		}
 
+		if (attributes_for_inner_xml_data.count(attribute) == 1)
+			parse_raw_xml_content = true;
+
  		attributes[attribute] = value;
 
 		// Check for the end of the tag.
-		if (PeekString((const unsigned char*) "/", false) ||
-			PeekString((const unsigned char*) ">", false))
+		if (PeekString("/", false) || PeekString(">", false))
 			return true;
 	}
 }
 
-bool BaseXMLParser::ReadCDATA(const char* terminator)
+bool BaseXMLParser::ReadCDATA(const char* tag_terminator)
 {
 	String cdata;
-	if (terminator == nullptr)
+	if (tag_terminator == nullptr)
 	{
-		FindString((const unsigned char*) "]]>", cdata);
+		FindString("]]>", cdata);
 		data += cdata;
 		return true;
 	}
@@ -335,26 +406,24 @@ bool BaseXMLParser::ReadCDATA(const char* terminator)
 		for (;;)
 		{
 			// Search for the next tag opening.
-			if (!FindString((const unsigned char*) "<", cdata))
+			if (!FindString("<", cdata))
 				return false;
 
-			if (PeekString((const unsigned char*) "/", false))
+			if (PeekString("/", false))
 			{
 				String tag;
-				if (FindString((const unsigned char*) ">", tag))
+				if (FindString(">", tag))
 				{
 					size_t slash_pos = tag.find('/');
 					String tag_name = StringUtilities::StripWhitespace(slash_pos == String::npos ? tag : tag.substr(slash_pos + 1));
-					if (StringUtilities::ToLower(tag_name) == terminator)
+					if (StringUtilities::ToLower(tag_name) == tag_terminator)
 					{
 						data += cdata;
 						return true;
 					}
 					else
 					{
-						cdata += "<";
-						cdata += tag;
-						cdata += ">";
+						cdata += '<' + tag + '>';
 					}
 				}
 				else
@@ -369,20 +438,16 @@ bool BaseXMLParser::ReadCDATA(const char* terminator)
 // Reads from the stream until a complete word is found.
 bool BaseXMLParser::FindWord(String& word, const char* terminators)
 {
-	for (;;)
+	while (!AtEnd())
 	{
-		if (read >= buffer + buffer_used)
-		{
-			if (!FillBuffer())			
-				return false;
-		}
+		char c = Look();
 
 		// Ignore white space
-		if (StringUtilities::IsWhitespace(*read))
+		if (StringUtilities::IsWhitespace(c))
 		{
 			if (word.empty())
 			{
-				read++;
+				Next();
 				continue;
 			}
 			else
@@ -390,35 +455,49 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 		}
 
 		// Check for termination condition
-		if (terminators && strchr(terminators, *read))
+		if (terminators && strchr(terminators, c))
 		{
 			return !word.empty();
 		}
 
-		word += *read;
-		read++;
+		word += c;
+		Next();
 	}
+
+	return false;
 }
 
 // Reads from the stream until the given character set is found.
-bool BaseXMLParser::FindString(const unsigned char* string, String& data)
+bool BaseXMLParser::FindString(const char* string, String& data, bool escape_brackets)
 {
 	int index = 0;
+	bool in_brackets = false;
+	char previous = 0;
+
 	while (string[index])
 	{
-		if (read >= buffer + buffer_used)
-		{
-			if (!FillBuffer())
-				return false;
-		}
+		if (AtEnd())
+			return false;
+
+		const char c = Look();
 
 		// Count line numbers
-		if (*read == '\n')
+		if (c == '\n')
 		{
 			line_number++;
 		}
 
-		if (*read == string[index])
+		if(escape_brackets)
+		{
+			const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, c, previous);
+			if (error_str)
+			{
+				Log::Message(Log::LT_WARNING, "XML parse error. %s", error_str);
+				return false;
+			}
+		}
+
+		if (c == string[index] && !in_brackets)
 		{
 			index += 1;
 		}
@@ -426,14 +505,15 @@ bool BaseXMLParser::FindString(const unsigned char* string, String& data)
 		{
 			if (index > 0)
 			{
-				data += String((const char*)string, index);
+				data += String(string, index);
 				index = 0;
 			}
 
-			data += *read;
+			data += c;
 		}
 
-		read++;
+		previous = c;
+		Next();
 	}
 
 	return true;
@@ -441,85 +521,44 @@ bool BaseXMLParser::FindString(const unsigned char* string, String& data)
 
 // Returns true if the next sequence of characters in the stream matches the
 // given string.
-bool BaseXMLParser::PeekString(const unsigned char* string, bool consume)
+bool BaseXMLParser::PeekString(const char* string, bool consume)
 {
-	unsigned char* peek_read = read;
-
+	const size_t start_index = xml_index;
+	bool success = true;
 	int i = 0;
 	while (string[i])
 	{
-		// If we're about to read past the end of the buffer, read into the
-		// overflow buffer.
-		if ((peek_read - buffer) + i >= buffer_used)
+		if (AtEnd())
 		{
-			int peek_offset = (int)(peek_read - read);
-			FillBuffer();
-			peek_read = read + peek_offset;
-
-			if (peek_read - buffer + i >= buffer_used)
-			{
-				// Wierd, seems our buffer is too small, realloc it bigger.
-				buffer_size *= 2;
-				int read_offset = (int)(read - buffer);
-				unsigned char* new_buffer = (unsigned char*) realloc(buffer, buffer_size);
-				RMLUI_ASSERTMSG(new_buffer != nullptr, "Unable to allocate larger buffer for Peek() call");
-				if(new_buffer == nullptr)
-				{
-					return false;
-				}
-				buffer = new_buffer;
-				// Restore the read pointers.
-				read = buffer + read_offset;
-				peek_read = read + peek_offset;
-				
-				// Attempt to fill our new buffer size.
-				if (!FillBuffer())
-					return false;
-			}
+			success = false;
+			break;
 		}
 
+		const char c = Look();
+
 		// Seek past all the whitespace if we haven't hit the initial character yet.
-		if (i == 0 && StringUtilities::IsWhitespace(*peek_read))
+		if (i == 0 && StringUtilities::IsWhitespace(c))
 		{
-			peek_read++;
+			Next();
 		}
 		else
 		{
-			if (*peek_read != string[i])
-				return false;
+			if (c != string[i])
+			{
+				success = false;
+				break;
+			}
 
 			i++;
-			peek_read++;
+			Next();
 		}
 	}
 
-	// Set the read pointer to the end of the peek.
-	if (consume)
-	{		
-		read = peek_read;
-	}
+	// Set the index to the start index unless we are consuming.
+	if (!consume || !success)
+		xml_index = start_index;
 
-	return true;
-}
-
-// Fill the buffer as much as possible, without removing any content that is still pending
-bool BaseXMLParser::FillBuffer()
-{
-	int bytes_free = buffer_size;
-	int bytes_remaining = Math::Max((int)(buffer_used - (read - buffer)), 0);
-
-	// If theres any data still in the buffer, shift it down, and fill it again
-	if (bytes_remaining > 0)
-	{
-		memmove(buffer, read, bytes_remaining);
-		bytes_free = buffer_size - bytes_remaining;
-	}
-	
-	read = buffer;
-	size_t bytes_read = xml_source->Read(&buffer[bytes_remaining], bytes_free);
-	buffer_used = (int)(bytes_read + bytes_remaining);
-
-	return bytes_read > 0;
+	return success;
 }
 
 }

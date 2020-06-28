@@ -5,6 +5,19 @@
 * [RmlUi 2.0](#rmlui-20)
 
 
+## RmlUi 4.0 (WIP)
+
+### Model-view-controller (MVC) implementation
+
+RmlUi now supports a model-view-controller (MVC) approach through data bindings. This is a powerful approach for making documents respond to data changes, or in reverse, updating data based on user actions.
+
+For now, this is considered an experimental feature.
+
+- See the work-in-progress [documentation for this feature](https://gist.github.com/mikke89/030cca078e36749580c975692d03cbee).
+- Have a look at the 'databinding' sample for usage examples.
+- See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
+
+
 ## RmlUi 3.3
 
 ###  Rml `select` element improvements

@@ -155,7 +155,7 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 				num_characters += 1;
 				if (num_characters > max_length)
 				{
-					i_erase = size_t(it.Offset());
+					i_erase = size_t(it.offset());
 					break;
 				}
 			}
@@ -853,7 +853,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 	for(auto it = Core::StringIteratorU8(lines[line_index].content, 0, lines[line_index].content_length); it; )
 	{
 		++it;
-		int offset = (int)it.Offset();
+		int offset = (int)it.offset();
 
 		float line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.substr(0, offset));
 		if (line_width > position)

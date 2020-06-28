@@ -161,6 +161,7 @@ using SmallOrderedSet = chobo::flat_set< T >;
 // Container types for common classes
 using ElementList = std::vector< Element* >;
 using OwnedElementList = std::vector< ElementPtr >;
+using VariantList = std::vector< Variant >;
 using ElementAnimationList = std::vector< ElementAnimation >;
 
 using PseudoClassList = SmallUnorderedSet< String >;
@@ -188,6 +189,12 @@ struct FontEffects {
 using TransformPtr = SharedPtr< Transform >;
 using DecoratorsPtr = SharedPtr<const Decorators>;
 using FontEffectsPtr = SharedPtr<const FontEffects>;
+
+// Data binding types
+class DataView;
+using DataViewPtr = UniqueReleaserPtr<DataView>;
+class DataController;
+using DataControllerPtr = UniqueReleaserPtr<DataController>;
 
 }
 }

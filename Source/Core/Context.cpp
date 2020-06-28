@@ -36,6 +36,8 @@
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
+#include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "EventDispatcher.h"
 #include "EventIterators.h"
 #include "PluginRegistry.h"
@@ -796,6 +798,49 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 	instancer = _instancer;
 }
 
+DataModelConstructor Context::CreateDataModel(const String& name)
+{
+	if (!data_type_register)
+		data_type_register = std::make_unique<DataTypeRegister>();
+
+	auto result = data_models.emplace(name, std::make_unique<DataModel>(data_type_register->GetTransformFuncRegister()));
+	bool inserted = result.second;
+	if (inserted)
+		return DataModelConstructor(result.first->second.get(), data_type_register.get());
+
+	Log::Message(Log::LT_ERROR, "Data model name '%s' already exists.", name.c_str());
+	return DataModelConstructor();
+}
+
+DataModelConstructor Context::GetDataModel(const String& name)
+{
+	if (data_type_register)
+	{
+		if (DataModel* model = GetDataModelPtr(name))
+			return DataModelConstructor(model, data_type_register.get());
+	}
+
+	Log::Message(Log::LT_ERROR, "Data model name '%s' could not be found.", name.c_str());
+	return DataModelConstructor();
+}
+
+bool Context::RemoveDataModel(const String& name)
+{
+	auto it = data_models.find(name);
+	if (it == data_models.end())
+		return false;
+
+	DataModel* model = it->second.get();
+	ElementList elements = model->GetAttachedModelRootElements();
+
+	for (Element* element : elements)
+		element->SetDataModel(nullptr);
+
+	data_models.erase(it);
+
+	return true;
+}
+
 // Internal callback for when an element is removed from the hierarchy.
 void Context::OnElementDetach(Element* element)
 {
@@ -1145,6 +1190,14 @@ void Context::ReleaseDragClone()
 		cursor_proxy->RemoveChild(drag_clone);
 		drag_clone = nullptr;
 	}
+}
+
+DataModel* Context::GetDataModelPtr(const String& name) const
+{
+	auto it = data_models.find(name);
+	if (it != data_models.end())
+		return it->second.get();
+	return nullptr;
 }
 
 // Builds the parameters for a generic key event.

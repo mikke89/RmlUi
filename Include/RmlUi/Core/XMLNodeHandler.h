@@ -38,6 +38,7 @@ namespace Core {
 
 class Element;
 class XMLParser;
+enum class XMLDataType;
 
 /**
 	A handler gets ElementStart, ElementEnd and ElementData called by the XMLParser.
@@ -65,7 +66,7 @@ public:
 	/// Called for element data.
 	/// @param parser The parser executing the parse.
 	/// @param data The element data.
-	virtual bool ElementData(XMLParser* parser, const String& data) = 0;
+	virtual bool ElementData(XMLParser* parser, const String& data, XMLDataType type) = 0;
 };
 
 }

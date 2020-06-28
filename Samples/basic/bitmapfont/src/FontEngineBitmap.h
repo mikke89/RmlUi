@@ -115,7 +115,7 @@ public:
 	/// Called when the parser finds the end of an element tag.
 	void HandleElementEnd(const String& name) override;
 	/// Called when the parser encounters data.
-	void HandleData(const String& data) override;
+	void HandleData(const String& data, Rml::Core::XMLDataType type) override;
 
 	String family;
 	FontStyle style = FontStyle::Normal;

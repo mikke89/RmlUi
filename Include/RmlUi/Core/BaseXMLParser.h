@@ -37,6 +37,10 @@ namespace Rml {
 namespace Core {
 
 class Stream;
+class URL;
+using XMLAttributes = Dictionary;
+
+enum class XMLDataType { Text, CData, InnerXML };
 
 /**
 	@author Peter Curry
@@ -53,6 +57,14 @@ class RMLUICORE_API BaseXMLParser
 		/// @param[in] tag The tag to register as containing generic character data.
 		void RegisterCDATATag(const String& tag);
 
+		/// When an XML attribute with the given name is encountered during parsing, then all content below the current
+		/// node is treated as data.
+		/// @note While children nodes are treated as data (text), it is assumed that the content represents valid XML.
+		///         The parsing proceeds as normal except that the Handle...() functions are not called until the
+		///         starting node is closed. Then, all its contents are submitted as Data (raw text string).
+		/// @note In particular, this behavior is useful for some data-binding views.
+		void RegisterInnerXMLAttribute(const String& attribute_name);
+
 		/// Parses the given stream as an XML file, and calls the handlers when
 		/// interesting phenomena are encountered.
 		void Parse(Stream* stream);
@@ -68,20 +80,31 @@ class RMLUICORE_API BaseXMLParser
 		/// Called when the parser finds the end of an element tag.
 		virtual void HandleElementEnd(const String& name);
 		/// Called when the parser encounters data.
-		virtual void HandleData(const String& data);
+		virtual void HandleData(const String& data, XMLDataType type);
 
 	protected:
-		// The stream we're reading the XML from.
-		Stream* xml_source;
+		const URL* GetSourceURLPtr() const;
 
 	private:
+		const URL* source_url = nullptr;
+		String xml_source;
+		size_t xml_index = 0;
+
+		void Next();
+		bool AtEnd() const;
+		char Look() const;
+
+		void HandleElementStartInternal(const String& name, const XMLAttributes& attributes);
+		void HandleElementEndInternal(const String& name);
+		void HandleDataInternal(const String& data, XMLDataType type);
+
 		void ReadHeader();
 		void ReadBody();
-
 		bool ReadOpenTag();
-		bool ReadCloseTag();
-		bool ReadAttributes(XMLAttributes& attributes);
-		bool ReadCDATA(const char* terminator = nullptr);
+
+		bool ReadCloseTag(size_t xml_index_tag);
+		bool ReadAttributes(XMLAttributes& attributes, bool& parse_raw_xml_content);
+		bool ReadCDATA(const char* tag_terminator = nullptr);
 
 		// Reads from the stream until a complete word is found.
 		// @param[out] word Word thats been found
@@ -89,22 +112,20 @@ class RMLUICORE_API BaseXMLParser
 		bool FindWord(String& word, const char* terminators = nullptr);
 		// Reads from the stream until the given character set is found. All
 		// intervening characters will be returned in data.
-		bool FindString(const unsigned char* string, String& data);
+		bool FindString(const char* string, String& data, bool escape_brackets = false);
 		// Returns true if the next sequence of characters in the stream
 		// matches the given string. If consume is set and this returns true,
 		// the characters will be consumed.
-		bool PeekString(const unsigned char* string, bool consume = true);
+		bool PeekString(const char* string, bool consume = true);
 
-		// Fill the buffer as much as possible, without removing any content that is still pending
-		bool FillBuffer();
+		int line_number = 0;
+		int line_number_open_tag = 0;
+		int open_tag_depth = 0;
 
-		unsigned char* read;
-		unsigned char* buffer;
-		int buffer_size;
-		int buffer_used;
-		int line_number;
-		int line_number_open_tag;
-		int open_tag_depth;
+		// Enabled when an attribute for inner xml data is encountered (see description in Register...() above).
+		bool inner_xml_data = false;
+		int inner_xml_data_terminate_depth = 0;
+		size_t inner_xml_data_index_begin = 0;
 
 		// The element attributes being read.
 		XMLAttributes attributes;
@@ -112,6 +133,7 @@ class RMLUICORE_API BaseXMLParser
 		String data;
 
 		SmallUnorderedSet< String > cdata_tags;
+		SmallUnorderedSet< String > attributes_for_inner_xml_data;
 };
 
 }

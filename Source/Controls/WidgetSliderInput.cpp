@@ -46,12 +46,13 @@ WidgetSliderInput::~WidgetSliderInput()
 {
 }
 
-void WidgetSliderInput::SetValue(float value)
+void WidgetSliderInput::SetValue(float target_value)
 {
-	float num_steps = (value - min_value) / step;
+	float num_steps = (target_value - min_value) / step;
 	float new_value = min_value + Rml::Core::Math::RoundFloat(num_steps) * step;
 
-	SetBarPosition(SetValueInternal(new_value));
+	if(new_value != value)
+		SetBarPosition(SetValueInternal(new_value));
 }
 
 float WidgetSliderInput::GetValue() const
@@ -128,9 +129,14 @@ float WidgetSliderInput::SetValueInternal(float new_value)
 		return 0;
 	}
 
-    Rml::Core::Dictionary parameters;
-    parameters["value"] = value;
-    GetParent()->DispatchEvent(Core::EventId::Change, parameters);
+	Rml::Core::Dictionary parameters;
+	parameters["value"] = value;
+	GetParent()->DispatchEvent(Core::EventId::Change, parameters);
+
+
+	// TODO: This might not be the safest approach as this will call SetValue(), 
+	// thus, a slight mismatch will result in infinite recursion.
+	GetParent()->SetAttribute("value", value);
 
 	return (value - min_value) / (max_value - min_value);
 }

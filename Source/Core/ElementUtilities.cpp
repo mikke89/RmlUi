@@ -27,18 +27,21 @@
  */
 
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
-#include "../../Include/RmlUi/Core/TransformState.h"
+#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/DataController.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
+#include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
-#include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
-#include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/TransformState.h"
+#include "ElementStyle.h"
+#include "LayoutEngine.h"
 #include <queue>
 #include <limits>
-#include "LayoutEngine.h"
-#include "ElementStyle.h"
 
 namespace Rml {
 namespace Core {
@@ -379,6 +382,122 @@ bool ElementUtilities::ApplyTransform(Element &element)
 	}
 
 	return true;
+}
+
+
+static bool ApplyDataViewsControllersInternal(Element* element, const bool construct_structural_view, const String& structural_view_inner_rml)
+{
+	RMLUI_ASSERT(element);
+	bool result = false;
+
+	// If we have an active data model, check the attributes for any data bindings
+	if (DataModel* data_model = element->GetDataModel())
+	{
+		struct ViewControllerInitializer {
+			String type;
+			String modifier_or_inner_rml;
+			String expression;
+			DataViewPtr view;
+			DataControllerPtr controller;
+			explicit operator bool() const { return view || controller; }
+		};
+
+		// Since data views and controllers may modify the element's attributes during initialization, we 
+		// need to iterate over all the attributes _before_ initializing any views or controllers. We store
+		// the information needed to initialize them in the following container.
+		std::vector<ViewControllerInitializer> initializer_list;
+
+		for (auto& attribute : element->GetAttributes())
+		{
+			// Data views and controllers are declared by the following element attribute:
+			//     data-[type]-[modifier]="[expression]"
+
+			constexpr size_t data_str_length = sizeof("data-") - 1;
+
+			const String& name = attribute.first;
+
+			if (name.size() > data_str_length && name[0] == 'd' && name[1] == 'a' && name[2] == 't' && name[3] == 'a' && name[4] == '-')
+			{
+				const size_t type_end = name.find('-', data_str_length);
+				const size_t type_size = (type_end == String::npos ? String::npos : type_end - data_str_length);
+				String type_name = name.substr(data_str_length, type_size);
+
+				ViewControllerInitializer initializer;
+
+				// Structural data views are applied in a separate step from the normal views and controllers.
+				if (construct_structural_view)
+				{
+					if (DataViewPtr view = Factory::InstanceDataView(type_name, element, true))
+					{
+						initializer.modifier_or_inner_rml = structural_view_inner_rml;
+						initializer.view = std::move(view);
+					}
+				}
+				else
+				{
+					const size_t modifier_offset = data_str_length + type_name.size() + 1;
+					if (modifier_offset < name.size())
+						initializer.modifier_or_inner_rml = name.substr(modifier_offset);
+
+					if (DataViewPtr view = Factory::InstanceDataView(type_name, element, false))
+						initializer.view = std::move(view);
+
+					if (DataControllerPtr controller = Factory::InstanceDataController(type_name, element))
+						initializer.controller = std::move(controller);
+				}
+
+				if (initializer)
+				{
+					initializer.type = std::move(type_name);
+					initializer.expression = attribute.second.Get<String>();
+
+					initializer_list.push_back(std::move(initializer));
+				}
+			}
+		}
+
+		// Now, we can safely initialize the data views and controllers, even modifying the element's attributes when desired.
+		for (ViewControllerInitializer& initializer : initializer_list)
+		{
+			DataViewPtr& view = initializer.view;
+			DataControllerPtr& controller = initializer.controller;
+
+			if (view)
+			{
+				if (view->Initialize(*data_model, element, initializer.expression, initializer.modifier_or_inner_rml))
+				{
+					data_model->AddView(std::move(view));
+					result = true;
+				}
+				else
+					Log::Message(Log::LT_WARNING, "Could not add data-%s view to element: %s", initializer.type.c_str(), element->GetAddress().c_str());
+			}
+
+			if (controller)
+			{
+				if (controller->Initialize(*data_model, element, initializer.expression, initializer.modifier_or_inner_rml))
+				{
+					data_model->AddController(std::move(controller));
+					result = true;
+				}
+				else
+					Log::Message(Log::LT_WARNING, "Could not add data-%s controller to element: %s", initializer.type.c_str(), element->GetAddress().c_str());
+			}
+		}
+	}
+
+	return result;
+}
+
+
+bool ElementUtilities::ApplyDataViewsControllers(Element* element)
+{
+	return ApplyDataViewsControllersInternal(element, false, String());
+}
+
+bool ElementUtilities::ApplyStructuralDataViews(Element* element, const String& inner_rml)
+{
+	return ApplyDataViewsControllersInternal(element, true, inner_rml);
 }
 
 }

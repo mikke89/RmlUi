@@ -131,12 +131,10 @@ bool ElementLog::Initialise()
 // Adds a log message to the debug log.
 void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message)
 {
-	using Core::StringUtilities::Replace;
-
 	// Add the message to the list of messages for the specified log type.
 	LogMessage log_message;
 	log_message.index = current_index++;
-	log_message.message = Replace(Replace(Core::String(message), "<", "&lt;"), ">", "&gt;");
+	log_message.message = Core::StringUtilities::EncodeRml(message);
 	log_types[type].log_messages.push_back(log_message);
 	if (log_types[type].log_messages.size() >= MAX_LOG_MESSAGES)
 	{
@@ -159,21 +157,18 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	// Trigger the beacon if we're hidden. Override any lower-level log type if it is already visible.
 	else
 	{
-		if (!IsVisible())
+		if (beacon != nullptr)
 		{
-			if (beacon != nullptr)
+			if (type < current_beacon_level)
 			{
-				if (type < current_beacon_level)
-				{
-					beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
+				beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
 
-					current_beacon_level = type;
-					Rml::Core::Element* beacon_button = beacon->GetFirstChild();
-					if (beacon_button)
-					{
-						beacon_button->SetClassNames(log_types[type].class_name);
-						beacon_button->SetInnerRML(log_types[type].alert_contents);
-					}
+				current_beacon_level = type;
+				Rml::Core::Element* beacon_button = beacon->GetFirstChild();
+				if (beacon_button)
+				{
+					beacon_button->SetClassNames(log_types[type].class_name);
+					beacon_button->SetInnerRML(log_types[type].alert_contents);
 				}
 			}
 		}

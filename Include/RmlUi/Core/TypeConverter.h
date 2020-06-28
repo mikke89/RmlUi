@@ -35,6 +35,7 @@
 #include "StringUtilities.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <cinttypes>
 
 namespace Rml {
 namespace Core {
@@ -54,6 +55,20 @@ class TypeConverter
 public:	
 	static bool Convert(const SourceType& src, DestType& dest);
 };
+
+template<typename T>
+inline String ToString(const T& value, String default_value = String()) {
+	String result = default_value;
+    TypeConverter<T, String>::Convert(value, result);
+	return result;
+}
+
+template<typename T>
+inline T FromString(const String& string, T default_value = T()) {
+    T result = default_value;
+    TypeConverter<String, T>::Convert(string, result);
+    return result;
+}
 
 
 // Some more complex types are defined in cpp-file

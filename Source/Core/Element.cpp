@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
@@ -147,6 +148,7 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 	clipping_state_dirty = true;
 
 	meta = element_meta_chunk_pool.AllocateAndConstruct(this);
+	data_model = nullptr;
 }
 
 Element::~Element()
@@ -1282,7 +1284,6 @@ Element* Element::AppendChild(ElementPtr child, bool dom_element)
 {
 	RMLUI_ASSERT(child);
 	Element* child_ptr = child.get();
-	child_ptr->SetParent(this);
 	if (dom_element)
 		children.insert(children.end() - num_non_dom_children, std::move(child));
 	else
@@ -1290,6 +1291,8 @@ Element* Element::AppendChild(ElementPtr child, bool dom_element)
 		children.push_back(std::move(child));
 		num_non_dom_children++;
 	}
+	// Set parent just after inserting into children. This allows us to eg. get our previous sibling in SetParent.
+	child_ptr->SetParent(this);
 
 	Element* ancestor = child_ptr;
 	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -1331,7 +1334,6 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 	if (found_child)
 	{
 		child_ptr = child.get();
-		child_ptr->SetParent(this);
 
 		if ((int) child_index >= GetNumChildren())
 			num_non_dom_children++;
@@ -1339,6 +1341,7 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 			DirtyLayout();
 
 		children.insert(children.begin() + child_index, std::move(child));
+		child_ptr->SetParent(this);
 
 		Element* ancestor = child_ptr;
 		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
@@ -1373,9 +1376,9 @@ ElementPtr Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_
 		return nullptr;
 	}
 
+	children.insert(insertion_point, std::move(inserted_element));
 	inserted_element_ptr->SetParent(this);
 
-	children.insert(insertion_point, std::move(inserted_element));
 	ElementPtr result = RemoveChild(replaced_element);
 
 	Element* ancestor = inserted_element_ptr;
@@ -1513,6 +1516,11 @@ ElementScroll* Element::GetElementScroll() const
 {
 	return &meta->scroll;
 }
+
+DataModel* Element::GetDataModel() const
+{
+	return data_model;
+}
 	
 int Element::GetClippingIgnoreDepth()
 {
@@ -1606,7 +1614,6 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		meta->style.SetClassNames(it->second.Get<String>());
 	}
 
-	// Add any inline style declarations.
 	it = changed_attributes.find("style");
 	if (it != changed_attributes.end())
 	{
@@ -1933,6 +1940,25 @@ void Element::SetOwnerDocument(ElementDocument* document)
 	}
 }
 
+void Element::SetDataModel(DataModel* new_data_model) 
+{
+	RMLUI_ASSERTMSG(!data_model || !new_data_model, "We must either attach a new data model, or detach the old one.");
+
+	if (data_model == new_data_model)
+		return;
+
+	if (data_model)
+		data_model->OnElementRemove(this);
+
+	data_model = new_data_model;
+
+	if (data_model)
+		ElementUtilities::ApplyDataViewsControllers(this);
+
+	for (ElementPtr& child : children)
+		child->SetDataModel(new_data_model);
+}
+
 void Element::Release()
 {
 	if (instancer)
@@ -1960,6 +1986,36 @@ void Element::SetParent(Element* _parent)
 		DirtyTransformState(true, true);
 
 	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
+
+	if (!parent)
+	{
+		if (data_model)
+			SetDataModel(nullptr);
+	}
+	else 
+	{
+		auto it = attributes.find("data-model");
+		if (it == attributes.end())
+		{
+			SetDataModel(parent->data_model);
+		}
+		else if (parent->data_model)
+		{
+			String name = it->second.Get<String>();
+			Log::Message(Log::LT_ERROR, "Nested data models are not allowed. Data model '%s' given in element %s.", name.c_str(), GetAddress().c_str());
+		}
+		else if (Context* context = GetContext())
+		{
+			String name = it->second.Get<String>();
+			if (DataModel* model = context->GetDataModelPtr(name))
+			{
+				model->AttachModelRootElement(this);
+				SetDataModel(model);
+			}
+			else
+				Log::Message(Log::LT_ERROR, "Could not locate data model '%s' in element %s.", name.c_str(), GetAddress().c_str());
+		}
+	}
 }
 
 void Element::DirtyOffset()

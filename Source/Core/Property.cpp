@@ -40,7 +40,7 @@ Property::Property() : unit(UNKNOWN), specificity(-1)
 
 String Property::ToString() const
 {
-	if (definition == nullptr)
+	if (!definition)
 		return value.Get< String >();
 
 	String string;

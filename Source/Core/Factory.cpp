@@ -39,6 +39,8 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 
 #include "ContextInstancerDefault.h"
+#include "DataControllerDefault.h"
+#include "DataViewDefault.h"
 #include "DecoratorTiledBoxInstancer.h"
 #include "DecoratorTiledHorizontalInstancer.h"
 #include "DecoratorTiledImageInstancer.h"
@@ -63,21 +65,37 @@
 #include "XMLNodeHandlerHead.h"
 #include "XMLNodeHandlerTemplate.h"
 #include "XMLParseTools.h"
+#include <algorithm>
 
 namespace Rml {
 namespace Core {
 
 // Element instancers.
-typedef UnorderedMap< String, ElementInstancer* > ElementInstancerMap;
+using ElementInstancerMap = UnorderedMap< String, ElementInstancer* >;
 static ElementInstancerMap element_instancers;
 
 // Decorator instancers.
-typedef UnorderedMap< String, DecoratorInstancer* > DecoratorInstancerMap;
+using DecoratorInstancerMap = UnorderedMap< String, DecoratorInstancer* >;
 static DecoratorInstancerMap decorator_instancers;
 
 // Font effect instancers.
-typedef UnorderedMap< String, FontEffectInstancer* > FontEffectInstancerMap;
+using FontEffectInstancerMap = UnorderedMap< String, FontEffectInstancer* >;
 static FontEffectInstancerMap font_effect_instancers;
+
+// Data view instancers.
+using DataViewInstancerMap = UnorderedMap< String, DataViewInstancer* >;
+static DataViewInstancerMap data_view_instancers;
+
+// Data controller instancers.
+using DataControllerInstancerMap = UnorderedMap< String, DataControllerInstancer* >;
+static DataControllerInstancerMap data_controller_instancers;
+
+// Structural data view instancers.
+using StructuralDataViewInstancerMap = SmallUnorderedMap< String, DataViewInstancer* >;
+static StructuralDataViewInstancerMap structural_data_view_instancers;
+
+// Structural data view names.
+static StringList structural_data_view_attribute_names;
 
 // The context instancer.
 static ContextInstancer* context_instancer = nullptr;
@@ -113,6 +131,21 @@ struct DefaultInstancers {
 	Ptr<FontEffectInstancer> font_effect_glow = std::make_unique<FontEffectGlowInstancer>();
 	Ptr<FontEffectInstancer> font_effect_outline = std::make_unique<FontEffectOutlineInstancer>();
 	Ptr<FontEffectInstancer> font_effect_shadow = std::make_unique<FontEffectShadowInstancer>();
+
+	Ptr<DataViewInstancer> data_view_attribute = std::make_unique<DataViewInstancerDefault< DataViewAttribute >>();
+	Ptr<DataViewInstancer> data_view_class     = std::make_unique<DataViewInstancerDefault< DataViewClass >>();
+	Ptr<DataViewInstancer> data_view_if        = std::make_unique<DataViewInstancerDefault< DataViewIf >>();
+	Ptr<DataViewInstancer> data_view_visible   = std::make_unique<DataViewInstancerDefault< DataViewVisible >>();
+	Ptr<DataViewInstancer> data_view_rml       = std::make_unique<DataViewInstancerDefault< DataViewRml >>();
+	Ptr<DataViewInstancer> data_view_style     = std::make_unique<DataViewInstancerDefault< DataViewStyle >>();
+	Ptr<DataViewInstancer> data_view_text      = std::make_unique<DataViewInstancerDefault< DataViewText >>();
+	Ptr<DataViewInstancer> data_view_value     = std::make_unique<DataViewInstancerDefault< DataViewValue >>();
+
+	Ptr<DataViewInstancer> structural_data_view_for = std::make_unique<DataViewInstancerDefault< DataViewFor >>();
+
+	Ptr<DataControllerInstancer> data_controller_value = std::make_unique<DataControllerInstancerDefault< DataControllerValue >>();
+	Ptr<DataControllerInstancer> data_controller_event = std::make_unique<DataControllerInstancerDefault< DataControllerEvent >>();
+
 };
 
 static UniquePtr<DefaultInstancers> default_instancers;
@@ -175,6 +208,21 @@ bool Factory::Initialise()
 	XMLParser::RegisterNodeHandler("head", std::make_shared<XMLNodeHandlerHead>());
 	XMLParser::RegisterNodeHandler("template", std::make_shared<XMLNodeHandlerTemplate>());
 
+	// Register the default data views
+	RegisterDataViewInstancer(default_instancers->data_view_attribute.get(), "attr",     false);
+	RegisterDataViewInstancer(default_instancers->data_view_class.get(),     "class",    false);
+	RegisterDataViewInstancer(default_instancers->data_view_if.get(),        "if",       false);
+	RegisterDataViewInstancer(default_instancers->data_view_visible.get(),   "visible",  false);
+	RegisterDataViewInstancer(default_instancers->data_view_rml.get(),       "rml",      false);
+	RegisterDataViewInstancer(default_instancers->data_view_style.get(),     "style",    false);
+	RegisterDataViewInstancer(default_instancers->data_view_text.get(),      "text",     false);
+	RegisterDataViewInstancer(default_instancers->data_view_value.get(),     "value",    false);
+	RegisterDataViewInstancer(default_instancers->structural_data_view_for.get(), "for", true );
+
+	RegisterDataControllerInstancer(default_instancers->data_controller_value.get(), "value");
+	RegisterDataControllerInstancer(default_instancers->data_controller_event.get(), "event");
+
+
 	return true;
 }
 
@@ -185,6 +233,10 @@ void Factory::Shutdown()
 	decorator_instancers.clear();
 
 	font_effect_instancers.clear();
+
+	data_view_instancers.clear();
+	structural_data_view_instancers.clear();
+	structural_data_view_attribute_names.clear();
 
 	context_instancer = nullptr;
 
@@ -257,21 +309,49 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 }
 
 // Instances a single text element containing a string.
-bool Factory::InstanceElementText(Element* parent, const String& text)
+bool Factory::InstanceElementText(Element* parent, const String& in_text)
 {
-	SystemInterface* system_interface = GetSystemInterface();
+	RMLUI_ASSERT(parent);
 
-	// Do any necessary translation. If any substitutions were made then new XML may have been introduced, so we'll
-	// have to run the data through the XML parser again.
-	String translated_data;
-	if (system_interface != nullptr &&
-		(system_interface->TranslateString(translated_data, text) > 0 ||
-		 translated_data.find("<") != String::npos))
+	String text;
+	if (SystemInterface* system_interface = GetSystemInterface())
+		system_interface->TranslateString(text, in_text);
+
+	// If this text node only contains white-space we don't want to construct it.
+	const bool only_white_space = std::all_of(text.begin(), text.end(), &StringUtilities::IsWhitespace);
+	if (only_white_space)
+		return true;
+
+	// See if we need to parse it as RML, and whether the text contains data expressions (curly brackets).
+	bool parse_as_rml = false;
+	bool has_data_expression = false;
+
+	bool inside_brackets = false;
+	char previous = 0;
+	for (const char c : text)
+	{
+		const char* error_str = XMLParseTools::ParseDataBrackets(inside_brackets, c, previous);
+		if (error_str)
+		{
+			Log::Message(Log::LT_WARNING, "Failed to instance text element '%s'. %s", text.c_str(), error_str);
+			return false;
+		}
+
+		if (inside_brackets)
+			has_data_expression = true;
+		else if (c == '<')
+			parse_as_rml = true;
+
+		previous = c;
+	}
+
+	// If the text contains RML elements then run it through the XML parser again.
+	if (parse_as_rml)
 	{
 		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
-		auto stream = std::make_unique<StreamMemory>(translated_data.size() + 32);
+		auto stream = std::make_unique<StreamMemory>(text.size() + 32);
 		stream->Write("<body>", 6);
-		stream->Write(translated_data);
+		stream->Write(text);
 		stream->Write("</body>", 7);
 		stream->Seek(0, SEEK_SET);
 
@@ -280,26 +360,18 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 	else
 	{
 		RMLUI_ZoneScopedNC("InstanceText", 0x8FBC8F);
-		// Check if this text node contains only white-space; if so, we don't want to construct it.
-		bool only_white_space = true;
-		for (size_t i = 0; i < translated_data.size(); ++i)
-		{
-			if (!StringUtilities::IsWhitespace(translated_data[i]))
-			{
-				only_white_space = false;
-				break;
-			}
-		}
-
-		if (only_white_space)
-			return true;
-
+		
 		// Attempt to instance the element.
 		XMLAttributes attributes;
+
+		// If we have curly brackets in the text, we tag the element so that the appropriate data view (DataViewText) is constructed.
+		if (has_data_expression)
+			attributes.emplace("data-text", Variant());
+
 		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
 		if (!element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", translated_data.c_str());
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s', instancer returned nullptr.", text.c_str());
 			return false;
 		}
 
@@ -307,11 +379,11 @@ bool Factory::InstanceElementText(Element* parent, const String& text)
 		ElementText* text_element = rmlui_dynamic_cast< ElementText* >(element.get());
 		if (!text_element)
 		{
-			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", translated_data.c_str(), rmlui_type_name(*element));
+			Log::Message(Log::LT_ERROR, "Failed to instance text element '%s'. Found type '%s', was expecting a derivative of ElementText.", text.c_str(), rmlui_type_name(*element));
 			return false;
 		}
 
-		text_element->SetText(translated_data);
+		text_element->SetText(text);
 
 		// Add to active node.
 		parent->AppendChild(std::move(element));
@@ -457,6 +529,63 @@ EventListener* Factory::InstanceEventListener(const String& value, Element* elem
 		return event_listener_instancer->InstanceEventListener(value, element);
 
 	return nullptr;
+}
+
+void Factory::RegisterDataViewInstancer(DataViewInstancer* instancer, const String& name, bool is_structural_view)
+{
+	bool inserted = false;
+	if (is_structural_view)
+	{
+		inserted = structural_data_view_instancers.emplace(name, instancer).second;
+		if (inserted)
+			structural_data_view_attribute_names.push_back(String("data-") + name);
+	}
+	else
+	{
+		inserted = data_view_instancers.emplace(name, instancer).second;
+	}
+	
+	if (!inserted)
+		Log::Message(Log::LT_WARNING, "Could not register data view instancer '%s'. The given name is already registered.", name.c_str());
+}
+
+void Factory::RegisterDataControllerInstancer(DataControllerInstancer* instancer, const String& name)
+{
+	bool inserted = data_controller_instancers.emplace(name, instancer).second;
+	if (!inserted)
+		Log::Message(Log::LT_WARNING, "Could not register data controller instancer '%s'. The given name is already registered.", name.c_str());
+}
+
+DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element, bool is_structural_view)
+{
+	RMLUI_ASSERT(element);
+
+	if (is_structural_view)
+	{
+		auto it = structural_data_view_instancers.find(type_name);
+		if (it != structural_data_view_instancers.end())
+			return it->second->InstanceView(element);
+	}
+	else
+	{
+		auto it = data_view_instancers.find(type_name);
+		if (it != data_view_instancers.end())
+			return it->second->InstanceView(element);
+	}
+	return nullptr;
+}
+
+DataControllerPtr Factory::InstanceDataController(const String& type_name, Element* element)
+{
+	auto it = data_controller_instancers.find(type_name);
+	if (it != data_controller_instancers.end())
+		return it->second->InstanceController(element);
+	return DataControllerPtr();
+}
+
+const StringList& Factory::GetStructuralDataViewAttributeNames()
+{
+	return structural_data_view_attribute_names;
 }
 
 }

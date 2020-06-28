@@ -37,6 +37,8 @@ namespace Core {
 
 class Context;
 class ContextInstancer;
+class DataControllerInstancer;
+class DataViewInstancer;
 class Decorator;
 class DecoratorInstancer;
 class Element;
@@ -97,8 +99,8 @@ public:
 	/// @return The instanced element, or nullptr if the instancing failed.
 	static ElementPtr InstanceElement(Element* parent, const String& instancer, const String& tag, const XMLAttributes& attributes);
 
-	/// Instances a single text element containing a string. The string is assumed to contain no RML markup, but will
-	/// be translated and therefore may have some introduced. In this case more than one element may be instanced.
+	/// Instances a text element containing a string.
+	/// More than one element may be instanced if the string contains RML or RML is introduced during translation.
 	/// @param[in] parent The element any instanced elements will be parented to.
 	/// @param[in] text The text to instance the element (or elements) from.
 	/// @return True if the string was parsed without error, false otherwise.
@@ -172,6 +174,30 @@ public:
 	/// @param[in] value The parameters to the event listener.
 	/// @return The instanced event listener.
 	static EventListener* InstanceEventListener(const String& value, Element* element);
+
+	/// Register an instancer for data views.
+	/// Structural views start a special XML parsing procedure when encountering a declaration of the view. Instead of instancing
+	/// children elements, the raw inner XML/RML contents are submitted to the initializing procedure of the view.
+	/// @param[in] instancer  The instancer to be called.
+	/// @param[in] type_name  The type name of the view, determines the element attribute that is used to initialize it.
+	/// @param[in] is_structural_view  Set true if the view should be parsed as a structural view.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterDataViewInstancer(DataViewInstancer* instancer, const String& type_name, bool is_structural_view = false);
+
+	/// Register an instancer for data controllers.
+	/// @param[in] instancer  The instancer to be called.
+	/// @param[in] type_name  The type name of the controller, determines the element attribute that is used to initialize it.
+	/// @lifetime The instancer must be kept alive until after the call to Core::Shutdown.
+	static void RegisterDataControllerInstancer(DataControllerInstancer* instancer, const String& type_name);
+
+	/// Instance the data view with the given type name.
+	static DataViewPtr InstanceDataView(const String& type_name, Element* element, bool is_structural_view);
+
+	/// Instance the data controller with the given type name.
+	static DataControllerPtr InstanceDataController(const String& type_name, Element* element);
+
+	/// Returns the list of element attribute names with an associated structural data view instancer.
+	static const StringList& GetStructuralDataViewAttributeNames();
 
 private:
 	Factory();

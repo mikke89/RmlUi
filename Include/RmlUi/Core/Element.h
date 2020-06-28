@@ -44,6 +44,7 @@ namespace Rml {
 namespace Core {
 
 class Context;
+class DataModel;
 class Decorator;
 class ElementInstancer;
 class EventDispatcher;
@@ -533,23 +534,19 @@ public:
 	 */
 	//@{
 	/// Access the event dispatcher for this element.
-	/// @return The element's dispatcher.
 	EventDispatcher* GetEventDispatcher() const;
 	/// Returns event types with number of listeners for debugging.
-	/// @return Summary of attached listeners.
 	String GetEventDispatcherSummary() const;
 	/// Access the element background.
-	/// @return The element's background.
 	ElementBackground* GetElementBackground() const;
 	/// Access the element border.
-	/// @return The element's boder.
 	ElementBorder* GetElementBorder() const;
 	/// Access the element decorators.
-	/// @return The element decoration.
 	ElementDecoration* GetElementDecoration() const;
 	/// Returns the element's scrollbar functionality.
-	/// @return The element's scrolling functionality.
 	ElementScroll* GetElementScroll() const;
+	/// Returns the data model of this element.
+	DataModel* GetDataModel() const;
 	//@}
 	
 	/// Returns true if this element requires clipping
@@ -622,6 +619,8 @@ protected:
 
 private:
 	void SetParent(Element* parent);
+	
+	void SetDataModel(DataModel* new_data_model);
 
 	void DirtyOffset();
 	void UpdateOffset();
@@ -672,6 +671,8 @@ private:
 	// The owning document
 	ElementDocument* owner_document;
 
+	// Active data model for this element.
+	DataModel* data_model;
 	// Attributes on this element.
 	ElementAttributes attributes;
 
@@ -736,7 +737,6 @@ private:
 	friend class ElementStyle;
 	friend class LayoutEngine;
 	friend class LayoutInlineBox;
-	friend struct ElementDeleter;
 	friend class ElementScroll;
 };
 
