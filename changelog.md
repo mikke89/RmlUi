@@ -1,10 +1,11 @@
+* [RmlUi 3.3](#rmlui-33)
 * [RmlUi 3.2](#rmlui-32)
 * [RmlUi 3.1](#rmlui-31)
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
 
-## RmlUi 3.3 (WIP)
+## RmlUi 3.3
 
 ###  Rml `select` element improvements
 
