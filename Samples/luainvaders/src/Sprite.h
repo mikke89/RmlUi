@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSSPRITE_H
-#define RMLUIINVADERSSPRITE_H
+#ifndef RMLUI_LUAINVADERS_SPRITE_H
+#define RMLUI_LUAINVADERS_SPRITE_H
 
 #include <RmlUi/Core/Types.h>
 
@@ -38,14 +38,14 @@
 class Sprite
 {
 public:
-	Sprite(const Rml::Core::Vector2f& dimensions, const Rml::Core::Vector2f& top_left_texcoord, const Rml::Core::Vector2f& bottom_right_texcoord);
+	Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord);
 	~Sprite();
 
-	void Render(const Rml::Core::Vector2f& position);
+	void Render(const Rml::Vector2f& position);
 
-	Rml::Core::Vector2f dimensions;
-	Rml::Core::Vector2f top_left_texcoord;
-	Rml::Core::Vector2f bottom_right_texcoord;
+	Rml::Vector2f dimensions;
+	Rml::Vector2f top_left_texcoord;
+	Rml::Vector2f bottom_right_texcoord;
 };
 
 #endif

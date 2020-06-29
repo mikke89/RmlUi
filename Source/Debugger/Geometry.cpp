@@ -34,81 +34,81 @@
 namespace Rml {
 namespace Debugger {
 
-static Core::Context* context;
+static Context* context;
 
 Geometry::Geometry()
 {
 }
 
-void Geometry::SetContext(Core::Context* _context)
+void Geometry::SetContext(Context* _context)
 {
 	context = _context;
 }
 
 // Renders a one-pixel rectangular outline.
-void Geometry::RenderOutline(const Core::Vector2f& origin, const Core::Vector2f& dimensions, const Core::Colourb& colour, float width)
+void Geometry::RenderOutline(const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour, float width)
 {
 	if (context == nullptr)
 		return;
 
-	Core::RenderInterface* render_interface = context->GetRenderInterface();
+	RenderInterface* render_interface = context->GetRenderInterface();
 
-	Core::Vertex vertices[4 * 4];
+	Vertex vertices[4 * 4];
 	int indices[6 * 4];
 
-	Core::GeometryUtilities::GenerateQuad(vertices + 0, indices + 0, Core::Vector2f(0, 0), Core::Vector2f(dimensions.x, width), colour, 0);
-	Core::GeometryUtilities::GenerateQuad(vertices + 4, indices + 6, Core::Vector2f(0, dimensions.y - width), Core::Vector2f(dimensions.x, width), colour, 4);
-	Core::GeometryUtilities::GenerateQuad(vertices + 8, indices + 12, Core::Vector2f(0, 0), Core::Vector2f(width, dimensions.y), colour, 8);
-	Core::GeometryUtilities::GenerateQuad(vertices + 12, indices + 18, Core::Vector2f(dimensions.x - width, 0), Core::Vector2f(width, dimensions.y), colour, 12);
+	GeometryUtilities::GenerateQuad(vertices + 0, indices + 0, Vector2f(0, 0), Vector2f(dimensions.x, width), colour, 0);
+	GeometryUtilities::GenerateQuad(vertices + 4, indices + 6, Vector2f(0, dimensions.y - width), Vector2f(dimensions.x, width), colour, 4);
+	GeometryUtilities::GenerateQuad(vertices + 8, indices + 12, Vector2f(0, 0), Vector2f(width, dimensions.y), colour, 8);
+	GeometryUtilities::GenerateQuad(vertices + 12, indices + 18, Vector2f(dimensions.x - width, 0), Vector2f(width, dimensions.y), colour, 12);
 
 	render_interface->RenderGeometry(vertices, 4 * 4, indices, 6 * 4, 0, origin);
 }
 
 // Renders a box.
-void Geometry::RenderBox(const Core::Vector2f& origin, const Core::Vector2f& dimensions, const Core::Colourb& colour)
+void Geometry::RenderBox(const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour)
 {
 	if (context == nullptr)
 		return;
 
-	Core::RenderInterface* render_interface = context->GetRenderInterface();
+	RenderInterface* render_interface = context->GetRenderInterface();
 
-	Core::Vertex vertices[4];
+	Vertex vertices[4];
 	int indices[6];
 
-	Core::GeometryUtilities::GenerateQuad(vertices, indices, Core::Vector2f(0, 0), Core::Vector2f(dimensions.x, dimensions.y), colour, 0);
+	GeometryUtilities::GenerateQuad(vertices, indices, Vector2f(0, 0), Vector2f(dimensions.x, dimensions.y), colour, 0);
 
 	render_interface->RenderGeometry(vertices, 4, indices, 6, 0, origin);
 }
 
 // Renders a box with a hole in the middle.
-void Geometry::RenderBox(const Core::Vector2f& origin, const Core::Vector2f& dimensions, const Core::Vector2f& hole_origin, const Core::Vector2f& hole_dimensions, const Core::Colourb& colour)
+void Geometry::RenderBox(const Vector2f& origin, const Vector2f& dimensions, const Vector2f& hole_origin, const Vector2f& hole_dimensions, const Colourb& colour)
 {
 	// Top box.
 	float top_y_dimensions = hole_origin.y - origin.y;
 	if (top_y_dimensions > 0)
 	{
-		RenderBox(origin, Core::Vector2f(dimensions.x, top_y_dimensions), colour);
+		RenderBox(origin, Vector2f(dimensions.x, top_y_dimensions), colour);
 	}
 
 	// Bottom box.
 	float bottom_y_dimensions = (origin.y + dimensions.y) - (hole_origin.y + hole_dimensions.y);
 	if (bottom_y_dimensions > 0)
 	{
-		RenderBox(Core::Vector2f(origin.x, hole_origin.y + hole_dimensions.y), Core::Vector2f(dimensions.x, bottom_y_dimensions), colour);
+		RenderBox(Vector2f(origin.x, hole_origin.y + hole_dimensions.y), Vector2f(dimensions.x, bottom_y_dimensions), colour);
 	}
 
 	// Left box.
 	float left_x_dimensions = hole_origin.x - origin.x;
 	if (left_x_dimensions > 0)
 	{
-		RenderBox(Core::Vector2f(origin.x, hole_origin.y), Core::Vector2f(left_x_dimensions, hole_dimensions.y), colour);
+		RenderBox(Vector2f(origin.x, hole_origin.y), Vector2f(left_x_dimensions, hole_dimensions.y), colour);
 	}
 
 	// Right box.
 	float right_x_dimensions = (origin.x + dimensions.x) - (hole_origin.x + hole_dimensions.x);
 	if (right_x_dimensions > 0)
 	{
-		RenderBox(Core::Vector2f(hole_origin.x + hole_dimensions.x, hole_origin.y), Core::Vector2f(right_x_dimensions, hole_dimensions.y), colour);
+		RenderBox(Vector2f(hole_origin.x + hole_dimensions.x, hole_origin.y), Vector2f(right_x_dimensions, hole_dimensions.y), colour);
 	}
 }
 

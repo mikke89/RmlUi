@@ -63,7 +63,7 @@ const int SHIELD_START_X = 176;
 const int SHIELD_START_Y = 600;
 
 // The game's element context (declared in main.cpp).
-extern Rml::Core::Context* context;
+extern Rml::Context* context;
 
 Game::Game()
 {
@@ -81,8 +81,8 @@ Game::Game()
 		shields[i] = nullptr;
 
 	// Use the OpenGL render interface to load our texture.
-	Rml::Core::Vector2i texture_dimensions;
-	Rml::Core::GetRenderInterface()->LoadTexture(texture, texture_dimensions, "luainvaders/data/invaders.tga");
+	Rml::Vector2i texture_dimensions;
+	Rml::GetRenderInterface()->LoadTexture(texture, texture_dimensions, "luainvaders/data/invaders.tga");
 
 	defender = new Defender(this);
 }
@@ -225,9 +225,9 @@ void Game::SetScore(int score)
 {
 	GameDetails::SetScore(score);
 
-	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
+	Rml::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
 	if (score_element != nullptr)
-		score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", score).c_str());
+		score_element->SetInnerRML(Rml::CreateString(128, "%d", score).c_str());
 
 	// Update the high score if we've beaten it.
 	if (score > HighScores::GetHighScore())
@@ -237,27 +237,27 @@ void Game::SetScore(int score)
 // Sets the player's high-score.
 void Game::SetHighScore(int score)
 {
-	Rml::Core::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
+	Rml::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
 	if (high_score_element != nullptr)
-		high_score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", score).c_str());
+		high_score_element->SetInnerRML(Rml::CreateString(128, "%d", score).c_str());
 }
 
 void Game::SetLives(int lives)
 {
 	defender_lives = lives;
 
-	Rml::Core::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
+	Rml::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
 	if (score_element != nullptr)
-		score_element->SetInnerRML(Rml::Core::CreateString(128, "%d", defender_lives).c_str());
+		score_element->SetInnerRML(Rml::CreateString(128, "%d", defender_lives).c_str());
 }
 
 void Game::SetWave(int wave)
 {
 	GameDetails::SetWave(wave);
 
-	Rml::Core::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
+	Rml::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
 	if (waves_element != nullptr)
-		waves_element->SetInnerRML(Rml::Core::CreateString(128, "%d", wave).c_str());
+		waves_element->SetInnerRML(Rml::CreateString(128, "%d", wave).c_str());
 }
 
 void Game::RemoveLife()
@@ -278,14 +278,14 @@ bool Game::IsGameOver() const
 	return game_over;
 }
 
-const Rml::Core::Vector2f Game::GetWindowDimensions()
+const Rml::Vector2f Game::GetWindowDimensions()
 {
-	return Rml::Core::Vector2f((float) WINDOW_WIDTH, (float) WINDOW_HEIGHT);
+	return Rml::Vector2f((float) WINDOW_WIDTH, (float) WINDOW_HEIGHT);
 }
 
 void Game::MoveInvaders()
 {
-	Rml::Core::Vector2f new_positions[NUM_INVADERS];
+	Rml::Vector2f new_positions[NUM_INVADERS];
 
 	// We loop through all invaders, calculating their new positions, if any of them go over the screen bounds,
 	// then we switch direction, move the invaders down and start at 0 again
@@ -308,7 +308,7 @@ void Game::MoveInvaders()
 				if (invaders[j]->GetState() == Invader::DEAD)
 					continue;
 
-				Rml::Core::Vector2f position = invaders[j]->GetPosition();
+				Rml::Vector2f position = invaders[j]->GetPosition();
 				position.y += INVADER_SPACING_Y;
 				invaders[j]->SetPosition(position);
 			}
@@ -355,7 +355,7 @@ void Game::OnGameOver()
 
 void Game::InitialiseShields()
 {
-	Rml::Core::Vector2f shield_array_start_position((float) SHIELD_START_X, (float) SHIELD_START_Y);
+	Rml::Vector2f shield_array_start_position((float) SHIELD_START_X, (float) SHIELD_START_Y);
 
 	for (int x = 0; x < NUM_SHIELD_ARRAYS; x++)
 	{
@@ -371,7 +371,7 @@ void Game::InitialiseShields()
 			}
 
 			shields[(x * NUM_SHIELDS_PER_ARRAY) + i] = new Shield(this, type);
-			shields[(x * NUM_SHIELDS_PER_ARRAY) + i]->SetPosition(shield_array_start_position + Rml::Core::Vector2f((float) SHIELD_SIZE * i, 0));
+			shields[(x * NUM_SHIELDS_PER_ARRAY) + i]->SetPosition(shield_array_start_position + Rml::Vector2f((float) SHIELD_SIZE * i, 0));
 		}
 
 		// Middle row (row of 4)
@@ -387,15 +387,15 @@ void Game::InitialiseShields()
 			}
 
 			shields[(x * NUM_SHIELDS_PER_ARRAY) + 4 + i] = new Shield(this, type);
-			shields[(x * NUM_SHIELDS_PER_ARRAY) + 4 + i]->SetPosition(shield_array_start_position + Rml::Core::Vector2f((float) SHIELD_SIZE * i, (float) SHIELD_SIZE));
+			shields[(x * NUM_SHIELDS_PER_ARRAY) + 4 + i]->SetPosition(shield_array_start_position + Rml::Vector2f((float) SHIELD_SIZE * i, (float) SHIELD_SIZE));
 		}
 
 		// Bottom row (2, one on each end)
 		shields[(x * NUM_SHIELDS_PER_ARRAY) + 8] = new Shield(this, Shield::REGULAR);
-		shields[(x * NUM_SHIELDS_PER_ARRAY) + 8]->SetPosition(shield_array_start_position + Rml::Core::Vector2f(0, (float) SHIELD_SIZE * 2));
+		shields[(x * NUM_SHIELDS_PER_ARRAY) + 8]->SetPosition(shield_array_start_position + Rml::Vector2f(0, (float) SHIELD_SIZE * 2));
 
 		shields[(x * NUM_SHIELDS_PER_ARRAY) + 9] = new Shield(this, Shield::REGULAR);
-		shields[(x * NUM_SHIELDS_PER_ARRAY) + 9]->SetPosition(shield_array_start_position + Rml::Core::Vector2f((float) SHIELD_SIZE * 3, (float) SHIELD_SIZE * 2));
+		shields[(x * NUM_SHIELDS_PER_ARRAY) + 9]->SetPosition(shield_array_start_position + Rml::Vector2f((float) SHIELD_SIZE * 3, (float) SHIELD_SIZE * 2));
 
 		shield_array_start_position.x += SHIELD_SPACING_X;
 	}
@@ -420,7 +420,7 @@ void Game::InitialiseWave()
 		}
 
 		// Determine position of top left invader
-		Rml::Core::Vector2f invader_position((float) (WINDOW_WIDTH - (NUM_INVADERS_PER_ROW * INVADER_SPACING_X)) / 2, (float) (INVADER_START_Y + (y * INVADER_SPACING_Y)));
+		Rml::Vector2f invader_position((float) (WINDOW_WIDTH - (NUM_INVADERS_PER_ROW * INVADER_SPACING_X)) / 2, (float) (INVADER_START_Y + (y * INVADER_SPACING_Y)));
 	
 		for (int x = 0; x < NUM_INVADERS_PER_ROW; x++)
 		{

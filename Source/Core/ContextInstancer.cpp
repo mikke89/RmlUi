@@ -29,11 +29,9 @@
 #include "../../Include/RmlUi/Core/ContextInstancer.h"
 
 namespace Rml {
-namespace Core {
 
 ContextInstancer::~ContextInstancer()
 {
 }
 
-}
-}
+} // namespace Rml

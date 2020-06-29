@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSDEFENDER_H
-#define RMLUIINVADERSDEFENDER_H
+#ifndef RMLUI_INVADERS_DEFENDER_H
+#define RMLUI_INVADERS_DEFENDER_H
 
 #include <RmlUi/Core/Types.h>
 
@@ -58,16 +58,16 @@ public:
 	void Fire();	
 
 	/// Check if an object at the given position would hit the defender.
-	bool CheckHit(const Rml::Core::Vector2f& position);
+	bool CheckHit(const Rml::Vector2f& position);
 
 private:
 	Game* game;
-	Rml::Core::Vector2f position;	
+	Rml::Vector2f position;	
 	
 	float move_direction;
 	
 	bool bullet_in_flight;
-	Rml::Core::Vector2f bullet_position;
+	Rml::Vector2f bullet_position;
 
 	double defender_frame_start;
 	double respawn_start;

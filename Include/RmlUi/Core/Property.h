@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTY_H
-#define RMLUICOREPROPERTY_H
+#ifndef RMLUI_CORE_PROPERTY_H
+#define RMLUI_CORE_PROPERTY_H
 
 #include "Variant.h"
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
 
 class PropertyDefinition;
 
@@ -129,7 +128,5 @@ public:
 	SharedPtr<const PropertySource> source;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

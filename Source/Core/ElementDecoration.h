@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREELEMENTDECORATION_H
-#define RMLUICOREELEMENTDECORATION_H
+#ifndef RMLUI_CORE_ELEMENTDECORATION_H
+#define RMLUI_CORE_ELEMENTDECORATION_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 class Decorator;
 class Element;
@@ -83,7 +82,5 @@ private:
 	bool decorators_dirty;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

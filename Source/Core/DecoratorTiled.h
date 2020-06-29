@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREDECORATORTILED_H
-#define RMLUICOREDECORATORTILED_H
+#ifndef RMLUI_CORE_DECORATORTILED_H
+#define RMLUI_CORE_DECORATORTILED_H
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Vertex.h"
 
 namespace Rml {
-namespace Core {
 
 struct Texture;
 
@@ -127,7 +126,5 @@ protected:
 	void ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, int axis) const;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

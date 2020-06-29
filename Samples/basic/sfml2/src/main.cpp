@@ -77,7 +77,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 	// NOTE: if fonts and rml are not found you'll probably have to adjust
 	// the path information in the string
-	Rml::Core::String root = Shell::FindSamplesRoot();
+	Rml::String root = Shell::FindSamplesRoot();
 	ShellFileInterface FileInterface(root);
 
 	if (!MyWindow.isOpen())
@@ -85,25 +85,25 @@ int main(int /*argc*/, char** /*argv*/)
 
 	Renderer.SetWindow(&MyWindow);
 
-	Rml::Core::SetFileInterface(&FileInterface);
-	Rml::Core::SetRenderInterface(&Renderer);
-	Rml::Core::SetSystemInterface(&SystemInterface);
+	Rml::SetFileInterface(&FileInterface);
+	Rml::SetRenderInterface(&Renderer);
+	Rml::SetSystemInterface(&SystemInterface);
 
 
-	if (!Rml::Core::Initialise())
+	if (!Rml::Initialise())
 		return 1;
 
-	Rml::Core::LoadFontFace("assets/Delicious-Bold.otf");
-	Rml::Core::LoadFontFace("assets/Delicious-BoldItalic.otf");
-	Rml::Core::LoadFontFace("assets/Delicious-Italic.otf");
-	Rml::Core::LoadFontFace("assets/Delicious-Roman.otf");
+	Rml::LoadFontFace("assets/Delicious-Bold.otf");
+	Rml::LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rml::LoadFontFace("assets/Delicious-Italic.otf");
+	Rml::LoadFontFace("assets/Delicious-Roman.otf");
 
-	Rml::Core::Context* Context = Rml::Core::CreateContext("default",
-		Rml::Core::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
+	Rml::Context* Context = Rml::CreateContext("default",
+		Rml::Vector2i(MyWindow.getSize().x, MyWindow.getSize().y));
 
 	Rml::Debugger::Initialise(Context);
 
-	Rml::Core::ElementDocument* Document = Context->LoadDocument("assets/demo.rml");
+	Rml::ElementDocument* Document = Context->LoadDocument("assets/demo.rml");
 
 	if (Document)
 	{
@@ -148,7 +148,7 @@ int main(int /*argc*/, char** /*argv*/)
 				break;
 			case sf::Event::TextEntered:
 				if (event.text.unicode > 32)
-					Context->ProcessTextInput(Rml::Core::Character(event.text.unicode));
+					Context->ProcessTextInput(Rml::Character(event.text.unicode));
 				break;
 			case sf::Event::KeyPressed:
 				Context->ProcessKeyDown(SystemInterface.TranslateKey(event.key.code),
@@ -178,7 +178,7 @@ int main(int /*argc*/, char** /*argv*/)
 		Context->Update();
 	};
 
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	return 0;
 }

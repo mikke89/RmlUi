@@ -30,7 +30,7 @@
 #define FILESYSTEM_H
 
 #include <RmlUi/Core/Types.h>
-#include <RmlUi/Controls/DataSource.h>
+#include <RmlUi/Core/Elements/DataSource.h>
 
 struct FileSystemNode;
 
@@ -39,17 +39,17 @@ struct FileSystemNode;
 	@author Peter Curry
  */
 
-class FileSystem : public Rml::Controls::DataSource
+class FileSystem : public Rml::DataSource
 {
 public:
-	FileSystem(const Rml::Core::String& root);
+	FileSystem(const Rml::String& root);
 	virtual ~FileSystem();
 
-	void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns) override;
-	int GetNumRows(const Rml::Core::String& table) override;
+	void GetRow(Rml::StringList& row, const Rml::String& table, int row_index, const Rml::StringList& columns) override;
+	int GetNumRows(const Rml::String& table) override;
 
 private:
-	FileSystemNode* GetNode(const Rml::Core::String& table);
+	FileSystemNode* GetNode(const Rml::String& table);
 };
 
 #endif

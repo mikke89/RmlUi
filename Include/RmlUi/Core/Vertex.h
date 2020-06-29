@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREVERTEX_H
-#define RMLUICOREVERTEX_H
+#ifndef RMLUI_CORE_VERTEX_H
+#define RMLUI_CORE_VERTEX_H
 
 #include "Header.h"
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	The element that makes up all geometry sent to the renderer.
@@ -51,7 +50,5 @@ struct RMLUICORE_API Vertex
 	Vector2f tex_coord;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

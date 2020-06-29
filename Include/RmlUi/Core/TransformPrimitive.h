@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICORETRANSFORMPRIMITIVE_H
-#define RMLUICORETRANSFORMPRIMITIVE_H
+#ifndef RMLUI_CORE_TRANSFORMPRIMITIVE_H
+#define RMLUI_CORE_TRANSFORMPRIMITIVE_H
 
 #include "Header.h"
 #include "Types.h"
@@ -36,7 +36,7 @@
 
 
 namespace Rml {
-namespace Core {
+
 namespace Transforms {
 	
 
@@ -296,13 +296,12 @@ struct RMLUICORE_API PrimitiveVariant {
 
 /**
 	The Primitive struct is the base struct of geometric transforms such as rotations, scalings and translations.
-	Instances of this struct are added to a Rml::Core::Transform instance
-	by the Rml::Core::PropertyParserTransform, which is responsible for
-	parsing the `transform' property.
+	Instances of this struct are added to a Rml::Transform instance by the Rml::PropertyParserTransform, which
+	is responsible for parsing the `transform' property.
 
 	@author Markus Schöngart
-	@see Rml::Core::Transform
-	@see Rml::Core::PropertyParserTransform
+	@see Rml::Transform
+	@see Rml::PropertyParserTransform
  */
 struct RMLUICORE_API Primitive
 {
@@ -355,7 +354,5 @@ struct RMLUICORE_API Primitive
 
 
 }
-}
-}
-
+} // namespace Rml
 #endif

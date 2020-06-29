@@ -36,7 +36,6 @@
 #include "../../Include/RmlUi/Core/Property.h"
 
 namespace Rml {
-namespace Core {
 
 // Constructs a new inline box for an element.
 LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(0, 0), box(_box)
@@ -415,5 +414,4 @@ FontFaceHandle LayoutInlineBox::GetParentFont() const
 		return parent->GetElement()->GetFontFaceHandle();
 }
 
-}
-}
+} // namespace Rml

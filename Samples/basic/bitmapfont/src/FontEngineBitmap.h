@@ -60,10 +60,10 @@ struct FontMetrics {
 };
 
 // A mapping of characters to their glyphs.
-using FontGlyphs = Rml::Core::UnorderedMap<Character, BitmapGlyph>;
+using FontGlyphs = Rml::UnorderedMap<Character, BitmapGlyph>;
 
 // Mapping of combined (left, right) character to kerning in pixels.
-using FontKerning = Rml::Core::UnorderedMap<std::uint64_t, int>;
+using FontKerning = Rml::UnorderedMap<std::uint64_t, int>;
 
 
 class FontFaceBitmap {
@@ -104,18 +104,18 @@ private:
 	Parses the font meta data from an xml file.
 */
 
-class FontParserBitmap : public Rml::Core::BaseXMLParser
+class FontParserBitmap : public Rml::BaseXMLParser
 {
 public:
 	FontParserBitmap() {}
 	virtual ~FontParserBitmap();
 
 	/// Called when the parser finds the beginning of an element tag.
-	void HandleElementStart(const String& name, const Rml::Core::XMLAttributes& attributes) override;
+	void HandleElementStart(const String& name, const Rml::XMLAttributes& attributes) override;
 	/// Called when the parser finds the end of an element tag.
 	void HandleElementEnd(const String& name) override;
 	/// Called when the parser encounters data.
-	void HandleData(const String& data, Rml::Core::XMLDataType type) override;
+	void HandleData(const String& data, Rml::XMLDataType type) override;
 
 	String family;
 	FontStyle style = FontStyle::Normal;

@@ -52,7 +52,6 @@
 
 
 namespace Rml {
-namespace Core {
 
 // RmlUi's renderer interface.
 static RenderInterface* render_interface = nullptr;
@@ -333,5 +332,4 @@ void ReleaseCompiledGeometry()
 	return GeometryDatabase::ReleaseAll();
 }
 
-}
-}
+} // namespace Rml

@@ -25,14 +25,13 @@
  *
  */
  
-#ifndef RMLUICORETWEEN_H
-#define RMLUICORETWEEN_H
+#ifndef RMLUI_CORE_TWEEN_H
+#define RMLUI_CORE_TWEEN_H
 
 #include <string>
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
 
 using String = std::string;
 
@@ -69,7 +68,5 @@ private:
 };
 
 
-}
-}
-
+} // namespace Rml
 #endif

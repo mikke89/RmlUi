@@ -43,8 +43,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
-
 
 class AbstractPropertyParser {
 public:
@@ -811,5 +809,4 @@ bool StyleSheetParser::FillBuffer()
 	return read;
 }
 
-}
-}
+} // namespace Rml

@@ -17,7 +17,7 @@
 
 HighScores* HighScores::instance = nullptr;
 
-HighScores::HighScores() : Rml::Controls::DataSource("high_scores")
+HighScores::HighScores() : Rml::DataSource("high_scores")
 {
 	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
@@ -46,7 +46,7 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns)
+void HighScores::GetRow(Rml::StringList& row, const Rml::String& table, int row_index, const Rml::StringList& columns)
 {
 	if (table == "scores")
 	{
@@ -58,23 +58,23 @@ void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& tab
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(Rml::Core::CreateString(32, "%d", scores[row_index].score));
+				row.push_back(Rml::CreateString(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
-				Rml::Core::String colour_string;
-				Rml::Core::TypeConverter< Rml::Core::Colourb, Rml::Core::String >::Convert(scores[row_index].colour, colour_string);
+				Rml::String colour_string;
+				Rml::TypeConverter< Rml::Colourb, Rml::String >::Convert(scores[row_index].colour, colour_string);
 				row.push_back(colour_string);
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(Rml::Core::CreateString(8, "%d", scores[row_index].wave));
+				row.push_back(Rml::CreateString(8, "%d", scores[row_index].wave));
 			}
 		}
 	}
 }
 
-int HighScores::GetNumRows(const Rml::Core::String& table)
+int HighScores::GetNumRows(const Rml::String& table)
 {
 	if (table == "scores")
 	{
@@ -92,7 +92,7 @@ int HighScores::GetNumRows(const Rml::Core::String& table)
 	return 0;
 }
 
-void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score, int alien_kills[])
+void HighScores::SubmitScore(const Rml::String& name, const Rml::Colourb& colour, int wave, int score, int alien_kills[])
 {
 	for (size_t i = 0; i < NUM_SCORES; i++)
 	{
@@ -125,8 +125,8 @@ void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Col
 void HighScores::LoadScores()
 {
 	// Open and read the high score file.
-	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
-	Rml::Core::FileHandle scores_file = file_interface->Open("tutorial/datagrid_tree/data/high_score.txt");
+	Rml::FileInterface* file_interface = Rml::GetFileInterface();
+	Rml::FileHandle scores_file = file_interface->Open("tutorial/datagrid_tree/data/high_score.txt");
 	
 	if (scores_file)
 	{
@@ -141,28 +141,28 @@ void HighScores::LoadScores()
 			file_interface->Close(scores_file);
 			buffer[scores_length] = 0;
 
-			Rml::Core::StringList score_lines;
-			Rml::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
+			Rml::StringList score_lines;
+			Rml::StringUtilities::ExpandString(score_lines, buffer, '\n');
 			delete[] buffer;
 
 			for (size_t i = 0; i < score_lines.size(); i++)
 			{
-				Rml::Core::StringList score_parts;
-				Rml::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
+				Rml::StringList score_parts;
+				Rml::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
 				if (score_parts.size() == 4 + NUM_ALIEN_TYPES)
 				{
-					Rml::Core::Colourb colour;
+					Rml::Colourb colour;
 					int wave;
 					int score;
 					int alien_kills[NUM_ALIEN_TYPES];
 
-					if (Rml::Core::TypeConverter< Rml::Core::String , Rml::Core::Colourb >::Convert(score_parts[1], colour) &&
-						Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[2], wave) &&
-						Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[3], score))
+					if (Rml::TypeConverter< Rml::String , Rml::Colourb >::Convert(score_parts[1], colour) &&
+						Rml::TypeConverter< Rml::String, int >::Convert(score_parts[2], wave) &&
+						Rml::TypeConverter< Rml::String, int >::Convert(score_parts[3], score))
 					{
 						for (int j = 0; j < NUM_ALIEN_TYPES; j++)
 						{
-							if (!Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[4 + j], alien_kills[j]))
+							if (!Rml::TypeConverter< Rml::String, int >::Convert(score_parts[4 + j], alien_kills[j]))
 							{
 								break;
 							}

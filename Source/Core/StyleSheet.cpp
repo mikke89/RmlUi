@@ -43,7 +43,6 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 // Sorts style nodes based on specificity.
 inline static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* rhs)
@@ -397,5 +396,4 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	return new_definition;
 }
 
-}
-}
+} // namespace Rml

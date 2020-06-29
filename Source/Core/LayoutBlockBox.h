@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICORELAYOUTBLOCKBOX_H
-#define RMLUICORELAYOUTBLOCKBOX_H
+#ifndef RMLUI_CORE_LAYOUTBLOCKBOX_H
+#define RMLUI_CORE_LAYOUTBLOCKBOX_H
 
 #include "LayoutLineBox.h"
 #include "../../Include/RmlUi/Core/Box.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 class LayoutBlockBoxSpace;
 class LayoutEngine;
@@ -234,7 +233,5 @@ private:
 	ElementList float_elements;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

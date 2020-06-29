@@ -27,7 +27,6 @@
  */
 
 #include <RmlUi/Core.h>
-#include <RmlUi/Controls.h>
 #include <RmlUi/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
@@ -35,7 +34,7 @@
 #include "FileFormatter.h"
 #include "FileSystem.h"
 
-Rml::Core::Context* context = nullptr;
+Rml::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -84,24 +83,23 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
-	Rml::Core::SetSystemInterface(&system_interface);
+	Rml::SetSystemInterface(&system_interface);
 
-	Rml::Core::Initialise();
+	Rml::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
+	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 	if (context == nullptr)
 	{
-		Rml::Core::Shutdown();
+		Rml::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	Rml::Controls::Initialise();
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
@@ -109,12 +107,12 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Create the file data source and formatter.
-	Rml::Core::String root = Shell::FindSamplesRoot();
+	Rml::String root = Shell::FindSamplesRoot();
 	FileSystem file_system(root + "basic/");
 	FileFormatter file_formatter;
 
 	// Load and show the demo document.
-	Rml::Core::ElementDocument* document = context->LoadDocument("basic/treeview/data/treeview.rml");
+	Rml::ElementDocument* document = context->LoadDocument("basic/treeview/data/treeview.rml");
 	if (document)
 	{
 		document->GetElementById("title")->SetInnerRML(document->GetTitle());
@@ -124,7 +122,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::EventLoop(GameLoop);
 
 	// Shutdown RmlUi.
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

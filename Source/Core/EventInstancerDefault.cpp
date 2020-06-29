@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/Event.h"
 
 namespace Rml {
-namespace Core {
 
 EventInstancerDefault::EventInstancerDefault()
 {
@@ -56,5 +55,4 @@ void EventInstancerDefault::Release()
 	delete this;
 }
 
-}
-}
+} // namespace Rml

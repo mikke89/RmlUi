@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINPUTWIN32_H
-#define RMLUIINPUTWIN32_H
+#ifndef RMLUI_SHELL_INPUTWIN32_H
+#define RMLUI_SHELL_INPUTWIN32_H
 
 #include <Input.h>
 #include <win32/IncludeWindows.h>

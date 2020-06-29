@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDATAMODEL_H
-#define RMLUICOREDATAMODEL_H
+#ifndef RMLUI_CORE_DATAMODEL_H
+#define RMLUI_CORE_DATAMODEL_H
 
 #include "Header.h"
 #include "Types.h"
@@ -36,7 +36,6 @@
 #include "DataTypeRegister.h"
 
 namespace Rml {
-namespace Core {
 
 class DataViews;
 class DataControllers;
@@ -189,7 +188,5 @@ private:
 	DataTypeRegister* type_register;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

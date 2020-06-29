@@ -31,7 +31,6 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 DataView::~DataView()
 {}
@@ -158,5 +157,4 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 	return result;
 }
 
-}
-}
+} // namespace Rml

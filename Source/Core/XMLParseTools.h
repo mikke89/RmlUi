@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREXMLPARSETOOLS_H
-#define RMLUICOREXMLPARSETOOLS_H
+#ifndef RMLUI_CORE_XMLPARSETOOLS_H
+#define RMLUI_CORE_XMLPARSETOOLS_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 
@@ -69,7 +68,5 @@ public:
     static const char* ParseDataBrackets(bool& inside_brackets, char c, char previous);
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -36,7 +36,6 @@
 #endif
 
 namespace Rml {
-namespace Core {
 
 static String clipboard_text;
 
@@ -141,5 +140,4 @@ void SystemInterface::DeactivateKeyboard()
 {
 }
 
-}
-}
+} // namespace Rml

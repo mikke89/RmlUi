@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREDECORATORINSTANCER_H
-#define RMLUICOREDECORATORINSTANCER_H
+#ifndef RMLUI_CORE_DECORATORINSTANCER_H
+#define RMLUI_CORE_DECORATORINSTANCER_H
 
 #include "Header.h"
 #include "PropertyDictionary.h"
 #include "PropertySpecification.h"
 
 namespace Rml {
-namespace Core {
 
 struct Sprite;
 class StyleSheet;
@@ -96,7 +95,5 @@ private:
 	const StyleSheet& style_sheet;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

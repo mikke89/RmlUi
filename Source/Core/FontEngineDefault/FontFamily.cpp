@@ -30,7 +30,6 @@
 #include "FontFace.h"
 
 namespace Rml {
-namespace Core {
 
 FontFamily::FontFamily(const String& name) : name(name)
 {
@@ -72,5 +71,4 @@ FontFace* FontFamily::AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle s
 	return result;
 }
 
-}
-}
+} // namespace Rml

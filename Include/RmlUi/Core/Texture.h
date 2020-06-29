@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICORETEXTURE_H
-#define RMLUICORETEXTURE_H
+#ifndef RMLUI_CORE_TEXTURE_H
+#define RMLUI_CORE_TEXTURE_H
 
 #include "Header.h"
 #include "Types.h"
 #include <functional>
 
 namespace Rml {
-namespace Core {
 
 class TextureResource;
 class RenderInterface;
@@ -90,7 +89,5 @@ private:
 	SharedPtr<TextureResource> resource;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

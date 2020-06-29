@@ -303,12 +303,12 @@ char keypad_map[2][18] =
 
 
 
-Rml::Core::Context* Input::context = nullptr;
+Rml::Context* Input::context = nullptr;
 
 
 
 // Sets the context to send input events to.
-void Input::SetContext(Rml::Core::Context* _context)
+void Input::SetContext(Rml::Context* _context)
 {
 	context = _context;
 }
@@ -316,17 +316,17 @@ void Input::SetContext(Rml::Core::Context* _context)
 
 
 // Returns the character code for a key identifer / key modifier combination.
-Rml::Core::Character Input::GetCharacterCode(Rml::Core::Input::KeyIdentifier key_identifier, int key_modifier_state)
+Rml::Character Input::GetCharacterCode(Rml::Input::KeyIdentifier key_identifier, int key_modifier_state)
 {
-	using Rml::Core::Character;
+	using Rml::Character;
 
 	// Check if we have a keycode capable of generating characters on the main keyboard (ie, not on the numeric
 	// keypad; that is dealt with below).
-	if (key_identifier <= Rml::Core::Input::KI_OEM_102)
+	if (key_identifier <= Rml::Input::KI_OEM_102)
 	{
 		// Get modifier states
-		bool shift = (key_modifier_state & Rml::Core::Input::KM_SHIFT) > 0;
-		bool capslock = (key_modifier_state & Rml::Core::Input::KM_CAPSLOCK) > 0;
+		bool shift = (key_modifier_state & Rml::Input::KM_SHIFT) > 0;
+		bool capslock = (key_modifier_state & Rml::Input::KM_CAPSLOCK) > 0;
 
 		// Return character code based on identifier and modifiers
 		if (shift && !capslock)
@@ -342,15 +342,15 @@ Rml::Core::Character Input::GetCharacterCode(Rml::Core::Input::KeyIdentifier key
 	}
 
 	// Check if we have a keycode from the numeric keypad.
-	else if (key_identifier <= Rml::Core::Input::KI_OEM_NEC_EQUAL)
+	else if (key_identifier <= Rml::Input::KI_OEM_NEC_EQUAL)
 	{
-		if (key_modifier_state & Rml::Core::Input::KM_NUMLOCK)
-			return (Character)keypad_map[0][key_identifier - Rml::Core::Input::KI_NUMPAD0];
+		if (key_modifier_state & Rml::Input::KM_NUMLOCK)
+			return (Character)keypad_map[0][key_identifier - Rml::Input::KI_NUMPAD0];
 		else
-			return (Character)keypad_map[1][key_identifier - Rml::Core::Input::KI_NUMPAD0];
+			return (Character)keypad_map[1][key_identifier - Rml::Input::KI_NUMPAD0];
 	}
 
-	else if (key_identifier == Rml::Core::Input::KI_RETURN)
+	else if (key_identifier == Rml::Input::KI_RETURN)
 		return (Character)'\n';
 
 	return Character::Null;

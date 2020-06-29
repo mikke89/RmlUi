@@ -32,7 +32,6 @@
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
-namespace Core {
 
 StreamFile::StreamFile()
 {
@@ -141,5 +140,4 @@ void StreamFile::GetLength()
 	length = GetFileInterface()->Length(file_handle);
 }
 
-}
-}
+} // namespace Rml

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSGAME_H
-#define RMLUIINVADERSGAME_H
+#ifndef RMLUI_INVADERS_GAME_H
+#define RMLUI_INVADERS_GAME_H
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Texture.h>
@@ -89,7 +89,7 @@ public:
 	void RemoveLife();
 
 	/// Get the dimensions of the game window.
-	const Rml::Core::Vector2f GetWindowDimensions();
+	const Rml::Vector2f GetWindowDimensions();
 
 private:
 
@@ -116,7 +116,7 @@ private:
 	Shield** shields;
 
 	// Texture that contains the sprites
-	Rml::Core::TextureHandle texture;
+	Rml::TextureHandle texture;
 
 	void InitialiseShields();
 	void InitialiseWave();

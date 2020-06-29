@@ -32,7 +32,6 @@
 #include <stdint.h>
 
 namespace Rml {
-namespace Core {
 
 namespace Detail {
 
@@ -95,5 +94,4 @@ BasicStackAllocator& GetGlobalBasicStackAllocator()
 
 }
 
-}
-}
+} // namespace Rml

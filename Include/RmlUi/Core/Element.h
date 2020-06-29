@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREELEMENT_H
-#define RMLUICOREELEMENT_H
+#ifndef RMLUI_CORE_ELEMENT_H
+#define RMLUI_CORE_ELEMENT_H
 
 #include "ScriptInterface.h"
 #include "Header.h"
@@ -41,7 +41,6 @@
 #include "Tween.h"
 
 namespace Rml {
-namespace Core {
 
 class Context;
 class DataModel;
@@ -740,8 +739,7 @@ private:
 	friend class ElementScroll;
 };
 
-}
-}
+} // namespace Rml
 
 #include "Element.inl"
 

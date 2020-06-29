@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREGEOMETRY_H
-#define RMLUICOREGEOMETRY_H
+#ifndef RMLUI_CORE_GEOMETRY_H
+#define RMLUI_CORE_GEOMETRY_H
 
 #include "Header.h"
 #include "Vertex.h"
 #include <stdint.h>
 
 namespace Rml {
-namespace Core {
 
 class Context;
 class Element;
@@ -109,7 +108,5 @@ private:
 
 using GeometryList = std::vector< Geometry >;
 
-}
-}
-
+} // namespace Rml
 #endif

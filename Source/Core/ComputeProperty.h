@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORECOMPUTEPROPERTY_H
-#define RMLUICORECOMPUTEPROPERTY_H
+#ifndef RMLUI_CORE_COMPUTEPROPERTY_H
+#define RMLUI_CORE_COMPUTEPROPERTY_H
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 
 namespace Rml {
-namespace Core {
 
 class Property;
 
@@ -59,7 +58,5 @@ Style::LengthPercentage ComputeOrigin(const Property* property, float font_size,
 
 extern const Style::ComputedValues DefaultComputedValues;
 
-}
-}
-
+} // namespace Rml
 #endif

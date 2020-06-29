@@ -26,16 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREEVENTSPECIFICATION_H
-#define RMLUICOREEVENTSPECIFICATION_H
+#ifndef RMLUI_CORE_EVENTSPECIFICATION_H
+#define RMLUI_CORE_EVENTSPECIFICATION_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/ID.h"
 
 namespace Rml {
-namespace Core {
-
 
 struct EventSpecification {
 	EventId id;
@@ -66,7 +64,5 @@ namespace EventSpecificationInterface {
 	EventId InsertOrReplaceCustom(const String& event_type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
 }
 
-}
-}
-
+} // namespace Rml
 #endif

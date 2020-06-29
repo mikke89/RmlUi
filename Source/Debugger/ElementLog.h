@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIDEBUGGERELEMENTLOG_H
-#define RMLUIDEBUGGERELEMENTLOG_H
+#ifndef RMLUI_DEBUGGER_ELEMENTLOG_H
+#define RMLUI_DEBUGGER_ELEMENTLOG_H
 
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/EventListener.h"
@@ -36,18 +36,18 @@
 namespace Rml {
 namespace Debugger {
 
-class SystemInterface;
+class DebuggerSystemInterface;
 
 /**
 	@author Robert Curry
  */
 
-class ElementLog : public Core::ElementDocument, public Core::EventListener
+class ElementLog : public Rml::ElementDocument, public Rml::EventListener
 {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementLog, Core::ElementDocument)
+	RMLUI_RTTI_DefineWithParent(ElementLog, Rml::ElementDocument)
 
-	ElementLog(const Core::String& tag);
+	ElementLog(const String& tag);
 	~ElementLog();
 
 	/// Initialises the log element.
@@ -55,41 +55,41 @@ public:
 	bool Initialise();
 
 	/// Adds a log message to the debug log.
-	void AddLogMessage(Core::Log::Type type, const Core::String& message);
+	void AddLogMessage(Log::Type type, const String& message);
 
 protected:
 	void OnUpdate() override;
-	void ProcessEvent(Core::Event& event) override;
+	void ProcessEvent(Event& event) override;
 
 private:
 	struct LogMessage
 	{
 		unsigned int index;
-		Core::String message;
+		String message;
 	};
 	typedef std::deque< LogMessage > LogMessageList;
 
 	struct LogType
 	{
 		bool visible;
-		Core::String class_name;
-		Core::String alert_contents;
-		Core::String button_name;
+		String class_name;
+		String alert_contents;
+		String button_name;
 		LogMessageList log_messages;
 	};
-	LogType log_types[Core::Log::LT_MAX];
+	LogType log_types[Log::LT_MAX];
 
-	int FindNextEarliestLogType(unsigned int log_pointers[Core::Log::LT_MAX]);
+	int FindNextEarliestLogType(unsigned int log_pointers[Log::LT_MAX]);
 
 	unsigned int current_index;
 	bool dirty_logs;
 	bool auto_scroll;
-	Core::Element* message_content;
-	Core::ElementDocument* beacon;
+	Element* message_content;
+	ElementDocument* beacon;
 	int current_beacon_level;
 };
 
 }
-}
+} // namespace Rml
 
 #endif

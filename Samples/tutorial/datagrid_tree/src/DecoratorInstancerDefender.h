@@ -19,7 +19,7 @@
 	@author Robert Curry
  */
 
-class DecoratorInstancerDefender : public Rml::Core::DecoratorInstancer
+class DecoratorInstancerDefender : public Rml::DecoratorInstancer
 {
 public:
 	DecoratorInstancerDefender();
@@ -30,10 +30,10 @@ public:
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @param[in] interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the decorator if it was instanced successfully.
-	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
+	std::shared_ptr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& interface) override;
 
 private:
-	Rml::Core::PropertyId id_image_src;
+	Rml::PropertyId id_image_src;
 };
 
 #endif

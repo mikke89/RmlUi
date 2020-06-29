@@ -34,7 +34,6 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 StyleSheetNode::StyleSheetNode()
 {
@@ -330,5 +329,4 @@ void StyleSheetNode::CalculateAndSetSpecificity()
 		specificity += parent->specificity;
 }
 
-}
-}
+} // namespace Rml

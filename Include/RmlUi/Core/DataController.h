@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDATACONTROLLER_H
-#define RMLUICOREDATACONTROLLER_H
+#ifndef RMLUI_CORE_DATACONTROLLER_H
+#define RMLUI_CORE_DATACONTROLLER_H
 
 #include "Header.h"
 #include "Types.h"
@@ -35,7 +35,6 @@
 #include <unordered_map>
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class DataModel;
@@ -117,7 +116,5 @@ private:
 };
 
 
-}
-}
-
+} // namespace Rml
 #endif

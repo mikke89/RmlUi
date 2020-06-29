@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef INPUTX11_H
-#define INPUTX11_H
+#ifndef RMLUI_SHELL_X11_INPUTX11_H
+#define RMLUI_SHELL_X11_INPUTX11_H
 
 #include <X11/Xlib.h>
 

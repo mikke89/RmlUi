@@ -27,14 +27,12 @@
  */
 
  
-#ifndef RMLUICOREID_H
-#define RMLUICOREID_H
+#ifndef RMLUI_CORE_ID_H
+#define RMLUI_CORE_ID_H
 
 #include <stdint.h>
 
 namespace Rml {
-namespace Core {
-
 
 enum class ShorthandId : uint8_t
 {
@@ -193,7 +191,7 @@ enum class EventId : uint16_t
 	Animationend,
 	Transitionend,
 
-	// Controls events
+	// Form control events
 	Change,
 	Submit,
 	Tabchange,
@@ -212,7 +210,5 @@ enum class EventId : uint16_t
 	MaxNumIds = 0xffff
 };
 
-}
-}
-
+} // namespace Rml
 #endif

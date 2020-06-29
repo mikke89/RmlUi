@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREEVENTITERATORS_H
-#define RMLUICOREEVENTITERATORS_H
+#ifndef RMLUI_CORE_EVENTITERATORS_H
+#define RMLUI_CORE_EVENTITERATORS_H
 
 #include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	An STL unary functor for dispatching an event to a Element.
@@ -79,7 +78,5 @@ class PseudoClassFunctor
 		bool set;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

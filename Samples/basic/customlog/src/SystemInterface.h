@@ -36,7 +36,7 @@
 	@author Lloyd Weehuizen
  */
 
-class SystemInterface : public Rml::Core::SystemInterface
+class SystemInterface : public Rml::SystemInterface
 {
 public:
 	SystemInterface();
@@ -50,7 +50,7 @@ public:
 	/// @param[in] type Type of log message, ERROR, WARNING, etc.
 	/// @param[in] message Message to log.
 	/// @return True to continue execution, false to break into the debugger.
-	bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message) override;
+	bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 
 private:
 	FILE* fp;

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREFONTFACEHANDLE_H
-#define RMLUICOREFONTFACEHANDLE_H
+#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFACEHANDLE_H
+#define RMLUI_CORE_FONTENGINEDEFAULT_FONTFACEHANDLE_H
 
 #include "../../../Include/RmlUi/Core/Traits.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"
@@ -37,7 +37,6 @@
 #include "FontTypes.h"
 
 namespace Rml {
-namespace Core {
 
 class FontFaceLayer;
 
@@ -149,7 +148,5 @@ private:
 	FontFaceHandleFreetype ft_face;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

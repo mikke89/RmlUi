@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICORESTYLESHEETNODE_H
-#define RMLUICORESTYLESHEETNODE_H
+#ifndef RMLUI_CORE_STYLESHEETNODE_H
+#define RMLUI_CORE_STYLESHEETNODE_H
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
@@ -35,7 +35,6 @@
 #include <tuple>
 
 namespace Rml {
-namespace Core {
 
 class StyleSheetNodeSelector;
 
@@ -130,7 +129,5 @@ private:
 	StyleSheetNodeList children;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

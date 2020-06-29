@@ -34,8 +34,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
-
 
 static int FormatString(String& string, size_t max_size, const char* format, va_list argument_list)
 {
@@ -606,5 +604,4 @@ inline void StringIteratorU8::SeekForward() {
 	p = StringUtilities::SeekForwardUTF8(p, view.end());
 }
 
-}
-}
+} // namespace Rml

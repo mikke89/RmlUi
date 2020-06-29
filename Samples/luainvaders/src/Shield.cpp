@@ -109,12 +109,12 @@ void Shield::InitialiseCells()
 	}
 }
 
-void Shield::SetPosition(const Rml::Core::Vector2f& _position)
+void Shield::SetPosition(const Rml::Vector2f& _position)
 {
 	position = _position;
 }
 
-const Rml::Core::Vector2f& Shield::GetPosition() const
+const Rml::Vector2f& Shield::GetPosition() const
 {
 	return position;
 }
@@ -135,7 +135,7 @@ void Shield::Render()
 			{
 				if (shield_cells[i][j] == ON)
 				{
-					Rml::Core::Vector2f cell_position = position + Rml::Core::Vector2f((float) (PIXEL_SIZE * i), (float) (PIXEL_SIZE * j));
+					Rml::Vector2f cell_position = position + Rml::Vector2f((float) (PIXEL_SIZE * i), (float) (PIXEL_SIZE * j));
 					glVertex2f(cell_position.x, cell_position.y);
 				}
 			}
@@ -147,7 +147,7 @@ void Shield::Render()
 	}
 }
 
-bool Shield::CheckHit(const Rml::Core::Vector2f& check_position)
+bool Shield::CheckHit(const Rml::Vector2f& check_position)
 {
 	float sprite_size = PIXEL_SIZE * NUM_SHIELD_CELLS;
 
@@ -177,8 +177,8 @@ void Shield::SustainDamage()
 		int num_shields_to_lose = (NUM_SHIELD_CELLS * NUM_SHIELD_CELLS) / MAX_HEALTH;
 		while (num_shields_to_lose > 0)
 		{
-			int x = Rml::Core::Math::RandomInteger(NUM_SHIELD_CELLS);
-			int y = Rml::Core::Math::RandomInteger(NUM_SHIELD_CELLS);
+			int x = Rml::Math::RandomInteger(NUM_SHIELD_CELLS);
+			int y = Rml::Math::RandomInteger(NUM_SHIELD_CELLS);
 			if (shield_cells[x][y] != DESTROYED)
 			{
 				shield_cells[x][y] = DESTROYED;

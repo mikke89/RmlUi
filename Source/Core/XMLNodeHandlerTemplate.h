@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREXMLNODEHANDLERTEMPLATE_H
-#define RMLUICOREXMLNODEHANDLERTEMPLATE_H
+#ifndef RMLUI_CORE_XMLNODEHANDLERTEMPLATE_H
+#define RMLUI_CORE_XMLNODEHANDLERTEMPLATE_H
 
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Element Node handler that processes the custom template tags
@@ -54,7 +53,5 @@ public:
 	bool ElementData(XMLParser* parser, const String& data, XMLDataType type) override;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

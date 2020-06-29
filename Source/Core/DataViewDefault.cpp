@@ -35,8 +35,6 @@
 #include "../../Include/RmlUi/Core/Variant.h"
 
 namespace Rml {
-namespace Core {
-
 
 DataViewCommon::DataViewCommon(Element* element, String override_modifier) : DataView(element), modifier(override_modifier)
 {}
@@ -492,5 +490,4 @@ void DataViewFor::Release()
 	delete this;
 }
 
-}
-}
+} // namespace Rml

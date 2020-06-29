@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICORELAYOUTINLINEBOX_H
-#define RMLUICORELAYOUTINLINEBOX_H
+#ifndef RMLUI_CORE_LAYOUTINLINEBOX_H
+#define RMLUI_CORE_LAYOUTINLINEBOX_H
 
 #include "../../Include/RmlUi/Core/Box.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class ElementText;
@@ -173,7 +172,5 @@ protected:
 	bool chained;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

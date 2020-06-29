@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
-namespace Core {
 
 FontEffect::FontEffect() : colour(255, 255, 255)
 {
@@ -93,5 +92,4 @@ void FontEffect::SetFingerprint(size_t _fingerprint)
 	fingerprint = _fingerprint;
 }
 
-}
-}
+} // namespace Rml

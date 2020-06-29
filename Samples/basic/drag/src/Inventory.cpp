@@ -31,15 +31,15 @@
 #include "DragListener.h"
 
 // Constructs a new inventory and opens its window.
-Inventory::Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& position, Rml::Core::Context* context)
+Inventory::Inventory(const Rml::String& title, const Rml::Vector2f& position, Rml::Context* context)
 {
 	document = context->LoadDocument("basic/drag/data/inventory.rml");
 	if (document != nullptr)
 	{
-		using Rml::Core::PropertyId;
+		using Rml::PropertyId;
 		document->GetElementById("title")->SetInnerRML(title);
-		document->SetProperty(PropertyId::Left, Rml::Core::Property(position.x, Rml::Core::Property::PX));
-		document->SetProperty(PropertyId::Top, Rml::Core::Property(position.y, Rml::Core::Property::PX));
+		document->SetProperty(PropertyId::Left, Rml::Property(position.x, Rml::Property::PX));
+		document->SetProperty(PropertyId::Top, Rml::Property(position.y, Rml::Property::PX));
 		document->Show();
 	}
 
@@ -56,16 +56,16 @@ Inventory::~Inventory()
 }
 
 // Adds a brand-new item into this inventory.
-void Inventory::AddItem(const Rml::Core::String& name)
+void Inventory::AddItem(const Rml::String& name)
 {
 	if (document == nullptr)
 		return;
 
-	Rml::Core::Element* content = document->GetElementById("content");
+	Rml::Element* content = document->GetElementById("content");
 	if (content == nullptr)
 		return;
 
 	// Create the new 'icon' element.
-	Rml::Core::Element* icon = content->AppendChild(Rml::Core::Factory::InstanceElement(content, "icon", "icon", Rml::Core::XMLAttributes()));
+	Rml::Element* icon = content->AppendChild(Rml::Factory::InstanceElement(content, "icon", "icon", Rml::XMLAttributes()));
 	icon->SetInnerRML(name);
 }

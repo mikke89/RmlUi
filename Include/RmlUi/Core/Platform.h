@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREPLATFORM_H
-#define RMLUICOREPLATFORM_H
+#ifndef RMLUI_CORE_PLATFORM_H
+#define RMLUI_CORE_PLATFORM_H
 
 #if defined __WIN32__ || defined _WIN32
 	#define RMLUI_PLATFORM_WIN32

@@ -38,7 +38,6 @@
 #include "../../Include/RmlUi/Core/URL.h"
 
 namespace Rml {
-namespace Core {
 
 XMLNodeHandlerHead::XMLNodeHandlerHead()
 {
@@ -147,5 +146,4 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data, XMLD
 	return true;
 }
 
-}
-}
+} // namespace Rml

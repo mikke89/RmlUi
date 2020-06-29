@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUISHELLRENDERINTERFACE_H
-#define RMLUISHELLRENDERINTERFACE_H
+#ifndef RMLUI_SHELL_SHELLRENDERINTERFACEEXTENSIONS_H
+#define RMLUI_SHELL_SHELLRENDERINTERFACEEXTENSIONS_H
 
 /**
 	Extensions to the RenderInterface class used by the Samples Shell to
@@ -46,7 +46,7 @@ public:
     virtual void SetViewport(int width, int height) = 0;
 	
     /**
-	 * @param[in] context Rml::Core::Context to set dimensions on when SetViewport is called
+	 * @param[in] context Rml::Context to set dimensions on when SetViewport is called
      */
     virtual void SetContext(void *context) = 0;
 	

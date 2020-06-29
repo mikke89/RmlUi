@@ -27,7 +27,6 @@
  */
 
 namespace Rml {
-namespace Core {
 
 inline Variant::Type Variant::GetType() const
 {
@@ -154,5 +153,4 @@ inline const T& Variant::GetReference() const
 	return *(T*)data;
 }
 
-}
-}
+} // namespace Rml

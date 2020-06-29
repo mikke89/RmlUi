@@ -26,29 +26,26 @@
  *
  */
 
-#ifndef RMLUIDEBUGGERDEBUGGER_H
-#define RMLUIDEBUGGERDEBUGGER_H
+#ifndef RMLUI_DEBUGGER_DEBUGGER_H
+#define RMLUI_DEBUGGER_DEBUGGER_H
 
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
 
 class Context;
-
-}
 
 namespace Debugger {
 
 /// Initialises the debug plugin. The debugger will be loaded into the given context.
 /// @param[in] context The RmlUi context to load the debugger into. The debugging tools will be displayed on this context. If this context is destroyed, the debugger will be released.
 /// @return True if the debugger was successfully initialised
-RMLUIDEBUGGER_API bool Initialise(Core::Context* context);
+RMLUIDEBUGGER_API bool Initialise(Context* context);
 
 /// Sets the context to be debugged.
 /// @param[in] context The context to be debugged.
 /// @return True if the debugger is initialised and the context was switched, false otherwise.
-RMLUIDEBUGGER_API bool SetContext(Core::Context* context);
+RMLUIDEBUGGER_API bool SetContext(Context* context);
 
 /// Sets the visibility of the debugger.
 /// @param[in] visibility True to show the debugger, false to hide it.
@@ -58,6 +55,6 @@ RMLUIDEBUGGER_API void SetVisible(bool visibility);
 RMLUIDEBUGGER_API bool IsVisible();
 
 }
-}
+} // namespace Rml
 
 #endif

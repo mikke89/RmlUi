@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
-namespace Core {
 
 DecoratorNinePatch::DecoratorNinePatch()
 {
@@ -248,5 +247,4 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 	return decorator;
 }
 
-}
-}
+} // namespace Rml

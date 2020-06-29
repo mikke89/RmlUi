@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTYSPECIFICATION_H
-#define RMLUICOREPROPERTYSPECIFICATION_H
+#ifndef RMLUI_CORE_PROPERTYSPECIFICATION_H
+#define RMLUI_CORE_PROPERTYSPECIFICATION_H
 
 #include "Header.h"
 #include "Types.h"
@@ -35,7 +35,6 @@
 #include "ID.h"
 
 namespace Rml {
-namespace Core {
 
 class StyleSheetSpecification;
 class PropertyDefinition;
@@ -140,7 +139,5 @@ private:
 	friend class StyleSheetSpecification;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

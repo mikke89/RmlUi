@@ -32,7 +32,6 @@
 #include "TextureLayoutRectangle.h"
 
 namespace Rml {
-namespace Core {
 
 class TextureLayout;
 
@@ -74,7 +73,5 @@ private:
 	RectangleList rectangles;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -51,7 +51,6 @@
 
 
 namespace Rml {
-namespace Core {
 
 ElementStyle::ElementStyle(Element* _element)
 {
@@ -911,5 +910,4 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	return result;
 }
 
-}
-}
+} // namespace Rml

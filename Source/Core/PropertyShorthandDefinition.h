@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTYSHORTHANDDEFINITION_H
-#define RMLUICOREPROPERTYSHORTHANDDEFINITION_H
+#ifndef RMLUI_CORE_PROPERTYSHORTHANDDEFINITION_H
+#define RMLUI_CORE_PROPERTYSHORTHANDDEFINITION_H
 
 #include "../../Include/RmlUi/Core/ID.h"
 
 namespace Rml {
-namespace Core {
 
 enum class ShorthandType;
 class PropertyDefinition;
@@ -68,7 +67,5 @@ struct ShorthandDefinition
 	ShorthandType type;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

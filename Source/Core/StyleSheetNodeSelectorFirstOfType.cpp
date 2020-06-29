@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
-namespace Core {
 
 StyleSheetNodeSelectorFirstOfType::StyleSheetNodeSelectorFirstOfType()
 {
@@ -70,5 +69,4 @@ bool StyleSheetNodeSelectorFirstOfType::IsApplicable(const Element* element, int
 	return false;
 }
 
-}
-}
+} // namespace Rml

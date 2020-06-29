@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREDATADEFINITIONS_H
-#define RMLUICOREDATADEFINITIONS_H
+#ifndef RMLUI_CORE_DATADEFINITIONS_H
+#define RMLUI_CORE_DATADEFINITIONS_H
 
 #include "Header.h"
 #include "Types.h"
 #include <functional>
 
 namespace Rml {
-namespace Core {
 
 class VariableDefinition;
 class DataTypeRegister;
@@ -60,7 +59,5 @@ struct DataAddressEntry {
 };
 using DataAddress = std::vector<DataAddressEntry>;
 
-}
-}
-
+} // namespace Rml
 #endif

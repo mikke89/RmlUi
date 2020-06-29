@@ -25,13 +25,12 @@
  *
  */
 
-#ifndef RMLUICOREFONTENGINEINTERFACEDEFAULT_H
-#define RMLUICOREFONTENGINEINTERFACEDEFAULT_H
+#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTENGINEINTERFACEDEFAULT_H
+#define RMLUI_CORE_FONTENGINEDEFAULT_FONTENGINEINTERFACEDEFAULT_H
 
 #include "../../../Include/RmlUi/Core/FontEngineInterface.h"
 
 namespace Rml {
-namespace Core {
 
 class RMLUICORE_API FontEngineInterfaceDefault : public FontEngineInterface
 {
@@ -76,7 +75,5 @@ public:
 	int GetVersion(FontFaceHandle handle) override;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

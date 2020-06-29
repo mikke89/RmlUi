@@ -25,14 +25,13 @@
  *
  */
 
-#ifndef RMLUICORECOMPUTEDVALUES_H
-#define RMLUICORECOMPUTEDVALUES_H
+#ifndef RMLUI_CORE_COMPUTEDVALUES_H
+#define RMLUI_CORE_COMPUTEDVALUES_H
 
 #include "Types.h"
 #include "Animation.h"
 
 namespace Rml {
-namespace Core {
 
 namespace Style
 {
@@ -221,7 +220,5 @@ RMLUICORE_API float ResolveValue(Style::LengthPercentage length, float base_valu
 
 using ComputedValues = Style::ComputedValues;
 
-}
-}
-
+} // namespace Rml
 #endif

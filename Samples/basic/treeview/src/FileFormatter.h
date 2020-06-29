@@ -29,7 +29,7 @@
 #ifndef FILEFORMATTER_H
 #define FILEFORMATTER_H
 
-#include <RmlUi/Controls/DataFormatter.h>
+#include <RmlUi/Core/Elements/DataFormatter.h>
 
 /**
 	Data formatter for file and directory columns generated from the file system data source.
@@ -37,13 +37,13 @@
 	@author Peter Curry
  */
 
-class FileFormatter : public Rml::Controls::DataFormatter
+class FileFormatter : public Rml::DataFormatter
 {
 public:
 	FileFormatter();
 	virtual ~FileFormatter();
 
-	void FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data);
+	void FormatData(Rml::String& formatted_data, const Rml::StringList& raw_data);
 };
 
 #endif

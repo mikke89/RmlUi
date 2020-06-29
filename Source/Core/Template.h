@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICORETEMPLATE_H
-#define RMLUICORETEMPLATE_H
+#ifndef RMLUI_CORE_TEMPLATE_H
+#define RMLUI_CORE_TEMPLATE_H
 
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "DocumentHeader.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 
@@ -70,7 +69,5 @@ private:
 	UniquePtr<StreamMemory> body;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREELEMENTDOCUMENT_H
-#define RMLUICOREELEMENTDOCUMENT_H
+#ifndef RMLUI_CORE_ELEMENTDOCUMENT_H
+#define RMLUI_CORE_ELEMENTDOCUMENT_H
 
 #include "Element.h"
 
 namespace Rml {
-namespace Core {
 
 class Context;
 class Stream;
@@ -181,7 +180,5 @@ private:
 
 };
 
-}
-}
-
+} // namespace Rml
 #endif

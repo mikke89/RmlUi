@@ -31,9 +31,6 @@
 #include "PropertiesIterator.h"
 
 namespace Rml {
-namespace Core {
-
-
 
 PropertiesIteratorView::PropertiesIteratorView(UniquePtr<PropertiesIterator> ptr) : ptr(std::move(ptr)) {}
 
@@ -61,7 +58,7 @@ PropertyId PropertiesIteratorView::GetId() const
 
 const String& PropertiesIteratorView::GetName() const
 {
-	return Core::StyleSheetSpecification::GetPropertyName(GetId());
+	return StyleSheetSpecification::GetPropertyName(GetId());
 }
 
 const Property& PropertiesIteratorView::GetProperty() const
@@ -73,5 +70,4 @@ bool PropertiesIteratorView::AtEnd() const {
 	return ptr->AtEnd();
 }
 
-}
-}
+} // namespace Rml

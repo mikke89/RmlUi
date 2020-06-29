@@ -32,7 +32,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 PropertyParserTransform::PropertyParserTransform()
 	: number(Property::NUMBER),
@@ -291,5 +290,4 @@ bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const c
 	return total_bytes_read > 0;
 }
 
-}
-}
+} // namespace Rml

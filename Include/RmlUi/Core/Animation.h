@@ -25,15 +25,14 @@
  *
  */
 
-#ifndef RMLUICOREANIMATION_H
-#define RMLUICOREANIMATION_H
+#ifndef RMLUI_CORE_ANIMATION_H
+#define RMLUI_CORE_ANIMATION_H
 
 #include "Types.h"
 #include "Tween.h"
 #include "ID.h"
 
 namespace Rml {
-namespace Core {
 
 /* Data parsed from the 'animation' property. */
 struct Animation {
@@ -72,7 +71,5 @@ inline bool operator!=(const Transition& a, const Transition& b) { return !(a ==
 inline bool operator==(const TransitionList& a, const TransitionList& b) { return a.none == b.none && a.all == b.all && a.transitions == b.transitions; }
 inline bool operator!=(const TransitionList& a, const TransitionList& b) { return !(a == b); }
 
-}
-}
-
+} // namespace Rml
 #endif

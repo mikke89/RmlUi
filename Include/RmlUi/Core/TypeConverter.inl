@@ -27,7 +27,6 @@
  */
 
 namespace Rml {
-namespace Core {
 
 template <typename SourceType, typename DestType>
 bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, DestType& /*dest*/)
@@ -373,8 +372,9 @@ VECTOR_STRING_CONVERTER(Colourb, byte, 4);
 #undef PASS_THROUGH
 #undef BASIC_CONVERTER
 #undef BASIC_CONVERTER_BOOL
+#undef FLOAT_STRING_CONVERTER
+#undef STRING_FLOAT_CONVERTER
 #undef STRING_VECTOR_CONVERTER
 #undef VECTOR_STRING_CONVERTER
 
-}
-}
+} // namespace Rml

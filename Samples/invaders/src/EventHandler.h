@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSEVENTHANDLER_H
-#define RMLUIINVADERSEVENTHANDLER_H
+#ifndef RMLUI_INVADERS_EVENTHANDLER_H
+#define RMLUI_INVADERS_EVENTHANDLER_H
 
 #include <RmlUi/Core/Types.h>
 
@@ -47,7 +47,7 @@ class EventHandler
 {
 public:
 	virtual ~EventHandler();
-	virtual void ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value) = 0;
+	virtual void ProcessEvent(Rml::Event& event, const Rml::String& value) = 0;
 };
 
 

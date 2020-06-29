@@ -42,9 +42,9 @@ const float BULLET_SPEED = 15;
 const int SPRITE_WIDTH = 64;
 const float RESPAWN_TIME = 1.0f;
 
-Sprite defender_sprite(Rml::Core::Vector2f(60, 31), Rml::Core::Vector2f(0, 0.5), Rml::Core::Vector2f(0.23437500, 0.98437500));
-Sprite bullet_sprite(Rml::Core::Vector2f(4, 20), Rml::Core::Vector2f(0.4921875, 0.515625), Rml::Core::Vector2f(0.5078125, 0.828125));
-Sprite explosion_sprite(Rml::Core::Vector2f(52, 28), Rml::Core::Vector2f(0.71484375f, 0.51562500f), Rml::Core::Vector2f(0.91796875f, 0.95312500f));
+Sprite defender_sprite(Rml::Vector2f(60, 31), Rml::Vector2f(0, 0.5), Rml::Vector2f(0.23437500, 0.98437500));
+Sprite bullet_sprite(Rml::Vector2f(4, 20), Rml::Vector2f(0.4921875, 0.515625), Rml::Vector2f(0.5078125, 0.828125));
+Sprite explosion_sprite(Rml::Vector2f(52, 28), Rml::Vector2f(0.71484375f, 0.51562500f), Rml::Vector2f(0.91796875f, 0.95312500f));
 
 Defender::Defender(Game* _game)
 {
@@ -69,7 +69,7 @@ void Defender::Update()
 	if (dt < UPDATE_FREQ)
 		return;
 	
-	dt = Rml::Core::Math::Min(dt, 0.1f);
+	dt = Rml::Math::Min(dt, 0.1f);
 
 	defender_frame_start = Shell::GetElapsedTime();	
 
@@ -109,12 +109,12 @@ void Defender::Render()
 
 	// Render our sprite if rendering is enabled
 	if (render)
-		defender_sprite.Render(Rml::Core::Vector2f(position.x, position.y));
+		defender_sprite.Render(Rml::Vector2f(position.x, position.y));
 
 	// Update the bullet, doing collision detection
 	if (bullet_in_flight)
 	{
-		bullet_sprite.Render(Rml::Core::Vector2f(bullet_position.x, bullet_position.y));
+		bullet_sprite.Render(Rml::Vector2f(bullet_position.x, bullet_position.y));
 
 		// Check if we hit the shields
 		for (int i = 0; i < game->GetNumShields(); i++)
@@ -158,12 +158,12 @@ void Defender::Fire()
 {
 	if (!bullet_in_flight)
 	{
-		bullet_position = position + Rml::Core::Vector2f((SPRITE_WIDTH/2) - 4, 0);
+		bullet_position = position + Rml::Vector2f((SPRITE_WIDTH/2) - 4, 0);
 		bullet_in_flight = true;
 	}
 }
 
-bool Defender::CheckHit(const Rml::Core::Vector2f& check_position)
+bool Defender::CheckHit(const Rml::Vector2f& check_position)
 {	
 	float sprite_width = defender_sprite.dimensions.x;
 	float sprite_height = defender_sprite.dimensions.y;

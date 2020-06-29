@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREFONTPROVIDER_H
-#define RMLUICOREFONTPROVIDER_H
+#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTPROVIDER_H
+#define RMLUI_CORE_FONTENGINEDEFAULT_FONTPROVIDER_H
 
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "FontTypes.h"
 
 namespace Rml {
-namespace Core {
 
 class FontFace;
 class FontFamily;
@@ -94,7 +93,5 @@ private:
 	
 };
 
-}
-}
-
+} // namespace Rml
 #endif

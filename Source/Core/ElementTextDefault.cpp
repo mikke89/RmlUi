@@ -40,7 +40,6 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 
 namespace Rml {
-namespace Core {
 
 static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters);
 static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline);
@@ -598,5 +597,4 @@ static bool LastToken(const char* token_begin, const char* string_end, bool coll
 	return last_token;
 }
 
-}
-}
+} // namespace Rml

@@ -39,43 +39,43 @@ namespace Debugger {
 
 const int MAX_LOG_MESSAGES = 50;
 
-ElementLog::ElementLog(const Core::String& tag) : Core::ElementDocument(tag)
+ElementLog::ElementLog(const String& tag) : ElementDocument(tag)
 {
 	dirty_logs = false;
 	beacon = nullptr;
-	current_beacon_level = Core::Log::LT_MAX;
+	current_beacon_level = Log::LT_MAX;
 	auto_scroll = true;
 	message_content = nullptr;
 	current_index = 0;
 
 	// Set up the log type buttons.
-	log_types[Core::Log::LT_ALWAYS].visible = true;
-	log_types[Core::Log::LT_ALWAYS].class_name = "error";
-	log_types[Core::Log::LT_ALWAYS].alert_contents = "A";
+	log_types[Log::LT_ALWAYS].visible = true;
+	log_types[Log::LT_ALWAYS].class_name = "error";
+	log_types[Log::LT_ALWAYS].alert_contents = "A";
 
-	log_types[Core::Log::LT_ERROR].visible = true;
-	log_types[Core::Log::LT_ERROR].class_name = "error";
-	log_types[Core::Log::LT_ERROR].alert_contents = "!";
-	log_types[Core::Log::LT_ERROR].button_name = "error_button";
+	log_types[Log::LT_ERROR].visible = true;
+	log_types[Log::LT_ERROR].class_name = "error";
+	log_types[Log::LT_ERROR].alert_contents = "!";
+	log_types[Log::LT_ERROR].button_name = "error_button";
 
-	log_types[Core::Log::LT_ASSERT].visible = true;
-	log_types[Core::Log::LT_ASSERT].class_name = "error";
-	log_types[Core::Log::LT_ASSERT].alert_contents = "!";
+	log_types[Log::LT_ASSERT].visible = true;
+	log_types[Log::LT_ASSERT].class_name = "error";
+	log_types[Log::LT_ASSERT].alert_contents = "!";
 
-	log_types[Core::Log::LT_WARNING].visible = true;
-	log_types[Core::Log::LT_WARNING].class_name = "warning";
-	log_types[Core::Log::LT_WARNING].alert_contents = "!";
-	log_types[Core::Log::LT_WARNING].button_name = "warning_button";
+	log_types[Log::LT_WARNING].visible = true;
+	log_types[Log::LT_WARNING].class_name = "warning";
+	log_types[Log::LT_WARNING].alert_contents = "!";
+	log_types[Log::LT_WARNING].button_name = "warning_button";
 
-	log_types[Core::Log::LT_INFO].visible = false;
-	log_types[Core::Log::LT_INFO].class_name = "info";
-	log_types[Core::Log::LT_INFO].alert_contents = "i";
-	log_types[Core::Log::LT_INFO].button_name = "info_button";
+	log_types[Log::LT_INFO].visible = false;
+	log_types[Log::LT_INFO].class_name = "info";
+	log_types[Log::LT_INFO].alert_contents = "i";
+	log_types[Log::LT_INFO].button_name = "info_button";
 
-	log_types[Core::Log::LT_DEBUG].visible = true;
-	log_types[Core::Log::LT_DEBUG].class_name = "debug";
-	log_types[Core::Log::LT_DEBUG].alert_contents = "?";
-	log_types[Core::Log::LT_DEBUG].button_name = "debug_button";
+	log_types[Log::LT_DEBUG].visible = true;
+	log_types[Log::LT_DEBUG].class_name = "debug";
+	log_types[Log::LT_DEBUG].alert_contents = "?";
+	log_types[Log::LT_DEBUG].button_name = "debug_button";
 }
 
 ElementLog::~ElementLog()
@@ -91,16 +91,16 @@ bool ElementLog::Initialise()
 	message_content = GetElementById("content");
 	if (message_content)
 	{
-		message_content->AddEventListener(Core::EventId::Resize, this);
+		message_content->AddEventListener(EventId::Resize, this);
 	}
 
-	Core::SharedPtr<Core::StyleSheet> style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(log_rcss));
+	SharedPtr<StyleSheet> style_sheet = Factory::InstanceStyleSheetString(String(common_rcss) + String(log_rcss));
 	if (!style_sheet)
 		return false;
 
 	SetStyleSheet(std::move(style_sheet));
 
-	AddEventListener(Core::EventId::Click, this);
+	AddEventListener(EventId::Click, this);
 
 	// Create the log beacon.
 	beacon = GetContext()->CreateDocument();
@@ -108,14 +108,14 @@ bool ElementLog::Initialise()
 		return false;
 
 	beacon->SetId("rmlui-debug-log-beacon");
-	beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+	beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	beacon->SetInnerRML(beacon_rml);
 
-	Core::Element* button = beacon->GetFirstChild();
+	Element* button = beacon->GetFirstChild();
 	if (button)
-		beacon->GetFirstChild()->AddEventListener(Core::EventId::Click, this);
+		beacon->GetFirstChild()->AddEventListener(EventId::Click, this);
 
-	style_sheet = Core::Factory::InstanceStyleSheetString(Core::String(common_rcss) + Core::String(beacon_rcss));
+	style_sheet = Factory::InstanceStyleSheetString(String(common_rcss) + String(beacon_rcss));
 	if (!style_sheet)
 	{
 		GetContext()->UnloadDocument(beacon);
@@ -129,12 +129,12 @@ bool ElementLog::Initialise()
 }
 
 // Adds a log message to the debug log.
-void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message)
+void ElementLog::AddLogMessage(Log::Type type, const String& message)
 {
 	// Add the message to the list of messages for the specified log type.
 	LogMessage log_message;
 	log_message.index = current_index++;
-	log_message.message = Core::StringUtilities::EncodeRml(message);
+	log_message.message = StringUtilities::EncodeRml(message);
 	log_types[type].log_messages.push_back(log_message);
 	if (log_types[type].log_messages.size() >= MAX_LOG_MESSAGES)
 	{
@@ -147,7 +147,7 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 	{
 		if (!log_types[type].button_name.empty())
 		{
-			Rml::Core::Element* button = GetElementById(log_types[type].button_name);
+			Element* button = GetElementById(log_types[type].button_name);
 			if (button)
 			{
 				button->SetInnerRML("Off*");
@@ -161,10 +161,10 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 		{
 			if (type < current_beacon_level)
 			{
-				beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
+				beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 
 				current_beacon_level = type;
-				Rml::Core::Element* beacon_button = beacon->GetFirstChild();
+				Element* beacon_button = beacon->GetFirstChild();
 				if (beacon_button)
 				{
 					beacon_button->SetClassNames(log_types[type].class_name);
@@ -180,22 +180,22 @@ void ElementLog::AddLogMessage(Core::Log::Type type, const Core::String& message
 
 void ElementLog::OnUpdate()
 {
-	Core::ElementDocument::OnUpdate();
+	ElementDocument::OnUpdate();
 
 	if (dirty_logs)
 	{
 		// Set the log content:
-		Core::String messages;
+		String messages;
 		if (message_content)
 		{
-			unsigned int log_pointers[Core::Log::LT_MAX];
-			for (int i = 0; i < Core::Log::LT_MAX; i++)
+			unsigned int log_pointers[Log::LT_MAX];
+			for (int i = 0; i < Log::LT_MAX; i++)
 				log_pointers[i] = 0;
 			int next_type = FindNextEarliestLogType(log_pointers);
 			int num_messages = 0;
 			while (next_type != -1 && num_messages < MAX_LOG_MESSAGES)
 			{
-				messages += Core::CreateString(128, "<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">", log_types[next_type].class_name.c_str(), log_types[next_type].alert_contents.c_str());
+				messages += CreateString(128, "<div class=\"log-entry\"><div class=\"icon %s\">%s</div><p class=\"message\">", log_types[next_type].class_name.c_str(), log_types[next_type].alert_contents.c_str());
 				messages += log_types[next_type].log_messages[log_pointers[next_type]].message;
 				messages += "</p></div>";
 				
@@ -219,28 +219,28 @@ void ElementLog::OnUpdate()
 	}
 }
 
-void ElementLog::ProcessEvent(Core::Event& event)
+void ElementLog::ProcessEvent(Event& event)
 {
 	// Only process events if we're visible
 	if (beacon != nullptr)
 	{
-		if (event == Core::EventId::Click)
+		if (event == EventId::Click)
 		{
 			if (event.GetTargetElement() == beacon->GetFirstChild())
 			{
 				if (!IsVisible())
-					SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Visible));
+					SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 
-				beacon->SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
-				current_beacon_level = Core::Log::LT_MAX;
+				beacon->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+				current_beacon_level = Log::LT_MAX;
 			}
 			else if (event.GetTargetElement()->GetId() == "close_button")
 			{
-				SetProperty(Core::PropertyId::Visibility, Core::Property(Core::Style::Visibility::Hidden));
+				SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 			}
 			else if (event.GetTargetElement()->GetId() == "clear_button")
 			{
-				for (int i = 0; i < Core::Log::LT_MAX; i++)
+				for (int i = 0; i < Log::LT_MAX; i++)
 				{
 					log_types[i].log_messages.clear();
 					if (!log_types[i].visible)
@@ -253,7 +253,7 @@ void ElementLog::ProcessEvent(Core::Event& event)
 			}
 			else
 			{
-				for (int i = 0; i < Core::Log::LT_MAX; i++)
+				for (int i = 0; i < Log::LT_MAX; i++)
 				{
 					if (!log_types[i].button_name.empty() && event.GetTargetElement()->GetId() == log_types[i].button_name)
 					{
@@ -269,7 +269,7 @@ void ElementLog::ProcessEvent(Core::Event& event)
 		}
 	}
 
-	if (event == Core::EventId::Resize && auto_scroll)
+	if (event == EventId::Resize && auto_scroll)
 	{
 		if (message_content != nullptr &&
 			message_content->HasChildNodes())
@@ -277,12 +277,12 @@ void ElementLog::ProcessEvent(Core::Event& event)
 	}
 }
 
-int ElementLog::FindNextEarliestLogType(unsigned int log_pointers[Core::Log::LT_MAX])
+int ElementLog::FindNextEarliestLogType(unsigned int log_pointers[Log::LT_MAX])
 {
 	int log_channel = -1;
 	unsigned int index = UINT_MAX;
 
-	for (int i = 0; i < Core::Log::LT_MAX; i++)
+	for (int i = 0; i < Log::LT_MAX; i++)
 	{
 		if (log_types[i].visible)
 		{

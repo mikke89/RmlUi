@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSEVENTHANDLEROPTIONS_H
-#define RMLUIINVADERSEVENTHANDLEROPTIONS_H
+#ifndef RMLUI_INVADERS_EVENTHANDLEROPTIONS_H
+#define RMLUI_INVADERS_EVENTHANDLEROPTIONS_H
 
 #include "EventHandler.h"
 
@@ -41,7 +41,7 @@ public:
 	EventHandlerOptions();
 	virtual ~EventHandlerOptions();
 
-	void ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value) override;
+	void ProcessEvent(Rml::Event& event, const Rml::String& value) override;
 };
 
 #endif

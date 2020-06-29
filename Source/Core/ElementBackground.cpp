@@ -35,7 +35,6 @@
 
 
 namespace Rml {
-namespace Core {
 
 ElementBackground::ElementBackground(Element* _element) : geometry(_element)
 {
@@ -132,5 +131,4 @@ void ElementBackground::GenerateBackground(Vertex*& vertices, int*& indices, int
 	index_offset += 4;
 }
 
-}
-}
+} // namespace Rml

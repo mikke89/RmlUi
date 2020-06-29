@@ -26,15 +26,13 @@
  *
  */
 
-#ifndef RMLUICORETRANSFORMSTATE_H
-#define RMLUICORETRANSFORMSTATE_H
+#ifndef RMLUI_CORE_TRANSFORMSTATE_H
+#define RMLUI_CORE_TRANSFORMSTATE_H
 
 #include "Header.h"
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
-
 
 class RMLUICORE_API TransformState
 {
@@ -69,7 +67,5 @@ private:
 	mutable Matrix4f inverse_transform;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

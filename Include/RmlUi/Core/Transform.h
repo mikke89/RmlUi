@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICORETRANSFORM_H
-#define RMLUICORETRANSFORM_H
+#ifndef RMLUI_CORE_TRANSFORM_H
+#define RMLUI_CORE_TRANSFORM_H
 
 #include "Header.h"
 #include "TransformPrimitive.h"
 
 namespace Rml {
-namespace Core {
 
 class Property;
 
@@ -45,7 +44,7 @@ class Property;
 	projection/view matrix in order to render the associated element.
 
 	@author Markus Schöngart
-	@see Rml::Core::Variant
+	@see Rml::Variant
  */
 
 class RMLUICORE_API Transform
@@ -83,7 +82,5 @@ private:
 
 
 
-}
-}
-
+} // namespace Rml
 #endif

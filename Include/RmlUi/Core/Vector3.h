@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREVECTOR3_H
-#define RMLUICOREVECTOR3_H
+#ifndef RMLUI_CORE_VECTOR3_H
+#define RMLUI_CORE_VECTOR3_H
 
 #include "Debug.h"
 #include "Math.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Templated class for a generic three-component vector.
@@ -136,8 +135,7 @@ class Vector3
 		Type z;
 };
 
-}
-}
+} // namespace Rml
 
 #include "Vector3.inl"
 

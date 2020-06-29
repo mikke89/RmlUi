@@ -64,7 +64,6 @@
 #include <cmath>
 
 namespace Rml {
-namespace Core {
 
 /**
 	STL function object for sorting elements by z-type (ie, float-types before general types, etc).
@@ -1557,7 +1556,7 @@ RenderInterface* Element::GetRenderInterface()
 	if (Context* context = GetContext())
 		return context->GetRenderInterface();
 
-	return Rml::Core::GetRenderInterface();
+	return ::Rml::GetRenderInterface();
 }
 
 void Element::SetInstancer(ElementInstancer* _instancer)
@@ -2647,5 +2646,4 @@ void Element::UpdateTransformState()
 	}
 }
 
-}
-}
+} // namespace Rml

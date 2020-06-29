@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREELEMENTTEXTDEFAULT_H
-#define RMLUICOREELEMENTTEXTDEFAULT_H
+#ifndef RMLUI_CORE_ELEMENTTEXTDEFAULT_H
+#define RMLUI_CORE_ELEMENTTEXTDEFAULT_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	@author Peter Curry
@@ -134,7 +133,5 @@ private:
 	int font_handle_version;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

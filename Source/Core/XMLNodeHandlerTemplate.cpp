@@ -35,7 +35,6 @@
 #include "../../Include/RmlUi/Core/XMLParser.h"
 
 namespace Rml {
-namespace Core {
 
 XMLNodeHandlerTemplate::XMLNodeHandlerTemplate()
 {
@@ -72,5 +71,4 @@ bool XMLNodeHandlerTemplate::ElementData(XMLParser* parser, const String& data, 
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 
-}
-}
+} // namespace Rml

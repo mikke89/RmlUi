@@ -47,7 +47,6 @@
 
 
 namespace Rml {
-namespace Core {
 
 static constexpr float DOUBLE_CLICK_TIME = 0.5f;     // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f;  // [dp]
@@ -56,7 +55,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 {
 	instancer = nullptr;
 
-	// Initialise this to nullptr; this will be set in Rml::Core::CreateContext().
+	// Initialise this to nullptr; this will be set in Rml::CreateContext().
 	render_interface = nullptr;
 
 	root = Factory::InstanceElement(nullptr, "*", "#root", XMLAttributes());
@@ -1299,5 +1298,4 @@ void Context::Release()
 	}
 }
 
-}
-}
+} // namespace Rml

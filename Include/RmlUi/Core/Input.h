@@ -26,11 +26,10 @@
  *
  */
 
-#ifndef RMLUICOREINPUT_H
-#define RMLUICOREINPUT_H
+#ifndef RMLUI_CORE_INPUT_H
+#define RMLUI_CORE_INPUT_H
 
 namespace Rml {
-namespace Core {
 
 /*
 	Enumerants for sending input events into RmlUi.
@@ -270,7 +269,5 @@ namespace Input
 	};
 }
 
-}
-}
-
+} // namespace Rml
 #endif

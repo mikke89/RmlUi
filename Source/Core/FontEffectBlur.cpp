@@ -31,7 +31,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
-namespace Core {
 
 FontEffectBlur::FontEffectBlur()
 {
@@ -146,5 +145,4 @@ SharedPtr<FontEffect> FontEffectBlurInstancer::InstanceFontEffect(const String& 
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDEBUG_H
-#define RMLUICOREDEBUG_H
+#ifndef RMLUI_CORE_DEBUG_H
+#define RMLUI_CORE_DEBUG_H
 
 #include "Header.h"
 
@@ -47,7 +47,7 @@
 		#define RMLUI_BREAK
 	#endif
 #elif defined (RMLUI_PLATFORM_MACOSX)
-	#define RMLUI_BREAK {__builtin_trap();}
+	#define RMLUI_BREAK {__builtin_trap();} // namespace Rml
 #endif
 
 
@@ -62,13 +62,12 @@
 #define RMLUI_ASSERT_NONRECURSIVE
 #else
 namespace Rml {
-namespace Core {
 
 bool RMLUICORE_API Assert(const char* message, const char* file, int line);
 #define RMLUI_ASSERT(x) \
 if (!(x)) \
 { \
-	if (!Rml::Core::Assert("RMLUI_ASSERT("#x")", __FILE__, __LINE__ )) \
+	if (!(::Rml::Assert("RMLUI_ASSERT("#x")", __FILE__, __LINE__ ))) \
 	{ \
 		RMLUI_BREAK; \
 	} \
@@ -76,18 +75,18 @@ if (!(x)) \
 #define RMLUI_ASSERTMSG(x, m)	\
 if (!(x)) \
 { \
-	if (!Rml::Core::Assert(m, __FILE__, __LINE__ )) \
+	if (!(::Rml::Assert(m, __FILE__, __LINE__ ))) \
 	{ \
 		RMLUI_BREAK; \
 	} \
 }
 #define RMLUI_ERROR \
-if (!Rml::Core::Assert("RMLUI_ERROR", __FILE__, __LINE__)) \
+if (!(::Rml::Assert("RMLUI_ERROR", __FILE__, __LINE__))) \
 { \
 	RMLUI_BREAK; \
 }
 #define RMLUI_ERRORMSG(m) \
-if (!Rml::Core::Assert(m, __FILE__, __LINE__)) \
+if (!(::Rml::Assert(m, __FILE__, __LINE__))) \
 { \
 	RMLUI_BREAK; \
 }
@@ -108,8 +107,7 @@ struct RmlUiAssertNonrecursive {
 static bool rmlui_nonrecursive_entered = false; \
 RmlUiAssertNonrecursive rmlui_nonrecursive(rmlui_nonrecursive_entered)
 
-}
-}
+} // namespace Rml
 #endif
 
 

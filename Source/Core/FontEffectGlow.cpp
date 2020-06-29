@@ -31,7 +31,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
-namespace Core {
 
 FontEffectGlow::FontEffectGlow()
 {
@@ -184,5 +183,4 @@ SharedPtr<FontEffect> FontEffectGlowInstancer::InstanceFontEffect(const String& 
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

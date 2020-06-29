@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREELEMENTDEFINITION_H
-#define RMLUICOREELEMENTDEFINITION_H
+#ifndef RMLUI_CORE_ELEMENTDEFINITION_H
+#define RMLUI_CORE_ELEMENTDEFINITION_H
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/Traits.h"
 
 namespace Rml {
-namespace Core {
 
 class StyleSheetNode;
 class ElementDefinitionIterator;
@@ -65,7 +64,5 @@ private:
 	PropertyIdSet property_ids;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

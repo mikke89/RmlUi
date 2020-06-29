@@ -332,7 +332,7 @@ void doThrow(Args&&... args) {
 #else
 void doThrow(Args&&... ROBIN_HOOD_UNUSED(args) /*unused*/) {
     abort();
-}
+} // namespace Rml
 #endif
 
 template <typename E, typename T, typename... Args>

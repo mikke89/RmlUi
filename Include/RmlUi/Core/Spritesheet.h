@@ -32,7 +32,6 @@
 #include "Texture.h"
 
 namespace Rml {
-namespace Core {
 
 struct Spritesheet;
 
@@ -95,7 +94,5 @@ private:
 };
 
 
-}
-}
-
+} // namespace Rml
 #endif

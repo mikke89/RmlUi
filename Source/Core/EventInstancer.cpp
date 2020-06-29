@@ -29,11 +29,9 @@
 #include "../../Include/RmlUi/Core/EventInstancer.h"
 
 namespace Rml {
-namespace Core {
 
 EventInstancer::~EventInstancer()
 {
 }
 
-}
-}
+} // namespace Rml

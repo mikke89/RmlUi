@@ -32,8 +32,6 @@
 #include "EventSpecification.h"
 
 namespace Rml {
-namespace Core {
-
 
 DataController::DataController(Element* element) : attached_element(element->GetObserverPtr())
 {}
@@ -73,5 +71,4 @@ void DataControllers::OnElementRemove(Element* element)
 }
 
 
-}
-}
+} // namespace Rml

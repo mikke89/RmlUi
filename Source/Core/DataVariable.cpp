@@ -29,7 +29,6 @@
 #include "../../Include/RmlUi/Core/DataVariable.h"
 
 namespace Rml {
-namespace Core {
 
 bool DataVariable::Get(Variant& variant) {
     return definition->Get(ptr, variant);
@@ -86,5 +85,4 @@ DataVariable MakeLiteralIntVariable(int value)
     return DataVariable(&literal_int_definition, reinterpret_cast<void*>(static_cast<intptr_t>(value)));
 }
 
-}
-}
+} // namespace Rml

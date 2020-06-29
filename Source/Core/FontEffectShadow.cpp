@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
-namespace Core {
 
 FontEffectShadow::FontEffectShadow() : offset(0, 0)
 {
@@ -95,5 +94,4 @@ SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

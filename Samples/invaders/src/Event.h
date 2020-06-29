@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSEVENT_H
-#define RMLUIINVADERSEVENT_H
+#ifndef RMLUI_INVADERS_EVENT_H
+#define RMLUI_INVADERS_EVENT_H
 
 #include <RmlUi/Core/EventListener.h>
 
@@ -35,20 +35,20 @@
 	@author Peter Curry
  */
 
-class Event : public Rml::Core::EventListener
+class Event : public Rml::EventListener
 {
 public:
-	Event(const Rml::Core::String& value);
+	Event(const Rml::String& value);
 	virtual ~Event();
 
 	/// Sends the event value through to Invader's event processing system.
-	void ProcessEvent(Rml::Core::Event& event) override;
+	void ProcessEvent(Rml::Event& event) override;
 
 	/// Destroys the event.
-	void OnDetach(Rml::Core::Element* element) override;
+	void OnDetach(Rml::Element* element) override;
 
 private:
-	Rml::Core::String value;
+	Rml::String value;
 };
 
 #endif

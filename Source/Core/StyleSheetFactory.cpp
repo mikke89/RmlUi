@@ -44,7 +44,6 @@
 #include "../../Include/RmlUi/Core/Log.h"
 
 namespace Rml {
-namespace Core {
 
 static StyleSheetFactory* instance = nullptr;
 
@@ -259,5 +258,4 @@ SharedPtr<StyleSheet> StyleSheetFactory::LoadStyleSheet(const String& sheet)
 	return new_style_sheet;
 }
 
-}
-}
+} // namespace Rml

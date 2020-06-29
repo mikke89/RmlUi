@@ -33,7 +33,6 @@
 #include "TextureLayoutRow.h"
 
 namespace Rml {
-namespace Core {
 
 class TextureLayout;
 class TextureResource;
@@ -73,7 +72,5 @@ private:
 	RowList rows;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -32,8 +32,6 @@
 #include "../../Include/RmlUi/Core/Transform.h"
 
 namespace Rml {
-namespace Core {
-
 
 // Default constructor, initializes an identity transform
 Transform::Transform()
@@ -72,5 +70,4 @@ const Transforms::Primitive & Transform::GetPrimitive(int i) const noexcept
 	return primitives[i];
 }
 
-}
-}
+} // namespace Rml

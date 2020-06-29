@@ -38,8 +38,6 @@
 #include <stdint.h>
 
 namespace Rml {
-namespace Core {
-
 
 PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) : 
 	// Increment reserve numbers by one because the 'invalid' property occupies the first element
@@ -571,5 +569,4 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 	return true;
 }
 
-}
-}
+} // namespace Rml

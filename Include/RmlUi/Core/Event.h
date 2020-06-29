@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREEVENT_H
-#define RMLUICOREEVENT_H
+#ifndef RMLUI_CORE_EVENT_H
+#define RMLUI_CORE_EVENT_H
 
 #include "Header.h"
 #include "Dictionary.h"
@@ -35,7 +35,6 @@
 #include "ID.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class EventInstancer;
@@ -149,7 +148,5 @@ private:
 };
 
 
-}
-}
-
+} // namespace Rml
 #endif

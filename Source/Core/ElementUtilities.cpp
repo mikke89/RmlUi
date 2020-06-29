@@ -44,7 +44,6 @@
 #include <limits>
 
 namespace Rml {
-namespace Core {
 
 // Builds and sets the box for an element.
 static void SetBox(Element* element)
@@ -253,7 +252,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 // Sets the clipping region from an element and its ancestors.
 bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
 {	
-	Rml::Core::RenderInterface* render_interface = nullptr;
+	RenderInterface* render_interface = nullptr;
 	if (element)
 	{
 		render_interface = element->GetRenderInterface();
@@ -500,5 +499,4 @@ bool ElementUtilities::ApplyStructuralDataViews(Element* element, const String& 
 	return ApplyDataViewsControllersInternal(element, true, inner_rml);
 }
 
-}
-}
+} // namespace Rml

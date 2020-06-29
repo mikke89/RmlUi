@@ -26,15 +26,13 @@
  *
  */
 
-#ifndef RMLUICORETRAITS_H
-#define RMLUICORETRAITS_H
+#ifndef RMLUI_CORE_TRAITS_H
+#define RMLUI_CORE_TRAITS_H
 
 #include "Header.h"
 #include <type_traits>
 
 namespace Rml {
-namespace Core {
-
 
 class RMLUICORE_API NonCopyMoveable {
 public:
@@ -67,7 +65,7 @@ template<typename T>
 class RMLUICORE_API Releaser final : public ReleaserBase {
 public:
 	void operator()(T* target) const {
-		static_assert(std::is_base_of<Releasable, T>::value, "Rml::Core::Releaser can only operate with classes derived from Rml::Core::Releasable.");
+		static_assert(std::is_base_of<Releasable, T>::value, "Rml::Releaser can only operate with classes derived from ::Rml::Releasable.");
 		Release(static_cast<Releasable*>(target));
 	}
 };
@@ -98,8 +96,8 @@ public:
 	}
 };
 
-}
-}
+} // namespace Rml
+
 
 
 #ifdef RMLUI_USE_CUSTOM_RTTI
@@ -132,7 +130,7 @@ Derived rmlui_dynamic_cast(Base base_instance)
 }
 
 template<class T>
-const char* rmlui_type_name(const T& var)
+const char* rmlui_type_name(const T& /*var*/)
 {
 	return "(type name unavailable)";
 }

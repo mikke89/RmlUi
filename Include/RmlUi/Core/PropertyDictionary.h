@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTYDICTIONARY_H
-#define RMLUICOREPROPERTYDICTIONARY_H
+#ifndef RMLUI_CORE_PROPERTYDICTIONARY_H
+#define RMLUI_CORE_PROPERTYDICTIONARY_H
 
 #include "Header.h"
 #include "Property.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A dictionary to property names to values.
@@ -80,12 +79,10 @@ private:
 	// Sets a property on the dictionary and its specificity if there is no name conflict, or its
 	// specificity (given by the parameter, not read from the property itself) is at least equal to
 	// the specificity of the conflicting property.
-	void SetProperty(PropertyId id, const Rml::Core::Property& property, int specificity);
+	void SetProperty(PropertyId id, const Property& property, int specificity);
 
 	PropertyMap properties;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

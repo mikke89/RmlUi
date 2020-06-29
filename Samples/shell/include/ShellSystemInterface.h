@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUISHELLSYSTEMINTERFACE_H
-#define RMLUISHELLSYSTEMINTERFACE_H
+#ifndef RMLUI_SHELL_SHELLSYSTEMINTERFACE_H
+#define RMLUI_SHELL_SHELLSYSTEMINTERFACE_H
 
 #include <RmlUi/Core/SystemInterface.h>
 
@@ -36,7 +36,7 @@
 	@author Lloyd Weehuizen
  */
 
-class ShellSystemInterface : public Rml::Core::SystemInterface
+class ShellSystemInterface : public Rml::SystemInterface
 {
 public:
 	/// Get the number of seconds elapsed since the start of the application
@@ -45,15 +45,15 @@ public:
 
 	/// Set mouse cursor.
 	/// @param[in] cursor_name Cursor name to activate.
-	void SetMouseCursor(const Rml::Core::String& cursor_name) override;
+	void SetMouseCursor(const Rml::String& cursor_name) override;
 
 	/// Set clipboard text.
 	/// @param[in] text Text to apply to clipboard.
-	void SetClipboardText(const Rml::Core::String& text) override;
+	void SetClipboardText(const Rml::String& text) override;
 
 	/// Get clipboard text.
 	/// @param[out] text Retrieved text from clipboard.
-	void GetClipboardText(Rml::Core::String& text) override;
+	void GetClipboardText(Rml::String& text) override;
 };
 
 #endif

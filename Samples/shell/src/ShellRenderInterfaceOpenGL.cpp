@@ -41,16 +41,16 @@ ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(
 }
 
 // Called by RmlUi when it wants to render geometry that it does not wish to optimise.
-void ShellRenderInterfaceOpenGL::RenderGeometry(Rml::Core::Vertex* vertices, int RMLUI_UNUSED_PARAMETER(num_vertices), int* indices, int num_indices, const Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation)
+void ShellRenderInterfaceOpenGL::RenderGeometry(Rml::Vertex* vertices, int RMLUI_UNUSED_PARAMETER(num_vertices), int* indices, int num_indices, const Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
 	RMLUI_UNUSED(num_vertices);
 	
 	glPushMatrix();
 	glTranslatef(translation.x, translation.y, 0);
 
-	glVertexPointer(2, GL_FLOAT, sizeof(Rml::Core::Vertex), &vertices[0].position);
+	glVertexPointer(2, GL_FLOAT, sizeof(Rml::Vertex), &vertices[0].position);
 	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Rml::Core::Vertex), &vertices[0].colour);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Rml::Vertex), &vertices[0].colour);
 
 	if (!texture)
 	{
@@ -62,7 +62,7 @@ void ShellRenderInterfaceOpenGL::RenderGeometry(Rml::Core::Vertex* vertices, int
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, (GLuint) texture);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(Rml::Core::Vertex), &vertices[0].tex_coord);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(Rml::Vertex), &vertices[0].tex_coord);
 	}
 
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, indices);
@@ -71,7 +71,7 @@ void ShellRenderInterfaceOpenGL::RenderGeometry(Rml::Core::Vertex* vertices, int
 }
 
 // Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.		
-Rml::Core::CompiledGeometryHandle ShellRenderInterfaceOpenGL::CompileGeometry(Rml::Core::Vertex* RMLUI_UNUSED_PARAMETER(vertices), int RMLUI_UNUSED_PARAMETER(num_vertices), int* RMLUI_UNUSED_PARAMETER(indices), int RMLUI_UNUSED_PARAMETER(num_indices), const Rml::Core::TextureHandle RMLUI_UNUSED_PARAMETER(texture))
+Rml::CompiledGeometryHandle ShellRenderInterfaceOpenGL::CompileGeometry(Rml::Vertex* RMLUI_UNUSED_PARAMETER(vertices), int RMLUI_UNUSED_PARAMETER(num_vertices), int* RMLUI_UNUSED_PARAMETER(indices), int RMLUI_UNUSED_PARAMETER(num_indices), const Rml::TextureHandle RMLUI_UNUSED_PARAMETER(texture))
 {
 	RMLUI_UNUSED(vertices);
 	RMLUI_UNUSED(num_vertices);
@@ -79,18 +79,18 @@ Rml::Core::CompiledGeometryHandle ShellRenderInterfaceOpenGL::CompileGeometry(Rm
 	RMLUI_UNUSED(num_indices);
 	RMLUI_UNUSED(texture);
 
-	return (Rml::Core::CompiledGeometryHandle) nullptr;
+	return (Rml::CompiledGeometryHandle) nullptr;
 }
 
 // Called by RmlUi when it wants to render application-compiled geometry.		
-void ShellRenderInterfaceOpenGL::RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry), const Rml::Core::Vector2f& RMLUI_UNUSED_PARAMETER(translation))
+void ShellRenderInterfaceOpenGL::RenderCompiledGeometry(Rml::CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry), const Rml::Vector2f& RMLUI_UNUSED_PARAMETER(translation))
 {
 	RMLUI_UNUSED(geometry);
 	RMLUI_UNUSED(translation);
 }
 
 // Called by RmlUi when it wants to release application-compiled geometry.		
-void ShellRenderInterfaceOpenGL::ReleaseCompiledGeometry(Rml::Core::CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry))
+void ShellRenderInterfaceOpenGL::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle RMLUI_UNUSED_PARAMETER(geometry))
 {
 	RMLUI_UNUSED(geometry);
 }
@@ -175,10 +175,10 @@ struct TGAHeader
 #pragma pack()
 
 // Called by RmlUi when a texture is required by the library.		
-bool ShellRenderInterfaceOpenGL::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rml::Core::Vector2i& texture_dimensions, const Rml::Core::String& source)
+bool ShellRenderInterfaceOpenGL::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
-	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
-	Rml::Core::FileHandle file_handle = file_interface->Open(source);
+	Rml::FileInterface* file_interface = Rml::GetFileInterface();
+	Rml::FileHandle file_handle = file_interface->Open(source);
 	if (!file_handle)
 	{
 		return false;
@@ -207,14 +207,14 @@ bool ShellRenderInterfaceOpenGL::LoadTexture(Rml::Core::TextureHandle& texture_h
 	
 	if (header.dataType != 2)
 	{
-		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
 		return false;
 	}
 	
 	// Ensure we have at least 3 colors
 	if (color_mode < 3)
 	{
-		Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Only 24 and 32bit textures are supported");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported");
 		return false;
 	}
 	
@@ -253,7 +253,7 @@ bool ShellRenderInterfaceOpenGL::LoadTexture(Rml::Core::TextureHandle& texture_h
 }
 
 // Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
-bool ShellRenderInterfaceOpenGL::GenerateTexture(Rml::Core::TextureHandle& texture_handle, const Rml::Core::byte* source, const Rml::Core::Vector2i& source_dimensions)
+bool ShellRenderInterfaceOpenGL::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
 	GLuint texture_id = 0;
 	glGenTextures(1, &texture_id);
@@ -272,27 +272,27 @@ bool ShellRenderInterfaceOpenGL::GenerateTexture(Rml::Core::TextureHandle& textu
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	texture_handle = (Rml::Core::TextureHandle) texture_id;
+	texture_handle = (Rml::TextureHandle) texture_id;
 
 	return true;
 }
 
 // Called by RmlUi when a loaded texture is no longer required.		
-void ShellRenderInterfaceOpenGL::ReleaseTexture(Rml::Core::TextureHandle texture_handle)
+void ShellRenderInterfaceOpenGL::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
 	glDeleteTextures(1, (GLuint*) &texture_handle);
 }
 
 // Called by RmlUi when it wants to set the current transform matrix to a new matrix.
-void ShellRenderInterfaceOpenGL::SetTransform(const Rml::Core::Matrix4f* transform)
+void ShellRenderInterfaceOpenGL::SetTransform(const Rml::Matrix4f* transform)
 {
 	m_transform_enabled = (bool)transform;
 
 	if (transform)
 	{
-		if (std::is_same<Rml::Core::Matrix4f, Rml::Core::ColumnMajorMatrix4f>::value)
+		if (std::is_same<Rml::Matrix4f, Rml::ColumnMajorMatrix4f>::value)
 			glLoadMatrixf(transform->data());
-		else if (std::is_same<Rml::Core::Matrix4f, Rml::Core::RowMajorMatrix4f>::value)
+		else if (std::is_same<Rml::Matrix4f, Rml::RowMajorMatrix4f>::value)
 			glLoadMatrixf(transform->Transpose().data());
 	}
 	else

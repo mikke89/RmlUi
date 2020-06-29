@@ -39,7 +39,7 @@ class RmlUiSFMLRendererGeometryHandler
 public:
 	GLuint VertexID, IndexID;
 	int NumVertices;
-	Rml::Core::TextureHandle Texture;
+	Rml::TextureHandle Texture;
 
 	RmlUiSFMLRendererGeometryHandler() : VertexID(0), IndexID(0), NumVertices(0), Texture(0)
 	{
@@ -95,14 +95,14 @@ void RmlUiSFMLRenderer::Resize()
 }
 
 // Called by RmlUi when it wants to render geometry that it does not wish to optimise.
-void RmlUiSFMLRenderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation)
+void RmlUiSFMLRenderer::RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
 	MyWindow->pushGLStates();
 	glTranslatef(translation.x, translation.y, 0);
 
-	std::vector<Rml::Core::Vector2f> Positions(num_vertices);
-	std::vector<Rml::Core::Colourb> Colors(num_vertices);
-	std::vector<Rml::Core::Vector2f> TexCoords(num_vertices);
+	std::vector<Rml::Vector2f> Positions(num_vertices);
+	std::vector<Rml::Colourb> Colors(num_vertices);
+	std::vector<Rml::Vector2f> TexCoords(num_vertices);
 
 	for(int i = 0; i < num_vertices; i++)
 	{
@@ -146,7 +146,7 @@ void RmlUiSFMLRenderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vert
 }
 
 // Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.		
-Rml::Core::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::Core::TextureHandle texture)
+Rml::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::TextureHandle texture)
 {
 #ifdef ENABLE_GLEW
 	std::vector<RmlUiSFMLRendererVertex> Data(num_vertices);
@@ -175,14 +175,14 @@ Rml::Core::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Core::
 
 	Geometry->Texture = texture;
 
-	return (Rml::Core::CompiledGeometryHandle)Geometry;
+	return (Rml::CompiledGeometryHandle)Geometry;
 #else
-	return (Rml::Core::CompiledGeometryHandle)nullptr;
+	return (Rml::CompiledGeometryHandle)nullptr;
 #endif
 }
 
 // Called by RmlUi when it wants to render application-compiled geometry.		
-void RmlUiSFMLRenderer::RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry, const Rml::Core::Vector2f& translation)
+void RmlUiSFMLRenderer::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
 {
 #ifdef ENABLE_GLEW
 	RmlUiSFMLRendererGeometryHandler *RealGeometry = (RmlUiSFMLRendererGeometryHandler *)geometry;
@@ -230,7 +230,7 @@ void RmlUiSFMLRenderer::RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle
 }
 
 // Called by RmlUi when it wants to release application-compiled geometry.		
-void RmlUiSFMLRenderer::ReleaseCompiledGeometry(Rml::Core::CompiledGeometryHandle geometry)
+void RmlUiSFMLRenderer::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry)
 {
 #ifdef ENABLE_GLEW
 	delete (RmlUiSFMLRendererGeometryHandler *)geometry;
@@ -255,10 +255,10 @@ void RmlUiSFMLRenderer::SetScissorRegion(int x, int y, int width, int height)
 }
 
 // Called by RmlUi when a texture is required by the library.		
-bool RmlUiSFMLRenderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rml::Core::Vector2i& texture_dimensions, const Rml::Core::String& source)
+bool RmlUiSFMLRenderer::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
-	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
-	Rml::Core::FileHandle file_handle = file_interface->Open(source);
+	Rml::FileInterface* file_interface = Rml::GetFileInterface();
+	Rml::FileHandle file_handle = file_interface->Open(source);
 	if (!file_handle)
 		return false;
 
@@ -281,14 +281,14 @@ bool RmlUiSFMLRenderer::LoadTexture(Rml::Core::TextureHandle& texture_handle, Rm
 	};
 	delete[] buffer;
 
-	texture_handle = (Rml::Core::TextureHandle) texture;
-	texture_dimensions = Rml::Core::Vector2i(texture->getSize().x, texture->getSize().y);
+	texture_handle = (Rml::TextureHandle) texture;
+	texture_dimensions = Rml::Vector2i(texture->getSize().x, texture->getSize().y);
 
 	return true;
 }
 
 // Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
-bool RmlUiSFMLRenderer::GenerateTexture(Rml::Core::TextureHandle& texture_handle, const Rml::Core::byte* source, const Rml::Core::Vector2i& source_dimensions)
+bool RmlUiSFMLRenderer::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
 	sf::Texture *texture = new sf::Texture();
 
@@ -298,13 +298,13 @@ bool RmlUiSFMLRenderer::GenerateTexture(Rml::Core::TextureHandle& texture_handle
 	}
 
 	texture->update(source, source_dimensions.x, source_dimensions.y, 0, 0);
-	texture_handle = (Rml::Core::TextureHandle)texture;
+	texture_handle = (Rml::TextureHandle)texture;
 
 	return true;
 }
 
 // Called by RmlUi when a loaded texture is no longer required.		
-void RmlUiSFMLRenderer::ReleaseTexture(Rml::Core::TextureHandle texture_handle)
+void RmlUiSFMLRenderer::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
 	delete (sf::Texture *)texture_handle;
 }

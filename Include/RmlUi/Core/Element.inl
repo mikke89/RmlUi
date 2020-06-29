@@ -27,7 +27,6 @@
  */
 
 namespace Rml {
-namespace Core {
 
 // Returns the values of one of this element's properties.
 template < typename T >
@@ -60,5 +59,4 @@ T Element::GetAttribute(const String& name, const T& default_value) const
 	return Get(attributes, name, default_value);
 }
 
-}
-}
+} // namespace Rml

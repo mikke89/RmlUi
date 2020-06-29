@@ -35,13 +35,13 @@
 #include "GameDetails.h"
 
 // The game's element context (declared in main.cpp).
-extern Rml::Core::Context* context;
+extern Rml::Context* context;
 
 // The event handler for the current screen. This may be nullptr if the current screen has no specific functionality.
 static EventHandler* event_handler = nullptr;
 
 // The event handlers registered with the manager.
-typedef Rml::Core::SmallUnorderedMap< Rml::Core::String, EventHandler* > EventHandlerMap;
+typedef Rml::SmallUnorderedMap< Rml::String, EventHandler* > EventHandlerMap;
 EventHandlerMap event_handlers;
 
 EventManager::EventManager()
@@ -63,7 +63,7 @@ void EventManager::Shutdown()
 }
 
 // Registers a new event handler with the manager.
-void EventManager::RegisterEventHandler(const Rml::Core::String& handler_name, EventHandler* handler)
+void EventManager::RegisterEventHandler(const Rml::String& handler_name, EventHandler* handler)
 {
 	// Release any handler bound under the same name.
 	EventHandlerMap::iterator iterator = event_handlers.find(handler_name);
@@ -74,15 +74,15 @@ void EventManager::RegisterEventHandler(const Rml::Core::String& handler_name, E
 }
 
 // Processes an event coming through from RmlUi.
-void EventManager::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value)
+void EventManager::ProcessEvent(Rml::Event& event, const Rml::String& value)
 {
-	Rml::Core::StringList commands;
-	Rml::Core::StringUtilities::ExpandString(commands, value, ';');
+	Rml::StringList commands;
+	Rml::StringUtilities::ExpandString(commands, value, ';');
 	for (size_t i = 0; i < commands.size(); ++i)
 	{
 		// Check for a generic 'load' or 'exit' command.
-		Rml::Core::StringList values;
-		Rml::Core::StringUtilities::ExpandString(values, commands[i], ' ');
+		Rml::StringList values;
+		Rml::StringUtilities::ExpandString(values, commands[i], ' ');
 
 		if (values.empty())
 			return;
@@ -102,7 +102,7 @@ void EventManager::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String
 		}
 		else if (values[0] == "close")
 		{
-			Rml::Core::ElementDocument* target_document = nullptr;
+			Rml::ElementDocument* target_document = nullptr;
 
 			if (values.size() > 1)
 				target_document = context->GetDocument(values[1].c_str());
@@ -133,7 +133,7 @@ void EventManager::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String
 }
 
 // Loads a window and binds the event handler for it.
-Rml::Core::ElementDocument* EventManager::LoadWindow(const Rml::Core::String& window_name)
+Rml::ElementDocument* EventManager::LoadWindow(const Rml::String& window_name)
 {
 	// Set the event handler for the new screen, if one has been registered.
 	EventHandler* old_event_handler = event_handler;
@@ -144,8 +144,8 @@ Rml::Core::ElementDocument* EventManager::LoadWindow(const Rml::Core::String& wi
 		event_handler = nullptr;
 
 	// Attempt to load the referenced RML document.
-	Rml::Core::String document_path = Rml::Core::String("invaders/data/") + window_name + Rml::Core::String(".rml");
-	Rml::Core::ElementDocument* document = context->LoadDocument(document_path.c_str());
+	Rml::String document_path = Rml::String("invaders/data/") + window_name + Rml::String(".rml");
+	Rml::ElementDocument* document = context->LoadDocument(document_path.c_str());
 	if (document == nullptr)
 	{
 		event_handler = old_event_handler;
@@ -153,7 +153,7 @@ Rml::Core::ElementDocument* EventManager::LoadWindow(const Rml::Core::String& wi
 	}
 
 	// Set the element's title on the title; IDd 'title' in the RML.
-	Rml::Core::Element* title = document->GetElementById("title");
+	Rml::Element* title = document->GetElementById("title");
 	if (title != nullptr)
 		title->SetInnerRML(document->GetTitle());
 

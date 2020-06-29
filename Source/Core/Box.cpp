@@ -30,7 +30,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 // Initialises a zero-sized box.
 Box::Box() : content(0, 0), offset(0, 0)
@@ -127,5 +126,4 @@ bool Box::operator!=(const Box& rhs) const
 	return !(*this == rhs);
 }
 
-}
-}
+} // namespace Rml

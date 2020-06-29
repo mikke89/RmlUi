@@ -32,7 +32,7 @@
 #include <stdlib.h>
 
 namespace Rml {
-namespace Core {
+
 namespace Math {
 
 const float RMLUI_PI = 3.141592653f;
@@ -217,5 +217,4 @@ RMLUICORE_API bool RandomBool()
 }
 
 }
-}
-}
+} // namespace Rml

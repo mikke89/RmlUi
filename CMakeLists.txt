@@ -238,7 +238,7 @@ endif()
 
 #Lua
 if(BUILD_LUA_BINDINGS)
-	find_package(Lua)
+	find_package(Lua REQUIRED)
 	if(LUA_FOUND)
 		include_directories(${LUA_INCLUDE_DIR})
 		list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
@@ -262,7 +262,7 @@ if(NOT BUILD_FRAMEWORK)
 # Build libraries ==================
 #===================================
 
-set(LIBRARIES Core Controls Debugger)
+set(LIBRARIES Core Debugger)
 
 foreach(library ${LIBRARIES})
 	set(NAME Rml${library})
@@ -298,7 +298,6 @@ target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}
 
 if (PRECOMPILED_HEADERS_ENABLED)
 	target_precompile_headers(RmlCore PRIVATE ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h)
-	target_precompile_headers(RmlControls PRIVATE ${PROJECT_SOURCE_DIR}/Source/Controls/precompiled.h)
 endif()
 
 
@@ -311,7 +310,6 @@ else(NOT BUILD_FRAMEWORK)
 
 	set(MASTER_PUB_HDR_FILES
 		${MASTER_Core_PUB_HDR_FILES}
-		${MASTER_Controls_PUB_HDR_FILES}
 		${MASTER_Debugger_PUB_HDR_FILES}
 	)
 
@@ -320,10 +318,6 @@ else(NOT BUILD_FRAMEWORK)
 		${MASTER_Core_PUB_HDR_FILES}
 		${Core_PUB_HDR_FILES}
 		${Core_SRC_FILES}
-		${Controls_HDR_FILES}
-		${MASTER_Controls_PUB_HDR_FILES}
-		${Controls_PUB_HDR_FILES}
-		${Controls_SRC_FILES}
 		${Debugger_HDR_FILES}
 		${MASTER_Debugger_PUB_HDR_FILES}
 		${Debugger_PUB_HDR_FILES}
@@ -340,9 +334,6 @@ else(NOT BUILD_FRAMEWORK)
 	)
 	set_property(SOURCE ${Core_PUB_HDR_FILES}
 		PROPERTY MACOSX_PACKAGE_LOCATION Headers/Core
-	)
-	set_property(SOURCE ${Controls_PUB_HDR_FILES}
-		PROPERTY MACOSX_PACKAGE_LOCATION Headers/Controls
 	)
 	set_property(SOURCE ${Debugger_PUB_HDR_FILES}
 		PROPERTY MACOSX_PACKAGE_LOCATION Headers/Debugger
@@ -370,30 +361,26 @@ endif(NOT BUILD_FRAMEWORK)
 
 # Build Lua bindings
 if(BUILD_LUA_BINDINGS)
-	set(LIBRARIES Core Controls)
+	set(NAME RmlLua)
 
-	foreach(library ${LIBRARIES})
-		set(NAME Rml${library}Lua)
+	add_library(${NAME} ${Lua_SRC_FILES}
+		${Lua_HDR_FILES}
+		${Lua_PUB_HDR_FILES}
+	)
 
-		add_library(${NAME} ${Lua${library}_SRC_FILES}
-			${Lua${library}_HDR_FILES}
-			${Lua${library}_PUB_HDR_FILES}
-		)
+	set_target_properties(${NAME} PROPERTIES
+	   VERSION ${PROJECT_VERSION}
+	   SOVERSION ${PROJECT_VERSION_MAJOR}
+	)
 
-		set_target_properties(${NAME} PROPERTIES
-		   VERSION ${PROJECT_VERSION}
-		   SOVERSION ${PROJECT_VERSION_MAJOR}
-		)
-
-		install(TARGETS ${NAME}
-			EXPORT RmlUiTargets
-			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-		)
-		
-		set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
-	endforeach(library)
+	install(TARGETS ${NAME}
+		EXPORT RmlUiTargets
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	)
+	
+	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif()
 
 
@@ -423,7 +410,6 @@ endif()
 
 if(NOT BUILD_FRAMEWORK)
 target_link_libraries(RmlCore ${CORE_LINK_LIBS})
-target_link_libraries(RmlControls RmlCore)
 target_link_libraries(RmlDebugger RmlCore)
 else(NOT BUILD_FRAMEWORK)
 target_link_libraries(RmlUi ${CORE_LINK_LIBS})
@@ -431,11 +417,9 @@ endif(NOT BUILD_FRAMEWORK)
 
 if(BUILD_LUA_BINDINGS)
 	if(NOT BUILD_FRAMEWORK)
-		target_link_libraries(RmlCoreLua RmlCore ${LUA_BINDINGS_LINK_LIBS})
-		target_link_libraries(RmlControlsLua RmlControls RmlCoreLua ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlLua RmlCore ${LUA_BINDINGS_LINK_LIBS})
 	else(NOT BUILD_FRAMEWORK)
-		target_link_libraries(RmlCoreLua RmlUi ${LUA_BINDINGS_LINK_LIBS})
-		target_link_libraries(RmlControlsLua RmlUi RmlCoreLua ${LUA_BINDINGS_LINK_LIBS})
+		target_link_libraries(RmlLua RmlUi ${LUA_BINDINGS_LINK_LIBS})
 	endif(NOT BUILD_FRAMEWORK)
 endif()
 
@@ -473,14 +457,13 @@ if(BUILD_SAMPLES)
 	
 if(NOT BUILD_FRAMEWORK)
 	set(sample_LIBRARIES
-		shell 
-		RmlCore 
-		RmlControls
+		shell
+		RmlCore
 		RmlDebugger
 	)
 else(NOT BUILD_FRAMEWORK)
 	set(sample_LIBRARIES
-		shell 
+		shell
 		RmlUi
 	)
 endif(NOT BUILD_FRAMEWORK)
@@ -618,7 +601,7 @@ endif(NOT BUILD_FRAMEWORK)
 		BUNDLE DESTINATION ${SAMPLES_DIR})
 
 	if(BUILD_LUA_BINDINGS)
-		bl_sample(luainvaders RmlCoreLua RmlControlsLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+		bl_sample(luainvaders RmlLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
 		install(TARGETS luainvaders 
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders

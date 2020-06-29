@@ -32,7 +32,7 @@
 
 HighScores* HighScores::instance = nullptr;
 
-HighScores::HighScores() : Rml::Controls::DataSource("high_scores")
+HighScores::HighScores() : Rml::DataSource("high_scores")
 {
 	RMLUI_ASSERT(instance == nullptr);
 	instance = this;
@@ -64,7 +64,7 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns)
+void HighScores::GetRow(Rml::StringList& row, const Rml::String& table, int row_index, const Rml::StringList& columns)
 {
 	if (table == "scores")
 	{
@@ -76,27 +76,27 @@ void HighScores::GetRow(Rml::Core::StringList& row, const Rml::Core::String& tab
 			}
 			else if (columns[i] == "name_required")
 			{
-				row.push_back(Rml::Core::CreateString(4, "%d", scores[row_index].name_required));
+				row.push_back(Rml::CreateString(4, "%d", scores[row_index].name_required));
 			}
 			else if (columns[i] == "score")
 			{
-				row.push_back(Rml::Core::CreateString(32, "%d", scores[row_index].score));
+				row.push_back(Rml::CreateString(32, "%d", scores[row_index].score));
 			}
 			else if (columns[i] == "colour")
 			{
-				Rml::Core::String colour_string;
-				Rml::Core::TypeConverter< Rml::Core::Colourb, Rml::Core::String >::Convert(scores[row_index].colour, colour_string);
+				Rml::String colour_string;
+				Rml::TypeConverter< Rml::Colourb, Rml::String >::Convert(scores[row_index].colour, colour_string);
 				row.push_back(colour_string);
 			}
 			else if (columns[i] == "wave")
 			{
-				row.push_back(Rml::Core::CreateString(8, "%d", scores[row_index].wave));
+				row.push_back(Rml::CreateString(8, "%d", scores[row_index].wave));
 			}
 		}
 	}
 }
 
-int HighScores::GetNumRows(const Rml::Core::String& table)
+int HighScores::GetNumRows(const Rml::String& table)
 {
 	if (table == "scores")
 	{
@@ -124,18 +124,18 @@ int HighScores::GetHighScore()
 	return instance->scores[0].score;
 }
 
-void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score)
+void HighScores::SubmitScore(const Rml::String& name, const Rml::Colourb& colour, int wave, int score)
 {
 	instance->SubmitScore(name, colour, wave, score, false);
 }
 
-void HighScores::SubmitScore(const Rml::Core::Colourb& colour, int wave, int score)
+void HighScores::SubmitScore(const Rml::Colourb& colour, int wave, int score)
 {
 	instance->SubmitScore("", colour, wave, score, true);
 }
 
 // Sets the name of the last player to submit their score.
-void HighScores::SubmitName(const Rml::Core::String& name)
+void HighScores::SubmitName(const Rml::String& name)
 {
 	for (int i = 0; i < instance->GetNumRows("scores"); i++)
 	{
@@ -148,7 +148,7 @@ void HighScores::SubmitName(const Rml::Core::String& name)
 	}
 }
 
-void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score, bool name_required)
+void HighScores::SubmitScore(const Rml::String& name, const Rml::Colourb& colour, int wave, int score, bool name_required)
 {
 	for (int i = 0; i < NUM_SCORES; i++)
 	{
@@ -196,17 +196,17 @@ void HighScores::LoadScores()
 		char buffer[1024];
 		while (fgets(buffer, 1024, scores_file))
 		{
-			Rml::Core::StringList score_parts;
-			Rml::Core::StringUtilities::ExpandString(score_parts, Rml::Core::String(buffer), '\t');
+			Rml::StringList score_parts;
+			Rml::StringUtilities::ExpandString(score_parts, Rml::String(buffer), '\t');
 			if (score_parts.size() == 4)
 			{
-				Rml::Core::Colourb colour;
+				Rml::Colourb colour;
 				int wave;
 				int score;
 
-				if (Rml::Core::TypeConverter< Rml::Core::String , Rml::Core::Colourb >::Convert(score_parts[1], colour) &&
-					Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[2], wave) &&
-					Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[3], score))
+				if (Rml::TypeConverter< Rml::String , Rml::Colourb >::Convert(score_parts[1], colour) &&
+					Rml::TypeConverter< Rml::String, int >::Convert(score_parts[2], wave) &&
+					Rml::TypeConverter< Rml::String, int >::Convert(score_parts[3], score))
 				{
 					SubmitScore(score_parts[0], colour, wave, score);
 				}
@@ -225,10 +225,10 @@ void HighScores::SaveScores()
 	{
 		for (int i = 0; i < GetNumRows("scores"); i++)
 		{
-			Rml::Core::String colour_string;
-			Rml::Core::TypeConverter< Rml::Core::Colourb, Rml::Core::String >::Convert(scores[i].colour, colour_string);
+			Rml::String colour_string;
+			Rml::TypeConverter< Rml::Colourb, Rml::String >::Convert(scores[i].colour, colour_string);
 
-			Rml::Core::String score = Rml::Core::CreateString(1024, "%s\t%s\t%d\t%d\n", scores[i].name.c_str(), colour_string.c_str(), scores[i].wave, scores[i].score);
+			Rml::String score = Rml::CreateString(1024, "%s\t%s\t%d\t%d\n", scores[i].name.c_str(), colour_string.c_str(), scores[i].wave, scores[i].score);
 			fputs(score.c_str(), scores_file);
 		}
 

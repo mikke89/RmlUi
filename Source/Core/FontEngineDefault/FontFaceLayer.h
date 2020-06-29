@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREFONTFACELAYER_H
-#define RMLUICOREFONTFACELAYER_H
+#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFACELAYER_H
+#define RMLUI_CORE_FONTENGINEDEFAULT_FONTFACELAYER_H
 
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
@@ -36,7 +36,6 @@
 #include "../TextureLayout.h"
 
 namespace Rml {
-namespace Core {
 
 class FontEffect;
 class FontFaceHandleDefault;
@@ -143,7 +142,5 @@ private:
 	Colourb colour;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

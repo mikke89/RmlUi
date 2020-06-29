@@ -31,7 +31,6 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 
 namespace Rml {
-namespace Core {
 
 RMLUICORE_API double Clock::GetElapsedTime()
 {
@@ -42,5 +41,4 @@ RMLUICORE_API double Clock::GetElapsedTime()
 		return 0;
 }
 
-}
-}
+} // namespace Rml

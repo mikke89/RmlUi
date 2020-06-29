@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDATAVIEW_H
-#define RMLUICOREDATAVIEW_H
+#ifndef RMLUI_CORE_DATAVIEW_H
+#define RMLUI_CORE_DATAVIEW_H
 
 #include "Header.h"
 #include "Types.h"
@@ -36,7 +36,6 @@
 #include <unordered_map>
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class DataModel;
@@ -129,7 +128,5 @@ private:
 	NameViewMap name_view_map;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

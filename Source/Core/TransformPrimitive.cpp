@@ -31,7 +31,7 @@
 #include "../../Include/RmlUi/Core/TypeConverter.h"
 
 namespace Rml {
-namespace Core {
+
 namespace Transforms {
 
 static Vector3f Combine(const Vector3f& a, const Vector3f& b, float a_scale, float b_scale)
@@ -995,5 +995,4 @@ bool DecomposedMatrix4::Decompose(const Matrix4f & m)
 }
 
 }
-}
-}
+} // namespace Rml

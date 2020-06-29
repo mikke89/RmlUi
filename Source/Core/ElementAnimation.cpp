@@ -35,8 +35,6 @@
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 
 namespace Rml {
-namespace Core {
-
 
 static Colourf ColourToLinearSpace(Colourb c)
 {
@@ -52,10 +50,10 @@ static Colourf ColourToLinearSpace(Colourb c)
 static Colourb ColourFromLinearSpace(Colourf c)
 {
 	Colourb result;
-	result.red = (Rml::Core::byte)Math::Clamp(c.red*c.red*255.f, 0.0f, 255.f);
-	result.green = (Rml::Core::byte)Math::Clamp(c.green*c.green*255.f, 0.0f, 255.f);
-	result.blue = (Rml::Core::byte)Math::Clamp(c.blue*c.blue*255.f, 0.0f, 255.f);
-	result.alpha = (Rml::Core::byte)Math::Clamp(c.alpha*255.f, 0.0f, 255.f);
+	result.red = (byte)Math::Clamp(c.red*c.red*255.f, 0.0f, 255.f);
+	result.green = (byte)Math::Clamp(c.green*c.green*255.f, 0.0f, 255.f);
+	result.blue = (byte)Math::Clamp(c.blue*c.blue*255.f, 0.0f, 255.f);
+	result.alpha = (byte)Math::Clamp(c.alpha*255.f, 0.0f, 255.f);
 	return result;
 }
 
@@ -134,8 +132,6 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 
 	if (p0.unit == Property::TRANSFORM && p1.unit == Property::TRANSFORM)
 	{
-		using namespace Rml::Core::Transforms;
-
 		auto& t0 = p0.value.GetReference<TransformPtr>();
 		auto& t1 = p1.value.GetReference<TransformPtr>();
 
@@ -154,7 +150,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 
 		for (size_t i = 0; i < prim0.size(); i++)
 		{
-			Primitive p = prim0[i];
+			Transforms::Primitive p = prim0[i];
 			if (!p.InterpolateWith(prim1[i], alpha))
 			{
 				RMLUI_ERRORMSG("Transform primitives can not be interpolated. Were the transforms properly prepared for interpolation?");
@@ -543,5 +539,4 @@ Property ElementAnimation::UpdateAndGetProperty(double world_time, Element& elem
 }
 
 
-}
-}
+} // namespace Rml

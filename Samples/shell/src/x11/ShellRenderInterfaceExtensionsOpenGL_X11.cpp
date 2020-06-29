@@ -44,22 +44,22 @@ void ShellRenderInterfaceOpenGL::SetContext(void *context)
 void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 {
 	if(m_width != width || m_height != height) {
-		Rml::Core::Matrix4f projection, view;
+		Rml::Matrix4f projection, view;
 
 		m_width = width;
 		m_height = height;
 		
 		glViewport(0, 0, width, height);
-		projection = Rml::Core::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -10000, 10000);
+		projection = Rml::Matrix4f::ProjectOrtho(0, (float)width, (float)height, 0, -10000, 10000);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(projection.data());
-		view = Rml::Core::Matrix4f::Identity();
+		view = Rml::Matrix4f::Identity();
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(view.data());
 
 		if(m_rmlui_context != nullptr)
 		{
-			((Rml::Core::Context*)m_rmlui_context)->SetDimensions(Rml::Core::Vector2i(width, height));
+			((Rml::Context*)m_rmlui_context)->SetDimensions(Rml::Vector2i(width, height));
 		}
 	}
 }

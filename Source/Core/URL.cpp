@@ -32,7 +32,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 const char* DEFAULT_PROTOCOL = "file";
 
@@ -623,5 +622,4 @@ bool URL::IsUnreservedChar(const char in)
 	return false;
 }
 
-}
-}
+} // namespace Rml

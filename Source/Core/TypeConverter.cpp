@@ -32,7 +32,6 @@
 #include "../../Include/RmlUi/Core/Transform.h"
 
 namespace Rml {
-namespace Core {
 
 bool TypeConverter<TransformPtr, TransformPtr>::Convert(const TransformPtr& src, TransformPtr& dest)
 {
@@ -149,5 +148,4 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 
 
 
-}
-}
+} // namespace Rml

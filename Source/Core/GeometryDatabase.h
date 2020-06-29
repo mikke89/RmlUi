@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREGEOMETRYDATABASE_H
-#define RMLUICOREGEOMETRYDATABASE_H
+#ifndef RMLUI_CORE_GEOMETRYDATABASE_H
+#define RMLUI_CORE_GEOMETRYDATABASE_H
 
 #include <stdint.h>
 
 namespace Rml {
-namespace Core {
 
 class Geometry;
 using GeometryDatabaseHandle = uint32_t;
@@ -55,7 +54,5 @@ namespace GeometryDatabase {
 
 }
 
-}
-}
-
+} // namespace Rml
 #endif

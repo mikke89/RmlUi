@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREXMLPARSER_H
-#define RMLUICOREXMLPARSER_H
+#ifndef RMLUI_CORE_XMLPARSER_H
+#define RMLUI_CORE_XMLPARSER_H
 
 #include <stack>
 #include "Header.h"
 #include "BaseXMLParser.h"
 
 namespace Rml {
-namespace Core {
 
 class DocumentHeader;
 class Element;
@@ -114,7 +113,5 @@ private:
 	ParserStack stack;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

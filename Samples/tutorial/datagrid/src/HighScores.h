@@ -33,13 +33,13 @@ private:
 
 	static HighScores* instance;
 
-	void SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score);
+	void SubmitScore(const Rml::String& name, const Rml::Colourb& colour, int wave, int score);
 	void LoadScores();
 
 	struct Score
 	{
-		Rml::Core::String name;
-		Rml::Core::Colourb colour;
+		Rml::String name;
+		Rml::Colourb colour;
 		int score;
 		int wave;
 	};

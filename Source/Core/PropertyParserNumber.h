@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTYPARSERNUMBER_H
-#define RMLUICOREPROPERTYPARSERNUMBER_H
+#ifndef RMLUI_CORE_PROPERTYPARSERNUMBER_H
+#define RMLUI_CORE_PROPERTYPARSERNUMBER_H
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A property parser that parses a floating-point number with an optional unit.
@@ -61,7 +60,5 @@ private:
 	Property::Unit zero_unit;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

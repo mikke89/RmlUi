@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORESTYLESHEETNODESELECTORONLYOFTYPE_H
-#define RMLUICORESTYLESHEETNODESELECTORONLYOFTYPE_H
+#ifndef RMLUI_CORE_STYLESHEETNODESELECTORONLYOFTYPE_H
+#define RMLUI_CORE_STYLESHEETNODESELECTORONLYOFTYPE_H
 
 #include "StyleSheetNodeSelector.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A node selector for the only child of its type.
@@ -50,7 +49,5 @@ public:
 	bool IsApplicable(const Element* element, int a, int b) override;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

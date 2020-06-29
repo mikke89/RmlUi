@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREMATHTYPES_H
-#define RMLUICOREMATHTYPES_H
+#ifndef RMLUI_CORE_MATHTYPES_H
+#define RMLUI_CORE_MATHTYPES_H
 
 #include "Header.h"
 #include "Vector2.h"
@@ -35,7 +35,6 @@
 #include "Vector4.h"
 
 namespace Rml {
-namespace Core {
 
 // Define common Vector2 types.
 typedef Vector2< int > Vector2i;
@@ -55,7 +54,5 @@ typedef Vector4< float > Vector4f;
 RMLUICORE_API Vector4i operator*(int lhs, const Vector4i& rhs);
 RMLUICORE_API Vector4f operator*(float lhs, const Vector4f& rhs);
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -29,7 +29,6 @@
 #include "TextureLayoutRectangle.h"
 
 namespace Rml {
-namespace Core {
 
 TextureLayoutRectangle::TextureLayoutRectangle(int _id, const Vector2i& dimensions) : dimensions(dimensions), texture_position(0, 0)
 {
@@ -106,5 +105,4 @@ int TextureLayoutRectangle::GetTextureStride() const
 	return texture_stride;
 }
 
-}
-}
+} // namespace Rml

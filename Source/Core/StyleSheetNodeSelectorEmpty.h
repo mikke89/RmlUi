@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORESTYLESHEETNODESELECTOREMPTY_H
-#define RMLUICORESTYLESHEETNODESELECTOREMPTY_H
+#ifndef RMLUI_CORE_STYLESHEETNODESELECTOREMPTY_H
+#define RMLUI_CORE_STYLESHEETNODESELECTOREMPTY_H
 
 #include "StyleSheetNodeSelector.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A node selector for an empty node.
@@ -50,7 +49,5 @@ public:
 	bool IsApplicable(const Element* element, int a, int b) override;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

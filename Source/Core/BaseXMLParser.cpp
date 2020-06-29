@@ -33,7 +33,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 BaseXMLParser::BaseXMLParser()
 {}
@@ -561,5 +560,4 @@ bool BaseXMLParser::PeekString(const char* string, bool consume)
 	return success;
 }
 
-}
-}
+} // namespace Rml

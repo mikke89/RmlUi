@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREVECTOR4_H
-#define RMLUICOREVECTOR4_H
+#ifndef RMLUI_CORE_VECTOR4_H
+#define RMLUI_CORE_VECTOR4_H
 
 #include "Debug.h"
 #include "Math.h"
 #include "Vector3.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Templated class for a generic four-component vector.
@@ -141,8 +140,7 @@ class Vector4
 		Type w;
 };
 
-}
-}
+} // namespace Rml
 
 #include "Vector4.inl"
 

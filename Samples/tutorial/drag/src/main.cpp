@@ -16,7 +16,7 @@
 #include <ShellRenderInterfaceOpenGL.h>
 #include "Inventory.h"
 
-Rml::Core::Context* context = nullptr;
+Rml::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -65,19 +65,19 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
-	Rml::Core::SetSystemInterface(&system_interface);
+	Rml::SetSystemInterface(&system_interface);
 
-	Rml::Core::Initialise();
+	Rml::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
+	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 	if (context == nullptr)
 	{
-		Rml::Core::Shutdown();
+		Rml::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
@@ -89,8 +89,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Load and show the inventory document.
-	Inventory* inventory_1 = new Inventory("Inventory 1", Rml::Core::Vector2f(50, 200), context);
-	Inventory* inventory_2 = new Inventory("Inventory 2", Rml::Core::Vector2f(540, 240), context);
+	Inventory* inventory_1 = new Inventory("Inventory 1", Rml::Vector2f(50, 200), context);
+	Inventory* inventory_2 = new Inventory("Inventory 2", Rml::Vector2f(540, 240), context);
 
 	// Add items into the inventory.
 	inventory_1->AddItem("Mk III L.A.S.E.R.");
@@ -104,7 +104,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	delete inventory_2;
 
 	// Shutdown RmlUi.
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

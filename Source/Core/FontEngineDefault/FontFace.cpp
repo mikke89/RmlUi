@@ -32,7 +32,6 @@
 #include "FreeTypeInterface.h"
 
 namespace Rml {
-namespace Core {
 
 FontFace::FontFace(FontFaceHandleFreetype _face, Style::FontStyle _style, Style::FontWeight _weight, bool _release_stream)
 {
@@ -94,5 +93,4 @@ FontFaceHandleDefault* FontFace::GetHandle(int size) {
 }
 
 
-}
-}
+} // namespace Rml

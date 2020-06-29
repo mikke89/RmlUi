@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSEVENTHANDLERSTARTGAME_H
-#define RMLUIINVADERSEVENTHANDLERSTARTGAME_H
+#ifndef RMLUI_INVADERS_EVENTHANDLERSTARTGAME_H
+#define RMLUI_INVADERS_EVENTHANDLERSTARTGAME_H
 
 #include "EventHandler.h"
 
@@ -41,7 +41,7 @@ public:
 	EventHandlerStartGame();
 	virtual ~EventHandlerStartGame();
 
-	void ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value) override;
+	void ProcessEvent(Rml::Event& event, const Rml::String& value) override;
 };
 
 #endif

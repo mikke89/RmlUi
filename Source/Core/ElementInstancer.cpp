@@ -32,7 +32,6 @@
 #include "ElementTextDefault.h"
 
 namespace Rml {
-namespace Core {
 
 ElementInstancer::~ElementInstancer()
 {
@@ -78,5 +77,4 @@ void ElementInstancerTextDefault::ReleaseElement(Element* element)
 	pool_text_default.DestroyAndDeallocate(static_cast<ElementTextDefault*>(element));
 }
 
-}
-}
+} // namespace Rml
