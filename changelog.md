@@ -11,8 +11,8 @@
 
 RmlUi has been restructured to simplify its usage. This involves breaking changes but should benefit everyone using the library in the future. See discussion in [#58](https://github.com/mikke89/RmlUi/issues/58).
 
-- The old `Controls` plugin is now gone. But fear not! It has been merged into the `Core` project .
-- The old `Rml::Core` and `Rml::Controls` namespaces are now located directly in the `Rml` namespace.
+- The old `Controls` plugin is now gone. But fear not! It has been merged into the `Core` project.
+- The old `Rml::Core` and `Rml::Controls` namespaces have been removed, their contents are now located directly in the `Rml` namespace.
 - The old `Controls` public header files have been moved to `<RmlUi/Core/Elements/...>`.
 - The old `Controls` source files and private header files have been moved to `Source/Core/Elements/...`.
 - The `Debugger` plugin remains as before at the same location and same namespace `Rml::Debugger`.
@@ -25,18 +25,19 @@ The Lua plugins have been changed to reflect the above changes.
 - Separated the Lua interpreter functions from initialization and the Lua plugin.
 - Renamed macros in the Lua plugin, they now start with `RMLUI_`.
 
-Related changes.
+Related internal changes.
 
-- Refactored slider widgets to avoid duplicate names in Core and Controls.
+- Refactored the two `WidgetSlider` classes to avoid duplicate names in Core and Controls.
 - Renamed header guard macros.
 
 #### Upgrade guide
 
 - Remove the call to `Rml::Controls::Initialise()`, this is no longer needed.
-- Remove all inclusions of `<RmlUi/Controls.h>`. In some cases it may be necessary to replace it with `<RmlUi/Core.h>` or individual header files.
+- Replace all inclusions of `<RmlUi/Controls.h>` with `<RmlUi/Core.h>` unless it is already included, or include individual header files.
 - Rename all inclusions of `<RmlUi/Controls/...>` to `<RmlUi/Core/Elements/...>`.
 - Replace all occurrences of `Rml::Core` with `Rml`.
 - Replace all occurrences of `Rml::Controls` with `Rml`.
+- Look for forward declarations in `namespace Rml { namespace Core { ... } }` and `namespace Rml { namespace Controls { ... } }`. Replace with `namespace Rml { ... }`.
 - Remove the linkage to the `RmlControls` library.
 - For users of the Lua plugin:
   - Replace RmlUi's Lua header files with `<RmlUi/Lua.h>` or individual header files in `<RmlUi/Lua/...>`.
