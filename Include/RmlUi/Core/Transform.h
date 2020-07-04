@@ -30,18 +30,20 @@
 #define RMLUI_CORE_TRANSFORM_H
 
 #include "Header.h"
-#include "TransformPrimitive.h"
+#include "Types.h"
 
 namespace Rml {
 
 class Property;
+struct TransformPrimitive;
 
 /**
-	The Transform class holds the information parsed from an element's
-	`transform' property.  It is one of the primitive types that a Variant
-	can assume.  The method `ComputeFinalTransform()' computes the
-	transformation matrix that is to be applied to the current
-	projection/view matrix in order to render the associated element.
+	The Transform class holds the information parsed from an element's `transform' property.
+	
+	The class holds a list of transform primitives making up a complete transformation specification
+	of an element. Each transform instance is relative to the element's parent coordinate system.
+	During the Context::Render call the transforms of the current element and its ancestors will be
+	used to find the final transformation matrix for the global coordinate system.
 
 	@author Markus Schöngart
 	@see Rml::Variant
@@ -50,34 +52,34 @@ class Property;
 class RMLUICORE_API Transform
 {
 public:
-	using Primitives = std::vector< Transforms::Primitive >;
+	using PrimitiveList = std::vector< TransformPrimitive >;
 
 	/// Default constructor, initializes an identity transform
 	Transform();
 
 	/// Construct transform with a list of primitives
-	Transform(std::vector<Transforms::Primitive> primitives);
+	Transform(PrimitiveList primitives);
 
-	/// Helper function to create a Property with TransformPtr from list of primitives
-	static Property MakeProperty(std::vector<Transforms::Primitive> primitives);
+	/// Helper function to create a 'transform' Property from the given list of primitives
+	static Property MakeProperty(PrimitiveList primitives);
 
 	/// Remove all Primitives from this Transform
 	void ClearPrimitives();
 
 	/// Add a Primitive to this Transform
-	void AddPrimitive(const Transforms::Primitive& p);
+	void AddPrimitive(const TransformPrimitive& p);
 
 	/// Return the number of Primitives in this Transform
 	int GetNumPrimitives() const noexcept;
 
 	/// Return the i-th Primitive in this Transform
-	const Transforms::Primitive& GetPrimitive(int i) const noexcept;
+	const TransformPrimitive& GetPrimitive(int i) const noexcept;
 
-	Primitives& GetPrimitives() noexcept { return primitives; }
-	const Primitives& GetPrimitives() const noexcept { return primitives; }
+	PrimitiveList& GetPrimitives() noexcept { return primitives; }
+	const PrimitiveList& GetPrimitives() const noexcept { return primitives; }
 
 private:
-	Primitives primitives;
+	PrimitiveList primitives;
 };
 
 

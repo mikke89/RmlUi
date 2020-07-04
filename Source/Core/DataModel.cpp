@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core/DataController.h"
 #include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include <array>
 
 namespace Rml {
 

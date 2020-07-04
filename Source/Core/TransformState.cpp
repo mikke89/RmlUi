@@ -26,7 +26,7 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/TransformState.h"
+#include "TransformState.h"
 
 namespace Rml {
 

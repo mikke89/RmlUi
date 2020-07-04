@@ -99,6 +99,8 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutTexture.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/TransformUtilities.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Utilities.h
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetScroll.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.h
@@ -204,7 +206,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Traits.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Transform.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformPrimitive.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformState.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.inl
@@ -384,6 +385,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Transform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/TransformUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Tween.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TypeConverter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp

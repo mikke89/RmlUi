@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include <array>
 
 namespace Rml {
 

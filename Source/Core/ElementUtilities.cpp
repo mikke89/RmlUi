@@ -37,9 +37,9 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
-#include "../../Include/RmlUi/Core/TransformState.h"
 #include "ElementStyle.h"
 #include "LayoutEngine.h"
+#include "TransformState.h"
 #include <queue>
 #include <limits>
 

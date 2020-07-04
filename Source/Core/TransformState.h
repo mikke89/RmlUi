@@ -29,12 +29,12 @@
 #ifndef RMLUI_CORE_TRANSFORMSTATE_H
 #define RMLUI_CORE_TRANSFORMSTATE_H
 
-#include "Header.h"
-#include "Types.h"
+#include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
-class RMLUICORE_API TransformState
+class TransformState
 {
 public:
 

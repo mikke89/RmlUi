@@ -43,7 +43,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
-#include "../../Include/RmlUi/Core/TransformState.h"
 #include "Clock.h"
 #include "ComputeProperty.h"
 #include "ElementAnimation.h"
@@ -59,6 +58,8 @@
 #include "PropertiesIterator.h"
 #include "Pool.h"
 #include "StyleSheetParser.h"
+#include "TransformState.h"
+#include "TransformUtilities.h"
 #include "XMLParseTools.h"
 #include <algorithm>
 #include <cmath>
@@ -2565,14 +2566,10 @@ void Element::UpdateTransformState()
 			const int n = computed.transform->GetNumPrimitives();
 			for (int i = 0; i < n; ++i)
 			{
-				const Transforms::Primitive& primitive = computed.transform->GetPrimitive(i);
-
-				Matrix4f matrix;
-				if (primitive.ResolveTransform(matrix, *this))
-				{
-					transform *= matrix;
-					have_transform = true;
-				}
+				const TransformPrimitive& primitive = computed.transform->GetPrimitive(i);
+				Matrix4f matrix = TransformUtilities::ResolveTransform(primitive, *this);
+				transform *= matrix;
+				have_transform = true;
 			}
 
 			if(have_transform)

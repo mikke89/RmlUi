@@ -245,8 +245,6 @@ public:
 	/// Returns 'line-height' property value from element's computed values.
 	float GetLineHeight();
 
-	/// Returns this element's TransformState
-	const TransformState *GetTransformState() const noexcept;
 	/// Project a 2D point in pixel coordinates onto the element's plane.
 	/// @param[in-out] point The point to project in, and the resulting projected point out.
 	/// @return True on success, false if transformation matrix is singular.
@@ -544,6 +542,8 @@ public:
 	ElementDecoration* GetElementDecoration() const;
 	/// Returns the element's scrollbar functionality.
 	ElementScroll* GetElementScroll() const;
+	/// Returns the element's transform state.
+	const TransformState* GetTransformState() const noexcept;
 	/// Returns the data model of this element.
 	DataModel* GetDataModel() const;
 	//@}

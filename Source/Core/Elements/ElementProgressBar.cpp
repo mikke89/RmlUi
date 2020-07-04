@@ -36,6 +36,7 @@
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/URL.h"
 #include <algorithm>
+#include <array>
 
 namespace Rml {
 
