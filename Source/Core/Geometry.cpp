@@ -37,7 +37,6 @@
 
 
 namespace Rml {
-namespace Core {
 
 Geometry::Geometry(Element* host_element) : host_element(host_element)
 {
@@ -194,8 +193,7 @@ RenderInterface* Geometry::GetRenderInterface()
 	if (host_context)
 		return host_context->GetRenderInterface();
 	else
-		return Rml::Core::GetRenderInterface();
+		return ::Rml::GetRenderInterface();
 }
 
-}
-}
+} // namespace Rml

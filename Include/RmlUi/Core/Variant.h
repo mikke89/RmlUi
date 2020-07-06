@@ -35,7 +35,6 @@
 #include "Animation.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Variant is a container that can store a selection of basic types. The variant will store the
@@ -158,8 +157,7 @@ private:
 	alignas(TransitionList) char data[LOCAL_DATA_SIZE];
 };
 
-}
-}
+} // namespace Rml
 
 #include "Variant.inl"
 

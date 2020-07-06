@@ -37,7 +37,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 // Searchs a string for the specified tag
 // NOTE: tag *MUST* be in lowercase
@@ -188,5 +187,4 @@ const char* XMLParseTools::ParseDataBrackets(bool& inside_brackets, char c, char
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

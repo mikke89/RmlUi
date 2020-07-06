@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
-namespace Core {
 
 void DocumentHeader::MergeHeader(const DocumentHeader& header)
 {
@@ -60,11 +59,10 @@ void DocumentHeader::MergePaths(StringList& target, const StringList& source, co
 	for (size_t i = 0; i < source.size(); i++)
 	{
 		String joined_path;
-		Rml::Core::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(source_path, '|', ':'), StringUtilities::Replace(source[i], '|', ':'));
+		::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(source_path, '|', ':'), StringUtilities::Replace(source[i], '|', ':'));
 
 		target.push_back(StringUtilities::Replace(joined_path, ':', '|'));
 	}
 }
 
-}
-}
+} // namespace Rml

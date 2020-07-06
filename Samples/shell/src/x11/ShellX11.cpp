@@ -48,7 +48,7 @@
 static bool running = false;
 static int screen = -1;
 static timeval start_time;
-static Rml::Core::String clipboard_text;
+static Rml::String clipboard_text;
 
 static std::unique_ptr<ShellFileInterface> file_interface;
 
@@ -60,7 +60,7 @@ static Cursor cursor_cross = 0;
 static Cursor cursor_text = 0;
 static Cursor cursor_unavailable = 0;
 
-static bool isRegularFile(const Rml::Core::String& path)
+static bool isRegularFile(const Rml::String& path)
 {
 	struct stat sb;
 	return (stat(path.c_str(), &sb) == 0 && S_ISREG(sb.st_mode));
@@ -71,11 +71,11 @@ bool Shell::Initialise()
 	gettimeofday(&start_time, nullptr);
 	InputX11::Initialise();
 
-	Rml::Core::String root = FindSamplesRoot();
+	Rml::String root = FindSamplesRoot();
 	bool result = !root.empty();
 
 	file_interface = std::make_unique<ShellFileInterface>(root);
-	Rml::Core::SetFileInterface(file_interface.get());
+	Rml::SetFileInterface(file_interface.get());
 
 	return result;
 }
@@ -87,7 +87,7 @@ void Shell::Shutdown()
 	file_interface.reset();
 }
 
-Rml::Core::String Shell::FindSamplesRoot()
+Rml::String Shell::FindSamplesRoot()
 {
 	char executable_file_name[PATH_MAX];
 	ssize_t len = readlink("/proc/self/exe", executable_file_name, PATH_MAX);
@@ -98,7 +98,7 @@ Rml::Core::String Shell::FindSamplesRoot()
 		// readlink() does not append a null byte to buf.
 		executable_file_name[len] = 0;
 	}
-	Rml::Core::String executable_path = Rml::Core::String(executable_file_name);
+	Rml::String executable_path = Rml::String(executable_file_name);
 	executable_path = executable_path.substr(0, executable_path.rfind("/") + 1);
 	
 	// We assume we have found the correct path if we can find the lookup file from it.
@@ -111,8 +111,8 @@ Rml::Core::String Shell::FindSamplesRoot()
 
 	for (const char* relative_path : candidate_paths)
 	{
-		Rml::Core::String absolute_path = executable_path + relative_path;
-		Rml::Core::String absolute_lookup_file = absolute_path + lookup_file;
+		Rml::String absolute_path = executable_path + relative_path;
+		Rml::String absolute_lookup_file = absolute_path + lookup_file;
 
 		if (isRegularFile(absolute_lookup_file))
 		{
@@ -120,7 +120,7 @@ Rml::Core::String Shell::FindSamplesRoot()
 		}
 	}
 
-	return Rml::Core::String();
+	return Rml::String();
 }
 
 static Display* display = nullptr;
@@ -371,7 +371,7 @@ double Shell::GetElapsedTime()
 	return result;
 }
 
-void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
+void Shell::SetMouseCursor(const Rml::String& cursor_name)
 {
 	if (display && window)
 	{
@@ -398,13 +398,13 @@ void Shell::SetMouseCursor(const Rml::Core::String& cursor_name)
 	}
 }
 
-void Shell::SetClipboardText(const Rml::Core::String& text)
+void Shell::SetClipboardText(const Rml::String& text)
 {
 	// Todo: interface with system clipboard
 	clipboard_text = text;
 }
 
-void Shell::GetClipboardText(Rml::Core::String& text)
+void Shell::GetClipboardText(Rml::String& text)
 {
 	// Todo: interface with system clipboard
 	text = clipboard_text;

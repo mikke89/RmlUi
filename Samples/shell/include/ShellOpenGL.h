@@ -26,13 +26,13 @@
  *
  */
 
-#ifndef RMLUISHELLOPENGL_H
-#define RMLUISHELLOPENGL_H
+#ifndef RMLUI_SHELL_SHELLOPENGL_H
+#define RMLUI_SHELL_SHELLOPENGL_H
 
 #include <RmlUi/Core/Platform.h>
 
 #if defined RMLUI_PLATFORM_WIN32
-#include <win32/IncludeWindows.h>
+#include "win32/IncludeWindows.h"
 #include <gl/Gl.h>
 #include <gl/Glu.h>
 #elif defined RMLUI_PLATFORM_MACOSX

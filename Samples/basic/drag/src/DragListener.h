@@ -36,14 +36,14 @@
 	@author Pete
  */
 
-class DragListener : public Rml::Core::EventListener
+class DragListener : public Rml::EventListener
 {
 public:
 	/// Registers an elemenet as being a container of draggable elements.
-	static void RegisterDraggableContainer(Rml::Core::Element* element);
+	static void RegisterDraggableContainer(Rml::Element* element);
 
 protected:
-	void ProcessEvent(Rml::Core::Event& event) override;
+	void ProcessEvent(Rml::Event& event) override;
 };
 
 #endif

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUISHELL_H
-#define RMLUISHELL_H
+#ifndef RMLUI_SHELL_H
+#define RMLUI_SHELL_H
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Context.h>
@@ -48,7 +48,7 @@ public:
 	static void Shutdown();
 
 	/// Finds the Samples root directory.
-	static Rml::Core::String FindSamplesRoot();
+	static Rml::String FindSamplesRoot();
 	
 	/// Loads the default fonts from the given path.
 	static void LoadFonts(const char* directory);
@@ -77,20 +77,20 @@ public:
 	static double GetElapsedTime();
 
 	/// Set mouse cursor.
-	static void SetMouseCursor(const Rml::Core::String& cursor_name);
+	static void SetMouseCursor(const Rml::String& cursor_name);
 
 	/// Set clipboard text.
-	static void SetClipboardText(const Rml::Core::String& text);
+	static void SetClipboardText(const Rml::String& text);
 
 	/// Get clipboard text.
-	static void GetClipboardText(Rml::Core::String& text);
+	static void GetClipboardText(Rml::String& text);
 	
 	/// Sets the context to send window resized events to.
 	/// @param[in] context The context to send  events to.
-	static void SetContext(Rml::Core::Context* context);
+	static void SetContext(Rml::Context* context);
 
 private:
-	static Rml::Core::Context* context;
+	static Rml::Context* context;
 };
 
 #include "ShellSystemInterface.h"

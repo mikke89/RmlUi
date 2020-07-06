@@ -36,8 +36,6 @@
 #include <limits.h>
 
 namespace Rml {
-namespace Core {
-
 
 bool operator==(EventListenerEntry a, EventListenerEntry b) { return a.id == b.id && a.in_capture_phase == b.in_capture_phase && a.listener == b.listener; }
 bool operator!=(EventListenerEntry a, EventListenerEntry b) { return !(a == b); }
@@ -294,5 +292,4 @@ String EventDispatcher::ToString() const
 }
 
 
-}
-}
+} // namespace Rml

@@ -32,7 +32,6 @@
 #include <utility>
 
 namespace Rml {
-namespace Core {
 
 namespace TweenFunctions {
 
@@ -238,5 +237,4 @@ float Tween::in_out(float t) const
 		return 0.5f + out(2.0f * t - 1.0f) * 0.5f;
 }
 
-}
-}
+} // namespace Rml

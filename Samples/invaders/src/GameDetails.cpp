@@ -29,7 +29,7 @@
 #include "GameDetails.h"
 
 static GameDetails::Difficulty difficulty = GameDetails::EASY;
-static Rml::Core::Colourb colour = Rml::Core::Colourb(255, 0, 0);
+static Rml::Colourb colour = Rml::Colourb(255, 0, 0);
 static int score = -1;
 static int wave = 0;
 static bool paused = false;
@@ -59,13 +59,13 @@ GameDetails::Difficulty GameDetails::GetDifficulty()
 }
 
 // Sets the colour of the player's ship.
-void GameDetails::SetDefenderColour(const Rml::Core::Colourb& _colour)
+void GameDetails::SetDefenderColour(const Rml::Colourb& _colour)
 {
 	colour = _colour;
 }
 
 // Returns the player's ship colour.
-const Rml::Core::Colourb& GameDetails::GetDefenderColour()
+const Rml::Colourb& GameDetails::GetDefenderColour()
 {
 	return colour;
 }

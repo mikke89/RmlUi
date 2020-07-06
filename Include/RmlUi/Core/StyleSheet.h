@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICORESTYLESHEET_H
-#define RMLUICORESTYLESHEET_H
+#ifndef RMLUI_CORE_STYLESHEET_H
+#define RMLUI_CORE_STYLESHEET_H
 
 #include "Traits.h"
 #include "PropertyDictionary.h"
 #include "Spritesheet.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class ElementDefinition;
@@ -139,7 +138,5 @@ private:
 	mutable ElementDefinitionCache node_cache;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

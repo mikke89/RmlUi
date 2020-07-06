@@ -34,9 +34,6 @@
 #include "EventSpecification.h"
 
 namespace Rml {
-namespace Core {
-
-
 
 DataControllerValue::DataControllerValue(Element* element) : DataController(element)
 {}
@@ -156,5 +153,4 @@ void DataControllerEvent::Release()
 	delete this;
 }
 
-}
-}
+} // namespace Rml

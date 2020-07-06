@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDECORATORNINEPATCH_H
-#define RMLUICOREDECORATORNINEPATCH_H
+#ifndef RMLUI_CORE_DECORATORNINEPATCH_H
+#define RMLUI_CORE_DECORATORNINEPATCH_H
 
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
@@ -35,7 +35,6 @@
 #include "../../Include/RmlUi/Core/Spritesheet.h"
 
 namespace Rml {
-namespace Core {
 
 class DecoratorNinePatch : public Decorator
 {
@@ -71,7 +70,5 @@ private:
 
 };
 
-}
-}
-
+} // namespace Rml
 #endif

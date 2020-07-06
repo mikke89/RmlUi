@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSSHIELD_H
-#define RMLUIINVADERSSHIELD_H
+#ifndef RMLUI_INVADERS_SHIELD_H
+#define RMLUI_INVADERS_SHIELD_H
 
 #include <RmlUi/Core/Types.h>
 
@@ -56,10 +56,10 @@ public:
 
 	/// Set the shield's screen position
 	/// @param position Position in screen space
-	void SetPosition(const Rml::Core::Vector2f& position);
+	void SetPosition(const Rml::Vector2f& position);
 	/// Get the current shield position
 	/// @returns The shield's position in screen space
-	const Rml::Core::Vector2f& GetPosition() const;
+	const Rml::Vector2f& GetPosition() const;
 
 	/// Render the shield.
 	void Render();
@@ -68,7 +68,7 @@ public:
 	/// If a hit is detected, will degrade the shield.
 	/// @param position Position to do the hit check at
 	/// @returns If the shield was hit
-	bool CheckHit(const Rml::Core::Vector2f& position);
+	bool CheckHit(const Rml::Vector2f& position);
 
 protected:
 	void SustainDamage();
@@ -79,7 +79,7 @@ protected:
 	// The invader type we represent
 	ShieldType type;
 	// The current position in screen space of the shield
-	Rml::Core::Vector2f position;
+	Rml::Vector2f position;
 
 	// Our current state - starts at 4, degrades once per hit.
 	int health;

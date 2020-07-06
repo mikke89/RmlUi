@@ -30,7 +30,6 @@
 #include "FontFaceHandleDefault.h"
 
 namespace Rml {
-namespace Core {
 
 FontFaceLayer::FontFaceLayer(const SharedPtr<const FontEffect>& _effect) : colour(255, 255, 255)
 {
@@ -259,5 +258,4 @@ const Colourb& FontFaceLayer::GetColour() const
 	return colour;
 }
 
-}
-}
+} // namespace Rml

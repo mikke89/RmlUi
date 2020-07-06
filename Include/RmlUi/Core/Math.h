@@ -26,13 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREMATH_H
-#define RMLUICOREMATH_H
+#ifndef RMLUI_CORE_MATH_H
+#define RMLUI_CORE_MATH_H
 
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
+
 namespace Math {
 
 // The constant PI.
@@ -181,7 +181,5 @@ RMLUICORE_API int RandomInteger(int max_value);
 RMLUICORE_API bool RandomBool();
 
 }
-}
-}
-
+} // namespace Rml
 #endif

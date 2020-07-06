@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORETEMPLATECACHE_H
-#define RMLUICORETEMPLATECACHE_H
+#ifndef RMLUI_CORE_TEMPLATECACHE_H
+#define RMLUI_CORE_TEMPLATECACHE_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 class Template;
 
@@ -66,7 +65,5 @@ private:
 	Templates template_ids;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -26,22 +26,21 @@
  *
  */
 
-#ifndef RMLUICOREFILEINTERFACE_H
-#define RMLUICOREFILEINTERFACE_H
+#ifndef RMLUI_CORE_FILEINTERFACE_H
+#define RMLUI_CORE_FILEINTERFACE_H
 
 #include "Header.h"
 #include "Types.h"
 #include "Traits.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	The abstract base class for application-specific file I/O.
 
 	By default, RmlUi will use a file interface implementing the standard C file functions. If this is not sufficient,
 	or your application wants more control over file I/O, this class should be derived, instanced, and installed
-	through Core::SetFileInterface() before you initialise RmlUi.
+	through Rml::SetFileInterface() before you initialise RmlUi.
 
 	@author Peter Curry
  */
@@ -84,7 +83,5 @@ public:
 	virtual size_t Length(FileHandle file);
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORELAYOUTINLINEBOXTEXT_H
-#define RMLUICORELAYOUTINLINEBOXTEXT_H
+#ifndef RMLUI_CORE_LAYOUTINLINEBOXTEXT_H
+#define RMLUI_CORE_LAYOUTINLINEBOXTEXT_H
 
 #include "LayoutInlineBox.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	@author Peter Curry
@@ -92,7 +91,5 @@ private:
 	bool line_segmented;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

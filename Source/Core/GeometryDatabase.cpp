@@ -31,7 +31,7 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
+
 namespace GeometryDatabase {
 
 class Database {
@@ -180,5 +180,4 @@ public:
 #endif
 
 }
-}
-}
+} // namespace Rml

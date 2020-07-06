@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREIDNAMEMAP_H
-#define RMLUICOREIDNAMEMAP_H
+#ifndef RMLUI_CORE_IDNAMEMAP_H
+#define RMLUI_CORE_IDNAMEMAP_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 template <typename ID>
 class IdNameMap {
@@ -113,7 +112,5 @@ public:
 	ShorthandIdNameMap(size_t reserve_num_shorthands) : IdNameMap(reserve_num_shorthands) {}
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -30,7 +30,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 Variant::Variant() : type(NONE)
 {
@@ -505,5 +504,4 @@ bool Variant::operator==(const Variant & other) const
 	return false;
 }
 
-}
-}
+} // namespace Rml

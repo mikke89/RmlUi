@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 
 namespace Rml {
-namespace Core {
 
 ElementBorder::ElementBorder(Element* _element) : geometry(_element)
 {
@@ -159,5 +158,4 @@ void ElementBorder::GenerateBorder(Vertex*& vertices, int*& indices, int& index_
 	}
 }
 
-}
-}
+} // namespace Rml

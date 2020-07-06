@@ -35,7 +35,6 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 FontFaceHandleDefault::FontFaceHandleDefault()
 {
@@ -451,5 +450,4 @@ bool FontFaceHandleDefault::GenerateLayer(FontFaceLayer* layer)
 	return result;
 }
 
-}
-}
+} // namespace Rml

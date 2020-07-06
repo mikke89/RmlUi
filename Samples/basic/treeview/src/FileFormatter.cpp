@@ -29,7 +29,7 @@
 #include "FileFormatter.h"
 #include <cstdlib>
 
-FileFormatter::FileFormatter() : Rml::Controls::DataFormatter("file")
+FileFormatter::FileFormatter() : Rml::DataFormatter("file")
 {
 }
 
@@ -37,7 +37,7 @@ FileFormatter::~FileFormatter()
 {
 }
 
-void FileFormatter::FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data)
+void FileFormatter::FormatData(Rml::String& formatted_data, const Rml::StringList& raw_data)
 {
 	if (raw_data.size() == 3)
 	{

@@ -2,14 +2,14 @@
 #include <RmlUi/Core/Factory.h>
 
 // Constructs a new inventory and opens its window.
-Inventory::Inventory(const Rml::Core::String& title, const Rml::Core::Vector2f& position, Rml::Core::Context* context)
+Inventory::Inventory(const Rml::String& title, const Rml::Vector2f& position, Rml::Context* context)
 {
 	document = context->LoadDocument("tutorial/drag/data/inventory.rml");
 	if (document)
 	{
 		document->GetElementById("title")->SetInnerRML(title);
-		document->SetProperty(Rml::Core::PropertyId::Left, Rml::Core::Property(position.x, Rml::Core::Property::PX));
-		document->SetProperty(Rml::Core::PropertyId::Top, Rml::Core::Property(position.y, Rml::Core::Property::PX));
+		document->SetProperty(Rml::PropertyId::Left, Rml::Property(position.x, Rml::Property::PX));
+		document->SetProperty(Rml::PropertyId::Top, Rml::Property(position.y, Rml::Property::PX));
 		document->Show();
 	}
 }
@@ -22,17 +22,17 @@ Inventory::~Inventory()
 }
 
 // Adds a brand-new item into this inventory.
-void Inventory::AddItem(const Rml::Core::String& name)
+void Inventory::AddItem(const Rml::String& name)
 {
 	if (!document)
 		return;
 
-	Rml::Core::Element* content = document->GetElementById("content");
+	Rml::Element* content = document->GetElementById("content");
 	if (!content)
 		return;
 
 	// Create the new 'icon' element.
-	Rml::Core::ElementPtr icon = Rml::Core::Factory::InstanceElement(content, "icon", "icon", Rml::Core::XMLAttributes());
+	Rml::ElementPtr icon = Rml::Factory::InstanceElement(content, "icon", "icon", Rml::XMLAttributes());
 	icon->SetInnerRML(name);
 	content->AppendChild(std::move(icon));
 }

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREEVENTLISTENERINSTANCER_H
-#define RMLUICOREEVENTLISTENERINSTANCER_H
+#ifndef RMLUI_CORE_EVENTLISTENERINSTANCER_H
+#define RMLUI_CORE_EVENTLISTENERINSTANCER_H
 
 #include "Traits.h"
 #include "Types.h"
@@ -35,7 +35,6 @@
 #include "Element.h"
 
 namespace Rml {
-namespace Core {
 
 class EventListener;
 
@@ -57,7 +56,5 @@ public:
 	virtual EventListener* InstanceEventListener(const String& value, Element* element) = 0;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

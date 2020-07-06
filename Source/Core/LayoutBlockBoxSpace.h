@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICORELAYOUTBLOCKBOXSPACE_H
-#define RMLUICORELAYOUTBLOCKBOXSPACE_H
+#ifndef RMLUI_CORE_LAYOUTBLOCKBOXSPACE_H
+#define RMLUI_CORE_LAYOUTBLOCKBOXSPACE_H
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class LayoutBlockBox;
@@ -124,7 +123,5 @@ private:
 	Vector2f dimensions;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTYPARSERTRANSFORM_H
-#define RMLUICOREPROPERTYPARSERTRANSFORM_H
+#ifndef RMLUI_CORE_PROPERTYPARSERTRANSFORM_H
+#define RMLUI_CORE_PROPERTYPARSERTRANSFORM_H
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 #include "PropertyParserNumber.h"
 
 namespace Rml {
-namespace Core {
 
 namespace Transforms { struct NumericValue; }
 
@@ -70,7 +69,5 @@ private:
 	PropertyParserNumber number, length, angle;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

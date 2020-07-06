@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDECORATOR_H
-#define RMLUICOREDECORATOR_H
+#ifndef RMLUI_CORE_DECORATOR_H
+#define RMLUI_CORE_DECORATOR_H
 
 #include <vector>
 #include "Header.h"
@@ -35,7 +35,6 @@
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
 
 class DecoratorInstancer;
 class Element;
@@ -95,7 +94,5 @@ private:
 	std::vector< Texture > additional_textures;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

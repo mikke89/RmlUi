@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREBASEXMLPARSER_H
-#define RMLUICOREBASEXMLPARSER_H
+#ifndef RMLUI_CORE_BASEXMLPARSER_H
+#define RMLUI_CORE_BASEXMLPARSER_H
 
 #include "Header.h"
 #include "Types.h"
 #include "Dictionary.h"
 
 namespace Rml {
-namespace Core {
 
 class Stream;
 class URL;
@@ -136,7 +135,5 @@ class RMLUICORE_API BaseXMLParser
 		SmallUnorderedSet< String > attributes_for_inner_xml_data;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

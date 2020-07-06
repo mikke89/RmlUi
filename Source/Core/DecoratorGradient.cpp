@@ -44,7 +44,6 @@ stop-color: #00ff00;
 */
 
 namespace Rml {
-namespace Core {
 
 //=======================================================
 
@@ -139,5 +138,4 @@ SharedPtr<Decorator> DecoratorGradientInstancer::InstanceDecorator(const String 
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

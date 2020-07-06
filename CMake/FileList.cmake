@@ -26,7 +26,24 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementImage.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementImage.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTextSelection.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputType.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeButton.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeCheckbox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeRadio.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeRange.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeSubmit.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeText.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetDropDown.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetSlider.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInput.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputMultiLine.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLine.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLinePassword.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementTextDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.h
@@ -82,9 +99,10 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutTexture.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/TransformUtilities.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Utilities.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/WidgetScroll.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerHead.h
@@ -124,6 +142,23 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/DataFormatter.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/DataQuery.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/DataSource.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/DataSourceListener.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementDataGrid.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementDataGridCell.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementDataGridExpandButton.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementDataGridRow.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementForm.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControl.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlDataSelect.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlInput.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlSelect.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlTextArea.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementProgressBar.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementTabSet.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/SelectOption.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h
@@ -171,7 +206,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Traits.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Transform.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformPrimitive.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformState.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Tween.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.inl
@@ -231,8 +265,42 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDocument.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementImage.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/DataFormatter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/DataQuery.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/DataSource.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/DataSourceListener.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementDataGrid.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementDataGridCell.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementDataGridExpandButton.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementDataGridRow.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementForm.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControl.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControlDataSelect.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControlInput.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControlSelect.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControlTextArea.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementImage.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementProgressBar.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTabSet.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTextSelection.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputType.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeButton.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeCheckbox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeRadio.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeRange.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeSubmit.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeText.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/SelectOption.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetDropDown.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetSlider.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInput.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputMultiLine.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLine.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLinePassword.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementText.cpp
@@ -317,14 +385,14 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Transform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/TransformUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Tween.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TypeConverter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector3.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Vector4.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSlider.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/WidgetSliderScroll.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/WidgetScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandler.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerDefault.cpp
@@ -334,96 +402,11 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLParseTools.cpp
 )
 
-set(Controls_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementTextSelection.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputType.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeButton.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeCheckbox.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeRadio.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeRange.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeSubmit.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeText.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/precompiled.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetDropDown.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetSlider.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetSliderInput.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInput.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInputMultiLine.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInputSingleLine.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInputSingleLinePassword.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/XMLNodeHandlerDataGrid.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/XMLNodeHandlerTabSet.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/XMLNodeHandlerTextArea.h
-)
-
-set(MASTER_Controls_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls.h
-)
-
-set(Controls_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Controls.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataFormatter.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataQuery.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataSource.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/DataSourceListener.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGrid.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGridCell.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGridExpandButton.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementDataGridRow.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementForm.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControl.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlDataSelect.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlInput.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlSelect.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementFormControlTextArea.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementProgressBar.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/ElementTabSet.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/SelectOption.h
-)
-
-set(Controls_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Controls.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/DataFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/DataQuery.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/DataSource.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/DataSourceListener.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementDataGrid.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementDataGridCell.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementDataGridExpandButton.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementDataGridRow.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementForm.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControl.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlDataSelect.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlInput.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlSelect.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementFormControlTextArea.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementProgressBar.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementTabSet.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/ElementTextSelection.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputType.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeButton.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeCheckbox.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeRadio.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeRange.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeSubmit.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/InputTypeText.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/SelectOption.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetDropDown.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetSlider.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetSliderInput.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInput.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInputMultiLine.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInputSingleLine.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/WidgetTextInputSingleLinePassword.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/XMLNodeHandlerDataGrid.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/XMLNodeHandlerTabSet.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/XMLNodeHandlerTextArea.cpp
-)
-
 set(Debugger_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Debugger/BeaconSource.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/CommonSource.h
+    ${PROJECT_SOURCE_DIR}/Source/Debugger/DebuggerPlugin.h
+    ${PROJECT_SOURCE_DIR}/Source/Debugger/DebuggerSystemInterface.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementContextHook.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementInfo.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementLog.h
@@ -432,8 +415,6 @@ set(Debugger_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Debugger/InfoSource.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/LogSource.h
     ${PROJECT_SOURCE_DIR}/Source/Debugger/MenuSource.h
-    ${PROJECT_SOURCE_DIR}/Source/Debugger/Plugin.h
-    ${PROJECT_SOURCE_DIR}/Source/Debugger/SystemInterface.h
 )
 
 set(MASTER_Debugger_PUB_HDR_FILES
@@ -447,12 +428,12 @@ set(Debugger_PUB_HDR_FILES
 
 set(Debugger_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Debugger/Debugger.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Debugger/DebuggerPlugin.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Debugger/DebuggerSystemInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementContextHook.cpp
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementInfo.cpp
     ${PROJECT_SOURCE_DIR}/Source/Debugger/ElementLog.cpp
     ${PROJECT_SOURCE_DIR}/Source/Debugger/Geometry.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Debugger/Plugin.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Debugger/SystemInterface.cpp
 )
 
 if(NOT NO_FONT_INTERFACE_DEFAULT)
@@ -480,111 +461,101 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
     )
 endif()
 
-set(LuaCore_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourb.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourf.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Context.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ContextDocumentsProxy.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Document.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Element.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementAttributesProxy.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementChildNodesProxy.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementStyleProxy.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementText.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Event.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/EventParametersProxy.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/GlobalLuaFunctions.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Log.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocument.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocumentElementInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaElement.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaElementInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListener.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListenerInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/precompiled.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUi.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUiContextsProxy.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2f.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2i.h
+set(Lua_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Colourb.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Colourf.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Context.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ContextDocumentsProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Document.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Element.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementAttributesProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementChildNodesProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/As.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/DataFormatter.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/DataSource.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementDataGrid.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementDataGridRow.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementForm.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControl.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlDataSelect.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlInput.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlSelect.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlTextArea.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementTabSet.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/LuaDataFormatter.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/LuaDataSource.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/SelectOptionsProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementStyleProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementText.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Event.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/EventParametersProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/GlobalLuaFunctions.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Log.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocument.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocumentElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaElementInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaEventListener.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaEventListenerInstancer.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaPlugin.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/RmlUi.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/RmlUiContextsProxy.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2f.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2i.h
 )
 
-set(LuaCore_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/Interpreter.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/LuaType.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Lua/Utilities.h
+set(Lua_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Header.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/IncludeLua.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Interpreter.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Lua.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/LuaType.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Utilities.h
 )
 
-set(LuaCore_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourb.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Colourf.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Context.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ContextDocumentsProxy.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Document.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Element.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementAttributesProxy.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementChildNodesProxy.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementStyleProxy.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/ElementText.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Event.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/EventParametersProxy.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/GlobalLuaFunctions.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Interpreter.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Log.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocument.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaDocumentElementInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaElementInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListener.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/LuaEventListenerInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/precompiled.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUi.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/RmlUiContextsProxy.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Utilities.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2f.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Lua/Vector2i.cpp
-)
-
-set(LuaControls_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/As.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataFormatter.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataSource.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGrid.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGridRow.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementForm.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControl.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlDataSelect.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlInput.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlSelect.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlTextArea.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementTabSet.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataFormatter.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataSource.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/precompiled.h
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/SelectOptionsProxy.h
-)
-
-set(LuaControls_PUB_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Lua/Controls.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Controls/Lua/Header.h
-)
-
-set(LuaControls_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/Controls.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/DataSource.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGrid.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementDataGridRow.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementForm.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControl.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlDataSelect.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlInput.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlSelect.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementFormControlTextArea.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/ElementTabSet.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/LuaDataSource.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Controls/Lua/SelectOptionsProxy.cpp
+set(Lua_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Colourb.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Colourf.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Context.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ContextDocumentsProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Document.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Element.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementAttributesProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementChildNodesProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/DataFormatter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/DataSource.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementDataGrid.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementDataGridRow.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementForm.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControl.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlDataSelect.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlInput.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlSelect.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementFormControlTextArea.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/ElementTabSet.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/LuaDataFormatter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/LuaDataSource.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Elements/SelectOptionsProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementStyleProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/ElementText.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Event.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/EventParametersProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/GlobalLuaFunctions.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Interpreter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Log.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Lua.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocument.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocumentElementInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaElementInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaEventListener.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaEventListenerInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaPlugin.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaType.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/RmlUi.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/RmlUiContextsProxy.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Utilities.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2f.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2i.cpp
 )
 

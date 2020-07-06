@@ -29,7 +29,7 @@
 #include "Sprite.h"
 #include <ShellOpenGL.h>
 
-Sprite::Sprite(const Rml::Core::Vector2f& dimensions, const Rml::Core::Vector2f& top_left_texcoord, const Rml::Core::Vector2f& bottom_right_texcoord) : dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
+Sprite::Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord) : dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
 {
 }
 
@@ -37,7 +37,7 @@ Sprite::~Sprite()
 {
 }
 
-void Sprite::Render(const Rml::Core::Vector2f& position)
+void Sprite::Render(const Rml::Vector2f& position)
 {
 	glTexCoord2f(top_left_texcoord.x, top_left_texcoord.y);
 	glVertex2f(position.x, position.y);

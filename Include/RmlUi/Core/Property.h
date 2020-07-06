@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTY_H
-#define RMLUICOREPROPERTY_H
+#ifndef RMLUI_CORE_PROPERTY_H
+#define RMLUI_CORE_PROPERTY_H
 
 #include "Variant.h"
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
 
 class PropertyDefinition;
 
@@ -56,38 +55,38 @@ public:
 	{
 		UNKNOWN = 1 << 0,
 
-		KEYWORD = 1 << 1,			// generic keyword; fetch as < int >
+		KEYWORD = 1 << 1,           // generic keyword; fetch as < int >
 
-		STRING = 1 << 2,			// generic string; fetch as < String >
+		STRING = 1 << 2,            // generic string; fetch as < String >
 
 		// Absolute values.
-		NUMBER = 1 << 3,			// number unsuffixed; fetch as < float >
-		PX = 1 << 4,				// number suffixed by 'px'; fetch as < float >
-		DEG = 1 << 5,				// number suffixed by 'deg'; fetch as < float >
-		RAD = 1 << 6,				// number suffixed by 'rad'; fetch as < float >
-		COLOUR = 1 << 7,			// colour; fetch as < Colourb >
-		DP = 1 << 8,				// density-independent pixel; number suffixed by 'dp'; fetch as < float >
+		NUMBER = 1 << 3,            // number unsuffixed; fetch as < float >
+		PX = 1 << 4,                // number suffixed by 'px'; fetch as < float >
+		DEG = 1 << 5,               // number suffixed by 'deg'; fetch as < float >
+		RAD = 1 << 6,               // number suffixed by 'rad'; fetch as < float >
+		COLOUR = 1 << 7,            // colour; fetch as < Colourb >
+		DP = 1 << 8,                // density-independent pixel; number suffixed by 'dp'; fetch as < float >
 		ABSOLUTE_UNIT = NUMBER | PX | DP | DEG | RAD | COLOUR,
 
 		// Relative values.
-		EM = 1 << 9,				// number suffixed by 'em'; fetch as < float >
-		PERCENT = 1 << 10,			// number suffixed by '%'; fetch as < float >
-		REM = 1 << 11,				// number suffixed by 'rem'; fetch as < float >
+		EM = 1 << 9,                // number suffixed by 'em'; fetch as < float >
+		PERCENT = 1 << 10,          // number suffixed by '%'; fetch as < float >
+		REM = 1 << 11,              // number suffixed by 'rem'; fetch as < float >
 		RELATIVE_UNIT = EM | REM | PERCENT,
 
 		// Values based on pixels-per-inch.
-		INCH = 1 << 12,				// number suffixed by 'in'; fetch as < float >
-		CM = 1 << 13,				// number suffixed by 'cm'; fetch as < float >
-		MM = 1 << 14,				// number suffixed by 'mm'; fetch as < float >
-		PT = 1 << 15,				// number suffixed by 'pt'; fetch as < float >
-		PC = 1 << 16,				// number suffixed by 'pc'; fetch as < float >
+		INCH = 1 << 12,             // number suffixed by 'in'; fetch as < float >
+		CM = 1 << 13,               // number suffixed by 'cm'; fetch as < float >
+		MM = 1 << 14,               // number suffixed by 'mm'; fetch as < float >
+		PT = 1 << 15,               // number suffixed by 'pt'; fetch as < float >
+		PC = 1 << 16,               // number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
-		TRANSFORM = 1 << 17,			// transform; fetch as < TransformPtr >, may be empty
-		TRANSITION = 1 << 18,           // transition; fetch as < TransitionList >
-		ANIMATION = 1 << 19,            // animation; fetch as < AnimationList >
-		DECORATOR = 1 << 20,            // decorator; fetch as < DecoratorsPtr >
-		FONTEFFECT = 1 << 21,           // font-effect; fetch as < FontEffectsPtr >
+		TRANSFORM = 1 << 17,        // transform; fetch as < TransformPtr >, may be empty
+		TRANSITION = 1 << 18,       // transition; fetch as < TransitionList >
+		ANIMATION = 1 << 19,        // animation; fetch as < AnimationList >
+		DECORATOR = 1 << 20,        // decorator; fetch as < DecoratorsPtr >
+		FONTEFFECT = 1 << 21,       // font-effect; fetch as < FontEffectsPtr >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM,
 		LENGTH_PERCENT = LENGTH | PERCENT,
@@ -129,7 +128,5 @@ public:
 	SharedPtr<const PropertySource> source;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

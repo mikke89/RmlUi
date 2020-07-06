@@ -30,7 +30,6 @@
 #include "TextureLayout.h"
 
 namespace Rml {
-namespace Core {
 
 TextureLayoutRow::TextureLayoutRow()
 {
@@ -106,5 +105,4 @@ void TextureLayoutRow::Unplace()
 		rectangles[i]->Unplace();
 }
 
-}
-}
+} // namespace Rml

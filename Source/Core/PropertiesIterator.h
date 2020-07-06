@@ -25,16 +25,13 @@
  * THE SOFTWARE.
  *
  */
-#ifndef RMLUICOREPROPERTIESITERATOR_H
-#define RMLUICOREPROPERTIESITERATOR_H
+#ifndef RMLUI_CORE_PROPERTIESITERATOR_H
+#define RMLUI_CORE_PROPERTIESITERATOR_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 
 namespace Rml {
-namespace Core {
-
-
 
 // An iterator for local properties defined on an element.
 // Note: Modifying the underlying style invalidates the iterator.
@@ -108,7 +105,5 @@ private:
 };
 
 
-}
-}
-
+} // namespace Rml
 #endif

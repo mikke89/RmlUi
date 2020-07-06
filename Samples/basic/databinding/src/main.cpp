@@ -27,7 +27,6 @@
  */
 
 #include <RmlUi/Core.h>
-#include <RmlUi/Controls.h>
 #include <RmlUi/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
@@ -37,17 +36,17 @@
 
 namespace BasicExample {
 
-	Rml::Core::DataModelHandle model_handle;
+	Rml::DataModelHandle model_handle;
 
 	struct MyData {
-		Rml::Core::String title = "Simple data binding example";
-		Rml::Core::String animal = "dog";
+		Rml::String title = "Simple data binding example";
+		Rml::String animal = "dog";
 		bool show_text = true;
 	} my_data;
 
-	bool Initialize(Rml::Core::Context* context)
+	bool Initialize(Rml::Context* context)
 	{
-		Rml::Core::DataModelConstructor constructor = context->CreateDataModel("basics");
+		Rml::DataModelConstructor constructor = context->CreateDataModel("basics");
 		if (!constructor)
 			return false;
 
@@ -69,18 +68,18 @@ namespace BasicExample {
 
 namespace EventsExample {
 
-	Rml::Core::DataModelHandle model_handle;
+	Rml::DataModelHandle model_handle;
 
 	struct MyData {
-		Rml::Core::String hello_world = "Hello World!";
-		Rml::Core::String mouse_detector = "Mouse-move <em>Detector</em>.";
+		Rml::String hello_world = "Hello World!";
+		Rml::String mouse_detector = "Mouse-move <em>Detector</em>.";
 		int rating = 99;
 
 		std::vector<float> list = { 1, 2, 3, 4, 5 };
 
-		std::vector<Rml::Core::Vector2f> positions;
+		std::vector<Rml::Vector2f> positions;
 
-		void AddMousePos(Rml::Core::DataModelHandle model, Rml::Core::Event& ev, const Rml::Core::VariantList& /*arguments*/)
+		void AddMousePos(Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& /*arguments*/)
 		{
 			positions.emplace_back(ev.GetParameter("mouse_x", 0.f), ev.GetParameter("mouse_y", 0.f));
 			model.DirtyVariable("positions");
@@ -89,21 +88,21 @@ namespace EventsExample {
 	} my_data;
 
 
-	void ClearPositions(Rml::Core::DataModelHandle model, Rml::Core::Event& /*ev*/, const Rml::Core::VariantList& /*arguments*/)
+	void ClearPositions(Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& /*arguments*/)
 	{
 		my_data.positions.clear();
 		model.DirtyVariable("positions");
 	}
 
-	void HasGoodRating(Rml::Core::Variant& variant)
+	void HasGoodRating(Rml::Variant& variant)
 	{
 		variant = int(my_data.rating > 50);
 	}
 
 
-	bool Initialize(Rml::Core::Context* context)
+	bool Initialize(Rml::Context* context)
 	{
-		using namespace Rml::Core;
+		using namespace Rml;
 		DataModelConstructor constructor = context->CreateDataModel("events");
 		if (!constructor)
 			return false;
@@ -164,24 +163,24 @@ namespace EventsExample {
 
 namespace InvadersExample {
 
-	Rml::Core::DataModelHandle model_handle;
+	Rml::DataModelHandle model_handle;
 
 	struct Invader {
-		Rml::Core::String name;
-		Rml::Core::String sprite;
-		Rml::Core::Colourb color{ 255, 255, 255 };
+		Rml::String name;
+		Rml::String sprite;
+		Rml::Colourb color{ 255, 255, 255 };
 		std::vector<int> damage;
 		float danger_rating = 50;
 
-		void GetColor(Rml::Core::Variant& variant) {
-			variant = "rgba(" + Rml::Core::ToString(color) + ')';
+		void GetColor(Rml::Variant& variant) {
+			variant = "rgba(" + Rml::ToString(color) + ')';
 		}
-		void SetColor(const Rml::Core::Variant& variant) {
-			using namespace Rml::Core;
+		void SetColor(const Rml::Variant& variant) {
+			using namespace Rml;
 			String str = variant.Get<String>();
 			if (str.size() > 6)
 				str = str.substr(5, str.size() - 6);
-			color = Rml::Core::FromString<Colourb>(variant.Get<String>());
+			color = Rml::FromString<Colourb>(variant.Get<String>());
 		}
 	};
 
@@ -195,7 +194,7 @@ namespace InvadersExample {
 			Invader{"Angry invader", "icon-invader", {255, 40, 30}, {3, 6, 7}, 80}
 		};
 
-		void LaunchWeapons(Rml::Core::DataModelHandle model, Rml::Core::Event& /*ev*/, const Rml::Core::VariantList& /*arguments*/)
+		void LaunchWeapons(Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& /*arguments*/)
 		{
 			invaders.clear();
 			model.DirtyVariable("invaders");
@@ -203,9 +202,9 @@ namespace InvadersExample {
 
 	} invaders_data;
 
-	bool Initialize(Rml::Core::Context* context)
+	bool Initialize(Rml::Context* context)
 	{
-		Rml::Core::DataModelConstructor constructor = context->CreateDataModel("invaders");
+		Rml::DataModelConstructor constructor = context->CreateDataModel("invaders");
 		if (!constructor)
 			return false;
 
@@ -246,7 +245,7 @@ namespace InvadersExample {
 		const double t_next_spawn = invaders_data.time_last_invader_spawn + 60.0 / double(invaders_data.incoming_invaders_rate);
 		if (t >= t_next_spawn)
 		{
-			using namespace Rml::Core;
+			using namespace Rml;
 			const int num_items = 4;
 			static std::array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
 			static std::array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
@@ -284,12 +283,12 @@ namespace InvadersExample {
 
 
 
-class DemoWindow : public Rml::Core::EventListener
+class DemoWindow : public Rml::EventListener
 {
 public:
-	DemoWindow(const Rml::Core::String &title, const Rml::Core::Vector2f &position, Rml::Core::Context *context)
+	DemoWindow(const Rml::String &title, const Rml::Vector2f &position, Rml::Context *context)
 	{
-		using namespace Rml::Core;
+		using namespace Rml;
 		document = context->LoadDocument("basic/databinding/data/databinding.rml");
 		if (document)
 		{
@@ -310,21 +309,19 @@ public:
 		}
 	}
 
-	void ProcessEvent(Rml::Core::Event& event) override
+	void ProcessEvent(Rml::Event& event) override
 	{
-		using namespace Rml::Core;
-
 		switch (event.GetId())
 		{
-		case EventId::Keydown:
+		case Rml::EventId::Keydown:
 		{
-			Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
-			if (key_identifier == Rml::Core::Input::KI_ESCAPE)
+			if (key_identifier == Rml::Input::KI_ESCAPE)
 			{
 				Shell::RequestExit();
 			}
-			else if (key_identifier == Rml::Core::Input::KI_F8)
+			else if (key_identifier == Rml::Input::KI_F8)
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 			}
@@ -336,23 +333,23 @@ public:
 		}
 	}
 
-	Rml::Core::ElementDocument * GetDocument() {
+	Rml::ElementDocument * GetDocument() {
 		return document;
 	}
 
 
 private:
-	Rml::Core::ElementDocument *document = nullptr;
+	Rml::ElementDocument *document = nullptr;
 };
 
 
 
-Rml::Core::Context* context = nullptr;
+Rml::Context* context = nullptr;
 ShellRenderInterfaceExtensions *shell_renderer;
 
 void GameLoop()
 {
-	const double t = Rml::Core::GetSystemInterface()->GetElapsedTime();
+	const double t = Rml::GetSystemInterface()->GetElapsedTime();
 	
 	BasicExample::Update();
 	EventsExample::Update();
@@ -399,16 +396,16 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(width, height);
 
 	ShellSystemInterface system_interface;
-	Rml::Core::SetSystemInterface(&system_interface);
+	Rml::SetSystemInterface(&system_interface);
 
-	Rml::Core::Initialise();
+	Rml::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(width, height));
+	context = Rml::CreateContext("main", Rml::Vector2i(width, height));
 
 	if (!context
 		|| !BasicExample::Initialize(context)
@@ -416,28 +413,27 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 		|| !InvadersExample::Initialize(context)
 		)
 	{
-		Rml::Core::Shutdown();
+		Rml::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	Rml::Controls::Initialise();
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 	
 	Shell::LoadFonts("assets/");
 
-	auto demo_window = std::make_unique<DemoWindow>("Data binding", Rml::Core::Vector2f(150, 50), context);
-	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keydown, demo_window.get());
-	demo_window->GetDocument()->AddEventListener(Rml::Core::EventId::Keyup, demo_window.get());
+	auto demo_window = std::make_unique<DemoWindow>("Data binding", Rml::Vector2f(150, 50), context);
+	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keydown, demo_window.get());
+	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keyup, demo_window.get());
 
 	Shell::EventLoop(GameLoop);
 
 	demo_window->Shutdown();
 
 	// Shutdown RmlUi.
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

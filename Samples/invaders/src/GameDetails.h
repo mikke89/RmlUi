@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSGAMEDETAILS_H
-#define RMLUIINVADERSGAMEDETAILS_H
+#ifndef RMLUI_INVADERS_GAMEDETAILS_H
+#define RMLUI_INVADERS_GAMEDETAILS_H
 
 #include <RmlUi/Core/Types.h>
 
@@ -49,10 +49,10 @@ public:
 
 	/// Sets the colour of the player's ship.
 	/// @param[in] colour The new ship colour.
-	static void SetDefenderColour(const Rml::Core::Colourb& colour);
+	static void SetDefenderColour(const Rml::Colourb& colour);
 	/// Returns the player's ship colour.
 	/// @return The colour of the player's ship.
-	static const Rml::Core::Colourb& GetDefenderColour();
+	static const Rml::Colourb& GetDefenderColour();
 
 	/// Sets the score the player achieved in the last game.
 	/// @param[in] score The player's score.

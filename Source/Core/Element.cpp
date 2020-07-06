@@ -43,7 +43,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
-#include "../../Include/RmlUi/Core/TransformState.h"
 #include "Clock.h"
 #include "ComputeProperty.h"
 #include "ElementAnimation.h"
@@ -59,12 +58,13 @@
 #include "PropertiesIterator.h"
 #include "Pool.h"
 #include "StyleSheetParser.h"
+#include "TransformState.h"
+#include "TransformUtilities.h"
 #include "XMLParseTools.h"
 #include <algorithm>
 #include <cmath>
 
 namespace Rml {
-namespace Core {
 
 /**
 	STL function object for sorting elements by z-type (ie, float-types before general types, etc).
@@ -1557,7 +1557,7 @@ RenderInterface* Element::GetRenderInterface()
 	if (Context* context = GetContext())
 		return context->GetRenderInterface();
 
-	return Rml::Core::GetRenderInterface();
+	return ::Rml::GetRenderInterface();
 }
 
 void Element::SetInstancer(ElementInstancer* _instancer)
@@ -2566,14 +2566,10 @@ void Element::UpdateTransformState()
 			const int n = computed.transform->GetNumPrimitives();
 			for (int i = 0; i < n; ++i)
 			{
-				const Transforms::Primitive& primitive = computed.transform->GetPrimitive(i);
-
-				Matrix4f matrix;
-				if (primitive.ResolveTransform(matrix, *this))
-				{
-					transform *= matrix;
-					have_transform = true;
-				}
+				const TransformPrimitive& primitive = computed.transform->GetPrimitive(i);
+				Matrix4f matrix = TransformUtilities::ResolveTransform(primitive, *this);
+				transform *= matrix;
+				have_transform = true;
 			}
 
 			if(have_transform)
@@ -2647,5 +2643,4 @@ void Element::UpdateTransformState()
 	}
 }
 
-}
-}
+} // namespace Rml

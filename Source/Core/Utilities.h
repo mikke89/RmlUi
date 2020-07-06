@@ -26,11 +26,11 @@
  *
  */
 
-#ifndef RMLUICOREUTILITIES_H
-#define RMLUICOREUTILITIES_H
+#ifndef RMLUI_CORE_UTILITIES_H
+#define RMLUI_CORE_UTILITIES_H
 
 namespace Rml {
-namespace Core {
+
 namespace Utilities {
 
 template <class T>
@@ -41,7 +41,5 @@ inline void HashCombine(std::size_t& seed, const T& v)
 }
 
 }
-}
-}
-
+} // namespace Rml
 #endif

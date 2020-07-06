@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
-namespace Core {
 
 FontEffectOutline::FontEffectOutline()
 {
@@ -128,5 +127,4 @@ SharedPtr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const Strin
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

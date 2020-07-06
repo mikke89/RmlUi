@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
-namespace Core {
 
 Property::Property() : unit(UNKNOWN), specificity(-1)
 {
@@ -48,5 +47,4 @@ String Property::ToString() const
 	return string;
 }
 
-}
-}
+} // namespace Rml

@@ -30,7 +30,6 @@
 #include "DecoratorTiledHorizontal.h"
 
 namespace Rml {
-namespace Core {
 
 DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer() : DecoratorTiledInstancer(3)
 {
@@ -64,5 +63,4 @@ SharedPtr<Decorator> DecoratorTiledHorizontalInstancer::InstanceDecorator(const 
 }
 
 
-}
-}
+} // namespace Rml

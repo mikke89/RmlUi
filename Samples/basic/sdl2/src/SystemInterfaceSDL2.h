@@ -33,14 +33,14 @@
 
 #include <SDL.h>
 
-class RmlUiSDL2SystemInterface : public Rml::Core::SystemInterface
+class RmlUiSDL2SystemInterface : public Rml::SystemInterface
 {
 public:
-    Rml::Core::Input::KeyIdentifier TranslateKey(SDL_Keycode sdlkey);
+    Rml::Input::KeyIdentifier TranslateKey(SDL_Keycode sdlkey);
     int TranslateMouseButton(Uint8 button);
 	int GetKeyModifiers();
 	
 	double GetElapsedTime() override;
-    bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message) override;
+    bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 };
 #endif

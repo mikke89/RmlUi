@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDATATYPEREGISTER_H
-#define RMLUICOREDATATYPEREGISTER_H
+#ifndef RMLUI_CORE_DATATYPEREGISTER_H
+#define RMLUI_CORE_DATATYPEREGISTER_H
 
 #include "Header.h"
 #include "Types.h"
@@ -38,8 +38,6 @@
 
 
 namespace Rml {
-namespace Core {
-
 
 template<typename T>
 struct is_valid_data_scalar {
@@ -202,7 +200,5 @@ inline StructHandle<Object>& StructHandle<Object>::RegisterMemberFunc(const Stri
 	return *this;
 }
 
-}
-}
-
+} // namespace Rml
 #endif

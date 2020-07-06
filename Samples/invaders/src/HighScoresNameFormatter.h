@@ -26,22 +26,22 @@
  *
  */
 
-#ifndef RMLUIINVADERSHIGHSCORESNAMEFORMATTER_H
-#define RMLUIINVADERSHIGHSCORESNAMEFORMATTER_H
+#ifndef RMLUI_INVADERS_HIGHSCORESNAMEFORMATTER_H
+#define RMLUI_INVADERS_HIGHSCORESNAMEFORMATTER_H
 
-#include <RmlUi/Controls/DataFormatter.h>
+#include <RmlUi/Core/Elements/DataFormatter.h>
 
 /**
 	@author Robert Curry
  */
 
-class HighScoresNameFormatter : public Rml::Controls::DataFormatter
+class HighScoresNameFormatter : public Rml::DataFormatter
 {
 public:
 	HighScoresNameFormatter();
 	~HighScoresNameFormatter();
 
-	void FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data);
+	void FormatData(Rml::String& formatted_data, const Rml::StringList& raw_data);
 };
 
 #endif

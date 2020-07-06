@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICORETYPECONVERTER_H
-#define RMLUICORETYPECONVERTER_H
+#ifndef RMLUI_CORE_TYPECONVERTER_H
+#define RMLUI_CORE_TYPECONVERTER_H
 
 #include "Platform.h"
 #include "Types.h"
@@ -38,7 +38,6 @@
 #include <cinttypes>
 
 namespace Rml {
-namespace Core {
 
 /**
 	Templatised TypeConverters with Template Specialisation.
@@ -50,24 +49,24 @@ namespace Core {
  */
 
 template <typename SourceType, typename DestType>
-class TypeConverter 
+class TypeConverter
 {
-public:	
+public:
 	static bool Convert(const SourceType& src, DestType& dest);
 };
 
 template<typename T>
 inline String ToString(const T& value, String default_value = String()) {
 	String result = default_value;
-    TypeConverter<T, String>::Convert(value, result);
+	TypeConverter<T, String>::Convert(value, result);
 	return result;
 }
 
 template<typename T>
 inline T FromString(const String& string, T default_value = T()) {
-    T result = default_value;
-    TypeConverter<String, T>::Convert(string, result);
-    return result;
+	T result = default_value;
+	TypeConverter<String, T>::Convert(string, result);
+	return result;
 }
 
 
@@ -119,10 +118,7 @@ public:
 	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, String& dest);
 };
 
-
-
-}
-}
+} // namespace Rml
 
 #include "TypeConverter.inl"
 

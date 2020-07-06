@@ -30,7 +30,6 @@
 #include "TextureDatabase.h"
 
 namespace Rml {
-namespace Core {
 
 RenderInterface::RenderInterface()
 {
@@ -86,5 +85,4 @@ Context* RenderInterface::GetContext() const
 	return context;
 }
 
-}
-}
+} // namespace Rml

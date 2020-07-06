@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIDEBUGGER_H
-#define RMLUIDEBUGGER_H
+#ifndef RMLUI_DEBUGGER_H
+#define RMLUI_DEBUGGER_H
 
 #include "Debugger/Debugger.h"
 

@@ -31,7 +31,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 const size_t READ_BLOCK_SIZE = 1024;
 
@@ -82,7 +81,7 @@ size_t Stream::Read(Stream* stream, size_t bytes) const
 	size_t total_bytes_read = 0;
 	while (total_bytes_read < bytes)
 	{
-		size_t bytes_read = this->Read(buffer, Core::Math::Min(READ_BLOCK_SIZE, bytes - total_bytes_read));
+		size_t bytes_read = this->Read(buffer, Math::Min(READ_BLOCK_SIZE, bytes - total_bytes_read));
 		if (bytes_read < 1)
 			return total_bytes_read;
 		stream->Write(buffer, bytes_read);
@@ -160,5 +159,4 @@ void Stream::SetStreamDetails(const URL& _url, int _stream_mode)
 	stream_mode = _stream_mode;
 }
 
-}
-}
+} // namespace Rml

@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREXMLNODEHANDLER_H
-#define RMLUICOREXMLNODEHANDLER_H
+#ifndef RMLUI_CORE_XMLNODEHANDLER_H
+#define RMLUI_CORE_XMLNODEHANDLER_H
 
 #include "Header.h"
 #include "Traits.h"
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class XMLParser;
@@ -69,7 +68,5 @@ public:
 	virtual bool ElementData(XMLParser* parser, const String& data, XMLDataType type) = 0;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICORE_H
-#define RMLUICORE_H
+#ifndef RMLUI_CORE_H
+#define RMLUI_CORE_H
 
 #include "Core/Core.h"
 
@@ -39,6 +39,7 @@
 #include "Core/ComputedValues.h"
 #include "Core/Context.h"
 #include "Core/ContextInstancer.h"
+#include "Core/ConvolutionFilter.h"
 #include "Core/DataController.h"
 #include "Core/DataModel.h"
 #include "Core/DataTypeRegister.h"
@@ -60,8 +61,9 @@
 #include "Core/Factory.h"
 #include "Core/FileInterface.h"
 #include "Core/FontEffect.h"
-#include "Core/FontGlyph.h"
+#include "Core/FontEffectInstancer.h"
 #include "Core/FontEngineInterface.h"
+#include "Core/FontGlyph.h"
 #include "Core/Geometry.h"
 #include "Core/GeometryUtilities.h"
 #include "Core/ID.h"
@@ -82,9 +84,27 @@
 #include "Core/StyleSheetSpecification.h"
 #include "Core/SystemInterface.h"
 #include "Core/Texture.h"
+#include "Core/Transform.h"
+#include "Core/TransformPrimitive.h"
 #include "Core/Tween.h"
+#include "Core/TypeConverter.h"
 #include "Core/Vertex.h"
 #include "Core/XMLNodeHandler.h"
 #include "Core/XMLParser.h"
+
+#include "Core/Elements/DataFormatter.h"
+#include "Core/Elements/ElementDataGrid.h"
+#include "Core/Elements/ElementDataGridCell.h"
+#include "Core/Elements/ElementDataGridExpandButton.h"
+#include "Core/Elements/ElementDataGridRow.h"
+#include "Core/Elements/ElementForm.h"
+#include "Core/Elements/ElementFormControl.h"
+#include "Core/Elements/ElementFormControlDataSelect.h"
+#include "Core/Elements/ElementFormControlInput.h"
+#include "Core/Elements/ElementFormControlSelect.h"
+#include "Core/Elements/ElementFormControlTextArea.h"
+#include "Core/Elements/ElementProgressBar.h"
+#include "Core/Elements/ElementTabSet.h"
+#include "Core/Elements/SelectOption.h"
 
 #endif

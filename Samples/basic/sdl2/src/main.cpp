@@ -84,27 +84,27 @@ int main(int /*argc*/, char** /*argv*/)
 	RmlUiSDL2Renderer Renderer(renderer, screen);
 	RmlUiSDL2SystemInterface SystemInterface;
 
-	Rml::Core::String root = Shell::FindSamplesRoot();
+	Rml::String root = Shell::FindSamplesRoot();
 	ShellFileInterface FileInterface(root);
 
-	Rml::Core::SetFileInterface(&FileInterface);
-	Rml::Core::SetRenderInterface(&Renderer);
-	Rml::Core::SetSystemInterface(&SystemInterface);
+	Rml::SetFileInterface(&FileInterface);
+	Rml::SetRenderInterface(&Renderer);
+	Rml::SetSystemInterface(&SystemInterface);
 
-	if (!Rml::Core::Initialise())
+	if (!Rml::Initialise())
 		return 1;
 
-	Rml::Core::LoadFontFace("assets/Delicious-Bold.otf");
-	Rml::Core::LoadFontFace("assets/Delicious-BoldItalic.otf");
-	Rml::Core::LoadFontFace("assets/Delicious-Italic.otf");
-	Rml::Core::LoadFontFace("assets/Delicious-Roman.otf");
+	Rml::LoadFontFace("assets/Delicious-Bold.otf");
+	Rml::LoadFontFace("assets/Delicious-BoldItalic.otf");
+	Rml::LoadFontFace("assets/Delicious-Italic.otf");
+	Rml::LoadFontFace("assets/Delicious-Roman.otf");
 
-	Rml::Core::Context* Context = Rml::Core::CreateContext("default",
-		Rml::Core::Vector2i(window_width, window_height));
+	Rml::Context* Context = Rml::CreateContext("default",
+		Rml::Vector2i(window_width, window_height));
 
 	Rml::Debugger::Initialise(Context);
 
-	Rml::Core::ElementDocument* Document = Context->LoadDocument("assets/demo.rml");
+	Rml::ElementDocument* Document = Context->LoadDocument("assets/demo.rml");
 
 	if (Document)
 	{
@@ -171,7 +171,7 @@ int main(int /*argc*/, char** /*argv*/)
 		Context->Update();
 	}
 
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	SDL_DestroyRenderer(renderer);
 	SDL_GL_DeleteContext(glcontext);

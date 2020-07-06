@@ -31,7 +31,6 @@
 
 
 namespace Rml {
-namespace Core {
 
 // An EventId is an index into the specifications vector.
 static std::vector<EventSpecification> specifications = { { EventId::Invalid, "invalid", false, false, DefaultActionPhase::None } };
@@ -180,5 +179,4 @@ EventId InsertOrReplaceCustom(const String& event_type, bool interruptible, bool
 
 
 }
-}
-}
+} // namespace Rml

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICORESYSTEMINTERFACE_H
-#define RMLUICORESYSTEMINTERFACE_H
+#ifndef RMLUI_CORE_SYSTEMINTERFACE_H
+#define RMLUI_CORE_SYSTEMINTERFACE_H
 
 #include "Types.h"
 #include "Log.h"
@@ -35,7 +35,6 @@
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	RmlUi's System Interface.
@@ -99,7 +98,5 @@ public:
 	virtual void DeactivateKeyboard();
 };
 
-}
-}
-
+} // namespace Rml
 #endif

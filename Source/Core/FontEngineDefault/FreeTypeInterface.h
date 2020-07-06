@@ -26,13 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREFREETYPEINTERFACE_H
-#define RMLUICOREFREETYPEINTERFACE_H
+#ifndef RMLUI_CORE_FONTENGINEDEFAULT_FREETYPEINTERFACE_H
+#define RMLUI_CORE_FONTENGINEDEFAULT_FREETYPEINTERFACE_H
 
 #include "FontTypes.h"
 
 namespace Rml {
-namespace Core {
+
 namespace FreeType {
 
 // Initialize FreeType library.
@@ -59,7 +59,5 @@ bool AppendGlyph(FontFaceHandleFreetype face, int font_size, Character character
 int GetKerning(FontFaceHandleFreetype face, int font_size, Character lhs, Character rhs);
 
 }
-}
-}
-
+} // namespace Rml
 #endif

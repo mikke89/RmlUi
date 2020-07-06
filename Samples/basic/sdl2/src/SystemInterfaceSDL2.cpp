@@ -28,9 +28,9 @@
 #include <RmlUi/Core.h>
 #include "SystemInterfaceSDL2.h"
 
-Rml::Core::Input::KeyIdentifier RmlUiSDL2SystemInterface::TranslateKey(SDL_Keycode sdlkey)
+Rml::Input::KeyIdentifier RmlUiSDL2SystemInterface::TranslateKey(SDL_Keycode sdlkey)
 {
-    using namespace Rml::Core::Input;
+    using namespace Rml::Input;
 
 
     switch(sdlkey) {
@@ -392,13 +392,13 @@ int RmlUiSDL2SystemInterface::GetKeyModifiers()
     int retval = 0;
 
     if(sdlMods & KMOD_CTRL)
-        retval |= Rml::Core::Input::KM_CTRL;
+        retval |= Rml::Input::KM_CTRL;
 
     if(sdlMods & KMOD_SHIFT)
-        retval |= Rml::Core::Input::KM_SHIFT;
+        retval |= Rml::Input::KM_SHIFT;
 
     if(sdlMods & KMOD_ALT)
-        retval |= Rml::Core::Input::KM_ALT;
+        retval |= Rml::Input::KM_ALT;
 
     return retval;
 }
@@ -408,31 +408,31 @@ double RmlUiSDL2SystemInterface::GetElapsedTime()
 	return double(SDL_GetTicks()) / 1000.0;
 }
 
-bool RmlUiSDL2SystemInterface::LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message)
+bool RmlUiSDL2SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
 {
 	std::string Type;
 
 	switch(type)
 	{
-	case Rml::Core::Log::LT_ALWAYS:
+	case Rml::Log::LT_ALWAYS:
 		Type = "[Always]";
 		break;
-	case Rml::Core::Log::LT_ERROR:
+	case Rml::Log::LT_ERROR:
 		Type = "[Error]";
 		break;
-	case Rml::Core::Log::LT_ASSERT:
+	case Rml::Log::LT_ASSERT:
 		Type = "[Assert]";
 		break;
-	case Rml::Core::Log::LT_WARNING:
+	case Rml::Log::LT_WARNING:
 		Type = "[Warning]";
 		break;
-	case Rml::Core::Log::LT_INFO:
+	case Rml::Log::LT_INFO:
 		Type = "[Info]";
 		break;
-	case Rml::Core::Log::LT_DEBUG:
+	case Rml::Log::LT_DEBUG:
 		Type = "[Debug]";
 		break;
-    case Rml::Core::Log::LT_MAX:
+    case Rml::Log::LT_MAX:
         break;
 	};
 

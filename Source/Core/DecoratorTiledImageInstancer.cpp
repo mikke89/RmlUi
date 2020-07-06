@@ -30,7 +30,6 @@
 #include "DecoratorTiledImage.h"
 
 namespace Rml {
-namespace Core {
 
 DecoratorTiledImageInstancer::DecoratorTiledImageInstancer() : DecoratorTiledInstancer(1)
 {
@@ -61,5 +60,4 @@ SharedPtr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const Strin
 	return decorator;
 }
 
-}
-}
+} // namespace Rml

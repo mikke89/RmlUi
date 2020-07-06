@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORELAYOUTLINEBOX_H
-#define RMLUICORELAYOUTLINEBOX_H
+#ifndef RMLUI_CORE_LAYOUTLINEBOX_H
+#define RMLUI_CORE_LAYOUTLINEBOX_H
 
 #include "LayoutInlineBox.h"
 
 namespace Rml {
-namespace Core {
 
 class LayoutBlockBox;
 
@@ -120,7 +119,5 @@ private:
 	LayoutInlineBox* open_inline_box;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

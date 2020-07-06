@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/ID.h"
 
 namespace Rml {
-namespace Core {
 
 PropertyDictionary::PropertyDictionary()
 {
@@ -99,7 +98,7 @@ void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const Property
 }
 
 // Sets a property on the dictionary and its specificity.
-void PropertyDictionary::SetProperty(PropertyId id, const Rml::Core::Property& property, int specificity)
+void PropertyDictionary::SetProperty(PropertyId id, const Property& property, int specificity)
 {
 	PropertyMap::iterator iterator = properties.find(id);
 	if (iterator != properties.end() &&
@@ -110,5 +109,4 @@ void PropertyDictionary::SetProperty(PropertyId id, const Rml::Core::Property& p
 	new_property.specificity = specificity;
 }
 
-}
-}
+} // namespace Rml

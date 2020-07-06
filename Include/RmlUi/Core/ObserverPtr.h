@@ -34,7 +34,6 @@
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
 
 struct RMLUICORE_API ObserverPtrBlock {
 	int num_observers;
@@ -185,7 +184,5 @@ private:
 
 
 
-}
-}
-
+} // namespace Rml
 #endif

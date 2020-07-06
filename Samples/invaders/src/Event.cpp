@@ -29,7 +29,7 @@
 #include "Event.h"
 #include "EventManager.h"
 
-Event::Event(const Rml::Core::String& value) : value(value)
+Event::Event(const Rml::String& value) : value(value)
 {
 }
 
@@ -38,13 +38,13 @@ Event::~Event()
 }
 
 // Sends the event value through to Invader's event processing system.
-void Event::ProcessEvent(Rml::Core::Event& event)
+void Event::ProcessEvent(Rml::Event& event)
 {
 	EventManager::ProcessEvent(event, value);
 }
 
 // Destroys the event.
-void Event::OnDetach(Rml::Core::Element* RMLUI_UNUSED_PARAMETER(element))
+void Event::OnDetach(Rml::Element* RMLUI_UNUSED_PARAMETER(element))
 {
 	RMLUI_UNUSED(element);
 

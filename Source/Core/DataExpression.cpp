@@ -38,7 +38,6 @@
 #endif
 
 namespace Rml {
-namespace Core {
 
 class DataParser;
 
@@ -980,7 +979,7 @@ struct TestParser {
 		DataModelConstructor handle(&model, &type_register);
 		handle.Bind("radius", &radius);
 		handle.Bind("color_name", &color_name);
-		handle.BindFunc("color_value", [this](Rml::Core::Variant& variant) {
+		handle.BindFunc("color_value", [this](Variant& variant) {
 			variant = ToString(color_value);
 		});
 
@@ -1187,5 +1186,4 @@ bool DataExpressionInterface::EventCallback(const String& name, const VariantLis
 	return true;
 }
 
-}
-}
+} // namespace Rml

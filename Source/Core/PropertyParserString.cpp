@@ -29,7 +29,6 @@
 #include "PropertyParserString.h"
 
 namespace Rml {
-namespace Core {
 
 PropertyParserString::PropertyParserString()
 {
@@ -50,5 +49,4 @@ bool PropertyParserString::ParseValue(Property& property, const String& value, c
 	return true;
 }
 
-}
-}
+} // namespace Rml

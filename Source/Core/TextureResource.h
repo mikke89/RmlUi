@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICORETEXTURERESOURCE_H
-#define RMLUICORETEXTURERESOURCE_H
+#ifndef RMLUI_CORE_TEXTURERESOURCE_H
+#define RMLUI_CORE_TEXTURERESOURCE_H
 
 #include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/Texture.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A texture resource stores application-generated texture data (handle and dimensions) for each
@@ -82,7 +81,5 @@ private:
 	UniquePtr<TextureCallback> texture_callback;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

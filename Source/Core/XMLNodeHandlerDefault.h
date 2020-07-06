@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREXMLNODEHANDLERDEFAULT_H
-#define RMLUICOREXMLNODEHANDLERDEFAULT_H
+#ifndef RMLUI_CORE_XMLNODEHANDLERDEFAULT_H
+#define RMLUI_CORE_XMLNODEHANDLERDEFAULT_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Element Node handler that creates elements
@@ -55,7 +54,5 @@ public:
 	bool ElementData(XMLParser* parser, const String& data, XMLDataType type) override;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

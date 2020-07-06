@@ -32,14 +32,14 @@
 #include <RmlUi/Core/Input.h>
 #include <SFML/Graphics.hpp>
 
-class RmlUiSFMLSystemInterface : public Rml::Core::SystemInterface
+class RmlUiSFMLSystemInterface : public Rml::SystemInterface
 {
 public:
-	Rml::Core::Input::KeyIdentifier TranslateKey(sf::Keyboard::Key Key);
+	Rml::Input::KeyIdentifier TranslateKey(sf::Keyboard::Key Key);
 	int GetKeyModifiers();
 	
 	double GetElapsedTime() override;
-	bool LogMessage(Rml::Core::Log::Type type, const Rml::Core::String& message) override;
+	bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 
 private:
 	sf::Clock timer;

@@ -7,6 +7,46 @@
 
 ## RmlUi 4.0 (WIP)
 
+### Restructuring RmlUi
+
+RmlUi has been restructured to simplify its usage. This involves breaking changes but should benefit everyone using the library in the future. See discussion in [#58](https://github.com/mikke89/RmlUi/issues/58).
+
+- The old `Controls` plugin is now gone. But fear not! It has been merged into the `Core` project.
+- The old `Rml::Core` and `Rml::Controls` namespaces have been removed, their contents are now located directly in the `Rml` namespace.
+- The old `Controls` public header files have been moved to `<RmlUi/Core/Elements/...>`.
+- The old `Controls` source files and private header files have been moved to `Source/Core/Elements/...`.
+- The `Debugger` plugin remains as before at the same location and same namespace `Rml::Debugger`.
+
+The Lua plugins have been changed to reflect the above changes.
+
+- The old Lua plugins `RmlCoreLua` and `RmlControlsLua` have been merged into a single library `RmlLua`.
+- The public header files are now located at `<RmlUi/Lua/...>`.
+- The Lua plugin is now initialized by calling `Rml::Lua::Initialise()` located in `<RmlUi/Lua/Lua.h>`.
+- Separated the Lua interpreter functions from initialization and the Lua plugin.
+- Renamed macros in the Lua plugin, they now start with `RMLUI_`.
+
+#### Upgrade guide
+
+- Remove the call to `Rml::Controls::Initialise()`, this is no longer needed.
+- Replace all inclusions of `<RmlUi/Controls.h>` with `<RmlUi/Core.h>` unless it is already included, or include individual header files.
+- Rename all inclusions of `<RmlUi/Controls/...>` to `<RmlUi/Core/Elements/...>`.
+- Replace all occurrences of `Rml::Core` with `Rml`.
+- Replace all occurrences of `Rml::Controls` with `Rml`.
+- Look for forward declarations in `namespace Rml { namespace Core { ... } }` and `namespace Rml { namespace Controls { ... } }`. Replace with `namespace Rml { ... }`.
+- Remove the linkage to the `RmlControls` library.
+- For users of the Lua plugin:
+  - Replace RmlUi's Lua header files with `<RmlUi/Lua.h>` or individual header files in `<RmlUi/Lua/...>`.
+  - Replace the old initialization calls with `Rml::Lua::Initialise()`. Previously this was `Rml::Core::Lua::Interpreter::Initialise()` and `Rml::Controls::Lua::RegisterTypes(...)`.
+  - Link with the library `RmlLua`, remove `RmlCoreLua` and `RmlControlsLua`.
+- Welcome to RmlUi 4.0 :)
+
+#### Related internal changes.
+
+- Refactored the two `WidgetSlider` classes to avoid duplicate names in Core and Controls.
+- Refactored `TransformPrimitive.h` by moving utility functions that should only be used internally to an internal header file.
+- Renamed header guard macros.
+
+
 ### Model-view-controller (MVC) implementation
 
 RmlUi now supports a model-view-controller (MVC) approach through data bindings. This is a powerful approach for making documents respond to data changes, or in reverse, updating data based on user actions.
@@ -16,6 +56,20 @@ For now, this is considered an experimental feature.
 - See the work-in-progress [documentation for this feature](https://gist.github.com/mikke89/030cca078e36749580c975692d03cbee).
 - Have a look at the 'databinding' sample for usage examples.
 - See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
+
+
+### Other changes
+
+- Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
+
+
+### Breaking changes
+
+- Namespaces and plugin names changed! See the restructuring changes above.
+- It is no longer possible to use `{{` and `}}` inside RML documents outside the context of data bindings.
+- Attributes starting with `data-` are now reserved for RmlUi.
+- The `BaseXMLParser` class has some minor interface changes.
+
 
 
 ## RmlUi 3.3

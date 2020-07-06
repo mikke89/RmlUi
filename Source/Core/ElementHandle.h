@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREELEMENTHANDLE_H
-#define RMLUICOREELEMENTHANDLE_H
+#ifndef RMLUI_CORE_ELEMENTHANDLE_H
+#define RMLUI_CORE_ELEMENTHANDLE_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A derivation of an element for use as a mouse handle. A handle is designed to be instanced and attached as a non-
@@ -65,7 +64,5 @@ protected:
 	bool initialised;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

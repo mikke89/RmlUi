@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREFONTEFFECTOUTLINE_H
-#define RMLUICOREFONTEFFECTOUTLINE_H
+#ifndef RMLUI_CORE_FONTEFFECTOUTLINE_H
+#define RMLUI_CORE_FONTEFFECTOUTLINE_H
 
 #include "../../Include/RmlUi/Core/ConvolutionFilter.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A concrete font effect for rendering outlines around text.
@@ -82,7 +81,5 @@ private:
 };
 
 
-}
-}
-
+} // namespace Rml
 #endif

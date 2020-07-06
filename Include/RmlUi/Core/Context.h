@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICORECONTEXT_H
-#define RMLUICORECONTEXT_H
+#ifndef RMLUI_CORE_CONTEXT_H
+#define RMLUI_CORE_CONTEXT_H
 
 #include "Header.h"
 #include "Types.h"
@@ -36,7 +36,6 @@
 #include "ScriptInterface.h"
 
 namespace Rml {
-namespace Core {
 
 class Stream;
 class ContextInstancer;
@@ -57,7 +56,7 @@ enum class EventId : uint16_t;
 class RMLUICORE_API Context : public ScriptInterface
 {
 public:
-	/// Constructs a new, uninitialised context. This should not be called directly, use Core::CreateContext()
+	/// Constructs a new, uninitialised context. This should not be called directly, use CreateContext()
 	/// instead.
 	/// @param[in] name The name of the context.
 	Context(const String& name);
@@ -351,7 +350,5 @@ private:
 	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);
 };
 
-}
-}
-
+} // namespace Rml
 #endif

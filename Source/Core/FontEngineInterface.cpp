@@ -29,7 +29,6 @@
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 
 namespace Rml {
-namespace Core {
 
 FontEngineInterface::FontEngineInterface()
 {
@@ -102,5 +101,4 @@ int FontEngineInterface::GetVersion(FontFaceHandle /*handle*/)
 	return 0;
 }
 
-}
-}
+} // namespace Rml

@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORETEXTUREDATABASE_H
-#define RMLUICORETEXTUREDATABASE_H
+#ifndef RMLUI_CORE_TEXTUREDATABASE_H
+#define RMLUI_CORE_TEXTUREDATABASE_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 class RenderInterface;
 class TextureResource;
@@ -73,7 +72,5 @@ private:
     CallbackTextureMap callback_textures;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

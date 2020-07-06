@@ -27,7 +27,6 @@
  */
 
 namespace Rml {
-namespace Core {
 
 // Initialising constructor.
 template< typename Component, class Storage >
@@ -314,7 +313,7 @@ bool Matrix4< Component, Storage >::Invert() noexcept
 
 
 template<typename Component, class Storage>
-inline float Rml::Core::Matrix4<Component, Storage>::Determinant() const noexcept
+inline float Matrix4<Component, Storage>::Determinant() const noexcept
 {
 	const Component *src = data();
 	float diag[4]; // Diagonal elements of the matrix inverse (see Invert)
@@ -688,7 +687,7 @@ Matrix4< Component, Storage > Matrix4< Component, Storage >::SkewY(Component ang
 }
 
 template<typename Component, class Storage>
-Matrix4< Component, Storage > Rml::Core::Matrix4<Component, Storage>::Compose(const Vector3<Component>& translation,
+Matrix4< Component, Storage > Matrix4<Component, Storage>::Compose(const Vector3<Component>& translation,
 	const Vector3<Component>& scale, const Vector3<Component>& skew, const Vector4<Component>& perspective,
 	const Vector4<Component>& quaternion) noexcept
 {
@@ -853,5 +852,4 @@ struct Matrix4< Component, Storage >::MatrixMultiplier< _Component, ColumnMajorS
 	}
 };
 
-}
-}
+} // namespace Rml

@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREPROPERTYPARSERSTRING_H
-#define RMLUICOREPROPERTYPARSERSTRING_H
+#ifndef RMLUI_CORE_PROPERTYPARSERSTRING_H
+#define RMLUI_CORE_PROPERTYPARSERSTRING_H
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	A passthrough property parser that parses a string.
@@ -54,7 +53,5 @@ public:
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

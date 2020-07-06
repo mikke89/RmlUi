@@ -37,7 +37,6 @@
 
 
 namespace Rml {
-namespace Core {
 
 XMLNodeHandlerDefault::XMLNodeHandlerDefault()
 {
@@ -96,5 +95,4 @@ bool XMLNodeHandlerDefault::ElementData(XMLParser* parser, const String& data, X
 }
 
 
-}
-}
+} // namespace Rml

@@ -1,5 +1,5 @@
-#ifndef LUAINTERFACE_H
-#define LUAINTERFACE_H 
+#ifndef RMLUI_LUAINVADERS_LUAINTERFACE_H
+#define RMLUI_LUAINVADERS_LUAINTERFACE_H 
 /*
     This will define the "Game" global table in Lua and some functions with it.
 

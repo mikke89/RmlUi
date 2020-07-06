@@ -30,9 +30,10 @@
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/Animation.h"
 #include "../../Include/RmlUi/Core/Transform.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "TransformUtilities.h"
 
 namespace Rml {
-namespace Core {
 
 bool TypeConverter<TransformPtr, TransformPtr>::Convert(const TransformPtr& src, TransformPtr& dest)
 {
@@ -45,10 +46,10 @@ bool TypeConverter<TransformPtr, String>::Convert(const TransformPtr& src, Strin
 	if (src)
 	{
 		dest.clear();
-		const Transform::Primitives& primitives = src->GetPrimitives();
+		const Transform::PrimitiveList& primitives = src->GetPrimitives();
 		for (size_t i = 0; i < primitives.size(); i++)
 		{
-			dest += primitives[i].ToString();
+			dest += TransformUtilities::ToString(primitives[i]);
 			if (i != primitives.size() - 1) 
 				dest += ' ';
 		}
@@ -149,5 +150,4 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 
 
 
-}
-}
+} // namespace Rml

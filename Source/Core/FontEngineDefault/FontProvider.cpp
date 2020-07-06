@@ -37,7 +37,6 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 static FontProvider* g_font_provider = nullptr;
 
@@ -195,5 +194,4 @@ bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, St
 }
 
 
-}
-}
+} // namespace Rml

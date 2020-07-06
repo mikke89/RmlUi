@@ -27,7 +27,6 @@
  */
 
 #include <RmlUi/Core.h>
-#include <RmlUi/Controls.h>
 #include <RmlUi/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
@@ -38,17 +37,17 @@
 
 static bool run_rotate = true;
 
-class DemoWindow : public Rml::Core::EventListener
+class DemoWindow : public Rml::EventListener
 {
 public:
-	DemoWindow(const Rml::Core::String &title, const Rml::Core::Vector2f &position, Rml::Core::Context *context)
+	DemoWindow(const Rml::String &title, const Rml::Vector2f &position, Rml::Context *context)
 	{
 		document = context->LoadDocument("basic/transform/data/transform.rml");
 		if (document)
 		{
 			document->GetElementById("title")->SetInnerRML(title);
-			document->SetProperty(Rml::Core::PropertyId::Left, Rml::Core::Property(position.x, Rml::Core::Property::PX));
-			document->SetProperty(Rml::Core::PropertyId::Top, Rml::Core::Property(position.y, Rml::Core::Property::PX));
+			document->SetProperty(Rml::PropertyId::Left, Rml::Property(position.x, Rml::Property::PX));
+			document->SetProperty(Rml::PropertyId::Top, Rml::Property(position.y, Rml::Property::PX));
 			document->Show();
 		}
 	}
@@ -83,17 +82,17 @@ public:
 		}
 	}
 
-	void ProcessEvent(Rml::Core::Event& ev) override
+	void ProcessEvent(Rml::Event& ev) override
 	{
-		if (ev == Rml::Core::EventId::Keydown)
+		if (ev == Rml::EventId::Keydown)
 		{
-			Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) ev.GetParameter< int >("key_identifier", 0);
+			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) ev.GetParameter< int >("key_identifier", 0);
 
-			if (key_identifier == Rml::Core::Input::KI_SPACE)
+			if (key_identifier == Rml::Input::KI_SPACE)
 			{
 				run_rotate = !run_rotate;
 			}
-			else if (key_identifier == Rml::Core::Input::KI_ESCAPE)
+			else if (key_identifier == Rml::Input::KI_ESCAPE)
 			{
 				Shell::RequestExit();
 			}
@@ -102,10 +101,10 @@ public:
 
 private:
 	float perspective = 0;
-	Rml::Core::ElementDocument *document;
+	Rml::ElementDocument *document;
 };
 
-Rml::Core::Context* context = nullptr;
+Rml::Context* context = nullptr;
 ShellRenderInterfaceExtensions* shell_renderer;
 DemoWindow* window_1 = nullptr;
 DemoWindow* window_2 = nullptr;
@@ -118,7 +117,7 @@ void GameLoop()
 	context->Render();
 	shell_renderer->PresentRenderBuffer();
 
-	double t = Rml::Core::GetSystemInterface()->GetElapsedTime();
+	double t = Rml::GetSystemInterface()->GetElapsedTime();
 	static double t_prev = t;
 	double dt = t - t_prev;
 	t_prev = t;
@@ -166,36 +165,35 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(width, height);
 
 	ShellSystemInterface system_interface;
-	Rml::Core::SetSystemInterface(&system_interface);
+	Rml::SetSystemInterface(&system_interface);
 
-	Rml::Core::Initialise();
+	Rml::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(width, height));
+	context = Rml::CreateContext("main", Rml::Vector2i(width, height));
 	if (context == nullptr)
 	{
-		Rml::Core::Shutdown();
+		Rml::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
-	Rml::Controls::Initialise();
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);
 
 	Shell::LoadFonts("assets/");
 
-	window_1 = new DemoWindow("Orthographic transform", Rml::Core::Vector2f(120, 180), context);
+	window_1 = new DemoWindow("Orthographic transform", Rml::Vector2f(120, 180), context);
 	if (window_1)
 	{
-		context->GetRootElement()->AddEventListener(Rml::Core::EventId::Keydown, window_1);
+		context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, window_1);
 	}
-	window_2 = new DemoWindow("Perspective transform", Rml::Core::Vector2f(900, 180), context);
+	window_2 = new DemoWindow("Perspective transform", Rml::Vector2f(900, 180), context);
 	if (window_2)
 	{
 		window_2->SetPerspective(800);
@@ -205,14 +203,14 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	if (window_1)
 	{
-		context->GetRootElement()->RemoveEventListener(Rml::Core::EventId::Keydown, window_1);
+		context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, window_1);
 	}
 
 	delete window_1;
 	delete window_2;
 
 	// Shutdown RmlUi.
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

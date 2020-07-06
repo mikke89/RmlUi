@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREEVENTDISPATCHER_H
-#define RMLUICOREEVENTDISPATCHER_H
+#ifndef RMLUI_CORE_EVENTDISPATCHER_H
+#define RMLUI_CORE_EVENTDISPATCHER_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Event.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class EventListener;
@@ -108,7 +107,5 @@ private:
 
 
 
-}
-}
-
+} // namespace Rml
 #endif

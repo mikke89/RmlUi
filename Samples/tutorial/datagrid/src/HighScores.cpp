@@ -46,7 +46,7 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score)
+void HighScores::SubmitScore(const Rml::String& name, const Rml::Colourb& colour, int wave, int score)
 {
 	for (size_t i = 0; i < NUM_SCORES; i++)
 	{
@@ -72,8 +72,8 @@ void HighScores::SubmitScore(const Rml::Core::String& name, const Rml::Core::Col
 void HighScores::LoadScores()
 {
 	// Open and read the high score file.
-	Rml::Core::FileInterface* file_interface = Rml::Core::GetFileInterface();
-	Rml::Core::FileHandle scores_file = file_interface->Open("tutorial/datagrid/data/high_score.txt");
+	Rml::FileInterface* file_interface = Rml::GetFileInterface();
+	Rml::FileHandle scores_file = file_interface->Open("tutorial/datagrid/data/high_score.txt");
 	
 	if (scores_file)
 	{
@@ -88,23 +88,23 @@ void HighScores::LoadScores()
 			file_interface->Close(scores_file);
 			buffer[scores_length] = 0;
 
-			Rml::Core::StringList score_lines;
-			Rml::Core::StringUtilities::ExpandString(score_lines, buffer, '\n');
+			Rml::StringList score_lines;
+			Rml::StringUtilities::ExpandString(score_lines, buffer, '\n');
 			delete[] buffer;
 			
 			for (size_t i = 0; i < score_lines.size(); i++)
 			{
-				Rml::Core::StringList score_parts;
-				Rml::Core::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
+				Rml::StringList score_parts;
+				Rml::StringUtilities::ExpandString(score_parts, score_lines[i], '\t');
 				if (score_parts.size() == 4)
 				{
-					Rml::Core::Colourb colour;
+					Rml::Colourb colour;
 					int wave;
 					int score;
 
-					if (Rml::Core::TypeConverter< Rml::Core::String , Rml::Core::Colourb >::Convert(score_parts[1], colour) &&
-						Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[2], wave) &&
-						Rml::Core::TypeConverter< Rml::Core::String, int >::Convert(score_parts[3], score))
+					if (Rml::TypeConverter< Rml::String , Rml::Colourb >::Convert(score_parts[1], colour) &&
+						Rml::TypeConverter< Rml::String, int >::Convert(score_parts[2], wave) &&
+						Rml::TypeConverter< Rml::String, int >::Convert(score_parts[3], score))
 					{
 						SubmitScore(score_parts[0], colour, wave, score);
 					}

@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREELEMENTUTILITIES_H
-#define RMLUICOREELEMENTUTILITIES_H
+#ifndef RMLUI_CORE_ELEMENTUTILITIES_H
+#define RMLUI_CORE_ELEMENTUTILITIES_H
 
 #include "Header.h"
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
 
 class Box;
 class Context;
@@ -144,7 +143,5 @@ public:
 	static bool ApplyStructuralDataViews(Element* element, const String& inner_rml);
 };
 
-}
-}
-
+} // namespace Rml
 #endif

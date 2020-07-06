@@ -31,7 +31,6 @@
 #include "TextureLayout.h"
 
 namespace Rml {
-namespace Core {
 
 TextureLayoutTexture::TextureLayoutTexture() : dimensions(0, 0)
 {}
@@ -158,5 +157,4 @@ UniquePtr<byte[]> TextureLayoutTexture::AllocateTexture()
 	return texture_data;
 }
 
-}
-}
+} // namespace Rml

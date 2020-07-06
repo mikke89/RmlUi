@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDATACONTROLLERDEFAULT_H
-#define RMLUICOREDATACONTROLLERDEFAULT_H
+#ifndef RMLUI_CORE_DATACONTROLLERDEFAULT_H
+#define RMLUI_CORE_DATACONTROLLERDEFAULT_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -36,7 +36,6 @@
 #include "../../Include/RmlUi/Core/DataController.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class DataModel;
@@ -84,7 +83,5 @@ private:
     DataExpressionPtr expression;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

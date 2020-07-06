@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICOREDATAVARIABLE_H
-#define RMLUICOREDATAVARIABLE_H
+#ifndef RMLUI_CORE_DATAVARIABLE_H
+#define RMLUI_CORE_DATAVARIABLE_H
 
 #include "Header.h"
 #include "Types.h"
@@ -37,8 +37,6 @@
 #include <iterator>
 
 namespace Rml {
-namespace Core {
-
 
 enum class DataVariableType { Scalar, Array, Struct, Function, MemberFunction };
 
@@ -263,7 +261,5 @@ private:
 	MemberSetFunc<T> set;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

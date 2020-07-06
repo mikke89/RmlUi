@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREURL_H
-#define RMLUICOREURL_H
+#ifndef RMLUI_CORE_URL_H
+#define RMLUI_CORE_URL_H
 
 #include "Header.h"
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	@author Peter Curry
@@ -144,7 +143,5 @@ private:
 	mutable int url_dirty;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

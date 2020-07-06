@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIDEBUGGERHEADER_H
-#define RMLUIDEBUGGERHEADER_H
+#ifndef RMLUI_DEBUGGER_HEADER_H
+#define RMLUI_DEBUGGER_HEADER_H
 
 #include "../Core/Platform.h"
 

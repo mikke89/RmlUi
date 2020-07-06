@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICORESTYLESHEETSPECIFICATION_H
-#define RMLUICORESTYLESHEETSPECIFICATION_H
+#ifndef RMLUI_CORE_STYLESHEETSPECIFICATION_H
+#define RMLUI_CORE_STYLESHEETSPECIFICATION_H
 
 #include "Header.h"
 #include "PropertySpecification.h"
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
 
 class PropertyParser;
 struct DefaultStyleSheetParsers;
@@ -56,7 +55,7 @@ public:
 	/// @param[in] parser_name The name to register the new parser under.
 	/// @param[in] parser A non-owning pointer to the parser to register.
 	/// @return True if the parser was registered successfully, false otherwise.
-	/// @lifetime The parser must be kept alive until after the call to Core::Shutdown.
+	/// @lifetime The parser must be kept alive until after the call to Rml::Shutdown.
 	static bool RegisterParser(const String& parser_name, PropertyParser* parser);
 	/// Returns the parser registered with a specific name.
 	/// @param[in] parser_name The name of the desired parser.
@@ -136,7 +135,5 @@ private:
 	UniquePtr<DefaultStyleSheetParsers> default_parsers;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

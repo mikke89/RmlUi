@@ -44,7 +44,6 @@
 #include "XMLParseTools.h"
 
 namespace Rml {
-namespace Core {
 
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
 {
@@ -214,9 +213,9 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 {
 	switch (modal_flag)
 	{
-	case Rml::Core::ModalFlag::None:     modal = false; break;
-	case Rml::Core::ModalFlag::Modal:    modal = true;  break;
-	case Rml::Core::ModalFlag::Keep: break;
+	case ModalFlag::None:     modal = false; break;
+	case ModalFlag::Modal:    modal = true;  break;
+	case ModalFlag::Keep: break;
 	}
 
 	bool focus = false;
@@ -584,5 +583,4 @@ Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

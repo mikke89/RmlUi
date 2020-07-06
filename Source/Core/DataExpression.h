@@ -26,15 +26,14 @@
  *
  */
 
-#ifndef RMLUICOREDATAEXPRESSION_H
-#define RMLUICOREDATAEXPRESSION_H
+#ifndef RMLUI_CORE_DATAEXPRESSION_H
+#define RMLUI_CORE_DATAEXPRESSION_H
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/DataTypes.h"
 
 namespace Rml {
-namespace Core {
 
 class Element;
 class DataModel;
@@ -79,7 +78,5 @@ private:
     AddressList addresses;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

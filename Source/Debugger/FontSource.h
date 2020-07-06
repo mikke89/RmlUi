@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIDEBUGGERFONTSOURCE_H
-#define RMLUIDEBUGGERFONTSOURCE_H
+#ifndef RMLUI_DEBUGGER_FONTSOURCE_H
+#define RMLUI_DEBUGGER_FONTSOURCE_H
 
 /*
 	The fonts 'Courier Prime Code' and 'Courier Prime Code Italic', included

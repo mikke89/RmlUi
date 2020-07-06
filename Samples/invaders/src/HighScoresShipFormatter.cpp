@@ -29,7 +29,7 @@
 #include "HighScoresShipFormatter.h"
 #include <RmlUi/Core/TypeConverter.h>
 
-HighScoresShipFormatter::HighScoresShipFormatter() : Rml::Controls::DataFormatter("ship")
+HighScoresShipFormatter::HighScoresShipFormatter() : Rml::DataFormatter("ship")
 {
 }
 
@@ -37,7 +37,7 @@ HighScoresShipFormatter::~HighScoresShipFormatter()
 {
 }
 
-void HighScoresShipFormatter::FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data)
+void HighScoresShipFormatter::FormatData(Rml::String& formatted_data, const Rml::StringList& raw_data)
 {
 	// Data format:
 	// raw_data[0] is the colour, in "%d, %d, %d, %d" format.

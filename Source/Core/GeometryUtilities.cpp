@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 GeometryUtilities::GeometryUtilities()
 {
@@ -108,5 +107,4 @@ void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* 
 									);
 }
 
-}
-}
+} // namespace Rml

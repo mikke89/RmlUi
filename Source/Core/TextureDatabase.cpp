@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 
 namespace Rml {
-namespace Core {
 
 static TextureDatabase* texture_database = nullptr;
 
@@ -106,5 +105,4 @@ void TextureDatabase::ReleaseTextures(RenderInterface* render_interface)
 	}
 }
 
-}
-}
+} // namespace Rml

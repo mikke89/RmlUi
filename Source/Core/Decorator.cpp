@@ -33,7 +33,6 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 Decorator::Decorator()
 {
@@ -102,5 +101,4 @@ const Texture* Decorator::GetTexture(int index) const
 }
 
 
-}
-}
+} // namespace Rml

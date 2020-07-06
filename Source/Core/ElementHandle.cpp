@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/Event.h"
 
 namespace Rml {
-namespace Core {
 
 ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 {
@@ -139,5 +138,4 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 	}
 }
 
-}
-}
+} // namespace Rml

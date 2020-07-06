@@ -26,10 +26,9 @@
  *
  */
 
-#define _WIN32_WINNT 0x0500
 #include <RmlUi/Core.h>
-#include <RmlUi/Controls.h>
 #include <RmlUi/Debugger.h>
+#include <RmlUi/Lua.h>
 
 #include <Input.h>
 #include <Shell.h>
@@ -38,11 +37,9 @@
 #include "DecoratorInstancerStarfield.h"
 #include "ElementGame.h"
 #include "HighScores.h"
-#include <RmlUi/Core/Lua/Interpreter.h>
-#include <RmlUi/Controls/Lua/Controls.h>
 #include "LuaInterface.h"
 
-Rml::Core::Context* context = nullptr;
+Rml::Context* context = nullptr;
 
 void DoAllocConsole();
 
@@ -84,25 +81,22 @@ int main(int, char**)
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
-	Rml::Core::SetSystemInterface(&system_interface);
+	Rml::SetSystemInterface(&system_interface);
 
-	Rml::Core::Initialise();
-	// Initialise the RmlUi Controls library.
-	Rml::Controls::Initialise();
+	Rml::Initialise();
 
 	// Initialise the Lua interface
-	Rml::Core::Lua::Interpreter::Initialise();
-	Rml::Controls::Lua::RegisterTypes(Rml::Core::Lua::Interpreter::GetLuaState());
+	Rml::Lua::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
+	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 	if (context == nullptr)
 	{
-		Rml::Core::Shutdown();
+		Rml::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
@@ -117,15 +111,15 @@ int main(int, char**)
 	// Register Invader's custom decorator instancers.
 	DecoratorInstancerStarfield decorator_starfield;
 	DecoratorInstancerDefender decorator_defender;
-	Rml::Core::Factory::RegisterDecoratorInstancer("starfield", &decorator_starfield);
-	Rml::Core::Factory::RegisterDecoratorInstancer("defender", &decorator_defender);
+	Rml::Factory::RegisterDecoratorInstancer("starfield", &decorator_starfield);
+	Rml::Factory::RegisterDecoratorInstancer("defender", &decorator_defender);
 
 	// Construct the game singletons.
 	HighScores::Initialise();
 
 	// Fire off the startup script.
-    LuaInterface::Initialise(Rml::Core::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples
-    Rml::Core::Lua::Interpreter::LoadFile(Rml::Core::String("luainvaders/lua/start.lua"));
+    LuaInterface::Initialise(Rml::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples
+    Rml::Lua::Interpreter::LoadFile(Rml::String("luainvaders/lua/start.lua"));
 
 	Shell::EventLoop(GameLoop);	
 
@@ -133,7 +127,7 @@ int main(int, char**)
 	HighScores::Shutdown();
 
 	// Shutdown RmlUi.
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

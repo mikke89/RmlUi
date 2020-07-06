@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREDECORATORTILEDBOX_H
-#define RMLUICOREDECORATORTILEDBOX_H
+#ifndef RMLUI_CORE_DECORATORTILEDBOX_H
+#define RMLUI_CORE_DECORATORTILEDBOX_H
 
 #include "DecoratorTiled.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	@author Peter Curry
@@ -75,7 +74,5 @@ private:
 	Tile tiles[9];
 };
 
-}
-}
-
+} // namespace Rml
 #endif

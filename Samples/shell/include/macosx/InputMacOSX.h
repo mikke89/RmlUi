@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef INPUTMACOSX_H
-#define INPUTMACOSX_H
+#ifndef RMLUI_SHELL_MACOSX_INPUTMACOSX_H
+#define RMLUI_SHELL_MACOSX_INPUTMACOSX_H
 
 #include "Input.h"
 #include <Carbon/Carbon.h>

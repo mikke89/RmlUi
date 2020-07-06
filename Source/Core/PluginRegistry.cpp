@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/Plugin.h"
 
 namespace Rml {
-namespace Core {
 
 typedef std::vector< Plugin* > PluginList;
 static PluginList basic_plugins;
@@ -121,5 +120,4 @@ void PluginRegistry::NotifyElementDestroy(Element* element)
 		element_plugins[i]->OnElementDestroy(element);
 }
 
-}
-}
+} // namespace Rml

@@ -33,7 +33,7 @@
 #include "Defender.h"
 #include "Game.h"
 
-ElementGame::ElementGame(const Rml::Core::String& tag) : Rml::Core::Element(tag)
+ElementGame::ElementGame(const Rml::String& tag) : Rml::Element(tag)
 {
 	game = new Game();
 }
@@ -44,34 +44,34 @@ ElementGame::~ElementGame()
 }
 
 // Intercepts and handles key events.
-void ElementGame::ProcessEvent(Rml::Core::Event& event)
+void ElementGame::ProcessEvent(Rml::Event& event)
 {
-	if (event == Rml::Core::EventId::Keydown ||
-		event == Rml::Core::EventId::Keyup)
+	if (event == Rml::EventId::Keydown ||
+		event == Rml::EventId::Keyup)
 	{
-		bool key_down = (event == Rml::Core::EventId::Keydown);
-		Rml::Core::Input::KeyIdentifier key_identifier = (Rml::Core::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);		
+		bool key_down = (event == Rml::EventId::Keydown);
+		Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);		
 
 		// Process left and right keys
 		if (key_down)
 		{
-			if (key_identifier == Rml::Core::Input::KI_LEFT)
+			if (key_identifier == Rml::Input::KI_LEFT)
 				game->GetDefender()->StartMove(-1.0f);
-			if (key_identifier == Rml::Core::Input::KI_RIGHT)
+			if (key_identifier == Rml::Input::KI_RIGHT)
 				game->GetDefender()->StartMove(1.0f);
-			if (key_identifier == Rml::Core::Input::KI_SPACE)
+			if (key_identifier == Rml::Input::KI_SPACE)
 				game->GetDefender()->Fire();
 		}		
 		else if (!key_down)
 		{
-			if (key_identifier == Rml::Core::Input::KI_LEFT)
+			if (key_identifier == Rml::Input::KI_LEFT)
 				game->GetDefender()->StopMove(-1.0f);
-			if (key_identifier == Rml::Core::Input::KI_RIGHT)
+			if (key_identifier == Rml::Input::KI_RIGHT)
 				game->GetDefender()->StopMove(1.0f);				
 		}
 	}
 
-	if (event == Rml::Core::EventId::Load)
+	if (event == Rml::EventId::Load)
 	{
 		game->Initialise();
 	}
@@ -83,7 +83,7 @@ void ElementGame::OnUpdate()
 	game->Update();
 
 	if (game->IsGameOver())
-		DispatchEvent("gameover", Rml::Core::Dictionary());
+		DispatchEvent("gameover", Rml::Dictionary());
 }
 
 // Renders the game.
@@ -92,14 +92,14 @@ void ElementGame::OnRender()
 	game->Render();
 }
 
-void ElementGame::OnChildAdd(Rml::Core::Element* element)
+void ElementGame::OnChildAdd(Rml::Element* element)
 {
-	Rml::Core::Element::OnChildAdd(element);
+	Rml::Element::OnChildAdd(element);
 
 	if (element == this)
 	{
-		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Load, this);
-		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Keydown, this);
-		GetOwnerDocument()->AddEventListener(Rml::Core::EventId::Keyup, this);
+		GetOwnerDocument()->AddEventListener(Rml::EventId::Load, this);
+		GetOwnerDocument()->AddEventListener(Rml::EventId::Keydown, this);
+		GetOwnerDocument()->AddEventListener(Rml::EventId::Keyup, this);
 	}
 }

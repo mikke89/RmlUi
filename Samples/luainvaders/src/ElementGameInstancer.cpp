@@ -6,15 +6,15 @@ ElementGameInstancer::~ElementGameInstancer()
 }
 	
 // Instances an element given the tag name and attributes
-Rml::Core::ElementPtr ElementGameInstancer::InstanceElement(Rml::Core::Element* /*parent*/, const Rml::Core::String& tag, const Rml::Core::XMLAttributes& /*attributes*/)
+Rml::ElementPtr ElementGameInstancer::InstanceElement(Rml::Element* /*parent*/, const Rml::String& tag, const Rml::XMLAttributes& /*attributes*/)
 {
-	return Rml::Core::ElementPtr(new ElementGame(tag));
+	return Rml::ElementPtr(new ElementGame(tag));
 }
 
 
 
 // Releases the given element
-void ElementGameInstancer::ReleaseElement(Rml::Core::Element* element)
+void ElementGameInstancer::ReleaseElement(Rml::Element* element)
 {
 	delete element;
 }

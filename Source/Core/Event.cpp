@@ -31,7 +31,6 @@
 #include "../../Include/RmlUi/Core/Element.h"
 
 namespace Rml {
-namespace Core {
 
 Event::Event()
 {
@@ -187,5 +186,4 @@ void Event::ProjectMouse(Element* element)
 	}
 }
 
-}
-}
+} // namespace Rml

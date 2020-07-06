@@ -33,7 +33,7 @@
 #include <ShellRenderInterfaceOpenGL.h>
 #include "SystemInterface.h"
 
-Rml::Core::Context* context = nullptr;
+Rml::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -82,20 +82,20 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
 	// Initialise our system interface to write the log messages to file.
 	ShellSystemInterface system_interface;
-	Rml::Core::SetSystemInterface(&system_interface);
+	Rml::SetSystemInterface(&system_interface);
 
-	Rml::Core::Initialise();
+	Rml::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
+	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 	if (context == nullptr)
 	{
-		Rml::Core::Shutdown();
+		Rml::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
@@ -107,7 +107,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Load a non-existent document to spawn an error message.
-	Rml::Core::ElementDocument* invalid_document = context->LoadDocument("assets/invalid.rml");
+	Rml::ElementDocument* invalid_document = context->LoadDocument("assets/invalid.rml");
 	RMLUI_ASSERTMSG(invalid_document != nullptr, "Testing ASSERT logging.");
 	if (invalid_document != nullptr)
 	{
@@ -115,7 +115,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// Load and show the demo document.
-	Rml::Core::ElementDocument* document = context->LoadDocument("assets/demo.rml");
+	Rml::ElementDocument* document = context->LoadDocument("assets/demo.rml");
 	if (document != nullptr)
 	{
 		document->Show();
@@ -124,7 +124,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::EventLoop(GameLoop);
 
 	// Shutdown RmlUi.
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

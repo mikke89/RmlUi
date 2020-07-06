@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 
 namespace Rml {
-namespace Core {
 
 TextureResource::TextureResource()
 {
@@ -182,5 +181,4 @@ bool TextureResource::Load(RenderInterface* render_interface)
 	return true;
 }
 
-}
-}
+} // namespace Rml

@@ -30,7 +30,6 @@
 #include "DecoratorTiledBox.h"
 
 namespace Rml {
-namespace Core {
 
 DecoratorTiledBoxInstancer::DecoratorTiledBoxInstancer() : DecoratorTiledInstancer(9)
 {
@@ -73,5 +72,4 @@ SharedPtr<Decorator>DecoratorTiledBoxInstancer::InstanceDecorator(const String& 
 	return decorator;
 }
 
-}
-}
+} // namespace Rml

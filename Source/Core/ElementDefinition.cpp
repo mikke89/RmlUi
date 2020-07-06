@@ -31,7 +31,6 @@
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 
 namespace Rml {
-namespace Core {
 
 ElementDefinition::ElementDefinition(const std::vector< const StyleSheetNode* >& style_sheet_nodes)
 {
@@ -53,5 +52,4 @@ const PropertyIdSet& ElementDefinition::GetPropertyIds() const
 	return property_ids;
 }
 
-}
-}
+} // namespace Rml

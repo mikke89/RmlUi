@@ -33,7 +33,6 @@
 #include <string.h>
 
 namespace Rml {
-namespace Core {
 
 Template::Template()
 {
@@ -136,5 +135,4 @@ const DocumentHeader* Template::GetHeader()
 	return &header;
 }
 
-}
-}
+} // namespace Rml

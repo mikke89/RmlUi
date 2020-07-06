@@ -42,7 +42,7 @@ EventHandlerHighScore::~EventHandlerHighScore()
 {
 }
 
-void EventHandlerHighScore::ProcessEvent(Rml::Core::Event& event, const Rml::Core::String& value)
+void EventHandlerHighScore::ProcessEvent(Rml::Event& event, const Rml::String& value)
 {
 	if (value == "add_score")
 	{
@@ -57,19 +57,19 @@ void EventHandlerHighScore::ProcessEvent(Rml::Core::Event& event, const Rml::Cor
 	}
 	else if (value == "enter_name")
 	{
-		if (event.GetParameter< int >("key_identifier", Rml::Core::Input::KI_UNKNOWN) == Rml::Core::Input::KI_RETURN)
+		if (event.GetParameter< int >("key_identifier", Rml::Input::KI_UNKNOWN) == Rml::Input::KI_RETURN)
 		{
-			Rml::Core::String name = event.GetCurrentElement()->GetAttribute< Rml::Core::String >("value", "Anon.");
+			Rml::String name = event.GetCurrentElement()->GetAttribute< Rml::String >("value", "Anon.");
 			HighScores::SubmitName(name);
 		}
 	}
 	else if (value == "check_name")
 	{
-		Rml::Core::String name = "Anon.";
+		Rml::String name = "Anon.";
 		
 		// Submit the name the user started typing
 		if(auto element = event.GetCurrentElement()->GetOwnerDocument()->GetElementById("player_input"))
-			name = element->GetAttribute<Rml::Core::String>("value", name);
+			name = element->GetAttribute<Rml::String>("value", name);
 
 		HighScores::SubmitName(name);
 	}

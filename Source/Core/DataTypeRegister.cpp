@@ -29,8 +29,6 @@
 #include "../../Include/RmlUi/Core/DataTypeRegister.h"
 
 namespace Rml {
-namespace Core {
-
 
 DataTypeRegister::DataTypeRegister()
 {
@@ -122,5 +120,4 @@ bool TransformFuncRegister::Call(const String& name, Variant& inout_result, cons
     return transform_func(inout_result, arguments);
 }
 
-}
-}
+} // namespace Rml

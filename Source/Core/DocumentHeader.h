@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREDOCUMENTHEADER_H
-#define RMLUICOREDOCUMENTHEADER_H
+#ifndef RMLUI_CORE_DOCUMENTHEADER_H
+#define RMLUI_CORE_DOCUMENTHEADER_H
 
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 using LineNumberList = std::vector<int>;
 
@@ -72,7 +71,5 @@ public:
 	void MergePaths(StringList& target, const StringList& source, const String& base_path);
 };
 
-}
-}
-
+} // namespace Rml
 #endif

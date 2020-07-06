@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUICORETYPES_H
-#define RMLUICORETYPES_H
+#ifndef RMLUI_CORE_TYPES_H
+#define RMLUI_CORE_TYPES_H
 
 #include <string>
 #include <cstdlib>
@@ -48,7 +48,6 @@
 #endif
 
 namespace Rml {
-namespace Core {
 
 // Commonly used basic types
 using byte = unsigned char;
@@ -59,7 +58,7 @@ using std::size_t;
 enum class Character : char32_t { Null, Replacement = 0xfffd };
 
 }
-}
+
 
 #include "Colour.h"
 #include "Vector2.h"
@@ -69,8 +68,6 @@ enum class Character : char32_t { Null, Replacement = 0xfffd };
 #include "ObserverPtr.h"
 
 namespace Rml {
-namespace Core {
-
 
 // Color and linear algebra
 using Colourf = Colour< float, 1 >;
@@ -196,18 +193,18 @@ using DataViewPtr = UniqueReleaserPtr<DataView>;
 class DataController;
 using DataControllerPtr = UniqueReleaserPtr<DataController>;
 
-}
-}
+} // namespace Rml
+
 
 namespace std {
 // Hash specialization for enum class types (required on some older compilers)
-template <> struct hash<::Rml::Core::PropertyId> {
-	using utype = typename ::std::underlying_type<::Rml::Core::PropertyId>::type;
-	size_t operator() (const ::Rml::Core::PropertyId& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
+template <> struct hash<::Rml::PropertyId> {
+	using utype = typename ::std::underlying_type<::Rml::PropertyId>::type;
+	size_t operator() (const ::Rml::PropertyId& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
 };
-template <> struct hash<::Rml::Core::Character> {
-    using utype = typename ::std::underlying_type<::Rml::Core::Character>::type;
-    size_t operator() (const ::Rml::Core::Character& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
+template <> struct hash<::Rml::Character> {
+    using utype = typename ::std::underlying_type<::Rml::Character>::type;
+    size_t operator() (const ::Rml::Character& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
 };
 }
 

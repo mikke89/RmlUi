@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREVECTOR2_H
-#define RMLUICOREVECTOR2_H
+#ifndef RMLUI_CORE_VECTOR2_H
+#define RMLUI_CORE_VECTOR2_H
 
 #include "Debug.h"
 #include "Math.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Templated class for a generic two-component vector.
@@ -150,8 +149,7 @@ class Vector2
 		Type y;
 };
 
-}
-}
+} // namespace Rml
 
 #include "Vector2.inl"
 

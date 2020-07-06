@@ -26,14 +26,13 @@
  *
  */
 
-#ifndef RMLUICOREEVENTINSTANCERDEFAULT_H
-#define RMLUICOREEVENTINSTANCERDEFAULT_H
+#ifndef RMLUI_CORE_EVENTINSTANCERDEFAULT_H
+#define RMLUI_CORE_EVENTINSTANCERDEFAULT_H
 
 #include "../../Include/RmlUi/Core/EventInstancer.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Default instancer for instancing events.
@@ -62,7 +61,5 @@ public:
 	void Release() override;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

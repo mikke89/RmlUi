@@ -10,7 +10,6 @@
  */
 
 #include <RmlUi/Core.h>
-#include <RmlUi/Controls.h>
 #include <RmlUi/Debugger.h>
 #include <Input.h>
 #include <Shell.h>
@@ -19,7 +18,7 @@
 #include "HighScores.h"
 #include "HighScoresShipFormatter.h"
 
-Rml::Core::Context* context = nullptr;
+Rml::Context* context = nullptr;
 
 ShellRenderInterfaceExtensions *shell_renderer;
 
@@ -68,20 +67,19 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::Core::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
-	Rml::Core::SetSystemInterface(&system_interface);
+	Rml::SetSystemInterface(&system_interface);
 
-	Rml::Core::Initialise();
-	Rml::Controls::Initialise();
+	Rml::Initialise();
 
 	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::Core::CreateContext("main", Rml::Core::Vector2i(window_width, window_height));
+	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 	if (context == nullptr)
 	{
-		Rml::Core::Shutdown();
+		Rml::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
@@ -94,7 +92,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Load the defender decorator.
 	DecoratorInstancerDefender decorator_instancer_defender;
-	Rml::Core::Factory::RegisterDecoratorInstancer("defender", &decorator_instancer_defender);
+	Rml::Factory::RegisterDecoratorInstancer("defender", &decorator_instancer_defender);
 
 	// Add the ship formatter.
 	HighScoresShipFormatter ship_formatter;
@@ -103,7 +101,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	HighScores::Initialise();
 
 	// Load and show the tutorial document.
-	Rml::Core::ElementDocument* document = context->LoadDocument("tutorial/datagrid_tree/data/tutorial.rml");
+	Rml::ElementDocument* document = context->LoadDocument("tutorial/datagrid_tree/data/tutorial.rml");
 	if (document)
 	{
 		document->GetElementById("title")->SetInnerRML(document->GetTitle());
@@ -116,7 +114,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	HighScores::Shutdown();
 
 	// Shutdown RmlUi.
-	Rml::Core::Shutdown();
+	Rml::Shutdown();
 
 	Shell::CloseWindow();
 	Shell::Shutdown();

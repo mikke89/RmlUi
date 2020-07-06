@@ -50,29 +50,27 @@ printfontdefaultfiles() {
 
 printluafiles() {
     # Print headers
-    echo ${hdr/lib/Lua${1}} >>$file
-    find  $srcpath/$1/$luapath -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    echo ${hdr/lib/Lua} >>$file
+    find  $srcpath/$luapath$1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
     # Print public headers
-    echo ${pubhdr/lib/Lua${1}} >>$file
-    find  $hdrpath/$1/$luapath -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file 2>/dev/null
+    echo ${pubhdr/lib/Lua} >>$file
+    find  $hdrpath/$luapath$1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file 2>/dev/null
     echo -e ')\n' >>$file
     # Print source files
-    echo ${src/lib/Lua${1}} >>$file
-    find  $srcpath/$1/$luapath -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    echo ${src/lib/Lua} >>$file
+    find  $srcpath/$luapath$1 -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
 }
 
 pushd $basedir
 echo -e "# This file was auto-generated with gen_filelists.sh\n" >$file
-for lib in "Core" "Controls" "Debugger"; do
+for lib in "Core" "Debugger"; do
     printfiles $lib
 done
 
 printfontdefaultfiles "Core"
 
-for lib in "Core" "Controls"; do
-    printluafiles $lib
-done
-popd
+printluafiles
 
+popd

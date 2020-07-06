@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSINVADER_H
-#define RMLUIINVADERSINVADER_H
+#ifndef RMLUI_INVADERS_INVADER_H
+#define RMLUI_INVADERS_INVADER_H
 
 #include <RmlUi/Core/Types.h>
 
@@ -51,10 +51,10 @@ public:
 
 	/// Set the invaders screen position
 	/// @param position Position in screen space
-	void SetPosition(const Rml::Core::Vector2f& position);
+	void SetPosition(const Rml::Vector2f& position);
 	/// Get the current invader position
 	/// @returns The invaders position in screen space
-	const Rml::Core::Vector2f& GetPosition() const;
+	const Rml::Vector2f& GetPosition() const;
 
 	/// Update the invader
 	virtual void Update();
@@ -75,7 +75,7 @@ public:
 	/// If a hit is detected, will explode and start the death timer
 	/// @param position Position to do the hit check at
 	/// @returns If the invader was hit
-	bool CheckHit(const Rml::Core::Vector2f& position);
+	bool CheckHit(const Rml::Vector2f& position);
 
 protected:
 	// Game this invader is in
@@ -86,7 +86,7 @@ protected:
 	// The invader type we represent
 	InvaderType type;
 	// The current position in screen space of the invader
-	Rml::Core::Vector2f position;
+	Rml::Vector2f position;
 	// Our current animation frame
 	int animation_frame;
 
@@ -96,7 +96,7 @@ protected:
 	// Our current in-flight bomb, or none. (may be not none if we're dead.)
 	BombType bomb;
 	// The current position of the bomb in screen space
-	Rml::Core::Vector2f bomb_position;
+	Rml::Vector2f bomb_position;
 	// The animation frame the bomb is on
 	int bomb_animation_frame;
 	// When the last bomb update occured

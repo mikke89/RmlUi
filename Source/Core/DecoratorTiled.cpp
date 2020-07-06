@@ -33,7 +33,6 @@
 #include <algorithm>
 
 namespace Rml {
-namespace Core {
 
 DecoratorTiled::DecoratorTiled()
 {
@@ -246,5 +245,4 @@ void DecoratorTiled::ScaleTileDimensions(Vector2f& tile_dimensions, float axis_v
 	}
 }
 
-}
-}
+} // namespace Rml

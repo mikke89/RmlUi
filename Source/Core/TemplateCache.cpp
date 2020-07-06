@@ -32,7 +32,6 @@
 #include "../../Include/RmlUi/Core/Log.h"
 
 namespace Rml {
-namespace Core {
 
 static TemplateCache* instance = nullptr;
 
@@ -122,5 +121,4 @@ void TemplateCache::Clear()
 	instance->template_ids.clear();
 }
 
-}
-}
+} // namespace Rml

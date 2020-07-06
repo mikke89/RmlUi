@@ -33,24 +33,24 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/FontEngineInterface.h>
 
-using Rml::Core::FontFaceHandle;
-using Rml::Core::FontEffectsHandle;
+using Rml::FontFaceHandle;
+using Rml::FontEffectsHandle;
 
-using Rml::Core::Vector2i;
-using Rml::Core::Vector2f;
-using Rml::Core::Colourb;
-using Rml::Core::Texture;
-using Rml::Core::String;
-using Rml::Core::Character;
-using Rml::Core::Style::FontStyle;
-using Rml::Core::Style::FontWeight;
-using Rml::Core::byte;
+using Rml::Vector2i;
+using Rml::Vector2f;
+using Rml::Colourb;
+using Rml::Texture;
+using Rml::String;
+using Rml::Character;
+using Rml::Style::FontStyle;
+using Rml::Style::FontWeight;
+using Rml::byte;
 
-using Rml::Core::FontEffectList;
-using Rml::Core::GeometryList;
+using Rml::FontEffectList;
+using Rml::GeometryList;
 
 
-class FontEngineInterfaceBitmap : public Rml::Core::FontEngineInterface
+class FontEngineInterfaceBitmap : public Rml::FontEngineInterface
 {
 public:
 	FontEngineInterfaceBitmap();

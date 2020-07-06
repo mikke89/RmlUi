@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICOREBOX_H
-#define RMLUICOREBOX_H
+#ifndef RMLUI_CORE_BOX_H
+#define RMLUI_CORE_BOX_H
 
 #include "Types.h"
 
 namespace Rml {
-namespace Core {
 
 /**
 	Stores a box with four sized areas; content, padding, a border and margin. See
@@ -119,7 +118,5 @@ private:
 	Vector2f offset;
 };
 
-}
-}
-
+} // namespace Rml
 #endif

@@ -44,7 +44,7 @@ Mothership::Mothership(Game* game, int index) : Invader(game, Invader::MOTHERSHI
 	state = DEAD;
 	update_frame_start = 0;
 	direction = 0;
-	position = Rml::Core::Vector2f(-SPRITE_WIDTH, 64.0f);
+	position = Rml::Vector2f(-SPRITE_WIDTH, 64.0f);
 }
 
 Mothership::~Mothership()
@@ -71,9 +71,9 @@ void Mothership::Update()
 		update_frame_start = Shell::GetElapsedTime();
 	}
 	// Determine if we should come out of hiding
-	else if (Rml::Core::Math::RandomReal(1.0f) < APPEARANCE_PROBABILITY)
+	else if (Rml::Math::RandomReal(1.0f) < APPEARANCE_PROBABILITY)
 	{
-		direction = Rml::Core::Math::RandomReal(1.0f) < 0.5 ? -1.0f : 1.0f;
+		direction = Rml::Math::RandomReal(1.0f) < 0.5 ? -1.0f : 1.0f;
 
 		if (direction < 0)
 			position.x = game->GetWindowDimensions().x + SPRITE_WIDTH;

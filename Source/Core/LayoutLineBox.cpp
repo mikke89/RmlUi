@@ -37,7 +37,6 @@
 #include <stack>
 
 namespace Rml {
-namespace Core {
 
 static float GetSpacing(const Box& box, Box::Edge edge)
 {
@@ -389,5 +388,4 @@ void LayoutLineBox::AppendBox(LayoutInlineBox* box)
 	open_inline_box = box;
 }
 
-}
-}
+} // namespace Rml

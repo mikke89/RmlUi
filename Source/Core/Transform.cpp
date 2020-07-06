@@ -26,26 +26,24 @@
  *
  */
 
+#include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/Transform.h"
 
 namespace Rml {
-namespace Core {
-
 
 // Default constructor, initializes an identity transform
 Transform::Transform()
 {
 }
 
-Transform::Transform(std::vector<Transforms::Primitive> primitives) 
+Transform::Transform(PrimitiveList primitives) 
 	: primitives(primitives)
 {
 }
 
-Property Transform::MakeProperty(std::vector<Transforms::Primitive> primitives)
+Property Transform::MakeProperty(PrimitiveList primitives)
 {
 	Property p{ TransformPtr{new Transform{primitives}}, Property::TRANSFORM };
 	p.definition = StyleSheetSpecification::GetProperty(PropertyId::Transform);
@@ -57,7 +55,7 @@ void Transform::ClearPrimitives()
 	primitives.clear();
 }
 
-void Transform::AddPrimitive(const Transforms::Primitive & p)
+void Transform::AddPrimitive(const TransformPrimitive & p)
 {
 	primitives.push_back(p);
 }
@@ -67,10 +65,9 @@ int Transform::GetNumPrimitives() const noexcept
 	return (int)primitives.size();
 }
 
-const Transforms::Primitive & Transform::GetPrimitive(int i) const noexcept 
+const TransformPrimitive & Transform::GetPrimitive(int i) const noexcept 
 {
 	return primitives[i];
 }
 
-}
-}
+} // namespace Rml

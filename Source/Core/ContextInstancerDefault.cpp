@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/Context.h"
 
 namespace Rml {
-namespace Core {
 
 ContextInstancerDefault::ContextInstancerDefault()
 {
@@ -56,5 +55,4 @@ void ContextInstancerDefault::Release()
 	delete this;
 }
 
-}
-}
+} // namespace Rml

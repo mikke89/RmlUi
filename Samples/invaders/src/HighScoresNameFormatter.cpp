@@ -28,7 +28,7 @@
 
 #include "HighScoresNameFormatter.h"
 
-HighScoresNameFormatter::HighScoresNameFormatter() : Rml::Controls::DataFormatter("name")
+HighScoresNameFormatter::HighScoresNameFormatter() : Rml::DataFormatter("name")
 {
 }
 
@@ -36,7 +36,7 @@ HighScoresNameFormatter::~HighScoresNameFormatter()
 {
 }
 
-void HighScoresNameFormatter::FormatData(Rml::Core::String& formatted_data, const Rml::Core::StringList& raw_data)
+void HighScoresNameFormatter::FormatData(Rml::String& formatted_data, const Rml::StringList& raw_data)
 {
 	// Data format:
 	// raw_data[0] is the name.

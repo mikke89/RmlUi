@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUIINVADERSDECORATORINSTANCERSTARFIELD_H
-#define RMLUIINVADERSDECORATORINSTANCERSTARFIELD_H
+#ifndef RMLUI_INVADERS_DECORATORINSTANCERSTARFIELD_H
+#define RMLUI_INVADERS_DECORATORINSTANCERSTARFIELD_H
 
 #include <RmlUi/Core/DecoratorInstancer.h>
 #include "DecoratorStarfield.h"
@@ -36,7 +36,7 @@
 	@author Robert Curry
  */
 
-class DecoratorInstancerStarfield : public Rml::Core::DecoratorInstancer
+class DecoratorInstancerStarfield : public Rml::DecoratorInstancer
 {
 public:
 	DecoratorInstancerStarfield();
@@ -46,10 +46,10 @@ public:
 	/// @param name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successful, nullptr if an error occured.
-	std::shared_ptr<Rml::Core::Decorator> InstanceDecorator(const Rml::Core::String& name, const Rml::Core::PropertyDictionary& properties, const Rml::Core::DecoratorInstancerInterface& interface) override;
+	std::shared_ptr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& interface) override;
 
 private:
-	Rml::Core::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;
+	Rml::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;
 };
 
 #endif

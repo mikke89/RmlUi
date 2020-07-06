@@ -28,16 +28,13 @@
 
 
 
-#ifndef RMLUICOREPROPERTYPARSERANIMATION_H
-#define RMLUICOREPROPERTYPARSERANIMATION_H
+#ifndef RMLUI_CORE_PROPERTYPARSERANIMATION_H
+#define RMLUI_CORE_PROPERTYPARSERANIMATION_H
 
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 
 namespace Rml {
-namespace Core {
-
-
 
 /**
 Parses the RCSS 'animation' and 'transition' property specifications.
@@ -62,9 +59,5 @@ public:
 
 
 
-}
-}
-
-
-
+} // namespace Rml
 #endif

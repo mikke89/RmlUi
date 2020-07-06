@@ -41,9 +41,9 @@
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 #include <algorithm>
+#include <array>
 
 namespace Rml {
-namespace Core {
 
 // Sorts style nodes based on specificity.
 inline static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleSheetNode* rhs)
@@ -397,5 +397,4 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	return new_definition;
 }
 
-}
-}
+} // namespace Rml

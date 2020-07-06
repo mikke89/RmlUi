@@ -13,7 +13,7 @@
 #define HIGHSCORES_H
 
 #include <RmlUi/Core/Types.h>
-#include <RmlUi/Controls/DataSource.h>
+#include <RmlUi/Core/Elements/DataSource.h>
 
 const int NUM_SCORES = 10;
 const int NUM_ALIEN_TYPES = 3;
@@ -23,14 +23,14 @@ const int NUM_ALIEN_TYPES = 3;
 	@author Robert Curry
  */
 
-class HighScores : public Rml::Controls::DataSource
+class HighScores : public Rml::DataSource
 {
 public:
 	static void Initialise();
 	static void Shutdown();
 
-	void GetRow(Rml::Core::StringList& row, const Rml::Core::String& table, int row_index, const Rml::Core::StringList& columns);
-	int GetNumRows(const Rml::Core::String& table);
+	void GetRow(Rml::StringList& row, const Rml::String& table, int row_index, const Rml::StringList& columns);
+	int GetNumRows(const Rml::String& table);
 
 private:
 	HighScores();
@@ -38,13 +38,13 @@ private:
 
 	static HighScores* instance;
 
-	void SubmitScore(const Rml::Core::String& name, const Rml::Core::Colourb& colour, int wave, int score, int alien_kills[]);
+	void SubmitScore(const Rml::String& name, const Rml::Colourb& colour, int wave, int score, int alien_kills[]);
 	void LoadScores();
 
 	struct Score
 	{
-		Rml::Core::String name;
-		Rml::Core::Colourb colour;
+		Rml::String name;
+		Rml::Colourb colour;
 		int score;
 		int wave;
 

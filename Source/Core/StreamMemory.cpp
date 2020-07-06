@@ -31,7 +31,6 @@
 #include <stdio.h>
 
 namespace Rml {
-namespace Core {
 
 const int DEFAULT_BUFFER_SIZE = 256;
 const int BUFFER_INCREMENTS = 256;
@@ -234,5 +233,4 @@ bool StreamMemory::Reallocate( size_t size )
 	return true;
 }
 
-}
-}
+} // namespace Rml

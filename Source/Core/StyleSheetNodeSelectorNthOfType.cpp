@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/ElementText.h"
 
 namespace Rml {
-namespace Core {
 
 StyleSheetNodeSelectorNthOfType::StyleSheetNodeSelectorNthOfType()
 {
@@ -68,5 +67,4 @@ bool StyleSheetNodeSelectorNthOfType::IsApplicable(const Element* element, int a
 	return IsNth(a, b, element_index);
 }
 
-}
-}
+} // namespace Rml

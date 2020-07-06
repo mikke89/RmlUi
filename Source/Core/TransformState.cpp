@@ -26,10 +26,9 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/TransformState.h"
+#include "TransformState.h"
 
 namespace Rml {
-namespace Core {
 
 bool TransformState::SetTransform(const Matrix4f* in_transform)
 {
@@ -92,5 +91,4 @@ const Matrix4f* TransformState::GetInverseTransform() const
 	return nullptr;
 }
 
-}
-}
+} // namespace Rml

@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 
 namespace Rml {
-namespace Core {
 
 ElementDecoration::ElementDecoration(Element* _element)
 {
@@ -114,5 +113,4 @@ void ElementDecoration::DirtyDecorators()
 	decorators_dirty = true;
 }
 
-}
-}
+} // namespace Rml

@@ -37,7 +37,6 @@
 #include <float.h>
 
 namespace Rml {
-namespace Core {
 
 // Creates a new block box for rendering a block element.
 LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _parent, Element* _element) : position(0, 0)
@@ -701,5 +700,4 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 	return true;
 }
 
-}
-}
+} // namespace Rml

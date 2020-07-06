@@ -1,6 +1,6 @@
 #include "LuaInterface.h"
-#include <RmlUi/Core/Lua/LuaType.h>
-#include <RmlUi/Core/Lua/lua.hpp>
+#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi/Lua/IncludeLua.h>
 #include "Game.h"
 #include "GameDetails.h"
 #include <RmlUi/Core/Log.h>
@@ -24,7 +24,7 @@ static ElementGameInstancer game_instancer;
 void LuaInterface::Initialise(lua_State* L)
 {
     InitGame(L);
-    Rml::Core::Factory::RegisterElementInstancer("game", &game_instancer);
+    Rml::Factory::RegisterElementInstancer("game", &game_instancer);
 }
 
 void LuaInterface::InitGame(lua_State *L)
@@ -35,7 +35,7 @@ void LuaInterface::InitGame(lua_State *L)
 
     if(lua_isnil(L,game))
     {
-        Rml::Core::Log::Message(Rml::Core::Log::LT_ERROR, "Error creating the Game table from C++ in LuaInterface::InitGame");
+        Rml::Log::Message(Rml::Log::LT_ERROR, "Error creating the Game table from C++ in LuaInterface::InitGame");
         return;
     }
     
@@ -79,7 +79,7 @@ int GameShutdown(lua_State* /*L*/)
 
 int GameSetPaused(lua_State* L)
 {
-    bool paused = CHECK_BOOL(L,1); //CHECK_BOOL defined in LuaType.h
+    bool paused = RMLUI_CHECK_BOOL(L,1); //RMLUI_CHECK_BOOL defined in LuaType.h
     GameDetails::SetPaused(paused);
     return 0;
 }
@@ -93,7 +93,7 @@ int GameSetDifficulty(lua_State* L)
 
 int GameSetDefenderColour(lua_State* L)
 {
-    Rml::Core::Colourb* colour = Rml::Core::Lua::LuaType<Rml::Core::Colourb>::check(L,1);
+    Rml::Colourb* colour = Rml::Lua::LuaType<Rml::Colourb>::check(L,1);
     GameDetails::SetDefenderColour(*colour);
     return 0;
 }

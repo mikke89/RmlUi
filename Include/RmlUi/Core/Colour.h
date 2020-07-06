@@ -26,13 +26,12 @@
  *
  */
 
-#ifndef RMLUICORECOLOUR_H
-#define RMLUICORECOLOUR_H
+#ifndef RMLUI_CORE_COLOUR_H
+#define RMLUI_CORE_COLOUR_H
 
 #include "Header.h"
 
 namespace Rml {
-namespace Core {
 
 /**	
 	Templated class for a four-component RGBA colour.
@@ -112,8 +111,7 @@ public:
 	ColourType red, green, blue, alpha;
 };
 
-}
-}
+} // namespace Rml
 
 
 #include "Colour.inl"
