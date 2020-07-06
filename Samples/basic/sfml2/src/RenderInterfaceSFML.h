@@ -84,6 +84,9 @@ public:
 	void ReleaseTexture(Rml::Core::TextureHandle texture_handle) override;
 
 private:
+	void initViewport();
+
+private:
 	sf::RenderWindow *MyWindow;
 };
 
