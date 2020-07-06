@@ -149,7 +149,6 @@ int main(int /*argc*/, char** /*argv*/)
 			{
 			case sf::Event::Resized:
 				updateView(MyWindow, view);
-				Renderer.Resize();
 				break;
 			case sf::Event::MouseMoved:
 				Context->ProcessMouseMove(event.mouseMove.x, event.mouseMove.y,

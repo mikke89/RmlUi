@@ -71,17 +71,11 @@ RmlUiSFMLRenderer::RmlUiSFMLRenderer()
 void RmlUiSFMLRenderer::SetWindow(sf::RenderWindow *Window)
 {
 	MyWindow = Window;
-
-	Resize();
 }
 
 sf::RenderWindow *RmlUiSFMLRenderer::GetWindow()
 {
 	return MyWindow;
-}
-
-void RmlUiSFMLRenderer::Resize()
-{
 }
 
 // Called by RmlUi when it wants to render geometry that it does not wish to optimise.

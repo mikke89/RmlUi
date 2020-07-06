@@ -57,9 +57,6 @@ public:
 	/// Returns the currently assigned window
 	sf::RenderWindow *GetWindow();
 
-	/// Resizes the viewport automatically
-	void Resize();
-
 	/// Called by RmlUi when it wants to render geometry that it does not wish to optimise.
 	void RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation) override;
 
