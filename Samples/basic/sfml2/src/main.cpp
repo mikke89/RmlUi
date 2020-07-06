@@ -49,6 +49,14 @@
 #include <windows.h>
 #endif
 
+float multiplier = 1.f;
+
+void updateView(sf::RenderWindow& window, sf::View& view)
+{
+	view.reset(sf::FloatRect(0.f, 0.f, window.getSize().x * multiplier, window.getSize().y * multiplier));
+	window.setView(view);
+}
+
 int main(int /*argc*/, char** /*argv*/)
 {
 #ifdef RMLUI_PLATFORM_WIN32
@@ -58,7 +66,7 @@ int main(int /*argc*/, char** /*argv*/)
 	int window_width = 1024;
 	int window_height = 768;
 
-	sf::RenderWindow MyWindow(sf::VideoMode(window_width, window_height), "RmlUi with SFML2", sf::Style::Close);
+	sf::RenderWindow MyWindow(sf::VideoMode(window_width, window_height), "RmlUi with SFML2");
 	MyWindow.setVerticalSyncEnabled(true);
 
 #ifdef ENABLE_GLEW
@@ -82,6 +90,9 @@ int main(int /*argc*/, char** /*argv*/)
 
 	if (!MyWindow.isOpen())
 		return 1;
+
+	sf::View view(sf::FloatRect(0.f, 0.f, MyWindow.getSize().x, MyWindow.getSize().y));
+	MyWindow.setView(view);
 
 	Renderer.SetWindow(&MyWindow);
 
@@ -120,6 +131,15 @@ int main(int /*argc*/, char** /*argv*/)
 		static sf::Event event;
 
 		MyWindow.clear();
+
+		sf::CircleShape circle(50.f);
+		circle.setPosition(100.f, 100.f);
+		circle.setFillColor(sf::Color::Blue);
+		circle.setOutlineColor(sf::Color::Red);
+		circle.setOutlineThickness(10.f);
+
+		MyWindow.draw(circle);
+
 		Context->Render();
 		MyWindow.display();
 
@@ -128,7 +148,7 @@ int main(int /*argc*/, char** /*argv*/)
 			switch (event.type)
 			{
 			case sf::Event::Resized:
-				Renderer.Resize();
+				updateView(MyWindow, view);
 				break;
 			case sf::Event::MouseMoved:
 				Context->ProcessMouseMove(event.mouseMove.x, event.mouseMove.y,
@@ -155,13 +175,28 @@ int main(int /*argc*/, char** /*argv*/)
 					SystemInterface.GetKeyModifiers());
 				break;
 			case sf::Event::KeyReleased:
-				if (event.key.code == sf::Keyboard::F8)
+				switch (event.key.code)
 				{
+				case sf::Keyboard::Num1:
+					multiplier = 2.f;
+					updateView(MyWindow, view);
+					break;
+				case sf::Keyboard::Num2:
+					multiplier = 1.f;
+					updateView(MyWindow, view);
+					break;
+				case sf::Keyboard::Num3:
+					multiplier = .5f;
+					updateView(MyWindow, view);
+					break;
+				case sf::Keyboard::F8:
 					Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
-				};
-
-				if (event.key.code == sf::Keyboard::Escape) {
+					break;
+				case sf::Keyboard::Escape:
 					MyWindow.close();
+					break;
+				default:
+					break;
 				}
 
 				Context->ProcessKeyUp(SystemInterface.TranslateKey(event.key.code),

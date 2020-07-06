@@ -71,8 +71,6 @@ RmlUiSFMLRenderer::RmlUiSFMLRenderer()
 void RmlUiSFMLRenderer::SetWindow(sf::RenderWindow *Window)
 {
 	MyWindow = Window;
-
-	Resize();
 }
 
 sf::RenderWindow *RmlUiSFMLRenderer::GetWindow()
@@ -80,24 +78,12 @@ sf::RenderWindow *RmlUiSFMLRenderer::GetWindow()
 	return MyWindow;
 }
 
-void RmlUiSFMLRenderer::Resize()
-{
-	static sf::View View;
-	View.setViewport(sf::FloatRect(0, (float)MyWindow->getSize().x, (float)MyWindow->getSize().y, 0));
-	MyWindow->setView(View);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, MyWindow->getSize().x, MyWindow->getSize().y, 0, -1, 1);
-	glMatrixMode(GL_MODELVIEW);
-
-	glViewport(0, 0, MyWindow->getSize().x, MyWindow->getSize().y);
-}
-
 // Called by RmlUi when it wants to render geometry that it does not wish to optimise.
 void RmlUiSFMLRenderer::RenderGeometry(Rml::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::Core::TextureHandle texture, const Rml::Core::Vector2f& translation)
 {
 	MyWindow->pushGLStates();
+	initViewport();
+
 	glTranslatef(translation.x, translation.y, 0);
 
 	std::vector<Rml::Core::Vector2f> Positions(num_vertices);
@@ -188,6 +174,8 @@ void RmlUiSFMLRenderer::RenderCompiledGeometry(Rml::Core::CompiledGeometryHandle
 	RmlUiSFMLRendererGeometryHandler *RealGeometry = (RmlUiSFMLRendererGeometryHandler *)geometry;
 
 	MyWindow->pushGLStates();
+	initViewport();
+
 	glTranslatef(translation.x, translation.y, 0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -307,4 +295,14 @@ bool RmlUiSFMLRenderer::GenerateTexture(Rml::Core::TextureHandle& texture_handle
 void RmlUiSFMLRenderer::ReleaseTexture(Rml::Core::TextureHandle texture_handle)
 {
 	delete (sf::Texture *)texture_handle;
+}
+
+void RmlUiSFMLRenderer::initViewport() {
+	glViewport(0, 0, MyWindow->getSize().x, MyWindow->getSize().y);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glOrtho(0, MyWindow->getSize().x, MyWindow->getSize().y, 0, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
 }
