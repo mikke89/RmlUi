@@ -14,6 +14,8 @@ RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing fe
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
+*Note:* RmlUi 4.0 currently in development is a restructuring of RmlUi 3.x. This includes changes to the namespaces, plugins, and include headers. Take a look at the [changelog](changelog.md#restructuring-rmlui) for a summary of changes and an upgrade guide.
+
 ## Features
 
 - Cross platform architecture: Windows, macOS, Linux, iOS, etc.

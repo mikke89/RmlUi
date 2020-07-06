@@ -182,7 +182,7 @@ if( NO_THIRDPARTY_CONTAINERS )
 	message("-- No third-party containers will be used: Make sure to #define RMLUI_NO_THIRDPARTY_CONTAINERS before including RmlUi in your project.")
 endif()
 
-option(ENABLE_TRACY_PROFILING "Enable profiling with Tracy. It is recommended to place source files in Dependencies/tracy." OFF)
+option(ENABLE_TRACY_PROFILING "Enable profiling with Tracy. Source files can be placed in Dependencies/tracy." OFF)
 if( ENABLE_TRACY_PROFILING )
 	find_package(Tracy REQUIRED)
 
