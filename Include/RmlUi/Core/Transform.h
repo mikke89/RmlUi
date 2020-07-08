@@ -31,11 +31,11 @@
 
 #include "Header.h"
 #include "Types.h"
+#include "TransformPrimitive.h"
 
 namespace Rml {
 
 class Property;
-struct TransformPrimitive;
 
 /**
 	The Transform class holds the information parsed from an element's `transform' property.

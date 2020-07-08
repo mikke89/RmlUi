@@ -47,7 +47,7 @@ struct RMLUICORE_API NumericValue {
 
 // A resolved primitive has values that are always independent of an element's properties or layout.
 template< size_t N >
-struct ResolvedPrimitive
+struct RMLUICORE_API ResolvedPrimitive
 {
 	std::array<float, N> values;
 
@@ -61,7 +61,7 @@ protected:
 
 // An unresolved primitive may have values that depend on the final layout of a given element, such as its width.
 template< size_t N >
-struct UnresolvedPrimitive
+struct RMLUICORE_API UnresolvedPrimitive
 {
 	std::array<NumericValue, N> values;
 
