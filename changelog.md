@@ -53,7 +53,7 @@ RmlUi now supports a model-view-controller (MVC) approach through data bindings.
 
 For now, this is considered an experimental feature.
 
-- See the work-in-progress [documentation for this feature](https://gist.github.com/mikke89/030cca078e36749580c975692d03cbee).
+- See the work-in-progress [documentation for this feature](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html).
 - Have a look at the 'databinding' sample for usage examples.
 - See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
 
