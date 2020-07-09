@@ -171,10 +171,6 @@ if(NO_FONT_INTERFACE_DEFAULT)
 	add_definitions(-DRMLUI_NO_FONT_INTERFACE_DEFAULT)
 endif()
 
-if (WIN32)
-	add_definitions(-DWIN32)
-endif(WIN32)
-
 if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DRMLUI_STATIC_LIB)
 	message("-- Building static libraries. Make sure to #define RMLUI_STATIC_LIB before including RmlUi in your project.")
@@ -451,10 +447,6 @@ macro(bl_sample NAME)
 	endif()
 
 	target_link_libraries(${NAME} ${ARGN})
-
-	if (WIN32)
-		target_link_libraries(${NAME} shlwapi)
-	endif()
 endmacro()
 
 if(BUILD_SAMPLES)
@@ -520,6 +512,10 @@ endif(NOT BUILD_FRAMEWORK)
 	
 	if (PRECOMPILED_HEADERS_ENABLED)
 		target_precompile_headers(shell PRIVATE ${PROJECT_SOURCE_DIR}/Samples/shell/src/precompiled.h)
+	endif()
+
+	if (WIN32)
+		target_link_libraries(shell PUBLIC shlwapi)
 	endif()
 
 	# Build and install the basic samples

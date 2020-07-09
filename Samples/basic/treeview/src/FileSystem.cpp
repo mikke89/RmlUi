@@ -32,7 +32,7 @@
 #include <cstdio>
 #include <string.h>
 
-#ifdef WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 #include <io.h>
 #else
 #include <dirent.h>
@@ -72,7 +72,7 @@ struct FileSystemNode
 	// Build the list of files and directories within this directory.
 	void BuildTree(const Rml::String& root = "")
 	{
-#ifdef WIN32
+#ifdef RMLUI_PLATFORM_WIN32
 		_finddata_t find_data;
 		intptr_t find_handle = _findfirst((root + name + "/*.*").c_str(), &find_data);
 		if (find_handle != -1)
