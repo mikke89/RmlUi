@@ -34,7 +34,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <shlwapi.h>
-#pragma comment( lib  , "Shlwapi.lib"  )
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param);
 
