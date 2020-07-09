@@ -79,11 +79,12 @@ public:
 class SpritesheetPropertyParser final : public AbstractPropertyParser {
 private:
 	String image_source;
+	float image_resolution_factor = 1.f;
 	SpriteDefinitionList sprite_definitions;
 
 	PropertyDictionary properties;
 	PropertySpecification specification;
-	PropertyId id_rx, id_ry, id_rw, id_rh;
+	PropertyId id_rx, id_ry, id_rw, id_rh, id_resolution;
 	ShorthandId id_rectangle;
 
 public:
@@ -94,6 +95,7 @@ public:
 		id_rw = specification.RegisterProperty("rectangle-w", "", false, false).AddParser("length").GetId();
 		id_rh = specification.RegisterProperty("rectangle-h", "", false, false).AddParser("length").GetId();
 		id_rectangle = specification.RegisterShorthand("rectangle", "rectangle-x, rectangle-y, rectangle-w, rectangle-h", ShorthandType::FallThrough);
+		id_resolution = specification.RegisterProperty("resolution", "", false, false).AddParser("resolution").GetId();
 	}
 
 	const String& GetImageSource() const
@@ -104,8 +106,13 @@ public:
 	{
 		return sprite_definitions;
 	}
+	float GetImageResolutionFactor() const
+	{
+		return image_resolution_factor;
+	}
 
 	void Clear() {
+		image_resolution_factor = 1.f;
 		image_source.clear();
 		sprite_definitions.clear();
 	}
@@ -115,6 +122,17 @@ public:
 		if (name == "src")
 		{
 			image_source = value;
+		}
+		else if (name == "resolution")
+		{
+			if (!specification.ParsePropertyDeclaration(properties, id_resolution, value))
+				return false;
+
+			if (const Property* property = properties.GetProperty(id_resolution))
+			{
+				if (property->unit == Property::X)
+					image_resolution_factor = property->Get<float>();
+			}
 		}
 		else
 		{
@@ -603,6 +621,7 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 
 						const String& image_source = spritesheet_property_parser->GetImageSource();
 						const SpriteDefinitionList& sprite_definitions = spritesheet_property_parser->GetSpriteDefinitions();
+						const float image_resolution_factor = spritesheet_property_parser->GetImageResolutionFactor();
 						
 						if (at_rule_name.empty())
 						{
@@ -616,9 +635,14 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 						{
 							Log::Message(Log::LT_WARNING, "No image source (property 'src') specified for spritesheet '%s'. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
 						}
+						else if (image_resolution_factor <= 0.0f || image_resolution_factor >= 100.f)
+						{
+							Log::Message(Log::LT_WARNING, "Spritesheet resolution (property 'resolution') value must be larger than 0.0 and smaller than 100.0, given %g. In spritesheet '%s'. At %s:%d", image_resolution_factor, at_rule_name.c_str(), stream_file_name.c_str(), line_number);
+						}
 						else
 						{
-							current_block.stylesheet->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, sprite_definitions);
+							const float image_inv_scale = 1.0f / image_resolution_factor;
+							current_block.stylesheet->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, image_inv_scale, sprite_definitions);
 						}
 
 						spritesheet_property_parser->Clear();

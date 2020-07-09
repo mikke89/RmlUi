@@ -162,9 +162,6 @@ private:
 
 	/// Notify the document that media query related properties have changed and that stylesheets need to be re-evaluated.
 	void DirtyMediaQueries();
-	
-	/// Updates all sizes defined by the 'dp' unit.
-	void DirtyDpProperties();
 
 	/// Updates all sizes defined by the 'vw' and the 'vh' units.
 	void DirtyVwAndVhProperties();

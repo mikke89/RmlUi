@@ -2,10 +2,13 @@
 {
 	src: invader.tga;
 	
+	/* For high dpi screens, designates the scaling it is intended to be shown at. */
+	resolution: 1x;  
+	
 	/**
 	   The following specifies a list of sprite names and associated rectangles into the image given above.
 	   Any sprite given here can be specified in a decorator. Their names must be globally unique.
-	   Rectangles are specified as: x y width height.
+	   Rectangles are specified as: x y width height. With the origin assumed to be at the top left corner.
 	*/
 	title-bar-l: 147px 0px 82px 85px;
 	title-bar-c: 229px 0px  1px 85px;

@@ -488,11 +488,6 @@ bool ElementDocument::IsLayoutDirty()
 	return layout_dirty;
 }
 
-void ElementDocument::DirtyDpProperties()
-{
-	GetStyle()->DirtyPropertiesWithUnitsRecursive(Property::DP);
-}
-
 void ElementDocument::DirtyVwAndVhProperties()
 {
 	GetStyle()->DirtyPropertiesWithUnitsRecursive(Property::VW | Property::VH);

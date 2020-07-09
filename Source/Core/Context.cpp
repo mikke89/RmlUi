@@ -147,13 +147,13 @@ void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_r
 	{
 		density_independent_pixel_ratio = _density_independent_pixel_ratio;
 
-		for (int i = 0; i < root->GetNumChildren(); ++i)
+		for (int i = 0; i < root->GetNumChildren(true); ++i)
 		{
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
-			if (document != nullptr)
+			if (document)
 			{
 				document->DirtyMediaQueries();
-				document->DirtyDpProperties();
+				document->DirtyDpRatio();
 			}
 		}
 	}

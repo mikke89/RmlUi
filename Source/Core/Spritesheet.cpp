@@ -32,13 +32,20 @@
 
 namespace Rml {
 
-bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, const SpriteDefinitionList& sprite_definitions)
+
+Spritesheet::Spritesheet(const String& name, const String& image_source, const String& definition_source,
+	int definition_line_number, float image_inv_scale, const Texture& texture)
+	: name(name), image_source(image_source), definition_source(definition_source),
+	definition_line_number(definition_line_number), image_inv_scale(image_inv_scale), texture(texture)
+{}
+
+bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, float image_inv_scale, const SpriteDefinitionList& sprite_definitions)
 {
 	// Load the texture
 	Texture texture;
 	texture.Set(image_source, definition_source);
 
-	auto sprite_sheet = MakeShared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture);
+	auto sprite_sheet = MakeShared<Spritesheet>(name, image_source, definition_source, definition_line_number, image_inv_scale, texture);
 	auto result = spritesheet_map.emplace(name, sprite_sheet);
 	if (!result.second)
 	{
