@@ -568,7 +568,7 @@ StringView::StringView(const String& string) : p_begin(string.data()), p_end(str
 {}
 StringView::StringView(const String& string, size_t offset) : p_begin(string.data() + offset), p_end(string.data() + string.size())
 {}
-StringView::StringView(const String& string, size_t offset, size_t count) : p_begin(string.data() + offset), p_end(string.data() + std::min(offset + count, string.size()))
+StringView::StringView(const String& string, size_t offset, size_t count) : p_begin(string.data() + offset), p_end(string.data() + std::min<size_t>(offset + count, string.size()))
 {}
 
 bool StringView::operator==(const StringView& other) const { 

@@ -526,7 +526,7 @@ bool WidgetTextInput::AddCharacters(String string)
 
 	String value = GetElement()->GetAttribute< String >("value", "");
 	
-	value.insert(std::min(size_t(GetCursorIndex()), value.size()), string);
+	value.insert(std::min<size_t>(GetCursorIndex(), value.size()), string);
 
 	edit_index += (int)string.size();
 
@@ -563,7 +563,7 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 void WidgetTextInput::CopySelection()
 {
 	const String& value = GetElement()->GetAttribute< String >("value", "");
-	const String snippet = value.substr(std::min(size_t(selection_begin_index), value.size()), selection_length);
+	const String snippet = value.substr(std::min(size_t(selection_begin_index), size_t(value.size())), selection_length);
 	GetSystemInterface()->SetClipboardText(snippet);
 }
 
@@ -1186,7 +1186,7 @@ void WidgetTextInput::DeleteSelection()
 	{
 		const String& value = GetElement()->GetAttribute< String >("value", "");
 
-		String new_value = value.substr(0, selection_begin_index) + value.substr(std::min(size_t(selection_begin_index + selection_length), value.size()));
+		String new_value = value.substr(0, selection_begin_index) + value.substr(std::min(size_t(selection_begin_index + selection_length), size_t(value.size())));
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
