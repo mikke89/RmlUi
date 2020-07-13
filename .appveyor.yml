@@ -1,9 +1,13 @@
 version: build.{build}
 image: Visual Studio 2017
+matrix:
+  fast_finish: true
 environment:
   FREETYPE_VER: 2.10.1
-  CXXFLAGS: /DWIN32 /D_WINDOWS /W4 /GR /EHsc /permissive- /w44062
+  VS_CXXFLAGS: /DWIN32 /D_WINDOWS /W4 /GR /EHsc /permissive- /w44062
+  RUN_MINGW: false
   matrix:
+    - RUN_MINGW: true
     - VS_GENERATOR: Visual Studio 15 2017 Win64
       PLATFORM_NAME: win64
     - VS_GENERATOR: Visual Studio 15 2017
@@ -21,7 +25,7 @@ install:
     mkdir Build-Dynamic, Build-Static
     
     cd Build-Dynamic
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON -DCMAKE_CXX_FLAGS="%CXXFLAGS%" ..
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON -DCMAKE_CXX_FLAGS="%VS_CXXFLAGS%" ..
 
     cd ../Build-Static
     cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DBUILD_SAMPLES=OFF ..
@@ -69,6 +73,43 @@ after_build:
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
     IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
     
+for:
+-
+  matrix:
+    only:
+      - RUN_MINGW: true
+  install:
+  - cmd: |-
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-gcc"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-make"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-freetype"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-sfml"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-lua"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-SDL2"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-SDL2_image"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-glew"
+      
+      mkdir Build
+      cd Build
+      
+      set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+      set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
+      set GLEW_INCLUDE_DIR=C:/msys64/mingw64/include/GL
+      set GLEW_LIBRARIES=C:/msys64/mingw64/lib/libglew32.dll.a
+      
+      cmake -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=ON -DENABLE_PRECOMPILED_HEADERS=OFF -DBUILD_SAMPLES=ON -DBUILD_LUA_BINDINGS=ON -DCMAKE_C_COMPILER=gcc.exe -DCMAKE_CXX_COMPILER=g++.exe -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -DGLEW_INCLUDE_DIR=%GLEW_INCLUDE_DIR% -DGLEW_LIBRARIES=%GLEW_LIBRARIES% ..
+
+      set CHERE_INVOKING=yes
+      set MSYSTEM=MINGW64
+
+  build_script:
+  - cmd: |-
+      C:\msys64\usr\bin\bash -lc "mingw32-make.exe -j4"
+      
+  after_build:
+  - cmd: |-
+      ls {*.exe,*.dll} -s -h -X
+
 artifacts:
 - path: RmlUi-win64.zip
 - path: RmlUi-win64-samples-only.zip
@@ -84,3 +125,4 @@ deploy:
   prerelease: false
   on:
     APPVEYOR_REPO_TAG: true
+    RUN_MINGW: false
