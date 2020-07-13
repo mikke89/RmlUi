@@ -128,6 +128,7 @@ RMLUICORE_API bool LoadFontFace(const String& file_name, bool fallback_face = fa
 /// @param[in] weight The weight to register the font as.
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 /// @return True if the face was loaded successfully, false otherwise.
+/// @lifetime The pointed to 'data' must remain available until after the call to Rml::Shutdown.
 RMLUICORE_API bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face = false);
 
 /// Registers a generic RmlUi plugin.
