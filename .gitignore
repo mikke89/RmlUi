@@ -2,7 +2,8 @@
 /Build/
 
 # Other common build targets
-/build/
+/build*/
+/Build*/
 /Bin/
 /bin/
 /Lib/
