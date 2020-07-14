@@ -79,21 +79,21 @@ inline ResolvedPrimitive<N>::ResolvedPrimitive(const NumericValue* values) noexc
 }
 
 template<size_t N>
-inline ResolvedPrimitive<N>::ResolvedPrimitive(const NumericValue* values, std::array<Property::Unit, N> base_units) noexcept
+inline ResolvedPrimitive<N>::ResolvedPrimitive(const NumericValue* values, Array<Property::Unit, N> base_units) noexcept
 {
 	for (size_t i = 0; i < N; ++i)
 		this->values[i] = ResolvePrimitiveAbsoluteValue(values[i], base_units[i]);
 }
 
 template<size_t N>
-inline ResolvedPrimitive<N>::ResolvedPrimitive(std::array<NumericValue, N> values, std::array<Property::Unit, N> base_units) noexcept
+inline ResolvedPrimitive<N>::ResolvedPrimitive(Array<NumericValue, N> values, Array<Property::Unit, N> base_units) noexcept
 {
 	for (size_t i = 0; i < N; ++i)
 		this->values[i] = ResolvePrimitiveAbsoluteValue(values[i], base_units[i]);
 }
 
 template<size_t N>
-inline ResolvedPrimitive<N>::ResolvedPrimitive(std::array<float, N> values) noexcept : values(values) { }
+inline ResolvedPrimitive<N>::ResolvedPrimitive(Array<float, N> values) noexcept : values(values) { }
 
 template<size_t N>
 inline UnresolvedPrimitive<N>::UnresolvedPrimitive(const NumericValue* values) noexcept
@@ -103,7 +103,7 @@ inline UnresolvedPrimitive<N>::UnresolvedPrimitive(const NumericValue* values) n
 }
 
 template<size_t N>
-inline UnresolvedPrimitive<N>::UnresolvedPrimitive(std::array<NumericValue, N> values) noexcept : values(values) { }
+inline UnresolvedPrimitive<N>::UnresolvedPrimitive(Array<NumericValue, N> values) noexcept : values(values) { }
 
 
 Matrix2D::Matrix2D(const NumericValue* values) noexcept : ResolvedPrimitive(values) { }

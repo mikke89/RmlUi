@@ -468,7 +468,7 @@ U16String StringUtilities::ToUTF16(const String& input)
 	if (input.empty())
 		return result;
 
-	std::vector<Character> characters;
+	Vector<Character> characters;
 	characters.reserve(input.size());
 
 	for (auto it = StringIteratorU8(input); it; ++it)
@@ -509,7 +509,7 @@ U16String StringUtilities::ToUTF16(const String& input)
 
 String StringUtilities::ToUTF8(const U16String& input)
 {
-	std::vector<Character> characters;
+	Vector<Character> characters;
 	characters.reserve(input.size());
 
 	bool valid_input = true;

@@ -982,8 +982,8 @@ Vector2f WidgetTextInput::FormatText()
 	// Clear the selection background geometry, and get the vertices and indices so the new geo can
 	// be generated.
 	selection_geometry.Release(true);
-	std::vector< Vertex >& selection_vertices = selection_geometry.GetVertices();
-	std::vector< int >& selection_indices = selection_geometry.GetIndices();
+	Vector< Vertex >& selection_vertices = selection_geometry.GetVertices();
+	Vector< int >& selection_indices = selection_geometry.GetIndices();
 
 	// Determine the line-height of the text element.
 	float line_height = parent->GetLineHeight();
@@ -1114,10 +1114,10 @@ void WidgetTextInput::GenerateCursor()
 	// Generates the cursor.
 	cursor_geometry.Release();
 
-	std::vector< Vertex >& vertices = cursor_geometry.GetVertices();
+	Vector< Vertex >& vertices = cursor_geometry.GetVertices();
 	vertices.resize(4);
 
-	std::vector< int >& indices = cursor_geometry.GetIndices();
+	Vector< int >& indices = cursor_geometry.GetIndices();
 	indices.resize(6);
 
 	cursor_size.x = ElementUtilities::GetDensityIndependentPixelRatio(text_element);

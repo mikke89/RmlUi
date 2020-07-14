@@ -700,7 +700,7 @@ private:
 	Vector2f scroll_offset;
 
 	// The size of the element.
-	using BoxList = std::vector< Box >;
+	using BoxList = Vector< Box >;
 	Box main_box;
 	BoxList additional_boxes;
 

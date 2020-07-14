@@ -67,7 +67,7 @@ public:
 	void Unplace();
 
 private:
-	using RectangleList = std::vector< TextureLayoutRectangle* >;
+	using RectangleList = Vector< TextureLayoutRectangle* >;
 
 	int height;
 	RectangleList rectangles;

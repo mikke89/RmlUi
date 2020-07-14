@@ -133,6 +133,10 @@ class Vector3
 		Type x;
 		Type y;
 		Type z;
+
+#ifdef RMLUI_VECTOR3_USER_EXTRA
+		RMLUI_VECTOR3_USER_EXTRA
+#endif
 };
 
 } // namespace Rml

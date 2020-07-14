@@ -38,7 +38,7 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 	Texture texture;
 	texture.Set(image_source, definition_source);
 
-	auto sprite_sheet = std::make_shared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture);
+	auto sprite_sheet = MakeShared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture);
 	auto result = spritesheet_map.emplace(name, sprite_sheet);
 	if (!result.second)
 	{

@@ -40,7 +40,6 @@
 #include "ElementStyle.h"
 #include "LayoutEngine.h"
 #include "TransformState.h"
-#include <queue>
 #include <limits>
 
 namespace Rml {
@@ -78,7 +77,7 @@ static void SetElementOffset(Element* element, const Vector2f& offset)
 Element* ElementUtilities::GetElementById(Element* root_element, const String& id)
 {
 	// Breadth first search on elements for the corresponding id
-	typedef std::queue<Element*> SearchQueue;
+	typedef Queue<Element*> SearchQueue;
 	SearchQueue search_queue;
 	search_queue.push(root_element);
 
@@ -103,7 +102,7 @@ Element* ElementUtilities::GetElementById(Element* root_element, const String& i
 void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root_element, const String& tag)
 {
 	// Breadth first search on elements for the corresponding id
-	typedef std::queue< Element* > SearchQueue;
+	typedef Queue< Element* > SearchQueue;
 	SearchQueue search_queue;
 	for (int i = 0; i < root_element->GetNumChildren(); ++i)
 		search_queue.push(root_element->GetChild(i));
@@ -125,7 +124,7 @@ void ElementUtilities::GetElementsByTagName(ElementList& elements, Element* root
 void ElementUtilities::GetElementsByClassName(ElementList& elements, Element* root_element, const String& class_name)
 {
 	// Breadth first search on elements for the corresponding id
-	typedef std::queue< Element* > SearchQueue;
+	typedef Queue< Element* > SearchQueue;
 	SearchQueue search_queue;
 	for (int i = 0; i < root_element->GetNumChildren(); ++i)
 		search_queue.push(root_element->GetChild(i));
@@ -404,7 +403,7 @@ static bool ApplyDataViewsControllersInternal(Element* element, const bool const
 		// Since data views and controllers may modify the element's attributes during initialization, we 
 		// need to iterate over all the attributes _before_ initializing any views or controllers. We store
 		// the information needed to initialize them in the following container.
-		std::vector<ViewControllerInitializer> initializer_list;
+		Vector<ViewControllerInitializer> initializer_list;
 
 		for (auto& attribute : element->GetAttributes())
 		{

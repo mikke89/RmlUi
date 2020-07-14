@@ -31,7 +31,6 @@
 
 #include "Header.h"
 #include "Types.h"
-#include <functional>
 
 namespace Rml {
 
@@ -45,7 +44,7 @@ class RenderInterface;
 	/// @param[out] dimensions The width and height of the generated texture.
 	/// @return True on success.
 */
-using TextureCallback = std::function<bool(const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions)>;
+using TextureCallback = Function<bool(const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions)>;
 
 
 /**

@@ -47,7 +47,7 @@ class ElementDefinitionIterator;
 class ElementDefinition : public NonCopyMoveable
 {
 public:
-	ElementDefinition(const std::vector< const StyleSheetNode* >& style_sheet_nodes);
+	ElementDefinition(const Vector< const StyleSheetNode* >& style_sheet_nodes);
 
 	/// Returns a specific property from the element definition.
 	/// @param[in] id The id of the property to return.

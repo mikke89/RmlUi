@@ -99,9 +99,9 @@ public:
 private:
 	// List of all active geometry, in addition to free slots.
 	// Free slots (as defined by the 'free_list') may contain dangling pointers and must not be dereferenced.
-	std::vector<Geometry*> geometry_list;
+	Vector<Geometry*> geometry_list;
 	// Declares free slots in the 'geometry_list' as indices.
-	std::vector<GeometryDatabaseHandle> free_list;
+	Vector<GeometryDatabaseHandle> free_list;
 };
 
 
@@ -130,7 +130,7 @@ void ReleaseAll()
 
 static class TestGeometryDatabase {
 private:
-	std::vector<Geometry> geometry_list;
+	Vector<Geometry> geometry_list;
 
 	bool list_database_equivalent()
 	{

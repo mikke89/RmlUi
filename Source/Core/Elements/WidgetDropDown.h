@@ -31,7 +31,6 @@
 
 #include "../../../Include/RmlUi/Core/EventListener.h"
 #include "../../../Include/RmlUi/Core/Elements/SelectOption.h"
-#include <vector>
 
 namespace Rml {
 
@@ -102,7 +101,7 @@ public:
 	void ProcessEvent(Event& event) override;
 
 private:
-	typedef std::vector< SelectOption > OptionList;
+	typedef Vector< SelectOption > OptionList;
 
 	// Shows or hides the selection box.
 	void ShowSelectBox(bool show);

@@ -122,7 +122,7 @@ private:
 	int offset;
 	int limit;
 
-	typedef std::vector< StringList > Rows;
+	typedef Vector< StringList > Rows;
 	Rows rows;    
 	typedef UnorderedMap< String, size_t > FieldIndices;
 	FieldIndices field_indices;

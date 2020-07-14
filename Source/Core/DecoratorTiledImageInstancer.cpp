@@ -52,7 +52,7 @@ SharedPtr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const Strin
 	if (!GetTileProperties(&tile, &texture, 1, properties, interface))
 		return nullptr;
 	
-	auto decorator = std::make_shared<DecoratorTiledImage>();
+	auto decorator = MakeShared<DecoratorTiledImage>();
 
 	if (!decorator->Initialise(tile, texture))
 		return nullptr;

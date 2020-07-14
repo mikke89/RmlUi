@@ -117,7 +117,7 @@ struct FileSystemNode
 		}
 	}
 
-	typedef std::vector< FileSystemNode* > NodeList;
+	typedef Rml::Vector< FileSystemNode* > NodeList;
 
 	Rml::String id;
 	Rml::String name;

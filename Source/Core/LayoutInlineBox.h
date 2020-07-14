@@ -164,7 +164,7 @@ protected:
 	// This inline box's line.
 	LayoutLineBox* line;
 
-	std::vector< LayoutInlineBox* > children;
+	Vector< LayoutInlineBox* > children;
 
 	// The next link in our element's chain of inline boxes.
 	LayoutInlineBox* chain;

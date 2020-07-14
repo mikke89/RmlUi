@@ -33,7 +33,7 @@
 
 namespace FontProviderBitmap
 {
-	static std::vector<std::unique_ptr<FontFaceBitmap>> fonts;
+	static Rml::Vector<Rml::UniquePtr<FontFaceBitmap>> fonts;
 
 
 	void Initialise()
@@ -48,7 +48,7 @@ namespace FontProviderBitmap
 	bool LoadFontFace(const String& file_name)
 	{
 		// Load the xml meta file into memory
-		std::unique_ptr<byte[]> data;
+		Rml::UniquePtr<byte[]> data;
 		size_t length = 0;
 
 		{
@@ -73,7 +73,7 @@ namespace FontProviderBitmap
 		FontParserBitmap parser;
 
 		{
-			auto stream = std::make_unique<Rml::StreamMemory>(data.get(), length);
+			auto stream = Rml::MakeUnique<Rml::StreamMemory>(data.get(), length);
 			stream->SetSourceURL(file_name);
 
 			parser.Parse(stream.get());
@@ -91,7 +91,7 @@ namespace FontProviderBitmap
 
 		// Construct and add the font face
 		fonts.push_back(
-			std::make_unique<FontFaceBitmap>( 
+			Rml::MakeUnique<FontFaceBitmap>( 
 				parser.family, parser.style, parser.weight, parser.metrics, texture, parser.texture_dimensions, std::move(parser.glyphs), std::move(parser.kerning)
 		));
 

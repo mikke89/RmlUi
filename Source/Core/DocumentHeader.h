@@ -33,7 +33,7 @@
 
 namespace Rml {
 
-using LineNumberList = std::vector<int>;
+using LineNumberList = Vector<int>;
 
 /**
 	The document header struct contains the

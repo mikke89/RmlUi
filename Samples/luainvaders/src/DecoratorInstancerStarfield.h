@@ -46,7 +46,7 @@ public:
 	/// @param name The type of decorator desired. For example, "background-decorator: simple;" is declared as type "simple".
 	/// @param properties All RCSS properties associated with the decorator.
 	/// @return The decorator if it was instanced successful, nullptr if an error occured.
-	std::shared_ptr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& interface) override;
+	Rml::SharedPtr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& interface) override;
 
 private:
 	Rml::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;

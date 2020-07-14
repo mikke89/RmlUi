@@ -35,8 +35,8 @@
 namespace Rml {
 namespace Debugger {
 
-typedef std::pair< String, const Property* > NamedProperty;
-typedef std::vector< NamedProperty > NamedPropertyList;
+typedef Pair< String, const Property* > NamedProperty;
+typedef Vector< NamedProperty > NamedPropertyList;
 
 /**
 	@author Robert Curry

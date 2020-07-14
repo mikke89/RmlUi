@@ -33,7 +33,6 @@
 #include "Types.h"
 #include "Traits.h"
 #include "DataTypes.h"
-#include <unordered_map>
 
 namespace Rml {
 
@@ -117,14 +116,14 @@ public:
 	bool Update(DataModel& model, const DirtyVariables& dirty_variables);
 
 private:
-	using DataViewList = std::vector<DataViewPtr>;
+	using DataViewList = Vector<DataViewPtr>;
 
 	DataViewList views;
 	
 	DataViewList views_to_add;
 	DataViewList views_to_remove;
 
-	using NameViewMap = std::unordered_multimap<String, DataView*>;
+	using NameViewMap = UnorderedMultimap<String, DataView*>;
 	NameViewMap name_view_map;
 };
 

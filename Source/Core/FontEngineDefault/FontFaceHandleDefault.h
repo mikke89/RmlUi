@@ -126,10 +126,10 @@ private:
 		const FontEffect* font_effect;
 		UniquePtr<FontFaceLayer> layer; 
 	};
-	using FontLayerMap = std::vector< EffectLayerPair >;
+	using FontLayerMap = Vector< EffectLayerPair >;
 	using FontLayerCache = SmallUnorderedMap< size_t, FontFaceLayer* >;
-	using LayerConfiguration = std::vector< FontFaceLayer* >;
-	using LayerConfigurationList = std::vector< LayerConfiguration >;
+	using LayerConfiguration = Vector< FontFaceLayer* >;
+	using LayerConfigurationList = Vector< LayerConfiguration >;
 
 	// The list of all font layers, index by the effect that instanced them.
 	FontFaceLayer* base_layer;

@@ -57,7 +57,7 @@ private:
 	int num_iterations = 0;       // -1 for infinity
 	bool alternate_direction = 0; // between iterations
 
-	std::vector<AnimationKey> keys;
+	Vector<AnimationKey> keys;
 
 	double last_update_world_time = 0;
 	float time_since_iteration_start = 0;

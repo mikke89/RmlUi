@@ -34,6 +34,7 @@
 #include "Traits.h"
 #include "DataTypes.h"
 #include "DataTypeRegister.h"
+#include <functional>
 
 namespace Rml {
 

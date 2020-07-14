@@ -63,7 +63,7 @@ FontFaceHandleDefault* FontFamily::GetFaceHandle(Style::FontStyle style, Style::
 // Adds a new face to the family.
 FontFace* FontFamily::AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream)
 {
-	auto face = std::make_unique<FontFace>(ft_face, style, weight, release_stream);
+	auto face = MakeUnique<FontFace>(ft_face, style, weight, release_stream);
 	FontFace* result = face.get();
 
 	font_faces.push_back(std::move(face));

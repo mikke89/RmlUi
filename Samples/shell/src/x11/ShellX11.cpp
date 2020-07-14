@@ -50,7 +50,7 @@ static int screen = -1;
 static timeval start_time;
 static Rml::String clipboard_text;
 
-static std::unique_ptr<ShellFileInterface> file_interface;
+static Rml::UniquePtr<ShellFileInterface> file_interface;
 
 static Cursor cursor_default = 0;
 static Cursor cursor_move = 0;
@@ -74,7 +74,7 @@ bool Shell::Initialise()
 	Rml::String root = FindSamplesRoot();
 	bool result = !root.empty();
 
-	file_interface = std::make_unique<ShellFileInterface>(root);
+	file_interface = Rml::MakeUnique<ShellFileInterface>(root);
 	Rml::SetFileInterface(file_interface.get());
 
 	return result;

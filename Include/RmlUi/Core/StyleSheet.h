@@ -51,8 +51,8 @@ struct KeyframeBlock {
 	PropertyDictionary properties;
 };
 struct Keyframes {
-	std::vector<PropertyId> property_ids;
-	std::vector<KeyframeBlock> blocks;
+	Vector<PropertyId> property_ids;
+	Vector<KeyframeBlock> blocks;
 };
 using KeyframesMap = UnorderedMap<String, Keyframes>;
 
@@ -73,7 +73,7 @@ using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 class RMLUICORE_API StyleSheet : public NonCopyMoveable
 {
 public:
-	typedef std::vector< StyleSheetNode* > NodeList;
+	typedef Vector< StyleSheetNode* > NodeList;
 	typedef UnorderedMap< size_t, NodeList > NodeIndex;
 
 	StyleSheet();

@@ -54,7 +54,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		return true;
 	}
 
-	TransformPtr transform = std::make_shared<Transform>();
+	TransformPtr transform = MakeShared<Transform>();
 
 	char const* next = value.c_str();
 
@@ -192,7 +192,7 @@ bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const c
 	/* use the quicker stack-based argument buffer, if possible */
 	char *arg = 0;
 	char arg_stack[1024];
-	std::string arg_heap;
+	String arg_heap;
 	if (strlen(str) < sizeof(arg_stack))
 	{
 		arg = arg_stack;

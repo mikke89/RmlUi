@@ -52,7 +52,7 @@ class Property;
 class RMLUICORE_API Transform
 {
 public:
-	using PrimitiveList = std::vector< TransformPrimitive >;
+	using PrimitiveList = Vector< TransformPrimitive >;
 
 	/// Default constructor, initializes an identity transform
 	Transform();

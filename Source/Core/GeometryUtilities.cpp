@@ -79,8 +79,8 @@ void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, const Vecto
 // Generates the geometry required to render a line above, below or through a line of text.
 void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration height, const Colourb& colour)
 {
-	std::vector< Vertex >& line_vertices = geometry->GetVertices();
-	std::vector< int >& line_indices = geometry->GetIndices();
+	Vector< Vertex >& line_vertices = geometry->GetVertices();
+	Vector< int >& line_indices = geometry->GetIndices();
 	float underline_thickness = 0;
 	float underline_position = GetFontEngineInterface()->GetUnderline(font_face_handle, underline_thickness);
 	int size = GetFontEngineInterface()->GetSize(font_face_handle);
