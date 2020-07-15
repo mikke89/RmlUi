@@ -133,18 +133,56 @@ inline UniquePtr<T> MakeUnique(Args... args) { return std::make_unique<T, Args..
 
 }
 
-// Following defines should be used for insering custom type cast operators for conversion of
-// RmlUi types to user types.
+// Following defines should be used for insering custom type cast operators for conversion of RmlUi types
+// to user types. RmlUi uses template math types, therefore conversion operators to non-templated types
+// should be done using SFINAE as in example below.
 
-// Extra code to be inserted into RmlUi::Color<> class body.
-// #define RMLUI_COLOUR_USER_EXTRA operator MyColorType() const { return MyColorType(red, green, blue, alpha); }
+// Extra code to be inserted into RmlUi::Color<> class body. Node: be mindful of colorspaces used by different
+// color types. RmlUi assumes that float colors are interpreted in linear colorspace while byte colors are 
+// interpreted as SRGB.
+// #define RMLUI_COLOUR_USER_EXTRA                                                                         \
+//     template<typename U = ColourType, typename std::enable_if_t<std::is_same_v<U, byte>>* = nullptr>    \
+//     operator MyColor() const { return MyColor(                                                          \
+//         (float)red / 256.0f, (float)green / 255.0f, (float)blue / 255.0f, (float)alpha / 255.0f); }     \
+//     template<typename U = ColourType, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>   \
+//     operator MyColor() const { return MyColor(red, green, blue, alpha); }                               \
+
 // Extra code to be inserted into RmlUi::Vector2<> class body.
-// #define RMLUI_VECTOR2_USER_EXTRA operator MyVector2() const { return MyVector2(x, y); }
+// #define RMLUI_VECTOR2_USER_EXTRA                                                                        \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
+//     operator typename MyIntVector2() const { return MyIntVector2(x, y); }                               \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
+//     operator MyVector2() const { return MyVector2(x, y); }                                              \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
+//     Vector2(MyIntVector2 value) : Vector2(value.x_, value.y_) { }                                       \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
+//     Vector2(MyVector2 value) : Vector2(value.x_, value.y_) { }                                          \
+
 // Extra code to be inserted into RmlUi::Vector3<> class body.
-// #define RMLUI_VECTOR3_USER_EXTRA operator MyVector3() const { return MyVector3(x, y, z); }
+// #define RMLUI_VECTOR3_USER_EXTRA                                                                        \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
+//     operator typename MyIntVector3() const { return MyIntVector3(x, y, z); }                            \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
+//     operator MyVector3() const { return MyVector3(x, y, z); }                                           \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
+//     Vector3(MyIntVector3 value) : Vector3(value.x_, value.y_, value.z_) { }                             \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
+//     Vector3(MyVector3 value) : Vector3(value.x_, value.y_, value.z_) { }                                \
+
 // Extra code to be inserted into RmlUi::Vector4<> class body.
-// #define RMLUI_VECTOR4_USER_EXTRA operator MyVector4() const { return MyVector4(x, y, z, w); }
+// #define RMLUI_VECTOR4_USER_EXTRA                                                                        \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
+//     operator typename MyIntVector4() const { return MyIntVector4(x, y, z, w); }                         \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
+//     operator MyVector4() const { return MyVector4(x, y, z, w); }                                        \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
+//     Vector4(MyIntVector4 value) : Vector4(value.x_, value.y_, value.z_, value.w_) { }                   \
+//     template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
+//     Vector4(MyVector4 value) : Vector4(value.x_, value.y_, value.z_, value.w_) { }                      \
+
 // Extra code to be inserted into RmlUi::Matrix4<> class body.
 // #define RMLUI_MATRIX4_USER_EXTRA operator MyMatrix4() const { return MyMatrix4(data()); }
+
+
 
 #endif  // RMLUI_USER_CONFIG_H
