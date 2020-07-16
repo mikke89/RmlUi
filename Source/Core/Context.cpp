@@ -63,7 +63,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	root->SetOffset(Vector2f(0, 0), nullptr);
 	root->SetProperty(PropertyId::ZIndex, Property(0, Property::NUMBER));
 
-	cursor_proxy = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
+	cursor_proxy = Factory::InstanceElement(nullptr, documents_base_tag, documents_base_tag, XMLAttributes());
 	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast< ElementDocument* >(cursor_proxy.get());
 	if (cursor_proxy_document)
 		cursor_proxy_document->context = this;
@@ -214,10 +214,11 @@ bool Context::Render()
 	return true;
 }
 
-// Creates a new, empty document and places it into this context.
+// FIXME - tag parameter should be named instancer_name, it references to instancer_name in InstanceElement(), not the tag name.
+// Creates a new, empty document and places it into this context. 
 ElementDocument* Context::CreateDocument(const String& tag)
 {
-	ElementPtr element = Factory::InstanceElement(nullptr, tag, "body", XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, tag, documents_base_tag, XMLAttributes());
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned nullptr.", tag.c_str());
@@ -1296,6 +1297,16 @@ void Context::Release()
 	{
 		instancer->ReleaseContext(this);
 	}
+}
+
+void Context::SetDocumentsBaseTag(const String& tag)
+{
+	documents_base_tag = tag;
+}
+
+String Context::GetDocumentsBaseTag()
+{
+	return documents_base_tag;
 }
 
 } // namespace Rml

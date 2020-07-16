@@ -90,6 +90,7 @@ public:
 	/// Creates a new, empty document and places it into this context.
 	/// @param[in] tag The document type to create.
 	/// @return The new document, or nullptr if no document could be created.
+	// FIXME - tag parameter should be named instancer_name, it references to instancer_name in InstanceElement(), not the tag name.
 	ElementDocument* CreateDocument(const String& tag = "body");
 	/// Load a document into the context.
 	/// @param[in] document_path The path to the document to load.
@@ -239,6 +240,14 @@ public:
 	/// @return True if succesfully removed, false if no data model was found.
 	bool RemoveDataModel(const String& name);
 
+	/// This will set the documents base <tag> before creation. Default = "body"
+	/// @param[in] tag The name of the base tag. Example: "html"
+	void SetDocumentsBaseTag(const String& tag);
+
+	/// Gets the name of the documents base tag.
+	/// @return The current documents base tag name.
+	String GetDocumentsBaseTag();
+
 protected:
 	void Release() override;
 
@@ -246,6 +255,7 @@ private:
 	String name;
 	Vector2i dimensions;
 	float density_independent_pixel_ratio;
+	String documents_base_tag = "body";
 
 	ContextInstancer* instancer;
 
