@@ -467,6 +467,7 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream)
 {
 	RMLUI_ZoneScoped;
+	RMLUI_ASSERT(context);
 
 	ElementPtr element = Factory::InstanceElement(nullptr, context->GetDocumentsBaseTag(), context->GetDocumentsBaseTag(), XMLAttributes());
 	if (!element)

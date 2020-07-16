@@ -214,21 +214,20 @@ bool Context::Render()
 	return true;
 }
 
-// FIXME - tag parameter should be named instancer_name, it references to instancer_name in InstanceElement(), not the tag name.
 // Creates a new, empty document and places it into this context. 
-ElementDocument* Context::CreateDocument(const String& tag)
+ElementDocument* Context::CreateDocument(const String& instancer_name)
 {
-	ElementPtr element = Factory::InstanceElement(nullptr, tag, documents_base_tag, XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, instancer_name, documents_base_tag, XMLAttributes());
 	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned nullptr.", tag.c_str());
+		Log::Message(Log::LT_ERROR, "Failed to instance document on instancer_name '%s', instancer returned nullptr.", instancer_name.c_str());
 		return nullptr;
 	}
 
 	ElementDocument* document = rmlui_dynamic_cast< ElementDocument* >(element.get());
 	if (!document)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', Found type '%s', was expecting derivative of ElementDocument.", tag.c_str(), rmlui_type_name(*element));
+		Log::Message(Log::LT_ERROR, "Failed to instance document on instancer_name '%s', Found type '%s', was expecting derivative of ElementDocument.", instancer_name.c_str(), rmlui_type_name(*element));
 		return nullptr;
 	}
 
@@ -1304,7 +1303,7 @@ void Context::SetDocumentsBaseTag(const String& tag)
 	documents_base_tag = tag;
 }
 
-String Context::GetDocumentsBaseTag()
+const String& Context::GetDocumentsBaseTag()
 {
 	return documents_base_tag;
 }
