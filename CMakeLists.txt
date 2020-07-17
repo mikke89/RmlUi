@@ -69,6 +69,10 @@ endif()
 
 set(RMLUI_VERSION_SHORT ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}${RMLUI_VERSION_SUFFIX})
 
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+endif()
+
 # paths
 include(GNUInstallDirs)
 
@@ -613,6 +617,13 @@ endif(NOT BUILD_FRAMEWORK)
 	endif()
 endif()
 
+#===================================
+# Add tests ========================
+#===================================
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+    add_subdirectory(Tests)
+endif()
 
 #===================================
 # Installation =====================
