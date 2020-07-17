@@ -364,7 +364,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 			// trying to match nodes in the element's hierarchy to nodes in the style hierarchy.
 			for (StyleSheetNode* node : nodes)
 			{
-				if (node->IsApplicable(element))
+				if (node->IsApplicable(element, true))
 				{
 					applicable_nodes.push_back(node);
 				}

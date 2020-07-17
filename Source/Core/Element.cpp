@@ -58,6 +58,7 @@
 #include "PropertiesIterator.h"
 #include "Pool.h"
 #include "StyleSheetParser.h"
+#include "StyleSheetNode.h"
 #include "TransformState.h"
 #include "TransformUtilities.h"
 #include "XMLParseTools.h"
@@ -1480,6 +1481,73 @@ void Element::GetElementsByTagName(ElementList& elements, const String& tag)
 void Element::GetElementsByClassName(ElementList& elements, const String& class_name)
 {
 	return ElementUtilities::GetElementsByClassName(elements, this, class_name);
+}
+
+static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, Element* element)
+{
+	for (int i = 0; i < element->GetNumChildren(); i++)
+	{
+		Element* child = element->GetChild(i);
+
+		for (const StyleSheetNode* node : nodes)
+		{
+			if (node->IsApplicable(child, false))
+				return child;
+		}
+
+		Element* matching_element = QuerySelectorMatchRecursive(nodes, child);
+		if (matching_element)
+			return matching_element;
+	}
+
+	return nullptr;
+}
+
+static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const StyleSheetNodeListRaw& nodes, Element* element)
+{
+	for (int i = 0; i < element->GetNumChildren(); i++)
+	{
+		Element* child = element->GetChild(i);
+
+		for (const StyleSheetNode* node : nodes)
+		{
+			if (node->IsApplicable(child, false))
+			{
+				matching_elements.push_back(child);
+				break;
+			}
+		}
+
+		QuerySelectorAllMatchRecursive(matching_elements, nodes, child);
+	}
+}
+
+Element* Element::QuerySelector(const String& selectors)
+{
+	StyleSheetNode root_node;
+	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selectors);
+
+	if (leaf_nodes.empty())
+	{
+		Log::Message(Log::LT_WARNING, "Query selector '%s' is empty. In element %s", selectors.c_str(), GetAddress().c_str());
+		return nullptr;
+	}
+
+	return QuerySelectorMatchRecursive(leaf_nodes, this);
+}
+
+void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
+{
+	StyleSheetNode root_node;
+	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selectors);
+
+	if (leaf_nodes.empty())
+	{
+		Log::Message(Log::LT_WARNING, "Query selector '%s' is empty. In element %s", selectors.c_str(), GetAddress().c_str());
+		return;
+	}
+
+	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this);
 }
 
 // Access the event dispatcher

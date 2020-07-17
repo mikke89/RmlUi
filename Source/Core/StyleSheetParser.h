@@ -39,6 +39,7 @@ class Stream;
 class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
+using StyleSheetNodeListRaw = std::vector<StyleSheetNode*>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -64,6 +65,12 @@ public:
 	/// @return True if the parse was successful, or false if an error occured.
 	bool ParseProperties(PropertyDictionary& parsed_properties, const String& properties);
 
+	// Converts a selector query to a tree of nodes.
+	// @param root_node Node to construct into.
+	// @param selectors The selector rules as a string value.
+	// @return The list of leaf nodes in the constructed tree, which are all owned by the root node.
+	static StyleSheetNodeListRaw ConstructNodes(StyleSheetNode& root_node, const String& selectors);
+
 private:
 	// Stream we're parsing from.
 	Stream* stream;
@@ -88,7 +95,8 @@ private:
 	// @param names The names of the nodes
 	// @param properties The dictionary of properties
 	// @param rule_specificity The specifity of the rule
-	bool ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity);
+	// @return The leaf node of the rule
+	static StyleSheetNode* ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity);
 
 	// Attempts to parse a @keyframes block
 	bool ParseKeyframeBlock(KeyframesMap & keyframes_map, const String & identifier, const String & rules, const PropertyDictionary & properties);

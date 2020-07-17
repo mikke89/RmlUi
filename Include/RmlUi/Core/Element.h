@@ -524,6 +524,18 @@ public:
 	/// @param[out] elements Resulting elements.
 	/// @param[in] tag Tag to search for.
 	void GetElementsByClassName(ElementList& elements, const String& class_name);
+	/// Returns the first descendent element matching the RCSS selector query.
+	/// @param[in] selectors The selector or comma-separated selectors to match against.
+	/// @return The first matching element during a depth-first traversal.
+	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
+	Element* QuerySelector(const String& selector);
+	/// Returns all descendent elements matching the RCSS selector query.
+	/// @param[out] elements The list of matching elements.
+	/// @param[in] selectors The selector or comma-separated selectors to match against.
+	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
+	void QuerySelectorAll(ElementList& elements, const String& selectors);
+
+
 	//@}
 
 	/**

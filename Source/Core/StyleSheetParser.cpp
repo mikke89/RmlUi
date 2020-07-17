@@ -362,7 +362,6 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					StringList rule_name_list;
 					StringUtilities::ExpandString(rule_name_list, pre_token_str);
 
-
 					// Add style nodes to the root of the tree
 					for (size_t i = 0; i < rule_name_list.size(); i++)
 					{
@@ -505,6 +504,26 @@ bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, co
 	return success;
 }
 
+StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node, const String& selectors)
+{
+	const PropertyDictionary empty_properties;
+
+	StringList selector_list;
+	StringUtilities::ExpandString(selector_list, selectors);
+
+	StyleSheetNodeListRaw leaf_nodes;
+
+	for (const String& selector : selector_list)
+	{
+		StyleSheetNode* leaf_node = ImportProperties(&root_node, selector, empty_properties, 0);
+
+		if (leaf_node != &root_node)
+			leaf_nodes.push_back(leaf_node);
+	}
+
+	return leaf_nodes;
+}
+
 
 bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, bool require_end_semicolon)
 {
@@ -604,8 +623,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, b
 	return true;
 }
 
-// Updates the StyleNode tree, creating new nodes as necessary, setting the definition index
-bool StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity)
+StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity)
 {
 	StyleSheetNode* leaf_node = node;
 
@@ -694,7 +712,7 @@ bool StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, 
 	// Merge the new properties with those already on the leaf node.
 	leaf_node->ImportProperties(properties, rule_specificity);
 
-	return true;
+	return leaf_node;
 }
 
 char StyleSheetParser::FindToken(String& buffer, const char* tokens, bool remove_token)
