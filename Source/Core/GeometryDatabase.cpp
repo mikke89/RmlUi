@@ -30,8 +30,8 @@
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include <algorithm>
 
-namespace Rml {
 
+namespace Rml {
 namespace GeometryDatabase {
 
 class Database {
@@ -125,59 +125,5 @@ void ReleaseAll()
 }
 
 
-
-#ifdef RMLUI_TESTS_ENABLED
-
-static class TestGeometryDatabase {
-private:
-	std::vector<Geometry> geometry_list;
-
-	bool list_database_equivalent()
-	{
-		int i = 0;
-		bool result = true;
-		GetDatabase().for_each([this, &i, &result](Geometry* geometry) {
-			result &= (geometry == &geometry_list[i++]);
-		});
-		return result;
-	}
-
-public:
-	TestGeometryDatabase() : geometry_list(10)
-	{
-		bool result = true;
-
-		int i = 0;
-		for (auto& geometry : geometry_list)
-			geometry.GetIndices().push_back(i++);
-
-		result &= list_database_equivalent();
-
-		geometry_list.reserve(2000);
-		result &= list_database_equivalent();
-
-		geometry_list.erase(geometry_list.begin() + 5);
-		result &= list_database_equivalent();
-
-		std::swap(geometry_list.front(), geometry_list.back());
-		geometry_list.pop_back();
-		result &= list_database_equivalent();
-
-		std::swap(geometry_list.front(), geometry_list.back());
-		result &= list_database_equivalent();
-
-		geometry_list.emplace_back();
-		result &= list_database_equivalent();
-
-		geometry_list.clear();
-		result &= list_database_equivalent();
-
-		RMLUI_ASSERT(result);
-	}
-
-} test_geometry_database;
-
-#endif
-
-}
+} // namespace GeometryDatabase
 } // namespace Rml

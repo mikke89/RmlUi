@@ -70,7 +70,12 @@ endif()
 set(RMLUI_VERSION_SHORT ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}${RMLUI_VERSION_SUFFIX})
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+	option(BUILD_TESTING "" OFF)
     include(CTest)
+	
+	if(BUILD_TESTING)
+		set(RMLUI_TESTS_ENABLED ON)
+	endif()
 endif()
 
 # paths
@@ -621,7 +626,7 @@ endif()
 # Add tests ========================
 #===================================
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+if(RMLUI_TESTS_ENABLED)
     add_subdirectory(Tests)
 endif()
 

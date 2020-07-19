@@ -1,42 +1,64 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-
 #include <doctest.h>
+#include <nanobench.h>
+
 #include "../../../Source/Core/DataExpression.cpp"
 
+using namespace ankerl;
 using namespace Rml;
 
-DataTypeRegister type_register;
-DataModel model(type_register.GetTransformFuncRegister());
+static DataTypeRegister type_register;
+static DataModel model(type_register.GetTransformFuncRegister());
+static DataExpressionInterface interface(&model, nullptr);
 
-
-String TestExpression(String expression)
+String TestExpression(const String& expression, const char* benchmark_name = nullptr)
 {
 	String result;
-	DataExpressionInterface interface(&model, nullptr);
+
 	DataParser parser(expression, interface);
+
+	nanobench::Bench bench;
+	if (benchmark_name)
+	{
+		bench.title(benchmark_name);
+		bench.run("Parse", [&] {
+			parser.Parse(false);
+			});
+	}
+
 	if (parser.Parse(false))
 	{
 		Program program = parser.ReleaseProgram();
 		AddressList addresses = parser.ReleaseAddresses();
 
 		DataInterpreter interpreter(program, addresses, interface);
+
 		if (interpreter.Run())
+		{
 			result = interpreter.Result().Get<String>();
 
-		// If it fails, it can be useful to check: interpreter.DumpProgram()
+			if (benchmark_name)
+			{
+				bench.run("Execute", [&] {
+					interpreter.Run();
+					});
+			}
+		}
+		else
+		{
+			FAIL_CHECK("Could not execute expression: " << expression << "\n\n  Parsed program: \n" << interpreter.DumpProgram());
+		}
 	}
 	else
 	{
-		FAIL_CHECK("Could not parse expression.");
+		FAIL_CHECK("Could not parse expression: " << expression);
 	}
 
 	return result;
 };
 
-bool TestAssignment(String expression)
+bool TestAssignment(const String& expression)
 {
 	bool result = false;
-	DataExpressionInterface interface(&model, nullptr);
 	DataParser parser(expression, interface);
 	if (parser.Parse(true))
 	{
@@ -44,14 +66,25 @@ bool TestAssignment(String expression)
 		AddressList addresses = parser.ReleaseAddresses();
 
 		DataInterpreter interpreter(program, addresses, interface);
-		result = interpreter.Run();
+		if (interpreter.Run())
+		{
+			result = true;
+		}
+		else
+		{
+			FAIL_CHECK("Could not execute assignment expression: " << expression << "\n\n  Parsed program: \n" << interpreter.DumpProgram());
+		}
+	}
+	else
+	{
+		FAIL_CHECK("Could not parse assignment expression: " << expression);
 	}
 	return result;
 };
 
 
-TEST_CASE("Data expression parsing and execution") {
-
+TEST_CASE("Data expressions")
+{
 	float radius = 8.7f;
 	String color_name = "color";
 	Colourb color_value = Colourb(180, 100, 255);
@@ -106,6 +139,10 @@ TEST_CASE("Data expression parsing and execution") {
 	CHECK(TestExpression("0.2 + 3.42345 | round") == "4");
 	CHECK(TestExpression("(3.42345 | round) + 0.2") == "3.2");
 	CHECK(TestExpression("(3.42345 | format(0)) + 0.2") == "30.2"); // Here, format(0) returns a string, so the + means string concatenation.
+
+	// Benchmark
+	TestExpression("2 * 2", "Data expression simple");
+	TestExpression("true || false ? true && 3==1+2 ? 'Absolutely!' : 'well..' : 'no'", "Data expression complex");
 }
 
 

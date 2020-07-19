@@ -1,17 +1,22 @@
 #===================================
-# Include doctest ==================
+# Include dependencies =============
 #===================================
 set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/doctest)
 
 add_library(doctest::doctest IMPORTED INTERFACE)
 set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}")
 
+set(NANOBENCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/nanobench)
+
+add_library(nanobench::nanobench IMPORTED INTERFACE)
+set_property(TARGET nanobench::nanobench PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${NANOBENCH_INCLUDE_DIR}")
+
 #===================================
 # Create binary for tests ==========
 #===================================
 file(GLOB RmlTest_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp)
 add_executable(Tests ${RmlTest_SRC_FILES})
-target_link_libraries(Tests doctest::doctest RmlCore)
+target_link_libraries(Tests RmlCore doctest::doctest nanobench::nanobench)
 
 set_target_properties(Tests PROPERTIES CXX_STANDARD 14)
 
