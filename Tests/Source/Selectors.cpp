@@ -27,8 +27,11 @@
  */
 
 #include "TestsInterface.h"
-#include <RmlUi/Core.h>
-#include <RmlUi/Debugger.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Types.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -100,11 +103,12 @@ static const std::vector<Selector> selectors =
 	{ ":only-of-type",               "Y A E F0 I" },
 	{ "span:empty",                  "Y D0 D1 F0" },
 	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 I" },
-	{ "#P * span",                   "D0 D1 F0" },
+	{ "body * span",                 "D0 D1 F0" },
 };
 
 
-
+// Recursively iterate through 'element' and all of its descendants to find all
+// elements matching a particular property used to tag matching selectors.
 static void GetMatchingIds(String& matching_ids, Element* element)
 {
 	String id = element->GetId();
@@ -119,6 +123,7 @@ static void GetMatchingIds(String& matching_ids, Element* element)
 	}
 }
 
+// Return the list of IDs that should match the above 'selectors.expected_ids'.
 static String ElementListToIds(const ElementList& elements)
 {
 	String result;
@@ -127,6 +132,7 @@ static String ElementListToIds(const ElementList& elements)
 	{
 		result += element->GetId() + ' ';
 	}
+
 	if (!result.empty())
 		result.pop_back();
 
@@ -148,21 +154,15 @@ TEST_CASE("Selectors")
 	Context* context = Rml::CreateContext("main", window_size);
 	REQUIRE(context);
 
-	Debugger::Initialise(context);
-
-	for(const Selector& selector : selectors)
+	SUBCASE("RCSS document selectors")
 	{
-		// Check RCSS document selectors
-		const String selector_css = selector.selector + " { drag: drag; } ";
-		const String document_string = doc_begin + selector_css + doc_end;
-		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
-		REQUIRE(document);
-
-		document->Show();
-		context->Update();
-
-		SUBCASE("RCSS document selectors")
+		for (const Selector& selector : selectors)
 		{
+			const String selector_css = selector.selector + " { drag: drag; } ";
+			const String document_string = doc_begin + selector_css + doc_end;
+			ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+			REQUIRE(document);
+
 			String matching_ids;
 			GetMatchingIds(matching_ids, document);
 
@@ -170,9 +170,17 @@ TEST_CASE("Selectors")
 				matching_ids.pop_back();
 
 			CHECK_MESSAGE(matching_ids == selector.expected_ids, "Selector: " << selector.selector);
+			context->UnloadDocument(document);
 		}
+	}
 
-		SUBCASE("QuerySelector(All)")
+	SUBCASE("QuerySelector(All)")
+	{
+		const String document_string = doc_begin + doc_end;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+		REQUIRE(document);
+
+		for (const Selector& selector : selectors)
 		{
 			ElementList elements;
 			document->QuerySelectorAll(elements, selector.selector);
@@ -189,9 +197,8 @@ TEST_CASE("Selectors")
 			}
 
 			CHECK_MESSAGE(matching_ids == selector.expected_ids, "QuerySelector: " << selector.selector);
+			context->UnloadDocument(document);
 		}
-
-		context->UnloadDocument(document);
 	}
 
 	Rml::Shutdown();
