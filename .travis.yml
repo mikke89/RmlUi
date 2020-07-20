@@ -27,6 +27,24 @@ matrix:
             - liblua5.2-dev
             - libsfml-dev
     - os: linux
+      compiler: gcc
+      env: VALGRIND_SAMPLES="1"
+      services:
+        - xvfb
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ninja-build
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libfreetype6-dev
+            - libglew-dev
+            - liblua5.2-dev
+            - libsfml-dev
+            - mesa-utils
+            - valgrind
+    - os: linux
       compiler: clang
       env: NO_FONT_INTERFACE_DEFAULT="ON"
       addons:
@@ -54,24 +72,6 @@ matrix:
             - libglew-dev
             - liblua5.2-dev
             - libsfml-dev
-    - os: linux
-      compiler: gcc
-      env: VALGRIND_SAMPLES="1"
-      services:
-        - xvfb
-      addons:
-        apt:
-          packages:
-            - cmake
-            - ninja-build
-            - libsdl2-dev
-            - libsdl2-image-dev
-            - libfreetype6-dev
-            - libglew-dev
-            - liblua5.2-dev
-            - libsfml-dev
-            - mesa-utils
-            - valgrind
 
 install:
   - mkdir -p $HOME/.deps
