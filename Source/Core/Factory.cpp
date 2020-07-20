@@ -294,6 +294,7 @@ void Factory::Shutdown()
 
 	font_effect_instancers.clear();
 
+	data_controller_instancers.clear();
 	data_view_instancers.clear();
 	structural_data_view_instancers.clear();
 	structural_data_view_attribute_names.clear();
