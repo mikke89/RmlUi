@@ -133,11 +133,11 @@ inline UniquePtr<T> MakeUnique(Args... args) { return std::make_unique<T, Args..
 
 }
 
-// Following defines should be used for insering custom type cast operators for conversion of RmlUi types
+// The following defines should be used for inserting custom type cast operators for conversion of RmlUi types
 // to user types. RmlUi uses template math types, therefore conversion operators to non-templated types
 // should be done using SFINAE as in example below.
 
-// Extra code to be inserted into RmlUi::Color<> class body. Node: be mindful of colorspaces used by different
+// Extra code to be inserted into RmlUi::Color<> class body. Note: be mindful of colorspaces used by different
 // color types. RmlUi assumes that float colors are interpreted in linear colorspace while byte colors are 
 // interpreted as SRGB.
 // #define RMLUI_COLOUR_USER_EXTRA                                                                         \

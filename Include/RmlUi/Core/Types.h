@@ -34,8 +34,8 @@
 
 #include "Traits.h"
 
-#ifdef RML_USER_CONFIG_FILE
-#include RML_USER_CONFIG_FILE
+#ifdef RMLUI_USER_CONFIG_FILE
+#include RMLUI_USER_CONFIG_FILE
 #else
 #include "../UserConfig.h"
 #endif
