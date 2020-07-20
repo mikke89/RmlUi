@@ -25,7 +25,7 @@ String TestExpression(const String& expression, const char* benchmark_name = nul
 			});
 	}
 
-	if (parser.Parse(false))
+	if (parser.Parse(false) && false)
 	{
 		Program program = parser.ReleaseProgram();
 		AddressList addresses = parser.ReleaseAddresses();
