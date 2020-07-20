@@ -16,18 +16,15 @@ set_property(TARGET nanobench::nanobench PROPERTY INTERFACE_INCLUDE_DIRECTORIES 
 #===================================
 file(GLOB RmlTest_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp)
 add_executable(Tests ${RmlTest_SRC_FILES})
-target_link_libraries(Tests RmlCore doctest::doctest nanobench::nanobench)
+target_link_libraries(Tests RmlCore RmlDebugger doctest::doctest nanobench::nanobench)
 
 set_target_properties(Tests PROPERTIES CXX_STANDARD 14)
 
 # Enable compiler warnings
-if (NOT TEST_INSTALLED_VERSION)
-  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(RmlCore PUBLIC -Wall -pedantic -Wextra -Werror)
-  elseif(MSVC)
-    target_compile_options(RmlCore PUBLIC /W4 /WX /permissive-)
-    target_compile_definitions(Tests PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
-  endif()
+add_common_target_options(Tests)
+
+if(MSVC)
+	target_compile_definitions(Tests PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
 endif()
 
 # Add tests using doctest's discovery module

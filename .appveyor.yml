@@ -4,7 +4,6 @@ matrix:
   fast_finish: true
 environment:
   FREETYPE_VER: 2.10.1
-  VS_CXXFLAGS: /DWIN32 /D_WINDOWS /W4 /GR /EHsc /permissive- /w44062
   RUN_MINGW: false
   matrix:
     - RUN_MINGW: true
@@ -25,7 +24,7 @@ install:
     mkdir Build-Dynamic, Build-Static
     
     cd Build-Dynamic
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON -DCMAKE_CXX_FLAGS="%VS_CXXFLAGS%" ..
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON ..
 
     cd ../Build-Static
     cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DBUILD_SAMPLES=OFF ..

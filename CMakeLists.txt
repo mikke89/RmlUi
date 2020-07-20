@@ -230,6 +230,26 @@ elseif (ENABLE_PRECOMPILED_HEADERS)
 	set(PRECOMPILED_HEADERS_ENABLED ON)
 endif()
 
+
+option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors." OFF)
+mark_as_advanced(WARNINGS_AS_ERRORS)
+
+macro(add_common_target_options NAME)
+	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+		target_compile_options(${NAME} PRIVATE -Wall -pedantic -Wextra)
+		
+		if(WARNINGS_AS_ERRORS)
+			target_compile_options(${NAME} PRIVATE -Werror)
+		endif()
+	elseif(MSVC)
+		target_compile_options(${NAME} PRIVATE /MP /W4 /w44062 /permissive-)
+		
+		if(WARNINGS_AS_ERRORS)
+			target_compile_options(${NAME} PRIVATE /WX)
+		endif()
+	endif()
+endmacro()
+
 #===================================
 # Find dependencies ================
 #===================================
@@ -288,10 +308,8 @@ foreach(library ${LIBRARIES})
 	   SOVERSION ${PROJECT_VERSION_MAJOR}
 	)
 	
-	if (MSVC)
-		target_compile_options(${NAME} PUBLIC "/MP")
-	endif(MSVC)
-	
+	add_common_target_options(${NAME})
+
 	install(TARGETS ${NAME}
 		EXPORT RmlUiTargets
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -381,6 +399,8 @@ if(BUILD_LUA_BINDINGS)
 	   VERSION ${PROJECT_VERSION}
 	   SOVERSION ${PROJECT_VERSION_MAJOR}
 	)
+	
+	add_common_target_options(${NAME})
 
 	install(TARGETS ${NAME}
 		EXPORT RmlUiTargets
@@ -418,18 +438,18 @@ endif()
 #===================================
 
 if(NOT BUILD_FRAMEWORK)
-target_link_libraries(RmlCore ${CORE_LINK_LIBS})
-target_link_libraries(RmlDebugger RmlCore)
-else(NOT BUILD_FRAMEWORK)
-target_link_libraries(RmlUi ${CORE_LINK_LIBS})
-endif(NOT BUILD_FRAMEWORK)
+	target_link_libraries(RmlCore ${CORE_LINK_LIBS})
+	target_link_libraries(RmlDebugger RmlCore)
+else()
+	target_link_libraries(RmlUi ${CORE_LINK_LIBS})
+endif()
 
 if(BUILD_LUA_BINDINGS)
 	if(NOT BUILD_FRAMEWORK)
 		target_link_libraries(RmlLua RmlCore ${LUA_BINDINGS_LINK_LIBS})
-	else(NOT BUILD_FRAMEWORK)
+	else()
 		target_link_libraries(RmlLua RmlUi ${LUA_BINDINGS_LINK_LIBS})
-	endif(NOT BUILD_FRAMEWORK)
+	endif()
 endif()
 
 
@@ -454,6 +474,8 @@ macro(bl_sample NAME)
 	else()
 		add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 	endif()
+	
+	add_common_target_options(${NAME})
 
 	target_link_libraries(${NAME} ${ARGN})
 endmacro()
@@ -481,8 +503,8 @@ endif(NOT BUILD_FRAMEWORK)
 	find_package(OpenGL REQUIRED)
 		   
 	if(OPENGL_FOUND)
-	include_directories(${OPENGL_INCLUDE_DIR})
-	list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
+		include_directories(${OPENGL_INCLUDE_DIR})
+		list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
 	endif()
 	
 	# Set up required system libraries
@@ -526,6 +548,8 @@ endif(NOT BUILD_FRAMEWORK)
 	if (WIN32)
 		target_link_libraries(shell PUBLIC shlwapi)
 	endif()
+	
+	add_common_target_options(shell)
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
