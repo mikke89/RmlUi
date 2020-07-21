@@ -131,15 +131,17 @@ bool ElementLog::Initialise()
 // Adds a log message to the debug log.
 void ElementLog::AddLogMessage(Log::Type type, const String& message)
 {
+	LogMessageList& log_message_list = log_types[type].log_messages;
+	if (log_message_list.size() >= MAX_LOG_MESSAGES)
+	{
+		log_message_list.erase(log_message_list.begin());
+	}
+
 	// Add the message to the list of messages for the specified log type.
 	LogMessage log_message;
 	log_message.index = current_index++;
 	log_message.message = StringUtilities::EncodeRml(message);
-	log_types[type].log_messages.push_back(log_message);
-	if (log_types[type].log_messages.size() >= MAX_LOG_MESSAGES)
-	{
-		log_types[type].log_messages.pop_front();
-	}
+	log_message_list.push_back(log_message);
 
 	// If this log type is invisible, and there is a button for this log type, then change its text from
 	// "Off" to "Off*" to signal that there are unread logs.

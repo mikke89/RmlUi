@@ -60,7 +60,7 @@ protected:
 
 // An unresolved primitive may have values that depend on the final layout of a given element, such as its width.
 template< size_t N >
-struct UnresolvedPrimitive
+struct RMLUICORE_API UnresolvedPrimitive
 {
 	Array<NumericValue, N> values;
 

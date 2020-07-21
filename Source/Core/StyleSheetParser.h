@@ -39,7 +39,7 @@ class Stream;
 class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
-using StyleSheetNodeListRaw = std::vector<StyleSheetNode*>;
+using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.

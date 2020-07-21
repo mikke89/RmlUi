@@ -247,9 +247,9 @@ namespace InvadersExample {
 		{
 			using namespace Rml;
 			const int num_items = 4;
-			static std::array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
-			static std::array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
-			static std::array<Colourb, num_items> colors = { { { 255, 40, 30 }, {20, 40, 255}, {255, 255, 30}, {230, 230, 230} } };
+			static Array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
+			static Array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
+			static Array<Colourb, num_items> colors = { { { 255, 40, 30 }, {20, 40, 255}, {255, 255, 30}, {230, 230, 230} } };
 
 			Invader new_invader;
 			new_invader.name = names[rand() % num_items];
