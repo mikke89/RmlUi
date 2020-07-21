@@ -138,6 +138,10 @@ class Vector4
 		Type y;
 		Type z;
 		Type w;
+
+#ifdef RMLUI_VECTOR4_USER_EXTRA
+		RMLUI_VECTOR4_USER_EXTRA
+#endif
 };
 
 } // namespace Rml

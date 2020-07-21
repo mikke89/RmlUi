@@ -147,8 +147,8 @@ void ElementImage::GenerateGeometry()
 	// Release the old geometry before specifying the new vertices.
 	geometry.Release(true);
 
-	std::vector< Vertex >& vertices = geometry.GetVertices();
-	std::vector< int >& indices = geometry.GetIndices();
+	Vector< Vertex >& vertices = geometry.GetVertices();
+	Vector< int >& indices = geometry.GetIndices();
 
 	vertices.resize(4);
 	indices.resize(6);

@@ -97,7 +97,7 @@ private:
 		ParameterMap parameters;
 	};
 
-	std::vector< ParserState > parsers;
+	Vector< ParserState > parsers;
 
 	RelativeTarget relative_target;
 };

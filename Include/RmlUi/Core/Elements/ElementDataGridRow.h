@@ -33,7 +33,6 @@
 #include "../Element.h"
 #include "DataSourceListener.h"
 #include "DataQuery.h"
-#include <queue>
 
 namespace Rml {
 
@@ -97,8 +96,8 @@ protected:
 	void OnRowChange(DataSource* data_source, const String& table) override;
 
 private:
-	typedef std::queue< ElementDataGridRow* > RowQueue;
-	typedef std::vector< ElementDataGridRow* > RowList;
+	typedef Queue< ElementDataGridRow* > RowQueue;
+	typedef Vector< ElementDataGridRow* > RowList;
 
 	// Called when a row change (addition or removal) occurs in one of our
 	// children. Causes the table row index to be dirtied on all following

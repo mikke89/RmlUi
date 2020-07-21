@@ -29,8 +29,8 @@
 #ifndef RMLUI_INVADERS_DECORATORSTARFIELD_H
 #define RMLUI_INVADERS_DECORATORSTARFIELD_H
 
+#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Decorator.h>
-#include <vector>
 
 class DecoratorStarfield : public Rml::Decorator
 {
@@ -63,7 +63,7 @@ private:
 
 	struct StarLayer
 	{
-		typedef std::vector< Rml::Vector2f > StarList;
+		typedef Rml::Vector< Rml::Vector2f > StarList;
 		StarList stars;
 		Rml::Colourb colour;
 		float speed;
@@ -75,7 +75,7 @@ private:
 		double last_update;
 		Rml::Vector2f dimensions;
 
-		typedef std::vector< StarLayer > StarLayerList;
+		typedef Rml::Vector< StarLayer > StarLayerList;
 		StarLayerList star_layers;
 	};
 };

@@ -74,7 +74,7 @@ namespace Rml {
 class ElementSortZOrder
 {
 public:
-	bool operator()(const std::pair< Element*, float >& lhs, const std::pair< Element*, float >& rhs) const
+	bool operator()(const Pair< Element*, float >& lhs, const Pair< Element*, float >& rhs) const
 	{
 		return lhs.second < rhs.second;
 	}
@@ -775,7 +775,7 @@ bool Element::Project(Vector2f& point) const noexcept
 
 PropertiesIteratorView Element::IterateLocalProperties() const
 {
-	return PropertiesIteratorView(std::make_unique<PropertiesIterator>(meta->style.Iterate()));
+	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
 }
 
 
@@ -2181,7 +2181,7 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 	// Build the list of ordered children. Our child list is sorted within the stacking context so stacked elements
 	// will render in the right order; ie, positioned elements will render on top of inline elements, which will render
 	// on top of floated elements, which will render on top of block elements.
-	std::vector< std::pair< Element*, float > > ordered_children;
+	Vector< Pair< Element*, float > > ordered_children;
 	for (size_t i = 0; i < children.size(); ++i)
 	{
 		Element* child = children[i].get();
@@ -2189,7 +2189,7 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 		if (!child->IsVisible())
 			continue;
 
-		std::pair< Element*, float > ordered_child;
+		Pair< Element*, float > ordered_child;
 		ordered_child.first = child;
 
 		if (child->GetPosition() != Style::Position::Static)
@@ -2521,8 +2521,8 @@ void Element::AdvanceAnimations()
 		// Move all completed animations to the end of the list
 		auto it_completed = std::partition(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return !animation.IsComplete(); });
 
-		std::vector<Dictionary> dictionary_list;
-		std::vector<bool> is_transition;
+		Vector<Dictionary> dictionary_list;
+		Vector<bool> is_transition;
 		dictionary_list.reserve(animations.end() - it_completed);
 		is_transition.reserve(animations.end() - it_completed);
 
@@ -2606,7 +2606,7 @@ void Element::UpdateTransformState()
 			);
 
 			if (!transform_state)
-				transform_state = std::make_unique<TransformState>();
+				transform_state = MakeUnique<TransformState>();
 
 			perspective_or_transform_changed |= transform_state->SetLocalPerspective(&perspective);
 		}
@@ -2687,7 +2687,7 @@ void Element::UpdateTransformState()
 		if (have_transform)
 		{
 			if (!transform_state)
-				transform_state = std::make_unique<TransformState>();
+				transform_state = MakeUnique<TransformState>();
 
 			perspective_or_transform_changed |= transform_state->SetTransform(&transform);
 		}

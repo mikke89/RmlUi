@@ -47,7 +47,7 @@ DecoratorInstancerStarfield::~DecoratorInstancerStarfield()
 }
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
-std::shared_ptr<Rml::Decorator> DecoratorInstancerStarfield::InstanceDecorator(const Rml::String& /*name*/,
+Rml::SharedPtr<Rml::Decorator> DecoratorInstancerStarfield::InstanceDecorator(const Rml::String& /*name*/,
 	const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& /*interface*/)
 {
 	int num_layers = Rml::Math::RealToInteger(properties.GetProperty(id_num_layers)->Get< float >());
@@ -58,7 +58,7 @@ std::shared_ptr<Rml::Decorator> DecoratorInstancerStarfield::InstanceDecorator(c
 	int top_density = Rml::Math::RealToInteger(properties.GetProperty(id_top_density)->Get< float >());
 	int bottom_density = Rml::Math::RealToInteger(properties.GetProperty(id_bottom_density)->Get< float >());
 
-	auto decorator = std::make_shared<DecoratorStarfield>();
+	auto decorator = Rml::MakeShared<DecoratorStarfield>();
 	if (decorator->Initialise(num_layers, top_colour, bottom_colour, top_speed, bottom_speed, top_density, bottom_density))
 		return decorator;
 

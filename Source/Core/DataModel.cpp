@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/DataController.h"
 #include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include <array>
 
 namespace Rml {
 
@@ -122,8 +121,8 @@ static String DataAddressToString(const DataAddress& address)
 
 DataModel::DataModel(const TransformFuncRegister* transform_register) : transform_register(transform_register)
 {
-	views = std::make_unique<DataViews>();
-	controllers = std::make_unique<DataControllers>();
+	views = MakeUnique<DataViews>();
+	controllers = MakeUnique<DataControllers>();
 }
 
 DataModel::~DataModel()
@@ -175,7 +174,7 @@ bool DataModel::BindFunc(const String& name, DataGetFunc get_func, DataSetFunc s
 		return false;
 	}
 	auto& func_definition_ptr = it->second;
-	func_definition_ptr = std::make_unique<FuncDefinition>(std::move(get_func), std::move(set_func));
+	func_definition_ptr = MakeUnique<FuncDefinition>(std::move(get_func), std::move(set_func));
 
 	return BindVariable(name, DataVariable(func_definition_ptr.get(), nullptr));
 }

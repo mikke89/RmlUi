@@ -154,7 +154,9 @@ public:
 	// Convenience wrapper around BindEventCallback for member functions.
 	template<typename T>
 	bool BindEventCallback(const String& name, DataEventMemberFunc<T> member_func, T* object_pointer) {
-		return BindEventCallback(name, std::bind(member_func, object_pointer, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		return BindEventCallback(name, [member_func, object_pointer](DataModelHandle handle, Event& event, const VariantList& arguments) {
+			(object_pointer->*member_func)(handle, event, arguments);
+		});
 	}
 
 	// Register a struct type.

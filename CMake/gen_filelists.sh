@@ -25,6 +25,7 @@ printfiles() {
     echo -e ')\n' >>$file
     # Print public headers sub directory
     echo ${pubhdr/lib/$1} >>$file
+	if [[ "$1" == "Core" ]]; then echo '    '$srcdir/Include/RmlUi/Config/Config.h >>$file; fi
     find  $hdrpath/$1 -maxdepth 3 -path */$luapath -prune -o -path */$fontdefaultpath -prune -o \( -iname "*.h" -o -iname "*.inl" -o -iname "*.hpp" \) -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
     # Print source files

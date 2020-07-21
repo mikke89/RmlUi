@@ -154,6 +154,8 @@ endif()
 
 option(BUILD_SAMPLES "Build samples" OFF)
 
+option(MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
+
 if(APPLE)
 	if(IOS)
 		if(BUILD_SHARED_LIBS)
@@ -189,6 +191,31 @@ option(NO_THIRDPARTY_CONTAINERS "Only use standard library containers." OFF)
 if( NO_THIRDPARTY_CONTAINERS )
 	add_definitions(-DRMLUI_NO_THIRDPARTY_CONTAINERS)
 	message("-- No third-party containers will be used: Make sure to #define RMLUI_NO_THIRDPARTY_CONTAINERS before including RmlUi in your project.")
+endif()
+
+option(CUSTOM_CONFIGURATION "Customize RmlUi configuration files for overriding the default configuration and types." OFF)
+
+set(CUSTOM_CONFIGURATION_FILE "" CACHE STRING "Custom configuration file to be included in place of <RmlUi/Config/Config.h>.")
+if( CUSTOM_CONFIGURATION AND CUSTOM_CONFIGURATION_FILE )
+	add_definitions(-DRMLUI_CUSTOM_CONFIGURATION_FILE="${CUSTOM_CONFIGURATION_FILE}")
+	message("-- Including ${CUSTOM_CONFIGURATION_FILE} instead of <RmlUi/Config/Config.h>")
+endif ()
+
+set(CUSTOM_INCLUDE_DIRS "" CACHE STRING "Extra include directories (use with CUSTOM_CONFIGURATION_FILE).")
+if( CUSTOM_CONFIGURATION AND CUSTOM_INCLUDE_DIRS )
+	include_directories(${CUSTOM_INCLUDE_DIRS})
+endif ()
+
+set(CUSTOM_LINK_LIBRARIES "" CACHE STRING "Extra link libraries (use with CUSTOM_CONFIGURATION_FILE).")
+
+if( CUSTOM_CONFIGURATION )
+	mark_as_advanced( CLEAR CUSTOM_CONFIGURATION_FILE CUSTOM_INCLUDE_DIRS CUSTOM_LINK_LIBRARIES )
+else()
+	mark_as_advanced( FORCE CUSTOM_CONFIGURATION_FILE CUSTOM_INCLUDE_DIRS CUSTOM_LINK_LIBRARIES )
+	
+	if( CUSTOM_CONFIGURATION_FILE OR CUSTOM_INCLUDE_DIRS OR CUSTOM_LINK_LIBRARIES )
+		message("-- CUSTOM_CONFIGURATION disabled, but custom configuration variables are set. They will have no effect.")
+	endif()
 endif()
 
 option(ENABLE_TRACY_PROFILING "Enable profiling with Tracy. Source files can be placed in Dependencies/tracy." OFF)
@@ -316,12 +343,30 @@ foreach(library ${LIBRARIES})
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	)
-	
 
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
 
+if( CUSTOM_CONFIGURATION )
+	foreach(library ${CUSTOM_LINK_LIBRARIES})
+		install(TARGETS ${library}
+			EXPORT RmlUiTargets
+			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		)
+		set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${library})
+	endforeach(library ${CUSTOM_LINK_LIBRARIES})
+endif()
+
 target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
+
+if( MATRIX_ROW_MAJOR )
+	target_compile_definitions(RmlCore PUBLIC -DRMLUI_MATRIX_ROW_MAJOR)
+endif ()
+if( CUSTOM_CONFIGURATION AND CUSTOM_LINK_LIBRARIES )
+	target_link_libraries(RmlCore PUBLIC ${CUSTOM_LINK_LIBRARIES})
+endif ()
 
 if (PRECOMPILED_HEADERS_ENABLED)
 	target_precompile_headers(RmlCore PRIVATE ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h)
@@ -548,6 +593,8 @@ endif(NOT BUILD_FRAMEWORK)
 	if (WIN32)
 		target_link_libraries(shell PUBLIC shlwapi)
 	endif()
+	
+	target_link_libraries(shell PUBLIC RmlCore)
 	
 	add_common_target_options(shell)
 

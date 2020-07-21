@@ -27,14 +27,14 @@
  */
 
 #include "../../../Source/Core/DataModel.cpp"
+#include <RmlUi/Core/Types.h>
 #include <doctest.h>
-#include <array>
 
 using namespace Rml;
 
 TEST_CASE("Data variables")
 {
-	using IntVector = std::vector<int>;
+	using IntVector = Vector<int>;
 
 	struct FunData {
 		int i = 99;
@@ -42,7 +42,7 @@ TEST_CASE("Data variables")
 		IntVector magic = { 3, 5, 7, 11, 13 };
 	};
 
-	using FunArray = std::array<FunData, 3>;
+	using FunArray = Array<FunData, 3>;
 
 	struct SmartData {
 		bool valid = true;
@@ -83,10 +83,10 @@ TEST_CASE("Data variables")
 
 	// Test data addresses, setters, and assignments
 	{
-		std::vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.more_fun[1].magic.size", "data.fun.x", "data.valid" };
-		std::vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(int(data.more_fun[1].magic.size())), ToString(data.fun.x), ToString(data.valid) };
+		Vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.more_fun[1].magic.size", "data.fun.x", "data.valid" };
+		Vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(int(data.more_fun[1].magic.size())), ToString(data.fun.x), ToString(data.valid) };
 
-		std::vector<String> results;
+		Vector<String> results;
 
 		for (auto& str_address : test_addresses)
 		{

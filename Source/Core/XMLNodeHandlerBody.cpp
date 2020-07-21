@@ -42,10 +42,9 @@ XMLNodeHandlerBody::~XMLNodeHandlerBody()
 {
 }
 
-Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI_UNUSED_ASSERT_PARAMETER(name), const XMLAttributes& attributes)
+Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI_UNUSED_PARAMETER(name), const XMLAttributes& attributes)
 {
-	RMLUI_UNUSED_ASSERT(name);
-	RMLUI_ASSERT(name == "body");
+	RMLUI_UNUSED(name);
 
 	Element* element = parser->GetParseFrame()->element;
 

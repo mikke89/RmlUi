@@ -89,5 +89,5 @@ static const char* menu_rml = R"RML(
 	<button id="event-log-button">Event Log</button>
 	<button id="debug-info-button">Element Info</button>
 	<button id="outlines-button">Outlines</button>
-</div>;
+</div>
 )RML";

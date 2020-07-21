@@ -84,8 +84,8 @@ public:
 			return;
 
 		// Generate the geometry for the character.
-		std::vector< Vertex >& character_vertices = geometry[box.texture_index].GetVertices();
-		std::vector< int >& character_indices = geometry[box.texture_index].GetIndices();
+		Vector< Vertex >& character_vertices = geometry[box.texture_index].GetVertices();
+		Vector< int >& character_indices = geometry[box.texture_index].GetIndices();
 
 		character_vertices.resize(character_vertices.size() + 4);
 		character_indices.resize(character_indices.size() + 6);
@@ -131,7 +131,7 @@ private:
 	};
 
 	using CharacterMap = UnorderedMap<Character, TextureBox>;
-	using TextureList = std::vector<Texture>;
+	using TextureList = Vector<Texture>;
 
 	SharedPtr<const FontEffect> effect;
 

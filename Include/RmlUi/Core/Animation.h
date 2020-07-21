@@ -57,10 +57,10 @@ struct Transition {
 struct TransitionList {
 	bool none = true;
 	bool all = false;
-	std::vector<Transition> transitions;
+	Vector<Transition> transitions;
 
 	TransitionList() {}
-	TransitionList(bool none, bool all, std::vector<Transition> transitions) :
+	TransitionList(bool none, bool all, Vector<Transition> transitions) :
 		none(none), all(all), transitions(transitions) {}
 };
 

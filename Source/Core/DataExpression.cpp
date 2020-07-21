@@ -805,8 +805,8 @@ public:
 
 private:
 	Variant R, L, C;
-	std::stack<Variant> stack;
-	std::vector<Variant> arguments;
+	Stack<Variant> stack;
+	Vector<Variant> arguments;
 
 	const Program& program;
 	const AddressList& addresses;

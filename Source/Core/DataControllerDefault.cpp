@@ -117,7 +117,7 @@ bool DataControllerEvent::Initialize(DataModel& model, Element* element, const S
 {
 	RMLUI_ASSERT(element);
 
-	expression = std::make_unique<DataExpression>(expression_str);
+	expression = MakeUnique<DataExpression>(expression_str);
 	DataExpressionInterface interface(&model, element);
 
 	if (!expression->Parse(interface, true))

@@ -36,7 +36,6 @@
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/URL.h"
 #include <algorithm>
-#include <array>
 
 namespace Rml {
 
@@ -87,7 +86,7 @@ void ElementProgressBar::OnAttributeChange(const ElementAttributes& changed_attr
 
 	if (changed_attributes.find("direction") != changed_attributes.end())
 	{
-		using DirectionNameList = std::array<String, size_t(Direction::Count)>;
+		using DirectionNameList = Array<String, size_t(Direction::Count)>;
 		static const DirectionNameList names = { "top", "right", "bottom", "left", "clockwise", "counter-clockwise" };
 
 		direction = DefaultDirection;
@@ -104,7 +103,7 @@ void ElementProgressBar::OnAttributeChange(const ElementAttributes& changed_attr
 
 	if (changed_attributes.find("start-edge") != changed_attributes.end())
 	{
-		using StartEdgeNameList = std::array<String, size_t(StartEdge::Count)>;
+		using StartEdgeNameList = Array<String, size_t(StartEdge::Count)>;
 		static const StartEdgeNameList names = { "top", "right", "bottom", "left" };
 
 		start_edge = DefaultStartEdge;

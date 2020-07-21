@@ -74,7 +74,7 @@ struct Selector {
 	String selector;
 	String expected_ids;
 };
-static const std::vector<Selector> selectors =
+static const Vector<Selector> selectors =
 {
 	{ "span",                        "Y D0 D1 F0" },
 	{ ".hello",                      "X Z H" },

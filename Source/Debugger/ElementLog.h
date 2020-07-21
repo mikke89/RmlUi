@@ -31,7 +31,7 @@
 
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/EventListener.h"
-#include <deque>
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 namespace Debugger {
@@ -67,7 +67,7 @@ private:
 		unsigned int index;
 		String message;
 	};
-	typedef std::deque< LogMessage > LogMessageList;
+	using LogMessageList = Vector< LogMessage >;
 
 	struct LogType
 	{

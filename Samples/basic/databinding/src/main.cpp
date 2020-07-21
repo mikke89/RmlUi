@@ -75,9 +75,9 @@ namespace EventsExample {
 		Rml::String mouse_detector = "Mouse-move <em>Detector</em>.";
 		int rating = 99;
 
-		std::vector<float> list = { 1, 2, 3, 4, 5 };
+		Rml::Vector<float> list = { 1, 2, 3, 4, 5 };
 
-		std::vector<Rml::Vector2f> positions;
+		Rml::Vector<Rml::Vector2f> positions;
 
 		void AddMousePos(Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& /*arguments*/)
 		{
@@ -108,14 +108,14 @@ namespace EventsExample {
 			return false;
 
 		// Register all the types first
-		constructor.RegisterArray<std::vector<float>>();
+		constructor.RegisterArray<Rml::Vector<float>>();
 
 		if (auto vec2_handle = constructor.RegisterStruct<Vector2f>())
 		{
 			vec2_handle.RegisterMember("x", &Vector2f::x);
 			vec2_handle.RegisterMember("y", &Vector2f::y);
 		}
-		constructor.RegisterArray<std::vector<Vector2f>>();
+		constructor.RegisterArray<Rml::Vector<Vector2f>>();
 
 		// Bind the variables to the data model
 		constructor.Bind("hello_world", &my_data.hello_world);
@@ -169,7 +169,7 @@ namespace InvadersExample {
 		Rml::String name;
 		Rml::String sprite;
 		Rml::Colourb color{ 255, 255, 255 };
-		std::vector<int> damage;
+		Rml::Vector<int> damage;
 		float danger_rating = 50;
 
 		void GetColor(Rml::Variant& variant) {
@@ -190,7 +190,7 @@ namespace InvadersExample {
 
 		float incoming_invaders_rate = 10; // Per minute
 
-		std::vector<Invader> invaders = {
+		Rml::Vector<Invader> invaders = {
 			Invader{"Angry invader", "icon-invader", {255, 40, 30}, {3, 6, 7}, 80}
 		};
 
@@ -209,7 +209,7 @@ namespace InvadersExample {
 			return false;
 
 		// Since Invader::damage is an array type.
-		constructor.RegisterArray<std::vector<int>>();
+		constructor.RegisterArray<Rml::Vector<int>>();
 
 		// Structs are registered by adding all its members through the returned handle.
 		if (auto invader_handle = constructor.RegisterStruct<Invader>())
@@ -225,7 +225,7 @@ namespace InvadersExample {
 
 		// We can even have an Array of Structs, infinitely nested if we so desire.
 		// Make sure the underlying type (here Invader) is registered before the array.
-		constructor.RegisterArray<std::vector<Invader>>();
+		constructor.RegisterArray<Rml::Vector<Invader>>();
 
 		// Now we can bind the variables to the model.
 		constructor.Bind("incoming_invaders_rate", &invaders_data.incoming_invaders_rate);
@@ -247,9 +247,9 @@ namespace InvadersExample {
 		{
 			using namespace Rml;
 			const int num_items = 4;
-			static std::array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
-			static std::array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
-			static std::array<Colourb, num_items> colors = { { { 255, 40, 30 }, {20, 40, 255}, {255, 255, 30}, {230, 230, 230} } };
+			static Array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
+			static Array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
+			static Array<Colourb, num_items> colors = { { { 255, 40, 30 }, {20, 40, 255}, {255, 255, 30}, {230, 230, 230} } };
 
 			Invader new_invader;
 			new_invader.name = names[rand() % num_items];
@@ -424,7 +424,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	
 	Shell::LoadFonts("assets/");
 
-	auto demo_window = std::make_unique<DemoWindow>("Data binding", Rml::Vector2f(150, 50), context);
+	auto demo_window = Rml::MakeUnique<DemoWindow>("Data binding", Rml::Vector2f(150, 50), context);
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keydown, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keyup, demo_window.get());
 

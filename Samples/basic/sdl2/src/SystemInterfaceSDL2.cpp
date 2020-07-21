@@ -410,7 +410,7 @@ double RmlUiSDL2SystemInterface::GetElapsedTime()
 
 bool RmlUiSDL2SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
 {
-	std::string Type;
+	Rml::String Type;
 
 	switch(type)
 	{

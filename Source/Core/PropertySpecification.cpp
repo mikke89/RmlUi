@@ -33,16 +33,15 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "PropertyShorthandDefinition.h"
 #include "IdNameMap.h"
-#include <array>
 #include <limits.h>
 #include <stdint.h>
 
 namespace Rml {
 
-PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) : 
+PropertySpecification::PropertySpecification(size_t reserve_num_properties, size_t reserve_num_shorthands) :
 	// Increment reserve numbers by one because the 'invalid' property occupies the first element
 	properties(reserve_num_properties + 1), shorthands(reserve_num_shorthands + 1),
-	property_map(std::make_unique<PropertyIdNameMap>(reserve_num_properties + 1)), shorthand_map(std::make_unique<ShorthandIdNameMap>(reserve_num_shorthands + 1))
+	property_map(MakeUnique<PropertyIdNameMap>(reserve_num_properties + 1)), shorthand_map(MakeUnique<ShorthandIdNameMap>(reserve_num_shorthands + 1))
 {
 }
 
@@ -83,7 +82,7 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 	}
 
 	// Create and insert the new property
-	properties[index] = std::make_unique<PropertyDefinition>(id, default_value, inherited, forces_layout);
+	properties[index] = MakeUnique<PropertyDefinition>(id, default_value, inherited, forces_layout);
 	property_ids.Insert(id);
 	if (inherited)
 		property_ids_inherited.Insert(id);
@@ -274,7 +273,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		property_values.size() < 4)
 	{
 		// This array tells which property index each side is parsed from
-		std::array<int, 4> box_side_to_value_index = { 0,0,0,0 };
+		Array<int, 4> box_side_to_value_index = { 0,0,0,0 };
 		switch (property_values.size())
 		{
 		case 1:

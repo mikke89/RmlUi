@@ -88,9 +88,9 @@ public:
 	bool Render();
 
 	/// Creates a new, empty document and places it into this context.
-	/// @param[in] tag The document type to create.
+	/// @param[in] instancer_name The name of the instancer used to create the document.
 	/// @return The new document, or nullptr if no document could be created.
-	ElementDocument* CreateDocument(const String& tag = "body");
+	ElementDocument* CreateDocument(const String& instancer_name = "body");
 	/// Load a document into the context.
 	/// @param[in] document_path The path to the document to load.
 	/// @return The loaded document, or nullptr if no document was loaded.
@@ -239,6 +239,14 @@ public:
 	/// @return True if succesfully removed, false if no data model was found.
 	bool RemoveDataModel(const String& name);
 
+	/// This will set the documents base <tag> before creation. Default = "body"
+	/// @param[in] tag The name of the base tag. Example: "html"
+	void SetDocumentsBaseTag(const String& tag);
+
+	/// Gets the name of the documents base tag.
+	/// @return The current documents base tag name.
+	const String& GetDocumentsBaseTag();
+
 protected:
 	void Release() override;
 
@@ -246,11 +254,12 @@ private:
 	String name;
 	Vector2i dimensions;
 	float density_independent_pixel_ratio;
+	String documents_base_tag = "body";
 
 	ContextInstancer* instancer;
 
 	using ElementSet = SmallOrderedSet< Element* > ;
-	using ElementList = std::vector< Element* >;
+	using ElementList = Vector< Element* >;
 	// Set of elements that are currently in hover state.
 	ElementSet hover_chain;
 	// List of elements that are currently in active state.

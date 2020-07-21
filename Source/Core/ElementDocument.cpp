@@ -104,8 +104,8 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	{			
 		for (size_t i = 0;i < header.rcss_inline.size(); i++)
 		{			
-			UniquePtr<StyleSheet> inline_sheet = std::make_unique<StyleSheet>();
-			auto stream = std::make_unique<StreamMemory>((const byte*) header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
+			UniquePtr<StyleSheet> inline_sheet = MakeUnique<StyleSheet>();
+			auto stream = MakeUnique<StreamMemory>((const byte*) header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
 			stream->SetSourceURL(document_header->source);
 
 			if (inline_sheet->LoadStyleSheet(stream.get(), header.rcss_inline_line_numbers[i]))
@@ -132,7 +132,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	// Load external scripts.
 	for (size_t i = 0; i < header.scripts_external.size(); i++)
 	{
-		auto stream = std::make_unique<StreamFile>();
+		auto stream = MakeUnique<StreamFile>();
 		if (stream->Open(header.scripts_external[i]))
 			LoadScript(stream.get(), header.scripts_external[i]);
 	}
@@ -140,7 +140,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	// Load internal scripts.
 	for (size_t i = 0; i < header.scripts_inline.size(); i++)
 	{
-		auto stream = std::make_unique<StreamMemory>((const byte*) header.scripts_inline[i].c_str(), header.scripts_inline[i].size());
+		auto stream = MakeUnique<StreamMemory>((const byte*) header.scripts_inline[i].c_str(), header.scripts_inline[i].size());
 		LoadScript(stream.get(), "");
 	}
 

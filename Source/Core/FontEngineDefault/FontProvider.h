@@ -83,7 +83,7 @@ private:
 
 	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream);
 
-	using FontFaceList = std::vector<FontFace*>;
+	using FontFaceList = Vector<FontFace*>;
 	using FontFamilyMap = UnorderedMap< String, UniquePtr<FontFamily>>;
 
 	FontFamilyMap font_families;

@@ -199,19 +199,19 @@ Factory::~Factory()
 
 bool Factory::Initialise()
 {
-	default_instancers = std::make_unique<DefaultInstancers>();
+	default_instancers = MakeUnique<DefaultInstancers>();
 
 	// Default context instancer
 	if (!context_instancer)
 	{
-		default_instancers->context_default = std::make_unique<ContextInstancerDefault>();
+		default_instancers->context_default = MakeUnique<ContextInstancerDefault>();
 		context_instancer = default_instancers->context_default.get();
 	}
 
 	// Default event instancer
 	if (!event_instancer)
 	{
-		default_instancers->event_default = std::make_unique<EventInstancerDefault>();
+		default_instancers->event_default = MakeUnique<EventInstancerDefault>();
 		event_instancer = default_instancers->event_default.get();
 	}
 
@@ -273,15 +273,15 @@ bool Factory::Initialise()
 	RegisterDataControllerInstancer(&default_instancers->data_controller_event, "event");
 
 	// XML node handlers
-	XMLParser::RegisterNodeHandler("", std::make_shared<XMLNodeHandlerDefault>());
-	XMLParser::RegisterNodeHandler("body", std::make_shared<XMLNodeHandlerBody>());
-	XMLParser::RegisterNodeHandler("head", std::make_shared<XMLNodeHandlerHead>());
-	XMLParser::RegisterNodeHandler("template", std::make_shared<XMLNodeHandlerTemplate>());
+	XMLParser::RegisterNodeHandler("", MakeShared<XMLNodeHandlerDefault>());
+	XMLParser::RegisterNodeHandler("body", MakeShared<XMLNodeHandlerBody>());
+	XMLParser::RegisterNodeHandler("head", MakeShared<XMLNodeHandlerHead>());
+	XMLParser::RegisterNodeHandler("template", MakeShared<XMLNodeHandlerTemplate>());
 
 	// XML node handlers for control elements
-	XMLParser::RegisterNodeHandler("datagrid", std::make_shared<XMLNodeHandlerDataGrid>());
-	XMLParser::RegisterNodeHandler("tabset", std::make_shared<XMLNodeHandlerTabSet>());
-	XMLParser::RegisterNodeHandler("textarea", std::make_shared<XMLNodeHandlerTextArea>());
+	XMLParser::RegisterNodeHandler("datagrid", MakeShared<XMLNodeHandlerDataGrid>());
+	XMLParser::RegisterNodeHandler("tabset", MakeShared<XMLNodeHandlerTabSet>());
+	XMLParser::RegisterNodeHandler("textarea", MakeShared<XMLNodeHandlerTextArea>());
 
 	return true;
 }
@@ -410,10 +410,13 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 	if (parse_as_rml)
 	{
 		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
-		auto stream = std::make_unique<StreamMemory>(text.size() + 32);
-		stream->Write("<body>", 6);
+		auto stream = MakeUnique<StreamMemory>(text.size() + 32);
+		String tag = parent->GetContext()->GetDocumentsBaseTag();
+		String open_tag = "<" + tag + ">";
+		String close_tag = "</" + tag + ">";
+		stream->Write(open_tag.c_str(), open_tag.size());
 		stream->Write(text);
-		stream->Write("</body>", 7);
+		stream->Write(close_tag.c_str(), close_tag.size());
 		stream->Seek(0, SEEK_SET);
 
 		InstanceElementStream(parent, stream.get());
@@ -465,8 +468,9 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream)
 {
 	RMLUI_ZoneScoped;
+	RMLUI_ASSERT(context);
 
-	ElementPtr element = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, context->GetDocumentsBaseTag(), context->GetDocumentsBaseTag(), XMLAttributes());
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned nullptr.");
@@ -526,14 +530,14 @@ FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)
 // Creates a style sheet containing the passed in styles.
 SharedPtr<StyleSheet> Factory::InstanceStyleSheetString(const String& string)
 {
-	auto memory_stream = std::make_unique<StreamMemory>((const byte*) string.c_str(), string.size());
+	auto memory_stream = MakeUnique<StreamMemory>((const byte*) string.c_str(), string.size());
 	return InstanceStyleSheetStream(memory_stream.get());
 }
 
 // Creates a style sheet from a file.
 SharedPtr<StyleSheet> Factory::InstanceStyleSheetFile(const String& file_name)
 {
-	auto file_stream = std::make_unique<StreamFile>();
+	auto file_stream = MakeUnique<StreamFile>();
 	file_stream->Open(file_name);
 	return InstanceStyleSheetStream(file_stream.get());
 }
@@ -541,7 +545,7 @@ SharedPtr<StyleSheet> Factory::InstanceStyleSheetFile(const String& file_name)
 // Creates a style sheet from an Stream.
 SharedPtr<StyleSheet> Factory::InstanceStyleSheetStream(Stream* stream)
 {
-	SharedPtr<StyleSheet> style_sheet = std::make_shared<StyleSheet>();
+	SharedPtr<StyleSheet> style_sheet = MakeShared<StyleSheet>();
 	if (style_sheet->LoadStyleSheet(stream))
 	{
 		return style_sheet;

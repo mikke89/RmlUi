@@ -86,9 +86,9 @@ void RmlUiSFMLRenderer::RenderGeometry(Rml::Vertex* vertices, int num_vertices, 
 
 	glTranslatef(translation.x, translation.y, 0);
 
-	std::vector<Rml::Vector2f> Positions(num_vertices);
-	std::vector<Rml::Colourb> Colors(num_vertices);
-	std::vector<Rml::Vector2f> TexCoords(num_vertices);
+	Rml::Vector<Rml::Vector2f> Positions(num_vertices);
+	Rml::Vector<Rml::Colourb> Colors(num_vertices);
+	Rml::Vector<Rml::Vector2f> TexCoords(num_vertices);
 
 	for(int i = 0; i < num_vertices; i++)
 	{
@@ -135,7 +135,7 @@ void RmlUiSFMLRenderer::RenderGeometry(Rml::Vertex* vertices, int num_vertices, 
 Rml::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::TextureHandle texture)
 {
 #ifdef ENABLE_GLEW
-	std::vector<RmlUiSFMLRendererVertex> Data(num_vertices);
+	Rml::Vector<RmlUiSFMLRendererVertex> Data(num_vertices);
 
 	for(std::size_t i = 0; i < Data.size(); i++)
 	{

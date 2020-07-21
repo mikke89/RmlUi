@@ -34,7 +34,7 @@ using namespace Rml;
 
 TEST_CASE("Geometry database")
 {
-	std::vector<Geometry> geometry_list(10);
+	Vector<Geometry> geometry_list(10);
 
 	auto list_database_equivalent = [&geometry_list]() -> bool {
 		int i = 0;

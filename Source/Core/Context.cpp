@@ -63,7 +63,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	root->SetOffset(Vector2f(0, 0), nullptr);
 	root->SetProperty(PropertyId::ZIndex, Property(0, Property::NUMBER));
 
-	cursor_proxy = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
+	cursor_proxy = Factory::InstanceElement(nullptr, documents_base_tag, documents_base_tag, XMLAttributes());
 	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast< ElementDocument* >(cursor_proxy.get());
 	if (cursor_proxy_document)
 		cursor_proxy_document->context = this;
@@ -214,20 +214,20 @@ bool Context::Render()
 	return true;
 }
 
-// Creates a new, empty document and places it into this context.
-ElementDocument* Context::CreateDocument(const String& tag)
+// Creates a new, empty document and places it into this context. 
+ElementDocument* Context::CreateDocument(const String& instancer_name)
 {
-	ElementPtr element = Factory::InstanceElement(nullptr, tag, "body", XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, instancer_name, documents_base_tag, XMLAttributes());
 	if (!element)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', instancer returned nullptr.", tag.c_str());
+		Log::Message(Log::LT_ERROR, "Failed to instance document on instancer_name '%s', instancer returned nullptr.", instancer_name.c_str());
 		return nullptr;
 	}
 
 	ElementDocument* document = rmlui_dynamic_cast< ElementDocument* >(element.get());
 	if (!document)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to instance document on tag '%s', Found type '%s', was expecting derivative of ElementDocument.", tag.c_str(), rmlui_type_name(*element));
+		Log::Message(Log::LT_ERROR, "Failed to instance document on instancer_name '%s', Found type '%s', was expecting derivative of ElementDocument.", instancer_name.c_str(), rmlui_type_name(*element));
 		return nullptr;
 	}
 
@@ -242,7 +242,7 @@ ElementDocument* Context::CreateDocument(const String& tag)
 // Load a document into the context.
 ElementDocument* Context::LoadDocument(const String& document_path)
 {	
-	auto stream = std::make_unique<StreamFile>();
+	auto stream = MakeUnique<StreamFile>();
 
 	if (!stream->Open(document_path))
 		return nullptr;
@@ -283,7 +283,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 ElementDocument* Context::LoadDocumentFromMemory(const String& string)
 {
 	// Open the stream based on the string contents.
-	auto stream = std::make_unique<StreamMemory>((byte*)string.c_str(), string.size());
+	auto stream = MakeUnique<StreamMemory>((byte*)string.c_str(), string.size());
 	stream->SetSourceURL("[document from memory]");
 
 	// Load the document from the stream.
@@ -800,9 +800,9 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 DataModelConstructor Context::CreateDataModel(const String& name)
 {
 	if (!data_type_register)
-		data_type_register = std::make_unique<DataTypeRegister>();
+		data_type_register = MakeUnique<DataTypeRegister>();
 
-	auto result = data_models.emplace(name, std::make_unique<DataModel>(data_type_register->GetTransformFuncRegister()));
+	auto result = data_models.emplace(name, MakeUnique<DataModel>(data_type_register->GetTransformFuncRegister()));
 	bool inserted = result.second;
 	if (inserted)
 		return DataModelConstructor(result.first->second.get(), data_type_register.get());
@@ -1253,7 +1253,7 @@ void Context::ReleaseUnloadedDocuments()
 	}
 }
 
-using ElementObserverList = std::vector< ObserverPtr<Element> >;
+using ElementObserverList = Vector< ObserverPtr<Element> >;
 
 class ElementObserverListBackInserter {
 public:
@@ -1296,6 +1296,16 @@ void Context::Release()
 	{
 		instancer->ReleaseContext(this);
 	}
+}
+
+void Context::SetDocumentsBaseTag(const String& tag)
+{
+	documents_base_tag = tag;
+}
+
+const String& Context::GetDocumentsBaseTag()
+{
+	return documents_base_tag;
 }
 
 } // namespace Rml

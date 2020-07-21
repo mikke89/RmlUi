@@ -32,7 +32,6 @@
 #include "Header.h"
 #include "Types.h"
 #include "Property.h"
-#include <array>
 
 namespace Rml {
 namespace Transforms {
@@ -49,25 +48,25 @@ struct RMLUICORE_API NumericValue {
 template< size_t N >
 struct RMLUICORE_API ResolvedPrimitive
 {
-	std::array<float, N> values;
+	Array<float, N> values;
 
 protected:
 	ResolvedPrimitive(const float* values) noexcept;
 	ResolvedPrimitive(const NumericValue* values) noexcept;
-	ResolvedPrimitive(const NumericValue* values, std::array<Property::Unit, N> base_units) noexcept;
-	ResolvedPrimitive(std::array<NumericValue, N> values, std::array<Property::Unit, N> base_units) noexcept;
-	ResolvedPrimitive(std::array<float, N> values) noexcept;
+	ResolvedPrimitive(const NumericValue* values, Array<Property::Unit, N> base_units) noexcept;
+	ResolvedPrimitive(Array<NumericValue, N> values, Array<Property::Unit, N> base_units) noexcept;
+	ResolvedPrimitive(Array<float, N> values) noexcept;
 };
 
 // An unresolved primitive may have values that depend on the final layout of a given element, such as its width.
 template< size_t N >
 struct RMLUICORE_API UnresolvedPrimitive
 {
-	std::array<NumericValue, N> values;
+	Array<NumericValue, N> values;
 
 protected:
 	UnresolvedPrimitive(const NumericValue* values) noexcept;
-	UnresolvedPrimitive(std::array<NumericValue, N> values) noexcept;
+	UnresolvedPrimitive(Array<NumericValue, N> values) noexcept;
 };
 
 
