@@ -106,7 +106,7 @@ Vector2f DecoratorTiled::Tile::GetDimensions(Element* element) const
 }
 
 // Generates geometry to render this tile across a surface.
-void DecoratorTiled::Tile::GenerateGeometry(std::vector< Vertex >& vertices, std::vector< int >& indices, Element* element, const Vector2f& surface_origin, const Vector2f& surface_dimensions, const Vector2f& tile_dimensions) const
+void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< int >& indices, Element* element, const Vector2f& surface_origin, const Vector2f& surface_dimensions, const Vector2f& tile_dimensions) const
 {
 	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
 		return;

@@ -46,7 +46,7 @@ static HINSTANCE instance_handle = nullptr;
 static double time_frequency;
 static LARGE_INTEGER time_startup;
 
-static std::unique_ptr<ShellFileInterface> file_interface;
+static Rml::UniquePtr<ShellFileInterface> file_interface;
 
 static HCURSOR cursor_default = nullptr;
 static HCURSOR cursor_move = nullptr;
@@ -80,7 +80,7 @@ bool Shell::Initialise()
 	Rml::String root = FindSamplesRoot();
 	bool result = !root.empty();
 	
-	file_interface = std::make_unique<ShellFileInterface>(root);
+	file_interface = Rml::MakeUnique<ShellFileInterface>(root);
 	Rml::SetFileInterface(file_interface.get());
 
 	return result;

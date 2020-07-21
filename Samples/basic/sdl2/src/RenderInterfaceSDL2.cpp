@@ -49,9 +49,9 @@ void RmlUiSDL2Renderer::RenderGeometry(Rml::Vertex* vertices, int num_vertices, 
     glPushMatrix();
     glTranslatef(translation.x, translation.y, 0);
  
-    std::vector<Rml::Vector2f> Positions(num_vertices);
-    std::vector<Rml::Colourb> Colors(num_vertices);
-    std::vector<Rml::Vector2f> TexCoords(num_vertices);
+    Rml::Vector<Rml::Vector2f> Positions(num_vertices);
+    Rml::Vector<Rml::Colourb> Colors(num_vertices);
+    Rml::Vector<Rml::Vector2f> TexCoords(num_vertices);
     float texw = 0.0f;
     float texh = 0.0f;
  

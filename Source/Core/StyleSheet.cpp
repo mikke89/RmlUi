@@ -41,7 +41,6 @@
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 #include <algorithm>
-#include <array>
 
 namespace Rml {
 
@@ -53,7 +52,7 @@ inline static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleShee
 
 StyleSheet::StyleSheet()
 {
-	root = std::make_unique<StyleSheetNode>();
+	root = MakeUnique<StyleSheetNode>();
 	specificity_offset = 0;
 }
 
@@ -73,7 +72,7 @@ SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 {
 	RMLUI_ZoneScoped;
 
-	SharedPtr<StyleSheet> new_sheet = std::make_shared<StyleSheet>();
+	SharedPtr<StyleSheet> new_sheet = MakeShared<StyleSheet>();
 	if (!new_sheet->root->MergeHierarchy(root.get()) ||
 		!new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset))
 	{
@@ -218,7 +217,7 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 		}
 	}
 
-	return std::make_shared<Decorators>(std::move(decorators));
+	return MakeShared<Decorators>(std::move(decorators));
 }
 
 FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const
@@ -288,7 +287,7 @@ FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 			if (font_effect)
 			{
 				// Create a unique hash value for the given type and values
-				size_t fingerprint = std::hash<String>{}(type);
+				size_t fingerprint = Hash<String>{}(type);
 				for (const auto& id_value : properties.GetProperties())
 					Utilities::HashCombine(fingerprint, id_value.second.Get<String>());
 
@@ -309,14 +308,14 @@ FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 		[](const SharedPtr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
 	);
 
-	return std::make_shared<FontEffects>(std::move(font_effects));
+	return MakeShared<FontEffects>(std::move(font_effects));
 }
 
 size_t StyleSheet::NodeHash(const String& tag, const String& id)
 {
 	size_t seed = 0;
 	if (!tag.empty())
-		seed = std::hash<String>()(tag);
+		seed = Hash<String>()(tag);
 	if(!id.empty())
 		Utilities::HashCombine(seed, id);
 	return seed;
@@ -329,7 +328,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 
 	// See if there are any styles defined for this element.
 	// Using static to avoid allocations. Make sure we don't call this function recursively.
-	static std::vector< const StyleSheetNode* > applicable_nodes;
+	static Vector< const StyleSheetNode* > applicable_nodes;
 	applicable_nodes.clear();
 
 	const String& tag = element->GetTagName();
@@ -337,7 +336,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 
 	// The styled_node_index is hashed with the tag and id of the RCSS rule. However, we must also check
 	// the rules which don't have them defined, because they apply regardless of tag and id.
-	std::array<size_t, 4> node_hash;
+	Array<size_t, 4> node_hash;
 	int num_hashes = 2;
 
 	node_hash[0] = 0;
@@ -364,7 +363,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 			// trying to match nodes in the element's hierarchy to nodes in the style hierarchy.
 			for (StyleSheetNode* node : nodes)
 			{
-				if (node->IsApplicable(element))
+				if (node->IsApplicable(element, true))
 				{
 					applicable_nodes.push_back(node);
 				}
@@ -391,7 +390,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	}
 
 	// Create the new definition and add it to our cache.
-	auto new_definition = std::make_shared<ElementDefinition>(applicable_nodes);
+	auto new_definition = MakeShared<ElementDefinition>(applicable_nodes);
 	node_cache[seed] = new_definition;
 
 	return new_definition;

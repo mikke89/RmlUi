@@ -91,7 +91,7 @@ int main(int /*argc*/, char** /*argv*/)
 	if (!MyWindow.isOpen())
 		return 1;
 
-	sf::View view(sf::FloatRect(0.f, 0.f, MyWindow.getSize().x, MyWindow.getSize().y));
+	sf::View view(sf::FloatRect(0.f, 0.f, (float)MyWindow.getSize().x, (float)MyWindow.getSize().y));
 	MyWindow.setView(view);
 
 	Renderer.SetWindow(&MyWindow);

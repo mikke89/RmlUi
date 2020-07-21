@@ -31,7 +31,7 @@
 
 namespace Rml {
 
-typedef std::vector< Plugin* > PluginList;
+typedef Vector< Plugin* > PluginList;
 static PluginList basic_plugins;
 static PluginList document_plugins;
 static PluginList element_plugins;

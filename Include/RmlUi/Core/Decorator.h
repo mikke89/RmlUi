@@ -29,7 +29,6 @@
 #ifndef RMLUI_CORE_DECORATOR_H
 #define RMLUI_CORE_DECORATOR_H
 
-#include <vector>
 #include "Header.h"
 #include "Texture.h"
 #include "Types.h"
@@ -91,7 +90,7 @@ private:
 	// Stores a list of textures in use by this decorator.
 	// Optimized for the common case of a single texture.
 	Texture first_texture;
-	std::vector< Texture > additional_textures;
+	Vector< Texture > additional_textures;
 };
 
 } // namespace Rml

@@ -315,7 +315,7 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 // Adds an inline box as a chained hierarchy overflowing to this line.
 void LayoutLineBox::AddChainedBox(LayoutInlineBox* chained_box)
 {
-	std::stack< LayoutInlineBox* > hierarchy;
+	Stack< LayoutInlineBox* > hierarchy;
 	LayoutInlineBox* chain = chained_box;
 	while (chain != nullptr)
 	{

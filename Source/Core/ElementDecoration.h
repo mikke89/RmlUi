@@ -70,7 +70,7 @@ private:
 		DecoratorDataHandle decorator_data;
 	};
 
-	using DecoratorHandleList = std::vector< DecoratorHandle >;
+	using DecoratorHandleList = Vector< DecoratorHandle >;
 
 	// The element this decorator belongs to
 	Element* element;

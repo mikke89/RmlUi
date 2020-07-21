@@ -57,9 +57,9 @@ For now, this is considered an experimental feature.
 - Have a look at the 'databinding' sample for usage examples.
 - See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
 
+### Other features and improvements
 
-### Other changes
-
+- Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
 - Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 
 

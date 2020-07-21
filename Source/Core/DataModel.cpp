@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/DataController.h"
 #include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include <array>
 
 namespace Rml {
 
@@ -122,8 +121,8 @@ static String DataAddressToString(const DataAddress& address)
 
 DataModel::DataModel(const TransformFuncRegister* transform_register) : transform_register(transform_register)
 {
-	views = std::make_unique<DataViews>();
-	controllers = std::make_unique<DataControllers>();
+	views = MakeUnique<DataViews>();
+	controllers = MakeUnique<DataControllers>();
 }
 
 DataModel::~DataModel()
@@ -175,7 +174,7 @@ bool DataModel::BindFunc(const String& name, DataGetFunc get_func, DataSetFunc s
 		return false;
 	}
 	auto& func_definition_ptr = it->second;
-	func_definition_ptr = std::make_unique<FuncDefinition>(std::move(get_func), std::move(set_func));
+	func_definition_ptr = MakeUnique<FuncDefinition>(std::move(get_func), std::move(set_func));
 
 	return BindVariable(name, DataVariable(func_definition_ptr.get(), nullptr));
 }
@@ -380,7 +379,7 @@ bool DataModel::Update()
 static struct TestDataVariables {
 	TestDataVariables() 
 	{
-		using IntVector = std::vector<int>;
+		using IntVector = Vector<int>;
 
 		struct FunData {
 			int i = 99;
@@ -388,7 +387,7 @@ static struct TestDataVariables {
 			IntVector magic = { 3, 5, 7, 11, 13 };
 		};
 
-		using FunArray = std::array<FunData, 3>;
+		using FunArray = Array<FunData, 3>;
 
 		struct SmartData {
 			bool valid = true;
@@ -427,10 +426,10 @@ static struct TestDataVariables {
 		handle.Bind("data", &data);
 
 		{
-			std::vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.more_fun[1].magic.size", "data.fun.x", "data.valid" };
-			std::vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(int(data.more_fun[1].magic.size())), ToString(data.fun.x), ToString(data.valid) };
+			Vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.more_fun[1].magic.size", "data.fun.x", "data.valid" };
+			Vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(int(data.more_fun[1].magic.size())), ToString(data.fun.x), ToString(data.valid) };
 
-			std::vector<String> results;
+			Vector<String> results;
 
 			for (auto& str_address : test_addresses)
 			{

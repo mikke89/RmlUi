@@ -97,7 +97,7 @@ private:
 	/// Appends an inline box to the end of the line box's list of inline boxes.
 	void AppendBox(LayoutInlineBox* box);
 
-	typedef std::vector< LayoutInlineBox* > InlineBoxList;
+	typedef Vector< LayoutInlineBox* > InlineBoxList;
 
 	// The block box containing this line.
 	LayoutBlockBox* parent;

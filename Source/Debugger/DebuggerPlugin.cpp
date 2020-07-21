@@ -90,7 +90,7 @@ bool DebuggerPlugin::Initialise(Context* context)
 		return false;
 	}
 
-	hook_element_instancer = std::make_unique< ElementInstancerGeneric<ElementContextHook> >();
+	hook_element_instancer = MakeUnique< ElementInstancerGeneric<ElementContextHook> >();
 	Factory::RegisterElementInstancer("debug-hook", hook_element_instancer.get());
 
 	return true;
@@ -173,7 +173,7 @@ void DebuggerPlugin::Render()
 			if (document->GetId().find("rmlui-debug-") == 0)
 				continue;
 
-			std::stack< Element* > element_stack;
+			Stack< Element* > element_stack;
 			element_stack.push(document);
 
 			while (!element_stack.empty())
@@ -325,7 +325,7 @@ bool DebuggerPlugin::LoadMenuElement()
 
 bool DebuggerPlugin::LoadInfoElement()
 {
-	info_element_instancer = std::make_unique< ElementInstancerGeneric<ElementInfo> >();
+	info_element_instancer = MakeUnique< ElementInstancerGeneric<ElementInfo> >();
 	Factory::RegisterElementInstancer("debug-info", info_element_instancer.get());
 	info_element = rmlui_dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
 	if (!info_element)
@@ -346,7 +346,7 @@ bool DebuggerPlugin::LoadInfoElement()
 
 bool DebuggerPlugin::LoadLogElement()
 {
-	log_element_instancer = std::make_unique< ElementInstancerGeneric<ElementLog> >();
+	log_element_instancer = MakeUnique< ElementInstancerGeneric<ElementLog> >();
 	Factory::RegisterElementInstancer("debug-log", log_element_instancer.get());
 	log_element = rmlui_dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
 	if (!log_element)
@@ -364,7 +364,7 @@ bool DebuggerPlugin::LoadLogElement()
 
 	// Make the system interface; this will trap the log messages for us.
 	application_interface = Rml::GetSystemInterface();
-	log_interface = std::make_unique<DebuggerSystemInterface>(application_interface, log_element);
+	log_interface = MakeUnique<DebuggerSystemInterface>(application_interface, log_element);
 	Rml::SetSystemInterface(log_interface.get());
 
 	return true;

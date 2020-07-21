@@ -38,8 +38,8 @@ namespace Rml {
 class Element;
 class DataModel;
 struct InstructionData;
-using Program = std::vector<InstructionData>;
-using AddressList = std::vector<DataAddress>;
+using Program = Vector<InstructionData>;
+using AddressList = Vector<DataAddress>;
 
 class DataExpressionInterface {
 public:

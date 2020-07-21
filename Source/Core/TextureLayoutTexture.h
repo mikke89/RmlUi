@@ -66,7 +66,7 @@ public:
 	UniquePtr<byte[]> AllocateTexture();
 
 private:
-	using RowList = std::vector< TextureLayoutRow >;
+	using RowList = Vector< TextureLayoutRow >;
 
 	Vector2i dimensions;
 	RowList rows;

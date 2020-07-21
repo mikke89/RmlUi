@@ -93,7 +93,7 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 	//   Without the loop, newly added views won't be updated until the next Update() call.
 	for(int i = 0; i == 0 || (!views_to_add.empty() && i < 10); i++)
 	{
-		std::vector<DataView*> dirty_views;
+		Vector<DataView*> dirty_views;
 
 		if (!views_to_add.empty())
 		{

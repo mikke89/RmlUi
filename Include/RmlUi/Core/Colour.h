@@ -109,6 +109,10 @@ public:
 	inline operator ColourType*() { return &red; }
 
 	ColourType red, green, blue, alpha;
+
+#ifdef RMLUI_COLOUR_USER_EXTRA
+	RMLUI_COLOUR_USER_EXTRA
+#endif
 };
 
 } // namespace Rml

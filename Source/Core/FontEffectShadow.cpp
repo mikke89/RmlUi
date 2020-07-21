@@ -84,7 +84,7 @@ SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String
 	offset.y = Math::RealToInteger(properties.GetProperty(id_offset_y)->Get< float >());
 	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
 
-	auto font_effect = std::make_shared<FontEffectShadow>();
+	auto font_effect = MakeShared<FontEffectShadow>();
 	if (font_effect->Initialise(offset))
 	{
 		font_effect->SetColour(color);

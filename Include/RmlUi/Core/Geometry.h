@@ -71,10 +71,10 @@ public:
 
 	/// Returns the geometry's vertices. If these are written to, Release() should be called to force a recompile.
 	/// @return The geometry's vertex array.
-	std::vector< Vertex >& GetVertices();
+	Vector< Vertex >& GetVertices();
 	/// Returns the geometry's indices. If these are written to, Release() should be called to force a recompile.
 	/// @return The geometry's index array.
-	std::vector< int >& GetIndices();
+	Vector< int >& GetIndices();
 
 	/// Gets the geometry's texture.
 	/// @return The geometry's texture.
@@ -96,8 +96,8 @@ private:
 	Context* host_context = nullptr;
 	Element* host_element = nullptr;
 
-	std::vector< Vertex > vertices;
-	std::vector< int > indices;
+	Vector< Vertex > vertices;
+	Vector< int > indices;
 	const Texture* texture = nullptr;
 
 	CompiledGeometryHandle compiled_geometry = 0;
@@ -106,7 +106,7 @@ private:
 	GeometryDatabaseHandle database_handle;
 };
 
-using GeometryList = std::vector< Geometry >;
+using GeometryList = Vector< Geometry >;
 
 } // namespace Rml
 #endif

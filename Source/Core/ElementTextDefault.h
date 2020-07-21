@@ -108,7 +108,7 @@ private:
 
 	String text;
 
-	typedef std::vector< Line > LineList;
+	typedef Vector< Line > LineList;
 	LineList lines;
 
 	bool dirty_layout_on_change;

@@ -47,8 +47,8 @@ struct StructuralSelector {
 inline bool operator==(const StructuralSelector& a, const StructuralSelector& b) { return a.selector == b.selector && a.a == b.a && a.b == b.b; }
 inline bool operator<(const StructuralSelector& a, const StructuralSelector& b) { return std::tie(a.selector, a.a, a.b) < std::tie(b.selector, b.a, b.b); }
 
-using StructuralSelectorList = std::vector< StructuralSelector >;
-using StyleSheetNodeList = std::vector< UniquePtr<StyleSheetNode> >;
+using StructuralSelectorList = Vector< StructuralSelector >;
+using StyleSheetNodeList = Vector< UniquePtr<StyleSheetNode> >;
 
 
 /**
@@ -86,7 +86,7 @@ public:
 	const PropertyDictionary& GetProperties() const;
 
 	/// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
-	bool IsApplicable(const Element* element) const;
+	bool IsApplicable(const Element* element, bool skip_id_tag) const;
 
 	/// Returns the specificity of this node.
 	int GetSpecificity() const;

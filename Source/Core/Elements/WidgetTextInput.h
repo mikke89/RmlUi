@@ -196,7 +196,7 @@ private:
 	Vector2f internal_dimensions;
 	Vector2f scroll_offset;
 
-	typedef std::vector< Line > LineList;
+	typedef Vector< Line > LineList;
 	LineList lines;
 
 	// Length in number of characters.

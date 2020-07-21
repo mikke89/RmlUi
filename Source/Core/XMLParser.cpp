@@ -56,7 +56,7 @@ XMLParser::XMLParser(Element* root)
 
 	active_handler = nullptr;
 
-	header = std::make_unique<DocumentHeader>();
+	header = MakeUnique<DocumentHeader>();
 }
 
 XMLParser::~XMLParser()

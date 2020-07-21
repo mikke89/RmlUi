@@ -142,7 +142,7 @@ private:
 	};
 
 	String text;
-	std::vector<DataEntry> data_entries;
+	Vector<DataEntry> data_entries;
 };
 
 

@@ -242,7 +242,7 @@ ElementDocument* Context::CreateDocument(const String& instancer_name)
 // Load a document into the context.
 ElementDocument* Context::LoadDocument(const String& document_path)
 {	
-	auto stream = std::make_unique<StreamFile>();
+	auto stream = MakeUnique<StreamFile>();
 
 	if (!stream->Open(document_path))
 		return nullptr;
@@ -283,7 +283,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 ElementDocument* Context::LoadDocumentFromMemory(const String& string)
 {
 	// Open the stream based on the string contents.
-	auto stream = std::make_unique<StreamMemory>((byte*)string.c_str(), string.size());
+	auto stream = MakeUnique<StreamMemory>((byte*)string.c_str(), string.size());
 	stream->SetSourceURL("[document from memory]");
 
 	// Load the document from the stream.
@@ -800,9 +800,9 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 DataModelConstructor Context::CreateDataModel(const String& name)
 {
 	if (!data_type_register)
-		data_type_register = std::make_unique<DataTypeRegister>();
+		data_type_register = MakeUnique<DataTypeRegister>();
 
-	auto result = data_models.emplace(name, std::make_unique<DataModel>(data_type_register->GetTransformFuncRegister()));
+	auto result = data_models.emplace(name, MakeUnique<DataModel>(data_type_register->GetTransformFuncRegister()));
 	bool inserted = result.second;
 	if (inserted)
 		return DataModelConstructor(result.first->second.get(), data_type_register.get());
@@ -1253,7 +1253,7 @@ void Context::ReleaseUnloadedDocuments()
 	}
 }
 
-using ElementObserverList = std::vector< ObserverPtr<Element> >;
+using ElementObserverList = Vector< ObserverPtr<Element> >;
 
 class ElementObserverListBackInserter {
 public:

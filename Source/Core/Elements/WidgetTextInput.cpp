@@ -526,7 +526,7 @@ bool WidgetTextInput::AddCharacters(String string)
 
 	String value = GetElement()->GetAttribute< String >("value", "");
 	
-	value.insert(std::min(size_t(GetCursorIndex()), value.size()), string);
+	value.insert(std::min<size_t>(GetCursorIndex(), value.size()), string);
 
 	edit_index += (int)string.size();
 
@@ -563,7 +563,7 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 void WidgetTextInput::CopySelection()
 {
 	const String& value = GetElement()->GetAttribute< String >("value", "");
-	const String snippet = value.substr(std::min(size_t(selection_begin_index), value.size()), selection_length);
+	const String snippet = value.substr(std::min(size_t(selection_begin_index), size_t(value.size())), selection_length);
 	GetSystemInterface()->SetClipboardText(snippet);
 }
 
@@ -982,8 +982,8 @@ Vector2f WidgetTextInput::FormatText()
 	// Clear the selection background geometry, and get the vertices and indices so the new geo can
 	// be generated.
 	selection_geometry.Release(true);
-	std::vector< Vertex >& selection_vertices = selection_geometry.GetVertices();
-	std::vector< int >& selection_indices = selection_geometry.GetIndices();
+	Vector< Vertex >& selection_vertices = selection_geometry.GetVertices();
+	Vector< int >& selection_indices = selection_geometry.GetIndices();
 
 	// Determine the line-height of the text element.
 	float line_height = parent->GetLineHeight();
@@ -1114,10 +1114,10 @@ void WidgetTextInput::GenerateCursor()
 	// Generates the cursor.
 	cursor_geometry.Release();
 
-	std::vector< Vertex >& vertices = cursor_geometry.GetVertices();
+	Vector< Vertex >& vertices = cursor_geometry.GetVertices();
 	vertices.resize(4);
 
-	std::vector< int >& indices = cursor_geometry.GetIndices();
+	Vector< int >& indices = cursor_geometry.GetIndices();
 	indices.resize(6);
 
 	cursor_size.x = ElementUtilities::GetDensityIndependentPixelRatio(text_element);
@@ -1186,7 +1186,7 @@ void WidgetTextInput::DeleteSelection()
 	{
 		const String& value = GetElement()->GetAttribute< String >("value", "");
 
-		String new_value = value.substr(0, selection_begin_index) + value.substr(std::min(size_t(selection_begin_index + selection_length), value.size()));
+		String new_value = value.substr(0, selection_begin_index) + value.substr(std::min(size_t(selection_begin_index + selection_length), size_t(value.size())));
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.

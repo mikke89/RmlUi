@@ -88,7 +88,7 @@ bool Initialise()
 	if (!file_interface)
 	{		
 #ifndef RMLUI_NO_FILE_INTERFACE_DEFAULT
-		default_file_interface = std::make_unique<FileInterfaceDefault>();
+		default_file_interface = MakeUnique<FileInterfaceDefault>();
 		file_interface = default_file_interface.get();
 #else
 		Log::Message(Log::LT_ERROR, "No file interface set!");
@@ -105,7 +105,7 @@ bool Initialise()
 	if (!font_interface)
 	{
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
-		default_font_interface = std::make_unique<FontEngineInterfaceDefault>();
+		default_font_interface = MakeUnique<FontEngineInterfaceDefault>();
 		font_interface = default_font_interface.get();
 #else
 		Log::Message(Log::LT_ERROR, "No font interface set!");

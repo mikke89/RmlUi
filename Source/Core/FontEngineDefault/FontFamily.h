@@ -64,7 +64,7 @@ public:
 protected:
 	String name;
 
-	using FontFaceList = std::vector< UniquePtr<FontFace> >;
+	using FontFaceList = Vector< UniquePtr<FontFace> >;
 	FontFaceList font_faces;
 };
 

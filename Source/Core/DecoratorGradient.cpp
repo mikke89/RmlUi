@@ -130,7 +130,7 @@ SharedPtr<Decorator> DecoratorGradientInstancer::InstanceDecorator(const String 
 	Colourb start = properties_.GetProperty(ids.start)->Get<Colourb>();
 	Colourb stop = properties_.GetProperty(ids.stop)->Get<Colourb>();
 
-	auto decorator = std::make_shared<DecoratorGradient>();
+	auto decorator = MakeShared<DecoratorGradient>();
 	if (decorator->Initialise(dir, start, stop)) {
 		return decorator;
 	}

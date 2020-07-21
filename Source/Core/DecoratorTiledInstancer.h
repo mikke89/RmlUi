@@ -64,7 +64,7 @@ private:
 		PropertyId src, fit, align_x, align_y, orientation;
 	};
 
-	std::vector<TilePropertyIds> tile_property_ids;
+	Vector<TilePropertyIds> tile_property_ids;
 };
 
 } // namespace Rml

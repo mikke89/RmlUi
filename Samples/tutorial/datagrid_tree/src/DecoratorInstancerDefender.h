@@ -30,7 +30,7 @@ public:
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @param[in] interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the decorator if it was instanced successfully.
-	std::shared_ptr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& interface) override;
+	Rml::SharedPtr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& interface) override;
 
 private:
 	Rml::PropertyId id_image_src;

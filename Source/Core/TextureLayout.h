@@ -75,8 +75,8 @@ public:
 	bool GenerateLayout(int max_texture_dimensions);
 
 private:
-	using RectangleList = std::vector< TextureLayoutRectangle >;
-	using TextureList = std::vector< TextureLayoutTexture >;
+	using RectangleList = Vector< TextureLayoutRectangle >;
+	using TextureList = Vector< TextureLayoutTexture >;
 
 	TextureList textures;
 	RectangleList rectangles;
