@@ -30,14 +30,15 @@
 #define RMLUI_CONFIG_CONFIG_H
 
 /*
- * This file provides means to configure various types used across RmlUi. It is possible to override container types
- * with your own, provided they are compatible with STL, or customize STL containers, for example use a custom
- * allocator. This file may be edited directly, or can be copied to alternate location, modified, and included by
- * setting CMake option USER_CONFIG_FILE (RMLUI_USER_CONFIG_FILE preprocessor define) to path of that file.
+ * This file provides the means to configure various types used across RmlUi. It is possible to override container
+ * types with your own, provided they are compatible with STL, or customize STL containers, for example by setting
+ * custom allocators. This file may be edited directly, or can be copied to an alternate location, modified, and
+ * included by setting the CMake option CUSTOM_CONFIGURATION_FILE (RMLUI_CUSTOM_CONFIGURATION_FILE preprocessor 
+ * define) to the path of that file.
  */
 
-#ifdef RMLUI_USER_CONFIG_FILE
-#include RMLUI_USER_CONFIG_FILE
+#ifdef RMLUI_CUSTOM_CONFIGURATION_FILE
+#include RMLUI_CUSTOM_CONFIGURATION_FILE
 #else
 #include <utility>
 #include <vector>
@@ -150,12 +151,12 @@ inline UniquePtr<T> MakeUnique(Args... args) { return std::make_unique<T, Args..
 
 // Extra code to be inserted into RmlUi::Color<> class body. Note: be mindful of colorspaces used by different
 // color types. RmlUi assumes that float colors are interpreted in linear colorspace while byte colors are 
-// interpreted as SRGB.
+// interpreted as sRGB.
 
 #define RMLUI_COLOUR_USER_EXTRA                                                                         \
 	template<typename U = ColourType, typename std::enable_if_t<std::is_same_v<U, byte>>* = nullptr>    \
 	operator MyColor() const { return MyColor(                                                          \
-		(float)red / 256.0f, (float)green / 255.0f, (float)blue / 255.0f, (float)alpha / 255.0f); }     \
+		(float)red / 255.0f, (float)green / 255.0f, (float)blue / 255.0f, (float)alpha / 255.0f); }     \
 	template<typename U = ColourType, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>   \
 	operator MyColor() const { return MyColor(red, green, blue, alpha); }                               \
 

@@ -184,18 +184,30 @@ if( NO_THIRDPARTY_CONTAINERS )
 	message("-- No third-party containers will be used: Make sure to #define RMLUI_NO_THIRDPARTY_CONTAINERS before including RmlUi in your project.")
 endif()
 
-set(CUSTOM_CONFIG_FILE "" CACHE STRING "Custom configuration file to be included in place of default one.")
-if( CUSTOM_CONFIG_FILE )
-	add_definitions(-DRML_USER_CONFIG_FILE="${CUSTOM_CONFIG_FILE}")
-	message("-- Including ${CUSTOM_CONFIG_FILE} instead of RmlUi/UserConfig.h")
+option(CUSTOM_CONFIGURATION "Customize RmlUi configuration files for overriding the default configuration and types." OFF)
+
+set(CUSTOM_CONFIGURATION_FILE "" CACHE STRING "Custom configuration file to be included in place of <RmlUi/Config/Config.h>.")
+if( CUSTOM_CONFIGURATION AND CUSTOM_CONFIGURATION_FILE )
+	add_definitions(-DRMLUI_CUSTOM_CONFIGURATION_FILE="${CUSTOM_CONFIGURATION_FILE}")
+	message("-- Including ${CUSTOM_CONFIGURATION_FILE} instead of <RmlUi/Config/Config.h>")
 endif ()
 
-set(CUSTOM_INCLUDE_DIRS "" CACHE STRING "Extra include directories (use with CUSTOM_CONFIG_FILE).")
-if( CUSTOM_INCLUDE_DIRS )
+set(CUSTOM_INCLUDE_DIRS "" CACHE STRING "Extra include directories (use with CUSTOM_CONFIGURATION_FILE).")
+if( CUSTOM_CONFIGURATION AND CUSTOM_INCLUDE_DIRS )
 	include_directories(${CUSTOM_INCLUDE_DIRS})
 endif ()
 
-set(CUSTOM_LINK_LIBRARIES "" CACHE STRING "Extra link libraries (use with CUSTOM_LINK_LIBRARIES).")
+set(CUSTOM_LINK_LIBRARIES "" CACHE STRING "Extra link libraries (use with CUSTOM_CONFIGURATION_FILE).")
+
+if( CUSTOM_CONFIGURATION )
+	mark_as_advanced( CLEAR CUSTOM_CONFIGURATION_FILE CUSTOM_INCLUDE_DIRS CUSTOM_LINK_LIBRARIES )
+else()
+	mark_as_advanced( FORCE CUSTOM_CONFIGURATION_FILE CUSTOM_INCLUDE_DIRS CUSTOM_LINK_LIBRARIES )
+	
+	if( CUSTOM_CONFIGURATION_FILE OR CUSTOM_INCLUDE_DIRS OR CUSTOM_LINK_LIBRARIES )
+		message("-- CUSTOM_CONFIGURATION disabled, but custom configuration variables are set. They will have no effect.")
+	endif()
+endif()
 
 option(ENABLE_TRACY_PROFILING "Enable profiling with Tracy. Source files can be placed in Dependencies/tracy." OFF)
 if( ENABLE_TRACY_PROFILING )
@@ -302,7 +314,7 @@ foreach(library ${LIBRARIES})
 		target_compile_definitions(${NAME} -DRMLUI_MATRIX_ROW_MAJOR=1)
 	endif ()
 
-	if( CUSTOM_LINK_LIBRARIES )
+	if( CUSTOM_CONFIGURATION AND CUSTOM_LINK_LIBRARIES )
 		target_link_libraries(${NAME} ${CUSTOM_LINK_LIBRARIES})
 	endif ()
 
@@ -316,15 +328,17 @@ foreach(library ${LIBRARIES})
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
 
-foreach(library ${CUSTOM_LINK_LIBRARIES})
-	install(TARGETS ${library}
-		EXPORT RmlUiTargets
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-	)
-	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${library})
-endforeach(library ${CUSTOM_LINK_LIBRARIES})
+if( CUSTOM_CONFIGURATION )
+	foreach(library ${CUSTOM_LINK_LIBRARIES})
+		install(TARGETS ${library}
+			EXPORT RmlUiTargets
+			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		)
+		set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${library})
+	endforeach(library ${CUSTOM_LINK_LIBRARIES})
+endif()
 
 target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 
@@ -550,7 +564,7 @@ endif(NOT BUILD_FRAMEWORK)
 		target_link_libraries(shell PUBLIC shlwapi)
 	endif()
 
-	if( CUSTOM_LINK_LIBRARIES )
+	if( CUSTOM_CONFIGURATION AND CUSTOM_LINK_LIBRARIES )
 		target_link_libraries(shell PUBLIC ${CUSTOM_LINK_LIBRARIES})
 	endif ()
 
