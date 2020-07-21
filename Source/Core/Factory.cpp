@@ -410,9 +410,12 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 	{
 		RMLUI_ZoneScopedNC("InstanceStream", 0xDC143C);
 		auto stream = MakeUnique<StreamMemory>(text.size() + 32);
-		stream->Write("<body>", 6);
+		String tag = parent->GetContext()->GetDocumentsBaseTag();
+		String open_tag = "<" + tag + ">";
+		String close_tag = "</" + tag + ">";
+		stream->Write(open_tag.c_str(), open_tag.size());
 		stream->Write(text);
-		stream->Write("</body>", 7);
+		stream->Write(close_tag.c_str(), close_tag.size());
 		stream->Seek(0, SEEK_SET);
 
 		InstanceElementStream(parent, stream.get());
@@ -464,8 +467,9 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream)
 {
 	RMLUI_ZoneScoped;
+	RMLUI_ASSERT(context);
 
-	ElementPtr element = Factory::InstanceElement(nullptr, "body", "body", XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, context->GetDocumentsBaseTag(), context->GetDocumentsBaseTag(), XMLAttributes());
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned nullptr.");
