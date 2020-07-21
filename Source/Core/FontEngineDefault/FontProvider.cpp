@@ -174,7 +174,7 @@ bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, St
 	}
 	else
 	{
-		auto font_family_ptr = std::make_unique<FontFamily>(family_lower);
+		auto font_family_ptr = MakeUnique<FontFamily>(family_lower);
 		font_family = font_family_ptr.get();
 		font_families[family_lower] = std::move(font_family_ptr);
 	}

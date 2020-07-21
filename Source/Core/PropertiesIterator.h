@@ -37,7 +37,7 @@ namespace Rml {
 // Note: Modifying the underlying style invalidates the iterator.
 class PropertiesIterator {
 public:
-	using ValueType = std::pair<PropertyId, const Property&>;
+	using ValueType = Pair<PropertyId, const Property&>;
 	using PropertyIt = PropertyMap::const_iterator;
 
 	PropertiesIterator(PropertyIt it_style, PropertyIt it_style_end, PropertyIt it_definition, PropertyIt it_definition_end)

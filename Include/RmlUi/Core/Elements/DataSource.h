@@ -31,7 +31,6 @@
 
 #include "../Header.h"
 #include "../Types.h"
-#include <list>
 
 namespace Rml {
 
@@ -101,7 +100,7 @@ class RMLUICORE_API DataSource
 	private:
 		String name;
 
-		using ListenerList = std::list< DataSourceListener* >;
+		using ListenerList = List< DataSourceListener* >;
 		ListenerList listeners;
 };
 

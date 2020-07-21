@@ -110,7 +110,7 @@ private:
 		Vector2f dimensions;
 	};
 
-	typedef std::vector< SpaceBox > SpaceBoxList;
+	typedef Vector< SpaceBox > SpaceBoxList;
 
 	// Our block-box parent.
 	LayoutBlockBox* parent;

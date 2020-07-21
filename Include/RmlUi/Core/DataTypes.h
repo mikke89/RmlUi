@@ -31,7 +31,6 @@
 
 #include "Header.h"
 #include "Types.h"
-#include <functional>
 
 namespace Rml {
 
@@ -41,10 +40,10 @@ class TransformFuncRegister;
 class DataModelHandle;
 class DataVariable;
 
-using DataGetFunc = std::function<void(Variant&)>;
-using DataSetFunc = std::function<void(const Variant&)>;
-using DataTransformFunc = std::function<bool(Variant&, const VariantList&)>;
-using DataEventFunc = std::function<void(DataModelHandle, Event&, const VariantList&)>;
+using DataGetFunc = Function<void(Variant&)>;
+using DataSetFunc = Function<void(const Variant&)>;
+using DataTransformFunc = Function<bool(Variant&, const VariantList&)>;
+using DataEventFunc = Function<void(DataModelHandle, Event&, const VariantList&)>;
 
 template<typename T> using MemberGetFunc = void(T::*)(Variant&);
 template<typename T> using MemberSetFunc = void(T::*)(const Variant&);
@@ -57,7 +56,7 @@ struct DataAddressEntry {
 	String name;
 	int index;
 };
-using DataAddress = std::vector<DataAddressEntry>;
+using DataAddress = Vector<DataAddressEntry>;
 
 } // namespace Rml
 #endif

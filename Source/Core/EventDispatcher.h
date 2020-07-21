@@ -98,11 +98,11 @@ private:
 
 	// Listeners are sorted first by (id, phase) and then by the order in which the listener was inserted.
 	// All listeners added are unique.
-	typedef std::vector< EventListenerEntry > Listeners;
+	typedef Vector< EventListenerEntry > Listeners;
 	Listeners listeners;
 
 	// Collect all the listeners from this dispatcher that are allowed to execute given the input arguments.
-	void CollectListeners(int dom_distance_from_target, EventId event_id, EventPhase phases_to_execute, std::vector<CollectedListener>& collect_listeners);
+	void CollectListeners(int dom_distance_from_target, EventId event_id, EventPhase phases_to_execute, Vector<CollectedListener>& collect_listeners);
 };
 
 

@@ -145,6 +145,8 @@ endif()
 
 option(BUILD_SAMPLES "Build samples" OFF)
 
+option(MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
+
 if(APPLE)
 	if(IOS)
 		if(BUILD_SHARED_LIBS)
@@ -181,6 +183,19 @@ if( NO_THIRDPARTY_CONTAINERS )
 	add_definitions(-DRMLUI_NO_THIRDPARTY_CONTAINERS)
 	message("-- No third-party containers will be used: Make sure to #define RMLUI_NO_THIRDPARTY_CONTAINERS before including RmlUi in your project.")
 endif()
+
+set(CUSTOM_CONFIG_FILE "" CACHE STRING "Custom configuration file to be included in place of default one.")
+if( CUSTOM_CONFIG_FILE )
+	add_definitions(-DRML_USER_CONFIG_FILE="${CUSTOM_CONFIG_FILE}")
+	message("-- Including ${CUSTOM_CONFIG_FILE} instead of RmlUi/UserConfig.h")
+endif ()
+
+set(CUSTOM_INCLUDE_DIRS "" CACHE STRING "Extra include directories (use with CUSTOM_CONFIG_FILE).")
+if( CUSTOM_INCLUDE_DIRS )
+	include_directories(${CUSTOM_INCLUDE_DIRS})
+endif ()
+
+set(CUSTOM_LINK_LIBRARIES "" CACHE STRING "Extra link libraries (use with CUSTOM_LINK_LIBRARIES).")
 
 option(ENABLE_TRACY_PROFILING "Enable profiling with Tracy. Source files can be placed in Dependencies/tracy." OFF)
 if( ENABLE_TRACY_PROFILING )
@@ -282,17 +297,34 @@ foreach(library ${LIBRARIES})
 	if (MSVC)
 		target_compile_options(${NAME} PUBLIC "/MP")
 	endif(MSVC)
-	
+
+	if( MATRIX_ROW_MAJOR )
+		target_compile_definitions(${NAME} -DRMLUI_MATRIX_ROW_MAJOR=1)
+	endif ()
+
+	if( CUSTOM_LINK_LIBRARIES )
+		target_link_libraries(${NAME} ${CUSTOM_LINK_LIBRARIES})
+	endif ()
+
 	install(TARGETS ${NAME}
 		EXPORT RmlUiTargets
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	)
-	
 
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
+
+foreach(library ${CUSTOM_LINK_LIBRARIES})
+	install(TARGETS ${library}
+		EXPORT RmlUiTargets
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	)
+	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${library})
+endforeach(library ${CUSTOM_LINK_LIBRARIES})
 
 target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 
@@ -517,6 +549,10 @@ endif(NOT BUILD_FRAMEWORK)
 	if (WIN32)
 		target_link_libraries(shell PUBLIC shlwapi)
 	endif()
+
+	if( CUSTOM_LINK_LIBRARIES )
+		target_link_libraries(shell PUBLIC ${CUSTOM_LINK_LIBRARIES})
+	endif ()
 
 	# Build and install the basic samples
 	foreach(sample ${samples})

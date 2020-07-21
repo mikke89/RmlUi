@@ -129,8 +129,8 @@ protected:
 	void GetInnerRML(String& content) const override;
 
 private:
-	typedef std::vector< Column > ColumnList;
-	typedef std::vector< ElementDataGridRow* > RowList;
+	typedef Vector< Column > ColumnList;
+	typedef Vector< ElementDataGridRow* > RowList;
 
 	ColumnList columns;
 	String column_fields;

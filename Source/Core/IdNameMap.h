@@ -37,7 +37,7 @@ namespace Rml {
 
 template <typename ID>
 class IdNameMap {
-	std::vector<String> name_map;  // IDs are indices into the name_map
+	Vector<String> name_map;  // IDs are indices into the name_map
 	UnorderedMap<String, ID> reverse_map;
 
 protected:

@@ -225,7 +225,7 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 		auto& small = (prims0_smallest ? prims0 : prims1);
 		auto& big = (prims0_smallest ? prims1 : prims0);
 
-		std::vector<size_t> matching_indices; // Indices into 'big' for matching types
+		Vector<size_t> matching_indices; // Indices into 'big' for matching types
 		matching_indices.reserve(small.size() + 1);
 
 		size_t i_big = 0;
@@ -304,7 +304,7 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 }
 
 
-static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element, int start_index)
+static bool PrepareTransforms(Vector<AnimationKey>& keys, Element& element, int start_index)
 {
 	bool result = true;
 
@@ -315,7 +315,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 		RMLUI_ASSERT(property.value.GetType() == Variant::TRANSFORMPTR);
 
 		if (!property.value.GetReference<TransformPtr>())
-			property.value = std::make_shared<Transform>();
+			property.value = MakeShared<Transform>();
 
 		bool must_decompose = false;
 		Transform& transform = *property.value.GetReference<TransformPtr>();
@@ -346,7 +346,7 @@ static bool PrepareTransforms(std::vector<AnimationKey>& keys, Element& element,
 	int count_iterations = -1;
 	const int max_iterations = 3 * N;
 
-	std::vector<bool> dirty_list(N + 1, false);
+	Vector<bool> dirty_list(N + 1, false);
 	dirty_list[start_index] = true;
 
 	// For each pair of keys, match the transform primitives such that they can be interpolated during animation update

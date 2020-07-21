@@ -403,7 +403,7 @@ FontFaceLayer* FontFaceHandleDefault::GetOrCreateLayer(const SharedPtr<const Fon
 	layers.push_back(EffectLayerPair{ font_effect_ptr, nullptr });
 	auto& layer = layers.back().layer;
 	
-	layer = std::make_unique<FontFaceLayer>(font_effect);
+	layer = MakeUnique<FontFaceLayer>(font_effect);
 	GenerateLayer(layer.get());
 
 	return layer.get();

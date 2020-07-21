@@ -32,7 +32,6 @@
 #include "Header.h"
 #include "Types.h"
 #include "Traits.h"
-#include <unordered_map>
 
 namespace Rml {
 
@@ -111,7 +110,7 @@ public:
     void OnElementRemove(Element* element);
 
 private:
-    using ElementControllersMap = std::unordered_multimap<Element*, DataControllerPtr>;
+    using ElementControllersMap = UnorderedMultimap<Element*, DataControllerPtr>;
     ElementControllersMap controllers;
 };
 

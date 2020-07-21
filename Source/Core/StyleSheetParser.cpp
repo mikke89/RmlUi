@@ -211,7 +211,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	StringList rule_list;
 	StringUtilities::ExpandString(rule_list, rules);
 
-	std::vector<float> rule_values;
+	Vector<float> rule_values;
 	rule_values.reserve(rule_list.size());
 
 	for (auto rule : rule_list)
@@ -365,7 +365,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					// Add style nodes to the root of the tree
 					for (size_t i = 0; i < rule_name_list.size(); i++)
 					{
-						auto source = std::make_shared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
+						auto source = MakeShared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
 						properties.SetSourceOfAllProperties(source);
 						ImportProperties(node, rule_name_list[i], properties, rule_count);
 					}
@@ -395,7 +395,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					}
 					else if (at_rule_identifier == "decorator")
 					{
-						auto source = std::make_shared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
+						auto source = MakeShared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
 						ParseDecoratorBlock(at_rule_name, decorator_map, style_sheet, source);
 						
 						at_rule_name.clear();

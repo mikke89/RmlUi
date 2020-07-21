@@ -121,8 +121,8 @@ public:
 	String PropertiesToString(const PropertyDictionary& dictionary) const;
 
 private:
-	using Properties = std::vector< UniquePtr<PropertyDefinition> >;
-	using Shorthands = std::vector< UniquePtr<ShorthandDefinition> >;
+	using Properties = Vector< UniquePtr<PropertyDefinition> >;
+	using Shorthands = Vector< UniquePtr<ShorthandDefinition> >;
 
 	Properties properties;
 	Shorthands shorthands;

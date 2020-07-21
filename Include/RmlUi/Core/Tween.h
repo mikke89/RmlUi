@@ -28,12 +28,10 @@
 #ifndef RMLUI_CORE_TWEEN_H
 #define RMLUI_CORE_TWEEN_H
 
-#include <string>
+#include "Types.h"
 #include "Header.h"
 
 namespace Rml {
-
-using String = std::string;
 
 class RMLUICORE_API Tween {
 public:

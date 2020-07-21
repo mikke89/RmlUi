@@ -250,7 +250,7 @@ private:
 	ContextInstancer* instancer;
 
 	using ElementSet = SmallOrderedSet< Element* > ;
-	using ElementList = std::vector< Element* >;
+	using ElementList = Vector< Element* >;
 	// Set of elements that are currently in hover state.
 	ElementSet hover_chain;
 	// List of elements that are currently in active state.

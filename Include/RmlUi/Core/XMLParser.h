@@ -109,7 +109,7 @@ private:
 	XMLNodeHandler* active_handler;
 
 	// The parser stack.
-	using ParserStack = std::stack< ParseFrame >;
+	using ParserStack = Stack< ParseFrame >;
 	ParserStack stack;
 };
 

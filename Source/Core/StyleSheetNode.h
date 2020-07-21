@@ -47,8 +47,8 @@ struct StructuralSelector {
 inline bool operator==(const StructuralSelector& a, const StructuralSelector& b) { return a.selector == b.selector && a.a == b.a && a.b == b.b; }
 inline bool operator<(const StructuralSelector& a, const StructuralSelector& b) { return std::tie(a.selector, a.a, a.b) < std::tie(b.selector, b.a, b.b); }
 
-using StructuralSelectorList = std::vector< StructuralSelector >;
-using StyleSheetNodeList = std::vector< UniquePtr<StyleSheetNode> >;
+using StructuralSelectorList = Vector< StructuralSelector >;
+using StyleSheetNodeList = Vector< UniquePtr<StyleSheetNode> >;
 
 
 /**

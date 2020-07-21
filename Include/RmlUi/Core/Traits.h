@@ -30,6 +30,7 @@
 #define RMLUI_CORE_TRAITS_H
 
 #include "Header.h"
+#include "../Config/Config.h"
 #include <type_traits>
 
 namespace Rml {
@@ -62,7 +63,7 @@ protected:
 };
 
 template<typename T>
-class RMLUICORE_API Releaser final : public ReleaserBase {
+class RMLUICORE_API Releaser : public ReleaserBase {
 public:
 	void operator()(T* target) const {
 		static_assert(std::is_base_of<Releasable, T>::value, "Rml::Releaser can only operate with classes derived from ::Rml::Releasable.");
@@ -155,7 +156,6 @@ const char* rmlui_type_name(const T& var)
 	return typeid(var).name();
 }
 
-#endif
+#endif	// RMLUI_USE_CUSTOM_RTTI
 
-
-#endif
+#endif	// RMLUI_CORE_TRAITS_H

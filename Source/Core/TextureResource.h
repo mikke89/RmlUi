@@ -74,7 +74,7 @@ private:
 
 	String source;
 
-	using TextureData = std::pair< TextureHandle, Vector2i >;
+	using TextureData = Pair< TextureHandle, Vector2i >;
 	using TextureDataMap = SmallUnorderedMap< RenderInterface*, TextureData >;
 	TextureDataMap texture_data;
 

@@ -116,9 +116,9 @@ private:
 	ElementContextHook* hook_element;
 
 	Rml::SystemInterface* application_interface;
-	std::unique_ptr<DebuggerSystemInterface> log_interface;
+	UniquePtr<DebuggerSystemInterface> log_interface;
 
-	std::unique_ptr<ElementInstancer> hook_element_instancer, info_element_instancer, log_element_instancer;
+	UniquePtr<ElementInstancer> hook_element_instancer, info_element_instancer, log_element_instancer;
 
 	bool render_outlines;
 
