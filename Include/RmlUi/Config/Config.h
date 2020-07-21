@@ -33,9 +33,12 @@
  * This file provides means to configure various types used across RmlUi. It is possible to override container types
  * with your own, provided they are compatible with STL, or customize STL containers, for example use a custom
  * allocator. This file may be edited directly, or can be copied to alternate location, modified, and included by
- * setting CMake option USER_CONFIG_FILE (RML_USER_CONFIG_FILE preprocessor define) to path of that file.
+ * setting CMake option USER_CONFIG_FILE (RMLUI_USER_CONFIG_FILE preprocessor define) to path of that file.
  */
 
+#ifdef RMLUI_USER_CONFIG_FILE
+#include RMLUI_USER_CONFIG_FILE
+#else
 #include <utility>
 #include <vector>
 #include <string>
@@ -45,14 +48,15 @@
 #include <queue>
 #include <array>
 #include <unordered_map>
+#include <memory>
 
 #ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 #include <set>
 #include <unordered_set>
 #else
-#include "Core/Containers/chobo/flat_map.hpp"
-#include "Core/Containers/chobo/flat_set.hpp"
-#include "Core/Containers/robin_hood.h"
+#include "../Core/Containers/chobo/flat_map.hpp"
+#include "../Core/Containers/chobo/flat_set.hpp"
+#include "../Core/Containers/robin_hood.h"
 #endif	// RMLUI_NO_THIRDPARTY_CONTAINERS
 
 namespace Rml {
@@ -64,6 +68,9 @@ namespace Rml {
 #else
 #define RMLUI_MATRIX4_TYPE ColumnMajorMatrix4f
 #endif
+
+// A way to disable 'final' specified for Rml::Releaser class. It breaks EASTL.
+#define RMLUI_RELEASER_FINAL final
 
 // Containers types.
 template<typename T>
@@ -120,6 +127,8 @@ using U16String = std::u16string;
 // Smart pointer types.
 template<typename T>
 using UniquePtr = std::unique_ptr<T>;
+template<typename T>
+class Releaser;
 template<typename T>
 using UniqueReleaserPtr = std::unique_ptr<T, Releaser<T>>;
 template<typename T>
@@ -183,6 +192,6 @@ inline UniquePtr<T> MakeUnique(Args... args) { return std::make_unique<T, Args..
 // Extra code to be inserted into RmlUi::Matrix4<> class body.
 // #define RMLUI_MATRIX4_USER_EXTRA operator MyMatrix4() const { return MyMatrix4(data()); }
 
-
+#endif	// RMLUI_USER_CONFIG_FILE
 
 #endif  // RMLUI_USER_CONFIG_H

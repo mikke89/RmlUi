@@ -30,6 +30,7 @@
 #define RMLUI_CORE_TRAITS_H
 
 #include "Header.h"
+#include "../Config/Config.h"
 #include <type_traits>
 
 namespace Rml {
@@ -155,7 +156,6 @@ const char* rmlui_type_name(const T& var)
 	return typeid(var).name();
 }
 
-#endif
+#endif	// RMLUI_USE_CUSTOM_RTTI
 
-
-#endif
+#endif	// RMLUI_CORE_TRAITS_H

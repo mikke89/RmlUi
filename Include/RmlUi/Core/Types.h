@@ -29,16 +29,12 @@
 #ifndef RMLUI_CORE_TYPES_H
 #define RMLUI_CORE_TYPES_H
 
+#include "../Config/Config.h"
+
 #include <cstdlib>
 #include <memory>
 
 #include "Traits.h"
-
-#ifdef RMLUI_USER_CONFIG_FILE
-#include RMLUI_USER_CONFIG_FILE
-#else
-#include "../UserConfig.h"
-#endif
 
 namespace Rml {
 
