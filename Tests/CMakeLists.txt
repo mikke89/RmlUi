@@ -16,12 +16,18 @@ set_property(TARGET nanobench::nanobench PROPERTY INTERFACE_INCLUDE_DIRECTORIES 
 #===================================
 file(GLOB RmlTest_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp)
 add_executable(Tests ${RmlTest_SRC_FILES})
-target_link_libraries(Tests RmlCore RmlDebugger doctest::doctest nanobench::nanobench)
+target_link_libraries(Tests RmlCore RmlDebugger doctest::doctest nanobench::nanobench ${sample_LIBRARIES})
 
 set_target_properties(Tests PROPERTIES CXX_STANDARD 14)
 
 # Enable compiler warnings
 add_common_target_options(Tests)
+
+target_compile_definitions(RmlCore PUBLIC RMLUI_TESTS_ENABLED)
+
+if(TESTING_BENCHMARKS)
+	target_compile_definitions(Tests PRIVATE RMLUI_ENABLE_BENCHMARKS)
+endif()
 
 if(MSVC)
 	target_compile_definitions(Tests PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)

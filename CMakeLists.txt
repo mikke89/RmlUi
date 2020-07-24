@@ -75,6 +75,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	
 	if(BUILD_TESTING)
 		set(RMLUI_TESTS_ENABLED ON)
+		option(ENABLE_BENCHMARKS "Will enable benchmarks while running Tests." ON)
 	endif()
 endif()
 

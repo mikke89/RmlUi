@@ -168,8 +168,10 @@ TEST_CASE("Data expressions")
 	CHECK(TestExpression("(3.42345 | format(0)) + 0.2") == "30.2"); // Here, format(0) returns a string, so the + means string concatenation.
 
 	// Benchmark
+#ifdef RMLUI_ENABLE_BENCHMARKS
 	TestExpression("2 * 2", "Data expression simple");
 	TestExpression("true || false ? true && 3==1+2 ? 'Absolutely!' : 'well..' : 'no'", "Data expression complex");
+#endif
 }
 
 

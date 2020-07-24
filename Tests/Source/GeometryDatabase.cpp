@@ -26,47 +26,44 @@
  *
  */
 
-#include "../../../Source/Core/GeometryDatabase.cpp"
+
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Geometry.h>
+#include "../../../Source/Core/GeometryDatabase.h"
 #include <doctest.h>
 
 using namespace Rml;
 
-
 TEST_CASE("Geometry database")
 {
-	Vector<Geometry> geometry_list(10);
+	REQUIRE(GeometryDatabase::PrepareForTests());
 
-	auto list_database_equivalent = [&geometry_list]() -> bool {
-		int i = 0;
-		bool result = true;
-		GeometryDatabase::geometry_database.for_each([&geometry_list, &i, &result](Geometry* geometry) {
-			result &= (geometry == &geometry_list[i++]);
-			});
-		return result;
-	};
+	using GeometryDatabase::ListMatchesDatabase;
+
+	Vector<Geometry> geometry_list(10);
 
 	int i = 0;
 	for (auto& geometry : geometry_list)
 		geometry.GetIndices().push_back(i++);
 
-	CHECK(list_database_equivalent());
+	CHECK(ListMatchesDatabase(geometry_list));
 
 	geometry_list.reserve(2000);
-	CHECK(list_database_equivalent());
+	CHECK(ListMatchesDatabase(geometry_list));
 
 	geometry_list.erase(geometry_list.begin() + 5);
-	CHECK(list_database_equivalent());
+	CHECK(ListMatchesDatabase(geometry_list));
 
 	std::swap(geometry_list.front(), geometry_list.back());
 	geometry_list.pop_back();
-	CHECK(list_database_equivalent());
+	CHECK(ListMatchesDatabase(geometry_list));
 
 	std::swap(geometry_list.front(), geometry_list.back());
-	CHECK(list_database_equivalent());
+	CHECK(ListMatchesDatabase(geometry_list));
 
 	geometry_list.emplace_back();
-	CHECK(list_database_equivalent());
+	CHECK(ListMatchesDatabase(geometry_list));
 
 	geometry_list.clear();
-	CHECK(list_database_equivalent());
+	CHECK(ListMatchesDatabase(geometry_list));
 }

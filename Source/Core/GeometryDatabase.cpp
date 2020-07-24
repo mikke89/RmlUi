@@ -70,6 +70,15 @@ public:
 		return handle;
 	}
 
+	int size() const
+	{
+		return (int)geometry_list.size() - (int)free_list.size();
+	}
+
+	void clear() {
+		geometry_list.clear();
+		free_list.clear();
+	}
 	void erase(GeometryDatabaseHandle handle)
 	{
 		free_list.push_back(handle);
@@ -124,6 +133,30 @@ void ReleaseAll()
 	});
 }
 
+
+#ifdef RMLUI_TESTS_ENABLED
+
+bool PrepareForTests()
+{
+	if (!geometry_database.size() == 0)
+		return false;
+
+	geometry_database.clear();
+
+	return true;
+}
+
+bool ListMatchesDatabase(const Vector<Geometry>& geometry_list)
+{
+	int i = 0;
+	bool result = true;
+	geometry_database.for_each([&geometry_list, &i, &result](Geometry* geometry) {
+		result &= (geometry == &geometry_list[i++]);
+		});
+	return result;
+}
+
+#endif // RMLUI_TESTS_ENABLED
 
 } // namespace GeometryDatabase
 } // namespace Rml
