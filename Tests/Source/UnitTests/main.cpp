@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,32 +26,7 @@
  *
  */
 
-#ifndef RMLUI_TESTS_TESTSINTERFACE_H
-#define RMLUI_TESTS_TESTSINTERFACE_H
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest.h>
 
-#include <RmlUi/Core/SystemInterface.h>
-#include <RmlUi/Core/RenderInterface.h>
-
-class TestsSystemInterface : public Rml::SystemInterface
-{
-public:
-	double GetElapsedTime() override;
-	bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
-};
-
-
-class TestsRenderInterface : public Rml::RenderInterface
-{
-public:
-	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation) override;
-
-	void EnableScissorRegion(bool enable) override;
-	void SetScissorRegion(int x, int y, int width, int height) override;
-
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
-	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override;
-	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
-
-	void SetTransform(const Rml::Matrix4f* transform) override;
-};
-#endif
+#include "../Common/TestsInterface.cpp"

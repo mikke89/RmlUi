@@ -1,0 +1,28 @@
+<rml>
+<head>
+	<title>CSS Position: Normal flow</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<meta name="description" content="Position demo" />
+	<style>
+		body {
+			font-size: 20px;
+			display: block;
+			background: #ddd;
+			color: #444;
+			line-height: 200%;
+		}
+		#outer { color: red }
+		#inner { color: blue }
+	</style>
+</head>
+<body>
+	<p>
+		Beginning of p contents.
+		<span id="outer"> Start of outer contents.
+		<span id="inner"> Inner contents.</span>
+		End of outer contents.</span>
+		End of p contents.
+	</p>
+</body>
+</rml>

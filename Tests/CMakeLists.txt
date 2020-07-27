@@ -1,4 +1,10 @@
 #===================================
+# RmlUi tests definitions ==========
+#===================================
+target_compile_definitions(RmlCore PUBLIC RMLUI_TESTS_ENABLED)
+
+
+#===================================
 # Include dependencies =============
 #===================================
 set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/doctest)
@@ -6,33 +12,81 @@ set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/doctest)
 add_library(doctest::doctest IMPORTED INTERFACE)
 set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}")
 
+# Include doctest's discovery module
+include(${DOCTEST_INCLUDE_DIR}/cmake/doctest.cmake)
+
 set(NANOBENCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/nanobench)
 
 add_library(nanobench::nanobench IMPORTED INTERFACE)
 set_property(TARGET nanobench::nanobench PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${NANOBENCH_INCLUDE_DIR}")
 
 #===================================
-# Create binary for tests ==========
+# Common source files ==============
 #===================================
-file(GLOB RmlTest_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp)
-add_executable(Tests ${RmlTest_SRC_FILES})
-target_link_libraries(Tests RmlCore RmlDebugger doctest::doctest nanobench::nanobench ${sample_LIBRARIES})
 
-set_target_properties(Tests PROPERTIES CXX_STANDARD 14)
+file(GLOB TestsCommon_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/Common/*.h )
+file(GLOB TestsCommon_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/Common/*.cpp )
 
-# Enable compiler warnings
-add_common_target_options(Tests)
+#===================================
+# Unit Tests =======================
+#===================================
+if(BUILD_UNIT_TESTS)
+	file(GLOB UnitTests_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.h )
+	file(GLOB UnitTests_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.cpp )
 
-target_compile_definitions(RmlCore PUBLIC RMLUI_TESTS_ENABLED)
+	add_executable(UnitTests ${UnitTests_HDR_FILES} ${UnitTests_SRC_FILES})
+	target_link_libraries(UnitTests RmlCore doctest::doctest)
+	set_target_properties(UnitTests PROPERTIES CXX_STANDARD 14)
 
-if(TESTING_BENCHMARKS)
-	target_compile_definitions(Tests PRIVATE RMLUI_ENABLE_BENCHMARKS)
+	add_common_target_options(UnitTests)
+
+	if(MSVC)
+		target_compile_definitions(UnitTests PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
+	endif()
+
+	doctest_discover_tests(UnitTests)
 endif()
 
-if(MSVC)
-	target_compile_definitions(Tests PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
+
+#===================================
+# Visual Tests =====================
+#===================================
+if(BUILD_VISUAL_TESTS)
+	file(GLOB VisualTests_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/VisualTests/*.h )
+	file(GLOB VisualTests_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/VisualTests/*.cpp )
+
+	add_executable(VisualTests ${VisualTests_HDR_FILES} ${VisualTests_SRC_FILES} ${TestsCommon_HDR_FILES} ${TestsCommon_SRC_FILES})
+	target_link_libraries(VisualTests RmlCore RmlDebugger doctest::doctest ${sample_LIBRARIES})
+	set_target_properties(VisualTests PROPERTIES CXX_STANDARD 14)
+
+	# Enable compiler warnings
+	add_common_target_options(VisualTests)
+	
+	if(VISUAL_TESTS_DIRECTORIES)
+		target_compile_definitions(VisualTests PRIVATE RMLUI_VISUAL_TESTS_DIRECTORIES="${VISUAL_TESTS_DIRECTORIES}")
+	endif()
+
+	if(MSVC)
+		target_compile_definitions(VisualTests PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
+	endif()
 endif()
 
-# Add tests using doctest's discovery module
-include(${DOCTEST_INCLUDE_DIR}/cmake/doctest.cmake)
-doctest_discover_tests(Tests)
+
+#===================================
+# Benchmarks =======================
+#===================================
+if(BUILD_BENCHMARKS)
+	file(GLOB Benchmarks_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/Benchmarks/*.h )
+	file(GLOB Benchmarks_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/Benchmarks/*.cpp )
+
+	add_executable(Benchmarks ${Benchmarks_HDR_FILES} ${Benchmarks_SRC_FILES} ${TestsCommon_HDR_FILES} ${TestsCommon_SRC_FILES})
+	target_link_libraries(Benchmarks RmlCore RmlDebugger doctest::doctest nanobench::nanobench ${sample_LIBRARIES})
+	set_target_properties(Benchmarks PROPERTIES CXX_STANDARD 14)
+
+	# Enable compiler warnings
+	add_common_target_options(Benchmarks)
+
+	if(MSVC)
+		target_compile_definitions(Benchmarks PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
+	endif()
+endif()

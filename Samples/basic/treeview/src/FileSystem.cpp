@@ -31,19 +31,14 @@
 #include <cstdlib>
 #include <cstdio>
 #include <string.h>
-
-#ifdef RMLUI_PLATFORM_WIN32
-#include <io.h>
-#else
-#include <dirent.h>
-#endif
+#include <Shell.h>
 
 struct FileSystemNode;
 
-typedef Rml::UnorderedMap< Rml::String, FileSystemNode* > NodeMap;
+using NodeMap = Rml::UnorderedMap< Rml::String, FileSystemNode* >;
 
-FileSystemNode* file_system_root = nullptr;
-NodeMap node_map;
+static Rml::UniquePtr<FileSystemNode> file_system_root;
+static NodeMap node_map;
 
 
 /**
@@ -64,60 +59,29 @@ struct FileSystemNode
 	}
 
 	~FileSystemNode()
-	{
-		for (size_t i = 0; i < child_nodes.size(); ++i)
-			delete child_nodes[i];
-	}
+	{}
 
 	// Build the list of files and directories within this directory.
 	void BuildTree(const Rml::String& root = "")
 	{
-#ifdef RMLUI_PLATFORM_WIN32
-		_finddata_t find_data;
-		intptr_t find_handle = _findfirst((root + name + "/*.*").c_str(), &find_data);
-		if (find_handle != -1)
+		const Rml::String current_directory = root + name + '/';
+
+		const Rml::StringList directories = Shell::ListDirectories(current_directory);
+
+		for (const Rml::String& directory : directories)
 		{
-			do
-			{
-				if (strcmp(find_data.name, ".") == 0 ||
-					strcmp(find_data.name, "..") == 0)
-					continue;
-
-				child_nodes.push_back(new FileSystemNode(find_data.name, (find_data.attrib & _A_SUBDIR) == _A_SUBDIR, depth + 1));
-
-			} while (_findnext(find_handle, &find_data) == 0);
-
-			_findclose(find_handle);
+			child_nodes.push_back(Rml::MakeUnique<FileSystemNode>(directory, true, depth + 1));
+			child_nodes.back()->BuildTree(current_directory);
 		}
-#else
-			struct dirent** file_list = nullptr;
-			int file_count = -1;
-			file_count = scandir((root + name).c_str(), &file_list, 0, alphasort);
-			if (file_count == -1)
-				return;
 
-			while (file_count--)
-			{
-				if (strcmp(file_list[file_count]->d_name, ".") == 0 ||
-					strcmp(file_list[file_count]->d_name, "..") == 0)
-					continue;
-
-				child_nodes.push_back(new FileSystemNode(file_list[file_count]->d_name, (file_list[file_count]->d_type & DT_DIR) == DT_DIR, depth + 1));
-
-				free(file_list[file_count]);
-			}
-			free(file_list);
-#endif
-
-		// Generate the trees of all of our subdirectories.
-		for (size_t i = 0; i < child_nodes.size(); ++i)
+		const Rml::StringList files = Shell::ListFiles(current_directory);
+		for (const Rml::String& file : files)
 		{
-			if (child_nodes[i]->directory)
-				child_nodes[i]->BuildTree(root + name + "/");
+			child_nodes.push_back(Rml::MakeUnique<FileSystemNode>(file, false, depth + 1));
 		}
 	}
 
-	typedef Rml::Vector< FileSystemNode* > NodeList;
+	using NodeList = Rml::Vector< Rml::UniquePtr<FileSystemNode> >;
 
 	Rml::String id;
 	Rml::String name;
@@ -131,14 +95,13 @@ struct FileSystemNode
 FileSystem::FileSystem(const Rml::String& root) : Rml::DataSource("file")
 {
 	// Generate the file system nodes starting at the RmlUi's root directory.
-	file_system_root = new FileSystemNode(".", true);
+	file_system_root = Rml::MakeUnique<FileSystemNode>(".", true);
 	file_system_root->BuildTree(root);
 }
 
 FileSystem::~FileSystem()
 {
-	delete file_system_root;
-	file_system_root = nullptr;
+	file_system_root.reset();
 }
 
 void FileSystem::GetRow(Rml::StringList& row, const Rml::String& table, int row_index, const Rml::StringList& columns)
@@ -183,7 +146,7 @@ FileSystemNode* FileSystem::GetNode(const Rml::String& table)
 {
 	// Determine which node the row is being requested from.
 	if (table == "root")
-		return file_system_root;
+		return file_system_root.get();
 	else
 	{
 		NodeMap::iterator i = node_map.find(table);

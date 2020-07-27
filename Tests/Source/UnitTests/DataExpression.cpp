@@ -26,31 +26,26 @@
  *
  */
 
-#include "../../../Source/Core/DataExpression.cpp"
-#include <doctest.h>
-#include <nanobench.h>
 
-using namespace ankerl;
+#include "../../../Source/Core/DataExpression.cpp"
+
+#include <RmlUi/Core/DataModel.h>
+#include <RmlUi/Core/Types.h>
+
+#include <doctest.h>
+
 using namespace Rml;
 
 static DataTypeRegister type_register;
 static DataModel model(type_register.GetTransformFuncRegister());
 static DataExpressionInterface interface(&model, nullptr);
 
-String TestExpression(const String& expression, const char* benchmark_name = nullptr)
+
+String TestExpression(const String& expression)
 {
 	String result;
 
 	DataParser parser(expression, interface);
-
-	nanobench::Bench bench;
-	if (benchmark_name)
-	{
-		bench.title(benchmark_name);
-		bench.run("Parse", [&] {
-			parser.Parse(false);
-			});
-	}
 
 	if (parser.Parse(false))
 	{
@@ -60,20 +55,9 @@ String TestExpression(const String& expression, const char* benchmark_name = nul
 		DataInterpreter interpreter(program, addresses, interface);
 
 		if (interpreter.Run())
-		{
 			result = interpreter.Result().Get<String>();
-
-			if (benchmark_name)
-			{
-				bench.run("Execute", [&] {
-					interpreter.Run();
-					});
-			}
-		}
 		else
-		{
 			FAIL_CHECK("Could not execute expression: " << expression << "\n\n  Parsed program: \n" << interpreter.DumpProgram());
-		}
 	}
 	else
 	{
@@ -94,13 +78,9 @@ bool TestAssignment(const String& expression)
 
 		DataInterpreter interpreter(program, addresses, interface);
 		if (interpreter.Run())
-		{
 			result = true;
-		}
 		else
-		{
 			FAIL_CHECK("Could not execute assignment expression: " << expression << "\n\n  Parsed program: \n" << interpreter.DumpProgram());
-		}
 	}
 	else
 	{
@@ -108,6 +88,7 @@ bool TestAssignment(const String& expression)
 	}
 	return result;
 };
+
 
 
 TEST_CASE("Data expressions")
@@ -121,7 +102,7 @@ TEST_CASE("Data expressions")
 	handle.Bind("color_name", &color_name);
 	handle.BindFunc("color_value", [&](Variant& variant) {
 		variant = ToString(color_value);
-		});
+	});
 
 	CHECK(TestExpression("!!10 - 1 ? 'hello' : 'world' | to_upper") == "WORLD");
 	CHECK(TestExpression("(color_name) + (': rgba(' + color_value + ')')") == "color: rgba(180, 100, 255, 255)");
@@ -166,12 +147,6 @@ TEST_CASE("Data expressions")
 	CHECK(TestExpression("0.2 + 3.42345 | round") == "4");
 	CHECK(TestExpression("(3.42345 | round) + 0.2") == "3.2");
 	CHECK(TestExpression("(3.42345 | format(0)) + 0.2") == "30.2"); // Here, format(0) returns a string, so the + means string concatenation.
-
-	// Benchmark
-#ifdef RMLUI_ENABLE_BENCHMARKS
-	TestExpression("2 * 2", "Data expression simple");
-	TestExpression("true || false ? true && 3==1+2 ? 'Absolutely!' : 'well..' : 'no'", "Data expression complex");
-#endif
 }
 
 

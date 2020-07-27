@@ -53,6 +53,11 @@ public:
 	/// Loads the default fonts from the given path.
 	static void LoadFonts(const char* directory);
 
+	/// List files in the given directory. An initial forward slash '/' makes it relative to the samples root.
+	static Rml::StringList ListFiles(const Rml::String& in_directory, const Rml::String& extension = Rml::String());
+	/// List subdirectories in the given directory. An initial forward slash '/' makes it relative to the samples root.
+	static Rml::StringList ListDirectories(const Rml::String& in_directory);
+
 	/// Open a platform specific window, optionally initialising an OpenGL context on it.
 	/// @param[in] title Title of the window.
 	/// @param[in] srie Provides the interface for attaching a renderer to the window and performing related bits of interface.

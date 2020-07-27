@@ -75,7 +75,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	
 	if(BUILD_TESTING)
 		set(RMLUI_TESTS_ENABLED ON)
-		option(ENABLE_BENCHMARKS "Will enable benchmarks while running Tests." ON)
+		option(BUILD_UNIT_TESTS "Enable to build UnitTests." ON)
+		option(BUILD_VISUAL_TESTS "Enable to build VisualTests." ON)
+		set(VISUAL_TESTS_DIRECTORIES "" CACHE STRING "Specify additional directories containing *.rml documents for the visual tests. Backslashes must be escaped. Separate multiple directories by semicolon.")
+		option(BUILD_BENCHMARKS "Enable to build Benchmarks." ON)
 	endif()
 endif()
 

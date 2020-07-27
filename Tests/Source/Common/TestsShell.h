@@ -26,8 +26,32 @@
  *
  */
 
-#define ANKERL_NANOBENCH_IMPLEMENT
-#include <nanobench.h>
+#ifndef RMLUI_TESTS_COMMON_TESTSSHELL_H
+#define RMLUI_TESTS_COMMON_TESTSSHELL_H
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest.h>
+#include <RmlUi/Core/Types.h>
+namespace Rml { class RenderInterface; }
+
+namespace TestsShell {
+
+// Will initialize the shell when necessary.
+// No need to call RemoveContext with this.
+Rml::Context* GetMainContext();
+
+// If no interface is passed, it will use the shell renderer's interface. Will initialize the shell when necessary.
+// Call RemoveContext() when you are done with the test.
+Rml::Context* CreateContext(const Rml::String& name, Rml::RenderInterface* render_interface = nullptr);
+void RemoveContext(Rml::Context* context);
+
+using ShellIdleFunction = void(*)();
+void EventLoop(ShellIdleFunction idle_func);
+void PrepareRenderBuffer();
+void PresentRenderBuffer();
+void RequestExit();
+
+void ShutdownShell();
+
+
+}
+
+#endif

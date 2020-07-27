@@ -1,0 +1,29 @@
+<rml>
+<head>
+	<title>CSS Position: Floating a box - Clear</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<meta name="description" content='Now the "sibling" text moves down to below the "inner" text’s box, leaving blank space behind. The text following the "sibling" text flows after it as normal.' />
+	<style>
+		body {
+			font-size: 20px;
+			display: block;
+			background: #ddd;
+			color: #444;
+			line-height: 200%;
+		}
+		#inner { float: right; width: 130px; color: blue }
+		#sibling { clear: right; color: red }
+	</style>
+</head>
+<body>
+	<p>
+		Beginning of p contents.
+		<span id="outer"> Start of outer contents.
+		<span id="inner"> Inner contents.</span>
+		<span id="sibling"> Sibling contents.</span>
+		End of outer contents.</span>
+		End of p contents.
+	</p>
+</body>
+</rml>

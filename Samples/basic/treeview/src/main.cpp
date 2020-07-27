@@ -106,9 +106,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::LoadFonts("assets/");
 
-	// Create the file data source and formatter.
-	Rml::String root = Shell::FindSamplesRoot();
-	FileSystem file_system(root + "basic/");
+	// Create the file data source and formatter. The samples directory '/' acts as our root.
+	FileSystem file_system("/");
 	FileFormatter file_formatter;
 
 	// Load and show the demo document.
@@ -121,7 +120,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::EventLoop(GameLoop);
 
-	// Shutdown RmlUi.
 	Rml::Shutdown();
 
 	Shell::CloseWindow();

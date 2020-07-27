@@ -26,7 +26,7 @@
  *
  */
 
-#include "TestsInterface.h"
+#include "../Common/TestsInterface.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>

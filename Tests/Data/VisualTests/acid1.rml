@@ -1,31 +1,22 @@
 <rml>
 <head>
 <title>display/box/float/clear test</title>
+<link type="text/rcss" href="../style.rcss"/>
+<link rel="source" href="https://www.w3.org/Style/CSS/Test/CSS1/current/test5526c.htm" />
+<link rel="help" href="http://www.w3.org/TR/REC-CSS1#clear" />
+<link rel="reference" href="https://www.w3.org/Style/CSS/Test/CSS1/current/sec5526c.gif" />
+<meta name="description" content="This is the ACID1 test. Some minor modifications have been applied such as matching fonts and borders to the RmlUi syntax." />
 <style type="text/css">
-/* Add default values for elements (RmlUi does not provide a default style sheet) */
-dl,dt,dd,ul,li,blockquote,address,h1,p {
-display: block;
-}
-input.radio {
-width: 10px;
-height: 10px;
-border: 1px #666;
-background: #fff;
-}
-
 /* RmlUi does not accept styling of the html/rml element, they have been moved into body. */
 body {
-font-family: rmlui-debugger-font;
-font-weight: normal;
-font-style: normal;
 font-size: 10px;
-background-color: blue;
 color: white;
 margin: 1.5em;
 border: .5em black;
 padding: 0;
 width: 48em;
 background-color: white;
+min-height: -1px;
 }
 
 dl {
@@ -177,7 +168,7 @@ font-size: 1em;
 	<p style="color: black; font-size: 1em; line-height: 1.3em; clear: both">
 	 This is a nonsensical document, but syntactically valid HTML 4.0. All 100%-conformant CSS1 agents should be able to render the document elements above this paragraph indistinguishably (to the pixel) from this 
 		<a href="sec5526c.gif">reference rendering,</a>
-	 (except font rasterization and form widgets). All discrepancies should be traceable to CSS1 implementation shortcomings. Once you have finished evaluating this test, you can return to the <A HREF="sec5526c.htm">parent page</A>. 
+	 (except font rasterization and form widgets). All discrepancies should be traceable to CSS1 implementation shortcomings. Once you have finished evaluating this test, you can return to the <a href="sec5526c.htm">parent page</a>. 
 	</p>
 </body>
 </rml>

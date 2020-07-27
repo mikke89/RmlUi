@@ -1,0 +1,28 @@
+<rml>
+<head>
+	<title>CSS Position: Relative positioning</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<meta name="description" content='The result is identical to normal flow, except that the "outer" text is shifted 12px upward, without affecting the flow of the "body" or "inner" text.' />
+	<style>
+		body {
+			font-size: 20px;
+			display: block;
+			background: #ddd;
+			color: #444;
+			line-height: 200%;
+		}
+		#outer { position: relative; top: -12px; color: red }
+		#inner { position: relative; top: 12px; color: blue }
+	</style>
+</head>
+<body>
+	<p>
+		Beginning of p contents.
+		<span id="outer"> Start of outer contents.
+		<span id="inner"> Inner contents.</span>
+		End of outer contents.</span>
+		End of p contents.
+	</p>
+</body>
+</rml>

@@ -57,6 +57,10 @@ public:
 	/// @param[in] handler The custom handler.
 	/// @return The registered XML node handler.
 	static XMLNodeHandler* RegisterNodeHandler(const String& tag, SharedPtr<XMLNodeHandler> handler);
+	/// Retrieve a registered node handler.
+	/// @param[in] tag The tag the custom parser handles.
+	/// @return The registered XML node handler or nullptr if it does not exist for the given tag.
+	static XMLNodeHandler* GetNodeHandler(const String& tag);
 	/// Releases all registered node handlers. This is called internally.
 	static void ReleaseHandlers();
 

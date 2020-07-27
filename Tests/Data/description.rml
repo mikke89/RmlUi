@@ -1,0 +1,55 @@
+<rml>
+<head>
+<title>RCSS Test description</title>
+<link type="text/rcss" href="style.rcss"/>
+<style>
+	body {
+		font-family: Delicious;
+		font-weight: normal;
+		font-style: normal;
+		font-size: 17px;
+		color: #444;
+		position: absolute;
+		top: 0; bottom: 0;
+		right: 0;
+		width: 400px;
+		background: #333;
+		color: #ccc;
+		padding: 20px 20px;
+		z-index: 100;
+	}
+	#content, #content > * { padding-top: 0.8em; }
+	code {
+		display: block;
+		white-space: pre-wrap;
+		font-size: 0.9em;
+		color: #aaa;
+	}
+	h1   { color: white; font-size: 1.3em; }
+	h3   { color: white; font-size: 1.15em; }
+	
+	p.links a { margin: 0 0.7em; }
+	#test_suite {
+		position: absolute;
+		text-align: center;
+		top: 15px;
+		left: 20px;
+		right: 20px;
+		color: #ddb;
+	}
+	#goto {
+		position: absolute;
+		left: 20px;
+		bottom: 20px;
+		width: 200px;
+		color: #ddb;
+	}
+	
+</style>
+</head>
+<body>
+<div id="test_suite"/>
+<div id="content"/>
+<div id="goto"/>
+</body>
+</rml>

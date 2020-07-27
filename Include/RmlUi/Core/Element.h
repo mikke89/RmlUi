@@ -466,8 +466,12 @@ public:
 	/// @param[in] event Event to attach to.
 	/// @param[in] listener The listener object to be attached.
 	/// @param[in] in_capture_phase True to attach in the capture phase, false in bubble phase.
+	/// @lifetime The added listener must stay alive until after the dispatched call from EventListener::OnDetach(). This occurs
+	///     eg. when the element is destroyed or when RemoveEventListener() is called with the same parameters passed here.
 	void AddEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
 	/// Adds an event listener to this element by id.
+	/// @lifetime The added listener must stay alive until after the dispatched call from EventListener::OnDetach(). This occurs
+	///     eg. when the element is destroyed or when RemoveEventListener() is called with the same parameters passed here.
 	void AddEventListener(EventId id, EventListener* listener, bool in_capture_phase = false);
 	/// Removes an event listener from this element.
 	/// @param[in] event Event to detach from.
