@@ -26,33 +26,17 @@
  *
  */
 
-#ifndef RMLUI_TESTS_COMMON_TESTSSHELL_H
-#define RMLUI_TESTS_COMMON_TESTSSHELL_H
+#ifndef RMLUI_TESTS_VISUALTESTS_SCREENSHOT_H
+#define RMLUI_TESTS_VISUALTESTS_SCREENSHOT_H
 
 #include <RmlUi/Core/Types.h>
-namespace Rml { class RenderInterface; }
 
-namespace TestsShell {
+class ShellRenderInterfaceOpenGL;
 
-// Will initialize the shell when necessary.
-// No need to call RemoveContext with this.
-Rml::Context* GetMainContext();
 
-// If no interface is passed, it will use the shell renderer's interface. Will initialize the shell when necessary.
-// Call RemoveContext() when you are done with the test.
-Rml::Context* CreateContext(const Rml::String& name, Rml::RenderInterface* render_interface = nullptr);
-void RemoveContext(Rml::Context* context);
+bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width);
 
-using ShellIdleFunction = void(*)();
-void EventLoop(ShellIdleFunction idle_func);
-void PrepareRenderBuffer();
-void PresentRenderBuffer();
-void RequestExit();
+Rml::String GetOutputDirectory();
 
-void ShutdownShell();
-
-bool CaptureScreenshot(const Rml::String& filename, int clip_width = 0);
-
-}
 
 #endif

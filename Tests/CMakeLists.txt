@@ -8,7 +8,6 @@ target_compile_definitions(RmlCore PUBLIC RMLUI_TESTS_ENABLED)
 # Include dependencies =============
 #===================================
 set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/doctest)
-
 add_library(doctest::doctest IMPORTED INTERFACE)
 set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}")
 
@@ -16,9 +15,12 @@ set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${D
 include(${DOCTEST_INCLUDE_DIR}/cmake/doctest.cmake)
 
 set(NANOBENCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/nanobench)
-
 add_library(nanobench::nanobench IMPORTED INTERFACE)
 set_property(TARGET nanobench::nanobench PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${NANOBENCH_INCLUDE_DIR}")
+
+set(LODEPNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/lodepng)
+add_library(lodepng::lodepng IMPORTED INTERFACE)
+set_property(TARGET lodepng::lodepng PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LODEPNG_INCLUDE_DIR}")
 
 #===================================
 # Common source files ==============
@@ -54,9 +56,14 @@ endif()
 if(BUILD_VISUAL_TESTS)
 	file(GLOB VisualTests_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/VisualTests/*.h )
 	file(GLOB VisualTests_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/VisualTests/*.cpp )
-
-	add_executable(VisualTests ${VisualTests_HDR_FILES} ${VisualTests_SRC_FILES} ${TestsCommon_HDR_FILES} ${TestsCommon_SRC_FILES})
-	target_link_libraries(VisualTests RmlCore RmlDebugger doctest::doctest ${sample_LIBRARIES})
+	
+	if(WIN32)
+		add_executable(VisualTests WIN32 ${VisualTests_HDR_FILES} ${VisualTests_SRC_FILES})
+	else()
+		add_executable(VisualTests ${VisualTests_HDR_FILES} ${VisualTests_SRC_FILES})
+	endif()
+	
+	target_link_libraries(VisualTests RmlCore RmlDebugger lodepng::lodepng ${sample_LIBRARIES})
 	set_target_properties(VisualTests PROPERTIES CXX_STANDARD 14)
 
 	# Enable compiler warnings
@@ -65,7 +72,10 @@ if(BUILD_VISUAL_TESTS)
 	if(VISUAL_TESTS_DIRECTORIES)
 		target_compile_definitions(VisualTests PRIVATE RMLUI_VISUAL_TESTS_DIRECTORIES="${VISUAL_TESTS_DIRECTORIES}")
 	endif()
-
+	if(VISUAL_TESTS_OUTPUT_DIRECTORY)
+		target_compile_definitions(VisualTests PRIVATE RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY="${VISUAL_TESTS_OUTPUT_DIRECTORY}")
+	endif()
+	
 	if(MSVC)
 		target_compile_definitions(VisualTests PUBLIC DOCTEST_CONFIG_USE_STD_HEADERS)
 	endif()

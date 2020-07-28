@@ -36,6 +36,7 @@
 
 #include <doctest.h>
 
+
 namespace {
 	bool shell_initialized = false;
 

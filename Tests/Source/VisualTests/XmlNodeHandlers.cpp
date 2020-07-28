@@ -30,112 +30,83 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/XMLNodeHandler.h>
 #include <RmlUi/Core/XMLParser.h>
-#include <doctest.h>
 
 using namespace Rml;
 
 
 
-class XMLNodeHandlerMeta : public Rml::XMLNodeHandler
+
+XMLNodeHandlerMeta::XMLNodeHandlerMeta()
+{}
+XMLNodeHandlerMeta::~XMLNodeHandlerMeta()
+{}
+
+/// Called when a new element start is opened
+Element* XMLNodeHandlerMeta::ElementStart(XMLParser* /*parser*/, const String& /*name*/, const XMLAttributes& attributes)
 {
-public:
-	XMLNodeHandlerMeta(MetaList* meta_list) : meta_list(meta_list)
-	{}
-	~XMLNodeHandlerMeta()
-	{}
+	MetaItem item;
 
-	/// Called when a new element start is opened
-	Element* ElementStart(XMLParser* /*parser*/, const String& /*name*/, const XMLAttributes& attributes) override
-	{
-		MetaItem item;
+	auto it_name = attributes.find("name");
+	if (it_name != attributes.end())
+		item.name = it_name->second.Get<String>();
 
-		auto it_name = attributes.find("name");
-		if (it_name != attributes.end())
-			item.name = it_name->second.Get<String>();
-		
-		auto it_content = attributes.find("content");
-		if (it_content != attributes.end())
-			item.content = it_content->second.Get<String>();
+	auto it_content = attributes.find("content");
+	if (it_content != attributes.end())
+		item.content = it_content->second.Get<String>();
 
-		if (!item.name.empty() && !item.content.empty())
-			meta_list->push_back(std::move(item));
+	if (!item.name.empty() && !item.content.empty())
+		meta_list.push_back(std::move(item));
 
-		return nullptr;
-	}
-
-	/// Called when an element is closed
-	bool ElementEnd(XMLParser* /*parser*/, const String& /*name*/) override
-	{
-		return true;
-	}
-	/// Called for element data
-	bool ElementData(XMLParser* /*parser*/, const String& /*data*/, XMLDataType /*type*/) override
-	{
-		return true;
-	}
-
-private:
-	MetaList* meta_list;
-};
-
-
-class XMLNodeHandlerLink : public Rml::XMLNodeHandler
-{
-public:
-	XMLNodeHandlerLink(LinkList* link_list) : link_list(link_list)
-	{
-		node_handler_head = XMLParser::GetNodeHandler("head");
-		RMLUI_ASSERT(node_handler_head);
-	}
-	~XMLNodeHandlerLink() {}
-
-	Element* ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes) override
-	{
-		RMLUI_ASSERT(name == "link");
-
-		const String rel = StringUtilities::ToLower(Get<String>(attributes, "rel", ""));
-		const String type = StringUtilities::ToLower(Get<String>(attributes, "type", ""));
-		const String href = Get<String>(attributes, "href", "");
-
-		if (!type.empty() && !href.empty())
-		{
-			// Pass it on to the head handler if it's a type it handles.
-			if (type == "text/rcss" || type == "text/css" || type == "text/template")
-			{
-				return node_handler_head->ElementStart(parser, name, attributes);
-			}
-		}
-
-		link_list->push_back(LinkItem{ rel, href });
-
-		return nullptr;
-	}
-
-	bool ElementEnd(XMLParser* parser, const String& name) override
-	{
-		return node_handler_head->ElementEnd(parser, name);
-	}
-	bool ElementData(XMLParser* parser, const String& data, XMLDataType type) override
-	{
-		return node_handler_head->ElementData(parser, data, type);
-	}
-
-private:
-	LinkList* link_list;
-	Rml::XMLNodeHandler* node_handler_head;
-};
-
-
-static SharedPtr<XMLNodeHandlerMeta> meta_handler;
-static SharedPtr<XMLNodeHandlerLink> link_handler;
-
-void InitializeXmlNodeHandlers(MetaList* meta_list, LinkList* link_list)
-{
-	meta_handler = MakeShared<XMLNodeHandlerMeta>(meta_list);
-	REQUIRE((bool)meta_handler);
-	Rml::XMLParser::RegisterNodeHandler("meta", meta_handler);
-
-	link_handler = MakeShared<XMLNodeHandlerLink>(link_list);
-	REQUIRE((bool)link_handler);
-	Rml::XMLParser::RegisterNodeHandler("link", link_handler);
+	return nullptr;
 }
+
+/// Called when an element is closed
+bool XMLNodeHandlerMeta::ElementEnd(XMLParser* /*parser*/, const String& /*name*/)
+{
+	return true;
+}
+/// Called for element data
+bool XMLNodeHandlerMeta::ElementData(XMLParser* /*parser*/, const String& /*data*/, XMLDataType /*type*/)
+{
+	return true;
+}
+
+
+XMLNodeHandlerLink::XMLNodeHandlerLink()
+{
+	node_handler_head = XMLParser::GetNodeHandler("head");
+	RMLUI_ASSERT(node_handler_head);
+}
+XMLNodeHandlerLink::~XMLNodeHandlerLink() {}
+
+Element* XMLNodeHandlerLink::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
+{
+	RMLUI_ASSERT(name == "link");
+
+	const String rel = StringUtilities::ToLower(Get<String>(attributes, "rel", ""));
+	const String type = StringUtilities::ToLower(Get<String>(attributes, "type", ""));
+	const String href = Get<String>(attributes, "href", "");
+
+	if (!type.empty() && !href.empty())
+	{
+		// Pass it on to the head handler if it's a type it handles.
+		if (type == "text/rcss" || type == "text/css" || type == "text/template")
+		{
+			return node_handler_head->ElementStart(parser, name, attributes);
+		}
+	}
+
+	link_list.push_back(LinkItem{ rel, href });
+
+	return nullptr;
+}
+
+bool XMLNodeHandlerLink::ElementEnd(XMLParser* parser, const String& name)
+{
+	return node_handler_head->ElementEnd(parser, name);
+}
+bool XMLNodeHandlerLink::ElementData(XMLParser* parser, const String& data, XMLDataType type)
+{
+	return node_handler_head->ElementData(parser, data, type);
+}
+

@@ -26,33 +26,50 @@
  *
  */
 
-#ifndef RMLUI_TESTS_COMMON_TESTSSHELL_H
-#define RMLUI_TESTS_COMMON_TESTSSHELL_H
+#ifndef RMLUI_TESTS_VISUALTESTS_NAVIGATION_H
+#define RMLUI_TESTS_VISUALTESTS_NAVIGATION_H
 
+#include "TestSuite.h"
+#include "TestViewer.h"
 #include <RmlUi/Core/Types.h>
-namespace Rml { class RenderInterface; }
+#include <RmlUi/Core/EventListener.h>
 
-namespace TestsShell {
+class ShellRenderInterfaceOpenGL;
 
-// Will initialize the shell when necessary.
-// No need to call RemoveContext with this.
-Rml::Context* GetMainContext();
 
-// If no interface is passed, it will use the shell renderer's interface. Will initialize the shell when necessary.
-// Call RemoveContext() when you are done with the test.
-Rml::Context* CreateContext(const Rml::String& name, Rml::RenderInterface* render_interface = nullptr);
-void RemoveContext(Rml::Context* context);
+class TestNavigator : public Rml::EventListener {
+public:
+	TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites);
+	~TestNavigator();
 
-using ShellIdleFunction = void(*)();
-void EventLoop(ShellIdleFunction idle_func);
-void PrepareRenderBuffer();
-void PresentRenderBuffer();
-void RequestExit();
+	void Update();
 
-void ShutdownShell();
+protected:
+	void ProcessEvent(Rml::Event& event) override;
 
-bool CaptureScreenshot(const Rml::String& filename, int clip_width = 0);
+private:
+	TestSuite& CurrentSuite() { return test_suites[index]; }
 
-}
+	void LoadActiveTest();
+
+	bool CaptureCurrentView();
+
+
+	void StartCaptureFullTestSuite();
+	void StopCaptureFullTestSuite();
+
+	ShellRenderInterfaceOpenGL* shell_renderer;
+	Rml::Context* context;
+	TestViewer* viewer;
+	TestSuiteList test_suites;
+
+	int index = 0;
+	int goto_index = -1;
+	SourceType source_state = SourceType::None;
+	int capture_index = -1;
+	int capture_initial_index = -1;
+	int capture_wait_frames = -1;
+};
+
 
 #endif

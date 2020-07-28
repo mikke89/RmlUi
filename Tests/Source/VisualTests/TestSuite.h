@@ -26,63 +26,58 @@
  *
  */
 
-#ifndef RMLUI_TESTS_VISUALTESTS_WINDOW_H
-#define RMLUI_TESTS_VISUALTESTS_WINDOW_H
+#ifndef RMLUI_TESTS_VISUALTESTS_TESTSUITE_H
+#define RMLUI_TESTS_VISUALTESTS_TESTSUITE_H
 
-#include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
-#include "XmlNodeHandlers.h"
 
-namespace Rml { class Context; class ElementDocument; }
 
-struct TestSuite {
+class TestSuite {
+public:
+	TestSuite(Rml::String directory, Rml::StringList files) : directory(std::move(directory)), files(std::move(files))
+	{
+		RMLUI_ASSERTMSG(!this->files.empty(), "At least one file in the test suite is required.");
+	}
+
+	const Rml::String& GetDirectory() const
+	{
+		return directory;
+	}
+	const Rml::String& GetFilename() const
+	{
+		return files[index];
+	}
+	Rml::String GetPath() const
+	{
+		return directory + '/' + files[index];
+	}
+
+	bool SetIndex(int new_index)
+	{
+		if (new_index < 0 || new_index >= (int)files.size())
+			return false;
+		index = new_index;
+		return true;
+	}
+
+	int GetIndex() const
+	{
+		return index;
+	}
+
+	int GetNumTests() const
+	{
+		return (int)files.size();
+	}
+
+private:
 	Rml::String directory;
 	Rml::StringList files;
+
+	int index = 0;
 };
+
 using TestSuiteList = Rml::Vector<TestSuite>;
-
-
-class Window : public Rml::EventListener, Rml::NonCopyMoveable
-{
-public:
-	Window(Rml::Context* context, TestSuiteList test_suites);
-	~Window();
-	
-private:
-	const TestSuite& GetCurrentTestSuite() const;
-	Rml::String GetCurrentPath() const;
-	Rml::String GetReferencePath() const;
-
-	void OpenSource(const Rml::String& file_path);
-
-	void OpenSource();
-
-	void SwitchSource();
-
-	void CloseSource();
-
-	void ReloadDocument();
-
-	void ProcessEvent(Rml::Event& event) override;
-
-	Rml::Context* context;
-
-	int goto_id = -1;
-
-	int current_id = 0;
-	Rml::ElementDocument* document = nullptr;
-	Rml::ElementDocument* document_description = nullptr;
-	Rml::ElementDocument* document_source = nullptr;
-	Rml::ElementDocument* document_match = nullptr;
-	Rml::String reference_file;
-	bool viewing_reference_source = false;
-
-	const TestSuiteList test_suites;
-	int current_test_suite = 0;
-
-	MetaList meta_list;
-	LinkList link_list;
-};
 
 
 #endif

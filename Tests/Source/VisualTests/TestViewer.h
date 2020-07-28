@@ -26,33 +26,44 @@
  *
  */
 
-#ifndef RMLUI_TESTS_COMMON_TESTSSHELL_H
-#define RMLUI_TESTS_COMMON_TESTSSHELL_H
+#ifndef RMLUI_TESTS_VISUALTESTS_WINDOW_H
+#define RMLUI_TESTS_VISUALTESTS_WINDOW_H
 
+#include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
-namespace Rml { class RenderInterface; }
 
-namespace TestsShell {
+namespace Rml { class Context; class ElementDocument; }
 
-// Will initialize the shell when necessary.
-// No need to call RemoveContext with this.
-Rml::Context* GetMainContext();
+enum class SourceType { None, Test, Reference };
 
-// If no interface is passed, it will use the shell renderer's interface. Will initialize the shell when necessary.
-// Call RemoveContext() when you are done with the test.
-Rml::Context* CreateContext(const Rml::String& name, Rml::RenderInterface* render_interface = nullptr);
-void RemoveContext(Rml::Context* context);
 
-using ShellIdleFunction = void(*)();
-void EventLoop(ShellIdleFunction idle_func);
-void PrepareRenderBuffer();
-void PresentRenderBuffer();
-void RequestExit();
+class TestViewer
+{
+public:
+	TestViewer(Rml::Context* context);
+	~TestViewer();
+	
+	void ShowSource(SourceType type);
 
-void ShutdownShell();
+	bool LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int suite_index, int number_of_suites);
 
-bool CaptureScreenshot(const Rml::String& filename, int clip_width = 0);
+	void SetGoToText(const Rml::String& rml);
 
-}
+	const Rml::String& GetReferenceFilename();
+
+private:
+	Rml::Context* context;
+
+	Rml::ElementDocument* document_test = nullptr;
+	Rml::ElementDocument* document_description = nullptr;
+	Rml::ElementDocument* document_source = nullptr;
+	Rml::ElementDocument* document_reference = nullptr;
+
+	Rml::String source_test;
+	Rml::String source_reference;
+
+	Rml::String reference_filename;
+};
+
 
 #endif

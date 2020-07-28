@@ -26,92 +26,137 @@
  *
  */
 
-#include "Window.h"
-#include "../Common/TestsShell.h"
+#include "TestViewer.h"
+#include "TestNavigator.h"
+#include "Screenshot.h"
+#include "TestSuite.h"
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ID.h>
 #include <RmlUi/Core/StringUtilities.h>
-
-#define DOCTEST_CONFIG_IMPLEMENT
-#include <doctest.h>
-
+#include <RmlUi/Debugger.h>
 #include <Shell.h>
+#include <Input.h>
+#include <ShellRenderInterfaceOpenGL.h>
 
-
-using namespace Rml;
 
 Rml::Context* context = nullptr;
-
-bool run_loop = true;
-bool single_loop = true;
+ShellRenderInterfaceOpenGL* shell_renderer = nullptr;
+TestNavigator* g_navigator = nullptr;
 
 void GameLoop()
 {
-	if (run_loop || single_loop)
+	context->Update();
+
+	shell_renderer->PrepareRenderBuffer();
+	context->Render();
+	shell_renderer->PresentRenderBuffer();
+
+	if (g_navigator)
 	{
-		single_loop = false;
-
-		context->Update();
-
-		TestsShell::PrepareRenderBuffer();
-		context->Render();
-		TestsShell::PresentRenderBuffer();
+		g_navigator->Update();
 	}
 }
 
 
-TEST_CASE("Run VisualTests")
+#if defined RMLUI_PLATFORM_WIN32
+#include <windows.h>
+int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
+#else
+int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
+#endif
 {
-	// Start the visual test suite
-	context = TestsShell::GetMainContext();
-	REQUIRE(context);
-
-	const String samples_root = Shell::FindSamplesRoot();
-
-	StringList directories = { samples_root + "../Tests/Data/VisualTests" };
-
-#ifdef RMLUI_VISUAL_TESTS_DIRECTORIES
-	StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_DIRECTORIES, ';');
+#ifdef RMLUI_PLATFORM_WIN32
+	RMLUI_UNUSED(instance_handle);
+	RMLUI_UNUSED(previous_instance_handle);
+	RMLUI_UNUSED(command_line);
+	RMLUI_UNUSED(command_show);
+#else
+	RMLUI_UNUSED(argc);
+	RMLUI_UNUSED(argv);
 #endif
 
-	TestSuiteList test_suites;
+	int window_width = 1500;
+	int window_height = 800;
 
-	for (const String& directory : directories)
+	ShellRenderInterfaceOpenGL opengl_renderer;
+	shell_renderer = &opengl_renderer;
+
+	// Generic OS initialisation, creates a window and attaches OpenGL.
+	if (!Shell::Initialise() ||
+		!Shell::OpenWindow("Load Document Sample", shell_renderer, window_width, window_height, true))
 	{
-		const StringList files = Shell::ListFiles(directory, "rml");
-
-		if (files.empty())
-		{
-			MESSAGE("Could not find any *.rml* files in directory '" << directory << "'. Ignoring.'");
-		}
-
-		test_suites.push_back(
-			TestSuite{ directory, std::move(files) }
-		);
+		Shell::Shutdown();
+		return -1;
 	}
 
-	REQUIRE_MESSAGE(!test_suites.empty(), "RML test files directory not found or empty.");
+	// RmlUi initialisation.
+	Rml::SetRenderInterface(&opengl_renderer);
+	shell_renderer->SetViewport(window_width, window_height);
 
-	Window window(context, std::move(test_suites));
+	ShellSystemInterface system_interface;
+	Rml::SetSystemInterface(&system_interface);
 
-	TestsShell::EventLoop(GameLoop);
-}
+	Rml::Initialise();
 
+	// Create the main RmlUi context and set it on the shell's input layer.
+	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
+	if (context == nullptr)
+	{
+		Rml::Shutdown();
+		Shell::Shutdown();
+		return -1;
+	}
 
+	Rml::Debugger::Initialise(context);
+	Input::SetContext(context);
+	shell_renderer->SetContext(context);
 
-int main(int argc, char** argv) {
+	Shell::LoadFonts("assets/");
 
-    // Initialize and run doctest
-    doctest::Context doctest_context;
+	{
+		const Rml::String samples_root = Shell::FindSamplesRoot();
 
-    doctest_context.applyCommandLine(argc, argv);
+		Rml::StringList directories = { samples_root + "../Tests/Data/VisualTests" };
 
-    int doctest_result = doctest_context.run();
+#ifdef RMLUI_VISUAL_TESTS_DIRECTORIES
+		Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_DIRECTORIES, ';');
+#endif
 
-    if (doctest_context.shouldExit())
-        return doctest_result;
-	
-    // RmlUi is initialized during doctest run above as necessary.
-    // Clean everything up here.
-    TestsShell::ShutdownShell();
+		TestSuiteList test_suites;
 
-    return doctest_result;
+		for (const Rml::String& directory : directories)
+		{
+			const Rml::StringList files = Shell::ListFiles(directory, "rml");
+
+			if (files.empty())
+			{
+				Rml::Log::Message(Rml::Log::LT_WARNING, "Could not find any *.rml* files in directory '%s'. Ignoring.'", directory.c_str());
+			}
+			else
+			{
+				test_suites.emplace_back(directory, std::move(files));
+			}
+		}
+
+		RMLUI_ASSERTMSG(!test_suites.empty(), "RML test files directory not found or empty.");
+
+		TestViewer viewer(context);
+
+		TestNavigator navigator(shell_renderer, context, &viewer, std::move(test_suites));
+		g_navigator = &navigator;
+
+		Shell::EventLoop(GameLoop);
+
+		g_navigator = nullptr;
+	}
+
+	Rml::Shutdown();
+
+	Shell::CloseWindow();
+	Shell::Shutdown();
+
+	return 0;
 }
