@@ -170,6 +170,8 @@ public:
 #if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wformat"
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wformat-extra-args"
 #endif
 
 template<>
@@ -193,6 +195,7 @@ public:
 };
 
 #if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
+	#pragma GCC diagnostic pop
 	#pragma GCC diagnostic pop
 #endif
 
