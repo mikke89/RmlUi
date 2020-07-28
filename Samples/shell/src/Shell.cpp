@@ -28,6 +28,7 @@
 
 #include "Shell.h"
 #include <RmlUi/Core/Core.h>
+#include <string.h>
 
 #ifdef RMLUI_PLATFORM_WIN32
 #include <io.h>

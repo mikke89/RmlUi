@@ -167,6 +167,11 @@ public:
 	}
 };
 
+#if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wformat"
+#endif
+
 template<>
 class TypeConverter< String, int64_t >
 {
@@ -186,6 +191,10 @@ public:
 		return sscanf(src.c_str(), "%hhu", &dest) == 1;
 	}
 };
+
+#if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
+	#pragma GCC diagnostic pop
+#endif
 
 template<>
 class TypeConverter< String, bool >

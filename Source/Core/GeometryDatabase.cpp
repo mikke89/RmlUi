@@ -138,9 +138,10 @@ void ReleaseAll()
 
 bool PrepareForTests()
 {
-	if (!geometry_database.size() == 0)
+	if (geometry_database.size() > 0)
 		return false;
 
+	// Even with size()==0 we can have items in the geometry list which should all be duplicated by the free list. We want to clear them for the tests.
 	geometry_database.clear();
 
 	return true;
