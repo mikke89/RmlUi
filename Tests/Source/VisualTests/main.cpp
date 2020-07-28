@@ -64,7 +64,9 @@ TEST_CASE("Run VisualTests")
 	context = TestsShell::GetMainContext();
 	REQUIRE(context);
 
-	StringList directories = { "/../Tests/Data/VisualTests" };
+	const String samples_root = Shell::FindSamplesRoot();
+
+	StringList directories = { samples_root + "../Tests/Data/VisualTests" };
 
 #ifdef RMLUI_VISUAL_TESTS_DIRECTORIES
 	StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_DIRECTORIES, ';');

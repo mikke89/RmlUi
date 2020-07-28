@@ -41,7 +41,7 @@ static DataModel model(type_register.GetTransformFuncRegister());
 static DataExpressionInterface interface(&model, nullptr);
 
 
-String TestExpression(const String& expression)
+static String TestExpression(const String& expression)
 {
 	String result;
 
@@ -65,9 +65,9 @@ String TestExpression(const String& expression)
 	}
 
 	return result;
-};
+}
 
-bool TestAssignment(const String& expression)
+static bool TestAssignment(const String& expression)
 {
 	bool result = false;
 	DataParser parser(expression, interface);
@@ -87,7 +87,7 @@ bool TestAssignment(const String& expression)
 		FAIL_CHECK("Could not parse assignment expression: " << expression);
 	}
 	return result;
-};
+}
 
 
 

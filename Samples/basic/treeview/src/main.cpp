@@ -106,8 +106,9 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Shell::LoadFonts("assets/");
 
-	// Create the file data source and formatter. The samples directory '/' acts as our root.
-	FileSystem file_system("/");
+	// Create the file data source and formatter.
+	const Rml::String root = Shell::FindSamplesRoot();
+	FileSystem file_system(root);
 	FileFormatter file_formatter;
 
 	// Load and show the demo document.

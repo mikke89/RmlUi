@@ -56,23 +56,16 @@ void Shell::LoadFonts(const char* directory)
 
 enum class ListType { Files, Directories };
 
-static Rml::StringList ListFilesOrDirectories(ListType type, const Rml::String& in_directory, const Rml::String& extension)
+static Rml::StringList ListFilesOrDirectories(ListType type, const Rml::String& directory, const Rml::String& extension)
 {
-	if (in_directory.empty())
+	if (directory.empty())
 		return Rml::StringList();
-
-	Rml::String directory;
-
-	if (in_directory[0] == '/')
-		directory = Shell::FindSamplesRoot() + in_directory.substr(1);
-	else
-		directory = in_directory;
-
-	const Rml::String find_path = directory + "/*." + (extension.empty() ? Rml::String("*") : extension);
 
 	Rml::StringList result;
 
 #ifdef RMLUI_PLATFORM_WIN32
+	const Rml::String find_path = directory + "/*." + (extension.empty() ? Rml::String("*") : extension);
+
 	_finddata_t find_data;
 	intptr_t find_handle = _findfirst(find_path.c_str(), &find_data);
 	if (find_handle != -1)
@@ -98,25 +91,30 @@ static Rml::StringList ListFilesOrDirectories(ListType type, const Rml::String& 
 	}
 #else
 	struct dirent** file_list = nullptr;
-	int file_count = -1;
-	file_count = scandir(find_path.c_str(), &file_list, 0, alphasort);
+	const int file_count = scandir(directory.c_str(), &file_list, 0, alphasort);
 	if (file_count == -1)
-		return;
+		return Rml::StringList();
 
-	// TODO: Untested
-	while (file_count--)
+	for (int i = 0; i < file_count; i++)
 	{
-		if (strcmp(file_list[file_count]->d_name, ".") == 0 ||
-			strcmp(file_list[file_count]->d_name, "..") == 0)
+		if (strcmp(file_list[i]->d_name, ".") == 0 ||
+			strcmp(file_list[i]->d_name, "..") == 0)
 			continue;
 
-		bool is_directory = ((file_list[file_count]->d_type & DT_DIR) == DT_DIR);
-		bool is_file = ((file_list[file_count]->d_type & DT_REG) == DT_REG);
+		bool is_directory = ((file_list[i]->d_type & DT_DIR) == DT_DIR);
+		bool is_file = ((file_list[i]->d_type & DT_REG) == DT_REG);
+
+		if (!extension.empty())
+		{
+			const char* last_dot = strrchr(file_list[i]->d_name, '.');
+			if (!last_dot || strcmp(last_dot + 1, extension.c_str()) != 0)
+				continue;
+		}
 
 		if ((type == ListType::Files && is_file) ||
 			(type == ListType::Directories && is_directory))
 		{
-			result.push_back(file_list[file_count]->d_name);
+			result.push_back(file_list[i]->d_name);
 		}
 	}
 	free(file_list);

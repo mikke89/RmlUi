@@ -83,14 +83,14 @@ String Window::GetCurrentPath() const {
 	REQUIRE(current_id >= 0);
 	REQUIRE(current_id < (int)test_suite.files.size());
 
-	return test_suite.directory + '\\' + test_suite.files[current_id];
+	return test_suite.directory + '/' + test_suite.files[current_id];
 }
 
 String Window::GetReferencePath() const {
 	if (reference_file.empty())
 		return String();
 	const TestSuite& test_suite = GetCurrentTestSuite();
-	return test_suite.directory + '\\' + reference_file;
+	return test_suite.directory + '/' + reference_file;
 }
 
 void Window::OpenSource(const String& file_path)
@@ -293,7 +293,7 @@ void Window::ProcessEvent(Rml::Event& event)
 		else if (key_identifier == Rml::Input::KI_C && key_ctrl)
 		{
 			if (key_shift)
-				Shell::SetClipboardText(GetCurrentTestSuite().directory + '\\' + reference_file);
+				Shell::SetClipboardText(GetCurrentTestSuite().directory + '/' + reference_file);
 			else
 				Shell::SetClipboardText(GetCurrentPath());
 		}

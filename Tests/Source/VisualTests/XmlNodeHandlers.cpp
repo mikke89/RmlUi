@@ -106,14 +106,7 @@ public:
 			}
 		}
 
-		LinkItem item{ rel, href };
-
-		if (rel == "match")
-			item.href = StringUtilities::Replace(href, '/', '\\');
-		else
-			item.href = href;
-
-		link_list->push_back(std::move(item));
+		link_list->push_back(LinkItem{ rel, href });
 
 		return nullptr;
 	}
@@ -139,10 +132,10 @@ static SharedPtr<XMLNodeHandlerLink> link_handler;
 void InitializeXmlNodeHandlers(MetaList* meta_list, LinkList* link_list)
 {
 	meta_handler = MakeShared<XMLNodeHandlerMeta>(meta_list);
-	REQUIRE(meta_handler);
+	REQUIRE((bool)meta_handler);
 	Rml::XMLParser::RegisterNodeHandler("meta", meta_handler);
 
 	link_handler = MakeShared<XMLNodeHandlerLink>(link_list);
-	REQUIRE(link_handler);
+	REQUIRE((bool)link_handler);
 	Rml::XMLParser::RegisterNodeHandler("link", link_handler);
 }

@@ -107,7 +107,7 @@ Rml::String Shell::FindSamplesRoot()
 	// For "../Samples/" to be valid we must be in the Build directory.
 	// If "../" is valid we are probably in the installation directory.
 	// Some build setups may nest the executables deeper in a build directory, try them last.
-	const char* candidate_paths[] = { "../Samples/", "../", "", "../../Samples/", "../../../Samples/"};
+	const char* candidate_paths[] = { "", "../", "../Samples/", "../../Samples/", "../../../Samples/", "../../../../Samples/" };
 
 	for (const char* relative_path : candidate_paths)
 	{
