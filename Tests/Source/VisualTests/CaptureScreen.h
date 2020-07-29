@@ -33,10 +33,21 @@
 
 class ShellRenderInterfaceOpenGL;
 
+struct ComparisonResult {
+	bool success = false;
+	bool is_equal = false;
+	double similarity_score = 0;
+	std::size_t absolute_difference_sum = 0;
+	Rml::String error_msg;
+};
+
+
+Rml::String GetInputDirectory();
+Rml::String GetOutputDirectory();
 
 bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width);
 
-Rml::String GetOutputDirectory();
+ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename);
 
 
 #endif

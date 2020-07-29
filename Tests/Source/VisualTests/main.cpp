@@ -28,7 +28,7 @@
 
 #include "TestViewer.h"
 #include "TestNavigator.h"
-#include "Screenshot.h"
+#include "CaptureScreen.h"
 #include "TestSuite.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>

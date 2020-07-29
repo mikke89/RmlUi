@@ -28,15 +28,16 @@
 
 #include "TestNavigator.h"
 #include "TestSuite.h"
-#include "Screenshot.h"
+#include "CaptureScreen.h"
 #include "TestViewer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <Shell.h>
+#include <cstdio>
 
 // When capturing frames it seems we need to wait at least an extra frame for the newly submitted
 // render to be read back out. If we don't wait, we end up saving a screenshot of the previous test.
-constexpr int capture_wait_frame_count = 2;
+constexpr int iteration_wait_frame_count = 2;
 
 
 TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites)
@@ -57,32 +58,45 @@ TestNavigator::~TestNavigator()
 
 void TestNavigator::Update()
 {
-	if (capture_index >= 0 && capture_wait_frames > 0)
+	if(iteration_state != IterationState::None)
 	{
-		capture_wait_frames -= 1;
-	}
-	else if (capture_index >= 0)
-	{
-		RMLUI_ASSERT(capture_index < CurrentSuite().GetNumTests());
-		capture_wait_frames += capture_wait_frame_count;
+		RMLUI_ASSERT(iteration_index >= 0);
 
-		if (!CaptureCurrentView())
+		// Capture test document screenshots iteratively every nth frame.
+		if (iteration_wait_frames > 0)
 		{
-			StopCaptureFullTestSuite();
-			return;
-		}
-
-		capture_index += 1;
-
-		TestSuite& suite = CurrentSuite();
-		if (capture_index < suite.GetNumTests())
-		{
-			suite.SetIndex(capture_index);
-			LoadActiveTest();
+			iteration_wait_frames -= 1;
 		}
 		else
 		{
-			StopCaptureFullTestSuite();
+			RMLUI_ASSERT(iteration_index < CurrentSuite().GetNumTests());
+			iteration_wait_frames = iteration_wait_frame_count;
+
+			if (iteration_state == IterationState::Capture)
+			{
+				if (!CaptureCurrentView())
+				{
+					StopTestSuiteIteration();
+					return;
+				}
+			}
+			else if (iteration_state == IterationState::Comparison)
+			{
+				comparison_results.push_back(CompareCurrentView());
+			}
+
+			iteration_index += 1;
+
+			TestSuite& suite = CurrentSuite();
+			if (iteration_index < suite.GetNumTests())
+			{
+				suite.SetIndex(iteration_index);
+				LoadActiveTest();
+			}
+			else
+			{
+				StopTestSuiteIteration();
+			}
 		}
 	}
 }
@@ -127,10 +141,40 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 				LoadActiveTest();
 			}
 		}
+		else if (key_identifier == Rml::Input::KI_F5)
+		{
+			if (key_ctrl && key_shift)
+				StartTestSuiteIteration(IterationState::Comparison);
+			else
+			{
+				ComparisonResult result = CompareCurrentView();
+				if (result.success)
+				{
+					if (result.is_equal)
+					{
+						Rml::Log::Message(Rml::Log::LT_INFO, "%s compares EQUAL to the reference image.",
+							CurrentSuite().GetFilename().c_str());
+					}
+					else
+					{
+						Rml::Log::Message(Rml::Log::LT_INFO, "%s compares NOT EQUAL to the reference image. See diff image written to %s.",
+							CurrentSuite().GetFilename().c_str(), GetOutputDirectory().c_str());
+					}
+
+					if (!result.error_msg.empty())
+						Rml::Log::Message(Rml::Log::LT_ERROR, "%s", result.error_msg.c_str());
+				}
+				else
+				{
+					Rml::Log::Message(Rml::Log::LT_ERROR, "Comparison of %s failed.\n%s", CurrentSuite().GetFilename().c_str(), result.error_msg.c_str());
+				}
+
+			}
+		}
 		else if (key_identifier == Rml::Input::KI_F7)
 		{
 			if (key_ctrl && key_shift)
-				StartCaptureFullTestSuite();
+				StartTestSuiteIteration(IterationState::Capture);
 			else
 				CaptureCurrentView();
 		}
@@ -151,9 +195,9 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 		}
 		else if (key_identifier == Rml::Input::KI_ESCAPE)
 		{
-			if (capture_index >= 0)
+			if (iteration_state != IterationState::None)
 			{
-				StopCaptureFullTestSuite();
+				StopTestSuiteIteration();
 			}
 			else if (source_state != SourceType::None)
 			{
@@ -214,7 +258,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			{
 				if (goto_index > 0)
 				{
-					if (CurrentSuite().SetIndex(goto_index))
+					if (CurrentSuite().SetIndex(goto_index - 1))
 					{
 						LoadActiveTest();
 					}
@@ -222,6 +266,10 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 					{
 						viewer->SetGoToText(Rml::CreateString(64, "Go To out of bounds.", goto_index));
 					}
+				}
+				else
+				{
+					viewer->SetGoToText("");
 				}
 				goto_index = -1;
 			}
@@ -236,54 +284,171 @@ void TestNavigator::LoadActiveTest()
 	viewer->ShowSource(source_state);
 }
 
+static Rml::String ImageFilenameFromTest(const TestSuite& suite)
+{
+	const Rml::String& filename = suite.GetFilename();
+	return filename.substr(0, filename.rfind('.')) + ".png";
+}
+
+ComparisonResult TestNavigator::CompareCurrentView()
+{
+	const Rml::String filename = ImageFilenameFromTest(CurrentSuite());
+
+	ComparisonResult result = CompareScreenToPreviousCapture(shell_renderer, filename);
+
+	return result;
+}
+
+
 bool TestNavigator::CaptureCurrentView()
 {
-	Rml::String filename = CurrentSuite().GetFilename();
-	filename = filename.substr(0, filename.rfind('.')) + ".png";
+	const Rml::String filename = ImageFilenameFromTest(CurrentSuite());
 	
 	bool result = CaptureScreenshot(shell_renderer, filename, 1060);
 	
 	return result;
 }
 
-void TestNavigator::StopCaptureFullTestSuite()
+void TestNavigator::StartTestSuiteIteration(IterationState new_iteration_state)
 {
-	const Rml::String output_directory = GetOutputDirectory();
+	if (iteration_state != IterationState::None || new_iteration_state == IterationState::None)
+		return;
 
+	source_state = SourceType::None;
+
+	if (new_iteration_state == IterationState::Comparison)
+		comparison_results.clear();
+
+	TestSuite& suite = CurrentSuite();
+	iteration_initial_index = suite.GetIndex();
+	iteration_wait_frames = iteration_wait_frame_count;
+
+	iteration_state = new_iteration_state;
+	iteration_index = 0;
+	suite.SetIndex(iteration_index);
+	LoadActiveTest();
+}
+
+static bool SaveFile(const Rml::String& file_path, const Rml::String& contents)
+{
+	std::FILE* file = std::fopen(file_path.c_str(), "wt");
+	if (!file)
+		return false;
+
+	std::fputs(contents.c_str(), file);
+	std::fclose(file);
+
+	return true;
+}
+
+void TestNavigator::StopTestSuiteIteration()
+{
+	if (iteration_state == IterationState::None)
+		return;
+
+	const Rml::String output_directory = GetOutputDirectory();
 	TestSuite& suite = CurrentSuite();
 	const int num_tests = suite.GetNumTests();
 
-	if (capture_index == num_tests)
+	if (iteration_state == IterationState::Capture)
 	{
-		Rml::Log::Message(Rml::Log::LT_INFO, "Successfully captured %d document screenshots to directory: %s", capture_index, output_directory.c_str());
+		if (iteration_index == num_tests)
+		{
+			Rml::Log::Message(Rml::Log::LT_INFO, "Successfully captured %d document screenshots to directory: %s", iteration_index, output_directory.c_str());
+		}
+		else
+		{
+			Rml::Log::Message(Rml::Log::LT_ERROR, "Test suite capture aborted after %d of %d test(s). Output directory: %s", iteration_index, num_tests, output_directory.c_str());
+		}
 	}
-	else
+	else if (iteration_state == IterationState::Comparison)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Test suite capture aborted after %d of %d test(s). Output directory: %s", capture_index, num_tests, output_directory.c_str());
+		RMLUI_ASSERT(iteration_index == (int)comparison_results.size());
+
+		// Indices
+		Rml::Vector<int> equal;
+		Rml::Vector<int> not_equal;
+		Rml::Vector<int> failed;
+		Rml::Vector<int> skipped;
+		 
+		for(int i = 0; i < (int)comparison_results.size(); i++)
+		{
+			const ComparisonResult& comparison = comparison_results[i];
+
+			if (!comparison.success)
+				failed.push_back(i);
+			else if (comparison.is_equal)
+				equal.push_back(i);
+			else
+				not_equal.push_back(i);
+		}
+		for (int i = (int)comparison_results.size(); i < num_tests; i++)
+			skipped.push_back(i);
+
+		const Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Equal: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d",
+			num_tests, (int)equal.size(), (int)not_equal.size(), (int)failed.size(), (int)skipped.size());
+
+		if (iteration_index == num_tests)
+		{
+			Rml::Log::Message(Rml::Log::LT_INFO, "Compared all test documents to their screenshot captures.\n%s", summary.c_str());
+		}
+		else
+		{
+			Rml::Log::Message(Rml::Log::LT_ERROR, "Test suite comparison aborted after %d of %d test(s).\n%s", iteration_index, num_tests, summary.c_str());
+		}
+
+		Rml::String log;
+		log.reserve(comparison_results.size() * 100);
+
+		log += "RmlUi VisualTests comparison log output.\n---------------------------------------\n\n" + summary;
+		log += "\n\nEqual:\n";
+
+		for (int i : equal)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+		}
+		log += "\nNot Equal:\n";
+		if (!not_equal.empty())
+			log += "Percentages are similarity scores. Difference images written to " + GetOutputDirectory() + "/diff-*.png\n\n";
+		for (int i : not_equal)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(256, "%5d   %5.1f%%   %s\n", i + 1, comparison_results[i].similarity_score*100.0, suite.GetFilename().c_str());
+			if (!comparison_results[i].error_msg.empty())
+				log += "          " + comparison_results[i].error_msg + "\n";
+		}
+		log += "\nFailed:\n";
+		for (int i : failed)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(512, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += "          " + comparison_results[i].error_msg + "\n";
+		}
+		log += "\nSkipped:\n";
+		for (int i : skipped)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+		}
+
+		const Rml::String log_path = GetOutputDirectory() + "/comparison.log";
+		bool save_result = SaveFile(log_path, log);
+		if (save_result && failed.empty())
+			Rml::Log::Message(Rml::Log::LT_INFO, "Comparison log output written to %s", log_path.c_str());
+		else if(save_result && !failed.empty())
+			Rml::Log::Message(Rml::Log::LT_ERROR, "Comparison log output written to %s.\nSome captures failed, see log output for details.", log_path.c_str());
+		else
+			Rml::Log::Message(Rml::Log::LT_ERROR, "Failed writing comparison log output to file %s", log_path.c_str());
 	}
 
-	suite.SetIndex(capture_initial_index);
+	suite.SetIndex(iteration_initial_index);
 	LoadActiveTest();
 
-	capture_index = -1;
-	capture_initial_index = -1;
-	capture_wait_frames = -1;
-}
-
-void TestNavigator::StartCaptureFullTestSuite()
-{
-	if(capture_index == -1)
-	{
-		source_state = SourceType::None;
-
-		TestSuite& suite = CurrentSuite();
-		capture_initial_index = suite.GetIndex();
-		capture_wait_frames = capture_wait_frame_count;
-		
-		capture_index = 0;
-		suite.SetIndex(capture_index);
-		LoadActiveTest();
-	}
+	iteration_index = -1;
+	iteration_initial_index = -1;
+	iteration_wait_frames = -1;
+	iteration_state = IterationState::None;
 }
 
 
