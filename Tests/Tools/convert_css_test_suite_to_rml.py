@@ -57,6 +57,79 @@ if args.clean:
 			except Exception as e:
 				print('Failed to delete {}. Reason: {}'.format(path, e))
 
+def border_format(side: str, type: str, content: str):
+	# Side: (empty)/-top/-right/-bottom/-left
+	# Type: (empty)/-width/-style/-color
+	
+	content = content.replace("thick", "5px")
+	content = content.replace("medium", "3px")
+	content = content.replace("thin", "1px")
+
+	if type == "-width" or type == "-color":
+		return "border" + side + type + ": " + content
+
+	# Convert style to width. This is not perfect, but seems to be the most used case.
+	if type == "-style":
+		content = content.replace("none", "0px").replace("hidden", "0px")
+		# We may want to only match "solid" here, and cancel the test if it contains any other styles which are unsupported.
+		content = re.sub(r'\b[a-z]+\b', '3px', content, flags = re.IGNORECASE)
+		return "border" + side + "-width: " + content
+
+	# Next are the shorthand properties, they should contain max a single size, a single style, and a single color.
+	width = re.search(r'\b([0-9]+[a-z]+)\b', content, flags = re.IGNORECASE)
+	if width:
+		width = width.group(1)
+
+	style_pattern = r'none|solid|hidden|dotted|dashed|double|groove|ridge|inset|outset|sold'
+	style = re.search(style_pattern, content, flags = re.IGNORECASE)
+	if style:
+		style = style.group(0)
+		if style == "none" or style == "hidden":
+			width = "0px"
+
+	content = re.sub(style_pattern, "", content)
+	color = re.search(r'\b([a-z]+|#[0-9a-f]+)\b', content)
+	if color:
+		color = color.group(1)
+	else:
+		color = "black"
+
+	width = width or "3px"
+
+	return "border" + side + ": " + width + " " + color
+
+
+def border_find_replace(line: str):
+	new_line = ""
+	prev_end = 0
+
+	pattern = r"border(-(top|right|bottom|left))?(-(width|style|color))?:([^;}\"]+)([;}\"])"
+	for match in re.finditer(pattern, line, flags = re.IGNORECASE):
+		side = match.group(1) or ""
+		type = match.group(3) or ""
+		content = match.group(5)
+		suffix = match.group(6)
+
+		replacement = border_format(side, type, content) + suffix
+
+		new_line += line[prev_end:match.start()] + replacement
+		prev_end = match.end()
+
+	new_line += line[prev_end:]
+
+	return new_line
+
+assert( border_find_replace("margin:10px; border:20px solid black; padding:30px;") == 'margin:10px; border: 20px black; padding:30px;' )
+assert( border_find_replace(" border-left: 7px solid navy; border-right: 17px solid navy; } ") == ' border-left: 7px navy; border-right: 17px navy; } ' )
+assert( border_find_replace(" border: blue solid 3px; ") == ' border: 3px blue; ' )
+assert( border_find_replace(" border: solid lime; ") == ' border: 3px lime; ' )
+assert( border_find_replace(" border-left: orange solid 1em; ") == ' border-left: 1em orange; ' )
+assert( border_find_replace(" border-style: solid none solid solid; ") == ' border-width:  3px 0px 3px 3px; ' )
+assert( border_find_replace("   border: solid; border-style: solid none solid solid; border-style: solid solid solid none; ") == '   border: 3px black; border-width:  3px 0px 3px 3px; border-width:  3px 3px 3px 0px; ' )
+assert( border_find_replace(" p + .set {border-top: solid orange} ") == ' p + .set {border-top: 3px orange} ' )
+assert( border_find_replace(r'<span style="border-right: none; border-left: none" class="outer">') == '<span style="border-right: 0px black; border-left: 0px black" class="outer">' )
+
+
 reference_links = []
 
 def process_file(in_file):
@@ -102,14 +175,16 @@ def process_file(in_file):
 		line = re.sub(r'list-style(-type)?:\s*none\s*;?', r'', line, flags = re.IGNORECASE)
 		line = re.sub(r'max-height:\s*none;', r'max-height: -1px;', line, flags = re.IGNORECASE)
 		line = re.sub(r'max-width:\s*none;', r'max-width: -1px;', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*xxx-large', r'\1 2.0em', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*xx-large', r'\1 1.7em', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*x-large', r'\1 1.3em', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*large', r'\1 1.15em', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*medium', r'\1 1.0em', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*small', r'\1 0.9em', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*x-small', r'\1 0.7em', line, flags = re.IGNORECASE)
-		line = re.sub(r'(font-size:)\s*xx-small', r'\1 0.5em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)xxx-large', r'\1 2.0em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)xx-large', r'\1 1.7em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)x-large', r'\1 1.3em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)large', r'\1 1.15em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)medium', r'\1 1.0em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)small', r'\1 0.9em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)x-small', r'\1 0.7em', line, flags = re.IGNORECASE)
+		line = re.sub(r'(font(-size):[^;}\"]*)xx-small', r'\1 0.5em', line, flags = re.IGNORECASE)
+		line = re.sub(r'font:[^;}]*\b([0-9]+[a-z]+)\b[^;}]*([;}])', r'font-size: \1 \2', line, flags = re.IGNORECASE)
+		line = re.sub(r'font-family:[^;}]*[;}]', r'', line, flags = re.IGNORECASE)
 		line = re.sub(r'(line-height:)\s*normal', r'\1 1.2em', line, flags = re.IGNORECASE)
 		line = re.sub(r'cyan', r'aqua', line, flags = re.IGNORECASE)
 
@@ -118,30 +193,11 @@ def process_file(in_file):
 			return False
 		line = re.sub(r'background:(\s*([a-z]+|#[0-9a-f]+)\s*[;}\"])', r'background-color:\1', line, flags = re.IGNORECASE)
 
-		# Try to fix up borders to match the RmlUi syntax. This conversion might ruin some tests.
-		line = re.sub(r'(border(-(top|right|bottom|left))?)-style:\s*solid(\s*[;}"])', r'\1-width: 3px\4', line, flags = re.IGNORECASE)
+		line = border_find_replace(line)
 
-		line = re.sub(r'(border(-(top|right|bottom|left))?):\s*none(\s*[;}"])', r'\1-width: 0px\4', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border[^:]*:[^;]*)thin', r'\1 1px', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border[^:]*:[^;]*)medium', r'\1 3px', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border[^:]*:[^;]*)thick', r'\1 5px', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border[^:]*:[^;]*)none', r'\1 0px', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border[^:]*:\s*[0-9][^\s;}]*)\s+soli?d', r'\1 ', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border[^:]*:\s*[^0-9;}]*)soli?d', r'\1 3px', line, flags = re.IGNORECASE)
-
-		if re.search(r'border[^;]*(hidden|dotted|dashed|double|groove|ridge|inset|outset)', line, flags = re.IGNORECASE) \
-			or re.search(r'border[^:]*-style:', line, flags = re.IGNORECASE):
-			print("File '{}' skipped since it uses unsupported border styles.".format(in_file))
-			return False
-
-		line = re.sub(r'(border(-(top|right|bottom|left))?:\s*)[0-9][^\s;}]*(\s+[0-9][^\s;}]*[;}])', r'\1 \4', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border(-(top|right|bottom|left))?:\s*[0-9\.]+[a-z]+\s+)[0-9\.]+[a-z]+([^;}]*[;}])', r'\1 \4', line, flags = re.IGNORECASE)
-		line = re.sub(r'(border(-(top|right|bottom|left))?:\s*[0-9\.]+[a-z]+\s+)[0-9\.]+[a-z]+([^;}]*[;}])', r'\1 \4', line, flags = re.IGNORECASE)
-
-		line = re.sub(r'(border:)[^;]*none([^;]*;)', r'\1 0px \2', line, flags = re.IGNORECASE)
 		if in_style and not '<' in line:
 			line = line.replace('&gt;', '>')
-		flags_match = re.search(r'<meta.*name="flags" content="([^"]*)" ?/>', line, flags = re.IGNORECASE)
+		flags_match = re.search(r'<meta.*name="flags" content="([^"]*)" ?/>', line, flags = re.IGNORECASE) or re.search(r'<meta.*content="([^"]*)".*name="flags".*?/>', line, flags = re.IGNORECASE)
 		if flags_match and flags_match[1] != '' and flags_match[1] != 'interactive':
 			print("File '{}' skipped due to flags '{}'".format(in_file, flags_match[1]))
 			return False
@@ -163,8 +219,8 @@ def process_file(in_file):
 		if re.search(r'(: ?inherit ?;)|(!\s*important)|[0-9\.]+(ch|ex)[\s;}]', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses unsupported CSS values.".format(in_file))
 			return False
-		if re.search(r'font(-family)?:', line, flags = re.IGNORECASE):
-			print("File '{}' skipped since it modifies fonts.".format(in_file))
+		if re.search(r'@font-face|font:|ahem', line, flags = re.IGNORECASE):
+			print("File '{}' skipped since it uses special fonts.".format(in_file))
 			return False
 		if re.search(r'(direction:[^;]*[;"])|(content:[^;]*[;"])|(outline:[^;]*[;"])|(quote:[^;]*[;"])|(border-spacing:[^;]*[;"])|(border-collapse:[^;]*[;"])|(background:[^;]*[;"])|(box-sizing:[^;]*[;"])', line, flags = re.IGNORECASE)\
 			or re.search(r'(font-variant:[^;]*[;"])|(font-kerning:[^;]*[;"])|(font-feature-settings:[^;]*[;"])|(background-image:[^;]*[;"])|(caption-side:[^;]*[;"])|(clip:[^;]*[;"])|(page-break-inside:[^;]*[;"])|(word-spacing:[^;]*[;"])', line, flags = re.IGNORECASE)\

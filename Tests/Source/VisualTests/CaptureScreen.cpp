@@ -62,7 +62,7 @@ Rml::String GetOutputDirectory()
 bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width)
 {
 	using Image = ShellRenderInterfaceOpenGL::Image;
-
+	
 	Image image_orig = shell_renderer->CaptureScreen();
 
 	if (!image_orig.data)
@@ -128,7 +128,8 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 
 	if (lodepng_result)
 	{
-		ComparisonResult result{ false };
+		ComparisonResult result;
+		result.success = false;
 		result.error_msg = Rml::CreateString(1024, "Could not read the captured screenshot from %s: %s", input_path.c_str(), lodepng_error_text(lodepng_result));
 		return result;
 	}
@@ -138,7 +139,8 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 	Image screen = shell_renderer->CaptureScreen();
 	if (!screen.data)
 	{
-		ComparisonResult result{ false };
+		ComparisonResult result;
+		result.success = false;
 		result.error_msg = "Could not capture screen from OpenGL window.";
 		return result;
 	}
@@ -157,7 +159,8 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 
 	if (screen.width < (int)w_ref || screen.height < (int)h_ref)
 	{
-		ComparisonResult result{ false };
+		ComparisonResult result;
+		result.success = false;
 		result.error_msg = "Test comparison failed. The screen is smaller than the reference image in one or both dimensions.";
 		return result;
 	}
