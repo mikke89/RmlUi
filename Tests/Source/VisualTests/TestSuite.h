@@ -30,6 +30,7 @@
 #define RMLUI_TESTS_VISUALTESTS_TESTSUITE_H
 
 #include <RmlUi/Core/Types.h>
+#include <algorithm>
 
 
 class TestSuite {
@@ -131,7 +132,7 @@ private:
 		}
 		else if (filter_direction == Direction::Any)
 		{
-			// Like forward but will go back if not possible.
+			// Like forward but will go back if we cannot go forward.
 			return it == filtered_tests_indices.end() ? *(it - 1) : *it;
 		}
 

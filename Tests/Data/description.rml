@@ -19,7 +19,7 @@
 		z-index: 100;
 		tab-index: auto;
 	}
-	#content > * { padding-top: 0.8em; }
+	h1, h2, h3 { padding-top: 0.8em; }
 	code {
 		display: block;
 		white-space: pre-wrap;
@@ -62,7 +62,7 @@
 		position: absolute;
 		left: 20px;
 		bottom: 30px;
-		width: 200px;
+		right: 20px;
 		color: #ddb;
 	}
 	#hovertext {

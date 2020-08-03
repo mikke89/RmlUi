@@ -2,9 +2,7 @@ dl,dt,dd,ul,li,blockquote,address,h1,h2,h3,h4,h5,h6,p,pre,div {
 	display: block;
 }
 
-p, pre {
-	padding: 0.5em 0.5em;
-}
+p, pre { margin: 0.8em 0; }
 pre { white-space: pre; }
 hr {
 	display: block;
@@ -26,8 +24,9 @@ body {
 	font-weight: normal;
 	font-style: normal;
 	font-size: 14px;
-	width: 500px;
-	min-height: 500px;
+	padding: 8px;
+	width: 484px;
+	min-height: 484px;
 	color: black;
 	background: #ccc;
 	overflow: auto;

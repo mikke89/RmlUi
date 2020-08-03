@@ -28,6 +28,7 @@
 
 #include "TestNavigator.h"
 #include "TestSuite.h"
+#include "TestConfig.h"
 #include "CaptureScreen.h"
 #include "TestViewer.h"
 #include <RmlUi/Core/Context.h>
@@ -45,6 +46,7 @@ TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Co
 {
 	RMLUI_ASSERT(context);
 	RMLUI_ASSERTMSG(!this->test_suites.empty(), "At least one test suite is required.");
+	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this, true);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Change, this);
@@ -53,6 +55,7 @@ TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Co
 
 TestNavigator::~TestNavigator()
 {
+	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, this, true);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Change, this);
@@ -89,64 +92,27 @@ void TestNavigator::Update()
 
 			iteration_index += 1;
 
-			TestSuite& suite = CurrentSuite();
-			if (suite.Next())
-			{
+			if (CurrentSuite().Next())
 				LoadActiveTest();
-			}
 			else
-			{
 				StopTestSuiteIteration();
-			}
 		}
 	}
 }
 
 void TestNavigator::ProcessEvent(Rml::Event& event)
 {
-	if (event == Rml::EventId::Keydown)
+	// Keydown events in capture phase to override text input
+	if (event == Rml::EventId::Keydown && event.GetPhase() == Rml::EventPhase::Capture)
 	{
-		auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter< int >("key_identifier", 0);
-		bool key_ctrl = event.GetParameter< bool >("ctrl_key", false);
-		bool key_shift = event.GetParameter< bool >("shift_key", false);
+		const auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter< int >("key_identifier", 0);
+		const bool key_ctrl = event.GetParameter< bool >("ctrl_key", false);
+		const bool key_shift = event.GetParameter< bool >("shift_key", false);
 
-		if (key_identifier == Rml::Input::KI_LEFT)
-		{
-			if (CurrentSuite().Previous())
-			{
-				LoadActiveTest();
-			}
-		}
-		else if (key_identifier == Rml::Input::KI_RIGHT)
-		{
-			if (CurrentSuite().Next())
-			{
-				LoadActiveTest();
-			}
-		}
-		else if (key_identifier == Rml::Input::KI_UP)
-		{
-			const Rml::String& filter = CurrentSuite().GetFilter();
-			int new_index = std::max(0, index - 1);
-			if (new_index != index)
-			{
-				index = new_index;
-				CurrentSuite().SetFilter(filter);
-				LoadActiveTest();
-			}
-		}
-		else if (key_identifier == Rml::Input::KI_DOWN)
-		{
-			const Rml::String& filter = CurrentSuite().GetFilter();
-			int new_index = std::min((int)test_suites.size() - 1, index + 1);
-			if (new_index != index)
-			{
-				index = new_index;
-				CurrentSuite().SetFilter(filter);
-				LoadActiveTest();
-			}
-		}
-		else if (key_identifier == Rml::Input::KI_F5)
+		Rml::Element* element_filter_input = event.GetCurrentElement()->GetElementById("filterinput");
+		RMLUI_ASSERT(element_filter_input);
+
+		if (key_identifier == Rml::Input::KI_F5)
 		{
 			if (key_ctrl && key_shift)
 				StartTestSuiteIteration(IterationState::Comparison);
@@ -163,7 +129,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 					else
 					{
 						Rml::Log::Message(Rml::Log::LT_INFO, "%s compares NOT EQUAL to the reference image. See diff image written to %s.",
-							CurrentSuite().GetFilename().c_str(), GetOutputDirectory().c_str());
+							CurrentSuite().GetFilename().c_str(), GetCaptureOutputDirectory().c_str());
 					}
 
 					if (!result.error_msg.empty())
@@ -183,7 +149,15 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			else
 				CaptureCurrentView();
 		}
-		else if (key_identifier == Rml::Input::KI_S)
+		else if (key_identifier == Rml::Input::KI_F1)
+		{
+			viewer->ShowHelp(!viewer->IsHelpVisible());
+		}
+		else if (key_identifier == Rml::Input::KI_F && key_ctrl)
+		{
+			element_filter_input->Focus();
+		}
+		else if (key_identifier == Rml::Input::KI_S && key_ctrl)
 		{
 			if (source_state == SourceType::None)
 			{
@@ -204,23 +178,80 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			{
 				StopTestSuiteIteration();
 			}
+			else if (viewer->IsHelpVisible())
+			{
+				viewer->ShowHelp(false);
+			}
 			else if (source_state != SourceType::None)
 			{
 				source_state = SourceType::None;
 				viewer->ShowSource(source_state);
 			}
+			else if (element_filter_input->IsPseudoClassSet("focus"))
+			{
+				element_filter_input->Blur();
+			}
 			else if (goto_index >= 0)
 			{
 				goto_index = -1;
-				viewer->SetGoToText("");
+				UpdateGoToText();
 			}
 		}
-		else if (key_identifier == Rml::Input::KI_C && key_ctrl)
+		else if (key_identifier == Rml::Input::KI_RETURN)
 		{
-			if (key_shift)
-				Shell::SetClipboardText(CurrentSuite().GetDirectory() + '/' + viewer->GetReferenceFilename());
-			else
-				Shell::SetClipboardText(CurrentSuite().GetPath());
+			element_filter_input->Blur();
+		}
+		else if (key_identifier == Rml::Input::KI_G && key_ctrl)
+		{
+			if (goto_index < 0)
+			{
+				goto_index = 0;
+				UpdateGoToText();
+				element_filter_input->Blur();
+			}
+		}
+	}
+
+	// Keydown events in target/bubble phase ignored when focusing on input.
+	if (event == Rml::EventId::Keydown && event.GetPhase() != Rml::EventPhase::Capture)
+	{
+		const auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter< int >("key_identifier", 0);
+
+		if (key_identifier == Rml::Input::KI_LEFT)
+		{
+			if (CurrentSuite().Previous())
+			{
+				LoadActiveTest();
+			}
+		}
+		else if (key_identifier == Rml::Input::KI_RIGHT)
+		{
+			if (CurrentSuite().Next())
+			{
+				LoadActiveTest();
+			}
+		}
+		else if (key_identifier == Rml::Input::KI_UP)
+		{
+			const Rml::String& filter = CurrentSuite().GetFilter();
+			int new_index = std::max(0, suite_index - 1);
+			if (new_index != suite_index)
+			{
+				suite_index = new_index;
+				CurrentSuite().SetFilter(filter);
+				LoadActiveTest();
+			}
+		}
+		else if (key_identifier == Rml::Input::KI_DOWN)
+		{
+			const Rml::String& filter = CurrentSuite().GetFilter();
+			int new_index = std::min((int)test_suites.size() - 1, suite_index + 1);
+			if (new_index != suite_index)
+			{
+				suite_index = new_index;
+				CurrentSuite().SetFilter(filter);
+				LoadActiveTest();
+			}
 		}
 		else if (key_identifier == Rml::Input::KI_HOME)
 		{
@@ -235,49 +266,39 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 		else if (goto_index >= 0 && key_identifier == Rml::Input::KI_BACK)
 		{
 			if (goto_index <= 0)
-			{
 				goto_index = -1;
-				viewer->SetGoToText("");
-			}
 			else
-			{
 				goto_index = goto_index / 10;
-				viewer->SetGoToText(Rml::CreateString(64, "Go To: %d", goto_index));
-			}
+			
+			UpdateGoToText();
 		}
 	}
 
-	if (event == Rml::EventId::Textinput)
+	if (event == Rml::EventId::Textinput && goto_index >= 0)
 	{
 		const Rml::String text = event.GetParameter< Rml::String >("text", "");
+
 		for (const char c : text)
 		{
 			if (c >= '0' && c <= '9')
 			{
-				if (goto_index < 0)
-					goto_index = 0;
-
 				goto_index = goto_index * 10 + int(c - '0');
-				viewer->SetGoToText(Rml::CreateString(64, "Go To: %d", goto_index));
+				UpdateGoToText();
 			}
 			else if (goto_index >= 0 && c == '\n')
 			{
+				bool out_of_bounds = false;
+
 				if (goto_index > 0)
 				{
 					if (CurrentSuite().SetIndex(goto_index - 1))
-					{
 						LoadActiveTest();
-					}
 					else
-					{
-						viewer->SetGoToText(Rml::CreateString(64, "Go To out of bounds.", goto_index));
-					}
+						out_of_bounds = true;
 				}
-				else
-				{
-					viewer->SetGoToText("");
-				}
+
 				goto_index = -1;
+				UpdateGoToText(out_of_bounds);
 			}
 		}
 	}
@@ -296,8 +317,9 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 void TestNavigator::LoadActiveTest()
 {
 	const TestSuite& suite = CurrentSuite();
-	viewer->LoadTest(suite.GetDirectory(), suite.GetFilename(), suite.GetIndex(), suite.GetNumTests(), suite.GetFilterIndex(), suite.GetNumFilteredTests(), index, (int)test_suites.size());
+	viewer->LoadTest(suite.GetDirectory(), suite.GetFilename(), suite.GetIndex(), suite.GetNumTests(), suite.GetFilterIndex(), suite.GetNumFilteredTests(), suite_index, (int)test_suites.size());
 	viewer->ShowSource(source_state);
+	UpdateGoToText();
 }
 
 static Rml::String ImageFilenameFromTest(const TestSuite& suite)
@@ -362,7 +384,7 @@ void TestNavigator::StopTestSuiteIteration()
 	if (iteration_state == IterationState::None)
 		return;
 
-	const Rml::String output_directory = GetOutputDirectory();
+	const Rml::String output_directory = GetCaptureOutputDirectory();
 	TestSuite& suite = CurrentSuite();
 	const int num_tests = suite.GetNumTests();
 	const int num_filtered_tests = suite.GetNumFilteredTests();
@@ -428,7 +450,7 @@ void TestNavigator::StopTestSuiteIteration()
 		Rml::String log;
 		log.reserve(comparison_results.size() * 100);
 
-		log += "RmlUi VisualTests comparison log output.\n---------------------------------------\n\n" + summary;
+		log += "RmlUi VisualTests comparison log output\n---------------------------------------\n\n" + summary;
 		log += "\n\nEqual:\n";
 
 		for (int i : equal)
@@ -438,7 +460,7 @@ void TestNavigator::StopTestSuiteIteration()
 		}
 		log += "\nNot Equal:\n";
 		if (!not_equal.empty())
-			log += "Percentages are similarity scores. Difference images written to " + GetOutputDirectory() + "/diff-*.png\n\n";
+			log += "Percentages are similarity scores. Difference images written to " + GetCaptureOutputDirectory() + "/diff-*.png\n\n";
 		for (int i : not_equal)
 		{
 			suite.SetIndex(i);
@@ -460,12 +482,12 @@ void TestNavigator::StopTestSuiteIteration()
 			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 
-		const Rml::String log_path = GetOutputDirectory() + "/comparison.log";
+		const Rml::String log_path = GetCaptureOutputDirectory() + "/comparison.log";
 		bool save_result = SaveFile(log_path, log);
 		if (save_result && failed.empty())
 			Rml::Log::Message(Rml::Log::LT_INFO, "Comparison log output written to %s", log_path.c_str());
 		else if(save_result && !failed.empty())
-			Rml::Log::Message(Rml::Log::LT_ERROR, "Comparison log output written to %s.\nSome captures failed, see log output for details.", log_path.c_str());
+			Rml::Log::Message(Rml::Log::LT_ERROR, "Comparison log output written to %s.\nSome comparisons failed, see log output for details.", log_path.c_str());
 		else
 			Rml::Log::Message(Rml::Log::LT_ERROR, "Failed writing comparison log output to file %s", log_path.c_str());
 	}
@@ -477,6 +499,18 @@ void TestNavigator::StopTestSuiteIteration()
 	iteration_initial_index = -1;
 	iteration_wait_frames = -1;
 	iteration_state = IterationState::None;
+}
+
+void TestNavigator::UpdateGoToText(bool out_of_bounds)
+{
+	if (out_of_bounds)
+		viewer->SetGoToText("Go To out of bounds");
+	else if (goto_index > 0)
+		viewer->SetGoToText(Rml::CreateString(64, "Go To: %d", goto_index));
+	else if(goto_index == 0)
+		viewer->SetGoToText("Go To:");
+	else
+		viewer->SetGoToText("Press 'F1' for keyboard shortcuts.");
 }
 
 

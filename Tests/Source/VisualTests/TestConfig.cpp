@@ -26,45 +26,41 @@
  *
  */
 
-#ifndef RMLUI_TESTS_VISUALTESTS_TESTVIEWER_H
-#define RMLUI_TESTS_VISUALTESTS_TESTVIEWER_H
-
-#include <RmlUi/Core/EventListener.h>
+#include "TestConfig.h"
+#include <Shell.h>
 #include <RmlUi/Core/Types.h>
-
-namespace Rml { class Context; class ElementDocument; }
-
-enum class SourceType { None, Test, Reference };
+#include <RmlUi/Core/StringUtilities.h>
 
 
-class TestViewer
+Rml::String GetCompareInputDirectory()
 {
-public:
-	TestViewer(Rml::Context* context);
-	~TestViewer();
-	
-	void ShowSource(SourceType type);
-	void ShowHelp(bool show);
-	bool IsHelpVisible() const;
-
-	bool LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int filtered_test_index, int filtered_number_of_tests, int suite_index, int number_of_suites);
-
-	void SetGoToText(const Rml::String& rml);
-
-private:
-	Rml::Context* context;
-
-	Rml::ElementDocument* document_test = nullptr;
-	Rml::ElementDocument* document_description = nullptr;
-	Rml::ElementDocument* document_source = nullptr;
-	Rml::ElementDocument* document_reference = nullptr;
-	Rml::ElementDocument* document_help = nullptr;
-
-	Rml::String source_test;
-	Rml::String source_reference;
-
-	Rml::String reference_filename;
-};
-
-
+#ifdef RMLUI_VISUAL_TESTS_INPUT_DIRECTORY
+	const Rml::String input_directory = Rml::String(RMLUI_VISUAL_TESTS_INPUT_DIRECTORY);
+#else
+	const Rml::String input_directory = Shell::FindSamplesRoot() + "../Tests/Output";
 #endif
+	return input_directory;
+}
+
+Rml::String GetCaptureOutputDirectory()
+{
+#ifdef RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY
+	const Rml::String output_directory = Rml::String(RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY);
+#else
+	const Rml::String output_directory = Shell::FindSamplesRoot() + "../Tests/Output";
+#endif
+	return output_directory;
+}
+
+Rml::StringList GetTestInputDirectories()
+{
+	const Rml::String samples_root = Shell::FindSamplesRoot();
+
+	Rml::StringList directories = { samples_root + "../Tests/Data/VisualTests" };
+
+#ifdef RMLUI_VISUAL_TESTS_DIRECTORIES
+	Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_DIRECTORIES, ';');
+#endif
+
+	return directories;
+}

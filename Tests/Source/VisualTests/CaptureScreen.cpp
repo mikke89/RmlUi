@@ -27,6 +27,7 @@
  */
 
 #include "CaptureScreen.h"
+#include "TestConfig.h"
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <RmlUi/Core/Log.h>
@@ -36,27 +37,6 @@
 #define LODEPNG_NO_COMPILE_CPP
 
 #include <lodepng.h>
-
-
-Rml::String GetInputDirectory()
-{
-#ifdef RMLUI_VISUAL_TESTS_INPUT_DIRECTORY
-	const Rml::String input_directory = Rml::String(RMLUI_VISUAL_TESTS_INPUT_DIRECTORY);
-#else
-	const Rml::String input_directory = Shell::FindSamplesRoot() + "../Tests/Output";
-#endif
-	return input_directory;
-}
-
-Rml::String GetOutputDirectory()
-{
-#ifdef RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY
-	const Rml::String output_directory = Rml::String(RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY);
-#else
-	const Rml::String output_directory = Shell::FindSamplesRoot() + "../Tests/Output";
-#endif
-	return output_directory;
-}
 
 
 bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width)
@@ -96,7 +76,7 @@ bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::St
 		}
 	}
 
-	const Rml::String output_path = GetOutputDirectory() + "/" + filename;
+	const Rml::String output_path = GetCaptureOutputDirectory() + "/" + filename;
 	unsigned int lodepng_result = lodepng_encode24_file(output_path.c_str(), image.data.get(), image.width, image.height);
 	if (lodepng_result)
 	{
@@ -118,7 +98,7 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 {
 	using Image = ShellRenderInterfaceOpenGL::Image;
 
-	const Rml::String input_path = GetInputDirectory() + "/" + filename;
+	const Rml::String input_path = GetCompareInputDirectory() + "/" + filename;
 
 	unsigned char* data_ref = nullptr;
 	unsigned int w_ref = 0, h_ref = 0;
@@ -195,7 +175,7 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 	// Write the diff image to file if they are not equal.
 	if (!result.is_equal)
 	{
-		const Rml::String output_path = GetOutputDirectory() + "/diff-" + filename;
+		const Rml::String output_path = GetCaptureOutputDirectory() + "/diff-" + filename;
 		lodepng_result = lodepng_encode24_file(output_path.c_str(), diff.data.get(), diff.width, diff.height);
 		if (lodepng_result)
 		{

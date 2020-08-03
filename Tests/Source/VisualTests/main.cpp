@@ -26,6 +26,7 @@
  *
  */
 
+#include "TestConfig.h"
 #include "TestViewer.h"
 #include "TestNavigator.h"
 #include "CaptureScreen.h"
@@ -33,10 +34,6 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
-#include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/EventListenerInstancer.h>
-#include <RmlUi/Core/ID.h>
-#include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
 #include <Input.h>
@@ -118,13 +115,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	{
-		const Rml::String samples_root = Shell::FindSamplesRoot();
-
-		Rml::StringList directories = { samples_root + "../Tests/Data/VisualTests" };
-
-#ifdef RMLUI_VISUAL_TESTS_DIRECTORIES
-		Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_DIRECTORIES, ';');
-#endif
+		const Rml::StringList directories = GetTestInputDirectories();
 
 		TestSuiteList test_suites;
 

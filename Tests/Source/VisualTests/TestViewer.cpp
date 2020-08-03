@@ -27,6 +27,7 @@
  */
 
 #include "TestViewer.h"
+#include "TestConfig.h"
 #include "XmlNodeHandlers.h"
 #include "../Common/TestsShell.h"
 #include <RmlUi/Core/Context.h>
@@ -106,13 +107,31 @@ TestViewer::TestViewer(Rml::Context* context) : context(context)
 
 	document_source = context->LoadDocument(local_data_path_prefix + "view_source.rml");
 	RMLUI_ASSERT(document_source);
+	document_help = context->LoadDocument(local_data_path_prefix + "visual_tests_help.rml");
+	RMLUI_ASSERT(document_help);
+	if (Element* element = document_help->GetElementById("test_directories"))
+	{
+		String rml;
+		const StringList dirs = GetTestInputDirectories();
+		for (const String& dir : dirs)
+			rml += "<value>" + Rml::StringUtilities::EncodeRml(dir) + "</value>";
+		element->SetInnerRML(rml);
+	}
+	if (Element* element = document_help->GetElementById("compare_input"))
+	{
+		element->SetInnerRML(Rml::StringUtilities::EncodeRml(GetCompareInputDirectory()));
+	}
+	if (Element* element = document_help->GetElementById("capture_output"))
+	{
+		element->SetInnerRML(Rml::StringUtilities::EncodeRml(GetCaptureOutputDirectory()));
+	}
 }
 
 TestViewer::~TestViewer()
 {
 	event_listener_links.SetHoverTextElement(nullptr);
 
-	for (ElementDocument* doc : { document_test, document_description, document_source, document_reference })
+	for (ElementDocument* doc : { document_test, document_description, document_source, document_reference, document_help })
 	{
 		if (doc)
 			doc->Close();
@@ -167,6 +186,19 @@ void TestViewer::ShowSource(SourceType type)
 	}
 }
 
+void TestViewer::ShowHelp(bool show)
+{
+	if (show)
+		document_help->Show();
+	else
+		document_help->Hide();
+}
+
+bool TestViewer::IsHelpVisible() const
+{
+	return document_help->IsVisible();
+}
+
 
 
 bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int filtered_test_index, int filtered_number_of_tests, int suite_index, int number_of_suites)
@@ -202,6 +234,10 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 		if (!document_test)
 			return false;
 
+		document_test->UpdateDocument();
+		document_test->SetProperty(PropertyId::Clear, Property(Style::Clear::Both));
+		document_test->UpdateDocument();
+
 		document_test->Show(ModalFlag::None, FocusFlag::None);
 
 		for (const LinkItem& item : link_handler->GetLinkList())
@@ -231,8 +267,6 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 		}
 	}
 
-	SetGoToText("");
-
 	// Description Header
 	{
 		Element* description_header = document_description->GetElementById("header");
@@ -250,6 +284,8 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 			description_filter_text->SetInnerRML("No matches");
 		else if (filtered_number_of_tests < number_of_tests && filtered_test_index >= 0)
 			description_filter_text->SetInnerRML(CreateString(128, "Filtered %d of %d", filtered_test_index + 1, filtered_number_of_tests));
+		else if (filtered_number_of_tests < number_of_tests && filtered_test_index < 0)
+			description_filter_text->SetInnerRML(CreateString(128, "Filtered X of %d", filtered_number_of_tests));
 		else
 			description_filter_text->SetInnerRML("");
 	}
@@ -313,9 +349,4 @@ void TestViewer::SetGoToText(const Rml::String& rml)
 	Element* description_goto = document_description->GetElementById("goto");
 	RMLUI_ASSERT(description_goto);
 	description_goto->SetInnerRML(rml);
-}
-
-const Rml::String& TestViewer::GetReferenceFilename()
-{
-	return reference_filename;
 }

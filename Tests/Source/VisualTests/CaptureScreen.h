@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUI_TESTS_VISUALTESTS_SCREENSHOT_H
-#define RMLUI_TESTS_VISUALTESTS_SCREENSHOT_H
+#ifndef RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
+#define RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
 
 #include <RmlUi/Core/Types.h>
 
@@ -40,10 +40,6 @@ struct ComparisonResult {
 	std::size_t absolute_difference_sum = 0;
 	Rml::String error_msg;
 };
-
-
-Rml::String GetInputDirectory();
-Rml::String GetOutputDirectory();
 
 bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width);
 

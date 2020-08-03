@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUI_TESTS_VISUALTESTS_NAVIGATION_H
-#define RMLUI_TESTS_VISUALTESTS_NAVIGATION_H
+#ifndef RMLUI_TESTS_VISUALTESTS_TESTNAVIGATOR_H
+#define RMLUI_TESTS_VISUALTESTS_TESTNAVIGATOR_H
 
 #include "TestSuite.h"
 #include "CaptureScreen.h"
@@ -36,7 +36,6 @@
 #include <RmlUi/Core/EventListener.h>
 
 class ShellRenderInterfaceOpenGL;
-struct ComparisonResult;
 
 class TestNavigator : public Rml::EventListener {
 public:
@@ -51,7 +50,7 @@ protected:
 private:
 	enum class IterationState { None, Capture, Comparison };
 
-	TestSuite& CurrentSuite() { return test_suites[index]; }
+	TestSuite& CurrentSuite() { return test_suites[suite_index]; }
 
 	void LoadActiveTest();
 
@@ -62,6 +61,8 @@ private:
 	void StartTestSuiteIteration(IterationState iteration_state);
 	void StopTestSuiteIteration();
 
+	void UpdateGoToText(bool out_of_bounds = false);
+
 	ShellRenderInterfaceOpenGL* shell_renderer;
 	Rml::Context* context;
 	TestViewer* viewer;
@@ -69,7 +70,7 @@ private:
 
 	Rml::String test_filter;
 
-	int index = 0;
+	int suite_index = 0;
 	int goto_index = -1;
 	SourceType source_state = SourceType::None;
 
