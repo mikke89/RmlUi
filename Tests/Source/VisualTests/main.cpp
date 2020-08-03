@@ -34,6 +34,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/EventListenerInstancer.h>
 #include <RmlUi/Core/ID.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Debugger.h>

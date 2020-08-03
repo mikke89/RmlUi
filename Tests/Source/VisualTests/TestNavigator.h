@@ -67,6 +67,8 @@ private:
 	TestViewer* viewer;
 	TestSuiteList test_suites;
 
+	Rml::String test_filter;
+
 	int index = 0;
 	int goto_index = -1;
 	SourceType source_state = SourceType::None;

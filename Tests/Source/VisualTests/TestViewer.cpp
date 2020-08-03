@@ -53,6 +53,46 @@ static void InitializeXmlNodeHandlers()
 }
 
 
+class EventListenerLinks : public Rml::EventListener {
+public:
+
+	void ProcessEvent(Rml::Event& event) override
+	{
+		Rml::Element* element = event.GetCurrentElement();
+		Rml::String href = element->GetAttribute<Rml::String>("href", "");
+
+		if (href.empty() || !hover_text)
+			return;
+		
+		if (event == Rml::EventId::Click)
+		{
+			Shell::SetClipboardText(href);
+			hover_text->SetInnerRML("Copied to clipboard");
+			hover_text->SetClass("confirmation", true);
+		}
+		else if (event == Rml::EventId::Mouseover)
+		{
+			hover_text->SetInnerRML(Rml::StringUtilities::EncodeRml(href));
+		}
+		else if (event == Rml::EventId::Mouseout)
+		{
+			hover_text->SetInnerRML("");
+			hover_text->SetClass("confirmation", false);
+		}
+	}
+
+	void SetHoverTextElement(Element* element)
+	{
+		hover_text = element;
+	}
+
+private:
+
+	Element* hover_text = nullptr;
+};
+static EventListenerLinks event_listener_links;
+
+
 TestViewer::TestViewer(Rml::Context* context) : context(context)
 {
 	InitializeXmlNodeHandlers();
@@ -61,6 +101,7 @@ TestViewer::TestViewer(Rml::Context* context) : context(context)
 
 	document_description = context->LoadDocument(local_data_path_prefix + "description.rml");
 	RMLUI_ASSERT(document_description);
+	event_listener_links.SetHoverTextElement(document_description->GetElementById("hovertext"));
 	document_description->Show();
 
 	document_source = context->LoadDocument(local_data_path_prefix + "view_source.rml");
@@ -69,6 +110,8 @@ TestViewer::TestViewer(Rml::Context* context) : context(context)
 
 TestViewer::~TestViewer()
 {
+	event_listener_links.SetHoverTextElement(nullptr);
+
 	for (ElementDocument* doc : { document_test, document_description, document_source, document_reference })
 	{
 		if (doc)
@@ -119,14 +162,14 @@ void TestViewer::ShowSource(SourceType type)
 			RMLUI_ASSERT(element);
 			element->SetInnerRML(rml_source);
 
-			document_source->Show();
+			document_source->Show(ModalFlag::None, FocusFlag::None);
 		}
 	}
 }
 
 
 
-bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int suite_index, int number_of_suites)
+bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int filtered_test_index, int filtered_number_of_tests, int suite_index, int number_of_suites)
 {
 	if (document_test)
 	{
@@ -146,79 +189,121 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 	meta_handler->ClearMetaList();
 	link_handler->ClearLinkList();
 
-	Element* description_test_suite = document_description->GetElementById("test_suite");
-	RMLUI_ASSERT(description_test_suite);
-	description_test_suite->SetInnerRML(CreateString(64, "Test suite %d of %d", suite_index + 1, number_of_suites));
+	const Rml::String test_path = directory + '/' + filename;
+	Rml::String reference_path;
 
-	SetGoToText("");
-
-	source_test = LoadFile(directory + '/' + filename);
-	if (source_test.empty())
-		return false;
-
-	document_test = context->LoadDocumentFromMemory(source_test);
-	if (!document_test)
-		return false;
-
-	document_test->Show();
-
-	for (const LinkItem& item : link_handler->GetLinkList())
+	// Load test document, and reference document if it exists.
 	{
-		if (item.rel == "match")
-		{
-			reference_filename = item.href;
-			break;
-		}
-	}
+		source_test = LoadFile(test_path);
+		if (source_test.empty())
+			return false;
 
-	if (!reference_filename.empty())
-	{
-		source_reference = LoadFile(directory + '/' + reference_filename);
+		document_test = context->LoadDocumentFromMemory(source_test);
+		if (!document_test)
+			return false;
 
-		if (!source_reference.empty())
+		document_test->Show(ModalFlag::None, FocusFlag::None);
+
+		for (const LinkItem& item : link_handler->GetLinkList())
 		{
-			document_reference = context->LoadDocumentFromMemory(source_reference);
-			if (document_reference)
+			if (item.rel == "match")
 			{
-				document_reference->SetProperty(PropertyId::Left, Property(510.f, Property::PX));
-				document_reference->Show();
+				reference_filename = item.href;
+				break;
+			}
+		}
+
+		reference_path = directory + '/' + reference_filename;
+
+		if (!reference_filename.empty())
+		{
+			source_reference = LoadFile(reference_path);
+
+			if (!source_reference.empty())
+			{
+				document_reference = context->LoadDocumentFromMemory(source_reference);
+				if (document_reference)
+				{
+					document_reference->SetProperty(PropertyId::Left, Property(510.f, Property::PX));
+					document_reference->Show(ModalFlag::None, FocusFlag::None);
+				}
 			}
 		}
 	}
 
-	String rml_description = Rml::CreateString(512, "<h1>%s</h1><p>Test %d of %d.<br/>%s", document_test->GetTitle().c_str(), test_index + 1, number_of_tests, filename.c_str());
-	if (!reference_filename.empty())
+	SetGoToText("");
+
+	// Description Header
 	{
-		if (document_reference)
-			rml_description += "<br/>" + reference_filename;
-		else
-			rml_description += "<br/>(X " + reference_filename + ")";
+		Element* description_header = document_description->GetElementById("header");
+		RMLUI_ASSERT(description_header);
+
+		description_header->SetInnerRML(CreateString(512, "Test suite %d of %d<br/>Test %d of %d<br/>",
+			suite_index + 1, number_of_suites, test_index + 1, number_of_tests));
 	}
-	rml_description += "</p>";
 
-	const LinkList& link_list = link_handler->GetLinkList();
-	if(!link_list.empty())
+	// Description Filter
 	{
-		rml_description += "<p class=\"links\">";
-		for (const LinkItem& item : link_list)
-		{
-			if (item.rel == "match")
-				continue;
+		Element* description_filter_text = document_description->GetElementById("filter_text");
+		RMLUI_ASSERT(description_filter_text);
+		if (filtered_number_of_tests == 0)
+			description_filter_text->SetInnerRML("No matches");
+		else if (filtered_number_of_tests < number_of_tests && filtered_test_index >= 0)
+			description_filter_text->SetInnerRML(CreateString(128, "Filtered %d of %d", filtered_test_index + 1, filtered_number_of_tests));
+		else
+			description_filter_text->SetInnerRML("");
+	}
 
-			rml_description += "<a href=\"" + item.href + "\">" + item.rel + "</a> ";
+
+	// Description Content
+	{
+		String rml_description = Rml::CreateString(512, "<h1>%s</h1><p><a href=\"%s\">%s</a>",
+			document_test->GetTitle().c_str(), test_path.c_str(), filename.c_str());
+
+		if (!reference_filename.empty())
+		{
+			if (document_reference)
+				rml_description += "<br/><a href=\"" + reference_path + "\">" + reference_filename + "</a>";
+			else
+				rml_description += "<br/>(missing)&nbsp;" + reference_filename + "";
 		}
 		rml_description += "</p>";
-	}
 
-	for (const MetaItem& item : meta_handler->GetMetaList())
-	{
-		rml_description += "<h3>" + item.name + "</h3>";
-		rml_description += "<p style=\"min-height: 120px;\">" + item.content + "</p>";
-	}
 
-	Element* description_content = document_description->GetElementById("content");
-	RMLUI_ASSERT(description_content);
-	description_content->SetInnerRML(rml_description);
+		const LinkList& link_list = link_handler->GetLinkList();
+		if(!link_list.empty())
+		{
+			rml_description += "<p class=\"links\">";
+			for (const LinkItem& item : link_list)
+			{
+				if (item.rel == "match")
+					continue;
+
+				rml_description += "<a href=\"" + item.href + "\">" + item.rel + "</a> ";
+			}
+			rml_description += "</p>";
+		}
+
+		for (const MetaItem& item : meta_handler->GetMetaList())
+		{
+			rml_description += "<h3>" + item.name + "</h3>";
+			rml_description += "<p style=\"min-height: 120px;\">" + item.content + "</p>";
+		}
+
+		Element* description_content = document_description->GetElementById("content");
+		RMLUI_ASSERT(description_content);
+		description_content->SetInnerRML(rml_description);
+
+		// Add link hover and click handler.
+		Rml::ElementList link_elements;
+		description_content->GetElementsByTagName(link_elements, "a");
+
+		for (Rml::Element* element : link_elements) {
+			element->AddEventListener(Rml::EventId::Click, &event_listener_links);
+			element->AddEventListener(Rml::EventId::Mouseover, &event_listener_links);
+			element->AddEventListener(Rml::EventId::Mouseout, &event_listener_links);
+		}
+	}
 
 	return true;
 }

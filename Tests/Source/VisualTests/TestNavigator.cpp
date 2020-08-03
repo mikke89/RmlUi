@@ -47,6 +47,7 @@ TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Co
 	RMLUI_ASSERTMSG(!this->test_suites.empty(), "At least one test suite is required.");
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Textinput, this);
+	context->GetRootElement()->AddEventListener(Rml::EventId::Change, this);
 	LoadActiveTest();
 }
 
@@ -54,6 +55,7 @@ TestNavigator::~TestNavigator()
 {
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Textinput, this);
+	context->GetRootElement()->RemoveEventListener(Rml::EventId::Change, this);
 }
 
 void TestNavigator::Update()
@@ -88,9 +90,8 @@ void TestNavigator::Update()
 			iteration_index += 1;
 
 			TestSuite& suite = CurrentSuite();
-			if (iteration_index < suite.GetNumTests())
+			if (suite.Next())
 			{
-				suite.SetIndex(iteration_index);
 				LoadActiveTest();
 			}
 			else
@@ -111,33 +112,37 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 
 		if (key_identifier == Rml::Input::KI_LEFT)
 		{
-			if (CurrentSuite().SetIndex(CurrentSuite().GetIndex() - 1))
+			if (CurrentSuite().Previous())
 			{
 				LoadActiveTest();
 			}
 		}
 		else if (key_identifier == Rml::Input::KI_RIGHT)
 		{
-			if (CurrentSuite().SetIndex(CurrentSuite().GetIndex() + 1))
+			if (CurrentSuite().Next())
 			{
 				LoadActiveTest();
 			}
 		}
 		else if (key_identifier == Rml::Input::KI_UP)
 		{
+			const Rml::String& filter = CurrentSuite().GetFilter();
 			int new_index = std::max(0, index - 1);
 			if (new_index != index)
 			{
 				index = new_index;
+				CurrentSuite().SetFilter(filter);
 				LoadActiveTest();
 			}
 		}
 		else if (key_identifier == Rml::Input::KI_DOWN)
 		{
+			const Rml::String& filter = CurrentSuite().GetFilter();
 			int new_index = std::min((int)test_suites.size() - 1, index + 1);
 			if (new_index != index)
 			{
 				index = new_index;
+				CurrentSuite().SetFilter(filter);
 				LoadActiveTest();
 			}
 		}
@@ -204,9 +209,10 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 				source_state = SourceType::None;
 				viewer->ShowSource(source_state);
 			}
-			else
+			else if (goto_index >= 0)
 			{
-				Shell::RequestExit();
+				goto_index = -1;
+				viewer->SetGoToText("");
 			}
 		}
 		else if (key_identifier == Rml::Input::KI_C && key_ctrl)
@@ -218,12 +224,12 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 		}
 		else if (key_identifier == Rml::Input::KI_HOME)
 		{
-			CurrentSuite().SetIndex(0);
+			CurrentSuite().SetIndex(0, TestSuite::Direction::Forward);
 			LoadActiveTest();
 		}
 		else if (key_identifier == Rml::Input::KI_END)
 		{
-			CurrentSuite().SetIndex(CurrentSuite().GetNumTests() - 1);
+			CurrentSuite().SetIndex(CurrentSuite().GetNumTests() - 1, TestSuite::Direction::Backward);
 			LoadActiveTest();
 		}
 		else if (goto_index >= 0 && key_identifier == Rml::Input::KI_BACK)
@@ -275,12 +281,22 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			}
 		}
 	}
+
+	if (event == Rml::EventId::Change)
+	{
+		Rml::Element* element = event.GetTargetElement();
+		if (element->GetId() == "filterinput")
+		{
+			CurrentSuite().SetFilter(event.GetParameter< Rml::String >("value", ""));
+			LoadActiveTest();
+		}
+	}
 }
 
 void TestNavigator::LoadActiveTest()
 {
 	const TestSuite& suite = CurrentSuite();
-	viewer->LoadTest(suite.GetDirectory(), suite.GetFilename(), suite.GetIndex(), suite.GetNumTests(), index, (int)test_suites.size());
+	viewer->LoadTest(suite.GetDirectory(), suite.GetFilename(), suite.GetIndex(), suite.GetNumTests(), suite.GetFilterIndex(), suite.GetNumFilteredTests(), index, (int)test_suites.size());
 	viewer->ShowSource(source_state);
 }
 
@@ -325,7 +341,7 @@ void TestNavigator::StartTestSuiteIteration(IterationState new_iteration_state)
 
 	iteration_state = new_iteration_state;
 	iteration_index = 0;
-	suite.SetIndex(iteration_index);
+	suite.SetIndex(iteration_index, TestSuite::Direction::Forward);
 	LoadActiveTest();
 }
 
@@ -349,12 +365,17 @@ void TestNavigator::StopTestSuiteIteration()
 	const Rml::String output_directory = GetOutputDirectory();
 	TestSuite& suite = CurrentSuite();
 	const int num_tests = suite.GetNumTests();
+	const int num_filtered_tests = suite.GetNumFilteredTests();
 
 	if (iteration_state == IterationState::Capture)
 	{
 		if (iteration_index == num_tests)
 		{
 			Rml::Log::Message(Rml::Log::LT_INFO, "Successfully captured %d document screenshots to directory: %s", iteration_index, output_directory.c_str());
+		}
+		else if (iteration_index == num_filtered_tests)
+		{
+			Rml::Log::Message(Rml::Log::LT_INFO, "Successfully captured %d document screenshots (filtered out of %d total tests) to directory: %s", iteration_index, num_tests, output_directory.c_str());
 		}
 		else
 		{
@@ -385,12 +406,19 @@ void TestNavigator::StopTestSuiteIteration()
 		for (int i = (int)comparison_results.size(); i < num_tests; i++)
 			skipped.push_back(i);
 
-		const Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Equal: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d",
+		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Equal: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d",
 			num_tests, (int)equal.size(), (int)not_equal.size(), (int)failed.size(), (int)skipped.size());
+
+		if (!suite.GetFilter().empty())
+			summary += "\n  Filter applied: " + suite.GetFilter();
 
 		if (iteration_index == num_tests)
 		{
 			Rml::Log::Message(Rml::Log::LT_INFO, "Compared all test documents to their screenshot captures.\n%s", summary.c_str());
+		}
+		else if (iteration_index == num_filtered_tests)
+		{
+			Rml::Log::Message(Rml::Log::LT_INFO, "Compared all filtered test documents to their screenshot captures.\n%s", summary.c_str());
 		}
 		else
 		{

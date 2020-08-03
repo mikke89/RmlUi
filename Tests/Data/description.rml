@@ -17,8 +17,9 @@
 		color: #ccc;
 		padding: 20px 20px;
 		z-index: 100;
+		tab-index: auto;
 	}
-	#content, #content > * { padding-top: 0.8em; }
+	#content > * { padding-top: 0.8em; }
 	code {
 		display: block;
 		white-space: pre-wrap;
@@ -29,27 +30,60 @@
 	h3   { color: white; font-size: 1.15em; }
 	
 	p.links a { margin: 0 0.7em; }
-	#test_suite {
-		position: absolute;
-		text-align: center;
-		top: 15px;
-		left: 20px;
-		right: 20px;
+	#header {
 		color: #ddb;
+	}
+	#filter {
+		position: absolute;
+		right: 20px;
+		top: 20px;
+		width: 50%;
+		text-align: right;
+	}
+	input.text {
+		font-size: 0.85em;
+		padding: 3px 4px;
+		width: 80%;
+		background-color: #444;
+		color: #ffe;
+		border: 1px #555;
+		line-height: 1.2;
+		height: 1.8em;
+		cursor: text;
+		tab-index: auto;
+	}
+	input.text:focus {
+		border-color: #dda;
+	}
+	#filter_text {
+		color: #ffc;
 	}
 	#goto {
 		position: absolute;
 		left: 20px;
-		bottom: 20px;
+		bottom: 30px;
 		width: 200px;
 		color: #ddb;
 	}
-	
+	#hovertext {
+		position: absolute;
+		left: 20px;
+		bottom: 10px;
+		right: 20px;
+		font-size: 0.9em;
+		text-align: left;
+		color: #aaa;
+	}
+	#hovertext.confirmation {
+		color: #afa;
+	}
 </style>
 </head>
 <body>
-<div id="test_suite"/>
+<div id="header"/>
+<div id="filter"><input id="filterinput" type="text" value=""/><br/><span id="filter_text">Filtered 2 of 63.</span></div>
 <div id="content"/>
 <div id="goto"/>
+<div id="hovertext"/>
 </body>
 </rml>

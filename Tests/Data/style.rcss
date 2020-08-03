@@ -47,6 +47,9 @@ a {
 a:hover {
 	color: #5285e6;
 }
+a:active {
+	color: #4275e0;
+}
 scrollbarvertical
 {
 	width: 16dp;
