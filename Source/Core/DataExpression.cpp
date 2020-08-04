@@ -793,7 +793,7 @@ public:
 		for (size_t i = 0; i < program.size(); i++)
 		{
 			String instruction_str = program[i].data.Get<String>();
-			str += CreateString(50 + instruction_str.size(), "  %4d  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
+			str += CreateString(50 + instruction_str.size(), "  %4zu  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
 		}
 		return str;
 	}
@@ -904,7 +904,7 @@ private:
 			if (num_arguments < 0)
 				return Error("Invalid number of arguments.");
 			if (stack.size() < size_t(num_arguments))
-				return Error(CreateString(100, "Cannot pop %d arguments, stack contains only %d elements.", num_arguments, stack.size()));
+				return Error(CreateString(100, "Cannot pop %d arguments, stack contains only %zu elements.", num_arguments, stack.size()));
 
 			arguments.resize(num_arguments);
 			for (int i = num_arguments - 1; i >= 0; i--)

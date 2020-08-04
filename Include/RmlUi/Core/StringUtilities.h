@@ -42,10 +42,10 @@ namespace Rml {
 class StringView;
 
 /// Construct a string using sprintf-style syntax.
-RMLUICORE_API String CreateString(size_t max_size, const char* format, ...);
+RMLUICORE_API String CreateString(size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2,3);
 
 /// Format to a string using sprintf-style syntax.
-RMLUICORE_API int FormatString(String& string, size_t max_size, const char* format, ...);
+RMLUICORE_API int FormatString(String& string, size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(3,4);
 
 
 namespace StringUtilities

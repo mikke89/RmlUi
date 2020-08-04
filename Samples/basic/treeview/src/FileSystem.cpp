@@ -50,7 +50,7 @@ struct FileSystemNode
 {
 	FileSystemNode(const Rml::String _name, bool _directory, int _depth = -1) : name(_name)
 	{
-		id = Rml::CreateString(16, "%x", this);
+		id = Rml::CreateString(32, "%p", (void*)this);
 
 		directory = _directory;
 		depth = _depth;

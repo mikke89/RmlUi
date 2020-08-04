@@ -126,4 +126,11 @@
     RMLUI_ERRORMSG("Switch case for unhandled ENUM has been hit!  This shouldn't happen!  ENUM Name: " # x); \
     break;
 
+// Tell the compiler of printf-like functions, warns on incorrect usage.
+#if defined __GNUC__ || defined __clang__
+#  define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f) __attribute__((format (printf, i, f)))
+#else
+#  define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f)
+#endif
+
 #endif

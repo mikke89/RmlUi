@@ -186,13 +186,13 @@ TEST_CASE("Elements (dummy interface)")
 
 	const String msg = CreateString(256,
 		"Stats for single Context::Render() with n=%d rows: \n"
-		"Render calls: %d\n"
-		"Scissor enable: %d\n"
-		"Scissor set: %d\n"
-		"Texture load: %d\n"
-		"Texture generate: %d\n"
-		"Texture release: %d\n"
-		"Transform set: %d\n",
+		"Render calls: %zu\n"
+		"Scissor enable: %zu\n"
+		"Scissor set: %zu\n"
+		"Texture load: %zu\n"
+		"Texture generate: %zu\n"
+		"Texture release: %zu\n"
+		"Transform set: %zu\n",
 		num_rows,
 		counters.render_calls,
 		counters.enable_scissor,

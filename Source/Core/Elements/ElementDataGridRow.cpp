@@ -505,7 +505,7 @@ void ElementDataGridRow::Load(const DataQuery& row_information)
 				}
 				else if (column->fields[j] == DataSource::NUM_CHILDREN)
 				{
-					raw_data.push_back(CreateString(8, "%d", children.size()));
+					raw_data.push_back(CreateString(8, "%zu", children.size()));
 					raw_data_total_len += raw_data.back().length();
 				}
 				else

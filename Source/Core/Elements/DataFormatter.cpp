@@ -42,7 +42,7 @@ DataFormatter::DataFormatter(const String& _name)
 	}
 	else
 	{
-		name = CreateString(64, "%x", this);
+		name = CreateString(64, "%p", (void*)this);
 	}
 	data_formatters[name] = this;
 }
