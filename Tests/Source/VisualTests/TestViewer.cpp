@@ -234,10 +234,6 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 		if (!document_test)
 			return false;
 
-		document_test->UpdateDocument();
-		document_test->SetProperty(PropertyId::Clear, Property(Style::Clear::Both));
-		document_test->UpdateDocument();
-
 		document_test->Show(ModalFlag::None, FocusFlag::None);
 
 		for (const LinkItem& item : link_handler->GetLinkList())
@@ -323,7 +319,7 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 		for (const MetaItem& item : meta_handler->GetMetaList())
 		{
 			rml_description += "<h3>" + item.name + "</h3>";
-			rml_description += "<p style=\"min-height: 120px;\">" + item.content + "</p>";
+			rml_description += "<p>" + item.content + "</p>";
 		}
 
 		Element* description_content = document_description->GetElementById("content");
