@@ -39,7 +39,7 @@
 namespace Rml {
 
 // Creates a new block box for rendering a block element.
-LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _parent, Element* _element) : position(0, 0)
+LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _parent, Element* _element) : position(0), visible_outer_width(0)
 {
 	RMLUI_ZoneScoped;
 
@@ -211,10 +211,13 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		{
 			// Calculate the dimensions of the box's *internal* content; this is the tightest-fitting box around all of the
 			// internal elements, plus this element's padding.
-			Vector2f content_box(0, 0);
+			Vector2f content_box = Vector2f(0, 0);
 
 			for (size_t i = 0; i < block_boxes.size(); i++)
-				content_box.x = Math::Max(content_box.x, block_boxes[i]->GetBox().GetSize(Box::MARGIN).x);
+			{
+				// TODO: Only if the containing block is not an ancestor of us (ie. we are the containing block?).
+				content_box.x = Math::Max(content_box.x, block_boxes[i]->visible_outer_width);
+			}
 
 			// Check how big our floated area is.
 			Vector2f space_box = space->GetDimensions();
@@ -245,6 +248,16 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 
 			element->SetBox(box);
 			element->SetContentBox(space->GetOffset(), content_box);
+
+			const float margin_width = GetBox().GetSize(Box::MARGIN).x;
+
+			// Set the visible outer width so that ancestors can catch any overflow produced by us. That is, hiding it or providing a scrolling mechanism.
+			// If we catch our own overflow here, then just use the normal margin box as that will effectively remove the overflow from our ancestor's perspective.
+			if (overflow_x_property != Style::Overflow::Visible)
+				visible_outer_width = margin_width;
+			else
+				visible_outer_width = Math::Max(margin_width, space->GetOffset().x + content_box.x + box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
+
 
 			// Format any scrollbars which were enabled on this element.
 			element->GetElementScroll()->FormatScrollbars();

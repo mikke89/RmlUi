@@ -4,6 +4,7 @@
     <link type="text/rcss" href="../style.rcss"/>
     <link rel="match" href="reference/overflow_hidden-ref.rml"/>
 	<link rel="help" href="https://www.w3.org/TR/CSS21/visufx.html#propdef-overflow" />
+	<link rel="GitHub issue" href="https://github.com/mikke89/RmlUi/issues/116" />
 	<meta name="Description" content="Nesting divs should still hide overflow. Elements whose containing block is located above the 'overflow: hidden' element should be visible." />
 	<meta name="See also" content="CSS 2.1 'clipping-' and 'overflow-' tests." />
 	<style>
@@ -43,7 +44,6 @@
 <body>
 <p>There should be a green box, no red visible, and the word 'fail' should not appear.</p>
 <div class="overflow">
-<!-- Nesting an extra div appears to break overflow in RmlUi. Setting it to 'display: inline' appears to make it work correctly. -->
 	<div>
 		<div class="wide">FAIL</div>
 		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL

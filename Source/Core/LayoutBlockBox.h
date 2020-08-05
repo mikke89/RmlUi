@@ -208,6 +208,7 @@ private:
 	Box box;
 	float min_height;
 	float max_height;
+
 	// Used by inline contexts only; set to true if the block box's line boxes should stretch to fit their inline content instead of wrapping.
 	bool wrap_content;
 
@@ -224,6 +225,9 @@ private:
 	// Used by block contexts only; stores the value of the overflow property for the element.
 	Style::Overflow overflow_x_property;
 	Style::Overflow overflow_y_property;
+	//  Used by block contexts only; the content width as visible from the parent. Similar to scroll width, but shrinked if overflow is caught here. 
+	//   This can be wider than the box if we are overflowing. Only available after the box has been closed. 
+	float visible_outer_width;
 	// Used by block contexts only; if true, we've enabled our vertical scrollbar.
 	bool vertical_overflow;
 

@@ -27,6 +27,7 @@ body {
 	padding: 8px;
 	width: 484px;
 	min-height: 484px;
+	max-height: 100%;
 	color: black;
 	background: #ccc;
 	overflow: auto;
@@ -52,12 +53,10 @@ a:active {
 scrollbarvertical
 {
 	width: 16dp;
-	scrollbar-margin: 16px;
 }
 scrollbarhorizontal
 {
 	height: 16dp;
-	scrollbar-margin: 16px;
 }
 scrollbarvertical slidertrack,
 scrollbarhorizontal slidertrack

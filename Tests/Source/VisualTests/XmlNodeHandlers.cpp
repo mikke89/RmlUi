@@ -83,8 +83,8 @@ Element* XMLNodeHandlerLink::ElementStart(XMLParser* parser, const String& name,
 {
 	RMLUI_ASSERT(name == "link");
 
-	const String rel = StringUtilities::ToLower(Get<String>(attributes, "rel", ""));
 	const String type = StringUtilities::ToLower(Get<String>(attributes, "type", ""));
+	const String rel = Get<String>(attributes, "rel", "");
 	const String href = Get<String>(attributes, "href", "");
 
 	if (!type.empty() && !href.empty())
