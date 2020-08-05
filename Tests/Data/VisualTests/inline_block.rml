@@ -1,0 +1,31 @@
+<rml>
+<head>
+    <title>Inline-block</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Inline-block" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		.float {
+			float: left;
+			color: #393;
+		}
+		.iblock {
+			display: inline-block;
+			color: #33c;
+		}
+	</style>
+</head>
+
+<body>
+<div>The following text <div class="iblock">is an inline-block</div> and should flow naturally.</div>
+<hr/>
+<div>Left filler text <div class="iblock">meets an inline-block<br/>with a line-break</div> right filler text.</div>
+<hr/>
+<div>Left filler text. <div class="iblock">An inline-block. <p>A paragraph</p> Filler text.</div> Right filler text.</div>
+<hr/>
+<div>Left filler text. <div class="iblock">An inline-block. <div class="float">A float</div> Filler text.</div> Right filler text.</div>
+</body>
+</rml>

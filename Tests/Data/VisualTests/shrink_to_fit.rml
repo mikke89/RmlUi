@@ -1,0 +1,52 @@
+<rml>
+<head>
+    <title>Shrink-to-fit</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/CSS21/visudet.html#shrink-to-fit-float" />
+	<meta name="Description" content="Shrink-to-fit width" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		body > div {
+			clear: both;
+			position: relative;
+			height: 50px;
+		}
+		body > div > * {
+			border: 2px #888;
+			color: black;
+			background: #ccf;
+		}
+		.absolute {
+			position: absolute;
+		}
+		.float {
+			float: left;
+		}
+		.iblock {
+			display: inline-block;
+		}
+	</style>
+</head>
+
+<body>
+<p>The following boxes should all appear the same, with the background and border tightly packed around the word 'BOX'.</p>
+<div>
+	<span>BOX</span>
+</div>
+<div>
+	<div class="absolute">BOX</div>
+</div>
+<div>
+	<div class="float">BOX</div>
+</div>
+<div>
+	<span class="float">BOX</span>
+</div>
+<div>
+	<div class="iblock">BOX</div>
+</div>
+</body>
+</rml>
