@@ -28,6 +28,9 @@
 		.iblock {
 			display: inline-block;
 		}
+		.right {
+			text-align: right;
+		}
 	</style>
 </head>
 
@@ -47,6 +50,9 @@
 </div>
 <div>
 	<div class="iblock">BOX</div>
+</div>
+<div>
+	<div class="iblock right">BOX</div>
 </div>
 </body>
 </rml>

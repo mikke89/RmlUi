@@ -63,7 +63,7 @@ LayoutEngine::~LayoutEngine()
 }
 
 // Formats the contents for a root-level element (usually a document or floating element).
-bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_block, bool shrink_to_fit)
+bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block, bool shrink_to_fit)
 {
 #ifdef RMLUI_ENABLE_PROFILING
 	RMLUI_ZoneScopedC(0xB22222);
@@ -85,13 +85,13 @@ bool LayoutEngine::FormatElement(Element* element, const Vector2f& containing_bl
 	if (shrink_to_fit)
 	{
 		// For inline blocks with 'auto' width, we want to shrink the box back to its inner content width, recreating the LayoutBlockBox.
-		float content_width = block_box->InternalContentWidth();
+		const float content_width = block_context_box->InternalContentWidth();
 
 		if (content_width < containing_block.x)
 		{
 			RMLUI_ZoneScopedNC("shrink_to_fit", 0xB27222);
 
-			Vector2f shrinked_block_size(content_width, containing_block.y);
+			const Vector2f shrinked_block_size(content_width, containing_block.y);
 			
 			delete block_box;
 			block_box = new LayoutBlockBox(this, nullptr, nullptr);
@@ -300,12 +300,20 @@ bool LayoutEngine::FormatElement(Element* element)
 	}
 
 	// If the element is floating, we remove it from the flow.
-	Style::Float float_property = element->GetFloat();
-	if (float_property != Style::Float::None)
+	if (computed.float_ != Style::Float::None)
 	{
 		// Format the element as a block element.
 		LayoutEngine layout_engine;
-		layout_engine.FormatElement(element, GetContainingBlock(block_context_box));
+		bool shrink_to_fit = (computed.width.type == Style::Width::Auto);
+		
+		// Don't shrink replaced elements.
+		if (shrink_to_fit)
+		{
+			Vector2f unused_intrinsic_dimensions;
+			shrink_to_fit = !element->GetIntrinsicDimensions(unused_intrinsic_dimensions);
+		}
+
+		layout_engine.FormatElement(element, GetContainingBlock(block_context_box), shrink_to_fit);
 
 		return block_context_box->AddFloatElement(element);
 	}
@@ -315,7 +323,7 @@ bool LayoutEngine::FormatElement(Element* element)
 	{
 		case Style::Display::Block:       return FormatElementBlock(element); break;
 		case Style::Display::Inline:      return FormatElementInline(element); break;
-		case Style::Display::InlineBlock: return FormatElementReplaced(element); break;
+		case Style::Display::InlineBlock: return FormatElementInlineBlock(element); break;
 		default: RMLUI_ERROR;
 	}
 
@@ -392,13 +400,12 @@ bool LayoutEngine::FormatElementInline(Element* element)
 	}
 
 	inline_box->Close();
-//	element->OnLayout();
 
 	return true;
 }
 
 // Positions an element as a sized inline element, formatting its internal hierarchy as a block element.
-bool LayoutEngine::FormatElementReplaced(Element* element)
+bool LayoutEngine::FormatElementInlineBlock(Element* element)
 {
 	RMLUI_ZoneScopedC(0x1F2F2F);
 
@@ -406,8 +413,16 @@ bool LayoutEngine::FormatElementReplaced(Element* element)
 	Vector2f containing_block_size = GetContainingBlock(block_context_box);
 
 	LayoutEngine layout_engine;
-	bool shrink_to_width = element->GetComputedValues().width.type == Style::Width::Auto;
-	layout_engine.FormatElement(element, containing_block_size, shrink_to_width);
+	bool shrink_to_fit = element->GetComputedValues().width.type == Style::Width::Auto;
+	
+	// Don't shrink replaced elements.
+	if (shrink_to_fit)
+	{
+		Vector2f unused_intrinsic_dimensions;
+		shrink_to_fit = !element->GetIntrinsicDimensions(unused_intrinsic_dimensions);
+	}
+
+	layout_engine.FormatElement(element, containing_block_size, shrink_to_fit);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
 

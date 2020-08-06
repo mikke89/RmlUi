@@ -16,6 +16,9 @@
 			display: inline-block;
 			color: #33c;
 		}
+		.iblock p {
+			text-align: right;
+		}
 	</style>
 </head>
 

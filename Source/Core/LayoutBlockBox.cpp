@@ -211,7 +211,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		{
 			// Calculate the dimensions of the box's *internal* content; this is the tightest-fitting box around all of the
 			// internal elements, plus this element's padding.
-			Vector2f content_box = Vector2f(0, 0);
+			Vector2f content_box(0, 0);
 
 			for (size_t i = 0; i < block_boxes.size(); i++)
 			{
@@ -484,9 +484,20 @@ void LayoutBlockBox::CloseAbsoluteElements()
 			Vector2f absolute_position = absolute_elements[i].position;
 			absolute_position -= position - offset_root->GetPosition();
 
+			// See CSS 2.1 spec 10.3.7
+			const ComputedValues& computed = absolute_element->GetComputedValues();
+			bool shrink_to_fit = (computed.width.type == Style::Width::Auto && (computed.left.type == Style::Width::Auto || computed.right.type == Style::Width::Auto));
+
+			// Don't shrink replaced elements.
+			if (shrink_to_fit)
+			{
+				Vector2f unused_intrinsic_dimensions;
+				shrink_to_fit = !absolute_element->GetIntrinsicDimensions(unused_intrinsic_dimensions);
+			}
+
 			// Lay out the element.
 			LayoutEngine layout_engine;
-			layout_engine.FormatElement(absolute_element, containing_block);
+			layout_engine.FormatElement(absolute_element, containing_block, shrink_to_fit);
 
 			// Now that the element's box has been built, we can offset the position we determined was appropriate for
 			// it by the element's margin. This is necessary because the coordinate system for the box begins at the
@@ -583,8 +594,7 @@ float LayoutBlockBox::InternalContentWidth() const
 			}
 		}
 
-		content_width += (box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT));
-		content_width += (box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
+		content_width += box.GetCumulativeEdge(Box::PADDING, Box::LEFT) + box.GetCumulativeEdge(Box::PADDING, Box::RIGHT);
 	}
 	else
 	{

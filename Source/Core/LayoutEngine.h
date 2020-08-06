@@ -49,7 +49,7 @@ public:
 	/// Formats the contents for a root-level element (usually a document, floating or replaced element).
 	/// @param element[in] The element to lay out.
 	/// @param containing_block[in] The size of the containing block.
-	bool FormatElement(Element* element, const Vector2f& containing_block, bool shrink_to_fit = false);
+	bool FormatElement(Element* element, Vector2f containing_block, bool shrink_to_fit = false);
 
 	/// Generates the box for an element.
 	/// @param[out] box The box to be built.
@@ -95,7 +95,7 @@ private:
 	bool FormatElementInline(Element* element);
 	/// Positions an element as a sized inline element, formatting its internal hierarchy as a block element.
 	/// @param[in] element The replaced element.
-	bool FormatElementReplaced(Element* element);
+	bool FormatElementInlineBlock(Element* element);
 	/// Executes any special formatting for special elements.
 	/// @param[in] element The element to parse.
 	/// @return True if the element was parsed as a special element, false otherwise.
