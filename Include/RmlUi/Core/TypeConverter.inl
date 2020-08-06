@@ -35,6 +35,13 @@ bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, Des
 	return false;
 }
 
+#if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
+#endif
+
 ///
 /// Full Specialisations
 ///
@@ -167,13 +174,6 @@ public:
 	}
 };
 
-#if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wformat"
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wformat-extra-args"
-#endif
-
 template<>
 class TypeConverter< String, int64_t >
 {
@@ -193,11 +193,6 @@ public:
 		return sscanf(src.c_str(), "%hhu", &dest) == 1;
 	}
 };
-
-#if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
-	#pragma GCC diagnostic pop
-	#pragma GCC diagnostic pop
-#endif
 
 template<>
 class TypeConverter< String, bool >
@@ -388,5 +383,10 @@ VECTOR_STRING_CONVERTER(Colourb, byte, 4);
 #undef STRING_FLOAT_CONVERTER
 #undef STRING_VECTOR_CONVERTER
 #undef VECTOR_STRING_CONVERTER
+
+#if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
+#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
+#endif
 
 } // namespace Rml

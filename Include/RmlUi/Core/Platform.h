@@ -127,7 +127,9 @@
     break;
 
 // Tell the compiler of printf-like functions, warns on incorrect usage.
-#if defined __GNUC__ || defined __clang__
+#if defined __MINGW32__
+#  define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f) __attribute__((format (__MINGW_PRINTF_FORMAT, i, f)))
+#elif defined __GNUC__ || defined __clang__
 #  define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f) __attribute__((format (printf, i, f)))
 #else
 #  define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f)
