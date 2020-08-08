@@ -36,6 +36,7 @@
 
 namespace Rml {
 
+class Factory;
 class FontEffect;
 
 /**
@@ -83,7 +84,7 @@ private:
 	// Properties that define the geometry.
 	SmallUnorderedSet< PropertyId > volatile_properties;
 
-	friend class Factory;
+	friend class Rml::Factory;
 };
 
 } // namespace Rml

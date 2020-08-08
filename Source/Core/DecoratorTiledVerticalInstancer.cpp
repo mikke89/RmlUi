@@ -43,7 +43,7 @@ DecoratorTiledVerticalInstancer::~DecoratorTiledVerticalInstancer()
 {
 }
 
-SharedPtr<Decorator> DecoratorTiledVerticalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
+SharedPtr<Decorator> DecoratorTiledVerticalInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface)
 {
 	RMLUI_UNUSED(name);
 
@@ -52,7 +52,7 @@ SharedPtr<Decorator> DecoratorTiledVerticalInstancer::InstanceDecorator(const St
 	DecoratorTiled::Tile tiles[num_tiles];
 	Texture textures[num_tiles];
 
-	if (!GetTileProperties(tiles, textures, num_tiles, properties, interface))
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, instancer_interface))
 		return nullptr;
 
 	auto decorator = MakeShared<DecoratorTiledVertical>();

@@ -118,9 +118,9 @@ bool DataControllerEvent::Initialize(DataModel& model, Element* element, const S
 	RMLUI_ASSERT(element);
 
 	expression = MakeUnique<DataExpression>(expression_str);
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 
-	if (!expression->Parse(interface, true))
+	if (!expression->Parse(expr_interface, true))
 		return false;
 
 	id = EventSpecificationInterface::GetIdOrInsert(modifier);
@@ -142,9 +142,9 @@ void DataControllerEvent::ProcessEvent(Event& event)
 
 	if (Element* element = GetElement())
 	{
-		DataExpressionInterface interface(element->GetDataModel(), element, &event);
+		DataExpressionInterface expr_interface(element->GetDataModel(), element, &event);
 		Variant unused_value_out;
-		expression->Run(interface, unused_value_out);
+		expression->Run(expr_interface, unused_value_out);
 	}
 }
 

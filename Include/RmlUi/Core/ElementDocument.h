@@ -175,8 +175,8 @@ private:
 
 	bool position_dirty;
 
-	friend class Context;
-	friend class Factory;
+	friend class Rml::Context;
+	friend class Rml::Factory;
 
 };
 

@@ -249,7 +249,7 @@ class Matrix4
 
 		typedef typename StorageType::TransposeType TransposeStorageType;
 		typedef Matrix4< ComponentType, TransposeStorageType > TransposeType;
-		friend class Matrix4< ComponentType, TransposeStorageType >;
+		friend class Rml::Matrix4< ComponentType, TransposeStorageType >;
 
 	private:
 		// The components of the matrix.

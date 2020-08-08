@@ -196,7 +196,7 @@ DecoratorNinePatchInstancer::~DecoratorNinePatchInstancer()
 {
 }
 
-SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& interface)
+SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface)
 {
 	RMLUI_UNUSED(name);
 
@@ -216,7 +216,7 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 
 	{
 		const String sprite_name = properties.GetProperty(sprite_outer_id)->Get< String >();
-		sprite_outer = interface.GetSprite(sprite_name);
+		sprite_outer = instancer_interface.GetSprite(sprite_name);
 		if (!sprite_outer)
 		{
 			Log::Message(Log::LT_WARNING, "Could not find sprite named '%s' in ninepatch decorator.", sprite_name.c_str());
@@ -225,7 +225,7 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 	}
 	{
 		const String sprite_name = properties.GetProperty(sprite_inner_id)->Get< String >();
-		sprite_inner = interface.GetSprite(sprite_name);
+		sprite_inner = instancer_interface.GetSprite(sprite_name);
 		if (!sprite_inner)
 		{
 			Log::Message(Log::LT_WARNING, "Could not find sprite named '%s' in ninepatch decorator.", sprite_name.c_str());

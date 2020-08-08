@@ -65,7 +65,7 @@ public:
 	 */
 	class Iterator
 	{
-		friend class Pool< PoolType >;
+		friend class Rml::Pool< PoolType >;
 
 	public :
 		/// Increments the iterator to reference the next node in the

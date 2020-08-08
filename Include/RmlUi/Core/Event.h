@@ -36,6 +36,7 @@
 
 namespace Rml {
 
+class Factory;
 class Element;
 class EventInstancer;
 struct EventSpecification;
@@ -144,7 +145,7 @@ private:
 
 	EventInstancer* instancer = nullptr;
 
-	friend class Factory;
+	friend class Rml::Factory;
 };
 
 

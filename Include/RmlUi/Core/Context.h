@@ -355,7 +355,7 @@ private:
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
-	friend class Element;
+	friend class Rml::Element;
 	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);
 };
 

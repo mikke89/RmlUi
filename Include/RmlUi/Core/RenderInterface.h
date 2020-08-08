@@ -119,7 +119,7 @@ public:
 private:
 	Context* context;
 
-	friend class Context;
+	friend class Rml::Context;
 };
 
 } // namespace Rml

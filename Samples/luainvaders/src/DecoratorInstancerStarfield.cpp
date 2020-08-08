@@ -48,7 +48,7 @@ DecoratorInstancerStarfield::~DecoratorInstancerStarfield()
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
 Rml::SharedPtr<Rml::Decorator> DecoratorInstancerStarfield::InstanceDecorator(const Rml::String& /*name*/,
-	const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& /*interface*/)
+	const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& /*instancer_interface*/)
 {
 	int num_layers = Rml::Math::RealToInteger(properties.GetProperty(id_num_layers)->Get< float >());
 	Rml::Colourb top_colour = properties.GetProperty(id_top_colour)->Get< Rml::Colourb >();

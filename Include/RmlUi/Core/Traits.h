@@ -52,7 +52,7 @@ class RMLUICORE_API Releasable : public NonCopyMoveable {
 protected:
 	virtual ~Releasable() = default;
 	virtual void Release() = 0;
-	friend class ReleaserBase;
+	friend class Rml::ReleaserBase;
 };
 
 class RMLUICORE_API ReleaserBase {

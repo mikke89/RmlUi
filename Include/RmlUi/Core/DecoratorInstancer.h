@@ -59,9 +59,9 @@ public:
 	/// Instances a decorator given the property tag and attributes from the RCSS file.
 	/// @param[in] name The type of decorator desired. For example, "decorator: simple(...);" is declared as type "simple".
 	/// @param[in] properties All RCSS properties associated with the decorator.
-	/// @param[in] interface An interface for querying the active style sheet.
+	/// @param[in] instancer_interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the decorator if it was instanced successfully.
-	virtual SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) = 0;
+	virtual SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface) = 0;
 
 	/// Returns the property specification associated with the instancer.
 	const PropertySpecification& GetPropertySpecification() const;

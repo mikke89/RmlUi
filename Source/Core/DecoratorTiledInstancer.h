@@ -56,8 +56,8 @@ protected:
 	/// @param[out] tile The tile structure for storing the tile properties.
 	/// @param[out] textures Holds the textures declared for the tile.
 	/// @param[in] properties The user-defined list of parameters for the decorator.
-	/// @param[in] interface An interface for querying the active style sheet.
-	bool GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) const;
+	/// @param[in] instancer_interface An interface for querying the active style sheet.
+	bool GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface) const;
 
 private:
 	struct TilePropertyIds {

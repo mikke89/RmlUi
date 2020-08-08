@@ -118,7 +118,7 @@ public:
 
 private:
 
-	friend class EnableObserverPtr<T>;
+	friend class Rml::EnableObserverPtr<T>;
 
 	explicit ObserverPtr(ObserverPtrBlock* block) noexcept : block(block)
 	{

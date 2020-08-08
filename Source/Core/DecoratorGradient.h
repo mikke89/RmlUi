@@ -63,7 +63,7 @@ public:
 	DecoratorGradientInstancer();
 	~DecoratorGradientInstancer();
 
-	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) override;
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface) override;
 
 private:
 	struct GradientPropertyIds {

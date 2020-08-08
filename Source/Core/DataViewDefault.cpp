@@ -46,9 +46,9 @@ bool DataViewCommon::Initialize(DataModel& model, Element* element, const String
 		modifier = in_modifier;
 
 	expression = MakeUnique<DataExpression>(expression_str);
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 
-	bool result = expression->Parse(interface, false);
+	bool result = expression->Parse(expr_interface, false);
 	return result;
 }
 
@@ -84,9 +84,9 @@ bool DataViewAttribute::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 
-	if (element && GetExpression().Run(interface, variant))
+	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		const String value = variant.Get<String>();
 		const Variant* attribute = element->GetAttribute(attribute_name);
@@ -114,9 +114,9 @@ bool DataViewStyle::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 	
-	if (element && GetExpression().Run(interface, variant))
+	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		const String value = variant.Get<String>();
 		const Property* p = element->GetLocalProperty(property_name);
@@ -139,9 +139,9 @@ bool DataViewClass::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 
-	if (element && GetExpression().Run(interface, variant))
+	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		const bool activate = variant.Get<bool>();
 		const bool is_set = element->IsClassSet(class_name);
@@ -163,9 +163,9 @@ bool DataViewRml::Update(DataModel & model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 
-	if (element && GetExpression().Run(interface, variant))
+	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		String new_rml = variant.Get<String>();
 		if (new_rml != previous_rml)
@@ -187,9 +187,9 @@ bool DataViewIf::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 
-	if (element && GetExpression().Run(interface, variant))
+	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		const bool value = variant.Get<bool>();
 		const bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Display) == 0);
@@ -214,9 +214,9 @@ bool DataViewVisible::Update(DataModel& model)
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
-	DataExpressionInterface interface(&model, element);
+	DataExpressionInterface expr_interface(&model, element);
 
-	if (element && GetExpression().Run(interface, variant))
+	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		const bool value = variant.Get<bool>();
 		const bool is_visible = (element->GetLocalStyleProperties().count(PropertyId::Visibility) == 0);

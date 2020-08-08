@@ -81,7 +81,7 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 
 
 // Retrieves all the properties for a tile from the property dictionary.
-bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties, const DecoratorInstancerInterface& interface) const
+bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface) const
 {
 	RMLUI_ASSERT(num_tiles_and_textures == tile_property_ids.size());
 
@@ -109,7 +109,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		Texture& texture = textures[i];
 
 		// A tile is always either a sprite or an image.
-		if (const Sprite * sprite = interface.GetSprite(texture_name))
+		if (const Sprite * sprite = instancer_interface.GetSprite(texture_name))
 		{
 			tile.position.x = sprite->rectangle.x;
 			tile.position.y = sprite->rectangle.y;

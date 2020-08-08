@@ -27,7 +27,7 @@ DecoratorInstancerDefender::~DecoratorInstancerDefender()
 
 // Instances a decorator given the property tag and attributes from the RCSS file.
 Rml::SharedPtr<Rml::Decorator> DecoratorInstancerDefender::InstanceDecorator(const Rml::String& /*name*/,
-	const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& /*interface*/)
+	const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& /*instancer_interface*/)
 {
 	const Rml::Property* image_source_property = properties.GetProperty(id_image_src);
 	Rml::String image_source = image_source_property->Get< Rml::String >();

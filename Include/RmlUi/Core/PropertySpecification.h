@@ -136,7 +136,7 @@ private:
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 
-	friend class StyleSheetSpecification;
+	friend class Rml::StyleSheetSpecification;
 };
 
 } // namespace Rml

@@ -55,12 +55,13 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
+class LayoutEngine;
+class LayoutInlineBox;
 class PropertiesIteratorView;
-class FontFaceHandleDefault;
 class PropertyDictionary;
 class RenderInterface;
-class TransformState;
 class StyleSheet;
+class TransformState;
 struct ElementMeta;
 
 /**
@@ -744,11 +745,11 @@ private:
 
 	ElementMeta* meta;
 
-	friend class Context;
-	friend class ElementStyle;
-	friend class LayoutEngine;
-	friend class LayoutInlineBox;
-	friend class ElementScroll;
+	friend class Rml::Context;
+	friend class Rml::ElementStyle;
+	friend class Rml::LayoutEngine;
+	friend class Rml::LayoutInlineBox;
+	friend class Rml::ElementScroll;
 };
 
 } // namespace Rml

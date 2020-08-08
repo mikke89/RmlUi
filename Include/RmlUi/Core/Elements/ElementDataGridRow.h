@@ -46,7 +46,7 @@ class ElementDataGrid;
 
 class RMLUICORE_API ElementDataGridRow : public Element, public DataSourceListener
 {
-friend class ElementDataGrid;
+friend class Rml::ElementDataGrid;
 
 public:
 	RMLUI_RTTI_DefineWithParent(ElementDataGridRow, Element)
