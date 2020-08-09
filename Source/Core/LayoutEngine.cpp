@@ -52,16 +52,6 @@ struct LayoutChunk
 
 static Pool< LayoutChunk > layout_chunk_pool(200, true);
 
-LayoutEngine::LayoutEngine()
-{
-	block_box = nullptr;
-	block_context_box = nullptr;
-}
-
-LayoutEngine::~LayoutEngine()
-{
-}
-
 // Formats the contents for a root-level element (usually a document or floating element).
 bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block, bool shrink_to_fit)
 {
@@ -71,14 +61,14 @@ bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block, bo
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
 
-	block_box = new LayoutBlockBox(this, nullptr, nullptr);
-	block_box->GetBox().SetContent(containing_block);
+	auto containing_block_box = MakeUnique<LayoutBlockBox>(nullptr, nullptr);
+	containing_block_box->GetBox().SetContent(containing_block);
 
-	block_context_box = block_box->AddBlockElement(element);
+	LayoutBlockBox* block_context_box = containing_block_box->AddBlockElement(element);
 
 	for (int i = 0; i < element->GetNumChildren(); i++)
 	{
-		if (!FormatElement(element->GetChild(i)))
+		if (!FormatElement(block_context_box, element->GetChild(i)))
 			i = -1;
 	}
 
@@ -93,15 +83,14 @@ bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block, bo
 
 			const Vector2f shrinked_block_size(content_width, containing_block.y);
 			
-			delete block_box;
-			block_box = new LayoutBlockBox(this, nullptr, nullptr);
-			block_box->GetBox().SetContent(shrinked_block_size);
+			containing_block_box = MakeUnique<LayoutBlockBox>(nullptr, nullptr);
+			containing_block_box->GetBox().SetContent(shrinked_block_size);
 
-			block_context_box = block_box->AddBlockElement(element);
+			block_context_box = containing_block_box->AddBlockElement(element);
 
 			for (int i = 0; i < element->GetNumChildren(); i++)
 			{
-				if (!FormatElement(element->GetChild(i)))
+				if (!FormatElement(block_context_box, element->GetChild(i)))
 					i = -1;
 			}
 		}
@@ -112,7 +101,6 @@ bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block, bo
 
 	element->OnLayout();
 
-	delete block_box;
 	return true;
 }
 
@@ -272,7 +260,7 @@ void LayoutEngine::DeallocateLayoutChunk(void* chunk)
 }
 
 // Positions a single element and its children within this layout.
-bool LayoutEngine::FormatElement(Element* element)
+bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* element)
 {
 #ifdef RMLUI_ENABLE_PROFILING
 	RMLUI_ZoneScoped;
@@ -283,7 +271,7 @@ bool LayoutEngine::FormatElement(Element* element)
 	auto& computed = element->GetComputedValues();
 
 	// Check if we have to do any special formatting for any elements that don't fit into the standard layout scheme.
-	if (FormatElementSpecial(element))
+	if (FormatElementSpecial(block_context_box, element))
 		return true;
 
 	// Fetch the display property, and don't lay this element out if it is set to a display type of none.
@@ -303,7 +291,6 @@ bool LayoutEngine::FormatElement(Element* element)
 	if (computed.float_ != Style::Float::None)
 	{
 		// Format the element as a block element.
-		LayoutEngine layout_engine;
 		bool shrink_to_fit = (computed.width.type == Style::Width::Auto);
 		
 		// Don't shrink replaced elements.
@@ -313,7 +300,7 @@ bool LayoutEngine::FormatElement(Element* element)
 			shrink_to_fit = !element->GetIntrinsicDimensions(unused_intrinsic_dimensions);
 		}
 
-		layout_engine.FormatElement(element, GetContainingBlock(block_context_box), shrink_to_fit);
+		LayoutEngine::FormatElement(element, GetContainingBlock(block_context_box), shrink_to_fit);
 
 		return block_context_box->AddFloatElement(element);
 	}
@@ -321,9 +308,9 @@ bool LayoutEngine::FormatElement(Element* element)
 	// The element is nothing exceptional, so we treat it as a normal block, inline or replaced element.
 	switch (computed.display)
 	{
-		case Style::Display::Block:       return FormatElementBlock(element); break;
-		case Style::Display::Inline:      return FormatElementInline(element); break;
-		case Style::Display::InlineBlock: return FormatElementInlineBlock(element); break;
+		case Style::Display::Block:       return FormatElementBlock(block_context_box, element); break;
+		case Style::Display::Inline:      return FormatElementInline(block_context_box, element); break;
+		case Style::Display::InlineBlock: return FormatElementInlineBlock(block_context_box, element); break;
 		default: RMLUI_ERROR;
 	}
 
@@ -331,7 +318,7 @@ bool LayoutEngine::FormatElement(Element* element)
 }
 
 // Formats and positions an element as a block element.
-bool LayoutEngine::FormatElementBlock(Element* element)
+bool LayoutEngine::FormatElementBlock(LayoutBlockBox* block_context_box, Element* element)
 {
 	RMLUI_ZoneScopedC(0x2F4F4F);
 
@@ -344,7 +331,7 @@ bool LayoutEngine::FormatElementBlock(Element* element)
 	// Format the element's children.
 	for (int i = 0; i < element->GetNumChildren(); i++)
 	{
-		if (!FormatElement(element->GetChild(i)))
+		if (!FormatElement(block_context_box, element->GetChild(i)))
 			i = -1;
 	}
 
@@ -357,7 +344,7 @@ bool LayoutEngine::FormatElementBlock(Element* element)
 		case LayoutBlockBox::LAYOUT_SELF:
 		{
 			for (int i = 0; i < element->GetNumChildren(); i++)
-				FormatElement(element->GetChild(i));
+				FormatElement(block_context_box, element->GetChild(i));
 
 			if (block_context_box->Close() == LayoutBlockBox::OK)
 			{
@@ -383,7 +370,7 @@ bool LayoutEngine::FormatElementBlock(Element* element)
 }
 
 // Formats and positions an element as an inline element.
-bool LayoutEngine::FormatElementInline(Element* element)
+bool LayoutEngine::FormatElementInline(LayoutBlockBox* block_context_box, Element* element)
 {
 	RMLUI_ZoneScopedC(0x3F6F6F);
 
@@ -395,7 +382,7 @@ bool LayoutEngine::FormatElementInline(Element* element)
 	// Format the element's children.
 	for (int i = 0; i < element->GetNumChildren(); i++)
 	{
-		if (!FormatElement(element->GetChild(i)))
+		if (!FormatElement(block_context_box, element->GetChild(i)))
 			return false;
 	}
 
@@ -405,14 +392,13 @@ bool LayoutEngine::FormatElementInline(Element* element)
 }
 
 // Positions an element as a sized inline element, formatting its internal hierarchy as a block element.
-bool LayoutEngine::FormatElementInlineBlock(Element* element)
+bool LayoutEngine::FormatElementInlineBlock(LayoutBlockBox* block_context_box, Element* element)
 {
 	RMLUI_ZoneScopedC(0x1F2F2F);
 
 	// Format the element separately as a block element, then position it inside our own layout as an inline element.
 	Vector2f containing_block_size = GetContainingBlock(block_context_box);
 
-	LayoutEngine layout_engine;
 	bool shrink_to_fit = element->GetComputedValues().width.type == Style::Width::Auto;
 	
 	// Don't shrink replaced elements.
@@ -422,7 +408,7 @@ bool LayoutEngine::FormatElementInlineBlock(Element* element)
 		shrink_to_fit = !element->GetIntrinsicDimensions(unused_intrinsic_dimensions);
 	}
 
-	layout_engine.FormatElement(element, containing_block_size, shrink_to_fit);
+	FormatElement(element, containing_block_size, shrink_to_fit);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
 
@@ -430,7 +416,7 @@ bool LayoutEngine::FormatElementInlineBlock(Element* element)
 }
 
 // Executes any special formatting for special elements.
-bool LayoutEngine::FormatElementSpecial(Element* element)
+bool LayoutEngine::FormatElementSpecial(LayoutBlockBox* block_context_box, Element* element)
 {
 	static const String br("br");
 	

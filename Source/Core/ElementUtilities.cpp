@@ -303,8 +303,7 @@ void ElementUtilities::ApplyActiveClipRegion(Context* context, RenderInterface* 
 // Formats the contents of an element.
 bool ElementUtilities::FormatElement(Element* element, const Vector2f& containing_block)
 {
-	LayoutEngine layout_engine;
-	return layout_engine.FormatElement(element, containing_block);
+	return LayoutEngine::FormatElement(element, containing_block);
 }
 
 // Generates the box for an element.

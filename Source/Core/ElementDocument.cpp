@@ -373,8 +373,7 @@ void ElementDocument::UpdateLayout()
 		if (GetParentNode() != nullptr)
 			containing_block = GetParentNode()->GetBox().GetSize();
 
-		LayoutEngine layout_engine;
-		layout_engine.FormatElement(this, containing_block);
+		LayoutEngine::FormatElement(this, containing_block);
 	}
 }
 

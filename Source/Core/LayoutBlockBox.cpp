@@ -39,13 +39,13 @@
 namespace Rml {
 
 // Creates a new block box for rendering a block element.
-LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _parent, Element* _element) : position(0), visible_outer_width(0)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element) : position(0), visible_outer_width(0)
 {
 	RMLUI_ZoneScoped;
 
-	space = new LayoutBlockBoxSpace(this);
+	space_owner = MakeUnique<LayoutBlockBoxSpace>(this);
+	space = space_owner.get();
 
-	layout_engine = _layout_engine;
 	parent = _parent;
 
 	context = BLOCK;
@@ -63,7 +63,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 		offset_root = this;
 
 	// Determine the offset parent for this element.
-	LayoutBlockBox* self_offset_parent;
+	const LayoutBlockBox* self_offset_parent;
 	if (parent != nullptr &&
 		parent->offset_parent->GetElement() != nullptr)
 		self_offset_parent = parent->offset_parent;
@@ -84,7 +84,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 		space->ImportSpace(*parent->space);
 
 		// Build our box if possible; if not, it will have to be set up manually.
-		layout_engine->BuildBox(box, min_height, max_height, parent, element);
+		LayoutEngine::BuildBox(box, min_height, max_height, parent, element);
 
 		// Position ourselves within our containing block (if we have a valid offset parent).
 		if (parent->GetElement() != nullptr)
@@ -128,9 +128,8 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 }
 
 // Creates a new block box in an inline context.
-LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _parent) : position(-1, -1)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
 {
-	layout_engine = _layout_engine;
 	parent = _parent;
 	offset_parent = parent->offset_parent;
 	offset_root = parent->offset_root;
@@ -138,7 +137,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	space = _parent->space;
 
 	context = INLINE;
-	line_boxes.push_back(new LayoutLineBox(this));
+	line_boxes.push_back(MakeUnique<LayoutLineBox>(this));
 	wrap_content = parent->wrap_content;
 
 	element = nullptr;
@@ -147,7 +146,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 	box_cursor = 0;
 	vertical_overflow = false;
 
-	layout_engine->BuildBox(box, min_height, max_height, parent, nullptr);
+	LayoutEngine::BuildBox(box, min_height, max_height, parent, nullptr);
 	parent->PositionBlockBox(position, box, Style::Clear::None);
 	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
@@ -159,14 +158,6 @@ LayoutBlockBox::LayoutBlockBox(LayoutEngine* _layout_engine, LayoutBlockBox* _pa
 // Releases the block box.
 LayoutBlockBox::~LayoutBlockBox()
 {
-	for (size_t i = 0; i < block_boxes.size(); i++)
-		delete block_boxes[i];
-
-	for (size_t i = 0; i < line_boxes.size(); i++)
-		delete line_boxes[i];
-
-	if (context == BLOCK)
-		delete space;
 }
 
 // Closes the box.
@@ -297,7 +288,7 @@ bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 }
 
 // Called by a closing line box child.
-LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain)
+LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, UniquePtr<LayoutInlineBox> overflow, LayoutInlineBox* overflow_chain)
 {
 	RMLUI_ZoneScoped;
 
@@ -315,13 +306,13 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, LayoutInline
 	}
 
 	// Add a new line box.
-	line_boxes.push_back(new LayoutLineBox(this));
+	line_boxes.push_back(MakeUnique<LayoutLineBox>(this));
 
 	if (overflow_chain != nullptr)
 		line_boxes.back()->AddChainedBox(overflow_chain);
 
 	if (overflow != nullptr)
-		return line_boxes.back()->AddBox(overflow);
+		return line_boxes.back()->AddBox(std::move(overflow));
 
 	return nullptr;
 }
@@ -337,7 +328,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 	if (!block_boxes.empty() &&
 		block_boxes.back()->context == INLINE)
 	{
-		LayoutBlockBox* inline_block_box = block_boxes.back();
+		LayoutBlockBox* inline_block_box = block_boxes.back().get();
 		LayoutInlineBox* open_inline_box = inline_block_box->line_boxes.back()->GetOpenInlineBox();
 		if (open_inline_box != nullptr)
 		{
@@ -360,8 +351,8 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 		}
 	}
 
-	block_boxes.push_back(new LayoutBlockBox(layout_engine, this, element));
-	return block_boxes.back();
+	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element));
+	return block_boxes.back().get();
 }
 
 // Adds a new inline element to this inline box.
@@ -381,7 +372,7 @@ LayoutInlineBox* LayoutBlockBox::AddInlineElement(Element* element, const Box& b
 		// No dice! Ah well, nothing for it but to open a new inline context block box.
 		else
 		{
-			block_boxes.push_back(new LayoutBlockBox(layout_engine, this));
+			block_boxes.push_back(MakeUnique<LayoutBlockBox>(this));
 
 			if (interrupted_chain != nullptr)
 			{
@@ -409,10 +400,10 @@ void LayoutBlockBox::AddBreak()
 	// Check for an inline box as our last child; if so, we can simply end its line and bail.
 	if (!block_boxes.empty())
 	{
-		LayoutBlockBox* block_box = block_boxes.back();
+		LayoutBlockBox* block_box = block_boxes.back().get();
 		if (block_box->context == INLINE)
 		{
-			LayoutLineBox* last_line = block_box->line_boxes.back();
+			LayoutLineBox* last_line = block_box->line_boxes.back().get();
 			if (last_line->GetDimensions().y < 0)
 				block_box->box_cursor += line_height;
 			else
@@ -456,7 +447,7 @@ void LayoutBlockBox::AddAbsoluteElement(Element* element)
 	if (!block_boxes.empty()
 		&& block_boxes.back()->context == INLINE)
 	{
-		LayoutBlockBox* inline_context_box = block_boxes.back();
+		LayoutBlockBox* inline_context_box = block_boxes.back().get();
 		float last_line_height = inline_context_box->line_boxes.back()->GetDimensions().y;
 
 		absolute_element.position.y += (inline_context_box->box_cursor + Math::Max(0.0f, last_line_height));
@@ -496,8 +487,7 @@ void LayoutBlockBox::CloseAbsoluteElements()
 			}
 
 			// Lay out the element.
-			LayoutEngine layout_engine;
-			layout_engine.FormatElement(absolute_element, containing_block, shrink_to_fit);
+			LayoutEngine::FormatElement(absolute_element, containing_block, shrink_to_fit);
 
 			// Now that the element's box has been built, we can offset the position we determined was appropriate for
 			// it by the element's margin. This is necessary because the coordinate system for the box begins at the
@@ -603,7 +593,7 @@ float LayoutBlockBox::InternalContentWidth() const
 		{
 			// Perhaps a more robust solution is to modify how we set the line box dimension on 'line_box->close()'
 			// and use that, or add another value in the line_box ... but seems to work for now.
-			LayoutLineBox* line_box = line_boxes[i];
+			LayoutLineBox* line_box = line_boxes[i].get();
 			content_width = Math::Max(content_width, line_box->GetBoxCursor());
 		}
 		content_width = Math::Min(content_width, box.GetSize(Box::CONTENT).x);
@@ -632,13 +622,13 @@ const Vector2f& LayoutBlockBox::GetPosition() const
 }
 
 // Returns the element against which all positions of boxes in the hierarchy are calculated relative to.
-LayoutBlockBox* LayoutBlockBox::GetOffsetParent() const
+const LayoutBlockBox* LayoutBlockBox::GetOffsetParent() const
 {
 	return offset_parent;
 }
 
 // Returns the block box against which all positions of boxes in the hierarchy are calculated relative to.
-LayoutBlockBox* LayoutBlockBox::GetOffsetRoot() const
+const LayoutBlockBox* LayoutBlockBox::GetOffsetRoot() const
 {
 	return offset_root;
 }
@@ -706,12 +696,10 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 			vertical_overflow = true;
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSize(Box::PADDING).x);
 
-			for (size_t i = 0; i < block_boxes.size(); i++)
-				delete block_boxes[i];
 			block_boxes.clear();
 
-			delete space;
-			space = new LayoutBlockBoxSpace(this);
+			space_owner = MakeUnique<LayoutBlockBoxSpace>(this);
+			space = space_owner.get();
 
 			box_cursor = 0;
 			interrupted_chain = nullptr;

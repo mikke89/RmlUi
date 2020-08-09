@@ -62,11 +62,11 @@ public:
 	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box. This will be nullptr for the root element.
 	/// @param element[in] The element this block box is laying out.
-	LayoutBlockBox(LayoutEngine* layout_engine, LayoutBlockBox* parent, Element* element);
+	LayoutBlockBox(LayoutBlockBox* parent, Element* element);
 	/// Creates a new block box in an inline context.
 	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box.
-	LayoutBlockBox(LayoutEngine* layout_engine, LayoutBlockBox* parent);
+	LayoutBlockBox(LayoutBlockBox* parent);
 	/// Releases the block box.
 	~LayoutBlockBox();
 
@@ -84,7 +84,7 @@ public:
 	/// @param overflow[in] The overflow from the closing line box. May be nullptr if there was no overflow.
 	/// @param overflow_chain[in] The end of the chained hierarchy to be spilled over to the new line, as the parent to the overflow box (if one exists).
 	/// @return If the line box had overflow, this will be the last inline box created by the overflow.
-	LayoutInlineBox* CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain);
+	LayoutInlineBox* CloseLineBox(LayoutLineBox* child, UniquePtr<LayoutInlineBox> overflow, LayoutInlineBox* overflow_chain);
 
 	/// Adds a new block element to this block-context box.
 	/// @param element[in] The new block element.
@@ -145,10 +145,10 @@ public:
 
 	/// Returns the block box against which all positions of boxes in the hierarchy are set relative to.
 	/// @return This box's offset parent.
-	LayoutBlockBox* GetOffsetParent() const;
+	const LayoutBlockBox* GetOffsetParent() const;
 	/// Returns the block box against which all positions of boxes in the hierarchy are calculated relative to.
 	/// @return This box's offset root.
-	LayoutBlockBox* GetOffsetRoot() const;
+	const LayoutBlockBox* GetOffsetRoot() const;
 
 
 	/// Returns the block box's dimension box.
@@ -179,22 +179,20 @@ private:
 	// overflow occured, false if it did.
 	bool CatchVerticalOverflow(float cursor = -1);
 
-	typedef Vector< AbsoluteElement > AbsoluteElementList;
-	typedef Vector< LayoutBlockBox* > BlockBoxList;
-	typedef Vector< LayoutLineBox* > LineBoxList;
+	using AbsoluteElementList = Vector< AbsoluteElement >;
+	using BlockBoxList = Vector< UniquePtr<LayoutBlockBox> >;
+	using LineBoxList = Vector< UniquePtr<LayoutLineBox> >;
 
 	// The object managing our space, as occupied by floating elements of this box and our ancestors.
 	LayoutBlockBoxSpace* space;
 
-	// The box's layout engine.
-	LayoutEngine* layout_engine;
 	// The element this box represents. This will be nullptr for boxes rendering in an inline context.
 	Element* element;
 
 	// The element we'll be computing our offset relative to during layout.
-	LayoutBlockBox* offset_root;
+	const LayoutBlockBox* offset_root;
 	// The element this block box's children are to be offset from.
-	LayoutBlockBox* offset_parent;
+	const LayoutBlockBox* offset_parent;
 
 	// The box's block parent. This will be nullptr for the root of the box tree.
 	LayoutBlockBox* parent;
@@ -219,6 +217,8 @@ private:
 	BlockBoxList block_boxes;
 	// Used by block contexts only; stores any elements that are to be absolutely positioned within this block box.
 	AbsoluteElementList absolute_elements;
+	// Used by block contexts only; stores the block box space pointed to by the 'space' member.
+	UniquePtr<LayoutBlockBoxSpace> space_owner;
 	// Used by block contexts only; stores an inline element hierarchy that was interrupted by a child block box.
 	// The hierarchy will be resumed in an inline-context box once the intervening block box is completed.
 	LayoutInlineBox* interrupted_chain;

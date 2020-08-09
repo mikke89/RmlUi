@@ -110,7 +110,7 @@ private:
 		Vector2f dimensions;
 	};
 
-	typedef Vector< SpaceBox > SpaceBoxList;
+	using SpaceBoxList = Vector< SpaceBox >;
 
 	// Our block-box parent.
 	LayoutBlockBox* parent;

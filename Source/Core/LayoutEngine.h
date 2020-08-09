@@ -42,14 +42,11 @@ class Box;
 class LayoutEngine
 {
 public:
-	/// Constructs a new layout engine.
-	LayoutEngine();
-	~LayoutEngine();
-
 	/// Formats the contents for a root-level element (usually a document, floating or replaced element).
 	/// @param element[in] The element to lay out.
 	/// @param containing_block[in] The size of the containing block.
-	bool FormatElement(Element* element, Vector2f containing_block, bool shrink_to_fit = false);
+	/// @param shrink_to_fit[in] True to shrink the element to the width of its contents.
+	static bool FormatElement(Element* element, Vector2f containing_block, bool shrink_to_fit = false);
 
 	/// Generates the box for an element.
 	/// @param[out] box The box to be built.
@@ -84,22 +81,27 @@ public:
 
 private:
 	/// Positions a single element and its children within this layout.
+	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The element to lay out.
-	bool FormatElement(Element* element);
+	static bool FormatElement(LayoutBlockBox* block_context_box, Element* element);
 
 	/// Formats and positions an element as a block element.
+	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The block element.
-	bool FormatElementBlock(Element* element);
+	static bool FormatElementBlock(LayoutBlockBox* block_context_box, Element* element);
 	/// Formats and positions an element as an inline element.
+	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The inline element.
-	bool FormatElementInline(Element* element);
+	static bool FormatElementInline(LayoutBlockBox* block_context_box, Element* element);
 	/// Positions an element as a sized inline element, formatting its internal hierarchy as a block element.
+	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The replaced element.
-	bool FormatElementInlineBlock(Element* element);
+	static bool FormatElementInlineBlock(LayoutBlockBox* block_context_box, Element* element);
 	/// Executes any special formatting for special elements.
+	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The element to parse.
 	/// @return True if the element was parsed as a special element, false otherwise.
-	bool FormatElementSpecial(Element* element);
+	static bool FormatElementSpecial(LayoutBlockBox* block_context_box, Element* element);
 
 	/// Returns the fully-resolved, fixed-width and -height containing block from a block box.
 	/// @param[in] containing_box The leaf box.
@@ -116,12 +118,6 @@ private:
 	/// @param[in] element The element the box is being generated for.
 	/// @param[in] containing_block_height The height of the containing block.
 	static void BuildBoxHeight(Box& box, const ComputedValues& computed, float containing_block_height);
-
-	// The root block box, representing the document.
-	LayoutBlockBox* block_box;
-
-	// The open block box containing displaying in a block-context.
-	LayoutBlockBox* block_context_box;
 };
 
 } // namespace Rml

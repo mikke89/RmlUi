@@ -58,7 +58,7 @@ bool LayoutInlineBoxText::CanOverflow() const
 }
 
 // Flows the inline box's content into its parent line.
-LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
+UniquePtr<LayoutInlineBox> LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
 {
 	ElementText* text_element = GetTextElement();
 	RMLUI_ASSERT(text_element != nullptr);
@@ -76,7 +76,7 @@ LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float availabl
 	LayoutInlineBox::FlowContent(first_box, available_width, right_spacing_width);
 
 	if (overflow)
-		return new LayoutInlineBoxText(element, line_begin + line_length);
+		return MakeUnique<LayoutInlineBoxText>(element, line_begin + line_length);
 
 	return nullptr;
 }

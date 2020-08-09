@@ -71,7 +71,7 @@ public:
 	/// @param[in] available_width The width available for flowing this box's content. This is measured from the left side of this box's content area.
 	/// @param[in] right_spacing_width The width of the spacing that must be left on the right of the element if no overflow occurs. If overflow occurs, then the entire width can be used.
 	/// @return The overflow box containing any content that spilled over from the flow. This must be nullptr if no overflow occured.
-	virtual LayoutInlineBox* FlowContent(bool first_box, float available_width, float right_spacing_width);
+	virtual UniquePtr<LayoutInlineBox> FlowContent(bool first_box, float available_width, float right_spacing_width);
 
 	/// Computes and sets the vertical position of this element, relative to its parent inline box (or block box,
 	/// for an un-nested inline box).
