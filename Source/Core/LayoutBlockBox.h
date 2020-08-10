@@ -62,11 +62,11 @@ public:
 	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box. This will be nullptr for the root element.
 	/// @param element[in] The element this block box is laying out.
-	LayoutBlockBox(LayoutBlockBox* parent, Element* element);
+	LayoutBlockBox(LayoutBlockBox* parent, Element* element, bool allow_shrink = true);
 	/// Creates a new block box in an inline context.
 	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box.
-	LayoutBlockBox(LayoutBlockBox* parent);
+	LayoutBlockBox(LayoutBlockBox* parent, bool allow_shrink = true);
 	/// Releases the block box.
 	~LayoutBlockBox();
 
@@ -90,7 +90,7 @@ public:
 	/// @param element[in] The new block element.
 	/// @param placed[in] True if the element is to be placed, false otherwise.
 	/// @return The block box representing the element. Once the element's children have been positioned, Close() must be called on it.
-	LayoutBlockBox* AddBlockElement(Element* element);
+	LayoutBlockBox* AddBlockElement(Element* element, bool allow_shrink = true);
 	/// Adds a new inline element to this inline-context box.
 	/// @param element[in] The new inline element.
 	/// @param box[in] The box defining the element's bounds.
@@ -129,7 +129,8 @@ public:
 	/// @param dimensions[in] The minimum dimensions of the line.
 	void PositionLineBox(Vector2f& box_position, float& box_width, bool& wrap_content, const Vector2f& dimensions) const;
 
-	float InternalContentWidth() const;
+	/// Calculate the dimensions of the box's internal content width; i.e. the size used to calculate the shrink-to-fit width.
+	float GetShrinkToFitWidth() const;
 
 	/// Returns the block box's element.
 	/// @return The block box's element.

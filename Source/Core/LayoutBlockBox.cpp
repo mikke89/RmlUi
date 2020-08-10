@@ -29,6 +29,7 @@
 #include "LayoutBlockBox.h"
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutEngine.h"
+#include "LayoutDetails.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
@@ -39,7 +40,7 @@
 namespace Rml {
 
 // Creates a new block box for rendering a block element.
-LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element) : position(0), visible_outer_width(0)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, bool allow_shrink) : position(0), visible_outer_width(0)
 {
 	RMLUI_ZoneScoped;
 
@@ -84,7 +85,8 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element) : pos
 		space->ImportSpace(*parent->space);
 
 		// Build our box if possible; if not, it will have to be set up manually.
-		LayoutEngine::BuildBox(box, min_height, max_height, parent, element);
+		// TODO: Calculate outside and pass the box into the constructor.
+		LayoutDetails::BuildBox(box, min_height, max_height, parent, element, false, allow_shrink);
 
 		// Position ourselves within our containing block (if we have a valid offset parent).
 		if (parent->GetElement() != nullptr)
@@ -128,7 +130,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element) : pos
 }
 
 // Creates a new block box in an inline context.
-LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, bool allow_shrink) : position(-1, -1)
 {
 	parent = _parent;
 	offset_parent = parent->offset_parent;
@@ -146,7 +148,8 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
 	box_cursor = 0;
 	vertical_overflow = false;
 
-	LayoutEngine::BuildBox(box, min_height, max_height, parent, nullptr);
+	// TODO: Calculate outside and pass the box into the constructor.
+	LayoutDetails::BuildBox(box, min_height, max_height, parent, nullptr, false, allow_shrink);
 	parent->PositionBlockBox(position, box, Style::Clear::None);
 	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
@@ -318,7 +321,7 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, UniquePtr<La
 }
 
 // Adds a new block element to this block box.
-LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
+LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, bool allow_shrink)
 {
 	RMLUI_ZoneScoped;
 
@@ -351,7 +354,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element)
 		}
 	}
 
-	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element));
+	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element, allow_shrink));
 	return block_boxes.back().get();
 }
 
@@ -475,19 +478,8 @@ void LayoutBlockBox::CloseAbsoluteElements()
 			Vector2f absolute_position = absolute_elements[i].position;
 			absolute_position -= position - offset_root->GetPosition();
 
-			// See CSS 2.1 spec 10.3.7
-			const ComputedValues& computed = absolute_element->GetComputedValues();
-			bool shrink_to_fit = (computed.width.type == Style::Width::Auto && (computed.left.type == Style::Width::Auto || computed.right.type == Style::Width::Auto));
-
-			// Don't shrink replaced elements.
-			if (shrink_to_fit)
-			{
-				Vector2f unused_intrinsic_dimensions;
-				shrink_to_fit = !absolute_element->GetIntrinsicDimensions(unused_intrinsic_dimensions);
-			}
-
 			// Lay out the element.
-			LayoutEngine::FormatElement(absolute_element, containing_block, shrink_to_fit);
+			LayoutEngine::FormatElement(absolute_element, containing_block);
 
 			// Now that the element's box has been built, we can offset the position we determined was appropriate for
 			// it by the element's margin. This is necessary because the coordinate system for the box begins at the
@@ -548,43 +540,47 @@ void LayoutBlockBox::PositionLineBox(Vector2f& box_position, float& box_width, b
 }
 
 
-// Calculate the dimensions of the box's internal width; i.e. the size of the largest line, plus this element's padding.
-float LayoutBlockBox::InternalContentWidth() const
+// Calculate the dimensions of the box's internal content width; i.e. the size of the largest line.
+float LayoutBlockBox::GetShrinkToFitWidth() const
 {
 	float content_width = 0.0f;
 
 	if (context == BLOCK)
 	{
+		auto get_content_width_from_children = [this, &content_width]() {
+			for (size_t i = 0; i < block_boxes.size(); i++)
+			{
+				const Box& box = block_boxes[i]->GetBox();
+				const float edge_size = box.GetCumulativeEdge(Box::PADDING, Box::LEFT) + box.GetCumulativeEdge(Box::PADDING, Box::RIGHT);
+				content_width = Math::Max(content_width, block_boxes[i]->GetShrinkToFitWidth() + edge_size);
+			}
+		};
 
-		for (size_t i = 0; i < block_boxes.size(); i++)
-		{
-			content_width = Math::Max(content_width, block_boxes[i]->InternalContentWidth());
-		}
-
-		// Work-around for supporting 'width' specification of 'display:block' elements inside 'display:inline-block'.
-		//  Alternative solution: Add some 'intrinsic_width' property to  every 'LayoutBlockBox' and have that propagate up to the nearest 'inline-block'.
+		// Block boxes with definite sizes should use that size. Otherwise, find the maximum content width of our children.
+		//  Alternative solution: Add some 'intrinsic_width' property to every 'LayoutBlockBox' and have that propagate up.
 		if (element)
 		{
 			auto& computed = element->GetComputedValues();
 			const float block_width = box.GetSize(Box::CONTENT).x;
 
-			if(computed.width.type != Style::Width::Auto)
+			if(computed.width.type == Style::Width::Auto)
 			{
-				float w_value = ResolveValue(computed.width, block_width);
-				content_width = Math::Max(content_width, w_value);
+				get_content_width_from_children();
+			}
+			else
+			{
+				float width_value = ResolveValue(computed.width, block_width);
+				content_width = Math::Max(content_width, width_value);
 			}
 
-			float min_width = ResolveValue(computed.min_width, block_width);
-			content_width = Math::Max(content_width, min_width);
-			
-			if (computed.max_width.value >= 0.f)
-			{
-				float value = ResolveValue(computed.max_width, block_width);
-				content_width = Math::Min(content_width, value);
-			}
+			content_width = LayoutDetails::ClampWidth(content_width, computed, block_width);
+		}
+		else
+		{
+			get_content_width_from_children();
 		}
 
-		content_width += box.GetCumulativeEdge(Box::PADDING, Box::LEFT) + box.GetCumulativeEdge(Box::PADDING, Box::RIGHT);
+		// Can add the dimensions of floating elements here if we want to support that.
 	}
 	else
 	{

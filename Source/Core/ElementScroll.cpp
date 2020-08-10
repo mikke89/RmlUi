@@ -27,7 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/ElementScroll.h"
-#include "LayoutEngine.h"
+#include "LayoutDetails.h"
 #include "WidgetScroll.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
@@ -86,7 +86,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 
 	// Determine the size of the scrollbar.
 	Box box;
-	LayoutEngine::BuildBox(box, Vector2f(element_width, element_width), scrollbars[orientation].element);
+	LayoutDetails::BuildBox(box, Vector2f(element_width, element_width), scrollbars[orientation].element);
 
 	if (orientation == VERTICAL)
 		scrollbars[orientation].size = box.GetSize(Box::MARGIN).x;
