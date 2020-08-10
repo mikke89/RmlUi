@@ -74,7 +74,6 @@ bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
 	}
 
 	block_context_box->Close();
-	block_context_box->CloseAbsoluteElements();
 
 	element->OnLayout();
 

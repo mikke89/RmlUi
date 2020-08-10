@@ -107,8 +107,6 @@ public:
 	/// rendering in a block-context.
 	/// @param element[in] The element to be positioned absolutely within this block box.
 	void AddAbsoluteElement(Element* element);
-	/// Formats, sizes, and positions all absolute elements in this block.
-	void CloseAbsoluteElements();
 
 	/// Returns the offset from the top-left corner of this box's offset element the next child box will be
 	/// positioned at.
@@ -168,6 +166,9 @@ private:
 		Element* element;
 		Vector2f position;
 	};
+
+	/// Formats, sizes, and positions all absolute elements in this block.
+	void CloseAbsoluteElements();
 
 	// Closes our last block box, if it is an open inline block box.
 	CloseResult CloseInlineBlockBox();

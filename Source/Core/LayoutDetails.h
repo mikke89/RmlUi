@@ -77,6 +77,7 @@ public:
 	/// @return The dimensions of the content area, using the latest fixed dimensions for width and height in the hierarchy.
 	static Vector2f GetContainingBlock(const LayoutBlockBox* containing_box);
 
+	/// Formats the element and returns the width of its contents.
 	static float GetShrinkToFitWidth(Element* element, Vector2f containing_block);
 
 	/// Builds the block-specific width and horizontal margins of a Box.

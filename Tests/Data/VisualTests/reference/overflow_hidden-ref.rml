@@ -48,5 +48,13 @@
 	LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
 	<div class="absolute red">Should not be visible</div>
 </div>
+<div class="overflow">
+	<span>
+		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
+	</span>
+	<div>
+		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
+	</div>
+</div>
 </body>
 </rml>

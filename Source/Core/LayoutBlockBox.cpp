@@ -197,84 +197,88 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 
 		box.SetContent(content_area);
 	}
+	
+	visible_outer_width = 0;
+	RMLUI_ASSERTMSG(!(context == INLINE && element), "The following assumes inline contexts do not represent a particular element.");
 
 	// Set the computed box on the element.
-	if (element != nullptr)
+	if (context == BLOCK && element)
 	{
-		if (context == BLOCK)
+		// Calculate the dimensions of the box's *internal* content; this is the tightest-fitting box around all of the
+		// internal elements, plus this element's padding.
+		Vector2f content_box(0, 0);
+
+		for (size_t i = 0; i < block_boxes.size(); i++)
 		{
-			// Calculate the dimensions of the box's *internal* content; this is the tightest-fitting box around all of the
-			// internal elements, plus this element's padding.
-			Vector2f content_box(0, 0);
-
-			for (size_t i = 0; i < block_boxes.size(); i++)
-			{
-				// TODO: Only if the containing block is not an ancestor of us (ie. we are the containing block?).
-				content_box.x = Math::Max(content_box.x, block_boxes[i]->visible_outer_width);
-			}
-
-			// Check how big our floated area is.
-			Vector2f space_box = space->GetDimensions();
-			content_box.x = Math::Max(content_box.x, space_box.x);
-
-			// If our content is larger than our window, we can enable the horizontal scrollbar if
-			// we're set to auto-scrollbars. If we're set to always use scrollbars, then the horiontal
-			// scrollbar will already have been enabled in the constructor.
-			if (content_box.x > box.GetSize().x)
-			{
-				if (overflow_x_property == Style::Overflow::Auto)
-				{
-					element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
-
-					if (!CatchVerticalOverflow())
-						return LAYOUT_SELF;
-				}
-			}
-
-			content_box.x += (box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT));
-
-			content_box.y = box_cursor;
-			content_box.y = Math::Max(content_box.y, space_box.y);
-			if (!CatchVerticalOverflow(content_box.y))
-				return LAYOUT_SELF;
-
-			content_box.y += (box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM));
-
-			element->SetBox(box);
-			element->SetContentBox(space->GetOffset(), content_box);
-
-			const float margin_width = GetBox().GetSize(Box::MARGIN).x;
-
-			// Set the visible outer width so that ancestors can catch any overflow produced by us. That is, hiding it or providing a scrolling mechanism.
-			// If we catch our own overflow here, then just use the normal margin box as that will effectively remove the overflow from our ancestor's perspective.
-			if (overflow_x_property != Style::Overflow::Visible)
-				visible_outer_width = margin_width;
-			else
-				visible_outer_width = Math::Max(margin_width, space->GetOffset().x + content_box.x + box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
-
-
-			// Format any scrollbars which were enabled on this element.
-			element->GetElementScroll()->FormatScrollbars();
+			// TODO: Only if the containing block is not an ancestor of us (ie. we are the containing block?).
+			content_box.x = Math::Max(content_box.x, block_boxes[i]->visible_outer_width);
 		}
+
+		// Check how big our floated area is.
+		Vector2f space_box = space->GetDimensions();
+		content_box.x = Math::Max(content_box.x, space_box.x);
+
+		// If our content is larger than our window, we can enable the horizontal scrollbar if
+		// we're set to auto-scrollbars. If we're set to always use scrollbars, then the horiontal
+		// scrollbar will already have been enabled in the constructor.
+		if (content_box.x > box.GetSize().x)
+		{
+			if (overflow_x_property == Style::Overflow::Auto)
+			{
+				element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
+
+				if (!CatchVerticalOverflow())
+					return LAYOUT_SELF;
+			}
+		}
+
+		content_box.x += (box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT));
+
+		content_box.y = box_cursor;
+		content_box.y = Math::Max(content_box.y, space_box.y);
+		if (!CatchVerticalOverflow(content_box.y))
+			return LAYOUT_SELF;
+
+		content_box.y += (box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM));
+
+		element->SetBox(box);
+		element->SetContentBox(space->GetOffset(), content_box);
+
+		const float margin_width = box.GetSize(Box::MARGIN).x;
+
+		// Set the visible outer width so that ancestors can catch any overflow produced by us. That is, hiding it or providing a scrolling mechanism.
+		// If we catch our own overflow here, then just use the normal margin box as that will effectively remove the overflow from our ancestor's perspective.
+		if (overflow_x_property != Style::Overflow::Visible)
+			visible_outer_width = margin_width;
 		else
-			element->SetBox(box);
+			visible_outer_width = Math::Max(margin_width, space->GetOffset().x + content_box.x + box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
+
+		// Format any scrollbars which were enabled on this element.
+		element->GetElementScroll()->FormatScrollbars();
+	}
+	else if (context == INLINE)
+	{
+		// Find the largest line in this layout block
+		for (size_t i = 0; i < line_boxes.size(); i++)
+		{
+			LayoutLineBox* line_box = line_boxes[i].get();
+			visible_outer_width = Math::Max(visible_outer_width, line_box->GetBoxCursor());
+		}
 	}
 
 	// Increment the parent's cursor.
 	if (parent != nullptr)
 	{
-		// If this close fails, it means this block box has caused our parent block box to generate an automatic
-		// vertical scrollbar.
+		// If this close fails, it means this block box has caused our parent block box to generate an automatic vertical scrollbar.
 		if (!parent->CloseBlockBox(this))
 			return LAYOUT_PARENT;
 	}
 
 	// If we represent a positioned element, then we can now (as we've been sized) act as the containing block for all
 	// the absolutely-positioned elements of our descendants.
-	if (context == BLOCK &&
-		element != nullptr)
+	if (context == BLOCK)
 	{
-		if (element->GetPosition() != Style::Position::Static)
+		if (!element || element->GetPosition() != Style::Position::Static)
 			CloseAbsoluteElements();
 	}
 
@@ -311,10 +315,10 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, UniquePtr<La
 	// Add a new line box.
 	line_boxes.push_back(MakeUnique<LayoutLineBox>(this));
 
-	if (overflow_chain != nullptr)
+	if (overflow_chain)
 		line_boxes.back()->AddChainedBox(overflow_chain);
 
-	if (overflow != nullptr)
+	if (overflow)
 		return line_boxes.back()->AddBox(std::move(overflow));
 
 	return nullptr;
