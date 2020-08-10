@@ -11,7 +11,7 @@
 			color: #444;
 		}
 		#content {
-			width: 200px;
+			width: 230px;
 			margin: 0 auto;
 		}
 		div.float {

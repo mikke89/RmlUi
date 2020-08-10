@@ -30,5 +30,10 @@
 <div>Left filler text. <div class="iblock">An inline-block. <p>A paragraph</p> Filler text.</div> Right filler text.</div>
 <hr/>
 <div>Left filler text. <div class="iblock">An inline-block. <div class="float">A float</div> Filler text.</div> Right filler text.</div>
+<hr/>
+<div class="iblock">Nesting inline-blocks: 
+	<div class="iblock">A<div class="iblock">B<div class="iblock">C</div></div></div>
+	<div class="iblock">D<div class="iblock">E<div class="iblock">F</div></div></div>
+</div>
 </body>
 </rml>
