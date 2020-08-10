@@ -1,4 +1,4 @@
-dl,dt,dd,ul,li,blockquote,address,h1,h2,h3,h4,h5,h6,p,pre,div {
+dl,dt,dd,ul,li,blockquote,address,h1,h2,h3,h4,h5,h6,p,pre,div,section {
 	display: block;
 }
 

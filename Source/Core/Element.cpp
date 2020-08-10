@@ -130,6 +130,8 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 
 	client_area = Box::PADDING;
 
+	baseline = 0.0f;
+
 	num_non_dom_children = 0;
 
 	visible = true;
@@ -542,7 +544,7 @@ int Element::GetNumBoxes()
 // Returns the baseline of the element, in pixels offset from the bottom of the element's content area.
 float Element::GetBaseline() const
 {
-	return 0;
+	return baseline;
 }
 
 // Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size.
@@ -2163,6 +2165,11 @@ void Element::UpdateOffset()
 		relative_offset_position.x = 0;
 		relative_offset_position.y = 0;
 	}
+}
+
+void Element::SetBaseline(float in_baseline)
+{
+	baseline = in_baseline;
 }
 
 void Element::BuildLocalStackingContext()

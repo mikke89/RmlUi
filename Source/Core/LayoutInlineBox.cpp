@@ -47,8 +47,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 
 	width = 0;
 
-	// If this box has intrinsic dimensions, then we set our height to the total height of the element; otherwise, it
-	// is zero height.
+	// If this box has intrinsic dimensions, then we set our height to the total height of the element; otherwise, it is zero height.
 	if (box.GetSize().y > 0)
 	{
 		height = box.GetSize(Box::MARGIN).y;

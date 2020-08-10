@@ -274,12 +274,48 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 			return LAYOUT_PARENT;
 	}
 
-	// If we represent a positioned element, then we can now (as we've been sized) act as the containing block for all
-	// the absolutely-positioned elements of our descendants.
-	if (context == BLOCK)
+	if (context == BLOCK && element)
 	{
-		if (!element || element->GetPosition() != Style::Position::Static)
+		// If we represent a positioned element, then we can now (as we've been sized) act as the containing block for all
+		// the absolutely-positioned elements of our descendants.
+		if (element->GetPosition() != Style::Position::Static)
+		{
 			CloseAbsoluteElements();
+		}
+
+		// Set the baseline for inline-block elements to the baseline of the last line of the element.
+		// This is a special rule for inline-blocks (see CSS 2.1 §10.8.1).
+		if (element->GetDisplay() == Style::Display::InlineBlock)
+		{
+			bool found_baseline = false;
+			float baseline = 0;
+
+			for (int i = (int)block_boxes.size() - 1; i >= 0; i--)
+			{
+				if (block_boxes[i]->context == INLINE)
+				{
+					const LineBoxList& line_boxes = block_boxes[i]->line_boxes;
+					for (int j = (int)line_boxes.size() - 1; j >= 0; j--)
+					{
+						found_baseline = line_boxes[j]->GetBaselineOfLastLine(baseline);
+						if (found_baseline)
+							break;
+					}
+					if (found_baseline)
+						break;
+				}
+			}
+
+			if (found_baseline)
+			{
+				if (baseline < 0 && overflow_x_property != Style::Overflow::Visible || overflow_x_property != Style::Overflow::Visible)
+				{
+					baseline = 0;
+				}
+
+				element->SetBaseline(baseline);
+			}
+		}
 	}
 
 	return OK;

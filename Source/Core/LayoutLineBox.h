@@ -90,6 +90,8 @@ public:
 
 	float GetBoxCursor() const;
 
+	bool GetBaselineOfLastLine(float& baseline) const;
+
 	void* operator new(size_t size);
 	void operator delete(void* chunk);
 

@@ -55,6 +55,7 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
+class LayoutBlockBox;
 class PropertiesIteratorView;
 class FontFaceHandleDefault;
 class PropertyDictionary;
@@ -639,6 +640,7 @@ private:
 
 	void DirtyOffset();
 	void UpdateOffset();
+	void SetBaseline(float baseline);
 
 	void BuildLocalStackingContext();
 	void BuildStackingContext(ElementList* stacking_context);
@@ -715,6 +717,8 @@ private:
 	// Defines what box area represents the element's client area; this is usually padding, but may be content.
 	Box::Area client_area;
 
+	float baseline;
+
 	// True if the element is visible and active.
 	bool visible;
 
@@ -751,6 +755,7 @@ private:
 	friend class Context;
 	friend class ElementStyle;
 	friend class LayoutEngine;
+	friend class LayoutBlockBox;
 	friend class LayoutInlineBox;
 	friend class ElementScroll;
 };

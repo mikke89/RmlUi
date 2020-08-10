@@ -369,6 +369,14 @@ float LayoutLineBox::GetBoxCursor() const
 	return box_cursor; 
 }
 
+bool LayoutLineBox::GetBaselineOfLastLine(float& baseline) const
+{
+	if (inline_boxes.empty())
+		return false;
+	baseline = inline_boxes.back()->GetBaseline();
+	return true;
+}
+
 void* LayoutLineBox::operator new(size_t size)
 {
 	return LayoutEngine::AllocateLayoutChunk(size);
