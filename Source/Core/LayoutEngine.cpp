@@ -27,18 +27,13 @@
  */
 
 #include "LayoutEngine.h"
-#include "../../Include/RmlUi/Core/Math.h"
-#include "Pool.h"
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutDetails.h"
 #include "LayoutInlineBoxText.h"
+#include "Pool.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/ElementScroll.h"
-#include "../../Include/RmlUi/Core/ElementText.h"
-#include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include <float.h>
 #include <cstddef>
 
 namespace Rml {

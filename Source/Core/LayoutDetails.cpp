@@ -28,7 +28,10 @@
 
 #include "LayoutDetails.h"
 #include "LayoutEngine.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include <float.h>
 
 namespace Rml {

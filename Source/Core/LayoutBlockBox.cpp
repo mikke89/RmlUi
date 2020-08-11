@@ -308,7 +308,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 
 			if (found_baseline)
 			{
-				if (baseline < 0 && overflow_x_property != Style::Overflow::Visible || overflow_x_property != Style::Overflow::Visible)
+				if (baseline < 0 && (overflow_x_property != Style::Overflow::Visible || overflow_x_property != Style::Overflow::Visible))
 				{
 					baseline = 0;
 				}
