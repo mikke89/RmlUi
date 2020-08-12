@@ -62,13 +62,17 @@ bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
 
 	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element);
 
-	for (int i = 0; i < element->GetNumChildren(); i++)
+	for (int layout_iteration = 0; layout_iteration < 2; layout_iteration++)
 	{
-		if (!FormatElement(block_context_box, element->GetChild(i)))
-			i = -1;
-	}
+		for (int i = 0; i < element->GetNumChildren(); i++)
+		{
+			if (!FormatElement(block_context_box, element->GetChild(i)))
+				i = -1;
+		}
 
-	block_context_box->Close();
+		if (block_context_box->Close() == LayoutBlockBox::OK)
+			break;
+	}
 
 	element->OnLayout();
 
