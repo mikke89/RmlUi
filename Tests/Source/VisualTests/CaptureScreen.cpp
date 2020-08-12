@@ -159,12 +159,15 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 		for (int xb = 0; xb < wb_ref; xb++)
 		{
 			const int i_ref = yb_ref + xb;
-			diff.data[i_ref] = (Rml::byte)std::abs((int)data_ref[i_ref] - (int)screen.data[yb_screen + xb]);
+			Rml::byte pix_ref = data_ref[i_ref];
+			Rml::byte pix_screen = screen.data[yb_screen + xb];
+			diff.data[i_ref] = (Rml::byte)std::abs((int)pix_ref - (int)pix_screen);
 			sum_diff += (size_t)diff.data[i_ref];
 		}
 	}
 
 	ComparisonResult result;
+	result.skipped = false;
 	result.success = true;
 	result.is_equal = (sum_diff == 0);
 	result.absolute_difference_sum = sum_diff;
@@ -175,7 +178,13 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 	// Write the diff image to file if they are not equal.
 	if (!result.is_equal)
 	{
-		const Rml::String output_path = GetCaptureOutputDirectory() + "/diff-" + filename;
+		Rml::String out_filename = filename;
+		size_t offset = filename.rfind('.');
+		if (offset == Rml::String::npos)
+			offset = filename.size();
+		out_filename.insert(offset, "-diff");
+
+		const Rml::String output_path = GetCaptureOutputDirectory() + '/' + out_filename;
 		lodepng_result = lodepng_encode24_file(output_path.c_str(), diff.data.get(), diff.width, diff.height);
 		if (lodepng_result)
 		{

@@ -87,7 +87,9 @@ void TestNavigator::Update()
 			}
 			else if (iteration_state == IterationState::Comparison)
 			{
-				comparison_results.push_back(CompareCurrentView());
+				RMLUI_ASSERT((int)comparison_results.size() == CurrentSuite().GetNumTests());
+				int test_index = CurrentSuite().GetIndex();
+				comparison_results[test_index] = CompareCurrentView();
 			}
 
 			iteration_index += 1;
@@ -156,6 +158,12 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 		else if (key_identifier == Rml::Input::KI_F && key_ctrl)
 		{
 			element_filter_input->Focus();
+			context->ProcessKeyDown(Rml::Input::KI_A, Rml::Input::KeyModifier::KM_CTRL);
+			context->ProcessKeyUp(Rml::Input::KI_A, Rml::Input::KeyModifier::KM_CTRL);
+		}
+		else if (key_identifier == Rml::Input::KI_R && key_ctrl)
+		{
+			LoadActiveTest();
 		}
 		else if (key_identifier == Rml::Input::KI_S && key_ctrl)
 		{
@@ -354,10 +362,14 @@ void TestNavigator::StartTestSuiteIteration(IterationState new_iteration_state)
 
 	source_state = SourceType::None;
 
-	if (new_iteration_state == IterationState::Comparison)
-		comparison_results.clear();
-
 	TestSuite& suite = CurrentSuite();
+
+	if (new_iteration_state == IterationState::Comparison)
+	{
+		comparison_results.clear();
+		comparison_results.resize(suite.GetNumTests());
+	}
+
 	iteration_initial_index = suite.GetIndex();
 	iteration_wait_frames = iteration_wait_frame_count;
 
@@ -406,7 +418,7 @@ void TestNavigator::StopTestSuiteIteration()
 	}
 	else if (iteration_state == IterationState::Comparison)
 	{
-		RMLUI_ASSERT(iteration_index == (int)comparison_results.size());
+		RMLUI_ASSERT(num_tests == (int)comparison_results.size());
 
 		// Indices
 		Rml::Vector<int> equal;
@@ -418,15 +430,15 @@ void TestNavigator::StopTestSuiteIteration()
 		{
 			const ComparisonResult& comparison = comparison_results[i];
 
-			if (!comparison.success)
+			if (comparison.skipped)
+				skipped.push_back(i);
+			else if (!comparison.success)
 				failed.push_back(i);
 			else if (comparison.is_equal)
 				equal.push_back(i);
 			else
 				not_equal.push_back(i);
 		}
-		for (int i = (int)comparison_results.size(); i < num_tests; i++)
-			skipped.push_back(i);
 
 		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Equal: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d",
 			num_tests, (int)equal.size(), (int)not_equal.size(), (int)failed.size(), (int)skipped.size());
@@ -451,14 +463,8 @@ void TestNavigator::StopTestSuiteIteration()
 		log.reserve(comparison_results.size() * 100);
 
 		log += "RmlUi VisualTests comparison log output\n---------------------------------------\n\n" + summary;
-		log += "\n\nEqual:\n";
+		log += "\n\nNot Equal:\n";
 
-		for (int i : equal)
-		{
-			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
-		}
-		log += "\nNot Equal:\n";
 		if (!not_equal.empty())
 			log += "Percentages are similarity scores. Difference images written to " + GetCaptureOutputDirectory() + "/diff-*.png\n\n";
 		for (int i : not_equal)
@@ -467,6 +473,12 @@ void TestNavigator::StopTestSuiteIteration()
 			log += Rml::CreateString(256, "%5d   %5.1f%%   %s\n", i + 1, comparison_results[i].similarity_score*100.0, suite.GetFilename().c_str());
 			if (!comparison_results[i].error_msg.empty())
 				log += "          " + comparison_results[i].error_msg + "\n";
+		}
+		log += "\nEqual:\n";
+		for (int i : equal)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 		log += "\nFailed:\n";
 		for (int i : failed)

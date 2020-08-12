@@ -19,7 +19,7 @@
 		font-size: 17px;
 		width: 700px;
 		margin: 0 auto;
-		padding-top: 50px;
+		padding-top: 30px;
 	}
 	p {
 		clear: both;
@@ -34,14 +34,15 @@
 	key, value {
 		display: block;
 		line-height: 1.5;
-		width: 46%;
 	}
 	key {
+		width: 40%;
 		float: left;
 		clear: both;
 		text-align: right;
 	}
 	value {
+		width: 52%;
 		float: right;
 		clear: right;
 	}
@@ -60,12 +61,13 @@
 <key>F8</key> <value>Open debugger</value>
 <key>Ctrl+G</key> <value>Go To test (followed by number, enter)</value>
 <key>Ctrl+F</key> <value>Filter tests</value>
+<key>Ctrl+R</key> <value>Reload test</value>
 <key>Ctrl+S</key> <value>View source of test</value>
 <key>Ctrl+Shift+S</key> <value>View source of reference</value>
-<key>Left Mouse Button on Link</key> <value>Copy link to clipboard</value>
+<key>Left Mouse Button on Link</key> <value>Copy link to clipboard (on supported platforms)</value>
 <key>F1</key> <value>Show / hide help</value>
 
-<p>Make sure to check the log output after comparisons and captures.</p>
+<p>Results of comparisons and captures are written to the log output.</p>
 
 <h1>Directories</h1>
 <key>Test suite(s)</key> <span id="test_directories"><value>C:\</value> <value>E:\</value> <value>D:\</value></span>

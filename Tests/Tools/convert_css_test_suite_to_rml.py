@@ -76,7 +76,7 @@ def border_format(side: str, type: str, content: str):
 		return "border" + side + "-width: " + content
 
 	# Next are the shorthand properties, they should contain max a single size, a single style, and a single color.
-	width = re.search(r'\b([0-9]+[a-z]+)\b', content, flags = re.IGNORECASE)
+	width = re.search(r'\b([0-9]+(\.[0-9]+)?[a-z]+|0)\b', content, flags = re.IGNORECASE)
 	if width:
 		width = width.group(1)
 
@@ -123,6 +123,9 @@ assert( border_find_replace("margin:10px; border:20px solid black; padding:30px;
 assert( border_find_replace(" border-left: 7px solid navy; border-right: 17px solid navy; } ") == ' border-left: 7px navy; border-right: 17px navy; } ' )
 assert( border_find_replace(" border: blue solid 3px; ") == ' border: 3px blue; ' )
 assert( border_find_replace(" border: solid lime; ") == ' border: 3px lime; ' )
+assert( border_find_replace(" border: 0; ") == ' border: 0 black; ' )
+assert( border_find_replace(" border-bottom: 0.25em solid green; ") == ' border-bottom: 0.25em green; ' )
+assert( border_find_replace(" border-width: 0; ") == ' border-width:  0; ' )
 assert( border_find_replace(" border-left: orange solid 1em; ") == ' border-left: 1em orange; ' )
 assert( border_find_replace(" border-style: solid none solid solid; ") == ' border-width:  3px 0px 3px 3px; ' )
 assert( border_find_replace("   border: solid; border-style: solid none solid solid; border-style: solid solid solid none; ") == '   border: 3px black; border-width:  3px 0px 3px 3px; border-width:  3px 3px 3px 0px; ' )

@@ -34,6 +34,7 @@
 class ShellRenderInterfaceOpenGL;
 
 struct ComparisonResult {
+	bool skipped = true;
 	bool success = false;
 	bool is_equal = false;
 	double similarity_score = 0;
