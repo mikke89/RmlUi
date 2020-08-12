@@ -58,21 +58,26 @@
 	#filter_text {
 		color: #ffc;
 	}
+	#content {
+		overflow: hidden auto;	
+	}
 	#goto {
-		position: absolute;
-		left: 20px;
-		bottom: 30px;
-		right: 20px;
+		margin: 0 20px 10px 20px;
 		color: #ddb;
 	}
-	#hovertext {
+	#bottom {
 		position: absolute;
-		left: 20px;
-		bottom: 10px;
-		right: 20px;
-		font-size: 0.9em;
+		left: 0;
+		bottom: 0;
+		right: 0;
 		text-align: left;
+		word-break: break-all;
+	}
+	#hovertext {
+		margin: 0px 20px 10px 20px;
+		font-size: 0.9em;
 		color: #aaa;
+		min-height: 1.5em;
 	}
 	#hovertext.confirmation {
 		color: #afa;
@@ -83,7 +88,9 @@
 <div id="header"/>
 <div id="filter"><input id="filterinput" type="text" value=""/><br/><span id="filter_text">Filtered 2 of 63.</span></div>
 <div id="content"/>
-<div id="goto"/>
-<div id="hovertext"/>
+<div id="bottom">
+	<div id="goto"/>
+	<div id="hovertext"/>
+</div>
 </body>
 </rml>

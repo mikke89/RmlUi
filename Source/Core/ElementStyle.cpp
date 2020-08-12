@@ -598,6 +598,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		values.text_decoration = parent_values->text_decoration;
 		values.text_transform = parent_values->text_transform;
 		values.white_space = parent_values->white_space;
+		values.word_break = parent_values->word_break;
 
 		values.cursor = parent_values->cursor;
 		values.focus = parent_values->focus;
@@ -785,6 +786,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 		case PropertyId::WhiteSpace:
 			values.white_space = (WhiteSpace)p->Get< int >();
+			break;
+		case PropertyId::WordBreak:
+			values.word_break = (WordBreak)p->Get< int >();
 			break;
 
 		case PropertyId::Cursor:
