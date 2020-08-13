@@ -46,7 +46,6 @@ The Lua plugins have been changed to reflect the above changes.
 - Refactored `TransformPrimitive.h` by moving utility functions that should only be used internally to an internal header file.
 - Renamed header guard macros.
 
-
 ### Model-view-controller (MVC) implementation
 
 RmlUi now supports a model-view-controller (MVC) approach through data bindings. This is a powerful approach for making documents respond to data changes, or in reverse, updating data based on user actions.
@@ -65,15 +64,24 @@ Work has started on a complete test suite for RmlUi. The tests have been separat
 - `Unit tests`. To ensure smaller units of the library are working properly.
 - `Benchmarks`. Benchmarking various components of the library to keep track of performance increases or regressions for future development, and find any performance hotspots that could need extra attention.
 
+### Layout improvements
+
+- Floating elements, absolutely positioned elements, and inline-block elements (as before) will now all shrink to the width of their contents when their width is set to `auto`.
+- Fixed some situations where overflowing content would not be hidden or scrolled when setting a non-default `overflow` property. [#116](https://github.com/mikke89/RmlUi/issues/116)
+- Several other layouting improvements (to-be-detailed).
+
+These changes may result in a differently rendered layout when upgrading to RmlUi 4.0. In particular the first item. If the changes are undesired, set a definite width on the related elements, eg. using the `width` property or the `left`/`right` properties.
 
 ### Other features and improvements
 
 - Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
-- Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 - Implemented the `word-break` RCSS property.
-- Floating elements, absolutely positioned elements, and inline-block elements (as before) will now all shrink to the width of their contents when their width is set to `auto`.
-- Several other layouting improvements (to-be-detailed).
-- `tab-index: auto` can now be set on the `body` element to enable tabbing back to the document.
+- The `tab-index: auto` property can now be set on the `body` element to enable tabbing back to the document.
+- A custom configuration can now be used by RmlUi. In this way it is possible to replace several types including containers to other STL-compatible containers (such as [EASTL](https://github.com/electronicarts/EASTL)), or to STL containers with custom allocators. See the `CUSTOM_CONFIGURATION` [CMake option](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options). [#110](https://github.com/mikke89/RmlUi/pull/110) (thanks @rokups).
+- Added ability to change the default base tag in documents [#112](https://github.com/mikke89/RmlUi/pull/112)  (thanks @aquawicket).
+- Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
+- Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
+- Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) (thanks @SpaceCat-Chan).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 
 ### Breaking changes
@@ -81,7 +89,7 @@ Work has started on a complete test suite for RmlUi. The tests have been separat
 - Namespaces and plugin names changed! See the restructuring changes above.
 - It is no longer possible to use `{{` and `}}` inside RML documents outside the context of data bindings.
 - Attributes starting with `data-` are now reserved for RmlUi.
-- The changes to the layout engine may result in changes to the rendered layout in some situations.
+- The changes to the layout engine may result in changes to the rendered layout in some situations, see above for more details.
 - The `BaseXMLParser` class has some minor interface changes.
 
 
